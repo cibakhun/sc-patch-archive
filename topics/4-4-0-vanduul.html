@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vanduul — Star Citizen 4.4.0 | SC Patch-Archiv</title>
+<meta name="description" content="Vanduul: aggressive Klingen-Aliens, die mit Alpha 4.4.0 erstmals als KI-Gegner ins persistente Universum kommen — Stinger, Glaive, Scythe und Blade patrouillieren Nyx und greifen ohne Vorwarnung an." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/detail.css" />
+<style>
+:root{--bg:#0c1020;--bg-2:#121a30;--surface:#16203a;--surface-2:#1d2949;--accent:#7fb2d9;--accent-2:#d4af37;--hot:#c0271f;--text:#e6edfb;--muted:#93a4c4;--line:rgba(127,178,217,.22);--line-soft:rgba(230,237,251,.10);--glow:0 0 44px rgba(127,178,217,.30);--ink:#0c1020;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.lede-kx{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <a class="back" href="../patches/sc-4-4-0.html"><span class="arrow">←</span> Zurück zu 4.4.0</a>
+  <span class="vpill">GEGNER · ALPHA 4.4.0</span>
+</div>
+
+<main id="main">
+
+  <!-- HERO (full-bleed, kinetic) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('../assets/t-vanduul-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="../patches/sc-4-4-0.html">Alpha 4.4.0 · Welcome to Nyx</a> &nbsp;·&nbsp; Gegner</div>
+      <h1><span class="thin">Die erste Alien-Bedrohung im PU</span>Vanduul</h1>
+      <p class="lead">Aggressive Klingen-Aliens, die mit 4.4.0 erstmals als KI-Gegner ins persistente Universum kommen — Stinger, Glaive, Scythe und Blade patrouillieren Nyx und greifen ohne Vorwarnung an.</p>
+      <div class="tags"><span class="tag hot">Alien</span><span class="tag">KI-Gegner</span><span class="tag">Nyx</span><span class="tag">Operation Sworn Enemies</span><span class="tag hot">Feindlich</span></div>
+      <div class="hero__play" data-lb="yt:ilDmGyHLQNg"><span class="pbtn">▶</span>Trailer ansehen</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>VANDUUL</span><span class="dot">◆</span><span>SCYTHE</span><span class="dot">◆</span><span>GLAIVE</span><span class="dot">◆</span><span>BLADE</span><span class="dot">◆</span><span>STINGER</span><span class="dot">◆</span><span>NYX</span><span class="dot">◆</span><span>OPERATION SWORN ENEMIES</span><span class="dot">◆</span>
+      <span>VANDUUL</span><span class="dot">◆</span><span>SCYTHE</span><span class="dot">◆</span><span>GLAIVE</span><span class="dot">◆</span><span>BLADE</span><span class="dot">◆</span><span>STINGER</span><span class="dot">◆</span><span>NYX</span><span class="dot">◆</span><span>OPERATION SWORN ENEMIES</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="4">0</div><div class="c">KI-Schiffstypen · Stinger · Glaive · Scythe · Blade</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Neues System · Nyx</div></div>
+    <div class="s"><div class="n count" data-to="0">0</div><div class="c">Vorwarnungen vor dem Angriff</div></div>
+    <div class="s"><div class="n">ERZFEIND</div><div class="c">Premiere im persistenten Universum</div></div>
+  </div>
+
+  <!-- FULL-BLEED BAND #1 (parallax, big overlaid text) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('../assets/img-vanduul.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">Ein Erzfeind kehrt zurück</div>
+      <div class="big outline">KLINGEN AM HIMMEL</div>
+      <p>Die Vanduul sind eine aggressive Alien-Spezies mit klingenförmigen Schiffen — ein jahrzehntealter Erzfeind der Menschheit aus dem Vanduul-Krieg. Mit Alpha 4.4.0 betreten sie zum ersten Mal das persistente Universum.</p>
+    </div>
+  </section>
+
+  <!-- OVERVIEW as full-bleed BAND #2 (no card) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('../assets/t-vanduul-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">01 · Erstmals im PU</div>
+      <div class="big" style="font-size:clamp(2.4rem,8vw,6rem)">KI-FRAKTION</div>
+      <p>Was bislang Hintergrundlore war, wird mit 4.4.0 zur akuten Gefahr: Die Vanduul erscheinen erstmals als eigenständige <b style="color:var(--accent-2)">KI-Gegner-Fraktion</b> im persistenten Universum. Ihre Piloten denken nicht ans Verhandeln — sie jagen.</p>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: Operation Sworn Enemies -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>Operation Sworn Enemies</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('../assets/trailer-4-4-0.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/t-vanduul-1.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/img-vanduul.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/t-vanduul-2.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Auftrag in Nyx</h3><p>Die Untersuchungs-Mission Operation Sworn Enemies führt dich ins neu eröffnete Nyx-System — dorthin, wo die Vanduul patrouillieren.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Verlassene Stationen</h3><p>Die Spur führt in verlassene Stationen, in denen Hinweise auf gefährliche Vanduul-Technologie zurückgeblieben sind.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Der Technologie auf der Spur</h3><p>Du sammelst und dokumentierst, was die Vanduul hinterlassen haben — und kommst dem Wesen des Erzfeinds Stück für Stück näher.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Ohne Vorwarnung</h3><p>Doch die Vanduul dulden keine Eindringlinge: Ihre KI-Piloten greifen ohne Vorwarnung an — der Auftrag wird jederzeit zum Gefecht.</p></div>
+    </div>
+  </div>
+
+  <!-- VERSUS: Menschheit vs Vanduul (full-bleed dual pane) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⚠ Vanduul</h3>
+        <ul>
+          <li>Aggressive Alien-Spezies, jahrzehntelanger Erzfeind.</li>
+          <li>Klingenförmige Schiffe, von KI-Piloten geflogen.</li>
+          <li>Patrouillieren Nyx und greifen ohne Vorwarnung an.</li>
+          <li>Keine Verhandlung — reine Feindseligkeit.</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side b">
+        <h3>★ Menschheit</h3>
+        <ul>
+          <li>Spieler stoßen in Nyx erstmals direkt auf die Aliens.</li>
+          <li>Operation Sworn Enemies untersucht ihre Technologie.</li>
+          <li>Jeder Sprung nach Nyx kann ein Hinterhalt werden.</li>
+          <li>Der Vanduul-Krieg findet jetzt im PU statt.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPLIT: Die vier Schiffstypen (one framed/split section) -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('../assets/t-vanduul-2.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">03 · Die Klingenflotte</div>
+        <h3>Stinger · Glaive · Scythe · Blade</h3>
+        <p>Die KI-Piloten der Vanduul fliegen <b>vier Schiffstypen</b>. Jeder trägt die unverkennbare Klingen-Silhouette der Spezies — und jeder taucht in den Patrouillen über Nyx auf.</p>
+        <p>Vom leichten <b>Stinger</b> über <b>Glaive</b> und <b>Scythe</b> bis zur <b>Blade</b>: Wer in ihr Revier eindringt, bekommt es mit genau dieser Staffel zu tun.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED BAND #3: NYX -->
+  <section class="band">
+    <div class="bbg" data-par="0.13" style="background-image:url('../assets/t-vanduul-1.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">04 · Ihr Revier</div>
+      <div class="big outline" style="font-size:clamp(2.6rem,9vw,7rem)">NYX</div>
+      <p>Das neu erschlossene <b style="color:var(--accent-2)">Nyx-System</b> ist ihr Jagdgrund. Hier patrouillieren die Vanduul — und greifen jeden Spieler ohne Vorwarnung an, der ihren Kurs kreuzt.</p>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Sie verhandeln nicht. Sie <span class="hl">jagen</span> — und Nyx gehört jetzt ihnen.</blockquote>
+    <cite>Vanduul · Operation Sworn Enemies</cite>
+  </section>
+
+  <!-- MEDIA (mixed gallery + trailer) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">05</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:../assets/t-vanduul-1.jpg"><img src="../assets/t-vanduul-1.jpg" alt="Vanduul-Jäger über Nyx" loading="lazy"><span class="zoomic">⤢</span><figcaption>Vanduul-Jäger über Nyx</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:../assets/img-vanduul.jpg"><img src="../assets/img-vanduul.jpg" alt="Klingenförmiges Vanduul-Schiff" loading="lazy"><span class="zoomic">⤢</span><figcaption>Klingen-Silhouette</figcaption></figure>
+        <figure class="gtile" data-lb="img:../assets/t-vanduul-2.jpg"><img src="../assets/t-vanduul-2.jpg" alt="Vanduul-Patrouille" loading="lazy"><span class="zoomic">⤢</span><figcaption>Patrouille</figcaption></figure>
+        <figure class="gtile" data-lb="img:../assets/img-nyx.jpg"><img src="../assets/img-nyx.jpg" alt="Nyx-System" loading="lazy"><span class="zoomic">⤢</span><figcaption>Nyx · System</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="ilDmGyHLQNg" style="background-image:url('../assets/trailer-4-4-0.jpg')"><span class="vlbl">Welcome to Nyx — Trailer</span><button class="play" aria-label="Trailer abspielen">▶</button></div>
+      <p class="src reveal">Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=ilDmGyHLQNg" target="_blank" rel="noopener">Auf YouTube ansehen ↗</a></p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <nav class="foot-nav" aria-label="Navigation">
+    <a href="../patches/sc-4-4-0.html"><span class="dir">← Patch</span><span class="ttl">4.4.0 · Welcome to Nyx</span></a>
+    <a href="../index.html"><span class="dir">⌂ Archiv</span><span class="ttl">Alle Patches</span></a>
+  </nav>
+  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer & Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games, Star Citizen Wiki), Fan-Content-Nutzung.</p>
+</footer>
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+
+<script src="../assets/detail.js"></script>
+</body>
+</html>

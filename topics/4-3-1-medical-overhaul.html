@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Medical Overhaul — Star Citizen 4.3.1 | SC Patch-Archiv</title>
+<meta name="description" content="Medical Overhaul: Alpha 4.3.1 baut das Medizin-System um — Wunden, Heilung, Rettung und Wiederbelebung neu gedacht, angeführt vom RSI Apollo und dem MedGel-System." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/detail.css" />
+<style>
+/* Medical-Theme (4.3.1 "Virtue's Descent") */
+:root{--bg:#0f2336;--bg-2:#13304a;--surface:#19395a;--surface-2:#21466b;--accent:#1FAA8C;--accent-2:#9bdfce;--hot:#D7263D;--text:#F2F5F7;--muted:#a9c0d4;--line:rgba(31,170,140,.22);--line-soft:rgba(242,245,247,.10);--glow:0 0 44px rgba(31,170,140,.30);--ink:#0f2336;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.vitals{font-family:var(--font-ui);font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--accent-2);font-size:.74rem}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <a class="back" href="../patches/sc-4-3-1.html"><span class="arrow">←</span> Zurück zu 4.3.1</a>
+  <span class="vpill">FEATURE · ALPHA 4.3.1</span>
+</div>
+
+<main id="main">
+
+  <!-- HERO (full-bleed lead media) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('../assets/t-med-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="../patches/sc-4-3-1.html">Alpha 4.3.1 · Virtue's Descent</a> &nbsp;·&nbsp; Feature</div>
+      <h1><span class="thin">Heilung, neu gedacht</span>Medical Overhaul</h1>
+      <p class="lead">4.3.1 baut das Medizin-System um: Wunden, Heilung, Rettung und Wiederbelebung funktionieren neu — angefuehrt vom RSI Apollo und dem MedGel-System.</p>
+      <div class="tags"><span class="tag">Medical</span><span class="tag">MedGel</span><span class="tag">Bett-Stufen</span><span class="tag">RSI Apollo</span><span class="tag">Site B</span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>MEDICAL OVERHAUL</span><span class="dot">◆</span><span>MEDGEL</span><span class="dot">◆</span><span>BETT-STUFEN T1-T3</span><span class="dot">◆</span><span>RSI APOLLO</span><span class="dot">◆</span><span>SITE B</span><span class="dot">◆</span><span>WIEDERBELEBUNG</span><span class="dot">◆</span>
+      <span>MEDICAL OVERHAUL</span><span class="dot">◆</span><span>MEDGEL</span><span class="dot">◆</span><span>BETT-STUFEN T1-T3</span><span class="dot">◆</span><span>RSI APOLLO</span><span class="dot">◆</span><span>SITE B</span><span class="dot">◆</span><span>WIEDERBELEBUNG</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- FULL-BLEED BAND — opening statement over the medbay (parallax) -->
+  <section class="band band--center">
+    <div class="bbg" data-par="0.14" style="background-image:url('../assets/img-apollo.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">Ein System, von Grund auf neu</div>
+      <div class="big outline">VITALWERTE.</div>
+      <p>Alpha 4.3.1 ueberarbeitet das Medizin-System grundlegend — wie Wunden entstehen und heilen und wie Spieler gerettet und wiederbelebt werden. Aus einem Randthema wird eine eigene Schleife.</p>
+    </div>
+  </section>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="3">0</div><div class="c">Bett-Stufen · T1 bis T3</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Schiff der Stunde · RSI Apollo</div></div>
+    <div class="s"><div class="n">MedGel</div><div class="c">Verbrauchsmaterial der Betten</div></div>
+    <div class="s"><div class="n">Site B</div><div class="c">Onyx-Story · Dr. Jorrits Labor</div></div>
+  </div>
+
+  <!-- SCROLLYTELLING — die neue Versorgungs-Schleife (full-bleed, process fits) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>Die neue Versorgungs-Schleife</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('../assets/t-med-1.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/t-med-2.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/img-apollo2.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/img-apollo.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Verwundung</h3><p>Wunden entstehen jetzt nach neuen Regeln — der erste Baustein des ueberarbeiteten Medizin-Systems bestimmt, wie ein Spieler ueberhaupt zu Schaden kommt.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>MedGel-Versorgung</h3><p>Medizin-Betten ziehen MedGel-Ladungen fuer ihre Funktionen. MedGel ist ein Verbrauchsmaterial — ist es leer, steht das Bett still.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Bett-Stufen T1-T3</h3><p>Betten reichen von T1 bis T3 mit angepassten Respawn-Distanzen — T1 etwa das Krankenhaus in New Babbage mit Premium-Versorgung, T3 etwa die Cutlass Red.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Wiederbelebung</h3><p>Rettung und Wiederbelebung funktionieren neu — der letzte Schritt der Schleife entscheidet, wo und wie ein Spieler zurueck ins Verse kommt.</p></div>
+    </div>
+  </div>
+
+  <!-- SPLIT — RSI Apollo (the ONE framed/split section) -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('../assets/img-apollo2.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">02 · Das Schiff der Stunde</div>
+        <h3>RSI Apollo — Medivac &amp; Triage</h3>
+        <p>Mit dem Medizin-Umbau rueckt der <b>RSI Apollo</b> ins Zentrum: ein dediziertes Sanitaetsschiff in zwei Ausrichtungen — <b>Medivac</b> fuer die Bergung, <b>Triage</b> fuer die Versorgung.</p>
+        <p>Seine Medizin-Betten erhalten <b>Regenerations-Faehigkeiten</b> und machen den Apollo zum fliegenden Stuetzpunkt fuer Teams, die tief im Verse operieren — dort, wo das naechste Krankenhaus weit entfernt ist.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- VERSUS — die zwei Ausrichtungen des Apollo (full-bleed dual pane) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>✚ Medivac</h3>
+        <ul>
+          <li>Ausgelegt auf die Bergung Verwundeter aus dem Feld.</li>
+          <li>Holt gefallene Spieler dorthin, wo sie versorgt werden.</li>
+          <li>Die schnelle Antwort, wenn jemand draussen liegt.</li>
+          <li>Bringt die Rettung zum Patienten statt umgekehrt.</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side b">
+        <h3>✚ Triage</h3>
+        <ul>
+          <li>Ausgelegt auf die Versorgung an Bord.</li>
+          <li>Medizin-Betten mit Regenerations-Faehigkeiten.</li>
+          <li>Fliegender Stuetzpunkt fuer laufende Operationen.</li>
+          <li>Haelt ein Team im Einsatz, fernab vom Krankenhaus.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED BAND — Bett-Stufen (parallax, big overlaid text) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('../assets/t-med-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">03 · Bett-Stufen</div>
+      <div class="big" style="font-size:clamp(2.4rem,8vw,6rem)">T1 → T3</div>
+      <p>Medizin-Betten haben Stufen von <b style="color:var(--accent-2)">T1 bis T3</b> mit angepassten Respawn-Distanzen. <b style="color:var(--accent-2)">T1</b> steht etwa fuer das Krankenhaus in New Babbage mit Premium-Versorgung, <b style="color:var(--accent-2)">T3</b> etwa fuer die Cutlass Red — je hoeher die Stufe, desto naeher die Rueckkehr.</p>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Wer dich rettet, entscheidet, <span class="hl">wo du wieder aufwachst.</span></blockquote>
+    <cite>Medical Overhaul · Alpha 4.3.1</cite>
+  </section>
+
+  <!-- FULL-BLEED BAND — Site B / Onyx-Story (parallax) -->
+  <section class="band">
+    <div class="bbg" data-par="0.13" style="background-image:url('../assets/t-med-1.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">04 · Die Onyx-Story geht weiter</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">SITE B</div>
+      <p>Die Onyx-Story setzt sich mit <b style="color:var(--accent-2)">Site B</b> fort: <b style="color:var(--accent-2)">Dr. Jorrits Labor</b>, in dem Spieler biologische Proben bergen — eine weitere Schicht zum Erkunden, eng verzahnt mit dem medizinischen Thema des Patches.</p>
+    </div>
+  </section>
+
+  <!-- MEDIA (mixed gallery — full-bleed close, no video embed) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">05</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:../assets/vid-apollo.jpg"><img src="../assets/vid-apollo.jpg" alt="RSI Apollo — Medizin-Bay" loading="lazy"><span class="zoomic">⤢</span><figcaption>RSI Apollo · Medizin-Bay</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:../assets/t-med-1.jpg"><img src="../assets/t-med-1.jpg" alt="Medizinische Versorgung" loading="lazy"><span class="zoomic">⤢</span><figcaption>Versorgung · Medical Overhaul</figcaption></figure>
+        <figure class="gtile" data-lb="img:../assets/t-med-2.jpg"><img src="../assets/t-med-2.jpg" alt="Medizin-Bett" loading="lazy"><span class="zoomic">⤢</span><figcaption>Medizin-Bett · Bett-Stufen</figcaption></figure>
+        <figure class="gtile" data-lb="img:../assets/img-apollo.jpg"><img src="../assets/img-apollo.jpg" alt="RSI Apollo im Flug" loading="lazy"><span class="zoomic">⤢</span><figcaption>RSI Apollo</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:../assets/img-apollo2.jpg"><img src="../assets/img-apollo2.jpg" alt="RSI Apollo — Triage" loading="lazy"><span class="zoomic">⤢</span><figcaption>Apollo · Triage</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:../assets/trailer-4-3-1.jpg"><img src="../assets/trailer-4-3-1.jpg" alt="Virtue's Descent — Site B" loading="lazy"><span class="zoomic">⤢</span><figcaption>Site B · Onyx-Story</figcaption></figure>
+      </div>
+      <p class="src reveal">Quelle: offizieller Star-Citizen-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). Bilder zu Veranschaulichung, Fan-Content-Nutzung.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <nav class="foot-nav" aria-label="Navigation">
+    <a href="../patches/sc-4-3-1.html"><span class="dir">← Patch</span><span class="ttl">4.3.1 · Virtue's Descent</span></a>
+    <a href="../index.html"><span class="dir">⌂ Archiv</span><span class="ttl">Alle Patches</span></a>
+  </nav>
+  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer & Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games, Star Citizen Wiki), Fan-Content-Nutzung.</p>
+</footer>
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+
+<script src="../assets/detail.js"></script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Storm Breaker — Star Citizen 4.2.0 | SC Patch-Archiv</title>
+<meta name="description" content="Storm Breaker: Mit Alpha 4.2.0 wird das Wetter zur tödlichen Gefahr — dynamischer Regen, Flug-Turbulenzen und die brandneue Strahlungs-Gefahr verwandeln Stanton und Pyro in Schauplätze des Überlebens." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/detail.css" />
+<style>
+/* Storm-Breaker-Theme (4.2.0) */
+:root{--bg:#16142a;--bg-2:#1d1a38;--surface:#252247;--surface-2:#2e2a4a;--accent:#36e2f0;--accent-2:#f5c518;--hot:#f5c518;--text:#eef1f7;--muted:#a6abc4;--line:rgba(54,226,240,.22);--line-soft:rgba(238,241,247,.10);--glow:0 0 44px rgba(54,226,240,.30);--ink:#16142a;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.kx-stat{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <a class="back" href="../patches/sc-4-2-0.html"><span class="arrow">←</span> Zurück zu 4.2.0</a>
+  <span class="vpill">FEATURE · ALPHA 4.2.0</span>
+</div>
+
+<main id="main">
+
+  <!-- HERO (full-bleed cinematic) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('../assets/t-storm-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="../patches/sc-4-2-0.html">Alpha 4.2.0 · Storm Breaker</a> &nbsp;·&nbsp; Feature</div>
+      <h1><span class="thin">Wetter wird zur Gefahr</span>Storm Breaker</h1>
+      <p class="lead">Mit 4.2.0 schlägt das Wetter zurück: dynamischer Regen, Flug-Turbulenzen und eine brandneue Strahlungs-Gefahr verwandeln Planeten in tödliche Schauplätze — mittendrin die Storm-Breaker-Aktivität.</p>
+      <div class="tags"><span class="tag hot">Dynamisches Wetter</span><span class="tag">Strahlung</span><span class="tag">Turbulenz</span><span class="tag">Regen-Krise</span><span class="tag">Hazard</span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>STORM BREAKER</span><span class="dot">◆</span><span>STRAHLUNG</span><span class="dot">◆</span><span>DYNAMISCHER REGEN</span><span class="dot">◆</span><span>TURBULENZ</span><span class="dot">◆</span><span>DECONPEN</span><span class="dot">◆</span><span>HAZARD</span><span class="dot">◆</span>
+      <span>STORM BREAKER</span><span class="dot">◆</span><span>STRAHLUNG</span><span class="dot">◆</span><span>DYNAMISCHER REGEN</span><span class="dot">◆</span><span>TURBULENZ</span><span class="dot">◆</span><span>DECONPEN</span><span class="dot">◆</span><span>HAZARD</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="190">0</div><div class="c">Bug- & Crash-Fixes</div></div>
+    <div class="s"><div class="n count" data-to="3">0</div><div class="c">Neue Wetter-Gefahren</div></div>
+    <div class="s"><div class="n count" data-to="2">0</div><div class="c">Systeme: Stanton & Pyro</div></div>
+    <div class="s"><div class="n">∞</div><div class="c">Strahlung baut sich auf — ohne Schutz tödlich</div></div>
+  </div>
+
+  <!-- FULL-BLEED OPENING BAND (parallax, design over media) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('../assets/t-storm-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">01 · Das Wetter schlägt zurück</div>
+      <div class="big outline">REGEN FÄLLT.</div>
+      <p>Alpha 4.2.0 bringt <b style="color:var(--accent-2)">dynamischen Regen und dynamisches Wetter</b> an Stanton- und Pyro-Standorte. Was einst Kulisse war, wird jetzt zur aktiven Bedrohung — der Himmel entscheidet mit, ob du landest oder abstürzt.</p>
+    </div>
+  </section>
+
+  <!-- OVERVIEW as full-bleed band (right) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('../assets/t-storm-1.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">02 · Storm Breaker</div>
+      <div class="big" style="font-size:clamp(2.4rem,8vw,6rem)">DIE AKTIVITÄT</div>
+      <p>Im Zentrum des Patches steht die namensgebende <b style="color:var(--accent-2)">Storm-Breaker-Aktivität</b> — fest an die fortlaufende <b style="color:var(--accent-2)">Regen-Krisen-Story</b> angebunden. Das Wetter ist nicht mehr nur Stimmung, sondern Spielziel: Wer in den Sturm fliegt, sucht den Konflikt mit den Elementen.</p>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: Anatomie eines Sturms -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>Anatomie eines Sturms</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('../assets/t-storm-2.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/t-storm-1.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/trailer-4-2-0.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/t-storm-2.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Wetterumschwung</h3><p>An Stanton- und Pyro-Standorten zieht dynamisches Wetter auf — Regen setzt ein, die Sicht sinkt, der Boden wird zur unberechenbaren Variable.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Turbulenz</h3><p>Stürme erzeugen Flug-Turbulenzen, die die Flugstabilität senken. Präzise Anflüge geraten ins Wanken — jede Böe zerrt am Kurs.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>VTOL am Limit</h3><p>Besonders heikel: VTOL-Manöver werden im Sturm deutlich erschwert. Schweben und senkrechtes Landen verlangen jetzt volle Konzentration.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Strahlung steigt</h3><p>Über allem liegt die neue Gefahr: Strahlung baut sich mit der Zeit auf. Ohne Schutz ist sie tödlich — der Sturm tötet auch leise.</p></div>
+    </div>
+  </div>
+
+  <!-- MANIFESTO (pull-quote) -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Der Himmel ist nicht mehr <span class="hl">Kulisse</span>. Er ist der Gegner.</blockquote>
+    <cite>Storm Breaker · Alpha 4.2.0</cite>
+  </section>
+
+  <!-- VERSUS: Sturm vs Schutz (full-bleed dual pane) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⚠ Die Gefahr</h3>
+        <ul>
+          <li>Dynamischer Regen senkt Sicht und Kontrolle.</li>
+          <li>Turbulenzen drücken die Flugstabilität nach unten.</li>
+          <li>VTOL-Manöver werden im Sturm zur Zitterpartie.</li>
+          <li>Strahlung baut sich auf — ungeschützt tödlich.</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side b">
+        <h3>★ Das Gegenmittel</h3>
+        <ul>
+          <li>CureLife DeconPen Xtra als Notfall-Injektor.</li>
+          <li>Injiziert Canoiodide gegen die Strahlung.</li>
+          <li>Verabreicht zusätzlich Hemozal als Wirkstoff.</li>
+          <li>Wer rechtzeitig sticht, überlebt den Aufbau.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FRAMED SPLIT (the one allowed card section) — DeconPen detail -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('../assets/trailer-4-2-0.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">04 · Das Antidot</div>
+        <h3>CureLife DeconPen Xtra</h3>
+        <p>Gegen die neue Strahlungs-Gefahr gibt es genau eine Antwort: den <b>CureLife DeconPen Xtra</b>. Der Injektor verabreicht <b>Canoiodide</b> und <b>Hemozal</b> direkt in den Blutkreislauf und kauft dir Zeit gegen die aufsteigende Dosis.</p>
+        <p>Strahlung ist tückisch, weil sie sich <b>still über die Zeit aufbaut</b> — wer den DeconPen zu spät zieht, hat schon verloren. Im Sturm-Loadout gehört er ab 4.2.0 zur Pflichtausrüstung.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED CLOSING BAND (radiation) -->
+  <section class="band band--center">
+    <div class="bbg" data-par="0.13" style="background-image:url('../assets/t-storm-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">05 · Die unsichtbare Gefahr</div>
+      <div class="big outline">STRAHLUNG.</div>
+      <p>Brandneu in 4.2.0 und anders als alles zuvor: Strahlung ist eine Umweltgefahr, die sich mit der Zeit aufbaut und ohne Schutz <b style="color:var(--accent-2)">tödlich</b> endet. Sie zwingt zur Vorsorge — denn wenn der Zähler oben ist, hilft kein Rückzug mehr.</p>
+    </div>
+  </section>
+
+  <!-- MEDIA (mixed full-bleed gallery, no video embed) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">06</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:../assets/t-storm-1.jpg"><img src="../assets/t-storm-1.jpg" alt="Storm Breaker — Sturm über dem Standort" loading="lazy"><span class="zoomic">⤢</span><figcaption>Sturm über dem Standort</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:../assets/t-storm-2.jpg"><img src="../assets/t-storm-2.jpg" alt="Dynamischer Regen und Wetter" loading="lazy"><span class="zoomic">⤢</span><figcaption>Dynamischer Regen</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:../assets/trailer-4-2-0.jpg"><img src="../assets/trailer-4-2-0.jpg" alt="Alpha 4.2.0 Storm Breaker" loading="lazy"><span class="zoomic">⤢</span><figcaption>Alpha 4.2.0 · Storm Breaker</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:../assets/t-storm-2.jpg"><img src="../assets/t-storm-2.jpg" alt="Turbulenz und Strahlungs-Gefahr" loading="lazy"><span class="zoomic">⤢</span><figcaption>Turbulenz & Strahlung</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:../assets/t-storm-1.jpg"><img src="../assets/t-storm-1.jpg" alt="Schauplatz des Überlebens" loading="lazy"><span class="zoomic">⤢</span><figcaption>Schauplatz des Überlebens</figcaption></figure>
+      </div>
+      <p class="src reveal">Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="../patches/sc-4-2-0.html">Zur Patch-Übersicht 4.2.0 ↗</a></p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <nav class="foot-nav" aria-label="Navigation">
+    <a href="../patches/sc-4-2-0.html"><span class="dir">← Patch</span><span class="ttl">4.2.0 · Storm Breaker</span></a>
+    <a href="../index.html"><span class="dir">⌂ Archiv</span><span class="ttl">Alle Patches</span></a>
+  </nav>
+  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer & Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games, Star Citizen Wiki), Fan-Content-Nutzung.</p>
+</footer>
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+
+<script src="../assets/detail.js"></script>
+</body>
+</html>
