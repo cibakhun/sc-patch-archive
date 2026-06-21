@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tactical Strike Groups — Star Citizen 4.8.0 | SC Patch-Archiv</title>
+<meta name="description" content="Tactical Strike Groups: Star Citizens erste dedizierte kooperative Schiffskampf-Operation — eine mehrphasige Vanduul-Schlacht in Nyx, eingeführt mit Alpha 4.8.0 Tactical Strike." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/detail.css" />
+<style>
+/* Strike-Theme (4.8.0 Tactical Strike) */
+:root{--bg:#0d0a16;--bg-2:#140f24;--surface:#1a1330;--surface-2:#231a3e;--accent:#E8651E;--accent-2:#1FB8A6;--hot:#E8651E;--text:#ede9f5;--muted:#a39db5;--line:rgba(232,101,30,.22);--line-soft:rgba(237,233,245,.10);--glow:0 0 44px rgba(232,101,30,.30);--ink:#0d0a16;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.kx-teal{color:var(--accent-2)}
+.roleline{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.1rem}
+.rolechip{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.72rem;padding:.4rem .85rem;border:1px solid var(--line);border-radius:3px;background:rgba(0,0,0,.4);color:var(--accent-2)}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <a class="back" href="../patches/sc-4-8-0.html"><span class="arrow">←</span> Zurück zu 4.8.0</a>
+  <span class="vpill">ENDGAME · ALPHA 4.8.0</span>
+</div>
+
+<main id="main">
+
+  <!-- HERO (full-bleed lead) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('../assets/t-tsg-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="../patches/sc-4-8-0.html">Alpha 4.8.0 · Tactical Strike</a> &nbsp;·&nbsp; Endgame</div>
+      <h1><span class="thin">Der erste echte Koop-Raid</span>Tactical Strike Groups</h1>
+      <p class="lead">4.8.0s Endgame: eine mehrphasige, kooperative Schlacht gegen eine Vanduul-Bedrohung — im All und am Boden. Nur eine koordinierte Schiffs-Streitmacht mit klaren Rollen kommt durch.</p>
+      <div class="tags"><span class="tag hot">Koop-Raid</span><span class="tag">PvE-Endgame</span><span class="tag">Vanduul Mauler</span><span class="tag">Nyx</span><span class="tag">7+ Spieler</span></div>
+      <div class="hero__play" data-lb="yt:SsOtI2dtvBc"><span class="pbtn">▶</span>Trailer ansehen</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>TACTICAL STRIKE GROUPS</span><span class="dot">◆</span><span>VANDUUL MAULER</span><span class="dot">◆</span><span>QV EXTRACTION</span><span class="dot">◆</span><span>NYX</span><span class="dot">◆</span><span>FIGHTER · BOMBER · CAPITAL</span><span class="dot">◆</span><span>PVE-ENDGAME</span><span class="dot">◆</span>
+      <span>TACTICAL STRIKE GROUPS</span><span class="dot">◆</span><span>VANDUUL MAULER</span><span class="dot">◆</span><span>QV EXTRACTION</span><span class="dot">◆</span><span>NYX</span><span class="dot">◆</span><span>FIGHTER · BOMBER · CAPITAL</span><span class="dot">◆</span><span>PVE-ENDGAME</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="7" data-suffix="+">0</div><div class="c">Spieler · empfohlene Truppstärke</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Vanduul Mauler · der späte Boss</div></div>
+    <div class="s"><div class="n">∞</div><div class="c">Phasen · All bis FPS-Infiltration</div></div>
+    <div class="s"><div class="n">Koop</div><div class="c">PvE-Endgame für Orgs</div></div>
+  </div>
+
+  <!-- MANIFESTO (moved up — varies from template) -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Keine Solo-Helden. Nur eine <span class="hl">koordinierte Streitmacht</span> kommt durch.</blockquote>
+    <cite>Tactical Strike Groups · Nyx</cite>
+  </section>
+
+  <!-- OVERVIEW — full-bleed band (image as background, design on top) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('../assets/t-tsg-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">01 · Überblick</div>
+      <div class="big outline">EINE FLOTTE.</div>
+      <p>Mit Alpha 4.8 <b style="color:var(--accent-2)">Tactical Strike</b> kommt Star Citizens erste dedizierte kooperative Schiffskampf-Operation — eine mehrphasige Missionskette mit echter Rollen-Spezialisierung. Kein Glück, sondern Absprache entscheidet, wer den Kern erreicht.</p>
+    </div>
+  </section>
+
+  <!-- VERSUS: Zwei Schauplätze (full-bleed, two sides) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>✦ Im All</h3>
+        <ul>
+          <li>Offener Schiffskampf gegen Vanduul rund um die Station.</li>
+          <li>Power-Relais beschädigen, um die Anlage zu öffnen.</li>
+          <li>Tunnelflug ins Innere — eng, präzise, gnadenlos.</li>
+          <li>Kühler zerstören und den Kern freilegen.</li>
+        </ul>
+      </div>
+      <div class="vs">&amp;</div>
+      <div class="side b">
+        <h3>★ Am Boden</h3>
+        <ul>
+          <li>FPS-Infiltration der QV Extraction Station.</li>
+          <li>Das verschollene Aufklärungsteam bergen.</li>
+          <li>Piloten-Extraktion unter Feindfeuer.</li>
+          <li>Standhalten gegen einen späten Vanduul-Mauler.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: Die Phasen (process, full-bleed) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>Die Phasen der Operation</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('../assets/t-tsg-1.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/t-tsg-2.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/img-vanduul.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/trailer-4-8-0.jpg')"></div>
+      <div class="frame" style="background-image:url('../assets/vid-isc48.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Schiffskampf außen</h3><p>Die Strike Group erreicht die QV Extraction Station im Nyx-System und stellt sich der Vanduul-Bedrohung im offenen Raum — Jäger sichern den Himmel, Bomber und Support ziehen nach.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Power-Relais &amp; Tunnelflug</h3><p>Gezielter Schaden an den Power-Relais öffnet die Anlage. Danach folgt der Tunnelflug ins Innere des Asteroiden — enge Korridore, in denen jede Rolle zählt.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Kühler &amp; Kern</h3><p>Die Kühler der Station müssen zerstört werden, um den Kern freizulegen — der Übergang vom Schiffskampf zur Infiltration zu Fuß.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>FPS-Infiltration &amp; Extraktion</h3><p>Zu Fuß wird die Station durchkämmt, das verschollene Aufklärungsteam gesucht und die Piloten-Extraktion eingeleitet — unter wachsendem Druck.</p></div>
+      <div class="sstep"><div class="sn">05</div><h3>Der Vanduul Mauler</h3><p>Spät in der Operation taucht ein Vanduul-Mauler auf. Nur eine Truppe mit klaren Rollen — Fighter, Bomber, Support, Capital — hält stand und schließt den Raid ab.</p></div>
+    </div>
+  </div>
+
+  <!-- ROLLEN — full-bleed band (image as background) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('../assets/img-vanduul.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">03 · Zusammensetzung</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">ROLLEN ZÄHLEN</div>
+      <p>Ausgelegt für Gruppen ab <b style="color:var(--accent-2)">sieben Spielern</b>, die Jäger, Bomber, Support-Schiffe und sogar Capital Ships mischen. Wer die Rollen vernachlässigt, kommt nicht durch alle Phasen.</p>
+      <div class="roleline" style="justify-content:flex-end">
+        <span class="rolechip">Fighter</span><span class="rolechip">Bomber</span><span class="rolechip">Support</span><span class="rolechip">Capital</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- BELOHNUNGEN — the single framed/split section -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('../assets/t-tsg-2.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">04 · Beute</div>
+        <h3>Das neue PvE-Endgame für Orgs</h3>
+        <p>Tactical Strike Groups ist das neue <b>PvE-Endgame für organisierte Orgs</b> — eine Operation, die sich nur mit Disziplin und Rollenverteilung bewältigen lässt.</p>
+        <p>Wer durchkommt, wird mit einzigartigen Belohnungen entlohnt: einem exklusiven <b>Armbrust-Blueprint</b> und hochwertigem Loot, das diese Operation von allem bisher Dagewesenen abhebt.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCHAUPLATZ — full-bleed band (Nyx) -->
+  <section class="band">
+    <div class="bbg" data-par="0.13" style="background-image:url('../assets/t-tsg-1.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">05 · Schauplatz</div>
+      <div class="big">QV EXTRACTION</div>
+      <p>Schauplatz sind die <b style="color:var(--accent-2)">QV Extraction Stations</b> — große Asteroiden-Anlagen tief im <b style="color:var(--accent-2)">Nyx-System</b>, wo ein verschollenes Aufklärungsteam gesucht wird. Mit Alpha 4.8 Tactical Strike startete die Operation samt vollem Wipe.</p>
+    </div>
+  </section>
+
+  <!-- MEDIA (mixed gallery + trailer — full-bleed close) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">06</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:../assets/t-tsg-1.jpg"><img src="../assets/t-tsg-1.jpg" alt="Tactical Strike Groups — Schiffskampf an der QV Extraction Station" loading="lazy"><span class="zoomic">⤢</span><figcaption>QV Extraction Station · Nyx</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:../assets/t-tsg-2.jpg"><img src="../assets/t-tsg-2.jpg" alt="Strike Group im Anflug" loading="lazy"><span class="zoomic">⤢</span><figcaption>Strike Group · Anflug</figcaption></figure>
+        <figure class="gtile" data-lb="img:../assets/img-vanduul.jpg"><img src="../assets/img-vanduul.jpg" alt="Vanduul-Bedrohung" loading="lazy"><span class="zoomic">⤢</span><figcaption>Vanduul-Bedrohung</figcaption></figure>
+        <figure class="gtile" data-lb="img:../assets/vid-isc48.jpg"><img src="../assets/vid-isc48.jpg" alt="Inside Star Citizen 4.8" loading="lazy"><span class="zoomic">⤢</span><figcaption>Inside Star Citizen 4.8</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:../assets/trailer-4-8-0.jpg"><img src="../assets/trailer-4-8-0.jpg" alt="Alpha 4.8 Tactical Strike — Trailer" loading="lazy"><span class="zoomic">⤢</span><figcaption>Tactical Strike · Trailer</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="SsOtI2dtvBc" style="background-image:url('../assets/trailer-4-8-0.jpg')"><span class="vlbl">Alpha 4.8 Tactical Strike — Trailer</span><button class="play" aria-label="Trailer abspielen">▶</button></div>
+      <p class="src reveal">Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=SsOtI2dtvBc" target="_blank" rel="noopener">Auf YouTube ansehen ↗</a></p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <nav class="foot-nav" aria-label="Navigation">
+    <a href="../patches/sc-4-8-0.html"><span class="dir">← Patch</span><span class="ttl">4.8.0 · Tactical Strike</span></a>
+    <a href="../index.html"><span class="dir">⌂ Archiv</span><span class="ttl">Alle Patches</span></a>
+  </nav>
+  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer & Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games, Star Citizen Wiki), Fan-Content-Nutzung.</p>
+</footer>
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+
+<script src="../assets/detail.js"></script>
+</body>
+</html>

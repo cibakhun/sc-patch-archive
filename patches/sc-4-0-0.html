@@ -168,6 +168,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 .lb__txt h3{font-family:var(--font-display);font-weight:800;font-size:1.4rem;color:var(--accent);margin-bottom:.5rem}
 .lb__txt p{color:var(--text);font-size:1rem;line-height:1.6}
 .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}.reveal.in{opacity:1;transform:none}
+.cz-cta{display:inline-flex;align-items:center;gap:.5rem;margin-top:1.3rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.85rem;color:#120f0c;background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;transition:transform .2s,box-shadow .2s;box-shadow:0 0 30px rgba(255,90,31,.35)}
+.cz-cta:hover{transform:translateY(-2px);box-shadow:0 0 46px rgba(255,90,31,.6)}
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 </style>
 </head>
@@ -212,13 +214,13 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
         <div class="tile img b2" data-lb="img:../assets/img-pyro.jpg"><div class="tbg" style="background-image:url('../assets/img-pyro.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Pyro</div><div class="sub">2. Sternsystem</div></div>
-        <div class="tile word" data-info data-title="Server Meshing" data-text="Die Technik hinter 4.0.0: mehrere Game-Server bedienen unsichtbar nahtlos einen einzigen Shard. Erstmals teilen sich so bis zu 500 Spieler ein zusammenhängendes Universum statt ~100 pro getrenntem Server."><span class="zoomic">+</span><b>SERVER<br>MESHING</b><small>~10 Server, 1 Shard</small></div>
+        <a class="tile word hot" href="../topics/4-0-0-server-meshing.html"><span class="zoomic">→</span><b>SERVER<br>MESHING</b><small>Detailseite ansehen</small></a>
         <div class="tile stat" data-info data-title="500 Spieler pro Shard" data-text="Dank Server Meshing steigt die Spielerzahl pro Shard von vormals rund 100 auf bis zu 500 — alle im selben persistenten Spielraum."><span class="zoomic">+</span><div class="num">500</div><div class="cap">Spieler · Shard</div></div>
         <div class="tile img w2" data-lb="img:../assets/img-guardian.jpg"><div class="tbg" style="background-image:url('../assets/img-guardian.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Mirai Guardian</div><div class="sub">Jäger</div></div>
         <a class="tile word hot" href="../topics/4-0-0-contested-zones.html"><span class="zoomic">→</span><b>CONTESTED<br>ZONES</b><small>Detailseite ansehen</small></a>
         <div class="tile word" data-info data-title="Charakter-Wipe &amp; Startbonus" data-text="Mit dem Major Release wurde der Spielfortschritt zurückgesetzt (Wipe). Als Ausgleich erhielten Spieler ein Startguthaben von +20.000 aUEC für den Neustart in Stanton und Pyro."><span class="zoomic">+</span><b>WIPE</b><small>+20.000 aUEC</small></div>
-        <div class="tile img w2" data-lb="img:../assets/img-ironclad.jpg"><div class="tbg" style="background-image:url('../assets/img-ironclad.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Drake Ironclad</div><div class="sub">Hauler</div></div>
-        <div class="tile stat" data-info data-title="Pyro — das 2. Sternsystem" data-text="Pyro ist nach Stanton das zweite voll simulierte Sternsystem im Persistent Universe. Gesetzlos und von Gangs beherrscht, erreichbar über einen Jump Point." data-img="../assets/img-pyro.jpg"><span class="zoomic">+</span><div class="num">2.</div><div class="cap">Sternsystem</div></div>
+        <div class="tile img w2" data-lb="img:../assets/img-polaris.jpg"><div class="tbg" style="background-image:url('../assets/img-polaris.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">RSI Polaris</div><div class="sub">Korvette</div></div>
+        <a class="tile stat" href="../topics/4-0-0-pyro-system.html"><span class="zoomic">→</span><div class="num">2.</div><div class="cap">Sternsystem · Detail</div></a>
       </div>
     </div>
   </section>
@@ -239,8 +241,19 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe</h2><span class="rule"></span></div>
       <div class="garage">
         <article class="ship reveal" data-lb="yt:pQxnN4MiTig"><div class="sbg" style="background-image:url('../assets/img-guardian.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">Mirai · Jäger</span><h3>Mirai Guardian</h3></div></article>
-        <article class="ship reveal" data-lb="img:../assets/img-ironclad.jpg"><div class="sbg" style="background-image:url('../assets/img-ironclad.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Drake · Hauler</span><h3>Drake Ironclad</h3></div></article>
+        <article class="ship reveal" data-lb="img:../assets/img-polaris.jpg"><div class="sbg" style="background-image:url('../assets/img-polaris.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">RSI · Korvette</span><h3>RSI Polaris</h3></div></article>
       </div>
+    </div>
+  </section>
+
+  <!-- CONTESTED ZONES BAND (full-bleed, non-card, links to detail page) -->
+  <section class="shot">
+    <div class="sbg" style="background-image:url('../assets/cz-facility.jpg')" aria-hidden="true"></div>
+    <div class="shot__in reveal">
+      <div class="kx">Pyros Hochrisiko-Beutezonen</div>
+      <div class="big outline">CONTESTED<br>ZONES</div>
+      <p>PvPvE-Extraktion tief in Pyros Anlagen: KI-Wachen, rivalisierende Spieler und das beste Loot des Verse — nur wer lebend rauskommt, behält die Beute.</p>
+      <a class="cz-cta" href="../topics/4-0-0-contested-zones.html">Detailseite ansehen →</a>
     </div>
   </section>
 
@@ -261,10 +274,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:../assets/img-pyro.jpg"><img src="../assets/img-pyro.jpg" alt="Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro</figcaption></figure>
-        <figure class="w2" data-lb="img:../assets/img-guardian.jpg"><img src="../assets/img-guardian.jpg" alt="Mirai Guardian" loading="lazy"><span class="zoomic">⤢</span><figcaption>Mirai Guardian</figcaption></figure>
-        <figure data-lb="img:../assets/img-ironclad.jpg"><img src="../assets/img-ironclad.jpg" alt="Drake Ironclad" loading="lazy"><span class="zoomic">⤢</span><figcaption>Drake Ironclad</figcaption></figure>
-        <figure data-lb="img:../assets/vid-guardian.jpg"><img src="../assets/vid-guardian.jpg" alt="Guardian Film" loading="lazy"><span class="zoomic">⤢</span><figcaption>Guardian · Film</figcaption></figure>
+        <figure class="b2" data-lb="img:../assets/cz-facility.jpg"><img src="../assets/cz-facility.jpg" alt="Contested Zone — Anlageninneres" loading="lazy"><span class="zoomic">⤢</span><figcaption>Contested Zone · Anlage</figcaption></figure>
+        <figure class="w2" data-lb="img:../assets/cz-combat.jpg"><img src="../assets/cz-combat.jpg" alt="On-Foot-Gefecht" loading="lazy"><span class="zoomic">⤢</span><figcaption>On-Foot-Gefecht</figcaption></figure>
+        <figure data-lb="img:../assets/cz-loot.jpg"><img src="../assets/cz-loot.jpg" alt="High-Tier Loot" loading="lazy"><span class="zoomic">⤢</span><figcaption>High-Tier Loot</figcaption></figure>
+        <figure data-lb="img:../assets/cz-ruin.jpg"><img src="../assets/cz-ruin.jpg" alt="Ruin Station" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruin Station</figcaption></figure>
+        <figure class="w2" data-lb="img:../assets/img-pyro.jpg"><img src="../assets/img-pyro.jpg" alt="Pyro-System" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro · System</figcaption></figure>
       </div>
     </div>
   </section>

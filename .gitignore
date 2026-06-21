@@ -5,3 +5,6 @@ desktop.ini
 *.tmp
 *~
 .vscode/
+
+# Claude Code session/worktree internals
+.claude/
