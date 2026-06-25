@@ -52,8 +52,20 @@
 
   var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 
-  // ---- Ember / spark field (Pyro mood) ----
-  if(!reduce){
+  // Warm-accent test: embers are a fire/ember mood, so only warm-themed
+  // pages (Pyro/Engineering/Onyx/gold) get them — cold pages (Nyx, Storm,
+  // Server Meshing, Medical, Resource Drive …) would look off with rising "sparks".
+  function accentIsWarm(){
+    var v=(getComputedStyle(document.documentElement).getPropertyValue('--accent')||'').trim();
+    var m=v.match(/^#?([0-9a-f]{6})$/i); if(!m) return true; // unknown → keep old behavior
+    var n=parseInt(m[1],16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255;
+    var mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn; if(d<.04) return false; // near-grey → no embers
+    var hh; if(mx===r)hh=((g-b)/d)%6; else if(mx===g)hh=(b-r)/d+2; else hh=(r-g)/d+4;
+    hh*=60; if(hh<0)hh+=360; return hh<=55||hh>=330; // red→amber/gold wedge
+  }
+
+  // ---- Ember / spark field (Pyro mood) — warm pages only ----
+  if(!reduce && accentIsWarm()){
     var ec=document.createElement('canvas');ec.id='embers';document.body.appendChild(ec);
     var ex=ec.getContext('2d'),ew,eh,emb;
     var AC=(getComputedStyle(document.documentElement).getPropertyValue('--accent')||'#ff5a1f').trim();
