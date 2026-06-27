@@ -1,0 +1,8 @@
+/* Accessibility-Overrides für Patch-Seiten — wird NACH dem inline-<style> geladen,
+   damit diese Regeln gewinnen. Topic-Seiten haben dieselben Fixes in detail.css. */
+.mosaic figcaption{color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+[data-lb]:focus-visible,[data-info]:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px}
+.marquee:hover .mtrack,.mtrack:focus-within{animation-play-state:paused}
+.disclaimer{opacity:.92}
+.hero h1{animation-timing-function:ease-in-out}
+@media (prefers-reduced-motion:reduce){.mtrack{animation:none!important}}

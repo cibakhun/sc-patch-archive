@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cibakhun.github.io/sc-patch-archive/sitemap.xml

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="SC Patch-Archiv">
+  <defs>
+    <radialGradient id="p" cx="38%" cy="34%" r="70%">
+      <stop offset="0" stop-color="#cdeeff"/>
+      <stop offset="55%" stop-color="#2dd4ff"/>
+      <stop offset="100%" stop-color="#0a6f93"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="13" fill="#05070d"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="11.5" fill="none" stroke="#6ea8ff" stroke-opacity=".22"/>
+  <ellipse cx="32" cy="32" rx="27" ry="10.5" fill="none" stroke="#6ea8ff" stroke-width="2.4" transform="rotate(-24 32 32)" opacity=".9"/>
+  <circle cx="32" cy="32" r="11" fill="url(#p)"/>
+  <circle cx="54.7" cy="22.3" r="2.4" fill="#d4af37"/>
+</svg>

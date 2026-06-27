@@ -5,6 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Star Citizen Patch-Archiv · 4.0 → 4.8.2</title>
 <meta name="description" content="Star Citizen Patches von Alpha 4.0.0 bis 4.8.2." />
+<link rel="canonical" href="https://cibakhun.github.io/sc-patch-archive/" />
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+<meta name="theme-color" content="#05070d" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="SC Patch-Archiv" />
+<meta property="og:locale" content="de_DE" />
+<meta property="og:title" content="Star Citizen Patch-Archiv · 4.0 → 4.8.2" />
+<meta property="og:description" content="Star Citizen Patches von Alpha 4.0.0 bis 4.8.2." />
+<meta property="og:url" content="https://cibakhun.github.io/sc-patch-archive/" />
+<meta property="og:image" content="https://cibakhun.github.io/sc-patch-archive/assets/trailer-4-0-0.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Star Citizen Patch-Archiv · 4.0 → 4.8.2" />
+<meta name="twitter:description" content="Star Citizen Patches von Alpha 4.0.0 bis 4.8.2." />
+<meta name="twitter:image" content="https://cibakhun.github.io/sc-patch-archive/assets/trailer-4-0-0.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -12,7 +26,7 @@
 :root{
   --bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;
   --accent:#2dd4ff;--accent-2:#6ea8ff;--gold:#d4af37;
-  --text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);
+  --text:#e8eefc;--muted:#a7b6cf;--line:rgba(110,168,255,.16);
   --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
   --maxw:1240px;
 }
@@ -30,10 +44,11 @@ body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;b
 .cursorglow{position:fixed;inset:0;z-index:8800;pointer-events:none;background:radial-gradient(440px circle at var(--mx,50%) var(--my,25%),rgba(45,212,255,.12),transparent 60%)}
 .marquee{position:relative;z-index:2;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:linear-gradient(90deg,var(--bg-2),var(--surface),var(--bg-2));padding:.8rem 0}
 .marquee__track{display:flex;gap:2.4rem;white-space:nowrap;width:max-content;animation:scrollx 36s linear infinite;font-family:var(--font-display);font-weight:700;font-size:1rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.marquee:hover .marquee__track,.marquee__track:focus-within{animation-play-state:paused}
 .marquee__track .dot{color:var(--gold)}
 @keyframes scrollx{to{transform:translateX(-50%)}}
 @keyframes flick{0%,93%,100%{opacity:1}94%{opacity:.6}95%{opacity:1}97%{opacity:.82}}
-.hero h1{animation:flick 8s steps(1) infinite}
+.hero h1{animation:flick 8s ease-in-out infinite}
 
 /* HERO */
 .hero{position:relative;min-height:88svh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:6rem 1.5rem 4rem;overflow:hidden}
@@ -73,20 +88,47 @@ main{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;padding:2re
 .pcard .ver{font-family:var(--font-display);font-weight:900;font-size:1.9rem;color:var(--c);letter-spacing:.01em;text-shadow:0 2px 12px rgba(0,0,0,.6)}
 .pcard .date{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;color:var(--muted);margin-top:.2rem}
 .pcard .name{font-family:var(--font-ui);font-weight:700;font-size:1.18rem;margin-top:.9rem;color:var(--text);text-shadow:0 1px 8px rgba(0,0,0,.7)}
-.pcard .desc{color:var(--text);opacity:.82;font-size:.92rem;margin-top:.4rem;flex:1;text-shadow:0 1px 6px rgba(0,0,0,.7)}
+.pcard .desc{color:var(--text);opacity:.92;font-size:.92rem;margin-top:.4rem;flex:1;text-shadow:0 1px 6px rgba(0,0,0,.7)}
 .pcard .go{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.75rem;color:var(--c);margin-top:1.1rem;display:inline-flex;gap:.4rem;align-items:center}
 .pcard .go .ar{transition:transform .2s}
 .pcard:hover .go .ar{transform:translateX(5px)}
 .pcard .badge{position:absolute;top:1.2rem;right:1.3rem;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--c);border:1px solid var(--c);padding:.15rem .45rem;border-radius:2px;background:rgba(0,0,0,.45)}
 
 footer{border-top:1px solid var(--line);padding:3rem clamp(1.25rem,5vw,3rem);text-align:center}
-footer .disclaimer{max-width:80ch;margin:0 auto;font-size:.78rem;color:var(--muted);opacity:.75}
+footer .disclaimer{max-width:80ch;margin:0 auto;font-size:.78rem;color:var(--muted);opacity:.92}
 footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:uppercase;font-size:.75rem;color:var(--muted);margin-bottom:1rem}
 
 .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
 .reveal.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
+
+/* ===== Controls: Suche + Filter ===== */
+.controls{position:sticky;top:0;z-index:50;max-width:var(--maxw);margin:0 auto;padding:.9rem clamp(1.25rem,5vw,3rem);display:flex;flex-wrap:wrap;gap:.7rem 1rem;align-items:center;background:linear-gradient(180deg,var(--bg) 62%,transparent);backdrop-filter:blur(8px)}
+.csearch{position:relative;flex:1;min-width:220px}
+.csearch input{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:var(--font-body);font-size:1rem;padding:.7rem 1rem .7rem 2.5rem}
+.csearch input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,212,255,.18)}
+.csearch input::placeholder{color:var(--muted)}
+.csearch .ic{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:1.05rem}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.72rem;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:50px;padding:.45rem .9rem;cursor:pointer;transition:color .2s,border-color .2s,background .2s}
+.chip:hover{color:var(--text);border-color:var(--accent-2)}
+.chip.active{color:#05070d;background:var(--accent);border-color:var(--accent)}
+.count{font-family:var(--font-ui);letter-spacing:.1em;text-transform:uppercase;font-size:.72rem;color:var(--muted);margin-left:auto;white-space:nowrap}
+.is-hidden{display:none!important}
+.noresults{text-align:center;color:var(--muted);padding:3.5rem 1rem;font-family:var(--font-ui);letter-spacing:.05em}
+
+/* ===== Themen-Hub ===== */
+.section-head{margin:4rem 0 1.5rem;display:flex;align-items:center;gap:1.2rem}
+.section-head h2{font-family:var(--font-display);font-weight:700;font-size:clamp(1.1rem,2.6vw,1.5rem);letter-spacing:.04em;white-space:nowrap}
+.section-head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:1rem}
+.tcard{--c:var(--accent);position:relative;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);border-radius:6px;padding:1.1rem 1.2rem;transition:transform .2s,border-color .2s,box-shadow .2s}
+.tcard:hover{transform:translateY(-3px);border-color:var(--c);box-shadow:0 10px 30px -14px var(--c)}
+.tcard .tv{font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.66rem;color:var(--c)}
+.tcard .tn{font-family:var(--font-ui);font-weight:700;font-size:1.06rem;margin-top:.25rem;color:var(--text)}
+.tcard .th{color:var(--muted);font-size:.85rem;margin-top:.35rem;line-height:1.45}
 </style>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": "SC Patch-Archiv", "url": "https://cibakhun.github.io/sc-patch-archive/", "inLanguage": "de", "description": "Star Citizen Patches von Alpha 4.0.0 bis 4.8.2.", "publisher": {"@type": "Organization", "name": "SC Patch-Archiv"}}</script>
 </head>
 <body>
 <a class="skip" href="#archiv">Zum Archiv springen</a>
@@ -100,6 +142,7 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
     <div class="stat-row">
       <div class="stat"><div class="n">17</div><div class="l">Patches</div></div>
       <div class="stat"><div class="n">3</div><div class="l">Sternsysteme</div></div>
+      <div class="stat"><div class="n">20</div><div class="l">Deep-Dives</div></div>
       <div class="stat"><div class="n">10</div><div class="l">Trailer</div></div>
     </div>
   </div>
@@ -111,6 +154,20 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
     <span>4.0 DESTINATION PYRO</span><span class="dot">◆</span><span>4.2 STORM BREAKER</span><span class="dot">◆</span><span>4.3 DARK TERRITORY</span><span class="dot">◆</span><span>4.4 WELCOME TO NYX</span><span class="dot">◆</span><span>4.5 DAWN OF ENGINEERING</span><span class="dot">◆</span><span>4.6 LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>4.7 WELCOME TO THE ROCK</span><span class="dot">◆</span><span>4.8 TACTICAL STRIKE</span><span class="dot">◆</span>
     <span>4.0 DESTINATION PYRO</span><span class="dot">◆</span><span>4.2 STORM BREAKER</span><span class="dot">◆</span><span>4.3 DARK TERRITORY</span><span class="dot">◆</span><span>4.4 WELCOME TO NYX</span><span class="dot">◆</span><span>4.5 DAWN OF ENGINEERING</span><span class="dot">◆</span><span>4.6 LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>4.7 WELCOME TO THE ROCK</span><span class="dot">◆</span><span>4.8 TACTICAL STRIKE</span><span class="dot">◆</span>
   </div>
+</div>
+
+<div class="controls" role="search">
+  <div class="csearch">
+    <span class="ic" aria-hidden="true">⌕</span>
+    <input type="search" id="q" placeholder="Suchen: Patch, Feature, Schiff, System…" aria-label="Archiv durchsuchen" autocomplete="off" />
+  </div>
+  <div class="chips" role="group" aria-label="Filtern nach Typ">
+    <button type="button" class="chip active" data-filter="all" aria-pressed="true">Alle</button>
+    <button type="button" class="chip" data-filter="patch-major" aria-pressed="false">Major</button>
+    <button type="button" class="chip" data-filter="patch-minor" aria-pressed="false">Point-Release</button>
+    <button type="button" class="chip" data-filter="topic" aria-pressed="false">Themen</button>
+  </div>
+  <div class="count" id="count" aria-live="polite"></div>
 </div>
 
 <main id="archiv">
@@ -152,6 +209,32 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
     <a class="pcard reveal" style="--c:#1fb8a6;--img:url('assets/trailer-4-8-0.jpg')" href="patches/sc-4-8-2.html"><span class="badge">Aktuell</span><div class="ver">4.8.2</div><div class="date">17. Jun 2026</div><div class="name">Gatac &amp; Alien Week</div><div class="desc">Zwei Alien-Schiffe & First Contact Day.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
   </div>
 
+  <div class="section-head reveal" id="themen"><h2>Themen · Deep-Dives</h2><span class="rule"></span></div>
+  <div class="tgrid">
+    <a class="tcard reveal" style="--c:#ff5a1f" href="topics/4-0-0-contested-zones.html"><div class="tv">4.0.0</div><div class="tn">Contested Zones</div><div class="th">PvPvE-Extraktion in Pyros Anlagen.</div></a>
+    <a class="tcard reveal" style="--c:#ff5a1f" href="topics/4-0-0-pyro-system.html"><div class="tv">4.0.0</div><div class="tn">Pyro-System</div><div class="th">Das zweite, gesetzlose Sternsystem.</div></a>
+    <a class="tcard reveal" style="--c:#ff5a1f" href="topics/4-0-0-server-meshing.html"><div class="tv">4.0.0</div><div class="tn">Server Meshing</div><div class="th">Mehrere Server tragen einen Shard.</div></a>
+    <a class="tcard reveal" style="--c:#36c5d8" href="topics/4-0-1-fight-for-pyro.html"><div class="tv">4.0.1</div><div class="tn">Fight for Pyro</div><div class="th">Drei Fraktionen, eine dauerhafte Wahl.</div></a>
+    <a class="tcard reveal" style="--c:#e8771a" href="topics/4-0-2-supply-or-die.html"><div class="tv">4.0.2</div><div class="tn">Supply or Die</div><div class="th">Nachschubkrieg um die Kontrolle Pyros.</div></a>
+    <a class="tcard reveal" style="--c:#3da5d9" href="topics/4-1-0-align-and-mine.html"><div class="tv">4.1.0</div><div class="tn">Align &amp; Mine</div><div class="th">Orbital-Laser-Bergbau auf den Monden.</div></a>
+    <a class="tcard reveal" style="--c:#ff7a1a" href="topics/4-1-1-hunt-the-polaris.html"><div class="tv">4.1.1</div><div class="tn">Hunt the Polaris</div><div class="th">Server-weite Jagd auf eine Korvette.</div></a>
+    <a class="tcard reveal" style="--c:#36e2f0" href="topics/4-2-0-storm-breaker.html"><div class="tv">4.2.0</div><div class="tn">Storm Breaker</div><div class="th">Wetter &amp; Strahlung werden zur Gefahr.</div></a>
+    <a class="tcard reveal" style="--c:#2ea36a" href="topics/4-2-1-resource-drive.html"><div class="tv">4.2.1</div><div class="tn">Resource Drive</div><div class="th">Konvois der vier Megakonzerne.</div></a>
+    <a class="tcard reveal" style="--c:#e8a317" href="topics/4-3-0-onyx-facilities.html"><div class="tv">4.3.0</div><div class="tn">Onyx Facilities</div><div class="th">Verlassene ASD-Forschungsanlagen.</div></a>
+    <a class="tcard reveal" style="--c:#1faa8c" href="topics/4-3-1-medical-overhaul.html"><div class="tv">4.3.1</div><div class="tn">Medical Overhaul</div><div class="th">MedGel, Bett-Stufen, RSI Apollo.</div></a>
+    <a class="tcard reveal" style="--c:#b5642a" href="topics/4-3-2-frontier-fighters.html"><div class="tv">4.3.2</div><div class="tn">Frontier Fighters</div><div class="th">Das Finale von Fractured Frontiers.</div></a>
+    <a class="tcard reveal" style="--c:#7fb2d9" href="topics/4-4-0-nyx-system.html"><div class="tv">4.4.0</div><div class="tn">Nyx-System</div><div class="th">Das dritte voll simulierte System.</div></a>
+    <a class="tcard reveal" style="--c:#7fb2d9" href="topics/4-4-0-vanduul.html"><div class="tv">4.4.0</div><div class="tn">Vanduul</div><div class="th">Erste Alien-KI-Gegner im PU.</div></a>
+    <a class="tcard reveal" style="--c:#ffb000" href="topics/4-5-0-engineering.html"><div class="tv">4.5.0</div><div class="tn">Engineering</div><div class="th">Schiffsbetrieb wird zum Gameplay.</div></a>
+    <a class="tcard reveal" style="--c:#ff5e1a" href="topics/4-7-0-crafting.html"><div class="tv">4.7.0</div><div class="tn">Crafting</div><div class="th">FPS-Waffen &amp; Rüstung selbst fertigen.</div></a>
+    <a class="tcard reveal" style="--c:#e8651e" href="topics/4-8-0-tactical-strike-groups.html"><div class="tv">4.8.0</div><div class="tn">Tactical Strike Groups</div><div class="th">Koop-Schiffskampf-Operation.</div></a>
+    <a class="tcard reveal" style="--c:#e8651e" href="topics/4-8-0-xenothreat.html"><div class="tv">4.8.0</div><div class="tn">XenoThreat</div><div class="th">Assault on Stanton.</div></a>
+    <a class="tcard reveal" style="--c:#36c5d6" href="topics/4-8-1-defend-location.html"><div class="tv">4.8.1</div><div class="tn">Defend Location</div><div class="th">Wellenbasierte Basis-Verteidigung.</div></a>
+    <a class="tcard reveal" style="--c:#1fb8a6" href="topics/4-8-2-alien-week.html"><div class="tv">4.8.2</div><div class="tn">Alien Week</div><div class="th">Xenotech rund um First Contact Day.</div></a>
+  </div>
+
+  <div class="noresults is-hidden" id="noresults">Keine Treffer — passe Suche oder Filter an.</div>
+
 </main>
 
 <footer>
@@ -169,6 +252,45 @@ addEventListener('pointermove',e=>{document.documentElement.style.setProperty('-
     st=Array.from({length:Math.min(180,Math.floor(w/8))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.4+.2,a:Math.random(),s:Math.random()*.015+.003}));}
   function tick(){x.clearRect(0,0,w,h);for(const s of st){s.a+=s.s;const o=.25+Math.abs(Math.sin(s.a))*.75;x.globalAlpha=o;x.fillStyle='#bcd4ff';x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}
   size();addEventListener('resize',size);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)tick();
+})();
+/* Suche + Filter */
+(function(){
+  var q=document.getElementById('q');if(!q)return;
+  var chips=[].slice.call(document.querySelectorAll('.chip'));
+  var count=document.getElementById('count'),nores=document.getElementById('noresults');
+  var cards=[].slice.call(document.querySelectorAll('.pcard,.tcard'));
+  var groups=[].slice.call(document.querySelectorAll('.grid,.tgrid'));
+  cards.forEach(function(c){
+    var href=c.getAttribute('href')||'';
+    c._kind = href.indexOf('topics/')>-1 ? 'topic' : (c.querySelector('.badge') ? 'patch-major' : 'patch-minor');
+    c._text = (c.textContent||'').toLowerCase();
+  });
+  var filter='all';
+  function apply(){
+    var term=(q.value||'').trim().toLowerCase();
+    var active = term!=='' || filter!=='all';
+    var shown=0;
+    cards.forEach(function(c){
+      var vis = (filter==='all'||c._kind===filter) && (!term || c._text.indexOf(term)>-1);
+      c.classList.toggle('is-hidden',!vis);
+      if(vis){shown++; if(active) c.classList.add('in');}
+    });
+    groups.forEach(function(g){
+      var any=[].slice.call(g.children).some(function(ch){return !ch.classList.contains('is-hidden');});
+      var head=g.previousElementSibling;
+      if(head) head.classList.toggle('is-hidden',!any);
+      g.classList.toggle('is-hidden',!any);
+    });
+    if(count) count.textContent = shown + (shown===1?' Treffer':' Treffer');
+    if(nores) nores.classList.toggle('is-hidden',shown>0);
+  }
+  q.addEventListener('input',apply);
+  chips.forEach(function(ch){ch.addEventListener('click',function(){
+    chips.forEach(function(x){x.classList.remove('active');x.setAttribute('aria-pressed','false');});
+    ch.classList.add('active');ch.setAttribute('aria-pressed','true');
+    filter=ch.getAttribute('data-filter');apply();
+  });});
+  apply();
 })();
 </script>
 </body>
