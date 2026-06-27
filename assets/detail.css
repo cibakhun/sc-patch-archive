@@ -23,7 +23,7 @@
   /* Fallbacks — pages override these */
   --bg:#0c1020;--bg-2:#121a30;--surface:#16203a;--surface-2:#1d2949;
   --accent:#7fb2d9;--accent-2:#d4af37;--hot:#c0271f;
-  --text:#e8eefc;--muted:#93a4c4;
+  --text:#e8eefc;--muted:#a7b6cf;
   --line:rgba(127,178,217,.22);--line-soft:rgba(255,255,255,.10);
   --glow:0 0 44px rgba(127,178,217,.30);
   --ink:#08090d;                       /* near-black for on-accent text */
@@ -38,6 +38,7 @@ img{display:block;max-width:100%}
 a{color:inherit;text-decoration:none}
 ::selection{background:var(--accent);color:var(--ink)}
 :focus-visible{outline:2px solid var(--accent-2);outline-offset:3px}
+[data-lb]:focus-visible,[data-info]:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px}
 .skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:var(--ink);padding:.6rem 1rem;font-family:var(--font-ui);font-weight:700}.skip:focus{left:0}
 
 /* ---- Ambient overlays (match patch pages) ---- */
@@ -211,7 +212,7 @@ section{position:relative;padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem)
 .gtile.full{border:0;border-radius:12px}
 .gtile img{width:100%;height:100%;object-fit:cover;transition:transform .6s,filter .6s;filter:saturate(.95)}
 .gtile:hover img{transform:scale(1.08);filter:saturate(1.18)}
-.gtile figcaption{position:absolute;left:0;right:0;bottom:0;padding:.6rem .75rem;font-family:var(--font-ui);font-weight:600;font-size:.8rem;background:linear-gradient(0deg,rgba(0,0,0,.85),transparent)}
+.gtile figcaption{position:absolute;left:0;right:0;bottom:0;padding:.6rem .75rem;font-family:var(--font-ui);font-weight:600;font-size:.8rem;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9);background:linear-gradient(0deg,rgba(0,0,0,.92),transparent)}
 .gtile .zoomic{position:absolute;top:.6rem;right:.6rem;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.55);border:1px solid var(--line);display:grid;place-items:center;color:#fff;opacity:.55;transition:opacity .2s,background .2s}
 .gtile:hover .zoomic{opacity:1;background:var(--accent);color:var(--ink)}
 .w2{grid-column:span 2}.h2{grid-row:span 2}.b2{grid-column:span 2;grid-row:span 2}
@@ -239,7 +240,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 .foot-nav a:hover{border-color:var(--accent);transform:translateY(-2px)}
 .foot-nav .dir{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:.16em;font-size:.7rem;color:var(--muted)}
 .foot-nav .ttl{font-family:var(--font-display);font-weight:700;font-size:1rem;margin-top:.3rem}
-.disclaimer{max-width:var(--maxw);margin:0 auto;font-size:.72rem;color:var(--muted);opacity:.65;border-top:1px solid var(--line-soft);padding-top:1.2rem}
+.disclaimer{max-width:var(--maxw);margin:0 auto;font-size:.72rem;color:var(--muted);opacity:.92;border-top:1px solid var(--line-soft);padding-top:1.2rem}
 
 /* ============================================================
    Lightbox
@@ -267,6 +268,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 /* Detail-page marquee strip */
 .dmarquee{position:relative;z-index:2;overflow:hidden;border-block:1px solid var(--line);background:linear-gradient(90deg,var(--bg-2),var(--surface),var(--bg-2));padding:.85rem 0}
 .dmtrack{display:flex;gap:2.4rem;white-space:nowrap;width:max-content;animation:dscroll 32s linear infinite;font-family:var(--font-display);font-weight:700;font-size:1.02rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.dmarquee:hover .dmtrack,.dmtrack:focus-within{animation-play-state:paused}
 .dmtrack .dot{color:var(--accent-2)}
 @keyframes dscroll{to{transform:translateX(-50%)}}
 
