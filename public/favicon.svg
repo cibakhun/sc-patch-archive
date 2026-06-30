@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="SC Patch-Archiv">
+  <rect width="64" height="64" rx="12" fill="#05070d"/>
+  <path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="#2dd4ff" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="32" cy="32" r="6" fill="#2dd4ff"/>
+</svg>

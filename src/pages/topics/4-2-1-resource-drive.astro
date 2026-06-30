@@ -1,0 +1,195 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title={"Resource Drive — Star Citizen 4.2.1 | SC Patch-Archiv"} description={"Resource Drive: das erste echte globale Event des Verse. Imperator Addison ruft Stantons vier Megakonzerne zum Wettstreit — Fortschritt laeuft ueber alle Shards zusammen. Eingefuehrt mit Alpha 4.2.1."} themeColor="#0e1620">
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+/* Resource-Drive-Theme (4.2.1) — Second Life green / Addison gold */
+:root{
+  --bg:#0e1620;--bg-2:#16202e;--surface:#1b2838;--surface-2:#22344a;
+  --accent:#2E8B57;--accent-2:#E6952A;--hot:#D94A38;
+  --text:#eaf1ee;--muted:#9db1b2;
+  --line:rgba(46,139,87,.22);--line-soft:rgba(234,241,238,.10);
+  --glow:0 0 44px rgba(46,139,87,.30);--ink:#0e1620;
+  --maxw:1180px;
+}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10.5rem)}
+.lede-kx{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}
+.corp-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;border-block:1px solid var(--line);background:linear-gradient(90deg,var(--bg-2),var(--surface),var(--bg-2))}
+.corp-strip .cc{padding:clamp(1.4rem,3vw,2.2rem) 1.2rem;text-align:center;border-right:1px solid var(--line-soft)}
+.corp-strip .cc:last-child{border-right:0}
+.corp-strip .nm{font-family:var(--font-display);font-weight:900;font-size:clamp(1rem,2vw,1.45rem);color:var(--accent);line-height:1}
+.corp-strip .pl{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:.14em;font-size:.68rem;color:var(--muted);margin-top:.5rem}
+
+</style>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <a class="back" href="/patches/sc-4-2-1.html"><span class="arrow">←</span> Zurück zu 4.2.1</a>
+  <span class="vpill">EVENT · ALPHA 4.2.1</span>
+</div>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-rd-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/patches/sc-4-2-1.html">Alpha 4.2.1 · Second Life</a> &nbsp;·&nbsp; Globales Event</div>
+      <h1><span class="thin">Das erste globale Event</span>Resource Drive</h1>
+      <p class="lead">Imperator Addison ruft Stantons vier Megakonzerne zum Wettstreit: wer am meisten Material liefert, gewinnt den Forschungsauftrag. Das erste Event, dessen Fortschritt über alle Shards zusammenläuft.</p>
+      <div class="tags"><span class="tag hot">Globales Event</span><span class="tag">4 Megakonzerne</span><span class="tag">Hauling</span><span class="tag">Konvoi</span><span class="tag">Event-Tracking</span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>RESOURCE DRIVE</span><span class="dot">◆</span><span>HURSTON</span><span class="dot">◆</span><span>CRUSADER</span><span class="dot">◆</span><span>ARCCORP</span><span class="dot">◆</span><span>MICROTECH</span><span class="dot">◆</span><span>GLOBAL EVENT</span><span class="dot">◆</span>
+      <span>RESOURCE DRIVE</span><span class="dot">◆</span><span>HURSTON</span><span class="dot">◆</span><span>CRUSADER</span><span class="dot">◆</span><span>ARCCORP</span><span class="dot">◆</span><span>MICROTECH</span><span class="dot">◆</span><span>GLOBAL EVENT</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="4">0</div><div class="c">Konkurrierende Megakonzerne</div></div>
+    <div class="s"><div class="n count" data-to="337">0</div><div class="c">Mio. SCU · Sieger-Liefermenge</div></div>
+    <div class="s"><div class="n count" data-to="5">0</div><div class="c">Belohnungs-Tiers</div></div>
+    <div class="s"><div class="n">Shard-übergreifend</div><div class="c">Erstes globales Event-Tracking</div></div>
+  </div>
+
+  <!-- FULL-BLEED BAND (parallax) — the premise -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/cz-ruin.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">Imperator Addisons Aufruf</div>
+      <div class="big outline">EIN VERSE.<br>EIN ZIEL.</div>
+      <p>Die Second Life Resource Drive ist das erste echte globale Event des Verse: Imperator Addison ruft Stantons vier Megakonzerne — <b style="color:var(--accent-2)">Hurston Dynamics, Crusader Industries, ArcCorp und microTech</b> — zum Sammeln von Forschungsmaterial. Jeder Pilot wählt eine Seite.</p>
+    </div>
+  </section>
+
+  <!-- CORP STRIP — the four contenders -->
+  <div class="corp-strip reveal">
+    <div class="cc"><div class="nm">Hurston Dynamics</div><div class="pl">Waffen · Hurston</div></div>
+    <div class="cc"><div class="nm">Crusader Industries</div><div class="pl">Raumfahrt · Crusader</div></div>
+    <div class="cc"><div class="nm">ArcCorp</div><div class="pl">Energie · ArcCorp</div></div>
+    <div class="cc"><div class="nm">microTech</div><div class="pl">Technik · microTech</div></div>
+  </div>
+
+  <!-- MANIFESTO pull-quote -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Wer am meisten <span class="hl">liefert</span>, gewinnt den Forschungsauftrag.</blockquote>
+    <cite>Resource Drive · Second Life</cite>
+  </section>
+
+  <!-- SCROLLYTELLING: So unterstützt du deinen Konzern -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>So unterstützt du deinen Konzern</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/t-rd-2.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-rd-1.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/img-hammerhead.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-rd-1.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Seite wählen</h3><p>Schließe dich einem der vier Megakonzerne an. Jede SCU, die du für ihn lieferst, fließt in seine Gesamtsumme — und die zählt am Ende über alle Shards zusammen.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Fracht liefern</h3><p>Hol Forschungsmaterial an den Mining-Basen in Stanton und Pyro ab und transportiere es im Hauling-Lauf zur Sammelstelle deines Konzerns.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Verlorenes zurückholen</h3><p>Reclaim-Missionen schicken dich zu verlorener Fracht. Bring zurückgewonnenes Material in den Pool — jede geborgene SCU stärkt deine Seite.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Konvois eskortieren</h3><p>Beschütze die Transporter deines Konzerns auf den Routen rund um die Mining-Basen. Ohne Eskorte kommt die Fracht nicht durch.</p></div>
+    </div>
+  </div>
+
+  <!-- VERSUS: Drei Rollen im Wettstreit (full-bleed dual + framing) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⚙ Liefern &amp; Bergen</h3>
+        <ul>
+          <li>Cargo von den Mining-Basen zur Sammelstelle hauling.</li>
+          <li>Verlorene Fracht über Reclaim-Missionen zurückholen.</li>
+          <li>Jede SCU zählt direkt auf die Konzern-Gesamtsumme ein.</li>
+          <li>Routen verlaufen durch Stanton und Pyro.</li>
+        </ul>
+      </div>
+      <div class="vs">&amp;</div>
+      <div class="side b">
+        <h3>★ Schützen &amp; Eskortieren</h3>
+        <ul>
+          <li>Konvois deines Konzerns auf den Lieferrouten eskortieren.</li>
+          <li>Transporter gegen Angreifer und Plünderer verteidigen.</li>
+          <li>Sichere Durchfahrt hält den Materialfluss am Laufen.</li>
+          <li>Ohne Eskorte erreicht die Fracht die Sammelstelle nicht.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPLIT — the single framed section: Global Event Tracking Service -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-rd-2.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">02 · mobiGlas-Journal</div>
+        <h3>Erstmals: Global Event Tracking Service</h3>
+        <p>Resource Drive ist die <b>erste Aktivität mit dem neuen Global Event Tracking Service</b>. Eine vereinte Statusseite im mobiGlas-Journal bündelt den Fortschritt über mehrere Shards hinweg.</p>
+        <p>Statt isolierter Server-Instanzen sehen alle Spieler denselben, zusammenlaufenden Wettstand — und damit zum ersten Mal, wer im gesamten Verse vorne liegt.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED BAND — the winner -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/img-hammerhead.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">03 · Das Ergebnis</div>
+      <div class="big" style="font-size:clamp(2.4rem,9vw,6.5rem)">HURSTON GEWINNT</div>
+      <p>Hurston Dynamics holte den Forschungsauftrag mit rund <b style="color:var(--accent-2)">337 Millionen SCU</b> Gesamt-Liefermenge. Der Konzern mit der höchsten Summe am Ende gewinnt — und Hurston lag vorn.</p>
+    </div>
+  </section>
+
+  <!-- BAND — the reward -->
+  <section class="band band--center">
+    <div class="bbg" data-par="0.13" style="background-image:url('/assets/t-rd-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal" style="text-align:center;margin-inline:auto">
+      <div class="kx" style="text-align:center">Tier-5-Belohnung</div>
+      <div class="big outline" style="font-size:clamp(2rem,7vw,5rem)">STRATA HURSTON BLACK</div>
+      <p style="margin-inline:auto">Die höchste Belohnungsstufe brachte eine exklusive <b style="color:var(--accent-2)">Strata-Hurston-Black-Armor</b> — plus 5 % Dauerrabatt für alle, die ihren Konzern bis zum Sieg getragen haben.</p>
+    </div>
+  </section>
+
+  <!-- CLOSING GALLERY (mixed, full-bleed lead tile) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-rd-1.jpg"><img src="/assets/t-rd-1.jpg" alt="Resource Drive — Hauling-Lauf" loading="lazy"><span class="zoomic">⤢</span><figcaption>Hauling-Lauf für den Konzern</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-rd-2.jpg"><img src="/assets/t-rd-2.jpg" alt="Sammelstelle eines Megakonzerns" loading="lazy"><span class="zoomic">⤢</span><figcaption>Sammelstelle · Forschungsmaterial</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-meteor.jpg"><img src="/assets/img-meteor.jpg" alt="Mining-Basis in Stanton" loading="lazy"><span class="zoomic">⤢</span><figcaption>Mining-Basis · Stanton</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/cz-ruin.jpg"><img src="/assets/cz-ruin.jpg" alt="Lieferroute durch Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Route · Pyro</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/img-hammerhead.jpg"><img src="/assets/img-hammerhead.jpg" alt="Konvoi-Eskorte" loading="lazy"><span class="zoomic">⤢</span><figcaption>Konvoi-Eskorte</figcaption></figure>
+      </div>
+      <p class="src reveal">Quelle: Star Citizen Wiki &amp; offizielle Community-Quellen (© Cloud Imperium Games). Fan-Content-Nutzung.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <nav class="foot-nav" aria-label="Navigation">
+    <a href="/patches/sc-4-2-1.html"><span class="dir">← Patch</span><span class="ttl">4.2.1 · Second Life</span></a>
+    <a href="/index.html"><span class="dir">⌂ Archiv</span><span class="ttl">Alle Patches</span></a>
+  </nav>
+  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer & Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games, Star Citizen Wiki), Fan-Content-Nutzung.</p>
+</footer>
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

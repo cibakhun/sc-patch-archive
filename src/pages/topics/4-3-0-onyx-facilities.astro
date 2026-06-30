@@ -1,0 +1,168 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title={"Onyx Facilities — Star Citizen 4.3.0 | SC Patch-Archiv"} description={"Onyx Facilities: rund 100 verlassene ASD-Forschungsstationen über Stanton — Datenbergung, Audiologs und die dunkle Wahrheit hinter der Regen-Krise. Eingeführt mit Alpha 4.3.0 Dark Territory."} themeColor="#0B0B0F">
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+/* Onyx-Theme (4.3.0 · Dark Territory) */
+:root{--bg:#0B0B0F;--bg-2:#101218;--surface:#15181f;--surface-2:#1c212b;--accent:#E8A317;--accent-2:#3E5C76;--hot:#C0392B;--text:#e9edf2;--muted:#97a3b2;--line:rgba(232,163,23,.22);--line-soft:rgba(233,237,242,.10);--glow:0 0 44px rgba(232,163,23,.30);--ink:#0B0B0F;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.dossier{font-family:var(--font-ui);font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--hot);font-size:.78rem}
+.tag.case{border-color:color-mix(in srgb,var(--accent-2) 60%,transparent);color:color-mix(in srgb,var(--accent-2) 80%,#fff)}
+
+</style>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <a class="back" href="/patches/sc-4-3-0.html"><span class="arrow">←</span> Zurück zu 4.3.0</a>
+  <span class="vpill">FEATURE · ALPHA 4.3.0</span>
+</div>
+
+<main id="main">
+
+  <!-- HERO (full-bleed, kinetic) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-onyx-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/patches/sc-4-3-0.html">Alpha 4.3.0 · Dark Territory</a> &nbsp;·&nbsp; Feature</div>
+      <h1><span class="thin">Verlassene ASD-Forschungsstationen</span>Onyx Facilities</h1>
+      <p class="lead">Rund 100 verlassene Forschungsanlagen der Associated Sciences and Development, über Stanton verstreut — gefaehrliche Ruinen voller Datenspuren, Audiologs und der dunklen Wahrheit hinter der Regen-Krise.</p>
+      <div class="tags"><span class="tag hot">Investigation</span><span class="tag case">ASD</span><span class="tag">Personal Hangars</span><span class="tag hot">Regen-Krise</span><span class="tag">Loot</span></div>
+      <div class="hero__play" data-lb="yt:MCJlD2Meuek"><span class="pbtn">▶</span>Trailer ansehen</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>ONYX</span><span class="dot">◆</span><span>ASD</span><span class="dot">◆</span><span>REGEN-KRISE</span><span class="dot">◆</span><span>ARKEN MALLOR</span><span class="dot">◆</span><span>DR. JORRIT</span><span class="dot">◆</span><span>DATENBERGUNG</span><span class="dot">◆</span><span>PERSONAL HANGARS</span><span class="dot">◆</span>
+      <span>ONYX</span><span class="dot">◆</span><span>ASD</span><span class="dot">◆</span><span>REGEN-KRISE</span><span class="dot">◆</span><span>ARKEN MALLOR</span><span class="dot">◆</span><span>DR. JORRIT</span><span class="dot">◆</span><span>DATENBERGUNG</span><span class="dot">◆</span><span>PERSONAL HANGARS</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="100">0</div><div class="c">Verlassene ASD-Anlagen</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">System · Stanton, flächendeckend</div></div>
+    <div class="s"><div class="n count" data-to="0">0</div><div class="c">Gesicherte Innenräume</div></div>
+    <div class="s"><div class="n">ASD</div><div class="c">Associated Sciences & Development</div></div>
+  </div>
+
+  <!-- FULL-BLEED BAND (parallax, big overlaid text) -->
+  <section class="band" style="padding-top:0">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-onyx-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">01 · Dark Territory</div>
+      <div class="big outline">VERLASSEN.</div>
+      <p>Mit Alpha 4.3.0 erschienen rund <b style="color:var(--accent-2)">100 verlassene Forschungsanlagen</b> der Associated Sciences and Development — über das gesamte Stanton-System verstreut. Niemand hat sie gesichert. Was zurückblieb, sind Ruinen und die Spuren dessen, was hier geforscht wurde.</p>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: Die Ermittlung (full-bleed process) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>Die Ermittlung</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/t-onyx-1.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-onyx-2.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-onyx-1.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-onyx-2.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Auftrag annehmen</h3><p>Arken Mallor von der Hockrow Agency tritt an dich heran. Über ein neues Investigation- und Datenbergungs-System im mobiGlas treibt er die Ermittlung gegen die ASD und Dr. Logan Jorrit voran.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Anlage betreten</h3><p>Lande an einer der rund 100 verlassenen ASD-Stationen und dring zu Fuß ein. Die Innenräume sind ungesichert und gefaehrlich — keine Sicherheit, nur Ruinen und Spuren.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Daten bergen</h3><p>Berge Daten, löse die Rätsel der Anlage und finde versteckte Audiologs. Jeder Fund fügt dem Bild ein Stück hinzu — die Hintergrundgeschichte der Regen-Krise.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Die Wahrheit zusammensetzen</h3><p>Die geborgenen Spuren erzählen von Dr. Jorrits Experimenten zur Regeneration. Was die ASD verbergen wollte, liegt zwischen Trümmern und abgebrochenen Logs.</p></div>
+    </div>
+  </div>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Hinter jeder Ruine <span class="hl">die Wahrheit über die Regen-Krise</span>.</blockquote>
+    <cite>Onyx Facilities · ASD-Ermittlung</cite>
+  </section>
+
+  <!-- VERSUS: Datenbergung vs Gefahr (full-bleed dual pane) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⚠ Die Gefahr</h3>
+        <ul>
+          <li>Innenräume sind ungesichert — keine Sicherheitszone.</li>
+          <li>Ruinen und instabile Strukturen statt sicherer Wege.</li>
+          <li>Was die ASD hinterließ, schützt sich von selbst.</li>
+          <li>Tief im Komplex — kein Med-Bay, kein schneller Respawn.</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side b">
+        <h3>★ Die Bergung</h3>
+        <ul>
+          <li>Geborgene Daten treiben die Ermittlung voran.</li>
+          <li>Rätsel der Anlagen öffnen verschlossene Spuren.</li>
+          <li>Versteckte Audiologs enthüllen Jorrits Experimente.</li>
+          <li>Loot aus den Tiefen der verlassenen Stationen.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- AKTEURE — single framed/split section (the one allowed card-like layout) -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-onyx-1.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">03 · Die Akteure</div>
+        <h3>Mallor, die ASD und Dr. Jorrit</h3>
+        <p>Auftraggeber ist <b>Arken Mallor</b> von der <b>Hockrow Agency</b>. Er treibt die Ermittlung gegen die Associated Sciences and Development und gegen <b>Dr. Logan Jorrit</b> voran.</p>
+        <p>Die verlassenen Anlagen erzählen die Hintergrundgeschichte der Regen-Krise: <b>Dr. Jorrits Experimente zur Regeneration</b>. Wer die Onyx Facilities durchsucht, folgt der Spur bis zu ihrem Ursprung.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED BAND — Personal Hangars (image as background, design on top) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-onyx-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">04 · Auch in 4.3.0</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">PERSONAL HANGARS</div>
+      <p>4.3.0 brachte ausserdem die <b style="color:var(--accent-2)">Personal Hangars</b>: Spieler laden ab jetzt direkt in ihren eigenen, instanzierten Hangar am Heimatort — ein fester Ausgangspunkt für jeden Vorstoß ins Dark Territory.</p>
+    </div>
+  </section>
+
+  <!-- MEDIA (mixed gallery + trailer) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">05</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-onyx-1.jpg"><img src="/assets/t-onyx-1.jpg" alt="Onyx Facility — verlassene ASD-Anlage" loading="lazy"><span class="zoomic">⤢</span><figcaption>Verlassene ASD-Anlage</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-onyx-2.jpg"><img src="/assets/t-onyx-2.jpg" alt="Ruinen im Inneren einer Onyx Facility" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruinen im Inneren</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-kruger.jpg"><img src="/assets/img-kruger.jpg" alt="Spuren der ASD-Forschung" loading="lazy"><span class="zoomic">⤢</span><figcaption>Spuren der Forschung</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/trailer-4-3-0.jpg"><img src="/assets/trailer-4-3-0.jpg" alt="Dark Territory — 4.3.0" loading="lazy"><span class="zoomic">⤢</span><figcaption>Dark Territory</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-onyx-2.jpg"><img src="/assets/t-onyx-2.jpg" alt="Datenspuren in der verlassenen Station" loading="lazy"><span class="zoomic">⤢</span><figcaption>Datenspuren · Audiologs</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="MCJlD2Meuek" style="background-image:url('/assets/trailer-4-3-0.jpg')"><span class="vlbl">Alpha 4.3.0 Dark Territory — Trailer</span><button class="play" aria-label="Trailer abspielen">▶</button></div>
+      <p class="src reveal">Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=MCJlD2Meuek" target="_blank" rel="noopener">Auf YouTube ansehen ↗</a></p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <nav class="foot-nav" aria-label="Navigation">
+    <a href="/patches/sc-4-3-0.html"><span class="dir">← Patch</span><span class="ttl">4.3.0 · Dark Territory</span></a>
+    <a href="/index.html"><span class="dir">⌂ Archiv</span><span class="ttl">Alle Patches</span></a>
+  </nav>
+  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer & Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games, Star Citizen Wiki), Fan-Content-Nutzung.</p>
+</footer>
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

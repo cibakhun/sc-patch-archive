@@ -1,0 +1,66 @@
+---
+// Provenance-driven, license-clean footer. One source of truth for the
+// "unofficial fansite" + CC-BY-SA + sources notices the blueprint requires.
+// Styled with the page's own CSS variables (--muted/--line/--accent/--bg-2)
+// so it adapts to each patch palette automatically.
+interface Props {
+  /** data freshness stamp, e.g. "28. Juni 2026" (shown when data is baked in) */
+  updated?: string;
+  /** attribution sources for this page */
+  sources?: string[];
+  credit?: string;
+}
+const {
+  updated,
+  sources = ['starcitizen.tools', 'RSI', 'YouTube'],
+  credit = 'SC Patch-Archiv · ein Fan-Projekt',
+} = Astro.props;
+---
+<footer class="site-attr">
+  <div class="credit">{credit}</div>
+  {sources.length > 0 && <div class="srcs">Quellen: {sources.join(' · ')}</div>}
+  <p class="disclaimer">
+    Inoffizielles Fan-Projekt zu Dokumentationszwecken. Star Citizen® und alle
+    zugehörigen Marken gehören der Cloud Imperium Rights LLC &amp; Ltd. Keine
+    Verbindung zu oder Förderung durch Cloud Imperium Games. Wiki-Inhalte von
+    starcitizen.tools stehen unter CC-BY-SA 4.0; eingebettete Trailer und
+    Standbilder © Cloud Imperium Games (Fan-Content-Nutzung).
+  </p>
+  {updated && <div class="asof">Daten-Stand: {updated}</div>}
+</footer>
+<style>
+  .site-attr {
+    border-top: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+    padding: 3rem clamp(1.25rem, 5vw, 3rem);
+    text-align: center;
+    background: var(--bg-2, transparent);
+  }
+  .site-attr .credit {
+    font-family: var(--font-ui, sans-serif);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: var(--muted, #8a99b8);
+    margin-bottom: 1rem;
+  }
+  .site-attr .srcs {
+    font-size: 0.78rem;
+    color: var(--muted, #8a99b8);
+    opacity: 0.85;
+    margin-bottom: 0.8rem;
+  }
+  .site-attr .disclaimer {
+    max-width: 80ch;
+    margin: 0 auto;
+    font-size: 0.78rem;
+    color: var(--muted, #8a99b8);
+    opacity: 0.75;
+  }
+  .site-attr .asof {
+    margin-top: 0.8rem;
+    font-size: 0.72rem;
+    color: var(--accent, #2dd4ff);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+</style>

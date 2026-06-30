@@ -1,0 +1,164 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title={"Star Citizen Patch-Archiv · 4.0 → 4.8.2"} description={"Star Citizen Patches von Alpha 4.0.0 bis 4.8.2."} themeColor="#05070d" footer={true}>
+<style is:inline>
+
+:root{
+  --bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;
+  --accent:#2dd4ff;--accent-2:#6ea8ff;--gold:#d4af37;
+  --text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
+  --maxw:1240px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:#05070d}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:#05070d;padding:.6rem 1rem;font-weight:700}
+.skip:focus{left:0}
+
+/* ===== Wild-Overlays ===== */
+body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 40%,transparent 56%,rgba(0,0,0,.6) 100%),repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px);opacity:.5}
+.cursorglow{position:fixed;inset:0;z-index:8800;pointer-events:none;background:radial-gradient(440px circle at var(--mx,50%) var(--my,25%),rgba(45,212,255,.12),transparent 60%)}
+.marquee{position:relative;z-index:2;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:linear-gradient(90deg,var(--bg-2),var(--surface),var(--bg-2));padding:.8rem 0}
+.marquee__track{display:flex;gap:2.4rem;white-space:nowrap;width:max-content;animation:scrollx 36s linear infinite;font-family:var(--font-display);font-weight:700;font-size:1rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.marquee__track .dot{color:var(--gold)}
+@keyframes scrollx{to{transform:translateX(-50%)}}
+@keyframes flick{0%,93%,100%{opacity:1}94%{opacity:.6}95%{opacity:1}97%{opacity:.82}}
+.hero h1{animation:flick 8s steps(1) infinite}
+
+/* HERO */
+.hero{position:relative;min-height:88svh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:6rem 1.5rem 4rem;overflow:hidden}
+#stars{position:absolute;inset:0;z-index:0}
+.hero__glow{position:absolute;top:-30%;left:50%;transform:translateX(-50%);width:120vmax;height:90vmax;z-index:0;
+  background:radial-gradient(ellipse at 50% 40%,rgba(45,212,255,.12),rgba(110,168,255,.05) 40%,transparent 70%)}
+.hero__inner{position:relative;z-index:2;max-width:900px}
+.kicker{font-family:var(--font-ui);font-weight:700;letter-spacing:.35em;text-transform:uppercase;font-size:.82rem;color:var(--accent)}
+.hero h1{font-family:var(--font-display);font-weight:900;line-height:1;margin:1.2rem 0;font-size:clamp(2.6rem,8vw,6rem);
+  background:linear-gradient(180deg,#fff,var(--accent-2) 70%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero h1 small{display:block;font-size:clamp(1rem,3vw,1.8rem);letter-spacing:.1em;color:var(--text);-webkit-text-fill-color:var(--text);margin-top:.4rem;font-weight:700}
+.hero p{max-width:60ch;margin:0 auto;color:var(--muted);font-size:clamp(1.05rem,1.6vw,1.25rem)}
+.stat-row{display:flex;gap:2.5rem;justify-content:center;flex-wrap:wrap;margin-top:2.6rem}
+.stat .n{font-family:var(--font-display);font-weight:900;font-size:clamp(1.6rem,4vw,2.4rem);color:var(--accent)}
+.stat .l{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;color:var(--muted)}
+.scrollcue{position:absolute;bottom:1.6rem;left:50%;transform:translateX(-50%);z-index:2;font-family:var(--font-ui);letter-spacing:.2em;text-transform:uppercase;font-size:.72rem;color:var(--muted);animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
+
+/* TIMELINE / GRID */
+main{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;padding:2rem clamp(1.25rem,5vw,3rem) 5rem}
+.era{margin:3.5rem 0 1.4rem;display:flex;align-items:center;gap:1.2rem}
+.era h2{font-family:var(--font-display);font-weight:700;font-size:clamp(1.1rem,2.6vw,1.5rem);letter-spacing:.04em;white-space:nowrap}
+.era .yr{font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;color:var(--accent);font-size:.85rem;border:1px solid var(--line);padding:.25rem .7rem;border-radius:2px}
+.era .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1.2rem}
+.pcard{--c:var(--accent);position:relative;display:flex;flex-direction:column;
+  background-color:var(--surface);
+  background-image:linear-gradient(180deg,rgba(7,10,18,.80),rgba(7,10,18,.93)),var(--img,none);
+  background-size:cover;background-position:center;
+  border:1px solid var(--line);border-radius:6px;padding:1.6rem 1.5rem;overflow:hidden;min-height:200px;transition:transform .25s,border-color .25s,box-shadow .25s}
+.pcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c);z-index:2}
+.pcard::after{content:"";position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,var(--c),transparent 70%);opacity:.16;transition:opacity .25s}
+.pcard:hover{transform:translateY(-5px);border-color:var(--c);box-shadow:0 14px 40px -12px var(--c)}
+.pcard:hover::after{opacity:.3}
+.pcard>*{position:relative;z-index:1}
+.pcard .ver{font-family:var(--font-display);font-weight:900;font-size:1.9rem;color:var(--c);letter-spacing:.01em;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.pcard .date{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;color:var(--muted);margin-top:.2rem}
+.pcard .name{font-family:var(--font-ui);font-weight:700;font-size:1.18rem;margin-top:.9rem;color:var(--text);text-shadow:0 1px 8px rgba(0,0,0,.7)}
+.pcard .desc{color:var(--text);opacity:.82;font-size:.92rem;margin-top:.4rem;flex:1;text-shadow:0 1px 6px rgba(0,0,0,.7)}
+.pcard .go{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.75rem;color:var(--c);margin-top:1.1rem;display:inline-flex;gap:.4rem;align-items:center}
+.pcard .go .ar{transition:transform .2s}
+.pcard:hover .go .ar{transform:translateX(5px)}
+.pcard .badge{position:absolute;top:1.2rem;right:1.3rem;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--c);border:1px solid var(--c);padding:.15rem .45rem;border-radius:2px;background:rgba(0,0,0,.45)}
+
+footer{border-top:1px solid var(--line);padding:3rem clamp(1.25rem,5vw,3rem);text-align:center}
+footer .disclaimer{max-width:80ch;margin:0 auto;font-size:.78rem;color:var(--muted);opacity:.75}
+footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:uppercase;font-size:.75rem;color:var(--muted);margin-bottom:1rem}
+
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
+
+</style>
+<a class="skip" href="#archiv">Zum Archiv springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<header class="hero">
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <div class="hero__glow" aria-hidden="true"></div>
+  <div class="hero__inner">
+    <h1>Patch-Archiv<small>Star Citizen 4.0 → 4.8.2</small></h1>
+    <div class="stat-row">
+      <div class="stat"><div class="n">17</div><div class="l">Patches</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">Sternsysteme</div></div>
+      <div class="stat"><div class="n">10</div><div class="l">Trailer</div></div>
+    </div>
+  </div>
+  <div class="scrollcue" aria-hidden="true">Archiv ↓</div>
+</header>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee__track">
+    <span>4.0 DESTINATION PYRO</span><span class="dot">◆</span><span>4.2 STORM BREAKER</span><span class="dot">◆</span><span>4.3 DARK TERRITORY</span><span class="dot">◆</span><span>4.4 WELCOME TO NYX</span><span class="dot">◆</span><span>4.5 DAWN OF ENGINEERING</span><span class="dot">◆</span><span>4.6 LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>4.7 WELCOME TO THE ROCK</span><span class="dot">◆</span><span>4.8 TACTICAL STRIKE</span><span class="dot">◆</span>
+    <span>4.0 DESTINATION PYRO</span><span class="dot">◆</span><span>4.2 STORM BREAKER</span><span class="dot">◆</span><span>4.3 DARK TERRITORY</span><span class="dot">◆</span><span>4.4 WELCOME TO NYX</span><span class="dot">◆</span><span>4.5 DAWN OF ENGINEERING</span><span class="dot">◆</span><span>4.6 LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>4.7 WELCOME TO THE ROCK</span><span class="dot">◆</span><span>4.8 TACTICAL STRIKE</span><span class="dot">◆</span>
+  </div>
+</div>
+
+<main id="archiv">
+
+  <div class="era reveal"><h2>Pyro-Ära</h2><span class="yr">2024 – 2025</span><span class="rule"></span></div>
+  <div class="grid">
+    <a class="pcard reveal" style="--c:#ff5a1f;--img:url('/assets/trailer-4-0-0.jpg')" href="/patches/sc-4-0-0.html"><span class="badge">Major</span><div class="ver">4.0.0</div><div class="date">19. Dez 2024</div><div class="name">Destination Pyro</div><div class="desc">Server Meshing & das gesetzlose Pyro-System.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    <a class="pcard reveal" style="--c:#36c5d8;--img:url('/assets/trailer-4-0-0.jpg')" href="/patches/sc-4-0-1.html"><div class="ver">4.0.1</div><div class="date">28. Jan 2025</div><div class="name">Stabilität & Save Stanton II</div><div class="desc">Crash-Fixes und das nächste Kapitel des Fraktions-Narrativs.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    <a class="pcard reveal" style="--c:#e8771a;--img:url('/assets/trailer-4-0-0.jpg')" href="/patches/sc-4-0-2.html"><div class="ver">4.0.2</div><div class="date">28. Feb 2025</div><div class="name">Supply or Die</div><div class="desc">Pyros gnadenloser Zwei-Fraktionen-Nachschubkrieg.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+  </div>
+
+  <div class="era reveal"><h2>Sturm & Stahl</h2><span class="yr">2025</span><span class="rule"></span></div>
+  <div class="grid">
+    <a class="pcard reveal" style="--c:#3da5d9;--img:url('/assets/trailer-4-1-0.jpg')" href="/patches/sc-4-1-0.html"><div class="ver">4.1.0</div><div class="date">27. Mär 2025</div><div class="name">Orbital Assault</div><div class="desc">Orbitale Laserplattformen & tiefes Asteroiden-Mining („Align &amp; Mine").</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    <a class="pcard reveal" style="--c:#ff7a1a;--img:url('/assets/trailer-4-1-0.jpg')" href="/patches/sc-4-1-1.html"><div class="ver">4.1.1</div><div class="date">13. Mai 2025</div><div class="name">Balancing &amp; Fleet Week</div><div class="desc">Waffen-Tuning, Recoil und „Hunt The Polaris".</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    <a class="pcard reveal" style="--c:#36e2f0;--img:url('/assets/trailer-4-2-0.jpg')" href="/patches/sc-4-2-0.html"><span class="badge">Major</span><div class="ver">4.2.0</div><div class="date">19. Jun 2025</div><div class="name">Storm Breaker</div><div class="desc">In den Sturm hinein — dynamischer Regen & Strahlung.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    <a class="pcard reveal" style="--c:#2ea36a;--img:url('/assets/trailer-4-2-0.jpg')" href="/patches/sc-4-2-1.html"><div class="ver">4.2.1</div><div class="date">17. Jul 2025</div><div class="name">Resource Drive</div><div class="desc">Kooperatives Konvoi-Event & die RSI Meteor.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+  </div>
+
+  <div class="era reveal"><h2>Onyx & Heilung</h2><span class="yr">2025</span><span class="rule"></span></div>
+  <div class="grid">
+    <a class="pcard reveal" style="--c:#e8a317;--img:url('/assets/trailer-4-3-0.jpg')" href="/patches/sc-4-3-0.html"><span class="badge">Major</span><div class="ver">4.3.0</div><div class="date">16. Aug 2025</div><div class="name">Dark Territory</div><div class="desc">Personal Hangars als Heimathafen & die Onyx Facilities.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    <a class="pcard reveal" style="--c:#1faa8c;--img:url('/assets/trailer-4-3-1.jpg')" href="/patches/sc-4-3-1.html"><div class="ver">4.3.1</div><div class="date">18. Sep 2025</div><div class="name">Virtue's Descent</div><div class="desc">RSI Apollo & der große Medical-Overhaul.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    <a class="pcard reveal" style="--c:#b5642a;--img:url('/assets/trailer-4-3-0.jpg')" href="/patches/sc-4-3-2.html"><div class="ver">4.3.2</div><div class="date">16. Okt 2025</div><div class="name">Fractured Frontiers</div><div class="desc">Salvage-Rework, Bosskampf & Frontier-Fighters-Finale.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+  </div>
+
+  <div class="era reveal"><h2>Neue Horizonte</h2><span class="yr">2025 – 2026</span><span class="rule"></span></div>
+  <div class="grid">
+    <a class="pcard reveal" style="--c:#7fb2d9;--img:url('/assets/trailer-4-4-0.jpg')" href="/patches/sc-4-4-0.html"><span class="badge">Major</span><div class="ver">4.4.0</div><div class="date">19. Nov 2025</div><div class="name">Welcome to Nyx</div><div class="desc">Drittes Sternsystem, erste Vanduul & IAE 2955.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    <a class="pcard reveal" style="--c:#ffb000;--img:url('/assets/trailer-4-5-0.jpg')" href="/patches/sc-4-5-0.html"><span class="badge">Major</span><div class="ver">4.5.0</div><div class="date">17. Dez 2025</div><div class="name">Dawn of Engineering</div><div class="desc">Engineering, Ship Armor & sich ausbreitendes Feuer.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    <a class="pcard reveal" style="--c:#7fb80e;--img:url('/assets/trailer-4-6-0.jpg')" href="/patches/sc-4-6-0.html"><span class="badge">Major</span><div class="ver">4.6.0</div><div class="date">29. Jan 2026</div><div class="name">Lifeline for Levski</div><div class="desc">Seuchen-Event, LAMP-Nachtsicht & RSI Hermes.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    <a class="pcard reveal" style="--c:#ff5e1a;--img:url('/assets/trailer-4-7-0.jpg')" href="/patches/sc-4-7-0.html"><span class="badge">Major</span><div class="ver">4.7.0</div><div class="date">26. Mär 2026</div><div class="name">Welcome to the Rock</div><div class="desc">Crafting & Operation Breaker Stations.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+  </div>
+
+  <div class="era reveal"><h2>Tactical Strike</h2><span class="yr">2026</span><span class="rule"></span></div>
+  <div class="grid">
+    <a class="pcard reveal" style="--c:#e8651e;--img:url('/assets/trailer-4-8-0.jpg')" href="/patches/sc-4-8-0.html"><span class="badge">Major</span><div class="ver">4.8.0</div><div class="date">14. Mai 2026</div><div class="name">Tactical Strike</div><div class="desc">Drake Ironclad & G-Force-Toleranz im Flug.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    <a class="pcard reveal" style="--c:#36c5d6;--img:url('/assets/trailer-4-8-0.jpg')" href="/patches/sc-4-8-1.html"><div class="ver">4.8.1</div><div class="date">3. Jun 2026</div><div class="name">Defend Location</div><div class="desc">385 Verteidigungsmissionen gegen Bomber-Anflüge.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    <a class="pcard reveal" style="--c:#1fb8a6;--img:url('/assets/trailer-4-8-0.jpg')" href="/patches/sc-4-8-2.html"><span class="badge">Aktuell</span><div class="ver">4.8.2</div><div class="date">17. Jun 2026</div><div class="name">Gatac &amp; Alien Week</div><div class="desc">Zwei Alien-Schiffe & First Contact Day.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+  </div>
+
+</main>
+<script is:inline>
+
+const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+addEventListener('pointermove',e=>{document.documentElement.style.setProperty('--mx',e.clientX+'px');document.documentElement.style.setProperty('--my',e.clientY+'px');},{passive:true});
+(function(){
+  const c=document.getElementById('stars');if(!c)return;const x=c.getContext('2d');let w,h,st;
+  function size(){w=c.width=innerWidth;h=c.height=Math.max(document.querySelector('.hero').offsetHeight,1);
+    st=Array.from({length:Math.min(180,Math.floor(w/8))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.4+.2,a:Math.random(),s:Math.random()*.015+.003}));}
+  function tick(){x.clearRect(0,0,w,h);for(const s of st){s.a+=s.s;const o=.25+Math.abs(Math.sin(s.a))*.75;x.globalAlpha=o;x.fillStyle='#bcd4ff';x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}
+  size();addEventListener('resize',size);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)tick();
+})();
+
+</script>
+</Layout>

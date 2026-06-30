@@ -1,0 +1,167 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title={"Server Meshing — Star Citizen 4.0.0 | SC Patch-Archiv"} description={"Server Meshing: die Schlüsseltechnik von Alpha 4.0.0. Mehrere Game-Server bedienen unsichtbar und nahtlos einen einzigen Shard — Stanton und Pyro in einem geteilten Universum."} themeColor="#120f0c">
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+/* Pyro-Theme (geerbt von 4.0.0) */
+:root{--bg:#120f0c;--bg-2:#1a1714;--surface:#211b16;--surface-2:#2b231b;--accent:#ff5a1f;--accent-2:#d9d12a;--hot:#c0271f;--text:#f3e9df;--muted:#b6a596;--line:rgba(255,90,31,.22);--line-soft:rgba(243,233,223,.10);--glow:0 0 44px rgba(255,90,31,.32);--ink:#120f0c;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3rem,12vw,9.5rem)}
+.tech-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}
+.band .big.layer{-webkit-text-stroke:2px var(--accent-2);color:transparent}
+
+</style>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <a class="back" href="/patches/sc-4-0-0.html"><span class="arrow">←</span> Zurück zu 4.0.0</a>
+  <span class="vpill">TECH · ALPHA 4.0.0</span>
+</div>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-mesh-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/patches/sc-4-0-0.html">Alpha 4.0.0 · Destination Pyro</a> &nbsp;·&nbsp; Technologie</div>
+      <h1><span class="thin">Die Technik hinter 4.0.0</span>Server Meshing</h1>
+      <p class="lead">Die Schlüsseltechnik von Alpha 4.0.0: mehrere Game-Server bedienen unsichtbar und nahtlos einen einzigen Shard — erstmals teilen sich hunderte Spieler ein zusammenhängendes Universum.</p>
+      <div class="tags"><span class="tag">Static Server Meshing</span><span class="tag">Replication Layer</span><span class="tag">1 Shard</span><span class="tag hot">500 Spieler</span><span class="tag">Stanton + Pyro</span></div>
+      <div class="hero__play" data-lb="yt:DE3ePRgpUQo"><span class="pbtn">▶</span>Trailer ansehen</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>SERVER MESHING</span><span class="dot">◆</span><span>REPLICATION LAYER</span><span class="dot">◆</span><span>1 SHARD</span><span class="dot">◆</span><span>500 SPIELER</span><span class="dot">◆</span><span>STATIC MESH</span><span class="dot">◆</span><span>STANTON + PYRO</span><span class="dot">◆</span>
+      <span>SERVER MESHING</span><span class="dot">◆</span><span>REPLICATION LAYER</span><span class="dot">◆</span><span>1 SHARD</span><span class="dot">◆</span><span>500 SPIELER</span><span class="dot">◆</span><span>STATIC MESH</span><span class="dot">◆</span><span>STANTON + PYRO</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- FULL-BLEED BAND (parallax) — the thesis -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/img-pyro.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">Nach jahrelanger Entwicklung</div>
+      <div class="big outline">EIN SHARD.</div>
+      <p>Alpha 4.0.0 lieferte die erste Implementierung von <b style="color:var(--accent-2)">Static Server Meshing</b> — die Schlüsseltechnologie des Patches. Statt einem Server pro Spielwelt simulieren nun mehrere Server gemeinsam ein einziges, nahtloses Universum.</p>
+    </div>
+  </section>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="500">0</div><div class="c">Spieler pro Shard</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Geteilter Shard</div></div>
+    <div class="s"><div class="n count" data-to="2">0</div><div class="c">Systeme · Stanton + Pyro</div></div>
+    <div class="s"><div class="n">STATIC</div><div class="c">Server-Meshing-Premiere</div></div>
+  </div>
+
+  <!-- SCROLLYTELLING: Wie Meshing funktioniert (process) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>Wie das Meshing funktioniert</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/t-mesh-1.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-mesh-2.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/img-pyro.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/cz-facility.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Welt aufteilen</h3><p>Static Server Meshing nutzt eine feste, vordefinierte Aufteilung der Welt auf mehrere Server — jeder übernimmt einen klar zugewiesenen Teil des Universums.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Server simulieren</h3><p>Jeder Game-Server simuliert seinen Abschnitt — etwa Stanton oder Pyro — eigenständig, während alle zusammen denselben Spielraum tragen.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Replication Layer</h3><p>Darunter liegt der Replication Layer, der die Spielstand-Persistenz von den einzelnen Servern trennt — der Zustand der Welt lebt unabhängig vom einzelnen Server.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Nahtlos wechseln</h3><p>So wechseln Spieler ohne Disconnect zwischen gemeshten Servern und erleben das Ganze als einen einzigen, zusammenhängenden Shard.</p></div>
+    </div>
+  </div>
+
+  <!-- VERSUS: Vorher vs Nachher (full-bleed) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⚙ Einzelserver</h3>
+        <ul>
+          <li>Ein Server trägt allein eine Spielwelt.</li>
+          <li>Rund 100 Spieler im selben Raum.</li>
+          <li>Persistenz an den einzelnen Server gebunden.</li>
+          <li>Mehrere Systeme zusammen nicht möglich.</li>
+        </ul>
+      </div>
+      <div class="vs">→</div>
+      <div class="side b">
+        <h3>★ Server Meshing</h3>
+        <ul>
+          <li>Mehrere Server bedienen einen Shard.</li>
+          <li>Bis zu rund 500 Spieler im selben Raum.</li>
+          <li>Replication Layer hält die Persistenz.</li>
+          <li>Stanton und Pyro im geteilten Shard.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Viele Server. <span class="hl">Ein nahtloses Universum.</span> Keine Naht zu sehen.</blockquote>
+    <cite>Static Server Meshing · Alpha 4.0.0</cite>
+  </section>
+
+  <!-- DER REPLICATION LAYER — single framed/split section (the only one) -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-mesh-2.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">02 · Das Fundament</div>
+        <h3>Der Replication Layer</h3>
+        <p>Unter dem Meshing liegt der <b>Replication Layer</b> — die Schicht, die die Spielstand-Persistenz von den einzelnen Game-Servern löst. Der Zustand der Welt wird nicht mehr von einem einzelnen Server gehalten, sondern zentral repliziert.</p>
+        <p>Genau das macht den nahtlosen Übergang möglich: Spieler wechseln <b>ohne Disconnect</b> zwischen gemeshten Servern. Es ist der erste Schritt Richtung des späteren <b>Dynamic Server Meshing</b>, bei dem sich die Aufteilung der Welt flexibel an die Last anpasst.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED BAND — warum es nötig war -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/cz-facility.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">03 · Warum überhaupt?</div>
+      <div class="big layer" style="font-size:clamp(2.4rem,8vw,6rem)">STANTON + PYRO</div>
+      <p>Die Technik war nötig, um <b style="color:var(--accent-2)">Stanton und Pyro</b> gemeinsam in einem geteilten Shard zu betreiben. Zwei volle Sternensysteme in einem zusammenhängenden Raum — das überschritt die Grenzen eines einzelnen Servers und machte das Meshing zur Voraussetzung für Destination Pyro.</p>
+    </div>
+  </section>
+
+  <!-- MEDIA (mixed gallery + trailer) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">04</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-mesh-1.jpg"><img src="/assets/t-mesh-1.jpg" alt="Server Meshing — Serververbund" loading="lazy"><span class="zoomic">⤢</span><figcaption>Serververbund · ein Shard</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-mesh-2.jpg"><img src="/assets/t-mesh-2.jpg" alt="Replication Layer" loading="lazy"><span class="zoomic">⤢</span><figcaption>Replication Layer</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-pyro.jpg"><img src="/assets/img-pyro.jpg" alt="Pyro-System" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro · neues System</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/cz-facility.jpg"><img src="/assets/cz-facility.jpg" alt="Pyro-Anlage" loading="lazy"><span class="zoomic">⤢</span><figcaption>Geteilter Raum</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="DE3ePRgpUQo" style="background-image:url('/assets/trailer-4-0-0.jpg')"><span class="vlbl">Destination Pyro — Trailer</span><button class="play" aria-label="Trailer abspielen">▶</button></div>
+      <p class="src reveal">Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=DE3ePRgpUQo" target="_blank" rel="noopener">Auf YouTube ansehen ↗</a></p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <nav class="foot-nav" aria-label="Navigation">
+    <a href="/patches/sc-4-0-0.html"><span class="dir">← Patch</span><span class="ttl">4.0.0 · Destination Pyro</span></a>
+    <a href="/index.html"><span class="dir">⌂ Archiv</span><span class="ttl">Alle Patches</span></a>
+  </nav>
+  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer & Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games, Star Citizen Wiki), Fan-Content-Nutzung.</p>
+</footer>
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

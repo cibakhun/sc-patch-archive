@@ -1,0 +1,55 @@
+---
+// Shared document shell. Replaces the per-page <head> boilerplate that was
+// hand-copied across 38 files (charset, viewport, fonts, SEO/OG, theme-color).
+// Page-specific CSS/JS still lives in the page (as <style is:global> /
+// <script is:inline>) so the bespoke design ports over verbatim.
+import Attribution from '../components/Attribution.astro';
+import { SITE } from '../consts';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** drives <meta theme-color>; default = homepage bg */
+  themeColor?: string;
+  /** inject the shared Attribution footer (pages with a bespoke footer pass false) */
+  footer?: boolean;
+}
+
+const {
+  title,
+  description = SITE.defaultDescription,
+  themeColor = '#05070d',
+  footer = false,
+} = Astro.props;
+
+const canonical = SITE.url.replace(/\/$/, '') + Astro.url.pathname;
+---
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="theme-color" content={themeColor} />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="canonical" href={canonical} />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content={SITE.name} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:locale" content="de_DE" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <slot name="head" />
+</head>
+<body>
+  <slot />
+  {footer && <Attribution />}
+</body>
+</html>

@@ -1,0 +1,176 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title={"Engineering — Star Citizen 4.5.0 | SC Patch-Archiv"} description={"Dawn of Engineering: Mit Alpha 4.5.0 wird der Schiffsbetrieb selbst zum Gameplay — Energie verteilen, Ship Armor managen, Braende loeschen. Plus Vulkan als Standard-Renderer und experimentelle VR-Unterstuetzung."} themeColor="#0f1316">
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+/* Engineering-Theme (geerbt von 4.5.0 "Dawn of Engineering") */
+:root{--bg:#0f1316;--bg-2:#151a1e;--surface:#1c2024;--surface-2:#262c31;--accent:#FFB000;--accent-2:#2BC4C4;--hot:#D7263D;--text:#e9eef0;--muted:#9aa7ac;--line:rgba(255,176,0,.22);--line-soft:rgba(233,238,240,.10);--glow:0 0 44px rgba(255,176,0,.30);--ink:#0f1316;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.kx-hot{color:var(--hot)!important}
+
+</style>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <a class="back" href="/patches/sc-4-5-0.html"><span class="arrow">←</span> Zurück zu 4.5.0</a>
+  <span class="vpill">FEATURE · ALPHA 4.5.0</span>
+</div>
+
+<main id="main">
+
+  <!-- HERO (full-bleed media) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-eng-3.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/patches/sc-4-5-0.html">Alpha 4.5.0 · Dawn of Engineering</a> &nbsp;·&nbsp; Feature</div>
+      <h1><span class="thin">Das Schiff wird zum Schlachtfeld</span>Engineering</h1>
+      <p class="lead">Mit 4.5.0 wird der Schiffsbetrieb selbst zum Gameplay: Energie verteilen, Panzerung managen, Braende loeschen — wer im Gefecht ueberlebt, haelt sein Schiff am Laufen.</p>
+      <div class="tags"><span class="tag">Engineering</span><span class="tag">Ship Armor</span><span class="tag hot">Feuer-Hazard</span><span class="tag">Power Management</span><span class="tag">VR</span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>ENGINEERING</span><span class="dot">◆</span><span>SHIP ARMOR</span><span class="dot">◆</span><span>FEUER-HAZARD</span><span class="dot">◆</span><span>POWER MANAGEMENT</span><span class="dot">◆</span><span>VULKAN</span><span class="dot">◆</span><span>VR</span><span class="dot">◆</span>
+      <span>ENGINEERING</span><span class="dot">◆</span><span>SHIP ARMOR</span><span class="dot">◆</span><span>FEUER-HAZARD</span><span class="dot">◆</span><span>POWER MANAGEMENT</span><span class="dot">◆</span><span>VULKAN</span><span class="dot">◆</span><span>VR</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- INTRO as FULL-BLEED BAND (parallax, big overlaid text) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-eng-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">Dawn of Engineering</div>
+      <div class="big outline">HALTE ES AM LAUFEN.</div>
+      <p>Schilde fallen, Komponenten brennen durch, Energie wird knapp. In 4.5.0 entscheidet nicht mehr nur, wie gut du fliegst — sondern wie gut du dein Schiff im Gefecht <b style="color:var(--accent-2)">am Leben haeltst</b>.</p>
+    </div>
+  </section>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="4">0</div><div class="c">Neue Systeme · Engineering, Armor, Feuer, Power</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Physische Panzerschicht ueber der Huelle</div></div>
+    <div class="s"><div class="n">VULKAN</div><div class="c">Standard-Renderer ab 4.5.0</div></div>
+    <div class="s"><div class="n">VR</div><div class="c">Experimentell · ueber Vulkan</div></div>
+  </div>
+
+  <!-- OVERVIEW — single split section (the ONE framed/split allowed) -->
+  <section style="padding-bottom:0">
+    <div class="split reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-eng-4.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">01 · Engineering-Gameplay</div>
+        <h3>Der Maschinenraum wird zum Cockpit</h3>
+        <p>An einem <b>Engineering-Terminal</b> ueberwachen Spieler den Zustand ihres Schiffs in Echtzeit — und reparieren beschaedigte Komponenten direkt waehrend des Betriebs. Was bisher unsichtbar im Hintergrund lief, wird zur aktiven Aufgabe an Bord.</p>
+        <p>Im Mehrspieler-Schiff entsteht so eine eigene Rolle: Waehrend die einen fliegen und feuern, haelt der Ingenieur Reaktor, Schilde und Antrieb am Laufen. Schiffe werden vom Werkzeug zur <b>Crew-Erfahrung</b>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- VERSUS: Ship Armor vs Feuer-Hazard (full-bleed dual pane) -->
+  <section style="padding:0">
+    <div class="wrap" style="padding:clamp(2.5rem,6vw,4.5rem) 0 1.4rem"><div class="sec-head reveal"><span class="num">02</span><h2>Schutz &amp; Gefahr</h2><span class="rule"></span></div></div>
+    <div class="versus reveal">
+      <div class="side b">
+        <h3>★ Ship Armor</h3>
+        <ul>
+          <li>Eigene physische Schicht ueber Huelle und Komponenten.</li>
+          <li>Absorbiert eingehenden Schaden, bevor er die Struktur erreicht.</li>
+          <li>Verschleisst mit der Zeit — Panzerung ist endlich.</li>
+          <li>Macht Schadensmanagement zur strategischen Entscheidung.</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side a">
+        <h3>⚠ Feuer-Hazard</h3>
+        <ul>
+          <li>Feuer breitet sich dynamisch durchs Schiff aus.</li>
+          <li>Frisst Sauerstoff — die Atmosphaere an Bord wird zur Gefahr.</li>
+          <li>Greift auf benachbarte Raeume ueber, wenn man nichts tut.</li>
+          <li>Muss aktiv geloescht werden — von selbst geht es nicht aus.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: So ueberlebst du ein Gefecht (process) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>Krisenmanagement an Bord</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/t-eng-2.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-eng-1.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/trailer-4-5-0.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-eng-3.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Treffer einstecken</h3><p>Eingehendes Feuer trifft zuerst die Ship Armor. Die Panzerschicht absorbiert den Schaden — doch mit jedem Treffer verschleisst sie weiter.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Lage ablesen</h3><p>Am Engineering-Terminal zeigt sich, welche Komponenten beschaedigt sind, wo Energie fehlt und wo es bereits gefaehrlich heiss wird.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Brand bekaempfen</h3><p>Bricht ein Feuer aus, frisst es Sauerstoff und greift auf Nachbarraeume ueber. Es muss aktiv geloescht werden, bevor sich der Brand durchs Schiff frisst.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Reparieren &amp; weiter</h3><p>Beschaedigte Komponenten werden in Echtzeit repariert, Energie neu verteilt — und das Schiff bleibt im Kampf. Wer das beherrscht, ueberlebt.</p></div>
+    </div>
+  </div>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Fliegen kann jeder. <span class="hl">Am Leben halten</span> ist die Kunst.</blockquote>
+    <cite>Dawn of Engineering · Alpha 4.5.0</cite>
+  </section>
+
+  <!-- POWER MANAGEMENT — full-bleed band (image as background, design on top) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/trailer-4-5-0.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">04 · Power Management</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">JEDES WATT ZAEHLT</div>
+      <p>Energie wird in Echtzeit auf die Komponenten verteilt — mehr Leistung fuer Schilde, Triebwerke oder Waffen, je nach Lage. Doch <b style="color:var(--hot)">Ueberlastung</b> fuehrt zu Hitze, Ausfaellen und Schaeden. Wer alles auf einmal will, riskiert, dass nichts mehr funktioniert.</p>
+    </div>
+  </section>
+
+  <!-- TECH BAND: Vulkan & VR (full-bleed, big overlaid text) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-eng-1.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">05 · Unter der Haube</div>
+      <div class="big">VULKAN &amp; VR</div>
+      <p>Ab 4.5.0 ist <b style="color:var(--accent-2)">Vulkan</b> der Standard-Renderer und loest DirectX 11 ab — die API gibt es im Spiel bereits seit 3.23. Auf dieser Pipeline baut die neue, <b>experimentelle VR-Unterstuetzung</b> auf: ein erster Schritt, das Verse durch die Brille zu erleben.</p>
+    </div>
+  </section>
+
+  <!-- MEDIA — closing mixed gallery (no video embed) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">06</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-eng-1.jpg"><img src="/assets/t-eng-1.jpg" alt="Engineering — Schiffsbetrieb im Gefecht" loading="lazy"><span class="zoomic">⤢</span><figcaption>Engineering · Schiffsbetrieb</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-eng-2.jpg"><img src="/assets/t-eng-2.jpg" alt="Schadens- und Komponentenmanagement" loading="lazy"><span class="zoomic">⤢</span><figcaption>Komponenten unter Beschuss</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/trailer-4-5-0.jpg"><img src="/assets/trailer-4-5-0.jpg" alt="Dawn of Engineering — Key-Art" loading="lazy"><span class="zoomic">⤢</span><figcaption>Dawn of Engineering</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-eng-4.jpg"><img src="/assets/t-eng-4.jpg" alt="Das Engineering-Terminal an Bord" loading="lazy"><span class="zoomic">⤢</span><figcaption>Engineering-Terminal</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-eng-3.jpg"><img src="/assets/t-eng-3.jpg" alt="Crew im Schiffsinneren während des Gefechts" loading="lazy"><span class="zoomic">⤢</span><figcaption>Crew im Maschinenraum</figcaption></figure>
+      </div>
+      <p class="src reveal">Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). Inoffizielle Fan-Aufbereitung.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <nav class="foot-nav" aria-label="Navigation">
+    <a href="/patches/sc-4-5-0.html"><span class="dir">← Patch</span><span class="ttl">4.5.0 · Dawn of Engineering</span></a>
+    <a href="/index.html"><span class="dir">⌂ Archiv</span><span class="ttl">Alle Patches</span></a>
+  </nav>
+  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer & Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games, Star Citizen Wiki), Fan-Content-Nutzung.</p>
+</footer>
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>
