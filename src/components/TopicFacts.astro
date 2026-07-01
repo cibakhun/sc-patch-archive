@@ -1,8 +1,8 @@
 ---
-// "Auf einen Blick" for topic pages — the data register directly after the
-// cinematic hero. Aggregates the hard facts of ALL features that link to this
-// topic, plus a patch-of-origin provenance line (the patch-spine at work).
-// Plain, dense, no effects; themes itself via the page palette.
+// "Auf einen Blick" for topic pages — REGISTRATUR design language.
+// Same panel grammar as QuickFacts (rail + notches + Kopfleiste + Aktencode);
+// the system tag lives in the code line, the provenance link is the panel's
+// single accent action row. Renders the page's Registertrenner first.
 import { getCollection } from 'astro:content';
 
 interface Props {
@@ -14,7 +14,6 @@ const patches = await getCollection('patches');
 const parent = patches.find((p) => p.data.topics.some((t) => t.slug === topicSlug));
 const feats = parent ? parent.data.features.filter((f) => f.topicSlug === topicSlug) : [];
 
-// merge facts across features, dedupe by label, cap to keep it a glance
 const seen = new Set<string>();
 const facts: { label: string; value: string; unverified?: boolean }[] = [];
 for (const f of feats)
@@ -27,69 +26,94 @@ const shown = facts.slice(0, 9);
 const system = feats.find((f) => f.system)?.system;
 ---
 {parent && (
-  <section class="tf" aria-label="Auf einen Blick">
-    <div class="tf__in">
-      <header class="tf__head">
-        <h2>Auf einen Blick</h2>
-        {system && <span class="tf__chip">{system}</span>}
-      </header>
-      {shown.length > 0 ? (
-        <dl class="tf__grid">
-          {shown.map((f) => (
-            <div class="tf__item">
-              <dt>{f.label}</dt>
-              <dd>{f.value}{f.unverified && <abbr class="tf__unv" title="unbestätigt">*</abbr>}</dd>
-            </div>
-          ))}
-        </dl>
-      ) : (
-        feats[0] && <p class="tf__desc">{feats[0].desc}</p>
-      )}
-      <a class="tf__prov" href={`/patches/sc-${parent.id}.html`}>
-        Eingeführt in Alpha {parent.data.version} — {parent.data.codename} · {parent.data.dateDisplay} →
-      </a>
+  <>
+    <div class="reg-divider">
+      <div class="reg-divider__in">
+        <span class="reg-divider__l">▚ Datenregister</span>
+        <span class="reg-divider__r">DAT&nbsp;//&nbsp;{system ?? 'Thema'} · Quelle Alpha {parent.data.version}</span>
+      </div>
     </div>
-  </section>
+    <section class="tf" aria-label="Auf einen Blick">
+      <div class="tf__in">
+        <header class="tf__head">
+          <h2>Auf einen Blick</h2>
+          <span class="tf__code">DAT&nbsp;//&nbsp;{system ?? 'Thema'} · Quelle Alpha {parent.data.version}</span>
+        </header>
+        {shown.length > 0 ? (
+          <dl class="tf__grid">
+            {shown.map((f) => (
+              <div class="tf__item">
+                <dt>{f.label}</dt>
+                <dd>{f.value}{f.unverified && <abbr class="tf__unv" title="unbestätigt">*</abbr>}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          feats[0] && <p class="tf__desc">{feats[0].desc}</p>
+        )}
+        <a class="tf__prov" href={`/patches/sc-${parent.id}.html`}>
+          Eingeführt in Alpha {parent.data.version} — {parent.data.codename} · {parent.data.dateDisplay} →
+        </a>
+      </div>
+    </section>
+  </>
 )}
 
 <style>
+  .reg-divider {
+    border-top: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    background: var(--bg-2, rgba(0, 0, 0, 0.25));
+    padding: 0.45rem clamp(1.25rem, 5vw, 4.5rem);
+  }
+  .reg-divider__in {
+    max-width: var(--maxw, 1180px);
+    margin: 0 auto;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .reg-divider__l {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent, #2dd4ff);
+  }
+  .reg-divider__r {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted, #8a99b8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .tf {
     padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1.25rem, 5vw, 4.5rem);
   }
   .tf__in {
-    position: relative;
     max-width: var(--maxw, 1180px);
     margin: 0 auto;
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
     background: var(--surface, #10151f);
-    padding: 1.4rem 1.6rem 1.4rem;
-  }
-  .tf__in::before,
-  .tf__in::after {
-    content: '';
-    position: absolute;
-    width: 14px;
-    height: 14px;
-    border: 2px solid var(--accent, #2dd4ff);
-  }
-  .tf__in::before {
-    top: -2px;
-    left: -2px;
-    border-right: 0;
-    border-bottom: 0;
-  }
-  .tf__in::after {
-    bottom: -2px;
-    right: -2px;
-    border-left: 0;
-    border-top: 0;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    border-top: 2px solid var(--accent, #2dd4ff);
+    padding: 1.25rem 1.5rem 1.4rem;
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
   }
   .tf__head {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 1.1rem;
+    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    padding-bottom: 0.55rem;
+    margin-bottom: 1rem;
   }
   .tf__head h2 {
     font-family: var(--font-ui, sans-serif);
@@ -99,58 +123,64 @@ const system = feats.find((f) => f.system)?.system;
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
   }
-  .tf__chip {
-    font-family: var(--font-ui, sans-serif);
-    font-weight: 700;
-    font-size: 0.62rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--accent, #2dd4ff);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
-    padding: 0.14rem 0.5rem;
-    white-space: nowrap;
-  }
-  .tf__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 0.9rem 1.6rem;
-    margin: 0;
-  }
-  .tf__item {
-    border-left: 2px solid var(--line, rgba(255, 255, 255, 0.14));
-    padding-left: 0.8rem;
-  }
-  .tf__item dt {
+  .tf__code {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
     font-size: 0.68rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tf__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 0.7rem 1.4rem;
+    margin: 0;
+  }
+  .tf__item {
+    border-left: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    padding-left: 0.8rem;
+  }
+  .tf__item dt {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted, #8a99b8);
   }
   .tf__item dd {
     margin: 0.15rem 0 0;
     font-family: var(--font-body, system-ui, sans-serif);
-    font-size: 0.97rem;
-    line-height: 1.45;
+    font-weight: 500;
+    font-size: 1.08rem;
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
     color: var(--text, #e8eefc);
   }
   .tf__desc {
     font-size: 0.95rem;
-    line-height: 1.6;
+    line-height: 1.55;
     color: var(--text, #e8eefc);
-    opacity: 0.9;
+    opacity: 0.88;
     max-width: 78ch;
   }
   .tf__prov {
-    display: inline-block;
+    display: block;
     margin-top: 1.15rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--line, rgba(255, 255, 255, 0.14));
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.74rem;
+    font-size: 0.78rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
+    transition: color 0.15s;
   }
   .tf__prov:hover {
     text-decoration: underline;
@@ -160,5 +190,15 @@ const system = feats.find((f) => f.system)?.system;
     text-decoration: none;
     cursor: help;
     margin-left: 0.15rem;
+    font-size: 0.9rem;
+  }
+  @media (max-width: 560px) {
+    .tf__head {
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .reg-divider__r {
+      display: none;
+    }
   }
 </style>

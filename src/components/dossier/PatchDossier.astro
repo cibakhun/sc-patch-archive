@@ -1,8 +1,9 @@
 ---
-// The full patch manifest — features & systems, ships, events, wipe/fixes.
-// The uniform "Datenblatt" register: identical structure on every patch page,
-// rendered entirely from the validated data layer. Plain and scannable by
-// design; accent color only where it carries function (chips, links, header).
+// The full patch manifest — REGISTRATUR design language.
+// One big register panel (rail + notches) with a Kopfleiste + Aktencode.
+// Feature cards run on Akzent-Dim (accent budget: rail, section labels,
+// nothing else screams); tables use the readout style with tabular numerals.
+// No motion beyond ≤150ms color/border hovers.
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -18,10 +19,11 @@ const hasUnverified =
 <section class="do" id="dossier" aria-label={`Dossier Alpha ${patch.version}`}>
   <div class="do__in">
     <header class="do__head">
-      {num && <span class="do__num">{num}</span>}
-      <h2>Dossier</h2>
-      <span class="do__rule"></span>
-      <span class="do__meta">Alpha {patch.version} · {patch.dateDisplay}</span>
+      <span class="do__title">
+        {num && <span class="do__num">{num}</span>}
+        <h2>Dossier</h2>
+      </span>
+      <span class="do__code">DAT&nbsp;//&nbsp;Alpha {patch.version} · Stand {patch.dateDisplay}</span>
     </header>
 
     <p class="do__summary">{patch.summary}</p>
@@ -45,7 +47,7 @@ const hasUnverified =
               ))}
             </dl>
           )}
-          {f.topicSlug && <a class="do__link" href={`/topics/${f.topicSlug}.html`}>Detailseite ansehen →</a>}
+          {f.topicSlug && <a class="do__link" href={`/topics/${f.topicSlug}.html`}>Deep-Dive ansehen →</a>}
         </article>
       ))}
     </div>
@@ -104,68 +106,89 @@ const hasUnverified =
   .do__in {
     max-width: var(--maxw, 1280px);
     margin: 0 auto;
+    background: var(--surface, #10151f);
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    border-top: 2px solid var(--accent, #2dd4ff);
+    padding: 1.25rem 1.5rem 1.4rem;
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
   }
   .do__head {
     display: flex;
-    align-items: center;
+    align-items: baseline;
+    justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 1.6rem;
+    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    padding-bottom: 0.55rem;
+    margin-bottom: 1rem;
+  }
+  .do__title {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
   }
   .do__num {
     font-family: var(--font-display, sans-serif);
     font-weight: 900;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     color: var(--accent, #2dd4ff);
     opacity: 0.8;
   }
   .do__head h2 {
-    font-family: var(--font-display, sans-serif);
-    font-weight: 700;
-    font-size: clamp(1.4rem, 3.5vw, 2.3rem);
-    color: var(--text, #e8eefc);
-  }
-  .do__rule {
-    flex: 1;
-    height: 1px;
-    background: var(--line, rgba(255, 255, 255, 0.14));
-  }
-  .do__meta {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.16em;
+    font-size: 0.85rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent, #2dd4ff);
+  }
+  .do__code {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .do__summary {
-    max-width: 72ch;
-    font-size: 1.02rem;
-    line-height: 1.65;
+    max-width: 78ch;
+    font-size: 0.98rem;
+    line-height: 1.6;
     color: var(--text, #e8eefc);
-    opacity: 0.92;
-    margin-bottom: 2.2rem;
+    opacity: 0.88;
+    margin-bottom: 1.8rem;
   }
   .do__sub {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.8rem;
-    letter-spacing: 0.2em;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--accent, #2dd4ff);
-    margin: 2.2rem 0 1rem;
-    padding-bottom: 0.45rem;
-    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    color: var(--muted, #8a99b8);
+    margin: 2rem 0 0.85rem;
   }
   .do__features {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(430px, 100%), 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  @media (max-width: 720px) {
+    .do__features {
+      grid-template-columns: 1fr;
+    }
   }
   .do__feat {
+    background: var(--bg-2, rgba(0, 0, 0, 0.2));
     border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
-    background: var(--surface, #10151f);
-    padding: 1.1rem 1.25rem 1.15rem;
+    border-top: 2px solid color-mix(in srgb, var(--accent, #2dd4ff) 30%, transparent);
+    padding: 0.9rem 1.1rem 0.85rem;
+    transition: border-color 0.15s, background-color 0.15s;
+  }
+  .do__feat:hover {
+    border-color: color-mix(in srgb, var(--accent, #2dd4ff) 55%, transparent);
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 4%, var(--bg-2, rgba(0, 0, 0, 0.2)));
   }
   .do__feat-head {
     display: flex;
@@ -178,34 +201,35 @@ const hasUnverified =
   .do__feat h4 {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 1.08rem;
+    font-size: 1.15rem;
+    letter-spacing: 0.05em;
     color: var(--text, #e8eefc);
   }
   .do__chip {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
     font-size: 0.62rem;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--accent, #2dd4ff);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
-    padding: 0.14rem 0.5rem;
+    color: var(--muted, #8a99b8);
+    border: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 35%, transparent);
+    padding: 0.12rem 0.5rem;
     white-space: nowrap;
   }
   .do__desc {
     font-size: 0.93rem;
-    line-height: 1.6;
+    line-height: 1.55;
     color: var(--text, #e8eefc);
-    opacity: 0.85;
+    opacity: 0.88;
   }
   .do__facts {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 0.55rem 1.2rem;
-    margin: 0.85rem 0 0;
+    margin: 0.8rem 0 0;
   }
   .do__fact {
-    border-left: 2px solid var(--line, rgba(255, 255, 255, 0.14));
+    border-left: 1px solid var(--line, rgba(255, 255, 255, 0.14));
     padding-left: 0.65rem;
   }
   .do__fact dt {
@@ -218,18 +242,23 @@ const hasUnverified =
   }
   .do__fact dd {
     margin: 0.1rem 0 0;
-    font-size: 0.9rem;
+    font-family: var(--font-body, system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.35;
+    font-variant-numeric: tabular-nums;
     color: var(--text, #e8eefc);
   }
   .do__link {
     display: inline-block;
-    margin-top: 0.85rem;
+    margin-top: 0.8rem;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.74rem;
+    font-size: 0.78rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
+    transition: color 0.15s;
   }
   .do__link:hover {
     text-decoration: underline;
@@ -237,31 +266,37 @@ const hasUnverified =
   .do__table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.93rem;
+    font-size: 0.9rem;
   }
   .do__table th {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
     font-size: 0.66rem;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     text-align: left;
-    padding: 0.5rem 0.9rem 0.5rem 0;
-    border-bottom: 1px solid var(--accent, #2dd4ff);
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    border-bottom: 2px solid color-mix(in srgb, var(--accent, #2dd4ff) 30%, transparent);
   }
   .do__table td {
-    padding: 0.6rem 0.9rem 0.6rem 0;
-    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    padding: 0.45rem 0.75rem 0.45rem 0;
+    border-bottom: 1px solid var(--line-soft, rgba(255, 255, 255, 0.08));
     color: var(--text, #e8eefc);
+  }
+  .do__table tbody tr {
+    transition: background-color 0.15s;
+  }
+  .do__table tbody tr:hover {
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 5%, transparent);
   }
   .do__table td:first-child {
     font-family: var(--font-ui, sans-serif);
-    font-weight: 700;
+    font-weight: 600;
   }
   .do__shipnote {
     color: var(--muted, #8a99b8);
-    font-size: 0.86rem;
+    font-size: 0.84rem;
   }
   .do__events {
     list-style: none;
@@ -271,8 +306,8 @@ const hasUnverified =
     gap: 0.55rem;
   }
   .do__events li {
-    font-size: 0.95rem;
-    line-height: 1.6;
+    font-size: 0.93rem;
+    line-height: 1.55;
     color: var(--text, #e8eefc);
     opacity: 0.9;
     border-left: 2px solid var(--line, rgba(255, 255, 255, 0.14));
@@ -280,6 +315,7 @@ const hasUnverified =
   }
   .do__events b {
     font-family: var(--font-ui, sans-serif);
+    color: var(--text, #e8eefc);
   }
   .do__period {
     color: var(--muted, #8a99b8);
@@ -287,11 +323,11 @@ const hasUnverified =
   .do__foot {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.8rem 2rem;
-    margin-top: 2rem;
-    padding: 0.9rem 1.1rem;
+    gap: 0.6rem 2rem;
+    margin-top: 1.8rem;
+    padding: 0.8rem 1rem;
     border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
-    background: var(--surface, #10151f);
+    background: var(--bg-2, rgba(0, 0, 0, 0.2));
     font-family: var(--font-ui, sans-serif);
     font-weight: 600;
     font-size: 0.85rem;
@@ -301,7 +337,7 @@ const hasUnverified =
     color: var(--accent, #2dd4ff);
   }
   .do__note {
-    margin-top: 1.4rem;
+    margin-top: 1.2rem;
     font-size: 0.72rem;
     color: var(--muted, #8a99b8);
     opacity: 0.8;
@@ -311,5 +347,12 @@ const hasUnverified =
     text-decoration: none;
     cursor: help;
     margin-left: 0.15rem;
+    font-size: 0.9rem;
+  }
+  @media (max-width: 560px) {
+    .do__head {
+      flex-direction: column;
+      gap: 0.2rem;
+    }
   }
 </style>

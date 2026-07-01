@@ -25,6 +25,11 @@ const cell = (sys: string, p: (typeof patches)[number]): Feat[] =>
   p.data.features.filter((f) => (f.system ?? 'Sonstiges') === sys);
 
 const total = [...counts.values()].reduce((a, b) => a + b, 0);
+const eraCount = new Set(patches.map((p) => p.data.era)).size;
+// era zones: first column of each era gets a vertical seam + era label
+const eraStarts = patches.map((p, i) => i === 0 || p.data.era !== patches[i - 1].data.era);
+const rowTotal = (sys: string) => patches.reduce((n, p) => n + cell(sys, p).length, 0);
+const tierOf = (n: number) => (n <= 2 ? '1' : n <= 5 ? '2' : '3');
 ---
 <Layout
   title="Evolution — Systeme × Patches | SC Patch-Archiv"
@@ -57,20 +62,34 @@ a{color:inherit;text-decoration:none}
       {total} dokumentierte Änderungen, {systems.length} Systeme, {patches.length} Patches.
       Jede Spalte trägt die Farbe ihres Patches. Zelle anklicken für die Details.
     </p>
+    <dl class="evo__metrics">
+      <div><dt>Änderungen</dt><dd>{total}</dd></div>
+      <div><dt>Systeme</dt><dd>{systems.length}</dd></div>
+      <div><dt>Patches</dt><dd>{patches.length}</dd></div>
+      <div><dt>Ären</dt><dd>{eraCount}</dd></div>
+    </dl>
   </header>
+
+  <div class="evo__legend">
+    <span class="evo__lg" aria-hidden="true"><i class="t1"></i><i class="t2"></i><i class="t3"></i></span>
+    <span>Intensität = Aktivität</span>
+    <span>Zahl = Einträge · Klick = Details</span>
+  </div>
 
   <div class="evo__scroll" tabindex="0" aria-label="Evolutions-Matrix (horizontal scrollbar)">
     <table class="evo__table">
       <thead>
         <tr>
           <th class="evo__syshead" scope="col">System</th>
-          {patches.map((p) => (
-            <th scope="col" class="evo__col" style={`--c:${p.data.palette.accent}`}>
+          {patches.map((p, pi) => (
+            <th scope="col" class={`evo__col${eraStarts[pi] ? ' evo__erastart' : ''}`} style={`--c:${p.data.palette.accent}`}>
+              {eraStarts[pi] && <span class="evo__era">{p.data.era}</span>}
               <a href={`/patches/sc-${p.id}.html`} title={`${p.data.codename} · ${p.data.dateDisplay}`}>
                 {p.data.version}
               </a>
             </th>
           ))}
+          <th scope="col" class="evo__tot" title="Einträge gesamt">Σ</th>
         </tr>
       </thead>
       <tbody>
@@ -80,12 +99,13 @@ a{color:inherit;text-decoration:none}
             {patches.map((p, pi) => {
               const feats = cell(sys, p);
               return (
-                <td class="evo__td">
+                <td class={`evo__td${eraStarts[pi] ? ' evo__erastart' : ''}`}>
                   {feats.length > 0 ? (
                     <button
                       class="evo__cell"
                       style={`--c:${p.data.palette.accent}`}
                       data-ed={`ed-${si}-${pi}`}
+                      data-tier={tierOf(feats.length)}
                       aria-expanded="false"
                       aria-label={`${sys} in Alpha ${p.data.version}: ${feats.length} Änderung${feats.length > 1 ? 'en' : ''}`}
                     >{feats.length}</button>
@@ -95,6 +115,7 @@ a{color:inherit;text-decoration:none}
                 </td>
               );
             })}
+            <td class="evo__totcell">×{rowTotal(sys)}</td>
           </tr>
         ))}
       </tbody>
@@ -110,9 +131,12 @@ a{color:inherit;text-decoration:none}
           <div class="edet" id={`ed-${si}-${pi}`} hidden style={`--c:${p.data.palette.accent}`}>
             <header class="edet__head">
               <span class="edet__sys">{sys}</span>
-              <a class="edet__patch" href={`/patches/sc-${p.id}.html`}>
-                Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay} →
-              </a>
+              <span class="edet__meta">
+                <a class="edet__patch" href={`/patches/sc-${p.id}.html`}>
+                  Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay} →
+                </a>
+                <button class="edet__x" data-eclose aria-label="Details schließen">Esc</button>
+              </span>
             </header>
             {feats.map((f) => (
               <article class="edet__feat">
@@ -137,10 +161,21 @@ a{color:inherit;text-decoration:none}
 
 <style is:inline>
 .evo{max-width:var(--maxw);margin:0 auto;padding:7rem clamp(1rem,3vw,2.5rem) 4rem}
-.evo__head{margin-bottom:2.2rem}
+.evo__head{margin-bottom:1.6rem}
 .evo__head h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2.2rem,6vw,3.6rem);
   background:linear-gradient(180deg,#fff,var(--accent-2) 70%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
 .evo__sub{max-width:72ch;color:var(--muted);margin-top:.7rem;font-size:1.02rem}
+.evo__metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1.2rem 2rem;max-width:640px;margin:1.5rem 0 0}
+.evo__metrics div{border-left:2px solid var(--line);padding-left:.8rem}
+.evo__metrics dt{font-family:var(--font-ui);font-weight:700;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.evo__metrics dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:1.4rem;color:var(--accent);font-variant-numeric:tabular-nums}
+.evo__legend{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;padding:.6rem 1rem;border:1px solid var(--line);margin-bottom:1rem;
+  font-family:var(--font-ui);font-weight:700;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.evo__lg{display:inline-flex;gap:.3rem}
+.evo__lg i{width:1.05rem;height:1.05rem;border:1px solid color-mix(in srgb,var(--accent) 55%,transparent)}
+.evo__lg .t1{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.evo__lg .t2{background:color-mix(in srgb,var(--accent) 26%,transparent)}
+.evo__lg .t3{background:color-mix(in srgb,var(--accent) 40%,transparent)}
 
 .evo__scroll{overflow-x:auto;border:1px solid var(--line);background:var(--bg-2)}
 .evo__table{border-collapse:collapse;width:max-content;min-width:100%}
@@ -148,27 +183,41 @@ a{color:inherit;text-decoration:none}
 .evo__syshead{position:sticky;left:0;z-index:3;background:var(--bg-2);text-align:left;
   font-family:var(--font-ui);font-weight:700;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
   padding:.7rem .9rem;min-width:200px;border-right:1px solid var(--line)}
-.evo__col{padding:.55rem .35rem .5rem;min-width:74px;border-bottom:2px solid var(--c)}
+.evo__col{padding:.55rem .35rem .5rem;min-width:74px;border-bottom:2px solid var(--c);vertical-align:bottom}
 .evo__col a{font-family:var(--font-display);font-weight:700;font-size:.72rem;letter-spacing:.04em;color:var(--c);white-space:nowrap}
 .evo__col a:hover{text-decoration:underline}
+.evo__era{display:block;font-family:var(--font-ui);font-weight:700;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c);opacity:.75;margin-bottom:.15rem;white-space:nowrap;text-align:left;padding-left:.15rem}
+.evo__erastart{border-left:1px solid var(--line)}
+.evo__tot{font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.1em;color:var(--muted);padding:.55rem .7rem;border-left:1px solid var(--line);vertical-align:bottom}
+.evo__totcell{font-family:var(--font-ui);font-weight:700;font-size:.72rem;color:var(--muted);text-align:center;padding:.3rem .55rem;border-left:1px solid var(--line);font-variant-numeric:tabular-nums}
 .evo__sys{position:sticky;left:0;z-index:2;background:var(--bg-2);text-align:left;
   font-family:var(--font-ui);font-weight:700;font-size:.9rem;color:var(--text);
   padding:.55rem .9rem;border-right:1px solid var(--line);white-space:nowrap}
 .evo__td{text-align:center;padding:.3rem .25rem}
-.evo__cell{font-family:var(--font-ui);font-weight:700;font-size:.85rem;
+.evo__cell{font-family:var(--font-ui);font-weight:700;
   width:2.1rem;height:2.1rem;cursor:pointer;color:var(--c);
-  background:color-mix(in srgb,var(--c) 16%,transparent);
-  border:1px solid color-mix(in srgb,var(--c) 55%,transparent);border-radius:3px}
-.evo__cell:hover{background:color-mix(in srgb,var(--c) 30%,transparent)}
+  border:1px solid color-mix(in srgb,var(--c) 55%,transparent);border-radius:3px;
+  transition:background-color .15s,border-color .15s}
+.evo__cell[data-tier="1"]{background:color-mix(in srgb,var(--c) 14%,transparent);font-size:.8rem}
+.evo__cell[data-tier="2"]{background:color-mix(in srgb,var(--c) 26%,transparent);font-size:.85rem}
+.evo__cell[data-tier="3"]{background:color-mix(in srgb,var(--c) 40%,transparent);font-size:.9rem}
+.evo__cell:hover{background:color-mix(in srgb,var(--c) 45%,transparent);border-color:color-mix(in srgb,var(--c) 75%,transparent)}
 .evo__cell.sel{background:var(--c);color:#05070d;border-color:var(--c)}
 .evo__dot{color:var(--muted);opacity:.28}
 
 .evo__detail{margin-top:1.4rem}
-.edet{border:1px solid var(--line);border-left:3px solid var(--c);background:var(--surface);padding:1.3rem 1.5rem}
-.edet__head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.6rem 1.2rem;margin-bottom:1rem}
-.edet__sys{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--c)}
-.edet__patch{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.edet{border:1px solid var(--line);border-top:2px solid var(--c);background:var(--surface);padding:1.25rem 1.5rem 1.4rem;
+  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.edet__head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.6rem 1.2rem;
+  border-bottom:1px solid var(--line);padding-bottom:.55rem;margin-bottom:1rem}
+.edet__sys{font-family:var(--font-ui);font-weight:700;font-size:.85rem;letter-spacing:.22em;text-transform:uppercase;color:var(--c)}
+.edet__meta{display:inline-flex;align-items:baseline;gap:1rem}
+.edet__patch{font-family:var(--font-ui);font-weight:700;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);transition:color .15s}
 .edet__patch:hover{color:var(--c)}
+.edet__x{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:1px;color:var(--muted);
+  font-family:var(--font-ui);font-weight:700;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;
+  padding:.14rem .45rem;cursor:pointer;transition:color .15s,border-color .15s}
+.edet__x:hover{color:var(--c);border-color:color-mix(in srgb,var(--c) 55%,transparent)}
 .edet__feat{padding:.85rem 0;border-top:1px solid var(--line)}
 .edet__feat:first-of-type{border-top:0}
 .edet__feat h3{font-family:var(--font-ui);font-weight:700;font-size:1.05rem}
@@ -180,6 +229,16 @@ a{color:inherit;text-decoration:none}
 .edet__link{display:inline-block;margin-top:.55rem;font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
 .edet__link:hover{text-decoration:underline}
 .edet__unv{color:var(--c);text-decoration:none;cursor:help;margin-left:.15rem}
+
+@media(max-width:1024px){
+  .evo__cell{width:1.8rem;height:1.8rem}
+  .evo__cell[data-tier="1"]{font-size:.72rem}
+  .evo__cell[data-tier="2"]{font-size:.76rem}
+  .evo__cell[data-tier="3"]{font-size:.8rem}
+  .evo__col a{font-size:.65rem}
+  .evo__sys{font-size:.85rem}
+  .evo__syshead{min-width:150px}
+}
 </style>
 
 <script is:inline>
@@ -187,17 +246,23 @@ a{color:inherit;text-decoration:none}
   var detail = document.getElementById('evo-detail');
   if (!detail) return;
   var open = null;
+  function closeAll() {
+    detail.hidden = true;
+    open = null;
+    document.querySelectorAll('.edet').forEach(function (x) { x.hidden = true; });
+    document.querySelectorAll('.evo__cell.sel').forEach(function (x) {
+      x.classList.remove('sel');
+      x.setAttribute('aria-expanded', 'false');
+    });
+  }
   document.querySelectorAll('.evo__cell').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var id = btn.getAttribute('data-ed');
       var d = document.getElementById(id);
       if (!d) return;
-      document.querySelectorAll('.edet').forEach(function (x) { x.hidden = true; });
-      document.querySelectorAll('.evo__cell.sel').forEach(function (x) {
-        x.classList.remove('sel');
-        x.setAttribute('aria-expanded', 'false');
-      });
-      if (open === id) { detail.hidden = true; open = null; return; }
+      var wasOpen = open === id;
+      closeAll();
+      if (wasOpen) return;
       detail.hidden = false;
       d.hidden = false;
       btn.classList.add('sel');
@@ -205,6 +270,16 @@ a{color:inherit;text-decoration:none}
       open = id;
       d.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
+  });
+  document.querySelectorAll('[data-eclose]').forEach(function (b) {
+    b.addEventListener('click', closeAll);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && open) closeAll();
+  });
+  document.addEventListener('click', function (e) {
+    if (!open) return;
+    if (!detail.contains(e.target) && !e.target.closest('.evo__cell')) closeAll();
   });
 })();
 </script>

@@ -1,8 +1,9 @@
 ---
-// "Auf einen Blick" — the fast data panel right after the hero.
-// Design rule: Dossier uniform, Kino individuell. This block is deliberately
-// plain and dense (no animation, no scrims); it themes itself through the
-// page's own palette variables.
+// "Auf einen Blick" — REGISTRATUR design language.
+// Renders the page's single Registertrenner (cinema→data seam) followed by
+// the facts panel: 2px accent top rail + 12px corner notches (the register's
+// stamp), Kopfleiste with Aktencode, values-on-stage typography.
+// Accent budget: rail, title, (values stay --text). No motion.
 interface Fact {
   label: string;
   value: string;
@@ -10,16 +11,23 @@ interface Fact {
 }
 interface Props {
   facts: Fact[];
+  /** Aktencode payload, e.g. "Alpha 4.0.0 · 19. Dez 2024" */
   stand?: string;
   title?: string;
 }
 const { facts, stand, title = 'Auf einen Blick' } = Astro.props;
 ---
+<div class="reg-divider">
+  <div class="reg-divider__in">
+    <span class="reg-divider__l">▚ Datenregister</span>
+    {stand && <span class="reg-divider__r">DAT&nbsp;//&nbsp;{stand}</span>}
+  </div>
+</div>
 <section class="qf" aria-label={title}>
   <div class="qf__in">
     <header class="qf__head">
       <h2>{title}</h2>
-      {stand && <span class="qf__stand">{stand}</span>}
+      {stand && <span class="qf__code">DAT&nbsp;//&nbsp;{stand}</span>}
     </header>
     <dl class="qf__grid">
       {facts.map((f) => (
@@ -33,44 +41,62 @@ const { facts, stand, title = 'Auf einen Blick' } = Astro.props;
 </section>
 
 <style>
+  /* Registertrenner — the seam between film and file */
+  .reg-divider {
+    border-top: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    background: var(--bg-2, rgba(0, 0, 0, 0.25));
+    padding: 0.45rem clamp(1.25rem, 5vw, 4.5rem);
+  }
+  .reg-divider__in {
+    max-width: var(--maxw, 1280px);
+    margin: 0 auto;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .reg-divider__l {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent, #2dd4ff);
+  }
+  .reg-divider__r {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted, #8a99b8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Panel — Registerrahmen + Eckfase */
   .qf {
     padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1.25rem, 5vw, 4.5rem);
   }
   .qf__in {
-    position: relative;
     max-width: var(--maxw, 1280px);
     margin: 0 auto;
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
     background: var(--surface, #10151f);
-    padding: 1.4rem 1.6rem 1.5rem;
-  }
-  /* terminal corner brackets — static signature, no motion */
-  .qf__in::before,
-  .qf__in::after {
-    content: '';
-    position: absolute;
-    width: 14px;
-    height: 14px;
-    border: 2px solid var(--accent, #2dd4ff);
-  }
-  .qf__in::before {
-    top: -2px;
-    left: -2px;
-    border-right: 0;
-    border-bottom: 0;
-  }
-  .qf__in::after {
-    bottom: -2px;
-    right: -2px;
-    border-left: 0;
-    border-top: 0;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    border-top: 2px solid var(--accent, #2dd4ff);
+    padding: 1.25rem 1.5rem 1.4rem;
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
   }
   .qf__head {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 1.1rem;
+    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    padding-bottom: 0.55rem;
+    margin-bottom: 1rem;
   }
   .qf__head h2 {
     font-family: var(--font-ui, sans-serif);
@@ -80,36 +106,41 @@ const { facts, stand, title = 'Auf einen Blick' } = Astro.props;
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
   }
-  .qf__stand {
-    font-family: var(--font-ui, sans-serif);
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted, #8a99b8);
-  }
-  .qf__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 0.9rem 1.6rem;
-    margin: 0;
-  }
-  .qf__item {
-    border-left: 2px solid var(--line, rgba(255, 255, 255, 0.14));
-    padding-left: 0.8rem;
-  }
-  .qf__item dt {
+  .qf__code {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
     font-size: 0.68rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
+    white-space: nowrap;
+  }
+  .qf__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 0.7rem 1.4rem;
+    margin: 0;
+  }
+  .qf__item {
+    border-left: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    padding-left: 0.8rem;
+  }
+  .qf__item dt {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted, #8a99b8);
   }
   .qf__item dd {
     margin: 0.15rem 0 0;
     font-family: var(--font-body, system-ui, sans-serif);
-    font-size: 0.97rem;
-    line-height: 1.45;
+    font-weight: 500;
+    font-size: 1.08rem;
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
     color: var(--text, #e8eefc);
   }
   .qf__unv {
@@ -117,5 +148,15 @@ const { facts, stand, title = 'Auf einen Blick' } = Astro.props;
     text-decoration: none;
     cursor: help;
     margin-left: 0.15rem;
+    font-size: 0.9rem;
+  }
+  @media (max-width: 560px) {
+    .qf__head {
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .reg-divider__r {
+      display: none;
+    }
   }
 </style>

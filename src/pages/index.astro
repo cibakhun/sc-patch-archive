@@ -33,6 +33,19 @@ const CURATED = [
 ];
 const keyTopics = CURATED.map((s) => topicIndex.get(s)).filter(Boolean);
 const allTopics = [...topicIndex.values()];
+
+// hub: one directory block per patch line (4.0.x, 4.1.x, …)
+const lineOf = (v: string) => v.split('.').slice(0, 2).join('.');
+const hubGroups: { line: string; accent: string; topics: typeof allTopics }[] = [];
+for (const t of allTopics) {
+  const line = lineOf(t.version);
+  let g = hubGroups.find((x) => x.line === line);
+  if (!g) {
+    g = { line, accent: t.accent, topics: [] };
+    hubGroups.push(g);
+  }
+  g.topics.push(t);
+}
 ---
 <Layout title={"Star Citizen Patch-Archiv · 4.0 → 4.8.2"} description={"Star Citizen Patches von Alpha 4.0.0 bis 4.8.2."} themeColor="#05070d" footer={true}>
 <style is:inline>
@@ -113,29 +126,43 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
 
 .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
 .reveal.in{opacity:1;transform:none}
-/* Value-Prop + Frische (Hero) */
-.vp{max-width:64ch;margin:1.1rem auto 0;color:var(--muted);font-size:clamp(1rem,1.5vw,1.18rem)}
-.fresh{display:inline-flex;align-items:center;gap:.7rem;margin-top:1.5rem;padding:.55rem 1.05rem;border:1px solid var(--line);border-radius:3px;font-family:var(--font-ui);font-weight:600;font-size:.92rem;color:var(--text);background:rgba(212,175,55,.06);transition:border-color .2s,transform .2s}
-.fresh:hover{border-color:var(--gold);transform:translateY(-2px)}
-.fresh__tag{font-family:var(--font-display);font-weight:900;font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(212,175,55,.5);padding:.16rem .5rem;border-radius:2px;flex:none}
+/* Hero-Rhythmus (REGISTRATUR): Erzählung oben, Archiv-Umfang unten */
+.vp{max-width:60ch;margin:.8rem auto 0;color:var(--text);font-weight:500;font-size:clamp(1.15rem,2vw,1.3rem)}
+.hero-rule{width:min(560px,80%);height:1px;background:var(--line);margin:1.6rem auto}
+.hero-lower{display:flex;flex-direction:column;align-items:center;gap:1.4rem}
+@media(min-width:768px){.hero-lower{flex-direction:row;justify-content:center;align-items:center;gap:3rem}}
+.fresh{display:inline-flex;align-items:center;gap:.7rem;padding:.55rem 1rem;border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);font-family:var(--font-ui);font-weight:600;font-size:.92rem;color:var(--text);transition:background-color .15s}
+.fresh:hover{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.fresh__dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
+.fresh__tag{font-family:var(--font-ui);font-weight:800;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;background:var(--accent);color:var(--bg);padding:.16rem .5rem;flex:none}
+.fresh__txt{text-align:left;max-width:44ch}
+.stat-row{margin-top:0;border-top:2px solid var(--accent);border-bottom:1px solid var(--line);padding:1.2rem 1.6rem;gap:2.5rem}
+.stat .n{font-size:clamp(1.8rem,3.5vw,2.4rem);font-variant-numeric:tabular-nums}
+.stat .l{font-weight:700;letter-spacing:.16em;font-size:.66rem}
 
-/* Schlüsselthemen */
-.ktgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem}
-.ktcard{--c:var(--accent);position:relative;display:flex;flex-direction:column;gap:.45rem;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:6px;padding:1.35rem 1.4rem 1.15rem;transition:transform .25s,border-color .25s,box-shadow .25s}
-.ktcard:hover{transform:translateY(-5px);border-color:var(--c);box-shadow:0 14px 40px -14px var(--c)}
-.ktbadge{font-family:var(--font-ui);font-weight:700;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c)}
-.ktcard b{font-family:var(--font-ui);font-weight:700;font-size:1.24rem;color:var(--text)}
-.ktcard p{color:var(--muted);font-size:.9rem;line-height:1.55;flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.ktgo{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.72rem;color:var(--c);margin-top:.55rem;display:inline-flex;gap:.4rem;align-items:center}
-.ktgo .ar{transition:transform .2s}
-.ktcard:hover .ktgo .ar{transform:translateX(5px)}
+/* Schlüsselthemen — kuratiertes Inhaltsverzeichnis, keine Karten-Wand */
+.ktgrid{display:grid;grid-template-columns:1fr;gap:.9rem}
+@media(min-width:768px){.ktgrid{grid-template-columns:1fr 1fr;gap:.9rem 1.4rem}}
+.ktcard{--c:var(--accent);display:grid;grid-template-columns:2.2rem 1fr;gap:0 .9rem;padding:1.1rem 1.3rem;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);transition:background-color .15s,border-color .15s}
+.ktcard:hover{background:color-mix(in srgb,var(--c) 6%,transparent);border-color:color-mix(in srgb,var(--c) 55%,transparent);border-left-color:var(--c)}
+.ktnum{font-family:var(--font-display);font-weight:700;font-size:.8rem;color:color-mix(in srgb,var(--c) 70%,transparent);padding-top:.3rem}
+.ktbody{display:flex;flex-direction:column;gap:.1rem;min-width:0}
+.ktcard b{font-family:var(--font-ui);font-weight:700;font-size:1.25rem;color:var(--text)}
+.ktbadge{font-family:var(--font-ui);font-weight:700;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.ktcard p{color:var(--muted);font-size:.92rem;line-height:1.5;margin-top:.3rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
-/* Themen-Hub */
-.hub{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.8rem}
-.hubcard{--c:var(--accent);display:flex;flex-direction:column;gap:.2rem;border:1px solid var(--line);border-left:3px solid var(--c);border-radius:4px;background:var(--surface);padding:.85rem 1rem;transition:border-color .2s,transform .2s}
-.hubcard:hover{border-color:var(--c);transform:translateY(-3px)}
-.hubcard span{font-family:var(--font-ui);font-weight:700;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c)}
-.hubcard b{font-family:var(--font-ui);font-weight:700;font-size:1rem;color:var(--text)}
+/* Themen-Hub — Registratur-Verzeichnis statt Karten-Wand */
+.hub{display:flex;flex-direction:column;gap:1.2rem}
+.hubgroup{border:1px solid var(--line);padding:1rem 1.3rem}
+.hubhead{display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--line);padding-bottom:.5rem;margin-bottom:.6rem}
+.hubsw{width:8px;height:8px;flex:none}
+.hubline{font-family:var(--font-ui);font-weight:700;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text)}
+.hubn{font-family:var(--font-ui);font-weight:700;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.hubrows{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 1.5rem}
+.hubrows a{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;padding:.4rem .3rem;border-bottom:1px solid rgba(255,255,255,.08);transition:background-color .15s,color .15s}
+.hubrows a:hover{color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.hubrows .ht{font-weight:500;font-size:.9rem}
+.hubrows .hv{font-family:var(--font-ui);font-weight:700;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
@@ -151,14 +178,18 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
   <div class="hero__inner">
     <h1>Patch-Archiv<small>Star Citizen 4.0 → 4.8.2</small></h1>
     <p class="vp">Das deutsche Archiv der Alpha-4-Ära: alle {patchCount} Patches dokumentiert — mit Daten-Dossiers, {topicCount} Themen-Deep-Dives und den Trailern jeder Version.</p>
-    <a class="fresh" href={`/patches/sc-${latest.id}.html`}>
-      <span class="fresh__tag">Neu</span>
-      <span>Alpha {latest.data.version} · {latest.data.dateDisplay} — {latest.data.tagline}</span>
-    </a>
-    <div class="stat-row">
-      <div class="stat"><div class="n">{patchCount}</div><div class="l">Patches</div></div>
-      <div class="stat"><div class="n">{topicCount}</div><div class="l">Deep-Dives</div></div>
-      <div class="stat"><div class="n">3</div><div class="l">Sternsysteme</div></div>
+    <div class="hero-rule" aria-hidden="true"></div>
+    <div class="hero-lower">
+      <a class="fresh" href={`/patches/sc-${latest.id}.html`}>
+        <span class="fresh__dot" aria-hidden="true"></span>
+        <span class="fresh__tag">Neu</span>
+        <span class="fresh__txt">Alpha {latest.data.version} · {latest.data.dateDisplay} — {latest.data.tagline}</span>
+      </a>
+      <div class="stat-row">
+        <div class="stat"><div class="n">{patchCount}</div><div class="l">Patches</div></div>
+        <div class="stat"><div class="n">{topicCount}</div><div class="l">Deep-Dives</div></div>
+        <div class="stat"><div class="n">3</div><div class="l">Sternsysteme</div></div>
+      </div>
     </div>
   </div>
   <div class="scrollcue" aria-hidden="true">Archiv ↓</div>
@@ -176,12 +207,14 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
   <!-- SCHLÜSSELTHEMEN (kuratiert, in Patch-Paletten — aus der Datenschicht) -->
   <div class="era reveal"><h2>Schlüsselthemen</h2><span class="yr">Kuratiert</span><span class="rule"></span></div>
   <div class="ktgrid reveal">
-    {keyTopics.map((k) => (
+    {keyTopics.map((k, i) => (
       <a class="ktcard" style={`--c:${k!.accent}`} href={`/topics/${k!.slug}.html`}>
-        <span class="ktbadge">Alpha {k!.version}</span>
-        <b>{k!.title}</b>
-        <p>{k!.desc}</p>
-        <span class="ktgo">Deep-Dive <span class="ar">→</span></span>
+        <span class="ktnum" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+        <span class="ktbody">
+          <b>{k!.title}</b>
+          <span class="ktbadge">Alpha {k!.version}</span>
+          <p>{k!.desc}</p>
+        </span>
       </a>
     ))}
   </div>
@@ -226,11 +259,22 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
   <!-- THEMEN-HUB (alle Deep-Dives, aus der Datenschicht) -->
   <div class="era reveal"><h2>Alle Themen</h2><span class="yr">{topicCount} Deep-Dives</span><span class="rule"></span></div>
   <div class="hub reveal">
-    {allTopics.map((t) => (
-      <a class="hubcard" style={`--c:${t.accent}`} href={`/topics/${t.slug}.html`}>
-        <span>Alpha {t.version}</span>
-        <b>{t.title}</b>
-      </a>
+    {hubGroups.map((g) => (
+      <div class="hubgroup">
+        <div class="hubhead">
+          <span class="hubsw" style={`background:${g.accent}`} aria-hidden="true"></span>
+          <span class="hubline">Alpha {g.line}.x</span>
+          <span class="hubn">· {g.topics.length} {g.topics.length === 1 ? 'Eintrag' : 'Einträge'}</span>
+        </div>
+        <div class="hubrows">
+          {g.topics.map((t) => (
+            <a href={`/topics/${t.slug}.html`}>
+              <span class="ht">{t.title}</span>
+              <span class="hv">{t.version}</span>
+            </a>
+          ))}
+        </div>
+      </div>
     ))}
   </div>
 
