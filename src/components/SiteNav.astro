@@ -45,6 +45,11 @@ const current = Astro.url.pathname;
     )}
   </div>
   <div class="snav__right">
+    <a
+      class="snav__link"
+      href="/evolution.html"
+      aria-current={current === '/evolution.html' ? 'page' : undefined}
+    >Evolution</a>
     <button class="snav__search" type="button" data-scs-open aria-label="Suche öffnen (Strg+K)">
       <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
       <span>Suche</span>
@@ -168,6 +173,22 @@ const current = Astro.url.pathname;
     display: flex;
     align-items: center;
     gap: 0.6rem;
+  }
+  .snav__link {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.76rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text, #e8eefc);
+    padding: 0.35rem 0.55rem;
+  }
+  .snav__link:hover {
+    color: var(--accent, #2dd4ff);
+  }
+  .snav__link[aria-current] {
+    color: var(--accent, #2dd4ff);
+    border-bottom: 2px solid var(--accent, #2dd4ff);
   }
   .snav__search {
     display: inline-flex;
