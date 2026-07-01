@@ -5,6 +5,7 @@
 // Plumbing, not a reskin: themes itself via the page's palette variables,
 // no motion beyond the existing scrolled-state.
 import { getCollection } from 'astro:content';
+import SearchOverlay from './SearchOverlay.astro';
 
 interface Crumb {
   label: string;
@@ -44,6 +45,11 @@ const current = Astro.url.pathname;
     )}
   </div>
   <div class="snav__right">
+    <button class="snav__search" type="button" data-scs-open aria-label="Suche öffnen (Strg+K)">
+      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      <span>Suche</span>
+      <kbd>Strg K</kbd>
+    </button>
     <details class="snav__dd">
       <summary>Patches <span class="snav__chev" aria-hidden="true">▾</span></summary>
       <div class="snav__panel">
@@ -86,6 +92,7 @@ const current = Astro.url.pathname;
     {pill && <span class="snav__pill">{pill}</span>}
   </div>
 </nav>
+<SearchOverlay />
 
 <style>
   .snav {
@@ -161,6 +168,33 @@ const current = Astro.url.pathname;
     display: flex;
     align-items: center;
     gap: 0.6rem;
+  }
+  .snav__search {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
+    color: var(--muted, #8a99b8);
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.36rem 0.65rem;
+    cursor: pointer;
+  }
+  .snav__search:hover {
+    color: var(--accent, #2dd4ff);
+    border-color: var(--accent, #2dd4ff);
+  }
+  .snav__search kbd {
+    font-family: inherit;
+    font-size: 0.6rem;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.2));
+    padding: 0.05rem 0.3rem;
+    border-radius: 2px;
+    opacity: 0.8;
   }
   .snav__dd {
     position: relative;
@@ -268,6 +302,13 @@ const current = Astro.url.pathname;
     }
     .snav__panel {
       min-width: 270px;
+    }
+    .snav__search span,
+    .snav__search kbd {
+      display: none;
+    }
+    .snav__search {
+      padding: 0.4rem 0.5rem;
     }
   }
 </style>

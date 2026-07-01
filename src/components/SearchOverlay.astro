@@ -1,0 +1,342 @@
+---
+// Ctrl+K search — an in-universe terminal prompt over the whole archive.
+// Zero dependencies: lazy-fetches /search-index.json (built from the data
+// layer) and scores with a tiny normalized matcher. Palette-aware, no motion
+// beyond open/close. Rendered once per page via SiteNav.
+---
+<div class="scs" id="scs" hidden>
+  <div class="scs__back" data-scs-close></div>
+  <div class="scs__panel" role="dialog" aria-modal="true" aria-label="Archiv durchsuchen">
+    <div class="scs__bar">
+      <span class="scs__prompt" aria-hidden="true">&gt;</span>
+      <input
+        id="scs-in"
+        type="search"
+        placeholder="Patches, Themen, Schiffe, Features…"
+        autocomplete="off"
+        spellcheck="false"
+        aria-label="Suchbegriff"
+      />
+      <button class="scs__x" data-scs-close aria-label="Suche schließen">Esc</button>
+    </div>
+    <ul class="scs__list" id="scs-list" role="listbox" aria-label="Suchergebnisse"></ul>
+    <div class="scs__foot">
+      <span><kbd>↑↓</kbd> wählen</span>
+      <span><kbd>↵</kbd> öffnen</span>
+      <span><kbd>Esc</kbd> schließen</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .scs {
+    position: fixed;
+    inset: 0;
+    z-index: 9600;
+  }
+  .scs__back {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(5px);
+  }
+  .scs__panel {
+    position: relative;
+    max-width: 660px;
+    margin: 11vh auto 0;
+    background: var(--bg-2, #0a0e18);
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
+    box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.9);
+  }
+  .scs__panel::before,
+  .scs__panel::after {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border: 2px solid var(--accent, #2dd4ff);
+  }
+  .scs__panel::before {
+    top: -2px;
+    left: -2px;
+    border-right: 0;
+    border-bottom: 0;
+  }
+  .scs__panel::after {
+    bottom: -2px;
+    right: -2px;
+    border-left: 0;
+    border-top: 0;
+  }
+  .scs__bar {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+  }
+  .scs__prompt {
+    font-family: var(--font-display, monospace);
+    font-weight: 900;
+    color: var(--accent, #2dd4ff);
+  }
+  .scs__bar input {
+    flex: 1;
+    background: none;
+    border: 0;
+    outline: 0;
+    color: var(--text, #e8eefc);
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 600;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+  }
+  .scs__bar input::placeholder {
+    color: var(--muted, #8a99b8);
+    opacity: 0.7;
+  }
+  .scs__x {
+    background: none;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.2));
+    color: var(--muted, #8a99b8);
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+  }
+  .scs__x:hover {
+    color: var(--accent, #2dd4ff);
+    border-color: var(--accent, #2dd4ff);
+  }
+  .scs__list {
+    list-style: none;
+    margin: 0;
+    padding: 0.4rem;
+    max-height: 52vh;
+    overflow-y: auto;
+  }
+  .scs__list li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.15rem 0.8rem;
+    padding: 0.55rem 0.7rem;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+  }
+  .scs__list li.sel,
+  .scs__list li:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-left-color: var(--accent, #2dd4ff);
+  }
+  .scs__badge {
+    grid-row: span 2;
+    align-self: start;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent, #2dd4ff);
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
+    padding: 0.18rem 0.4rem;
+    margin-top: 0.15rem;
+    white-space: nowrap;
+    min-width: 6.4rem;
+    text-align: center;
+  }
+  .scs__t {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: var(--text, #e8eefc);
+  }
+  .scs__s {
+    font-size: 0.8rem;
+    color: var(--muted, #8a99b8);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .scs__empty {
+    padding: 1.2rem;
+    text-align: center;
+    color: var(--muted, #8a99b8);
+    font-size: 0.9rem;
+  }
+  .scs__foot {
+    display: flex;
+    gap: 1.4rem;
+    justify-content: flex-end;
+    padding: 0.55rem 1.1rem;
+    border-top: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    font-family: var(--font-ui, sans-serif);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted, #8a99b8);
+  }
+  .scs__foot kbd {
+    font-family: inherit;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.2));
+    padding: 0.05rem 0.3rem;
+    border-radius: 2px;
+  }
+  @media (max-width: 700px) {
+    .scs__panel {
+      margin: 6vh 4vw 0;
+    }
+    .scs__badge {
+      min-width: 5rem;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    if (window.__scsInit) return;
+    window.__scsInit = true;
+
+    var root = document.getElementById('scs');
+    var input = document.getElementById('scs-in');
+    var list = document.getElementById('scs-list');
+    if (!root || !input || !list) return;
+
+    var index = null;
+    var results = [];
+    var sel = 0;
+    var lastFocus = null;
+
+    var norm = function (s) {
+      return (s || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '');
+    };
+
+    function load() {
+      if (index) return Promise.resolve(index);
+      return fetch('/search-index.json')
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          index = j.map(function (e) {
+            return Object.assign({}, e, { nt: norm(e.t), ns: norm(e.s), nx: norm(e.x) });
+          });
+          return index;
+        });
+    }
+
+    function score(e, terms) {
+      var total = 0;
+      for (var i = 0; i < terms.length; i++) {
+        var q = terms[i];
+        var pts = 0;
+        if (e.nt.indexOf(q) === 0) pts = 40;
+        else if (e.nt.indexOf(q) >= 0) pts = 25;
+        else if (e.nx.indexOf(q) >= 0) pts = 15;
+        else if (e.ns.indexOf(q) >= 0) pts = 8;
+        if (!pts) return 0; // AND semantics
+        total += pts;
+      }
+      return total;
+    }
+
+    function render(q) {
+      var terms = norm(q).split(/\s+/).filter(Boolean);
+      list.innerHTML = '';
+      sel = 0;
+      if (!terms.length || !index) { results = []; return; }
+      results = index
+        .map(function (e) { return { e: e, sc: score(e, terms) }; })
+        .filter(function (r) { return r.sc > 0; })
+        .sort(function (a, b) { return b.sc - a.sc; })
+        .slice(0, 20)
+        .map(function (r) { return r.e; });
+      if (!results.length) {
+        var li = document.createElement('li');
+        li.className = 'scs__empty';
+        li.textContent = 'Keine Treffer für „' + q + '"';
+        list.appendChild(li);
+        return;
+      }
+      results.forEach(function (e, i) {
+        var li = document.createElement('li');
+        li.setAttribute('role', 'option');
+        if (i === 0) li.classList.add('sel');
+        var badge = document.createElement('span');
+        badge.className = 'scs__badge';
+        badge.textContent = e.b + ' · ' + e.k;
+        var t = document.createElement('div');
+        t.className = 'scs__t';
+        t.textContent = e.t;
+        var s = document.createElement('div');
+        s.className = 'scs__s';
+        s.textContent = e.s;
+        li.appendChild(badge);
+        li.appendChild(t);
+        li.appendChild(s);
+        li.addEventListener('click', function () { go(i); });
+        list.appendChild(li);
+      });
+    }
+
+    function move(d) {
+      if (!results.length) return;
+      var items = list.querySelectorAll('li[role="option"]');
+      items[sel] && items[sel].classList.remove('sel');
+      sel = (sel + d + results.length) % results.length;
+      items[sel].classList.add('sel');
+      items[sel].scrollIntoView({ block: 'nearest' });
+    }
+
+    function go(i) {
+      var e = results[i == null ? sel : i];
+      if (e) location.href = e.u;
+    }
+
+    function open() {
+      lastFocus = document.activeElement;
+      root.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+      load().then(function () { render(input.value); });
+      requestAnimationFrame(function () { input.focus(); input.select(); });
+    }
+
+    function close() {
+      root.hidden = true;
+      document.documentElement.style.overflow = '';
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+
+    window.__scsOpen = open;
+
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        root.hidden ? open() : close();
+        return;
+      }
+      if (root.hidden) {
+        if (e.key === '/' && !/^(input|textarea|select)$/i.test((e.target && e.target.tagName) || '')) {
+          e.preventDefault();
+          open();
+        }
+        return;
+      }
+      if (e.key === 'Escape') { e.preventDefault(); close(); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+      else if (e.key === 'Enter') { e.preventDefault(); go(); }
+    });
+
+    input.addEventListener('input', function () { render(input.value); });
+    root.querySelectorAll('[data-scs-close]').forEach(function (el) {
+      el.addEventListener('click', close);
+    });
+    document.querySelectorAll('[data-scs-open]').forEach(function (el) {
+      el.addEventListener('click', open);
+    });
+  })();
+</script>
