@@ -1,0 +1,147 @@
+{
+  "version": "4.1.0",
+  "codename": "Orbital Assault",
+  "date": "2025-03-27",
+  "dateDisplay": "27. März 2025",
+  "era": "Sturm & Stahl",
+  "type": "point",
+  "tagline": "Orbitale Hathor-Laser, Asteroiden-Mining und neue Kollisionsphysik.",
+  "summary": "Persistente Aktivität „Align & Mine\" auf Aberdeen und Daymar: Spieler richten bodengestützte Hathor Alignment Facilities aus, woraufhin die Orbital Mining Station einen Laser feuert und brandneue mineralienreiche Höhlen freisprengt. Parallel bringt 4.1.0 überarbeitete Kollisionsphysik (Masse/Geschwindigkeit), die Aegis Idris als spielbare Frigate und neue Valakkar-Fauna.",
+  "palette": {
+    "bg": "#10141a",
+    "accent": "#3DA5D9",
+    "accent2": "#E8A33D",
+    "warm": false
+  },
+  "trailer": {
+    "yt": "NArGjlRFsQQ",
+    "own": true,
+    "title": "Alpha 4.1 - Orbital Assault"
+  },
+  "keyFacts": [
+    {
+      "label": "Persistente Aktivität",
+      "value": "Align & Mine · Aberdeen & Daymar"
+    },
+    {
+      "label": "Hathor-Anlagen",
+      "value": "2 Monde · je 1 Orbital Mining Station"
+    },
+    {
+      "label": "Spielbare Schiffe",
+      "value": "Aegis Idris (Frigate) für Besitzer"
+    },
+    {
+      "label": "Bugfixes",
+      "value": "~130 dokumentierte Korrektionen"
+    },
+    {
+      "label": "Neue Fauna",
+      "value": "Juvenile Valakkar (grabende Wurm-Kreaturen)"
+    }
+  ],
+  "features": [
+    {
+      "name": "Align & Mine",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Persistente kooperative Sandbox-Aktivität: Spieler richten bodengestützte Hathor Alignment Facilities auf Aberdeen und Daymar aus, woraufhin die Orbital Mining Station einen Laser feuert und eine brandneue, mineralienreiche Höhle freisprengt.",
+      "facts": [
+        {
+          "label": "Monde",
+          "value": "Aberdeen & Daymar"
+        },
+        {
+          "label": "Orbital Mining Stations",
+          "value": "je 1 pro Mond"
+        },
+        {
+          "label": "Multiplayer",
+          "value": "persistent cooperative"
+        }
+      ],
+      "topicSlug": "4-1-0-align-and-mine"
+    },
+    {
+      "name": "Überarbeitete Kollisionsphysik",
+      "system": "Flugmodell",
+      "kind": "tech",
+      "desc": "Erweitertes Kollisionssystem, das Masse und Geschwindigkeit der beteiligten Objekte stärker berücksichtigt für realistischere Crash- und Aufprallverhalten.",
+      "facts": [
+        {
+          "label": "Parameter",
+          "value": "Masse & Geschwindigkeit basiert"
+        }
+      ]
+    },
+    {
+      "name": "Aegis Idris (spielbar)",
+      "system": "Schiffs-Systeme",
+      "kind": "gameplay",
+      "desc": "Die Aegis Idris-M und Idris-P werden zum ersten Mal für ihre Besitzer voll spielbar im Persistent Universe.",
+      "facts": [
+        {
+          "label": "Varianten",
+          "value": "Idris-M & Idris-P"
+        },
+        {
+          "label": "Verfügbarkeit",
+          "value": "für Schiff-Besitzer"
+        }
+      ]
+    },
+    {
+      "name": "Juvenile Valakkar-Fauna",
+      "system": "Sternsysteme",
+      "kind": "gameplay",
+      "desc": "Neue grabende Wurm-Kreaturen auf einigen Monden; halten Abstand zu Spielern, bewegen sich durch den Boden und bewerfen Spieler mit Gestein.",
+      "facts": [
+        {
+          "label": "Typ",
+          "value": "grabende Wurm-Kreaturen"
+        },
+        {
+          "label": "Verhalten",
+          "value": "bodengestützt, feindselig"
+        }
+      ]
+    },
+    {
+      "name": "NPC-Interaktionen & Gesichts-DNA",
+      "system": "UI & Komfort",
+      "kind": "gameplay",
+      "desc": "Neue NPC-Interaktionsmöglichkeiten und erweiterte DNA-gestützte Gesichtsgeneratoren für diverse NPC-Charaktere.",
+      "facts": []
+    },
+    {
+      "name": "Arena-Commander-Maps",
+      "system": "Combat & Waffen",
+      "kind": "gameplay",
+      "desc": "Neue Maps für Arena Commander hinzugefügt.",
+      "facts": []
+    },
+    {
+      "name": "Server-Meshing-Missionsanpassungen",
+      "system": "Server-Technik",
+      "kind": "tech",
+      "desc": "Viele Missionen wurden für die Kompatibilität mit statischem Server Meshing überarbeitet und angepasst.",
+      "facts": []
+    }
+  ],
+  "ships": [
+    {
+      "name": "Aegis Idris",
+      "manufacturer": "Aegis Dynamics",
+      "role": "Frigate",
+      "status": "spielbar"
+    }
+  ],
+  "events": [],
+  "fixesNote": "~130 Bugfixes",
+  "topics": [
+    {
+      "slug": "4-1-0-align-and-mine",
+      "title": "Align & Mine"
+    }
+  ]
+}

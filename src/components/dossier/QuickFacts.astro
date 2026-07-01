@@ -1,0 +1,121 @@
+---
+// "Auf einen Blick" — the fast data panel right after the hero.
+// Design rule: Dossier uniform, Kino individuell. This block is deliberately
+// plain and dense (no animation, no scrims); it themes itself through the
+// page's own palette variables.
+interface Fact {
+  label: string;
+  value: string;
+  unverified?: boolean;
+}
+interface Props {
+  facts: Fact[];
+  stand?: string;
+  title?: string;
+}
+const { facts, stand, title = 'Auf einen Blick' } = Astro.props;
+---
+<section class="qf" aria-label={title}>
+  <div class="qf__in">
+    <header class="qf__head">
+      <h2>{title}</h2>
+      {stand && <span class="qf__stand">{stand}</span>}
+    </header>
+    <dl class="qf__grid">
+      {facts.map((f) => (
+        <div class="qf__item">
+          <dt>{f.label}</dt>
+          <dd>{f.value}{f.unverified && <abbr class="qf__unv" title="unbestätigt">*</abbr>}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
+
+<style>
+  .qf {
+    padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1.25rem, 5vw, 4.5rem);
+  }
+  .qf__in {
+    position: relative;
+    max-width: var(--maxw, 1280px);
+    margin: 0 auto;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    background: var(--surface, #10151f);
+    padding: 1.4rem 1.6rem 1.5rem;
+  }
+  /* terminal corner brackets — static signature, no motion */
+  .qf__in::before,
+  .qf__in::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--accent, #2dd4ff);
+  }
+  .qf__in::before {
+    top: -2px;
+    left: -2px;
+    border-right: 0;
+    border-bottom: 0;
+  }
+  .qf__in::after {
+    bottom: -2px;
+    right: -2px;
+    border-left: 0;
+    border-top: 0;
+  }
+  .qf__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.1rem;
+  }
+  .qf__head h2 {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent, #2dd4ff);
+  }
+  .qf__stand {
+    font-family: var(--font-ui, sans-serif);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted, #8a99b8);
+  }
+  .qf__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 0.9rem 1.6rem;
+    margin: 0;
+  }
+  .qf__item {
+    border-left: 2px solid var(--line, rgba(255, 255, 255, 0.14));
+    padding-left: 0.8rem;
+  }
+  .qf__item dt {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted, #8a99b8);
+  }
+  .qf__item dd {
+    margin: 0.15rem 0 0;
+    font-family: var(--font-body, system-ui, sans-serif);
+    font-size: 0.97rem;
+    line-height: 1.45;
+    color: var(--text, #e8eefc);
+  }
+  .qf__unv {
+    color: var(--accent, #2dd4ff);
+    text-decoration: none;
+    cursor: help;
+    margin-left: 0.15rem;
+  }
+</style>

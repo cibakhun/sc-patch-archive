@@ -1,0 +1,108 @@
+{
+  "version": "4.8.1",
+  "codename": "Defend Location",
+  "date": "2026-06-03",
+  "dateDisplay": "3. Juni 2026",
+  "era": "Tactical Strike",
+  "type": "point",
+  "tagline": "Neuer Missionstyp Defend Location — Raumkampf um 385 Asteroiden-Basen mit Bomber-Abwehr und Blueprints.",
+  "summary": "Defend Location führt einen neuen wellenbasierten Raumkampf-Missionstyp ein: Spieler verteidigen Asteroiden-Mining-Basen gegen Bomber-Anflüge über 385 verteilte Einsatzorte in Stanton und Pyro. Die Hybrid-Variante kombiniert Verteidigung mit Escort-Elementen. Mit 4.8.1 winken erstmals einzigartige Crafting-Blueprints als Belohnungen. Das Point-Release bringt 30+ Stabilitätsverbesserungen nach dem holprigen 4.8.0-Start.",
+  "palette": {
+    "bg": "#15181b",
+    "accent": "#36c5d6",
+    "accent2": "#ffb627",
+    "warm": false
+  },
+  "trailer": {
+    "yt": "RWQSxN-ZukE",
+    "own": false,
+    "title": "Alpha 4.8 - Tactical Strike"
+  },
+  "keyFacts": [
+    {
+      "label": "Defend Location Einsatzorte",
+      "value": "385 über Stanton & Pyro"
+    },
+    {
+      "label": "Verteidigbare Basen",
+      "value": "149 Standorte · 6 Schwierigkeitsstufen"
+    },
+    {
+      "label": "Auftraggeber",
+      "value": "Foxwell, Head Hunters, CFP, Rough and Ready"
+    },
+    {
+      "label": "Belohnungen",
+      "value": "aUEC, Reputation, Org-Scrip, Crafting-Blueprints"
+    },
+    {
+      "label": "Stabilitätsverbesserungen",
+      "value": "30+ Fixes nach 4.8.0"
+    }
+  ],
+  "features": [
+    {
+      "name": "Defend Location",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Neuer wellenbasierter Raumkampf-Missionstyp: Spieler verteidigen Asteroiden-Mining-Basen gegen feindliche Bomber-Anflüge. Jeder durchgelassene Bomber verursacht Schaden an der Infrastruktur. Die Hybrid-Variante kombiniert Verteidigung mit Escort-Elementen — befreundete Schiffe müssen beim Start oder bei der Landung geschützt werden.",
+      "facts": [
+        {
+          "label": "Einsatzorte",
+          "value": "385 über Stanton & Pyro"
+        },
+        {
+          "label": "Basen",
+          "value": "149 Standorte"
+        },
+        {
+          "label": "Schwierigkeiten",
+          "value": "6 Stufen"
+        }
+      ],
+      "topicSlug": "4-8-1-defend-location"
+    },
+    {
+      "name": "Blueprints & Crafting",
+      "system": "Crafting",
+      "kind": "gameplay",
+      "desc": "Erstmals tauchen einzigartige Blueprints als Belohnungen auf — speziell auf höheren Schwierigkeitsstufen von Defend Location. Sie speisen das in 4.7.0 eingeführte Crafting-System.",
+      "facts": [
+        {
+          "label": "Verfügbarkeit",
+          "value": "Höhere Schwierigkeitsstufen"
+        },
+        {
+          "label": "Integration",
+          "value": "Mit Crafting-System aus 4.7.0"
+        }
+      ]
+    },
+    {
+      "name": "Stabilitäts- & Bugfixes",
+      "system": "Stabilität & Performance",
+      "kind": "qol",
+      "desc": "Als Point-Release konzentrierte sich 4.8.1 auf Stabilitätsverbesserungen nach 4.8.0 — Fixes adressieren Ship-Claim-Probleme, Landing-Gear/Hangartore und 60k-Shard-Lock-Issues.",
+      "facts": [
+        {
+          "label": "Fix-Umfang",
+          "value": "30+ Bugfixes"
+        },
+        {
+          "label": "Fokus",
+          "value": "4.8.0-Regressionen"
+        }
+      ]
+    }
+  ],
+  "ships": [],
+  "events": [],
+  "fixesNote": "30+ Stabilitäts- und Bugfixes",
+  "topics": [
+    {
+      "slug": "4-8-1-defend-location",
+      "title": "Defend Location"
+    }
+  ],
+  "findings": "[]"
+}

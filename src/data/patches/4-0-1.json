@@ -1,0 +1,129 @@
+{
+  "version": "4.0.1",
+  "codename": "Stabilität & Save Stanton II",
+  "date": "2025-01-28",
+  "dateDisplay": "28. Januar 2025",
+  "era": "Pyro-Ära",
+  "type": "point",
+  "tagline": "Crash-Fixes, Entity-Streaming und Save Stanton Kapitel 2 mit permanenter Fraktionswahl.",
+  "summary": "Point-Release mit gezielten Top-Crash/Deadlock-Fixes nach dem 4.0.0-Start. Entity Density Manager optimiert Speicherverwaltung in dicht bevölkerten Zonen, Streaming-Fixes beheben Probleme mit Aufzügen/Hangars. Save Stanton Kapitel 2 (Fight for Pyro) führt permanente Fraktionswahl ein — Citizens for Prosperity, Headhunters oder Frontier Fighters — mit Ripper-SMG-Belohnung für rechtzeitigen Abschluss.",
+  "palette": {
+    "bg": "#0c1320",
+    "accent": "#36c5d8",
+    "accent2": "#f0a32a",
+    "warm": false
+  },
+  "trailer": {
+    "yt": "DE3ePRgpUQo",
+    "own": false,
+    "title": "Alpha 4.0 - Destination Pyro"
+  },
+  "keyFacts": [
+    {
+      "label": "Crash-Fixes",
+      "value": "Top-10 häufigste Client- & Server-Abstürze behoben"
+    },
+    {
+      "label": "Entity Density Manager",
+      "value": "Optimierte Aufräum-Logik für dicht bevölkerte Zonen"
+    },
+    {
+      "label": "Streaming-Verbesserungen",
+      "value": "Zuverlässigeres Laden von Aufzügen, Hangars & Innenräumen"
+    },
+    {
+      "label": "Save Stanton Kapitel 2",
+      "value": "Fight for Pyro: permanente Fraktionswahl (3 Fraktionen)"
+    },
+    {
+      "label": "Ripper SMG",
+      "value": "Exklusive Belohnung vor 4.0.2-Start"
+    }
+  ],
+  "features": [
+    {
+      "name": "Entity Density Manager",
+      "system": "Server-Technik",
+      "kind": "tech",
+      "desc": "Optimierung der Entity-Aufräum-Logik: zurückgelassene Objekte und angesammelte Spielobjekte werden besser bereinigt, was Performance und Server-Stabilität in dicht bevölkerten Zonen verbessert.",
+      "facts": [
+        {
+          "label": "Fokus",
+          "value": "Speicherverwaltung & Performance"
+        }
+      ]
+    },
+    {
+      "name": "Streaming-Fixes",
+      "system": "Server-Technik",
+      "kind": "tech",
+      "desc": "Verbesserungen am Persistent Entity Streaming: Aufzüge, Hangars und Innenräume laden zuverlässiger nach, weniger fehlende Geometrie und Hänger beim Betreten.",
+      "facts": [
+        {
+          "label": "Scope",
+          "value": "Aufzüge, Hangars, Innenräume"
+        }
+      ]
+    },
+    {
+      "name": "Top-Crash/Deadlock-Fixes",
+      "system": "Stabilität & Performance",
+      "kind": "tech",
+      "desc": "4.0.1 war ein Stabilitäts-Point-Release mit gezielten Fixes gegen die häufigsten Client- und Server-Abstürze des 4.0-Starts, insbesondere Deadlock-Szenarien.",
+      "facts": [
+        {
+          "label": "Umfang",
+          "value": "Top-10 häufigste Crash-Szenarien"
+        }
+      ]
+    },
+    {
+      "name": "Save Stanton Kapitel 2: Fight for Pyro",
+      "system": "Missionen & Aktivitäten",
+      "kind": "event",
+      "desc": "Dynamisches Event mit permanenter Fraktionswahl: Spieler entscheiden sich nach der ersten Mission für Citizens for Prosperity, Headhunters oder Frontier Fighters. Danach sind alle Missionen reputationsgebunden. Schließung vor 4.0.2 belohnt mit exklusiver Ripper-SMG.",
+      "facts": [
+        {
+          "label": "Fraktionen",
+          "value": "3 (Citizens for Prosperity, Headhunters, Frontier Fighters)"
+        },
+        {
+          "label": "Merkmal",
+          "value": "Permanente Wahl — kein Wechsel möglich"
+        },
+        {
+          "label": "Schauplatz",
+          "value": "Pyro (gesetzloses System)"
+        },
+        {
+          "label": "Exklusivbelohnung",
+          "value": "Ripper-SMG (nur vor 4.0.2)"
+        }
+      ],
+      "topicSlug": "4-0-1-fight-for-pyro"
+    }
+  ],
+  "ships": [
+    {
+      "name": "F7C-M Super Hornet Mk II",
+      "manufacturer": "Anvil",
+      "role": "Jäger",
+      "status": "im 4.0-Zyklus",
+      "unverified": true
+    }
+  ],
+  "events": [
+    {
+      "name": "Fight for Pyro (Save Stanton Kapitel 2)",
+      "desc": "Dynamisches Event mit permanenter Fraktionswahl in Pyro. Spieler wählen bei der ersten Mission eine von drei Fraktionen (Citizens for Prosperity, Headhunters, Frontier Fighters) und kämpfen reputation-gebunden bis zum Ende der Kampagne. Ripper-SMG-Belohnung für Abschluss vor 4.0.2-Start.",
+      "period": "28. Jan – 28. Feb 2025"
+    }
+  ],
+  "fixesNote": "Top-10 Crash-Fixes",
+  "topics": [
+    {
+      "slug": "4-0-1-fight-for-pyro",
+      "title": "Fight for Pyro"
+    }
+  ]
+}

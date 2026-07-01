@@ -1,0 +1,157 @@
+{
+  "version": "4.8.2",
+  "codename": "Gatac & Alien Week",
+  "date": "2026-06-17",
+  "dateDisplay": "17. Juni 2026",
+  "era": "Tactical Strike",
+  "type": "point",
+  "tagline": "Zwei flugfertige Gatac-Schiffe mit Grav-Lev-Antrieb und die Alien-Week-Feier um First Contact Day.",
+  "summary": "Point-Release mit zwei neuen Gatac-Alien-Schiffen (Railen Grav-Lev-Frachter, Tyilui Snub-Carrier) und dem gleichzeitigen Start von Alien Week 2956. Das Event feiert xenotechnische Hersteller wie Gatac, Aopoa, Banu und Esperia mit zeitlich begrenzten Store-Aktionen und Rabattierungen. LTP aktiv mit 20.000 aUEC Startguthaben; Fokus auf Stabilität und kleinere Fixes auf bestehenden 4.8-Systemen.",
+  "palette": {
+    "bg": "#0c0a16",
+    "accent": "#1FB8A6",
+    "accent2": "#C79A4B",
+    "warm": false
+  },
+  "trailer": {
+    "yt": "RWQSxN-ZukE",
+    "own": false,
+    "title": "Alpha 4.8 - Tactical Strike"
+  },
+  "keyFacts": [
+    {
+      "label": "Gatac Railen",
+      "value": "~640 SCU · Grav-Lev-Frachter"
+    },
+    {
+      "label": "Gatac Tyilui",
+      "value": "Snub-Carrier für quantum-unfähige Snub-Fighter"
+    },
+    {
+      "label": "Alien Week 2956",
+      "value": "17.–25. Juni 2026 · Rabatte auf alien-Schiffe & -Equipment"
+    },
+    {
+      "label": "First Contact Day",
+      "value": "Jährlicher Gedenktag an Erstkontakt Menschheit–Xi'an-Imperium"
+    },
+    {
+      "label": "LTP aktiv",
+      "value": "+20.000 aUEC Startguthaben"
+    }
+  ],
+  "features": [
+    {
+      "name": "Gatac Railen",
+      "system": "Schiffs-Systeme",
+      "kind": "qol",
+      "desc": "Mittlerer Hybrid-Grav-Lev-Frachter mit rund 640 SCU Ladekapazität, verteilt auf charakteristische dreieckige Frachtpods. Nutzt Xi'an-Graviton-Levitations-Technologie statt klassischer Triebwerke, was das alien-typische Design und Flugverhalten definiert.",
+      "facts": [
+        {
+          "label": "Hersteller",
+          "value": "Gatac"
+        },
+        {
+          "label": "Ladekapazität",
+          "value": "~640 SCU"
+        },
+        {
+          "label": "Antrieb",
+          "value": "Grav-Lev (Xi'an)"
+        }
+      ],
+      "topicSlug": "4-8-2-alien-week"
+    },
+    {
+      "name": "Gatac Tyilui",
+      "system": "Schiffs-Systeme",
+      "kind": "qol",
+      "desc": "Snub-Carrier für quantum-unfähige Snub-Fighter. Inspiriert von Science-Fiction-Ästhetik (2001-Stil). Trägt die mysteriöse, 2001-a-Space-Odyssey-inspirierte Designphilosophie der Gatac-Linie weiter.",
+      "facts": [
+        {
+          "label": "Hersteller",
+          "value": "Gatac"
+        },
+        {
+          "label": "Rolle",
+          "value": "Snub-Carrier"
+        },
+        {
+          "label": "Besonderheit",
+          "value": "Träger quantum-unfähiger Fighter"
+        }
+      ],
+      "topicSlug": "4-8-2-alien-week"
+    },
+    {
+      "name": "Alien Week 2956",
+      "system": "Events",
+      "kind": "event",
+      "desc": "Jährliches Event rund um First Contact Day (17.–25. Juni 2026), das xenotechnische Hersteller in den Mittelpunkt rückt. Gatac ist Headliner 2956 mit Railen, Syulen und Tyilui. Begleitet von Pledge-Store-Aktionen, limitierten Lackierungen und Alien-Lore-Features sowie Xi'an-Sprachlektionen.",
+      "facts": [
+        {
+          "label": "Dauer",
+          "value": "17.–25. Juni 2026"
+        },
+        {
+          "label": "Headliner",
+          "value": "Gatac (Railen, Syulen, Tyilui)"
+        },
+        {
+          "label": "Hersteller im Spotlight",
+          "value": "Gatac, Aopoa, Banu, Esperia"
+        }
+      ],
+      "topicSlug": "4-8-2-alien-week"
+    },
+    {
+      "name": "Grav-Lev-Antriebstechnik",
+      "system": "Schiffs-Systeme",
+      "kind": "tech",
+      "desc": "Xi'an-Graviton-Levitations-Technologie, die in den Gatac-Schiffen verwendet wird. Ersetzt klassische menschliche Triebwerke und prägt Flugverhalten sowie Design-Ästhetik der alien-Schiffe.",
+      "facts": [
+        {
+          "label": "Ursprung",
+          "value": "Xi'an-Imperium"
+        },
+        {
+          "label": "Verwendung",
+          "value": "Gatac Railen, Gatac Tyilui"
+        }
+      ],
+      "topicSlug": "4-8-2-alien-week"
+    }
+  ],
+  "ships": [
+    {
+      "name": "Gatac Railen",
+      "manufacturer": "Gatac",
+      "role": "Grav-Lev-Frachter",
+      "status": "neu"
+    },
+    {
+      "name": "Gatac Tyilui",
+      "manufacturer": "Gatac",
+      "role": "Snub-Carrier",
+      "status": "neu"
+    }
+  ],
+  "events": [
+    {
+      "name": "Alien Week 2956",
+      "desc": "Feier der nicht-menschlichen Hersteller rund um First Contact Day. Gatac-Schiffe Railen, Syulen und Tyilui sind Headliner. Event bringt Pledge-Store-Rabatte auf Gatac, Aopoa, Banu, Esperia sowie limitierte Lackierungen und Alien-Gear."
+    },
+    {
+      "name": "First Contact Day",
+      "desc": "Jährlicher Gedenktag an den ersten Kontakt zwischen Menschheit und Xi'an-Imperium. Alien Week würdigt dieses Erbe mit Rabatten auf Alien-Schiffe und Ausrüstung."
+    }
+  ],
+  "fixesNote": "Weitere Stabilität und Bugfixes auf 4.8.0-Systemen (genaue Anzahl nicht spezifiziert).",
+  "wipe": "LTP aktiv · +20.000 aUEC Startguthaben (kein voller Wipe)",
+  "topics": [
+    {
+      "slug": "4-8-2-alien-week",
+      "title": "Alien Week 2956"
+    }
+  ]
+}

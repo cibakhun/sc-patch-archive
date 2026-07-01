@@ -1,0 +1,155 @@
+{
+  "version": "4.1.1",
+  "codename": "Balancing & Fleet Week",
+  "date": "2025-05-13",
+  "dateDisplay": "13. Mai 2025",
+  "era": "Sturm & Stahl",
+  "type": "point",
+  "tagline": "Waffen-Balancing, Recoil und Fleet Week mit Hunt The Polaris.",
+  "summary": "Point-Release mit Fokus auf Waffensysteme: Das neue Recoil-System bringt sichtbare Rückstoß-Reaktionen beim Feuern, die Munitionskapazität von Geschütztürmen wurde deutlich erhöht und über 200 Bugfixes stabilisierten das Spiel. Hunt The Polaris, eine serverweite Mission während der Fleet Week 2955, lässt den gesamten Shard gemeinsam eine gestohlene RSI Polaris verfolgen und die Beute teilen.",
+  "palette": {
+    "bg": "#0c1422",
+    "accent": "#ff7a1a",
+    "accent2": "#7d8b9a",
+    "warm": true
+  },
+  "trailer": {
+    "yt": "NArGjlRFsQQ",
+    "own": false,
+    "title": "Alpha 4.1 - Orbital Assault"
+  },
+  "keyFacts": [
+    {
+      "label": "Bugfixes",
+      "value": ">200 Fehlerkorrektionen (61 aus Issue Council)"
+    },
+    {
+      "label": "Turret-Munition",
+      "value": "Deutlich erhöht (Redeemer, Retaliator, Reclaimer, Carrack, Polaris, Hammerhead)"
+    },
+    {
+      "label": "Recoil-System",
+      "value": "Neu implementiert, actor-basiert, skalierbar/abschaltbar"
+    },
+    {
+      "label": "Fleet Week 2955",
+      "value": "Invictus-Messe · serverweite Mission Hunt The Polaris"
+    },
+    {
+      "label": "Waffen-Balancing",
+      "value": "Umfangreiches Tuning von Schiffs- und Handfeuerwaffen"
+    }
+  ],
+  "features": [
+    {
+      "name": "Recoil-System (neu)",
+      "system": "Combat & Waffen",
+      "kind": "gameplay",
+      "desc": "Neu implementiertes Rückstoß-System mit actor-basierten Effekten beim Feuern von Schiffs- und Fahrzeugwaffen. Die Effekte sind sichtbar, skalierbar und können abgeschaltet werden — jeder Schuss fühlt sich kontrollierter und greifbarer an.",
+      "facts": [
+        {
+          "label": "Implementierung",
+          "value": "Actor-basierte Recoil-Effekte"
+        },
+        {
+          "label": "Eigenschaften",
+          "value": "Sichtbar, skalierbar/abschaltbar"
+        }
+      ],
+      "topicSlug": "4-1-1-hunt-the-polaris"
+    },
+    {
+      "name": "Turret-Munition erhöht",
+      "system": "Schiffs-Systeme",
+      "kind": "balance",
+      "desc": "Die Munitionskapazität von Geschütztürmen wurde deutlich erhöht. Besonders betroffene Schiffe: Redeemer, Retaliator, Reclaimer, Carrack, Polaris und Hammerhead. Einzelne Turret-Waffen wurden auch auf höheren Schaden neu abgestimmt.",
+      "facts": [
+        {
+          "label": "Betroffene Schiffe",
+          "value": "Redeemer, Retaliator, Reclaimer, Carrack, Polaris, Hammerhead"
+        },
+        {
+          "label": "Effekt",
+          "value": "Längere Feuerbereitschaft ohne Nachladen"
+        }
+      ]
+    },
+    {
+      "name": "Waffen-Balancing",
+      "system": "Combat & Waffen",
+      "kind": "balance",
+      "desc": "Umfangreiches Tuning von Schiffs- und Handfeuerwaffen: Schadenswerte, Reichweiten und Feuerverhalten wurden neu ausbalanciert, um das Kampfgefühl fairer und konsistenter zu machen.",
+      "facts": [
+        {
+          "label": "Umfang",
+          "value": "Schiffs- und Handfeuerwaffen"
+        },
+        {
+          "label": "Parameter",
+          "value": "Schaden, Reichweite, Feuerverhalten"
+        }
+      ]
+    },
+    {
+      "name": "Hunt The Polaris (Event)",
+      "system": "Events",
+      "kind": "event",
+      "desc": "Serverweite Mission während Fleet Week 2955: Die Frontier Fighters stehlen eine RSI Polaris mitten in der Flottenschau. Der gesamte Server jagt die gestohlene Korvette quer durch Stanton bis zu einem flüchtigen Wurmloch, wo das entscheidende Gefecht stattfindet. Die Beute wird unter allen Beteiligten geteilt.",
+      "facts": [
+        {
+          "label": "Diebstahl",
+          "value": "RSI Polaris durch Frontier Fighters"
+        },
+        {
+          "label": "Verfolgung",
+          "value": "Quer durch ganz Stanton"
+        },
+        {
+          "label": "Finale",
+          "value": "Gefecht am flüchtigen Wurmloch"
+        },
+        {
+          "label": "Belohnung",
+          "value": "Geteilt unter allen Beteiligten"
+        }
+      ],
+      "topicSlug": "4-1-1-hunt-the-polaris"
+    },
+    {
+      "name": "Fleet Week 2955 (Invictus)",
+      "system": "Events",
+      "kind": "event",
+      "desc": "Jährliche Flottenparade und Invictus-Messe, bei der die größten Schiffe der UEE Seite an Seite stehen. Hunt The Polaris ist eingebettet in diesen Rahmen — während die Flottenschau läuft, greifen die Frontier Fighters zu.",
+      "facts": [
+        {
+          "label": "Kontext",
+          "value": "Jährliche Fleet-Week / Invictus-Messe"
+        },
+        {
+          "label": "Größe",
+          "value": "Größte Schiffe der UEE"
+        }
+      ]
+    }
+  ],
+  "ships": [],
+  "events": [
+    {
+      "name": "Hunt The Polaris",
+      "desc": "Server-weite Mission: Die Frontier Fighters stehlen eine RSI Polaris während der Fleet Week 2955. Der ganze Server jagt die gestohlene Korvette quer durch Stanton bis zum Wurmloch-Gefecht. Belohnung wird geteilt.",
+      "status": "aktiv"
+    },
+    {
+      "name": "Fleet Week 2955 (Invictus)",
+      "desc": "Jährliche Flottenschau und Messe der UEE mit den größten Schiffen. Hunt The Polaris spielt sich vor diesem Hintergrund ab.",
+      "status": "aktiv"
+    }
+  ],
+  "fixesNote": ">200 Bugfixes (61 aus Issue Council); Balancing- und Stabilitäts-Point-Release",
+  "topics": [
+    {
+      "slug": "4-1-1-hunt-the-polaris",
+      "title": "Hunt The Polaris"
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "version": "4.3.1",
+  "codename": "Virtue's Descent",
+  "date": "2025-09-18",
+  "dateDisplay": "18. Sep 2025",
+  "era": "Onyx & Heilung",
+  "type": "point",
+  "tagline": "RSI Apollo, Medical-Overhaul und das Medgel-System.",
+  "summary": "4.3.1 überarbeitet das Medizin-System von Grund auf: das RSI Apollo Medical-Ship mit modularen Medizin-Konfigurationen wird zum Zentrum, MedGel wird zum verbrauchten Ressourcenverbrauch für Respawns und Heilung, und Bett-Stufen T1–T3 definieren neue Respawn-Distanzen. Die Onyx-Story weitet sich mit Site B und Dr. Jorrits Labor aus, wo biologische Proben die nächste Schicht des Mysteriums enthüllen.",
+  "palette": {
+    "bg": "#0f2336",
+    "accent": "#1FAA8C",
+    "accent2": "#9bdfce",
+    "warm": false
+  },
+  "trailer": {
+    "yt": "pq7XEWatINA",
+    "own": true,
+    "title": "Alpha 4.3.1: Virtue's Descent"
+  },
+  "keyFacts": [
+    {
+      "label": "RSI Apollo",
+      "value": "2 modulare Medical-Rooms, Medivac & Triage Konfigurationen"
+    },
+    {
+      "label": "MedGel-Kosten",
+      "value": "T3=5 / T2=10 / T1=20 Ladungen pro Respawn/Heilung"
+    },
+    {
+      "label": "Bett-Stufen",
+      "value": "T1–T3 mit angepassten Respawn-Distanzen"
+    },
+    {
+      "label": "Onyx Erweiterung",
+      "value": "Site B – Dr. Jorrits Labor mit biologischen Proben"
+    }
+  ],
+  "features": [
+    {
+      "name": "Medical Overhaul",
+      "system": "Medical",
+      "kind": "tech",
+      "desc": "Umfassende Überarbeitung des Medizin-Systems: Wunden entstehen nach neuen Regeln, Heilung und Rettung werden neu mechanisiert, Wiederbelebung funktioniert über Bett-Stufen mit definierten Respawn-Distanzen.",
+      "facts": [
+        {
+          "label": "Bett-Stufen",
+          "value": "T1 bis T3"
+        },
+        {
+          "label": "Respawn-Flow",
+          "value": "über Medgel-Verbrauch neu definiert"
+        }
+      ],
+      "topicSlug": "4-3-1-medical-overhaul"
+    },
+    {
+      "name": "Medgel-System",
+      "system": "Medical",
+      "kind": "gameplay",
+      "desc": "Neues Verbrauchsmaterial für Medizin-Betten: Respawn und Heilung an Med-Betten verbrauchen nun gestaffelte Ladungen angedockter Medgels — von Triage bis voller Wiederbelebung. Betten stehen still, wenn Medgel leer ist.",
+      "facts": [
+        {
+          "label": "Stufen-Kosten",
+          "value": "T1=20, T2=10, T3=5"
+        }
+      ]
+    },
+    {
+      "name": "RSI Apollo Medical-Ship",
+      "system": "Schiffs-Systeme",
+      "kind": "tech",
+      "desc": "Dediziertes Sanitätsschiff mit zwei modularen Ausrichtungen: Medivac für die Bergung Verwundeter aus dem Feld, Triage für Versorgung an Bord mit Regenerations-Fähigkeiten. Fliegender Stützpunkt für Teams tief im Verse.",
+      "facts": [
+        {
+          "label": "Rolle",
+          "value": "Medical Medivac/Triage"
+        },
+        {
+          "label": "Besonderheit",
+          "value": "2 modulare Medical-Rooms mit Regenerations-Fähigkeiten"
+        }
+      ]
+    },
+    {
+      "name": "Onyx Site B",
+      "system": "Sternsysteme",
+      "kind": "gameplay",
+      "desc": "Erweiterung der Onyx Facilities: Site B öffnet Dr. Jorrits Labor, wo Spieler biologische Proben bergen müssen um die vollständigen Zusammenhänge der Experimente zu verstehen. Eine weitere Schicht der investigativen Onyx-Story.",
+      "facts": [
+        {
+          "label": "Story",
+          "value": "Dr. Jorrit & biologische Proben"
+        },
+        {
+          "label": "Integration",
+          "value": "verzahnt mit Medical-Overhaul-Thema"
+        }
+      ]
+    },
+    {
+      "name": "Atmospheric Control Surfaces",
+      "system": "Flugmodell",
+      "kind": "tech",
+      "desc": "Flugmodell-Verbesserung für realistischeres atmosphärisches Flugverhalten, besonders bei den neuen Medical-Schiffen."
+    },
+    {
+      "name": "Ship Respawn via Dropships & Watchtowers",
+      "system": "Schiffs-Systeme",
+      "kind": "gameplay",
+      "desc": "Alternative Respawn-Mechanik für zerstörte Schiffe über Dropship- oder Watchtower-Einsätze statt klassischer Claim-Wartezeit."
+    }
+  ],
+  "ships": [
+    {
+      "name": "RSI Apollo",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Medical Medivac/Triage",
+      "status": "neu",
+      "notes": "Zwei modulare Medical Rooms, Regenerations-Fähigkeiten"
+    }
+  ],
+  "events": [],
+  "topics": [
+    {
+      "slug": "4-3-1-medical-overhaul",
+      "title": "Medical Overhaul"
+    }
+  ]
+}

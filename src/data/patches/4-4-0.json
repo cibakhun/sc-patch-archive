@@ -1,0 +1,215 @@
+{
+  "findings": "[{\"file\": \"VERIFICATION RECORD - 4.4.0\", \"summary\": \"Corrected 3 minor discrepancies between draft and verified sources\", \"failure_scenario\": \"Draft tagline overstated details not on the patch page; RSI Salvation role title mismatched source; Jump Points feature not standalone\", \"verdict\": \"CORRECTED\"}]",
+  "codename": "Welcome to Nyx",
+  "version": "4.4.0",
+  "date": "2025-11-19",
+  "dateDisplay": "19. Nov 2025",
+  "era": "Neue Horizonte",
+  "type": "major",
+  "tagline": "Drittes System Nyx, erste Vanduul-KI und die IAE 2955.",
+  "summary": "Nyx öffnet sich als drittes voll simuliertes Sternsystem — nebelverhangen, gesetzlos, asteroidendicht. Die Vanduul treten erstmals als KI-Gegner ins persistente Universum auf und patrouillieren mit Stinger, Glaive, Scythe und Blade. Levski blüht als Felsenstadt in Delamar auf. Die IAE 2955 in Orison zeigt 200+ Schiffe testbar — kostenlos bis 3. Dezember. Interstellares Hauling verbindet erstmals System-übergreifende Missionen.",
+  "palette": {
+    "bg": "#0c1020",
+    "accent": "#7fb2d9",
+    "accent2": "#d4af37",
+    "warm": true
+  },
+  "trailer": {
+    "yt": "ilDmGyHLQNg",
+    "own": true,
+    "title": "Alpha 4.4: Welcome to Nyx"
+  },
+  "keyFacts": [
+    {
+      "label": "Drittes Sternsystem",
+      "value": "Nyx — Glaciem Ring, Levski in Delamar"
+    },
+    {
+      "label": "Vanduul im PU",
+      "value": "4 KI-Schiffstypen: Stinger, Glaive, Scythe, Blade"
+    },
+    {
+      "label": "IAE 2955",
+      "value": "200+ Schiffe kostenlos testbar · Free-Fly bis 3. Dez 2025"
+    },
+    {
+      "label": "Interstellares Hauling",
+      "value": "Missionen über Stanton, Pyro und Nyx hinweg"
+    },
+    {
+      "label": "Operation Sworn Enemies",
+      "value": "Untersuchungs-Mission zu Vanduul-Technologie"
+    },
+    {
+      "label": "Fixes",
+      "value": "180+ Korrektionen"
+    }
+  ],
+  "features": [
+    {
+      "name": "Nyx-System",
+      "system": "Sternsysteme",
+      "kind": "location",
+      "desc": "Drittes voll simuliertes Sternsystem: dunkel, nebelverhangen, asteroidendicht. Über Jump Points an Stanton und Pyro gebunden. Heimat des Glaciem Ring und der Felsenstadt Levski.",
+      "facts": [
+        {
+          "label": "Position",
+          "value": "Drittes System nach Stanton & Pyro"
+        },
+        {
+          "label": "Charakteristik",
+          "value": "Nebelverhangen, Asteroidengürtel, gesetzlos"
+        }
+      ],
+      "topicSlug": "4-4-0-nyx-system"
+    },
+    {
+      "name": "Glaciem Ring",
+      "system": "Sternsysteme",
+      "kind": "location",
+      "desc": "Dichter, dunkler, nebelverhangener Asteroidengürtel durchs Nyx-System. Jagdrevier der Vanduul, enge Sicht, schwer zu durchqueren.",
+      "facts": [
+        {
+          "label": "Typ",
+          "value": "Asteroidengürtel"
+        },
+        {
+          "label": "Besonderheit",
+          "value": "Vanduul-Patrouillen, dichter Nebel"
+        }
+      ]
+    },
+    {
+      "name": "Levski",
+      "system": "Sternsysteme",
+      "kind": "location",
+      "desc": "Landezone in Delamar, einem Asteroiden des Nyx-Systems. Stadt im Fels, Sitz der Peoples Alliance. Einziger fester Halt im gesetzlosen Nyx.",
+      "facts": [
+        {
+          "label": "Lage",
+          "value": "In Asteroid Delamar"
+        },
+        {
+          "label": "Fraktion",
+          "value": "Peoples Alliance"
+        }
+      ],
+      "topicSlug": "4-4-0-nyx-system"
+    },
+    {
+      "name": "Vanduul als KI-Gegner",
+      "system": "Combat & Waffen",
+      "kind": "gameplay",
+      "desc": "Erstmals treten die Vanduul als eigenständige KI-Gegner-Fraktion ins persistente Universum ein. Vier Schiffstypen — Stinger (leicht), Glaive, Scythe, Blade — patrouillieren Nyx und greifen ohne Vorwarnung an.",
+      "facts": [
+        {
+          "label": "KI-Schiffstypen",
+          "value": "Stinger, Glaive, Scythe, Blade (4 Typen)"
+        },
+        {
+          "label": "Verhalten",
+          "value": "Aggressive Patrouille, Angriff ohne Vorwarnung"
+        },
+        {
+          "label": "Einsatzort",
+          "value": "Nyx-System"
+        }
+      ],
+      "topicSlug": "4-4-0-vanduul"
+    },
+    {
+      "name": "Operation Sworn Enemies",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Untersuchungs-Mission in verlassenen Stationen des Nyx-Systems. Spieler sammeln Hinweise auf Vanduul-Technologie und stoßen dabei direkt auf die Aliens — der Auftrag wird jederzeit zum Gefecht.",
+      "facts": [
+        {
+          "label": "Missionstyp",
+          "value": "Untersuchung + Combat"
+        },
+        {
+          "label": "Ortswahl",
+          "value": "Verlassene Stationen in Nyx"
+        }
+      ],
+      "topicSlug": "4-4-0-vanduul"
+    },
+    {
+      "name": "Interstellares Hauling",
+      "system": "Wirtschaft & Trading",
+      "kind": "gameplay",
+      "desc": "Prozedurale Fracht-Missionen, die in einem System starten und in einem anderen enden. Verbindet Stanton, Pyro und Nyx mit System-übergreifenden Handelsketten.",
+      "facts": [
+        {
+          "label": "Reichweite",
+          "value": "Stanton, Pyro, Nyx"
+        },
+        {
+          "label": "Missionstyp",
+          "value": "Prozedurale Fracht-Routen"
+        }
+      ]
+    },
+    {
+      "name": "IAE 2955",
+      "system": "Events",
+      "kind": "event",
+      "desc": "Intergalactic Aerospace Expo in Orison. 200+ Schiffe aller Hersteller zur kostenlosen Probe. Free-Fly bis 3. Dezember 2025. Die größte Schiffsmesse im Verse.",
+      "facts": [
+        {
+          "label": "Ort",
+          "value": "Orison"
+        },
+        {
+          "label": "Dauer",
+          "value": "14 Tage · Free-Fly bis 3. Dez 2025"
+        },
+        {
+          "label": "Schiffe testbar",
+          "value": "200+"
+        }
+      ]
+    }
+  ],
+  "ships": [
+    {
+      "name": "RSI Perseus",
+      "manufacturer": "RSI",
+      "role": "Schweres Gunship",
+      "status": "neu"
+    },
+    {
+      "name": "RSI Salvation",
+      "manufacturer": "RSI",
+      "role": "Salvage",
+      "status": "neu"
+    },
+    {
+      "name": "Vanduul Scythe",
+      "manufacturer": "Vanduul",
+      "role": "KI-Jäger",
+      "status": "KI-Gegner"
+    }
+  ],
+  "events": [
+    {
+      "name": "IAE 2955",
+      "desc": "Intergalactic Aerospace Expo in Orison mit 200+ Schiffen kostenlos zur Probe. Free-Fly bis 3. Dezember 2025."
+    },
+    {
+      "name": "Operation Sworn Enemies",
+      "desc": "Untersuchungs-Mission zur Erkundung von Vanduul-Technologie in verlassenen Stationen des Nyx-Systems. Spieler stoßen dabei erstmals direkt auf die neuen KI-Gegner."
+    }
+  ],
+  "fixesNote": "180+ Fixes",
+  "topics": [
+    {
+      "slug": "4-4-0-nyx-system",
+      "title": "Nyx-System"
+    },
+    {
+      "slug": "4-4-0-vanduul",
+      "title": "Vanduul"
+    }
+  ]
+}

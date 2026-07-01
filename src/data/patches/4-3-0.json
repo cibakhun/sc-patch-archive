@@ -1,0 +1,132 @@
+{
+  "version": "4.3.0",
+  "codename": "Dark Territory",
+  "date": "2025-08-16",
+  "dateDisplay": "16. Aug 2025",
+  "era": "Onyx & Heilung",
+  "type": "major",
+  "tagline": "Personal Hangars und ~100 verlassene Onyx Facilities.",
+  "summary": "Alpha 4.3.0 führt Personal Hangars ein — instanzierte Heimathäfen, in denen Spieler direkt spawnen und sofort auf Schiffe zugreifen. Parallel erscheinen rund 100 verlassene ASD-Forschungsstationen (Onyx Facilities) über Stanton verstreut. Der Missionsgeber Arken Mallor leitet Investigation-Ketten ein, die Dr. Logan Jorrits Experimente zur Regeneration aufdecken und die Regen-Crisis-Narrativ vorantreiben. Flight Tuning für leichte Jäger und das laufende Resource-Drive-Event komplettieren die Erweiterung.",
+  "palette": {
+    "bg": "#0B0B0F",
+    "accent": "#E8A317",
+    "accent2": "#3E5C76",
+    "warm": true
+  },
+  "trailer": {
+    "yt": "MCJlD2Meuek",
+    "own": true,
+    "title": "Alpha 4.3 – Dark Territory"
+  },
+  "keyFacts": [
+    {
+      "label": "Onyx Facilities",
+      "value": "~100 verlassene ASD-Forschungsstationen · Stanton-weit"
+    },
+    {
+      "label": "Personal Hangars",
+      "value": "Instanzierte Heimathäfen · direktes Spawnen"
+    },
+    {
+      "label": "Missionsgeber",
+      "value": "Arken Mallor (Hockrow Agency)"
+    },
+    {
+      "label": "Neues Schiff",
+      "value": "Kruger L-21 Wolf · leichter Jäger"
+    },
+    {
+      "label": "Narrativ",
+      "value": "Regen Crisis · Dr. Logan Jorrits Experimente"
+    }
+  ],
+  "features": [
+    {
+      "name": "Personal Hangars",
+      "system": "Hangars & Persistenz",
+      "kind": "gameplay",
+      "desc": "Spieler erhalten persönliche, instanzierte Hangars als festen Heimatort. Sie spawnen direkt im eigenen Hangar statt über NPC-Habs, mit sofortigem Zugriff auf Schiffe und Inventar am gesetzten Home-Hangar.",
+      "facts": [
+        {
+          "label": "Typ",
+          "value": "Instanziert"
+        }
+      ],
+      "topicSlug": "4-3-0-onyx-facilities"
+    },
+    {
+      "name": "Onyx Facilities",
+      "system": "Missionen & Aktivitäten",
+      "kind": "location",
+      "desc": "Rund 100 verlassene ASD-Forschungsstationen über Stanton verstreut. Ungesicherte Innenräume voller Datenspuren, Audiologs und Loot — verbunden mit der Regen-Crisis-Story unter der Regie von Dr. Logan Jorrit.",
+      "facts": [
+        {
+          "label": "Stationen",
+          "value": "~100"
+        },
+        {
+          "label": "Zustand",
+          "value": "Ungesichert, verlassen"
+        },
+        {
+          "label": "Narrative",
+          "value": "Dr. Jorrits Regenerations-Experimente"
+        }
+      ],
+      "topicSlug": "4-3-0-onyx-facilities"
+    },
+    {
+      "name": "Investigation-Missionen",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Neue Investigation- und Datenbergungs-Missionen über mobiGlas von Arken Mallor (Hockrow Agency). Spieler betreten Onyx Facilities, lösen Rätsel und bergen Daten, um die Wahrheit hinter der Regen-Krise aufzudecken.",
+      "facts": [
+        {
+          "label": "Auftraggeber",
+          "value": "Arken Mallor"
+        }
+      ]
+    },
+    {
+      "name": "Flight Tuning Light-Fighter",
+      "system": "Flugmodell",
+      "kind": "balance",
+      "desc": "Überarbeitete Flugmechaniken speziell für leichte Jäger wie die neue Kruger L-21 Wolf.",
+      "facts": []
+    },
+    {
+      "name": "Resource Drive",
+      "system": "Events",
+      "kind": "event",
+      "desc": "Fortlaufendes Event zum Hauling von Ressourcen, insbesondere Aphorite.",
+      "facts": [
+        {
+          "label": "Fokus",
+          "value": "Ressourcen-Hauling"
+        }
+      ]
+    }
+  ],
+  "ships": [
+    {
+      "name": "Kruger L-21 Wolf",
+      "manufacturer": "Kruger",
+      "role": "Leichter Jäger",
+      "status": "neu"
+    }
+  ],
+  "events": [
+    {
+      "name": "Resource Drive",
+      "desc": "Laufendes Event mit Hauling-Missionen und Belohnungen."
+    }
+  ],
+  "wipe": "Kein Wipe",
+  "fixesNote": "Nicht spezifisch genannt",
+  "topics": [
+    {
+      "slug": "4-3-0-onyx-facilities",
+      "title": "Onyx Facilities"
+    }
+  ]
+}

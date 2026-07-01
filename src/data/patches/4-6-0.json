@@ -1,0 +1,265 @@
+{
+  "version": "4.6.0",
+  "codename": "Lifeline for Levski",
+  "date": "2026-01-29",
+  "dateDisplay": "29. Januar 2026",
+  "era": "Neue Horizonte",
+  "type": "major",
+  "tagline": "Seuchen-Event an Levski, LAMP-Nachtsicht und RSI Hermes.",
+  "summary": "Die Asteroiden-Kolonie Levski gerät unter Quarantäne durch den Molina-Pilz (People's Ailment), ausgelöst durch fehlerhafte Luftfilter. Spieler fliegen unter Verwendung der neuen LAMP-Nachtsicht (Light Amplification) Versorgungsmissionen gegen Piraten der Moraine und liefern Heilmittel. Die RSI Hermes (Blockade-Runner-Frachter) und die Argo Moth (Salvage-Schiff) stehen neu zur Verfügung. Über 160 Bugfixes stabilisieren das Server-Meshing weiter.",
+  "palette": {
+    "bg": "#0e1018",
+    "accent": "#7fb80e",
+    "accent2": "#9fd14a",
+    "warm": false
+  },
+  "trailer": {
+    "yt": "OPp6dd2WSpI",
+    "own": true,
+    "title": "Alpha 4.6: Lifeline for Levski"
+  },
+  "keyFacts": [
+    {
+      "label": "Event",
+      "value": "Lifeline for Levski — Biohazard-Quarantäne bis 17. März 2026"
+    },
+    {
+      "label": "Neue Schiffe",
+      "value": "RSI Hermes (~288 SCU Frachter) · Argo Moth (Salvage)"
+    },
+    {
+      "label": "LAMP-Sicht",
+      "value": "Cockpit-Nachtsicht für Umgebungen um verseuchtes Levski"
+    },
+    {
+      "label": "Molina-Pilz",
+      "value": "Aggressiver Schimmelpilz durch fehlerhafte Luftfilter"
+    },
+    {
+      "label": "Bugfixes",
+      "value": "160+ Stabilitäts- und Fehlerbehebungen"
+    },
+    {
+      "label": "Supply-Missionen",
+      "value": "Clearing the Air: Med-Lieferungen gegen The Moraine (Piraten)"
+    }
+  ],
+  "features": [
+    {
+      "name": "Lifeline for Levski Event",
+      "system": "Events",
+      "kind": "event",
+      "desc": "Pandemie-Event an der Asteroiden-Kolonie Levski. Der Molina-Pilz (Molina Mold) wurde durch defekte Luftfilter freigesetzt und verursacht People's Ailment. Spieler müssen die unter Quarantäne stehende Kolonie versorgen, während von The Moraine operierende Piraten die Konvois angreifen. Event läuft begrenzt bis 17. März 2026.",
+      "facts": [
+        {
+          "label": "Auslöser",
+          "value": "Fehlerhafte Luftfilter in Levski"
+        },
+        {
+          "label": "Krankheit",
+          "value": "People's Ailment (Lungenkrankheit)"
+        },
+        {
+          "label": "Gegner",
+          "value": "The Moraine — Piraten aus Asteroidensiedlungen im Glaciem Ring"
+        },
+        {
+          "label": "Enddatum",
+          "value": "17. März 2026"
+        }
+      ]
+    },
+    {
+      "name": "LAMP (Light Amplification)",
+      "system": "UI & Komfort",
+      "kind": "tech",
+      "desc": "Neue Cockpit-Nachtsicht-Funktion. LAMP verstärkt vorhandenes Restlicht und ermöglicht Navigation und Flug in dunklen Umgebungen — besonders nützlich beim Anflug auf das vom Molina-Pilz verseuchte Levski im dunklen Nyx-System.",
+      "facts": [
+        {
+          "label": "Funktion",
+          "value": "Restlicht-Verstärkung für Nachtsicht"
+        },
+        {
+          "label": "Anwendung",
+          "value": "Flug und Navigation in dunklen Umgebungen"
+        }
+      ]
+    },
+    {
+      "name": "Clearing the Air — Versorgungsmissionen",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Neue Missionen für den Lifeline-Event. Spieler transportieren medizinische Lieferungen, Antifungals und Filter-/Heilmittel-Fertigungsmaterialien zu unter Quarantäne stehenden Levski, während The Moraine-Piraten Konvois angreifen. Konvoi-Schutz erforderlich.",
+      "facts": [
+        {
+          "label": "Missionstyp",
+          "value": "Supply-Escort gegen The Moraine"
+        },
+        {
+          "label": "Materialien",
+          "value": "Antifungal, Heilmittel, Luftfilter-Komponenten"
+        },
+        {
+          "label": "Belohnungen",
+          "value": "Credits, Reputation, Event-Fortschritt"
+        }
+      ]
+    },
+    {
+      "name": "RSI Hermes",
+      "system": "Schiffs-Systeme",
+      "kind": "tech",
+      "desc": "Neuer RSI Blockade-Runner-Frachter. Die Hermes ist spezialisiert für schnelle Versorgungsfahrten unter gefährlichen Bedingungen und wird Hauptschiff der Lieferketten während des Lifeline-Events.",
+      "facts": [
+        {
+          "label": "Hersteller",
+          "value": "Roberts Space Industries (RSI)"
+        },
+        {
+          "label": "Klasse",
+          "value": "Blockade-Runner-Frachter"
+        },
+        {
+          "label": "Kapazität",
+          "value": "ca. 288 SCU Cargo"
+        },
+        {
+          "label": "Funktion",
+          "value": "Schnelle Versorgungsfahrten in Krisensituationen"
+        }
+      ]
+    },
+    {
+      "name": "Argo Moth",
+      "system": "Schiffs-Systeme",
+      "kind": "tech",
+      "desc": "Mittleres Salvage-Schiff von Argo Astronautics. Die Moth ist spezialisiert auf Bergung und soll nach Release (ab 11. Februar 2026) im Nachschub verfügbar sein.",
+      "facts": [
+        {
+          "label": "Hersteller",
+          "value": "Argo Astronautics"
+        },
+        {
+          "label": "Klasse",
+          "value": "Salvage-Schiff (mittel)"
+        },
+        {
+          "label": "Spezialisierung",
+          "value": "Bergung und Schrott-Verarbeitung"
+        },
+        {
+          "label": "Release-Plan",
+          "value": "Nachschub ab 11. Februar 2026"
+        }
+      ]
+    },
+    {
+      "name": "Engineering & Armor-Feinschliff",
+      "system": "Engineering",
+      "kind": "balance",
+      "desc": "Fortsetzung der in 4.5.0 eingeführten Engineering-Mechaniken. Optimierungen bei der Energieverteilung und Schadensberechnung für Schiff-Armor; Stabilisierung der Systeme nach dem Patch-Start.",
+      "facts": [
+        {
+          "label": "Fokus",
+          "value": "Echtzeit-Energieverteilung optimiert"
+        },
+        {
+          "label": "Armor-System",
+          "value": "Weitere Balance-Anpassungen"
+        }
+      ]
+    },
+    {
+      "name": "Place-from-Inventory Reaktiviert",
+      "system": "UI & Komfort",
+      "kind": "qol",
+      "desc": "Feature zur direkten Platzierung von Gegenständen aus dem Inventar wird reaktiviert, nachdem es in vorherigen Patches deaktiviert war.",
+      "facts": [
+        {
+          "label": "Feature",
+          "value": "Direktes Platzieren aus Inventar"
+        },
+        {
+          "label": "Status",
+          "value": "Reaktiviert in 4.6.0"
+        }
+      ]
+    },
+    {
+      "name": "Star-Map Harvestable-Daten",
+      "system": "Sternsysteme",
+      "kind": "tech",
+      "desc": "Star-Map erhält Daten zu abbaubaren Ressourcen-Spots (Harvestables), um Spielern bessere Planung von Mining- und Sammel-Missionen zu ermöglichen.",
+      "facts": [
+        {
+          "label": "Daten",
+          "value": "Harvestable-Standorte in Star-Map verfügbar"
+        },
+        {
+          "label": "Anwendung",
+          "value": "Missionsplanung für Mining & Gathering"
+        }
+      ]
+    },
+    {
+      "name": "Kel-To-Ship-Supply-Kiosks",
+      "system": "Wirtschaft & Trading",
+      "kind": "qol",
+      "desc": "Neue Versorgungskioske ermöglichen Schiff-Versorgung direkt vor Ort, relevant für die schnellen Supply-Runs des Lifeline-Events.",
+      "facts": [
+        {
+          "label": "Funktion",
+          "value": "Kiosk-basierte Schiff-Nachversorgung"
+        },
+        {
+          "label": "Einsatz",
+          "value": "Unterstützung von Supply-Missionen"
+        }
+      ]
+    },
+    {
+      "name": "160+ Stabilitäts- und Bugfixes",
+      "system": "Stabilität & Performance",
+      "kind": "balance",
+      "desc": "Umfangreiches Bugfix-Paket für Server-Meshing-Stabilität, Streaming, NPC-Interaktionen und allgemeine Spielstabilität — typisch für Major-Patches.",
+      "facts": [
+        {
+          "label": "Fixanzahl",
+          "value": "160+"
+        },
+        {
+          "label": "Fokus",
+          "value": "Server-Meshing, Streaming, Stabilität"
+        },
+        {
+          "label": "Reparierte Systeme",
+          "value": "NPC, UI, Missionsmarker, Hangars"
+        }
+      ]
+    }
+  ],
+  "ships": [
+    {
+      "name": "RSI Hermes",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Blockade-Runner-Frachter",
+      "status": "neu"
+    },
+    {
+      "name": "Argo Moth",
+      "manufacturer": "Argo Astronautics",
+      "role": "Salvage-Schiff",
+      "status": "neu"
+    }
+  ],
+  "events": [
+    {
+      "name": "Lifeline for Levski",
+      "desc": "Pandemie-Event: Asteroiden-Kolonie Levski wird von Molina-Pilz (People's Ailment) heimgesucht. Spieler führen Versorgungsmissionen durch (Clearing the Air), während The Moraine-Piraten die Konvois angreifen. Event läuft befristet bis 17. März 2026.",
+      "period": "29. Januar – 17. März 2026"
+    }
+  ],
+  "fixesNote": "160+ Bugfixes und Stabilitätsverbesserungen für Server-Meshing und allgemeine Spielsysteme.",
+  "wipe": "Kein Wipe",
+  "topics": []
+}

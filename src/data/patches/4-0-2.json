@@ -1,0 +1,119 @@
+{
+  "version": "4.0.2",
+  "codename": "Supply or Die",
+  "date": "2025-02-28",
+  "dateDisplay": "28. Februar 2025",
+  "era": "Pyro-Ära",
+  "type": "point",
+  "tagline": "Nachschubkrieg um Pyro: Citizens for Prosperity vs. Headhunters.",
+  "summary": "Supply or Die war ein einmaliges PvPvE-Versorgungsevent in Pyro, bei dem Spieler sich einer von zwei Fraktionen anschlossen: Citizens for Prosperity (Stabilisierung durch Industriegüter und Detatrine) oder Headhunters (Chaos und Salvage-Piraterie). Durch Depot-Kämpfe, Mining und Salvage speisten Spieler Material in den Kriegsfortschritt ein und entschieden damit, wer das gesetzlose System am Ende kontrollierte.",
+  "palette": {
+    "bg": "#1a1d20",
+    "accent": "#c0271f",
+    "accent2": "#e8771a",
+    "warm": true
+  },
+  "trailer": {
+    "yt": "DE3ePRgpUQo",
+    "own": false,
+    "title": "Alpha 4.0 - Destination Pyro"
+  },
+  "keyFacts": [
+    {
+      "label": "Verfeindete Fraktionen",
+      "value": "Citizens for Prosperity vs. Headhunters"
+    },
+    {
+      "label": "Versorgungskrieg",
+      "value": "PvPvE-Depotkämpfe um Kontrolle Pyros"
+    },
+    {
+      "label": "Schlüsselressource",
+      "value": "Detatrine — seltene Chemikalie der Citizens"
+    },
+    {
+      "label": "Missionstypen",
+      "value": "3 Wege: Depot-Kämpfe, Mining & Refining, Salvage"
+    },
+    {
+      "label": "Hauptbelohnung Stufe 2",
+      "value": "Ravager-212 Outcast Twin-Shotgun"
+    }
+  ],
+  "features": [
+    {
+      "name": "Supply or Die Event",
+      "system": "Events",
+      "kind": "event",
+      "desc": "Einmaliges, story-getriebenes PvPvE-Versorgungs-Event in Pyros Depots. Spieler wählen eine Fraktion und beschaffen Material durch Kämpfe, Bergbau und Salvage — jede Lieferung verschiebt den Kriegsfortschritt.",
+      "facts": [
+        {
+          "label": "Missionstypen",
+          "value": "Depot-Kämpfe (PvPvE), Mining & Refining, Salvage"
+        },
+        {
+          "label": "Fraktionen",
+          "value": "2 verfeindete Seiten mit gegenläufigen Zielen"
+        }
+      ],
+      "topicSlug": "4-0-2-supply-or-die"
+    },
+    {
+      "name": "Fraktions-Resupply-Ökonomie",
+      "system": "Wirtschaft & Trading",
+      "kind": "gameplay",
+      "desc": "Dynamisches Liefersystem mit zwei konkurrierenden Fraktionen: Citizens for Prosperity sammeln Industriegüter und Detatrine für medizinischen Nachschub; Headhunters beschaffen Salvage und Mining-Rohstoffe mit allen Mitteln.",
+      "facts": [
+        {
+          "label": "Citizens for Prosperity",
+          "value": "Industriegüter, Detatrine, medizinischer Nachschub"
+        },
+        {
+          "label": "Headhunters",
+          "value": "Salvage, Mining-Ressourcen, Kampf & Piraterie"
+        }
+      ]
+    },
+    {
+      "name": "PvPvE-Depotkämpfe",
+      "system": "Combat & Waffen",
+      "kind": "gameplay",
+      "desc": "Spieler kämpfen an umkämpften Pyro-Depots gegen KI und rivalisierende Spieler um Nachschub für ihre Fraktion.",
+      "facts": [
+        {
+          "label": "Depots",
+          "value": "Umkämpfte Pyro-Anlagen mit PvPvE-Gefechten"
+        }
+      ]
+    },
+    {
+      "name": "Ravager-212 Outcast Schrotflinte",
+      "system": "Combat & Waffen",
+      "kind": "gameplay",
+      "desc": "Twin-Shotgun Reward (Event Stufe 2). Gepaart mit Outcast-Skins für MISC Fortune, Drake Vulture und MISC Prospector (Stufe 3).",
+      "facts": [
+        {
+          "label": "Waffentyp",
+          "value": "Twin-Shotgun (Nahdistanz)"
+        },
+        {
+          "label": "Cosmetics Stufe 3",
+          "value": "Outcast-Lackierungen für Fortune, Vulture, Prospector"
+        }
+      ]
+    }
+  ],
+  "ships": [],
+  "events": [
+    {
+      "name": "Supply or Die",
+      "desc": "Einmaliges PvPvE-Versorgungs-Event: Spieler wählen zwischen Citizens for Prosperity (Stabilisierung Pyros) und Headhunters (Chaos). Durch Depot-Kämpfe, Mining und Salvage lieferten sie Material, das den Kriegsfortschritt verschob und entschied, wer das gesetzlose System kontrollierte."
+    }
+  ],
+  "topics": [
+    {
+      "slug": "4-0-2-supply-or-die",
+      "title": "Supply or Die"
+    }
+  ]
+}

@@ -1,5 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import QuickFacts from '../../components/dossier/QuickFacts.astro';
+import PatchDossier from '../../components/dossier/PatchDossier.astro';
+import { getEntry } from 'astro:content';
+
+const entry = await getEntry('patches', '4-2-0');
+if (!entry) throw new Error('Patch-Daten 4-2-0 fehlen in src/data/patches/');
+const patch = entry.data;
 ---
 <Layout title={"Star Citizen Alpha 4.2.0 — Storm Breaker | SC Patch-Archiv"} description={"Alpha 4.2.0: dynamischer Regen, Turbulenz und die neue Umweltgefahr Strahlung."} themeColor="#16142a">
 <style is:inline>
@@ -200,6 +207,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </div>
 
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
@@ -273,6 +283,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       </div>
     </div>
   </section>
+
+  <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
+  <PatchDossier patch={patch} num="05" />
 
 </main>
 

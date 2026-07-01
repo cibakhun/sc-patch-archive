@@ -1,0 +1,155 @@
+{
+  "version": "4.5.0",
+  "codename": "Dawn of Engineering",
+  "date": "2025-12-17",
+  "dateDisplay": "17. Dezember 2025",
+  "era": "Neue Horizonte",
+  "type": "major",
+  "tagline": "Engineering-Gameplay, Ship Armor und sich ausbreitendes Feuer.",
+  "summary": "Engineering wird mit 4.5.0 zum Gameplay: Spieler verwalten Energie in Echtzeit, Ship Armor absorbiert Schaden als eigene Schicht und Brände breiten sich dynamisch durch Schiffe aus. Vulkan wird zur Standard-Renderpipeline (ersetzt DirectX 11) mit experimenteller VR-Unterstützung. Eine Crew-zentrierte Überarbeitung der Schiffskampf-Mechanik.",
+  "palette": {
+    "bg": "#0f1316",
+    "accent": "#FFB000",
+    "accent2": "#2BC4C4",
+    "warm": true
+  },
+  "trailer": {
+    "yt": "JgpLAqW1wOU",
+    "own": true,
+    "title": "Alpha 4.5: Dawn of Engineering"
+  },
+  "keyFacts": [
+    {
+      "label": "Neue Engineering-Systeme",
+      "value": "4 — Engineering, Ship Armor, Feuer-Hazard, Power Management"
+    },
+    {
+      "label": "Ship Armor",
+      "value": "Eigene physische Schicht; absorbiert Schaden vor Hülle; verschleißt mit der Zeit"
+    },
+    {
+      "label": "Feuer-Hazard",
+      "value": "Breitet sich dynamisch aus, frisst Sauerstoff, erfordert aktives Löschen"
+    },
+    {
+      "label": "Standard-Renderer",
+      "value": "Vulkan (löst DirectX 11 ab; seit 3.23 experimental verfügbar)"
+    },
+    {
+      "label": "VR-Unterstützung",
+      "value": "Experimentell · über Vulkan-Pipeline"
+    },
+    {
+      "label": "Power Management",
+      "value": "Echtzeit-Energieverteilung; Überlastung führt zu Hitze und Ausfällen"
+    }
+  ],
+  "features": [
+    {
+      "name": "Engineering-Gameplay",
+      "system": "Engineering",
+      "kind": "gameplay",
+      "desc": "Schiffsbetrieb wird aktives Gameplay: Spieler überwachen den Zustand ihres Schiffs am Engineering-Terminal in Echtzeit und reparieren beschädigte Komponenten während des Betriebs. In Mehrspieler-Schiffen entsteht eine neue Crew-Rolle.",
+      "facts": [
+        {
+          "label": "Terminal-Kontrolle",
+          "value": "Echtzeit-Monitoring und Reparatur an Bord"
+        },
+        {
+          "label": "Crew-Erlebnis",
+          "value": "Schiffe werden zum kooperativen Werkzeug mit definierten Rollen"
+        }
+      ],
+      "topicSlug": "4-5-0-engineering"
+    },
+    {
+      "name": "Ship Armor",
+      "system": "Schiffs-Systeme",
+      "kind": "tech",
+      "desc": "Schiffspanzerung wird zu einer eigenen physischen Schicht oberhalb von Hülle und Komponenten. Die Armor absorbiert eingehenden Schaden, bevor er die Struktur erreicht, verschleißt mit der Zeit und macht Schadensmanagement zur strategischen Entscheidung.",
+      "facts": [
+        {
+          "label": "Schichtaufbau",
+          "value": "Armor → Hülle → Komponenten"
+        },
+        {
+          "label": "Dauerhaftigkeit",
+          "value": "Endlich; verschleißt bei Treffern"
+        }
+      ]
+    },
+    {
+      "name": "Feuer-Hazard",
+      "system": "Schiffs-Systeme",
+      "kind": "gameplay",
+      "desc": "Brände breiten sich mit 4.5.0 dynamisch durch das Schiff aus, fressen Sauerstoff und greifen auf benachbarte Räume über. Crews müssen Feuer aktiv löschen, statt es passiv zu ignorieren.",
+      "facts": [
+        {
+          "label": "Ausbreitungsmechanik",
+          "value": "Dynamisch zwischen Räumen und Komponenten"
+        },
+        {
+          "label": "Ressource",
+          "value": "Sauerstoff wird bei Bränden kritisch"
+        }
+      ]
+    },
+    {
+      "name": "Power Management",
+      "system": "Engineering",
+      "kind": "gameplay",
+      "desc": "Spieler verteilen Energie in Echtzeit auf Komponenten und Systeme. Über- oder Fehlbelastung führt zu Hitze, Ausfällen und Schäden — Energie wird zur knappen Ressource im Schiffsbetrieb.",
+      "facts": [
+        {
+          "label": "Prioritäten",
+          "value": "Schilde, Triebwerke, Waffen konkurrieren um Leistung"
+        },
+        {
+          "label": "Risiko",
+          "value": "Überlastung hat Konsequenzen (Ausfälle, Schäden)"
+        }
+      ]
+    },
+    {
+      "name": "Vulkan-Renderer",
+      "system": "Server-Technik",
+      "kind": "tech",
+      "desc": "Mit 4.5.0 wird Vulkan zur Standard-Renderpipeline und ersetzt DirectX 11. Die Vulkan-API war seit Alpha 3.23 experimentell verfügbar; 4.5.0 stabilisierte sie (Multithread-Rendering, HDR-Support) und machte sie zum Standard.",
+      "facts": [
+        {
+          "label": "Vorgänger",
+          "value": "DirectX 11 (zurück zu Legacy-Support)"
+        },
+        {
+          "label": "Voraussetzung für",
+          "value": "Experimentelle VR-Unterstützung"
+        }
+      ]
+    },
+    {
+      "name": "VR-Unterstützung",
+      "system": "UI & Komfort",
+      "kind": "tech",
+      "desc": "Mit 4.5.0 wurde experimentelle Virtual-Reality-Unterstützung eingeführt, ermöglicht durch die Vulkan-Renderpipeline. Ein früher, optionaler Schritt zum immersiven Cockpit-Erlebnis.",
+      "facts": [
+        {
+          "label": "Status",
+          "value": "Experimentell · optionale Feature"
+        },
+        {
+          "label": "Abhängigkeit",
+          "value": "Vulkan-Standard-Renderer erforderlich"
+        }
+      ]
+    }
+  ],
+  "ships": [],
+  "events": [],
+  "topics": [
+    {
+      "slug": "4-5-0-engineering",
+      "title": "Engineering"
+    }
+  ],
+  "wipe": "Keine"
+}

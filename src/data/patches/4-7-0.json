@@ -1,0 +1,159 @@
+{
+  "version": "4.7.0",
+  "codename": "Welcome to the Rock",
+  "date": "2026-03-26",
+  "dateDisplay": "26. März 2026",
+  "era": "Neue Horizonte",
+  "type": "major",
+  "tagline": "Crafting T0, Operation Breaker Stations im Keeger Belt und die modulare Aurora Mk II.",
+  "summary": "Der Keeger Belt öffnet sich als Asteroidengürtel im Nyx-System. Mit Crafting T0 können Spieler erstmals FPS-Waffen und Rüstung aus Blueprints und seltenen Mineralien selbst fertigen. Operation Breaker Stations ist eine mehrstufige Koop-Mission zur Reaktivierung von Shubin-Breaker-Stationen. Die Aurora Mk II ersetzt das alte Aurora-Modell mit modularen Combat- oder Cargo-Konfigurationen. Das saisonale Event Stella Fortuna bringt Racing und Cosmetics.",
+  "palette": {
+    "bg": "#1c1c20",
+    "accent": "#FF5E1A",
+    "accent2": "#1FA2FF",
+    "warm": true
+  },
+  "trailer": {
+    "yt": "sX4_Q6AuqSI",
+    "own": true,
+    "title": "Alpha 4.7: Welcome to the Rock"
+  },
+  "keyFacts": [
+    {
+      "label": "Crafting-Stufe",
+      "value": "T0 · FPS-Waffen & Rüstung aus Blueprints"
+    },
+    {
+      "label": "Operation Breaker Stations",
+      "value": "Mehrstufige Koop im Keeger Belt · PvE/PvP-Varianten"
+    },
+    {
+      "label": "Aurora Mk II",
+      "value": "Modularer Starter · +6 SCU Cargo oder Combat-Modul"
+    },
+    {
+      "label": "Keeger Belt",
+      "value": "Asteroidengürtel in Nyx mit QV Breaker Stations"
+    },
+    {
+      "label": "Stella Fortuna",
+      "value": "Saisonales Event · Racing, Video-Contest, Cosmetics"
+    }
+  ],
+  "features": [
+    {
+      "name": "Crafting T0",
+      "system": "Crafting",
+      "kind": "gameplay",
+      "desc": "Erste Crafting-Stufe: FPS-Waffen und Rüstung aus Blueprints und seltenen Mineralien fertigen. Materialqualität beeinflusst die finalen Werte des Gegenstandes.",
+      "facts": [
+        {
+          "label": "Crafting-Objekte",
+          "value": "FPS-Waffen & Rüstung"
+        },
+        {
+          "label": "Zutaten",
+          "value": "Blueprints + seltene Mineralien"
+        },
+        {
+          "label": "Materialqualität",
+          "value": "Beeinflusst Waffen-/Rüstungs-Stats"
+        }
+      ],
+      "topicSlug": "4-7-0-crafting"
+    },
+    {
+      "name": "Operation Breaker Stations",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Mehrstufige Koop-Mission im Keeger Belt: Spieler reaktivieren stillgelegte Shubin-Breaker-Stationen, zünden einen Laser zur Asteroiden-Aufbrechung und craften optische Komponenten. Wählbar als PvE-Modus (exklusiv) oder offenes FFA-PvP.",
+      "facts": [
+        {
+          "label": "Schauplatz",
+          "value": "Keeger Belt (Nyx)"
+        },
+        {
+          "label": "Missionstyp",
+          "value": "Mehrstufige Koop"
+        },
+        {
+          "label": "Modi",
+          "value": "PvE (exklusiv) & PvP (open)"
+        },
+        {
+          "label": "Gegner",
+          "value": "Claw Salamander, Eis-Valakkar"
+        }
+      ]
+    },
+    {
+      "name": "Aurora Mk II",
+      "system": "Schiffs-Systeme",
+      "kind": "tech",
+      "desc": "Neues modulares Starter-Schiff von RSI mit auswechselbaren Modulen: Standard-Konfiguration, +6 SCU Cargo-Modul oder Combat-Modul mit Shield & Missiles. Ersetzt das alte Aurora-Modell.",
+      "facts": [
+        {
+          "label": "Hersteller",
+          "value": "RSI"
+        },
+        {
+          "label": "Klasse",
+          "value": "Starter"
+        },
+        {
+          "label": "Module",
+          "value": "Cargo (+6 SCU) oder Combat (Shield+Missile)"
+        },
+        {
+          "label": "Status",
+          "value": "Ersetzt altes Modell"
+        }
+      ]
+    },
+    {
+      "name": "Inventar-Rework",
+      "system": "UI & Komfort",
+      "kind": "gameplay",
+      "desc": "Großer Überarbeitungszyklus des Inventar-Systems zur Unterstützung von Crafting und Operation Breaker Stations.",
+      "facts": [
+        {
+          "label": "Fokus",
+          "value": "Crafting-Integration & Layout"
+        }
+      ]
+    },
+    {
+      "name": "Combat-Overhaul",
+      "system": "Combat & Waffen",
+      "kind": "gameplay",
+      "desc": "Überarbeitetes Kampf-System mit Fokus auf Shield, Armor und Radar-Balance für Operation-Breaker-Missions-Anforderungen.",
+      "facts": [
+        {
+          "label": "Systeme",
+          "value": "Shield/Armor/Radar/Missile"
+        }
+      ]
+    }
+  ],
+  "ships": [
+    {
+      "name": "Aurora Mk II",
+      "manufacturer": "RSI",
+      "role": "Starter",
+      "status": "neu"
+    }
+  ],
+  "events": [
+    {
+      "name": "Stella Fortuna",
+      "desc": "Saisonales Glücks- und Feier-Event mit Arena-Commander-Racing, Video-Contest und Belohnungen (Racing-Gear, Cosmetics).",
+      "period": "saisonal"
+    }
+  ],
+  "topics": [
+    {
+      "slug": "4-7-0-crafting",
+      "title": "Crafting"
+    }
+  ]
+}

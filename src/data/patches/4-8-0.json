@@ -1,0 +1,252 @@
+{
+  "version": "4.8.0",
+  "codename": "Tactical Strike",
+  "date": "2026-05-14",
+  "dateDisplay": "14. Mai 2026",
+  "era": "Tactical Strike",
+  "type": "major",
+  "tagline": "G-Force-Toleranz, Drake Ironclad und Rückkehr von XenoThreat.",
+  "summary": "Alpha 4.8.0 bringt das G-Force-Flugmodell mit Greyout/Redout/Blackout, Drakes erste schwere gepanzerte Frachter (Ironclad & Assault), koordinierte Tactical-Strike-Group-Missionen für organisierte Orgs, das erneuerte Refueling-System und die Rückkehr des massiven XenoThreat-Events — begleitet von über 166 Bugfixes und dem ersten vollständigen Wipe seit 4.0.0.",
+  "palette": {
+    "bg": "#16181b",
+    "accent": "#E8651E",
+    "accent2": "#F2A900",
+    "warm": true
+  },
+  "trailer": {
+    "yt": "RWQSxN-ZukE",
+    "own": true,
+    "title": "Alpha 4.8: Tactical Strike"
+  },
+  "keyFacts": [
+    {
+      "label": "G-Force-Flugmodell",
+      "value": "Grey-out → Red-out → Black-out; Anzug & Rüstung entscheidend für Toleranz"
+    },
+    {
+      "label": "Drake Ironclad & Assault",
+      "value": "Drakes erste schwere Panzer-Hauler; Assault variant für Combat"
+    },
+    {
+      "label": "Tactical Strike Groups",
+      "value": "Koordinierte Multi-Schiff-Missionen in Nyx; 7+ Spieler; Vanduul Mauler Boss-Kampf"
+    },
+    {
+      "label": "XenoThreat Assault",
+      "value": "Rückkehr des Wellen-Defense-Events; UEES War Hammer verteidigen"
+    },
+    {
+      "label": "Wipe",
+      "value": "Voller Wipe (erster seit 4.0.0)"
+    },
+    {
+      "label": "Bugfixes",
+      "value": "166+ Fixes & Stabilitätsverbesserungen"
+    }
+  ],
+  "features": [
+    {
+      "name": "G-Force-Flugmodell",
+      "system": "Flugmodell",
+      "kind": "gameplay",
+      "desc": "Hochintensive G-Kräfte wirken sich direkt auf Piloten aus: positive Gs führen über Greyout zum Blackout, negative Gs zum Redout. Spezialisierte Flug- und Rennanzüge mit unterschiedlichen G-Toleranzwerten entscheiden über die Belastungsgrenze und werden zum taktischen Faktor.",
+      "facts": [
+        {
+          "label": "Greyout/Redout/Blackout",
+          "value": "Progressive Sicht-Beeinträchtigung je nach G-Belastung & Anzugtyp"
+        },
+        {
+          "label": "Anzug-Abhängig",
+          "value": "Fluganzüge, Rennanzüge und Rüstung beeinflussen G-Toleranz"
+        }
+      ]
+    },
+    {
+      "name": "Drake Ironclad & Ironclad Assault",
+      "system": "Schiffs-Systeme",
+      "kind": "gameplay",
+      "desc": "Drakes erstes echtes Panzer-Schiff und Heavy Hauler: massiv gepanzert, mit erheblicher Frachtkapa und Kampfkonfiguration. Die Assault-Variante ist für koordinierte Strike-Group-Kämpfe optimiert. Dazu ein Drake Command Module für taktische Koordination.",
+      "facts": [
+        {
+          "label": "Klasse",
+          "value": "Schwerer gepanzerter Hauler"
+        },
+        {
+          "label": "Varianten",
+          "value": "Ironclad (Hauler) · Ironclad Assault (Combat) · Command Module"
+        }
+      ]
+    },
+    {
+      "name": "Tactical Strike Groups",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Neue kooperative Multi-Schiff-Missionen für organisierte Orgs: mehrphasiger Raid mit Schiffskampf, Tunnelflug, Kernzerstörung und FPS-Infiltration der QV Extraction Stations in Nyx. Vanduul-Mauler-Boss im Finale. Belohnungen: exklusiver Armbrust-Blueprint und hochwertiger Loot.",
+      "facts": [
+        {
+          "label": "Empfohlene Gruppengröße",
+          "value": "7+ Spieler"
+        },
+        {
+          "label": "Schauplatz",
+          "value": "QV Extraction Stations · Nyx-System"
+        },
+        {
+          "label": "Rollen",
+          "value": "Fighter · Bomber · Support · Capital Ships"
+        },
+        {
+          "label": "Boss",
+          "value": "Vanduul Mauler"
+        }
+      ],
+      "topicSlug": "4-8-0-tactical-strike-groups"
+    },
+    {
+      "name": "XenoThreat — Assault on Stanton",
+      "system": "Events",
+      "kind": "event",
+      "desc": "Rückkehr des massiven serverweiten Koordinations-Events: menschen-suprematistische Outlaw-Fraktion aus desertierten UEE-Navy-Soldaten überfällt einen Konzern-Konvoi und greift dann die UEES War Hammer bei INS Jericho an. Spieler bergen Starfarer-Nachschub und verteidigen die Flaggschiff-Front gegen Wellen aus Jägern, Hammerhead-Gunships und Idris-M-Fregatten.",
+      "facts": [
+        {
+          "label": "Scenario",
+          "value": "Konzern-Konvoi-Überfall → Nachschub-Bergen → Flaggschiff-Verteidigung"
+        },
+        {
+          "label": "Gegner-Wellen",
+          "value": "Fighter · Hammerhead-Gunships · Idris-M-Fregatten"
+        },
+        {
+          "label": "Flaggschiff",
+          "value": "UEES War Hammer · INS Jericho"
+        },
+        {
+          "label": "Fraktions-Natur",
+          "value": "Paramilitärisch; ehemalige UEE-Navy-Deserteure"
+        }
+      ],
+      "topicSlug": "4-8-0-xenothreat"
+    },
+    {
+      "name": "Refueling-Überarbeitung",
+      "system": "Schiffs-Systeme",
+      "kind": "gameplay",
+      "desc": "Erneuerte Treibstoff-Mechanik mit verbessertem UI und realistischeren Ressourcen-Verbrauchsmodellen; Integration in das Schiff-Service-System (T0).",
+      "facts": [
+        {
+          "label": "Status",
+          "value": "System überarbeitet"
+        }
+      ]
+    },
+    {
+      "name": "Vehicle Loadout Recovery",
+      "system": "Hangars & Persistenz",
+      "kind": "gameplay",
+      "desc": "Spieler können gespeicherte Schiff- und Fahrzeug-Konfigurationen (Waffen, Module, Equipment) laden und speichern; integriert mit Long-Term-Persistence.",
+      "facts": [
+        {
+          "label": "Feature",
+          "value": "Laden & Speichern von Schiff-Konfigurationen"
+        }
+      ]
+    },
+    {
+      "name": "Ship Hangar Service (T0)",
+      "system": "Hangars & Persistenz",
+      "kind": "gameplay",
+      "desc": "Erste Iteration von Hangar-basierten Wartungs- und Reparaturdiensten.",
+      "facts": [
+        {
+          "label": "Iterationsstufe",
+          "value": "T0 (Alpha)"
+        }
+      ]
+    },
+    {
+      "name": "Neue Ausrüstung & Gear",
+      "system": "Combat & Waffen",
+      "kind": "gameplay",
+      "desc": "Einführung spezialisierter Ausrüstung für Taktische Operationen: UltiFlex-Armbrust, Kastak-Plasma-Granate, Tailwind-Flugsuit; allesamt optimiert für Strike-Group-Szenarien.",
+      "facts": [
+        {
+          "label": "Fernkampf",
+          "value": "UltiFlex-Armbrust"
+        },
+        {
+          "label": "Explosiv",
+          "value": "Kastak-Plasma-Granate"
+        },
+        {
+          "label": "Schutzausrüstung",
+          "value": "Tailwind-Flugsuit (erhöhte G-Toleranz)"
+        }
+      ]
+    },
+    {
+      "name": "Stabilität & Bugfixes",
+      "system": "Stabilität & Performance",
+      "kind": "balance",
+      "desc": "Über 166 Bugfixes und Stabilitätsverbesserungen, begleitend zu den neuen Systemen; vollständiger Wipe zur Neuinitialisierung.",
+      "facts": [
+        {
+          "label": "Bugfixes",
+          "value": "166+"
+        },
+        {
+          "label": "Wipe",
+          "value": "Voller Wipe (erste seit 4.0.0)"
+        }
+      ]
+    }
+  ],
+  "ships": [
+    {
+      "name": "Drake Ironclad",
+      "manufacturer": "Drake",
+      "role": "Schwerer gepanzerter Hauler",
+      "status": "neu"
+    },
+    {
+      "name": "Drake Ironclad Assault",
+      "manufacturer": "Drake",
+      "role": "Panzer-Gunship",
+      "status": "neu"
+    },
+    {
+      "name": "Drake Command Module",
+      "manufacturer": "Drake",
+      "role": "Tactical Command",
+      "status": "neu"
+    },
+    {
+      "name": "Aegis Hammerhead",
+      "manufacturer": "Aegis",
+      "role": "Gunship",
+      "status": "Gold Standard",
+      "notes": "In 4.8.0 als Gold-Standard-Überarbeitung etabliert"
+    }
+  ],
+  "events": [
+    {
+      "name": "Tactical Strike Groups",
+      "desc": "Neue kooperative Missions-Serie für organisierte Orgs in Nyx; mehrphasiger PvE-Raid mit Schiffskampf, FPS und Boss-Encounter."
+    },
+    {
+      "name": "XenoThreat — Assault on Stanton",
+      "desc": "Rückkehr des serverweiten Event mit Convoy-Überfall, Nachschub-Bergung und Flaggschiff-Verteidigung gegen eskalierendes Wellen-Bombardement."
+    }
+  ],
+  "wipe": "Voller Wipe (erster seit 4.0.0)",
+  "fixesNote": "166+ Fixes und Stabilitätsverbesserungen",
+  "topics": [
+    {
+      "slug": "4-8-0-tactical-strike-groups",
+      "title": "Tactical Strike Groups"
+    },
+    {
+      "slug": "4-8-0-xenothreat",
+      "title": "XenoThreat"
+    }
+  ]
+}

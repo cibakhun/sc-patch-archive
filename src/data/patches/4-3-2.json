@@ -1,0 +1,170 @@
+{
+  "codename": "Fractured Frontiers",
+  "version": "4.3.2",
+  "date": "2025-10-16",
+  "dateDisplay": "16. Oktober 2025",
+  "era": "Onyx & Heilung",
+  "type": "point",
+  "tagline": "Frontier-Fighters-Finale, Salvage-Rework und Yormandi-Boss.",
+  "summary": "Die finale Episode der Pyro-Must-Burn-Story: Über drei Phasen hinweg jagen Headhunters und Citizens for Prosperity die Frontier Fighters unter Anführung von Amelia Boyd quer durch Stanton und Pyro — mit einem serverweit koordinierten Polaris-Takedown als Höhepunkt. Das Patch bringt zudem ein umfassendes Salvage- und Refining-Rework, den Yormandi-Boss in den Onyx-Höhlen (ASD Site B) und die Anvil Paladin als neuen schweren Gunship.",
+  "palette": {
+    "bg": "#16181b",
+    "accent": "#B5642A",
+    "accent2": "#E4B400",
+    "warm": true
+  },
+  "trailer": {
+    "yt": "MCJlD2Meuek",
+    "own": false,
+    "title": "Alpha 4.3 – Dark Territory"
+  },
+  "keyFacts": [
+    {
+      "label": "Phasen",
+      "value": "3 (Aufklärung → Belagerung → Takedown)"
+    },
+    {
+      "label": "Frontier-Fighters-Finale",
+      "value": "Serverweite Mission; Polaris-Takedown in Phase 3"
+    },
+    {
+      "label": "Salvage-Überarbeitung",
+      "value": "Materialwert erhöht; Refining-System ausgebaut"
+    },
+    {
+      "label": "Yormandi-Boss",
+      "value": "Schlangenartige Kreatur in Onyx Site B; solo/Duo-Kampf"
+    },
+    {
+      "label": "Anvil Paladin",
+      "value": "Neuer schwerer Gunship mit mehreren Türmen"
+    },
+    {
+      "label": "Fraktionsbündnis",
+      "value": "Headhunters + Citizens for Prosperity gegen Amelia Boyds Frontier Fighters"
+    }
+  ],
+  "features": [
+    {
+      "name": "Frontier Fighters Finale",
+      "system": "Missionen & Aktivitäten",
+      "kind": "event",
+      "desc": "Dreiphasiges Finale der Pyro-Must-Burn-Story: Phase 1 Aufklärung der Frontier-Fighters-Bewegungen, Phase 2 Belagerung ihrer Stützpunkte, Phase 3 serverweit koordinierter Polaris-Takedown. Fraktionen Headhunters und Citizens for Prosperity arbeiten zusammen gegen die Frontier Fighters unter Anführung von Amelia Boyd.",
+      "facts": [
+        {
+          "label": "Phasen",
+          "value": "3 (Aufklärung → Belagerung → Takedown)"
+        },
+        {
+          "label": "Verbündete Fraktionen",
+          "value": "Headhunters, Citizens for Prosperity"
+        }
+      ],
+      "topicSlug": "4-3-2-frontier-fighters"
+    },
+    {
+      "name": "Salvage-Überarbeitung & Refining",
+      "system": "Mining & Industrie",
+      "kind": "gameplay",
+      "desc": "Strukturelle Überarbeitung des Salvage-Systems mit erhöhten Materialwerten und ausgebauter Refining-Ökonomie. Bergung wird wirtschaftlich attraktiver; Spieler profitieren von verbessertem Loot-zu-Kredit-Verhältnis.",
+      "facts": [
+        {
+          "label": "Materialwert",
+          "value": "erhöht"
+        },
+        {
+          "label": "Refining-System",
+          "value": "ausgebaut"
+        }
+      ]
+    },
+    {
+      "name": "Yormandi-Boss-Kampf",
+      "system": "Missionen & Aktivitäten",
+      "kind": "event",
+      "desc": "Neue schlangenartige, biomechanische Kreatur in den Onyx-Facilities (ASD Site B). Mehrphasiger Bosskampf, der solo machbar ist, im Duo aber deutlich leichter fällt. Wikelo-Aufträge verlangen Augen und Zungen der Kreatur als Belohnungen.",
+      "facts": [
+        {
+          "label": "Standort",
+          "value": "ASD Site B (Onyx)"
+        },
+        {
+          "label": "Art",
+          "value": "Biomechanische Schlange"
+        },
+        {
+          "label": "Spielbarkeit",
+          "value": "Solo oder Duo (optional)"
+        }
+      ]
+    },
+    {
+      "name": "Anvil Paladin",
+      "system": "Schiffs-Systeme",
+      "kind": "tech",
+      "desc": "Neuer schwerer Gunship von Anvil mit mehreren Turm-Positionen und Crew-Deck. Entwickelt für koordinierte Mehrmann-Combat-Missionen und Jagd-Operationen.",
+      "facts": [
+        {
+          "label": "Hersteller",
+          "value": "Anvil"
+        },
+        {
+          "label": "Klasse",
+          "value": "Gunship"
+        },
+        {
+          "label": "Merkmale",
+          "value": "Mehrere Türme, Crew-Deck"
+        }
+      ]
+    },
+    {
+      "name": "Combat- & FPS-Updates",
+      "system": "Combat & Waffen",
+      "kind": "balance",
+      "desc": "Überarbeitungen des Nahkampf- und Schusswaffen-Systems sowie FPS-Mechaniken zur Unterstützung der Frontier-Fighters-Missionen.",
+      "facts": [
+        {
+          "label": "Fokus",
+          "value": "FPS-Combat, Squad-Koordination"
+        }
+      ]
+    },
+    {
+      "name": "Economy- & Trading-Tuning",
+      "system": "Wirtschaft & Trading",
+      "kind": "balance",
+      "desc": "Anpassungen an Handelsrouten, Preisen und Missionsbelohnungen zur Ökonomie von Stanton und Pyro.",
+      "facts": [
+        {
+          "label": "Bereich",
+          "value": "Preise, Missionen, Routen"
+        }
+      ]
+    }
+  ],
+  "ships": [
+    {
+      "name": "Anvil Paladin",
+      "manufacturer": "Anvil",
+      "role": "Gunship",
+      "status": "neu",
+      "notes": "Schwerer Gunship mit mehreren Türmen und Crew-Deck"
+    }
+  ],
+  "events": [
+    {
+      "name": "Frontier Fighters Finale",
+      "desc": "Dreiphasiges Finale der Pyro-Must-Burn-Story; serverweite Jagd auf gestohlene Polaris in Phase 3; Headhunters und Citizens for Prosperity als verbündete Allianz unter Anführung von Amelia Boyd.",
+      "period": "Oktober 2025"
+    }
+  ],
+  "wipe": "Kein Wipe in 4.3.2 (Point-Release)",
+  "fixesNote": "Zahlreiche Stabilitäts- und Gameplay-Fixes; genaue Anzahl nicht spezifiziert",
+  "topics": [
+    {
+      "slug": "4-3-2-frontier-fighters",
+      "title": "Frontier Fighters"
+    }
+  ]
+}

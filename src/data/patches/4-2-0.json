@@ -1,0 +1,155 @@
+{
+  "version": "4.2.0",
+  "codename": "Storm Breaker",
+  "date": "2025-06-19",
+  "dateDisplay": "19. Juni 2025",
+  "era": "Sturm & Stahl",
+  "type": "major",
+  "tagline": "Persistente Sturm-Aktivität, dynamischer Regen und die neue Umweltgefahr Strahlung.",
+  "summary": "Der Himmel wird zum Gegner: Alpha 4.2.0 fügt dynamisches Wetter an Stanton und Pyro ein — starker Regen senkt die Sicht, Turbulenzen rütteln die Flugstabilität durch, und eine ganz neue Umweltgefahr, Strahlung, baut sich tückisch über die Zeit auf. Die namensgebende Storm-Breaker-Mission schickt Spieler mitten in diese Stürme, wo nur der CureLife DeconPen Xtra gegen die tödliche Strahlenbelastung hilft.",
+  "palette": {
+    "bg": "#16142a",
+    "accent": "#36e2f0",
+    "accent2": "#f5c518",
+    "warm": false
+  },
+  "trailer": {
+    "yt": "_OzfPaUWYpY",
+    "own": true,
+    "title": "Alpha 4.2: Storm Breaker"
+  },
+  "keyFacts": [
+    {
+      "label": "Dynamisches Wetter",
+      "value": "Starker Regen + Turbulenzen an Stanton & Pyro"
+    },
+    {
+      "label": "Strahlung",
+      "value": "Neue Umweltgefahr — baut sich über Zeit auf, ohne Schutz tödlich"
+    },
+    {
+      "label": "Gegenmittel",
+      "value": "CureLife DeconPen Xtra (Canoiodide + Hemozal)"
+    },
+    {
+      "label": "Bug- & Crash-Fixes",
+      "value": "~190"
+    },
+    {
+      "label": "VTOL-Mechanik",
+      "value": "Schweben und senkrechtes Landen deutlich erschwert im Sturm"
+    }
+  ],
+  "features": [
+    {
+      "name": "Dynamischer Regen & Wetter",
+      "system": "Flugmodell",
+      "kind": "gameplay",
+      "desc": "Mit 4.2.0 wird das Wetter an Stanton- und Pyro-Standorten zur aktiven Spielmechanik: dynamischer Regen senkt die Sicht erheblich, Sturmfronten bringen starken Wind und Turbulenzen, die die Flugstabilität reduzieren und Präzisions-Anflüge destabilisieren.",
+      "facts": [
+        {
+          "label": "Betroffene Systeme",
+          "value": "Stanton & Pyro"
+        },
+        {
+          "label": "Haupteffekt",
+          "value": "Sichtreduktion + Flugstabilität ↓"
+        }
+      ],
+      "topicSlug": "4-2-0-storm-breaker"
+    },
+    {
+      "name": "Strahlung — neue Umweltgefahr",
+      "system": "Engineering",
+      "kind": "gameplay",
+      "desc": "Eine ganz neue und tückische Umweltgefahr: Strahlung baut sich mit der Zeit in betroffenen Zonen auf. Sie ist unsichtbar und tödlich, wenn die Belastung sein Maximum erreicht. Ein Rückzug aus der Zone baut die Strahlung wieder ab — aber wer zu lange wartet, hat schon verloren.",
+      "facts": [
+        {
+          "label": "Charakteristik",
+          "value": "Baut sich still über die Zeit auf"
+        },
+        {
+          "label": "Gegenmittel",
+          "value": "CureLife DeconPen Xtra"
+        }
+      ],
+      "topicSlug": "4-2-0-storm-breaker"
+    },
+    {
+      "name": "Storm Breaker — persistente Aktivität",
+      "system": "Missionen & Aktivitäten",
+      "kind": "event",
+      "desc": "Die namensgebende Mission führt Spieler tief in die Stürme — eine persistente Aktivität, die an die fortlaufende Regen-Krisen-Story angebunden ist. Wer in den Sturm fliegt, sucht den Konflikt mit den Elementen.",
+      "facts": [
+        {
+          "label": "Aktivitätstyp",
+          "value": "Persistent"
+        },
+        {
+          "label": "Narrative",
+          "value": "Regen-Krisen-Story"
+        }
+      ],
+      "topicSlug": "4-2-0-storm-breaker"
+    },
+    {
+      "name": "Turbulenz im Flug",
+      "system": "Flugmodell",
+      "kind": "gameplay",
+      "desc": "Stürme erzeugen Flug-Turbulenzen, die die Flugstabilität senken. Jede Böe zerrt am Kurs, besonders heikel sind VTOL-Manöver (Schweben und senkrechtes Landen), die im Sturm zur Zitterpartie werden.",
+      "facts": [
+        {
+          "label": "Betroffene Operationen",
+          "value": "VTOL-Manöver, Präzisions-Anflüge"
+        }
+      ],
+      "topicSlug": "4-2-0-storm-breaker"
+    },
+    {
+      "name": "CureLife DeconPen Xtra",
+      "system": "Medical",
+      "kind": "qol",
+      "desc": "Ein Schnell-Injektor als Gegenmittel gegen Strahlung. Verabreicht Canoiodide und Hemozal direkt in den Blutkreislauf und kauft dem Piloten Zeit gegen die aufsteigende Strahlenbelastung. Im Storm-Loadout ab 4.2.0 Pflichtausrüstung.",
+      "facts": [
+        {
+          "label": "Wirkstoffe",
+          "value": "Canoiodide + Hemozal"
+        },
+        {
+          "label": "Effekt",
+          "value": "Reduziert Strahlenbelastung"
+        }
+      ],
+      "topicSlug": "4-2-0-storm-breaker"
+    }
+  ],
+  "ships": [
+    {
+      "name": "ARGO ATLS IKTI",
+      "manufacturer": "ARGO",
+      "role": "Mech-Suit",
+      "status": "neu"
+    },
+    {
+      "name": "Esperia Prowler Utility",
+      "manufacturer": "Esperia",
+      "role": "Utility",
+      "status": "neu"
+    }
+  ],
+  "events": [
+    {
+      "name": "Storm Breaker",
+      "desc": "Persistente Aktivität tief im Sturm; an die Regen-Krisen-Story angebunden. Keine dediziertes zeitlich begrenztes Live-Event.",
+      "period": "Persistent"
+    }
+  ],
+  "wipe": "Kein Wipe mit 4.2.0",
+  "fixesNote": "~190 Bugfixes und Stabilitäts-Verbesserungen",
+  "topics": [
+    {
+      "slug": "4-2-0-storm-breaker",
+      "title": "Storm Breaker · Wetter wird zur Gefahr"
+    }
+  ]
+}

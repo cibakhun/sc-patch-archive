@@ -1,0 +1,158 @@
+{
+  "version": "4.2.1",
+  "codename": "Resource Drive",
+  "date": "2025-07-17",
+  "dateDisplay": "17. Juli 2025",
+  "era": "Sturm & Stahl",
+  "type": "point",
+  "tagline": "Globales Konvoi-Event mit vier konkurrierenden Megakonzernen, Ship-Escort-Missionen und die RSI Meteor.",
+  "summary": "Das erste echte globale Event mit Shard-übergreifendem Tracking: Imperator Addison ruft Stantons vier Megakonzerne zum Wettstreit um Forschungsmaterial. Spieler wählen eine Seite und tragen durch Hauling, Reclaim-Missionen und Konvoi-Eskorte bei. Hurston Dynamics gewinnt mit ca. 337 Millionen SCU. Neue Ship-Escort-Missionen (6 Stufen, Foxwell-Gruppe) und die RSI Meteor debütieren als Logistik-Frachter.",
+  "palette": {
+    "bg": "#0e1620",
+    "accent": "#2E8B57",
+    "accent2": "#E6952A",
+    "warm": false
+  },
+  "trailer": {
+    "yt": "_OzfPaUWYpY",
+    "own": false,
+    "title": "Alpha 4.2: Storm Breaker"
+  },
+  "keyFacts": [
+    {
+      "label": "Globales Event",
+      "value": "Erstes Event mit Shard-übergreifendem Tracking"
+    },
+    {
+      "label": "Konkurrierende Konzerne",
+      "value": "4 (Hurston Dynamics, Crusader Industries, ArcCorp, microTech)"
+    },
+    {
+      "label": "Sieger-Liefermenge",
+      "value": "Hurston Dynamics: ~337 Millionen SCU"
+    },
+    {
+      "label": "Belohnungs-Tiers",
+      "value": "5 Stufen · T5: Strata Hurston Black + 5% Dauerrabatt"
+    },
+    {
+      "label": "Ship-Escort-Missionen",
+      "value": "6 Schwierigkeitsstufen · Foxwell-Gruppe · Scrip"
+    }
+  ],
+  "features": [
+    {
+      "name": "Resource Drive",
+      "system": "Missionen & Aktivitäten",
+      "kind": "event",
+      "desc": "Erstes globales Event mit Shard-übergreifendem Tracking: vier Megakonzerne konkurrieren um Forschungsmaterial-Liefermenge. Spieler wählen eine Seite und tragen durch Hauling, Reclaim-Missionen und Konvoi-Eskorte bei. Fortschritt läuft vereint über alle Server zusammen.",
+      "facts": [
+        {
+          "label": "Konkurrierende Konzerne",
+          "value": "4 (Hurston, Crusader, ArcCorp, microTech)"
+        },
+        {
+          "label": "Sieger-Liefermenge",
+          "value": "~337 Millionen SCU"
+        },
+        {
+          "label": "Belohnungsstufen",
+          "value": "5 Tiers (T5 = Strata Hurston Black + 5% Rabatt)"
+        },
+        {
+          "label": "Event-Tracking",
+          "value": "Global & Shard-übergreifend"
+        }
+      ],
+      "topicSlug": "4-2-1-resource-drive"
+    },
+    {
+      "name": "Ship-Escort-Missionen",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Neuer Missionstyp: Spieler verteidigen Transporter befreundeter Schiffe gegen feindliche Angreifer, eskortieren sie zu/von Asteroid-Mining-Basen bis zur Quantum-Travel-Flucht. Sechs Schwierigkeitsstufen der Foxwell-Gruppe in Stanton und Pyro, Scrip-Belohnung.",
+      "facts": [
+        {
+          "label": "Schwierigkeitsstufen",
+          "value": "6"
+        },
+        {
+          "label": "Systeme",
+          "value": "Stanton & Pyro"
+        },
+        {
+          "label": "Missionsgruppe",
+          "value": "Foxwell"
+        },
+        {
+          "label": "Belohnung",
+          "value": "Scrip"
+        }
+      ]
+    },
+    {
+      "name": "Konvoi-Routen",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Eskortierte Frachtzüge rund um die Mining-Basen in Stanton und Pyro. Ohne Schutz durch Spieler-Eskorte erreicht die Fracht die Sammelstelle nicht. Zentral für den Resource-Drive-Fortschritt.",
+      "facts": [
+        {
+          "label": "Routen",
+          "value": "Stanton & Pyro"
+        },
+        {
+          "label": "Zerstörbares Gut",
+          "value": "ja"
+        }
+      ]
+    },
+    {
+      "name": "Wikelo-Rezepte",
+      "system": "Crafting",
+      "kind": "gameplay",
+      "desc": "Überarbeitetes Crafting-System: Rezepte in drei Zutaten-Stufen gegliedert – garantierte Core-Drops, sehr seltene Rare-Items und content-gebundene Items. Zufalls-Belohnungen entfallen; klare Erkennbarkeit, was sich zu sammeln lohnt.",
+      "facts": [
+        {
+          "label": "Zutaten-Stufen",
+          "value": "3 (Core, Rare, Content-Bound)"
+        },
+        {
+          "label": "Neuerung",
+          "value": "Deterministische Struktur statt Zufalls-Drops"
+        }
+      ]
+    },
+    {
+      "name": "Flight Tuning",
+      "system": "Flugmodell",
+      "kind": "balance",
+      "desc": "Feinabstimmung des Flugverhaltens aller Schiffe; optimiert Handling und responsives Feedback über das reine Event-Update hinaus.",
+      "facts": [
+        {
+          "label": "Umfang",
+          "value": "Allgemeines Flugmodell-Update"
+        }
+      ]
+    }
+  ],
+  "ships": [
+    {
+      "name": "RSI Meteor",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Frachter",
+      "status": "neu"
+    }
+  ],
+  "events": [
+    {
+      "name": "Resource Drive",
+      "desc": "Globales Wettbewerbs-Event zwischen vier Megakonzernen um Forschungsmaterial-Liefermenge. Spieler wählen einen Konzern und tragen durch Hauling und Konvoi-Eskorte zur Gesamtsumme bei. Sieger: Hurston Dynamics mit ca. 337 Millionen SCU. Erstmals Shard-übergreifendes Event-Tracking."
+    }
+  ],
+  "topics": [
+    {
+      "slug": "4-2-1-resource-drive",
+      "title": "Resource Drive"
+    }
+  ]
+}
