@@ -1,5 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import RelatedTopics from '../../components/RelatedTopics.astro';
+import Attribution from '../../components/Attribution.astro';
 ---
 <Layout title={"Server Meshing — Star Citizen 4.0.0 | SC Patch-Archiv"} description={"Server Meshing: die Schlüsseltechnik von Alpha 4.0.0. Mehrere Game-Server bedienen unsichtbar und nahtlos einen einzigen Shard — Stanton und Pyro in einem geteilten Universum."} themeColor="#120f0c">
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
@@ -16,10 +19,8 @@ import Layout from '../../layouts/Layout.astro';
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<div class="topbar" id="topbar">
-  <a class="back" href="/patches/sc-4-0-0.html"><span class="arrow">←</span> Zurück zu 4.0.0</a>
-  <span class="vpill">TECH · ALPHA 4.0.0</span>
-</div>
+<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Alpha 4.0.0', href: '/patches/sc-4-0-0.html' }, { label: "Server Meshing" }]} pill={"TECH · ALPHA 4.0.0"} />
+
 
 <main id="main">
 
@@ -153,13 +154,9 @@ import Layout from '../../layouts/Layout.astro';
 
 </main>
 
-<footer>
-  <nav class="foot-nav" aria-label="Navigation">
-    <a href="/patches/sc-4-0-0.html"><span class="dir">← Patch</span><span class="ttl">4.0.0 · Destination Pyro</span></a>
-    <a href="/index.html"><span class="dir">⌂ Archiv</span><span class="ttl">Alle Patches</span></a>
-  </nav>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer & Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games, Star Citizen Wiki), Fan-Content-Nutzung.</p>
-</footer>
+<RelatedTopics topicSlug="4-0-0-server-meshing" />
+
+<Attribution />
 
 <div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
 

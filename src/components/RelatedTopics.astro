@@ -1,0 +1,93 @@
+---
+// "Mehr aus Alpha X" — auto-generated connective tissue on topic pages:
+// parent patch + sibling topics, resolved entirely from the data layer.
+// Plain cards, palette-aware, no motion (data register, not cinema).
+import { getCollection } from 'astro:content';
+
+interface Props {
+  topicSlug: string;
+}
+const { topicSlug } = Astro.props;
+
+const patches = await getCollection('patches');
+const parent = patches.find((p) => p.data.topics.some((t) => t.slug === topicSlug));
+const siblings = parent ? parent.data.topics.filter((t) => t.slug !== topicSlug) : [];
+---
+{parent && (
+  <section class="rel" aria-label="Verwandte Inhalte">
+    <div class="rel__in">
+      <h2 class="rel__h">Mehr aus Alpha {parent.data.version}</h2>
+      <div class="rel__grid">
+        <a class="rel__card rel__patch" href={`/patches/sc-${parent.id}.html`}>
+          <span class="rel__kind">Patch</span>
+          <b>Alpha {parent.data.version}</b>
+          <span class="rel__t">{parent.data.codename} · {parent.data.dateDisplay}</span>
+        </a>
+        {siblings.map((s) => (
+          <a class="rel__card" href={`/topics/${s.slug}.html`}>
+            <span class="rel__kind">Thema</span>
+            <b>{s.title}</b>
+            <span class="rel__t">Detailseite</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .rel {
+    padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.25rem, 5vw, 4.5rem);
+    border-top: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+  }
+  .rel__in {
+    max-width: var(--maxw, 1180px);
+    margin: 0 auto;
+  }
+  .rel__h {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent, #2dd4ff);
+    margin-bottom: 1rem;
+  }
+  .rel__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 0.9rem;
+  }
+  .rel__card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    background: var(--surface, #10151f);
+    padding: 1rem 1.1rem;
+    color: var(--text, #e8eefc);
+  }
+  .rel__card:hover {
+    border-color: var(--accent, #2dd4ff);
+  }
+  .rel__patch {
+    border-left: 3px solid var(--accent, #2dd4ff);
+  }
+  .rel__kind {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted, #8a99b8);
+  }
+  .rel__card b {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 1.02rem;
+  }
+  .rel__t {
+    font-size: 0.78rem;
+    color: var(--muted, #8a99b8);
+  }
+</style>

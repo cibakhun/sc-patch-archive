@@ -1,5 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import RelatedTopics from '../../components/RelatedTopics.astro';
+import Attribution from '../../components/Attribution.astro';
 ---
 <Layout title={"Medical Overhaul — Star Citizen 4.3.1 | SC Patch-Archiv"} description={"Medical Overhaul: Alpha 4.3.1 baut das Medizin-System um — Wunden, Heilung, Rettung und Wiederbelebung neu gedacht, angeführt vom RSI Apollo und dem MedGel-System."} themeColor="#0f2336">
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
@@ -15,10 +18,8 @@ import Layout from '../../layouts/Layout.astro';
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<div class="topbar" id="topbar">
-  <a class="back" href="/patches/sc-4-3-1.html"><span class="arrow">←</span> Zurück zu 4.3.1</a>
-  <span class="vpill">FEATURE · ALPHA 4.3.1</span>
-</div>
+<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Alpha 4.3.1', href: '/patches/sc-4-3-1.html' }, { label: "Medical Overhaul" }]} pill={"FEATURE · ALPHA 4.3.1"} />
+
 
 <main id="main">
 
@@ -162,13 +163,9 @@ import Layout from '../../layouts/Layout.astro';
 
 </main>
 
-<footer>
-  <nav class="foot-nav" aria-label="Navigation">
-    <a href="/patches/sc-4-3-1.html"><span class="dir">← Patch</span><span class="ttl">4.3.1 · Virtue's Descent</span></a>
-    <a href="/index.html"><span class="dir">⌂ Archiv</span><span class="ttl">Alle Patches</span></a>
-  </nav>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer & Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games, Star Citizen Wiki), Fan-Content-Nutzung.</p>
-</footer>
+<RelatedTopics topicSlug="4-3-1-medical-overhaul" />
+
+<Attribution />
 
 <div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
 

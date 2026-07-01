@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import { getEntry } from 'astro:content';
@@ -162,10 +163,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<div class="topbar" id="topbar">
-  <a class="back" href="/index.html"><span class="arrow">←</span> Patch-Archiv</a>
-  <span class="vpill">ALPHA 4.0.2</span>
-</div>
+<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Alpha 4.0.2' }]} pill={"ALPHA 4.0.2"} />
+
 
 <main id="main">
 

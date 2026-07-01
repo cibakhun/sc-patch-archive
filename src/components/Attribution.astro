@@ -17,6 +17,11 @@ const {
 } = Astro.props;
 ---
 <footer class="site-attr">
+  <nav class="attr-nav" aria-label="Seiten-Navigation">
+    <a href="/index.html">Startseite</a>
+    <span aria-hidden="true">·</span>
+    <a href="/index.html#archiv">Alle Patches</a>
+  </nav>
   <div class="credit">{credit}</div>
   {sources.length > 0 && <div class="srcs">Quellen: {sources.join(' · ')}</div>}
   <p class="disclaimer">
@@ -34,6 +39,27 @@ const {
     padding: 3rem clamp(1.25rem, 5vw, 3rem);
     text-align: center;
     background: var(--bg-2, transparent);
+  }
+  .site-attr .attr-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.7rem;
+    margin-bottom: 1.1rem;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .site-attr .attr-nav a {
+    color: var(--muted, #8a99b8);
+  }
+  .site-attr .attr-nav a:hover {
+    color: var(--accent, #2dd4ff);
+  }
+  .site-attr .attr-nav span {
+    color: var(--muted, #8a99b8);
+    opacity: 0.5;
   }
   .site-attr .credit {
     font-family: var(--font-ui, sans-serif);
