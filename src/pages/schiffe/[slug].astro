@@ -1,0 +1,201 @@
+---
+// Ship data sheet — one REGISTRATUR page per vehicle (290 from the wiki-API
+// snapshot). Local verified renders where the archive has them; patch-spine
+// box links back into the patch pages (the differentiator no ship DB has).
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import vehiclesSnapshot from '../../data/vehicles.json';
+
+export async function getStaticPaths() {
+  const vs = await getCollection('vehicles');
+  return vs.map((v) => ({ params: { slug: v.id }, props: { d: v.data } }));
+}
+
+interface Props {
+  d: CollectionEntry<'vehicles'>['data'];
+}
+const { d } = Astro.props;
+
+// verified local renders from the archive, keyed by maker-stripped name
+const RENDERS: Record<string, string> = {
+  polaris: 'img-polaris.jpg',
+  railen: 'img-railen.jpg',
+  tyilui: 'img-tyilui.jpg',
+  syulen: 'img-syulen.jpg',
+  guardian: 'img-guardian.jpg',
+  meteor: 'img-meteor.jpg',
+  ironclad: 'img-ironclad.jpg',
+  hammerhead: 'img-hammerhead.jpg',
+  perseus: 'img-perseus.jpg',
+  hermes: 'img-hermes.jpg',
+  'idris-m': 'img-idris.jpg',
+  'apollo triage': 'img-apollo.jpg',
+  'apollo medivac': 'img-apollo2.jpg',
+  'l-21 wolf': 'img-kruger.jpg',
+  paladin: 'img-paladin.jpg',
+  prowler: 'img-prowler.jpg',
+  'aurora mk ii': 'img-aurora.jpg',
+  atls: 'img-atls.jpg',
+  mole: 'img-mole.jpg',
+  'cutlass black': 'img-cutlass.jpg',
+};
+const MAKERS = ['rsi', 'drake', 'aegis', 'anvil', 'mirai', 'gatac', 'argo', 'misc', 'origin', 'crusader', 'esperia', 'kruger', 'banu', 'aopoa', 'vanduul'];
+const stripName = (name: string) => {
+  let n = name.toLowerCase().replace(/\s+/g, ' ').trim();
+  for (const m of MAKERS) if (n.startsWith(m + ' ')) n = n.slice(m.length + 1);
+  return n;
+};
+const render = RENDERS[stripName(d.name)];
+
+// patch-spine: version -> codename/page
+const patches = await getCollection('patches');
+const spine = d.patches
+  .map((v) => patches.find((p) => p.data.version === v))
+  .filter(Boolean);
+
+const num = (x: number | null, unit = '') =>
+  x != null ? `${Number.isInteger(x) ? x : x.toFixed(1)}${unit}` : '—';
+const crew =
+  d.crewMin != null || d.crewMax != null
+    ? d.crewMin != null && d.crewMax != null && d.crewMax !== d.crewMin
+      ? `${d.crewMin}–${d.crewMax}`
+      : `${d.crewMin ?? d.crewMax}`
+    : '—';
+
+const facts: { label: string; value: string }[] = [
+  { label: 'Hersteller', value: d.manufacturer ?? '—' },
+  { label: 'Typ', value: [d.typeDe, ...d.fociDe].filter(Boolean).join(' · ') || '—' },
+  { label: 'Größe', value: d.sizeDe ?? '—' },
+  { label: 'Besatzung', value: crew },
+  { label: 'Fracht', value: d.cargoSCU ? `${d.cargoSCU} SCU` : '—' },
+  { label: 'Preis (Pledge)', value: d.msrpUSD != null ? `$${d.msrpUSD}` : '—' },
+  { label: 'Maße L×B×H', value: d.lengthM ? `${num(d.lengthM)} × ${num(d.widthM)} × ${num(d.heightM)} m` : '—' },
+  { label: 'SCM / Max', value: d.scmSpeed ? `${num(d.scmSpeed)} / ${num(d.maxSpeed)} m/s` : '—' },
+  { label: 'Status', value: d.statusDe ?? '—' },
+];
+---
+<Layout
+  title={`${d.name} — Datenblatt | SC Patch-Archiv`}
+  description={`${d.name} von ${d.manufacturer ?? 'unbekannt'}: Specs, Beschreibung und Patch-Historie.`}
+  themeColor="#05070d"
+  footer={true}
+>
+<style is:inline>
+:root{
+  --bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;
+  --accent:#2dd4ff;--accent-2:#6ea8ff;--gold:#d4af37;
+  --text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
+  --maxw:1100px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:#05070d}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.sd{max-width:var(--maxw);margin:0 auto;padding:6.5rem clamp(1rem,3vw,2.5rem) 4rem}
+.sd__hero{position:relative;border:1px solid var(--line);background:var(--surface);overflow:hidden;margin-bottom:1.6rem}
+.sd__hero img{display:block;width:100%;height:clamp(240px,38vw,420px);object-fit:cover}
+.sd__hero::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(5,7,13,.88),transparent 55%)}
+.sd__hero .sd__title{position:absolute;left:1.6rem;bottom:1.2rem;z-index:2}
+.sd__title--plain{margin-bottom:1.4rem}
+.sd__maker{font-family:var(--font-ui);font-weight:700;font-size:.85rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+.sd h1{font-family:var(--font-display);font-weight:900;font-size:clamp(1.9rem,5vw,3rem);line-height:1.05;
+  background:linear-gradient(180deg,#fff,var(--accent-2) 75%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sd__hero h1{background:none;-webkit-text-fill-color:#fff;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.8)}
+
+.sd__panel{position:relative;background:var(--surface);border:1px solid var(--line);border-top:2px solid var(--accent);
+  padding:1.25rem 1.5rem 1.4rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.sd__phead{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--line);padding-bottom:.55rem;margin-bottom:1rem}
+.sd__phead h2{font-family:var(--font-ui);font-weight:700;font-size:.95rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+.sd__code{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem 1.4rem;margin:0}
+.sd__item{border-left:1px solid var(--line);padding-left:.8rem}
+.sd__item dt{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.sd__item dd{margin:.15rem 0 0;font-weight:500;font-size:1.15rem;line-height:1.35;font-variant-numeric:tabular-nums;color:var(--text)}
+
+.sd__desc{max-width:78ch;margin:1.6rem 0 0;font-size:1.05rem;line-height:1.65;color:var(--text);opacity:.92}
+
+.sd__spine{margin-top:1.6rem;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--bg-2);padding:1rem 1.2rem}
+.sd__spine h2{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
+.sd__spine a{display:block;padding:.3rem 0;font-family:var(--font-ui);font-weight:700;font-size:1rem}
+.sd__spine a:hover{color:var(--gold);text-decoration:underline}
+.sd__spine span{color:var(--muted);font-weight:600}
+
+.sd__links{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.6rem}
+.sd__links a{font-family:var(--font-ui);font-weight:700;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid var(--line);padding:.45rem .9rem;transition:border-color .15s,color .15s}
+.sd__links a:hover{border-color:var(--accent);color:var(--accent)}
+.sd__src{margin-top:1.4rem;font-size:.85rem;color:var(--muted)}
+.sd__src a{text-decoration:underline}
+.sd__src a:hover{color:var(--accent)}
+</style>
+
+<SiteNav
+  crumbs={[
+    { label: 'Archiv', href: '/index.html' },
+    { label: 'Schiffe', href: '/schiffe.html' },
+    { label: d.name },
+  ]}
+  pill={d.makerCode ?? 'DATENBLATT'}
+/>
+
+<main class="sd">
+  {render ? (
+    <div class="sd__hero">
+      <img src={`/assets/${render}`} alt={`${d.name} — Render`} />
+      <div class="sd__title">
+        <div class="sd__maker">{d.manufacturer}</div>
+        <h1>{d.name}</h1>
+      </div>
+    </div>
+  ) : (
+    <div class="sd__title--plain">
+      <div class="sd__maker">{d.manufacturer}</div>
+      <h1>{d.name}</h1>
+    </div>
+  )}
+
+  <section class="sd__panel" aria-label="Datenblatt">
+    <header class="sd__phead">
+      <h2>Datenblatt</h2>
+      <span class="sd__code">DAT&nbsp;//&nbsp;{d.makerCode ?? 'SCHIFF'} · Stand {vehiclesSnapshot.fetchedAt}</span>
+    </header>
+    <dl class="sd__grid">
+      {facts.map((f) => (
+        <div class="sd__item">
+          <dt>{f.label}</dt>
+          <dd>{f.value}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+
+  {d.descriptionDe && <p class="sd__desc">{d.descriptionDe}</p>}
+
+  {spine.length > 0 && (
+    <section class="sd__spine" aria-label="Im Patch-Archiv">
+      <h2>Im Patch-Archiv</h2>
+      {spine.map((p) => (
+        <a href={`/patches/sc-${p!.id}.html`}>
+          Alpha {p!.data.version} — {p!.data.codename} <span>· {p!.data.dateDisplay} →</span>
+        </a>
+      ))}
+    </section>
+  )}
+
+  <div class="sd__links">
+    <a href="/schiffe.html">← Alle Schiffe</a>
+    {d.pledgeUrl && <a href={d.pledgeUrl} target="_blank" rel="noopener">RSI Pledge-Store ↗</a>}
+  </div>
+
+  <p class="sd__src">
+    Quelle: <a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
+    (Community-Projekt, Daten aus den Spieldateien) · Stand {vehiclesSnapshot.fetchedAt}
+    {d.gameVersion && ` · Spieldaten ${d.gameVersion.split('-')[0]}`}
+  </p>
+</main>
+</Layout>

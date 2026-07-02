@@ -109,4 +109,40 @@ const ships = defineCollection({
   }),
 });
 
-export const collections = { patches, ships };
+// Full vehicle catalog — snapshot written by `npm run sync:vehicles`
+// (scripts/sync-vehicles.mjs, Star Citizen Wiki API v2, German fields native).
+const vehicles = defineCollection({
+  loader: file('src/data/vehicles.json', {
+    parser: (text) => JSON.parse(text).vehicles,
+  }),
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+    manufacturer: z.string().nullable(),
+    makerCode: z.string().nullable(),
+    typeDe: z.string().nullable(),
+    typeEn: z.string().nullable(),
+    sizeDe: z.string().nullable(),
+    statusDe: z.string().nullable(),
+    statusEn: z.string().nullable(),
+    fociDe: z.array(z.string()),
+    descriptionDe: z.string().nullable(),
+    crewMin: z.number().nullable(),
+    crewMax: z.number().nullable(),
+    cargoSCU: z.number().nullable(),
+    msrpUSD: z.number().nullable(),
+    lengthM: z.number().nullable(),
+    widthM: z.number().nullable(),
+    heightM: z.number().nullable(),
+    scmSpeed: z.number().nullable(),
+    maxSpeed: z.number().nullable(),
+    isSpaceship: z.boolean().nullable(),
+    isGravlev: z.boolean().nullable(),
+    pledgeUrl: z.string().nullable(),
+    /** patch-spine: versions in OUR archive that introduced/touched it */
+    patches: z.array(z.string()),
+    gameVersion: z.string().nullable(),
+  }),
+});
+
+export const collections = { patches, ships, vehicles };

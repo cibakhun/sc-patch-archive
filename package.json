@@ -10,7 +10,8 @@
     "astro": "astro",
     "port": "node scripts/_port.mjs",
     "verify": "node scripts/_verify.mjs",
-    "sync:ships": "node scripts/sync-ships.mjs"
+    "sync:ships": "node scripts/sync-ships.mjs",
+    "sync:vehicles": "node scripts/sync-vehicles.mjs"
   },
   "dependencies": {
     "astro": "^5.0.0"

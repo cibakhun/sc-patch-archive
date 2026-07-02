@@ -47,6 +47,11 @@ const current = Astro.url.pathname;
   <div class="snav__right">
     <a
       class="snav__link"
+      href="/schiffe.html"
+      aria-current={current === '/schiffe.html' || current.startsWith('/schiffe/') ? 'page' : undefined}
+    >Schiffe</a>
+    <a
+      class="snav__link"
       href="/evolution.html"
       aria-current={current === '/evolution.html' ? 'page' : undefined}
     >Evolution</a>

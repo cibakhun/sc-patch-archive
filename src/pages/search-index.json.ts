@@ -42,15 +42,7 @@ export const GET: APIRoute = async () => {
         u: `${purl}#dossier`,
         x: f.system ?? '',
       });
-    for (const s of d.ships)
-      out.push({
-        k: 'schiff',
-        b: `Alpha ${d.version}`,
-        t: s.name,
-        s: `${s.manufacturer} · ${s.role}${s.status ? ` · ${s.status}` : ''}`,
-        u: `${purl}#dossier`,
-        x: s.manufacturer,
-      });
+    // (patch-ship entries superseded by the full vehicle catalog below)
     for (const e of d.events)
       out.push({
         k: 'event',
@@ -61,6 +53,18 @@ export const GET: APIRoute = async () => {
         x: '',
       });
   }
+
+  // full vehicle catalog (wiki-API snapshot) — canonical ship entries
+  const vehicles = await getCollection('vehicles');
+  for (const v of vehicles)
+    out.push({
+      k: 'schiff',
+      b: v.data.makerCode ?? 'Schiff',
+      t: v.data.name,
+      s: [v.data.manufacturer, v.data.typeDe, v.data.sizeDe].filter(Boolean).join(' · '),
+      u: `/schiffe/${v.id}.html`,
+      x: [...v.data.fociDe, ...v.data.patches.map((p) => `alpha ${p}`)].join(' '),
+    });
 
   return new Response(JSON.stringify(out), {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
