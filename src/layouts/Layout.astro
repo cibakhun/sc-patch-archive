@@ -46,6 +46,13 @@ const canonical = SITE.url.replace(/\/$/, '') + Astro.url.pathname;
     href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap"
     rel="stylesheet"
   />
+  <style is:inline>
+    /* Lesbarkeits-Grundlage: 18px-Wurzel statt Browser-Default 16px. Die
+       gesamte Typo-Skala der Seite ist rem-basiert und wächst proportional —
+       Fließtext 18px, Datentabellen ~17px, Micro-Caps-Labels ≥14px effektiv.
+       Kleine Condensed-Caps rendern damit auch deutlich weicher (ClearType). */
+    html { font-size: 112.5%; }
+  </style>
   <slot name="head" />
 </head>
 <body>

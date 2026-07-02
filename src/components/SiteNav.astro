@@ -364,18 +364,24 @@ const current = Astro.url.pathname;
     white-space: nowrap;
   }
   /* the nav carries more links since Phase 1 (Schiffe, Evolution) — shed
-     ballast in stages before anything can collide */
-  @media (max-width: 1150px) {
+     ballast in stages before anything can collide (breakpoints calibrated
+     for the 18px root scale) */
+  @media (max-width: 1280px) {
     .snav__pill {
       display: none;
     }
   }
-  @media (max-width: 1000px) {
-    .snav__mid {
+  @media (max-width: 1120px) {
+    /* must out-rank the `.snav__crumbs li` base rule (scoped specificity) */
+    .snav__crumbs li.snav__mid {
+      display: none;
+    }
+    /* a hidden mid still counts for `li + li` — suppress the orphaned › */
+    .snav__crumbs li.snav__mid + li::before {
       display: none;
     }
   }
-  @media (max-width: 760px) {
+  @media (max-width: 860px) {
     .snav__panel {
       min-width: 270px;
     }
