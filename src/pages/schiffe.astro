@@ -6,6 +6,7 @@ import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
 import vehiclesSnapshot from '../data/vehicles.json';
+import { pickThumb } from '../lib/shipRenders';
 
 const vehicles = (await getCollection('vehicles')).sort((a, b) =>
   a.data.name.localeCompare(b.data.name, 'de')
@@ -60,7 +61,10 @@ a{color:inherit;text-decoration:none}
 .sdb__count{font-family:var(--font-ui);font-weight:700;font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 
 .sdb__tablewrap{border:1px solid var(--line);background:var(--bg-2);overflow-x:auto}
-.sdb__table{width:100%;border-collapse:collapse;min-width:960px}
+.sdb__table{width:100%;border-collapse:collapse;min-width:1040px}
+.sdb__imgcell{width:100px;padding:.35rem .4rem .35rem .8rem}
+.sdb__imgcell img{display:block;width:88px;height:50px;object-fit:cover;border:1px solid var(--line);background:#0a0e18}
+.sdb__noimg{display:block;width:88px;height:50px;border:1px dashed var(--line);background:rgba(0,0,0,.25)}
 .sdb__table th{position:sticky;top:0;background:var(--bg-2);z-index:2;
   font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
   text-align:left;padding:.6rem .8rem;border-bottom:2px solid color-mix(in srgb,var(--accent) 30%,transparent)}
@@ -126,6 +130,7 @@ a{color:inherit;text-decoration:none}
     <table class="sdb__table" id="sf-table">
       <thead>
         <tr>
+          <th aria-label="Bild"></th>
           <th>Schiff</th><th>Typ</th><th>Größe</th>
           <th class="num">Crew</th><th class="num">Fracht</th><th class="num">Preis</th>
           <th>Status</th><th>Archiv</th>
@@ -134,6 +139,7 @@ a{color:inherit;text-decoration:none}
       <tbody>
         {vehicles.map((v) => {
           const d = v.data;
+          const thumb = pickThumb(d);
           return (
             <tr
               data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
@@ -143,6 +149,19 @@ a{color:inherit;text-decoration:none}
               data-archive={d.patches.length ? '1' : ''}
               data-href={`/schiffe/${d.id}.html`}
             >
+              <td class="sdb__imgcell">
+                {thumb ? (
+                  <img
+                    src={thumb.src}
+                    alt=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                    onerror="this.style.visibility='hidden'"
+                  />
+                ) : (
+                  <span class="sdb__noimg" aria-hidden="true"></span>
+                )}
+              </td>
               <td>
                 <div class="sdb__name"><a href={`/schiffe/${d.id}.html`}>{d.name}</a></div>
                 <div class="sdb__maker">{d.manufacturer ?? '—'}</div>
@@ -170,6 +189,7 @@ a{color:inherit;text-decoration:none}
     Quelle: <a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
     (Community-Projekt, Daten aus den Spieldateien) · Stand {vehiclesSnapshot.fetchedAt}
     {vehiclesSnapshot.gameVersion && ` · Spieldaten ${vehiclesSnapshot.gameVersion.split('-')[0]}`}
+    · Bilder: starcitizen.tools
   </p>
 </main>
 

@@ -111,6 +111,13 @@ const ships = defineCollection({
 
 // Full vehicle catalog — snapshot written by `npm run sync:vehicles`
 // (scripts/sync-vehicles.mjs, Star Citizen Wiki API v2, German fields native).
+/** an equipped item on a port: name + size class + how many are fitted */
+const fitted = z.object({
+  name: z.string(),
+  size: z.number().nullable(),
+  count: z.number(),
+});
+
 const vehicles = defineCollection({
   loader: file('src/data/vehicles.json', {
     parser: (text) => JSON.parse(text).vehicles,
@@ -142,12 +149,33 @@ const vehicles = defineCollection({
     yaw: z.number().nullable(),
     roll: z.number().nullable(),
     pilotDps: z.number().nullable(),
+    turretDps: z.number().nullable(),
     fixedWeapons: z.array(
       z.object({ name: z.string(), count: z.number(), dps: z.number().nullable() })
     ),
-    turretsManned: z.number(),
-    turretsRemote: z.number(),
-    pdcCount: z.number(),
+    /** weapon hardpoints aggregated per turret category: mount size classes
+     *  plus the equipped weapon names (per-station data from the game files) */
+    turrets: z.array(
+      z.object({
+        label: z.string(),
+        stations: z.number(),
+        sizes: z.array(z.object({ size: z.number(), count: z.number() })),
+        weapons: z.array(z.object({ name: z.string(), count: z.number() })),
+        payloadTypes: z.array(z.string()),
+        dps: z.number().nullable(),
+      })
+    ),
+    missileCount: z.number().nullable(),
+    missileRacks: z.array(fitted),
+    cmLaunchers: z.number(),
+    /** equipped core components with size classes, from the port list */
+    components: z.object({
+      powerPlants: z.array(fitted),
+      shields: z.array(fitted),
+      coolers: z.array(fitted),
+      quantumDrives: z.array(fitted),
+      radars: z.array(fitted),
+    }),
     hullHp: z.number().nullable(),
     shieldHp: z.number().nullable(),
     qtSpeedMs: z.number().nullable(),
@@ -164,6 +192,14 @@ const vehicles = defineCollection({
     /** patch-spine: versions in OUR archive that introduced/touched it */
     patches: z.array(z.string()),
     gameVersion: z.string().nullable(),
+    /** ship image from the API (starcitizen.tools media), width-graded */
+    image: z
+      .object({
+        hero: z.string().nullable(),
+        thumb: z.string().nullable(),
+        source: z.string().nullable(),
+      })
+      .nullable(),
   }),
 });
 

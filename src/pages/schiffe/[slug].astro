@@ -1,13 +1,15 @@
 ---
-// Ship data sheet — one REGISTRATUR page per vehicle (290 from the wiki-API
-// snapshot). Local verified renders where the archive has them; patch-spine
-// box links back into the patch pages (the differentiator no ship DB has).
+// Ship data sheet — one REGISTRATUR page per vehicle from the wiki-API
+// snapshot. Hero: local verified render > API image (attributed); the
+// patch-spine box links back into the patch pages (the differentiator no
+// ship DB has). Logic lives in src/lib — frontmatter stays thin (compiler).
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import vehiclesSnapshot from '../../data/vehicles.json';
-import { buildFacts, buildGroups } from '../../lib/shipFacts';
+import { buildFacts, buildGroups, buildArmament } from '../../lib/shipFacts';
+import { pickHero } from '../../lib/shipRenders';
 
 export async function getStaticPaths() {
   const vs = await getCollection('vehicles');
@@ -19,36 +21,7 @@ interface Props {
 }
 const { d } = Astro.props;
 
-// verified local renders from the archive, keyed by maker-stripped name
-const RENDERS: Record<string, string> = {
-  polaris: 'img-polaris.jpg',
-  railen: 'img-railen.jpg',
-  tyilui: 'img-tyilui.jpg',
-  syulen: 'img-syulen.jpg',
-  guardian: 'img-guardian.jpg',
-  meteor: 'img-meteor.jpg',
-  ironclad: 'img-ironclad.jpg',
-  hammerhead: 'img-hammerhead.jpg',
-  perseus: 'img-perseus.jpg',
-  hermes: 'img-hermes.jpg',
-  'idris-m': 'img-idris.jpg',
-  'apollo triage': 'img-apollo.jpg',
-  'apollo medivac': 'img-apollo2.jpg',
-  'l-21 wolf': 'img-kruger.jpg',
-  paladin: 'img-paladin.jpg',
-  prowler: 'img-prowler.jpg',
-  'aurora mk ii': 'img-aurora.jpg',
-  atls: 'img-atls.jpg',
-  mole: 'img-mole.jpg',
-  'cutlass black': 'img-cutlass.jpg',
-};
-const MAKERS = ['rsi', 'drake', 'aegis', 'anvil', 'mirai', 'gatac', 'argo', 'misc', 'origin', 'crusader', 'esperia', 'kruger', 'banu', 'aopoa', 'vanduul'];
-const stripName = (name: string) => {
-  let n = name.toLowerCase().replace(/\s+/g, ' ').trim();
-  for (const m of MAKERS) if (n.startsWith(m + ' ')) n = n.slice(m.length + 1);
-  return n;
-};
-const render = RENDERS[stripName(d.name)];
+const hero = pickHero(d);
 
 // patch-spine: version -> codename/page
 const patches = await getCollection('patches');
@@ -57,6 +30,7 @@ const spine = d.patches
   .filter(Boolean);
 
 const facts = buildFacts(d);
+const armament = buildArmament(d);
 const groups = buildGroups(d);
 ---
 <Layout
@@ -102,6 +76,23 @@ a{color:inherit;text-decoration:none}
 .sd__sub{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
   margin:1.6rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--line)}
 
+/* Bewaffnung: hardpoint rows — size-class chips + equipped loadout + DPS */
+.sd__arm{display:flex;flex-direction:column}
+.sd__armrow{display:grid;grid-template-columns:200px minmax(0,1fr) auto;gap:.35rem 1.2rem;align-items:baseline;
+  padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.sd__armrow:last-child{border-bottom:0;padding-bottom:.15rem}
+.sd__armhead{display:flex;flex-direction:column;gap:.05rem}
+.sd__armlabel{font-family:var(--font-ui);font-weight:700;font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text)}
+.sd__armmeta{font-family:var(--font-ui);font-weight:600;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sd__armmid{display:flex;flex-wrap:wrap;gap:.4rem .6rem;align-items:baseline;min-width:0}
+.sd__chip{font-family:var(--font-ui);font-weight:700;font-size:.85rem;line-height:1;color:var(--accent);
+  border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);background:color-mix(in srgb,var(--accent) 7%,transparent);
+  padding:.3rem .5rem;white-space:nowrap}
+.sd__chip i{font-style:normal;opacity:.78;margin-left:.28rem;font-size:.78rem}
+.sd__armitems{font-size:.98rem;color:var(--text);opacity:.9}
+.sd__armval{font-family:var(--font-ui);font-weight:700;font-size:1.05rem;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}
+@media(max-width:640px){.sd__armrow{grid-template-columns:1fr}.sd__armval{justify-self:start}}
+
 .sd__desc{max-width:78ch;margin:1.6rem 0 0;font-size:1.05rem;line-height:1.65;color:var(--text);opacity:.92}
 
 .sd__spine{margin-top:1.6rem;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--bg-2);padding:1rem 1.2rem}
@@ -129,9 +120,14 @@ a{color:inherit;text-decoration:none}
 />
 
 <main class="sd">
-  {render ? (
+  {hero ? (
     <div class="sd__hero">
-      <img src={`/assets/${render}`} alt={`${d.name} — Render`} />
+      <img
+        src={hero.src}
+        alt={`${d.name} — Render`}
+        referrerpolicy="no-referrer"
+        onerror={hero.fallback ? `this.onerror=null;this.src='${hero.fallback}'` : undefined}
+      />
       <div class="sd__title">
         <div class="sd__maker">{d.manufacturer}</div>
         <h1>{d.name}</h1>
@@ -157,6 +153,28 @@ a{color:inherit;text-decoration:none}
         </div>
       ))}
     </dl>
+    {armament.length > 0 && (
+      <div class="sd__group">
+        <h3 class="sd__sub">Bewaffnung</h3>
+        <div class="sd__arm">
+          {armament.map((r) => (
+            <div class="sd__armrow">
+              <div class="sd__armhead">
+                <span class="sd__armlabel">{r.label}</span>
+                {r.meta && <span class="sd__armmeta">{r.meta}</span>}
+              </div>
+              <div class="sd__armmid">
+                {r.chips.map((c) => (
+                  <span class="sd__chip">{c.label}{c.count > 1 && <i>×{c.count}</i>}</span>
+                ))}
+                {r.items && <span class="sd__armitems">{r.items}</span>}
+              </div>
+              {r.value && <div class="sd__armval">{r.value}</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
     {groups.map((g) => (
       <div class="sd__group">
         <h3 class="sd__sub">{g.title}</h3>
@@ -194,6 +212,7 @@ a{color:inherit;text-decoration:none}
     Quelle: <a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
     (Community-Projekt, Daten aus den Spieldateien) · Stand {vehiclesSnapshot.fetchedAt}
     {d.gameVersion && ` · Spieldaten ${d.gameVersion.split('-')[0]}`}
+    {hero?.api && ` · Bild: ${d.image?.source ?? 'starcitizen.tools'}`}
   </p>
 </main>
 </Layout>

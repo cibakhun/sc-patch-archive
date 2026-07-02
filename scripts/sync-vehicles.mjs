@@ -36,6 +36,15 @@ for (const f of (await readdir(PDIR)).filter((x) => x.endsWith('.json'))) {
     spine.get(k).add(j.version);
   }
 }
+// variant → base aliases: patch-data ships whose exact variant the catalog
+// drops as unclassified — the base entry carries the spine link instead.
+// ("Command Module" stays an intentional miss: it's a module, not a vehicle.)
+const SPINE_ALIAS = { 'atls ikti': 'atls' };
+for (const [from, to] of Object.entries(SPINE_ALIAS)) {
+  if (!spine.has(from)) continue;
+  if (!spine.has(to)) spine.set(to, new Set());
+  for (const p of spine.get(from)) spine.get(to).add(p);
+}
 
 async function page(n) {
   const res = await fetch(`${API}/vehicles?limit=50&page=${n}`, {
@@ -60,6 +69,94 @@ for (let n = 1; ; n++) {
       grouped[w.name] = grouped[w.name] ?? { name: w.name, count: 0, dps: w.dps ?? null };
       grouped[w.name].count++;
     }
+
+    // weapon hardpoints: turret stations carry real mount size classes plus
+    // the equipped weapon names in the LIST response — aggregate per category.
+    // (Pilot-fixed guns come without per-mount sizes at this depth; they stay
+    // name/dps-only rather than getting a fabricated S-class.)
+    const turretCat = (list, label) => {
+      const stations = (list ?? []).filter(
+        (t) => (t.mounts?.length ?? 0) > 0 || (t.weapons?.length ?? 0) > 0
+      );
+      if (!stations.length) return null;
+      const sizes = {};
+      const weapons = {};
+      const payloadTypes = new Set();
+      let dps = 0;
+      for (const t of stations) {
+        if (t.mounts?.length) {
+          for (const m of t.mounts) {
+            const s = m.size ?? t.size;
+            if (s != null) sizes[s] = (sizes[s] ?? 0) + 1;
+          }
+        } else if (t.size != null) {
+          sizes[t.size] = (sizes[t.size] ?? 0) + 1;
+        }
+        for (const w of t.weapons ?? []) weapons[w.name] = (weapons[w.name] ?? 0) + 1;
+        for (const pt of t.payload_types ?? []) payloadTypes.add(pt);
+        if (t.dps_total) dps += t.dps_total;
+      }
+      return {
+        label,
+        stations: stations.length,
+        sizes: Object.entries(sizes)
+          .map(([size, count]) => ({ size: Number(size), count }))
+          .sort((a, b) => a.size - b.size),
+        weapons: Object.entries(weapons).map(([name, count]) => ({ name, count })),
+        payloadTypes: [...payloadTypes],
+        dps: dps ? Math.round(dps * 10) / 10 : null,
+      };
+    };
+    const turrets = [
+      turretCat(v.turrets?.manned, 'Bemannte Türme'),
+      turretCat(v.turrets?.remote, 'Ferngesteuerte Türme'),
+      turretCat(v.turrets?.pdc, 'Punktverteidigung (PDC)'),
+    ].filter(Boolean);
+
+    // equipped loadout from the port list: missile racks, countermeasures and
+    // the core components (each with item name + size class)
+    const portAgg = {};
+    for (const p of v.ports ?? []) {
+      const cat = p.category_label;
+      const name = p.equipped_item?.name;
+      if (!cat || !name) continue;
+      const size = p.equipped_item?.size ?? p.sizes?.max ?? null;
+      const k = `${cat}__${name}__${size}`;
+      portAgg[k] = portAgg[k] ?? { cat, name, size, count: 0 };
+      portAgg[k].count++;
+    }
+    const portsOf = (cat) =>
+      Object.values(portAgg)
+        .filter((g) => g.cat === cat)
+        .map(({ name, size, count }) => ({ name, size, count }));
+    const missileRacks = portsOf('Missile & Bomb Racks');
+    const components = {
+      powerPlants: portsOf('Power Plants'),
+      shields: portsOf('Shields'),
+      coolers: portsOf('Coolers'),
+      quantumDrives: portsOf('Quantum Drives'),
+      radars: portsOf('Radars'),
+    };
+    const cmLaunchers = Object.values(portAgg)
+      .filter((g) => g.cat === 'Counter Measures')
+      .reduce((n, g) => n + g.count, 0);
+
+    // ship image from the API (starcitizen.tools media). MediaWiki thumbs are
+    // width-addressable — swap the `NNNpx-` segment, capped at the original.
+    const img0 = v.images?.[0] ?? null;
+    const thumbAt = (img, w) => {
+      if (!img.thumbnail_url) return img.original_url ?? null;
+      const cap = img.original_width ? Math.min(w, img.original_width) : w;
+      return img.thumbnail_url.replace(/\/\d+px-/, `/${cap}px-`);
+    };
+    const image = img0
+      ? {
+          hero: thumbAt(img0, 1280),
+          thumb: thumbAt(img0, 320),
+          source: img0.source ?? null,
+        }
+      : null;
+
     vehicles.push({
       id: v.slug,
       name: v.name,
@@ -87,10 +184,13 @@ for (let n = 1; ; n++) {
       yaw: v.agility?.yaw ?? null,
       roll: v.agility?.roll ?? null,
       pilotDps: v.weaponry?.pilot_dps ?? null,
+      turretDps: v.weaponry?.turret_dps ?? null,
       fixedWeapons: Object.values(grouped),
-      turretsManned: v.turrets?.manned?.length ?? 0,
-      turretsRemote: v.turrets?.remote?.length ?? 0,
-      pdcCount: v.turrets?.pdc?.length ?? 0,
+      turrets,
+      missileCount: v.weaponry?.missiles?.count ?? null,
+      missileRacks,
+      cmLaunchers,
+      components,
       hullHp: v.health ?? null,
       shieldHp: v.shield_hp ?? null,
       qtSpeedMs: v.quantum?.quantum_speed ?? null,
@@ -107,6 +207,7 @@ for (let n = 1; ; n++) {
       /** patch-spine: patches in OUR archive that introduced/touched it */
       patches: spine.has(key) ? [...spine.get(key)].sort() : [],
       gameVersion: v.version ?? null,
+      image,
     });
   }
   console.log(`page ${n}/${meta.last_page}: ${vehicles.length}/${meta.total}`);
@@ -141,13 +242,33 @@ for (const v of vehicles) {
 const deduped = [...byName.values()];
 console.log(`deduped ${dropped} edition duplicates -> ${deduped.length} vehicles`);
 
+// drop entries the API leaves unclassified — promo/livery SKUs (Wikelo waves,
+// PYAM Exec, Executive Editions) plus a few game-file-only entities (modules,
+// NPC hulls). They carry no type/status/description and would render as blank
+// "—" rows. Self-maintaining: an entry gaining classification upstream is
+// re-admitted on the next sync.
+const classified = deduped.filter((v) => v.typeDe != null || v.statusDe != null);
+const unclassified = deduped.filter((v) => v.typeDe == null && v.statusDe == null);
+if (unclassified.length) {
+  console.log(
+    `dropped ${unclassified.length} unclassified entries (editions/liveries/modules):`
+  );
+  console.log('  ' + unclassified.map((v) => v.name).join(' | '));
+  for (const v of unclassified.filter((x) => x.patches.length))
+    console.warn(`  WARNING: dropped "${v.name}" had patch-spine joins: ${v.patches.join(', ')}`);
+}
+
 const snapshot = {
   fetchedAt: new Date().toISOString().slice(0, 10),
   source: 'Star Citizen Wiki API (api.star-citizen.wiki/api/v2/vehicles) — Community-Projekt, Daten aus den Spieldateien',
-  gameVersion: deduped.find((v) => v.gameVersion)?.gameVersion ?? null,
-  count: deduped.length,
-  vehicles: deduped.sort((a, b) => a.name.localeCompare(b.name, 'de')),
+  gameVersion: classified.find((v) => v.gameVersion)?.gameVersion ?? null,
+  count: classified.length,
+  vehicles: classified.sort((a, b) => a.name.localeCompare(b.name, 'de')),
 };
 await writeFile(OUT, JSON.stringify(snapshot, null, 2) + '\n', 'utf8');
-const joined = deduped.filter((v) => v.patches.length).length;
-console.log(`\nwrote src/data/vehicles.json: ${deduped.length} vehicles (${joined} joined to the patch spine)`);
+const joined = classified.filter((v) => v.patches.length).length;
+const withImage = classified.filter((v) => v.image).length;
+console.log(
+  `\nwrote src/data/vehicles.json: ${classified.length} vehicles ` +
+    `(${joined} joined to the patch spine, ${withImage} with an API image)`
+);

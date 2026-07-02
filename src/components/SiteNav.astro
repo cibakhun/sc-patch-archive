@@ -171,12 +171,30 @@ const current = Astro.url.pathname;
     content: '›';
     color: var(--muted, #8a99b8);
     opacity: 0.6;
+    flex: none;
   }
   .snav__crumbs a:hover {
     color: var(--accent, #2dd4ff);
   }
   .snav__crumbs [aria-current] {
     color: var(--text, #e8eefc);
+  }
+  /* long leaf crumbs (ship names) truncate instead of colliding with the
+     nav actions — the whole flex chain must be allowed to shrink */
+  .snav__crumbs {
+    min-width: 0;
+  }
+  .snav__crumbs li:last-child {
+    /* shrinkable, but never below a readable ellipsis stub */
+    min-width: 96px;
+    overflow: hidden;
+  }
+  .snav__crumbs li:last-child [aria-current] {
+    display: block;
+    max-width: min(320px, 100%);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .snav__right {
     display: flex;
@@ -345,13 +363,19 @@ const current = Astro.url.pathname;
     border-radius: 2px;
     white-space: nowrap;
   }
-  @media (max-width: 760px) {
-    .snav__mid {
-      display: none;
-    }
+  /* the nav carries more links since Phase 1 (Schiffe, Evolution) — shed
+     ballast in stages before anything can collide */
+  @media (max-width: 1150px) {
     .snav__pill {
       display: none;
     }
+  }
+  @media (max-width: 1000px) {
+    .snav__mid {
+      display: none;
+    }
+  }
+  @media (max-width: 760px) {
     .snav__panel {
       min-width: 270px;
     }
