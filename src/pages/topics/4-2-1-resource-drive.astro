@@ -92,27 +92,12 @@ import Attribution from '../../components/Attribution.astro';
     <cite>Resource Drive · Second Life</cite>
   </section>
 
-  <!-- SCROLLYTELLING: So unterstützt du deinen Konzern -->
-  <section style="padding-bottom:0">
-    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>So unterstützt du deinen Konzern</h2><span class="rule"></span></div></div>
-  </section>
-  <div class="scrolly">
-    <div class="scrolly__media" aria-hidden="true">
-      <div class="frame active" style="background-image:url('/assets/t-rd-2.jpg')"></div>
-      <div class="frame" style="background-image:url('/assets/t-rd-1.jpg')"></div>
-      <div class="frame" style="background-image:url('/assets/t-hh-1.jpg')"></div>
-      <div class="frame" style="background-image:url('/assets/t-rd-1.jpg')"></div>
-    </div>
-    <div class="scrolly__steps">
-      <div class="sstep"><div class="sn">01</div><h3>Seite wählen</h3><p>Schließe dich einem der vier Megakonzerne an. Jede SCU, die du für ihn lieferst, fließt in seine Gesamtsumme — und die zählt am Ende über alle Shards zusammen.</p></div>
-      <div class="sstep"><div class="sn">02</div><h3>Fracht liefern</h3><p>Hol Forschungsmaterial an den Mining-Basen in Stanton und Pyro ab und transportiere es im Hauling-Lauf zur Sammelstelle deines Konzerns.</p></div>
-      <div class="sstep"><div class="sn">03</div><h3>Verlorenes zurückholen</h3><p>Reclaim-Missionen schicken dich zu verlorener Fracht. Bring zurückgewonnenes Material in den Pool — jede geborgene SCU stärkt deine Seite.</p></div>
-      <div class="sstep"><div class="sn">04</div><h3>Konvois eskortieren</h3><p>Beschütze die Transporter deines Konzerns auf den Routen rund um die Mining-Basen. Ohne Eskorte kommt die Fracht nicht durch.</p></div>
-    </div>
-  </div>
-
-  <!-- VERSUS: Drei Rollen im Wettstreit (full-bleed dual + framing) -->
+  <!-- ROLLEN — Versus trägt den Loop allein. Bewusst KEIN Scrollytelling:
+       die vier alten Schritte duplizierten Corp-Strip und Versus 1:1. -->
   <section style="padding:0">
+    <div class="wrap" style="padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem) 0">
+      <div class="sec-head reveal"><span class="num">01</span><h2>So unterstützt du deinen Konzern</h2><span class="rule"></span></div>
+    </div>
     <div class="versus reveal">
       <div class="side a">
         <h3>⚙ Liefern &amp; Bergen</h3>
@@ -161,7 +146,7 @@ import Attribution from '../../components/Attribution.astro';
 
   <!-- BAND — the reward -->
   <section class="band band--center">
-    <div class="bbg" data-par="0.13" style="background-image:url('/assets/t-rd-2.jpg')" aria-hidden="true"></div>
+    <div class="bbg" data-par="0.13" style="background-image:url('/assets/cz-loot.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal" style="text-align:center;margin-inline:auto">
       <div class="kx" style="text-align:center">Tier-5-Belohnung</div>
       <div class="big outline" style="font-size:clamp(2rem,7vw,5rem)">STRATA HURSTON BLACK</div>
