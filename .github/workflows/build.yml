@@ -1,0 +1,63 @@
+# Build-Button — manuell am Patch-Day auslösen (Actions → Build → Run workflow).
+# Zieht frische Daten-Snapshots (Wiki-API-Fahrzeugkatalog, FleetYards-Specs),
+# committet sie zurück auf main, baut die Seite und prüft die Integrität.
+# Sync-Schritte sind non-fatal: fällt eine API aus, baut die Seite mit dem
+# letzten guten Snapshot weiter (Architektur-Grundsatz "last-good snapshot").
+# Der Deploy-Schritt folgt beim Live-Gang — Coolify (Hetzner) zieht dann
+# einfach den aktualisierten main.
+name: Build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-button
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Sync vehicle catalog (Star Citizen Wiki API)
+        run: npm run sync:vehicles
+        continue-on-error: true
+
+      - name: Sync ship specs (FleetYards)
+        run: npm run sync:ships
+        continue-on-error: true
+
+      - name: Commit refreshed snapshots
+        run: |
+          git config user.name "build-button"
+          git config user.email "actions@users.noreply.github.com"
+          if ! git diff --quiet -- src/data; then
+            git add src/data
+            git commit -m "data: refresh snapshots (build button)"
+            git push
+          else
+            echo "snapshots unchanged"
+          fi
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify integrity
+        run: node scripts/_verify.mjs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: dist
+          retention-days: 7
