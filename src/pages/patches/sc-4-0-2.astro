@@ -10,8 +10,8 @@ const entry = await getEntry('patches', '4-0-2');
 if (!entry) throw new Error('Patch-Daten 4-0-2 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.0.2 — Supply or Die | SC Patch-Archiv"} description={"Alpha 4.0.2 „Supply or Die"} themeColor="#1a1d20" ogType="article" ogImage="/assets/img-pyro.jpg">
-<PatchSeo patch={patch} image="/assets/img-pyro.jpg" />
+<Layout title={"Star Citizen Alpha 4.0.2 — Supply or Die | SC Patch-Archiv"} description={"Alpha 4.0.2 „Supply or Die"} themeColor="#1a1d20" ogType="article" ogImage="/assets/t-pyro-3.jpg">
+<PatchSeo patch={patch} image="/assets/t-pyro-3.jpg" />
 <style is:inline>
 
 /* 4.0.2 "Supply or Die" — Gunmetal/Rot · media-first / low-text / MAXIMAL */
@@ -39,7 +39,7 @@ body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;b
 
 /* HERO */
 .hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;padding:7rem clamp(1.25rem,5vw,4.5rem) 4rem;overflow:hidden}
-.hero__photo{position:absolute;inset:0;z-index:0;background:url('/assets/img-pyro.jpg') center/cover;animation:kb 30s ease-in-out infinite alternate}
+.hero__photo{position:absolute;inset:0;z-index:0;background:url('/assets/t-pyro-3.jpg') center/cover;animation:kb 30s ease-in-out infinite alternate}
 @keyframes kb{from{transform:scale(1.06)}to{transform:scale(1.18) translate(-1.5%,-1.5%)}}
 .hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.55) 55%,var(--bg)),radial-gradient(120% 90% at 80% 20%,transparent,var(--bg) 85%)}
 #stars{position:absolute;inset:0;z-index:1;opacity:.55}
