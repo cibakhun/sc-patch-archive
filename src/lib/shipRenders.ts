@@ -49,10 +49,12 @@ export function pickHero(d: VehicleData): ShipImage | null {
   return null;
 }
 
-/** small thumb for the browser table: local render > API thumb (320px) */
+/** small thumb for the browser table: API thumb first — the 320px webp is
+ *  ~15KB vs. hero-size local renders (2.8MB across 20 ships); local render
+ *  only when the API has no image */
 export function pickThumb(d: VehicleData): ShipImage | null {
+  if (d.image?.thumb) return { src: d.image.thumb, api: true };
   const local = RENDERS[stripName(d.name)];
   if (local) return { src: `/assets/${local}`, api: false };
-  if (d.image?.thumb) return { src: d.image.thumb, api: true };
   return null;
 }

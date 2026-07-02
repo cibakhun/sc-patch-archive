@@ -67,6 +67,9 @@ const ogImageAbs = ogImage ? (ogImage.startsWith('http') ? ogImage : base + ogIm
        Fließtext 18px, Datentabellen ~17px, Micro-Caps-Labels ≥14px effektiv.
        Kleine Condensed-Caps rendern damit auch deutlich weicher (ClearType). */
     html { font-size: 112.5%; }
+    /* Parallax-/Deko-Bleeds (data-par, Ken-Burns) dürfen das Dokument nie
+       seitlich aufweiten — clip statt hidden: erzeugt keinen Scroll-Container. */
+    html, body { overflow-x: clip; }
   </style>
   <slot name="head" />
 </head>

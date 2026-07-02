@@ -41,6 +41,7 @@ const patches = (await getCollection('patches')).sort((a, b) =>
 const eras: string[] = [];
 for (const p of patches) if (!eras.includes(p.data.era)) eras.push(p.data.era);
 const withTopics = patches.filter((p) => p.data.topics.length > 0);
+const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
 const current = Astro.url.pathname;
 ---
 <nav class="snav" id="topbar" aria-label="Hauptnavigation">
@@ -117,6 +118,21 @@ const current = Astro.url.pathname;
       </div>
     </details>
     {pill && <span class="snav__pill">{pill}</span>}
+    <details class="snav__dd snav__menu">
+      <summary aria-label="Menü öffnen">
+        <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <span>Menü</span>
+      </summary>
+      <div class="snav__panel">
+        <div class="snav__group">
+          <div class="snav__ghead">Navigation</div>
+          <a href="/schiffe.html"><span>Schiffe &amp; Fahrzeuge — Datenbank</span></a>
+          <a href="/evolution.html"><span>Evolution — Systeme × Patches</span></a>
+          <a href="/index.html#archiv"><span>Alle Patches ({patches.length})</span></a>
+          <a href="/index.html#themen"><span>Alle Themen ({topicCount})</span></a>
+        </div>
+      </div>
+    </details>
   </div>
 </nav>
 {crumbLd && <script type="application/ld+json" set:html={JSON.stringify(crumbLd)} />}
@@ -409,6 +425,39 @@ const current = Astro.url.pathname;
     }
     .snav__search {
       padding: 0.4rem 0.5rem;
+    }
+  }
+  /* mobile burger — replaces links + dropdowns below 760px (their content
+     stays reachable via index/search; the burger carries the destinations) */
+  .snav__menu {
+    display: none;
+  }
+  .snav__menu summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  @media (max-width: 760px) {
+    .snav__link,
+    .snav__right details.snav__dd:not(.snav__menu) {
+      display: none;
+    }
+    .snav__menu {
+      display: block;
+    }
+    .snav__menu .snav__panel {
+      position: fixed;
+      left: 0.75rem;
+      right: 0.75rem;
+      top: 3.6rem;
+      min-width: 0;
+    }
+  }
+  /* very narrow: brand + actions only — the crumb would collide with the
+     search/menu buttons, and the page hero already states the location */
+  @media (max-width: 640px) {
+    .snav__crumbs {
+      display: none;
     }
   }
 </style>
