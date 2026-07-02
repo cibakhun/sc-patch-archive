@@ -1,0 +1,30 @@
+---
+// Article JSON-LD for patch pages, derived from the patch record (ported
+// concept from the website-improvements branch, now data-driven). Rendered
+// in the body — valid for structured-data crawlers.
+import type { CollectionEntry } from 'astro:content';
+import { SITE } from '../../consts';
+
+interface Props {
+  patch: CollectionEntry<'patches'>['data'];
+  /** site-relative social image, e.g. "/assets/trailer-4-4-0.jpg" */
+  image?: string;
+}
+const { patch, image } = Astro.props;
+
+const base = SITE.url.replace(/\/$/, '');
+const url = base + Astro.url.pathname;
+const ld = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: `Star Citizen Alpha ${patch.version} — ${patch.codename}`,
+  description: patch.tagline,
+  ...(image ? { image: base + image } : {}),
+  url,
+  inLanguage: 'de',
+  datePublished: patch.date,
+  isPartOf: { '@type': 'WebSite', name: SITE.name, url: `${base}/` },
+  publisher: { '@type': 'Organization', name: SITE.name },
+};
+---
+<script type="application/ld+json" set:html={JSON.stringify(ld)} />

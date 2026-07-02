@@ -8,7 +8,6 @@
     "build": "node scripts/_sync-assets.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "port": "node scripts/_port.mjs",
     "verify": "node scripts/_verify.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",
     "sync:vehicles": "node scripts/sync-vehicles.mjs"

@@ -1,0 +1,37 @@
+---
+// 404 — ported from the website-improvements branch, now on the shared
+// Layout (noindex; hosts serve dist/404.html for unknown routes).
+import Layout from '../layouts/Layout.astro';
+---
+<Layout
+  title="404 — Verloren im Verse | SC Patch-Archiv"
+  description="Diese Seite existiert nicht im SC Patch-Archiv."
+  themeColor="#05070d"
+  noindex={true}
+>
+<style is:inline>
+:root{--bg:#05070d;--surface:#0f1524;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#a7b6cf;--line:rgba(110,168,255,.16);
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;text-align:center;
+  background:radial-gradient(120% 90% at 50% 30%,rgba(45,212,255,.10),transparent 60%),var(--bg);color:var(--text);
+  font-family:var(--font-body);padding:2rem 1.5rem;overflow:hidden}
+.code{font-family:var(--font-display);font-weight:900;line-height:.9;font-size:clamp(5rem,26vw,16rem);
+  background:linear-gradient(180deg,#fff,var(--accent-2) 70%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 36px rgba(45,212,255,.4))}
+.kicker{font-family:var(--font-ui);font-weight:700;letter-spacing:.32em;text-transform:uppercase;font-size:.82rem;color:var(--accent)}
+h1{font-family:var(--font-display);font-weight:700;font-size:clamp(1.3rem,4vw,2rem)}
+p{max-width:52ch;color:var(--muted);font-size:clamp(1rem,1.6vw,1.15rem)}
+.home{margin-top:.6rem;display:inline-flex;align-items:center;gap:.55rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;font-size:.85rem;color:#05070d;background:var(--accent);padding:.8rem 1.5rem;border-radius:4px;text-decoration:none;
+  box-shadow:0 0 30px rgba(45,212,255,.35);transition:transform .2s,box-shadow .2s}
+.home:hover{transform:translateY(-2px);box-shadow:0 0 46px rgba(45,212,255,.6)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+</style>
+
+<div class="kicker">Fehler 404 · Jump Point fehlgeschlagen</div>
+<div class="code">404</div>
+<h1>Verloren im Verse</h1>
+<p>Diese Koordinate existiert im Archiv nicht — vielleicht ein alter Link, ein Tippfehler oder ein Sprung ins Leere.</p>
+<a class="home" href="/index.html">⌂ Zurück zum Patch-Archiv</a>
+</Layout>

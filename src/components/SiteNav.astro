@@ -6,6 +6,7 @@
 // no motion beyond the existing scrolled-state.
 import { getCollection } from 'astro:content';
 import SearchOverlay from './SearchOverlay.astro';
+import { SITE } from '../consts';
 
 interface Crumb {
   label: string;
@@ -16,6 +17,22 @@ interface Props {
   pill?: string;
 }
 const { crumbs = [], pill } = Astro.props;
+
+// BreadcrumbList JSON-LD — the nav already knows the trail (last item = page)
+const siteBase = SITE.url.replace(/\/$/, '');
+const crumbLd =
+  crumbs.length > 1
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: crumbs.map((c, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: c.label,
+          item: siteBase + (c.href ?? Astro.url.pathname),
+        })),
+      }
+    : null;
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
@@ -102,6 +119,7 @@ const current = Astro.url.pathname;
     {pill && <span class="snav__pill">{pill}</span>}
   </div>
 </nav>
+{crumbLd && <script type="application/ld+json" set:html={JSON.stringify(crumbLd)} />}
 <SearchOverlay />
 
 <style>

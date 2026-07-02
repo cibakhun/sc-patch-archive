@@ -3,13 +3,15 @@ import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
+import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
 
 const entry = await getEntry('patches', '4-8-0');
 if (!entry) throw new Error('Patch-Daten 4-8-0 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.8.0 — Tactical Strike | SC Patch-Archiv"} description={"Alpha 4.8.0: G-Force, Drake Ironclad und die Rückkehr von XenoThreat."} themeColor="#16181b">
+<Layout title={"Star Citizen Alpha 4.8.0 — Tactical Strike | SC Patch-Archiv"} description={"Alpha 4.8.0: G-Force, Drake Ironclad und die Rückkehr von XenoThreat."} themeColor="#16181b" ogType="article" ogImage="/assets/trailer-4-8-0.jpg">
+<PatchSeo patch={patch} image="/assets/trailer-4-8-0.jpg" />
 <style is:inline>
 
 /* 4.8.0 "Tactical Strike" — Drake/militärisch, Gunmetal + Drake-Orange · media-first / low-text / MAXIMAL */
@@ -34,12 +36,6 @@ a{color:inherit;text-decoration:none}
 body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 42%,transparent 54%,rgba(0,0,0,.62) 100%),repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3px);opacity:.5}
 .cursorglow{position:fixed;inset:0;z-index:8800;pointer-events:none;background:radial-gradient(440px circle at var(--mx,50%) var(--my,28%),rgba(232,101,30,.13),transparent 60%)}
 
-/* Topbar */
-.topbar{position:fixed;top:0;left:0;right:0;z-index:9100;display:flex;align-items:center;justify-content:space-between;padding:.85rem clamp(1rem,4vw,2.5rem);background:linear-gradient(180deg,rgba(0,0,0,.9),transparent);backdrop-filter:blur(6px);transition:background .3s}
-.topbar.scrolled{background:rgba(0,0,0,.95);border-bottom:1px solid var(--line)}
-.back{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--font-ui);font-weight:600;letter-spacing:.05em;text-transform:uppercase;font-size:.85rem;color:var(--muted);transition:color .2s}.back:hover{color:var(--accent)}
-.back .arrow{transition:transform .2s}.back:hover .arrow{transform:translateX(-4px)}
-.vpill{font-family:var(--font-display);font-weight:700;font-size:.78rem;letter-spacing:.18em;color:var(--accent);border:1px solid var(--line);padding:.35rem .8rem;border-radius:2px;background:rgba(232,101,30,.06)}
 
 /* HERO */
 .hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;padding:7rem clamp(1.25rem,5vw,4.5rem) 4rem;overflow:hidden}
@@ -321,4 +317,6 @@ function tick(){x.clearRect(0,0,w,h);for(const s of st){s.a+=s.s;const o=.25+Mat
 size();addEventListener('resize',size);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)tick();})();
 
 </script>
+<link rel="stylesheet" href="/assets/a11y.css" />
+<script is:inline src="/assets/a11y.js"></script>
 </Layout>

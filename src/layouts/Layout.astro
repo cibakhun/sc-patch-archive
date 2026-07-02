@@ -13,6 +13,12 @@ interface Props {
   themeColor?: string;
   /** inject the shared Attribution footer (pages with a bespoke footer pass false) */
   footer?: boolean;
+  /** social preview image, site-relative (e.g. "/assets/trailer-4-4-0.jpg") */
+  ogImage?: string;
+  /** og:type — patch/topic pages pass "article" */
+  ogType?: 'website' | 'article';
+  /** keep crawlers off utility pages (404) */
+  noindex?: boolean;
 }
 
 const {
@@ -20,9 +26,14 @@ const {
   description = SITE.defaultDescription,
   themeColor = '#05070d',
   footer = false,
+  ogImage,
+  ogType = 'website',
+  noindex = false,
 } = Astro.props;
 
-const canonical = SITE.url.replace(/\/$/, '') + Astro.url.pathname;
+const base = SITE.url.replace(/\/$/, '');
+const canonical = base + Astro.url.pathname;
+const ogImageAbs = ogImage ? (ogImage.startsWith('http') ? ogImage : base + ogImage) : null;
 ---
 <!doctype html>
 <html lang="de">
@@ -32,14 +43,18 @@ const canonical = SITE.url.replace(/\/$/, '') + Astro.url.pathname;
   <title>{title}</title>
   <meta name="description" content={description} />
   <meta name="theme-color" content={themeColor} />
+  {noindex && <meta name="robots" content="noindex" />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="canonical" href={canonical} />
-  <meta property="og:type" content="website" />
+  <meta property="og:type" content={ogType} />
   <meta property="og:site_name" content={SITE.name} />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
   <meta property="og:locale" content="de_DE" />
+  {ogImageAbs && <meta property="og:image" content={ogImageAbs} />}
   <meta name="twitter:card" content="summary_large_image" />
+  {ogImageAbs && <meta name="twitter:image" content={ogImageAbs} />}
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link

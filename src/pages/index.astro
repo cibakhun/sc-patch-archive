@@ -2,10 +2,21 @@
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
+import { SITE } from '../consts';
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
 );
+
+const websiteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.name,
+  url: SITE.url.replace(/\/$/, '') + '/',
+  inLanguage: 'de',
+  description: SITE.defaultDescription,
+  publisher: { '@type': 'Organization', name: SITE.name },
+};
 const latest = patches[patches.length - 1];
 const patchCount = patches.length;
 const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
@@ -48,6 +59,7 @@ for (const t of allTopics) {
 }
 ---
 <Layout title={"Star Citizen Patch-Archiv · 4.0 → 4.8.2"} description={"Star Citizen Patches von Alpha 4.0.0 bis 4.8.2."} themeColor="#05070d" footer={true}>
+<script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
 <style is:inline>
 
 :root{
