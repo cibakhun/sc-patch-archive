@@ -150,7 +150,7 @@ a{color:inherit;text-decoration:none}
               <td>{d.typeDe ?? '—'}</td>
               <td>{d.sizeDe ?? '—'}</td>
               <td class="num">{crewFmt(d)}</td>
-              <td class="num">{d.cargoSCU ? `${d.cargoSCU} SCU` : '—'}</td>
+              <td class="num">{d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—'}</td>
               <td class="num">{d.msrpUSD != null ? `$${d.msrpUSD}` : '—'}</td>
               <td><span class={`sdb__status${d.statusEn === 'flight-ready' ? ' fr' : ''}`}>{d.statusDe ?? '—'}</span></td>
               <td>

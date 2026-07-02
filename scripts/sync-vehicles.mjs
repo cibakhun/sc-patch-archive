@@ -53,6 +53,13 @@ for (let n = 1; ; n++) {
   for (const v of r.data) {
     const fociRaw = Array.isArray(v.foci) ? v.foci : v.foci ? [v.foci] : [];
     const key = strip(v.name);
+    // fixed pilot weapons, grouped by name with counts
+    const fixedList = v.weaponry?.fixed_weapons?.weapons ?? [];
+    const grouped = {};
+    for (const w of fixedList) {
+      grouped[w.name] = grouped[w.name] ?? { name: w.name, count: 0, dps: w.dps ?? null };
+      grouped[w.name].count++;
+    }
     vehicles.push({
       id: v.slug,
       name: v.name,
@@ -68,12 +75,32 @@ for (let n = 1; ; n++) {
       crewMin: v.crew?.min ?? null,
       crewMax: v.crew?.max ?? null,
       cargoSCU: v.cargo_capacity ?? null,
+      oreSCU: v.ore_capacity ?? null,
       msrpUSD: v.msrp ?? null,
       lengthM: v.dimension?.length ?? null,
       widthM: v.dimension?.width ?? null,
       heightM: v.dimension?.height ?? null,
       scmSpeed: v.speed?.scm ?? null,
       maxSpeed: v.speed?.max ?? null,
+      boostForward: v.speed?.boost_forward ?? null,
+      pitch: v.agility?.pitch ?? null,
+      yaw: v.agility?.yaw ?? null,
+      roll: v.agility?.roll ?? null,
+      pilotDps: v.weaponry?.pilot_dps ?? null,
+      fixedWeapons: Object.values(grouped),
+      turretsManned: v.turrets?.manned?.length ?? 0,
+      turretsRemote: v.turrets?.remote?.length ?? 0,
+      pdcCount: v.turrets?.pdc?.length ?? 0,
+      hullHp: v.health ?? null,
+      shieldHp: v.shield_hp ?? null,
+      qtSpeedMs: v.quantum?.quantum_speed ?? null,
+      qtRangeM: v.quantum?.quantum_range ?? null,
+      qtSpoolS: v.quantum?.quantum_spool_time ?? null,
+      qtFuel: v.quantum?.quantum_fuel_capacity ?? null,
+      h2Fuel: v.fuel?.capacity ?? null,
+      insClaimMin: v.insurance?.claim_time ?? null,
+      insExpediteMin: v.insurance?.expedite_time ?? null,
+      insExpediteCost: v.insurance?.expedite_cost ?? null,
       isSpaceship: v.is_spaceship ?? null,
       isGravlev: v.is_gravlev ?? null,
       pledgeUrl: v.pledge_url ?? null,
@@ -92,13 +119,35 @@ if (vehicles.length < 100) {
   process.exit(1);
 }
 
+// dedupe show/collector/paint editions that share the exact same name
+// (F8C Lightning + -plat, Carrack + -bis2950, Hammerhead + -gs, Idris-P ×3 …)
+// keep the base variant: unsuffixed slug wins, then the shorter slug.
+const EDITION = /-(bis\d+|plat|exec(-[a-z]+)?|collector(-[a-z]+)?|gs|tsg|fw-\d+)$/;
+const byName = new Map();
+let dropped = 0;
+for (const v of vehicles) {
+  const cur = byName.get(v.name);
+  if (!cur) {
+    byName.set(v.name, v);
+    continue;
+  }
+  dropped++;
+  const curEd = EDITION.test(cur.id) ? 1 : 0;
+  const vEd = EDITION.test(v.id) ? 1 : 0;
+  const pick =
+    curEd !== vEd ? (curEd < vEd ? cur : v) : cur.id.length <= v.id.length ? cur : v;
+  byName.set(v.name, pick);
+}
+const deduped = [...byName.values()];
+console.log(`deduped ${dropped} edition duplicates -> ${deduped.length} vehicles`);
+
 const snapshot = {
   fetchedAt: new Date().toISOString().slice(0, 10),
   source: 'Star Citizen Wiki API (api.star-citizen.wiki/api/v2/vehicles) — Community-Projekt, Daten aus den Spieldateien',
-  gameVersion: vehicles.find((v) => v.gameVersion)?.gameVersion ?? null,
-  count: vehicles.length,
-  vehicles: vehicles.sort((a, b) => a.name.localeCompare(b.name, 'de')),
+  gameVersion: deduped.find((v) => v.gameVersion)?.gameVersion ?? null,
+  count: deduped.length,
+  vehicles: deduped.sort((a, b) => a.name.localeCompare(b.name, 'de')),
 };
 await writeFile(OUT, JSON.stringify(snapshot, null, 2) + '\n', 'utf8');
-const joined = vehicles.filter((v) => v.patches.length).length;
-console.log(`\nwrote src/data/vehicles.json: ${vehicles.length} vehicles (${joined} joined to the patch spine)`);
+const joined = deduped.filter((v) => v.patches.length).length;
+console.log(`\nwrote src/data/vehicles.json: ${deduped.length} vehicles (${joined} joined to the patch spine)`);
