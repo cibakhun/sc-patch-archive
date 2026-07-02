@@ -1,0 +1,408 @@
+{
+  "fetchedAt": "2026-07-02",
+  "source": "FleetYards.net (api.fleetyards.net/v1) — fan-made, based on the official Ship Matrix",
+  "misses": [
+    "Drake Command Module"
+  ],
+  "ships": [
+    {
+      "id": "rsi-apollo-triage",
+      "name": "Apollo Triage",
+      "matchedFrom": "RSI Apollo",
+      "manufacturer": "Roberts Space Industries",
+      "classification": "Support",
+      "focus": "Medical",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 32,
+      "crewMin": 1,
+      "crewMax": 2,
+      "lengthM": 65,
+      "sizeLabel": "Large",
+      "priceUSD": 260,
+      "fleetyardsUrl": "https://fleetyards.net/ships/rsi-apollo-triage",
+      "patches": [
+        "4.3.1"
+      ]
+    },
+    {
+      "id": "argo-atls",
+      "name": "ATLS",
+      "matchedFrom": "ARGO ATLS IKTI",
+      "manufacturer": "Argo Astronautics",
+      "classification": "Ground",
+      "focus": "Industrial",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 0,
+      "crewMin": 1,
+      "crewMax": 1,
+      "lengthM": 1.8,
+      "sizeLabel": "Vehicle",
+      "priceUSD": 40,
+      "fleetyardsUrl": "https://fleetyards.net/ships/argo-atls",
+      "patches": [
+        "4.2.0"
+      ]
+    },
+    {
+      "id": "rsi-aurora-mk-ii",
+      "name": "Aurora Mk II",
+      "matchedFrom": "Aurora Mk II",
+      "manufacturer": "Roberts Space Industries",
+      "classification": "Transport",
+      "focus": "Light Fighter",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 2,
+      "crewMin": 1,
+      "crewMax": 1,
+      "lengthM": 27.5,
+      "sizeLabel": "Small",
+      "priceUSD": 45,
+      "fleetyardsUrl": "https://fleetyards.net/ships/rsi-aurora-mk-ii",
+      "patches": [
+        "4.7.0"
+      ]
+    },
+    {
+      "id": "anvl-f7c-m-super-hornet-mk-ii",
+      "name": "F7C-M Super Hornet Mk II",
+      "matchedFrom": "F7C-M Super Hornet Mk II",
+      "manufacturer": "Anvil Aerospace",
+      "classification": "Combat",
+      "focus": "Medium Fighter",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 0,
+      "crewMin": 1,
+      "crewMax": 2,
+      "lengthM": 24,
+      "sizeLabel": "Small",
+      "priceUSD": 240,
+      "fleetyardsUrl": "https://fleetyards.net/ships/anvl-f7c-m-super-hornet-mk-ii",
+      "patches": [
+        "4.0.1"
+      ]
+    },
+    {
+      "id": "mrai-guardian",
+      "name": "Guardian",
+      "matchedFrom": "Mirai Guardian",
+      "manufacturer": "Mirai",
+      "classification": "Combat",
+      "focus": "Heavy Fighter",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 0,
+      "crewMin": 1,
+      "crewMax": 1,
+      "lengthM": 25,
+      "sizeLabel": "Small",
+      "priceUSD": 250,
+      "fleetyardsUrl": "https://fleetyards.net/ships/mrai-guardian",
+      "patches": [
+        "4.0.0"
+      ]
+    },
+    {
+      "id": "aegs-hammerhead",
+      "name": "Hammerhead",
+      "matchedFrom": "Aegis Hammerhead",
+      "manufacturer": "Aegis Dynamics",
+      "classification": "Combat",
+      "focus": "Heavy Gunship",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 40,
+      "crewMin": 3,
+      "crewMax": 9,
+      "lengthM": 115,
+      "sizeLabel": "Large",
+      "priceUSD": 725,
+      "fleetyardsUrl": "https://fleetyards.net/ships/aegs-hammerhead",
+      "patches": [
+        "4.8.0"
+      ]
+    },
+    {
+      "id": "rsi-hermes",
+      "name": "Hermes",
+      "matchedFrom": "RSI Hermes",
+      "manufacturer": "Roberts Space Industries",
+      "classification": "Transport",
+      "focus": "Medium Freighter",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 288,
+      "crewMin": 1,
+      "crewMax": 2,
+      "lengthM": 65,
+      "sizeLabel": "Medium",
+      "priceUSD": 220,
+      "fleetyardsUrl": "https://fleetyards.net/ships/rsi-hermes",
+      "patches": [
+        "4.6.0"
+      ]
+    },
+    {
+      "id": "aegs-idris-m",
+      "name": "Idris-M",
+      "matchedFrom": "Aegis Idris",
+      "manufacturer": "Aegis Dynamics",
+      "classification": "Combat",
+      "focus": "Frigate",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 1326,
+      "crewMin": 8,
+      "crewMax": 28,
+      "lengthM": 240,
+      "sizeLabel": "Capital",
+      "priceUSD": 1000,
+      "fleetyardsUrl": "https://fleetyards.net/ships/aegs-idris-m",
+      "patches": [
+        "4.1.0"
+      ]
+    },
+    {
+      "id": "drak-ironclad",
+      "name": "Ironclad",
+      "matchedFrom": "Drake Ironclad",
+      "manufacturer": "Drake Interplanetary",
+      "classification": "Transport",
+      "focus": "Heavy Freight",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 2200,
+      "crewMin": 1,
+      "crewMax": 7,
+      "lengthM": 120,
+      "sizeLabel": "Large",
+      "priceUSD": 600,
+      "fleetyardsUrl": "https://fleetyards.net/ships/drak-ironclad",
+      "patches": [
+        "4.8.0"
+      ]
+    },
+    {
+      "id": "drak-ironclad-assault",
+      "name": "Ironclad Assault",
+      "matchedFrom": "Drake Ironclad Assault",
+      "manufacturer": "Drake Interplanetary",
+      "classification": "Combat",
+      "focus": "Heavy Dropship",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 1440,
+      "crewMin": 1,
+      "crewMax": 9,
+      "lengthM": 120,
+      "sizeLabel": "Large",
+      "priceUSD": 650,
+      "fleetyardsUrl": "https://fleetyards.net/ships/drak-ironclad-assault",
+      "patches": [
+        "4.8.0"
+      ]
+    },
+    {
+      "id": "krig-l-21-wolf",
+      "name": "L-21 Wolf",
+      "matchedFrom": "Kruger L-21 Wolf",
+      "manufacturer": "Kruger Intergalactic",
+      "classification": "Combat",
+      "focus": "Light Fighter",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 0,
+      "crewMin": 1,
+      "crewMax": 1,
+      "lengthM": 21.5,
+      "sizeLabel": "Small",
+      "priceUSD": 100,
+      "fleetyardsUrl": "https://fleetyards.net/ships/krig-l-21-wolf",
+      "patches": [
+        "4.3.0"
+      ]
+    },
+    {
+      "id": "rsi-meteor",
+      "name": "Meteor",
+      "matchedFrom": "RSI Meteor",
+      "manufacturer": "Roberts Space Industries",
+      "classification": "Combat",
+      "focus": "Medium Fighter",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 0,
+      "crewMin": 1,
+      "crewMax": 1,
+      "lengthM": 30,
+      "sizeLabel": "Small",
+      "priceUSD": 260,
+      "fleetyardsUrl": "https://fleetyards.net/ships/rsi-meteor",
+      "patches": [
+        "4.2.1"
+      ]
+    },
+    {
+      "id": "argo-moth",
+      "name": "MOTH",
+      "matchedFrom": "Argo Moth",
+      "manufacturer": "Argo Astronautics",
+      "classification": "Industrial",
+      "focus": "Medium Salvage",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 32,
+      "crewMin": 1,
+      "crewMax": 4,
+      "lengthM": 45,
+      "sizeLabel": "Medium",
+      "priceUSD": 315,
+      "fleetyardsUrl": "https://fleetyards.net/ships/argo-moth",
+      "patches": [
+        "4.6.0"
+      ]
+    },
+    {
+      "id": "anvl-paladin",
+      "name": "Paladin",
+      "matchedFrom": "Anvil Paladin",
+      "manufacturer": "Anvil Aerospace",
+      "classification": "Combat",
+      "focus": "Gunship",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 4,
+      "crewMin": 1,
+      "crewMax": 4,
+      "lengthM": 53,
+      "sizeLabel": "Medium",
+      "priceUSD": 350,
+      "fleetyardsUrl": "https://fleetyards.net/ships/anvl-paladin",
+      "patches": [
+        "4.3.2"
+      ]
+    },
+    {
+      "id": "rsi-perseus",
+      "name": "Perseus",
+      "matchedFrom": "RSI Perseus",
+      "manufacturer": "Roberts Space Industries",
+      "classification": "Combat",
+      "focus": "Heavy Gunship",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 96,
+      "crewMin": 1,
+      "crewMax": 7,
+      "lengthM": 100.5,
+      "sizeLabel": "Large",
+      "priceUSD": 800,
+      "fleetyardsUrl": "https://fleetyards.net/ships/rsi-perseus",
+      "patches": [
+        "4.4.0"
+      ]
+    },
+    {
+      "id": "rsi-polaris",
+      "name": "Polaris",
+      "matchedFrom": "RSI Polaris",
+      "manufacturer": "Roberts Space Industries",
+      "classification": "Combat",
+      "focus": "Corvette",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 576,
+      "crewMin": 6,
+      "crewMax": 12,
+      "lengthM": 166,
+      "sizeLabel": "Capital",
+      "priceUSD": 975,
+      "fleetyardsUrl": "https://fleetyards.net/ships/rsi-polaris",
+      "patches": [
+        "4.0.0"
+      ]
+    },
+    {
+      "id": "espr-prowler-utility",
+      "name": "Prowler Utility",
+      "matchedFrom": "Esperia Prowler Utility",
+      "manufacturer": "Esperia",
+      "classification": "Transport",
+      "focus": "Cargo",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 32,
+      "crewMin": 1,
+      "crewMax": 2,
+      "lengthM": 34,
+      "sizeLabel": "Medium",
+      "priceUSD": 300,
+      "fleetyardsUrl": "https://fleetyards.net/ships/espr-prowler-utility",
+      "patches": [
+        "4.2.0"
+      ]
+    },
+    {
+      "id": "gama-railen",
+      "name": "Railen",
+      "matchedFrom": "Gatac Railen",
+      "manufacturer": "Gatac Manufacture",
+      "classification": "Transport",
+      "focus": "Medium Freight",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 640,
+      "crewMin": 1,
+      "crewMax": 4,
+      "lengthM": 65,
+      "sizeLabel": "Medium",
+      "priceUSD": 400,
+      "fleetyardsUrl": "https://fleetyards.net/ships/gama-railen",
+      "patches": [
+        "4.8.2"
+      ]
+    },
+    {
+      "id": "rsi-salvation",
+      "name": "Salvation",
+      "matchedFrom": "RSI Salvation",
+      "manufacturer": "Roberts Space Industries",
+      "classification": "Industrial",
+      "focus": "Light Salvage",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 6,
+      "crewMin": 1,
+      "crewMax": 1,
+      "lengthM": 14.5,
+      "sizeLabel": "Small",
+      "priceUSD": 60,
+      "fleetyardsUrl": "https://fleetyards.net/ships/rsi-salvation",
+      "patches": [
+        "4.4.0"
+      ]
+    },
+    {
+      "id": "vncl-scythe",
+      "name": "Scythe",
+      "matchedFrom": "Vanduul Scythe",
+      "manufacturer": "Vanduul",
+      "classification": "Combat",
+      "focus": "Medium Fighter",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 0,
+      "crewMin": 1,
+      "crewMax": 1,
+      "lengthM": 33,
+      "sizeLabel": "Small",
+      "priceUSD": 300,
+      "fleetyardsUrl": "https://fleetyards.net/ships/vncl-scythe",
+      "patches": [
+        "4.4.0"
+      ]
+    },
+    {
+      "id": "gama-tyilui",
+      "name": "Tyilui",
+      "matchedFrom": "Gatac Tyilui",
+      "manufacturer": "Gatac Manufacture",
+      "classification": "Transport",
+      "focus": "Snub Carrier",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 96,
+      "crewMin": 1,
+      "crewMax": 4,
+      "lengthM": 69,
+      "sizeLabel": "Large",
+      "priceUSD": 425,
+      "fleetyardsUrl": "https://fleetyards.net/ships/gama-tyilui",
+      "patches": [
+        "4.8.2"
+      ]
+    }
+  ]
+}

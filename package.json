@@ -9,7 +9,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "port": "node scripts/_port.mjs",
-    "verify": "node scripts/_verify.mjs"
+    "verify": "node scripts/_verify.mjs",
+    "sync:ships": "node scripts/sync-ships.mjs"
   },
   "dependencies": {
     "astro": "^5.0.0"

@@ -5,6 +5,8 @@
 // nothing else screams); tables use the readout style with tabular numerals.
 // No motion beyond ≤150ms color/border hovers.
 import type { CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
+import shipsSnapshot from '../../data/ships.json';
 
 interface Props {
   patch: CollectionEntry<'patches'>['data'];
@@ -15,6 +17,22 @@ const hasUnverified =
   patch.features.some((f) => f.unverified || f.facts?.some((x) => x.unverified)) ||
   patch.ships.some((s) => s.unverified) ||
   patch.keyFacts.some((x) => x.unverified);
+
+// FleetYards specs (validated snapshot; join key = the patch-data ship name)
+const fy = await getCollection('ships');
+const specs = new Map(fy.map((s) => [s.data.matchedFrom.toLowerCase(), s.data]));
+const spec = (name: string) => specs.get(name.toLowerCase().replace(/\s+/g, ' ').trim());
+const crewFmt = (s?: (typeof fy)[number]['data']) =>
+  s && (s.crewMin != null || s.crewMax != null)
+    ? s.crewMin != null && s.crewMax != null && s.crewMax !== s.crewMin
+      ? `${s.crewMin}–${s.crewMax}`
+      : `${s.crewMin ?? s.crewMax}`
+    : '—';
+const scuFmt = (s?: (typeof fy)[number]['data']) =>
+  s?.cargoSCU != null ? `${Number.isInteger(s.cargoSCU) ? s.cargoSCU : s.cargoSCU.toFixed(1)} SCU` : '—';
+const priceFmt = (s?: (typeof fy)[number]['data']) =>
+  s?.priceUSD != null ? `$${s.priceUSD}` : '—';
+const anySpecs = patch.ships.some((s) => spec(s.name));
 ---
 <section class="do" id="dossier" aria-label={`Dossier Alpha ${patch.version}`}>
   <div class="do__in">
@@ -55,21 +73,42 @@ const hasUnverified =
     {patch.ships.length > 0 && (
       <>
         <h3 class="do__sub">Schiffe</h3>
-        <table class="do__table">
-          <thead>
-            <tr><th>Schiff</th><th>Hersteller</th><th>Rolle</th><th>Status</th></tr>
-          </thead>
-          <tbody>
-            {patch.ships.map((s) => (
-              <tr>
-                <td>{s.name}{s.unverified && <abbr class="do__unv" title="unbestätigt">*</abbr>}</td>
-                <td>{s.manufacturer}</td>
-                <td>{s.role}</td>
-                <td>{s.status ?? '—'}{s.notes && <span class="do__shipnote"> · {s.notes}</span>}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div class="do__tablewrap">
+          <table class="do__table">
+            <thead>
+              <tr><th>Schiff</th><th>Rolle</th><th class="num">Crew</th><th class="num">Fracht</th><th class="num">Preis</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {patch.ships.map((s) => {
+                const f = spec(s.name);
+                return (
+                  <tr>
+                    <td>
+                      {f ? (
+                        <a class="do__shiplink" href={f.fleetyardsUrl} target="_blank" rel="noopener">
+                          {s.name}<span class="do__ext" aria-hidden="true"> ↗</span>
+                        </a>
+                      ) : (
+                        s.name
+                      )}
+                      {s.unverified && <abbr class="do__unv" title="unbestätigt">*</abbr>}
+                    </td>
+                    <td>{s.role}</td>
+                    <td class="num">{crewFmt(f)}</td>
+                    <td class="num">{scuFmt(f)}</td>
+                    <td class="num">{priceFmt(f)}</td>
+                    <td>{s.status ?? '—'}{s.notes && <span class="do__shipnote"> · {s.notes}</span>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {anySpecs && (
+          <p class="do__specsrc">
+            Specs: <a href="https://fleetyards.net" target="_blank" rel="noopener">FleetYards.net</a> (Fan-Projekt, basiert auf der offiziellen Ship Matrix) · Stand {shipsSnapshot.fetchedAt}
+          </p>
+        )}
       </>
     )}
 
@@ -263,10 +302,38 @@ const hasUnverified =
   .do__link:hover {
     text-decoration: underline;
   }
+  .do__tablewrap {
+    overflow-x: auto;
+  }
   .do__table {
     width: 100%;
     border-collapse: collapse;
     font-size: 1rem;
+  }
+  .do__table th.num,
+  .do__table td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .do__shiplink:hover {
+    color: var(--accent, #2dd4ff);
+    text-decoration: underline;
+  }
+  .do__ext {
+    color: var(--muted, #8a99b8);
+    font-size: 0.85rem;
+  }
+  .do__specsrc {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--muted, #8a99b8);
+  }
+  .do__specsrc a {
+    text-decoration: underline;
+  }
+  .do__specsrc a:hover {
+    color: var(--accent, #2dd4ff);
   }
   .do__table th {
     font-family: var(--font-ui, sans-serif);

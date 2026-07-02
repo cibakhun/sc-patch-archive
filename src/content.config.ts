@@ -2,7 +2,7 @@
 // Design rule: Dossier uniform, Kino individuell — pages compose their own
 // dramaturgy, but every fact renders from this validated layer.
 import { defineCollection, z } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { glob, file } from 'astro/loaders';
 
 const fact = z.object({
   label: z.string(),
@@ -83,4 +83,30 @@ const patches = defineCollection({
   }),
 });
 
-export const collections = { patches };
+// FleetYards ship specs — snapshot written by `npm run sync:ships`
+// (scripts/sync-ships.mjs). The site renders only this committed snapshot.
+const ships = defineCollection({
+  loader: file('src/data/ships.json', {
+    parser: (text) => JSON.parse(text).ships,
+  }),
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+    /** the exact ship name used in the patch data — the join key */
+    matchedFrom: z.string(),
+    manufacturer: z.string().nullable(),
+    classification: z.string().nullable(),
+    focus: z.string().nullable(),
+    productionStatus: z.string().nullable(),
+    cargoSCU: z.number().nullable(),
+    crewMin: z.number().nullable(),
+    crewMax: z.number().nullable(),
+    lengthM: z.number().nullable(),
+    sizeLabel: z.string().nullable(),
+    priceUSD: z.number().nullable(),
+    fleetyardsUrl: z.string(),
+    patches: z.array(z.string()),
+  }),
+});
+
+export const collections = { patches, ships };
