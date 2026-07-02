@@ -91,26 +91,19 @@ import Attribution from '../../components/Attribution.astro';
     </div>
   </section>
 
-  <!-- SCROLLYTELLING: So läuft eine Verteidigung (full-bleed process) -->
-  <section style="padding-bottom:0">
-    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>So läuft eine Verteidigung</h2><span class="rule"></span></div></div>
+  <!-- ABLAUF — kompakter Dreischritt. Bewusst KEIN Scrollytelling: eine
+       Wellen-Verteidigung ist kein Reiseprozess mit eigenen visuellen
+       Stationen; Escort & Belohnung stehen bereits in Versus bzw. Split. -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">02</span><h2>So läuft eine Verteidigung</h2><span class="rule"></span></div>
+      <div class="flow reveal" style="margin-top:2.4rem">
+        <div class="node"><div class="dot">1</div><h3>Basis wählen</h3><p>149 verteidigbare Basen über Stanton und Pyro, sechs Stufen von Very Easy bis Super — die Wahl bestimmt Gegner und Lohn.</p></div>
+        <div class="node"><div class="dot">2</div><h3>Stellung beziehen</h3><p>Erreiche die Asteroiden-Mining-Basis vor dem ersten Anflug. Die Infrastruktur darf nicht fallen — ab jetzt zählt jede Sekunde.</p></div>
+        <div class="node"><div class="dot">3</div><h3>Wellen brechen</h3><p>Bomber vor dem Abwurf abfangen — Anflug für Anflug, und jede Welle drückt härter als die letzte.</p></div>
+      </div>
+    </div>
   </section>
-  <div class="scrolly">
-    <div class="scrolly__media" aria-hidden="true">
-      <div class="frame active" style="background-image:url('/assets/t-def-1.jpg')"></div>
-      <div class="frame" style="background-image:url('/assets/t-def-2.jpg')"></div>
-      <div class="frame" style="background-image:url('/assets/t-hh-1.jpg')"></div>
-      <div class="frame" style="background-image:url('/assets/img-idris.jpg')"></div>
-      <div class="frame" style="background-image:url('/assets/t-def-1.jpg')"></div>
-    </div>
-    <div class="scrolly__steps">
-      <div class="sstep"><div class="sn">01</div><h3>Auftrag annehmen</h3><p>Wähle eine der 149 Basen über Stanton und Pyro — von Very Easy bis Super reicht die Spanne, je nach gewählter Schwierigkeitsstufe.</p></div>
-      <div class="sstep"><div class="sn">02</div><h3>Position halten</h3><p>Erreiche die Asteroiden-Mining-Basis und beziehe Stellung. Ab dem ersten Anflug zählt jede Sekunde — die Infrastruktur darf nicht fallen.</p></div>
-      <div class="sstep"><div class="sn">03</div><h3>Bomber abfangen</h3><p>Feindliche Bomber steuern kritische Ziele wie Tanks an. Schieße sie ab, bevor sie ihre Ladung abwerfen — jede Welle drückt härter.</p></div>
-      <div class="sstep"><div class="sn">04</div><h3>Escort sichern</h3><p>In der Hybrid-Variante schützt du zugleich ein befreundetes Schiff beim Start oder bei der Landung, während Jäger es jagen.</p></div>
-      <div class="sstep"><div class="sn">05</div><h3>Belohnung kassieren</h3><p>Halte durch bis zum Schluss und streiche aUEC, Reputation und Org-Scrip ein — auf höheren Stufen winken Crafting-Blueprints.</p></div>
-    </div>
-  </div>
 
   <!-- MANIFESTO pull-quote -->
   <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
@@ -133,7 +126,7 @@ import Attribution from '../../components/Attribution.astro';
 
   <!-- SCALE — full-bleed band (big number, parallax, design on top) -->
   <section class="band band--right">
-    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-def-1.jpg')" aria-hidden="true"></div>
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-pyro-5.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
       <div class="kx">04 · Massstab</div>
       <div class="big huge">385</div>
