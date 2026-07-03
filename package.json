@@ -11,9 +11,13 @@
     "verify": "node scripts/_verify.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",
     "sync:vehicles": "node scripts/sync-vehicles.mjs",
-    "sync:prices": "node scripts/sync-prices.mjs"
+    "sync:prices": "node scripts/sync-prices.mjs",
+    "sync:extras": "node scripts/sync-fleetyards-extras.mjs"
   },
   "dependencies": {
     "astro": "^5.0.0"
+  },
+  "devDependencies": {
+    "three": "^0.185.1"
   }
 }
