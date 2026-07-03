@@ -5,6 +5,7 @@
 // <script is:inline>) so the bespoke design ports over verbatim.
 import Attribution from '../components/Attribution.astro';
 import { SITE } from '../consts';
+import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui';
 
 interface Props {
   title: string;
@@ -19,6 +20,12 @@ interface Props {
   ogType?: 'website' | 'article';
   /** keep crawlers off utility pages (404) */
   noindex?: boolean;
+  /**
+   * DE↔EN-Gegenstück existiert -> hreflang-Alternates ausgeben. Default false:
+   * solange eine Seite noch KEIN Übersetzungspaar hat (Stufe 2/3), bewerben wir
+   * keine 404-URL, und die DE-Ausgabe bleibt byte-gleich zu vorher.
+   */
+  translated?: boolean;
 }
 
 const {
@@ -29,14 +36,21 @@ const {
   ogImage,
   ogType = 'website',
   noindex = false,
+  translated = false,
 } = Astro.props;
 
 const base = SITE.url.replace(/\/$/, '');
 const canonical = base + Astro.url.pathname;
 const ogImageAbs = ogImage ? (ogImage.startsWith('http') ? ogImage : base + ogImage) : null;
+
+// Locale aus dem Pfad (EN lebt unter /en/…). Steuert lang + og:locale.
+const lang = localeFromPath(Astro.url.pathname);
+// hreflang-Ziele (nur wenn ein Übersetzungspaar existiert)
+const deHref = base + pathForLocale(Astro.url.pathname, 'de');
+const enHref = base + pathForLocale(Astro.url.pathname, 'en');
 ---
 <!doctype html>
-<html lang="de">
+<html lang={HTML_LANG[lang]}>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -46,12 +60,19 @@ const ogImageAbs = ogImage ? (ogImage.startsWith('http') ? ogImage : base + ogIm
   {noindex && <meta name="robots" content="noindex" />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="canonical" href={canonical} />
+  {translated && (
+    <>
+      <link rel="alternate" hreflang="de" href={deHref} />
+      <link rel="alternate" hreflang="en" href={enHref} />
+      <link rel="alternate" hreflang="x-default" href={deHref} />
+    </>
+  )}
   <meta property="og:type" content={ogType} />
   <meta property="og:site_name" content={SITE.name} />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:url" content={canonical} />
-  <meta property="og:locale" content="de_DE" />
+  <meta property="og:locale" content={OG_LOCALE[lang]} />
   {ogImageAbs && <meta property="og:image" content={ogImageAbs} />}
   <meta name="twitter:card" content="summary_large_image" />
   {ogImageAbs && <meta name="twitter:image" content={ogImageAbs} />}

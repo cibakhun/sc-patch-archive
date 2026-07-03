@@ -6,7 +6,9 @@
 // no motion beyond the existing scrolled-state.
 import { getCollection } from 'astro:content';
 import SearchOverlay from './SearchOverlay.astro';
+import LangSwitcher from './LangSwitcher.astro';
 import { SITE } from '../consts';
+import { localeFromPath, useTranslations, href } from '../i18n/ui';
 
 interface Crumb {
   label: string;
@@ -17,6 +19,12 @@ interface Props {
   pill?: string;
 }
 const { crumbs = [], pill } = Astro.props;
+
+// Locale aus dem Pfad; t() + L() halten Chrome/Links in der aktiven Sprache.
+// Für DE liefern beide exakt die bisherigen Werte -> DE-Ausgabe unverändert.
+const lang = localeFromPath(Astro.url.pathname);
+const t = useTranslations(lang);
+const L = (p: string) => href(p, lang);
 
 // BreadcrumbList JSON-LD — the nav already knows the trail (last item = page)
 const siteBase = SITE.url.replace(/\/$/, '');
@@ -44,14 +52,14 @@ const withTopics = patches.filter((p) => p.data.topics.length > 0);
 const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
 const current = Astro.url.pathname;
 ---
-<nav class="snav" id="topbar" aria-label="Hauptnavigation">
+<nav class="snav" id="topbar" aria-label={t('nav.main')}>
   <div class="snav__left">
-    <a class="snav__brand" href="/index.html" aria-label="SC Archiv — Startseite">
+    <a class="snav__brand" href={L('/index.html')} aria-label={t('nav.home.aria')}>
       <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="32" cy="32" r="6" fill="currentColor"/></svg>
       <span>SC·Archiv</span>
     </a>
     {crumbs.length > 0 && (
-      <nav class="snav__crumbs" aria-label="Pfad">
+      <nav class="snav__crumbs" aria-label={t('nav.path')}>
         <ol>
           {crumbs.map((c, i) => (
             <li class={i < crumbs.length - 1 ? 'snav__mid' : undefined}>
@@ -65,21 +73,21 @@ const current = Astro.url.pathname;
   <div class="snav__right">
     <a
       class="snav__link"
-      href="/schiffe.html"
-      aria-current={current === '/schiffe.html' || current.startsWith('/schiffe/') ? 'page' : undefined}
-    >Schiffe</a>
+      href={L('/schiffe.html')}
+      aria-current={current === L('/schiffe.html') || current.startsWith(L('/schiffe/')) ? 'page' : undefined}
+    >{t('nav.ships')}</a>
     <a
       class="snav__link"
-      href="/evolution.html"
-      aria-current={current === '/evolution.html' ? 'page' : undefined}
-    >Evolution</a>
-    <button class="snav__search" type="button" data-scs-open aria-label="Suche öffnen (Strg+K)">
+      href={L('/evolution.html')}
+      aria-current={current === L('/evolution.html') ? 'page' : undefined}
+    >{t('nav.evolution')}</a>
+    <button class="snav__search" type="button" data-scs-open aria-label={t('nav.search.open')}>
       <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-      <span>Suche</span>
-      <kbd>Strg K</kbd>
+      <span>{t('nav.search')}</span>
+      <kbd>{t('nav.search.kbd')}</kbd>
     </button>
     <details class="snav__dd">
-      <summary>Patches <span class="snav__chev" aria-hidden="true">▾</span></summary>
+      <summary>{t('nav.patches')} <span class="snav__chev" aria-hidden="true">▾</span></summary>
       <div class="snav__panel">
         {eras.map((era) => (
           <div class="snav__group">
@@ -87,9 +95,9 @@ const current = Astro.url.pathname;
             {patches
               .filter((p) => p.data.era === era)
               .map((p) => {
-                const href = `/patches/sc-${p.id}.html`;
+                const ph = L(`/patches/sc-${p.id}.html`);
                 return (
-                  <a href={href} aria-current={current === href ? 'page' : undefined}>
+                  <a href={ph} aria-current={current === ph ? 'page' : undefined}>
                     <b>{p.data.version}</b>
                     <span>{p.data.codename}</span>
                   </a>
@@ -100,16 +108,16 @@ const current = Astro.url.pathname;
       </div>
     </details>
     <details class="snav__dd">
-      <summary>Themen <span class="snav__chev" aria-hidden="true">▾</span></summary>
+      <summary>{t('nav.topics')} <span class="snav__chev" aria-hidden="true">▾</span></summary>
       <div class="snav__panel">
         {withTopics.map((p) => (
           <div class="snav__group">
             <div class="snav__ghead">{p.data.version} · {p.data.codename}</div>
-            {p.data.topics.map((t) => {
-              const href = `/topics/${t.slug}.html`;
+            {p.data.topics.map((tp) => {
+              const th = L(`/topics/${tp.slug}.html`);
               return (
-                <a href={href} aria-current={current === href ? 'page' : undefined}>
-                  <span>{t.title}</span>
+                <a href={th} aria-current={current === th ? 'page' : undefined}>
+                  <span>{tp.title}</span>
                 </a>
               );
             })}
@@ -118,25 +126,26 @@ const current = Astro.url.pathname;
       </div>
     </details>
     {pill && <span class="snav__pill">{pill}</span>}
+    <LangSwitcher />
     <details class="snav__dd snav__menu">
-      <summary aria-label="Menü öffnen">
+      <summary aria-label={t('nav.menu.open')}>
         <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-        <span>Menü</span>
+        <span>{t('nav.menu')}</span>
       </summary>
       <div class="snav__panel">
         <div class="snav__group">
-          <div class="snav__ghead">Navigation</div>
-          <a href="/schiffe.html"><span>Schiffe &amp; Fahrzeuge — Datenbank</span></a>
-          <a href="/evolution.html"><span>Evolution — Systeme × Patches</span></a>
-          <a href="/index.html#archiv"><span>Alle Patches ({patches.length})</span></a>
-          <a href="/index.html#themen"><span>Alle Themen ({topicCount})</span></a>
+          <div class="snav__ghead">{t('nav.section')}</div>
+          <a href={L('/schiffe.html')}><span>{t('nav.ships.long')}</span></a>
+          <a href={L('/evolution.html')}><span>{t('nav.evolution.long')}</span></a>
+          <a href={L('/index.html#archiv')}><span>{t('nav.allPatches')} ({patches.length})</span></a>
+          <a href={L('/index.html#themen')}><span>{t('nav.allTopics')} ({topicCount})</span></a>
         </div>
       </div>
     </details>
   </div>
 </nav>
 {crumbLd && <script type="application/ld+json" set:html={JSON.stringify(crumbLd)} />}
-<SearchOverlay />
+<SearchOverlay lang={lang} />
 
 <style>
   .snav {

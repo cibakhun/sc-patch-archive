@@ -1,0 +1,59 @@
+---
+// Sprachumschalter (DE | EN). Rein Build-Zeit, kein JS/Cookie: jede Sprach-
+// option verlinkt via pathForLocale() auf DIESELBE Seite in der anderen
+// Sprache — bleibt also auf der aktuellen Seite und wechselt nur die Sprache.
+// Palette-agnostisch (nutzt die --accent/--line/--text-Variablen der Seite).
+import {
+  LOCALES,
+  LOCALE_SHORT,
+  LOCALE_LABEL,
+  localeFromPath,
+  pathForLocale,
+  useTranslations,
+} from '../i18n/ui';
+
+const current = Astro.url.pathname;
+const lang = localeFromPath(current);
+const t = useTranslations(lang);
+---
+<div class="langsw" role="group" aria-label={t('nav.langSwitch')}>
+  {LOCALES.map((l, i) => (
+    <>
+      {i > 0 && <span class="langsw__sep" aria-hidden="true">/</span>}
+      {l === lang ? (
+        <span class="langsw__cur" lang={l} aria-current="true">{LOCALE_SHORT[l]}</span>
+      ) : (
+        <a class="langsw__opt" href={pathForLocale(current, l)} lang={l} hreflang={l} aria-label={LOCALE_LABEL[l]}>{LOCALE_SHORT[l]}</a>
+      )}
+    </>
+  ))}
+</div>
+
+<style>
+  .langsw {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
+  }
+  .langsw__cur {
+    color: var(--accent, #2dd4ff);
+  }
+  .langsw__opt {
+    color: var(--muted, #8a99b8);
+    transition: color 0.15s;
+  }
+  .langsw__opt:hover {
+    color: var(--text, #e8eefc);
+  }
+  .langsw__sep {
+    color: var(--muted, #8a99b8);
+    opacity: 0.5;
+  }
+</style>
