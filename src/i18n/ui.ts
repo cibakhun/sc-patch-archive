@@ -467,29 +467,43 @@ export function useTranslations(lang: Locale) {
   };
 }
 
-/** Locale aus dem URL-Pfad ableiten: /en/... -> 'en', sonst 'de'. */
+/**
+ * Locale aus dem URL-Pfad ableiten. EN-Seiten liegen unter /en/… ; die EN-
+ * Startseite ist wegen build.format:'file' /en.html (nicht /en/index.html).
+ */
 export function localeFromPath(pathname: string): Locale {
-  return pathname === '/en' || pathname.startsWith('/en/') ? 'en' : DEFAULT_LOCALE;
+  return pathname === '/en' || pathname === '/en.html' || pathname.startsWith('/en/')
+    ? 'en'
+    : DEFAULT_LOCALE;
+}
+
+/** DE-Form eines Pfads (Startseite -> '/index.html'). */
+function toDeForm(pathname: string): string {
+  if (pathname === '/en' || pathname === '/en.html') return '/index.html';
+  if (pathname.startsWith('/en/')) pathname = pathname.slice(3); // '/en' entfernen
+  if (pathname === '' || pathname === '/') return '/index.html';
+  return pathname;
 }
 
 /**
  * Denselben Seiten-Pfad in die andere Sprache umschreiben (für den Umschalter).
- * de:  /patches/sc-4-8-2.html        <-> en: /en/patches/sc-4-8-2.html
- * de:  /index.html (oder /)          <-> en: /en/index.html
- * Behält also die Seite bei und wechselt nur die Sprache.
+ * de:  /patches/sc-4-8-2.html   <-> en: /en/patches/sc-4-8-2.html
+ * de:  /index.html (oder /)     <-> en: /en.html  (format:'file'-Startseite)
  */
 export function pathForLocale(pathname: string, target: Locale): string {
-  const stripped = pathname.replace(/^\/en(?=\/|$)/, '') || '/';
-  if (target === DEFAULT_LOCALE) return stripped;
-  return '/en' + (stripped === '/' ? '/index.html' : stripped);
+  const de = toDeForm(pathname);
+  if (target === DEFAULT_LOCALE) return de;
+  return de === '/index.html' ? '/en.html' : '/en' + de;
 }
 
 /**
  * Locale-bewusster interner Link: nimmt einen DE-Form-Pfad (z. B.
- * "/schiffe/x.html") und präfixt ihn für EN mit /en. DE bleibt unverändert.
- * So bleiben interne Verweise innerhalb der gewählten Sprache.
+ * "/schiffe/x.html", "/index.html#archiv") und präfixt ihn für EN. DE bleibt
+ * unverändert. Die Startseite wird korrekt auf /en.html abgebildet.
  */
 export function href(path: string, lang: Locale): string {
   if (lang === DEFAULT_LOCALE) return path;
+  if (path === '/' || path === '/index.html') return '/en.html';
+  if (path.startsWith('/index.html#')) return '/en.html' + path.slice('/index.html'.length);
   return '/en' + path;
 }

@@ -29,7 +29,7 @@ const t = useTranslations(lang);
 
 function targetFor(l: Locale): string {
   // nur relevant auf DE-Seiten, die (noch) kein EN-Pendant haben
-  if (l === 'en' && !hasEn) return '/en/index.html';
+  if (l === 'en' && !hasEn) return '/en.html';
   return pathForLocale(current, l);
 }
 ---

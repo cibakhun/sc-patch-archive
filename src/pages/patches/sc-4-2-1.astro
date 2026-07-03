@@ -10,7 +10,7 @@ const entry = await getEntry('patches', '4-2-1');
 if (!entry) throw new Error('Patch-Daten 4-2-1 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.2.1 — Resource Drive | SC Patch-Archiv"} description={"Alpha 4.2.1: Resource Drive — globales Konvoi-Event, Ship-Escort und die RSI Meteor."} themeColor="#0e1620" ogType="article" ogImage="/assets/img-meteor.jpg">
+<Layout title={"Star Citizen Alpha 4.2.1 — Resource Drive | SC Patch-Archiv"} description={"Alpha 4.2.1: Resource Drive — globales Konvoi-Event, Ship-Escort und die RSI Meteor."} themeColor="#0e1620" ogType="article" ogImage="/assets/img-meteor.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/img-meteor.jpg" />
 <style is:inline>
 
@@ -172,7 +172,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Alpha 4.2.1' }]} pill={"ALPHA 4.2.1"} />
+<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Alpha 4.2.1' }]} pill={"ALPHA 4.2.1"} hasEn={true} />
 
 
 <main id="main">
