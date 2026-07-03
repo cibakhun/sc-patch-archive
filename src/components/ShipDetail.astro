@@ -23,6 +23,7 @@ import {
 } from '../lib/shipExtras';
 import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
+import { vType, vSize, vStatus, vDesc } from '../i18n/vehicleText';
 
 interface Props {
   d: CollectionEntry<'vehicles'>['data'];
@@ -38,6 +39,7 @@ const { d, id, similar, profile, viz, lang = DEFAULT_LOCALE, hasEn = false } = A
 
 const t = useTranslations(lang);
 const L = (p: string) => href(p, lang);
+const loc = lang === 'en' ? 'en-US' : 'de-DE';
 
 const hero = pickHero(d);
 const prices = priceInfo(id);
@@ -57,10 +59,11 @@ const spine = d.patches
   .map((v) => patches.find((p) => p.data.version === v))
   .filter(Boolean);
 
-const facts = buildFacts(d).filter(
-  (f) => !['Fracht', 'Erz-Kapazität', 'Maße L×B×H'].includes(f.label)
-);
-const armament = buildArmament(d);
+// cargo/ore/dims werden anderswo (Maße & Fracht) gezeigt -> hier per stabilem
+// key ausfiltern (sprachunabhängig, da Labels jetzt lokalisiert sind).
+const facts = buildFacts(d, lang).filter((f) => !['cargo', 'ore', 'dims'].includes(f.key ?? ''));
+const armament = buildArmament(d, lang);
+const desc = vDesc(d, lang);
 const slots: [string, { name: string; size: number | null; count: number }[]][] = (
   [
     [t('ship.slot.generators'), d.components?.powerPlants ?? []],
@@ -72,16 +75,16 @@ const slots: [string, { name: string; size: number | null; count: number }[]][] 
 ).filter(([, a]) => a.length > 0);
 
 const dims = [d.lengthM, d.widthM, d.heightM].every((x) => x != null)
-  ? `L ${d.lengthM} m · B ${d.widthM} m · H ${d.heightM} m`
+  ? `${t('ship.abbr.l')} ${d.lengthM} m · ${t('ship.abbr.w')} ${d.widthM} m · ${t('ship.abbr.h')} ${d.heightM} m`
   : null;
 const stageStats: { label: string; value: string }[] = [
-  { label: t('ship.stage.length'), value: d.lengthM != null ? `${d.lengthM.toLocaleString('de-DE')} m` : '—' },
+  { label: t('ship.stage.length'), value: d.lengthM != null ? `${d.lengthM.toLocaleString(loc)} m` : '—' },
   { label: t('ship.stage.crew'), value: crewFmt(d) },
-  { label: t('ship.stage.cargo'), value: d.cargoSCU != null ? `${d.cargoSCU.toLocaleString('de-DE')} SCU` : '—' },
+  { label: t('ship.stage.cargo'), value: d.cargoSCU != null ? `${d.cargoSCU.toLocaleString(loc)} SCU` : '—' },
   { label: t('ship.stage.scm'), value: d.scmSpeed != null ? `${d.scmSpeed} m/s` : '—' },
   {
     label: buyMin ? t('ship.stage.priceIngame') : t('ship.stage.pledge'),
-    value: buyMin ? aUEC(buyMin.price) : d.msrpUSD != null ? `$${d.msrpUSD.toLocaleString('en-US')}` : '—',
+    value: buyMin ? aUEC(buyMin.price, lang) : d.msrpUSD != null ? `$${d.msrpUSD.toLocaleString('en-US')}` : '—',
   },
 ];
 
@@ -395,9 +398,9 @@ span.sd__ref{color:var(--muted)}
       <div class="sd__maker">{d.manufacturer}</div>
       <h1>{d.name}</h1>
       <div class="holo__chips">
-        {d.typeDe && <span>{d.typeDe}</span>}
-        {d.sizeDe && <span>{d.sizeDe}</span>}
-        {d.statusDe && <span>{d.statusDe}</span>}
+        {vType(d, lang) && <span>{vType(d, lang)}</span>}
+        {vSize(d, lang) && <span>{vSize(d, lang)}</span>}
+        {vStatus(d, lang) && <span>{vStatus(d, lang)}</span>}
       </div>
     </header>
   </section>
@@ -488,7 +491,7 @@ span.sd__ref{color:var(--muted)}
           {profile.map((p) => (
             <div class="sd__profrow">
               <span class="sd__proflabel">{p.label}</span>
-              <div class="sd__proftrack" role="img" aria-label={`${p.label}: ${p.value}, Perzentil ${p.pct}`}>
+              <div class="sd__proftrack" role="img" aria-label={`${p.label}: ${p.value}, ${t('ship.profile.percentile')} ${p.pct}`}>
                 <div class="sd__proffill" style={`width:${p.pct}%`}></div>
               </div>
               <span class="sd__profval">{p.value}<i>P{p.pct}</i></span>
@@ -499,7 +502,7 @@ span.sd__ref{color:var(--muted)}
       </section>
     )}
 
-    {d.descriptionDe && <p class="sd__desc">{d.descriptionDe}</p>}
+    {desc && <p class="sd__desc">{desc}</p>}
 
     <!-- DATENBLATT -->
     <section class="sd__panel" aria-label={t('ship.sheet.title')}>
@@ -530,8 +533,8 @@ span.sd__ref{color:var(--muted)}
               <>
                 <div class="sd__glabel">{t('ship.dims.top')}</div>
                 <div class="sd__footbox" style={`width:${viz.dims.footWidthPct}%;aspect-ratio:${viz.dims.footAspect}`} role="img"
-                  aria-label={`Grundriss ${viz.dims.l} m lang, ${viz.dims.w} m breit`}></div>
-                <div class="sd__footcap">L {viz.dims.l.toLocaleString('de-DE')} m · B {viz.dims.w.toLocaleString('de-DE')} m · H {viz.dims.h.toLocaleString('de-DE')} m</div>
+                  aria-label={t('ship.dims.aria').replace('%l%', String(viz.dims.l)).replace('%w%', String(viz.dims.w))}></div>
+                <div class="sd__footcap">{t('ship.abbr.l')} {viz.dims.l.toLocaleString(loc)} m · {t('ship.abbr.w')} {viz.dims.w.toLocaleString(loc)} m · {t('ship.abbr.h')} {viz.dims.h.toLocaleString(loc)} m</div>
                 <div class="sd__g" style="margin-top:.9rem">
                   {viz.dims.bars.map((b) => (
                     <div class="sd__grow">
@@ -548,11 +551,11 @@ span.sd__ref{color:var(--muted)}
             {viz.cargo && (
               <>
                 <div class="sd__glabel">{t('ship.dims.cargo')}</div>
-                <div class="sd__cargonum">{viz.cargo.scu.toLocaleString('de-DE')} SCU</div>
+                <div class="sd__cargonum">{viz.cargo.scu.toLocaleString(loc)} SCU</div>
                 <div class="sd__cubes">
                   {Array.from({ length: viz.cargo.cubes }).map(() => <span class="sd__cube"></span>)}
                 </div>
-                <div class="sd__footcap">■ = {viz.cargo.cubeVal} SCU{viz.cargo.ore && ` · ${t('ship.dims.oreExtra')}: ${viz.cargo.ore.toLocaleString('de-DE')} SCU`}</div>
+                <div class="sd__footcap">■ = {viz.cargo.cubeVal} SCU{viz.cargo.ore && ` · ${t('ship.dims.oreExtra')}: ${viz.cargo.ore.toLocaleString(loc)} SCU`}</div>
               </>
             )}
             {viz.fuel.length > 0 && (
@@ -591,7 +594,7 @@ span.sd__ref{color:var(--muted)}
         )}
         <div class="sd__arm">
           {armament.map((r) => {
-            const gold = r.label === 'Raketen';
+            const gold = r.gold ?? false;
             return (
               <div class="sd__armrow">
                 <div class="sd__armhead">
