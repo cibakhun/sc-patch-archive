@@ -4,9 +4,6 @@
 // point at the translated example. Full homepage translation = Stufe 3.
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
-import { I18N_EN_SHIPS } from '../../consts';
-
-const exampleId = I18N_EN_SHIPS[0];
 ---
 <Layout
   title="Star Citizen Patch Archive — English (preview)"
@@ -43,23 +40,23 @@ const exampleId = I18N_EN_SHIPS[0];
 
 <main class="wrap">
   <div class="eyebrow">Star Citizen · Patch Archive</div>
-  <h1>English edition — rolling out</h1>
+  <h1>English edition</h1>
   <p class="lede">
     The archive documents every Star Citizen patch from Alpha 4.0.0 to 4.8.2. The
-    English edition is being built out patch by patch — the UI, navigation and
-    search already run bilingually; long-form pages follow.
+    full ship &amp; vehicle database — all 226 entries with specs, descriptions and
+    patch history — is available in English; the patch and topic pages follow.
   </p>
   <p class="note">
     Use the DE / EN switch in the top navigation on any page to jump between
-    languages while staying on the same page. Pages without an English version
-    yet will fall back to German.
+    languages while staying on the same page. Pages that aren’t translated yet
+    fall back to German.
   </p>
 
   <div class="cards">
-    <a class="card" href={`/en/schiffe/${exampleId}.html`}>
-      <div class="k">Ship data sheet</div>
-      <div class="t">Translated example</div>
-      <div class="s">A full ship page rendered from the data layer in English.</div>
+    <a class="card" href="/en/schiffe.html">
+      <div class="k">Ships &amp; Vehicles</div>
+      <div class="t">Ship database</div>
+      <div class="s">All 226 ships and vehicles with full data sheets in English.</div>
     </a>
     <a class="card" href="/index.html">
       <div class="k">Deutsch</div>

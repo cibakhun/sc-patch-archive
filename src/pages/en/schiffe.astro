@@ -1,18 +1,20 @@
 ---
-// SCHIFFE — the ship database browser (Phase 1). Calm REGISTRATUR data page:
-// full catalog from the wiki-API snapshot, client-side filtering in vanilla
-// JS (no framework), patch-spine badges linking back into the archive.
-import Layout from '../layouts/Layout.astro';
-import SiteNav from '../components/SiteNav.astro';
+// SHIPS (EN) — /en/schiffe.html. English ship-database browser. Same data +
+// client-side filtering as the DE page; text resolved via the vehicleText
+// helpers (vType/vSize/vStatus). Links point into the /en/ ship detail pages.
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
-import vehiclesSnapshot from '../data/vehicles.json';
-import { pickThumb } from '../lib/shipRenders';
+import vehiclesSnapshot from '../../data/vehicles.json';
+import { pickThumb } from '../../lib/shipRenders';
+import { vType, vSize, vStatus } from '../../i18n/vehicleText';
 
+const lang = 'en' as const;
 const vehicles = (await getCollection('vehicles')).sort((a, b) =>
-  a.data.name.localeCompare(b.data.name, 'de')
+  a.data.name.localeCompare(b.data.name, 'en')
 );
 const makers = [...new Set(vehicles.map((v) => v.data.manufacturer).filter(Boolean))].sort() as string[];
-const types = [...new Set(vehicles.map((v) => v.data.typeDe).filter(Boolean))].sort() as string[];
+const types = [...new Set(vehicles.map((v) => vType(v.data, lang)).filter(Boolean))].sort() as string[];
 const flightReady = vehicles.filter((v) => v.data.statusEn === 'flight-ready').length;
 const inArchive = vehicles.filter((v) => v.data.patches.length > 0).length;
 
@@ -24,8 +26,8 @@ const crewFmt = (v: (typeof vehicles)[number]['data']) =>
     : '—';
 ---
 <Layout
-  title="Schiffe & Fahrzeuge — Datenbank | SC Patch-Archiv"
-  description={`${vehicles.length} Schiffe und Fahrzeuge mit Specs, deutschen Beschreibungen und Patch-Historie — Datenstand ${vehiclesSnapshot.fetchedAt}.`}
+  title="Ships & Vehicles — Database | SC Patch Archive"
+  description={`${vehicles.length} ships and vehicles with specs, English descriptions and patch history — data as of ${vehiclesSnapshot.fetchedAt}.`}
   themeColor="#05070d"
   footer={true}
   translated={true}
@@ -87,54 +89,54 @@ a{color:inherit;text-decoration:none}
 .sdb__src a:hover{color:var(--accent)}
 </style>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Schiffe' }]} pill={`${vehicles.length} EINTRÄGE`} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/en/index.html' }, { label: 'Ships' }]} pill={`${vehicles.length} ENTRIES`} hasEn={true} />
 
 <main class="sdb">
   <header class="sdb__head">
-    <h1>Schiffe &amp; Fahrzeuge</h1>
+    <h1>Ships &amp; Vehicles</h1>
     <p class="sdb__sub">
-      Der komplette Katalog aus den Spieldateien — mit Specs, deutschen Beschreibungen und
-      Patch-Historie aus dem Archiv. Klick auf ein Schiff für das volle Datenblatt.
+      The complete catalog from the game files — with specs, English descriptions and
+      patch history from the archive. Click a ship for the full data sheet.
     </p>
     <dl class="sdb__metrics">
-      <div><dt>Einträge</dt><dd>{vehicles.length}</dd></div>
-      <div><dt>Hersteller</dt><dd>{makers.length}</dd></div>
-      <div><dt>Flugbereit</dt><dd>{flightReady}</dd></div>
-      <div><dt>Im Archiv</dt><dd>{inArchive}</dd></div>
+      <div><dt>Entries</dt><dd>{vehicles.length}</dd></div>
+      <div><dt>Manufacturers</dt><dd>{makers.length}</dd></div>
+      <div><dt>Flight Ready</dt><dd>{flightReady}</dd></div>
+      <div><dt>In archive</dt><dd>{inArchive}</dd></div>
     </dl>
   </header>
 
   <div class="sdb__filter">
-    <input id="sf-q" type="search" placeholder="Schiff oder Hersteller suchen…" aria-label="Suche" autocomplete="off" />
-    <select id="sf-maker" aria-label="Hersteller">
-      <option value="">Alle Hersteller</option>
+    <input id="sf-q" type="search" placeholder="Search ship or manufacturer…" aria-label="Search" autocomplete="off" />
+    <select id="sf-maker" aria-label="Manufacturer">
+      <option value="">All manufacturers</option>
       {makers.map((m) => <option value={m}>{m}</option>)}
     </select>
-    <select id="sf-type" aria-label="Typ">
-      <option value="">Alle Typen</option>
-      {types.map((t) => <option value={t}>{t}</option>)}
+    <select id="sf-type" aria-label="Type">
+      <option value="">All types</option>
+      {types.map((tp) => <option value={tp}>{tp}</option>)}
     </select>
     <select id="sf-status" aria-label="Status">
-      <option value="">Jeder Status</option>
-      <option value="flight-ready">Flugbereit</option>
-      <option value="in-production">In Produktion</option>
-      <option value="in-concept">Konzept</option>
+      <option value="">Any status</option>
+      <option value="flight-ready">Flight Ready</option>
+      <option value="in-production">In production</option>
+      <option value="in-concept">Concept</option>
     </select>
-    <select id="sf-archive" aria-label="Archiv">
-      <option value="">Alle</option>
-      <option value="1">Im Patch-Archiv</option>
+    <select id="sf-archive" aria-label="Archive">
+      <option value="">All</option>
+      <option value="1">In the patch archive</option>
     </select>
-    <span class="sdb__count" id="sf-count">{vehicles.length} Treffer</span>
+    <span class="sdb__count" id="sf-count">{vehicles.length} results</span>
   </div>
 
   <div class="sdb__tablewrap">
     <table class="sdb__table" id="sf-table">
       <thead>
         <tr>
-          <th aria-label="Bild"></th>
-          <th>Schiff</th><th>Typ</th><th>Größe</th>
-          <th class="num">Crew</th><th class="num">Fracht</th><th class="num">Preis</th>
-          <th>Status</th><th>Archiv</th>
+          <th aria-label="Image"></th>
+          <th>Ship</th><th>Type</th><th>Size</th>
+          <th class="num">Crew</th><th class="num">Cargo</th><th class="num">Price</th>
+          <th>Status</th><th>Archive</th>
         </tr>
       </thead>
       <tbody>
@@ -145,10 +147,10 @@ a{color:inherit;text-decoration:none}
             <tr
               data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
               data-maker={d.manufacturer ?? ''}
-              data-type={d.typeDe ?? ''}
+              data-type={vType(d, lang) ?? ''}
               data-status={d.statusEn ?? ''}
               data-archive={d.patches.length ? '1' : ''}
-              data-href={`/schiffe/${d.id}.html`}
+              data-href={`/en/schiffe/${d.id}.html`}
             >
               <td class="sdb__imgcell">
                 {thumb ? (
@@ -164,15 +166,15 @@ a{color:inherit;text-decoration:none}
                 )}
               </td>
               <td>
-                <div class="sdb__name"><a href={`/schiffe/${d.id}.html`}>{d.name}</a></div>
+                <div class="sdb__name"><a href={`/en/schiffe/${d.id}.html`}>{d.name}</a></div>
                 <div class="sdb__maker">{d.manufacturer ?? '—'}</div>
               </td>
-              <td>{d.typeDe ?? '—'}</td>
-              <td>{d.sizeDe ?? '—'}</td>
+              <td>{vType(d, lang) ?? '—'}</td>
+              <td>{vSize(d, lang) ?? '—'}</td>
               <td class="num">{crewFmt(d)}</td>
               <td class="num">{d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—'}</td>
               <td class="num">{d.msrpUSD != null ? `$${d.msrpUSD}` : '—'}</td>
-              <td><span class={`sdb__status${d.statusEn === 'flight-ready' ? ' fr' : ''}`}>{d.statusDe ?? '—'}</span></td>
+              <td><span class={`sdb__status${d.statusEn === 'flight-ready' ? ' fr' : ''}`}>{vStatus(d, lang) ?? '—'}</span></td>
               <td>
                 {d.patches.length > 0 && (
                   <a class="sdb__badge" href={`/patches/sc-${d.patches[0].replaceAll('.', '-')}.html`}>
@@ -187,10 +189,10 @@ a{color:inherit;text-decoration:none}
     </table>
   </div>
   <p class="sdb__src">
-    Quelle: <a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
-    (Community-Projekt, Daten aus den Spieldateien) · Stand {vehiclesSnapshot.fetchedAt}
-    {vehiclesSnapshot.gameVersion && ` · Spieldaten ${vehiclesSnapshot.gameVersion.split('-')[0]}`}
-    · Bilder: starcitizen.tools
+    Source: <a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
+    (community project, data from the game files) · as of {vehiclesSnapshot.fetchedAt}
+    {vehiclesSnapshot.gameVersion && ` · game data ${vehiclesSnapshot.gameVersion.split('-')[0]}`}
+    · Images: starcitizen.tools
   </p>
 </main>
 
@@ -222,7 +224,7 @@ a{color:inherit;text-decoration:none}
       r.style.display = ok ? '' : 'none';
       if (ok) n++;
     });
-    count.textContent = n + ' Treffer';
+    count.textContent = n + ' results';
   }
 
   [q, selMaker, selType, selStatus, selArchive].forEach(function (el) {
@@ -230,7 +232,6 @@ a{color:inherit;text-decoration:none}
     el.addEventListener('change', apply);
   });
 
-  // whole row clickable (links inside keep working)
   rows.forEach(function (r) {
     r.addEventListener('click', function (e) {
       if (e.target.closest('a')) return;
