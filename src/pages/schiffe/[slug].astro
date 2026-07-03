@@ -8,7 +8,9 @@ import SiteNav from '../../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import vehiclesSnapshot from '../../data/vehicles.json';
-import { buildFacts, buildGroups, buildArmament, crewFmt } from '../../lib/shipFacts';
+import { buildFacts, buildArmament, crewFmt } from '../../lib/shipFacts';
+import { buildVisuals } from '../../lib/shipVisuals';
+import type { Visuals } from '../../lib/shipVisuals';
 import { pickHero } from '../../lib/shipRenders';
 import {
   priceInfo, aUEC, pricesFetchedAt,
@@ -26,6 +28,7 @@ export async function getStaticPaths() {
       id: v.id,
       similar: similarShips(vs, v),
       profile: buildProfile(vs, v.data),
+      viz: buildVisuals(vs, v.data),
     },
   }));
 }
@@ -35,8 +38,9 @@ interface Props {
   id: string;
   similar: SimilarShip[];
   profile: ProfileBar[];
+  viz: Visuals;
 }
-const { d, id, similar, profile } = Astro.props;
+const { d, id, similar, profile, viz } = Astro.props;
 
 const hero = pickHero(d);
 const prices = priceInfo(id);
@@ -56,9 +60,19 @@ const spine = d.patches
   .map((v) => patches.find((p) => p.data.version === v))
   .filter(Boolean);
 
-const facts = buildFacts(d);
+const facts = buildFacts(d).filter(
+  (f) => !['Fracht', 'Erz-Kapazität', 'Maße L×B×H'].includes(f.label)
+);
 const armament = buildArmament(d);
-const groups = buildGroups(d);
+const slots: [string, { name: string; size: number | null; count: number }[]][] = (
+  [
+    ['Generatoren', d.components?.powerPlants ?? []],
+    ['Schildgeneratoren', d.components?.shields ?? []],
+    ['Kühler', d.components?.coolers ?? []],
+    ['Quantum-Antrieb', d.components?.quantumDrives ?? []],
+    ['Radar', d.components?.radars ?? []],
+  ] as [string, { name: string; size: number | null; count: number }[]][]
+).filter(([, a]) => a.length > 0);
 
 const dims = [d.lengthM, d.widthM, d.heightM].every((x) => x != null)
   ? `L ${d.lengthM} m · B ${d.widthM} m · H ${d.heightM} m`
@@ -88,6 +102,7 @@ const IC: Record<string, string> = {
   paints: 'M12 3.5s5.6 6.8 5.6 10.4a5.6 5.6 0 11-11.2 0C6.4 10.3 12 3.5 12 3.5z',
   varianten: 'M6 6a2 2 0 100-.01 M6 18a2 2 0 100-.01 M18 8a2 2 0 100-.01 M6 8v8 M6 12c7 0 5-3.4 10-3.9',
   aehnlich: 'M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z',
+  masse: 'M3 9h18v6H3z M7 9v3 M11 9v4 M15 9v3',
 };
 ---
 <Layout
@@ -282,6 +297,57 @@ span.sd__ref{color:var(--muted)}
 .sd__src{margin-top:1.4rem;font-size:.85rem;color:var(--muted)}
 .sd__src a{text-decoration:underline}
 .sd__src a:hover{color:var(--accent)}
+
+/* Gauges (generisch, katalog-relativ) */
+.sd__g{display:flex;flex-direction:column;gap:.55rem}
+.sd__grow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:.9rem;align-items:center}
+.sd__glabel{font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sd__gtrack{position:relative;height:9px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+.sd__gtrack::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.14)}
+.sd__gfill{height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,transparent),var(--accent))}
+.sd__gval{font-family:var(--font-ui);font-weight:700;font-size:.95rem;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
+@media(max-width:640px){.sd__grow{grid-template-columns:105px minmax(0,1fr)}.sd__gval{grid-column:2;justify-self:end;margin-top:-.3rem}}
+
+/* Maße & Fracht */
+.sd__dims{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:1.6rem}
+@media(max-width:760px){.sd__dims{grid-template-columns:1fr}}
+.sd__footbox{border:1px dashed color-mix(in srgb,var(--accent) 55%,transparent);background:color-mix(in srgb,var(--accent) 6%,transparent);
+  min-width:56px;max-width:100%;margin:.5rem 0 .45rem;position:relative}
+.sd__footbox::after{content:"";position:absolute;left:12%;right:12%;top:50%;height:1px;background:color-mix(in srgb,var(--accent) 35%,transparent)}
+.sd__footcap{font-size:.85rem;color:var(--muted)}
+.sd__cargonum{font-family:var(--font-ui);font-weight:700;font-size:1.7rem;color:var(--gold);font-variant-numeric:tabular-nums}
+.sd__cubes{display:flex;flex-wrap:wrap;gap:4px;margin:.55rem 0 .35rem}
+.sd__cube{width:15px;height:15px;background:color-mix(in srgb,var(--gold) 30%,transparent);border:1px solid color-mix(in srgb,var(--gold) 75%,transparent)}
+
+/* Hardpoint-Slots */
+.sd__hp{display:inline-grid;place-items:center;height:24px;min-width:calc(15px + var(--hs,1)*4px);padding:0 .3rem;
+  border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent);
+  font-family:var(--font-ui);font-weight:700;font-size:.78rem;line-height:1}
+.sd__hp--m{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 10%,transparent);color:var(--gold)}
+.sd__hpmore{font-family:var(--font-ui);font-weight:700;font-size:.8rem;color:var(--muted);align-self:center}
+.sd__hprow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+
+/* Komponenten-Slots */
+.sd__slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem}
+.sd__slot{border:1px solid var(--line);background:var(--bg-2);padding:.6rem .8rem}
+.sd__slot .t{font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.sd__slot .n{font-family:var(--font-ui);font-weight:700;font-size:1.02rem;color:var(--text);margin:.15rem 0 .3rem}
+
+/* Quantum-Chips */
+.sd__qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem 1.4rem}
+
+/* Versicherung */
+.sd__inscards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem}
+.sd__ins{border:1px solid var(--line);background:var(--bg-2);padding:.7rem .9rem}
+.sd__ins .t{font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.sd__ins .v{font-family:var(--font-ui);font-weight:700;font-size:1.35rem;font-variant-numeric:tabular-nums;color:var(--text);margin-top:.15rem}
+.sd__ins--gold .v{color:var(--gold)}
+
+/* System-Chips (Kauforte) */
+.sd__sys{display:inline-block;font-family:var(--font-ui);font-weight:700;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+  border:1px solid rgba(110,168,255,.4);color:var(--accent-2);padding:.1rem .4rem;margin-left:.5rem;vertical-align:1px}
+.sd__sys.sys-pyro{border-color:rgba(255,138,80,.45);color:#ff8a50}
+.sd__sys.sys-nyx{border-color:rgba(192,154,255,.45);color:#c09aff}
 </style>
 
 <SiteNav
@@ -361,7 +427,7 @@ span.sd__ref{color:var(--muted)}
             {prices!.buy.slice(0, MAX_ROWS).map((b) => (
               <div class="sd__shoprow">
                 <span class="sd__shopname">{b.shop}</span>
-                <span class="sd__shopwhere">{b.where}{b.system && ` · ${b.system}`}</span>
+                <span class="sd__shopwhere">{b.where}{b.system && <span class={`sd__sys sys-${b.system.toLowerCase()}`}>{b.system}</span>}</span>
                 <span class="sd__shopprice">{aUEC(b.price)}</span>
               </div>
             ))}
@@ -373,7 +439,7 @@ span.sd__ref{color:var(--muted)}
                 {prices!.buy.slice(MAX_ROWS).map((b) => (
                   <div class="sd__shoprow">
                     <span class="sd__shopname">{b.shop}</span>
-                    <span class="sd__shopwhere">{b.where}{b.system && ` · ${b.system}`}</span>
+                    <span class="sd__shopwhere">{b.where}{b.system && <span class={`sd__sys sys-${b.system.toLowerCase()}`}>{b.system}</span>}</span>
                     <span class="sd__shopprice">{aUEC(b.price)}</span>
                   </div>
                 ))}
@@ -391,7 +457,7 @@ span.sd__ref{color:var(--muted)}
             {prices!.rent.slice(0, 4).map((r) => (
               <div class="sd__shoprow">
                 <span class="sd__shopname">{r.shop}</span>
-                <span class="sd__shopwhere">{r.where}{r.system && ` · ${r.system}`}</span>
+                <span class="sd__shopwhere">{r.where}{r.system && <span class={`sd__sys sys-${r.system.toLowerCase()}`}>{r.system}</span>}</span>
                 <span class="sd__shopprice">{aUEC(r.price)} / Tag</span>
               </div>
             ))}
@@ -445,50 +511,218 @@ span.sd__ref{color:var(--muted)}
           </div>
         ))}
       </dl>
-      {armament.length > 0 && (
-        <div class="sd__group">
-          <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.bewaffnung} /></svg>Bewaffnung</h3>
-          <div class="sd__arm">
-            {armament.map((r) => (
+    </section>
+
+    <!-- MASSE & FRACHT -->
+    {(viz.dims || viz.cargo || viz.fuel.length > 0) && (
+      <section class="sd__panel" aria-label="Maße und Fracht">
+        <header class="sd__phead">
+          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.masse} /></svg>Maße &amp; Fracht</h2>
+          <span class="sd__code">RAUM&nbsp;//&nbsp;{d.makerCode ?? 'SCHIFF'}</span>
+        </header>
+        <div class="sd__dims">
+          <div>
+            {viz.dims && (
+              <>
+                <div class="sd__glabel">Draufsicht · maßstäblich zum größten Schiff im Katalog</div>
+                <div class="sd__footbox" style={`width:${viz.dims.footWidthPct}%;aspect-ratio:${viz.dims.footAspect}`} role="img"
+                  aria-label={`Grundriss ${viz.dims.l} m lang, ${viz.dims.w} m breit`}></div>
+                <div class="sd__footcap">L {viz.dims.l.toLocaleString('de-DE')} m · B {viz.dims.w.toLocaleString('de-DE')} m · H {viz.dims.h.toLocaleString('de-DE')} m</div>
+                <div class="sd__g" style="margin-top:.9rem">
+                  {viz.dims.bars.map((b) => (
+                    <div class="sd__grow">
+                      <span class="sd__glabel">{b.label}</span>
+                      <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
+                      <span class="sd__gval">{b.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          <div>
+            {viz.cargo && (
+              <>
+                <div class="sd__glabel">Frachtraum</div>
+                <div class="sd__cargonum">{viz.cargo.scu.toLocaleString('de-DE')} SCU</div>
+                <div class="sd__cubes">
+                  {Array.from({ length: viz.cargo.cubes }).map(() => <span class="sd__cube"></span>)}
+                </div>
+                <div class="sd__footcap">■ = {viz.cargo.cubeVal} SCU{viz.cargo.ore && ` · zusätzlich Erz: ${viz.cargo.ore.toLocaleString('de-DE')} SCU`}</div>
+              </>
+            )}
+            {viz.fuel.length > 0 && (
+              <div class="sd__g" style={viz.cargo ? 'margin-top:1.2rem' : ''}>
+                {viz.fuel.map((b) => (
+                  <div class="sd__grow">
+                    <span class="sd__glabel">{b.label}</span>
+                    <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
+                    <span class="sd__gval">{b.value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- BEWAFFNUNG -->
+    {(armament.length > 0 || viz.firepower.length > 0) && (
+      <section class="sd__panel" aria-label="Bewaffnung">
+        <header class="sd__phead">
+          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.bewaffnung} /></svg>Bewaffnung</h2>
+          <span class="sd__code">ARSENAL&nbsp;//&nbsp;{d.makerCode ?? 'SCHIFF'}</span>
+        </header>
+        {viz.firepower.length > 0 && (
+          <div class="sd__g" style="margin-bottom:1.1rem">
+            {viz.firepower.map((b) => (
+              <div class="sd__grow">
+                <span class="sd__glabel">{b.label}</span>
+                <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
+                <span class="sd__gval">{b.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <div class="sd__arm">
+          {armament.map((r) => {
+            const gold = r.label === 'Raketen';
+            return (
               <div class="sd__armrow">
                 <div class="sd__armhead">
                   <span class="sd__armlabel">{r.label}</span>
                   {r.meta && <span class="sd__armmeta">{r.meta}</span>}
                 </div>
                 <div class="sd__armmid">
-                  {r.chips.map((c) => (
-                    <span class="sd__chip">{c.label}{c.count > 1 && <i>×{c.count}</i>}</span>
-                  ))}
+                  <span class="sd__hprow">
+                    {r.chips.map((c) => {
+                      const s = parseInt(c.label.replace(/\D/g, ''), 10) || 1;
+                      const shown = Math.min(c.count, 10);
+                      return (
+                        <>
+                          {Array.from({ length: shown }).map(() => (
+                            <i class={`sd__hp${gold ? ' sd__hp--m' : ''}`} style={`--hs:${s}`}>{s}</i>
+                          ))}
+                          {c.count > shown && <span class="sd__hpmore">+{c.count - shown}</span>}
+                        </>
+                      );
+                    })}
+                  </span>
                   {r.items && <span class="sd__armitems">{r.items}</span>}
                 </div>
                 {r.value && <div class="sd__armval">{r.value}</div>}
               </div>
+            );
+          })}
+        </div>
+        <p class="sd__hint">Kästchen = Waffenaufhängung, Zahl = Größenklasse. Gold = Raketen/Torpedos.</p>
+      </section>
+    )}
+
+    <!-- FLUGLEISTUNG & QUANTUM -->
+    {(viz.speeds.length > 0 || viz.agility.length > 0 || viz.quantum.length > 0) && (
+      <section class="sd__panel" aria-label="Flugleistung und Quantum">
+        <header class="sd__phead">
+          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.flug} /></svg>Flugleistung</h2>
+          <span class="sd__code">ANTRIEB&nbsp;//&nbsp;{d.makerCode ?? 'SCHIFF'}</span>
+        </header>
+        {viz.speeds.length > 0 && (
+          <div class="sd__g">
+            {viz.speeds.map((b) => (
+              <div class="sd__grow">
+                <span class="sd__glabel">{b.label}</span>
+                <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
+                <span class="sd__gval">{b.value}</span>
+              </div>
             ))}
           </div>
-        </div>
-      )}
-      {groups.map((g) => {
-        const icon =
-          g.title === 'Verteidigung' ? IC.verteidigung :
-          g.title === 'Flug & Antrieb' ? IC.flug :
-          g.title === 'Quantum' ? IC.quantum :
-          g.title === 'Kernkomponenten' ? IC.kern :
-          g.title === 'Versicherung' ? IC.versicherung : IC.datenblatt;
-        return (
-          <div class="sd__group">
-            <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={icon} /></svg>{g.title}</h3>
-            <dl class="sd__grid">
-              {g.facts.map((f) => (
+        )}
+        {viz.agility.length > 0 && (
+          <>
+            <h3 class="sd__sub">Agilität</h3>
+            <div class="sd__g">
+              {viz.agility.map((b) => (
+                <div class="sd__grow">
+                  <span class="sd__glabel">{b.label}</span>
+                  <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
+                  <span class="sd__gval">{b.value}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+        {viz.quantum.length > 0 && (
+          <>
+            <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.quantum} /></svg>Quantum-Reise</h3>
+            <dl class="sd__qgrid">
+              {viz.quantum.map((q) => (
                 <div class="sd__item">
-                  <dt>{f.label}</dt>
-                  <dd>{f.value}</dd>
+                  <dt>{q.label}</dt>
+                  <dd>{q.value}</dd>
                 </div>
               ))}
             </dl>
+          </>
+        )}
+      </section>
+    )}
+
+    <!-- KOMPONENTEN & VERTEIDIGUNG -->
+    {(viz.defense.length > 0 || slots.length > 0) && (
+      <section class="sd__panel" aria-label="Komponenten und Verteidigung">
+        <header class="sd__phead">
+          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.kern} /></svg>Komponenten &amp; Verteidigung</h2>
+          <span class="sd__code">WERK&nbsp;//&nbsp;{d.makerCode ?? 'SCHIFF'}</span>
+        </header>
+        {viz.defense.length > 0 && (
+          <div class="sd__g" style={slots.length > 0 ? 'margin-bottom:1.1rem' : ''}>
+            {viz.defense.map((b) => (
+              <div class="sd__grow">
+                <span class="sd__glabel">{b.label}</span>
+                <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
+                <span class="sd__gval">{b.value}</span>
+              </div>
+            ))}
           </div>
-        );
-      })}
-    </section>
+        )}
+        {slots.length > 0 && (
+          <div class="sd__slots">
+            {slots.map(([t, items]) =>
+              items.map((it) => (
+                <div class="sd__slot">
+                  <div class="t">{t}</div>
+                  <div class="n">{it.name}</div>
+                  <span class="sd__hprow">
+                    {it.size != null && <i class="sd__hp" style={`--hs:${it.size}`}>{it.size}</i>}
+                    {it.count > 1 && <span class="sd__hpmore">×{it.count}</span>}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </section>
+    )}
+
+    <!-- VERSICHERUNG -->
+    {viz.insurance.length > 0 && (
+      <section class="sd__panel" aria-label="Versicherung">
+        <header class="sd__phead">
+          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.versicherung} /></svg>Versicherung</h2>
+          <span class="sd__code">SCHUTZ&nbsp;//&nbsp;UEE-Standard</span>
+        </header>
+        <div class="sd__inscards">
+          {viz.insurance.map((i) => (
+            <div class={`sd__ins${i.gold ? ' sd__ins--gold' : ''}`}>
+              <div class="t">{i.label}</div>
+              <div class="v">{i.value}</div>
+            </div>
+          ))}
+        </div>
+        <p class="sd__hint">Claim = kostenlose Wiederbeschaffung nach Verlust; Express verkürzt die Wartezeit gegen aUEC.</p>
+      </section>
+    )}
 
     <!-- LACKIERUNGEN -->
     {paints.length > 0 && (
