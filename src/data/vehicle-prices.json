@@ -1,0 +1,4642 @@
+{
+ "fetchedAt": "2026-07-03",
+ "source": "UEX Corp (uexcorp.space)",
+ "matched": 178,
+ "buyable": 178,
+ "prices": {
+  "anvl-hawk": {
+   "buy": [
+    {
+     "price": 2646000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-arrow": {
+   "buy": [
+    {
+     "price": 1984500,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 1984500,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-gladiator": {
+   "buy": [
+    {
+     "price": 4365900,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-hornet-f7cm": {
+   "buy": [
+    {
+     "price": 4762800,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-hornet-f7cr": {
+   "buy": [
+    {
+     "price": 3210480,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-hornet-f7cs": {
+   "buy": [
+    {
+     "price": 3307500,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-hurricane": {
+   "buy": [
+    {
+     "price": 5556600,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-terrapin": {
+   "buy": [
+    {
+     "price": 5433120,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 5433120,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-valkyrie": {
+   "buy": [
+    {
+     "price": 19845000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-ballista": {
+   "buy": [
+    {
+     "price": 1407670,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1481760,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-carrack": {
+   "buy": [
+    {
+     "price": 34398000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-c8x-pisces-expedition": {
+   "buy": [
+    {
+     "price": 515970,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-spartan": {
+   "buy": [
+    {
+     "price": 804384,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 846720,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-centurion": {
+   "buy": [
+    {
+     "price": 1106030,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1164240,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-c8-pisces": {
+   "buy": [
+    {
+     "price": 745290,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 18632,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 18632,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "anvl-hornet-f7c-wildfire": {
+   "buy": [
+    {
+     "price": 4630500,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-c8r-pisces": {
+   "buy": [
+    {
+     "price": 555660,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 13891,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 13891,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "xian-nox": {
+   "buy": [
+    {
+     "price": 722925,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "xian-scout": {
+   "buy": [
+    {
+     "price": 7229250,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "banu-defender": {
+   "buy": [
+    {
+     "price": 6237000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 155925,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "cnou-mustang-delta": {
+   "buy": [
+    {
+     "price": 1228500,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "cnou-mustang-gamma": {
+   "buy": [
+    {
+     "price": 1178100,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 29452,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "cnou-hoverquad": {
+   "buy": [
+    {
+     "price": 53865,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 56700,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "crus-starlifter-c2": {
+   "buy": [
+    {
+     "price": 18900000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 18900000,
+     "shop": "New Deal Crusader",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "espr-prowler": {
+   "buy": [
+    {
+     "price": 18711000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "vncl-blade": {
+   "buy": [
+    {
+     "price": 7796250,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "espr-talon": {
+   "buy": [
+    {
+     "price": 3260250,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "espr-talon-shrike": {
+   "buy": [
+    {
+     "price": 3260250,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "grin-ptv": {
+   "buy": [
+    {
+     "price": 28350,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "grin-stv": {
+   "buy": [
+    {
+     "price": 75600,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 75600,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 75600,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 75600,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    }
+   ],
+   "rent": [
+    {
+     "price": 1796,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1890,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 1890,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "krig-p52-merlin": {
+   "buy": [
+    {
+     "price": 283500,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "krig-p72-archimedes": {
+   "buy": [
+    {
+     "price": 449820,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "misc-razor-ex": {
+   "buy": [
+    {
+     "price": 1669820,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1757700,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "misc-razor-lx": {
+   "buy": [
+    {
+     "price": 1831410,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1927800,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "misc-fury": {
+   "buy": [
+    {
+     "price": 691268,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 727650,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "misc-fury-lx": {
+   "buy": [
+    {
+     "price": 824670,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "orig-300i": {
+   "buy": [
+    {
+     "price": 1375920,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 34398,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "orig-315p": {
+   "buy": [
+    {
+     "price": 1490580,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "orig-325a": {
+   "buy": [
+    {
+     "price": 1852200,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 46305,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "orig-m50": {
+   "buy": [
+    {
+     "price": 1424430,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1499400,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 37485,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "orig-350r": {
+   "buy": [
+    {
+     "price": 3748500,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "orig-600i": {
+   "buy": [
+    {
+     "price": 27231800,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 680793,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "orig-600i-touring": {
+   "buy": [
+    {
+     "price": 24938600,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "orig-100i": {
+   "buy": [
+    {
+     "price": 1089270,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1146600,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 28665,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "orig-135c": {
+   "buy": [
+    {
+     "price": 1490580,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "orig-890jump": {
+   "buy": [
+    {
+     "price": 62088400,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 65356200,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "orig-400i": {
+   "buy": [
+    {
+     "price": 8398060,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 8840070,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "crus-star-runner": {
+   "buy": [
+    {
+     "price": 12285000,
+     "shop": "New Deal Crusader",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "crus-starfighter-ion": {
+   "buy": [
+    {
+     "price": 4725000,
+     "shop": "New Deal Crusader",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "crus-starlifter-a2": {
+   "buy": [
+    {
+     "price": 37800200,
+     "shop": "New Deal Crusader",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 37800200,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "crus-starlifter-m2": {
+   "buy": [
+    {
+     "price": 28009800,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 29484000,
+     "shop": "New Deal Crusader",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "crus-starfighter-inferno": {
+   "buy": [
+    {
+     "price": 4725000,
+     "shop": "New Deal Crusader",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-hammerhead": {
+   "buy": [
+    {
+     "price": 34466600,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-avenger-stalker": {
+   "buy": [
+    {
+     "price": 1508220,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-avenger-titan": {
+   "buy": [
+    {
+     "price": 1290370,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1358280,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 27165,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 27165,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 27165,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ]
+  },
+  "aegs-avenger-warlock": {
+   "buy": [
+    {
+     "price": 2136640,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-eclipse": {
+   "buy": [
+    {
+     "price": 7541100,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-gladius": {
+   "buy": [
+    {
+     "price": 2262330,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 2381400,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-reclaimer": {
+   "buy": [
+    {
+     "price": 30164400,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 33339600,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-retaliator": {
+   "buy": [
+    {
+     "price": 7541100,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-sabre": {
+   "buy": [
+    {
+     "price": 4273290,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-vanguard": {
+   "buy": [
+    {
+     "price": 7354900,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-vanguard-hoplite": {
+   "buy": [
+    {
+     "price": 6645250,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-vanguard-harbinger": {
+   "buy": [
+    {
+     "price": 8200400,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-vanguard-sentinel": {
+   "buy": [
+    {
+     "price": 7776700,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-redeemer": {
+   "buy": [
+    {
+     "price": 9803430,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-avenger-titan-renegade": {
+   "buy": [
+    {
+     "price": 1759590,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-sabre-comet": {
+   "buy": [
+    {
+     "price": 4650340,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-gladius-valiant": {
+   "buy": [
+    {
+     "price": 2765070,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "argo-mole": {
+   "buy": [
+    {
+     "price": 8483740,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 9376760,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 212093,
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 212093,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 212094,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 212094,
+     "shop": "Traveler Everus",
+     "where": "Everus Harbor",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage HUR-L1",
+     "where": "HUR-L1 Green Glade Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage HUR-L2",
+     "where": "HUR-L2 Faithful Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage ARC-L4",
+     "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage CRU-L1",
+     "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Traveler Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage MIC-L5",
+     "where": "MIC-L5 Modern Icarus Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Traveler Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 223257,
+     "shop": "Traveler Baijini",
+     "where": "Baijini Point",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Traveler Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Traveler Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Traveler Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 223257,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 234419,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ]
+  },
+  "argo-mpuv": {
+   "buy": [
+    {
+     "price": 314213,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "argo-mpuv-transport": {
+   "buy": [
+    {
+     "price": 359100,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "argo-raft": {
+   "buy": [
+    {
+     "price": 3366560,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 3543750,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 67332,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "cnou-mustang-beta": {
+   "buy": [
+    {
+     "price": 622440,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "cnou-mustang-alpha": {
+   "buy": [
+    {
+     "price": 610470,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 642600,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 9158,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 9639,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 9639,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "cnou-nomad": {
+   "buy": [
+    {
+     "price": 1436400,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1587600,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 28728,
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 28728,
+     "shop": "Traveler Everus",
+     "where": "Everus Harbor",
+     "system": "Stanton"
+    },
+    {
+     "price": 30240,
+     "shop": "Traveler Baijini",
+     "where": "Baijini Point",
+     "system": "Stanton"
+    },
+    {
+     "price": 30240,
+     "shop": "Traveler Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 30240,
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 30240,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
+     "system": "Stanton"
+    },
+    {
+     "price": 30240,
+     "shop": "Traveler Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 30240,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 30240,
+     "shop": "Traveler Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 30240,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 30240,
+     "shop": "Traveler Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 30240,
+     "shop": "Traveler Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 30240,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    }
+   ]
+  },
+  "drak-buccaneer": {
+   "buy": [
+    {
+     "price": 1580040,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1663200,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 1663200,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 1663200,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    }
+   ],
+   "rent": [
+    {
+     "price": 39501,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "drak-caterpillar": {
+   "buy": [
+    {
+     "price": 11850300,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "drak-cutlass-black": {
+   "buy": [
+    {
+     "price": 2010960,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 50274,
+     "shop": "Traveler Everus",
+     "where": "Everus Harbor",
+     "system": "Stanton"
+    },
+    {
+     "price": 50274,
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 50274,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 50274,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Traveler Baijini",
+     "where": "Baijini Point",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage ARC-L4",
+     "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage MIC-L5",
+     "where": "MIC-L5 Modern Icarus Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Traveler Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage HUR-L1",
+     "where": "HUR-L1 Green Glade Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage HUR-L2",
+     "where": "HUR-L2 Faithful Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage CRU-L1",
+     "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Traveler Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 52920,
+     "shop": "Traveler Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 52920,
+     "shop": "Traveler Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 52920,
+     "shop": "Traveler Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 52920,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 52920,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    }
+   ]
+  },
+  "drak-cutlass-blue": {
+   "buy": [
+    {
+     "price": 3519180,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "drak-cutlass-red": {
+   "buy": [
+    {
+     "price": 2714800,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 2857680,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 2857680,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 2857680,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    }
+   ],
+   "rent": [
+    {
+     "price": 67870,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "drak-dragonfly": {
+   "buy": [
+    {
+     "price": 325584,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 342720,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 342720,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 342720,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    }
+   ],
+   "rent": [
+    {
+     "price": 8140,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 8568,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 8568,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "drak-herald": {
+   "buy": [
+    {
+     "price": 1220940,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "drak-cutlass-steel": {
+   "buy": [
+    {
+     "price": 3797480,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "drak-mule": {
+   "buy": [
+    {
+     "price": 64638,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 68040,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "drak-cutter": {
+   "buy": [
+    {
+     "price": 603288,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 635040,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 9049,
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 9050,
+     "shop": "Traveler Everus",
+     "where": "Everus Harbor",
+     "system": "Stanton"
+    },
+    {
+     "price": 9525,
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 9525,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
+     "system": "Stanton"
+    },
+    {
+     "price": 9525,
+     "shop": "Traveler Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 9525,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 9525,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 9525,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    },
+    {
+     "price": 9525,
+     "shop": "Traveler Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 9526,
+     "shop": "Traveler Baijini",
+     "where": "Baijini Point",
+     "system": "Stanton"
+    },
+    {
+     "price": 9526,
+     "shop": "Traveler Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 9526,
+     "shop": "Traveler Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 9526,
+     "shop": "Traveler Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 9526,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 15083,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "drak-corsair": {
+   "buy": [
+    {
+     "price": 6224400,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 155610,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "grin-roc": {
+   "buy": [
+    {
+     "price": 98753,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 103950,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 2468,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 2469,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage ARC-L4",
+     "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage MIC-L5",
+     "where": "MIC-L5 Modern Icarus Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage HUR-L1",
+     "where": "HUR-L1 Green Glade Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage HUR-L2",
+     "where": "HUR-L2 Faithful Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage CRU-L1",
+     "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    }
+   ]
+  },
+  "grin-roc-ds": {
+   "buy": [
+    {
+     "price": 134663,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 141750,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "misc-razor": {
+   "buy": [
+    {
+     "price": 1770360,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 46588,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "misc-fury-miru": {
+   "buy": [
+    {
+     "price": 691268,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "misc-freelancer-dur": {
+   "buy": [
+    {
+     "price": 3151100,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 3316950,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "misc-freelancer-max": {
+   "buy": [
+    {
+     "price": 4039880,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 80797,
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 80798,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 80798,
+     "shop": "Traveler Everus",
+     "where": "Everus Harbor",
+     "system": "Stanton"
+    },
+    {
+     "price": 85050,
+     "shop": "Traveler Baijini",
+     "where": "Baijini Point",
+     "system": "Stanton"
+    },
+    {
+     "price": 85050,
+     "shop": "Traveler Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 85050,
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 85050,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
+     "system": "Stanton"
+    },
+    {
+     "price": 85050,
+     "shop": "Traveler Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 85050,
+     "shop": "Traveler Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 85050,
+     "shop": "Traveler Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 85050,
+     "shop": "Traveler Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 85050,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    }
+   ]
+  },
+  "misc-freelancer-mis": {
+   "buy": [
+    {
+     "price": 4713190,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "misc-reliant": {
+   "buy": [
+    {
+     "price": 1633900,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1719900,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 40848,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "misc-starfarer": {
+   "buy": [
+    {
+     "price": 12568500,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 13891500,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "misc-starfarer-gemini": {
+   "buy": [
+    {
+     "price": 14244300,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "misc-prospector": {
+   "buy": [
+    {
+     "price": 2783020,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 2929500,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 2929500,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 2929500,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    }
+   ],
+   "rent": [
+    {
+     "price": 69575,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 69575,
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 69576,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 69576,
+     "shop": "Traveler Everus",
+     "where": "Everus Harbor",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage ARC-L4",
+     "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage MIC-L5",
+     "where": "MIC-L5 Modern Icarus Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage HUR-L1",
+     "where": "HUR-L1 Green Glade Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage HUR-L2",
+     "where": "HUR-L2 Faithful Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage CRU-L1",
+     "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Traveler Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Traveler Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
+     "shop": "Traveler Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 73238,
+     "shop": "Traveler Baijini",
+     "where": "Baijini Point",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 73238,
+     "shop": "Traveler Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
+     "shop": "Traveler Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 73238,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    }
+   ]
+  },
+  "misc-reliant-mako": {
+   "buy": [
+    {
+     "price": 2388020,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "misc-reliant-sen": {
+   "buy": [
+    {
+     "price": 2136640,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "misc-reliant-tana": {
+   "buy": [
+    {
+     "price": 1885280,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "misc-hull-a": {
+   "buy": [
+    {
+     "price": 1615950,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1701000,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 32319,
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 32319,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 32319,
+     "shop": "Traveler Everus",
+     "where": "Everus Harbor",
+     "system": "Stanton"
+    },
+    {
+     "price": 34020,
+     "shop": "Traveler Baijini",
+     "where": "Baijini Point",
+     "system": "Stanton"
+    },
+    {
+     "price": 34020,
+     "shop": "Traveler Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 34020,
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 34020,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
+     "system": "Stanton"
+    },
+    {
+     "price": 34020,
+     "shop": "Traveler Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 34020,
+     "shop": "Traveler Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 34020,
+     "shop": "Traveler Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 34020,
+     "shop": "Traveler Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 34020,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 68040,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ]
+  },
+  "misc-hull-c": {
+   "buy": [
+    {
+     "price": 15710600,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "drak-vulture": {
+   "buy": [
+    {
+     "price": 2513700,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 2646000,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 2646000,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 2646000,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    },
+    {
+     "price": 2778300,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 69457,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ]
+  },
+  "orig-85x": {
+   "buy": [
+    {
+     "price": 544635,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "orig-125a": {
+   "buy": [
+    {
+     "price": 1508220,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-constellation-phoenix": {
+   "buy": [
+    {
+     "price": 14076700,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-aurora-gs-es": {
+   "buy": [
+    {
+     "price": 402192,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 402192,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 6350,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 6350,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 10055,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "rsi-aurora-gs-mr": {
+   "buy": [
+    {
+     "price": 646380,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 16160,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 17010,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 17010,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "rsi-constellation-andromeda": {
+   "buy": [
+    {
+     "price": 9652610,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 254016,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "rsi-constellation-aquila": {
+   "buy": [
+    {
+     "price": 11577400,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-ursa-rover": {
+   "buy": [
+    {
+     "price": 107730,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 2835,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    },
+    {
+     "price": 2835,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 2835,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "rsi-aurora-gs-lx": {
+   "buy": [
+    {
+     "price": 653562,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-mantis": {
+   "buy": [
+    {
+     "price": 3231900,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-aurora-gs-cl": {
+   "buy": [
+    {
+     "price": 969570,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 969570,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 19392,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 20412,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 20412,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "rsi-aurora-gs-ln": {
+   "buy": [
+    {
+     "price": 861840,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 21546,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 22680,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 22680,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "rsi-constellation-taurus": {
+   "buy": [
+    {
+     "price": 7641650,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 7641650,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 160876,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "rsi-scorpius": {
+   "buy": [
+    {
+     "price": 5171040,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-scorpius-antares": {
+   "buy": [
+    {
+     "price": 4955580,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "tmbl-cyclone-aa": {
+   "buy": [
+    {
+     "price": 143640,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "tmbl-cyclone": {
+   "buy": [
+    {
+     "price": 98753,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 103950,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 103950,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 103950,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    }
+   ],
+   "rent": [
+    {
+     "price": 2469,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "tmbl-cyclone-rc": {
+   "buy": [
+    {
+     "price": 116708,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "tmbl-cyclone-rn": {
+   "buy": [
+    {
+     "price": 116708,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "tmbl-cyclone-tr": {
+   "buy": [
+    {
+     "price": 116708,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "tmbl-nova": {
+   "buy": [
+    {
+     "price": 861840,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 907200,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 907200,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 907200,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    }
+   ],
+   "rent": []
+  },
+  "tmbl-cyclone-mt": {
+   "buy": [
+    {
+     "price": 134663,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-hornet-f7c": {
+   "buy": [
+    {
+     "price": 2910600,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "crus-spirit-a1": {
+   "buy": [
+    {
+     "price": 4961250,
+     "shop": "New Deal Crusader",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "crus-spirit-c1": {
+   "buy": [
+    {
+     "price": 3118500,
+     "shop": "New Deal Crusader",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 62370,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 62370,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "xnaa-santokyai": {
+   "buy": [
+    {
+     "price": 9355500,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "drak-cutter-scout": {
+   "buy": [
+    {
+     "price": 670320,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "gama-syulen": {
+   "buy": [
+    {
+     "price": 2082500,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "orig-x1-velocity": {
+   "buy": [
+    {
+     "price": 113117,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 119070,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "orig-x1-force": {
+   "buy": [
+    {
+     "price": 125685,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 132300,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "orig-x1": {
+   "buy": [
+    {
+     "price": 105840,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "argo-srv": {
+   "buy": [
+    {
+     "price": 3770550,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 3969000,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "drak-cutter-rambler": {
+   "buy": [
+    {
+     "price": 703836,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "tmbl-storm-aa": {
+   "buy": [
+    {
+     "price": 452466,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "tmbl-storm": {
+   "buy": [
+    {
+     "price": 430920,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "aegs-sabre-firebird": {
+   "buy": [
+    {
+     "price": 5580410,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "argo-atls": {
+   "buy": [
+    {
+     "price": 71820,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 75600,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 75600,
+     "shop": "New Deal Crusader",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 75600,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 75600,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 75600,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    },
+    {
+     "price": 75600,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "mrai-pulse": {
+   "buy": [
+    {
+     "price": 175959,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 185220,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-ursa-medivac": {
+   "buy": [
+    {
+     "price": 118503,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 118503,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 3118,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ]
+  },
+  "argo-mpuv-1t": {
+   "buy": [
+    {
+     "price": 395010,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 415800,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 9875,
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 9876,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 9876,
+     "shop": "Traveler Everus",
+     "where": "Everus Harbor",
+     "system": "Stanton"
+    },
+    {
+     "price": 10395,
+     "shop": "Traveler Baijini",
+     "where": "Baijini Point",
+     "system": "Stanton"
+    },
+    {
+     "price": 10395,
+     "shop": "Traveler Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 10395,
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 10395,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
+     "system": "Stanton"
+    },
+    {
+     "price": 10395,
+     "shop": "Traveler Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 10395,
+     "shop": "Traveler Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 10395,
+     "shop": "Traveler Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 10395,
+     "shop": "Traveler Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 10395,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    }
+   ]
+  },
+  "aegs-sabre-peregrine": {
+   "buy": [
+    {
+     "price": 3845960,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-hornet-f7c-mk2": {
+   "buy": [
+    {
+     "price": 4650340,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-zeus-es": {
+   "buy": [
+    {
+     "price": 4201470,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-zeus-cl": {
+   "buy": [
+    {
+     "price": 6463800,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "misc-starlancer-max": {
+   "buy": [
+    {
+     "price": 8379000,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 8820000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "argo-csv-cargo": {
+   "buy": [
+    {
+     "price": 359100,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 378000,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 378000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 378000,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 378000,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    },
+    {
+     "price": 378000,
+     "shop": "New Deal Crusader",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-lynx": {
+   "buy": [
+    {
+     "price": 129276,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "mrai-pulse-lx": {
+   "buy": [
+    {
+     "price": 201096,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 211680,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "crus-intrepid": {
+   "buy": [
+    {
+     "price": 1173060,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1234800,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 1234800,
+     "shop": "New Deal Crusader",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-terrapin-medic": {
+   "buy": [
+    {
+     "price": 5704770,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "argo-atls-geo": {
+   "buy": [
+    {
+     "price": 86184,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 90720,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 90720,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    },
+    {
+     "price": 90720,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 90720,
+     "shop": "New Deal Crusader",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 90720,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 90720,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "misc-fortune": {
+   "buy": [
+    {
+     "price": 1795500,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1890000,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 1890000,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    },
+    {
+     "price": 1890000,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 1984500,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 28350,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    },
+    {
+     "price": 28350,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage CRU-L1",
+     "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage HUR-L1",
+     "where": "HUR-L1 Green Glade Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage HUR-L2",
+     "where": "HUR-L2 Faithful Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage MIC-L5",
+     "where": "MIC-L5 Modern Icarus Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage ARC-L4",
+     "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 28350,
+     "shop": "Vantage Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    }
+   ]
+  },
+  "drak-golem": {
+   "buy": [
+    {
+     "price": 1005480,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1058400,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 1058400,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    },
+    {
+     "price": 1058400,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 1111320,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 15082,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 15083,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    },
+    {
+     "price": 15876,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage CRU-L1",
+     "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage HUR-L1",
+     "where": "HUR-L1 Green Glade Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage HUR-L2",
+     "where": "HUR-L2 Faithful Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage MIC-L5",
+     "where": "MIC-L5 Modern Icarus Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage ARC-L4",
+     "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 15876,
+     "shop": "Vantage Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    }
+   ]
+  },
+  "mrai-guardian": {
+   "buy": [
+    {
+     "price": 6284250,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 6615000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-hornet-f7cs-mk2": {
+   "buy": [
+    {
+     "price": 5115370,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-hornet-f7cr-mk2": {
+   "buy": [
+    {
+     "price": 4882860,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "misc-freelancer": {
+   "buy": [
+    {
+     "price": 2962580,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 59252,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "misc-starlancer-tac": {
+   "buy": [
+    {
+     "price": 13381200,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 13381200,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "grin-mtc": {
+   "buy": [
+    {
+     "price": 75600,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 75600,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 75600,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 75600,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-asgard": {
+   "buy": [
+    {
+     "price": 17860500,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "espr-prowler-utility": {
+   "buy": [
+    {
+     "price": 16839000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 336780,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 336780,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    },
+    {
+     "price": 336780,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 336780,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    },
+    {
+     "price": 336780,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "mrai-guardian-mx": {
+   "buy": [
+    {
+     "price": 7038360,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 7408800,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-meteor": {
+   "buy": [
+    {
+     "price": 4309200,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "krig-l21-wolf": {
+   "buy": [
+    {
+     "price": 2381400,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-apollo-medivac": {
+   "buy": [
+    {
+     "price": 8295210,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 218295,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 218295,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 218295,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    },
+    {
+     "price": 218295,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "rsi-apollo-triage": {
+   "buy": [
+    {
+     "price": 7541100,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 198450,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 198450,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 198450,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    },
+    {
+     "price": 198450,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "glsn-shiv": {
+   "buy": [
+    {
+     "price": 5556600,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "vncl-stinger": {
+   "buy": [
+    {
+     "price": 8930250,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "anvl-paladin": {
+   "buy": [
+    {
+     "price": 15876000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-perseus": {
+   "buy": [
+    {
+     "price": 39680000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "drak-clipper": {
+   "buy": [
+    {
+     "price": 3619730,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 3810240,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    },
+    {
+     "price": 3810240,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 3810240,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 3810240,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    }
+   ],
+   "rent": [
+    {
+     "price": 90493,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 90494,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage CRU-L1",
+     "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage HUR-L2",
+     "where": "HUR-L2 Faithful Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage MIC-L5",
+     "where": "MIC-L5 Modern Icarus Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage ARC-L4",
+     "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage HUR-L1",
+     "where": "HUR-L1 Green Glade Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 95256,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 95256,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "rsi-hermes": {
+   "buy": [
+    {
+     "price": 7110180,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 187110,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 187110,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    },
+    {
+     "price": 187110,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 187110,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "rsi-salvation": {
+   "buy": [
+    {
+     "price": 1185030,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 31185,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Baijini",
+     "where": "Baijini Point",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 31185,
+     "shop": "Regal NBIS",
+     "where": "New Babbage",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage CRU-L1",
+     "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage HUR-L2",
+     "where": "HUR-L2 Faithful Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage MIC-L5",
+     "where": "MIC-L5 Modern Icarus Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage ARC-L4",
+     "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage HUR-L1",
+     "where": "HUR-L1 Green Glade Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Everus",
+     "where": "Everus Harbor",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Traveler Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 31185,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    }
+   ]
+  },
+  "grin-mdc": {
+   "buy": [
+    {
+     "price": 127575,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 127575,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 127575,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    },
+    {
+     "price": 127575,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    }
+   ],
+   "rent": []
+  }
+ }
+}
