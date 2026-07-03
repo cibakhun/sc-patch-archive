@@ -17,8 +17,10 @@ interface Crumb {
 interface Props {
   crumbs?: Crumb[];
   pill?: string;
+  /** hat DIESE Seite ein EN-Gegenstück? -> steuert den Umschalter (kein 404) */
+  hasEn?: boolean;
 }
-const { crumbs = [], pill } = Astro.props;
+const { crumbs = [], pill, hasEn = false } = Astro.props;
 
 // Locale aus dem Pfad; t() + L() halten Chrome/Links in der aktiven Sprache.
 // Für DE liefern beide exakt die bisherigen Werte -> DE-Ausgabe unverändert.
@@ -126,7 +128,7 @@ const current = Astro.url.pathname;
       </div>
     </details>
     {pill && <span class="snav__pill">{pill}</span>}
-    <LangSwitcher />
+    <LangSwitcher hasEn={hasEn} />
     <details class="snav__dd snav__menu">
       <summary aria-label={t('nav.menu.open')}>
         <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>

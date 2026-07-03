@@ -1,0 +1,71 @@
+---
+// English landing (/en/index.html) — Stufe 1 scaffold.
+// Purpose: give the /en/ tree a real root, prove the switcher round-trip, and
+// point at the translated example. Full homepage translation = Stufe 3.
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import { I18N_EN_SHIPS } from '../../consts';
+
+const exampleId = I18N_EN_SHIPS[0];
+---
+<Layout
+  title="Star Citizen Patch Archive — English (preview)"
+  description="English edition of the Star Citizen patch archive — currently rolling out. A fan project."
+  themeColor="#05070d"
+  footer={true}
+  translated={true}
+>
+<style is:inline>
+  :root{
+    --bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;
+    --accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;
+    --line:rgba(110,168,255,.16);
+    --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
+    --maxw:1100px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:8rem clamp(1.25rem,5vw,3rem) 5rem}
+  .eyebrow{font-family:var(--font-ui);font-weight:700;letter-spacing:.28em;text-transform:uppercase;font-size:.8rem;color:var(--accent-2)}
+  h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2.2rem,6vw,3.6rem);line-height:1.02;margin:.6rem 0 1rem}
+  .lede{max-width:60ch;font-size:1.1rem;color:var(--text);opacity:.92}
+  .note{margin-top:1.6rem;max-width:64ch;font-size:.95rem;color:var(--muted);border-left:2px solid var(--line);padding-left:1rem}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-top:2.4rem}
+  .card{display:block;border:1px solid var(--line);border-top:2px solid var(--accent);background:var(--surface);padding:1.2rem 1.4rem;transition:border-color .15s,transform .15s}
+  .card:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .card .k{font-family:var(--font-ui);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;color:var(--accent)}
+  .card .t{font-family:var(--font-display);font-weight:700;font-size:1.1rem;margin-top:.35rem}
+  .card .s{font-size:.9rem;color:var(--muted);margin-top:.3rem}
+</style>
+
+<SiteNav crumbs={[{ label: 'Archive', href: '/index.html' }, { label: 'English' }]} pill="EN · PREVIEW" hasEn={true} />
+
+<main class="wrap">
+  <div class="eyebrow">Star Citizen · Patch Archive</div>
+  <h1>English edition — rolling out</h1>
+  <p class="lede">
+    The archive documents every Star Citizen patch from Alpha 4.0.0 to 4.8.2. The
+    English edition is being built out patch by patch — the UI, navigation and
+    search already run bilingually; long-form pages follow.
+  </p>
+  <p class="note">
+    Use the DE / EN switch in the top navigation on any page to jump between
+    languages while staying on the same page. Pages without an English version
+    yet will fall back to German.
+  </p>
+
+  <div class="cards">
+    <a class="card" href={`/en/schiffe/${exampleId}.html`}>
+      <div class="k">Ship data sheet</div>
+      <div class="t">Translated example</div>
+      <div class="s">A full ship page rendered from the data layer in English.</div>
+    </a>
+    <a class="card" href="/index.html">
+      <div class="k">Deutsch</div>
+      <div class="t">German archive</div>
+      <div class="s">The complete archive — patches, topics, ships.</div>
+    </a>
+  </div>
+</main>
+</Layout>
