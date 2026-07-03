@@ -4,6 +4,7 @@
 // in the body — valid for structured-data crawlers.
 import type { CollectionEntry } from 'astro:content';
 import { SITE } from '../../consts';
+import { HTML_LANG, localeFromPath } from '../../i18n/ui';
 
 interface Props {
   patch: CollectionEntry<'patches'>['data'];
@@ -14,6 +15,7 @@ const { patch, image } = Astro.props;
 
 const base = SITE.url.replace(/\/$/, '');
 const url = base + Astro.url.pathname;
+const lang = localeFromPath(Astro.url.pathname);
 const ld = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -21,7 +23,7 @@ const ld = {
   description: patch.tagline,
   ...(image ? { image: base + image } : {}),
   url,
-  inLanguage: 'de',
+  inLanguage: HTML_LANG[lang],
   datePublished: patch.date,
   isPartOf: { '@type': 'WebSite', name: SITE.name, url: `${base}/` },
   publisher: { '@type': 'Organization', name: SITE.name },

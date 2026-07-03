@@ -9,6 +9,7 @@ import SearchOverlay from './SearchOverlay.astro';
 import LangSwitcher from './LangSwitcher.astro';
 import { SITE } from '../consts';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
+import { eraLabel } from '../i18n/patchText';
 
 interface Crumb {
   label: string;
@@ -93,7 +94,7 @@ const current = Astro.url.pathname;
       <div class="snav__panel">
         {eras.map((era) => (
           <div class="snav__group">
-            <div class="snav__ghead">{era}</div>
+            <div class="snav__ghead">{eraLabel(era, lang)}</div>
             {patches
               .filter((p) => p.data.era === era)
               .map((p) => {
