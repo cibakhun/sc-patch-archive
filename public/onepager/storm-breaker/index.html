@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stormbreaker Visual Guide | Star Citizen 4.2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Teko:wght@400;600&family=Rajdhani:wght@500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --surface: #151b2b;
+            --border: #2a3b5c;
+            --accent-red: #ff3b3b;
+            --accent-blue: #00e5ff;
+            --accent-green: #00ff66;
+            --accent-yellow: #ffcc00;
+            --text-main: #e2e8f0;
+            --text-dim: #94a3b8;
+
+            --font-head: 'Teko', sans-serif;
+            --font-body: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            line-height: 1.5;
+            background-image:
+                radial-gradient(circle at top, #1a233a 0%, var(--bg-color) 60%),
+                linear-gradient(rgba(0, 0, 0, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.5) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero-banner {
+            width: 100%;
+            height: 350px;
+            position: relative;
+            background: url('assets/star-citizen-32-9-weather-banner.webp') center/cover;
+            border-bottom: 4px solid var(--accent-red);
+            display: flex;
+            align-items: flex-end;
+            padding: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(11, 15, 25, 1) 0%, rgba(11, 15, 25, 0) 100%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            font-family: var(--font-head);
+            font-size: 6rem;
+            line-height: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 59, 59, 0.5);
+            margin-bottom: 0.5rem;
+        }
+
+        .badge {
+            background: rgba(255, 59, 59, 0.15);
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+            font-family: var(--font-mono);
+            padding: 4px 12px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: inline-block;
+        }
+
+        /* Grid Layout */
+        .section-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .col-map {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .col-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .map-img {
+            width: 100%;
+            height: auto;
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.1));
+        }
+
+        h2 {
+            font-family: var(--font-head);
+            font-size: 3rem;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before {
+            content: '////';
+            margin-right: 15px;
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            opacity: 0.5;
+        }
+
+        /* Visual Cards */
+        .v-card {
+            background: rgba(21, 27, 43, 0.8);
+            border-left: 4px solid var(--accent-blue);
+            padding: 1.5rem;
+        }
+
+        .v-card.red {
+            border-left-color: var(--accent-red);
+        }
+
+        .v-card.green {
+            border-left-color: var(--accent-green);
+        }
+
+        .v-card.yellow {
+            border-left-color: var(--accent-yellow);
+        }
+
+        .v-card-title {
+            font-family: var(--font-mono);
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        /* Flow Diagrams */
+        .flow-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .flow-step {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .step-badge {
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            color: var(--bg-color);
+            background: var(--text-dim);
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.8rem;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        .v-card.blue .step-badge {
+            background: var(--accent-blue);
+            color: #000;
+        }
+
+        .v-card.red .step-badge {
+            background: var(--accent-red);
+            color: #000;
+        }
+
+        .v-card.green .step-badge {
+            background: var(--accent-green);
+            color: #000;
+        }
+
+        .v-card .step-badge {
+            background: var(--accent-blue);
+            color: #000;
+        }
+
+        .real-img-container {
+            margin-top: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #000;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .real-img-container img {
+            max-width: 120px;
+            height: auto;
+            border: 1px solid var(--border);
+        }
+
+        .real-img-text {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .flow-step .text {
+            font-size: 1rem;
+            color: var(--text-main);
+        }
+
+        .flow-step .text strong {
+            color: var(--accent-blue);
+        }
+
+        .flow-arrow {
+            font-family: var(--font-mono);
+            color: var(--text-dim);
+            font-size: 1.5rem;
+        }
+
+        /* Rules & Alerts */
+        .alert-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            background: rgba(255, 204, 0, 0.1);
+            border: 1px solid var(--accent-yellow);
+            padding: 1rem;
+            color: var(--text-main);
+            font-size: 1.1rem;
+        }
+
+        /* Periodic Puzzle specific */
+        .periodic-row {
+            display: flex;
+            align-items: stretch;
+            gap: 1rem;
+            background: #000;
+            padding: 1rem;
+            border: 1px solid #333;
+            margin-top: 1rem;
+        }
+
+        .periodic-grid {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .element {
+            width: 70px;
+            height: 70px;
+            border: 2px solid #333;
+            display: flex;
+            flex-direction: column;
+            padding: 5px;
+            background: #111;
+            position: relative;
+        }
+
+        .element.highlight {
+            border-color: var(--accent-green);
+            background: rgba(0, 255, 102, 0.1);
+            box-shadow: inset 0 0 15px rgba(0, 255, 102, 0.2), 0 0 10px rgba(0, 255, 102, 0.2);
+        }
+
+        .element .atomic-number {
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            color: var(--text-dim);
+            line-height: 1;
+        }
+
+        .element.highlight .atomic-number {
+            color: var(--accent-green);
+            font-weight: bold;
+        }
+
+        .element .symbol {
+            font-family: var(--font-head);
+            font-size: 2rem;
+            color: #555;
+            line-height: 1;
+            margin-top: auto;
+            text-align: right;
+        }
+
+        .element.highlight .symbol {
+            color: #fff;
+        }
+
+        .code-result {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding-left: 1rem;
+            border-left: 2px dashed #333;
+            font-family: var(--font-mono);
+            color: var(--text-dim);
+        }
+
+        .code-result span {
+            font-size: 2.5rem;
+            color: var(--accent-green);
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
+            line-height: 1;
+        }
+
+        /* Hazard Bar */
+        .hazard-bar {
+            background: #000;
+            border: 1px solid #333;
+            height: 20px;
+            width: 100%;
+            margin-top: 5px;
+            position: relative;
+        }
+
+        .hazard-fill {
+            height: 100%;
+            background: repeating-linear-gradient(45deg,
+                    var(--accent-red),
+                    var(--accent-red) 10px,
+                    #990000 10px,
+                    #990000 20px);
+            width: 95%;
+            box-shadow: 0 0 15px rgba(255, 59, 59, 0.5);
+        }
+
+        .om-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 1rem 0;
+            background: #000;
+            padding: 1rem;
+        }
+
+        .om-node {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-family: var(--font-mono);
+            border: 1px solid var(--text-dim);
+            color: var(--text-main);
+        }
+
+        .om-node.safe {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+            background: rgba(0, 255, 102, 0.1);
+        }
+
+        .om-node.danger {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .boss-phases {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 1024px) {
+            .section-split {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-row {
+                flex-direction: column;
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="hero-banner">
+        <div class="hero-content">
+            <div class="badge">ONE-PAGE VISUAL GUIDE // V 1.0</div>
+            <h1>STORMBREAKER</h1>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- PHASE 1: FARRO -->
+        <h2 style="color: #fff;">PHASE 1: FARRO DATA CENTERS (PYRO IV)</h2>
+        <div class="section-split">
+
+            <div class="col-info">
+
+                <div class="alert-box">
+                    <div style="font-size: 2rem;">⏳</div>
+                    <div>
+                        <strong>FACILITY RULES:</strong> Only <strong>1 Data Processing Keycard</strong> spawns per
+                        facility per hour.<br>
+                        <em>Tip: You can board these cards at multiple sites and bring them into one instance!</em>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; margin-bottom: 2rem;">
+                    <h3
+                        style="color: var(--text-main); font-family: var(--font-mono); font-size: 1.5rem; margin-bottom: 0.5rem; letter-spacing: 1px;">
+                        ► STEP 1: ASSEMBLE THE FARRO KEYCARD</h3>
+                    <p style="color: var(--text-dim);">To access the Data Room and start the Stormbreaker event, you
+                        must complete all three facility routes (<strong>Stealth</strong>, <strong>Maintenance</strong>,
+                        and <strong>Security</strong>). All three are essential to acquire the Farro Data Processing
+                        Keycard.</p>
+                </div>
+
+                <div class="v-card">
+                    <div class="v-card-title">METHOD A: THE STEALTH ROUTE</div>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">The easiest way deep into the facility
+                        without raising alarms.</p>
+                    <div class="flow-row">
+                        <div class="flow-step">
+                            <div class="step-badge">01</div>
+                            <div class="text">Acquire<br><strong>Lab Coat</strong><br><span
+                                    style="font-size:0.8rem; color:#888;">(Knockout Scientist)</span></div>
+                        </div>
+                        <div class="flow-arrow">></div>
+                        <div class="flow-step">
+                            <div class="step-badge">02</div>
+                            <div class="text">Enter safely into<br><strong>Exec Lounge</strong></div>
+                        </div>
+                        <div class="flow-arrow">></div>
+                        <div class="flow-step">
+                            <div class="step-badge">03</div>
+                            <div class="text">Read Terminal for<br><strong style="color: var(--accent-green);">4-Digit
+                                    Safe Code</strong></div>
+                        </div>
+                    </div>
+                    <div class="real-img-container">
+                        <img src="assets/actual_labcoat.png" alt="Esteril Lab Coat In-Game">
+                        <div class="real-img-text">
+                            <strong style="color: var(--accent-blue);">ITEM VISUAL: ESTERIL LAB COAT</strong><br>
+                            Equip this specific white and orange jacket found on scientists to completely bypass Level 2
+                            Security scans.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="v-card" style="border-left-color: #888;">
+                    <div class="v-card-title">METHOD B: THE MAINTENANCE ROUTE</div>
+                    <div class="flow-row">
+                        <div class="flow-step">
+                            <div class="step-badge">01</div>
+                            <div class="text">Find ASD<br><strong>Maintenance Keycard</strong></div>
+                        </div>
+                        <div class="flow-arrow">></div>
+                        <div class="flow-step">
+                            <div class="step-badge">02</div>
+                            <div class="text">Unlock Emergency<br><strong>Shelter Building</strong></div>
+                        </div>
+                        <div class="flow-arrow">></div>
+                        <div class="flow-step">
+                            <div class="step-badge">03</div>
+                            <div class="text">Loot Box for<br><strong>Data Processing Card</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 3rem; margin-bottom: 2rem;">
+                    <h3
+                        style="color: var(--text-main); font-family: var(--font-mono); font-size: 1.5rem; margin-bottom: 0.5rem; letter-spacing: 1px;">
+                        ► STEP 2: PRINT THE SPECIMEN ACCESS CARD</h3>
+                    <p style="color: var(--text-dim);">Once you have the Data Processing Keycard, take it directly into
+                        the Data Room to begin the printing process. This is the item required for Phase 2.</p>
+                </div>
+
+                <div class="v-card red">
+                    <div class="v-card-title">SECURITY LVL 03: PRINTING THE CARD</div>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">This triggers a massive security response.
+                        Prepare to fight.</p>
+                    <div class="flow-row" style="background: rgba(255,0,0,0.1); border-color: rgba(255,0,0,0.3);">
+                        <div class="flow-step">
+                            <div class="step-badge">01</div>
+                            <div class="text">Find <strong>5-Digit Code</strong><br>on Data Room Laptop</div>
+                        </div>
+                        <div class="flow-arrow" style="color: var(--accent-red);">></div>
+                        <div class="flow-step">
+                            <div class="step-badge">02</div>
+                            <div class="text">Defend for <strong>5 Mins</strong>.<br><strong
+                                    style="color: var(--accent-yellow);">Confirm at 50%!</strong></div>
+                        </div>
+                        <div class="flow-arrow" style="color: var(--accent-red);">></div>
+                        <div class="flow-step">
+                            <div class="step-badge">03</div>
+                            <div class="text">Take Printed<br><strong style="color: var(--accent-green);">Specimen
+                                    Access Card</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Farro Map Column -->
+            <div class="col-map">
+                <div class="badge" style="position: absolute; top: -15px; right: 20px; background: var(--bg-color);">
+                    FARRO BLUEPRINT</div>
+                <img src="assets/farro_map.png" alt="Farro Map" class="map-img">
+                <div style="margin-top: 1.5rem; color: var(--text-dim); font-size: 0.9rem; text-align: center;">
+                    <em>(Reference layout. Specific rooms like Exec Lounge and Data Processing vary by site.)</em>
+                </div>
+                <div class="alert-box"
+                    style="margin-top: 1.5rem; background: rgba(0, 229, 255, 0.1); border-color: var(--accent-blue);">
+                    <div style="font-size: 1.5rem;">🚙</div>
+                    <div style="text-align: left; font-size: 0.95rem;">
+                        <strong style="color: var(--accent-blue);">TRAM CENTERS & LOOT</strong><br>
+                        Typically, take a vehicle to the tram centers! There is lots of loot to be found, but you have
+                        to find keycards to open up the garages.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <hr style="border: none; border-top: 1px dashed var(--border); margin: 3rem 0;">
+
+
+        <!-- PHASE 2: LAZARUS -->
+        <h2>PHASE 2: LAZARUS LABS (PYRO I)</h2>
+        <div class="section-split">
+
+            <div class="col-info">
+
+                <div class="v-card yellow">
+                    <div class="v-card-title">SAFE APPROACH (ORBITAL MARKERS)</div>
+                    <p style="color: var(--text-dim);">Lazarus Labs are surrounded by lethal distortion fields that drop
+                        you from QT and destroy vehicles. Approach from the designated safe OM routes:</p>
+
+                    <div class="om-diagram">
+                        <strong>PHOENIX:</strong>
+                        <div class="om-node safe">OM-1</div>
+                        <div class="flow-arrow">></div>
+                        <div class="om-node safe">OM-3</div>
+                        <div class="flow-arrow">></div>
+                        <div class="om-node danger">Avoid OM-5</div>
+                    </div>
+                </div>
+
+                <div class="v-card red">
+                    <div class="v-card-title">ENVIRONMENTAL HAZARDS</div>
+                    <div style="font-family: var(--font-mono); color: var(--accent-red);">RADIATION LEVEL: 175 REM/s
+                        (FATAL)</div>
+                    <div class="hazard-bar">
+                        <div class="hazard-fill"></div>
+                    </div>
+                    <ul style="margin: 1rem 0 0 1.5rem; color: var(--text-dim);">
+                        <li>Unprotected death: <strong style="color: var(--accent-red);">5 seconds</strong>.</li>
+                        <li>Heavy Armor: Survives ~15 minutes.</li>
+                        <li><strong style="color: var(--accent-green);">Stirling Protective Suit: Total
+                                protection.</strong></li>
+                    </ul>
+                </div>
+
+                <div class="v-card green" style="background: rgba(0, 255, 102, 0.05);">
+                    <div class="v-card-title">ARMORY PUZZLE: THE PERIODIC DOOR CODE</div>
+                    <p style="color: var(--text-dim);">Look through the window of Dr. Jorrit's office at the Infirmary.
+                        Check the large periodic table poster. The illuminated elements give you the door code.</p>
+
+                    <div class="periodic-row">
+                        <div
+                            style="align-self: center; font-family: var(--font-mono); font-size: 0.8rem; color: #888; writing-mode: vertical-rl;">
+                            IN-GAME VISUAL</div>
+                        <div class="periodic-grid">
+                            <!-- In-game example simulation -->
+                            <div class="element">
+                                <div class="atomic-number">1</div>
+                                <div class="symbol">H</div>
+                            </div>
+                            <div class="element highlight">
+                                <div class="atomic-number">22</div>
+                                <div class="symbol">Ti</div>
+                            </div>
+                            <div class="element">
+                                <div class="atomic-number">79</div>
+                                <div class="symbol">Au</div>
+                            </div>
+                            <div class="element highlight">
+                                <div class="atomic-number">8</div>
+                                <div class="symbol">O</div>
+                            </div>
+                        </div>
+                        <div class="code-result">
+                            DOOR CODE
+                            <span>228</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="v-card blue">
+                    <div class="v-card-title">APEX VALAKKAR EXTRACTION</div>
+                    <div class="flow-row">
+                        <div class="flow-step">
+                            <div class="step-badge">01</div>
+                            <div class="text">Insert <strong>Specimen Card</strong><br>into calling tower</div>
+                        </div>
+                        <div class="flow-arrow">></div>
+                        <div class="flow-step">
+                            <div class="step-badge">02</div>
+                            <div class="text">Valakkar<br><strong>Spawns!</strong></div>
+                        </div>
+                    </div>
+                    <div class="real-img-container" style="border-color: var(--accent-blue);">
+                        <img src="assets/actual_valakkar.png" alt="Apex Valakkar Target">
+                        <div class="real-img-text">
+                            <strong style="color: var(--accent-red);">TARGET VISUAL: APEX VALAKKAR</strong><br>
+                            This massive mutated worm emerges from the central extraction pit. Focus all fire
+                            exclusively on the green pustules lining its side.
+                        </div>
+                    </div>
+
+                    <div class="boss-phases" style="margin-top: 1rem;">
+                        <div style="background: rgba(0,0,0,0.5); padding: 10px; border: 1px solid #333;">
+                            <strong style="color: var(--accent-blue);">WEAK POINTS & WEAPONS</strong><br>
+                            <ul style="padding-left: 20px; color: var(--text-dim);">
+                                <li>🟩 Green Pustules</li>
+                                <li>👄 Inner Mouth</li>
+                                <li>🚀 <strong>Boomtubes</strong> are the best (absurd damage).</li>
+                            </ul>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.5); padding: 10px; border: 1px solid #333;">
+                            <strong style="color: var(--accent-red);">BOSS MECHANICS</strong><br>
+                            <ul style="padding-left: 20px; color: var(--text-dim);">
+                                <li>Spasms & Lightning every 20% health drop.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Lazarus Map Column -->
+            <div class="col-map">
+                <div class="badge"
+                    style="position: absolute; top: -15px; right: 20px; background: var(--bg-color); border-color: var(--accent-blue); color: var(--accent-blue);">
+                    LAZARUS BLUEPRINT</div>
+                <img src="assets/lazarus_map.png" alt="Lazarus Map" class="map-img">
+                <div style="margin-top: 1.5rem; text-align: center;">
+                    <strong style="color: var(--accent-blue); font-family: var(--font-mono); font-size: 1.2rem;">EXTRACT
+                        THE LOOT</strong>
+                    <p style="color: var(--text-dim); margin-top: 5px;">Once the Apex is dead, extract exactly <strong
+                            style="color: #fff;">6 Fangs and 15 Pearls</strong>. Check the facility for VOLT Prism
+                        Shotguns & IKTI Combat Suits.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
