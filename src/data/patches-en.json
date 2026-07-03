@@ -1,0 +1,2261 @@
+{
+  "note": "EN patch metadata (Stufe 2 translation). Arrays align by index with src/data/patches/*.json. Rendered by Stufe-3 EN patch pages.",
+  "patches": {
+    "4-0-0": {
+      "tagline": "Server Meshing and the lawless Pyro system.",
+      "summary": "The biggest technical leap in years: static Server Meshing links multiple servers into a single shard for the first time, Pyro opens as a second star system — reachable via Jump Point — and the Contested Zones bring PvPvE loot areas deep into Pyro's facilities.",
+      "dateDisplayEn": "December 19, 2024",
+      "keyFacts": [
+        {
+          "label": "Server Meshing",
+          "value": "≈10 servers per shard · up to 500 players (previously ~100)"
+        },
+        {
+          "label": "New star system",
+          "value": "Pyro — 6 planets, Ruin Station, Rest Stops"
+        },
+        {
+          "label": "System travel",
+          "value": "Jump Point Stanton ↔ Pyro"
+        },
+        {
+          "label": "Contested Zones",
+          "value": "PvPvE loot zones in Pyro facilities"
+        },
+        {
+          "label": "Wipe",
+          "value": "Full wipe · +20,000 aUEC starting balance"
+        }
+      ],
+      "features": [
+        {
+          "name": "Static Server Meshing",
+          "system": "Server technology",
+          "desc": "For the first time, multiple servers together form a single shard and hand objects off to one another seamlessly — the player count per shard rises from around 100 to as many as 500.",
+          "facts": [
+            {
+              "label": "Servers per shard",
+              "value": "≈10"
+            },
+            {
+              "label": "Players per shard",
+              "value": "up to 500"
+            }
+          ]
+        },
+        {
+          "name": "Pyro system",
+          "system": "Star systems",
+          "desc": "The second playable star system: lawless, ruled by gangs, with no security zones. Six planets (including Monox, Bloom, Terminus and the gas giant Pyro V), plus Ruin Station, Rest Stops and asteroid bases.",
+          "facts": [
+            {
+              "label": "Planets",
+              "value": "6 — incl. Monox, Bloom, Terminus, Pyro V"
+            },
+            {
+              "label": "Stations",
+              "value": "Ruin Station · Rest Stops · asteroid bases"
+            }
+          ]
+        },
+        {
+          "name": "Contested Zones",
+          "system": "Missions & activities",
+          "desc": "Sealed-off PvPvE areas deep inside Pyro's facilities: AI factions, rival players and high-tier loot — only those who make it out alive keep the spoils."
+        },
+        {
+          "name": "Jump Point travel",
+          "system": "Star systems",
+          "desc": "Inter-system travel between Stanton and Pyro through the first active Jump Point."
+        }
+      ],
+      "ships": [
+        {
+          "role": "Fighter",
+          "status": "new"
+        },
+        {
+          "role": "Corvette",
+          "status": "new in the 4.0 cycle"
+        }
+      ],
+      "events": [
+        {
+          "name": "Save Stanton — Chapter 1",
+          "desc": "The opening of the faction narrative centered on saving Stanton; no dedicated live event."
+        }
+      ],
+      "wipe": "Full wipe · +20,000 aUEC starting balance",
+      "topics": [
+        {
+          "title": "Server Meshing"
+        },
+        {
+          "title": "Pyro system"
+        },
+        {
+          "title": "Contested Zones"
+        }
+      ]
+    },
+    "4-0-1": {
+      "tagline": "Crash fixes, entity streaming and Save Stanton Chapter 2 with a permanent faction choice.",
+      "summary": "A point release with targeted top-crash/deadlock fixes following the 4.0.0 launch. The Entity Density Manager optimizes memory management in densely populated zones, and streaming fixes address problems with elevators and hangars. Save Stanton Chapter 2 (Fight for Pyro) introduces a permanent faction choice — Citizens for Prosperity, Headhunters or Frontier Fighters — with a Ripper SMG reward for finishing in time.",
+      "dateDisplayEn": "January 28, 2025",
+      "keyFacts": [
+        {
+          "label": "Crash fixes",
+          "value": "Top 10 most common client & server crashes fixed"
+        },
+        {
+          "label": "Entity Density Manager",
+          "value": "Optimized cleanup logic for densely populated zones"
+        },
+        {
+          "label": "Streaming improvements",
+          "value": "More reliable loading of elevators, hangars & interiors"
+        },
+        {
+          "label": "Save Stanton Chapter 2",
+          "value": "Fight for Pyro: permanent faction choice (3 factions)"
+        },
+        {
+          "label": "Ripper SMG",
+          "value": "Exclusive reward before the 4.0.2 launch"
+        }
+      ],
+      "features": [
+        {
+          "name": "Entity Density Manager",
+          "system": "Server technology",
+          "desc": "Optimization of the entity cleanup logic: abandoned objects and accumulated game objects are cleaned up more effectively, improving performance and server stability in densely populated zones.",
+          "facts": [
+            {
+              "label": "Focus",
+              "value": "Memory management & performance"
+            }
+          ]
+        },
+        {
+          "name": "Streaming fixes",
+          "system": "Server technology",
+          "desc": "Improvements to Persistent Entity Streaming: elevators, hangars and interiors load in more reliably, with less missing geometry and fewer stalls when entering.",
+          "facts": [
+            {
+              "label": "Scope",
+              "value": "Elevators, hangars, interiors"
+            }
+          ]
+        },
+        {
+          "name": "Top crash/deadlock fixes",
+          "system": "Stability & performance",
+          "desc": "4.0.1 was a stability point release with targeted fixes against the most common client and server crashes of the 4.0 launch, particularly deadlock scenarios.",
+          "facts": [
+            {
+              "label": "Scope",
+              "value": "Top 10 most common crash scenarios"
+            }
+          ]
+        },
+        {
+          "name": "Save Stanton Chapter 2: Fight for Pyro",
+          "system": "Missions & activities",
+          "desc": "A dynamic event with a permanent faction choice: after the first mission, players commit to Citizens for Prosperity, Headhunters or Frontier Fighters. From then on all missions are reputation-bound. Completing it before 4.0.2 rewards an exclusive Ripper SMG.",
+          "facts": [
+            {
+              "label": "Factions",
+              "value": "3 (Citizens for Prosperity, Headhunters, Frontier Fighters)"
+            },
+            {
+              "label": "Trait",
+              "value": "Permanent choice — no switching possible"
+            },
+            {
+              "label": "Setting",
+              "value": "Pyro (lawless system)"
+            },
+            {
+              "label": "Exclusive reward",
+              "value": "Ripper SMG (only before 4.0.2)"
+            }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Fighter",
+          "status": "in the 4.0 cycle"
+        }
+      ],
+      "events": [
+        {
+          "name": "Fight for Pyro (Save Stanton Chapter 2)",
+          "desc": "A dynamic event with a permanent faction choice in Pyro. Players choose one of three factions (Citizens for Prosperity, Headhunters, Frontier Fighters) during the first mission and fight reputation-bound to the end of the campaign. A Ripper SMG reward is granted for completion before the 4.0.2 launch."
+        }
+      ],
+      "fixesNote": "Top 10 crash fixes",
+      "topics": [
+        {
+          "title": "Fight for Pyro"
+        }
+      ]
+    },
+    "4-0-2": {
+      "tagline": "A supply war over Pyro: Citizens for Prosperity vs. Headhunters.",
+      "summary": "Supply or Die was a one-time PvPvE supply event in Pyro in which players joined one of two factions: Citizens for Prosperity (stabilization through industrial goods and Detatrine) or Headhunters (chaos and salvage piracy). Through depot battles, mining and salvage, players fed material into the war effort and thereby decided who ultimately controlled the lawless system.",
+      "dateDisplayEn": "February 28, 2025",
+      "keyFacts": [
+        {
+          "label": "Warring factions",
+          "value": "Citizens for Prosperity vs. Headhunters"
+        },
+        {
+          "label": "Supply war",
+          "value": "PvPvE depot battles for control of Pyro"
+        },
+        {
+          "label": "Key resource",
+          "value": "Detatrine — the Citizens' rare chemical"
+        },
+        {
+          "label": "Mission types",
+          "value": "3 paths: depot battles, mining & refining, salvage"
+        },
+        {
+          "label": "Tier 2 main reward",
+          "value": "Ravager-212 Outcast twin shotgun"
+        }
+      ],
+      "features": [
+        {
+          "name": "Supply or Die event",
+          "system": "Events",
+          "desc": "A one-time, story-driven PvPvE supply event in Pyro's depots. Players pick a faction and gather material through combat, mining and salvage — every delivery shifts the war effort.",
+          "facts": [
+            {
+              "label": "Mission types",
+              "value": "Depot battles (PvPvE), mining & refining, salvage"
+            },
+            {
+              "label": "Factions",
+              "value": "2 opposing sides with conflicting goals"
+            }
+          ]
+        },
+        {
+          "name": "Faction resupply economy",
+          "system": "Economy & trading",
+          "desc": "A dynamic delivery system with two competing factions: Citizens for Prosperity gather industrial goods and Detatrine for medical supplies; Headhunters procure salvage and mining raw materials by any means necessary.",
+          "facts": [
+            {
+              "label": "Citizens for Prosperity",
+              "value": "Industrial goods, Detatrine, medical supplies"
+            },
+            {
+              "label": "Headhunters",
+              "value": "Salvage, mining resources, combat & piracy"
+            }
+          ]
+        },
+        {
+          "name": "PvPvE depot battles",
+          "system": "Combat & weapons",
+          "desc": "Players fight at contested Pyro depots against AI and rival players for supplies for their faction.",
+          "facts": [
+            {
+              "label": "Depots",
+              "value": "Contested Pyro facilities with PvPvE firefights"
+            }
+          ]
+        },
+        {
+          "name": "Ravager-212 Outcast shotgun",
+          "system": "Combat & weapons",
+          "desc": "A twin-shotgun reward (event Tier 2). Paired with Outcast skins for the MISC Fortune, Drake Vulture and MISC Prospector (Tier 3).",
+          "facts": [
+            {
+              "label": "Weapon type",
+              "value": "Twin shotgun (close range)"
+            },
+            {
+              "label": "Tier 3 cosmetics",
+              "value": "Outcast paints for Fortune, Vulture, Prospector"
+            }
+          ]
+        }
+      ],
+      "ships": [],
+      "events": [
+        {
+          "name": "Supply or Die",
+          "desc": "A one-time PvPvE supply event: players choose between Citizens for Prosperity (stabilizing Pyro) and Headhunters (chaos). Through depot battles, mining and salvage they delivered material that shifted the war effort and decided who controlled the lawless system."
+        }
+      ],
+      "topics": [
+        {
+          "title": "Supply or Die"
+        }
+      ]
+    },
+    "4-1-0": {
+      "tagline": "Orbital Hathor lasers, asteroid mining and new collision physics.",
+      "summary": "The persistent \"Align & Mine\" activity on Aberdeen and Daymar: players align ground-based Hathor Alignment Facilities, whereupon the Orbital Mining Station fires a laser and blasts open brand-new mineral-rich caves. Alongside this, 4.1.0 brings reworked collision physics (mass/velocity), the Aegis Idris as a playable frigate and the new Valakkar fauna.",
+      "dateDisplayEn": "March 27, 2025",
+      "keyFacts": [
+        {
+          "label": "Persistent activity",
+          "value": "Align & Mine · Aberdeen & Daymar"
+        },
+        {
+          "label": "Hathor facilities",
+          "value": "2 moons · 1 Orbital Mining Station each"
+        },
+        {
+          "label": "Playable ships",
+          "value": "Aegis Idris (frigate) for owners"
+        },
+        {
+          "label": "Bug fixes",
+          "value": "~130 documented corrections"
+        },
+        {
+          "label": "New fauna",
+          "value": "Juvenile Valakkar (burrowing worm creatures)"
+        }
+      ],
+      "features": [
+        {
+          "name": "Align & Mine",
+          "system": "Missions & activities",
+          "desc": "A persistent cooperative sandbox activity: players align ground-based Hathor Alignment Facilities on Aberdeen and Daymar, whereupon the Orbital Mining Station fires a laser and blasts open a brand-new, mineral-rich cave.",
+          "facts": [
+            {
+              "label": "Moons",
+              "value": "Aberdeen & Daymar"
+            },
+            {
+              "label": "Orbital Mining Stations",
+              "value": "1 per moon"
+            },
+            {
+              "label": "Multiplayer",
+              "value": "persistent cooperative"
+            }
+          ]
+        },
+        {
+          "name": "Reworked collision physics",
+          "system": "Flight model",
+          "desc": "An expanded collision system that gives greater weight to the mass and velocity of the objects involved, for more realistic crash and impact behavior.",
+          "facts": [
+            {
+              "label": "Parameters",
+              "value": "Mass & velocity based"
+            }
+          ]
+        },
+        {
+          "name": "Aegis Idris (playable)",
+          "system": "Ship systems",
+          "desc": "The Aegis Idris-M and Idris-P become fully playable for their owners for the first time in the Persistent Universe.",
+          "facts": [
+            {
+              "label": "Variants",
+              "value": "Idris-M & Idris-P"
+            },
+            {
+              "label": "Availability",
+              "value": "for ship owners"
+            }
+          ]
+        },
+        {
+          "name": "Juvenile Valakkar fauna",
+          "system": "Star systems",
+          "desc": "New burrowing worm creatures on some moons; they keep their distance from players, move through the ground and pelt players with rock.",
+          "facts": [
+            {
+              "label": "Type",
+              "value": "burrowing worm creatures"
+            },
+            {
+              "label": "Behavior",
+              "value": "ground-based, hostile"
+            }
+          ]
+        },
+        {
+          "name": "NPC interactions & facial DNA",
+          "system": "UI & convenience",
+          "desc": "New NPC interaction options and expanded DNA-based facial generators for diverse NPC characters.",
+          "facts": []
+        },
+        {
+          "name": "Arena Commander maps",
+          "system": "Combat & weapons",
+          "desc": "New maps added for Arena Commander.",
+          "facts": []
+        },
+        {
+          "name": "Server Meshing mission adjustments",
+          "system": "Server technology",
+          "desc": "Many missions were reworked and adjusted for compatibility with static Server Meshing.",
+          "facts": []
+        }
+      ],
+      "ships": [
+        {
+          "role": "Frigate",
+          "status": "playable"
+        }
+      ],
+      "events": [],
+      "fixesNote": "~130 bug fixes",
+      "topics": [
+        {
+          "title": "Align & Mine"
+        }
+      ]
+    },
+    "4-1-1": {
+      "tagline": "Weapon balancing, recoil and Fleet Week with Hunt The Polaris.",
+      "summary": "A point release focused on weapon systems: the new recoil system brings visible recoil reactions when firing, turret ammunition capacity was significantly increased and over 200 bug fixes stabilized the game. Hunt The Polaris, a server-wide mission during Fleet Week 2955, has the entire shard collectively chase down a stolen RSI Polaris and share the spoils.",
+      "dateDisplayEn": "May 13, 2025",
+      "keyFacts": [
+        {
+          "label": "Bug fixes",
+          "value": ">200 corrections (61 from the Issue Council)"
+        },
+        {
+          "label": "Turret ammunition",
+          "value": "Significantly increased (Redeemer, Retaliator, Reclaimer, Carrack, Polaris, Hammerhead)"
+        },
+        {
+          "label": "Recoil system",
+          "value": "Newly implemented, actor-based, scalable/toggleable"
+        },
+        {
+          "label": "Fleet Week 2955",
+          "value": "Invictus expo · server-wide mission Hunt The Polaris"
+        },
+        {
+          "label": "Weapon balancing",
+          "value": "Extensive tuning of ship and personal weapons"
+        }
+      ],
+      "features": [
+        {
+          "name": "Recoil system (new)",
+          "system": "Combat & weapons",
+          "desc": "A newly implemented recoil system with actor-based effects when firing ship and vehicle weapons. The effects are visible, scalable and can be turned off — every shot feels more controlled and tangible.",
+          "facts": [
+            {
+              "label": "Implementation",
+              "value": "Actor-based recoil effects"
+            },
+            {
+              "label": "Properties",
+              "value": "Visible, scalable/toggleable"
+            }
+          ]
+        },
+        {
+          "name": "Turret ammunition increased",
+          "system": "Ship systems",
+          "desc": "The ammunition capacity of turrets was significantly increased. Ships especially affected: Redeemer, Retaliator, Reclaimer, Carrack, Polaris and Hammerhead. Some individual turret weapons were also retuned for higher damage.",
+          "facts": [
+            {
+              "label": "Affected ships",
+              "value": "Redeemer, Retaliator, Reclaimer, Carrack, Polaris, Hammerhead"
+            },
+            {
+              "label": "Effect",
+              "value": "Longer sustained fire without reloading"
+            }
+          ]
+        },
+        {
+          "name": "Weapon balancing",
+          "system": "Combat & weapons",
+          "desc": "Extensive tuning of ship and personal weapons: damage values, ranges and firing behavior were rebalanced to make combat feel fairer and more consistent.",
+          "facts": [
+            {
+              "label": "Scope",
+              "value": "Ship and personal weapons"
+            },
+            {
+              "label": "Parameters",
+              "value": "Damage, range, firing behavior"
+            }
+          ]
+        },
+        {
+          "name": "Hunt The Polaris (event)",
+          "system": "Events",
+          "desc": "A server-wide mission during Fleet Week 2955: the Frontier Fighters steal an RSI Polaris in the middle of the fleet show. The entire server chases the stolen corvette across Stanton to a fleeting wormhole, where the decisive battle takes place. The spoils are shared among all participants.",
+          "facts": [
+            {
+              "label": "Theft",
+              "value": "RSI Polaris by the Frontier Fighters"
+            },
+            {
+              "label": "Pursuit",
+              "value": "Across all of Stanton"
+            },
+            {
+              "label": "Finale",
+              "value": "Battle at the fleeting wormhole"
+            },
+            {
+              "label": "Reward",
+              "value": "Shared among all participants"
+            }
+          ]
+        },
+        {
+          "name": "Fleet Week 2955 (Invictus)",
+          "system": "Events",
+          "desc": "The annual fleet parade and Invictus expo, where the UEE's largest ships stand side by side. Hunt The Polaris is embedded in this setting — while the fleet show is underway, the Frontier Fighters strike.",
+          "facts": [
+            {
+              "label": "Context",
+              "value": "Annual Fleet Week / Invictus expo"
+            },
+            {
+              "label": "Scale",
+              "value": "The UEE's largest ships"
+            }
+          ]
+        }
+      ],
+      "ships": [],
+      "events": [
+        {
+          "name": "Hunt The Polaris",
+          "desc": "A server-wide mission: the Frontier Fighters steal an RSI Polaris during Fleet Week 2955. The whole server chases the stolen corvette across Stanton to the wormhole battle. The reward is shared."
+        },
+        {
+          "name": "Fleet Week 2955 (Invictus)",
+          "desc": "The UEE's annual fleet show and expo featuring the largest ships. Hunt The Polaris plays out against this backdrop."
+        }
+      ],
+      "fixesNote": ">200 bug fixes (61 from the Issue Council); a balancing and stability point release",
+      "topics": [
+        {
+          "title": "Hunt The Polaris"
+        }
+      ]
+    },
+    "4-2-0": {
+      "tagline": "Persistent storm activity, dynamic rain, and the new environmental hazard: radiation.",
+      "summary": "The sky becomes the enemy: Alpha 4.2.0 adds dynamic weather to Stanton and Pyro — heavy rain lowers visibility, turbulence rattles flight stability, and a brand-new environmental hazard, radiation, builds up insidiously over time. The namesake Storm Breaker mission sends players into the heart of these storms, where only the CureLife DeconPen Xtra protects against the deadly radiation exposure.",
+      "dateDisplayEn": "June 19, 2025",
+      "keyFacts": [
+        {
+          "label": "Dynamic weather",
+          "value": "Heavy rain + turbulence at Stanton & Pyro"
+        },
+        {
+          "label": "Radiation",
+          "value": "New environmental hazard — builds up over time, deadly without protection"
+        },
+        {
+          "label": "Antidote",
+          "value": "CureLife DeconPen Xtra (Canoiodide + Hemozal)"
+        },
+        {
+          "label": "Bug & crash fixes",
+          "value": "~190"
+        },
+        {
+          "label": "VTOL mechanics",
+          "value": "Hovering and vertical landing made significantly harder in a storm"
+        }
+      ],
+      "features": [
+        {
+          "name": "Dynamic Rain & Weather",
+          "system": "Flight model",
+          "desc": "With 4.2.0, weather at Stanton and Pyro locations becomes an active gameplay mechanic: dynamic rain drastically lowers visibility, storm fronts bring strong wind and turbulence that reduce flight stability and destabilize precision approaches.",
+          "facts": [
+            {
+              "label": "Affected systems",
+              "value": "Stanton & Pyro"
+            },
+            {
+              "label": "Main effect",
+              "value": "Reduced visibility + flight stability ↓"
+            }
+          ]
+        },
+        {
+          "name": "Radiation — new environmental hazard",
+          "system": "Engineering",
+          "desc": "A brand-new and insidious environmental hazard: radiation builds up over time in affected zones. It is invisible and deadly once exposure reaches its maximum. Retreating from the zone lets the radiation dissipate again — but anyone who waits too long has already lost.",
+          "facts": [
+            {
+              "label": "Characteristic",
+              "value": "Builds up silently over time"
+            },
+            {
+              "label": "Antidote",
+              "value": "CureLife DeconPen Xtra"
+            }
+          ]
+        },
+        {
+          "name": "Storm Breaker — persistent activity",
+          "system": "Missions & Activities",
+          "desc": "The namesake mission leads players deep into the storms — a persistent activity tied to the ongoing rain-crisis story. Anyone who flies into the storm is seeking a fight with the elements.",
+          "facts": [
+            {
+              "label": "Activity type",
+              "value": "Persistent"
+            },
+            {
+              "label": "Narrative",
+              "value": "Rain-crisis story"
+            }
+          ]
+        },
+        {
+          "name": "In-flight turbulence",
+          "system": "Flight model",
+          "desc": "Storms generate flight turbulence that lowers flight stability. Every gust tugs at your course, and VTOL maneuvers (hovering and vertical landing) are especially tricky, becoming a nerve-wracking ordeal in a storm.",
+          "facts": [
+            {
+              "label": "Affected operations",
+              "value": "VTOL maneuvers, precision approaches"
+            }
+          ]
+        },
+        {
+          "name": "CureLife DeconPen Xtra",
+          "system": "Medical",
+          "desc": "A quick injector serving as an antidote to radiation. It administers Canoiodide and Hemozal directly into the bloodstream, buying the pilot time against rising radiation exposure. Mandatory gear in the storm loadout as of 4.2.0.",
+          "facts": [
+            {
+              "label": "Active ingredients",
+              "value": "Canoiodide + Hemozal"
+            },
+            {
+              "label": "Effect",
+              "value": "Reduces radiation exposure"
+            }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Mech-Suit",
+          "status": "new"
+        },
+        {
+          "role": "Utility",
+          "status": "new"
+        }
+      ],
+      "events": [
+        {
+          "name": "Storm Breaker",
+          "desc": "Persistent activity deep in the storm; tied to the rain-crisis story. Not a dedicated, time-limited live event."
+        }
+      ],
+      "fixesNote": "~190 bugfixes and stability improvements",
+      "topics": [
+        {
+          "title": "Storm Breaker · Weather becomes a hazard"
+        }
+      ]
+    },
+    "4-2-1": {
+      "tagline": "A global convoy event with four competing megacorporations, ship-escort missions, and the RSI Meteor.",
+      "summary": "The first true global event with cross-shard tracking: Imperator Addison calls on Stanton's four megacorporations to compete for research material. Players pick a side and contribute through hauling, reclaim missions, and convoy escort. Hurston Dynamics wins with roughly 337 million SCU. New ship-escort missions (6 tiers, Foxwell group) and the RSI Meteor debut as a logistics freighter.",
+      "dateDisplayEn": "July 17, 2025",
+      "keyFacts": [
+        {
+          "label": "Global event",
+          "value": "First event with cross-shard tracking"
+        },
+        {
+          "label": "Competing corporations",
+          "value": "4 (Hurston Dynamics, Crusader Industries, ArcCorp, microTech)"
+        },
+        {
+          "label": "Winner's delivery total",
+          "value": "Hurston Dynamics: ~337 million SCU"
+        },
+        {
+          "label": "Reward tiers",
+          "value": "5 tiers · T5: Strata Hurston Black + 5% permanent discount"
+        },
+        {
+          "label": "Ship-escort missions",
+          "value": "6 difficulty tiers · Foxwell group · Scrip"
+        }
+      ],
+      "features": [
+        {
+          "name": "Resource Drive",
+          "system": "Missions & Activities",
+          "desc": "The first global event with cross-shard tracking: four megacorporations compete over how much research material they deliver. Players pick a side and contribute through hauling, reclaim missions, and convoy escort. Progress is combined across all servers.",
+          "facts": [
+            {
+              "label": "Competing corporations",
+              "value": "4 (Hurston, Crusader, ArcCorp, microTech)"
+            },
+            {
+              "label": "Winner's delivery total",
+              "value": "~337 million SCU"
+            },
+            {
+              "label": "Reward tiers",
+              "value": "5 tiers (T5 = Strata Hurston Black + 5% discount)"
+            },
+            {
+              "label": "Event tracking",
+              "value": "Global & cross-shard"
+            }
+          ]
+        },
+        {
+          "name": "Ship-escort missions",
+          "system": "Missions & Activities",
+          "desc": "A new mission type: players defend the transport ships of friendly vessels against enemy attackers, escorting them to and from asteroid mining bases until the quantum-travel getaway. Six difficulty tiers from the Foxwell group in Stanton and Pyro, with Scrip rewards.",
+          "facts": [
+            {
+              "label": "Difficulty tiers",
+              "value": "6"
+            },
+            {
+              "label": "Systems",
+              "value": "Stanton & Pyro"
+            },
+            {
+              "label": "Mission group",
+              "value": "Foxwell"
+            },
+            {
+              "label": "Reward",
+              "value": "Scrip"
+            }
+          ]
+        },
+        {
+          "name": "Convoy routes",
+          "system": "Missions & Activities",
+          "desc": "Escorted cargo trains around the mining bases in Stanton and Pyro. Without protection from a player escort, the cargo won't reach the collection point. Central to Resource Drive progress.",
+          "facts": [
+            {
+              "label": "Routes",
+              "value": "Stanton & Pyro"
+            },
+            {
+              "label": "Destructible goods",
+              "value": "yes"
+            }
+          ]
+        },
+        {
+          "name": "Wikelo recipes",
+          "system": "Crafting",
+          "desc": "Reworked crafting system: recipes are organized into three ingredient tiers — guaranteed core drops, very rare items, and content-bound items. Random rewards are gone, giving clear visibility into what's worth collecting.",
+          "facts": [
+            {
+              "label": "Ingredient tiers",
+              "value": "3 (Core, Rare, Content-Bound)"
+            },
+            {
+              "label": "What's new",
+              "value": "Deterministic structure instead of random drops"
+            }
+          ]
+        },
+        {
+          "name": "Flight Tuning",
+          "system": "Flight model",
+          "desc": "Fine-tuning of flight behavior across all ships; optimizes handling and responsive feedback beyond the event update itself.",
+          "facts": [
+            {
+              "label": "Scope",
+              "value": "General flight-model update"
+            }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Freighter",
+          "status": "new"
+        }
+      ],
+      "events": [
+        {
+          "name": "Resource Drive",
+          "desc": "A global competitive event between four megacorporations over how much research material they deliver. Players pick a corporation and contribute to the total through hauling and convoy escort. Winner: Hurston Dynamics with roughly 337 million SCU. The first event with cross-shard tracking."
+        }
+      ],
+      "topics": [
+        {
+          "title": "Resource Drive"
+        }
+      ]
+    },
+    "4-3-0": {
+      "tagline": "Personal Hangars and ~100 abandoned Onyx Facilities.",
+      "summary": "Alpha 4.3.0 introduces Personal Hangars — instanced home ports where players spawn directly and get immediate access to their ships. In parallel, around 100 abandoned ASD research stations (Onyx Facilities) appear scattered across Stanton. The mission giver Arken Mallor kicks off investigation chains that uncover Dr. Logan Jorrit's experiments in regeneration and drive the Regen Crisis narrative forward. Flight tuning for light fighters and the ongoing Resource Drive event round out the expansion.",
+      "dateDisplayEn": "August 16, 2025",
+      "keyFacts": [
+        {
+          "label": "Onyx Facilities",
+          "value": "~100 abandoned ASD research stations · Stanton-wide"
+        },
+        {
+          "label": "Personal Hangars",
+          "value": "Instanced home ports · direct spawning"
+        },
+        {
+          "label": "Mission giver",
+          "value": "Arken Mallor (Hockrow Agency)"
+        },
+        {
+          "label": "New ship",
+          "value": "Kruger L-21 Wolf · light fighter"
+        },
+        {
+          "label": "Narrative",
+          "value": "Regen Crisis · Dr. Logan Jorrit's experiments"
+        }
+      ],
+      "features": [
+        {
+          "name": "Personal Hangars",
+          "system": "Hangars & Persistence",
+          "desc": "Players get personal, instanced hangars as a fixed home location. They spawn directly in their own hangar instead of via NPC habs, with immediate access to ships and inventory at the set home hangar.",
+          "facts": [
+            {
+              "label": "Type",
+              "value": "Instanced"
+            }
+          ]
+        },
+        {
+          "name": "Onyx Facilities",
+          "system": "Missions & Activities",
+          "desc": "Around 100 abandoned ASD research stations scattered across Stanton. Unsecured interiors full of data traces, audio logs, and loot — tied to the Regen Crisis story under the direction of Dr. Logan Jorrit.",
+          "facts": [
+            {
+              "label": "Stations",
+              "value": "~100"
+            },
+            {
+              "label": "Condition",
+              "value": "Unsecured, abandoned"
+            },
+            {
+              "label": "Narrative",
+              "value": "Dr. Jorrit's regeneration experiments"
+            }
+          ]
+        },
+        {
+          "name": "Investigation missions",
+          "system": "Missions & Activities",
+          "desc": "New investigation and data-salvage missions via mobiGlas from Arken Mallor (Hockrow Agency). Players enter Onyx Facilities, solve puzzles, and recover data to uncover the truth behind the Regen Crisis.",
+          "facts": [
+            {
+              "label": "Employer",
+              "value": "Arken Mallor"
+            }
+          ]
+        },
+        {
+          "name": "Flight Tuning Light-Fighter",
+          "system": "Flight model",
+          "desc": "Reworked flight mechanics specifically for light fighters like the new Kruger L-21 Wolf.",
+          "facts": []
+        },
+        {
+          "name": "Resource Drive",
+          "system": "Events",
+          "desc": "An ongoing event for hauling resources, especially Aphorite.",
+          "facts": [
+            {
+              "label": "Focus",
+              "value": "Resource hauling"
+            }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Light fighter",
+          "status": "new"
+        }
+      ],
+      "events": [
+        {
+          "name": "Resource Drive",
+          "desc": "An ongoing event with hauling missions and rewards."
+        }
+      ],
+      "fixesNote": "Not specifically stated",
+      "topics": [
+        {
+          "title": "Onyx Facilities"
+        }
+      ]
+    },
+    "4-3-1": {
+      "tagline": "RSI Apollo, medical overhaul, and the MedGel system.",
+      "summary": "4.3.1 reworks the medical system from the ground up: the RSI Apollo medical ship with modular medical configurations becomes the centerpiece, MedGel becomes a consumed resource for respawns and healing, and bed tiers T1–T3 define new respawn distances. The Onyx story expands with Site B and Dr. Jorrit's lab, where biological samples reveal the next layer of the mystery.",
+      "dateDisplayEn": "September 18, 2025",
+      "keyFacts": [
+        {
+          "label": "RSI Apollo",
+          "value": "2 modular medical rooms, Medivac & Triage configurations"
+        },
+        {
+          "label": "MedGel costs",
+          "value": "T3=5 / T2=10 / T1=20 charges per respawn/healing"
+        },
+        {
+          "label": "Bed tiers",
+          "value": "T1–T3 with adjusted respawn distances"
+        },
+        {
+          "label": "Onyx expansion",
+          "value": "Site B – Dr. Jorrit's lab with biological samples"
+        }
+      ],
+      "features": [
+        {
+          "name": "Medical Overhaul",
+          "system": "Medical",
+          "desc": "A comprehensive rework of the medical system: wounds are created under new rules, healing and rescue are re-mechanized, and revival works via bed tiers with defined respawn distances.",
+          "facts": [
+            {
+              "label": "Bed tiers",
+              "value": "T1 to T3"
+            },
+            {
+              "label": "Respawn flow",
+              "value": "redefined via MedGel consumption"
+            }
+          ]
+        },
+        {
+          "name": "MedGel system",
+          "system": "Medical",
+          "desc": "A new consumable for medical beds: respawning and healing at med beds now consume tiered charges of docked MedGels — from triage to full revival. Beds go idle when MedGel runs out.",
+          "facts": [
+            {
+              "label": "Tier costs",
+              "value": "T1=20, T2=10, T3=5"
+            }
+          ]
+        },
+        {
+          "name": "RSI Apollo medical ship",
+          "system": "Ship systems",
+          "desc": "A dedicated medical ship with two modular configurations: Medivac for recovering the wounded from the field, Triage for onboard care with regeneration capabilities. A flying base of operations for teams deep in the Verse.",
+          "facts": [
+            {
+              "label": "Role",
+              "value": "Medical Medivac/Triage"
+            },
+            {
+              "label": "Highlight",
+              "value": "2 modular medical rooms with regeneration capabilities"
+            }
+          ]
+        },
+        {
+          "name": "Onyx Site B",
+          "system": "Star systems",
+          "desc": "An expansion of the Onyx Facilities: Site B opens Dr. Jorrit's lab, where players must recover biological samples to understand the full context of the experiments. Another layer of the investigative Onyx story.",
+          "facts": [
+            {
+              "label": "Story",
+              "value": "Dr. Jorrit & biological samples"
+            },
+            {
+              "label": "Integration",
+              "value": "interwoven with the medical-overhaul theme"
+            }
+          ]
+        },
+        {
+          "name": "Atmospheric Control Surfaces",
+          "system": "Flight model",
+          "desc": "A flight-model improvement for more realistic atmospheric flight behavior, especially on the new medical ships."
+        },
+        {
+          "name": "Ship Respawn via Dropships & Watchtowers",
+          "system": "Ship systems",
+          "desc": "An alternative respawn mechanic for destroyed ships via dropship or watchtower deployments instead of the classic claim wait time."
+        }
+      ],
+      "ships": [
+        {
+          "role": "Medical Medivac/Triage",
+          "status": "new",
+          "notes": "Two modular medical rooms, regeneration capabilities"
+        }
+      ],
+      "events": [],
+      "topics": [
+        {
+          "title": "Medical Overhaul"
+        }
+      ]
+    },
+    "4-3-2": {
+      "tagline": "Frontier Fighters finale, Salvage rework and the Yormandi boss.",
+      "summary": "The final episode of the Pyro Must Burn story: across three phases, the Headhunters and Citizens for Prosperity hunt the Frontier Fighters led by Amelia Boyd across Stanton and Pyro — culminating in a server-wide coordinated Polaris takedown. The patch also brings a comprehensive Salvage and Refining rework, the Yormandi boss in the Onyx caves (ASD Site B) and the Anvil Paladin as a new heavy gunship.",
+      "dateDisplayEn": "October 16, 2025",
+      "keyFacts": [
+        {
+          "label": "Phases",
+          "value": "3 (Reconnaissance → Siege → Takedown)"
+        },
+        {
+          "label": "Frontier Fighters finale",
+          "value": "Server-wide mission; Polaris takedown in phase 3"
+        },
+        {
+          "label": "Salvage rework",
+          "value": "Material value increased; refining system expanded"
+        },
+        {
+          "label": "Yormandi boss",
+          "value": "Snake-like creature in Onyx Site B; solo/duo fight"
+        },
+        {
+          "label": "Anvil Paladin",
+          "value": "New heavy gunship with multiple turrets"
+        },
+        {
+          "label": "Faction alliance",
+          "value": "Headhunters + Citizens for Prosperity against Amelia Boyd's Frontier Fighters"
+        }
+      ],
+      "features": [
+        {
+          "name": "Frontier Fighters Finale",
+          "system": "Missions & Activities",
+          "desc": "Three-phase finale of the Pyro Must Burn story: phase 1 reconnaissance of Frontier Fighters movements, phase 2 siege of their strongholds, phase 3 a server-wide coordinated Polaris takedown. The Headhunters and Citizens for Prosperity factions work together against the Frontier Fighters led by Amelia Boyd.",
+          "facts": [
+            {
+              "label": "Phases",
+              "value": "3 (Reconnaissance → Siege → Takedown)"
+            },
+            {
+              "label": "Allied factions",
+              "value": "Headhunters, Citizens for Prosperity"
+            }
+          ]
+        },
+        {
+          "name": "Salvage rework & Refining",
+          "system": "Mining & Industry",
+          "desc": "Structural rework of the Salvage system with increased material values and an expanded refining economy. Salvage becomes economically more attractive; players benefit from an improved loot-to-credit ratio.",
+          "facts": [
+            {
+              "label": "Material value",
+              "value": "increased"
+            },
+            {
+              "label": "Refining system",
+              "value": "expanded"
+            }
+          ]
+        },
+        {
+          "name": "Yormandi boss fight",
+          "system": "Missions & Activities",
+          "desc": "A new snake-like, biomechanical creature in the Onyx facilities (ASD Site B). A multi-phase boss fight that is doable solo but noticeably easier in a duo. Wikelo contracts demand the creature's eyes and tongues as rewards.",
+          "facts": [
+            {
+              "label": "Location",
+              "value": "ASD Site B (Onyx)"
+            },
+            {
+              "label": "Type",
+              "value": "Biomechanical snake"
+            },
+            {
+              "label": "Playability",
+              "value": "Solo or duo (optional)"
+            }
+          ]
+        },
+        {
+          "name": "Anvil Paladin",
+          "system": "Ship systems",
+          "desc": "A new heavy gunship from Anvil with multiple turret positions and a crew deck. Designed for coordinated multi-crew combat missions and hunting operations.",
+          "facts": [
+            {
+              "label": "Manufacturer",
+              "value": "Anvil"
+            },
+            {
+              "label": "Class",
+              "value": "Gunship"
+            },
+            {
+              "label": "Features",
+              "value": "Multiple turrets, crew deck"
+            }
+          ]
+        },
+        {
+          "name": "Combat & FPS updates",
+          "system": "Combat & Weapons",
+          "desc": "Reworks of the melee and firearms systems as well as FPS mechanics to support the Frontier Fighters missions.",
+          "facts": [
+            {
+              "label": "Focus",
+              "value": "FPS combat, squad coordination"
+            }
+          ]
+        },
+        {
+          "name": "Economy & Trading tuning",
+          "system": "Economy & Trading",
+          "desc": "Adjustments to trade routes, prices and mission rewards for the economy of Stanton and Pyro.",
+          "facts": [
+            {
+              "label": "Area",
+              "value": "Prices, missions, routes"
+            }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Gunship",
+          "status": "new",
+          "notes": "Heavy gunship with multiple turrets and a crew deck"
+        }
+      ],
+      "events": [
+        {
+          "name": "Frontier Fighters Finale",
+          "desc": "Three-phase finale of the Pyro Must Burn story; server-wide hunt for a stolen Polaris in phase 3; Headhunters and Citizens for Prosperity as an allied alliance led by Amelia Boyd."
+        }
+      ],
+      "fixesNote": "Numerous stability and gameplay fixes; exact number not specified",
+      "topics": [
+        {
+          "title": "Frontier Fighters"
+        }
+      ]
+    },
+    "4-4-0": {
+      "tagline": "Third system Nyx, first Vanduul AI and the IAE 2955.",
+      "summary": "Nyx opens as the third fully simulated star system — fog-shrouded, lawless, asteroid-dense. The Vanduul appear for the first time as AI enemies in the persistent universe, patrolling with Stinger, Glaive, Scythe and Blade. Levski flourishes as a rock city on Delamar. IAE 2955 in Orison puts 200+ ships up for testing — free until December 3. Interstellar hauling connects cross-system missions for the first time.",
+      "dateDisplayEn": "November 19, 2025",
+      "keyFacts": [
+        {
+          "label": "Third star system",
+          "value": "Nyx — Glaciem Ring, Levski on Delamar"
+        },
+        {
+          "label": "Vanduul in the PU",
+          "value": "4 AI ship types: Stinger, Glaive, Scythe, Blade"
+        },
+        {
+          "label": "IAE 2955",
+          "value": "200+ ships free to test · Free-Fly until Dec 3, 2025"
+        },
+        {
+          "label": "Interstellar hauling",
+          "value": "Missions spanning Stanton, Pyro and Nyx"
+        },
+        {
+          "label": "Operation Sworn Enemies",
+          "value": "Investigation mission into Vanduul technology"
+        },
+        {
+          "label": "Fixes",
+          "value": "180+ corrections"
+        }
+      ],
+      "features": [
+        {
+          "name": "Nyx system",
+          "system": "Star systems",
+          "desc": "The third fully simulated star system: dark, fog-shrouded, asteroid-dense. Tied to Stanton and Pyro via Jump Points. Home to the Glaciem Ring and the rock city of Levski.",
+          "facts": [
+            {
+              "label": "Position",
+              "value": "Third system after Stanton & Pyro"
+            },
+            {
+              "label": "Character",
+              "value": "Fog-shrouded, asteroid belt, lawless"
+            }
+          ]
+        },
+        {
+          "name": "Glaciem Ring",
+          "system": "Star systems",
+          "desc": "A dense, dark, fog-shrouded asteroid belt running through the Nyx system. Hunting grounds of the Vanduul, tight visibility, hard to traverse.",
+          "facts": [
+            {
+              "label": "Type",
+              "value": "Asteroid belt"
+            },
+            {
+              "label": "Notable",
+              "value": "Vanduul patrols, dense fog"
+            }
+          ]
+        },
+        {
+          "name": "Levski",
+          "system": "Star systems",
+          "desc": "A landing zone on Delamar, an asteroid of the Nyx system. A city in the rock, seat of the Peoples Alliance. The only fixed foothold in lawless Nyx.",
+          "facts": [
+            {
+              "label": "Location",
+              "value": "In asteroid Delamar"
+            },
+            {
+              "label": "Faction",
+              "value": "Peoples Alliance"
+            }
+          ]
+        },
+        {
+          "name": "Vanduul as AI enemies",
+          "system": "Combat & Weapons",
+          "desc": "For the first time the Vanduul enter the persistent universe as a standalone AI enemy faction. Four ship types — Stinger (light), Glaive, Scythe, Blade — patrol Nyx and attack without warning.",
+          "facts": [
+            {
+              "label": "AI ship types",
+              "value": "Stinger, Glaive, Scythe, Blade (4 types)"
+            },
+            {
+              "label": "Behavior",
+              "value": "Aggressive patrols, attack without warning"
+            },
+            {
+              "label": "Deployment area",
+              "value": "Nyx system"
+            }
+          ]
+        },
+        {
+          "name": "Operation Sworn Enemies",
+          "system": "Missions & Activities",
+          "desc": "An investigation mission in the abandoned stations of the Nyx system. Players gather clues about Vanduul technology and run straight into the aliens in the process — the contract can turn into a firefight at any moment.",
+          "facts": [
+            {
+              "label": "Mission type",
+              "value": "Investigation + combat"
+            },
+            {
+              "label": "Location",
+              "value": "Abandoned stations in Nyx"
+            }
+          ]
+        },
+        {
+          "name": "Interstellar hauling",
+          "system": "Economy & Trading",
+          "desc": "Procedural cargo missions that start in one system and end in another. Connects Stanton, Pyro and Nyx with cross-system trade chains.",
+          "facts": [
+            {
+              "label": "Range",
+              "value": "Stanton, Pyro, Nyx"
+            },
+            {
+              "label": "Mission type",
+              "value": "Procedural cargo routes"
+            }
+          ]
+        },
+        {
+          "name": "IAE 2955",
+          "system": "Events",
+          "desc": "Intergalactic Aerospace Expo in Orison. 200+ ships from all manufacturers free to try. Free-Fly until December 3, 2025. The largest ship show in the Verse.",
+          "facts": [
+            {
+              "label": "Location",
+              "value": "Orison"
+            },
+            {
+              "label": "Duration",
+              "value": "14 days · Free-Fly until Dec 3, 2025"
+            },
+            {
+              "label": "Ships testable",
+              "value": "200+"
+            }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Heavy gunship",
+          "status": "new"
+        },
+        {
+          "role": "Salvage",
+          "status": "new"
+        },
+        {
+          "role": "AI fighter",
+          "status": "AI enemy"
+        }
+      ],
+      "events": [
+        {
+          "name": "IAE 2955",
+          "desc": "Intergalactic Aerospace Expo in Orison with 200+ ships free to try. Free-Fly until December 3, 2025."
+        },
+        {
+          "name": "Operation Sworn Enemies",
+          "desc": "An investigation mission to explore Vanduul technology in the abandoned stations of the Nyx system. Players run straight into the new AI enemies for the first time in the process."
+        }
+      ],
+      "fixesNote": "180+ fixes",
+      "topics": [
+        {
+          "title": "Nyx system"
+        },
+        {
+          "title": "Vanduul"
+        }
+      ]
+    },
+    "4-5-0": {
+      "tagline": "Engineering gameplay, Ship Armor and spreading fire.",
+      "summary": "Engineering becomes gameplay with 4.5.0: players manage power in real time, Ship Armor absorbs damage as its own layer and fires spread dynamically through ships. Vulkan becomes the default render pipeline (replacing DirectX 11) with experimental VR support. A crew-centered rework of ship combat mechanics.",
+      "dateDisplayEn": "December 17, 2025",
+      "keyFacts": [
+        {
+          "label": "New engineering systems",
+          "value": "4 — Engineering, Ship Armor, Fire Hazard, Power Management"
+        },
+        {
+          "label": "Ship Armor",
+          "value": "Its own physical layer; absorbs damage before the hull; wears down over time"
+        },
+        {
+          "label": "Fire Hazard",
+          "value": "Spreads dynamically, consumes oxygen, requires active firefighting"
+        },
+        {
+          "label": "Default renderer",
+          "value": "Vulkan (replaces DirectX 11; available experimentally since 3.23)"
+        },
+        {
+          "label": "VR support",
+          "value": "Experimental · via the Vulkan pipeline"
+        },
+        {
+          "label": "Power Management",
+          "value": "Real-time power distribution; overload leads to heat and failures"
+        }
+      ],
+      "features": [
+        {
+          "name": "Engineering gameplay",
+          "system": "Engineering",
+          "desc": "Ship operation becomes active gameplay: players monitor their ship's condition at the engineering terminal in real time and repair damaged components while in operation. In multi-crew ships a new crew role emerges.",
+          "facts": [
+            {
+              "label": "Terminal control",
+              "value": "Real-time monitoring and repair on board"
+            },
+            {
+              "label": "Crew experience",
+              "value": "Ships become a cooperative tool with defined roles"
+            }
+          ]
+        },
+        {
+          "name": "Ship Armor",
+          "system": "Ship systems",
+          "desc": "Ship armor becomes its own physical layer above the hull and components. The armor absorbs incoming damage before it reaches the structure, wears down over time and makes damage management a strategic decision.",
+          "facts": [
+            {
+              "label": "Layer structure",
+              "value": "Armor → Hull → Components"
+            },
+            {
+              "label": "Durability",
+              "value": "Finite; wears down when hit"
+            }
+          ]
+        },
+        {
+          "name": "Fire Hazard",
+          "system": "Ship systems",
+          "desc": "With 4.5.0 fires spread dynamically through the ship, consume oxygen and jump to adjacent rooms. Crews must actively fight fires instead of passively ignoring them.",
+          "facts": [
+            {
+              "label": "Spread mechanic",
+              "value": "Dynamic between rooms and components"
+            },
+            {
+              "label": "Resource",
+              "value": "Oxygen becomes critical during fires"
+            }
+          ]
+        },
+        {
+          "name": "Power Management",
+          "system": "Engineering",
+          "desc": "Players distribute power in real time across components and systems. Over- or misallocation leads to heat, failures and damage — power becomes a scarce resource in ship operation.",
+          "facts": [
+            {
+              "label": "Priorities",
+              "value": "Shields, engines, weapons compete for power"
+            },
+            {
+              "label": "Risk",
+              "value": "Overload has consequences (failures, damage)"
+            }
+          ]
+        },
+        {
+          "name": "Vulkan renderer",
+          "system": "Server technology",
+          "desc": "With 4.5.0 Vulkan becomes the default render pipeline and replaces DirectX 11. The Vulkan API had been available experimentally since Alpha 3.23; 4.5.0 stabilized it (multithreaded rendering, HDR support) and made it the standard.",
+          "facts": [
+            {
+              "label": "Predecessor",
+              "value": "DirectX 11 (relegated to legacy support)"
+            },
+            {
+              "label": "Prerequisite for",
+              "value": "Experimental VR support"
+            }
+          ]
+        },
+        {
+          "name": "VR support",
+          "system": "UI & Comfort",
+          "desc": "With 4.5.0 experimental virtual reality support was introduced, enabled by the Vulkan render pipeline. An early, optional step toward an immersive cockpit experience.",
+          "facts": [
+            {
+              "label": "Status",
+              "value": "Experimental · optional feature"
+            },
+            {
+              "label": "Dependency",
+              "value": "Vulkan default renderer required"
+            }
+          ]
+        }
+      ],
+      "ships": [],
+      "events": [],
+      "topics": [
+        {
+          "title": "Engineering"
+        }
+      ]
+    },
+    "4-6-0": {
+      "tagline": "Plague event at Levski, LAMP night vision and the RSI Hermes.",
+      "summary": "The asteroid colony Levski falls under quarantine due to the Molina Mold (People's Ailment), triggered by faulty air filters. Using the new LAMP night vision (Light Amplification), players fly supply missions against pirates of the Moraine and deliver cures. The RSI Hermes (blockade-runner freighter) and the Argo Moth (salvage ship) become newly available. Over 160 bugfixes further stabilize server meshing.",
+      "dateDisplayEn": "January 29, 2026",
+      "keyFacts": [
+        {
+          "label": "Event",
+          "value": "Lifeline for Levski — biohazard quarantine until March 17, 2026"
+        },
+        {
+          "label": "New ships",
+          "value": "RSI Hermes (~288 SCU freighter) · Argo Moth (Salvage)"
+        },
+        {
+          "label": "LAMP vision",
+          "value": "Cockpit night vision for environments around infected Levski"
+        },
+        {
+          "label": "Molina Mold",
+          "value": "Aggressive mold caused by faulty air filters"
+        },
+        {
+          "label": "Bugfixes",
+          "value": "160+ stability and bug fixes"
+        },
+        {
+          "label": "Supply missions",
+          "value": "Clearing the Air: med deliveries against The Moraine (pirates)"
+        }
+      ],
+      "features": [
+        {
+          "name": "Lifeline for Levski Event",
+          "system": "Events",
+          "desc": "Pandemic event at the asteroid colony Levski. The Molina Mold was released through defective air filters and causes People's Ailment. Players must supply the quarantined colony while pirates operating out of The Moraine attack the convoys. The event runs for a limited time until March 17, 2026.",
+          "facts": [
+            {
+              "label": "Trigger",
+              "value": "Faulty air filters in Levski"
+            },
+            {
+              "label": "Disease",
+              "value": "People's Ailment (lung disease)"
+            },
+            {
+              "label": "Enemy",
+              "value": "The Moraine — pirates from asteroid settlements in the Glaciem Ring"
+            },
+            {
+              "label": "End date",
+              "value": "March 17, 2026"
+            }
+          ]
+        },
+        {
+          "name": "LAMP (Light Amplification)",
+          "system": "UI & Comfort",
+          "desc": "A new cockpit night vision feature. LAMP amplifies existing residual light and enables navigation and flight in dark environments — especially useful when approaching Levski, infected by the Molina Mold, in the dark Nyx system.",
+          "facts": [
+            {
+              "label": "Function",
+              "value": "Residual-light amplification for night vision"
+            },
+            {
+              "label": "Application",
+              "value": "Flight and navigation in dark environments"
+            }
+          ]
+        },
+        {
+          "name": "Clearing the Air — Supply missions",
+          "system": "Missions & Activities",
+          "desc": "New missions for the Lifeline event. Players transport medical supplies, antifungals and filter/cure manufacturing materials to quarantined Levski while The Moraine pirates attack the convoys. Convoy protection required.",
+          "facts": [
+            {
+              "label": "Mission type",
+              "value": "Supply escort against The Moraine"
+            },
+            {
+              "label": "Materials",
+              "value": "Antifungal, cures, air filter components"
+            },
+            {
+              "label": "Rewards",
+              "value": "Credits, reputation, event progress"
+            }
+          ]
+        },
+        {
+          "name": "RSI Hermes",
+          "system": "Ship systems",
+          "desc": "A new RSI blockade-runner freighter. The Hermes is specialized for fast supply runs under dangerous conditions and becomes the main ship of the supply chains during the Lifeline event.",
+          "facts": [
+            {
+              "label": "Manufacturer",
+              "value": "Roberts Space Industries (RSI)"
+            },
+            {
+              "label": "Class",
+              "value": "Blockade-runner freighter"
+            },
+            {
+              "label": "Capacity",
+              "value": "approx. 288 SCU cargo"
+            },
+            {
+              "label": "Function",
+              "value": "Fast supply runs in crisis situations"
+            }
+          ]
+        },
+        {
+          "name": "Argo Moth",
+          "system": "Ship systems",
+          "desc": "A medium salvage ship from Argo Astronautics. The Moth is specialized in salvage and is set to become available in resupply after release (from February 11, 2026).",
+          "facts": [
+            {
+              "label": "Manufacturer",
+              "value": "Argo Astronautics"
+            },
+            {
+              "label": "Class",
+              "value": "Salvage ship (medium)"
+            },
+            {
+              "label": "Specialization",
+              "value": "Salvage and scrap processing"
+            },
+            {
+              "label": "Release plan",
+              "value": "Resupply from February 11, 2026"
+            }
+          ]
+        },
+        {
+          "name": "Engineering & Armor refinement",
+          "system": "Engineering",
+          "desc": "Continuation of the engineering mechanics introduced in 4.5.0. Optimizations to power distribution and damage calculation for ship armor; stabilization of the systems after the patch launch.",
+          "facts": [
+            {
+              "label": "Focus",
+              "value": "Real-time power distribution optimized"
+            },
+            {
+              "label": "Armor system",
+              "value": "Further balance adjustments"
+            }
+          ]
+        },
+        {
+          "name": "Place-from-Inventory reactivated",
+          "system": "UI & Comfort",
+          "desc": "The feature for directly placing items from the inventory is reactivated after having been disabled in previous patches.",
+          "facts": [
+            {
+              "label": "Feature",
+              "value": "Direct placement from inventory"
+            },
+            {
+              "label": "Status",
+              "value": "Reactivated in 4.6.0"
+            }
+          ]
+        },
+        {
+          "name": "Star Map harvestable data",
+          "system": "Star systems",
+          "desc": "The Star Map gains data on harvestable resource spots (harvestables) to give players better planning of mining and gathering missions.",
+          "facts": [
+            {
+              "label": "Data",
+              "value": "Harvestable locations available in Star Map"
+            },
+            {
+              "label": "Application",
+              "value": "Mission planning for mining & gathering"
+            }
+          ]
+        },
+        {
+          "name": "Kel-To ship supply kiosks",
+          "system": "Economy & Trading",
+          "desc": "New supply kiosks enable on-site ship resupply, relevant for the fast supply runs of the Lifeline event.",
+          "facts": [
+            {
+              "label": "Function",
+              "value": "Kiosk-based ship resupply"
+            },
+            {
+              "label": "Use",
+              "value": "Support for supply missions"
+            }
+          ]
+        },
+        {
+          "name": "160+ stability and bugfixes",
+          "system": "Stability & Performance",
+          "desc": "An extensive bugfix package for server meshing stability, streaming, NPC interactions and general game stability — typical for major patches.",
+          "facts": [
+            {
+              "label": "Fix count",
+              "value": "160+"
+            },
+            {
+              "label": "Focus",
+              "value": "Server meshing, streaming, stability"
+            },
+            {
+              "label": "Repaired systems",
+              "value": "NPC, UI, mission markers, hangars"
+            }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Blockade-runner freighter",
+          "status": "new"
+        },
+        {
+          "role": "Salvage ship",
+          "status": "new"
+        }
+      ],
+      "events": [
+        {
+          "name": "Lifeline for Levski",
+          "desc": "Pandemic event: the asteroid colony Levski is stricken by the Molina Mold (People's Ailment). Players carry out supply missions (Clearing the Air) while The Moraine pirates attack the convoys. The event runs for a limited time until March 17, 2026."
+        }
+      ],
+      "fixesNote": "160+ bugfixes and stability improvements for server meshing and general game systems.",
+      "topics": []
+    },
+    "4-7-0": {
+      "tagline": "Crafting T0, Operation Breaker Stations in the Keeger Belt, and the modular Aurora Mk II.",
+      "summary": "The Keeger Belt opens up as an asteroid belt in the Nyx system. With Crafting T0, players can for the first time build FPS weapons and armor themselves from blueprints and rare minerals. Operation Breaker Stations is a multi-stage co-op mission to reactivate Shubin Breaker stations. The Aurora Mk II replaces the old Aurora model with modular combat or cargo configurations. The seasonal Stella Fortuna event brings racing and cosmetics.",
+      "dateDisplayEn": "March 26, 2026",
+      "keyFacts": [
+        {
+          "label": "Crafting Tier",
+          "value": "T0 · FPS weapons & armor from blueprints"
+        },
+        {
+          "label": "Operation Breaker Stations",
+          "value": "Multi-stage co-op in the Keeger Belt · PvE/PvP variants"
+        },
+        {
+          "label": "Aurora Mk II",
+          "value": "Modular starter · +6 SCU cargo or combat module"
+        },
+        {
+          "label": "Keeger Belt",
+          "value": "Asteroid belt in Nyx with QV Breaker stations"
+        },
+        {
+          "label": "Stella Fortuna",
+          "value": "Seasonal event · racing, video contest, cosmetics"
+        }
+      ],
+      "features": [
+        {
+          "name": "Crafting T0",
+          "system": "Crafting",
+          "desc": "First crafting tier: build FPS weapons and armor from blueprints and rare minerals. Material quality influences the item's final stats.",
+          "facts": [
+            {
+              "label": "Craftable Items",
+              "value": "FPS weapons & armor"
+            },
+            {
+              "label": "Ingredients",
+              "value": "Blueprints + rare minerals"
+            },
+            {
+              "label": "Material Quality",
+              "value": "Influences weapon/armor stats"
+            }
+          ]
+        },
+        {
+          "name": "Operation Breaker Stations",
+          "system": "Missions & Activities",
+          "desc": "Multi-stage co-op mission in the Keeger Belt: players reactivate decommissioned Shubin Breaker stations, fire a laser to break apart asteroids, and craft optical components. Playable as PvE mode (exclusive) or open FFA PvP.",
+          "facts": [
+            {
+              "label": "Location",
+              "value": "Keeger Belt (Nyx)"
+            },
+            {
+              "label": "Mission Type",
+              "value": "Multi-stage co-op"
+            },
+            {
+              "label": "Modes",
+              "value": "PvE (exclusive) & PvP (open)"
+            },
+            {
+              "label": "Enemies",
+              "value": "Claw Salamander, Ice Valakkar"
+            }
+          ]
+        },
+        {
+          "name": "Aurora Mk II",
+          "system": "Ship systems",
+          "desc": "New modular starter ship from RSI with swappable modules: standard configuration, +6 SCU cargo module, or combat module with shield & missiles. Replaces the old Aurora model.",
+          "facts": [
+            {
+              "label": "Manufacturer",
+              "value": "RSI"
+            },
+            {
+              "label": "Class",
+              "value": "Starter"
+            },
+            {
+              "label": "Modules",
+              "value": "Cargo (+6 SCU) or Combat (Shield+Missile)"
+            },
+            {
+              "label": "Status",
+              "value": "Replaces old model"
+            }
+          ]
+        },
+        {
+          "name": "Inventory Rework",
+          "system": "UI & Convenience",
+          "desc": "Major overhaul cycle of the inventory system to support Crafting and Operation Breaker Stations.",
+          "facts": [
+            {
+              "label": "Focus",
+              "value": "Crafting integration & layout"
+            }
+          ]
+        },
+        {
+          "name": "Combat Overhaul",
+          "system": "Combat & Weapons",
+          "desc": "Reworked combat system focused on shield, armor, and radar balance for Operation Breaker mission requirements.",
+          "facts": [
+            {
+              "label": "Systems",
+              "value": "Shield/Armor/Radar/Missile"
+            }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Starter",
+          "status": "new"
+        }
+      ],
+      "events": [
+        {
+          "name": "Stella Fortuna",
+          "desc": "Seasonal luck and celebration event with Arena Commander racing, a video contest, and rewards (racing gear, cosmetics)."
+        }
+      ],
+      "topics": [
+        {
+          "title": "Crafting"
+        }
+      ]
+    },
+    "4-8-0": {
+      "tagline": "G-force tolerance, the Drake Ironclad, and the return of XenoThreat.",
+      "summary": "Alpha 4.8.0 brings the G-force flight model with greyout/redout/blackout, Drake's first heavy armored haulers (Ironclad & Assault), coordinated Tactical Strike Group missions for organized orgs, the reworked refueling system, and the return of the massive XenoThreat event — accompanied by more than 166 bug fixes and the first full wipe since 4.0.0.",
+      "dateDisplayEn": "May 14, 2026",
+      "keyFacts": [
+        {
+          "label": "G-Force Flight Model",
+          "value": "Grey-out → Red-out → Black-out; suit & armor decisive for tolerance"
+        },
+        {
+          "label": "Drake Ironclad & Assault",
+          "value": "Drake's first heavy armored haulers; Assault variant for combat"
+        },
+        {
+          "label": "Tactical Strike Groups",
+          "value": "Coordinated multi-ship missions in Nyx; 7+ players; Vanduul Mauler boss fight"
+        },
+        {
+          "label": "XenoThreat Assault",
+          "value": "Return of the wave defense event; defend the UEES War Hammer"
+        },
+        {
+          "label": "Wipe",
+          "value": "Full wipe (first since 4.0.0)"
+        },
+        {
+          "label": "Bugfixes",
+          "value": "166+ fixes & stability improvements"
+        }
+      ],
+      "features": [
+        {
+          "name": "G-Force Flight Model",
+          "system": "Flight Model",
+          "desc": "High-intensity G-forces directly affect pilots: positive Gs lead through greyout to blackout, negative Gs to redout. Specialized flight and racing suits with different G-tolerance values determine the strain limit and become a tactical factor.",
+          "facts": [
+            {
+              "label": "Greyout/Redout/Blackout",
+              "value": "Progressive vision impairment depending on G-load & suit type"
+            },
+            {
+              "label": "Suit-Dependent",
+              "value": "Flight suits, racing suits, and armor affect G-tolerance"
+            }
+          ]
+        },
+        {
+          "name": "Drake Ironclad & Ironclad Assault",
+          "system": "Ship systems",
+          "desc": "Drake's first true armored ship and heavy hauler: massively armored, with substantial cargo capacity and a combat configuration. The Assault variant is optimized for coordinated Strike Group battles. Plus a Drake Command Module for tactical coordination.",
+          "facts": [
+            {
+              "label": "Class",
+              "value": "Heavy armored hauler"
+            },
+            {
+              "label": "Variants",
+              "value": "Ironclad (Hauler) · Ironclad Assault (Combat) · Command Module"
+            }
+          ]
+        },
+        {
+          "name": "Tactical Strike Groups",
+          "system": "Missions & Activities",
+          "desc": "New cooperative multi-ship missions for organized orgs: a multi-phase raid with ship combat, tunnel flight, core destruction, and FPS infiltration of the QV Extraction Stations in Nyx. A Vanduul Mauler boss in the finale. Rewards: an exclusive crossbow blueprint and high-value loot.",
+          "facts": [
+            {
+              "label": "Recommended Group Size",
+              "value": "7+ players"
+            },
+            {
+              "label": "Location",
+              "value": "QV Extraction Stations · Nyx system"
+            },
+            {
+              "label": "Roles",
+              "value": "Fighter · Bomber · Support · Capital Ships"
+            },
+            {
+              "label": "Boss",
+              "value": "Vanduul Mauler"
+            }
+          ]
+        },
+        {
+          "name": "XenoThreat — Assault on Stanton",
+          "system": "Events",
+          "desc": "Return of the massive server-wide coordination event: a human-supremacist outlaw faction of deserted UEE Navy soldiers raids a corporate convoy and then attacks the UEES War Hammer at INS Jericho. Players recover Starfarer supplies and defend the flagship front against waves of fighters, Hammerhead gunships, and Idris-M frigates.",
+          "facts": [
+            {
+              "label": "Scenario",
+              "value": "Corporate convoy raid → supply recovery → flagship defense"
+            },
+            {
+              "label": "Enemy Waves",
+              "value": "Fighter · Hammerhead gunships · Idris-M frigates"
+            },
+            {
+              "label": "Flagship",
+              "value": "UEES War Hammer · INS Jericho"
+            },
+            {
+              "label": "Faction Nature",
+              "value": "Paramilitary; former UEE Navy deserters"
+            }
+          ]
+        },
+        {
+          "name": "Refueling Rework",
+          "system": "Ship systems",
+          "desc": "Reworked fuel mechanics with an improved UI and more realistic resource consumption models; integrated into the ship service system (T0).",
+          "facts": [
+            {
+              "label": "Status",
+              "value": "System reworked"
+            }
+          ]
+        },
+        {
+          "name": "Vehicle Loadout Recovery",
+          "system": "Hangars & Persistence",
+          "desc": "Players can load and save stored ship and vehicle configurations (weapons, modules, equipment); integrated with Long-Term Persistence.",
+          "facts": [
+            {
+              "label": "Feature",
+              "value": "Load & save ship configurations"
+            }
+          ]
+        },
+        {
+          "name": "Ship Hangar Service (T0)",
+          "system": "Hangars & Persistence",
+          "desc": "First iteration of hangar-based maintenance and repair services.",
+          "facts": [
+            {
+              "label": "Iteration Tier",
+              "value": "T0 (Alpha)"
+            }
+          ]
+        },
+        {
+          "name": "New Equipment & Gear",
+          "system": "Combat & Weapons",
+          "desc": "Introduction of specialized equipment for tactical operations: the UltiFlex crossbow, Kastak plasma grenade, and Tailwind flight suit; all optimized for Strike Group scenarios.",
+          "facts": [
+            {
+              "label": "Ranged",
+              "value": "UltiFlex crossbow"
+            },
+            {
+              "label": "Explosive",
+              "value": "Kastak plasma grenade"
+            },
+            {
+              "label": "Protective Gear",
+              "value": "Tailwind flight suit (increased G-tolerance)"
+            }
+          ]
+        },
+        {
+          "name": "Stability & Bug Fixes",
+          "system": "Stability & Performance",
+          "desc": "Over 166 bug fixes and stability improvements accompanying the new systems; full wipe for reinitialization.",
+          "facts": [
+            {
+              "label": "Bugfixes",
+              "value": "166+"
+            },
+            {
+              "label": "Wipe",
+              "value": "Full wipe (first since 4.0.0)"
+            }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Heavy armored hauler",
+          "status": "new"
+        },
+        {
+          "role": "Armored gunship",
+          "status": "new"
+        },
+        {
+          "role": "Tactical Command",
+          "status": "new"
+        },
+        {
+          "role": "Gunship",
+          "status": "Gold Standard",
+          "notes": "Established in 4.8.0 as a Gold Standard rework"
+        }
+      ],
+      "events": [
+        {
+          "name": "Tactical Strike Groups",
+          "desc": "New cooperative mission series for organized orgs in Nyx; a multi-phase PvE raid with ship combat, FPS, and a boss encounter."
+        },
+        {
+          "name": "XenoThreat — Assault on Stanton",
+          "desc": "Return of the server-wide event with a convoy raid, supply recovery, and flagship defense against an escalating wave bombardment."
+        }
+      ],
+      "fixesNote": "166+ fixes and stability improvements",
+      "wipe": "Full wipe (first since 4.0.0)",
+      "topics": [
+        {
+          "title": "Tactical Strike Groups"
+        },
+        {
+          "title": "XenoThreat"
+        }
+      ]
+    },
+    "4-8-1": {
+      "tagline": "New mission type Defend Location — space combat over 385 asteroid bases with bomber defense and blueprints.",
+      "summary": "Defend Location introduces a new wave-based space combat mission type: players defend asteroid mining bases against bomber runs across 385 distributed deployment sites in Stanton and Pyro. The hybrid variant combines defense with escort elements. With 4.8.1, unique crafting blueprints beckon as rewards for the first time. The point release brings 30+ stability improvements after the bumpy 4.8.0 launch.",
+      "dateDisplayEn": "June 3, 2026",
+      "keyFacts": [
+        {
+          "label": "Defend Location Deployment Sites",
+          "value": "385 across Stanton & Pyro"
+        },
+        {
+          "label": "Defendable Bases",
+          "value": "149 locations · 6 difficulty tiers"
+        },
+        {
+          "label": "Contractors",
+          "value": "Foxwell, Head Hunters, CFP, Rough and Ready"
+        },
+        {
+          "label": "Rewards",
+          "value": "aUEC, reputation, org scrip, crafting blueprints"
+        },
+        {
+          "label": "Stability Improvements",
+          "value": "30+ fixes after 4.8.0"
+        }
+      ],
+      "features": [
+        {
+          "name": "Defend Location",
+          "system": "Missions & Activities",
+          "desc": "New wave-based space combat mission type: players defend asteroid mining bases against enemy bomber runs. Every bomber that gets through causes damage to the infrastructure. The hybrid variant combines defense with escort elements — friendly ships must be protected during takeoff or landing.",
+          "facts": [
+            {
+              "label": "Deployment Sites",
+              "value": "385 across Stanton & Pyro"
+            },
+            {
+              "label": "Bases",
+              "value": "149 locations"
+            },
+            {
+              "label": "Difficulties",
+              "value": "6 tiers"
+            }
+          ]
+        },
+        {
+          "name": "Blueprints & Crafting",
+          "system": "Crafting",
+          "desc": "For the first time, unique blueprints appear as rewards — specifically on higher difficulty tiers of Defend Location. They feed the crafting system introduced in 4.7.0.",
+          "facts": [
+            {
+              "label": "Availability",
+              "value": "Higher difficulty tiers"
+            },
+            {
+              "label": "Integration",
+              "value": "With the crafting system from 4.7.0"
+            }
+          ]
+        },
+        {
+          "name": "Stability & Bug Fixes",
+          "system": "Stability & Performance",
+          "desc": "As a point release, 4.8.1 focused on stability improvements after 4.8.0 — fixes address ship claim issues, landing gear/hangar doors, and 60k shard lock issues.",
+          "facts": [
+            {
+              "label": "Fix Scope",
+              "value": "30+ bug fixes"
+            },
+            {
+              "label": "Focus",
+              "value": "4.8.0 regressions"
+            }
+          ]
+        }
+      ],
+      "ships": [],
+      "events": [],
+      "fixesNote": "30+ stability and bug fixes",
+      "topics": [
+        {
+          "title": "Defend Location"
+        }
+      ]
+    },
+    "4-8-2": {
+      "tagline": "Two flight-ready Gatac ships with grav-lev propulsion and the Alien Week celebration around First Contact Day.",
+      "summary": "Point release with two new Gatac alien ships (Railen grav-lev freighter, Tyilui snub carrier) and the simultaneous launch of Alien Week 2956. The event celebrates xenotech manufacturers such as Gatac, Aopoa, Banu, and Esperia with time-limited store promotions and discounts. LTP active with a 20,000 aUEC starting balance; focus on stability and minor fixes to existing 4.8 systems.",
+      "dateDisplayEn": "June 17, 2026",
+      "keyFacts": [
+        {
+          "label": "Gatac Railen",
+          "value": "~640 SCU · grav-lev freighter"
+        },
+        {
+          "label": "Gatac Tyilui",
+          "value": "Snub carrier for quantum-incapable snub fighters"
+        },
+        {
+          "label": "Alien Week 2956",
+          "value": "June 17–25, 2026 · discounts on alien ships & equipment"
+        },
+        {
+          "label": "First Contact Day",
+          "value": "Annual day of remembrance for humanity's first contact with the Xi'an Empire"
+        },
+        {
+          "label": "LTP Active",
+          "value": "+20,000 aUEC starting balance"
+        }
+      ],
+      "features": [
+        {
+          "name": "Gatac Railen",
+          "system": "Ship systems",
+          "desc": "Medium hybrid grav-lev freighter with around 640 SCU of cargo capacity, distributed across characteristic triangular cargo pods. It uses Xi'an graviton levitation technology instead of classic thrusters, which defines the alien-typical design and flight behavior.",
+          "facts": [
+            {
+              "label": "Manufacturer",
+              "value": "Gatac"
+            },
+            {
+              "label": "Cargo Capacity",
+              "value": "~640 SCU"
+            },
+            {
+              "label": "Propulsion",
+              "value": "Grav-lev (Xi'an)"
+            }
+          ]
+        },
+        {
+          "name": "Gatac Tyilui",
+          "system": "Ship systems",
+          "desc": "Snub carrier for quantum-incapable snub fighters. Inspired by science-fiction aesthetics (2001 style). It carries forward the mysterious, 2001: A Space Odyssey-inspired design philosophy of the Gatac line.",
+          "facts": [
+            {
+              "label": "Manufacturer",
+              "value": "Gatac"
+            },
+            {
+              "label": "Role",
+              "value": "Snub carrier"
+            },
+            {
+              "label": "Notable Feature",
+              "value": "Carrier for quantum-incapable fighters"
+            }
+          ]
+        },
+        {
+          "name": "Alien Week 2956",
+          "system": "Events",
+          "desc": "Annual event around First Contact Day (June 17–25, 2026) that puts xenotech manufacturers in the spotlight. Gatac is the 2956 headliner with the Railen, Syulen, and Tyilui. Accompanied by Pledge Store promotions, limited liveries, and alien lore features as well as Xi'an language lessons.",
+          "facts": [
+            {
+              "label": "Duration",
+              "value": "June 17–25, 2026"
+            },
+            {
+              "label": "Headliner",
+              "value": "Gatac (Railen, Syulen, Tyilui)"
+            },
+            {
+              "label": "Manufacturers in the Spotlight",
+              "value": "Gatac, Aopoa, Banu, Esperia"
+            }
+          ]
+        },
+        {
+          "name": "Grav-Lev Propulsion Technology",
+          "system": "Ship systems",
+          "desc": "Xi'an graviton levitation technology used in the Gatac ships. It replaces classic human thrusters and shapes the flight behavior and design aesthetics of the alien ships.",
+          "facts": [
+            {
+              "label": "Origin",
+              "value": "Xi'an Empire"
+            },
+            {
+              "label": "Usage",
+              "value": "Gatac Railen, Gatac Tyilui"
+            }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Grav-lev freighter",
+          "status": "new"
+        },
+        {
+          "role": "Snub carrier",
+          "status": "new"
+        }
+      ],
+      "events": [
+        {
+          "name": "Alien Week 2956",
+          "desc": "Celebration of the non-human manufacturers around First Contact Day. The Gatac ships Railen, Syulen, and Tyilui are the headliners. The event brings Pledge Store discounts on Gatac, Aopoa, Banu, and Esperia as well as limited liveries and alien gear."
+        },
+        {
+          "name": "First Contact Day",
+          "desc": "Annual day of remembrance for the first contact between humanity and the Xi'an Empire. Alien Week honors this heritage with discounts on alien ships and equipment."
+        }
+      ],
+      "fixesNote": "Further stability and bug fixes to 4.8.0 systems (exact number not specified).",
+      "wipe": "LTP active · +20,000 aUEC starting balance (no full wipe)",
+      "topics": [
+        {
+          "title": "Alien Week 2956"
+        }
+      ]
+    }
+  }
+}

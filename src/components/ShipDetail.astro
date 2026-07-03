@@ -1,13 +1,11 @@
 ---
-// Schiff-Datenblatt — geteilte, locale-bewusste Ansicht (Stufe 1).
+// Schiff-Datenblatt — geteilte, locale-bewusste Ansicht (DE + EN).
 // Aus src/pages/schiffe/[slug].astro extrahiert, damit DE und EN dieselbe
-// Vorlage teilen (Fundament für Stufe 2: alle 226 EN-Seiten).
+// Vorlage teilen (alle 226 Seiten pro Sprache).
 //
-// i18n-Stand (Stufe 1): Template-Chrome + Panel-Titel + Buttons/Hints laufen
-// über t(); interne Links über L(). NOCH deutsch (bewusst -> Stufe 2, „Daten"):
-//   - Daten-Row-Labels aus src/lib (buildFacts/buildVisuals/buildProfile:
-//     „Länge", „Feuerkraft", „Reichweite" …) — brauchen lang-Threading in die lib
-//   - Zahlenformat toLocaleString('de-DE') und Datenfelder (typeDe/sizeDe/…)
+// i18n-Stand (Stufe 2, vollständig): Template-Chrome + alle Daten-Row-Labels
+// (src/lib via t()), Freitext (Beschreibung/Foci/Typ/Größe/Status via
+// vehicleText) und Zahlenformat (loc = de-DE / en-US) sind lokalisiert.
 import Layout from '../layouts/Layout.astro';
 import SiteNav from './SiteNav.astro';
 import { getCollection } from 'astro:content';
