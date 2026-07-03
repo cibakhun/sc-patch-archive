@@ -14,4 +14,9 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://cibakhun.github.io',
   build: { format: 'file' },
+  vite: {
+    server: {
+      allowedHosts: ['.loca.lt', '.trycloudflare.com'],
+    },
+  },
 });

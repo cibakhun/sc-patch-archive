@@ -16,5 +16,8 @@ dist/
 .DS_Store
 npm-debug.log*
 
+# Tunnel/preview session logs
+pinggy.log
+
 # /assets is the canonical media; public/assets is a build-time sync (see scripts/_sync-assets.mjs)
 /public/assets/
