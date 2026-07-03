@@ -4,14 +4,21 @@
 // the system tag lives in the code line, the provenance link is the panel's
 // single accent action row. Renders the page's Registertrenner first.
 import { getCollection } from 'astro:content';
+import { useTranslations, href, localeFromPath } from '../i18n/ui';
+import { mergePatchEn } from '../i18n/patchText';
 
 interface Props {
   topicSlug: string;
 }
 const { topicSlug } = Astro.props;
 
+const lang = localeFromPath(Astro.url.pathname);
+const t = useTranslations(lang);
+const L = (p: string) => href(p, lang);
+
 const patches = await getCollection('patches');
-const parent = patches.find((p) => p.data.topics.some((t) => t.slug === topicSlug));
+const parentEntry = patches.find((p) => p.data.topics.some((tp) => tp.slug === topicSlug));
+const parent = parentEntry ? { id: parentEntry.id, data: mergePatchEn(parentEntry.id, parentEntry.data, lang) } : null;
 const feats = parent ? parent.data.features.filter((f) => f.topicSlug === topicSlug) : [];
 
 const seen = new Set<string>();
@@ -29,30 +36,30 @@ const system = feats.find((f) => f.system)?.system;
   <>
     <div class="reg-divider">
       <div class="reg-divider__in">
-        <span class="reg-divider__l">▚ Datenregister</span>
-        <span class="reg-divider__r">DAT&nbsp;//&nbsp;{system ?? 'Thema'} · Quelle Alpha {parent.data.version}</span>
+        <span class="reg-divider__l">{t('qf.register')}</span>
+        <span class="reg-divider__r">DAT&nbsp;//&nbsp;{system ?? t('tf.topic')} · {t('tf.source')} {parent.data.version}</span>
       </div>
     </div>
-    <section class="tf" aria-label="Auf einen Blick">
+    <section class="tf" aria-label={t('qf.title')}>
       <div class="tf__in">
         <header class="tf__head">
-          <h2>Auf einen Blick</h2>
-          <span class="tf__code">DAT&nbsp;//&nbsp;{system ?? 'Thema'} · Quelle Alpha {parent.data.version}</span>
+          <h2>{t('qf.title')}</h2>
+          <span class="tf__code">DAT&nbsp;//&nbsp;{system ?? t('tf.topic')} · {t('tf.source')} {parent.data.version}</span>
         </header>
         {shown.length > 0 ? (
           <dl class="tf__grid">
             {shown.map((f) => (
               <div class="tf__item">
                 <dt>{f.label}</dt>
-                <dd>{f.value}{f.unverified && <abbr class="tf__unv" title="unbestätigt">*</abbr>}</dd>
+                <dd>{f.value}{f.unverified && <abbr class="tf__unv" title={t('common.unverified')}>*</abbr>}</dd>
               </div>
             ))}
           </dl>
         ) : (
           feats[0] && <p class="tf__desc">{feats[0].desc}</p>
         )}
-        <a class="tf__prov" href={`/patches/sc-${parent.id}.html`}>
-          Eingeführt in Alpha {parent.data.version} — {parent.data.codename} · {parent.data.dateDisplay} →
+        <a class="tf__prov" href={L(`/patches/sc-${parent.id}.html`)}>
+          {t('tf.introduced').replace('%v%', parent.data.version)}{parent.data.codename} · {parent.data.dateDisplay} →
         </a>
       </div>
     </section>

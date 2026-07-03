@@ -1,0 +1,202 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import TopicFacts from '../../../components/TopicFacts.astro';
+import RelatedTopics from '../../../components/RelatedTopics.astro';
+import Attribution from '../../../components/Attribution.astro';
+---
+<Layout title={"Fight for Pyro — Star Citizen 4.0.1 | SC Patch Archive"} description={"Fight for Pyro: Chapter 2 of the Save Stanton campaign. Pledge yourself permanently to one of three factions and decide who owns the lawless Pyro — introduced with Alpha 4.0.1."} themeColor="#0c1320" ogType="article" ogImage="/assets/t-ffp-1.jpg" translated={true}>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+/* 4.0.1 "Stabilitaet & Save Stanton II" — Konsolen-Blau (geerbt vom Patch) */
+:root{--bg:#0c1320;--bg-2:#101a2b;--surface:#152237;--surface-2:#1c2d46;--accent:#36c5d8;--accent-2:#f0a32a;--hot:#36c5d8;--text:#e6f0fa;--muted:#8ba3bd;--line:rgba(54,197,216,.22);--line-soft:rgba(230,240,250,.10);--glow:0 0 44px rgba(54,197,216,.30);--ink:#0c1320;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:.9rem;max-width:var(--maxw);margin:0 auto}
+@media(max-width:860px){.trio{grid-template-columns:1fr}}
+.fcard{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:10px;min-height:340px;display:flex;flex-direction:column;justify-content:flex-end;padding:1.5rem 1.4rem;isolation:isolate}
+.fcard .fbg{position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center;transition:transform .8s;filter:saturate(.9)}
+.fcard:hover .fbg{transform:scale(1.07)}
+.fcard::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,rgba(8,12,20,.94),rgba(8,12,20,.55) 45%,rgba(8,12,20,.15))}
+.fcard .fk{font-family:var(--font-ui);font-weight:700;letter-spacing:.22em;text-transform:uppercase;font-size:.68rem;color:var(--accent-2)}
+.fcard h3{font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,2.2vw,1.6rem);line-height:1.05;color:#fff;margin:.35rem 0 .5rem}
+.fcard p{color:var(--text);font-size:.95rem;opacity:.92}
+.fcard .ftag{margin-top:.8rem;display:inline-flex;align-self:flex-start;font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.66rem;padding:.3rem .7rem;border:1px solid var(--line);border-radius:50px;color:var(--accent)}
+.reward{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.1rem}
+.reward .chip{font-family:var(--font-ui);font-weight:600;font-size:.82rem;color:var(--text);padding:.45rem .85rem;border:1px solid var(--line);border-radius:6px;background:rgba(0,0,0,.35)}
+.reward .chip b{color:var(--accent-2)}
+
+</style>
+<a class="skip" href="#main">Skip to content</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archive', href: '/en/index.html' }, { label: 'Alpha 4.0.1', href: '/en/patches/sc-4-0-1.html' }, { label: "Fight for Pyro" }]} pill={"EVENT · ALPHA 4.0.1"} hasEn={true} />
+
+
+<main id="main">
+
+  <!-- HERO (full-bleed lead media) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-ffp-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/en/patches/sc-4-0-1.html">Alpha 4.0.1 · Save Stanton II</a> &nbsp;·&nbsp; Dynamic Event</div>
+      <h1><span class="thin">Save Stanton · Chapter 2</span>Fight for Pyro</h1>
+      <p class="lead">The war moves to Pyro: in Chapter 2 of the Save Stanton campaign you pledge yourself permanently to one of three factions and help decide who owns the lawless system.</p>
+      <div class="tags"><span class="tag hot">Dynamic Event</span><span class="tag">3 Factions</span><span class="tag">Permanent Choice</span><span class="tag">Ripper SMG</span><span class="tag">Pyro</span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>FIGHT FOR PYRO</span><span class="dot">◆</span><span>SAVE STANTON</span><span class="dot">◆</span><span>CITIZENS FOR PROSPERITY</span><span class="dot">◆</span><span>HEADHUNTERS</span><span class="dot">◆</span><span>FRONTIER FIGHTERS</span><span class="dot">◆</span><span>RIPPER SMG</span><span class="dot">◆</span>
+      <span>FIGHT FOR PYRO</span><span class="dot">◆</span><span>SAVE STANTON</span><span class="dot">◆</span><span>CITIZENS FOR PROSPERITY</span><span class="dot">◆</span><span>HEADHUNTERS</span><span class="dot">◆</span><span>FRONTIER FIGHTERS</span><span class="dot">◆</span><span>RIPPER SMG</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-0-1-fight-for-pyro" />
+
+  <!-- FULL-BLEED BAND — der Krieg zieht nach Pyro -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-pyro-4.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">Chapter 2 · The war moves on</div>
+      <div class="big outline">TO PYRO.</div>
+      <p>After the attack on Stanton, the story follows the conflict into the lawless <b style="color:var(--accent-2)">Pyro</b>. Where no law applies, three factions wrestle for control — and you help decide which side you stand on.</p>
+    </div>
+  </section>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="2">0</div><div class="c">Chapter of the Save Stanton campaign</div></div>
+    <div class="s"><div class="n count" data-to="3">0</div><div class="c">Factions to choose from</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Choice · and it is final</div></div>
+    <div class="s"><div class="n">Pyro</div><div class="c">Setting · lawless system</div></div>
+  </div>
+
+  <!-- DREI FRAKTIONEN (image-backed trio, design on top) -->
+  <section>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>Choose your side</h2><span class="rule"></span></div>
+      <p class="lead-p reveal" style="margin-bottom:1.6rem">Three factions fight for Pyro. With your first mission you show your colors — after that your missions are reputation-bound.</p>
+    </div>
+    <div class="trio reveal">
+      <div class="fcard">
+        <div class="fbg" style="background-image:url('/assets/cz-facility.jpg')"></div>
+        <div class="fk">Faction 01</div>
+        <h3>Citizens for Prosperity</h3>
+        <p>Fight for a Pyro that wants to be more than chaos — order and prosperity in the lawless system.</p>
+        <span class="ftag">Reputation-bound</span>
+      </div>
+      <div class="fcard">
+        <div class="fbg" style="background-image:url('/assets/cz-combat.jpg')"></div>
+        <div class="fk">Faction 02</div>
+        <h3>Headhunters</h3>
+        <p>Bounty, steel and a hard hand: side with those who hunt in Pyro by their own rules.</p>
+        <span class="ftag">Reputation-bound</span>
+      </div>
+      <div class="fcard">
+        <div class="fbg" style="background-image:url('/assets/t-ffp-2.jpg')"></div>
+        <div class="fk">Faction 03</div>
+        <h3>Frontier Fighters</h3>
+        <p>Defend the free frontier — for those who see Pyro as the last independent front.</p>
+        <span class="ftag">Reputation-bound</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING — so legst du dich fest (process) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>How you commit</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/t-pyro-4.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/cz-combat.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/cz-facility.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-pyro-3.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>To Pyro</h3><p>Follow the Save Stanton campaign into Chapter 2 in the lawless Pyro system, where the conflict for supremacy has flared up.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>The first mission</h3><p>Citizens for Prosperity, Headhunters or Frontier Fighters: your first mission decides who you fight for in Pyro.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Committed</h3><p>After the first mission the choice is permanent. There is no going back — from now on all missions are bound to your faction's reputation.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Through to completion</h3><p>Work through your faction's chain and complete Fight for Pyro — the timing decides your reward.</p></div>
+    </div>
+  </div>
+
+  <!-- MANIFESTO pull-quote -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>One mission. One faction. <span class="hl">No second choice.</span></blockquote>
+    <cite>Fight for Pyro · Save Stanton Chapter 2</cite>
+  </section>
+
+  <!-- SPLIT (the ONE framed section) — permanente Wahl -->
+  <section style="padding-bottom:0">
+    <div class="split reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-pyro-5.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">03 · Permanent Choice</div>
+        <h3>A decision that stays</h3>
+        <p>Unlike many events, your faction choice in Fight for Pyro is <b>permanent</b>: once the first mission is completed, you are committed. There is no switching to the other side.</p>
+        <p>From then on your missions are <b>reputation-bound</b> — you earn your faction's trust and fight their battles to the end of the campaign.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED BAND — Belohnungen / Ripper SMG -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-ffp-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">04 · What you earn</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">RIPPER SMG</div>
+      <p>Anyone who completed Fight for Pyro <b style="color:var(--accent-2)">before the start of 4.0.2</b> secured the exclusive Pyro Ripper SMG — a reward only for those who fought for their faction in time.</p>
+      <div class="reward">
+        <span class="chip"><b>Exclusive</b> · Pyro Ripper SMG</span>
+        <span class="chip">only before the start of <b>4.0.2</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- LACKIERUNGEN (data over surface, no image card) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">05</span><h2>Faction Paints</h2><span class="rule"></span></div>
+      <p class="lead-p reveal">Anyone who completed <b>Save Stanton Chapter 1</b> <i>and</i> <b>Fight for Pyro Chapter 2</b> earned faction-specific ship paints — colors that show who you fought for in Pyro.</p>
+      <div class="reward reveal" style="margin-top:1.4rem">
+        <span class="chip">Anvil <b>C8R Pisces</b></span>
+        <span class="chip">Anvil <b>Carrack</b></span>
+        <span class="chip">Drake <b>Cutter</b></span>
+        <span class="chip">RSI <b>Zeus Mk II</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSING — mixed full-bleed gallery (no official video) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">06</span><h2>Image Gallery</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-ffp-1.jpg"><img src="/assets/t-ffp-1.jpg" alt="Fight for Pyro — battle for Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Fight for Pyro</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-pyro-7.jpg"><img src="/assets/t-pyro-7.jpg" alt="Patch City — outlaw station in Pyro's asteroid field" loading="lazy"><span class="zoomic">⤢</span><figcaption>Patch City · Outlaw Port</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-ruin-1.jpg"><img src="/assets/t-ruin-1.jpg" alt="Ruin Station in front of the planet Terminus" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruin Station · Terminus</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-cutlass.jpg"><img src="/assets/img-cutlass.jpg" alt="Drake Cutlass over Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Drake Cutlass</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-pyro-6.jpg"><img src="/assets/t-pyro-6.jpg" alt="Glowing vegetation between rock spires on a Pyro world" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro's Wilderness</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/trailer-4-0-0.jpg"><img src="/assets/trailer-4-0-0.jpg" alt="Destination Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Destination Pyro</figcaption></figure>
+      </div>
+      <p class="src reveal">Source: Star Citizen Wiki &amp; official community sources (© Cloud Imperium Games). Images for illustrative purposes.</p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-0-1-fight-for-pyro" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

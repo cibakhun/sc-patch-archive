@@ -1,0 +1,166 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import TopicFacts from '../../../components/TopicFacts.astro';
+import RelatedTopics from '../../../components/RelatedTopics.astro';
+import Attribution from '../../../components/Attribution.astro';
+---
+<Layout title={"Alien Week — Star Citizen 4.8.2 | SC Patch Archive"} description={"Alien Week: the annual celebration of non-human manufacturers around First Contact Day — headlined for 2956 by the Gatac ships Railen, Syulen and Tyilui."} translated={true} themeColor="#0c0a16" ogType="article" ogImage="/assets/t-alien-1.jpg">
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+/* Strike / Xenotech-Theme (4.8.x) */
+:root{--bg:#0c0a16;--bg-2:#140f24;--surface:#1a1330;--surface-2:#231a3e;--accent:#1FB8A6;--accent-2:#E8651E;--hot:#E8651E;--text:#e8f0ef;--muted:#9ab0ad;--line:rgba(31,184,166,.22);--line-soft:rgba(232,240,239,.10);--glow:0 0 44px rgba(31,184,166,.30);--ink:#0c0a16;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.xeyebrow{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}
+
+</style>
+<a class="skip" href="#main">Skip to content</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archive', href: '/en/index.html' }, { label: 'Alpha 4.8.2', href: '/en/patches/sc-4-8-2.html' }, { label: "Alien Week 2956" }]} pill={"EVENT · ALPHA 4.8.2"} hasEn={true} />
+
+
+<main id="main">
+
+  <!-- HERO (full-bleed media) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-alien-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/en/patches/sc-4-8-2.html">Alpha 4.8.2 · Gatac &amp; Alien Week</a> &nbsp;·&nbsp; Event</div>
+      <h1><span class="thin">First Contact Day 2956</span>Alien Week</h1>
+      <p class="lead">The annual celebration of non-human manufacturers: around First Contact Day, Alien Week puts xenotech in the spotlight — headlined by the Gatac ships Railen, Syulen and Tyilui.</p>
+      <div class="tags"><span class="tag hot">Event</span><span class="tag">First Contact Day</span><span class="tag">Gatac</span><span class="tag">Aopoa</span><span class="tag">Xenotech</span></div>
+      <div class="hero__play" data-lb="yt:Xh35kuWo0a4"><span class="pbtn">▶</span>Watch trailer</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>ALIEN WEEK 2956</span><span class="dot">◆</span><span>GATAC RAILEN</span><span class="dot">◆</span><span>GATAC TYILUI</span><span class="dot">◆</span><span>GATAC SYULEN</span><span class="dot">◆</span><span>FIRST CONTACT DAY</span><span class="dot">◆</span><span>XENOTECH</span><span class="dot">◆</span>
+      <span>ALIEN WEEK 2956</span><span class="dot">◆</span><span>GATAC RAILEN</span><span class="dot">◆</span><span>GATAC TYILUI</span><span class="dot">◆</span><span>GATAC SYULEN</span><span class="dot">◆</span><span>FIRST CONTACT DAY</span><span class="dot">◆</span><span>XENOTECH</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AT A GLANCE (data register, uniform) -->
+  <TopicFacts topicSlug="4-8-2-alien-week" />
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="3">0</div><div class="c">Gatac headliners · 2956</div></div>
+    <div class="s"><div class="n count" data-to="4">0</div><div class="c">Alien manufacturers in the spotlight</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Flight-ready Railen</div></div>
+    <div class="s"><div class="n">Xi'an</div><div class="c">Language lessons for the event</div></div>
+  </div>
+
+  <!-- FULL-BLEED BAND #1 (parallax, big text over still) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-alien-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">Around First Contact Day</div>
+      <div class="big outline">ALIEN WEEK</div>
+      <p>Once a year the Verse celebrates first contact — and puts the spotlight on those manufacturers not made by human hands. Alien Week is the stage for <b style="color:var(--accent-2)">xenotech</b>.</p>
+    </div>
+  </section>
+
+  <!-- MANIFESTO pull-quote -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>A week in which <span class="hl">alien technology</span> takes the lead role.</blockquote>
+    <cite>Alien Week · First Contact Day 2956</cite>
+  </section>
+
+  <!-- OVERVIEW as the single framed SPLIT -->
+  <section style="padding-bottom:0">
+    <div class="split reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-alien-3.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">01 · What it's about</div>
+        <h3>The festival of non-human manufacturers</h3>
+        <p>Alien Week is the annual event around <b>First Contact Day</b> that puts Star Citizen's non-human, or xenotech, manufacturers front and center. For a whole week, everything revolves around technology beyond human shipyards.</p>
+        <p>The event is accompanied by community activities such as <b>alien lore features</b> and <b>Xi'an language lessons</b> — context and culture for the alien builders whose ships are in the spotlight.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: How Alien Week works (PROCESS) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>How the event works</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/t-alien-4.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-alien-5.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-alien-6.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-alien-7.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>First Contact Day</h3><p>The event kicks off around First Contact Day — the annual occasion that celebrates first contact and puts xenotech at the center.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Pledge Store deals</h3><p>Time-limited deals in the Pledge Store make ships from alien manufacturers like Gatac Manufacture, Aopoa, Banu and Esperia available.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Limited gear</h3><p>On top of that come limited paints and gear — alien design language available only within this window.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Lore &amp; language</h3><p>Alien lore features and Xi'an language lessons accompany the week and provide the cultural background of the manufacturers.</p></div>
+    </div>
+  </div>
+
+  <!-- FULL-BLEED BAND #2 — The 2956 headliners -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/img-railen.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">03 · Headliners 2956</div>
+      <div class="big" style="font-size:clamp(2.6rem,9vw,6.5rem)">GATAC</div>
+      <p>For 2956, three Gatac ships lead the week: the flight-ready <b style="color:var(--accent-2)">Railen</b>, the <b style="color:var(--accent-2)">Syulen</b> starter and the new <b style="color:var(--accent-2)">Tyilui</b> carrier.</p>
+    </div>
+  </section>
+
+  <!-- MANUFACTURERS IN THE SPOTLIGHT — full-bleed flow (no framed cards) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">04</span><h2>Manufacturers in the spotlight</h2><span class="rule"></span></div>
+      <div class="flow reveal">
+        <div class="node"><div class="dot">G</div><h3>Gatac Manufacture</h3><p>2956 headliners: Railen, Syulen and the new Tyilui carrier.</p></div>
+        <div class="node"><div class="dot">A</div><h3>Aopoa</h3><p>Xi'an craftsmanship — shown with ships like the Khartu-al and Nox.</p></div>
+        <div class="node"><div class="dot">E</div><h3>Esperia</h3><p>Reconstructed alien technology — represented by the Talon.</p></div>
+        <div class="node"><div class="dot">B</div><h3>Banu</h3><p>The Banu line rounds out the roster of alien manufacturers.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED BAND #3 — Xenotech -->
+  <section class="band">
+    <div class="bbg" data-par="0.13" style="background-image:url('/assets/img-tyilui.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">Technology that doesn't come from us</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">XENOTECH</div>
+      <p>From Aopoa's Khartu-al and Nox to Esperia's Talon and the Banu line — Alien Week brings time-limited store deals, limited paints and gear from the alien shipyards.</p>
+    </div>
+  </section>
+
+  <!-- CLOSING: mixed gallery + trailer (full-bleed close) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">05</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-alien-1.jpg"><img src="/assets/t-alien-1.jpg" alt="Alien Week — xenotech in the spotlight" loading="lazy"><span class="zoomic">⤢</span><figcaption>Alien Week · Xenotech</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/img-railen.jpg"><img src="/assets/img-railen.jpg" alt="Gatac Railen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Gatac Railen</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-syulen.jpg"><img src="/assets/img-syulen.jpg" alt="Gatac Syulen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Gatac Syulen</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-tyilui.jpg"><img src="/assets/img-tyilui.jpg" alt="Gatac Tyilui" loading="lazy"><span class="zoomic">⤢</span><figcaption>Gatac Tyilui</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-alien-2.jpg"><img src="/assets/t-alien-2.jpg" alt="First Contact Day" loading="lazy"><span class="zoomic">⤢</span><figcaption>First Contact Day</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="Xh35kuWo0a4" style="background-image:url('/assets/vid-railen.jpg')"><span class="vlbl">Gatac &amp; Alien Week — Trailer</span><button class="play" aria-label="Play trailer">▶</button></div>
+      <p class="src reveal">Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=Xh35kuWo0a4" target="_blank" rel="noopener">Watch on YouTube ↗</a></p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-8-2-alien-week" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

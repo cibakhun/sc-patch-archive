@@ -1,0 +1,182 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import TopicFacts from '../../../components/TopicFacts.astro';
+import RelatedTopics from '../../../components/RelatedTopics.astro';
+import Attribution from '../../../components/Attribution.astro';
+---
+<Layout title={"Crafting — Star Citizen 4.7.0 | SC Patch Archive"} description={"Crafting in Alpha 4.7.0: from blueprints of the Operation Breaker Stations and rare minerals, you craft FPS weapons and armor yourself in the Keeger Belt."} themeColor="#1c1c20" ogType="article" ogImage="/assets/t-craft-1.jpg" translated={true}>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+/* "Welcome to the Rock" — 4.7.0 Crafting-Theme */
+:root{--bg:#1c1c20;--bg-2:#242429;--surface:#2a2a2e;--surface-2:#33333a;--accent:#FF5E1A;--accent-2:#1FA2FF;--hot:#FF5E1A;--text:#eef1f5;--muted:#9ba2ae;--line:rgba(255,94,26,.22);--line-soft:rgba(238,241,245,.10);--glow:0 0 44px rgba(255,94,26,.30);--ink:#1c1c20;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.lede-kx{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}
+.qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;color:var(--muted)}
+.qbar b{color:var(--accent-2)}
+
+</style>
+<a class="skip" href="#main">Skip to content</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archive', href: '/en/index.html' }, { label: 'Alpha 4.7.0', href: '/en/patches/sc-4-7-0.html' }, { label: "Crafting" }]} pill={"FEATURE · ALPHA 4.7.0"} hasEn={true} />
+
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-craft-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/en/patches/sc-4-7-0.html">Alpha 4.7.0 · Welcome to the Rock</a> &nbsp;·&nbsp; Feature</div>
+      <h1><span class="thin">Build, don't just buy</span>Crafting</h1>
+      <p class="lead">4.7.0 brings the first crafting tier: from blueprints and rare minerals, you craft FPS weapons and armor yourself — the quality of the material determines the stats.</p>
+      <div class="tags"><span class="tag hot">Crafting T0</span><span class="tag">Blueprints</span><span class="tag">Keeger Belt</span><span class="tag">Operation Breaker Stations</span><span class="tag">Aurora Mk II</span></div>
+      <div class="qbar"><span>Tier <b>T0</b></span><span>System <b>Nyx</b></span><span>Location <b>Keeger Belt</b></span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>CRAFTING</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span><span>KEEGER BELT</span><span class="dot">◆</span><span>BREAKER STATIONS</span><span class="dot">◆</span><span>SHUBIN</span><span class="dot">◆</span><span>STELLA FORTUNA</span><span class="dot">◆</span>
+      <span>CRAFTING</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span><span>KEEGER BELT</span><span class="dot">◆</span><span>BREAKER STATIONS</span><span class="dot">◆</span><span>SHUBIN</span><span class="dot">◆</span><span>STELLA FORTUNA</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-7-0-crafting" />
+
+  <!-- FULL-BLEED OPENING BAND (giant text over still, parallax) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-craft-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">01 · The first crafting tier</div>
+      <div class="big outline">YOUR WORK.</div>
+      <p>With 4.7.0, the Verse leaves the pure buy loop behind. From <b style="color:var(--accent-2)">blueprints</b> of the Operation Breaker Stations and rare minerals, you craft <b style="color:var(--accent-2)">FPS weapons and armor</b> yourself for the first time.</p>
+    </div>
+  </section>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="0">0</div><div class="c">Crafting tier · T0 starts here</div></div>
+    <div class="s"><div class="n count" data-to="2">0</div><div class="c">Ingredients: blueprint + minerals</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">New ship · RSI Aurora Mk II</div></div>
+    <div class="s"><div class="n">Nyx</div><div class="c">Keeger Belt · asteroid belt</div></div>
+  </div>
+
+  <!-- WAS IST CRAFTING — full-bleed band, design on top -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-craft-4.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">02 · What you build</div>
+      <div class="big" style="font-size:clamp(2.4rem,8vw,6rem)">WEAPON &amp; ARMOR</div>
+      <p>Crafting (T0) allows the manufacture of <b style="color:var(--accent-2)">FPS weapons and armor</b>. The build instructions — blueprints — come from the Operation Breaker Stations; the raw materials are rare minerals from the Keeger Belt.</p>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: Operation Breaker Stations — der Weg zum Material -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>Operation Breaker Stations</h2><span class="rule"></span></div>
+    <p class="lead-p reveal">A multi-stage co-op mission in the Keeger Belt. It delivers the blueprints and the material for your first craft — step by step.</p></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/t-craft-5.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-craft-1.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/trailer-4-7-0.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-craft-4.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-craft-6.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Reactivate the stations</h3><p>Bring the dormant Breaker Stations in the Keeger Belt back online — the first step of an operation that only succeeds as a team.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Fire the laser</h3><p>With the stations active, a massive laser is fired, breaking open an asteroid and exposing the rare minerals inside.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Fend off enemies</h3><p>The facility attracts foes. Fight your way through Claw Salamander and an ice variant of the Valakkar while the operation runs.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Craft optical components</h3><p>Craft on site the optical components the laser needs — crafting becomes a fixed part of the mission flow here.</p></div>
+      <div class="sstep"><div class="sn">05</div><h3>Extract resources</h3><p>Pull the exposed resources from the broken-open asteroid. This exact material flows back into your own crafting.</p></div>
+    </div>
+  </div>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>The quality of the <span class="hl">material</span> determines the stats.</blockquote>
+    <cite>Crafting T0 · Keeger Belt</cite>
+  </section>
+
+  <!-- VERSUS: Materialqualität (full-bleed dual pane) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⚠ Low quality</h3>
+        <ul>
+          <li>Weaker stats on the finished item.</li>
+          <li>Material from any arbitrary source.</li>
+          <li>The lowest of several quality tiers.</li>
+          <li>The blueprint alone doesn't make a top weapon.</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side b">
+        <h3>★ High quality</h3>
+        <ul>
+          <li>Better stats on the crafted item.</li>
+          <li>Rare minerals from the Keeger Belt.</li>
+          <li>Reward for the effort of the Breaker operation.</li>
+          <li>Same blueprint, noticeably better result.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- KEEGER BELT & SHUBIN — the ONE framed/split section -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-craft-7.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">04 · Location</div>
+        <h3>Keeger Belt &amp; the QV Breaker Stations</h3>
+        <p>The setting is the <b>Keeger Belt</b>, an asteroid belt in the <b>Nyx system</b> — rugged, remote, and rich in the minerals crafting demands.</p>
+        <p>The <b>QV Breaker Stations</b> were originally built by <b>QV Planet Services</b> and recently taken over by <b>Shubin</b>. Reactivating them is at the center of the operation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- AURORA & STELLA FORTUNA — full-bleed band -->
+  <section class="band">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/img-aurora.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">05 · More in 4.7.0</div>
+      <div class="big" style="font-size:clamp(2.4rem,8vw,6rem)">AURORA MK II</div>
+      <p>Alongside the crafting premiere comes the new <b style="color:var(--accent-2)">RSI Aurora Mk II</b>. In parallel, the seasonal event <b style="color:var(--accent-2)">Stella Fortuna</b> runs — while in the Keeger Belt, Claw Salamander and the ice variant of the Valakkar lurk.</p>
+    </div>
+  </section>
+
+  <!-- MEDIA (closing mixed gallery, no video embed) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">06</span><h2>Gallery</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-craft-3.jpg"><img src="/assets/t-craft-3.jpg" alt="The CRAFT menu — crafting a Volt Pulse Pistol" loading="lazy"><span class="zoomic">⤢</span><figcaption>CRAFT menu · Crafting</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-craft-2.jpg"><img src="/assets/t-craft-2.jpg" alt="Operation Breaker Stations in the Keeger Belt" loading="lazy"><span class="zoomic">⤢</span><figcaption>Breaker Stations · Keeger Belt</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/trailer-4-7-0.jpg"><img src="/assets/trailer-4-7-0.jpg" alt="Welcome to the Rock — 4.7.0" loading="lazy"><span class="zoomic">⤢</span><figcaption>Welcome to the Rock</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-aurora.jpg"><img src="/assets/img-aurora.jpg" alt="RSI Aurora Mk II" loading="lazy"><span class="zoomic">⤢</span><figcaption>RSI Aurora Mk II</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/vid-isc47.jpg"><img src="/assets/vid-isc47.jpg" alt="Inside Star Citizen — 4.7.0" loading="lazy"><span class="zoomic">⤢</span><figcaption>Inside Star Citizen · 4.7.0</figcaption></figure>
+      </div>
+      <p class="src reveal">Source: official Star Citizen channels &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="/en/patches/sc-4-7-0.html">Back to the 4.7.0 patch overview ↗</a></p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-7-0-crafting" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

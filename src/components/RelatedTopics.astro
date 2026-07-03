@@ -3,31 +3,38 @@
 // parent patch + sibling topics, resolved entirely from the data layer.
 // Plain cards, palette-aware, no motion (data register, not cinema).
 import { getCollection } from 'astro:content';
+import { useTranslations, href, localeFromPath } from '../i18n/ui';
+import { mergePatchEn } from '../i18n/patchText';
 
 interface Props {
   topicSlug: string;
 }
 const { topicSlug } = Astro.props;
 
+const lang = localeFromPath(Astro.url.pathname);
+const t = useTranslations(lang);
+const L = (p: string) => href(p, lang);
+
 const patches = await getCollection('patches');
-const parent = patches.find((p) => p.data.topics.some((t) => t.slug === topicSlug));
-const siblings = parent ? parent.data.topics.filter((t) => t.slug !== topicSlug) : [];
+const parentEntry = patches.find((p) => p.data.topics.some((tp) => tp.slug === topicSlug));
+const parentData = parentEntry ? mergePatchEn(parentEntry.id, parentEntry.data, lang) : null;
+const siblings = parentData ? parentData.topics.filter((tp) => tp.slug !== topicSlug) : [];
 ---
-{parent && (
-  <section class="rel" aria-label="Verwandte Inhalte">
+{parentEntry && parentData && (
+  <section class="rel" aria-label={t('rel.aria')}>
     <div class="rel__in">
-      <h2 class="rel__h">Mehr aus Alpha {parent.data.version}</h2>
+      <h2 class="rel__h">{t('rel.more').replace('%v%', parentData.version)}</h2>
       <div class="rel__grid">
-        <a class="rel__card rel__patch" href={`/patches/sc-${parent.id}.html`}>
-          <span class="rel__kind">Patch</span>
-          <b>Alpha {parent.data.version}</b>
-          <span class="rel__t">{parent.data.codename} · {parent.data.dateDisplay}</span>
+        <a class="rel__card rel__patch" href={L(`/patches/sc-${parentEntry.id}.html`)}>
+          <span class="rel__kind">{t('rel.kind.patch')}</span>
+          <b>Alpha {parentData.version}</b>
+          <span class="rel__t">{parentData.codename} · {parentData.dateDisplay}</span>
         </a>
         {siblings.map((s) => (
-          <a class="rel__card" href={`/topics/${s.slug}.html`}>
-            <span class="rel__kind">Thema</span>
+          <a class="rel__card" href={L(`/topics/${s.slug}.html`)}>
+            <span class="rel__kind">{t('rel.kind.topic')}</span>
             <b>{s.title}</b>
-            <span class="rel__t">Detailseite</span>
+            <span class="rel__t">{t('rel.detail')}</span>
           </a>
         ))}
       </div>

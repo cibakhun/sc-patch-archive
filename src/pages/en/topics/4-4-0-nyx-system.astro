@@ -1,0 +1,172 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import TopicFacts from '../../../components/TopicFacts.astro';
+import RelatedTopics from '../../../components/RelatedTopics.astro';
+import Attribution from '../../../components/Attribution.astro';
+---
+<Layout title={"Nyx — Star Citizen 4.4.0 | SC Patch Archive"} description={"Welcome to Nyx: with Alpha 4.4.0, Nyx becomes the third fully simulated star system — Glaciem Ring, the rock-carved city of Levski and the first Vanduul AI enemies."} themeColor="#0c1020" ogType="article" ogImage="/assets/t-nyx-1.jpg" translated={true}>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+/* Nyx-Theme (Alpha 4.4.0) — dunkel, nebelverhangen, eisblau */
+:root{
+  --bg:#0c1020;--bg-2:#121a30;--surface:#16203a;--surface-2:#1d2949;
+  --accent:#7fb2d9;--accent-2:#d4af37;--hot:#c0271f;
+  --text:#e6edfb;--muted:#93a4c4;
+  --line:rgba(127,178,217,.22);--line-soft:rgba(230,237,251,.10);
+  --glow:0 0 44px rgba(127,178,217,.30);--ink:#0c1020;
+  --maxw:1180px;
+}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.lede-kx{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}
+
+</style>
+<a class="skip" href="#main">Skip to content</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archive', href: '/en/index.html' }, { label: 'Alpha 4.4.0', href: '/en/patches/sc-4-4-0.html' }, { label: "Nyx System" }]} pill={"SYSTEM · ALPHA 4.4.0"} hasEn={true} />
+
+
+<main id="main">
+
+  <!-- HERO (full-bleed lead media) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-nyx-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/en/patches/sc-4-4-0.html">Alpha 4.4.0 · Welcome to Nyx</a> &nbsp;·&nbsp; Star System</div>
+      <h1><span class="thin">The third star system</span>Nyx</h1>
+      <p class="lead">Dark, asteroid-dense, fog-shrouded: with 4.4.0, Nyx becomes the third fully simulated star system — home to the Glaciem Ring and the city of Levski carved into the rock.</p>
+      <div class="tags"><span class="tag">Star system</span><span class="tag">Glaciem Ring</span><span class="tag">Levski</span><span class="tag">Delamar</span><span class="tag">Peoples Alliance</span></div>
+      <div class="hero__play" data-lb="yt:ilDmGyHLQNg"><span class="pbtn">▶</span>Watch trailer</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>NYX</span><span class="dot">◆</span><span>GLACIEM RING</span><span class="dot">◆</span><span>LEVSKI</span><span class="dot">◆</span><span>DELAMAR</span><span class="dot">◆</span><span>PEOPLES ALLIANCE</span><span class="dot">◆</span><span>THIRD SYSTEM</span><span class="dot">◆</span>
+      <span>NYX</span><span class="dot">◆</span><span>GLACIEM RING</span><span class="dot">◆</span><span>LEVSKI</span><span class="dot">◆</span><span>DELAMAR</span><span class="dot">◆</span><span>PEOPLES ALLIANCE</span><span class="dot">◆</span><span>THIRD SYSTEM</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-4-0-nyx-system" />
+
+  <!-- FULL-BLEED BAND — the arrival statement (parallax) -->
+  <section class="band band--center">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-nyx-3.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">After Stanton. After Pyro.</div>
+      <div class="big outline">SYSTEM THREE.</div>
+      <p>With Alpha 4.4.0, Nyx opens up as the third fully simulated star system. Connected via Jump Points, you enter a lawless, fog-shrouded world — the stage for the first Vanduul AI enemies and IAE 2955.</p>
+    </div>
+  </section>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="3">0</div><div class="c">Fully simulated system · after Stanton &amp; Pyro</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Rock city · Levski in Delamar</div></div>
+    <div class="s"><div class="n">VANDUUL</div><div class="c">First AI enemies · IAE 2955</div></div>
+  </div>
+
+  <!-- VERSUS: Stanton/Pyro vs Nyx — the two faces (full-bleed dual pane) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⚠ Glaciem Ring</h3>
+        <ul>
+          <li>Dense, fog-shrouded asteroid belt cutting right across the system.</li>
+          <li>Tight visibility, barely any orientation between the rocks.</li>
+          <li>Hunting ground of the first Vanduul AI enemies.</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side b">
+        <h3>✦ Levski · Delamar</h3>
+        <ul>
+          <li>Landing zone driven into the asteroid Delamar — a city in the rock.</li>
+          <li>Seat of the Peoples Alliance faction.</li>
+          <li>The only fixed anchor in an otherwise lawless Nyx.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: Ankunft in Nyx — der Weg ins System (full-bleed process) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>Arrival in Nyx</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/trailer-4-4-0.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-nyx-5.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-nyx-2.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/img-levski.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Through the Jump Point</h3><p>Nyx is tied to the known Verse via Jump Points. With Alpha 4.4.0 it becomes reachable as the third fully simulated star system after Stanton and Pyro.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Into the Glaciem Ring</h3><p>Beyond the jump lies the Glaciem Ring — a dense, dark, fog-shrouded asteroid belt that gives the system its rough, cold face.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Lawless terrain</h3><p>Nyx is the gloomy, lawless backdrop where the first Vanduul AI enemies appear — and where events culminate during IAE 2955.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Approach to Levski</h3><p>Deep in the system waits Delamar: an asteroid whose rock houses the landing zone Levski — tied to the Peoples Alliance faction.</p></div>
+    </div>
+  </div>
+
+  <!-- GLACIEM RING — full-bleed band (image as background, design on top) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-nyx-4.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">02 · The asteroid belt</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">GLACIEM RING</div>
+      <p>A dense, dark, fog-shrouded asteroid belt runs through the system. The <b style="color:var(--accent-2)">Glaciem Ring</b> shapes Nyx more than any other place — cold, tight, hard to cross.</p>
+    </div>
+  </section>
+
+  <!-- LEVSKI — the one framed/split section (50/50 media | text) -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/img-levski.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">03 · City in the rock</div>
+        <h3>Levski — built into Delamar</h3>
+        <p>In the middle of the system lies the asteroid <b>Delamar</b>. Driven into its rock is the landing zone <b>Levski</b> — not an orbital outpost, but a city in the stone.</p>
+        <p>Levski is tightly bound to the <b>Peoples Alliance</b>, a faction whose history is reflected in the corridors and halls of this place. A refuge at the edge of the known world.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Three systems. <span class="hl">A new edge</span> of the map.</blockquote>
+    <cite>Nyx · Alpha 4.4.0</cite>
+  </section>
+
+  <!-- MEDIA (mixed gallery + closing full-bleed trailer) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">04</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/img-nyx.jpg"><img src="/assets/img-nyx.jpg" alt="Nyx system — overview map" loading="lazy"><span class="zoomic">⤢</span><figcaption>Nyx · System</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-nyx-4.jpg"><img src="/assets/t-nyx-4.jpg" alt="Glaciem Ring with a beam of light in Nyx space" loading="lazy"><span class="zoomic">⤢</span><figcaption>Glaciem Ring</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-nyx-3.jpg"><img src="/assets/t-nyx-3.jpg" alt="The Nyx star with nebula" loading="lazy"><span class="zoomic">⤢</span><figcaption>Nyx · Star</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-nyx-5.jpg"><img src="/assets/t-nyx-5.jpg" alt="The Keeger Belt in Nyx" loading="lazy"><span class="zoomic">⤢</span><figcaption>Keeger Belt</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-nyx-2.jpg"><img src="/assets/t-nyx-2.jpg" alt="Nyx — fog-shrouded" loading="lazy"><span class="zoomic">⤢</span><figcaption>Fog &amp; rock</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="ilDmGyHLQNg" style="background-image:url('/assets/trailer-4-4-0.jpg')"><span class="vlbl">Welcome to Nyx — Trailer</span><button class="play" aria-label="Play trailer">▶</button></div>
+      <p class="src reveal">Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=ilDmGyHLQNg" target="_blank" rel="noopener">Watch on YouTube ↗</a></p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-4-0-nyx-system" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

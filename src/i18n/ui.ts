@@ -233,6 +233,15 @@ const UI = {
     'do.events': 'Events',
     'do.sources': 'Quellen: starcitizen.tools, RSI Comm-Links, Patch Notes',
     'do.unvNote': '* unbestätigt · ',
+    // -- TopicFacts / RelatedTopics (Topic-Seiten, Stufe 3) --
+    'tf.topic': 'Thema',
+    'tf.source': 'Quelle Alpha',
+    'tf.introduced': 'Eingeführt in Alpha %v% — ',
+    'rel.aria': 'Verwandte Inhalte',
+    'rel.more': 'Mehr aus Alpha %v%',
+    'rel.kind.patch': 'Patch',
+    'rel.kind.topic': 'Thema',
+    'rel.detail': 'Detailseite',
   },
   en: {
     // -- Navigation --
@@ -437,6 +446,15 @@ const UI = {
     'do.events': 'Events',
     'do.sources': 'Sources: starcitizen.tools, RSI Comm-Links, patch notes',
     'do.unvNote': '* unverified · ',
+    // -- TopicFacts / RelatedTopics (topic pages, Stufe 3) --
+    'tf.topic': 'Topic',
+    'tf.source': 'Source · Alpha',
+    'tf.introduced': 'Introduced in Alpha %v% — ',
+    'rel.aria': 'Related content',
+    'rel.more': 'More from Alpha %v%',
+    'rel.kind.patch': 'Patch',
+    'rel.kind.topic': 'Topic',
+    'rel.detail': 'Detail page',
   },
 } as const;
 

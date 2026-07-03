@@ -1,0 +1,170 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import TopicFacts from '../../../components/TopicFacts.astro';
+import RelatedTopics from '../../../components/RelatedTopics.astro';
+import Attribution from '../../../components/Attribution.astro';
+---
+<Layout title={"Supply or Die — Star Citizen 4.0.2 | SC Patch Archive"} description={"Supply or Die: a one-time PvPvE supply event in Pyro — two factions, three mission types and the question of who controls the lawless system. Alpha 4.0.2."} themeColor="#1a1d20" ogType="article" ogImage="/assets/t-supply-1.jpg" translated={true}>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+:root{--bg:#1a1d20;--bg-2:#21252a;--surface:#2a2e33;--surface-2:#33373b;--accent:#c0271f;--accent-2:#e8771a;--hot:#c0271f;--text:#ece6da;--muted:#9aa0a6;--line:rgba(192,39,31,.22);--line-soft:rgba(236,230,218,.10);--glow:0 0 44px rgba(192,39,31,.30);--ink:#1a1d20;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+
+</style>
+<a class="skip" href="#main">Skip to content</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archive', href: '/en/index.html' }, { label: 'Alpha 4.0.2', href: '/en/patches/sc-4-0-2.html' }, { label: "Supply or Die" }]} pill={"EVENT · ALPHA 4.0.2"} hasEn={true} />
+
+
+<main id="main">
+
+  <!-- HERO (full-bleed, kinetic) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-supply-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/en/patches/sc-4-0-2.html">Alpha 4.0.2 · Pyro</a> &nbsp;·&nbsp; One-time event · February 28, 2025</div>
+      <h1><span class="thin">Pyro's Supply War</span>Supply or Die</h1>
+      <p class="lead">A PvPvE supply war over Pyro: pick one of two factions, procure material through depot battles, mining and salvage — and decide who controls the lawless system.</p>
+      <div class="tags"><span class="tag hot">PvPvE</span><span class="tag">Event</span><span class="tag">Pyro</span><span class="tag">Factions</span><span class="tag">Detatrine</span></div>
+      <div class="hero__play" data-lb="yt:R9p2q5fFUJk"><span class="pbtn">▶</span>Watch trailer</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>SUPPLY OR DIE</span><span class="dot">◆</span><span>CITIZENS FOR PROSPERITY</span><span class="dot">◆</span><span>HEADHUNTERS</span><span class="dot">◆</span><span>DETATRINE</span><span class="dot">◆</span><span>PVPVE</span><span class="dot">◆</span><span>DEPOTS</span><span class="dot">◆</span>
+      <span>SUPPLY OR DIE</span><span class="dot">◆</span><span>CITIZENS FOR PROSPERITY</span><span class="dot">◆</span><span>HEADHUNTERS</span><span class="dot">◆</span><span>DETATRINE</span><span class="dot">◆</span><span>PVPVE</span><span class="dot">◆</span><span>DEPOTS</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-0-2-supply-or-die" />
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="2">0</div><div class="c">Opposing factions</div></div>
+    <div class="s"><div class="n count" data-to="3">0</div><div class="c">Mission types · War progress</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">One-time story event</div></div>
+    <div class="s"><div class="n">PvPvE</div><div class="c">Supply war over Pyro</div></div>
+  </div>
+
+  <!-- FULL-BLEED BAND (parallax) — Überblick als großer overlaid Text -->
+  <section class="band band--center" style="padding-top:0">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-supply-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">01 · Supply decides</div>
+      <div class="big outline">WHO DELIVERS,<br>RULES.</div>
+      <p>Supply or Die was a one-time, story-driven PvPvE supply event in Pyro. Instead of a fixed frontline, the war raged over <b style="color:var(--accent-2)">material</b>: every delivery shifted the war progress — and with it, which faction ultimately controlled the lawless system.</p>
+    </div>
+  </section>
+
+  <!-- VERSUS: zwei Fraktionen (full-bleed) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>Choose your side</h2><span class="rule"></span></div></div>
+  </section>
+  <section style="padding:0 0 clamp(2rem,5vw,3.5rem)">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>☣ Citizens for Prosperity</h3>
+        <ul>
+          <li>Collect industrial goods and the rare chemical Detatrine.</li>
+          <li>Turn them into medical supplies.</li>
+          <li>Goal: stabilize Pyro and bring order to the system.</li>
+          <li>Whoever supplies them makes enemies of the Headhunters.</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side b">
+        <h3>⚔ Headhunters</h3>
+        <ul>
+          <li>Procure salvage and mining resources.</li>
+          <li>By any means — including combat and piracy.</li>
+          <li>Goal: keep lawless Pyro in their hands.</li>
+          <li>Whoever supplies them makes enemies of the Citizens.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:1.4rem"><p class="src reveal" style="margin-top:0">Players choose one of two factions and supply it — the opposing side automatically becomes hostile.</p></div>
+  </section>
+
+  <!-- SCROLLYTELLING: Drei Missionstypen, die den Krieg speisen (full-bleed process) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>Three ways to feed the war</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/cz-combat.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/cz-facility.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-supply-3.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-supply-4.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Depot battles</h3><p>PvPvE fights over contested depots: battle AI and rival players, secure the supplies and deliver them to your faction.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Mining & Refining</h3><p>Mine raw materials in Pyro, refine them and funnel the material into the supply chain — the foundation of every delivery.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Salvage</h3><p>Recover wrecks and scrap from the lawless system. The Headhunters live off it — and take the rest by force if they have to.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>War progress</h3><p>Each of the three mission types feeds the same bar. Enough deliveries, and your faction shifts control over Pyro.</p></div>
+    </div>
+  </div>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>In lawless Pyro, it's not the gun that decides — but <span class="hl">the supply</span>.</blockquote>
+    <cite>Supply or Die · Alpha 4.0.2</cite>
+  </section>
+
+  <!-- DETATRINE BAND — full-bleed, design auf Bild -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-pyro-7.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">04 · The stuff of war</div>
+      <div class="big" style="font-size:clamp(2.6rem,9vw,6.5rem)">DETATRINE</div>
+      <p>The Citizens for Prosperity hunt for industrial goods and the rare chemical <b style="color:var(--accent-2)">Detatrine</b> — raw material for the medical supplies meant to stabilize Pyro. Every secured batch is a blow against the Headhunters.</p>
+    </div>
+  </section>
+
+  <!-- BELOHNUNGEN — eine framed/split Sektion (das eine erlaubte) -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-supply-5.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">05 · Spoils of war</div>
+        <h3>Rewards for those who deliver</h3>
+        <p>At <b>tier 2</b>, the <b>Ravager-212 Outcast</b> was up for grabs — a twin shotgun in Outcast style, built for the close quarters of the supply war.</p>
+        <p>At <b>tier 3</b>, the <b>Outcast paint pack</b> was added on top: matching liveries for the MISC Fortune, Drake Vulture and MISC Prospector — the workhorses of mining and salvage.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEDIA (mixed gallery + trailer, full-bleed close) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">06</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-supply-1.jpg"><img src="/assets/t-supply-1.jpg" alt="Supply or Die — supply war in Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Supply war · Pyro</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-supply-2.jpg"><img src="/assets/t-supply-2.jpg" alt="Depot battle and supply" loading="lazy"><span class="zoomic">⤢</span><figcaption>Depot & supply</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/cz-combat.jpg"><img src="/assets/cz-combat.jpg" alt="PvPvE firefight" loading="lazy"><span class="zoomic">⤢</span><figcaption>PvPvE firefight</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/cz-facility.jpg"><img src="/assets/cz-facility.jpg" alt="Facility in Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Facility · Pyro</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/img-cutlass.jpg"><img src="/assets/img-cutlass.jpg" alt="Ship in the lawless system" loading="lazy"><span class="zoomic">⤢</span><figcaption>Lawless Pyro</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="R9p2q5fFUJk" style="background-image:url('/assets/trailer-4-0-0.jpg')"><span class="vlbl">Supply or Die — Trailer</span><button class="play" aria-label="Play trailer">▶</button></div>
+      <p class="src reveal">Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=R9p2q5fFUJk" target="_blank" rel="noopener">Watch on YouTube ↗</a></p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-0-2-supply-or-die" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

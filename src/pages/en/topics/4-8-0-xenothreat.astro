@@ -1,0 +1,177 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import TopicFacts from '../../../components/TopicFacts.astro';
+import RelatedTopics from '../../../components/RelatedTopics.astro';
+import Attribution from '../../../components/Attribution.astro';
+---
+<Layout title={"XenoThreat — Star Citizen 4.8.0 | SC Patch Archive"} description={"XenoThreat: a human-supremacist outlaw faction of deserted UEE Navy soldiers — with Alpha 4.8.0 the Assault on Stanton returns to the heart of the patch."} themeColor="#0d0a16" ogType="article" ogImage="/assets/t-xeno-1.jpg" translated={true}>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+/* Tactical-Strike-Theme (4.8.x) */
+:root{--bg:#0d0a16;--bg-2:#140f24;--surface:#1a1330;--surface-2:#231a3e;--accent:#E8651E;--accent-2:#1FB8A6;--hot:#E8651E;--text:#ede9f5;--muted:#a39db5;--line:rgba(232,101,30,.22);--line-soft:rgba(237,233,245,.10);--glow:0 0 44px rgba(232,101,30,.30);--ink:#0d0a16;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.kx-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}
+
+</style>
+<a class="skip" href="#main">Skip to content</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archive', href: '/en/index.html' }, { label: 'Alpha 4.8.0', href: '/en/patches/sc-4-8-0.html' }, { label: "XenoThreat" }]} pill={"FACTION · ALPHA 4.8.0"} hasEn={true} />
+
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-xeno-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/en/patches/sc-4-8-0.html">Alpha 4.8.0 · Tactical Strike</a> &nbsp;·&nbsp; Faction</div>
+      <h1><span class="thin">The Assault on Stanton</span>XenoThreat</h1>
+      <p class="lead">A human-supremacist outlaw faction of deserted UEE Navy soldiers: with 4.8.0 their Assault-on-Stanton event returns to the heart of the patch — waves of fighters, gunships and frigates.</p>
+      <div class="tags"><span class="tag hot">Outlaw faction</span><span class="tag">Assault on Stanton</span><span class="tag">Dynamic event</span><span class="tag">INS Jericho</span><span class="tag">Wave combat</span></div>
+      <div class="hero__play" data-lb="yt:SsOtI2dtvBc"><span class="pbtn">▶</span>Watch trailer</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>XENOTHREAT</span><span class="dot">◆</span><span>ASSAULT ON STANTON</span><span class="dot">◆</span><span>UEES WAR HAMMER</span><span class="dot">◆</span><span>INS JERICHO</span><span class="dot">◆</span><span>IDRIS-M</span><span class="dot">◆</span><span>HAMMERHEAD</span><span class="dot">◆</span>
+      <span>XENOTHREAT</span><span class="dot">◆</span><span>ASSAULT ON STANTON</span><span class="dot">◆</span><span>UEES WAR HAMMER</span><span class="dot">◆</span><span>INS JERICHO</span><span class="dot">◆</span><span>IDRIS-M</span><span class="dot">◆</span><span>HAMMERHEAD</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AT A GLANCE (data register, uniform) -->
+  <TopicFacts topicSlug="4-8-0-xenothreat" />
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Flagship to defend · UEES War Hammer</div></div>
+    <div class="s"><div class="n count" data-to="3">0</div><div class="c">Escalating event phases</div></div>
+    <div class="s"><div class="n">WAVES</div><div class="c">No end until the line holds</div></div>
+  </div>
+
+  <!-- FULL-BLEED BAND (parallax) — who is XenoThreat -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-xeno-3.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">From the ruins of Pyro</div>
+      <div class="big outline">BETRAYAL.</div>
+      <p>XenoThreat is a human-supremacist, alien-hostile outlaw group out of Pyro — mostly former <b style="color:var(--accent-2)">UEE Navy members</b> who see the UEE's cooperation with aliens as a betrayal of humanity.</p>
+    </div>
+  </section>
+
+  <!-- OVERVIEW as SPLIT (the one framed/split section) -->
+  <section style="padding-bottom:0">
+    <div class="split reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-hh-2.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">01 · Who they are</div>
+        <h3>Deserters with a doctrine</h3>
+        <p>What sets XenoThreat apart from ordinary outlaws is conviction. These are trained soldiers who have renounced their loyalty to the UEE — convinced that the alliance with alien species betrays humanity.</p>
+        <p>Out of the lawless depths of Pyro they form not a mere gang, but a <b>paramilitary faction</b> with ships, discipline and a single goal: to hit Stanton where it hurts most.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE ASSAULT BEGINS — full-bleed band (image as background, design on top) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/img-idris.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">02 · The opening move</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">EXECUTION</div>
+      <p>The Assault on Stanton begins with a strike: XenoThreat raids a <b style="color:var(--accent-2)">corporate convoy</b> — and publicly executes its crew as collaborators. The raid is the message.</p>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: How the Assault on Stanton unfolds -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>The Assault on Stanton</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/t-xeno-2.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/img-hammerhead.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-hh-3.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-hh-1.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>The spark</h3><p>The convoy raid and public execution ignite the event — all of Stanton now knows that XenoThreat is back.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Mobilization</h3><p>The Civilian Defense Force is mobilized: recover lost Starfarer supplies and defend the UEE Navy flagship UEES War Hammer at INS Jericho.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Salvage to Jericho</h3><p>Players pull cargo from abandoned Starfarer wrecks and bring it to INS Jericho — the supply that keeps the defense alive.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Holding the waves</h3><p>The War Hammer is defended through escalating waves. In the final phase XenoThreat flies fighters plus Hammerhead gunships and Idris-M frigates that arrive in waves.</p></div>
+    </div>
+  </div>
+
+  <!-- VERSUS: XenoThreat vs Civilian Defense Force (full-bleed) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⚠ XenoThreat</h3>
+        <ul>
+          <li>Human-supremacist outlaw faction out of Pyro.</li>
+          <li>Mostly deserted UEE Navy soldiers.</li>
+          <li>Attacks a corporate convoy and executes the crew.</li>
+          <li>In the final phase: fighters, Hammerhead gunships, Idris-M frigates.</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side b">
+        <h3>★ Civilian Defense Force</h3>
+        <ul>
+          <li>Mobilized against XenoThreat.</li>
+          <li>Salvages lost Starfarer supplies.</li>
+          <li>Defends the flagship UEES War Hammer at INS Jericho.</li>
+          <li>Holds against escalating attacks arriving in waves.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL WAVE — full-bleed band -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-polaris-3.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">04 · The final phase</div>
+      <div class="big">WAVE AFTER WAVE</div>
+      <p>In the final phase XenoThreat flies <b style="color:var(--accent-2)">fighters</b>, joined by <b style="color:var(--accent-2)">Hammerhead gunships</b> and <b style="color:var(--accent-2)">Idris-M frigates</b> — arriving in waves until the defenders either hold the line or break.</p>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Will you hold the <span class="hl">War Hammer</span> — or does Stanton fall wave by wave?</blockquote>
+    <cite>XenoThreat · Assault on Stanton</cite>
+  </section>
+
+  <!-- MEDIA (mixed gallery + trailer) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">05</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-xeno-1.jpg"><img src="/assets/t-xeno-1.jpg" alt="XenoThreat forces" loading="lazy"><span class="zoomic">⤢</span><figcaption>XenoThreat · Forces</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-xeno-2.jpg"><img src="/assets/t-xeno-2.jpg" alt="XenoThreat in combat" loading="lazy"><span class="zoomic">⤢</span><figcaption>In combat</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-idris.jpg"><img src="/assets/img-idris.jpg" alt="Idris-M frigate" loading="lazy"><span class="zoomic">⤢</span><figcaption>Idris-M frigate</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-hammerhead.jpg"><img src="/assets/img-hammerhead.jpg" alt="Hammerhead gunship" loading="lazy"><span class="zoomic">⤢</span><figcaption>Hammerhead gunship</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/img-vanduul.jpg"><img src="/assets/img-vanduul.jpg" alt="Threat from beyond" loading="lazy"><span class="zoomic">⤢</span><figcaption>Threat from beyond</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="SsOtI2dtvBc" style="background-image:url('/assets/trailer-4-8-0.jpg')"><span class="vlbl">Alpha 4.8.0 — Trailer</span><button class="play" aria-label="Play trailer">▶</button></div>
+      <p class="src reveal">Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=SsOtI2dtvBc" target="_blank" rel="noopener">Watch on YouTube ↗</a></p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-8-0-xenothreat" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>
