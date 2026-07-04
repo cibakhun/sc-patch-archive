@@ -234,7 +234,15 @@ a{color:inherit;text-decoration:none}
 .sd__proffill{height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,transparent),var(--accent))}
 .sd__profval{font-family:var(--font-ui);font-weight:700;font-size:.98rem;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
 .sd__profval i{font-style:normal;color:var(--muted);font-size:.8rem;margin-left:.45rem}
-@media(max-width:640px){.sd__profrow{grid-template-columns:110px minmax(0,1fr)}.sd__profval{grid-column:2;justify-self:end;margin-top:-.3rem}}
+/* Mobil: Label + Wert in eine Zeile (Label links, Wert rechts), der Balken
+   darunter über die volle Breite — so überlappt der Text NIE den Balken und
+   längere EN-Labels haben Platz (keine feste, auf DE getunte Label-Spalte). */
+@media(max-width:640px){
+  .sd__profrow{grid-template-columns:1fr auto;column-gap:.8rem;row-gap:.3rem;align-items:baseline}
+  .sd__proflabel{grid-column:1;grid-row:1}
+  .sd__profval{grid-column:2;grid-row:1;justify-self:end;margin-top:0}
+  .sd__proftrack{grid-column:1 / -1;grid-row:2;margin-top:.15rem}
+}
 
 /* Lackierungen */
 .sd__paints{display:grid;grid-auto-flow:column;grid-auto-columns:172px;gap:.7rem;overflow-x:auto;padding-bottom:.5rem;
@@ -310,7 +318,12 @@ span.sd__ref{color:var(--muted)}
 .sd__gtrack::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.14)}
 .sd__gfill{height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,transparent),var(--accent))}
 .sd__gval{font-family:var(--font-ui);font-weight:700;font-size:.95rem;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
-@media(max-width:640px){.sd__grow{grid-template-columns:105px minmax(0,1fr)}.sd__gval{grid-column:2;justify-self:end;margin-top:-.3rem}}
+@media(max-width:640px){
+  .sd__grow{grid-template-columns:1fr auto;column-gap:.8rem;row-gap:.3rem;align-items:baseline}
+  .sd__glabel{grid-column:1;grid-row:1}
+  .sd__gval{grid-column:2;grid-row:1;justify-self:end;margin-top:0}
+  .sd__gtrack{grid-column:1 / -1;grid-row:2;margin-top:.15rem}
+}
 
 /* Maße & Fracht */
 .sd__dims{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:1.6rem}

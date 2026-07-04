@@ -91,6 +91,19 @@ const enHref = base + pathForLocale(Astro.url.pathname, 'en');
     /* Parallax-/Deko-Bleeds (data-par, Ken-Burns) dürfen das Dokument nie
        seitlich aufweiten — clip statt hidden: erzeugt keinen Scroll-Container. */
     html, body { overflow-x: clip; }
+    /* i18n-Härtung: längere EN-Wörter (z. B. „PERSONAL HANGARS") sollen im
+       Zweifel umbrechen statt vom Container abgeschnitten zu werden. :where()
+       hat Spezifität 0 -> keine bestehende Regel wird überschrieben; da keine
+       dieser Klassen overflow-wrap selbst setzt, greift der Fallback nur dort,
+       wo bisher nichts stand. Kurze DE-Strings umbrechen nie -> DE unverändert. */
+    :where(h1, h2, h3, h4, .big, .shot .big, .holo__title h1, .tile .lbl,
+      .tile.word b, .tile.stat .num, .tile.stat .cap, .ship h3, .pcard .name,
+      .pcard .ver, .ktcard b, .sd__sim .nm, .hubrows .ht, .kt b) {
+      overflow-wrap: break-word;
+    }
+    /* Flex-Mono-Code-Zeilen (…//…): min-width:0 lässt die Ellipsis greifen,
+       statt die Zeile (langer EN-System-Name) über den Rand zu drücken. */
+    .tf__code, .qf__code, .do__code, .sd__code { min-width: 0; }
   </style>
   <slot name="head" />
 </head>
