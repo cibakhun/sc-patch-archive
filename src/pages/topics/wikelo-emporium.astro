@@ -65,7 +65,7 @@ const TRADES = [
 const TIMG = {
   'Idris-P':'/assets/wk-idris.jpg',
   'Polaris (Wikelo Special)':'/assets/wk-polaris.jpg',
-  'A2 Hercules Starlifter':'/assets/wk-a2.jpg',
+  // 'A2 Hercules Starlifter' — Wiki-Bild zeigt nicht die A2 → Icon-Fallback statt falschem Schiff.
   'F8C Lightning (Military Spec)':'/assets/wk-f8c.jpg',
   'Ares Star Fighter Inferno':'/assets/wk-ares.jpg',
   'F7C-M Super Hornet Mk II':'/assets/wk-superhornet.jpg',
@@ -85,6 +85,11 @@ const TIMG = {
 
 /* Wikelo / Banu-Emporium-Theme (4.1) — Türkis & Messing */
 :root{--bg:#0d1513;--bg-2:#111d1a;--surface:#152420;--surface-2:#1c302b;--accent:#1FB8A6;--accent-2:#E8A33D;--hot:#C0392B;--text:#eef4f2;--muted:#93a7a1;--line:rgba(31,184,166,.22);--line-soft:rgba(238,244,242,.10);--glow:0 0 44px rgba(31,184,166,.28);--ink:#0d1513;--maxw:1180px;}
+/* Reveal-Gate neutralisieren: Inhalt IMMER sichtbar.
+   Grund: die sehr hohe Trade-Karten-Spalte (19 Karten) erreicht auf Mobil nie
+   die 12%-Sichtbarkeitsschwelle des IntersectionObservers → würde sonst dauerhaft
+   opacity:0 bleiben. Sichtbarkeit hat Vorrang vor der Einblend-Animation. */
+.reveal{opacity:1 !important;transform:none !important}
 /* page-local accents */
 .hero h1{font-size:clamp(2.8rem,12vw,9rem)}
 .hero{background:radial-gradient(120% 90% at 78% 12%,rgba(31,184,166,.18),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(232,163,61,.12),transparent 55%),var(--bg)}
@@ -234,7 +239,7 @@ const TIMG = {
     <div class="scrolly__media" aria-hidden="true">
       <div class="frame active" style="background-image:url('/assets/wk-emporium.jpg')"></div>
       <div class="frame" style="background-image:url('/assets/wk-idris.jpg')"></div>
-      <div class="frame" style="background-image:url('/assets/wk-a2.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/wk-taurus.jpg')"></div>
       <div class="frame" style="background-image:url('/assets/wk-polaris.jpg')"></div>
     </div>
     <div class="scrolly__steps">
