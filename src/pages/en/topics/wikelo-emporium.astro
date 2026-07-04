@@ -32,6 +32,8 @@ const TCATS = [
 ];
 const CAT_LABEL = { conv: 'Favor exchange', ship: 'Ship', weapon: 'Weapon', armor: 'Armor', misc: 'Misc' };
 const CAT_ICON = { conv: 'favor', ship: 'ship', weapon: 'weapon', armor: 'armor', misc: 'component' };
+// Component types (ship loadout)
+const COMP_LABEL = { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler: 'Cooler', weapon: 'Weapons' };
 
 // FULL trade list (63 trades) — source: wikelotrades.com (scrape_wikelo.py), patch 4.8.1,
 // as of 2026-06-04. Materials/Favor taken faithfully from the tracker data file
@@ -116,6 +118,16 @@ const CAT_ICON = { conv: 'favor', ship: 'ship', weapon: 'weapon', armor: 'armor'
 .wk-get-media--ph svg{width:42px;height:42px}
 .wk-get-name{font-family:var(--font-display);font-weight:800;font-size:.98rem;line-height:1.15;color:#fff}
 .wk-tc-empty{max-width:var(--maxw);margin:.5rem auto 0;color:var(--muted);font-size:.9rem}
+
+/* ---- Ship loadout (components) ---- */
+.wk-comps{margin-top:.2rem;padding-top:.75rem;border-top:1px solid var(--line-soft)}
+.wk-comps__h{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.6rem;color:var(--accent);margin-bottom:.5rem}
+.wk-comps ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:.32rem .9rem}
+.wk-comps li{display:flex;align-items:baseline;gap:.4rem;flex-wrap:wrap;font-size:.8rem;line-height:1.3}
+.wk-comps .ct{flex:none;min-width:4.6em;font-family:var(--font-ui);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.6rem;color:var(--muted)}
+.wk-comps .cn{color:var(--text)}
+.wk-comps .cb{font-family:var(--font-ui);font-weight:700;font-size:.62rem;letter-spacing:.03em;color:var(--accent-2);white-space:nowrap}
+@media(max-width:560px){.wk-comps ul{grid-template-columns:1fr}}
 
 /* ---- Image figure (stations / scene) ---- */
 .wk-figure{max-width:var(--maxw);margin:0 auto 1.4rem}
@@ -263,7 +275,7 @@ const CAT_ICON = { conv: 'favor', ship: 'ship', weapon: 'weapon', armor: 'armor'
       <p class="lead-p reveal">The heart of the Emporium: concrete trades with a <b>ship image</b>, required materials and Favor cost. Filter by category — on the left what you <b>give</b>, on the right what you <b>get</b>.</p></div>
     <div class="wk-note reveal">
       <span class="wk-ic" aria-hidden="true" set:html={ICON.favor}></span>
-      <span><b>All {TRADES.length} trades</b> from <b>patch 4.8.1</b> (as of <b>2026-06-04</b>), taken 1:1 from the live tracker <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com ↗</a>. Quantities &amp; Favor costs are <b>patch-volatile</b> — verify <b>in game</b> before you grind. On the left what you <b>give</b>, on the right what you <b>get</b>. Ships with a verified image, otherwise a category icon.</span>
+      <span><b>All {TRADES.length} trades</b> from <b>patch 4.8.1</b> (as of <b>2026-06-04</b>), taken 1:1 from the live tracker <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com ↗</a>. Quantities &amp; Favor costs are <b>patch-volatile</b> — verify <b>in game</b> before you grind. On the left what you <b>give</b>, on the right what you <b>get</b>. Ships with a verified image, otherwise a category icon. The ship <b>loadout components</b> come from <a href="https://tinyurl.com/yj739hxy" target="_blank" rel="noopener">ChrisGBG's Wikelo Sheet ↗</a> (datamining: WayfinderDrax, <b>as of 4.7 / 2026-03-26</b>).</span>
     </div>
 
     <div class="wk-filters reveal" role="group" aria-label="Filter trades by category">
@@ -294,6 +306,14 @@ const CAT_ICON = { conv: 'favor', ship: 'ship', weapon: 'weapon', armor: 'armor'
               <div class="wk-get-name">{t.get ?? t.name}</div>
             </div>
           </div>
+          {t.comps && (
+            <div class="wk-comps">
+              <div class="wk-comps__h">Comes with · loadout</div>
+              <ul>{t.comps.map((c) => (
+                <li><span class="ct">{COMP_LABEL[c.k]}</span><span class="cn">{c.q ? c.q + ' ' : ''}{c.n}</span>{c.s && (<span class="cb">S{c.s}{c.g ? ' · ' + c.g : ''}</span>)}</li>
+              ))}</ul>
+            </div>
+          )}
         </article>
       ))}
     </div>
@@ -368,7 +388,7 @@ const CAT_ICON = { conv: 'favor', ship: 'ship', weapon: 'weapon', armor: 'armor'
   <!-- SOURCES -->
   <section>
     <div class="wrap">
-      <p class="src reveal">Sources: Star Citizen Wiki — <a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Wikelo</a>, <a href="https://starcitizen.tools/Wikelo_Emporium" target="_blank" rel="noopener">Wikelo Emporium</a>, <a href="https://starcitizen.tools/Wikelo_Favor" target="_blank" rel="noopener">Wikelo Favor</a> (CC-BY-SA 4.0) · trade data: live tracker <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com</a> (patch 4.8.1, 2026-06-04). Trade details change with every patch.</p>
+      <p class="src reveal">Sources: Star Citizen Wiki — <a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Wikelo</a>, <a href="https://starcitizen.tools/Wikelo_Emporium" target="_blank" rel="noopener">Wikelo Emporium</a>, <a href="https://starcitizen.tools/Wikelo_Favor" target="_blank" rel="noopener">Wikelo Favor</a> (CC-BY-SA 4.0) · trade data: live tracker <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com</a> (patch 4.8.1, 2026-06-04) · ship loadouts: <a href="https://tinyurl.com/yj739hxy" target="_blank" rel="noopener">ChrisGBG's Wikelo Sheet</a> (datamining WayfinderDrax, 4.7). Trade details change with every patch.</p>
       <p class="src reveal">Images (Emporium, Wikelo, reward ships): <a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Star Citizen Wiki</a> (starcitizen.tools, CC-BY-SA 4.0) — non-commercial fan use. Star Citizen® is a trademark of Cloud Imperium Rights LLC.</p>
     </div>
   </section>
