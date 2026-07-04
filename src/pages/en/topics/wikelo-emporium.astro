@@ -4,6 +4,61 @@ import SiteNav from '../../../components/SiteNav.astro';
 import TopicFacts from '../../../components/TopicFacts.astro';
 import RelatedTopics from '../../../components/RelatedTopics.astro';
 import Attribution from '../../../components/Attribution.astro';
+
+// On-brand inline SVG icons (instead of emojis) — line style, currentColor.
+const svg = (b) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
+const ICON = {
+  ship: svg('<path d="M12 2c3 2.2 4.5 5.6 4.5 10 0 2.2-.5 4.3-1.5 6H9c-1-1.7-1.5-3.8-1.5-6C7.5 7.6 9 4.2 12 2z"/><circle cx="12" cy="9" r="1.8"/><path d="M7.5 14 4 17v3l3.5-2M16.5 14 20 17v3l-3.5-2M12 18v4"/>'),
+  weapon: svg('<path d="M3 8h13l4 2v2h-5l-2 3H8v-3H5a2 2 0 0 1-2-2V8z"/><path d="M8 12v3M11 8V6M14 8V6"/>'),
+  armor: svg('<path d="M12 3 5 5.5V11c0 4.4 3 8 7 10 4-2 7-5.6 7-10V5.5L12 3z"/><path d="M12 3v18M5 8h14"/>'),
+  paint: svg('<path d="M12 3s6 6.5 6 10.5a6 6 0 0 1-12 0C6 9.5 12 3 12 3z"/><path d="M9.5 13.5a2.5 2.5 0 0 0 2.5 2.5"/>'),
+  component: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 6l2.1 2.1M17.7 15.9l2.1 2.1M2 12h3M19 12h3M4.2 18l2.1-2.1M17.7 8.1l2.1-2.1"/>'),
+  recipe: svg('<path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M8.5 12h7M8.5 15.5h7M8.5 8.5h3"/>'),
+  material: svg('<path d="M12 3 3 8v8l9 5 9-5V8l-9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/>'),
+  favor: svg('<path d="m12 3 2.5 5.3 5.8.8-4.2 4 1 5.7L12 21l-5.1 2.8 1-5.7-4.2-4 5.8-.8L12 3z"/>'),
+  vehicle: svg('<path d="M3 13h18l-2-5H8L3 13z"/><path d="M3 13v4h2M21 13v4h-2M9 17h6"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/>'),
+  arrow: svg('<path d="M4 12h15M13 6l6 6-6 6"/>'),
+};
+
+// Trade categories (filter pills)
+const TCATS = [
+  { key: 'all', label: 'All' },
+  { key: 'conv', label: 'Favor exchange' },
+  { key: 'capital', label: 'Capital ships' },
+  { key: 'fighter', label: 'Fighters' },
+  { key: 'industrial', label: 'Industrial & cargo' },
+  { key: 'vehicle', label: 'Vehicles' },
+];
+const CAT_LABEL = { conv: 'Favor exchange', capital: 'Capital ship', fighter: 'Fighter', industrial: 'Industrial/cargo', vehicle: 'Vehicle' };
+const CAT_ICON = { conv: 'favor', capital: 'ship', fighter: 'ship', industrial: 'ship', vehicle: 'vehicle' };
+
+// Sourcing: c='solid' (ExpCarry + Wikelo Tracker v4.8 agree), c='chk' (single source · verify in-game).
+// As of ~Alpha 4.8 / late May 2026 — recipes are patch-volatile.
+const TRADES = [
+  { cat:'conv', name:'Wikelo Favor', favor:null, get:'+1 Favor', mats:['50× MG Scrip'], c:'solid' },
+  { cat:'conv', name:'Wikelo Favor', favor:null, get:'+1 Favor', mats:['50× Carinite'], c:'solid' },
+  { cat:'conv', name:'Wikelo Favor', favor:null, get:'+1 Favor', mats:['12× Irradiated Valakkar Pearl (AA)'], c:'solid' },
+  { cat:'conv', name:'Polaris Bit', favor:null, get:'+1 Polaris Bit', mats:['24 SCU Quantanium'], c:'solid' },
+
+  { cat:'capital', name:'Idris-P', favor:50, mats:['50× Polaris Bit','50× DCHS-05 Comp-Board','50× Carinite','50× Valakkar Fang (Apex)','50× MG Scrip','50× Ace Interceptor Helmet','30× Valakkar Pearl (AAA)','30× UEE 6th Platoon Medal (Pristine)','30× ASD Secure Drive','30× Carinite (Pure)'], note:'Rank “Very Best Customer” + RCMBNT components', c:'solid' },
+  { cat:'capital', name:'Polaris (Wikelo Special)', favor:50, mats:['15× Polaris Bit','15× ASD Secure Drive','20× Carinite','20× Valakkar Fang (Apex)','15× Ace Interceptor Helmet','15× Valakkar Pearl (AAA)','15× UEE 6th Platoon Medal (Pristine)','15× Carinite (Pure)'], c:'solid' },
+  { cat:'capital', name:'A2 Hercules Starlifter', favor:50, mats:['20× Polaris Bit','20× MG Scrip','6× ASD Secure Drive','6× Valakkar Pearl (AAA)','6× Tevarin War Service Marker (Pristine)','6× DCHS-05 Comp-Board','6× Carinite (Pure)'], c:'solid' },
+
+  { cat:'fighter', name:'F8C Lightning (Military Spec)', favor:40, mats:['4× Carinite (Pure)','4× Valakkar Pearl (AAA)','4× Tevarin War Service Marker (Pristine)'], c:'solid' },
+  { cat:'fighter', name:'Ares Star Fighter Inferno', favor:10, mats:['5× Yormandi Tongue','5× Ace Interceptor Helmet','1× UEE 6th Platoon Medal (Pristine)'], c:'solid' },
+  { cat:'fighter', name:'F7C-M Super Hornet Mk II', favor:16, mats:['3× DCHS-05 Comp-Board','5× Ace Interceptor Helmet','1× Gov. Cartography Medal (Pristine)'], c:'chk' },
+  { cat:'fighter', name:'Guardian', favor:20, mats:['15× Valakkar Pearl (AA)','10× Ace Interceptor Helmet','1× Tevarin War Service Marker (Pristine)'], c:'chk' },
+  { cat:'fighter', name:'Sabre Peregrine', favor:4, mats:['1× DCHS-05 Comp-Board'], c:'chk' },
+
+  { cat:'industrial', name:'Constellation Taurus', favor:30, mats:['3× Carinite (Pure)','3× Valakkar Pearl (AAA)','3× Gov. Cartography Agency Medal (Pristine)'], c:'solid' },
+  { cat:'industrial', name:'MISC Prospector', favor:6, mats:['20× Carinite','30× Saldynium (Ore)','40× Jaclium (Ore)','1× Carinite (Pure)'], c:'chk' },
+  { cat:'industrial', name:'Argo RAFT', favor:8, mats:['10× Valakkar Fang (Adult)','20× Valakkar Fang (Juvenile)','5× Irradiated Kopion Horn','1× Valakkar Pearl (AAA)'], c:'chk' },
+  { cat:'industrial', name:'C1 Spirit', favor:8, mats:['1× Tevarin War Service Marker (Pristine)'], c:'chk' },
+
+  { cat:'vehicle', name:'ATLS IKTI', favor:2, mats:['1× Argo ATLS','5× Valakkar Fang (Apex)','2× NN-13 Cannon'], c:'chk' },
+  { cat:'vehicle', name:'Ursa Medivac', favor:4, mats:['20× Saldynium (Ore)','20× Jaclium (Ore)'], c:'chk' },
+  { cat:'vehicle', name:'Nox', favor:4, mats:['Favor only'], c:'chk' },
+];
 ---
 <Layout title={"Wikelo's Emporium — Star Citizen 4.1 | SC Patch Archive"} description={"Wikelo's Emporium: the Banu trader Wikelo — the first playable alien NPC in Star Citizen. Barter instead of money: deliver items, earn Wikelo Favor, trade for rewards from his stock. Three asteroid stations in Stanton, since Alpha 4.1."} themeColor="#0d1513" ogType="article" translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
@@ -20,7 +75,9 @@ import Attribution from '../../../components/Attribution.astro';
 /* ---- Bento (stations + reward categories) ---- */
 .wk-bento{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;max-width:var(--maxw);margin:0 auto}
 .wk-cell{border:1px solid var(--line);border-top:2px solid var(--accent);background:var(--surface);padding:1.3rem 1.4rem;display:flex;flex-direction:column;gap:.5rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
-.wk-cell .wk-ic{font-size:1.6rem;line-height:1}
+.wk-cell .wk-ic{color:var(--accent);line-height:0;width:34px;height:34px}
+.wk-cell.alt .wk-ic{color:var(--accent-2)}
+.wk-cell .wk-ic svg{width:100%;height:100%;display:block}
 .wk-cell h3{font-family:var(--font-display);font-weight:800;font-size:1.25rem;color:#fff;line-height:1.1}
 .wk-cell .wk-sub{font-family:var(--font-ui);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.68rem;color:var(--accent)}
 .wk-cell p{color:var(--muted);font-size:.98rem;line-height:1.5;margin:0}
@@ -34,25 +91,52 @@ import Attribution from '../../../components/Attribution.astro';
 
 /* ---- Warning / as-of banner ---- */
 .wk-note{max-width:var(--maxw);margin:0 auto 1.1rem;display:flex;align-items:flex-start;gap:.75rem;border:1px solid var(--accent-2);border-left-width:3px;background:color-mix(in srgb,var(--accent-2) 8%,transparent);padding:.9rem 1.1rem;border-radius:4px;color:var(--text);font-size:.95rem;line-height:1.55}
-.wk-note .wk-ic{color:var(--accent-2);font-size:1.1rem;flex:none;line-height:1.4}
+.wk-note .wk-ic{color:var(--accent-2);flex:none;line-height:0;width:18px;height:18px;margin-top:.1rem}
+.wk-note .wk-ic svg{width:100%;height:100%;display:block}
 .wk-note a{color:var(--accent-2);border-bottom:1px solid var(--line);white-space:nowrap}
 
 /* ---- "patch-dependent" badge ---- */
 .wk-badge{display:inline-flex;align-items:center;gap:.3rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.62rem;color:var(--accent-2);border:1px solid color-mix(in srgb,var(--accent-2) 45%,transparent);background:color-mix(in srgb,var(--accent-2) 10%,transparent);padding:.12rem .45rem;border-radius:2px;white-space:nowrap}
 
-/* ---- Trade table: the core piece. Horizontally scrollable on mobile, no overflow. ---- */
-.wk-tradewrap{max-width:var(--maxw);margin:0 auto;border:1px solid var(--line);border-radius:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--surface)}
-.wk-trade{width:100%;min-width:720px;border-collapse:collapse;font-size:clamp(.86rem,1.4vw,.98rem)}
-.wk-trade caption{caption-side:top;text-align:left;padding:.9rem 1.1rem .2rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;color:var(--muted);font-size:.8rem}
-.wk-trade thead th{position:sticky;top:0;text-align:left;font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.68rem;color:var(--accent);background:var(--bg-2);padding:.75rem 1rem;border-bottom:1px solid var(--line);white-space:nowrap}
-.wk-trade tbody th[scope="rowgroup"]{text-align:left;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.7rem;color:var(--accent-2);background:var(--bg-2);padding:.6rem 1rem;border-top:1px solid var(--line);border-bottom:1px solid var(--line-soft)}
-.wk-trade td{padding:.7rem 1rem;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--text)}
-.wk-trade tbody tr:last-child td{border-bottom:0}
-.wk-trade .wk-rw{font-weight:600}
-.wk-trade .wk-mat{color:var(--muted);line-height:1.45}
-.wk-trade .wk-var{color:var(--accent-2);font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.04em}
-.wk-trade .wk-stand{color:var(--muted);font-size:.8rem;white-space:nowrap}
-.wk-trade tbody tr:hover td{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+/* ---- Trade overview: GIVE → GET cards ---- */
+.wk-filters{max-width:var(--maxw);margin:0 auto 1.2rem;display:flex;flex-wrap:wrap;gap:.5rem}
+.wk-pill{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.72rem;color:var(--muted);border:1px solid var(--line);background:rgba(0,0,0,.25);padding:.42rem .9rem;border-radius:50px;cursor:pointer;transition:color .18s,border-color .18s,background-color .18s}
+.wk-pill:hover{color:var(--text);border-color:var(--accent)}
+.wk-pill[aria-pressed="true"]{color:var(--ink);background:var(--accent);border-color:var(--accent)}
+.wk-tc-grid{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem}
+.wk-tc{border:1px solid var(--line);border-top:2px solid var(--accent);background:var(--surface);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:.85rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.wk-tc[data-cat="conv"]{border-top-color:var(--accent-2)}
+.wk-tc[hidden]{display:none}
+.wk-tc__hd{display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+.wk-tc__cat{font-family:var(--font-ui);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.64rem;color:var(--accent)}
+.wk-tc[data-cat="conv"] .wk-tc__cat{color:var(--accent-2)}
+.wk-conf{font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.58rem;padding:.14rem .5rem;border-radius:2px;white-space:nowrap;border:1px solid}
+.wk-conf.solid{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.wk-conf.chk{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 45%,transparent);background:color-mix(in srgb,var(--accent-2) 10%,transparent)}
+.wk-tc__body{display:grid;grid-template-columns:1fr auto minmax(9rem,.9fr);align-items:stretch;gap:.6rem}
+.wk-side-h{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.6rem;color:var(--muted);margin-bottom:.4rem}
+.wk-mats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.28rem}
+.wk-mats li{position:relative;padding-left:.85rem;font-size:.86rem;line-height:1.35;color:var(--text)}
+.wk-mats li::before{content:"";position:absolute;left:0;top:.5em;width:5px;height:5px;background:var(--accent);transform:rotate(45deg)}
+.wk-tc[data-cat="conv"] .wk-mats li::before{background:var(--accent-2)}
+.wk-favor{display:inline-flex;align-items:center;gap:.35rem;margin-top:.6rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.04em;font-size:.8rem;color:var(--accent-2);border:1px solid color-mix(in srgb,var(--accent-2) 40%,transparent);background:color-mix(in srgb,var(--accent-2) 9%,transparent);padding:.22rem .55rem;border-radius:3px;width:max-content}
+.wk-favor svg{width:14px;height:14px;flex:none}
+.wk-tc__note{margin-top:.5rem;font-size:.74rem;line-height:1.4;color:var(--muted)}
+.wk-arrow{color:var(--accent);align-self:center;line-height:0}
+.wk-arrow svg{width:26px;height:26px;display:block}
+.wk-get{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.5rem;border-left:1px solid var(--line-soft);padding-left:.6rem}
+.wk-get-ic{color:var(--accent);width:38px;height:38px;line-height:0;border:1px solid var(--line);background:rgba(0,0,0,.25);display:grid;place-items:center;padding:6px}
+.wk-tc[data-cat="conv"] .wk-get-ic{color:var(--accent-2)}
+.wk-get-ic svg{width:100%;height:100%}
+.wk-get-name{font-family:var(--font-display);font-weight:800;font-size:.98rem;line-height:1.15;color:#fff}
+.wk-tc-empty{max-width:var(--maxw);margin:.5rem auto 0;color:var(--muted);font-size:.9rem}
+@media(max-width:560px){
+  .wk-tc-grid{grid-template-columns:1fr}
+  .wk-tc__body{grid-template-columns:1fr;gap:.5rem}
+  .wk-arrow{justify-self:center;transform:rotate(90deg);margin:.15rem 0}
+  .wk-get{border-left:0;border-top:1px solid var(--line-soft);padding-left:0;padding-top:.7rem;flex-direction:row;justify-content:flex-start}
+  .wk-get-name{text-align:left}
+}
 
 /* ---- Timeline ---- */
 .wk-time{max-width:var(--maxw);margin:0 auto;display:grid;gap:0}
@@ -135,13 +219,13 @@ import Attribution from '../../../components/Attribution.astro';
     <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>Two interaction types</h2><span class="rule"></span></div></div>
     <div class="wk-duo reveal">
       <div class="wk-cell">
-        <div class="wk-ic">🔁</div>
+        <div class="wk-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8a8 8 0 0 1 13.7-3.3L20 7"/><path d="M20 3v4h-4"/><path d="M20 16a8 8 0 0 1-13.7 3.3L4 17"/><path d="M4 21v-4h4"/></svg></div>
         <div class="wk-sub">Favor conversion</div>
         <h3>Raw materials → Favors</h3>
         <p>You deliver requested <b>raw materials</b> and receive <b>Wikelo Favor</b> in return. Building up your balance — the tokens you pay with later.</p>
       </div>
       <div class="wk-cell alt">
-        <div class="wk-ic">🎁</div>
+        <div class="wk-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 8H4v3h16V8z"/><path d="M5 11v9h14v-9"/><path d="M12 8v12"/><path d="M12 8S10.5 4.5 8.5 4.5A2 2 0 0 0 8.5 8.5H12zM12 8s1.5-3.5 3.5-3.5A2 2 0 0 1 15.5 8.5H12z"/></svg></div>
         <div class="wk-sub">Reward trade</div>
         <h3>Favors + materials → gear</h3>
         <p>You spend <b>Favors together with additional materials</b> and get a concrete reward: gear, components or a ship from Wikelo's stock.</p>
@@ -154,19 +238,19 @@ import Attribution from '../../../components/Attribution.astro';
     <div class="wrap"><div class="sec-head reveal"><span class="num">04</span><h2>The three Emporium stations</h2><span class="rule"></span></div></div>
     <div class="wk-bento reveal">
       <div class="wk-cell">
-        <div class="wk-ic">🪨</div>
+        <div class="wk-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13 8 5l7-2 5 6-3 9-8 1z"/><path d="m8 5 3 5 4-1M11 10l-2 8m6-8 2 4"/></svg></div>
         <div class="wk-sub">near Hurston</div>
         <h3>Dasi</h3>
         <p>Asteroid station within Hurston's sphere of influence. One of the three points of contact for contracts and rewards.</p>
       </div>
       <div class="wk-cell">
-        <div class="wk-ic">🪨</div>
+        <div class="wk-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13 8 5l7-2 5 6-3 9-8 1z"/><path d="m8 5 3 5 4-1M11 10l-2 8m6-8 2 4"/></svg></div>
         <div class="wk-sub">near Crusader / Yela</div>
         <h3>Selo</h3>
         <p>Asteroid station close to Crusader and the moon Yela. The Emporium's second location in Stanton.</p>
       </div>
       <div class="wk-cell">
-        <div class="wk-ic">🪨</div>
+        <div class="wk-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13 8 5l7-2 5 6-3 9-8 1z"/><path d="m8 5 3 5 4-1M11 10l-2 8m6-8 2 4"/></svg></div>
         <div class="wk-sub">near microTech</div>
         <h3>Kinga</h3>
         <p>Asteroid station in microTech's vicinity. The third location — rewards land in the local station inventory each time.</p>
@@ -174,89 +258,80 @@ import Attribution from '../../../components/Attribution.astro';
     </div>
   </section>
 
-  <!-- TRADE TABLE — the core -->
+  <!-- TRADE OVERVIEW — the core: GIVE → GET -->
   <section>
     <div class="wrap"><div class="sec-head reveal"><span class="num">05</span><h2>Deliver → Receive</h2><span class="rule"></span></div></div>
     <div class="wk-note reveal">
-      <span class="wk-ic" aria-hidden="true">⚠</span>
-      <span>Exact quantities, Favor costs and the available ship/reward pool <b>change with every patch</b>. The rows below are <b>curated examples by category</b>, not fixed prices. Always verify precise, current values <b>in game</b> or via a live tracker: <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com ↗</a></span>
+      <span class="wk-ic" aria-hidden="true" set:html={ICON.favor}></span>
+      <span>What you <b>give</b> → what you <b>get</b>. As of <b>~Alpha 4.8 (late May 2026)</b>, compiled from <a href="https://expcarry.com/star-citizen-wikelo-ships-guide" target="_blank" rel="noopener">ExpCarry</a> &amp; the <a href="https://wikelotracker.com/" target="_blank" rel="noopener">Wikelo Tracker v4.8</a>. Recipes are <b>patch-volatile</b> — verify quantities &amp; Favor costs <b>in game</b> before you grind. Legend: <span class="wk-conf solid">confirmed · 2 sources</span> = both sources agree, <span class="wk-conf chk">1 source · verify</span> = single source, may be stale.</span>
     </div>
-    <div class="wk-tradewrap reveal">
-      <table class="wk-trade">
-        <caption>Example trades by reward category · as-of noted · quantities/Favor patch-dependent</caption>
-        <thead>
-          <tr>
-            <th scope="col">Reward</th>
-            <th scope="col">Category</th>
-            <th scope="col">Materials required (quantity)</th>
-            <th scope="col">Favor cost</th>
-            <th scope="col">As of / patch</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><th scope="rowgroup" colspan="5">Ships &amp; vehicles <span class="wk-badge">patch-dependent</span></th></tr>
-          <tr>
-            <td class="wk-rw">Ship from Wikelo's pool</td>
-            <td>Ships/vehicles</td>
-            <td class="wk-mat">Extensive material delivery + multiple contract tiers — <span class="wk-var">verify quantity</span></td>
-            <td class="wk-var">variable · tracker</td>
-            <td class="wk-stand">Example · to verify</td>
-          </tr>
 
-          <tr><th scope="rowgroup" colspan="5">Weapons &amp; armor <span class="wk-badge">patch-dependent</span></th></tr>
-          <tr>
-            <td class="wk-rw">Handheld weapon</td>
-            <td>Weapons</td>
-            <td class="wk-mat">Raw materials/refined goods — <span class="wk-var">verify quantity</span></td>
-            <td class="wk-var">variable · tracker</td>
-            <td class="wk-stand">Example · to verify</td>
-          </tr>
-          <tr>
-            <td class="wk-rw">Armor set</td>
-            <td>Armor</td>
-            <td class="wk-mat">Raw materials + Favor balance — <span class="wk-var">verify quantity</span></td>
-            <td class="wk-var">variable · tracker</td>
-            <td class="wk-stand">Example · to verify</td>
-          </tr>
-
-          <tr><th scope="rowgroup" colspan="5">Cosmetics &amp; components <span class="wk-badge">patch-dependent</span></th></tr>
-          <tr>
-            <td class="wk-rw">Paint / skin</td>
-            <td>Paints/skins</td>
-            <td class="wk-mat">Favor balance (+ material if any) — <span class="wk-var">verify quantity</span></td>
-            <td class="wk-var">variable · tracker</td>
-            <td class="wk-stand">Example · to verify</td>
-          </tr>
-          <tr>
-            <td class="wk-rw">Ship component</td>
-            <td>Ship components</td>
-            <td class="wk-mat">Raw materials + Favor balance — <span class="wk-var">verify quantity</span></td>
-            <td class="wk-var">variable · tracker</td>
-            <td class="wk-stand">Example · to verify</td>
-          </tr>
-          <tr>
-            <td class="wk-rw">Crafting recipe</td>
-            <td>Crafting recipes</td>
-            <td class="wk-mat">Favor balance — <span class="wk-var">verify quantity</span></td>
-            <td class="wk-var">variable · tracker</td>
-            <td class="wk-stand">Example · to verify</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="wk-filters reveal" role="group" aria-label="Filter trades by category">
+      {TCATS.map((f, i) => (
+        <button type="button" class="wk-pill" data-filter={f.key} aria-pressed={i === 0 ? 'true' : 'false'}>{f.label}</button>
+      ))}
     </div>
-    <p class="src reveal">The categories are documented; the individual row values are deliberately marked as example / "to verify" because they change per patch. Live data: <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com ↗</a></p>
+
+    <div class="wk-tc-grid reveal" id="wk-tc-grid">
+      {TRADES.map((t) => (
+        <article class="wk-tc" data-cat={t.cat}>
+          <header class="wk-tc__hd">
+            <span class="wk-tc__cat">{CAT_LABEL[t.cat]}</span>
+            <span class={`wk-conf ${t.c}`}>{t.c === 'solid' ? 'confirmed · 2 sources' : '1 source · verify'}</span>
+          </header>
+          <div class="wk-tc__body">
+            <div class="wk-give">
+              <div class="wk-side-h">Give</div>
+              <ul class="wk-mats">{t.mats.map((m) => (<li>{m}</li>))}</ul>
+              {t.favor != null && (<div class="wk-favor"><span set:html={ICON.favor}></span>{t.favor} Favor</div>)}
+              {t.note && (<div class="wk-tc__note">{t.note}</div>)}
+            </div>
+            <div class="wk-arrow" aria-hidden="true" set:html={ICON.arrow}></div>
+            <div class="wk-get">
+              <div class="wk-side-h">Get</div>
+              <div class="wk-get-ic" aria-hidden="true" set:html={ICON[CAT_ICON[t.cat]]}></div>
+              <div class="wk-get-name">{t.get ?? t.name}</div>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+    <p class="wk-tc-empty" id="wk-tc-empty" hidden>No trades in this category.</p>
+
+    <p class="src reveal">Selected, verifiable example trades — not a complete catalogue. The two live trackers we checked, <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com ↗</a> and <a href="https://www.star-citizen-wikelo-tools.fr/wikelo" target="_blank" rel="noopener">star-citizen-wikelo-tools.fr ↗</a>, load their data dynamically (JavaScript) and can only be read live in a browser — check there or in game for day-current values.</p>
   </section>
+
+  <script is:inline>
+    (function () {
+      var pills = document.querySelectorAll('.wk-pill');
+      var cards = document.querySelectorAll('#wk-tc-grid .wk-tc');
+      var empty = document.getElementById('wk-tc-empty');
+      pills.forEach(function (p) {
+        p.addEventListener('click', function () {
+          var key = p.getAttribute('data-filter');
+          pills.forEach(function (q) { q.setAttribute('aria-pressed', q === p ? 'true' : 'false'); });
+          var shown = 0;
+          cards.forEach(function (c) {
+            var vis = key === 'all' || c.getAttribute('data-cat') === key;
+            c.hidden = !vis;
+            if (vis) shown++;
+          });
+          if (empty) empty.hidden = shown !== 0;
+        });
+      });
+    })();
+  </script>
 
   <!-- REWARD CATEGORIES -->
   <section>
     <div class="wrap"><div class="sec-head reveal"><span class="num">06</span><h2>Reward categories</h2><span class="rule"></span></div></div>
     <div class="wk-bento reveal">
-      <div class="wk-cell"><div class="wk-ic">🚀</div><div class="wk-sub">Category</div><h3>Ships &amp; vehicles</h3><p>Selected ships and ground vehicles from Wikelo's rotating pool.</p></div>
-      <div class="wk-cell"><div class="wk-ic">🔫</div><div class="wk-sub">Category</div><h3>Weapons</h3><p>Handheld and ship weapons as trade rewards.</p></div>
-      <div class="wk-cell"><div class="wk-ic">🛡️</div><div class="wk-sub">Category</div><h3>Armor</h3><p>Armor sets and gear pieces.</p></div>
-      <div class="wk-cell alt"><div class="wk-ic">🎨</div><div class="wk-sub">Category</div><h3>Paints / skins</h3><p>Cosmetic liveries for ships and gear.</p></div>
-      <div class="wk-cell alt"><div class="wk-ic">⚙️</div><div class="wk-sub">Category</div><h3>Ship components</h3><p>Components for upgrading and outfitting ships.</p></div>
-      <div class="wk-cell alt"><div class="wk-ic">📜</div><div class="wk-sub">Category</div><h3>Crafting recipes</h3><p>Recipes that feed into the crafting system.</p></div>
+      <div class="wk-cell"><div class="wk-ic" aria-hidden="true" set:html={ICON.ship}></div><div class="wk-sub">Category</div><h3>Ships &amp; vehicles</h3><p>Selected ships and ground vehicles from Wikelo's rotating pool.</p></div>
+      <div class="wk-cell"><div class="wk-ic" aria-hidden="true" set:html={ICON.weapon}></div><div class="wk-sub">Category</div><h3>Weapons</h3><p>Handheld and ship weapons as trade rewards.</p></div>
+      <div class="wk-cell"><div class="wk-ic" aria-hidden="true" set:html={ICON.armor}></div><div class="wk-sub">Category</div><h3>Armor</h3><p>Armor sets and gear pieces.</p></div>
+      <div class="wk-cell alt"><div class="wk-ic" aria-hidden="true" set:html={ICON.paint}></div><div class="wk-sub">Category</div><h3>Paints / skins</h3><p>Cosmetic liveries for ships and gear.</p></div>
+      <div class="wk-cell alt"><div class="wk-ic" aria-hidden="true" set:html={ICON.component}></div><div class="wk-sub">Category</div><h3>Ship components</h3><p>Components for upgrading and outfitting ships.</p></div>
+      <div class="wk-cell alt"><div class="wk-ic" aria-hidden="true" set:html={ICON.recipe}></div><div class="wk-sub">Category</div><h3>Crafting recipes</h3><p>Recipes that feed into the crafting system.</p></div>
     </div>
   </section>
 
