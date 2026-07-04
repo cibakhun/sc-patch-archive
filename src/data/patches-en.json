@@ -402,6 +402,33 @@
           "system": "Server technology",
           "desc": "Many missions were reworked and adjusted for compatibility with static Server Meshing.",
           "facts": []
+        },
+        {
+          "name": "Wikelo's Emporium",
+          "system": "Missions & activities",
+          "desc": "Alpha 4.1 introduces Wikelo — a Banu trader and the first playable alien NPC in Star Citizen. His Emporium runs as a pure barter system with no money: players accept contracts, deliver the requested items and materials at the freight elevator and receive rewards from Wikelo's stock in return. The currency is \"Wikelo Favor\" tokens, spread across three asteroid stations in Stanton.",
+          "facts": [
+            {
+              "label": "Species",
+              "value": "Banu (first playable alien NPC)"
+            },
+            {
+              "label": "Principle",
+              "value": "Barter · no money"
+            },
+            {
+              "label": "Stations",
+              "value": "3 · Dasi, Selo, Kinga"
+            },
+            {
+              "label": "Currency",
+              "value": "Wikelo Favor (tokens)"
+            },
+            {
+              "label": "Rewards",
+              "value": "deterministic since 4.2.1"
+            }
+          ]
         }
       ],
       "ships": [
@@ -415,6 +442,9 @@
       "topics": [
         {
           "title": "Align & Mine"
+        },
+        {
+          "title": "Wikelo's Emporium"
         }
       ]
     },
