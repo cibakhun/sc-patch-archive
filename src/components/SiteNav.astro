@@ -143,6 +143,10 @@ const current = Astro.url.pathname;
           <a href={L('/index.html#archiv')}><span>{t('nav.allPatches')} ({patches.length})</span></a>
           <a href={L('/index.html#themen')}><span>{t('nav.allTopics')} ({topicCount})</span></a>
         </div>
+        <div class="snav__group snav__langgroup">
+          <div class="snav__ghead">{t('nav.langSwitch')}</div>
+          <LangSwitcher hasEn={hasEn} />
+        </div>
       </div>
     </details>
   </div>
@@ -449,9 +453,21 @@ const current = Astro.url.pathname;
     align-items: center;
     gap: 0.4rem;
   }
+  /* Sprachumschalter im Burger-Menü (nur mobil sichtbar, s. u.).
+     :global(), weil .langsw von der Kind-Komponente LangSwitcher gerendert wird
+     und Astros Scoped-Selektoren sie sonst nicht treffen. */
+  .snav__langgroup :global(.langsw) {
+    margin: 0.4rem 1rem 0.15rem;
+  }
   @media (max-width: 760px) {
     .snav__link,
     .snav__right details.snav__dd:not(.snav__menu) {
+      display: none;
+    }
+    /* Der Umschalter oben rechts überlappt sonst die Wortmarke — auf Mobil
+       wandert er in den Burger (freier Platz, keine Überlappung). Nur der
+       direkte Header-Switcher; der im Menü (tiefer verschachtelt) bleibt. */
+    .snav__right > :global(.langsw) {
       display: none;
     }
     .snav__menu {
