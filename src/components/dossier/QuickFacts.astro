@@ -163,4 +163,20 @@ const heading = title ?? t('qf.title');
       display: none;
     }
   }
+  /* Mobil: die dekorative Aktencode-Zeile (DAT // …) umbrechen statt am
+     Viewport-Rand abzuschneiden — voller Text bleibt sichtbar, kein Clip. */
+  @media (max-width: 640px) {
+    .qf__head {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.25rem;
+    }
+    .qf__code {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      overflow-wrap: anywhere;
+      min-width: 0;
+    }
+  }
 </style>
