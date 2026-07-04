@@ -21,3 +21,5 @@ pinggy.log
 
 # /assets is the canonical media; public/assets is a build-time sync (see scripts/_sync-assets.mjs)
 /public/assets/
+
+build.log

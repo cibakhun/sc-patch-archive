@@ -58,7 +58,7 @@ for (const t of allTopics) {
   g.topics.push(t);
 }
 ---
-<Layout title={"Star Citizen Patch-Archiv · 4.0 → 4.8.2"} description={"Star Citizen Patches von Alpha 4.0.0 bis 4.8.2."} themeColor="#05070d" footer={true}>
+<Layout title={"Star Citizen Patch-Archiv · 4.0 → 4.8.2"} description={"Star Citizen Patches von Alpha 4.0.0 bis 4.8.2."} themeColor="#05070d" footer={true} translated={true}>
 <script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
 <style is:inline>
 
@@ -182,7 +182,7 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
 <a class="skip" href="#archiv">Zum Archiv springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav />
+<SiteNav hasEn={true} />
 
 <header class="hero">
   <canvas id="stars" aria-hidden="true"></canvas>

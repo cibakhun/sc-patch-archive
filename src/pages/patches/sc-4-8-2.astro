@@ -10,7 +10,7 @@ const entry = await getEntry('patches', '4-8-2');
 if (!entry) throw new Error('Patch-Daten 4-8-2 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.8.2 — Gatac & Alien Week | SC Patch-Archiv"} description={"Alpha 4.8.2: Zwei Gatac-Schiffe und die Alien Week 2956 rund um den First Contact Day."} themeColor="#0c0a16" ogType="article" ogImage="/assets/img-railen.jpg">
+<Layout title={"Star Citizen Alpha 4.8.2 — Gatac & Alien Week | SC Patch-Archiv"} description={"Alpha 4.8.2: Zwei Gatac-Schiffe und die Alien Week 2956 rund um den First Contact Day."} themeColor="#0c0a16" ogType="article" ogImage="/assets/img-railen.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/img-railen.jpg" />
 <style is:inline>
 
@@ -173,7 +173,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Alpha 4.8.2' }]} pill={"ALPHA 4.8.2"} />
+<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Alpha 4.8.2' }]} pill={"ALPHA 4.8.2"} hasEn={true} />
 
 
 <main id="main">

@@ -7,12 +7,16 @@
 import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
 import shipsSnapshot from '../../data/ships.json';
+import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../../i18n/ui';
 
 interface Props {
   patch: CollectionEntry<'patches'>['data'];
   num?: string;
+  lang?: Locale;
 }
-const { patch, num } = Astro.props;
+const { patch, num, lang = DEFAULT_LOCALE } = Astro.props;
+const t = useTranslations(lang);
+const L = (p: string) => href(p, lang);
 const hasUnverified =
   patch.features.some((f) => f.unverified || f.facts?.some((x) => x.unverified)) ||
   patch.ships.some((s) => s.unverified) ||
@@ -34,24 +38,24 @@ const priceFmt = (s?: (typeof fy)[number]['data']) =>
   s?.priceUSD != null ? `$${s.priceUSD}` : '—';
 const anySpecs = patch.ships.some((s) => spec(s.name));
 ---
-<section class="do" id="dossier" aria-label={`Dossier Alpha ${patch.version}`}>
+<section class="do" id="dossier" aria-label={t('do.aria').replace('%v%', patch.version)}>
   <div class="do__in">
     <header class="do__head">
       <span class="do__title">
         {num && <span class="do__num">{num}</span>}
-        <h2>Dossier</h2>
+        <h2>{t('do.title')}</h2>
       </span>
-      <span class="do__code">DAT&nbsp;//&nbsp;Alpha {patch.version} · Stand {patch.dateDisplay}</span>
+      <span class="do__code">{t('ship.code.dat')}&nbsp;//&nbsp;Alpha {patch.version} · {t('ship.asof')} {patch.dateDisplay}</span>
     </header>
 
     <p class="do__summary">{patch.summary}</p>
 
-    <h3 class="do__sub">Features &amp; Systeme</h3>
+    <h3 class="do__sub">{t('do.featsystems')}</h3>
     <div class="do__features">
       {patch.features.map((f) => (
         <article class="do__feat">
           <div class="do__feat-head">
-            <h4>{f.name}{f.unverified && <abbr class="do__unv" title="unbestätigt">*</abbr>}</h4>
+            <h4>{f.name}{f.unverified && <abbr class="do__unv" title={t('common.unverified')}>*</abbr>}</h4>
             {f.system && <span class="do__chip">{f.system}</span>}
           </div>
           <p class="do__desc">{f.desc}</p>
@@ -60,23 +64,23 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
               {f.facts!.map((x) => (
                 <div class="do__fact">
                   <dt>{x.label}</dt>
-                  <dd>{x.value}{x.unverified && <abbr class="do__unv" title="unbestätigt">*</abbr>}</dd>
+                  <dd>{x.value}{x.unverified && <abbr class="do__unv" title={t('common.unverified')}>*</abbr>}</dd>
                 </div>
               ))}
             </dl>
           )}
-          {f.topicSlug && <a class="do__link" href={`/topics/${f.topicSlug}.html`}>Deep-Dive ansehen →</a>}
+          {f.topicSlug && <a class="do__link" href={L(`/topics/${f.topicSlug}.html`)}>{t('do.deepdive')}</a>}
         </article>
       ))}
     </div>
 
     {patch.ships.length > 0 && (
       <>
-        <h3 class="do__sub">Schiffe</h3>
+        <h3 class="do__sub">{t('do.ships')}</h3>
         <div class="do__tablewrap">
           <table class="do__table">
             <thead>
-              <tr><th>Schiff</th><th>Rolle</th><th class="num">Crew</th><th class="num">Fracht</th><th class="num">Preis</th><th>Status</th></tr>
+              <tr><th>{t('do.th.ship')}</th><th>{t('do.th.role')}</th><th class="num">{t('do.th.crew')}</th><th class="num">{t('do.th.cargo')}</th><th class="num">{t('do.th.price')}</th><th>{t('do.th.status')}</th></tr>
             </thead>
             <tbody>
               {patch.ships.map((s) => {
@@ -106,7 +110,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
         </div>
         {anySpecs && (
           <p class="do__specsrc">
-            Specs: <a href="https://fleetyards.net" target="_blank" rel="noopener">FleetYards.net</a> (Fan-Projekt, basiert auf der offiziellen Ship Matrix) · Stand {shipsSnapshot.fetchedAt}
+            {t('do.specs')}: <a href="https://fleetyards.net" target="_blank" rel="noopener">FleetYards.net</a> ({t('do.specsNote')}) · {t('ship.asof')} {shipsSnapshot.fetchedAt}
           </p>
         )}
       </>
@@ -114,7 +118,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
 
     {patch.events.length > 0 && (
       <>
-        <h3 class="do__sub">Events</h3>
+        <h3 class="do__sub">{t('do.events')}</h3>
         <ul class="do__events">
           {patch.events.map((e) => (
             <li>
@@ -133,7 +137,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     )}
 
     <p class="do__note">
-      {hasUnverified && <span>* unbestätigt · </span>}Quellen: starcitizen.tools, RSI Comm-Links, Patch Notes
+      {hasUnverified && <span>{t('do.unvNote')}</span>}{t('do.sources')}
     </p>
   </div>
 </section>
@@ -420,6 +424,22 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     .do__head {
       flex-direction: column;
       gap: 0.2rem;
+    }
+  }
+  /* Mobil: die dekorative Aktencode-Zeile (DAT // …) umbrechen statt am
+     Viewport-Rand abzuschneiden — voller Text bleibt sichtbar, kein Clip. */
+  @media (max-width: 640px) {
+    .do__head {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.25rem;
+    }
+    .do__code {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      overflow-wrap: anywhere;
+      min-width: 0;
     }
   }
 </style>

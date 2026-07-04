@@ -2,15 +2,21 @@
 // module: the Astro frontmatter compiler chokes on larger logic blocks
 // inlined in the page ("Unexpected export" during export-hoisting) — and a
 // module is the better home for it anyway.
+// Stufe 2: locale-aware — Labels über t(), Freitext über vehicleText-Resolver,
+// Zahlenformat pro Locale. `key` erlaubt sprachunabhängiges Filtern.
 import type { CollectionEntry } from 'astro:content';
+import { useTranslations, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
+import { vType, vSize, vStatus, vFoci } from '../i18n/vehicleText';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
-export type Fact = { label: string; value: string };
+export type Fact = { label: string; value: string; key?: string };
 export type FactGroup = { title: string; facts: Fact[] };
 
-const num = (x: number | null, unit = ''): string =>
+const numLoc = (lang: Locale) => (lang === 'en' ? 'en-US' : 'de-DE');
+
+const num = (x: number | null, loc: string, unit = ''): string =>
   x != null
-    ? `${x.toLocaleString('de-DE', {
+    ? `${x.toLocaleString(loc, {
         minimumFractionDigits: 0,
         maximumFractionDigits: Number.isInteger(x) ? 0 : 1,
       })}${unit}`
@@ -23,22 +29,25 @@ export function crewFmt(d: VehicleData): string {
   return `${d.crewMin ?? d.crewMax}`;
 }
 
-export function buildFacts(d: VehicleData): Fact[] {
+export function buildFacts(d: VehicleData, lang: Locale = DEFAULT_LOCALE): Fact[] {
+  const t = useTranslations(lang);
+  const loc = numLoc(lang);
   const facts: Fact[] = [
-    { label: 'Hersteller', value: d.manufacturer ?? '—' },
-    { label: 'Typ', value: [d.typeDe, ...d.fociDe].filter(Boolean).join(' · ') || '—' },
-    { label: 'Größe', value: d.sizeDe ?? '—' },
-    { label: 'Besatzung', value: crewFmt(d) },
-    { label: 'Fracht', value: d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—' },
+    { key: 'manufacturer', label: t('data.manufacturer'), value: d.manufacturer ?? '—' },
+    { key: 'type', label: t('data.type'), value: [vType(d, lang), ...vFoci(d, lang)].filter(Boolean).join(' · ') || '—' },
+    { key: 'size', label: t('data.size'), value: vSize(d, lang) ?? '—' },
+    { key: 'crew', label: t('data.crew'), value: crewFmt(d) },
+    { key: 'cargo', label: t('data.cargo'), value: d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—' },
   ];
-  if (d.oreSCU) facts.push({ label: 'Erz-Kapazität', value: `${d.oreSCU} SCU` });
+  if (d.oreSCU) facts.push({ key: 'ore', label: t('data.ore'), value: `${d.oreSCU} SCU` });
   facts.push(
-    { label: 'Preis (Pledge)', value: d.msrpUSD != null ? `$${d.msrpUSD}` : '—' },
+    { key: 'pledge', label: t('data.pledge'), value: d.msrpUSD != null ? `$${d.msrpUSD}` : '—' },
     {
-      label: 'Maße L×B×H',
-      value: d.lengthM ? `${num(d.lengthM)} × ${num(d.widthM)} × ${num(d.heightM)} m` : '—',
+      key: 'dims',
+      label: t('data.dims'),
+      value: d.lengthM ? `${num(d.lengthM, loc)} × ${num(d.widthM, loc)} × ${num(d.heightM, loc)} m` : '—',
     },
-    { label: 'Status', value: d.statusDe ?? '—' }
+    { key: 'status', label: t('data.status'), value: vStatus(d, lang) ?? '—' }
   );
   return facts;
 }
@@ -56,37 +65,42 @@ export type ArmRow = {
   chips: ArmChip[];
   items?: string;
   value?: string;
+  /** stable flag: this row is the missiles row (drives the gold styling) */
+  gold?: boolean;
 };
 
-const PAYLOAD_DE: Record<string, string> = {
-  'WeaponGun.Gun': 'Geschütz',
-  'MissileLauncher.MissileRack': 'Raketenwerfer',
-  'BombLauncher.BombRack': 'Bombenschacht',
-};
+const payloadMap = (t: ReturnType<typeof useTranslations>): Record<string, string> => ({
+  'WeaponGun.Gun': t('payload.gun'),
+  'MissileLauncher.MissileRack': t('payload.missile'),
+  'BombLauncher.BombRack': t('payload.bomb'),
+});
 
-export function buildArmament(d: VehicleData): ArmRow[] {
+export function buildArmament(d: VehicleData, lang: Locale = DEFAULT_LOCALE): ArmRow[] {
+  const t = useTranslations(lang);
+  const loc = numLoc(lang);
+  const PAYLOAD = payloadMap(t);
   const rows: ArmRow[] = [];
 
   if (d.fixedWeapons.length) {
     rows.push({
-      label: 'Pilot · fest',
-      meta: `${d.fixedWeapons.reduce((n, w) => n + w.count, 0)} Waffen`,
+      label: t('arm.pilotFixed'),
+      meta: `${d.fixedWeapons.reduce((n, w) => n + w.count, 0)} ${t('arm.weapons')}`,
       chips: [],
       items: d.fixedWeapons.map((w) => `${w.count}× ${w.name}`).join(' · '),
-      value: d.pilotDps ? `${num(d.pilotDps)} DPS` : undefined,
+      value: d.pilotDps ? `${num(d.pilotDps, loc)} DPS` : undefined,
     });
   }
 
-  for (const t of d.turrets) {
-    const items = t.weapons.length
-      ? t.weapons.map((w) => `${w.count}× ${w.name}`).join(' · ')
-      : t.payloadTypes.map((p) => PAYLOAD_DE[p] ?? p).join(' · ') || undefined;
+  for (const tr of d.turrets) {
+    const items = tr.weapons.length
+      ? tr.weapons.map((w) => `${w.count}× ${w.name}`).join(' · ')
+      : tr.payloadTypes.map((p) => PAYLOAD[p] ?? p).join(' · ') || undefined;
     rows.push({
-      label: t.label,
-      meta: `${t.stations} ${t.stations === 1 ? 'Station' : 'Stationen'}`,
-      chips: t.sizes.map((s) => ({ label: `S${s.size}`, count: s.count })),
+      label: tr.label,
+      meta: `${tr.stations} ${tr.stations === 1 ? t('arm.station') : t('arm.stations')}`,
+      chips: tr.sizes.map((s) => ({ label: `S${s.size}`, count: s.count })),
       items,
-      value: t.dps ? `${num(t.dps)} DPS` : undefined,
+      value: tr.dps ? `${num(tr.dps, loc)} DPS` : undefined,
     });
   }
 
@@ -97,17 +111,18 @@ export function buildArmament(d: VehicleData): ArmRow[] {
     for (const r of d.missileRacks)
       if (r.size != null) bySize.set(r.size, (bySize.get(r.size) ?? 0) + r.count);
     rows.push({
-      label: 'Raketen',
+      label: t('arm.missiles'),
+      gold: true,
       chips: [...bySize.entries()]
         .sort((a, b) => a[0] - b[0])
         .map(([size, count]) => ({ label: `S${size}`, count })),
       items: d.missileRacks.map((r) => `${r.count}× ${r.name}`).join(' · ') || undefined,
-      value: d.missileCount ? `${num(d.missileCount)} Stück` : undefined,
+      value: d.missileCount ? `${num(d.missileCount, loc)} ${t('arm.count')}` : undefined,
     });
   }
 
   if (d.cmLaunchers) {
-    rows.push({ label: 'Gegenmaßnahmen', chips: [], value: `${d.cmLaunchers}× Werfer` });
+    rows.push({ label: t('arm.countermeasures'), chips: [], value: `${d.cmLaunchers}× ${t('arm.launchers')}` });
   }
 
   return rows;
@@ -122,54 +137,55 @@ const compFmt = (list: { name: string; size: number | null; count: number }[]): 
     )
     .join(' · ');
 
-export function buildGroups(d: VehicleData): FactGroup[] {
+export function buildGroups(d: VehicleData, lang: Locale = DEFAULT_LOCALE): FactGroup[] {
+  const t = useTranslations(lang);
+  const loc = numLoc(lang);
+  const n = (x: number | null, unit = '') => num(x, loc, unit);
   const def: Fact[] = [];
-  if (d.hullHp) def.push({ label: 'Hülle', value: `${num(d.hullHp)} HP` });
-  if (d.shieldHp) def.push({ label: 'Schilde', value: `${num(d.shieldHp)} HP` });
+  if (d.hullHp) def.push({ label: t('gauge.hull'), value: `${n(d.hullHp)} HP` });
+  if (d.shieldHp) def.push({ label: t('gauge.shields'), value: `${n(d.shieldHp)} HP` });
   if (d.components.shields.length)
-    def.push({ label: 'Schildgeneratoren', value: compFmt(d.components.shields) });
+    def.push({ label: t('ship.slot.shields'), value: compFmt(d.components.shields) });
 
   const drv: Fact[] = [];
   if (d.scmSpeed)
-    drv.push({ label: 'SCM / Max', value: `${num(d.scmSpeed)} / ${num(d.maxSpeed)} m/s` });
-  if (d.boostForward) drv.push({ label: 'Boost vorwärts', value: `${num(d.boostForward)} m/s` });
+    drv.push({ label: 'SCM / Max', value: `${n(d.scmSpeed)} / ${n(d.maxSpeed)} m/s` });
+  if (d.boostForward) drv.push({ label: t('gauge.boost'), value: `${n(d.boostForward)} m/s` });
   if (d.pitch)
     drv.push({
       label: 'Pitch / Yaw / Roll',
-      value: `${num(d.pitch)} / ${num(d.yaw)} / ${num(d.roll)} °/s`,
+      value: `${n(d.pitch)} / ${n(d.yaw)} / ${n(d.roll)} °/s`,
     });
-  // fuel is SCU-denominated in the game files since the resource-network
-  // rework (the API's own frontend computes fuel routes in SCU)
-  if (d.h2Fuel) drv.push({ label: 'Wasserstoff-Tank', value: `${num(d.h2Fuel)} SCU` });
+  if (d.h2Fuel) drv.push({ label: t('gauge.h2'), value: `${n(d.h2Fuel)} SCU` });
 
   const qt: Fact[] = [];
-  if (d.qtSpeedMs) qt.push({ label: 'Quantum-Speed', value: `${num(d.qtSpeedMs / 1e6)} Mm/s` });
+  if (d.qtSpeedMs) qt.push({ label: t('gauge.qspeed'), value: `${n(d.qtSpeedMs / 1e6)} Mm/s` });
   if (d.qtRangeM)
-    qt.push({ label: 'Reichweite', value: `${num(Math.round(d.qtRangeM / 1e9))} Gm` });
-  if (d.qtSpoolS) qt.push({ label: 'Spool-Zeit', value: `${num(d.qtSpoolS)} s` });
+    qt.push({ label: t('gauge.range'), value: `${n(Math.round(d.qtRangeM / 1e9))} Gm` });
+  if (d.qtSpoolS) qt.push({ label: t('gauge.spool'), value: `${n(d.qtSpoolS)} s` });
   if (d.components.quantumDrives.length)
-    qt.push({ label: 'Antrieb', value: compFmt(d.components.quantumDrives) });
-  if (d.qtFuel) qt.push({ label: 'Quantum-Treibstoff', value: `${num(d.qtFuel)} SCU` });
+    qt.push({ label: t('ship.slot.quantum'), value: compFmt(d.components.quantumDrives) });
+  if (d.qtFuel) qt.push({ label: t('gauge.qfuel'), value: `${n(d.qtFuel)} SCU` });
 
   const core: Fact[] = [];
   if (d.components.powerPlants.length)
-    core.push({ label: 'Generatoren', value: compFmt(d.components.powerPlants) });
+    core.push({ label: t('ship.slot.generators'), value: compFmt(d.components.powerPlants) });
   if (d.components.coolers.length)
-    core.push({ label: 'Kühler', value: compFmt(d.components.coolers) });
+    core.push({ label: t('ship.slot.coolers'), value: compFmt(d.components.coolers) });
   if (d.components.radars.length)
-    core.push({ label: 'Radar', value: compFmt(d.components.radars) });
+    core.push({ label: t('ship.slot.radar'), value: compFmt(d.components.radars) });
 
   const ins: Fact[] = [];
-  if (d.insClaimMin) ins.push({ label: 'Claim-Zeit', value: `${num(d.insClaimMin)} min` });
-  if (d.insExpediteMin) ins.push({ label: 'Expedite', value: `${num(d.insExpediteMin)} min` });
+  if (d.insClaimMin) ins.push({ label: t('gauge.claim'), value: `${n(d.insClaimMin)} min` });
+  if (d.insExpediteMin) ins.push({ label: t('gauge.expressTime'), value: `${n(d.insExpediteMin)} min` });
   if (d.insExpediteCost)
-    ins.push({ label: 'Expedite-Kosten', value: `${num(d.insExpediteCost)} aUEC` });
+    ins.push({ label: t('gauge.expressCost'), value: `${n(d.insExpediteCost)} aUEC` });
 
   return [
-    { title: 'Verteidigung', facts: def },
-    { title: 'Flug & Antrieb', facts: drv },
+    { title: t('metric.defense'), facts: def },
+    { title: t('ship.flight.title'), facts: drv },
     { title: 'Quantum', facts: qt },
-    { title: 'Kernkomponenten', facts: core },
-    { title: 'Versicherung', facts: ins },
+    { title: t('ship.comp.title'), facts: core },
+    { title: t('ship.ins.title'), facts: ins },
   ].filter((g) => g.facts.length > 0);
 }

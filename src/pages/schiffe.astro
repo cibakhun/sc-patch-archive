@@ -28,6 +28,7 @@ const crewFmt = (v: (typeof vehicles)[number]['data']) =>
   description={`${vehicles.length} Schiffe und Fahrzeuge mit Specs, deutschen Beschreibungen und Patch-Historie — Datenstand ${vehiclesSnapshot.fetchedAt}.`}
   themeColor="#05070d"
   footer={true}
+  translated={true}
 >
 <style is:inline>
 :root{
@@ -86,7 +87,7 @@ a{color:inherit;text-decoration:none}
 .sdb__src a:hover{color:var(--accent)}
 </style>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Schiffe' }]} pill={`${vehicles.length} EINTRÄGE`} />
+<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Schiffe' }]} pill={`${vehicles.length} EINTRÄGE`} hasEn={true} />
 
 <main class="sdb">
   <header class="sdb__head">

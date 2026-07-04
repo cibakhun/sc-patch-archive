@@ -1,0 +1,288 @@
+---
+// EVOLUTION — the signature feature no other SC site has: every game system
+// (rows) × every patch (columns), each cell colored in its patch's palette.
+// Click a cell to expand the actual changes with deep-links into the archive.
+// Fed entirely by the data layer. Calm data page: no starfield, no scanlines,
+// no motion — the per-patch color system itself is the spectacle here.
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import { getCollection } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
+
+const patches = (await getCollection('patches')).sort((a, b) =>
+  a.data.date.localeCompare(b.data.date)
+).map((p) => ({ ...p, data: mergePatchEn(p.id, p.data, 'en') }));
+
+// rows: systems ordered by how often they were touched
+const counts = new Map<string, number>();
+for (const p of patches)
+  for (const f of p.data.features)
+    counts.set(f.system ?? 'Other', (counts.get(f.system ?? 'Other') ?? 0) + 1);
+const systems = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => s);
+
+// cells: system × patch -> features
+type Feat = (typeof patches)[number]['data']['features'][number];
+const cell = (sys: string, p: (typeof patches)[number]): Feat[] =>
+  p.data.features.filter((f) => (f.system ?? 'Other') === sys);
+
+const total = [...counts.values()].reduce((a, b) => a + b, 0);
+const eraCount = new Set(patches.map((p) => p.data.era)).size;
+// era zones: first column of each era gets a vertical seam + era label
+const eraStarts = patches.map((p, i) => i === 0 || p.data.era !== patches[i - 1].data.era);
+const rowTotal = (sys: string) => patches.reduce((n, p) => n + cell(sys, p).length, 0);
+const tierOf = (n: number) => (n <= 2 ? '1' : n <= 5 ? '2' : '3');
+---
+<Layout
+  title="Evolution — Systems × Patches | SC Patch Archive"
+  description={`How every Star Citizen system evolved from Alpha 4.0.0 to ${patches[patches.length - 1].data.version}: ${total} documented changes across ${systems.length} systems over ${patches.length} patches.`}
+  themeColor="#05070d"
+  footer={true}
+  translated={true}
+>
+<style is:inline>
+:root{
+  --bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;
+  --accent:#2dd4ff;--accent-2:#6ea8ff;--gold:#d4af37;
+  --text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
+  --maxw:1400px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:#05070d}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<SiteNav crumbs={[{ label: 'Archive', href: '/en.html' }, { label: 'Evolution' }]} pill={`${total} CHANGES`} hasEn={true} />
+
+<main class="evo">
+  <header class="evo__head">
+    <h1>Evolution</h1>
+    <p class="evo__sub">
+      How every game system evolved from Alpha 4.0.0 to {patches[patches.length - 1].data.version} —
+      {total} documented changes, {systems.length} systems, {patches.length} patches.
+      Every column carries the color of its patch. Click a cell for the details.
+    </p>
+    <dl class="evo__metrics">
+      <div><dt>Changes</dt><dd>{total}</dd></div>
+      <div><dt>Systems</dt><dd>{systems.length}</dd></div>
+      <div><dt>Patches</dt><dd>{patches.length}</dd></div>
+      <div><dt>Eras</dt><dd>{eraCount}</dd></div>
+    </dl>
+  </header>
+
+  <div class="evo__legend">
+    <span class="evo__lg" aria-hidden="true"><i class="t1"></i><i class="t2"></i><i class="t3"></i></span>
+    <span>Intensity = Activity</span>
+    <span>Number = Entries · Click = Details</span>
+  </div>
+
+  <div class="evo__scroll" tabindex="0" aria-label="Evolution matrix (horizontally scrollable)">
+    <table class="evo__table">
+      <thead>
+        <tr>
+          <th class="evo__syshead" scope="col">System</th>
+          {patches.map((p, pi) => (
+            <th scope="col" class={`evo__col${eraStarts[pi] ? ' evo__erastart' : ''}`} style={`--c:${p.data.palette.accent}`}>
+              {eraStarts[pi] && <span class="evo__era">{p.data.era}</span>}
+              <a href={`/en/patches/sc-${p.id}.html`} title={`${p.data.codename} · ${p.data.dateDisplay}`}>
+                {p.data.version}
+              </a>
+            </th>
+          ))}
+          <th scope="col" class="evo__tot" title="Total entries">Σ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {systems.map((sys, si) => (
+          <tr>
+            <th scope="row" class="evo__sys">{sys}</th>
+            {patches.map((p, pi) => {
+              const feats = cell(sys, p);
+              return (
+                <td class={`evo__td${eraStarts[pi] ? ' evo__erastart' : ''}`}>
+                  {feats.length > 0 ? (
+                    <button
+                      class="evo__cell"
+                      style={`--c:${p.data.palette.accent}`}
+                      data-ed={`ed-${si}-${pi}`}
+                      data-tier={tierOf(feats.length)}
+                      aria-expanded="false"
+                      aria-label={`${sys} in Alpha ${p.data.version}: ${feats.length} change${feats.length > 1 ? 's' : ''}`}
+                    >{feats.length}</button>
+                  ) : (
+                    <span class="evo__dot" aria-hidden="true">·</span>
+                  )}
+                </td>
+              );
+            })}
+            <td class="evo__totcell">×{rowTotal(sys)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="evo__detail" id="evo-detail" hidden>
+    {systems.map((sys, si) =>
+      patches.map((p, pi) => {
+        const feats = cell(sys, p);
+        if (!feats.length) return null;
+        return (
+          <div class="edet" id={`ed-${si}-${pi}`} hidden style={`--c:${p.data.palette.accent}`}>
+            <header class="edet__head">
+              <span class="edet__sys">{sys}</span>
+              <span class="edet__meta">
+                <a class="edet__patch" href={`/en/patches/sc-${p.id}.html`}>
+                  Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay} →
+                </a>
+                <button class="edet__x" data-eclose aria-label="Close details">Esc</button>
+              </span>
+            </header>
+            {feats.map((f) => (
+              <article class="edet__feat">
+                <h3>{f.name}{f.unverified && <abbr class="edet__unv" title="unconfirmed">*</abbr>}</h3>
+                <p>{f.desc}</p>
+                {(f.facts?.length ?? 0) > 0 && (
+                  <dl class="edet__facts">
+                    {f.facts!.map((x) => (
+                      <div><dt>{x.label}</dt><dd>{x.value}</dd></div>
+                    ))}
+                  </dl>
+                )}
+                {f.topicSlug && <a class="edet__link" href={`/en/topics/${f.topicSlug}.html`}>View deep dive →</a>}
+              </article>
+            ))}
+          </div>
+        );
+      })
+    )}
+  </div>
+</main>
+
+<style is:inline>
+.evo{max-width:var(--maxw);margin:0 auto;padding:7rem clamp(1rem,3vw,2.5rem) 4rem}
+.evo__head{margin-bottom:1.6rem}
+.evo__head h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2.2rem,6vw,3.6rem);
+  background:linear-gradient(180deg,#fff,var(--accent-2) 70%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.evo__sub{max-width:72ch;color:var(--muted);margin-top:.7rem;font-size:1.08rem}
+.evo__metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1.2rem 2rem;max-width:640px;margin:1.5rem 0 0}
+.evo__metrics div{border-left:2px solid var(--line);padding-left:.8rem}
+.evo__metrics dt{font-family:var(--font-ui);font-weight:700;font-size:0.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.evo__metrics dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:1.4rem;color:var(--accent);font-variant-numeric:tabular-nums}
+.evo__legend{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;padding:.6rem 1rem;border:1px solid var(--line);margin-bottom:1rem;
+  font-family:var(--font-ui);font-weight:700;font-size:0.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.evo__lg{display:inline-flex;gap:.3rem}
+.evo__lg i{width:1.05rem;height:1.05rem;border:1px solid color-mix(in srgb,var(--accent) 55%,transparent)}
+.evo__lg .t1{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.evo__lg .t2{background:color-mix(in srgb,var(--accent) 26%,transparent)}
+.evo__lg .t3{background:color-mix(in srgb,var(--accent) 40%,transparent)}
+
+.evo__scroll{overflow-x:auto;border:1px solid var(--line);background:var(--bg-2)}
+.evo__table{border-collapse:collapse;width:max-content;min-width:100%}
+.evo__table th,.evo__table td{border-bottom:1px solid var(--line)}
+.evo__syshead{position:sticky;left:0;z-index:3;background:var(--bg-2);text-align:left;
+  font-family:var(--font-ui);font-weight:700;font-size:0.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+  padding:.7rem .9rem;min-width:200px;border-right:1px solid var(--line)}
+.evo__col{padding:.55rem .35rem .5rem;min-width:74px;border-bottom:2px solid var(--c);vertical-align:bottom}
+.evo__col a{font-family:var(--font-display);font-weight:700;font-size:0.8rem;letter-spacing:.04em;color:var(--c);white-space:nowrap}
+.evo__col a:hover{text-decoration:underline}
+.evo__era{display:block;font-family:var(--font-ui);font-weight:700;font-size:0.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c);opacity:.75;margin-bottom:.15rem;white-space:nowrap;text-align:left;padding-left:.15rem}
+.evo__erastart{border-left:1px solid var(--line)}
+.evo__tot{font-family:var(--font-ui);font-weight:700;font-size:0.8rem;letter-spacing:.1em;color:var(--muted);padding:.55rem .7rem;border-left:1px solid var(--line);vertical-align:bottom}
+.evo__totcell{font-family:var(--font-ui);font-weight:700;font-size:0.8rem;color:var(--muted);text-align:center;padding:.3rem .55rem;border-left:1px solid var(--line);font-variant-numeric:tabular-nums}
+.evo__sys{position:sticky;left:0;z-index:2;background:var(--bg-2);text-align:left;
+  font-family:var(--font-ui);font-weight:700;font-size:1rem;color:var(--text);
+  padding:.55rem .9rem;border-right:1px solid var(--line);white-space:nowrap}
+.evo__td{text-align:center;padding:.3rem .25rem}
+.evo__cell{font-family:var(--font-ui);font-weight:700;
+  width:2.1rem;height:2.1rem;cursor:pointer;color:var(--c);
+  border:1px solid color-mix(in srgb,var(--c) 55%,transparent);border-radius:3px;
+  transition:background-color .15s,border-color .15s}
+.evo__cell[data-tier="1"]{background:color-mix(in srgb,var(--c) 14%,transparent);font-size:0.88rem}
+.evo__cell[data-tier="2"]{background:color-mix(in srgb,var(--c) 26%,transparent);font-size:0.95rem}
+.evo__cell[data-tier="3"]{background:color-mix(in srgb,var(--c) 40%,transparent);font-size:1rem}
+.evo__cell:hover{background:color-mix(in srgb,var(--c) 45%,transparent);border-color:color-mix(in srgb,var(--c) 75%,transparent)}
+.evo__cell.sel{background:var(--c);color:#05070d;border-color:var(--c)}
+.evo__dot{color:var(--muted);opacity:.28}
+
+.evo__detail{margin-top:1.4rem}
+.edet{border:1px solid var(--line);border-top:2px solid var(--c);background:var(--surface);padding:1.25rem 1.5rem 1.4rem;
+  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.edet__head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.6rem 1.2rem;
+  border-bottom:1px solid var(--line);padding-bottom:.55rem;margin-bottom:1rem}
+.edet__sys{font-family:var(--font-ui);font-weight:700;font-size:0.95rem;letter-spacing:.22em;text-transform:uppercase;color:var(--c)}
+.edet__meta{display:inline-flex;align-items:baseline;gap:1rem}
+.edet__patch{font-family:var(--font-ui);font-weight:700;font-size:0.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);transition:color .15s}
+.edet__patch:hover{color:var(--c)}
+.edet__x{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:1px;color:var(--muted);
+  font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.08em;text-transform:uppercase;
+  padding:.14rem .45rem;cursor:pointer;transition:color .15s,border-color .15s}
+.edet__x:hover{color:var(--c);border-color:color-mix(in srgb,var(--c) 55%,transparent)}
+.edet__feat{padding:.85rem 0;border-top:1px solid var(--line)}
+.edet__feat:first-of-type{border-top:0}
+.edet__feat h3{font-family:var(--font-ui);font-weight:700;font-size:1.05rem}
+.edet__feat p{font-size:1rem;color:var(--text);opacity:.85;max-width:88ch}
+.edet__facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.5rem 1.2rem;margin:.6rem 0 0}
+.edet__facts div{border-left:2px solid var(--line);padding-left:.6rem}
+.edet__facts dt{font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.edet__facts dd{margin:.05rem 0 0;font-size:0.95rem}
+.edet__link{display:inline-block;margin-top:.55rem;font-family:var(--font-ui);font-weight:700;font-size:0.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+.edet__link:hover{text-decoration:underline}
+.edet__unv{color:var(--c);text-decoration:none;cursor:help;margin-left:.15rem}
+
+@media(max-width:1024px){
+  .evo__cell{width:1.8rem;height:1.8rem}
+  .evo__cell[data-tier="1"]{font-size:0.8rem}
+  .evo__cell[data-tier="2"]{font-size:0.85rem}
+  .evo__cell[data-tier="3"]{font-size:0.88rem}
+  .evo__col a{font-size:.65rem}
+  .evo__sys{font-size:0.95rem}
+  .evo__syshead{min-width:150px}
+}
+</style>
+
+<script is:inline>
+(function () {
+  var detail = document.getElementById('evo-detail');
+  if (!detail) return;
+  var open = null;
+  function closeAll() {
+    detail.hidden = true;
+    open = null;
+    document.querySelectorAll('.edet').forEach(function (x) { x.hidden = true; });
+    document.querySelectorAll('.evo__cell.sel').forEach(function (x) {
+      x.classList.remove('sel');
+      x.setAttribute('aria-expanded', 'false');
+    });
+  }
+  document.querySelectorAll('.evo__cell').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var id = btn.getAttribute('data-ed');
+      var d = document.getElementById(id);
+      if (!d) return;
+      var wasOpen = open === id;
+      closeAll();
+      if (wasOpen) return;
+      detail.hidden = false;
+      d.hidden = false;
+      btn.classList.add('sel');
+      btn.setAttribute('aria-expanded', 'true');
+      open = id;
+      d.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
+  });
+  document.querySelectorAll('[data-eclose]').forEach(function (b) {
+    b.addEventListener('click', closeAll);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && open) closeAll();
+  });
+  document.addEventListener('click', function (e) {
+    if (!open) return;
+    if (!detail.contains(e.target) && !e.target.closest('.evo__cell')) closeAll();
+  });
+})();
+</script>
+</Layout>

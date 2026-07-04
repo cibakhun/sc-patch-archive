@@ -14,6 +14,14 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://cibakhun.github.io',
   build: { format: 'file' },
+  // i18n: DE ist Default und bleibt PRÄFIXLOS (bestehende URLs/SEO unverändert).
+  // EN-Seiten leben explizit unter src/pages/en/ -> /en/… (harmoniert mit
+  // format:'file'; kein Auto-Fallback-Routing, das die .html-URLs verbiegt).
+  i18n: {
+    defaultLocale: 'de',
+    locales: ['de', 'en'],
+    routing: { prefixDefaultLocale: false },
+  },
   vite: {
     server: {
       allowedHosts: ['.loca.lt', '.trycloudflare.com'],

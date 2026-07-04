@@ -3,6 +3,7 @@
 // "unofficial fansite" + CC-BY-SA + sources notices the blueprint requires.
 // Styled with the page's own CSS variables (--muted/--line/--accent/--bg-2)
 // so it adapts to each patch palette automatically.
+import { localeFromPath, useTranslations, href } from '../i18n/ui';
 interface Props {
   /** data freshness stamp, e.g. "28. Juni 2026" (shown when data is baked in) */
   updated?: string;
@@ -10,28 +11,23 @@ interface Props {
   sources?: string[];
   credit?: string;
 }
-const {
-  updated,
-  sources = ['starcitizen.tools', 'RSI', 'YouTube'],
-  credit = 'SC Patch-Archiv · ein Fan-Projekt',
-} = Astro.props;
+const { updated, sources = ['starcitizen.tools', 'RSI', 'YouTube'], credit } = Astro.props;
+
+const lang = localeFromPath(Astro.url.pathname);
+const t = useTranslations(lang);
+const L = (p: string) => href(p, lang);
+const creditText = credit ?? t('footer.credit');
 ---
 <footer class="site-attr">
-  <nav class="attr-nav" aria-label="Seiten-Navigation">
-    <a href="/index.html">Startseite</a>
+  <nav class="attr-nav" aria-label={t('footer.pageNav')}>
+    <a href={L('/index.html')}>{t('nav.home')}</a>
     <span aria-hidden="true">·</span>
-    <a href="/index.html#archiv">Alle Patches</a>
+    <a href={L('/index.html#archiv')}>{t('nav.allPatches')}</a>
   </nav>
-  <div class="credit">{credit}</div>
-  {sources.length > 0 && <div class="srcs">Quellen: {sources.join(' · ')}</div>}
-  <p class="disclaimer">
-    Inoffizielles Fan-Projekt zu Dokumentationszwecken. Star Citizen® und alle
-    zugehörigen Marken gehören der Cloud Imperium Rights LLC &amp; Ltd. Keine
-    Verbindung zu oder Förderung durch Cloud Imperium Games. Wiki-Inhalte von
-    starcitizen.tools stehen unter CC-BY-SA 4.0; eingebettete Trailer und
-    Standbilder © Cloud Imperium Games (Fan-Content-Nutzung).
-  </p>
-  {updated && <div class="asof">Daten-Stand: {updated}</div>}
+  <div class="credit">{creditText}</div>
+  {sources.length > 0 && <div class="srcs">{t('footer.sources')}: {sources.join(' · ')}</div>}
+  <p class="disclaimer">{t('footer.disclaimer')}</p>
+  {updated && <div class="asof">{t('footer.dataAsOf')}: {updated}</div>}
 </footer>
 <style>
   .site-attr {

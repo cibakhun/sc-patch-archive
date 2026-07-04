@@ -5,16 +5,19 @@ import type { CollectionEntry } from 'astro:content';
 import pricesSnapshot from '../data/vehicle-prices.json';
 import extrasSnapshot from '../data/ship-extras.json';
 import { pickThumb } from './shipRenders';
+import { useTranslations, type Locale, type UIKey, DEFAULT_LOCALE } from '../i18n/ui';
+import { vType } from '../i18n/vehicleText';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
+const numLoc = (lang: Locale) => (lang === 'en' ? 'en-US' : 'de-DE');
 
 export type PricePlace = { price: number; shop: string; where: string; system: string };
 export type ShipPrices = { buy: PricePlace[]; rent: PricePlace[] } | null;
 
 export const pricesFetchedAt: string = (pricesSnapshot as { fetchedAt: string }).fetchedAt;
 
-export function aUEC(n: number): string {
-  return `${n.toLocaleString('de-DE')} aUEC`;
+export function aUEC(n: number, lang: Locale = DEFAULT_LOCALE): string {
+  return `${n.toLocaleString(numLoc(lang))} aUEC`;
 }
 
 export function priceInfo(id: string): ShipPrices {
@@ -45,36 +48,36 @@ export function extrasInfo(id: string): ShipExtras {
 export type ProfileBar = { label: string; value: string; pct: number };
 
 type MetricDef = {
-  label: string;
+  labelKey: UIKey;
   get: (d: VehicleData) => number | null;
-  fmt: (n: number) => string;
+  fmt: (n: number, loc: string) => string;
 };
-const nf = (n: number) => n.toLocaleString('de-DE', { maximumFractionDigits: 0 });
+const nf = (n: number, loc: string) => n.toLocaleString(loc, { maximumFractionDigits: 0 });
 const METRICS: MetricDef[] = [
-  { label: 'Geschwindigkeit', get: (d) => d.scmSpeed ?? null, fmt: (n) => `${nf(n)} m/s SCM` },
+  { labelKey: 'metric.speed', get: (d) => d.scmSpeed ?? null, fmt: (n, loc) => `${nf(n, loc)} m/s SCM` },
   {
-    label: 'Agilität',
+    labelKey: 'metric.agility',
     get: (d) => (d.pitch != null && d.yaw != null && d.roll != null ? (d.pitch + d.yaw + d.roll) / 3 : null),
     fmt: (n) => `${n.toFixed(1)} °/s Ø`,
   },
   {
-    label: 'Feuerkraft',
+    labelKey: 'metric.firepower',
     get: (d) => {
       const s = (d.pilotDps ?? 0) + (d.turretDps ?? 0);
       return s > 0 ? s : null;
     },
-    fmt: (n) => `${nf(n)} DPS`,
+    fmt: (n, loc) => `${nf(n, loc)} DPS`,
   },
   {
-    label: 'Verteidigung',
+    labelKey: 'metric.defense',
     get: (d) => {
       const s = (d.hullHp ?? 0) + (d.shieldHp ?? 0);
       return s > 0 ? s : null;
     },
-    fmt: (n) => `${nf(n)} HP`,
+    fmt: (n, loc) => `${nf(n, loc)} HP`,
   },
-  { label: 'Fracht', get: (d) => (d.cargoSCU != null && d.cargoSCU > 0 ? d.cargoSCU : null), fmt: (n) => `${nf(n)} SCU` },
-  { label: 'Quantum-Tempo', get: (d) => d.qtSpeedMs ?? null, fmt: (n) => `${nf(n / 1000)} km/s` },
+  { labelKey: 'metric.cargo', get: (d) => (d.cargoSCU != null && d.cargoSCU > 0 ? d.cargoSCU : null), fmt: (n, loc) => `${nf(n, loc)} SCU` },
+  { labelKey: 'metric.qspeed', get: (d) => d.qtSpeedMs ?? null, fmt: (n, loc) => `${nf(n / 1000, loc)} km/s` },
 ];
 
 let sortedCache: number[][] | null = null;
@@ -100,13 +103,15 @@ function pctRank(sorted: number[], x: number): number {
   return Math.round((lo / sorted.length) * 100);
 }
 
-export function buildProfile(all: { data: VehicleData }[], d: VehicleData): ProfileBar[] {
+export function buildProfile(all: { data: VehicleData }[], d: VehicleData, lang: Locale = DEFAULT_LOCALE): ProfileBar[] {
+  const t = useTranslations(lang);
+  const loc = numLoc(lang);
   const sorted = sortedValues(all);
   const bars: ProfileBar[] = [];
   METRICS.forEach((m, i) => {
     const x = m.get(d);
     if (x == null) return;
-    bars.push({ label: m.label, value: m.fmt(x), pct: Math.max(3, pctRank(sorted[i], x)) });
+    bars.push({ label: t(m.labelKey), value: m.fmt(x, loc), pct: Math.max(3, pctRank(sorted[i], x)) });
   });
   return bars;
 }
@@ -122,14 +127,17 @@ export type SimilarShip = {
 export function similarShips(
   all: { id: string; data: VehicleData }[],
   self: { id: string; data: VehicleData },
+  lang: Locale = DEFAULT_LOCALE,
   n = 4
 ): SimilarShip[] {
+  const loc = numLoc(lang);
   const L = self.data.lengthM ?? 0;
   const scored = all
     .filter((v) => v.id !== self.id)
     .map((v) => {
       const d = v.data;
       let score = 0;
+      // Scoring bleibt sprachunabhängig (Vergleich der Rohwerte)
       if (d.typeDe !== self.data.typeDe) score += 2.2;
       if (d.sizeDe !== self.data.sizeDe) score += 0.9;
       if (L > 0 && d.lengthM) score += Math.abs(Math.log(d.lengthM / L));
@@ -141,7 +149,7 @@ export function similarShips(
   return scored.map(({ v }) => ({
     id: v.id,
     name: v.data.name,
-    meta: [v.data.typeDe, v.data.lengthM ? `${v.data.lengthM.toLocaleString('de-DE')} m` : null]
+    meta: [vType(v.data, lang), v.data.lengthM ? `${v.data.lengthM.toLocaleString(loc)} m` : null]
       .filter(Boolean)
       .join(' · '),
     thumb: pickThumb(v.data)?.src ?? null,

@@ -9,31 +9,35 @@ interface Fact {
   value: string;
   unverified?: boolean;
 }
+import { useTranslations, type Locale, DEFAULT_LOCALE } from '../../i18n/ui';
 interface Props {
   facts: Fact[];
   /** Aktencode payload, e.g. "Alpha 4.0.0 · 19. Dez 2024" */
   stand?: string;
   title?: string;
+  lang?: Locale;
 }
-const { facts, stand, title = 'Auf einen Blick' } = Astro.props;
+const { facts, stand, title, lang = DEFAULT_LOCALE } = Astro.props;
+const t = useTranslations(lang);
+const heading = title ?? t('qf.title');
 ---
 <div class="reg-divider">
   <div class="reg-divider__in">
-    <span class="reg-divider__l">▚ Datenregister</span>
+    <span class="reg-divider__l">{t('qf.register')}</span>
     {stand && <span class="reg-divider__r">DAT&nbsp;//&nbsp;{stand}</span>}
   </div>
 </div>
-<section class="qf" aria-label={title}>
+<section class="qf" aria-label={heading}>
   <div class="qf__in">
     <header class="qf__head">
-      <h2>{title}</h2>
+      <h2>{heading}</h2>
       {stand && <span class="qf__code">DAT&nbsp;//&nbsp;{stand}</span>}
     </header>
     <dl class="qf__grid">
       {facts.map((f) => (
         <div class="qf__item">
           <dt>{f.label}</dt>
-          <dd>{f.value}{f.unverified && <abbr class="qf__unv" title="unbestätigt">*</abbr>}</dd>
+          <dd>{f.value}{f.unverified && <abbr class="qf__unv" title={t('common.unverified')}>*</abbr>}</dd>
         </div>
       ))}
     </dl>
@@ -157,6 +161,22 @@ const { facts, stand, title = 'Auf einen Blick' } = Astro.props;
     }
     .reg-divider__r {
       display: none;
+    }
+  }
+  /* Mobil: die dekorative Aktencode-Zeile (DAT // …) umbrechen statt am
+     Viewport-Rand abzuschneiden — voller Text bleibt sichtbar, kein Clip. */
+  @media (max-width: 640px) {
+    .qf__head {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.25rem;
+    }
+    .qf__code {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      overflow-wrap: anywhere;
+      min-width: 0;
     }
   }
 </style>

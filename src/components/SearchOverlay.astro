@@ -3,28 +3,44 @@
 // Zero dependencies: lazy-fetches /search-index.json (built from the data
 // layer) and scores with a tiny normalized matcher. Palette-aware, no motion
 // beyond open/close. Rendered once per page via SiteNav.
+//
+// i18n: Chrome kommt aus t(); die zwei JS-Strings (Leer-Zustand) reicht das
+// Frontmatter via data-Attribute an das is:inline-Script durch.
+import { useTranslations, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
+interface Props {
+  lang?: Locale;
+}
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = useTranslations(lang);
 ---
-<div class="scs" id="scs" hidden>
+<div
+  class="scs"
+  id="scs"
+  hidden
+  data-empty-title={t('search.empty.title')}
+  data-empty-query={t('search.empty.query')}
+  data-empty-hint={t('search.empty.hint')}
+>
   <div class="scs__back" data-scs-close></div>
-  <div class="scs__panel" role="dialog" aria-modal="true" aria-label="Archiv durchsuchen">
+  <div class="scs__panel" role="dialog" aria-modal="true" aria-label={t('search.dialog')}>
     <div class="scs__bar">
       <span class="scs__prompt" aria-hidden="true">›</span>
       <input
         id="scs-in"
         type="search"
-        placeholder="Patches, Themen, Schiffe, Features…"
+        placeholder={t('search.placeholder')}
         autocomplete="off"
         spellcheck="false"
-        aria-label="Suchbegriff"
+        aria-label={t('search.term')}
       />
-      <span class="scs__sys" aria-hidden="true">Archiv&nbsp;//&nbsp;Suche</span>
-      <button class="scs__x" data-scs-close aria-label="Suche schließen">Esc</button>
+      <span class="scs__sys" aria-hidden="true" set:html={t('search.sys')}></span>
+      <button class="scs__x" data-scs-close aria-label={t('search.close')}>Esc</button>
     </div>
-    <ul class="scs__list" id="scs-list" role="listbox" aria-label="Suchergebnisse"></ul>
+    <ul class="scs__list" id="scs-list" role="listbox" aria-label={t('search.results')}></ul>
     <div class="scs__foot">
-      <span><kbd>↑↓</kbd> wählen</span>
-      <span><kbd>↵</kbd> öffnen</span>
-      <span><kbd>Esc</kbd> schließen</span>
+      <span><kbd>↑↓</kbd> {t('search.pick')}</span>
+      <span><kbd>↵</kbd> {t('search.open')}</span>
+      <span><kbd>Esc</kbd> {t('search.dismiss')}</span>
     </div>
   </div>
 </div>
@@ -280,9 +296,10 @@
         var li = document.createElement('li');
         li.className = 'scs__empty';
         var h = document.createElement('b');
-        h.textContent = 'Kein Eintrag im Register';
+        h.textContent = root.dataset.emptyTitle || 'Kein Eintrag im Register';
         var p = document.createElement('span');
-        p.textContent = 'Anfrage »' + q + '« ergab keine Treffer — Version oder Codename versuchen.';
+        var qpre = (root.dataset.emptyQuery || 'Anfrage »%q%« ').replace('%q%', q);
+        p.textContent = qpre + (root.dataset.emptyHint || 'ergab keine Treffer — Version oder Codename versuchen.');
         li.appendChild(h);
         li.appendChild(p);
         list.appendChild(li);

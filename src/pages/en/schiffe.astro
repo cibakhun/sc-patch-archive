@@ -1,0 +1,243 @@
+---
+// SHIPS (EN) — /en/schiffe.html. English ship-database browser. Same data +
+// client-side filtering as the DE page; text resolved via the vehicleText
+// helpers (vType/vSize/vStatus). Links point into the /en/ ship detail pages.
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import { getCollection } from 'astro:content';
+import vehiclesSnapshot from '../../data/vehicles.json';
+import { pickThumb } from '../../lib/shipRenders';
+import { vType, vSize, vStatus } from '../../i18n/vehicleText';
+
+const lang = 'en' as const;
+const vehicles = (await getCollection('vehicles')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name, 'en')
+);
+const makers = [...new Set(vehicles.map((v) => v.data.manufacturer).filter(Boolean))].sort() as string[];
+const types = [...new Set(vehicles.map((v) => vType(v.data, lang)).filter(Boolean))].sort() as string[];
+const flightReady = vehicles.filter((v) => v.data.statusEn === 'flight-ready').length;
+const inArchive = vehicles.filter((v) => v.data.patches.length > 0).length;
+
+const crewFmt = (v: (typeof vehicles)[number]['data']) =>
+  v.crewMin != null || v.crewMax != null
+    ? v.crewMin != null && v.crewMax != null && v.crewMax !== v.crewMin
+      ? `${v.crewMin}–${v.crewMax}`
+      : `${v.crewMin ?? v.crewMax}`
+    : '—';
+---
+<Layout
+  title="Ships & Vehicles — Database | SC Patch Archive"
+  description={`${vehicles.length} ships and vehicles with specs, English descriptions and patch history — data as of ${vehiclesSnapshot.fetchedAt}.`}
+  themeColor="#05070d"
+  footer={true}
+  translated={true}
+>
+<style is:inline>
+:root{
+  --bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;
+  --accent:#2dd4ff;--accent-2:#6ea8ff;--gold:#d4af37;
+  --text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
+  --maxw:1400px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:#05070d}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.sdb{max-width:var(--maxw);margin:0 auto;padding:7rem clamp(1rem,3vw,2.5rem) 4rem}
+.sdb__head h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2.2rem,6vw,3.6rem);
+  background:linear-gradient(180deg,#fff,var(--accent-2) 70%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sdb__sub{max-width:72ch;color:var(--muted);margin-top:.7rem;font-size:1.08rem}
+.sdb__metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1.2rem 2rem;max-width:640px;margin:1.5rem 0 0}
+.sdb__metrics div{border-left:2px solid var(--line);padding-left:.8rem}
+.sdb__metrics dt{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.sdb__metrics dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:1.5rem;color:var(--accent);font-variant-numeric:tabular-nums}
+
+.sdb__filter{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center;margin:1.8rem 0 1rem;padding:.8rem 1rem;border:1px solid var(--line);background:var(--bg-2)}
+.sdb__filter input,.sdb__filter select{background:rgba(0,0,0,.35);border:1px solid var(--line);color:var(--text);
+  font-family:var(--font-ui);font-weight:600;font-size:.95rem;padding:.45rem .7rem;min-width:150px}
+.sdb__filter input{flex:1;min-width:220px}
+.sdb__filter input::placeholder{color:var(--muted);opacity:.7}
+.sdb__filter select:focus,.sdb__filter input:focus{border-color:var(--accent);outline:none}
+.sdb__count{font-family:var(--font-ui);font-weight:700;font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+
+.sdb__tablewrap{border:1px solid var(--line);background:var(--bg-2);overflow-x:auto}
+.sdb__table{width:100%;border-collapse:collapse;min-width:1140px}
+.sdb__imgcell{width:100px;padding:.35rem .4rem .35rem .8rem}
+.sdb__imgcell img{display:block;width:88px;height:50px;object-fit:cover;border:1px solid var(--line);background:#0a0e18}
+.sdb__noimg{display:block;width:88px;height:50px;border:1px dashed var(--line);background:rgba(0,0,0,.25)}
+.sdb__table th{position:sticky;top:0;background:var(--bg-2);z-index:2;
+  font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+  text-align:left;padding:.6rem .8rem;border-bottom:2px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+.sdb__table th.num{text-align:right}
+.sdb__table td{padding:.5rem .8rem;border-bottom:1px solid rgba(255,255,255,.07);font-size:.95rem}
+.sdb__table td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sdb__table tbody tr{transition:background-color .15s;cursor:pointer}
+.sdb__table tbody tr:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+.sdb__name{font-family:var(--font-ui);font-weight:700;font-size:1.02rem}
+.sdb__name a:hover{color:var(--accent);text-decoration:underline}
+.sdb__maker{color:var(--muted);font-size:.88rem}
+.sdb__badge{display:inline-block;font-family:var(--font-ui);font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);padding:.08rem .4rem;white-space:nowrap}
+.sdb__badge:hover{background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.sdb__status{font-size:.85rem;color:var(--muted);white-space:nowrap}
+.sdb__status.fr{color:#5ad19a}
+.sdb__src{margin-top:1rem;font-size:.85rem;color:var(--muted)}
+.sdb__src a{text-decoration:underline}
+.sdb__src a:hover{color:var(--accent)}
+</style>
+
+<SiteNav crumbs={[{ label: 'Archive', href: '/en.html' }, { label: 'Ships' }]} pill={`${vehicles.length} ENTRIES`} hasEn={true} />
+
+<main class="sdb">
+  <header class="sdb__head">
+    <h1>Ships &amp; Vehicles</h1>
+    <p class="sdb__sub">
+      The complete catalog from the game files — with specs, English descriptions and
+      patch history from the archive. Click a ship for the full data sheet.
+    </p>
+    <dl class="sdb__metrics">
+      <div><dt>Entries</dt><dd>{vehicles.length}</dd></div>
+      <div><dt>Manufacturers</dt><dd>{makers.length}</dd></div>
+      <div><dt>Flight Ready</dt><dd>{flightReady}</dd></div>
+      <div><dt>In archive</dt><dd>{inArchive}</dd></div>
+    </dl>
+  </header>
+
+  <div class="sdb__filter">
+    <input id="sf-q" type="search" placeholder="Search ship or manufacturer…" aria-label="Search" autocomplete="off" />
+    <select id="sf-maker" aria-label="Manufacturer">
+      <option value="">All manufacturers</option>
+      {makers.map((m) => <option value={m}>{m}</option>)}
+    </select>
+    <select id="sf-type" aria-label="Type">
+      <option value="">All types</option>
+      {types.map((tp) => <option value={tp}>{tp}</option>)}
+    </select>
+    <select id="sf-status" aria-label="Status">
+      <option value="">Any status</option>
+      <option value="flight-ready">Flight Ready</option>
+      <option value="in-production">In production</option>
+      <option value="in-concept">Concept</option>
+    </select>
+    <select id="sf-archive" aria-label="Archive">
+      <option value="">All</option>
+      <option value="1">In the patch archive</option>
+    </select>
+    <span class="sdb__count" id="sf-count">{vehicles.length} results</span>
+  </div>
+
+  <div class="sdb__tablewrap">
+    <table class="sdb__table" id="sf-table">
+      <thead>
+        <tr>
+          <th aria-label="Image"></th>
+          <th>Ship</th><th>Type</th><th>Size</th>
+          <th class="num">Crew</th><th class="num">Cargo</th><th class="num">Price</th>
+          <th>Status</th><th>Archive</th>
+        </tr>
+      </thead>
+      <tbody>
+        {vehicles.map((v) => {
+          const d = v.data;
+          const thumb = pickThumb(d);
+          return (
+            <tr
+              data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
+              data-maker={d.manufacturer ?? ''}
+              data-type={vType(d, lang) ?? ''}
+              data-status={d.statusEn ?? ''}
+              data-archive={d.patches.length ? '1' : ''}
+              data-href={`/en/schiffe/${d.id}.html`}
+            >
+              <td class="sdb__imgcell">
+                {thumb ? (
+                  <img
+                    src={thumb.src}
+                    alt=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                    onerror="this.style.visibility='hidden'"
+                  />
+                ) : (
+                  <span class="sdb__noimg" aria-hidden="true"></span>
+                )}
+              </td>
+              <td>
+                <div class="sdb__name"><a href={`/en/schiffe/${d.id}.html`}>{d.name}</a></div>
+                <div class="sdb__maker">{d.manufacturer ?? '—'}</div>
+              </td>
+              <td>{vType(d, lang) ?? '—'}</td>
+              <td>{vSize(d, lang) ?? '—'}</td>
+              <td class="num">{crewFmt(d)}</td>
+              <td class="num">{d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—'}</td>
+              <td class="num">{d.msrpUSD != null ? `$${d.msrpUSD}` : '—'}</td>
+              <td><span class={`sdb__status${d.statusEn === 'flight-ready' ? ' fr' : ''}`}>{vStatus(d, lang) ?? '—'}</span></td>
+              <td>
+                {d.patches.length > 0 && (
+                  <a class="sdb__badge" href={`/patches/sc-${d.patches[0].replaceAll('.', '-')}.html`}>
+                    Alpha {d.patches[0]}
+                  </a>
+                )}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+  <p class="sdb__src">
+    Source: <a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
+    (community project, data from the game files) · as of {vehiclesSnapshot.fetchedAt}
+    {vehiclesSnapshot.gameVersion && ` · game data ${vehiclesSnapshot.gameVersion.split('-')[0]}`}
+    · Images: starcitizen.tools
+  </p>
+</main>
+
+<script is:inline>
+(function () {
+  var q = document.getElementById('sf-q');
+  var selMaker = document.getElementById('sf-maker');
+  var selType = document.getElementById('sf-type');
+  var selStatus = document.getElementById('sf-status');
+  var selArchive = document.getElementById('sf-archive');
+  var count = document.getElementById('sf-count');
+  var rows = [].slice.call(document.querySelectorAll('#sf-table tbody tr'));
+
+  var norm = function (s) {
+    return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  };
+
+  function apply() {
+    var nq = norm(q.value).trim();
+    var m = selMaker.value, t = selType.value, st = selStatus.value, ar = selArchive.value;
+    var n = 0;
+    rows.forEach(function (r) {
+      var ok =
+        (!nq || norm(r.getAttribute('data-q')).indexOf(nq) >= 0) &&
+        (!m || r.getAttribute('data-maker') === m) &&
+        (!t || r.getAttribute('data-type') === t) &&
+        (!st || r.getAttribute('data-status') === st) &&
+        (!ar || r.getAttribute('data-archive') === ar);
+      r.style.display = ok ? '' : 'none';
+      if (ok) n++;
+    });
+    count.textContent = n + ' results';
+  }
+
+  [q, selMaker, selType, selStatus, selArchive].forEach(function (el) {
+    el.addEventListener('input', apply);
+    el.addEventListener('change', apply);
+  });
+
+  rows.forEach(function (r) {
+    r.addEventListener('click', function (e) {
+      if (e.target.closest('a')) return;
+      location.href = r.getAttribute('data-href');
+    });
+  });
+})();
+</script>
+</Layout>

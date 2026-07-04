@@ -10,7 +10,7 @@ const entry = await getEntry('patches', '4-1-0');
 if (!entry) throw new Error('Patch-Daten 4-1-0 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.1.0 — Orbital Assault | SC Patch-Archiv"} description={"Alpha 4.1.0: orbitale Hathor-Laser, Asteroiden-Mining mit Align &amp; Mine und die spielbare Aegis Idris."} themeColor="#10141a" ogType="article" ogImage="/assets/trailer-4-1-0.jpg">
+<Layout title={"Star Citizen Alpha 4.1.0 — Orbital Assault | SC Patch-Archiv"} description={"Alpha 4.1.0: orbitale Hathor-Laser, Asteroiden-Mining mit Align &amp; Mine und die spielbare Aegis Idris."} themeColor="#10141a" ogType="article" ogImage="/assets/trailer-4-1-0.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/trailer-4-1-0.jpg" />
 <style is:inline>
 
@@ -172,7 +172,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Alpha 4.1.0' }]} pill={"ALPHA 4.1.0"} />
+<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Alpha 4.1.0' }]} pill={"ALPHA 4.1.0"} hasEn={true} />
 
 
 <main id="main">
