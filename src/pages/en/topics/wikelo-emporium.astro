@@ -4,6 +4,7 @@ import SiteNav from '../../../components/SiteNav.astro';
 import TopicFacts from '../../../components/TopicFacts.astro';
 import RelatedTopics from '../../../components/RelatedTopics.astro';
 import Attribution from '../../../components/Attribution.astro';
+import TRADES from '../../../data/wikelo-trades.json';
 
 // On-brand inline SVG icons (instead of emojis) — line style, currentColor.
 const svg = (b) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
@@ -24,60 +25,18 @@ const ICON = {
 const TCATS = [
   { key: 'all', label: 'All' },
   { key: 'conv', label: 'Favor exchange' },
-  { key: 'capital', label: 'Capital ships' },
-  { key: 'fighter', label: 'Fighters' },
-  { key: 'industrial', label: 'Industrial & cargo' },
-  { key: 'vehicle', label: 'Vehicles' },
+  { key: 'ship', label: 'Ships' },
+  { key: 'weapon', label: 'Weapons' },
+  { key: 'armor', label: 'Armor' },
+  { key: 'misc', label: 'Misc' },
 ];
-const CAT_LABEL = { conv: 'Favor exchange', capital: 'Capital ship', fighter: 'Fighter', industrial: 'Industrial/cargo', vehicle: 'Vehicle' };
-const CAT_ICON = { conv: 'favor', capital: 'ship', fighter: 'ship', industrial: 'ship', vehicle: 'vehicle' };
+const CAT_LABEL = { conv: 'Favor exchange', ship: 'Ship', weapon: 'Weapon', armor: 'Armor', misc: 'Misc' };
+const CAT_ICON = { conv: 'favor', ship: 'ship', weapon: 'weapon', armor: 'armor', misc: 'component' };
 
-// Sourcing: c='solid' (ExpCarry + Wikelo Tracker v4.8 agree), c='chk' (single source · verify in-game).
-// As of ~Alpha 4.8 / late May 2026 — recipes are patch-volatile.
-const TRADES = [
-  { cat:'conv', name:'Wikelo Favor', favor:null, get:'+1 Favor', mats:['50× MG Scrip'], c:'solid' },
-  { cat:'conv', name:'Wikelo Favor', favor:null, get:'+1 Favor', mats:['50× Carinite'], c:'solid' },
-  { cat:'conv', name:'Wikelo Favor', favor:null, get:'+1 Favor', mats:['12× Irradiated Valakkar Pearl (AA)'], c:'solid' },
-  { cat:'conv', name:'Polaris Bit', favor:null, get:'+1 Polaris Bit', mats:['24 SCU Quantanium'], c:'solid' },
-
-  { cat:'capital', name:'Idris-P', favor:50, mats:['50× Polaris Bit','50× DCHS-05 Comp-Board','50× Carinite','50× Valakkar Fang (Apex)','50× MG Scrip','50× Ace Interceptor Helmet','30× Valakkar Pearl (AAA)','30× UEE 6th Platoon Medal (Pristine)','30× ASD Secure Drive','30× Carinite (Pure)'], note:'Rank “Very Best Customer” + RCMBNT components', c:'solid' },
-  { cat:'capital', name:'Polaris (Wikelo Special)', favor:50, mats:['15× Polaris Bit','15× ASD Secure Drive','20× Carinite','20× Valakkar Fang (Apex)','15× Ace Interceptor Helmet','15× Valakkar Pearl (AAA)','15× UEE 6th Platoon Medal (Pristine)','15× Carinite (Pure)'], c:'solid' },
-  { cat:'capital', name:'A2 Hercules Starlifter', favor:50, mats:['20× Polaris Bit','20× MG Scrip','6× ASD Secure Drive','6× Valakkar Pearl (AAA)','6× Tevarin War Service Marker (Pristine)','6× DCHS-05 Comp-Board','6× Carinite (Pure)'], c:'solid' },
-
-  { cat:'fighter', name:'F8C Lightning (Military Spec)', favor:40, mats:['4× Carinite (Pure)','4× Valakkar Pearl (AAA)','4× Tevarin War Service Marker (Pristine)'], c:'solid' },
-  { cat:'fighter', name:'Ares Star Fighter Inferno', favor:10, mats:['5× Yormandi Tongue','5× Ace Interceptor Helmet','1× UEE 6th Platoon Medal (Pristine)'], c:'solid' },
-  { cat:'fighter', name:'F7C-M Super Hornet Mk II', favor:16, mats:['3× DCHS-05 Comp-Board','5× Ace Interceptor Helmet','1× Gov. Cartography Medal (Pristine)'], c:'chk' },
-  { cat:'fighter', name:'Guardian', favor:20, mats:['15× Valakkar Pearl (AA)','10× Ace Interceptor Helmet','1× Tevarin War Service Marker (Pristine)'], c:'chk' },
-  { cat:'fighter', name:'Sabre Peregrine', favor:4, mats:['1× DCHS-05 Comp-Board'], c:'chk' },
-
-  { cat:'industrial', name:'Constellation Taurus', favor:30, mats:['3× Carinite (Pure)','3× Valakkar Pearl (AAA)','3× Gov. Cartography Agency Medal (Pristine)'], c:'solid' },
-  { cat:'industrial', name:'MISC Prospector', favor:6, mats:['20× Carinite','30× Saldynium (Ore)','40× Jaclium (Ore)','1× Carinite (Pure)'], c:'chk' },
-  { cat:'industrial', name:'Argo RAFT', favor:8, mats:['10× Valakkar Fang (Adult)','20× Valakkar Fang (Juvenile)','5× Irradiated Kopion Horn','1× Valakkar Pearl (AAA)'], c:'chk' },
-  { cat:'industrial', name:'C1 Spirit', favor:8, mats:['1× Tevarin War Service Marker (Pristine)'], c:'chk' },
-
-  { cat:'vehicle', name:'ATLS IKTI', favor:2, mats:['1× Argo ATLS','5× Valakkar Fang (Apex)','2× NN-13 Cannon'], c:'chk' },
-  { cat:'vehicle', name:'Ursa Medivac', favor:4, mats:['20× Saldynium (Ore)','20× Jaclium (Ore)'], c:'chk' },
-  { cat:'vehicle', name:'Nox', favor:4, mats:['Favor only'], c:'chk' },
-];
-
-// Reward images: real wiki screenshots (starcitizen.tools), local in /assets/wk-*.jpg.
-// Missing image (conv/Nox) falls back to the category icon.
-const TIMG = {
-  'Idris-P':'/assets/wk-idris.jpg',
-  'Polaris (Wikelo Special)':'/assets/wk-polaris.jpg',
-  // 'A2 Hercules Starlifter' — wiki image does not depict the A2 → icon fallback instead of a wrong ship.
-  'F8C Lightning (Military Spec)':'/assets/wk-f8c.jpg',
-  'Ares Star Fighter Inferno':'/assets/wk-ares.jpg',
-  'F7C-M Super Hornet Mk II':'/assets/wk-superhornet.jpg',
-  'Guardian':'/assets/wk-guardian.jpg',
-  'Sabre Peregrine':'/assets/wk-sabre.jpg',
-  'Constellation Taurus':'/assets/wk-taurus.jpg',
-  'MISC Prospector':'/assets/wk-prospector.jpg',
-  'Argo RAFT':'/assets/wk-raft.jpg',
-  'C1 Spirit':'/assets/wk-c1.jpg',
-  'ATLS IKTI':'/assets/wk-atls.jpg',
-  'Ursa Medivac':'/assets/wk-ursa.jpg',
-};
+// FULL trade list (63 trades) — source: wikelotrades.com (scrape_wikelo.py), patch 4.8.1,
+// as of 2026-06-04. Materials/Favor taken faithfully from the tracker data file
+// PATCH_4_8_1.js (original spellings kept). Nothing invented; values are patch-volatile.
+// TRADES imported from src/data/wikelo-trades.json (shared DE/EN).
 ---
 <Layout title={"Wikelo's Emporium — Star Citizen 4.1 | SC Patch Archive"} description={"Wikelo's Emporium: the Banu trader Wikelo — the first playable alien NPC in Star Citizen. Barter instead of money: deliver items, earn Wikelo Favor, trade for rewards from his stock. Three asteroid stations in Stanton, since Alpha 4.1."} themeColor="#0d1513" ogType="article" translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
@@ -304,7 +263,7 @@ const TIMG = {
       <p class="lead-p reveal">The heart of the Emporium: concrete trades with a <b>ship image</b>, required materials and Favor cost. Filter by category — on the left what you <b>give</b>, on the right what you <b>get</b>.</p></div>
     <div class="wk-note reveal">
       <span class="wk-ic" aria-hidden="true" set:html={ICON.favor}></span>
-      <span>What you <b>give</b> → what you <b>get</b>. As of <b>~Alpha 4.8 (late May 2026)</b>, compiled from <a href="https://expcarry.com/star-citizen-wikelo-ships-guide" target="_blank" rel="noopener">ExpCarry</a> &amp; the <a href="https://wikelotracker.com/" target="_blank" rel="noopener">Wikelo Tracker v4.8</a>. Recipes are <b>patch-volatile</b> — verify quantities &amp; Favor costs <b>in game</b> before you grind. Legend: <span class="wk-conf solid">confirmed · 2 sources</span> = both sources agree, <span class="wk-conf chk">1 source · verify</span> = single source, may be stale.</span>
+      <span><b>All {TRADES.length} trades</b> from <b>patch 4.8.1</b> (as of <b>2026-06-04</b>), taken 1:1 from the live tracker <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com ↗</a>. Quantities &amp; Favor costs are <b>patch-volatile</b> — verify <b>in game</b> before you grind. On the left what you <b>give</b>, on the right what you <b>get</b>. Ships with a verified image, otherwise a category icon.</span>
     </div>
 
     <div class="wk-filters reveal" role="group" aria-label="Filter trades by category">
@@ -318,20 +277,19 @@ const TIMG = {
         <article class="wk-tc" data-cat={t.cat}>
           <header class="wk-tc__hd">
             <span class="wk-tc__cat">{CAT_LABEL[t.cat]}</span>
-            <span class={`wk-conf ${t.c}`}>{t.c === 'solid' ? 'confirmed · 2 sources' : '1 source · verify'}</span>
+            {t.rep && (<span class="wk-conf chk">{t.rep}</span>)}
           </header>
           <div class="wk-tc__body">
             <div class="wk-give">
               <div class="wk-side-h">Give</div>
               <ul class="wk-mats">{t.mats.map((m) => (<li>{m}</li>))}</ul>
               {t.favor != null && (<div class="wk-favor"><span set:html={ICON.favor}></span>{t.favor} Favor</div>)}
-              {t.note && (<div class="wk-tc__note">{t.note}</div>)}
             </div>
             <div class="wk-arrow" aria-hidden="true" set:html={ICON.arrow}></div>
             <div class="wk-get">
               <div class="wk-side-h">Get</div>
-              {TIMG[t.name]
-                ? (<div class="wk-get-media"><img src={TIMG[t.name]} alt={t.name} loading="lazy" decoding="async" /></div>)
+              {t.img
+                ? (<div class="wk-get-media"><img src={`/assets/${t.img}.jpg`} alt={t.name} loading="lazy" decoding="async" /></div>)
                 : (<div class="wk-get-media wk-get-media--ph" aria-hidden="true" set:html={ICON[CAT_ICON[t.cat]]}></div>)}
               <div class="wk-get-name">{t.get ?? t.name}</div>
             </div>
@@ -341,7 +299,7 @@ const TIMG = {
     </div>
     <p class="wk-tc-empty" id="wk-tc-empty" hidden>No trades in this category.</p>
 
-    <p class="src reveal">Selected, verifiable example trades — not a complete catalogue. The two live trackers we checked, <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com ↗</a> and <a href="https://www.star-citizen-wikelo-tools.fr/wikelo" target="_blank" rel="noopener">star-citizen-wikelo-tools.fr ↗</a>, load their data dynamically (JavaScript) and can only be read live in a browser — check there or in game for day-current values.</p>
+    <p class="src reveal">Full list of all {TRADES.length} trades in patch <b>4.8.1</b>, taken straight from the data file of the live tracker <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com ↗</a> (generated 2026-06-04). Original spellings &amp; quantities of the source kept. Since Wikelo's stock rotates each patch, individual trades may since differ — verify in game if in doubt.</p>
   </section>
 
   <script is:inline>
@@ -410,7 +368,7 @@ const TIMG = {
   <!-- SOURCES -->
   <section>
     <div class="wrap">
-      <p class="src reveal">Sources: Star Citizen Wiki — <a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Wikelo</a>, <a href="https://starcitizen.tools/Wikelo_Emporium" target="_blank" rel="noopener">Wikelo Emporium</a>, <a href="https://starcitizen.tools/Wikelo_Favor" target="_blank" rel="noopener">Wikelo Favor</a> (CC-BY-SA 4.0) · trade data: <a href="https://expcarry.com/star-citizen-wikelo-ships-guide" target="_blank" rel="noopener">ExpCarry</a> &amp; <a href="https://wikelotracker.com/" target="_blank" rel="noopener">Wikelo Tracker v4.8</a>. Trade details change with every patch.</p>
+      <p class="src reveal">Sources: Star Citizen Wiki — <a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Wikelo</a>, <a href="https://starcitizen.tools/Wikelo_Emporium" target="_blank" rel="noopener">Wikelo Emporium</a>, <a href="https://starcitizen.tools/Wikelo_Favor" target="_blank" rel="noopener">Wikelo Favor</a> (CC-BY-SA 4.0) · trade data: live tracker <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com</a> (patch 4.8.1, 2026-06-04). Trade details change with every patch.</p>
       <p class="src reveal">Images (Emporium, Wikelo, reward ships): <a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Star Citizen Wiki</a> (starcitizen.tools, CC-BY-SA 4.0) — non-commercial fan use. Star Citizen® is a trademark of Cloud Imperium Rights LLC.</p>
     </div>
   </section>
