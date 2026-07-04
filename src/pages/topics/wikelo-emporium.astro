@@ -59,6 +59,25 @@ const TRADES = [
   { cat:'vehicle', name:'Ursa Medivac', favor:4, mats:['20× Saldynium (Ore)','20× Jaclium (Ore)'], c:'chk' },
   { cat:'vehicle', name:'Nox', favor:4, mats:['nur Favor'], c:'chk' },
 ];
+
+// Belohnungs-Bilder: echte Wiki-Screenshots (starcitizen.tools), lokal in /assets/wk-*.jpg.
+// Fehlt ein Bild (conv/Nox), fällt die Karte auf das Kategorie-Icon zurück.
+const TIMG = {
+  'Idris-P':'/assets/wk-idris.jpg',
+  'Polaris (Wikelo Special)':'/assets/wk-polaris.jpg',
+  'A2 Hercules Starlifter':'/assets/wk-a2.jpg',
+  'F8C Lightning (Military Spec)':'/assets/wk-f8c.jpg',
+  'Ares Star Fighter Inferno':'/assets/wk-ares.jpg',
+  'F7C-M Super Hornet Mk II':'/assets/wk-superhornet.jpg',
+  'Guardian':'/assets/wk-guardian.jpg',
+  'Sabre Peregrine':'/assets/wk-sabre.jpg',
+  'Constellation Taurus':'/assets/wk-taurus.jpg',
+  'MISC Prospector':'/assets/wk-prospector.jpg',
+  'Argo RAFT':'/assets/wk-raft.jpg',
+  'C1 Spirit':'/assets/wk-c1.jpg',
+  'ATLS IKTI':'/assets/wk-atls.jpg',
+  'Ursa Medivac':'/assets/wk-ursa.jpg',
+};
 ---
 <Layout title={"Wikelo's Emporium — Star Citizen 4.1 | SC Patch-Archiv"} description={"Wikelo's Emporium: der Banu-Händler Wikelo — erster spielbarer Alien-NPC in Star Citizen. Barter statt Geld: Items liefern, Wikelo Favor sammeln, Belohnungen aus dem Lager eintauschen. Drei Asteroiden-Stationen in Stanton, seit Alpha 4.1."} themeColor="#0d1513" ogType="article" translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
@@ -113,7 +132,7 @@ const TRADES = [
 .wk-conf{font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.58rem;padding:.14rem .5rem;border-radius:2px;white-space:nowrap;border:1px solid}
 .wk-conf.solid{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
 .wk-conf.chk{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 45%,transparent);background:color-mix(in srgb,var(--accent-2) 10%,transparent)}
-.wk-tc__body{display:grid;grid-template-columns:1fr auto minmax(9rem,.9fr);align-items:stretch;gap:.6rem}
+.wk-tc__body{display:grid;grid-template-columns:1fr auto minmax(8.5rem,1fr);align-items:stretch;gap:.6rem}
 .wk-side-h{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.6rem;color:var(--muted);margin-bottom:.4rem}
 .wk-mats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.28rem}
 .wk-mats li{position:relative;padding-left:.85rem;font-size:.86rem;line-height:1.35;color:var(--text)}
@@ -124,18 +143,28 @@ const TRADES = [
 .wk-tc__note{margin-top:.5rem;font-size:.74rem;line-height:1.4;color:var(--muted)}
 .wk-arrow{color:var(--accent);align-self:center;line-height:0}
 .wk-arrow svg{width:26px;height:26px;display:block}
-.wk-get{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.5rem;border-left:1px solid var(--line-soft);padding-left:.6rem}
-.wk-get-ic{color:var(--accent);width:38px;height:38px;line-height:0;border:1px solid var(--line);background:rgba(0,0,0,.25);display:grid;place-items:center;padding:6px}
-.wk-tc[data-cat="conv"] .wk-get-ic{color:var(--accent-2)}
-.wk-get-ic svg{width:100%;height:100%}
+.wk-get{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.5rem;border-left:1px solid var(--line-soft);padding-left:.7rem}
+.wk-get-media{width:100%;aspect-ratio:16/10;overflow:hidden;border:1px solid var(--line);background:linear-gradient(150deg,var(--surface-2),var(--bg-2));position:relative}
+.wk-get-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease}
+.wk-tc:hover .wk-get-media img{transform:scale(1.05)}
+.wk-get-media--ph{display:grid;place-items:center;color:var(--accent);padding:12px}
+.wk-tc[data-cat="conv"] .wk-get-media--ph{color:var(--accent-2)}
+.wk-get-media--ph svg{width:42px;height:42px}
 .wk-get-name{font-family:var(--font-display);font-weight:800;font-size:.98rem;line-height:1.15;color:#fff}
 .wk-tc-empty{max-width:var(--maxw);margin:.5rem auto 0;color:var(--muted);font-size:.9rem}
+
+/* ---- Bild-Figur (Stationen / Szene) ---- */
+.wk-figure{max-width:var(--maxw);margin:0 auto 1.4rem}
+.wk-figure img{width:100%;height:clamp(180px,34vw,420px);object-fit:cover;display:block;border:1px solid var(--line);border-top:2px solid var(--accent-2);clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+.wk-figure figcaption{margin-top:.6rem;font-size:.82rem;line-height:1.5;color:var(--muted)}
+
 @media(max-width:560px){
   .wk-tc-grid{grid-template-columns:1fr}
   .wk-tc__body{grid-template-columns:1fr;gap:.5rem}
   .wk-arrow{justify-self:center;transform:rotate(90deg);margin:.15rem 0}
-  .wk-get{border-left:0;border-top:1px solid var(--line-soft);padding-left:0;padding-top:.7rem;flex-direction:row;justify-content:flex-start}
-  .wk-get-name{text-align:left}
+  .wk-get{border-left:0;border-top:1px solid var(--line-soft);padding-left:0;padding-top:.7rem;align-items:stretch}
+  .wk-get-media{aspect-ratio:16/9}
+  .wk-get-name{text-align:center}
 }
 
 /* ---- Timeline ---- */
@@ -157,6 +186,7 @@ const TRADES = [
 
   <!-- HERO -->
   <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/wk-emporium.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
       <div class="eyebrow"><a href="/patches/sc-4-1-0.html">Alpha 4.1 · Orbital Assault</a> &nbsp;·&nbsp; <span class="banu-tag">Banu-Händler</span></div>
@@ -187,7 +217,8 @@ const TRADES = [
   </div>
 
   <!-- BAND 01 — Barter-Prinzip -->
-  <section class="band band--center" style="min-height:auto;padding-block:clamp(3rem,8vw,6rem)">
+  <section class="band band--center">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/wk-wikelo.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
       <div class="kx">01 · Das Barter-Prinzip</div>
       <div class="big outline" style="font-size:clamp(2rem,8vw,6rem)">LIEFERN · BEKOMMEN</div>
@@ -201,10 +232,10 @@ const TRADES = [
   </section>
   <div class="scrolly">
     <div class="scrolly__media" aria-hidden="true">
-      <div class="frame active" style="background:radial-gradient(80% 80% at 30% 30%,rgba(31,184,166,.35),transparent),var(--bg-2)"></div>
-      <div class="frame" style="background:radial-gradient(80% 80% at 70% 40%,rgba(232,163,61,.32),transparent),var(--bg-2)"></div>
-      <div class="frame" style="background:radial-gradient(80% 80% at 40% 70%,rgba(31,184,166,.30),transparent),var(--bg-2)"></div>
-      <div class="frame" style="background:radial-gradient(80% 80% at 60% 60%,rgba(232,163,61,.30),transparent),var(--bg-2)"></div>
+      <div class="frame active" style="background-image:url('/assets/wk-emporium.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/wk-idris.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/wk-a2.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/wk-polaris.jpg')"></div>
     </div>
     <div class="scrolly__steps">
       <div class="sstep"><div class="sn">01</div><h3>Contract annehmen</h3><p>An einer der drei Emporium-Stationen nimmst du bei Wikelo einen Contract an. Er nennt dir, welche Materialien oder Items er sucht — die Grundlage jedes Tauschs.</p></div>
@@ -236,6 +267,10 @@ const TRADES = [
   <!-- DIE DREI STATIONEN -->
   <section>
     <div class="wrap"><div class="sec-head reveal"><span class="num">04</span><h2>Die drei Emporium-Stationen</h2><span class="rule"></span></div></div>
+    <figure class="wk-figure reveal">
+      <img src="/assets/wk-emporium.jpg" alt="Wikelo's Emporium — Banu-Handelsstation im Asteroidenfeld" loading="lazy" decoding="async" />
+      <figcaption>Wikelo's Emporium — die Banu-Handelsstation. Jede der drei Stationen (Dasi, Selo, Kinga) teilt denselben Aufbau; eigene Stations-Fotos existieren im Wiki nicht.</figcaption>
+    </figure>
     <div class="wk-bento reveal">
       <div class="wk-cell">
         <div class="wk-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13 8 5l7-2 5 6-3 9-8 1z"/><path d="m8 5 3 5 4-1M11 10l-2 8m6-8 2 4"/></svg></div>
@@ -260,7 +295,8 @@ const TRADES = [
 
   <!-- TRADE-ÜBERSICHT — Kernstück: GIB → BEKOMM -->
   <section>
-    <div class="wrap"><div class="sec-head reveal"><span class="num">05</span><h2>Liefern → Bekommen</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">05</span><h2>Liefern → Bekommen</h2><span class="rule"></span></div>
+      <p class="lead-p reveal">Das Herzstück des Emporiums: konkrete Trades mit <b>Schiff-Bild</b>, benötigten Materialien und Favor-Kosten. Filtere nach Kategorie — links, was du <b>gibst</b>, rechts, was du <b>bekommst</b>.</p></div>
     <div class="wk-note reveal">
       <span class="wk-ic" aria-hidden="true" set:html={ICON.favor}></span>
       <span>Was du <b>gibst</b> → was du <b>bekommst</b>. Stand <b>~Alpha 4.8 (Ende Mai 2026)</b>, zusammengetragen aus <a href="https://expcarry.com/star-citizen-wikelo-ships-guide" target="_blank" rel="noopener">ExpCarry</a> &amp; dem <a href="https://wikelotracker.com/" target="_blank" rel="noopener">Wikelo-Tracker v4.8</a>. Rezepte sind <b>patch-volatil</b> — Mengen &amp; Favor-Kosten vor dem Grind <b>in-game gegenprüfen</b>. Legende: <span class="wk-conf solid">belegt · 2 Quellen</span> = beide Quellen stimmen überein, <span class="wk-conf chk">1 Quelle · prüfen</span> = nur eine Quelle, ggf. veraltet.</span>
@@ -289,7 +325,9 @@ const TRADES = [
             <div class="wk-arrow" aria-hidden="true" set:html={ICON.arrow}></div>
             <div class="wk-get">
               <div class="wk-side-h">Bekomm</div>
-              <div class="wk-get-ic" aria-hidden="true" set:html={ICON[CAT_ICON[t.cat]]}></div>
+              {TIMG[t.name]
+                ? (<div class="wk-get-media"><img src={TIMG[t.name]} alt={t.name} loading="lazy" decoding="async" /></div>)
+                : (<div class="wk-get-media wk-get-media--ph" aria-hidden="true" set:html={ICON[CAT_ICON[t.cat]]}></div>)}
               <div class="wk-get-name">{t.get ?? t.name}</div>
             </div>
           </div>
@@ -367,7 +405,8 @@ const TRADES = [
   <!-- QUELLEN -->
   <section>
     <div class="wrap">
-      <p class="src reveal">Quellen: Star Citizen Wiki — <a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Wikelo</a>, <a href="https://starcitizen.tools/Wikelo_Emporium" target="_blank" rel="noopener">Wikelo Emporium</a>, <a href="https://starcitizen.tools/Wikelo_Favor" target="_blank" rel="noopener">Wikelo Favor</a> (CC-BY-SA 4.0) · Live-Trades: <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com ↗</a>. Handels-Details ändern sich mit jedem Patch.</p>
+      <p class="src reveal">Quellen: Star Citizen Wiki — <a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Wikelo</a>, <a href="https://starcitizen.tools/Wikelo_Emporium" target="_blank" rel="noopener">Wikelo Emporium</a>, <a href="https://starcitizen.tools/Wikelo_Favor" target="_blank" rel="noopener">Wikelo Favor</a> (CC-BY-SA 4.0) · Trade-Daten: <a href="https://expcarry.com/star-citizen-wikelo-ships-guide" target="_blank" rel="noopener">ExpCarry</a> &amp; <a href="https://wikelotracker.com/" target="_blank" rel="noopener">Wikelo-Tracker v4.8</a>. Handels-Details ändern sich mit jedem Patch.</p>
+      <p class="src reveal">Bilder (Emporium, Wikelo, Belohnungs-Schiffe): <a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Star Citizen Wiki</a> (starcitizen.tools, CC-BY-SA 4.0) — nicht-kommerzielle Fan-Nutzung. Star Citizen® ist eine Marke der Cloud Imperium Rights LLC.</p>
     </div>
   </section>
 
