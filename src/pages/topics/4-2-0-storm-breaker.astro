@@ -4,6 +4,7 @@ import SiteNav from '../../components/SiteNav.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
+import OnepagerLink from '../../components/OnepagerLink.astro';
 ---
 <Layout title={"Storm Breaker — Star Citizen 4.2.0 | SC Patch-Archiv"} description={"Storm Breaker: Mit Alpha 4.2.0 wird das Wetter zur tödlichen Gefahr — dynamischer Regen, Flug-Turbulenzen und die brandneue Strahlungs-Gefahr verwandeln Stanton und Pyro in Schauplätze des Überlebens."} themeColor="#16142a" ogType="article" ogImage="/assets/t-storm-3.jpg">
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
@@ -162,6 +163,12 @@ import Attribution from '../../components/Attribution.astro';
       <p class="src reveal">Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="/patches/sc-4-2-0.html">Zur Patch-Übersicht 4.2.0 ↗</a></p>
     </div>
   </section>
+
+  <OnepagerLink
+    href="/onepager/storm-breaker/index.html"
+    title="Storm Breaker — Visueller Guide"
+    note="Eigenständiger Onepager: Farro- & Lazarus-Karten, Wetter-Events und Loot im Überblick."
+  />
 
 </main>
 

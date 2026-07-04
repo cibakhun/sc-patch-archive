@@ -1,0 +1,100 @@
+---
+// Onepager-Link: prominenter Button, der einen eigenständigen visuellen
+// Guide (statisches HTML unter /onepager/<slug>/) in einem neuen Tab öffnet.
+// Themt sich über die Palette-Variablen der jeweiligen Themenseite.
+interface Props {
+  href: string;        // z.B. "/onepager/contested-zones/index.html"
+  title?: string;      // Überschrift des Guides
+  note?: string;       // kurze Beschreibung
+}
+const {
+  href,
+  title = 'Visueller Guide',
+  note = 'Eigenständiger Übersichts-Guide mit Karten, Loot und Ablauf.',
+} = Astro.props;
+---
+<section class="opl-wrap reveal">
+  <a class="opl" href={href} target="_blank" rel="noopener">
+    <span class="opl__ic" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="26" height="26"><path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 3v5h5M8.5 13h7M8.5 16.5h7M8.5 9.5h2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </span>
+    <span class="opl__txt">
+      <span class="opl__kx">Onepager</span>
+      <span class="opl__title">{title}</span>
+      <span class="opl__note">{note}</span>
+    </span>
+    <span class="opl__arrow" aria-hidden="true">↗</span>
+  </a>
+</section>
+
+<style>
+  .opl-wrap {
+    max-width: var(--maxw, 1180px);
+    margin-inline: auto;
+    padding: 1rem clamp(1.25rem, 5vw, 4rem) 2rem;
+  }
+  .opl {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 1.15rem 1.4rem;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.18));
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 6%, var(--surface, rgba(0, 0, 0, 0.35)));
+    box-shadow: var(--glow, none);
+    transition: transform 0.18s, border-color 0.18s, background-color 0.18s;
+  }
+  .opl:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent, #2dd4ff);
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 12%, var(--surface, rgba(0, 0, 0, 0.35)));
+  }
+  .opl__ic {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    color: var(--accent, #2dd4ff);
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.18));
+    background: rgba(0, 0, 0, 0.25);
+  }
+  .opl__txt {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+  .opl__kx {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent-2, var(--accent, #2dd4ff));
+  }
+  .opl__title {
+    font-family: var(--font-display, sans-serif);
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--text, #f3e9df);
+  }
+  .opl__note {
+    font-size: 0.9rem;
+    color: var(--muted, #b6a596);
+  }
+  .opl__arrow {
+    margin-left: auto;
+    flex: none;
+    font-size: 1.5rem;
+    color: var(--accent, #2dd4ff);
+    transition: transform 0.18s;
+  }
+  .opl:hover .opl__arrow {
+    transform: translate(3px, -3px);
+  }
+  @media (max-width: 560px) {
+    .opl__note {
+      display: none;
+    }
+  }
+</style>
