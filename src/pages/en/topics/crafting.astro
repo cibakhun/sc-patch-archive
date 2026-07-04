@@ -1,0 +1,350 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import TopicFacts from '../../../components/TopicFacts.astro';
+import RelatedTopics from '../../../components/RelatedTopics.astro';
+import Attribution from '../../../components/Attribution.astro';
+import BP from '../../../data/crafting-blueprints.json';
+
+const svg = (b) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
+const ICON = {
+  blueprint: svg('<path d="M4 4h16v16H4z"/><path d="M4 9h16M9 4v16"/><path d="M13 13h3v3h-3z"/>'),
+  armor: svg('<path d="M12 3 5 5.5V11c0 4.4 3 8 7 10 4-2 7-5.6 7-10V5.5L12 3z"/><path d="M12 3v18M5 8h14"/>'),
+  weapon: svg('<path d="M3 8h13l4 2v2h-5l-2 3H8v-3H5a2 2 0 0 1-2-2V8z"/><path d="M8 12v3M11 8V6M14 8V6"/>'),
+  sweapon: svg('<path d="M4 11h11l5 1-5 1H4z"/><path d="M6 11V8m4 3V7m4 4V8"/><circle cx="4" cy="11" r="1.4"/>'),
+  comp: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 6l2.1 2.1M17.7 15.9l2.1 2.1M2 12h3M19 12h3M4.2 18l2.1-2.1M17.7 8.1l2.1-2.1"/>'),
+  fab: svg('<path d="M4 20V9l6-3v3l6-3v14z"/><path d="M4 20h16M8 13v4M12 13v4M16 13v4"/>'),
+  mineral: svg('<path d="M12 3 3 8v8l9 5 9-5V8l-9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/>'),
+  quality: svg('<path d="m12 3 2.5 5.3 5.8.8-4.2 4 1 5.7L12 21l-5.1 2.8 1-5.7-4.2-4 5.8-.8L12 3z"/>'),
+  source: svg('<path d="M20 10c0 6-8 11-8 11s-8-5-8-11a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/>'),
+  arrow: svg('<path d="M4 12h15M13 6l6 6-6 6"/>'),
+  dismantle: svg('<path d="M14.7 6.3 3 18v3h3L17.7 9.3z"/><path d="m13 8 3 3M18 3l3 3-2.5 2.5-3-3z"/>'),
+};
+
+const BCATS = [
+  { key: 'all', label: 'All' },
+  { key: 'armor', label: 'Armor' },
+  { key: 'weapon', label: 'FPS weapons' },
+  { key: 'sweapon', label: 'Ship weapons' },
+  { key: 'comp', label: 'Components' },
+];
+const CAT_LABEL = { armor: 'Armor', weapon: 'FPS weapon', sweapon: 'Ship weapon', comp: 'Component' };
+const CAT_ICON = { armor: 'armor', weapon: 'weapon', sweapon: 'sweapon', comp: 'comp' };
+const CONF = {
+  live: { cls: 'solid', label: 'documented' },
+  official: { cls: 'off', label: 'official 4.8' },
+  pipeline: { cls: 'chk', label: 'pipeline' },
+};
+
+const liveCount = BP.filter((b) => b.conf !== 'pipeline').length;
+---
+<Layout title={"Crafting — Star Citizen 4.7 | SC Patch Archive"} description={"Crafting in Star Citizen: since Alpha 4.7 you build FPS weapons, armor and (from 4.8) ship components at the Item Fabricator from blueprints and materials. Blueprint overview with sources, material quality (0–1000) and the workflow."} themeColor="#1c1c20" ogType="article" ogImage="/assets/t-craft-1.jpg" translated={true}>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+/* Crafting theme (4.7 "Welcome to the Rock") — furnace orange & steel blue */
+:root{--bg:#16161a;--bg-2:#1d1d22;--surface:#232329;--surface-2:#2c2c34;--accent:#FF5E1A;--accent-2:#1FA2FF;--hot:#FF5E1A;--text:#eef1f5;--muted:#9ba2ae;--line:rgba(255,94,26,.22);--line-soft:rgba(238,241,245,.10);--glow:0 0 44px rgba(255,94,26,.28);--ink:#16161a;--maxw:1180px;}
+.reveal{opacity:1 !important;transform:none !important}
+.hero h1{font-size:clamp(3rem,13vw,10rem)}
+.hero{background:radial-gradient(120% 90% at 78% 12%,rgba(255,94,26,.16),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(31,162,255,.12),transparent 55%),var(--bg)}
+.cr-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--accent-2)}
+.qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;color:var(--muted)}
+.qbar b{color:var(--accent-2)}
+
+.cr-bento{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;max-width:var(--maxw);margin:0 auto}
+.cr-cell{border:1px solid var(--line);border-top:2px solid var(--accent);background:var(--surface);padding:1.3rem 1.4rem;display:flex;flex-direction:column;gap:.5rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.cr-cell .cr-ic{color:var(--accent);line-height:0;width:34px;height:34px}
+.cr-cell .cr-ic svg{width:100%;height:100%;display:block}
+.cr-cell h3{font-family:var(--font-display);font-weight:800;font-size:1.25rem;color:#fff;line-height:1.1}
+.cr-cell .cr-sub{font-family:var(--font-ui);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.68rem;color:var(--accent)}
+.cr-cell p{color:var(--muted);font-size:.98rem;line-height:1.5;margin:0}
+.cr-cell.alt{border-top-color:var(--accent-2)}
+.cr-cell.alt .cr-ic{color:var(--accent-2)}
+.cr-cell.alt .cr-sub{color:var(--accent-2)}
+.cr-cell b{color:var(--text)}
+
+.cr-note{max-width:var(--maxw);margin:0 auto 1.1rem;display:flex;align-items:flex-start;gap:.75rem;border:1px solid var(--accent-2);border-left-width:3px;background:color-mix(in srgb,var(--accent-2) 8%,transparent);padding:.9rem 1.1rem;border-radius:4px;color:var(--text);font-size:.95rem;line-height:1.55}
+.cr-note .cr-ic{color:var(--accent-2);flex:none;line-height:0;width:18px;height:18px;margin-top:.1rem}
+.cr-note .cr-ic svg{width:100%;height:100%;display:block}
+.cr-note a{color:var(--accent-2);border-bottom:1px solid var(--line);white-space:nowrap}
+
+.cr-filters{max-width:var(--maxw);margin:0 auto 1.2rem;display:flex;flex-wrap:wrap;gap:.5rem}
+.cr-pill{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.72rem;color:var(--muted);border:1px solid var(--line);background:rgba(0,0,0,.25);padding:.42rem .9rem;border-radius:50px;cursor:pointer;transition:color .18s,border-color .18s,background-color .18s}
+.cr-pill:hover{color:var(--text);border-color:var(--accent)}
+.cr-pill[aria-pressed="true"]{color:var(--ink);background:var(--accent);border-color:var(--accent)}
+.cr-grid{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem}
+.cr-bp{border:1px solid var(--line);border-top:2px solid var(--accent);background:var(--surface);padding:1.05rem 1.1rem;display:flex;flex-direction:column;gap:.7rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.cr-bp[data-cat="comp"],.cr-bp[data-cat="sweapon"]{border-top-color:var(--accent-2)}
+.cr-bp[hidden]{display:none}
+.cr-bp__hd{display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+.cr-bp__cat{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.62rem;color:var(--accent)}
+.cr-bp[data-cat="comp"] .cr-bp__cat,.cr-bp[data-cat="sweapon"] .cr-bp__cat{color:var(--accent-2)}
+.cr-bp__cat .ci{width:15px;height:15px;line-height:0}.cr-bp__cat .ci svg{width:100%;height:100%}
+.cr-conf{font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.56rem;padding:.14rem .5rem;border-radius:2px;white-space:nowrap;border:1px solid}
+.cr-conf.solid{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.cr-conf.off{color:#6ee7a8;border-color:rgba(110,231,168,.45);background:rgba(110,231,168,.10)}
+.cr-conf.chk{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 45%,transparent);background:color-mix(in srgb,var(--accent-2) 10%,transparent)}
+.cr-bp__name{font-family:var(--font-display);font-weight:800;font-size:1.28rem;line-height:1.1;color:#fff}
+.cr-bp__kind{font-family:var(--font-ui);font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:.62rem;color:var(--muted);margin-top:.15rem}
+.cr-bp__src{display:flex;align-items:flex-start;gap:.5rem;padding-top:.6rem;border-top:1px solid var(--line-soft)}
+.cr-bp__src .si{color:var(--accent-2);flex:none;width:16px;height:16px;line-height:0;margin-top:.05rem}.cr-bp__src .si svg{width:100%;height:100%}
+.cr-bp__src .st{font-size:.86rem;line-height:1.4;color:var(--text)}
+.cr-sys{display:inline-block;margin-left:.4rem;font-family:var(--font-ui);font-weight:700;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-2);border:1px solid color-mix(in srgb,var(--accent-2) 35%,transparent);padding:.05rem .35rem;border-radius:2px;vertical-align:middle;white-space:nowrap}
+.cr-mats-h{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.58rem;color:var(--muted);margin-bottom:.35rem}
+.cr-mats{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.3rem}
+.cr-mats li{font-size:.76rem;line-height:1.3;color:var(--text);background:rgba(0,0,0,.28);border:1px solid var(--line-soft);padding:.16rem .5rem;border-radius:3px}
+.cr-bp__note{font-size:.74rem;line-height:1.45;color:var(--muted);margin-top:auto}
+.cr-empty{max-width:var(--maxw);margin:.5rem auto 0;color:var(--muted);font-size:.9rem}
+
+.cr-figure{max-width:var(--maxw);margin:0 auto 1.4rem}
+.cr-figure img{width:100%;height:clamp(180px,34vw,420px);object-fit:cover;display:block;border:1px solid var(--line);border-top:2px solid var(--accent-2);clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+.cr-figure figcaption{margin-top:.6rem;font-size:.82rem;line-height:1.5;color:var(--muted)}
+
+.cr-scale{max-width:var(--maxw);margin:0 auto 1rem;height:14px;border-radius:8px;background:linear-gradient(90deg,#4a4a52,var(--accent-2),var(--accent));border:1px solid var(--line-soft)}
+.cr-scale-lab{max-width:var(--maxw);margin:0 auto 1.4rem;display:flex;justify-content:space-between;font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.62rem;color:var(--muted)}
+
+.cr-time{max-width:var(--maxw);margin:0 auto;display:grid;gap:0}
+.cr-trow{display:grid;grid-template-columns:auto 1fr;gap:1.2rem;padding:1.1rem 0;border-bottom:1px solid var(--line-soft)}
+.cr-trow:last-child{border-bottom:0}
+.cr-ver{font-family:var(--font-display);font-weight:900;font-size:clamp(1.4rem,3vw,2rem);color:transparent;-webkit-text-stroke:1.5px var(--accent);line-height:1;min-width:2.6em}
+.cr-tbody h3{font-family:var(--font-display);font-weight:800;font-size:1.15rem;color:#fff;margin:0 0 .25rem}
+.cr-tbody p{color:var(--muted);font-size:.98rem;line-height:1.55;margin:0;max-width:64ch}
+
+@media(max-width:560px){.cr-grid{grid-template-columns:1fr}}
+
+</style>
+<a class="skip" href="#main">Skip to content</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archive', href: '/en.html' }, { label: 'Alpha 4.7.0', href: '/en/patches/sc-4-7-0.html' }, { label: "Crafting" }]} pill={"TOPIC · ALPHA 4.7"} hasEn={true} />
+
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-craft-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/en/patches/sc-4-7-0.html">Alpha 4.7 · Welcome to the Rock</a> &nbsp;·&nbsp; <span class="cr-tag">Fabrication system</span></div>
+      <h1><span class="thin">Build, don't just buy</span>Crafting</h1>
+      <p class="lead">Since <b>Alpha 4.7</b> you build your own gear at the <b>Item Fabricator</b> from <b>blueprints</b> and <b>materials</b>. The blueprint tells you what you need — the <b>quality</b> of the material (0–1000) determines your item's stats.</p>
+      <div class="tags"><span class="tag hot">Crafting T0</span><span class="tag">Item Fabricator</span><span class="tag">Blueprints</span><span class="tag">Material quality 0–1000</span><span class="tag">since Alpha 4.7</span></div>
+      <div class="qbar"><span>Tier <b>T0</b></span><span>Introduced <b>4.7</b></span><span>Expanded <b>4.8</b></span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>CRAFTING</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span><span>ITEM FABRICATOR</span><span class="dot">◆</span><span>MATERIAL QUALITY</span><span class="dot">◆</span><span>MINING</span><span class="dot">◆</span><span>DISMANTLE</span><span class="dot">◆</span>
+      <span>CRAFTING</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span><span>ITEM FABRICATOR</span><span class="dot">◆</span><span>MATERIAL QUALITY</span><span class="dot">◆</span><span>MINING</span><span class="dot">◆</span><span>DISMANTLE</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AT A GLANCE -->
+  <TopicFacts topicSlug="crafting" />
+
+  <!-- STAT STRIP -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n">4.7<span class="u">Alpha</span></div><div class="c">Crafting T0 introduced</div></div>
+    <div class="s"><div class="n count" data-to="1000">0</div><div class="c">Max material quality (0–1000)</div></div>
+    <div class="s"><div class="n">1</div><div class="c">Station: Item Fabricator</div></div>
+    <div class="s"><div class="n">FPS<span class="u">→ ship</span></div><div class="c">Weapons & armor, components from 4.8</div></div>
+  </div>
+
+  <!-- BAND 01 — What is crafting -->
+  <section class="band band--center">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-craft-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">01 · What is crafting</div>
+      <div class="big outline" style="font-size:clamp(2rem,8vw,6rem)">BLUEPRINT · MATERIAL · ITEM</div>
+      <p>Crafting is the new fabrication loop in Star Citizen. You obtain a <b style="color:var(--accent-2)">blueprint</b> (the digital recipe), gather the required <b style="color:var(--accent-2)">materials</b> at the right <b style="color:var(--accent-2)">quality</b> and build the item at the <b style="color:var(--accent-2)">Item Fabricator</b>. Once obtained, blueprints are permanently bound to your account — no loss on death or server error.</p>
+    </div>
+  </section>
+
+  <!-- PROCESS — the flow -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>How a craft works</h2><span class="rule"></span></div>
+      <p class="lead-p reveal">From recipe to finished item — the flow at the Item Fabricator.</p></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/t-craft-3.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-craft-5.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-craft-6.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-craft-4.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-craft-1.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Get a blueprint</h3><p>A starter set is automatically available to every player. Further blueprints come mainly from <b>mission contracts</b> of specific factions — later also from datapads, reputation and NPC shops.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Set up the fabricator</h3><p>The Item Fabricator is bought in shops (~95,000 aUEC), retrieved via freight elevator and placed with a tractor beam — in your hangar or a ship's cargo hold for crafting on the go.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Assign materials</h3><p>Select the blueprint, review the required materials and target quality, assign by hand or via autofill. The item stats are shown in <b>real time</b>.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Queue the job</h3><p>Confirm the order and queue it — craft time depends on size and quality. Multiple jobs run sequentially.</p></div>
+      <div class="sstep"><div class="sn">05</div><h3>Collect & dismantle</h3><p>Finished items land in local inventory. Conversely, the fabricator also breaks gear back down into materials (<b>dismantle</b>) — handy for restocking.</p></div>
+    </div>
+  </div>
+
+  <!-- BLUEPRINT SOURCES -->
+  <section>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>Where blueprints come from</h2><span class="rule"></span></div></div>
+    <div class="cr-bento reveal">
+      <div class="cr-cell"><div class="cr-ic" aria-hidden="true" set:html={ICON.blueprint}></div><div class="cr-sub">Source 1</div><h3>Starter set</h3><p>A small base collection of blueprints is unlocked for every player from the start.</p></div>
+      <div class="cr-cell"><div class="cr-ic" aria-hidden="true" set:html={ICON.source}></div><div class="cr-sub">Source 2 · main route</div><h3>Mission contracts</h3><p>The current core: factions like <b>Foxwell</b>, <b>Bounty Hunter's Guild</b>, <b>Rayari</b>, <b>Headhunters</b>, <b>InterSec</b> or <b>Covalex</b> hand out blueprints as rewards.</p></div>
+      <div class="cr-cell alt"><div class="cr-ic" aria-hidden="true" set:html={ICON.quality}></div><div class="cr-sub">Source 3 · planned</div><h3>Datapads & reputation</h3><p>Announced: physical datapads, reputation rewards and NPC shops as further sources.</p></div>
+    </div>
+  </section>
+
+  <!-- BLUEPRINT OVERVIEW — core -->
+  <section>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">04</span><h2>Blueprints — where to get them</h2><span class="rule"></span></div>
+      <p class="lead-p reveal">The centerpiece: concrete blueprints with <b>category</b>, <b>source</b> (faction / mission), <b>system</b> and — where known — the <b>materials</b>. Filter by type.</p></div>
+    <div class="cr-note reveal">
+      <span class="cr-ic" aria-hidden="true" set:html={ICON.quality}></span>
+      <span><b>Honesty &amp; status:</b> <b>{liveCount} entries</b> are documented via community blueprint finders &amp; game data (badge <b>documented</b>/<b>official</b>). Entries with the <b>pipeline</b> badge come from datamining / pipeline data (mainly 4.8 ship components) — a <b>planning signal, not final</b>: CIG hasn't officially published the 4.8 blueprint table yet. Sources &amp; amounts are <b>patch-volatile</b> — verify <b>in game</b> before grinding. Interactive tool: <a href="https://citizen-starter-guide.com/star-citizen-blueprint-finder/" target="_blank" rel="noopener">Blueprint Finder ↗</a>.</span>
+    </div>
+
+    <div class="cr-filters reveal" role="group" aria-label="Filter blueprints by category">
+      {BCATS.map((f, i) => (
+        <button type="button" class="cr-pill" data-filter={f.key} aria-pressed={i === 0 ? 'true' : 'false'}>{f.label}</button>
+      ))}
+    </div>
+
+    <div class="cr-grid reveal" id="cr-grid">
+      {BP.map((b) => (
+        <article class="cr-bp" data-cat={b.cat}>
+          <header class="cr-bp__hd">
+            <span class="cr-bp__cat"><span class="ci" aria-hidden="true" set:html={ICON[CAT_ICON[b.cat]]}></span>{CAT_LABEL[b.cat]}</span>
+            <span class={`cr-conf ${CONF[b.conf].cls}`}>{CONF[b.conf].label}</span>
+          </header>
+          <div>
+            <div class="cr-bp__name">{b.name}</div>
+            <div class="cr-bp__kind">{b.kindEn ?? b.kind}</div>
+          </div>
+          <div class="cr-bp__src">
+            <span class="si" aria-hidden="true" set:html={ICON.source}></span>
+            <span class="st">{b.srcEn ?? b.src}{b.sys && b.sys !== '—' && (<span class="cr-sys">{b.sys}</span>)}</span>
+          </div>
+          {b.mats && b.mats.length > 0 && (
+            <div>
+              <div class="cr-mats-h">Materials</div>
+              <ul class="cr-mats">{b.mats.map((m) => (<li>{m}</li>))}</ul>
+            </div>
+          )}
+          {(b.noteEn ?? b.note) && (<p class="cr-bp__note">{b.noteEn ?? b.note}</p>)}
+        </article>
+      ))}
+    </div>
+    <p class="cr-empty" id="cr-empty" hidden>No blueprints in this category.</p>
+
+    <p class="src reveal">Blueprint data: <a href="https://citizen-starter-guide.com/star-citizen-blueprint-finder/" target="_blank" rel="noopener">Citizen Starter Guide · Blueprint Finder</a>, <a href="https://expcarry.com/star-citizen-bounty-hunter-blueprints" target="_blank" rel="noopener">expcarry</a> &amp; <a href="https://thisgengaming.com/2026/03/20/star-citizen-4-7-blueprints-beginners-guide-how-to-get-use-craft-with-blueprints/" target="_blank" rel="noopener">ThisGenGaming</a> (from 4.8 game data &amp; community guides). Some 4.8 ship components are pipeline data — verify in game when in doubt.</p>
+  </section>
+
+  <!-- MATERIALS -->
+  <section>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">05</span><h2>Materials &amp; quality</h2><span class="rule"></span></div>
+      <p class="lead-p reveal">Every resource in the 'verse now carries a <b>quality value from 0 to 1000</b> — it directly determines the stats of the crafted item. Higher quality = better item.</p></div>
+    <div class="wrap">
+      <div class="cr-scale reveal" aria-hidden="true"></div>
+      <div class="cr-scale-lab reveal"><span>0 · low</span><span>500</span><span>1000 · max</span></div>
+    </div>
+    <div class="cr-bento reveal">
+      <div class="cr-cell"><div class="cr-ic" aria-hidden="true" set:html={ICON.mineral}></div><div class="cr-sub">Mining</div><h3>Ores &amp; minerals</h3><p>Gathered via <b>vehicle</b> and <b>FPS mining</b>. Examples with RS signature: <b>Aluminium</b> (4285/4225), <b>Iron</b> (4270), <b>Hephaestanite</b> (4180), <b>Orotite</b> (rare, 4310), plus <b>Carinite</b> &amp; <b>Titanium</b>.</p></div>
+      <div class="cr-cell alt"><div class="cr-ic" aria-hidden="true" set:html={ICON.dismantle}></div><div class="cr-sub">Dismantle</div><h3>Broken-down gear</h3><p>The fabricator breaks items back into material. Shop/looted gear returns material at <b>default quality</b> (~500 QR), your own crafted gear at original quality but reduced quantity.</p></div>
+      <div class="cr-cell"><div class="cr-ic" aria-hidden="true" set:html={ICON.comp}></div><div class="cr-sub">Processed materials</div><h3>Casings &amp; frames</h3><p>Derived from raw resources, e.g. <b>Laranite Casing</b>, <b>Aslarite Insulative Liner</b>, <b>Savrilium Casing Weave</b> (Palatino armor) or <b>Stileron Frame</b> &amp; <b>Iron Barrel</b> (P8-AR).</p></div>
+      <div class="cr-cell alt"><div class="cr-ic" aria-hidden="true" set:html={ICON.quality}></div><div class="cr-sub">planned</div><h3>Refining &amp; salvage</h3><p>Announced: a new refining loop with primary and by-products, plus salvage with exclusive alien materials and catalyst items.</p></div>
+    </div>
+  </section>
+
+  <!-- ITEM FABRICATOR -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-craft-6.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">06 · The station</div>
+        <h3>The Item Fabricator</h3>
+        <p>The machine behind the whole system. A <b>deployable</b> unit with its own cargo grid for input/output of resources and items.</p>
+        <p>Bought in landing-zone and station shops (Refinery Deck, ~95,000 aUEC), retrieved via freight elevator and moved with a tractor beam. Placed on a cargo grid it even goes <b>inside a ship</b> — crafting on the go. Second function: <b>dismantle</b>, breaking gear back into material.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BREAKER STATIONS -->
+  <section class="band">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-craft-7.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">07 · Material from the operation</div>
+      <div class="big" style="font-size:clamp(2.2rem,8vw,6rem)">BREAKER STATIONS</div>
+      <p>A key material route for the crafting start: <b style="color:var(--accent-2)">Operation Breaker Stations</b> in the <b style="color:var(--accent-2)">Keeger Belt (Nyx)</b>. Players reactivate decommissioned Shubin stations, fire a laser to break apart an asteroid, craft optical components on site and extract the rare minerals — which flow straight back into your own crafting.</p>
+    </div>
+  </section>
+
+  <!-- PATCH TIMELINE -->
+  <section>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">08</span><h2>Crafting across the patches</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="cr-time reveal">
+      <div class="cr-trow">
+        <div class="cr-ver">4.7</div>
+        <div class="cr-tbody"><h3>Crafting T0 — the debut</h3><p>First crafting tier: Item Fabricator, blueprints and the 0–1000 material quality. Focus on <b>FPS weapons and armor</b> — many variants of familiar items. Blueprints mostly from mission contracts.</p></div>
+      </div>
+      <div class="cr-trow">
+        <div class="cr-ver">4.7.x</div>
+        <div class="cr-tbody"><h3>Blueprint finders & farming</h3><p>The community maps the blueprint sources: Foxwell Ambush as the fastest farm route, Bounty Hunter's Guild sets (Palatino), Rayari as the fallback source for the P8-AR.</p></div>
+      </div>
+      <div class="cr-trow">
+        <div class="cr-ver">4.8</div>
+        <div class="cr-tbody"><h3>Ship components & more</h3><p>Crafting grows toward <b>ship weapons and components</b> (shield generators, coolers, quantum drives) plus new FPS items like the UltiFlex Crossbow &amp; KSAR Plasma Grenade. Much component data is still from the pipeline.</p></div>
+      </div>
+      <div class="cr-trow">
+        <div class="cr-ver">→</div>
+        <div class="cr-tbody"><h3>Roadmap</h3><p>Announced: vehicle &amp; weapon crafting, dedicated Food/Medical/Construction fabricators, a refining system, item degradation with repairs and salvage integration with alien materials.</p></div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- LORE QUOTE -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>The quality of the <span class="hl">material</span> determines the stats.</blockquote>
+    <cite>Crafting T0 · Item Fabricator</cite>
+  </section>
+
+  <!-- SOURCES -->
+  <section>
+    <div class="wrap">
+      <p class="src reveal">Sources: <a href="https://theimpound.com/blogs/guides/star-citizen-alpha-4-7-introduces-crafting" target="_blank" rel="noopener">The Impound — crafting guide (4.7)</a>, <a href="https://thisgengaming.com/2026/03/20/star-citizen-4-7-blueprints-beginners-guide-how-to-get-use-craft-with-blueprints/" target="_blank" rel="noopener">ThisGenGaming — blueprint guide</a>, <a href="https://citizen-starter-guide.com/star-citizen-blueprint-finder/" target="_blank" rel="noopener">Citizen Starter Guide — Blueprint Finder</a>, <a href="https://expcarry.com/star-citizen-bounty-hunter-blueprints" target="_blank" rel="noopener">expcarry — BHG blueprints</a> · System &amp; patch data: Star Citizen Wiki (<a href="https://starcitizen.tools/Crafting" target="_blank" rel="noopener">Crafting</a>). Crafting is new and highly patch-volatile — verify values in game when in doubt.</p>
+      <p class="src reveal">Images (fabricator/crafting UI, Breaker Stations, Keeger Belt): official Star Citizen channels &amp; <a href="https://starcitizen.tools/Crafting" target="_blank" rel="noopener">Star Citizen Wiki</a> (CC-BY-SA 4.0) — non-commercial fan use. Star Citizen® is a trademark of Cloud Imperium Rights LLC. · <a href="/en/patches/sc-4-7-0.html">Back to the 4.7.0 patch overview ↗</a></p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="crafting" />
+
+<Attribution sources={["starcitizen.tools", "citizen-starter-guide.com", "RSI"]} />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline>
+  (function () {
+    var pills = document.querySelectorAll('.cr-pill');
+    var cards = document.querySelectorAll('#cr-grid .cr-bp');
+    var empty = document.getElementById('cr-empty');
+    pills.forEach(function (p) {
+      p.addEventListener('click', function () {
+        var key = p.getAttribute('data-filter');
+        pills.forEach(function (q) { q.setAttribute('aria-pressed', q === p ? 'true' : 'false'); });
+        var shown = 0;
+        cards.forEach(function (c) {
+          var vis = key === 'all' || c.getAttribute('data-cat') === key;
+          c.hidden = !vis;
+          if (vis) shown++;
+        });
+        if (empty) empty.hidden = shown !== 0;
+      });
+    });
+  })();
+</script>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

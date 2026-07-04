@@ -141,6 +141,7 @@ const current = Astro.url.pathname;
           <a href={L('/schiffe.html')}><span>{t('nav.ships.long')}</span></a>
           <a href={L('/evolution.html')}><span>{t('nav.evolution.long')}</span></a>
           <a class="snav__feat" href={L('/topics/wikelo-emporium.html')} aria-current={current === L('/topics/wikelo-emporium.html') ? 'page' : undefined}><span>Wikelo's Emporium</span></a>
+          <a class="snav__feat" href={L('/topics/crafting.html')} aria-current={current === L('/topics/crafting.html') ? 'page' : undefined}><span>Crafting</span></a>
           <a href={L('/index.html#archiv')}><span>{t('nav.allPatches')} ({patches.length})</span></a>
           <a href={L('/index.html#themen')}><span>{t('nav.allTopics')} ({topicCount})</span></a>
         </div>
