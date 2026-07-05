@@ -153,13 +153,16 @@ const vehicles = defineCollection({
     fixedWeapons: z.array(
       z.object({ name: z.string(), count: z.number(), dps: z.number().nullable() })
     ),
-    /** pilot-weapon hardpoint size classes, aggregated per size (from the
-     *  detail endpoint's `components` — the list view carries no gun size).
-     *  Optional so the schema still validates a snapshot synced before the
-     *  enrich-weapon-sizes.mjs pass has run. */
-    fixedWeaponMounts: z
+    /** size classes of the ACTUAL equipped pilot weapons, aggregated per size.
+     *  Resolved by enrich-weapon-sizes.mjs from the fitted weapon names via the
+     *  WeaponGun items catalog (NOT the hardpoint max size). Optional so the
+     *  schema still validates a snapshot synced before the enrich pass ran. */
+    fixedWeaponSizes: z
       .array(z.object({ size: z.number(), count: z.number() }))
       .default([]),
+    /** true when at least one fitted gun could not be resolved to a size, so the
+     *  size list is incomplete (rare; unused today but kept for honest display) */
+    fixedWeaponSizesPartial: z.boolean().optional(),
     /** weapon hardpoints aggregated per turret category: mount size classes
      *  plus the equipped weapon names (per-station data from the game files) */
     turrets: z.array(

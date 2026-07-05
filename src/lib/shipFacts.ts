@@ -85,8 +85,9 @@ export function buildArmament(d: VehicleData, lang: Locale = DEFAULT_LOCALE): Ar
     rows.push({
       label: t('arm.pilotFixed'),
       meta: `${d.fixedWeapons.reduce((n, w) => n + w.count, 0)} ${t('arm.weapons')}`,
-      // hardpoint size classes from the detail endpoint (enrich-weapon-sizes)
-      chips: (d.fixedWeaponMounts ?? []).map((m) => ({ label: `S${m.size}`, count: m.count })),
+      // size classes of the actually equipped guns (resolved from the fitted
+      // weapon names via the items catalog — see enrich-weapon-sizes.mjs)
+      chips: (d.fixedWeaponSizes ?? []).map((m) => ({ label: `S${m.size}`, count: m.count })),
       items: d.fixedWeapons.map((w) => `${w.count}× ${w.name}`).join(' · '),
       value: d.pilotDps ? `${num(d.pilotDps, loc)} DPS` : undefined,
     });
