@@ -1,0 +1,318 @@
+---
+// MiningApp.astro — funktionale Mineral-Datenbank (SSR-Grid + Client-App).
+// Sprachneutrales Gerüst; UI-Chrome via `lang`, Game-Daten bleiben englisch.
+import DB from '../../assets/mining-db.json';
+
+interface Props { lang: 'de' | 'en'; }
+const { lang } = Astro.props;
+
+// -- i18n (SSR-Chrome) --
+const S = {
+  de: {
+    toolbarSearch: 'Suche: Mineral oder Fundort…',
+    filters: 'Filter', system: 'System', method: 'Methode', type: 'Typ',
+    anyType: 'Alle Typen', refineOnly: 'Nur raffinierbare Erze', gemOnly: 'Nur Hand-Edelsteine',
+    reset: 'Zurücksetzen', sort: 'Sortierung',
+    sortPriceDesc: 'Preis ↓', sortPriceAsc: 'Preis ↑', sortName: 'Name A→Z', sortNameDesc: 'Name Z→A',
+    view: 'Ansicht', grid: 'Raster', list: 'Liste', results: 'Minerale', of: 'von',
+    empty: 'Keine Minerale für diese Auswahl.', filterBtn: 'Filter', close: 'Schließen',
+    locBtn: 'Fundorte', methShip: 'Schiff-Mining', methHand: 'Hand / ROC',
+    price: 'Bester Verkauf', noPrice: 'kein Preis', refine: 'raffinierbar', gem: 'Edelstein',
+  },
+  en: {
+    toolbarSearch: 'Search: mineral or location…',
+    filters: 'Filters', system: 'System', method: 'Method', type: 'Type',
+    anyType: 'All types', refineOnly: 'Refinable ores only', gemOnly: 'Hand gems only',
+    reset: 'Reset', sort: 'Sort',
+    sortPriceDesc: 'Price ↓', sortPriceAsc: 'Price ↑', sortName: 'Name A→Z', sortNameDesc: 'Name Z→A',
+    view: 'View', grid: 'Grid', list: 'List', results: 'minerals', of: 'of',
+    empty: 'No minerals for this selection.', filterBtn: 'Filters', close: 'Close',
+    locBtn: 'Locations', methShip: 'Ship mining', methHand: 'Hand / ROC',
+    price: 'Best sell', noPrice: 'no price', refine: 'refinable', gem: 'gem',
+  },
+}[lang];
+
+// Strings fürs Client-JS (window.__MINE.t)
+const JS_T = {
+  de: {
+    kind: 'Typ', method: 'Methode', scu: 'SCU-Gewicht', systems: 'Systeme',
+    locations: 'Fundorte', sellHead: 'Verkauf (Terminals)', best: 'Bester Preis',
+    range: 'Spanne', avg: 'Ø', terminals: 'Terminals', at: 'bei',
+    calc: 'Wert-Rechner', calcAmount: 'Menge (SCU)', calcMethod: 'Refinery-Methode',
+    calcRaw: 'Verkaufswert (× bester Preis)', calcRefined: 'Nach Refinery-Yield (≈)',
+    calcNote: 'Näherung: Verkaufswert = Menge × bester Terminal-Preis. „Nach Yield" skaliert grob mit dem Yield-Rating der Methode (hoch 1,0 · mittel 0,9 · niedrig 0,8) — reale Refinery-Erträge/Zeiten/Kosten sind komplexer. Ingame prüfen.',
+    calcNoteGem: 'Näherung: Verkaufswert = Menge × bester Terminal-Preis. Edelstein wird ganz verkauft (kein Refining).',
+    yield: 'Ertrag', cost: 'Kosten', speed: 'Tempo', wikiLink: 'Auf starcitizen.tools ansehen',
+    methShip: 'Schiff-Mining (Prospector/MOLE)', methHand: 'Hand-Mining / ROC (ganze Edelsteine)',
+    needsRefine: 'Rohform muss raffiniert werden', noRefine: 'wird ganz verkauft (kein Refining)',
+    noLoc: 'Keine körpergebundenen Fundorte in den Daten — überwiegend in Asteroidengürteln (z.B. Aaron Halo) abbaubar.',
+    reverseTitle: 'Fundorte nach Himmelskörper', reverseIntro: 'Wähle einen Mond/Planeten — zeigt alle dort vorkommenden Minerale (Vorkommen laut Spieldaten, keine Spawn-Chance).',
+    reverseSearch: 'Körper suchen…', mineralsHere: 'Minerale hier', low: 'niedrig', mid: 'mittel', high: 'hoch',
+  },
+  en: {
+    kind: 'Type', method: 'Method', scu: 'SCU weight', systems: 'Systems',
+    locations: 'Locations', sellHead: 'Sell (terminals)', best: 'Best price',
+    range: 'Range', avg: 'Avg', terminals: 'terminals', at: 'at',
+    calc: 'Value calculator', calcAmount: 'Amount (SCU)', calcMethod: 'Refinery method',
+    calcRaw: 'Sale value (× best price)', calcRefined: 'After refinery yield (≈)',
+    calcNote: 'Approximation: sale value = amount × best terminal price. “After yield” scales roughly with the method’s yield rating (high 1.0 · mid 0.9 · low 0.8) — real refinery returns/times/costs are more complex. Verify in-game.',
+    calcNoteGem: 'Approximation: sale value = amount × best terminal price. Gem is sold whole (no refining).',
+    yield: 'Yield', cost: 'Cost', speed: 'Speed', wikiLink: 'View on starcitizen.tools',
+    methShip: 'Ship mining (Prospector/MOLE)', methHand: 'Hand mining / ROC (whole gems)',
+    needsRefine: 'Raw form must be refined', noRefine: 'sold whole (no refining)',
+    noLoc: 'No body-bound locations in the data — mostly mineable in asteroid belts (e.g. Aaron Halo).',
+    reverseTitle: 'Locations by celestial body', reverseIntro: 'Pick a moon/planet — shows all minerals found there (occurrence per game data, not spawn chance).',
+    reverseSearch: 'Search body…', mineralsHere: 'Minerals here', low: 'low', mid: 'mid', high: 'high',
+  },
+}[lang];
+
+// -- SSR-Kartenmodell --
+const nf = new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US');
+const systemsAll = DB.live_systems;
+const kinds = [...new Set(DB.minerals.map((m) => m.kind).filter(Boolean))].sort();
+
+const cards = DB.minerals.map((m, i) => {
+  const best = m.sell ? m.sell.best.price : 0;
+  const locBlob = Object.values(m.locations || {}).flat().join(' ').toLowerCase();
+  return {
+    i, name: m.name, kind: m.kind || '—', method: m.method,
+    refine: !!m.needs_refine, scu: m.weight_scu || 0,
+    systems: m.systems || [], best,
+    bestLabel: m.sell ? nf.format(best) : null,
+    systemsAttr: (m.systems || []).join('|').toLowerCase(),
+    search: (m.name + ' ' + locBlob).toLowerCase(),
+  };
+});
+
+const total = DB.counts.minerals;
+---
+
+<section class="mdb" id="mdb">
+  <div class="mdb-bar">
+    <button class="mdb-filter-toggle" id="mdb-filter-toggle" aria-expanded="false">☰ {S.filterBtn}</button>
+    <div class="mdb-search-wrap">
+      <input type="search" id="mdb-search" class="mdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
+    </div>
+    <label class="mdb-sort">
+      <span class="mdb-sr">{S.sort}</span>
+      <select id="mdb-sort">
+        <option value="price-desc">{S.sortPriceDesc}</option>
+        <option value="price-asc">{S.sortPriceAsc}</option>
+        <option value="name">{S.sortName}</option>
+        <option value="name-desc">{S.sortNameDesc}</option>
+      </select>
+    </label>
+    <div class="mdb-viewtog" role="group" aria-label={S.view}>
+      <button class="mdb-view" data-view="grid" aria-pressed="true" title={S.grid}>▦</button>
+      <button class="mdb-view" data-view="list" aria-pressed="false" title={S.list}>≡</button>
+    </div>
+    <button class="mdb-loc-open" id="mdb-loc-open" title={S.locBtn}>◎ {S.locBtn}</button>
+  </div>
+
+  <div class="mdb-layout">
+    <aside class="mdb-sidebar" id="mdb-sidebar" aria-label={S.filters}>
+      <div class="mdb-side-hd"><span>{S.filters}</span><button id="mdb-filter-close" class="mdb-x" aria-label={S.close}>✕</button></div>
+
+      <div class="mdb-fgroup">
+        <h4>{S.system}</h4>
+        {systemsAll.map((s) => (
+          <label class="mdb-check"><input type="checkbox" class="mdb-sys" value={s.toLowerCase()} /><span>{s}</span></label>
+        ))}
+      </div>
+
+      <div class="mdb-fgroup">
+        <h4>{S.method}</h4>
+        <label class="mdb-check"><input type="checkbox" class="mdb-meth" value="ship" /><span>{S.methShip}</span></label>
+        <label class="mdb-check"><input type="checkbox" class="mdb-meth" value="hand" /><span>{S.methHand}</span></label>
+      </div>
+
+      <div class="mdb-fgroup">
+        <h4>{S.type}</h4>
+        <select id="mdb-kind" class="mdb-kind">
+          <option value="">{S.anyType}</option>
+          {kinds.map((k) => (<option value={k.toLowerCase()}>{k}</option>))}
+        </select>
+      </div>
+
+      <div class="mdb-fgroup">
+        <label class="mdb-check"><input type="checkbox" id="mdb-refine" /><span>{S.refineOnly}</span></label>
+        <label class="mdb-check"><input type="checkbox" id="mdb-gem" /><span>{S.gemOnly}</span></label>
+      </div>
+
+      <button id="mdb-reset" class="mdb-reset">{S.reset}</button>
+    </aside>
+
+    <div class="mdb-main">
+      <div class="mdb-count-row"><span><b id="mdb-count">{total}</b> / {total} {S.results}</span></div>
+      <div class="mdb-grid" id="mdb-grid">
+        {cards.map((c) => (
+          <article
+            class="mcd"
+            data-i={c.i}
+            data-name={c.name.toLowerCase()}
+            data-search={c.search}
+            data-systems={c.systemsAttr}
+            data-method={c.method}
+            data-kind={c.kind.toLowerCase()}
+            data-refine={c.refine ? '1' : '0'}
+            data-price={c.best}
+            data-scu={c.scu}
+          >
+            <div class="mcd__top">
+              <span class={`mcd__kind mcd__kind--${c.method}`}>{c.kind}</span>
+              <span class="mcd__badges">
+                {c.method === 'hand' ? (<span class="mcd__tag mcd__tag--gem" title={S.methHand}>◆ {S.gem}</span>) : null}
+                {c.refine ? (<span class="mcd__tag" title={S.refine}>⚗ {S.refine}</span>) : null}
+              </span>
+            </div>
+            <h3 class="mcd__name">{c.name}</h3>
+            <div class="mcd__sys">
+              {c.systems.length ? c.systems.map((s) => (<span class="mcd__chip">{s}</span>)) : (<span class="mcd__chip mcd__chip--muted">Asteroids</span>)}
+            </div>
+            <div class="mcd__price">
+              {c.bestLabel ? (<><b>{c.bestLabel}</b> <span class="mcd__pu">aUEC/SCU</span></>) : (<span class="mcd__np">{S.noPrice}</span>)}
+            </div>
+          </article>
+        ))}
+      </div>
+      <p class="mdb-empty" id="mdb-empty" hidden>{S.empty}</p>
+    </div>
+  </div>
+
+  <!-- Detail modal -->
+  <div class="mdb-modal" id="mdb-modal" hidden>
+    <div class="mdb-modal__box" role="dialog" aria-modal="true">
+      <button class="mdb-modal__x" data-close aria-label={S.close}>✕</button>
+      <div class="mdb-modal__body" id="mdb-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Reverse-Lookup drawer -->
+  <aside class="mdb-drawer" id="mdb-loc" aria-hidden="true" aria-label={S.locBtn}>
+    <div class="mdb-drawer__hd"><span id="mdb-loc-title">◎</span><button class="mdb-x" data-loc-close aria-label={S.close}>✕</button></div>
+    <div class="mdb-drawer__body" id="mdb-loc-body"></div>
+  </aside>
+</section>
+
+<script is:inline set:html={`window.__MINE=${JSON.stringify({ lang, dbUrl: '/assets/mining-db.json', t: JS_T })};`} />
+<script is:inline src="/assets/mining-app.js"></script>
+
+<style is:inline>
+  .mdb{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
+  .mdb *{box-sizing:border-box}
+  .mdb-bar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;padding:.7rem 0;background:linear-gradient(var(--bg,#14181a),color-mix(in srgb,var(--bg,#14181a) 88%,transparent));backdrop-filter:blur(6px)}
+  .mdb-search-wrap{flex:1 1 240px;min-width:0}
+  .mdb-search{width:100%;background:var(--surface,#1e2427);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.6rem .9rem;border-radius:6px;font-size:1rem;font-family:var(--font-ui,inherit)}
+  .mdb-search:focus{outline:2px solid var(--accent,#2FBFA4);outline-offset:1px}
+  .mdb-sort{display:flex;align-items:center;gap:.4rem}
+  .mdb-sr{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.62rem;color:var(--muted,#8fa3a0)}
+  .mdb-sort select,.mdb-kind{background:var(--surface,#1e2427);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.5rem .6rem;border-radius:6px;font-size:.9rem;font-family:var(--font-ui,inherit);max-width:100%}
+  .mdb-viewtog{display:flex;border:1px solid var(--line,rgba(47,191,164,.3));border-radius:6px;overflow:hidden}
+  .mdb-view{background:var(--surface,#1e2427);color:var(--muted,#8fa3a0);border:0;padding:.5rem .7rem;cursor:pointer;font-size:1rem;line-height:1}
+  .mdb-view[aria-pressed="true"]{background:var(--accent,#2FBFA4);color:var(--ink,#0e1214)}
+  .mdb-filter-toggle{display:none;background:var(--surface,#1e2427);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.5rem .8rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700}
+  .mdb-loc-open{background:var(--surface,#1e2427);border:1px solid var(--accent-2,#E0A526);color:var(--accent-2,#E0A526);padding:.5rem .9rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.04em}
+  .mdb-layout{display:grid;grid-template-columns:250px 1fr;gap:1.4rem;align-items:start}
+  .mdb-sidebar{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;border:1px solid var(--line,rgba(47,191,164,.22));background:var(--surface,#1e2427);border-radius:8px;padding:1rem}
+  .mdb-side-hd{display:none;justify-content:space-between;align-items:center;margin-bottom:.6rem;font-weight:800}
+  .mdb-fgroup{margin-bottom:1.1rem;border-bottom:1px solid var(--line-soft,rgba(255,255,255,.08));padding-bottom:1rem}
+  .mdb-fgroup:last-of-type{border-bottom:0}
+  .mdb-fgroup h4{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.66rem;color:var(--accent,#2FBFA4);margin:0 0 .6rem}
+  .mdb-check{display:flex;align-items:center;gap:.5rem;cursor:pointer;padding:.24rem 0;font-size:.9rem;color:var(--text,#eaf2f1);line-height:1.3}
+  .mdb-check input{accent-color:var(--accent,#2FBFA4);flex:none;width:15px;height:15px}
+  .mdb-kind{width:100%}
+  .mdb-reset{width:100%;background:transparent;border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.55rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700}
+  .mdb-reset:hover{border-color:var(--accent,#2FBFA4);color:var(--accent,#2FBFA4)}
+  .mdb-count-row{font-family:var(--font-ui,inherit);font-size:.82rem;color:var(--muted,#8fa3a0);margin-bottom:.7rem;letter-spacing:.04em}
+  .mdb-count-row b{color:var(--accent,#2FBFA4);font-size:1rem}
+  .mdb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.8rem}
+  .mdb-grid.is-list{grid-template-columns:1fr}
+  .mcd{border:1px solid var(--line,rgba(47,191,164,.22));border-top:2px solid var(--accent,#2FBFA4);background:var(--surface,#1e2427);padding:.85rem .9rem;display:flex;flex-direction:column;gap:.5rem;cursor:pointer;transition:border-color .15s,transform .1s;border-radius:2px}
+  .mcd:hover{border-top-color:var(--accent-2,#E0A526);transform:translateY(-2px)}
+  .mcd[data-method="hand"]{border-top-color:var(--accent-2,#E0A526)}
+  .mcd[hidden]{display:none}
+  .mcd__top{display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem}
+  .mcd__kind{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.58rem;color:var(--accent,#2FBFA4)}
+  .mcd__kind--hand{color:var(--accent-2,#E0A526)}
+  .mcd__badges{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:flex-end}
+  .mcd__tag{font-family:var(--font-ui,inherit);font-weight:700;font-size:.56rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted,#8fa3a0);border:1px solid var(--line-soft,rgba(255,255,255,.1));border-radius:3px;padding:.08rem .3rem;white-space:nowrap}
+  .mcd__tag--gem{color:var(--accent-2,#E0A526);border-color:color-mix(in srgb,var(--accent-2,#E0A526) 40%,transparent)}
+  .mcd__name{font-family:var(--font-display,inherit);font-weight:800;font-size:1.06rem;line-height:1.12;color:#fff;margin:0;overflow-wrap:break-word}
+  .mcd__sys{display:flex;flex-wrap:wrap;gap:.25rem}
+  .mcd__chip{font-size:.66rem;color:var(--text,#eaf2f1);background:rgba(0,0,0,.3);border:1px solid var(--line-soft,rgba(255,255,255,.09));padding:.1rem .4rem;border-radius:3px;font-family:var(--font-ui,inherit);letter-spacing:.03em}
+  .mcd__chip--muted{color:var(--muted,#8fa3a0)}
+  .mcd__price{font-size:.82rem;color:var(--muted,#8fa3a0);margin-top:auto}
+  .mcd__price b{color:var(--accent-2,#E0A526);font-size:1.02rem;font-variant-numeric:tabular-nums}
+  .mcd__pu{font-size:.66rem;letter-spacing:.04em}
+  .mcd__np{font-style:italic;opacity:.7}
+  .mdb-grid.is-list .mcd{flex-direction:row;flex-wrap:wrap;align-items:center;gap:.5rem 1rem}
+  .mdb-grid.is-list .mcd__name{flex:1 1 160px;font-size:1rem}
+  .mdb-grid.is-list .mcd__price{margin-top:0}
+  .mdb-empty{text-align:center;color:var(--muted,#8fa3a0);padding:2rem;font-size:.95rem}
+  /* Modal */
+  .mdb-modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.72);display:flex;align-items:flex-start;justify-content:center;padding:clamp(.5rem,4vw,3rem) 1rem;overflow:auto}
+  .mdb-modal[hidden]{display:none}
+  .mdb-modal__box{position:relative;max-width:660px;width:100%;background:var(--bg-2,#181d1f);border:1px solid var(--accent,#2FBFA4);border-radius:8px;padding:clamp(1.2rem,4vw,2rem)}
+  .mdb-modal__x{position:absolute;top:.6rem;right:.6rem;background:rgba(0,0,0,.4);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:1rem}
+  .mm__kind{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.62rem;color:var(--accent,#2FBFA4)}
+  .mm__kind.hand{color:var(--accent-2,#E0A526)}
+  .mm__name{font-family:var(--font-display,inherit);font-weight:800;font-size:clamp(1.4rem,4vw,2rem);color:#fff;margin:.2rem 0 .5rem;line-height:1.1}
+  .mm__meta{display:flex;flex-wrap:wrap;gap:.5rem 1.2rem;font-size:.86rem;color:var(--muted,#8fa3a0);margin-bottom:.3rem}
+  .mm__meta b{color:var(--text,#eaf2f1)}
+  .mm__h{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.66rem;color:var(--accent,#2FBFA4);margin:1.2rem 0 .5rem;border-top:1px solid var(--line-soft,rgba(255,255,255,.08));padding-top:.9rem}
+  .mm__loc{display:flex;flex-direction:column;gap:.5rem}
+  .mm__locsys{display:flex;flex-wrap:wrap;gap:.3rem;align-items:baseline}
+  .mm__locsys .sn{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.64rem;color:var(--accent-2,#E0A526);flex:none;min-width:64px}
+  .mm__locsys .bd{font-size:.78rem;color:var(--text,#eaf2f1);background:var(--surface,#1e2427);border:1px solid var(--line-soft,rgba(255,255,255,.08));padding:.08rem .4rem;border-radius:3px}
+  .mm__note{font-size:.78rem;color:var(--muted,#8fa3a0);line-height:1.5;margin:.4rem 0 0;font-style:italic}
+  .mm__terms{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.25rem;max-height:200px;overflow:auto}
+  .mm__terms li{display:flex;justify-content:space-between;gap:.8rem;font-size:.82rem;padding:.28rem .5rem;background:var(--surface,#1e2427);border-radius:4px}
+  .mm__terms li .tn{color:var(--text,#eaf2f1);min-width:0;overflow-wrap:anywhere}
+  .mm__terms li .ts{color:var(--muted,#8fa3a0);font-size:.7rem}
+  .mm__terms li b{color:var(--accent-2,#E0A526);flex:none;font-variant-numeric:tabular-nums}
+  .mm__sellsum{display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;font-size:.84rem;color:var(--muted,#8fa3a0);margin-bottom:.6rem}
+  .mm__sellsum b{color:#fff;font-variant-numeric:tabular-nums}
+  /* Calculator */
+  .mm__calc{background:var(--surface,#1e2427);border:1px solid var(--line-soft,rgba(255,255,255,.08));border-radius:6px;padding:.9rem}
+  .mm__crow{display:flex;flex-wrap:wrap;gap:.8rem;align-items:flex-end;margin-bottom:.7rem}
+  .mm__cfield{display:flex;flex-direction:column;gap:.25rem;flex:1 1 130px}
+  .mm__cfield label{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.6rem;color:var(--muted,#8fa3a0)}
+  .mm__cfield input,.mm__cfield select{background:var(--bg-2,#181d1f);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.45rem .55rem;border-radius:5px;font-size:.92rem;font-family:var(--font-ui,inherit)}
+  .mm__cout{display:flex;flex-wrap:wrap;gap:.5rem}
+  .mm__cbox{flex:1 1 140px;background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.08));border-radius:5px;padding:.55rem .7rem}
+  .mm__cbox span{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.58rem;color:var(--muted,#8fa3a0);display:block}
+  .mm__cbox b{font-size:1.2rem;color:var(--accent-2,#E0A526);font-variant-numeric:tabular-nums}
+  .mm__cbox.refined b{color:var(--accent,#2FBFA4)}
+  .mm__wiki{display:inline-block;margin-top:1rem;font-family:var(--font-ui,inherit);font-weight:700;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent,#2FBFA4);border-bottom:1px solid var(--line,rgba(47,191,164,.3))}
+  /* Reverse-lookup drawer */
+  .mdb-drawer{position:fixed;top:0;right:0;z-index:110;width:min(420px,100%);height:100%;background:var(--bg-2,#181d1f);border-left:1px solid var(--accent-2,#E0A526);transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;overflow:auto}
+  .mdb-drawer.is-open{transform:translateX(0)}
+  .mdb-drawer__hd{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--bg-2,#181d1f);border-bottom:1px solid var(--line,rgba(47,191,164,.22));font-family:var(--font-display,inherit);font-weight:800;font-size:1.05rem;color:#fff;z-index:2}
+  .mdb-drawer__body{padding:1rem}
+  .mdb-x{background:transparent;border:0;color:var(--muted,#8fa3a0);font-size:1.1rem;cursor:pointer}
+  .rl__intro{font-size:.82rem;color:var(--muted,#8fa3a0);line-height:1.5;margin:0 0 .8rem}
+  .rl__search{width:100%;background:var(--surface,#1e2427);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.5rem .7rem;border-radius:6px;font-size:.92rem;margin-bottom:.9rem;font-family:var(--font-ui,inherit)}
+  .rl__sys{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:.64rem;color:var(--accent-2,#E0A526);margin:.8rem 0 .4rem}
+  .rl__body{border:1px solid var(--line-soft,rgba(255,255,255,.08));border-radius:6px;padding:.6rem .7rem;margin-bottom:.5rem}
+  .rl__body[hidden]{display:none}
+  .rl__bn{font-family:var(--font-display,inherit);font-weight:700;color:#fff;font-size:.95rem;margin-bottom:.35rem}
+  .rl__mins{display:flex;flex-wrap:wrap;gap:.25rem}
+  .rl__min{font-size:.72rem;color:var(--text,#eaf2f1);background:var(--surface,#1e2427);border:1px solid var(--line-soft,rgba(255,255,255,.09));padding:.12rem .45rem;border-radius:3px;cursor:pointer}
+  .rl__min:hover{border-color:var(--accent,#2FBFA4);color:var(--accent,#2FBFA4)}
+  /* rating pips */
+  .pips{display:inline-flex;gap:2px;vertical-align:middle;margin-left:.3rem}
+  .pips i{width:7px;height:7px;border-radius:50%;background:var(--line-soft,rgba(255,255,255,.15));display:inline-block}
+  .pips i.on{background:var(--accent,#2FBFA4)}
+  .pips.cost i.on{background:var(--accent-2,#E0A526)}
+  @media(max-width:820px){
+    .mdb-layout{grid-template-columns:1fr}
+    .mdb-filter-toggle{display:inline-block}
+    .mdb-sidebar{position:fixed;top:0;left:0;z-index:105;width:min(320px,88%);height:100%;max-height:none;border-radius:0;transform:translateX(-100%);transition:transform .25s}
+    .mdb-sidebar.is-open{transform:translateX(0)}
+    .mdb-side-hd{display:flex}
+    .mdb-sort .mdb-sr{display:none}
+  }
+  @media(max-width:420px){
+    .mdb-grid{grid-template-columns:1fr}
+  }
+</style>

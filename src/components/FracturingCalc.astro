@@ -1,0 +1,275 @@
+---
+// FracturingCalc.astro — "Kann ich diesen Rock brechen?"
+// SSR-Selects aus dem UEX-Gear-Snapshot; die Fracturing-Heuristik läuft inline.
+// Die exakte CIG-Formel ist nicht öffentlich → klar als Näherung gekennzeichnet.
+import DB from '../../assets/mining-db.json';
+
+interface Props { lang: 'de' | 'en'; }
+const { lang } = Astro.props;
+
+const lasers = DB.lasers || [];
+const modules = DB.modules || [];
+const gadgets = DB.gadgets || [];
+
+const S = {
+  de: {
+    laser: 'Mining-Laser', module: 'Modul', gadget: 'Gadget', none: '— keins —',
+    rock: 'Rock-Werte', resistance: 'Resistance', instability: 'Instabilität', mass: 'Masse',
+    presets: 'Presets', pSmall: 'Klein', pMed: 'Mittel', pLarge: 'Groß', pHard: 'Hoch-resistent',
+    result: 'Ergebnis', reqPower: 'Benötigte Power', availPower: 'Laser-Power (max)',
+    windowCtrl: 'Fenster-Kontrolle', overcharge: 'Überlade-Risiko', recommend: 'Empfehlung',
+    slotsHint: 'Modul-Slots', size: 'Größe', platform: 'Plattform',
+    note: 'Näherung / Heuristik — nicht die echte CIG-Formel. Laser/Modul/Gadget-Stats sind reale UEX-Werte (Resistance-, Fenster-, Instabilitäts-Modifikatoren, Power-Range); das Break-vs-Überlade-Modell ist vereinfacht. Ingame gegenprüfen.',
+  },
+  en: {
+    laser: 'Mining laser', module: 'Module', gadget: 'Gadget', none: '— none —',
+    rock: 'Rock stats', resistance: 'Resistance', instability: 'Instability', mass: 'Mass',
+    presets: 'Presets', pSmall: 'Small', pMed: 'Medium', pLarge: 'Large', pHard: 'High-resistance',
+    result: 'Result', reqPower: 'Required power', availPower: 'Laser power (max)',
+    windowCtrl: 'Window control', overcharge: 'Overcharge risk', recommend: 'Recommendation',
+    slotsHint: 'Module slots', size: 'Size', platform: 'Platform',
+    note: 'Approximation / heuristic — not the real CIG formula. Laser/module/gadget stats are real UEX values (resistance, window and instability modifiers, power range); the break-vs-overcharge model is simplified. Verify in-game.',
+  },
+}[lang];
+
+// Strings fürs Inline-JS
+const JT = {
+  de: {
+    breakable: 'Brechbar', marginal: 'Grenzwertig', unbreakable: 'Nicht brechbar',
+    low: 'niedrig', mid: 'mittel', high: 'hoch',
+    recBreak: 'Reserve gut — Rock bricht komfortabel.',
+    recMarginal: 'Knapp: stärkeren Laser (größere Power-Range) oder ein Resistance-senkendes Gadget/Modul zuschalten.',
+    recUnbreak: 'Zu resistent: Resistance senken (z.B. Gadget %G% oder Modul %M%) oder größeren Laser (S2/MOLE) nutzen.',
+    recOver: 'Überlade-Risiko hoch: Fenster vergrößern / Instabilität senken (z.B. %W%).',
+    reqUnit: 'Power', pct: '%',
+  },
+  en: {
+    breakable: 'Breakable', marginal: 'Marginal', unbreakable: 'Not breakable',
+    low: 'low', mid: 'mid', high: 'high',
+    recBreak: 'Good margin — the rock breaks comfortably.',
+    recMarginal: 'Tight: add a stronger laser (higher power range) or a resistance-lowering gadget/module.',
+    recUnbreak: 'Too resistant: lower resistance (e.g. gadget %G% or module %M%) or use a bigger laser (S2/MOLE).',
+    recOver: 'High overcharge risk: widen the window / lower instability (e.g. %W%).',
+    reqUnit: 'power', pct: '%',
+  },
+}[lang];
+---
+<section class="frac" id="frac">
+  <div class="frac__grid">
+    <div class="frac__in">
+      <div class="frac__row">
+        <label class="frac__field frac__field--wide">
+          <span>{S.laser}</span>
+          <select id="frac-laser">
+            {lasers.map((l, i) => (
+              <option value={i} data-slots={l.slots || 0}>
+                {l.size != null ? `S${l.size} · ` : ''}{l.name}{l.platform ? ` (${l.platform})` : ''}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div class="frac__row" id="frac-mods">
+        <label class="frac__field"><span>{S.module} 1</span><select class="frac-mod" data-slot="0"><option value="-1">{S.none}</option>{modules.map((m, i) => (<option value={i}>{m.name}</option>))}</select></label>
+        <label class="frac__field"><span>{S.module} 2</span><select class="frac-mod" data-slot="1"><option value="-1">{S.none}</option>{modules.map((m, i) => (<option value={i}>{m.name}</option>))}</select></label>
+        <label class="frac__field"><span>{S.module} 3</span><select class="frac-mod" data-slot="2"><option value="-1">{S.none}</option>{modules.map((m, i) => (<option value={i}>{m.name}</option>))}</select></label>
+        <label class="frac__field"><span>{S.gadget}</span><select id="frac-gadget"><option value="-1">{S.none}</option>{gadgets.map((g, i) => (<option value={i}>{g.name}</option>))}</select></label>
+      </div>
+
+      <div class="frac__rockhd">
+        <h4>{S.rock}</h4>
+        <div class="frac__presets" role="group" aria-label={S.presets}>
+          <button type="button" class="frac-preset" data-r="30" data-i="20" data-m="25">{S.pSmall}</button>
+          <button type="button" class="frac-preset" data-r="55" data-i="40" data-m="50">{S.pMed}</button>
+          <button type="button" class="frac-preset" data-r="70" data-i="55" data-m="75">{S.pLarge}</button>
+          <button type="button" class="frac-preset" data-r="92" data-i="65" data-m="60">{S.pHard}</button>
+        </div>
+      </div>
+      <div class="frac__sliders">
+        <label class="frac__slider"><span>{S.resistance} <output id="frac-rv">55</output>%</span><input type="range" id="frac-r" min="0" max="100" value="55"></label>
+        <label class="frac__slider"><span>{S.instability} <output id="frac-iv">40</output>%</span><input type="range" id="frac-i" min="0" max="100" value="40"></label>
+        <label class="frac__slider"><span>{S.mass} <output id="frac-mv">50</output>%</span><input type="range" id="frac-m" min="0" max="100" value="50"></label>
+      </div>
+    </div>
+
+    <div class="frac__out" id="frac-out" aria-live="polite">
+      <div class="frac__verdict" id="frac-verdict">—</div>
+      <div class="frac__bars">
+        <div class="frac__bar"><span class="frac__blabel">{S.reqPower}</span><div class="frac__track"><i id="frac-reqbar"></i></div><b id="frac-req">—</b></div>
+        <div class="frac__bar"><span class="frac__blabel">{S.availPower}</span><div class="frac__track"><i id="frac-availbar" class="ok"></i></div><b id="frac-avail">—</b></div>
+      </div>
+      <div class="frac__metrics">
+        <div class="frac__metric"><span>{S.windowCtrl}</span><b id="frac-win">—</b></div>
+        <div class="frac__metric"><span>{S.overcharge}</span><b id="frac-over">—</b></div>
+      </div>
+      <div class="frac__rec" id="frac-rec">—</div>
+    </div>
+  </div>
+  <p class="frac__note">{S.note}</p>
+
+  <script type="application/json" id="frac-data" set:html={JSON.stringify({ lasers, modules, gadgets, t: JT })}></script>
+  <script is:inline>
+    (function () {
+      var el = document.getElementById('frac-data');
+      if (!el) return;
+      var D = JSON.parse(el.textContent);
+      var T = D.t;
+      var $ = function (id) { return document.getElementById(id); };
+      var laserSel = $('frac-laser'), gadgetSel = $('frac-gadget');
+      var modSels = Array.prototype.slice.call(document.querySelectorAll('.frac-mod'));
+      var rR = $('frac-r'), rI = $('frac-i'), rM = $('frac-m');
+      var BASE = 3600;
+
+      function n(v) { return v == null ? 0 : +v; }
+
+      function syncSlots() {
+        var slots = +laserSel.options[laserSel.selectedIndex].getAttribute('data-slots') || 0;
+        modSels.forEach(function (s, idx) {
+          var on = idx < slots;
+          s.disabled = !on;
+          s.parentElement.style.opacity = on ? '1' : '.4';
+          if (!on) s.value = '-1';
+        });
+      }
+
+      function calc() {
+        var L = D.lasers[+laserSel.value] || {};
+        var mods = modSels.filter(function (s) { return !s.disabled && +s.value >= 0; }).map(function (s) { return D.modules[+s.value]; });
+        var G = +gadgetSel.value >= 0 ? D.gadgets[+gadgetSel.value] : null;
+
+        var sumRes = n(L.resistance), sumWin = n(L.window), sumInst = n(L.instability), powMult = 1;
+        mods.forEach(function (m) {
+          sumRes += n(m.resistance); sumWin += n(m.window); sumInst += n(m.instability);
+          if (m.power_mult) powMult *= m.power_mult / 100;
+        });
+        if (G) { sumRes += n(G.resistance); sumWin += n(G.window); sumInst += n(G.instability); }
+
+        var R = +rR.value, I = +rI.value, M = +rM.value;
+        $('frac-rv').textContent = R; $('frac-iv').textContent = I; $('frac-mv').textContent = M;
+
+        var effR = Math.max(0, R * (1 + sumRes / 100));
+        var massF = 0.7 + (M / 100) * 0.7;
+        var reqPower = (effR / 100) * BASE * massF;
+        var availPower = n(L.power_max) * powMult;
+        var ratio = reqPower > 0 ? availPower / reqPower : 99;
+
+        var effWin = Math.max(10, 100 * (1 + sumWin / 100));
+        var effInst = Math.max(0, I * (1 + sumInst / 100));
+        var riskIdx = effInst / (effWin / 100);
+
+        // Verdict
+        var vEl = $('frac-verdict');
+        var cls, label;
+        if (ratio >= 1.15) { cls = 'ok'; label = T.breakable; }
+        else if (ratio >= 0.9) { cls = 'warn'; label = T.marginal; }
+        else { cls = 'bad'; label = T.unbreakable; }
+        vEl.className = 'frac__verdict ' + cls;
+        vEl.textContent = label + ' · ×' + ratio.toFixed(2);
+
+        // Bars (scale to max of the two)
+        var maxP = Math.max(reqPower, availPower, 1);
+        $('frac-req').textContent = Math.round(reqPower);
+        $('frac-avail').textContent = Math.round(availPower);
+        $('frac-reqbar').style.width = Math.min(100, (reqPower / maxP) * 100) + '%';
+        $('frac-availbar').style.width = Math.min(100, (availPower / maxP) * 100) + '%';
+        $('frac-reqbar').className = cls === 'bad' ? 'bad' : '';
+        $('frac-availbar').className = cls === 'bad' ? 'bad' : 'ok';
+
+        // Window / overcharge
+        $('frac-win').textContent = Math.round(effWin) + '%';
+        var orisk = riskIdx < 35 ? T.low : riskIdx < 70 ? T.mid : T.high;
+        var oEl = $('frac-over');
+        oEl.textContent = orisk;
+        oEl.className = riskIdx < 35 ? 'ok' : riskIdx < 70 ? 'warn' : 'bad';
+
+        // Recommendation
+        var rec = '';
+        if (cls === 'ok') rec = T.recBreak;
+        else if (cls === 'warn') rec = T.recMarginal;
+        else {
+          var bestGad = pickBy(D.gadgets, 'resistance');
+          var bestMod = pickBy(D.modules, 'resistance');
+          rec = T.recUnbreak.replace('%G%', bestGad ? bestGad.name : 'Sabir').replace('%M%', bestMod ? bestMod.name : 'Rime');
+        }
+        if (riskIdx >= 70) {
+          var bestWin = pickBy(D.gadgets, 'window', true);
+          rec += ' ' + T.recOver.replace('%W%', bestWin ? bestWin.name : 'Waveshift');
+        }
+        $('frac-rec').textContent = rec;
+      }
+
+      // pick item with most negative (or most positive if want=true) value for a stat
+      function pickBy(arr, key, want) {
+        var best = null;
+        arr.forEach(function (x) {
+          var v = x[key];
+          if (v == null) return;
+          if (best == null) best = x;
+          else if (want ? v > best[key] : v < best[key]) best = x;
+        });
+        return best;
+      }
+
+      laserSel.addEventListener('change', function () { syncSlots(); calc(); });
+      gadgetSel.addEventListener('change', calc);
+      modSels.forEach(function (s) { s.addEventListener('change', calc); });
+      [rR, rI, rM].forEach(function (s) { s.addEventListener('input', calc); });
+      document.querySelectorAll('.frac-preset').forEach(function (b) {
+        b.addEventListener('click', function () {
+          rR.value = b.getAttribute('data-r'); rI.value = b.getAttribute('data-i'); rM.value = b.getAttribute('data-m');
+          calc();
+        });
+      });
+
+      syncSlots();
+      calc();
+    })();
+  </script>
+
+  <style is:inline>
+    .frac{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
+    .frac__grid{display:grid;grid-template-columns:1.3fr 1fr;gap:1.2rem;align-items:start}
+    .frac__in,.frac__out{border:1px solid var(--line,rgba(47,191,164,.22));background:var(--surface,#1e2427);border-radius:8px;padding:1rem 1.1rem}
+    .frac__out{border-top:2px solid var(--accent,#2FBFA4)}
+    .frac__row{display:flex;flex-wrap:wrap;gap:.7rem;margin-bottom:.8rem}
+    .frac__field{display:flex;flex-direction:column;gap:.25rem;flex:1 1 130px;min-width:0}
+    .frac__field--wide{flex:1 1 100%}
+    .frac__field span{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.6rem;color:var(--muted,#8fa3a0)}
+    .frac__field select{background:var(--bg-2,#181d1f);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.45rem .55rem;border-radius:5px;font-size:.9rem;font-family:var(--font-ui,inherit);max-width:100%}
+    .frac__rockhd{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin:.4rem 0 .6rem;border-top:1px solid var(--line-soft,rgba(255,255,255,.08));padding-top:.9rem}
+    .frac__rockhd h4{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.66rem;color:var(--accent,#2FBFA4);margin:0}
+    .frac__presets{display:flex;flex-wrap:wrap;gap:.3rem}
+    .frac-preset{background:var(--bg-2,#181d1f);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.3rem .55rem;border-radius:5px;cursor:pointer;font-size:.72rem;font-family:var(--font-ui,inherit);font-weight:700}
+    .frac-preset:hover{border-color:var(--accent,#2FBFA4);color:var(--accent,#2FBFA4)}
+    .frac__sliders{display:flex;flex-direction:column;gap:.7rem}
+    .frac__slider{display:flex;flex-direction:column;gap:.2rem}
+    .frac__slider span{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.64rem;color:var(--muted,#8fa3a0);display:flex;justify-content:space-between}
+    .frac__slider output{color:var(--accent,#2FBFA4);font-weight:800}
+    .frac__slider input{width:100%;accent-color:var(--accent,#2FBFA4)}
+    .frac__verdict{font-family:var(--font-display,inherit);font-weight:900;font-size:clamp(1.2rem,3.5vw,1.7rem);text-align:center;padding:.7rem;border-radius:6px;margin-bottom:.9rem;color:#fff;background:var(--surface-2,#252c30);border:1px solid var(--line-soft,rgba(255,255,255,.1))}
+    .frac__verdict.ok{color:#0e1214;background:var(--accent,#2FBFA4)}
+    .frac__verdict.warn{color:#0e1214;background:var(--accent-2,#E0A526)}
+    .frac__verdict.bad{color:#fff;background:#c0392b}
+    .frac__bars{display:flex;flex-direction:column;gap:.55rem;margin-bottom:.9rem}
+    .frac__bar{display:grid;grid-template-columns:1fr auto;align-items:center;gap:.2rem .6rem}
+    .frac__blabel{grid-column:1;font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.6rem;color:var(--muted,#8fa3a0)}
+    .frac__bar b{grid-row:1 / span 2;grid-column:2;color:var(--text,#eaf2f1);font-variant-numeric:tabular-nums;font-size:.92rem}
+    .frac__track{grid-column:1;height:9px;background:var(--bg-2,#181d1f);border-radius:5px;overflow:hidden;border:1px solid var(--line-soft,rgba(255,255,255,.08))}
+    .frac__track i{display:block;height:100%;width:0;background:var(--muted,#8fa3a0);transition:width .18s}
+    .frac__track i.ok{background:var(--accent,#2FBFA4)}
+    .frac__track i.bad{background:#c0392b}
+    .frac__metrics{display:flex;gap:.6rem;margin-bottom:.9rem}
+    .frac__metric{flex:1 1 0;background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.08));border-radius:5px;padding:.5rem .6rem}
+    .frac__metric span{display:block;font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.56rem;color:var(--muted,#8fa3a0)}
+    .frac__metric b{font-size:1.05rem;color:var(--text,#eaf2f1)}
+    .frac__metric b.ok{color:var(--accent,#2FBFA4)}
+    .frac__metric b.warn{color:var(--accent-2,#E0A526)}
+    .frac__metric b.bad{color:#e06055}
+    .frac__rec{font-size:.86rem;line-height:1.5;color:var(--text,#eaf2f1);background:var(--bg-2,#181d1f);border-left:3px solid var(--accent,#2FBFA4);border-radius:4px;padding:.6rem .8rem}
+    .frac__note{max-width:var(--maxw,1240px);margin:.9rem auto 0;font-size:.78rem;color:var(--muted,#8fa3a0);line-height:1.5;font-style:italic}
+    @media(max-width:760px){
+      .frac__grid{grid-template-columns:1fr}
+    }
+  </style>
+</section>

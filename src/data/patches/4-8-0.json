@@ -198,6 +198,27 @@
           "value": "Voller Wipe (erste seit 4.0.0)"
         }
       ]
+    },
+    {
+      "name": "Mining",
+      "system": "Mining & Ressourcen",
+      "kind": "gameplay",
+      "desc": "Ressourcenabbau von Hand-Edelsteinen bis zum Multicrew-Schiff-Mining. Das System reicht von der Prospector (seit Alpha 3.2) über die überarbeitete ARGO MOLE (4.7/4.8) bis zu ROC- und Hand-Mining; Pyro erweiterte den Erz-Pool (Stileron, Riccite, Lindinium). Roherz wird an Refinery-Decks nach einer von neun Methoden raffiniert und verkauft.",
+      "facts": [
+        {
+          "label": "Systeme",
+          "value": "Stanton · Pyro · Nyx"
+        },
+        {
+          "label": "Methoden",
+          "value": "Schiff (Prospector/MOLE) · ROC · Hand"
+        },
+        {
+          "label": "Refinery-Methoden",
+          "value": "9 (Ertrag/Kosten/Tempo)"
+        }
+      ],
+      "topicSlug": "mining"
     }
   ],
   "ships": [
@@ -247,6 +268,10 @@
     {
       "slug": "4-8-0-xenothreat",
       "title": "XenoThreat"
+    },
+    {
+      "slug": "mining",
+      "title": "Mining"
     }
   ]
 }

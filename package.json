@@ -12,6 +12,7 @@
     "sync:ships": "node scripts/sync-ships.mjs",
     "sync:vehicles": "node scripts/sync-vehicles.mjs",
     "sync:prices": "node scripts/sync-prices.mjs",
+    "sync:mining": "node scripts/fetch-mining.mjs",
     "sync:extras": "node scripts/sync-fleetyards-extras.mjs"
   },
   "dependencies": {
