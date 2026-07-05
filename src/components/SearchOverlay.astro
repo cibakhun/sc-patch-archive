@@ -20,6 +20,11 @@ const t = useTranslations(lang);
   data-empty-title={t('search.empty.title')}
   data-empty-query={t('search.empty.query')}
   data-empty-hint={t('search.empty.hint')}
+  data-k-schiff={t('search.kind.schiff')}
+  data-k-patch={t('search.kind.patch')}
+  data-k-thema={t('search.kind.thema')}
+  data-k-feature={t('search.kind.feature')}
+  data-k-event={t('search.kind.event')}
 >
   <div class="scs__back" data-scs-close></div>
   <div class="scs__panel" role="dialog" aria-modal="true" aria-label={t('search.dialog')}>
@@ -45,7 +50,11 @@ const t = useTranslations(lang);
   </div>
 </div>
 
-<style>
+<!-- is:global — the result rows are built in the is:inline script below, so they
+     never receive Astro's scope attribute; scoped selectors would silently miss
+     them (that was the "unformatted text wall" bug). Every class is scs__-prefixed,
+     so a global block is safe and applies to both template and injected nodes. -->
+<style is:global>
   .scs {
     position: fixed;
     inset: 0;
@@ -130,53 +139,128 @@ const t = useTranslations(lang);
   .scs__list {
     list-style: none;
     margin: 0;
-    padding: 0.4rem;
-    max-height: 52vh;
+    padding: 0.5rem;
+    max-height: 56vh;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--accent, #2dd4ff) 45%, transparent) transparent;
   }
-  .scs__list li {
+  /* one result = one clearly bounded card row (badge · body · arrow) */
+  .scs__hit {
+    --c: var(--accent, #2dd4ff);
+    position: relative;
     display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.15rem 0.8rem;
-    padding: 0.55rem 0.9rem;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 0.9rem;
+    row-gap: 0.1rem;
+    padding: 0.7rem 0.85rem 0.7rem 0.75rem;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
     border-left: 3px solid transparent;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--surface, #0f1524) 55%, transparent);
     cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s;
+    scroll-margin: 0.5rem;
+    transition: background-color 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
   }
-  .scs__list li.sel,
-  .scs__list li:hover {
-    background: color-mix(in srgb, var(--accent, #2dd4ff) 6%, transparent);
-    border-left-color: var(--accent, #2dd4ff);
+  /* hover AND keyboard selection share one unmistakable highlighted state —
+     kept as two self-contained rules (not a shared selector list) so the
+     keyboard `.sel` row always gets the full highlight, not just part of it */
+  .scs__hit:hover {
+    background: color-mix(in srgb, var(--c) 16%, var(--surface, #0f1524)) !important;
+    border-color: color-mix(in srgb, var(--c) 45%, transparent) !important;
+    border-left-color: var(--c) !important;
+    transform: translateX(2px);
+  }
+  .scs__hit.sel {
+    background: color-mix(in srgb, var(--c) 18%, var(--surface, #0f1524)) !important;
+    border-color: color-mix(in srgb, var(--c) 45%, transparent) !important;
+    border-left-color: var(--c) !important;
+    transform: translateX(2px);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 40%, transparent);
   }
   .scs__badge {
-    grid-row: span 2;
-    align-self: start;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--accent, #2dd4ff);
-    border: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 35%, transparent);
-    background: color-mix(in srgb, var(--accent, #2dd4ff) 8%, transparent);
-    padding: 0.18rem 0.4rem;
-    margin-top: 0.15rem;
+    color: var(--c);
+    border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+    background: color-mix(in srgb, var(--c) 12%, transparent);
+    border-radius: 2px;
+    padding: 0.2rem 0.45rem;
     white-space: nowrap;
-    min-width: 6.5rem;
+    min-width: 4.6rem;
     text-align: center;
   }
+  /* type colour-coding — instantly tells ships from patches from topics */
+  .scs__hit--schiff { --c: var(--accent, #2dd4ff); }
+  .scs__hit--patch { --c: var(--gold, #d4af37); }
+  .scs__hit--thema { --c: var(--accent-2, #6ea8ff); }
+  .scs__hit--feature { --c: #5ad19a; }
+  .scs__hit--event { --c: #ff8a50; }
   .scs__t {
+    grid-column: 2;
+    grid-row: 1;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
     font-size: 1.02rem;
+    line-height: 1.25;
     color: var(--text, #e8eefc);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .scs__s {
+    grid-column: 2;
+    grid-row: 2;
     font-size: 0.85rem;
+    line-height: 1.35;
     color: var(--muted, #8a99b8);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .scs__meta {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    color: var(--muted, #8a99b8);
+    white-space: nowrap;
+  }
+  .scs__go {
+    color: var(--c);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.14s ease, transform 0.14s ease;
+  }
+  .scs__hit:hover .scs__go {
+    opacity: 1;
+    transform: none;
+  }
+  .scs__hit.sel .scs__go {
+    opacity: 1;
+    transform: none;
+  }
+  .scs__hit:hover .scs__meta {
+    color: var(--text, #e8eefc);
+  }
+  .scs__hit.sel .scs__meta {
+    color: var(--text, #e8eefc);
   }
   .scs__empty {
     padding: 1.2rem 1.4rem;
@@ -227,7 +311,17 @@ const t = useTranslations(lang);
       margin: 6vh 4vw 0;
     }
     .scs__badge {
-      min-width: 5rem;
+      min-width: 3.9rem;
+      font-size: 0.64rem;
+      letter-spacing: 0.1em;
+    }
+    /* drop the right-hand version meta on narrow screens — the badge + title
+       carry the identity, and the arrow alone signals the active row */
+    .scs__meta-ver {
+      display: none;
+    }
+    .scs__hit {
+      column-gap: 0.7rem;
     }
   }
 </style>
@@ -308,19 +402,41 @@ const t = useTranslations(lang);
       results.forEach(function (e, i) {
         var li = document.createElement('li');
         li.setAttribute('role', 'option');
+        li.className = 'scs__hit scs__hit--' + e.k;
+        li.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
         if (i === 0) li.classList.add('sel');
+
         var badge = document.createElement('span');
         badge.className = 'scs__badge';
-        badge.textContent = e.b + ' · ' + e.k;
-        var t = document.createElement('div');
+        // localized type label (Schiff/Patch/Thema/…), falling back to the raw kind
+        badge.textContent = root.dataset['k' + e.k.charAt(0).toUpperCase() + e.k.slice(1)] || e.k;
+
+        var t = document.createElement('span');
         t.className = 'scs__t';
         t.textContent = e.t;
-        var s = document.createElement('div');
+
+        var s = document.createElement('span');
         s.className = 'scs__s';
-        s.textContent = e.s;
+        s.textContent = e.s || '';
+
+        var meta = document.createElement('span');
+        meta.className = 'scs__meta';
+        if (e.b) {
+          var ver = document.createElement('span');
+          ver.className = 'scs__meta-ver';
+          ver.textContent = e.b;
+          meta.appendChild(ver);
+        }
+        var go_ = document.createElement('span');
+        go_.className = 'scs__go';
+        go_.setAttribute('aria-hidden', 'true');
+        go_.textContent = '→';
+        meta.appendChild(go_);
+
         li.appendChild(badge);
         li.appendChild(t);
         li.appendChild(s);
+        li.appendChild(meta);
         li.addEventListener('click', function () { go(i); });
         list.appendChild(li);
       });
@@ -329,9 +445,10 @@ const t = useTranslations(lang);
     function move(d) {
       if (!results.length) return;
       var items = list.querySelectorAll('li[role="option"]');
-      items[sel] && items[sel].classList.remove('sel');
+      if (items[sel]) { items[sel].classList.remove('sel'); items[sel].setAttribute('aria-selected', 'false'); }
       sel = (sel + d + results.length) % results.length;
       items[sel].classList.add('sel');
+      items[sel].setAttribute('aria-selected', 'true');
       items[sel].scrollIntoView({ block: 'nearest' });
     }
 

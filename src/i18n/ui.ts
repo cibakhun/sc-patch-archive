@@ -76,6 +76,11 @@ const UI = {
     'search.empty.title': 'Kein Eintrag im Register',
     'search.empty.query': 'Anfrage »%q%« ',
     'search.empty.hint': 'ergab keine Treffer — Version oder Codename versuchen.',
+    'search.kind.schiff': 'Schiff',
+    'search.kind.patch': 'Patch',
+    'search.kind.thema': 'Thema',
+    'search.kind.feature': 'Feature',
+    'search.kind.event': 'Event',
     // -- Pager --
     'pager.older': '← Älter',
     'pager.newer': 'Neuer →',
@@ -298,6 +303,11 @@ const UI = {
     'search.empty.title': 'No entry in the register',
     'search.empty.query': 'Query “%q%” ',
     'search.empty.hint': 'returned no matches — try a version or codename.',
+    'search.kind.schiff': 'Ship',
+    'search.kind.patch': 'Patch',
+    'search.kind.thema': 'Topic',
+    'search.kind.feature': 'Feature',
+    'search.kind.event': 'Event',
     // -- Pager --
     'pager.older': '← Older',
     'pager.newer': 'Newer →',
