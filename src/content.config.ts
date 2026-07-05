@@ -153,6 +153,12 @@ const vehicles = defineCollection({
     fixedWeapons: z.array(
       z.object({ name: z.string(), count: z.number(), dps: z.number().nullable() })
     ),
+    /** pilot-weapon HARDPOINT max sizes (what is mountable), aggregated per size,
+     *  from the detail endpoint's `components[].weapons`. Paired with the
+     *  equipped-weapon sizes below for display. */
+    fixedWeaponMounts: z
+      .array(z.object({ size: z.number(), count: z.number() }))
+      .default([]),
     /** size classes of the ACTUAL equipped pilot weapons, aggregated per size.
      *  Resolved by enrich-weapon-sizes.mjs from the fitted weapon names via the
      *  WeaponGun items catalog (NOT the hardpoint max size). Optional so the

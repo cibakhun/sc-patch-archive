@@ -59,15 +59,78 @@ export function buildFacts(d: VehicleData, lang: Locale = DEFAULT_LOCALE): Fact[
 /* those stay name/DPS-only instead of getting a fabricated S-class.         */
 /* ------------------------------------------------------------------------ */
 export type ArmChip = { label: string; count: number };
+/** a pilot-gun hardpoint paired with the size of the weapon fitted in it.
+ *  `mount` is null when the hardpoint size can't be reliably matched to the
+ *  weapon (count mismatch / inconsistent data) — then only the weapon shows. */
+export type MountPair = { mount: number | null; weapon: number; count: number };
 export type ArmRow = {
   label: string;
   meta?: string;
   chips: ArmChip[];
+  /** fixed pilot-weapon row: hardpoint↔weapon size pairs (replaces plain chips) */
+  mountPairs?: MountPair[];
+  /** fallback note: hardpoint max sizes when they couldn't be paired 1:1 */
+  mountsNote?: string;
   items?: string;
   value?: string;
   /** stable flag: this row is the missiles row (drives the gold styling) */
   gold?: boolean;
 };
+
+/** expand an aggregated [{size,count}] list into a flat per-item size array */
+const expandSizes = (list: { size: number; count: number }[] | undefined): number[] => {
+  const out: number[] = [];
+  for (const { size, count } of list ?? []) for (let i = 0; i < count; i++) out.push(size);
+  return out;
+};
+
+/** aggregate a size array back into "S3×2 · S4×1" for a note */
+const noteSizes = (sizes: number[]): string => {
+  const m = new Map<number, number>();
+  for (const s of sizes) m.set(s, (m.get(s) ?? 0) + 1);
+  return [...m.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([s, c]) => `S${s}×${c}`)
+    .join(' · ');
+};
+
+/**
+ * Pair each pilot-gun hardpoint (max mountable size) with the size of the weapon
+ * actually fitted in it. When the two lists have equal length and every weapon
+ * fits its hardpoint (weapon ≤ hardpoint after size-desc sort), the pairing is
+ * unambiguous and we return grouped pairs. Otherwise (e.g. pilot-turret guns the
+ * hardpoint list doesn't count) we fall back to weapon-only pairs + a note.
+ */
+function pairMountsAndWeapons(
+  mounts: { size: number; count: number }[] | undefined,
+  weapons: { size: number; count: number }[] | undefined
+): { pairs: MountPair[]; note?: string } {
+  const w = expandSizes(weapons).sort((a, b) => b - a);
+  if (!w.length) return { pairs: [] };
+  const hp = expandSizes(mounts).sort((a, b) => b - a);
+  const feasible = hp.length === w.length && w.every((x, i) => x <= hp[i]);
+  const group = (key: (i: number) => string, make: (k: string, c: number) => MountPair) => {
+    const g = new Map<string, number>();
+    for (let i = 0; i < w.length; i++) g.set(key(i), (g.get(key(i)) ?? 0) + 1);
+    return [...g.entries()].map(([k, c]) => make(k, c));
+  };
+  if (feasible) {
+    const pairs = group(
+      (i) => `${hp[i]}-${w[i]}`,
+      (k, count) => {
+        const [m, wv] = k.split('-').map(Number);
+        return { mount: m, weapon: wv, count };
+      }
+    ).sort((a, b) => b.weapon - a.weapon || (b.mount ?? 0) - (a.mount ?? 0));
+    return { pairs };
+  }
+  // fallback: show the weapon sizes (always correct), hardpoints as a note
+  const pairs = group(
+    (i) => String(w[i]),
+    (k, count) => ({ mount: null, weapon: Number(k), count })
+  ).sort((a, b) => b.weapon - a.weapon);
+  return { pairs, note: hp.length ? noteSizes(hp) : undefined };
+}
 
 const payloadMap = (t: ReturnType<typeof useTranslations>): Record<string, string> => ({
   'WeaponGun.Gun': t('payload.gun'),
@@ -82,12 +145,14 @@ export function buildArmament(d: VehicleData, lang: Locale = DEFAULT_LOCALE): Ar
   const rows: ArmRow[] = [];
 
   if (d.fixedWeapons.length) {
+    // pair each hardpoint (max mountable size) with the fitted weapon's size
+    const { pairs, note } = pairMountsAndWeapons(d.fixedWeaponMounts, d.fixedWeaponSizes);
     rows.push({
       label: t('arm.pilotFixed'),
       meta: `${d.fixedWeapons.reduce((n, w) => n + w.count, 0)} ${t('arm.weapons')}`,
-      // size classes of the actually equipped guns (resolved from the fitted
-      // weapon names via the items catalog — see enrich-weapon-sizes.mjs)
-      chips: (d.fixedWeaponSizes ?? []).map((m) => ({ label: `S${m.size}`, count: m.count })),
+      chips: [],
+      mountPairs: pairs,
+      mountsNote: note,
       items: d.fixedWeapons.map((w) => `${w.count}× ${w.name}`).join(' · '),
       value: d.pilotDps ? `${num(d.pilotDps, loc)} DPS` : undefined,
     });

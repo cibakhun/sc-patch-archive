@@ -108,6 +108,12 @@
           "size": 3,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
       ]
     },
     {
@@ -214,6 +220,12 @@
           "size": 3,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
       ]
     },
     {
@@ -316,6 +328,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 2
@@ -437,6 +455,12 @@
           "size": 3,
           "count": 3
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 3
+        }
       ]
     },
     {
@@ -544,6 +568,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 2
@@ -674,6 +704,16 @@
           "size": 4,
           "count": 1
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        },
+        {
+          "size": 4,
+          "count": 1
+        }
       ]
     },
     {
@@ -786,6 +826,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 3
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 3
@@ -927,6 +973,12 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -1059,6 +1111,12 @@
           "size": 5,
           "count": 3
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 3
+        }
       ]
     },
     {
@@ -1183,6 +1241,12 @@
       "gameVersion": "4.8.2-LIVE.12030094",
       "image": null,
       "fixedWeaponSizes": [
+        {
+          "size": 5,
+          "count": 3
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 5,
           "count": 3
@@ -1319,6 +1383,12 @@
           "size": 5,
           "count": 3
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 3
+        }
       ]
     },
     {
@@ -1431,6 +1501,12 @@
         },
         {
           "size": 2,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
           "count": 2
         }
       ]
@@ -1599,7 +1675,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/7/76/890_Jump_Leaving_Hurston_3.6.png/320px-890_Jump_Leaving_Hurston_3.6.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "crus-spirit-a1",
@@ -1723,6 +1800,12 @@
         {
           "size": 3,
           "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
         }
       ]
     },
@@ -1876,6 +1959,12 @@
           "size": 5,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 2
+        }
       ]
     },
     {
@@ -1988,6 +2077,12 @@
           "size": 3,
           "count": 2
         },
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 4,
           "count": 2
@@ -2112,6 +2207,12 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -2228,6 +2329,12 @@
           "size": 7,
           "count": 1
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 7,
+          "count": 1
+        }
       ]
     },
     {
@@ -2340,6 +2447,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 7,
+          "count": 1
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 7,
           "count": 1
@@ -2465,6 +2578,12 @@
           "size": 1,
           "count": 2
         },
+        {
+          "size": 3,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 2
@@ -2601,6 +2720,12 @@
           "size": 3,
           "count": 6
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 4
+        }
       ]
     },
     {
@@ -2667,7 +2792,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/2/2f/ATLS_in_cargo_elevator_-_cropped.jpg/320px-ATLS_in_cargo_elevator_-_cropped.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "argo-atls-geo-collector-grad03",
@@ -2733,7 +2859,8 @@
       "patches": [],
       "gameVersion": "4.8.2-LIVE.12030094",
       "image": null,
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "argo-atls-geo",
@@ -2803,7 +2930,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/9/95/ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg/320px-ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "argo-atls-geo-collector-grad01",
@@ -2869,7 +2997,8 @@
       "patches": [],
       "gameVersion": "4.8.2-LIVE.12030094",
       "image": null,
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "rsi-aurora-gs-cl",
@@ -2979,6 +3108,12 @@
         {
           "size": 1,
           "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 4
         }
       ]
     },
@@ -3092,6 +3227,12 @@
           "size": 1,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 4
+        }
       ]
     },
     {
@@ -3199,6 +3340,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 4
@@ -3314,6 +3461,12 @@
           "size": 1,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 4
+        }
       ]
     },
     {
@@ -3425,6 +3578,12 @@
           "size": 1,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 4
+        }
       ]
     },
     {
@@ -3532,6 +3691,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 4
@@ -3645,6 +3810,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 2,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 2,
           "count": 4
@@ -3765,6 +3936,16 @@
           "size": 3,
           "count": 3
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        },
+        {
+          "size": 4,
+          "count": 1
+        }
       ]
     },
     {
@@ -3880,6 +4061,16 @@
         {
           "size": 3,
           "count": 3
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        },
+        {
+          "size": 4,
+          "count": 1
         }
       ]
     },
@@ -3997,6 +4188,16 @@
           "size": 3,
           "count": 3
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        },
+        {
+          "size": 4,
+          "count": 1
+        }
       ]
     },
     {
@@ -4112,6 +4313,16 @@
         {
           "size": 3,
           "count": 3
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        },
+        {
+          "size": 4,
+          "count": 2
         }
       ]
     },
@@ -4231,7 +4442,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/c/cb/Ballista_on_glassland_firing_weapons_-_cropped.jpg/320px-Ballista_on_glassland_firing_weapons_-_cropped.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "anvl-ballista-dunestalker",
@@ -4349,7 +4561,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/c/c6/Ballista_Dunestalker_on_Hurston_with_weapons_pointing_upwards.jpg/320px-Ballista_Dunestalker_on_Hurston_with_weapons_pointing_upwards.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "anvl-ballista-snowblind",
@@ -4467,7 +4680,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/1/16/Ballista_Snowblind_firing_its_torpedo_-_Cropped_2.png/320px-Ballista_Snowblind_firing_its_torpedo_-_Cropped_2.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "vncl-blade",
@@ -4579,6 +4793,16 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 2,
+          "count": 2
+        },
+        {
+          "size": 3,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 2,
           "count": 2
@@ -4712,6 +4936,20 @@
           "size": 3,
           "count": 3
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        },
+        {
+          "size": 3,
+          "count": 2
+        },
+        {
+          "size": 4,
+          "count": 1
+        }
       ]
     },
     {
@@ -4822,6 +5060,12 @@
         {
           "size": 3,
           "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
         }
       ]
     },
@@ -4953,6 +5197,12 @@
           "size": 5,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 2
+        }
       ]
     },
     {
@@ -5060,6 +5310,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 2
@@ -5175,6 +5431,12 @@
           "size": 1,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 4
+        }
       ]
     },
     {
@@ -5287,6 +5549,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 4
@@ -5426,7 +5694,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/9/92/Carrack_over_microTech_3.8.png/320px-Carrack_over_microTech_3.8.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "anvl-carrack-expedition",
@@ -5561,7 +5830,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/4/4f/Carrack-expedition-02.png/320px-Carrack-expedition-02.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "drak-caterpillar",
@@ -5676,7 +5946,13 @@
         "thumb": "https://media.starcitizen.tools/thumb/e/e6/Caterpillar_flying_fast_through_space_-_Cropped.jpg/320px-Caterpillar_flying_fast_through_space_-_Cropped.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
+      ]
     },
     {
       "id": "drak-caterpillar-pirate",
@@ -5791,7 +6067,13 @@
         "thumb": "https://cstone.space/uifimages/565d8121-50a9-4920-af50-f176caef0431.png",
         "source": "cstone.space"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
+      ]
     },
     {
       "id": "anvl-centurion",
@@ -5918,7 +6200,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/b/b0/Centurion_-_In_battle_with_all_guns_firing.png/320px-Centurion_-_In_battle_with_all_guns_firing.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "drak-clipper",
@@ -6040,6 +6323,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 4
@@ -6182,6 +6471,12 @@
           "size": 5,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 4
+        }
       ]
     },
     {
@@ -6310,6 +6605,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 5,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 5,
           "count": 4
@@ -6466,6 +6767,12 @@
           "size": 5,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 4
+        }
       ]
     },
     {
@@ -6618,6 +6925,12 @@
           "size": 5,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 4
+        }
       ]
     },
     {
@@ -6751,6 +7064,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 5,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 5,
           "count": 4
@@ -6905,6 +7224,16 @@
           "size": 5,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 4
+        },
+        {
+          "size": 5,
+          "count": 2
+        }
       ]
     },
     {
@@ -6987,7 +7316,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/8/89/CSV-SM_driving_through_snowy_outpost_-_cropped.png/320px-CSV-SM_driving_through_snowy_outpost_-_cropped.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "drak-cutlass-black",
@@ -7129,6 +7459,12 @@
           "size": 3,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 4
+        }
       ]
     },
     {
@@ -7266,6 +7602,12 @@
           "size": 3,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 4
+        }
       ]
     },
     {
@@ -7368,6 +7710,12 @@
       "gameVersion": "4.8.2-LIVE.12030094",
       "image": null,
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 4
@@ -7534,6 +7882,12 @@
           "size": 3,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 4
+        }
       ]
     },
     {
@@ -7642,6 +7996,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 2,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 2,
           "count": 2
@@ -7758,6 +8118,12 @@
           "size": 2,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        }
       ]
     },
     {
@@ -7870,7 +8236,8 @@
           "size": 2,
           "count": 2
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "tmbl-cyclone",
@@ -7959,7 +8326,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/2/28/Cyclone_driving_through_fire_over_V_rocky_world_-_cropped.jpg/320px-Cyclone_driving_through_fire_over_V_rocky_world_-_cropped.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "tmbl-cyclone-aa",
@@ -8047,7 +8415,13 @@
         "thumb": "https://media.starcitizen.tools/thumb/4/4b/Cyclone_AA_in_2948_Expo_-_Front.jpg/320px-Cyclone_AA_in_2948_Expo_-_Front.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 1
+        }
+      ]
     },
     {
       "id": "tmbl-cyclone-mt",
@@ -8161,7 +8535,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/e/e8/Cyclone_MT_driving_through_mountainous_area_-_cropped_and_adjusted.jpg/320px-Cyclone_MT_driving_through_mountainous_area_-_cropped_and_adjusted.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "tmbl-cyclone-rc",
@@ -8249,7 +8624,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/8/86/Cyclone-RC_on_Hurston.png/320px-Cyclone-RC_on_Hurston.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "tmbl-cyclone-rn",
@@ -8337,7 +8713,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/4/43/Cyclone_RN_in_2948_Expo_-_Front_Starboard.jpg/320px-Cyclone_RN_in_2948_Expo_-_Front_Starboard.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "tmbl-cyclone-tr",
@@ -8446,7 +8823,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/7/7d/Cyclone_TR_on_Aberdeen_-_Front_Starboard_1_-_Cut.png/320px-Cyclone_TR_on_Aberdeen_-_Front_Starboard_1_-_Cut.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "banu-defender",
@@ -8557,6 +8935,12 @@
           "size": 3,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 4
+        }
       ]
     },
     {
@@ -8650,6 +9034,12 @@
           "size": 1,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        }
       ]
     },
     {
@@ -8739,6 +9129,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 2
@@ -8850,6 +9246,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 2,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 2,
           "count": 2
@@ -8988,6 +9390,12 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -9103,6 +9511,12 @@
         {
           "size": 3,
           "count": 6
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
         }
       ]
     },
@@ -9220,6 +9634,12 @@
           "size": 3,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
       ]
     },
     {
@@ -9329,6 +9749,12 @@
       "fixedWeaponSizes": [
         {
           "size": 3,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
           "count": 2
         }
       ]
@@ -9452,6 +9878,12 @@
           "size": 3,
           "count": 3
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
       ]
     },
     {
@@ -9569,6 +10001,16 @@
           "size": 1,
           "count": 2
         },
+        {
+          "size": 3,
+          "count": 2
+        },
+        {
+          "size": 4,
+          "count": 1
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 2
@@ -9702,6 +10144,16 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        },
+        {
+          "size": 4,
+          "count": 1
+        }
       ]
     },
     {
@@ -9831,6 +10283,12 @@
           "size": 3,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
       ]
     },
     {
@@ -9949,6 +10407,12 @@
           "size": 3,
           "count": 6
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -10065,6 +10529,12 @@
           "size": 3,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
       ]
     },
     {
@@ -10174,6 +10644,12 @@
       "fixedWeaponSizes": [
         {
           "size": 3,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
           "count": 2
         }
       ]
@@ -10292,6 +10768,12 @@
           "size": 3,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
       ]
     },
     {
@@ -10401,6 +10883,12 @@
       "fixedWeaponSizes": [
         {
           "size": 3,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
           "count": 2
         }
       ]
@@ -10528,6 +11016,16 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        },
+        {
+          "size": 3,
+          "count": 4
+        }
       ]
     },
     {
@@ -10653,6 +11151,16 @@
         {
           "size": 2,
           "count": 4
+        },
+        {
+          "size": 3,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
         },
         {
           "size": 3,
@@ -10788,6 +11296,16 @@
           "size": 3,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        },
+        {
+          "size": 3,
+          "count": 4
+        }
       ]
     },
     {
@@ -10893,6 +11411,12 @@
           "size": 2,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 4
+        }
       ]
     },
     {
@@ -10981,7 +11505,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/c/c2/Fury_LX_x2_flying_low_and_fast_by_a_crashed_M50_-_Cut.jpg/320px-Fury_LX_x2_flying_low_and_fast_by_a_crashed_M50_-_Cut.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "misc-fury-miru",
@@ -11085,7 +11610,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/8/86/Fury_Miru_Concept_Art.png/320px-Fury_Miru_Concept_Art.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "anvl-gladiator",
@@ -11227,6 +11753,12 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -11344,6 +11876,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 3
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 3
@@ -11469,6 +12007,12 @@
           "size": 3,
           "count": 3
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 3
+        }
       ]
     },
     {
@@ -11586,6 +12130,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 3
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 3
@@ -11715,6 +12265,16 @@
           "size": 5,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        },
+        {
+          "size": 5,
+          "count": 2
+        }
       ]
     },
     {
@@ -11822,6 +12382,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 2
@@ -11937,6 +12503,12 @@
           "size": 1,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        }
       ]
     },
     {
@@ -12046,6 +12618,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 5,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 5,
           "count": 2
@@ -12166,6 +12744,12 @@
           "size": 4,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 4
+        }
       ]
     },
     {
@@ -12273,6 +12857,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 5,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 5,
           "count": 2
@@ -12400,7 +12990,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/c/c8/Ext_03_03-Min.png/320px-Ext_03_03-Min.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "aegs-hammerhead-showdown",
@@ -12517,7 +13108,8 @@
       "patches": [],
       "gameVersion": "4.8.2-LIVE.12030094",
       "image": null,
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "anvl-hawk",
@@ -12626,6 +13218,16 @@
         {
           "size": 1,
           "count": 2
+        },
+        {
+          "size": 2,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 3
         },
         {
           "size": 2,
@@ -12751,6 +13353,12 @@
           "size": 3,
           "count": 1
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        }
       ]
     },
     {
@@ -12864,6 +13472,12 @@
           "size": 4,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -12946,7 +13560,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/7/7f/CNOU_HoverQuad_Luminalia_Reveal-02_-_cropped.jpg/320px-CNOU_HoverQuad_Luminalia_Reveal-02_-_cropped.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "anvl-hurricane",
@@ -13074,6 +13689,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 4,
           "count": 2
@@ -13241,6 +13862,12 @@
           "size": 10,
           "count": 1
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 10,
+          "count": 1
+        }
       ]
     },
     {
@@ -13385,7 +14012,8 @@
           "size": 3,
           "count": 8
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "crus-intrepid",
@@ -13492,6 +14120,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 4,
+          "count": 1
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 4,
           "count": 1
@@ -13655,7 +14289,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/6/69/Ironclad_flying_away_from_world_-_cropped.png/320px-Ironclad_flying_away_from_world_-_cropped.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "drak-ironclad-assault",
@@ -13814,7 +14449,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/c/c8/Ironclad_Assault_flying_over_ground_attacking_ground_vehicles_-_cropped.jpg/320px-Ironclad_Assault_flying_over_ground_attacking_ground_vehicles_-_cropped.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "aegs-javelin",
@@ -13946,7 +14582,8 @@
           "size": 12,
           "count": 8
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "xian-scout",
@@ -14047,6 +14684,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 4,
           "count": 2
@@ -14164,6 +14807,12 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -14275,6 +14924,12 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -14375,7 +15030,8 @@
           "size": 1,
           "count": 2
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "crus-starlifter-m2",
@@ -14505,6 +15161,12 @@
           "size": 5,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 2
+        }
       ]
     },
     {
@@ -14614,6 +15276,12 @@
       "fixedWeaponSizes": [
         {
           "size": 2,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
           "count": 2
         }
       ]
@@ -14741,6 +15409,16 @@
           "size": 5,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        },
+        {
+          "size": 5,
+          "count": 2
+        }
       ]
     },
     {
@@ -14848,6 +15526,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 2
@@ -14967,7 +15651,8 @@
           "size": 1,
           "count": 1
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "crus-star-runner",
@@ -15105,6 +15790,12 @@
           "size": 3,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
       ]
     },
     {
@@ -15232,6 +15923,16 @@
           "size": 5,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 4
+        },
+        {
+          "size": 5,
+          "count": 2
+        }
       ]
     },
     {
@@ -15333,6 +16034,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 2
@@ -15474,6 +16181,12 @@
           "size": 3,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 4
+        }
       ]
     },
     {
@@ -15607,6 +16320,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 4
@@ -15748,6 +16467,12 @@
           "size": 3,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 4
+        }
       ]
     },
     {
@@ -15885,6 +16610,12 @@
           "size": 3,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 4
+        }
       ]
     },
     {
@@ -15986,6 +16717,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 2
@@ -16101,6 +16838,12 @@
           "size": 3,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
       ]
     },
     {
@@ -16194,7 +16937,8 @@
           "size": 3,
           "count": 6
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "misc-prospector",
@@ -16296,6 +17040,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 2
@@ -16417,6 +17167,12 @@
           "size": 2,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 4
+        }
       ]
     },
     {
@@ -16533,6 +17289,12 @@
           "size": 2,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        }
       ]
     },
     {
@@ -16645,6 +17407,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 2,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 2,
           "count": 2
@@ -16766,6 +17534,16 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 2,
+          "count": 2
+        },
+        {
+          "size": 3,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 2,
           "count": 2
@@ -16913,6 +17691,12 @@
           "size": 4,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 4
+        }
       ]
     },
     {
@@ -17053,6 +17837,12 @@
           "size": 4,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 4
+        }
       ]
     },
     {
@@ -17181,6 +17971,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 4,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 4,
           "count": 4
@@ -17345,6 +18141,16 @@
           "size": 4,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        },
+        {
+          "size": 4,
+          "count": 4
+        }
       ]
     },
     {
@@ -17455,6 +18261,12 @@
         {
           "size": 2,
           "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
         }
       ]
     },
@@ -17567,6 +18379,12 @@
           "size": 2,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        }
       ]
     },
     {
@@ -17674,6 +18492,12 @@
           "size": 2,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        }
       ]
     },
     {
@@ -17762,7 +18586,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/6/66/SC-3.22_20240405_MPUV-Cargo-over-water.png/320px-SC-3.22_20240405_MPUV-Cargo-over-water.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "argo-mpuv-transport",
@@ -17850,7 +18675,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/e/e0/Mpuv-1p-flight_-_cropped.png/320px-Mpuv-1p-flight_-_cropped.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "argo-mpuv-1t",
@@ -17954,7 +18780,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/2/21/MPUV-1T_flying_through_Orison_cargo_platform_-_Cropped.png/320px-MPUV-1T_flying_through_Orison_cargo_platform_-_Cropped.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "grin-mtc",
@@ -18053,7 +18880,8 @@
           "size": 2,
           "count": 2
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "drak-mule",
@@ -18140,7 +18968,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/b/b7/Mule_front_%27claw%27_holding_a_cargo_box_-_Cropped.jpg/320px-Mule_front_%27claw%27_holding_a_cargo_box_-_Cropped.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "cnou-mustang-alpha",
@@ -18243,6 +19072,12 @@
       "fixedWeaponSizes": [
         {
           "size": 2,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
           "count": 2
         }
       ]
@@ -18350,6 +19185,12 @@
           "size": 2,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        }
       ]
     },
     {
@@ -18452,7 +19293,8 @@
           "size": 2,
           "count": 2
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "cnou-mustang-delta",
@@ -18566,6 +19408,12 @@
           "size": 3,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        }
       ]
     },
     {
@@ -18671,6 +19519,12 @@
           "size": 1,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        }
       ]
     },
     {
@@ -18772,6 +19626,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 2
@@ -18903,6 +19763,12 @@
           "size": 3,
           "count": 3
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 3
+        }
       ]
     },
     {
@@ -19011,6 +19877,12 @@
           "size": 5,
           "count": 1
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 1
+        }
       ]
     },
     {
@@ -19104,6 +19976,12 @@
           "size": 1,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        }
       ]
     },
     {
@@ -19186,7 +20064,13 @@
         "thumb": "https://media.starcitizen.tools/thumb/a/ad/Nox_Kue_in_RandY_-_Port.png/320px-Nox_Kue_in_RandY_-_Port.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        }
+      ]
     },
     {
       "id": "krig-p52-merlin",
@@ -19294,6 +20178,16 @@
           "size": 2,
           "count": 1
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        },
+        {
+          "size": 2,
+          "count": 1
+        }
       ]
     },
     {
@@ -19393,6 +20287,12 @@
           "size": 1,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 4
+        }
       ]
     },
     {
@@ -19488,6 +20388,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 4
@@ -19628,7 +20534,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/4/47/Paladin_firing_at_pirates_in_debris_field_-_cropped_%26_adjusted.png/320px-Paladin_firing_at_pirates_in_debris_field_-_cropped_%26_adjusted.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "rsi-perseus",
@@ -19799,7 +20706,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/6/6c/Perseus_angled_combat.jpg/320px-Perseus_angled_combat.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "drak-pitbull",
@@ -19905,6 +20813,16 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 4
+        },
+        {
+          "size": 2,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 4
@@ -20096,7 +21014,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/d/d2/Polaris_flying_through_asteroid_field_firing_torpedoes_and_missiles_-_cropped.png/320px-Polaris_flying_through_asteroid_field_firing_torpedoes_and_missiles_-_cropped.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "espr-prowler",
@@ -20206,6 +21125,12 @@
           "size": 3,
           "count": 2
         },
+        {
+          "size": 5,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 5,
           "count": 2
@@ -20326,6 +21251,12 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -20402,7 +21333,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/e/e0/PTV_-_Updated_3D_concept.png/320px-PTV_-_Updated_3D_concept.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "mrai-pulse",
@@ -20495,6 +21427,12 @@
           "size": 2,
           "count": 1
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 1
+        }
       ]
     },
     {
@@ -20577,7 +21515,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/6/6f/Pulse_LX_flying_through_city_cropped.png/320px-Pulse_LX_flying_through_city_cropped.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "argo-raft",
@@ -20692,7 +21631,13 @@
         "thumb": "https://media.starcitizen.tools/thumb/b/bb/RAFT_-_Flying_over_Lorville_-_cropped_and_adjusted.jpg/320px-RAFT_-_Flying_over_Lorville_-_cropped_and_adjusted.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        }
+      ]
     },
     {
       "id": "gama-railen",
@@ -20827,6 +21772,12 @@
           "size": 4,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 4
+        }
       ]
     },
     {
@@ -20934,6 +21885,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 2,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 2,
           "count": 2
@@ -21049,6 +22006,12 @@
           "size": 2,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        }
       ]
     },
     {
@@ -21156,6 +22119,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 2,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 2,
           "count": 2
@@ -21320,7 +22289,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/c/cb/Reclaimer_-_Near_world_looking_at_wreckage_-_cropped.jpg/320px-Reclaimer_-_Near_world_looking_at_wreckage_-_cropped.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "aegs-reclaimer-showdown",
@@ -21480,7 +22450,8 @@
         "thumb": "https://cstone.space/uifimages/94d31d2e-5fa8-460c-9fa4-2942b6f0ce33.png",
         "source": "cstone.space"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "aegs-redeemer",
@@ -21632,6 +22603,12 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -21747,7 +22724,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/4/4a/Retaliator_x2_flying_over_cloud_firing_torpedoes_-_cropped_and_adjusted.png/320px-Retaliator_x2_flying_over_cloud_firing_torpedoes_-_cropped_and_adjusted.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "grin-roc",
@@ -21829,7 +22807,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/6/63/Grin_ROC_Gallery_Surface_CaveMining.jpg/320px-Grin_ROC_Gallery_Surface_CaveMining.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "grin-roc-ds",
@@ -21916,7 +22895,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/6/62/GRIN_ROC_DS_TopBanner_-_Crop.png/320px-GRIN_ROC_DS_TopBanner_-_Crop.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "aegs-sabre",
@@ -22023,6 +23003,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 4
@@ -22143,6 +23129,12 @@
           "size": 3,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 4
+        }
       ]
     },
     {
@@ -22259,6 +23251,12 @@
           "size": 3,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
       ]
     },
     {
@@ -22358,7 +23356,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/1/12/Sabre_Peregrine_flying_fast_over_Teasa_Spaceport_-_Rear_Port.jpg/320px-Sabre_Peregrine_flying_fast_over_Teasa_Spaceport_-_Rear_Port.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "aegs-sabre-raven",
@@ -22464,6 +23463,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 2
@@ -22575,6 +23580,12 @@
           "size": 1,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        }
       ]
     },
     {
@@ -22682,6 +23693,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 4
@@ -22818,6 +23835,12 @@
           "size": 3,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 4
+        }
       ]
     },
     {
@@ -22925,6 +23948,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 4
@@ -23054,6 +24083,12 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -23163,7 +24198,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/f/ff/Spartan_Concept_Attack_-_cropped_and_adjusted.png/320px-Spartan_Concept_Attack_-_cropped_and_adjusted.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "argo-srv",
@@ -23257,7 +24293,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/5/5a/SRV_towing_cargo_container_into_hangar_-_Cut.png/320px-SRV_towing_cargo_container_into_hangar_-_Cut.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "vncl-stinger",
@@ -23397,6 +24434,20 @@
           "size": 5,
           "count": 1
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        },
+        {
+          "size": 4,
+          "count": 4
+        },
+        {
+          "size": 5,
+          "count": 1
+        }
       ]
     },
     {
@@ -23496,7 +24547,8 @@
           "size": 3,
           "count": 1
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "tmbl-storm-aa",
@@ -23584,7 +24636,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/0/01/Storm_AA_in_forest_firing_weapons_-_Cut_-_Contrast_change.jpg/320px-Storm_AA_in_forest_firing_weapons_-_Cut_-_Contrast_change.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "grin-stv",
@@ -23666,7 +24719,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/0/0b/Greycat_stv_ship_wall_-_cropped_and_adjusted.jpg/320px-Greycat_stv_ship_wall_-_cropped_and_adjusted.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "gama-syulen",
@@ -23773,6 +24827,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 3
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 3,
           "count": 3
@@ -23893,6 +24953,12 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -24004,6 +25070,12 @@
           "size": 2,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        }
       ]
     },
     {
@@ -24109,7 +25181,8 @@
           "size": 2,
           "count": 2
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "anvl-terrapin-medic",
@@ -24210,6 +25283,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 2,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 2,
           "count": 2
@@ -24345,6 +25424,12 @@
         {
           "size": 7,
           "count": 4
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 10,
+          "count": 1
         }
       ]
     },
@@ -24501,6 +25586,12 @@
           "size": 4,
           "count": 4
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 4
+        }
       ]
     },
     {
@@ -24600,7 +25691,8 @@
           "size": 1,
           "count": 2
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "rsi-ursa-rover-emerald",
@@ -24699,7 +25791,8 @@
           "size": 1,
           "count": 2
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "rsi-ursa-medivac",
@@ -24798,7 +25891,8 @@
           "size": 1,
           "count": 2
         }
-      ]
+      ],
+      "fixedWeaponMounts": []
     },
     {
       "id": "grin-utv",
@@ -24880,7 +25974,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/2/20/UTV_on_sand_-_Cropped.webp/320px-UTV_on_sand_-_Cropped.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "anvl-valkyrie",
@@ -25023,6 +26118,12 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
       ]
     },
     {
@@ -25143,6 +26244,16 @@
       "gameVersion": "4.8.2-LIVE.12030094",
       "image": null,
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 2
+        },
+        {
+          "size": 5,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 2
@@ -25302,6 +26413,16 @@
           "size": 5,
           "count": 1
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 4
+        },
+        {
+          "size": 5,
+          "count": 1
+        }
       ]
     },
     {
@@ -25435,6 +26556,16 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 2,
+          "count": 4
+        },
+        {
+          "size": 5,
+          "count": 1
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 2,
           "count": 4
@@ -25589,6 +26720,16 @@
           "size": 5,
           "count": 1
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 4
+        },
+        {
+          "size": 5,
+          "count": 1
+        }
       ]
     },
     {
@@ -25735,6 +26876,16 @@
           "size": 5,
           "count": 1
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 4
+        },
+        {
+          "size": 5,
+          "count": 1
+        }
       ]
     },
     {
@@ -25840,6 +26991,12 @@
           "size": 1,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        }
       ]
     },
     {
@@ -25929,6 +27086,12 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponSizes": [
+        {
+          "size": 1,
+          "count": 1
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 1,
           "count": 1
@@ -26032,6 +27195,12 @@
           "size": 1,
           "count": 1
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 1
+        }
       ]
     },
     {
@@ -26114,7 +27283,8 @@
         "thumb": "https://media.starcitizen.tools/thumb/d/d7/X1_Velocity_profile_streak.png/320px-X1_Velocity_profile_streak.png.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponSizes": []
+      "fixedWeaponSizes": [],
+      "fixedWeaponMounts": []
     },
     {
       "id": "rsi-zeus-cl",
@@ -26234,6 +27404,12 @@
           "size": 4,
           "count": 2
         }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
       ]
     },
     {
@@ -26344,6 +27520,12 @@
           "size": 3,
           "count": 2
         },
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
+      "fixedWeaponMounts": [
         {
           "size": 4,
           "count": 2

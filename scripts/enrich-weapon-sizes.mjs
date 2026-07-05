@@ -62,28 +62,49 @@ for (let n = 1; ; n++) {
   await sleep(200);
 }
 
-// 3) resolve each vehicle's equipped fixed weapons -> sizes
+// 3) per vehicle, capture BOTH:
+//    - fixedWeaponMounts: pilot-gun HARDPOINT max sizes (what is mountable), from
+//      the detail `components[].weapons` (same as the ports' GunTurret sizes.max)
+//    - fixedWeaponSizes:  the ACTUAL equipped gun sizes, resolved from the fitted
+//      weapon names via the WeaponGun items catalog
+//    Both aggregated as [{size, count}]. The display pairs them per gun.
 let withSizes = 0, partial = 0, noDetail = 0;
 const unresolvedNames = new Map();
+const aggregate = (sizes) => {
+  const m = new Map();
+  for (const s of sizes) m.set(s, (m.get(s) ?? 0) + 1);
+  return [...m.entries()].sort((a, b) => a[0] - b[0]).map(([size, count]) => ({ size, count }));
+};
 for (const v of snapshot.vehicles) {
-  delete v.fixedWeaponMounts; // remove the old (hardpoint-based) field
+  v.fixedWeaponMounts = [];
   v.fixedWeaponSizes = [];
+  v.fixedWeaponSizesPartial = undefined;
   const uuid = uuidBySlug.get(v.id);
   const d = uuid ? await get(`${API}/vehicles/${uuid}`) : null;
   if (!d?.data) { noDetail++; continue; }
+
+  // hardpoint (max mountable) sizes — one entry per mount
+  const mounts = [];
+  for (const c of d.data.components ?? []) {
+    if (c.type !== 'weapons') continue;
+    const size = Number(c.size);
+    const count = (c.mounts ?? 1) * (c.quantity ?? 1);
+    if (Number.isFinite(size) && size > 0 && count > 0)
+      for (let i = 0; i < count; i++) mounts.push(size);
+  }
+  v.fixedWeaponMounts = aggregate(mounts);
+
+  // equipped gun sizes — one entry per fitted gun, resolved by name
   const fitted = d.data.weaponry?.fixed_weapons?.weapons ?? [];
-  if (!fitted.length) { await sleep(90); continue; }
-  const bySize = new Map();
+  const weapons = [];
   let unresolved = 0;
   for (const w of fitted) {
     const size = gunSize.get((w.name ?? '').toLowerCase());
     if (size == null) { unresolved++; unresolvedNames.set(w.name, (unresolvedNames.get(w.name) ?? 0) + 1); continue; }
-    bySize.set(size, (bySize.get(size) ?? 0) + 1);
+    weapons.push(size);
   }
-  v.fixedWeaponSizes = [...bySize.entries()].sort((a, b) => a[0] - b[0]).map(([size, count]) => ({ size, count }));
-  // flag = true when at least one fitted gun could not be resolved to a size
-  // (so the consumer can decide whether to trust a partial list)
-  v.fixedWeaponSizesPartial = unresolved > 0 && bySize.size > 0 ? true : undefined;
+  v.fixedWeaponSizes = aggregate(weapons);
+  v.fixedWeaponSizesPartial = unresolved > 0 && weapons.length > 0 ? true : undefined;
   if (v.fixedWeaponSizes.length) withSizes++;
   if (unresolved > 0) partial++;
   await sleep(90);
@@ -97,4 +118,4 @@ if (unresolvedNames.size) {
 }
 
 await writeFile(OUT, JSON.stringify(snapshot, null, 2) + '\n', 'utf8');
-console.log('wrote src/data/vehicles.json (fixedWeaponSizes = equipped-weapon sizes)');
+console.log('wrote src/data/vehicles.json (fixedWeaponMounts = hardpoint max, fixedWeaponSizes = equipped weapon)');
