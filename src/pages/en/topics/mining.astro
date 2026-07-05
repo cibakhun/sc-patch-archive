@@ -5,6 +5,7 @@ import TopicFacts from '../../../components/TopicFacts.astro';
 import RelatedTopics from '../../../components/RelatedTopics.astro';
 import Attribution from '../../../components/Attribution.astro';
 import MiningApp from '../../../components/MiningApp.astro';
+import FracturingCalc from '../../../components/FracturingCalc.astro';
 import DB from '../../../../assets/mining-db.json';
 
 const total = DB.counts.minerals;
@@ -90,7 +91,12 @@ const ships = [
 
   <MiningApp lang="en" />
 
-  <div class="mn-sec-h reveal"><span class="num">02</span><h2>Refinery methods</h2></div>
+  <div class="mn-sec-h reveal"><span class="num">02</span><h2>Fracturing calculator</h2></div>
+  <div class="mn-wrap"><p class="mn-note reveal"><span><b>Can I crack this rock?</b> Pick a laser + modules/gadget and set the rock stats — the calculator estimates whether it breaks, how much power is needed and how high the overcharge risk is. Laser/module stats are real <a href="https://uexcorp.space/" target="_blank" rel="noopener">UEX ↗</a> values; the <b>break formula is an approximation</b> (CIG's formula isn't public).</span></p></div>
+
+  <FracturingCalc lang="en" />
+
+  <div class="mn-sec-h reveal"><span class="num">03</span><h2>Refinery methods</h2></div>
   <div class="mn-wrap">
     <p class="mn-note reveal"><span>When refining you pick one of <b>9 methods</b> — each trades <b>yield</b> against <b>cost</b> and <b>speed</b>. Ratings from UEX (1–3). Rule of thumb: <b>Dinyx Solventation</b>/<b>Ferron Exchange</b> = max yield if you can wait; <b>Electrostarolysis</b> = balanced.</span></p>
     <div class="rf-grid reveal">
@@ -108,7 +114,7 @@ const ships = [
     </div>
   </div>
 
-  <div class="mn-sec-h reveal"><span class="num">03</span><h2>Mining methods & ships</h2></div>
+  <div class="mn-sec-h reveal"><span class="num">04</span><h2>Mining methods & ships</h2></div>
   <div class="mn-wrap">
     <p class="mn-note reveal"><span>The loop: <b>scan → fracture</b> (crack the rock inside the optimal window) <b>→ extract → refine → sell</b>. The tool depends on deposit size. <b>Figures rounded, source:</b> <a href="https://starcitizen.tools/Mining" target="_blank" rel="noopener">starcitizen.tools ↗</a>.</span></p>
     <div class="sh-grid reveal">

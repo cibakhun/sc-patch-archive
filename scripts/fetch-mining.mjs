@@ -223,6 +223,97 @@ async function main() {
   // Miner unzuverlässig (z.B. MOLE=32 statt 96). Stattdessen kuratierte Tabelle
   // im MiningApp-Component (Quelle: starcitizen.tools).
 
+  // ---- Mining-Gear (Laserköpfe / Module / Gadgets) für den Fracturing-Rechner ----
+  // Kategorien: 29 = Mining Laser Heads, 30 = Mining Modules, 28 = Gadgets.
+  // Stats aus /items_attributes (echte UEX-Werte); die Fracturing-FORMEL selbst
+  // ist nicht öffentlich — der Rechner nutzt sie als Heuristik.
+  function attrMap(rows) {
+    const m = {};
+    (rows || []).forEach((a) => { m[a.attribute_name] = String(a.value == null ? '' : a.value).trim(); });
+    return m;
+  }
+  const pn = (s) => {
+    if (s == null) return null;
+    s = String(s).replace('%', '').replace(/µSCU|SCU|m\b/g, '').replace(/\s/g, '').replace(',', '.');
+    if (s === '' || s === '-') return null;
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  };
+  const prange = (s) => {
+    if (!s) return [null, null];
+    const m = String(s).match(/([\d.]+)\s*-\s*([\d.]+)/);
+    if (m) return [parseFloat(m[1]), parseFloat(m[2])];
+    const n = pn(s);
+    return [n, n];
+  };
+  async function fetchCat(id) {
+    const items = await getJSON(`/items?id_category=${id}`).catch(() => []);
+    const out = [];
+    for (const it of items) {
+      const rows = await getJSON(`/items_attributes?id_item=${it.id}`).catch(() => []);
+      await new Promise((r) => setTimeout(r, 80));
+      out.push({ item: it, attr: attrMap(rows) });
+    }
+    return out;
+  }
+
+  console.log('Mining-Gear (Laser/Module/Gadgets) …');
+  const [rawLasers, rawModules, rawGadgets] = await Promise.all([
+    fetchCat(29), fetchCat(30), fetchCat(28),
+  ]);
+
+  const platformBySize = { 0: 'Hand / ROC', 1: 'Prospector / ROC', 2: 'MOLE' };
+  const lasers = rawLasers
+    .map(({ item, attr }) => {
+      const [pmin, pmax] = prange(attr['Mining Laser Power']);
+      const size = pn(attr['Size']) != null ? pn(attr['Size']) : pn(item.size);
+      return {
+        name: item.name.replace(/\s*Mining Laser\s*$/i, ''),
+        company: item.company_name || null,
+        size: size,
+        platform: platformBySize[size] || null,
+        power_min: pmin, power_max: pmax,
+        window: pn(attr['Optimal Charge Window Size']),
+        resistance: pn(attr['Resistance']),
+        instability: pn(attr['Laser Instability']),
+        inert: pn(attr['Inert Material Level']),
+        slots: pn(attr['Module Slots']),
+        optimal_range: pn(attr['Optimal Range']),
+        max_range: pn(attr['Maximum Range']),
+        wiki: item.wiki || null,
+      };
+    })
+    .filter((l) => l.power_max != null)
+    .sort((a, b) => (a.size - b.size) || a.name.localeCompare(b.name));
+
+  const modules = rawModules
+    .map(({ item, attr }) => ({
+      name: item.name.replace(/\s*Module\s*$/i, ''),
+      company: item.company_name || null,
+      type: attr['Item Type'] || null,
+      power_mult: pn(attr['Mining Laser Power']),
+      window: pn(attr['Optimal Charge Window Size']),
+      resistance: pn(attr['Resistance']),
+      instability: pn(attr['Laser Instability']),
+      inert: pn(attr['Inert Material Level']),
+      shatter: pn(attr['Shatter Damage']),
+      wiki: item.wiki || null,
+    }))
+    .filter((m) => m.window != null || m.resistance != null || m.power_mult != null || m.instability != null)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const gadgets = rawGadgets
+    .map(({ item, attr }) => ({
+      name: item.name,
+      company: item.company_name || null,
+      window: pn(attr['Optimal Charge Window Size']),
+      resistance: pn(attr['Resistance']),
+      instability: pn(attr['Instability']) != null ? pn(attr['Instability']) : pn(attr['Laser Instability']),
+      wiki: item.wiki || null,
+    }))
+    .filter((g) => g.window != null || g.resistance != null || g.instability != null)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   // Standort-Reverse-Lookup: Body -> [Minerale], gruppiert nach System.
   const bodyIndex = {};
   for (const m of minerals) {
@@ -257,11 +348,17 @@ async function main() {
       priced: minerals.filter((m) => m.sell).length,
       bodies: bodies.length,
       methods: methods.length,
+      lasers: lasers.length,
+      modules: modules.length,
+      gadgets: gadgets.length,
     },
     live_systems: liveSystems,
     minerals,
     methods,
     bodies,
+    lasers,
+    modules,
+    gadgets,
   };
 
   mkdirSync(dirname(OUT), { recursive: true });
@@ -269,7 +366,7 @@ async function main() {
   const kb = (Buffer.byteLength(JSON.stringify(payload)) / 1024).toFixed(0);
   console.log(`\nGeschrieben: ${OUT}`);
   console.log(
-    `  ${minerals.length} Minerale (${payload.counts.priced} mit Preis), ${bodies.length} Fundort-Bodies, ${methods.length} Refinery-Methoden, ~${kb} KB`
+    `  ${minerals.length} Minerale (${payload.counts.priced} mit Preis), ${bodies.length} Fundort-Bodies, ${methods.length} Refinery-Methoden, ${lasers.length} Laser, ${modules.length} Module, ${gadgets.length} Gadgets, ~${kb} KB`
   );
 }
 
