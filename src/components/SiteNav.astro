@@ -1,7 +1,8 @@
 ---
 // Global sticky navigation: brand monogram + breadcrumbs (left),
-// Patches/Themen dropdowns + context pill (right). Replaces the per-page
-// topbar. Keeps id="topbar" so existing per-page scroll JS keeps working.
+// Suche + Sprachumschalter + Menü-Dropdown (right) — eine Leiste für alle
+// Breiten, das Menü trägt Bereiche + Patch-Liste. Keeps id="topbar" so
+// existing per-page scroll JS keeps working.
 // Plumbing, not a reskin: themes itself via the page's palette variables,
 // no motion beyond the existing scrolled-state.
 import { getCollection } from 'astro:content';
@@ -51,7 +52,6 @@ const patches = (await getCollection('patches')).sort((a, b) =>
 // eras in chronological order of first appearance
 const eras: string[] = [];
 for (const p of patches) if (!eras.includes(p.data.era)) eras.push(p.data.era);
-const withTopics = patches.filter((p) => p.data.topics.length > 0);
 const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
 const current = Astro.url.pathname;
 ---
@@ -74,24 +74,28 @@ const current = Astro.url.pathname;
     )}
   </div>
   <div class="snav__right">
-    <a
-      class="snav__link"
-      href={L('/schiffe.html')}
-      aria-current={current === L('/schiffe.html') || current.startsWith(L('/schiffe/')) ? 'page' : undefined}
-    >{t('nav.ships')}</a>
-    <a
-      class="snav__link"
-      href={L('/evolution.html')}
-      aria-current={current === L('/evolution.html') ? 'page' : undefined}
-    >{t('nav.evolution')}</a>
     <button class="snav__search" type="button" data-scs-open aria-label={t('nav.search.open')}>
       <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
       <span>{t('nav.search')}</span>
       <kbd>{t('nav.search.kbd')}</kbd>
     </button>
-    <details class="snav__dd">
-      <summary>{t('nav.patches')} <span class="snav__chev" aria-hidden="true">▾</span></summary>
+    {pill && <span class="snav__pill">{pill}</span>}
+    <LangSwitcher hasEn={hasEn} />
+    <details class="snav__dd snav__menu">
+      <summary aria-label={t('nav.menu.open')}>
+        <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <span>{t('nav.menu')}</span>
+      </summary>
       <div class="snav__panel">
+        <div class="snav__group">
+          <div class="snav__ghead">{t('nav.section')}</div>
+          <a href={L('/schiffe.html')} aria-current={current === L('/schiffe.html') || current.startsWith(L('/schiffe/')) ? 'page' : undefined}><span>{t('nav.ships.long')}</span></a>
+          <a href={L('/evolution.html')} aria-current={current === L('/evolution.html') ? 'page' : undefined}><span>{t('nav.evolution.long')}</span></a>
+          <a class="snav__feat" href={L('/topics/wikelo-emporium.html')} aria-current={current === L('/topics/wikelo-emporium.html') ? 'page' : undefined}><span>Wikelo's Emporium</span></a>
+          <a class="snav__feat" href={L('/topics/crafting.html')} aria-current={current === L('/topics/crafting.html') ? 'page' : undefined}><span>Crafting</span></a>
+          <a class="snav__feat" href={L('/topics/mining.html')} aria-current={current === L('/topics/mining.html') ? 'page' : undefined}><span>Mining</span></a>
+          <a href={L('/index.html#themen')}><span>{t('nav.allTopics')} ({topicCount})</span></a>
+        </div>
         {eras.map((era) => (
           <div class="snav__group">
             <div class="snav__ghead">{eraLabel(era, lang)}</div>
@@ -108,44 +112,6 @@ const current = Astro.url.pathname;
               })}
           </div>
         ))}
-      </div>
-    </details>
-    <details class="snav__dd">
-      <summary>{t('nav.topics')} <span class="snav__chev" aria-hidden="true">▾</span></summary>
-      <div class="snav__panel">
-        {withTopics.map((p) => (
-          <div class="snav__group">
-            <div class="snav__ghead">{p.data.version} · {p.data.codename}</div>
-            {p.data.topics.map((tp) => {
-              const th = L(`/topics/${tp.slug}.html`);
-              return (
-                <a href={th} aria-current={current === th ? 'page' : undefined}>
-                  <span>{tp.title}</span>
-                </a>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-    </details>
-    {pill && <span class="snav__pill">{pill}</span>}
-    <LangSwitcher hasEn={hasEn} />
-    <details class="snav__dd snav__menu">
-      <summary aria-label={t('nav.menu.open')}>
-        <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-        <span>{t('nav.menu')}</span>
-      </summary>
-      <div class="snav__panel">
-        <div class="snav__group">
-          <div class="snav__ghead">{t('nav.section')}</div>
-          <a href={L('/schiffe.html')}><span>{t('nav.ships.long')}</span></a>
-          <a href={L('/evolution.html')}><span>{t('nav.evolution.long')}</span></a>
-          <a class="snav__feat" href={L('/topics/wikelo-emporium.html')} aria-current={current === L('/topics/wikelo-emporium.html') ? 'page' : undefined}><span>Wikelo's Emporium</span></a>
-          <a class="snav__feat" href={L('/topics/crafting.html')} aria-current={current === L('/topics/crafting.html') ? 'page' : undefined}><span>Crafting</span></a>
-          <a class="snav__feat" href={L('/topics/mining.html')} aria-current={current === L('/topics/mining.html') ? 'page' : undefined}><span>Mining</span></a>
-          <a href={L('/index.html#archiv')}><span>{t('nav.allPatches')} ({patches.length})</span></a>
-          <a href={L('/index.html#themen')}><span>{t('nav.allTopics')} ({topicCount})</span></a>
-        </div>
         <div class="snav__group snav__langgroup">
           <div class="snav__ghead">{t('nav.langSwitch')}</div>
           <LangSwitcher hasEn={hasEn} />
@@ -254,22 +220,6 @@ const current = Astro.url.pathname;
     align-items: center;
     gap: 0.6rem;
   }
-  .snav__link {
-    font-family: var(--font-ui, sans-serif);
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text, #e8eefc);
-    padding: 0.35rem 0.55rem;
-  }
-  .snav__link:hover {
-    color: var(--accent, #2dd4ff);
-  }
-  .snav__link[aria-current] {
-    color: var(--accent, #2dd4ff);
-    border-bottom: 2px solid var(--accent, #2dd4ff);
-  }
   .snav__search {
     display: inline-flex;
     align-items: center;
@@ -327,14 +277,6 @@ const current = Astro.url.pathname;
     color: var(--accent, #2dd4ff);
     border-color: var(--line, rgba(255, 255, 255, 0.14));
     background: rgba(0, 0, 0, 0.6);
-  }
-  .snav__chev {
-    font-size: 0.72rem;
-    opacity: 0.7;
-  }
-  .snav__dd[open] .snav__chev {
-    display: inline-block;
-    transform: rotate(180deg);
   }
   .snav__panel {
     position: absolute;
@@ -454,15 +396,17 @@ const current = Astro.url.pathname;
       padding: 0.4rem 0.5rem;
     }
   }
-  /* mobile burger — replaces links + dropdowns below 760px (their content
-     stays reachable via index/search; the burger carries the destinations) */
-  .snav__menu {
-    display: none;
-  }
+  /* Menü — die eine Navigation für alle Breiten: Bereiche, Feature-Links
+     (Wikelo/Crafting/Mining) und die Patch-Liste nach Ära */
   .snav__menu summary {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+  }
+  /* Desktop hat den Sprachumschalter schon im Header — im Menü-Panel wäre er
+     doppelt; die Gruppe gehört zur Mobil-Ansicht (s. u.) */
+  .snav__langgroup {
+    display: none;
   }
   /* Sprachumschalter im Burger-Menü (nur mobil sichtbar, s. u.).
      :global(), weil .langsw von der Kind-Komponente LangSwitcher gerendert wird
@@ -471,17 +415,13 @@ const current = Astro.url.pathname;
     margin: 0.4rem 1rem 0.15rem;
   }
   @media (max-width: 760px) {
-    .snav__link,
-    .snav__right details.snav__dd:not(.snav__menu) {
-      display: none;
-    }
     /* Der Umschalter oben rechts überlappt sonst die Wortmarke — auf Mobil
        wandert er in den Burger (freier Platz, keine Überlappung). Nur der
        direkte Header-Switcher; der im Menü (tiefer verschachtelt) bleibt. */
     .snav__right > :global(.langsw) {
       display: none;
     }
-    .snav__menu {
+    .snav__langgroup {
       display: block;
     }
     .snav__menu .snav__panel {
