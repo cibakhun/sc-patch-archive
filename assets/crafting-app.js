@@ -415,9 +415,15 @@
   var drawer = $('#cdb-planner');
   var plannerBtn = $('#cdb-planner-open');
   var plannerBadge = $('#cdb-planner-badge');
+  function closeDrawer() { drawer.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'true'); }
   if (plannerBtn && drawer) {
     plannerBtn.addEventListener('click', function () { drawer.classList.add('is-open'); drawer.setAttribute('aria-hidden', 'false'); });
-    $$('[data-planner-close]', drawer).forEach(function (b) { b.addEventListener('click', function () { drawer.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'true'); }); });
+    $$('[data-planner-close]', drawer).forEach(function (b) { b.addEventListener('click', closeDrawer); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeDrawer(); });
+    // Klick außerhalb des offenen Planers schließt ihn (nicht der Öffnen-Button selbst)
+    document.addEventListener('click', function (e) {
+      if (drawer.classList.contains('is-open') && !drawer.contains(e.target) && !plannerBtn.contains(e.target)) closeDrawer();
+    });
   }
   function flashPlan() { if (plannerBtn) { plannerBtn.classList.remove('flash'); void plannerBtn.offsetWidth; plannerBtn.classList.add('flash'); } }
 
