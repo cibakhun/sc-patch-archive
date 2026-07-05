@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
+import HomeLaunchpad from '../../components/HomeLaunchpad.astro';
 import { getCollection } from 'astro:content';
 import { SITE } from '../../consts';
 import { mergePatchEn } from '../../i18n/patchText';
@@ -203,6 +204,7 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
         <div class="stat"><div class="n">3</div><div class="l">Star systems</div></div>
       </div>
     </div>
+    <HomeLaunchpad lang="en" />
   </div>
   <div class="scrollcue" aria-hidden="true">Archive ↓</div>
 </header>

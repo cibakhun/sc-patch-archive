@@ -51,6 +51,15 @@ const UI = {
     'nav.ships.long': 'Schiffe & Fahrzeuge — Datenbank',
     'nav.evolution.long': 'Evolution — Systeme × Patches',
     'nav.langSwitch': 'Sprache wechseln',
+    // -- Startseiten-Launchpad (großes zentrales Menü, schrumpft beim Scrollen) --
+    'home.launch.aria': 'Hauptbereiche',
+    'home.launch.hint': 'Bereiche',
+    'home.launch.ships.sub': 'Datenbank',
+    'home.launch.evolution.sub': 'Systeme × Patches',
+    'home.launch.patches.sub': 'Alle Versionen',
+    'home.launch.wikelo.sub': 'Banu-Händler',
+    'home.launch.crafting.sub': 'Blaupausen',
+    'home.launch.mining.sub': 'Mineralien',
     // -- Breadcrumbs --
     'crumbs.archive': 'Archiv',
     'crumbs.ships': 'Schiffe',
@@ -264,6 +273,15 @@ const UI = {
     'nav.ships.long': 'Ships & Vehicles — Database',
     'nav.evolution.long': 'Evolution — Systems × Patches',
     'nav.langSwitch': 'Switch language',
+    // -- Home launchpad (large centered menu that shrinks on scroll) --
+    'home.launch.aria': 'Main sections',
+    'home.launch.hint': 'Sections',
+    'home.launch.ships.sub': 'Database',
+    'home.launch.evolution.sub': 'Systems × Patches',
+    'home.launch.patches.sub': 'All versions',
+    'home.launch.wikelo.sub': 'Banu trader',
+    'home.launch.crafting.sub': 'Blueprints',
+    'home.launch.mining.sub': 'Minerals',
     // -- Breadcrumbs --
     'crumbs.archive': 'Archive',
     'crumbs.ships': 'Ships',
