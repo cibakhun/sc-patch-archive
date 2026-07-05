@@ -60,7 +60,7 @@
           "value": "Beeinflusst Waffen-/Rüstungs-Stats"
         }
       ],
-      "topicSlug": "4-7-0-crafting"
+      "topicSlug": "crafting"
     },
     {
       "name": "Operation Breaker Stations",
@@ -152,7 +152,7 @@
   ],
   "topics": [
     {
-      "slug": "4-7-0-crafting",
+      "slug": "crafting",
       "title": "Crafting"
     }
   ]
