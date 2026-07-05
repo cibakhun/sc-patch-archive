@@ -7,6 +7,7 @@ import SiteNav from '../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
 import vehiclesSnapshot from '../data/vehicles.json';
 import { pickThumb } from '../lib/shipRenders';
+import { vRole } from '../i18n/vehicleText';
 
 const vehicles = (await getCollection('vehicles')).sort((a, b) =>
   a.data.name.localeCompare(b.data.name, 'de')
@@ -132,7 +133,7 @@ a{color:inherit;text-decoration:none}
       <thead>
         <tr>
           <th aria-label="Bild"></th>
-          <th>Schiff</th><th>Typ</th><th>Größe</th>
+          <th>Schiff</th><th>Rolle</th><th>Größe</th>
           <th class="num">Crew</th><th class="num">Fracht</th><th class="num">Preis</th>
           <th>Status</th><th>Archiv</th>
         </tr>
@@ -167,7 +168,7 @@ a{color:inherit;text-decoration:none}
                 <div class="sdb__name"><a href={`/schiffe/${d.id}.html`}>{d.name}</a></div>
                 <div class="sdb__maker">{d.manufacturer ?? '—'}</div>
               </td>
-              <td>{d.typeDe ?? '—'}</td>
+              <td>{vRole(d, 'de') ?? '—'}</td>
               <td>{d.sizeDe ?? '—'}</td>
               <td class="num">{crewFmt(d)}</td>
               <td class="num">{d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—'}</td>

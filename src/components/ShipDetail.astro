@@ -21,7 +21,7 @@ import {
 } from '../lib/shipExtras';
 import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
-import { vType, vSize, vStatus, vDesc } from '../i18n/vehicleText';
+import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
 
 interface Props {
   d: CollectionEntry<'vehicles'>['data'];
@@ -411,7 +411,7 @@ span.sd__ref{color:var(--muted)}
       <div class="sd__maker">{d.manufacturer}</div>
       <h1>{d.name}</h1>
       <div class="holo__chips">
-        {vType(d, lang) && <span>{vType(d, lang)}</span>}
+        {vRole(d, lang) && <span>{vRole(d, lang)}</span>}
         {vSize(d, lang) && <span>{vSize(d, lang)}</span>}
         {vStatus(d, lang) && <span>{vStatus(d, lang)}</span>}
       </div>

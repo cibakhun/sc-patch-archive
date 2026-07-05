@@ -7,7 +7,7 @@ import SiteNav from '../../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
 import vehiclesSnapshot from '../../data/vehicles.json';
 import { pickThumb } from '../../lib/shipRenders';
-import { vType, vSize, vStatus } from '../../i18n/vehicleText';
+import { vType, vSize, vStatus, vRole } from '../../i18n/vehicleText';
 
 const lang = 'en' as const;
 const vehicles = (await getCollection('vehicles')).sort((a, b) =>
@@ -134,7 +134,7 @@ a{color:inherit;text-decoration:none}
       <thead>
         <tr>
           <th aria-label="Image"></th>
-          <th>Ship</th><th>Type</th><th>Size</th>
+          <th>Ship</th><th>Role</th><th>Size</th>
           <th class="num">Crew</th><th class="num">Cargo</th><th class="num">Price</th>
           <th>Status</th><th>Archive</th>
         </tr>
@@ -169,7 +169,7 @@ a{color:inherit;text-decoration:none}
                 <div class="sdb__name"><a href={`/en/schiffe/${d.id}.html`}>{d.name}</a></div>
                 <div class="sdb__maker">{d.manufacturer ?? '—'}</div>
               </td>
-              <td>{vType(d, lang) ?? '—'}</td>
+              <td>{vRole(d, lang) ?? '—'}</td>
               <td>{vSize(d, lang) ?? '—'}</td>
               <td class="num">{crewFmt(d)}</td>
               <td class="num">{d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—'}</td>
