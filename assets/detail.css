@@ -78,7 +78,10 @@ section{position:relative;padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem)
 .hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.58) 55%,var(--bg)),radial-gradient(120% 90% at 78% 18%,transparent,var(--bg) 86%)}
 #stars{position:absolute;inset:0;z-index:1;opacity:.5}
 .hero__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
-.hero h1{position:relative;font-family:var(--font-display);font-weight:900;line-height:.86;letter-spacing:-.02em;margin:.6rem 0 .5rem;font-size:clamp(2.4rem,12vw,9rem);overflow-wrap:break-word;
+/* padding statt enger Box: bei background-clip:text wird nur innerhalb der
+   Paint-Fläche gemalt — Unterlängen (g, p, y) ragen bei line-height .86 sonst
+   hinaus und werden unsichtbar. Margin gleicht das Padding wieder aus. */
+.hero h1{position:relative;font-family:var(--font-display);font-weight:900;line-height:.86;letter-spacing:-.02em;padding:.08em 0 .16em;margin:calc(.6rem - .08em) 0 calc(.5rem - .16em);font-size:clamp(2.4rem,12vw,9rem);overflow-wrap:break-word;
   background:linear-gradient(180deg,#fff,var(--accent) 78%,color-mix(in srgb,var(--accent) 45%,#000));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 32px color-mix(in srgb,var(--accent) 48%,transparent))}
 .hero h1 .thin{font-weight:500;-webkit-text-fill-color:var(--text);color:var(--text);filter:none;display:block;font-size:.34em;letter-spacing:.02em;margin-bottom:.2em;opacity:.95}
 .hero .lead{max-width:62ch;font-size:clamp(1.05rem,1.7vw,1.4rem);color:#f4f7ff;text-shadow:0 2px 14px #000}
