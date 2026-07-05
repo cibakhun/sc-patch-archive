@@ -55,7 +55,8 @@
     var d = card.dataset;
     if (state.q) {
       var q = state.q;
-      if (d.name.indexOf(q) < 0 && d.res.indexOf(q) < 0 && (d.leaf || '').indexOf(q) < 0) return false;
+      if (d.name.indexOf(q) < 0 && d.res.indexOf(q) < 0 && (d.leaf || '').indexOf(q) < 0 &&
+        (d.sub || '').toLowerCase().indexOf(q) < 0 && (d.cat || '').toLowerCase().indexOf(q) < 0) return false;
     }
     var catKeys = Object.keys(state.cats).filter(function (k) { return state.cats[k]; });
     if (catKeys.length && !state.cats[d.cat]) return false;
