@@ -1,272 +1,277 @@
 ---
-// FracturingCalc.astro — "Kann ich diesen Rock brechen?"
-// Rock-Eingaben wie im Spiel: Resistance in %, Masse in kg und Instabilität
-// als freie Zahlen (Scan-HUD-Werte). Verrechnung nach dem Regolith-Formelkern
-// (github.com/regolithco/RegolithCo-Common, MIT):
-//   – Gear-Modifikatoren (Resistance/Fenster/Instabilität) multiplizieren den Rock-Wert
-//   – Modul-POWER stackt seit 4.0.1 ADDITIV: total = 1 + Σ(mod − 1)
-//   – benötigte Leistung ≈ (Masse_kg / 5) / (1 − eff. Resistance)  ← Masse/5 ist die
-//     beste Community-Näherung (MFA-Rechner); die exakte CIG-Kurve ist nicht öffentlich.
-// Gear-Stats (Power-Range, Modifikatoren) sind reale UEX-Live-Werte.
-import DB from '../../assets/mining-db.json';
+// FracturingCalc.astro — "Kann ich diesen Rock brechen?" mit dem game-akkuraten
+// Mining-Modell (datamined 4.8.x-Werte aus assets/mining-model.json).
+// Formeln 1:1 nach dem community-verifizierten Solver-Modell:
+//   Rock-Blend (Resistance): w = clamp(frac^rcf × r, −1, 1); pos zuerst,
+//     R += w·(1−R) wenn w>0, sonst R += w·R
+//   Instabilität: Σ(frac·inst) × rockVolume/defaultVolume, rockVolume = mass/Σ(frac·dichte)
+//   Energie: decay = decayPerMass·mass, capacity = powerCapacityPerMass·mass
+//   Effektiv: R_eff = R·(1+Σresmod%), I_eff = I·(1+Σinstmod%)
+//   Fenster: clamp(baseWindow·(1+Σthin)·(1+Σwinmod%), 0.02, maxWindow)
+//   Ertrag: SCU = mass·(cSCUPerVolume/100)/weightedDensity
+//   Charge-Faktor = max(0.05, 1 − R_eff): Laser-DPS × (1 − eff. Resistance),
+//     Resistance bei 95% gedeckelt. An 27 Referenz-Messpunkten verifiziert
+//     (Abweichung <0,5%).
+import MODEL from '../../assets/mining-model.json';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
 
-// Junk-Einträge (Handlaser mit power 1) raus — der Rechner ist für Schiffslaser.
-const lasers = (DB.lasers || []).filter((l) => (l.power_max || 0) > 100);
-const modules = DB.modules || [];
-const gadgets = DB.gadgets || [];
+const P = MODEL.params?.ship || {};
+// Element-Lookup (Name → Physik) für das Rock-Blending.
+const elemByName: Record<string, any> = {};
+for (const e of MODEL.elements || []) {
+  elemByName[e.name] = { r: e.resistance, i: e.instability, d: e.density, t: e.optimalWindowThinness };
+}
+// Kompositionen mit repräsentativen %-Anteilen (Mitte der Range) vorberechnen.
+const comps = (MODEL.compositions || []).map((c: any) => {
+  const parts = (c.parts || []).map((p: any) => ({
+    name: p.element,
+    pct: ((p.minPercent ?? 0) + (p.maxPercent ?? 0)) / 2,
+    ...(elemByName[p.element] || { r: 0, i: 0, d: 1, t: 0 }),
+  }));
+  return { name: c.name, dominant: parts[0]?.name || c.name, parts };
+}).sort((a, b) => a.name.localeCompare(b.name));
+
+// Nur eigenständige Schiffs-Laser (keine fahrzeuggebundenen Built-ins).
+const lasers = (MODEL.lasers || [])
+  .filter((l: any) => !l.builtIn && l.mining?.dps)
+  .map((l: any) => ({ name: l.name, size: l.size, slots: l.slots || 0, throttleMin: l.throttleMin ?? 0.05, dps: l.mining.dps, ext: l.extraction?.dps, range: [l.mining.full, l.mining.zero], mods: l.mods || {} }));
+const modules = (MODEL.modules || []).map((m: any) => ({ name: m.name, type: m.type, miningMult: m.miningMult, mods: m.mods || {} }));
+const gadgets = (MODEL.gadgets || []).map((g: any) => ({ name: g.name, mods: g.mods || {} }));
 
 const S = {
   de: {
-    laser: 'Mining-Laser', module: 'Modul', gadget: 'Gadget', none: '— keins —',
-    rock: 'Rock-Werte (aus dem Scan)', resistance: 'Resistance', instability: 'Instabilität', mass: 'Masse (kg)',
-    presets: 'Presets', pSmall: 'Klein', pMed: 'Mittel', pLarge: 'Groß', pHard: 'Hoch-resistent',
-    result: 'Ergebnis', reqPower: 'Benötigte Power', availPower: 'Laser-Power (max)',
-    effRes: 'Eff. Resistance', instEff: 'Eff. Instabilität', overcharge: 'Überlade-Risiko', recommend: 'Empfehlung',
-    note: 'Verrechnung nach dem Regolith-Formelkern: Gear-Modifikatoren multiplizieren die Rock-Werte, Modul-Power stackt seit 4.0.1 additiv; Laser-/Modul-/Gadget-Stats sind UEX-Live-Werte. Die Leistungskurve „benötigte Power ≈ Masse/5 ÷ (1 − eff. Resistance)" ist die beste Community-Näherung (MFA-Rechner) — die exakte CIG-Kurve ist nicht öffentlich. Ingame gegenprüfen.',
+    rock: 'Rock', comp: 'Komposition (Signatur)', mass: 'Masse (kg)', custom: 'Eigene Werte',
+    resistance: 'Resistance', instability: 'Instabilität', laser: 'Mining-Laser', module: 'Modul', gadget: 'Gadget', none: '— keins —',
+    small: 'Klein', medium: 'Mittel', large: 'Groß', huge: 'Riesig',
+    verdictH: 'Ergebnis', effDps: 'Effektive DPS', decay: 'Rock-Abbau', net: 'Netto-Energie', capacity: 'Rock-Kapazität',
+    effRes: 'Eff. Resistance', effInst: 'Eff. Instabilität', window: 'Optimal-Fenster', yield: 'Ertrag (SCU)', overcharge: 'Überlade-Risiko',
+    breakable: 'Brechbar', marginal: 'Grenzwertig', impossible: 'Nicht brechbar',
+    perSec: '/s', energy: 'Energie',
+    recBreak: 'Reserve gut — der Laser füllt die Ladung deutlich schneller als der Rock abbaut.',
+    recMarginal: 'Knapp: Laser-DPS liegt nur wenig über dem Abbau. Stärkeren Laser oder Resistance-senkendes Modul/Gadget zuschalten.',
+    recImposs: 'Laser-DPS überwindet den Rock-Abbau nicht — der Rock füllt nie. Resistance senken (Gadget/Modul), größeren Laser (S2/MOLE) oder in der Gruppe brechen.',
+    recOver: ' Zusätzlich: hohe Instabilität bei kleinem Fenster → Überlade-Gefahr. Fenster vergrößern / Instabilität senken.',
+    note: 'Game-akkurates Modell aus datamined 4.8.3-Werten; die Formeln (Rock-Blending, Energie, Fenster, Ertrag, Charge = DPS × (1 − eff. Resistance)) sind gegen das Referenz-Solver-Modell auf <0,5% verifiziert. Rock-Werte sind repräsentativ (Mitte der Anteils-Range) — echte Rocks streuen darin. Ingame prüfen.',
   },
   en: {
-    laser: 'Mining laser', module: 'Module', gadget: 'Gadget', none: '— none —',
-    rock: 'Rock stats (from scan)', resistance: 'Resistance', instability: 'Instability', mass: 'Mass (kg)',
-    presets: 'Presets', pSmall: 'Small', pMed: 'Medium', pLarge: 'Large', pHard: 'High-resistance',
-    result: 'Result', reqPower: 'Required power', availPower: 'Laser power (max)',
-    effRes: 'Eff. resistance', instEff: 'Eff. instability', overcharge: 'Overcharge risk', recommend: 'Recommendation',
-    note: 'Combining follows the Regolith formula core: gear modifiers multiply the rock stats, module power stacks additively since 4.0.1; laser/module/gadget stats are live UEX values. The power curve “required power ≈ mass/5 ÷ (1 − eff. resistance)” is the best community approximation (MFA calculator) — the exact CIG curve is not public. Verify in-game.',
-  },
-}[lang];
-
-// Strings fürs Inline-JS
-const JT = {
-  de: {
-    breakable: 'Brechbar', marginal: 'Grenzwertig', unbreakable: 'Nicht brechbar',
-    low: 'niedrig', mid: 'mittel', high: 'hoch',
-    recBreak: 'Reserve gut — Rock bricht komfortabel.',
-    recMarginal: 'Knapp: stärkeren Laser (größere Power-Range) oder ein Resistance-senkendes Gadget/Modul zuschalten.',
-    recUnbreak: 'Zu schwer/resistent: Resistance senken (z.B. Gadget %G% oder Modul %M%), größeren Laser (S2/MOLE) nutzen — oder den Rock in der Gruppe brechen.',
-    recOver: 'Überlade-Risiko hoch: Fenster vergrößern / Instabilität senken (z.B. %W%).',
-  },
-  en: {
-    breakable: 'Breakable', marginal: 'Marginal', unbreakable: 'Not breakable',
-    low: 'low', mid: 'mid', high: 'high',
-    recBreak: 'Good margin — the rock breaks comfortably.',
-    recMarginal: 'Tight: add a stronger laser (higher power range) or a resistance-lowering gadget/module.',
-    recUnbreak: 'Too heavy/resistant: lower resistance (e.g. gadget %G% or module %M%), use a bigger laser (S2/MOLE) — or crack it as a group.',
-    recOver: 'High overcharge risk: widen the window / lower instability (e.g. %W%).',
+    rock: 'Rock', comp: 'Composition (signature)', mass: 'Mass (kg)', custom: 'Custom values',
+    resistance: 'Resistance', instability: 'Instability', laser: 'Mining laser', module: 'Module', gadget: 'Gadget', none: '— none —',
+    small: 'Small', medium: 'Medium', large: 'Large', huge: 'Huge',
+    verdictH: 'Result', effDps: 'Effective DPS', decay: 'Rock decay', net: 'Net energy', capacity: 'Rock capacity',
+    effRes: 'Eff. resistance', effInst: 'Eff. instability', window: 'Optimal window', yield: 'Yield (SCU)', overcharge: 'Overcharge risk',
+    breakable: 'Breakable', marginal: 'Marginal', impossible: 'Not breakable',
+    perSec: '/s', energy: 'energy',
+    recBreak: 'Good margin — the laser fills the charge well above the rock’s decay rate.',
+    recMarginal: 'Tight: laser DPS is only just above decay. Add a stronger laser or a resistance-lowering module/gadget.',
+    recImposs: 'Laser DPS cannot overcome rock decay — the charge never fills. Lower resistance (gadget/module), use a bigger laser (S2/MOLE), or crack it as a group.',
+    recOver: ' Also: high instability with a small window → overcharge risk. Widen the window / lower instability.',
+    note: 'Game-accurate model from datamined 4.8.3 values; the formulas (rock blending, energy, window, yield, charge = DPS × (1 − eff. resistance)) are verified against the reference solver model to <0.5%. Rock stats are representative (midpoint of the share range) — real rocks vary within it. Verify in-game.',
   },
 }[lang];
 ---
 <section class="frac" id="frac">
   <div class="frac__grid">
     <div class="frac__in">
+      <div class="frac__rockhd"><h4>{S.rock}</h4></div>
       <div class="frac__row">
-        <label class="frac__field frac__field--wide">
-          <span>{S.laser}</span>
-          <select id="frac-laser">
-            {lasers.map((l, i) => (
-              <option value={i} data-slots={l.slots || 0}>
-                {l.size != null ? `S${l.size} · ` : ''}{l.name}{l.platform ? ` (${l.platform})` : ''}
-              </option>
-            ))}
+        <label class="frac__field frac__field--wide"><span>{S.comp}</span>
+          <select id="frac-comp">
+            {comps.map((c, i) => (<option value={i}>{c.name}</option>))}
           </select>
         </label>
       </div>
+      <div class="frac__row">
+        <label class="frac__field"><span>{S.mass}</span><input type="number" id="frac-m" min="1" step="100" value="8000"></label>
+        <label class="frac__field"><span>{S.resistance} (0–1)</span><input type="number" id="frac-r" min="0" max="1" step="0.01" value="0.5"></label>
+        <label class="frac__field"><span>{S.instability}</span><input type="number" id="frac-i" min="0" step="10" value="300"></label>
+      </div>
+      <div class="frac__presets" role="group">
+        <button type="button" class="frac-preset" data-m="2000">{S.small}</button>
+        <button type="button" class="frac-preset" data-m="8000">{S.medium}</button>
+        <button type="button" class="frac-preset" data-m="22000">{S.large}</button>
+        <button type="button" class="frac-preset" data-m="45000">{S.huge}</button>
+      </div>
 
+      <div class="frac__rockhd frac__rockhd--gear"><h4>{S.laser}</h4></div>
+      <div class="frac__row">
+        <label class="frac__field frac__field--wide"><span>{S.laser}</span>
+          <select id="frac-laser">
+            {lasers.map((l, i) => (<option value={i} data-slots={l.slots}>S{l.size} · {l.name} · {l.dps} DPS</option>))}
+          </select>
+        </label>
+      </div>
       <div class="frac__row" id="frac-mods">
         <label class="frac__field"><span>{S.module} 1</span><select class="frac-mod" data-slot="0"><option value="-1">{S.none}</option>{modules.map((m, i) => (<option value={i}>{m.name}</option>))}</select></label>
         <label class="frac__field"><span>{S.module} 2</span><select class="frac-mod" data-slot="1"><option value="-1">{S.none}</option>{modules.map((m, i) => (<option value={i}>{m.name}</option>))}</select></label>
         <label class="frac__field"><span>{S.module} 3</span><select class="frac-mod" data-slot="2"><option value="-1">{S.none}</option>{modules.map((m, i) => (<option value={i}>{m.name}</option>))}</select></label>
         <label class="frac__field"><span>{S.gadget}</span><select id="frac-gadget"><option value="-1">{S.none}</option>{gadgets.map((g, i) => (<option value={i}>{g.name}</option>))}</select></label>
       </div>
-
-      <div class="frac__rockhd">
-        <h4>{S.rock}</h4>
-        <div class="frac__presets" role="group" aria-label={S.presets}>
-          <button type="button" class="frac-preset" data-r="30" data-i="150" data-m="3000">{S.pSmall}</button>
-          <button type="button" class="frac-preset" data-r="50" data-i="350" data-m="8000">{S.pMed}</button>
-          <button type="button" class="frac-preset" data-r="65" data-i="500" data-m="24000">{S.pLarge}</button>
-          <button type="button" class="frac-preset" data-r="85" data-i="700" data-m="45000">{S.pHard}</button>
-        </div>
-      </div>
-      <div class="frac__sliders">
-        <label class="frac__slider"><span>{S.resistance} <output id="frac-rv">50</output>%</span><input type="range" id="frac-r" min="0" max="100" value="50"></label>
-        <div class="frac__nums">
-          <label class="frac__numfield"><span>{S.instability}</span><input type="number" id="frac-i" min="0" step="5" value="350"></label>
-          <label class="frac__numfield"><span>{S.mass}</span><input type="number" id="frac-m" min="0" step="100" value="8000"></label>
-        </div>
-      </div>
     </div>
 
     <div class="frac__out" id="frac-out" aria-live="polite">
       <div class="frac__verdict" id="frac-verdict">—</div>
       <div class="frac__bars">
-        <div class="frac__bar"><span class="frac__blabel">{S.reqPower}</span><div class="frac__track"><i id="frac-reqbar"></i></div><b id="frac-req">—</b></div>
-        <div class="frac__bar"><span class="frac__blabel">{S.availPower}</span><div class="frac__track"><i id="frac-availbar" class="ok"></i></div><b id="frac-avail">—</b></div>
+        <div class="frac__bar"><span class="frac__blabel">{S.effDps}</span><div class="frac__track"><i id="frac-dpsbar" class="ok"></i></div><b id="frac-dps">—</b></div>
+        <div class="frac__bar"><span class="frac__blabel">{S.decay}</span><div class="frac__track"><i id="frac-decaybar"></i></div><b id="frac-decay">—</b></div>
       </div>
       <div class="frac__metrics">
+        <div class="frac__metric"><span>{S.net}</span><b id="frac-net">—</b></div>
+        <div class="frac__metric"><span>{S.capacity}</span><b id="frac-cap">—</b></div>
         <div class="frac__metric"><span>{S.effRes}</span><b id="frac-effres">—</b></div>
-        <div class="frac__metric"><span>{S.instEff}</span><b id="frac-insteff">—</b></div>
-        <div class="frac__metric"><span>{S.overcharge}</span><b id="frac-over">—</b></div>
+        <div class="frac__metric"><span>{S.effInst}</span><b id="frac-effinst">—</b></div>
+        <div class="frac__metric"><span>{S.window}</span><b id="frac-win">—</b></div>
+        <div class="frac__metric"><span>{S.yield}</span><b id="frac-yield">—</b></div>
       </div>
+      <div class="frac__over"><span>{S.overcharge}</span><b id="frac-over">—</b></div>
       <div class="frac__rec" id="frac-rec">—</div>
     </div>
   </div>
   <p class="frac__note">{S.note}</p>
 
-  <script type="application/json" id="frac-data" set:html={JSON.stringify({ lasers, modules, gadgets, t: JT })}></script>
+  <script type="application/json" id="frac-data" set:html={JSON.stringify({ P, comps, lasers, modules, gadgets, t: {
+    breakable: S.breakable, marginal: S.marginal, impossible: S.impossible, perSec: S.perSec, energy: S.energy,
+    recBreak: S.recBreak, recMarginal: S.recMarginal, recImposs: S.recImposs, recOver: S.recOver,
+    low: lang==='de'?'niedrig':'low', mid: lang==='de'?'mittel':'mid', high: lang==='de'?'hoch':'high',
+  }})}></script>
   <script is:inline>
     (function () {
-      var el = document.getElementById('frac-data');
-      if (!el) return;
-      var D = JSON.parse(el.textContent);
-      var T = D.t;
+      var el = document.getElementById('frac-data'); if (!el) return;
+      var D = JSON.parse(el.textContent); var P = D.P, T = D.t;
       var $ = function (id) { return document.getElementById(id); };
-      var laserSel = $('frac-laser'), gadgetSel = $('frac-gadget');
-      var modSels = Array.prototype.slice.call(document.querySelectorAll('.frac-mod'));
-      var rR = $('frac-r'), rI = $('frac-i'), rM = $('frac-m');
       var NF = new Intl.NumberFormat(document.documentElement.lang === 'de' ? 'de-DE' : 'en-US');
+      var compSel=$('frac-comp'), mEl=$('frac-m'), rEl=$('frac-r'), iEl=$('frac-i');
+      var laserSel=$('frac-laser'), gadgetSel=$('frac-gadget');
+      var modSels=[].slice.call(document.querySelectorAll('.frac-mod'));
+      var RCF = P.resistanceCurveFactor || 0.6;
 
-      function n(v) { return v == null ? 0 : +v; }
-
-      function syncSlots() {
-        var slots = +laserSel.options[laserSel.selectedIndex].getAttribute('data-slots') || 0;
-        modSels.forEach(function (s, idx) {
-          var on = idx < slots;
-          s.disabled = !on;
-          s.parentElement.style.opacity = on ? '1' : '.4';
-          if (!on) s.value = '-1';
+      // Repräsentatives Rock-Blend aus einer Komposition → {R, inst, wDensity, thin}
+      function blend(comp, mass) {
+        var parts = comp.parts.slice();
+        // Repräsentative Anteile: Mittelwerte auf 100% normiert (wie im Referenz-
+        // Solver — die Range-Anteile eines Rocks korrelieren über die Qualität).
+        var sum = parts.reduce(function(a,p){return a+p.pct;},0) || 1;
+        var fr = parts.map(function(p){return p.pct/sum;});
+        // Resistance: positive r zuerst (evergr3n): w = clamp(frac^rcf × r, −1, 1)
+        var order = parts.map(function(p,idx){return {p:p,f:fr[idx]};}).sort(function(a,b){return (b.p.r>0?1:-1)-(a.p.r>0?1:-1);});
+        var R = 0;
+        order.forEach(function(o){
+          var w = Math.max(-1, Math.min(1, Math.pow(o.f, RCF) * o.p.r));
+          R += w > 0 ? w*(1-R) : w*R;
         });
+        var wInst = parts.reduce(function(a,p,idx){return a+fr[idx]*p.i;},0);
+        var wDensity = parts.reduce(function(a,p,idx){return a+fr[idx]*p.d;},0);
+        var thin = parts.reduce(function(a,p,idx){return a+fr[idx]*p.t;},0);
+        var rockVolume = wDensity>0 ? mass/wDensity : 0;
+        var inst = wInst * rockVolume / (P.defaultVolume||5122.499);
+        return { R: R, inst: inst, wDensity: wDensity, thin: thin };
       }
 
-      function calc() {
+      // Loadout-Modifikatoren additiv summieren (%).
+      function loadout() {
         var L = D.lasers[+laserSel.value] || {};
-        var mods = modSels.filter(function (s) { return !s.disabled && +s.value >= 0; }).map(function (s) { return D.modules[+s.value]; });
-        var G = +gadgetSel.value >= 0 ? D.gadgets[+gadgetSel.value] : null;
+        var res=+(L.mods.resistance||0), ins=+(L.mods.instability||0), win=+(L.mods.optimalChargeWindowSize||0), dpsMult=1;
+        modSels.forEach(function(s){ if(!s.disabled && +s.value>=0){ var m=D.modules[+s.value]; res+=+(m.mods.resistance||0); ins+=+(m.mods.instability||0); win+=+(m.mods.optimalChargeWindowSize||0); if(m.miningMult) dpsMult*=m.miningMult; } });
+        if(+gadgetSel.value>=0){ var g=D.gadgets[+gadgetSel.value]; res+=+(g.mods.resistance||0); ins+=+(g.mods.instability||0); win+=+(g.mods.optimalChargeWindowSize||0); }
+        return { L:L, res:res, ins:ins, win:win, dpsMult:dpsMult };
+      }
 
-        var R = Math.min(100, Math.max(0, +rR.value || 0));
-        var I = Math.max(0, +rI.value || 0);
-        var M = Math.max(0, +rM.value || 0);
-        $('frac-rv').textContent = R;
+      function syncSlots(){
+        var slots = +laserSel.options[laserSel.selectedIndex].getAttribute('data-slots')||0;
+        modSels.forEach(function(s,idx){ var on=idx<slots; s.disabled=!on; s.parentElement.style.opacity=on?'1':'.4'; if(!on) s.value='-1'; });
+      }
 
-        // Gear-Modifikatoren (UEX: %-Deltas) multiplizieren die Rock-Werte;
-        // Modul-Power stackt seit 4.0.1 additiv: total = 1 + Σ(mod − 1).
-        var resMult = 1, winMult = 1, instMult = 1, powAdd = 0;
-        function fold(x) {
-          if (!x) return;
-          if (x.resistance != null) resMult *= 1 + x.resistance / 100;
-          if (x.window != null) winMult *= 1 + x.window / 100;
-          if (x.instability != null) instMult *= 1 + x.instability / 100;
-        }
-        fold(L);
-        mods.forEach(function (m) { fold(m); if (m.power_mult != null) powAdd += m.power_mult / 100 - 1; });
-        fold(G);
+      function onComp(){
+        var c = D.comps[+compSel.value]; if(!c) return;
+        var b = blend(c, Math.max(1,+mEl.value||1));
+        rEl.value = Math.round(b.R*1000)/1000;
+        iEl.value = Math.round(b.inst);
+      }
 
-        var resEff = Math.min(0.98, Math.max(0, (R / 100) * resMult));
-        var availPower = n(L.power_max) * (1 + powAdd);
-        // Community-Näherung (MFA): benötigte Power ≈ Masse/5 bei 0 % Resistance.
-        var reqPower = (M / 5) / (1 - resEff);
-        var ratio = reqPower > 0 ? availPower / reqPower : 99;
+      function calc(){
+        var mass = Math.max(1, +mEl.value||1);
+        var R = Math.max(0, +rEl.value||0);
+        var I = Math.max(0, +iEl.value||0);
+        var lo = loadout();
+        var c = D.comps[+compSel.value];
+        var wDensity = c ? blend(c, mass).wDensity : 20, thin = c ? blend(c, mass).thin : 1.5;
 
-        var instEff = I * instMult;
-        var winPct = Math.max(20, 100 * winMult);
-        var riskIdx = instEff / (winPct / 100);
+        var Reff = R * (1 + lo.res/100);
+        var Ieff = I * (1 + lo.ins/100);
+        var decay = (P.decayPerMass||0.2) * mass;
+        var capacity = (P.powerCapacityPerMass||10) * mass;
+        // Charge-Faktor: linear in der effektiven Resistance, bei 95% gedeckelt
+        // (an 27 Referenz-Messpunkten verifiziert, Abweichung <0,5%).
+        var chargeFactor = Math.max(0.05, 1 - Reff);
+        var effDps = (lo.L.dps||0) * lo.dpsMult * chargeFactor;
+        var net = effDps - decay;
+
+        var baseWin = P.optimalWindowSize||0.1, maxWin = P.optimalWindowMaxSize||0.5;
+        var winSize = Math.max(0.02, Math.min(maxWin, baseWin*(1+thin)*(1+lo.win/100)));
+        var scu = mass * ((P.cSCUPerVolume||0.7)/100) / (wDensity||1);
 
         // Verdict
-        var vEl = $('frac-verdict');
+        var ratio = decay>0 ? effDps/decay : 99;
         var cls, label;
-        if (ratio >= 1.15) { cls = 'ok'; label = T.breakable; }
-        else if (ratio >= 0.95) { cls = 'warn'; label = T.marginal; }
-        else { cls = 'bad'; label = T.unbreakable; }
-        vEl.className = 'frac__verdict ' + cls;
-        vEl.textContent = label + ' · ×' + ratio.toFixed(2);
+        if (ratio <= 1) { cls='bad'; label=T.impossible; }
+        else if (ratio < 1.3) { cls='warn'; label=T.marginal; }
+        else { cls='ok'; label=T.breakable; }
+        var v=$('frac-verdict'); v.className='frac__verdict '+cls; v.textContent=label+' · ×'+ratio.toFixed(2);
 
-        // Bars
-        var maxP = Math.max(reqPower, availPower, 1);
-        $('frac-req').textContent = NF.format(Math.round(reqPower));
-        $('frac-avail').textContent = NF.format(Math.round(availPower));
-        $('frac-reqbar').style.width = Math.min(100, (reqPower / maxP) * 100) + '%';
-        $('frac-availbar').style.width = Math.min(100, (availPower / maxP) * 100) + '%';
-        $('frac-reqbar').className = cls === 'bad' ? 'bad' : '';
-        $('frac-availbar').className = cls === 'bad' ? 'bad' : 'ok';
+        var maxP=Math.max(effDps,decay,1);
+        $('frac-dps').textContent=NF.format(Math.round(effDps))+' '+T.perSec;
+        $('frac-decay').textContent=NF.format(Math.round(decay))+' '+T.perSec;
+        $('frac-dpsbar').style.width=Math.min(100,effDps/maxP*100)+'%';
+        $('frac-decaybar').style.width=Math.min(100,decay/maxP*100)+'%';
+        $('frac-dpsbar').className=cls==='bad'?'bad':'ok';
+        $('frac-net').textContent=(net>=0?'+':'')+NF.format(Math.round(net))+' '+T.perSec;
+        $('frac-net').className=net>0?'ok':'bad';
+        $('frac-cap').textContent=NF.format(Math.round(capacity))+' '+T.energy;
+        $('frac-effres').textContent=Reff.toFixed(2);
+        $('frac-effinst').textContent=NF.format(Math.round(Ieff));
+        $('frac-win').textContent=(winSize*100).toFixed(1)+'%';
+        $('frac-yield').textContent=(Math.round(scu*100)/100)+' SCU';
 
-        // Metrics
-        $('frac-effres').textContent = Math.round(resEff * 100) + '%';
-        $('frac-insteff').textContent = NF.format(Math.round(instEff));
-        var orisk = riskIdx < 150 ? T.low : riskIdx < 400 ? T.mid : T.high;
-        var oEl = $('frac-over');
-        oEl.textContent = orisk;
-        oEl.className = riskIdx < 150 ? 'ok' : riskIdx < 400 ? 'warn' : 'bad';
+        // Overcharge-Risiko: Instabilität relativ zur Fenstergröße
+        var risk = Ieff / (winSize*1000);
+        var orisk = risk<0.6?T.low:risk<1.2?T.mid:T.high;
+        var oEl=$('frac-over'); oEl.textContent=orisk; oEl.className=risk<0.6?'ok':risk<1.2?'warn':'bad';
 
-        // Recommendation
-        var rec = '';
-        if (cls === 'ok') rec = T.recBreak;
-        else if (cls === 'warn') rec = T.recMarginal;
-        else {
-          var bestGad = pickBy(D.gadgets, 'resistance');
-          var bestMod = pickBy(D.modules, 'resistance');
-          rec = T.recUnbreak.replace('%G%', bestGad ? bestGad.name : 'Sabir').replace('%M%', bestMod ? bestMod.name : 'Rime');
-        }
-        if (riskIdx >= 400) {
-          var bestWin = pickBy(D.gadgets, 'instability');
-          rec += ' ' + T.recOver.replace('%W%', bestWin ? bestWin.name : 'BoreMax');
-        }
-        $('frac-rec').textContent = rec;
+        var rec = cls==='ok'?T.recBreak:cls==='warn'?T.recMarginal:T.recImposs;
+        if (risk>=1.2) rec += T.recOver;
+        $('frac-rec').textContent=rec;
       }
 
-      // pick item with most negative (or most positive if want=true) value for a stat
-      function pickBy(arr, key, want) {
-        var best = null;
-        arr.forEach(function (x) {
-          var v = x[key];
-          if (v == null) return;
-          if (best == null) best = x;
-          else if (want ? v > best[key] : v < best[key]) best = x;
-        });
-        return best;
-      }
-
-      laserSel.addEventListener('change', function () { syncSlots(); calc(); });
+      compSel.addEventListener('change', function(){ onComp(); calc(); });
+      mEl.addEventListener('input', function(){ onComp(); calc(); });
+      [rEl,iEl].forEach(function(x){ x.addEventListener('input', calc); });
+      laserSel.addEventListener('change', function(){ syncSlots(); calc(); });
       gadgetSel.addEventListener('change', calc);
-      modSels.forEach(function (s) { s.addEventListener('change', calc); });
-      [rR, rI, rM].forEach(function (s) { s.addEventListener('input', calc); });
-      document.querySelectorAll('.frac-preset').forEach(function (b) {
-        b.addEventListener('click', function () {
-          rR.value = b.getAttribute('data-r'); rI.value = b.getAttribute('data-i'); rM.value = b.getAttribute('data-m');
-          calc();
-        });
-      });
+      modSels.forEach(function(s){ s.addEventListener('change', calc); });
+      document.querySelectorAll('.frac-preset').forEach(function(b){ b.addEventListener('click', function(){ mEl.value=b.getAttribute('data-m'); onComp(); calc(); }); });
 
-      syncSlots();
-      calc();
+      syncSlots(); onComp(); calc();
     })();
   </script>
 
   <style is:inline>
     .frac{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
-    .frac__grid{display:grid;grid-template-columns:1.3fr 1fr;gap:1.2rem;align-items:start}
+    .frac__grid{display:grid;grid-template-columns:1.15fr 1fr;gap:1.2rem;align-items:start}
     .frac__in,.frac__out{border:1px solid var(--line,rgba(47,191,164,.22));background:var(--surface,#1e2427);border-radius:8px;padding:1rem 1.1rem}
     .frac__out{border-top:2px solid var(--accent,#2FBFA4)}
-    .frac__row{display:flex;flex-wrap:wrap;gap:.7rem;margin-bottom:.8rem}
-    .frac__field{display:flex;flex-direction:column;gap:.25rem;flex:1 1 130px;min-width:0}
+    .frac__rockhd{margin:.2rem 0 .5rem}
+    .frac__rockhd--gear{border-top:1px solid var(--line-soft,rgba(255,255,255,.08));padding-top:.9rem;margin-top:.9rem}
+    .frac__rockhd h4{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.66rem;color:var(--accent,#2FBFA4);margin:0}
+    .frac__row{display:flex;flex-wrap:wrap;gap:.7rem;margin-bottom:.7rem}
+    .frac__field{display:flex;flex-direction:column;gap:.25rem;flex:1 1 120px;min-width:0}
     .frac__field--wide{flex:1 1 100%}
     .frac__field span{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.6rem;color:var(--muted,#8fa3a0)}
-    .frac__field select{background:var(--bg-2,#181d1f);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.45rem .55rem;border-radius:5px;font-size:.9rem;font-family:var(--font-ui,inherit);max-width:100%}
-    .frac__rockhd{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin:.4rem 0 .6rem;border-top:1px solid var(--line-soft,rgba(255,255,255,.08));padding-top:.9rem}
-    .frac__rockhd h4{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.66rem;color:var(--accent,#2FBFA4);margin:0}
-    .frac__presets{display:flex;flex-wrap:wrap;gap:.3rem}
+    .frac__field select,.frac__field input{background:var(--bg-2,#181d1f);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.45rem .55rem;border-radius:5px;font-size:.9rem;font-family:var(--font-ui,inherit);max-width:100%}
+    .frac__field input:focus{outline:2px solid var(--accent,#2FBFA4);outline-offset:1px}
+    .frac__presets{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.2rem}
     .frac-preset{background:var(--bg-2,#181d1f);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.3rem .55rem;border-radius:5px;cursor:pointer;font-size:.72rem;font-family:var(--font-ui,inherit);font-weight:700}
     .frac-preset:hover{border-color:var(--accent,#2FBFA4);color:var(--accent,#2FBFA4)}
-    .frac__sliders{display:flex;flex-direction:column;gap:.7rem}
-    .frac__slider{display:flex;flex-direction:column;gap:.2rem}
-    .frac__slider span{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.64rem;color:var(--muted,#8fa3a0);display:flex;justify-content:space-between}
-    .frac__slider output{color:var(--accent,#2FBFA4);font-weight:800}
-    .frac__slider input{width:100%;accent-color:var(--accent,#2FBFA4)}
-    .frac__nums{display:flex;flex-wrap:wrap;gap:.7rem}
-    .frac__numfield{display:flex;flex-direction:column;gap:.2rem;flex:1 1 120px}
-    .frac__numfield span{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.64rem;color:var(--muted,#8fa3a0)}
-    .frac__numfield input{background:var(--bg-2,#181d1f);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.45rem .55rem;border-radius:5px;font-size:.95rem;font-family:var(--font-ui,inherit);font-variant-numeric:tabular-nums}
-    .frac__numfield input:focus{outline:2px solid var(--accent,#2FBFA4);outline-offset:1px}
     .frac__verdict{font-family:var(--font-display,inherit);font-weight:900;font-size:clamp(1.2rem,3.5vw,1.7rem);text-align:center;padding:.7rem;border-radius:6px;margin-bottom:.9rem;color:#fff;background:var(--surface-2,#252c30);border:1px solid var(--line-soft,rgba(255,255,255,.1))}
     .frac__verdict.ok{color:#0e1214;background:var(--accent,#2FBFA4)}
     .frac__verdict.warn{color:#0e1214;background:var(--accent-2,#E0A526)}
@@ -279,17 +284,16 @@ const JT = {
     .frac__track i{display:block;height:100%;width:0;background:var(--muted,#8fa3a0);transition:width .18s}
     .frac__track i.ok{background:var(--accent,#2FBFA4)}
     .frac__track i.bad{background:#c0392b}
-    .frac__metrics{display:flex;gap:.6rem;margin-bottom:.9rem;flex-wrap:wrap}
-    .frac__metric{flex:1 1 0;min-width:100px;background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.08));border-radius:5px;padding:.5rem .6rem}
-    .frac__metric span{display:block;font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.56rem;color:var(--muted,#8fa3a0)}
-    .frac__metric b{font-size:1.05rem;color:var(--text,#eaf2f1);font-variant-numeric:tabular-nums}
-    .frac__metric b.ok{color:var(--accent,#2FBFA4)}
-    .frac__metric b.warn{color:var(--accent-2,#E0A526)}
-    .frac__metric b.bad{color:#e06055}
+    .frac__metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.7rem}
+    .frac__metric{background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.08));border-radius:5px;padding:.5rem .6rem}
+    .frac__metric span{display:block;font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.54rem;color:var(--muted,#8fa3a0)}
+    .frac__metric b{font-size:1rem;color:var(--text,#eaf2f1);font-variant-numeric:tabular-nums}
+    .frac__metric b.ok{color:var(--accent,#2FBFA4)}.frac__metric b.bad{color:#e06055}
+    .frac__over{display:flex;justify-content:space-between;align-items:center;background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.08));border-radius:5px;padding:.5rem .7rem;margin-bottom:.7rem}
+    .frac__over span{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.58rem;color:var(--muted,#8fa3a0)}
+    .frac__over b{font-size:.95rem}.frac__over b.ok{color:var(--accent,#2FBFA4)}.frac__over b.warn{color:var(--accent-2,#E0A526)}.frac__over b.bad{color:#e06055}
     .frac__rec{font-size:.86rem;line-height:1.5;color:var(--text,#eaf2f1);background:var(--bg-2,#181d1f);border-left:3px solid var(--accent,#2FBFA4);border-radius:4px;padding:.6rem .8rem}
     .frac__note{max-width:var(--maxw,1240px);margin:.9rem auto 0;font-size:.78rem;color:var(--muted,#8fa3a0);line-height:1.5;font-style:italic}
-    @media(max-width:760px){
-      .frac__grid{grid-template-columns:1fr}
-    }
+    @media(max-width:760px){ .frac__grid{grid-template-columns:1fr} .frac__metrics{grid-template-columns:1fr 1fr} }
   </style>
 </section>

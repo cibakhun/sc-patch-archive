@@ -128,7 +128,7 @@
     return out + '</span>';
   }
   var NF1 = new Intl.NumberFormat(LANG === 'de' ? 'de-DE' : 'en-US', { maximumFractionDigits: 1 });
-  // Echte Ausbeute: refined = raw × 0,85 × Methoden-Yield (Regolith-Formelkern).
+  // Echte Ausbeute: refined = raw × 0,85 × Methoden-Yield.
   function methodYield(mm) {
     if (!mm) return 0.85;
     if (mm.yield_effective != null) return mm.yield_effective;
@@ -173,7 +173,7 @@
           html += '</div>';
         });
         html += '</div>';
-        html += '<p class="mm__note">' + esc(CFG.lang === 'de' ? 'Vorkommen laut Spieldaten (UEX) — keine Spawn-Wahrscheinlichkeit.' : 'Occurrence per game data (UEX) — not spawn probability.') + '</p>';
+        html += '<p class="mm__note">' + esc(CFG.lang === 'de' ? 'Vorkommen laut Spieldaten — keine Spawn-Wahrscheinlichkeit.' : 'Occurrence per game data — not spawn probability.') + '</p>';
       } else {
         html += '<p class="mm__note">' + esc(T.noLoc) + '</p>';
       }
@@ -218,8 +218,6 @@
         html += '<p class="mm__note">' + esc(refinable ? T.calcNote : T.calcNoteGem) + '</p>';
         html += '</div>';
       }
-
-      if (m.wiki) html += '<a class="mm__wiki" href="' + esc(m.wiki) + '" target="_blank" rel="noopener">' + esc(T.wikiLink) + ' ↗</a>';
 
       modalBody.innerHTML = html;
       modal.hidden = false;

@@ -1,49 +1,82 @@
 ---
-// SignatureBoard.astro — Scan-Signaturen (4.7+) als Merk-Tafel.
-// Seit 4.7 identifiziert die Radar-Signatur direkt das dominante Mineral
-// (40–80 % Anteil). Quelle: github.com/Diftic/SC_Signature_Scanner (Game-Files).
-// Chips sind anklickbar → Highlight an/aus, gemerkt in localStorage — zum
-// Markieren der Signaturen, die man gerade farmt.
-import DB from '../../assets/mining-db.json';
+// SignatureBoard.astro — Scan-Signaturen als echte Rock-Kompositionen (4.8.x).
+// Jede Signatur (z. B. 3170) gehört zu einem dominanten Mineral; die Karte zeigt
+// die datamined Rock-Zusammensetzung (Mineral-Anteile in %-Ranges) plus die
+// Rock-Physik (Resistance, Instabilität). Karten sind klickbar → Highlight an/aus
+// (Merkliste, in localStorage), Detail aufklappbar. Daten: assets/mining-model.json.
+import MODEL from '../../assets/mining-model.json';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
 
-const tiers = DB.signatures || [];
+// Element-Lookup (Name → Physik).
+const elemByName: Record<string, any> = {};
+for (const e of MODEL.elements || []) elemByName[e.name] = e;
 
-const TIER_LABEL: Record<string, { de: string; en: string }> = {
-  Legendary: { de: 'Legendär', en: 'Legendary' },
-  Epic: { de: 'Episch', en: 'Epic' },
-  Rare: { de: 'Selten', en: 'Rare' },
-  Uncommon: { de: 'Ungewöhnlich', en: 'Uncommon' },
-  Common: { de: 'Häufig', en: 'Common' },
-  Other: { de: 'Sonstige', en: 'Other' },
+// Kompositionen mit dominantem Mineral + Physik anreichern.
+const RARITY_ORDER = ['legendary', 'epic', 'rare', 'uncommon', 'common'];
+const rows = (MODEL.compositions || []).map((c: any) => {
+  const dom = elemByName[(c.parts?.[0]?.element) || c.name] || elemByName[c.name] || null;
+  return {
+    name: c.name,
+    sig: dom?.scanSignature ?? null,
+    rarity: dom?.rarity || 'common',
+    resistance: dom?.resistance ?? null,
+    instability: dom?.instability ?? null,
+    parts: (c.parts || []).map((p: any) => ({
+      name: p.element,
+      min: p.minPercent,
+      max: p.maxPercent,
+      res: elemByName[p.element]?.resistance ?? null,
+    })),
+  };
+}).filter((r) => r.sig != null)
+  .sort((a, b) => (RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity)) || (a.sig - b.sig));
+
+// Nach Seltenheit gruppieren.
+const groups = RARITY_ORDER.map((rar) => ({ rarity: rar, items: rows.filter((r) => r.rarity === rar) })).filter((g) => g.items.length);
+
+const RARITY_LABEL: Record<string, { de: string; en: string }> = {
+  legendary: { de: 'Legendär', en: 'Legendary' }, epic: { de: 'Episch', en: 'Epic' },
+  rare: { de: 'Selten', en: 'Rare' }, uncommon: { de: 'Ungewöhnlich', en: 'Uncommon' }, common: { de: 'Häufig', en: 'Common' },
 };
 
 const S = {
   de: {
-    intro: 'Seit Patch 4.7 verrät die Scan-Signatur direkt das dominante Mineral eines Rocks (40–80 % Anteil). Signatur anklicken → Highlight an/aus — deine Markierungen bleiben gespeichert, praktisch als Merkliste beim Farmen.',
-    clear: 'Alle Markierungen aus',
-    src: 'Signatur-Zuordnung aus den Game-Files (Diftic/SC_Signature_Scanner, Stand 4.7+). Cluster zeigen Vielfache der Signatur.',
+    intro: 'Seit Patch 4.7 verrät die Scan-Signatur das dominante Mineral eines Rocks. Jede Karte zeigt die datamined Rock-Zusammensetzung (Mineral-Anteile) und die Rock-Physik — Resistance & Instabilität, die im Fracturing-Rechner zählen. Karte anklicken → Highlight an/aus (Merkliste, bleibt gespeichert).',
+    clear: 'Alle Markierungen aus', comp: 'Zusammensetzung', res: 'Resist', inst: 'Instab',
+    src: 'Signaturen, Kompositionen und Physik-Werte aus datamined Spieldaten (Patch 4.8.3). Anteile sind Ranges — echte Rocks streuen darin.',
   },
   en: {
-    intro: 'Since patch 4.7 the scan signature directly identifies a rock’s dominant mineral (40–80 % share). Click a signature to toggle its highlight — your marks are saved, handy as a watchlist while farming.',
-    clear: 'Clear all marks',
-    src: 'Signature mapping from the game files (Diftic/SC_Signature_Scanner, as of 4.7+). Clusters show multiples of the signature.',
+    intro: 'Since patch 4.7 the scan signature reveals a rock’s dominant mineral. Each card shows the datamined rock composition (mineral shares) and the rock physics — resistance & instability, which drive the fracturing calculator. Click a card to toggle its highlight (watchlist, saved).',
+    clear: 'Clear all marks', comp: 'Composition', res: 'Resist', inst: 'Instab',
+    src: 'Signatures, compositions and physics values from datamined game files (patch 4.8.3). Shares are ranges — real rocks vary within them.',
   },
 }[lang];
 ---
 <section class="sgb" id="sgb">
   <p class="sgb__intro">{S.intro}</p>
-  <div class="sgb__tiers">
-    {tiers.map((t) => (
-      <div class="sgb__tier" data-tier={t.tier}>
-        <div class="sgb__th">{TIER_LABEL[t.tier]?.[lang] ?? t.tier}</div>
-        <div class="sgb__chips">
-          {t.entries.map((e) => (
-            <button type="button" class="sgb__chip" data-sig={e.sig} aria-pressed="false">
-              <b>{e.sig}</b><span>{e.name}</span>
-            </button>
+  <div class="sgb__groups">
+    {groups.map((g) => (
+      <div class="sgb__group" data-rarity={g.rarity}>
+        <div class="sgb__gh">{RARITY_LABEL[g.rarity]?.[lang] ?? g.rarity}</div>
+        <div class="sgb__cards">
+          {g.items.map((r) => (
+            <article class="sgb__card" data-sig={r.sig} aria-pressed="false">
+              <button type="button" class="sgb__cardhd">
+                <b class="sgb__sig">{r.sig}</b>
+                <span class="sgb__name">{r.name}</span>
+                <span class="sgb__phys">{r.resistance != null && (<em>{S.res} {r.resistance.toFixed(2)}</em>)}{r.instability != null && (<em>{S.inst} {r.instability}</em>)}</span>
+              </button>
+              <div class="sgb__comp">
+                <div class="sgb__complabel">{S.comp}</div>
+                <ul class="sgb__parts">
+                  {r.parts.map((p) => (
+                    <li><span class="pn">{p.name}</span><span class="pp">{Math.round(p.min)}–{Math.round(p.max)}%</span></li>
+                  ))}
+                </ul>
+              </div>
+            </article>
           ))}
         </div>
       </div>
@@ -56,55 +89,51 @@ const S = {
 
   <script is:inline>
     (function () {
-      var root = document.getElementById('sgb');
-      if (!root) return;
-      var KEY = 'mine.sigs';
-      var marked = [];
+      var root = document.getElementById('sgb'); if (!root) return;
+      var KEY = 'mine.sigs'; var marked = [];
       try { marked = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) {}
       if (!Array.isArray(marked)) marked = [];
-      var chips = Array.prototype.slice.call(root.querySelectorAll('.sgb__chip'));
-
-      function save() { try { localStorage.setItem(KEY, JSON.stringify(marked)); } catch (e) {} }
-      function paint() {
-        chips.forEach(function (c) {
-          var on = marked.indexOf(+c.getAttribute('data-sig')) >= 0;
-          c.classList.toggle('on', on);
-          c.setAttribute('aria-pressed', String(on));
-        });
-      }
-      chips.forEach(function (c) {
-        c.addEventListener('click', function () {
-          var sig = +c.getAttribute('data-sig');
-          var i = marked.indexOf(sig);
-          if (i >= 0) marked.splice(i, 1); else marked.push(sig);
+      var cards = [].slice.call(root.querySelectorAll('.sgb__card'));
+      function save(){ try { localStorage.setItem(KEY, JSON.stringify(marked)); } catch(e){} }
+      function paint(){ cards.forEach(function(c){ var on=marked.indexOf(+c.getAttribute('data-sig'))>=0; c.classList.toggle('on',on); c.setAttribute('aria-pressed',String(on)); }); }
+      cards.forEach(function(c){
+        c.querySelector('.sgb__cardhd').addEventListener('click', function(){
+          var sig=+c.getAttribute('data-sig'); var i=marked.indexOf(sig);
+          if(i>=0) marked.splice(i,1); else marked.push(sig);
           save(); paint();
         });
       });
-      var clearBtn = document.getElementById('sgb-clear');
-      if (clearBtn) clearBtn.addEventListener('click', function () { marked = []; save(); paint(); });
+      var clearBtn=document.getElementById('sgb-clear');
+      if(clearBtn) clearBtn.addEventListener('click', function(){ marked=[]; save(); paint(); });
       paint();
     })();
   </script>
 
   <style is:inline>
     .sgb{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
-    .sgb__intro{font-size:.92rem;color:var(--muted,#8fa3a0);line-height:1.55;max-width:72ch;margin:0 0 1.1rem}
-    .sgb__tiers{display:flex;flex-direction:column;gap:.9rem}
-    .sgb__tier{border:1px solid var(--line,rgba(47,191,164,.22));background:var(--surface,#1e2427);border-radius:8px;padding:.8rem .9rem;border-left:3px solid var(--tier,#8fa3a0)}
-    .sgb__tier[data-tier="Legendary"]{--tier:#e0564b}
-    .sgb__tier[data-tier="Epic"]{--tier:#b06ae0}
-    .sgb__tier[data-tier="Rare"]{--tier:var(--accent-2,#E0A526)}
-    .sgb__tier[data-tier="Uncommon"]{--tier:var(--accent,#2FBFA4)}
-    .sgb__tier[data-tier="Common"]{--tier:#8fa3a0}
-    .sgb__tier[data-tier="Other"]{--tier:#5d6f6b}
-    .sgb__th{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.64rem;color:var(--tier);margin-bottom:.55rem}
-    .sgb__chips{display:flex;flex-wrap:wrap;gap:.4rem}
-    .sgb__chip{display:inline-flex;align-items:baseline;gap:.45rem;background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.1));border-radius:5px;padding:.32rem .6rem;cursor:pointer;transition:border-color .15s,background-color .15s,box-shadow .15s}
-    .sgb__chip b{font-family:var(--font-display,inherit);font-weight:800;font-size:.95rem;color:var(--tier);font-variant-numeric:tabular-nums}
-    .sgb__chip span{font-size:.82rem;color:var(--text,#eaf2f1);font-family:var(--font-ui,inherit)}
-    .sgb__chip:hover{border-color:var(--tier)}
-    .sgb__chip.on{border-color:var(--tier);background:color-mix(in srgb,var(--tier) 16%,var(--bg-2,#181d1f));box-shadow:0 0 14px color-mix(in srgb,var(--tier) 35%,transparent)}
-    .sgb__chip.on span{color:#fff;font-weight:600}
+    .sgb__intro{font-size:.92rem;color:var(--muted,#8fa3a0);line-height:1.55;max-width:78ch;margin:0 0 1.1rem}
+    .sgb__groups{display:flex;flex-direction:column;gap:1rem}
+    .sgb__group{--rar:#8fa3a0}
+    .sgb__group[data-rarity="legendary"]{--rar:#e0564b}
+    .sgb__group[data-rarity="epic"]{--rar:#b06ae0}
+    .sgb__group[data-rarity="rare"]{--rar:var(--accent-2,#E0A526)}
+    .sgb__group[data-rarity="uncommon"]{--rar:var(--accent,#2FBFA4)}
+    .sgb__group[data-rarity="common"]{--rar:#8fa3a0}
+    .sgb__gh{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.64rem;color:var(--rar);margin-bottom:.5rem;border-left:3px solid var(--rar);padding-left:.5rem}
+    .sgb__cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.6rem}
+    .sgb__card{border:1px solid var(--line-soft,rgba(255,255,255,.1));border-top:2px solid var(--rar);background:var(--bg-2,#181d1f);border-radius:5px;overflow:hidden;transition:box-shadow .15s,border-color .15s}
+    .sgb__card.on{box-shadow:0 0 16px color-mix(in srgb,var(--rar) 40%,transparent);border-color:var(--rar)}
+    .sgb__cardhd{width:100%;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;gap:.1rem .6rem;align-items:baseline;background:transparent;border:0;cursor:pointer;text-align:left;padding:.6rem .7rem;color:inherit;font:inherit}
+    .sgb__sig{grid-row:1 / span 2;align-self:center;font-family:var(--font-display,inherit);font-weight:800;font-size:1.15rem;color:var(--rar);font-variant-numeric:tabular-nums}
+    .sgb__name{font-family:var(--font-display,inherit);font-weight:700;color:#fff;font-size:.95rem}
+    .sgb__phys{display:flex;gap:.5rem}
+    .sgb__phys em{font-style:normal;font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:.56rem;color:var(--muted,#8fa3a0)}
+    .sgb__comp{border-top:1px solid var(--line-soft,rgba(255,255,255,.07));padding:.5rem .7rem .6rem}
+    .sgb__complabel{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.54rem;color:var(--rar);margin-bottom:.35rem}
+    .sgb__parts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.2rem}
+    .sgb__parts li{display:flex;justify-content:space-between;gap:.6rem;font-size:.8rem}
+    .sgb__parts .pn{color:var(--text,#eaf2f1)}
+    .sgb__parts .pp{color:var(--muted,#8fa3a0);font-variant-numeric:tabular-nums;flex:none}
     .sgb__foot{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1.2rem;margin-top:1rem}
     .sgb__clear{background:transparent;border:1px solid var(--line,rgba(47,191,164,.3));color:var(--muted,#8fa3a0);padding:.4rem .8rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;font-size:.78rem}
     .sgb__clear:hover{border-color:var(--accent,#2FBFA4);color:var(--accent,#2FBFA4)}

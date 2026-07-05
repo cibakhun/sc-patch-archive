@@ -40,9 +40,9 @@ const JS_T = {
     range: 'Spanne', avg: 'Ø', terminals: 'Terminals', at: 'bei',
     calc: 'Refinery- & Wert-Rechner', calcAmount: 'Menge (SCU raw)', calcMethod: 'Refinery-Methode',
     calcRaw: 'Verkaufswert', calcRefined: 'Ertrag (refined)', calcRefVal: 'Verkaufswert (refined)', boxes: 'Kisten',
-    calcNote: 'Echte In-Game-Formel: refined = raw × 0,85 × Methoden-Yield (Regolith-Formelkern, deckt sich mit den UEX-Refinery-Audits). Verkaufswert = refined SCU × bester Terminal-Preis. Stations-Boni (±10 %) und Zeiten/Kosten: siehe Refinery-Rechner weiter unten.',
+    calcNote: 'In-Game-Formel: refined = raw × 0,85 × Methoden-Yield. Verkaufswert = refined SCU × bester Terminal-Preis. Stations-Boni (±10 %) und Zeiten/Kosten: siehe Refinery-Rechner weiter unten.',
     calcNoteGem: 'Verkaufswert = Menge × bester Terminal-Preis. Edelstein wird ganz verkauft (kein Refining).',
-    yield: 'Ertrag', cost: 'Kosten', speed: 'Tempo', wikiLink: 'Auf starcitizen.tools ansehen',
+    yield: 'Ertrag', cost: 'Kosten', speed: 'Tempo',
     methShip: 'Schiff-Mining (Prospector/MOLE)', methHand: 'Hand-Mining / ROC (ganze Edelsteine)',
     needsRefine: 'Rohform muss raffiniert werden', noRefine: 'wird ganz verkauft (kein Refining)',
     noLoc: 'Keine körpergebundenen Fundorte in den Daten — überwiegend in Asteroidengürteln (z.B. Aaron Halo) abbaubar.',
@@ -55,9 +55,9 @@ const JS_T = {
     range: 'Range', avg: 'Avg', terminals: 'terminals', at: 'at',
     calc: 'Refinery & value calculator', calcAmount: 'Amount (SCU raw)', calcMethod: 'Refinery method',
     calcRaw: 'Sale value', calcRefined: 'Yield (refined)', calcRefVal: 'Sale value (refined)', boxes: 'boxes',
-    calcNote: 'Real in-game formula: refined = raw × 0.85 × method yield (Regolith formula core, matches the UEX refinery audits). Sale value = refined SCU × best terminal price. Station bonuses (±10 %) and times/costs: see the refinery calculator below.',
+    calcNote: 'In-game formula: refined = raw × 0.85 × method yield. Sale value = refined SCU × best terminal price. Station bonuses (±10 %) and times/costs: see the refinery calculator below.',
     calcNoteGem: 'Sale value = amount × best terminal price. Gem is sold whole (no refining).',
-    yield: 'Yield', cost: 'Cost', speed: 'Speed', wikiLink: 'View on starcitizen.tools',
+    yield: 'Yield', cost: 'Cost', speed: 'Speed',
     methShip: 'Ship mining (Prospector/MOLE)', methHand: 'Hand mining / ROC (whole gems)',
     needsRefine: 'Raw form must be refined', noRefine: 'sold whole (no refining)',
     noLoc: 'No body-bound locations in the data — mostly mineable in asteroid belts (e.g. Aaron Halo).',
@@ -290,7 +290,6 @@ const total = DB.counts.minerals;
   .mm__cbox span{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.58rem;color:var(--muted,#8fa3a0);display:block}
   .mm__cbox b{font-size:1.2rem;color:var(--accent-2,#E0A526);font-variant-numeric:tabular-nums}
   .mm__cbox.refined b{color:var(--accent,#2FBFA4)}
-  .mm__wiki{display:inline-block;margin-top:1rem;font-family:var(--font-ui,inherit);font-weight:700;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent,#2FBFA4);border-bottom:1px solid var(--line,rgba(47,191,164,.3))}
   /* Reverse-lookup drawer */
   .mdb-drawer{position:fixed;top:0;right:0;z-index:9350;width:min(420px,100%);height:100%;background:var(--bg-2,#181d1f);border-left:1px solid var(--accent-2,#E0A526);transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;overflow:auto}
   .mdb-drawer.is-open{transform:translateX(0)}

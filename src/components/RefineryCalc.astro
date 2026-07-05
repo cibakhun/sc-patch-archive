@@ -1,8 +1,7 @@
 ---
-// RefineryCalc.astro — Refinery-Rechner mit dem ECHTEN In-Game-Modell.
-// Formelkern (Regolith/RegolithCo-Common, MIT; deckt sich mit UEX-Audits):
+// RefineryCalc.astro — Refinery-Rechner mit dem In-Game-Modell.
 //   refined_cSCU = raw_cSCU × 0,85 × methodYield × (1 + stationBonus%)
-//   zeit_s       = raw_cSCU × ore.time_cscu × methodTime   (Stand ≤4.6)
+//   zeit_s       = raw_cSCU × ore.time_cscu × methodTime
 //   kosten_aUEC  = raw_cSCU × ore.cost_cscu × methodCost
 // Anzeige umschaltbar: SCU-Ertrag (Default) oder aUEC-Gewinn als Hauptergebnis.
 import DB from '../../assets/mining-db.json';
@@ -39,7 +38,7 @@ const S = {
     saleValue: 'Verkaufswert (refined)', net: 'Netto-Gewinn', bonus: 'Stations-Bonus',
     compare: 'Methoden-Vergleich', colMethod: 'Methode', colYield: 'Ertrag (SCU)', colTime: 'Zeit', colCost: 'Kosten', colNet: 'Netto',
     unknownProc: 'Für dieses Erz sind Zeit-/Kosten-Faktoren nicht datamined (neues 4.x-Erz) — Ausbeute stimmt, Dauer/Kosten unbekannt.',
-    note: 'Echte In-Game-Formel (Regolith-Formelkern, deckungsgleich mit UEX-Refinery-Audits): Ausbeute = Rohmenge × 0,85 × Methoden-Yield × Stations-Bonus. Kisten = auf volle SCU aufgerundet. Dauer-Faktoren sind Stand ≤4.6 — Patch 4.2 hat Refinery-Zeiten global verkürzt, die echten Zeiten liegen also darunter. Stations-Boni: live aus UEX (crowdsourced). Das 4.7-Qualitätssystem (1–999) ist nicht öffentlich dokumentiert und hier nicht modelliert.',
+    note: 'Näherung. Ausbeute = Rohmenge × 0,85 × Methoden-Yield × Stations-Bonus. Nur die Stations-Boni sind für 4.8.3 datamined; die Methoden-Yields (Dinyx/Cormack/…) und Zeit-/Kosten-Faktoren stammen aus einem älteren Patch und sind für 4.8 nicht mehr datamined bestätigt — das 4.7-Rework (Materialqualität 1–999) ist nicht öffentlich dokumentiert. Zum Vergleich der Methoden gedacht, nicht als exakte Prognose. Ingame gegenprüfen.',
   },
   en: {
     ore: 'Ore (raw)', amount: 'Amount (SCU raw)', method: 'Method', station: 'Refinery',
@@ -49,7 +48,7 @@ const S = {
     saleValue: 'Sale value (refined)', net: 'Net profit', bonus: 'Station bonus',
     compare: 'Method comparison', colMethod: 'Method', colYield: 'Yield (SCU)', colTime: 'Time', colCost: 'Cost', colNet: 'Net',
     unknownProc: 'Time/cost factors for this ore are not datamined (new 4.x ore) — yield is correct, duration/cost unknown.',
-    note: 'Real in-game formula (Regolith formula core, matches UEX refinery audits): yield = raw × 0.85 × method yield × station bonus. Boxes = rounded up to full SCU. Time factors are as of ≤4.6 — patch 4.2 shortened refinery times globally, so real times are lower. Station bonuses: live from UEX (crowdsourced). The 4.7 quality system (1–999) is not publicly documented and not modelled here.',
+    note: 'Approximation. Yield = raw × 0.85 × method yield × station bonus. Only the station bonuses are datamined for 4.8.3; the method yields (Dinyx/Cormack/…) and time/cost factors are from an older patch and are no longer datamined-confirmed for 4.8 — the 4.7 rework (material quality 1–999) is not publicly documented. Meant for comparing methods, not an exact forecast. Verify in-game.',
   },
 }[lang];
 ---
