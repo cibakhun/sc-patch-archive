@@ -11,7 +11,9 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const OUT = resolve(__dirname, '..', 'public', 'assets', 'crafting-db.json');
+// Kanonisches Media-Verzeichnis ist /assets (wird per _sync-assets.mjs nach
+// public/assets gespiegelt; public/assets ist gitignored).
+const OUT = resolve(__dirname, '..', 'assets', 'crafting-db.json');
 
 const BASE = 'https://sc-craft.tools';
 const UA =
