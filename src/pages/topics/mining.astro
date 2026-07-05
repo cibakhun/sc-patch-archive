@@ -6,31 +6,27 @@ import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
 import MiningApp from '../../components/MiningApp.astro';
 import FracturingCalc from '../../components/FracturingCalc.astro';
+import RefineryCalc from '../../components/RefineryCalc.astro';
+import { buildMiningShips } from '../../lib/miningShips';
 import DB from '../../../assets/mining-db.json';
 
 const total = DB.counts.minerals;
 const priced = DB.counts.priced;
-const bodies = DB.counts.bodies;
 const snap = DB.snapshot_date;
 const ver = DB.game_version;
-const methods = DB.methods;
-const rateLabel: Record<string, string> = { low: 'niedrig', mid: 'mittel', high: 'hoch' };
 
-// Kuratierte Mining-Fahrzeuge (Quelle: starcitizen.tools — UEX-scu für Miner unzuverlässig).
-const ships = [
-  { name: 'MISC Prospector', role: 'Solo-Schiff-Mining', cargo: '32 SCU', crew: '1', note: 'Der Einstiegs-Miner: ein Mining-Turret, kleine bis mittlere Felsen & Asteroiden.', img: 'img-mole.jpg' },
-  { name: 'ARGO MOLE', role: 'Multicrew-Schiff-Mining', cargo: '96 SCU', crew: '3–5', note: 'Drei Mining-Turrets, Multicrew — dichte Deposits & große Asteroiden.', img: 'img-mole.jpg' },
-  { name: 'Drake Golem', role: 'Starter-Schiff-Mining', cargo: 'klein', crew: '1', note: 'Neuester Einstiegs-Miner (Drake), günstiger Solo-Zugang zum Schiff-Mining.', img: '' },
-  { name: 'Greycat ROC / ROC-DS', role: 'Fahrzeug-Mining', cargo: 'klein', crew: '1–2', note: 'Boden-Edelsteine auf Planeten/Monden; DS-Variante mit zweitem Sitz.', img: '' },
-  { name: 'Multitool + OreBit', role: 'Hand-Mining', cargo: 'Rucksack', crew: '1', note: 'Hand-Edelsteine (Hadanite, Aphorite, Dolivine…) in Höhlen — ganz verkauft.', img: '' },
-];
+// Mining-Schiffe aus der eigenen Schiff-DB (vehicles.json) — verlinken auf das
+// echte Datenblatt /schiffe/<id>.html.
+const ships = buildMiningShips('de');
 ---
 <Layout title={"Mining-Datenbank — Star Citizen 4.8 | SC Patch-Archiv"} description={`Interaktive Mining-Datenbank für Star Citizen 4.8: ${total} Minerale durchsuchen, nach System, Methode & Typ filtern, Fundorte auf Planeten/Monden ansehen, Verkaufspreise (${priced} mit Preis) vergleichen, Refinery-Methoden abwägen und den Erlös mit dem Wert-Rechner schätzen.`} themeColor="#14181a" ogType="article" ogImage="/assets/img-mole.jpg" translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
 :root{--bg:#14181a;--bg-2:#181d1f;--surface:#1e2427;--surface-2:#252c30;--accent:#2FBFA4;--accent-2:#E0A526;--hot:#2FBFA4;--text:#eaf2f1;--muted:#8fa3a0;--line:rgba(47,191,164,.22);--line-soft:rgba(234,242,241,.10);--glow:0 0 44px rgba(47,191,164,.26);--ink:#0e1214;--maxw:1240px;}
 .reveal{opacity:1 !important;transform:none !important}
-.hero h1{font-size:clamp(2.6rem,11vw,8rem)}
+/* Hero-Titel: heller Gradient (kein dunkles Buchstaben-Ende) + kräftiger Scrim,
+   damit "Mining" über dem Bild voll lesbar bleibt und nicht dahinter verschwindet. */
+.hero h1{font-size:clamp(2.6rem,11vw,8rem);background:linear-gradient(180deg,#ffffff,#7fe6d5 58%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 3px 20px rgba(0,0,0,.85)) drop-shadow(0 0 30px rgba(47,191,164,.45))}
 .hero{background:radial-gradient(120% 90% at 78% 12%,rgba(47,191,164,.16),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(224,165,38,.12),transparent 55%),var(--bg)}
 .hero__in{max-width:var(--maxw)}
 .mn-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--accent-2)}
@@ -57,7 +53,9 @@ const ships = [
 .pips.cost i.on{background:var(--accent-2)}
 /* Ships */
 .sh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.8rem}
-.sh-card{border:1px solid var(--line);background:var(--surface);border-radius:4px;overflow:hidden;display:flex;flex-direction:column}
+.sh-card{border:1px solid var(--line);background:var(--surface);border-radius:4px;overflow:hidden;display:flex;flex-direction:column;color:inherit;text-decoration:none;transition:border-color .15s,transform .1s}
+.sh-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.sh-link{margin-top:.2rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.66rem;color:var(--accent)}
 .sh-photo{height:120px;background-size:cover;background-position:center;background-color:var(--surface-2);border-bottom:1px solid var(--line)}
 .sh-icon{height:120px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:var(--accent);background:linear-gradient(135deg,var(--surface-2),var(--surface));border-bottom:1px solid var(--line)}
 .sh-body{padding:.85rem .9rem;display:flex;flex-direction:column;gap:.35rem}
@@ -78,10 +76,9 @@ const ships = [
     <canvas id="stars" aria-hidden="true"></canvas>
     <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
-      <div class="eyebrow"><a href="/patches/sc-4-8-0.html">Alpha 4.8</a> &nbsp;·&nbsp; <span class="mn-tag">Mining-Datenbank</span></div>
-      <h1><span class="thin">Mineral-Datenbank</span>Mining</h1>
-      <p class="lead">Durchsuche <b>{total} Minerale</b> aus den Live-Daten: <b>Fundorte</b> auf Planeten & Monden, <b>Verkaufspreise</b> pro Terminal, die <b>9 Refinery-Methoden</b> und einen <b>Wert-Rechner</b>. Filter nach System, Mining-Methode und Typ.</p>
-      <div class="qbar"><span>Minerale <b>{total}</b></span><span>Mit Preis <b>{priced}</b></span><span>Fundort-Körper <b>{bodies}</b></span><span>Patch <b>{ver}</b></span><span>Stand <b>{snap}</b></span></div>
+      <div class="eyebrow"><a href="/patches/sc-4-8-0.html">Alpha 4.8</a></div>
+      <h1>Mining</h1>
+      <p class="lead">Minerale, Fundorte, Preise, Refinery &amp; Fracturing — durchsuchbar.</p>
     </div>
     <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
   </section>
@@ -89,56 +86,36 @@ const ships = [
   <TopicFacts topicSlug="mining" />
 
   <div class="mn-sec-h reveal"><span class="num">01</span><h2>Mineral-Datenbank</h2></div>
-  <div class="mn-wrap"><div class="mn-note reveal">
-    <span><b>Daten:</b> Snapshot von <a href="https://uexcorp.space/" target="_blank" rel="noopener">UEX ↗</a> (crowdsourced Community-DB), Live <b>{ver}</b>, Stand <b>{snap}</b> — <b>patch-volatil, ingame prüfen</b>. Fundorte = <b>Vorkommen laut Spieldaten</b> (keine Spawn-Chance); Wert-Rechner & Methoden-Zuordnung sind Näherungen. Cross-Check: <a href="https://starcitizen.tools/Mining" target="_blank" rel="noopener">starcitizen.tools ↗</a>.</span>
-  </div></div>
 
   <MiningApp lang="de" />
 
   <div class="mn-sec-h reveal"><span class="num">02</span><h2>Fracturing-Rechner</h2></div>
-  <div class="mn-wrap"><p class="mn-note reveal"><span><b>Kann ich diesen Rock brechen?</b> Wähle Laser + Module/Gadget und stelle die Rock-Werte ein — der Rechner schätzt, ob der Fels bricht, wie viel Power nötig ist und wie hoch das Überlade-Risiko liegt. Laser-/Modul-Stats sind echte <a href="https://uexcorp.space/" target="_blank" rel="noopener">UEX ↗</a>-Werte; die <b>Break-Formel ist eine Näherung</b> (CIG-Formel nicht öffentlich).</span></p></div>
 
   <FracturingCalc lang="de" />
 
-  <div class="mn-sec-h reveal"><span class="num">03</span><h2>Refinery-Methoden</h2></div>
-  <div class="mn-wrap">
-    <p class="mn-note reveal"><span>Beim Raffinieren wählst du eine der <b>9 Methoden</b> — jede tauscht <b>Ertrag</b> gegen <b>Kosten</b> und <b>Tempo</b>. Ratings aus UEX (1–3). Faustregel: <b>Dinyx Solventation</b>/<b>Ferron Exchange</b> = maximaler Ertrag, wenn du warten kannst; <b>Electrostarolysis</b> = ausgewogen.</span></p>
-    <div class="rf-grid reveal">
-      {methods.map((m) => (
-        <div class="rf-card">
-          <h3>{m.name}</h3>
-          <span class="rf-code">{m.code}</span>
-          <div class="rf-rows">
-            <div class="rf-row"><span>Ertrag</span><span><b>{rateLabel[m.yield_label] ?? m.yield_label}</b> <span class="pips">{[1,2,3].map((i) => (<i class={i <= m.yield ? 'on' : ''}></i>))}</span></span></div>
-            <div class="rf-row"><span>Kosten</span><span><b>{rateLabel[m.cost_label] ?? m.cost_label}</b> <span class="pips cost">{[1,2,3].map((i) => (<i class={i <= m.cost ? 'on' : ''}></i>))}</span></span></div>
-            <div class="rf-row"><span>Tempo</span><span><b>{rateLabel[m.speed_label] ?? m.speed_label}</b> <span class="pips">{[1,2,3].map((i) => (<i class={i <= m.speed ? 'on' : ''}></i>))}</span></span></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
+  <div class="mn-sec-h reveal"><span class="num">03</span><h2>Refinery-Rechner</h2></div>
+  <RefineryCalc lang="de" />
 
-  <div class="mn-sec-h reveal"><span class="num">04</span><h2>Mining-Methoden & Schiffe</h2></div>
+  <div class="mn-sec-h reveal"><span class="num">04</span><h2>Mining-Schiffe</h2></div>
   <div class="mn-wrap">
-    <p class="mn-note reveal"><span>Der Loop: <b>Scannen → Fracturing</b> (Fels im optimalen Fenster knacken) <b>→ Extrahieren → Refinery → Verkauf</b>. Werkzeug richtet sich nach der Deposit-Größe. <b>Werte gerundet, Quelle:</b> <a href="https://starcitizen.tools/Mining" target="_blank" rel="noopener">starcitizen.tools ↗</a>.</span></p>
     <div class="sh-grid reveal">
       {ships.map((s) => (
-        <div class="sh-card">
-          {s.img ? (<div class="sh-photo" style={`background-image:url('/assets/${s.img}')`}></div>) : (<div class="sh-icon">⛏</div>)}
+        <a class="sh-card" href={s.href}>
+          {s.img ? (<div class="sh-photo" style={`background-image:url('${s.img}')`}></div>) : (<div class="sh-icon">⛏</div>)}
           <div class="sh-body">
             <span class="sh-role">{s.role}</span>
             <h3>{s.name}</h3>
-            <div class="sh-meta"><span>Fracht <b>{s.cargo}</b></span><span>Crew <b>{s.crew}</b></span></div>
-            <p class="sh-note">{s.note}</p>
+            <div class="sh-meta">{s.ore && (<span>Erz-Fracht <b>{s.ore}</b></span>)}<span>Crew <b>{s.crew}</b></span></div>
+            <span class="sh-link">Datenblatt →</span>
           </div>
-        </div>
+        </a>
       ))}
     </div>
   </div>
 </main>
 
 <RelatedTopics topicSlug="mining" />
-<Attribution sources={["UEX (uexcorp.space)", "starcitizen.tools", "RSI"]} updated={snap} />
+<Attribution sources={[`UEX · ${ver}`, "starcitizen.tools", "RSI"]} updated={snap} />
 
 <script is:inline src="/assets/detail.js"></script>
 </Layout>

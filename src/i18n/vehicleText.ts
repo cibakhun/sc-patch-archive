@@ -130,6 +130,23 @@ export function vFoci(d: VehicleData, lang: Locale): string[] {
   if (lang === 'en') return (d.fociDe ?? []).map((f) => FOCI_EN[f] ?? f);
   return d.fociDe ?? [];
 }
+/**
+ * Spezifisches Rollen-Label (variantenunterscheidend).
+ *
+ * Der generische Typ (`typeDe`) kennt nur 8 Werte (Gefecht, Industrie …) und
+ * ist damit für Varianten nicht unterscheidbar — Talon und Talon Shrike sind
+ * beide „Gefecht“. Der `foci`-Fokus liegt dagegen für ALLE 226 Katalog-Schiffe
+ * vor und ist spezifisch (Leichter Jäger, Schwerer Jäger, Bomber, Tarnkappen-
+ * jäger …), 75 statt 8 distinkte Rollen. Deshalb ist der Fokus das primäre
+ * Label; der Typ bleibt reiner Fallback. Bei den wenigen Varianten, deren Fokus
+ * identisch bleibt (z. B. F7C Mk I / Mk II), trägt der Schiffsname die
+ * Unterscheidung — er steht überall direkt daneben.
+ */
+export function vRole(d: VehicleData, lang: Locale): string | null {
+  const foci = vFoci(d, lang);
+  if (foci.length) return foci.join(' · ');
+  return vType(d, lang);
+}
 /** Freitext-Beschreibung (EN mit DE-Fallback, solange unübersetzt) */
 export function vDesc(d: VehicleData, lang: Locale): string | null {
   if (lang === 'en') return EN_DESC[d.id] ?? d.descriptionDe ?? null;

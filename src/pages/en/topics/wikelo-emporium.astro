@@ -74,12 +74,6 @@ const COMP_LABEL = { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler
 .wk-duo .wk-cell b{color:var(--text)}
 @media(max-width:640px){.wk-duo{grid-template-columns:1fr}}
 
-/* ---- Warning / as-of banner ---- */
-.wk-note{max-width:var(--maxw);margin:0 auto 1.1rem;display:flex;align-items:flex-start;gap:.75rem;border:1px solid var(--accent-2);border-left-width:3px;background:color-mix(in srgb,var(--accent-2) 8%,transparent);padding:.9rem 1.1rem;border-radius:4px;color:var(--text);font-size:.95rem;line-height:1.55}
-.wk-note .wk-ic{color:var(--accent-2);flex:none;line-height:0;width:18px;height:18px;margin-top:.1rem}
-.wk-note .wk-ic svg{width:100%;height:100%;display:block}
-.wk-note a{color:var(--accent-2);border-bottom:1px solid var(--line);white-space:nowrap}
-
 /* ---- "patch-dependent" badge ---- */
 .wk-badge{display:inline-flex;align-items:center;gap:.3rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.62rem;color:var(--accent-2);border:1px solid color-mix(in srgb,var(--accent-2) 45%,transparent);background:color-mix(in srgb,var(--accent-2) 10%,transparent);padding:.12rem .45rem;border-radius:2px;white-space:nowrap}
 
@@ -202,28 +196,9 @@ const COMP_LABEL = { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler
     </div>
   </section>
 
-  <!-- PROCESS — the flow -->
-  <section style="padding-bottom:0">
-    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>How a trade works</h2><span class="rule"></span></div></div>
-  </section>
-  <div class="scrolly">
-    <div class="scrolly__media" aria-hidden="true">
-      <div class="frame active" style="background-image:url('/assets/wk-emporium.jpg')"></div>
-      <div class="frame" style="background-image:url('/assets/wk-idris.jpg')"></div>
-      <div class="frame" style="background-image:url('/assets/wk-taurus.jpg')"></div>
-      <div class="frame" style="background-image:url('/assets/wk-polaris.jpg')"></div>
-    </div>
-    <div class="scrolly__steps">
-      <div class="sstep"><div class="sn">01</div><h3>Accept a contract</h3><p>At one of the three Emporium stations you accept a contract from Wikelo. It tells you which materials or items he wants — the basis of every trade.</p></div>
-      <div class="sstep"><div class="sn">02</div><h3>Collect the items</h3><p>You source the requested goods: mine, salvage, buy or craft them. This is the actual grind — the loop that sends you out into the 'verse.</p></div>
-      <div class="sstep"><div class="sn">03</div><h3>Deliver at the freight elevator</h3><p>Back at the station you hand the goods over via the freight elevator. Wikelo logs the delivery and credits you <b>Wikelo Favor</b>.</p></div>
-      <div class="sstep"><div class="sn">04</div><h3>Trade for a reward</h3><p>With enough Favor (plus further materials if required) you trade for a reward. It lands in the local station inventory — that's where you collect it.</p></div>
-    </div>
-  </div>
-
   <!-- TWO INTERACTION TYPES -->
   <section>
-    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>Two interaction types</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>Two interaction types</h2><span class="rule"></span></div></div>
     <div class="wk-duo reveal">
       <div class="wk-cell">
         <div class="wk-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8a8 8 0 0 1 13.7-3.3L20 7"/><path d="M20 3v4h-4"/><path d="M20 16a8 8 0 0 1-13.7 3.3L4 17"/><path d="M4 21v-4h4"/></svg></div>
@@ -242,7 +217,7 @@ const COMP_LABEL = { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler
 
   <!-- THE THREE STATIONS -->
   <section>
-    <div class="wrap"><div class="sec-head reveal"><span class="num">04</span><h2>The three Emporium stations</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>The three Emporium stations</h2><span class="rule"></span></div></div>
     <figure class="wk-figure reveal">
       <img src="/assets/wk-emporium.jpg" alt="Wikelo's Emporium — Banu trading station in the asteroid field" loading="lazy" decoding="async" />
       <figcaption>Wikelo's Emporium — the Banu trading station. Each of the three stations (Dasi, Selo, Kinga) shares the same layout; the wiki has no per-station photos.</figcaption>
@@ -271,12 +246,8 @@ const COMP_LABEL = { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler
 
   <!-- TRADE OVERVIEW — the core: GIVE → GET -->
   <section>
-    <div class="wrap"><div class="sec-head reveal"><span class="num">05</span><h2>Deliver → Receive</h2><span class="rule"></span></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">04</span><h2>Deliver → Receive</h2><span class="rule"></span></div>
       <p class="lead-p reveal">The heart of the Emporium: concrete trades with a <b>ship image</b>, required materials and Favor cost. Filter by category — on the left what you <b>give</b>, on the right what you <b>get</b>.</p></div>
-    <div class="wk-note reveal">
-      <span class="wk-ic" aria-hidden="true" set:html={ICON.favor}></span>
-      <span><b>All {TRADES.length} trades</b> from <b>patch 4.8.1</b> (as of <b>2026-06-04</b>), taken 1:1 from the live tracker <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com ↗</a>. Quantities &amp; Favor costs are <b>patch-volatile</b> — verify <b>in game</b> before you grind. On the left what you <b>give</b>, on the right what you <b>get</b>. Ships with a verified image, otherwise a category icon. The ship <b>loadout components</b> come from <a href="https://tinyurl.com/yj739hxy" target="_blank" rel="noopener">ChrisGBG's Wikelo Sheet ↗</a> (datamining: WayfinderDrax, <b>as of 4.7 / 2026-03-26</b>).</span>
-    </div>
 
     <div class="wk-filters reveal" role="group" aria-label="Filter trades by category">
       {TCATS.map((f, i) => (
@@ -345,7 +316,7 @@ const COMP_LABEL = { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler
 
   <!-- REWARD CATEGORIES -->
   <section>
-    <div class="wrap"><div class="sec-head reveal"><span class="num">06</span><h2>Reward categories</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">05</span><h2>Reward categories</h2><span class="rule"></span></div></div>
     <div class="wk-bento reveal">
       <div class="wk-cell"><div class="wk-ic" aria-hidden="true" set:html={ICON.ship}></div><div class="wk-sub">Category</div><h3>Ships &amp; vehicles</h3><p>Selected ships and ground vehicles from Wikelo's rotating pool.</p></div>
       <div class="wk-cell"><div class="wk-ic" aria-hidden="true" set:html={ICON.weapon}></div><div class="wk-sub">Category</div><h3>Weapons</h3><p>Handheld and ship weapons as trade rewards.</p></div>
@@ -358,7 +329,7 @@ const COMP_LABEL = { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler
 
   <!-- PATCH TIMELINE -->
   <section>
-    <div class="wrap"><div class="sec-head reveal"><span class="num">07</span><h2>Wikelo across the patches</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">06</span><h2>Wikelo across the patches</h2><span class="rule"></span></div></div>
     <div class="wrap"><div class="wk-time reveal">
       <div class="wk-trow">
         <div class="wk-ver">4.1</div>

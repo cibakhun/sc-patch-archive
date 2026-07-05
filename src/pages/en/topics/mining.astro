@@ -6,29 +6,25 @@ import RelatedTopics from '../../../components/RelatedTopics.astro';
 import Attribution from '../../../components/Attribution.astro';
 import MiningApp from '../../../components/MiningApp.astro';
 import FracturingCalc from '../../../components/FracturingCalc.astro';
+import RefineryCalc from '../../../components/RefineryCalc.astro';
+import { buildMiningShips } from '../../../lib/miningShips';
 import DB from '../../../../assets/mining-db.json';
 
 const total = DB.counts.minerals;
 const priced = DB.counts.priced;
-const bodies = DB.counts.bodies;
 const snap = DB.snapshot_date;
 const ver = DB.game_version;
-const methods = DB.methods;
 
-const ships = [
-  { name: 'MISC Prospector', role: 'Solo ship mining', cargo: '32 SCU', crew: '1', note: 'The entry miner: one mining turret, small to medium rocks & asteroids.', img: 'img-mole.jpg' },
-  { name: 'ARGO MOLE', role: 'Multicrew ship mining', cargo: '96 SCU', crew: '3–5', note: 'Three mining turrets, multicrew — dense deposits & large asteroids.', img: 'img-mole.jpg' },
-  { name: 'Drake Golem', role: 'Starter ship mining', cargo: 'small', crew: '1', note: 'Newest entry-level miner (Drake), cheap solo access to ship mining.', img: '' },
-  { name: 'Greycat ROC / ROC-DS', role: 'Vehicle mining', cargo: 'small', crew: '1–2', note: 'Surface gemstones on planets/moons; DS variant seats two.', img: '' },
-  { name: 'Multitool + OreBit', role: 'Hand mining', cargo: 'backpack', crew: '1', note: 'Hand gems (Hadanite, Aphorite, Dolivine…) in caves — sold whole.', img: '' },
-];
+const ships = buildMiningShips('en');
 ---
 <Layout title={"Mining Database — Star Citizen 4.8 | SC Patch Archive"} description={`Interactive mining database for Star Citizen 4.8: browse ${total} minerals, filter by system, method & type, inspect locations on planets/moons, compare sell prices (${priced} priced), weigh the refinery methods and estimate returns with the value calculator.`} themeColor="#14181a" ogType="article" ogImage="/assets/img-mole.jpg" translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
 :root{--bg:#14181a;--bg-2:#181d1f;--surface:#1e2427;--surface-2:#252c30;--accent:#2FBFA4;--accent-2:#E0A526;--hot:#2FBFA4;--text:#eaf2f1;--muted:#8fa3a0;--line:rgba(47,191,164,.22);--line-soft:rgba(234,242,241,.10);--glow:0 0 44px rgba(47,191,164,.26);--ink:#0e1214;--maxw:1240px;}
 .reveal{opacity:1 !important;transform:none !important}
-.hero h1{font-size:clamp(2.6rem,11vw,8rem)}
+/* Hero title: lighter gradient (no dark letter bottoms) + strong scrim so
+   "Mining" stays fully legible over the photo and isn't lost behind it. */
+.hero h1{font-size:clamp(2.6rem,11vw,8rem);background:linear-gradient(180deg,#ffffff,#7fe6d5 58%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 3px 20px rgba(0,0,0,.85)) drop-shadow(0 0 30px rgba(47,191,164,.45))}
 .hero{background:radial-gradient(120% 90% at 78% 12%,rgba(47,191,164,.16),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(224,165,38,.12),transparent 55%),var(--bg)}
 .hero__in{max-width:var(--maxw)}
 .mn-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--accent-2)}
@@ -53,7 +49,9 @@ const ships = [
 .pips i.on{background:var(--accent)}
 .pips.cost i.on{background:var(--accent-2)}
 .sh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.8rem}
-.sh-card{border:1px solid var(--line);background:var(--surface);border-radius:4px;overflow:hidden;display:flex;flex-direction:column}
+.sh-card{border:1px solid var(--line);background:var(--surface);border-radius:4px;overflow:hidden;display:flex;flex-direction:column;color:inherit;text-decoration:none;transition:border-color .15s,transform .1s}
+.sh-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.sh-link{margin-top:.2rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.66rem;color:var(--accent)}
 .sh-photo{height:120px;background-size:cover;background-position:center;background-color:var(--surface-2);border-bottom:1px solid var(--line)}
 .sh-icon{height:120px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:var(--accent);background:linear-gradient(135deg,var(--surface-2),var(--surface));border-bottom:1px solid var(--line)}
 .sh-body{padding:.85rem .9rem;display:flex;flex-direction:column;gap:.35rem}
@@ -74,10 +72,9 @@ const ships = [
     <canvas id="stars" aria-hidden="true"></canvas>
     <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
-      <div class="eyebrow"><a href="/patches/sc-4-8-0.html">Alpha 4.8</a> &nbsp;·&nbsp; <span class="mn-tag">Mining database</span></div>
-      <h1><span class="thin">Mineral database</span>Mining</h1>
-      <p class="lead">Browse <b>{total} minerals</b> from the live data: <b>locations</b> on planets & moons, <b>sell prices</b> per terminal, the <b>9 refinery methods</b> and a <b>value calculator</b>. Filter by system, mining method and type.</p>
-      <div class="qbar"><span>Minerals <b>{total}</b></span><span>Priced <b>{priced}</b></span><span>Location bodies <b>{bodies}</b></span><span>Patch <b>{ver}</b></span><span>As of <b>{snap}</b></span></div>
+      <div class="eyebrow"><a href="/patches/sc-4-8-0.html">Alpha 4.8</a></div>
+      <h1>Mining</h1>
+      <p class="lead">Minerals, locations, prices, refinery &amp; fracturing — searchable.</p>
     </div>
     <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
@@ -85,56 +82,36 @@ const ships = [
   <TopicFacts topicSlug="mining" />
 
   <div class="mn-sec-h reveal"><span class="num">01</span><h2>Mineral database</h2></div>
-  <div class="mn-wrap"><div class="mn-note reveal">
-    <span><b>Data:</b> Snapshot of <a href="https://uexcorp.space/" target="_blank" rel="noopener">UEX ↗</a> (crowdsourced community DB), live <b>{ver}</b>, as of <b>{snap}</b> — <b>patch-volatile, verify in-game</b>. Locations = <b>occurrence per game data</b> (not spawn chance); the value calculator & method mapping are approximations. Cross-check: <a href="https://starcitizen.tools/Mining" target="_blank" rel="noopener">starcitizen.tools ↗</a>.</span>
-  </div></div>
 
   <MiningApp lang="en" />
 
   <div class="mn-sec-h reveal"><span class="num">02</span><h2>Fracturing calculator</h2></div>
-  <div class="mn-wrap"><p class="mn-note reveal"><span><b>Can I crack this rock?</b> Pick a laser + modules/gadget and set the rock stats — the calculator estimates whether it breaks, how much power is needed and how high the overcharge risk is. Laser/module stats are real <a href="https://uexcorp.space/" target="_blank" rel="noopener">UEX ↗</a> values; the <b>break formula is an approximation</b> (CIG's formula isn't public).</span></p></div>
 
   <FracturingCalc lang="en" />
 
-  <div class="mn-sec-h reveal"><span class="num">03</span><h2>Refinery methods</h2></div>
-  <div class="mn-wrap">
-    <p class="mn-note reveal"><span>When refining you pick one of <b>9 methods</b> — each trades <b>yield</b> against <b>cost</b> and <b>speed</b>. Ratings from UEX (1–3). Rule of thumb: <b>Dinyx Solventation</b>/<b>Ferron Exchange</b> = max yield if you can wait; <b>Electrostarolysis</b> = balanced.</span></p>
-    <div class="rf-grid reveal">
-      {methods.map((m) => (
-        <div class="rf-card">
-          <h3>{m.name}</h3>
-          <span class="rf-code">{m.code}</span>
-          <div class="rf-rows">
-            <div class="rf-row"><span>Yield</span><span><b>{m.yield_label}</b> <span class="pips">{[1,2,3].map((i) => (<i class={i <= m.yield ? 'on' : ''}></i>))}</span></span></div>
-            <div class="rf-row"><span>Cost</span><span><b>{m.cost_label}</b> <span class="pips cost">{[1,2,3].map((i) => (<i class={i <= m.cost ? 'on' : ''}></i>))}</span></span></div>
-            <div class="rf-row"><span>Speed</span><span><b>{m.speed_label}</b> <span class="pips">{[1,2,3].map((i) => (<i class={i <= m.speed ? 'on' : ''}></i>))}</span></span></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
+  <div class="mn-sec-h reveal"><span class="num">03</span><h2>Refinery calculator</h2></div>
+  <RefineryCalc lang="en" />
 
-  <div class="mn-sec-h reveal"><span class="num">04</span><h2>Mining methods & ships</h2></div>
+  <div class="mn-sec-h reveal"><span class="num">04</span><h2>Mining ships</h2></div>
   <div class="mn-wrap">
-    <p class="mn-note reveal"><span>The loop: <b>scan → fracture</b> (crack the rock inside the optimal window) <b>→ extract → refine → sell</b>. The tool depends on deposit size. <b>Figures rounded, source:</b> <a href="https://starcitizen.tools/Mining" target="_blank" rel="noopener">starcitizen.tools ↗</a>.</span></p>
     <div class="sh-grid reveal">
       {ships.map((s) => (
-        <div class="sh-card">
-          {s.img ? (<div class="sh-photo" style={`background-image:url('/assets/${s.img}')`}></div>) : (<div class="sh-icon">⛏</div>)}
+        <a class="sh-card" href={s.href}>
+          {s.img ? (<div class="sh-photo" style={`background-image:url('${s.img}')`}></div>) : (<div class="sh-icon">⛏</div>)}
           <div class="sh-body">
             <span class="sh-role">{s.role}</span>
             <h3>{s.name}</h3>
-            <div class="sh-meta"><span>Cargo <b>{s.cargo}</b></span><span>Crew <b>{s.crew}</b></span></div>
-            <p class="sh-note">{s.note}</p>
+            <div class="sh-meta">{s.ore && (<span>Ore cargo <b>{s.ore}</b></span>)}<span>Crew <b>{s.crew}</b></span></div>
+            <span class="sh-link">Data sheet →</span>
           </div>
-        </div>
+        </a>
       ))}
     </div>
   </div>
 </main>
 
 <RelatedTopics topicSlug="mining" />
-<Attribution sources={["UEX (uexcorp.space)", "starcitizen.tools", "RSI"]} updated={snap} />
+<Attribution sources={[`UEX · ${ver}`, "starcitizen.tools", "RSI"]} updated={snap} />
 
 <script is:inline src="/assets/detail.js"></script>
 </Layout>
