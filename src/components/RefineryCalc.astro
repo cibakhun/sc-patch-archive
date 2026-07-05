@@ -2,8 +2,20 @@
 // RefineryCalc.astro — interaktiver Refinery-Rechner.
 // Erz (raffinierbar, mit Preis) + Menge (SCU) + eine der 9 Methoden →
 // Wartezeit, Kosten, Ertrag (refined SCU) und Verkaufswert; plus Methoden-
-// Vergleich. Faktoren aus mining-db (UEX-Ratings, am Audit kalibriert) — Näherung.
+// Vergleich. Anzeige umschaltbar: SCU-Ertrag (Default) oder aUEC-Gewinn als
+// Hauptergebnis. Faktoren aus mining-db (UEX-Ratings, am Audit kalibriert) — Näherung.
 import DB from '../../assets/mining-db.json';
+
+// On-brand Inline-SVG-Icons (Linien-Stil, currentColor) — wie auf der Wikelo-Seite.
+const svg = (b) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
+const ICON = {
+  time: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>'),
+  scu: svg('<path d="M12 3 3 8v8l9 5 9-5V8l-9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/>'),
+  cost: svg('<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>'),
+  sale: svg('<path d="M3 12 12 3h9v9l-9 9-9-9z"/><circle cx="16.5" cy="7.5" r="1.6"/>'),
+  net: svg('<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>'),
+  auec: svg('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.6"/><path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21"/>'),
+};
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
@@ -18,6 +30,7 @@ const ores = (DB.minerals || [])
 const S = {
   de: {
     ore: 'Erz', amount: 'Menge (SCU)', method: 'Methode',
+    modeLabel: 'Anzeige', modeScu: 'SCU-Ertrag anzeigen', modeAuec: 'aUEC-Gewinn anzeigen',
     waitTime: 'Wartezeit', cost: 'Kosten', yieldOut: 'Ertrag (refined)', saleValue: 'Verkaufswert', net: 'Netto-Gewinn',
     compare: 'Methoden-Vergleich', best: 'bester Netto', fastest: 'schnellste', mostYield: 'meister Ertrag',
     colMethod: 'Methode', colYield: 'Ertrag', colTime: 'Zeit', colCost: 'Kosten', colNet: 'Netto',
@@ -25,6 +38,7 @@ const S = {
   },
   en: {
     ore: 'Ore', amount: 'Amount (SCU)', method: 'Method',
+    modeLabel: 'Display', modeScu: 'Show SCU yield', modeAuec: 'Show aUEC profit',
     waitTime: 'Wait time', cost: 'Cost', yieldOut: 'Yield (refined)', saleValue: 'Sale value', net: 'Net profit',
     compare: 'Method comparison', best: 'best net', fastest: 'fastest', mostYield: 'most yield',
     colMethod: 'Method', colYield: 'Yield', colTime: 'Time', colCost: 'Cost', colNet: 'Net',
@@ -32,7 +46,7 @@ const S = {
   },
 }[lang];
 ---
-<section class="rfc" id="rfc">
+<section class="rfc" id="rfc" data-mode="scu">
   <div class="rfc__grid">
     <div class="rfc__in">
       <div class="rfc__row">
@@ -50,19 +64,23 @@ const S = {
           </select>
         </label>
       </div>
+      <div class="rfc__mode" role="group" aria-label={S.modeLabel}>
+        <button type="button" id="rfc-mode-scu" class="rfc__modebtn" aria-pressed="true" title={S.modeScu}><i class="rfc__mic" aria-hidden="true" set:html={ICON.scu}></i>SCU</button>
+        <button type="button" id="rfc-mode-auec" class="rfc__modebtn" aria-pressed="false" title={S.modeAuec}><i class="rfc__mic" aria-hidden="true" set:html={ICON.auec}></i>aUEC</button>
+      </div>
       <div class="rfc__out">
-        <div class="rfc__box"><span>{S.waitTime}</span><b id="rfc-time">—</b></div>
-        <div class="rfc__box"><span>{S.yieldOut}</span><b id="rfc-yield">—</b></div>
-        <div class="rfc__box"><span>{S.cost}</span><b id="rfc-cost">—</b></div>
-        <div class="rfc__box"><span>{S.saleValue}</span><b id="rfc-sale">—</b></div>
-        <div class="rfc__box rfc__box--net"><span>{S.net}</span><b id="rfc-net">—</b></div>
+        <div class="rfc__box rfc__box--time"><span><i class="rfc__bic" aria-hidden="true" set:html={ICON.time}></i>{S.waitTime}</span><b id="rfc-time">—</b></div>
+        <div class="rfc__box rfc__box--cost"><span><i class="rfc__bic" aria-hidden="true" set:html={ICON.cost}></i>{S.cost}</span><b id="rfc-cost">—</b></div>
+        <div class="rfc__box rfc__box--yield"><span><i class="rfc__bic" aria-hidden="true" set:html={ICON.scu}></i>{S.yieldOut}</span><b id="rfc-yield">—</b></div>
+        <div class="rfc__box rfc__box--sale"><span><i class="rfc__bic" aria-hidden="true" set:html={ICON.sale}></i>{S.saleValue}</span><b id="rfc-sale">—</b></div>
+        <div class="rfc__box rfc__box--net"><span><i class="rfc__bic" aria-hidden="true" set:html={ICON.net}></i>{S.net}</span><b id="rfc-net">—</b></div>
       </div>
     </div>
 
     <div class="rfc__cmp">
       <div class="rfc__cmphd">{S.compare}</div>
       <table class="rfc__tbl">
-        <thead><tr><th>{S.colMethod}</th><th>{S.colYield}</th><th>{S.colTime}</th><th>{S.colCost}</th><th>{S.colNet}</th></tr></thead>
+        <thead><tr><th>{S.colMethod}</th><th>{S.colYield}</th><th>{S.colTime}</th><th>{S.colCost}</th><th class="rfc-c-net">{S.colNet}</th></tr></thead>
         <tbody id="rfc-tbody"></tbody>
       </table>
     </div>
@@ -78,6 +96,21 @@ const S = {
       var NF = new Intl.NumberFormat(D.lang === 'de' ? 'de-DE' : 'en-US');
       var $ = function (id) { return document.getElementById(id); };
       var oreSel = $('rfc-ore'), amtEl = $('rfc-amt'), methSel = $('rfc-meth');
+      var root = $('rfc'), btnScu = $('rfc-mode-scu'), btnAuec = $('rfc-mode-auec');
+
+      // Anzeige-Modus: 'scu' (Ertrag als Hauptergebnis) oder 'auec' (Netto-Gewinn).
+      var mode = 'scu';
+      try { var saved = localStorage.getItem('rfcMode'); if (saved === 'auec') mode = 'auec'; } catch (e) {}
+      function setMode(m) {
+        mode = m;
+        try { localStorage.setItem('rfcMode', m); } catch (e) {}
+        root.setAttribute('data-mode', m);
+        btnScu.setAttribute('aria-pressed', String(m === 'scu'));
+        btnAuec.setAttribute('aria-pressed', String(m === 'auec'));
+        render();
+      }
+      btnScu.addEventListener('click', function () { setMode('scu'); });
+      btnAuec.addEventListener('click', function () { setMode('auec'); });
 
       function fmtTime(sec) {
         sec = Math.round(sec);
@@ -110,7 +143,11 @@ const S = {
         var bestNet = Math.max.apply(null, rows.map(function (x) { return x.r.net; }));
         var fastest = Math.min.apply(null, rows.map(function (x) { return x.r.time; }));
         var mostYield = Math.max.apply(null, rows.map(function (x) { return x.r.yieldScu; }));
-        rows.sort(function (a, b) { return b.r.net - a.r.net; });
+        rows.sort(function (a, b) {
+          return mode === 'scu'
+            ? (b.r.yieldScu - a.r.yieldScu) || (a.r.time - b.r.time)
+            : b.r.net - a.r.net;
+        });
         var tb = $('rfc-tbody');
         tb.innerHTML = rows.map(function (x) {
           var tags = '';
@@ -120,7 +157,7 @@ const S = {
           var sel = x.m.code === meth.code ? ' class="on"' : '';
           return '<tr' + sel + ' data-code="' + x.m.code + '"><td>' + x.m.name + ' ' + tags +
             '</td><td>' + (Math.round(x.r.yieldScu * 10) / 10) + '</td><td>' + fmtTime(x.r.time) +
-            '</td><td>' + NF.format(Math.round(x.r.cost)) + '</td><td>' + NF.format(Math.round(x.r.net)) + '</td></tr>';
+            '</td><td>' + NF.format(Math.round(x.r.cost)) + '</td><td class="rfc-c-net">' + NF.format(Math.round(x.r.net)) + '</td></tr>';
         }).join('');
         // Klick auf Tabellenzeile wählt die Methode.
         Array.prototype.forEach.call(tb.querySelectorAll('tr'), function (tr) {
@@ -134,7 +171,7 @@ const S = {
       oreSel.addEventListener('change', render);
       methSel.addEventListener('change', render);
       amtEl.addEventListener('input', render);
-      render();
+      setMode(mode);
     })();
   </script>
 
@@ -150,12 +187,28 @@ const S = {
     .rfc__field--sm{flex:0 1 110px}
     .rfc__field span{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.6rem;color:var(--muted,#8fa3a0)}
     .rfc__field select,.rfc__field input{background:var(--bg-2,#181d1f);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.45rem .55rem;border-radius:5px;font-size:.9rem;font-family:var(--font-ui,inherit);max-width:100%}
+    .rfc__mode{display:inline-flex;border:1px solid var(--line,rgba(47,191,164,.3));border-radius:6px;overflow:hidden;margin-bottom:.8rem}
+    .rfc__modebtn{display:inline-flex;align-items:center;gap:.35rem;background:var(--bg-2,#181d1f);border:0;color:var(--muted,#8fa3a0);font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.62rem;padding:.42rem .75rem;cursor:pointer;transition:color .15s,background-color .15s}
+    .rfc__modebtn+.rfc__modebtn{border-left:1px solid var(--line-soft,rgba(255,255,255,.08))}
+    .rfc__modebtn:hover{color:var(--text,#eaf2f1)}
+    .rfc__modebtn[aria-pressed="true"]{background:color-mix(in srgb,var(--accent,#2FBFA4) 16%,transparent);color:var(--accent,#2FBFA4)}
+    .rfc__mic{line-height:0}
+    .rfc__mic svg{width:13px;height:13px;display:block}
     .rfc__out{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.5rem}
     .rfc__box{background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.08));border-radius:5px;padding:.55rem .7rem}
-    .rfc__box span{display:block;font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.56rem;color:var(--muted,#8fa3a0)}
+    .rfc__box span{display:flex;align-items:center;gap:.32rem;font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.56rem;color:var(--muted,#8fa3a0)}
+    .rfc__bic{line-height:0;color:var(--accent,#2FBFA4)}
+    .rfc__bic svg{width:11px;height:11px;display:block}
     .rfc__box b{font-size:1.05rem;color:var(--text,#eaf2f1);font-variant-numeric:tabular-nums}
     .rfc__box--net{grid-column:1 / -1;border-color:color-mix(in srgb,var(--accent,#2FBFA4) 45%,transparent);border-left:3px solid var(--accent,#2FBFA4)}
     .rfc__box--net b{color:var(--accent,#2FBFA4);font-size:1.25rem}
+    /* SCU-Modus: Ertrag ist das Hauptergebnis, aUEC-Boxen + Netto-Spalte weg */
+    .rfc[data-mode="scu"] .rfc__box--sale,
+    .rfc[data-mode="scu"] .rfc__box--net,
+    .rfc[data-mode="scu"] .rfc-c-net,
+    .rfc[data-mode="scu"] .rfc-tag.net{display:none}
+    .rfc[data-mode="scu"] .rfc__box--yield{grid-column:1 / -1;border-color:color-mix(in srgb,var(--accent,#2FBFA4) 45%,transparent);border-left:3px solid var(--accent,#2FBFA4)}
+    .rfc[data-mode="scu"] .rfc__box--yield b{color:var(--accent,#2FBFA4);font-size:1.25rem}
     .rfc__cmphd{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.66rem;color:var(--accent,#2FBFA4);margin-bottom:.6rem}
     .rfc__tbl{width:100%;border-collapse:collapse;font-size:.8rem}
     .rfc__tbl th{text-align:right;font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:.56rem;color:var(--muted,#8fa3a0);padding:.3rem .35rem;border-bottom:1px solid var(--line-soft,rgba(255,255,255,.1))}
