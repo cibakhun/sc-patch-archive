@@ -206,17 +206,30 @@ async function main() {
   console.log('Refinery-Methoden …');
   const methodsRaw = await getJSON('/refineries_methods');
   const rate = (n) => ({ 1: 'low', 2: 'mid', 3: 'high' }[n] || null);
+  // Konkrete Faktoren für den Rechner. /refineries_audits ist zu dünn (nur ~3
+  // Datensätze) für ein volles Modell → aus den Ratings abgeleitet und am
+  // einzigen brauchbaren Audit-Anker kalibriert (Laranite+Dinyx: yield≈0,84,
+  // Kosten≈1,4 aUEC/Einheit, Zeit≈0,64 s/Einheit; 100 Einheiten/SCU). NÄHERUNG.
+  const YIELD_BY = { high: 0.85, mid: 0.78, low: 0.70 };   // refined out / raw in
+  const COST_BY = { low: 140, mid: 240, high: 340 };       // aUEC je SCU (nach cost-Rating)
+  const TIME_BY = { high: 25, mid: 45, low: 65 };          // Sekunden je SCU (nach speed-Rating)
   const methods = methodsRaw
-    .map((m) => ({
-      name: m.name,
-      code: m.code,
-      yield: m.rating_yield,
-      cost: m.rating_cost,
-      speed: m.rating_speed,
-      yield_label: rate(m.rating_yield),
-      cost_label: rate(m.rating_cost),
-      speed_label: rate(m.rating_speed),
-    }))
+    .map((m) => {
+      const yl = rate(m.rating_yield), cl = rate(m.rating_cost), sl = rate(m.rating_speed);
+      return {
+        name: m.name,
+        code: m.code,
+        yield: m.rating_yield,
+        cost: m.rating_cost,
+        speed: m.rating_speed,
+        yield_label: yl,
+        cost_label: cl,
+        speed_label: sl,
+        yield_ratio: YIELD_BY[yl] ?? 0.78,
+        cost_per_scu: COST_BY[cl] ?? 240,
+        time_per_scu: TIME_BY[sl] ?? 45,
+      };
+    })
     .sort((a, b) => a.name.localeCompare(b.name));
 
   // Mining-Fahrzeuge werden NICHT aus UEX gezogen: die scu-Werte dort sind für
