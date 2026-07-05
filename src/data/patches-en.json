@@ -2031,6 +2031,25 @@
               "value": "Full wipe (first since 4.0.0)"
             }
           ]
+        },
+        {
+          "name": "Mining",
+          "system": "Mining & Resources",
+          "desc": "Resource extraction from hand-mined gems to multicrew ship mining. The system spans the Prospector (since Alpha 3.2), the reworked ARGO MOLE (4.7/4.8), ROC and hand mining; Pyro widened the ore pool (Stileron, Riccite, Lindinium). Raw ore is refined at refinery decks using one of nine methods and sold.",
+          "facts": [
+            {
+              "label": "Systems",
+              "value": "Stanton · Pyro · Nyx"
+            },
+            {
+              "label": "Methods",
+              "value": "Ship (Prospector/MOLE) · ROC · Hand"
+            },
+            {
+              "label": "Refinery methods",
+              "value": "9 (yield/cost/speed)"
+            }
+          ]
         }
       ],
       "ships": [
@@ -2070,6 +2089,9 @@
         },
         {
           "title": "XenoThreat"
+        },
+        {
+          "title": "Mining"
         }
       ]
     },
