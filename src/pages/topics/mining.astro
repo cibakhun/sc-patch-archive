@@ -5,6 +5,7 @@ import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
 import MiningApp from '../../components/MiningApp.astro';
+import SignatureBoard from '../../components/SignatureBoard.astro';
 import FracturingCalc from '../../components/FracturingCalc.astro';
 import RefineryCalc from '../../components/RefineryCalc.astro';
 import { buildMiningShips } from '../../lib/miningShips';
@@ -89,14 +90,18 @@ const ships = buildMiningShips('de');
 
   <MiningApp lang="de" />
 
-  <div class="mn-sec-h reveal"><span class="num">02</span><h2>Fracturing-Rechner</h2></div>
+  <div class="mn-sec-h reveal"><span class="num">02</span><h2>Scan-Signaturen</h2></div>
+
+  <SignatureBoard lang="de" />
+
+  <div class="mn-sec-h reveal"><span class="num">03</span><h2>Fracturing-Rechner</h2></div>
 
   <FracturingCalc lang="de" />
 
-  <div class="mn-sec-h reveal"><span class="num">03</span><h2>Refinery-Rechner</h2></div>
+  <div class="mn-sec-h reveal"><span class="num">04</span><h2>Refinery-Rechner</h2></div>
   <RefineryCalc lang="de" />
 
-  <div class="mn-sec-h reveal"><span class="num">04</span><h2>Mining-Schiffe</h2></div>
+  <div class="mn-sec-h reveal"><span class="num">05</span><h2>Mining-Schiffe</h2></div>
   <div class="mn-wrap">
     <div class="sh-grid reveal">
       {ships.map((s) => (

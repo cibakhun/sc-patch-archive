@@ -127,7 +127,13 @@
     for (var i = 1; i <= 3; i++) out += '<i class="' + (i <= n ? 'on' : '') + '"></i>';
     return out + '</span>';
   }
-  var YIELD_FACTOR = { high: 1.0, mid: 0.9, low: 0.8 };
+  var NF1 = new Intl.NumberFormat(LANG === 'de' ? 'de-DE' : 'en-US', { maximumFractionDigits: 1 });
+  // Echte Ausbeute: refined = raw × 0,85 × Methoden-Yield (Regolith-Formelkern).
+  function methodYield(mm) {
+    if (!mm) return 0.85;
+    if (mm.yield_effective != null) return mm.yield_effective;
+    return 0.85 * (mm.yield_mod != null ? mm.yield_mod : 1);
+  }
 
   function methodByCode() {
     var map = {};
@@ -150,14 +156,20 @@
       if (m.systems && m.systems.length) html += '<span>' + esc(T.systems) + ': <b>' + esc(m.systems.join(', ')) + '</b></span>';
       html += '</div>';
 
-      // Fundorte
+      // Fundorte: Planeten/Monde + Space (Asteroidenfelder/Lagrange-Cluster)
       html += '<div class="mm__h">' + esc(T.locations) + '</div>';
       var locKeys = Object.keys(m.locations || {});
-      if (locKeys.length) {
+      var spaceKeys = Object.keys(m.space || {});
+      if (locKeys.length || spaceKeys.length) {
         html += '<div class="mm__loc">';
         locKeys.forEach(function (sn) {
           html += '<div class="mm__locsys"><span class="sn">' + esc(sn) + '</span>';
           m.locations[sn].forEach(function (b) { html += '<span class="bd">' + esc(b) + '</span>'; });
+          html += '</div>';
+        });
+        spaceKeys.forEach(function (sn) {
+          html += '<div class="mm__locsys"><span class="sn sn--space">' + esc(sn) + ' · ' + esc(T.spaceHead) + '</span>';
+          m.space[sn].forEach(function (b) { html += '<span class="bd bd--space">✦ ' + esc(b) + '</span>'; });
           html += '</div>';
         });
         html += '</div>';
@@ -190,14 +202,18 @@
         if (refinable) {
           html += '<div class="mm__cfield"><label>' + esc(T.calcMethod) + '</label><select id="mm-meth">';
           (DB.methods || []).forEach(function (mm) {
-            html += '<option value="' + esc(mm.code) + '">' + esc(mm.name) + ' (' + esc(T.yield) + ' ' + esc(T[mm.yield_label] || mm.yield_label) + ')</option>';
+            html += '<option value="' + esc(mm.code) + '">' + esc(mm.name) + ' · ' + Math.round(methodYield(mm) * 100) + '%</option>';
           });
           html += '</select></div>';
         }
         html += '</div>';
         html += '<div class="mm__cout">';
-        html += '<div class="mm__cbox"><span>' + esc(T.calcRaw) + '</span><b id="mm-raw">—</b></div>';
-        if (refinable) html += '<div class="mm__cbox refined"><span>' + esc(T.calcRefined) + '</span><b id="mm-ref">—</b></div>';
+        if (refinable) {
+          html += '<div class="mm__cbox refined"><span>' + esc(T.calcRefined) + '</span><b id="mm-ref">—</b></div>';
+          html += '<div class="mm__cbox"><span>' + esc(T.calcRefVal) + '</span><b id="mm-raw">—</b></div>';
+        } else {
+          html += '<div class="mm__cbox"><span>' + esc(T.calcRaw) + '</span><b id="mm-raw">—</b></div>';
+        }
         html += '</div>';
         html += '<p class="mm__note">' + esc(refinable ? T.calcNote : T.calcNoteGem) + '</p>';
         html += '</div>';
@@ -218,12 +234,15 @@
         if (saved) { if (saved.amt != null) amt.value = saved.amt; if (meth && saved.meth && mByCode[saved.meth]) meth.value = saved.meth; }
         var recalc = function () {
           var a = Math.max(0, +amt.value || 0);
-          var raw = a * m.sell.best.price;
-          rawEl.textContent = NF.format(Math.round(raw)) + ' aUEC';
           if (refEl && meth) {
-            var mm = mByCode[meth.value];
-            var f = mm ? (YIELD_FACTOR[mm.yield_label] || 0.9) : 1;
-            refEl.textContent = NF.format(Math.round(raw * f)) + ' aUEC';
+            // Raffinierbar: refined SCU zuerst, Verkaufswert auf refined-Basis.
+            var y = methodYield(mByCode[meth.value]);
+            var rScu = a * y;
+            var boxes = Math.ceil(Math.round(rScu * 100) / 100);
+            refEl.textContent = NF1.format(rScu) + ' SCU · ' + boxes + ' ' + (T.boxes || 'boxes');
+            rawEl.textContent = NF.format(Math.round(rScu * m.sell.best.price)) + ' aUEC';
+          } else {
+            rawEl.textContent = NF.format(Math.round(a * m.sell.best.price)) + ' aUEC';
           }
           try { localStorage.setItem('mine.calc', JSON.stringify({ amt: amt.value, meth: meth ? meth.value : null })); } catch (e) {}
         };
@@ -264,7 +283,7 @@
       html += '<div class="rl__sys" data-sys="' + esc(sn) + '">' + esc(sn) + '</div>';
       bySys[sn].forEach(function (b) {
         html += '<div class="rl__body" data-body="' + esc((b.body + ' ' + b.minerals.join(' ')).toLowerCase()) + '">';
-        html += '<div class="rl__bn">' + esc(b.body) + '</div>';
+        html += '<div class="rl__bn">' + (b.space ? '✦ ' : '') + esc(b.body) + '</div>';
         html += '<div class="rl__mins">';
         b.minerals.forEach(function (mn) { html += '<span class="rl__min" data-min="' + esc(mn) + '">' + esc(mn) + '</span>'; });
         html += '</div></div>';

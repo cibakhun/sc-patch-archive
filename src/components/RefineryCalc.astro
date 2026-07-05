@@ -1,10 +1,14 @@
 ---
-// RefineryCalc.astro — interaktiver Refinery-Rechner.
-// Erz (raffinierbar, mit Preis) + Menge (SCU) + eine der 9 Methoden →
-// Wartezeit, Kosten, Ertrag (refined SCU) und Verkaufswert; plus Methoden-
-// Vergleich. Anzeige umschaltbar: SCU-Ertrag (Default) oder aUEC-Gewinn als
-// Hauptergebnis. Faktoren aus mining-db (UEX-Ratings, am Audit kalibriert) — Näherung.
+// RefineryCalc.astro — Refinery-Rechner mit dem ECHTEN In-Game-Modell.
+// Formelkern (Regolith/RegolithCo-Common, MIT; deckt sich mit UEX-Audits):
+//   refined_cSCU = raw_cSCU × 0,85 × methodYield × (1 + stationBonus%)
+//   zeit_s       = raw_cSCU × ore.time_cscu × methodTime   (Stand ≤4.6)
+//   kosten_aUEC  = raw_cSCU × ore.cost_cscu × methodCost
+// Anzeige umschaltbar: SCU-Ertrag (Default) oder aUEC-Gewinn als Hauptergebnis.
 import DB from '../../assets/mining-db.json';
+
+interface Props { lang: 'de' | 'en'; }
+const { lang } = Astro.props;
 
 // On-brand Inline-SVG-Icons (Linien-Stil, currentColor) — wie auf der Wikelo-Seite.
 const svg = (b) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
@@ -15,34 +19,37 @@ const ICON = {
   sale: svg('<path d="M3 12 12 3h9v9l-9 9-9-9z"/><circle cx="16.5" cy="7.5" r="1.6"/>'),
   net: svg('<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>'),
   auec: svg('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.6"/><path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21"/>'),
+  station: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2a10 10 0 0 1 10 10M12 22A10 10 0 0 1 2 12"/><path d="M12 6a6 6 0 0 1 6 6M12 18a6 6 0 0 1-6-6"/>'),
 };
 
-interface Props { lang: 'de' | 'en'; }
-const { lang } = Astro.props;
-
 const methods = DB.methods || [];
-// Raffinierbare Erze mit Verkaufspreis (refined SCU-Preis).
+const stations = DB.refinery_stations || [];
+// Raffinierbare Erze mit Verkaufspreis (refined SCU-Preis) + Prozess-Faktoren.
 const ores = (DB.minerals || [])
   .filter((m) => m.needs_refine && m.sell && m.sell.best)
-  .map((m) => ({ name: m.name, price: m.sell.best.price }))
+  .map((m) => ({ name: m.name, price: m.sell.best.price, proc: m.refine_proc || null }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
 const S = {
   de: {
-    ore: 'Erz', amount: 'Menge (SCU)', method: 'Methode',
+    ore: 'Erz (raw)', amount: 'Menge (SCU raw)', method: 'Methode', station: 'Raffinerie',
+    stationAny: '— Standard (kein Bonus) —',
     modeLabel: 'Anzeige', modeScu: 'SCU-Ertrag anzeigen', modeAuec: 'aUEC-Gewinn anzeigen',
-    waitTime: 'Wartezeit', cost: 'Kosten', yieldOut: 'Ertrag (refined)', saleValue: 'Verkaufswert', net: 'Netto-Gewinn',
-    compare: 'Methoden-Vergleich', best: 'bester Netto', fastest: 'schnellste', mostYield: 'meister Ertrag',
-    colMethod: 'Methode', colYield: 'Ertrag', colTime: 'Zeit', colCost: 'Kosten', colNet: 'Netto',
-    note: 'Näherung: Ertrag/Kosten/Zeit aus den UEX-Methoden-Ratings, kalibriert an spärlichen Audit-Daten (die exakte CIG-Formel ist nicht öffentlich, und Preise sind patch-volatil). Zum Methoden-Vergleich gedacht, nicht als exakte Prognose.',
+    waitTime: 'Dauer', cost: 'Kosten', yieldOut: 'Ertrag (refined)', boxes: 'Kisten',
+    saleValue: 'Verkaufswert (refined)', net: 'Netto-Gewinn', bonus: 'Stations-Bonus',
+    compare: 'Methoden-Vergleich', colMethod: 'Methode', colYield: 'Ertrag (SCU)', colTime: 'Zeit', colCost: 'Kosten', colNet: 'Netto',
+    unknownProc: 'Für dieses Erz sind Zeit-/Kosten-Faktoren nicht datamined (neues 4.x-Erz) — Ausbeute stimmt, Dauer/Kosten unbekannt.',
+    note: 'Echte In-Game-Formel (Regolith-Formelkern, deckungsgleich mit UEX-Refinery-Audits): Ausbeute = Rohmenge × 0,85 × Methoden-Yield × Stations-Bonus. Kisten = auf volle SCU aufgerundet. Dauer-Faktoren sind Stand ≤4.6 — Patch 4.2 hat Refinery-Zeiten global verkürzt, die echten Zeiten liegen also darunter. Stations-Boni: live aus UEX (crowdsourced). Das 4.7-Qualitätssystem (1–999) ist nicht öffentlich dokumentiert und hier nicht modelliert.',
   },
   en: {
-    ore: 'Ore', amount: 'Amount (SCU)', method: 'Method',
+    ore: 'Ore (raw)', amount: 'Amount (SCU raw)', method: 'Method', station: 'Refinery',
+    stationAny: '— default (no bonus) —',
     modeLabel: 'Display', modeScu: 'Show SCU yield', modeAuec: 'Show aUEC profit',
-    waitTime: 'Wait time', cost: 'Cost', yieldOut: 'Yield (refined)', saleValue: 'Sale value', net: 'Net profit',
-    compare: 'Method comparison', best: 'best net', fastest: 'fastest', mostYield: 'most yield',
-    colMethod: 'Method', colYield: 'Yield', colTime: 'Time', colCost: 'Cost', colNet: 'Net',
-    note: 'Approximation: yield/cost/time from UEX method ratings, calibrated on sparse audit data (CIG’s exact formula isn’t public, and prices are patch-volatile). Meant for comparing methods, not an exact forecast.',
+    waitTime: 'Duration', cost: 'Cost', yieldOut: 'Yield (refined)', boxes: 'boxes',
+    saleValue: 'Sale value (refined)', net: 'Net profit', bonus: 'Station bonus',
+    compare: 'Method comparison', colMethod: 'Method', colYield: 'Yield (SCU)', colTime: 'Time', colCost: 'Cost', colNet: 'Net',
+    unknownProc: 'Time/cost factors for this ore are not datamined (new 4.x ore) — yield is correct, duration/cost unknown.',
+    note: 'Real in-game formula (Regolith formula core, matches UEX refinery audits): yield = raw × 0.85 × method yield × station bonus. Boxes = rounded up to full SCU. Time factors are as of ≤4.6 — patch 4.2 shortened refinery times globally, so real times are lower. Station bonuses: live from UEX (crowdsourced). The 4.7 quality system (1–999) is not publicly documented and not modelled here.',
   },
 }[lang];
 ---
@@ -60,7 +67,15 @@ const S = {
         </label>
         <label class="rfc__field"><span>{S.method}</span>
           <select id="rfc-meth">
-            {methods.map((m, i) => (<option value={i}>{m.name}</option>))}
+            {methods.map((m, i) => (<option value={i}>{m.name} · {Math.round(m.yield_effective * 100)}%</option>))}
+          </select>
+        </label>
+      </div>
+      <div class="rfc__row">
+        <label class="rfc__field rfc__field--wide"><span><i class="rfc__bic" aria-hidden="true" set:html={ICON.station}></i>{S.station}</span>
+          <select id="rfc-station">
+            <option value="-1">{S.stationAny}</option>
+            {stations.map((st, i) => (<option value={i}>{st.terminal}{st.system ? ` (${st.system})` : ''}</option>))}
           </select>
         </label>
       </div>
@@ -71,10 +86,11 @@ const S = {
       <div class="rfc__out">
         <div class="rfc__box rfc__box--time"><span><i class="rfc__bic" aria-hidden="true" set:html={ICON.time}></i>{S.waitTime}</span><b id="rfc-time">—</b></div>
         <div class="rfc__box rfc__box--cost"><span><i class="rfc__bic" aria-hidden="true" set:html={ICON.cost}></i>{S.cost}</span><b id="rfc-cost">—</b></div>
-        <div class="rfc__box rfc__box--yield"><span><i class="rfc__bic" aria-hidden="true" set:html={ICON.scu}></i>{S.yieldOut}</span><b id="rfc-yield">—</b></div>
+        <div class="rfc__box rfc__box--yield"><span><i class="rfc__bic" aria-hidden="true" set:html={ICON.scu}></i>{S.yieldOut}<em id="rfc-bonus" class="rfc__bonustag" hidden></em></span><b id="rfc-yield">—</b></div>
         <div class="rfc__box rfc__box--sale"><span><i class="rfc__bic" aria-hidden="true" set:html={ICON.sale}></i>{S.saleValue}</span><b id="rfc-sale">—</b></div>
         <div class="rfc__box rfc__box--net"><span><i class="rfc__bic" aria-hidden="true" set:html={ICON.net}></i>{S.net}</span><b id="rfc-net">—</b></div>
       </div>
+      <p class="rfc__procwarn" id="rfc-procwarn" hidden>{S.unknownProc}</p>
     </div>
 
     <div class="rfc__cmp">
@@ -87,15 +103,16 @@ const S = {
   </div>
   <p class="rfc__note">{S.note}</p>
 
-  <script type="application/json" id="rfc-data" set:html={JSON.stringify({ ores, methods, lang })}></script>
+  <script type="application/json" id="rfc-data" set:html={JSON.stringify({ ores, methods, stations, lang, boxesWord: S.boxes })}></script>
   <script is:inline>
     (function () {
       var el = document.getElementById('rfc-data');
       if (!el) return;
       var D = JSON.parse(el.textContent);
       var NF = new Intl.NumberFormat(D.lang === 'de' ? 'de-DE' : 'en-US');
+      var NF1 = new Intl.NumberFormat(D.lang === 'de' ? 'de-DE' : 'en-US', { maximumFractionDigits: 1 });
       var $ = function (id) { return document.getElementById(id); };
-      var oreSel = $('rfc-ore'), amtEl = $('rfc-amt'), methSel = $('rfc-meth');
+      var oreSel = $('rfc-ore'), amtEl = $('rfc-amt'), methSel = $('rfc-meth'), stSel = $('rfc-station');
       var root = $('rfc'), btnScu = $('rfc-mode-scu'), btnAuec = $('rfc-mode-auec');
 
       // Anzeige-Modus: 'scu' (Ertrag als Hauptergebnis) oder 'auec' (Netto-Gewinn).
@@ -113,53 +130,67 @@ const S = {
       btnAuec.addEventListener('click', function () { setMode('auec'); });
 
       function fmtTime(sec) {
+        if (sec == null) return '—';
         sec = Math.round(sec);
         var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
         if (h) return h + 'h ' + m + 'm';
         if (m) return m + 'm ' + (s ? s + 's' : '');
         return s + 's';
       }
-      function compute(ore, meth, amt) {
-        var yieldScu = amt * meth.yield_ratio;
-        var sale = yieldScu * ore.price;
-        var cost = amt * meth.cost_per_scu;
-        var time = amt * meth.time_per_scu;
-        return { yieldScu: yieldScu, sale: sale, cost: cost, time: time, net: sale - cost };
+
+      // Echte Formel: refined_cSCU = raw_cSCU × 0,85 × yield_mod × (1 + bonus%)
+      function compute(ore, meth, scu, bonusPct) {
+        var cscu = scu * 100;
+        var refinedCscu = cscu * 0.85 * meth.yield_mod * (1 + (bonusPct || 0) / 100);
+        var refinedScu = refinedCscu / 100;
+        var boxes = Math.ceil(refinedCscu / 100);
+        var time = ore.proc ? cscu * ore.proc.time_cscu * meth.time_mod : null;
+        var cost = ore.proc ? cscu * ore.proc.cost_cscu * meth.cost_mod : null;
+        var sale = refinedScu * ore.price;
+        return { refinedScu: refinedScu, boxes: boxes, time: time, cost: cost, sale: sale, net: sale - (cost || 0) };
+      }
+
+      function bonusFor(ore) {
+        var i = +stSel.value;
+        if (i < 0) return 0;
+        var st = D.stations[i];
+        if (!st) return 0;
+        var v = st.ores[ore.name];
+        return v == null ? 0 : v;
       }
 
       function render() {
         var ore = D.ores[+oreSel.value] || D.ores[0];
-        var amt = Math.max(0, +amtEl.value || 0);
+        var scu = Math.max(0, +amtEl.value || 0);
         var meth = D.methods[+methSel.value] || D.methods[0];
-        var r = compute(ore, meth, amt);
-        $('rfc-time').textContent = fmtTime(r.time);
-        $('rfc-yield').textContent = (Math.round(r.yieldScu * 10) / 10) + ' SCU';
-        $('rfc-cost').textContent = NF.format(Math.round(r.cost)) + ' aUEC';
-        $('rfc-sale').textContent = NF.format(Math.round(r.sale)) + ' aUEC';
-        $('rfc-net').textContent = NF.format(Math.round(r.net)) + ' aUEC';
+        var bonus = bonusFor(ore);
+        var r = compute(ore, meth, scu, bonus);
 
-        // Vergleichstabelle: alle Methoden für dieses Erz + Menge.
-        var rows = D.methods.map(function (m) { return { m: m, r: compute(ore, m, amt) }; });
-        var bestNet = Math.max.apply(null, rows.map(function (x) { return x.r.net; }));
-        var fastest = Math.min.apply(null, rows.map(function (x) { return x.r.time; }));
-        var mostYield = Math.max.apply(null, rows.map(function (x) { return x.r.yieldScu; }));
+        $('rfc-time').textContent = fmtTime(r.time);
+        $('rfc-cost').textContent = r.cost == null ? '—' : NF.format(Math.round(r.cost)) + ' aUEC';
+        $('rfc-yield').textContent = NF1.format(r.refinedScu) + ' SCU · ' + r.boxes + ' ' + D.boxesWord;
+        $('rfc-sale').textContent = NF.format(Math.round(r.sale)) + ' aUEC';
+        $('rfc-net').textContent = (r.cost == null ? '≈ ' : '') + NF.format(Math.round(r.net)) + ' aUEC';
+        var bEl = $('rfc-bonus');
+        bEl.hidden = !bonus;
+        bEl.textContent = bonus ? (bonus > 0 ? '+' : '') + bonus + '%' : '';
+        $('rfc-procwarn').hidden = !!ore.proc;
+
+        // Vergleichstabelle: alle Methoden für dieses Erz + Menge (+ Bonus).
+        var rows = D.methods.map(function (m) { return { m: m, r: compute(ore, m, scu, bonus) }; });
         rows.sort(function (a, b) {
           return mode === 'scu'
-            ? (b.r.yieldScu - a.r.yieldScu) || (a.r.time - b.r.time)
+            ? (b.r.refinedScu - a.r.refinedScu) || ((a.r.time || 0) - (b.r.time || 0))
             : b.r.net - a.r.net;
         });
         var tb = $('rfc-tbody');
         tb.innerHTML = rows.map(function (x) {
-          var tags = '';
-          if (x.r.net === bestNet) tags += '<i class="rfc-tag net">▲</i>';
-          if (x.r.time === fastest) tags += '<i class="rfc-tag fast">⚡</i>';
-          if (x.r.yieldScu === mostYield) tags += '<i class="rfc-tag yld">◆</i>';
           var sel = x.m.code === meth.code ? ' class="on"' : '';
-          return '<tr' + sel + ' data-code="' + x.m.code + '"><td>' + x.m.name + ' ' + tags +
-            '</td><td>' + (Math.round(x.r.yieldScu * 10) / 10) + '</td><td>' + fmtTime(x.r.time) +
-            '</td><td>' + NF.format(Math.round(x.r.cost)) + '</td><td class="rfc-c-net">' + NF.format(Math.round(x.r.net)) + '</td></tr>';
+          return '<tr' + sel + ' data-code="' + x.m.code + '"><td>' + x.m.name +
+            '</td><td>' + NF1.format(x.r.refinedScu) + '</td><td>' + fmtTime(x.r.time) +
+            '</td><td>' + (x.r.cost == null ? '—' : NF.format(Math.round(x.r.cost))) +
+            '</td><td class="rfc-c-net">' + NF.format(Math.round(x.r.net)) + '</td></tr>';
         }).join('');
-        // Klick auf Tabellenzeile wählt die Methode.
         Array.prototype.forEach.call(tb.querySelectorAll('tr'), function (tr) {
           tr.addEventListener('click', function () {
             var idx = D.methods.findIndex(function (m) { return m.code === tr.getAttribute('data-code'); });
@@ -170,6 +201,7 @@ const S = {
 
       oreSel.addEventListener('change', render);
       methSel.addEventListener('change', render);
+      stSel.addEventListener('change', render);
       amtEl.addEventListener('input', render);
       setMode(mode);
     })();
@@ -185,7 +217,8 @@ const S = {
     .rfc__row{display:flex;flex-wrap:wrap;gap:.7rem;margin-bottom:1rem}
     .rfc__field{display:flex;flex-direction:column;gap:.25rem;flex:1 1 150px;min-width:0}
     .rfc__field--sm{flex:0 1 110px}
-    .rfc__field span{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.6rem;color:var(--muted,#8fa3a0)}
+    .rfc__field--wide{flex:1 1 100%}
+    .rfc__field span{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.6rem;color:var(--muted,#8fa3a0);display:flex;align-items:center;gap:.3rem}
     .rfc__field select,.rfc__field input{background:var(--bg-2,#181d1f);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.45rem .55rem;border-radius:5px;font-size:.9rem;font-family:var(--font-ui,inherit);max-width:100%}
     .rfc__mode{display:inline-flex;border:1px solid var(--line,rgba(47,191,164,.3));border-radius:6px;overflow:hidden;margin-bottom:.8rem}
     .rfc__modebtn{display:inline-flex;align-items:center;gap:.35rem;background:var(--bg-2,#181d1f);border:0;color:var(--muted,#8fa3a0);font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.62rem;padding:.42rem .75rem;cursor:pointer;transition:color .15s,background-color .15s}
@@ -200,15 +233,16 @@ const S = {
     .rfc__bic{line-height:0;color:var(--accent,#2FBFA4)}
     .rfc__bic svg{width:11px;height:11px;display:block}
     .rfc__box b{font-size:1.05rem;color:var(--text,#eaf2f1);font-variant-numeric:tabular-nums}
+    .rfc__bonustag{font-style:normal;color:var(--accent-2,#E0A526);margin-left:.3rem}
     .rfc__box--net{grid-column:1 / -1;border-color:color-mix(in srgb,var(--accent,#2FBFA4) 45%,transparent);border-left:3px solid var(--accent,#2FBFA4)}
     .rfc__box--net b{color:var(--accent,#2FBFA4);font-size:1.25rem}
     /* SCU-Modus: Ertrag ist das Hauptergebnis, aUEC-Boxen + Netto-Spalte weg */
     .rfc[data-mode="scu"] .rfc__box--sale,
     .rfc[data-mode="scu"] .rfc__box--net,
-    .rfc[data-mode="scu"] .rfc-c-net,
-    .rfc[data-mode="scu"] .rfc-tag.net{display:none}
+    .rfc[data-mode="scu"] .rfc-c-net{display:none}
     .rfc[data-mode="scu"] .rfc__box--yield{grid-column:1 / -1;border-color:color-mix(in srgb,var(--accent,#2FBFA4) 45%,transparent);border-left:3px solid var(--accent,#2FBFA4)}
     .rfc[data-mode="scu"] .rfc__box--yield b{color:var(--accent,#2FBFA4);font-size:1.25rem}
+    .rfc__procwarn{margin:.7rem 0 0;font-size:.78rem;color:var(--accent-2,#E0A526);line-height:1.5}
     .rfc__cmphd{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.66rem;color:var(--accent,#2FBFA4);margin-bottom:.6rem}
     .rfc__tbl{width:100%;border-collapse:collapse;font-size:.8rem}
     .rfc__tbl th{text-align:right;font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:.56rem;color:var(--muted,#8fa3a0);padding:.3rem .35rem;border-bottom:1px solid var(--line-soft,rgba(255,255,255,.1))}
@@ -217,10 +251,6 @@ const S = {
     .rfc__tbl td:first-child{text-align:left;color:#fff}
     .rfc__tbl tr:hover td{background:rgba(47,191,164,.06)}
     .rfc__tbl tr.on td{background:color-mix(in srgb,var(--accent,#2FBFA4) 12%,transparent)}
-    .rfc-tag{font-style:normal;margin-left:.15rem;font-size:.72rem}
-    .rfc-tag.net{color:var(--accent,#2FBFA4)}
-    .rfc-tag.fast{color:var(--accent-2,#E0A526)}
-    .rfc-tag.yld{color:#8fa3a0}
     .rfc__note{max-width:var(--maxw,1240px);margin:.9rem auto 0;font-size:.78rem;color:var(--muted,#8fa3a0);line-height:1.5;font-style:italic}
     @media(max-width:760px){ .rfc__grid{grid-template-columns:1fr} }
   </style>

@@ -1,0 +1,113 @@
+---
+// SignatureBoard.astro — Scan-Signaturen (4.7+) als Merk-Tafel.
+// Seit 4.7 identifiziert die Radar-Signatur direkt das dominante Mineral
+// (40–80 % Anteil). Quelle: github.com/Diftic/SC_Signature_Scanner (Game-Files).
+// Chips sind anklickbar → Highlight an/aus, gemerkt in localStorage — zum
+// Markieren der Signaturen, die man gerade farmt.
+import DB from '../../assets/mining-db.json';
+
+interface Props { lang: 'de' | 'en'; }
+const { lang } = Astro.props;
+
+const tiers = DB.signatures || [];
+
+const TIER_LABEL: Record<string, { de: string; en: string }> = {
+  Legendary: { de: 'Legendär', en: 'Legendary' },
+  Epic: { de: 'Episch', en: 'Epic' },
+  Rare: { de: 'Selten', en: 'Rare' },
+  Uncommon: { de: 'Ungewöhnlich', en: 'Uncommon' },
+  Common: { de: 'Häufig', en: 'Common' },
+  Other: { de: 'Sonstige', en: 'Other' },
+};
+
+const S = {
+  de: {
+    intro: 'Seit Patch 4.7 verrät die Scan-Signatur direkt das dominante Mineral eines Rocks (40–80 % Anteil). Signatur anklicken → Highlight an/aus — deine Markierungen bleiben gespeichert, praktisch als Merkliste beim Farmen.',
+    clear: 'Alle Markierungen aus',
+    src: 'Signatur-Zuordnung aus den Game-Files (Diftic/SC_Signature_Scanner, Stand 4.7+). Cluster zeigen Vielfache der Signatur.',
+  },
+  en: {
+    intro: 'Since patch 4.7 the scan signature directly identifies a rock’s dominant mineral (40–80 % share). Click a signature to toggle its highlight — your marks are saved, handy as a watchlist while farming.',
+    clear: 'Clear all marks',
+    src: 'Signature mapping from the game files (Diftic/SC_Signature_Scanner, as of 4.7+). Clusters show multiples of the signature.',
+  },
+}[lang];
+---
+<section class="sgb" id="sgb">
+  <p class="sgb__intro">{S.intro}</p>
+  <div class="sgb__tiers">
+    {tiers.map((t) => (
+      <div class="sgb__tier" data-tier={t.tier}>
+        <div class="sgb__th">{TIER_LABEL[t.tier]?.[lang] ?? t.tier}</div>
+        <div class="sgb__chips">
+          {t.entries.map((e) => (
+            <button type="button" class="sgb__chip" data-sig={e.sig} aria-pressed="false">
+              <b>{e.sig}</b><span>{e.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+  <div class="sgb__foot">
+    <button type="button" class="sgb__clear" id="sgb-clear">{S.clear}</button>
+    <p class="sgb__src">{S.src}</p>
+  </div>
+
+  <script is:inline>
+    (function () {
+      var root = document.getElementById('sgb');
+      if (!root) return;
+      var KEY = 'mine.sigs';
+      var marked = [];
+      try { marked = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) {}
+      if (!Array.isArray(marked)) marked = [];
+      var chips = Array.prototype.slice.call(root.querySelectorAll('.sgb__chip'));
+
+      function save() { try { localStorage.setItem(KEY, JSON.stringify(marked)); } catch (e) {} }
+      function paint() {
+        chips.forEach(function (c) {
+          var on = marked.indexOf(+c.getAttribute('data-sig')) >= 0;
+          c.classList.toggle('on', on);
+          c.setAttribute('aria-pressed', String(on));
+        });
+      }
+      chips.forEach(function (c) {
+        c.addEventListener('click', function () {
+          var sig = +c.getAttribute('data-sig');
+          var i = marked.indexOf(sig);
+          if (i >= 0) marked.splice(i, 1); else marked.push(sig);
+          save(); paint();
+        });
+      });
+      var clearBtn = document.getElementById('sgb-clear');
+      if (clearBtn) clearBtn.addEventListener('click', function () { marked = []; save(); paint(); });
+      paint();
+    })();
+  </script>
+
+  <style is:inline>
+    .sgb{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
+    .sgb__intro{font-size:.92rem;color:var(--muted,#8fa3a0);line-height:1.55;max-width:72ch;margin:0 0 1.1rem}
+    .sgb__tiers{display:flex;flex-direction:column;gap:.9rem}
+    .sgb__tier{border:1px solid var(--line,rgba(47,191,164,.22));background:var(--surface,#1e2427);border-radius:8px;padding:.8rem .9rem;border-left:3px solid var(--tier,#8fa3a0)}
+    .sgb__tier[data-tier="Legendary"]{--tier:#e0564b}
+    .sgb__tier[data-tier="Epic"]{--tier:#b06ae0}
+    .sgb__tier[data-tier="Rare"]{--tier:var(--accent-2,#E0A526)}
+    .sgb__tier[data-tier="Uncommon"]{--tier:var(--accent,#2FBFA4)}
+    .sgb__tier[data-tier="Common"]{--tier:#8fa3a0}
+    .sgb__tier[data-tier="Other"]{--tier:#5d6f6b}
+    .sgb__th{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.64rem;color:var(--tier);margin-bottom:.55rem}
+    .sgb__chips{display:flex;flex-wrap:wrap;gap:.4rem}
+    .sgb__chip{display:inline-flex;align-items:baseline;gap:.45rem;background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.1));border-radius:5px;padding:.32rem .6rem;cursor:pointer;transition:border-color .15s,background-color .15s,box-shadow .15s}
+    .sgb__chip b{font-family:var(--font-display,inherit);font-weight:800;font-size:.95rem;color:var(--tier);font-variant-numeric:tabular-nums}
+    .sgb__chip span{font-size:.82rem;color:var(--text,#eaf2f1);font-family:var(--font-ui,inherit)}
+    .sgb__chip:hover{border-color:var(--tier)}
+    .sgb__chip.on{border-color:var(--tier);background:color-mix(in srgb,var(--tier) 16%,var(--bg-2,#181d1f));box-shadow:0 0 14px color-mix(in srgb,var(--tier) 35%,transparent)}
+    .sgb__chip.on span{color:#fff;font-weight:600}
+    .sgb__foot{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1.2rem;margin-top:1rem}
+    .sgb__clear{background:transparent;border:1px solid var(--line,rgba(47,191,164,.3));color:var(--muted,#8fa3a0);padding:.4rem .8rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;font-size:.78rem}
+    .sgb__clear:hover{border-color:var(--accent,#2FBFA4);color:var(--accent,#2FBFA4)}
+    .sgb__src{font-size:.74rem;color:var(--muted,#8fa3a0);font-style:italic;margin:0}
+  </style>
+</section>

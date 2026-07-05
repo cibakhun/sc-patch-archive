@@ -67,11 +67,13 @@ function deriveMethod(base, c) {
 }
 
 async function main() {
-  console.log('Lookups (Systeme/Planeten/Monde) …');
-  const [systems, planets, moons, gameVersions] = await Promise.all([
+  console.log('Lookups (Systeme/Planeten/Monde/Orbits/POIs) …');
+  const [systems, planets, moons, orbits, pois, gameVersions] = await Promise.all([
     getJSON('/star_systems'),
     getJSON('/planets'),
     getJSON('/moons'),
+    getJSON('/orbits').catch(() => []),
+    getJSON('/poi').catch(() => []),
     getJSON('/game_versions').catch(() => ({})),
   ]);
   const liveVer =
@@ -82,6 +84,8 @@ async function main() {
   const sysById = new Map(systems.map((s) => [s.id, s.name]));
   const planetById = new Map(planets.map((p) => [p.id, p]));
   const moonById = new Map(moons.map((m) => [m.id, m]));
+  const orbitById = new Map(orbits.map((o) => [o.id, o]));
+  const poiById = new Map(pois.map((p) => [p.id, p]));
 
   console.log('Commodities …');
   const commodities = await getJSON('/commodities');
@@ -125,6 +129,7 @@ async function main() {
     // Fundorte aus allen Varianten sammeln (i.d.R. trägt die Ore/Raw-Form die IDs).
     const sysSet = new Set();
     const locBySys = new Map(); // system name -> Set(body names)
+    const spaceBySys = new Map(); // system name -> Set(asteroid belt / lagrange names)
     for (const c of variants) {
       for (const sid of ids(c.ids_star_systems)) {
         const sn = sysById.get(sid);
@@ -145,6 +150,24 @@ async function main() {
         if (!locBySys.has(sn)) locBySys.set(sn, new Set());
         // Mond als "Mond (Planet)" für Kontext.
         locBySys.get(sn).add(m.planet_name ? `${m.name} (${m.planet_name})` : m.name);
+        sysSet.add(sn);
+      }
+      // Space-Fundorte: POIs sind die Asteroidenfelder (Aaron Halo, Yela Ring,
+      // Keeger Belt, …), Orbits die Lagrange-Punkte mit Asteroiden-Clustern.
+      for (const oid of ids(c.ids_orbits)) {
+        const o = orbitById.get(oid);
+        if (!o) continue;
+        const sn = o.star_system_name;
+        if (!spaceBySys.has(sn)) spaceBySys.set(sn, new Set());
+        spaceBySys.get(sn).add(o.name);
+        sysSet.add(sn);
+      }
+      for (const pid of ids(c.ids_poi)) {
+        const p = poiById.get(pid);
+        if (!p) continue;
+        const sn = p.star_system_name;
+        if (!spaceBySys.has(sn)) spaceBySys.set(sn, new Set());
+        spaceBySys.get(sn).add(p.name);
         sysSet.add(sn);
       }
     }
@@ -183,6 +206,8 @@ async function main() {
 
     const locations = {};
     for (const [sn, set] of locBySys) locations[sn] = [...set].sort();
+    const space = {};
+    for (const [sn, set] of spaceBySys) space[sn] = [...set].sort();
 
     minerals.push({
       name: base,
@@ -196,6 +221,7 @@ async function main() {
       base_price_sell: num((refForm || priceCarrier || {}).price_sell) || null,
       systems: [...sysSet].sort(),
       locations,
+      space,
       sell,
       wiki: (priceCarrier || variants[0]).wiki || null,
     });
@@ -206,31 +232,91 @@ async function main() {
   console.log('Refinery-Methoden …');
   const methodsRaw = await getJSON('/refineries_methods');
   const rate = (n) => ({ 1: 'low', 2: 'mid', 3: 'high' }[n] || null);
-  // Konkrete Faktoren für den Rechner. /refineries_audits ist zu dünn (nur ~3
-  // Datensätze) für ein volles Modell → aus den Ratings abgeleitet und am
-  // einzigen brauchbaren Audit-Anker kalibriert (Laranite+Dinyx: yield≈0,84,
-  // Kosten≈1,4 aUEC/Einheit, Zeit≈0,64 s/Einheit; 100 Einheiten/SCU). NÄHERUNG.
-  const YIELD_BY = { high: 0.85, mid: 0.78, low: 0.70 };   // refined out / raw in
-  const COST_BY = { low: 140, mid: 240, high: 340 };       // aUEC je SCU (nach cost-Rating)
-  const TIME_BY = { high: 25, mid: 45, low: 65 };          // Sekunden je SCU (nach speed-Rating)
+  // ECHTE Methoden-Modifikatoren [yield, zeit, kosten] aus dem Regolith-Formelkern
+  // (github.com/regolithco/RegolithCo-Common, MIT; deckt sich mit dem UEX-Audit
+  // Laranite+Dinyx: 2417/2872 ≈ 0,84 = 0,85 × 1,0). Gesamtformel (equations.ts):
+  //   refined_cSCU = raw_cSCU × 0,85 × methodYield × stationBonus
+  //   zeit_s       = raw_cSCU × ore.time_cscu × methodTime   (Stand ≤4.6; 4.2 hat global beschleunigt)
+  //   kosten_aUEC  = raw_cSCU × ore.cost_cscu × methodCost
+  const METHOD_MODS = {
+    CORMACK: [0.7, 0.25, 2],
+    ELECTROSTAROLYSIS: [0.85, 1, 2],
+    'FERRON EXCHANGE': [1, 4, 2],
+    'DINYX SOLVENTATION': [1, 12, 1],
+    'GASKIN PROCESS': [0.85, 0.5, 6],
+    'KAZEN WINNOWING': [0.7, 0.75, 1],
+    'PYROMETRIC CHROMALYSIS': [1, 2, 6],
+    'THERMONATIC DEPOSITION': [0.85, 3, 1],
+    'XCR REACTION': [0.7, 0.125, 6],
+  };
+  const BASE_YIELD = 0.85; // globaler Ore-Processing-Faktor (alle Erze identisch)
   const methods = methodsRaw
     .map((m) => {
-      const yl = rate(m.rating_yield), cl = rate(m.rating_cost), sl = rate(m.rating_speed);
+      const mods = METHOD_MODS[m.name.toUpperCase()] || [0.85, 1, 2];
       return {
         name: m.name,
         code: m.code,
         yield: m.rating_yield,
         cost: m.rating_cost,
         speed: m.rating_speed,
-        yield_label: yl,
-        cost_label: cl,
-        speed_label: sl,
-        yield_ratio: YIELD_BY[yl] ?? 0.78,
-        cost_per_scu: COST_BY[cl] ?? 240,
-        time_per_scu: TIME_BY[sl] ?? 45,
+        yield_label: rate(m.rating_yield),
+        cost_label: rate(m.rating_cost),
+        speed_label: rate(m.rating_speed),
+        yield_mod: mods[0],
+        time_mod: mods[1],
+        cost_mod: mods[2],
+        yield_effective: Math.round(BASE_YIELD * mods[0] * 1000) / 1000, // refined/raw
       };
     })
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort((a, b) => b.yield_effective - a.yield_effective || a.name.localeCompare(b.name));
+
+  // Per-Erz-Verarbeitungsfaktoren [Sekunden/cSCU, aUEC/cSCU] (Regolith
+  // oreProcessingLookup; 1 SCU = 100 cSCU). Neue 4.x-Erze (Stileron, Riccite,
+  // Torite, …) fehlen im archivierten Datensatz → Zeit/Kosten dort unbekannt.
+  const ORE_PROC = {
+    AGRICIUM: [3, 1.54], ALUMINUM: [2, 0.08], BERYL: [2.3, 1.23], BEXALITE: [2.9, 3.7],
+    BORASE: [2.5, 1.51], COPPER: [2.3, 0.09], CORUNDUM: [2.1, 0.1], DIAMOND: [2.3, 0.16],
+    GOLD: [2.8, 3.85], HEPHAESTANITE: [2.6, 1.2], IRON: [2.3, 0.1], LARANITE: [3.1, 1.25],
+    QUANTAINIUM: [4, 7.19], QUANTANIUM: [4, 7.19], QUARTZ: [2.7, 0.1], TARANITE: [3.2, 3.74],
+    TITANIUM: [2.2, 0.08], TUNGSTEN: [2.1, 0.55],
+  };
+  for (const m of minerals) {
+    const proc = ORE_PROC[m.name.toUpperCase()];
+    if (proc) m.refine_proc = { time_cscu: proc[0], cost_cscu: proc[1] };
+  }
+
+  // Live-Stationsboni pro Erz (UEX /refineries_yields, crowdsourced, in %):
+  // z. B. Iron (Ore) an Nyx Gateway: -5 %. Nach Terminal gruppiert.
+  console.log('Refinery-Stationsboni …');
+  const yieldsRaw = await getJSON('/refineries_yields').catch(() => []);
+  const stationMap = new Map();
+  for (const r of yieldsRaw) {
+    if (r.value == null || !r.terminal_name) continue;
+    const key = r.terminal_name;
+    if (!stationMap.has(key)) {
+      stationMap.set(key, {
+        terminal: r.terminal_name,
+        system: r.star_system_name || null,
+        station: r.space_station_name || r.orbit_name || r.planet_name || null,
+        ores: {},
+      });
+    }
+    stationMap.get(key).ores[baseName(r.commodity_name)] = Number(r.value);
+  }
+  const refinery_stations = [...stationMap.values()].sort(
+    (a, b) => (a.system || '').localeCompare(b.system || '') || a.terminal.localeCompare(b.terminal)
+  );
+
+  // Scan-Signaturen (4.7+): Signatur identifiziert das dominante Mineral.
+  // Quelle: github.com/Diftic/SC_Signature_Scanner (aus Game-Files, Stand 4.7+).
+  const signatures = [
+    { tier: 'Legendary', entries: [ { sig: 3170, name: 'Quantainium' }, { sig: 3185, name: 'Stileron' }, { sig: 3200, name: 'Savrilium' } ] },
+    { tier: 'Epic', entries: [ { sig: 3370, name: 'Ouratite' }, { sig: 3385, name: 'Riccite' }, { sig: 3400, name: 'Lindinium' } ] },
+    { tier: 'Rare', entries: [ { sig: 3540, name: 'Beryl' }, { sig: 3555, name: 'Taranite' }, { sig: 3570, name: 'Borase' }, { sig: 3585, name: 'Gold' }, { sig: 3600, name: 'Bexalite' } ] },
+    { tier: 'Uncommon', entries: [ { sig: 3825, name: 'Laranite' }, { sig: 3840, name: 'Aslarite' }, { sig: 3855, name: 'Titanium' }, { sig: 3870, name: 'Tungsten' }, { sig: 3885, name: 'Agricium' }, { sig: 3900, name: 'Torite' } ] },
+    { tier: 'Common', entries: [ { sig: 4180, name: 'Hephaestanite' }, { sig: 4195, name: 'Tin' }, { sig: 4210, name: 'Quartz' }, { sig: 4225, name: 'Corundum' }, { sig: 4240, name: 'Copper' }, { sig: 4255, name: 'Silicon' }, { sig: 4270, name: 'Iron' }, { sig: 4285, name: 'Aluminum' }, { sig: 4300, name: 'Ice' } ] },
+    { tier: 'Other', entries: [ { sig: 3000, name: 'FPS-Handminerals' }, { sig: 4000, name: 'ROC-Deposits' }, { sig: 2000, name: 'Salvage-Panel (×N)' } ] },
+  ];
 
   // Mining-Fahrzeuge werden NICHT aus UEX gezogen: die scu-Werte dort sind für
   // Miner unzuverlässig (z.B. MOLE=32 statt 96). Stattdessen kuratierte Tabelle
@@ -329,6 +415,7 @@ async function main() {
 
   // Standort-Reverse-Lookup: Body -> [Minerale], gruppiert nach System.
   const bodyIndex = {};
+  const spaceKeys = new Set();
   for (const m of minerals) {
     for (const [sn, bodies] of Object.entries(m.locations)) {
       for (const b of bodies) {
@@ -336,11 +423,20 @@ async function main() {
         (bodyIndex[key] ||= []).push(m.name);
       }
     }
+    for (const [sn, sites] of Object.entries(m.space)) {
+      for (const b of sites) {
+        const key = `${sn}␟${b}`;
+        (bodyIndex[key] ||= []).push(m.name);
+        spaceKeys.add(key);
+      }
+    }
   }
   const bodies = Object.entries(bodyIndex)
     .map(([key, mins]) => {
       const [system, body] = key.split('␟');
-      return { system, body, minerals: mins.sort() };
+      const entry = { system, body, minerals: mins.sort() };
+      if (spaceKeys.has(key)) entry.space = true;
+      return entry;
     })
     .sort((a, b) => a.system.localeCompare(b.system) || a.body.localeCompare(b.body));
 
@@ -366,8 +462,11 @@ async function main() {
       gadgets: gadgets.length,
     },
     live_systems: liveSystems,
+    refine_base_yield: BASE_YIELD,
     minerals,
     methods,
+    refinery_stations,
+    signatures,
     bodies,
     lasers,
     modules,
