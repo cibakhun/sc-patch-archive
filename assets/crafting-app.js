@@ -20,10 +20,32 @@
 
   // ---- Data (async; UI works without it, enriched once loaded) ----
   var DB = null;
+  var MISSIONS = null; // id -> {id,name,pool:[{i,dc}]}
   fetch(CFG.dbUrl).then(function (r) { return r.json(); }).then(function (j) {
     DB = j;
+    buildMissionIndex();
     renderPlanner();
   }).catch(function () {});
+
+  // Umkehrung Blueprint -> Mission: pro Mission der Pool aller Blueprints.
+  function buildMissionIndex() {
+    MISSIONS = {};
+    DB.blueprints.forEach(function (b, i) {
+      (b.missions || []).forEach(function (m) {
+        var key = m.id != null ? 'id' + m.id : 'nm' + m.name;
+        var e = MISSIONS[key] || (MISSIONS[key] = { id: m.id, name: m.name, pool: [] });
+        e.pool.push({ i: i, dc: m.drop_chance });
+      });
+    });
+    // Pools nach Drop-Chance ↓ dann Name ↑ sortieren.
+    Object.keys(MISSIONS).forEach(function (k) {
+      MISSIONS[k].pool.sort(function (a, b) {
+        var d = (b.dc || 0) - (a.dc || 0);
+        return d !== 0 ? d : (DB.blueprints[a.i].name < DB.blueprints[b.i].name ? -1 : 1);
+      });
+    });
+  }
+  function missionKey(m) { return m.id != null ? 'id' + m.id : 'nm' + m.name; }
 
   // ---- Persistence ----
   function load(key, def) { try { return JSON.parse(localStorage.getItem(key)) || def; } catch (e) { return def; } }
@@ -180,23 +202,59 @@
   cards.forEach(refreshCardState);
 
   // =========================================================
-  //  DETAIL MODAL + QUALITY SIMULATOR
+  //  DETAIL MODAL + QUALITY SIMULATOR + MISSION-POOL (State-Machine)
   // =========================================================
   var modal = $('#cdb-modal');
   var modalBody = $('#cdb-modal-body');
-  function closeModal() { if (modal) { modal.hidden = true; document.body.style.overflow = ''; } }
+  var modalStack = [];      // history of entries (for back navigation)
+  var currentEntry = null;  // {t:'bp',i} | {t:'pool',key}
+  function closeModal() { if (modal) { modal.hidden = true; document.body.style.overflow = ''; modalStack = []; currentEntry = null; } }
+  function showModal() { modal.hidden = false; document.body.style.overflow = 'hidden'; if (modalBody) modalBody.scrollTop = 0; }
   if (modal) {
     $$('[data-close]', modal).forEach(function (b) { b.addEventListener('click', closeModal); });
     modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) closeModal(); });
   }
 
-  function statLabelize(s) { return s; }
+  // Navigation
+  function renderEntry(entry) {
+    if (entry.t === 'bp') renderBlueprint(entry.i);
+    else renderPool(entry.key);
+    showModal();
+    injectBack();
+  }
+  function go(entry) { if (currentEntry) modalStack.push(currentEntry); currentEntry = entry; renderEntry(entry); }
+  function back() { var prev = modalStack.pop(); if (prev) { currentEntry = prev; renderEntry(prev); } }
+  function injectBack() {
+    if (modalStack.length && modalBody.firstChild) {
+      var btn = document.createElement('button');
+      btn.className = 'cbm__back'; btn.type = 'button';
+      btn.innerHTML = '← ' + tr('back', 'Zurück');
+      btn.addEventListener('click', back);
+      modalBody.insertBefore(btn, modalBody.firstChild);
+    }
+  }
+  // Entry point from the grid — fresh navigation.
+  function openModal(i) { if (!DB || !DB.blueprints || !DB.blueprints[i]) return; modalStack = []; currentEntry = null; go({ t: 'bp', i: i }); }
 
-  function openModal(i) {
-    if (!DB || !DB.blueprints || !DB.blueprints[i]) { return; }
+  // -- Basiswert-Auflösung: manche Stats haben einen echten Basiswert in
+  //    item_stats, die meisten nicht (dann Index-Basis 100 = Standard-Item). --
+  function resolveBase(stat, st) {
+    if (!st) return null;
+    if (stat === 'Min Temp') return st.temperature_resistance ? st.temperature_resistance.min : null;
+    if (stat === 'Max Temp') return st.temperature_resistance ? st.temperature_resistance.max : null;
+    if (stat === 'Fire Rate') return st.fire_modes && st.fire_modes[0] ? st.fire_modes[0].fire_rate : null;
+    return null;
+  }
+  function roundSmart(v) {
+    var a = Math.abs(v);
+    if (a >= 100) return Math.round(v);
+    if (a >= 10) return Math.round(v * 10) / 10;
+    return Math.round(v * 100) / 100;
+  }
+
+  function renderBlueprint(i) {
     var b = DB.blueprints[i];
-    var parts = (b.category || '').split(' / ');
     var html = '';
     html += '<div class="cbm__cat">' + esc(b.category || '') + '</div>';
     html += '<h2 class="cbm__name">' + esc(b.name) + '</h2>';
@@ -206,7 +264,6 @@
     html += '<button class="cbm__plan" data-plan="' + i + '">＋ ' + tr('addPlan', 'Zum Planer') + '</button>';
     html += '</div>';
 
-    // Ingredients + quality sliders
     if (b.ingredients && b.ingredients.length) {
       html += '<h3 class="cbm__h">' + tr('ingredients', 'Zutaten') + '</h3>';
       html += '<div class="cbm__ings">';
@@ -228,25 +285,23 @@
         html += '</div>';
       });
       html += '</div>';
-      // Simulated output stats
       html += '<h3 class="cbm__h">' + tr('simOut', 'Simulierte Ausgabe-Werte') + '</h3>';
       html += '<div class="cbm__out" id="cbm-out"></div>';
-      html += '<p class="cbm__note">' + tr('simNote', 'Modifikatoren live aus den quality_effects der Zutaten (Qualität 0–1000). × = multiplikativ.') + '</p>';
+      html += '<p class="cbm__note" id="cbm-out-note"></p>';
     }
 
-    // item_stats
     if (b.item_stats && Object.keys(b.item_stats).length) {
       html += '<h3 class="cbm__h">' + tr('itemStats', 'Item-Werte') + '</h3>';
       html += '<div class="cbm__stats">' + renderStats(b.item_stats) + '</div>';
     }
 
-    // missions
     if (b.missions && b.missions.length) {
       html += '<h3 class="cbm__h">' + tr('missions', 'Missionen (Bezugsquelle)') + ' <span class="cbm__c">' + b.missions.length + '</span></h3>';
+      html += '<p class="cbm__note cbm__hint">' + tr('missionHint', 'Mission anklicken → alle Blueprints, die sie droppen kann.') + '</p>';
       html += '<ul class="cbm__mis">';
       b.missions.forEach(function (m) {
         var dc = m.drop_chance != null ? Math.round(m.drop_chance * 100) + '%' : '';
-        html += '<li><span>' + esc(m.name) + '</span>' + (dc ? '<b>' + dc + '</b>' : '') + '</li>';
+        html += '<li><button type="button" class="cbm__mlink" data-mkey="' + esc(missionKey(m)) + '"><span>' + esc(m.name) + '</span></button>' + (dc ? '<b>' + dc + '</b>' : '') + '</li>';
       });
       html += '</ul>';
     } else {
@@ -254,13 +309,11 @@
     }
 
     modalBody.innerHTML = html;
-    modal.hidden = false;
-    document.body.style.overflow = 'hidden';
 
-    // wire sliders
+    // Quality simulator — absolute values.
     var sliders = $$('.cbm__slider', modalBody);
     function recompute() {
-      var perStat = {}; // stat -> {mul, add}
+      var perStat = {};
       sliders.forEach(function (sl) {
         var gi = +sl.dataset.ing, q = +sl.value;
         var out = $('[data-out="' + gi + '"]', modalBody); if (out) out.textContent = q;
@@ -269,26 +322,70 @@
           var span = (qe.quality_max - qe.quality_min) || 1;
           var t = clamp((q - qe.quality_min) / span, 0, 1);
           var mod = qe.modifier_at_min + (qe.modifier_at_max - qe.modifier_at_min) * t;
-          var e = perStat[qe.stat] || (perStat[qe.stat] = { mul: 1, add: 0, hasMul: false, hasAdd: false });
+          var e = perStat[qe.stat];
+          if (!e) { e = perStat[qe.stat] = { mul: 1, add: 0, hasMul: false, hasAdd: false, base: resolveBase(qe.stat, b.item_stats) }; }
           if (qe.multiplicative) { e.mul *= mod; e.hasMul = true; } else { e.add += mod; e.hasAdd = true; }
         });
       });
       var keys = Object.keys(perStat);
       var oc = $('#cbm-out', modalBody);
+      var noteEl = $('#cbm-out-note', modalBody);
       if (!oc) return;
       if (!keys.length) { oc.innerHTML = '<span class="cbm__muted">—</span>'; return; }
+      var anyIndexed = false;
       oc.innerHTML = keys.map(function (k) {
-        var e = perStat[k], val = '';
-        if (e.hasMul) { var pct = Math.round((e.mul - 1) * 1000) / 10; val += '×' + (Math.round(e.mul * 1000) / 1000) + ' <em>(' + (pct >= 0 ? '+' : '') + pct + '%)</em>'; }
-        if (e.hasAdd) { val += (val ? ' ' : '') + (e.add >= 0 ? '+' : '') + (Math.round(e.add * 1000) / 1000); }
-        return '<div class="cbm__ostat"><span>' + esc(statLabelize(k)) + '</span><b>' + val + '</b></div>';
+        var e = perStat[k];
+        if (e.hasMul) {
+          var indexed = e.base == null;
+          var base = indexed ? 100 : e.base;
+          if (indexed) anyIndexed = true;
+          var result = base * e.mul;
+          var pct = Math.round((e.mul - 1) * 1000) / 10;
+          return '<div class="cbm__ostat"><span>' + esc(k) + (indexed ? '<i class="cbm__idx">†</i>' : '') + '</span>' +
+            '<b><span class="cbm__b0">' + roundSmart(base) + '</span> → <span class="cbm__b1">' + roundSmart(result) + '</span> ' +
+            '<em>(' + (pct >= 0 ? '+' : '') + pct + '%)</em></b></div>';
+        }
+        // additive (base unbekannt) → Delta
+        var d = roundSmart(e.add);
+        return '<div class="cbm__ostat"><span>' + esc(k) + '</span><b><span class="cbm__b1">' + (d >= 0 ? '+' : '') + d + '</span></b></div>';
       }).join('');
+      if (noteEl) {
+        noteEl.innerHTML = tr('simNote', 'Absolute Werte live aus den quality_effects (Qualität 0–1000): multiplikativ = Basis × Faktor, additiv = Basis + Wert.') +
+          (anyIndexed ? ' <b>†</b> ' + tr('simIdxNote', 'kein absoluter Basiswert in den Daten — 100 = Standard-Item (Faktor 1,0).') : '');
+      }
     }
     sliders.forEach(function (sl) { sl.addEventListener('input', recompute); });
     recompute();
 
     var pb = $('[data-plan]', modalBody);
-    if (pb) pb.addEventListener('click', function () { plan[i] = (plan[i] || 0) + 1; save('craft.plan.v1', plan); renderPlanner(); flashPlan(); pb.textContent = '✓ ' + tr('added', 'hinzugefügt'); });
+    if (pb) pb.addEventListener('click', function () { plan[i] = (plan[i] || 0) + 1; save('craft.plan.v1', plan); syncCards(); renderPlanner(); flashPlan(); pb.textContent = '✓ ' + tr('added', 'hinzugefügt'); });
+
+    $$('.cbm__mlink', modalBody).forEach(function (btn) {
+      btn.addEventListener('click', function () { go({ t: 'pool', key: btn.dataset.mkey }); });
+    });
+  }
+
+  function renderPool(key) {
+    var e = MISSIONS && MISSIONS[key];
+    if (!e) { modalBody.innerHTML = '<p class="cbm__note">—</p>'; return; }
+    var html = '';
+    html += '<div class="cbm__cat">' + tr('missionPoolLabel', 'Missions-Pool') + '</div>';
+    html += '<h2 class="cbm__name">' + esc(e.name) + '</h2>';
+    html += '<p class="cbm__note cbm__hint">' + tr('poolIntro', 'Alle Blueprints, die diese Mission droppen kann — Blueprint anklicken für Details.') + ' <span class="cbm__c">' + e.pool.length + '</span></p>';
+    html += '<ul class="cbm__pool">';
+    e.pool.forEach(function (p) {
+      var b = DB.blueprints[p.i];
+      var dc = p.dc != null ? Math.round(p.dc * 100) + '%' : '';
+      var cat = (b.category || '').split(' / ').slice(0, 2).join(' / ');
+      html += '<li><button type="button" class="cbm__blink" data-bp="' + p.i + '">' +
+        '<span class="pn">' + esc(b.name) + '</span><span class="pc">' + esc(cat) + '</span></button>' +
+        (dc ? '<b>' + dc + '</b>' : '') + '</li>';
+    });
+    html += '</ul>';
+    modalBody.innerHTML = html;
+    $$('.cbm__blink', modalBody).forEach(function (btn) {
+      btn.addEventListener('click', function () { go({ t: 'bp', i: +btn.dataset.bp }); });
+    });
   }
 
   function renderStats(st) {

@@ -76,6 +76,7 @@ function trimBlueprint(b) {
     out.ingredients = b.ingredients.map(trimIngredient);
   if (Array.isArray(b.missions) && b.missions.length)
     out.missions = b.missions.map((m) => ({
+      id: m.mission_id ?? null,
       name: m.name,
       drop_chance: m.drop_chance == null ? null : r(m.drop_chance),
     }));
