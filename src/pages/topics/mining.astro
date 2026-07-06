@@ -12,7 +12,6 @@ import { buildMiningShips } from '../../lib/miningShips';
 import DB from '../../../assets/mining-db.json';
 
 const total = DB.counts.minerals;
-const priced = DB.counts.priced;
 const snap = DB.snapshot_date;
 const ver = DB.game_version;
 
@@ -20,7 +19,7 @@ const ver = DB.game_version;
 // echte Datenblatt /schiffe/<id>.html.
 const ships = buildMiningShips('de');
 ---
-<Layout title={"Mining-Datenbank — Star Citizen 4.8 | SC Patch-Archiv"} description={`Interaktive Mining-Datenbank für Star Citizen 4.8: ${total} Minerale durchsuchen, nach System, Methode & Typ filtern, Fundorte auf Planeten/Monden ansehen, Verkaufspreise (${priced} mit Preis) vergleichen, Refinery-Methoden abwägen und den Erlös mit dem Wert-Rechner schätzen.`} themeColor="#14181a" ogType="article" ogImage="/assets/img-mole.jpg" translated={true}>
+<Layout title={"Mining-Datenbank — Star Citizen 4.8 | SC Patch-Archiv"} description={`Interaktive Mining-Datenbank für Star Citizen 4.8: ${total} Minerale aus den datamined 4.8.3-Spieldateien durchsuchen, nach System, Methode & Typ filtern, echte Deposit-Regionen mit Erz-Anteil (%) ansehen, Scan-Signaturen identifizieren, Refinery-Methoden abwägen und Fracturing planen.`} themeColor="#14181a" ogType="article" ogImage="/assets/img-mole.jpg" translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
 :root{--bg:#14181a;--bg-2:#181d1f;--surface:#1e2427;--surface-2:#252c30;--accent:#2FBFA4;--accent-2:#E0A526;--hot:#2FBFA4;--text:#eaf2f1;--muted:#8fa3a0;--line:rgba(47,191,164,.22);--line-soft:rgba(234,242,241,.10);--glow:0 0 44px rgba(47,191,164,.26);--ink:#0e1214;--maxw:1240px;}
@@ -79,7 +78,7 @@ const ships = buildMiningShips('de');
     <div class="hero__in">
       <div class="eyebrow"><a href="/patches/sc-4-8-0.html">Alpha 4.8</a></div>
       <h1>Mining</h1>
-      <p class="lead">Minerale, Fundorte, Preise, Refinery &amp; Fracturing — durchsuchbar.</p>
+      <p class="lead">Minerale, Fundorte, Signaturen, Refinery &amp; Fracturing — game-genau, durchsuchbar.</p>
     </div>
     <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
   </section>

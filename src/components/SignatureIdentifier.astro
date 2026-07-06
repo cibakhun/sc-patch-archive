@@ -31,11 +31,11 @@ const ship = (MODEL.elements || [])
   })
   .sort((a, b) => (RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity)) || (a.sig - b.sig));
 
-// Sonder-Kategorien (feste Signatur, Cluster bis floor(30000/sig)).
+// Sonder-Kategorie: ROC-/Boden-Deposits scannen mit der groundScanSignature der
+// Spieldaten (4.8.3: durchgängig 4000). FPS-Hand- und Salvage-Signaturen sind in
+// den datamined Spieldaten NICHT enthalten und daher hier bewusst weggelassen.
 const SPECIAL = [
   { name: 'ROC / Bodenerz', sig: 4000, rarity: 'roc' },
-  { name: 'FPS-Handerz', sig: 3000, rarity: 'fps' },
-  { name: 'Salvage-Panel', sig: 2000, rarity: 'salvage' },
 ].map((s) => {
   const max = Math.floor(30000 / s.sig);
   return { ...s, max, multiples: Array.from({ length: max }, (_, i) => ({ n: i + 1, v: (i + 1) * s.sig })), locations: [] };

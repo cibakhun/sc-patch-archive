@@ -13,80 +13,74 @@ const S = {
     filters: 'Filter', system: 'System', method: 'Methode', type: 'Typ',
     anyType: 'Alle Typen', refineOnly: 'Nur raffinierbare Erze', gemOnly: 'Nur Hand-Edelsteine',
     reset: 'Zurücksetzen', sort: 'Sortierung',
-    sortPriceDesc: 'Preis ↓', sortPriceAsc: 'Preis ↑', sortName: 'Name A→Z', sortNameDesc: 'Name Z→A',
+    sortRarity: 'Seltenheit', sortLocs: 'Fundorte ↓', sortName: 'Name A→Z', sortNameDesc: 'Name Z→A',
     view: 'Ansicht', grid: 'Raster', list: 'Liste', results: 'Minerale', of: 'von',
     empty: 'Keine Minerale für diese Auswahl.', filterBtn: 'Filter', close: 'Schließen',
     locBtn: 'Fundorte', methShip: 'Schiff-Mining', methHand: 'Hand / ROC',
-    price: 'Bester Verkauf', noPrice: 'kein Preis', refine: 'raffinierbar', gem: 'Edelstein',
+    refine: 'raffinierbar', gem: 'Edelstein', nLocs: 'Fundorte',
   },
   en: {
     toolbarSearch: 'Search: mineral or location…',
     filters: 'Filters', system: 'System', method: 'Method', type: 'Type',
     anyType: 'All types', refineOnly: 'Refinable ores only', gemOnly: 'Hand gems only',
     reset: 'Reset', sort: 'Sort',
-    sortPriceDesc: 'Price ↓', sortPriceAsc: 'Price ↑', sortName: 'Name A→Z', sortNameDesc: 'Name Z→A',
+    sortRarity: 'Rarity', sortLocs: 'Locations ↓', sortName: 'Name A→Z', sortNameDesc: 'Name Z→A',
     view: 'View', grid: 'Grid', list: 'List', results: 'minerals', of: 'of',
     empty: 'No minerals for this selection.', filterBtn: 'Filters', close: 'Close',
     locBtn: 'Locations', methShip: 'Ship mining', methHand: 'Hand / ROC',
-    price: 'Best sell', noPrice: 'no price', refine: 'refinable', gem: 'gem',
+    refine: 'refinable', gem: 'gem', nLocs: 'locations',
   },
 }[lang];
 
 // Strings fürs Client-JS (window.__MINE.t)
 const JS_T = {
   de: {
-    kind: 'Typ', method: 'Methode', scu: 'SCU-Gewicht', systems: 'Systeme',
-    locations: 'Fundorte', spaceHead: 'Space / Asteroiden', sellHead: 'Verkauf (Terminals)', best: 'Bester Preis',
-    range: 'Spanne', avg: 'Ø', terminals: 'Terminals', at: 'bei',
-    calc: 'Refinery- & Wert-Rechner', calcAmount: 'Menge (SCU raw)', calcMethod: 'Refinery-Methode',
-    calcRaw: 'Verkaufswert', calcRefined: 'Ertrag (refined)', calcRefVal: 'Verkaufswert (refined)', boxes: 'Kisten',
-    calcNote: 'In-Game-Formel: refined = raw × 0,85 × Methoden-Yield. Verkaufswert = refined SCU × bester Terminal-Preis. Stations-Boni (±10 %) und Zeiten/Kosten: siehe Refinery-Rechner weiter unten.',
-    calcNoteGem: 'Verkaufswert = Menge × bester Terminal-Preis. Edelstein wird ganz verkauft (kein Refining).',
-    yield: 'Ertrag', cost: 'Kosten', speed: 'Tempo',
-    methShip: 'Schiff-Mining (Prospector/MOLE)', methHand: 'Hand-Mining / ROC (ganze Edelsteine)',
+    kind: 'Typ', method: 'Methode', scu: 'SCU-Gewicht', systems: 'Systeme', rarity: 'Seltenheit',
+    locations: 'Fundorte', abundance: 'bis', ofRock: 'Erz-Anteil',
+    methShip: 'Schiff-Mining (Prospector/MOLE)', methHand: 'Hand-Mining (Multitool)', methRoc: 'ROC / Bodenfahrzeug', methHarvest: 'Ernte',
     needsRefine: 'Rohform muss raffiniert werden', noRefine: 'wird ganz verkauft (kein Refining)',
-    noLoc: 'Keine körpergebundenen Fundorte in den Daten — überwiegend in Asteroidengürteln (z.B. Aaron Halo) abbaubar.',
-    reverseTitle: 'Fundorte nach Himmelskörper', reverseIntro: 'Wähle einen Mond/Planeten — zeigt alle dort vorkommenden Minerale (Vorkommen laut Spieldaten, keine Spawn-Chance).',
-    reverseSearch: 'Körper suchen…', mineralsHere: 'Minerale hier', low: 'niedrig', mid: 'mittel', high: 'hoch',
+    noLoc: 'Keine Fundorte in den Spieldaten.',
+    locNote: 'Fundorte laut datamined 4.8.3-Spieldaten. „bis X %" = maximaler Erz-Anteil im Rock, nach Häufigkeit sortiert — keine Spawn-Wahrscheinlichkeit.',
+    reverseTitle: 'Fundorte nach Himmelskörper', reverseIntro: 'Wähle einen Körper/eine Region — zeigt alle dort vorkommenden Minerale (laut Spieldaten, keine Spawn-Chance).',
+    reverseSearch: 'Körper suchen…', mineralsHere: 'Minerale hier',
+    rLegendary: 'Legendär', rEpic: 'Episch', rRare: 'Selten', rUncommon: 'Ungewöhnlich', rCommon: 'Häufig',
   },
   en: {
-    kind: 'Type', method: 'Method', scu: 'SCU weight', systems: 'Systems',
-    locations: 'Locations', spaceHead: 'Space / asteroids', sellHead: 'Sell (terminals)', best: 'Best price',
-    range: 'Range', avg: 'Avg', terminals: 'terminals', at: 'at',
-    calc: 'Refinery & value calculator', calcAmount: 'Amount (SCU raw)', calcMethod: 'Refinery method',
-    calcRaw: 'Sale value', calcRefined: 'Yield (refined)', calcRefVal: 'Sale value (refined)', boxes: 'boxes',
-    calcNote: 'In-game formula: refined = raw × 0.85 × method yield. Sale value = refined SCU × best terminal price. Station bonuses (±10 %) and times/costs: see the refinery calculator below.',
-    calcNoteGem: 'Sale value = amount × best terminal price. Gem is sold whole (no refining).',
-    yield: 'Yield', cost: 'Cost', speed: 'Speed',
-    methShip: 'Ship mining (Prospector/MOLE)', methHand: 'Hand mining / ROC (whole gems)',
+    kind: 'Type', method: 'Method', scu: 'SCU weight', systems: 'Systems', rarity: 'Rarity',
+    locations: 'Locations', abundance: 'up to', ofRock: 'ore share',
+    methShip: 'Ship mining (Prospector/MOLE)', methHand: 'Hand mining (multitool)', methRoc: 'ROC / ground vehicle', methHarvest: 'Harvest',
     needsRefine: 'Raw form must be refined', noRefine: 'sold whole (no refining)',
-    noLoc: 'No body-bound locations in the data — mostly mineable in asteroid belts (e.g. Aaron Halo).',
-    reverseTitle: 'Locations by celestial body', reverseIntro: 'Pick a moon/planet — shows all minerals found there (occurrence per game data, not spawn chance).',
-    reverseSearch: 'Search body…', mineralsHere: 'Minerals here', low: 'low', mid: 'mid', high: 'high',
+    noLoc: 'No locations in the game data.',
+    locNote: 'Locations from datamined 4.8.3 game files. “up to X %” = max ore share in a rock, ranked by frequency — not spawn probability.',
+    reverseTitle: 'Locations by celestial body', reverseIntro: 'Pick a body/region — shows all minerals found there (per game data, not spawn chance).',
+    reverseSearch: 'Search body…', mineralsHere: 'Minerals here',
+    rLegendary: 'Legendary', rEpic: 'Epic', rRare: 'Rare', rUncommon: 'Uncommon', rCommon: 'Common',
   },
 }[lang];
 
 // -- SSR-Kartenmodell --
-const nf = new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US');
+// Seltenheits-Rang für Sortierung + Chip-Farbe (Hand/ROC ohne Rarity ans Ende).
+const RARITY_RANK = { legendary: 0, epic: 1, rare: 2, uncommon: 3, common: 4 };
 const systemsAll = DB.live_systems;
 const kinds = [...new Set(DB.minerals.map((m) => m.kind).filter(Boolean))].sort();
 
 const cards = DB.minerals.map((m, i) => {
-  const best = m.sell ? m.sell.best.price : 0;
-  const locBlob = [
-    ...Object.values(m.locations || {}).flat(),
-    ...Object.values(m.space || {}).flat(),
-  ].join(' ').toLowerCase();
+  const locBlob = (m.locations || []).map((l) => l.location).join(' ').toLowerCase();
+  const rank = m.rarity != null ? (RARITY_RANK[m.rarity] ?? 5) : 6;
   return {
     i, name: m.name, kind: m.kind || '—', method: m.method,
     refine: !!m.needs_refine, scu: m.weight_scu || 0,
-    systems: m.systems || [], best,
-    bestLabel: m.sell ? nf.format(best) : null,
+    rarity: m.rarity || null, rank,
+    nLocs: (m.locations || []).length,
+    systems: m.systems || [],
     systemsAttr: (m.systems || []).join('|').toLowerCase(),
     search: (m.name + ' ' + locBlob).toLowerCase(),
   };
 });
 
+const RARITY_LABEL = {
+  legendary: JS_T.rLegendary, epic: JS_T.rEpic, rare: JS_T.rRare, uncommon: JS_T.rUncommon, common: JS_T.rCommon,
+};
 const total = DB.counts.minerals;
 ---
 
@@ -99,8 +93,8 @@ const total = DB.counts.minerals;
     <label class="mdb-sort">
       <span class="mdb-sr">{S.sort}</span>
       <select id="mdb-sort">
-        <option value="price-desc">{S.sortPriceDesc}</option>
-        <option value="price-asc">{S.sortPriceAsc}</option>
+        <option value="rarity">{S.sortRarity}</option>
+        <option value="locs">{S.sortLocs}</option>
         <option value="name">{S.sortName}</option>
         <option value="name-desc">{S.sortNameDesc}</option>
       </select>
@@ -126,7 +120,8 @@ const total = DB.counts.minerals;
       <div class="mdb-fgroup">
         <h4>{S.method}</h4>
         <label class="mdb-check"><input type="checkbox" class="mdb-meth" value="ship" /><span>{S.methShip}</span></label>
-        <label class="mdb-check"><input type="checkbox" class="mdb-meth" value="hand" /><span>{S.methHand}</span></label>
+        <label class="mdb-check"><input type="checkbox" class="mdb-meth" value="hand" /><span>{JS_T.methHand}</span></label>
+        <label class="mdb-check"><input type="checkbox" class="mdb-meth" value="roc" /><span>{JS_T.methRoc}</span></label>
       </div>
 
       <div class="mdb-fgroup">
@@ -158,13 +153,13 @@ const total = DB.counts.minerals;
             data-method={c.method}
             data-kind={c.kind.toLowerCase()}
             data-refine={c.refine ? '1' : '0'}
-            data-price={c.best}
-            data-scu={c.scu}
+            data-rank={c.rank}
+            data-locs={c.nLocs}
           >
             <div class="mcd__top">
               <span class={`mcd__kind mcd__kind--${c.method}`}>{c.kind}</span>
               <span class="mcd__badges">
-                {c.method === 'hand' ? (<span class="mcd__tag mcd__tag--gem" title={S.methHand}>◆ {S.gem}</span>) : null}
+                {c.method === 'hand' ? (<span class="mcd__tag mcd__tag--gem" title={JS_T.methHand}>◆ {S.gem}</span>) : null}
                 {c.refine ? (<span class="mcd__tag" title={S.refine}>⚗ {S.refine}</span>) : null}
               </span>
             </div>
@@ -172,8 +167,9 @@ const total = DB.counts.minerals;
             <div class="mcd__sys">
               {c.systems.length ? c.systems.map((s) => (<span class="mcd__chip">{s}</span>)) : (<span class="mcd__chip mcd__chip--muted">Asteroids</span>)}
             </div>
-            <div class="mcd__price">
-              {c.bestLabel ? (<><b>{c.bestLabel}</b> <span class="mcd__pu">aUEC/SCU</span></>) : (<span class="mcd__np">{S.noPrice}</span>)}
+            <div class="mcd__foot">
+              {c.rarity ? (<span class={`mcd__rar mcd__rar--${c.rarity}`}>{RARITY_LABEL[c.rarity]}</span>) : (<span class="mcd__rar mcd__rar--none">{JS_T[c.method === 'roc' ? 'methRoc' : 'methHand']}</span>)}
+              <span class="mcd__locs">{c.nLocs} {S.nLocs}</span>
             </div>
           </article>
         ))}
@@ -231,27 +227,30 @@ const total = DB.counts.minerals;
   .mdb-count-row b{color:var(--accent,#2FBFA4);font-size:1rem}
   .mdb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.8rem}
   .mdb-grid.is-list{grid-template-columns:1fr}
-  .mcd{border:1px solid var(--line,rgba(47,191,164,.22));border-top:2px solid var(--accent,#2FBFA4);background:var(--surface,#1e2427);padding:.85rem .9rem;display:flex;flex-direction:column;gap:.5rem;cursor:pointer;transition:border-color .15s,transform .1s;border-radius:2px}
-  .mcd:hover{border-top-color:var(--accent-2,#E0A526);transform:translateY(-2px)}
-  .mcd[data-method="hand"]{border-top-color:var(--accent-2,#E0A526)}
+  .mcd{border:1px solid var(--line-soft,rgba(255,255,255,.09));background:var(--surface,#1e2427);padding:.8rem .9rem;display:flex;flex-direction:column;gap:.42rem;cursor:pointer;transition:border-color .15s,transform .1s;border-radius:6px}
+  .mcd:hover{border-color:var(--accent,#2FBFA4);transform:translateY(-2px)}
+  .mcd[data-method="hand"]:hover{border-color:var(--accent-2,#E0A526)}
   .mcd[hidden]{display:none}
-  .mcd__top{display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem}
-  .mcd__kind{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.58rem;color:var(--accent,#2FBFA4)}
-  .mcd__kind--hand{color:var(--accent-2,#E0A526)}
-  .mcd__badges{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:flex-end}
-  .mcd__tag{font-family:var(--font-ui,inherit);font-weight:700;font-size:.56rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted,#8fa3a0);border:1px solid var(--line-soft,rgba(255,255,255,.1));border-radius:3px;padding:.08rem .3rem;white-space:nowrap}
-  .mcd__tag--gem{color:var(--accent-2,#E0A526);border-color:color-mix(in srgb,var(--accent-2,#E0A526) 40%,transparent)}
-  .mcd__name{font-family:var(--font-display,inherit);font-weight:800;font-size:1.06rem;line-height:1.12;color:#fff;margin:0;overflow-wrap:break-word}
-  .mcd__sys{display:flex;flex-wrap:wrap;gap:.25rem}
-  .mcd__chip{font-size:.66rem;color:var(--text,#eaf2f1);background:rgba(0,0,0,.3);border:1px solid var(--line-soft,rgba(255,255,255,.09));padding:.1rem .4rem;border-radius:3px;font-family:var(--font-ui,inherit);letter-spacing:.03em}
-  .mcd__chip--muted{color:var(--muted,#8fa3a0)}
-  .mcd__price{font-size:.82rem;color:var(--muted,#8fa3a0);margin-top:auto}
-  .mcd__price b{color:var(--accent-2,#E0A526);font-size:1.02rem;font-variant-numeric:tabular-nums}
-  .mcd__pu{font-size:.66rem;letter-spacing:.04em}
-  .mcd__np{font-style:italic;opacity:.7}
+  .mcd__top{display:flex;justify-content:space-between;align-items:center;gap:.4rem}
+  .mcd__kind{display:inline-flex;align-items:center;gap:.36rem;font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.58rem;color:var(--muted,#8fa3a0)}
+  .mcd__kind::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent,#2FBFA4);flex:none}
+  .mcd__kind--hand::before,.mcd__kind--roc::before{background:var(--accent-2,#E0A526)}
+  .mcd__badges{display:flex;gap:.45rem;flex-wrap:wrap;justify-content:flex-end}
+  .mcd__tag{font-family:var(--font-ui,inherit);font-weight:700;font-size:.56rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted,#8fa3a0);white-space:nowrap}
+  .mcd__tag--gem{color:var(--accent-2,#E0A526)}
+  .mcd__name{font-family:var(--font-display,inherit);font-weight:800;font-size:1.02rem;line-height:1.14;color:#fff;margin:0;overflow-wrap:break-word}
+  .mcd__sys{font-size:.7rem;color:var(--muted,#8fa3a0);font-family:var(--font-ui,inherit);letter-spacing:.02em;line-height:1.4}
+  .mcd__chip{color:var(--muted,#8fa3a0)}
+  .mcd__chip:not(:last-child)::after{content:" · ";opacity:.5}
+  .mcd__chip--muted{opacity:.72}
+  .mcd__foot{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:auto;padding-top:.15rem}
+  .mcd__rar{--rar:#8fa3a0;font-family:var(--font-ui,inherit);font-weight:800;font-size:.6rem;letter-spacing:.07em;text-transform:uppercase;color:var(--rar)}
+  .mcd__rar--legendary{--rar:#e0564b}.mcd__rar--epic{--rar:#b06ae0}.mcd__rar--rare{--rar:var(--accent-2,#E0A526)}
+  .mcd__rar--uncommon{--rar:var(--accent,#2FBFA4)}.mcd__rar--common{--rar:#8fa3a0}.mcd__rar--none{--rar:#8fa3a0;font-weight:700;opacity:.8}
+  .mcd__locs{font-size:.72rem;color:var(--muted,#8fa3a0);font-variant-numeric:tabular-nums;white-space:nowrap}
   .mdb-grid.is-list .mcd{flex-direction:row;flex-wrap:wrap;align-items:center;gap:.5rem 1rem}
   .mdb-grid.is-list .mcd__name{flex:1 1 160px;font-size:1rem}
-  .mdb-grid.is-list .mcd__price{margin-top:0}
+  .mdb-grid.is-list .mcd__foot{margin-top:0;flex:0 0 auto;gap:1rem}
   .mdb-empty{text-align:center;color:var(--muted,#8fa3a0);padding:2rem;font-size:.95rem}
   /* Modal */
   /* App-Overlays über der fixen Site-Nav (z 9100), unter der Suche (9600) */
@@ -265,12 +264,24 @@ const total = DB.counts.minerals;
   .mm__meta{display:flex;flex-wrap:wrap;gap:.5rem 1.2rem;font-size:.86rem;color:var(--muted,#8fa3a0);margin-bottom:.3rem}
   .mm__meta b{color:var(--text,#eaf2f1)}
   .mm__h{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.66rem;color:var(--accent,#2FBFA4);margin:1.2rem 0 .5rem;border-top:1px solid var(--line-soft,rgba(255,255,255,.08));padding-top:.9rem}
-  .mm__loc{display:flex;flex-direction:column;gap:.5rem}
-  .mm__locsys{display:flex;flex-wrap:wrap;gap:.3rem;align-items:baseline}
-  .mm__locsys .sn{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.64rem;color:var(--accent-2,#E0A526);flex:none;min-width:64px}
-  .mm__locsys .bd{font-size:.78rem;color:var(--text,#eaf2f1);background:var(--surface,#1e2427);border:1px solid var(--line-soft,rgba(255,255,255,.08));padding:.08rem .4rem;border-radius:3px}
-  .mm__locsys .sn--space{color:var(--accent,#2FBFA4)}
-  .mm__locsys .bd--space{border-color:color-mix(in srgb,var(--accent,#2FBFA4) 40%,transparent);color:var(--accent,#2FBFA4)}
+  .mm__loc{display:flex;flex-direction:column;gap:.7rem}
+  .mm__locsys{background:color-mix(in srgb,var(--surface,#1e2427) 50%,transparent);border:1px solid var(--line-soft,rgba(255,255,255,.07));border-left:2px solid var(--accent-2,#E0A526);border-radius:6px;padding:.65rem .75rem}
+  .mm__locsys-hd{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;font-family:var(--font-ui,inherit);font-weight:800;text-transform:uppercase;letter-spacing:.14em;font-size:.64rem;color:var(--accent-2,#E0A526);margin-bottom:.35rem}
+  .mm__locsys-hd > span:first-child::before{content:"◆ ";opacity:.85}
+  .mm__locn{font-weight:600;letter-spacing:.02em;text-transform:none;font-size:.62rem;color:var(--muted,#8fa3a0);white-space:nowrap}
+  /* Fundort-Zeile: Typ-Icon · Name/Typ · Erz-Anteil-Balken · % (nach Anteil sortiert) */
+  .mm__locrow{display:grid;grid-template-columns:1.1rem minmax(0,1fr) 74px 2.7rem;gap:.5rem;align-items:center;padding:.26rem 0}
+  .mm__locrow + .mm__locrow{border-top:1px solid var(--line-soft,rgba(255,255,255,.05))}
+  .mm__lt{color:var(--accent-2,#E0A526);font-size:.72rem;text-align:center;line-height:1}
+  .mm__lt--space{color:var(--accent,#2FBFA4)}
+  .mm__ln{font-size:.8rem;color:var(--text,#eaf2f1);min-width:0;overflow-wrap:anywhere;line-height:1.25}
+  .mm__ln em{font-style:normal;color:var(--muted,#8fa3a0);font-size:.66rem;margin-left:.4rem;white-space:nowrap}
+  .mm__bar{height:6px;background:var(--bg-2,#0d1113);border:1px solid var(--line-soft,rgba(255,255,255,.06));border-radius:3px;overflow:hidden}
+  .mm__bar i{display:block;height:100%;border-radius:3px;min-width:3px}
+  .mm__pct{font-size:.74rem;font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+  .mm__rar{--rar:#8fa3a0;font-family:var(--font-ui,inherit);font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:.6rem;color:var(--rar)}
+  .mm__rar--legendary{--rar:#e0564b}.mm__rar--epic{--rar:#b06ae0}.mm__rar--rare{--rar:var(--accent-2,#E0A526)}
+  .mm__rar--uncommon{--rar:var(--accent,#2FBFA4)}.mm__rar--common{--rar:#8fa3a0}
   .mm__note{font-size:.78rem;color:var(--muted,#8fa3a0);line-height:1.5;margin:.4rem 0 0;font-style:italic}
   .mm__terms{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.25rem;max-height:200px;overflow:auto}
   .mm__terms li{display:flex;justify-content:space-between;gap:.8rem;font-size:.82rem;padding:.28rem .5rem;background:var(--surface,#1e2427);border-radius:4px}

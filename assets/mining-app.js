@@ -21,7 +21,7 @@
   var searchEl = $('#mdb-search');
 
   // ---- Filterzustand ----
-  var state = { q: '', sys: [], meth: [], kind: '', refine: false, gem: false, sort: 'price-desc' };
+  var state = { q: '', sys: [], meth: [], kind: '', refine: false, gem: false, sort: 'rarity' };
 
   function apply() {
     var q = state.q.trim().toLowerCase();
@@ -51,8 +51,13 @@
     vis.sort(function (a, b) {
       if (s === 'name') return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
       if (s === 'name-desc') return b.getAttribute('data-name').localeCompare(a.getAttribute('data-name'));
-      var pa = +a.getAttribute('data-price'), pb = +b.getAttribute('data-price');
-      return s === 'price-asc' ? pa - pb : pb - pa;
+      if (s === 'locs') {
+        var la = +a.getAttribute('data-locs'), lb = +b.getAttribute('data-locs');
+        return (lb - la) || a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
+      }
+      // rarity: legendary(0) → common(4) → hand/roc(6); tie → name
+      var ra = +a.getAttribute('data-rank'), rb = +b.getAttribute('data-rank');
+      return (ra - rb) || a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
     });
     vis.forEach(function (c) { grid.appendChild(c); });
   }
@@ -122,132 +127,92 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); closeLoc(); } });
   }
 
-  function pips(n, cls) {
-    var out = '<span class="pips ' + (cls || '') + '">';
-    for (var i = 1; i <= 3; i++) out += '<i class="' + (i <= n ? 'on' : '') + '"></i>';
-    return out + '</span>';
+  // Fundort-/Methoden-Labels (system-neutrale Spieldaten → lokalisierte Chips).
+  var TYPE_LBL = LANG === 'de'
+    ? { moon: 'Mond', planet: 'Planet', belt: 'Gürtel', lagrange: 'Lagrange', cluster: 'Cluster', cave: 'Höhle', station: 'Station', event: 'Event', special: 'Spezial' }
+    : { moon: 'moon', planet: 'planet', belt: 'belt', lagrange: 'Lagrange', cluster: 'cluster', cave: 'cave', station: 'station', event: 'event', special: 'special' };
+  var MIN_LBL = LANG === 'de'
+    ? { ship: 'Schiff', hand: 'Hand', roc: 'ROC', harvest: 'Ernte' }
+    : { ship: 'ship', hand: 'hand', roc: 'ROC', harvest: 'harvest' };
+  var SYS_ORD = ['Stanton', 'Pyro', 'Nyx'];
+
+  var SPACE_TYPES = { belt: 1, cluster: 1, lagrange: 1 };
+  function typeIcon(t) {
+    if (SPACE_TYPES[t]) return '✦';
+    return t === 'planet' ? '●' : t === 'moon' ? '◐' : t === 'cave' ? '▲' : t === 'event' ? '◆' : '•';
   }
-  var NF1 = new Intl.NumberFormat(LANG === 'de' ? 'de-DE' : 'en-US', { maximumFractionDigits: 1 });
-  // Echte Ausbeute: refined = raw × 0,85 × Methoden-Yield.
-  function methodYield(mm) {
-    if (!mm) return 0.85;
-    if (mm.yield_effective != null) return mm.yield_effective;
-    return 0.85 * (mm.yield_mod != null ? mm.yield_mod : 1);
+  // Erz-Anteil-Farbe: reich (teal) → mittel (gold) → mager (grau).
+  function abColor(a) {
+    return a >= 50 ? 'var(--accent,#2FBFA4)' : a >= 25 ? 'var(--accent-2,#E0A526)' : 'var(--muted,#8fa3a0)';
   }
 
-  function methodByCode() {
-    var map = {};
-    (DB.methods || []).forEach(function (m) { map[m.code] = m; });
-    return map;
+  // Fundorte eines Minerals: nach System gruppiert, INNERHALB nach Erz-Anteil
+  // absteigend (reichste Spots oben), je Fundort eine Zeile mit Balken + %.
+  function renderLoc(m) {
+    var locs = m.locations || [];
+    if (!locs.length) return '';
+    var bySys = {};
+    locs.forEach(function (l) { (bySys[l.system] = bySys[l.system] || []).push(l); });
+    var names = Object.keys(bySys).sort(function (a, b) {
+      var ia = SYS_ORD.indexOf(a); if (ia < 0) ia = 99;
+      var ib = SYS_ORD.indexOf(b); if (ib < 0) ib = 99;
+      return ia - ib || a.localeCompare(b);
+    });
+    var html = '<div class="mm__loc">';
+    names.forEach(function (sn) {
+      var arr = bySys[sn].slice().sort(function (a, b) {
+        return (b.abundance || 0) - (a.abundance || 0) || String(a.location).localeCompare(String(b.location));
+      });
+      html += '<div class="mm__locsys"><div class="mm__locsys-hd"><span>' + esc(sn) + '</span>'
+        + '<span class="mm__locn">' + arr.length + ' ' + esc(T.locations || '') + '</span></div>';
+      arr.forEach(function (l) {
+        var ab = l.abundance != null ? l.abundance : 0;
+        var space = !!SPACE_TYPES[l.type];
+        var meta = TYPE_LBL[l.type] || l.type || '';
+        if (l.mining) meta += ' · ' + (MIN_LBL[l.mining] || l.mining);
+        html += '<div class="mm__locrow">'
+          + '<span class="mm__lt' + (space ? ' mm__lt--space' : '') + '">' + typeIcon(l.type) + '</span>'
+          + '<span class="mm__ln">' + esc(l.location) + '<em>' + esc(meta) + '</em></span>'
+          + '<span class="mm__bar"><i style="width:' + ab + '%;background:' + abColor(ab) + '"></i></span>'
+          + '<b class="mm__pct" style="color:' + abColor(ab) + '">' + ab + '%</b>'
+          + '</div>';
+      });
+      html += '</div>';
+    });
+    return html + '</div>';
   }
 
   function openMineral(idx) {
     loadDB().then(function () {
       var m = DB.minerals[idx];
       if (!m) return;
-      var methLabel = m.method === 'hand' ? T.methHand : T.methShip;
-      var kindCls = m.method === 'hand' ? 'hand' : '';
+      var methLabel = T[m.method === 'hand' ? 'methHand' : m.method === 'roc' ? 'methRoc' : m.method === 'harvest' ? 'methHarvest' : 'methShip'];
+      var kindCls = (m.method === 'hand' || m.method === 'roc') ? 'hand' : '';
       var html = '';
       html += '<div class="mm__kind ' + kindCls + '">' + esc(m.kind || '') + ' · ' + esc(methLabel) + '</div>';
       html += '<h2 class="mm__name">' + esc(m.name) + '</h2>';
       html += '<div class="mm__meta">';
+      if (m.rarity) html += '<span class="mm__rar mm__rar--' + esc(m.rarity) + '">' + esc(T['r' + m.rarity.charAt(0).toUpperCase() + m.rarity.slice(1)] || m.rarity) + '</span>';
+      var topAb = (m.locations || []).reduce(function (x, l) { return Math.max(x, l.abundance || 0); }, 0);
+      if (topAb) html += '<span>' + esc(T.abundance) + ' <b>' + topAb + '%</b> ' + esc(T.ofRock) + '</span>';
       if (m.weight_scu) html += '<span>' + esc(T.scu) + ': <b>' + m.weight_scu + '</b></span>';
       html += '<span>' + (m.needs_refine ? '⚗ ' + esc(T.needsRefine) : '◆ ' + esc(T.noRefine)) + '</span>';
       if (m.systems && m.systems.length) html += '<span>' + esc(T.systems) + ': <b>' + esc(m.systems.join(', ')) + '</b></span>';
       html += '</div>';
 
-      // Fundorte: Planeten/Monde + Space (Asteroidenfelder/Lagrange-Cluster)
+      // Fundorte: nach System gruppiert, je Fundort ein Chip mit Typ · Methode · Abundance.
       html += '<div class="mm__h">' + esc(T.locations) + '</div>';
-      var locKeys = Object.keys(m.locations || {});
-      var spaceKeys = Object.keys(m.space || {});
-      if (locKeys.length || spaceKeys.length) {
-        html += '<div class="mm__loc">';
-        locKeys.forEach(function (sn) {
-          html += '<div class="mm__locsys"><span class="sn">' + esc(sn) + '</span>';
-          m.locations[sn].forEach(function (b) { html += '<span class="bd">' + esc(b) + '</span>'; });
-          html += '</div>';
-        });
-        spaceKeys.forEach(function (sn) {
-          html += '<div class="mm__locsys"><span class="sn sn--space">' + esc(sn) + ' · ' + esc(T.spaceHead) + '</span>';
-          m.space[sn].forEach(function (b) { html += '<span class="bd bd--space">✦ ' + esc(b) + '</span>'; });
-          html += '</div>';
-        });
-        html += '</div>';
-        html += '<p class="mm__note">' + esc(CFG.lang === 'de' ? 'Vorkommen laut Spieldaten — keine Spawn-Wahrscheinlichkeit.' : 'Occurrence per game data — not spawn probability.') + '</p>';
+      var locHtml = renderLoc(m);
+      if (locHtml) {
+        html += locHtml;
+        html += '<p class="mm__note">' + esc(T.locNote) + '</p>';
       } else {
         html += '<p class="mm__note">' + esc(T.noLoc) + '</p>';
-      }
-
-      // Verkauf
-      if (m.sell) {
-        html += '<div class="mm__h">' + esc(T.sellHead) + '</div>';
-        html += '<div class="mm__sellsum">';
-        html += '<span>' + esc(T.best) + ': <b>' + NF.format(m.sell.best.price) + '</b> aUEC/SCU ' + esc(T.at) + ' ' + esc(m.sell.best.terminal) + ' (' + esc(m.sell.best.system) + ')</span>';
-        html += '<span>' + esc(T.range) + ': <b>' + NF.format(m.sell.min) + '–' + NF.format(m.sell.max) + '</b></span>';
-        html += '<span>' + esc(T.avg) + ': <b>' + NF.format(m.sell.avg) + '</b></span>';
-        html += '</div>';
-        html += '<ul class="mm__terms">';
-        m.sell.terminals.forEach(function (t) {
-          html += '<li><span class="tn">' + esc(t.terminal) + ' <span class="ts">' + esc(t.system) + (t.location ? ' · ' + esc(t.location) : '') + '</span></span><b>' + NF.format(t.price) + '</b></li>';
-        });
-        html += '</ul>';
-
-        // Wert-Rechner — Refinery-Yield nur bei raffinierbaren Erzen anwenden;
-        // Hand-Edelsteine werden ganz verkauft (kein Refining).
-        var refinable = !!m.needs_refine;
-        html += '<div class="mm__h">' + esc(T.calc) + '</div>';
-        html += '<div class="mm__calc">';
-        html += '<div class="mm__crow">';
-        html += '<div class="mm__cfield"><label>' + esc(T.calcAmount) + '</label><input type="number" id="mm-amt" min="0" step="1" value="32"></div>';
-        if (refinable) {
-          html += '<div class="mm__cfield"><label>' + esc(T.calcMethod) + '</label><select id="mm-meth">';
-          (DB.methods || []).forEach(function (mm) {
-            html += '<option value="' + esc(mm.code) + '">' + esc(mm.name) + ' · ' + Math.round(methodYield(mm) * 100) + '%</option>';
-          });
-          html += '</select></div>';
-        }
-        html += '</div>';
-        html += '<div class="mm__cout">';
-        if (refinable) {
-          html += '<div class="mm__cbox refined"><span>' + esc(T.calcRefined) + '</span><b id="mm-ref">—</b></div>';
-          html += '<div class="mm__cbox"><span>' + esc(T.calcRefVal) + '</span><b id="mm-raw">—</b></div>';
-        } else {
-          html += '<div class="mm__cbox"><span>' + esc(T.calcRaw) + '</span><b id="mm-raw">—</b></div>';
-        }
-        html += '</div>';
-        html += '<p class="mm__note">' + esc(refinable ? T.calcNote : T.calcNoteGem) + '</p>';
-        html += '</div>';
       }
 
       modalBody.innerHTML = html;
       modal.hidden = false;
       modalBody.scrollTop = 0;
-
-      // Rechner verkabeln
-      var amt = $('#mm-amt'), meth = $('#mm-meth'), rawEl = $('#mm-raw'), refEl = $('#mm-ref');
-      if (amt && m.sell) {
-        var mByCode = methodByCode();
-        var saved = null;
-        try { saved = JSON.parse(localStorage.getItem('mine.calc') || 'null'); } catch (e) {}
-        if (saved) { if (saved.amt != null) amt.value = saved.amt; if (meth && saved.meth && mByCode[saved.meth]) meth.value = saved.meth; }
-        var recalc = function () {
-          var a = Math.max(0, +amt.value || 0);
-          if (refEl && meth) {
-            // Raffinierbar: refined SCU zuerst, Verkaufswert auf refined-Basis.
-            var y = methodYield(mByCode[meth.value]);
-            var rScu = a * y;
-            var boxes = Math.ceil(Math.round(rScu * 100) / 100);
-            refEl.textContent = NF1.format(rScu) + ' SCU · ' + boxes + ' ' + (T.boxes || 'boxes');
-            rawEl.textContent = NF.format(Math.round(rScu * m.sell.best.price)) + ' aUEC';
-          } else {
-            rawEl.textContent = NF.format(Math.round(a * m.sell.best.price)) + ' aUEC';
-          }
-          try { localStorage.setItem('mine.calc', JSON.stringify({ amt: amt.value, meth: meth ? meth.value : null })); } catch (e) {}
-        };
-        amt.addEventListener('input', recalc);
-        if (meth) meth.addEventListener('change', recalc);
-        recalc();
-      }
     });
   }
 
@@ -283,7 +248,7 @@
         html += '<div class="rl__body" data-body="' + esc((b.body + ' ' + b.minerals.join(' ')).toLowerCase()) + '">';
         html += '<div class="rl__bn">' + (b.space ? '✦ ' : '') + esc(b.body) + '</div>';
         html += '<div class="rl__mins">';
-        b.minerals.forEach(function (mn) { html += '<span class="rl__min" data-min="' + esc(mn) + '">' + esc(mn) + '</span>'; });
+        b.minerals.slice().sort().forEach(function (mn) { html += '<span class="rl__min" data-min="' + esc(mn) + '">' + esc(mn) + '</span>'; });
         html += '</div></div>';
       });
     });
