@@ -23,3 +23,6 @@ pinggy.log
 /public/assets/
 
 build.log
+
+# Eigene DataCore-Extraktion (maschinen-/pfadspezifisch, via scripts/datamine-mining.mjs)
+/assets/mining-gamefiles.json

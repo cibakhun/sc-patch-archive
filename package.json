@@ -16,6 +16,7 @@
     "sync:mining-model": "node scripts/fetch-scmdb-model.mjs",
     "refresh:mining": "node scripts/fetch-scmdb-model.mjs && node scripts/build-mining-db.mjs && node scripts/_sync-assets.mjs && astro build",
     "verify:mining": "node scripts/verify-mining.mjs",
+    "datamine:mining": "node scripts/datamine-mining.mjs",
     "sync:extras": "node scripts/sync-fleetyards-extras.mjs"
   },
   "dependencies": {
