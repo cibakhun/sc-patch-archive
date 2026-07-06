@@ -42,37 +42,43 @@ for (const e of Object.values(data.mineableElements || {})) {
   if (e.rarity) rarityByMat.set(m, e.rarity);
 }
 
-// Fundort-Ranking EXAKT wie fetch-scmdb-model.mjs (= scmdbs Ableitung):
-// effectivePct = depositPct(%) × maxPercent/100, wobei depositPct = Anteil der
-// Deposit-relativeProbability innerhalb ihrer Gruppe. Je Ort der beste Wert,
-// dann Top-N je System. So stimmen Abschnitt 01 (diese DB) und Abschnitt 02
-// (Modell/Signatur-Identifier) und scmdb überein.
+// Fundort-Ableitung EXAKT wie scmdb, PRIMÄR-basiert (je Rock-Typ das dominante
+// Erz): chance = normierte relativeProbability je Mining-Gruppe (= scmdbs
+// Location-%), abundance = maxPercent des primären Erzes. Ranking je Mineral nach
+// eff = chance × abundance/100, Top-5/System. Bodies = voller Mineral-Mix je Ort.
 const SYS_ORDER = ['Stanton', 'Pyro', 'Nyx'];
 const TYPE_PREF = { belt: 0, cluster: 1, lagrange: 2, planet: 3, moon: 4, cave: 5, event: 6, special: 7 };
-const locByMat = {};            // mat -> { locName -> {location,system,type,mining,abundance,eff} }
+const RARITY_RANK = { legendary: 0, epic: 1, rare: 2, uncommon: 3, common: 4 };
+const locByMat = {};            // mat -> { locName -> {location,system,type,mining,abundance,chance,eff} }
 const matMethods = new Map();   // mat -> Set(method)
-const typeByBody = new Map();   // "system|location" -> locationType (für Bodies-Flags)
+const bodyFull = new Map();     // "system|location" -> {system, location, type, mats: Map(mat -> {chance,abundance,mining}) }
 for (const loc of data.locations || []) {
   for (const g of loc.groups || []) {
     const mining = MINING[g.groupName];
     if (!mining) continue; // skip Salvage_* etc.
     const tot = (g.deposits || []).reduce((s, d) => s + (d.relativeProbability || 0), 0);
+    if (!tot) continue;
     for (const d of g.deposits || []) {
       const comp = data.compositions[d.compositionGuid];
-      if (!comp?.parts) continue;
-      const depositPct = tot > 0 ? ((d.relativeProbability || 0) / tot) * 100 : 0;
-      for (const p of comp.parts) {
-        const mat = cleanMat(p.elementName);
-        if (!mat) continue;
-        const eff = depositPct * ((p.maxPercent ?? 100) / 100);
-        (matMethods.get(mat) || matMethods.set(mat, new Set()).get(mat)).add(mining);
-        (locByMat[mat] ??= {});
-        const k = loc.locationName;
-        if (!locByMat[mat][k] || locByMat[mat][k].eff < eff) {
-          locByMat[mat][k] = { location: loc.locationName, system: loc.system, type: loc.locationType, mining, abundance: Math.round(p.maxPercent ?? 0), eff };
-        }
-        typeByBody.set(`${loc.system}|${loc.locationName}`, loc.locationType);
+      if (!comp?.parts?.length) continue;
+      // primäres Erz = Teil mit höchstem maxPercent (= das Ziel-Erz dieses Rock-Typs)
+      let prim = comp.parts[0];
+      for (const p of comp.parts) if ((p.maxPercent ?? 0) > (prim.maxPercent ?? 0)) prim = p;
+      const mat = cleanMat(prim.elementName);
+      if (!mat) continue;
+      const chance = +(((d.relativeProbability || 0) / tot) * 100).toFixed(1); // = scmdbs Location-% (Fund-Chance je Gruppe)
+      const abundance = Math.round(prim.maxPercent ?? 0);
+      const eff = chance * ((prim.maxPercent ?? 100) / 100);
+      (matMethods.get(mat) || matMethods.set(mat, new Set()).get(mat)).add(mining);
+      (locByMat[mat] ??= {});
+      const k = loc.locationName;
+      if (!locByMat[mat][k] || locByMat[mat][k].eff < eff) {
+        locByMat[mat][k] = { location: loc.locationName, system: loc.system, type: loc.locationType, mining, abundance, chance, eff };
       }
+      const bk = `${loc.system}|${loc.locationName}`;
+      const bf = bodyFull.get(bk) || bodyFull.set(bk, { system: loc.system, location: loc.locationName, type: loc.locationType, mats: new Map() }).get(bk);
+      const cur = bf.mats.get(mat);
+      if (!cur || cur.chance < chance) bf.mats.set(mat, { chance, abundance, mining });
     }
   }
 }
@@ -83,7 +89,7 @@ const topLocs = (mat, nPerSys = 5) => {
   for (const x of all) (bySys[x.system] ??= []).push(x);
   const picked = [];
   for (const sys of Object.keys(bySys)) picked.push(...bySys[sys].sort(cmp).slice(0, nPerSys));
-  return picked.sort(cmp).map((x) => ({ location: x.location, system: x.system, type: x.type, mining: x.mining, abundance: x.abundance }));
+  return picked.sort(cmp).map((x) => ({ location: x.location, system: x.system, type: x.type, mining: x.mining, abundance: x.abundance, chance: x.chance }));
 };
 
 // curated attrs from previous db (kind typo-fixed, weight, refine, code)
@@ -114,22 +120,30 @@ const minerals = [...Object.keys(locByMat)].sort().map((mat) => {
     rarity: rarityByMat.get(mat) || null,
     needs_refine,
     systems,
-    locations: locs, // array of {location,system,type,mining,abundance}
+    locations: locs, // array of {location,system,type,mining,abundance,chance}
   };
 });
 
-// Bodies (Reverse-Index) — direkt aus den GERANKTEN Mineral-Fundorten invertiert,
-// damit die Körper-Ansicht exakt zu den Mineral-Fundorten passt.
-const bodyIdx = new Map(); // "system|body" -> {system, body, type, mats:Map(mat->ab)}
-for (const m of minerals) {
-  for (const l of m.locations) {
-    const bk = `${l.system}|${l.location}`;
-    const b = bodyIdx.get(bk) || bodyIdx.set(bk, { system: l.system, body: l.location, type: typeByBody.get(bk) || l.type, mats: new Map() }).get(bk);
-    if (!b.mats.has(m.name) || b.mats.get(m.name) < l.abundance) b.mats.set(m.name, l.abundance);
-  }
-}
-const bodies = [...bodyIdx.values()]
-  .map((b) => ({ system: b.system, body: b.body, type: b.type, space: SPACE_TYPES.has(b.type), minerals: [...b.mats.keys()].sort() }))
+// Bodies = voller Mineral-Mix je Ort (wie scmdbs Location-Ansicht): je Erz die
+// Fund-Chance (%) + Abundance; „best" = wertvollstes/seltenstes Erz am Ort.
+const bodies = [...bodyFull.values()]
+  .map((b) => {
+    const mins = [...b.mats.entries()]
+      .map(([name, v]) => ({ name, chance: v.chance, abundance: v.abundance, mining: v.mining, rarity: rarityByMat.get(name) || null }))
+      .sort((x, y) => (y.chance - x.chance) || x.name.localeCompare(y.name));
+    let best = null;
+    for (const m of mins) {
+      if (m.rarity == null) continue;
+      const rank = RARITY_RANK[m.rarity] ?? 9;
+      if (!best || rank < best.rank || (rank === best.rank && m.chance < best.chance)) best = { name: m.name, chance: m.chance, rarity: m.rarity, rank };
+    }
+    return {
+      system: b.system, body: b.location, type: b.type, space: SPACE_TYPES.has(b.type),
+      methods: [...new Set(mins.map((m) => m.mining))],
+      best: best ? { name: best.name, chance: best.chance, rarity: best.rarity } : null,
+      minerals: mins.map((m) => ({ name: m.name, chance: m.chance, abundance: m.abundance, mining: m.mining, rarity: m.rarity })),
+    };
+  })
   .sort((a, b) => {
     const ia = SYS_ORDER.indexOf(a.system), ib = SYS_ORDER.indexOf(b.system);
     return (ia < 0 ? 9 : ia) - (ib < 0 ? 9 : ib) || a.body.localeCompare(b.body);

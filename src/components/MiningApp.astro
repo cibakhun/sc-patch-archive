@@ -37,22 +37,24 @@ const JS_T = {
   de: {
     kind: 'Typ', method: 'Methode', scu: 'SCU-Gewicht', systems: 'Systeme', rarity: 'Seltenheit',
     locations: 'Fundorte', abundance: 'bis', ofRock: 'Erz-Anteil',
+    chance: 'Chance', chanceHint: 'Fund-Wahrscheinlichkeit an diesem Ort (Anteil der Deposits dieses Mining-Typs) — nicht der Erz-Anteil.', bestMatch: 'Wertvollstes Erz hier + Fund-Chance',
     methShip: 'Schiff-Mining (Prospector/MOLE)', methHand: 'Hand-Mining (Multitool)', methRoc: 'ROC / Bodenfahrzeug', methHarvest: 'Ernte',
     needsRefine: 'Rohform muss raffiniert werden', noRefine: 'wird ganz verkauft (kein Refining)',
     noLoc: 'Keine Fundorte in den Spieldaten.',
-    locNote: 'Fundorte laut datamined 4.8.3-Spieldaten. „bis X %" = maximaler Erz-Anteil im Rock, nach Häufigkeit sortiert — keine Spawn-Wahrscheinlichkeit.',
-    reverseTitle: 'Fundorte nach Himmelskörper', reverseIntro: 'Wähle einen Körper/eine Region — zeigt alle dort vorkommenden Minerale (laut Spieldaten, keine Spawn-Chance).',
+    locNote: 'Aus datamined 4.8.3-Spieldaten. „bis X %" = maximaler Erz-Anteil im Rock (wenn du ihn findest); „~Y %" = Fund-Chance an diesem Ort (Anteil der Deposits) — zwei verschiedene Kennzahlen.',
+    reverseTitle: 'Fundorte nach Himmelskörper', reverseIntro: 'Wähle einen Körper/eine Region — zeigt den ganzen Mineral-Mix dort mit Fund-Chance (%). ★ = wertvollstes Erz. Laut datamined 4.8.3-Spieldaten.',
     reverseSearch: 'Körper suchen…', mineralsHere: 'Minerale hier',
     rLegendary: 'Legendär', rEpic: 'Episch', rRare: 'Selten', rUncommon: 'Ungewöhnlich', rCommon: 'Häufig',
   },
   en: {
     kind: 'Type', method: 'Method', scu: 'SCU weight', systems: 'Systems', rarity: 'Rarity',
     locations: 'Locations', abundance: 'up to', ofRock: 'ore share',
+    chance: 'chance', chanceHint: 'Find probability at this location (share of this mining type’s deposits) — not the ore share.', bestMatch: 'Most valuable ore here + find chance',
     methShip: 'Ship mining (Prospector/MOLE)', methHand: 'Hand mining (multitool)', methRoc: 'ROC / ground vehicle', methHarvest: 'Harvest',
     needsRefine: 'Raw form must be refined', noRefine: 'sold whole (no refining)',
     noLoc: 'No locations in the game data.',
-    locNote: 'Locations from datamined 4.8.3 game files. “up to X %” = max ore share in a rock, ranked by frequency — not spawn probability.',
-    reverseTitle: 'Locations by celestial body', reverseIntro: 'Pick a body/region — shows all minerals found there (per game data, not spawn chance).',
+    locNote: 'From datamined 4.8.3 game files. “up to X %” = max ore share in a rock (when you find it); “~Y %” = find chance at this location (share of deposits) — two different metrics.',
+    reverseTitle: 'Locations by celestial body', reverseIntro: 'Pick a body/region — shows the full mineral mix there with find chance (%). ★ = most valuable ore. From datamined 4.8.3 game files.',
     reverseSearch: 'Search body…', mineralsHere: 'Minerals here',
     rLegendary: 'Legendary', rEpic: 'Epic', rRare: 'Rare', rUncommon: 'Uncommon', rCommon: 'Common',
   },
@@ -279,6 +281,7 @@ const total = DB.counts.minerals;
   .mm__bar{height:6px;background:var(--bg-2,#0d1113);border:1px solid var(--line-soft,rgba(255,255,255,.06));border-radius:3px;overflow:hidden}
   .mm__bar i{display:block;height:100%;border-radius:3px;min-width:3px}
   .mm__pct{font-size:.74rem;font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+  .mm__ch{font-size:.66rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted,#8fa3a0);background:var(--bg-2,#0d1113);border:1px solid var(--line-soft,rgba(255,255,255,.08));border-radius:20px;padding:.05rem .4rem;white-space:nowrap;cursor:help}
   .mm__rar{--rar:#8fa3a0;font-family:var(--font-ui,inherit);font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:.6rem;color:var(--rar)}
   .mm__rar--legendary{--rar:#e0564b}.mm__rar--epic{--rar:#b06ae0}.mm__rar--rare{--rar:var(--accent-2,#E0A526)}
   .mm__rar--uncommon{--rar:var(--accent,#2FBFA4)}.mm__rar--common{--rar:#8fa3a0}
@@ -313,10 +316,14 @@ const total = DB.counts.minerals;
   .rl__sys{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:.64rem;color:var(--accent-2,#E0A526);margin:.8rem 0 .4rem}
   .rl__body{border:1px solid var(--line-soft,rgba(255,255,255,.08));border-radius:6px;padding:.6rem .7rem;margin-bottom:.5rem}
   .rl__body[hidden]{display:none}
-  .rl__bn{font-family:var(--font-display,inherit);font-weight:700;color:#fff;font-size:.95rem;margin-bottom:.35rem}
-  .rl__mins{display:flex;flex-wrap:wrap;gap:.25rem}
-  .rl__min{font-size:.72rem;color:var(--text,#eaf2f1);background:var(--surface,#1e2427);border:1px solid var(--line-soft,rgba(255,255,255,.09));padding:.12rem .45rem;border-radius:3px;cursor:pointer}
+  .rl__bn{font-family:var(--font-display,inherit);font-weight:700;color:#fff;font-size:.95rem;margin-bottom:.4rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+  .rl__best{--rar:#8fa3a0;font-family:var(--font-ui,inherit);font-weight:800;font-size:.62rem;letter-spacing:.03em;color:var(--rar);background:color-mix(in srgb,var(--rar) 14%,transparent);border:1px solid color-mix(in srgb,var(--rar) 45%,transparent);border-radius:20px;padding:.1rem .5rem;white-space:nowrap;cursor:help}
+  .rl__best--legendary{--rar:#e0564b}.rl__best--epic{--rar:#b06ae0}.rl__best--rare{--rar:var(--accent-2,#E0A526)}.rl__best--uncommon{--rar:var(--accent,#2FBFA4)}.rl__best--common,.rl__best--none{--rar:#8fa3a0}
+  .rl__mins{display:flex;flex-wrap:wrap;gap:.3rem}
+  .rl__min{--rar:rgba(255,255,255,.09);display:inline-flex;align-items:baseline;gap:.3rem;font-size:.72rem;color:var(--text,#eaf2f1);background:var(--surface,#1e2427);border:1px solid var(--rar);border-left-width:2px;padding:.14rem .45rem;border-radius:3px;cursor:pointer}
+  .rl__min em{font-style:normal;color:var(--muted,#8fa3a0);font-weight:700;font-variant-numeric:tabular-nums;font-size:.66rem}
   .rl__min:hover{border-color:var(--accent,#2FBFA4);color:var(--accent,#2FBFA4)}
+  .rl__min--legendary{--rar:#e0564b}.rl__min--epic{--rar:#b06ae0}.rl__min--rare{--rar:var(--accent-2,#E0A526)}.rl__min--uncommon{--rar:var(--accent,#2FBFA4)}.rl__min--common{--rar:rgba(143,163,160,.5)}
   /* rating pips */
   .pips{display:inline-flex;gap:2px;vertical-align:middle;margin-left:.3rem}
   .pips i{width:7px;height:7px;border-radius:50%;background:var(--line-soft,rgba(255,255,255,.15));display:inline-block}
