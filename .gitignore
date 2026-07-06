@@ -24,5 +24,6 @@ pinggy.log
 
 build.log
 
-# Eigene DataCore-Extraktion (maschinen-/pfadspezifisch, via scripts/datamine-mining.mjs)
+# Eigene DataCore-Extraktion (maschinen-/pfadspezifisch, via scripts/datamine-*.mjs)
 /assets/mining-gamefiles.json
+/assets/mining-locations-gamefiles.json
