@@ -37,7 +37,7 @@ const JS_T = {
   de: {
     kind: 'Typ', method: 'Methode', scu: 'SCU-Gewicht', systems: 'Systeme', rarity: 'Seltenheit',
     locations: 'Fundorte', abundance: 'bis', ofRock: 'Erz-Anteil',
-    chance: 'Chance', chanceHint: 'Fund-Wahrscheinlichkeit an diesem Ort (Anteil der Deposits dieses Mining-Typs) — die Hauptkennzahl.', abundHint: 'Maximaler Erz-Anteil im Rock, WENN du ihn findest (Nebenkennzahl, nicht die Fund-Chance).', bestMatch: 'Wertvollstes Erz hier + Fund-Chance',
+    chance: 'Chance', chanceHint: 'Fund-Wahrscheinlichkeit an diesem Ort (Anteil der Deposits dieses Mining-Typs) — die Hauptkennzahl.', abundHint: 'Maximaler Erz-Anteil im Rock, WENN du ihn findest (Nebenkennzahl, nicht die Fund-Chance).', bestMatch: 'Wertvollstes Erz hier + Fund-Chance', pointsHint: 'Reale Lagrange-Punkte für dieses Spawn-Profil (aus den Objekt-Containern) — dasselbe Profil liegt an mehreren L-Punkten.',
     methShip: 'Schiff-Mining (Prospector/MOLE)', methHand: 'Hand-Mining (Multitool)', methRoc: 'ROC / Bodenfahrzeug', methHarvest: 'Ernte',
     needsRefine: 'Rohform muss raffiniert werden', noRefine: 'wird ganz verkauft (kein Refining)',
     noLoc: 'Keine Fundorte in den Spieldaten.',
@@ -49,7 +49,7 @@ const JS_T = {
   en: {
     kind: 'Type', method: 'Method', scu: 'SCU weight', systems: 'Systems', rarity: 'Rarity',
     locations: 'Locations', abundance: 'up to', ofRock: 'ore share',
-    chance: 'chance', chanceHint: 'Find probability at this location (share of this mining type’s deposits) — the primary metric.', abundHint: 'Max ore share in a rock WHEN you find it (secondary metric, not the find chance).', bestMatch: 'Most valuable ore here + find chance',
+    chance: 'chance', chanceHint: 'Find probability at this location (share of this mining type’s deposits) — the primary metric.', abundHint: 'Max ore share in a rock WHEN you find it (secondary metric, not the find chance).', bestMatch: 'Most valuable ore here + find chance', pointsHint: 'Real Lagrange points for this spawn profile (from the object containers) — the same profile sits at several L-points.',
     methShip: 'Ship mining (Prospector/MOLE)', methHand: 'Hand mining (multitool)', methRoc: 'ROC / ground vehicle', methHarvest: 'Harvest',
     needsRefine: 'Raw form must be refined', noRefine: 'sold whole (no refining)',
     noLoc: 'No locations in the game data.',
@@ -195,8 +195,8 @@ const total = DB.counts.minerals;
   </aside>
 </section>
 
-<script is:inline set:html={`window.__MINE=${JSON.stringify({ lang, dbUrl: '/assets/mining-db.json?v=' + DB.snapshot_date + '-c3', t: JS_T })};`} />
-<script is:inline src={`/assets/mining-app.js?v=${DB.snapshot_date}-c3`}></script>
+<script is:inline set:html={`window.__MINE=${JSON.stringify({ lang, dbUrl: '/assets/mining-db.json?v=' + DB.snapshot_date + '-c4', t: JS_T })};`} />
+<script is:inline src={`/assets/mining-app.js?v=${DB.snapshot_date}-c4`}></script>
 
 <style is:inline>
   .mdb{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
@@ -319,6 +319,7 @@ const total = DB.counts.minerals;
   .rl__bn{font-family:var(--font-display,inherit);font-weight:700;color:#fff;font-size:.95rem;margin-bottom:.4rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
   .rl__best{--rar:#8fa3a0;font-family:var(--font-ui,inherit);font-weight:800;font-size:.62rem;letter-spacing:.03em;color:var(--rar);background:color-mix(in srgb,var(--rar) 14%,transparent);border:1px solid color-mix(in srgb,var(--rar) 45%,transparent);border-radius:20px;padding:.1rem .5rem;white-space:nowrap;cursor:help}
   .rl__best--legendary{--rar:#e0564b}.rl__best--epic{--rar:#b06ae0}.rl__best--rare{--rar:var(--accent-2,#E0A526)}.rl__best--uncommon{--rar:var(--accent,#2FBFA4)}.rl__best--common,.rl__best--none{--rar:#8fa3a0}
+  .rl__pts{font-size:.72rem;color:var(--accent,#2FBFA4);font-family:var(--font-ui,inherit);letter-spacing:.02em;margin:-.15rem 0 .35rem;cursor:help}
   .rl__mins{display:flex;flex-wrap:wrap;gap:.3rem}
   .rl__min{--rar:rgba(255,255,255,.09);display:inline-flex;align-items:baseline;gap:.3rem;font-size:.72rem;color:var(--text,#eaf2f1);background:var(--surface,#1e2427);border:1px solid var(--rar);border-left-width:2px;padding:.14rem .45rem;border-radius:3px;cursor:pointer}
   .rl__min em{font-style:normal;color:var(--muted,#8fa3a0);font-weight:700;font-variant-numeric:tabular-nums;font-size:.66rem}
