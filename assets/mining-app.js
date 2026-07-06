@@ -175,6 +175,7 @@
           + '<span class="mm__ln">' + esc(l.location) + '<em>' + esc(meta) + '</em></span>'
           + '<span class="mm__bar"><i style="width:' + ab + '%;background:' + abColor(ab) + '"></i></span>'
           + '<b class="mm__pct" style="color:' + abColor(ab) + '">' + ab + '%</b>'
+          + (l.chance != null ? '<span class="mm__ch" title="' + esc(T.chanceHint) + '">~' + l.chance + '%</span>' : '')
           + '</div>';
       });
       html += '</div>';
@@ -242,13 +243,23 @@
     html += '<input type="search" class="rl__search" id="rl-search" placeholder="' + esc(T.reverseSearch) + '" autocomplete="off">';
     var bySys = {};
     bodies.forEach(function (b) { (bySys[b.system] = bySys[b.system] || []).push(b); });
-    Object.keys(bySys).sort().forEach(function (sn) {
+    Object.keys(bySys).sort(function (a, b) {
+      var ia = SYS_ORD.indexOf(a); if (ia < 0) ia = 99; var ib = SYS_ORD.indexOf(b); if (ib < 0) ib = 99; return ia - ib || a.localeCompare(b);
+    }).forEach(function (sn) {
       html += '<div class="rl__sys" data-sys="' + esc(sn) + '">' + esc(sn) + '</div>';
       bySys[sn].forEach(function (b) {
-        html += '<div class="rl__body" data-body="' + esc((b.body + ' ' + b.minerals.join(' ')).toLowerCase()) + '">';
-        html += '<div class="rl__bn">' + (b.space ? '✦ ' : '') + esc(b.body) + '</div>';
+        var mins = b.minerals || [];
+        var searchStr = (b.body + ' ' + mins.map(function (x) { return x.name; }).join(' ')).toLowerCase();
+        html += '<div class="rl__body" data-body="' + esc(searchStr) + '">';
+        html += '<div class="rl__bn">' + (b.space ? '✦ ' : '') + esc(b.body);
+        if (b.best) html += '<span class="rl__best rl__best--' + esc(b.best.rarity || 'none') + '" title="' + esc(T.bestMatch) + '">★ ' + esc(b.best.name) + ' ~' + b.best.chance + '%</span>';
+        html += '</div>';
         html += '<div class="rl__mins">';
-        b.minerals.slice().sort().forEach(function (mn) { html += '<span class="rl__min" data-min="' + esc(mn) + '">' + esc(mn) + '</span>'; });
+        // nach Fund-Chance absteigend (bereits so in den Daten sortiert)
+        mins.forEach(function (m) {
+          html += '<span class="rl__min rl__min--' + esc(m.rarity || 'none') + '" data-min="' + esc(m.name) + '" title="' + esc(T.chanceHint) + '">'
+            + esc(m.name) + ' <em>' + m.chance + '%</em></span>';
+        });
         html += '</div></div>';
       });
     });
