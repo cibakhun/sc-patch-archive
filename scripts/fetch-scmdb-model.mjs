@@ -39,35 +39,49 @@ async function main() {
     getJSON(`${BASE}/mining_equipment-${ver}.json`),
   ]);
 
-  // Fundorte pro Element ranken: locations → groups → deposits → compositions
-  // → parts. Score ~ scmdb: depositShare × groupProbability × elementMaxPercent.
-  // Je Location der beste Score, dann Top-N.
+  // Fundorte pro Element ranken — EXAKT nach scmdb: effectivePct = depositPct(%)
+  // × maxPercent/100 (depositPct = Deposit-Anteil innerhalb der Gruppe). Kein
+  // groupProbability/part.probability im Score. Je Location der beste Wert.
+  const MINING_LBL = {
+    SpaceShip_Mineables: 'ship', SpaceShip_Mineables_Rare: 'ship',
+    FPS_Mineables: 'fps', GroundVehicle_Mineables: 'roc', Harvestables: 'harvest',
+  };
+  // Bei Gleichstand: Asteroiden-Spots (Belt/Cluster/Lagrange) vor Körpern —
+  // das sind die typischen Ship-Mining-Reviere (z. B. Aaron Halo).
+  const TYPE_PREF = { belt: 0, cluster: 1, lagrange: 2, planet: 3, moon: 4, cave: 5, station: 6, event: 7, special: 8 };
   const locByElem = {};
   for (const loc of data.locations || []) {
     for (const g of loc.groups || []) {
       const tot = (g.deposits || []).reduce((s, d) => s + (d.relativeProbability || 0), 0);
+      const mining = MINING_LBL[g.groupName] || null;
       for (const d of g.deposits || []) {
         const comp = data.compositions[d.compositionGuid];
         if (!comp?.parts) continue;
-        const share = tot > 0 ? (d.relativeProbability || 0) / tot : 0;
+        const depositPct = tot > 0 ? ((d.relativeProbability || 0) / tot) * 100 : 0;
         for (const p of comp.parts) {
           const en = p.elementName;
           if (!en) continue;
-          const score = share * (g.groupProbability ?? 1) * ((p.maxPercent ?? 0) / 100) * (p.probability ?? 1);
+          const eff = depositPct * ((p.maxPercent ?? 100) / 100);
           (locByElem[en] ??= {});
           const k = loc.locationName;
-          if (!locByElem[en][k] || locByElem[en][k].score < score) {
-            locByElem[en][k] = { location: loc.locationName, system: loc.system, type: loc.locationType, abundance: Math.round(p.maxPercent ?? 0), score };
+          if (!locByElem[en][k] || locByElem[en][k].eff < eff) {
+            locByElem[en][k] = { location: loc.locationName, system: loc.system, type: loc.locationType, mining, abundance: Math.round(p.maxPercent ?? 0), eff };
           }
         }
       }
     }
   }
-  const topLocs = (en, n = 6) =>
-    Object.values(locByElem[en] || {})
-      .sort((a, b) => b.score - a.score)
-      .slice(0, n)
-      .map((x) => ({ location: x.location, system: x.system, type: x.type, abundance: x.abundance }));
+  // Top-N je SYSTEM (damit ein System-Filter immer die besten Stanton/Pyro/Nyx-
+  // Spots hat), dann als eine nach effectivePct sortierte Liste zusammengeführt.
+  const cmp = (a, b) => (b.eff - a.eff) || ((TYPE_PREF[a.type] ?? 9) - (TYPE_PREF[b.type] ?? 9)) || a.location.localeCompare(b.location);
+  const topLocs = (en, nPerSys = 5) => {
+    const all = Object.values(locByElem[en] || {});
+    const bySys = {};
+    for (const x of all) (bySys[x.system] ??= []).push(x);
+    const picked = [];
+    for (const sys of Object.keys(bySys)) picked.push(...bySys[sys].sort(cmp).slice(0, nPerSys));
+    return picked.sort(cmp).map((x) => ({ location: x.location, system: x.system, type: x.type, mining: x.mining, abundance: x.abundance }));
+  };
 
   // Elemente: die datamined Physik pro Mineral (aus mining_data — reichhaltiger).
   const elements = Object.entries(data.mineableElements).map(([guid, e]) => ({

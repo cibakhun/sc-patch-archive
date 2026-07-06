@@ -26,7 +26,7 @@ const ship = (MODEL.elements || [])
       rarity: e.rarity || 'common',
       max,
       multiples: Array.from({ length: max }, (_, i) => ({ n: i + 1, v: (i + 1) * e.scanSignature })),
-      locations: (e.locations || []).slice(0, 5),
+      locations: e.locations || [],
     };
   })
   .sort((a, b) => (RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity)) || (a.sig - b.sig));
@@ -47,8 +47,18 @@ const TYPE_LABEL: Record<string, { de: string; en: string }> = {
   lagrange: { de: 'Lagrange', en: 'Lagrange' }, cluster: { de: 'Cluster', en: 'cluster' }, cave: { de: 'Höhle', en: 'cave' },
   station: { de: 'Station', en: 'station' }, event: { de: 'Event', en: 'event' }, special: { de: 'Spezial', en: 'special' },
 };
+// Mining-Typ → Label.
+const MINING_LABEL: Record<string, { de: string; en: string }> = {
+  ship: { de: 'Schiff', en: 'ship' }, roc: { de: 'ROC', en: 'ROC' }, fps: { de: 'Hand', en: 'hand' }, harvest: { de: 'Ernte', en: 'harvest' },
+};
 
 const entries = [...ship, ...SPECIAL];
+
+// Systeme, die in den Fundort-Daten vorkommen (für den System-Filter).
+const SYS_ORDER = ['Stanton', 'Pyro', 'Nyx'];
+const sysSet = new Set<string>();
+for (const e of ship) for (const l of e.locations) if (l.system) sysSet.add(l.system);
+const locSystems = SYS_ORDER.filter((s) => sysSet.has(s)).concat([...sysSet].filter((s) => !SYS_ORDER.includes(s)));
 
 // Für die Auswahl-Chips nach Seltenheit/Kategorie gruppieren.
 const GROUP_ORDER = [...RARITY_ORDER, 'roc', 'fps', 'salvage'];
@@ -68,7 +78,8 @@ const S = {
     selectedNone: 'Keine Erze ausgewählt — es werden alle gezeigt. Tippe oben auf Erze für deine eigene Liste.',
     matches: 'Treffer', noMatch: 'Kein Mineral passt zu diesem Wert.',
     base: 'Basis (1 Stein)', bestSpot: 'Bester Fundort', top5: 'Top-5 Fundorte', noLoc: 'keine Fundort-Daten',
-    src: 'Signaturen aus datamined 4.8.3-Spieldaten. Cluster = n × Basis-Signatur; echte In-Game-Werte streuen mit der Rock-Masse leicht (Scan als Näherung nutzen).',
+    locSystem: 'System', allSys: 'Alle', noLocSys: 'nicht in diesem System',
+    src: 'Signaturen & Fundorte aus datamined 4.8.3-Spieldaten. Cluster = n × Basis-Signatur (In-Game-Werte streuen mit der Rock-Masse leicht). Fundorte nach Vorkommens-Häufigkeit gerankt (Deposit-Wahrscheinlichkeit × Anteil); „bis X%" = maximaler Erz-Anteil im Rock. Bei Gleichstand zuerst Asteroiden-Reviere (Gürtel/Cluster).',
   },
   en: {
     intro: 'A cluster of n rocks shows n × the base signature; the max cluster size depends on rarity. Pick your ores — only those appear in the table (your personal list, saved). Enter a scanned value to identify mineral + cluster size.',
@@ -77,7 +88,8 @@ const S = {
     selectedNone: 'No ores selected — showing all. Tap ores above to build your own list.',
     matches: 'Matches', noMatch: 'No mineral matches this value.',
     base: 'base (1 rock)', bestSpot: 'Best spot', top5: 'Top 5 locations', noLoc: 'no location data',
-    src: 'Signatures from datamined 4.8.3 game files. Cluster = n × base signature; real in-game values vary slightly with rock mass (use scan as a guide).',
+    locSystem: 'System', allSys: 'All', noLocSys: 'not in this system',
+    src: 'Signatures & locations from datamined 4.8.3 game files. Cluster = n × base signature (in-game values vary slightly with rock mass). Locations ranked by occurrence frequency (deposit probability × share); “up to X%” = max ore share in a rock. Ties favour asteroid fields (belts/clusters) first.',
   },
 }[lang];
 ---
@@ -110,6 +122,11 @@ const S = {
       <span>{S.scanLabel}</span>
       <input type="text" id="sid-scan" inputmode="numeric" placeholder={S.scanPh} autocomplete="off" />
     </label>
+    <div class="sid__sysf">
+      <span class="sid__syslabel">{S.locSystem}</span>
+      <button type="button" class="sid__sys" data-sys="" aria-pressed="true">{S.allSys}</button>
+      {locSystems.map((sy) => (<button type="button" class="sid__sys" data-sys={sy} aria-pressed="false">{sy}</button>))}
+    </div>
     <button type="button" class="sid__loc5" id="sid-top5" aria-pressed="false">◎ {S.top5}</button>
   </div>
 
@@ -137,11 +154,12 @@ const S = {
         {e.locations.length > 0 && (
           <div class="sid__locs">
             <span class="sid__loclabel">{S.bestSpot}</span>
-            {e.locations.map((l, i) => (
-              <span class="sid__loc" data-rank={i}>
-                <b>{l.location}</b><em>{l.system} · {TYPE_LABEL[l.type]?.[lang] ?? l.type}</em><span class="sid__locab">{l.abundance}%</span>
+            {e.locations.map((l) => (
+              <span class="sid__loc" data-system={l.system}>
+                <b>{l.location}</b><em>{l.system} · {TYPE_LABEL[l.type]?.[lang] ?? l.type}{l.mining ? ` · ${MINING_LABEL[l.mining]?.[lang] ?? l.mining}` : ''}</em><span class="sid__locab">bis {l.abundance}%</span>
               </span>
             ))}
+            <span class="sid__nolocs" hidden>{S.noLocSys}</span>
           </div>
         )}
       </article>
@@ -212,12 +230,34 @@ const S = {
         } else { matchbox.hidden = true; emptyEl.hidden = true; }
       }
 
-      // Top-5-Fundorte-Umschalter (Default aus, gemerkt).
+      // Fundort-Steuerung: System-Filter (Stanton/Pyro/Nyx) + Top-5-Umschalter.
       var root = document.getElementById('sid'), top5btn = document.getElementById('sid-top5');
-      var loc5 = false; try { loc5 = localStorage.getItem('mine.sigLoc5') === '1'; } catch (e) {}
-      function setLoc5(v) { loc5 = v; root.setAttribute('data-loc5', v ? 'true' : 'false'); top5btn.setAttribute('aria-pressed', String(v)); try { localStorage.setItem('mine.sigLoc5', v ? '1' : '0'); } catch (e) {} }
+      var sysBtns = [].slice.call(document.querySelectorAll('.sid__sys'));
+      var loc5 = false, locSys = '';
+      try { loc5 = localStorage.getItem('mine.sigLoc5') === '1'; } catch (e) {}
+      try { locSys = localStorage.getItem('mine.sigLocSys') || ''; } catch (e) {}
+
+      // Fundort-Chips je Zeile: nach System filtern, dann Top-1 (bzw. Top-5) zeigen.
+      // Die Chips sind pipeline-seitig nach Häufigkeit sortiert (global; je System
+      // bleibt die Reihenfolge erhalten) → erste passende = beste im System.
+      function updateLocs() {
+        var limit = loc5 ? 5 : 1;
+        rows.forEach(function (r) {
+          var wrap = r.querySelector('.sid__locs'); if (!wrap) return;
+          var shown = 0;
+          [].forEach.call(wrap.querySelectorAll('.sid__loc'), function (c) {
+            var match = !locSys || c.getAttribute('data-system') === locSys;
+            if (match && shown < limit) { c.hidden = false; shown++; } else c.hidden = true;
+          });
+          var note = wrap.querySelector('.sid__nolocs');
+          if (note) note.hidden = shown !== 0;
+        });
+      }
+      function setLoc5(v) { loc5 = v; root.setAttribute('data-loc5', v ? 'true' : 'false'); top5btn.setAttribute('aria-pressed', String(v)); try { localStorage.setItem('mine.sigLoc5', v ? '1' : '0'); } catch (e) {} updateLocs(); }
+      function setLocSys(v) { locSys = v; sysBtns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-sys') === v)); }); try { localStorage.setItem('mine.sigLocSys', v); } catch (e) {} updateLocs(); }
       top5btn.addEventListener('click', function () { setLoc5(!loc5); });
-      setLoc5(loc5);
+      sysBtns.forEach(function (b) { b.addEventListener('click', function () { setLocSys(b.getAttribute('data-sys')); }); });
+      setLoc5(loc5); setLocSys(locSys);
 
       function toggle(name) { if (sel.has(name)) sel.delete(name); else sel.add(name); save(); render(); }
       chips.forEach(function (c) { c.addEventListener('click', function () { toggle(c.getAttribute('data-name')); }); });
@@ -261,6 +301,10 @@ const S = {
     .sid__loc5{background:var(--bg-2,#181d1f);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--muted,#8fa3a0);padding:.5rem .8rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.62rem;white-space:nowrap}
     .sid__loc5:hover{border-color:var(--accent,#2FBFA4);color:var(--accent,#2FBFA4)}
     .sid__loc5[aria-pressed="true"]{background:var(--accent,#2FBFA4);border-color:var(--accent,#2FBFA4);color:var(--ink,#0e1214)}
+    .sid__sysf{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem}
+    .sid__syslabel{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:.58rem;color:var(--muted,#8fa3a0);margin-right:.2rem}
+    .sid__sys{background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.12));color:var(--muted,#8fa3a0);padding:.3rem .65rem;border-radius:50px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:.58rem}
+    .sid__sys[aria-pressed="true"]{color:var(--ink,#0e1214);background:var(--accent,#2FBFA4);border-color:var(--accent,#2FBFA4)}
     .sid__matchbox{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .8rem;background:color-mix(in srgb,var(--accent,#2FBFA4) 10%,transparent);border:1px solid color-mix(in srgb,var(--accent,#2FBFA4) 40%,transparent);border-radius:6px;padding:.6rem .8rem;margin-bottom:1rem}
     .sid__mlabel{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:.6rem;color:var(--accent,#2FBFA4)}
     .sid__matches{display:flex;flex-wrap:wrap;gap:.4rem}
@@ -293,7 +337,9 @@ const S = {
     .sid__loc b{color:#fff;font-weight:600}
     .sid__loc em{font-style:normal;color:var(--muted,#8fa3a0);font-size:.72rem}
     .sid__locab{color:var(--rar);font-weight:700;font-variant-numeric:tabular-nums;font-size:.72rem}
-    .sid[data-loc5="false"] .sid__loc[data-rank]:not([data-rank="0"]){display:none}
+    .sid__loc[hidden]{display:none}
+    .sid__nolocs{font-size:.74rem;color:var(--muted,#8fa3a0);font-style:italic}
+    .sid__nolocs[hidden]{display:none}
     .sid__empty{color:var(--muted,#8fa3a0);font-size:.9rem;padding:.5rem 0}
     .sid__src{font-size:.74rem;color:var(--muted,#8fa3a0);font-style:italic;margin:1rem 0 0;line-height:1.5}
     @media(max-width:560px){.sid__glabel{flex-basis:100%;min-width:0}}
