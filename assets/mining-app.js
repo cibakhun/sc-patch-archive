@@ -145,6 +145,11 @@
   function abColor(a) {
     return a >= 50 ? 'var(--accent,#2FBFA4)' : a >= 25 ? 'var(--accent-2,#E0A526)' : 'var(--muted,#8fa3a0)';
   }
+  // Fund-Chance-Farbe: seltener Fund (niedrige Chance) hervorgehoben (rot/gold),
+  // häufig (hohe Chance) gedämpft.
+  function chColor(c) {
+    return c <= 5 ? '#e0564b' : c <= 15 ? 'var(--accent-2,#E0A526)' : c <= 40 ? 'var(--accent,#2FBFA4)' : 'var(--muted,#8fa3a0)';
+  }
 
   // Fundorte eines Minerals: nach System gruppiert, INNERHALB nach Erz-Anteil
   // absteigend (reichste Spots oben), je Fundort eine Zeile mit Balken + %.
@@ -161,21 +166,23 @@
     var html = '<div class="mm__loc">';
     names.forEach(function (sn) {
       var arr = bySys[sn].slice().sort(function (a, b) {
-        return (b.abundance || 0) - (a.abundance || 0) || String(a.location).localeCompare(String(b.location));
+        return (b.chance || 0) - (a.chance || 0) || (b.abundance || 0) - (a.abundance || 0) || String(a.location).localeCompare(String(b.location));
       });
       html += '<div class="mm__locsys"><div class="mm__locsys-hd"><span>' + esc(sn) + '</span>'
         + '<span class="mm__locn">' + arr.length + ' ' + esc(T.locations || '') + '</span></div>';
       arr.forEach(function (l) {
+        var ch = l.chance != null ? l.chance : 0;
         var ab = l.abundance != null ? l.abundance : 0;
         var space = !!SPACE_TYPES[l.type];
         var meta = TYPE_LBL[l.type] || l.type || '';
         if (l.mining) meta += ' · ' + (MIN_LBL[l.mining] || l.mining);
+        // Hauptkennzahl = Fund-Chance (Balken + %), Nebenkennzahl = Erz-Anteil (Badge).
         html += '<div class="mm__locrow">'
           + '<span class="mm__lt' + (space ? ' mm__lt--space' : '') + '">' + typeIcon(l.type) + '</span>'
           + '<span class="mm__ln">' + esc(l.location) + '<em>' + esc(meta) + '</em></span>'
-          + '<span class="mm__bar"><i style="width:' + ab + '%;background:' + abColor(ab) + '"></i></span>'
-          + '<b class="mm__pct" style="color:' + abColor(ab) + '">' + ab + '%</b>'
-          + (l.chance != null ? '<span class="mm__ch" title="' + esc(T.chanceHint) + '">~' + l.chance + '%</span>' : '')
+          + '<span class="mm__bar"><i style="width:' + ch + '%;background:' + chColor(ch) + '"></i></span>'
+          + '<b class="mm__pct" style="color:' + chColor(ch) + '" title="' + esc(T.chanceHint) + '">' + ch + '%</b>'
+          + (l.abundance != null ? '<span class="mm__ch" title="' + esc(T.abundHint) + '">' + esc(T.abundance) + ' ' + ab + '%</span>' : '')
           + '</div>';
       });
       html += '</div>';

@@ -37,11 +37,11 @@ const JS_T = {
   de: {
     kind: 'Typ', method: 'Methode', scu: 'SCU-Gewicht', systems: 'Systeme', rarity: 'Seltenheit',
     locations: 'Fundorte', abundance: 'bis', ofRock: 'Erz-Anteil',
-    chance: 'Chance', chanceHint: 'Fund-Wahrscheinlichkeit an diesem Ort (Anteil der Deposits dieses Mining-Typs) — nicht der Erz-Anteil.', bestMatch: 'Wertvollstes Erz hier + Fund-Chance',
+    chance: 'Chance', chanceHint: 'Fund-Wahrscheinlichkeit an diesem Ort (Anteil der Deposits dieses Mining-Typs) — die Hauptkennzahl.', abundHint: 'Maximaler Erz-Anteil im Rock, WENN du ihn findest (Nebenkennzahl, nicht die Fund-Chance).', bestMatch: 'Wertvollstes Erz hier + Fund-Chance',
     methShip: 'Schiff-Mining (Prospector/MOLE)', methHand: 'Hand-Mining (Multitool)', methRoc: 'ROC / Bodenfahrzeug', methHarvest: 'Ernte',
     needsRefine: 'Rohform muss raffiniert werden', noRefine: 'wird ganz verkauft (kein Refining)',
     noLoc: 'Keine Fundorte in den Spieldaten.',
-    locNote: 'Aus datamined 4.8.3-Spieldaten. „bis X %" = maximaler Erz-Anteil im Rock (wenn du ihn findest); „~Y %" = Fund-Chance an diesem Ort (Anteil der Deposits) — zwei verschiedene Kennzahlen.',
+    locNote: 'Hauptzahl (%) = Fund-Wahrscheinlichkeit an diesem Ort (Balken, nach Chance sortiert). „bis Y %" = maximaler Erz-Anteil im Rock, wenn du ihn findest. Aus datamined 4.8.3-Spieldaten.',
     reverseTitle: 'Fundorte nach Himmelskörper', reverseIntro: 'Wähle einen Körper/eine Region — zeigt den ganzen Mineral-Mix dort mit Fund-Chance (%). ★ = wertvollstes Erz. Laut datamined 4.8.3-Spieldaten.',
     reverseSearch: 'Körper suchen…', mineralsHere: 'Minerale hier',
     rLegendary: 'Legendär', rEpic: 'Episch', rRare: 'Selten', rUncommon: 'Ungewöhnlich', rCommon: 'Häufig',
@@ -49,11 +49,11 @@ const JS_T = {
   en: {
     kind: 'Type', method: 'Method', scu: 'SCU weight', systems: 'Systems', rarity: 'Rarity',
     locations: 'Locations', abundance: 'up to', ofRock: 'ore share',
-    chance: 'chance', chanceHint: 'Find probability at this location (share of this mining type’s deposits) — not the ore share.', bestMatch: 'Most valuable ore here + find chance',
+    chance: 'chance', chanceHint: 'Find probability at this location (share of this mining type’s deposits) — the primary metric.', abundHint: 'Max ore share in a rock WHEN you find it (secondary metric, not the find chance).', bestMatch: 'Most valuable ore here + find chance',
     methShip: 'Ship mining (Prospector/MOLE)', methHand: 'Hand mining (multitool)', methRoc: 'ROC / ground vehicle', methHarvest: 'Harvest',
     needsRefine: 'Raw form must be refined', noRefine: 'sold whole (no refining)',
     noLoc: 'No locations in the game data.',
-    locNote: 'From datamined 4.8.3 game files. “up to X %” = max ore share in a rock (when you find it); “~Y %” = find chance at this location (share of deposits) — two different metrics.',
+    locNote: 'Main number (%) = find probability at this location (bar, sorted by chance). “up to Y %” = max ore share in a rock when you find it. From datamined 4.8.3 game files.',
     reverseTitle: 'Locations by celestial body', reverseIntro: 'Pick a body/region — shows the full mineral mix there with find chance (%). ★ = most valuable ore. From datamined 4.8.3 game files.',
     reverseSearch: 'Search body…', mineralsHere: 'Minerals here',
     rLegendary: 'Legendary', rEpic: 'Epic', rRare: 'Rare', rUncommon: 'Uncommon', rCommon: 'Common',
@@ -195,8 +195,8 @@ const total = DB.counts.minerals;
   </aside>
 </section>
 
-<script is:inline set:html={`window.__MINE=${JSON.stringify({ lang, dbUrl: '/assets/mining-db.json', t: JS_T })};`} />
-<script is:inline src="/assets/mining-app.js"></script>
+<script is:inline set:html={`window.__MINE=${JSON.stringify({ lang, dbUrl: '/assets/mining-db.json?v=' + DB.snapshot_date + '-c3', t: JS_T })};`} />
+<script is:inline src={`/assets/mining-app.js?v=${DB.snapshot_date}-c3`}></script>
 
 <style is:inline>
   .mdb{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
