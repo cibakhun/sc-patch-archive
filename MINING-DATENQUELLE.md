@@ -51,11 +51,32 @@ Verifikation direkt aus der Spieldatei:
 - `npm run verify:mining` — zieht LIVE scmdb neu, bricht bei jeder Abweichung
   (Exit 1) ab. So kann kein „ungefährer" Wert unbemerkt reinrutschen.
 
-### Optional: 100 % scmdb-unabhängig direkt aus der eigenen Installation
-Die Toolchain ist erprobt (siehe oben): `unp4k` (dolkensp/unp4k, mit dotnet 8
-gebaut nach Retarget net10→net8) → `Game2.dcb` → `unforge` → XML. Die relevanten
-Records liegen unter `Data/libs/foundry/records/mining/{mineableelements,
-rockcompositionpresets}` und `.../crafting/qualitydistribution`. Ein vollständiger
-Eigen-Extraktor müsste GUIDs auflösen und die Location-Deposit-Tabellen
-zusammenführen — Aufwand mehrere Tage; da scmdb nachweislich byte-identisch ist,
-nicht nötig. Bei Bedarf umsetzbar.
+### scmdb-unabhängiger Eigen-Extraktor: `scripts/datamine-mining.mjs`
+
+Extrahiert die **numerische Kernschicht** (Element-Physik + Kompositionen/„bis X %")
+**100 % aus der eigenen SC-Installation**, ohne scmdb:
+
+```
+# 1) DataCore aus dem Client holen (einmal je Patch)
+unp4k.exe  "F:\...\StarCitizen\LIVE\Data.p4k" .dcb     # -> Data/Game2.dcb
+unforge.cli.exe  Data/Game2.dcb                         # -> XML-Records
+# unp4k bauen: git clone github.com/dolkensp/unp4k; in *.csproj net10.0->net8.0; dotnet build
+
+# 2) parsen + gegen scmdb 0-Diff prüfen
+node scripts/datamine-mining.mjs  "<...>/extract/Data" --verify
+```
+
+**Verifiziert (2026-07-06):** 25 Elemente × 7 Physikwerte + alle 63 scmdb-
+Kompositionen (860 %-Werte) = **1035 Einzelwerte, 0 Abweichungen** gegen scmdb.
+D. h. die Physik und die Fundort-Prozente kommen nachweislich byte-genau aus den
+Spieldateien — scmdb ist nur ein bequemer, verifizierbarer Umweg zu denselben Bytes.
+Ausgabe: `assets/mining-gamefiles.json` (gitignored, maschinenspezifisch).
+
+**Was der Eigen-Extraktor (noch) NICHT abdeckt — die Location-/Spawn-Ebene:**
+Welcher Belt/Planet welche Komposition mit welcher `relativeProbability` spawnt,
+steckt NICHT in `records/mining`, sondern im Objekt-Container-/Spawn-System der
+Welt-Daten (`environments/asteroid_fields` liefert nur die visuellen Asteroiden-
+Meshes, keine Erz-Wahrscheinlichkeiten). Diese Ebene sauber zu rekonstruieren ist
+ein größeres Projekt (mehrere Tage). Bis dahin liefert **scmdb** die Location-Ebene —
+und `npm run verify:mining` stellt sicher, dass sie 0-Diff zur LIVE-Quelle bleibt.
+Die angezeigten Fundort-% selbst (`maxPercentage`) sind wie oben game-verifiziert.
