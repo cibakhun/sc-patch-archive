@@ -1,26 +1,25 @@
 ---
 // RefineryFinder.astro — welche Raffinerie gibt pro Erz den besten Yield-Bonus?
-// Matrix: Zeilen = Erze, Spalten = Raffinerie-Profile, Zellen = Yield-Bonus in %
-// (echte datamined 4.8.3-Werte). Der beste Wert pro Erz ist hervorgehoben.
-// Ersetzt den alten Methoden-Yield-Rechner (Methoden-Yields sind für 4.8 nicht
-// datamined; die Stations-Boni schon). Daten: mining-model.json.
+// Zwei Ansichten: "Liste" (beste Raffinerie pro Erz auf einen Blick, Default)
+// und "Matrix" (volles Erz × Raffinerie-Gitter). Erz-Suche + System-Filter.
+// Werte = echte datamined 4.8.3-Yield-Boni pro Station-Profil.
+// Zusätzlich eine Methoden-Referenz (qualitativ, Stand 4.8.0) — exakte
+// Methoden-Yields sind für 4.8 nicht öffentlich datamined.
 import MODEL from '../../assets/mining-model.json';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
 
 const refineries = MODEL.refineries || [];
-const profilesRaw = MODEL.refineryProfiles || {};
+const profilesRaw: any = MODEL.refineryProfiles || {};
 
 // Refinerien nach Profil gruppieren (gleiches Profil = identische Boni).
 const byProfile: Record<string, { id: string; stations: { name: string; system: string }[]; rates: Record<string, number> }> = {};
-for (const r of refineries) {
-  const id = (r as any).profileId;
-  if (!byProfile[id]) byProfile[id] = { id, stations: [], rates: (profilesRaw as any)[id] || {} };
-  byProfile[id].stations.push({ name: (r as any).name, system: (r as any).system });
+for (const r of refineries as any[]) {
+  const id = r.profileId;
+  if (!byProfile[id]) byProfile[id] = { id, stations: [], rates: profilesRaw[id] || {} };
+  byProfile[id].stations.push({ name: r.name, system: r.system });
 }
-// Kürzel für die Station: Lagrange-Code (z.B. "ARC-L1") sonst Name ohne
-// " Station"/Klammer-Zusatz (z.B. "Levski", "Ruin").
 const shortName = (n: string) => {
   const code = n.match(/^[A-Z]{2,4}-L\d+/);
   if (code) return code[0];
@@ -34,44 +33,99 @@ const cols = Object.values(byProfile).map((p) => ({
   rates: p.rates,
 })).sort((a, b) => a.label.localeCompare(b.label));
 
-// Erz-Zeilen: Vereinigung aller Erz-Schlüssel über die Profile.
+// Erz-Zeilen: Vereinigung aller Erz-Schlüssel; pro Erz die beste Station finden.
 const oreSet = new Set<string>();
 for (const c of cols) for (const k of Object.keys(c.rates)) oreSet.add(k);
 const ores = [...oreSet]
   .filter((o) => !/Construction Material|Inert/i.test(o))
   .map((o) => {
-    const vals = cols.map((c) => (o in c.rates ? c.rates[o] : null));
-    const nums = vals.filter((v): v is number => v != null);
-    const best = nums.length ? Math.max(...nums) : null;
-    return { name: o.replace(/ \((?:Ore|Raw|Pure)\)$/, ''), full: o, vals, best };
+    const cells = cols.map((c) => ({ label: c.label, full: c.full, systems: c.systems, v: (o in c.rates ? c.rates[o] : null) }));
+    const rated = cells.filter((c) => c.v != null) as { label: string; full: string; systems: string[]; v: number }[];
+    rated.sort((a, b) => b.v - a.v);
+    const best = rated.length ? rated[0] : null;
+    return { name: o.replace(/ \((?:Ore|Raw|Pure)\)$/, ''), full: o, cells, rated, best };
   })
   .sort((a, b) => a.name.localeCompare(b.name));
 
 const systems = [...new Set(cols.flatMap((c) => c.systems))].sort();
 
+// Methoden-Referenz (qualitativ, Stand 4.8.0 laut Wiki). Reihenfolge nach Yield.
+const METHODS = [
+  { name: 'Dinyx Solventation', speed: 'low', cost: 'high', yield: 'high' },
+  { name: 'Gaskin Process', speed: 'low', cost: 'mid', yield: 'high' },
+  { name: 'Pyrometric Chromalysis', speed: 'vlow', cost: 'low', yield: 'high' },
+  { name: 'Ferron Exchange', speed: 'low', cost: 'low', yield: 'mid' },
+  { name: 'Kazen Winnowing', speed: 'mid', cost: 'mid', yield: 'mid' },
+  { name: 'Thermonatic Deposition', speed: 'high', cost: 'high', yield: 'mid' },
+  { name: 'Cormack Method', speed: 'high', cost: 'mid', yield: 'low' },
+  { name: 'Electrostarolysis', speed: 'mid', cost: 'low', yield: 'low' },
+  { name: 'XCR Reaction', speed: 'high', cost: 'high', yield: 'low' },
+];
+
 const S = {
   de: {
-    intro: 'Beim Raffinieren gibt jede Station pro Erz einen eigenen Yield-Bonus (in %). Diese Tabelle zeigt die echten datamined 4.8.3-Werte — der beste Wert pro Erz ist grün markiert. So findest du die Station mit der höchsten Ausbeute für dein Erz.',
-    system: 'System', ore: 'Erz', best: 'Bester', all: 'Alle',
-    note: 'Yield-Boni je Raffinerie-Profil aus datamined 4.8.3-Spieldaten. Mehrere Stationen teilen sich ein Profil (identische Boni). Die Raffinerie-Methoden (Dinyx/Cormack/…) und deren Zeit/Kosten sind für 4.8 nicht öffentlich datamined und daher hier nicht modelliert. Patch-volatil.',
+    intro: 'Jede Raffinerie gibt pro Erz einen eigenen Yield-Bonus (in %) — echte datamined 4.8.3-Werte. Suche dein Erz und sieh sofort die beste Station, oder wechsle zur vollen Matrix.',
+    search: 'Erz suchen…', view: 'Ansicht', list: 'Liste', matrix: 'Matrix', system: 'System', all: 'Alle',
+    bestAt: 'Beste', others: 'weitere', noBonus: 'kein Bonus-Wert', ore: 'Erz',
+    methodsH: 'Refinery-Methoden im Überblick', method: 'Methode', speed: 'Tempo', cost: 'Kosten', yield: 'Ausbeute',
+    methodsNote: 'Qualitative Trade-offs (Stand 4.8.0) — höhere Ausbeute kostet Zeit oder Geld. Exakte Yield-Prozente pro Methode sind für 4.8 nicht öffentlich datamined; wähle die Methode nach Ziel (Menge vs. Tempo vs. Kosten).',
+    lvl: { vlow: 'sehr niedrig', low: 'niedrig', mid: 'mittel', high: 'hoch' },
+    note: 'Yield-Boni je Raffinerie-Profil aus datamined 4.8.3-Spieldaten. Mehrere Stationen teilen ein Profil (identische Boni; alle im Tooltip der Spalte). Patch-volatil.',
   },
   en: {
-    intro: 'When refining, each station gives its own yield bonus per ore (in %). This table shows the real datamined 4.8.3 values — the best value per ore is highlighted green. Use it to find the highest-yield station for your ore.',
-    system: 'System', ore: 'Ore', best: 'Best', all: 'All',
-    note: 'Yield bonuses per refinery profile from datamined 4.8.3 game files. Several stations share one profile (identical bonuses). The refinery methods (Dinyx/Cormack/…) and their time/cost are not publicly datamined for 4.8, so they are not modelled here. Patch-volatile.',
+    intro: 'Each refinery gives its own yield bonus per ore (in %) — real datamined 4.8.3 values. Search your ore and see the best station instantly, or switch to the full matrix.',
+    search: 'Search ore…', view: 'View', list: 'List', matrix: 'Matrix', system: 'System', all: 'All',
+    bestAt: 'Best', others: 'more', noBonus: 'no bonus value', ore: 'Ore',
+    methodsH: 'Refinery methods overview', method: 'Method', speed: 'Speed', cost: 'Cost', yield: 'Yield',
+    methodsNote: 'Qualitative trade-offs (as of 4.8.0) — higher yield costs time or money. Exact per-method yield percentages are not publicly datamined for 4.8; pick the method by goal (volume vs. speed vs. cost).',
+    lvl: { vlow: 'very low', low: 'low', mid: 'mid', high: 'high' },
+    note: 'Yield bonuses per refinery profile from datamined 4.8.3 game files. Several stations share a profile (identical bonuses; all in the column tooltip). Patch-volatile.',
   },
 }[lang];
+
+const fmt = (v: number | null) => (v == null ? '·' : (v > 0 ? '+' : '') + v);
+const cellCls = (v: number | null, best: number | null) =>
+  v == null ? 'na' : v === best && v > 0 ? 'best' : v > 0 ? 'pos' : v < 0 ? 'neg' : 'zero';
 ---
 <section class="rff" id="rff">
   <p class="rff__intro">{S.intro}</p>
 
   <div class="rff__bar">
-    <span class="rff__blabel">{S.system}</span>
-    <button type="button" class="rff__sys" data-sys="" aria-pressed="true">{S.all}</button>
-    {systems.map((sy) => (<button type="button" class="rff__sys" data-sys={sy} aria-pressed="false">{sy}</button>))}
+    <input type="search" id="rff-search" class="rff__search" placeholder={S.search} autocomplete="off" />
+    <div class="rff__seg" role="group" aria-label={S.view}>
+      <button type="button" class="rff__vbtn" data-view="list" aria-pressed="true">{S.list}</button>
+      <button type="button" class="rff__vbtn" data-view="matrix" aria-pressed="false">{S.matrix}</button>
+    </div>
+    <div class="rff__sysf">
+      <span class="rff__syslabel">{S.system}</span>
+      <button type="button" class="rff__sys" data-sys="" aria-pressed="true">{S.all}</button>
+      {systems.map((sy) => (<button type="button" class="rff__sys" data-sys={sy} aria-pressed="false">{sy}</button>))}
+    </div>
   </div>
 
-  <div class="rff__scroll">
+  <!-- LISTE: beste Raffinerie pro Erz -->
+  <div class="rff__list" id="rff-list">
+    {ores.map((o) => (
+      <article class="rff__ore" data-name={o.name.toLowerCase()} data-best-sys={o.best ? o.best.systems.join('|') : ''}>
+        <div class="rff__oname">{o.name}</div>
+        {o.best ? (
+          <div class="rff__obest">
+            <span class="rff__blab">{S.bestAt}</span>
+            <span class="rff__bstat" title={o.best.full}>{o.best.label}</span>
+            <span class="rff__bval">{fmt(o.best.v)}%</span>
+          </div>
+        ) : (<div class="rff__obest rff__obest--none">{S.noBonus}</div>)}
+        <div class="rff__others">
+          {o.rated.slice(1).map((c) => (
+            <span class={`rff__ochip ${c.v > 0 ? 'pos' : c.v < 0 ? 'neg' : 'zero'}`} data-systems={c.systems.join('|')} title={c.full}>{c.label} {fmt(c.v)}</span>
+          ))}
+        </div>
+      </article>
+    ))}
+  </div>
+
+  <!-- MATRIX -->
+  <div class="rff__scroll" id="rff-matrix" hidden>
     <table class="rff__tbl">
       <thead>
         <tr>
@@ -81,63 +135,156 @@ const S = {
       </thead>
       <tbody>
         {ores.map((o) => (
-          <tr class="rff__row">
-            <th class="rff__ore">{o.name}</th>
-            {o.vals.map((v, i) => (
-              <td
-                class:list={['rff__cell', cols[i].rates && (o.full in cols[i].rates) ? '' : 'na', v != null && v === o.best ? 'best' : v != null && v > 0 ? 'pos' : v != null && v < 0 ? 'neg' : v === 0 ? 'zero' : 'na']}
-                data-systems={cols[i].systems.join('|')}
-              >{v == null ? '·' : (v > 0 ? '+' : '') + v}</td>
+          <tr class="rff__row" data-name={o.name.toLowerCase()}>
+            <th class="rff__rore">{o.name}</th>
+            {o.cells.map((c) => (
+              <td class={`rff__cell ${cellCls(c.v, o.best ? o.best.v : null)}`} data-systems={c.systems.join('|')}>{fmt(c.v)}</td>
             ))}
           </tr>
         ))}
       </tbody>
     </table>
   </div>
+  <p class="rff__empty" id="rff-empty" hidden>—</p>
+
+  <!-- METHODEN-REFERENZ -->
+  <details class="rff__methods">
+    <summary>{S.methodsH}</summary>
+    <div class="rff__mwrap">
+      <table class="rff__mtbl">
+        <thead><tr><th>{S.method}</th><th>{S.yield}</th><th>{S.speed}</th><th>{S.cost}</th></tr></thead>
+        <tbody>
+          {METHODS.map((m) => (
+            <tr>
+              <td class="rff__mname">{m.name}</td>
+              <td><span class={`rff__lvl y-${m.yield}`}>{S.lvl[m.yield]}</span></td>
+              <td><span class={`rff__lvl s-${m.speed}`}>{S.lvl[m.speed]}</span></td>
+              <td><span class={`rff__lvl c-${m.cost}`}>{S.lvl[m.cost]}</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p class="rff__mnote">{S.methodsNote}</p>
+    </div>
+  </details>
+
   <p class="rff__src">{S.note}</p>
 
   <script is:inline>
     (function () {
       var root = document.getElementById('rff'); if (!root) return;
+      var searchEl = document.getElementById('rff-search');
+      var listView = document.getElementById('rff-list'), matrixView = document.getElementById('rff-matrix');
+      var emptyEl = document.getElementById('rff-empty');
+      var vbtns = [].slice.call(root.querySelectorAll('.rff__vbtn'));
       var sysBtns = [].slice.call(root.querySelectorAll('.rff__sys'));
-      var cols = [].slice.call(root.querySelectorAll('.rff__col'));
-      var cells = [].slice.call(root.querySelectorAll('.rff__cell'));
-      function apply(sys) {
-        function vis(el) { return !sys || (el.getAttribute('data-systems') || '').split('|').indexOf(sys) >= 0; }
-        cols.forEach(function (c) { c.hidden = !vis(c); });
-        cells.forEach(function (c) { c.hidden = !vis(c); });
-      }
-      sysBtns.forEach(function (b) {
-        b.addEventListener('click', function () {
-          sysBtns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
-          apply(b.getAttribute('data-sys'));
+      var listOres = [].slice.call(listView.querySelectorAll('.rff__ore'));
+      var matrixRows = [].slice.call(matrixView.querySelectorAll('.rff__row'));
+      var cols = [].slice.call(matrixView.querySelectorAll('.rff__col'));
+      var cells = [].slice.call(matrixView.querySelectorAll('.rff__cell'));
+      var view = 'list', sys = '', q = '';
+
+      function inSys(el) { return !sys || (el.getAttribute('data-systems') || '').split('|').indexOf(sys) >= 0; }
+      function apply() {
+        listView.hidden = view !== 'list';
+        matrixView.hidden = view !== 'matrix';
+        var shown = 0;
+        // list
+        listOres.forEach(function (o) {
+          var vis = o.getAttribute('data-name').indexOf(q) >= 0;
+          // system filter: best station or any other chip in that system
+          if (vis && sys) vis = (o.getAttribute('data-best-sys') || '').split('|').indexOf(sys) >= 0
+            || [].some.call(o.querySelectorAll('.rff__ochip'), function (ch) { return inSys(ch); });
+          o.hidden = !vis;
+          // dim/hide other-chips outside system
+          [].forEach.call(o.querySelectorAll('.rff__ochip'), function (ch) { ch.hidden = sys && !inSys(ch); });
+          if (vis && view === 'list') shown++;
         });
-      });
+        // matrix
+        cols.forEach(function (c) { c.hidden = !inSys(c); });
+        cells.forEach(function (c) { c.hidden = !inSys(c); });
+        matrixRows.forEach(function (r) {
+          var vis = r.getAttribute('data-name').indexOf(q) >= 0;
+          r.hidden = !vis;
+          if (vis && view === 'matrix') shown++;
+        });
+        emptyEl.hidden = shown !== 0;
+      }
+      vbtns.forEach(function (b) { b.addEventListener('click', function () {
+        view = b.getAttribute('data-view');
+        vbtns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        apply();
+      }); });
+      sysBtns.forEach(function (b) { b.addEventListener('click', function () {
+        sys = b.getAttribute('data-sys');
+        sysBtns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        apply();
+      }); });
+      searchEl.addEventListener('input', function () { q = searchEl.value.trim().toLowerCase(); apply(); });
+      apply();
     })();
   </script>
 
   <style is:inline>
     .rff{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
     .rff__intro{font-size:.92rem;color:var(--muted,#8fa3a0);line-height:1.55;max-width:80ch;margin:0 0 1rem}
-    .rff__bar{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;margin-bottom:.9rem}
-    .rff__blabel{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:.6rem;color:var(--muted,#8fa3a0);margin-right:.3rem}
-    .rff__sys{background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.12));color:var(--muted,#8fa3a0);padding:.32rem .7rem;border-radius:50px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:.6rem}
+    .rff__bar{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem 1rem;margin-bottom:1rem}
+    .rff__search{flex:1 1 220px;min-width:0;background:var(--bg-2,#181d1f);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.55rem .8rem;border-radius:6px;font-size:.95rem;font-family:var(--font-ui,inherit)}
+    .rff__search:focus{outline:2px solid var(--accent,#2FBFA4);outline-offset:1px}
+    .rff__seg{display:inline-flex;border:1px solid var(--line,rgba(47,191,164,.3));border-radius:6px;overflow:hidden}
+    .rff__vbtn{background:var(--bg-2,#181d1f);border:0;color:var(--muted,#8fa3a0);padding:.5rem .9rem;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.62rem}
+    .rff__vbtn+.rff__vbtn{border-left:1px solid var(--line-soft,rgba(255,255,255,.1))}
+    .rff__vbtn[aria-pressed="true"]{background:var(--accent,#2FBFA4);color:var(--ink,#0e1214)}
+    .rff__sysf{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem}
+    .rff__syslabel{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:.58rem;color:var(--muted,#8fa3a0);margin-right:.2rem}
+    .rff__sys{background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.12));color:var(--muted,#8fa3a0);padding:.3rem .65rem;border-radius:50px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:.58rem}
     .rff__sys[aria-pressed="true"]{color:var(--ink,#0e1214);background:var(--accent,#2FBFA4);border-color:var(--accent,#2FBFA4)}
+    /* Liste */
+    .rff__list{display:flex;flex-direction:column;gap:.4rem}
+    .rff__ore{display:grid;grid-template-columns:minmax(7rem,1.1fr) auto 1fr;align-items:center;gap:.6rem 1rem;border:1px solid var(--line-soft,rgba(255,255,255,.1));background:var(--bg-2,#181d1f);border-radius:6px;padding:.55rem .8rem}
+    .rff__ore[hidden]{display:none}
+    .rff__oname{font-family:var(--font-display,inherit);font-weight:800;color:#fff;font-size:1rem}
+    .rff__obest{display:inline-flex;align-items:center;gap:.5rem;background:color-mix(in srgb,var(--accent,#2FBFA4) 14%,transparent);border:1px solid color-mix(in srgb,var(--accent,#2FBFA4) 45%,transparent);border-radius:5px;padding:.28rem .6rem;white-space:nowrap}
+    .rff__obest--none{background:transparent;border-color:var(--line-soft,rgba(255,255,255,.1));color:var(--muted,#8fa3a0);font-size:.8rem;font-style:italic}
+    .rff__blab{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.54rem;color:var(--accent,#2FBFA4)}
+    .rff__bstat{font-family:var(--font-ui,inherit);font-weight:700;color:#fff;font-size:.86rem}
+    .rff__bval{font-family:var(--font-display,inherit);font-weight:800;color:var(--accent,#2FBFA4);font-variant-numeric:tabular-nums}
+    .rff__others{display:flex;flex-wrap:wrap;gap:.28rem;justify-content:flex-end}
+    .rff__ochip{font-size:.72rem;color:var(--muted,#8fa3a0);background:var(--surface,#1e2427);border:1px solid var(--line-soft,rgba(255,255,255,.08));border-radius:3px;padding:.14rem .4rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .rff__ochip[hidden]{display:none}
+    .rff__ochip.pos{color:#7fd7c4}.rff__ochip.neg{color:#e08a80}.rff__ochip.zero{opacity:.6}
+    @media(max-width:640px){.rff__ore{grid-template-columns:1fr;gap:.4rem}.rff__others{justify-content:flex-start}}
+    /* Matrix */
     .rff__scroll{overflow-x:auto;border:1px solid var(--line,rgba(47,191,164,.22));border-radius:8px;background:var(--surface,#1e2427)}
     .rff__tbl{border-collapse:collapse;font-size:.82rem;width:100%;min-width:640px}
     .rff__tbl th,.rff__tbl td{padding:.4rem .55rem;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
-    .rff__corner,.rff__ore{position:sticky;left:0;z-index:2;text-align:left;background:var(--bg-2,#181d1f);font-family:var(--font-ui,inherit)}
+    .rff__corner,.rff__rore{position:sticky;left:0;z-index:2;text-align:left;background:var(--bg-2,#181d1f);font-family:var(--font-ui,inherit)}
     .rff__corner{z-index:3;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.58rem;color:var(--accent,#2FBFA4);border-bottom:1px solid var(--line,rgba(47,191,164,.3))}
-    .rff__ore{font-weight:700;color:#fff;font-size:.84rem;border-right:1px solid var(--line-soft,rgba(255,255,255,.08))}
+    .rff__rore{font-weight:700;color:#fff;font-size:.84rem;border-right:1px solid var(--line-soft,rgba(255,255,255,.08))}
     .rff__col{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.04em;font-size:.62rem;color:var(--accent,#2FBFA4);border-bottom:1px solid var(--line,rgba(47,191,164,.3));cursor:help}
     .rff__col[hidden],.rff__cell[hidden]{display:none}
-    .rff__row:nth-child(even) .rff__ore,.rff__row:nth-child(even) .rff__cell{background:rgba(255,255,255,.02)}
+    .rff__row[hidden]{display:none}
+    .rff__row:nth-child(even) .rff__rore,.rff__row:nth-child(even) .rff__cell{background:rgba(255,255,255,.02)}
     .rff__cell{color:var(--muted,#8fa3a0);border-bottom:1px solid var(--line-soft,rgba(255,255,255,.05))}
-    .rff__cell.pos{color:#7fd7c4}
-    .rff__cell.neg{color:#e08a80}
-    .rff__cell.zero{color:var(--muted,#8fa3a0);opacity:.6}
-    .rff__cell.na{color:var(--muted,#8fa3a0);opacity:.35}
+    .rff__cell.pos{color:#7fd7c4}.rff__cell.neg{color:#e08a80}.rff__cell.zero{opacity:.6}.rff__cell.na{opacity:.35}
     .rff__cell.best{color:#0e1214;background:var(--accent,#2FBFA4);font-weight:800;border-radius:3px}
+    .rff__empty{color:var(--muted,#8fa3a0);font-size:.9rem;padding:.5rem 0}
+    /* Methoden */
+    .rff__methods{margin-top:1.2rem;border:1px solid var(--line,rgba(47,191,164,.22));border-radius:8px;background:var(--surface,#1e2427)}
+    .rff__methods summary{cursor:pointer;padding:.7rem .9rem;font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.68rem;color:var(--accent,#2FBFA4)}
+    .rff__mwrap{padding:0 .9rem .9rem;overflow-x:auto}
+    .rff__mtbl{border-collapse:collapse;font-size:.82rem;width:100%;min-width:420px}
+    .rff__mtbl th{text-align:left;font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.56rem;color:var(--muted,#8fa3a0);padding:.3rem .5rem;border-bottom:1px solid var(--line-soft,rgba(255,255,255,.1))}
+    .rff__mtbl td{padding:.32rem .5rem;border-bottom:1px solid var(--line-soft,rgba(255,255,255,.05))}
+    .rff__mname{color:#fff;font-weight:600}
+    .rff__lvl{display:inline-block;font-family:var(--font-ui,inherit);font-weight:700;font-size:.68rem;text-transform:uppercase;letter-spacing:.03em;padding:.08rem .4rem;border-radius:3px;border:1px solid transparent}
+    .rff__lvl.y-high,.rff__lvl.s-high{color:#0e1214;background:var(--accent,#2FBFA4)}
+    .rff__lvl.y-mid,.rff__lvl.s-mid{color:var(--accent,#2FBFA4);border-color:color-mix(in srgb,var(--accent,#2FBFA4) 40%,transparent)}
+    .rff__lvl.y-low,.rff__lvl.s-low,.rff__lvl.s-vlow{color:var(--muted,#8fa3a0);border-color:var(--line-soft,rgba(255,255,255,.12))}
+    .rff__lvl.c-low{color:#0e1214;background:var(--accent,#2FBFA4)}
+    .rff__lvl.c-mid{color:var(--accent-2,#E0A526);border-color:color-mix(in srgb,var(--accent-2,#E0A526) 40%,transparent)}
+    .rff__lvl.c-high{color:#e08a80;border-color:color-mix(in srgb,#e08a80 40%,transparent)}
+    .rff__mnote{font-size:.76rem;color:var(--muted,#8fa3a0);line-height:1.5;margin:.7rem 0 0;font-style:italic}
     .rff__src{font-size:.74rem;color:var(--muted,#8fa3a0);font-style:italic;margin:1rem 0 0;line-height:1.5}
   </style>
 </section>
