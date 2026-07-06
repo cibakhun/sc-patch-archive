@@ -39,6 +39,36 @@ async function main() {
     getJSON(`${BASE}/mining_equipment-${ver}.json`),
   ]);
 
+  // Fundorte pro Element ranken: locations → groups → deposits → compositions
+  // → parts. Score ~ scmdb: depositShare × groupProbability × elementMaxPercent.
+  // Je Location der beste Score, dann Top-N.
+  const locByElem = {};
+  for (const loc of data.locations || []) {
+    for (const g of loc.groups || []) {
+      const tot = (g.deposits || []).reduce((s, d) => s + (d.relativeProbability || 0), 0);
+      for (const d of g.deposits || []) {
+        const comp = data.compositions[d.compositionGuid];
+        if (!comp?.parts) continue;
+        const share = tot > 0 ? (d.relativeProbability || 0) / tot : 0;
+        for (const p of comp.parts) {
+          const en = p.elementName;
+          if (!en) continue;
+          const score = share * (g.groupProbability ?? 1) * ((p.maxPercent ?? 0) / 100) * (p.probability ?? 1);
+          (locByElem[en] ??= {});
+          const k = loc.locationName;
+          if (!locByElem[en][k] || locByElem[en][k].score < score) {
+            locByElem[en][k] = { location: loc.locationName, system: loc.system, type: loc.locationType, abundance: Math.round(p.maxPercent ?? 0), score };
+          }
+        }
+      }
+    }
+  }
+  const topLocs = (en, n = 6) =>
+    Object.values(locByElem[en] || {})
+      .sort((a, b) => b.score - a.score)
+      .slice(0, n)
+      .map((x) => ({ location: x.location, system: x.system, type: x.type, abundance: x.abundance }));
+
   // Elemente: die datamined Physik pro Mineral (aus mining_data — reichhaltiger).
   const elements = Object.entries(data.mineableElements).map(([guid, e]) => ({
     guid,
@@ -57,6 +87,7 @@ async function main() {
     scanSignature: e.scanSignature,
     groundScanSignature: e.groundScanSignature,
     qualityBands: e.qualityBands,
+    locations: topLocs(e.name),
   })).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
   // Kompositionen: Rock-Zusammensetzung pro Signatur (dominantes Mineral + Anteile).
