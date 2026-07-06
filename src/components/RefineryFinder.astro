@@ -1,0 +1,143 @@
+---
+// RefineryFinder.astro — welche Raffinerie gibt pro Erz den besten Yield-Bonus?
+// Matrix: Zeilen = Erze, Spalten = Raffinerie-Profile, Zellen = Yield-Bonus in %
+// (echte datamined 4.8.3-Werte). Der beste Wert pro Erz ist hervorgehoben.
+// Ersetzt den alten Methoden-Yield-Rechner (Methoden-Yields sind für 4.8 nicht
+// datamined; die Stations-Boni schon). Daten: mining-model.json.
+import MODEL from '../../assets/mining-model.json';
+
+interface Props { lang: 'de' | 'en'; }
+const { lang } = Astro.props;
+
+const refineries = MODEL.refineries || [];
+const profilesRaw = MODEL.refineryProfiles || {};
+
+// Refinerien nach Profil gruppieren (gleiches Profil = identische Boni).
+const byProfile: Record<string, { id: string; stations: { name: string; system: string }[]; rates: Record<string, number> }> = {};
+for (const r of refineries) {
+  const id = (r as any).profileId;
+  if (!byProfile[id]) byProfile[id] = { id, stations: [], rates: (profilesRaw as any)[id] || {} };
+  byProfile[id].stations.push({ name: (r as any).name, system: (r as any).system });
+}
+// Kürzel für die Station: Lagrange-Code (z.B. "ARC-L1") sonst Name ohne
+// " Station"/Klammer-Zusatz (z.B. "Levski", "Ruin").
+const shortName = (n: string) => {
+  const code = n.match(/^[A-Z]{2,4}-L\d+/);
+  if (code) return code[0];
+  return n.replace(/\s+Station$/i, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+};
+const cols = Object.values(byProfile).map((p) => ({
+  id: p.id,
+  label: shortName(p.stations[0].name),
+  full: p.stations.map((s) => `${s.name} (${s.system})`).join(' · '),
+  systems: [...new Set(p.stations.map((s) => s.system))],
+  rates: p.rates,
+})).sort((a, b) => a.label.localeCompare(b.label));
+
+// Erz-Zeilen: Vereinigung aller Erz-Schlüssel über die Profile.
+const oreSet = new Set<string>();
+for (const c of cols) for (const k of Object.keys(c.rates)) oreSet.add(k);
+const ores = [...oreSet]
+  .filter((o) => !/Construction Material|Inert/i.test(o))
+  .map((o) => {
+    const vals = cols.map((c) => (o in c.rates ? c.rates[o] : null));
+    const nums = vals.filter((v): v is number => v != null);
+    const best = nums.length ? Math.max(...nums) : null;
+    return { name: o.replace(/ \((?:Ore|Raw|Pure)\)$/, ''), full: o, vals, best };
+  })
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const systems = [...new Set(cols.flatMap((c) => c.systems))].sort();
+
+const S = {
+  de: {
+    intro: 'Beim Raffinieren gibt jede Station pro Erz einen eigenen Yield-Bonus (in %). Diese Tabelle zeigt die echten datamined 4.8.3-Werte — der beste Wert pro Erz ist grün markiert. So findest du die Station mit der höchsten Ausbeute für dein Erz.',
+    system: 'System', ore: 'Erz', best: 'Bester', all: 'Alle',
+    note: 'Yield-Boni je Raffinerie-Profil aus datamined 4.8.3-Spieldaten. Mehrere Stationen teilen sich ein Profil (identische Boni). Die Raffinerie-Methoden (Dinyx/Cormack/…) und deren Zeit/Kosten sind für 4.8 nicht öffentlich datamined und daher hier nicht modelliert. Patch-volatil.',
+  },
+  en: {
+    intro: 'When refining, each station gives its own yield bonus per ore (in %). This table shows the real datamined 4.8.3 values — the best value per ore is highlighted green. Use it to find the highest-yield station for your ore.',
+    system: 'System', ore: 'Ore', best: 'Best', all: 'All',
+    note: 'Yield bonuses per refinery profile from datamined 4.8.3 game files. Several stations share one profile (identical bonuses). The refinery methods (Dinyx/Cormack/…) and their time/cost are not publicly datamined for 4.8, so they are not modelled here. Patch-volatile.',
+  },
+}[lang];
+---
+<section class="rff" id="rff">
+  <p class="rff__intro">{S.intro}</p>
+
+  <div class="rff__bar">
+    <span class="rff__blabel">{S.system}</span>
+    <button type="button" class="rff__sys" data-sys="" aria-pressed="true">{S.all}</button>
+    {systems.map((sy) => (<button type="button" class="rff__sys" data-sys={sy} aria-pressed="false">{sy}</button>))}
+  </div>
+
+  <div class="rff__scroll">
+    <table class="rff__tbl">
+      <thead>
+        <tr>
+          <th class="rff__corner">{S.ore}</th>
+          {cols.map((c) => (<th class="rff__col" data-systems={c.systems.join('|')} title={c.full}>{c.label}</th>))}
+        </tr>
+      </thead>
+      <tbody>
+        {ores.map((o) => (
+          <tr class="rff__row">
+            <th class="rff__ore">{o.name}</th>
+            {o.vals.map((v, i) => (
+              <td
+                class:list={['rff__cell', cols[i].rates && (o.full in cols[i].rates) ? '' : 'na', v != null && v === o.best ? 'best' : v != null && v > 0 ? 'pos' : v != null && v < 0 ? 'neg' : v === 0 ? 'zero' : 'na']}
+                data-systems={cols[i].systems.join('|')}
+              >{v == null ? '·' : (v > 0 ? '+' : '') + v}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="rff__src">{S.note}</p>
+
+  <script is:inline>
+    (function () {
+      var root = document.getElementById('rff'); if (!root) return;
+      var sysBtns = [].slice.call(root.querySelectorAll('.rff__sys'));
+      var cols = [].slice.call(root.querySelectorAll('.rff__col'));
+      var cells = [].slice.call(root.querySelectorAll('.rff__cell'));
+      function apply(sys) {
+        function vis(el) { return !sys || (el.getAttribute('data-systems') || '').split('|').indexOf(sys) >= 0; }
+        cols.forEach(function (c) { c.hidden = !vis(c); });
+        cells.forEach(function (c) { c.hidden = !vis(c); });
+      }
+      sysBtns.forEach(function (b) {
+        b.addEventListener('click', function () {
+          sysBtns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+          apply(b.getAttribute('data-sys'));
+        });
+      });
+    })();
+  </script>
+
+  <style is:inline>
+    .rff{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
+    .rff__intro{font-size:.92rem;color:var(--muted,#8fa3a0);line-height:1.55;max-width:80ch;margin:0 0 1rem}
+    .rff__bar{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;margin-bottom:.9rem}
+    .rff__blabel{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:.6rem;color:var(--muted,#8fa3a0);margin-right:.3rem}
+    .rff__sys{background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.12));color:var(--muted,#8fa3a0);padding:.32rem .7rem;border-radius:50px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:.6rem}
+    .rff__sys[aria-pressed="true"]{color:var(--ink,#0e1214);background:var(--accent,#2FBFA4);border-color:var(--accent,#2FBFA4)}
+    .rff__scroll{overflow-x:auto;border:1px solid var(--line,rgba(47,191,164,.22));border-radius:8px;background:var(--surface,#1e2427)}
+    .rff__tbl{border-collapse:collapse;font-size:.82rem;width:100%;min-width:640px}
+    .rff__tbl th,.rff__tbl td{padding:.4rem .55rem;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .rff__corner,.rff__ore{position:sticky;left:0;z-index:2;text-align:left;background:var(--bg-2,#181d1f);font-family:var(--font-ui,inherit)}
+    .rff__corner{z-index:3;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.58rem;color:var(--accent,#2FBFA4);border-bottom:1px solid var(--line,rgba(47,191,164,.3))}
+    .rff__ore{font-weight:700;color:#fff;font-size:.84rem;border-right:1px solid var(--line-soft,rgba(255,255,255,.08))}
+    .rff__col{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.04em;font-size:.62rem;color:var(--accent,#2FBFA4);border-bottom:1px solid var(--line,rgba(47,191,164,.3));cursor:help}
+    .rff__col[hidden],.rff__cell[hidden]{display:none}
+    .rff__row:nth-child(even) .rff__ore,.rff__row:nth-child(even) .rff__cell{background:rgba(255,255,255,.02)}
+    .rff__cell{color:var(--muted,#8fa3a0);border-bottom:1px solid var(--line-soft,rgba(255,255,255,.05))}
+    .rff__cell.pos{color:#7fd7c4}
+    .rff__cell.neg{color:#e08a80}
+    .rff__cell.zero{color:var(--muted,#8fa3a0);opacity:.6}
+    .rff__cell.na{color:var(--muted,#8fa3a0);opacity:.35}
+    .rff__cell.best{color:#0e1214;background:var(--accent,#2FBFA4);font-weight:800;border-radius:3px}
+    .rff__src{font-size:.74rem;color:var(--muted,#8fa3a0);font-style:italic;margin:1rem 0 0;line-height:1.5}
+  </style>
+</section>

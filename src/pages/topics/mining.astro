@@ -5,9 +5,9 @@ import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
 import MiningApp from '../../components/MiningApp.astro';
-import SignatureBoard from '../../components/SignatureBoard.astro';
+import SignatureIdentifier from '../../components/SignatureIdentifier.astro';
 import FracturingCalc from '../../components/FracturingCalc.astro';
-import RefineryCalc from '../../components/RefineryCalc.astro';
+import RefineryFinder from '../../components/RefineryFinder.astro';
 import { buildMiningShips } from '../../lib/miningShips';
 import DB from '../../../assets/mining-db.json';
 
@@ -90,16 +90,16 @@ const ships = buildMiningShips('de');
 
   <MiningApp lang="de" />
 
-  <div class="mn-sec-h reveal"><span class="num">02</span><h2>Scan-Signaturen</h2></div>
+  <div class="mn-sec-h reveal"><span class="num">02</span><h2>Scan-Signatur-Identifier</h2></div>
 
-  <SignatureBoard lang="de" />
+  <SignatureIdentifier lang="de" />
 
   <div class="mn-sec-h reveal"><span class="num">03</span><h2>Fracturing-Rechner</h2></div>
 
   <FracturingCalc lang="de" />
 
-  <div class="mn-sec-h reveal"><span class="num">04</span><h2>Refinery-Rechner</h2></div>
-  <RefineryCalc lang="de" />
+  <div class="mn-sec-h reveal"><span class="num">04</span><h2>Refinery Finder</h2></div>
+  <RefineryFinder lang="de" />
 
   <div class="mn-sec-h reveal"><span class="num">05</span><h2>Mining-Schiffe</h2></div>
   <div class="mn-wrap">

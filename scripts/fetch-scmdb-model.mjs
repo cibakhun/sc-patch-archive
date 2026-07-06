@@ -98,6 +98,10 @@ async function main() {
     name: g.name, maker: g.manufacturer, mods: g.modifiers,
   })).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
+  // Refinery-Yield-Boni: Stationen + Profile (pro Erz Yield-Bonus in %).
+  const refineries = (data.refineries || []).map((r) => ({ name: r.name, system: r.system, profileId: r.profileId }));
+  const refineryProfiles = data.refineryProfiles || {};
+
   const payload = {
     source_note:
       'Game-akkurates Mining-Physik-Modell aus CIG-Spieldaten (datamined). Formeln/Konstanten am Solver-Math-Modell der Community verifiziert. Patch-volatil — ingame prüfen.',
@@ -111,12 +115,15 @@ async function main() {
       lasers: lasers.length,
       modules: modules.length,
       gadgets: gadgets.length,
+      refineries: refineries.length,
     },
     elements,
     compositions,
     lasers,
     modules,
     gadgets,
+    refineries,
+    refineryProfiles,
   };
 
   mkdirSync(dirname(OUT), { recursive: true });
@@ -124,7 +131,7 @@ async function main() {
   const kb = (Buffer.byteLength(JSON.stringify(payload)) / 1024).toFixed(0);
   console.log(`\nGeschrieben: ${OUT}`);
   console.log(
-    `  ${elements.length} Elemente, ${compositions.length} Kompositionen, ${lasers.length} Laser, ${modules.length} Module, ${gadgets.length} Gadgets, ~${kb} KB`
+    `  ${elements.length} Elemente, ${compositions.length} Kompositionen, ${lasers.length} Laser, ${modules.length} Module, ${gadgets.length} Gadgets, ${refineries.length} Raffinerien, ~${kb} KB`
   );
 }
 

@@ -1,0 +1,225 @@
+---
+// SignatureIdentifier.astro — Scan-Signatur-Identifier (wie scmdb).
+// Jedes Mineral hat eine n=1-Scan-Signatur; ein Cluster aus n Steinen zeigt
+// n × Signatur. Max. Cluster-Größe hängt von der Seltenheit ab (legendär 2 …
+// häufig 6). Du wählst Minerale/Kategorien und siehst deren Signaturwerte pro
+// Cluster-Größe; ein Scan-Wert-Feld (exakt oder ~±10 %) identifiziert, welches
+// Mineral in welcher Cluster-Größe du gescannt hast. Daten: mining-model.json.
+import MODEL from '../../assets/mining-model.json';
+
+interface Props { lang: 'de' | 'en'; }
+const { lang } = Astro.props;
+
+// Max. Cluster-Größe je Seltenheit (aus dem Referenz-Tool).
+const MAXCLUSTER: Record<string, number> = { common: 6, uncommon: 5, rare: 4, epic: 3, legendary: 2 };
+const RARITY_ORDER = ['legendary', 'epic', 'rare', 'uncommon', 'common'];
+
+// Schiffs-Minerale mit Scan-Signatur.
+const ship = (MODEL.elements || [])
+  .filter((e: any) => e.scanSignature > 0)
+  .map((e: any) => {
+    const max = MAXCLUSTER[e.rarity] || 4;
+    return {
+      name: (e.material || e.name || '').replace(/ \((?:Ore|Raw|Pure)\)$/, ''),
+      sig: e.scanSignature,
+      rarity: e.rarity || 'common',
+      cat: 'ship',
+      max,
+      multiples: Array.from({ length: max }, (_, i) => ({ n: i + 1, v: (i + 1) * e.scanSignature })),
+    };
+  })
+  .sort((a, b) => (RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity)) || (a.sig - b.sig));
+
+// Sonder-Kategorien (feste Signatur, Cluster bis floor(30000/sig)).
+const SPECIAL = [
+  { name: 'ROC / Bodenerz', sig: 4000, cat: 'roc', rarity: 'roc' },
+  { name: 'FPS-Handerz', sig: 3000, cat: 'fps', rarity: 'fps' },
+  { name: 'Salvage-Panel', sig: 2000, cat: 'salvage', rarity: 'salvage' },
+].map((s) => {
+  const max = Math.floor(30000 / s.sig);
+  return { ...s, max, multiples: Array.from({ length: max }, (_, i) => ({ n: i + 1, v: (i + 1) * s.sig })) };
+});
+
+const entries = [...ship, ...SPECIAL];
+
+const S = {
+  de: {
+    intro: 'Ein Cluster aus n Steinen zeigt n × die Basis-Signatur. Wie viele Steine ein Cluster maximal hat, hängt von der Seltenheit ab. Gib einen gescannten Wert ein — der Identifier sagt dir, welches Mineral in welcher Cluster-Größe das ist. Oder filtere nach Seltenheit/Typ.',
+    scanLabel: 'Gescannter Wert', scanPh: 'z.B. 6340 oder ~6340 (±10%)',
+    matches: 'Treffer', noMatch: 'Kein Mineral passt zu diesem Wert.', clear: 'Filter zurücksetzen',
+    rocks: 'Steine', base: 'Basis (1 Stein)',
+    src: 'Signaturen aus datamined 4.8.3-Spieldaten. Cluster = n × Basis-Signatur; echte In-Game-Werte streuen mit der Rock-Masse leicht (Scan als Näherung nutzen).',
+  },
+  en: {
+    intro: 'A cluster of n rocks shows n × the base signature. The max cluster size depends on rarity. Enter a scanned value — the identifier tells you which mineral at which cluster size it is. Or filter by rarity/type.',
+    scanLabel: 'Scanned value', scanPh: 'e.g. 6340 or ~6340 (±10%)',
+    matches: 'Matches', noMatch: 'No mineral matches this value.', clear: 'Reset filters',
+    rocks: 'rocks', base: 'base (1 rock)',
+    src: 'Signatures from datamined 4.8.3 game files. Cluster = n × base signature; real in-game values vary slightly with rock mass (use scan as a guide).',
+  },
+}[lang];
+
+const RARITY_LABEL: Record<string, { de: string; en: string }> = {
+  legendary: { de: 'Legendär', en: 'Legendary' }, epic: { de: 'Episch', en: 'Epic' },
+  rare: { de: 'Selten', en: 'Rare' }, uncommon: { de: 'Ungewöhnlich', en: 'Uncommon' }, common: { de: 'Häufig', en: 'Common' },
+  roc: { de: 'ROC / Boden', en: 'ROC / ground' }, fps: { de: 'FPS-Hand', en: 'FPS hand' }, salvage: { de: 'Salvage', en: 'Salvage' },
+};
+const FILTERS = [...RARITY_ORDER, 'roc', 'fps', 'salvage'];
+---
+<section class="sid" id="sid">
+  <p class="sid__intro">{S.intro}</p>
+
+  <div class="sid__bar">
+    <label class="sid__scan">
+      <span>{S.scanLabel}</span>
+      <input type="text" id="sid-scan" inputmode="numeric" placeholder={S.scanPh} autocomplete="off" />
+    </label>
+    <div class="sid__filters" role="group">
+      {FILTERS.map((f) => (
+        <button type="button" class="sid__fchip" data-rar={f} aria-pressed="true">{RARITY_LABEL[f]?.[lang] ?? f}</button>
+      ))}
+      <button type="button" class="sid__clear" id="sid-clear">{S.clear}</button>
+    </div>
+  </div>
+
+  <div class="sid__matchbox" id="sid-matchbox" hidden>
+    <span class="sid__mlabel">{S.matches}</span>
+    <div class="sid__matches" id="sid-matches"></div>
+  </div>
+
+  <div class="sid__list" id="sid-list">
+    {entries.map((e) => (
+      <article class="sid__row" data-rar={e.rarity} data-name={e.name.toLowerCase()}>
+        <div class="sid__rowhd">
+          <span class="sid__rname">{e.name}</span>
+          <span class="sid__rtag">{RARITY_LABEL[e.rarity]?.[lang] ?? e.rarity}</span>
+          <span class="sid__rbase">{e.sig.toLocaleString('en-US')} · {S.base}</span>
+        </div>
+        <div class="sid__mults">
+          {e.multiples.map((m) => (
+            <span class="sid__mult" data-v={m.v}><b>{m.n}×</b>{m.v.toLocaleString('en-US')}</span>
+          ))}
+        </div>
+      </article>
+    ))}
+  </div>
+  <p class="sid__empty" id="sid-empty" hidden>{S.noMatch}</p>
+  <p class="sid__src">{S.src}</p>
+
+  <script is:inline set:html={`window.__SID_T=${JSON.stringify({ matches: S.matches, rocks: S.rocks })};`}></script>
+  <script is:inline>
+    (function () {
+      var T = window.__SID_T || {};
+      var scan = document.getElementById('sid-scan');
+      var rows = [].slice.call(document.querySelectorAll('#sid-list .sid__row'));
+      var chips = [].slice.call(document.querySelectorAll('.sid__fchip'));
+      var matchbox = document.getElementById('sid-matchbox'), matchesEl = document.getElementById('sid-matches');
+      var emptyEl = document.getElementById('sid-empty');
+      var active = {}; chips.forEach(function (c) { active[c.getAttribute('data-rar')] = true; });
+
+      function parseScan(s) {
+        s = (s || '').trim();
+        if (!s) return null;
+        var tol = s.charAt(0) === '~' || s.charAt(0) === '≈';
+        var n = parseInt(s.replace(/[~≈\s,\.]/g, ''), 10);
+        if (!n || n <= 0) return null;
+        if (tol) return { lo: Math.round(n * 0.9), hi: Math.round(n * 1.1), v: n };
+        return { lo: n, hi: n, v: n };
+      }
+
+      function applyFilters() {
+        var shown = 0;
+        rows.forEach(function (r) {
+          var on = active[r.getAttribute('data-rar')];
+          r.hidden = !on;
+          if (on) shown++;
+        });
+      }
+
+      function render() {
+        applyFilters();
+        var q = parseScan(scan.value);
+        // reset highlight
+        var found = [];
+        rows.forEach(function (r) {
+          var rname = r.querySelector('.sid__rname').textContent;
+          [].forEach.call(r.querySelectorAll('.sid__mult'), function (m) {
+            var v = +m.getAttribute('data-v');
+            var hit = q && !r.hidden && v >= q.lo && v <= q.hi;
+            m.classList.toggle('hit', !!hit);
+            if (hit) found.push({ name: rname, n: m.querySelector('b').textContent, v: v });
+          });
+        });
+        if (q) {
+          matchbox.hidden = false;
+          if (found.length) {
+            found.sort(function (a, b) { return Math.abs(a.v - q.v) - Math.abs(b.v - q.v); });
+            matchesEl.innerHTML = found.map(function (f) {
+              return '<span class="sid__match"><b>' + f.name + '</b> ' + f.n + ' <em>' + f.v.toLocaleString('en-US') + '</em></span>';
+            }).join('');
+            emptyEl.hidden = true;
+          } else {
+            matchesEl.innerHTML = '';
+            emptyEl.hidden = false;
+          }
+        } else {
+          matchbox.hidden = true;
+          emptyEl.hidden = true;
+        }
+      }
+
+      chips.forEach(function (c) {
+        c.addEventListener('click', function () {
+          var r = c.getAttribute('data-rar');
+          active[r] = !active[r];
+          c.setAttribute('aria-pressed', String(active[r]));
+          render();
+        });
+      });
+      document.getElementById('sid-clear').addEventListener('click', function () {
+        chips.forEach(function (c) { active[c.getAttribute('data-rar')] = true; c.setAttribute('aria-pressed', 'true'); });
+        scan.value = ''; render();
+      });
+      scan.addEventListener('input', render);
+      render();
+    })();
+  </script>
+
+  <style is:inline>
+    .sid{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
+    .sid__intro{font-size:.92rem;color:var(--muted,#8fa3a0);line-height:1.55;max-width:80ch;margin:0 0 1.1rem}
+    .sid__bar{display:flex;flex-wrap:wrap;gap:.8rem 1.2rem;align-items:flex-end;margin-bottom:1rem}
+    .sid__scan{display:flex;flex-direction:column;gap:.3rem;flex:1 1 260px;min-width:0}
+    .sid__scan span{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.6rem;color:var(--accent,#2FBFA4)}
+    .sid__scan input{background:var(--bg-2,#181d1f);border:1px solid var(--line,rgba(47,191,164,.35));color:var(--text,#eaf2f1);padding:.6rem .8rem;border-radius:6px;font-size:1.05rem;font-family:var(--font-ui,inherit);font-variant-numeric:tabular-nums;letter-spacing:.03em}
+    .sid__scan input:focus{outline:2px solid var(--accent,#2FBFA4);outline-offset:1px}
+    .sid__filters{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+    .sid__fchip{background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.12));color:var(--muted,#8fa3a0);padding:.32rem .6rem;border-radius:50px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:.6rem;transition:color .15s,border-color .15s,background-color .15s}
+    .sid__fchip[aria-pressed="true"]{color:var(--ink,#0e1214);background:var(--accent,#2FBFA4);border-color:var(--accent,#2FBFA4)}
+    .sid__fchip[aria-pressed="false"]{opacity:.65}
+    .sid__clear{background:transparent;border:1px solid var(--line,rgba(47,191,164,.3));color:var(--muted,#8fa3a0);padding:.32rem .6rem;border-radius:50px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;font-size:.6rem;text-transform:uppercase}
+    .sid__clear:hover{border-color:var(--accent,#2FBFA4);color:var(--accent,#2FBFA4)}
+    .sid__matchbox{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .8rem;background:color-mix(in srgb,var(--accent,#2FBFA4) 10%,transparent);border:1px solid color-mix(in srgb,var(--accent,#2FBFA4) 40%,transparent);border-radius:6px;padding:.6rem .8rem;margin-bottom:1rem}
+    .sid__mlabel{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:.6rem;color:var(--accent,#2FBFA4)}
+    .sid__matches{display:flex;flex-wrap:wrap;gap:.4rem}
+    .sid__match{font-size:.85rem;color:var(--text,#eaf2f1);background:var(--bg-2,#181d1f);border:1px solid var(--line-soft,rgba(255,255,255,.1));border-radius:4px;padding:.2rem .5rem}
+    .sid__match b{color:#fff}.sid__match em{color:var(--accent,#2FBFA4);font-style:normal;font-variant-numeric:tabular-nums;font-weight:700}
+    .sid__list{display:flex;flex-direction:column;gap:.4rem}
+    .sid__row{--rar:#8fa3a0;border:1px solid var(--line-soft,rgba(255,255,255,.1));border-left:3px solid var(--rar);background:var(--bg-2,#181d1f);border-radius:5px;padding:.6rem .8rem}
+    .sid__row[hidden]{display:none}
+    .sid__row[data-rar="legendary"]{--rar:#e0564b}.sid__row[data-rar="epic"]{--rar:#b06ae0}
+    .sid__row[data-rar="rare"]{--rar:var(--accent-2,#E0A526)}.sid__row[data-rar="uncommon"]{--rar:var(--accent,#2FBFA4)}
+    .sid__row[data-rar="common"]{--rar:#8fa3a0}.sid__row[data-rar="roc"]{--rar:#66ddaa}.sid__row[data-rar="fps"]{--rar:#77bbdd}.sid__row[data-rar="salvage"]{--rar:#aa9977}
+    .sid__rowhd{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem .8rem;margin-bottom:.45rem}
+    .sid__rname{font-family:var(--font-display,inherit);font-weight:800;color:#fff;font-size:1rem}
+    .sid__rtag{font-family:var(--font-ui,inherit);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.56rem;color:var(--rar)}
+    .sid__rbase{margin-left:auto;font-size:.72rem;color:var(--muted,#8fa3a0);font-variant-numeric:tabular-nums}
+    .sid__mults{display:flex;flex-wrap:wrap;gap:.3rem}
+    .sid__mult{display:inline-flex;align-items:baseline;gap:.3rem;font-size:.82rem;color:var(--text,#eaf2f1);background:var(--surface,#1e2427);border:1px solid var(--line-soft,rgba(255,255,255,.08));border-radius:4px;padding:.18rem .5rem;font-variant-numeric:tabular-nums;transition:background-color .12s,border-color .12s}
+    .sid__mult b{color:var(--rar);font-family:var(--font-ui,inherit);font-weight:800;font-size:.72rem}
+    .sid__mult.hit{background:color-mix(in srgb,var(--accent,#2FBFA4) 22%,var(--surface,#1e2427));border-color:var(--accent,#2FBFA4);color:#fff;box-shadow:0 0 10px color-mix(in srgb,var(--accent,#2FBFA4) 35%,transparent)}
+    .sid__mult.hit b{color:#fff}
+    .sid__empty{color:var(--muted,#8fa3a0);font-size:.9rem;padding:.5rem 0}
+    .sid__src{font-size:.74rem;color:var(--muted,#8fa3a0);font-style:italic;margin:1rem 0 0;line-height:1.5}
+  </style>
+</section>
