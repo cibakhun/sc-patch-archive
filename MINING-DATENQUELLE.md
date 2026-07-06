@@ -104,6 +104,30 @@ Titanium 74 %, Quantainium 78 % = exakt scmdb.
    Die DATEN (System, Abundance, welche Erze) stimmen; nur das hübsche Label braucht
    dieses letzte Mapping.
 
-Fazit: Die komplette Mining-Datenschicht — Physik, Kompositionen/%, **und Fundorte** —
-ist nachweislich aus den eigenen Spieldateien extrahierbar. scmdb bleibt als
-bequemer, per `verify:mining` abgesicherter Cross-Check; nötig ist es nicht mehr.
+Fazit: Physik, Kompositionen/%, **Fundorte** und (via Localization) auch die
+**Gear-Namen** sind nachweislich aus den eigenen Spieldateien extrahierbar.
+
+### Client-vs-Server-Grenze (wichtig für „100 % self-sourced")
+
+Beim Voll-Extraktions-Versuch (2026-07-06) hat sich eine **harte technische Grenze**
+gezeigt — manche Felder liegen NICHT im Client (`Data.p4k`), sondern server-/
+economyseitig und sind daher lokal grundsätzlich nicht extrahierbar:
+
+| Feld | Im Client? | Quelle |
+|---|---|---|
+| Element-Physik (instability/resistance/window/explosion/cluster) | **Ja** | `mining/mineableelements` |
+| Kompositionen / `maxPercentage` (die „bis X %") | **Ja** | `mining/rockcompositionpresets` |
+| Fundorte / Deposit-Wahrscheinlichkeiten | **Ja** | `harvestable/providerpresets` → `harvestablepresets` → `mineablerock` |
+| scanSignature / groundScanSignature | **Ja** | `entities/mineable/*` (`SSCSignatureSystemBaseSignatureParams`) |
+| rarity | **Ja** | Komposition-Namensschema (common/…/legendary) |
+| Laser/Module/Gadgets — Stats + Namen | **Ja** | `entities/scitem/ships/weapons/mining_laser_*` + `Localization/english/global.ini` |
+| Mining-Global-Params | **Ja** | `mining/miningglobalparams` |
+| **Refinery-Yield-Profile (je Erz/Station)** | **NEIN** | Server-/Economy-Daten — kein Record im Client-DataCore |
+| **density** | **NEIN (nicht im Mining-Record)** | vermutlich Physik-Material-Lib / berechnet |
+| Planeten-/Mond-Anzeigenamen (hpp_stanton1→Hurston) | teils | Objekt-Container/Starmap (nicht reiner DataCore) |
+
+**Konsequenz:** „komplett self-sourced" heißt praktisch: **alles Client-Extrahierbare
+aus der eigenen `Data.p4k`**, plus die **2 server-seitigen Felder (Refinery-Yields,
+density)** aus dem per `verify:mining` byte-geprüften Snapshot — denn die stehen in
+KEINEM lokalen Spielclient. Das ist keine Bequemlichkeit, sondern die Natur der Daten
+(CIG hält die Refinery-Economy serverseitig).
