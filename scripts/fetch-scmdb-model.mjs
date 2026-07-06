@@ -28,8 +28,10 @@ async function getJSON(url) {
 async function main() {
   console.log('Versionen …');
   const versions = await getJSON(`${BASE}/versions.json`);
-  // bevorzugt die LIVE-Version (nicht PTU); sonst die erste.
-  const live = versions.find((v) => /-live/i.test(v.version)) || versions[0];
+  // Guard: NUR die LIVE-Version nutzen (nie PTU) — sonst abbrechen und den
+  // letzten guten Snapshot behalten.
+  const live = versions.find((v) => /-live/i.test(v.version));
+  if (!live) throw new Error(`Keine -live-Version bei scmdb (nur: ${versions.map((v) => v.version).join(', ')}). Abbruch — behalte letzten guten Snapshot.`);
   const ver = live.version;
   console.log(`  Modell-Version: ${ver}`);
 
