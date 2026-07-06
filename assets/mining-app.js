@@ -176,6 +176,7 @@
         var space = !!SPACE_TYPES[l.type];
         var meta = TYPE_LBL[l.type] || l.type || '';
         if (l.mining) meta += ' · ' + (MIN_LBL[l.mining] || l.mining);
+        if (l.points && l.points.length) meta += ' · 📍 ' + l.points.join(', ');
         // Hauptkennzahl = Fund-Chance (Balken + %), Nebenkennzahl = Erz-Anteil (Badge).
         html += '<div class="mm__locrow">'
           + '<span class="mm__lt' + (space ? ' mm__lt--space' : '') + '">' + typeIcon(l.type) + '</span>'
@@ -261,6 +262,7 @@
         html += '<div class="rl__bn">' + (b.space ? '✦ ' : '') + esc(b.body);
         if (b.best) html += '<span class="rl__best rl__best--' + esc(b.best.rarity || 'none') + '" title="' + esc(T.bestMatch) + '">★ ' + esc(b.best.name) + ' ~' + b.best.chance + '%</span>';
         html += '</div>';
+        if (b.points && b.points.length) html += '<div class="rl__pts" title="' + esc(T.pointsHint) + '">📍 ' + b.points.map(function (p) { return esc(p); }).join(', ') + '</div>';
         html += '<div class="rl__mins">';
         // nach Fund-Chance absteigend (bereits so in den Daten sortiert)
         mins.forEach(function (m) {

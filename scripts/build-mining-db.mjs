@@ -49,6 +49,19 @@ for (const e of Object.values(data.mineableElements || {})) {
 const SYS_ORDER = ['Stanton', 'Pyro', 'Nyx'];
 const TYPE_PREF = { belt: 0, cluster: 1, lagrange: 2, planet: 3, moon: 4, cave: 5, event: 6, special: 7 };
 const RARITY_RANK = { legendary: 0, epic: 1, rare: 2, uncommon: 3, common: 4 };
+// Reale L-Punkt-Zuordnung der abstrakten Lagrange-Spawn-Profile. Aus den Stanton-
+// Objekt-Containern (Data.p4k) abgeleitet; hier als kuratierte Map (deckt sich mit
+// scmdb). Ein Profil wird an mehreren physischen L-Punkten verwendet.
+const LOC_POINTS = {
+  'Lagrange A': ['HUR-L1', 'HUR-L4'],
+  'Lagrange B': ['ARC-L5', 'CRU-L4', 'MIC-L3'],
+  'Lagrange C': ['HUR-L5', 'MIC-L1', 'MIC-L2', 'MIC-L5', 'CRU-L3'],
+  'Lagrange D': ['ARC-L3', 'CRU-L5', 'MIC-L4'],
+  'Lagrange E': ['CRU-L1', 'CRU-L2', 'HUR-L3'],
+  'Lagrange F': ['HUR-L2', 'ARC-L1', 'ARC-L2', 'ARC-L4'],
+  'Lagrange G': ['CRU-L5', 'MIC-L4'],
+  'Lagrange (Occupied)': ['CRU-L5', 'MIC-L4'],
+};
 const locByMat = {};            // mat -> { locName -> {location,system,type,mining,abundance,chance,eff} }
 const matMethods = new Map();   // mat -> Set(method)
 const bodyFull = new Map();     // "system|location" -> {system, location, type, mats: Map(mat -> {chance,abundance,mining}) }
@@ -89,7 +102,7 @@ const topLocs = (mat, nPerSys = 5) => {
   for (const x of all) (bySys[x.system] ??= []).push(x);
   const picked = [];
   for (const sys of Object.keys(bySys)) picked.push(...bySys[sys].sort(cmp).slice(0, nPerSys));
-  return picked.sort(cmp).map((x) => ({ location: x.location, system: x.system, type: x.type, mining: x.mining, abundance: x.abundance, chance: x.chance }));
+  return picked.sort(cmp).map((x) => ({ location: x.location, system: x.system, type: x.type, mining: x.mining, abundance: x.abundance, chance: x.chance, ...(LOC_POINTS[x.location] ? { points: LOC_POINTS[x.location] } : {}) }));
 };
 
 // curated attrs from previous db (kind typo-fixed, weight, refine, code)
@@ -139,6 +152,7 @@ const bodies = [...bodyFull.values()]
     }
     return {
       system: b.system, body: b.location, type: b.type, space: SPACE_TYPES.has(b.type),
+      points: LOC_POINTS[b.location] || null,
       methods: [...new Set(mins.map((m) => m.mining))],
       best: best ? { name: best.name, chance: best.chance, rarity: best.rarity } : null,
       minerals: mins.map((m) => ({ name: m.name, chance: m.chance, abundance: m.abundance, mining: m.mining, rarity: m.rarity })),
