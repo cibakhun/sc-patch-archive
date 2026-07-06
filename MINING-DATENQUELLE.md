@@ -72,11 +72,38 @@ D. h. die Physik und die Fundort-Prozente kommen nachweislich byte-genau aus den
 Spieldateien — scmdb ist nur ein bequemer, verifizierbarer Umweg zu denselben Bytes.
 Ausgabe: `assets/mining-gamefiles.json` (gitignored, maschinenspezifisch).
 
-**Was der Eigen-Extraktor (noch) NICHT abdeckt — die Location-/Spawn-Ebene:**
-Welcher Belt/Planet welche Komposition mit welcher `relativeProbability` spawnt,
-steckt NICHT in `records/mining`, sondern im Objekt-Container-/Spawn-System der
-Welt-Daten (`environments/asteroid_fields` liefert nur die visuellen Asteroiden-
-Meshes, keine Erz-Wahrscheinlichkeiten). Diese Ebene sauber zu rekonstruieren ist
-ein größeres Projekt (mehrere Tage). Bis dahin liefert **scmdb** die Location-Ebene —
-und `npm run verify:mining` stellt sicher, dass sie 0-Diff zur LIVE-Quelle bleibt.
-Die angezeigten Fundort-% selbst (`maxPercentage`) sind wie oben game-verifiziert.
+### Location-/Fundort-Ebene: ebenfalls eigen extrahiert (`scripts/datamine-locations.mjs`)
+
+Auch WELCHER Belt/Planet welches Erz mit welcher Wahrscheinlichkeit führt, liegt
+vollständig im DataCore — über diese Kette:
+
+```
+HarvestableProviderPreset   (harvestable/providerpresets/system/<sys>/…  = die Location)
+  └ HarvestableElementGroup groupName="SpaceShip_Mineables"  (= scmdb "groups")
+      └ HarvestableElement harvestable=<GUID> relativeProbability=…   (= scmdb "deposits")
+          └ HarvestablePreset entityClass=<GUID>
+              └ MineableRock  MineableParams composition=<GUID> + scanSignature
+                  └ MineableComposition part.maxPercentage   (= die "bis X %")
+```
+
+`node scripts/datamine-locations.mjs "<extract>/Data"` löst diese Kette auf, rankt
+je Element (effectivePct = depositAnteil × maxPercentage, Top-5/System) und schreibt
+`assets/mining-locations-gamefiles.json`.
+
+**Validierung gegen scmdb: 23 von 25 Elementen liefern das identische
+(System+Abundance)-Fundort-Set** — d. h. die Fundorte sind aus den Spieldateien
+reproduziert. Beispiel Aaron Halo (rein aus dem Game): Beryl 88 %, Aslarite 83 %,
+Titanium 74 %, Quantainium 78 % = exakt scmdb.
+
+**Zwei bekannte Rest-Punkte (kein Blocker):**
+1. **1 Event-Location** „Breaker Stations Large Geode" (Nyx-Operation) liegt außerhalb
+   von `providerpresets/system/` (Event-/Mission-Config) → aktuell nicht mitgezogen;
+   betrifft nur Savrilium/Torite-Randeinträge.
+2. **Anzeigenamen der Planeten/Monde:** die Preset-Interna heißen `hpp_stanton1`
+   usw.; die Zuordnung zu „Hurston/Cellin/…" kommt aus der Starmap (Body → Provider).
+   Die DATEN (System, Abundance, welche Erze) stimmen; nur das hübsche Label braucht
+   dieses letzte Mapping.
+
+Fazit: Die komplette Mining-Datenschicht — Physik, Kompositionen/%, **und Fundorte** —
+ist nachweislich aus den eigenen Spieldateien extrahierbar. scmdb bleibt als
+bequemer, per `verify:mining` abgesicherter Cross-Check; nötig ist es nicht mehr.
