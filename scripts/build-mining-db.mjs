@@ -28,7 +28,10 @@ const SPACE_TYPES = new Set(['belt', 'cluster', 'lagrange']);
 const METHOD_RANK = { ship: 0, roc: 1, hand: 2, harvest: 3 };
 
 const versions = await getJSON(`${BASE}/versions.json`);
-const live = versions.find((v) => /-live/i.test(v.version)) || versions[0];
+// Guard: NUR die LIVE-Version nutzen (nie PTU). Lieber abbrechen als still PTU-
+// Daten einbauen — der letzte gute Snapshot in assets/ bleibt dann erhalten.
+const live = versions.find((v) => /-live/i.test(v.version));
+if (!live) throw new Error(`Keine -live-Version bei scmdb (nur: ${versions.map((v) => v.version).join(', ')}). Abbruch — behalte letzten guten Snapshot.`);
 const ver = live.version;
 const data = await getJSON(`${BASE}/mining_data-${ver}.json`);
 
