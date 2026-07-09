@@ -189,6 +189,24 @@ for (const f of htmlFiles) {
     }
   }
 
+  // --- Ambient-Videos: nur lokale Quellen, Datei muss existieren; statische
+  //     <video>-Tags (falls je eingeführt) müssen muted+playsinline sein ---
+  for (const m of markup.matchAll(/data-bgvid="([^"]+)"/g)) {
+    const src = m[1];
+    if (!src.startsWith('/assets/')) linkErrors.push(`${page}: data-bgvid extern/ungültig (${src})`);
+    else if (!fileSet.has(src)) linkErrors.push(`${page}: data-bgvid-Datei fehlt (${src})`);
+    // hero-video.js liefert Chromium/Firefox die WebM-Schwester — muss existieren
+    const webm = src.replace(/\.mp4$/, '.webm');
+    if (webm !== src && !fileSet.has(webm)) linkErrors.push(`${page}: WebM-Variante fehlt (${webm})`);
+  }
+  for (const m of markup.matchAll(/<video\b[^>]*>/g)) {
+    const tag = m[0];
+    const src = /src="([^"]*)"/.exec(tag)?.[1];
+    if (src && /^https?:/.test(src)) linkErrors.push(`${page}: <video> mit externer Quelle (${src})`);
+    if (!/\bmuted\b/.test(tag)) a11yIssues.push(`${page}: <video> ohne muted`);
+    if (!/\bplaysinline\b/.test(tag)) a11yIssues.push(`${page}: <video> ohne playsinline`);
+  }
+
   // --- Sprachumschalter-Ziel existiert? (hreflang/alternate) ---
   // Basis-Präfix-Widerspruch (SITE.url mit Pfad vs. base-lose Root-Links) wird
   // als EIN aggregierter Befund gezählt, nicht je Seite.
