@@ -62,13 +62,17 @@ const spine = d.patches
 const facts = buildFacts(d, lang).filter((f) => !['cargo', 'ore', 'dims'].includes(f.key ?? ''));
 const armament = buildArmament(d, lang);
 const desc = vDesc(d, lang);
+// FleetYards liefert vereinzelt "<= PLACEHOLDER =>" als Komponentennamen
+// (z. B. Javelin, ROC-DS) — solche Einträge tragen keine Information und
+// werden ausgefiltert statt gerendert.
+const realName = (it: { name: string }) => !/placeholder|<=|=>|\bTBD\b/i.test(it.name ?? '');
 const slots: [string, { name: string; size: number | null; count: number }[]][] = (
   [
-    [t('ship.slot.generators'), d.components?.powerPlants ?? []],
-    [t('ship.slot.shields'), d.components?.shields ?? []],
-    [t('ship.slot.coolers'), d.components?.coolers ?? []],
-    [t('ship.slot.quantum'), d.components?.quantumDrives ?? []],
-    [t('ship.slot.radar'), d.components?.radars ?? []],
+    [t('ship.slot.generators'), (d.components?.powerPlants ?? []).filter(realName)],
+    [t('ship.slot.shields'), (d.components?.shields ?? []).filter(realName)],
+    [t('ship.slot.coolers'), (d.components?.coolers ?? []).filter(realName)],
+    [t('ship.slot.quantum'), (d.components?.quantumDrives ?? []).filter(realName)],
+    [t('ship.slot.radar'), (d.components?.radars ?? []).filter(realName)],
   ] as [string, { name: string; size: number | null; count: number }[]][]
 ).filter(([, a]) => a.length > 0);
 

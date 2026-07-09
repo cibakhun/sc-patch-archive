@@ -81,22 +81,22 @@ const ships = buildMiningShips('en');
 
   <TopicFacts topicSlug="mining" />
 
-  <div class="mn-sec-h reveal"><span class="num">01</span><h2>Mineral database</h2></div>
+  <div class="mn-sec-h reveal" id="db"><span class="num">01</span><h2>Mineral database</h2></div>
 
   <MiningApp lang="en" />
 
-  <div class="mn-sec-h reveal"><span class="num">02</span><h2>Scan signature identifier</h2></div>
+  <div class="mn-sec-h reveal" id="signatures"><span class="num">02</span><h2>Scan signature identifier</h2></div>
 
   <SignatureIdentifier lang="en" />
 
-  <div class="mn-sec-h reveal"><span class="num">03</span><h2>Fracturing calculator</h2></div>
+  <div class="mn-sec-h reveal" id="fracturing"><span class="num">03</span><h2>Fracturing calculator</h2></div>
 
   <FracturingCalc lang="en" />
 
-  <div class="mn-sec-h reveal"><span class="num">04</span><h2>Refinery Finder</h2></div>
+  <div class="mn-sec-h reveal" id="refinery"><span class="num">04</span><h2>Refinery Finder</h2></div>
   <RefineryFinder lang="en" />
 
-  <div class="mn-sec-h reveal"><span class="num">05</span><h2>Mining ships</h2></div>
+  <div class="mn-sec-h reveal" id="ships"><span class="num">05</span><h2>Mining ships</h2></div>
   <div class="mn-wrap">
     <div class="sh-grid reveal">
       {ships.map((s) => (
