@@ -1,9 +1,22 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
-import HomeLaunchpad from '../components/HomeLaunchpad.astro';
 import { getCollection } from 'astro:content';
 import { SITE } from '../consts';
+// Ehrliche Kennzahlen direkt aus den Datenbanken (Build-Zeit, kein Runtime-Fetch)
+import ITEMS_DB from '../../assets/universal-items.json';
+import CRAFT_DB from '../../assets/crafting-db.json';
+import MINING_DB from '../../assets/mining-db.json';
+import TRADES from '../data/wikelo-trades.json';
+import VEHICLES from '../data/vehicles.json';
+
+const nItems = ITEMS_DB.counts.items;
+const nSourced = ITEMS_DB.counts.withObtain;
+const nBlueprints = CRAFT_DB.counts.blueprints;
+const nMinerals = MINING_DB.minerals.length;
+const nTrades = TRADES.length;
+const nShips = VEHICLES.vehicles.length;
+const fmt = (n: number) => n.toLocaleString('de-DE');
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
@@ -60,8 +73,24 @@ for (const t of allTopics) {
   g.topics.push(t);
 }
 ---
-<Layout title={"Star Citizen Patch-Archiv · 4.0 → 4.8.2"} description={"Star Citizen Patch-Archiv: alle Patches von Alpha 4.0.0 bis 4.8.2 dokumentiert — mit Schiffs-Datenbank, Evolution-Matrix, Mining-, Crafting- und Item-Daten. Game-akkurat, zweisprachig, ein Fan-Projekt."} themeColor="#05070d" footer={true} translated={true}>
+<Layout title={"VerseBase — das Star-Citizen-Kompendium"} description={"VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder mit Preisen & Fundorten, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv der Alpha-4-Ära. Game-akkurat, zweisprachig."} themeColor="#05070d" footer={true} translated={true}>
 <script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
+<style is:inline>
+/* --- VerseBase-Hero: Terminal-Suche + Tool-Grid --- */
+.hero-search{display:flex;align-items:center;gap:.8rem;width:100%;max-width:640px;margin:1.6rem 0 0;padding:.95rem 1.15rem;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:8px;color:var(--muted);font-family:var(--font-ui);font-size:1rem;cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s}
+.hero-search:hover,.hero-search:focus-visible{border-color:var(--accent);box-shadow:0 0 18px rgba(45,212,255,.18);outline:none}
+.hero-search .hs__prompt{color:var(--accent);font-weight:700;flex:none}
+.hero-search .hs__hint{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.hero-search .hs__kbd{display:flex;gap:.25rem;flex:none}
+.hero-search kbd{font-family:var(--font-ui);font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:.1rem .4rem;background:rgba(255,255,255,.04)}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.9rem;margin-top:2rem;width:100%}
+.tcard{--c:var(--accent);position:relative;display:flex;flex-direction:column;gap:.45rem;padding:1.1rem 1.2rem;background:var(--surface);border:1px solid var(--line);border-top:2px solid var(--c);border-radius:6px;transition:transform .22s,border-color .22s,box-shadow .22s}
+.tcard:hover{transform:translateY(-3px);border-color:var(--c);box-shadow:0 12px 32px -14px var(--c)}
+.tcard b{font-family:var(--font-display);font-weight:800;font-size:1.08rem;color:#fff}
+.tcard p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5;flex:1}
+.tcard .tgo{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.7rem;color:var(--c)}
+@media(max-width:640px){.tgrid{grid-template-columns:1fr 1fr}.tcard p{display:none}.tcard{gap:.3rem;padding:.85rem .9rem}}
+</style>
 <style is:inline>
 
 :root{
@@ -190,9 +219,13 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
   <canvas id="stars" aria-hidden="true"></canvas>
   <div class="hero__glow" aria-hidden="true"></div>
   <div class="hero__inner">
-    <h1>Patch-Archiv<small>Star Citizen 4.0 → 4.8.2</small></h1>
-    <p class="vp">Das deutsche Archiv der Alpha-4-Ära: alle {patchCount} Patches dokumentiert — mit Daten-Dossiers, {topicCount} Themen-Deep-Dives und den Trailern jeder Version.</p>
-    <div class="hero-rule" aria-hidden="true"></div>
+    <h1>VerseBase<small>Das Star-Citizen-Kompendium · Alpha {latest.data.version}</small></h1>
+    <p class="vp">Item-Preise & Fundorte, Mining-Daten, Blueprints, Wikelo-Trades, Schiffe — und das komplette Patch-Archiv der Alpha-4-Ära. Game-akkurat, aus den Spieldaten.</p>
+    <button class="hero-search" type="button" data-scs-open aria-label="Suche öffnen">
+      <span class="hs__prompt" aria-hidden="true">&gt;_</span>
+      <span class="hs__hint">Items, Schiffe, Patches, Themen durchsuchen…</span>
+      <span class="hs__kbd" aria-hidden="true"><kbd>Strg</kbd><kbd>K</kbd></span>
+    </button>
     <div class="hero-lower">
       <a class="fresh" href={`/patches/sc-${latest.id}.html`}>
         <span class="fresh__dot" aria-hidden="true"></span>
@@ -200,12 +233,44 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
         <span class="fresh__txt">Alpha {latest.data.version} · {latest.data.dateDisplay} — {latest.data.tagline}</span>
       </a>
       <div class="stat-row">
+        <div class="stat"><div class="n">{fmt(nItems)}</div><div class="l">Items</div></div>
+        <div class="stat"><div class="n">{fmt(nBlueprints)}</div><div class="l">Blueprints</div></div>
+        <div class="stat"><div class="n">{nShips}</div><div class="l">Schiffe</div></div>
         <div class="stat"><div class="n">{patchCount}</div><div class="l">Patches</div></div>
-        <div class="stat"><div class="n">{topicCount}</div><div class="l">Deep-Dives</div></div>
-        <div class="stat"><div class="n">3</div><div class="l">Sternsysteme</div></div>
       </div>
     </div>
-    <HomeLaunchpad lang="de" />
+    <div class="tgrid" aria-label="Werkzeuge & Datenbanken">
+      <a class="tcard" style="--c:#FF5E1A" href="/item-finder.html">
+        <b>Item Finder</b>
+        <p>{fmt(nItems)} Items aus den Spieldateien — {fmt(nSourced)} mit Kaufpreisen, Fundorten und Loot-Guides.</p>
+        <span class="tgo">Öffnen →</span>
+      </a>
+      <a class="tcard" style="--c:#2dd4ff" href="/topics/mining.html">
+        <b>Mining</b>
+        <p>{nMinerals} Mineralien game-genau — plus Signatur-Scanner, Fracturing-Rechner und Refinery-Finder.</p>
+        <span class="tgo">Öffnen →</span>
+      </a>
+      <a class="tcard" style="--c:#e8771a" href="/topics/crafting.html">
+        <b>Crafting & Blueprints</b>
+        <p>{fmt(nBlueprints)} Blueprints mit Zutaten, Item-Werten, Qualitäts-Simulation und Fabricator-Planer.</p>
+        <span class="tgo">Öffnen →</span>
+      </a>
+      <a class="tcard" style="--c:#1FB8A6" href="/topics/wikelo-emporium.html">
+        <b>Wikelo's Emporium</b>
+        <p>Alle {nTrades} Trades des Banu-Händlers — Materialien, Favor und Belohnungen im Überblick.</p>
+        <span class="tgo">Öffnen →</span>
+      </a>
+      <a class="tcard" style="--c:#6ea8ff" href="/schiffe.html">
+        <b>Schiffs-Datenbank</b>
+        <p>{nShips} Schiffe & Fahrzeuge mit Datenblättern, Komponenten-Loadouts und Ingame-Preisen.</p>
+        <span class="tgo">Öffnen →</span>
+      </a>
+      <a class="tcard" style="--c:#d4af37" href="/evolution.html">
+        <b>Evolution-Matrix</b>
+        <p>Wie sich jedes Spielsystem über {patchCount} Patches entwickelt hat — Systeme × Versionen.</p>
+        <span class="tgo">Öffnen →</span>
+      </a>
+    </div>
   </div>
   <div class="scrollcue" aria-hidden="true">Archiv ↓</div>
 </header>

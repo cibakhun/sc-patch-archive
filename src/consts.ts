@@ -6,9 +6,9 @@
 // Pfad-Präfix tragen — beim Wechsel des Deploy-Ziels nur die Domain hier und
 // `site` in astro.config.mjs anpassen (canonical/hreflang/og hängen daran).
 export const SITE = {
-  name: 'Star Citizen Patch-Archiv',
+  name: 'VerseBase',
   url: 'https://cibakhun.github.io',
   defaultDescription:
-    'Star Citizen Patch-Archiv: alle Patches von Alpha 4.0.0 bis 4.8.2 mit Schiffs-Datenbank, Evolution-Matrix, Mining-, Crafting- und Item-Daten — game-akkurat, zweisprachig, ein Fan-Projekt.',
+    'VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv von Alpha 4.0.0 bis 4.8.2. Game-akkurat, zweisprachig, ein Fan-Projekt.',
   locale: 'de',
 } as const;

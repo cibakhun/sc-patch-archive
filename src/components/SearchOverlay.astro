@@ -496,8 +496,10 @@ const t = useTranslations(lang);
     root.querySelectorAll('[data-scs-close]').forEach(function (el) {
       el.addEventListener('click', close);
     });
-    document.querySelectorAll('[data-scs-open]').forEach(function (el) {
-      el.addEventListener('click', open);
+    // Delegation statt Direktbindung: Trigger dürfen auch NACH diesem Script
+    // im DOM stehen (z. B. das Hero-Suchfeld der Startseite unter der Nav).
+    document.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('[data-scs-open]')) open();
     });
   })();
 </script>

@@ -1,10 +1,23 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
-import HomeLaunchpad from '../../components/HomeLaunchpad.astro';
 import { getCollection } from 'astro:content';
 import { SITE } from '../../consts';
 import { mergePatchEn } from '../../i18n/patchText';
+// Honest key figures straight from the databases (build time, no runtime fetch)
+import ITEMS_DB from '../../../assets/universal-items.json';
+import CRAFT_DB from '../../../assets/crafting-db.json';
+import MINING_DB from '../../../assets/mining-db.json';
+import TRADES from '../../data/wikelo-trades.json';
+import VEHICLES from '../../data/vehicles.json';
+
+const nItems = ITEMS_DB.counts.items;
+const nSourced = ITEMS_DB.counts.withObtain;
+const nBlueprints = CRAFT_DB.counts.blueprints;
+const nMinerals = MINING_DB.minerals.length;
+const nTrades = TRADES.length;
+const nShips = VEHICLES.vehicles.length;
+const fmt = (n: number) => n.toLocaleString('en-US');
 
 const patches = (await getCollection('patches')).sort((a, b) => a.data.date.localeCompare(b.data.date)).map((p) => ({ ...p, data: mergePatchEn(p.id, p.data, 'en') }));
 
@@ -59,8 +72,24 @@ for (const t of allTopics) {
   g.topics.push(t);
 }
 ---
-<Layout title={"Star Citizen Patch Archive · 4.0 → 4.8.2"} description={"Star Citizen Patch Archive: every patch from Alpha 4.0.0 to 4.8.2 documented — with a ship database, evolution matrix, mining, crafting and item data. Game-accurate, bilingual, a fan project."} themeColor="#05070d" footer={true} translated={true}>
+<Layout title={"VerseBase — the Star Citizen compendium"} description={"VerseBase — the unofficial Star Citizen compendium: item finder with prices & locations, mining tools, crafting database, Wikelo trades, ship database and the complete patch archive of the Alpha 4 era. Game-accurate, bilingual."} themeColor="#05070d" footer={true} translated={true}>
 <script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
+<style is:inline>
+/* --- VerseBase hero: terminal search + tool grid --- */
+.hero-search{display:flex;align-items:center;gap:.8rem;width:100%;max-width:640px;margin:1.6rem 0 0;padding:.95rem 1.15rem;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:8px;color:var(--muted);font-family:var(--font-ui);font-size:1rem;cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s}
+.hero-search:hover,.hero-search:focus-visible{border-color:var(--accent);box-shadow:0 0 18px rgba(45,212,255,.18);outline:none}
+.hero-search .hs__prompt{color:var(--accent);font-weight:700;flex:none}
+.hero-search .hs__hint{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.hero-search .hs__kbd{display:flex;gap:.25rem;flex:none}
+.hero-search kbd{font-family:var(--font-ui);font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:.1rem .4rem;background:rgba(255,255,255,.04)}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.9rem;margin-top:2rem;width:100%}
+.tcard{--c:var(--accent);position:relative;display:flex;flex-direction:column;gap:.45rem;padding:1.1rem 1.2rem;background:var(--surface);border:1px solid var(--line);border-top:2px solid var(--c);border-radius:6px;transition:transform .22s,border-color .22s,box-shadow .22s}
+.tcard:hover{transform:translateY(-3px);border-color:var(--c);box-shadow:0 12px 32px -14px var(--c)}
+.tcard b{font-family:var(--font-display);font-weight:800;font-size:1.08rem;color:#fff}
+.tcard p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5;flex:1}
+.tcard .tgo{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.7rem;color:var(--c)}
+@media(max-width:640px){.tgrid{grid-template-columns:1fr 1fr}.tcard p{display:none}.tcard{gap:.3rem;padding:.85rem .9rem}}
+</style>
 <style is:inline>
 
 :root{
@@ -189,9 +218,13 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
   <canvas id="stars" aria-hidden="true"></canvas>
   <div class="hero__glow" aria-hidden="true"></div>
   <div class="hero__inner">
-    <h1>Patch Archive<small>Star Citizen 4.0 → 4.8.2</small></h1>
-    <p class="vp">The archive of the Alpha 4 era: all {patchCount} patches documented — with data dossiers, {topicCount} topic deep dives and the trailers for every version.</p>
-    <div class="hero-rule" aria-hidden="true"></div>
+    <h1>VerseBase<small>The Star Citizen compendium · Alpha {latest.data.version}</small></h1>
+    <p class="vp">Item prices & locations, mining data, blueprints, Wikelo trades, ships — and the complete patch archive of the Alpha 4 era. Game-accurate, from the game data.</p>
+    <button class="hero-search" type="button" data-scs-open aria-label="Open search">
+      <span class="hs__prompt" aria-hidden="true">&gt;_</span>
+      <span class="hs__hint">Search items, ships, patches, topics…</span>
+      <span class="hs__kbd" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+    </button>
     <div class="hero-lower">
       <a class="fresh" href={`/en/patches/sc-${latest.id}.html`}>
         <span class="fresh__dot" aria-hidden="true"></span>
@@ -199,12 +232,44 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
         <span class="fresh__txt">Alpha {latest.data.version} · {latest.data.dateDisplay} — {latest.data.tagline}</span>
       </a>
       <div class="stat-row">
+        <div class="stat"><div class="n">{fmt(nItems)}</div><div class="l">Items</div></div>
+        <div class="stat"><div class="n">{fmt(nBlueprints)}</div><div class="l">Blueprints</div></div>
+        <div class="stat"><div class="n">{nShips}</div><div class="l">Ships</div></div>
         <div class="stat"><div class="n">{patchCount}</div><div class="l">Patches</div></div>
-        <div class="stat"><div class="n">{topicCount}</div><div class="l">Deep-Dives</div></div>
-        <div class="stat"><div class="n">3</div><div class="l">Star systems</div></div>
       </div>
     </div>
-    <HomeLaunchpad lang="en" />
+    <div class="tgrid" aria-label="Tools & databases">
+      <a class="tcard" style="--c:#FF5E1A" href="/en/item-finder.html">
+        <b>Item Finder</b>
+        <p>{fmt(nItems)} items from the game files — {fmt(nSourced)} with buy prices, locations and loot guides.</p>
+        <span class="tgo">Open →</span>
+      </a>
+      <a class="tcard" style="--c:#2dd4ff" href="/en/topics/mining.html">
+        <b>Mining</b>
+        <p>{nMinerals} minerals, game-accurate — plus signature scanner, fracturing calculator and refinery finder.</p>
+        <span class="tgo">Open →</span>
+      </a>
+      <a class="tcard" style="--c:#e8771a" href="/en/topics/crafting.html">
+        <b>Crafting & Blueprints</b>
+        <p>{fmt(nBlueprints)} blueprints with ingredients, item stats, quality simulation and a fabricator planner.</p>
+        <span class="tgo">Open →</span>
+      </a>
+      <a class="tcard" style="--c:#1FB8A6" href="/en/topics/wikelo-emporium.html">
+        <b>Wikelo's Emporium</b>
+        <p>All {nTrades} trades of the Banu merchant — materials, favor and rewards at a glance.</p>
+        <span class="tgo">Open →</span>
+      </a>
+      <a class="tcard" style="--c:#6ea8ff" href="/en/schiffe.html">
+        <b>Ship database</b>
+        <p>{nShips} ships & vehicles with data sheets, component loadouts and in-game prices.</p>
+        <span class="tgo">Open →</span>
+      </a>
+      <a class="tcard" style="--c:#d4af37" href="/en/evolution.html">
+        <b>Evolution matrix</b>
+        <p>How every game system evolved across {patchCount} patches — systems × versions.</p>
+        <span class="tgo">Open →</span>
+      </a>
+    </div>
   </div>
   <div class="scrollcue" aria-hidden="true">Archive ↓</div>
 </header>

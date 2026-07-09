@@ -11,7 +11,7 @@ const entry = await getEntry('patches', '4-0-2');
 if (!entry) throw new Error('Patch-Daten 4-0-2 fehlen in src/data/patches/');
 const patch = mergePatchEn('4-0-2', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.0.2 — Supply or Die | SC Patch Archive"} description={"Alpha 4.0.2 “Supply or Die”: Pyro's supply war — Citizens for Prosperity vs. the Headhunters, PvPvE depot battles over the key resource Detatrine, with the Ravager-212 as the event reward."} themeColor="#1a1d20" ogType="article" ogImage="/assets/t-pyro-3.jpg" translated={true}>
+<Layout title={"Star Citizen Alpha 4.0.2 — Supply or Die | VerseBase"} description={"Alpha 4.0.2 “Supply or Die”: Pyro's supply war — Citizens for Prosperity vs. the Headhunters, PvPvE depot battles over the key resource Detatrine, with the Ravager-212 as the event reward."} themeColor="#1a1d20" ogType="article" ogImage="/assets/t-pyro-3.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/t-pyro-3.jpg" lang="en" />
 <style is:inline>
 
