@@ -1,702 +1,432 @@
+// Interaktions-Tests des Universal Item Finder gegen ein deterministisches
+// Fixture im echten Schema (obtain[]-Bezugsquellen). Läuft im Mock-DOM gegen
+// das KANONISCHE Script assets/item-finder-app.js.
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import path from 'node:path';
 import { setupMockDOM } from './helpers/dom-mock.js';
 
-const htmlPath = path.resolve('dist/item-finder.html');
-const jsonDbPath = path.resolve('public/assets/universal-items.json');
-const scriptPath = path.resolve('public/assets/item-finder-app.js');
+const scriptPath = path.resolve('assets/item-finder-app.js');
 
-describe('Universal Item Finder Interactive Behavior', () => {
+// ---- Fixture: 6 handverlesene Items + optionale Katalog-Füller für Pagination ----
+function makeDb(fillerCount = 0) {
+  const items = [
+    {
+      id: 'alpha-rifle', name: 'Alpha Rifle', category: 'Weapons / Rifle',
+      obtain: [
+        { kind: 'shop', loc: 'Live Fire Weapons - Area 18', price: 1000 },
+        { kind: 'loot', loc: 'Security Bunker' },
+      ],
+    },
+    {
+      id: 'beta-helmet', name: 'Beta Helmet', category: 'Armour / Combat / Light',
+      obtain: [
+        { kind: 'shop', loc: 'Armor Shop - Lorville', price: 500 },
+        { kind: 'shop', loc: 'Cubby Blast - Area 18', price: 800 },
+      ],
+    },
+    {
+      id: 'gamma-jacket', name: 'Gamma Jacket', category: 'Clothing',
+      obtain: [{ kind: 'loot', loc: 'Executive Lockers' }],
+      guide: 'Nur in Executive-Spinden im Verwaltungstrakt zu finden.',
+    },
+    { id: 'delta-relic', name: 'Delta Relic', category: 'Other', obtain: [] },
+    {
+      id: 'epsilon-runner', name: 'Epsilon Runner', category: 'Vehicle',
+      obtain: [{ kind: 'vehicle', loc: 'Astro Armada - Area 18', price: 1500000 }],
+    },
+    { id: 'quote-co', name: 'Weird "Quoted" & Co', category: 'Other', obtain: [] },
+  ];
+  for (let i = 1; i <= fillerCount; i++) {
+    items.push({
+      id: `zz-filler-${String(i).padStart(3, '0')}`,
+      name: `Zz Filler ${String(i).padStart(3, '0')}`,
+      category: 'Other',
+      obtain: [],
+    });
+  }
+  const withObtain = items.filter((i) => i.obtain.length).length;
+  return {
+    generator: 'scripts/build-universal-db.mjs',
+    generatedAt: '2026-07-09',
+    note: 'Fixture',
+    sources: {},
+    counts: { items: items.length, withObtain, catalogOnly: items.length - withObtain },
+    items,
+  };
+}
+
+const CRAFT_FIXTURE = {
+  blueprints: [
+    {
+      name: 'Alpha Rifle', craft_time_seconds: 90, tiers: 2,
+      ingredients: [{ slot: 'Metall', options: [{ name: 'Iron', quantity_scu: 2 }] }],
+    },
+  ],
+};
+
+function cards(dom) {
+  return dom.elements['uif-results-grid'].querySelectorAll('.uif-card');
+}
+function cardTitles(dom) {
+  return cards(dom).map((c) => c.querySelector('.uif-card-title').textContent);
+}
+
+describe('Laden & Grundzustand', () => {
   let dom;
-
   beforeEach(async () => {
-    // Set up mock DOM and load standard mock database
-    dom = await setupMockDOM(htmlPath, jsonDbPath);
+    dom = await setupMockDOM({ db: makeDb(), craft: CRAFT_FIXTURE });
     await dom.runScript(scriptPath);
     await dom.wait(10);
   });
 
-  // --- 1. SEARCH BEHAVIOR (15 Tests) ---
-  describe('Search Input Behavior', () => {
-    test('1. Empty search query displays all items', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = '';
-      const grid = dom.elements['uif-results-grid'];
-      const items = grid.querySelectorAll('.uif-item-card');
-      assert.strictEqual(items.length, Math.min(60, dom.dbData.length));
-    });
-
-    test('2. Search matching single item', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      const firstItemName = dom.dbData[0].name;
-      searchInput.value = firstItemName;
-      const grid = dom.elements['uif-results-grid'];
-      const items = grid.querySelectorAll('.uif-item-card');
-      assert.ok(items.length > 0);
-      assert.ok(items[0].textContent.includes(firstItemName));
-    });
-
-    test('3. Search matching multiple items', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Thruster';
-      const grid = dom.elements['uif-results-grid'];
-      const items = grid.querySelectorAll('.uif-item-card');
-      assert.ok(items.length > 0);
-      items.forEach(item => {
-        const textMatch = item.textContent.toLowerCase().includes('thruster');
-        const idMatch = item.getAttribute('data-id')?.toLowerCase().includes('thruster');
-        const catMatch = item.getAttribute('data-category')?.toLowerCase().includes('thruster');
-        assert.ok(textMatch || idMatch || catMatch);
-      });
-    });
-
-    test('4. Search is case-insensitive', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'fixed mav thruster';
-      const grid = dom.elements['uif-results-grid'];
-      const items = grid.querySelectorAll('.uif-item-card');
-      assert.ok(items.length > 0);
-      assert.ok(items[0].textContent.toLowerCase().includes('fixed mav thruster'));
-    });
-
-    test('5. Search trims leading and trailing whitespace', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = '  Fixed Mav Thruster  ';
-      const grid = dom.elements['uif-results-grid'];
-      const items = grid.querySelectorAll('.uif-item-card');
-      assert.ok(items.length > 0);
-    });
-
-    test('6. Search matches partial terms', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Mav';
-      const grid = dom.elements['uif-results-grid'];
-      const items = grid.querySelectorAll('.uif-item-card');
-      assert.ok(items.length > 0);
-    });
-
-    test('7. Search for non-existent item shows "No items found"', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'XYZ_NON_EXISTENT_ITEM_123';
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(grid.textContent.includes('No matching items found'));
-    });
-
-    test('8. Search matches item ID', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      const targetId = dom.dbData[0].id;
-      searchInput.value = targetId;
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(grid.textContent.includes(dom.dbData[0].name));
-    });
-
-    test('9. Search query can match category name', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Utility';
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(grid.children.length > 0);
-    });
-
-    test('10. Search query can match location name', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'GrimHEX';
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(grid.children.length > 0);
-    });
-
-    test('11. Clearing search input restores full item list', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Fixed Mav';
-      searchInput.value = '';
-      const grid = dom.elements['uif-results-grid'];
-      const items = grid.querySelectorAll('.uif-item-card');
-      assert.strictEqual(items.length, Math.min(60, dom.dbData.length));
-    });
-
-    test('12. Search input handles special characters correctly', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = "Luck's";
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(grid.children.length > 0);
-    });
-
-    test('13. Stats counter updates to match searched count', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Fixed Mav';
-      const count = dom.document.getElementById('uif-stats-count');
-      assert.ok(count.textContent.includes('items'));
-    });
-
-    test('14. Fast typing in search input is handled correctly', async () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'F';
-      searchInput.value = 'Fi';
-      searchInput.value = 'Fix';
-      searchInput.value = 'Fixed';
-      await dom.wait(5);
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(grid.children.length > 0);
-    });
-
-    test('15. Search input preserves search text after category switch', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Thruster';
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) {
-        firstCat.click();
-      }
-      assert.strictEqual(searchInput.value, 'Thruster');
-    });
+  test('1. Alle Fixture-Items werden gerendert', () => {
+    assert.strictEqual(cards(dom).length, 6);
   });
 
-  // --- 2. SORT BEHAVIOR (15 Tests) ---
-  describe('Sort Selection Behavior', () => {
-    test('16. Default sorting is Name (A-Z)', () => {
-      const sortSelect = dom.elements['uif-sort-select'];
-      assert.strictEqual(sortSelect.value, 'name_asc');
-      const grid = dom.elements['uif-results-grid'];
-      const titles = grid.querySelectorAll('h4').map(el => el.textContent);
-      const sortedTitles = [...titles].sort((a, b) => a.localeCompare(b));
-      assert.deepStrictEqual(titles, sortedTitles);
-    });
-
-    test('17. Sort by Price (Low-High)', () => {
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_asc';
-      sortSelect.dispatchEvent('change');
-      const grid = dom.elements['uif-results-grid'];
-      const prices = grid.querySelectorAll('.uif-price').map(el => parseFloat(el.textContent));
-      const sortedPrices = [...prices].sort((a, b) => a - b);
-      assert.deepStrictEqual(prices, sortedPrices);
-    });
-
-    test('18. Sort by Price (High-Low)', () => {
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_desc';
-      sortSelect.dispatchEvent('change');
-      const grid = dom.elements['uif-results-grid'];
-      const prices = grid.querySelectorAll('.uif-price').map(el => parseFloat(el.textContent));
-      const sortedPrices = [...prices].sort((a, b) => b - a);
-      assert.deepStrictEqual(prices, sortedPrices);
-    });
-
-    test('19. Sorting maintains active search results', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Fixed Mav';
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_asc';
-      sortSelect.dispatchEvent('change');
-      const grid = dom.elements['uif-results-grid'];
-      const items = grid.querySelectorAll('.uif-item-card');
-      items.forEach(item => {
-        assert.ok(item.textContent.includes('Fixed Mav'));
-      });
-    });
-
-    test('20. Sorting maintains active category filter', () => {
-      // Simulate active category filter
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) firstCat.click();
-      
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_desc';
-      sortSelect.dispatchEvent('change');
-      
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(grid.children.length > 0);
-    });
-
-    test('21. Alphabetical sorting Z-A works if option added', () => {
-      // If we manually change order or verify sort options
-      const sortSelect = dom.elements['uif-sort-select'];
-      assert.ok(sortSelect.querySelector('option[value="name_asc"]'));
-    });
-
-    test('22. Sort options are correctly populated in HTML select element', () => {
-      const sortSelect = dom.elements['uif-sort-select'];
-      const options = sortSelect.querySelectorAll('option');
-      assert.strictEqual(options.length >= 3, true);
-    });
-
-    test('23. Sort change event is fired when dropdown option is selected', () => {
-      let fired = false;
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.addEventListener('change', () => { fired = true; });
-      sortSelect.value = 'price_asc';
-      assert.strictEqual(fired, true);
-    });
-
-    test('24. Lowest price item is rendered first when sorted by price low-high', () => {
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_asc';
-      sortSelect.dispatchEvent('change');
-      const grid = dom.elements['uif-results-grid'];
-      const firstItemPriceText = grid.querySelector('.uif-price')?.textContent;
-      assert.ok(firstItemPriceText);
-    });
-
-    test('25. Highest price item is rendered first when sorted by price high-low', () => {
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_desc';
-      sortSelect.dispatchEvent('change');
-      const grid = dom.elements['uif-results-grid'];
-      const firstItemPriceText = grid.querySelector('.uif-price')?.textContent;
-      assert.ok(firstItemPriceText);
-    });
-
-    test('26. Items with same price sort alphabetically by name', () => {
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_asc';
-      sortSelect.dispatchEvent('change');
-      // Verification logic for secondary alphabetical sorting
-      assert.ok(true);
-    });
-
-    test('27. Items with null price are sorted to the bottom', () => {
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_asc';
-      sortSelect.dispatchEvent('change');
-      // Null prices should be at the end of the list
-      assert.ok(true);
-    });
-
-    test('28. Sorting works with empty database', () => {
-      // Empty items array simulator
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_desc';
-      sortSelect.dispatchEvent('change');
-      assert.ok(true);
-    });
-
-    test('29. Sorting is case-insensitive for names', () => {
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'name_asc';
-      sortSelect.dispatchEvent('change');
-      assert.ok(true);
-    });
-
-    test('30. Sort selection state is preserved on page refresh / re-render', () => {
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_desc';
-      sortSelect.dispatchEvent('change');
-      assert.strictEqual(sortSelect.value, 'price_desc');
-    });
+  test('2. Statuszeile zeigt ehrliche Bereichsangabe', () => {
+    assert.strictEqual(dom.elements['uif-stats-count'].textContent, '1–6 von 6 Einträgen');
   });
 
-  // --- 3. CATEGORY BEHAVIOR (15 Tests) ---
-  describe('Category Selection Behavior', () => {
-    test('31. Category list is populated from database', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const categories = categoryList.querySelectorAll('.uif-category-btn');
-      assert.ok(categories.length > 0);
-    });
-
-    test('32. Category names match unique categories in DB', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const renderedCats = categoryList.querySelectorAll('.uif-category-btn').map(c => c.textContent.trim());
-      const dbCats = new Set(dom.dbData.map(item => {
-        if (!item.category) return 'Other';
-        const first = item.category.split('/')[0].trim();
-        if (first === 'Armour') return 'Armor';
-        if (first === 'Weapons') return 'Weapon';
-        return first;
-      }));
-      dbCats.forEach(cat => {
-        assert.ok(renderedCats.some(rc => rc.includes(cat)));
-      });
-    });
-
-    test('33. Clicking category adds active styling/class', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) {
-        firstCat.click();
-        const updatedFirstCat = categoryList.querySelector('.uif-category-btn');
-        assert.ok(updatedFirstCat.classList.contains('active'));
-      }
-    });
-
-    test('34. Clicking active category again deactivates it', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) {
-        firstCat.click();
-        const updatedFirstCat = categoryList.querySelector('.uif-category-btn');
-        updatedFirstCat.click();
-        const finalFirstCat = categoryList.querySelector('.uif-category-btn');
-        assert.ok(!finalFirstCat.classList.contains('active'));
-      }
-    });
-
-    test('35. Selecting a category filters the item grid to that category', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) {
-        const catName = firstCat.getAttribute('data-category');
-        firstCat.click();
-        const grid = dom.elements['uif-results-grid'];
-        const items = grid.querySelectorAll('.uif-item-card');
-        items.forEach(item => {
-          assert.strictEqual(item.getAttribute('data-category'), catName);
-        });
-      }
-    });
-
-    test('36. Selecting "All Categories" or deselecting restores all items', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) {
-        firstCat.click();
-        const updatedFirstCat = categoryList.querySelector('.uif-category-btn');
-        updatedFirstCat.click();
-        const grid = dom.elements['uif-results-grid'];
-        const items = grid.querySelectorAll('.uif-item-card');
-        assert.strictEqual(items.length, Math.min(60, dom.dbData.length));
-      }
-    });
-
-    test('37. Stats count updates when a category is selected', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) {
-        firstCat.click();
-        const stats = dom.elements['uif-stats-count'];
-        assert.ok(stats.textContent.includes('items'));
-      }
-    });
-
-    test('38. Category button lists counts next to category name', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) {
-        assert.ok(/\(\d+\)/.test(firstCat.textContent));
-      }
-    });
-
-    test('39. Only one category can be active at a time', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const btns = categoryList.querySelectorAll('.uif-category-btn');
-      if (btns.length > 1) {
-        btns[0].click();
-        const freshBtnsBefore = categoryList.querySelectorAll('.uif-category-btn');
-        freshBtnsBefore[1].click();
-        const freshBtnsAfter = categoryList.querySelectorAll('.uif-category-btn');
-        assert.ok(!freshBtnsAfter[0].classList.contains('active'));
-        assert.ok(freshBtnsAfter[1].classList.contains('active'));
-      }
-    });
-
-    test('40. Database categories with zero matching items are not rendered', () => {
-      assert.ok(true);
-    });
-
-    test('41. Category filtering works in combination with sorting', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) firstCat.click();
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_desc';
-      sortSelect.dispatchEvent('change');
-      assert.ok(true);
-    });
-
-    test('42. Category filtering works in combination with search input', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) firstCat.click();
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Fixed';
-      assert.ok(true);
-    });
-
-    test('43. Selecting empty category displays "No items found"', () => {
-      assert.ok(true);
-    });
-
-    test('44. Category filter buttons are accessible keyboard-wise', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const btn = categoryList.querySelector('.uif-category-btn');
-      if (btn) {
-        assert.ok(btn.getAttribute('role') === 'button' || btn.tagName === 'BUTTON');
-      }
-    });
-
-    test('45. Main page heading updates or stays intact on category selection', () => {
-      const heading = dom.document.querySelector('h1');
-      assert.strictEqual(heading.textContent, 'Universal Item Finder');
-    });
+  test('3. Standard-Sortierung ist Name aufsteigend', () => {
+    const titles = cardTitles(dom);
+    assert.strictEqual(titles[0], 'Alpha Rifle');
+    assert.deepStrictEqual([...titles].sort((a, b) => a.localeCompare(b)), titles);
   });
 
-  // --- 4. PAGINATION BEHAVIOR (10 Tests) ---
-  describe('Pagination Control Behavior', () => {
-    test('46. Pagination next and prev buttons render in DOM', () => {
-      const nextBtn = dom.document.getElementById('uif-next-btn');
-      const prevBtn = dom.document.getElementById('uif-prev-btn');
-      assert.ok(nextBtn !== undefined);
-      assert.ok(prevBtn !== undefined);
-    });
-
-    test('47. Pagination buttons are disabled initially if single page', () => {
-      const prevBtn = dom.document.getElementById('uif-prev-btn');
-      if (prevBtn) {
-        assert.ok(prevBtn.getAttribute('disabled') !== null || prevBtn.classList.contains('disabled'));
-      }
-    });
-
-    test('48. Page numbers indicator is rendered', () => {
-      const pageInfo = dom.document.getElementById('uif-page-info');
-      assert.ok(pageInfo !== undefined);
-    });
-
-    test('49. Clicking next page button increases page number', () => {
-      const nextBtn = dom.document.getElementById('uif-next-btn');
-      if (nextBtn) {
-        nextBtn.click();
-        const pageInfo = dom.document.getElementById('uif-page-info');
-        assert.ok(pageInfo.textContent.includes('2') || pageInfo.textContent.includes('Page 2') || true);
-      }
-    });
-
-    test('50. Clicking prev page button decreases page number', () => {
-      const nextBtn = dom.document.getElementById('uif-next-btn');
-      const prevBtn = dom.document.getElementById('uif-prev-btn');
-      if (nextBtn && prevBtn) {
-        nextBtn.click();
-        prevBtn.click();
-        const pageInfo = dom.document.getElementById('uif-page-info');
-        assert.ok(pageInfo.textContent.includes('1') || true);
-      }
-    });
-
-    test('51. Pagination resets to page 1 on search input change', () => {
-      const nextBtn = dom.document.getElementById('uif-next-btn');
-      if (nextBtn) nextBtn.click();
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Mav';
-      const pageInfo = dom.document.getElementById('uif-page-info');
-      assert.ok(pageInfo?.textContent.includes('1') || true);
-    });
-
-    test('52. Pagination resets to page 1 on category filter change', () => {
-      const nextBtn = dom.document.getElementById('uif-next-btn');
-      if (nextBtn) nextBtn.click();
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) firstCat.click();
-      const pageInfo = dom.document.getElementById('uif-page-info');
-      assert.ok(pageInfo?.textContent.includes('1') || true);
-    });
-
-    test('53. Prev button is disabled on page 1', () => {
-      const prevBtn = dom.document.getElementById('uif-prev-btn');
-      if (prevBtn) {
-        assert.ok(prevBtn.getAttribute('disabled') !== null || true);
-      }
-    });
-
-    test('54. Next button is disabled on final page', () => {
-      const nextBtn = dom.document.getElementById('uif-next-btn');
-      if (nextBtn) {
-        // Go to last page
-        assert.ok(true);
-      }
-    });
-
-    test('55. Page size selection updates item list length', () => {
-      const sizeSelect = dom.document.getElementById('uif-size-select');
-      if (sizeSelect) {
-        sizeSelect.value = '50';
-        sizeSelect.dispatchEvent('change');
-      }
-      assert.ok(true);
-    });
+  test('4. Kategorien-Sidebar zeigt jede Wurzel mit Anzahl', () => {
+    const btns = dom.elements['uif-category-list'].querySelectorAll('.uif-category-btn');
+    assert.strictEqual(btns.length, 5); // Weapons, Armour, Clothing, Vehicle, Other
+    const other = btns.find((b) => b.getAttribute('data-category') === 'Other');
+    assert.ok(other.textContent.includes('(2)'));
   });
 
-  // --- 5. BOUNDARY & ROBUSTNESS CASES (10 Tests) ---
-  describe('Boundary and Robustness Cases', () => {
-    test('56. Items without price display "Not Sold" instead of empty/null', () => {
-      const grid = dom.elements['uif-results-grid'];
-      // We look for items containing "Not Sold"
-      assert.ok(grid.innerHTML.includes('Not Sold') || true);
-    });
-
-    test('57. Items without location display "N/A" or empty string', () => {
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(grid.innerHTML.includes('N/A') || true);
-    });
-
-    test('58. Search input does not render raw HTML tags (escapes HTML)', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = '<b>Bold Mav</b>';
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(!grid.innerHTML.includes('<b>Bold Mav</b>'));
-    });
-
-    test('59. Category filter attribute does not execute cross-site scripting (XSS)', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const badBtn = dom.document.createElement('div');
-      badBtn.setAttribute('class', 'uif-category-btn');
-      badBtn.setAttribute('data-category', '<script>alert(1)</script>');
-      categoryList.appendChild(badBtn);
-      badBtn.click();
-      assert.ok(!dom.document.querySelector('script[src="alert"]'));
-    });
-
-    test('60. Special characters like quotes and brackets in search are handled gracefully', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = '["name"]';
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(grid.children.length === 0 || grid.children.length > 0);
-    });
-
-    test('61. Large search query (100+ chars) does not crash UI and displays empty state', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'a'.repeat(200);
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(grid.textContent.includes('No matching items found'));
-    });
-
-    test('62. Numeric characters in search correctly filter item prices or names', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = '2954';
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(grid.children.length >= 0);
-    });
-
-    test('63. Database item IDs with special characters are parsed correctly', () => {
-      assert.ok(true);
-    });
-
-    test('64. Layout holds and functions with zero items in database', async () => {
-      const emptyDom = await setupMockDOM(htmlPath, jsonDbPath);
-      emptyDom.dbData = [];
-      await emptyDom.runScript(scriptPath);
-      await emptyDom.wait(10);
-      const grid = emptyDom.elements['uif-results-grid'];
-      assert.ok(grid.textContent.includes('No matching items found') || grid.textContent.includes('No items found in the database'));
-    });
-
-    test('65. Stats count matches actual rendered grid cards', () => {
-      const grid = dom.elements['uif-results-grid'];
-      const cardsCount = grid.querySelectorAll('.uif-item-card').length;
-      const countEl = dom.elements['uif-stats-count'];
-      assert.ok(countEl.textContent.includes(String(cardsCount)) || true);
-    });
+  test('5. Fundart-Chips werden gerendert (Alle/Kaufbar/Loot/Nur Katalog)', () => {
+    const chips = dom.elements['uif-kind-chips'].querySelectorAll('.uif-chip');
+    assert.deepStrictEqual(chips.map((c) => c.getAttribute('data-kind')), ['all', 'buy', 'loot', 'catalog']);
+    assert.ok(chips[0].classList.contains('active'));
   });
 
-  // --- 6. PAIRWISE INTERACTIONS (5 Tests) ---
-  describe('Pairwise Combined Interactions', () => {
-    test('66. Combination: Search + Sort by Price Low-High', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Mav';
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_asc';
-      sortSelect.dispatchEvent('change');
-      const grid = dom.elements['uif-results-grid'];
-      assert.ok(grid.children.length >= 0);
-    });
+  test('6. Keine Pagination bei einer Seite', () => {
+    assert.strictEqual(dom.elements['uif-pagination-container'].children.length, 0);
+  });
+});
 
-    test('67. Combination: Category Filter + Search Query', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) firstCat.click();
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Thruster';
-      assert.ok(true);
-    });
-
-    test('68. Combination: Category Filter + Sort by Price High-Low', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) firstCat.click();
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'price_desc';
-      sortSelect.dispatchEvent('change');
-      assert.ok(true);
-    });
-
-    test('69. Combination: Search Query + Pagination Next Page', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Thruster';
-      const nextBtn = dom.document.getElementById('uif-next-btn');
-      if (nextBtn) nextBtn.click();
-      assert.ok(true);
-    });
-
-    test('70. Combination: Category Filter + Pagination Next Page', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) firstCat.click();
-      const nextBtn = dom.document.getElementById('uif-next-btn');
-      if (nextBtn) nextBtn.click();
-      assert.ok(true);
-    });
+describe('Karten-Inhalte (ehrliche Darstellung)', () => {
+  let dom;
+  beforeEach(async () => {
+    dom = await setupMockDOM({ db: makeDb() });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
   });
 
-  // --- 7. REAL-WORLD SCENARIOS (5 Tests) ---
-  describe('Real-World Application Scenarios', () => {
-    test('71. Scenario 1: Weapon search and detail validation', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Fixed Mav Thruster';
-      
-      const sortSelect = dom.elements['uif-sort-select'];
-      sortSelect.value = 'name_asc';
-      sortSelect.dispatchEvent('change');
+  test('7. Mehrere Quellen: Minimalpreis mit „ab“-Präfix', () => {
+    const beta = cards(dom).find((c) => c.getAttribute('data-id') === 'beta-helmet');
+    assert.ok(beta.querySelector('.uif-card-price').textContent.includes('ab 500 aUEC'));
+  });
 
-      const grid = dom.elements['uif-results-grid'];
-      const firstItem = grid.querySelector('.uif-item-card') || grid.children[0];
-      assert.ok(firstItem);
-      assert.ok(firstItem.textContent.includes('Fixed Mav Thruster'));
-    });
+  test('8. Loot-only-Item zeigt „Nur Loot“ statt Fantasiepreis', () => {
+    const gamma = cards(dom).find((c) => c.getAttribute('data-id') === 'gamma-jacket');
+    assert.strictEqual(gamma.querySelector('.uif-card-price').textContent, 'Nur Loot');
+  });
 
-    test('72. Scenario 2: Category browsing and pagination flow', () => {
-      const categoryList = dom.elements['uif-category-list'];
-      const utilityCat = Array.from(categoryList.querySelectorAll('.uif-category-btn'))
-        .find(el => el.textContent.includes('Utility'));
-      
-      if (utilityCat) {
-        utilityCat.click();
-        const nextBtn = dom.document.getElementById('uif-next-btn');
-        if (nextBtn) nextBtn.click();
-        const prevBtn = dom.document.getElementById('uif-prev-btn');
-        if (prevBtn) prevBtn.click();
-        assert.ok(true);
-      }
-    });
+  test('9. Katalog-Item: „Keine Handelsdaten“ + „Kein Fundort bekannt“', () => {
+    const delta = cards(dom).find((c) => c.getAttribute('data-id') === 'delta-relic');
+    assert.strictEqual(delta.querySelector('.uif-card-price').textContent, 'Keine Handelsdaten');
+    assert.ok(delta.querySelector('.uif-loc-none'));
+  });
 
-    test('73. Scenario 3: Mobile view layout responsiveness assertions', () => {
-      // Simulate layout check or class checks for mobile view sizes
-      const container = dom.elements['uif-app'];
-      assert.ok(container.classList.contains('uif-container'));
-    });
+  test('10. Mehrere Fundorte: erster Ort + „+N“-Badge', () => {
+    const alpha = cards(dom).find((c) => c.getAttribute('data-id') === 'alpha-rifle');
+    const loc = alpha.querySelector('.uif-card-location');
+    assert.ok(loc.textContent.includes('Live Fire Weapons - Area 18'));
+    assert.ok(loc.querySelector('.uif-loc-more').textContent.includes('+1'));
+  });
 
-    test('74. Scenario 4: Complex multi-step search, filter, and clear path', () => {
-      const searchInput = dom.elements['uif-search-input'];
-      searchInput.value = 'Thruster';
-      
-      const categoryList = dom.elements['uif-category-list'];
-      const firstCat = categoryList.querySelector('.uif-category-btn');
-      if (firstCat) firstCat.click();
-      
-      searchInput.value = ''; // clear search
-      
-      const updatedFirstCat = categoryList.querySelector('.uif-category-btn');
-      if (updatedFirstCat) updatedFirstCat.click(); // deselect category
-      
-      const grid = dom.elements['uif-results-grid'];
-      assert.strictEqual(grid.querySelectorAll('.uif-item-card').length, Math.min(60, dom.dbData.length));
-    });
+  test('11. Sonderzeichen im Namen werden escaped gerendert', () => {
+    const q = cards(dom).find((c) => c.getAttribute('data-id') === 'quote-co');
+    assert.ok(q, 'Karte mit Sonderzeichen-Name fehlt');
+    assert.ok(q.querySelector('.uif-card-title').textContent.includes('Weird'));
+    assert.ok(dom.elements['uif-results-grid'].innerHTML.includes('&amp; Co'));
+    assert.ok(!dom.elements['uif-results-grid'].innerHTML.includes('<Weird'));
+  });
+});
 
-    test('75. Scenario 5: Database fetch failure error handling', async () => {
-      const failDom = await setupMockDOM(htmlPath, jsonDbPath);
-      global.fetch = () => Promise.reject(new Error('Network error'));
-      await failDom.runScript(scriptPath);
-      await failDom.wait(10);
-      const stats = failDom.elements['uif-stats-count'];
-      assert.ok(stats.textContent.includes('0 items found') || stats.textContent.includes('Loading Database...'));
-    });
+describe('Suche', () => {
+  let dom;
+  beforeEach(async () => {
+    dom = await setupMockDOM({ db: makeDb() });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+  });
+
+  test('12. Suche nach Namen findet genau das Item', () => {
+    dom.elements['uif-search-input'].value = 'Alpha Rifle';
+    assert.deepStrictEqual(cardTitles(dom), ['Alpha Rifle']);
+  });
+
+  test('13. Suche ist case-insensitiv', () => {
+    dom.elements['uif-search-input'].value = 'ALPHA rifle';
+    assert.deepStrictEqual(cardTitles(dom), ['Alpha Rifle']);
+  });
+
+  test('14. Suche findet über Fundort', () => {
+    dom.elements['uif-search-input'].value = 'Security Bunker';
+    assert.deepStrictEqual(cardTitles(dom), ['Alpha Rifle']);
+  });
+
+  test('15. Suche findet über Kategorie-Pfad', () => {
+    dom.elements['uif-search-input'].value = 'Combat / Light';
+    assert.deepStrictEqual(cardTitles(dom), ['Beta Helmet']);
+  });
+
+  test('16. Treffer-lose Suche zeigt leere-Ergebnis-Meldung', () => {
+    dom.elements['uif-search-input'].value = 'gibtesnicht-xyz';
+    const grid = dom.elements['uif-results-grid'];
+    assert.ok(grid.querySelector('.uif-empty').textContent.includes('Keine passenden Items'));
+    assert.strictEqual(dom.elements['uif-stats-count'].textContent, '0 Einträge');
+  });
+
+  test('17. Leeren der Suche stellt alle Items wieder her', () => {
+    dom.elements['uif-search-input'].value = 'Alpha';
+    dom.elements['uif-search-input'].value = '';
+    assert.strictEqual(cards(dom).length, 6);
+  });
+});
+
+describe('Kategorie-Filter', () => {
+  let dom;
+  beforeEach(async () => {
+    dom = await setupMockDOM({ db: makeDb() });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+  });
+
+  function catBtn(cat) {
+    return dom.elements['uif-category-list'].querySelectorAll('.uif-category-btn')
+      .find((b) => b.getAttribute('data-category') === cat);
+  }
+
+  test('18. Klick auf Kategorie filtert das Grid', () => {
+    catBtn('Weapons').click();
+    assert.deepStrictEqual(cardTitles(dom), ['Alpha Rifle']);
+  });
+
+  test('19. Aktive Kategorie ist markiert (nach Re-Render abgefragt)', () => {
+    catBtn('Weapons').click();
+    assert.ok(catBtn('Weapons').classList.contains('active'));
+  });
+
+  test('20. Erneuter Klick hebt den Filter auf (Toggle)', () => {
+    catBtn('Clothing').click();
+    assert.strictEqual(cards(dom).length, 1);
+    catBtn('Clothing').click();
+    assert.strictEqual(cards(dom).length, 6);
+  });
+
+  test('21. Kategorie + Suche kombinieren sich', () => {
+    catBtn('Other').click();
+    dom.elements['uif-search-input'].value = 'Delta';
+    assert.deepStrictEqual(cardTitles(dom), ['Delta Relic']);
+  });
+});
+
+describe('Fundart-Filter (Chips)', () => {
+  let dom;
+  beforeEach(async () => {
+    dom = await setupMockDOM({ db: makeDb() });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+  });
+
+  function chip(kind) {
+    return dom.elements['uif-kind-chips'].querySelectorAll('.uif-chip')
+      .find((c) => c.getAttribute('data-kind') === kind);
+  }
+
+  test('22. „Kaufbar“ zeigt nur Items mit Shop-/Händler-Quelle', () => {
+    chip('buy').click();
+    assert.deepStrictEqual(cardTitles(dom), ['Alpha Rifle', 'Beta Helmet', 'Epsilon Runner']);
+  });
+
+  test('23. „Loot“ zeigt nur Items mit Loot-Quelle', () => {
+    chip('loot').click();
+    assert.deepStrictEqual(cardTitles(dom), ['Alpha Rifle', 'Gamma Jacket']);
+  });
+
+  test('24. „Nur Katalog“ zeigt Items ohne Bezugsquelle', () => {
+    chip('catalog').click();
+    assert.deepStrictEqual(cardTitles(dom), ['Delta Relic', 'Weird "Quoted" & Co']);
+  });
+
+  test('25. Zurück auf „Alle“ hebt den Filter auf', () => {
+    chip('catalog').click();
+    chip('all').click();
+    assert.strictEqual(cards(dom).length, 6);
+  });
+});
+
+describe('Sortierung', () => {
+  let dom;
+  beforeEach(async () => {
+    dom = await setupMockDOM({ db: makeDb() });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+  });
+
+  test('26. Name absteigend', () => {
+    dom.elements['uif-sort-select'].value = 'name_desc';
+    const titles = cardTitles(dom);
+    assert.strictEqual(titles[0], 'Weird "Quoted" & Co');
+  });
+
+  test('27. Preis aufsteigend: billigstes zuerst, preislose ans Ende (nach Name)', () => {
+    dom.elements['uif-sort-select'].value = 'price_asc';
+    assert.deepStrictEqual(cardTitles(dom), [
+      'Beta Helmet', 'Alpha Rifle', 'Epsilon Runner',
+      'Delta Relic', 'Gamma Jacket', 'Weird "Quoted" & Co',
+    ]);
+  });
+
+  test('28. Preis absteigend: teuerstes zuerst, preislose bleiben am Ende', () => {
+    dom.elements['uif-sort-select'].value = 'price_desc';
+    const titles = cardTitles(dom);
+    assert.deepStrictEqual(titles.slice(0, 3), ['Epsilon Runner', 'Alpha Rifle', 'Beta Helmet']);
+  });
+});
+
+describe('Pagination (70 Einträge)', () => {
+  let dom;
+  beforeEach(async () => {
+    dom = await setupMockDOM({ db: makeDb(64) }); // 6 + 64 = 70
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+  });
+
+  function pag() { return dom.elements['uif-pagination-container']; }
+
+  test('29. Seite 1 zeigt 60 Karten, Statuszeile stimmt', () => {
+    assert.strictEqual(cards(dom).length, 60);
+    assert.strictEqual(dom.elements['uif-stats-count'].textContent, '1–60 von 70 Einträgen');
+  });
+
+  test('30. „Weiter“ blättert zur Restseite mit 10 Karten', () => {
+    pag().querySelector('#uif-next-btn').click();
+    assert.strictEqual(cards(dom).length, 10);
+    assert.strictEqual(dom.elements['uif-stats-count'].textContent, '61–70 von 70 Einträgen');
+  });
+
+  test('31. Seiteninfo und Endzustand: „Weiter“ ist auf letzter Seite deaktiviert', () => {
+    pag().querySelector('#uif-page-last').click();
+    assert.ok(pag().querySelector('#uif-page-info').textContent.includes('Seite 2 von 2'));
+    assert.strictEqual(pag().querySelector('#uif-next-btn').getAttribute('disabled'), 'disabled');
+  });
+
+  test('32. „Anfang“ springt von hinten zurück auf Seite 1', () => {
+    pag().querySelector('#uif-page-last').click();
+    pag().querySelector('#uif-page-first').click();
+    assert.strictEqual(cards(dom).length, 60);
+  });
+
+  test('33. Filterwechsel setzt auf Seite 1 zurück', () => {
+    pag().querySelector('#uif-next-btn').click();
+    dom.elements['uif-search-input'].value = 'Zz Filler';
+    assert.strictEqual(dom.elements['uif-stats-count'].textContent, '1–60 von 64 Einträgen');
+  });
+});
+
+describe('Detail-Modal', () => {
+  let dom;
+  beforeEach(async () => {
+    dom = await setupMockDOM({ db: makeDb(), craft: CRAFT_FIXTURE });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+  });
+
+  function openCard(id) {
+    cards(dom).find((c) => c.getAttribute('data-id') === id).click();
+  }
+  function modal() { return dom.elements['uif-item-modal']; }
+  function body() { return dom.elements['uif-modal-body-content']; }
+
+  test('34. Karte öffnet Modal mit Bezugsquellen-Tabelle', () => {
+    openCard('alpha-rifle');
+    assert.strictEqual(modal().style.display, 'flex');
+    const rows = body().querySelectorAll('.uif-obtain-row');
+    assert.strictEqual(rows.length, 2);
+    assert.ok(body().textContent.includes('Live Fire Weapons - Area 18'));
+    assert.ok(body().textContent.includes('1.000 aUEC'));
+  });
+
+  test('35. Volatilitäts-Hinweis steht im Modal', () => {
+    openCard('alpha-rifle');
+    assert.ok(body().textContent.includes('Patch-volatil'));
+  });
+
+  test('36. Katalog-Item zeigt ehrlichen Katalog-Hinweis statt Tabelle', () => {
+    openCard('delta-relic');
+    assert.strictEqual(body().querySelectorAll('.uif-obtain-row').length, 0);
+    assert.ok(body().textContent.includes('keine verifizierten Shop- oder Loot-Daten'));
+  });
+
+  test('37. Loot-Guide wird angezeigt', () => {
+    openCard('gamma-jacket');
+    assert.ok(body().textContent.includes('Fundort-Guide'));
+    assert.ok(body().textContent.includes('Executive-Spinden'));
+  });
+
+  test('38. Crafting-Rezept erscheint, wenn Blueprint existiert', () => {
+    openCard('alpha-rifle');
+    assert.ok(body().textContent.includes('Crafting-Rezept'));
+    assert.ok(body().textContent.includes('1m 30s'));
+    assert.ok(body().textContent.includes('Iron'));
+  });
+
+  test('39. Kein Crafting-Abschnitt ohne Blueprint', () => {
+    openCard('beta-helmet');
+    assert.ok(!body().textContent.includes('Crafting-Rezept'));
+  });
+
+  test('40. Öffnen sperrt Hintergrund-Scroll, Schließen gibt ihn frei', () => {
+    openCard('alpha-rifle');
+    assert.strictEqual(dom.body.style.overflow, 'hidden');
+    dom.elements['uif-modal-close-btn'].click();
+    assert.strictEqual(modal().style.display, 'none');
+    assert.strictEqual(dom.body.style.overflow, '');
+  });
+
+  test('41. Klick auf Overlay schließt das Modal', () => {
+    openCard('alpha-rifle');
+    modal().dispatchEvent('click');
+    assert.strictEqual(modal().style.display, 'none');
+  });
+});
+
+describe('Fehler- und Leerzustände', () => {
+  test('42. Fetch-Fehler zeigt ehrliche Fehlermeldung (kein Dev-Sprech)', async () => {
+    const dom = await setupMockDOM({ db: makeDb(), failDb: true });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+    const gridText = dom.elements['uif-results-grid'].textContent;
+    assert.ok(gridText.includes('konnte nicht geladen werden'));
+    assert.ok(!/dataminer/i.test(gridText));
+    assert.strictEqual(dom.elements['uif-stats-count'].textContent, '0 Einträge');
+  });
+
+  test('43. Leere Datenbank rendert leeren Zustand ohne Crash', async () => {
+    const empty = makeDb();
+    empty.items = [];
+    empty.counts = { items: 0, withObtain: 0, catalogOnly: 0 };
+    const dom = await setupMockDOM({ db: empty });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+    assert.ok(dom.elements['uif-results-grid'].textContent.includes('Keine passenden Items'));
+  });
+
+  test('44. Fehlende Crafting-DB bricht die App nicht', async () => {
+    const dom = await setupMockDOM({ db: makeDb(), craft: null });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+    assert.strictEqual(cards(dom).length, 6);
   });
 });

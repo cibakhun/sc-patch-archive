@@ -589,23 +589,19 @@
     var rate = calcState.yieldRate / 100;
     var list = [];
 
+    // Kompatibel = Item liefert JEDES gewählte Material beim Zerlegen.
+    // Seltene Materialien liefern nichts — ein gewähltes seltenes Material
+    // macht daher jedes Item inkompatibel (Auswahl ist als „(selten)" markiert).
     ITEMS.forEach(function (item) {
       var maxQty = 0;
       var isComp = true;
-      var warnings = [];
 
       selectedMats.forEach(function (mid) {
         var matDef = materialsMap[mid] || { id: mid, name: mid, isRare: false };
         var recipeItem = item.recipe.find(function (r) { return r.materialId.toLowerCase() === mid; });
 
-        if (!recipeItem) {
+        if (!recipeItem || matDef.isRare) {
           isComp = false;
-          return;
-        }
-
-        if (matDef.isRare) {
-          isComp = false;
-          warnings.push(tr('calcWarningRare', 'Dieses Item enthält {name}, dieser kann jedoch nicht durch Zerlegen gewonnen werden (selten).').replace('{name}', matDef.name));
           return;
         }
 
@@ -621,75 +617,63 @@
         }
       });
 
-      selectedMats.forEach(function (mid) {
-        var matDef = materialsMap[mid] || { id: mid, name: mid, isRare: false };
-        var recipeItem = item.recipe.find(function (r) { return r.materialId.toLowerCase() === mid; });
-        if (recipeItem && matDef.isRare) {
+      if (!isComp) return;
+
+      // Beifang-Hinweis: seltene Materialien im REZEPT gehen beim Zerlegen verloren.
+      var warnings = [];
+      item.recipe.forEach(function (r) {
+        var matDef = materialsMap[r.materialId.toLowerCase()];
+        if (matDef && matDef.isRare) {
           warnings.push(tr('calcWarningRareBycatch', 'Dieses Item enthält {name}, dieser kann jedoch nicht durch Zerlegen gewonnen werden.').replace('{name}', matDef.name));
         }
       });
 
-      if (isComp) {
-        var totalCost = maxQty * item.purchasePrice_aUEC;
-        list.push({
-          item: item,
-          isComp: isComp,
-          qty: maxQty,
-          cost: totalCost,
-          warnings: warnings
-        });
-      }
+      list.push({
+        item: item,
+        qty: maxQty,
+        cost: maxQty * item.purchasePrice_aUEC,
+        warnings: warnings
+      });
     });
 
-    list.sort(function (a, b) {
-      if (a.isComp && !b.isComp) return -1;
-      if (!a.isComp && b.isComp) return 1;
-      if (a.isComp) {
-        return a.cost - b.cost;
-      }
-      return a.item.name < b.item.name ? -1 : a.item.name > b.item.name ? 1 : 0;
-    });
+    list.sort(function (a, b) { return a.cost - b.cost; });
 
     resultsEl.innerHTML = list.map(function (res) {
       var item = res.item;
-      var costFormatted = res.isComp ? fmtNum(res.cost) + ' aUEC' : '—';
-      var qtyFormatted = res.isComp ? tr('calcQtyBuy', '{qty}x kaufen').replace('{qty}', res.qty) : '—';
-      var cardClass = 'calc-card' + (res.isComp ? '' : ' incompatible');
 
       var yieldHtml = item.recipe.map(function (r) {
         var mid = r.materialId.toLowerCase();
         var matDef = materialsMap[mid] || { id: mid, name: r.materialId, isRare: false };
         var isTarget = calcState.res[mid];
         var itemYield = matDef.isRare ? 0 : r.quantity_cSCU * rate;
-        var totalYield = res.isComp ? (res.qty * itemYield) / 100 : 0;
-        
+        var totalYield = (res.qty * itemYield) / 100;
+
         return '<span class="calc-card__yield-tag' + (isTarget ? ' target' : '') + '">' +
-          matDef.name + ': ' + fmtNum(totalYield) + ' SCU' +
+          esc(matDef.name) + ': ' + fmtNum(totalYield) + ' SCU' +
           '</span>';
       }).join(' ');
 
       var warningsHtml = res.warnings.map(function (w) {
-        return '<div class="calc-card__warning">' + w + '</div>';
+        return '<div class="calc-card__warning">' + esc(w) + '</div>';
       }).join('');
 
-      return '<div class="' + cardClass + '">' +
+      return '<div class="calc-card">' +
         '<div class="calc-card__left">' +
-          '<h3 class="calc-card__title">' + item.name + '</h3>' +
-          '<div class="calc-card__meta">' + tr('category', 'Kategorie') + ': <strong>' + item.category + '</strong> &nbsp;·&nbsp; ' + tr('calcLocation', 'Kaufort') + ': <strong>' + item.purchaseLocation + '</strong></div>' +
+          '<h3 class="calc-card__title">' + esc(item.name) + '</h3>' +
+          '<div class="calc-card__meta">' + tr('category', 'Kategorie') + ': <strong>' + esc(item.category) + '</strong> &nbsp;·&nbsp; ' + tr('calcLocation', 'Kaufort') + ': <strong>' + esc(item.purchaseLocation) + '</strong></div>' +
           '<div class="calc-card__yields">' + yieldHtml + '</div>' +
           warningsHtml +
         '</div>' +
         '<div class="calc-card__right">' +
-          '<div class="calc-card__cost">' + costFormatted + '</div>' +
+          '<div class="calc-card__cost">' + fmtNum(res.cost) + ' aUEC</div>' +
           '<div class="calc-card__cost-unit">' + tr('calcCostUnit', 'Gesamtkosten') + '</div>' +
-          '<div class="calc-card__qty">' + qtyFormatted + '</div>' +
+          '<div class="calc-card__qty">' + tr('calcQtyBuy', '{qty}x kaufen').replace('{qty}', res.qty) + '</div>' +
         '</div>' +
       '</div>';
     }).join('');
 
     if (countEl) {
-      var compCount = list.filter(function (x) { return x.isComp; }).length;
-      countEl.textContent = tr('calcFound', '{count} kompatible Items gefunden').replace('{count}', compCount);
+      countEl.textContent = tr('calcFound', '{count} kompatible Items gefunden').replace('{count}', list.length);
     }
   }
 
@@ -727,8 +711,8 @@
     if (calcList) {
       calcList.innerHTML = sortedMats.map(function (m) {
         return '<label class="cdb-check calc-check">' +
-          '<input type="checkbox" class="calc-mat-cb" value="' + m.id + '" />' +
-          '<span>' + m.name + (m.isRare ? ' <em style="color:#ff5b5b; font-size:0.75rem; font-style:normal;">' + tr('calcRareLabel', '(selten)') + '</em>' : '') + '</span>' +
+          '<input type="checkbox" class="calc-mat-cb" value="' + esc(m.id) + '" />' +
+          '<span>' + esc(m.name) + (m.isRare ? ' <em style="color:#ff5b5b; font-size:0.75rem; font-style:normal;">' + tr('calcRareLabel', '(selten)') + '</em>' : '') + '</span>' +
           '</label>';
       }).join('');
     }

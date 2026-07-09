@@ -1,105 +1,77 @@
+// Prüft die gebauten Seiten (dist/) — DE + EN, Nav-Verdrahtung, keine Dev-Sprache.
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
-import fs from 'node:fs/promises';
+import fs from 'node:fs';
 import path from 'node:path';
 
-const htmlPath = path.resolve('dist/item-finder.html');
+const deHtml = fs.readFileSync(path.resolve('dist/item-finder.html'), 'utf8');
+const enHtml = fs.readFileSync(path.resolve('dist/en/item-finder.html'), 'utf8');
+const indexHtml = fs.readFileSync(path.resolve('dist/index.html'), 'utf8');
+const enIndexHtml = fs.readFileSync(path.resolve('dist/en.html'), 'utf8');
 
-async function getHtmlContent() {
-  return await fs.readFile(htmlPath, 'utf8');
-}
-
-describe('Built Layout Structure Verification', () => {
-  // Test 1: HTML file exists
-  test('1. dist/item-finder.html exists', async () => {
-    const exists = await fs.access(htmlPath).then(() => true).catch(() => false);
-    assert.strictEqual(exists, true, 'dist/item-finder.html should exist after build');
+describe('Item-Finder-Seite (DE)', () => {
+  test('1. Seite existiert und lädt das App-Script', () => {
+    assert.match(deHtml, /src=["'][^"']*item-finder-app\.js["']/i);
   });
 
-  // Test 2: HTML doctype is present
-  test('2. HTML has correct doctype definition', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/^<!DOCTYPE html>/i.test(html.trim()), 'HTML must start with <!DOCTYPE html>');
+  test('2. window.__UIF-Konfiguration mit lang=de ist eingebettet', () => {
+    assert.ok(deHtml.includes('window.__UIF='));
+    assert.ok(deHtml.includes('"lang":"de"'));
+    assert.ok(deHtml.includes('"dbUrl":"/assets/universal-items.json"'));
   });
 
-  // Test 3: head tag is present
-  test('3. head tag is present in HTML document', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/<head[^>]*>/i.test(html) && /<\/head>/i.test(html), 'head tag must be present');
+  test('3. Alle App-Anker sind vorhanden', () => {
+    for (const id of [
+      'uif-app', 'uif-search-input', 'uif-kind-chips', 'uif-category-list',
+      'uif-stats-count', 'uif-sort-select', 'uif-results-grid',
+      'uif-pagination-container', 'uif-item-modal', 'uif-modal-body-content',
+    ]) {
+      assert.ok(deHtml.includes(`id="${id}"`), `fehlender Anker #${id}`);
+    }
   });
 
-  // Test 4: title is present and correct
-  test('4. Page title is set correctly', async () => {
-    const html = await getHtmlContent();
-    const match = html.match(/<title>([\s\S]*?)<\/title>/i);
-    assert.ok(match, 'Title tag must be present');
-    assert.strictEqual(match[1].trim(), 'Universal Item Finder | Star Citizen');
+  test('4. Hero nennt ehrliche Zahlen (Items + verifizierte Quellen)', () => {
+    assert.ok(deHtml.includes('verifizierten Bezugsquellen'));
+    assert.ok(deHtml.includes('Mit Quellen'));
   });
 
-  // Test 5: Viewport meta tag is present
-  test('5. Viewport meta tag is present', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/<meta[^>]+name=["']viewport["']/i.test(html), 'Viewport meta tag must be defined');
-    assert.ok(/content=["'][^"']*width=device-width/i.test(html), 'Viewport width must be device-width');
+  test('5. Keine Entwickler-Sprache im UI', () => {
+    assert.ok(!/run the dataminer/i.test(deHtml));
   });
 
-  // Test 6: Charset meta tag is present
-  test('6. Charset meta tag is present', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/<meta[^>]+charset=["']utf-8["']/i.test(html) || /<meta[^>]+charset=["']UTF-8["']/i.test(html), 'UTF-8 charset meta tag must be defined');
+  test('6. Patch-Volatilitäts-Hinweis vorhanden', () => {
+    assert.ok(deHtml.includes('ingame prüfen'));
+  });
+});
+
+describe('Item-Finder-Seite (EN)', () => {
+  test('7. EN-Seite existiert und ist englisch konfiguriert', () => {
+    assert.ok(enHtml.includes('window.__UIF='));
+    assert.ok(enHtml.includes('"lang":"en"'));
   });
 
-  // Test 7: Stylesheet link is present
-  test('7. Stylesheet link is present', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/<link[^>]+rel=["']stylesheet["']/i.test(html) || /<style[^>]*>/i.test(html), 'Must reference a stylesheet or have inline styles');
+  test('8. EN-Seite hat englische Copy', () => {
+    assert.ok(enHtml.includes('verified sources'));
+    assert.ok(enHtml.includes('patch-volatile'));
+  });
+});
+
+describe('Navigation', () => {
+  test('9. DE-Nav verlinkt /item-finder.html (mit .html, wie alle Links)', () => {
+    assert.ok(indexHtml.includes('href="/item-finder.html"'));
+    assert.ok(!indexHtml.includes('href="/item-finder"'));
   });
 
-  // Test 8: Main layout container exists with id uif-app
-  test('8. Main container uif-app exists in the DOM', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/id=["']uif-app["']/i.test(html), 'Container element with ID "uif-app" must be present');
+  test('10. EN-Nav verlinkt /en/item-finder.html (existiert wirklich)', () => {
+    assert.ok(enIndexHtml.includes('href="/en/item-finder.html"'));
+    assert.ok(fs.existsSync(path.resolve('dist/en/item-finder.html')));
   });
+});
 
-  // Test 9: Search input with id uif-search-input exists
-  test('9. Search input element exists', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/id=["']uif-search-input["']/i.test(html), 'Search input with ID "uif-search-input" must be present');
-  });
-
-  // Test 10: Category list container with id uif-category-list exists
-  test('10. Category list element exists', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/id=["']uif-category-list["']/i.test(html), 'Category list with ID "uif-category-list" must be present');
-  });
-
-  // Test 11: Stats counter container with id uif-stats-count exists
-  test('11. Stats counter element exists', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/id=["']uif-stats-count["']/i.test(html), 'Stats counter with ID "uif-stats-count" must be present');
-  });
-
-  // Test 12: Sort dropdown select element exists
-  test('12. Sort select dropdown exists', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/id=["']uif-sort-select["']/i.test(html), 'Sort select with ID "uif-sort-select" must be present');
-  });
-
-  // Test 13: Results grid container with id uif-results-grid exists
-  test('13. Results grid element exists', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/id=["']uif-results-grid["']/i.test(html), 'Results grid with ID "uif-results-grid" must be present');
-  });
-
-  // Test 14: Main tag with class item-finder-page exists
-  test('14. Page contains main container item-finder-page', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/class=["']item-finder-page["']/i.test(html) || /class=["'][^"']*item-finder-page[^"']*["']/i.test(html), 'main container with class item-finder-page must be present');
-  });
-
-  // Test 15: Client JS script is loaded
-  test('15. Script for item-finder-app.js is referenced', async () => {
-    const html = await getHtmlContent();
-    assert.ok(/src=["'][^"']*item-finder-app\.js["']/i.test(html), 'Must include script tag referencing item-finder-app.js');
+describe('Assets im Build', () => {
+  test('11. App-Script und DB liegen in dist/assets', () => {
+    assert.ok(fs.existsSync(path.resolve('dist/assets/item-finder-app.js')));
+    assert.ok(fs.existsSync(path.resolve('dist/assets/universal-items.json')));
+    assert.ok(fs.existsSync(path.resolve('dist/assets/dismantling-items.json')));
   });
 });
