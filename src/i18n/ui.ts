@@ -91,7 +91,7 @@ const UI = {
     // -- Footer / Attribution --
     'footer.pageNav': 'Seiten-Navigation',
     'footer.sources': 'Quellen',
-    'footer.credit': 'SC Patch-Archiv · ein Fan-Projekt',
+    'footer.credit': 'VerseBase · ein Star-Citizen-Fan-Projekt',
     'footer.dataAsOf': 'Daten-Stand',
     'footer.imprint': 'Impressum',
     'footer.privacy': 'Datenschutz',
@@ -324,7 +324,7 @@ const UI = {
     // -- Footer / Attribution --
     'footer.pageNav': 'Page navigation',
     'footer.sources': 'Sources',
-    'footer.credit': 'SC Patch Archive · a fan project',
+    'footer.credit': 'VerseBase · a Star Citizen fan project',
     'footer.dataAsOf': 'Data as of',
     'footer.imprint': 'Legal Notice',
     'footer.privacy': 'Privacy',
