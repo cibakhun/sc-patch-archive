@@ -17,10 +17,12 @@ describe('Universal Items DB — Provenance & Header', () => {
     assert.ok(fs.existsSync(canonicalPath));
   });
 
-  test('2. Header nennt Generator, Datum und Quellen', () => {
+  test('2. Header nennt Generator, Datum und Quellen (UEX-Preise inkl. Stand)', () => {
     assert.strictEqual(db.generator, 'scripts/build-universal-db.mjs');
     assert.match(db.generatedAt, /^\d{4}-\d{2}-\d{2}$/);
-    assert.ok(db.sources && db.sources.shops && db.sources.loot && db.sources.vehicles);
+    assert.match(db.pricesAsOf, /^\d{4}-\d{2}-\d{2}$/);
+    assert.ok(db.sources && db.sources.prices && db.sources.loot && db.sources.vehicles);
+    assert.ok(db.sources.prices.includes('UEX'));
     assert.ok(db.note.includes('Keine fabrizierten Werte'));
   });
 

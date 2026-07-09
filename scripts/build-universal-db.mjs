@@ -7,12 +7,15 @@
 // fabrizierte — Shop-Preise sind seit ~3.20 serverseitig und NICHT in Data.p4k.)
 //
 // Quellen:
-//   1) assets/dismantling-items.json   — kuratierter Shop-Snapshot (Name, Kategorie,
-//      Kaufpreis, Kaufort, Zerlege-Rezept); Patch-volatil, ingame prüfen.
-//   2) src/data/loot-items.json        — eigene Loot-Recherche (Fundorte + Guide-Text).
-//   3) src/data/vehicles.json + src/data/vehicle-prices.json — Schiffe/Fahrzeuge,
+//   1) src/data/item-prices.json       — UEX-Kaufpreise + Kauforte (fetch-uex-item-
+//      prices.mjs); dieselben Daten, die starcitizen.tools auf Item-Seiten zeigt.
+//      Hat für ein Item Vorrang vor dem älteren Shop-Snapshot (2).
+//   2) assets/dismantling-items.json   — kuratierter Shop-Snapshot (Name, Kategorie,
+//      Kaufpreis, Kaufort, Zerlege-Rezept); Fallback, wenn UEX ein Item nicht führt.
+//   3) src/data/loot-items.json        — eigene Loot-Recherche (Fundorte + Guide-Text).
+//   4) src/data/vehicles.json + src/data/vehicle-prices.json — Schiffe/Fahrzeuge,
 //      Kaufpreise von UEX Corp (uexcorp.space).
-//   4) global.ini (optional, lokal aus Data.p4k extrahiert) — echte Anzeigenamen
+//   5) global.ini (optional, lokal aus Data.p4k extrahiert) — echte Anzeigenamen
 //      aller item_Name*-Klassen als Katalog-Einträge ohne Handelsdaten.
 //
 // Aufruf:
@@ -69,28 +72,49 @@ function slugId(name) {
 const byName = new Map(); // key: name.toLowerCase()
 function entry(name) {
   const k = name.toLowerCase().trim();
-  if (!byName.has(k)) byName.set(k, { name: name.trim(), category: null, obtain: [], guide: null, catSource: 99 });
+  if (!byName.has(k)) {
+    byName.set(k, {
+      name: name.trim(), category: null, catSource: 99,
+      obtain: [],      // loot- + vehicle-Zeilen
+      shopUex: [],     // Shop-Zeilen aus UEX (Vorrang)
+      shopSnap: [],    // Shop-Zeilen aus dem Dismantling-Snapshot (Fallback)
+      guide: null,
+    });
+  }
   return byName.get(k);
 }
-// catSource: kleiner = vertrauenswürdiger (0 Shop-Snapshot, 1 Vehicle, 2 Inferenz)
+// catSource: kleiner = vertrauenswürdiger (0 Shop-Snapshot, 1 UEX/Vehicle, 2 Inferenz)
 function setCategory(e, cat, rank) {
   if (cat && rank < e.catSource) { e.category = cat; e.catSource = rank; }
 }
 
-// 1) Shop-Snapshot (dismantling-items)
+// 1) UEX-Kaufpreise (wie auf starcitizen.tools angezeigt)
+const uexDb = readJson(resolve(ROOT, 'src', 'data', 'item-prices.json'));
+let uexRows = 0;
+for (const info of Object.values(uexDb.items)) {
+  if (isPlaceholder(info.name)) continue;
+  const e = entry(info.name);
+  setCategory(e, info.category, 1);
+  for (const r of info.rows) {
+    e.shopUex.push({ kind: 'shop', loc: r.loc, price: r.price });
+    uexRows++;
+  }
+}
+
+// 2) Shop-Snapshot (dismantling-items) — Fallback für Items ohne UEX-Preis
 const shopItems = readJson(resolve(ROOT, 'assets', 'dismantling-items.json'));
-let shopRows = 0;
+let snapRows = 0;
 for (const it of shopItems) {
   if (isPlaceholder(it.name)) continue;
   const e = entry(it.name);
   setCategory(e, it.category, 0);
   if (it.purchaseLocation && Number(it.purchasePrice_aUEC) > 0) {
-    e.obtain.push({ kind: 'shop', loc: it.purchaseLocation, price: Number(it.purchasePrice_aUEC) });
-    shopRows++;
+    e.shopSnap.push({ kind: 'shop', loc: it.purchaseLocation, price: Number(it.purchasePrice_aUEC) });
+    snapRows++;
   }
 }
 
-// 2) Loot-Recherche
+// 3) Loot-Recherche
 const lootDb = readJson(resolve(ROOT, 'src', 'data', 'loot-items.json'));
 let lootRows = 0;
 for (const [name, info] of Object.entries(lootDb)) {
@@ -101,7 +125,7 @@ for (const [name, info] of Object.entries(lootDb)) {
   if (info.guide && !e.guide) e.guide = info.guide;
 }
 
-// 3) Fahrzeuge (Namen) + UEX-Kaufpreise
+// 4) Fahrzeuge (Namen) + UEX-Kaufpreise
 const vehicles = readJson(resolve(ROOT, 'src', 'data', 'vehicles.json')).vehicles || [];
 const vehPrices = readJson(resolve(ROOT, 'src', 'data', 'vehicle-prices.json')).prices || {};
 let vehicleRows = 0;
@@ -114,7 +138,7 @@ for (const v of vehicles) {
   }
 }
 
-// 4) Katalog aus global.ini (optional): echte Namen, bewusst OHNE Preis/Ort
+// 5) Katalog aus global.ini (optional): echte Namen, bewusst OHNE Preis/Ort
 let catalogAdded = 0, catalogSkipped = 0;
 let iniFound = existsSync(GLOBAL_INI);
 if (iniFound) {
@@ -145,7 +169,13 @@ if (iniFound) {
 //  Dedupe je Item (identische obtain-Zeilen), sortieren, schreiben
 // =========================================================
 const items = [];
+let snapFallbackRows = 0;
 for (const e of byName.values()) {
+  // Shop-Zeilen: UEX hat Vorrang, der ältere Snapshot greift nur ohne UEX-Treffer
+  const shopRows = e.shopUex.length ? e.shopUex : e.shopSnap;
+  if (!e.shopUex.length) snapFallbackRows += e.shopSnap.length;
+  e.obtain = shopRows.concat(e.obtain);
+
   const seen = new Set();
   e.obtain = e.obtain.filter((o) => {
     const k = `${o.kind}|${o.loc}|${o.price ?? ''}`;
@@ -163,7 +193,7 @@ for (const e of items) e.id = slugId(e.name);
 const counts = {
   items: items.length,
   withObtain: items.filter((i) => i.obtain.length).length,
-  shopRows, lootRows, vehicleRows,
+  uexRows, snapFallbackRows, lootRows, vehicleRows,
   catalogOnly: items.filter((i) => !i.obtain.length).length,
   catalogSkippedPlaceholders: catalogSkipped,
 };
@@ -171,9 +201,11 @@ const counts = {
 const db = {
   generator: 'scripts/build-universal-db.mjs',
   generatedAt: new Date().toISOString().slice(0, 10),
+  pricesAsOf: uexDb.fetchedAt,
   note: 'Keine fabrizierten Werte: Items ohne bekannte Quelle haben obtain:[] (Katalog). Preise/Orte Patch-volatil — ingame prüfen.',
   sources: {
-    shops: 'assets/dismantling-items.json — kuratierter Shop-Snapshot (Kaufort + aUEC)',
+    prices: `src/data/item-prices.json — UEX Corp, Stand ${uexDb.fetchedAt}; identisch mit den Kaufpreis-Tabellen auf starcitizen.tools`,
+    shopsFallback: 'assets/dismantling-items.json — kuratierter Shop-Snapshot, greift nur ohne UEX-Treffer',
     loot: 'src/data/loot-items.json — eigene Loot-Recherche (Fundorte + Guides)',
     vehicles: 'src/data/vehicles.json + vehicle-prices.json — UEX Corp (uexcorp.space)',
     catalog: iniFound ? 'global.ini (item_Name*) aus lokaler Data.p4k-Extraktion' : 'ÜBERSPRUNGEN (global.ini nicht gefunden)',

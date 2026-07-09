@@ -42,13 +42,13 @@ const snap = DB.generatedAt;
   </section>
 
   <div class="uf-note reveal">
-    <span>Preise &amp; Fundorte sind <b>Patch-volatil — ingame prüfen</b>. Quellen: kuratierter Shop-Snapshot, eigene Loot-Recherche, UEX-Fahrzeugpreise, Namen aus den Spieldateien (global.ini). Keine erfundenen Werte.</span>
+    <span>Preise &amp; Kauforte: <b>UEX Corp</b> (Stand {DB.pricesAsOf}) — dieselben Daten, die <a href="https://starcitizen.tools/" rel="noopener">starcitizen.tools</a> auf den Item-Seiten anzeigt. Dazu eigene Loot-Recherche mit Guides, UEX-Fahrzeugpreise und Namen aus den Spieldateien (global.ini). Keine erfundenen Werte — <b>Patch-volatil, ingame prüfen</b>.</span>
   </div>
 
   <ItemFinderApp lang="de" />
 </main>
 
-<Attribution sources={["CIG-Spieldaten", "UEX Corp", "eigene Loot-Recherche"]} updated={snap} />
+<Attribution sources={["UEX Corp / starcitizen.tools", "CIG-Spieldaten", "eigene Loot-Recherche"]} updated={snap} />
 
 <script is:inline src="/assets/detail.js"></script>
 </Layout>
