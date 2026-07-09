@@ -19,7 +19,7 @@
     if(btn&&lbl) btn.setAttribute('aria-label', lbl.textContent.trim()+' abspielen');
     function load(){
       var id=v.getAttribute('data-yt');
-      v.innerHTML='<iframe src="https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0" title="'+((lbl&&lbl.textContent.trim())||'Video')+'" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+      v.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&rel=0" title="'+((lbl&&lbl.textContent.trim())||'Video')+'" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>';
     }
     (btn||v).addEventListener('click',load,{once:true});
   });
@@ -46,7 +46,7 @@
       if(!el.getAttribute('aria-label'))el.setAttribute('aria-label',(isYt?'Video abspielen: ':'Bild öffnen: ')+txtOf(el));
       activable(el,function(){
         lastTrigger=el; var v=el.getAttribute('data-lb');
-        if(isYt){show('<div class="ratio"><iframe src="https://www.youtube.com/embed/'+v.slice(3)+'?autoplay=1&rel=0" title="'+esc(txtOf(el)||'Video')+'" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe></div>');}
+        if(isYt){show('<div class="ratio"><iframe src="https://www.youtube-nocookie.com/embed/'+v.slice(3)+'?autoplay=1&rel=0" title="'+esc(txtOf(el)||'Video')+'" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe></div>');}
         else{show('<img src="'+v.slice(4)+'" alt="'+esc(txtOf(el)||'Bild')+'">');}
       });
     });

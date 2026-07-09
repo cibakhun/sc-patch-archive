@@ -1,0 +1,57 @@
+---
+// Legal notice (EN mirror of /impressum.html — same slug so the language
+// switcher pairs the pages). [TODO] fields must be filled before publishing.
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import Attribution from '../../components/Attribution.astro';
+---
+<Layout title={"Legal Notice | SC Patch Archive"} description={"Legal notice (Impressum) of the SC Patch Archive: provider identification, contact, and trademark/copyright notices of this unofficial Star Citizen fan project."} themeColor="#05070d" translated={true}>
+<style is:inline>
+:root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
+.lg-wrap{max-width:var(--maxw);margin:0 auto;padding:3.2rem 1.25rem 4rem}
+.lg-wrap h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,6vw,3rem);color:#fff;margin:0 0 1.6rem}
+.lg-wrap h2{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.95rem;color:var(--accent);margin:2.2rem 0 .6rem;border-bottom:1px solid var(--line);padding-bottom:.4rem}
+.lg-wrap p, .lg-wrap li{color:var(--text);line-height:1.7;font-size:.98rem}
+.lg-wrap .muted{color:var(--muted)}
+.lg-fill{display:inline-block;background:color-mix(in srgb,#ff5b5b 14%,transparent);border:1px dashed #ff5b5b;border-radius:4px;padding:0 .45rem;color:#ffb4b4;font-weight:700}
+</style>
+<SiteNav crumbs={[{ label: 'Archive', href: '/index.html' }, { label: 'Legal Notice' }]} hasEn={true} />
+<main id="main">
+  <div class="lg-wrap">
+    <h1>Legal Notice</h1>
+    <p class="muted">German law (§ 5 DDG) requires this provider identification (“Impressum”).</p>
+
+    <h2>Provider</h2>
+    <p>
+      <span class="lg-fill">[TODO: Full name]</span><br />
+      <span class="lg-fill">[TODO: Street and number]</span><br />
+      <span class="lg-fill">[TODO: Postal code and city]</span><br />
+      Germany
+    </p>
+
+    <h2>Contact</h2>
+    <p>E-mail: <a href="mailto:krysx141@gmail.com">krysx141@gmail.com</a></p>
+
+    <h2>Trademark & copyright notice</h2>
+    <p>
+      This is an unofficial, non-commercial fan project for documentation purposes.
+      Star Citizen®, Squadron 42®, Roberts Space Industries® and Cloud Imperium® are registered
+      trademarks of Cloud Imperium Rights LLC. All rights reserved. This website is not affiliated
+      with, endorsed or sponsored by the Cloud Imperium group of companies.
+    </p>
+    <p>
+      Game content, trailers and stills © Cloud Imperium Games — used under the RSI fan-content
+      guidelines. Wiki content from starcitizen.tools is licensed under CC-BY-SA 4.0. Ship imagery
+      is embedded from fleetyards.net.
+    </p>
+
+    <h2>Liability for links</h2>
+    <p class="muted">
+      This website links to external third-party websites over whose content we have no control.
+      The respective provider is always responsible for the content of linked pages. No unlawful
+      content was identifiable at the time of linking.
+    </p>
+  </div>
+</main>
+<Attribution sources={[]} />
+</Layout>

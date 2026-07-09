@@ -218,6 +218,8 @@ const db = {
   }),
 };
 
-writeFileSync(OUT, JSON.stringify(db, null, 1));
+// kompakt (kein Pretty-Print): ~20 % kleiner auf der Leitung; Diffs sind bei
+// generierten Snapshots ohnehin nicht zeilenweise lesbar.
+writeFileSync(OUT, JSON.stringify(db));
 console.log(`OK: ${OUT}`);
 console.log(counts);
