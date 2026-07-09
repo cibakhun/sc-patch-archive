@@ -85,6 +85,9 @@
 
   var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 
+  // Hero-Ambient-Loops leben in assets/hero-video.js (eigenständig, weil die
+  // Patch-Seiten detail.js nicht laden) — hier bewusst KEIN Duplikat.
+
   // Warm-accent test: embers are a fire/ember mood, so only warm-themed
   // pages (Pyro/Engineering/Onyx/gold) get them — cold pages (Nyx, Storm,
   // Server Meshing, Medical, Resource Drive …) would look off with rising "sparks".
