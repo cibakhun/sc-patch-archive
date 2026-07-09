@@ -56,6 +56,12 @@ const placeholderHits = [];
 const mojibakeHits = [];
 const switcherErrors = [];
 const basePrefixPages = new Set();
+// Semantik-Check: erkennt VALIDE Assets, die als Stand-in wiederverwendet werden.
+// Signal 1: dieselbe Datei site-weit unter VERSCHIEDENEN Alt-Texten.
+// Signal 2: Entity-benannte Datei (img-/wk-/vid-), deren Alt-Text keinen
+//           Namensbestandteil der Datei enthält (Bild ≠ beschriebenes Ding).
+const altByAsset = new Map(); // asset -> Map(altNorm -> Set(pages))
+const slugMismatch = [];
 
 for (const f of htmlFiles) {
   const page = rel(f);
@@ -96,11 +102,46 @@ for (const f of htmlFiles) {
   if (h1Count === 0) a11yIssues.push(`${page}: kein <h1>`);
   else if (h1Count > 1) a11yIssues.push(`${page}: ${h1Count}× <h1>`);
 
-  // --- img alt ---
+  // --- img alt + Media-Semantik ---
   for (const m of html.matchAll(/<img\b[^>]*>/g)) {
-    if (!/\salt=/.test(m[0])) {
-      const src = /src="([^"]*)"/.exec(m[0])?.[1] || '?';
+    const src = /src="([^"]*)"/.exec(m[0])?.[1] || '?';
+    const altM = /\salt="([^"]*)"/.exec(m[0]);
+    if (!altM) {
       a11yIssues.push(`${page}: <img> ohne alt (${src})`);
+      continue;
+    }
+    if (!src.startsWith('/assets/')) continue;
+    const alt = altM[1].trim();
+    if (!alt) continue; // dekoratives Bild (alt="") ist legitim
+    // DE/EN getrennt gruppieren: Übersetzungen desselben Alt-Texts sind kein Konflikt.
+    const langKey = isEn ? 'en' : 'de';
+    const altNorm = alt.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const assetKey = `${src}|${langKey}`;
+    if (!altByAsset.has(assetKey)) altByAsset.set(assetKey, new Map());
+    const byAlt = altByAsset.get(assetKey);
+    if (!byAlt.has(altNorm)) byAlt.set(altNorm, new Set());
+    byAlt.get(altNorm).add(page);
+    // Signal 2: Entity-Dateiname vs. Alt-Text. „Ähnliche Schiffe“-Karten (sd__sim)
+    // zeigen bewusst ein ANDERES, korrekt benanntes Schiff — kein Mismatch.
+    const before = html.slice(Math.max(0, m.index - 300), m.index);
+    if (before.includes('sd__sim')) continue;
+    // Geprüfte Ausnahmen: Datei zeigt das Benannte, Name matcht nur nicht wörtlich.
+    const SLUG_OK = new Set([
+      '/assets/wk-a2b.jpg',      // A2 Hercules („b“ = Bomber-Kürzel der Datei)
+      '/assets/vid-isc48.jpg',   // Inside-Star-Citizen-4.8-Poster
+      '/assets/img-kruger.jpg',  // Kruger L-21 Wolf (Datei nach Hersteller benannt, s. shipRenders.ts)
+    ]);
+    if (SLUG_OK.has(src)) continue;
+    const fnM = /\/assets\/(?:wk|img|vid)-([a-z0-9-]+)\.(?:jpg|jpeg|png|webp|avif)/.exec(src);
+    if (fnM) {
+      // Tokens: Bindestrich-Split UND Zahl/Buchstaben-Grenzen (isc48 -> isc),
+      // als Vereinigung — sonst zerfallen kurze Namen wie f8c/c1 zu nichts.
+      const hyphen = fnM[1].split('-');
+      const digit = fnM[1].split(/-|(?<=[a-z])(?=\d)|(?<=\d)(?=[a-z])/);
+      const fileTokens = [...new Set([...hyphen, ...digit])].filter((t) => t.length >= 2);
+      const altFlat = altNorm.replace(/\s+/g, '');
+      const hit = !fileTokens.length || fileTokens.some((tok) => altFlat.includes(tok));
+      if (!hit) slugMismatch.push(`${page}: ${src} mit alt "${alt}"`);
     }
   }
 
@@ -207,6 +248,29 @@ if (basePrefixPages.size) {
 section('FEHLER Platzhalter im HTML', placeholderHits, errors);
 section('FEHLER Mojibake/Encoding', mojibakeHits, errors);
 section('WARNUNG Media-Wiederholung (>2×/Seite)', mediaViolations, warns);
+
+// Semantik-Auswertung: gleiche Datei, WIDERSPRÜCHLICHE Alt-Texte. Varianten
+// desselben Motivs („rsi polaris“ vs „the stolen polaris“) teilen Inhaltswörter;
+// gemeldet wird nur, wenn zwei Alt-Texte KEIN gemeinsames Inhaltswort haben —
+// das war das Muster der echten Stand-ins („high tier loot“ vs „supply depot“).
+const STOP = new Set(['the', 'a', 'an', 'in', 'of', 'at', 'on', 'and', 'with', 'der', 'die', 'das', 'im', 'in', 'einer', 'eines', 'einem', 'und', 'vor', 'von', 'mit', 'des', 'dem', 'am', 'als']);
+const contentTokens = (s) => new Set(s.split(' ').filter((w) => w.length >= 3 && !STOP.has(w)));
+const multiAlt = [];
+for (const [asset, byAlt] of altByAsset) {
+  if (byAlt.size < 2) continue;
+  const variants = [...byAlt.keys()];
+  let conflict = null;
+  outer: for (let i = 0; i < variants.length; i++) {
+    for (let j = i + 1; j < variants.length; j++) {
+      const A = contentTokens(variants[i]);
+      const B = contentTokens(variants[j]);
+      if (![...A].some((t) => B.has(t))) { conflict = [variants[i], variants[j]]; break outer; }
+    }
+  }
+  if (conflict) multiAlt.push(`${asset}: "${conflict[0]}" vs "${conflict[1]}"`);
+}
+section('WARNUNG Media-Semantik: 1 Datei, widersprüchliche Alt-Texte', multiAlt, warns, 20);
+section('WARNUNG Media-Semantik: Dateiname passt nicht zum Alt-Text', slugMismatch, warns, 20);
 section('WARNUNG SEO', seoIssues, warns);
 section('WARNUNG A11y', a11yIssues, warns, 20);
 section('INFO DE-Seiten ohne EN-Gegenstück', missingEn, infos, 10);
