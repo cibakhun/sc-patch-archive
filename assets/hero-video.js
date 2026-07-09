@@ -16,9 +16,16 @@
   v.setAttribute('muted', 'muted'); v.setAttribute('playsinline', '');
   v.setAttribute('aria-hidden', 'true'); v.setAttribute('tabindex', '-1');
   v.preload = 'auto';
+  // Styles inline, nicht via Stylesheet: die Patch-Seiten laden detail.css
+  // nicht — ohne das füllt das Video den Hero nicht (rendert in Eigengröße).
+  v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.4s ease';
+  if (getComputedStyle(hero).position === 'static') hero.style.position = 'relative';
   v.addEventListener('canplaythrough', function () {
-    hero.classList.add('hero__photo--vid');
-    v.play().catch(function () { hero.classList.remove('hero__photo--vid'); });
+    v.play().then(function () {
+      v.style.opacity = '1';
+      hero.classList.add('hero__photo--vid');
+      hero.style.animation = 'none'; // Ken-Burns aus, sobald das Video läuft
+    }).catch(function () { /* Standbild bleibt */ });
   }, { once: true });
   hero.appendChild(v);
   // Format-Weiche: VP9/WebM ist ~50 % kleiner und läuft in jedem Chromium/
