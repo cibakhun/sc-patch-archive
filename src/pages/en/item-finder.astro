@@ -42,13 +42,13 @@ const snap = DB.generatedAt;
   </section>
 
   <div class="uf-note reveal">
-    <span>Prices &amp; locations are <b>patch-volatile — verify in game</b>. Sources: curated shop snapshot, own loot research, UEX vehicle prices, names from the game files (global.ini). No fabricated values.</span>
+    <span>Prices &amp; buying locations: <b>UEX Corp</b> (as of {DB.pricesAsOf}) — the same data <a href="https://starcitizen.tools/" rel="noopener">starcitizen.tools</a> shows on its item pages. Plus own loot research with guides, UEX vehicle prices, and names from the game files (global.ini). No fabricated values — <b>patch-volatile, verify in game</b>.</span>
   </div>
 
   <ItemFinderApp lang="en" />
 </main>
 
-<Attribution sources={["CIG game data", "UEX Corp", "own loot research"]} updated={snap} />
+<Attribution sources={["UEX Corp / starcitizen.tools", "CIG game data", "own loot research"]} updated={snap} />
 
 <script is:inline src="/assets/detail.js"></script>
 </Layout>
