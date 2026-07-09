@@ -27,3 +27,10 @@ build.log
 # Eigene DataCore-Extraktion (maschinen-/pfadspezifisch, via scripts/datamine-*.mjs)
 /assets/mining-gamefiles.json
 /assets/mining-locations-gamefiles.json
+
+# cloudflared tunnel logs
+.cf-*.log
+.cf-tunnel.log
+.agents/  
+scratch/  
+TEST_*.md 

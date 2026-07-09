@@ -1,0 +1,35 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ItemFinderApp from '../components/ItemFinderApp.astro';
+---
+
+<Layout title="Universal Item Finder | Star Citizen">
+  <main class="item-finder-page">
+    <div class="uif-hero">
+      <h1>Universal Item Finder</h1>
+      <p>Search every weapon, ship part, and item available in the verse.</p>
+    </div>
+  
+    <ItemFinderApp />
+  </main>
+</Layout>
+
+<style>
+  .uif-hero {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(to bottom, rgba(20, 20, 24, 0.8), rgba(12, 12, 15, 1));
+    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.05));
+    margin-bottom: 2rem;
+  }
+  .uif-hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent, #ff5e1a);
+    text-shadow: 0 0 20px rgba(255, 94, 26, 0.3);
+  }
+  .uif-hero p {
+    color: var(--muted, #9ba2ae);
+    font-size: 1.1rem;
+  }
+</style>

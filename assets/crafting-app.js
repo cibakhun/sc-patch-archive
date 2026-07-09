@@ -17,6 +17,7 @@
   var cards = $$('.cbp', grid);
   var countEl = $('#cdb-count');
   var emptyEl = $('#cdb-empty');
+  var resSearch = $('#cdb-res-search');
 
   // ---- Data (async; UI works without it, enriched once loaded) ----
   var DB = null;
@@ -69,7 +70,7 @@
   //  FILTER + SORT
   // =========================================================
   var state = {
-    q: '', cats: {}, subs: {}, res: '', missionOnly: false, ownedOnly: false,
+    q: '', cats: {}, subs: {}, res: {}, missionOnly: false, ownedOnly: false,
     sort: 'name', view: load('craft.view.v1', 'grid')
   };
 
@@ -84,7 +85,14 @@
     if (catKeys.length && !state.cats[d.cat]) return false;
     var subKeys = Object.keys(state.subs).filter(function (k) { return state.subs[k]; });
     if (subKeys.length && !state.subs[d.cat + '||' + d.sub]) return false;
-    if (state.res && d.res.indexOf(state.res) < 0) return false;
+    var resKeys = Object.keys(state.res).filter(function (k) { return state.res[k]; });
+    if (resKeys.length) {
+      var cardRes = d.res.split('|');
+      var hasAll = resKeys.every(function (r) {
+        return cardRes.indexOf(r) >= 0;
+      });
+      if (!hasAll) return false;
+    }
     if (state.missionOnly && d.mis !== '1') return false;
     if (state.ownedOnly && !owned[d.i]) return false;
     return true;
@@ -119,6 +127,24 @@
     grid.appendChild(frag);
   }
 
+  function sortResourcesList() {
+    var resList = $('.cdb-res-list');
+    if (!resList) return;
+    var items = $$('.cdb-check', resList);
+    items.sort(function (a, b) {
+      var cbA = a.querySelector('input');
+      var cbB = b.querySelector('input');
+      if (cbA.checked && !cbB.checked) return -1;
+      if (!cbA.checked && cbB.checked) return 1;
+      var textA = a.querySelector('span').textContent.toLowerCase();
+      var textB = b.querySelector('span').textContent.toLowerCase();
+      return textA < textB ? -1 : textA > textB ? 1 : 0;
+    });
+    var frag = document.createDocumentFragment();
+    items.forEach(function (item) { frag.appendChild(item); });
+    resList.appendChild(frag);
+  }
+
   // =========================================================
   //  CONTROLS WIRING
   // =========================================================
@@ -139,8 +165,28 @@
     cb.addEventListener('change', function () { state.subs[cb.value] = cb.checked; apply(); });
   });
 
-  var resSel = $('#cdb-res');
-  if (resSel) resSel.addEventListener('change', function () { state.res = this.value.toLowerCase(); apply(); });
+  $$('.cdb-res-cb').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      state.res[cb.value] = cb.checked;
+      sortResourcesList();
+      apply();
+    });
+  });
+  if (resSearch) {
+    resSearch.addEventListener('input', function () {
+      var q = this.value.trim().toLowerCase();
+      $$('.cdb-res-cb').forEach(function (cb) {
+        var label = cb.closest('.cdb-check');
+        if (!label) return;
+        var name = label.querySelector('span').textContent.toLowerCase();
+        if (q && name.indexOf(q) < 0) {
+          label.style.display = 'none';
+        } else {
+          label.style.display = '';
+        }
+      });
+    });
+  }
   var misTog = $('#cdb-mission');
   if (misTog) misTog.addEventListener('change', function () { state.missionOnly = this.checked; apply(); });
   var ownTog = $('#cdb-owned');
@@ -159,12 +205,19 @@
 
   var resetBtn = $('#cdb-reset');
   if (resetBtn) resetBtn.addEventListener('click', function () {
-    state.q = ''; state.cats = {}; state.subs = {}; state.res = ''; state.missionOnly = false; state.ownedOnly = false;
+    state.q = ''; state.cats = {}; state.subs = {}; state.res = {}; state.missionOnly = false; state.ownedOnly = false;
     if (search) search.value = '';
-    if (resSel) resSel.value = '';
+    if (resSearch) {
+      resSearch.value = '';
+      $$('.cdb-res-cb').forEach(function (cb) {
+        var label = cb.closest('.cdb-check');
+        if (label) label.style.display = '';
+      });
+    }
     if (misTog) misTog.checked = false;
     if (ownTog) ownTog.checked = false;
-    $$('.cdb-cat,.cdb-sub').forEach(function (c) { c.checked = false; });
+    $$('.cdb-cat,.cdb-sub,.cdb-res-cb').forEach(function (c) { c.checked = false; });
+    sortResourcesList();
     apply();
   });
 
@@ -472,6 +525,300 @@
   if (clearBtn) clearBtn.addEventListener('click', function () { plan = {}; save('craft.plan.v1', plan); renderPlanner(); syncCards(); });
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // =========================================================
+  //  STAR CITIZEN DISMANTLING CALCULATOR
+  // =========================================================
+  var materialsMap = {
+    "titanium": { "id": "titanium", "name": "Titanium", "isRare": false },
+    "gold": { "id": "gold", "name": "Gold", "isRare": false },
+    "laranite": { "id": "laranite", "name": "Laranite", "isRare": false },
+    "iron": { "id": "iron", "name": "Iron", "isRare": false },
+    "copper": { "id": "copper", "name": "Copper", "isRare": false },
+    "tungsten": { "id": "tungsten", "name": "Tungsten", "isRare": false },
+    "silicon": { "id": "silicon", "name": "Silicon", "isRare": false },
+    "agricium": { "id": "agricium", "name": "Agricium", "isRare": false },
+    "torite": { "id": "torite", "name": "Torite", "isRare": false },
+    "borase": { "id": "borase", "name": "Borase", "isRare": false },
+    "riccite": { "id": "riccite", "name": "Riccite", "isRare": true },
+    "savrilium": { "id": "savrilium", "name": "Savrilium", "isRare": true },
+    "glacosite": { "id": "glacosite", "name": "Glacosite", "isRare": true },
+    "beradom": { "id": "beradom", "name": "Beradom", "isRare": true },
+    "aslarite": { "id": "aslarite", "name": "Aslarite", "isRare": true }
+  };
+
+  var ITEMS = [];
+
+  var calcState = {
+    res: {},
+    targetQty: 1.0,
+    yieldRate: 50
+  };
+
+  function sortCalcMatsList() {
+    var list = $('.calc-mat-list');
+    if (!list) return;
+    var items = $$('.calc-check', list);
+    items.sort(function (a, b) {
+      var cbA = a.querySelector('input');
+      var cbB = b.querySelector('input');
+      if (cbA.checked && !cbB.checked) return -1;
+      if (!cbA.checked && cbB.checked) return 1;
+      var textA = a.querySelector('span').textContent.toLowerCase();
+      var textB = b.querySelector('span').textContent.toLowerCase();
+      return textA < textB ? -1 : textA > textB ? 1 : 0;
+    });
+    var frag = document.createDocumentFragment();
+    items.forEach(function (item) { frag.appendChild(item); });
+    list.appendChild(frag);
+  }
+
+  function calcApply() {
+    var resultsEl = $('#calc-results');
+    var countEl = $('#calc-results-count');
+    if (!resultsEl) return;
+
+    var selectedMats = Object.keys(calcState.res).filter(function (k) { return calcState.res[k]; });
+    if (selectedMats.length === 0) {
+      resultsEl.innerHTML = '<div style="background:var(--bg,#16161a);border:1px dashed var(--line,rgba(255,94,26,.3));padding:2rem;text-align:center;color:var(--muted,#9ba2ae);border-radius:8px;">' + tr('calcSelectPrompt', 'Bitte wähle mindestens ein Material in der Seitenleiste aus.') + '</div>';
+      if (countEl) countEl.textContent = tr('calcFound', '{count} kompatible Items gefunden').replace('{count}', '0');
+      return;
+    }
+
+    var targetQty_cSCU = calcState.targetQty * 100;
+    var rate = calcState.yieldRate / 100;
+    var list = [];
+
+    ITEMS.forEach(function (item) {
+      var maxQty = 0;
+      var isComp = true;
+      var warnings = [];
+
+      selectedMats.forEach(function (mid) {
+        var matDef = materialsMap[mid] || { id: mid, name: mid, isRare: false };
+        var recipeItem = item.recipe.find(function (r) { return r.materialId.toLowerCase() === mid; });
+
+        if (!recipeItem) {
+          isComp = false;
+          return;
+        }
+
+        if (matDef.isRare) {
+          isComp = false;
+          warnings.push(tr('calcWarningRare', 'Dieses Item enthält {name}, dieser kann jedoch nicht durch Zerlegen gewonnen werden (selten).').replace('{name}', matDef.name));
+          return;
+        }
+
+        var yieldPerItem = recipeItem.quantity_cSCU * rate;
+        if (yieldPerItem <= 0) {
+          isComp = false;
+          return;
+        }
+
+        var needed = Math.ceil(targetQty_cSCU / yieldPerItem);
+        if (needed > maxQty) {
+          maxQty = needed;
+        }
+      });
+
+      selectedMats.forEach(function (mid) {
+        var matDef = materialsMap[mid] || { id: mid, name: mid, isRare: false };
+        var recipeItem = item.recipe.find(function (r) { return r.materialId.toLowerCase() === mid; });
+        if (recipeItem && matDef.isRare) {
+          warnings.push(tr('calcWarningRareBycatch', 'Dieses Item enthält {name}, dieser kann jedoch nicht durch Zerlegen gewonnen werden.').replace('{name}', matDef.name));
+        }
+      });
+
+      if (isComp) {
+        var totalCost = maxQty * item.purchasePrice_aUEC;
+        list.push({
+          item: item,
+          isComp: isComp,
+          qty: maxQty,
+          cost: totalCost,
+          warnings: warnings
+        });
+      }
+    });
+
+    list.sort(function (a, b) {
+      if (a.isComp && !b.isComp) return -1;
+      if (!a.isComp && b.isComp) return 1;
+      if (a.isComp) {
+        return a.cost - b.cost;
+      }
+      return a.item.name < b.item.name ? -1 : a.item.name > b.item.name ? 1 : 0;
+    });
+
+    resultsEl.innerHTML = list.map(function (res) {
+      var item = res.item;
+      var costFormatted = res.isComp ? fmtNum(res.cost) + ' aUEC' : '—';
+      var qtyFormatted = res.isComp ? tr('calcQtyBuy', '{qty}x kaufen').replace('{qty}', res.qty) : '—';
+      var cardClass = 'calc-card' + (res.isComp ? '' : ' incompatible');
+
+      var yieldHtml = item.recipe.map(function (r) {
+        var mid = r.materialId.toLowerCase();
+        var matDef = materialsMap[mid] || { id: mid, name: r.materialId, isRare: false };
+        var isTarget = calcState.res[mid];
+        var itemYield = matDef.isRare ? 0 : r.quantity_cSCU * rate;
+        var totalYield = res.isComp ? (res.qty * itemYield) / 100 : 0;
+        
+        return '<span class="calc-card__yield-tag' + (isTarget ? ' target' : '') + '">' +
+          matDef.name + ': ' + fmtNum(totalYield) + ' SCU' +
+          '</span>';
+      }).join(' ');
+
+      var warningsHtml = res.warnings.map(function (w) {
+        return '<div class="calc-card__warning">' + w + '</div>';
+      }).join('');
+
+      return '<div class="' + cardClass + '">' +
+        '<div class="calc-card__left">' +
+          '<h3 class="calc-card__title">' + item.name + '</h3>' +
+          '<div class="calc-card__meta">' + tr('category', 'Kategorie') + ': <strong>' + item.category + '</strong> &nbsp;·&nbsp; ' + tr('calcLocation', 'Kaufort') + ': <strong>' + item.purchaseLocation + '</strong></div>' +
+          '<div class="calc-card__yields">' + yieldHtml + '</div>' +
+          warningsHtml +
+        '</div>' +
+        '<div class="calc-card__right">' +
+          '<div class="calc-card__cost">' + costFormatted + '</div>' +
+          '<div class="calc-card__cost-unit">' + tr('calcCostUnit', 'Gesamtkosten') + '</div>' +
+          '<div class="calc-card__qty">' + qtyFormatted + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    if (countEl) {
+      var compCount = list.filter(function (x) { return x.isComp; }).length;
+      countEl.textContent = tr('calcFound', '{count} kompatible Items gefunden').replace('{count}', compCount);
+    }
+  }
+
+  function initCalc() {
+    var dismantleUrl = (window.__CRAFT && window.__CRAFT.dismantleUrl) || '/assets/dismantling-items.json';
+    fetch(dismantleUrl)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        ITEMS = data;
+        setupCalc();
+      })
+      .catch(function (err) {
+        console.error('Failed to load dismantling items:', err);
+      });
+  }
+
+  function setupCalc() {
+    var mats = {};
+    ITEMS.forEach(function (item) {
+      item.recipe.forEach(function (r) {
+        var mid = r.materialId.toLowerCase();
+        if (!mats[mid]) {
+          var details = materialsMap[mid] || { id: mid, name: r.materialId, isRare: false };
+          mats[mid] = details;
+        }
+      });
+    });
+    
+    var sortedMats = Object.keys(mats).map(function (k) { return mats[k]; });
+    sortedMats.sort(function (a, b) {
+      return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+    });
+
+    var calcList = $('.calc-mat-list');
+    if (calcList) {
+      calcList.innerHTML = sortedMats.map(function (m) {
+        return '<label class="cdb-check calc-check">' +
+          '<input type="checkbox" class="calc-mat-cb" value="' + m.id + '" />' +
+          '<span>' + m.name + (m.isRare ? ' <em style="color:#ff5b5b; font-size:0.75rem; font-style:normal;">' + tr('calcRareLabel', '(selten)') + '</em>' : '') + '</span>' +
+          '</label>';
+      }).join('');
+    }
+    
+    var matSearch = $('#calc-mat-search');
+    if (matSearch) {
+      matSearch.addEventListener('input', function () {
+        var query = this.value.trim().toLowerCase();
+        $$('.calc-mat-cb').forEach(function (cb) {
+          var label = cb.closest('.calc-check');
+          if (!label) return;
+          var name = label.querySelector('span').textContent.toLowerCase();
+          if (query && name.indexOf(query) < 0) {
+            label.style.display = 'none';
+          } else {
+            label.style.display = '';
+          }
+        });
+      });
+    }
+
+    $$('.calc-mat-cb').forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        calcState.res[cb.value] = cb.checked;
+        sortCalcMatsList();
+        calcApply();
+      });
+    });
+
+    var targetInput = $('#calc-target-qty');
+    if (targetInput) {
+      targetInput.addEventListener('input', function () {
+        calcState.targetQty = Math.max(0.01, parseFloat(this.value) || 0.01);
+        calcApply();
+      });
+    }
+
+    var yieldSlider = $('#calc-yield-rate');
+    var yieldVal = $('#calc-yield-val');
+    if (yieldSlider && yieldVal) {
+      yieldSlider.addEventListener('input', function () {
+        calcState.yieldRate = parseInt(this.value) || 50;
+        yieldVal.textContent = calcState.yieldRate + '%';
+        calcApply();
+      });
+    }
+
+    var calcReset = $('#calc-reset');
+    if (calcReset) {
+      calcReset.addEventListener('click', function () {
+        calcState.res = {};
+        calcState.targetQty = 1.0;
+        calcState.yieldRate = 50;
+        if (matSearch) matSearch.value = '';
+        if (targetInput) targetInput.value = '1.0';
+        if (yieldSlider) yieldSlider.value = '50';
+        if (yieldVal) yieldVal.textContent = '50%';
+        $$('.calc-mat-cb').forEach(function (cb) {
+          cb.checked = false;
+          var label = cb.closest('.calc-check');
+          if (label) label.style.display = '';
+        });
+        sortCalcMatsList();
+        calcApply();
+      });
+    }
+
+    calcApply();
+  }
+
+  // Tab switching logic
+  $$('.cdb-tab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      $$('.cdb-tab-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      
+      var tab = btn.dataset.tab;
+      var dbContent = $('#cdb-tab-db-content');
+      var dismantleContent = $('#cdb-tab-dismantle-content');
+      if (tab === 'db') {
+        if (dbContent) dbContent.removeAttribute('hidden');
+        if (dismantleContent) dismantleContent.setAttribute('hidden', '');
+      } else {
+        if (dbContent) dbContent.setAttribute('hidden', '');
+        if (dismantleContent) dismantleContent.removeAttribute('hidden');
+      }
+    });
+  });
+
+  initCalc();
 
   // initial paint
   apply();

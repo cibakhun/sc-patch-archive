@@ -18,7 +18,8 @@
     "verify:mining": "node scripts/verify-mining.mjs",
     "datamine:mining": "node scripts/datamine-mining.mjs",
     "datamine:locations": "node scripts/datamine-locations.mjs",
-    "sync:extras": "node scripts/sync-fleetyards-extras.mjs"
+    "sync:extras": "node scripts/sync-fleetyards-extras.mjs",
+    "test:e2e": "node --test tests/e2e/**/*.test.js"
   },
   "dependencies": {
     "astro": "^5.0.0"
