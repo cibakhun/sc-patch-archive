@@ -31,6 +31,8 @@ build.log
 # cloudflared tunnel logs
 .cf-*.log
 .cf-tunnel.log
-.agents/  
-scratch/  
-TEST_*.md 
+
+# Multi-Agent-Arbeitsverzeichnisse / Scratch
+.agents/
+scratch/
+TEST_*.md

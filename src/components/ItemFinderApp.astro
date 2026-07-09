@@ -1,114 +1,196 @@
 ---
+// Universal Item Finder — durchsuchbarer Katalog aller Items mit verifizierten
+// Bezugsquellen (Shop-Snapshot, Loot-Recherche, UEX-Fahrzeugpreise). Ohne Quelle
+// wird ein Item ehrlich als Katalog-Eintrag gezeigt — keine erfundenen Werte.
+// Daten: assets/universal-items.json (scripts/build-universal-db.mjs).
+interface Props { lang?: 'de' | 'en' }
+const { lang = 'de' } = Astro.props;
+
+const t = {
+  de: {
+    searchPlaceholder: 'Item, Waffe, Schiff, Fundort suchen…',
+    hAvailability: 'Fundart', hCategories: 'Kategorien',
+    loading: 'Datenbank wird geladen…',
+    sortNameAsc: 'Name (A–Z)', sortNameDesc: 'Name (Z–A)',
+    sortPriceAsc: 'Preis (aufsteigend)', sortPriceDesc: 'Preis (absteigend)',
+    modalClose: 'Schließen',
+  },
+  en: {
+    searchPlaceholder: 'Search item, weapon, ship, location…',
+    hAvailability: 'Availability', hCategories: 'Categories',
+    loading: 'Loading database…',
+    sortNameAsc: 'Name (A–Z)', sortNameDesc: 'Name (Z–A)',
+    sortPriceAsc: 'Price (low–high)', sortPriceDesc: 'Price (high–low)',
+    modalClose: 'Close',
+  },
+}[lang];
+
+// Strings, die das Client-JS braucht (window.__UIF.t)
+const JS_T = {
+  de: {
+    kindAll: 'Alle', kindBuy: 'Kaufbar', kindLoot: 'Loot', kindCatalog: 'Nur Katalog',
+    kindShop: 'Shop', kindVehicleShop: 'Schiffshändler',
+    noResults: 'Keine passenden Items gefunden.',
+    priceFrom: 'ab', lootOnly: 'Nur Loot', noTradeData: 'Keine Handelsdaten',
+    noSourceData: 'Kein Fundort bekannt',
+    showing: '{start}–{end} von {total} Einträgen', showingNone: '0 Einträge',
+    pageFirst: 'Anfang', pagePrev: 'Zurück', pageNext: 'Weiter', pageLast: 'Ende',
+    pageOf: 'Seite {p} von {t}',
+    sectionObtain: 'Bezugsquellen', thLocation: 'Ort', thKind: 'Art', thPrice: 'Preis',
+    volatileNote: 'Preise und Fundorte sind Patch-volatil — ingame prüfen.',
+    catalogNote: 'Katalog-Eintrag aus den Spieldateien: Für dieses Item liegen keine verifizierten Shop- oder Loot-Daten vor.',
+    sectionGuide: 'Fundort-Guide', sectionCrafting: 'Crafting-Rezept',
+    craftTime: 'Dauer', craftTiers: 'Stufen', craftMaterials: 'Materialien',
+    loadError: 'Die Item-Datenbank konnte nicht geladen werden. Bitte später erneut versuchen.',
+    subline: '{total} Items aus den Spieldateien, {sourced} mit verifizierten Bezugsquellen',
+    catArmour: 'Rüstung', catClothing: 'Kleidung', catWeapons: 'Waffen',
+    catVehicle: 'Fahrzeuge', catVehiclegear: 'Schiffskomponenten', catAmmo: 'Munition',
+    catAttachment: 'Aufsätze', catUtility: 'Werkzeug & Verbrauch', catOther: 'Sonstiges',
+    catComponent: 'Komponenten',
+  },
+  en: {
+    kindAll: 'All', kindBuy: 'Buyable', kindLoot: 'Loot', kindCatalog: 'Catalog only',
+    kindShop: 'Shop', kindVehicleShop: 'Ship dealer',
+    noResults: 'No matching items found.',
+    priceFrom: 'from', lootOnly: 'Loot only', noTradeData: 'No trade data',
+    noSourceData: 'No known source',
+    showing: '{start}–{end} of {total} entries', showingNone: '0 entries',
+    pageFirst: 'First', pagePrev: 'Prev', pageNext: 'Next', pageLast: 'Last',
+    pageOf: 'Page {p} of {t}',
+    sectionObtain: 'Where to get it', thLocation: 'Location', thKind: 'Kind', thPrice: 'Price',
+    volatileNote: 'Prices and locations are patch-volatile — verify in game.',
+    catalogNote: 'Catalog entry from the game files: no verified shop or loot data is available for this item.',
+    sectionGuide: 'Loot guide', sectionCrafting: 'Crafting recipe',
+    craftTime: 'Time', craftTiers: 'Tiers', craftMaterials: 'Materials',
+    loadError: 'The item database could not be loaded. Please try again later.',
+    subline: '{total} items from the game files, {sourced} with verified sources',
+    catArmour: 'Armor', catClothing: 'Clothing', catWeapons: 'Weapons',
+    catVehicle: 'Vehicles', catVehiclegear: 'Ship components', catAmmo: 'Ammo',
+    catAttachment: 'Attachments', catUtility: 'Tools & consumables', catOther: 'Other',
+    catComponent: 'Components',
+  },
+}[lang];
 ---
 
 <div class="uif-container" id="uif-app">
   <div class="uif-sidebar">
     <div class="uif-search">
-      <input type="text" id="uif-search-input" placeholder="Search items, weapons, ships..." />
+      <input type="text" id="uif-search-input" placeholder={t.searchPlaceholder} autocomplete="off" />
     </div>
-    
+
     <div class="uif-filters">
-      <h3>Categories</h3>
-      <div id="uif-category-list">
-        <!-- Categories injected via JS -->
-      </div>
+      <h3>{t.hAvailability}</h3>
+      <div id="uif-kind-chips" class="uif-chips"><!-- Chips via JS --></div>
+      <h3>{t.hCategories}</h3>
+      <div id="uif-category-list"><!-- Kategorien via JS --></div>
     </div>
   </div>
-  
+
   <div class="uif-main">
     <div class="uif-header">
-      <div class="uif-stats" id="uif-stats-count">Loading Database...</div>
+      <div class="uif-stats" id="uif-stats-count">{t.loading}</div>
       <div class="uif-sort">
-        <select id="uif-sort-select">
-          <option value="name_asc">Name (A-Z)</option>
-          <option value="name_desc">Name (Z-A)</option>
-          <option value="price_asc">Price (Low-High)</option>
-          <option value="price_desc">Price (High-Low)</option>
+        <select id="uif-sort-select" aria-label="Sort">
+          <option value="name_asc">{t.sortNameAsc}</option>
+          <option value="name_desc">{t.sortNameDesc}</option>
+          <option value="price_asc">{t.sortPriceAsc}</option>
+          <option value="price_desc">{t.sortPriceDesc}</option>
         </select>
       </div>
     </div>
-    
-    <div class="uif-results" id="uif-results-grid">
-      <!-- Items injected via JS -->
-    </div>
 
-    <div class="uif-pagination" id="uif-pagination-container">
-      <!-- Pagination injected via JS -->
-    </div>
+    <div class="uif-results" id="uif-results-grid"><!-- Items via JS --></div>
+
+    <div class="uif-pagination" id="uif-pagination-container"><!-- Pagination via JS --></div>
   </div>
 </div>
 
-<div class="uif-modal-overlay" id="uif-item-modal" style="display: none;">
+<div class="uif-modal-overlay" id="uif-item-modal" style="display: none;" role="dialog" aria-modal="true">
   <div class="uif-modal-container">
-    <button class="uif-modal-close" id="uif-modal-close-btn" aria-label="Close modal">&times;</button>
-    <div class="uif-modal-body" id="uif-modal-body-content">
-      <!-- Modal details injected via JS -->
-    </div>
+    <button class="uif-modal-close" id="uif-modal-close-btn" aria-label={t.modalClose}>&times;</button>
+    <div class="uif-modal-body" id="uif-modal-body-content"><!-- Details via JS --></div>
   </div>
 </div>
 
 <style is:global>
-  /* Global App Colors & Variables */
-  :root {
-    --bg-main: #05070d;
-    --bg-card: #0f1524;
-    --bg-alt: #1c1d22;
-    --bg-highlight: #16203a;
-    --muted-color: #9ba2ae;
-    --accent-orange: #ff5e1a;
-    --border-color: rgba(255, 255, 255, 0.05);
-    --border-focus: #16203a;
-  }
-
+  /* Universal Item Finder — nutzt die Seiten-Palette (--surface/--accent/--muted/--line),
+     definiert bewusst KEINE :root-Variablen. */
   .uif-container {
     display: flex;
-    max-width: 1400px;
+    max-width: var(--maxw, 1240px);
     margin: 0 auto;
     padding: 2rem 1rem;
     gap: 2rem;
     align-items: flex-start;
   }
-  
+
   .uif-sidebar {
     width: 300px;
     flex-shrink: 0;
-    background: var(--bg-card);
-    border: 1px solid var(--border-focus);
+    background: var(--surface, #0f1524);
+    border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     border-radius: 8px;
     padding: 1.5rem;
     position: sticky;
     top: 2rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   }
-  
+
   .uif-search input {
     width: 100%;
     background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
+    border: 1px solid var(--line-soft, rgba(255, 255, 255, 0.1));
+    color: var(--text, #eef1f5);
     padding: 0.75rem 1rem;
     border-radius: 6px;
     font-family: inherit;
     font-size: 1rem;
-    transition: all 0.2s ease-in-out;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
-  
+
   .uif-search input:focus {
     outline: none;
-    border-color: var(--accent-orange);
-    box-shadow: 0 0 8px rgba(255, 94, 26, 0.4);
+    border-color: var(--accent, #ff5e1a);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent, #ff5e1a) 40%, transparent);
   }
-  
+
   .uif-filters h3 {
     margin: 1.5rem 0 0.75rem;
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    color: var(--accent-orange);
-    border-bottom: 1px solid var(--border-focus);
+    color: var(--accent, #ff5e1a);
+    border-bottom: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     padding-bottom: 0.5rem;
   }
-  
+
+  .uif-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .uif-chip {
+    background: transparent;
+    border: 1px solid var(--line-soft, rgba(255, 255, 255, 0.12));
+    color: var(--muted, #9ba2ae);
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .uif-chip:hover { color: var(--text, #fff); border-color: var(--accent, #ff5e1a); }
+
+  .uif-chip.active {
+    background: var(--accent, #ff5e1a);
+    border-color: var(--accent, #ff5e1a);
+    color: var(--ink, #16161a);
+    font-weight: 700;
+  }
+
   #uif-category-list {
     display: flex;
     flex-direction: column;
@@ -123,7 +205,7 @@
     width: 100%;
     background: transparent;
     border: 1px solid transparent;
-    color: var(--muted-color);
+    color: var(--muted, #9ba2ae);
     padding: 0.6rem 0.8rem;
     border-radius: 6px;
     text-align: left;
@@ -135,20 +217,20 @@
 
   .uif-category-btn:hover {
     background: rgba(255, 255, 255, 0.03);
-    color: #fff;
+    color: var(--text, #fff);
   }
 
   .uif-category-btn.active {
-    background: var(--bg-highlight);
-    color: #fff;
-    border: 1px solid var(--accent-orange);
-    box-shadow: 0 0 8px rgba(255, 94, 26, 0.15);
+    background: color-mix(in srgb, var(--accent, #ff5e1a) 12%, transparent);
+    color: var(--text, #fff);
+    border: 1px solid var(--accent, #ff5e1a);
   }
 
   .uif-category-btn-label {
     display: flex;
     align-items: center;
     gap: 0.6rem;
+    min-width: 0;
   }
 
   .uif-category-count {
@@ -156,37 +238,32 @@
     background: rgba(255, 255, 255, 0.05);
     padding: 0.15rem 0.5rem;
     border-radius: 12px;
-    color: var(--muted-color);
+    color: var(--muted, #9ba2ae);
+    flex-shrink: 0;
   }
 
   .uif-category-btn.active .uif-category-count {
-    background: var(--accent-orange);
-    color: #fff;
+    background: var(--accent, #ff5e1a);
+    color: var(--ink, #16161a);
   }
 
-  .uif-main {
-    flex-grow: 1;
-    min-width: 0;
-  }
-  
+  .uif-main { flex-grow: 1; min-width: 0; }
+
   .uif-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border-focus);
+    border-bottom: 1px solid var(--line, rgba(255, 94, 26, 0.22));
   }
-  
-  .uif-stats {
-    color: var(--muted-color);
-    font-size: 0.95rem;
-  }
-  
+
+  .uif-stats { color: var(--muted, #9ba2ae); font-size: 0.95rem; }
+
   .uif-sort select {
-    background: var(--bg-card);
-    color: #fff;
-    border: 1px solid var(--border-focus);
+    background: var(--surface, #0f1524);
+    color: var(--text, #fff);
+    border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     padding: 0.5rem 1rem;
     border-radius: 6px;
     font-family: inherit;
@@ -194,37 +271,43 @@
     transition: border-color 0.2s;
   }
 
-  .uif-sort select:focus {
-    outline: none;
-    border-color: var(--accent-orange);
-  }
-  
+  .uif-sort select:focus { outline: none; border-color: var(--accent, #ff5e1a); }
+
   .uif-results {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
     gap: 1.5rem;
   }
 
-  /* Card Styling */
+  .uif-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted, #9ba2ae);
+  }
+
+  /* Karten */
   .uif-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-focus);
+    background: var(--surface, #0f1524);
+    border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     border-radius: 8px;
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s, box-shadow 0.25s;
     cursor: pointer;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     position: relative;
     overflow: hidden;
   }
 
-  .uif-card:hover {
+  .uif-card:hover,
+  .uif-card:focus-visible {
     transform: translateY(-2px);
-    border-color: var(--accent-orange);
-    box-shadow: 0 8px 20px rgba(255, 94, 26, 0.15);
+    border-color: var(--accent, #ff5e1a);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--accent, #ff5e1a) 15%, transparent);
+    outline: none;
   }
 
   .uif-card-header {
@@ -239,14 +322,21 @@
     align-items: center;
     gap: 0.4rem;
     font-size: 0.8rem;
-    color: var(--muted-color);
+    color: var(--muted, #9ba2ae);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    min-width: 0;
+  }
+
+  .uif-card-cat-wrapper span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .uif-card-title {
     margin: 0.5rem 0 1rem;
-    color: #fff;
+    color: var(--text, #fff);
     font-size: 1.1rem;
     line-height: 1.4;
     font-weight: 600;
@@ -256,35 +346,39 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    gap: 0.6rem;
+    border-top: 1px solid var(--line-soft, rgba(255, 255, 255, 0.05));
     padding-top: 0.75rem;
     margin-top: auto;
   }
 
   .uif-card-price {
-    color: var(--accent-orange);
+    color: var(--accent, #ff5e1a);
     font-weight: 700;
     font-size: 0.95rem;
+    white-space: nowrap;
   }
 
   .uif-card-location {
     font-size: 0.8rem;
-    color: var(--muted-color);
-    max-width: 60%;
+    color: var(--muted, #9ba2ae);
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: right;
   }
 
-  /* Inline Icons */
-  .uif-icon {
-    display: inline-block;
-    vertical-align: middle;
-    flex-shrink: 0;
+  .uif-loc-more {
+    color: var(--accent-2, var(--accent, #ff5e1a));
+    font-weight: 700;
   }
 
-  /* Pagination Styling */
+  .uif-loc-none { font-style: italic; opacity: 0.8; }
+
+  .uif-icon { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+
+  /* Pagination */
   .uif-pagination {
     display: flex;
     justify-content: center;
@@ -295,9 +389,9 @@
   }
 
   .uif-page-btn {
-    background: var(--bg-card);
-    color: var(--muted-color);
-    border: 1px solid var(--border-focus);
+    background: var(--surface, #0f1524);
+    color: var(--muted, #9ba2ae);
+    border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     padding: 0.5rem 0.85rem;
     border-radius: 6px;
     font-family: inherit;
@@ -308,37 +402,23 @@
   }
 
   .uif-page-btn:hover:not(:disabled) {
-    background: var(--bg-highlight);
-    color: #fff;
-    border-color: var(--accent-orange);
+    color: var(--text, #fff);
+    border-color: var(--accent, #ff5e1a);
   }
 
-  .uif-page-btn.active {
-    background: var(--accent-orange);
-    color: #fff;
-    border-color: var(--accent-orange);
-    box-shadow: 0 0 10px rgba(255, 94, 26, 0.3);
-  }
-
-  .uif-page-btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
+  .uif-page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
   .uif-page-info {
-    color: var(--muted-color);
+    color: var(--muted, #9ba2ae);
     font-size: 0.9rem;
     margin: 0 0.5rem;
     user-select: none;
   }
 
-  /* Modal Styling */
+  /* Modal */
   .uif-modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: rgba(5, 7, 13, 0.85);
     backdrop-filter: blur(6px);
     display: flex;
@@ -349,15 +429,12 @@
     animation: uif-fade-in 0.2s ease-out;
   }
 
-  @keyframes uif-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
+  @keyframes uif-fade-in { from { opacity: 0; } to { opacity: 1; } }
 
   .uif-modal-container {
-    background: var(--bg-card);
-    border: 1px solid var(--accent-orange);
-    box-shadow: 0 0 30px rgba(255, 94, 26, 0.25);
+    background: var(--surface, #0f1524);
+    border: 1px solid var(--accent, #ff5e1a);
+    box-shadow: 0 0 30px color-mix(in srgb, var(--accent, #ff5e1a) 25%, transparent);
     border-radius: 12px;
     width: 100%;
     max-width: 800px;
@@ -368,10 +445,7 @@
     animation: uif-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  @keyframes uif-slide-up {
-    from { transform: translateY(15px); }
-    to { transform: translateY(0); }
-  }
+  @keyframes uif-slide-up { from { transform: translateY(15px); } to { transform: translateY(0); } }
 
   .uif-modal-close {
     position: absolute;
@@ -379,26 +453,24 @@
     right: 1.25rem;
     background: transparent;
     border: none;
-    color: var(--muted-color);
+    color: var(--muted, #9ba2ae);
     font-size: 1.75rem;
     cursor: pointer;
     transition: color 0.2s;
     line-height: 1;
   }
 
-  .uif-modal-close:hover {
-    color: var(--accent-orange);
-  }
+  .uif-modal-close:hover { color: var(--accent, #ff5e1a); }
 
   .uif-modal-header {
-    border-bottom: 1px solid var(--border-focus);
+    border-bottom: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     padding-bottom: 1rem;
     margin-bottom: 1.5rem;
   }
 
   .uif-modal-title {
     margin: 0.25rem 0 0.5rem;
-    color: #fff;
+    color: var(--text, #fff);
     font-size: 1.6rem;
     font-weight: 700;
   }
@@ -408,34 +480,27 @@
     flex-wrap: wrap;
     gap: 1rem;
     font-size: 0.85rem;
-    color: var(--muted-color);
+    color: var(--muted, #9ba2ae);
     align-items: center;
   }
 
-  .uif-modal-meta-item {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
+  .uif-modal-meta-item { display: flex; align-items: center; gap: 0.4rem; }
 
-  .uif-modal-section {
-    margin-bottom: 1.75rem;
-  }
+  .uif-modal-section { margin-bottom: 1.75rem; }
 
   .uif-modal-section h4 {
-    color: var(--accent-orange);
+    color: var(--accent, #ff5e1a);
     font-size: 1.1rem;
     margin: 0 0 0.75rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--line-soft, rgba(255, 255, 255, 0.05));
     padding-bottom: 0.4rem;
   }
 
-  /* Locations Table */
   .uif-table-wrapper {
     overflow-x: auto;
-    border: 1px solid var(--border-focus);
+    border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     border-radius: 6px;
   }
 
@@ -447,47 +512,65 @@
   }
 
   .uif-locations-table th,
-  .uif-locations-table td {
-    padding: 0.75rem 1rem;
-  }
+  .uif-locations-table td { padding: 0.75rem 1rem; }
 
   .uif-locations-table th {
-    background: var(--bg-alt);
-    color: #fff;
+    background: var(--surface-2, #1c1d22);
+    color: var(--text, #fff);
     font-weight: 600;
-    border-bottom: 1px solid var(--border-focus);
+    border-bottom: 1px solid var(--line, rgba(255, 94, 26, 0.22));
   }
 
   .uif-locations-table td {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-    color: var(--muted-color);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: var(--muted, #9ba2ae);
   }
 
-  .uif-locations-table tr:last-child td {
-    border-bottom: none;
-  }
+  .uif-locations-table tr:last-child td { border-bottom: none; }
 
   .uif-locations-table tr:hover td {
     background: rgba(255, 255, 255, 0.02);
-    color: #fff;
+    color: var(--text, #fff);
   }
 
-  /* Crafting Grid & Info */
+  .uif-td-kind { white-space: nowrap; }
+  .uif-td-price { white-space: nowrap; font-weight: 700; color: var(--accent, #ff5e1a); }
+
+  .uif-volatile-note,
+  .uif-catalog-note {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    color: var(--muted, #9ba2ae);
+    line-height: 1.5;
+  }
+
+  .uif-guide-text {
+    margin: 0;
+    color: var(--text, #eef1f5);
+    font-size: 0.95rem;
+    line-height: 1.65;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--line-soft, rgba(255, 255, 255, 0.08));
+    border-left: 3px solid var(--accent, #ff5e1a);
+    border-radius: 6px;
+    padding: 0.9rem 1.1rem;
+  }
+
   .uif-crafting-header {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
-    background: var(--bg-alt);
+    background: var(--surface-2, #1c1d22);
     padding: 1rem;
     border-radius: 6px;
-    border: 1px solid var(--border-focus);
+    border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     margin-bottom: 1rem;
     font-size: 0.95rem;
   }
 
   .uif-crafting-ingredients h5 {
     font-size: 0.9rem;
-    color: #fff;
+    color: var(--text, #fff);
     margin: 0 0 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -504,53 +587,19 @@
 
   .uif-crafting-ingredients li {
     background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--border-focus);
+    border: 1px solid var(--line-soft, rgba(255, 255, 255, 0.08));
     padding: 0.6rem 1rem;
     border-radius: 6px;
     font-size: 0.9rem;
-    color: var(--muted-color);
+    color: var(--muted, #9ba2ae);
   }
 
-  .uif-crafting-ingredients li strong {
-    color: #fff;
-  }
+  .uif-crafting-ingredients li strong { color: var(--text, #fff); }
 
-  /* Technical stats */
-  .uif-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .uif-stat-item {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--border-focus);
-    padding: 0.6rem 0.85rem;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .uif-stat-label {
-    color: var(--muted-color);
-    font-weight: 500;
-  }
-
-  .uif-stat-value {
-    color: #fff;
-    font-weight: 600;
-    word-break: break-all;
-  }
-
-  /* Responsive Styling */
+  /* Responsive */
   @media (max-width: 900px) {
-    .uif-container {
-      flex-direction: column;
-      padding: 1rem;
-    }
-    
+    .uif-container { flex-direction: column; padding: 1rem; }
+
     .uif-sidebar {
       width: 100%;
       position: static;
@@ -559,43 +608,28 @@
 
     #uif-category-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 0.5rem;
     }
 
-    .uif-category-btn {
-      padding: 0.5rem;
-      font-size: 0.85rem;
-    }
-    
+    .uif-category-btn { padding: 0.5rem; font-size: 0.85rem; }
+
     .uif-header {
       flex-direction: column;
       align-items: flex-start;
       gap: 0.75rem;
     }
 
-    .uif-sort {
-      width: 100%;
-    }
+    .uif-sort, .uif-sort select { width: 100%; }
 
-    .uif-sort select {
-      width: 100%;
-    }
-
-    .uif-modal-container {
-      padding: 1.25rem;
-      margin: 1rem;
-    }
+    .uif-modal-container { padding: 1.25rem; }
   }
 
   @media (max-width: 480px) {
-    #uif-category-list {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    .uif-modal-title {
-      font-size: 1.3rem;
-    }
+    #uif-category-list { grid-template-columns: repeat(2, 1fr); }
+    .uif-modal-title { font-size: 1.3rem; }
   }
 </style>
 
+<script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl: '/assets/universal-items.json', craftUrl: '/assets/crafting-db.json', t: JS_T })};`} />
 <script is:inline src="/assets/item-finder-app.js"></script>

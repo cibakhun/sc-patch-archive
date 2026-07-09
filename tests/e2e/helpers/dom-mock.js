@@ -2,6 +2,27 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import vm from 'node:vm';
 
+// Entities wie im echten DOM: beim Parsen dekodieren, beim Serialisieren kodieren.
+function decodeEntities(s) {
+  return String(s)
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&laquo;/g, '«')
+    .replace(/&raquo;/g, '»')
+    .replace(/&lsaquo;/g, '‹')
+    .replace(/&rsaquo;/g, '›')
+    .replace(/&mdash;/g, '—')
+    .replace(/&amp;/g, '&');
+}
+function encodeEntities(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 export class MockElement {
   constructor(tagName, id = '', className = '') {
     this.tagName = tagName.toUpperCase();
@@ -82,7 +103,7 @@ export class MockElement {
 
   get outerHTML() {
     if (this.tagName === '#TEXT') {
-      return this._textContent || '';
+      return encodeEntities(this._textContent || '');
     }
     const attrs = Object.entries(this.attributes)
       .map(([name, val]) => ` ${name}="${val}"`)
@@ -171,7 +192,7 @@ export class MockElement {
           const text = html.slice(index).trim();
           if (text) {
             const textNode = new MockElement('#text');
-            textNode.textContent = text;
+            textNode.textContent = decodeEntities(text);
             nodes.push(textNode);
           }
           index = length;
@@ -182,7 +203,7 @@ export class MockElement {
           const text = html.slice(index, nextTag).trim();
           if (text) {
             const textNode = new MockElement('#text');
-            textNode.textContent = text;
+            textNode.textContent = decodeEntities(text);
             nodes.push(textNode);
           }
         }
@@ -226,7 +247,7 @@ export class MockElement {
         const attrRegex = /([a-z0-9\-]+)=(['"])(.*?)\2/gi;
         let attrMatch;
         while ((attrMatch = attrRegex.exec(attrsStr)) !== null) {
-          el.setAttribute(attrMatch[1], attrMatch[3]);
+          el.setAttribute(attrMatch[1], decodeEntities(attrMatch[3]));
         }
 
         const tagUpper = tagName.toUpperCase();
@@ -274,50 +295,66 @@ function matches(node, selector) {
   return true;
 }
 
-export async function setupMockDOM(htmlPath, jsonDbPath) {
-  const htmlContent = await fs.readFile(htmlPath, 'utf8');
-  const dbContent = await fs.readFile(jsonDbPath, 'utf8');
-  const dbData = JSON.parse(dbContent);
+/**
+ * Mock-DOM für den Universal Item Finder.
+ * opts:
+ *   db      — Datenbank-Objekt ({counts, items}) ODER Pfad zu einer JSON-Datei
+ *   craft   — optionales Crafting-DB-Objekt ({blueprints})
+ *   failDb  — true: fetch auf die Item-DB schlägt fehl (Fehlerpfad testen)
+ *   uifCfg  — optionales window.__UIF (lang/t); ohne greifen die DE-Fallbacks
+ */
+export async function setupMockDOM(opts = {}) {
+  let dbData = opts.db;
+  if (typeof dbData === 'string') {
+    dbData = JSON.parse(await fs.readFile(dbData, 'utf8'));
+  }
 
   const elements = {
     'uif-app': new MockElement('div', 'uif-app', 'uif-container'),
     'uif-search-input': new MockElement('input', 'uif-search-input'),
+    'uif-kind-chips': new MockElement('div', 'uif-kind-chips', 'uif-chips'),
     'uif-category-list': new MockElement('div', 'uif-category-list'),
     'uif-stats-count': new MockElement('div', 'uif-stats-count'),
     'uif-sort-select': new MockElement('select', 'uif-sort-select'),
     'uif-results-grid': new MockElement('div', 'uif-results-grid'),
-    'uif-heading': new MockElement('h1')
+    'uif-pagination-container': new MockElement('div', 'uif-pagination-container'),
+    'uif-item-modal': new MockElement('div', 'uif-item-modal', 'uif-modal-overlay'),
+    'uif-modal-body-content': new MockElement('div', 'uif-modal-body-content'),
+    'uif-modal-close-btn': new MockElement('button', 'uif-modal-close-btn'),
   };
-  elements['uif-stats-count'].textContent = 'Loading Database...';
-  elements['uif-heading'].textContent = 'Universal Item Finder';
+  elements['uif-stats-count'].textContent = 'Datenbank wird geladen…';
+  elements['uif-item-modal'].style.display = 'none';
 
-  const option1 = new MockElement('option');
-  option1.value = 'name_asc';
-  option1.textContent = 'Name (A-Z)';
-  const option2 = new MockElement('option');
-  option2.value = 'price_asc';
-  option2.textContent = 'Price (Low-High)';
-  const option3 = new MockElement('option');
-  option3.value = 'price_desc';
-  option3.textContent = 'Price (High-Low)';
-  
-  elements['uif-sort-select'].appendChild(option1);
-  elements['uif-sort-select'].appendChild(option2);
-  elements['uif-sort-select'].appendChild(option3);
+  for (const [value, label] of [
+    ['name_asc', 'Name (A–Z)'],
+    ['name_desc', 'Name (Z–A)'],
+    ['price_asc', 'Preis (aufsteigend)'],
+    ['price_desc', 'Preis (absteigend)'],
+  ]) {
+    const opt = new MockElement('option');
+    opt.value = value;
+    opt.textContent = label;
+    elements['uif-sort-select'].appendChild(opt);
+  }
   elements['uif-sort-select'].value = 'name_asc';
 
   const window = {
     location: { href: 'http://localhost/item-finder.html' },
-    addEventListener: () => {}
+    addEventListener: () => {},
+    // DE-Seitenkontext wie im echten Build (Strings kommen aus den DE-Fallbacks)
+    __UIF: opts.uifCfg || { lang: 'de' },
   };
+
+  const body = new MockElement('body');
 
   const document = {
     readyState: 'complete',
+    body,
     getElementById(id) {
       return elements[id] || null;
     },
     querySelector(selector) {
-      if (selector === 'body') return new MockElement('body');
+      if (selector === 'body') return body;
       if (selector.startsWith('#')) {
         return this.getElementById(selector.slice(1));
       }
@@ -349,7 +386,10 @@ export async function setupMockDOM(htmlPath, jsonDbPath) {
   const result = {
     elements,
     document,
+    body,
     dbData,
+    craftData: opts.craft || null,
+    failDb: !!opts.failDb,
     runScript: async (scriptPath) => {
       const code = await fs.readFile(scriptPath, 'utf8');
       const context = vm.createContext({
@@ -371,10 +411,12 @@ export async function setupMockDOM(htmlPath, jsonDbPath) {
 
   const fetchMock = async (url) => {
     if (url === '/assets/universal-items.json') {
-      return {
-        ok: true,
-        json: async () => result.dbData
-      };
+      if (result.failDb) throw new Error('mock: db fetch failed');
+      return { ok: true, json: async () => result.dbData };
+    }
+    if (url === '/assets/crafting-db.json') {
+      if (!result.craftData) return { ok: false, json: async () => null };
+      return { ok: true, json: async () => result.craftData };
     }
     throw new Error(`Fetch not mocked for URL: ${url}`);
   };
