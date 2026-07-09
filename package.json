@@ -22,6 +22,7 @@
     "sync:items": "node scripts/build-universal-db.mjs",
     "sync:item-prices": "node scripts/fetch-uex-item-prices.mjs && node scripts/build-universal-db.mjs",
     "verify:items": "node scripts/verify-item-prices.mjs",
+    "audit:site": "node scripts/audit-site.mjs",
     "test:e2e": "node --test tests/e2e/**/*.test.js"
   },
   "dependencies": {

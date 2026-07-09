@@ -72,12 +72,56 @@ for (const fe of freshEl) {
   if (norm(ce.locations) !== norm(fe.locations)) fails.push(`model ${fe.material}.locations drift`);
 }
 
-// 2) db ship-mineable locations == model locations (Abschnitt 01 == 02)
-const modelByMat = new Map(model.elements.filter((e) => e.material).map((e) => [e.material, e]));
+// 2) db-Fundorte == Live-Ableitung nach BUILDER-Logik (build-mining-db.mjs):
+//    PRIMÄR-basiert (dominantes Erz je Rock-Typ, chance = normierte
+//    relativeProbability, eff = chance × maxPercent/100, Top-5 je System).
+//    Das Modell (Abschnitt 02) leitet bewusst anders ab (alle Comp-Teile) —
+//    deshalb hier die Builder-Ableitung spiegeln, nicht das Modell.
+const cleanMat = (s) => {
+  let x = String(s || '').replace(/\s*\((?:Ore|Raw|Pure)\)\s*$/i, '').trim();
+  if (/^Aluminium$/i.test(x)) x = 'Aluminum';
+  if (/^Carinitepure$/i.test(x)) x = 'Carinite';
+  return x;
+};
+const DB_MINING = { SpaceShip_Mineables: 'ship', SpaceShip_Mineables_Rare: 'ship', FPS_Mineables: 'hand', GroundVehicle_Mineables: 'roc', Harvestables: 'harvest' };
+const locByMat = {};
+for (const loc of data.locations || []) {
+  for (const g of loc.groups || []) {
+    const mining = DB_MINING[g.groupName];
+    if (!mining) continue;
+    const tot = (g.deposits || []).reduce((s, d) => s + (d.relativeProbability || 0), 0);
+    if (!tot) continue;
+    for (const d of g.deposits || []) {
+      const comp = data.compositions[d.compositionGuid];
+      if (!comp?.parts?.length) continue;
+      let prim = comp.parts[0];
+      for (const p of comp.parts) if ((p.maxPercent ?? 0) > (prim.maxPercent ?? 0)) prim = p;
+      const mat = cleanMat(prim.elementName);
+      if (!mat) continue;
+      const chance = +(((d.relativeProbability || 0) / tot) * 100).toFixed(1);
+      const abundance = Math.round(prim.maxPercent ?? 0);
+      const eff = chance * ((prim.maxPercent ?? 100) / 100);
+      (locByMat[mat] ??= {});
+      const k = loc.locationName;
+      if (!locByMat[mat][k] || locByMat[mat][k].eff < eff) {
+        locByMat[mat][k] = { location: loc.locationName, system: loc.system, type: loc.locationType, abundance, chance, eff };
+      }
+    }
+  }
+}
+const dbCmp = (a, b) => (b.eff - a.eff) || ((TYPE_PREF[a.type] ?? 9) - (TYPE_PREF[b.type] ?? 9)) || a.location.localeCompare(b.location);
+const dbTop = (mat, nPerSys = 5) => {
+  const bySys = {};
+  for (const x of Object.values(locByMat[mat] || {})) (bySys[x.system] ??= []).push(x);
+  const picked = [];
+  for (const s of Object.keys(bySys)) picked.push(...bySys[s].sort(dbCmp).slice(0, nPerSys));
+  return picked.sort(dbCmp);
+};
 for (const m of db.minerals) {
-  const e = modelByMat.get(m.name); if (!e) continue;
-  const sig = (arr) => (arr || []).map((l) => `${l.location}|${l.system}|${l.abundance}`).join(';');
-  if (sig(m.locations) !== sig(e.locations)) fails.push(`db ${m.name}: Fundorte weichen vom Modell ab`);
+  if (!locByMat[m.name]) { fails.push(`db ${m.name}: Material nicht in Live-Ableitung`); continue; }
+  const sig = (arr) => (arr || []).map((l) => `${l.location}|${l.system}|${l.abundance}|${l.chance}`).join(';');
+  const expected = dbTop(m.name);
+  if (sig(m.locations) !== sig(expected)) fails.push(`db ${m.name}: Fundorte weichen von Live-Builder-Ableitung ab`);
 }
 
 console.log(`Live: ${ver} | Modell-Elemente: ${model.elements.length} | DB-Minerale: ${db.minerals.length}`);
