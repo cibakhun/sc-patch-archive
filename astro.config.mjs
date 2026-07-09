@@ -22,9 +22,10 @@ export default defineConfig({
     locales: ['de', 'en'],
     routing: { prefixDefaultLocale: false },
   },
-  vite: {
-    server: {
-      allowedHosts: ['.loca.lt', '.trycloudflare.com'],
-    },
+  // Tunnel-Hosts (loca.lt/cloudflared). Astro-Level `server.allowedHosts`
+  // (seit 5.4) gilt für `astro dev` UND `astro preview` — die frühere
+  // vite.server-Variante griff nur im Dev-Server (preview: 403).
+  server: {
+    allowedHosts: ['.loca.lt', '.trycloudflare.com'],
   },
 });
