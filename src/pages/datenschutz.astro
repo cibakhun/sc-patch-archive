@@ -1,0 +1,89 @@
+---
+// Datenschutzerklärung — beschreibt FAKTISCH, was diese statische Site tut
+// (keine Cookies, kein Tracking, localStorage nur lokal, externe Bild-CDNs,
+// YouTube nur per Klick). [TODO]-Felder vor Publish füllen — audit:site
+// bleibt absichtlich rot, solange sie im Build stehen.
+import Layout from '../layouts/Layout.astro';
+import SiteNav from '../components/SiteNav.astro';
+import Attribution from '../components/Attribution.astro';
+---
+<Layout title={"Datenschutzerklärung | SC Patch-Archiv"} description={"Datenschutzerklärung des SC Patch-Archivs: statische Website ohne Cookies und Tracking — welche Daten beim Aufruf, bei externen Bildquellen und bei Klick auf YouTube-Videos verarbeitet werden."} themeColor="#05070d" translated={true}>
+<style is:inline>
+:root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
+.lg-wrap{max-width:var(--maxw);margin:0 auto;padding:3.2rem 1.25rem 4rem}
+.lg-wrap h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,6vw,3rem);color:#fff;margin:0 0 1.6rem}
+.lg-wrap h2{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.95rem;color:var(--accent);margin:2.2rem 0 .6rem;border-bottom:1px solid var(--line);padding-bottom:.4rem}
+.lg-wrap p, .lg-wrap li{color:var(--text);line-height:1.7;font-size:.98rem}
+.lg-wrap ul{padding-left:1.2rem}
+.lg-wrap .muted{color:var(--muted)}
+.lg-fill{display:inline-block;background:color-mix(in srgb,#ff5b5b 14%,transparent);border:1px dashed #ff5b5b;border-radius:4px;padding:0 .45rem;color:#ffb4b4;font-weight:700}
+</style>
+<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Datenschutz' }]} hasEn={true} />
+<main id="main">
+  <div class="lg-wrap">
+    <h1>Datenschutzerklärung</h1>
+
+    <h2>Verantwortlicher</h2>
+    <p>
+      <span class="lg-fill">[TODO: Vollständiger Name]</span>, <span class="lg-fill">[TODO: Anschrift]</span> —
+      E-Mail: <a href="mailto:krysx141@gmail.com">krysx141@gmail.com</a>
+    </p>
+
+    <h2>Grundsatz</h2>
+    <p>
+      Diese Website ist ein rein statisches, nicht-kommerzielles Fan-Projekt. Sie verwendet
+      <strong>keine Cookies</strong>, <strong>keine Analyse- oder Tracking-Dienste</strong>,
+      keine Werbung, keine Kontaktformulare und keine Kommentarfunktionen. Es werden keine
+      personenbezogenen Daten an uns übermittelt, gespeichert oder weitergegeben.
+    </p>
+
+    <h2>Server-Logdateien (Hosting)</h2>
+    <p>
+      Beim Aufruf der Website verarbeitet der Hosting-Anbieter
+      <span class="lg-fill">[TODO: Hosting-Anbieter, z. B. Cloudflare Pages]</span> technisch bedingt
+      Verbindungsdaten (IP-Adresse, Zeitpunkt, aufgerufene Ressource, User-Agent) in Server-Logs.
+      Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der sicheren
+      Bereitstellung). Auf diese Logs haben wir keinen inhaltlichen Zugriff über das für den
+      Betrieb Erforderliche hinaus.
+    </p>
+
+    <h2>Lokale Speicherung im Browser (localStorage)</h2>
+    <p>
+      Einzelne Werkzeuge der Seite (z. B. Crafting-Planer, „Im Besitz“-Markierungen,
+      Ansichts-Einstellungen) speichern ihre Einstellungen ausschließlich <strong>lokal in deinem
+      Browser</strong> (localStorage). Diese Daten verlassen dein Gerät nicht und können jederzeit
+      über die Browser-Einstellungen gelöscht werden.
+    </p>
+
+    <h2>Extern eingebundene Bilder</h2>
+    <p>
+      Teile der Bilddaten werden von externen Quellen geladen. Beim Abruf dieser Bilder wird deine
+      IP-Adresse technisch bedingt an den jeweiligen Anbieter übermittelt:
+    </p>
+    <ul>
+      <li><strong>fleetyards.net</strong> — Schiffs- und Fahrzeugbilder</li>
+      <li><strong>starcitizen.tools / cstone.space</strong> — einzelne Medieninhalte</li>
+    </ul>
+
+    <h2>YouTube-Videos (Klick-Aktivierung)</h2>
+    <p>
+      Videos sind als Vorschaubild eingebunden und werden <strong>erst nach deinem Klick</strong>
+      über youtube-nocookie.com (Google Ireland Ltd.) geladen. Vor dem Klick findet keine
+      Verbindung zu Google statt; mit dem Klick gelten die
+      <a href="https://policies.google.com/privacy" rel="noopener">Datenschutzhinweise von Google</a>.
+    </p>
+
+    <h2>Schriftarten</h2>
+    <p>Alle Webfonts werden lokal von dieser Website ausgeliefert. Es findet keine Verbindung zu Google Fonts statt.</p>
+
+    <h2>Deine Rechte</h2>
+    <p class="muted">
+      Dir stehen die Rechte aus Art. 15–21 DSGVO zu (Auskunft, Berichtigung, Löschung, Einschränkung,
+      Datenübertragbarkeit, Widerspruch) sowie das Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde
+      (Art. 77 DSGVO). Da diese Website keine personenbezogenen Daten von dir erhebt oder speichert,
+      laufen Auskunftsersuchen in der Regel ins Leere — melde dich im Zweifel per E-Mail.
+    </p>
+  </div>
+</main>
+<Attribution sources={[]} />
+</Layout>

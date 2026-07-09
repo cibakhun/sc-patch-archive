@@ -68,11 +68,12 @@ for (const f of htmlFiles) {
   const isEn = page === '/en.html' || page.startsWith('/en/');
   if (isEn) pagesEn++; else pagesDe++;
 
-  // --- html lang ---
+  // --- html lang (Onepager sind eigenständige EN-Artefakte, kein DE/EN-Paar) ---
+  const isStandalone = page.startsWith('/onepager/');
   const langM = /<html[^>]*\slang="([^"]*)"/.exec(html);
   if (!langM) a11yIssues.push(`${page}: <html> ohne lang-Attribut`);
-  else if (isEn && langM[1] !== 'en') a11yIssues.push(`${page}: lang="${langM[1]}" auf EN-Seite`);
-  else if (!isEn && langM[1] !== 'de') a11yIssues.push(`${page}: lang="${langM[1]}" auf DE-Seite`);
+  else if (!isStandalone && isEn && langM[1] !== 'en') a11yIssues.push(`${page}: lang="${langM[1]}" auf EN-Seite`);
+  else if (!isStandalone && !isEn && langM[1] !== 'de') a11yIssues.push(`${page}: lang="${langM[1]}" auf DE-Seite`);
 
   // --- SEO ---
   const title = /<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim();
@@ -168,7 +169,7 @@ for (const f of htmlFiles) {
 const missingEn = [];
 for (const f of htmlFiles) {
   const page = rel(f);
-  if (page.startsWith('/en/') || page === '/en.html' || page === '/404.html') continue;
+  if (page.startsWith('/en/') || page === '/en.html' || page === '/404.html' || page.startsWith('/onepager/')) continue;
   const enPage = page === '/index.html' ? '/en.html' : '/en' + page;
   if (!fileSet.has(enPage)) missingEn.push(page);
 }

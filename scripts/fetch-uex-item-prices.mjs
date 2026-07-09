@@ -102,6 +102,6 @@ const snapshot = {
   items: outItems,
 };
 
-writeFileSync(OUT, JSON.stringify(snapshot, null, 1));
+writeFileSync(OUT, JSON.stringify(snapshot));
 console.log(`OK: ${OUT}`);
 console.log(snapshot.counts);

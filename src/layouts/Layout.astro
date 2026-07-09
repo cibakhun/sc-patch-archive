@@ -76,12 +76,11 @@ const enHref = base + pathForLocale(Astro.url.pathname, 'en');
   {ogImageAbs && <meta property="og:image" content={ogImageAbs} />}
   <meta name="twitter:card" content="summary_large_image" />
   {ogImageAbs && <meta name="twitter:image" content={ogImageAbs} />}
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap"
-    rel="stylesheet"
-  />
+  {/* Webfonts selbst gehostet (scripts/fetch-fonts.mjs) — kein Google-CDN,
+      keine IP-Übertragung an Dritte beim Seitenaufruf (DSGVO). */}
+  <link rel="preload" href="/assets/fonts/orbitron-700-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/barlow-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link href="/assets/fonts.css" rel="stylesheet" />
   <style is:inline>
     /* Lesbarkeits-Grundlage: 18px-Wurzel statt Browser-Default 16px. Die
        gesamte Typo-Skala der Seite ist rem-basiert und wächst proportional —

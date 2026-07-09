@@ -1,0 +1,60 @@
+---
+// Impressum (Pflichtangaben § 5 DDG / § 18 MStV). Die [TODO]-Felder MÜSSEN vor
+// dem Publish mit den echten Betreiberdaten gefüllt werden — npm run audit:site
+// bleibt absichtlich rot, solange sie im Build stehen.
+import Layout from '../layouts/Layout.astro';
+import SiteNav from '../components/SiteNav.astro';
+import Attribution from '../components/Attribution.astro';
+---
+<Layout title={"Impressum | SC Patch-Archiv"} description={"Impressum des SC Patch-Archivs: Anbieterkennzeichnung, Kontakt sowie Marken- und Urheberrechtshinweise des inoffiziellen Star-Citizen-Fan-Projekts."} themeColor="#05070d" translated={true}>
+<style is:inline>
+:root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
+.lg-wrap{max-width:var(--maxw);margin:0 auto;padding:3.2rem 1.25rem 4rem}
+.lg-wrap h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,6vw,3rem);color:#fff;margin:0 0 1.6rem}
+.lg-wrap h2{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.95rem;color:var(--accent);margin:2.2rem 0 .6rem;border-bottom:1px solid var(--line);padding-bottom:.4rem}
+.lg-wrap p, .lg-wrap li{color:var(--text);line-height:1.7;font-size:.98rem}
+.lg-wrap .muted{color:var(--muted)}
+.lg-fill{display:inline-block;background:color-mix(in srgb,#ff5b5b 14%,transparent);border:1px dashed #ff5b5b;border-radius:4px;padding:0 .45rem;color:#ffb4b4;font-weight:700}
+</style>
+<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Impressum' }]} hasEn={true} />
+<main id="main">
+  <div class="lg-wrap">
+    <h1>Impressum</h1>
+
+    <h2>Angaben gemäß § 5 DDG</h2>
+    <p>
+      <span class="lg-fill">[TODO: Vollständiger Name]</span><br />
+      <span class="lg-fill">[TODO: Straße und Hausnummer]</span><br />
+      <span class="lg-fill">[TODO: PLZ und Ort]</span><br />
+      Deutschland
+    </p>
+
+    <h2>Kontakt</h2>
+    <p>E-Mail: <a href="mailto:krysx141@gmail.com">krysx141@gmail.com</a></p>
+
+    <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+    <p><span class="lg-fill">[TODO: Vollständiger Name]</span>, Anschrift wie oben.</p>
+
+    <h2>Marken- und Urheberrechtshinweis</h2>
+    <p>
+      Dies ist ein inoffizielles, nicht-kommerzielles Fan-Projekt zu Dokumentationszwecken.
+      Star Citizen®, Squadron 42®, Roberts Space Industries® und Cloud Imperium® sind eingetragene
+      Marken der Cloud Imperium Rights LLC. Alle Rechte vorbehalten. Diese Website steht in keiner
+      Verbindung zur Cloud Imperium-Unternehmensgruppe und wird von dieser weder unterstützt noch gefördert.
+    </p>
+    <p>
+      Spielinhalte, Trailer und Standbilder © Cloud Imperium Games — Nutzung im Rahmen der
+      RSI-Fan-Content-Richtlinien. Wiki-Inhalte von starcitizen.tools stehen unter
+      CC-BY-SA 4.0. Schiffsbilder werden von fleetyards.net eingebunden.
+    </p>
+
+    <h2>Haftung für Links</h2>
+    <p class="muted">
+      Diese Website enthält Links zu externen Websites Dritter, auf deren Inhalte kein Einfluss
+      besteht. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter verantwortlich.
+      Zum Zeitpunkt der Verlinkung waren keine rechtswidrigen Inhalte erkennbar.
+    </p>
+  </div>
+</main>
+<Attribution sources={[]} />
+</Layout>

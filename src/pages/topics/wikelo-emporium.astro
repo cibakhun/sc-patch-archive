@@ -40,6 +40,17 @@ const COMP_LABEL = { pwr: 'Antrieb', shield: 'Schild', qd: 'Quantum', cooler: 'K
 // PATCH_4_8_1.js übernommen (inkl. Original-Schreibweisen). Nichts erfunden; Werte patch-volatil.
 // `img` = verifiziertes Schiff-Bild (/assets/<img>.jpg); ohne img → Kategorie-Icon-Fallback.
 // TRADES wird aus src/data/wikelo-trades.json importiert (gemeinsam DE/EN).
+
+// Media-Regel: dieselbe Bilddatei max. 2× pro Seite. Belohnungen, die in
+// mehreren Trades vorkommen (z. B. ATLS GEO), zeigen ab dem 3. Vorkommen das
+// Kategorie-Icon statt des Fotos — die Info trägt der Name, nicht das Bild.
+const imgUse = new Map<string, number>();
+const showImg = TRADES.map((t: { img?: string }) => {
+  if (!t.img) return false;
+  const n = (imgUse.get(t.img) ?? 0) + 1;
+  imgUse.set(t.img, n);
+  return n <= 2;
+});
 ---
 <Layout title={"Wikelo's Emporium — Star Citizen 4.1 | SC Patch-Archiv"} description={"Wikelo's Emporium: der Banu-Händler Wikelo — erster spielbarer Alien-NPC in Star Citizen. Barter statt Geld: Items liefern, Wikelo Favor sammeln, Belohnungen aus dem Lager eintauschen. Drei Asteroiden-Stationen in Stanton, seit Alpha 4.1."} themeColor="#0d1513" ogType="article" translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
@@ -257,7 +268,7 @@ const COMP_LABEL = { pwr: 'Antrieb', shield: 'Schild', qd: 'Quantum', cooler: 'K
     </div>
 
     <div class="wk-tc-grid reveal" id="wk-tc-grid">
-      {TRADES.map((t) => (
+      {TRADES.map((t, ti) => (
         <article class="wk-tc" data-cat={t.cat}>
           <header class="wk-tc__hd">
             <span class="wk-tc__cat">{CAT_LABEL[t.cat]}</span>
@@ -272,7 +283,7 @@ const COMP_LABEL = { pwr: 'Antrieb', shield: 'Schild', qd: 'Quantum', cooler: 'K
             <div class="wk-arrow" aria-hidden="true" set:html={ICON.arrow}></div>
             <div class="wk-get">
               <div class="wk-side-h">Bekomm</div>
-              {t.img
+              {t.img && showImg[ti]
                 ? (<div class="wk-get-media"><img src={`/assets/${t.img}.jpg`} alt={t.name} loading="lazy" decoding="async" /></div>)
                 : (<div class="wk-get-media wk-get-media--ph" aria-hidden="true" set:html={ICON[CAT_ICON[t.cat]]}></div>)}
               <div class="wk-get-name">{t.get ?? t.name}</div>
@@ -360,7 +371,7 @@ const COMP_LABEL = { pwr: 'Antrieb', shield: 'Schild', qd: 'Quantum', cooler: 'K
   <!-- QUELLEN -->
   <section>
     <div class="wrap">
-      <p class="src reveal">Quellen: Star Citizen Wiki — <a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Wikelo</a>, <a href="https://starcitizen.tools/Wikelo_Emporium" target="_blank" rel="noopener">Wikelo Emporium</a>, <a href="https://starcitizen.tools/Wikelo_Favor" target="_blank" rel="noopener">Wikelo Favor</a> (CC-BY-SA 4.0) · Trade-Daten: Live-Tracker <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com</a> (Patch 4.8.1, 04.06.2026) · Schiff-Loadouts: <a href="https://tinyurl.com/yj739hxy" target="_blank" rel="noopener">ChrisGBG's Wikelo-Sheet</a> (Datamining WayfinderDrax, 4.7). Handels-Details ändern sich mit jedem Patch.</p>
+      <p class="src reveal">Quellen: Star Citizen Wiki — <a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Wikelo</a>, <a href="https://starcitizen.tools/Wikelo_Emporium" target="_blank" rel="noopener">Wikelo Emporium</a>, <a href="https://starcitizen.tools/Wikelo_Favor" target="_blank" rel="noopener">Wikelo Favor</a> (CC-BY-SA 4.0) · Trade-Daten: Live-Tracker <a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com</a> (Patch 4.8.1, 04.06.2026) · Schiff-Loadouts: <a href="https://docs.google.com/spreadsheets/d/1ji0q_pp6iW35RG1YyFEsv-lsmZOaCStJXGdIEdLLwhM/edit?gid=481073732" target="_blank" rel="noopener">ChrisGBG's Wikelo-Sheet</a> (Datamining WayfinderDrax, 4.7). Handels-Details ändern sich mit jedem Patch.</p>
       <p class="src reveal">Bilder (Emporium, Wikelo, Belohnungs-Schiffe): <a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Star Citizen Wiki</a> (starcitizen.tools, CC-BY-SA 4.0) — nicht-kommerzielle Fan-Nutzung. Star Citizen® ist eine Marke der Cloud Imperium Rights LLC.</p>
     </div>
   </section>
