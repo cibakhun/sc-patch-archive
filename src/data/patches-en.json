@@ -1907,7 +1907,7 @@
         {
           "name": "Drake Ironclad & Ironclad Assault",
           "system": "Ship systems",
-          "desc": "Drake's first true armored ship and heavy hauler: massively armored, with substantial cargo capacity and a combat configuration. The Assault variant is optimized for coordinated Strike Group battles. Plus a Drake Command Module for tactical coordination.",
+          "desc": "Drake's first true armored ship and heavy hauler: massively armored, with substantial cargo capacity (Ironclad ~2,204 SCU) and a combat configuration (Ironclad Assault with 34 infantry seats). Both — like the Caterpillar — carry the detachable Command Module: the bridge can separate from the hull for scouting or as an escape pod.",
           "facts": [
             {
               "label": "Class",
@@ -1915,7 +1915,7 @@
             },
             {
               "label": "Variants",
-              "value": "Ironclad (Hauler) · Ironclad Assault (Combat) · Command Module"
+              "value": "Ironclad (~2,204 SCU) · Ironclad Assault (Combat, 34 seats)"
             }
           ]
         },
@@ -2062,8 +2062,9 @@
           "status": "new"
         },
         {
-          "role": "Tactical Command",
-          "status": "new"
+          "role": "Detachable Command Module (not a standalone ship)",
+          "status": "new",
+          "notes": "Standard on the Drake Ironclad and Caterpillar: the bridge detaches from the hull — for scouting or as an escape pod. A module, not a ship of its own."
         },
         {
           "role": "Gunship",

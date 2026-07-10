@@ -65,7 +65,7 @@
       "name": "Drake Ironclad & Ironclad Assault",
       "system": "Schiffs-Systeme",
       "kind": "gameplay",
-      "desc": "Drakes erstes echtes Panzer-Schiff und Heavy Hauler: massiv gepanzert, mit erheblicher Frachtkapa und Kampfkonfiguration. Die Assault-Variante ist für koordinierte Strike-Group-Kämpfe optimiert. Dazu ein Drake Command Module für taktische Koordination.",
+      "desc": "Drakes erstes echtes Panzer-Schiff und Heavy Hauler: massiv gepanzert, mit erheblicher Frachtkapa (Ironclad ~2.204 SCU) und Kampfkonfiguration (Ironclad Assault mit 34 Infanterie-Sitzen). Beide tragen — wie die Caterpillar — das abkoppelbare Command Module: die Brücke lässt sich zum Scouten oder als Rettungskapsel vom Rumpf trennen.",
       "facts": [
         {
           "label": "Klasse",
@@ -73,7 +73,7 @@
         },
         {
           "label": "Varianten",
-          "value": "Ironclad (Hauler) · Ironclad Assault (Combat) · Command Module"
+          "value": "Ironclad (~2.204 SCU) · Ironclad Assault (Combat, 34 Sitze)"
         }
       ]
     },
@@ -236,8 +236,9 @@
     {
       "name": "Drake Command Module",
       "manufacturer": "Drake",
-      "role": "Tactical Command",
-      "status": "neu"
+      "role": "Abkoppelbares Command Module (kein eigenständiges Schiff)",
+      "status": "neu",
+      "notes": "Standard bei Drake Ironclad und Caterpillar: die Brücke lässt sich vom Rumpf abkoppeln — zum Scouten oder als Rettungskapsel. Ein Modul, kein eigenes Schiff."
     },
     {
       "name": "Aegis Hammerhead",
