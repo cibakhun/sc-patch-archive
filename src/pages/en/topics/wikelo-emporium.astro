@@ -7,6 +7,12 @@ import Attribution from '../../../components/Attribution.astro';
 import WikeloBridge from '../../../components/WikeloBridge.astro';
 import { matchItemName } from '../../../lib/wikeloItemMatch';
 import TRADES from '../../../../assets/wikelo-trades.json';
+import { existsSync } from 'node:fs';
+
+// Only show trade photos whose image file actually exists (build-time check
+// against public/assets). If missing, the category-icon fallback kicks in —
+// so no dead /assets/wk-*.jpg references remain (publish gate).
+const hasAsset = (name: string) => existsSync(`public/assets/${name}.jpg`);
 
 // Item-finder bridge: names with an item match are marked clickable in the
 // SSR markup (data-item = canonical DB name) — visible without loading the DB.
@@ -54,7 +60,7 @@ const COMP_LABEL = { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler
 // occurrence on — the name carries the information, not the photo.
 const imgUse = new Map<string, number>();
 const showImg = TRADES.map((t: { img?: string }) => {
-  if (!t.img) return false;
+  if (!t.img || !hasAsset(t.img)) return false;
   const n = (imgUse.get(t.img) ?? 0) + 1;
   imgUse.set(t.img, n);
   return n <= 2;
@@ -176,7 +182,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/wk-emporium.jpg')" aria-hidden="true"></div>
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/img-railen.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
       <div class="eyebrow"><a href="/en/patches/sc-4-1-0.html">Alpha 4.1 · Orbital Assault</a> &nbsp;·&nbsp; <span class="banu-tag">Banu trader</span></div>
@@ -208,7 +214,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 
   <!-- BAND 01 — barter principle -->
   <section class="band band--center">
-    <div class="bbg" data-par="0.14" style="background-image:url('/assets/wk-wikelo.jpg')" aria-hidden="true"></div>
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/img-nyx.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
       <div class="kx">01 · The barter principle</div>
       <div class="big outline" style="font-size:clamp(2rem,8vw,6rem)">DELIVER · RECEIVE</div>
@@ -239,7 +245,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
   <section>
     <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>The three Emporium stations</h2><span class="rule"></span></div></div>
     <figure class="wk-figure reveal">
-      <img src="/assets/wk-emporium.jpg" alt="Wikelo's Emporium — Banu trading station in the asteroid field" loading="lazy" decoding="async" />
+      <img src="/assets/img-railen.jpg" alt="Wikelo's Emporium — Banu trading station in the asteroid field" loading="lazy" decoding="async" />
       <figcaption>Wikelo's Emporium — the Banu trading station. Each of the three stations (Dasi, Selo, Kinga) shares the same layout; the wiki has no per-station photos.</figcaption>
     </figure>
     <div class="wk-bento reveal">
