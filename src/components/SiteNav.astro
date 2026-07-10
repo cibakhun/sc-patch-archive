@@ -87,47 +87,27 @@ const current = Astro.url.pathname;
         <span>{t('nav.menu')}</span>
       </summary>
       <div class="snav__panel">
+        <!-- Werkzeuge & Datenbanken — Reihenfolge wie die Landing-Kacheln -->
         <div class="snav__group">
-          <div class="snav__ghead">{t('nav.section')}</div>
-          
-          <!-- Schiffe -->
-          <a href={L('/schiffe.html')} aria-current={current === L('/schiffe.html') || current.startsWith(L('/schiffe/')) ? 'page' : undefined}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M12 2L2 22h9l1-6 1 6h9L12 2z"/></svg>
-            <span>{t('nav.ships')}</span>
-          </a>
-          
-          <!-- Evolution -->
-          <a href={L('/evolution.html')} aria-current={current === L('/evolution.html') ? 'page' : undefined}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M3 3v18h18M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
-            <span>{t('nav.evolution.long')}</span>
-          </a>
-          
-          <!-- Wikelo's Emporium -->
-          <a class="snav__feat" href={L('/topics/wikelo-emporium.html')} aria-current={current === L('/topics/wikelo-emporium.html') ? 'page' : undefined}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
-            <span>Wikelo's Emporium</span>
-          </a>
-          
-          <!-- Crafting -->
-          <a class="snav__feat" href={L('/topics/crafting.html')} aria-current={current === L('/topics/crafting.html') ? 'page' : undefined}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-            <span>Crafting</span>
-          </a>
+          <div class="snav__ghead">{lang === 'en' ? 'Tools & databases' : 'Werkzeuge & Datenbanken'}</div>
 
           <!-- Item Finder -->
-          <a class="snav__feat" href={L('/item-finder.html')} aria-current={current === L('/item-finder.html') ? 'page' : undefined}>
+          <a href={L('/item-finder.html')} aria-current={current === L('/item-finder.html') ? 'page' : undefined}>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <span>Item Finder</span>
           </a>
-          
-          <!-- Mining Details -->
+
+          <!-- Mining: 1. Klick klappt auf, Klick aufs offene Label öffnet die Mining-Seite, Pfeil klappt zu -->
           <details class="snav__sub-details" open={current.includes('/topics/mining') ? true : undefined}>
-            <summary class="snav__sub-summary">
+            <summary class="snav__sub-summary" data-href={L('/topics/mining.html')} title={lang === 'en' ? 'Click again: open the mining page' : 'Nochmal klicken: Mining-Seite öffnen'}>
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M6 3h12l4 6-10 12L2 9z"/></svg>
               <span>Mining</span>
               <svg class="snav__sub-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: auto; transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
             </summary>
             <div class="snav__sub-content">
+              <a href={L('/topics/mining.html')}>
+                <span>└ {lang === 'en' ? 'Overview' : 'Übersicht'}</span>
+              </a>
               <a href={L('/topics/mining.html#db')} aria-current={current === L('/topics/mining.html#db') ? 'page' : undefined}>
                 <span>└ {lang === 'en' ? 'Mineral Database' : 'Mineral-Datenbank'}</span>
               </a>
@@ -146,39 +126,71 @@ const current = Astro.url.pathname;
             </div>
           </details>
 
-          <!-- All Topics -->
-          <a href={L('/index.html#themen')}>
+          <!-- Crafting -->
+          <a href={L('/topics/crafting.html')} aria-current={current === L('/topics/crafting.html') ? 'page' : undefined}>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+            <span>Crafting</span>
+          </a>
+
+          <!-- Wikelo's Emporium -->
+          <a href={L('/topics/wikelo-emporium.html')} aria-current={current === L('/topics/wikelo-emporium.html') ? 'page' : undefined}>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
+            <span>Wikelo's Emporium</span>
+          </a>
+
+          <!-- Schiffe -->
+          <a href={L('/schiffe.html')} aria-current={current === L('/schiffe.html') || current.startsWith(L('/schiffe/')) ? 'page' : undefined}>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M12 2L2 22h9l1-6 1 6h9L12 2z"/></svg>
+            <span>{t('nav.ships')}</span>
+          </a>
+
+          <!-- Evolution -->
+          <a href={L('/evolution.html')} aria-current={current === L('/evolution.html') ? 'page' : undefined}>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M3 3v18h18M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+            <span>{t('nav.evolution.long')}</span>
+          </a>
+        </div>
+
+        <!-- Patch-Archiv -->
+        <div class="snav__group">
+          <div class="snav__ghead">{lang === 'en' ? 'Patch archive' : 'Patch-Archiv'}</div>
+
+          <!-- Patches: 1. Klick klappt auf, Klick aufs offene Label öffnet /archiv.html, Pfeil klappt zu -->
+          <details class="snav__sub-details" open={current.includes('/patches/') ? true : undefined}>
+            <summary class="snav__sub-summary" data-href={L('/archiv.html')} title={lang === 'en' ? 'Click again: open the patch overview' : 'Nochmal klicken: Patch-Übersicht öffnen'}>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01"/></svg>
+              <span>{t('nav.patches')}</span>
+              <svg class="snav__sub-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: auto; transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="snav__sub-content-patches">
+              <a href={L('/archiv.html')} style="padding: 0.3rem 1rem;">
+                <span>└ {lang === 'en' ? 'Overview & eras' : 'Übersicht & Ären'}</span>
+              </a>
+              {eras.map((era) => (
+                <div class="snav__group" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                  <div class="snav__ghead" style="margin-bottom: 0.2rem;">{eraLabel(era, lang)}</div>
+                  {patches
+                    .filter((p) => p.data.era === era)
+                    .map((p) => {
+                      const ph = L(`/patches/sc-${p.id}.html`);
+                      return (
+                        <a href={ph} aria-current={current === ph ? 'page' : undefined} style="padding: 0.3rem 1rem;">
+                          <b>{p.data.version}</b>
+                          <span>{p.data.codename}</span>
+                        </a>
+                      );
+                    })}
+                </div>
+              ))}
+            </div>
+          </details>
+
+          <!-- Alle Themen -->
+          <a href={L('/archiv.html#themen')}>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
             <span>{t('nav.allTopics')} ({topicCount})</span>
           </a>
         </div>
-
-        <!-- Patches Details -->
-        <details class="snav__sub-details" open={current.includes('/patches/') ? true : undefined}>
-          <summary class="snav__sub-summary">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01"/></svg>
-            <span>{t('nav.patches')}</span>
-            <svg class="snav__sub-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: auto; transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
-          </summary>
-          <div class="snav__sub-content-patches">
-            {eras.map((era) => (
-              <div class="snav__group" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
-                <div class="snav__ghead" style="margin-bottom: 0.2rem;">{eraLabel(era, lang)}</div>
-                {patches
-                  .filter((p) => p.data.era === era)
-                  .map((p) => {
-                    const ph = L(`/patches/sc-${p.id}.html`);
-                    return (
-                      <a href={ph} aria-current={current === ph ? 'page' : undefined} style="padding: 0.3rem 1rem;">
-                        <b>{p.data.version}</b>
-                        <span>{p.data.codename}</span>
-                      </a>
-                    );
-                  })}
-              </div>
-            ))}
-          </div>
-        </details>
 
         <div class="snav__group snav__langgroup">
           <div class="snav__ghead">{t('nav.langSwitch')}</div>
@@ -566,6 +578,17 @@ const current = Astro.url.pathname;
     dds.forEach(function (d) {
       d.addEventListener('toggle', function () {
         if (d.open) dds.forEach(function (o) { if (o !== d) o.open = false; });
+      });
+    });
+    // Untergruppen (Mining/Patches): 1. Klick klappt auf; Klick aufs OFFENE
+    // Label navigiert zur Übersichtsseite (data-href); der Pfeil klappt zu.
+    [].slice.call(nav.querySelectorAll('.snav__sub-summary[data-href]')).forEach(function (s) {
+      s.addEventListener('click', function (e) {
+        var d = s.parentElement;
+        if (!d.open) return; // zu -> Standard: aufklappen
+        if (e.target.closest('.snav__sub-arrow')) return; // Pfeil -> Standard: zuklappen
+        e.preventDefault();
+        location.href = s.getAttribute('data-href');
       });
     });
     addEventListener('click', function (e) {

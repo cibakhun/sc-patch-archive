@@ -1,26 +1,19 @@
 ---
+// VerseBase-Startseite — ein Landing-Screen mit der Kino-DNA der Patch-Seiten:
+// Ambient-Video-Loop hinter dem Hero, Glitch-Titel, Terminal-Suche,
+// Bento-Tool-Kacheln, Archiv-Banner, Marquee. Das Patch-Archiv
+// (Ären, Schlüsselthemen, Themen-Verzeichnis) lebt auf /archiv.html.
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
 import { SITE } from '../consts';
-// Ehrliche Kennzahlen direkt aus den Datenbanken (Build-Zeit, kein Runtime-Fetch)
-import ITEMS_DB from '../../assets/universal-items.json';
-import CRAFT_DB from '../../assets/crafting-db.json';
-import MINING_DB from '../../assets/mining-db.json';
-import TRADES from '../data/wikelo-trades.json';
-import VEHICLES from '../data/vehicles.json';
-
-const nItems = ITEMS_DB.counts.items;
-const nSourced = ITEMS_DB.counts.withObtain;
-const nBlueprints = CRAFT_DB.counts.blueprints;
-const nMinerals = MINING_DB.minerals.length;
-const nTrades = TRADES.length;
-const nShips = VEHICLES.vehicles.length;
-const fmt = (n: number) => n.toLocaleString('de-DE');
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
 );
+const latest = patches[patches.length - 1];
+const patchCount = patches.length;
+const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
 
 const websiteLd = {
   '@context': 'https://schema.org',
@@ -31,346 +24,147 @@ const websiteLd = {
   description: SITE.defaultDescription,
   publisher: { '@type': 'Organization', name: SITE.name },
 };
-const latest = patches[patches.length - 1];
-const patchCount = patches.length;
-const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
-
-// topic index: slug -> title/version/palette/desc (desc = its feature text)
-const topicIndex = new Map<string, { slug: string; title: string; version: string; accent: string; desc: string }>();
-for (const p of patches)
-  for (const t of p.data.topics)
-    topicIndex.set(t.slug, {
-      slug: t.slug,
-      title: t.title,
-      version: p.data.version,
-      accent: p.data.palette.accent,
-      desc: p.data.features.find((f) => f.topicSlug === t.slug)?.desc ?? p.data.tagline,
-    });
-
-// curated key topics — spread across eras & palettes
-const CURATED = [
-  '4-0-0-server-meshing',
-  '4-0-0-contested-zones',
-  '4-3-1-medical-overhaul',
-  '4-4-0-vanduul',
-  '4-5-0-engineering',
-  'crafting',
-  'mining',
-];
-const keyTopics = CURATED.map((s) => topicIndex.get(s)).filter(Boolean);
-const allTopics = [...topicIndex.values()];
-
-// hub: one directory block per patch line (4.0.x, 4.1.x, …)
-const lineOf = (v: string) => v.split('.').slice(0, 2).join('.');
-const hubGroups: { line: string; accent: string; topics: typeof allTopics }[] = [];
-for (const t of allTopics) {
-  const line = lineOf(t.version);
-  let g = hubGroups.find((x) => x.line === line);
-  if (!g) {
-    g = { line, accent: t.accent, topics: [] };
-    hubGroups.push(g);
-  }
-  g.topics.push(t);
-}
 ---
 <Layout title={"VerseBase — das Star-Citizen-Kompendium"} description={"VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder mit Preisen & Fundorten, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv der Alpha-4-Ära. Game-akkurat, zweisprachig."} themeColor="#05070d" footer={true} translated={true}>
 <script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
-/* --- VerseBase-Hero: Terminal-Suche + Tool-Grid --- */
-.hero-search{display:flex;align-items:center;gap:.8rem;width:100%;max-width:640px;margin:1.6rem 0 0;padding:.95rem 1.15rem;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:8px;color:var(--muted);font-family:var(--font-ui);font-size:1rem;cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s}
-.hero-search:hover,.hero-search:focus-visible{border-color:var(--accent);box-shadow:0 0 18px rgba(45,212,255,.18);outline:none}
-.hero-search .hs__prompt{color:var(--accent);font-weight:700;flex:none}
+/* VerseBase-Landing — Kino-DNA der Patch-Seiten auf einem Screen. */
+:root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--hot:#d4af37;--gold:#d4af37;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.18);--line-soft:rgba(232,238,252,.10);--glow:0 0 44px rgba(45,212,255,.28);--ink:#05070d;--maxw:1240px;}
+
+/* --- Hero: bottom-anchored wie die Patch-Seiten, Video-Loop dahinter --- */
+.hero{min-height:100svh;padding:6.5rem clamp(1.25rem,5vw,4rem) 3.2rem}
+.hero h1{position:relative;font-family:var(--font-display);font-weight:900;line-height:.82;letter-spacing:-.02em;margin:.55rem 0 .2rem;font-size:clamp(2.6rem,10.2vw,7.6rem);overflow-wrap:normal;white-space:nowrap;
+  background:linear-gradient(180deg,#fff,var(--accent) 72%,#1a7fa0);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 0 36px rgba(45,212,255,.45));animation:flick 7s steps(1) infinite}
+@keyframes flick{0%,90%,100%{opacity:1}91%{opacity:.5}92%{opacity:1}94%{opacity:.75}95%{opacity:1}}
+.hero h1::after{content:attr(data-text);position:absolute;left:3px;top:0;-webkit-text-fill-color:var(--hot);color:var(--hot);opacity:0;mix-blend-mode:screen;animation:rgbs 7s steps(1) infinite}
+@keyframes rgbs{0%,90%,100%{opacity:0;transform:translate(0,0)}91%{opacity:.7;transform:translate(-4px,2px)}93%{opacity:0}}
+.hero .tagline{font-family:var(--font-ui);font-weight:600;font-size:clamp(1rem,2vw,1.35rem);color:var(--accent);letter-spacing:.02em}
+
+/* --- Terminal-Suche --- */
+.hero-search{display:flex;align-items:center;gap:.8rem;width:100%;max-width:620px;margin:1.3rem 0 0;padding:.9rem 1.1rem;background:rgba(0,0,0,.55);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:2px;clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);color:var(--muted);font-family:var(--font-ui);font-size:1rem;cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s,background-color .2s}
+.hero-search:hover,.hero-search:focus-visible{border-color:var(--accent);box-shadow:0 0 22px color-mix(in srgb,var(--accent) 28%,transparent);background:rgba(0,0,0,.7);outline:none}
+.hero-search .hs__prompt{color:var(--accent);font-weight:700;flex:none;animation:hsblink 1.4s steps(1) infinite}
+@keyframes hsblink{0%,100%{opacity:1}50%{opacity:.35}}
 .hero-search .hs__hint{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .hero-search .hs__kbd{display:flex;gap:.25rem;flex:none}
 .hero-search kbd{font-family:var(--font-ui);font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:.1rem .4rem;background:rgba(255,255,255,.04)}
-.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.9rem;margin-top:2rem;width:100%}
-.tcard{--c:var(--accent);position:relative;display:flex;flex-direction:column;gap:.45rem;padding:1.1rem 1.2rem;background:var(--surface);border:1px solid var(--line);border-top:2px solid var(--c);border-radius:6px;transition:transform .22s,border-color .22s,box-shadow .22s}
-.tcard:hover{transform:translateY(-3px);border-color:var(--c);box-shadow:0 12px 32px -14px var(--c)}
-.tcard b{font-family:var(--font-display);font-weight:800;font-size:1.08rem;color:#fff}
-.tcard p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5;flex:1}
-.tcard .tgo{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.7rem;color:var(--c)}
-@media(max-width:640px){.tgrid{grid-template-columns:1fr 1fr}.tcard p{display:none}.tcard{gap:.3rem;padding:.85rem .9rem}}
-</style>
-<style is:inline>
 
-:root{
-  --bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;
-  --accent:#2dd4ff;--accent-2:#6ea8ff;--gold:#d4af37;
-  --text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);
-  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
-  --maxw:1240px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-a{color:inherit;text-decoration:none}
-::selection{background:var(--accent);color:#05070d}
-:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-.skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:#05070d;padding:.6rem 1rem;font-weight:700}
-.skip:focus{left:0}
-
-/* ===== Wild-Overlays ===== */
-body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 40%,transparent 56%,rgba(0,0,0,.6) 100%),repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px);opacity:.5}
-.cursorglow{position:fixed;inset:0;z-index:8800;pointer-events:none;background:radial-gradient(440px circle at var(--mx,50%) var(--my,25%),rgba(45,212,255,.12),transparent 60%)}
-.marquee{position:relative;z-index:2;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:linear-gradient(90deg,var(--bg-2),var(--surface),var(--bg-2));padding:.8rem 0}
-.marquee__track{display:flex;gap:2.4rem;white-space:nowrap;width:max-content;animation:scrollx 36s linear infinite;font-family:var(--font-display);font-weight:700;font-size:1rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-.marquee__track .dot{color:var(--gold)}
-@keyframes scrollx{to{transform:translateX(-50%)}}
-@keyframes flick{0%,93%,100%{opacity:1}94%{opacity:.6}95%{opacity:1}97%{opacity:.82}}
-.hero h1{animation:flick 8s steps(1) infinite}
-
-/* HERO */
-.hero{position:relative;min-height:88svh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:6rem 1.5rem 4rem;overflow:hidden}
-#stars{position:absolute;inset:0;z-index:0}
-.hero__glow{position:absolute;top:-30%;left:50%;transform:translateX(-50%);width:120vmax;height:90vmax;z-index:0;
-  background:radial-gradient(ellipse at 50% 40%,rgba(45,212,255,.12),rgba(110,168,255,.05) 40%,transparent 70%)}
-.hero__inner{position:relative;z-index:2;max-width:900px}
-.kicker{font-family:var(--font-ui);font-weight:700;letter-spacing:.35em;text-transform:uppercase;font-size:.82rem;color:var(--accent)}
-.hero h1{font-family:var(--font-display);font-weight:900;line-height:1;margin:1.2rem 0;font-size:clamp(2.6rem,8vw,6rem);
-  background:linear-gradient(180deg,#fff,var(--accent-2) 70%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero h1 small{display:block;font-size:clamp(1rem,3vw,1.8rem);letter-spacing:.1em;color:var(--text);-webkit-text-fill-color:var(--text);margin-top:.4rem;font-weight:700}
-.hero p{max-width:60ch;margin:0 auto;color:var(--muted);font-size:clamp(1.05rem,1.6vw,1.25rem)}
-.stat-row{display:flex;gap:2.5rem;justify-content:center;flex-wrap:wrap;margin-top:2.6rem}
-.stat .n{font-family:var(--font-display);font-weight:900;font-size:clamp(1.6rem,4vw,2.4rem);color:var(--accent)}
-.stat .l{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;color:var(--muted)}
-.scrollcue{position:absolute;bottom:1.6rem;left:50%;transform:translateX(-50%);z-index:2;font-family:var(--font-ui);letter-spacing:.2em;text-transform:uppercase;font-size:.72rem;color:var(--muted);animation:bob 2s ease-in-out infinite}
-@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
-
-/* TIMELINE / GRID */
-main{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;padding:2rem clamp(1.25rem,5vw,3rem) 5rem}
-.era{margin:3.5rem 0 1.4rem;display:flex;align-items:center;gap:1.2rem}
-.era h2{font-family:var(--font-display);font-weight:700;font-size:clamp(1.1rem,2.6vw,1.5rem);letter-spacing:.04em;white-space:nowrap}
-.era .yr{font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;color:var(--accent);font-size:.85rem;border:1px solid var(--line);padding:.25rem .7rem;border-radius:2px}
-.era .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
-
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1.2rem}
-.pcard{--c:var(--accent);position:relative;display:flex;flex-direction:column;
+/* --- Tool-Kacheln — Bento-Stil der Patch-Seiten: Artwork trägt, Name unten --- */
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-top:1.5rem;width:100%}
+.tcard{--c:var(--accent);position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:.18rem;padding:.9rem 1.05rem;min-height:150px;
   background-color:var(--surface);
-  background-image:linear-gradient(180deg,rgba(7,10,18,.80),rgba(7,10,18,.93)),var(--img,none);
+  background-image:linear-gradient(0deg,rgba(5,7,13,.92),rgba(5,7,13,.55) 42%,rgba(5,7,13,.12) 75%),var(--img,none);
   background-size:cover;background-position:center;
-  border:1px solid var(--line);border-radius:6px;padding:1.6rem 1.5rem;overflow:hidden;min-height:200px;transition:transform .25s,border-color .25s,box-shadow .25s}
-.pcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c);z-index:2}
-.pcard::after{content:"";position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,var(--c),transparent 70%);opacity:.16;transition:opacity .25s}
-.pcard:hover{transform:translateY(-5px);border-color:var(--c);box-shadow:0 14px 40px -12px var(--c)}
-.pcard:hover::after{opacity:.3}
-.pcard>*{position:relative;z-index:1}
-.pcard .ver{font-family:var(--font-display);font-weight:900;font-size:1.9rem;color:var(--c);letter-spacing:.01em;text-shadow:0 2px 12px rgba(0,0,0,.6)}
-.pcard .date{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;color:var(--muted);margin-top:.2rem}
-.pcard .name{font-family:var(--font-ui);font-weight:700;font-size:1.18rem;margin-top:.9rem;color:var(--text);text-shadow:0 1px 8px rgba(0,0,0,.7)}
-.pcard .desc{color:var(--text);opacity:.82;font-size:.92rem;margin-top:.4rem;flex:1;text-shadow:0 1px 6px rgba(0,0,0,.7)}
-.pcard .go{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.75rem;color:var(--c);margin-top:1.1rem;display:inline-flex;gap:.4rem;align-items:center}
-.pcard .go .ar{transition:transform .2s}
-.pcard:hover .go .ar{transform:translateX(5px)}
-.pcard .badge{position:absolute;top:1.2rem;right:1.3rem;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--c);border:1px solid var(--c);padding:.15rem .45rem;border-radius:2px;background:rgba(0,0,0,.45)}
+  border:1px solid var(--line);border-top:2px solid var(--c);border-radius:2px;
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+  overflow:hidden;transition:transform .22s,border-color .22s,box-shadow .22s}
+.tcard::before{content:"";position:absolute;top:0;right:0;width:22px;height:22px;background:linear-gradient(225deg,color-mix(in srgb,var(--c) 65%,transparent) 0 9px,transparent 9px);opacity:.5;transition:opacity .2s;pointer-events:none}
+.tcard::after{content:"";position:absolute;inset:0;background:radial-gradient(80% 60% at 85% 0%,color-mix(in srgb,var(--c) 22%,transparent),transparent 70%);opacity:0;transition:opacity .25s;pointer-events:none}
+.tcard:hover{transform:translateY(-3px);border-color:var(--c);box-shadow:0 14px 36px -14px var(--c)}
+.tcard:hover::before{opacity:1}
+.tcard:hover::after{opacity:1}
+.tcard>*{position:relative;z-index:1}
+.tcard b{font-family:var(--font-display);font-weight:800;font-size:1.08rem;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.85)}
+.tcard .tsub{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.68rem;color:var(--c);text-shadow:0 1px 6px rgba(0,0,0,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tcard .tgo{position:absolute;right:.9rem;bottom:.8rem;font-family:var(--font-ui);font-weight:700;font-size:.9rem;color:var(--c);opacity:0;transform:translateX(-6px);transition:opacity .2s,transform .2s}
+.tcard:hover .tgo{opacity:1;transform:none}
+@media(max-width:860px){.tgrid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.tcard{min-height:104px;padding:.75rem .85rem}}
+
+/* --- Archiv-Banner (Gold, Kino-Zeile) --- */
+.arcband{--c:var(--gold);display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;width:100%;margin-top:.75rem;padding:.9rem 1.2rem;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--c) 10%,rgba(0,0,0,.5)),rgba(0,0,0,.45));
+  border:1px solid color-mix(in srgb,var(--c) 45%,transparent);border-left:3px solid var(--c);border-radius:2px;
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);
+  transition:border-color .2s,box-shadow .2s}
+.arcband:hover{border-color:var(--c);box-shadow:0 0 26px color-mix(in srgb,var(--c) 25%,transparent)}
+.arcband .at{font-family:var(--font-display);font-weight:900;font-size:1.1rem;letter-spacing:.04em;color:transparent;-webkit-text-stroke:1.2px var(--c)}
+.arcband .am{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.7rem;color:var(--muted)}
+.arcband .anew{margin-left:auto;display:inline-flex;align-items:center;gap:.55rem;font-family:var(--font-ui);font-weight:600;font-size:.88rem;color:var(--text)}
+.arcband .anew .ntag{font-family:var(--font-ui);font-weight:800;font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;background:var(--c);color:var(--ink);padding:.12rem .45rem}
+.arcband .ar{color:var(--c);transition:transform .2s}
+.arcband:hover .ar{transform:translateX(5px)}
+@media(max-width:720px){.arcband .anew{margin-left:0;width:100%}}
 
 footer{border-top:1px solid var(--line);padding:3rem clamp(1.25rem,5vw,3rem);text-align:center}
 footer .disclaimer{max-width:80ch;margin:0 auto;font-size:.78rem;color:var(--muted);opacity:.75}
 footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:uppercase;font-size:.75rem;color:var(--muted);margin-bottom:1rem}
-
-.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
-.reveal.in{opacity:1;transform:none}
-/* Hero-Rhythmus (REGISTRATUR): Erzählung oben, Archiv-Umfang unten */
-.vp{max-width:60ch;margin:.8rem auto 0;color:var(--text);font-weight:500;font-size:clamp(1.15rem,2vw,1.3rem)}
-.hero-rule{width:min(560px,80%);height:1px;background:var(--line);margin:1.6rem auto}
-.hero-lower{display:flex;flex-direction:column;align-items:center;gap:1.4rem}
-@media(min-width:768px){.hero-lower{flex-direction:row;justify-content:center;align-items:center;gap:3rem}}
-.fresh{display:inline-flex;align-items:center;gap:.7rem;padding:.55rem 1rem;border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);font-family:var(--font-ui);font-weight:600;font-size:1rem;color:var(--text);transition:background-color .15s}
-.fresh:hover{background:color-mix(in srgb,var(--accent) 14%,transparent)}
-.fresh__dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
-.fresh__tag{font-family:var(--font-ui);font-weight:800;font-size:0.78rem;letter-spacing:.18em;text-transform:uppercase;background:var(--accent);color:var(--bg);padding:.16rem .5rem;flex:none}
-.fresh__txt{text-align:left;max-width:44ch}
-.stat-row{margin-top:0;border-top:2px solid var(--accent);border-bottom:1px solid var(--line);padding:1.2rem 1.6rem;gap:2.5rem}
-.stat .n{font-size:clamp(1.8rem,3.5vw,2.4rem);font-variant-numeric:tabular-nums}
-.stat .l{font-weight:700;letter-spacing:.16em;font-size:0.78rem}
-
-/* Schlüsselthemen — kuratiertes Inhaltsverzeichnis, keine Karten-Wand */
-.ktgrid{display:grid;grid-template-columns:1fr;gap:.9rem}
-@media(min-width:768px){.ktgrid{grid-template-columns:1fr 1fr;gap:.9rem 1.4rem}}
-.ktcard{--c:var(--accent);display:grid;grid-template-columns:2.2rem 1fr;gap:0 .9rem;padding:1.1rem 1.3rem;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);transition:background-color .15s,border-color .15s}
-.ktcard:hover{background:color-mix(in srgb,var(--c) 6%,transparent);border-color:color-mix(in srgb,var(--c) 55%,transparent);border-left-color:var(--c)}
-.ktnum{font-family:var(--font-display);font-weight:700;font-size:0.88rem;color:color-mix(in srgb,var(--c) 70%,transparent);padding-top:.3rem}
-.ktbody{display:flex;flex-direction:column;gap:.1rem;min-width:0}
-.ktcard b{font-family:var(--font-ui);font-weight:700;font-size:1.25rem;color:var(--text)}
-.ktbadge{font-family:var(--font-ui);font-weight:700;font-size:0.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.ktcard p{color:var(--muted);font-size:1rem;line-height:1.5;margin-top:.3rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-
-/* Themen-Hub — Registratur-Verzeichnis statt Karten-Wand */
-.hub{display:flex;flex-direction:column;gap:1.2rem}
-.hubgroup{border:1px solid var(--line);padding:1rem 1.3rem}
-.hubhead{display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--line);padding-bottom:.5rem;margin-bottom:.6rem}
-.hubsw{width:8px;height:8px;flex:none}
-.hubline{font-family:var(--font-ui);font-weight:700;font-size:0.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text)}
-.hubn{font-family:var(--font-ui);font-weight:700;font-size:0.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.hubrows{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 1.5rem}
-.hubrows a{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;padding:.4rem .3rem;border-bottom:1px solid rgba(255,255,255,.08);transition:background-color .15s,color .15s}
-.hubrows a:hover{color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,transparent)}
-.hubrows .ht{font-weight:500;font-size:1rem}
-.hubrows .hv{font-family:var(--font-ui);font-weight:700;font-size:0.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-
-@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
-
 </style>
-<a class="skip" href="#archiv">Zum Archiv springen</a>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav hasEn={true} />
 
-<header class="hero">
-  <canvas id="stars" aria-hidden="true"></canvas>
-  <div class="hero__glow" aria-hidden="true"></div>
-  <div class="hero__inner">
-    <h1>VerseBase<small>Das Star-Citizen-Kompendium · Alpha {latest.data.version}</small></h1>
-    <p class="vp">Item-Preise & Fundorte, Mining-Daten, Blueprints, Wikelo-Trades, Schiffe — und das komplette Patch-Archiv der Alpha-4-Ära. Game-akkurat, aus den Spieldaten.</p>
-    <button class="hero-search" type="button" data-scs-open aria-label="Suche öffnen">
-      <span class="hs__prompt" aria-hidden="true">&gt;_</span>
-      <span class="hs__hint">Items, Schiffe, Patches, Themen durchsuchen…</span>
-      <span class="hs__kbd" aria-hidden="true"><kbd>Strg</kbd><kbd>K</kbd></span>
-    </button>
-    <div class="hero-lower">
-      <a class="fresh" href={`/patches/sc-${latest.id}.html`}>
-        <span class="fresh__dot" aria-hidden="true"></span>
-        <span class="fresh__tag">Neu</span>
-        <span class="fresh__txt">Alpha {latest.data.version} · {latest.data.dateDisplay} — {latest.data.tagline}</span>
-      </a>
-      <div class="stat-row">
-        <div class="stat"><div class="n">{fmt(nItems)}</div><div class="l">Items</div></div>
-        <div class="stat"><div class="n">{fmt(nBlueprints)}</div><div class="l">Blueprints</div></div>
-        <div class="stat"><div class="n">{nShips}</div><div class="l">Schiffe</div></div>
-        <div class="stat"><div class="n">{patchCount}</div><div class="l">Patches</div></div>
+<main id="main">
+
+  <!-- HERO — Ambient-Loop (Nyx) hinter Glitch-Titel, wie die Patch-Seiten -->
+  <section class="hero">
+    <div class="hero__photo" data-bgvid="/assets/loops/loop-nyx.mp4" style="background-image:url('/assets/img-nyx.jpg')" aria-hidden="true"></div>
+    <script is:inline src="/assets/hero-video.js"></script>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
+    <div class="hero__in">
+      <div class="eyebrow">Das inoffizielle Star-Citizen-Kompendium</div>
+      <h1 data-text="VERSEBASE">VERSEBASE</h1>
+      <div class="tagline">Preise · Fundorte · Blueprints · Trades · Schiffe — game-akkurat aus den Spieldaten.</div>
+
+      <button class="hero-search" type="button" data-scs-open aria-label="Suche öffnen">
+        <span class="hs__prompt" aria-hidden="true">&gt;_</span>
+        <span class="hs__hint">Items, Schiffe, Patches, Themen durchsuchen…</span>
+        <span class="hs__kbd" aria-hidden="true"><kbd>Strg</kbd><kbd>K</kbd></span>
+      </button>
+
+      <div class="tgrid" aria-label="Werkzeuge & Datenbanken">
+        <a class="tcard" style="--c:#A78BFA;--img:url('/assets/cz-loot.jpg')" href="/item-finder.html">
+          <b>Item Finder</b>
+          <span class="tsub">Preise · Fundorte · Loot-Guides</span>
+          <span class="tgo" aria-hidden="true">→</span>
+        </a>
+        <a class="tcard" style="--c:#2FBFA4;--img:url('/assets/img-mole.jpg')" href="/topics/mining.html">
+          <b>Mining</b>
+          <span class="tsub">Minerale · Scanner · Rechner</span>
+          <span class="tgo" aria-hidden="true">→</span>
+        </a>
+        <a class="tcard" style="--c:#FF5E1A;--img:url('/assets/t-craft-1.jpg')" href="/topics/crafting.html">
+          <b>Crafting</b>
+          <span class="tsub">Blueprints · Simulator · Planer</span>
+          <span class="tgo" aria-hidden="true">→</span>
+        </a>
+        <a class="tcard" style="--c:#1FB8A6;--img:url('/assets/wk-emporium.jpg')" href="/topics/wikelo-emporium.html">
+          <b>Wikelo</b>
+          <span class="tsub">Trades · Favor · Belohnungen</span>
+          <span class="tgo" aria-hidden="true">→</span>
+        </a>
+        <a class="tcard" style="--c:#6ea8ff;--img:url('/assets/img-hammerhead.jpg')" href="/schiffe.html">
+          <b>Schiffe</b>
+          <span class="tsub">Datenblätter · Loadouts · Preise</span>
+          <span class="tgo" aria-hidden="true">→</span>
+        </a>
+        <a class="tcard" style="--c:#d4af37;--img:repeating-linear-gradient(90deg,rgba(212,175,55,.5) 0 1px,transparent 1px 22px),repeating-linear-gradient(0deg,rgba(212,175,55,.5) 0 1px,transparent 1px 22px)" href="/evolution.html">
+          <b>Evolution</b>
+          <span class="tsub">Systeme × Versionen</span>
+          <span class="tgo" aria-hidden="true">→</span>
+        </a>
       </div>
-    </div>
-    <div class="tgrid" aria-label="Werkzeuge & Datenbanken">
-      <a class="tcard" style="--c:#FF5E1A" href="/item-finder.html">
-        <b>Item Finder</b>
-        <p>{fmt(nItems)} Items aus den Spieldateien — {fmt(nSourced)} mit Kaufpreisen, Fundorten und Loot-Guides.</p>
-        <span class="tgo">Öffnen →</span>
-      </a>
-      <a class="tcard" style="--c:#2dd4ff" href="/topics/mining.html">
-        <b>Mining</b>
-        <p>{nMinerals} Mineralien game-genau — plus Signatur-Scanner, Fracturing-Rechner und Refinery-Finder.</p>
-        <span class="tgo">Öffnen →</span>
-      </a>
-      <a class="tcard" style="--c:#e8771a" href="/topics/crafting.html">
-        <b>Crafting & Blueprints</b>
-        <p>{fmt(nBlueprints)} Blueprints mit Zutaten, Item-Werten, Qualitäts-Simulation und Fabricator-Planer.</p>
-        <span class="tgo">Öffnen →</span>
-      </a>
-      <a class="tcard" style="--c:#1FB8A6" href="/topics/wikelo-emporium.html">
-        <b>Wikelo's Emporium</b>
-        <p>Alle {nTrades} Trades des Banu-Händlers — Materialien, Favor und Belohnungen im Überblick.</p>
-        <span class="tgo">Öffnen →</span>
-      </a>
-      <a class="tcard" style="--c:#6ea8ff" href="/schiffe.html">
-        <b>Schiffs-Datenbank</b>
-        <p>{nShips} Schiffe & Fahrzeuge mit Datenblättern, Komponenten-Loadouts und Ingame-Preisen.</p>
-        <span class="tgo">Öffnen →</span>
-      </a>
-      <a class="tcard" style="--c:#d4af37" href="/evolution.html">
-        <b>Evolution-Matrix</b>
-        <p>Wie sich jedes Spielsystem über {patchCount} Patches entwickelt hat — Systeme × Versionen.</p>
-        <span class="tgo">Öffnen →</span>
+
+      <a class="arcband" href="/archiv.html">
+        <span class="at">PATCH-ARCHIV</span>
+        <span class="am">{patchCount} Patches · {topicCount} Deep-Dives · 2024 – 2026</span>
+        <span class="anew"><span class="ntag">Neu</span>Alpha {latest.data.version} — {latest.data.tagline}<span class="ar">→</span></span>
       </a>
     </div>
-  </div>
-  <div class="scrollcue" aria-hidden="true">Archiv ↓</div>
-</header>
+  </section>
 
-<div class="marquee" aria-hidden="true">
-  <div class="marquee__track">
-    <span>4.0 DESTINATION PYRO</span><span class="dot">◆</span><span>4.2 STORM BREAKER</span><span class="dot">◆</span><span>4.3 DARK TERRITORY</span><span class="dot">◆</span><span>4.4 WELCOME TO NYX</span><span class="dot">◆</span><span>4.5 DAWN OF ENGINEERING</span><span class="dot">◆</span><span>4.6 LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>4.7 WELCOME TO THE ROCK</span><span class="dot">◆</span><span>4.8 TACTICAL STRIKE</span><span class="dot">◆</span>
-    <span>4.0 DESTINATION PYRO</span><span class="dot">◆</span><span>4.2 STORM BREAKER</span><span class="dot">◆</span><span>4.3 DARK TERRITORY</span><span class="dot">◆</span><span>4.4 WELCOME TO NYX</span><span class="dot">◆</span><span>4.5 DAWN OF ENGINEERING</span><span class="dot">◆</span><span>4.6 LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>4.7 WELCOME TO THE ROCK</span><span class="dot">◆</span><span>4.8 TACTICAL STRIKE</span><span class="dot">◆</span>
-  </div>
-</div>
-
-<main id="archiv">
-
-  <!-- SCHLÜSSELTHEMEN (kuratiert, in Patch-Paletten — aus der Datenschicht) -->
-  <div class="era reveal"><h2>Schlüsselthemen</h2><span class="yr">Kuratiert</span><span class="rule"></span></div>
-  <div class="ktgrid reveal">
-    {keyTopics.map((k, i) => (
-      <a class="ktcard" style={`--c:${k!.accent}`} href={`/topics/${k!.slug}.html`}>
-        <span class="ktnum" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-        <span class="ktbody">
-          <b>{k!.title}</b>
-          <span class="ktbadge">Alpha {k!.version}</span>
-          <p>{k!.desc}</p>
-        </span>
-      </a>
-    ))}
-  </div>
-
-  <div class="era reveal"><h2>Pyro-Ära</h2><span class="yr">2024 – 2025</span><span class="rule"></span></div>
-  <div class="grid">
-    <a class="pcard reveal" style="--c:#ff5a1f;--img:url('/assets/trailer-4-0-0.jpg')" href="/patches/sc-4-0-0.html"><span class="badge">Major</span><div class="ver">4.0.0</div><div class="date">19. Dez 2024</div><div class="name">Destination Pyro</div><div class="desc">Server Meshing & das gesetzlose Pyro-System.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#36c5d8;--img:url('/assets/trailer-4-0-0.jpg')" href="/patches/sc-4-0-1.html"><div class="ver">4.0.1</div><div class="date">28. Jan 2025</div><div class="name">Stabilität & Save Stanton II</div><div class="desc">Crash-Fixes und das nächste Kapitel des Fraktions-Narrativs.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#e8771a;--img:url('/assets/t-pyro-3.jpg')" href="/patches/sc-4-0-2.html"><div class="ver">4.0.2</div><div class="date">28. Feb 2025</div><div class="name">Supply or Die</div><div class="desc">Pyros gnadenloser Zwei-Fraktionen-Nachschubkrieg.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-  </div>
-
-  <div class="era reveal"><h2>Sturm & Stahl</h2><span class="yr">2025</span><span class="rule"></span></div>
-  <div class="grid">
-    <a class="pcard reveal" style="--c:#3da5d9;--img:url('/assets/trailer-4-1-0.jpg')" href="/patches/sc-4-1-0.html"><div class="ver">4.1.0</div><div class="date">27. Mär 2025</div><div class="name">Orbital Assault</div><div class="desc">Orbitale Laserplattformen & tiefes Asteroiden-Mining („Align &amp; Mine").</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#ff7a1a;--img:url('/assets/trailer-4-1-0.jpg')" href="/patches/sc-4-1-1.html"><div class="ver">4.1.1</div><div class="date">13. Mai 2025</div><div class="name">Balancing &amp; Fleet Week</div><div class="desc">Waffen-Tuning, Recoil und „Hunt The Polaris".</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#36e2f0;--img:url('/assets/trailer-4-2-0.jpg')" href="/patches/sc-4-2-0.html"><span class="badge">Major</span><div class="ver">4.2.0</div><div class="date">19. Jun 2025</div><div class="name">Storm Breaker</div><div class="desc">In den Sturm hinein — dynamischer Regen & Strahlung.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#2ea36a;--img:url('/assets/img-meteor.jpg')" href="/patches/sc-4-2-1.html"><div class="ver">4.2.1</div><div class="date">17. Jul 2025</div><div class="name">Resource Drive</div><div class="desc">Kooperatives Konvoi-Event & die RSI Meteor.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-  </div>
-
-  <div class="era reveal"><h2>Onyx & Heilung</h2><span class="yr">2025</span><span class="rule"></span></div>
-  <div class="grid">
-    <a class="pcard reveal" style="--c:#e8a317;--img:url('/assets/trailer-4-3-0.jpg')" href="/patches/sc-4-3-0.html"><span class="badge">Major</span><div class="ver">4.3.0</div><div class="date">16. Aug 2025</div><div class="name">Dark Territory</div><div class="desc">Personal Hangars als Heimathafen & die Onyx Facilities.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#1faa8c;--img:url('/assets/trailer-4-3-1.jpg')" href="/patches/sc-4-3-1.html"><div class="ver">4.3.1</div><div class="date">18. Sep 2025</div><div class="name">Virtue's Descent</div><div class="desc">RSI Apollo & der große Medical-Overhaul.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#b5642a;--img:url('/assets/img-paladin.jpg')" href="/patches/sc-4-3-2.html"><div class="ver">4.3.2</div><div class="date">16. Okt 2025</div><div class="name">Fractured Frontiers</div><div class="desc">Salvage-Rework, Bosskampf & Frontier-Fighters-Finale.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-  </div>
-
-  <div class="era reveal"><h2>Neue Horizonte</h2><span class="yr">2025 – 2026</span><span class="rule"></span></div>
-  <div class="grid">
-    <a class="pcard reveal" style="--c:#7fb2d9;--img:url('/assets/trailer-4-4-0.jpg')" href="/patches/sc-4-4-0.html"><span class="badge">Major</span><div class="ver">4.4.0</div><div class="date">19. Nov 2025</div><div class="name">Welcome to Nyx</div><div class="desc">Drittes Sternsystem, erste Vanduul & IAE 2955.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#ffb000;--img:url('/assets/trailer-4-5-0.jpg')" href="/patches/sc-4-5-0.html"><span class="badge">Major</span><div class="ver">4.5.0</div><div class="date">17. Dez 2025</div><div class="name">Dawn of Engineering</div><div class="desc">Engineering, Ship Armor & sich ausbreitendes Feuer.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#7fb80e;--img:url('/assets/trailer-4-6-0.jpg')" href="/patches/sc-4-6-0.html"><span class="badge">Major</span><div class="ver">4.6.0</div><div class="date">29. Jan 2026</div><div class="name">Lifeline for Levski</div><div class="desc">Seuchen-Event, LAMP-Nachtsicht & RSI Hermes.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#ff5e1a;--img:url('/assets/trailer-4-7-0.jpg')" href="/patches/sc-4-7-0.html"><span class="badge">Major</span><div class="ver">4.7.0</div><div class="date">26. Mär 2026</div><div class="name">Welcome to the Rock</div><div class="desc">Crafting & Operation Breaker Stations.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-  </div>
-
-  <div class="era reveal"><h2>Tactical Strike</h2><span class="yr">2026</span><span class="rule"></span></div>
-  <div class="grid">
-    <a class="pcard reveal" style="--c:#e8651e;--img:url('/assets/trailer-4-8-0.jpg')" href="/patches/sc-4-8-0.html"><span class="badge">Major</span><div class="ver">4.8.0</div><div class="date">14. Mai 2026</div><div class="name">Tactical Strike</div><div class="desc">Drake Ironclad & G-Force-Toleranz im Flug.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#36c5d6;--img:url('/assets/trailer-4-8-0.jpg')" href="/patches/sc-4-8-1.html"><div class="ver">4.8.1</div><div class="date">3. Jun 2026</div><div class="name">Defend Location</div><div class="desc">385 Verteidigungsmissionen gegen Bomber-Anflüge.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#1fb8a6;--img:url('/assets/img-railen.jpg')" href="/patches/sc-4-8-2.html"><span class="badge">Aktuell</span><div class="ver">4.8.2</div><div class="date">17. Jun 2026</div><div class="name">Gatac &amp; Alien Week</div><div class="desc">Zwei Alien-Schiffe & First Contact Day.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-  </div>
-
-  <!-- THEMEN-HUB (alle Deep-Dives, aus der Datenschicht) -->
-  <div class="era reveal" id="themen"><h2>Alle Themen</h2><span class="yr">{topicCount} Deep-Dives</span><span class="rule"></span></div>
-  <div class="hub reveal">
-    {hubGroups.map((g) => (
-      <div class="hubgroup">
-        <div class="hubhead">
-          <span class="hubsw" style={`background:${g.accent}`} aria-hidden="true"></span>
-          <span class="hubline">Alpha {g.line}.x</span>
-          <span class="hubn">· {g.topics.length} {g.topics.length === 1 ? 'Eintrag' : 'Einträge'}</span>
-        </div>
-        <div class="hubrows">
-          {g.topics.map((t) => (
-            <a href={`/topics/${t.slug}.html`}>
-              <span class="ht">{t.title}</span>
-              <span class="hv">{t.version}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    ))}
+  <!-- MARQUEE — Patch-Ticker als Abschluss -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>4.0 DESTINATION PYRO</span><span class="dot">◆</span><span>4.2 STORM BREAKER</span><span class="dot">◆</span><span>4.3 DARK TERRITORY</span><span class="dot">◆</span><span>4.4 WELCOME TO NYX</span><span class="dot">◆</span><span>4.5 DAWN OF ENGINEERING</span><span class="dot">◆</span><span>4.6 LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>4.7 WELCOME TO THE ROCK</span><span class="dot">◆</span><span>4.8 TACTICAL STRIKE</span><span class="dot">◆</span>
+      <span>4.0 DESTINATION PYRO</span><span class="dot">◆</span><span>4.2 STORM BREAKER</span><span class="dot">◆</span><span>4.3 DARK TERRITORY</span><span class="dot">◆</span><span>4.4 WELCOME TO NYX</span><span class="dot">◆</span><span>4.5 DAWN OF ENGINEERING</span><span class="dot">◆</span><span>4.6 LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>4.7 WELCOME TO THE ROCK</span><span class="dot">◆</span><span>4.8 TACTICAL STRIKE</span><span class="dot">◆</span>
+    </div>
   </div>
 
 </main>
-<script is:inline>
 
-const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});
-document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-addEventListener('pointermove',e=>{document.documentElement.style.setProperty('--mx',e.clientX+'px');document.documentElement.style.setProperty('--my',e.clientY+'px');},{passive:true});
-(function(){
-  const c=document.getElementById('stars');if(!c)return;const x=c.getContext('2d');let w,h,st;
-  function size(){w=c.width=innerWidth;h=c.height=Math.max(document.querySelector('.hero').offsetHeight,1);
-    st=Array.from({length:Math.min(180,Math.floor(w/8))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.4+.2,a:Math.random(),s:Math.random()*.015+.003}));}
-  function tick(){x.clearRect(0,0,w,h);for(const s of st){s.a+=s.s;const o=.25+Math.abs(Math.sin(s.a))*.75;x.globalAlpha=o;x.fillStyle='#bcd4ff';x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}
-  size();addEventListener('resize',size);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)tick();
-})();
-
-</script>
+<script is:inline src="/assets/detail.js"></script>
 </Layout>

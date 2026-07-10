@@ -107,7 +107,7 @@ section{position:relative;padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem)
 .band--right::after{background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.3) 68%,var(--bg)),linear-gradient(270deg,rgba(0,0,0,.46),transparent 52%)}
 .band__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
 .band .kx{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.82rem}
-.band .big{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,10.5vw,8rem);line-height:.84;color:#fff;overflow-wrap:break-word;text-shadow:0 6px 60px rgba(0,0,0,.8),0 0 46px color-mix(in srgb,var(--accent) 28%,transparent)}
+.band .big{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,8.9vw,6.6rem);line-height:.84;color:#fff;overflow-wrap:normal;text-wrap:balance;text-shadow:0 6px 60px rgba(0,0,0,.8),0 0 46px color-mix(in srgb,var(--accent) 28%,transparent)}
 .band .big.outline{color:transparent;-webkit-text-stroke:2px var(--accent);text-shadow:0 6px 60px rgba(0,0,0,.6)}
 .band p{max-width:52ch;color:#f4f7ff;font-size:clamp(1rem,1.6vw,1.25rem);margin-top:.7rem;text-shadow:0 2px 12px #000}
 .band--right p{margin-left:auto}
