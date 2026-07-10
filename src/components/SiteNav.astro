@@ -119,7 +119,11 @@ const current = Astro.url.pathname;
         <!-- Archiv — Themen-Verzeichnis + Patch-Liste (einklappbar) -->
         <div class="snav__group">
           <div class="snav__ghead">{t('nav.grp.archive')}</div>
-          <a href={L('/index.html#themen')}>
+          <a href={L('/archiv.html')} aria-current={current === L('/archiv.html') ? 'page' : undefined}>
+            <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>
+            <span>{t('nav.archive')}</span>
+          </a>
+          <a href={L('/archiv.html#themen')}>
             <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
             <span>{t('nav.allTopics')} ({topicCount})</span>
           </a>
