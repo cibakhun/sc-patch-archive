@@ -1,0 +1,51 @@
+# Baut die Seite in GitHub Actions (viel RAM) als Docker-Image und pusht es nach
+# ghcr.io. Coolify zieht das fertige Image -> kein Build auf dem Server (OOM).
+name: Build & Push Image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: image-build
+  cancel-in-progress: true
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/cibakhun/sc-patch-archive:latest
+            ghcr.io/cibakhun/sc-patch-archive:${{ github.sha }}
+
+      # Coolify anstoßen, das neue Image zu ziehen (Webhook-URL als Repo-Secret).
+      # Ist COOLIFY_DEPLOY_WEBHOOK nicht gesetzt, wird nur ein Hinweis geloggt —
+      # dann in Coolify manuell "Redeploy" klicken.
+      - name: Trigger Coolify redeploy
+        env:
+          HOOK: ${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}
+        run: |
+          if [ -n "$HOOK" ]; then
+            curl -fsSL "$HOOK" && echo "Coolify redeploy triggered."
+          else
+            echo "No COOLIFY_DEPLOY_WEBHOOK secret set — redeploy manually in Coolify."
+          fi
