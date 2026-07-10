@@ -61,7 +61,7 @@
           "value": "Foxwell Enforcement"
         }
       ],
-      "topicSlug": "4-8-0-xenothreat"
+      "topicSlug": "4-8-3-xenothreat"
     },
     {
       "name": "Fünf Missionstypen",
@@ -122,5 +122,10 @@
   ],
   "fixesNote": "Begleitende Stabilitäts- und Fehlerbehebungen auf den 4.8-Systemen (Anzahl nicht spezifiziert).",
   "wipe": "Kein neuer Wipe angekündigt — Fortführung des laufenden 4.8-Zyklus.",
-  "topics": []
+  "topics": [
+    {
+      "slug": "4-8-3-xenothreat",
+      "title": "XenoThreat"
+    }
+  ]
 }

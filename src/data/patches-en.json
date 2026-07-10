@@ -2407,7 +2407,11 @@
       ],
       "fixesNote": "Accompanying stability and bug fixes to the 4.8 systems (number not specified).",
       "wipe": "No new wipe announced — continuation of the ongoing 4.8 cycle.",
-      "topics": []
+      "topics": [
+        {
+          "title": "XenoThreat"
+        }
+      ]
     }
   }
 }

@@ -1,4 +1,4 @@
-# Star Citizen Patch-Archiv — Konsolidierte Datenquelle (4.0.0 → 4.8.2)
+# Star Citizen Patch-Archiv — Konsolidierte Datenquelle (4.0.0 → 4.8.3)
 
 ## MEDIEN-MANIFEST (verifiziert via YouTube oEmbed, 2026-06-20)
 
@@ -55,6 +55,7 @@ Reihenfolge & Dateinamen:
 15. 4.8.0 → `sc-4-8-0.html`
 16. 4.8.1 → `sc-4-8-1.html`
 17. 4.8.2 → `sc-4-8-2.html`
+18. 4.8.3 → `sc-4-8-3.html`
 
 ---
 
@@ -176,7 +177,7 @@ Reihenfolge & Dateinamen:
 - **Ships:** Drake Ironclad, Drake Ironclad Assault, Drake Command Module; Aegis Hammerhead „Gold Standard".
 - **Orte:** QV Extraction Stations (neue Missionsorte); kein neues System.
 - **Gameplay:** Tactical-Strike-Group-Missionen, G-Force-Flugmodell, Refueling-Rework, Vehicle-Loadout-Recovery, Hangar-Services.
-- **Events:** Rückkehr von **XenoThreat** (serverweites Koordinations-Event).
+- **Events:** **DefenseCon 2956** — die jährliche Schiffsschau (vormals Fleet Week) am Bevic Convention Center in Area18: tägliche Hersteller-Rotation ab Drakes „For the People"-Auftakt, 100+ Schiffe 48 h kostenlos fliegbar, Free Fly 15.–27. Mai, frei spielbar. *(Korrektur: XenoThreat gehört NICHT zu 4.8.0, sondern ist das Event von 4.8.3 — Quellen: MassivelyOP, RSI Comm-Link.)*
 
 ## 4.8.1 — „Defend Location" · 3. Juni 2026
 **Theme:** Belagerte Außenposten / letzte Verteidigung am Asteroiden. Palette: Asteroiden-Schiefer `#3A3F44`, Schild-Cyan `#36C5D6`, Alarm-Rot `#D7263D`, Stationslicht-Amber `#FFB627`. Mood: angespannt, defensiv, eingekesselt; Motive: rissiges Asteroidengestein, Schild-Bubble-Wellen, Bomber-Anflugbahnen, Radar-Sweep, befestigte Stationssilhouetten.
@@ -193,3 +194,13 @@ Reihenfolge & Dateinamen:
 - **Orte:** keine.
 - **Gameplay:** keine großen neuen Mechaniken — primär Schiffe, Vehicle-Balance, Fixes auf 4.8.0-Systemen.
 - **Events:** **Alien Week 2956** (17.–25. Juni 2026): Rabatte auf Banu/Xi'an/Tevarin/Gatac-Schiffe, Alien-Paints/-Armor, Subscriber-Angebote; First Contact Day.
+
+## 4.8.3 — „XenoThreat" (Return of XenoThreat) · 1. Juli 2026
+**Theme:** Ember-Combat, Anti-Alien-Bedrohung über Stanton — dieselbe Palette wie 4.8.0 (Drake-Hazard-Orange `#E8651E`, Biolume-Teal `#1FB8A6`). Point-Release der 4.8-Reihe, ganz um die Rückkehr des XenoThreat-Events gebaut. **Quellen:** RSI Comm-Link/Patch Notes, starcitizen.tools (XenoThreat / Return of Xenothreat), Simulation Daily, MMOPIXEL, ggwtb, StarZen.
+- **Headline:** Rückkehr des dynamischen **XenoThreat-Events** („Assault on Stanton") als **punktebasiertes PvE-Kampf-Event** (1.–15. Juli 2026) — NICHT der alte kinoreife Server-Krieg. Foxwell Enforcement bittet Spieler um Hilfe; über fünf Missionstypen werden bis zu **120.000 Event-Punkte** gesammelt (Standard-Mission ~4.000 Pkt). Belohnung: **einzigartige Blueprints** (persistieren über künftige Updates). Dazu begleitende Stabilitäts-/Fehlerbehebungen auf den 4.8-Systemen.
+- **Fünf Missionstypen:** (1) von Aliens gebaute Schiffe verteidigen, (2) Anti-Alien-Jäger ausschalten, (3) eintreffende ausgrenzende Verbände abfangen, (4) xenophobe Lieutenants herauslocken & besiegen, (5) **Idris-Fregatte** zerstören oder Piloten ausschalten (Kapitalschiff-Ziel — kein neues Schiff, sondern Event-Gegner).
+- **Fraktion:** XenoThreat = menschen-suprematistische, anti-alien, anti-UEE Outlaw-Fraktion aus Pyro (grösstenteils ehemalige UEE-Navy). Historischer Auftakt: 2951 Konvoi-Überfall in Stanton, Crews hingerichtet, UEE mobilisiert die Civilian Defense Force, elf Tage Gefecht, Rückzug nach Pyro.
+- **Ships:** keine neuen Schiffe (Point-Release).
+- **Orte:** Stanton (Event).
+- **Wipe:** kein neuer Wipe (Fortführung des 4.8-Zyklus).
+- **Medien:** XenoThreat-Trailer `SsOtI2dtvBc` (eigenes Event-Video); Hero-Standbild `t-xeno-1.jpg`.
