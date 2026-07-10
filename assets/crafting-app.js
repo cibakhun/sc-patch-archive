@@ -377,7 +377,10 @@
           var mod = qe.modifier_at_min + (qe.modifier_at_max - qe.modifier_at_min) * t;
           var e = perStat[qe.stat];
           if (!e) { e = perStat[qe.stat] = { mul: 1, add: 0, hasMul: false, hasAdd: false, base: resolveBase(qe.stat, b.item_stats) }; }
-          if (qe.multiplicative) { e.mul *= mod; e.hasMul = true; } else { e.add += mod; e.hasAdd = true; }
+          // Gleichartige %-Boni additiv stapeln (Bonus-Anteile summieren), nicht
+          // kompoundieren: zwei 5% -> +10%, nicht +10,25%. e.mul bleibt der
+          // kombinierte Faktor (1 + Summe der Anteile).
+          if (qe.multiplicative) { e.mul += (mod - 1); e.hasMul = true; } else { e.add += mod; e.hasAdd = true; }
         });
       });
       var keys = Object.keys(perStat);
