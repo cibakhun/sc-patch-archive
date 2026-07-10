@@ -257,7 +257,9 @@ const S = {
 
   <style is:inline>
     .frac{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
-    .frac__grid{display:grid;grid-template-columns:1.15fr 1fr;gap:1.2rem;align-items:start}
+    /* minmax(0,…): Selects (längste Option) dürfen die Spur nie über den
+       Viewport hinausdrücken — Track darf unter Min-Content schrumpfen */
+    .frac__grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:1.2rem;align-items:start}
     .frac__in,.frac__out{border:1px solid var(--line,rgba(47,191,164,.22));background:var(--surface,#1e2427);border-radius:8px;padding:1rem 1.1rem}
     .frac__out{border-top:2px solid var(--accent,#2FBFA4)}
     .frac__rockhd{margin:.2rem 0 .5rem}
@@ -294,6 +296,6 @@ const S = {
     .frac__over b{font-size:.95rem}.frac__over b.ok{color:var(--accent,#2FBFA4)}.frac__over b.warn{color:var(--accent-2,#E0A526)}.frac__over b.bad{color:#e06055}
     .frac__rec{font-size:.86rem;line-height:1.5;color:var(--text,#eaf2f1);background:var(--bg-2,#181d1f);border-left:3px solid var(--accent,#2FBFA4);border-radius:4px;padding:.6rem .8rem}
     .frac__note{max-width:var(--maxw,1240px);margin:.9rem auto 0;font-size:.78rem;color:var(--muted,#8fa3a0);line-height:1.5;font-style:italic}
-    @media(max-width:760px){ .frac__grid{grid-template-columns:1fr} .frac__metrics{grid-template-columns:1fr 1fr} }
+    @media(max-width:760px){ .frac__grid{grid-template-columns:minmax(0,1fr)} .frac__metrics{grid-template-columns:1fr 1fr} }
   </style>
 </section>

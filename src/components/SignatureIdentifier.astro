@@ -75,7 +75,7 @@ const S = {
     intro: 'Ein Cluster aus n Steinen zeigt n × die Basis-Signatur; die maximale Cluster-Größe hängt von der Seltenheit ab. Wähle deine Erze aus — nur die stehen dann in der Tabelle (deine persönliche Liste, bleibt gespeichert). Gib einen gescannten Wert ein, um Mineral + Cluster-Größe zu identifizieren.',
     scanLabel: 'Scan-Wert identifizieren', scanPh: 'z.B. 6340 oder ~6340 (±10%)',
     pick: 'Erze für deine Liste', all: 'Alle', none: 'Keine',
-    selectedNone: 'Keine Erze ausgewählt — es werden alle gezeigt. Tippe oben auf Erze für deine eigene Liste.',
+    selectedNone: 'Keine Erze ausgewählt — tippe oben auf Erze für deine persönliche Liste.',
     matches: 'Treffer', noMatch: 'Kein Mineral passt zu diesem Wert.',
     base: 'Basis (1 Stein)', bestSpot: 'Bester Fundort', top5: 'Top-5 Fundorte', noLoc: 'keine Fundort-Daten',
     locSystem: 'System', allSys: 'Alle', noLocSys: 'nicht in diesem System',
@@ -85,7 +85,7 @@ const S = {
     intro: 'A cluster of n rocks shows n × the base signature; the max cluster size depends on rarity. Pick your ores — only those appear in the table (your personal list, saved). Enter a scanned value to identify mineral + cluster size.',
     scanLabel: 'Identify scanned value', scanPh: 'e.g. 6340 or ~6340 (±10%)',
     pick: 'Ores for your list', all: 'All', none: 'None',
-    selectedNone: 'No ores selected — showing all. Tap ores above to build your own list.',
+    selectedNone: 'No ores selected — tap ores above to build your personal list.',
     matches: 'Matches', noMatch: 'No mineral matches this value.',
     base: 'base (1 rock)', bestSpot: 'Best spot', top5: 'Top 5 locations', noLoc: 'no location data',
     locSystem: 'System', allSys: 'All', noLocSys: 'not in this system',
@@ -193,17 +193,17 @@ const S = {
       }
 
       function render() {
-        var showAll = sel.size === 0;
+        var noneSelected = sel.size === 0;
         // chips reflect selection
         chips.forEach(function (c) {
           var on = sel.has(c.getAttribute('data-name'));
           c.setAttribute('aria-pressed', String(on));
         });
-        // rows: show selected (or all if none)
+        // rows: nur die ausgewählten Erze anzeigen — keine Auswahl = leere Liste
         rows.forEach(function (r) {
-          r.hidden = !(showAll || sel.has(r.getAttribute('data-name')));
+          r.hidden = !sel.has(r.getAttribute('data-name'));
         });
-        hintEl.hidden = !showAll;
+        hintEl.hidden = !noneSelected;
         countEl.textContent = sel.size ? (sel.size + '') : '';
 
         // scan matching over visible rows
@@ -268,6 +268,7 @@ const S = {
       document.getElementById('sid-none').addEventListener('click', function () { sel.clear(); save(); render(); });
       scan.addEventListener('input', render);
       render();
+      root.classList.add('sid--ready');
     })();
   </script>
 
@@ -313,6 +314,9 @@ const S = {
     .sid__hint{font-size:.82rem;color:var(--muted,#8fa3a0);font-style:italic;margin:0 0 .8rem}
     .sid__hint[hidden]{display:none}
     .sid__list{display:flex;flex-direction:column;gap:.4rem}
+    /* vor JS-Init nichts zeigen: sonst blitzen alle SSR-Zeilen kurz auf und
+       kollabieren dann auf die (leere/gespeicherte) Auswahl */
+    .sid:not(.sid--ready) .sid__row{display:none}
     .sid__row{--rar:#8fa3a0;border:1px solid var(--line-soft,rgba(255,255,255,.1));border-left:3px solid var(--rar);background:var(--bg-2,#181d1f);border-radius:5px;padding:.6rem .8rem}
     .sid__row[hidden]{display:none}
     .sid__row[data-rar="legendary"]{--rar:#e0564b}.sid__row[data-rar="epic"]{--rar:#b06ae0}

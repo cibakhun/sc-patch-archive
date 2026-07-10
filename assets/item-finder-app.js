@@ -9,7 +9,6 @@
 
   var ALL_ITEMS = [];
   var CRAFTING_MAP = {};
-  var WIKELO = null;
   var META = null;
 
   var filteredItems = [];
@@ -35,29 +34,6 @@
       if (o.price != null && o.price > 0 && o.price < p) p = o.price;
     }
     return p === Infinity ? null : p;
-  }
-  // Wikelo-Namen normalisieren — gleiche Kandidaten-Regeln wie beim Build
-  // (src/lib/wikeloItemMatch.ts, beide zusammen ändern): Mengen-Präfix,
-  // Quell-Tippfehler und Präfix-Varianten der Tracker-Schreibweisen.
-  function wikeloCandidates(raw) {
-    var n = String(raw || '').replace(/^\s*[\d.,]+\s*[x×]\s*/i, '').trim()
-      .replace(/^iraddiated\b/i, 'Irradiated')
-      .replace(/\bquantanium\b/i, 'Quantainium');
-    var out = [n, n.replace(/^SCU\s+/i, ''), n.replace(/^Argo\s+/i, ''), n.replace(/\bArmor\s+/i, '')];
-    var all = out.slice();
-    out.forEach(function (c) { if (/s$/i.test(c)) all.push(c.slice(0, -1)); });
-    return all;
-  }
-  // Matcht ein Item gegen einen Wikelo-Namen: exakt oder als Suffix mit
-  // Hersteller-Präfix in der DB ("Starlancer MAX" → "MISC Starlancer MAX").
-  function wikeloNameMatches(raw, itemNameLower) {
-    var cands = wikeloCandidates(raw);
-    for (var i = 0; i < cands.length; i++) {
-      var c = cands[i].toLowerCase();
-      if (c === itemNameLower) return true;
-      if (itemNameLower.length > c.length && itemNameLower.slice(-(c.length + 1)) === ' ' + c) return true;
-    }
-    return false;
   }
   function hasKind(item, kind) {
     if (kind === 'all') return true;
@@ -370,7 +346,6 @@
           return '<li><strong>' + esc(ing.slot || 'Material') + ':</strong> ' + options + '</li>';
         }).join('') + '</ul>';
       }
-      var craftHref = (CFG.craftPage || '/topics/crafting.html') + '?bp=' + encodeURIComponent(bp.name);
       html += '<div class="uif-modal-section">' +
         '<h4>' + esc(tr('sectionCrafting', 'Crafting-Rezept')) + '</h4>' +
         '<div class="uif-crafting-header">' +
@@ -378,55 +353,8 @@
           (bp.tiers ? '<div><strong>' + esc(tr('craftTiers', 'Stufen')) + ':</strong> ' + esc(String(bp.tiers)) + '</div>' : '') +
         '</div>' +
         (ingredients ? '<div class="uif-crafting-ingredients"><h5>' + esc(tr('craftMaterials', 'Materialien')) + '</h5>' + ingredients + '</div>' : '') +
-        '<a class="uif-craft-link" href="' + esc(craftHref) + '">' + esc(tr('openCrafting', 'Im Crafting-Tool öffnen')) + ' &rarr;</a>' +
+        '<a class="uif-xlink" href="' + (CFG.lang === 'en' ? '/en' : '') + '/topics/crafting.html?bp=' + encodeURIComponent(item.name) + '">' + esc(tr('openInCrafting', 'Im Crafting-Planer öffnen')) + ' →</a>' +
       '</div>';
-    }
-
-    // Wikelo-Tausch (aus wikelo-trades.json): Item ist Belohnung und/oder Material
-    if (WIKELO && WIKELO.length) {
-      var nl = item.name.toLowerCase();
-      var asReward = [];
-      var asMat = [];
-      WIKELO.forEach(function (t) {
-        if (wikeloNameMatches(t.get || t.name || '', nl)) asReward.push(t);
-        for (var mi = 0; mi < (t.mats || []).length; mi++) {
-          if (wikeloNameMatches(t.mats[mi], nl)) { asMat.push(t); break; }
-        }
-      });
-      if (asReward.length || asMat.length) {
-        var wikeloHref = (CFG.wikeloPage || '/topics/wikelo-emporium.html') + '?item=' + encodeURIComponent(item.name);
-        var whtml = '';
-        if (asReward.length) {
-          var rShown = asReward.slice(0, 4);
-          whtml += '<div class="uif-crafting-ingredients"><h5>' + esc(tr('wikeloGive', 'Bei Wikelo eintauschbar — gib dafür')) + '</h5><ul>' + rShown.map(function (t) {
-            var parts = (t.mats || []).join(' + ');
-            if (t.favor != null) parts += (parts ? ' + ' : '') + t.favor + ' Favor';
-            return '<li>' + esc(parts) + '</li>';
-          }).join('') + '</ul></div>';
-          if (asReward.length > rShown.length) {
-            whtml += '<p class="uif-volatile-note">' + esc(tr('wikeloMoreTrades', '+{n} weitere Trades auf der Wikelo-Seite').replace('{n}', asReward.length - rShown.length)) + '</p>';
-          }
-        }
-        if (asMat.length) {
-          var seen = {};
-          var rewards = [];
-          asMat.forEach(function (t) {
-            var g = t.get || t.name;
-            if (!seen[g]) { seen[g] = true; rewards.push(g); }
-          });
-          var nShown = rewards.slice(0, 6);
-          whtml += '<div class="uif-crafting-ingredients"><h5>' + esc(tr('wikeloUsedFor', 'Wird bei Wikelo gebraucht für')) + '</h5><ul>' + nShown.map(function (n) {
-            return '<li><strong>' + esc(n) + '</strong></li>';
-          }).join('') + '</ul></div>';
-          if (rewards.length > nShown.length) {
-            whtml += '<p class="uif-volatile-note">' + esc(tr('wikeloMoreTrades', '+{n} weitere Trades auf der Wikelo-Seite').replace('{n}', rewards.length - nShown.length)) + '</p>';
-          }
-        }
-        html += '<div class="uif-modal-section">' +
-          '<h4>' + esc(tr('sectionWikelo', 'Wikelo-Tausch')) + '</h4>' + whtml +
-          '<a class="uif-craft-link" href="' + esc(wikeloHref) + '">' + esc(tr('openWikelo', 'Zur Wikelo-Seite öffnen')) + ' &rarr;</a>' +
-        '</div>';
-      }
     }
 
     content.innerHTML = html;
@@ -469,41 +397,19 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
   }
 
-  // Deep-Link: ?item=<Name|ID> öffnet das Item-Modal direkt (Absprung z. B. vom
-  // Crafting-Tool) und setzt die Suche, damit das Grid dahinter passt.
-  function openFromQuery() {
-    var want = null;
-    try { want = new URLSearchParams(location.search).get('item'); } catch (e) { return; }
-    if (!want) return;
-    var wl = want.toLowerCase();
-    var hit = null;
-    for (var i = 0; i < ALL_ITEMS.length; i++) {
-      if (ALL_ITEMS[i].id === want || ALL_ITEMS[i].name.toLowerCase() === wl) { hit = ALL_ITEMS[i]; break; }
-    }
-    if (!hit) return;
-    searchTerm = hit.name;
-    var input = document.getElementById('uif-search-input');
-    if (input) input.value = hit.name;
-    currentPage = 1;
-    applyFiltersAndSort();
-    openModal(hit);
-  }
-
   // ---- Init: DB + Crafting-DB laden ----
   function init() {
     initEvents();
 
     var dbUrl = CFG.dbUrl || '/assets/universal-items.json';
     var craftUrl = CFG.craftUrl || '/assets/crafting-db.json';
-    var wikeloUrl = CFG.wikeloUrl || '/assets/wikelo-trades.json';
 
     Promise.all([
       fetch(dbUrl).then(function (r) {
         if (!r.ok) throw new Error('items db http ' + r.status);
         return r.json();
       }),
-      fetch(craftUrl).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
-      fetch(wikeloUrl).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+      fetch(craftUrl).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
     ]).then(function (results) {
       var db = results[0] || {};
       META = db.counts || null;
@@ -516,8 +422,6 @@
         });
       }
 
-      WIKELO = Array.isArray(results[2]) ? results[2] : null;
-
       var sub = document.getElementById('uif-subline');
       if (sub && META) {
         sub.textContent = tr('subline', '{total} Items aus den Spieldateien, {sourced} mit verifizierten Bezugsquellen')
@@ -529,7 +433,16 @@
       applyFiltersAndSort();
       renderCategories();
       renderKindChips();
-      openFromQuery();
+      // Deep-Link aus dem Crafting-Planer: ?item=<Item-Name oder -id> öffnet die Card.
+      try {
+        var wantItem = new URLSearchParams(location.search).get('item');
+        if (wantItem) {
+          var tgt = wantItem.trim().toLowerCase();
+          for (var ii = 0; ii < ALL_ITEMS.length; ii++) {
+            if ((ALL_ITEMS[ii].name || '').toLowerCase() === tgt || ALL_ITEMS[ii].id === wantItem) { openModal(ALL_ITEMS[ii]); break; }
+          }
+        }
+      } catch (e) {}
     }).catch(function (err) {
       console.warn('Item-Finder: Datenbank konnte nicht geladen werden.', err);
       var grid = document.getElementById('uif-results-grid');

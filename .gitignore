@@ -22,6 +22,9 @@ pinggy.log
 # /assets is the canonical media; public/assets is a build-time sync (see scripts/_sync-assets.mjs)
 /public/assets/
 
+# Selbst-enthaltene Onepager-Downloads, generiert aus public/onepager (scripts/build-downloads.mjs)
+/public/downloads/
+
 build.log
 
 # Eigene DataCore-Extraktion (maschinen-/pfadspezifisch, via scripts/datamine-*.mjs)

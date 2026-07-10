@@ -26,49 +26,17 @@
     DB = j;
     buildMissionIndex();
     renderPlanner();
-    openFromQuery();
-  }).catch(function () {});
-
-  // Deep-Link: ?bp=<Name> öffnet das Blueprint-Modal direkt (Absprung z. B.
-  // vom Item Finder) und setzt die Suche, damit das Grid dahinter passt.
-  function openFromQuery() {
-    var want = null;
-    try { want = new URLSearchParams(location.search).get('bp'); } catch (e) { return; }
-    if (!want) return;
-    var wl = want.toLowerCase();
-    for (var i = 0; i < DB.blueprints.length; i++) {
-      if ((DB.blueprints[i].name || '').toLowerCase() === wl) {
-        if (search) { search.value = DB.blueprints[i].name; state.q = wl; apply(); }
-        openModal(i);
-        return;
+    // Deep-Link aus dem Item Finder: ?bp=<Blueprint-Name> öffnet direkt das Modal.
+    try {
+      var wantBp = new URLSearchParams(location.search).get('bp');
+      if (wantBp && DB.blueprints) {
+        var tgt = wantBp.trim().toLowerCase();
+        for (var bi = 0; bi < DB.blueprints.length; bi++) {
+          if ((DB.blueprints[bi].name || '').toLowerCase() === tgt) { openModal(bi); break; }
+        }
       }
-    }
-  }
-
-  // ---- Item-Finder-Brücke: Bezugsquellen des fertigen Items (lazy geladen,
-  //      erst beim ersten Blueprint-Modal — die Items-DB ist ~3 MB) ----
-  var ITEMS_BY_NAME = null;
-  var itemsPromise = null;
-  function loadItems() {
-    if (!itemsPromise) {
-      itemsPromise = fetch(CFG.itemsUrl || '/assets/universal-items.json')
-        .then(function (r) { return r.json(); })
-        .then(function (j) {
-          ITEMS_BY_NAME = {};
-          (j.items || []).forEach(function (it) {
-            if (it.name) ITEMS_BY_NAME[it.name.toLowerCase()] = it;
-          });
-        })
-        .catch(function () { ITEMS_BY_NAME = {}; });
-    }
-    return itemsPromise;
-  }
-  function obtainKindLabel(k) {
-    if (k === 'shop') return tr('kindShop', 'Shop');
-    if (k === 'vehicle') return tr('kindVehicle', 'Schiffshändler');
-    if (k === 'loot') return tr('kindLoot', 'Loot');
-    return k;
-  }
+    } catch (e) {}
+  }).catch(function () {});
 
   // Umkehrung Blueprint -> Mission: pro Mission der Pool aller Blueprints.
   function buildMissionIndex() {
@@ -357,6 +325,7 @@
     html += '<span>' + tr('craftTime', 'Craft-Zeit') + ': <b>' + fmtTime(b.craft_time_seconds) + '</b></span>';
     if (b.tiers != null) html += '<span>' + tr('tier', 'Tier') + ': <b>' + b.tiers + '</b></span>';
     html += '<button class="cbm__plan" data-plan="' + i + '">＋ ' + tr('addPlan', 'Zum Planer') + '</button>';
+    html += '<a class="cbm__xlink" href="' + (CFG.lang === 'en' ? '/en' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + ' →</a>';
     html += '</div>';
 
     if (b.ingredients && b.ingredients.length) {
@@ -403,9 +372,6 @@
       html += '<p class="cbm__note">' + tr('noMission', 'Keine Missions-Quelle in den Daten — evtl. über andere Wege (Shop/Reputation) erhältlich.') + '</p>';
     }
 
-    // Platzhalter: Bezugsquellen des fertigen Items (füllt sich async aus der Items-DB)
-    html += '<div id="cbm-avail"></div>';
-
     modalBody.innerHTML = html;
 
     // Quality simulator — absolute values.
@@ -422,7 +388,10 @@
           var mod = qe.modifier_at_min + (qe.modifier_at_max - qe.modifier_at_min) * t;
           var e = perStat[qe.stat];
           if (!e) { e = perStat[qe.stat] = { mul: 1, add: 0, hasMul: false, hasAdd: false, base: resolveBase(qe.stat, b.item_stats) }; }
-          if (qe.multiplicative) { e.mul *= mod; e.hasMul = true; } else { e.add += mod; e.hasAdd = true; }
+          // Gleichartige %-Boni additiv stapeln (Bonus-Anteile summieren), nicht
+          // kompoundieren: zwei 5% -> +10%, nicht +10,25%. e.mul bleibt der
+          // kombinierte Faktor (1 + Summe der Anteile).
+          if (qe.multiplicative) { e.mul += (mod - 1); e.hasMul = true; } else { e.add += mod; e.hasAdd = true; }
         });
       });
       var keys = Object.keys(perStat);
@@ -460,41 +429,6 @@
 
     $$('.cbm__mlink', modalBody).forEach(function (btn) {
       btn.addEventListener('click', function () { go({ t: 'pool', key: btn.dataset.mkey }); });
-    });
-
-    renderAvailability(b);
-  }
-
-  // Kompakter Item-Finder-Ausschnitt im Blueprint-Modal: wo gibt es das
-  // fertige Item (Ort · Art · Preis)? Kein Abschnitt, wenn kein Item matcht.
-  function renderAvailability(b) {
-    var host = $('#cbm-avail', modalBody);
-    if (!host) return;
-    loadItems().then(function () {
-      if (!modalBody.contains(host)) return; // Modal zeigt inzwischen etwas anderes
-      var it = ITEMS_BY_NAME && ITEMS_BY_NAME[(b.name || '').toLowerCase()];
-      if (!it) return;
-      var url = (CFG.itemPage || '/item-finder.html') + '?item=' + encodeURIComponent(it.name);
-      var html = '<h3 class="cbm__h">' + tr('itemAvail', 'Fertiges Item: Bezugsquellen') + '</h3>';
-      var obtain = (it.obtain || []).slice().sort(function (a, o) {
-        var pa = a.price != null ? a.price : Infinity;
-        var pb = o.price != null ? o.price : Infinity;
-        return pa - pb;
-      });
-      if (obtain.length) {
-        var shown = obtain.slice(0, 5);
-        html += '<div class="cbm__out">' + shown.map(function (o) {
-          return '<div class="cbm__ostat"><span>' + esc(o.loc) + ' · ' + esc(obtainKindLabel(o.kind)) + '</span>' +
-            '<b>' + (o.price != null ? Number(o.price).toLocaleString(LOC) + ' aUEC' : '—') + '</b></div>';
-        }).join('') + '</div>';
-        if (obtain.length > shown.length) {
-          html += '<p class="cbm__note">' + esc(tr('availMore', '+{n} weitere Quellen im Item Finder').replace('{n}', obtain.length - shown.length)) + '</p>';
-        }
-      } else {
-        html += '<p class="cbm__note">' + esc(tr('availCatalog', 'Keine verifizierten Shop- oder Loot-Daten für das fertige Item.')) + '</p>';
-      }
-      html += '<a class="cbm__flink" href="' + esc(url) + '">' + esc(tr('openFinder', 'Im Item Finder öffnen')) + ' &rarr;</a>';
-      host.innerHTML = html;
     });
   }
 
@@ -558,6 +492,13 @@
       if (drawer.classList.contains('is-open') && !drawer.contains(e.target) && !plannerBtn.contains(e.target)) closeDrawer();
     });
   }
+  // Slide-Transitions (Planer-Drawer / Mobil-Sidebar) erst nach dem ersten
+  // gerenderten Frame scharfschalten — sonst animiert der Browser beim Laden
+  // das initiale Wegschieben und der Planer „schließt" kurz sichtbar.
+  requestAnimationFrame(function () { requestAnimationFrame(function () {
+    document.documentElement.classList.add('cdb-ready');
+  }); });
+
   function flashPlan() { if (plannerBtn) { plannerBtn.classList.remove('flash'); void plannerBtn.offsetWidth; plannerBtn.classList.add('flash'); } }
 
   function renderPlanner() {
