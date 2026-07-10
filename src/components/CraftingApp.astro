@@ -61,6 +61,11 @@ const JS_T = {
     calcQtyBuy: '{qty}x kaufen',
     calcFound: '{count} kompatible Items gefunden',
     calcRareLabel: '(selten)',
+    itemAvail: 'Fertiges Item: Bezugsquellen',
+    kindShop: 'Shop', kindVehicle: 'Schiffshändler', kindLoot: 'Loot',
+    availMore: '+{n} weitere Quellen im Item Finder',
+    availCatalog: 'Keine verifizierten Shop- oder Loot-Daten für das fertige Item.',
+    openFinder: 'Im Item Finder öffnen',
   },
   en: {
     craftTime: 'Craft time', tier: 'Tier', addPlan: 'Add to planner', ingredients: 'Ingredients',
@@ -81,6 +86,11 @@ const JS_T = {
     calcQtyBuy: 'Buy {qty}x',
     calcFound: '{count} compatible items found',
     calcRareLabel: '(rare)',
+    itemAvail: 'Finished item: where to get it',
+    kindShop: 'Shop', kindVehicle: 'Ship dealer', kindLoot: 'Loot',
+    availMore: '+{n} more sources in the item finder',
+    availCatalog: 'No verified shop or loot data for the finished item.',
+    openFinder: 'Open in item finder',
   },
 }[lang];
 
@@ -346,7 +356,7 @@ const total = DB.counts.blueprints;
   </aside>
 </section>
 
-<script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json', dismantleUrl: '/assets/dismantling-items.json', t: JS_T })};`} />
+<script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json', dismantleUrl: '/assets/dismantling-items.json', itemsUrl: '/assets/universal-items.json', itemPage: lang === 'de' ? '/item-finder.html' : '/en/item-finder.html', t: JS_T })};`} />
 <script is:inline src="/assets/crafting-app.js"></script>
 
 <style is:inline>
@@ -486,6 +496,9 @@ const total = DB.counts.blueprints;
   /* back button */
   .cbm__back{background:transparent;border:1px solid var(--line,rgba(255,94,26,.3));color:var(--text,#eef1f5);padding:.35rem .8rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;font-size:.82rem;margin-bottom:.8rem}
   .cbm__back:hover{border-color:var(--accent-2,#1FA2FF);color:var(--accent-2,#1FA2FF)}
+  /* Link ins Item-Finder-Tool (Bezugsquellen des fertigen Items) */
+  .cbm__flink{display:inline-block;margin-top:.6rem;color:var(--accent-2,#1FA2FF);font-weight:700;font-size:.86rem;text-decoration:none;border-bottom:1px solid currentColor}
+  .cbm__flink:hover{color:#fff}
   /* Planner drawer */
   .cdb-drawer{position:fixed;top:0;right:0;z-index:9350;width:min(400px,100%);height:100%;background:var(--bg-2,#1d1d22);border-left:1px solid var(--accent-2,#1FA2FF);transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;overflow:auto}
   .cdb-drawer.is-open{transform:translateX(0)}

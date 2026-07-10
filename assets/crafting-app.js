@@ -26,7 +26,49 @@
     DB = j;
     buildMissionIndex();
     renderPlanner();
+    openFromQuery();
   }).catch(function () {});
+
+  // Deep-Link: ?bp=<Name> öffnet das Blueprint-Modal direkt (Absprung z. B.
+  // vom Item Finder) und setzt die Suche, damit das Grid dahinter passt.
+  function openFromQuery() {
+    var want = null;
+    try { want = new URLSearchParams(location.search).get('bp'); } catch (e) { return; }
+    if (!want) return;
+    var wl = want.toLowerCase();
+    for (var i = 0; i < DB.blueprints.length; i++) {
+      if ((DB.blueprints[i].name || '').toLowerCase() === wl) {
+        if (search) { search.value = DB.blueprints[i].name; state.q = wl; apply(); }
+        openModal(i);
+        return;
+      }
+    }
+  }
+
+  // ---- Item-Finder-Brücke: Bezugsquellen des fertigen Items (lazy geladen,
+  //      erst beim ersten Blueprint-Modal — die Items-DB ist ~3 MB) ----
+  var ITEMS_BY_NAME = null;
+  var itemsPromise = null;
+  function loadItems() {
+    if (!itemsPromise) {
+      itemsPromise = fetch(CFG.itemsUrl || '/assets/universal-items.json')
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          ITEMS_BY_NAME = {};
+          (j.items || []).forEach(function (it) {
+            if (it.name) ITEMS_BY_NAME[it.name.toLowerCase()] = it;
+          });
+        })
+        .catch(function () { ITEMS_BY_NAME = {}; });
+    }
+    return itemsPromise;
+  }
+  function obtainKindLabel(k) {
+    if (k === 'shop') return tr('kindShop', 'Shop');
+    if (k === 'vehicle') return tr('kindVehicle', 'Schiffshändler');
+    if (k === 'loot') return tr('kindLoot', 'Loot');
+    return k;
+  }
 
   // Umkehrung Blueprint -> Mission: pro Mission der Pool aller Blueprints.
   function buildMissionIndex() {
@@ -361,6 +403,9 @@
       html += '<p class="cbm__note">' + tr('noMission', 'Keine Missions-Quelle in den Daten — evtl. über andere Wege (Shop/Reputation) erhältlich.') + '</p>';
     }
 
+    // Platzhalter: Bezugsquellen des fertigen Items (füllt sich async aus der Items-DB)
+    html += '<div id="cbm-avail"></div>';
+
     modalBody.innerHTML = html;
 
     // Quality simulator — absolute values.
@@ -415,6 +460,41 @@
 
     $$('.cbm__mlink', modalBody).forEach(function (btn) {
       btn.addEventListener('click', function () { go({ t: 'pool', key: btn.dataset.mkey }); });
+    });
+
+    renderAvailability(b);
+  }
+
+  // Kompakter Item-Finder-Ausschnitt im Blueprint-Modal: wo gibt es das
+  // fertige Item (Ort · Art · Preis)? Kein Abschnitt, wenn kein Item matcht.
+  function renderAvailability(b) {
+    var host = $('#cbm-avail', modalBody);
+    if (!host) return;
+    loadItems().then(function () {
+      if (!modalBody.contains(host)) return; // Modal zeigt inzwischen etwas anderes
+      var it = ITEMS_BY_NAME && ITEMS_BY_NAME[(b.name || '').toLowerCase()];
+      if (!it) return;
+      var url = (CFG.itemPage || '/item-finder.html') + '?item=' + encodeURIComponent(it.name);
+      var html = '<h3 class="cbm__h">' + tr('itemAvail', 'Fertiges Item: Bezugsquellen') + '</h3>';
+      var obtain = (it.obtain || []).slice().sort(function (a, o) {
+        var pa = a.price != null ? a.price : Infinity;
+        var pb = o.price != null ? o.price : Infinity;
+        return pa - pb;
+      });
+      if (obtain.length) {
+        var shown = obtain.slice(0, 5);
+        html += '<div class="cbm__out">' + shown.map(function (o) {
+          return '<div class="cbm__ostat"><span>' + esc(o.loc) + ' · ' + esc(obtainKindLabel(o.kind)) + '</span>' +
+            '<b>' + (o.price != null ? Number(o.price).toLocaleString(LOC) + ' aUEC' : '—') + '</b></div>';
+        }).join('') + '</div>';
+        if (obtain.length > shown.length) {
+          html += '<p class="cbm__note">' + esc(tr('availMore', '+{n} weitere Quellen im Item Finder').replace('{n}', obtain.length - shown.length)) + '</p>';
+        }
+      } else {
+        html += '<p class="cbm__note">' + esc(tr('availCatalog', 'Keine verifizierten Shop- oder Loot-Daten für das fertige Item.')) + '</p>';
+      }
+      html += '<a class="cbm__flink" href="' + esc(url) + '">' + esc(tr('openFinder', 'Im Item Finder öffnen')) + ' &rarr;</a>';
+      host.innerHTML = html;
     });
   }
 

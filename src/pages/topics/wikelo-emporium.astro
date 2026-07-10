@@ -4,7 +4,16 @@ import SiteNav from '../../components/SiteNav.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
-import TRADES from '../../data/wikelo-trades.json';
+import WikeloBridge from '../../components/WikeloBridge.astro';
+import { matchItemName } from '../../lib/wikeloItemMatch';
+import TRADES from '../../../assets/wikelo-trades.json';
+
+// Item-Finder-Brücke: Namen mit Item-Match werden schon im Markup als klickbar
+// markiert (data-item = kanonischer DB-Name) — sichtbar ohne Client-DB-Load.
+const linkAttrs = (raw: string) => {
+  const it = matchItemName(raw);
+  return it ? { 'data-item': it, role: 'button', tabindex: '0', title: 'Bezugsquellen anzeigen' } : {};
+};
 
 // On-brand Inline-SVG-Icons (statt Emojis) — Linien-Stil, currentColor.
 const svg = (b) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
@@ -39,7 +48,8 @@ const COMP_LABEL = { pwr: 'Antrieb', shield: 'Schild', qd: 'Quantum', cooler: 'K
 // Patch 4.8.1, Stand 2026-06-04. Materialien/Favor faithful aus der Tracker-Datei
 // PATCH_4_8_1.js übernommen (inkl. Original-Schreibweisen). Nichts erfunden; Werte patch-volatil.
 // `img` = verifiziertes Schiff-Bild (/assets/<img>.jpg); ohne img → Kategorie-Icon-Fallback.
-// TRADES wird aus src/data/wikelo-trades.json importiert (gemeinsam DE/EN).
+// TRADES wird aus assets/wikelo-trades.json importiert (gemeinsam DE/EN;
+// liegt in /assets, damit auch der Item Finder sie clientseitig laden kann).
 
 // Media-Regel: dieselbe Bilddatei max. 2× pro Seite. Belohnungen, die in
 // mehreren Trades vorkommen (z. B. ATLS GEO), zeigen ab dem 3. Vorkommen das
@@ -161,7 +171,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Alpha 4.1.0', href: '/patches/sc-4-1-0.html' }, { label: "Wikelo" }]} pill={"THEMA · ALPHA 4.1"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.1.0', href: '/patches/sc-4-1-0.html' }, { label: "Wikelo" }]} pill={"THEMA · ALPHA 4.1"} hasEn={true} />
 
 
 <main id="main">
@@ -173,7 +183,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
     <div class="hero__in">
       <div class="eyebrow"><a href="/patches/sc-4-1-0.html">Alpha 4.1 · Orbital Assault</a> &nbsp;·&nbsp; <span class="banu-tag">Banu-Händler</span></div>
       <h1><span class="thin">Der erste spielbare Alien-Händler</span>Wikelo's Emporium</h1>
-      <p class="lead">Wikelo ist ein <b>Banu</b> — und der erste spielbare Alien-NPC in Star Citizen. Sein Emporium kennt kein Geld: Du lieferst geforderte Items, sammelst <b>Wikelo Favor</b> und tauschst sie gegen Belohnungen aus seinem Lager.</p>
+      <p class="lead">Items liefern, <b>Favor</b> sammeln, Belohnungen eintauschen — kein aUEC.</p>
       <div class="tags"><span class="tag">Banu</span><span class="tag">Barter</span><span class="tag">Wikelo Favor</span><span class="tag">3 Stationen</span><span class="tag">seit Alpha 4.1</span></div>
     </div>
     <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
@@ -204,7 +214,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
     <div class="band__in reveal">
       <div class="kx">01 · Das Barter-Prinzip</div>
       <div class="big outline" style="font-size:clamp(2rem,8vw,6rem)">LIEFERN · BEKOMMEN</div>
-      <p>Wikelo's Emporium ist ein <b style="color:var(--accent-2)">Tauschhandel ohne Währung im klassischen Sinn</b>. Statt aUEC zu zahlen, erfüllst du Contracts: Du bringst die geforderten Materialien und Items — und bekommst dafür Belohnungen aus Wikelos Lager. Der Zwischenschritt sind <b style="color:var(--accent-2)">Wikelo Favor</b>, Token, die du aus Contracts erhältst und gegen Ausrüstung, Komponenten oder sogar Schiffe eintauschst.</p>
+      <p>Contracts erfüllen bringt <b style="color:var(--accent-2)">Wikelo Favor</b> — die Token, mit denen du Ausrüstung, Komponenten und Schiffe bezahlst.</p>
     </div>
   </section>
 
@@ -259,7 +269,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
   <!-- TRADE-ÜBERSICHT — Kernstück: GIB → BEKOMM -->
   <section>
     <div class="wrap"><div class="sec-head reveal"><span class="num">04</span><h2>Liefern → Bekommen</h2><span class="rule"></span></div>
-      <p class="lead-p reveal">Das Herzstück des Emporiums: konkrete Trades mit <b>Schiff-Bild</b>, benötigten Materialien und Favor-Kosten. Filtere nach Kategorie — links, was du <b>gibst</b>, rechts, was du <b>bekommst</b>.</p></div>
+      <p class="lead-p reveal">Links, was du <b>gibst</b> — rechts, was du <b>bekommst</b>. Unterstrichene Items zeigen ihre Bezugsquellen.</p></div>
 
     <div class="wk-filters reveal" role="group" aria-label="Trades nach Kategorie filtern">
       {TCATS.map((f, i) => (
@@ -277,7 +287,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
           <div class="wk-tc__body">
             <div class="wk-give">
               <div class="wk-side-h">Gib</div>
-              <ul class="wk-mats">{t.mats.map((m) => (<li>{m}</li>))}</ul>
+              <ul class="wk-mats">{t.mats.map((m) => (<li class:list={[matchItemName(m) && 'wk-linkable']} {...linkAttrs(m)}>{m}</li>))}</ul>
               {t.favor != null && (<div class="wk-favor"><span set:html={ICON.favor}></span>{t.favor} Favor</div>)}
             </div>
             <div class="wk-arrow" aria-hidden="true" set:html={ICON.arrow}></div>
@@ -286,7 +296,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
               {t.img && showImg[ti]
                 ? (<div class="wk-get-media"><img src={`/assets/${t.img}.jpg`} alt={t.name} loading="lazy" decoding="async" /></div>)
                 : (<div class="wk-get-media wk-get-media--ph" aria-hidden="true" set:html={ICON[CAT_ICON[t.cat]]}></div>)}
-              <div class="wk-get-name">{t.get ?? t.name}</div>
+              <div class:list={['wk-get-name', matchItemName(t.get ?? t.name) && 'wk-linkable']} {...linkAttrs(t.get ?? t.name)}>{t.get ?? t.name}</div>
             </div>
           </div>
           {t.comps && (
@@ -377,6 +387,8 @@ const showImg = TRADES.map((t: { img?: string }) => {
   </section>
 
 </main>
+
+<WikeloBridge lang="de" />
 
 <RelatedTopics topicSlug="wikelo-emporium" />
 

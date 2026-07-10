@@ -138,7 +138,11 @@ for (const v of vehicles) {
   }
 }
 
-// 5) Katalog aus global.ini (optional): echte Namen, bewusst OHNE Preis/Ort
+// 5) Katalog aus global.ini (optional): echte Namen, bewusst OHNE Preis/Ort.
+//    item_Name* = Ausrüstungs-Klassen; items_commodities_* = Handelswaren
+//    (Erze, Ernte-/Jagd-Güter wie Valakkar Fang, Kopion Horn, Carinite —
+//    u. a. die Wikelo-Materialien). Desc-Schlüssel (…desc/…_des) sind Prosa
+//    und werden übersprungen, zur Sicherheit zusätzlich per Wert-Länge.
 let catalogAdded = 0, catalogSkipped = 0;
 let iniFound = existsSync(GLOBAL_INI);
 if (iniFound) {
@@ -150,15 +154,18 @@ if (iniFound) {
     let key = line.slice(0, eq).trim();
     const comma = key.indexOf(',');
     if (comma >= 0) key = key.slice(0, comma);
-    if (!/^item_name/i.test(key)) continue;
+    const isItemName = /^item_name/i.test(key);
+    const isCommodity = /^items_commodities_/i.test(key) && !/desc$|_des$/i.test(key);
+    if (!isItemName && !isCommodity) continue;
     const val = line.slice(eq + 1).trim();
     if (isPlaceholder(val)) { catalogSkipped++; continue; }
+    if (isCommodity && (val.length > 60 || val.includes('\\n'))) { catalogSkipped++; continue; }
     const k = val.toLowerCase();
     if (seen.has(k)) continue;
     seen.add(k);
     if (byName.has(k)) continue; // echte Quelle gewinnt
     const e = entry(val);
-    setCategory(e, inferCategory(val), 2);
+    setCategory(e, isCommodity ? 'Commodity' : inferCategory(val), 2);
     catalogAdded++;
   }
 } else {
@@ -208,7 +215,7 @@ const db = {
     shopsFallback: 'assets/dismantling-items.json — kuratierter Shop-Snapshot, greift nur ohne UEX-Treffer',
     loot: 'src/data/loot-items.json — eigene Loot-Recherche (Fundorte + Guides)',
     vehicles: 'src/data/vehicles.json + vehicle-prices.json — UEX Corp (uexcorp.space)',
-    catalog: iniFound ? 'global.ini (item_Name*) aus lokaler Data.p4k-Extraktion' : 'ÜBERSPRUNGEN (global.ini nicht gefunden)',
+    catalog: iniFound ? 'global.ini (item_Name* + items_commodities_*) aus lokaler Data.p4k-Extraktion' : 'ÜBERSPRUNGEN (global.ini nicht gefunden)',
   },
   counts,
   items: items.map((e) => {

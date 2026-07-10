@@ -17,6 +17,7 @@ export const GET: APIRoute = async () => {
 
   const latestPatch = patches.map((p) => p.data.date).sort().at(-1);
   entries.push({ path: '/index.html', lastmod: latestPatch });
+  entries.push({ path: '/archiv.html', lastmod: latestPatch });
   entries.push({ path: '/evolution.html', lastmod: latestPatch });
   entries.push({ path: '/schiffe.html', lastmod: vehiclesSnapshot.fetchedAt });
 

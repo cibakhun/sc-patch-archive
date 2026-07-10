@@ -5,11 +5,11 @@ import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
 ---
-<Layout title={"Fight for Pyro — Star Citizen 4.0.1 | VerseBase"} description={"Fight for Pyro: Kapitel 2 der Save-Stanton-Kampagne. Schwoere dich dauerhaft einer von drei Fraktionen zu und entscheide, wem das gesetzlose Pyro gehoert — eingefuehrt mit Alpha 4.0.1."} themeColor="#0c1320" ogType="article" ogImage="/assets/t-ffp-1.jpg" translated={true}>
+<Layout title={"Fight for Pyro — Star Citizen 4.0.1 | VerseBase"} description={"Fight for Pyro: Kapitel 2 der Save-Stanton-Kampagne. Schwöre dich dauerhaft einer von drei Fraktionen zu und entscheide, wem das gesetzlose Pyro gehört — eingeführt mit Alpha 4.0.1."} themeColor="#0c1320" ogType="article" ogImage="/assets/t-ffp-1.jpg" translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
 
-/* 4.0.1 "Stabilitaet & Save Stanton II" — Konsolen-Blau (geerbt vom Patch) */
+/* 4.0.1 "Stabilität & Save Stanton II" — Konsolen-Blau (geerbt vom Patch) */
 :root{--bg:#0c1320;--bg-2:#101a2b;--surface:#152237;--surface-2:#1c2d46;--accent:#36c5d8;--accent-2:#f0a32a;--hot:#36c5d8;--text:#e6f0fa;--muted:#8ba3bd;--line:rgba(54,197,216,.22);--line-soft:rgba(230,240,250,.10);--glow:0 0 44px rgba(54,197,216,.30);--ink:#0c1320;--maxw:1180px;}
 /* page-local accents */
 .hero h1{font-size:clamp(3.2rem,13vw,10rem)}
@@ -31,7 +31,7 @@ import Attribution from '../../components/Attribution.astro';
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Alpha 4.0.1', href: '/patches/sc-4-0-1.html' }, { label: "Fight for Pyro" }]} pill={"EVENT · ALPHA 4.0.1"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.0.1', href: '/patches/sc-4-0-1.html' }, { label: "Fight for Pyro" }]} pill={"EVENT · ALPHA 4.0.1"} hasEn={true} />
 
 
 <main id="main">
@@ -43,7 +43,7 @@ import Attribution from '../../components/Attribution.astro';
     <div class="hero__in">
       <div class="eyebrow"><a href="/patches/sc-4-0-1.html">Alpha 4.0.1 · Save Stanton II</a> &nbsp;·&nbsp; Dynamisches Event</div>
       <h1><span class="thin">Save Stanton · Kapitel 2</span>Fight for Pyro</h1>
-      <p class="lead">Der Krieg verlagert sich nach Pyro: in Kapitel 2 der Save-Stanton-Kampagne schwoerst du dich dauerhaft einer von drei Fraktionen zu und entscheidest mit, wem das gesetzlose System gehoert.</p>
+      <p class="lead">Der Krieg verlagert sich nach Pyro: in Kapitel 2 der Save-Stanton-Kampagne schwörst du dich dauerhaft einer von drei Fraktionen zu und entscheidest mit, wem das gesetzlose System gehört.</p>
       <div class="tags"><span class="tag hot">Dynamisches Event</span><span class="tag">3 Fraktionen</span><span class="tag">Permanente Wahl</span><span class="tag">Ripper SMG</span><span class="tag">Pyro</span></div>
     </div>
     <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
@@ -74,21 +74,21 @@ import Attribution from '../../components/Attribution.astro';
   <div class="statstrip reveal">
     <div class="s"><div class="n count" data-to="2">0</div><div class="c">Kapitel der Save-Stanton-Kampagne</div></div>
     <div class="s"><div class="n count" data-to="3">0</div><div class="c">Fraktionen zur Auswahl</div></div>
-    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Wahl · und sie ist endgueltig</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Wahl · und sie ist endgültig</div></div>
     <div class="s"><div class="n">Pyro</div><div class="c">Schauplatz · gesetzloses System</div></div>
   </div>
 
   <!-- DREI FRAKTIONEN (image-backed trio, design on top) -->
   <section>
-    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>Waehle deine Seite</h2><span class="rule"></span></div>
-      <p class="lead-p reveal" style="margin-bottom:1.6rem">Drei Fraktionen kaempfen um Pyro. Mit deiner ersten Mission bekennst du Farbe — danach sind deine Missionen reputationsgebunden.</p>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>Wähle deine Seite</h2><span class="rule"></span></div>
+      <p class="lead-p reveal" style="margin-bottom:1.6rem">Drei Fraktionen kämpfen um Pyro. Mit deiner ersten Mission bekennst du Farbe — danach sind deine Missionen reputationsgebunden.</p>
     </div>
     <div class="trio reveal">
       <div class="fcard">
         <div class="fbg" style="background-image:url('/assets/cz-facility.jpg')"></div>
         <div class="fk">Fraktion 01</div>
         <h3>Citizens for Prosperity</h3>
-        <p>Kaempfe fuer ein Pyro, das mehr sein will als Chaos — Ordnung und Wohlstand im gesetzlosen System.</p>
+        <p>Kämpfe für ein Pyro, das mehr sein will als Chaos — Ordnung und Wohlstand im gesetzlosen System.</p>
         <span class="ftag">Reputationsgebunden</span>
       </div>
       <div class="fcard">
@@ -102,7 +102,7 @@ import Attribution from '../../components/Attribution.astro';
         <div class="fbg" style="background-image:url('/assets/t-ffp-2.jpg')"></div>
         <div class="fk">Fraktion 03</div>
         <h3>Frontier Fighters</h3>
-        <p>Die freie Grenze verteidigen — fuer jene, die Pyro als letzte unabhaengige Front begreifen.</p>
+        <p>Die freie Grenze verteidigen — für jene, die Pyro als letzte unabhängige Front begreifen.</p>
         <span class="ftag">Reputationsgebunden</span>
       </div>
     </div>
@@ -121,9 +121,9 @@ import Attribution from '../../components/Attribution.astro';
     </div>
     <div class="scrolly__steps">
       <div class="sstep"><div class="sn">01</div><h3>Nach Pyro</h3><p>Folge der Save-Stanton-Kampagne in Kapitel 2 ins gesetzlose Pyro-System, wo der Konflikt um die Vorherrschaft entbrannt ist.</p></div>
-      <div class="sstep"><div class="sn">02</div><h3>Die erste Mission</h3><p>Citizens for Prosperity, Headhunters oder Frontier Fighters: deine erste Mission entscheidet, fuer wen du in Pyro kaempfst.</p></div>
-      <div class="sstep"><div class="sn">03</div><h3>Festgelegt</h3><p>Nach der ersten Mission ist die Wahl dauerhaft. Es gibt kein Zurueck — ab jetzt sind alle Missionen an die Reputation deiner Fraktion gebunden.</p></div>
-      <div class="sstep"><div class="sn">04</div><h3>Bis zum Abschluss</h3><p>Arbeite die Kette deiner Fraktion ab und schliesse Fight for Pyro ab — der Zeitpunkt entscheidet ueber deine Belohnung.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Die erste Mission</h3><p>Citizens for Prosperity, Headhunters oder Frontier Fighters: deine erste Mission entscheidet, für wen du in Pyro kämpfst.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Festgelegt</h3><p>Nach der ersten Mission ist die Wahl dauerhaft. Es gibt kein Zurück — ab jetzt sind alle Missionen an die Reputation deiner Fraktion gebunden.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Bis zum Abschluss</h3><p>Arbeite die Kette deiner Fraktion ab und schließe Fight for Pyro ab — der Zeitpunkt entscheidet über deine Belohnung.</p></div>
     </div>
   </div>
 
@@ -141,7 +141,7 @@ import Attribution from '../../components/Attribution.astro';
         <div class="kx">03 · Permanente Wahl</div>
         <h3>Eine Entscheidung, die bleibt</h3>
         <p>Anders als bei vielen Events ist deine Fraktionswahl in Fight for Pyro <b>dauerhaft</b>: Sobald die erste Mission abgeschlossen ist, bist du festgelegt. Es gibt keinen Wechsel mehr zur Gegenseite.</p>
-        <p>Von da an sind deine Missionen <b>reputationsgebunden</b> — du verdienst dir das Vertrauen deiner Fraktion und kaempfst ihre Schlachten bis zum Ende der Kampagne.</p>
+        <p>Von da an sind deine Missionen <b>reputationsgebunden</b> — du verdienst dir das Vertrauen deiner Fraktion und kämpfst ihre Schlachten bis zum Ende der Kampagne.</p>
       </div>
     </div>
   </section>
@@ -152,7 +152,7 @@ import Attribution from '../../components/Attribution.astro';
     <div class="band__in reveal">
       <div class="kx">04 · Was du verdienst</div>
       <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">RIPPER SMG</div>
-      <p>Wer Fight for Pyro <b style="color:var(--accent-2)">vor dem Start von 4.0.2</b> abschloss, sicherte sich die exklusive Pyro-Ripper-SMG — eine Belohnung nur fuer jene, die rechtzeitig fuer ihre Fraktion kaempften.</p>
+      <p>Wer Fight for Pyro <b style="color:var(--accent-2)">vor dem Start von 4.0.2</b> abschloss, sicherte sich die exklusive Pyro-Ripper-SMG — eine Belohnung nur für jene, die rechtzeitig für ihre Fraktion kämpften.</p>
       <div class="reward">
         <span class="chip"><b>Exklusiv</b> · Pyro-Ripper-SMG</span>
         <span class="chip">nur vor Start von <b>4.0.2</b></span>
@@ -164,7 +164,7 @@ import Attribution from '../../components/Attribution.astro';
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">05</span><h2>Fraktions-Lackierungen</h2><span class="rule"></span></div>
-      <p class="lead-p reveal">Wer <b>Save Stanton Kapitel 1</b> <i>und</i> <b>Fight for Pyro Kapitel 2</b> abschloss, verdiente sich fraktionsspezifische Schiffs-Lackierungen — Farben, die zeigen, fuer wen du in Pyro gekaempft hast.</p>
+      <p class="lead-p reveal">Wer <b>Save Stanton Kapitel 1</b> <i>und</i> <b>Fight for Pyro Kapitel 2</b> abschloss, verdiente sich fraktionsspezifische Schiffs-Lackierungen — Farben, die zeigen, für wen du in Pyro gekämpft hast.</p>
       <div class="reward reveal" style="margin-top:1.4rem">
         <span class="chip">Anvil <b>C8R Pisces</b></span>
         <span class="chip">Anvil <b>Carrack</b></span>
