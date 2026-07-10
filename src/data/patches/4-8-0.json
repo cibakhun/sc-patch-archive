@@ -5,8 +5,8 @@
   "dateDisplay": "14. Mai 2026",
   "era": "Tactical Strike",
   "type": "major",
-  "tagline": "G-Force-Toleranz, Drake Ironclad und Rückkehr von XenoThreat.",
-  "summary": "Alpha 4.8.0 bringt das G-Force-Flugmodell mit Greyout/Redout/Blackout, Drakes erste schwere gepanzerte Frachter (Ironclad & Assault), koordinierte Tactical-Strike-Group-Missionen für organisierte Orgs, das erneuerte Refueling-System und die Rückkehr des massiven XenoThreat-Events — begleitet von über 166 Bugfixes und dem ersten vollständigen Wipe seit 4.0.0.",
+  "tagline": "G-Force-Toleranz, Drake Ironclad und die DefenseCon-2956-Flottenschau.",
+  "summary": "Alpha 4.8.0 bringt das G-Force-Flugmodell mit Greyout/Redout/Blackout, Drakes erste schwere gepanzerte Frachter (Ironclad & Assault), koordinierte Tactical-Strike-Group-Missionen für organisierte Orgs, das erneuerte Refueling-System und die jährliche Schiffsschau DefenseCon 2956 — begleitet von über 166 Bugfixes und dem ersten vollständigen Wipe seit 4.0.0.",
   "palette": {
     "bg": "#16181b",
     "accent": "#E8651E",
@@ -32,8 +32,8 @@
       "value": "Koordinierte Multi-Schiff-Missionen in Nyx; 7+ Spieler; Vanduul Mauler Boss-Kampf"
     },
     {
-      "label": "XenoThreat Assault",
-      "value": "Rückkehr des Wellen-Defense-Events; UEES War Hammer verteidigen"
+      "label": "DefenseCon 2956",
+      "value": "Jährliche Flottenschau am Area18: Free Fly & Drake-Expo (14.–27. Mai)"
     },
     {
       "label": "Wipe",
@@ -103,29 +103,28 @@
       "topicSlug": "4-8-0-tactical-strike-groups"
     },
     {
-      "name": "XenoThreat — Assault on Stanton",
+      "name": "DefenseCon 2956",
       "system": "Events",
       "kind": "event",
-      "desc": "Rückkehr des massiven serverweiten Koordinations-Events: menschen-suprematistische Outlaw-Fraktion aus desertierten UEE-Navy-Soldaten überfällt einen Konzern-Konvoi und greift dann die UEES War Hammer bei INS Jericho an. Spieler bergen Starfarer-Nachschub und verteidigen die Flaggschiff-Front gegen Wellen aus Jägern, Hammerhead-Gunships und Idris-M-Fregatten.",
+      "desc": "Die jährliche Schiffsschau der UEE (vormals Fleet Week) am Bevic Convention Center in Area18. Täglich rotieren die Hersteller durch den Show-Floor, angeführt von Drakes „For the People\"-Auftakt. Über 100 Schiffe lassen sich per Traveler-Rental-Terminal 48 Stunden kostenlos mieten und fliegen; das Spiel ist für die gesamte Dauer frei spielbar (kein Game-Package nötig).",
       "facts": [
         {
-          "label": "Scenario",
-          "value": "Konzern-Konvoi-Überfall → Nachschub-Bergen → Flaggschiff-Verteidigung"
+          "label": "Zeitraum",
+          "value": "14.–27. Mai 2026 · Free Fly ab 15. Mai"
         },
         {
-          "label": "Gegner-Wellen",
-          "value": "Fighter · Hammerhead-Gunships · Idris-M-Fregatten"
+          "label": "Ort",
+          "value": "Bevic Convention Center · Area18, ArcCorp"
         },
         {
-          "label": "Flaggschiff",
-          "value": "UEES War Hammer · INS Jericho"
+          "label": "Auftakt",
+          "value": "Drake „For the People\" (14.–15. Mai)"
         },
         {
-          "label": "Fraktions-Natur",
-          "value": "Paramilitärisch; ehemalige UEE-Navy-Deserteure"
+          "label": "Free Fly",
+          "value": "100+ Schiffe, 48 h Leihe · frei spielbar"
         }
-      ],
-      "topicSlug": "4-8-0-xenothreat"
+      ]
     },
     {
       "name": "Refueling-Überarbeitung",
@@ -254,8 +253,8 @@
       "desc": "Neue kooperative Missions-Serie für organisierte Orgs in Nyx; mehrphasiger PvE-Raid mit Schiffskampf, FPS und Boss-Encounter."
     },
     {
-      "name": "XenoThreat — Assault on Stanton",
-      "desc": "Rückkehr des serverweiten Event mit Convoy-Überfall, Nachschub-Bergung und Flaggschiff-Verteidigung gegen eskalierendes Wellen-Bombardement."
+      "name": "DefenseCon 2956",
+      "desc": "Jährliche Schiffsschau (vormals Fleet Week) am Area18: tägliche Hersteller-Rotation ab Drake, über 100 kostenlos fliegbare Schiffe und Free-Fly-Zugang vom 15. bis 27. Mai."
     }
   ],
   "wipe": "Voller Wipe (erster seit 4.0.0)",
@@ -264,10 +263,6 @@
     {
       "slug": "4-8-0-tactical-strike-groups",
       "title": "Tactical Strike Groups"
-    },
-    {
-      "slug": "4-8-0-xenothreat",
-      "title": "XenoThreat"
     },
     {
       "slug": "mining",

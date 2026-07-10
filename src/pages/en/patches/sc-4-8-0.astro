@@ -11,7 +11,7 @@ const entry = await getEntry('patches', '4-8-0');
 if (!entry) throw new Error('Patch-Daten 4-8-0 fehlen in src/data/patches/');
 const patch = mergePatchEn('4-8-0', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.8.0 — Tactical Strike | VerseBase"} description={"Alpha 4.8.0: G-Force, Drake Ironclad and the return of XenoThreat."} themeColor="#16181b" ogType="article" ogImage="/assets/trailer-4-8-0.jpg" translated={true}>
+<Layout title={"Star Citizen Alpha 4.8.0 — Tactical Strike | VerseBase"} description={"Alpha 4.8.0: G-force flight model, Drake Ironclad, Tactical Strike Groups and the DefenseCon 2956 ship expo."} themeColor="#16181b" ogType="article" ogImage="/assets/trailer-4-8-0.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/trailer-4-8-0.jpg" lang="en" />
 <style is:inline>
 
@@ -187,9 +187,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="eyebrow">May 14, 2026 · Major Release</div>
       <h1 data-text="4.8.0">4.8.0</h1>
       <div class="codename"><span>Tactical Strike</span></div>
-      <div class="tagline">G-Force tolerance, Drake Ironclad and the return of XenoThreat.</div>
+      <div class="tagline">G-Force tolerance, Drake Ironclad and the DefenseCon 2956 ship expo.</div>
       <div class="tags">
-        <span class="tag">G-Force</span><span class="tag">Drake Ironclad</span><span class="tag">Strike Groups</span><span class="tag hot">XenoThreat</span>
+        <span class="tag">G-Force</span><span class="tag">Drake Ironclad</span><span class="tag">Strike Groups</span><span class="tag hot">DefenseCon 2956</span>
       </div>
     </div>
     <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
@@ -198,8 +198,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>TACTICAL STRIKE</span><span class="dot">◆</span><span>DRAKE IRONCLAD</span><span class="dot">◆</span><span>G-FORCE</span><span class="dot">◆</span><span>XENOTHREAT</span><span class="dot">◆</span><span>STRIKE GROUPS</span><span class="dot">◆</span><span>HAMMERHEAD</span><span class="dot">◆</span>
-      <span>TACTICAL STRIKE</span><span class="dot">◆</span><span>DRAKE IRONCLAD</span><span class="dot">◆</span><span>G-FORCE</span><span class="dot">◆</span><span>XENOTHREAT</span><span class="dot">◆</span><span>STRIKE GROUPS</span><span class="dot">◆</span><span>HAMMERHEAD</span><span class="dot">◆</span>
+      <span>TACTICAL STRIKE</span><span class="dot">◆</span><span>DRAKE IRONCLAD</span><span class="dot">◆</span><span>G-FORCE</span><span class="dot">◆</span><span>DEFENSECON 2956</span><span class="dot">◆</span><span>STRIKE GROUPS</span><span class="dot">◆</span><span>HAMMERHEAD</span><span class="dot">◆</span>
+      <span>TACTICAL STRIKE</span><span class="dot">◆</span><span>DRAKE IRONCLAD</span><span class="dot">◆</span><span>G-FORCE</span><span class="dot">◆</span><span>DEFENSECON 2956</span><span class="dot">◆</span><span>STRIKE GROUPS</span><span class="dot">◆</span><span>HAMMERHEAD</span><span class="dot">◆</span>
     </div>
   </div>
 
@@ -216,7 +216,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
         <div class="tile img w2" data-lb="img:/assets/t-ironclad-1.jpg"><div class="tbg" style="background-image:url('/assets/t-ironclad-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Drake Ironclad</div><div class="sub">Armored Hauler</div></div>
         <a class="tile word hot" href="/en/topics/4-8-0-tactical-strike-groups.html"><span class="zoomic">→</span><b>STRIKE<br>GROUPS</b><small>View detail page</small></a>
         <div class="tile img w2" data-lb="img:/assets/t-hh-1.jpg"><div class="tbg" style="background-image:url('/assets/t-hh-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Hammerhead</div><div class="sub">Gold Standard</div></div>
-        <a class="tile word hot" href="/en/topics/4-8-0-xenothreat.html"><span class="zoomic">→</span><b>XENO<br>THREAT</b><small>View detail page</small></a>
+        <div class="tile word hot" data-info data-title="DefenseCon 2956" data-text="The annual ship expo (formerly Fleet Week) at the Bevic Convention Center in Area18: daily manufacturer rotation starting with Drake's „For the People“ opening, over 100 ships free to rent and fly for 48 hours, Free Fly from May 15 to 27. The game is free to play for the whole event." data-img="/assets/t-def-1.jpg"><span class="zoomic">+</span><b>DEFENSE<br>CON</b><small>Ship expo · Area18</small></div>
         <div class="tile stat" data-info data-title="166+ Fixes" data-text="Alongside Tactical Strike Groups, Drake Ironclad and the G-Force flight model, 4.8.0 brought over 166 bug fixes and stability improvements — the patch went live with a full wipe."><span class="zoomic">+</span><div class="num">166+</div><div class="cap">Fixes</div></div>
       </div>
     </div>
@@ -259,7 +259,6 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sec-head reveal"><span class="num">03</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
         <div class="video" data-yt="RWQSxN-ZukE" style="background-image:url('/assets/trailer-4-8-0.jpg')"><span class="vlbl">Tactical Strike — Trailer</span><button class="play" aria-label="Play">▶</button></div>
-        <div class="video" data-yt="SsOtI2dtvBc" style="background-image:url('/assets/vid-isc48.jpg')"><span class="vlbl">Inside Star Citizen — 4.8 / XenoThreat</span><button class="play" aria-label="Play">▶</button></div>
       </div>
       <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=RWQSxN-ZukE" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
@@ -273,7 +272,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
         <figure class="b2" data-lb="img:/assets/img-ironclad.jpg"><img src="/assets/img-ironclad.jpg" alt="Drake Ironclad" loading="lazy"><span class="zoomic">⤢</span><figcaption>Drake Ironclad</figcaption></figure>
         <figure class="w2" data-lb="img:/assets/t-hh-1.jpg"><img src="/assets/t-hh-1.jpg" alt="Aegis Hammerhead in combat" loading="lazy"><span class="zoomic">⤢</span><figcaption>Aegis Hammerhead · in combat</figcaption></figure>
         <figure data-lb="img:/assets/vid-isc48.jpg"><img src="/assets/vid-isc48.jpg" alt="Inside Star Citizen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Inside SC</figcaption></figure>
-        <figure data-lb="img:/assets/t-xeno-1.jpg"><img src="/assets/t-xeno-1.jpg" alt="XenoThreat: defenders load supplies while a freighter burns above the hangar" loading="lazy"><span class="zoomic">⤢</span><figcaption>XenoThreat · Defense</figcaption></figure>
+        <figure data-lb="img:/assets/t-def-1.jpg"><img src="/assets/t-def-1.jpg" alt="DefenseCon 2956: ship expo at the Bevic Convention Center in Area18" loading="lazy"><span class="zoomic">⤢</span><figcaption>DefenseCon 2956 · Ship expo</figcaption></figure>
       </div>
     </div>
   </section>

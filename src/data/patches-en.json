@@ -1859,8 +1859,8 @@
       ]
     },
     "4-8-0": {
-      "tagline": "G-force tolerance, the Drake Ironclad, and the return of XenoThreat.",
-      "summary": "Alpha 4.8.0 brings the G-force flight model with greyout/redout/blackout, Drake's first heavy armored haulers (Ironclad & Assault), coordinated Tactical Strike Group missions for organized orgs, the reworked refueling system, and the return of the massive XenoThreat event — accompanied by more than 166 bug fixes and the first full wipe since 4.0.0.",
+      "tagline": "G-force tolerance, the Drake Ironclad, and the DefenseCon 2956 ship expo.",
+      "summary": "Alpha 4.8.0 brings the G-force flight model with greyout/redout/blackout, Drake's first heavy armored haulers (Ironclad & Assault), coordinated Tactical Strike Group missions for organized orgs, the reworked refueling system, and the annual DefenseCon 2956 ship expo — accompanied by more than 166 bug fixes and the first full wipe since 4.0.0.",
       "dateDisplayEn": "May 14, 2026",
       "keyFacts": [
         {
@@ -1876,8 +1876,8 @@
           "value": "Coordinated multi-ship missions in Nyx; 7+ players; Vanduul Mauler boss fight"
         },
         {
-          "label": "XenoThreat Assault",
-          "value": "Return of the wave defense event; defend the UEES War Hammer"
+          "label": "DefenseCon 2956",
+          "value": "Annual ship expo at Area18: Free Fly & Drake expo (May 14–27)"
         },
         {
           "label": "Wipe",
@@ -1943,25 +1943,25 @@
           ]
         },
         {
-          "name": "XenoThreat — Assault on Stanton",
+          "name": "DefenseCon 2956",
           "system": "Events",
-          "desc": "Return of the massive server-wide coordination event: a human-supremacist outlaw faction of deserted UEE Navy soldiers raids a corporate convoy and then attacks the UEES War Hammer at INS Jericho. Players recover Starfarer supplies and defend the flagship front against waves of fighters, Hammerhead gunships, and Idris-M frigates.",
+          "desc": "The UEE's annual ship expo (formerly Fleet Week) at the Bevic Convention Center in Area18. Manufacturers rotate through the show floor daily, led by Drake's \"For the People\" opening. Over 100 ships can be rented and flown free for 48 hours via Traveler Rental terminals; the game is free to play for the full duration (no game package required).",
           "facts": [
             {
-              "label": "Scenario",
-              "value": "Corporate convoy raid → supply recovery → flagship defense"
+              "label": "Dates",
+              "value": "May 14–27, 2026 · Free Fly from May 15"
             },
             {
-              "label": "Enemy Waves",
-              "value": "Fighter · Hammerhead gunships · Idris-M frigates"
+              "label": "Venue",
+              "value": "Bevic Convention Center · Area18, ArcCorp"
             },
             {
-              "label": "Flagship",
-              "value": "UEES War Hammer · INS Jericho"
+              "label": "Opening",
+              "value": "Drake \"For the People\" (May 14–15)"
             },
             {
-              "label": "Faction Nature",
-              "value": "Paramilitary; former UEE Navy deserters"
+              "label": "Free Fly",
+              "value": "100+ ships, 48 h rental · free to play"
             }
           ]
         },
@@ -2077,8 +2077,8 @@
           "desc": "New cooperative mission series for organized orgs in Nyx; a multi-phase PvE raid with ship combat, FPS, and a boss encounter."
         },
         {
-          "name": "XenoThreat — Assault on Stanton",
-          "desc": "Return of the server-wide event with a convoy raid, supply recovery, and flagship defense against an escalating wave bombardment."
+          "name": "DefenseCon 2956",
+          "desc": "Annual ship expo (formerly Fleet Week) at Area18: daily manufacturer rotation starting with Drake, over 100 free-to-fly ships, and Free Fly access from May 15 to 27."
         }
       ],
       "fixesNote": "166+ fixes and stability improvements",
@@ -2086,9 +2086,6 @@
       "topics": [
         {
           "title": "Tactical Strike Groups"
-        },
-        {
-          "title": "XenoThreat"
         },
         {
           "title": "Mining"
