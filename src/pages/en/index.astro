@@ -203,7 +203,7 @@ const tools = [
         <span class="fresh__name">{latest.data.codename ?? latest.data.tagline}</span>
         <span class="fresh__go">Open patch <span aria-hidden="true">→</span></span>
       </div>
-      <div class="fresh__media" style="background-image:url('/assets/trailer-4-8-0.jpg')" aria-hidden="true"></div>
+      <div class="fresh__media" style={`background-image:url('${latest.data.heroImage ?? `/assets/trailer-${latest.id}.jpg`}')`} aria-hidden="true"></div>
     </a>
   </section>
 </main>

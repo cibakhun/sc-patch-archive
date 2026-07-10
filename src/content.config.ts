@@ -24,6 +24,9 @@ const patches = defineCollection({
     /** factual one-liner — no marketing filler */
     tagline: z.string(),
     summary: z.string(),
+    /** Landing-"Aktuell"-Kachel + Social-Card: das Leitbild dieses Patches.
+     *  Fällt sonst auf die Konvention /assets/trailer-<id>.jpg zurück. */
+    heroImage: z.string().optional(),
     palette: z.object({
       bg: z.string(),
       accent: z.string(),
