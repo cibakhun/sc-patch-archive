@@ -87,98 +87,68 @@ const current = Astro.url.pathname;
         <span>{t('nav.menu')}</span>
       </summary>
       <div class="snav__panel">
+        <!-- Werkzeuge — dieselben sechs Tools wie auf der Startseite, gleiche Reihenfolge -->
         <div class="snav__group">
-          <div class="snav__ghead">{t('nav.section')}</div>
-          
-          <!-- Schiffe -->
-          <a href={L('/schiffe.html')} aria-current={current === L('/schiffe.html') || current.startsWith(L('/schiffe/')) ? 'page' : undefined}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M12 2L2 22h9l1-6 1 6h9L12 2z"/></svg>
-            <span>{t('nav.ships')}</span>
-          </a>
-          
-          <!-- Evolution -->
-          <a href={L('/evolution.html')} aria-current={current === L('/evolution.html') ? 'page' : undefined}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M3 3v18h18M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
-            <span>{t('nav.evolution.long')}</span>
-          </a>
-          
-          <!-- Wikelo's Emporium -->
-          <a class="snav__feat" href={L('/topics/wikelo-emporium.html')} aria-current={current === L('/topics/wikelo-emporium.html') ? 'page' : undefined}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
-            <span>Wikelo's Emporium</span>
-          </a>
-          
-          <!-- Crafting -->
-          <a class="snav__feat" href={L('/topics/crafting.html')} aria-current={current === L('/topics/crafting.html') ? 'page' : undefined}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-            <span>Crafting</span>
-          </a>
-
-          <!-- Item Finder -->
-          <a class="snav__feat" href={L('/item-finder.html')} aria-current={current === L('/item-finder.html') ? 'page' : undefined}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <div class="snav__ghead">{t('nav.grp.tools')}</div>
+          <a href={L('/item-finder.html')} aria-current={current === L('/item-finder.html') ? 'page' : undefined}>
+            <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <span>Item Finder</span>
           </a>
-          
-          <!-- Mining Details -->
-          <details class="snav__sub-details" open={current.includes('/topics/mining') ? true : undefined}>
-            <summary class="snav__sub-summary">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M6 3h12l4 6-10 12L2 9z"/></svg>
-              <span>Mining</span>
-              <svg class="snav__sub-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: auto; transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
-            </summary>
-            <div class="snav__sub-content">
-              <a href={L('/topics/mining.html#db')} aria-current={current === L('/topics/mining.html#db') ? 'page' : undefined}>
-                <span>└ {lang === 'en' ? 'Mineral Database' : 'Mineral-Datenbank'}</span>
-              </a>
-              <a href={L('/topics/mining.html#signatures')} aria-current={current === L('/topics/mining.html#signatures') ? 'page' : undefined}>
-                <span>└ {lang === 'en' ? 'Signature Scanner' : 'Signatur-Scanner'}</span>
-              </a>
-              <a href={L('/topics/mining.html#fracturing')} aria-current={current === L('/topics/mining.html#fracturing') ? 'page' : undefined}>
-                <span>└ {lang === 'en' ? 'Fracturing Calculator' : 'Fracturing-Rechner'}</span>
-              </a>
-              <a href={L('/topics/mining.html#refinery')} aria-current={current === L('/topics/mining.html#refinery') ? 'page' : undefined}>
-                <span>└ {lang === 'en' ? 'Refinery Finder' : 'Refinery Finder'}</span>
-              </a>
-              <a href={L('/topics/mining.html#ships')} aria-current={current === L('/topics/mining.html#ships') ? 'page' : undefined}>
-                <span>└ {lang === 'en' ? 'Mining Ships' : 'Mining-Schiffe'}</span>
-              </a>
-            </div>
-          </details>
-
-          <!-- All Topics -->
-          <a href={L('/index.html#themen')}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
-            <span>{t('nav.allTopics')} ({topicCount})</span>
+          <a href={L('/topics/mining.html')} aria-current={current.includes('/topics/mining') ? 'page' : undefined}>
+            <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/></svg>
+            <span>Mining</span>
+          </a>
+          <a href={L('/topics/crafting.html')} aria-current={current === L('/topics/crafting.html') ? 'page' : undefined}>
+            <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+            <span>Crafting</span>
+          </a>
+          <a href={L('/topics/wikelo-emporium.html')} aria-current={current === L('/topics/wikelo-emporium.html') ? 'page' : undefined}>
+            <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
+            <span>Wikelo's Emporium</span>
+          </a>
+          <a href={L('/schiffe.html')} aria-current={current === L('/schiffe.html') || current.startsWith(L('/schiffe/')) ? 'page' : undefined}>
+            <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 22h9l1-6 1 6h9L12 2z"/></svg>
+            <span>{t('nav.ships')}</span>
+          </a>
+          <a href={L('/evolution.html')} aria-current={current === L('/evolution.html') ? 'page' : undefined}>
+            <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+            <span>{t('nav.evolution')}</span>
           </a>
         </div>
 
-        <!-- Patches Details -->
-        <details class="snav__sub-details" open={current.includes('/patches/') ? true : undefined}>
-          <summary class="snav__sub-summary">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.55rem; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01"/></svg>
-            <span>{t('nav.patches')}</span>
-            <svg class="snav__sub-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: auto; transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
-          </summary>
-          <div class="snav__sub-content-patches">
-            {eras.map((era) => (
-              <div class="snav__group" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
-                <div class="snav__ghead" style="margin-bottom: 0.2rem;">{eraLabel(era, lang)}</div>
-                {patches
-                  .filter((p) => p.data.era === era)
-                  .map((p) => {
-                    const ph = L(`/patches/sc-${p.id}.html`);
-                    return (
-                      <a href={ph} aria-current={current === ph ? 'page' : undefined} style="padding: 0.3rem 1rem;">
-                        <b>{p.data.version}</b>
-                        <span>{p.data.codename}</span>
-                      </a>
-                    );
-                  })}
-              </div>
-            ))}
-          </div>
-        </details>
+        <!-- Archiv — Themen-Verzeichnis + Patch-Liste (einklappbar) -->
+        <div class="snav__group">
+          <div class="snav__ghead">{t('nav.grp.archive')}</div>
+          <a href={L('/index.html#themen')}>
+            <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+            <span>{t('nav.allTopics')} ({topicCount})</span>
+          </a>
+          <details class="snav__sub-details" open={current.includes('/patches/') ? true : undefined}>
+            <summary class="snav__sub-summary">
+              <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01"/></svg>
+              <span>{t('nav.patches')}</span>
+              <svg class="snav__sub-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="snav__sub-content-patches">
+              {eras.map((era) => (
+                <div class="snav__eragrp">
+                  <div class="snav__eralabel">{eraLabel(era, lang)}</div>
+                  {patches
+                    .filter((p) => p.data.era === era)
+                    .map((p) => {
+                      const ph = L(`/patches/sc-${p.id}.html`);
+                      return (
+                        <a class="snav__patchrow" href={ph} aria-current={current === ph ? 'page' : undefined}>
+                          <b>{p.data.version}</b>
+                          <span>{p.data.codename}</span>
+                        </a>
+                      );
+                    })}
+                </div>
+              ))}
+            </div>
+          </details>
+        </div>
 
         <div class="snav__group snav__langgroup">
           <div class="snav__ghead">{t('nav.langSwitch')}</div>
@@ -323,7 +293,9 @@ const current = Astro.url.pathname;
   .snav__dd {
     position: relative;
   }
-  .snav__dd summary {
+  /* nur die oberste Menü-Schaltfläche (direktes Kind) — verschachtelte
+     Klapp-Summaries im Panel behalten ihren eigenen Zeilen-Stil */
+  .snav__dd > summary {
     list-style: none;
     cursor: pointer;
     font-family: var(--font-ui, sans-serif);
@@ -335,13 +307,13 @@ const current = Astro.url.pathname;
     padding: 0.35rem 0.65rem;
     border: 1px solid transparent;
   }
-  .snav__dd summary::-webkit-details-marker {
+  .snav__dd > summary::-webkit-details-marker {
     display: none;
   }
-  .snav__dd summary:hover {
+  .snav__dd > summary:hover {
     color: var(--accent, #2dd4ff);
   }
-  .snav__dd[open] summary {
+  .snav__dd[open] > summary {
     color: var(--accent, #2dd4ff);
     border-color: var(--line, rgba(255, 255, 255, 0.14));
     background: rgba(0, 0, 0, 0.6);
@@ -365,27 +337,37 @@ const current = Astro.url.pathname;
     display: block;
     margin: 0;
   }
+  /* Klapp-Summary sieht aus wie eine normale Panel-Zeile (Icon links, Label,
+     Chevron rechts) — keine Sonder-Pille mehr */
   .snav__sub-summary {
     display: flex;
     align-items: center;
+    gap: 0.6rem;
     padding: 0.4rem 1rem;
     font-size: 0.95rem;
     color: var(--text, #e8eefc);
     cursor: pointer;
     list-style: none;
     user-select: none;
-    transition: background-color 0.15s, color 0.15s;
+    border-left: 2px solid transparent;
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
     outline: none;
   }
   .snav__sub-summary::-webkit-details-marker {
     display: none;
   }
+  .snav__sub-summary span {
+    font-size: 0.95rem;
+    color: var(--text, #e8eefc);
+  }
+  .snav__sub-arrow {
+    margin-left: auto;
+    flex: none;
+    transition: transform 0.2s;
+  }
   .snav__sub-summary:hover {
     background: color-mix(in srgb, var(--accent, #2dd4ff) 6%, transparent);
-    color: var(--accent, #2dd4ff);
-  }
-  .snav__sub-details[open] > .snav__sub-summary {
-    color: var(--accent, #2dd4ff);
+    border-left-color: var(--accent, #2dd4ff);
   }
   .snav__sub-details[open] > .snav__sub-summary .snav__sub-arrow {
     transform: rotate(180deg);
@@ -420,13 +402,26 @@ const current = Astro.url.pathname;
   }
   .snav__panel a {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 0.6rem;
     padding: 0.4rem 1rem;
     font-size: 0.95rem;
     color: var(--text, #e8eefc);
     border-left: 2px solid transparent;
     transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  }
+  /* einheitliches Zeilen-Icon für alle Menü-Einträge */
+  .snav__ico {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    color: var(--muted, #8a99b8);
+    transition: color 0.15s;
+  }
+  .snav__panel a:hover .snav__ico,
+  .snav__panel a[aria-current] .snav__ico,
+  .snav__sub-summary:hover .snav__ico {
+    color: var(--accent, #2dd4ff);
   }
   .snav__panel a span {
     font-size: 0.9rem;
@@ -450,13 +445,22 @@ const current = Astro.url.pathname;
   .snav__panel a[aria-current] span {
     color: var(--text, #e8eefc);
   }
-  /* Featured burger entry (Wikelo) — steht hervor, direkter Sprung zur Themenseite */
-  .snav__feat {
-    border-left-color: color-mix(in srgb, var(--accent, #2dd4ff) 55%, transparent);
+  /* Patch-Liste im Archiv-Klappblock: Ära-Label + kompakte Versionszeilen */
+  .snav__eragrp {
+    margin: 0.45rem 0;
   }
-  .snav__feat span {
-    color: var(--accent, #2dd4ff);
+  .snav__eralabel {
+    font-family: var(--font-ui, sans-serif);
     font-weight: 700;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent, #2dd4ff);
+    padding: 0.25rem 1rem 0.15rem;
+  }
+  .snav__patchrow {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
   }
   .snav__panel b {
     font-family: var(--font-display, sans-serif);
