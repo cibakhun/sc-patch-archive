@@ -551,6 +551,19 @@ const current = Astro.url.pathname;
       display: none;
     }
   }
+  /* small phones: the burger keeps its icon, the label goes — otherwise
+     brand + actions exceed the viewport and overlap */
+  @media (max-width: 420px) {
+    .snav__menu > summary span {
+      display: none;
+    }
+  }
+  /* very small phones (320px): monogram only */
+  @media (max-width: 360px) {
+    .snav__brand span {
+      display: none;
+    }
+  }
 </style>
 
 <script is:inline>

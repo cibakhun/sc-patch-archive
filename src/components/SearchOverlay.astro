@@ -99,6 +99,9 @@ const t = useTranslations(lang);
   }
   .scs__bar input {
     flex: 1;
+    /* Inputs haben eine intrinsische Default-Breite (~200px) — ohne min-width:0
+       drückt sie den Esc-Button auf 320er-Phones aus der Leiste */
+    min-width: 0;
     background: none;
     border: 0;
     outline: 0;

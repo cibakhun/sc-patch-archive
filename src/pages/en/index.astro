@@ -79,7 +79,7 @@ for (const t of allTopics) {
 .hero-search{display:flex;align-items:center;gap:.8rem;width:100%;max-width:640px;margin:1.6rem 0 0;padding:.95rem 1.15rem;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:8px;color:var(--muted);font-family:var(--font-ui);font-size:1rem;cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s}
 .hero-search:hover,.hero-search:focus-visible{border-color:var(--accent);box-shadow:0 0 18px rgba(45,212,255,.18);outline:none}
 .hero-search .hs__prompt{color:var(--accent);font-weight:700;flex:none}
-.hero-search .hs__hint{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.hero-search .hs__hint{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .hero-search .hs__kbd{display:flex;gap:.25rem;flex:none}
 .hero-search kbd{font-family:var(--font-ui);font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:.1rem .4rem;background:rgba(255,255,255,.04)}
 .tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.9rem;margin-top:2rem;width:100%}
@@ -123,11 +123,14 @@ body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;b
 #stars{position:absolute;inset:0;z-index:0}
 .hero__glow{position:absolute;top:-30%;left:50%;transform:translateX(-50%);width:120vmax;height:90vmax;z-index:0;
   background:radial-gradient(ellipse at 50% 40%,rgba(45,212,255,.12),rgba(110,168,255,.05) 40%,transparent 70%)}
-.hero__inner{position:relative;z-index:2;max-width:900px}
+.hero__inner{position:relative;z-index:2;width:100%;max-width:900px}
 .kicker{font-family:var(--font-ui);font-weight:700;letter-spacing:.35em;text-transform:uppercase;font-size:.82rem;color:var(--accent)}
 .hero h1{font-family:var(--font-display);font-weight:900;line-height:1;margin:1.2rem 0;font-size:clamp(2.6rem,8vw,6rem);
   background:linear-gradient(180deg,#fff,var(--accent-2) 70%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero h1 small{display:block;font-size:clamp(1rem,3vw,1.8rem);letter-spacing:.1em;color:var(--text);-webkit-text-fill-color:var(--text);margin-top:.4rem;font-weight:700}
+/* 320px phones: "VerseBase" (Orbitron 900) needs ~300px at 2.6rem — below
+   360px viewport shrink instead of breaking mid-word */
+@media(max-width:360px){.hero h1{font-size:2.2rem}}
 .hero p{max-width:60ch;margin:0 auto;color:var(--muted);font-size:clamp(1.05rem,1.6vw,1.25rem)}
 .stat-row{display:flex;gap:2.5rem;justify-content:center;flex-wrap:wrap;margin-top:2.6rem}
 .stat .n{font-family:var(--font-display);font-weight:900;font-size:clamp(1.6rem,4vw,2.4rem);color:var(--accent)}
