@@ -12,7 +12,7 @@ import { defineConfig } from 'astro/config';
 // GitHub Pages *project* path, add: base: '/sc-patch-archive'
 // Cloudflare Pages (recommended in the blueprint) serves at root -> no base needed.
 export default defineConfig({
-  site: 'https://versebase.space',
+  site: 'https://verse-base.com',
   build: { format: 'file' },
   // i18n: DE ist Default und bleibt PRÄFIXLOS (bestehende URLs/SEO unverändert).
   // EN-Seiten leben explizit unter src/pages/en/ -> /en/… (harmoniert mit
