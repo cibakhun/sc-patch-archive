@@ -478,6 +478,13 @@
       if (drawer.classList.contains('is-open') && !drawer.contains(e.target) && !plannerBtn.contains(e.target)) closeDrawer();
     });
   }
+  // Slide-Transitions (Planer-Drawer / Mobil-Sidebar) erst nach dem ersten
+  // gerenderten Frame scharfschalten — sonst animiert der Browser beim Laden
+  // das initiale Wegschieben und der Planer „schließt" kurz sichtbar.
+  requestAnimationFrame(function () { requestAnimationFrame(function () {
+    document.documentElement.classList.add('cdb-ready');
+  }); });
+
   function flashPlan() { if (plannerBtn) { plannerBtn.classList.remove('flash'); void plannerBtn.offsetWidth; plannerBtn.classList.add('flash'); } }
 
   function renderPlanner() {
