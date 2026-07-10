@@ -1,0 +1,379 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SiteNav from '../components/SiteNav.astro';
+import Attribution from '../components/Attribution.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Medien-Bibliothek: alle Bilder aus public/assets (Top-Level) — build-time per
+// fs gelesen. Videos/Loops und Schriften sind bewusst NICHT enthalten (nur
+// Bilder). Die Onepager kommen als eigenständige Offline-HTML aus
+// scripts/build-downloads.mjs (public/downloads/).
+const IMG_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.svg', '.gif']);
+const assetsDir = path.join(process.cwd(), 'public', 'assets');
+const files = fs.existsSync(assetsDir)
+  ? fs.readdirSync(assetsDir).filter((f) => IMG_EXT.has(path.extname(f).toLowerCase()))
+  : [];
+
+const bytesOf = (f) => fs.statSync(path.join(assetsDir, f)).size;
+const fmtSize = (b) =>
+  b >= 1048576 ? (b / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+
+// Kategorien in Anzeige-Reihenfolge; erste passende Regel gewinnt.
+const CATS = [
+  { id: 'ships', label: 'Schiffe', match: (f) => f.startsWith('img-') },
+  { id: 'video', label: 'Video-Standbilder', match: (f) => f.startsWith('vid-') },
+  { id: 'trailer', label: 'Patch-Trailer', match: (f) => f.startsWith('trailer-') },
+  { id: 'cz', label: 'Contested Zones', match: (f) => f.startsWith('cz-') },
+  { id: 'topics', label: 'Themen & Guides', match: (f) => f.startsWith('t-') },
+  { id: 'other', label: 'Sonstige', match: () => true },
+];
+
+const groups = CATS.map((c) => ({
+  ...c,
+  items: files
+    .filter((f) => c.match(f))
+    .filter((f) => !CATS.some((o) => o !== c && CATS.indexOf(o) < CATS.indexOf(c) && o.match(f)))
+    .sort((a, b) => a.localeCompare(b)),
+})).filter((g) => g.items.length > 0);
+
+const totalImgs = files.length;
+
+// Onepager — kuratierte Titel/Beschreibung, gefiltert auf tatsächlich gebaute.
+const dlDir = path.join(process.cwd(), 'public', 'downloads');
+const ONEPAGERS = [
+  {
+    slug: 'contested-zones',
+    title: 'Contested Zones',
+    tag: 'Alpha 4.0 · Pyro',
+    desc: 'Keycards, Sicherungen, Comboards und Routen durch die PvPvE-Zonen — was mitzunehmen ist und wo der Loot liegt.',
+  },
+  {
+    slug: 'storm-breaker',
+    title: 'Storm Breaker',
+    tag: 'Alpha 4.2 · Valakkar',
+    desc: 'Ablauf, Karten (Farro & Lazarus) und Ziele der Storm-Breaker-Jagd auf den Apex-Valakkar.',
+  },
+]
+  .map((o) => {
+    const file = `onepager-${o.slug}.html`;
+    const abs = path.join(dlDir, file);
+    return fs.existsSync(abs) ? { ...o, file, bytes: fs.statSync(abs).size } : null;
+  })
+  .filter(Boolean);
+
+const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der Seite (Schiffs-Renders, Themen-Bilder, Patch-Trailer-Standbilder) einzeln herunterladen — plus die visuellen Onepager-Guides als eigenständige Offline-HTML-Datei.`;
+---
+
+<Layout
+  title={'Downloads — Medien & Onepager | VerseBase'}
+  description={desc}
+  themeColor="#0a1014"
+  ogType="article"
+  translated={true}
+>
+  <style is:inline>
+    :root {
+      --bg: #0a1014;
+      --bg-2: #0e161c;
+      --surface: #121d25;
+      --surface-2: #16232c;
+      --accent: #2dd4ff;
+      --accent-2: #5ff0c4;
+      --text: #e8f1f6;
+      --muted: #8ea6b3;
+      --line: rgba(45, 212, 255, 0.18);
+      --line-soft: rgba(232, 241, 246, 0.1);
+      --glow: 0 0 44px rgba(45, 212, 255, 0.22);
+      --maxw: 1240px;
+    }
+    .reveal { opacity: 1 !important; transform: none !important; }
+
+    .hero {
+      position: relative;
+      padding: 8.5rem clamp(1.25rem, 5vw, 4rem) 2.6rem;
+      background: radial-gradient(120% 90% at 82% 8%, rgba(45, 212, 255, 0.14), transparent 60%),
+        radial-gradient(90% 80% at 8% 96%, rgba(95, 240, 196, 0.1), transparent 55%), var(--bg);
+      border-bottom: 1px solid var(--line);
+    }
+    .hero__in { max-width: var(--maxw); margin-inline: auto; }
+    .eyebrow {
+      font-family: var(--font-ui, sans-serif);
+      font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      font-size: 0.72rem; color: var(--accent-2);
+    }
+    .hero h1 {
+      font-family: var(--font-display, sans-serif);
+      font-weight: 700; line-height: 0.95; margin: 0.5rem 0 0.8rem;
+      font-size: clamp(2.6rem, 9vw, 6.4rem); color: var(--text);
+    }
+    .hero h1 .thin { display: block; font-weight: 400; opacity: 0.55; font-size: 0.42em; letter-spacing: 0.14em; text-transform: uppercase; }
+    .lead { max-width: 68ch; font-size: 1.05rem; line-height: 1.6; color: var(--muted); }
+    .lead b { color: var(--text); }
+    .qbar {
+      display: flex; flex-wrap: wrap; gap: 0.5rem 1.6rem; margin-top: 1.4rem;
+      font-family: var(--font-ui, sans-serif); font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; font-size: 0.74rem; color: var(--muted);
+    }
+    .qbar b { color: var(--accent); }
+
+    main { max-width: var(--maxw); margin-inline: auto; padding: 0 clamp(1.25rem, 5vw, 4rem); }
+    .sec { padding: 2.6rem 0 0.6rem; }
+    .sec__head {
+      display: flex; align-items: baseline; gap: 0.8rem; flex-wrap: wrap;
+      border-bottom: 1px solid var(--line-soft); padding-bottom: 0.6rem; margin-bottom: 1.3rem;
+    }
+    .sec__head h2 {
+      font-family: var(--font-display, sans-serif); font-weight: 700;
+      font-size: 1.5rem; color: var(--text); margin: 0;
+    }
+    .sec__head .cnt {
+      font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.75rem;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent);
+    }
+    .sec__intro { color: var(--muted); font-size: 0.95rem; max-width: 70ch; margin: -0.6rem 0 1.3rem; }
+
+    /* ---- Onepager-Karten ---- */
+    .ops { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.1rem; }
+    .op {
+      display: flex; flex-direction: column; border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--surface), var(--bg-2));
+      padding: 1.3rem 1.4rem; box-shadow: var(--glow);
+      transition: transform 0.18s, border-color 0.18s;
+    }
+    .op:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .op__kx {
+      font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.68rem;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-2);
+    }
+    .op__title { font-family: var(--font-display, sans-serif); font-weight: 700; font-size: 1.55rem; color: var(--text); margin: 0.3rem 0 0.15rem; }
+    .op__tag { font-family: var(--font-ui, sans-serif); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .op__desc { color: var(--muted); font-size: 0.95rem; line-height: 1.55; margin: 0.7rem 0 1.1rem; flex: 1; }
+    .op__actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+    .op__dl {
+      display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-ui, sans-serif);
+      font-weight: 700; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--bg); background: var(--accent); padding: 0.6rem 1rem; border: 1px solid var(--accent);
+      transition: background-color 0.15s;
+    }
+    .op__dl:hover { background: var(--accent-2); border-color: var(--accent-2); }
+    .op__dl em { font-style: normal; opacity: 0.75; font-weight: 600; }
+    .op__view {
+      display: inline-flex; align-items: center; gap: 0.35rem; font-family: var(--font-ui, sans-serif);
+      font-weight: 700; font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--accent); padding: 0.55rem 0.9rem; border: 1px solid var(--line);
+    }
+    .op__view:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+    .op__hint { margin-top: 0.9rem; font-size: 0.8rem; color: var(--muted); opacity: 0.85; }
+
+    /* ---- Toolbar (Suche + Kategorie-Chips) ---- */
+    .tools {
+      position: sticky; top: 0; z-index: 60; margin-top: 2.4rem;
+      display: flex; flex-wrap: wrap; gap: 0.7rem 1rem; align-items: center;
+      padding: 0.9rem 0; background: linear-gradient(180deg, var(--bg) 70%, transparent);
+    }
+    .tsearch {
+      display: flex; align-items: center; gap: 0.5rem; flex: 1 1 220px; min-width: 0;
+      border: 1px solid var(--line); background: var(--surface); padding: 0.55rem 0.8rem;
+    }
+    .tsearch input {
+      flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--text);
+      font-family: var(--font-ui, sans-serif); font-size: 0.95rem;
+    }
+    .tsearch svg { flex: none; color: var(--muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .chip {
+      font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.72rem;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+      border: 1px solid var(--line); background: var(--surface); padding: 0.42rem 0.7rem;
+      cursor: pointer; transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+    }
+    .chip:hover { color: var(--accent); border-color: var(--accent); }
+    .chip[aria-pressed='true'] { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+    .chip b { opacity: 0.6; font-weight: 700; }
+
+    /* ---- Bild-Raster ---- */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.9rem; }
+    .dl {
+      display: flex; flex-direction: column; border: 1px solid var(--line-soft);
+      background: var(--surface); position: relative; overflow: hidden;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .dl:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .dl__thumb { aspect-ratio: 16 / 10; background: #05090c; overflow: hidden; }
+    .dl__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .dl__meta { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.5rem 0.6rem; }
+    .dl__name {
+      font-family: var(--font-ui, sans-serif); font-size: 0.76rem; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+    }
+    .dl__size { font-family: var(--font-ui, sans-serif); font-size: 0.7rem; color: var(--muted); flex: none; }
+    .dl__ic {
+      position: absolute; top: 0.5rem; right: 0.5rem; display: grid; place-items: center;
+      width: 30px; height: 30px; font-size: 1rem; color: var(--bg); background: var(--accent);
+      opacity: 0; transform: translateY(-4px); transition: opacity 0.15s, transform 0.15s;
+    }
+    .dl:hover .dl__ic, .dl:focus-visible .dl__ic { opacity: 1; transform: none; }
+    .grid--empty { color: var(--muted); font-size: 0.95rem; padding: 1rem 0; }
+
+    .usage {
+      margin: 2.8rem 0 1rem; border: 1px solid var(--line-soft); border-left: 3px solid var(--accent);
+      background: color-mix(in srgb, var(--accent) 6%, transparent); padding: 1rem 1.2rem;
+      color: var(--muted); font-size: 0.9rem; line-height: 1.6;
+    }
+    .usage b { color: var(--text); }
+
+    .noscript-hidden { }
+  </style>
+
+  <a class="skip" href="#main" style="position:absolute;left:-999px;top:0">Zum Inhalt springen</a>
+
+  <SiteNav
+    crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Downloads' }]}
+    pill={'MEDIEN · ARCHIV'}
+    hasEn={true}
+  />
+
+  <main id="main">
+    <section class="hero">
+      <div class="hero__in">
+        <div class="eyebrow">VerseBase · Medienarchiv</div>
+        <h1><span class="thin">Download-Bereich</span>Medien &amp; Onepager</h1>
+        <p class="lead">
+          Alle Bild-Medien dieser Seite zum <b>Herunterladen</b> — Schiffs-Renders, Themen-Bilder und
+          Patch-Trailer-Standbilder. Dazu die visuellen <b>Onepager-Guides</b> als eigenständige,
+          offline nutzbare HTML-Datei (Bilder eingebettet, kein Entpacken nötig).
+        </p>
+        <div class="qbar">
+          <span>Bilder <b>{totalImgs}</b></span>
+          <span>Onepager <b>{ONEPAGERS.length}</b></span>
+          <span>Formate <b>JPG · PNG · WEBP</b></span>
+        </div>
+      </div>
+    </section>
+
+    {ONEPAGERS.length > 0 && (
+      <section class="sec">
+        <div class="sec__head">
+          <h2>Onepager-Guides</h2>
+          <span class="cnt">{ONEPAGERS.length} · Offline-HTML</span>
+        </div>
+        <p class="sec__intro">
+          Eine einzige HTML-Datei pro Guide — alle Bilder sind eingebettet. Herunterladen, doppelklicken,
+          offline lesen. Nichts zu entpacken.
+        </p>
+        <div class="ops">
+          {ONEPAGERS.map((o) => (
+            <article class="op">
+              <span class="op__kx">Onepager · Offline-HTML</span>
+              <h3 class="op__title">{o.title}</h3>
+              <span class="op__tag">{o.tag}</span>
+              <p class="op__desc">{o.desc}</p>
+              <div class="op__actions">
+                <a class="op__dl" href={`/downloads/${o.file}`} download>
+                  <span aria-hidden="true">⭳</span> Herunterladen <em>{fmtSize(o.bytes)}</em>
+                </a>
+                <a class="op__view" href={`/onepager/${o.slug}/index.html`} target="_blank" rel="noopener">
+                  Ansehen <span aria-hidden="true">↗</span>
+                </a>
+              </div>
+              <p class="op__hint">Eigenständige HTML-Datei · funktioniert offline im Browser.</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="sec" id="medien">
+      <div class="sec__head">
+        <h2>Bild-Medien</h2>
+        <span class="cnt">{totalImgs} Dateien</span>
+      </div>
+      <p class="sec__intro">
+        Jedes Bild einzeln herunterladbar. Filtere nach Kategorie oder tippe einen Dateinamen ein.
+      </p>
+
+      <div class="tools" role="search">
+        <label class="tsearch">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2" /><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
+          <input type="search" id="dlq" placeholder="Dateiname filtern …" aria-label="Bilder filtern" autocomplete="off" />
+        </label>
+        <div class="chips" id="dlchips">
+          <button class="chip" type="button" data-cat="all" aria-pressed="true">Alle <b>{totalImgs}</b></button>
+          {groups.map((g) => (
+            <button class="chip" type="button" data-cat={g.id} aria-pressed="false">{g.label} <b>{g.items.length}</b></button>
+          ))}
+        </div>
+      </div>
+
+      {groups.map((g) => (
+        <div class="catblock" data-cat={g.id}>
+          <div class="sec__head" style="margin-top:1.6rem">
+            <h2 style="font-size:1.15rem">{g.label}</h2>
+            <span class="cnt">{g.items.length}</span>
+          </div>
+          <div class="grid">
+            {g.items.map((f) => (
+              <a class="dl" href={`/assets/${f}`} download data-name={f.toLowerCase()}>
+                <span class="dl__thumb"><img src={`/assets/${f}`} alt={f} loading="lazy" decoding="async" /></span>
+                <span class="dl__meta">
+                  <span class="dl__name">{f}</span>
+                  <span class="dl__size">{fmtSize(bytesOf(f))}</span>
+                </span>
+                <span class="dl__ic" aria-hidden="true">⭳</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+      <p class="grid--empty" id="dlempty" hidden>Keine Datei passt zu deinem Filter.</p>
+
+      <p class="usage">
+        <b>Nutzungshinweis.</b> Die Bilder stammen aus Star-Citizen-Spieldaten und Comm-Links
+        © Cloud Imperium Games sowie aus Community-Quellen. Nutzung im Rahmen der offiziellen
+        Fan-Content-Richtlinie — kein kommerzieller Einsatz.
+      </p>
+    </section>
+  </main>
+
+  <Attribution sources={['starcitizen.tools', 'RSI', 'CIG-Spieldaten']} />
+
+  <script is:inline>
+    (function () {
+      var q = document.getElementById('dlq');
+      var chips = document.getElementById('dlchips');
+      var blocks = [].slice.call(document.querySelectorAll('.catblock'));
+      var empty = document.getElementById('dlempty');
+      var cat = 'all';
+
+      function apply() {
+        var term = (q.value || '').trim().toLowerCase();
+        var anyVisible = false;
+        blocks.forEach(function (b) {
+          var show = cat === 'all' || b.getAttribute('data-cat') === cat;
+          var tiles = [].slice.call(b.querySelectorAll('.dl'));
+          var blockHasHit = false;
+          tiles.forEach(function (t) {
+            var hit = show && (!term || t.getAttribute('data-name').indexOf(term) > -1);
+            t.style.display = hit ? '' : 'none';
+            if (hit) blockHasHit = true;
+          });
+          b.style.display = blockHasHit ? '' : 'none';
+          if (blockHasHit) anyVisible = true;
+        });
+        empty.hidden = anyVisible;
+      }
+
+      q.addEventListener('input', apply);
+      chips.addEventListener('click', function (e) {
+        var btn = e.target.closest('.chip');
+        if (!btn) return;
+        cat = btn.getAttribute('data-cat');
+        [].slice.call(chips.querySelectorAll('.chip')).forEach(function (c) {
+          c.setAttribute('aria-pressed', c === btn ? 'true' : 'false');
+        });
+        apply();
+      });
+    })();
+  </script>
+</Layout>

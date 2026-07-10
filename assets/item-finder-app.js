@@ -353,6 +353,7 @@
           (bp.tiers ? '<div><strong>' + esc(tr('craftTiers', 'Stufen')) + ':</strong> ' + esc(String(bp.tiers)) + '</div>' : '') +
         '</div>' +
         (ingredients ? '<div class="uif-crafting-ingredients"><h5>' + esc(tr('craftMaterials', 'Materialien')) + '</h5>' + ingredients + '</div>' : '') +
+        '<a class="uif-xlink" href="' + (CFG.lang === 'en' ? '/en' : '') + '/topics/crafting.html?bp=' + encodeURIComponent(item.name) + '">' + esc(tr('openInCrafting', 'Im Crafting-Planer öffnen')) + ' →</a>' +
       '</div>';
     }
 
@@ -432,6 +433,16 @@
       applyFiltersAndSort();
       renderCategories();
       renderKindChips();
+      // Deep-Link aus dem Crafting-Planer: ?item=<Item-Name oder -id> öffnet die Card.
+      try {
+        var wantItem = new URLSearchParams(location.search).get('item');
+        if (wantItem) {
+          var tgt = wantItem.trim().toLowerCase();
+          for (var ii = 0; ii < ALL_ITEMS.length; ii++) {
+            if ((ALL_ITEMS[ii].name || '').toLowerCase() === tgt || ALL_ITEMS[ii].id === wantItem) { openModal(ALL_ITEMS[ii]); break; }
+          }
+        }
+      } catch (e) {}
     }).catch(function (err) {
       console.warn('Item-Finder: Datenbank konnte nicht geladen werden.', err);
       var grid = document.getElementById('uif-results-grid');

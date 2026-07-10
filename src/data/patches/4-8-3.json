@@ -1,0 +1,125 @@
+{
+  "version": "4.8.3",
+  "codename": "XenoThreat",
+  "date": "2026-07-01",
+  "dateDisplay": "1. Juli 2026",
+  "era": "Tactical Strike",
+  "type": "point",
+  "tagline": "Die menschen-suprematistische Fraktion XenoThreat kehrt als dynamisches Kampf-Event nach Stanton zurück — 1.–15. Juli 2026.",
+  "summary": "Point-Release der 4.8-Reihe, das ganz im Zeichen der Rückkehr des XenoThreat-Events steht. Die anti-alien und anti-UEE gesinnten Outlaws greifen Stanton an, weil das System die Koexistenz mit außerirdischen Spezies unterstützt — Foxwell Enforcement bittet die Spieler um Hilfe. Das Event läuft als punktebasiertes PvE-Kampf-Event vom 1. bis 15. Juli 2026: über fünf Missionstypen sammeln Spieler bis zu 120.000 Event-Punkte und schalten dabei Blueprint-Belohnungen frei. Höhepunkt ist die Idris-Fregatte der Fraktion als Kapitalschiff-Ziel. Dazu kommen begleitende Stabilitäts- und Fehlerbehebungen auf den bestehenden 4.8-Systemen.",
+  "palette": {
+    "bg": "#0d0a16",
+    "accent": "#E8651E",
+    "accent2": "#1FB8A6",
+    "warm": true
+  },
+  "trailer": {
+    "yt": "SsOtI2dtvBc",
+    "own": false,
+    "title": "Star Citizen — XenoThreat"
+  },
+  "keyFacts": [
+    {
+      "label": "XenoThreat kehrt zurück",
+      "value": "Dynamisches PvE-Kampf-Event im Stanton-System"
+    },
+    {
+      "label": "Event-Zeitraum",
+      "value": "1.–15. Juli 2026"
+    },
+    {
+      "label": "Belohnungsspur",
+      "value": "120.000 Event-Punkte für die volle Reward-Spur inkl. Blueprints"
+    },
+    {
+      "label": "Fraktion",
+      "value": "Menschen-suprematistische, anti-alien Outlaws (anti-UEE)"
+    },
+    {
+      "label": "Auftraggeber",
+      "value": "Foxwell Enforcement"
+    }
+  ],
+  "features": [
+    {
+      "name": "XenoThreat — Assault on Stanton",
+      "system": "Events",
+      "kind": "event",
+      "desc": "Das dynamische XenoThreat-Event kehrt vom 1. bis 15. Juli 2026 nach Stanton zurück. Die xenophobe Outlaw-Fraktion greift das System an, weil es die Koexistenz mit außerirdischen Spezies fördert. Als punktebasiertes Kampf-Event (kein narratives Alt-Event) nehmen Spieler Contracts an, bekämpfen XenoThreat-Flotten und arbeiten sich über die Reward-Spur bis zu 120.000 Event-Punkten hoch.",
+      "facts": [
+        {
+          "label": "Zeitraum",
+          "value": "1.–15. Juli 2026"
+        },
+        {
+          "label": "Format",
+          "value": "Punktebasiertes PvE-Kampf-Event"
+        },
+        {
+          "label": "Auftraggeber",
+          "value": "Foxwell Enforcement"
+        }
+      ],
+      "topicSlug": "4-8-0-xenothreat"
+    },
+    {
+      "name": "Fünf Missionstypen",
+      "system": "Events",
+      "kind": "gameplay",
+      "desc": "Das Event bietet fünf Kampf-Aktivitäten, über die Event-Punkte gesammelt werden: angegriffene, von Aliens gebaute Schiffe verteidigen; anti-alien Jäger ausschalten; eintreffende ausgrenzende Verbände abfangen und vernichten; xenophobe Lieutenants herauslocken und besiegen; sowie die Idris-Fregatte zerstören oder außer Gefecht setzen.",
+      "facts": [
+        {
+          "label": "Aktivitäten",
+          "value": "5 Missionstypen"
+        },
+        {
+          "label": "Ziele",
+          "value": "Jäger · Lieutenants · Idris-Fregatte"
+        }
+      ]
+    },
+    {
+      "name": "Belohnungen & Blueprints",
+      "system": "Events",
+      "kind": "balance",
+      "desc": "Statt des alten narrativen Ablaufs ist 4.8.3 ein Combat-Point-Farm: Fortschritt wird im Journal getrackt, und wer sich zur vollen Reward-Spur von 120.000 Event-Punkten hocharbeitet, schaltet exklusive Belohnungen inklusive Blueprints frei.",
+      "facts": [
+        {
+          "label": "Volle Spur",
+          "value": "120.000 Event-Punkte"
+        },
+        {
+          "label": "Belohnungen",
+          "value": "Exklusive Rewards & Blueprints"
+        }
+      ]
+    },
+    {
+      "name": "Idris-Fregatte",
+      "system": "Events",
+      "kind": "gameplay",
+      "desc": "Kapitalschiff-Ziel des Events: Die Idris-Fregatte der XenoThreat-Flotte kann entweder durch Zerstörung des Schiffs oder durch Ausschalten des Piloten neutralisiert werden — der anspruchsvollste und punktträchtigste Auftrag der Reward-Spur.",
+      "facts": [
+        {
+          "label": "Klasse",
+          "value": "Idris-Fregatte (Kapitalschiff)"
+        },
+        {
+          "label": "Erledigung",
+          "value": "Schiff zerstören oder Piloten ausschalten"
+        }
+      ]
+    }
+  ],
+  "ships": [],
+  "events": [
+    {
+      "name": "XenoThreat — Assault on Stanton",
+      "desc": "Rückkehr des dynamischen XenoThreat-Events als punktebasiertes Kampf-Event. Die menschen-suprematistische, anti-alien Fraktion attackiert Stanton wegen dessen Unterstützung der Alien-Koexistenz; Foxwell Enforcement ruft Spieler zu Hilfe. Über fünf Missionstypen — bis hin zur Idris-Fregatte — werden bis zu 120.000 Event-Punkte für Blueprint-Belohnungen gesammelt.",
+      "period": "1.–15. Juli 2026"
+    }
+  ],
+  "fixesNote": "Begleitende Stabilitäts- und Fehlerbehebungen auf den 4.8-Systemen (Anzahl nicht spezifiziert).",
+  "wipe": "Kein neuer Wipe angekündigt — Fortführung des laufenden 4.8-Zyklus.",
+  "topics": []
+}

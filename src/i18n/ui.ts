@@ -53,6 +53,8 @@ const UI = {
     'nav.langSwitch': 'Sprache wechseln',
     'nav.grp.tools': 'Werkzeuge',
     'nav.grp.archive': 'Archiv',
+    'nav.downloads': 'Downloads',
+    'nav.downloads.sub': 'Medien & Onepager',
     // -- Startseiten-Launchpad (großes zentrales Menü, schrumpft beim Scrollen) --
     'home.launch.aria': 'Hauptbereiche',
     'home.launch.hint': 'Bereiche',
@@ -288,6 +290,8 @@ const UI = {
     'nav.langSwitch': 'Switch language',
     'nav.grp.tools': 'Tools',
     'nav.grp.archive': 'Archive',
+    'nav.downloads': 'Downloads',
+    'nav.downloads.sub': 'Media & one-pagers',
     // -- Home launchpad (large centered menu that shrinks on scroll) --
     'home.launch.aria': 'Main sections',
     'home.launch.hint': 'Sections',

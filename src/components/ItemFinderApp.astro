@@ -41,6 +41,7 @@ const JS_T = {
     catalogNote: 'Katalog-Eintrag aus den Spieldateien: Für dieses Item liegen keine verifizierten Shop- oder Loot-Daten vor.',
     sectionGuide: 'Fundort-Guide', sectionCrafting: 'Crafting-Rezept',
     craftTime: 'Dauer', craftTiers: 'Stufen', craftMaterials: 'Materialien',
+    openInCrafting: 'Im Crafting-Planer öffnen',
     loadError: 'Die Item-Datenbank konnte nicht geladen werden. Bitte später erneut versuchen.',
     subline: '{total} Items aus den Spieldateien, {sourced} mit verifizierten Bezugsquellen',
     catArmour: 'Rüstung', catClothing: 'Kleidung', catWeapons: 'Waffen',
@@ -62,6 +63,7 @@ const JS_T = {
     catalogNote: 'Catalog entry from the game files: no verified shop or loot data is available for this item.',
     sectionGuide: 'Loot guide', sectionCrafting: 'Crafting recipe',
     craftTime: 'Time', craftTiers: 'Tiers', craftMaterials: 'Materials',
+    openInCrafting: 'Open in crafting planner',
     loadError: 'The item database could not be loaded. Please try again later.',
     subline: '{total} items from the game files, {sourced} with verified sources',
     catArmour: 'Armor', catClothing: 'Clothing', catWeapons: 'Weapons',
@@ -595,6 +597,26 @@ const JS_T = {
   }
 
   .uif-crafting-ingredients li strong { color: var(--text, #fff); }
+
+  /* Cross-Link ins Crafting (Deep-Link zum Blueprint) */
+  .uif-xlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.9rem;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--accent, #2dd4ff);
+    border: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 45%, transparent);
+    padding: 0.45rem 0.85rem;
+    border-radius: 6px;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+  .uif-xlink:hover {
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 12%, transparent);
+    border-color: var(--accent, #2dd4ff);
+  }
 
   /* Responsive */
   @media (max-width: 900px) {

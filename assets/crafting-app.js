@@ -26,6 +26,16 @@
     DB = j;
     buildMissionIndex();
     renderPlanner();
+    // Deep-Link aus dem Item Finder: ?bp=<Blueprint-Name> öffnet direkt das Modal.
+    try {
+      var wantBp = new URLSearchParams(location.search).get('bp');
+      if (wantBp && DB.blueprints) {
+        var tgt = wantBp.trim().toLowerCase();
+        for (var bi = 0; bi < DB.blueprints.length; bi++) {
+          if ((DB.blueprints[bi].name || '').toLowerCase() === tgt) { openModal(bi); break; }
+        }
+      }
+    } catch (e) {}
   }).catch(function () {});
 
   // Umkehrung Blueprint -> Mission: pro Mission der Pool aller Blueprints.
@@ -315,6 +325,7 @@
     html += '<span>' + tr('craftTime', 'Craft-Zeit') + ': <b>' + fmtTime(b.craft_time_seconds) + '</b></span>';
     if (b.tiers != null) html += '<span>' + tr('tier', 'Tier') + ': <b>' + b.tiers + '</b></span>';
     html += '<button class="cbm__plan" data-plan="' + i + '">＋ ' + tr('addPlan', 'Zum Planer') + '</button>';
+    html += '<a class="cbm__xlink" href="' + (CFG.lang === 'en' ? '/en' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + ' →</a>';
     html += '</div>';
 
     if (b.ingredients && b.ingredients.length) {

@@ -61,6 +61,7 @@ const JS_T = {
     calcQtyBuy: '{qty}x kaufen',
     calcFound: '{count} kompatible Items gefunden',
     calcRareLabel: '(selten)',
+    openInFinder: 'Im Item Finder öffnen',
   },
   en: {
     craftTime: 'Craft time', tier: 'Tier', addPlan: 'Add to planner', ingredients: 'Ingredients',
@@ -81,6 +82,7 @@ const JS_T = {
     calcQtyBuy: 'Buy {qty}x',
     calcFound: '{count} compatible items found',
     calcRareLabel: '(rare)',
+    openInFinder: 'Open in Item Finder',
   },
 }[lang];
 
@@ -443,6 +445,9 @@ const total = DB.counts.blueprints;
   .cbm__meta{display:flex;flex-wrap:wrap;gap:.7rem 1.2rem;align-items:center;font-size:.86rem;color:var(--muted,#9ba2ae);margin-bottom:.4rem}
   .cbm__meta b{color:var(--text,#eef1f5)}
   .cbm__plan{margin-left:auto;background:var(--accent-2,#1FA2FF);color:#04121f;border:0;padding:.4rem .8rem;border-radius:6px;cursor:pointer;font-weight:800;font-family:var(--font-ui,inherit)}
+  /* Cross-Link ins Item-Finder (Deep-Link zur Item-Card) */
+  .cbm__xlink{display:inline-flex;align-items:center;gap:.35rem;text-decoration:none;font-family:var(--font-ui,inherit);font-weight:700;font-size:.82rem;color:var(--accent-2,#1FA2FF);border:1px solid color-mix(in srgb,var(--accent-2,#1FA2FF) 45%,transparent);padding:.4rem .8rem;border-radius:6px;transition:background-color .15s,border-color .15s}
+  .cbm__xlink:hover{background:color-mix(in srgb,var(--accent-2,#1FA2FF) 12%,transparent);border-color:var(--accent-2,#1FA2FF)}
   .cbm__h{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.66rem;color:var(--accent,#FF5E1A);margin:1.2rem 0 .5rem;border-top:1px solid var(--line-soft,rgba(255,255,255,.08));padding-top:.9rem}
   .cbm__c{color:var(--muted,#9ba2ae);font-size:.7rem}
   .cbm__ings{display:flex;flex-direction:column;gap:.7rem}

@@ -2308,6 +2308,109 @@
           "title": "Alien Week 2956"
         }
       ]
+    },
+    "4-8-3": {
+      "tagline": "The human-supremacist XenoThreat faction returns to Stanton as a dynamic combat event — July 1–15, 2026.",
+      "summary": "Point release in the 4.8 line built entirely around the return of the XenoThreat event. The anti-alien, anti-UEE outlaws attack Stanton because the system supports coexistence with alien species — Foxwell Enforcement calls on players for help. The event runs as a points-based PvE combat event from July 1 to 15, 2026: across five mission types, players farm up to 120,000 event points and unlock blueprint rewards along the way. The centerpiece is the faction's Idris frigate as a capital-ship objective. Accompanied by stability and bug fixes to the existing 4.8 systems.",
+      "dateDisplayEn": "July 1, 2026",
+      "keyFacts": [
+        {
+          "label": "XenoThreat Returns",
+          "value": "Dynamic PvE combat event in the Stanton system"
+        },
+        {
+          "label": "Event Window",
+          "value": "July 1–15, 2026"
+        },
+        {
+          "label": "Reward Track",
+          "value": "120,000 event points for the full reward track incl. blueprints"
+        },
+        {
+          "label": "Faction",
+          "value": "Human-supremacist, anti-alien outlaws (anti-UEE)"
+        },
+        {
+          "label": "Contract Giver",
+          "value": "Foxwell Enforcement"
+        }
+      ],
+      "features": [
+        {
+          "name": "XenoThreat — Assault on Stanton",
+          "system": "Events",
+          "desc": "The dynamic XenoThreat event returns to Stanton from July 1 to 15, 2026. The xenophobic outlaw faction attacks the system because it promotes coexistence with alien species. As a points-based combat event (not the old narrative event), players accept contracts, fight XenoThreat fleets, and work up the reward track toward 120,000 event points.",
+          "facts": [
+            {
+              "label": "Window",
+              "value": "July 1–15, 2026"
+            },
+            {
+              "label": "Format",
+              "value": "Points-based PvE combat event"
+            },
+            {
+              "label": "Contract Giver",
+              "value": "Foxwell Enforcement"
+            }
+          ]
+        },
+        {
+          "name": "Five Mission Types",
+          "system": "Events",
+          "desc": "The event offers five combat activities that award event points: defend alien-made ships under attack; eliminate anti-alien fighters; intercept and destroy exclusionary forces on arrival; draw out and defeat xenophobic lieutenants; and destroy or disable the Idris frigate.",
+          "facts": [
+            {
+              "label": "Activities",
+              "value": "5 mission types"
+            },
+            {
+              "label": "Targets",
+              "value": "Fighters · lieutenants · Idris frigate"
+            }
+          ]
+        },
+        {
+          "name": "Rewards & Blueprints",
+          "system": "Events",
+          "desc": "Instead of the old narrative flow, 4.8.3 is a combat point farm: progress is tracked in the journal, and pushing all the way to the full 120,000-point reward track unlocks exclusive rewards including blueprints.",
+          "facts": [
+            {
+              "label": "Full Track",
+              "value": "120,000 event points"
+            },
+            {
+              "label": "Rewards",
+              "value": "Exclusive rewards & blueprints"
+            }
+          ]
+        },
+        {
+          "name": "Idris Frigate",
+          "system": "Events",
+          "desc": "The event's capital-ship objective: the XenoThreat fleet's Idris frigate can be neutralized either by destroying the ship or by killing its pilot — the toughest and most point-rich contract on the reward track.",
+          "facts": [
+            {
+              "label": "Class",
+              "value": "Idris frigate (capital ship)"
+            },
+            {
+              "label": "Completion",
+              "value": "Destroy the ship or eliminate the pilot"
+            }
+          ]
+        }
+      ],
+      "ships": [],
+      "events": [
+        {
+          "name": "XenoThreat — Assault on Stanton",
+          "desc": "Return of the dynamic XenoThreat event as a points-based combat event. The human-supremacist, anti-alien faction attacks Stanton over its support for alien coexistence; Foxwell Enforcement calls players in to help. Across five mission types — up to the Idris frigate — players farm up to 120,000 event points for blueprint rewards."
+        }
+      ],
+      "fixesNote": "Accompanying stability and bug fixes to the 4.8 systems (number not specified).",
+      "wipe": "No new wipe announced — continuation of the ongoing 4.8 cycle.",
+      "topics": []
     }
   }
 }
