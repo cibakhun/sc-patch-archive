@@ -47,17 +47,6 @@ for (const p of patches)
       desc: p.data.features.find((f) => f.topicSlug === t.slug)?.desc ?? p.data.tagline,
     });
 
-// curated key topics — spread across eras & palettes
-const CURATED = [
-  '4-0-0-server-meshing',
-  '4-0-0-contested-zones',
-  '4-3-1-medical-overhaul',
-  '4-4-0-vanduul',
-  '4-5-0-engineering',
-  'crafting',
-  'mining',
-];
-const keyTopics = CURATED.map((s) => topicIndex.get(s)).filter(Boolean);
 const allTopics = [...topicIndex.values()];
 
 // hub: one directory block per patch line (4.0.x, 4.1.x, …)
@@ -72,308 +61,405 @@ for (const t of allTopics) {
   }
   g.topics.push(t);
 }
+
+// Hero-Standbild: cinematisches Weitwinkel-Render (Schiff, Station, Planet)
+const HERO_IMG = '/assets/t-polaris-5.jpg';
+
+// Werkzeuge — das Herzstück der Startseite. Jede Kachel trägt eine echte Kennzahl.
+const tools = [
+  {
+    name: 'Item Finder',
+    href: '/item-finder.html',
+    accent: '#ff6a2b',
+    metric: fmt(nItems),
+    metricLabel: 'Items',
+    desc: `Alle Items aus den Spieldateien — ${fmt(nSourced)} mit Kaufpreisen, Fundorten und Loot-Guides.`,
+    icon: 'search',
+  },
+  {
+    name: 'Mining',
+    href: '/topics/mining.html',
+    accent: '#2dd4ff',
+    metric: String(nMinerals),
+    metricLabel: 'Mineralien',
+    desc: 'Game-genaue Mineral-Datenbank plus Signatur-Scanner, Fracturing-Rechner und Refinery-Finder.',
+    icon: 'gem',
+  },
+  {
+    name: 'Crafting',
+    href: '/topics/crafting.html',
+    accent: '#e8861a',
+    metric: fmt(nBlueprints),
+    metricLabel: 'Blueprints',
+    desc: 'Blueprints mit Zutaten, Item-Werten, Qualitäts-Simulation und aggregiertem Fabricator-Planer.',
+    icon: 'craft',
+  },
+  {
+    name: "Wikelo's Emporium",
+    href: '/topics/wikelo-emporium.html',
+    accent: '#1fc7ad',
+    metric: String(nTrades),
+    metricLabel: 'Trades',
+    desc: 'Alle Trades des Banu-Händlers — Materialien, Favor und Belohnungen im Überblick.',
+    icon: 'store',
+  },
+  {
+    name: 'Schiffe',
+    href: '/schiffe.html',
+    accent: '#6ea8ff',
+    metric: String(nShips),
+    metricLabel: 'Einträge',
+    desc: 'Schiffe & Fahrzeuge mit Datenblättern, Specs, Komponenten und Ingame-Preisen.',
+    icon: 'ship',
+  },
+  {
+    name: 'Evolution-Matrix',
+    href: '/evolution.html',
+    accent: '#d4af37',
+    metric: String(patchCount),
+    metricLabel: 'Patches',
+    desc: `Wie sich jedes Spielsystem über ${patchCount} Patches entwickelt hat — Systeme × Versionen.`,
+    icon: 'chart',
+  },
+];
+
+const ICONS: Record<string, string> = {
+  search: '<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  gem: '<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M12 21 8 9l4-6 4 6-4 12"/>',
+  craft: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  store: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/>',
+  ship: '<path d="M12 2 2 22h20L12 2z"/><line x1="12" y1="8" x2="12" y2="18"/>',
+  chart: '<path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>',
+};
 ---
-<Layout title={"VerseBase — das Star-Citizen-Kompendium"} description={"VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder mit Preisen & Fundorten, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv der Alpha-4-Ära. Game-akkurat, zweisprachig."} themeColor="#05070d" footer={true} translated={true}>
+<Layout title={"VerseBase — das Star-Citizen-Kompendium"} description={"VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder mit Preisen & Fundorten, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv der Alpha-4-Ära. Game-akkurat, zweisprachig."} themeColor="#04060c" footer={true} translated={true}>
 <script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
 <style is:inline>
-/* --- VerseBase-Hero: Terminal-Suche + Tool-Grid --- */
-.hero-search{display:flex;align-items:center;gap:.8rem;width:100%;max-width:640px;margin:1.6rem 0 0;padding:.95rem 1.15rem;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:8px;color:var(--muted);font-family:var(--font-ui);font-size:1rem;cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s}
-.hero-search:hover,.hero-search:focus-visible{border-color:var(--accent);box-shadow:0 0 18px rgba(45,212,255,.18);outline:none}
-.hero-search .hs__prompt{color:var(--accent);font-weight:700;flex:none}
-.hero-search .hs__hint{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.hero-search .hs__kbd{display:flex;gap:.25rem;flex:none}
-.hero-search kbd{font-family:var(--font-ui);font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:.1rem .4rem;background:rgba(255,255,255,.04)}
-.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.9rem;margin-top:2rem;width:100%}
-.tcard{--c:var(--accent);position:relative;display:flex;flex-direction:column;gap:.45rem;padding:1.1rem 1.2rem;background:var(--surface);border:1px solid var(--line);border-top:2px solid var(--c);border-radius:6px;transition:transform .22s,border-color .22s,box-shadow .22s}
-.tcard:hover{transform:translateY(-3px);border-color:var(--c);box-shadow:0 12px 32px -14px var(--c)}
-.tcard b{font-family:var(--font-display);font-weight:800;font-size:1.08rem;color:#fff}
-.tcard p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5;flex:1}
-.tcard .tgo{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.7rem;color:var(--c)}
-@media(max-width:640px){.tgrid{grid-template-columns:1fr 1fr}.tcard p{display:none}.tcard{gap:.3rem;padding:.85rem .9rem}}
+  :root{
+    --bg:#04060c;--bg-2:#080d18;--surface:#0e1626;--surface-2:#131e33;
+    --accent:#2dd4ff;--accent-2:#6ea8ff;--amber:#ff8a3d;--gold:#d4af37;
+    --text:#eaf1ff;--muted:#8595b5;--line:rgba(120,170,255,.14);--line-2:rgba(120,170,255,.28);
+    --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
+    --maxw:1280px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--accent);color:#04060c}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:#04060c;padding:.6rem 1rem;font-weight:700}
+  .skip:focus{left:0}
+
+  /* ========== HERO (cinematisch) ========== */
+  .hero{position:relative;min-height:92svh;display:flex;align-items:flex-end;overflow:hidden;isolation:isolate}
+  .hero__img{position:absolute;inset:0;z-index:-2;background:#04060c center right/cover no-repeat;
+    background-image:var(--hero);transform:scale(1.06);animation:kenburns 32s ease-in-out infinite alternate}
+  @keyframes kenburns{from{transform:scale(1.06) translate3d(0,0,0)}to{transform:scale(1.14) translate3d(-1.5%,-1%,0)}}
+  /* Lesbarkeits-Layer: links satt, rechts frei — plus Fuß-Fade in den Body */
+  .hero__scrim{position:absolute;inset:0;z-index:-1;background:
+    linear-gradient(90deg,rgba(4,6,12,.94) 0%,rgba(4,6,12,.72) 34%,rgba(4,6,12,.18) 64%,rgba(4,6,12,.05) 100%),
+    linear-gradient(0deg,var(--bg) 2%,rgba(4,6,12,.45) 26%,transparent 60%)}
+  .hero__inner{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;padding:9rem clamp(1.25rem,5vw,3.5rem) clamp(3rem,7vw,5.5rem)}
+  .hero__kicker{display:inline-flex;align-items:center;gap:.7rem;font-family:var(--font-ui);font-weight:700;
+    letter-spacing:.28em;text-transform:uppercase;font-size:.76rem;color:var(--accent)}
+  .hero__kicker::before{content:"";width:26px;height:1px;background:var(--accent)}
+  .hero h1{font-family:var(--font-display);font-weight:900;line-height:.94;margin:1rem 0 .2rem;
+    font-size:clamp(2.7rem,10.5vw,7.5rem);letter-spacing:-.02em;
+    background:linear-gradient(176deg,#fff 30%,var(--accent-2) 78%,var(--accent));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 8px 60px rgba(4,6,12,.6)}
+  .hero__lede{max-width:46ch;margin:.4rem 0 0;color:#cdd8ef;font-size:clamp(1.05rem,1.9vw,1.35rem);font-weight:500;
+    text-shadow:0 2px 20px rgba(4,6,12,.8)}
+  .hero__search{display:flex;align-items:center;gap:.8rem;width:100%;max-width:560px;margin:1.8rem 0 0;
+    padding:.95rem 1.15rem;background:rgba(6,10,20,.72);border:1px solid var(--line-2);border-radius:9px;
+    color:var(--muted);font-family:var(--font-ui);font-size:1rem;cursor:pointer;text-align:left;
+    backdrop-filter:blur(8px);transition:border-color .2s,box-shadow .2s,background-color .2s}
+  .hero__search:hover,.hero__search:focus-visible{border-color:var(--accent);background:rgba(6,10,20,.85);
+    box-shadow:0 0 30px rgba(45,212,255,.22);outline:none}
+  .hero__search .p{color:var(--accent);font-weight:800;flex:none}
+  .hero__search .h{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .hero__search .k{display:flex;gap:.3rem;flex:none}
+  .hero__search kbd{font-family:var(--font-ui);font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--muted);
+    border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;padding:.1rem .42rem;background:rgba(255,255,255,.05)}
+  .hero__stats{display:flex;flex-wrap:wrap;gap:.6rem 2.4rem;margin:1.9rem 0 0;padding-top:1.5rem;
+    border-top:1px solid var(--line)}
+  .hero__stat{display:flex;flex-direction:column;line-height:1.1}
+  .hero__stat b{font-family:var(--font-display);font-weight:800;font-size:clamp(1.4rem,3vw,2rem);color:#fff;
+    font-variant-numeric:tabular-nums}
+  .hero__stat span{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    font-size:.68rem;color:var(--muted);margin-top:.15rem}
+  .hero__cue{position:absolute;bottom:1.3rem;left:50%;transform:translateX(-50%);z-index:1;
+    font-family:var(--font-ui);letter-spacing:.24em;text-transform:uppercase;font-size:.68rem;color:var(--muted);
+    animation:bob 2.2s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+
+  /* ========== Layout-Grundgerüst ========== */
+  main{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 clamp(1.25rem,5vw,3.5rem)}
+  .sec{margin:clamp(3.5rem,7vw,6rem) 0 0}
+  .sec__head{display:flex;align-items:baseline;gap:1rem;margin-bottom:1.6rem}
+  .sec__head h2{font-family:var(--font-display);font-weight:800;font-size:clamp(1.3rem,3vw,1.9rem);letter-spacing:.01em;white-space:nowrap}
+  .sec__head .tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    font-size:.74rem;color:var(--accent);flex:none;white-space:nowrap}
+  .sec__head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line-2),transparent)}
+
+  /* ========== Tools-Grid (Herzstück) ========== */
+  .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:1.1rem}
+  .tool{--c:var(--accent);position:relative;display:flex;flex-direction:column;gap:.55rem;
+    padding:1.5rem 1.5rem 1.35rem;background:linear-gradient(180deg,var(--surface),var(--bg-2));
+    border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    transition:transform .24s cubic-bezier(.2,.7,.3,1),border-color .24s,box-shadow .24s}
+  .tool::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--c);
+    transform:scaleX(.35);transform-origin:left;transition:transform .28s}
+  .tool::after{content:"";position:absolute;right:-70px;top:-70px;width:180px;height:180px;border-radius:50%;
+    background:radial-gradient(circle,var(--c),transparent 68%);opacity:.10;transition:opacity .24s}
+  .tool:hover,.tool:focus-visible{transform:translateY(-5px);border-color:color-mix(in srgb,var(--c) 55%,transparent);
+    box-shadow:0 20px 50px -22px var(--c);outline:none}
+  .tool:hover::before,.tool:focus-visible::before{transform:scaleX(1)}
+  .tool:hover::after{opacity:.2}
+  .tool__ico{display:grid;place-items:center;width:44px;height:44px;border-radius:10px;
+    background:color-mix(in srgb,var(--c) 14%,transparent);border:1px solid color-mix(in srgb,var(--c) 32%,transparent);
+    color:var(--c);margin-bottom:.3rem}
+  .tool__ico svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .tool__name{font-family:var(--font-display);font-weight:800;font-size:1.18rem;color:#fff}
+  .tool__metric{display:flex;align-items:baseline;gap:.45rem}
+  .tool__metric b{font-family:var(--font-display);font-weight:800;font-size:1.5rem;color:var(--c);font-variant-numeric:tabular-nums}
+  .tool__metric span{font-family:var(--font-ui);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.68rem;color:var(--muted)}
+  .tool__desc{color:var(--muted);font-size:.92rem;line-height:1.55;flex:1}
+  .tool__go{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.74rem;
+    color:var(--c);display:inline-flex;align-items:center;gap:.45rem;margin-top:.4rem}
+  .tool__go .ar{transition:transform .2s}
+  .tool:hover .tool__go .ar{transform:translateX(5px)}
+
+  /* ========== Aktuell-Band (neuester Patch) ========== */
+  .fresh{position:relative;display:grid;grid-template-columns:1.1fr 1fr;gap:0;border:1px solid var(--line);
+    border-radius:14px;overflow:hidden;background:var(--surface)}
+  .fresh__body{padding:clamp(1.5rem,3vw,2.4rem);display:flex;flex-direction:column;gap:.6rem;min-width:0}
+  .fresh__ey{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--font-ui);font-weight:800;
+    letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--accent)}
+  .fresh__dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);flex:none}
+  .fresh__ver{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,5vw,3rem);line-height:1;color:#fff}
+  .fresh__name{font-family:var(--font-ui);font-weight:700;font-size:1.15rem;color:var(--accent-2)}
+  .fresh__meta{color:var(--muted);font-size:.9rem}
+  .fresh__go{align-self:flex-start;margin-top:.6rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;font-size:.78rem;color:#04060c;background:var(--accent);padding:.6rem 1.1rem;border-radius:6px;
+    display:inline-flex;gap:.5rem;align-items:center;transition:filter .18s,transform .18s}
+  .fresh__go:hover{filter:brightness(1.08);transform:translateX(2px)}
+  .fresh__media{position:relative;background:#04060c center/cover no-repeat;min-height:180px}
+  .fresh__media::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--surface),transparent 42%)}
+
+  /* ========== Chronik (Patch-Archiv, sekundär & kompakt) ========== */
+  .era{margin:2.4rem 0 1rem;display:flex;align-items:center;gap:1rem}
+  .era h3{font-family:var(--font-ui);font-weight:700;font-size:.86rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text);white-space:nowrap}
+  .era .yr{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;color:var(--muted);font-size:.74rem;
+    border:1px solid var(--line);padding:.2rem .6rem;border-radius:3px;white-space:nowrap}
+  .era .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr));gap:.8rem}
+  .pcard{--c:var(--accent);position:relative;display:flex;flex-direction:column;gap:.15rem;padding:1rem 1.1rem;
+    background:linear-gradient(120deg,color-mix(in srgb,var(--c) 9%,var(--surface)),var(--bg-2));
+    border:1px solid var(--line);border-left:3px solid var(--c);border-radius:8px;min-height:118px;
+    transition:transform .2s,border-color .2s,background-color .2s}
+  .pcard:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--c) 45%,transparent)}
+  .pcard .badge{position:absolute;top:.85rem;right:.9rem;font-family:var(--font-ui);font-weight:700;font-size:.6rem;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--c);border:1px solid color-mix(in srgb,var(--c) 50%,transparent);
+    padding:.12rem .4rem;border-radius:2px}
+  .pcard .ver{font-family:var(--font-display);font-weight:900;font-size:1.4rem;color:var(--c);letter-spacing:.01em}
+  .pcard .date{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:.12em;font-size:.66rem;color:var(--muted)}
+  .pcard .name{font-family:var(--font-ui);font-weight:700;font-size:1.02rem;margin-top:.35rem;color:var(--text)}
+  .pcard .desc{color:var(--muted);font-size:.84rem;line-height:1.45;margin-top:.15rem;flex:1}
+  .pcard .go{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.68rem;
+    color:var(--c);margin-top:.6rem;display:inline-flex;gap:.35rem;align-items:center}
+  .pcard .go .ar{transition:transform .2s}
+  .pcard:hover .go .ar{transform:translateX(4px)}
+
+  /* ========== Themen-Hub (Verzeichnis) ========== */
+  .hub{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:1rem}
+  .hubgroup{border:1px solid var(--line);border-radius:10px;padding:1rem 1.2rem;background:var(--bg-2)}
+  .hubhead{display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--line);padding-bottom:.5rem;margin-bottom:.5rem}
+  .hubsw{width:9px;height:9px;border-radius:2px;flex:none}
+  .hubline{font-family:var(--font-ui);font-weight:700;font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text)}
+  .hubn{font-family:var(--font-ui);font-weight:700;font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .hubrows a{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;padding:.42rem .2rem;
+    border-bottom:1px solid rgba(255,255,255,.06);transition:color .15s,padding-left .15s}
+  .hubrows a:last-child{border-bottom:0}
+  .hubrows a:hover{color:var(--accent);padding-left:.5rem}
+  .hubrows .ht{font-weight:500;font-size:.96rem;min-width:0}
+  .hubrows .hv{font-family:var(--font-ui);font-weight:700;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);flex:none}
+
+  .intro-note{margin-top:3.5rem;max-width:70ch;color:var(--muted);font-size:.92rem;line-height:1.6}
+
+  .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:820px){
+    .fresh{grid-template-columns:1fr}
+    .fresh__media{min-height:150px;order:-1}
+    .fresh__media::after{background:linear-gradient(0deg,var(--surface),transparent 55%)}
+  }
+  @media(max-width:600px){
+    /* Kopfzeile bricht um: Titel (+ Tag falls Platz) oben, Trennlinie volle Breite */
+    .sec__head{flex-wrap:wrap;gap:.35rem .9rem}
+    .sec__head h2{white-space:normal}
+    .sec__head .rule{flex-basis:100%;order:3;height:1px}
+  }
+  @media(max-width:520px){
+    .hero__inner{padding-top:7.5rem}
+    .hero__stats{gap:.6rem 1.6rem}
+  }
+  @media(max-width:360px){.hero h1{font-size:2.3rem}}
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none}
+    .hero__img{animation:none}
+    *{animation:none!important;scroll-behavior:auto!important}
+  }
 </style>
-<style is:inline>
 
-:root{
-  --bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;
-  --accent:#2dd4ff;--accent-2:#6ea8ff;--gold:#d4af37;
-  --text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);
-  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
-  --maxw:1240px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-a{color:inherit;text-decoration:none}
-::selection{background:var(--accent);color:#05070d}
-:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-.skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:#05070d;padding:.6rem 1rem;font-weight:700}
-.skip:focus{left:0}
-
-/* ===== Wild-Overlays ===== */
-body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 40%,transparent 56%,rgba(0,0,0,.6) 100%),repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px);opacity:.5}
-.cursorglow{position:fixed;inset:0;z-index:8800;pointer-events:none;background:radial-gradient(440px circle at var(--mx,50%) var(--my,25%),rgba(45,212,255,.12),transparent 60%)}
-.marquee{position:relative;z-index:2;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:linear-gradient(90deg,var(--bg-2),var(--surface),var(--bg-2));padding:.8rem 0}
-.marquee__track{display:flex;gap:2.4rem;white-space:nowrap;width:max-content;animation:scrollx 36s linear infinite;font-family:var(--font-display);font-weight:700;font-size:1rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-.marquee__track .dot{color:var(--gold)}
-@keyframes scrollx{to{transform:translateX(-50%)}}
-@keyframes flick{0%,93%,100%{opacity:1}94%{opacity:.6}95%{opacity:1}97%{opacity:.82}}
-.hero h1{animation:flick 8s steps(1) infinite}
-
-/* HERO */
-.hero{position:relative;min-height:88svh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:6rem 1.5rem 4rem;overflow:hidden}
-#stars{position:absolute;inset:0;z-index:0}
-.hero__glow{position:absolute;top:-30%;left:50%;transform:translateX(-50%);width:120vmax;height:90vmax;z-index:0;
-  background:radial-gradient(ellipse at 50% 40%,rgba(45,212,255,.12),rgba(110,168,255,.05) 40%,transparent 70%)}
-.hero__inner{position:relative;z-index:2;width:100%;max-width:900px}
-.kicker{font-family:var(--font-ui);font-weight:700;letter-spacing:.35em;text-transform:uppercase;font-size:.82rem;color:var(--accent)}
-.hero h1{font-family:var(--font-display);font-weight:900;line-height:1;margin:1.2rem 0;font-size:clamp(2.6rem,8vw,6rem);
-  background:linear-gradient(180deg,#fff,var(--accent-2) 70%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero h1 small{display:block;font-size:clamp(1rem,3vw,1.8rem);letter-spacing:.1em;color:var(--text);-webkit-text-fill-color:var(--text);margin-top:.4rem;font-weight:700}
-/* 320er-Phones: „VerseBase" (Orbitron 900) braucht ~300px bei 2.6rem — unter
-   360px Viewport schrumpfen statt mitten im Wort umzubrechen */
-@media(max-width:360px){.hero h1{font-size:2.2rem}}
-.hero p{max-width:60ch;margin:0 auto;color:var(--muted);font-size:clamp(1.05rem,1.6vw,1.25rem)}
-.stat-row{display:flex;gap:2.5rem;justify-content:center;flex-wrap:wrap;margin-top:2.6rem}
-.stat .n{font-family:var(--font-display);font-weight:900;font-size:clamp(1.6rem,4vw,2.4rem);color:var(--accent)}
-.stat .l{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;color:var(--muted)}
-.scrollcue{position:absolute;bottom:1.6rem;left:50%;transform:translateX(-50%);z-index:2;font-family:var(--font-ui);letter-spacing:.2em;text-transform:uppercase;font-size:.72rem;color:var(--muted);animation:bob 2s ease-in-out infinite}
-@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
-
-/* TIMELINE / GRID */
-main{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;padding:2rem clamp(1.25rem,5vw,3rem) 5rem}
-.era{margin:3.5rem 0 1.4rem;display:flex;align-items:center;gap:1.2rem}
-.era h2{font-family:var(--font-display);font-weight:700;font-size:clamp(1.1rem,2.6vw,1.5rem);letter-spacing:.04em;white-space:nowrap}
-.era .yr{font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;color:var(--accent);font-size:.85rem;border:1px solid var(--line);padding:.25rem .7rem;border-radius:2px}
-.era .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
-
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1.2rem}
-.pcard{--c:var(--accent);position:relative;display:flex;flex-direction:column;
-  background-color:var(--surface);
-  background-image:linear-gradient(180deg,rgba(7,10,18,.80),rgba(7,10,18,.93)),var(--img,none);
-  background-size:cover;background-position:center;
-  border:1px solid var(--line);border-radius:6px;padding:1.6rem 1.5rem;overflow:hidden;min-height:200px;transition:transform .25s,border-color .25s,box-shadow .25s}
-.pcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c);z-index:2}
-.pcard::after{content:"";position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,var(--c),transparent 70%);opacity:.16;transition:opacity .25s}
-.pcard:hover{transform:translateY(-5px);border-color:var(--c);box-shadow:0 14px 40px -12px var(--c)}
-.pcard:hover::after{opacity:.3}
-.pcard>*{position:relative;z-index:1}
-.pcard .ver{font-family:var(--font-display);font-weight:900;font-size:1.9rem;color:var(--c);letter-spacing:.01em;text-shadow:0 2px 12px rgba(0,0,0,.6)}
-.pcard .date{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;color:var(--muted);margin-top:.2rem}
-.pcard .name{font-family:var(--font-ui);font-weight:700;font-size:1.18rem;margin-top:.9rem;color:var(--text);text-shadow:0 1px 8px rgba(0,0,0,.7)}
-.pcard .desc{color:var(--text);opacity:.82;font-size:.92rem;margin-top:.4rem;flex:1;text-shadow:0 1px 6px rgba(0,0,0,.7)}
-.pcard .go{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.75rem;color:var(--c);margin-top:1.1rem;display:inline-flex;gap:.4rem;align-items:center}
-.pcard .go .ar{transition:transform .2s}
-.pcard:hover .go .ar{transform:translateX(5px)}
-.pcard .badge{position:absolute;top:1.2rem;right:1.3rem;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--c);border:1px solid var(--c);padding:.15rem .45rem;border-radius:2px;background:rgba(0,0,0,.45)}
-
-footer{border-top:1px solid var(--line);padding:3rem clamp(1.25rem,5vw,3rem);text-align:center}
-footer .disclaimer{max-width:80ch;margin:0 auto;font-size:.78rem;color:var(--muted);opacity:.75}
-footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:uppercase;font-size:.75rem;color:var(--muted);margin-bottom:1rem}
-
-.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
-.reveal.in{opacity:1;transform:none}
-/* Hero-Rhythmus (REGISTRATUR): Erzählung oben, Archiv-Umfang unten */
-.vp{max-width:60ch;margin:.8rem auto 0;color:var(--text);font-weight:500;font-size:clamp(1.15rem,2vw,1.3rem)}
-.hero-rule{width:min(560px,80%);height:1px;background:var(--line);margin:1.6rem auto}
-.hero-lower{display:flex;flex-direction:column;align-items:center;gap:1.4rem}
-@media(min-width:768px){.hero-lower{flex-direction:row;justify-content:center;align-items:center;gap:3rem}}
-.fresh{display:inline-flex;align-items:center;gap:.7rem;padding:.55rem 1rem;border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);font-family:var(--font-ui);font-weight:600;font-size:1rem;color:var(--text);transition:background-color .15s}
-.fresh:hover{background:color-mix(in srgb,var(--accent) 14%,transparent)}
-.fresh__dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
-.fresh__tag{font-family:var(--font-ui);font-weight:800;font-size:0.78rem;letter-spacing:.18em;text-transform:uppercase;background:var(--accent);color:var(--bg);padding:.16rem .5rem;flex:none}
-.fresh__txt{text-align:left;max-width:44ch}
-.stat-row{margin-top:0;border-top:2px solid var(--accent);border-bottom:1px solid var(--line);padding:1.2rem 1.6rem;gap:2.5rem}
-.stat .n{font-size:clamp(1.8rem,3.5vw,2.4rem);font-variant-numeric:tabular-nums}
-.stat .l{font-weight:700;letter-spacing:.16em;font-size:0.78rem}
-
-/* Schlüsselthemen — kuratiertes Inhaltsverzeichnis, keine Karten-Wand */
-.ktgrid{display:grid;grid-template-columns:1fr;gap:.9rem}
-@media(min-width:768px){.ktgrid{grid-template-columns:1fr 1fr;gap:.9rem 1.4rem}}
-.ktcard{--c:var(--accent);display:grid;grid-template-columns:2.2rem 1fr;gap:0 .9rem;padding:1.1rem 1.3rem;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);transition:background-color .15s,border-color .15s}
-.ktcard:hover{background:color-mix(in srgb,var(--c) 6%,transparent);border-color:color-mix(in srgb,var(--c) 55%,transparent);border-left-color:var(--c)}
-.ktnum{font-family:var(--font-display);font-weight:700;font-size:0.88rem;color:color-mix(in srgb,var(--c) 70%,transparent);padding-top:.3rem}
-.ktbody{display:flex;flex-direction:column;gap:.1rem;min-width:0}
-.ktcard b{font-family:var(--font-ui);font-weight:700;font-size:1.25rem;color:var(--text)}
-.ktbadge{font-family:var(--font-ui);font-weight:700;font-size:0.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.ktcard p{color:var(--muted);font-size:1rem;line-height:1.5;margin-top:.3rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-
-/* Themen-Hub — Registratur-Verzeichnis statt Karten-Wand */
-.hub{display:flex;flex-direction:column;gap:1.2rem}
-.hubgroup{border:1px solid var(--line);padding:1rem 1.3rem}
-.hubhead{display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--line);padding-bottom:.5rem;margin-bottom:.6rem}
-.hubsw{width:8px;height:8px;flex:none}
-.hubline{font-family:var(--font-ui);font-weight:700;font-size:0.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text)}
-.hubn{font-family:var(--font-ui);font-weight:700;font-size:0.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.hubrows{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 1.5rem}
-.hubrows a{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;padding:.4rem .3rem;border-bottom:1px solid rgba(255,255,255,.08);transition:background-color .15s,color .15s}
-.hubrows a:hover{color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,transparent)}
-.hubrows .ht{font-weight:500;font-size:1rem}
-.hubrows .hv{font-family:var(--font-ui);font-weight:700;font-size:0.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-
-@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
-
-</style>
-<a class="skip" href="#archiv">Zum Archiv springen</a>
-<div class="cursorglow" aria-hidden="true"></div>
+<a class="skip" href="#tools">Zu den Werkzeugen springen</a>
 
 <SiteNav hasEn={true} />
 
 <header class="hero">
-  <canvas id="stars" aria-hidden="true"></canvas>
-  <div class="hero__glow" aria-hidden="true"></div>
+  <div class="hero__img" style={`--hero:url('${HERO_IMG}')`} aria-hidden="true"></div>
+  <div class="hero__scrim" aria-hidden="true"></div>
   <div class="hero__inner">
-    <h1>VerseBase<small>Das Star-Citizen-Kompendium · Alpha {latest.data.version}</small></h1>
-    <p class="vp">Item-Preise & Fundorte, Mining-Daten, Blueprints, Wikelo-Trades, Schiffe — und das komplette Patch-Archiv der Alpha-4-Ära. Game-akkurat, aus den Spieldaten.</p>
-    <button class="hero-search" type="button" data-scs-open aria-label="Suche öffnen">
-      <span class="hs__prompt" aria-hidden="true">&gt;_</span>
-      <span class="hs__hint">Items, Schiffe, Patches, Themen durchsuchen…</span>
-      <span class="hs__kbd" aria-hidden="true"><kbd>Strg</kbd><kbd>K</kbd></span>
+    <span class="hero__kicker">Inoffizielles Kompendium · Alpha {latest.data.version}</span>
+    <h1>VerseBase</h1>
+    <p class="hero__lede">Item-Preise & Fundorte, Mining-Daten, Blueprints, Wikelo-Trades und Schiffe — game-akkurat aus den Spieldateien. Plus das komplette Patch-Archiv der Alpha-4-Ära.</p>
+    <button class="hero__search" type="button" data-scs-open aria-label="Suche öffnen">
+      <span class="p" aria-hidden="true">&gt;_</span>
+      <span class="h">Items, Schiffe, Patches, Themen durchsuchen…</span>
+      <span class="k" aria-hidden="true"><kbd>Strg</kbd><kbd>K</kbd></span>
     </button>
-    <div class="hero-lower">
-      <a class="fresh" href={`/patches/sc-${latest.id}.html`}>
-        <span class="fresh__dot" aria-hidden="true"></span>
-        <span class="fresh__tag">Neu</span>
-        <span class="fresh__txt">Alpha {latest.data.version} · {latest.data.dateDisplay} — {latest.data.tagline}</span>
-      </a>
-      <div class="stat-row">
-        <div class="stat"><div class="n">{fmt(nItems)}</div><div class="l">Items</div></div>
-        <div class="stat"><div class="n">{fmt(nBlueprints)}</div><div class="l">Blueprints</div></div>
-        <div class="stat"><div class="n">{nShips}</div><div class="l">Schiffe</div></div>
-        <div class="stat"><div class="n">{patchCount}</div><div class="l">Patches</div></div>
-      </div>
-    </div>
-    <div class="tgrid" aria-label="Werkzeuge & Datenbanken">
-      <a class="tcard" style="--c:#FF5E1A" href="/item-finder.html">
-        <b>Item Finder</b>
-        <p>{fmt(nItems)} Items aus den Spieldateien — {fmt(nSourced)} mit Kaufpreisen, Fundorten und Loot-Guides.</p>
-        <span class="tgo">Öffnen →</span>
-      </a>
-      <a class="tcard" style="--c:#2dd4ff" href="/topics/mining.html">
-        <b>Mining</b>
-        <p>{nMinerals} Mineralien game-genau — plus Signatur-Scanner, Fracturing-Rechner und Refinery-Finder.</p>
-        <span class="tgo">Öffnen →</span>
-      </a>
-      <a class="tcard" style="--c:#e8771a" href="/topics/crafting.html">
-        <b>Crafting & Blueprints</b>
-        <p>{fmt(nBlueprints)} Blueprints mit Zutaten, Item-Werten, Qualitäts-Simulation und Fabricator-Planer.</p>
-        <span class="tgo">Öffnen →</span>
-      </a>
-      <a class="tcard" style="--c:#1FB8A6" href="/topics/wikelo-emporium.html">
-        <b>Wikelo's Emporium</b>
-        <p>Alle {nTrades} Trades des Banu-Händlers — Materialien, Favor und Belohnungen im Überblick.</p>
-        <span class="tgo">Öffnen →</span>
-      </a>
-      <a class="tcard" style="--c:#6ea8ff" href="/schiffe.html">
-        <b>Schiffs-Datenbank</b>
-        <p>{nShips} Schiffe & Fahrzeuge mit Datenblättern, Komponenten-Loadouts und Ingame-Preisen.</p>
-        <span class="tgo">Öffnen →</span>
-      </a>
-      <a class="tcard" style="--c:#d4af37" href="/evolution.html">
-        <b>Evolution-Matrix</b>
-        <p>Wie sich jedes Spielsystem über {patchCount} Patches entwickelt hat — Systeme × Versionen.</p>
-        <span class="tgo">Öffnen →</span>
-      </a>
+    <div class="hero__stats">
+      <div class="hero__stat"><b>{fmt(nItems)}</b><span>Items</span></div>
+      <div class="hero__stat"><b>{nShips}</b><span>Schiffe</span></div>
+      <div class="hero__stat"><b>{fmt(nBlueprints)}</b><span>Blueprints</span></div>
+      <div class="hero__stat"><b>{patchCount}</b><span>Patches</span></div>
     </div>
   </div>
-  <div class="scrollcue" aria-hidden="true">Archiv ↓</div>
+  <div class="hero__cue" aria-hidden="true">Werkzeuge ↓</div>
 </header>
 
-<div class="marquee" aria-hidden="true">
-  <div class="marquee__track">
-    <span>4.0 DESTINATION PYRO</span><span class="dot">◆</span><span>4.2 STORM BREAKER</span><span class="dot">◆</span><span>4.3 DARK TERRITORY</span><span class="dot">◆</span><span>4.4 WELCOME TO NYX</span><span class="dot">◆</span><span>4.5 DAWN OF ENGINEERING</span><span class="dot">◆</span><span>4.6 LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>4.7 WELCOME TO THE ROCK</span><span class="dot">◆</span><span>4.8 TACTICAL STRIKE</span><span class="dot">◆</span>
-    <span>4.0 DESTINATION PYRO</span><span class="dot">◆</span><span>4.2 STORM BREAKER</span><span class="dot">◆</span><span>4.3 DARK TERRITORY</span><span class="dot">◆</span><span>4.4 WELCOME TO NYX</span><span class="dot">◆</span><span>4.5 DAWN OF ENGINEERING</span><span class="dot">◆</span><span>4.6 LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>4.7 WELCOME TO THE ROCK</span><span class="dot">◆</span><span>4.8 TACTICAL STRIKE</span><span class="dot">◆</span>
-  </div>
-</div>
+<main>
+  <!-- WERKZEUGE — das Herzstück -->
+  <section class="sec" id="tools">
+    <div class="sec__head">
+      <h2>Werkzeuge &amp; Datenbanken</h2>
+      <span class="tag">Sofort startklar</span>
+      <span class="rule"></span>
+    </div>
+    <div class="tools">
+      {tools.map((t) => (
+        <a class="tool" style={`--c:${t.accent}`} href={t.href}>
+          <span class="tool__ico" aria-hidden="true"><svg viewBox="0 0 24 24" set:html={ICONS[t.icon]} /></span>
+          <span class="tool__name">{t.name}</span>
+          <span class="tool__metric"><b>{t.metric}</b><span>{t.metricLabel}</span></span>
+          <span class="tool__desc">{t.desc}</span>
+          <span class="tool__go">Öffnen <span class="ar">→</span></span>
+        </a>
+      ))}
+    </div>
+  </section>
 
-<main id="archiv">
-
-  <!-- SCHLÜSSELTHEMEN (kuratiert, in Patch-Paletten — aus der Datenschicht) -->
-  <div class="era reveal"><h2>Schlüsselthemen</h2><span class="yr">Kuratiert</span><span class="rule"></span></div>
-  <div class="ktgrid reveal">
-    {keyTopics.map((k, i) => (
-      <a class="ktcard" style={`--c:${k!.accent}`} href={`/topics/${k!.slug}.html`}>
-        <span class="ktnum" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-        <span class="ktbody">
-          <b>{k!.title}</b>
-          <span class="ktbadge">Alpha {k!.version}</span>
-          <p>{k!.desc}</p>
-        </span>
-      </a>
-    ))}
-  </div>
-
-  <div class="era reveal"><h2>Pyro-Ära</h2><span class="yr">2024 – 2025</span><span class="rule"></span></div>
-  <div class="grid">
-    <a class="pcard reveal" style="--c:#ff5a1f;--img:url('/assets/trailer-4-0-0.jpg')" href="/patches/sc-4-0-0.html"><span class="badge">Major</span><div class="ver">4.0.0</div><div class="date">19. Dez 2024</div><div class="name">Destination Pyro</div><div class="desc">Server Meshing & das gesetzlose Pyro-System.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#36c5d8;--img:url('/assets/trailer-4-0-0.jpg')" href="/patches/sc-4-0-1.html"><div class="ver">4.0.1</div><div class="date">28. Jan 2025</div><div class="name">Stabilität & Save Stanton II</div><div class="desc">Crash-Fixes und das nächste Kapitel des Fraktions-Narrativs.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#e8771a;--img:url('/assets/t-pyro-3.jpg')" href="/patches/sc-4-0-2.html"><div class="ver">4.0.2</div><div class="date">28. Feb 2025</div><div class="name">Supply or Die</div><div class="desc">Pyros gnadenloser Zwei-Fraktionen-Nachschubkrieg.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-  </div>
-
-  <div class="era reveal"><h2>Sturm & Stahl</h2><span class="yr">2025</span><span class="rule"></span></div>
-  <div class="grid">
-    <a class="pcard reveal" style="--c:#3da5d9;--img:url('/assets/trailer-4-1-0.jpg')" href="/patches/sc-4-1-0.html"><div class="ver">4.1.0</div><div class="date">27. Mär 2025</div><div class="name">Orbital Assault</div><div class="desc">Orbitale Laserplattformen & tiefes Asteroiden-Mining („Align &amp; Mine").</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#ff7a1a;--img:url('/assets/trailer-4-1-0.jpg')" href="/patches/sc-4-1-1.html"><div class="ver">4.1.1</div><div class="date">13. Mai 2025</div><div class="name">Balancing &amp; Fleet Week</div><div class="desc">Waffen-Tuning, Recoil und „Hunt The Polaris".</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#36e2f0;--img:url('/assets/trailer-4-2-0.jpg')" href="/patches/sc-4-2-0.html"><span class="badge">Major</span><div class="ver">4.2.0</div><div class="date">19. Jun 2025</div><div class="name">Storm Breaker</div><div class="desc">In den Sturm hinein — dynamischer Regen & Strahlung.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#2ea36a;--img:url('/assets/img-meteor.jpg')" href="/patches/sc-4-2-1.html"><div class="ver">4.2.1</div><div class="date">17. Jul 2025</div><div class="name">Resource Drive</div><div class="desc">Kooperatives Konvoi-Event & die RSI Meteor.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-  </div>
-
-  <div class="era reveal"><h2>Onyx & Heilung</h2><span class="yr">2025</span><span class="rule"></span></div>
-  <div class="grid">
-    <a class="pcard reveal" style="--c:#e8a317;--img:url('/assets/trailer-4-3-0.jpg')" href="/patches/sc-4-3-0.html"><span class="badge">Major</span><div class="ver">4.3.0</div><div class="date">16. Aug 2025</div><div class="name">Dark Territory</div><div class="desc">Personal Hangars als Heimathafen & die Onyx Facilities.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#1faa8c;--img:url('/assets/trailer-4-3-1.jpg')" href="/patches/sc-4-3-1.html"><div class="ver">4.3.1</div><div class="date">18. Sep 2025</div><div class="name">Virtue's Descent</div><div class="desc">RSI Apollo & der große Medical-Overhaul.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#b5642a;--img:url('/assets/img-paladin.jpg')" href="/patches/sc-4-3-2.html"><div class="ver">4.3.2</div><div class="date">16. Okt 2025</div><div class="name">Fractured Frontiers</div><div class="desc">Salvage-Rework, Bosskampf & Frontier-Fighters-Finale.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-  </div>
-
-  <div class="era reveal"><h2>Neue Horizonte</h2><span class="yr">2025 – 2026</span><span class="rule"></span></div>
-  <div class="grid">
-    <a class="pcard reveal" style="--c:#7fb2d9;--img:url('/assets/trailer-4-4-0.jpg')" href="/patches/sc-4-4-0.html"><span class="badge">Major</span><div class="ver">4.4.0</div><div class="date">19. Nov 2025</div><div class="name">Welcome to Nyx</div><div class="desc">Drittes Sternsystem, erste Vanduul & IAE 2955.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#ffb000;--img:url('/assets/trailer-4-5-0.jpg')" href="/patches/sc-4-5-0.html"><span class="badge">Major</span><div class="ver">4.5.0</div><div class="date">17. Dez 2025</div><div class="name">Dawn of Engineering</div><div class="desc">Engineering, Ship Armor & sich ausbreitendes Feuer.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#7fb80e;--img:url('/assets/trailer-4-6-0.jpg')" href="/patches/sc-4-6-0.html"><span class="badge">Major</span><div class="ver">4.6.0</div><div class="date">29. Jan 2026</div><div class="name">Lifeline for Levski</div><div class="desc">Seuchen-Event, LAMP-Nachtsicht & RSI Hermes.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#ff5e1a;--img:url('/assets/trailer-4-7-0.jpg')" href="/patches/sc-4-7-0.html"><span class="badge">Major</span><div class="ver">4.7.0</div><div class="date">26. Mär 2026</div><div class="name">Welcome to the Rock</div><div class="desc">Crafting & Operation Breaker Stations.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-  </div>
-
-  <div class="era reveal"><h2>Tactical Strike</h2><span class="yr">2026</span><span class="rule"></span></div>
-  <div class="grid">
-    <a class="pcard reveal" style="--c:#e8651e;--img:url('/assets/trailer-4-8-0.jpg')" href="/patches/sc-4-8-0.html"><span class="badge">Major</span><div class="ver">4.8.0</div><div class="date">14. Mai 2026</div><div class="name">Tactical Strike</div><div class="desc">Drake Ironclad & G-Force-Toleranz im Flug.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#36c5d6;--img:url('/assets/trailer-4-8-0.jpg')" href="/patches/sc-4-8-1.html"><div class="ver">4.8.1</div><div class="date">3. Jun 2026</div><div class="name">Defend Location</div><div class="desc">385 Verteidigungsmissionen gegen Bomber-Anflüge.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-    <a class="pcard reveal" style="--c:#1fb8a6;--img:url('/assets/img-railen.jpg')" href="/patches/sc-4-8-2.html"><span class="badge">Aktuell</span><div class="ver">4.8.2</div><div class="date">17. Jun 2026</div><div class="name">Gatac &amp; Alien Week</div><div class="desc">Zwei Alien-Schiffe & First Contact Day.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-  </div>
-
-  <!-- THEMEN-HUB (alle Deep-Dives, aus der Datenschicht) -->
-  <div class="era reveal" id="themen"><h2>Alle Themen</h2><span class="yr">{topicCount} Deep-Dives</span><span class="rule"></span></div>
-  <div class="hub reveal">
-    {hubGroups.map((g) => (
-      <div class="hubgroup">
-        <div class="hubhead">
-          <span class="hubsw" style={`background:${g.accent}`} aria-hidden="true"></span>
-          <span class="hubline">Alpha {g.line}.x</span>
-          <span class="hubn">· {g.topics.length} {g.topics.length === 1 ? 'Eintrag' : 'Einträge'}</span>
-        </div>
-        <div class="hubrows">
-          {g.topics.map((t) => (
-            <a href={`/topics/${t.slug}.html`}>
-              <span class="ht">{t.title}</span>
-              <span class="hv">{t.version}</span>
-            </a>
-          ))}
-        </div>
+  <!-- AKTUELL — neuester Patch -->
+  <section class="sec reveal">
+    <div class="sec__head">
+      <h2>Aktuell im Verse</h2>
+      <span class="tag">Neuester Patch</span>
+      <span class="rule"></span>
+    </div>
+    <a class="fresh" href={`/patches/sc-${latest.id}.html`}>
+      <div class="fresh__body">
+        <span class="fresh__ey"><span class="fresh__dot" aria-hidden="true"></span>Live · {latest.data.dateDisplay}</span>
+        <span class="fresh__ver">Alpha {latest.data.version}</span>
+        <span class="fresh__name">{latest.data.codename ?? latest.data.tagline}</span>
+        <span class="fresh__meta">{latest.data.tagline}</span>
+        <span class="fresh__go">Patch öffnen <span aria-hidden="true">→</span></span>
       </div>
-    ))}
-  </div>
+      <div class="fresh__media" style="background-image:url('/assets/trailer-4-8-0.jpg')" aria-hidden="true"></div>
+    </a>
+  </section>
 
+  <!-- CHRONIK — Patch-Archiv, sekundär -->
+  <section class="sec reveal" id="archiv">
+    <div class="sec__head">
+      <h2>Patch-Chronik</h2>
+      <span class="tag">{patchCount} Patches · Alpha 4.0 → {latest.data.version}</span>
+      <span class="rule"></span>
+    </div>
+
+    <div class="era"><h3>Pyro-Ära</h3><span class="yr">2024 – 2025</span><span class="rule"></span></div>
+    <div class="grid">
+      <a class="pcard" style="--c:#ff5a1f" href="/patches/sc-4-0-0.html"><span class="badge">Major</span><div class="ver">4.0.0</div><div class="date">19. Dez 2024</div><div class="name">Destination Pyro</div><div class="desc">Server Meshing & das gesetzlose Pyro-System.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard" style="--c:#36c5d8" href="/patches/sc-4-0-1.html"><div class="ver">4.0.1</div><div class="date">28. Jan 2025</div><div class="name">Stabilität & Save Stanton II</div><div class="desc">Crash-Fixes und das nächste Kapitel des Fraktions-Narrativs.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard" style="--c:#e8771a" href="/patches/sc-4-0-2.html"><div class="ver">4.0.2</div><div class="date">28. Feb 2025</div><div class="name">Supply or Die</div><div class="desc">Pyros gnadenloser Zwei-Fraktionen-Nachschubkrieg.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    </div>
+
+    <div class="era"><h3>Sturm & Stahl</h3><span class="yr">2025</span><span class="rule"></span></div>
+    <div class="grid">
+      <a class="pcard" style="--c:#3da5d9" href="/patches/sc-4-1-0.html"><div class="ver">4.1.0</div><div class="date">27. Mär 2025</div><div class="name">Orbital Assault</div><div class="desc">Orbitale Laserplattformen & tiefes Asteroiden-Mining.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard" style="--c:#ff7a1a" href="/patches/sc-4-1-1.html"><div class="ver">4.1.1</div><div class="date">13. Mai 2025</div><div class="name">Balancing &amp; Fleet Week</div><div class="desc">Waffen-Tuning, Recoil und „Hunt The Polaris".</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard" style="--c:#36e2f0" href="/patches/sc-4-2-0.html"><span class="badge">Major</span><div class="ver">4.2.0</div><div class="date">19. Jun 2025</div><div class="name">Storm Breaker</div><div class="desc">In den Sturm hinein — dynamischer Regen & Strahlung.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard" style="--c:#2ea36a" href="/patches/sc-4-2-1.html"><div class="ver">4.2.1</div><div class="date">17. Jul 2025</div><div class="name">Resource Drive</div><div class="desc">Kooperatives Konvoi-Event & die RSI Meteor.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    </div>
+
+    <div class="era"><h3>Onyx & Heilung</h3><span class="yr">2025</span><span class="rule"></span></div>
+    <div class="grid">
+      <a class="pcard" style="--c:#e8a317" href="/patches/sc-4-3-0.html"><span class="badge">Major</span><div class="ver">4.3.0</div><div class="date">16. Aug 2025</div><div class="name">Dark Territory</div><div class="desc">Personal Hangars als Heimathafen & die Onyx Facilities.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard" style="--c:#1faa8c" href="/patches/sc-4-3-1.html"><div class="ver">4.3.1</div><div class="date">18. Sep 2025</div><div class="name">Virtue's Descent</div><div class="desc">RSI Apollo & der große Medical-Overhaul.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard" style="--c:#b5642a" href="/patches/sc-4-3-2.html"><div class="ver">4.3.2</div><div class="date">16. Okt 2025</div><div class="name">Fractured Frontiers</div><div class="desc">Salvage-Rework, Bosskampf & Frontier-Fighters-Finale.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    </div>
+
+    <div class="era"><h3>Neue Horizonte</h3><span class="yr">2025 – 2026</span><span class="rule"></span></div>
+    <div class="grid">
+      <a class="pcard" style="--c:#7fb2d9" href="/patches/sc-4-4-0.html"><span class="badge">Major</span><div class="ver">4.4.0</div><div class="date">19. Nov 2025</div><div class="name">Welcome to Nyx</div><div class="desc">Drittes Sternsystem, erste Vanduul & IAE 2955.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard" style="--c:#ffb000" href="/patches/sc-4-5-0.html"><span class="badge">Major</span><div class="ver">4.5.0</div><div class="date">17. Dez 2025</div><div class="name">Dawn of Engineering</div><div class="desc">Engineering, Ship Armor & sich ausbreitendes Feuer.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard" style="--c:#7fb80e" href="/patches/sc-4-6-0.html"><span class="badge">Major</span><div class="ver">4.6.0</div><div class="date">29. Jan 2026</div><div class="name">Lifeline for Levski</div><div class="desc">Seuchen-Event, LAMP-Nachtsicht & RSI Hermes.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard" style="--c:#ff5e1a" href="/patches/sc-4-7-0.html"><span class="badge">Major</span><div class="ver">4.7.0</div><div class="date">26. Mär 2026</div><div class="name">Welcome to the Rock</div><div class="desc">Crafting & Operation Breaker Stations.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    </div>
+
+    <div class="era"><h3>Tactical Strike</h3><span class="yr">2026</span><span class="rule"></span></div>
+    <div class="grid">
+      <a class="pcard" style="--c:#e8651e" href="/patches/sc-4-8-0.html"><span class="badge">Major</span><div class="ver">4.8.0</div><div class="date">14. Mai 2026</div><div class="name">Tactical Strike</div><div class="desc">Drake Ironclad & G-Force-Toleranz im Flug.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard" style="--c:#36c5d6" href="/patches/sc-4-8-1.html"><div class="ver">4.8.1</div><div class="date">3. Jun 2026</div><div class="name">Defend Location</div><div class="desc">385 Verteidigungsmissionen gegen Bomber-Anflüge.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard" style="--c:#1fb8a6" href="/patches/sc-4-8-2.html"><span class="badge">Aktuell</span><div class="ver">4.8.2</div><div class="date">17. Jun 2026</div><div class="name">Gatac &amp; Alien Week</div><div class="desc">Zwei Alien-Schiffe & First Contact Day.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+    </div>
+  </section>
+
+  <!-- ALLE THEMEN — Verzeichnis -->
+  <section class="sec reveal" id="themen">
+    <div class="sec__head">
+      <h2>Alle Themen</h2>
+      <span class="tag">{topicCount} Deep-Dives</span>
+      <span class="rule"></span>
+    </div>
+    <div class="hub">
+      {hubGroups.map((g) => (
+        <div class="hubgroup">
+          <div class="hubhead">
+            <span class="hubsw" style={`background:${g.accent}`} aria-hidden="true"></span>
+            <span class="hubline">Alpha {g.line}.x</span>
+            <span class="hubn">· {g.topics.length} {g.topics.length === 1 ? 'Eintrag' : 'Einträge'}</span>
+          </div>
+          <div class="hubrows">
+            {g.topics.map((t) => (
+              <a href={`/topics/${t.slug}.html`}>
+                <span class="ht">{t.title}</span>
+                <span class="hv">{t.version}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="intro-note">VerseBase ist ein inoffizielles Fan-Projekt und steht in keiner Verbindung zu Cloud Imperium Games. Alle Daten stammen aus den Spieldateien und öffentlichen Community-Quellen; Preise und Fundorte sind Patch-volatil.</p>
+  </section>
 </main>
+
 <script is:inline>
-
-const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});
-document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-addEventListener('pointermove',e=>{document.documentElement.style.setProperty('--mx',e.clientX+'px');document.documentElement.style.setProperty('--my',e.clientY+'px');},{passive:true});
-(function(){
-  const c=document.getElementById('stars');if(!c)return;const x=c.getContext('2d');let w,h,st;
-  function size(){w=c.width=innerWidth;h=c.height=Math.max(document.querySelector('.hero').offsetHeight,1);
-    st=Array.from({length:Math.min(180,Math.floor(w/8))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.4+.2,a:Math.random(),s:Math.random()*.015+.003}));}
-  function tick(){x.clearRect(0,0,w,h);for(const s of st){s.a+=s.s;const o=.25+Math.abs(Math.sin(s.a))*.75;x.globalAlpha=o;x.fillStyle='#bcd4ff';x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}
-  size();addEventListener('resize',size);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)tick();
-})();
-
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }), { threshold: .08 });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
 </script>
 </Layout>
