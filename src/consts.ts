@@ -7,8 +7,8 @@
 // `site` in astro.config.mjs anpassen (canonical/hreflang/og hängen daran).
 export const SITE = {
   name: 'VerseBase',
-  url: 'https://cibakhun.github.io',
+  url: 'https://versebase.space',
   defaultDescription:
-    'VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv von Alpha 4.0.0 bis 4.8.2. Game-akkurat, zweisprachig, ein Fan-Projekt.',
+    'VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv von Alpha 4.0.0 bis 4.8.3. Game-akkurat, zweisprachig, ein Fan-Projekt.',
   locale: 'de',
 } as const;

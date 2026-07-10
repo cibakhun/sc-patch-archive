@@ -18,7 +18,7 @@ const ONEPAGER_DIR = path.join(ROOT, 'public', 'onepager');
 const OUT_DIR = path.join(ROOT, 'public', 'downloads');
 // Produktions-Basis für absolute /assets/-Verweise (Webfonts). Bei Domain-
 // wechsel hier + in src/consts.ts / astro.config.mjs anpassen.
-const PROD_BASE = 'https://cibakhun.github.io';
+const PROD_BASE = 'https://versebase.space';
 
 const MIME = {
   '.png': 'image/png',
