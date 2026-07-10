@@ -2,14 +2,18 @@
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
+import { mediaLabel } from '../../lib/downloadLabels';
 import fs from 'node:fs';
 import path from 'node:path';
 
 // Media library: every image in public/assets (top level), read at build time.
 // Videos/loops and fonts are intentionally excluded (images only). One-pagers
-// ship as self-contained offline HTML from scripts/build-downloads.mjs.
+// ship as self-contained offline HTML from scripts/build-downloads.mjs. Previews
+// are small WebP thumbs from scripts/build-thumbs.mjs (public/assets/thumb/) —
+// the tile shows the thumb, the download link points at the original.
 const IMG_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.svg', '.gif']);
 const assetsDir = path.join(process.cwd(), 'public', 'assets');
+const thumbDir = path.join(assetsDir, 'thumb');
 const files = fs.existsSync(assetsDir)
   ? fs.readdirSync(assetsDir).filter((f) => IMG_EXT.has(path.extname(f).toLowerCase()))
   : [];
@@ -18,8 +22,13 @@ const bytesOf = (f) => fs.statSync(path.join(assetsDir, f)).size;
 const fmtSize = (b) =>
   b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
 
+const thumbOf = (f) => {
+  const t = f.replace(/\.[^.]+$/, '') + '.webp';
+  return fs.existsSync(path.join(thumbDir, t)) ? `/assets/thumb/${t}` : `/assets/${f}`;
+};
+
 const CATS = [
-  { id: 'ships', label: 'Ships', match: (f) => f.startsWith('img-') },
+  { id: 'ships', label: 'Ships & subjects', match: (f) => f.startsWith('img-') },
   { id: 'video', label: 'Video stills', match: (f) => f.startsWith('vid-') },
   { id: 'trailer', label: 'Patch trailers', match: (f) => f.startsWith('trailer-') },
   { id: 'cz', label: 'Contested Zones', match: (f) => f.startsWith('cz-') },
@@ -32,7 +41,18 @@ const groups = CATS.map((c) => ({
   items: files
     .filter((f) => c.match(f))
     .filter((f) => !CATS.some((o) => o !== c && CATS.indexOf(o) < CATS.indexOf(c) && o.match(f)))
-    .sort((a, b) => a.localeCompare(b)),
+    .sort((a, b) => a.localeCompare(b))
+    .map((f) => {
+      const l = mediaLabel(f, 'en');
+      return {
+        file: f,
+        thumb: thumbOf(f),
+        size: fmtSize(bytesOf(f)),
+        title: l.title,
+        sub: l.sub,
+        key: `${l.title} ${l.sub} ${f}`.toLowerCase(),
+      };
+    }),
 })).filter((g) => g.items.length > 0);
 
 const totalImgs = files.length;
@@ -67,8 +87,10 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
   description={desc}
   themeColor="#0a1014"
   ogType="article"
+  ogImage="/assets/t-hangar-1.jpg"
   translated={true}
 >
+  <link slot="head" rel="stylesheet" href="/assets/detail.css" />
   <style is:inline>
     :root {
       --bg: #0a1014;
@@ -77,85 +99,60 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
       --surface-2: #16232c;
       --accent: #2dd4ff;
       --accent-2: #5ff0c4;
+      --hot: #ff6b5f;
       --text: #e8f1f6;
       --muted: #8ea6b3;
       --line: rgba(45, 212, 255, 0.18);
       --line-soft: rgba(232, 241, 246, 0.1);
       --glow: 0 0 44px rgba(45, 212, 255, 0.22);
+      --ink: #05090c;
       --maxw: 1240px;
     }
-    .reveal { opacity: 1 !important; transform: none !important; }
-
-    .hero {
-      position: relative;
-      padding: 8.5rem clamp(1.25rem, 5vw, 4rem) 2.6rem;
-      background: radial-gradient(120% 90% at 82% 8%, rgba(45, 212, 255, 0.14), transparent 60%),
-        radial-gradient(90% 80% at 8% 96%, rgba(95, 240, 196, 0.1), transparent 55%), var(--bg);
-      border-bottom: 1px solid var(--line);
-    }
-    .hero__in { max-width: var(--maxw); margin-inline: auto; }
-    .eyebrow {
-      font-family: var(--font-ui, sans-serif);
-      font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-      font-size: 0.72rem; color: var(--accent-2);
-    }
+    /* Hero title: bright teal fill without the dark gradient end the shared
+       detail.css applies (accent×#000 goes near-black in teal) + shadow for the
+       photo behind it. Mirrors the Mining readability fix. */
     .hero h1 {
-      font-family: var(--font-display, sans-serif);
-      font-weight: 700; line-height: 0.95; margin: 0.5rem 0 0.8rem;
-      font-size: clamp(2.6rem, 9vw, 6.4rem); color: var(--text);
+      background: linear-gradient(180deg, #fff, #7fe8ff 58%, var(--accent));
+      -webkit-background-clip: text; background-clip: text;
+      filter: drop-shadow(0 3px 20px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 30px rgba(45, 212, 255, 0.4));
     }
-    .hero h1 .thin { display: block; font-weight: 400; opacity: 0.55; font-size: 0.42em; letter-spacing: 0.14em; text-transform: uppercase; }
-    .lead { max-width: 68ch; font-size: 1.05rem; line-height: 1.6; color: var(--muted); }
-    .lead b { color: var(--text); }
+
     .qbar {
-      display: flex; flex-wrap: wrap; gap: 0.5rem 1.6rem; margin-top: 1.4rem;
-      font-family: var(--font-ui, sans-serif); font-weight: 700; letter-spacing: 0.12em;
-      text-transform: uppercase; font-size: 0.74rem; color: var(--muted);
+      display: flex; flex-wrap: wrap; gap: 0.5rem 1.6rem; margin-top: 1.5rem;
+      font-family: var(--font-ui); font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; font-size: 0.76rem; color: var(--muted);
     }
     .qbar b { color: var(--accent); }
 
-    main { max-width: var(--maxw); margin-inline: auto; padding: 0 clamp(1.25rem, 5vw, 4rem); }
-    .sec { padding: 2.6rem 0 0.6rem; }
-    .sec__head {
-      display: flex; align-items: baseline; gap: 0.8rem; flex-wrap: wrap;
-      border-bottom: 1px solid var(--line-soft); padding-bottom: 0.6rem; margin-bottom: 1.3rem;
-    }
-    .sec__head h2 {
-      font-family: var(--font-display, sans-serif); font-weight: 700;
-      font-size: 1.5rem; color: var(--text); margin: 0;
-    }
-    .sec__head .cnt {
-      font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.75rem;
-      letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent);
-    }
-    .sec__intro { color: var(--muted); font-size: 0.95rem; max-width: 70ch; margin: -0.6rem 0 1.3rem; }
+    .sec-intro { color: var(--muted); font-size: 1rem; line-height: 1.6; max-width: 72ch; margin: -0.6rem 0 1.6rem; }
+    .sec-intro b { color: var(--text); }
 
     .ops { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.1rem; }
     .op {
       display: flex; flex-direction: column; border: 1px solid var(--line);
       background: linear-gradient(180deg, var(--surface), var(--bg-2));
-      padding: 1.3rem 1.4rem; box-shadow: var(--glow);
+      padding: 1.4rem 1.5rem; box-shadow: var(--glow);
       transition: transform 0.18s, border-color 0.18s;
     }
     .op:hover { transform: translateY(-2px); border-color: var(--accent); }
     .op__kx {
-      font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.68rem;
+      font-family: var(--font-ui); font-weight: 700; font-size: 0.68rem;
       letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-2);
     }
-    .op__title { font-family: var(--font-display, sans-serif); font-weight: 700; font-size: 1.55rem; color: var(--text); margin: 0.3rem 0 0.15rem; }
-    .op__tag { font-family: var(--font-ui, sans-serif); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-    .op__desc { color: var(--muted); font-size: 0.95rem; line-height: 1.55; margin: 0.7rem 0 1.1rem; flex: 1; }
+    .op__title { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; color: var(--text); margin: 0.4rem 0 0.15rem; }
+    .op__tag { font-family: var(--font-ui); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .op__desc { color: var(--muted); font-size: 0.95rem; line-height: 1.55; margin: 0.8rem 0 1.2rem; flex: 1; }
     .op__actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
     .op__dl {
-      display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-ui, sans-serif);
+      display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-ui);
       font-weight: 700; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase;
-      color: var(--bg); background: var(--accent); padding: 0.6rem 1rem; border: 1px solid var(--accent);
+      color: var(--ink); background: var(--accent); padding: 0.6rem 1rem; border: 1px solid var(--accent);
       transition: background-color 0.15s;
     }
     .op__dl:hover { background: var(--accent-2); border-color: var(--accent-2); }
     .op__dl em { font-style: normal; opacity: 0.75; font-weight: 600; }
     .op__view {
-      display: inline-flex; align-items: center; gap: 0.35rem; font-family: var(--font-ui, sans-serif);
+      display: inline-flex; align-items: center; gap: 0.35rem; font-family: var(--font-ui);
       font-weight: 700; font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase;
       color: var(--accent); padding: 0.55rem 0.9rem; border: 1px solid var(--line);
     }
@@ -163,48 +160,66 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
     .op__hint { margin-top: 0.9rem; font-size: 0.8rem; color: var(--muted); opacity: 0.85; }
 
     .tools {
-      position: sticky; top: 0; z-index: 60; margin-top: 2.4rem;
+      position: sticky; top: 3rem; z-index: 60; margin-bottom: 1.6rem;
       display: flex; flex-wrap: wrap; gap: 0.7rem 1rem; align-items: center;
-      padding: 0.9rem 0; background: linear-gradient(180deg, var(--bg) 70%, transparent);
+      padding: 0.9rem 0; background: linear-gradient(180deg, var(--bg) 72%, transparent);
     }
     .tsearch {
       display: flex; align-items: center; gap: 0.5rem; flex: 1 1 220px; min-width: 0;
-      border: 1px solid var(--line); background: var(--surface); padding: 0.55rem 0.8rem;
+      border: 1px solid var(--line); background: var(--surface); padding: 0.6rem 0.85rem;
     }
     .tsearch input {
       flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--text);
-      font-family: var(--font-ui, sans-serif); font-size: 0.95rem;
+      font-family: var(--font-ui); font-size: 0.95rem;
     }
     .tsearch svg { flex: none; color: var(--muted); }
     .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
     .chip {
-      font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.72rem;
+      font-family: var(--font-ui); font-weight: 700; font-size: 0.72rem;
       letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
-      border: 1px solid var(--line); background: var(--surface); padding: 0.42rem 0.7rem;
+      border: 1px solid var(--line); background: var(--surface); padding: 0.44rem 0.72rem;
       cursor: pointer; transition: color 0.15s, border-color 0.15s, background-color 0.15s;
     }
     .chip:hover { color: var(--accent); border-color: var(--accent); }
-    .chip[aria-pressed='true'] { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+    .chip[aria-pressed='true'] { color: var(--ink); background: var(--accent); border-color: var(--accent); }
     .chip b { opacity: 0.6; font-weight: 700; }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.9rem; }
+    .catblock + .catblock { margin-top: 2.4rem; }
+    .catblock__head { display: flex; align-items: baseline; gap: 0.7rem; margin-bottom: 1.1rem; }
+    .catblock__head h3 {
+      font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; color: var(--text); margin: 0;
+    }
+    .catblock__head .cnt {
+      font-family: var(--font-ui); font-weight: 700; font-size: 0.72rem;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent);
+    }
+    .catblock__head .rule { flex: 1; height: 1px; background: var(--line-soft); }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.9rem; }
     .dl {
       display: flex; flex-direction: column; border: 1px solid var(--line-soft);
       background: var(--surface); position: relative; overflow: hidden;
-      transition: border-color 0.15s, transform 0.15s;
+      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
     }
-    .dl:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .dl:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.8); }
     .dl__thumb { aspect-ratio: 16 / 10; background: #05090c; overflow: hidden; }
-    .dl__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .dl__meta { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.5rem 0.6rem; }
+    .dl__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+    .dl:hover .dl__thumb img { transform: scale(1.04); }
+    .dl__meta { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.55rem 0.65rem 0.2rem; }
+    .dl__txt { min-width: 0; }
     .dl__name {
-      font-family: var(--font-ui, sans-serif); font-size: 0.76rem; color: var(--text);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+      display: block; font-family: var(--font-ui); font-weight: 700; font-size: 0.82rem; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .dl__size { font-family: var(--font-ui, sans-serif); font-size: 0.7rem; color: var(--muted); flex: none; }
+    .dl__sub { display: block; font-family: var(--font-ui); font-size: 0.7rem; color: var(--accent-2); letter-spacing: 0.04em; }
+    .dl__size { font-family: var(--font-ui); font-size: 0.7rem; color: var(--muted); flex: none; align-self: flex-start; padding-top: 0.15rem; }
+    .dl__file {
+      font-family: var(--font-mono, monospace); font-size: 0.66rem; color: var(--muted);
+      opacity: 0.6; padding: 0 0.65rem 0.55rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
     .dl__ic {
       position: absolute; top: 0.5rem; right: 0.5rem; display: grid; place-items: center;
-      width: 30px; height: 30px; font-size: 1rem; color: var(--bg); background: var(--accent);
+      width: 30px; height: 30px; font-size: 1rem; color: var(--ink); background: var(--accent);
       opacity: 0; transform: translateY(-4px); transition: opacity 0.15s, transform 0.15s;
     }
     .dl:hover .dl__ic, .dl:focus-visible .dl__ic { opacity: 1; transform: none; }
@@ -216,9 +231,14 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
       color: var(--muted); font-size: 0.9rem; line-height: 1.6;
     }
     .usage b { color: var(--text); }
+
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    }
   </style>
 
-  <a class="skip" href="#main" style="position:absolute;left:-999px;top:0">Skip to content</a>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="cursorglow" aria-hidden="true"></div>
 
   <SiteNav
     crumbs={[{ label: 'Archive', href: '/en.html' }, { label: 'Downloads' }]}
@@ -228,13 +248,16 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
 
   <main id="main">
     <section class="hero">
+      <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-hangar-1.jpg')" aria-hidden="true"></div>
+      <canvas id="stars" aria-hidden="true"></canvas>
+      <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
       <div class="hero__in">
         <div class="eyebrow">VerseBase · Media archive</div>
         <h1><span class="thin">Downloads</span>Media &amp; One-Pagers</h1>
         <p class="lead">
           Every image asset used on the site, ready to <b>download</b> — ship renders, topic imagery and
           patch-trailer stills. Plus the visual <b>one-pager guides</b> as a self-contained, offline-ready
-          HTML file (images embedded, nothing to unzip).
+          HTML file.
         </p>
         <div class="qbar">
           <span>Images <b>{totalImgs}</b></span>
@@ -242,94 +265,108 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
           <span>Formats <b>JPG · PNG · WEBP</b></span>
         </div>
       </div>
+      <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
     </section>
 
     {ONEPAGERS.length > 0 && (
-      <section class="sec">
-        <div class="sec__head">
-          <h2>One-pager guides</h2>
-          <span class="cnt">{ONEPAGERS.length} · offline HTML</span>
-        </div>
-        <p class="sec__intro">
-          A single HTML file per guide — every image embedded. Download, double-click, read offline.
-          Nothing to unzip.
-        </p>
-        <div class="ops">
-          {ONEPAGERS.map((o) => (
-            <article class="op">
-              <span class="op__kx">One-pager · offline HTML</span>
-              <h3 class="op__title">{o.title}</h3>
-              <span class="op__tag">{o.tag}</span>
-              <p class="op__desc">{o.desc}</p>
-              <div class="op__actions">
-                <a class="op__dl" href={`/downloads/${o.file}`} download>
-                  <span aria-hidden="true">⭳</span> Download <em>{fmtSize(o.bytes)}</em>
-                </a>
-                <a class="op__view" href={`/onepager/${o.slug}/index.html`} target="_blank" rel="noopener">
-                  View <span aria-hidden="true">↗</span>
-                </a>
-              </div>
-              <p class="op__hint">Standalone HTML file · works offline in the browser.</p>
-            </article>
-          ))}
+      <section id="onepager">
+        <div class="wrap">
+          <div class="sec-head reveal">
+            <span class="num">01</span>
+            <h2>One-pager guides</h2>
+            <span class="rule"></span>
+          </div>
+          <p class="sec-intro reveal">
+            A single HTML file per guide — <b>every image embedded</b>. Download, double-click, read offline.
+            Nothing to unzip.
+          </p>
+          <div class="ops">
+            {ONEPAGERS.map((o) => (
+              <article class="op reveal">
+                <span class="op__kx">One-pager · offline HTML</span>
+                <h3 class="op__title">{o.title}</h3>
+                <span class="op__tag">{o.tag}</span>
+                <p class="op__desc">{o.desc}</p>
+                <div class="op__actions">
+                  <a class="op__dl" href={`/downloads/${o.file}`} download>
+                    <span aria-hidden="true">⭳</span> Download <em>{fmtSize(o.bytes)}</em>
+                  </a>
+                  <a class="op__view" href={`/onepager/${o.slug}/index.html`} target="_blank" rel="noopener">
+                    View <span aria-hidden="true">↗</span>
+                  </a>
+                </div>
+                <p class="op__hint">Standalone HTML file · works offline in the browser.</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
     )}
 
-    <section class="sec" id="media">
-      <div class="sec__head">
-        <h2>Image media</h2>
-        <span class="cnt">{totalImgs} files</span>
-      </div>
-      <p class="sec__intro">
-        Every image is downloadable on its own. Filter by category or type part of a filename.
-      </p>
-
-      <div class="tools" role="search">
-        <label class="tsearch">
-          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2" /><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
-          <input type="search" id="dlq" placeholder="Filter by filename …" aria-label="Filter images" autocomplete="off" />
-        </label>
-        <div class="chips" id="dlchips">
-          <button class="chip" type="button" data-cat="all" aria-pressed="true">All <b>{totalImgs}</b></button>
-          {groups.map((g) => (
-            <button class="chip" type="button" data-cat={g.id} aria-pressed="false">{g.label} <b>{g.items.length}</b></button>
-          ))}
+    <section id="media">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <span class="num">02</span>
+          <h2>Image media</h2>
+          <span class="rule"></span>
         </div>
-      </div>
+        <p class="sec-intro reveal">
+          <b>{totalImgs} images</b>, each downloadable on its own. Filter by category or type a name, topic
+          or filename.
+        </p>
 
-      {groups.map((g) => (
-        <div class="catblock" data-cat={g.id}>
-          <div class="sec__head" style="margin-top:1.6rem">
-            <h2 style="font-size:1.15rem">{g.label}</h2>
-            <span class="cnt">{g.items.length}</span>
-          </div>
-          <div class="grid">
-            {g.items.map((f) => (
-              <a class="dl" href={`/assets/${f}`} download data-name={f.toLowerCase()}>
-                <span class="dl__thumb"><img src={`/assets/${f}`} alt={f} loading="lazy" decoding="async" /></span>
-                <span class="dl__meta">
-                  <span class="dl__name">{f}</span>
-                  <span class="dl__size">{fmtSize(bytesOf(f))}</span>
-                </span>
-                <span class="dl__ic" aria-hidden="true">⭳</span>
-              </a>
+        <div class="tools" role="search">
+          <label class="tsearch">
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2" /><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
+            <input type="search" id="dlq" placeholder="Search — topic, ship or filename …" aria-label="Filter images" autocomplete="off" />
+          </label>
+          <div class="chips" id="dlchips">
+            <button class="chip" type="button" data-cat="all" aria-pressed="true">All <b>{totalImgs}</b></button>
+            {groups.map((g) => (
+              <button class="chip" type="button" data-cat={g.id} aria-pressed="false">{g.label} <b>{g.items.length}</b></button>
             ))}
           </div>
         </div>
-      ))}
-      <p class="grid--empty" id="dlempty" hidden>No file matches your filter.</p>
 
-      <p class="usage">
-        <b>Usage note.</b> These images come from Star Citizen game data and Comm-Links
-        © Cloud Imperium Games, as well as community sources. Use is covered by the official
-        Fan Content guidelines — non-commercial only.
-      </p>
+        {groups.map((g) => (
+          <div class="catblock" data-cat={g.id}>
+            <div class="catblock__head">
+              <h3>{g.label}</h3>
+              <span class="cnt">{g.items.length}</span>
+              <span class="rule"></span>
+            </div>
+            <div class="grid">
+              {g.items.map((it) => (
+                <a class="dl" href={`/assets/${it.file}`} download data-name={it.key}>
+                  <span class="dl__thumb"><img src={it.thumb} alt={it.title} loading="lazy" decoding="async" /></span>
+                  <span class="dl__meta">
+                    <span class="dl__txt">
+                      <span class="dl__name">{it.title}</span>
+                      {it.sub && <span class="dl__sub">{it.sub}</span>}
+                    </span>
+                    <span class="dl__size">{it.size}</span>
+                  </span>
+                  <span class="dl__file">{it.file}</span>
+                  <span class="dl__ic" aria-hidden="true">⭳</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+        <p class="grid--empty" id="dlempty" hidden>No file matches your filter.</p>
+
+        <p class="usage">
+          <b>Usage note.</b> These images come from Star Citizen game data and Comm-Links
+          © Cloud Imperium Games, as well as community sources. Use is covered by the official
+          Fan Content guidelines — non-commercial only.
+        </p>
+      </div>
     </section>
   </main>
 
   <Attribution sources={['starcitizen.tools', 'RSI', 'CIG game data']} />
 
+  <script is:inline src="/assets/detail.js"></script>
   <script is:inline>
     (function () {
       var q = document.getElementById('dlq');

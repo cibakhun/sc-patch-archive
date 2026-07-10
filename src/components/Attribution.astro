@@ -27,6 +27,8 @@ const creditText = credit ?? t('footer.credit');
     <a href={L('/impressum.html')}>{t('footer.imprint')}</a>
     <span aria-hidden="true">·</span>
     <a href={L('/datenschutz.html')}>{t('footer.privacy')}</a>
+    <span aria-hidden="true">·</span>
+    <a href={L('/feedback.html')}>{t('footer.feedback')}</a>
   </nav>
   <div class="credit">{creditText}</div>
   {sources.length > 0 && <div class="srcs">{t('footer.sources')}: {sources.join(' · ')}</div>}

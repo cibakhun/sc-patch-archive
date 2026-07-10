@@ -1,0 +1,60 @@
+---
+// Feedback — thin EN wrapper (mirror of /feedback.html, same slug so the
+// language switcher pairs them). Hero + copy here, form logic in the shared
+// <FeedbackForm> component. Signature look via detail.css/detail.js.
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import Attribution from '../../components/Attribution.astro';
+import FeedbackForm from '../../components/FeedbackForm.astro';
+---
+<Layout
+  title={'Feedback | VerseBase'}
+  description={'Send us feedback on VerseBase: report a bug, suggest an improvement, fix a wrong data value — or just say thanks. Short message, optional rating, optional reply address.'}
+  themeColor="#0f0b06"
+  ogType="article"
+  ogImage="/assets/t-def-1.jpg"
+  translated={true}
+>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+/* Feedback theme — community hub in amber/gold (warm -> ember field active) */
+:root{--bg:#0f0b06;--bg-2:#161009;--surface:#1b130a;--surface-2:#241a0f;--accent:#f0a830;--accent-2:#ffd27a;--hot:#f0a830;--text:#f4ede0;--muted:#b6a892;--line:rgba(240,168,48,.20);--line-soft:rgba(244,237,224,.10);--glow:0 0 46px rgba(240,168,48,.24);--ink:#140d05;--maxw:1180px;}
+.reveal{opacity:1 !important;transform:none !important}
+.hero__in{max-width:var(--maxw)}
+.fbwrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(1.25rem,5vw,4rem) 1rem}
+.sec-head{max-width:var(--maxw);margin:0 auto 1.8rem;padding:0 clamp(1.25rem,5vw,4rem)}
+</style>
+<a class="skip" href="#main">Skip to content</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archive', href: '/en/archiv.html' }, { label: 'Feedback' }]} pill={"CONTACT"} hasEn={true} />
+
+<main id="main">
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-def-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
+    <div class="hero__in">
+      <div class="eyebrow">VerseBase · Community line</div>
+      <h1><span class="thin">Your voice counts</span>Feedback</h1>
+      <p class="lead">Found a bug, got an idea, spotted a wrong value in the data — or just want to say thanks? A direct line to the team.</p>
+      <div class="tags">
+        <span class="tag">Only the message is required</span>
+        <span class="tag">No login needed</span>
+        <span class="tag">GDPR-compliant</span>
+      </div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
+  </section>
+
+  <div class="sec-head reveal"><span class="num">01</span><h2>Write to us</h2><span class="rule"></span></div>
+
+  <div class="fbwrap">
+    <FeedbackForm lang="en" />
+  </div>
+</main>
+
+<Attribution sources={[]} />
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

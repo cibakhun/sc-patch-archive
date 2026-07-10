@@ -1,0 +1,339 @@
+---
+// Geteilte Feedback-Form — die EINE Quelle für Markup, Style und Verhalten des
+// Formulars (analog ItemFinderApp/MiningApp/CraftingApp). DE- und EN-Seite sind
+// dünne Wrapper, die nur Hero + Copy tragen und <FeedbackForm lang="…" /> mounten.
+//
+// Kein Backend: POST an Web3Forms (s. src/consts.ts). Reply-To = die optionale
+// User-Mail. Progressive Enhancement: nativer POST ohne JS, mit JS Inline-UI.
+// Demo-Modus (Platzhalter-Key): validiert + zeigt Erfolgs-UI, sendet nichts.
+import { FEEDBACK, FEEDBACK_DEMO } from '../consts';
+
+interface Props {
+  lang: 'de' | 'en';
+}
+const { lang } = Astro.props;
+
+// Seiten-spezifische Copy (kein wiederkehrender Chrome -> lokal, nicht im UI-Katalog).
+const COPY = {
+  de: {
+    rate: 'Bewertung', optional: '— optional', clear: 'zurücksetzen',
+    star: (n: number) => `${n} ${n === 1 ? 'Stern' : 'Sterne'}`,
+    msg: 'Deine Nachricht', req: 'Pflichtfeld',
+    msgPh: 'Was möchtest du uns mitteilen? Je konkreter (Seite, Schiff, Wert …), desto besser.',
+    email: 'E-Mail für Rückfragen', emailPh: 'dein@beispiel.de',
+    emailHint: 'Nur nötig, wenn du eine Antwort möchtest. Wir nutzen sie ausschließlich zur Rückmeldung auf dein Feedback.',
+    send: 'Feedback senden', sending: 'Wird gesendet …',
+    privacyPre: 'Mit dem Absenden stimmst du der Verarbeitung laut', privacy: 'Datenschutzerklärung', privacyHref: '/datenschutz.html#feedback', privacyPost: 'zu.',
+    demoTitle: 'Demo-Modus.', demoBody: 'Das Formular ist noch nicht mit dem Versand-Dienst verbunden — Abschicken zeigt die Bestätigung, verschickt aber noch nichts.',
+    doneTitle: 'Danke für dein Feedback!',
+    doneMail: 'Deine Nachricht ist angekommen — wir melden uns bei %e%.',
+    doneNo: 'Deine Nachricht ist bei uns angekommen. Vielen Dank!',
+    again: 'Weiteres Feedback senden',
+    errShort: 'Bitte schreib eine kurze Nachricht (mindestens 5 Zeichen).',
+    errFail: 'Senden fehlgeschlagen. Bitte später erneut versuchen oder per E-Mail an krysx141@gmail.com.',
+    errNet: 'Netzwerkfehler — Senden nicht möglich. Bitte später erneut versuchen oder per E-Mail an krysx141@gmail.com.',
+    ratingField: 'Bewertung',
+  },
+  en: {
+    rate: 'Rating', optional: '— optional', clear: 'clear',
+    star: (n: number) => `${n} ${n === 1 ? 'star' : 'stars'}`,
+    msg: 'Your message', req: 'required',
+    msgPh: 'What would you like to tell us? The more specific (page, ship, value …), the better.',
+    email: 'E-mail for follow-up', emailPh: 'you@example.com',
+    emailHint: "Only needed if you'd like a reply. We use it solely to respond to your feedback.",
+    send: 'Send feedback', sending: 'Sending …',
+    privacyPre: 'By submitting you agree to the processing described in our', privacy: 'privacy policy', privacyHref: '/en/datenschutz.html#feedback', privacyPost: '.',
+    demoTitle: 'Demo mode.', demoBody: "The form isn't connected to the delivery service yet — submitting shows the confirmation but doesn't send anything.",
+    doneTitle: 'Thanks for your feedback!',
+    doneMail: "Your message reached us — we'll reply to %e%.",
+    doneNo: 'Your message reached us. Thank you!',
+    again: 'Send more feedback',
+    errShort: 'Please write a short message (at least 5 characters).',
+    errFail: 'Sending failed. Please try again later or e-mail krysx141@gmail.com.',
+    errNet: 'Network error — could not send. Please try again later or e-mail krysx141@gmail.com.',
+    ratingField: 'Rating',
+  },
+}[lang];
+
+const stars = [1, 2, 3, 4, 5];
+---
+
+<div class="fbx reveal">
+  {FEEDBACK_DEMO && (
+    <p class="fbx-demo"><b>{COPY.demoTitle}</b> {COPY.demoBody}</p>
+  )}
+
+  <form
+    id="fbForm"
+    class="fbx-card"
+    action={FEEDBACK.endpoint}
+    method="POST"
+    data-endpoint={FEEDBACK.endpoint}
+    data-demo={FEEDBACK_DEMO ? '1' : '0'}
+    data-field-rating={COPY.ratingField}
+    data-msg-short={COPY.errShort}
+    data-msg-fail={COPY.errFail}
+    data-msg-net={COPY.errNet}
+    data-send={COPY.send}
+    data-sending={COPY.sending}
+    data-done-no={COPY.doneNo}
+    novalidate
+  >
+    <input type="hidden" name="access_key" value={FEEDBACK.web3formsKey} />
+    <input type="hidden" name="subject" value={FEEDBACK.subject} />
+    <input type="hidden" name="from_name" value="VerseBase Feedback" />
+    <label class="fbx-hp" aria-hidden="true">Leave blank<input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" /></label>
+
+    <div class="fbx-field">
+      <div class="fbx-lhead">
+        <span class="fbx-label" id="fbRateLbl">{COPY.rate} <span class="opt">{COPY.optional}</span></span>
+        <button type="button" class="fbx-clear" id="fbClear" hidden>{COPY.clear}</button>
+      </div>
+      <div class="fbx-stars" role="radiogroup" aria-labelledby="fbRateLbl">
+        {stars.map((n) => (
+          <label class="fbx-star" data-v={n}>
+            <input type="radio" name="rating_val" value={n} aria-label={COPY.star(n)} />
+            <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5 9.5l6.6-.9z"/></svg>
+          </label>
+        ))}
+        <span class="fbx-rateout" id="fbRateOut" aria-live="polite"></span>
+      </div>
+    </div>
+
+    <div class="fbx-field">
+      <label class="fbx-label" for="fbMsg">{COPY.msg} <span class="reqm" title={COPY.req}>*</span></label>
+      <textarea class="fbx-input fbx-textarea" id="fbMsg" name="message" required minlength="5" placeholder={COPY.msgPh}></textarea>
+    </div>
+
+    <div class="fbx-field">
+      <label class="fbx-label" for="fbMail">{COPY.email} <span class="opt">{COPY.optional}</span></label>
+      <input class="fbx-input" id="fbMail" name="email" type="email" autocomplete="email" placeholder={COPY.emailPh} />
+      <p class="fbx-hint">{COPY.emailHint}</p>
+    </div>
+
+    <div class="fbx-actions">
+      <button class="fbx-submit" type="submit" id="fbBtn">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        <span id="fbBtnTxt">{COPY.send}</span>
+      </button>
+      <span class="fbx-privacy">{COPY.privacyPre} <a href={COPY.privacyHref}>{COPY.privacy}</a> {COPY.privacyPost}</span>
+    </div>
+
+    <p class="fbx-status" id="fbStatus" role="alert" aria-live="assertive" hidden></p>
+  </form>
+
+  <div class="fbx-done" id="fbDone" hidden>
+    <div class="fbx-done__mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2 id="fbDoneTitle" tabindex="-1">{COPY.doneTitle}</h2>
+    <p id="fbDoneMsg" data-mail={COPY.doneMail}>{COPY.doneNo}</p>
+    <button class="fbx-done__again" type="button" id="fbAgain">{COPY.again}</button>
+  </div>
+</div>
+
+<style>
+  .fbx { max-width: 760px; margin: 0 auto; }
+
+  .fbx-card {
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--surface), var(--bg-2));
+    padding: clamp(1.3rem, 4vw, 2.3rem);
+    box-shadow: 0 30px 80px -34px rgba(0, 0, 0, 0.92), var(--glow, 0 0 0 transparent);
+  }
+
+  .fbx-demo {
+    margin: 0 0 1.4rem; border: 1px solid var(--line-soft); border-left: 3px solid var(--accent-2);
+    background: color-mix(in srgb, var(--accent-2) 8%, transparent); padding: 0.85rem 1.05rem;
+    font-size: 0.88rem; color: var(--muted); line-height: 1.55;
+  }
+  .fbx-demo b { color: var(--text); }
+
+  .fbx-field { margin-bottom: 1.5rem; }
+  .fbx-field:last-of-type { margin-bottom: 0; }
+  .fbx-lhead { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+  .fbx-label {
+    display: block; font-family: var(--font-ui, sans-serif); font-weight: 700;
+    font-size: 0.82rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text); margin-bottom: 0.55rem;
+  }
+  .fbx-label .opt { color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: none; }
+  .fbx-label .reqm { color: var(--accent); }
+  .fbx-hint { font-size: 0.85rem; color: var(--muted); margin: 0.45rem 0 0; line-height: 1.5; }
+
+  .fbx-clear {
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    font-family: var(--font-ui, sans-serif); font-size: 0.74rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; padding: 0; transition: color 0.15s;
+  }
+  .fbx-clear:hover { color: var(--accent); }
+
+  .fbx-input, .fbx-textarea {
+    width: 100%; box-sizing: border-box; background: rgba(0, 0, 0, 0.35); color: var(--text);
+    border: 1px solid var(--line); padding: 0.72rem 0.9rem;
+    font-family: var(--font-ui, sans-serif); font-size: 1rem; line-height: 1.5;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .fbx-input::placeholder, .fbx-textarea::placeholder { color: color-mix(in srgb, var(--muted) 82%, transparent); }
+  .fbx-textarea { resize: vertical; min-height: 8.5rem; }
+  .fbx-input:focus, .fbx-textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+  .fbx-input:user-invalid, .fbx-textarea:user-invalid { border-color: #ff7a7a; }
+
+  /* ---- Sterne (natürliche Reihenfolge -> Tastatur = Optik; JS-Füllung) ---- */
+  .fbx-stars { display: inline-flex; align-items: center; gap: 0.2rem; }
+  .fbx-star { cursor: pointer; line-height: 0; }
+  .fbx-star input {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .fbx-star svg { fill: color-mix(in srgb, var(--text) 16%, transparent); transition: fill 0.12s, transform 0.12s; }
+  .fbx-star:hover svg { transform: scale(1.12); }
+  .fbx-star.on svg { fill: var(--accent-2); }
+  .fbx-star input:focus-visible + svg { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .fbx-rateout { font-size: 0.85rem; color: var(--muted); margin-left: 0.7rem; }
+
+  .fbx-hp { position: absolute; left: -9999px; opacity: 0; height: 0; overflow: hidden; }
+
+  .fbx-actions { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; margin-top: 1.9rem; }
+  .fbx-submit {
+    display: inline-flex; align-items: center; gap: 0.55rem;
+    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.9rem;
+    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+    color: var(--ink, #05070d); background: var(--accent); border: 1px solid var(--accent);
+    padding: 0.82rem 1.6rem; transition: filter 0.15s, opacity 0.15s;
+  }
+  .fbx-submit:hover { filter: brightness(1.08); }
+  .fbx-submit[disabled] { opacity: 0.6; cursor: progress; }
+  .fbx-privacy { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+  .fbx-privacy a { color: var(--accent); border-bottom: 1px solid var(--line); }
+
+  .fbx-status { margin-top: 1.1rem; font-size: 0.92rem; line-height: 1.5; color: #ff8a8a; }
+
+  /* ---- Erfolgs-Panel ---- */
+  .fbx-done { text-align: center; padding: 1.8rem 0.5rem; }
+  .fbx-done__mark {
+    width: 66px; height: 66px; margin: 0 auto 1.2rem; border-radius: 50%;
+    display: grid; place-items: center; color: var(--ink, #05070d); background: var(--accent-2);
+    box-shadow: 0 0 44px color-mix(in srgb, var(--accent-2) 45%, transparent);
+  }
+  .fbx-done h2 {
+    font-family: var(--font-display, sans-serif); font-weight: 900; color: var(--text);
+    font-size: clamp(1.5rem, 4vw, 2rem); margin: 0 0 0.55rem; outline: none;
+  }
+  .fbx-done p { color: var(--muted); font-size: 1rem; line-height: 1.6; margin: 0 auto; max-width: 44ch; }
+  .fbx-done__again {
+    margin-top: 1.4rem; display: inline-flex; font-family: var(--font-ui, sans-serif); font-weight: 700;
+    font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent);
+    border: 1px solid var(--line); padding: 0.62rem 1.15rem; cursor: pointer; background: none;
+    transition: border-color 0.15s, background-color 0.15s;
+  }
+  .fbx-done__again:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+</style>
+
+<script is:inline>
+  (function () {
+    var form = document.getElementById('fbForm');
+    if (!form) return;
+    var btn = document.getElementById('fbBtn');
+    var btnTxt = document.getElementById('fbBtnTxt');
+    var status = document.getElementById('fbStatus');
+    var done = document.getElementById('fbDone');
+    var doneTitle = document.getElementById('fbDoneTitle');
+    var doneMsg = document.getElementById('fbDoneMsg');
+    var again = document.getElementById('fbAgain');
+    var rateOut = document.getElementById('fbRateOut');
+    var clear = document.getElementById('fbClear');
+    var starEls = [].slice.call(form.querySelectorAll('.fbx-star'));
+    var radios = [].slice.call(form.querySelectorAll('input[name=rating_val]'));
+    var demo = form.getAttribute('data-demo') === '1';
+    var endpoint = form.getAttribute('data-endpoint');
+    var D = {
+      field: form.getAttribute('data-field-rating'),
+      short: form.getAttribute('data-msg-short'),
+      fail: form.getAttribute('data-msg-fail'),
+      net: form.getAttribute('data-msg-net'),
+      send: form.getAttribute('data-send'),
+      sending: form.getAttribute('data-sending'),
+      doneNo: form.getAttribute('data-done-no'),
+    };
+
+    function selected() { var r = form.querySelector('input[name=rating_val]:checked'); return r ? +r.value : 0; }
+    function paint(v) {
+      starEls.forEach(function (el) { el.classList.toggle('on', +el.getAttribute('data-v') <= v); });
+    }
+    function render() {
+      var v = selected();
+      paint(v);
+      rateOut.textContent = v ? v + '/5' : '';
+      clear.hidden = !v;
+    }
+    radios.forEach(function (r) { r.addEventListener('change', render); });
+    // Hover-Vorschau (natürliche Reihenfolge -> keine CSS-Geschwister-Tricks nötig)
+    starEls.forEach(function (el) {
+      var v = +el.getAttribute('data-v');
+      el.addEventListener('mouseenter', function () { paint(v); });
+    });
+    form.querySelector('.fbx-stars').addEventListener('mouseleave', function () { paint(selected()); });
+    clear.addEventListener('click', function () {
+      radios.forEach(function (r) { r.checked = false; });
+      render();
+    });
+
+    function setStatus(msg) { status.textContent = msg || ''; status.hidden = !msg; }
+
+    function showDone(email) {
+      form.hidden = true;
+      doneMsg.textContent = email ? doneMsg.getAttribute('data-mail').replace('%e%', email) : D.doneNo;
+      done.hidden = false;
+      done.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      try { doneTitle.focus(); } catch (e) {}
+    }
+
+    again.addEventListener('click', function () {
+      done.hidden = true;
+      form.reset();
+      render();
+      setStatus('');
+      form.hidden = false;
+      document.getElementById('fbMsg').focus();
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      setStatus('');
+      var msg = form.message.value.trim();
+      if (msg.length < 5) { setStatus(D.short); form.message.focus(); return; }
+      var email = (form.email.value || '').trim();
+      var v = selected();
+
+      if (demo) { showDone(email); return; }
+
+      var payload = {
+        access_key: form.access_key.value,
+        subject: form.subject.value,
+        from_name: form.from_name.value,
+        botcheck: form.botcheck.checked,
+        message: msg,
+      };
+      if (email) payload.email = email;
+      if (v) payload[D.field] = v + '/5';
+
+      btn.disabled = true;
+      btnTxt.textContent = D.sending;
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          if (res.ok && res.j && res.j.success) showDone(email);
+          else setStatus((res.j && res.j.message) || D.fail);
+        })
+        .catch(function () { setStatus(D.net); })
+        .finally(function () { btn.disabled = false; btnTxt.textContent = D.send; });
+    });
+  })();
+</script>
