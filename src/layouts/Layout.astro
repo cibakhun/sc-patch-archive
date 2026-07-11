@@ -76,6 +76,27 @@ const enHref = base + pathForLocale(Astro.url.pathname, 'en');
   {ogImageAbs && <meta property="og:image" content={ogImageAbs} />}
   <meta name="twitter:card" content="summary_large_image" />
   {ogImageAbs && <meta name="twitter:image" content={ogImageAbs} />}
+  {/* Strukturierte Daten (JSON-LD): sagt Suchmaschinen, dass alle Seiten zu
+      EINEM Werk gehören (WebSite + Fan-Projekt als Herausgeber). Rein additiv —
+      ändert nichts am sichtbaren HTML, hilft aber bei Sitelinks/Wissensgraph. */}
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: SITE.name,
+      url: base + '/',
+      inLanguage: HTML_LANG[lang],
+      description: SITE.defaultDescription,
+      publisher: {
+        '@type': 'Organization',
+        name: SITE.name,
+        url: base + '/',
+      },
+    })}
+  />
+
   {/* Webfonts selbst gehostet (scripts/fetch-fonts.mjs) — kein Google-CDN,
       keine IP-Übertragung an Dritte beim Seitenaufruf (DSGVO). */}
   <link rel="preload" href="/assets/fonts/orbitron-700-latin.woff2" as="font" type="font/woff2" crossorigin />
