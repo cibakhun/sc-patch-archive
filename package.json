@@ -19,6 +19,7 @@
     "datamine:mining": "node scripts/datamine-mining.mjs",
     "datamine:locations": "node scripts/datamine-locations.mjs",
     "sync:extras": "node scripts/sync-fleetyards-extras.mjs",
+    "extract:hardpoints": "node scripts/extract-hardpoints.mjs",
     "sync:items": "node scripts/build-universal-db.mjs",
     "sync:item-prices": "node scripts/fetch-uex-item-prices.mjs && node scripts/build-universal-db.mjs",
     "verify:items": "node scripts/verify-item-prices.mjs",
