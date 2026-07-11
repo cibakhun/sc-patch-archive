@@ -11,8 +11,8 @@ import { existsSync } from 'node:fs';
 
 // Nur Trade-Fotos zeigen, deren Bilddatei tatsächlich vorliegt (Build-Zeit-
 // Check gegen public/assets). Fehlt sie, greift der Kategorie-Icon-Fallback —
-// so bleiben keine toten /assets/wk-*.jpg-Referenzen (Publish-Gate).
-const hasAsset = (name: string) => existsSync(`public/assets/${name}.jpg`);
+// so bleiben keine toten /assets/wk-*-Referenzen (Publish-Gate).
+const hasAsset = (name: string) => existsSync(`public/assets/${name}`);
 
 // Item-Finder-Brücke: Namen mit Item-Match werden schon im Markup als klickbar
 // markiert (data-item = kanonischer DB-Name) — sichtbar ohne Client-DB-Load.
@@ -53,7 +53,8 @@ const COMP_LABEL = { pwr: 'Antrieb', shield: 'Schild', qd: 'Quantum', cooler: 'K
 // VOLLSTÄNDIGE Trade-Liste (63 Trades) — Quelle: wikelotrades.com (scrape_wikelo.py),
 // Patch 4.8.1, Stand 2026-06-04. Materialien/Favor faithful aus der Tracker-Datei
 // PATCH_4_8_1.js übernommen (inkl. Original-Schreibweisen). Nichts erfunden; Werte patch-volatil.
-// `img` = verifiziertes Schiff-Bild (/assets/<img>.jpg); ohne img → Kategorie-Icon-Fallback.
+// `img` = Belohnungs-Foto inkl. Endung (/assets/<img>, z. B. wk-atls.png), verifiziert
+//         vom Star-Citizen-Wiki (starcitizen.tools, CC-BY-SA); ohne img → Kategorie-Icon-Fallback.
 // TRADES wird aus assets/wikelo-trades.json importiert (gemeinsam DE/EN;
 // liegt in /assets, damit auch der Item Finder sie clientseitig laden kann).
 
@@ -134,6 +135,10 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-get{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.5rem;border-left:1px solid var(--line-soft);padding-left:.7rem}
 .wk-get-media{width:100%;aspect-ratio:16/10;overflow:hidden;border:1px solid var(--line);background:linear-gradient(150deg,var(--surface-2),var(--bg-2));position:relative}
 .wk-get-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease}
+/* Hochformatige Renders (Rüstungs-Ganzkörper, ATLS-Exosuit) würden unter cover
+   zu einem Mittelstreifen beschnitten — contain zeigt die ganze Figur, mittig
+   auf dem dunklen Karten-Gradienten (transparente PNGs wirken so wie gewollt). */
+.wk-get-media.is-contain img{object-fit:contain;padding:6px;box-sizing:border-box}
 .wk-tc:hover .wk-get-media img{transform:scale(1.05)}
 .wk-get-media--ph{display:grid;place-items:center;color:var(--accent);padding:12px}
 .wk-tc[data-cat="conv"] .wk-get-media--ph{color:var(--accent-2)}
@@ -300,7 +305,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
             <div class="wk-get">
               <div class="wk-side-h">Bekomm</div>
               {t.img && showImg[ti]
-                ? (<div class="wk-get-media"><img src={`/assets/${t.img}.jpg`} alt={t.name} loading="lazy" decoding="async" /></div>)
+                ? (<div class:list={['wk-get-media', (t.cat === 'armor' || (t.img ?? '').startsWith('wk-atls')) && 'is-contain']}><img src={`/assets/${t.img}`} alt={t.name} loading="lazy" decoding="async" /></div>)
                 : (<div class="wk-get-media wk-get-media--ph" aria-hidden="true" set:html={ICON[CAT_ICON[t.cat]]}></div>)}
               <div class:list={['wk-get-name', matchItemName(t.get ?? t.name) && 'wk-linkable']} {...linkAttrs(t.get ?? t.name)}>{t.get ?? t.name}</div>
             </div>
