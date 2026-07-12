@@ -105,13 +105,22 @@ const stageStats: { label: string; value: string }[] = [
 type HoloPort = {
   k: string; g: string; p: number[];
   label: string | null; size: number | null;
+  /** lab: dauerhaft sichtbare Beschriftung (nur Kern-Komponenten) */
+  lab?: string;
   /** np: nicht physicalisiert · est: Position geschätzt · dim: gedämpfter Marker-Stil */
   np?: boolean; est?: boolean; dim?: boolean;
 };
+// Alle Hardpoint-Ebenen sind verfügbar; standardmäßig sichtbar sind nur
+// Komponenten + Bewaffnung, den Rest (Antrieb, Sonstiges) schaltet der Nutzer
+// per Filter selbst zu — nichts wird künstlich entfernt.
 const HOLO_GRP: Record<string, string> = {
   power: 'core', shield: 'core', cooler: 'core', quantum: 'core', radar: 'core',
   turret: 'arms', missile: 'arms', weapon: 'arms',
+  thruster_main: 'prop', thruster_retro: 'prop', thruster_vtol: 'prop', thruster_mav: 'prop',
+  fuel: 'other', countermeasure: 'other',
 };
+const HOLO_GRP_ORDER = ['core', 'arms', 'prop', 'other'] as const;
+const HOLO_DEFAULT_ON = ['core', 'arms'];
 const holoShip = (holoMarkersSnapshot as any).ships?.[id] ?? null;
 const gameMesh = (holoMeshesSnapshot as any).meshes?.[id] ?? null;
 const gameHp = gameMesh ? ((shipHardpointsSnapshot as any).ships?.[id] ?? null) : null;
@@ -119,7 +128,7 @@ const hasHolo = !!((gameMesh && gameHp) || (holoUrl && holoShip));
 
 let holoData: {
   url: string | null; mesh: { c: number[]; s: number[] } | null; ax: number[] | null;
-  ports: HoloPort[]; groups: string[]; kinds: Record<string, string>;
+  ports: HoloPort[]; groups: readonly string[]; defaultOn: string[]; kinds: Record<string, string>;
 } | null = null;
 
 if (hasHolo) {
@@ -193,6 +202,7 @@ if (hasHolo) {
       k: hp.k, g, p: hp.p,
       label: mixed ?? item?.name ?? null,
       size: mixed ? null : item?.size ?? null,
+      ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
       ...(est ? { est: true, dim: true } : {}),
     });
   }
@@ -208,18 +218,21 @@ if (hasHolo) {
         k, g: 'core',
         p: [mc[0] + off * ms[0] * 0.3, mc[1], mc[2] + off * ms[2] * 0.3].map((x) => Math.round(x * 100) / 100),
         label: mixedLabel[k] ?? pool[0].name, size: mixedLabel[k] ? null : pool[0].size,
+        lab: t(`holo.kind.${k}` as any),
         np: true, dim: true,
       });
     }
   }
 
   if (holoPorts.length) {
+    const present = new Set(holoPorts.map((p2) => p2.g));
     holoData = {
       url: meshUrl,
       mesh: meshBox,
       ax: axis,
       ports: holoPorts,
-      groups: [...new Set(holoPorts.map((p2) => p2.g))],
+      groups: HOLO_GRP_ORDER.filter((gr) => present.has(gr)),
+      defaultOn: HOLO_DEFAULT_ON.filter((gr) => present.has(gr)),
       kinds: Object.fromEntries([...new Set(holoPorts.map((p2) => p2.k))].map((k) => [k, t(`holo.kind.${k}` as any)])),
     };
   }
@@ -319,6 +332,16 @@ a{color:inherit;text-decoration:none}
   background:color-mix(in srgb,var(--accent) 12%,rgba(5,7,13,.65))}
 .holo__filters button[data-g="arms"][aria-pressed="true"]{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 45%,transparent);
   background:color-mix(in srgb,var(--gold) 10%,rgba(5,7,13,.65))}
+.holo__filters button[data-g="prop"][aria-pressed="true"]{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 45%,transparent);
+  background:color-mix(in srgb,var(--accent-2) 10%,rgba(5,7,13,.65))}
+/* Dauerhafte Komponenten-Beschriftungen (aus 3D projiziert, mit Leader-Line) */
+.holo-lbllayer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:4}
+.holo-lbl{position:absolute;transform:translate(-50%,calc(-100% - 15px));white-space:nowrap;
+  font-family:var(--font-ui);font-weight:700;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);
+  background:rgba(5,7,13,.72);border:1px solid color-mix(in srgb,var(--accent) 38%,transparent);padding:.18rem .45rem;
+  backdrop-filter:blur(3px);text-shadow:0 1px 4px #000;will-change:left,top}
+.holo-lbl::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:15px;transform:translateX(-50%);
+  background:linear-gradient(color-mix(in srgb,var(--accent) 70%,transparent),transparent)}
 /* Komponenten-Detail-Karte (wie im Bord-MFD) */
 .holo__panel{position:absolute;right:clamp(14px,2vw,24px);top:58px;z-index:7;width:min(280px,86%);
   border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);background:rgba(6,10,18,.88);backdrop-filter:blur(6px);
@@ -624,8 +647,9 @@ span.sd__ref{color:var(--muted)}
         <div class="holo__hintline" aria-hidden="true">{t('holo.hint')}</div>
         {holoData && holoData.groups.length > 1 && (
           <div class="holo__filters" id="holofilters" role="group" aria-label={t('holo.filter.aria')} hidden>
-            {holoData.groups.includes('core') && <button type="button" data-g="core" aria-pressed="true">{t('holo.grp.core')}</button>}
-            {holoData.groups.includes('arms') && <button type="button" data-g="arms" aria-pressed="true">{t('holo.grp.arms')}</button>}
+            {holoData.groups.map((gr) => (
+              <button type="button" data-g={gr} aria-pressed={String(holoData!.defaultOn.includes(gr))}>{t(`holo.grp.${gr}` as any)}</button>
+            ))}
           </div>
         )}
         <aside class="holo__panel" id="holopanel" hidden data-np={t('holo.panel.notPhys')} data-est={t('holo.panel.estimated')}>
@@ -656,7 +680,7 @@ span.sd__ref{color:var(--muted)}
       id="holodata"
       is:inline
       set:html={JSON.stringify(
-        holoData ?? { url: holoUrl, mesh: null, ax: null, ports: [], groups: [], kinds: {} }
+        holoData ?? { url: holoUrl, mesh: null, ax: null, ports: [], groups: [], defaultOn: [], kinds: {} }
       ).replace(/</g, '\\u003c')}
     />
   )}
@@ -1192,6 +1216,7 @@ span.sd__ref{color:var(--muted)}
           ports: cfg.ports,
           mesh: cfg.mesh,
           ax: cfg.ax,
+          defaultOn: cfg.defaultOn,
           debug: debug,
           onProgress: function (p) { status.textContent = loadingTpl.replace('%p%', p); },
           onSelect: showPanel,

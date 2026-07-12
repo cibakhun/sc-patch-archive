@@ -183,6 +183,29 @@ export async function initHolo(container, cfg) {
     markers.push(sp);
   }
 
+  // Startsichtbarkeit je Gruppe (Standard: nur core+arms; Rest per Filter zu)
+  if (cfg.defaultOn && cfg.defaultOn.length) {
+    const vis = new Set(cfg.defaultOn);
+    for (const sp of markers) sp.visible = vis.has(sp.userData.port.g);
+  }
+
+  /* ---------- Dauerhafte Beschriftungen (Marker mit port.lab) ---------- */
+  // DOM-Labels, jeden Frame aus 3D auf den Bildschirm projiziert — mit
+  // Leader-Line zum Marker (wie im Mockup). Nur Kern-Komponenten tragen ein lab.
+  const labelLayer = document.createElement('div');
+  labelLayer.className = 'holo-lbllayer';
+  container.appendChild(labelLayer);
+  const labels = [];
+  for (const sp of markers) {
+    if (!sp.userData.port.lab) continue;
+    const el = document.createElement('div');
+    el.className = 'holo-lbl';
+    el.textContent = sp.userData.port.lab;
+    labelLayer.appendChild(el);
+    labels.push({ sp, el, shown: true });
+  }
+  const _lblV = new THREE.Vector3();
+
   /* ---------- Debug: Achsen, BBox, Yaw-Flip (Taste F) ---------- */
   if (cfg.debug) {
     const axes = new THREE.AxesHelper(maxDim * 0.7);
@@ -319,6 +342,19 @@ export async function initHolo(container, cfg) {
     }
     controls.update();
     renderer.render(scene, camera);
+    // Labels aus 3D auf den Bildschirm projizieren (nach dem Render, damit die
+    // Kamera aktuell ist) — nur für sichtbare, vor der Kamera liegende Marker
+    if (labels.length) {
+      const w = W(), h = H();
+      for (const L of labels) {
+        if (!L.sp.visible) { if (L.shown) { L.el.style.display = 'none'; L.shown = false; } continue; }
+        L.sp.getWorldPosition(_lblV).project(camera);
+        if (_lblV.z > 1) { if (L.shown) { L.el.style.display = 'none'; L.shown = false; } continue; }
+        if (!L.shown) { L.el.style.display = ''; L.shown = true; }
+        L.el.style.left = ((_lblV.x * 0.5 + 0.5) * w).toFixed(1) + 'px';
+        L.el.style.top = ((-_lblV.y * 0.5 + 0.5) * h).toFixed(1) + 'px';
+      }
+    }
     requestAnimationFrame(tick);
   })();
 
@@ -339,6 +375,11 @@ export async function initHolo(container, cfg) {
     setFilter(groups) {
       const vis = new Set(groups);
       for (const sp of markers) sp.visible = vis.has(sp.userData.port.g);
+      // Labels sofort mit-schalten (nicht auf den nächsten Frame warten —
+      // der Render-Loop kann pausiert sein, wenn die Bühne aus dem Bild ist)
+      for (const L of labels) {
+        if (!L.sp.visible) { L.el.style.display = 'none'; L.shown = false; }
+      }
       if (selectIdx != null && !vis.has(cfg.ports[selectIdx].g)) {
         selectIdx = null;
         cfg.onSelect?.(null);
@@ -354,6 +395,7 @@ export async function initHolo(container, cfg) {
       controls.dispose();
       renderer.dispose();
       renderer.domElement.remove();
+      labelLayer.remove();
     },
   };
 }
