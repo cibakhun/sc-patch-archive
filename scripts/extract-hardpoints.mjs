@@ -295,9 +295,20 @@ const KINDS = [
   ['weapon', /weapon|_gun(_|$)|cannon/i],
   ['countermeasure', /counter_?measure|cm_?launcher/i],
 ];
+// Neben-Hardpoints sind KEINE verbauten Kern-Komponenten: Steuerpanels
+// (controller_cooler), Cockpit-/Gunner-Sensoren (cockpit_radar, radar_gunner),
+// Turm-Zielradare (radar_turret_*). Extern gegen die SC-Wiki-Loadouts
+// abgeglichen — ohne diese Filterung zählt der Corsair 4 statt 1 Radar.
+const CORE_KIND = new Set(['power', 'shield', 'cooler', 'quantum', 'radar']);
+const SECONDARY_HP = /controller|cockpit|gunner|co[_-]?pilot|_screen|screen|remote_|_turret_/i;
 function kindOf(name) {
   if (!/^hardpoint/i.test(name)) return null;
-  for (const [k, re] of KINDS) if (re.test(name)) return k;
+  for (const [k, re] of KINDS) {
+    if (!re.test(name)) continue;
+    // Kern-Komponenten nur als PRIMÄRES Mount zählen (Datenblatt-Loadout)
+    if (CORE_KIND.has(k) && SECONDARY_HP.test(name)) return null;
+    return k;
+  }
   return null; // Türen, Sitze, Lampen, Landing Gear … — nicht relevant
 }
 
