@@ -109,8 +109,8 @@ type HoloPort = {
   label: string | null; size: number | null;
   /** lab: dauerhaft sichtbare Beschriftung (nur Kern-Komponenten) */
   lab?: string;
-  /** Item-Finder-Anreicherung (Kategorie / günstigster Preis / Kauforte) */
-  cat?: string; price?: number; shops?: number;
+  /** Item-Finder-Anreicherung (Kategorie / günstigster Preis / Kauforte / Item-ID) */
+  cat?: string; price?: number; shops?: number; iid?: string;
   /** np: nicht physicalisiert · est: Position geschätzt · dim: gedämpfter Marker-Stil */
   np?: boolean; est?: boolean; dim?: boolean;
 };
@@ -199,7 +199,7 @@ if (hasHolo) {
   const enrich = (name: string | null | undefined) => {
     const info = itemInfo(name);
     if (!info) return {};
-    return { cat: info.cat, shops: info.shops, ...(info.price != null ? { price: info.price } : {}) };
+    return { cat: info.cat, shops: info.shops, iid: info.id, ...(info.price != null ? { price: info.price } : {}) };
   };
   // Marker -> Loadout joinen
   const holoPorts: HoloPort[] = [];
@@ -1291,10 +1291,12 @@ span.sd__ref{color:var(--muted)}
     row('hpcat', p.cat || null);
     row('hpprice', p.price != null ? p.price.toLocaleString(cfg.loc) + ' ' + (panel.getAttribute('data-auec') || 'aUEC') : null);
     row('hpshops', p.shops ? String(p.shops) : null);
-    // Item-Finder-Link (Suche nach dem Bauteil)
+    // Item-Finder-Link: öffnet die Item-Karte direkt (?item=<id>, die App
+    // liest den Parameter beim Laden). Nur wenn ein konkretes Item gematcht
+    // wurde — bei gemischten/ungematchten Ports gibt es keine Einzelkarte.
     var link = document.getElementById('hplink');
-    if (p.label && cfg.finder) {
-      link.href = cfg.finder + '#q=' + encodeURIComponent(p.label);
+    if (p.iid && cfg.finder) {
+      link.href = cfg.finder + '?item=' + encodeURIComponent(p.iid);
       link.hidden = false;
     } else link.hidden = true;
     var note = document.getElementById('hpnote');
