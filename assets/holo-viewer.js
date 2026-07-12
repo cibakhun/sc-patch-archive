@@ -22,25 +22,66 @@ const GROUP_COLOR = {
   other: 0xa78bfa,
 };
 
-// Marker-Textur: weicher Glow + Ring + Kern (bzw. nur Ring für "geschätzt")
+// Marker-Textur: Ziel-Reticle (Eck-Klammern + Ring + Kern) statt generischem
+// Glüh-Punkt — Cockpit-HUD-Look. hollow = gestrichelt für geschätzte Positionen.
 function markerTexture(colorHex, hollow) {
-  const c = document.createElement('canvas');
-  c.width = c.height = 128;
+  const S = 128, c = document.createElement('canvas');
+  c.width = c.height = S;
   const g = c.getContext('2d');
   const col = `#${colorHex.toString(16).padStart(6, '0')}`;
-  const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-  grad.addColorStop(0, hollow ? 'rgba(255,255,255,.25)' : 'rgba(255,255,255,.95)');
-  grad.addColorStop(0.18, col + (hollow ? '55' : 'ee'));
-  grad.addColorStop(0.4, col + '33');
-  grad.addColorStop(1, col + '00');
-  g.fillStyle = grad;
-  g.fillRect(0, 0, 128, 128);
+  const cx = S / 2, cy = S / 2;
+
+  // weicher Glow-Untergrund
+  const glow = g.createRadialGradient(cx, cy, 0, cx, cy, S / 2);
+  glow.addColorStop(0, col + (hollow ? '30' : '55'));
+  glow.addColorStop(0.5, col + '18');
+  glow.addColorStop(1, col + '00');
+  g.fillStyle = glow;
+  g.fillRect(0, 0, S, S);
+
   g.strokeStyle = col;
-  g.lineWidth = 5;
-  if (hollow) g.setLineDash([10, 7]);
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+
+  // Eck-Klammern eines Ziel-Quadrats
+  const r = 40, arm = 15;
+  g.lineWidth = 7;
+  if (hollow) g.setLineDash([9, 8]);
+  for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const x = cx + sx * r, y = cy + sy * r;
+    g.beginPath();
+    g.moveTo(x - sx * arm, y);
+    g.lineTo(x, y);
+    g.lineTo(x, y - sy * arm);
+    g.stroke();
+  }
+  g.setLineDash([]);
+
+  // dünner Innenring
+  g.lineWidth = 4;
+  g.globalAlpha = 0.75;
   g.beginPath();
-  g.arc(64, 64, 34, 0, Math.PI * 2);
+  g.arc(cx, cy, 20, 0, Math.PI * 2);
   g.stroke();
+  g.globalAlpha = 1;
+
+  // Kern
+  if (hollow) {
+    g.lineWidth = 4;
+    g.beginPath();
+    g.arc(cx, cy, 7, 0, Math.PI * 2);
+    g.stroke();
+  } else {
+    const core = g.createRadialGradient(cx, cy, 0, cx, cy, 11);
+    core.addColorStop(0, '#ffffff');
+    core.addColorStop(0.5, col);
+    core.addColorStop(1, col + '00');
+    g.fillStyle = core;
+    g.beginPath();
+    g.arc(cx, cy, 11, 0, Math.PI * 2);
+    g.fill();
+  }
+
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;

@@ -26,6 +26,7 @@ import holoMarkersSnapshot from '../data/holo-markers.json';
 import holoMeshesSnapshot from '../data/holo-meshes.json';
 import shipHardpointsSnapshot from '../data/ship-hardpoints.json';
 import { itemInfo } from '../lib/holoItems';
+import { HOLO_GRP_ICON, HOLO_ICON } from '../lib/holoIcons';
 
 interface Props {
   d: CollectionEntry<'vehicles'>['data'];
@@ -132,7 +133,7 @@ const hasHolo = !!((gameMesh && gameHp) || (holoUrl && holoShip));
 let holoData: {
   url: string | null; mesh: { c: number[]; s: number[] } | null; ax: number[] | null;
   ports: HoloPort[]; groups: readonly string[]; defaultOn: string[]; kinds: Record<string, string>;
-  grpLabels: Record<string, string>; loc: string; finder: string;
+  grpLabels: Record<string, string>; icons: Record<string, string>; loc: string; finder: string;
 } | null = null;
 
 if (hasHolo) {
@@ -247,6 +248,7 @@ if (hasHolo) {
       defaultOn: HOLO_DEFAULT_ON.filter((gr) => present.has(gr)),
       kinds: Object.fromEntries([...new Set(holoPorts.map((p2) => p2.k))].map((k) => [k, t(`holo.kind.${k}` as any)])),
       grpLabels: Object.fromEntries(HOLO_GRP_ORDER.map((g) => [g, t(`holo.grp.${g}` as any)])),
+      icons: Object.fromEntries([...new Set(holoPorts.map((p2) => p2.k))].filter((k) => HOLO_ICON[k]).map((k) => [k, HOLO_ICON[k]])),
       loc,
       finder: L('/item-finder.html'),
     };
@@ -354,13 +356,14 @@ a{color:inherit;text-decoration:none}
 .holo__layer[data-g="prop"]{--gc:var(--accent-2)}
 .holo__layer[data-g="other"]{--gc:#a78bfa}
 .holo__layer:hover{background:rgba(255,255,255,.05);color:var(--text)}
-.holo__layer-sw{width:12px;height:12px;flex:none;border:1.5px solid var(--gc);border-radius:3px;
-  transition:background .13s,box-shadow .13s}
+.holo__layer-ic{width:17px;height:17px;flex:none;stroke:var(--gc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+  transition:filter .13s}
 .holo__layer-lb{flex:1;text-align:left;white-space:nowrap}
 .holo__layer-ct{flex:none;font-size:.68rem;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--gc) 80%,#fff);
-  background:color-mix(in srgb,var(--gc) 16%,transparent);border-radius:8px;padding:.05rem .38rem;min-width:1.5rem;text-align:center}
+  background:color-mix(in srgb,var(--gc) 16%,transparent);
+  clip-path:polygon(3px 0,100% 0,100% calc(100% - 3px),calc(100% - 3px) 100%,0 100%,0 3px);padding:.08rem .4rem;min-width:1.5rem;text-align:center}
 .holo__layer[aria-pressed="true"]{color:#fff}
-.holo__layer[aria-pressed="true"] .holo__layer-sw{background:var(--gc);box-shadow:0 0 9px color-mix(in srgb,var(--gc) 65%,transparent)}
+.holo__layer[aria-pressed="true"] .holo__layer-ic{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--gc) 70%,transparent))}
 .holo__layer[aria-pressed="false"]{opacity:.5}
 .holo__layer[aria-pressed="false"] .holo__layer-ct{background:transparent;color:var(--muted)}
 .holo__layer--lab{margin-top:.15rem;padding-top:.5rem;border-top:1px solid rgba(255,255,255,.07)}
@@ -393,8 +396,11 @@ a{color:inherit;text-decoration:none}
 .holo__panel .hp__x{position:absolute;top:.4rem;right:.45rem;appearance:none;border:0;background:transparent;
   color:color-mix(in srgb,var(--gc) 75%,#fff);cursor:pointer;font-size:1.2rem;line-height:1;padding:0 .2rem}
 .holo__panel .hp__x:hover{color:#fff}
-.holo__panel .hp__kind{font:800 1.18rem/1.12 var(--font-ui);letter-spacing:.03em;text-transform:uppercase;color:#fff;
-  margin:.18rem 1.4rem .05rem 0;text-shadow:0 0 18px color-mix(in srgb,var(--gc) 40%,transparent)}
+.holo__panel .hp__title{display:flex;align-items:center;gap:.55rem;margin:.2rem 1.2rem .05rem 0}
+.holo__panel .hp__icon{width:27px;height:27px;flex:none;stroke:var(--gc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 7px color-mix(in srgb,var(--gc) 45%,transparent))}
+.holo__panel .hp__kind{font:800 1.15rem/1.1 var(--font-ui);letter-spacing:.03em;text-transform:uppercase;color:#fff;
+  text-shadow:0 0 18px color-mix(in srgb,var(--gc) 40%,transparent)}
 .holo__panel .hp__name{font:600 .9rem/1.25 var(--font-body);color:color-mix(in srgb,var(--gc) 82%,#fff)}
 .holo__panel .hp__name:empty{display:none}
 .holo__panel dl{margin:0;padding:.15rem .8rem .1rem;display:flex;flex-direction:column}
@@ -411,6 +417,12 @@ a{color:inherit;text-decoration:none}
 .holo__panel .hp__link:hover{background:color-mix(in srgb,var(--gc) 20%,transparent);color:#fff}
 .holo__panel .hp__note{margin:0;padding:.5rem .8rem .65rem;font-size:.76rem;line-height:1.4;color:var(--gold);
   border-top:1px dashed color-mix(in srgb,var(--gold) 45%,transparent)}
+/* Diegetische HUD-Details: Eck-Klammer + MFD-Scanlines */
+.holo__layers::before,.holo__panel::before{content:"";position:absolute;top:5px;left:5px;width:12px;height:12px;
+  border-top:2px solid var(--accent);border-left:2px solid var(--accent);pointer-events:none}
+.holo__panel::before{border-color:var(--gc)}
+.holo__panel::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,color-mix(in srgb,var(--gc) 7%,transparent) 3px 4px)}
 .holo__frame{position:absolute;inset:14px;pointer-events:none;
   background:
     linear-gradient(90deg,var(--accent) 0 22px,transparent 22px) top left/44px 2px no-repeat,
@@ -702,7 +714,7 @@ span.sd__ref{color:var(--muted)}
             <span class="holo__layers-h">{t('holo.layers.title')}</span>
             {holoData.groups.length > 1 && holoData.groups.map((gr) => (
               <button type="button" class="holo__layer" data-g={gr} aria-pressed={String(holoData!.defaultOn.includes(gr))}>
-                <span class="holo__layer-sw" aria-hidden="true"></span>
+                <svg class="holo__layer-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
                 <span class="holo__layer-lb">{t(`holo.grp.${gr}` as any)}</span>
                 <span class="holo__layer-ct">{holoData!.ports.filter((p) => p.g === gr).length}</span>
               </button>
@@ -719,7 +731,10 @@ span.sd__ref{color:var(--muted)}
           <div class="hp__head">
             <span class="hp__eyebrow" id="hpgrp"></span>
             <button type="button" class="hp__x" id="holopclose" aria-label={t('holo.panel.close')}>×</button>
-            <div class="hp__kind" id="hpkind"></div>
+            <div class="hp__title">
+              <svg class="hp__icon" id="hpicon" viewBox="0 0 24 24" aria-hidden="true"><path /></svg>
+              <div class="hp__kind" id="hpkind"></div>
+            </div>
             <div class="hp__name" id="hpname"></div>
           </div>
           <dl>
@@ -746,7 +761,7 @@ span.sd__ref{color:var(--muted)}
       id="holodata"
       is:inline
       set:html={JSON.stringify(
-        holoData ?? { url: holoUrl, mesh: null, ax: null, ports: [], groups: [], defaultOn: [], kinds: {}, grpLabels: {}, loc, finder: L('/item-finder.html') }
+        holoData ?? { url: holoUrl, mesh: null, ax: null, ports: [], groups: [], defaultOn: [], kinds: {}, grpLabels: {}, icons: {}, loc, finder: L('/item-finder.html') }
       ).replace(/</g, '\\u003c')}
     />
   )}
@@ -1266,6 +1281,8 @@ span.sd__ref{color:var(--muted)}
     panel.setAttribute('data-g', p.g);
     var grpEl = document.getElementById('hpgrp');
     if (grpEl) grpEl.textContent = (cfg.grpLabels && cfg.grpLabels[p.g]) || '';
+    var iconPath = document.querySelector('#hpicon path');
+    if (iconPath) iconPath.setAttribute('d', (cfg.icons && cfg.icons[p.k]) || '');
     document.getElementById('hpkind').textContent = kind;
     var nameEl = document.getElementById('hpname');
     nameEl.textContent = (p.label && p.label !== kind) ? p.label : '';
