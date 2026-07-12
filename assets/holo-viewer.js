@@ -1,25 +1,65 @@
-// Echter 3D-Holo-Viewer für die Schiffs-Datenblätter.
-// Lädt das Draco-komprimierte glTF von FleetYards (CORS: *) erst auf Klick
-// und rendert es als Hologramm: Cyan-Material, Auto-Rotation, OrbitControls.
+// Interaktiver 3D-Holo-Viewer v2 für die Schiffs-Datenblätter.
+// Eingebettet in der Hangar-Bühne (kein Toggle-Popup mehr): lädt das
+// Draco-glTF von FleetYards, rendert es als Hologramm (Cyan-Emissive,
+// Scanlines, Projektions-Kegel, Materialisierungs-Sweep) und legt die
+// Komponenten-Marker aus src/data/holo-markers.json darüber — Positionen
+// stammen aus den Spieldateien (COMPILED_BONES), im Buildstep aufs Mesh
+// kalibriert. Keine Auto-Rotation: OrbitControls, Hover + Klick auf Marker.
+//
+// API:  initHolo(container, cfg) -> Promise<{ dispose, setFilter, select }>
+//   cfg = { url, ports:[{n,k,p:[x,y,z],g,dim}], mesh:{c,s}, ax:[len,lat],
+//           onProgress(p), onHover(i|null), onSelect(i|null), debug, reduceMotion }
 // three.js liegt selbst gehostet unter /vendor/three (Import-Map der Seite).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-export async function initHolo(container, url, onProgress) {
+const GROUP_COLOR = {
+  core: 0x2dd4ff,
+  prop: 0x6ea8ff,
+  arms: 0xd4af37,
+};
+
+// Marker-Textur: weicher Glow + Ring + Kern (bzw. nur Ring für "geschätzt")
+function markerTexture(colorHex, hollow) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const col = `#${colorHex.toString(16).padStart(6, '0')}`;
+  const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grad.addColorStop(0, hollow ? 'rgba(255,255,255,.25)' : 'rgba(255,255,255,.95)');
+  grad.addColorStop(0.18, col + (hollow ? '55' : 'ee'));
+  grad.addColorStop(0.4, col + '33');
+  grad.addColorStop(1, col + '00');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 128, 128);
+  g.strokeStyle = col;
+  g.lineWidth = 5;
+  if (hollow) g.setLineDash([10, 7]);
+  g.beginPath();
+  g.arc(64, 64, 34, 0, Math.PI * 2);
+  g.stroke();
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+export async function initHolo(container, cfg) {
   const W = () => container.clientWidth || 800;
   const H = () => container.clientHeight || 480;
+  const reduceMotion = cfg.reduceMotion ?? matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(W(), H());
+  renderer.localClippingEnabled = true;
   renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:none';
   container.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38, W() / H(), 0.05, 500);
-  camera.position.set(2.7, 1.15, 2.7);
+  camera.position.set(2.55, 1.05, 2.55);
 
   scene.add(new THREE.HemisphereLight(0x9fd8ff, 0x0a1220, 1.1));
   const key = new THREE.DirectionalLight(0x7fe4ff, 2.2);
@@ -31,55 +71,213 @@ export async function initHolo(container, url, onProgress) {
 
   const draco = new DRACOLoader().setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
   const loader = new GLTFLoader().setDRACOLoader(draco);
-
   const gltf = await new Promise((resolve, reject) => {
     loader.load(
-      url,
+      cfg.url,
       resolve,
       (e) => {
-        if (onProgress && e.total) onProgress(Math.round((e.loaded / e.total) * 100));
-        else if (onProgress) onProgress(Math.min(99, Math.round(e.loaded / 250000)));
+        if (cfg.onProgress && e.total) cfg.onProgress(Math.round((e.loaded / e.total) * 100));
+        else if (cfg.onProgress) cfg.onProgress(Math.min(99, Math.round(e.loaded / 250000)));
       },
       reject
     );
   });
 
+  // Materialisierungs-Sweep: Clipping-Ebene wandert von unten nach oben
+  const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), reduceMotion ? 1e6 : -1.6);
+  const uTime = { value: 0 };
   const holoMat = new THREE.MeshStandardMaterial({
     color: 0x102b3a,
     emissive: 0x2dd4ff,
-    emissiveIntensity: 0.28,
+    emissiveIntensity: 0.3,
     metalness: 0.15,
     roughness: 0.5,
     transparent: true,
     opacity: 0.97,
+    clippingPlanes: [clipPlane],
   });
-  const model = gltf.scene;
-  model.traverse((o) => {
-    if (o.isMesh) {
-      o.material = holoMat;
-    }
-  });
+  // Scanline-Schimmer (screen-space, dezent) — klassischer Holo-Look
+  holoMat.onBeforeCompile = (sh) => {
+    sh.uniforms.uTime = uTime;
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uTime;')
+      .replace(
+        '#include <emissivemap_fragment>',
+        `#include <emissivemap_fragment>
+        totalEmissiveRadiance *= 0.86 + 0.14 * (0.5 + 0.5 * sin(gl_FragCoord.y * 0.55 - uTime * 2.6));`
+      );
+  };
 
-  // zentrieren + auf Einheitsgröße skalieren
+  const model = gltf.scene;
+  model.traverse((o) => { if (o.isMesh) o.material = holoMat; });
+
+  // Gruppe: Modell + Marker teilen dieselbe Normalisierung (zentrieren,
+  // auf Einheitsgröße skalieren) — Markerkoordinaten bleiben Mesh-Raum.
+  const rig = new THREE.Group();
+  rig.add(model);
+
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z) || 1;
   const s = 2.4 / maxDim;
-  model.position.sub(center).multiplyScalar(s);
-  model.scale.setScalar(s);
-  scene.add(model);
+  rig.position.copy(center).multiplyScalar(-s);
+  rig.scale.setScalar(s);
+  scene.add(rig);
 
+  /* ---------- Projektions-Kegel + Boden-Glow ---------- */
+  const coneH = 1.15;
+  const cone = new THREE.Mesh(
+    new THREE.CylinderGeometry(Math.max(size.x, size.z) * 0.5, maxDim * 0.06, coneH / s, 48, 1, true),
+    new THREE.MeshBasicMaterial({
+      color: 0x2dd4ff, transparent: true, opacity: 0.045,
+      blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false,
+    })
+  );
+  cone.position.set(center.x, box.min.y - (coneH / s) * 0.5, center.z);
+  rig.add(cone);
+  const discTex = markerTexture(0x2dd4ff, false);
+  const disc = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: discTex, color: 0x2dd4ff, transparent: true, opacity: 0.35,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  }));
+  disc.scale.set(maxDim * 0.7, maxDim * 0.18, 1);
+  disc.position.set(center.x, box.min.y - coneH / s, center.z);
+  rig.add(disc);
+
+  /* ---------- Komponenten-Marker ---------- */
+  const texCache = new Map();
+  const texFor = (color, hollow) => {
+    const k = `${color}:${hollow}`;
+    if (!texCache.has(k)) texCache.set(k, markerTexture(color, hollow));
+    return texCache.get(k);
+  };
+  const markers = [];
+  const baseScale = maxDim * 0.034;
+  for (const [i, port] of (cfg.ports ?? []).entries()) {
+    const color = GROUP_COLOR[port.g] ?? 0x2dd4ff;
+    const mat = new THREE.SpriteMaterial({
+      map: texFor(color, !!port.dim),
+      color,
+      transparent: true,
+      opacity: port.dim ? 0.7 : 0.92,
+      depthTest: false, // Holo-Stil: Marker scheinen durch den Rumpf
+      blending: THREE.AdditiveBlending,
+    });
+    const sp = new THREE.Sprite(mat);
+    sp.position.set(port.p[0], port.p[1], port.p[2]);
+    sp.scale.setScalar(baseScale * (port.g === 'core' ? 1.15 : 1));
+    sp.renderOrder = 20;
+    sp.userData = { i, port, base: baseScale * (port.g === 'core' ? 1.15 : 1) };
+    rig.add(sp);
+    markers.push(sp);
+  }
+
+  /* ---------- Debug: Achsen, BBox, Yaw-Flip (Taste F) ---------- */
+  if (cfg.debug) {
+    const axes = new THREE.AxesHelper(maxDim * 0.7);
+    rig.add(axes);
+    if (cfg.mesh) {
+      const bb = new THREE.Box3(
+        new THREE.Vector3(...cfg.mesh.c.map((c2, k) => c2 - cfg.mesh.s[k] / 2)),
+        new THREE.Vector3(...cfg.mesh.c.map((c2, k) => c2 + cfg.mesh.s[k] / 2))
+      );
+      const helper = new THREE.Box3Helper(bb, 0xff4488);
+      rig.add(helper);
+    }
+    let flippedState = false;
+    addEventListener('keydown', (ev) => {
+      if (ev.key !== 'f' || !cfg.ax || !cfg.mesh) return;
+      flippedState = !flippedState;
+      console.log('[holo-debug] yaw-flip:', flippedState);
+      for (const sp of markers) {
+        const p = [...sp.userData.port.p];
+        if (flippedState) for (const k of cfg.ax) p[k] = 2 * cfg.mesh.c[k] - p[k];
+        sp.position.set(p[0], p[1], p[2]);
+      }
+    });
+    console.log('[holo-debug] model bbox size', size.toArray(), 'center', center.toArray(),
+      'markers', markers.length, '— Taste F: Marker-Yaw-Flip (rot=X grün=Y blau=Z)');
+  }
+
+  /* ---------- Controls: keine Auto-Rotation ---------- */
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.06;
-  controls.autoRotate = !matchMedia('(prefers-reduced-motion: reduce)').matches;
-  controls.autoRotateSpeed = 0.7;
+  controls.autoRotate = false;
   controls.enablePan = false;
-  controls.minDistance = 1.4;
+  controls.minDistance = 1.2;
   controls.maxDistance = 7;
 
+  /* ---------- Hover / Klick ---------- */
+  const ray = new THREE.Raycaster();
+  const ptr = new THREE.Vector2();
+  let hoverIdx = null;
+  let selectIdx = null;
+  const visibleGroups = new Set(['core', 'prop', 'arms']);
+
+  function pick(ev) {
+    const r = renderer.domElement.getBoundingClientRect();
+    ptr.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
+    ptr.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
+    ray.setFromCamera(ptr, camera);
+    const hits = ray.intersectObjects(markers.filter((m) => m.visible), false);
+    return hits.length ? hits[0].object.userData.i : null;
+  }
+  let downAt = null;
+  renderer.domElement.addEventListener('pointermove', (ev) => {
+    const i = pick(ev);
+    if (i !== hoverIdx) {
+      hoverIdx = i;
+      renderer.domElement.style.cursor = i != null ? 'pointer' : 'grab';
+      cfg.onHover?.(i);
+    }
+  });
+  renderer.domElement.addEventListener('pointerdown', (ev) => { downAt = [ev.clientX, ev.clientY]; });
+  renderer.domElement.addEventListener('pointerup', (ev) => {
+    // Klick nur, wenn kein Drag (OrbitControls) dazwischen lag
+    if (!downAt || Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) > 6) return;
+    const i = pick(ev);
+    selectIdx = i;
+    cfg.onSelect?.(i);
+  });
+
+  /* ---------- Render-Loop ---------- */
   let alive = true;
+  const clock = new THREE.Clock();
+  let matDone = reduceMotion;
+  let nextFlicker = 2.5;
+  (function tick() {
+    if (!alive) return;
+    const dt = clock.getDelta();
+    const t = clock.elapsedTime;
+    uTime.value = t;
+    // Materialisierung: Ebene von unten nach oben (1.2 s)
+    if (!matDone) {
+      clipPlane.constant = Math.min(1.6, -1.6 + t * 2.7);
+      if (clipPlane.constant >= 1.6) matDone = true;
+    }
+    // gelegentliches Holo-Flackern
+    if (!reduceMotion && t > nextFlicker) {
+      holoMat.emissiveIntensity = 0.18 + Math.random() * 0.2;
+      if (t > nextFlicker + 0.08) {
+        holoMat.emissiveIntensity = 0.3;
+        nextFlicker = t + 2.5 + Math.random() * 4;
+      }
+    }
+    // Marker: Hover/Select-Puls
+    for (const sp of markers) {
+      const { i, base } = sp.userData;
+      let sc = base;
+      if (i === selectIdx) sc = base * (1.25 + (reduceMotion ? 0 : Math.sin(t * 5) * 0.09));
+      else if (i === hoverIdx) sc = base * 1.35;
+      sp.scale.setScalar(sc);
+    }
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  })();
+
   const ro = new ResizeObserver(() => {
     camera.aspect = W() / H();
     camera.updateProjectionMatrix();
@@ -87,14 +285,19 @@ export async function initHolo(container, url, onProgress) {
   });
   ro.observe(container);
 
-  (function tick() {
-    if (!alive) return;
-    controls.update();
-    renderer.render(scene, camera);
-    requestAnimationFrame(tick);
-  })();
-
   return {
+    setFilter(groups) {
+      visibleGroups.clear();
+      for (const g of groups) visibleGroups.add(g);
+      for (const sp of markers) sp.visible = visibleGroups.has(sp.userData.port.g);
+      if (selectIdx != null && !visibleGroups.has(cfg.ports[selectIdx].g)) {
+        selectIdx = null;
+        cfg.onSelect?.(null);
+      }
+    },
+    select(i) {
+      selectIdx = i;
+    },
     dispose() {
       alive = false;
       ro.disconnect();

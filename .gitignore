@@ -39,3 +39,6 @@ build.log
 .agents/
 scratch/
 TEST_*.md
+
+# Holo-glTF-Downloadcache (calibrate-holo-markers.mjs, einmalig ~2 GB)
+.cache/

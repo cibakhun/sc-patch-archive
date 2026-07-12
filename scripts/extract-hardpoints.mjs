@@ -376,6 +376,20 @@ for (const v of catalog.vehicles) {
     if (!k) continue;
     hp.push({ n: n.name, k, p: [r3(n.x), r3(n.y), r3(n.z)], pa: nodes[n.parent]?.name ?? null });
   }
+  // Glas-Anker: Centroid aller Verglasungs-Nodes (Canopy, Fenster). Dient der
+  // Kalibrierung als Bug-Richtungs-Referenz gegen das FY-Window-Mesh —
+  // Centroid-gegen-Centroid, damit Heck-Verglasung nicht fehlleitet.
+  let glassC = null;
+  {
+    const g = nodes.filter((n) => /window|glass|canopy|windshield|windscreen|cockpit_glas/i.test(n.name));
+    if (g.length) {
+      glassC = [
+        r3(g.reduce((a, n) => a + n.x, 0) / g.length),
+        r3(g.reduce((a, n) => a + n.y, 0) / g.length),
+        r3(g.reduce((a, n) => a + n.z, 0) / g.length),
+      ];
+    }
+  }
   ships[v.id] = {
     cga: hit.e.name.replace(/\\/g, '/'),
     match: hit.how,
@@ -383,6 +397,8 @@ for (const v of catalog.vehicles) {
     bbox: bbox.map((c) => c.map(r3)),
     /** echte Hull-AABB aus der Geometrie (Kalibrier-Anker fürs Mesh-Mapping) */
     hull: best.parsed.hull ? best.parsed.hull.map((c) => c.map(r3)) : null,
+    /** Centroid der Verglasungs-Nodes (Bug-Richtungs-Anker) */
+    glassC,
     hp,
   };
   extracted++;

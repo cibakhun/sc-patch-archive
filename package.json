@@ -20,6 +20,7 @@
     "datamine:locations": "node scripts/datamine-locations.mjs",
     "sync:extras": "node scripts/sync-fleetyards-extras.mjs",
     "extract:hardpoints": "node scripts/extract-hardpoints.mjs",
+    "calibrate:holo": "node scripts/calibrate-holo-markers.mjs",
     "sync:items": "node scripts/build-universal-db.mjs",
     "sync:item-prices": "node scripts/fetch-uex-item-prices.mjs && node scripts/build-universal-db.mjs",
     "verify:items": "node scripts/verify-item-prices.mjs",
@@ -30,6 +31,7 @@
     "astro": "^5.0.0"
   },
   "devDependencies": {
+    "draco3d": "^1.5.7",
     "three": "^0.185.1"
   }
 }
