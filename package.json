@@ -21,6 +21,7 @@
     "sync:extras": "node scripts/sync-fleetyards-extras.mjs",
     "extract:hardpoints": "node scripts/extract-hardpoints.mjs",
     "calibrate:holo": "node scripts/calibrate-holo-markers.mjs",
+    "build:holo-meshes": "node scripts/build-holo-meshes.mjs",
     "sync:items": "node scripts/build-universal-db.mjs",
     "sync:item-prices": "node scripts/fetch-uex-item-prices.mjs && node scripts/build-universal-db.mjs",
     "verify:items": "node scripts/verify-item-prices.mjs",
@@ -31,7 +32,11 @@
     "astro": "^5.0.0"
   },
   "devDependencies": {
+    "@gltf-transform/core": "^4.4.1",
+    "@gltf-transform/extensions": "^4.4.1",
+    "@gltf-transform/functions": "^4.4.1",
     "draco3d": "^1.5.7",
+    "meshoptimizer": "^1.2.0",
     "three": "^0.185.1"
   }
 }

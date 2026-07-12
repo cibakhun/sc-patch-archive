@@ -23,6 +23,8 @@ import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
 import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
 import holoMarkersSnapshot from '../data/holo-markers.json';
+import holoMeshesSnapshot from '../data/holo-meshes.json';
+import shipHardpointsSnapshot from '../data/ship-hardpoints.json';
 
 interface Props {
   d: CollectionEntry<'vehicles'>['data'];
@@ -92,27 +94,36 @@ const stageStats: { label: string; value: string }[] = [
 ];
 
 // ---------- Interaktives Komponenten-Hologramm ----------
-// Marker-Positionen aus src/data/holo-markers.json (Spieldateien-Extraktion,
-// im Buildstep aufs FY-Holo-Mesh kalibriert). Hier werden sie mit dem
-// Loadout (Namen/Größen aus vehicles.json) zu anzeigefertigen Ports gejoint;
-// Loadout-Komponenten ohne physisches Hardpoint bekommen eine schematische
-// Position + "nicht physicalisiert"-Vermerk.
+// Zwei Positionsquellen, in Reihenfolge der Genauigkeit:
+//  1. Echtes Spielmesh (src/data/holo-meshes.json): das gerenderte Mesh und
+//     die Hardpoints (ship-hardpoints.json, COMPILED_BONES) teilen denselben
+//     Raum -> Marker EXAKT, nur feste Achsvertauschung cry->glTF (x, z, -y).
+//  2. FleetYards-Holo (holo-markers.json): auf ein fremdes Kunst-Mesh
+//     kalibriert -> nur ungefähr, Marker tragen "geschätzt".
+// Angezeigt werden bewusst NUR Komponenten (core) + Bewaffnung (arms) —
+// Triebwerke sind ausgeblendet (zu viele, kein Mehrwert).
 type HoloPort = {
   k: string; g: string; p: number[];
   label: string | null; size: number | null;
   /** np: nicht physicalisiert · est: Position geschätzt · dim: gedämpfter Marker-Stil */
   np?: boolean; est?: boolean; dim?: boolean;
 };
-const holoShip = (holoMarkersSnapshot as any).ships?.[id] ?? null;
 const HOLO_GRP: Record<string, string> = {
   power: 'core', shield: 'core', cooler: 'core', quantum: 'core', radar: 'core',
-  thruster_main: 'prop', thruster_retro: 'prop', thruster_vtol: 'prop',
   turret: 'arms', missile: 'arms', weapon: 'arms',
 };
-let holoPorts: HoloPort[] = [];
-if (holoUrl && holoShip) {
-  const est = holoShip.mode === 'mapped' && holoShip.conf !== 'high';
-  // Pools: pro Kategorie die verbauten Items (Name/Größe/Anzahl), expandiert
+const holoShip = (holoMarkersSnapshot as any).ships?.[id] ?? null;
+const gameMesh = (holoMeshesSnapshot as any).meshes?.[id] ?? null;
+const gameHp = gameMesh ? ((shipHardpointsSnapshot as any).ships?.[id] ?? null) : null;
+const hasHolo = !!((gameMesh && gameHp) || (holoUrl && holoShip));
+
+let holoData: {
+  url: string | null; mesh: { c: number[]; s: number[] } | null; ax: number[] | null;
+  ports: HoloPort[]; groups: string[]; kinds: Record<string, string>;
+} | null = null;
+
+if (hasHolo) {
+  // Loadout-Pools (Name/Größe je Kategorie), von beiden Quellen geteilt
   const expand = (list: { name: string; size: number | null; count: number }[]) =>
     list.filter(realName).flatMap((it) => Array.from({ length: it.count }, () => it));
   const pools: Record<string, { name: string; size: number | null }[]> = {
@@ -134,62 +145,85 @@ if (holoUrl && holoShip) {
     ),
   };
   // Gemischte Loadouts (mehrere VERSCHIEDENE Komponenten derselben Art):
-  // Bone-Reihenfolge und API-Reihenfolge sind unabhängig — eine 1:1-Zuordnung
-  // wäre geraten. Dann ehrlich alle Namen am Marker zeigen statt falsch raten.
+  // Bone- und API-Reihenfolge sind unabhängig -> keine geratene 1:1-Zuordnung,
+  // stattdessen ehrlich alle Namen am Marker zeigen.
   const mixedLabel: Record<string, string | null> = {};
   for (const [k, pool] of Object.entries(pools)) {
     const names = [...new Set(pool.map((it) => it.name))];
     mixedLabel[k] = names.length > 1 ? names.join(' / ') : null;
   }
-  // conf 'low': Mesh-Ausrichtung nicht belastbar -> keine kalibrierten Marker;
-  // die schematischen "nicht physicalisiert"-Marker unten (nur BBox-Mitte,
-  // ausrichtungsunabhängig) laufen trotzdem — jedes Holo-Schiff bleibt
-  // interagierbar, nur eben ehrlich schematisch.
+
+  // Positionsquelle wählen
+  let meshUrl: string | null = null;
+  let meshBox: { c: number[]; s: number[] } | null = null;
+  let axis: number[] | null = null;
+  let est = false;
+  let srcPorts: { k: string; p: number[] }[] = [];
+  if (gameMesh && gameHp) {
+    meshUrl = gameMesh.url;
+    const hull = gameHp.hull ?? gameHp.bbox; // cry-AABB
+    // cry -> glTF: (x, z, -y) — feste Achsvertauschung, keine Kalibrierung
+    meshBox = {
+      c: [(hull[0][0] + hull[1][0]) / 2, (hull[0][2] + hull[1][2]) / 2, -((hull[0][1] + hull[1][1]) / 2)],
+      s: [Math.abs(hull[1][0] - hull[0][0]), Math.abs(hull[1][2] - hull[0][2]), Math.abs(hull[1][1] - hull[0][1])],
+    };
+    srcPorts = (gameHp.hp as { k: string; p: number[] }[])
+      .filter((h) => HOLO_GRP[h.k])
+      .map((h) => ({ k: h.k, p: [h.p[0], h.p[2], -h.p[1]] }));
+  } else if (holoUrl && holoShip) {
+    meshUrl = holoUrl;
+    meshBox = holoShip.mesh;
+    axis = holoShip.ax ?? null;
+    est = holoShip.mode === 'mapped' && holoShip.conf !== 'high';
+    // conf 'low': Ausrichtung nicht belastbar -> keine kalibrierten Marker
+    if (holoShip.conf !== 'low') {
+      srcPorts = (holoShip.ports as { k: string; p: number[] }[]).filter((h) => HOLO_GRP[h.k]);
+    }
+  }
+
+  // Marker -> Loadout joinen
+  const holoPorts: HoloPort[] = [];
   const taken: Record<string, number> = {};
-  if (holoShip.conf !== 'low') {
-    for (const hp of holoShip.ports as { n: string; k: string; p: number[] }[]) {
-      const g = HOLO_GRP[hp.k];
-      if (!g) continue;
-      const pool = pools[hp.k];
-      const item = pool ? pool[(taken[hp.k] = (taken[hp.k] ?? 0) + 1) - 1] : undefined;
-      const mixed = mixedLabel[hp.k];
+  for (const hp of srcPorts) {
+    const g = HOLO_GRP[hp.k];
+    const pool = pools[hp.k];
+    const item = pool ? pool[(taken[hp.k] = (taken[hp.k] ?? 0) + 1) - 1] : undefined;
+    const mixed = mixedLabel[hp.k];
+    holoPorts.push({
+      k: hp.k, g, p: hp.p,
+      label: mixed ?? item?.name ?? null,
+      size: mixed ? null : item?.size ?? null,
+      ...(est ? { est: true, dim: true } : {}),
+    });
+  }
+  // Kern-Komponente ganz ohne physisches Hardpoint -> schematisch mittig + Vermerk
+  if (meshBox) {
+    const mc = meshBox.c, ms = meshBox.s;
+    let stackI = 0;
+    for (const k of Object.keys(HOLO_GRP).filter((x) => HOLO_GRP[x] === 'core')) {
+      const pool = pools[k] ?? [];
+      if (!pool.length || (taken[k] ?? 0) > 0) continue;
+      const off = (stackI++ - 1) * 0.08;
       holoPorts.push({
-        k: hp.k, g, p: hp.p,
-        label: mixed ?? item?.name ?? null,
-        size: mixed ? null : item?.size ?? null,
-        ...(est ? { est: true, dim: true } : {}),
+        k, g: 'core',
+        p: [mc[0] + off * ms[0] * 0.3, mc[1], mc[2] + off * ms[2] * 0.3].map((x) => Math.round(x * 100) / 100),
+        label: mixedLabel[k] ?? pool[0].name, size: mixedLabel[k] ? null : pool[0].size,
+        np: true, dim: true,
       });
     }
   }
-  // Nur wenn eine Kategorie GAR KEIN physisches Hardpoint hat, ist sie nicht
-  // physicalisiert -> schematische Position mittig, mit Vermerk. (Weniger
-  // Bones als Loadout-Einträge heißt dagegen nur: aggregierte Ports.)
-  const mc = holoShip.mesh.c, ms = holoShip.mesh.s;
-  let stackI = 0;
-  const coreKinds = Object.keys(HOLO_GRP).filter((k) => HOLO_GRP[k] === 'core');
-  for (const k of coreKinds) {
-    const pool = pools[k] ?? [];
-    if (!pool.length || (taken[k] ?? 0) > 0) continue;
-    const off = (stackI++ - 1) * 0.08;
-    holoPorts.push({
-      k, g: 'core',
-      p: [mc[0] + off * ms[0] * 0.3, mc[1], mc[2] + off * ms[2] * 0.3].map((x) => Math.round(x * 100) / 100),
-      label: mixedLabel[k] ?? pool[0].name, size: mixedLabel[k] ? null : pool[0].size,
-      np: true, dim: true,
-    });
+
+  if (holoPorts.length) {
+    holoData = {
+      url: meshUrl,
+      mesh: meshBox,
+      ax: axis,
+      ports: holoPorts,
+      groups: [...new Set(holoPorts.map((p2) => p2.g))],
+      kinds: Object.fromEntries([...new Set(holoPorts.map((p2) => p2.k))].map((k) => [k, t(`holo.kind.${k}` as any)])),
+    };
   }
 }
-const holoData = holoPorts.length
-  ? {
-      url: holoUrl,
-      mesh: holoShip.mesh,
-      ax: holoShip.ax ?? null,
-      ports: holoPorts,
-      kinds: Object.fromEntries(
-        [...new Set(holoPorts.map((p2) => p2.k))].map((k) => [k, t(`holo.kind.${k}` as any)])
-      ),
-    }
-  : null;
 
 const shipCode = d.makerCode ?? t('ship.code.ship');
 const metaDesc = t('ship.meta.desc')
@@ -587,13 +621,12 @@ span.sd__ref{color:var(--muted)}
         </figure>
         <div class="holo__3d" id="holo3d" aria-label={t('ship.holo.drag')}></div>
         <div class="holo__status" id="holostatus" role="status"></div>
-        {holoUrl && <button type="button" class="holo__activate" id="holoact" hidden>{t('holo.activate')}</button>}
+        {(holoData || holoUrl) && <button type="button" class="holo__activate" id="holoact" hidden>{t('holo.activate')}</button>}
         <div class="holo__hintline" aria-hidden="true">{t('holo.hint')}</div>
-        {holoData && holoData.ports.length > 0 && (
+        {holoData && holoData.groups.length > 1 && (
           <div class="holo__filters" id="holofilters" role="group" aria-label={t('holo.filter.aria')} hidden>
-            <button type="button" data-g="core" aria-pressed="true">{t('holo.grp.core')}</button>
-            <button type="button" data-g="prop" aria-pressed="true">{t('holo.grp.prop')}</button>
-            <button type="button" data-g="arms" aria-pressed="true">{t('holo.grp.arms')}</button>
+            {holoData.groups.includes('core') && <button type="button" data-g="core" aria-pressed="true">{t('holo.grp.core')}</button>}
+            {holoData.groups.includes('arms') && <button type="button" data-g="arms" aria-pressed="true">{t('holo.grp.arms')}</button>}
           </div>
         )}
         <aside class="holo__panel" id="holopanel" hidden data-np={t('holo.panel.notPhys')} data-est={t('holo.panel.estimated')}>
@@ -611,20 +644,20 @@ span.sd__ref{color:var(--muted)}
         </aside>
       </div>
     </div>
-    {holoUrl && (
+    {(holoData || holoUrl) && (
       <div class="holo__toggle" role="group" aria-label={t('ship.view.switch')}>
         <button type="button" id="btnimg" aria-pressed="true">{t('ship.view.img')}</button>
         <button type="button" id="btn3d" aria-pressed="false">{t('ship.view.3d')}</button>
       </div>
     )}
   </section>
-  {holoUrl && (
+  {(holoData || holoUrl) && (
     <script
       type="application/json"
       id="holodata"
       is:inline
       set:html={JSON.stringify(
-        holoData ?? { url: holoUrl, mesh: null, ax: null, ports: [], kinds: {} }
+        holoData ?? { url: holoUrl, mesh: null, ax: null, ports: [], groups: [], kinds: {} }
       ).replace(/</g, '\\u003c')}
     />
   )}

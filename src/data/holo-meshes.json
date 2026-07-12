@@ -1,0 +1,11 @@
+{
+  "fetchedAt": "2026-07-12",
+  "source": "StarBreaker entity export (Data.p4k) -> gltf-transform/meshopt Dezimierung",
+  "count": 1,
+  "meshes": {
+    "drak-corsair": {
+      "url": "/holo/drak-corsair.glb",
+      "tris": 117765
+    }
+  }
+}
