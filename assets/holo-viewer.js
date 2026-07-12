@@ -19,6 +19,7 @@ const GROUP_COLOR = {
   core: 0x2dd4ff,
   prop: 0x6ea8ff,
   arms: 0xd4af37,
+  other: 0xa78bfa,
 };
 
 // Marker-Textur: weicher Glow + Ring + Kern (bzw. nur Ring für "geschätzt")
