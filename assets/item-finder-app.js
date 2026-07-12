@@ -379,6 +379,19 @@
         currentPage = 1;
         applyFiltersAndSort();
       });
+      // Deep-Link aus dem Holo-Viewer: #q=<Name> die Suche vorbelegen
+      var applyHashQuery = function () {
+        var m = /[#&?]q=([^&]+)/.exec(location.hash);
+        if (!m) return;
+        var q = decodeURIComponent(m[1].replace(/\+/g, ' '));
+        if (q === searchTerm) return;
+        searchInput.value = q;
+        searchTerm = q;
+        currentPage = 1;
+        applyFiltersAndSort();
+      };
+      applyHashQuery();
+      window.addEventListener('hashchange', applyHashQuery);
     }
     var sortSelect = document.getElementById('uif-sort-select');
     if (sortSelect) {

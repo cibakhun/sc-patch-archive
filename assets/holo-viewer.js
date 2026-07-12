@@ -205,6 +205,7 @@ export async function initHolo(container, cfg) {
     labels.push({ sp, el, shown: true });
   }
   const _lblV = new THREE.Vector3();
+  let labelsOn = true;
 
   /* ---------- Debug: Achsen, BBox, Yaw-Flip (Taste F) ---------- */
   if (cfg.debug) {
@@ -344,7 +345,7 @@ export async function initHolo(container, cfg) {
     renderer.render(scene, camera);
     // Labels aus 3D auf den Bildschirm projizieren (nach dem Render, damit die
     // Kamera aktuell ist) — nur für sichtbare, vor der Kamera liegende Marker
-    if (labels.length) {
+    if (labelsOn && labels.length) {
       const w = W(), h = H();
       for (const L of labels) {
         if (!L.sp.visible) { if (L.shown) { L.el.style.display = 'none'; L.shown = false; } continue; }
@@ -387,6 +388,10 @@ export async function initHolo(container, cfg) {
     },
     select(i) {
       selectIdx = i;
+    },
+    setLabels(on) {
+      labelsOn = on;
+      labelLayer.style.display = on ? '' : 'none';
     },
     dispose() {
       alive = false;

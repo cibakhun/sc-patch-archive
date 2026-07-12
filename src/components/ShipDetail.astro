@@ -25,6 +25,7 @@ import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
 import holoMarkersSnapshot from '../data/holo-markers.json';
 import holoMeshesSnapshot from '../data/holo-meshes.json';
 import shipHardpointsSnapshot from '../data/ship-hardpoints.json';
+import { itemInfo } from '../lib/holoItems';
 
 interface Props {
   d: CollectionEntry<'vehicles'>['data'];
@@ -107,6 +108,8 @@ type HoloPort = {
   label: string | null; size: number | null;
   /** lab: dauerhaft sichtbare Beschriftung (nur Kern-Komponenten) */
   lab?: string;
+  /** Item-Finder-Anreicherung (Kategorie / günstigster Preis / Kauforte) */
+  cat?: string; price?: number; shops?: number;
   /** np: nicht physicalisiert · est: Position geschätzt · dim: gedämpfter Marker-Stil */
   np?: boolean; est?: boolean; dim?: boolean;
 };
@@ -129,6 +132,7 @@ const hasHolo = !!((gameMesh && gameHp) || (holoUrl && holoShip));
 let holoData: {
   url: string | null; mesh: { c: number[]; s: number[] } | null; ax: number[] | null;
   ports: HoloPort[]; groups: readonly string[]; defaultOn: string[]; kinds: Record<string, string>;
+  loc: string; finder: string;
 } | null = null;
 
 if (hasHolo) {
@@ -190,6 +194,12 @@ if (hasHolo) {
     }
   }
 
+  // Item-Finder-Anreicherung: Kategorie/Preis/Kauforte für einen Item-Namen
+  const enrich = (name: string | null | undefined) => {
+    const info = itemInfo(name);
+    if (!info) return {};
+    return { cat: info.cat, shops: info.shops, ...(info.price != null ? { price: info.price } : {}) };
+  };
   // Marker -> Loadout joinen
   const holoPorts: HoloPort[] = [];
   const taken: Record<string, number> = {};
@@ -202,6 +212,7 @@ if (hasHolo) {
       k: hp.k, g, p: hp.p,
       label: mixed ?? item?.name ?? null,
       size: mixed ? null : item?.size ?? null,
+      ...(!mixed ? enrich(item?.name) : {}),
       ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
       ...(est ? { est: true, dim: true } : {}),
     });
@@ -218,6 +229,7 @@ if (hasHolo) {
         k, g: 'core',
         p: [mc[0] + off * ms[0] * 0.3, mc[1], mc[2] + off * ms[2] * 0.3].map((x) => Math.round(x * 100) / 100),
         label: mixedLabel[k] ?? pool[0].name, size: mixedLabel[k] ? null : pool[0].size,
+        ...(!mixedLabel[k] ? enrich(pool[0].name) : {}),
         lab: t(`holo.kind.${k}` as any),
         np: true, dim: true,
       });
@@ -234,6 +246,8 @@ if (hasHolo) {
       groups: HOLO_GRP_ORDER.filter((gr) => present.has(gr)),
       defaultOn: HOLO_DEFAULT_ON.filter((gr) => present.has(gr)),
       kinds: Object.fromEntries([...new Set(holoPorts.map((p2) => p2.k))].map((k) => [k, t(`holo.kind.${k}` as any)])),
+      loc,
+      finder: L('/item-finder.html'),
     };
   }
 }
@@ -334,6 +348,9 @@ a{color:inherit;text-decoration:none}
   background:color-mix(in srgb,var(--gold) 10%,rgba(5,7,13,.65))}
 .holo__filters button[data-g="prop"][aria-pressed="true"]{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 45%,transparent);
   background:color-mix(in srgb,var(--accent-2) 10%,rgba(5,7,13,.65))}
+/* Beschriftungs-Umschalter (kein Marker-Filter -> optisch abgesetzt) */
+.holo__ftog{margin-left:.4rem}
+.holo__ftog[aria-pressed="false"]{opacity:.55}
 /* Dauerhafte Komponenten-Beschriftungen (aus 3D projiziert, mit Leader-Line) */
 .holo-lbllayer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:4}
 .holo-lbl{position:absolute;transform:translate(-50%,calc(-100% - 15px));white-space:nowrap;
@@ -346,18 +363,21 @@ a{color:inherit;text-decoration:none}
 .holo__panel{position:absolute;right:clamp(14px,2vw,24px);top:58px;z-index:7;width:min(280px,86%);
   border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);background:rgba(6,10,18,.88);backdrop-filter:blur(6px);
   clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
-.holo__panel .hp__head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;
-  background:color-mix(in srgb,var(--accent) 18%,transparent);border-bottom:1px solid color-mix(in srgb,var(--accent) 40%,transparent);
-  font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);
-  padding:.45rem .7rem}
-.holo__panel .hp__head button{appearance:none;border:0;background:transparent;color:var(--accent);cursor:pointer;font-size:1rem;line-height:1;padding:0 .1rem}
-.holo__panel .hp__name{font-family:var(--font-ui);font-weight:700;font-size:1.05rem;color:#fff;padding:.55rem .7rem .1rem}
-.holo__panel dl{margin:0;padding:.35rem .7rem .6rem;display:flex;flex-direction:column;gap:.22rem}
+.holo__panel .hp__x{position:absolute;top:.35rem;right:.4rem;appearance:none;border:0;background:transparent;
+  color:var(--accent);cursor:pointer;font-size:1.15rem;line-height:1;padding:.1rem .25rem;z-index:1}
+.holo__panel .hp__x:hover{color:#fff}
+/* Ganz oben groß: der Komponenten-TYP */
+.holo__panel .hp__kind{font-family:var(--font-ui);font-weight:700;font-size:1.25rem;line-height:1.1;color:var(--accent);
+  letter-spacing:.02em;padding:.6rem 1.9rem .1rem .7rem;
+  border-top:2px solid var(--accent)}
+.holo__panel .hp__name{font-family:var(--font-body);font-weight:600;font-size:.95rem;color:var(--text);opacity:.92;padding:.05rem .7rem .15rem}
+.holo__panel dl{margin:0;padding:.5rem .7rem .3rem;display:flex;flex-direction:column;gap:.28rem}
 .holo__panel dl div{display:flex;justify-content:space-between;gap:1rem}
-.holo__panel dt{font-family:var(--font-ui);font-weight:600;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.holo__panel dd{margin:0;font-family:var(--font-ui);font-weight:700;font-size:.85rem;color:var(--text)}
-.holo__panel .hp__ok{color:#4ade80}
-.holo__panel .hp__ok::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:.35rem;vertical-align:1px}
+.holo__panel dt{font-family:var(--font-ui);font-weight:600;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.holo__panel dd{margin:0;font-family:var(--font-ui);font-weight:700;font-size:.88rem;color:var(--text);font-variant-numeric:tabular-nums;text-align:right}
+.holo__panel .hp__link{display:block;margin:.1rem .7rem;padding:.4rem 0;font-family:var(--font-ui);font-weight:700;font-size:.76rem;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--line)}
+.holo__panel .hp__link:hover{color:#fff}
 .holo__panel .hp__note{margin:0;padding:.45rem .7rem .6rem;font-size:.78rem;line-height:1.4;color:var(--gold);border-top:1px dashed color-mix(in srgb,var(--gold) 45%,transparent)}
 .holo__frame{position:absolute;inset:14px;pointer-events:none;
   background:
@@ -645,24 +665,27 @@ span.sd__ref{color:var(--muted)}
         <div class="holo__status" id="holostatus" role="status"></div>
         {(holoData || holoUrl) && <button type="button" class="holo__activate" id="holoact" hidden>{t('holo.activate')}</button>}
         <div class="holo__hintline" aria-hidden="true">{t('holo.hint')}</div>
-        {holoData && holoData.groups.length > 1 && (
+        {holoData && (holoData.groups.length > 1 || holoData.ports.some((p) => p.lab)) && (
           <div class="holo__filters" id="holofilters" role="group" aria-label={t('holo.filter.aria')} hidden>
-            {holoData.groups.map((gr) => (
+            {holoData.groups.length > 1 && holoData.groups.map((gr) => (
               <button type="button" data-g={gr} aria-pressed={String(holoData!.defaultOn.includes(gr))}>{t(`holo.grp.${gr}` as any)}</button>
             ))}
+            {holoData.ports.some((p) => p.lab) && (
+              <button type="button" id="holoblabels" class="holo__ftog" aria-pressed="true" title={t('holo.labels.toggle')}>{t('holo.labels.short')}</button>
+            )}
           </div>
         )}
-        <aside class="holo__panel" id="holopanel" hidden data-np={t('holo.panel.notPhys')} data-est={t('holo.panel.estimated')}>
-          <div class="hp__head">
-            <span>{t('holo.panel.title')}</span>
-            <button type="button" id="holopclose" aria-label={t('holo.panel.close')}>×</button>
-          </div>
+        <aside class="holo__panel" id="holopanel" hidden data-np={t('holo.panel.notPhys')} data-est={t('holo.panel.estimated')} data-auec={t('holo.panel.auec')}>
+          <button type="button" class="hp__x" id="holopclose" aria-label={t('holo.panel.close')}>×</button>
+          <div class="hp__kind" id="hpkind"></div>
           <div class="hp__name" id="hpname"></div>
           <dl>
-            <div><dt>{t('holo.panel.type')}</dt><dd id="hptype"></dd></div>
             <div><dt>{t('holo.panel.size')}</dt><dd id="hpsize"></dd></div>
-            <div><dt>{t('holo.panel.status')}</dt><dd class="hp__ok">{t('holo.panel.optimal')}</dd></div>
+            <div class="hp__row" id="hpcatrow" hidden><dt>{t('holo.panel.cat')}</dt><dd id="hpcat"></dd></div>
+            <div class="hp__row" id="hppricerow" hidden><dt>{t('holo.panel.price')}</dt><dd id="hpprice"></dd></div>
+            <div class="hp__row" id="hpshopsrow" hidden><dt>{t('holo.panel.shops')}</dt><dd id="hpshops"></dd></div>
           </dl>
+          <a class="hp__link" id="hplink" hidden>{t('holo.panel.finder')}</a>
           <p class="hp__note" id="hpnote" hidden></p>
         </aside>
       </div>
@@ -680,7 +703,7 @@ span.sd__ref{color:var(--muted)}
       id="holodata"
       is:inline
       set:html={JSON.stringify(
-        holoData ?? { url: holoUrl, mesh: null, ax: null, ports: [], groups: [], defaultOn: [], kinds: {} }
+        holoData ?? { url: holoUrl, mesh: null, ax: null, ports: [], groups: [], defaultOn: [], kinds: {}, loc, finder: L('/item-finder.html') }
       ).replace(/</g, '\\u003c')}
     />
   )}
@@ -1182,6 +1205,12 @@ span.sd__ref{color:var(--muted)}
     showPanel(null);
     pressed(btnImg);
   }
+  function row(id, val) {
+    var r = document.getElementById(id + 'row'), d = document.getElementById(id);
+    if (!r || !d) return;
+    if (val == null || val === '') { r.hidden = true; }
+    else { d.textContent = val; r.hidden = false; }
+  }
   function showPanel(i) {
     if (i == null || !cfg.ports[i]) {
       panel.hidden = true;
@@ -1190,9 +1219,21 @@ span.sd__ref{color:var(--muted)}
     }
     var p = cfg.ports[i];
     var kind = cfg.kinds[p.k] || p.k;
-    document.getElementById('hpname').textContent = p.label || kind;
-    document.getElementById('hptype').textContent = kind;
+    // Ganz oben groß: der Komponenten-TYP; darunter das konkrete Bauteil
+    document.getElementById('hpkind').textContent = kind;
+    var nameEl = document.getElementById('hpname');
+    nameEl.textContent = (p.label && p.label !== kind) ? p.label : '';
+    nameEl.hidden = !nameEl.textContent;
     document.getElementById('hpsize').textContent = p.size != null ? 'S' + p.size : '—';
+    row('hpcat', p.cat || null);
+    row('hpprice', p.price != null ? p.price.toLocaleString(cfg.loc) + ' ' + (panel.getAttribute('data-auec') || 'aUEC') : null);
+    row('hpshops', p.shops ? String(p.shops) : null);
+    // Item-Finder-Link (Suche nach dem Bauteil)
+    var link = document.getElementById('hplink');
+    if (p.label && cfg.finder) {
+      link.href = cfg.finder + '#q=' + encodeURIComponent(p.label);
+      link.hidden = false;
+    } else link.hidden = true;
     var note = document.getElementById('hpnote');
     var noteTxt = p.np ? panel.getAttribute('data-np') : (p.est ? panel.getAttribute('data-est') : '');
     note.textContent = noteTxt;
@@ -1265,11 +1306,14 @@ span.sd__ref{color:var(--muted)}
   if (btnImg) btnImg.addEventListener('click', showImg);
   if (pclose) pclose.addEventListener('click', function () { showPanel(null); });
   if (filters) filters.addEventListener('click', function (ev) {
-    var b = ev.target.closest('button[data-g]');
+    var b = ev.target.closest('button');
     if (!b || !viewer) return;
-    b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+    var pressed = b.getAttribute('aria-pressed') !== 'true';
+    b.setAttribute('aria-pressed', String(pressed));
+    if (b.id === 'holoblabels') { viewer.setLabels(pressed); return; }
+    if (!b.hasAttribute('data-g')) return;
     var groups = [];
-    filters.querySelectorAll('button[aria-pressed="true"]').forEach(function (x) { groups.push(x.getAttribute('data-g')); });
+    filters.querySelectorAll('button[data-g][aria-pressed="true"]').forEach(function (x) { groups.push(x.getAttribute('data-g')); });
     viewer.setFilter(groups);
   });
 })();
