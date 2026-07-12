@@ -7,8 +7,8 @@
 // kalibriert. Keine Auto-Rotation: OrbitControls, Hover + Klick auf Marker.
 //
 // API:  initHolo(container, cfg) -> Promise<{ dispose, setFilter, select }>
-//   cfg = { url, ports:[{n,k,p:[x,y,z],g,dim}], mesh:{c,s}, ax:[len,lat],
-//           onProgress(p), onHover(i|null), onSelect(i|null), debug, reduceMotion }
+//   cfg = { url, ports:[{k,p:[x,y,z],g,dim}], mesh:{c,s}, ax:[len,lat],
+//           onProgress(p), onSelect(i|null), debug, reduceMotion }
 // three.js liegt selbst gehostet unter /vendor/three (Import-Map der Seite).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -71,17 +71,26 @@ export async function initHolo(container, cfg) {
 
   const draco = new DRACOLoader().setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
   const loader = new GLTFLoader().setDRACOLoader(draco);
-  const gltf = await new Promise((resolve, reject) => {
-    loader.load(
-      cfg.url,
-      resolve,
-      (e) => {
-        if (cfg.onProgress && e.total) cfg.onProgress(Math.round((e.loaded / e.total) * 100));
-        else if (cfg.onProgress) cfg.onProgress(Math.min(99, Math.round(e.loaded / 250000)));
-      },
-      reject
-    );
-  });
+  let gltf;
+  try {
+    gltf = await new Promise((resolve, reject) => {
+      loader.load(
+        cfg.url,
+        resolve,
+        (e) => {
+          if (cfg.onProgress && e.total) cfg.onProgress(Math.round((e.loaded / e.total) * 100));
+          else if (cfg.onProgress) cfg.onProgress(Math.min(99, Math.round(e.loaded / 250000)));
+        },
+        reject
+      );
+    });
+  } catch (err) {
+    // Fehlpfad sauber aufräumen — sonst stapelt jeder Retry einen toten
+    // Canvas (der neue rendert geclippt darunter) und leakt WebGL-Kontexte
+    renderer.dispose();
+    renderer.domElement.remove();
+    throw err;
+  }
 
   // Materialisierungs-Sweep: Clipping-Ebene wandert von unten nach oben
   const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), reduceMotion ? 1e6 : -1.6);
@@ -125,6 +134,14 @@ export async function initHolo(container, cfg) {
   rig.scale.setScalar(s);
   scene.add(rig);
 
+  /* ---------- Textur-Cache (Marker + Boden-Glow teilen sich Texturen) ---------- */
+  const texCache = new Map();
+  const texFor = (color, hollow) => {
+    const k = `${color}:${hollow}`;
+    if (!texCache.has(k)) texCache.set(k, markerTexture(color, hollow));
+    return texCache.get(k);
+  };
+
   /* ---------- Projektions-Kegel + Boden-Glow ---------- */
   const coneH = 1.15;
   const cone = new THREE.Mesh(
@@ -136,9 +153,8 @@ export async function initHolo(container, cfg) {
   );
   cone.position.set(center.x, box.min.y - (coneH / s) * 0.5, center.z);
   rig.add(cone);
-  const discTex = markerTexture(0x2dd4ff, false);
   const disc = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: discTex, color: 0x2dd4ff, transparent: true, opacity: 0.35,
+    map: texFor(0x2dd4ff, false), color: 0x2dd4ff, transparent: true, opacity: 0.35,
     blending: THREE.AdditiveBlending, depthWrite: false,
   }));
   disc.scale.set(maxDim * 0.7, maxDim * 0.18, 1);
@@ -146,12 +162,6 @@ export async function initHolo(container, cfg) {
   rig.add(disc);
 
   /* ---------- Komponenten-Marker ---------- */
-  const texCache = new Map();
-  const texFor = (color, hollow) => {
-    const k = `${color}:${hollow}`;
-    if (!texCache.has(k)) texCache.set(k, markerTexture(color, hollow));
-    return texCache.get(k);
-  };
   const markers = [];
   const baseScale = maxDim * 0.034;
   for (const [i, port] of (cfg.ports ?? []).entries()) {
@@ -214,7 +224,6 @@ export async function initHolo(container, cfg) {
   const ptr = new THREE.Vector2();
   let hoverIdx = null;
   let selectIdx = null;
-  const visibleGroups = new Set(['core', 'prop', 'arms']);
 
   function pick(ev) {
     const r = renderer.domElement.getBoundingClientRect();
@@ -226,11 +235,11 @@ export async function initHolo(container, cfg) {
   }
   let downAt = null;
   renderer.domElement.addEventListener('pointermove', (ev) => {
+    if (ev.buttons) return; // während des Orbit-Drags kein Hover-Raycast
     const i = pick(ev);
     if (i !== hoverIdx) {
       hoverIdx = i;
       renderer.domElement.style.cursor = i != null ? 'pointer' : 'grab';
-      cfg.onHover?.(i);
     }
   });
   renderer.domElement.addEventListener('pointerdown', (ev) => { downAt = [ev.clientX, ev.clientY]; });
@@ -243,15 +252,24 @@ export async function initHolo(container, cfg) {
   });
 
   /* ---------- Render-Loop ---------- */
+  // Pausiert, wenn die Bühne aus dem Viewport gescrollt ist (Akku/GPU) —
+  // rAF drosselt nur bei verstecktem Tab, nicht bei unsichtbarem Element.
   let alive = true;
+  let inView = true;
+  const vio = new IntersectionObserver((es) => {
+    inView = es.some((e) => e.isIntersecting);
+  }, { threshold: 0.02 });
+  vio.observe(container);
   const clock = new THREE.Clock();
   let matDone = reduceMotion;
   let nextFlicker = 2.5;
   (function tick() {
     if (!alive) return;
-    const dt = clock.getDelta();
+    if (!inView) { requestAnimationFrame(tick); return; }
+    clock.getDelta();
     const t = clock.elapsedTime;
-    uTime.value = t;
+    // reduced motion: statisches Hologramm — kein laufender Schimmer
+    if (!reduceMotion) uTime.value = t;
     // Materialisierung: Ebene von unten nach oben (1.2 s)
     if (!matDone) {
       clipPlane.constant = Math.min(1.6, -1.6 + t * 2.7);
@@ -287,10 +305,9 @@ export async function initHolo(container, cfg) {
 
   return {
     setFilter(groups) {
-      visibleGroups.clear();
-      for (const g of groups) visibleGroups.add(g);
-      for (const sp of markers) sp.visible = visibleGroups.has(sp.userData.port.g);
-      if (selectIdx != null && !visibleGroups.has(cfg.ports[selectIdx].g)) {
+      const vis = new Set(groups);
+      for (const sp of markers) sp.visible = vis.has(sp.userData.port.g);
+      if (selectIdx != null && !vis.has(cfg.ports[selectIdx].g)) {
         selectIdx = null;
         cfg.onSelect?.(null);
       }
@@ -301,6 +318,7 @@ export async function initHolo(container, cfg) {
     dispose() {
       alive = false;
       ro.disconnect();
+      vio.disconnect();
       controls.dispose();
       renderer.dispose();
       renderer.domElement.remove();

@@ -98,9 +98,10 @@ const stageStats: { label: string; value: string }[] = [
 // Loadout-Komponenten ohne physisches Hardpoint bekommen eine schematische
 // Position + "nicht physicalisiert"-Vermerk.
 type HoloPort = {
-  n: string; k: string; g: string; p: number[];
-  label: string | null; size: number | null; count: number;
-  np?: boolean; est?: boolean;
+  k: string; g: string; p: number[];
+  label: string | null; size: number | null;
+  /** np: nicht physicalisiert · est: Position geschätzt · dim: gedämpfter Marker-Stil */
+  np?: boolean; est?: boolean; dim?: boolean;
 };
 const holoShip = (holoMarkersSnapshot as any).ships?.[id] ?? null;
 const HOLO_GRP: Record<string, string> = {
@@ -109,7 +110,7 @@ const HOLO_GRP: Record<string, string> = {
   turret: 'arms', missile: 'arms', weapon: 'arms',
 };
 let holoPorts: HoloPort[] = [];
-if (holoUrl && holoShip && holoShip.conf !== 'low') {
+if (holoUrl && holoShip) {
   const est = holoShip.mode === 'mapped' && holoShip.conf !== 'high';
   // Pools: pro Kategorie die verbauten Items (Name/Größe/Anzahl), expandiert
   const expand = (list: { name: string; size: number | null; count: number }[]) =>
@@ -121,41 +122,61 @@ if (holoUrl && holoShip && holoShip.conf !== 'low') {
     quantum: expand(d.components?.quantumDrives ?? []),
     radar: expand(d.components?.radars ?? []),
     missile: expand(d.missileRacks ?? []),
-    turret: (d.turrets ?? []).flatMap((tu) =>
-      Array.from({ length: tu.stations }, () => ({
-        name: tu.weapons.length ? tu.weapons.map((w) => `${w.count}× ${w.name}`).join(', ') : tu.label,
+    turret: (d.turrets ?? []).flatMap((tu) => {
+      const guns = tu.weapons.filter(realName);
+      return Array.from({ length: tu.stations }, () => ({
+        name: guns.length ? guns.map((w) => `${w.count}× ${w.name}`).join(', ') : tu.label,
         size: tu.sizes[0]?.size ?? null,
-      }))
-    ),
+      }));
+    }),
     weapon: (d.fixedWeapons ?? []).filter(realName).flatMap((w) =>
       Array.from({ length: w.count }, () => ({ name: w.name, size: null }))
     ),
   };
-  const taken: Record<string, number> = {};
-  for (const hp of holoShip.ports as { n: string; k: string; p: number[] }[]) {
-    const g = HOLO_GRP[hp.k];
-    if (!g) continue;
-    const pool = pools[hp.k];
-    const item = pool ? pool[(taken[hp.k] = (taken[hp.k] ?? 0) + 1) - 1] : undefined;
-    holoPorts.push({
-      n: hp.n, k: hp.k, g, p: hp.p,
-      label: item?.name ?? null, size: item?.size ?? null, count: 1,
-      ...(est ? { est: true } : {}),
-    });
+  // Gemischte Loadouts (mehrere VERSCHIEDENE Komponenten derselben Art):
+  // Bone-Reihenfolge und API-Reihenfolge sind unabhängig — eine 1:1-Zuordnung
+  // wäre geraten. Dann ehrlich alle Namen am Marker zeigen statt falsch raten.
+  const mixedLabel: Record<string, string | null> = {};
+  for (const [k, pool] of Object.entries(pools)) {
+    const names = [...new Set(pool.map((it) => it.name))];
+    mixedLabel[k] = names.length > 1 ? names.join(' / ') : null;
   }
-  // Loadout ohne physisches Hardpoint -> schematische Position mittig, gestapelt
-  const mc = holoShip.mesh.c, ms = holoShip.mesh.s;
-  let stackI = 0;
-  for (const k of ['power', 'shield', 'cooler', 'quantum', 'radar']) {
-    const pool = pools[k] ?? [];
-    for (let i = taken[k] ?? 0; i < pool.length; i++) {
-      const off = (stackI++ - 1.5) * 0.08;
+  // conf 'low': Mesh-Ausrichtung nicht belastbar -> keine kalibrierten Marker;
+  // die schematischen "nicht physicalisiert"-Marker unten (nur BBox-Mitte,
+  // ausrichtungsunabhängig) laufen trotzdem — jedes Holo-Schiff bleibt
+  // interagierbar, nur eben ehrlich schematisch.
+  const taken: Record<string, number> = {};
+  if (holoShip.conf !== 'low') {
+    for (const hp of holoShip.ports as { n: string; k: string; p: number[] }[]) {
+      const g = HOLO_GRP[hp.k];
+      if (!g) continue;
+      const pool = pools[hp.k];
+      const item = pool ? pool[(taken[hp.k] = (taken[hp.k] ?? 0) + 1) - 1] : undefined;
+      const mixed = mixedLabel[hp.k];
       holoPorts.push({
-        n: `virtual_${k}_${i}`, k, g: 'core',
-        p: [mc[0] + off * ms[0] * 0.3, mc[1], mc[2] + off * ms[2] * 0.3].map((x) => Math.round(x * 100) / 100),
-        label: pool[i].name, size: pool[i].size, count: 1, np: true,
+        k: hp.k, g, p: hp.p,
+        label: mixed ?? item?.name ?? null,
+        size: mixed ? null : item?.size ?? null,
+        ...(est ? { est: true, dim: true } : {}),
       });
     }
+  }
+  // Nur wenn eine Kategorie GAR KEIN physisches Hardpoint hat, ist sie nicht
+  // physicalisiert -> schematische Position mittig, mit Vermerk. (Weniger
+  // Bones als Loadout-Einträge heißt dagegen nur: aggregierte Ports.)
+  const mc = holoShip.mesh.c, ms = holoShip.mesh.s;
+  let stackI = 0;
+  const coreKinds = Object.keys(HOLO_GRP).filter((k) => HOLO_GRP[k] === 'core');
+  for (const k of coreKinds) {
+    const pool = pools[k] ?? [];
+    if (!pool.length || (taken[k] ?? 0) > 0) continue;
+    const off = (stackI++ - 1) * 0.08;
+    holoPorts.push({
+      k, g: 'core',
+      p: [mc[0] + off * ms[0] * 0.3, mc[1], mc[2] + off * ms[2] * 0.3].map((x) => Math.round(x * 100) / 100),
+      label: mixedLabel[k] ?? pool[0].name, size: mixedLabel[k] ? null : pool[0].size,
+      np: true, dim: true,
+    });
   }
 }
 const holoData = holoPorts.length
@@ -244,6 +265,9 @@ a{color:inherit;text-decoration:none}
 .holo__stage.is-3d .holo__3d{opacity:1;pointer-events:auto}
 .holo__status{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);z-index:5;white-space:nowrap;
   font-family:var(--font-ui);font-weight:700;font-size:.9rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+/* Status (Lade-%/Fehler) nur zeigen, solange geladen wird oder 3D aktiv ist —
+   ein stiller Auto-Start-Fehlschlag darf das Foto nicht dauerhaft überlagern */
+.holo__stage:not(.is-3d):not(.is-loading) .holo__status{display:none}
 .holo__activate{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;cursor:pointer;
   appearance:none;border:1px solid color-mix(in srgb,var(--accent) 55%,transparent);background:rgba(5,7,13,.7);color:var(--accent);
   font-family:var(--font-ui);font-weight:700;font-size:.85rem;letter-spacing:.18em;text-transform:uppercase;padding:.7rem 1.2rem;
@@ -1093,7 +1117,13 @@ span.sd__ref{color:var(--muted)}
   function showImg() {
     stage.classList.remove('is-3d');
     holoSec.classList.remove('is-3d-active');
-    panel.hidden = true;
+    // Fehler-/Statuszeile räumen, außer ein Ladevorgang läuft noch (dessen
+    // %-Anzeige bleibt über dem Foto sichtbar, bis er fertig ist)
+    if (!loading) {
+      stage.classList.remove('is-loading');
+      status.textContent = '';
+    }
+    showPanel(null);
     pressed(btnImg);
   }
   function showPanel(i) {
@@ -1115,10 +1145,13 @@ span.sd__ref{color:var(--muted)}
     if (viewer) viewer.select(i);
   }
 
-  function start() {
+  // explicit = Nutzer hat aktiv geklickt (3D-Button/Tap): dann Fehler zeigen;
+  // Auto-Start (Scroll-Lazy) fällt bei Fehlern still aufs Foto zurück.
+  // Das Foto bleibt während des Downloads sichtbar (is-3d erst nach Erfolg).
+  function start(explicit) {
     if (viewer || loading) return;
     loading = true;
-    show3d();
+    stage.classList.add('is-loading');
     status.textContent = loadingTpl.replace('%p%', '0');
     import('/assets/holo-viewer.js')
       .then(function (m) {
@@ -1135,13 +1168,19 @@ span.sd__ref{color:var(--muted)}
       .then(function (v) {
         viewer = v;
         status.textContent = '';
+        stage.classList.remove('is-loading');
+        show3d();
         if (filters) filters.hidden = false;
       })
       .catch(function (e) {
         console.error(e);
-        status.textContent = errorTxt;
         loading = false;
         showImg();
+        if (explicit) {
+          // Nutzer hat aktiv geklickt -> Fehler an Ort und Stelle zeigen
+          stage.classList.add('is-loading');
+          status.textContent = errorTxt;
+        }
       });
   }
 
@@ -1149,23 +1188,23 @@ span.sd__ref{color:var(--muted)}
   var saveData = navigator.connection && navigator.connection.saveData;
   if (act && (matchMedia('(max-width: 760px)').matches || saveData)) {
     act.hidden = false;
-    act.addEventListener('click', function () { act.hidden = true; start(); });
+    act.addEventListener('click', function () { act.hidden = true; start(true); });
   } else if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (es) {
-      if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); start(); }
+      if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); start(false); }
     }, { threshold: 0.25 });
     io.observe(stage);
     // Fallback: manche Umgebungen drosseln IO — wenn die Bühne sichtbar ist,
     // nach kurzer Frist trotzdem starten
     setTimeout(function () {
       var r = stage.getBoundingClientRect();
-      if (r.bottom > 0 && r.top < innerHeight) { io.disconnect(); start(); }
+      if (r.bottom > 0 && r.top < innerHeight) { io.disconnect(); start(false); }
     }, 1800);
   } else {
-    start();
+    start(false);
   }
 
-  if (btn3d) btn3d.addEventListener('click', function () { viewer || loading ? show3d() : start(); });
+  if (btn3d) btn3d.addEventListener('click', function () { viewer || loading ? show3d() : start(true); });
   if (btnImg) btnImg.addEventListener('click', showImg);
   if (pclose) pclose.addEventListener('click', function () { showPanel(null); });
   if (filters) filters.addEventListener('click', function (ev) {

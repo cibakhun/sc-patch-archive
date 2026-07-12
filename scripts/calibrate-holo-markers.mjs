@@ -57,8 +57,19 @@ mkdirSync(CACHE, { recursive: true });
 const snap = JSON.parse(readFileSync(HARDPOINTS, 'utf8'));
 const extras = JSON.parse(readFileSync(EXTRAS, 'utf8')).extras;
 
-const onlyArg = process.argv.find((a) => a.startsWith('--only'));
-const only = onlyArg ? new Set((process.argv[process.argv.indexOf(onlyArg) + 1] ?? onlyArg.split('=')[1]).split(',')) : null;
+let only = null;
+{
+  const ix = process.argv.findIndex((a) => a === '--only' || a.startsWith('--only='));
+  if (ix !== -1) {
+    const a = process.argv[ix];
+    const val = a.includes('=') ? a.slice(a.indexOf('=') + 1) : process.argv[ix + 1];
+    if (!val || val.startsWith('--')) {
+      console.error('--only braucht eine Slug-Liste (z. B. --only drak-corsair,aegs-gladius)');
+      process.exit(1);
+    }
+    only = new Set(val.split(','));
+  }
+}
 
 /* ---------- Mini-Mat4 (Spalten-major, wie glTF) ---------- */
 function mat4Mul(a, b) {
@@ -99,6 +110,12 @@ async function loadGltf(slug, url) {
     const res = await fetch(url, { headers: { 'User-Agent': 'sc-patch-archiv fan site (holo calibration, one-time)' } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     buf = Buffer.from(await res.arrayBuffer());
+    // Format VOR dem Cachen prüfen — eine 200er-HTML-Wartungsseite würde
+    // sonst den Cache dauerhaft vergiften
+    const head = buf.subarray(0, 4).toString('latin1');
+    if (head !== 'glTF' && !/^\s*\{/.test(buf.subarray(0, 64).toString('utf8'))) {
+      throw new Error('Antwort ist kein glTF/GLB (HTML-Fehlerseite?)');
+    }
     await writeFile(cacheFile, buf);
   }
   if (buf.subarray(0, 4).toString('latin1') === 'glTF') {
@@ -279,10 +296,6 @@ function calibrate(ship, an, noseSide) {
   let P = bestP.P;
   const s = bestP.s;
 
-  // Bug-Richtung: Glas-Centroid (cry) gegen Window-Mesh-Centroid (FY),
-  // Centroid-gegen-Centroid — Heck-Verglasung verfälscht beide Seiten gleich.
-  // Gewählt wird die Variante (P vs. 180°-Yaw), deren Mapping den Glas-Anker
-  // näher ans FY-Fenster legt (gemessen auf der Längsachse).
   // Bug-Richtung aus dem Slab-Test (Geometrie-Taper): erwartet wird der Bug
   // (cry +Y) am Ende sgn[lenAxis]. Widerspricht der Taper -> 180°-Yaw.
   // HOLO_NOSE=flip|noflip als Debug-Override.
@@ -294,7 +307,13 @@ function calibrate(ship, an, noseSide) {
     noseChecked = true;
   } else if (noseSide !== 0) {
     noseChecked = true;
-    if (noseSide !== P.sgn[P.lenAxis]) P = flipped(P);
+    if (noseSide !== P.sgn[P.lenAxis]) {
+      // Taper widerspricht der Export-Konvention: dem Taper folgen, aber als
+      // Einzelsignal nicht mit voller Konfidenz ausliefern (Marker kriegen
+      // dann das "geschätzt"-Styling statt eines stillen 180°-Fehlers).
+      P = flipped(P);
+      if (conf === 'high') conf = 'mid';
+    }
   }
   if (!noseChecked && conf === 'high') conf = 'mid'; // Orientierung ungeprüft
 
@@ -320,9 +339,12 @@ async function work(slug) {
     const an = analyze(gltf);
     const r3 = (x) => Math.round(x * 1000) / 1000;
 
-    // 1) native Locator, wenn ausreichend vorhanden (granulare StarFab-Holos)
+    // 1) native Locator, wenn ausreichend vorhanden (granulare StarFab-Holos).
+    // Kern-Zählung über die bereits klassifizierten Kinds aus dem Snapshot —
+    // keine dritte, eigene Namens-Regex-Variante pflegen.
     const nat = an.native;
-    const coreNative = [...nat.keys()].filter((k) => /power_plant|shield_gen|cooler|quantum_drive|radar/.test(k)).length;
+    const CORE = new Set(['power', 'shield', 'cooler', 'quantum', 'radar']);
+    const coreNative = ship.hp.filter((h) => CORE.has(h.k) && nat.has(h.n.toLowerCase())).length;
     if (nat.size >= 8 && coreNative >= 3) {
       const ports = [];
       for (const h of ship.hp) {

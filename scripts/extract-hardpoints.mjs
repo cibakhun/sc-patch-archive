@@ -62,7 +62,8 @@ const cdSize = Number(z64.readBigUInt64LE(40));
 const cdOff = Number(z64.readBigUInt64LE(48));
 console.log(`central directory: ${(cdSize / 2 ** 20).toFixed(0)} MiB, ${z64.readBigUInt64LE(32)} Einträge — scanne .cga …`);
 
-const cd = Buffer.alloc(cdSize);
+// allocUnsafe: die Schleife überschreibt garantiert jedes Byte (short read wirft)
+const cd = Buffer.allocUnsafe(cdSize);
 {
   const CHUNK = 64 * 1024 * 1024;
   let done = 0;
@@ -374,21 +375,7 @@ for (const v of catalog.vehicles) {
   for (const n of nodes) {
     const k = kindOf(n.name);
     if (!k) continue;
-    hp.push({ n: n.name, k, p: [r3(n.x), r3(n.y), r3(n.z)], pa: nodes[n.parent]?.name ?? null });
-  }
-  // Glas-Anker: Centroid aller Verglasungs-Nodes (Canopy, Fenster). Dient der
-  // Kalibrierung als Bug-Richtungs-Referenz gegen das FY-Window-Mesh —
-  // Centroid-gegen-Centroid, damit Heck-Verglasung nicht fehlleitet.
-  let glassC = null;
-  {
-    const g = nodes.filter((n) => /window|glass|canopy|windshield|windscreen|cockpit_glas/i.test(n.name));
-    if (g.length) {
-      glassC = [
-        r3(g.reduce((a, n) => a + n.x, 0) / g.length),
-        r3(g.reduce((a, n) => a + n.y, 0) / g.length),
-        r3(g.reduce((a, n) => a + n.z, 0) / g.length),
-      ];
-    }
+    hp.push({ n: n.name, k, p: [r3(n.x), r3(n.y), r3(n.z)] });
   }
   ships[v.id] = {
     cga: hit.e.name.replace(/\\/g, '/'),
@@ -397,12 +384,10 @@ for (const v of catalog.vehicles) {
     bbox: bbox.map((c) => c.map(r3)),
     /** echte Hull-AABB aus der Geometrie (Kalibrier-Anker fürs Mesh-Mapping) */
     hull: best.parsed.hull ? best.parsed.hull.map((c) => c.map(r3)) : null,
-    /** Centroid der Verglasungs-Nodes (Bug-Richtungs-Anker) */
-    glassC,
     hp,
   };
   extracted++;
-  const core = hp.filter((h) => ['power', 'shield', 'cooler', 'quantum', 'radar'].includes(h.k)).length;
+  const core = hp.filter((h) => CORE_KINDS.has(h.k)).length;
   console.log(`  ${v.id.padEnd(38)} ${String(nodes.length).padStart(4)} nodes, ${String(hp.length).padStart(3)} hp (${core} core) [${hit.how}]`);
 }
 
