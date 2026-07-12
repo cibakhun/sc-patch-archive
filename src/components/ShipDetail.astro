@@ -286,11 +286,11 @@ a{color:inherit;text-decoration:none}
   border-radius:50%;background:radial-gradient(50% 50% at 50% 50%,rgba(45,212,255,.4),rgba(45,212,255,.1) 55%,transparent 72%);
   filter:blur(5px);transition:opacity .5s}
 .is-3d-active .holo__pad{background:radial-gradient(50% 50% at 50% 50%,rgba(45,212,255,.55),rgba(45,212,255,.16) 55%,transparent 72%)}
-.holo__wrap{position:relative;z-index:2;height:100%;max-width:1460px;margin:0 auto;
-  display:grid;grid-template-columns:minmax(230px,.62fr) minmax(0,1.62fr);gap:1rem;align-items:stretch;
-  padding:58px clamp(1rem,3vw,2.5rem) 34px}
-.holo__stage{position:relative;height:100%;min-height:360px}
-.holo__ship{position:absolute;inset:0 0 4%;display:grid;grid-template:100%/100%;place-items:center;min-height:0}
+/* Vollbreite: Bühne randlos über die ganze Hero-Breite -> Modell mittig,
+   groß, und bis zum Bildschirmrand verschiebbar. Titel liegt als Overlay auf. */
+.holo__wrap{position:relative;z-index:2;height:100%;width:100%}
+.holo__stage{position:absolute;inset:0;min-height:360px}
+.holo__ship{position:absolute;inset:2% 2% 6%;display:grid;grid-template:100%/100%;place-items:center;min-height:0}
 .holo__ship img{width:100%;height:100%;object-fit:contain;
   filter:drop-shadow(0 22px 44px rgba(0,0,0,.6));transition:opacity .6s}
 .holo__3d{position:absolute;inset:0;opacity:0;pointer-events:none;cursor:grab;transition:opacity .6s}
@@ -310,8 +310,8 @@ a{color:inherit;text-decoration:none}
 .holo__hintline{position:absolute;left:50%;bottom:2%;transform:translateX(-50%);z-index:4;pointer-events:none;white-space:nowrap;
   font-family:var(--font-ui);font-weight:600;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);opacity:0;transition:opacity .6s}
 .holo__stage.is-3d .holo__hintline{opacity:.75}
-/* Ebenen-Filter (Komponenten/Antrieb/Bewaffnung) */
-.holo__filters{position:absolute;left:0;bottom:0;z-index:6;display:flex;gap:.35rem}
+/* Ebenen-Filter (Komponenten/Bewaffnung) — oben links unter dem HUD */
+.holo__filters{position:absolute;left:clamp(16px,3vw,30px);top:54px;z-index:6;display:flex;gap:.35rem}
 .holo__filters button{appearance:none;cursor:pointer;border:1px solid var(--line);background:rgba(5,7,13,.65);color:var(--muted);
   font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;padding:.4rem .65rem;
   backdrop-filter:blur(4px)}
@@ -320,7 +320,7 @@ a{color:inherit;text-decoration:none}
 .holo__filters button[data-g="arms"][aria-pressed="true"]{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 45%,transparent);
   background:color-mix(in srgb,var(--gold) 10%,rgba(5,7,13,.65))}
 /* Komponenten-Detail-Karte (wie im Bord-MFD) */
-.holo__panel{position:absolute;right:0;top:6%;z-index:7;width:min(280px,86%);
+.holo__panel{position:absolute;right:clamp(14px,2vw,24px);top:58px;z-index:7;width:min(280px,86%);
   border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);background:rgba(6,10,18,.88);backdrop-filter:blur(6px);
   clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
 .holo__panel .hp__head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;
@@ -352,7 +352,8 @@ a{color:inherit;text-decoration:none}
 .holo__toggle button{appearance:none;border:0;background:transparent;color:var(--muted);cursor:pointer;
   font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;padding:.5rem .95rem}
 .holo__toggle button[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
-.holo__title{position:relative;z-index:3;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.holo__title{position:absolute;left:clamp(18px,3.5vw,46px);bottom:clamp(18px,4vh,40px);z-index:4;
+  max-width:min(56%,600px);pointer-events:none;display:flex;flex-direction:column}
 .holo__title .sd__maker{margin-bottom:.15rem}
 .holo__title h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,4.5vw,3.2rem);line-height:1.02;color:#fff;
   text-shadow:0 2px 26px rgba(0,0,0,.85),0 0 44px rgba(45,212,255,.22)}
@@ -360,19 +361,17 @@ a{color:inherit;text-decoration:none}
 .holo__chips span{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;
   color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);
   background:rgba(5,7,13,.55);padding:.28rem .6rem}
-.holo__src{margin-top:auto;padding-top:1.4rem;font-family:var(--font-ui);font-weight:600;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);opacity:.7}
+.holo__src{margin-top:.7rem;font-family:var(--font-ui);font-weight:600;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);opacity:.8}
 .holo__none{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);opacity:.6}
 @media(max-width:900px){
-  .holo{height:auto;min-height:0}
-  .holo__wrap{grid-template-columns:1fr;gap:.4rem;padding:66px clamp(1rem,3vw,2rem) 56px}
-  .holo__stage{min-height:340px;height:clamp(340px,48vh,460px)}
-  .holo__panel{top:auto;bottom:0;right:0;left:auto;width:min(280px,92%)}
+  .holo__panel{top:auto;bottom:52px;right:clamp(10px,3vw,20px);left:auto;width:min(280px,92%)}
+  .holo__title{max-width:74%}
 }
 @media(max-width:760px){
   .holo__toggle{right:14px;bottom:14px}
   .holo__hud{left:16px;top:18px}.holo__dims{display:none}
-  .holo__stage{min-height:300px;height:clamp(300px,42vh,400px)}
-  .holo__src{margin-bottom:.4rem}
+  .holo__filters{top:44px;left:16px}
+  .holo__ship{inset:6% 3% 12%}
 }
 
 /* Kennwerte-Leiste */
