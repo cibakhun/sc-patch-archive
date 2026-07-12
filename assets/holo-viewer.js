@@ -210,14 +210,40 @@ export async function initHolo(container, cfg) {
       'markers', markers.length, '— Taste F: Marker-Yaw-Flip (rot=X grün=Y blau=Z)');
   }
 
-  /* ---------- Controls: keine Auto-Rotation ---------- */
+  /* ---------- Controls: keine Auto-Rotation, Rechtsklick-Ziehen = verschieben ---------- */
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.06;
   controls.autoRotate = false;
-  controls.enablePan = false;
-  controls.minDistance = 1.2;
-  controls.maxDistance = 7;
+  controls.enablePan = true;              // Rechtsklick/Zwei-Finger: Modell verschieben
+  controls.screenSpacePanning = true;     // in Bildschirmebene schieben (intuitiver)
+  controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+  controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+  // Kontextmenü auf dem Canvas unterdrücken, damit Rechtsklick-Ziehen läuft
+  renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // Kamera so setzen, dass das GANZE Modell ins Bild passt — auch sehr große
+  // oder sehr breite Schiffe (Bounding-Sphere gegen vertikales UND horizontales
+  // Sichtfeld gefittet), inkl. Neuanpassung bei Größenänderung.
+  const fitSphere = new THREE.Box3().setFromObject(rig).getBoundingSphere(new THREE.Sphere());
+  function fitCamera(margin = 1.18) {
+    const r = fitSphere.radius * margin;
+    const vFov = (camera.fov * Math.PI) / 180;
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+    const dist = r / Math.sin(Math.min(vFov, hFov) / 2);
+    let dir = new THREE.Vector3().subVectors(camera.position, controls.target);
+    if (dir.lengthSq() < 1e-6) dir.set(0.7, 0.32, 0.7);
+    dir.normalize();
+    controls.target.copy(fitSphere.center);
+    camera.position.copy(fitSphere.center).addScaledVector(dir, dist);
+    camera.near = Math.max(0.01, dist - r * 2.2);
+    camera.far = dist + r * 2.5;
+    camera.updateProjectionMatrix();
+    controls.minDistance = r * 0.5;
+    controls.maxDistance = dist * 2.2;
+    controls.update();
+  }
+  fitCamera();
 
   /* ---------- Hover / Klick ---------- */
   const ray = new THREE.Raycaster();
@@ -296,10 +322,16 @@ export async function initHolo(container, cfg) {
     requestAnimationFrame(tick);
   })();
 
+  // sobald der Nutzer selbst dreht/schiebt, seine Ansicht nicht mehr überschreiben
+  let userMoved = false;
+  controls.addEventListener('start', () => { userMoved = true; });
   const ro = new ResizeObserver(() => {
     camera.aspect = W() / H();
     camera.updateProjectionMatrix();
     renderer.setSize(W(), H());
+    // Bis zur ersten Interaktion bei jedem Layout neu einpassen (auch spätes
+    // Layout), damit das ganze Modell garantiert im Bild ist — danach nicht mehr.
+    if (!userMoved && W() > 0 && H() > 0) fitCamera();
   });
   ro.observe(container);
 
