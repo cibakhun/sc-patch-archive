@@ -6,6 +6,8 @@
 // i18n-Stand (Stufe 2, vollständig): Template-Chrome + alle Daten-Row-Labels
 // (src/lib via t()), Freitext (Beschreibung/Foci/Typ/Größe/Status via
 // vehicleText) und Zahlenformat (loc = de-DE / en-US) sind lokalisiert.
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import Layout from '../layouts/Layout.astro';
 import SiteNav from './SiteNav.astro';
 import { getCollection } from 'astro:content';
@@ -49,6 +51,12 @@ const hero = pickHero(d);
 // Kopf-Medien: kuratiertes Commercial (YouTube) + Bild-Galerie (Hero + Paints)
 const videoId = shipVideo(id);
 const gallery = shipGallery(id, d);
+// Cache-Busting: /assets/holo-viewer.js hat eine feste URL und wird vom CDN
+// (Cloudflare, 4h) gecached -> nach einem Deploy sonst die ALTE Datei. Ein
+// Content-Hash im Query erzwingt bei Änderung eine neue URL (Cache-Miss).
+let holoViewerVer = 'x';
+try { holoViewerVer = createHash('sha1').update(readFileSync('assets/holo-viewer.js')).digest('hex').slice(0, 8); } catch { /* dev-Fallback */ }
+const holoViewerSrc = `/assets/holo-viewer.js?v=${holoViewerVer}`;
 const prices = priceInfo(id);
 const buyMin = prices?.buy[0] ?? null;
 const rentMin = prices?.rent[0] ?? null;
@@ -788,6 +796,7 @@ span.sd__ref{color:var(--muted)}
         class={`holo__stage${defaultMode === 'video' ? ' is-video' : ''}`}
         id="holostage"
         data-default={defaultMode}
+        data-holo-src={holoViewerSrc}
         data-loading={t('ship.holo.loading')}
         data-error={t('ship.holo.error')}
       >
@@ -795,10 +804,10 @@ span.sd__ref{color:var(--muted)}
           {hasGallery ? (
             gallery.map((src, i) => (
               <img
-                src={src}
+                src={i === 0 ? src : undefined}
+                data-src={i === 0 ? undefined : src}
                 class={i === 0 ? 'is-active' : undefined}
                 alt={i === 0 ? `${d.name} — Darstellung` : ''}
-                loading={i === 0 ? undefined : 'lazy'}
                 referrerpolicy="no-referrer"
                 onerror="this.dataset.bad='1';this.style.display='none'"
               />
@@ -1393,11 +1402,19 @@ span.sd__ref{color:var(--muted)}
 
   // ---------- Bilder-Slideshow (langsames Crossfade) ----------
   var slideTimer = null, slideIdx = 0;
+  // Bilder erst bei Bedarf laden (data-src -> src), sonst feuern alle 11 gleich-
+  // zeitig gegen FleetYards und haengen. Aktives + naechstes Bild vorladen.
+  function ensureLoaded(i) {
+    var im = slides[i];
+    if (im && !im.getAttribute('src') && im.dataset.src) im.src = im.dataset.src;
+  }
   function paint(i) {
     slides.forEach(function (im, k) { im.classList.toggle('is-active', k === i); });
     if (dots) [].forEach.call(dots.children, function (dd, k) { dd.classList.toggle('on', k === i); });
+    ensureLoaded(i); ensureLoaded((i + 1) % slides.length);
   }
   function startSlideshow() {
+    ensureLoaded(slideIdx); ensureLoaded((slideIdx + 1) % slides.length);
     if (slideTimer || reduce || slides.length < 2) return;
     slideTimer = setInterval(function () {
       if (mode !== 'img' || document.hidden) return;
@@ -1474,7 +1491,12 @@ span.sd__ref{color:var(--muted)}
             // am Ende (0) einfach zurück an 3,8 s und weiterspielen
             else if (e.data === 0) { try { e.target.seekTo(3.8, true); e.target.playVideo(); } catch (er) {} }
           },
-          onError: function (e) { console.warn('YT player error', e && e.data); },
+          onError: function (e) {
+            // Video nicht abspielbar (Region/Embed/Netz) -> auf Bilder ausweichen,
+            // damit kein YouTube-Fehlerbildschirm stehen bleibt
+            console.warn('YT player error', e && e.data);
+            if (slides.length) { fadePoster(); showImg(); if (btnVid) btnVid.style.display = 'none'; }
+          },
         },
       });
       // Fallback: sollte Autoplay wider Erwarten blockiert bleiben, das Poster
@@ -1546,7 +1568,7 @@ span.sd__ref{color:var(--muted)}
       loading = true;
       stage.classList.add('is-loading');
       status.textContent = loadingTpl.replace('%p%', '0');
-      import('/assets/holo-viewer.js')
+      import(stage.getAttribute('data-holo-src') || '/assets/holo-viewer.js')
         .then(function (m) {
           return m.initHolo(wrap, {
             url: cfg.url, ports: cfg.ports, mesh: cfg.mesh, ax: cfg.ax,
