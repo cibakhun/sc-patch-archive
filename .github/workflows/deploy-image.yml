@@ -37,15 +37,17 @@ jobs:
             ghcr.io/cibakhun/sc-patch-archive:latest
             ghcr.io/cibakhun/sc-patch-archive:${{ github.sha }}
 
-      # Coolify anstoßen, das neue Image zu ziehen (Webhook-URL als Repo-Secret).
-      # Ist COOLIFY_DEPLOY_WEBHOOK nicht gesetzt, wird nur ein Hinweis geloggt —
+      # Coolify anstoßen, das neue Image zu ziehen (Webhook-URL + API-Token als Repo-Secrets).
+      # Der Deploy-Webhook braucht einen Bearer-Token (COOLIFY_API_TOKEN, Permission "deploy").
+      # Ist eins von beiden nicht gesetzt, wird nur ein Hinweis geloggt —
       # dann in Coolify manuell "Redeploy" klicken.
       - name: Trigger Coolify redeploy
         env:
           HOOK: ${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}
+          TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
         run: |
-          if [ -n "$HOOK" ]; then
-            curl -fsSL "$HOOK" && echo "Coolify redeploy triggered."
+          if [ -n "$HOOK" ] && [ -n "$TOKEN" ]; then
+            curl -fsSL "$HOOK" -H "Authorization: Bearer $TOKEN" && echo "Coolify redeploy triggered."
           else
-            echo "No COOLIFY_DEPLOY_WEBHOOK secret set — redeploy manually in Coolify."
+            echo "COOLIFY_DEPLOY_WEBHOOK und/oder COOLIFY_API_TOKEN nicht gesetzt — redeploy manuell in Coolify."
           fi
