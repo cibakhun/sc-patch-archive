@@ -4,7 +4,8 @@
 import type { CollectionEntry } from 'astro:content';
 import pricesSnapshot from '../data/vehicle-prices.json';
 import extrasSnapshot from '../data/ship-extras.json';
-import { pickThumb } from './shipRenders';
+import videosSnapshot from '../data/ship-videos.json';
+import { pickThumb, pickHero } from './shipRenders';
 import { useTranslations, type Locale, type UIKey, DEFAULT_LOCALE } from '../i18n/ui';
 import { vType } from '../i18n/vehicleText';
 
@@ -42,6 +43,32 @@ export const extrasFetchedAt: string = (extrasSnapshot as { fetchedAt: string })
 export function extrasInfo(id: string): ShipExtras {
   const e = (extrasSnapshot as { extras: Record<string, NonNullable<ShipExtras>> }).extras[id];
   return e ?? null;
+}
+
+/* ---------- Kopf-Medien: Video (kuratiert) + Bild-Galerie ---------- */
+
+/** kuratierte offizielle RSI-Ship-Commercials (YouTube). null = kein Video. */
+export function shipVideo(id: string): string | null {
+  const v = (videosSnapshot as { videos: Record<string, string> }).videos[id];
+  return v && v.trim() ? v.trim() : null;
+}
+
+/** Geordnete, deduplizierte Bildliste pro Schiff für die Kopf-Slideshow:
+ *  Hero-Render zuerst, dann FleetYards-Store-Bild, dann die Paint-Varianten.
+ *  Auf 12 Bilder gedeckelt (DOM/Traffic). */
+export function shipGallery(id: string, d: VehicleData): string[] {
+  const urls: string[] = [];
+  const push = (u?: string | null) => {
+    if (u && !urls.includes(u)) urls.push(u);
+  };
+  const hero = pickHero(d);
+  if (hero) push(hero.src);
+  const e = extrasInfo(id);
+  if (e) {
+    push(e.storeImage);
+    for (const p of e.paints) push(p.image);
+  }
+  return urls.slice(0, 12);
 }
 
 /* ---------- Leistungsprofil: Perzentile im Gesamtkatalog ---------- */

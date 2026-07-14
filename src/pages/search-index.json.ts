@@ -59,7 +59,7 @@ export const GET: APIRoute = async () => {
   for (const v of vehicles)
     out.push({
       k: 'schiff',
-      b: v.data.makerCode ?? 'Schiff',
+      b: v.data.manufacturer ?? v.data.makerCode ?? 'Schiff',
       t: v.data.name,
       s: [v.data.manufacturer, v.data.typeDe, v.data.sizeDe].filter(Boolean).join(' · '),
       u: `/schiffe/${v.id}.html`,

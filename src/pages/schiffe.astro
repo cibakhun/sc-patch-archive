@@ -1,12 +1,15 @@
 ---
-// SCHIFFE — the ship database browser (Phase 1). Calm REGISTRATUR data page:
-// full catalog from the wiki-API snapshot, client-side filtering in vanilla
-// JS (no framework), patch-spine badges linking back into the archive.
+// SCHIFFE — the ship database browser (Phase 2). Holo-card fleet grid: full
+// catalog from the wiki-API snapshot, client-side filter + sort in vanilla JS
+// (no framework). Each card carries BOTH prices — Pledge (USD) and the
+// cheapest in-game buy (UEX aUEC snapshot) — plus a patch-spine badge back
+// into the archive.
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
 import vehiclesSnapshot from '../data/vehicles.json';
 import { pickThumb } from '../lib/shipRenders';
+import { priceInfo, pricesFetchedAt } from '../lib/shipExtras';
 import { vRole } from '../i18n/vehicleText';
 
 const vehicles = (await getCollection('vehicles')).sort((a, b) =>
@@ -17,16 +20,26 @@ const types = [...new Set(vehicles.map((v) => v.data.typeDe).filter(Boolean))].s
 const flightReady = vehicles.filter((v) => v.data.statusEn === 'flight-ready').length;
 const inArchive = vehicles.filter((v) => v.data.patches.length > 0).length;
 
+// Karten-Modell: Preise vorab joinen, damit das JSX schlank bleibt.
+const cards = vehicles.map((v) => ({
+  d: v.data,
+  id: v.id,
+  thumb: pickThumb(v.data),
+  buy: priceInfo(v.id)?.buy[0]?.price ?? null,
+}));
+const buyable = cards.filter((c) => c.buy != null).length;
+
 const crewFmt = (v: (typeof vehicles)[number]['data']) =>
   v.crewMin != null || v.crewMax != null
     ? v.crewMin != null && v.crewMax != null && v.crewMax !== v.crewMin
       ? `${v.crewMin}–${v.crewMax}`
       : `${v.crewMin ?? v.crewMax}`
     : '—';
+const auecShort = (n: number) => n.toLocaleString('de-DE');
 ---
 <Layout
   title="Schiffe & Fahrzeuge — Datenbank | VerseBase"
-  description={`${vehicles.length} Schiffe und Fahrzeuge mit Specs, deutschen Beschreibungen und Patch-Historie — Datenstand ${vehiclesSnapshot.fetchedAt}.`}
+  description={`${vehicles.length} Schiffe und Fahrzeuge mit Specs, Pledge- und Ingame-Preisen, deutschen Beschreibungen und Patch-Historie — Datenstand ${vehiclesSnapshot.fetchedAt}.`}
   themeColor="#05070d"
   footer={true}
   translated={true}
@@ -37,7 +50,7 @@ const crewFmt = (v: (typeof vehicles)[number]['data']) =>
   --accent:#2dd4ff;--accent-2:#6ea8ff;--gold:#d4af37;
   --text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);
   --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
-  --maxw:1400px;
+  --maxw:1440px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased}
@@ -45,82 +58,177 @@ a{color:inherit;text-decoration:none}
 ::selection{background:var(--accent);color:#05070d}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-.sdb{max-width:var(--maxw);margin:0 auto;padding:7rem clamp(1rem,3vw,2.5rem) 4rem}
-.sdb__head h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2.2rem,6vw,3.6rem);
-  background:linear-gradient(180deg,#fff,var(--accent-2) 70%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
-.sdb__sub{max-width:72ch;color:var(--muted);margin-top:.7rem;font-size:1.08rem}
-.sdb__metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1.2rem 2rem;max-width:640px;margin:1.5rem 0 0}
-.sdb__metrics div{border-left:2px solid var(--line);padding-left:.8rem}
-.sdb__metrics dt{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.sdb__metrics dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:1.5rem;color:var(--accent);font-variant-numeric:tabular-nums}
+.sdb{position:relative}
+/* weicher Seiten-Backdrop unterhalb des Hero, damit die Fläche nicht tot-schwarz wirkt */
+.sdb::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(70% 45% at 82% 4%,rgba(45,212,255,.05),transparent 60%)}
 
-.sdb__filter{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center;margin:1.8rem 0 1rem;padding:.8rem 1rem;border:1px solid var(--line);background:var(--bg-2)}
-.sdb__filter input,.sdb__filter select{background:rgba(0,0,0,.35);border:1px solid var(--line);color:var(--text);
-  font-family:var(--font-ui);font-weight:600;font-size:.95rem;padding:.45rem .7rem;min-width:150px}
+/* ---------- Hero ---------- */
+.sdb__hero{position:relative;min-height:clamp(440px,60vh,700px);display:flex;flex-direction:column;justify-content:flex-end;
+  padding:7rem clamp(1rem,4vw,3rem) 2.2rem;overflow:hidden;border-bottom:1px solid var(--line)}
+.sdb__hero::before{content:"";position:absolute;inset:0;z-index:0;
+  background:url('/assets/img-polaris.jpg') center right/cover no-repeat;animation:heroKb 36s ease-in-out infinite alternate}
+.sdb__hero::after{content:"";position:absolute;inset:0;z-index:1;background:
+  linear-gradient(90deg,rgba(5,7,13,.95) 0%,rgba(5,7,13,.64) 40%,rgba(5,7,13,.12) 100%),
+  linear-gradient(180deg,rgba(5,7,13,.55),transparent 26%,rgba(5,7,13,.42) 60%,var(--bg) 99%)}
+@keyframes heroKb{from{transform:scale(1)}to{transform:scale(1.08)}}
+@media(prefers-reduced-motion:reduce){.sdb__hero::before{animation:none}}
+/* feines HUD-Raster über dem Scrim */
+.sdb__grid{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.6;
+  background-image:linear-gradient(rgba(110,168,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(110,168,255,.06) 1px,transparent 1px);
+  background-size:52px 52px;-webkit-mask-image:linear-gradient(180deg,transparent,#000 45%,transparent);mask-image:linear-gradient(180deg,transparent,#000 45%,transparent)}
+.sdb__heroin{position:relative;z-index:3;max-width:var(--maxw);margin:0 auto;width:100%}
+.sdb__eyebrow{font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--accent);display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.sdb__eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--accent),transparent)}
+.sdb__hero h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2.4rem,7vw,4.6rem);line-height:1;
+  background:linear-gradient(180deg,#fff,var(--accent-2) 66%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 3px 24px rgba(0,0,0,.85))}
+.sdb__sub{max-width:56ch;color:#dbe6ff;margin-top:.8rem;font-size:clamp(1rem,1.4vw,1.15rem);text-shadow:0 2px 12px rgba(0,0,0,.75)}
+
+/* Kennzahlen als Glas-HUD-Band unten im Hero */
+.sdb__metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;margin:1.9rem 0 0;max-width:900px;
+  border:1px solid var(--line);background:var(--line);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sdb__metrics div{position:relative;background:rgba(5,7,13,.66);padding:.8rem 1rem;overflow:hidden}
+.sdb__metrics div::before{content:"";position:absolute;top:0;left:0;width:14px;height:2px;background:var(--accent)}
+.sdb__metrics dt{font-family:var(--font-ui);font-weight:700;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sdb__metrics dd{margin:.2rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:1.7rem;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1}
+@media(max-width:640px){
+  .sdb__metrics{grid-template-columns:repeat(2,1fr)}
+  .sdb__metrics div{padding:.55rem .7rem}.sdb__metrics dd{font-size:1.25rem}.sdb__metrics dt{font-size:.64rem}
+  /* Hero hugt den Inhalt (statt fast bildschirmhoher Leere), Filter kompakt als 2er-Raster */
+  .sdb__hero{min-height:auto;padding:5.5rem 1rem 1.5rem}
+  .sdb__sub{font-size:.98rem;max-width:none}
+  .sdb__panel{padding:1.6rem 1rem 3rem}
+}
+
+/* ---------- Inhalt (Filter + Grid) ---------- */
+.sdb__panel{max-width:var(--maxw);margin:0 auto;padding:2rem clamp(1rem,3vw,2.5rem) 4rem}
+
+/* ---------- Filter-Konsole ---------- */
+.sdb__filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin:0 0 1.4rem;padding:.9rem 1rem;
+  border:1px solid var(--line);background:linear-gradient(160deg,var(--surface),var(--bg-2));position:relative}
+.sdb__filter::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;
+  border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
+.sdb__filter::after{content:"";position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;
+  border-bottom:2px solid var(--accent);border-right:2px solid var(--accent)}
+.sdb__filter input,.sdb__filter select{background:rgba(0,0,0,.4);border:1px solid var(--line);color:var(--text);
+  font-family:var(--font-ui);font-weight:600;font-size:.95rem;padding:.5rem .7rem;min-width:150px}
 .sdb__filter input{flex:1;min-width:220px}
 .sdb__filter input::placeholder{color:var(--muted);opacity:.7}
 .sdb__filter select:focus,.sdb__filter input:focus{border-color:var(--accent);outline:none}
-.sdb__count{font-family:var(--font-ui);font-weight:700;font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.sdb__count{margin-left:auto;font-family:var(--font-ui);font-weight:700;font-size:.82rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);white-space:nowrap}
 
-.sdb__tablewrap{border:1px solid var(--line);background:var(--bg-2);overflow-x:auto}
-.sdb__table{width:100%;border-collapse:collapse;min-width:1140px}
-.sdb__imgcell{width:100px;padding:.35rem .4rem .35rem .8rem}
-.sdb__imgcell img{display:block;width:88px;height:50px;object-fit:cover;border:1px solid var(--line);background:#0a0e18}
-.sdb__noimg{display:block;width:88px;height:50px;border:1px dashed var(--line);background:rgba(0,0,0,.25)}
-.sdb__table th{position:sticky;top:0;background:var(--bg-2);z-index:2;
-  font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
-  text-align:left;padding:.6rem .8rem;border-bottom:2px solid color-mix(in srgb,var(--accent) 30%,transparent)}
-.sdb__table th.num{text-align:right}
-.sdb__table td{padding:.5rem .8rem;border-bottom:1px solid rgba(255,255,255,.07);font-size:.95rem}
-.sdb__table td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-.sdb__table tbody tr{transition:background-color .15s;cursor:pointer}
-.sdb__table tbody tr:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
-.sdb__name{font-family:var(--font-ui);font-weight:700;font-size:1.02rem}
-.sdb__name a:hover{color:var(--accent);text-decoration:underline}
-.sdb__maker{color:var(--muted);font-size:.88rem}
-.sdb__badge{display:inline-block;font-family:var(--font-ui);font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);padding:.08rem .4rem;white-space:nowrap}
-.sdb__badge:hover{background:color-mix(in srgb,var(--gold) 12%,transparent)}
-.sdb__status{font-size:.85rem;color:var(--muted);white-space:nowrap}
-.sdb__status.fr{color:#5ad19a}
-/* Mobil/Tablet: nachrangige Spalten weichen, statt die ganze Tabelle in den
-   Seitwärts-Scroll zu zwingen (Spalten: 1 Bild · 2 Schiff · 3 Rolle · 4 Größe ·
-   5 Crew · 6 Fracht · 7 Preis · 8 Status · 9 Archiv) */
-@media(max-width:900px){
-  .sdb__table{min-width:0}
-  .sdb__table th:nth-child(4),.sdb__table td:nth-child(4),
-  .sdb__table th:nth-child(5),.sdb__table td:nth-child(5),
-  .sdb__table th:nth-child(6),.sdb__table td:nth-child(6),
-  .sdb__table th:nth-child(9),.sdb__table td:nth-child(9){display:none}
-}
+/* ---------- Flotten-Grid ---------- */
+.sdb__fleet{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:1.1rem}
+.sdb__empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--muted);
+  font-family:var(--font-ui);font-weight:600;letter-spacing:.06em}
+
+.fcard{position:relative;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);
+  cursor:pointer;overflow:hidden;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+.fcard:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--accent) 55%,transparent);
+  box-shadow:0 12px 34px color-mix(in srgb,var(--accent) 16%,transparent)}
+/* HUD-Klammern (nur beim Hover/Fokus sichtbar) */
+.fcard::before,.fcard::after{content:"";position:absolute;width:16px;height:16px;z-index:3;pointer-events:none;
+  opacity:0;transition:opacity .22s ease}
+.fcard::before{top:6px;left:6px;border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
+.fcard::after{bottom:6px;right:6px;border-bottom:2px solid var(--accent);border-right:2px solid var(--accent)}
+.fcard:hover::before,.fcard:hover::after,.fcard:focus-within::before,.fcard:focus-within::after{opacity:.9}
+
+.fcard__media{position:relative;aspect-ratio:16/10;background:
+  radial-gradient(120% 120% at 70% 0,rgba(45,212,255,.1),transparent 60%),linear-gradient(135deg,#0a0e18,#141c30);overflow:hidden}
+.fcard__media img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.fcard:hover .fcard__media img{transform:scale(1.06)}
+.fcard__noimg{display:grid;place-items:center;width:100%;height:100%;color:var(--muted);opacity:.5;
+  font-family:var(--font-ui);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
+.fcard__scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,7,13,.05) 30%,rgba(5,7,13,.55) 62%,rgba(15,21,36,.96))}
+.fcard__id{position:absolute;left:.8rem;right:.8rem;bottom:.55rem;z-index:2}
+.fcard__maker{font-family:var(--font-ui);font-weight:700;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2)}
+.fcard__name{font-family:var(--font-ui);font-weight:700;font-size:1.18rem;line-height:1.12;color:#fff;
+  text-shadow:0 2px 12px rgba(0,0,0,.6);margin-top:.05rem}
+.fcard__name a::after{content:"";position:absolute;inset:0;z-index:1}
+
+/* Ecken-Marker über dem Bild */
+.fcard__status{position:absolute;top:.55rem;left:.6rem;z-index:2;display:inline-flex;align-items:center;gap:.34rem;
+  font-family:var(--font-ui);font-weight:700;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  background:rgba(5,7,13,.6);border:1px solid var(--line);padding:.14rem .42rem;backdrop-filter:blur(3px)}
+.fcard__dot{width:6px;height:6px;border-radius:50%;background:var(--muted);box-shadow:0 0 6px currentColor}
+.fcard__status.fr{color:#5ad19a}
+.fcard__status.fr .fcard__dot{background:#5ad19a}
+.fcard__patch{position:absolute;top:.55rem;right:.6rem;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:.66rem;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--gold);background:rgba(5,7,13,.6);
+  border:1px solid color-mix(in srgb,var(--gold) 50%,transparent);padding:.14rem .44rem;backdrop-filter:blur(3px)}
+.fcard__patch:hover{background:color-mix(in srgb,var(--gold) 18%,rgba(5,7,13,.6))}
+
+.fcard__body{display:flex;flex-direction:column;gap:.6rem;padding:.75rem .85rem .85rem;flex:1}
+.fcard__chips{display:flex;flex-wrap:wrap;gap:.32rem;min-height:1.4rem}
+.fcard__chip{font-family:var(--font-ui);font-weight:600;font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--accent-2);border:1px solid var(--line);background:rgba(110,168,255,.06);padding:.1rem .42rem;white-space:nowrap}
+
+.fcard__stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-top:auto;
+  border-top:1px solid var(--line);padding-top:.6rem}
+.fcard__stat dt{font-family:var(--font-ui);font-weight:700;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.fcard__stat dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:.95rem;color:var(--text);
+  font-variant-numeric:tabular-nums;line-height:1.1}
+
+.fcard__prices{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;border-top:1px solid var(--line);padding-top:.55rem}
+.fprice{display:flex;flex-direction:column;gap:.06rem;min-width:0}
+.fprice dt{font-family:var(--font-ui);font-weight:700;font-size:.58rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.fprice .v{font-family:var(--font-ui);font-weight:700;font-size:1rem;font-variant-numeric:tabular-nums;line-height:1.1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fprice__u{font-size:.62rem;font-weight:600;color:var(--muted);letter-spacing:.04em;margin-left:.15rem}
+.fprice--pledge .v{color:var(--gold)}
+.fprice--game{border-left:1px solid var(--line);padding-left:.5rem}
+.fprice--game .v{color:var(--accent)}
+.fprice .v.none{color:var(--muted);opacity:.6}
+
 @media(max-width:520px){
-  .sdb__table th:nth-child(3),.sdb__table td:nth-child(3),
-  .sdb__table th:nth-child(7),.sdb__table td:nth-child(7){display:none}
-  .sdb__imgcell{width:76px}
-  .sdb__imgcell img,.sdb__noimg{width:64px;height:38px}
+  .sdb__fleet{grid-template-columns:1fr 1fr;gap:.7rem}
+  .fcard__name{font-size:1rem}
+  .fcard__body{padding:.6rem .6rem .7rem;gap:.5rem}
+  .fcard__stats{grid-template-columns:1fr 1fr}
+  .fcard__stat:nth-child(3){display:none}
+  /* Preise untereinander, damit lange aUEC-Werte nicht abgeschnitten werden */
+  .fcard__prices{grid-template-columns:1fr;gap:.25rem}
+  .fprice--game{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:.25rem}
 }
-.sdb__src{margin-top:1rem;font-size:.85rem;color:var(--muted)}
+
+.sdb__src{margin-top:1.5rem;font-size:.85rem;color:var(--muted)}
 .sdb__src a{text-decoration:underline}
 .sdb__src a:hover{color:var(--accent)}
+/* Mobil-Filter: NACH den Basis-Regeln, damit display:grid (gleiche Spezifität) greift */
+@media(max-width:640px){
+  .sdb__filter{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+  .sdb__filter input{grid-column:1/-1;min-width:0}
+  .sdb__filter select{min-width:0}
+  .sdb__count{grid-column:1/-1;margin-left:0;justify-self:start}
+}
 </style>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Schiffe' }]} pill={`${vehicles.length} EINTRÄGE`} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Schiffe' }]} hasEn={true} />
 
 <main class="sdb">
-  <header class="sdb__head">
-    <h1>Schiffe &amp; Fahrzeuge</h1>
-    <p class="sdb__sub">
-      Der komplette Katalog aus den Spieldateien — mit Specs, deutschen Beschreibungen und
-      Patch-Historie aus dem Archiv. Klick auf ein Schiff für das volle Datenblatt.
-    </p>
-    <dl class="sdb__metrics">
-      <div><dt>Einträge</dt><dd>{vehicles.length}</dd></div>
-      <div><dt>Hersteller</dt><dd>{makers.length}</dd></div>
-      <div><dt>Flugbereit</dt><dd>{flightReady}</dd></div>
-      <div><dt>Im Archiv</dt><dd>{inArchive}</dd></div>
-    </dl>
-  </header>
+  <section class="sdb__hero">
+    <div class="sdb__grid" aria-hidden="true"></div>
+    <div class="sdb__heroin">
+      <div class="sdb__eyebrow">Registratur // Flottenkatalog</div>
+      <h1>Schiffe &amp; Fahrzeuge</h1>
+      <p class="sdb__sub">
+        Der komplette Katalog aus den Spieldateien — mit Specs, deutschen Beschreibungen,
+        Pledge- und Ingame-Preisen und Patch-Historie aus dem Archiv. Klick auf ein Schiff für das volle Datenblatt.
+      </p>
+      <dl class="sdb__metrics">
+        <div><dt>Einträge</dt><dd>{vehicles.length}</dd></div>
+        <div><dt>Hersteller</dt><dd>{makers.length}</dd></div>
+        <div><dt>Flugbereit</dt><dd>{flightReady}</dd></div>
+        <div><dt>Ingame kaufbar</dt><dd>{buyable}</dd></div>
+        <div><dt>Im Archiv</dt><dd>{inArchive}</dd></div>
+      </dl>
+    </div>
+  </section>
 
+  <div class="sdb__panel">
   <div class="sdb__filter">
     <input id="sf-q" type="search" placeholder="Schiff oder Hersteller suchen…" aria-label="Suche" autocomplete="off" />
     <select id="sf-maker" aria-label="Hersteller">
@@ -141,74 +249,86 @@ a{color:inherit;text-decoration:none}
       <option value="">Alle</option>
       <option value="1">Im Patch-Archiv</option>
     </select>
+    <select id="sf-sort" aria-label="Sortierung">
+      <option value="name">Name A–Z</option>
+      <option value="pledge">Pledge-Preis ↓</option>
+      <option value="game">Ingame-Preis ↓</option>
+      <option value="cargo">Fracht ↓</option>
+      <option value="crew">Crew ↓</option>
+    </select>
     <span class="sdb__count" id="sf-count">{vehicles.length} Treffer</span>
   </div>
 
-  <div class="sdb__tablewrap">
-    <table class="sdb__table" id="sf-table">
-      <thead>
-        <tr>
-          <th aria-label="Bild"></th>
-          <th>Schiff</th><th>Rolle</th><th>Größe</th>
-          <th class="num">Crew</th><th class="num">Fracht</th><th class="num">Preis</th>
-          <th>Status</th><th>Archiv</th>
-        </tr>
-      </thead>
-      <tbody>
-        {vehicles.map((v) => {
-          const d = v.data;
-          const thumb = pickThumb(d);
-          return (
-            <tr
-              data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
-              data-maker={d.manufacturer ?? ''}
-              data-type={d.typeDe ?? ''}
-              data-status={d.statusEn ?? ''}
-              data-archive={d.patches.length ? '1' : ''}
-              data-href={`/schiffe/${d.id}.html`}
-            >
-              <td class="sdb__imgcell">
-                {thumb ? (
-                  <img
-                    src={thumb.src}
-                    alt=""
-                    loading="lazy"
-                    referrerpolicy="no-referrer"
-                    onerror="this.style.visibility='hidden'"
-                  />
-                ) : (
-                  <span class="sdb__noimg" aria-hidden="true"></span>
-                )}
-              </td>
-              <td>
-                <div class="sdb__name"><a href={`/schiffe/${d.id}.html`}>{d.name}</a></div>
-                <div class="sdb__maker">{d.manufacturer ?? '—'}</div>
-              </td>
-              <td>{vRole(d, 'de') ?? '—'}</td>
-              <td>{d.sizeDe ?? '—'}</td>
-              <td class="num">{crewFmt(d)}</td>
-              <td class="num">{d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—'}</td>
-              <td class="num">{d.msrpUSD != null ? `$${d.msrpUSD}` : '—'}</td>
-              <td><span class={`sdb__status${d.statusEn === 'flight-ready' ? ' fr' : ''}`}>{d.statusDe ?? '—'}</span></td>
-              <td>
-                {d.patches.length > 0 && (
-                  <a class="sdb__badge" href={`/patches/sc-${d.patches[0].replaceAll('.', '-')}.html`}>
-                    Alpha {d.patches[0]}
-                  </a>
-                )}
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+  <div class="sdb__fleet" id="sf-fleet">
+    {cards.map(({ d, id, thumb, buy }) => (
+      <article
+        class="fcard"
+        data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
+        data-maker={d.manufacturer ?? ''}
+        data-type={d.typeDe ?? ''}
+        data-status={d.statusEn ?? ''}
+        data-archive={d.patches.length ? '1' : ''}
+        data-href={`/schiffe/${id}.html`}
+        data-pledge={d.msrpUSD ?? -1}
+        data-game={buy ?? -1}
+        data-cargo={d.cargoSCU ?? -1}
+        data-crew={d.crewMax ?? d.crewMin ?? -1}
+      >
+        <div class="fcard__media">
+          {thumb ? (
+            <img src={thumb.src} alt="" loading="lazy" referrerpolicy="no-referrer"
+              onerror="this.style.display='none'" />
+          ) : (
+            <span class="fcard__noimg" aria-hidden="true">Kein Bild</span>
+          )}
+          <span class="fcard__scrim" aria-hidden="true"></span>
+          <span class={`fcard__status${d.statusEn === 'flight-ready' ? ' fr' : ''}`}>
+            <span class="fcard__dot"></span>{d.statusDe ?? '—'}
+          </span>
+          {d.patches.length > 0 && (
+            <a class="fcard__patch" href={`/patches/sc-${d.patches[0].replaceAll('.', '-')}.html`}>
+              {d.patches[0]}
+            </a>
+          )}
+          <div class="fcard__id">
+            <div class="fcard__maker">{d.manufacturer ?? '—'}</div>
+            <div class="fcard__name"><a href={`/schiffe/${id}.html`}>{d.name}</a></div>
+          </div>
+        </div>
+        <div class="fcard__body">
+          <div class="fcard__chips">
+            {vRole(d, 'de') && <span class="fcard__chip">{vRole(d, 'de')}</span>}
+            {d.sizeDe && <span class="fcard__chip">{d.sizeDe}</span>}
+          </div>
+          <dl class="fcard__stats">
+            <div class="fcard__stat"><dt>Crew</dt><dd>{crewFmt(d)}</dd></div>
+            <div class="fcard__stat"><dt>Fracht</dt><dd>{d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—'}</dd></div>
+            <div class="fcard__stat"><dt>Länge</dt><dd>{d.lengthM != null ? `${d.lengthM} m` : '—'}</dd></div>
+          </dl>
+          <dl class="fcard__prices">
+            <div class="fprice fprice--pledge">
+              <dt>Pledge</dt>
+              <dd class={`v${d.msrpUSD == null ? ' none' : ''}`}>{d.msrpUSD != null ? `$${d.msrpUSD.toLocaleString('en-US')}` : '—'}</dd>
+            </div>
+            <div class="fprice fprice--game">
+              <dt>Ingame</dt>
+              <dd class={`v${buy == null ? ' none' : ''}`}>{buy != null ? <>{auecShort(buy)}<span class="fprice__u">aUEC</span></> : '—'}</dd>
+            </div>
+          </dl>
+        </div>
+      </article>
+    ))}
+    <p class="sdb__empty" id="sf-empty" hidden>Keine Treffer — Filter zurücksetzen.</p>
   </div>
+
   <p class="sdb__src">
     Quelle: <a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
     (Community-Projekt, Daten aus den Spieldateien) · Stand {vehiclesSnapshot.fetchedAt}
     {vehiclesSnapshot.gameVersion && ` · Spieldaten ${vehiclesSnapshot.gameVersion.split('-')[0]}`}
+    · Ingame-Preise: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> (Stand {pricesFetchedAt})
     · Bilder: starcitizen.tools
   </p>
+  </div>
 </main>
 
 <script is:inline>
@@ -218,40 +338,61 @@ a{color:inherit;text-decoration:none}
   var selType = document.getElementById('sf-type');
   var selStatus = document.getElementById('sf-status');
   var selArchive = document.getElementById('sf-archive');
+  var selSort = document.getElementById('sf-sort');
   var count = document.getElementById('sf-count');
-  var rows = [].slice.call(document.querySelectorAll('#sf-table tbody tr'));
+  var empty = document.getElementById('sf-empty');
+  var fleet = document.getElementById('sf-fleet');
+  var cards = [].slice.call(fleet.querySelectorAll('.fcard'));
 
   var norm = function (s) {
     return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  };
+  var numAttr = function (el, name) {
+    var v = parseFloat(el.getAttribute(name));
+    return isNaN(v) ? -1 : v;
   };
 
   function apply() {
     var nq = norm(q.value).trim();
     var m = selMaker.value, t = selType.value, st = selStatus.value, ar = selArchive.value;
     var n = 0;
-    rows.forEach(function (r) {
+    cards.forEach(function (c) {
       var ok =
-        (!nq || norm(r.getAttribute('data-q')).indexOf(nq) >= 0) &&
-        (!m || r.getAttribute('data-maker') === m) &&
-        (!t || r.getAttribute('data-type') === t) &&
-        (!st || r.getAttribute('data-status') === st) &&
-        (!ar || r.getAttribute('data-archive') === ar);
-      r.style.display = ok ? '' : 'none';
+        (!nq || norm(c.getAttribute('data-q')).indexOf(nq) >= 0) &&
+        (!m || c.getAttribute('data-maker') === m) &&
+        (!t || c.getAttribute('data-type') === t) &&
+        (!st || c.getAttribute('data-status') === st) &&
+        (!ar || c.getAttribute('data-archive') === ar);
+      c.style.display = ok ? '' : 'none';
       if (ok) n++;
     });
     count.textContent = n + ' Treffer';
+    empty.hidden = n !== 0;
+  }
+
+  function sort() {
+    var key = selSort.value;
+    var ordered;
+    if (key === 'name') {
+      ordered = cards; // serverseitig bereits alphabetisch
+    } else {
+      var attr = { pledge: 'data-pledge', game: 'data-game', cargo: 'data-cargo', crew: 'data-crew' }[key];
+      ordered = cards.slice().sort(function (a, b) { return numAttr(b, attr) - numAttr(a, attr); });
+    }
+    ordered.forEach(function (c) { fleet.insertBefore(c, empty); });
   }
 
   [q, selMaker, selType, selStatus, selArchive].forEach(function (el) {
     el.addEventListener('input', apply);
     el.addEventListener('change', apply);
   });
+  selSort.addEventListener('change', sort);
 
-  // whole row clickable (links inside keep working)
-  rows.forEach(function (r) {
-    r.addEventListener('click', function (e) {
+  // ganze Karte klickbar (innere Links funktionieren weiter)
+  cards.forEach(function (c) {
+    c.addEventListener('click', function (e) {
       if (e.target.closest('a')) return;
-      location.href = r.getAttribute('data-href');
+      location.href = c.getAttribute('data-href');
     });
   });
 })();

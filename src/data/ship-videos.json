@@ -1,0 +1,14 @@
+{
+  "note": "Kuratierte offizielle Star-Citizen-Ship-Commercials (YouTube). Key = Schiff-ID wie in vehicles.json, Wert = YouTube-Video-ID (11 Zeichen aus der watch?v=…-URL). Nicht jedes Schiff hat je ein Commercial bekommen — Liste bewusst kuratiert, einfach erweiterbar. Bei Bedarf im Browser gegenprüfen (Video live + Einbetten erlaubt).",
+  "source": "RSI / Cloud Imperium Games — offizielle Ship-Commercials auf YouTube",
+  "videos": {
+    "anvl-hornet-f7cm": "g0gZES2pTWk",
+    "anvl-hornet-f7c": "g0gZES2pTWk",
+    "drak-cutlass-black": "F-f94S4AyMc",
+    "drak-corsair": "SSQGjbUz6kA",
+    "rsi-polaris": "wfCvtmiD9uA",
+    "aegs-reclaimer": "DTbjRBF1w9k",
+    "anvl-carrack": "Octq_kSDRKU",
+    "orig-890jump": "nBL7uy00wn0"
+  }
+}

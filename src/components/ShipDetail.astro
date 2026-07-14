@@ -18,6 +18,7 @@ import { pickHero } from '../lib/shipRenders';
 import {
   priceInfo, aUEC, pricesFetchedAt,
   extrasInfo, extrasFetchedAt,
+  shipVideo, shipGallery,
 } from '../lib/shipExtras';
 import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
@@ -45,6 +46,9 @@ const L = (p: string) => href(p, lang);
 const loc = lang === 'en' ? 'en-US' : 'de-DE';
 
 const hero = pickHero(d);
+// Kopf-Medien: kuratiertes Commercial (YouTube) + Bild-Galerie (Hero + Paints)
+const videoId = shipVideo(id);
+const gallery = shipGallery(id, d);
 const prices = priceInfo(id);
 const buyMin = prices?.buy[0] ?? null;
 const rentMin = prices?.rent[0] ?? null;
@@ -255,7 +259,13 @@ if (hasHolo) {
   }
 }
 
-const shipCode = d.makerCode ?? t('ship.code.ship');
+const shipCode = d.manufacturer ?? d.makerCode ?? t('ship.code.ship');
+// Kopf-Modi (Umschalter): Video (kuratiertes Commercial) · Bilder (Slideshow) · Holo (3D)
+// holoAvail deckt sich mit der Bedingung, unter der das Holodata-Script unten ausgegeben wird.
+const holoAvail = !!(holoData || holoUrl);
+const hasGallery = gallery.length > 0;
+const stageModeCount = (videoId ? 1 : 0) + (hasGallery ? 1 : 0) + (holoAvail ? 1 : 0);
+const defaultMode: 'video' | 'img' | 'holo' = videoId ? 'video' : hasGallery ? 'img' : 'holo';
 const metaDesc = t('ship.meta.desc')
   .replace('%name%', d.name)
   .replace('%maker%', d.manufacturer ?? t('ship.maker.unknown'));
@@ -340,14 +350,51 @@ a{color:inherit;text-decoration:none}
 .holo__hintline{position:absolute;left:50%;bottom:2%;transform:translateX(-50%);z-index:4;pointer-events:none;white-space:nowrap;
   font-family:var(--font-ui);font-weight:600;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);opacity:0;transition:opacity .6s}
 .holo__stage.is-3d .holo__hintline{opacity:.75}
+/* ===== Bilder-Slideshow: alle Slides liegen im selben Grid-Feld, langsames Crossfade ===== */
+.holo__ship img{opacity:0;transition:opacity 1.2s ease}
+.holo__ship img.is-active{opacity:1}
+.holo__stage.is-video .holo__ship img,
+.holo__stage.is-3d .holo__ship img{opacity:0}
+/* dezente Slide-Zähler-Punkte unten */
+.holo__dots{position:absolute;left:50%;bottom:2.4%;transform:translateX(-50%);z-index:5;display:flex;gap:.4rem;pointer-events:none;opacity:0;transition:opacity .4s}
+.holo__stage:not(.is-video):not(.is-3d) .holo__dots{opacity:.9}
+.holo__dots i{width:6px;height:6px;border-radius:50%;background:var(--muted);opacity:.4;transition:opacity .3s,background .3s}
+.holo__dots i.on{background:var(--accent);opacity:1}
+/* ===== Video-Layer (Commercial): Facade -> YouTube-Embed on demand ===== */
+/* Video randlos bis zum Bildschirmrand (Hero ist full-bleed) */
+.holo__video{position:absolute;inset:0;z-index:5;opacity:0;pointer-events:none;transition:opacity .5s;background:#000;overflow:hidden}
+.holo__stage.is-video .holo__video{opacity:1;pointer-events:auto}
+/* Poster deckt den Player anfangs voll ab (Schiffsbild) und blendet erst kurz
+   NACH Abspielstart aus -> YouTubes kurzes Pause/Play-Symbol beim Start bleibt
+   darunter verborgen. z-index über iframe UND Schutzschicht. */
+.holo__videoposter{position:absolute;inset:0;z-index:6;background:#05070d center/cover no-repeat;opacity:1;transition:opacity .9s ease}
+.holo__videoposter::after{content:"";position:absolute;inset:0;background:radial-gradient(65% 65% at 50% 42%,transparent,rgba(5,7,13,.55))}
+.holo__playertarget{position:absolute;inset:0;width:100%;height:100%;z-index:2}
+/* Videobild FÜLLT den Hero (cover, keine schwarzen Balken): 16:9-iframe so
+   groß, dass es Breite UND Höhe deckt, zentriert, Überstand wird geclippt */
+.holo__video iframe{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  --hh:clamp(540px,74vh,760px);
+  width:max(100vw,calc(var(--hh) * 16 / 9));
+  height:max(calc(100vw * 9 / 16),var(--hh));
+  border:0;background:#000}
+/* Schutzschicht: fängt Hover/Klick ab -> keine YouTube-Leiste/-Chrome sichtbar,
+   wirkt wie ein natives Hintergrund-Video (bei reduce-motion per JS deaktiviert) */
+.holo__videoshield{position:absolute;inset:0;z-index:4;cursor:default}
+@media(prefers-reduced-motion:reduce){.holo__ship img{transition:none}}
 /* ===== Ebenen-Panel (oben links) — Sci-Fi-MFD ===== */
 .holo__layers{position:absolute;left:clamp(14px,3vw,30px);top:52px;z-index:6;width:min(184px,44vw);
   display:flex;flex-direction:column;padding:.2rem .2rem .25rem;
   background:linear-gradient(180deg,rgba(9,14,24,.9),rgba(6,10,18,.8));border:1px solid var(--line);
   backdrop-filter:blur(7px);box-shadow:0 10px 30px rgba(0,0,0,.4);
   clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
-.holo__layers-h{font:700 .62rem/1 var(--font-ui);letter-spacing:.24em;text-transform:uppercase;color:var(--muted);
-  padding:.5rem .55rem .5rem;margin-bottom:.15rem;border-bottom:1px solid rgba(255,255,255,.07)}
+/* Ebenen-Panel NUR in der Holo-Ansicht: display:none schlägt das base
+   display:flex (das sonst das [hidden]-Attribut aushebelt) */
+.holo__stage:not(.is-3d) .holo__layers{display:none}
+.holo__layers-h{display:flex;align-items:center;justify-content:space-between;gap:.5rem;width:100%;
+  appearance:none;background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.07);cursor:default;text-align:left;
+  font:700 .62rem/1 var(--font-ui);letter-spacing:.24em;text-transform:uppercase;color:var(--muted);
+  padding:.5rem .55rem .5rem;margin-bottom:.15rem}
+.holo__layers-chev{width:13px;height:13px;flex:none;color:var(--muted);display:none;transition:transform .2s}
 .holo__layer{--gc:var(--accent);display:flex;align-items:center;gap:.55rem;width:100%;cursor:pointer;appearance:none;border:0;
   background:transparent;padding:.44rem .55rem;border-radius:3px;
   font:700 .74rem/1 var(--font-ui);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
@@ -370,14 +417,36 @@ a{color:inherit;text-decoration:none}
 .holo__layer-eye{width:15px;height:15px;flex:none;stroke:var(--accent);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .holo__layer--lab[aria-pressed="false"] .holo__layer-eye{stroke:var(--muted)}
 
-/* Dauerhafte Komponenten-Beschriftungen (aus 3D projiziert, mit Leader-Line) */
+/* Dauerhafte Komponenten-Beschriftungen: entzerrte HUD-Callouts. Gestapelt als
+   Leader-Linien (unten) · Text-Chips (Mitte) · Positions-Knoten (oben) — so
+   verdeckt kein Chip je den Punkt, der das Bauteil markiert. */
 .holo-lbllayer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:4}
-.holo-lbl{position:absolute;transform:translate(-50%,calc(-100% - 15px));white-space:nowrap;
-  font-family:var(--font-ui);font-weight:700;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);
-  background:rgba(5,7,13,.72);border:1px solid color-mix(in srgb,var(--accent) 38%,transparent);padding:.18rem .45rem;
-  backdrop-filter:blur(3px);text-shadow:0 1px 4px #000;will-change:left,top}
-.holo-lbl::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:15px;transform:translateX(-50%);
-  background:linear-gradient(color-mix(in srgb,var(--accent) 70%,transparent),transparent)}
+.holo-leaders,.holo-nodes{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+/* Leader müssen auf dem HELLEN Hologramm UND im dunklen Raum lesbar sein ->
+   heller Strich mit dunklem Halo (Kontrast überall) + Cyan-Glow. */
+.holo-leaders line{stroke:var(--accent);stroke-width:1.5;
+  filter:drop-shadow(0 0 1.5px rgba(2,10,18,.95)) drop-shadow(0 0 4px color-mix(in srgb,var(--accent) 60%,transparent));
+  transition:stroke .16s,stroke-width .16s}
+.holo-leaders line.is-active{stroke:#fff;stroke-width:2.2}
+/* Knoten = exakter Bauteil-Punkt. Muss auf dem hellen, leuchtenden Hologramm
+   ablesbar bleiben -> weißer Kern + kräftiger dunkler Ring (Kontrast) + WEISSER
+   Glow (Cyan-Glow ginge im Cyan-Holo unter) + harte Dunkelkante. Liegt über den
+   Chips -> immer sichtbar. */
+.holo-nodes circle{fill:#fff;stroke:#02141f;stroke-width:2.2;paint-order:stroke;
+  filter:drop-shadow(0 0 1.5px rgba(0,0,0,.9)) drop-shadow(0 0 5px rgba(216,246,255,.95));transition:r .16s}
+.holo-nodes circle.is-active{stroke:var(--accent);
+  filter:drop-shadow(0 0 2px #000) drop-shadow(0 0 8px #fff)}
+.holo-lbl{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;
+  font-family:var(--font-ui);font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#eafaff;
+  padding:.22rem .5rem .22rem .62rem;
+  background:linear-gradient(180deg,rgba(11,20,33,.92),rgba(6,11,19,.84));
+  border:1px solid color-mix(in srgb,var(--accent) 34%,transparent);border-left:2px solid var(--accent);
+  box-shadow:0 4px 16px rgba(0,0,0,.5),inset 0 0 14px color-mix(in srgb,var(--accent) 9%,transparent);
+  backdrop-filter:blur(4px);text-shadow:0 1px 4px #000;
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%);
+  transition:border-color .16s,box-shadow .16s,color .16s;will-change:left,top}
+.holo-lbl.is-active{border-color:var(--accent);color:#fff;
+  box-shadow:0 4px 18px rgba(0,0,0,.55),0 0 16px color-mix(in srgb,var(--accent) 42%,transparent),inset 0 0 14px color-mix(in srgb,var(--accent) 14%,transparent)}
 
 /* ===== Komponenten-Detail-Karte (Bord-MFD, gruppenfarbig) ===== */
 .holo__panel{--gc:var(--accent);position:absolute;right:clamp(14px,2vw,24px);top:52px;z-index:7;width:min(272px,86vw);
@@ -454,10 +523,36 @@ a{color:inherit;text-decoration:none}
   .holo__panel{top:auto;bottom:52px;right:clamp(10px,3vw,20px);left:auto;width:min(280px,92%)}
   .holo__title{max-width:74%}
 }
+/* Tablet-Portrait: Hero nicht ganz so wuchtig (steht VOR der 760er-Query,
+   damit Handys unten die noch flachere Variante behalten) */
+@media(max-width:900px){.holo{height:clamp(430px,62vh,620px)}}
 @media(max-width:760px){
-  .holo__toggle{right:14px;bottom:14px}
+  /* Hero auf kleinen Geräten flacher, damit der Inhalt darunter früher sichtbar ist */
+  .holo{height:clamp(400px,58vh,560px)}
+  /* Holo: 3D-Modell bekommt die obere Zone (Canvas unten einkürzen), damit es
+     nicht hinter dem Titel klumpt. Viewer skaliert per ResizeObserver mit. */
+  .holo__3d{bottom:44%}
+  /* Toggle volle Breite unten (größere Tap-Ziele) */
+  .holo__toggle{left:14px;right:14px;bottom:14px}
+  .holo__toggle button{flex:1}
+  /* Titel kompakt in die freie untere Zone (über dem Toggle); Hersteller weg
+     (steht bereits im HUD oben) */
+  .holo__title{left:14px;right:14px;max-width:none;bottom:64px}
+  .holo__title .sd__maker{display:none}
+  .holo__title h1{font-size:1.7rem}
+  .holo__chips{gap:.35rem;margin-top:.4rem}
+  .holo__chips span{font-size:.66rem;padding:.2rem .48rem}
   .holo__hud{left:16px;top:18px}.holo__dims{display:none}
-  .holo__filters{top:44px;left:16px}
+  /* Ebenen-Panel kompakter + einklappbar (Klasse hieß fälschlich .holo__filters) */
+  .holo__layers{top:44px;left:12px;width:min(148px,42vw)}
+  .holo__layers-h{font-size:.56rem;padding:.42rem .5rem .42rem;cursor:pointer}
+  .holo__layers-chev{display:block}
+  .holo__layer{padding:.34rem .5rem;font:700 .66rem/1 var(--font-ui);gap:.4rem}
+  .holo__layer-ic{width:15px;height:15px}
+  /* zugeklappt: nur der Kopf bleibt sichtbar, gibt das Modell frei */
+  .holo__layers.is-collapsed .holo__layer{display:none}
+  .holo__layers.is-collapsed .holo__layers-h{border-bottom:0;margin-bottom:0}
+  .holo__layers.is-collapsed .holo__layers-chev{transform:rotate(-90deg)}
   .holo__ship{inset:6% 3% 12%}
 }
 
@@ -471,6 +566,8 @@ a{color:inherit;text-decoration:none}
 .holo__bar dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:1.18rem;font-variant-numeric:tabular-nums;color:var(--text)}
 .holo__bar .kv--price dd{color:var(--gold)}
 @media(max-width:760px){.holo__bar dl{grid-template-columns:repeat(2,1fr)}.holo__bar .kv{border-left:0;border-top:1px solid var(--line)}}
+/* sehr schmal: kompaktere Kennwerte, damit lange aUEC-Werte einzeilig passen */
+@media(max-width:560px){.holo__bar .kv{padding:.6rem .7rem .65rem}.holo__bar dd{font-size:1rem}.holo__bar dt{font-size:.68rem;letter-spacing:.12em}}
 
 .sd{max-width:var(--maxw);margin:0 auto;padding:1.8rem clamp(1rem,3vw,2.5rem) 4rem}
 .sd__maker{font-family:var(--font-ui);font-weight:700;font-size:.85rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
@@ -664,7 +761,7 @@ span.sd__ref{color:var(--muted)}
     { label: t('crumbs.ships'), href: L('/schiffe.html') },
     { label: d.name },
   ]}
-  pill={d.makerCode ?? t('ship.pill')}
+  pill={d.manufacturer ?? d.makerCode ?? t('ship.pill')}
   hasEn={hasEn}
 />
 
@@ -674,7 +771,7 @@ span.sd__ref{color:var(--muted)}
     <div class="holo__grid" aria-hidden="true"></div>
     <div class="holo__pad" aria-hidden="true"></div>
     <div class="holo__frame" aria-hidden="true"></div>
-    <div class="holo__hud">{t('ship.code.hangar')}&nbsp;//&nbsp;<b>{d.makerCode ?? t('ship.code.ship')}</b></div>
+    <div class="holo__hud">{t('ship.code.hangar')}&nbsp;//&nbsp;<b>{d.manufacturer ?? d.makerCode ?? t('ship.code.ship')}</b></div>
     {dims && <div class="holo__dims">{dims}</div>}
     <div class="holo__wrap">
       <header class="holo__title">
@@ -688,30 +785,52 @@ span.sd__ref{color:var(--muted)}
         {holoData && holoData.ports.length > 0 && <div class="holo__src">{t('holo.src')}</div>}
       </header>
       <div
-        class="holo__stage"
+        class={`holo__stage${defaultMode === 'video' ? ' is-video' : ''}`}
         id="holostage"
+        data-default={defaultMode}
         data-loading={t('ship.holo.loading')}
         data-error={t('ship.holo.error')}
       >
         <figure class="holo__ship" id="shipfig">
-          {hero ? (
-            <img
-              src={hero.src}
-              alt={`${d.name} — Darstellung`}
-              referrerpolicy="no-referrer"
-              onerror={hero.fallback ? `this.onerror=null;this.src='${hero.fallback}'` : undefined}
-            />
+          {hasGallery ? (
+            gallery.map((src, i) => (
+              <img
+                src={src}
+                class={i === 0 ? 'is-active' : undefined}
+                alt={i === 0 ? `${d.name} — Darstellung` : ''}
+                loading={i === 0 ? undefined : 'lazy'}
+                referrerpolicy="no-referrer"
+                onerror="this.dataset.bad='1';this.style.display='none'"
+              />
+            ))
           ) : (
             <span class="holo__none">{t('ship.novisual')}</span>
           )}
         </figure>
+        {videoId && (
+          <div class="holo__video" id="holovideo" data-vid={videoId}>
+            {gallery[0] && (
+              <span class="holo__videoposter" style={`background-image:url('${gallery[0]}')`} aria-hidden="true"></span>
+            )}
+            <div class="holo__playertarget" id="holoplayer"></div>
+            <span class="holo__videoshield" id="holovideoshield" aria-hidden="true"></span>
+          </div>
+        )}
+        {gallery.length > 1 && (
+          <div class="holo__dots" id="holodots" aria-hidden="true">
+            {gallery.map((_, i) => <i class={i === 0 ? 'on' : undefined}></i>)}
+          </div>
+        )}
         <div class="holo__3d" id="holo3d" aria-label={t('ship.holo.drag')}></div>
         <div class="holo__status" id="holostatus" role="status"></div>
         {(holoData || holoUrl) && <button type="button" class="holo__activate" id="holoact" hidden>{t('holo.activate')}</button>}
         <div class="holo__hintline" aria-hidden="true">{t('holo.hint')}</div>
         {holoData && (holoData.groups.length > 1 || holoData.ports.some((p) => p.lab)) && (
           <div class="holo__layers" id="holofilters" role="group" aria-label={t('holo.filter.aria')} hidden>
-            <span class="holo__layers-h">{t('holo.layers.title')}</span>
+            <button type="button" class="holo__layers-h" id="holo-layers-toggle" aria-expanded="true">
+              <span>{t('holo.layers.title')}</span>
+              <svg class="holo__layers-chev" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
             {holoData.groups.length > 1 && holoData.groups.map((gr) => (
               <button type="button" class="holo__layer" data-g={gr} aria-pressed={String(holoData!.defaultOn.includes(gr))}>
                 <svg class="holo__layer-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
@@ -748,10 +867,11 @@ span.sd__ref{color:var(--muted)}
         </aside>
       </div>
     </div>
-    {(holoData || holoUrl) && (
+    {stageModeCount > 1 && (
       <div class="holo__toggle" role="group" aria-label={t('ship.view.switch')}>
-        <button type="button" id="btnimg" aria-pressed="true">{t('ship.view.img')}</button>
-        <button type="button" id="btn3d" aria-pressed="false">{t('ship.view.3d')}</button>
+        {videoId && <button type="button" id="btnvid" aria-pressed={String(defaultMode === 'video')}>{t('ship.view.video')}</button>}
+        {hasGallery && <button type="button" id="btnimg" aria-pressed={String(defaultMode === 'img')}>{t('ship.view.img')}</button>}
+        {holoAvail && <button type="button" id="btn3d" aria-pressed={String(defaultMode === 'holo')}>{t('ship.view.3d')}</button>}
       </div>
     )}
   </section>
@@ -1221,166 +1341,270 @@ span.sd__ref{color:var(--muted)}
 {"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}
 </script>
 <script is:inline>
-// Eingebettetes Komponenten-Hologramm: lädt lazy (Sichtbarkeit bzw. Tap auf
-// Mobil/Datensparmodus), Marker-Hover/-Klick füllt die Detail-Karte,
-// Ebenen-Filter blenden Gruppen aus. BILD/3D-Toggle bleibt als Opt-out.
+// Kopf-Bühne mit drei Modi: Video (kuratiertes Commercial, YouTube on demand),
+// Bilder (langsame Crossfade-Slideshow aus Hero + Paints) und Holo (3D-
+// Komponenten-Hologramm, lazy). Der Umschalter unten rechts wählt den Modus;
+// das Holo lädt erst bei Klick auf "3D-Holo" (bzw. wenn es der einzige Modus ist).
 (function () {
-  var dataEl = document.getElementById('holodata');
-  if (!dataEl) return;
-  var cfg = JSON.parse(dataEl.textContent);
   var stage = document.getElementById('holostage');
-  var wrap = document.getElementById('holo3d');
-  var status = document.getElementById('holostatus');
-  var act = document.getElementById('holoact');
-  var filters = document.getElementById('holofilters');
-  var panel = document.getElementById('holopanel');
-  var pclose = document.getElementById('holopclose');
-  var btn3d = document.getElementById('btn3d');
-  var btnImg = document.getElementById('btnimg');
+  if (!stage) return;
   var holoSec = document.getElementById('holo');
-  var loadingTpl = stage.getAttribute('data-loading') || '3D-Modell lädt … %p% %';
-  var errorTxt = stage.getAttribute('data-error') || '3D-Modell konnte nicht geladen werden.';
+  var fig = document.getElementById('shipfig');
+  var btnVid = document.getElementById('btnvid');
+  var btnImg = document.getElementById('btnimg');
+  var btn3d = document.getElementById('btn3d');
+  var videoBox = document.getElementById('holovideo');
+  var videoPoster = videoBox ? videoBox.querySelector('.holo__videoposter') : null;
+  var dots = document.getElementById('holodots');
+  var status = document.getElementById('holostatus');
+  var slides = fig ? [].slice.call(fig.querySelectorAll('img')) : [];
+  var defaultMode = stage.getAttribute('data-default') || 'img';
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var mode = defaultMode;
   var viewer = null, loading = false;
-  var debug = /[?&]holodebug/.test(location.search);
+  var showPanel = null; // vom Holo-Block gesetzt, sonst null
 
-  function pressed(b) {
-    [btn3d, btnImg].forEach(function (x) { if (x) x.setAttribute('aria-pressed', String(x === b)); });
+  // ---------- Modus-Umschaltung ----------
+  function setPressed() {
+    if (btnVid) btnVid.setAttribute('aria-pressed', String(mode === 'video'));
+    if (btnImg) btnImg.setAttribute('aria-pressed', String(mode === 'img'));
+    if (btn3d) btn3d.setAttribute('aria-pressed', String(mode === 'holo'));
   }
-  function show3d() {
-    stage.classList.add('is-3d');
-    holoSec.classList.add('is-3d-active');
-    pressed(btn3d);
+  function applyMode() {
+    stage.classList.toggle('is-video', mode === 'video');
+    stage.classList.toggle('is-3d', mode === 'holo');
+    if (holoSec) holoSec.classList.toggle('is-3d-active', mode === 'holo');
+    // Ebenen-Panel nur in der Holo-Ansicht (und erst wenn der Viewer geladen ist)
+    var f = document.getElementById('holofilters');
+    if (f) f.hidden = !(mode === 'holo' && viewer);
+    if (mode === 'img') startSlideshow();
+    if (mode === 'video') initVideo(); else pauseVideo();
+    setPressed();
   }
+  function showVideo() { mode = 'video'; applyMode(); }
   function showImg() {
-    stage.classList.remove('is-3d');
-    holoSec.classList.remove('is-3d-active');
-    // Fehler-/Statuszeile räumen, außer ein Ladevorgang läuft noch (dessen
-    // %-Anzeige bleibt über dem Foto sichtbar, bis er fertig ist)
-    if (!loading) {
-      stage.classList.remove('is-loading');
-      status.textContent = '';
-    }
-    showPanel(null);
-    pressed(btnImg);
+    mode = 'img'; applyMode();
+    if (!loading) { stage.classList.remove('is-loading'); if (status) status.textContent = ''; }
+    if (showPanel) showPanel(null);
   }
-  function row(id, val) {
-    var r = document.getElementById(id + 'row'), d = document.getElementById(id);
-    if (!r || !d) return;
-    if (val == null || val === '') { r.hidden = true; }
-    else { d.textContent = val; r.hidden = false; }
-  }
-  function showPanel(i) {
-    if (i == null || !cfg.ports[i]) {
-      panel.hidden = true;
-      if (viewer) viewer.select(null);
-      return;
-    }
-    var p = cfg.ports[i];
-    var kind = cfg.kinds[p.k] || p.k;
-    // Gruppe als Eyebrow, darunter groß der TYP, dann das konkrete Bauteil
-    panel.setAttribute('data-g', p.g);
-    var grpEl = document.getElementById('hpgrp');
-    if (grpEl) grpEl.textContent = (cfg.grpLabels && cfg.grpLabels[p.g]) || '';
-    var iconPath = document.querySelector('#hpicon path');
-    if (iconPath) iconPath.setAttribute('d', (cfg.icons && cfg.icons[p.k]) || '');
-    document.getElementById('hpkind').textContent = kind;
-    var nameEl = document.getElementById('hpname');
-    nameEl.textContent = (p.label && p.label !== kind) ? p.label : '';
-    nameEl.hidden = !nameEl.textContent;
-    document.getElementById('hpsize').textContent = p.size != null ? 'S' + p.size : '—';
-    row('hpcat', p.cat || null);
-    row('hpprice', p.price != null ? p.price.toLocaleString(cfg.loc) + ' ' + (panel.getAttribute('data-auec') || 'aUEC') : null);
-    row('hpshops', p.shops ? String(p.shops) : null);
-    // Item-Finder-Link: öffnet die Item-Karte direkt (?item=<id>, die App
-    // liest den Parameter beim Laden). Nur wenn ein konkretes Item gematcht
-    // wurde — bei gemischten/ungematchten Ports gibt es keine Einzelkarte.
-    var link = document.getElementById('hplink');
-    if (p.iid && cfg.finder) {
-      link.href = cfg.finder + '?item=' + encodeURIComponent(p.iid);
-      link.hidden = false;
-    } else link.hidden = true;
-    var note = document.getElementById('hpnote');
-    var noteTxt = p.np ? panel.getAttribute('data-np') : (p.est ? panel.getAttribute('data-est') : '');
-    note.textContent = noteTxt;
-    note.hidden = !noteTxt;
-    panel.hidden = false;
-    if (viewer) viewer.select(i);
-  }
-
-  // explicit = Nutzer hat aktiv geklickt (3D-Button/Tap): dann Fehler zeigen;
-  // Auto-Start (Scroll-Lazy) fällt bei Fehlern still aufs Foto zurück.
-  // Das Foto bleibt während des Downloads sichtbar (is-3d erst nach Erfolg).
-  function start(explicit) {
-    if (viewer || loading) return;
-    loading = true;
-    stage.classList.add('is-loading');
-    status.textContent = loadingTpl.replace('%p%', '0');
-    import('/assets/holo-viewer.js')
-      .then(function (m) {
-        return m.initHolo(wrap, {
-          url: cfg.url,
-          ports: cfg.ports,
-          mesh: cfg.mesh,
-          ax: cfg.ax,
-          defaultOn: cfg.defaultOn,
-          debug: debug,
-          onProgress: function (p) { status.textContent = loadingTpl.replace('%p%', p); },
-          onSelect: showPanel,
-        });
-      })
-      .then(function (v) {
-        viewer = v;
-        status.textContent = '';
-        stage.classList.remove('is-loading');
-        show3d();
-        if (filters) filters.hidden = false;
-      })
-      .catch(function (e) {
-        console.error(e);
-        loading = false;
-        showImg();
-        if (explicit) {
-          // Nutzer hat aktiv geklickt -> Fehler an Ort und Stelle zeigen
-          stage.classList.add('is-loading');
-          status.textContent = errorTxt;
-        }
-      });
-  }
-
-  // Lazy-Start: Mobil/Datensparmodus per Tap, sonst beim Scrollen in Sicht
-  var saveData = navigator.connection && navigator.connection.saveData;
-  if (act && (matchMedia('(max-width: 760px)').matches || saveData)) {
-    act.hidden = false;
-    act.addEventListener('click', function () { act.hidden = true; start(true); });
-  } else if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function (es) {
-      if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); start(false); }
-    }, { threshold: 0.25 });
-    io.observe(stage);
-    // Fallback: manche Umgebungen drosseln IO — wenn die Bühne sichtbar ist,
-    // nach kurzer Frist trotzdem starten
-    setTimeout(function () {
-      var r = stage.getBoundingClientRect();
-      if (r.bottom > 0 && r.top < innerHeight) { io.disconnect(); start(false); }
-    }, 1800);
-  } else {
-    start(false);
-  }
-
-  if (btn3d) btn3d.addEventListener('click', function () { viewer || loading ? show3d() : start(true); });
+  function showHolo() { mode = 'holo'; applyMode(); }
+  if (btnVid) btnVid.addEventListener('click', showVideo);
   if (btnImg) btnImg.addEventListener('click', showImg);
-  if (pclose) pclose.addEventListener('click', function () { showPanel(null); });
-  if (filters) filters.addEventListener('click', function (ev) {
-    var b = ev.target.closest('button');
-    if (!b || !viewer) return;
-    var pressed = b.getAttribute('aria-pressed') !== 'true';
-    b.setAttribute('aria-pressed', String(pressed));
-    if (b.id === 'holoblabels') { viewer.setLabels(pressed); return; }
-    if (!b.hasAttribute('data-g')) return;
-    var groups = [];
-    filters.querySelectorAll('button[data-g][aria-pressed="true"]').forEach(function (x) { groups.push(x.getAttribute('data-g')); });
-    viewer.setFilter(groups);
-  });
+
+  // ---------- Bilder-Slideshow (langsames Crossfade) ----------
+  var slideTimer = null, slideIdx = 0;
+  function paint(i) {
+    slides.forEach(function (im, k) { im.classList.toggle('is-active', k === i); });
+    if (dots) [].forEach.call(dots.children, function (dd, k) { dd.classList.toggle('on', k === i); });
+  }
+  function startSlideshow() {
+    if (slideTimer || reduce || slides.length < 2) return;
+    slideTimer = setInterval(function () {
+      if (mode !== 'img' || document.hidden) return;
+      var r = stage.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight) return; // offscreen -> pausieren
+      var next = slideIdx;
+      for (var n = 0; n < slides.length; n++) {
+        next = (next + 1) % slides.length;
+        if (!slides[next].dataset.bad) break; // kaputte Bilder überspringen
+      }
+      slideIdx = next; paint(slideIdx);
+    }, 6000);
+  }
+
+  // ---------- Video: YouTube-IFrame-API -> stummes Autoplay im Video-Modus ----------
+  // Der rohe iframe-Embed scheiterte auf localhost mit "Fehler 153"
+  // (fehlender origin). Die offizielle IFrame-API konfiguriert den Player
+  // korrekt, erlaubt browser-konformes Muted-Autoplay und meldet Fehler sauber.
+  var ytPlayer = null, ytLoading = false, ytReady = false, playStarted = false;
+  function fadePoster() {
+    if (videoPoster) { videoPoster.style.opacity = '0'; videoPoster.style.pointerEvents = 'none'; }
+  }
+  function loadYT() {
+    return new Promise(function (res) {
+      if (window.YT && window.YT.Player) return res();
+      var prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = function () { if (prev) { try { prev(); } catch (e) {} } res(); };
+      if (!document.getElementById('yt-iframe-api')) {
+        var s = document.createElement('script');
+        s.id = 'yt-iframe-api';
+        s.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(s);
+      }
+    });
+  }
+  function initVideo() {
+    if (!videoBox) return;
+    if (ytPlayer) { if (ytReady && !reduce) { try { ytPlayer.mute(); ytPlayer.playVideo(); } catch (e) {} } return; }
+    if (ytLoading) return;
+    var vid = videoBox.getAttribute('data-vid');
+    if (!vid) return;
+    // reduce-motion: Player zeigt Controls -> Schutzschicht UND Deck-Poster aus,
+    // damit der Player sichtbar und bedienbar ist (kein Autoplay -> kein PLAYING)
+    var shield = document.getElementById('holovideoshield');
+    if (reduce && shield) shield.style.display = 'none';
+    if (reduce) fadePoster();
+    ytLoading = true;
+    loadYT().then(function () {
+      ytPlayer = new YT.Player('holoplayer', {
+        videoId: vid,
+        host: 'https://www.youtube-nocookie.com',
+        playerVars: {
+          // Natives stummes Autoplay ab Sekunde 4 (start-Param). KEIN
+          // programmatisches playVideo() -> YouTube zeigt keinen bleibenden
+          // Play/Pause-Button; das kurze Start-Symbol liegt unter dem Poster.
+          autoplay: reduce ? 0 : 1, mute: reduce ? 0 : 1, playsinline: 1,
+          controls: reduce ? 1 : 0, disablekb: 1, fs: 0, iv_load_policy: 3,
+          rel: 0, modestbranding: 1, start: 4, origin: location.origin,
+        },
+        events: {
+          onReady: function (e) {
+            ytReady = true;
+            // Nur Stummschaltung sicherstellen; Start/Position macht das native
+            // Autoplay + start-Param. Kein playVideo()/seekTo() -> kein Button.
+            try { e.target.mute(); } catch (er) {}
+          },
+          onStateChange: function (e) {
+            // erst kurz NACH echtem Abspielstart das Poster wegblenden -> das
+            // YouTube-Start-Symbol (Pause/Play) blitzt darunter unsichtbar durch.
+            // Inline-Style (kein Klassen-Toggle): umgeht ein Astro-Scoping-Problem,
+            // bei dem die opacity-Klassenregel nicht zuverlässig greift.
+            if (e.data === 1) { playStarted = true; setTimeout(fadePoster, 4500); }
+            // Endlosschleife OHNE playlist-Param (der sonst Zurück/Weiter-Buttons zeigt):
+            // am Ende (0) einfach zurück an 3,8 s und weiterspielen
+            else if (e.data === 0) { try { e.target.seekTo(3.8, true); e.target.playVideo(); } catch (er) {} }
+          },
+          onError: function (e) { console.warn('YT player error', e && e.data); },
+        },
+      });
+      // Fallback: sollte Autoplay wider Erwarten blockiert bleiben, das Poster
+      // nach 4 s trotzdem lösen und die Schutzschicht deaktivieren, damit der
+      // Player nie dauerhaft verdeckt/unbedienbar ist
+      setTimeout(function () {
+        if (!playStarted) { fadePoster(); if (shield) shield.style.pointerEvents = 'none'; }
+      }, 7000);
+    });
+  }
+  function pauseVideo() {
+    if (ytPlayer && ytReady) { try { ytPlayer.pauseVideo(); } catch (e) {} }
+  }
+
+  // ---------- Holo (nur wenn Holodaten vorhanden) ----------
+  var dataEl = document.getElementById('holodata');
+  if (dataEl) {
+    var cfg = JSON.parse(dataEl.textContent);
+    var wrap = document.getElementById('holo3d');
+    var filters = document.getElementById('holofilters');
+    var panel = document.getElementById('holopanel');
+    var pclose = document.getElementById('holopclose');
+    var loadingTpl = stage.getAttribute('data-loading') || '3D-Modell lädt … %p% %';
+    var errorTxt = stage.getAttribute('data-error') || '3D-Modell konnte nicht geladen werden.';
+    var debug = /[?&]holodebug/.test(location.search);
+
+    var row = function (id, val) {
+      var r = document.getElementById(id + 'row'), d = document.getElementById(id);
+      if (!r || !d) return;
+      if (val == null || val === '') { r.hidden = true; }
+      else { d.textContent = val; r.hidden = false; }
+    };
+    showPanel = function (i) {
+      if (i == null || !cfg.ports[i]) {
+        panel.hidden = true;
+        if (viewer) viewer.select(null);
+        return;
+      }
+      var p = cfg.ports[i];
+      var kind = cfg.kinds[p.k] || p.k;
+      panel.setAttribute('data-g', p.g);
+      var grpEl = document.getElementById('hpgrp');
+      if (grpEl) grpEl.textContent = (cfg.grpLabels && cfg.grpLabels[p.g]) || '';
+      var iconPath = document.querySelector('#hpicon path');
+      if (iconPath) iconPath.setAttribute('d', (cfg.icons && cfg.icons[p.k]) || '');
+      document.getElementById('hpkind').textContent = kind;
+      var nameEl = document.getElementById('hpname');
+      nameEl.textContent = (p.label && p.label !== kind) ? p.label : '';
+      nameEl.hidden = !nameEl.textContent;
+      document.getElementById('hpsize').textContent = p.size != null ? 'S' + p.size : '—';
+      row('hpcat', p.cat || null);
+      row('hpprice', p.price != null ? p.price.toLocaleString(cfg.loc) + ' ' + (panel.getAttribute('data-auec') || 'aUEC') : null);
+      row('hpshops', p.shops ? String(p.shops) : null);
+      var link = document.getElementById('hplink');
+      if (p.iid && cfg.finder) {
+        link.href = cfg.finder + '?item=' + encodeURIComponent(p.iid);
+        link.hidden = false;
+      } else link.hidden = true;
+      var note = document.getElementById('hpnote');
+      var noteTxt = p.np ? panel.getAttribute('data-np') : (p.est ? panel.getAttribute('data-est') : '');
+      note.textContent = noteTxt;
+      note.hidden = !noteTxt;
+      panel.hidden = false;
+      if (viewer) viewer.select(i);
+    };
+
+    var start = function (explicit) {
+      if (viewer || loading) return;
+      loading = true;
+      stage.classList.add('is-loading');
+      status.textContent = loadingTpl.replace('%p%', '0');
+      import('/assets/holo-viewer.js')
+        .then(function (m) {
+          return m.initHolo(wrap, {
+            url: cfg.url, ports: cfg.ports, mesh: cfg.mesh, ax: cfg.ax,
+            defaultOn: cfg.defaultOn, debug: debug,
+            onProgress: function (p) { status.textContent = loadingTpl.replace('%p%', p); },
+            onSelect: showPanel,
+          });
+        })
+        .then(function (v) {
+          viewer = v; loading = false;
+          status.textContent = '';
+          stage.classList.remove('is-loading');
+          showHolo(); // blendet via applyMode das Ebenen-Panel ein
+          // Mobil: dauerhafte Bauteil-Labels standardmäßig AUS — auf dem kleinen
+          // Modell überlappen sie sich sonst und mit dem Ebenen-Panel. Antippen
+          // eines Markers zeigt weiterhin die Detailkarte; "Labels" schaltet an.
+          if (matchMedia('(max-width: 760px)').matches) {
+            try { v.setLabels(false); } catch (er) {}
+            var lblBtn = document.getElementById('holoblabels');
+            if (lblBtn) lblBtn.setAttribute('aria-pressed', 'false');
+            // Panel standardmäßig zugeklappt -> gibt das kleine Modell frei
+            if (filters) filters.classList.add('is-collapsed');
+            var lt0 = document.getElementById('holo-layers-toggle');
+            if (lt0) lt0.setAttribute('aria-expanded', 'false');
+          }
+        })
+        .catch(function (e) {
+          console.error(e);
+          loading = false;
+          showImg();
+          if (explicit) { stage.classList.add('is-loading'); status.textContent = errorTxt; }
+        });
+    };
+
+    if (btn3d) btn3d.addEventListener('click', function () { viewer ? showHolo() : start(true); });
+    if (pclose) pclose.addEventListener('click', function () { showPanel(null); });
+    var layersToggle = document.getElementById('holo-layers-toggle');
+    if (layersToggle) layersToggle.addEventListener('click', function () {
+      var collapsed = filters.classList.toggle('is-collapsed');
+      layersToggle.setAttribute('aria-expanded', String(!collapsed));
+    });
+    if (filters) filters.addEventListener('click', function (ev) {
+      var b = ev.target.closest('button');
+      if (!b || !viewer) return;
+      var pr = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', String(pr));
+      if (b.id === 'holoblabels') { viewer.setLabels(pr); return; }
+      if (!b.hasAttribute('data-g')) return;
+      var groups = [];
+      filters.querySelectorAll('button[data-g][aria-pressed="true"]').forEach(function (x) { groups.push(x.getAttribute('data-g')); });
+      viewer.setFilter(groups);
+    });
+
+    // Holo ist der einzige Modus (kein Video, keine Bilder) -> direkt laden
+    if (defaultMode === 'holo') start(false);
+  }
+
+  applyMode();
 })();
 </script>
 </Layout>

@@ -286,6 +286,12 @@ const current = Astro.url.pathname;
     cursor: pointer;
     transition: background-color 0.15s, border-color 0.15s, color 0.15s;
   }
+  /* Suchlabel + Lupe sind dauerhaft blau (Akzent); nur der Tastenkürzel-
+     Hinweis (kbd) bleibt grau. */
+  .snav__search svg,
+  .snav__search span {
+    color: var(--accent, #2dd4ff);
+  }
   .snav__search:hover {
     color: var(--accent, #2dd4ff);
     border-color: var(--accent, #2dd4ff);
