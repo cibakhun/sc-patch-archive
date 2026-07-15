@@ -23,8 +23,19 @@ const GROUP_COLOR = {
 };
 
 // Marker-Textur: Ziel-Reticle (Eck-Klammern + Ring + Kern) statt generischem
-// Glüh-Punkt — Cockpit-HUD-Look. hollow = gestrichelt für geschätzte Positionen.
-function markerTexture(colorHex, hollow) {
+// Glüh-Punkt — Cockpit-HUD-Look.
+//
+// Die Form kodiert, WIE belastbar die Position ist — bewusst nicht die Farbe,
+// die bleibt gruppen-kodiert (core cyan / arms gold):
+//   'solid' — Hardpoint aus dem Schiffsmesh, Position exakt: geschlossenes
+//             Ziel-Quadrat mit hellem Kern ("erfasst").
+//   'est'   — echter Hardpoint, nur ungefähr aufs Fremdmesh gemappt:
+//             gestricheltes Ziel-Quadrat, hohler Kern.
+//   'np'    — Bauteil OHNE Einbauort im Mesh, Marker rein schematisch: KEIN
+//             Ziel-Quadrat (nichts ist erfasst), stattdessen gestrichelte
+//             Raute — auf einen Blick etwas anderes als ein Reticle.
+function markerTexture(colorHex, style) {
+  const hollow = style !== 'solid';
   const S = 128, c = document.createElement('canvas');
   c.width = c.height = S;
   const g = c.getContext('2d');
@@ -33,8 +44,8 @@ function markerTexture(colorHex, hollow) {
 
   // weicher Glow-Untergrund
   const glow = g.createRadialGradient(cx, cy, 0, cx, cy, S / 2);
-  glow.addColorStop(0, col + (hollow ? '30' : '55'));
-  glow.addColorStop(0.5, col + '18');
+  glow.addColorStop(0, col + (style === 'np' ? '22' : hollow ? '30' : '55'));
+  glow.addColorStop(0.5, col + (style === 'np' ? '10' : '18'));
   glow.addColorStop(1, col + '00');
   g.fillStyle = glow;
   g.fillRect(0, 0, S, S);
@@ -42,6 +53,29 @@ function markerTexture(colorHex, hollow) {
   g.strokeStyle = col;
   g.lineCap = 'round';
   g.lineJoin = 'round';
+
+  if (style === 'np') {
+    // Gestrichelte Raute statt Ziel-Quadrat + hohler Kern: sagt "irgendwo hier
+    // drin, nicht hier" — und kann nicht mit einem erfassten Ziel verwechselt
+    // werden. Zusätzlich ein "?"-Kern-Punkt-Ersatz: kleiner offener Ring.
+    const d = 42;
+    g.lineWidth = 6;
+    g.setLineDash([8, 9]);
+    g.beginPath();
+    g.moveTo(cx, cy - d); g.lineTo(cx + d, cy); g.lineTo(cx, cy + d); g.lineTo(cx - d, cy);
+    g.closePath();
+    g.stroke();
+    g.setLineDash([]);
+    g.lineWidth = 3.5;
+    g.globalAlpha = 0.8;
+    g.beginPath();
+    g.arc(cx, cy, 8, 0, Math.PI * 2);
+    g.stroke();
+    g.globalAlpha = 1;
+    const tex0 = new THREE.CanvasTexture(c);
+    tex0.colorSpace = THREE.SRGBColorSpace;
+    return tex0;
+  }
 
   // Eck-Klammern eines Ziel-Quadrats
   const r = 40, arm = 15;
@@ -201,11 +235,14 @@ export async function initHolo(container, cfg) {
 
   /* ---------- Textur-Cache (Marker + Boden-Glow teilen sich Texturen) ---------- */
   const texCache = new Map();
-  const texFor = (color, hollow) => {
-    const k = `${color}:${hollow}`;
-    if (!texCache.has(k)) texCache.set(k, markerTexture(color, hollow));
+  const texFor = (color, style) => {
+    const k = `${color}:${style}`;
+    if (!texCache.has(k)) texCache.set(k, markerTexture(color, style));
     return texCache.get(k);
   };
+  // Positions-Belastbarkeit -> Marker-Stil. np hat Vorrang vor est: "gar kein
+  // Einbauort" ist die stärkere Einschränkung.
+  const styleOf = (port) => (port.np ? 'np' : (port.est || port.dim) ? 'est' : 'solid');
 
   /* ---------- Projektor: Aura · Kegel · Emitter-Pad · Ringe · Staub ---------- */
   // Weiche Radial-Textur für Glows/Partikel (weißer Kern -> transparent).
@@ -381,10 +418,10 @@ export async function initHolo(container, cfg) {
   for (const [i, port] of (cfg.ports ?? []).entries()) {
     const color = GROUP_COLOR[port.g] ?? 0x2dd4ff;
     const mat = new THREE.SpriteMaterial({
-      map: texFor(color, !!port.dim),
+      map: texFor(color, styleOf(port)),
       color,
       transparent: true,
-      opacity: port.dim ? 0.7 : 0.92,
+      opacity: port.np ? 0.6 : port.dim ? 0.7 : 0.92,
       depthTest: false, // Holo-Stil: Marker scheinen durch den Rumpf
       blending: THREE.AdditiveBlending,
     });
@@ -426,14 +463,32 @@ export async function initHolo(container, cfg) {
   container.appendChild(labelLayer);
   const labels = [];
   for (const sp of markers) {
-    if (!sp.userData.port.lab) continue;
+    const port = sp.userData.port;
+    if (!port.lab) continue;
+    const st = styleOf(port);
     const el = document.createElement('div');
-    el.className = 'holo-lbl';
-    el.textContent = sp.userData.port.lab;
+    // Der Chip ist die Stelle, an der die Seite eine Behauptung aufstellt
+    // ("SCHILDGENERATOR -> hier"). Bei np/est trägt er darum den Vorbehalt
+    // selbst — sichtbar OHNE Klick, sonst liest sich der Callout als Fakt.
+    el.className = 'holo-lbl' + (st !== 'solid' ? ' is-' + st : '');
+    el.textContent = port.lab;
+    if (port.badge) {
+      // Echtes Leerzeichen, nicht nur CSS-Margin: sonst liest sich der Chip als
+      // "GENERATOROHNE EINBAUORT" (Screenreader, Copy-Paste, Suche).
+      el.appendChild(document.createTextNode(' '));
+      const b = document.createElement('i');
+      b.className = 'holo-lbl__b';
+      b.textContent = port.badge;
+      el.appendChild(b);
+    }
     labelLayer.appendChild(el);
     const line = document.createElementNS(SVGNS, 'line');
     const node = document.createElementNS(SVGNS, 'circle');
     node.setAttribute('r', '3');
+    if (st !== 'solid') {
+      line.setAttribute('class', 'is-' + st);
+      node.setAttribute('class', 'is-' + st);
+    }
     leaderSvg.appendChild(line);
     nodeSvg.appendChild(node);
     // mx/my: projizierte Marker-Position · ax/ay: Ankerpunkt (mittig über Marker)

@@ -125,6 +125,8 @@ type HoloPort = {
   cat?: string; price?: number; shops?: number; iid?: string;
   /** np: nicht physicalisiert · est: Position geschätzt · dim: gedämpfter Marker-Stil */
   np?: boolean; est?: boolean; dim?: boolean;
+  /** badge: Vorbehalt, den der Callout selbst trägt (np/est) — ohne Klick lesbar */
+  badge?: string;
 };
 // Alle Hardpoint-Ebenen sind verfügbar; standardmäßig sichtbar sind nur
 // Komponenten + Bewaffnung, den Rest (Antrieb, Sonstiges) schaltet der Nutzer
@@ -227,6 +229,10 @@ if (hasHolo) {
       size: mixed ? null : item?.size ?? null,
       ...(!mixed ? enrich(item?.name) : {}),
       ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
+      // Kein Badge für est: 83 Schiffe sind komplett "mapped/mid", ein Badge an
+      // JEDEM Chip würde das Gold abstumpfen, das "Ohne Einbauort" (np) tragen
+      // muss. est ist die schwächere Aussage (echte Daten, ungefähr platziert)
+      // und bleibt bei gestrichelt + Vorbehalt in Kopfzeile/Detailkarte.
       ...(est ? { est: true, dim: true } : {}),
     });
   }
@@ -244,7 +250,7 @@ if (hasHolo) {
         label: mixedLabel[k] ?? pool[0].name, size: mixedLabel[k] ? null : pool[0].size,
         ...(!mixedLabel[k] ? enrich(pool[0].name) : {}),
         lab: t(`holo.kind.${k}` as any),
-        np: true, dim: true,
+        np: true, dim: true, badge: t('holo.badge.np' as any),
       });
     }
   }
@@ -266,6 +272,13 @@ if (hasHolo) {
     };
   }
 }
+
+// Belastbarkeit der gezeigten Positionen — steuert die Herkunfts-Zeile unter dem
+// Titel. Wenn KEIN Marker verortet ist (Schiffe ohne Hardpoints im Mesh bzw.
+// conf:low), darf dort nicht "Positionen aus den Spieldateien" stehen.
+const holoNp = holoData?.ports.filter((p) => p.np).length ?? 0;
+const holoEst = holoData?.ports.some((p) => p.est) ?? false;
+const holoAllNp = !!holoData && holoData.ports.length > 0 && holoNp === holoData.ports.length;
 
 const shipCode = d.manufacturer ?? d.makerCode ?? t('ship.code.ship');
 // Kopf-Modi (Umschalter): Video (kuratiertes Commercial) · Bilder (Slideshow) · Holo (3D)
@@ -456,6 +469,38 @@ a{color:inherit;text-decoration:none}
 .holo-lbl.is-active{border-color:var(--accent);color:#fff;
   box-shadow:0 4px 18px rgba(0,0,0,.55),0 0 16px color-mix(in srgb,var(--accent) 42%,transparent),inset 0 0 14px color-mix(in srgb,var(--accent) 14%,transparent)}
 
+/* --- Vorbehalt am Callout selbst ---------------------------------------------
+   Ein normaler Chip behauptet "Bauteil sitzt HIER". Zwei Abstufungen, bewusst
+   NICHT gleich laut — sonst stumpft die laute ab:
+
+   is-np  (Bauteil hat gar keinen Einbauort im Mesh, Marker frei erfunden):
+     Gold + gestrichelt + ausgeschriebenes Badge. Selten (24 Schiffe) und die
+     einzige Stelle, an der Gold "diese Position ist keine Messung" bedeutet.
+   is-est (echter Hardpoint, nur ungefähr auf ein Fremdmesh gemappt):
+     bleibt Cyan (es sind echte Daten), nur gestrichelt + hohler Knoten. Betrifft
+     83 Schiffe komplett — ein Badge an jedem Chip wäre Lärm, kein Signal. */
+.holo-lbl.is-np{border-style:dashed;
+  border-color:color-mix(in srgb,var(--gold) 46%,transparent);
+  border-left:2px dashed var(--gold);color:#f6e7c4;
+  box-shadow:0 4px 16px rgba(0,0,0,.5),inset 0 0 14px color-mix(in srgb,var(--gold) 8%,transparent)}
+.holo-lbl.is-np.is-active{border-color:var(--gold);color:#fff8e6;
+  box-shadow:0 4px 18px rgba(0,0,0,.55),0 0 16px color-mix(in srgb,var(--gold) 40%,transparent),inset 0 0 14px color-mix(in srgb,var(--gold) 13%,transparent)}
+.holo-lbl.is-est{border-style:dashed;border-left:2px dashed color-mix(in srgb,var(--accent) 75%,transparent)}
+.holo-lbl__b{display:inline-block;margin-left:.2rem;padding:0 .3rem;font-style:normal;font-size:.86em;
+  font-weight:800;letter-spacing:.06em;color:#0b1421;background:var(--gold);border-radius:2px;vertical-align:baseline}
+/* Leader/Knoten tragen denselben Vorbehalt: gestrichelte Linie (keine feste
+   Zuordnung) und ein HOHLER Knoten — der gefüllte Punkt bleibt der exakten
+   Position vorbehalten. */
+.holo-leaders line.is-np{stroke:var(--gold);stroke-dasharray:5 5;stroke-width:1.4;
+  filter:drop-shadow(0 0 1.5px rgba(2,10,18,.95)) drop-shadow(0 0 4px color-mix(in srgb,var(--gold) 55%,transparent))}
+.holo-leaders line.is-np.is-active{stroke:#ffe9a8;stroke-width:2}
+.holo-leaders line.is-est{stroke-dasharray:5 5}
+.holo-nodes circle.is-np{fill:none;stroke:var(--gold);stroke-width:2.4;
+  filter:drop-shadow(0 0 1.5px rgba(0,0,0,.95)) drop-shadow(0 0 5px color-mix(in srgb,var(--gold) 75%,transparent))}
+.holo-nodes circle.is-np.is-active{stroke:#ffe9a8;
+  filter:drop-shadow(0 0 2px #000) drop-shadow(0 0 8px var(--gold))}
+.holo-nodes circle.is-est{fill:none;stroke:#dff6ff;stroke-width:2.2}
+
 /* ===== Komponenten-Detail-Karte (Bord-MFD, gruppenfarbig) ===== */
 .holo__panel{--gc:var(--accent);position:absolute;right:clamp(14px,2vw,24px);top:52px;z-index:7;width:min(272px,86vw);
   background:linear-gradient(180deg,rgba(10,16,27,.94),rgba(6,10,18,.9));backdrop-filter:blur(8px);
@@ -492,8 +537,15 @@ a{color:inherit;text-decoration:none}
   border:1px solid color-mix(in srgb,var(--gc) 40%,transparent);background:color-mix(in srgb,var(--gc) 9%,transparent);
   transition:background .13s,color .13s}
 .holo__panel .hp__link:hover{background:color-mix(in srgb,var(--gc) 20%,transparent);color:#fff}
-.holo__panel .hp__note{margin:0;padding:.5rem .8rem .65rem;font-size:.76rem;line-height:1.4;color:var(--gold);
-  border-top:1px dashed color-mix(in srgb,var(--gold) 45%,transparent)}
+/* Vorbehalt in der Detailkarte: getönter Block statt Fußnote — er schränkt die
+   Kernaussage der Karte ein ("Bauteil sitzt hier") und darf nicht überlesen
+   werden. Gold + gestrichelt = dieselbe Sprache wie Marker und Callout. */
+.holo__panel .hp__note{margin:0;padding:.5rem .8rem .6rem 2rem;font-size:.76rem;line-height:1.45;color:#f6e7c4;
+  background:color-mix(in srgb,var(--gold) 12%,transparent);
+  border-top:1px dashed color-mix(in srgb,var(--gold) 45%,transparent);text-transform:none;letter-spacing:0}
+.holo__panel .hp__note::before{content:"!";position:absolute;margin-left:-1.35rem;margin-top:.02rem;
+  width:.95rem;height:.95rem;line-height:.95rem;text-align:center;font-weight:900;font-size:.7rem;
+  color:#0b1421;background:var(--gold);border-radius:50%}
 /* Diegetische HUD-Details: Eck-Klammer + MFD-Scanlines */
 .holo__layers::before,.holo__panel::before{content:"";position:absolute;top:5px;left:5px;width:12px;height:12px;
   border-top:2px solid var(--accent);border-left:2px solid var(--accent);pointer-events:none}
@@ -525,7 +577,12 @@ a{color:inherit;text-decoration:none}
 .holo__chips span{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;
   color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);
   background:rgba(5,7,13,.55);padding:.28rem .6rem}
-.holo__src{margin-top:.7rem;font-family:var(--font-ui);font-weight:600;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);opacity:.8}
+.holo__src{margin-top:.7rem;display:flex;flex-direction:column;gap:.28rem;
+  font-family:var(--font-ui);font-weight:600;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);opacity:.8}
+/* Vorbehalt zur Herkunft: gold wie die betroffenen Marker/Chips, damit die Zeile
+   und die Callouts im Modell als dieselbe Aussage lesbar sind. */
+.holo__caveat{color:var(--gold);opacity:.95;letter-spacing:.08em;text-transform:none;font-size:.74rem;
+  padding-left:.5rem;border-left:2px dashed color-mix(in srgb,var(--gold) 55%,transparent)}
 .holo__none{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);opacity:.6}
 @media(max-width:900px){
   .holo__panel{top:auto;bottom:52px;right:clamp(10px,3vw,20px);left:auto;width:min(280px,92%)}
@@ -790,7 +847,13 @@ span.sd__ref{color:var(--muted)}
           {vSize(d, lang) && <span>{vSize(d, lang)}</span>}
           {vStatus(d, lang) && <span>{vStatus(d, lang)}</span>}
         </div>
-        {holoData && holoData.ports.length > 0 && <div class="holo__src">{t('holo.src')}</div>}
+        {holoData && holoData.ports.length > 0 && (
+          <div class="holo__src">
+            <span class={holoAllNp ? 'holo__caveat' : undefined}>{holoAllNp ? t('holo.src.none' as any) : t('holo.src')}</span>
+            {holoNp > 0 && !holoAllNp && <span class="holo__caveat">{t('holo.legend.np' as any)}</span>}
+            {holoEst && <span class="holo__caveat">{t('holo.legend.est' as any)}</span>}
+          </div>
+        )}
       </header>
       <div
         class={`holo__stage${defaultMode === 'video' ? ' is-video' : ''}`}
