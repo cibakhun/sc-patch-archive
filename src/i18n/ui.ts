@@ -4,15 +4,17 @@
 // getrennt vom bespoke Fließtext der Seiten pflegen. Dieser Katalog ist die
 // einzige Quelle für Chrome-Text.
 //
-// Default-Locale = 'de' (bestehende URLs bleiben präfixlos, SEO unverändert).
-// 'en' bekommt den /en/-Präfix. Fehlt ein en-Key, fällt t() sichtbar auf de
-// zurück statt zu crashen — so kann Stufe 2/3 die Strings inkrementell füllen.
+// Default-Locale = 'en' — Englisch ist die Standardsprache der Seite und liegt
+// PRÄFIXLOS auf der Wurzel (/schiffe/x.html). Deutsch bekommt den /de/-Präfix
+// (/de/schiffe/x.html), die deutsche Startseite ist /de.html (build.format:
+// 'file' bildet src/pages/de/index.astro genau darauf ab).
+// Fehlt ein Key in einer Sprache, fällt t() sichtbar auf EN zurück statt zu
+// crashen.
 //
-// WICHTIG für DE-Identität: die de-Werte müssen exakt den bisherigen
-// hartcodierten Strings entsprechen, damit das gerenderte DE-HTML byte-gleich
-// bleibt.
+// Vorher war es umgekehrt (DE präfixlos, EN unter /en/). Der Tausch macht die
+// alten /en/…-URLs frei — nginx leitet sie per 301 auf die Wurzel um.
 
-export const DEFAULT_LOCALE = 'de' as const;
+export const DEFAULT_LOCALE = 'en' as const;
 export const LOCALES = ['de', 'en'] as const;
 export type Locale = (typeof LOCALES)[number];
 
@@ -622,42 +624,46 @@ export function useTranslations(lang: Locale) {
 }
 
 /**
- * Locale aus dem URL-Pfad ableiten. EN-Seiten liegen unter /en/… ; die EN-
- * Startseite ist wegen build.format:'file' /en.html (nicht /en/index.html).
+ * Locale aus dem URL-Pfad ableiten. DE-Seiten liegen unter /de/… ; die DE-
+ * Startseite ist wegen build.format:'file' /de.html (nicht /de/index.html).
+ * Alles andere ist Englisch (präfixlose Wurzel).
  */
 export function localeFromPath(pathname: string): Locale {
-  return pathname === '/en' || pathname === '/en.html' || pathname.startsWith('/en/')
-    ? 'en'
+  return pathname === '/de' || pathname === '/de.html' || pathname.startsWith('/de/')
+    ? 'de'
     : DEFAULT_LOCALE;
 }
 
-/** DE-Form eines Pfads (Startseite -> '/index.html'). */
-function toDeForm(pathname: string): string {
-  if (pathname === '/en' || pathname === '/en.html') return '/index.html';
-  if (pathname.startsWith('/en/')) pathname = pathname.slice(3); // '/en' entfernen
+/**
+ * Basisform (= EN-Pfad) eines Pfads; Startseite -> '/index.html'.
+ * Alle href()-Aufrufer übergeben diese Form.
+ */
+function toBaseForm(pathname: string): string {
+  if (pathname === '/de' || pathname === '/de.html') return '/index.html';
+  if (pathname.startsWith('/de/')) pathname = pathname.slice(3); // '/de' entfernen
   if (pathname === '' || pathname === '/') return '/index.html';
   return pathname;
 }
 
 /**
  * Denselben Seiten-Pfad in die andere Sprache umschreiben (für den Umschalter).
- * de:  /patches/sc-4-8-2.html   <-> en: /en/patches/sc-4-8-2.html
- * de:  /index.html (oder /)     <-> en: /en.html  (format:'file'-Startseite)
+ * en:  /patches/sc-4-8-2.html   <-> de: /de/patches/sc-4-8-2.html
+ * en:  /index.html (oder /)     <-> de: /de.html  (format:'file'-Startseite)
  */
 export function pathForLocale(pathname: string, target: Locale): string {
-  const de = toDeForm(pathname);
-  if (target === DEFAULT_LOCALE) return de;
-  return de === '/index.html' ? '/en.html' : '/en' + de;
+  const base = toBaseForm(pathname);
+  if (target === DEFAULT_LOCALE) return base;
+  return base === '/index.html' ? '/de.html' : '/de' + base;
 }
 
 /**
- * Locale-bewusster interner Link: nimmt einen DE-Form-Pfad (z. B.
- * "/schiffe/x.html", "/index.html#archiv") und präfixt ihn für EN. DE bleibt
- * unverändert. Die Startseite wird korrekt auf /en.html abgebildet.
+ * Locale-bewusster interner Link: nimmt einen Basisform-Pfad (z. B.
+ * "/schiffe/x.html", "/index.html#archiv") und präfixt ihn für DE. EN bleibt
+ * unverändert. Die Startseite wird korrekt auf /de.html abgebildet.
  */
 export function href(path: string, lang: Locale): string {
   if (lang === DEFAULT_LOCALE) return path;
-  if (path === '/' || path === '/index.html') return '/en.html';
-  if (path.startsWith('/index.html#')) return '/en.html' + path.slice('/index.html'.length);
-  return '/en' + path;
+  if (path === '/' || path === '/index.html') return '/de.html';
+  if (path.startsWith('/index.html#')) return '/de.html' + path.slice('/index.html'.length);
+  return '/de' + path;
 }

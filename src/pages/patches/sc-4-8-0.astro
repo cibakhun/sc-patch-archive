@@ -5,13 +5,14 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-8-0');
 if (!entry) throw new Error('Patch-Daten 4-8-0 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-8-0', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.8.0 — Tactical Strike | VerseBase"} description={"Alpha 4.8.0: G-Force-Flugmodell, Drake Ironclad, Tactical Strike Groups und die DefenseCon-2956-Flottenschau."} themeColor="#16181b" ogType="article" ogImage="/assets/trailer-4-8-0.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/trailer-4-8-0.jpg" />
+<Layout title={"Star Citizen Alpha 4.8.0 — Tactical Strike | VerseBase"} description={"Alpha 4.8.0: G-force flight model, Drake Ironclad, Tactical Strike Groups and the DefenseCon 2956 ship expo."} themeColor="#16181b" ogType="article" ogImage="/assets/trailer-4-8-0.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/trailer-4-8-0.jpg" lang="en" />
 <style is:inline>
 
 /* 4.8.0 "Tactical Strike" — Drake/militärisch, Gunmetal + Drake-Orange · media-first / low-text / MAXIMAL */
@@ -169,10 +170,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.8.0' }]} pill={"ALPHA 4.8.0"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.8.0' }]} pill={"ALPHA 4.8.0"} hasEn={true} />
 
 
 <main id="main">
@@ -183,15 +184,15 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <script is:inline src="/assets/hero-video.js"></script>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">14. Mai 2026 · Major Release</div>
+      <div class="eyebrow">May 14, 2026 · Major Release</div>
       <h1 data-text="4.8.0">4.8.0</h1>
       <div class="codename"><span>Tactical Strike</span></div>
-      <div class="tagline">G-Force-Toleranz, Drake Ironclad und die DefenseCon-2956-Flottenschau.</div>
+      <div class="tagline">G-Force tolerance, Drake Ironclad and the DefenseCon 2956 ship expo.</div>
       <div class="tags">
         <span class="tag">G-Force</span><span class="tag">Drake Ironclad</span><span class="tag">Strike Groups</span><span class="tag hot">DefenseCon 2956</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
@@ -203,20 +204,20 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   </div>
 
   <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/t-tsg-1.jpg"><div class="tbg" style="background-image:url('/assets/t-tsg-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Tactical Strike</div><div class="sub">Koordinierter Schlag</div></div>
-        <div class="tile word hot" data-info data-title="G-Force" data-text="Anhaltende hohe G-Kräfte beeinträchtigen den Piloten: positive Gs führen über Grey-out zum Black-out, negative Gs zum Red-out. Spezielle Flug- und Renn-Anzüge erhöhen die G-Toleranz und entscheiden mit über die Belastungsgrenze." data-img="/assets/trailer-4-8-0.jpg"><span class="zoomic">+</span><b>G-FORCE</b><small>Grey/Red/Black-out</small></div>
-        <div class="tile img w2" data-lb="img:/assets/t-ironclad-1.jpg"><div class="tbg" style="background-image:url('/assets/t-ironclad-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Drake Ironclad</div><div class="sub">Panzer-Hauler</div></div>
-        <a class="tile word hot" href="/topics/4-8-0-tactical-strike-groups.html"><span class="zoomic">→</span><b>STRIKE<br>GROUPS</b><small>Detailseite ansehen</small></a>
+        <div class="tile img b2" data-lb="img:/assets/t-tsg-1.jpg"><div class="tbg" style="background-image:url('/assets/t-tsg-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Tactical Strike</div><div class="sub">Coordinated Strike</div></div>
+        <div class="tile word hot" data-info data-title="G-Force" data-text="Sustained high G-forces impair the pilot: positive Gs lead through grey-out to black-out, negative Gs to red-out. Specialized flight and racing suits raise G-tolerance and help determine the stress limit." data-img="/assets/trailer-4-8-0.jpg"><span class="zoomic">+</span><b>G-FORCE</b><small>Grey/Red/Black-out</small></div>
+        <div class="tile img w2" data-lb="img:/assets/t-ironclad-1.jpg"><div class="tbg" style="background-image:url('/assets/t-ironclad-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Drake Ironclad</div><div class="sub">Armored Hauler</div></div>
+        <a class="tile word hot" href="/topics/4-8-0-tactical-strike-groups.html"><span class="zoomic">→</span><b>STRIKE<br>GROUPS</b><small>View detail page</small></a>
         <div class="tile img w2" data-lb="img:/assets/t-hh-1.jpg"><div class="tbg" style="background-image:url('/assets/t-hh-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Hammerhead</div><div class="sub">Gold Standard</div></div>
-        <div class="tile word hot" data-info data-title="DefenseCon 2956" data-text="Die jährliche Schiffsschau (vormals Fleet Week) am Bevic Convention Center in Area18: tägliche Hersteller-Rotation ab Drakes „For the People“-Auftakt, über 100 Schiffe 48 Stunden kostenlos fliegbar, Free Fly vom 15. bis 27. Mai. Das Spiel ist die gesamte Dauer frei spielbar." data-img="/assets/t-def-1.jpg"><span class="zoomic">+</span><b>DEFENSE<br>CON</b><small>Flottenschau · Area18</small></div>
-        <div class="tile stat" data-info data-title="166+ Fixes" data-text="Begleitend zu Tactical Strike Groups, Drake Ironclad und dem G-Force-Flugmodell brachte 4.8.0 über 166 Bugfixes und Stabilitätsverbesserungen — der Patch ging mit einem vollständigen Wipe live."><span class="zoomic">+</span><div class="num">166+</div><div class="cap">Fixes</div></div>
+        <div class="tile word hot" data-info data-title="DefenseCon 2956" data-text="The annual ship expo (formerly Fleet Week) at the Bevic Convention Center in Area18: daily manufacturer rotation starting with Drake's „For the People“ opening, over 100 ships free to rent and fly for 48 hours, Free Fly from May 15 to 27. The game is free to play for the whole event." data-img="/assets/t-def-1.jpg"><span class="zoomic">+</span><b>DEFENSE<br>CON</b><small>Ship expo · Area18</small></div>
+        <div class="tile stat" data-info data-title="166+ Fixes" data-text="Alongside Tactical Strike Groups, Drake Ironclad and the G-Force flight model, 4.8.0 brought over 166 bug fixes and stability improvements — the patch went live with a full wipe."><span class="zoomic">+</span><div class="num">166+</div><div class="cap">Fixes</div></div>
       </div>
     </div>
   </section>
@@ -225,18 +226,18 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-tsg-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Koordinierter Schlag</div>
+      <div class="kx">Coordinated Strike</div>
       <div class="big">TACTICAL STRIKE</div>
-      <p>Koordinierte Multi-Schiff-Schläge unter G-Kräften.</p>
+      <p>Coordinated multi-ship strikes under G-forces.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Ships</h2><span class="rule"></span></div>
       <div class="garage">
-        <article class="ship reveal" data-lb="img:/assets/img-ironclad.jpg"><div class="sbg" style="background-image:url('/assets/img-ironclad.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Drake · Panzer-Hauler</span><h3>Drake Ironclad</h3></div></article>
+        <article class="ship reveal" data-lb="img:/assets/img-ironclad.jpg"><div class="sbg" style="background-image:url('/assets/img-ironclad.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Drake · Armored Hauler</span><h3>Drake Ironclad</h3></div></article>
         <article class="ship reveal" data-lb="img:/assets/img-hammerhead.jpg"><div class="sbg" style="background-image:url('/assets/img-hammerhead.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Aegis · Gunship</span><h3>Aegis Hammerhead</h3></div></article>
       </div>
     </div>
@@ -246,9 +247,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-def-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Flugmodell · Anzug entscheidet</div>
+      <div class="kx">Flight Model · Suit Decides</div>
       <div class="big outline">G-FORCE</div>
-      <p>Grey-out, Red-out, Black-out — je nach Anzug.</p>
+      <p>Grey-out, red-out, black-out — depending on your suit.</p>
     </div>
   </section>
 
@@ -257,43 +258,43 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="RWQSxN-ZukE" style="background-image:url('/assets/trailer-4-8-0.jpg')"><span class="vlbl">Tactical Strike — Trailer</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="RWQSxN-ZukE" style="background-image:url('/assets/trailer-4-8-0.jpg')"><span class="vlbl">Tactical Strike — Trailer</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=RWQSxN-ZukE" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=RWQSxN-ZukE" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
         <figure class="b2" data-lb="img:/assets/img-ironclad.jpg"><img src="/assets/img-ironclad.jpg" alt="Drake Ironclad" loading="lazy"><span class="zoomic">⤢</span><figcaption>Drake Ironclad</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-hh-1.jpg"><img src="/assets/t-hh-1.jpg" alt="Aegis Hammerhead im Gefecht" loading="lazy"><span class="zoomic">⤢</span><figcaption>Aegis Hammerhead · im Gefecht</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-hh-1.jpg"><img src="/assets/t-hh-1.jpg" alt="Aegis Hammerhead in combat" loading="lazy"><span class="zoomic">⤢</span><figcaption>Aegis Hammerhead · in combat</figcaption></figure>
         <figure data-lb="img:/assets/vid-isc48.jpg"><img src="/assets/vid-isc48.jpg" alt="Inside Star Citizen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Inside SC</figcaption></figure>
-        <figure data-lb="img:/assets/t-def-1.jpg"><img src="/assets/t-def-1.jpg" alt="DefenseCon 2956: Schiffsschau am Bevic Convention Center in Area18" loading="lazy"><span class="zoomic">⤢</span><figcaption>DefenseCon 2956 · Schiffsschau</figcaption></figure>
+        <figure data-lb="img:/assets/t-def-1.jpg"><img src="/assets/t-def-1.jpg" alt="DefenseCon 2956: ship expo at the Bevic Convention Center in Area18" loading="lazy"><span class="zoomic">⤢</span><figcaption>DefenseCon 2956 · Ship expo</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="05" />
+  <PatchDossier patch={patch} num="05" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-7-0.html"><span class="dir">← Älter</span><span class="ttl">4.7.0 · Welcome to the Rock</span></a>
-    <a class="next" href="/patches/sc-4-8-1.html"><span class="dir">Neuer →</span><span class="ttl">4.8.1 · Defend Location</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-7-0.html"><span class="dir">← Older</span><span class="ttl">4.7.0 · Welcome to the Rock</span></a>
+    <a class="next" href="/patches/sc-4-8-1.html"><span class="dir">Newer →</span><span class="ttl">4.8.1 · Defend Location</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Not affiliated with CIG. Trailers, stills & ship/system images from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

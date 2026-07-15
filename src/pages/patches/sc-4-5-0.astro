@@ -5,13 +5,14 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-5-0');
 if (!entry) throw new Error('Patch-Daten 4-5-0 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-5-0', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.5.0 — Dawn of Engineering | VerseBase"} description={"Alpha 4.5.0: Engineering-Gameplay, Ship Armor und sich ausbreitendes Feuer."} themeColor="#0f1316" ogType="article" ogImage="/assets/trailer-4-5-0.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/trailer-4-5-0.jpg" />
+<Layout title={"Star Citizen Alpha 4.5.0 — Dawn of Engineering | VerseBase"} description={"Alpha 4.5.0: engineering gameplay, ship armor and spreading fire."} themeColor="#0f1316" ogType="article" ogImage="/assets/trailer-4-5-0.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/trailer-4-5-0.jpg" lang="en" />
 <style is:inline>
 
 /* 4.5.0 "Dawn of Engineering" — media-first / low-text / MAXIMAL */
@@ -156,10 +157,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.5.0' }]} pill={"ALPHA 4.5.0"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.5.0' }]} pill={"ALPHA 4.5.0"} hasEn={true} />
 
 
 <main id="main">
@@ -169,28 +170,28 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">17. Dezember 2025 · Major Release</div>
+      <div class="eyebrow">December 17, 2025 · Major Release</div>
       <h1 data-text="4.5.0">4.5.0</h1>
       <div class="codename">Dawn of <span>Engineering</span></div>
-      <div class="tagline">Engineering-Gameplay, Ship Armor und sich ausbreitendes Feuer.</div>
+      <div class="tagline">Engineering gameplay, ship armor and spreading fire.</div>
       <div class="tags">
-        <span class="tag">Engineering</span><span class="tag">Ship Armor</span><span class="tag hot">Feuer</span><span class="tag">Vulkan</span><span class="tag">VR</span>
+        <span class="tag">Engineering</span><span class="tag">Ship Armor</span><span class="tag hot">Fire</span><span class="tag">Vulkan</span><span class="tag">VR</span>
       </div>
-      <a href="/topics/4-5-0-engineering.html" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;color:var(--bg);background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;box-shadow:0 6px 20px -6px rgba(0,0,0,.5)">Engineering · Detailseite →</a>
+      <a href="/topics/4-5-0-engineering.html" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;color:var(--bg);background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;box-shadow:0 6px 20px -6px rgba(0,0,0,.5)">Engineering · Detail page →</a>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>DAWN OF ENGINEERING</span><span class="dot">◆</span><span>SHIP ARMOR</span><span class="dot">◆</span><span>FEUER-HAZARD</span><span class="dot">◆</span><span>POWER MANAGEMENT</span><span class="dot">◆</span><span>VULKAN</span><span class="dot">◆</span><span>VR</span><span class="dot">◆</span>
-      <span>DAWN OF ENGINEERING</span><span class="dot">◆</span><span>SHIP ARMOR</span><span class="dot">◆</span><span>FEUER-HAZARD</span><span class="dot">◆</span><span>POWER MANAGEMENT</span><span class="dot">◆</span><span>VULKAN</span><span class="dot">◆</span><span>VR</span><span class="dot">◆</span>
+      <span>DAWN OF ENGINEERING</span><span class="dot">◆</span><span>SHIP ARMOR</span><span class="dot">◆</span><span>FIRE HAZARD</span><span class="dot">◆</span><span>POWER MANAGEMENT</span><span class="dot">◆</span><span>VULKAN</span><span class="dot">◆</span><span>VR</span><span class="dot">◆</span>
+      <span>DAWN OF ENGINEERING</span><span class="dot">◆</span><span>SHIP ARMOR</span><span class="dot">◆</span><span>FIRE HAZARD</span><span class="dot">◆</span><span>POWER MANAGEMENT</span><span class="dot">◆</span><span>VULKAN</span><span class="dot">◆</span><span>VR</span><span class="dot">◆</span>
     </div>
   </div>
 
-  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <!-- AT A GLANCE (Daten-Register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
@@ -198,11 +199,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
         <div class="tile img b2" data-lb="img:/assets/t-eng-1.jpg"><div class="tbg" style="background-image:url('/assets/t-eng-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Engineering</div><div class="sub">Dawn of Engineering</div></div>
-        <div class="tile word" data-info data-title="Ship Armor" data-text="Schiffspanzerung wird mit 4.5.0 zu einer eigenen physischen Schicht: Armor sitzt über Hülle und Komponenten, dämpft eingehenden Schaden und nutzt sich mit der Zeit ab — ein erster Schritt der überarbeiteten Schadens- und Engineering-Systeme." data-img="/assets/t-def-2.jpg"><span class="zoomic">+</span><b>SHIP<br>ARMOR</b><small>eigene Schicht</small></div>
-        <div class="tile word hot" data-info data-title="Feuer-Hazard" data-text="Brände breiten sich mit 4.5.0 dynamisch durch das Schiff aus, fressen Sauerstoff und greifen auf benachbarte Räume und Komponenten über. Crews müssen Feuer als Engineering-Gefahr aktiv löschen, statt nur Schaden zu reparieren." data-img="/assets/t-ffp-1.jpg"><span class="zoomic">+</span><b>FEUER</b><small>breitet sich aus</small></div>
-        <div class="tile word" data-info data-title="Power Management" data-text="Im Engineering-Gameplay verteilen Spieler Energie in Echtzeit auf Komponenten und Systeme. Über- oder Fehlbelastung kann zu Hitze, Ausfällen und Schäden führen — Energie wird zur knappen Ressource im Schiffsbetrieb."><span class="zoomic">+</span><b>POWER</b><small>Echtzeit</small></div>
-        <div class="tile word" data-info data-title="Vulkan-Renderer" data-text="Mit 4.5.0 wurde Vulkan zum Standard-Renderer. Die Vulkan-API gibt es in Star Citizen bereits seit Alpha 3.23; 4.5.0 stabilisierte sie (u.a. Multithread-Rendering, HDR) und löste die ältere DirectX-11-Pipeline als Standard ab."><span class="zoomic">+</span><b>VULKAN</b><small>Renderer</small></div>
-        <div class="tile word" data-info data-title="VR-Unterstützung" data-text="Mit 4.5.0 wurde experimentelle Virtual-Reality-Unterstützung eingeführt, die durch den Wechsel zur Vulkan-Renderpipeline ermöglicht wird. Ein früher, optionaler Schritt Richtung immersives Cockpit-Erlebnis."><span class="zoomic">+</span><b>VR</b><small>experimentell</small></div>
+        <div class="tile word" data-info data-title="Ship Armor" data-text="With 4.5.0, ship armor becomes its own physical layer: armor sits over the hull and components, absorbs incoming damage and wears down over time — a first step in the reworked damage and engineering systems." data-img="/assets/t-def-2.jpg"><span class="zoomic">+</span><b>SHIP<br>ARMOR</b><small>its own layer</small></div>
+        <div class="tile word hot" data-info data-title="Fire Hazard" data-text="With 4.5.0, fires spread dynamically through the ship, consume oxygen and jump to adjacent rooms and components. Crews have to actively put out fire as an engineering hazard, rather than just repairing damage." data-img="/assets/t-ffp-1.jpg"><span class="zoomic">+</span><b>FIRE</b><small>spreads out</small></div>
+        <div class="tile word" data-info data-title="Power Management" data-text="In the engineering gameplay, players distribute power to components and systems in real time. Overloading or misallocation can lead to heat, failures and damage — power becomes a scarce resource in ship operations."><span class="zoomic">+</span><b>POWER</b><small>real time</small></div>
+        <div class="tile word" data-info data-title="Vulkan Renderer" data-text="With 4.5.0, Vulkan became the default renderer. The Vulkan API has been in Star Citizen since Alpha 3.23; 4.5.0 stabilized it (including multithreaded rendering and HDR) and replaced the older DirectX 11 pipeline as the default."><span class="zoomic">+</span><b>VULKAN</b><small>renderer</small></div>
+        <div class="tile word" data-info data-title="VR Support" data-text="With 4.5.0, experimental virtual reality support was introduced, made possible by the switch to the Vulkan render pipeline. An early, optional step toward an immersive cockpit experience."><span class="zoomic">+</span><b>VR</b><small>experimental</small></div>
       </div>
     </div>
   </section>
@@ -211,9 +212,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-eng-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Schiff am Leben halten</div>
+      <div class="kx">Keep the ship alive</div>
       <div class="big">ENGINEERING</div>
-      <p>Halte Energie, Hüllen und Feuer unter Kontrolle.</p>
+      <p>Keep power, hulls and fire under control.</p>
     </div>
   </section>
 
@@ -222,40 +223,40 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">02</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="JgpLAqW1wOU" style="background-image:url('/assets/trailer-4-5-0.jpg')"><span class="vlbl">Dawn of Engineering — Trailer</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="JgpLAqW1wOU" style="background-image:url('/assets/trailer-4-5-0.jpg')"><span class="vlbl">Dawn of Engineering — Trailer</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=JgpLAqW1wOU" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=JgpLAqW1wOU" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">03</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">03</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-eng-4.jpg"><img src="/assets/t-eng-4.jpg" alt="Engineering-Terminal" loading="lazy"><span class="zoomic">⤢</span><figcaption>Engineering-Terminal</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-eng-4.jpg"><img src="/assets/t-eng-4.jpg" alt="Engineering terminal" loading="lazy"><span class="zoomic">⤢</span><figcaption>Engineering terminal</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="04" />
+  <PatchDossier patch={patch} num="04" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-4-0.html"><span class="dir">← Älter</span><span class="ttl">4.4.0 · Welcome to Nyx</span></a>
-    <a class="next" href="/patches/sc-4-6-0.html"><span class="dir">Neuer →</span><span class="ttl">4.6.0 · Lifeline for Levski</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-4-0.html"><span class="dir">← Older</span><span class="ttl">4.4.0 · Welcome to Nyx</span></a>
+    <a class="next" href="/patches/sc-4-6-0.html"><span class="dir">Newer →</span><span class="ttl">4.6.0 · Lifeline for Levski</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Not affiliated with CIG. Trailers, stills & ship/system imagery from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

@@ -5,13 +5,14 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-2-0');
 if (!entry) throw new Error('Patch-Daten 4-2-0 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-2-0', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.2.0 — Storm Breaker | VerseBase"} description={"Alpha 4.2.0: dynamischer Regen, Turbulenz und die neue Umweltgefahr Strahlung."} themeColor="#16142a" ogType="article" ogImage="/assets/trailer-4-2-0.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/trailer-4-2-0.jpg" />
+<Layout title={"Star Citizen Alpha 4.2.0 — Storm Breaker | VerseBase"} description={"Alpha 4.2.0: dynamic rain, turbulence and the new environmental hazard radiation."} themeColor="#16142a" ogType="article" ogImage="/assets/trailer-4-2-0.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/trailer-4-2-0.jpg" lang="en" />
 <style is:inline>
 
 /* 4.2.0 "Storm Breaker" — media-first / low-text / MAXIMAL */
@@ -169,10 +170,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.2.0' }]} pill={"ALPHA 4.2.0"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.2.0' }]} pill={"ALPHA 4.2.0"} hasEn={true} />
 
 
 <main id="main">
@@ -183,42 +184,42 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <script is:inline src="/assets/hero-video.js"></script>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">19. Juni 2025 · Major Release</div>
+      <div class="eyebrow">June 19, 2025 · Major Release</div>
       <h1 data-text="4.2.0">4.2.0</h1>
       <div class="codename"><span>Storm Breaker</span></div>
-      <div class="tagline">Persistente Sturm-Aktivität, dynamischer Regen und Strahlung.</div>
+      <div class="tagline">Persistent storm activity, dynamic rain and radiation.</div>
       <div class="tags">
-        <span class="tag">Storm Breaker</span><span class="tag">Regen</span><span class="tag hot">Strahlung</span><span class="tag">ATLS IKTI</span>
+        <span class="tag">Storm Breaker</span><span class="tag">Rain</span><span class="tag hot">Radiation</span><span class="tag">ATLS IKTI</span>
       </div>
-      <a href="/topics/4-2-0-storm-breaker.html" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;color:var(--bg);background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;box-shadow:0 6px 20px -6px rgba(0,0,0,.5)">Storm Breaker · Detailseite →</a>
+      <a href="/topics/4-2-0-storm-breaker.html" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;color:var(--bg);background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;box-shadow:0 6px 20px -6px rgba(0,0,0,.5)">Storm Breaker · Detail page →</a>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>STORM BREAKER</span><span class="dot">◆</span><span>DYNAMISCHER REGEN</span><span class="dot">◆</span><span>STRAHLUNG</span><span class="dot">◆</span><span>TURBULENZ</span><span class="dot">◆</span><span>ATLS IKTI</span><span class="dot">◆</span><span>DECONPEN</span><span class="dot">◆</span>
-      <span>STORM BREAKER</span><span class="dot">◆</span><span>DYNAMISCHER REGEN</span><span class="dot">◆</span><span>STRAHLUNG</span><span class="dot">◆</span><span>TURBULENZ</span><span class="dot">◆</span><span>ATLS IKTI</span><span class="dot">◆</span><span>DECONPEN</span><span class="dot">◆</span>
+      <span>STORM BREAKER</span><span class="dot">◆</span><span>DYNAMIC RAIN</span><span class="dot">◆</span><span>RADIATION</span><span class="dot">◆</span><span>TURBULENCE</span><span class="dot">◆</span><span>ATLS IKTI</span><span class="dot">◆</span><span>DECONPEN</span><span class="dot">◆</span>
+      <span>STORM BREAKER</span><span class="dot">◆</span><span>DYNAMIC RAIN</span><span class="dot">◆</span><span>RADIATION</span><span class="dot">◆</span><span>TURBULENCE</span><span class="dot">◆</span><span>ATLS IKTI</span><span class="dot">◆</span><span>DECONPEN</span><span class="dot">◆</span>
     </div>
   </div>
 
   <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/t-storm-3.jpg"><div class="tbg" style="background-image:url('/assets/t-storm-3.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Storm Breaker</div><div class="sub">Mission im Sturm</div></div>
-        <div class="tile word hot" data-info data-title="Strahlung" data-text="Neue Umweltgefahr neben Feuer, Kälte und Druck. In Strahlungszonen baut sich die Belastung mit der Zeit auf — ohne schützende Ausrüstung wird sie tödlich; nach dem Verlassen klingt sie wieder ab." data-img="/assets/t-storm-3.jpg"><span class="zoomic">+</span><b>STRAHLUNG</b><small>neue Umweltgefahr</small></div>
-        <div class="tile word" data-info data-title="Dynamischer Regen" data-text="Mit 4.2.0 kommt dynamisches Wetter: Sturmsysteme bringen starken Regen und Wind auf Planeten wie Pyro I — Teil derselben Wetter-Engine wie die Storm-Breaker-Stürme." data-img="/assets/t-storm-1.jpg"><span class="zoomic">+</span><b>REGEN</b><small>dynamisch</small></div>
-        <div class="tile img w2" data-lb="img:/assets/img-prowler.jpg"><div class="tbg" style="background-image:url('/assets/img-prowler.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Esperia Prowler Utility</div><div class="sub">Stealth-Frachter · 32 SCU</div></div>
-        <div class="tile word" data-info data-title="Turbulenz" data-text="Flug-Turbulenz beim Durchfliegen von Stürmen und dichten Atmosphären — sie rüttelt das Schiff durch und verändert den Rhythmus von Flug und Kampf." data-img="/assets/t-storm-2.jpg"><span class="zoomic">+</span><b>TURBULENZ</b><small>im Flug</small></div>
-        <div class="tile stat" data-info data-title="~190 Fixes" data-text="Rund 190 Bugfixes und Stabilitäts-Verbesserungen begleiten das Major-Release 4.2.0 — neben den neuen Features ein Schwerpunkt auf Politur des bestehenden Spiels."><span class="zoomic">+</span><div class="num">~190</div><div class="cap">Fixes</div></div>
-        <div class="tile img w2" data-lb="img:/assets/img-atls.jpg"><div class="tbg" style="background-image:url('/assets/img-atls.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">ARGO ATLS IKTI</div><div class="sub">Mech-Suit</div></div>
-        <div class="tile word" data-info data-title="CureLife DeconPen" data-text="Der CureLife DeconPen Xtra ist das Gegenmittel gegen Strahlung: eine Schnellinjektion aus Canoiodide und Hemozal, die die Strahlenbelastung behandelt und zugleich die Vitalwerte des Patienten stabilisiert." data-img="/assets/t-med-1.jpg"><span class="zoomic">+</span><b>DECONPEN</b><small>Gegenmittel</small></div>
+        <div class="tile img b2" data-lb="img:/assets/t-storm-3.jpg"><div class="tbg" style="background-image:url('/assets/t-storm-3.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Storm Breaker</div><div class="sub">Mission in the storm</div></div>
+        <div class="tile word hot" data-info data-title="Radiation" data-text="A new environmental hazard alongside fire, cold and pressure. In radiation zones the exposure builds up over time — without protective gear it becomes lethal; after leaving it fades away again." data-img="/assets/t-storm-3.jpg"><span class="zoomic">+</span><b>RADIATION</b><small>new environmental hazard</small></div>
+        <div class="tile word" data-info data-title="Dynamic Rain" data-text="With 4.2.0 comes dynamic weather: storm systems bring heavy rain and wind to planets like Pyro I — part of the same weather engine as the Storm Breaker storms." data-img="/assets/t-storm-1.jpg"><span class="zoomic">+</span><b>RAIN</b><small>dynamic</small></div>
+        <div class="tile img w2" data-lb="img:/assets/img-prowler.jpg"><div class="tbg" style="background-image:url('/assets/img-prowler.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Esperia Prowler Utility</div><div class="sub">Stealth freighter · 32 SCU</div></div>
+        <div class="tile word" data-info data-title="Turbulence" data-text="Flight turbulence when passing through storms and dense atmospheres — it shakes the ship and changes the rhythm of flight and combat." data-img="/assets/t-storm-2.jpg"><span class="zoomic">+</span><b>TURBULENCE</b><small>in flight</small></div>
+        <div class="tile stat" data-info data-title="~190 Fixes" data-text="Around 190 bug fixes and stability improvements accompany the major release 4.2.0 — alongside the new features, a focus on polishing the existing game."><span class="zoomic">+</span><div class="num">~190</div><div class="cap">Fixes</div></div>
+        <div class="tile img w2" data-lb="img:/assets/img-atls.jpg"><div class="tbg" style="background-image:url('/assets/img-atls.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">ARGO ATLS IKTI</div><div class="sub">Mech Suit</div></div>
+        <div class="tile word" data-info data-title="CureLife DeconPen" data-text="The CureLife DeconPen Xtra is the antidote to radiation: a quick injection of Canoiodide and Hemozal that treats the radiation exposure and at the same time stabilizes the patient's vitals." data-img="/assets/t-med-1.jpg"><span class="zoomic">+</span><b>DECONPEN</b><small>antidote</small></div>
       </div>
     </div>
   </section>
@@ -227,18 +228,18 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-storm-1.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">In den Sturm</div>
+      <div class="kx">Into the storm</div>
       <div class="big">STORM BREAKER</div>
-      <p>Eine Mission tief in den tödlichen Sturm.</p>
+      <p>A mission deep into the deadly storm.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe &amp; Fahrzeuge</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Ships &amp; Vehicles</h2><span class="rule"></span></div>
       <div class="garage">
-        <article class="ship reveal" data-lb="yt:s-giJ2Px3d0"><div class="sbg" style="background-image:url('/assets/img-atls.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">ARGO · Mech-Suit</span><h3>ARGO ATLS IKTI</h3></div></article>
+        <article class="ship reveal" data-lb="yt:s-giJ2Px3d0"><div class="sbg" style="background-image:url('/assets/img-atls.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">ARGO · Mech Suit</span><h3>ARGO ATLS IKTI</h3></div></article>
         <article class="ship reveal" data-lb="yt:Op0YkiMm8TQ"><div class="sbg" style="background-image:url('/assets/img-prowler.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">Esperia · Utility</span><h3>Esperia Prowler</h3></div></article>
       </div>
     </div>
@@ -248,9 +249,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-pyro-1.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Neue Umweltgefahr</div>
-      <div class="big outline">STRAHLUNG</div>
-      <p>Neue Umweltgefahr — ohne Gegenmittel tödlich.</p>
+      <div class="kx">New environmental hazard</div>
+      <div class="big outline">RADIATION</div>
+      <p>New environmental hazard — lethal without an antidote.</p>
     </div>
   </section>
 
@@ -259,45 +260,45 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="_OzfPaUWYpY" style="background-image:url('/assets/trailer-4-2-0.jpg')"><span class="vlbl">Storm Breaker — Trailer</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="s-giJ2Px3d0" style="background-image:url('/assets/vid-atls.jpg')"><span class="vlbl">ARGO ATLS — Commercial</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="Op0YkiMm8TQ" style="background-image:url('/assets/vid-prowler.jpg')"><span class="vlbl">Esperia Prowler — Commercial</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="_OzfPaUWYpY" style="background-image:url('/assets/trailer-4-2-0.jpg')"><span class="vlbl">Storm Breaker — Trailer</span><button class="play" aria-label="Play">▶</button></div>
+        <div class="video" data-yt="s-giJ2Px3d0" style="background-image:url('/assets/vid-atls.jpg')"><span class="vlbl">ARGO ATLS — Commercial</span><button class="play" aria-label="Play">▶</button></div>
+        <div class="video" data-yt="Op0YkiMm8TQ" style="background-image:url('/assets/vid-prowler.jpg')"><span class="vlbl">Esperia Prowler — Commercial</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=_OzfPaUWYpY" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=_OzfPaUWYpY" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
         <figure class="b2" data-lb="img:/assets/vid-prowler.jpg"><img src="/assets/vid-prowler.jpg" alt="Esperia Prowler" loading="lazy"><span class="zoomic">⤢</span><figcaption>Esperia Prowler</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/img-pyro.jpg"><img src="/assets/img-pyro.jpg" alt="Sternkarte des Pyro-Systems" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro-System</figcaption></figure>
-        <figure data-lb="img:/assets/vid-atls.jpg"><img src="/assets/vid-atls.jpg" alt="ATLS Film" loading="lazy"><span class="zoomic">⤢</span><figcaption>ATLS · Film</figcaption></figure>
-        <figure data-lb="img:/assets/t-storm-2.jpg"><img src="/assets/t-storm-2.jpg" alt="Sturmsystem aus dem Orbit" loading="lazy"><span class="zoomic">⤢</span><figcaption>Sturmsystem</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/img-pyro.jpg"><img src="/assets/img-pyro.jpg" alt="Star map of the Pyro system" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro system</figcaption></figure>
+        <figure data-lb="img:/assets/vid-atls.jpg"><img src="/assets/vid-atls.jpg" alt="ATLS film" loading="lazy"><span class="zoomic">⤢</span><figcaption>ATLS · Film</figcaption></figure>
+        <figure data-lb="img:/assets/t-storm-2.jpg"><img src="/assets/t-storm-2.jpg" alt="Storm system from orbit" loading="lazy"><span class="zoomic">⤢</span><figcaption>Storm system</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="05" />
+  <PatchDossier patch={patch} num="05" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-1-1.html"><span class="dir">← Älter</span><span class="ttl">4.1.1 · Balancing &amp; Fleet Week</span></a>
-    <a class="next" href="/patches/sc-4-2-1.html"><span class="dir">Neuer →</span><span class="ttl">4.2.1 · Resource Drive</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-1-1.html"><span class="dir">← Older</span><span class="ttl">4.1.1 · Balancing &amp; Fleet Week</span></a>
+    <a class="next" href="/patches/sc-4-2-1.html"><span class="dir">Newer →</span><span class="ttl">4.2.1 · Resource Drive</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Not affiliated with CIG. Trailers, stills & ship/system images from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

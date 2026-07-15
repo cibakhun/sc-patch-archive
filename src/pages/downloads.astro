@@ -6,12 +6,11 @@ import { mediaLabel } from '../lib/downloadLabels';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// Medien-Bibliothek: alle Bilder aus public/assets (Top-Level) — build-time per
-// fs gelesen. Videos/Loops und Schriften sind bewusst NICHT enthalten (nur
-// Bilder). Die Onepager kommen als eigenständige Offline-HTML aus
-// scripts/build-downloads.mjs (public/downloads/). Vorschauen sind kleine
-// WebP-Thumbs aus scripts/build-thumbs.mjs (public/assets/thumb/) — die Kachel
-// zeigt den Thumb, der Download-Link das Original.
+// Media library: every image in public/assets (top level), read at build time.
+// Videos/loops and fonts are intentionally excluded (images only). One-pagers
+// ship as self-contained offline HTML from scripts/build-downloads.mjs. Previews
+// are small WebP thumbs from scripts/build-thumbs.mjs (public/assets/thumb/) —
+// the tile shows the thumb, the download link points at the original.
 const IMG_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.svg', '.gif']);
 const assetsDir = path.join(process.cwd(), 'public', 'assets');
 const thumbDir = path.join(assetsDir, 'thumb');
@@ -21,22 +20,20 @@ const files = fs.existsSync(assetsDir)
 
 const bytesOf = (f) => fs.statSync(path.join(assetsDir, f)).size;
 const fmtSize = (b) =>
-  b >= 1048576 ? (b / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+  b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
 
-// Vorschau-URL: WebP-Thumb wenn vorhanden, sonst Original (z. B. SVG).
 const thumbOf = (f) => {
   const t = f.replace(/\.[^.]+$/, '') + '.webp';
   return fs.existsSync(path.join(thumbDir, t)) ? `/assets/thumb/${t}` : `/assets/${f}`;
 };
 
-// Kategorien in Anzeige-Reihenfolge; erste passende Regel gewinnt.
 const CATS = [
-  { id: 'ships', label: 'Schiffe & Motive', match: (f) => f.startsWith('img-') },
-  { id: 'video', label: 'Video-Standbilder', match: (f) => f.startsWith('vid-') },
-  { id: 'trailer', label: 'Patch-Trailer', match: (f) => f.startsWith('trailer-') },
+  { id: 'ships', label: 'Ships & subjects', match: (f) => f.startsWith('img-') },
+  { id: 'video', label: 'Video stills', match: (f) => f.startsWith('vid-') },
+  { id: 'trailer', label: 'Patch trailers', match: (f) => f.startsWith('trailer-') },
   { id: 'cz', label: 'Contested Zones', match: (f) => f.startsWith('cz-') },
-  { id: 'topics', label: 'Themen & Guides', match: (f) => f.startsWith('t-') },
-  { id: 'other', label: 'Sonstige', match: () => true },
+  { id: 'topics', label: 'Topics & guides', match: (f) => f.startsWith('t-') },
+  { id: 'other', label: 'Other', match: () => true },
 ];
 
 const groups = CATS.map((c) => ({
@@ -46,14 +43,13 @@ const groups = CATS.map((c) => ({
     .filter((f) => !CATS.some((o) => o !== c && CATS.indexOf(o) < CATS.indexOf(c) && o.match(f)))
     .sort((a, b) => a.localeCompare(b))
     .map((f) => {
-      const l = mediaLabel(f, 'de');
+      const l = mediaLabel(f, 'en');
       return {
         file: f,
         thumb: thumbOf(f),
         size: fmtSize(bytesOf(f)),
         title: l.title,
         sub: l.sub,
-        // Suche trifft Titel, Kontext UND Dateiname.
         key: `${l.title} ${l.sub} ${f}`.toLowerCase(),
       };
     }),
@@ -61,20 +57,19 @@ const groups = CATS.map((c) => ({
 
 const totalImgs = files.length;
 
-// Onepager — kuratierte Titel/Beschreibung, gefiltert auf tatsächlich gebaute.
 const dlDir = path.join(process.cwd(), 'public', 'downloads');
 const ONEPAGERS = [
   {
     slug: 'contested-zones',
     title: 'Contested Zones',
     tag: 'Alpha 4.0 · Pyro',
-    desc: 'Keycards, Sicherungen, Comboards und Routen durch die PvPvE-Zonen — was mitzunehmen ist und wo der Loot liegt.',
+    desc: 'Keycards, fuses, comboards and routes through the PvPvE zones — what to bring and where the loot sits.',
   },
   {
     slug: 'storm-breaker',
     title: 'Storm Breaker',
     tag: 'Alpha 4.2 · Valakkar',
-    desc: 'Ablauf, Karten (Farro & Lazarus) und Ziele der Storm-Breaker-Jagd auf den Apex-Valakkar.',
+    desc: 'Flow, maps (Farro & Lazarus) and objectives of the Storm Breaker hunt for the Apex Valakkar.',
   },
 ]
   .map((o) => {
@@ -84,11 +79,11 @@ const ONEPAGERS = [
   })
   .filter(Boolean);
 
-const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der Seite (Schiffs-Renders, Themen-Bilder, Patch-Trailer-Standbilder) einzeln herunterladen — plus die visuellen Onepager-Guides als eigenständige Offline-HTML-Datei.`;
+const desc = `VerseBase downloads: grab every one of the ${totalImgs} image assets used on the site (ship renders, topic imagery, patch-trailer stills) individually — plus the visual one-pager guides as a self-contained offline HTML file.`;
 ---
 
 <Layout
-  title={'Downloads — Medien & Onepager | VerseBase'}
+  title={'Downloads — Media & One-Pagers | VerseBase'}
   description={desc}
   themeColor="#0a1014"
   ogType="article"
@@ -113,9 +108,9 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
       --ink: #05090c;
       --maxw: 1240px;
     }
-    /* Hero-Titel: helle Teal-Füllung ohne dunkles Gradient-Ende (das geteilte
-       detail.css mischt unten accent×#000 — mit Teal fast schwarz) + Schatten
-       fürs Foto dahinter. Analog zum Mining-Lesbarkeits-Fix. */
+    /* Hero title: bright teal fill without the dark gradient end the shared
+       detail.css applies (accent×#000 goes near-black in teal) + shadow for the
+       photo behind it. Mirrors the Mining readability fix. */
     .hero h1 {
       background: linear-gradient(180deg, #fff, #7fe8ff 58%, var(--accent));
       -webkit-background-clip: text; background-clip: text;
@@ -132,7 +127,6 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
     .sec-intro { color: var(--muted); font-size: 1rem; line-height: 1.6; max-width: 72ch; margin: -0.6rem 0 1.6rem; }
     .sec-intro b { color: var(--text); }
 
-    /* ---- Onepager-Karten ---- */
     .ops { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.1rem; }
     .op {
       display: flex; flex-direction: column; border: 1px solid var(--line);
@@ -165,7 +159,6 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
     .op__view:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
     .op__hint { margin-top: 0.9rem; font-size: 0.8rem; color: var(--muted); opacity: 0.85; }
 
-    /* ---- Toolbar (Suche + Kategorie-Chips) — klebt unter der fixen Nav ---- */
     .tools {
       position: sticky; top: 3rem; z-index: 60; margin-bottom: 1.6rem;
       display: flex; flex-wrap: wrap; gap: 0.7rem 1rem; align-items: center;
@@ -202,7 +195,6 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
     }
     .catblock__head .rule { flex: 1; height: 1px; background: var(--line-soft); }
 
-    /* ---- Bild-Raster ---- */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.9rem; }
     .dl {
       display: flex; flex-direction: column; border: 1px solid var(--line-soft);
@@ -245,12 +237,12 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
     }
   </style>
 
-  <a class="skip" href="#main">Zum Inhalt springen</a>
+  <a class="skip" href="#main">Skip to content</a>
   <div class="cursorglow" aria-hidden="true"></div>
 
   <SiteNav
-    crumbs={[{ label: 'Archiv', href: '/index.html' }, { label: 'Downloads' }]}
-    pill={'MEDIEN · ARCHIV'}
+    crumbs={[{ label: 'Archive', href: '/index.html' }, { label: 'Downloads' }]}
+    pill={'MEDIA · ARCHIVE'}
     hasEn={true}
   />
 
@@ -260,20 +252,20 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
       <canvas id="stars" aria-hidden="true"></canvas>
       <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
       <div class="hero__in">
-        <div class="eyebrow">VerseBase · Medienarchiv</div>
-        <h1><span class="thin">Download-Bereich</span>Medien &amp; Onepager</h1>
+        <div class="eyebrow">VerseBase · Media archive</div>
+        <h1><span class="thin">Downloads</span>Media &amp; One-Pagers</h1>
         <p class="lead">
-          Alle Bild-Medien dieser Seite zum <b>Herunterladen</b> — Schiffs-Renders, Themen-Bilder und
-          Patch-Trailer-Standbilder. Dazu die visuellen <b>Onepager-Guides</b> als eigenständige,
-          offline nutzbare HTML-Datei.
+          Every image asset used on the site, ready to <b>download</b> — ship renders, topic imagery and
+          patch-trailer stills. Plus the visual <b>one-pager guides</b> as a self-contained, offline-ready
+          HTML file.
         </p>
         <div class="qbar">
-          <span>Bilder <b>{totalImgs}</b></span>
-          <span>Onepager <b>{ONEPAGERS.length}</b></span>
-          <span>Formate <b>JPG · PNG · WEBP</b></span>
+          <span>Images <b>{totalImgs}</b></span>
+          <span>One-pagers <b>{ONEPAGERS.length}</b></span>
+          <span>Formats <b>JPG · PNG · WEBP</b></span>
         </div>
       </div>
-      <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+      <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
     </section>
 
     {ONEPAGERS.length > 0 && (
@@ -281,29 +273,29 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
         <div class="wrap">
           <div class="sec-head reveal">
             <span class="num">01</span>
-            <h2>Onepager-Guides</h2>
+            <h2>One-pager guides</h2>
             <span class="rule"></span>
           </div>
           <p class="sec-intro reveal">
-            Eine einzige HTML-Datei pro Guide — <b>alle Bilder eingebettet</b>. Herunterladen, doppelklicken,
-            offline lesen. Nichts zu entpacken.
+            A single HTML file per guide — <b>every image embedded</b>. Download, double-click, read offline.
+            Nothing to unzip.
           </p>
           <div class="ops">
             {ONEPAGERS.map((o) => (
               <article class="op reveal">
-                <span class="op__kx">Onepager · Offline-HTML</span>
+                <span class="op__kx">One-pager · offline HTML</span>
                 <h3 class="op__title">{o.title}</h3>
                 <span class="op__tag">{o.tag}</span>
                 <p class="op__desc">{o.desc}</p>
                 <div class="op__actions">
                   <a class="op__dl" href={`/downloads/${o.file}`} download>
-                    <span aria-hidden="true">⭳</span> Herunterladen <em>{fmtSize(o.bytes)}</em>
+                    <span aria-hidden="true">⭳</span> Download <em>{fmtSize(o.bytes)}</em>
                   </a>
                   <a class="op__view" href={`/onepager/${o.slug}/index.html`} target="_blank" rel="noopener">
-                    Ansehen <span aria-hidden="true">↗</span>
+                    View <span aria-hidden="true">↗</span>
                   </a>
                 </div>
-                <p class="op__hint">Eigenständige HTML-Datei · funktioniert offline im Browser.</p>
+                <p class="op__hint">Standalone HTML file · works offline in the browser.</p>
               </article>
             ))}
           </div>
@@ -311,25 +303,25 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
       </section>
     )}
 
-    <section id="medien">
+    <section id="media">
       <div class="wrap">
         <div class="sec-head reveal">
           <span class="num">02</span>
-          <h2>Bild-Medien</h2>
+          <h2>Image media</h2>
           <span class="rule"></span>
         </div>
         <p class="sec-intro reveal">
-          <b>{totalImgs} Bilder</b>, jedes einzeln herunterladbar. Filtere nach Kategorie oder tippe einen
-          Namen, ein Thema oder einen Dateinamen ein.
+          <b>{totalImgs} images</b>, each downloadable on its own. Filter by category or type a name, topic
+          or filename.
         </p>
 
         <div class="tools" role="search">
           <label class="tsearch">
             <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2" /><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
-            <input type="search" id="dlq" placeholder="Suchen — Thema, Schiff oder Dateiname …" aria-label="Bilder filtern" autocomplete="off" />
+            <input type="search" id="dlq" placeholder="Search — topic, ship or filename …" aria-label="Filter images" autocomplete="off" />
           </label>
           <div class="chips" id="dlchips">
-            <button class="chip" type="button" data-cat="all" aria-pressed="true">Alle <b>{totalImgs}</b></button>
+            <button class="chip" type="button" data-cat="all" aria-pressed="true">All <b>{totalImgs}</b></button>
             {groups.map((g) => (
               <button class="chip" type="button" data-cat={g.id} aria-pressed="false">{g.label} <b>{g.items.length}</b></button>
             ))}
@@ -361,18 +353,18 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
             </div>
           </div>
         ))}
-        <p class="grid--empty" id="dlempty" hidden>Keine Datei passt zu deinem Filter.</p>
+        <p class="grid--empty" id="dlempty" hidden>No file matches your filter.</p>
 
         <p class="usage">
-          <b>Nutzungshinweis.</b> Die Bilder stammen aus Star-Citizen-Spieldaten und Comm-Links
-          © Cloud Imperium Games sowie aus Community-Quellen. Nutzung im Rahmen der offiziellen
-          Fan-Content-Richtlinie — kein kommerzieller Einsatz.
+          <b>Usage note.</b> These images come from Star Citizen game data and Comm-Links
+          © Cloud Imperium Games, as well as community sources. Use is covered by the official
+          Fan Content guidelines — non-commercial only.
         </p>
       </div>
     </section>
   </main>
 
-  <Attribution sources={['starcitizen.tools', 'RSI', 'CIG-Spieldaten']} />
+  <Attribution sources={['starcitizen.tools', 'RSI', 'CIG game data']} />
 
   <script is:inline src="/assets/detail.js"></script>
   <script is:inline>

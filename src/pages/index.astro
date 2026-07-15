@@ -3,18 +3,17 @@ import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
 import { SITE } from '../consts';
+import { mergePatchEn } from '../i18n/patchText';
 
-const patches = (await getCollection('patches')).sort((a, b) =>
-  a.data.date.localeCompare(b.data.date)
-);
+const patches = (await getCollection('patches')).sort((a, b) => a.data.date.localeCompare(b.data.date)).map((p) => ({ ...p, data: mergePatchEn(p.id, p.data, 'en') }));
 
 const websiteLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: SITE.name,
   url: SITE.url.replace(/\/$/, '') + '/',
-  inLanguage: 'de',
-  description: SITE.defaultDescription,
+  inLanguage: 'en',
+  description: 'Star Citizen patches from Alpha 4.0.0 to 4.8.2.',
   publisher: { '@type': 'Organization', name: SITE.name },
 };
 const latest = patches[patches.length - 1];
@@ -22,18 +21,18 @@ const latest = patches[patches.length - 1];
 // Hero still image: cinematic wide render (ship, station, planet)
 const HERO_IMG = '/assets/t-polaris-5.jpg';
 
-// Werkzeuge als Bild-Kacheln (Bento). Kein Text-Ballast, kein Zahlen-Soup —
-// je Kachel nur Name + Kurzlabel, das Bild trägt die Optik.
+// Tools as image tiles (bento). No text ballast, no number soup — each tile
+// just a name + short label, the image carries the visual weight.
 const tools = [
-  { name: 'Item Finder', href: '/item-finder.html', sub: 'Preise & Fundorte', img: '/assets/cz-loot.jpg', size: 'xl' },
-  { name: 'Mining', href: '/topics/mining.html', sub: 'Mineralien & Rechner', img: '/assets/t-align-1.jpg', size: 'w' },
-  { name: 'Crafting', href: '/topics/crafting.html', sub: 'Blueprints & Planer', img: '/assets/t-craft-1.jpg', size: 'w' },
-  { name: "Wikelo's Emporium", href: '/topics/wikelo-emporium.html', sub: 'Banu-Trades', img: '/assets/img-railen.jpg', size: 't' },
-  { name: 'Schiffe', href: '/schiffe.html', sub: 'Datenblätter & Specs', img: '/assets/t-hangar-1.jpg', size: 't' },
-  { name: 'Evolution', href: '/evolution.html', sub: 'Systeme × Patches', img: '/assets/t-mesh-1.jpg', size: 't' },
+  { name: 'Item Finder', href: '/item-finder.html', sub: 'Prices & locations', img: '/assets/cz-loot.jpg', size: 'xl' },
+  { name: 'Mining', href: '/topics/mining.html', sub: 'Minerals & calculators', img: '/assets/t-align-1.jpg', size: 'w' },
+  { name: 'Crafting', href: '/topics/crafting.html', sub: 'Blueprints & planner', img: '/assets/t-craft-1.jpg', size: 'w' },
+  { name: "Wikelo's Emporium", href: '/topics/wikelo-emporium.html', sub: 'Banu trades', img: '/assets/img-railen.jpg', size: 't' },
+  { name: 'Ships', href: '/schiffe.html', sub: 'Data sheets & specs', img: '/assets/t-hangar-1.jpg', size: 't' },
+  { name: 'Evolution', href: '/evolution.html', sub: 'Systems × patches', img: '/assets/t-mesh-1.jpg', size: 't' },
 ];
 ---
-<Layout title={"VerseBase — das Star-Citizen-Kompendium"} description={"VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder mit Preisen & Fundorten, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv der Alpha-4-Ära. Game-akkurat, zweisprachig."} themeColor="#04060c" footer={true} translated={true}>
+<Layout title={"VerseBase — the Star Citizen compendium"} description={"VerseBase — the unofficial Star Citizen compendium: item finder with prices & locations, mining tools, crafting database, Wikelo trades, ship database and the complete patch archive of the Alpha 4 era. Game-accurate, bilingual."} themeColor="#04060c" footer={true} translated={true}>
 <script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
 <style is:inline>
   :root{
@@ -93,7 +92,7 @@ const tools = [
   .sec__head h2{font-family:var(--font-display);font-weight:800;font-size:clamp(1.15rem,2.6vw,1.6rem);letter-spacing:.02em;white-space:nowrap}
   .sec__head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line-2),transparent)}
 
-  /* ========== Werkzeuge — Bento aus Bild-Kacheln ========== */
+  /* ========== Tools — bento of image tiles ========== */
   .tools{display:grid;gap:.85rem;grid-template-columns:1fr}
   .tool{position:relative;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate;
     min-height:210px;padding:1.4rem 1.5rem;border-radius:14px;overflow:hidden;border:1px solid var(--line);
@@ -126,7 +125,7 @@ const tools = [
     .tool--t{grid-column:span 2}
   }
 
-  /* ========== Aktuell — neuester Patch ========== */
+  /* ========== Latest patch ========== */
   .fresh{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);
     border-radius:14px;overflow:hidden;background:var(--surface)}
   .fresh__body{padding:clamp(1.5rem,3vw,2.4rem);display:flex;flex-direction:column;gap:.5rem;min-width:0}
@@ -159,30 +158,30 @@ const tools = [
   }
 </style>
 
-<a class="skip" href="#tools">Zu den Werkzeugen springen</a>
+<a class="skip" href="#tools">Skip to tools</a>
 
-<SiteNav hasEn={true} />
+<SiteNav />
 
 <header class="hero">
   <div class="hero__img" style={`--hero:url('${HERO_IMG}')`} aria-hidden="true"></div>
   <div class="hero__scrim" aria-hidden="true"></div>
   <div class="hero__inner">
-    <span class="hero__kicker">Star-Citizen-Kompendium</span>
+    <span class="hero__kicker">Star Citizen compendium</span>
     <h1>VerseBase</h1>
-    <p class="hero__lede">Game-akkurate Werkzeuge, Daten und das Patch-Archiv der Alpha-4-Ära.</p>
-    <button class="hero__search" type="button" data-scs-open aria-label="Suche öffnen">
+    <p class="hero__lede">Game-accurate tools, data and the patch archive of the Alpha 4 era.</p>
+    <button class="hero__search" type="button" data-scs-open aria-label="Open search">
       <span class="p" aria-hidden="true">&gt;_</span>
-      <span class="h">Items, Schiffe, Patches durchsuchen…</span>
-      <span class="k" aria-hidden="true"><kbd>Strg</kbd><kbd>K</kbd></span>
+      <span class="h">Search items, ships, patches…</span>
+      <span class="k" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
     </button>
   </div>
-  <div class="hero__cue" aria-hidden="true">Werkzeuge ↓</div>
+  <div class="hero__cue" aria-hidden="true">Tools ↓</div>
 </header>
 
 <main>
-  <!-- WERKZEUGE — Bild-Bento -->
+  <!-- TOOLS — image bento -->
   <section class="sec" id="tools">
-    <div class="sec__head"><h2>Werkzeuge</h2><span class="rule"></span></div>
+    <div class="sec__head"><h2>Tools</h2><span class="rule"></span></div>
     <div class="tools">
       {tools.map((t) => (
         <a class={`tool tool--${t.size}`} style={`--img:url('${t.img}')`} href={t.href}>
@@ -194,15 +193,15 @@ const tools = [
     </div>
   </section>
 
-  <!-- AKTUELL -->
+  <!-- LATEST -->
   <section class="sec reveal">
-    <div class="sec__head"><h2>Aktuell</h2><span class="rule"></span></div>
+    <div class="sec__head"><h2>Latest</h2><span class="rule"></span></div>
     <a class="fresh" href={`/patches/sc-${latest.id}.html`}>
       <div class="fresh__body">
         <span class="fresh__ey"><span class="fresh__dot" aria-hidden="true"></span>Live · {latest.data.dateDisplay}</span>
         <span class="fresh__ver">Alpha {latest.data.version}</span>
         <span class="fresh__name">{latest.data.codename ?? latest.data.tagline}</span>
-        <span class="fresh__go">Patch öffnen <span aria-hidden="true">→</span></span>
+        <span class="fresh__go">Open patch <span aria-hidden="true">→</span></span>
       </div>
       <div class="fresh__media" style={`background-image:url('${latest.data.heroImage ?? `/assets/trailer-${latest.id}.jpg`}')`} aria-hidden="true"></div>
     </a>

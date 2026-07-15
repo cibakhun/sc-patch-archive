@@ -5,13 +5,14 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-4-0');
 if (!entry) throw new Error('Patch-Daten 4-4-0 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-4-0', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.4.0 — Welcome to Nyx | VerseBase"} description={"Alpha 4.4.0 „Welcome to Nyx“: das dritte Sternsystem öffnet, die Vanduul betreten als KI-Gegner-Fraktion das persistente Universum, und die IAE 2955 bringt die größte Schiffs-Expo des Jahres."} themeColor="#0c1020" ogType="article" ogImage="/assets/trailer-4-4-0.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/trailer-4-4-0.jpg" />
+<Layout title={"Star Citizen Alpha 4.4.0 — Welcome to Nyx | VerseBase"} description={"Alpha 4.4.0 “Welcome to Nyx”: the third star system opens, the Vanduul enter the persistent universe as an AI enemy faction, and IAE 2955 brings the year's biggest ship expo."} themeColor="#0c1020" ogType="article" ogImage="/assets/trailer-4-4-0.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/trailer-4-4-0.jpg" lang="en" />
 <style is:inline>
 
 /* 4.4.0 "Welcome to Nyx" — media-first / low-text / MAXIMAL */
@@ -169,10 +170,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.4.0' }]} pill={"ALPHA 4.4.0"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.4.0' }]} pill={"ALPHA 4.4.0"} hasEn={true} />
 
 
 <main id="main">
@@ -183,15 +184,15 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <script is:inline src="/assets/hero-video.js"></script>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">19. November 2025 · Major Release</div>
+      <div class="eyebrow">November 19, 2025 · Major Release</div>
       <h1 data-text="4.4.0">4.4.0</h1>
       <div class="codename">Welcome to <span>Nyx</span></div>
-      <div class="tagline">Drittes System Nyx, erste Vanduul und die IAE 2955.</div>
+      <div class="tagline">The third system Nyx, the first Vanduul and IAE 2955.</div>
       <div class="tags">
         <span class="tag">Nyx</span><span class="tag hot">Vanduul</span><span class="tag">Levski</span><span class="tag">Interstellar Hauling</span><span class="tag">IAE 2955</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
@@ -202,22 +203,22 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </div>
 
-  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <!-- AT A GLANCE (Daten-Register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/img-nyx.jpg"><div class="tbg" style="background-image:url('/assets/img-nyx.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Nyx</div><div class="sub">Das dritte Sternsystem</div></div>
-        <a class="tile word hot" href="/topics/4-4-0-vanduul.html"><span class="zoomic">→</span><b>VANDUUL</b><small>Detailseite ansehen</small></a>
-        <a class="tile stat" href="/topics/4-4-0-nyx-system.html"><span class="zoomic">→</span><div class="num">3</div><div class="cap">Sternsysteme · Nyx-Detail</div></a>
-        <div class="tile img w2" data-lb="img:/assets/img-perseus.jpg"><div class="tbg" style="background-image:url('/assets/img-perseus.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">RSI Perseus</div><div class="sub">Schweres Gunship</div></div>
-        <div class="tile stat" data-info data-title="IAE 2955" data-text="Die Intergalactic Aerospace Expo in Orison: über 200 Schiffe kostenlos zur Probe, herstellerweise präsentiert — Free-Fly bis 3. Dezember 2025." data-img="/assets/trailer-4-4-0.jpg"><span class="zoomic">+</span><div class="num">200+</div><div class="cap">Schiffe · IAE</div></div>
-        <div class="tile word" data-info data-title="Interstellares Hauling" data-text="Prozedurale Fracht-Missionen, die in einem System starten und in einem anderen enden — über Stanton, Pyro und Nyx hinweg."><span class="zoomic">+</span><b>HAULING</b><small>System-übergreifend</small></div>
-        <div class="tile img w2" data-lb="img:/assets/img-levski.jpg"><div class="tbg" style="background-image:url('/assets/img-levski.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Levski</div><div class="sub">Stadt im Asteroiden</div></div>
-        <div class="tile word" data-info data-title="Operation Sworn Enemies" data-text="Eine Untersuchungs-Mission: Spüre in verlassenen Stationen Hinweisen auf gefährliche Vanduul-Technologie nach."><span class="zoomic">+</span><b>SWORN<br>ENEMIES</b><small>Untersuchungs-Op</small></div>
+        <div class="tile img b2" data-lb="img:/assets/img-nyx.jpg"><div class="tbg" style="background-image:url('/assets/img-nyx.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Nyx</div><div class="sub">The third star system</div></div>
+        <a class="tile word hot" href="/topics/4-4-0-vanduul.html"><span class="zoomic">→</span><b>VANDUUL</b><small>View detail page</small></a>
+        <a class="tile stat" href="/topics/4-4-0-nyx-system.html"><span class="zoomic">→</span><div class="num">3</div><div class="cap">Star systems · Nyx detail</div></a>
+        <div class="tile img w2" data-lb="img:/assets/img-perseus.jpg"><div class="tbg" style="background-image:url('/assets/img-perseus.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">RSI Perseus</div><div class="sub">Heavy gunship</div></div>
+        <div class="tile stat" data-info data-title="IAE 2955" data-text="The Intergalactic Aerospace Expo in Orison: over 200 ships free to try, presented manufacturer by manufacturer — Free-Fly until December 3, 2025." data-img="/assets/trailer-4-4-0.jpg"><span class="zoomic">+</span><div class="num">200+</div><div class="cap">Ships · IAE</div></div>
+        <div class="tile word" data-info data-title="Interstellar Hauling" data-text="Procedural cargo missions that start in one system and end in another — across Stanton, Pyro and Nyx."><span class="zoomic">+</span><b>HAULING</b><small>Cross-system</small></div>
+        <div class="tile img w2" data-lb="img:/assets/img-levski.jpg"><div class="tbg" style="background-image:url('/assets/img-levski.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Levski</div><div class="sub">City in the asteroid</div></div>
+        <div class="tile word" data-info data-title="Operation Sworn Enemies" data-text="An investigation mission: track down clues to dangerous Vanduul technology in abandoned stations."><span class="zoomic">+</span><b>SWORN<br>ENEMIES</b><small>Investigation op</small></div>
       </div>
     </div>
   </section>
@@ -226,20 +227,20 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-nyx-1.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Das dritte Sternsystem</div>
+      <div class="kx">The third star system</div>
       <div class="big">NYX</div>
-      <p>Dunkel, asteroidendicht, nebelverhangen — der Glaciem Ring.</p>
+      <p>Dark, asteroid-dense, shrouded in nebula — the Glaciem Ring.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe &amp; Gegner</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Ships &amp; Foes</h2><span class="rule"></span></div>
       <div class="garage">
         <article class="ship reveal" data-lb="yt:ui921Uom_PY"><div class="sbg" style="background-image:url('/assets/img-perseus.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · Gunship</span><h3>RSI Perseus</h3></div></article>
         <article class="ship reveal" data-lb="yt:F-eJb7pwZrY"><div class="sbg" style="background-image:url('/assets/vid-salvation.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · Salvage</span><h3>RSI Salvation</h3></div></article>
-        <article class="ship foe reveal" data-lb="img:/assets/img-vanduul.jpg"><div class="sbg" style="background-image:url('/assets/img-vanduul.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Vanduul · Feindlich</span><h3>Vanduul Scythe</h3></div></article>
+        <article class="ship foe reveal" data-lb="img:/assets/img-vanduul.jpg"><div class="sbg" style="background-image:url('/assets/img-vanduul.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Vanduul · Hostile</span><h3>Vanduul Scythe</h3></div></article>
       </div>
     </div>
   </section>
@@ -248,9 +249,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-nyx-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Landezone · People's Alliance</div>
+      <div class="kx">Landing zone · People's Alliance</div>
       <div class="big outline">LEVSKI</div>
-      <p>In den Fels von Delamar gebaut.</p>
+      <p>Built into the rock of Delamar.</p>
     </div>
   </section>
 
@@ -259,46 +260,46 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="ilDmGyHLQNg" style="background-image:url('/assets/trailer-4-4-0.jpg')"><span class="vlbl">Welcome to Nyx — Trailer</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="ui921Uom_PY" style="background-image:url('/assets/vid-perseus.jpg')"><span class="vlbl">RSI Perseus — Commercial</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="F-eJb7pwZrY" style="background-image:url('/assets/vid-salvation.jpg')"><span class="vlbl">RSI Salvation — Behind the Ships</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="ilDmGyHLQNg" style="background-image:url('/assets/trailer-4-4-0.jpg')"><span class="vlbl">Welcome to Nyx — Trailer</span><button class="play" aria-label="Play">▶</button></div>
+        <div class="video" data-yt="ui921Uom_PY" style="background-image:url('/assets/vid-perseus.jpg')"><span class="vlbl">RSI Perseus — Commercial</span><button class="play" aria-label="Play">▶</button></div>
+        <div class="video" data-yt="F-eJb7pwZrY" style="background-image:url('/assets/vid-salvation.jpg')"><span class="vlbl">RSI Salvation — Behind the Ships</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=ilDmGyHLQNg" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=ilDmGyHLQNg" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-nyx-3.jpg"><img src="/assets/t-nyx-3.jpg" alt="Der Nyx-Stern mit Nebel" loading="lazy"><span class="zoomic">⤢</span><figcaption>Nyx · Stern</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-nyx-3.jpg"><img src="/assets/t-nyx-3.jpg" alt="The Nyx star with nebula" loading="lazy"><span class="zoomic">⤢</span><figcaption>Nyx · Star</figcaption></figure>
         <figure class="w2" data-lb="img:/assets/img-levski.jpg"><img src="/assets/img-levski.jpg" alt="Levski" loading="lazy"><span class="zoomic">⤢</span><figcaption>Levski</figcaption></figure>
         <figure data-lb="img:/assets/vid-perseus.jpg"><img src="/assets/vid-perseus.jpg" alt="Perseus" loading="lazy"><span class="zoomic">⤢</span><figcaption>Perseus</figcaption></figure>
         <figure data-lb="img:/assets/img-vanduul.jpg"><img src="/assets/img-vanduul.jpg" alt="Vanduul Scythe" loading="lazy"><span class="zoomic">⤢</span><figcaption>Scythe</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-vanduul-1.jpg"><img src="/assets/t-vanduul-1.jpg" alt="Vanduul-Jäger über Nyx" loading="lazy"><span class="zoomic">⤢</span><figcaption>Vanduul über Nyx</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-vanduul-1.jpg"><img src="/assets/t-vanduul-1.jpg" alt="Vanduul fighters over Nyx" loading="lazy"><span class="zoomic">⤢</span><figcaption>Vanduul over Nyx</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="05" />
+  <PatchDossier patch={patch} num="05" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-3-2.html"><span class="dir">← Älter</span><span class="ttl">4.3.2 · Fractured Frontiers</span></a>
-    <a class="next" href="/patches/sc-4-5-0.html"><span class="dir">Neuer →</span><span class="ttl">4.5.0 · Dawn of Engineering</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-3-2.html"><span class="dir">← Older</span><span class="ttl">4.3.2 · Fractured Frontiers</span></a>
+    <a class="next" href="/patches/sc-4-5-0.html"><span class="dir">Newer →</span><span class="ttl">4.5.0 · Dawn of Engineering</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Not affiliated with CIG. Trailers, stills & ship/system images from official or community sources (© Cloud Imperium Games), fan content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

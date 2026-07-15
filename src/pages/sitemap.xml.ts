@@ -2,10 +2,10 @@
 //
 // URLs werden aus den TATSÄCHLICHEN Seiten-Dateien entdeckt (import.meta.glob),
 // nicht mehr aus einer Teil-Liste. So landen neue Seiten (Tools wie item-finder,
-// downloads, feedback UND ihre EN-Pendants unter /en/) automatisch in der
+// downloads, feedback UND ihre DE-Pendants unter /de/) automatisch in der
 // Sitemap, ohne diese Datei anzufassen. Einzige dynamische Route ist das
 // Schiffs-Datenblatt (/schiffe/[slug]); dessen URLs kommen aus dem Vehicles-
-// Snapshot (DE) bzw. der /en/-Spiegelroute (EN).
+// Snapshot (EN, präfixlos) bzw. der /de/-Spiegelroute (DE).
 //
 // hreflang: für jede Seite mit Übersetzungs-Pendant geben wir <xhtml:link
 // rel="alternate">-Paare (de, en, x-default) aus — das Sitemap-Signal, das
@@ -26,14 +26,14 @@ function fileToUrl(file: string): string | null {
   if (file.includes('[')) return null; // dynamische Route -> via Collection
   const rel = file.replace(/^\.\//, '').replace(/\.astro$/, '');
   if (rel === '404') return null; // noindex, gehört nicht in die Sitemap
-  if (rel === 'index') return '/index.html'; // DE-Startseite
-  if (rel === 'en/index') return '/en.html'; // EN-Startseite (format:'file')
+  if (rel === 'index') return '/index.html'; // EN-Startseite (Standardsprache)
+  if (rel === 'de/index') return '/de.html'; // DE-Startseite (format:'file')
   return '/' + rel + '.html';
 }
 
-/** EN-Pendant eines DE-Pfads (spiegelt i18n/pathForLocale, ohne Import-Zyklus). */
-function toEn(deUrl: string): string {
-  return deUrl === '/index.html' ? '/en.html' : '/en' + deUrl;
+/** DE-Pendant eines EN-Pfads (spiegelt i18n/pathForLocale, ohne Import-Zyklus). */
+function toDe(enUrl: string): string {
+  return enUrl === '/index.html' ? '/de.html' : '/de' + enUrl;
 }
 
 export const GET: APIRoute = async () => {
@@ -58,47 +58,49 @@ export const GET: APIRoute = async () => {
   for (const v of vehicles) setMod(`/schiffe/${v.id}.html`, vehiclesSnapshot.fetchedAt);
 
   // --- URL-Inventar: statische Seiten aus den Globs + dynamische Schiffe ---
-  const deUrls: string[] = [];
-  const enSet = new Set<string>(); // existierende EN-URLs (für hreflang-Pairing)
+  const enUrls: string[] = [];
+  const deSet = new Set<string>(); // existierende DE-URLs (für hreflang-Pairing)
   for (const file of Object.keys(PAGE_FILES)) {
     const url = fileToUrl(file);
     if (!url) continue;
-    if (url === '/en.html' || url.startsWith('/en/')) enSet.add(url);
-    else deUrls.push(url);
+    if (url === '/de.html' || url.startsWith('/de/')) deSet.add(url);
+    else enUrls.push(url);
   }
   for (const v of vehicles) {
-    deUrls.push(`/schiffe/${v.id}.html`);
-    enSet.add(`/en/schiffe/${v.id}.html`);
+    enUrls.push(`/schiffe/${v.id}.html`);
+    deSet.add(`/de/schiffe/${v.id}.html`);
   }
 
-  // --- Einträge bauen: DE mit Alternates, EN direkt dahinter --------------
+  // --- Einträge bauen: EN mit Alternates, DE direkt dahinter --------------
   type Entry = { loc: string; mod?: string; alt?: { de: string; en: string } };
   const entries: Entry[] = [];
   const emitted = new Set<string>();
-  for (const de of deUrls) {
-    if (emitted.has(de)) continue;
-    const en = toEn(de);
-    const alt = enSet.has(en) ? { de, en } : undefined;
-    entries.push({ loc: de, mod: lastmod.get(de), alt });
-    emitted.add(de);
-    if (alt && !emitted.has(en)) {
-      entries.push({ loc: en, mod: lastmod.get(de), alt });
-      emitted.add(en);
+  for (const en of enUrls) {
+    if (emitted.has(en)) continue;
+    const de = toDe(en);
+    const alt = deSet.has(de) ? { de, en } : undefined;
+    entries.push({ loc: en, mod: lastmod.get(en), alt });
+    emitted.add(en);
+    if (alt && !emitted.has(de)) {
+      entries.push({ loc: de, mod: lastmod.get(en), alt });
+      emitted.add(de);
     }
   }
-  // Etwaige EN-Seiten ohne DE-Pendant der Vollständigkeit halber allein listen.
-  for (const en of enSet) {
-    if (emitted.has(en)) continue;
-    entries.push({ loc: en });
-    emitted.add(en);
+  // Etwaige DE-Seiten ohne EN-Pendant der Vollständigkeit halber allein listen.
+  for (const de of deSet) {
+    if (emitted.has(de)) continue;
+    entries.push({ loc: de });
+    emitted.add(de);
   }
 
-  const abs = (p: string) => base + p;
+  // '/index.html' -> '/': die Startseite trägt canonical '/'; loc und hreflang
+  // müssen dieselbe URL nennen, sonst widersprechen sich die Signale.
+  const abs = (p: string) => base + (p === '/index.html' ? '/' : p);
   const altXml = (a?: { de: string; en: string }) =>
     a
       ? `<xhtml:link rel="alternate" hreflang="de" href="${abs(a.de)}"/>` +
         `<xhtml:link rel="alternate" hreflang="en" href="${abs(a.en)}"/>` +
-        `<xhtml:link rel="alternate" hreflang="x-default" href="${abs(a.de)}"/>`
+        `<xhtml:link rel="alternate" hreflang="x-default" href="${abs(a.en)}"/>`
       : '';
 
   const xml =

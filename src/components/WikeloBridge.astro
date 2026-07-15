@@ -4,7 +4,7 @@
 // kompaktes Bezugsquellen-Popup (Daten lazy aus assets/universal-items.json);
 // ?item=<Name> hebt passende Trades hervor. Logik: assets/wikelo-bridge.js.
 interface Props { lang?: 'de' | 'en' }
-const { lang = 'de' } = Astro.props;
+const { lang = 'en' } = Astro.props;
 
 const JS_T = {
   de: {
@@ -61,5 +61,5 @@ const closeLabel = lang === 'de' ? 'Schließen' : 'Close';
   .wkb__flink:hover{color:#fff}
 </style>
 
-<script is:inline set:html={`window.__WKB=${JSON.stringify({ lang, itemsUrl: '/assets/universal-items.json', itemPage: lang === 'de' ? '/item-finder.html' : '/en/item-finder.html', t: JS_T })};`} />
+<script is:inline set:html={`window.__WKB=${JSON.stringify({ lang, itemsUrl: '/assets/universal-items.json', itemPage: lang === 'de' ? '/de/item-finder.html' : '/item-finder.html', t: JS_T })};`} />
 <script is:inline src="/assets/wikelo-bridge.js"></script>

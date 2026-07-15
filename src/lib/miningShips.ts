@@ -30,7 +30,7 @@ export function buildMiningShips(lang: Lang) {
       ore: ore ? `${ore} SCU` : null,
       crew: crewLo === crewHi ? `${crewLo}` : `${crewLo}–${crewHi}`,
       img: (v.image && (v.image.thumb || v.image.hero)) || null,
-      href: (lang === 'de' ? '/schiffe/' : '/en/schiffe/') + v.id + '.html',
+      href: (lang === 'de' ? '/de/schiffe/' : '/schiffe/') + v.id + '.html',
     };
   }).filter(Boolean) as {
     id: string; name: string; mfr: string; role: string;

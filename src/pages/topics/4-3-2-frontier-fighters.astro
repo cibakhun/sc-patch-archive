@@ -5,7 +5,7 @@ import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
 ---
-<Layout title={"Frontier Fighters — Star Citizen 4.3.2 | VerseBase"} description={"Frontier Fighters: das grosse Finale von Alpha 4.3.2 'Fractured Frontiers'. Headhunters und Citizens for Prosperity jagen ueber drei Phasen Amelia Boyds Frontier Fighters durch Stanton und Pyro — bis zum servuerweiten Polaris-Takedown."} themeColor="#16181b" ogType="article" ogImage="/assets/t-front-1.jpg" translated={true}>
+<Layout title={"Frontier Fighters — Star Citizen 4.3.2 | VerseBase"} description={"Frontier Fighters: the grand finale of Alpha 4.3.2 'Fractured Frontiers'. Headhunters and Citizens for Prosperity hunt Amelia Boyd's Frontier Fighters across three phases through Stanton and Pyro — up to the server-wide Polaris takedown."} translated={true} themeColor="#16181b" ogType="article" ogImage="/assets/t-front-1.jpg">
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
 
@@ -16,10 +16,10 @@ import Attribution from '../../components/Attribution.astro';
 .phasetag{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.78rem}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.3.2', href: '/patches/sc-4-3-2.html' }, { label: "Frontier Fighters" }]} pill={"EVENT · ALPHA 4.3.2"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.3.2', href: '/patches/sc-4-3-2.html' }, { label: "Frontier Fighters" }]} pill={"EVENT · ALPHA 4.3.2"} hasEn={true} />
 
 
 <main id="main">
@@ -29,19 +29,19 @@ import Attribution from '../../components/Attribution.astro';
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-front-1.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow"><a href="/patches/sc-4-3-2.html">Alpha 4.3.2 · Fractured Frontiers</a> &nbsp;·&nbsp; Finale-Event</div>
-      <h1><span class="thin">Das Finale · Pyro Must Burn</span>Frontier Fighters</h1>
-      <p class="lead">Das grosse Finale von 4.3.2: Headhunters und Citizens for Prosperity verbuenden sich, um Amelia Boyds Frontier Fighters ueber drei Phasen quer durch Stanton und Pyro zur Strecke zu bringen.</p>
-      <div class="tags"><span class="tag hot">Finale-Event</span><span class="tag">3 Phasen</span><span class="tag">Headhunters + CFP</span><span class="tag">Amelia Boyd</span><span class="tag">Polaris-Takedown</span></div>
+      <div class="eyebrow"><a href="/patches/sc-4-3-2.html">Alpha 4.3.2 · Fractured Frontiers</a> &nbsp;·&nbsp; Finale event</div>
+      <h1><span class="thin">The Finale · Pyro Must Burn</span>Frontier Fighters</h1>
+      <p class="lead">The grand finale of 4.3.2: Headhunters and Citizens for Prosperity join forces to bring down Amelia Boyd's Frontier Fighters across three phases, all the way through Stanton and Pyro.</p>
+      <div class="tags"><span class="tag hot">Finale event</span><span class="tag">3 phases</span><span class="tag">Headhunters + CFP</span><span class="tag">Amelia Boyd</span><span class="tag">Polaris takedown</span></div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="dmarquee" aria-hidden="true">
     <div class="dmtrack">
-      <span>FRONTIER FIGHTERS</span><span class="dot">◆</span><span>PYRO MUST BURN</span><span class="dot">◆</span><span>HEADHUNTERS</span><span class="dot">◆</span><span>CITIZENS FOR PROSPERITY</span><span class="dot">◆</span><span>AMELIA BOYD</span><span class="dot">◆</span><span>3 PHASEN</span><span class="dot">◆</span>
-      <span>FRONTIER FIGHTERS</span><span class="dot">◆</span><span>PYRO MUST BURN</span><span class="dot">◆</span><span>HEADHUNTERS</span><span class="dot">◆</span><span>CITIZENS FOR PROSPERITY</span><span class="dot">◆</span><span>AMELIA BOYD</span><span class="dot">◆</span><span>3 PHASEN</span><span class="dot">◆</span>
+      <span>FRONTIER FIGHTERS</span><span class="dot">◆</span><span>PYRO MUST BURN</span><span class="dot">◆</span><span>HEADHUNTERS</span><span class="dot">◆</span><span>CITIZENS FOR PROSPERITY</span><span class="dot">◆</span><span>AMELIA BOYD</span><span class="dot">◆</span><span>3 PHASES</span><span class="dot">◆</span>
+      <span>FRONTIER FIGHTERS</span><span class="dot">◆</span><span>PYRO MUST BURN</span><span class="dot">◆</span><span>HEADHUNTERS</span><span class="dot">◆</span><span>CITIZENS FOR PROSPERITY</span><span class="dot">◆</span><span>AMELIA BOYD</span><span class="dot">◆</span><span>3 PHASES</span><span class="dot">◆</span>
     </div>
   </div>
 
@@ -50,25 +50,25 @@ import Attribution from '../../components/Attribution.astro';
 
   <!-- STAT STRIP (animated counters) -->
   <div class="statstrip reveal">
-    <div class="s"><div class="n count" data-to="3">0</div><div class="c">Phasen bis zum Takedown</div></div>
-    <div class="s"><div class="n count" data-to="2">0</div><div class="c">Verbuendete Fraktionen</div></div>
-    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Gejagte Polaris</div></div>
-    <div class="s"><div class="n">FINALE</div><div class="c">Endkapitel der Pyro-Story</div></div>
+    <div class="s"><div class="n count" data-to="3">0</div><div class="c">Phases to the takedown</div></div>
+    <div class="s"><div class="n count" data-to="2">0</div><div class="c">Allied factions</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Polaris hunted</div></div>
+    <div class="s"><div class="n">FINALE</div><div class="c">Final chapter of the Pyro story</div></div>
   </div>
 
   <!-- FULL-BLEED BAND — Auftakt / Überblick als Riesentext über Standbild -->
   <section class="band band--center" style="padding-top:0">
     <div class="bbg" data-par="0.14" style="background-image:url('/assets/cz-ruin.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">Das Endkapitel von 4.3.2</div>
+      <div class="kx">The final chapter of 4.3.2</div>
       <div class="big outline">PYRO MUST BURN.</div>
-      <p>Das Frontier-Fighters-Finale ist das narrative Schlusskapitel von Alpha 4.3.2 — der Hoehepunkt der <b style="color:var(--accent-2)">Pyro-Must-Burn</b>-Story, der sich quer durch Stanton und Pyro entfaltet und das gesamte Verse in eine einzige Jagd zieht.</p>
+      <p>The Frontier Fighters finale is the narrative closing chapter of Alpha 4.3.2 — the climax of the <b style="color:var(--accent-2)">Pyro Must Burn</b> story, unfolding across Stanton and Pyro and pulling the entire 'verse into a single hunt.</p>
     </div>
   </section>
 
   <!-- MANIFESTO — early pull-quote -->
   <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
-    <blockquote>Diesmal jagt <span class="hl">der ganze Server</span> dasselbe Ziel.</blockquote>
+    <blockquote>This time <span class="hl">the whole server</span> hunts the same target.</blockquote>
     <cite>Frontier Fighters · Finale 4.3.2</cite>
   </section>
 
@@ -76,22 +76,22 @@ import Attribution from '../../components/Attribution.astro';
   <section style="padding:0">
     <div class="versus reveal">
       <div class="side a">
-        <h3>⚔ Die Frontier Fighters</h3>
+        <h3>⚔ The Frontier Fighters</h3>
         <ul>
-          <li>Outlaw-Fraktion im Zentrum des 4.3.2-Finales.</li>
-          <li>Gefuehrt von <b>Amelia Boyd</b>.</li>
-          <li>Operieren von Stanton bis tief nach Pyro.</li>
-          <li>Stehlen in der Eskalation eine ganze Polaris.</li>
+          <li>Outlaw faction at the heart of the 4.3.2 finale.</li>
+          <li>Led by <b>Amelia Boyd</b>.</li>
+          <li>Operate from Stanton deep into Pyro.</li>
+          <li>Steal an entire Polaris as the escalation peaks.</li>
         </ul>
       </div>
       <div class="vs">VS</div>
       <div class="side b">
-        <h3>★ Die Allianz</h3>
+        <h3>★ The Alliance</h3>
         <ul>
-          <li>Headhunters und Citizens for Prosperity — hier Verbuendete.</li>
-          <li>Gemeinsame Jagd auf Boyds Fighters.</li>
-          <li>Koordinieren ueber alle drei Phasen hinweg.</li>
-          <li>Treiben das Verse zum finalen Takedown.</li>
+          <li>Headhunters and Citizens for Prosperity — allies here.</li>
+          <li>Joint hunt for Boyd's Fighters.</li>
+          <li>Coordinate across all three phases.</li>
+          <li>Drive the 'verse toward the final takedown.</li>
         </ul>
       </div>
     </div>
@@ -99,7 +99,7 @@ import Attribution from '../../components/Attribution.astro';
 
   <!-- SCROLLYTELLING: Die drei Phasen als Eskalations-Prozess -->
   <section style="padding-bottom:0">
-    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>Drei Phasen bis zum Takedown</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>Three phases to the takedown</h2><span class="rule"></span></div></div>
   </section>
   <div class="scrolly">
     <div class="scrolly__media" aria-hidden="true">
@@ -109,10 +109,10 @@ import Attribution from '../../components/Attribution.astro';
       <div class="frame" style="background-image:url('/assets/t-polaris-1.jpg')"></div>
     </div>
     <div class="scrolly__steps">
-      <div class="sstep"><div class="sn">00</div><h3>Eine Allianz formiert sich</h3><p>Headhunters und Citizens for Prosperity legen ihre Differenzen beiseite und schliessen sich zusammen, um die Frontier Fighters um Amelia Boyd ins Visier zu nehmen.</p></div>
-      <div class="sstep"><div class="sn">01</div><h3>Phase Eins · Aufklaerung</h3><p>Der Auftakt der Eskalation: Die Allianz spuert die Bewegungen der Frontier Fighters quer durch Stanton und Pyro auf und steckt das Schlachtfeld ab.</p></div>
-      <div class="sstep"><div class="sn">02</div><h3>Phase Zwei · Belagerung</h3><p>Die Jagd verdichtet sich. Aus Aufklaerung wird Druck — die Verbuendeten setzen Boyds Fighters an ihren Stuetzpunkten zu und treiben sie in die Enge.</p></div>
-      <div class="sstep"><div class="sn">03</div><h3>Phase Drei · Der Takedown</h3><p>In der finalen Phase jagt der ganze Server gemeinsam die eine Polaris, die die Frontier Fighters gestohlen haben — der Hoehepunkt des gesamten Finales.</p></div>
+      <div class="sstep"><div class="sn">00</div><h3>An alliance forms</h3><p>Headhunters and Citizens for Prosperity set aside their differences and band together to target the Frontier Fighters under Amelia Boyd.</p></div>
+      <div class="sstep"><div class="sn">01</div><h3>Phase One · Reconnaissance</h3><p>The opening of the escalation: the Alliance tracks the Frontier Fighters' movements across Stanton and Pyro and stakes out the battlefield.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Phase Two · Siege</h3><p>The hunt tightens. Reconnaissance turns into pressure — the allies close in on Boyd's Fighters at their strongholds and corner them.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Phase Three · The Takedown</h3><p>In the final phase, the whole server hunts together for the one Polaris the Frontier Fighters have stolen — the climax of the entire finale.</p></div>
     </div>
   </div>
 
@@ -120,9 +120,9 @@ import Attribution from '../../components/Attribution.astro';
   <section class="band band--right">
     <div class="bbg" data-par="0.12" style="background-image:url('/assets/img-polaris.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="phasetag">Phase Drei · Server-Event</div>
-      <div class="big" style="font-size:clamp(2.4rem,8vw,6rem)">EINE POLARIS.<br>EIN SERVER.</div>
-      <p>Die Frontier Fighters haben eine ganze Polaris gestohlen — und im Finale zaehlt nur noch eines: das gesamte Verse jagt dieses eine Schiff gemeinsam. Der servuerweite Takedown setzt den Schlusspunkt unter die Pyro-Must-Burn-Story.</p>
+      <div class="phasetag">Phase Three · Server event</div>
+      <div class="big" style="font-size:clamp(2.4rem,8vw,6rem)">ONE POLARIS.<br>ONE SERVER.</div>
+      <p>The Frontier Fighters have stolen an entire Polaris — and in the finale only one thing matters: the whole 'verse hunts this one ship together. The server-wide takedown puts the closing punctuation on the Pyro Must Burn story.</p>
     </div>
   </section>
 
@@ -131,10 +131,10 @@ import Attribution from '../../components/Attribution.astro';
     <div class="split split--rev reveal">
       <div class="split__media"><div class="m" style="background-image:url('/assets/img-paladin.jpg')"></div></div>
       <div class="split__text">
-        <div class="kx">02 · Was 4.3.2 sonst noch brachte</div>
-        <h3>Mehr als nur das Finale</h3>
-        <p>Rund um das Frontier-Fighters-Event lieferte Alpha <b>4.3.2 "Fractured Frontiers"</b> spuerbar mehr: Headliner-Schiff des Patches ist die <b>Anvil Paladin</b>.</p>
-        <p>Dazu kam der <b>Yormandi-Boss</b> in den Onyx-Hoehlen auf <b>ASD Site B</b> sowie ein umfassendes <b>Salvage- und Refining-Rework</b> — Inhalte, die ueber das Finale hinaus Bestand haben.</p>
+        <div class="kx">02 · What else 4.3.2 brought</div>
+        <h3>More than just the finale</h3>
+        <p>Around the Frontier Fighters event, Alpha <b>4.3.2 "Fractured Frontiers"</b> delivered noticeably more: the patch's headliner ship is the <b>Anvil Paladin</b>.</p>
+        <p>It also added the <b>Yormandi boss</b> in the Onyx caves on <b>ASD Site B</b>, as well as a comprehensive <b>salvage and refining rework</b> — content that endures beyond the finale.</p>
       </div>
     </div>
   </section>
@@ -142,16 +142,16 @@ import Attribution from '../../components/Attribution.astro';
   <!-- CLOSING — full-bleed mixed gallery (kein offizielles Video) -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">03</span><h2>Bildergalerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">03</span><h2>Image gallery</h2><span class="rule"></span></div>
       <div class="gallery reveal">
-        <figure class="gtile full b2" data-lb="img:/assets/t-front-1.jpg"><img src="/assets/t-front-1.jpg" alt="Frontier Fighters — Finale-Event" loading="lazy"><span class="zoomic">⤢</span><figcaption>Frontier Fighters · Finale</figcaption></figure>
-        <figure class="gtile w2" data-lb="img:/assets/img-pyro.jpg"><img src="/assets/img-pyro.jpg" alt="Das Pyro-System — Schauplatz der Jagd" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro · Schauplatz</figcaption></figure>
-        <figure class="gtile" data-lb="img:/assets/cz-combat.jpg"><img src="/assets/cz-combat.jpg" alt="Gefecht waehrend der Jagd" loading="lazy"><span class="zoomic">⤢</span><figcaption>Belagerung</figcaption></figure>
-        <figure class="gtile" data-lb="img:/assets/cz-facility.jpg"><img src="/assets/cz-facility.jpg" alt="Anlage in Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Aufklaerung</figcaption></figure>
-        <figure class="gtile w2" data-lb="img:/assets/img-polaris.jpg"><img src="/assets/img-polaris.jpg" alt="Die gestohlene Polaris" loading="lazy"><span class="zoomic">⤢</span><figcaption>Die gestohlene Polaris</figcaption></figure>
-        <figure class="gtile w2" data-lb="img:/assets/img-paladin.jpg"><img src="/assets/img-paladin.jpg" alt="Anvil Paladin — Headliner-Schiff" loading="lazy"><span class="zoomic">⤢</span><figcaption>Anvil Paladin · Headliner</figcaption></figure>
+        <figure class="gtile full b2" data-lb="img:/assets/t-front-1.jpg"><img src="/assets/t-front-1.jpg" alt="Frontier Fighters — finale event" loading="lazy"><span class="zoomic">⤢</span><figcaption>Frontier Fighters · Finale</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/img-pyro.jpg"><img src="/assets/img-pyro.jpg" alt="The Pyro system — setting of the hunt" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro · Setting</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/cz-combat.jpg"><img src="/assets/cz-combat.jpg" alt="Combat during the hunt" loading="lazy"><span class="zoomic">⤢</span><figcaption>Siege</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/cz-facility.jpg"><img src="/assets/cz-facility.jpg" alt="Facility in Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Reconnaissance</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/img-polaris.jpg"><img src="/assets/img-polaris.jpg" alt="The stolen Polaris" loading="lazy"><span class="zoomic">⤢</span><figcaption>The stolen Polaris</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/img-paladin.jpg"><img src="/assets/img-paladin.jpg" alt="Anvil Paladin — headliner ship" loading="lazy"><span class="zoomic">⤢</span><figcaption>Anvil Paladin · Headliner</figcaption></figure>
       </div>
-      <p class="src reveal">Quelle: Star Citizen Wiki &amp; offizielle Community-Quellen (© Cloud Imperium Games). Bilder zu Illustrationszwecken.</p>
+      <p class="src reveal">Source: Star Citizen Wiki &amp; official community sources (© Cloud Imperium Games). Images for illustration purposes.</p>
     </div>
   </section>
 
@@ -161,7 +161,7 @@ import Attribution from '../../components/Attribution.astro';
 
 <Attribution />
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 
 <script is:inline src="/assets/detail.js"></script>
 </Layout>

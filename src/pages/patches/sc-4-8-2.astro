@@ -5,13 +5,14 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-8-2');
 if (!entry) throw new Error('Patch-Daten 4-8-2 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-8-2', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.8.2 — Gatac & Alien Week | VerseBase"} description={"Alpha 4.8.2: Zwei Gatac-Schiffe und die Alien Week 2956 rund um den First Contact Day."} themeColor="#0c0a16" ogType="article" ogImage="/assets/img-railen.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/img-railen.jpg" />
+<Layout title={"Star Citizen Alpha 4.8.2 — Gatac & Alien Week | VerseBase"} description={"Alpha 4.8.2: Two Gatac ships and Alien Week 2956 around First Contact Day."} themeColor="#0c0a16" ogType="article" ogImage="/assets/img-railen.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/img-railen.jpg" lang="en" />
 <style is:inline>
 
 /* 4.8.2 "Gatac & Alien Week" — media-first / low-text / MAXIMAL */
@@ -170,10 +171,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.8.2' }]} pill={"ALPHA 4.8.2"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.8.2' }]} pill={"ALPHA 4.8.2"} hasEn={true} />
 
 
 <main id="main">
@@ -183,14 +184,14 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">17. Juni 2026 · Schiffs- &amp; Event-Patch</div>
+      <div class="eyebrow">June 17, 2026 · Ship &amp; Event Patch</div>
       <h1 data-text="4.8.2">4.8.2</h1>
       <div class="codename">Gatac &amp; <span>Alien Week</span></div>
       <div class="tags">
         <span class="tag">Gatac</span><span class="tag hot">Alien Week</span><span class="tag">First Contact</span><span class="tag">Grav-Lev</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
@@ -201,20 +202,20 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </div>
 
-  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <!-- AT A GLANCE (Daten-Register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/img-railen.jpg"><div class="tbg" style="background-image:url('/assets/img-railen.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Gatac Railen</div><div class="sub">Grav-Lev-Frachter</div></div>
-        <a class="tile word hot" href="/topics/4-8-2-alien-week.html"><span class="zoomic">→</span><b>ALIEN<br>WEEK</b><small>Detailseite ansehen</small></a>
-        <div class="tile img w2" data-lb="img:/assets/img-tyilui.jpg"><div class="tbg" style="background-image:url('/assets/img-tyilui.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Gatac Tyilui</div><div class="sub">Snub-Carrier</div></div>
-        <div class="tile stat" data-info data-title="~640 SCU" data-text="Die Gatac Railen ist ein großer Xi'an-Frachter mit rund 640 SCU Ladekapazität, verteilt auf die charakteristischen dreieckigen Frachtpods. Damit zählt sie zu den groß dimensionierten Haulern im Spiel." data-img="/assets/img-railen.jpg"><span class="zoomic">+</span><div class="num">~640</div><div class="cap">SCU · Railen</div></div>
-        <div class="tile word" data-info data-title="First Contact Day" data-text="Gedenktag an den Erstkontakt zwischen Menschheit und dem Xi'an-Imperium im Jahr 2530. Aus einem anfänglich angespannten Kalten Krieg wurde eine wohlhabende Allianz — Alien Week feiert dieses Erbe."><span class="zoomic">+</span><b>FIRST<br>CONTACT</b><small>Day</small></div>
-        <div class="tile word" data-info data-title="Grav-Lev-Antrieb" data-text="Die Gatac-Schiffe nutzen Xi'an-Grav-Lev-Technologie (Graviton-Levitation) statt klassischer Triebwerke. Sie prägt das alien-typische Design und Flugverhalten der Railen und ihrer Schwesterschiffe." data-img="/assets/t-alien-2.jpg"><span class="zoomic">+</span><b>GRAV-LEV</b><small>Antrieb</small></div>
+        <div class="tile img b2" data-lb="img:/assets/img-railen.jpg"><div class="tbg" style="background-image:url('/assets/img-railen.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Gatac Railen</div><div class="sub">Grav-Lev Freighter</div></div>
+        <a class="tile word hot" href="/topics/4-8-2-alien-week.html"><span class="zoomic">→</span><b>ALIEN<br>WEEK</b><small>View detail page</small></a>
+        <div class="tile img w2" data-lb="img:/assets/img-tyilui.jpg"><div class="tbg" style="background-image:url('/assets/img-tyilui.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Gatac Tyilui</div><div class="sub">Snub Carrier</div></div>
+        <div class="tile stat" data-info data-title="~640 SCU" data-text="The Gatac Railen is a large Xi'an freighter with roughly 640 SCU of cargo capacity, spread across its distinctive triangular cargo pods. That places it among the large-scale haulers in the game." data-img="/assets/img-railen.jpg"><span class="zoomic">+</span><div class="num">~640</div><div class="cap">SCU · Railen</div></div>
+        <div class="tile word" data-info data-title="First Contact Day" data-text="A day of remembrance for first contact between humanity and the Xi'an Empire in the year 2530. What began as a tense cold war grew into a prosperous alliance — Alien Week celebrates that legacy."><span class="zoomic">+</span><b>FIRST<br>CONTACT</b><small>Day</small></div>
+        <div class="tile word" data-info data-title="Grav-Lev Drive" data-text="The Gatac ships use Xi'an Grav-Lev technology (graviton levitation) instead of conventional thrusters. It shapes the alien-typical design and flight behavior of the Railen and its sister ships." data-img="/assets/t-alien-2.jpg"><span class="zoomic">+</span><b>GRAV-LEV</b><small>Drive</small></div>
       </div>
     </div>
   </section>
@@ -231,10 +232,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Ships</h2><span class="rule"></span></div>
       <div class="garage">
-        <article class="ship reveal" data-lb="yt:Xh35kuWo0a4"><div class="sbg" style="background-image:url('/assets/img-railen.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">Gatac · Frachter</span><h3>Gatac Railen</h3></div></article>
-        <article class="ship reveal" data-lb="yt:oulQmbwN87M"><div class="sbg" style="background-image:url('/assets/img-tyilui.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">Gatac · Snub-Carrier</span><h3>Gatac Tyilui</h3></div></article>
+        <article class="ship reveal" data-lb="yt:Xh35kuWo0a4"><div class="sbg" style="background-image:url('/assets/img-railen.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">Gatac · Freighter</span><h3>Gatac Railen</h3></div></article>
+        <article class="ship reveal" data-lb="yt:oulQmbwN87M"><div class="sbg" style="background-image:url('/assets/img-tyilui.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">Gatac · Snub Carrier</span><h3>Gatac Tyilui</h3></div></article>
       </div>
     </div>
   </section>
@@ -244,45 +245,45 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="Xh35kuWo0a4" style="background-image:url('/assets/vid-railen.jpg')"><span class="vlbl">Gatac Railen — Behind the Ships</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="oulQmbwN87M" style="background-image:url('/assets/vid-tyilui.jpg')"><span class="vlbl">Gatac Tyilui — Behind the Ships</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="_XhngLncdVU" style="background-image:url('/assets/vid-syulen.jpg')"><span class="vlbl">Gatac Syulen — Commercial</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="Xh35kuWo0a4" style="background-image:url('/assets/vid-railen.jpg')"><span class="vlbl">Gatac Railen — Behind the Ships</span><button class="play" aria-label="Play">▶</button></div>
+        <div class="video" data-yt="oulQmbwN87M" style="background-image:url('/assets/vid-tyilui.jpg')"><span class="vlbl">Gatac Tyilui — Behind the Ships</span><button class="play" aria-label="Play">▶</button></div>
+        <div class="video" data-yt="_XhngLncdVU" style="background-image:url('/assets/vid-syulen.jpg')"><span class="vlbl">Gatac Syulen — Commercial</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=Xh35kuWo0a4" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=Xh35kuWo0a4" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-alien-2.jpg"><img src="/assets/t-alien-2.jpg" alt="Gatac-Schiff mit leuchtenden Grav-Lev-Flügeln im Asteroidenfeld" loading="lazy"><span class="zoomic">⤢</span><figcaption>Grav-Lev im Flug</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-alien-8.jpg"><img src="/assets/t-alien-8.jpg" alt="Gatac Tyilui mit geöffnetem, violett beleuchtetem Heckhangar und Snub im Dock" loading="lazy"><span class="zoomic">⤢</span><figcaption>Tyilui · Heckhangar in Betrieb</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-alien-2.jpg"><img src="/assets/t-alien-2.jpg" alt="Gatac ship with glowing Grav-Lev wings in an asteroid field" loading="lazy"><span class="zoomic">⤢</span><figcaption>Grav-Lev in flight</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-alien-8.jpg"><img src="/assets/t-alien-8.jpg" alt="Gatac Tyilui with its open, violet-lit rear hangar and a snub in the dock" loading="lazy"><span class="zoomic">⤢</span><figcaption>Tyilui · rear hangar in operation</figcaption></figure>
         <figure data-lb="img:/assets/img-syulen.jpg"><img src="/assets/img-syulen.jpg" alt="Gatac Syulen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Gatac Syulen</figcaption></figure>
-        <figure data-lb="img:/assets/vid-railen.jpg"><img src="/assets/vid-railen.jpg" alt="Railen · Film" loading="lazy"><span class="zoomic">⤢</span><figcaption>Railen · Film</figcaption></figure>
+        <figure data-lb="img:/assets/vid-railen.jpg"><img src="/assets/vid-railen.jpg" alt="Railen · film" loading="lazy"><span class="zoomic">⤢</span><figcaption>Railen · film</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="05" />
+  <PatchDossier patch={patch} num="05" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-8-1.html"><span class="dir">← Älter</span><span class="ttl">4.8.1 · Defend Location</span></a>
-    <a class="next" href="/patches/sc-4-8-3.html"><span class="dir">Neuer →</span><span class="ttl">4.8.3 · XenoThreat</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-8-1.html"><span class="dir">← Older</span><span class="ttl">4.8.1 · Defend Location</span></a>
+    <a class="next" href="/patches/sc-4-8-3.html"><span class="dir">Newer →</span><span class="ttl">4.8.3 · XenoThreat</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. No affiliation with CIG. Trailers, stills & ship/system imagery from official or community sources (© Cloud Imperium Games), fan-content usage.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

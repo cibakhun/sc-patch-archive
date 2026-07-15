@@ -4,14 +4,15 @@ import SiteNav from '../../components/SiteNav.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
+import { mergePatchEn } from '../../i18n/patchText';
 import { getEntry } from 'astro:content';
 
 const entry = await getEntry('patches', '4-0-2');
 if (!entry) throw new Error('Patch-Daten 4-0-2 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-0-2', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.0.2 — Supply or Die | VerseBase"} description={"Alpha 4.0.2 „Supply or Die“: Pyros Nachschubkrieg — Citizens for Prosperity gegen Headhunters, PvPvE-Depotkämpfe um die Schlüsselressource Detatrine und die Ravager-212 als Event-Belohnung."} themeColor="#1a1d20" ogType="article" ogImage="/assets/t-pyro-3.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/t-pyro-3.jpg" />
+<Layout title={"Star Citizen Alpha 4.0.2 — Supply or Die | VerseBase"} description={"Alpha 4.0.2 “Supply or Die”: Pyro's supply war — Citizens for Prosperity vs. the Headhunters, PvPvE depot battles over the key resource Detatrine, with the Ravager-212 as the event reward."} themeColor="#1a1d20" ogType="article" ogImage="/assets/t-pyro-3.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/t-pyro-3.jpg" lang="en" />
 <style is:inline>
 
 /* 4.0.2 "Supply or Die" — Gunmetal/Rot · media-first / low-text / MAXIMAL */
@@ -156,10 +157,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.0.2' }]} pill={"ALPHA 4.0.2"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.0.2' }]} pill={"ALPHA 4.0.2"} hasEn={true} />
 
 
 <main id="main">
@@ -169,16 +170,16 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">28. Februar 2025 · Point-Release &amp; Event</div>
+      <div class="eyebrow">February 28, 2025 · Point Release &amp; Event</div>
       <h1 data-text="4.0.2">4.0.2</h1>
       <div class="codename">Supply or <span>Die</span></div>
-      <div class="tagline">Pyros Nachschubkrieg: Citizens for Prosperity vs. Headhunters.</div>
+      <div class="tagline">Pyro's supply war: Citizens for Prosperity vs. Headhunters.</div>
       <div class="tags">
         <span class="tag">Supply or Die</span><span class="tag">Citizens for Prosperity</span><span class="tag hot">Headhunters</span><span class="tag">PvPvE</span>
       </div>
-      <a href="/topics/4-0-2-supply-or-die.html" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;color:var(--bg);background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;box-shadow:0 6px 20px -6px rgba(0,0,0,.5)">Supply or Die · Detailseite →</a>
+      <a href="/topics/4-0-2-supply-or-die.html" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;color:var(--bg);background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;box-shadow:0 6px 20px -6px rgba(0,0,0,.5)">Supply or Die · Detail page →</a>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
@@ -189,20 +190,20 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </div>
 
-  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <!-- AT A GLANCE (Daten-Register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/t-supply-1.jpg"><div class="tbg" style="background-image:url('/assets/t-supply-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Nachschub sichern</div><div class="sub">Depot-Schlachtfeld</div></div>
-        <div class="tile word" data-info data-title="Citizens for Prosperity" data-text="Eine der beiden Fraktionen im „Supply or Die“-Event. Sie sammeln Industriegüter und das seltene Chemikal Detatrine, um ihre erschöpften Reserven aufzufüllen und medizinische Hilfsgüter zur Stabilisierung von Pyro herzustellen." data-img="/assets/t-supply-2.jpg"><span class="zoomic">+</span><b>CITIZENS FOR PROSPERITY</b><small>Fraktion A</small></div>
-        <div class="tile word hot" data-info data-title="Headhunters" data-text="Die rivalisierende Fraktion im „Supply or Die“-Event. Sie beschaffen Salvage und Mining-Rohstoffe mit allen Mitteln — inklusive Kampf und Piraterie —, um ihre Truppen aufzurüsten." data-img="/assets/cz-combat.jpg"><span class="zoomic">+</span><b>HEADHUNTERS</b><small>Fraktion B</small></div>
-        <div class="tile word" data-info data-title="PvPvE-Depotkämpfe" data-text="Material für die Fraktionen wird unter anderem in PvPvE-fokussierten Depots erkämpft: Spieler stellen sich dort sowohl NPC-Gegnern als auch anderen Spielern, während sie Nachschub sichern."><span class="zoomic">+</span><b>PVPVE</b><small>Depotkämpfe</small></div>
-        <div class="tile word" data-info data-title="Ravager-212 „Outcast“" data-text="Die Ravager-212 „Outcast“ ist eine doppelläufige Schrotflinte (Twin Shotgun) und Belohnung der Event-Stufe 2. Höhere Stufen brachten zudem „Outcast“-Lackierungen für Vulture und Prospector."><span class="zoomic">+</span><b>RAVAGER-212</b><small>Outcast-Belohnung</small></div>
-        <div class="tile stat" data-info data-title="Zwei Fraktionen" data-text="„Supply or Die“ stellte zwei verfeindete Fraktionen gegenüber — Citizens for Prosperity und Headhunters. Spieler wählten eine Seite und versorgten sie mit Nachschub." data-img="/assets/vid-supplyordie.jpg"><span class="zoomic">+</span><div class="num">2</div><div class="cap">Fraktionen</div></div>
+        <div class="tile img b2" data-lb="img:/assets/t-supply-1.jpg"><div class="tbg" style="background-image:url('/assets/t-supply-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Secure the supplies</div><div class="sub">Depot battlefield</div></div>
+        <div class="tile word" data-info data-title="Citizens for Prosperity" data-text="One of the two factions in the „Supply or Die“ event. They gather industrial goods and the rare chemical Detatrine to replenish their depleted reserves and produce medical relief supplies to stabilize Pyro." data-img="/assets/t-supply-2.jpg"><span class="zoomic">+</span><b>CITIZENS FOR PROSPERITY</b><small>Faction A</small></div>
+        <div class="tile word hot" data-info data-title="Headhunters" data-text="The rival faction in the „Supply or Die“ event. They acquire salvage and mining resources by any means — including combat and piracy — to arm their forces." data-img="/assets/cz-combat.jpg"><span class="zoomic">+</span><b>HEADHUNTERS</b><small>Faction B</small></div>
+        <div class="tile word" data-info data-title="PvPvE depot battles" data-text="Material for the factions is fought over partly in PvPvE-focused depots: there, players face both NPC enemies and other players while securing supplies."><span class="zoomic">+</span><b>PVPVE</b><small>Depot battles</small></div>
+        <div class="tile word" data-info data-title="Ravager-212 „Outcast“" data-text="The Ravager-212 „Outcast“ is a Twin Shotgun and reward of event tier 2. Higher tiers also granted „Outcast“ paints for the Vulture and Prospector."><span class="zoomic">+</span><b>RAVAGER-212</b><small>Outcast reward</small></div>
+        <div class="tile stat" data-info data-title="Two factions" data-text="„Supply or Die“ pitted two rival factions against each other — Citizens for Prosperity and Headhunters. Players picked a side and supplied it." data-img="/assets/vid-supplyordie.jpg"><span class="zoomic">+</span><div class="num">2</div><div class="cap">Factions</div></div>
       </div>
     </div>
   </section>
@@ -211,9 +212,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-pyro-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Nachschubkrieg in Pyro</div>
+      <div class="kx">Supply war in Pyro</div>
       <div class="big outline">SUPPLY OR DIE</div>
-      <p>Versorge eine Fraktion in Pyros umkämpften Depots.</p>
+      <p>Supply a faction in Pyro's contested depots.</p>
     </div>
   </section>
 
@@ -222,41 +223,41 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">02</span><h2>Video</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="R9p2q5fFUJk" style="background-image:url('/assets/vid-supplyordie.jpg')"><span class="vlbl">Supply or Die — Event</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="R9p2q5fFUJk" style="background-image:url('/assets/vid-supplyordie.jpg')"><span class="vlbl">Supply or Die — Event</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=R9p2q5fFUJk" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=R9p2q5fFUJk" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">03</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">03</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
         <figure class="b2" data-lb="img:/assets/t-pyro-1.jpg"><img src="/assets/t-pyro-1.jpg" alt="Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/cz-loot.jpg"><img src="/assets/cz-loot.jpg" alt="High-Tier-Loot in einer Pyro-Anlage" loading="lazy"><span class="zoomic">⤢</span><figcaption>Beute · Pyro-Anlage</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/cz-loot.jpg"><img src="/assets/cz-loot.jpg" alt="High-tier loot in a Pyro facility" loading="lazy"><span class="zoomic">⤢</span><figcaption>Loot · Pyro facility</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="04" />
+  <PatchDossier patch={patch} num="04" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-0-1.html"><span class="dir">← Älter</span><span class="ttl">4.0.1 · Stabilität &amp; Save Stanton II</span></a>
-    <a class="next" href="/patches/sc-4-1-0.html"><span class="dir">Neuer →</span><span class="ttl">4.1.0 · Orbital Assault</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-0-1.html"><span class="dir">← Older</span><span class="ttl">4.0.1 · Stability &amp; Save Stanton II</span></a>
+    <a class="next" href="/patches/sc-4-1-0.html"><span class="dir">Newer →</span><span class="ttl">4.1.0 · Orbital Assault</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. No affiliation with CIG. Trailers, stills & ship/system imagery from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

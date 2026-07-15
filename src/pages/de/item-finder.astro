@@ -1,0 +1,61 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import Attribution from '../../components/Attribution.astro';
+import ItemFinderApp from '../../components/ItemFinderApp.astro';
+import DB from '../../../assets/universal-items.json';
+
+const total = DB.counts.items;
+const sourced = DB.counts.withObtain;
+const snap = DB.generatedAt;
+---
+<Layout title={"Universal Item Finder — Star Citizen 4.8 | VerseBase"} description={`Universal Item Finder für Star Citizen 4.8: ${total} Items aus den Spieldateien durchsuchen — ${sourced} davon mit verifizierten Bezugsquellen (Shop-Preise, Loot-Fundorte, Schiffshändler). Ohne erfundene Daten.`} themeColor="#0d0c14" ogType="article" ogImage="/assets/cz-loot.jpg" translated={true}>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+/* Item-Finder-Theme — Violett & Bernstein (Quartiermeister-Katalog) */
+:root{--bg:#0d0c14;--bg-2:#14121c;--surface:#17151f;--surface-2:#1e1b29;--accent:#A78BFA;--accent-2:#FFB84D;--hot:#A78BFA;--text:#eef1f5;--muted:#9d9cb0;--line:rgba(167,139,250,.22);--line-soft:rgba(238,241,245,.10);--glow:0 0 44px rgba(167,139,250,.28);--ink:#0d0c14;--maxw:1240px;}
+.reveal{opacity:1 !important;transform:none !important}
+/* Hero-Titel: heller Gradient + kräftiger Scrim, lesbar über dem Loot-Foto */
+.hero h1{font-size:clamp(2.4rem,9vw,7rem);background:linear-gradient(180deg,#ffffff,#d6c6ff 58%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 3px 20px rgba(0,0,0,.85)) drop-shadow(0 0 30px rgba(167,139,250,.4))}
+.hero{background:radial-gradient(120% 90% at 78% 12%,rgba(167,139,250,.16),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(255,184,77,.10),transparent 55%),var(--bg)}
+.hero__in{max-width:var(--maxw)}
+.uf-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--accent-2)}
+.qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;color:var(--muted)}
+.qbar b{color:var(--accent-2)}
+.uf-note{max-width:var(--maxw);margin:0 auto 1.2rem;display:flex;align-items:flex-start;gap:.75rem;border:1px solid var(--accent-2);border-left-width:3px;background:color-mix(in srgb,var(--accent-2) 8%,transparent);padding:.9rem 1.1rem;border-radius:4px;color:var(--text);font-size:.92rem;line-height:1.55}
+.uf-note b{color:#fff}
+.uf-sec-h{max-width:var(--maxw);margin:2.2rem auto 1rem;display:flex;align-items:baseline;gap:.8rem;padding:0 clamp(1rem,4vw,2rem)}
+.uf-sec-h h2{font-family:var(--font-display);font-weight:900;font-size:clamp(1.5rem,4vw,2.4rem);color:#fff;margin:0}
+.uf-sec-h .num{font-family:var(--font-display);font-weight:900;color:transparent;-webkit-text-stroke:1.4px var(--accent);font-size:clamp(1.4rem,3.6vw,2.2rem)}
+</style>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.8', href: '/de/patches/sc-4-8-0.html' }, { label: 'Item Finder' }]} pill={"WERKZEUG · DATENBANK"} hasEn={true} />
+
+<main id="main">
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/cz-loot.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/de/patches/sc-4-8-0.html">Alpha 4.8</a> &nbsp;·&nbsp; <span class="uf-tag">Item-Datenbank</span></div>
+      <h1><span class="thin">Universal</span>Item Finder</h1>
+      <p class="lead">Jedes Item im Spiel: Kaufpreise, Fundorte, Loot-Guides.</p>
+      <div class="qbar"><span>Items <b>{total.toLocaleString('de-DE')}</b></span><span>Mit Quellen <b>{sourced.toLocaleString('de-DE')}</b></span><span>Patch <b>4.8</b></span><span>Stand <b>{snap}</b></span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+  </section>
+
+  <div class="uf-sec-h reveal"><span class="num">01</span><h2>Item-Datenbank</h2></div>
+  <div class="uf-note reveal">
+    <span>Preise &amp; Fundorte sind <b>Patch-volatil — ingame prüfen</b> (Preisstand: {DB.pricesAsOf}).</span>
+  </div>
+
+  <ItemFinderApp lang="de" />
+</main>
+
+<Attribution sources={["CIG-Spieldaten"]} updated={snap} />
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

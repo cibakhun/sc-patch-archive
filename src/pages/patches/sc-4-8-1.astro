@@ -5,13 +5,14 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-8-1');
 if (!entry) throw new Error('Patch-Daten 4-8-1 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-8-1', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.8.1 — Defend Location | VerseBase"} description={"Alpha 4.8.1: 385 Verteidigungsmissionen, Bomber-Anflüge und erstmals einzigartige Blueprints."} themeColor="#15181b" ogType="article" ogImage="/assets/trailer-4-8-0.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/trailer-4-8-0.jpg" />
+<Layout title={"Star Citizen Alpha 4.8.1 — Defend Location | VerseBase"} description={"Alpha 4.8.1: 385 defense missions, bomber runs and unique blueprints for the first time."} themeColor="#15181b" ogType="article" ogImage="/assets/trailer-4-8-0.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/trailer-4-8-0.jpg" lang="en" />
 <style is:inline>
 
 /* 4.8.1 "Defend Location" — media-first / low-text / MAXIMAL */
@@ -146,10 +147,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.8.1' }]} pill={"ALPHA 4.8.1"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.8.1' }]} pill={"ALPHA 4.8.1"} hasEn={true} />
 
 
 <main id="main">
@@ -159,39 +160,39 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">3. Juni 2026 · Point-Release</div>
+      <div class="eyebrow">June 3, 2026 · Point Release</div>
       <h1 data-text="4.8.1">4.8.1</h1>
       <div class="codename"><span>Defend Location</span></div>
-      <div class="tagline">Neuer Missionstyp Defend Location — 385 Verteidigungen.</div>
+      <div class="tagline">New mission type Defend Location — 385 defenses.</div>
       <div class="tags">
-        <span class="tag">Defend Location</span><span class="tag">385 Missionen</span><span class="tag hot">Bomber</span><span class="tag">Blueprints</span>
+        <span class="tag">Defend Location</span><span class="tag">385 Missions</span><span class="tag hot">Bomber</span><span class="tag">Blueprints</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>DEFEND LOCATION</span><span class="dot">◆</span><span>385 MISSIONEN</span><span class="dot">◆</span><span>BOMBER</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span><span>ESCORT</span><span class="dot">◆</span><span>STABILITÄT</span><span class="dot">◆</span>
-      <span>DEFEND LOCATION</span><span class="dot">◆</span><span>385 MISSIONEN</span><span class="dot">◆</span><span>BOMBER</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span><span>ESCORT</span><span class="dot">◆</span><span>STABILITÄT</span><span class="dot">◆</span>
+      <span>DEFEND LOCATION</span><span class="dot">◆</span><span>385 MISSIONS</span><span class="dot">◆</span><span>BOMBER</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span><span>ESCORT</span><span class="dot">◆</span><span>STABILITY</span><span class="dot">◆</span>
+      <span>DEFEND LOCATION</span><span class="dot">◆</span><span>385 MISSIONS</span><span class="dot">◆</span><span>BOMBER</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span><span>ESCORT</span><span class="dot">◆</span><span>STABILITY</span><span class="dot">◆</span>
     </div>
   </div>
 
-  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <!-- AT A GLANCE (Daten-Register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <a class="tile img b2" href="/topics/4-8-1-defend-location.html"><div class="tbg" style="background-image:url('/assets/t-def-2.jpg')"></div><span class="zoomic">→</span><div class="lbl">Defend Location</div><div class="sub">Detailseite ansehen</div></a>
-        <div class="tile stat" data-info data-title="385 Missionen" data-text="Der neue Missionstyp Defend Location wurde in 4.8.1 breit im Universum ausgerollt — mit rund 385 platzierten Verteidigungs-Aufträgen an belagerten Außenposten und Stationen, die einzeln oder im Team gespielt werden können." data-img="/assets/t-def-1.jpg"><span class="zoomic">+</span><div class="num">385</div><div class="cap">Missionen</div></div>
-        <div class="tile word hot" data-info data-title="Bomber-Anflüge" data-text="Bei Defend Location greifen die Angreifer in Wellen an, darunter Bomber, die Anflüge auf den zu verteidigenden Ort fliegen. Verteidiger müssen sie abfangen, bevor sie ihre Last auf die Basis abwerfen."><span class="zoomic">+</span><b>BOMBER</b><small>Anflüge</small></div>
-        <div class="tile word" data-info data-title="Blueprints" data-text="Mit 4.8.1 tauchen erstmals einzigartige Blueprints als Belohnung auf. Sie speisen das in 4.7.0 eingeführte Crafting-System und ermöglichen das Herstellen besonderer Gegenstände aus geborgenen Ressourcen."><span class="zoomic">+</span><b>BLUEPRINTS</b><small>erstmals</small></div>
-        <div class="tile word" data-info data-title="Escort-Hybrid" data-text="Defend Location verbindet statische Verteidigung mit Escort-Elementen: Neben dem Halten eines Ortes müssen Spieler ankommende Einheiten oder Konvois schützen — ein hybrider Missionsablauf."><span class="zoomic">+</span><b>ESCORT</b><small>Hybrid</small></div>
-        <div class="tile stat" data-info data-title="30+ Fixes" data-text="Als Point-Release konzentrierte sich 4.8.1 auf den neuen Missionstyp und brachte zusätzlich über 30 Bugfixes und Stabilitätsverbesserungen nach dem großen 4.8.0-Patch."><span class="zoomic">+</span><div class="num">30+</div><div class="cap">Fixes</div></div>
+        <a class="tile img b2" href="/topics/4-8-1-defend-location.html"><div class="tbg" style="background-image:url('/assets/t-def-2.jpg')"></div><span class="zoomic">→</span><div class="lbl">Defend Location</div><div class="sub">View detail page</div></a>
+        <div class="tile stat" data-info data-title="385 Missions" data-text="The new mission type Defend Location was rolled out widely across the universe in 4.8.1 — with around 385 placed defense contracts at besieged outposts and stations, playable solo or in a team." data-img="/assets/t-def-1.jpg"><span class="zoomic">+</span><div class="num">385</div><div class="cap">Missions</div></div>
+        <div class="tile word hot" data-info data-title="Bomber Runs" data-text="In Defend Location, attackers come in waves, including bombers that make runs on the location you have to defend. Defenders must intercept them before they drop their payload on the base."><span class="zoomic">+</span><b>BOMBER</b><small>Runs</small></div>
+        <div class="tile word" data-info data-title="Blueprints" data-text="With 4.8.1, unique blueprints appear as rewards for the first time. They feed the crafting system introduced in 4.7.0 and enable crafting special items from salvaged resources."><span class="zoomic">+</span><b>BLUEPRINTS</b><small>first time</small></div>
+        <div class="tile word" data-info data-title="Escort Hybrid" data-text="Defend Location combines static defense with escort elements: besides holding a location, players must protect incoming units or convoys — a hybrid mission flow."><span class="zoomic">+</span><b>ESCORT</b><small>Hybrid</small></div>
+        <div class="tile stat" data-info data-title="30+ Fixes" data-text="As a point release, 4.8.1 focused on the new mission type and additionally brought over 30 bugfixes and stability improvements following the large 4.8.0 patch."><span class="zoomic">+</span><div class="num">30+</div><div class="cap">Fixes</div></div>
       </div>
     </div>
   </section>
@@ -200,16 +201,16 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-def-1.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Belagerter Außenposten</div>
+      <div class="kx">Besieged Outpost</div>
       <div class="big outline">DEFEND</div>
-      <p>Halte die Asteroidenbasis gegen Bomber-Anflüge.</p>
+      <p>Hold the asteroid base against bomber runs.</p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
         <figure class="b2" data-lb="img:/assets/trailer-4-8-0.jpg"><img src="/assets/trailer-4-8-0.jpg" alt="Tactical Strike" loading="lazy"><span class="zoomic">⤢</span><figcaption>Tactical Strike · 4.8</figcaption></figure>
       </div>
@@ -217,23 +218,23 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="03" />
+  <PatchDossier patch={patch} num="03" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-8-0.html"><span class="dir">← Älter</span><span class="ttl">4.8.0 · Tactical Strike</span></a>
-    <a class="next" href="/patches/sc-4-8-2.html"><span class="dir">Neuer →</span><span class="ttl">4.8.2 · Gatac &amp; Alien Week</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-8-0.html"><span class="dir">← Older</span><span class="ttl">4.8.0 · Tactical Strike</span></a>
+    <a class="next" href="/patches/sc-4-8-2.html"><span class="dir">Newer →</span><span class="ttl">4.8.2 · Gatac &amp; Alien Week</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Not affiliated with CIG. Trailers, stills & ship/system images from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

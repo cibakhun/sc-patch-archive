@@ -4,14 +4,15 @@ import SiteNav from '../../components/SiteNav.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
+import { mergePatchEn } from '../../i18n/patchText';
 import { getEntry } from 'astro:content';
 
 const entry = await getEntry('patches', '4-1-1');
 if (!entry) throw new Error('Patch-Daten 4-1-1 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-1-1', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.1.1 — Balancing & Fleet Week | VerseBase"} description={"Alpha 4.1.1: Waffen-Tuning, neues Recoil-System, mehr Turret-Munition und Fleet Week 2955 mit „Hunt The Polaris“."} themeColor="#0c1422" ogType="article" ogImage="/assets/trailer-4-1-0.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/trailer-4-1-0.jpg" />
+<Layout title={"Star Citizen Alpha 4.1.1 — Balancing & Fleet Week | VerseBase"} description={"Alpha 4.1.1: weapon tuning, a new recoil system, more turret ammunition and Fleet Week 2955 with “Hunt The Polaris”."} themeColor="#0c1422" ogType="article" ogImage="/assets/trailer-4-1-0.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/trailer-4-1-0.jpg" lang="en" />
 <style is:inline>
 
 /* 4.1.1 "Balancing & Fleet Week" — Fleet-Week-Marineblau + Mündungsfeuer-Orange · media-first / low-text / MAXIMAL */
@@ -156,10 +157,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.1.1' }]} pill={"ALPHA 4.1.1"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.1.1' }]} pill={"ALPHA 4.1.1"} hasEn={true} />
 
 
 <main id="main">
@@ -169,27 +170,27 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">13. Mai 2025 · Point-Release</div>
+      <div class="eyebrow">May 13, 2025 · Point Release</div>
       <h1 data-text="4.1.1">4.1.1</h1>
       <div class="codename">Balancing &amp; <span>Fleet Week</span></div>
-      <div class="tagline">Waffen-Balancing, Recoil und Fleet Week mit Hunt The Polaris.</div>
+      <div class="tagline">Weapon balancing, recoil and Fleet Week with Hunt The Polaris.</div>
       <div class="tags">
-        <span class="tag">Fleet Week</span><span class="tag hot">Hunt The Polaris</span><span class="tag">Turret-Munition</span><span class="tag">Recoil</span>
+        <span class="tag">Fleet Week</span><span class="tag hot">Hunt The Polaris</span><span class="tag">Turret Ammunition</span><span class="tag">Recoil</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>FLEET WEEK 2955</span><span class="dot">◆</span><span>HUNT THE POLARIS</span><span class="dot">◆</span><span>TURRET-MUNITION</span><span class="dot">◆</span><span>RECOIL</span><span class="dot">◆</span><span>200+ FIXES</span><span class="dot">◆</span>
-      <span>FLEET WEEK 2955</span><span class="dot">◆</span><span>HUNT THE POLARIS</span><span class="dot">◆</span><span>TURRET-MUNITION</span><span class="dot">◆</span><span>RECOIL</span><span class="dot">◆</span><span>200+ FIXES</span><span class="dot">◆</span>
+      <span>FLEET WEEK 2955</span><span class="dot">◆</span><span>HUNT THE POLARIS</span><span class="dot">◆</span><span>TURRET AMMUNITION</span><span class="dot">◆</span><span>RECOIL</span><span class="dot">◆</span><span>200+ FIXES</span><span class="dot">◆</span>
+      <span>FLEET WEEK 2955</span><span class="dot">◆</span><span>HUNT THE POLARIS</span><span class="dot">◆</span><span>TURRET AMMUNITION</span><span class="dot">◆</span><span>RECOIL</span><span class="dot">◆</span><span>200+ FIXES</span><span class="dot">◆</span>
     </div>
   </div>
 
   <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
@@ -197,11 +198,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
         <div class="tile img b2" data-lb="img:/assets/vid-invictus.jpg"><div class="tbg" style="background-image:url('/assets/vid-invictus.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Fleet Week</div><div class="sub">Invictus 2955</div></div>
-        <a class="tile word hot" href="/topics/4-1-1-hunt-the-polaris.html"><span class="zoomic">→</span><b>HUNT THE POLARIS</b><small>Detailseite ansehen</small></a>
-        <div class="tile word" data-info data-title="Neues Recoil-System" data-text="Überarbeiteter Rückstoß: actor-basierte Recoil-Effekte beim Feuern, unter anderem für die Hauptgeschütze der Polaris. Waffen verhalten sich beim Dauerfeuer spürbarer und kontrollierter."><span class="zoomic">+</span><b>RECOIL</b><small>neues System</small></div>
-        <div class="tile stat" data-info data-title="200+ Bugfixes" data-text="4.1.1 war ein Balancing- und Stabilitäts-Point-Release mit über 200 Fehlerkorrekturen zusätzlich zu den Waffen- und Munitions-Anpassungen."><span class="zoomic">+</span><div class="num">200+</div><div class="cap">Bugfixes</div></div>
-        <div class="tile word" data-info data-title="Turret-Munition" data-text="Die Munitionskapazität von Geschütztürmen wurde deutlich erhöht und einzelne Turret-Waffen (u. a. der Polaris) auf höheren Schaden neu abgestimmt."><span class="zoomic">+</span><b>TURRET-MUNITION</b><small>stark erhöht</small></div>
-        <div class="tile word" data-info data-title="Waffen-Balancing" data-text="Umfangreiches Tuning von Schiffs- und Handfeuerwaffen: Schadenswerte, Reichweiten und Feuerverhalten wurden neu ausbalanciert, um das Kampfgefühl fairer zu machen."><span class="zoomic">+</span><b>BALANCING</b></div>
+        <a class="tile word hot" href="/topics/4-1-1-hunt-the-polaris.html"><span class="zoomic">→</span><b>HUNT THE POLARIS</b><small>View detail page</small></a>
+        <div class="tile word" data-info data-title="New Recoil System" data-text="Reworked recoil: actor-based recoil effects when firing, including for the Polaris' main guns. Weapons feel more tangible and controlled during sustained fire."><span class="zoomic">+</span><b>RECOIL</b><small>new system</small></div>
+        <div class="tile stat" data-info data-title="200+ Bug Fixes" data-text="4.1.1 was a balancing and stability point release with over 200 bug fixes on top of the weapon and ammunition adjustments."><span class="zoomic">+</span><div class="num">200+</div><div class="cap">Bug Fixes</div></div>
+        <div class="tile word" data-info data-title="Turret Ammunition" data-text="The ammunition capacity of gun turrets was significantly increased and individual turret weapons (including the Polaris') were retuned for higher damage."><span class="zoomic">+</span><b>TURRET AMMUNITION</b><small>greatly increased</small></div>
+        <div class="tile word" data-info data-title="Weapon Balancing" data-text="Extensive tuning of ship and personal weapons: damage values, ranges and firing behavior were rebalanced to make combat feel fairer."><span class="zoomic">+</span><b>BALANCING</b></div>
       </div>
     </div>
   </section>
@@ -212,7 +213,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="shot__in reveal">
       <div class="kx">Invictus / Fleet Week 2955</div>
       <div class="big">FLEET WEEK</div>
-      <p>Verfolge die gestohlene Polaris durch Stanton.</p>
+      <p>Chase the stolen Polaris through Stanton.</p>
     </div>
   </section>
 
@@ -221,41 +222,41 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">02</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="EUK0BR0JTfE" style="background-image:url('/assets/vid-invictus.jpg')"><span class="vlbl">Invictus / Fleet Week 2955</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="EUK0BR0JTfE" style="background-image:url('/assets/vid-invictus.jpg')"><span class="vlbl">Invictus / Fleet Week 2955</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=EUK0BR0JTfE" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=EUK0BR0JTfE" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">03</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">03</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
         <figure class="b2" data-lb="img:/assets/img-polaris.jpg"><img src="/assets/img-polaris.jpg" alt="RSI Polaris" loading="lazy"><span class="zoomic">⤢</span><figcaption>RSI Polaris</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/trailer-4-1-0.jpg"><img src="/assets/trailer-4-1-0.jpg" alt="Trailer-Still" loading="lazy"><span class="zoomic">⤢</span><figcaption>Trailer-Still</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/trailer-4-1-0.jpg"><img src="/assets/trailer-4-1-0.jpg" alt="Trailer still" loading="lazy"><span class="zoomic">⤢</span><figcaption>Trailer still</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="04" />
+  <PatchDossier patch={patch} num="04" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-1-0.html"><span class="dir">← Älter</span><span class="ttl">4.1.0 · Orbital Assault</span></a>
-    <a class="next" href="/patches/sc-4-2-0.html"><span class="dir">Neuer →</span><span class="ttl">4.2.0 · Storm Breaker</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-1-0.html"><span class="dir">← Older</span><span class="ttl">4.1.0 · Orbital Assault</span></a>
+    <a class="next" href="/patches/sc-4-2-0.html"><span class="dir">Newer →</span><span class="ttl">4.2.0 · Storm Breaker</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Not affiliated with CIG. Trailers, stills & ship/system images from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

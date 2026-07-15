@@ -4,14 +4,15 @@ import SiteNav from '../../components/SiteNav.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
+import { mergePatchEn } from '../../i18n/patchText';
 import { getEntry } from 'astro:content';
 
 const entry = await getEntry('patches', '4-1-0');
 if (!entry) throw new Error('Patch-Daten 4-1-0 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-1-0', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.1.0 — Orbital Assault | VerseBase"} description={"Alpha 4.1.0: orbitale Hathor-Laser, Asteroiden-Mining mit Align &amp; Mine und die spielbare Aegis Idris."} themeColor="#10141a" ogType="article" ogImage="/assets/trailer-4-1-0.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/trailer-4-1-0.jpg" />
+<Layout title={"Star Citizen Alpha 4.1.0 — Orbital Assault | VerseBase"} description={"Alpha 4.1.0: orbital Hathor lasers, asteroid mining with Align &amp; Mine and the playable Aegis Idris."} themeColor="#10141a" ogType="article" ogImage="/assets/trailer-4-1-0.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/trailer-4-1-0.jpg" lang="en" />
 <style is:inline>
 
 /* 4.1.0 "Orbital Assault" — Mining-Laserblau + Bernstein · media-first / low-text / MAXIMAL */
@@ -169,10 +170,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.1.0' }]} pill={"ALPHA 4.1.0"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.1.0' }]} pill={"ALPHA 4.1.0"} hasEn={true} />
 
 
 <main id="main">
@@ -182,39 +183,39 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">27. März 2025 · Feature-Patch</div>
+      <div class="eyebrow">March 27, 2025 · Feature Patch</div>
       <h1 data-text="4.1.0">4.1.0</h1>
       <div class="codename">Orbital <span>Assault</span></div>
-      <div class="tagline">Orbitale Hathor-Laser, Asteroiden-Mining und neue Kollisionsphysik.</div>
+      <div class="tagline">Orbital Hathor lasers, asteroid mining and new collision physics.</div>
       <div class="tags">
         <span class="tag">Align &amp; Mine</span><span class="tag">Hathor</span><span class="tag">Asteroid Mining</span><span class="tag">Idris</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>ORBITAL ASSAULT</span><span class="dot">◆</span><span>ALIGN &amp; MINE</span><span class="dot">◆</span><span>HATHOR</span><span class="dot">◆</span><span>ASTEROID MINING</span><span class="dot">◆</span><span>KOLLISIONS-PHYSIK</span><span class="dot">◆</span><span>IDRIS</span><span class="dot">◆</span>
-      <span>ORBITAL ASSAULT</span><span class="dot">◆</span><span>ALIGN &amp; MINE</span><span class="dot">◆</span><span>HATHOR</span><span class="dot">◆</span><span>ASTEROID MINING</span><span class="dot">◆</span><span>KOLLISIONS-PHYSIK</span><span class="dot">◆</span><span>IDRIS</span><span class="dot">◆</span>
+      <span>ORBITAL ASSAULT</span><span class="dot">◆</span><span>ALIGN &amp; MINE</span><span class="dot">◆</span><span>HATHOR</span><span class="dot">◆</span><span>ASTEROID MINING</span><span class="dot">◆</span><span>COLLISION PHYSICS</span><span class="dot">◆</span><span>IDRIS</span><span class="dot">◆</span>
+      <span>ORBITAL ASSAULT</span><span class="dot">◆</span><span>ALIGN &amp; MINE</span><span class="dot">◆</span><span>HATHOR</span><span class="dot">◆</span><span>ASTEROID MINING</span><span class="dot">◆</span><span>COLLISION PHYSICS</span><span class="dot">◆</span><span>IDRIS</span><span class="dot">◆</span>
     </div>
   </div>
 
   <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/img-idris.jpg"><div class="tbg" style="background-image:url('/assets/img-idris.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Aegis Idris</div><div class="sub">jetzt spielbar</div></div>
-        <a class="tile word hot" href="/topics/4-1-0-align-and-mine.html"><span class="zoomic">→</span><b>ALIGN &amp;<br>MINE</b><small>Detailseite ansehen</small></a>
-        <div class="tile word" data-info data-title="Hathor-Orbitallaser" data-text="Die Hathor-Anlagen bestehen aus bodengestützten Alignment Facilities und einer Orbital Mining Station pro Mond (in Stanton: Aberdeen und Daymar). Richtig ausgerichtet feuert der Laser aus dem Orbit auf die Oberfläche."><span class="zoomic">+</span><b>HATHOR</b><small>Orbital-Laser</small></div>
-        <div class="tile word" data-info data-title="Neue Kollisionsphysik" data-text="Überarbeitetes Kollisionssystem: Schäden und Aufprallverhalten berücksichtigen stärker Masse und Geschwindigkeit der beteiligten Objekte für glaubwürdigere Crashs."><span class="zoomic">+</span><b>KOLLISIONS-<br>PHYSIK</b><small>Masse &amp; Speed</small></div>
-        <div class="tile stat" data-info data-title="~130 Bugfixes" data-text="Neben den großen Features brachte „Orbital Assault“ zahlreiche Stabilitäts- und Quality-of-Life-Korrekturen — rund 130 dokumentierte Bugfixes."><span class="zoomic">+</span><div class="num">~130</div><div class="cap">Bugfixes</div></div>
-        <div class="tile word" data-info data-title="Juvenile Valakkar" data-text="Erste neue Fauna dieses Zyklus: junge Valakkar sind grabende Wurm-Kreaturen auf einigen Monden. Sie halten Abstand, bewegen sich durch den Boden und bewerfen Spieler mit Gestein."><span class="zoomic">+</span><b>VALAKKAR</b><small>neue Fauna</small></div>
+        <div class="tile img b2" data-lb="img:/assets/img-idris.jpg"><div class="tbg" style="background-image:url('/assets/img-idris.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Aegis Idris</div><div class="sub">now playable</div></div>
+        <a class="tile word hot" href="/topics/4-1-0-align-and-mine.html"><span class="zoomic">→</span><b>ALIGN &amp;<br>MINE</b><small>View detail page</small></a>
+        <div class="tile word" data-info data-title="Hathor Orbital Laser" data-text="The Hathor installations consist of ground-based Alignment Facilities and one Orbital Mining Station per moon (in Stanton: Aberdeen and Daymar). Once properly aligned, the laser fires from orbit onto the surface."><span class="zoomic">+</span><b>HATHOR</b><small>Orbital Laser</small></div>
+        <div class="tile word" data-info data-title="New Collision Physics" data-text="Reworked collision system: damage and impact behaviour now factor in the mass and velocity of the objects involved for more believable crashes."><span class="zoomic">+</span><b>COLLISION<br>PHYSICS</b><small>Mass &amp; Speed</small></div>
+        <div class="tile stat" data-info data-title="~130 Bugfixes" data-text="Alongside the big features, “Orbital Assault” brought numerous stability and quality-of-life fixes — around 130 documented bugfixes."><span class="zoomic">+</span><div class="num">~130</div><div class="cap">Bugfixes</div></div>
+        <div class="tile word" data-info data-title="Juvenile Valakkar" data-text="The first new fauna of this cycle: juvenile Valakkar are burrowing worm creatures found on some moons. They keep their distance, move through the ground and pelt players with rocks."><span class="zoomic">+</span><b>VALAKKAR</b><small>new fauna</small></div>
       </div>
     </div>
   </section>
@@ -223,16 +224,16 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-align-1.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Persistente Aktivität</div>
+      <div class="kx">Persistent Activity</div>
       <div class="big">ALIGN &amp; MINE</div>
-      <p>Richte Hathor-Satelliten aus und baue Höhlen ab.</p>
+      <p>Align Hathor satellites and mine caves.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Ships</h2><span class="rule"></span></div>
       <div class="garage">
         <article class="ship reveal" data-lb="yt:X2OFObiypT4"><div class="sbg" style="background-image:url('/assets/img-idris.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">Aegis · Frigate</span><h3>Aegis Idris</h3></div></article>
       </div>
@@ -244,43 +245,43 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="NArGjlRFsQQ" style="background-image:url('/assets/trailer-4-1-0.jpg')"><span class="vlbl">Orbital Assault — Trailer</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="X2OFObiypT4" style="background-image:url('/assets/vid-idris.jpg')"><span class="vlbl">Aegis Idris — Commercial</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="NArGjlRFsQQ" style="background-image:url('/assets/trailer-4-1-0.jpg')"><span class="vlbl">Orbital Assault — Trailer</span><button class="play" aria-label="Play">▶</button></div>
+        <div class="video" data-yt="X2OFObiypT4" style="background-image:url('/assets/vid-idris.jpg')"><span class="vlbl">Aegis Idris — Commercial</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=NArGjlRFsQQ" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=NArGjlRFsQQ" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-align-2.jpg"><img src="/assets/t-align-2.jpg" alt="Mining-Fahrzeug beim Abbau in einer Höhle" loading="lazy"><span class="zoomic">⤢</span><figcaption>Höhlen-Mining</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-align-7.jpg"><img src="/assets/t-align-7.jpg" alt="Hathor-Orbitallaser feuert" loading="lazy"><span class="zoomic">⤢</span><figcaption>Hathor-Orbitallaser</figcaption></figure>
-        <figure data-lb="img:/assets/t-align-3.jpg"><img src="/assets/t-align-3.jpg" alt="Hathor-Anlage" loading="lazy"><span class="zoomic">⤢</span><figcaption>Hathor-Anlage</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-align-2.jpg"><img src="/assets/t-align-2.jpg" alt="Mining vehicle extracting ore in a cave" loading="lazy"><span class="zoomic">⤢</span><figcaption>Cave Mining</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-align-7.jpg"><img src="/assets/t-align-7.jpg" alt="Hathor orbital laser firing" loading="lazy"><span class="zoomic">⤢</span><figcaption>Hathor Orbital Laser</figcaption></figure>
+        <figure data-lb="img:/assets/t-align-3.jpg"><img src="/assets/t-align-3.jpg" alt="Hathor facility" loading="lazy"><span class="zoomic">⤢</span><figcaption>Hathor Facility</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="05" />
+  <PatchDossier patch={patch} num="05" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-0-2.html"><span class="dir">← Älter</span><span class="ttl">4.0.2 · Supply or Die</span></a>
-    <a class="next" href="/patches/sc-4-1-1.html"><span class="dir">Neuer →</span><span class="ttl">4.1.1 · Balancing &amp; Fleet Week</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-0-2.html"><span class="dir">← Older</span><span class="ttl">4.0.2 · Supply or Die</span></a>
+    <a class="next" href="/patches/sc-4-1-1.html"><span class="dir">Newer →</span><span class="ttl">4.1.1 · Balancing &amp; Fleet Week</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Not affiliated with CIG. Trailers, stills & ship/system images from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

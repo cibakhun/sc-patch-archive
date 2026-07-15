@@ -1,0 +1,66 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import TopicFacts from '../../../components/TopicFacts.astro';
+import RelatedTopics from '../../../components/RelatedTopics.astro';
+import Attribution from '../../../components/Attribution.astro';
+import CraftingApp from '../../../components/CraftingApp.astro';
+import DB from '../../../../assets/crafting-db.json';
+
+const total = DB.counts.blueprints;
+const nRes = DB.counts.resources;
+const snap = DB.snapshot_date;
+const ver = DB.version;
+---
+<Layout title={"Crafting-Datenbank — Star Citizen 4.8 | VerseBase"} description={`Interaktive Crafting-Datenbank für Star Citizen 4.8: ${total} Blueprints durchsuchen, nach Kategorie & Ressource filtern, Zutaten und Item-Werte ansehen, Materialqualität simulieren und im Fabricator-Planer eine Einkaufsliste aggregieren.`} themeColor="#16161a" ogType="article" ogImage="/assets/t-craft-1.jpg" translated={true}>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+:root{--bg:#16161a;--bg-2:#1d1d22;--surface:#232329;--surface-2:#2c2c34;--accent:#FF5E1A;--accent-2:#1FA2FF;--hot:#FF5E1A;--text:#eef1f5;--muted:#9ba2ae;--line:rgba(255,94,26,.22);--line-soft:rgba(238,241,245,.10);--glow:0 0 44px rgba(255,94,26,.28);--ink:#16161a;--maxw:1240px;}
+.reveal{opacity:1 !important;transform:none !important}
+.hero h1{font-size:clamp(2.6rem,11vw,8rem)}
+.hero{background:radial-gradient(120% 90% at 78% 12%,rgba(255,94,26,.16),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(31,162,255,.12),transparent 55%),var(--bg)}
+.hero__in{max-width:var(--maxw)}
+.cr-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--accent-2)}
+.qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;color:var(--muted)}
+.qbar b{color:var(--accent-2)}
+.cr-note{max-width:var(--maxw);margin:0 auto 1.2rem;display:flex;align-items:flex-start;gap:.75rem;border:1px solid var(--accent-2);border-left-width:3px;background:color-mix(in srgb,var(--accent-2) 8%,transparent);padding:.9rem 1.1rem;border-radius:4px;color:var(--text);font-size:.92rem;line-height:1.55}
+.cr-note b{color:#fff}
+.cr-note a{color:var(--accent-2);border-bottom:1px solid var(--line);white-space:nowrap}
+.cr-sec-h{max-width:var(--maxw);margin:2.4rem auto 1rem;display:flex;align-items:baseline;gap:.8rem}
+.cr-sec-h h2{font-family:var(--font-display);font-weight:900;font-size:clamp(1.5rem,4vw,2.4rem);color:#fff;margin:0}
+.cr-sec-h .num{font-family:var(--font-display);font-weight:900;color:transparent;-webkit-text-stroke:1.4px var(--accent);font-size:clamp(1.4rem,3.6vw,2.2rem)}
+</style>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.8', href: '/de/patches/sc-4-8-0.html' }, { label: "Crafting" }]} pill={"THEMA · DATENBANK"} hasEn={true} />
+
+<main id="main">
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-craft-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/de/patches/sc-4-8-0.html">Alpha 4.8</a> &nbsp;·&nbsp; <span class="cr-tag">Crafting-Datenbank</span></div>
+      <h1><span class="thin">Blueprint-Datenbank</span>Crafting</h1>
+      <p class="lead">Blueprints, Zutaten, Qualitäts-Simulator, Fabricator-Planer — direkt aus den Spieldaten.</p>
+      <div class="qbar"><span>Blueprints <b>{total}</b></span><span>Ressourcen <b>{nRes}</b></span><span>Patch <b>4.8</b></span><span>Stand <b>{snap}</b></span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+  </section>
+
+  <TopicFacts topicSlug="crafting" />
+
+  <div class="cr-sec-h reveal"><span class="num">01</span><h2>Blueprint-Datenbank</h2></div>
+  <div class="cr-note reveal">
+    <span>Patch <b>{ver}</b>, Stand <b>{snap}</b> — <b>patch-volatil, ingame prüfen</b>. „Im Besitz"-Markierungen &amp; der Planer werden nur lokal im Browser gespeichert.</span>
+  </div>
+
+  <CraftingApp lang="de" />
+</main>
+
+<RelatedTopics topicSlug="crafting" />
+<Attribution sources={["sc-craft.tools", "CIG-Spieldaten", "RSI"]} updated={snap} />
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

@@ -14,11 +14,11 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://verse-base.com',
   build: { format: 'file' },
-  // i18n: DE ist Default und bleibt PRÄFIXLOS (bestehende URLs/SEO unverändert).
-  // EN-Seiten leben explizit unter src/pages/en/ -> /en/… (harmoniert mit
+  // i18n: EN ist Default und liegt PRÄFIXLOS auf der Wurzel (Standardsprache).
+  // DE-Seiten leben explizit unter src/pages/de/ -> /de/… (harmoniert mit
   // format:'file'; kein Auto-Fallback-Routing, das die .html-URLs verbiegt).
   i18n: {
-    defaultLocale: 'de',
+    defaultLocale: 'en',
     locales: ['de', 'en'],
     routing: { prefixDefaultLocale: false },
   },

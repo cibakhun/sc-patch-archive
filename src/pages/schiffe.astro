@@ -1,26 +1,27 @@
 ---
-// SCHIFFE — the ship database browser (Phase 2). Holo-card fleet grid: full
-// catalog from the wiki-API snapshot, client-side filter + sort in vanilla JS
-// (no framework). Each card carries BOTH prices — Pledge (USD) and the
-// cheapest in-game buy (UEX aUEC snapshot) — plus a patch-spine badge back
-// into the archive.
+// SHIPS (EN) — /schiffe.html. English ship-database browser (Phase 2).
+// Holo-card fleet grid, same data + client-side filter/sort as the DE page;
+// text resolved via the vehicleText helpers (vType/vSize/vStatus). Each card
+// carries BOTH prices — Pledge (USD) and the cheapest in-game buy (UEX aUEC).
+// Links point into the ship detail pages (English, prefix-free root).
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
 import vehiclesSnapshot from '../data/vehicles.json';
 import { pickThumb } from '../lib/shipRenders';
 import { priceInfo, pricesFetchedAt } from '../lib/shipExtras';
-import { vRole } from '../i18n/vehicleText';
+import { vType, vSize, vStatus, vRole } from '../i18n/vehicleText';
 
+const lang = 'en' as const;
 const vehicles = (await getCollection('vehicles')).sort((a, b) =>
-  a.data.name.localeCompare(b.data.name, 'de')
+  a.data.name.localeCompare(b.data.name, 'en')
 );
 const makers = [...new Set(vehicles.map((v) => v.data.manufacturer).filter(Boolean))].sort() as string[];
-const types = [...new Set(vehicles.map((v) => v.data.typeDe).filter(Boolean))].sort() as string[];
+const types = [...new Set(vehicles.map((v) => vType(v.data, lang)).filter(Boolean))].sort() as string[];
 const flightReady = vehicles.filter((v) => v.data.statusEn === 'flight-ready').length;
 const inArchive = vehicles.filter((v) => v.data.patches.length > 0).length;
 
-// Karten-Modell: Preise vorab joinen, damit das JSX schlank bleibt.
+// Card model: join prices up front so the JSX stays lean.
 const cards = vehicles.map((v) => ({
   d: v.data,
   id: v.id,
@@ -35,11 +36,11 @@ const crewFmt = (v: (typeof vehicles)[number]['data']) =>
       ? `${v.crewMin}–${v.crewMax}`
       : `${v.crewMin ?? v.crewMax}`
     : '—';
-const auecShort = (n: number) => n.toLocaleString('de-DE');
+const auecShort = (n: number) => n.toLocaleString('en-US');
 ---
 <Layout
-  title="Schiffe & Fahrzeuge — Datenbank | VerseBase"
-  description={`${vehicles.length} Schiffe und Fahrzeuge mit Specs, Pledge- und Ingame-Preisen, deutschen Beschreibungen und Patch-Historie — Datenstand ${vehiclesSnapshot.fetchedAt}.`}
+  title="Ships & Vehicles — Database | VerseBase"
+  description={`${vehicles.length} ships and vehicles with specs, pledge and in-game prices, English descriptions and patch history — data as of ${vehiclesSnapshot.fetchedAt}.`}
   themeColor="#05070d"
   footer={true}
   translated={true}
@@ -59,7 +60,7 @@ a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 .sdb{position:relative}
-/* weicher Seiten-Backdrop unterhalb des Hero, damit die Fläche nicht tot-schwarz wirkt */
+/* soft page backdrop below the hero so the area isn't dead black */
 .sdb::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:radial-gradient(70% 45% at 82% 4%,rgba(45,212,255,.05),transparent 60%)}
 
@@ -73,7 +74,7 @@ a{color:inherit;text-decoration:none}
   linear-gradient(180deg,rgba(5,7,13,.55),transparent 26%,rgba(5,7,13,.42) 60%,var(--bg) 99%)}
 @keyframes heroKb{from{transform:scale(1)}to{transform:scale(1.08)}}
 @media(prefers-reduced-motion:reduce){.sdb__hero::before{animation:none}}
-/* feines HUD-Raster über dem Scrim */
+/* fine HUD grid over the scrim */
 .sdb__grid{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.6;
   background-image:linear-gradient(rgba(110,168,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(110,168,255,.06) 1px,transparent 1px);
   background-size:52px 52px;-webkit-mask-image:linear-gradient(180deg,transparent,#000 45%,transparent);mask-image:linear-gradient(180deg,transparent,#000 45%,transparent)}
@@ -86,7 +87,7 @@ a{color:inherit;text-decoration:none}
   filter:drop-shadow(0 3px 24px rgba(0,0,0,.85))}
 .sdb__sub{max-width:56ch;color:#dbe6ff;margin-top:.8rem;font-size:clamp(1rem,1.4vw,1.15rem);text-shadow:0 2px 12px rgba(0,0,0,.75)}
 
-/* Kennzahlen als Glas-HUD-Band unten im Hero */
+/* metrics as a glassy HUD band at the bottom of the hero */
 .sdb__metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;margin:1.9rem 0 0;max-width:900px;
   border:1px solid var(--line);background:var(--line);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .sdb__metrics div{position:relative;background:rgba(5,7,13,.66);padding:.8rem 1rem;overflow:hidden}
@@ -96,16 +97,16 @@ a{color:inherit;text-decoration:none}
 @media(max-width:640px){
   .sdb__metrics{grid-template-columns:repeat(2,1fr)}
   .sdb__metrics div{padding:.55rem .7rem}.sdb__metrics dd{font-size:1.25rem}.sdb__metrics dt{font-size:.64rem}
-  /* Hero hugt den Inhalt (statt fast bildschirmhoher Leere), Filter kompakt als 2er-Raster */
+  /* hero hugs its content instead of near-full-screen emptiness; compact 2-col filter */
   .sdb__hero{min-height:auto;padding:5.5rem 1rem 1.5rem}
   .sdb__sub{font-size:.98rem;max-width:none}
   .sdb__panel{padding:1.6rem 1rem 3rem}
 }
 
-/* ---------- Inhalt (Filter + Grid) ---------- */
+/* ---------- Content (filter + grid) ---------- */
 .sdb__panel{max-width:var(--maxw);margin:0 auto;padding:2rem clamp(1rem,3vw,2.5rem) 4rem}
 
-/* ---------- Filter-Konsole ---------- */
+/* ---------- Filter console ---------- */
 .sdb__filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin:0 0 1.4rem;padding:.9rem 1rem;
   border:1px solid var(--line);background:linear-gradient(160deg,var(--surface),var(--bg-2));position:relative}
 .sdb__filter::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;
@@ -120,7 +121,7 @@ a{color:inherit;text-decoration:none}
 .sdb__count{margin-left:auto;font-family:var(--font-ui);font-weight:700;font-size:.82rem;letter-spacing:.12em;
   text-transform:uppercase;color:var(--accent);white-space:nowrap}
 
-/* ---------- Flotten-Grid ---------- */
+/* ---------- Fleet grid ---------- */
 .sdb__fleet{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:1.1rem}
 .sdb__empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--muted);
   font-family:var(--font-ui);font-weight:600;letter-spacing:.06em}
@@ -129,7 +130,7 @@ a{color:inherit;text-decoration:none}
   cursor:pointer;overflow:hidden;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
 .fcard:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--accent) 55%,transparent);
   box-shadow:0 12px 34px color-mix(in srgb,var(--accent) 16%,transparent)}
-/* HUD-Klammern (nur beim Hover/Fokus sichtbar) */
+/* HUD brackets (only on hover/focus) */
 .fcard::before,.fcard::after{content:"";position:absolute;width:16px;height:16px;z-index:3;pointer-events:none;
   opacity:0;transition:opacity .22s ease}
 .fcard::before{top:6px;left:6px;border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
@@ -149,7 +150,7 @@ a{color:inherit;text-decoration:none}
   text-shadow:0 2px 12px rgba(0,0,0,.6);margin-top:.05rem}
 .fcard__name a::after{content:"";position:absolute;inset:0;z-index:1}
 
-/* Ecken-Marker über dem Bild */
+/* corner markers over the image */
 .fcard__status{position:absolute;top:.55rem;left:.6rem;z-index:2;display:inline-flex;align-items:center;gap:.34rem;
   font-family:var(--font-ui);font-weight:700;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
   background:rgba(5,7,13,.6);border:1px solid var(--line);padding:.14rem .42rem;backdrop-filter:blur(3px)}
@@ -189,7 +190,7 @@ a{color:inherit;text-decoration:none}
   .fcard__body{padding:.6rem .6rem .7rem;gap:.5rem}
   .fcard__stats{grid-template-columns:1fr 1fr}
   .fcard__stat:nth-child(3){display:none}
-  /* Preise untereinander, damit lange aUEC-Werte nicht abgeschnitten werden */
+  /* stack prices so long aUEC values aren't clipped */
   .fcard__prices{grid-template-columns:1fr;gap:.25rem}
   .fprice--game{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:.25rem}
 }
@@ -197,7 +198,7 @@ a{color:inherit;text-decoration:none}
 .sdb__src{margin-top:1.5rem;font-size:.85rem;color:var(--muted)}
 .sdb__src a{text-decoration:underline}
 .sdb__src a:hover{color:var(--accent)}
-/* Mobil-Filter: NACH den Basis-Regeln, damit display:grid (gleiche Spezifität) greift */
+/* mobile filter: AFTER the base rules so display:grid (same specificity) wins */
 @media(max-width:640px){
   .sdb__filter{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
   .sdb__filter input{grid-column:1/-1;min-width:0}
@@ -206,53 +207,53 @@ a{color:inherit;text-decoration:none}
 }
 </style>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Schiffe' }]} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Ships' }]} hasEn={true} />
 
 <main class="sdb">
   <section class="sdb__hero">
     <div class="sdb__grid" aria-hidden="true"></div>
     <div class="sdb__heroin">
-      <div class="sdb__eyebrow">Registratur // Flottenkatalog</div>
-      <h1>Schiffe &amp; Fahrzeuge</h1>
+      <div class="sdb__eyebrow">Registry // Fleet Catalog</div>
+      <h1>Ships &amp; Vehicles</h1>
       <dl class="sdb__metrics">
-        <div><dt>Einträge</dt><dd>{vehicles.length}</dd></div>
-        <div><dt>Hersteller</dt><dd>{makers.length}</dd></div>
-        <div><dt>Flugbereit</dt><dd>{flightReady}</dd></div>
-        <div><dt>Ingame kaufbar</dt><dd>{buyable}</dd></div>
-        <div><dt>Im Archiv</dt><dd>{inArchive}</dd></div>
+        <div><dt>Entries</dt><dd>{vehicles.length}</dd></div>
+        <div><dt>Manufacturers</dt><dd>{makers.length}</dd></div>
+        <div><dt>Flight Ready</dt><dd>{flightReady}</dd></div>
+        <div><dt>Buyable in-game</dt><dd>{buyable}</dd></div>
+        <div><dt>In archive</dt><dd>{inArchive}</dd></div>
       </dl>
     </div>
   </section>
 
   <div class="sdb__panel">
   <div class="sdb__filter">
-    <input id="sf-q" type="search" placeholder="Schiff oder Hersteller suchen…" aria-label="Suche" autocomplete="off" />
-    <select id="sf-maker" aria-label="Hersteller">
-      <option value="">Alle Hersteller</option>
+    <input id="sf-q" type="search" placeholder="Search ship or manufacturer…" aria-label="Search" autocomplete="off" />
+    <select id="sf-maker" aria-label="Manufacturer">
+      <option value="">All manufacturers</option>
       {makers.map((m) => <option value={m}>{m}</option>)}
     </select>
-    <select id="sf-type" aria-label="Typ">
-      <option value="">Alle Typen</option>
-      {types.map((t) => <option value={t}>{t}</option>)}
+    <select id="sf-type" aria-label="Type">
+      <option value="">All types</option>
+      {types.map((tp) => <option value={tp}>{tp}</option>)}
     </select>
     <select id="sf-status" aria-label="Status">
-      <option value="">Jeder Status</option>
-      <option value="flight-ready">Flugbereit</option>
-      <option value="in-production">In Produktion</option>
-      <option value="in-concept">Konzept</option>
+      <option value="">Any status</option>
+      <option value="flight-ready">Flight Ready</option>
+      <option value="in-production">In production</option>
+      <option value="in-concept">Concept</option>
     </select>
-    <select id="sf-archive" aria-label="Archiv">
-      <option value="">Alle</option>
-      <option value="1">Im Patch-Archiv</option>
+    <select id="sf-archive" aria-label="Archive">
+      <option value="">All</option>
+      <option value="1">In the patch archive</option>
     </select>
-    <select id="sf-sort" aria-label="Sortierung">
+    <select id="sf-sort" aria-label="Sort">
       <option value="name">Name A–Z</option>
-      <option value="pledge">Pledge-Preis ↓</option>
-      <option value="game">Ingame-Preis ↓</option>
-      <option value="cargo">Fracht ↓</option>
+      <option value="pledge">Pledge price ↓</option>
+      <option value="game">In-game price ↓</option>
+      <option value="cargo">Cargo ↓</option>
       <option value="crew">Crew ↓</option>
     </select>
-    <span class="sdb__count" id="sf-count">{vehicles.length} Treffer</span>
+    <span class="sdb__count" id="sf-count">{vehicles.length} results</span>
   </div>
 
   <div class="sdb__fleet" id="sf-fleet">
@@ -261,7 +262,7 @@ a{color:inherit;text-decoration:none}
         class="fcard"
         data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
         data-maker={d.manufacturer ?? ''}
-        data-type={d.typeDe ?? ''}
+        data-type={vType(d, lang) ?? ''}
         data-status={d.statusEn ?? ''}
         data-archive={d.patches.length ? '1' : ''}
         data-href={`/schiffe/${id}.html`}
@@ -275,11 +276,11 @@ a{color:inherit;text-decoration:none}
             <img src={thumb.src} alt="" loading="lazy" referrerpolicy="no-referrer"
               onerror="this.style.display='none'" />
           ) : (
-            <span class="fcard__noimg" aria-hidden="true">Kein Bild</span>
+            <span class="fcard__noimg" aria-hidden="true">No image</span>
           )}
           <span class="fcard__scrim" aria-hidden="true"></span>
           <span class={`fcard__status${d.statusEn === 'flight-ready' ? ' fr' : ''}`}>
-            <span class="fcard__dot"></span>{d.statusDe ?? '—'}
+            <span class="fcard__dot"></span>{vStatus(d, lang) ?? '—'}
           </span>
           {d.patches.length > 0 && (
             <a class="fcard__patch" href={`/patches/sc-${d.patches[0].replaceAll('.', '-')}.html`}>
@@ -293,13 +294,13 @@ a{color:inherit;text-decoration:none}
         </div>
         <div class="fcard__body">
           <div class="fcard__chips">
-            {vRole(d, 'de') && <span class="fcard__chip">{vRole(d, 'de')}</span>}
-            {d.sizeDe && <span class="fcard__chip">{d.sizeDe}</span>}
+            {vRole(d, lang) && <span class="fcard__chip">{vRole(d, lang)}</span>}
+            {vSize(d, lang) && <span class="fcard__chip">{vSize(d, lang)}</span>}
           </div>
           <dl class="fcard__stats">
             <div class="fcard__stat"><dt>Crew</dt><dd>{crewFmt(d)}</dd></div>
-            <div class="fcard__stat"><dt>Fracht</dt><dd>{d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—'}</dd></div>
-            <div class="fcard__stat"><dt>Länge</dt><dd>{d.lengthM != null ? `${d.lengthM} m` : '—'}</dd></div>
+            <div class="fcard__stat"><dt>Cargo</dt><dd>{d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—'}</dd></div>
+            <div class="fcard__stat"><dt>Length</dt><dd>{d.lengthM != null ? `${d.lengthM} m` : '—'}</dd></div>
           </dl>
           <dl class="fcard__prices">
             <div class="fprice fprice--pledge">
@@ -307,22 +308,22 @@ a{color:inherit;text-decoration:none}
               <dd class={`v${d.msrpUSD == null ? ' none' : ''}`}>{d.msrpUSD != null ? `$${d.msrpUSD.toLocaleString('en-US')}` : '—'}</dd>
             </div>
             <div class="fprice fprice--game">
-              <dt>Ingame</dt>
+              <dt>In-game</dt>
               <dd class={`v${buy == null ? ' none' : ''}`}>{buy != null ? <>{auecShort(buy)}<span class="fprice__u">aUEC</span></> : '—'}</dd>
             </div>
           </dl>
         </div>
       </article>
     ))}
-    <p class="sdb__empty" id="sf-empty" hidden>Keine Treffer — Filter zurücksetzen.</p>
+    <p class="sdb__empty" id="sf-empty" hidden>No matches — reset the filters.</p>
   </div>
 
   <p class="sdb__src">
-    Quelle: <a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
-    (Community-Projekt, Daten aus den Spieldateien) · Stand {vehiclesSnapshot.fetchedAt}
-    {vehiclesSnapshot.gameVersion && ` · Spieldaten ${vehiclesSnapshot.gameVersion.split('-')[0]}`}
-    · Ingame-Preise: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> (Stand {pricesFetchedAt})
-    · Bilder: starcitizen.tools
+    Source: <a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
+    (community project, data from the game files) · as of {vehiclesSnapshot.fetchedAt}
+    {vehiclesSnapshot.gameVersion && ` · game data ${vehiclesSnapshot.gameVersion.split('-')[0]}`}
+    · In-game prices: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> (as of {pricesFetchedAt})
+    · Images: starcitizen.tools
   </p>
   </div>
 </main>
@@ -362,7 +363,7 @@ a{color:inherit;text-decoration:none}
       c.style.display = ok ? '' : 'none';
       if (ok) n++;
     });
-    count.textContent = n + ' Treffer';
+    count.textContent = n + ' results';
     empty.hidden = n !== 0;
   }
 
@@ -370,7 +371,7 @@ a{color:inherit;text-decoration:none}
     var key = selSort.value;
     var ordered;
     if (key === 'name') {
-      ordered = cards; // serverseitig bereits alphabetisch
+      ordered = cards; // already alphabetical from the server
     } else {
       var attr = { pledge: 'data-pledge', game: 'data-game', cargo: 'data-cargo', crew: 'data-crew' }[key];
       ordered = cards.slice().sort(function (a, b) { return numAttr(b, attr) - numAttr(a, attr); });
@@ -384,7 +385,7 @@ a{color:inherit;text-decoration:none}
   });
   selSort.addEventListener('change', sort);
 
-  // ganze Karte klickbar (innere Links funktionieren weiter)
+  // whole card clickable (inner links keep working)
   cards.forEach(function (c) {
     c.addEventListener('click', function (e) {
       if (e.target.closest('a')) return;

@@ -43,11 +43,16 @@ const base = SITE.url.replace(/\/$/, '');
 const canonical = base + Astro.url.pathname;
 const ogImageAbs = ogImage ? (ogImage.startsWith('http') ? ogImage : base + ogImage) : null;
 
-// Locale aus dem Pfad (EN lebt unter /en/…). Steuert lang + og:locale.
+// Locale aus dem Pfad (DE lebt unter /de/…). Steuert lang + og:locale.
 const lang = localeFromPath(Astro.url.pathname);
-// hreflang-Ziele (nur wenn ein Übersetzungspaar existiert)
-const deHref = base + pathForLocale(Astro.url.pathname, 'de');
-const enHref = base + pathForLocale(Astro.url.pathname, 'en');
+// hreflang-Ziele (nur wenn ein Übersetzungspaar existiert).
+// '/' und '/index.html' sind dieselbe Seite; canonical nennt '/' (Astro liefert
+// den Pfad so). hreflang MUSS dieselbe URL nennen — nennt es die andere Form,
+// widersprechen sich canonical und hreflang und Google verwirft das
+// Sprach-Cluster. Betrifft die Startseite, also die wichtigste URL der Seite.
+const canon = (p: string) => (p === '/index.html' ? '/' : p);
+const deHref = base + canon(pathForLocale(Astro.url.pathname, 'de'));
+const enHref = base + canon(pathForLocale(Astro.url.pathname, 'en'));
 ---
 <!doctype html>
 <html lang={HTML_LANG[lang]}>
@@ -64,7 +69,7 @@ const enHref = base + pathForLocale(Astro.url.pathname, 'en');
     <>
       <link rel="alternate" hreflang="de" href={deHref} />
       <link rel="alternate" hreflang="en" href={enHref} />
-      <link rel="alternate" hreflang="x-default" href={deHref} />
+      <link rel="alternate" hreflang="x-default" href={enHref} />
     </>
   )}
   <meta property="og:type" content={ogType} />

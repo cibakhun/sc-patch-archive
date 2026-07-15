@@ -1,14 +1,13 @@
 ---
-// Patch-Archiv — ausgelagert von der Startseite (die ist seit dem Landing-Page-
-// Umbau ein einzelner Screen). Hier leben die Patch-Karten nach Ären, die
-// kuratierten Schlüsselthemen und das Alle-Themen-Verzeichnis (#themen).
+// Patch archive — moved off the home page (which is a single-screen landing
+// page since the redesign). Home of the patch cards by era, the curated key
+// topics and the all-topics directory (#themen).
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
+import { mergePatchEn } from '../i18n/patchText';
 
-const patches = (await getCollection('patches')).sort((a, b) =>
-  a.data.date.localeCompare(b.data.date)
-);
+const patches = (await getCollection('patches')).sort((a, b) => a.data.date.localeCompare(b.data.date)).map((p) => ({ ...p, data: mergePatchEn(p.id, p.data, 'en') }));
 const patchCount = patches.length;
 const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
 
@@ -50,14 +49,14 @@ for (const t of allTopics) {
   g.topics.push(t);
 }
 ---
-<Layout title={"Patch-Archiv — Alpha 4.0 bis 4.8 | VerseBase"} description={`Das komplette Star-Citizen-Patch-Archiv der Alpha-4-Ära: ${patchCount} Patches von Destination Pyro (4.0.0) bis Alien Week (4.8.2), mit ${topicCount} Themen-Deep-Dives.`} themeColor="#05070d" footer={true} translated={true}>
+<Layout title={"Patch archive — Alpha 4.0 to 4.8 | VerseBase"} description={`The complete Star Citizen patch archive of the Alpha 4 era: ${patchCount} patches from Destination Pyro (4.0.0) to Alien Week (4.8.2), with ${topicCount} topic deep dives.`} themeColor="#05070d" footer={true} translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--hot:#2dd4ff;--gold:#d4af37;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.18);--line-soft:rgba(232,238,252,.10);--glow:0 0 44px rgba(45,212,255,.28);--ink:#05070d;--maxw:1240px;}
-/* kompakter Hero — Verzeichnis-Seite, kein Kino */
+/* compact hero — directory page, no cinema */
 .hero{min-height:52svh}
 
-/* --- Ären-Unterteiler + Patch-Karten --- */
+/* --- Era dividers + patch cards --- */
 .era{max-width:var(--maxw);margin:2.8rem auto 1.1rem;display:flex;align-items:center;gap:.9rem}
 .era:first-of-type{margin-top:0}
 .era h3{font-family:var(--font-ui);font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:.8rem;color:var(--text);white-space:nowrap;margin:0}
@@ -85,7 +84,7 @@ for (const t of allTopics) {
 .pcard:hover .go .ar{transform:translateX(5px)}
 .pcard .badge{position:absolute;top:1.2rem;right:1.3rem;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--c);border:1px solid var(--c);padding:.15rem .45rem;border-radius:2px;background:rgba(0,0,0,.45)}
 
-/* --- Schlüsselthemen --- */
+/* --- Key topics --- */
 .ktgrid{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:1fr;gap:.9rem}
 @media(min-width:768px){.ktgrid{grid-template-columns:1fr 1fr;gap:.9rem 1.4rem}}
 .ktcard{--c:var(--accent);display:grid;grid-template-columns:2.2rem 1fr;gap:0 .9rem;padding:1.1rem 1.3rem;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);transition:background-color .15s,border-color .15s}
@@ -96,7 +95,7 @@ for (const t of allTopics) {
 .ktbadge{font-family:var(--font-ui);font-weight:700;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .ktcard p{color:var(--muted);font-size:1rem;line-height:1.5;margin-top:.3rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
-/* --- Themen-Hub --- */
+/* --- Topic hub --- */
 .hub{max-width:var(--maxw);margin:0 auto;display:flex;flex-direction:column;gap:1.2rem}
 .hubgroup{border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 55%,transparent);padding:1rem 1.3rem;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
 .hubhead{display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--line);padding-bottom:.5rem;margin-bottom:.6rem}
@@ -113,10 +112,10 @@ footer{border-top:1px solid var(--line);padding:3rem clamp(1.25rem,5vw,3rem);tex
 footer .disclaimer{max-width:80ch;margin:0 auto;font-size:.78rem;color:var(--muted);opacity:.75}
 footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:uppercase;font-size:.75rem;color:var(--muted);margin-bottom:1rem}
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'VerseBase', href: '/index.html' }, { label: 'Patch-Archiv' }]} pill={"ARCHIV · ALPHA 4"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'VerseBase', href: '/index.html' }, { label: 'Patch archive' }]} pill={"ARCHIVE · ALPHA 4"} />
 
 <main id="main">
 
@@ -125,10 +124,10 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
     <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
       <div class="eyebrow">VerseBase</div>
-      <h1><span class="thin">Alpha 4.0 – 4.8</span>Patch-Archiv</h1>
-      <p class="lead">{patchCount} Patches, {topicCount} Deep-Dives — von Destination Pyro bis Alien Week.</p>
+      <h1><span class="thin">Alpha 4.0 – 4.8</span>Patch archive</h1>
+      <p class="lead">{patchCount} patches, {topicCount} deep dives — from Destination Pyro to Alien Week.</p>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <div class="dmarquee" aria-hidden="true">
@@ -142,48 +141,48 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
   <section>
     <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>Patches</h2><span class="rule"></span></div></div>
 
-    <div class="era reveal"><h3>Pyro-Ära</h3><span class="yr">2024 – 2025</span><span class="rule"></span></div>
+    <div class="era reveal"><h3>Pyro Era</h3><span class="yr">2024 – 2025</span><span class="rule"></span></div>
     <div class="grid">
-      <a class="pcard reveal" style="--c:#ff5a1f;--img:url('/assets/trailer-4-0-0.jpg')" href="/patches/sc-4-0-0.html"><span class="badge">Major</span><div class="ver">4.0.0</div><div class="date">19. Dez 2024</div><div class="name">Destination Pyro</div><div class="desc">Server Meshing & das gesetzlose Pyro-System.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#36c5d8;--img:url('/assets/trailer-4-0-0.jpg')" href="/patches/sc-4-0-1.html"><div class="ver">4.0.1</div><div class="date">28. Jan 2025</div><div class="name">Stabilität & Save Stanton II</div><div class="desc">Crash-Fixes und das nächste Kapitel des Fraktions-Narrativs.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#e8771a;--img:url('/assets/t-pyro-3.jpg')" href="/patches/sc-4-0-2.html"><div class="ver">4.0.2</div><div class="date">28. Feb 2025</div><div class="name">Supply or Die</div><div class="desc">Pyros gnadenloser Zwei-Fraktionen-Nachschubkrieg.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#ff5a1f;--img:url('/assets/trailer-4-0-0.jpg')" href="/patches/sc-4-0-0.html"><span class="badge">Major</span><div class="ver">4.0.0</div><div class="date">Dec 19, 2024</div><div class="name">Destination Pyro</div><div class="desc">Server Meshing & the lawless Pyro system.</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#36c5d8;--img:url('/assets/trailer-4-0-0.jpg')" href="/patches/sc-4-0-1.html"><div class="ver">4.0.1</div><div class="date">Jan 28, 2025</div><div class="name">Stability & Save Stanton II</div><div class="desc">Crash fixes and the next chapter of the faction narrative.</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#e8771a;--img:url('/assets/t-pyro-3.jpg')" href="/patches/sc-4-0-2.html"><div class="ver">4.0.2</div><div class="date">Feb 28, 2025</div><div class="name">Supply or Die</div><div class="desc">Pyro's merciless two-faction supply war.</div><span class="go">Open <span class="ar">→</span></span></a>
     </div>
 
-    <div class="era reveal"><h3>Sturm &amp; Stahl</h3><span class="yr">2025</span><span class="rule"></span></div>
+    <div class="era reveal"><h3>Storm &amp; Steel</h3><span class="yr">2025</span><span class="rule"></span></div>
     <div class="grid">
-      <a class="pcard reveal" style="--c:#3da5d9;--img:url('/assets/trailer-4-1-0.jpg')" href="/patches/sc-4-1-0.html"><div class="ver">4.1.0</div><div class="date">27. Mär 2025</div><div class="name">Orbital Assault</div><div class="desc">Orbitale Laserplattformen & tiefes Asteroiden-Mining („Align &amp; Mine").</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#ff7a1a;--img:url('/assets/trailer-4-1-0.jpg')" href="/patches/sc-4-1-1.html"><div class="ver">4.1.1</div><div class="date">13. Mai 2025</div><div class="name">Balancing &amp; Fleet Week</div><div class="desc">Waffen-Tuning, Recoil und „Hunt The Polaris".</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#36e2f0;--img:url('/assets/trailer-4-2-0.jpg')" href="/patches/sc-4-2-0.html"><span class="badge">Major</span><div class="ver">4.2.0</div><div class="date">19. Jun 2025</div><div class="name">Storm Breaker</div><div class="desc">In den Sturm hinein — dynamischer Regen & Strahlung.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#2ea36a;--img:url('/assets/img-meteor.jpg')" href="/patches/sc-4-2-1.html"><div class="ver">4.2.1</div><div class="date">17. Jul 2025</div><div class="name">Resource Drive</div><div class="desc">Kooperatives Konvoi-Event & die RSI Meteor.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#3da5d9;--img:url('/assets/trailer-4-1-0.jpg')" href="/patches/sc-4-1-0.html"><div class="ver">4.1.0</div><div class="date">Mar 27, 2025</div><div class="name">Orbital Assault</div><div class="desc">Orbital laser platforms & deep asteroid mining ("Align &amp; Mine").</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#ff7a1a;--img:url('/assets/trailer-4-1-0.jpg')" href="/patches/sc-4-1-1.html"><div class="ver">4.1.1</div><div class="date">May 13, 2025</div><div class="name">Balancing &amp; Fleet Week</div><div class="desc">Weapon tuning, recoil and "Hunt The Polaris".</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#36e2f0;--img:url('/assets/trailer-4-2-0.jpg')" href="/patches/sc-4-2-0.html"><span class="badge">Major</span><div class="ver">4.2.0</div><div class="date">Jun 19, 2025</div><div class="name">Storm Breaker</div><div class="desc">Into the storm — dynamic rain & radiation.</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#2ea36a;--img:url('/assets/img-meteor.jpg')" href="/patches/sc-4-2-1.html"><div class="ver">4.2.1</div><div class="date">Jul 17, 2025</div><div class="name">Resource Drive</div><div class="desc">Cooperative convoy event & the RSI Meteor.</div><span class="go">Open <span class="ar">→</span></span></a>
     </div>
 
-    <div class="era reveal"><h3>Onyx &amp; Heilung</h3><span class="yr">2025</span><span class="rule"></span></div>
+    <div class="era reveal"><h3>Onyx &amp; Healing</h3><span class="yr">2025</span><span class="rule"></span></div>
     <div class="grid">
-      <a class="pcard reveal" style="--c:#e8a317;--img:url('/assets/trailer-4-3-0.jpg')" href="/patches/sc-4-3-0.html"><span class="badge">Major</span><div class="ver">4.3.0</div><div class="date">16. Aug 2025</div><div class="name">Dark Territory</div><div class="desc">Personal Hangars als Heimathafen & die Onyx Facilities.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#1faa8c;--img:url('/assets/trailer-4-3-1.jpg')" href="/patches/sc-4-3-1.html"><div class="ver">4.3.1</div><div class="date">18. Sep 2025</div><div class="name">Virtue's Descent</div><div class="desc">RSI Apollo & der große Medical-Overhaul.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#b5642a;--img:url('/assets/img-paladin.jpg')" href="/patches/sc-4-3-2.html"><div class="ver">4.3.2</div><div class="date">16. Okt 2025</div><div class="name">Fractured Frontiers</div><div class="desc">Salvage-Rework, Bosskampf & Frontier-Fighters-Finale.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#e8a317;--img:url('/assets/trailer-4-3-0.jpg')" href="/patches/sc-4-3-0.html"><span class="badge">Major</span><div class="ver">4.3.0</div><div class="date">Aug 16, 2025</div><div class="name">Dark Territory</div><div class="desc">Personal Hangars as home port & the Onyx Facilities.</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#1faa8c;--img:url('/assets/trailer-4-3-1.jpg')" href="/patches/sc-4-3-1.html"><div class="ver">4.3.1</div><div class="date">Sep 18, 2025</div><div class="name">Virtue's Descent</div><div class="desc">RSI Apollo & the major medical overhaul.</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#b5642a;--img:url('/assets/img-paladin.jpg')" href="/patches/sc-4-3-2.html"><div class="ver">4.3.2</div><div class="date">Oct 16, 2025</div><div class="name">Fractured Frontiers</div><div class="desc">Salvage rework, boss fight & Frontier Fighters finale.</div><span class="go">Open <span class="ar">→</span></span></a>
     </div>
 
-    <div class="era reveal"><h3>Neue Horizonte</h3><span class="yr">2025 – 2026</span><span class="rule"></span></div>
+    <div class="era reveal"><h3>New Horizons</h3><span class="yr">2025 – 2026</span><span class="rule"></span></div>
     <div class="grid">
-      <a class="pcard reveal" style="--c:#7fb2d9;--img:url('/assets/trailer-4-4-0.jpg')" href="/patches/sc-4-4-0.html"><span class="badge">Major</span><div class="ver">4.4.0</div><div class="date">19. Nov 2025</div><div class="name">Welcome to Nyx</div><div class="desc">Drittes Sternsystem, erste Vanduul & IAE 2955.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#ffb000;--img:url('/assets/trailer-4-5-0.jpg')" href="/patches/sc-4-5-0.html"><span class="badge">Major</span><div class="ver">4.5.0</div><div class="date">17. Dez 2025</div><div class="name">Dawn of Engineering</div><div class="desc">Engineering, Ship Armor & sich ausbreitendes Feuer.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#7fb80e;--img:url('/assets/trailer-4-6-0.jpg')" href="/patches/sc-4-6-0.html"><span class="badge">Major</span><div class="ver">4.6.0</div><div class="date">29. Jan 2026</div><div class="name">Lifeline for Levski</div><div class="desc">Seuchen-Event, LAMP-Nachtsicht & RSI Hermes.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#ff5e1a;--img:url('/assets/trailer-4-7-0.jpg')" href="/patches/sc-4-7-0.html"><span class="badge">Major</span><div class="ver">4.7.0</div><div class="date">26. Mär 2026</div><div class="name">Welcome to the Rock</div><div class="desc">Crafting & Operation Breaker Stations.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#7fb2d9;--img:url('/assets/trailer-4-4-0.jpg')" href="/patches/sc-4-4-0.html"><span class="badge">Major</span><div class="ver">4.4.0</div><div class="date">Nov 19, 2025</div><div class="name">Welcome to Nyx</div><div class="desc">Third star system, first Vanduul & IAE 2955.</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#ffb000;--img:url('/assets/trailer-4-5-0.jpg')" href="/patches/sc-4-5-0.html"><span class="badge">Major</span><div class="ver">4.5.0</div><div class="date">Dec 17, 2025</div><div class="name">Dawn of Engineering</div><div class="desc">Engineering, Ship Armor & spreading fire.</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#7fb80e;--img:url('/assets/trailer-4-6-0.jpg')" href="/patches/sc-4-6-0.html"><span class="badge">Major</span><div class="ver">4.6.0</div><div class="date">Jan 29, 2026</div><div class="name">Lifeline for Levski</div><div class="desc">Plague event, LAMP night vision & RSI Hermes.</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#ff5e1a;--img:url('/assets/trailer-4-7-0.jpg')" href="/patches/sc-4-7-0.html"><span class="badge">Major</span><div class="ver">4.7.0</div><div class="date">Mar 26, 2026</div><div class="name">Welcome to the Rock</div><div class="desc">Crafting & Operation Breaker Stations.</div><span class="go">Open <span class="ar">→</span></span></a>
     </div>
 
     <div class="era reveal"><h3>Tactical Strike</h3><span class="yr">2026</span><span class="rule"></span></div>
     <div class="grid">
-      <a class="pcard reveal" style="--c:#e8651e;--img:url('/assets/trailer-4-8-0.jpg')" href="/patches/sc-4-8-0.html"><span class="badge">Major</span><div class="ver">4.8.0</div><div class="date">14. Mai 2026</div><div class="name">Tactical Strike</div><div class="desc">Drake Ironclad & G-Force-Toleranz im Flug.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#36c5d6;--img:url('/assets/trailer-4-8-0.jpg')" href="/patches/sc-4-8-1.html"><div class="ver">4.8.1</div><div class="date">3. Jun 2026</div><div class="name">Defend Location</div><div class="desc">385 Verteidigungsmissionen gegen Bomber-Anflüge.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#1fb8a6;--img:url('/assets/img-railen.jpg')" href="/patches/sc-4-8-2.html"><div class="ver">4.8.2</div><div class="date">17. Jun 2026</div><div class="name">Gatac &amp; Alien Week</div><div class="desc">Zwei Alien-Schiffe & First Contact Day.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
-      <a class="pcard reveal" style="--c:#e8651e;--img:url('/assets/t-xeno-1.jpg')" href="/patches/sc-4-8-3.html"><span class="badge">Aktuell</span><div class="ver">4.8.3</div><div class="date">1. Jul 2026</div><div class="name">XenoThreat</div><div class="desc">Rückkehr des XenoThreat-Events — Assault on Stanton.</div><span class="go">Öffnen <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#e8651e;--img:url('/assets/trailer-4-8-0.jpg')" href="/patches/sc-4-8-0.html"><span class="badge">Major</span><div class="ver">4.8.0</div><div class="date">May 14, 2026</div><div class="name">Tactical Strike</div><div class="desc">Drake Ironclad & G-force tolerance in flight.</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#36c5d6;--img:url('/assets/trailer-4-8-0.jpg')" href="/patches/sc-4-8-1.html"><div class="ver">4.8.1</div><div class="date">Jun 3, 2026</div><div class="name">Defend Location</div><div class="desc">385 defense missions against bomber runs.</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#1fb8a6;--img:url('/assets/img-railen.jpg')" href="/patches/sc-4-8-2.html"><div class="ver">4.8.2</div><div class="date">Jun 17, 2026</div><div class="name">Gatac &amp; Alien Week</div><div class="desc">Two alien ships & First Contact Day.</div><span class="go">Open <span class="ar">→</span></span></a>
+      <a class="pcard reveal" style="--c:#e8651e;--img:url('/assets/t-xeno-1.jpg')" href="/patches/sc-4-8-3.html"><span class="badge">Latest</span><div class="ver">4.8.3</div><div class="date">Jul 1, 2026</div><div class="name">XenoThreat</div><div class="desc">XenoThreat event returns — Assault on Stanton.</div><span class="go">Open <span class="ar">→</span></span></a>
     </div>
   </section>
 
-  <!-- 02 · SCHLÜSSELTHEMEN -->
+  <!-- 02 · KEY TOPICS -->
   <section>
-    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>Schlüsselthemen</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>Key topics</h2><span class="rule"></span></div></div>
     <div class="ktgrid reveal">
       {keyTopics.map((k, i) => (
         <a class="ktcard" style={`--c:${k!.accent}`} href={`/topics/${k!.slug}.html`}>
@@ -198,16 +197,16 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
     </div>
   </section>
 
-  <!-- 03 · ALLE THEMEN -->
+  <!-- 03 · ALL TOPICS -->
   <section id="themen">
-    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>Alle Themen</h2><span class="rule"></span><span class="yr" style="font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;font-size:.7rem;color:var(--accent);border:1px solid var(--line);padding:.2rem .6rem;border-radius:2px;white-space:nowrap">{topicCount} Deep-Dives</span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>All topics</h2><span class="rule"></span><span class="yr" style="font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;font-size:.7rem;color:var(--accent);border:1px solid var(--line);padding:.2rem .6rem;border-radius:2px;white-space:nowrap">{topicCount} deep dives</span></div></div>
     <div class="hub reveal">
       {hubGroups.map((g) => (
         <div class="hubgroup">
           <div class="hubhead">
             <span class="hubsw" style={`background:${g.accent}`} aria-hidden="true"></span>
             <span class="hubline">Alpha {g.line}.x</span>
-            <span class="hubn">· {g.topics.length} {g.topics.length === 1 ? 'Eintrag' : 'Einträge'}</span>
+            <span class="hubn">· {g.topics.length} {g.topics.length === 1 ? 'entry' : 'entries'}</span>
           </div>
           <div class="hubrows">
             {g.topics.map((t) => (

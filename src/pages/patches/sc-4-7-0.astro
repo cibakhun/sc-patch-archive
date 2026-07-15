@@ -5,13 +5,14 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-7-0');
 if (!entry) throw new Error('Patch-Daten 4-7-0 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-7-0', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.7.0 — Welcome to the Rock | VerseBase"} description={"Alpha 4.7.0: Crafting, Operation Breaker Stations im Keeger Belt und die Aurora Mk II."} themeColor="#1c1c20" ogType="article" ogImage="/assets/trailer-4-7-0.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/trailer-4-7-0.jpg" />
+<Layout title={"Star Citizen Alpha 4.7.0 — Welcome to the Rock | VerseBase"} description={"Alpha 4.7.0: Crafting, Operation Breaker Stations in the Keeger Belt and the Aurora Mk II."} themeColor="#1c1c20" ogType="article" ogImage="/assets/trailer-4-7-0.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/trailer-4-7-0.jpg" lang="en" />
 <style is:inline>
 
 /* 4.7.0 "Welcome to the Rock" — media-first / low-text / MAXIMAL */
@@ -169,10 +170,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.7.0' }]} pill={"ALPHA 4.7.0"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.7.0' }]} pill={"ALPHA 4.7.0"} hasEn={true} />
 
 
 <main id="main">
@@ -182,15 +183,15 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">26. März 2026 · Major Release</div>
+      <div class="eyebrow">March 26, 2026 · Major Release</div>
       <h1 data-text="4.7.0">4.7.0</h1>
       <div class="codename">Welcome to the <span>Rock</span></div>
-      <div class="tagline">Crafting, Operation Breaker Stations und die Aurora Mk II.</div>
+      <div class="tagline">Crafting, Operation Breaker Stations and the Aurora Mk II.</div>
       <div class="tags">
         <span class="tag">Crafting</span><span class="tag hot">Breaker Stations</span><span class="tag">Keeger Belt</span><span class="tag">Aurora Mk II</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
@@ -202,7 +203,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   </div>
 
   <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
@@ -210,11 +211,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
         <div class="tile img b2" data-lb="img:/assets/t-craft-2.jpg"><div class="tbg" style="background-image:url('/assets/t-craft-2.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Breaker Stations</div><div class="sub">Keeger Belt</div></div>
-        <a class="tile word hot" href="/topics/crafting.html"><span class="zoomic">→</span><b>CRAFTING</b><small>Detailseite ansehen</small></a>
-        <div class="tile word" data-info data-title="Keeger Belt" data-text="Asteroidengürtel und Schauplatz von Operation Breaker Stations. Hier liegen Shubins kürzlich übernommene QV Breaker Stations verlassen und ohne Energie — Spieler reaktivieren sie, um den gewaltigen Laser zum Aufbrechen der Asteroiden zu nutzen." data-img="/assets/vid-isc47.jpg"><span class="zoomic">+</span><b>KEEGER<br>BELT</b><small>QV-Stationen</small></div>
+        <a class="tile word hot" href="/topics/crafting.html"><span class="zoomic">→</span><b>CRAFTING</b><small>View detail page</small></a>
+        <div class="tile word" data-info data-title="Keeger Belt" data-text="An asteroid belt and the setting of Operation Breaker Stations. Here Shubin's recently acquired QV Breaker Stations lie abandoned and without power — players reactivate them to use the enormous laser for breaking open the asteroids." data-img="/assets/vid-isc47.jpg"><span class="zoomic">+</span><b>KEEGER<br>BELT</b><small>QV stations</small></div>
         <div class="tile img w2" data-lb="img:/assets/img-aurora.jpg"><div class="tbg" style="background-image:url('/assets/img-aurora.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Aurora Mk II</div><div class="sub">RSI · Starter</div></div>
-        <div class="tile word" data-info data-title="Stella Fortuna" data-text="Saisonales Glücks- und Feier-Event im Star-Citizen-Kalender. Es bringt zeitlich begrenzte Aktivitäten, Belohnungen und Festtags-Stimmung ins Universum und begleitet den 4.7.0-Zeitraum."><span class="zoomic">+</span><b>STELLA<br>FORTUNA</b><small>saisonal</small></div>
-        <div class="tile word hot" data-info data-title="Operation Breaker Stations" data-text="Mehrstufige Koop-Mission im Keeger Belt: Spieler kämpfen gegen Claw-Salamander und Valakkar, stellen die Energie wieder her, craften optische Komponenten für den Laser und bergen seltene Ressourcen. Wählbar als privater (PvE) oder offener Lauf mit PvP." data-img="/assets/t-craft-1.jpg"><span class="zoomic">+</span><b>PvE / PvP</b><small>Operation</small></div>
+        <div class="tile word" data-info data-title="Stella Fortuna" data-text="A seasonal luck and celebration event in the Star Citizen calendar. It brings time-limited activities, rewards and festive spirit to the universe and accompanies the 4.7.0 period."><span class="zoomic">+</span><b>STELLA<br>FORTUNA</b><small>seasonal</small></div>
+        <div class="tile word hot" data-info data-title="Operation Breaker Stations" data-text="A multi-stage co-op mission in the Keeger Belt: players fight Claw Salamanders and Valakkar, restore the power, craft optical components for the laser and recover rare resources. Playable as a private (PvE) or open run with PvP." data-img="/assets/t-craft-1.jpg"><span class="zoomic">+</span><b>PvE / PvP</b><small>Operation</small></div>
       </div>
     </div>
   </section>
@@ -225,14 +226,14 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="shot__in reveal">
       <div class="kx">Keeger Belt</div>
       <div class="big">BREAKER STATIONS</div>
-      <p>Reaktiviere die Shubin-Station im Keeger Belt.</p>
+      <p>Reactivate the Shubin station in the Keeger Belt.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Ships</h2><span class="rule"></span></div>
       <div class="garage">
         <article class="ship reveal" data-lb="yt:SzMHlkiv4DQ"><div class="sbg" style="background-image:url('/assets/img-aurora.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · Starter</span><h3>Aurora Mk II</h3></div></article>
       </div>
@@ -244,45 +245,45 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="sX4_Q6AuqSI" style="background-image:url('/assets/trailer-4-7-0.jpg')"><span class="vlbl">Welcome to the Rock — Trailer</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="TsMvQtRtLfw" style="background-image:url('/assets/vid-isc47.jpg')"><span class="vlbl">Inside Star Citizen — 4.7</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="SzMHlkiv4DQ" style="background-image:url('/assets/vid-aurora.jpg')"><span class="vlbl">Aurora Mk II — Commercial</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="sX4_Q6AuqSI" style="background-image:url('/assets/trailer-4-7-0.jpg')"><span class="vlbl">Welcome to the Rock — Trailer</span><button class="play" aria-label="Play">▶</button></div>
+        <div class="video" data-yt="TsMvQtRtLfw" style="background-image:url('/assets/vid-isc47.jpg')"><span class="vlbl">Inside Star Citizen — 4.7</span><button class="play" aria-label="Play">▶</button></div>
+        <div class="video" data-yt="SzMHlkiv4DQ" style="background-image:url('/assets/vid-aurora.jpg')"><span class="vlbl">Aurora Mk II — Commercial</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=sX4_Q6AuqSI" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=sX4_Q6AuqSI" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-craft-3.jpg"><img src="/assets/t-craft-3.jpg" alt="Das CRAFT-Menü — Fertigung einer Volt Pulse Pistol" loading="lazy"><span class="zoomic">⤢</span><figcaption>CRAFT-Menü · Fertigung</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-craft-3.jpg"><img src="/assets/t-craft-3.jpg" alt="The CRAFT menu — manufacturing a Volt Pulse Pistol" loading="lazy"><span class="zoomic">⤢</span><figcaption>CRAFT menu · Manufacturing</figcaption></figure>
         <figure class="w2" data-lb="img:/assets/vid-aurora.jpg"><img src="/assets/vid-aurora.jpg" alt="Aurora · Film" loading="lazy"><span class="zoomic">⤢</span><figcaption>Aurora · Film</figcaption></figure>
-        <figure data-lb="img:/assets/t-craft-4.jpg"><img src="/assets/t-craft-4.jpg" alt="Crafting-Maschinen — Fabricator-Einheiten" loading="lazy"><span class="zoomic">⤢</span><figcaption>Crafting-Maschinen</figcaption></figure>
-        <figure data-lb="img:/assets/t-craft-1.jpg"><img src="/assets/t-craft-1.jpg" alt="CRAFT-Menü — Materialien" loading="lazy"><span class="zoomic">⤢</span><figcaption>CRAFT-Menü · Materialien</figcaption></figure>
+        <figure data-lb="img:/assets/t-craft-4.jpg"><img src="/assets/t-craft-4.jpg" alt="Crafting machines — Fabricator units" loading="lazy"><span class="zoomic">⤢</span><figcaption>Crafting machines</figcaption></figure>
+        <figure data-lb="img:/assets/t-craft-1.jpg"><img src="/assets/t-craft-1.jpg" alt="CRAFT menu — Materials" loading="lazy"><span class="zoomic">⤢</span><figcaption>CRAFT menu · Materials</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="05" />
+  <PatchDossier patch={patch} num="05" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-6-0.html"><span class="dir">← Älter</span><span class="ttl">4.6.0 · Lifeline for Levski</span></a>
-    <a class="next" href="/patches/sc-4-8-0.html"><span class="dir">Neuer →</span><span class="ttl">4.8.0 · Tactical Strike</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-6-0.html"><span class="dir">← Older</span><span class="ttl">4.6.0 · Lifeline for Levski</span></a>
+    <a class="next" href="/patches/sc-4-8-0.html"><span class="dir">Newer →</span><span class="ttl">4.8.0 · Tactical Strike</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Not affiliated with CIG. Trailers, stills & ship/system images from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

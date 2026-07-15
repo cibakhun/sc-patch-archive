@@ -5,13 +5,14 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-2-1');
 if (!entry) throw new Error('Patch-Daten 4-2-1 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-2-1', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.2.1 — Resource Drive | VerseBase"} description={"Alpha 4.2.1: Resource Drive — globales Konvoi-Event, Ship-Escort und die RSI Meteor."} themeColor="#0e1620" ogType="article" ogImage="/assets/img-meteor.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/img-meteor.jpg" />
+<Layout title={"Star Citizen Alpha 4.2.1 — Resource Drive | VerseBase"} description={"Alpha 4.2.1: Resource Drive — global convoy event, ship escort and the RSI Meteor."} themeColor="#0e1620" ogType="article" ogImage="/assets/img-meteor.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/img-meteor.jpg" lang="en" />
 <style is:inline>
 
 /* 4.2.1 "Resource Drive" — media-first / low-text / MAXIMAL */
@@ -169,10 +170,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.2.1' }]} pill={"ALPHA 4.2.1"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.2.1' }]} pill={"ALPHA 4.2.1"} hasEn={true} />
 
 
 <main id="main">
@@ -182,39 +183,39 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">17. Juli 2025 · Point-Release &amp; Event</div>
+      <div class="eyebrow">July 17, 2025 · Point Release &amp; Event</div>
       <h1 data-text="4.2.1">4.2.1</h1>
       <div class="codename">Resource <span>Drive</span></div>
-      <div class="tagline">Konvoi-Event, Ship-Escort-Missionen und die RSI Meteor.</div>
+      <div class="tagline">Convoy event, ship escort missions and the RSI Meteor.</div>
       <div class="tags">
-        <span class="tag">Resource Drive</span><span class="tag">Konvoi</span><span class="tag">Escort</span><span class="tag hot">RSI Meteor</span>
+        <span class="tag">Resource Drive</span><span class="tag">Convoy</span><span class="tag">Escort</span><span class="tag hot">RSI Meteor</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>RESOURCE DRIVE</span><span class="dot">◆</span><span>KONVOI</span><span class="dot">◆</span><span>SHIP ESCORT</span><span class="dot">◆</span><span>RSI METEOR</span><span class="dot">◆</span><span>WIKELO</span><span class="dot">◆</span><span>FLIGHT TUNING</span><span class="dot">◆</span>
-      <span>RESOURCE DRIVE</span><span class="dot">◆</span><span>KONVOI</span><span class="dot">◆</span><span>SHIP ESCORT</span><span class="dot">◆</span><span>RSI METEOR</span><span class="dot">◆</span><span>WIKELO</span><span class="dot">◆</span><span>FLIGHT TUNING</span><span class="dot">◆</span>
+      <span>RESOURCE DRIVE</span><span class="dot">◆</span><span>CONVOY</span><span class="dot">◆</span><span>SHIP ESCORT</span><span class="dot">◆</span><span>RSI METEOR</span><span class="dot">◆</span><span>WIKELO</span><span class="dot">◆</span><span>FLIGHT TUNING</span><span class="dot">◆</span>
+      <span>RESOURCE DRIVE</span><span class="dot">◆</span><span>CONVOY</span><span class="dot">◆</span><span>SHIP ESCORT</span><span class="dot">◆</span><span>RSI METEOR</span><span class="dot">◆</span><span>WIKELO</span><span class="dot">◆</span><span>FLIGHT TUNING</span><span class="dot">◆</span>
     </div>
   </div>
 
   <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/vid-meteor.jpg"><div class="tbg" style="background-image:url('/assets/vid-meteor.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">RSI Meteor</div><div class="sub">neu</div></div>
-        <a class="tile word hot" href="/topics/4-2-1-resource-drive.html"><span class="zoomic">→</span><b>RESOURCE<br>DRIVE</b><small>Detailseite ansehen</small></a>
-        <div class="tile word" data-info data-title="Ship Escort" data-text="Neuer Missions-Archetyp: Spieler verteidigen befreundete Schiffe gegen Angreifer, eskortieren sie in die Hangars der Asteroiden-Mining-Basen und wieder hinaus, bis sie per Quantum Travel entkommen. Sechs Schwierigkeitsstufen der Foxwell-Gruppe in Stanton und Pyro, belohnt mit Scrip."><span class="zoomic">+</span><b>SHIP<br>ESCORT</b><small>6 Stufen</small></div>
-        <div class="tile word" data-info data-title="Konvoi" data-text="Im Zentrum des Resource Drive stehen Konvois rund um die Mining-Basen in Stanton und Pyro — eskortierte Frachtzüge, die gegen feindliche Schiffe verteidigt werden müssen." data-img="/assets/t-supply-2.jpg"><span class="zoomic">+</span><b>KONVOI</b><small>Stanton &amp; Pyro</small></div>
-        <div class="tile word" data-info data-title="Wikelo-Rezepte" data-text="Die Rezepte des Händlers Wikelo wurden überarbeitet und in drei Zutaten-Stufen gegliedert: garantierte Core-Drops, sehr seltene Rare-Items und content-gebundene Items. Zufalls-Belohnungen entfallen — klar erkennbar, was sich zu horten lohnt."><span class="zoomic">+</span><b>WIKELO</b><small>Rezepte</small></div>
-        <div class="tile stat" data-info data-title="Flight Tuning" data-text="4.2.1 bringt Anpassungen am Flugmodell — Feinschliff am Flugverhalten der Schiffe, der das Handling über das reine Event-Update hinaus verändert."><span class="zoomic">+</span><div class="num">+</div><div class="cap">Flight Tuning</div></div>
+        <div class="tile img b2" data-lb="img:/assets/vid-meteor.jpg"><div class="tbg" style="background-image:url('/assets/vid-meteor.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">RSI Meteor</div><div class="sub">new</div></div>
+        <a class="tile word hot" href="/topics/4-2-1-resource-drive.html"><span class="zoomic">→</span><b>RESOURCE<br>DRIVE</b><small>View detail page</small></a>
+        <div class="tile word" data-info data-title="Ship Escort" data-text="A new mission archetype: players defend friendly ships against attackers, escort them into and out of the hangars of the asteroid mining bases until they escape via Quantum Travel. Six difficulty tiers from the Foxwell group across Stanton and Pyro, rewarded with Scrip."><span class="zoomic">+</span><b>SHIP<br>ESCORT</b><small>6 tiers</small></div>
+        <div class="tile word" data-info data-title="Convoy" data-text="At the heart of Resource Drive are convoys around the mining bases in Stanton and Pyro — escorted freight trains that must be defended against enemy ships." data-img="/assets/t-supply-2.jpg"><span class="zoomic">+</span><b>CONVOY</b><small>Stanton &amp; Pyro</small></div>
+        <div class="tile word" data-info data-title="Wikelo Recipes" data-text="The recipes of the trader Wikelo have been reworked and grouped into three ingredient tiers: guaranteed core drops, very rare items and content-locked items. Random rewards are gone — it is now clear what is worth hoarding."><span class="zoomic">+</span><b>WIKELO</b><small>Recipes</small></div>
+        <div class="tile stat" data-info data-title="Flight Tuning" data-text="4.2.1 brings adjustments to the flight model — fine-tuning of ship flight behavior that changes handling beyond the pure event update."><span class="zoomic">+</span><div class="num">+</div><div class="cap">Flight Tuning</div></div>
       </div>
     </div>
   </section>
@@ -223,18 +224,18 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-supply-1.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Globales Event</div>
+      <div class="kx">Global Event</div>
       <div class="big">RESOURCE DRIVE</div>
-      <p>Eskortiere Konvois und liefere für die Belohnung.</p>
+      <p>Escort convoys and deliver for the reward.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Ships</h2><span class="rule"></span></div>
       <div class="garage">
-        <article class="ship reveal" data-lb="yt:aMeyPCQuaDw"><div class="sbg" style="background-image:url('/assets/img-meteor.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · neu</span><h3>RSI Meteor</h3></div></article>
+        <article class="ship reveal" data-lb="yt:aMeyPCQuaDw"><div class="sbg" style="background-image:url('/assets/img-meteor.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · new</span><h3>RSI Meteor</h3></div></article>
       </div>
     </div>
   </section>
@@ -244,41 +245,41 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="aMeyPCQuaDw" style="background-image:url('/assets/vid-meteor.jpg')"><span class="vlbl">RSI Meteor — Commercial</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="aMeyPCQuaDw" style="background-image:url('/assets/vid-meteor.jpg')"><span class="vlbl">RSI Meteor — Commercial</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=aMeyPCQuaDw" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=aMeyPCQuaDw" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-rd-1.jpg"><img src="/assets/t-rd-1.jpg" alt="Frachter werden am Container-Depot beladen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Konvoi · Frachtdepot</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-rd-2.jpg"><img src="/assets/t-rd-2.jpg" alt="RSI-Schiff im Gefecht im Asteroidenfeld" loading="lazy"><span class="zoomic">⤢</span><figcaption>Eskorte · Asteroidenfeld</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-rd-1.jpg"><img src="/assets/t-rd-1.jpg" alt="Freighters being loaded at the container depot" loading="lazy"><span class="zoomic">⤢</span><figcaption>Convoy · Freight depot</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-rd-2.jpg"><img src="/assets/t-rd-2.jpg" alt="RSI ship in combat in the asteroid field" loading="lazy"><span class="zoomic">⤢</span><figcaption>Escort · Asteroid field</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="05" />
+  <PatchDossier patch={patch} num="05" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-2-0.html"><span class="dir">← Älter</span><span class="ttl">4.2.0 · Storm Breaker</span></a>
-    <a class="next" href="/patches/sc-4-3-0.html"><span class="dir">Neuer →</span><span class="ttl">4.3.0 · Dark Territory</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-2-0.html"><span class="dir">← Older</span><span class="ttl">4.2.0 · Storm Breaker</span></a>
+    <a class="next" href="/patches/sc-4-3-0.html"><span class="dir">Newer →</span><span class="ttl">4.3.0 · Dark Territory</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Not affiliated with CIG. Trailers, stills & ship/system images from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

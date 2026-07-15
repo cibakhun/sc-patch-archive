@@ -5,13 +5,14 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-3-2');
 if (!entry) throw new Error('Patch-Daten 4-3-2 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-3-2', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.3.2 — Fractured Frontiers | VerseBase"} description={"Alpha 4.3.2: Frontier Fighters Finale, Salvage-Rework mit Refining, Yormandi-Bosskampf und die Anvil Paladin."} themeColor="#16181b" ogType="article" ogImage="/assets/img-paladin.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/img-paladin.jpg" />
+<Layout title={"Star Citizen Alpha 4.3.2 — Fractured Frontiers | VerseBase"} description={"Alpha 4.3.2: Frontier Fighters finale, salvage rework with refining, the Yormandi boss fight and the Anvil Paladin."} themeColor="#16181b" ogType="article" ogImage="/assets/img-paladin.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/img-paladin.jpg" lang="en" />
 <style is:inline>
 
 /* 4.3.2 "Fractured Frontiers" — media-first / low-text / MAXIMAL
@@ -160,10 +161,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.3.2' }]} pill={"ALPHA 4.3.2"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.3.2' }]} pill={"ALPHA 4.3.2"} hasEn={true} />
 
 
 <main id="main">
@@ -173,15 +174,15 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">16. Oktober 2025 · Point-Release &amp; Event</div>
+      <div class="eyebrow">October 16, 2025 · Point Release &amp; Event</div>
       <h1 data-text="4.3.2">4.3.2</h1>
       <div class="codename"><span>Fractured Frontiers</span></div>
-      <div class="tagline">Frontier-Fighters-Finale, Salvage-Rework und Yormandi-Boss.</div>
+      <div class="tagline">Frontier Fighters finale, salvage rework and the Yormandi boss.</div>
       <div class="tags">
         <span class="tag">Frontier Fighters</span><span class="tag">Salvage</span><span class="tag hot">Yormandi</span><span class="tag">Anvil Paladin</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
@@ -192,20 +193,20 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </div>
 
-  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <!-- AT A GLANCE (Daten-Register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/t-ffp-2.jpg"><div class="tbg" style="background-image:url('/assets/t-ffp-2.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Outlaw-Gangs</div><div class="sub">Frontier Fighters · Headhunters · CFP</div></div>
-        <a class="tile word hot" href="/topics/4-3-2-frontier-fighters.html"><span class="zoomic">→</span><b>FRONTIER<br>FIGHTERS</b><small>Detailseite ansehen</small></a>
-        <div class="tile word" data-info data-title="Salvage + Refining" data-text="Das Salvage-System erhält strukturelle Überarbeitungen und ökonomische Anpassungen, die vor allem den Materialwert anheben — Bergung lohnt sich in 4.3.2 deutlich mehr."><span class="zoomic">+</span><b>SALVAGE</b><small>+ Refining</small></div>
-        <div class="tile word hot" data-info data-title="Yormandi" data-text="Ein Raubtier-Boss tief in den Höhlen der Onyx-Facilities (ASD Site B) — eine schlangenartige, biomechanische Kreatur in der Tradition der Valakkar-Würmer. Wikelos Aufträge verlangen ihre Augen und Zungen; der mehrphasige Kampf ist solo machbar, im Duo aber deutlich leichter."><span class="zoomic">+</span><b>YORMANDI</b><small>Bosskampf</small></div>
-        <div class="tile stat" data-info data-title="3 Phasen" data-text="Das Frontier-Fighters-Finale läuft über drei Phasen — eine Eskalation aus Outpost-Raids, Abfang-Missionen und Story-Aufgaben quer durch Stanton und Pyro."><span class="zoomic">+</span><div class="num">3</div><div class="cap">Phasen</div></div>
-        <div class="tile word" data-info data-title="Polaris" data-text="In Phase 3 (Takedown) jagt der ganze Server gemeinsam die eine Polaris, die die Frontier Fighters gestohlen haben — ein groß angelegter Koop-Einsatz, um die RSI-Korvette zu zerstören."><span class="zoomic">+</span><b>POLARIS</b><small>Takedown</small></div>
+        <div class="tile img b2" data-lb="img:/assets/t-ffp-2.jpg"><div class="tbg" style="background-image:url('/assets/t-ffp-2.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Outlaw Gangs</div><div class="sub">Frontier Fighters · Headhunters · CFP</div></div>
+        <a class="tile word hot" href="/topics/4-3-2-frontier-fighters.html"><span class="zoomic">→</span><b>FRONTIER<br>FIGHTERS</b><small>View detail page</small></a>
+        <div class="tile word" data-info data-title="Salvage + Refining" data-text="The salvage system receives structural overhauls and economic tuning that mainly raise material value — salvaging pays off significantly more in 4.3.2."><span class="zoomic">+</span><b>SALVAGE</b><small>+ Refining</small></div>
+        <div class="tile word hot" data-info data-title="Yormandi" data-text="A predator boss deep in the caves of the Onyx facilities (ASD Site B) — a serpentine, biomechanical creature in the tradition of the Valakkar worms. Wikelo's contracts demand their eyes and tongues; the multi-phase fight is soloable, but noticeably easier as a duo."><span class="zoomic">+</span><b>YORMANDI</b><small>Boss fight</small></div>
+        <div class="tile stat" data-info data-title="3 Phases" data-text="The Frontier Fighters finale runs across three phases — an escalation of outpost raids, interception missions and story tasks across Stanton and Pyro."><span class="zoomic">+</span><div class="num">3</div><div class="cap">Phases</div></div>
+        <div class="tile word" data-info data-title="Polaris" data-text="In Phase 3 (Takedown) the entire server hunts together for the one Polaris that the Frontier Fighters stole — a large-scale co-op operation to destroy the RSI corvette."><span class="zoomic">+</span><b>POLARIS</b><small>Takedown</small></div>
       </div>
     </div>
   </section>
@@ -214,16 +215,16 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-front-1.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Outlaw-Showdown</div>
+      <div class="kx">Outlaw Showdown</div>
       <div class="big outline">FRACTURED</div>
-      <p>Showdown an der zerklüfteten Grenze.</p>
+      <p>Showdown on the fractured frontier.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Ships</h2><span class="rule"></span></div>
       <div class="garage">
         <article class="ship reveal" data-lb="img:/assets/img-paladin.jpg"><div class="sbg" style="background-image:url('/assets/img-paladin.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Anvil · Gunship</span><h3>Anvil Paladin</h3></div></article>
       </div>
@@ -233,32 +234,32 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">03</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">03</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/cz-ruin.jpg"><img src="/assets/cz-ruin.jpg" alt="Zerstörte Stationsruine im Orbit eines Planeten" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruine im Orbit</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/trailer-4-3-0.jpg"><img src="/assets/trailer-4-3-0.jpg" alt="Onyx · 4.3-Reihe" loading="lazy"><span class="zoomic">⤢</span><figcaption>Onyx · 4.3-Reihe</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/cz-ruin.jpg"><img src="/assets/cz-ruin.jpg" alt="Destroyed station ruin in the orbit of a planet" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruin in orbit</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/trailer-4-3-0.jpg"><img src="/assets/trailer-4-3-0.jpg" alt="Onyx · 4.3 series" loading="lazy"><span class="zoomic">⤢</span><figcaption>Onyx · 4.3 series</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="04" />
+  <PatchDossier patch={patch} num="04" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-3-1.html"><span class="dir">← Älter</span><span class="ttl">4.3.1 · Virtue's Descent</span></a>
-    <a class="next" href="/patches/sc-4-4-0.html"><span class="dir">Neuer →</span><span class="ttl">4.4.0 · Welcome to Nyx</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-3-1.html"><span class="dir">← Older</span><span class="ttl">4.3.1 · Virtue's Descent</span></a>
+    <a class="next" href="/patches/sc-4-4-0.html"><span class="dir">Newer →</span><span class="ttl">4.4.0 · Welcome to Nyx</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. No affiliation with CIG. Trailers, stills & ship/system imagery from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

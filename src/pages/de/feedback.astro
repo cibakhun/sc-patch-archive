@@ -1,0 +1,61 @@
+---
+// Feedback — dünner DE-Wrapper: Hero + Copy hier, Formularlogik in der geteilten
+// Komponente <FeedbackForm> (analog item-finder.astro). Signature-Look via
+// detail.css/detail.js (Foto-Hero, #stars, Parallax, reveal, Ember-Feld auf
+// warmem Akzent). EN-Gegenstück: /feedback.html (gleicher Slug -> Umschalter).
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import Attribution from '../../components/Attribution.astro';
+import FeedbackForm from '../../components/FeedbackForm.astro';
+---
+<Layout
+  title={'Feedback | VerseBase'}
+  description={'Gib uns Feedback zu VerseBase: Fehler melden, Verbesserungen vorschlagen, einen falschen Datenwert korrigieren — oder einfach Danke sagen. Kurze Nachricht, optionale Bewertung, optionale Antwort-Adresse.'}
+  themeColor="#0f0b06"
+  ogType="article"
+  ogImage="/assets/t-def-1.jpg"
+  translated={true}
+>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+/* Feedback-Theme — Community-Hub in Bernstein/Gold (warm -> Ember-Feld aktiv) */
+:root{--bg:#0f0b06;--bg-2:#161009;--surface:#1b130a;--surface-2:#241a0f;--accent:#f0a830;--accent-2:#ffd27a;--hot:#f0a830;--text:#f4ede0;--muted:#b6a892;--line:rgba(240,168,48,.20);--line-soft:rgba(244,237,224,.10);--glow:0 0 46px rgba(240,168,48,.24);--ink:#140d05;--maxw:1180px;}
+.reveal{opacity:1 !important;transform:none !important}
+.hero__in{max-width:var(--maxw)}
+.fbwrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(1.25rem,5vw,4rem) 1rem}
+.sec-head{max-width:var(--maxw);margin:0 auto 1.8rem;padding:0 clamp(1.25rem,5vw,4rem)}
+</style>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Feedback' }]} pill={"KONTAKT"} hasEn={true} />
+
+<main id="main">
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-def-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
+    <div class="hero__in">
+      <div class="eyebrow">VerseBase · Community-Draht</div>
+      <h1><span class="thin">Deine Stimme zählt</span>Feedback</h1>
+      <p class="lead">Fehler gefunden, eine Idee, ein falscher Wert in den Daten — oder einfach ein Danke? Ein kurzer Draht direkt ins Team.</p>
+      <div class="tags">
+        <span class="tag">Nur die Nachricht ist Pflicht</span>
+        <span class="tag">Kein Login nötig</span>
+        <span class="tag">DSGVO-konform</span>
+      </div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+  </section>
+
+  <div class="sec-head reveal"><span class="num">01</span><h2>Schreib uns</h2><span class="rule"></span></div>
+
+  <div class="fbwrap">
+    <FeedbackForm lang="de" />
+  </div>
+</main>
+
+<Attribution sources={[]} />
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

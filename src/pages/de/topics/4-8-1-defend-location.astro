@@ -1,0 +1,161 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import TopicFacts from '../../../components/TopicFacts.astro';
+import RelatedTopics from '../../../components/RelatedTopics.astro';
+import Attribution from '../../../components/Attribution.astro';
+---
+<Layout title={"Defend Location — Star Citizen 4.8.1 | VerseBase"} description={"Defend Location: der neue wellenbasierte Raumkampf-Missionstyp aus Alpha 4.8.1 — verteidige Asteroiden-Mining-Basen gegen Bomber-Anfluege ueber 385 Einsatzorte in Stanton und Pyro."} themeColor="#0b1014" ogType="article" ogImage="/assets/t-def-1.jpg" translated={true}>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+/* Strike-Theme (4.8.x) */
+:root{--bg:#0b1014;--bg-2:#111820;--surface:#17202a;--surface-2:#1f2b38;--accent:#36c5d6;--accent-2:#E6952A;--hot:#D94A38;--text:#e8f0f4;--muted:#9bb0ba;--line:rgba(54,197,214,.22);--line-soft:rgba(232,240,244,.10);--glow:0 0 44px rgba(54,197,214,.30);--ink:#0b1014;--maxw:1180px;}
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.band .big.huge{font-size:clamp(3rem,15vw,11rem)}
+
+</style>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.8.1', href: '/de/patches/sc-4-8-1.html' }, { label: "Defend Location" }]} pill={"GAMEPLAY · ALPHA 4.8.1"} hasEn={true} />
+
+
+<main id="main">
+
+  <!-- HERO (full-bleed lead media) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-def-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/de/patches/sc-4-8-1.html">Alpha 4.8.1 · Gameplay</a> &nbsp;·&nbsp; Neuer Missionstyp</div>
+      <h1><span class="thin">Halte die Stellung</span>Defend Location</h1>
+      <p class="lead">Der neue wellenbasierte Raumkampf-Missionstyp aus 4.8.1: verteidige Asteroiden-Mining-Basen gegen Bomber-Anfluege — quer ueber 385 Einsatzorte in Stanton und Pyro.</p>
+      <div class="tags"><span class="tag hot">Neuer Missionstyp</span><span class="tag">385 Orte</span><span class="tag">Bomber-Abwehr</span><span class="tag">Escort-Hybrid</span><span class="tag">Blueprints</span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>DEFEND LOCATION</span><span class="dot">◆</span><span>385 EINSATZORTE</span><span class="dot">◆</span><span>BOMBER-ABWEHR</span><span class="dot">◆</span><span>ESCORT-HYBRID</span><span class="dot">◆</span><span>FOXWELL</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span>
+      <span>DEFEND LOCATION</span><span class="dot">◆</span><span>385 EINSATZORTE</span><span class="dot">◆</span><span>BOMBER-ABWEHR</span><span class="dot">◆</span><span>ESCORT-HYBRID</span><span class="dot">◆</span><span>FOXWELL</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-8-1-defend-location" />
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="385">0</div><div class="c">Einsatzorte · Stanton & Pyro</div></div>
+    <div class="s"><div class="n count" data-to="149">0</div><div class="c">Verteidigbare Basen</div></div>
+    <div class="s"><div class="n count" data-to="6">0</div><div class="c">Schwierigkeitsstufen</div></div>
+    <div class="s"><div class="n">4.8.1</div><div class="c">Kernfeature des Patches</div></div>
+  </div>
+
+  <!-- OVERVIEW as FULL-BLEED BAND (image as background, design on top) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-def-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">01 · Das Kernfeature</div>
+      <div class="big huge outline">WELLE UM WELLE</div>
+      <p><b style="color:var(--accent-2)">Defend Location</b> ist der neue wellenbasierte Raumkampf-Missionstyp und das Kernfeature von Alpha 4.8.1. Spieler verteidigen Asteroiden-Mining-Basen gegen feindliche Bomber — Anflug für Anflug, bis das Feld geräumt ist.</p>
+    </div>
+  </section>
+
+  <!-- THE TWO TARGETS — VERSUS (two sides fit: Standard vs Escort-Hybrid) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⊕ Standard · Bomber-Abwehr</h3>
+        <ul>
+          <li>Feindliche Bomber fliegen Angriffe auf kritische Infrastruktur wie Tanks.</li>
+          <li>Jeder Bomber muss vor dem Abwurf abgefangen werden.</li>
+          <li>Lässt du einen durch, trifft seine Ladung die Basis.</li>
+          <li>Reines Verteidigungsziel: die Anlage muss stehen bleiben.</li>
+        </ul>
+      </div>
+      <div class="vs">/</div>
+      <div class="side b">
+        <h3>★ Hybrid · Escort-Element</h3>
+        <ul>
+          <li>Ein befreundetes Schiff startet oder landet an der Basis.</li>
+          <li>Feindliche Jäger nehmen es ins Visier, während es verwundbar ist.</li>
+          <li>Du schützt zugleich die Infrastruktur und das Schiff.</li>
+          <li>Beide Ziele müssen erfüllt werden — sonst scheitert der Auftrag.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABLAUF — kompakter Dreischritt. Bewusst KEIN Scrollytelling: eine
+       Wellen-Verteidigung ist kein Reiseprozess mit eigenen visuellen
+       Stationen; Escort & Belohnung stehen bereits in Versus bzw. Split. -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">02</span><h2>So läuft eine Verteidigung</h2><span class="rule"></span></div>
+      <div class="flow reveal" style="margin-top:2.4rem">
+        <div class="node"><div class="dot">1</div><h3>Basis wählen</h3><p>149 verteidigbare Basen über Stanton und Pyro, sechs Stufen von Very Easy bis Super — die Wahl bestimmt Gegner und Lohn.</p></div>
+        <div class="node"><div class="dot">2</div><h3>Stellung beziehen</h3><p>Erreiche die Asteroiden-Mining-Basis vor dem ersten Anflug. Die Infrastruktur darf nicht fallen — ab jetzt zählt jede Sekunde.</p></div>
+        <div class="node"><div class="dot">3</div><h3>Wellen brechen</h3><p>Bomber vor dem Abwurf abfangen — Anflug für Anflug, und jede Welle drückt härter als die letzte.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFESTO pull-quote -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Jeder durchgelassene Bomber ist <span class="hl">ein Krater in der Basis</span>.</blockquote>
+    <cite>Defend Location · Alpha 4.8.1</cite>
+  </section>
+
+  <!-- AUFTRAGGEBER & BELOHNUNG — the ONE framed/split section -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-hh-3.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">03 · Auftraggeber & Lohn</div>
+        <h3>Wer ruft — und was es bringt</h3>
+        <p>Die Aufträge kommen von Namen wie <b>Foxwell</b>, den <b>Head Hunters</b>, <b>CFP</b> und <b>Rough and Ready</b>. Jede Fraktion stellt ihre eigenen Basen unter deinen Schutz.</p>
+        <p>Belohnt wird mit <b>aUEC</b>, <b>Reputation</b> und <b>Org-Scrip</b> — und auf den höheren Schwierigkeitsstufen zusätzlich mit begehrten <b>Crafting-Blueprints</b>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCALE — full-bleed band (big number, parallax, design on top) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-pyro-5.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">04 · Massstab</div>
+      <div class="big huge">385</div>
+      <p>Einsatzorte verteilen sich über Stanton und Pyro — gespeist aus <b style="color:var(--accent-2)">149 Basen</b> mit sechs Schwierigkeitsstufen von Very Easy bis Super. Der Hybrid-Charakter macht Defend Location zur Brücke zwischen klassischer Bounty- und Escort-Mission.</p>
+    </div>
+  </section>
+
+  <!-- MEDIA — closing mixed gallery (full-bleed close) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">05</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-def-1.jpg"><img src="/assets/t-def-1.jpg" alt="Defend Location — Raumkampf über einer Mining-Basis" loading="lazy"><span class="zoomic">⤢</span><figcaption>Stellung halten</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-def-2.jpg"><img src="/assets/t-def-2.jpg" alt="Bomber-Anflug auf die Infrastruktur" loading="lazy"><span class="zoomic">⤢</span><figcaption>Bomber-Anflug</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-hammerhead.jpg"><img src="/assets/img-hammerhead.jpg" alt="Aegis Hammerhead — schwerer Verteidiger" loading="lazy"><span class="zoomic">⤢</span><figcaption>Schwere Abwehr</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-idris.jpg"><img src="/assets/img-idris.jpg" alt="Aegis Idris im Einsatz" loading="lazy"><span class="zoomic">⤢</span><figcaption>Eskorte</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/cz-ruin.jpg"><img src="/assets/cz-ruin.jpg" alt="Verlassene Station als Schauplatz" loading="lazy"><span class="zoomic">⤢</span><figcaption>Vorposten · Schauplatz</figcaption></figure>
+      </div>
+      <p class="src reveal">Quelle: Star Citizen Wiki &amp; Patch-Notes zu Alpha 4.8.1 (© Cloud Imperium Games). Inoffizielle Fan-Aufbereitung.</p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-8-1-defend-location" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

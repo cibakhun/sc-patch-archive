@@ -7,22 +7,23 @@
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
+import { mergePatchEn } from '../i18n/patchText';
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
-);
+).map((p) => ({ ...p, data: mergePatchEn(p.id, p.data, 'en') }));
 
 // rows: systems ordered by how often they were touched
 const counts = new Map<string, number>();
 for (const p of patches)
   for (const f of p.data.features)
-    counts.set(f.system ?? 'Sonstiges', (counts.get(f.system ?? 'Sonstiges') ?? 0) + 1);
+    counts.set(f.system ?? 'Other', (counts.get(f.system ?? 'Other') ?? 0) + 1);
 const systems = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => s);
 
 // cells: system × patch -> features
 type Feat = (typeof patches)[number]['data']['features'][number];
 const cell = (sys: string, p: (typeof patches)[number]): Feat[] =>
-  p.data.features.filter((f) => (f.system ?? 'Sonstiges') === sys);
+  p.data.features.filter((f) => (f.system ?? 'Other') === sys);
 
 const total = [...counts.values()].reduce((a, b) => a + b, 0);
 const eraCount = new Set(patches.map((p) => p.data.era)).size;
@@ -32,8 +33,8 @@ const rowTotal = (sys: string) => patches.reduce((n, p) => n + cell(sys, p).leng
 const tierOf = (n: number) => (n <= 2 ? '1' : n <= 5 ? '2' : '3');
 ---
 <Layout
-  title="Evolution — Systeme × Patches | VerseBase"
-  description={`Wie sich jedes Star-Citizen-System von Alpha 4.0.0 bis ${patches[patches.length - 1].data.version} entwickelt hat: ${total} dokumentierte Änderungen in ${systems.length} Systemen über ${patches.length} Patches.`}
+  title="Evolution — Systems × Patches | VerseBase"
+  description={`How every Star Citizen system evolved from Alpha 4.0.0 to ${patches[patches.length - 1].data.version}: ${total} documented changes across ${systems.length} systems over ${patches.length} patches.`}
   themeColor="#04060c"
   footer={true}
   translated={true}
@@ -53,32 +54,32 @@ a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Evolution' }]} pill={`${total} ÄNDERUNGEN`} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Evolution' }]} pill={`${total} CHANGES`} hasEn={true} />
 
 <main class="evo">
   <header class="evo__head">
-    <span class="evo__kicker">Systeme × Patches</span>
+    <span class="evo__kicker">Systems × Patches</span>
     <h1>Evolution</h1>
     <p class="evo__sub">
-      Wie sich jedes Spielsystem von Alpha 4.0.0 bis {patches[patches.length - 1].data.version} entwickelt hat.
-      Jede Spalte trägt die Farbe ihres Patches — Zelle anklicken für die Details.
+      How every game system evolved from Alpha 4.0.0 to {patches[patches.length - 1].data.version}.
+      Every column carries the color of its patch — click a cell for the details.
     </p>
     <dl class="evo__metrics">
-      <div><dt>Änderungen</dt><dd>{total}</dd></div>
-      <div><dt>Systeme</dt><dd>{systems.length}</dd></div>
+      <div><dt>Changes</dt><dd>{total}</dd></div>
+      <div><dt>Systems</dt><dd>{systems.length}</dd></div>
       <div><dt>Patches</dt><dd>{patches.length}</dd></div>
-      <div><dt>Ären</dt><dd>{eraCount}</dd></div>
+      <div><dt>Eras</dt><dd>{eraCount}</dd></div>
     </dl>
   </header>
 
   <div class="evo__legend">
     <span class="evo__lg" aria-hidden="true"><i class="t1"></i><i class="t2"></i><i class="t3"></i></span>
-    <span>Intensität = Aktivität</span>
+    <span>Intensity = Activity</span>
     <span class="evo__legdot" aria-hidden="true">·</span>
-    <span>Zahl = Einträge · Klick = Details</span>
+    <span>Number = Entries · Click = Details</span>
   </div>
 
-  <div class="evo__scroll" tabindex="0" aria-label="Evolutions-Matrix (horizontal scrollbar)">
+  <div class="evo__scroll" tabindex="0" aria-label="Evolution matrix (horizontally scrollable)">
     <table class="evo__table">
       <thead>
         <tr>
@@ -91,7 +92,7 @@ a{color:inherit;text-decoration:none}
               </a>
             </th>
           ))}
-          <th scope="col" class="evo__tot" title="Einträge gesamt">Σ</th>
+          <th scope="col" class="evo__tot" title="Total entries">Σ</th>
         </tr>
       </thead>
       <tbody>
@@ -109,7 +110,7 @@ a{color:inherit;text-decoration:none}
                       data-ed={`ed-${si}-${pi}`}
                       data-tier={tierOf(feats.length)}
                       aria-expanded="false"
-                      aria-label={`${sys} in Alpha ${p.data.version}: ${feats.length} Änderung${feats.length > 1 ? 'en' : ''}`}
+                      aria-label={`${sys} in Alpha ${p.data.version}: ${feats.length} change${feats.length > 1 ? 's' : ''}`}
                     >{feats.length}</button>
                   ) : (
                     <span class="evo__dot" aria-hidden="true">·</span>
@@ -137,12 +138,12 @@ a{color:inherit;text-decoration:none}
                 <a class="edet__patch" href={`/patches/sc-${p.id}.html`}>
                   Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay} →
                 </a>
-                <button class="edet__x" data-eclose aria-label="Details schließen">Esc</button>
+                <button class="edet__x" data-eclose aria-label="Close details">Esc</button>
               </span>
             </header>
             {feats.map((f) => (
               <article class="edet__feat">
-                <h3>{f.name}{f.unverified && <abbr class="edet__unv" title="unbestätigt">*</abbr>}</h3>
+                <h3>{f.name}{f.unverified && <abbr class="edet__unv" title="unconfirmed">*</abbr>}</h3>
                 <p>{f.desc}</p>
                 {(f.facts?.length ?? 0) > 0 && (
                   <dl class="edet__facts">
@@ -151,7 +152,7 @@ a{color:inherit;text-decoration:none}
                     ))}
                   </dl>
                 )}
-                {f.topicSlug && <a class="edet__link" href={`/topics/${f.topicSlug}.html`}>Deep-Dive ansehen →</a>}
+                {f.topicSlug && <a class="edet__link" href={`/topics/${f.topicSlug}.html`}>View deep dive →</a>}
               </article>
             ))}
           </div>

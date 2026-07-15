@@ -15,17 +15,15 @@ const total = DB.counts.minerals;
 const snap = DB.snapshot_date;
 const ver = DB.game_version;
 
-// Mining-Schiffe aus der eigenen Schiff-DB (vehicles.json) — verlinken auf das
-// echte Datenblatt /schiffe/<id>.html.
-const ships = buildMiningShips('de');
+const ships = buildMiningShips('en');
 ---
-<Layout title={"Mining-Datenbank — Star Citizen 4.8 | VerseBase"} description={`Interaktive Mining-Datenbank für Star Citizen 4.8: ${total} Minerale aus den datamined 4.8.3-Spieldateien durchsuchen, nach System, Methode & Typ filtern, echte Deposit-Regionen mit Erz-Anteil (%) ansehen, Scan-Signaturen identifizieren, Refinery-Methoden abwägen und Fracturing planen.`} themeColor="#14181a" ogType="article" ogImage="/assets/img-mole.jpg" translated={true}>
+<Layout title={"Mining Database — Star Citizen 4.8 | VerseBase"} description={`Interactive mining database for Star Citizen 4.8: browse ${total} minerals from the datamined 4.8.3 game files, filter by system, method & type, see real deposit regions with ore-share %, identify scan signatures, weigh refinery methods and plan fracturing.`} themeColor="#14181a" ogType="article" ogImage="/assets/img-mole.jpg" translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
 :root{--bg:#14181a;--bg-2:#181d1f;--surface:#1e2427;--surface-2:#252c30;--accent:#2FBFA4;--accent-2:#E0A526;--hot:#2FBFA4;--text:#eaf2f1;--muted:#8fa3a0;--line:rgba(47,191,164,.22);--line-soft:rgba(234,242,241,.10);--glow:0 0 44px rgba(47,191,164,.26);--ink:#0e1214;--maxw:1240px;}
 .reveal{opacity:1 !important;transform:none !important}
-/* Hero-Titel: heller Gradient (kein dunkles Buchstaben-Ende) + kräftiger Scrim,
-   damit "Mining" über dem Bild voll lesbar bleibt und nicht dahinter verschwindet. */
+/* Hero title: lighter gradient (no dark letter bottoms) + strong scrim so
+   "Mining" stays fully legible over the photo and isn't lost behind it. */
 .hero h1{font-size:clamp(2.6rem,11vw,8rem);background:linear-gradient(180deg,#ffffff,#7fe6d5 58%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 3px 20px rgba(0,0,0,.85)) drop-shadow(0 0 30px rgba(47,191,164,.45))}
 .hero{background:radial-gradient(120% 90% at 78% 12%,rgba(47,191,164,.16),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(224,165,38,.12),transparent 55%),var(--bg)}
 .hero__in{max-width:var(--maxw)}
@@ -39,7 +37,6 @@ const ships = buildMiningShips('de');
 .mn-sec-h h2{font-family:var(--font-display);font-weight:900;font-size:clamp(1.5rem,4vw,2.4rem);color:#fff;margin:0}
 .mn-sec-h .num{font-family:var(--font-display);font-weight:900;color:transparent;-webkit-text-stroke:1.4px var(--accent);font-size:clamp(1.4rem,3.6vw,2.2rem)}
 .mn-wrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
-/* Refinery methods */
 .rf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.7rem}
 .rf-card{border:1px solid var(--line);border-top:2px solid var(--accent-2);background:var(--surface);border-radius:2px;padding:.85rem .9rem}
 .rf-card h3{font-family:var(--font-display);font-weight:800;color:#fff;font-size:1.02rem;margin:0 0 .1rem}
@@ -51,7 +48,6 @@ const ships = buildMiningShips('de');
 .pips i{width:8px;height:8px;border-radius:50%;background:var(--line-soft);display:inline-block}
 .pips i.on{background:var(--accent)}
 .pips.cost i.on{background:var(--accent-2)}
-/* Ships */
 .sh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.8rem}
 .sh-card{border:1px solid var(--line);background:var(--surface);border-radius:4px;overflow:hidden;display:flex;flex-direction:column;color:inherit;text-decoration:none;transition:border-color .15s,transform .1s}
 .sh-card:hover{border-color:var(--accent);transform:translateY(-2px)}
@@ -65,10 +61,10 @@ const ships = buildMiningShips('de');
 .sh-meta b{color:var(--text)}
 .sh-note{font-size:.82rem;color:var(--muted);line-height:1.45}
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.8', href: '/patches/sc-4-8-0.html' }, { label: "Mining" }]} pill={"THEMA · DATENBANK"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.8', href: '/patches/sc-4-8-0.html' }, { label: "Mining" }]} pill={"TOPIC · DATABASE"} hasEn={true} />
 
 <main id="main">
   <section class="hero">
@@ -78,29 +74,29 @@ const ships = buildMiningShips('de');
     <div class="hero__in">
       <div class="eyebrow"><a href="/patches/sc-4-8-0.html">Alpha 4.8</a></div>
       <h1>Mining</h1>
-      <p class="lead">Minerale, Fundorte, Signaturen, Refinery &amp; Fracturing — game-genau, durchsuchbar.</p>
+      <p class="lead">Minerals, locations, signatures, refinery &amp; fracturing — game-accurate, searchable.</p>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <TopicFacts topicSlug="mining" />
 
-  <div class="mn-sec-h reveal" id="db"><span class="num">01</span><h2>Mineral-Datenbank</h2></div>
+  <div class="mn-sec-h reveal" id="db"><span class="num">01</span><h2>Mineral database</h2></div>
 
-  <MiningApp lang="de" />
+  <MiningApp lang="en" />
 
-  <div class="mn-sec-h reveal" id="signatures"><span class="num">02</span><h2>Scan-Signatur-Identifier</h2></div>
+  <div class="mn-sec-h reveal" id="signatures"><span class="num">02</span><h2>Scan signature identifier</h2></div>
 
-  <SignatureIdentifier lang="de" />
+  <SignatureIdentifier lang="en" />
 
-  <div class="mn-sec-h reveal" id="fracturing"><span class="num">03</span><h2>Fracturing-Rechner</h2></div>
+  <div class="mn-sec-h reveal" id="fracturing"><span class="num">03</span><h2>Fracturing calculator</h2></div>
 
-  <FracturingCalc lang="de" />
+  <FracturingCalc lang="en" />
 
   <div class="mn-sec-h reveal" id="refinery"><span class="num">04</span><h2>Refinery Finder</h2></div>
-  <RefineryFinder lang="de" />
+  <RefineryFinder lang="en" />
 
-  <div class="mn-sec-h reveal" id="ships"><span class="num">05</span><h2>Mining-Schiffe</h2></div>
+  <div class="mn-sec-h reveal" id="ships"><span class="num">05</span><h2>Mining ships</h2></div>
   <div class="mn-wrap">
     <div class="sh-grid reveal">
       {ships.map((s) => (
@@ -109,8 +105,8 @@ const ships = buildMiningShips('de');
           <div class="sh-body">
             <span class="sh-role">{s.role}</span>
             <h3>{s.name}</h3>
-            <div class="sh-meta">{s.ore && (<span>Erz-Fracht <b>{s.ore}</b></span>)}<span>Crew <b>{s.crew}</b></span></div>
-            <span class="sh-link">Datenblatt →</span>
+            <div class="sh-meta">{s.ore && (<span>Ore cargo <b>{s.ore}</b></span>)}<span>Crew <b>{s.crew}</b></span></div>
+            <span class="sh-link">Data sheet →</span>
           </div>
         </a>
       ))}

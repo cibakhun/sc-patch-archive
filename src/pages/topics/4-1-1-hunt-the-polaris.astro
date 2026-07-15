@@ -5,7 +5,7 @@ import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
 ---
-<Layout title={"Hunt The Polaris — Star Citizen 4.1.1 | VerseBase"} description={"Hunt The Polaris: Waehrend der Fleet Week 2955 stehlen die Frontier Fighters eine RSI Polaris — und der ganze Server jagt sie quer durch Stanton bis zum letzten Gefecht an einem fluechtigen Wurmloch."} themeColor="#0c1422" ogType="article" ogImage="/assets/img-polaris.jpg" translated={true}>
+<Layout title={"Hunt The Polaris — Star Citizen 4.1.1 | VerseBase"} description={"Hunt The Polaris: During Fleet Week 2955 the Frontier Fighters steal an RSI Polaris — and the whole server hunts it across Stanton to a final showdown at a fleeting wormhole."} themeColor="#0c1422" ogType="article" ogImage="/assets/img-polaris.jpg" translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
 
@@ -16,10 +16,10 @@ import Attribution from '../../components/Attribution.astro';
 .lede-kx{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.1.1', href: '/patches/sc-4-1-1.html' }, { label: "Hunt The Polaris" }]} pill={"EVENT · ALPHA 4.1.1"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.1.1', href: '/patches/sc-4-1-1.html' }, { label: "Hunt The Polaris" }]} pill={"EVENT · ALPHA 4.1.1"} hasEn={true} />
 
 
 <main id="main">
@@ -29,12 +29,12 @@ import Attribution from '../../components/Attribution.astro';
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/img-polaris.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow"><a href="/patches/sc-4-1-1.html">Alpha 4.1.1 · Balancing &amp; Fleet Week</a> &nbsp;·&nbsp; Server-Event</div>
+      <div class="eyebrow"><a href="/patches/sc-4-1-1.html">Alpha 4.1.1 · Balancing &amp; Fleet Week</a> &nbsp;·&nbsp; Server Event</div>
       <h1><span class="thin">Fleet Week 2955</span>Hunt The Polaris</h1>
-      <p class="lead">Waehrend der Fleet Week stehlen die Frontier Fighters eine RSI Polaris — und der ganze Server jagt sie quer durch Stanton bis zum letzten Gefecht an einem fluechtigen Wurmloch.</p>
-      <div class="tags"><span class="tag hot">Server-weites Event</span><span class="tag">Fleet Week</span><span class="tag">RSI Polaris</span><span class="tag">Frontier Fighters</span><span class="tag">Geteilte Belohnung</span></div>
+      <p class="lead">During Fleet Week the Frontier Fighters steal an RSI Polaris — and the whole server hunts it across Stanton to a final showdown at a fleeting wormhole.</p>
+      <div class="tags"><span class="tag hot">Server-wide event</span><span class="tag">Fleet Week</span><span class="tag">RSI Polaris</span><span class="tag">Frontier Fighters</span><span class="tag">Shared reward</span></div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
@@ -50,31 +50,31 @@ import Attribution from '../../components/Attribution.astro';
 
   <!-- STAT STRIP (animated counters) -->
   <div class="statstrip reveal">
-    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Gestohlene RSI Polaris</div></div>
-    <div class="s"><div class="n"><span class="count" data-to="1">0</span></div><div class="c">Stanton · ein Jagdrevier</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Stolen RSI Polaris</div></div>
+    <div class="s"><div class="n"><span class="count" data-to="1">0</span></div><div class="c">Stanton · one hunting ground</div></div>
     <div class="s"><div class="n count" data-to="2955">0</div><div class="c">Fleet Week · Invictus</div></div>
-    <div class="s"><div class="n">SERVER</div><div class="c">Alle jagen · alle teilen</div></div>
+    <div class="s"><div class="n">SERVER</div><div class="c">Everyone hunts · everyone shares</div></div>
   </div>
 
   <!-- FULL-BLEED BAND — Intro über einer Polaris-Aufnahme -->
   <section class="band band--center" style="padding-block:clamp(3rem,8vw,7rem)">
     <div class="bbg" data-par="0.13" style="background-image:url('/assets/t-polaris-5.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">Invictus 2955 · Die Jagd beginnt</div>
-      <div class="big outline">GESTOHLEN.</div>
-      <p>Mitten in der Flottenparade greifen die <b style="color:var(--accent-2)">Frontier Fighters</b> nach dem grössten Preis am Himmel — einer kompletten <b>RSI Polaris</b>. Was als Fleier beginnt, wird zur server-weiten Hetzjagd durch ganz Stanton.</p>
+      <div class="kx">Invictus 2955 · The hunt begins</div>
+      <div class="big outline">STOLEN.</div>
+      <p>In the middle of the fleet parade the <b style="color:var(--accent-2)">Frontier Fighters</b> reach for the greatest prize in the sky — an entire <b>RSI Polaris</b>. What starts as a heist becomes a server-wide chase across all of Stanton.</p>
     </div>
   </section>
 
   <!-- MANIFESTO pull-quote -->
   <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
-    <blockquote>Eine Korvette flieht. <span class="hl">Ein ganzer Server</span> jagt.</blockquote>
+    <blockquote>One corvette flees. <span class="hl">An entire server</span> hunts.</blockquote>
     <cite>Hunt The Polaris · Fleet Week 2955</cite>
   </section>
 
   <!-- SCROLLYTELLING — So läuft die Jagd (full-bleed process) -->
   <section style="padding-bottom:0">
-    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>So läuft die Jagd</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>How the hunt unfolds</h2><span class="rule"></span></div></div>
   </section>
   <div class="scrolly">
     <div class="scrolly__media" aria-hidden="true">
@@ -84,10 +84,10 @@ import Attribution from '../../components/Attribution.astro';
       <div class="frame" style="background-image:url('/assets/t-polaris-1.jpg')"></div>
     </div>
     <div class="scrolly__steps">
-      <div class="sstep"><div class="sn">01</div><h3>Der Raub</h3><p>Während der Fleet Week reissen die Frontier Fighters eine RSI Polaris an sich — eine Kapital-Korvette von Roberts Space Industries — und brechen mit ihr aus der Flottenschau aus.</p></div>
-      <div class="sstep"><div class="sn">02</div><h3>Die Hetzjagd</h3><p>Die gestohlene Polaris flieht quer durch Stanton. Der ganze Server schliesst auf — Jäger aus jedem Winkel des Systems nehmen die Korvette ins Visier.</p></div>
-      <div class="sstep"><div class="sn">03</div><h3>Das letzte Gefecht</h3><p>Die Flucht endet an einem flüchtigen Wurmloch. Hier kommt es zur entscheidenden Schlacht um die Polaris, bevor das Tor sich wieder schliesst.</p></div>
-      <div class="sstep"><div class="sn">04</div><h3>Geteilte Beute</h3><p>Fällt die Korvette, wird die Belohnung unter allen Beteiligten geteilt. Wer mitgejagt hat, bekommt seinen Anteil — die Jagd lohnt sich für den ganzen Server.</p></div>
+      <div class="sstep"><div class="sn">01</div><h3>The heist</h3><p>During Fleet Week the Frontier Fighters seize an RSI Polaris — a capital corvette from Roberts Space Industries — and break away with it from the fleet show.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>The chase</h3><p>The stolen Polaris flees across Stanton. The whole server closes in — hunters from every corner of the system take aim at the corvette.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>The final showdown</h3><p>The escape ends at a fleeting wormhole. Here the decisive battle for the Polaris plays out, before the gate closes again.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Shared spoils</h3><p>If the corvette falls, the reward is shared among everyone involved. Whoever joined the hunt gets their cut — the hunt pays off for the whole server.</p></div>
     </div>
   </div>
 
@@ -97,20 +97,20 @@ import Attribution from '../../components/Attribution.astro';
       <div class="side a">
         <h3>⚑ Frontier Fighters</h3>
         <ul>
-          <li>Stehlen mitten in der Fleet Week eine ganze RSI Polaris.</li>
-          <li>Fliehen mit der Kapital-Korvette quer durch Stanton.</li>
-          <li>Steuern auf ein flüchtiges Wurmloch als Fluchtweg zu.</li>
-          <li>Müssen das letzte Gefecht überstehen, um zu entkommen.</li>
+          <li>Steal an entire RSI Polaris in the middle of Fleet Week.</li>
+          <li>Flee with the capital corvette across Stanton.</li>
+          <li>Head for a fleeting wormhole as their escape route.</li>
+          <li>Must survive the final showdown to get away.</li>
         </ul>
       </div>
       <div class="vs">VS</div>
       <div class="side b">
-        <h3>★ Der Server</h3>
+        <h3>★ The server</h3>
         <ul>
-          <li>Jeder Spieler im Shard kann sich der Jagd anschliessen.</li>
-          <li>Die Verfolgung zieht sich durch das ganze System Stanton.</li>
-          <li>Am Wurmloch fällt die Entscheidung über die Polaris.</li>
-          <li>Die Belohnung wird unter allen Beteiligten aufgeteilt.</li>
+          <li>Every player in the shard can join the hunt.</li>
+          <li>The pursuit stretches across the entire Stanton system.</li>
+          <li>At the wormhole the fate of the Polaris is decided.</li>
+          <li>The reward is split among everyone involved.</li>
         </ul>
       </div>
     </div>
@@ -120,9 +120,9 @@ import Attribution from '../../components/Attribution.astro';
   <section class="band band--right">
     <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-hh-1.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">02 · Parallel zur Jagd</div>
-      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">RÜCKSTOSS.</div>
-      <p>Alpha 4.1.1 brachte ein neues <b style="color:var(--accent-2)">Recoil-System</b> für Schiffs- und Fahrzeugwaffen — mit sichtbaren Effekten beim Feuern. Jeder Schuss in der Jagd auf die Polaris fühlt sich jetzt schwerer und greifbarer an.</p>
+      <div class="kx">02 · Alongside the hunt</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">RECOIL.</div>
+      <p>Alpha 4.1.1 brought a new <b style="color:var(--accent-2)">recoil system</b> for ship and vehicle weapons — with visible effects when firing. Every shot in the hunt for the Polaris now feels heavier and more tangible.</p>
     </div>
   </section>
 
@@ -131,10 +131,10 @@ import Attribution from '../../components/Attribution.astro';
     <div class="split split--rev reveal">
       <div class="split__media"><div class="m" style="background-image:url('/assets/t-polaris-2.jpg')"></div></div>
       <div class="split__text">
-        <div class="kx">03 · Mehr Feuerkraft</div>
-        <h3>Volle Magazine für die Türme</h3>
-        <p>Mit 4.1.1 wurde die <b>Turret-Munition</b> vieler Schiffe stark erhöht. Wer in der Hetzjagd die Geschütztürme bemannt, muss seltener nachladen und hält länger im Gefecht.</p>
-        <p>Die <b>RSI Polaris</b> selbst ist ausdrücklich unter den betroffenen Schiffen — die Korvette im Zentrum der Jagd profitiert direkt vom aufgestockten Munitionsvorrat ihrer Türme.</p>
+        <div class="kx">03 · More firepower</div>
+        <h3>Full magazines for the turrets</h3>
+        <p>With 4.1.1 the <b>turret ammunition</b> of many ships was greatly increased. Whoever mans the gun turrets during the chase reloads less often and lasts longer in the fight.</p>
+        <p>The <b>RSI Polaris</b> itself is explicitly among the affected ships — the corvette at the centre of the hunt benefits directly from the boosted ammo supply of its turrets.</p>
       </div>
     </div>
   </section>
@@ -143,24 +143,24 @@ import Attribution from '../../components/Attribution.astro';
   <section class="band">
     <div class="bbg" data-par="0.14" style="background-image:url('/assets/img-idris.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">Eingebettet ins grosse Spektakel</div>
+      <div class="kx">Embedded in the grand spectacle</div>
       <div class="big">FLEET WEEK</div>
-      <p>Hunt The Polaris ist eine server-weite Mission aus Alpha 4.1.1, eingebettet in die <b style="color:var(--accent-2)">Fleet Week / Invictus 2955</b> — das jährliche Flottenfest des Verse, bei dem die grössten Schiffe der UEE Seite an Seite stehen.</p>
+      <p>Hunt The Polaris is a server-wide mission from Alpha 4.1.1, embedded in <b style="color:var(--accent-2)">Fleet Week / Invictus 2955</b> — the Verse's annual fleet festival, where the greatest ships of the UEE stand side by side.</p>
     </div>
   </section>
 
   <!-- MEDIA — closing mixed gallery (no official video) -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="gallery reveal">
-        <figure class="gtile full b2" data-lb="img:/assets/img-polaris.jpg"><img src="/assets/img-polaris.jpg" alt="RSI Polaris im Flug" loading="lazy"><span class="zoomic">⤢</span><figcaption>RSI Polaris · Kapital-Korvette</figcaption></figure>
-        <figure class="gtile w2" data-lb="img:/assets/t-polaris-5.jpg"><img src="/assets/t-polaris-5.jpg" alt="Polaris entlässt eine Gladius aus der Jägerbucht" loading="lazy"><span class="zoomic">⤢</span><figcaption>Auf der Flucht durch Stanton</figcaption></figure>
-        <figure class="gtile" data-lb="img:/assets/t-polaris-2.jpg"><img src="/assets/t-polaris-2.jpg" alt="Polaris Geschütztürme" loading="lazy"><span class="zoomic">⤢</span><figcaption>Aufgestockte Türme</figcaption></figure>
-        <figure class="gtile" data-lb="img:/assets/img-hammerhead.jpg"><img src="/assets/img-hammerhead.jpg" alt="Hammerhead im Verfolgergeschwader" loading="lazy"><span class="zoomic">⤢</span><figcaption>Jäger des Servers</figcaption></figure>
-        <figure class="gtile w2" data-lb="img:/assets/img-idris.jpg"><img src="/assets/img-idris.jpg" alt="Aegis Idris — Großschiff der Fleet Week" loading="lazy"><span class="zoomic">⤢</span><figcaption>Fleet Week · Invictus 2955</figcaption></figure>
+        <figure class="gtile full b2" data-lb="img:/assets/img-polaris.jpg"><img src="/assets/img-polaris.jpg" alt="RSI Polaris in flight" loading="lazy"><span class="zoomic">⤢</span><figcaption>RSI Polaris · Capital corvette</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-polaris-5.jpg"><img src="/assets/t-polaris-5.jpg" alt="Polaris releasing a Gladius from the hangar bay" loading="lazy"><span class="zoomic">⤢</span><figcaption>On the run through Stanton</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-polaris-2.jpg"><img src="/assets/t-polaris-2.jpg" alt="Polaris gun turrets" loading="lazy"><span class="zoomic">⤢</span><figcaption>Boosted turrets</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-hammerhead.jpg"><img src="/assets/img-hammerhead.jpg" alt="Hammerhead in the pursuit squadron" loading="lazy"><span class="zoomic">⤢</span><figcaption>Hunters of the server</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/img-idris.jpg"><img src="/assets/img-idris.jpg" alt="Aegis Idris — Fleet Week capital ship" loading="lazy"><span class="zoomic">⤢</span><figcaption>Fleet Week · Invictus 2955</figcaption></figure>
       </div>
-      <p class="src reveal">Quelle: Star Citizen Wiki &amp; offizielle Patch-Notes zu Alpha 4.1.1 (© Cloud Imperium Games). · Inoffizielles Fan-Projekt.</p>
+      <p class="src reveal">Source: Star Citizen Wiki &amp; official patch notes for Alpha 4.1.1 (© Cloud Imperium Games). · Unofficial fan project.</p>
     </div>
   </section>
 
@@ -170,7 +170,7 @@ import Attribution from '../../components/Attribution.astro';
 
 <Attribution />
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 
 <script is:inline src="/assets/detail.js"></script>
 </Layout>

@@ -5,13 +5,14 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-3-1');
 if (!entry) throw new Error('Patch-Daten 4-3-1 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-3-1', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.3.1 — Virtue's Descent | VerseBase"} description={"Alpha 4.3.1: RSI Apollo, Medical-Overhaul und das Medgel-System."} themeColor="#0f2336" ogType="article" ogImage="/assets/trailer-4-3-1.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/trailer-4-3-1.jpg" />
+<Layout title={"Star Citizen Alpha 4.3.1 — Virtue's Descent | VerseBase"} description={"Alpha 4.3.1: RSI Apollo, medical overhaul and the MedGel system."} themeColor="#0f2336" ogType="article" ogImage="/assets/trailer-4-3-1.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/trailer-4-3-1.jpg" lang="en" />
 <style is:inline>
 
 /* 4.3.1 "Virtue's Descent" — media-first / low-text / MAXIMAL */
@@ -169,10 +170,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.3.1' }]} pill={"ALPHA 4.3.1"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.3.1' }]} pill={"ALPHA 4.3.1"} hasEn={true} />
 
 
 <main id="main">
@@ -182,15 +183,15 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">18. September 2025 · Point-Release</div>
+      <div class="eyebrow">September 18, 2025 · Point Release</div>
       <h1 data-text="4.3.1">4.3.1</h1>
       <div class="codename">Virtue's <span>Descent</span></div>
-      <div class="tagline">RSI Apollo, Medical-Overhaul und das Medgel-System.</div>
+      <div class="tagline">RSI Apollo, medical overhaul and the MedGel system.</div>
       <div class="tags">
         <span class="tag">Apollo</span><span class="tag">Medgel</span><span class="tag">Medical</span><span class="tag">Site B</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
@@ -201,8 +202,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </div>
 
-  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <!-- AT A GLANCE (data register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
@@ -210,11 +211,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
         <div class="tile img b2" data-lb="img:/assets/img-apollo.jpg"><div class="tbg" style="background-image:url('/assets/img-apollo.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">RSI Apollo</div><div class="sub">Medivac</div></div>
-        <div class="tile word" data-info data-title="MedGel" data-text="Neues Verbrauchsgut für Medizin-Betten: Respawn und Heilung an einem Med-Bett verbrauchen jetzt Ladungen aus angedockten MedGels — von der Triage bis zur vollen Wiederbelebung."><span class="zoomic">+</span><b>MEDGEL</b><small>T3·T2·T1</small></div>
-        <a class="tile word hot" href="/topics/4-3-1-medical-overhaul.html"><span class="zoomic">→</span><b>MEDICAL OVERHAUL</b><small>Detailseite ansehen</small></a>
-        <div class="tile stat" data-info data-title="Bett-Stufen T1–T3" data-text="Drei Tiers an Medizin-Betten mit angepassten Respawn-Distanzen. Tier-1-Betten (z. B. New-Babbage-Krankenhaus) verlangen Premium-Vorräte und sind teuer, Tier-3-Betten (z. B. Cutlass Red) nutzen leichter beschaffbare Ressourcen."><span class="zoomic">+</span><div class="num">T1–T3</div><div class="cap">Betten</div></div>
-        <div class="tile word" data-info data-title="Site B" data-text="Virtue's Descent öffnet Site B der Onyx-Facilities — eine weitere Schicht zum Erkunden. Hauptziel ist es, zusätzliche biologische Proben zu bergen, die für das volle Verständnis von Dr. Jorrits Experimenten entscheidend sind." data-img="/assets/t-onyx-2.jpg"><span class="zoomic">+</span><b>SITE B</b><small>Onyx-Story</small></div>
-        <div class="tile img w2" data-lb="img:/assets/t-med-2.jpg"><div class="tbg" style="background-image:url('/assets/t-med-2.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Apollo · im Flug</div><div class="sub">Atmospheric Flight</div></div>
+        <div class="tile word" data-info data-title="MedGel" data-text="New consumable for medical beds: respawns and healing at a med bed now draw charges from docked MedGels — from triage all the way to full revival."><span class="zoomic">+</span><b>MEDGEL</b><small>T3·T2·T1</small></div>
+        <a class="tile word hot" href="/topics/4-3-1-medical-overhaul.html"><span class="zoomic">→</span><b>MEDICAL OVERHAUL</b><small>View detail page</small></a>
+        <div class="tile stat" data-info data-title="Bed tiers T1–T3" data-text="Three tiers of medical beds with adjusted respawn distances. Tier 1 beds (e.g. the New Babbage hospital) require premium supplies and are expensive, while Tier 3 beds (e.g. Cutlass Red) use more easily sourced resources."><span class="zoomic">+</span><div class="num">T1–T3</div><div class="cap">Beds</div></div>
+        <div class="tile word" data-info data-title="Site B" data-text="Virtue's Descent opens Site B of the Onyx facilities — another layer to explore. The main goal is to recover additional biological samples that are crucial to fully understanding Dr. Jorrit's experiments." data-img="/assets/t-onyx-2.jpg"><span class="zoomic">+</span><b>SITE B</b><small>Onyx story</small></div>
+        <div class="tile img w2" data-lb="img:/assets/t-med-2.jpg"><div class="tbg" style="background-image:url('/assets/t-med-2.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Apollo · in flight</div><div class="sub">Atmospheric Flight</div></div>
       </div>
     </div>
   </section>
@@ -225,14 +226,14 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="shot__in reveal">
       <div class="kx">Medivac · Triage</div>
       <div class="big">RSI APOLLO</div>
-      <p>Triage und Wiederbelebung im Orbit.</p>
+      <p>Triage and revival in orbit.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Ships</h2><span class="rule"></span></div>
       <div class="garage">
         <article class="ship reveal" data-lb="yt:-0Yf6SVAYpw"><div class="sbg" style="background-image:url('/assets/img-apollo.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · Medical</span><h3>RSI Apollo</h3></div></article>
       </div>
@@ -244,44 +245,44 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="pq7XEWatINA" style="background-image:url('/assets/trailer-4-3-1.jpg')"><span class="vlbl">Virtue's Descent — Trailer</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="-0Yf6SVAYpw" style="background-image:url('/assets/vid-apollo.jpg')"><span class="vlbl">RSI Apollo — Behind the Ships</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="pq7XEWatINA" style="background-image:url('/assets/trailer-4-3-1.jpg')"><span class="vlbl">Virtue's Descent — Trailer</span><button class="play" aria-label="Play">▶</button></div>
+        <div class="video" data-yt="-0Yf6SVAYpw" style="background-image:url('/assets/vid-apollo.jpg')"><span class="vlbl">RSI Apollo — Behind the Ships</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=pq7XEWatINA" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=pq7XEWatINA" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-med-1.jpg"><img src="/assets/t-med-1.jpg" alt="Med-Bay mit Tier-2-Medizin-Bett" loading="lazy"><span class="zoomic">⤢</span><figcaption>Med-Bay · T2-Bett</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/img-apollo2.jpg"><img src="/assets/img-apollo2.jpg" alt="Apollo im Flug" loading="lazy"><span class="zoomic">⤢</span><figcaption>Apollo · Flug</figcaption></figure>
-        <figure data-lb="img:/assets/vid-apollo.jpg"><img src="/assets/vid-apollo.jpg" alt="Apollo Film" loading="lazy"><span class="zoomic">⤢</span><figcaption>Apollo · Film</figcaption></figure>
-        <figure data-lb="img:/assets/t-onyx-1.jpg"><img src="/assets/t-onyx-1.jpg" alt="Schacht in der Onyx-Facility" loading="lazy"><span class="zoomic">⤢</span><figcaption>Onyx-Facility</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-med-1.jpg"><img src="/assets/t-med-1.jpg" alt="Med bay with a Tier 2 medical bed" loading="lazy"><span class="zoomic">⤢</span><figcaption>Med bay · T2 bed</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/img-apollo2.jpg"><img src="/assets/img-apollo2.jpg" alt="Apollo in flight" loading="lazy"><span class="zoomic">⤢</span><figcaption>Apollo · flight</figcaption></figure>
+        <figure data-lb="img:/assets/vid-apollo.jpg"><img src="/assets/vid-apollo.jpg" alt="Apollo film" loading="lazy"><span class="zoomic">⤢</span><figcaption>Apollo · film</figcaption></figure>
+        <figure data-lb="img:/assets/t-onyx-1.jpg"><img src="/assets/t-onyx-1.jpg" alt="Shaft in the Onyx facility" loading="lazy"><span class="zoomic">⤢</span><figcaption>Onyx facility</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="05" />
+  <PatchDossier patch={patch} num="05" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-3-0.html"><span class="dir">← Älter</span><span class="ttl">4.3.0 · Dark Territory</span></a>
-    <a class="next" href="/patches/sc-4-3-2.html"><span class="dir">Neuer →</span><span class="ttl">4.3.2 · Fractured Frontiers</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-3-0.html"><span class="dir">← Older</span><span class="ttl">4.3.0 · Dark Territory</span></a>
+    <a class="next" href="/patches/sc-4-3-2.html"><span class="dir">Newer →</span><span class="ttl">4.3.2 · Fractured Frontiers</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Not affiliated with CIG. Trailers, stills & ship/system images from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

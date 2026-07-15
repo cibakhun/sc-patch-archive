@@ -1,13 +1,12 @@
 ---
-// Datenschutzerklärung — beschreibt FAKTISCH, was diese statische Site tut
-// (keine Cookies, kein Tracking, localStorage nur lokal, externe Bild-CDNs,
-// YouTube nur per Klick). [TODO]-Felder vor Publish füllen — audit:site
-// bleibt absichtlich rot, solange sie im Build stehen.
+// Privacy policy (EN mirror of /datenschutz.html — same slug so the language
+// switcher pairs the pages). Describes factually what this static site does.
+// [TODO] fields must be filled before publishing.
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
 ---
-<Layout title={"Datenschutzerklärung | VerseBase"} description={"Datenschutzerklärung von VerseBase: statische Website ohne Cookies und Tracking — welche Daten beim Aufruf, bei externen Bildquellen und bei Klick auf YouTube-Videos verarbeitet werden."} themeColor="#05070d" translated={true}>
+<Layout title={"Privacy Policy | VerseBase"} description={"Privacy policy of VerseBase: a static website without cookies or tracking — what data is processed when visiting, when external images load, and when YouTube videos are clicked."} themeColor="#05070d" translated={true}>
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
 .lg-wrap{max-width:var(--maxw);margin:0 auto;padding:3.2rem 1.25rem 4rem}
@@ -18,109 +17,102 @@ import Attribution from '../components/Attribution.astro';
 .lg-wrap .muted{color:var(--muted)}
 .lg-fill{display:inline-block;background:color-mix(in srgb,#ff5b5b 14%,transparent);border:1px dashed #ff5b5b;border-radius:4px;padding:0 .45rem;color:#ffb4b4;font-weight:700}
 </style>
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Datenschutz' }]} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Privacy' }]} hasEn={true} />
 <main id="main">
   <div class="lg-wrap">
-    <h1>Datenschutzerklärung</h1>
+    <h1>Privacy Policy</h1>
 
-    <h2>Verantwortlicher</h2>
+    <h2>Controller</h2>
     <p>
-      Krisztofer Milánkovits, Schlossstraße 6, 85411 Hohenkammer, Deutschland —
-      E-Mail: <a href="mailto:krysx141@gmail.com">krysx141@gmail.com</a>
+      Krisztofer Milánkovits, Schlossstraße 6, 85411 Hohenkammer, Germany —
+      e-mail: <a href="mailto:krysx141@gmail.com">krysx141@gmail.com</a>
     </p>
 
-    <h2>Grundsatz</h2>
+    <h2>Principle</h2>
     <p>
-      Diese Website ist ein rein statisches, nicht-kommerzielles Fan-Projekt. Sie verwendet
-      <strong>keine Cookies</strong>, <strong>keine Analyse- oder Tracking-Dienste</strong>,
-      keine Werbung und keine Kommentarfunktionen. Beim bloßen Aufrufen der Seite werden keine
-      personenbezogenen Daten von dir an uns übermittelt. Eine Ausnahme ist ausschließlich das
-      <a href="#feedback">Feedback-Formular</a>, das du freiwillig nutzen kannst — die dabei
-      verarbeiteten Daten sind unten gesondert beschrieben.
+      This website is a purely static, non-commercial fan project. It uses <strong>no cookies</strong>,
+      <strong>no analytics or tracking services</strong>, no advertising and no comment functions.
+      Simply viewing the site transmits no personal data from you to us. The only exception is the
+      <a href="#feedback">feedback form</a>, which you may use voluntarily — the data processed there
+      is described separately below.
     </p>
 
-    <h2>Server-Logdateien (Hosting)</h2>
+    <h2>Server log files (hosting)</h2>
     <p>
-      Beim Aufruf der Website verarbeitet der Hosting-Anbieter
-      Hetzner Online GmbH (Industriestr. 25, 91710 Gunzenhausen, Deutschland) technisch bedingt
-      Verbindungsdaten (IP-Adresse, Zeitpunkt, aufgerufene Ressource, User-Agent) in Server-Logs.
-      Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der sicheren
-      Bereitstellung). Auf diese Logs haben wir keinen inhaltlichen Zugriff über das für den
-      Betrieb Erforderliche hinaus.
+      When you visit this website, the hosting provider
+      Hetzner Online GmbH (Industriestr. 25, 91710 Gunzenhausen, Germany) technically
+      processes connection data (IP address, timestamp, requested resource, user agent) in server
+      logs. Legal basis: Art. 6 (1) (f) GDPR (legitimate interest in secure operation).
     </p>
 
-    <h2>Lokale Speicherung im Browser (localStorage)</h2>
+    <h2>Local browser storage (localStorage)</h2>
     <p>
-      Einzelne Werkzeuge der Seite (z. B. Crafting-Planer, „Im Besitz“-Markierungen,
-      Ansichts-Einstellungen) speichern ihre Einstellungen ausschließlich <strong>lokal in deinem
-      Browser</strong> (localStorage). Diese Daten verlassen dein Gerät nicht und können jederzeit
-      über die Browser-Einstellungen gelöscht werden.
+      Some tools on this site (e.g. the crafting planner, “owned” marks, view settings) store their
+      state exclusively <strong>locally in your browser</strong> (localStorage). This data never
+      leaves your device and can be deleted at any time via your browser settings.
     </p>
 
-    <h2>Extern eingebundene Bilder</h2>
+    <h2>Externally embedded images</h2>
     <p>
-      Teile der Bilddaten werden von externen Quellen geladen. Beim Abruf dieser Bilder wird deine
-      IP-Adresse technisch bedingt an den jeweiligen Anbieter übermittelt:
+      Some imagery is loaded from external sources. When these images are fetched, your IP address
+      is technically transmitted to the respective provider:
     </p>
     <ul>
-      <li><strong>fleetyards.net</strong> — Schiffs- und Fahrzeugbilder</li>
-      <li><strong>starcitizen.tools / cstone.space</strong> — einzelne Medieninhalte</li>
+      <li><strong>fleetyards.net</strong> — ship and vehicle imagery</li>
+      <li><strong>starcitizen.tools / cstone.space</strong> — individual media assets</li>
     </ul>
 
-    <h2>Ambient-Hintergrundvideos</h2>
+    <h2>Ambient background videos</h2>
     <p>
-      Einzelne Seiten zeigen kurze, stumme Videoschleifen (Trailer-Ausschnitte) als
-      Hintergrund. Diese Dateien werden <strong>lokal von dieser Website</strong> ausgeliefert —
-      es wird kein Drittserver kontaktiert. Bei aktivierter Bewegungsreduzierung
-      (prefers-reduced-motion), aktivem Datensparmodus oder auf kleinen Bildschirmen
-      wird stattdessen nur das Standbild geladen.
+      Some pages show short, muted video loops (trailer excerpts) as backgrounds. These files
+      are served <strong>locally by this website</strong> — no third-party server is contacted.
+      With reduced motion enabled (prefers-reduced-motion), an active data-saver mode, or on
+      small screens, only the still image is loaded instead.
     </p>
 
-    <h2>YouTube-Videos (Klick-Aktivierung)</h2>
+    <h2>YouTube videos (click to load)</h2>
     <p>
-      Videos sind als Vorschaubild eingebunden und werden <strong>erst nach deinem Klick</strong>
-      über youtube-nocookie.com (Google Ireland Ltd.) geladen. Vor dem Klick findet keine
-      Verbindung zu Google statt; mit dem Klick gelten die
-      <a href="https://policies.google.com/privacy" rel="noopener">Datenschutzhinweise von Google</a>.
+      Videos are embedded as preview stills and load <strong>only after you click</strong>, via
+      youtube-nocookie.com (Google Ireland Ltd.). Before the click, no connection to Google is made;
+      after the click, <a href="https://policies.google.com/privacy" rel="noopener">Google’s privacy policy</a> applies.
     </p>
 
-    <h2 id="feedback">Feedback-Formular (Web3Forms)</h2>
+    <h2 id="feedback">Feedback form (Web3Forms)</h2>
     <p>
-      Auf der Seite <a href="/feedback.html">Feedback</a> kannst du uns freiwillig eine Nachricht
-      senden. Da diese Website statisch ist und keinen eigenen Server-Backend hat, wird der Versand
-      über den Dienst <strong>Web3Forms</strong> abgewickelt. Beim Absenden werden folgende Daten an
-      Web3Forms übermittelt und von dort per E-Mail an uns zugestellt:
+      On the <a href="/feedback.html">Feedback</a> page you can voluntarily send us a message.
+      Because this website is static and has no server backend of its own, delivery is handled by the
+      service <strong>Web3Forms</strong>. When you submit, the following data is transmitted to
+      Web3Forms and delivered from there to us by e-mail:
     </p>
     <ul>
-      <li><strong>Nachrichtentext</strong> (Pflichtfeld)</li>
-      <li><strong>Bewertung</strong> (1–5 Sterne, optional)</li>
-      <li><strong>E-Mail-Adresse</strong> (optional — nur wenn du eine Antwort möchtest; sie wird als
-        Antwortadresse gesetzt)</li>
-      <li>technisch bedingt deine IP-Adresse sowie Absendezeitpunkt</li>
+      <li><strong>message text</strong> (required)</li>
+      <li><strong>rating</strong> (1–5 stars, optional)</li>
+      <li><strong>e-mail address</strong> (optional — only if you want a reply; it is set as the
+        reply-to address)</li>
+      <li>technically, your IP address and the time of submission</li>
     </ul>
     <p>
-      Rechtsgrundlage ist deine Einwilligung durch das aktive Absenden des Formulars
-      (Art. 6 Abs. 1 lit. a DSGVO). Die Angabe der E-Mail-Adresse ist freiwillig; ohne sie können
-      wir nicht auf dein Feedback antworten. Wir verwenden die Daten ausschließlich zur Bearbeitung
-      und Beantwortung deines Feedbacks und geben sie nicht zu anderen Zwecken weiter.
+      The legal basis is your consent given by actively submitting the form (Art. 6 (1) (a) GDPR).
+      Providing your e-mail address is voluntary; without it we cannot reply to your feedback. We use
+      the data solely to process and answer your feedback and do not pass it on for other purposes.
     </p>
     <p class="muted">
-      Anbieter des Formular-Dienstes ist Web3Forms. Bei der Übermittlung kann eine Verarbeitung auf
-      Servern außerhalb der EU stattfinden. Details zur Datenverarbeitung durch den Dienst findest du
-      in dessen Datenschutzerklärung: <a href="https://web3forms.com/privacy" rel="noopener">web3forms.com/privacy</a>.
-      Das Formular setzt keine Cookies und lädt keine externen Skripte; es wird erst beim Absenden
-      eine Verbindung zu Web3Forms hergestellt.
+      The form service is provided by Web3Forms. Transmission may involve processing on servers
+      outside the EU. For details on how the service processes data, see its privacy policy:
+      <a href="https://web3forms.com/privacy" rel="noopener">web3forms.com/privacy</a>. The form sets
+      no cookies and loads no external scripts; a connection to Web3Forms is only established upon
+      submission.
     </p>
 
-    <h2>Schriftarten</h2>
-    <p>Alle Webfonts werden lokal von dieser Website ausgeliefert. Es findet keine Verbindung zu Google Fonts statt.</p>
+    <h2>Fonts</h2>
+    <p>All web fonts are served locally by this website. No connection to Google Fonts is made.</p>
 
-    <h2>Deine Rechte</h2>
+    <h2>Your rights</h2>
     <p class="muted">
-      Dir stehen die Rechte aus Art. 15–21 DSGVO zu (Auskunft, Berichtigung, Löschung, Einschränkung,
-      Datenübertragbarkeit, Widerspruch) sowie das Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde
-      (Art. 77 DSGVO). Da diese Website keine personenbezogenen Daten von dir erhebt oder speichert,
-      laufen Auskunftsersuchen in der Regel ins Leere — melde dich im Zweifel per E-Mail.
+      You have the rights under Art. 15–21 GDPR (access, rectification, erasure, restriction, data
+      portability, objection) and the right to lodge a complaint with a supervisory authority
+      (Art. 77 GDPR). Since this website does not collect or store personal data about you, access
+      requests will usually come up empty — if in doubt, reach out by e-mail.
     </p>
   </div>
 </main>

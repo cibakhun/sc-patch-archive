@@ -4,14 +4,15 @@ import SiteNav from '../../components/SiteNav.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
+import { mergePatchEn } from '../../i18n/patchText';
 import { getEntry } from 'astro:content';
 
 const entry = await getEntry('patches', '4-0-1');
 if (!entry) throw new Error('Patch-Daten 4-0-1 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-0-1', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.0.1 — Stabilität & Save Stanton II | VerseBase"} description={"Alpha 4.0.1: Crash-Fixes, Streaming, Entity Density und Save Stanton Kapitel 2 in Pyro."} themeColor="#0c1320" ogType="article" ogImage="/assets/trailer-4-0-0.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/trailer-4-0-0.jpg" />
+<Layout title={"Star Citizen Alpha 4.0.1 — Stability & Save Stanton II | VerseBase"} description={"Alpha 4.0.1: crash fixes, streaming, entity density and Save Stanton Chapter 2 in Pyro."} themeColor="#0c1320" ogType="article" ogImage="/assets/trailer-4-0-0.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/trailer-4-0-0.jpg" lang="en" />
 <style is:inline>
 
 /* 4.0.1 "Stabilität & Save Stanton II" — media-first / low-text / MAXIMAL · Konsolen-Blau */
@@ -169,10 +170,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.0.1' }]} pill={"ALPHA 4.0.1"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.0.1' }]} pill={"ALPHA 4.0.1"} hasEn={true} />
 
 
 <main id="main">
@@ -183,39 +184,39 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <script is:inline src="/assets/hero-video.js"></script>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">28. Januar 2025 · Point-Release</div>
+      <div class="eyebrow">January 28, 2025 · Point Release</div>
       <h1 data-text="4.0.1">4.0.1</h1>
-      <div class="codename">Stabilität &amp; <span>Save Stanton II</span></div>
-      <div class="tagline">Stabilität, Streaming-Fixes und Save Stanton — Kapitel 2.</div>
+      <div class="codename">Stability &amp; <span>Save Stanton II</span></div>
+      <div class="tagline">Stability, streaming fixes and Save Stanton — Chapter 2.</div>
       <div class="tags">
-        <span class="tag">Stabilität</span><span class="tag">Save Stanton</span><span class="tag">Entity Density</span><span class="tag hot">Ripper SMG</span>
+        <span class="tag">Stability</span><span class="tag">Save Stanton</span><span class="tag">Entity Density</span><span class="tag hot">Ripper SMG</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>STABILITÄT</span><span class="dot">◆</span><span>SAVE STANTON</span><span class="dot">◆</span><span>KAPITEL 2</span><span class="dot">◆</span><span>ENTITY DENSITY</span><span class="dot">◆</span><span>STREAMING-FIX</span><span class="dot">◆</span><span>RIPPER SMG</span><span class="dot">◆</span>
-      <span>STABILITÄT</span><span class="dot">◆</span><span>SAVE STANTON</span><span class="dot">◆</span><span>KAPITEL 2</span><span class="dot">◆</span><span>ENTITY DENSITY</span><span class="dot">◆</span><span>STREAMING-FIX</span><span class="dot">◆</span><span>RIPPER SMG</span><span class="dot">◆</span>
+      <span>STABILITY</span><span class="dot">◆</span><span>SAVE STANTON</span><span class="dot">◆</span><span>CHAPTER 2</span><span class="dot">◆</span><span>ENTITY DENSITY</span><span class="dot">◆</span><span>STREAMING FIX</span><span class="dot">◆</span><span>RIPPER SMG</span><span class="dot">◆</span>
+      <span>STABILITY</span><span class="dot">◆</span><span>SAVE STANTON</span><span class="dot">◆</span><span>CHAPTER 2</span><span class="dot">◆</span><span>ENTITY DENSITY</span><span class="dot">◆</span><span>STREAMING FIX</span><span class="dot">◆</span><span>RIPPER SMG</span><span class="dot">◆</span>
     </div>
   </div>
 
   <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/t-pyro-2.jpg"><div class="tbg" style="background-image:url('/assets/t-pyro-2.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Pyro</div><div class="sub">Schauplatz Ch.2</div></div>
-        <a class="tile word hot" href="/topics/4-0-1-fight-for-pyro.html"><span class="zoomic">→</span><b>SAVE<br>STANTON</b><small>Detailseite ansehen</small></a>
-        <div class="tile word" data-info data-title="Entity Density" data-text="Optimierung der Entity-Aufräum-Logik: zurückgelassene Objekte und angesammelte Spielobjekte werden besser bereinigt, was Performance und Server-Stabilität in dicht bevölkerten Zonen verbessert."><span class="zoomic">+</span><b>ENTITY<br>DENSITY</b><small>Aufräum-Logik</small></div>
-        <div class="tile word" data-info data-title="Streaming-Fixes" data-text="Verbesserungen am Persistent Entity Streaming: Aufzüge, Hangars und Innenräume laden zuverlässiger nach, weniger fehlende Geometrie und Hänger beim Betreten."><span class="zoomic">+</span><b>STREAMING</b><small>Aufzüge &amp; Hangars</small></div>
-        <div class="tile stat" data-info data-title="Top-10 Crash-Fixes" data-text="4.0.1 war ein Stabilitäts-Point-Release: gezielt wurden die häufigsten Client- und Server-Abstürze des 4.0-Starts behoben."><span class="zoomic">+</span><div class="num">Top-10</div><div class="cap">Crash-Fixes</div></div>
-        <div class="tile word hot" data-info data-title="Ripper SMG" data-text="Eine selbstgebaute Pyro-Laser-MP (Strahlenwaffe), zusammengeschraubt aus Greycat-Teilen — Abschluss-Belohnung für das Beenden von Save Stanton Kapitel 2, mit markantem Pyro-Design."><span class="zoomic">+</span><b>RIPPER<br>SMG</b><small>Belohnung</small></div>
+        <div class="tile img b2" data-lb="img:/assets/t-pyro-2.jpg"><div class="tbg" style="background-image:url('/assets/t-pyro-2.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Pyro</div><div class="sub">Setting Ch.2</div></div>
+        <a class="tile word hot" href="/topics/4-0-1-fight-for-pyro.html"><span class="zoomic">→</span><b>SAVE<br>STANTON</b><small>View detail page</small></a>
+        <div class="tile word" data-info data-title="Entity Density" data-text="Optimized entity cleanup logic: abandoned objects and accumulated game objects are cleaned up more effectively, improving performance and server stability in densely populated zones."><span class="zoomic">+</span><b>ENTITY<br>DENSITY</b><small>Cleanup logic</small></div>
+        <div class="tile word" data-info data-title="Streaming Fixes" data-text="Improvements to Persistent Entity Streaming: elevators, hangars and interiors load in more reliably, with less missing geometry and fewer hitches when entering."><span class="zoomic">+</span><b>STREAMING</b><small>Elevators &amp; hangars</small></div>
+        <div class="tile stat" data-info data-title="Top 10 Crash Fixes" data-text="4.0.1 was a stability point release: it specifically targeted the most common client and server crashes from the 4.0 launch."><span class="zoomic">+</span><div class="num">Top-10</div><div class="cap">Crash Fixes</div></div>
+        <div class="tile word hot" data-info data-title="Ripper SMG" data-text="A homemade Pyro laser SMG (energy weapon), cobbled together from Greycat parts — the completion reward for finishing Save Stanton Chapter 2, with a distinctive Pyro design."><span class="zoomic">+</span><b>RIPPER<br>SMG</b><small>Reward</small></div>
       </div>
     </div>
   </section>
@@ -224,18 +225,18 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/img-pyro.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Brücke Stanton ↔ Pyro</div>
+      <div class="kx">Bridge Stanton ↔ Pyro</div>
       <div class="big outline">STANTON ↔ PYRO</div>
-      <p>Reise zwischen zwei voll simulierten Systemen.</p>
+      <p>Travel between two fully simulated systems.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiff</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Ship</h2><span class="rule"></span></div>
       <div class="garage">
-        <article class="ship reveal" data-lb="yt:aI4nAuwO1fE"><div class="sbg" style="background-image:url('/assets/vid-superhornet.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">Anvil · Jäger</span><h3>F7C-M Super Hornet Mk II</h3></div></article>
+        <article class="ship reveal" data-lb="yt:aI4nAuwO1fE"><div class="sbg" style="background-image:url('/assets/vid-superhornet.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">Anvil · Fighter</span><h3>F7C-M Super Hornet Mk II</h3></div></article>
       </div>
     </div>
   </section>
@@ -243,32 +244,32 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">03</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">03</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
         <figure class="b2" data-lb="img:/assets/t-pyro-1.jpg"><img src="/assets/t-pyro-1.jpg" alt="Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-ffp-2.jpg"><img src="/assets/t-ffp-2.jpg" alt="Save Stanton — Fraktionen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Save Stanton — Fraktionen</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-ffp-2.jpg"><img src="/assets/t-ffp-2.jpg" alt="Save Stanton — factions" loading="lazy"><span class="zoomic">⤢</span><figcaption>Save Stanton — factions</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="04" />
+  <PatchDossier patch={patch} num="04" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-0-0.html"><span class="dir">← Älter</span><span class="ttl">4.0.0 · Destination Pyro</span></a>
-    <a class="next" href="/patches/sc-4-0-2.html"><span class="dir">Neuer →</span><span class="ttl">4.0.2 · Supply or Die</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-0-0.html"><span class="dir">← Older</span><span class="ttl">4.0.0 · Destination Pyro</span></a>
+    <a class="next" href="/patches/sc-4-0-2.html"><span class="dir">Newer →</span><span class="ttl">4.0.2 · Supply or Die</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Not affiliated with CIG. Trailers, stills & ship/system images from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

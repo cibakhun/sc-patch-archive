@@ -5,13 +5,14 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-8-3');
 if (!entry) throw new Error('Patch-Daten 4-8-3 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-8-3', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.8.3 — XenoThreat kehrt zurück | VerseBase"} description={"Alpha 4.8.3: Die menschen-suprematistische Fraktion XenoThreat kehrt als dynamisches Kampf-Event nach Stanton zurück — 1.–15. Juli 2026, 120.000 Event-Punkte, Blueprint-Belohnungen."} themeColor="#0d0a16" ogType="article" ogImage="/assets/t-xeno-1.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/t-xeno-1.jpg" />
+<Layout title={"Star Citizen Alpha 4.8.3 — XenoThreat Returns | VerseBase"} description={"Alpha 4.8.3: The human-supremacist XenoThreat faction returns to Stanton as a dynamic combat event — July 1–15, 2026, 120,000 event points, blueprint rewards."} themeColor="#0d0a16" ogType="article" ogImage="/assets/t-xeno-1.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/t-xeno-1.jpg" lang="en" />
 <style is:inline>
 
 /* 4.8.3 "XenoThreat" — media-first / low-text / Ember-Combat */
@@ -104,7 +105,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .shot .big.outline{color:transparent;-webkit-text-stroke:2px var(--accent)}
 .shot p{max-width:46ch;color:#eef3ff;font-size:clamp(1rem,1.6vw,1.25rem);margin-top:.6rem;text-shadow:0 2px 14px #000}
 
-/* Missionsziele (Event-Aufgaben, keine Schiff-Releases) */
+/* Mission objectives (event tasks, not ship releases) */
 .objnote{max-width:64ch;color:var(--muted);font-size:.98rem;line-height:1.55;margin-bottom:1.4rem}
 .objnote b{color:#ffab7a}
 .objectives{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:.8rem}
@@ -168,10 +169,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.8.3' }]} pill={"ALPHA 4.8.3"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.8.3' }]} pill={"ALPHA 4.8.3"} hasEn={true} />
 
 
 <main id="main">
@@ -181,27 +182,27 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">1. Juli 2026 · Event-Patch</div>
+      <div class="eyebrow">July 1, 2026 · Event Patch</div>
       <h1 data-text="4.8.3">4.8.3</h1>
       <div class="codename">Xeno<span>Threat</span></div>
-      <div class="tagline">Assault on Stanton — die Fraktion kehrt zurück</div>
+      <div class="tagline">Assault on Stanton — the faction returns</div>
       <div class="tags">
-        <span class="tag hot">XenoThreat</span><span class="tag">Assault on Stanton</span><span class="tag">Dynamisches Event</span><span class="tag">Idris</span><span class="tag">1.–15. Juli</span>
+        <span class="tag hot">XenoThreat</span><span class="tag">Assault on Stanton</span><span class="tag">Dynamic Event</span><span class="tag">Idris</span><span class="tag">July 1–15</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>XENOTHREAT</span><span class="dot">◆</span><span>ASSAULT ON STANTON</span><span class="dot">◆</span><span>120.000 PUNKTE</span><span class="dot">◆</span><span>IDRIS-FREGATTE</span><span class="dot">◆</span><span>FOXWELL ENFORCEMENT</span><span class="dot">◆</span><span>ANTI-ALIEN</span><span class="dot">◆</span>
-      <span>XENOTHREAT</span><span class="dot">◆</span><span>ASSAULT ON STANTON</span><span class="dot">◆</span><span>120.000 PUNKTE</span><span class="dot">◆</span><span>IDRIS-FREGATTE</span><span class="dot">◆</span><span>FOXWELL ENFORCEMENT</span><span class="dot">◆</span><span>ANTI-ALIEN</span><span class="dot">◆</span>
+      <span>XENOTHREAT</span><span class="dot">◆</span><span>ASSAULT ON STANTON</span><span class="dot">◆</span><span>120,000 POINTS</span><span class="dot">◆</span><span>IDRIS FRIGATE</span><span class="dot">◆</span><span>FOXWELL ENFORCEMENT</span><span class="dot">◆</span><span>ANTI-ALIEN</span><span class="dot">◆</span>
+      <span>XENOTHREAT</span><span class="dot">◆</span><span>ASSAULT ON STANTON</span><span class="dot">◆</span><span>120,000 POINTS</span><span class="dot">◆</span><span>IDRIS FRIGATE</span><span class="dot">◆</span><span>FOXWELL ENFORCEMENT</span><span class="dot">◆</span><span>ANTI-ALIEN</span><span class="dot">◆</span>
     </div>
   </div>
 
-  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <!-- AT A GLANCE (Daten-Register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
@@ -209,11 +210,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
         <div class="tile img b2" data-lb="img:/assets/t-xeno-1.jpg"><div class="tbg" style="background-image:url('/assets/t-xeno-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">XenoThreat</div><div class="sub">Assault on Stanton</div></div>
-        <a class="tile word hot" href="/topics/4-8-3-xenothreat.html"><span class="zoomic">→</span><b>ASSAULT<br>ON STANTON</b><small>Fraktions-Detailseite</small></a>
-        <div class="tile img w2" data-lb="img:/assets/img-idris.jpg"><div class="tbg" style="background-image:url('/assets/img-idris.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Idris-Fregatte</div><div class="sub">Kapitalschiff-Ziel</div></div>
-        <div class="tile stat" data-info data-title="120.000 Event-Punkte" data-text="4.8.3 ist ein Combat-Point-Farm: Über fünf Missionstypen sammeln Spieler Event-Punkte, tracken den Fortschritt im Journal und arbeiten sich bis zur vollen Reward-Spur von 120.000 Punkten hoch — dort warten exklusive Belohnungen inklusive Blueprints." data-img="/assets/t-xeno-2.jpg"><span class="zoomic">+</span><div class="num">120K</div><div class="cap">Event-Punkte</div></div>
-        <div class="tile stat" data-info data-title="Fünf Missionstypen" data-text="Alien-gebaute Schiffe verteidigen · anti-alien Jäger ausschalten · eintreffende Verbände abfangen · xenophobe Lieutenants herauslocken · Idris-Fregatte zerstören oder deren Piloten ausschalten."><span class="zoomic">+</span><div class="num">5</div><div class="cap">Missionstypen</div></div>
-        <div class="tile word" data-info data-title="Foxwell Enforcement" data-text="XenoThreat ist eine menschen-suprematistische, anti-alien und anti-UEE gesinnte Outlaw-Fraktion. Weil Stanton die Koexistenz mit außerirdischen Spezies unterstützt, greift sie das System an — Foxwell Enforcement ruft Spieler zur Verteidigung auf."><span class="zoomic">+</span><b>FOXWELL</b><small>Enforcement</small></div>
+        <a class="tile word hot" href="/topics/4-8-3-xenothreat.html"><span class="zoomic">→</span><b>ASSAULT<br>ON STANTON</b><small>Faction detail page</small></a>
+        <div class="tile img w2" data-lb="img:/assets/img-idris.jpg"><div class="tbg" style="background-image:url('/assets/img-idris.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Idris Frigate</div><div class="sub">Capital-ship objective</div></div>
+        <div class="tile stat" data-info data-title="120,000 Event Points" data-text="4.8.3 is a combat point farm: across five mission types players farm event points, track progress in their journal, and work up to the full reward track of 120,000 points — where exclusive rewards including blueprints await." data-img="/assets/t-xeno-2.jpg"><span class="zoomic">+</span><div class="num">120K</div><div class="cap">Event Points</div></div>
+        <div class="tile stat" data-info data-title="Five Mission Types" data-text="Defend alien-made ships · eliminate anti-alien fighters · intercept incoming forces · draw out xenophobic lieutenants · destroy the Idris frigate or kill its pilot."><span class="zoomic">+</span><div class="num">5</div><div class="cap">Mission Types</div></div>
+        <div class="tile word" data-info data-title="Foxwell Enforcement" data-text="XenoThreat is a human-supremacist, anti-alien and anti-UEE outlaw faction. Because Stanton supports coexistence with alien species, they attack the system — and Foxwell Enforcement calls on players to defend it."><span class="zoomic">+</span><b>FOXWELL</b><small>Enforcement</small></div>
       </div>
     </div>
   </section>
@@ -222,23 +223,23 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-xeno-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">XenoThreat · 1.–15. Juli 2026</div>
+      <div class="kx">XenoThreat · July 1–15, 2026</div>
       <div class="big">STANTON</div>
-      <p>Wellen aus Jägern, Gunships und einer Idris-Fregatte greifen das System an. Foxwell Enforcement koordiniert die Gegenwehr.</p>
+      <p>Waves of fighters, gunships, and an Idris frigate strike the system. Foxwell Enforcement coordinates the defense.</p>
     </div>
   </section>
 
-  <!-- MISSIONSZIELE -->
+  <!-- MISSION OBJECTIVES -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Missionsziele</h2><span class="rule"></span></div>
-      <p class="objnote reveal">Fünf Aktivitäten füllen die Reward-Spur bis 120.000 Punkte. <b>4.8.3 bringt kein neues Schiff</b> — die Idris ist das gegnerische Kapitalschiff-Ziel des Events, kein Release.</p>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Mission objectives</h2><span class="rule"></span></div>
+      <p class="objnote reveal">Five activities fill the reward track to 120,000 points. <b>4.8.3 adds no new ship</b> — the Idris is the event's hostile capital-ship target, not a release.</p>
       <ol class="objectives reveal">
-        <li><span class="on">01</span><div><b>Alien-Schiffe verteidigen</b><small>Von Aliens gebaute Schiffe unter Beschuss schützen.</small></div></li>
-        <li><span class="on">02</span><div><b>Anti-Alien-Jäger ausschalten</b><small>Xenophobe Jäger-Wellen abfangen.</small></div></li>
-        <li><span class="on">03</span><div><b>Verbände abfangen</b><small>Eintreffende ausgrenzende Elitisten vernichten.</small></div></li>
-        <li><span class="on">04</span><div><b>Lieutenants herauslocken</b><small>Xenophobe Anführer besiegen und die Kommandostruktur schwächen.</small></div></li>
-        <li class="boss"><span class="on">05</span><div><b>Idris-Fregatte · Kapitalschiff-Ziel</b><small>Das Boss-Ziel: Schiff zerstören oder Piloten ausschalten — kein neues Schiff in 4.8.3.</small></div></li>
+        <li><span class="on">01</span><div><b>Defend alien-built ships</b><small>Protect alien-made ships under attack.</small></div></li>
+        <li><span class="on">02</span><div><b>Clear anti-alien fighters</b><small>Intercept waves of xenophobic fighters.</small></div></li>
+        <li><span class="on">03</span><div><b>Intercept squadrons</b><small>Destroy incoming exclusionary forces.</small></div></li>
+        <li><span class="on">04</span><div><b>Draw out lieutenants</b><small>Defeat xenophobic leaders to weaken the command structure.</small></div></li>
+        <li class="boss"><span class="on">05</span><div><b>Idris frigate · capital target</b><small>The boss objective: destroy the ship or kill its pilot — no new ship in 4.8.3.</small></div></li>
       </ol>
     </div>
   </section>
@@ -248,43 +249,43 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Video</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="SsOtI2dtvBc" style="background-image:url('/assets/t-xeno-1.jpg')"><span class="vlbl">XenoThreat — Assault on Stanton</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="SsOtI2dtvBc" style="background-image:url('/assets/t-xeno-1.jpg')"><span class="vlbl">XenoThreat — Assault on Stanton</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=SsOtI2dtvBc" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=SsOtI2dtvBc" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-xeno-2.jpg"><img src="/assets/t-xeno-2.jpg" alt="XenoThreat-Schlacht im Orbit von Stanton mit Jägern und Explosionen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Assault on Stanton</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/img-idris.jpg"><img src="/assets/img-idris.jpg" alt="Idris-Fregatte als Kapitalschiff-Ziel des XenoThreat-Events" loading="lazy"><span class="zoomic">⤢</span><figcaption>Idris · Kapitalschiff-Ziel</figcaption></figure>
-        <figure data-lb="img:/assets/t-xeno-3.jpg"><img src="/assets/t-xeno-3.jpg" alt="XenoThreat-Jäger im Anflug" loading="lazy"><span class="zoomic">⤢</span><figcaption>Angriffs-Wellen</figcaption></figure>
-        <figure data-lb="img:/assets/cz-combat.jpg"><img src="/assets/cz-combat.jpg" alt="Feuergefecht während des Events" loading="lazy"><span class="zoomic">⤢</span><figcaption>Kampf um Stanton</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-xeno-2.jpg"><img src="/assets/t-xeno-2.jpg" alt="XenoThreat battle in Stanton orbit with fighters and explosions" loading="lazy"><span class="zoomic">⤢</span><figcaption>Assault on Stanton</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/img-idris.jpg"><img src="/assets/img-idris.jpg" alt="Idris frigate as the capital-ship objective of the XenoThreat event" loading="lazy"><span class="zoomic">⤢</span><figcaption>Idris · capital-ship objective</figcaption></figure>
+        <figure data-lb="img:/assets/t-xeno-3.jpg"><img src="/assets/t-xeno-3.jpg" alt="XenoThreat fighters closing in" loading="lazy"><span class="zoomic">⤢</span><figcaption>Assault waves</figcaption></figure>
+        <figure data-lb="img:/assets/cz-combat.jpg"><img src="/assets/cz-combat.jpg" alt="Firefight during the event" loading="lazy"><span class="zoomic">⤢</span><figcaption>Fight for Stanton</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="05" />
+  <PatchDossier patch={patch} num="05" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-8-2.html"><span class="dir">← Älter</span><span class="ttl">4.8.2 · Gatac &amp; Alien Week</span></a>
-    <span class="next disabled"><span class="dir">Neuer →</span><span class="ttl">Aktuellster Patch</span></span>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-8-2.html"><span class="dir">← Older</span><span class="ttl">4.8.2 · Gatac &amp; Alien Week</span></a>
+    <span class="next disabled"><span class="dir">Newer →</span><span class="ttl">Latest patch</span></span>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/archiv.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/archiv.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. No affiliation with CIG. Trailers, stills & ship/system imagery from official or community sources (© Cloud Imperium Games), fan-content usage.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

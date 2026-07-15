@@ -5,13 +5,14 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-3-0');
 if (!entry) throw new Error('Patch-Daten 4-3-0 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-3-0', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.3.0 — Dark Territory | VerseBase"} description={"Alpha 4.3.0: Personal Hangars, ~100 Onyx Facilities und die Regen Crisis."} themeColor="#0B0B0F" ogType="article" ogImage="/assets/trailer-4-3-0.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/trailer-4-3-0.jpg" />
+<Layout title={"Star Citizen Alpha 4.3.0 — Dark Territory | VerseBase"} description={"Alpha 4.3.0: Personal Hangars, ~100 Onyx Facilities and the Regen Crisis."} themeColor="#0B0B0F" ogType="article" ogImage="/assets/trailer-4-3-0.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/trailer-4-3-0.jpg" lang="en" />
 <style is:inline>
 
 /* 4.3.0 "Dark Territory" — media-first / low-text / MAXIMAL */
@@ -169,10 +170,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.3.0' }]} pill={"ALPHA 4.3.0"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.3.0' }]} pill={"ALPHA 4.3.0"} hasEn={true} />
 
 
 <main id="main">
@@ -183,15 +184,15 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <script is:inline src="/assets/hero-video.js"></script>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">16. August 2025 · Major Release</div>
+      <div class="eyebrow">August 16, 2025 · Major Release</div>
       <h1 data-text="4.3.0">4.3.0</h1>
       <div class="codename"><span>Dark Territory</span></div>
-      <div class="tagline">Personal Hangars und ~100 verlassene Onyx Facilities.</div>
+      <div class="tagline">Personal Hangars and ~100 abandoned Onyx Facilities.</div>
       <div class="tags">
         <span class="tag">Dark Territory</span><span class="tag">Personal Hangars</span><span class="tag">Onyx</span><span class="tag hot">Regen Crisis</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
@@ -202,20 +203,20 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </div>
 
-  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <!-- AT A GLANCE (data register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/t-onyx-1.jpg"><div class="tbg" style="background-image:url('/assets/t-onyx-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Onyx</div><div class="sub">verlassene Forschung</div></div>
-        <div class="tile word" data-info data-title="Personal Hangars" data-text="Persönliche, instanzierte Hangars am eigenen Heimat-Standort: Spieler spawnen direkt im eigenen Hangar — ohne Umweg über Habs oder Transit. Sofortiger Zugriff auf Schiffe und Lager am gesetzten Home-Hangar."><span class="zoomic">+</span><b>PERSONAL HANGARS</b><small>eigener Hafen</small></div>
+        <div class="tile img b2" data-lb="img:/assets/t-onyx-1.jpg"><div class="tbg" style="background-image:url('/assets/t-onyx-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Onyx</div><div class="sub">abandoned research</div></div>
+        <div class="tile word" data-info data-title="Personal Hangars" data-text="Personal, instanced hangars at your own home location: players spawn directly in their own hangar — without detouring through habs or transit. Instant access to ships and storage at the set home hangar."><span class="zoomic">+</span><b>PERSONAL HANGARS</b><small>your own port</small></div>
         <a class="tile stat" href="/topics/4-3-0-onyx-facilities.html"><span class="zoomic">→</span><div class="num">~100</div><div class="cap">Onyx Facilities · Detail</div></a>
-        <div class="tile img w2" data-lb="img:/assets/img-kruger.jpg"><div class="tbg" style="background-image:url('/assets/img-kruger.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Kruger L-21 Wolf</div><div class="sub">Leichter Jäger</div></div>
-        <div class="tile word" data-info data-title="Arken Mallor" data-text="Neuer Missionsgeber der Hockrow Agency. Über die Investigation-Tab des mobiGlas schickt er Spieler in die verlassenen ASD Onyx Facilities, um Forschungsdaten zu bergen und das wahre Ausmaß der ASD-Experimente rund um die Regen Crisis aufzudecken."><span class="zoomic">+</span><b>ARKEN MALLOR</b><small>Missionsgeber</small></div>
-        <div class="tile word hot" data-info data-title="Regen Crisis" data-text="Narrativer roter Faden von Dark Territory: Die Onyx-Untersuchungen drehen sich um die Experimente der ASD zur Regeneration (Regen) — die Wurzel der laufenden Regen-Crisis-Story."><span class="zoomic">+</span><b>REGEN CRISIS</b><small>Narrativ</small></div>
+        <div class="tile img w2" data-lb="img:/assets/img-kruger.jpg"><div class="tbg" style="background-image:url('/assets/img-kruger.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Kruger L-21 Wolf</div><div class="sub">Light Fighter</div></div>
+        <div class="tile word" data-info data-title="Arken Mallor" data-text="New mission giver of the Hockrow Agency. Through the mobiGlas Investigation tab he sends players into the abandoned ASD Onyx Facilities to recover research data and uncover the true scale of the ASD experiments surrounding the Regen Crisis."><span class="zoomic">+</span><b>ARKEN MALLOR</b><small>mission giver</small></div>
+        <div class="tile word hot" data-info data-title="Regen Crisis" data-text="The narrative through-line of Dark Territory: the Onyx investigations revolve around the ASD experiments into regeneration (Regen) — the root of the ongoing Regen Crisis story."><span class="zoomic">+</span><b>REGEN CRISIS</b><small>narrative</small></div>
       </div>
     </div>
   </section>
@@ -224,18 +225,18 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-onyx-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Verlassene ASD-Forschung</div>
+      <div class="kx">Abandoned ASD Research</div>
       <div class="big">ONYX</div>
-      <p>Verlassene Forschungsstationen voller Geheimnisse.</p>
+      <p>Abandoned research stations full of secrets.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Ships</h2><span class="rule"></span></div>
       <div class="garage">
-        <article class="ship reveal" data-lb="img:/assets/img-kruger.jpg"><div class="sbg" style="background-image:url('/assets/img-kruger.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Kruger · Leichter Jäger</span><h3>Kruger L-21 Wolf</h3></div></article>
+        <article class="ship reveal" data-lb="img:/assets/img-kruger.jpg"><div class="sbg" style="background-image:url('/assets/img-kruger.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Kruger · Light Fighter</span><h3>Kruger L-21 Wolf</h3></div></article>
       </div>
     </div>
   </section>
@@ -245,41 +246,41 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="MCJlD2Meuek" style="background-image:url('/assets/trailer-4-3-0.jpg')"><span class="vlbl">Dark Territory — Trailer</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="MCJlD2Meuek" style="background-image:url('/assets/trailer-4-3-0.jpg')"><span class="vlbl">Dark Territory — Trailer</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=MCJlD2Meuek" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=MCJlD2Meuek" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-onyx-2.jpg"><img src="/assets/t-onyx-2.jpg" alt="Verlassenes ASD-Labor in einer Onyx Facility" loading="lazy"><span class="zoomic">⤢</span><figcaption>Onyx Facility · ASD-Labor</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-onyx-1.jpg"><img src="/assets/t-onyx-1.jpg" alt="Schacht in einer Onyx Facility" loading="lazy"><span class="zoomic">⤢</span><figcaption>Onyx Facility · Schacht</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-onyx-2.jpg"><img src="/assets/t-onyx-2.jpg" alt="Abandoned ASD lab in an Onyx Facility" loading="lazy"><span class="zoomic">⤢</span><figcaption>Onyx Facility · ASD Lab</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-onyx-1.jpg"><img src="/assets/t-onyx-1.jpg" alt="Shaft in an Onyx Facility" loading="lazy"><span class="zoomic">⤢</span><figcaption>Onyx Facility · Shaft</figcaption></figure>
       </div>
     </div>
   </section>
 
-  <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="05" />
+  <!-- DOSSIER (full manifest, uniform from the data layer) -->
+  <PatchDossier patch={patch} num="05" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-2-1.html"><span class="dir">← Älter</span><span class="ttl">4.2.1 · Resource Drive</span></a>
-    <a class="next" href="/patches/sc-4-3-1.html"><span class="dir">Neuer →</span><span class="ttl">4.3.1 · Virtue's Descent</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-2-1.html"><span class="dir">← Older</span><span class="ttl">4.2.1 · Resource Drive</span></a>
+    <a class="next" href="/patches/sc-4-3-1.html"><span class="dir">Newer →</span><span class="ttl">4.3.1 · Virtue's Descent</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All Patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Not affiliated with CIG. Trailers, stills & ship/system images from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

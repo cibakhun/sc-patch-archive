@@ -4,14 +4,15 @@ import SiteNav from '../../components/SiteNav.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
+import { mergePatchEn } from '../../i18n/patchText';
 import { getEntry } from 'astro:content';
 
 const entry = await getEntry('patches', '4-6-0');
 if (!entry) throw new Error('Patch-Daten 4-6-0 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatchEn('4-6-0', entry.data, 'en');
 ---
-<Layout title={"Star Citizen Alpha 4.6.0 — Lifeline for Levski | VerseBase"} description={"Alpha 4.6.0: Seuche an Levski, LAMP-Nachtsicht und die RSI Hermes."} themeColor="#0e1018" ogType="article" ogImage="/assets/trailer-4-6-0.jpg" translated={true}>
-<PatchSeo patch={patch} image="/assets/trailer-4-6-0.jpg" />
+<Layout title={"Star Citizen Alpha 4.6.0 — Lifeline for Levski | VerseBase"} description={"Alpha 4.6.0: Plague at Levski, LAMP night vision and the RSI Hermes."} themeColor="#0e1018" ogType="article" ogImage="/assets/trailer-4-6-0.jpg" translated={true}>
+<PatchSeo patch={patch} image="/assets/trailer-4-6-0.jpg" lang="en" />
 <style is:inline>
 
 /* 4.6.0 "Lifeline for Levski" — media-first / low-text / MAXIMAL */
@@ -169,10 +170,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.6.0' }]} pill={"ALPHA 4.6.0"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.6.0' }]} pill={"ALPHA 4.6.0"} hasEn={true} />
 
 
 <main id="main">
@@ -182,40 +183,40 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">29. Januar 2026 · Major Release</div>
+      <div class="eyebrow">January 29, 2026 · Major Release</div>
       <h1 data-text="4.6.0">4.6.0</h1>
       <div class="codename">Lifeline for <span>Levski</span></div>
-      <div class="tagline">Seuchen-Event an Levski, LAMP-Nachtsicht und RSI Hermes.</div>
+      <div class="tagline">Plague event at Levski, LAMP night vision and the RSI Hermes.</div>
       <div class="tags">
-        <span class="tag hot">Molina-Pilz</span><span class="tag">LAMP</span><span class="tag">The Moraine</span><span class="tag">RSI Hermes</span>
+        <span class="tag hot">Molina Mold</span><span class="tag">LAMP</span><span class="tag">The Moraine</span><span class="tag">RSI Hermes</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>MOLINA-PILZ</span><span class="dot">◆</span><span>LAMP</span><span class="dot">◆</span><span>THE MORAINE</span><span class="dot">◆</span><span>RSI HERMES</span><span class="dot">◆</span><span>ARGO MOTH</span><span class="dot">◆</span>
-      <span>LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>MOLINA-PILZ</span><span class="dot">◆</span><span>LAMP</span><span class="dot">◆</span><span>THE MORAINE</span><span class="dot">◆</span><span>RSI HERMES</span><span class="dot">◆</span><span>ARGO MOTH</span><span class="dot">◆</span>
+      <span>LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>MOLINA MOLD</span><span class="dot">◆</span><span>LAMP</span><span class="dot">◆</span><span>THE MORAINE</span><span class="dot">◆</span><span>RSI HERMES</span><span class="dot">◆</span><span>ARGO MOTH</span><span class="dot">◆</span>
+      <span>LIFELINE FOR LEVSKI</span><span class="dot">◆</span><span>MOLINA MOLD</span><span class="dot">◆</span><span>LAMP</span><span class="dot">◆</span><span>THE MORAINE</span><span class="dot">◆</span><span>RSI HERMES</span><span class="dot">◆</span><span>ARGO MOTH</span><span class="dot">◆</span>
     </div>
   </div>
 
-  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
-  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} />
+  <!-- AT A GLANCE (Daten-Register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang="en" />
 
   <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/img-levski.jpg"><div class="tbg" style="background-image:url('/assets/img-levski.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Levski</div><div class="sub">Quarantäne</div></div>
-        <div class="tile word hot" data-info data-title="Molina-Pilz" data-text="Aggressiver Schimmelpilz (Molina Mold), der durch fehlerhafte Luftfilter in Levski freigesetzt wurde und die Lungenkrankheit People's Ailment auslöst. Benannt nach Samuel Molina, dem ersten Todesopfer — Auslöser des Quarantäne-Events Clearing the Air." data-img="/assets/img-levski.jpg"><span class="zoomic">+</span><b>MOLINA-PILZ</b><small>People's Ailment</small></div>
-        <div class="tile word" data-info data-title="LAMP" data-text="LAMP (Light Amplification) ist die mit 4.6.0 eingeführte Cockpit-Nachtsicht. Sie verstärkt vorhandenes Restlicht und hilft beim Fliegen und Navigieren in dunklen Umgebungen — etwa rund um das verseuchte Levski."><span class="zoomic">+</span><b>LAMP</b><small>Nachtsicht</small></div>
+        <div class="tile img b2" data-lb="img:/assets/img-levski.jpg"><div class="tbg" style="background-image:url('/assets/img-levski.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Levski</div><div class="sub">Quarantine</div></div>
+        <div class="tile word hot" data-info data-title="Molina Mold" data-text="An aggressive mold (Molina Mold) released through faulty air filters on Levski, causing the lung disease People's Ailment. Named after Samuel Molina, the first fatality — the trigger for the Clearing the Air quarantine event." data-img="/assets/img-levski.jpg"><span class="zoomic">+</span><b>MOLINA MOLD</b><small>People's Ailment</small></div>
+        <div class="tile word" data-info data-title="LAMP" data-text="LAMP (Light Amplification) is the cockpit night vision introduced with 4.6.0. It amplifies existing residual light and helps with flying and navigating in dark environments — such as around the contaminated Levski."><span class="zoomic">+</span><b>LAMP</b><small>Night vision</small></div>
         <div class="tile img w2" data-lb="img:/assets/img-hermes.jpg"><div class="tbg" style="background-image:url('/assets/img-hermes.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">RSI Hermes</div></div>
-        <div class="tile word" data-info data-title="The Moraine" data-text="Sammelbegriff für die verstreuten Asteroidensiedlungen im Glaciem Ring rund um Nyx — unkartiert und Heimat von Außenseitern und Kriminellen. Während der Levski-Krise greifen von hier operierende Piraten die Versorgungs-Konvois an." data-img="/assets/t-nyx-1.jpg"><span class="zoomic">+</span><b>THE<br>MORAINE</b><small>Piraten</small></div>
+        <div class="tile word" data-info data-title="The Moraine" data-text="Collective term for the scattered asteroid settlements in the Glaciem Ring around Nyx — uncharted and home to outcasts and criminals. During the Levski crisis, pirates operating from here attack the supply convoys." data-img="/assets/t-nyx-1.jpg"><span class="zoomic">+</span><b>THE<br>MORAINE</b><small>Pirates</small></div>
         <div class="tile img w2" data-lb="img:/assets/img-mole.jpg"><div class="tbg" style="background-image:url('/assets/img-mole.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Argo Moth</div></div>
-        <div class="tile stat" data-info data-title="160+ Fixes" data-text="Neben dem Levski-Event und der RSI Hermes brachte 4.6.0 über 160 Bugfixes und Stabilitätsverbesserungen — typisch für einen Major-Patch, der bestehende Systeme und das Server-Meshing weiter abrundet."><span class="zoomic">+</span><div class="num">160+</div><div class="cap">Fixes</div></div>
+        <div class="tile stat" data-info data-title="160+ Fixes" data-text="Alongside the Levski event and the RSI Hermes, 4.6.0 brought over 160 bug fixes and stability improvements — typical for a major patch that continues to round out existing systems and server meshing."><span class="zoomic">+</span><div class="num">160+</div><div class="cap">Fixes</div></div>
       </div>
     </div>
   </section>
@@ -224,19 +225,19 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-nyx-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Quarantäne · Nyx</div>
+      <div class="kx">Quarantine · Nyx</div>
       <div class="big">LEVSKI</div>
-      <p>Eine Kolonie im Asteroiden unter Quarantäne.</p>
+      <p>A colony inside the asteroid, under quarantine.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Ships</h2><span class="rule"></span></div>
       <div class="garage">
         <article class="ship reveal" data-lb="yt:0cPZqVDTahM"><div class="sbg" style="background-image:url('/assets/img-mole.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">ARGO · Salvage</span><h3>Argo Moth</h3></div></article>
-        <article class="ship reveal" data-lb="yt:bGZB26Ca0Vg"><div class="sbg" style="background-image:url('/assets/img-hermes.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · Frachter</span><h3>RSI Hermes</h3></div></article>
+        <article class="ship reveal" data-lb="yt:bGZB26Ca0Vg"><div class="sbg" style="background-image:url('/assets/img-hermes.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · Freighter</span><h3>RSI Hermes</h3></div></article>
       </div>
     </div>
   </section>
@@ -246,21 +247,21 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="OPp6dd2WSpI" style="background-image:url('/assets/trailer-4-6-0.jpg')"><span class="vlbl">Lifeline for Levski — Trailer</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="0cPZqVDTahM" style="background-image:url('/assets/vid-moth.jpg')"><span class="vlbl">Argo MOTH — Commercial</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="bGZB26Ca0Vg" style="background-image:url('/assets/vid-hermes.jpg')"><span class="vlbl">RSI Hermes — Commercial</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="OPp6dd2WSpI" style="background-image:url('/assets/trailer-4-6-0.jpg')"><span class="vlbl">Lifeline for Levski — Trailer</span><button class="play" aria-label="Play">▶</button></div>
+        <div class="video" data-yt="0cPZqVDTahM" style="background-image:url('/assets/vid-moth.jpg')"><span class="vlbl">Argo MOTH — Commercial</span><button class="play" aria-label="Play">▶</button></div>
+        <div class="video" data-yt="bGZB26Ca0Vg" style="background-image:url('/assets/vid-hermes.jpg')"><span class="vlbl">RSI Hermes — Commercial</span><button class="play" aria-label="Play">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=OPp6dd2WSpI" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Official Star Citizen YouTube channel (© Cloud Imperium Games). Click loads the video. · <a href="https://www.youtube.com/watch?v=OPp6dd2WSpI" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Gallery</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
         <figure class="b2" data-lb="img:/assets/t-nyx-2.jpg"><img src="/assets/t-nyx-2.jpg" alt="Levski" loading="lazy"><span class="zoomic">⤢</span><figcaption>Levski</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/img-nyx.jpg"><img src="/assets/img-nyx.jpg" alt="Nyx-Systemkarte" loading="lazy"><span class="zoomic">⤢</span><figcaption>Nyx-System</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/img-nyx.jpg"><img src="/assets/img-nyx.jpg" alt="Nyx system map" loading="lazy"><span class="zoomic">⤢</span><figcaption>Nyx system</figcaption></figure>
         <figure data-lb="img:/assets/vid-hermes.jpg"><img src="/assets/vid-hermes.jpg" alt="Hermes · Film" loading="lazy"><span class="zoomic">⤢</span><figcaption>Hermes · Film</figcaption></figure>
         <figure data-lb="img:/assets/vid-moth.jpg"><img src="/assets/vid-moth.jpg" alt="Moth · Film" loading="lazy"><span class="zoomic">⤢</span><figcaption>Moth · Film</figcaption></figure>
         <figure class="w2" data-lb="img:/assets/t-nyx-1.jpg"><img src="/assets/t-nyx-1.jpg" alt="Glaciem Ring" loading="lazy"><span class="zoomic">⤢</span><figcaption>Glaciem Ring</figcaption></figure>
@@ -269,23 +270,23 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   </section>
 
   <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
-  <PatchDossier patch={patch} num="05" />
+  <PatchDossier patch={patch} num="05" lang="en" />
 
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/patches/sc-4-5-0.html"><span class="dir">← Älter</span><span class="ttl">4.5.0 · Dawn of Engineering</span></a>
-    <a class="next" href="/patches/sc-4-7-0.html"><span class="dir">Neuer →</span><span class="ttl">4.7.0 · Welcome to the Rock</span></a>
+  <nav class="pager" aria-label="Patch navigation">
+    <a href="/patches/sc-4-5-0.html"><span class="dir">← Older</span><span class="ttl">4.5.0 · Dawn of Engineering</span></a>
+    <a class="next" href="/patches/sc-4-7-0.html"><span class="dir">Newer →</span><span class="ttl">4.7.0 · Welcome to the Rock</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/index.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/index.html">⌂ All patches</a>
+    <span>Sources: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. No affiliation with CIG. Trailers, stills & ship/system images from official or community sources (© Cloud Imperium Games), fan-content use.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

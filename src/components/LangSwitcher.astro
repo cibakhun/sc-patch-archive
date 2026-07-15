@@ -28,8 +28,9 @@ const lang = localeFromPath(current);
 const t = useTranslations(lang);
 
 function targetFor(l: Locale): string {
-  // nur relevant auf DE-Seiten, die (noch) kein EN-Pendant haben
-  if (l === 'en' && !hasEn) return '/en.html';
+  // nur relevant auf Seiten, die (noch) kein EN-Pendant haben -> EN-Startseite
+  // (liegt seit dem Sprach-Tausch präfixlos auf der Wurzel)
+  if (l === 'en' && !hasEn) return '/index.html';
   return pathForLocale(current, l);
 }
 ---

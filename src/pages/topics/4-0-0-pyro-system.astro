@@ -5,7 +5,7 @@ import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
 ---
-<Layout title={"Pyro — Das zweite Sternsystem · Star Citizen 4.0.0 | VerseBase"} description={"Pyro: mit Alpha 4.0.0 wird das gesetzlose Sternsystem rund um einen sterbenden Stern zum zweiten voll simulierten System im Persistent Universe — sechs ruinierte Welten, Ruin Station und ein Jump Point von Stanton."} themeColor="#120f0c" ogType="article" ogImage="/assets/t-pyro-1.jpg" translated={true}>
+<Layout title={"Pyro — The Second Star System · Star Citizen 4.0.0 | VerseBase"} description={"Pyro: with Alpha 4.0.0, the lawless star system around a dying star becomes the second fully simulated system in the Persistent Universe — six ruined worlds, Ruin Station and a jump point from Stanton."} themeColor="#120f0c" ogType="article" ogImage="/assets/t-pyro-1.jpg" translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
 
@@ -19,10 +19,10 @@ import Attribution from '../../components/Attribution.astro';
 .band .big.flare{color:transparent;background:linear-gradient(180deg,#fff,var(--accent) 72%,var(--hot));-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 36px color-mix(in srgb,var(--accent) 50%,transparent))}
 
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/archiv.html' }, { label: 'Alpha 4.0.0', href: '/patches/sc-4-0-0.html' }, { label: "Pyro-System" }]} pill={"SYSTEM · ALPHA 4.0.0"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.0.0', href: '/patches/sc-4-0-0.html' }, { label: "Pyro System" }]} pill={"SYSTEM · ALPHA 4.0.0"} hasEn={true} />
 
 
 <main id="main">
@@ -32,20 +32,20 @@ import Attribution from '../../components/Attribution.astro';
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-pyro-1.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow"><a href="/patches/sc-4-0-0.html">Alpha 4.0.0 · Destination Pyro</a> &nbsp;·&nbsp; Sternsystem</div>
-      <h1><span class="thin">Das zweite Sternsystem</span>Pyro</h1>
-      <p class="lead">Gesetzlos, sonnenverbrannt, von Gangs beherrscht: mit 4.0.0 wird Pyro das zweite voll simulierte Sternsystem — sechs ruinierte Welten um einen sterbenden Stern, ohne Sicherheit, ohne Rettung.</p>
-      <div class="tags"><span class="tag">Sternsystem</span><span class="tag">6 Planeten</span><span class="tag">Ruin Station</span><span class="tag hot">Gesetzlos</span><span class="tag">Jump Point</span></div>
-      <div class="hero__play" data-lb="yt:DE3ePRgpUQo"><span class="pbtn">▶</span>Trailer ansehen</div>
+      <div class="eyebrow"><a href="/patches/sc-4-0-0.html">Alpha 4.0.0 · Destination Pyro</a> &nbsp;·&nbsp; Star system</div>
+      <h1><span class="thin">The second star system</span>Pyro</h1>
+      <p class="lead">Lawless, sun-scorched, ruled by gangs: with 4.0.0, Pyro becomes the second fully simulated star system — six ruined worlds around a dying star, without security, without rescue.</p>
+      <div class="tags"><span class="tag">Star system</span><span class="tag">6 planets</span><span class="tag">Ruin Station</span><span class="tag hot">Lawless</span><span class="tag">Jump Point</span></div>
+      <div class="hero__play" data-lb="yt:DE3ePRgpUQo"><span class="pbtn">▶</span>Watch trailer</div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="dmarquee" aria-hidden="true">
     <div class="dmtrack">
-      <span>PYRO</span><span class="dot">◆</span><span>6 RUINIERTE WELTEN</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span><span>FLARE STAR</span><span class="dot">◆</span><span>GESETZLOS</span><span class="dot">◆</span><span>JUMP POINT</span><span class="dot">◆</span>
-      <span>PYRO</span><span class="dot">◆</span><span>6 RUINIERTE WELTEN</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span><span>FLARE STAR</span><span class="dot">◆</span><span>GESETZLOS</span><span class="dot">◆</span><span>JUMP POINT</span><span class="dot">◆</span>
+      <span>PYRO</span><span class="dot">◆</span><span>6 RUINED WORLDS</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span><span>FLARE STAR</span><span class="dot">◆</span><span>LAWLESS</span><span class="dot">◆</span><span>JUMP POINT</span><span class="dot">◆</span>
+      <span>PYRO</span><span class="dot">◆</span><span>6 RUINED WORLDS</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span><span>FLARE STAR</span><span class="dot">◆</span><span>LAWLESS</span><span class="dot">◆</span><span>JUMP POINT</span><span class="dot">◆</span>
     </div>
   </div>
 
@@ -54,51 +54,51 @@ import Attribution from '../../components/Attribution.astro';
 
   <!-- STAT STRIP (animated counters) -->
   <div class="statstrip reveal">
-    <div class="s"><div class="n count" data-to="2">0</div><div class="c">Voll simuliertes System im PU</div></div>
-    <div class="s"><div class="n count" data-to="6">0</div><div class="c">Planeten · Pyro I–VI</div></div>
-    <div class="s"><div class="n count" data-to="6">0</div><div class="c">Monde um Pyro V</div></div>
-    <div class="s"><div class="n">0</div><div class="c">Sicherheitszonen</div></div>
+    <div class="s"><div class="n count" data-to="2">0</div><div class="c">Fully simulated systems in the PU</div></div>
+    <div class="s"><div class="n count" data-to="6">0</div><div class="c">Planets · Pyro I–VI</div></div>
+    <div class="s"><div class="n count" data-to="6">0</div><div class="c">Moons around Pyro V</div></div>
+    <div class="s"><div class="n">0</div><div class="c">Security zones</div></div>
   </div>
 
   <!-- FULL-BLEED BAND — Was ist Pyro? (parallax, image as background) -->
   <section class="band">
     <div class="bbg" data-par="0.13" style="background-image:url('/assets/t-pyro-4.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">01 · Ein sterbender Stern</div>
+      <div class="kx">01 · A dying star</div>
       <div class="big flare">FLARE STAR</div>
-      <p>Im Zentrum von Pyro brennt ein heller, sterbender Stern in einer verlängerten Nova-Phase. Um ihn kreisen <b style="color:var(--accent-2)">sechs Planeten</b> — Pyro I bis VI, ruinierte Welten, die seine Strahlung über Generationen verbrannt hat. Mit Alpha 4.0.0 wird Pyro nach Stanton das zweite voll simulierte Sternsystem im Persistent Universe.</p>
+      <p>At the center of Pyro burns a bright, dying star in a prolonged nova phase. Around it orbit <b style="color:var(--accent-2)">six planets</b> — Pyro I through VI, ruined worlds scorched by its radiation over generations. With Alpha 4.0.0, Pyro becomes the second fully simulated star system in the Persistent Universe, after Stanton.</p>
     </div>
   </section>
 
   <!-- MANIFESTO pull-quote -->
   <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
-    <blockquote>In Pyro gibt es <span class="hl">kein Gesetz</span> — nur die Gangs, die übrig bleiben.</blockquote>
-    <cite>Pyro · Das gesetzlose System</cite>
+    <blockquote>In Pyro there is <span class="hl">no law</span> — only the gangs that remain.</blockquote>
+    <cite>Pyro · The lawless system</cite>
   </section>
 
   <!-- VERSUS — Stanton vs Pyro (two sides) -->
   <section style="padding:0">
     <div class="wrap" style="padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem) 0">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Zwei Systeme, zwei Welten</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Two systems, two worlds</h2><span class="rule"></span></div>
     </div>
     <div class="versus reveal">
       <div class="side b">
         <h3>★ Stanton</h3>
         <ul>
-          <li>Das etablierte Heimatsystem des Persistent Universe.</li>
-          <li>Konzern-kontrollierte Welten mit Recht und Ordnung.</li>
-          <li>Sicherheitszonen und Schutz durch Behörden.</li>
-          <li>Schiffsverlust ist versichert — Wiederbeschaffung garantiert.</li>
+          <li>The established home system of the Persistent Universe.</li>
+          <li>Corporation-controlled worlds with law and order.</li>
+          <li>Security zones and protection by the authorities.</li>
+          <li>Ship loss is insured — replacement guaranteed.</li>
         </ul>
       </div>
       <div class="vs">VS</div>
       <div class="side a">
         <h3>⚠ Pyro</h3>
         <ul>
-          <li>Mit 4.0.0 das zweite voll simulierte Sternsystem.</li>
-          <li>Keine Versicherung, keine Bergung verlorener Schiffe.</li>
-          <li>Kein ASOP-Notruf, keine Sicherheitskräfte auf Abruf.</li>
-          <li>Sengende Strahlung des sterbenden Sterns über allem.</li>
+          <li>With 4.0.0, the second fully simulated star system.</li>
+          <li>No insurance, no salvage of lost ships.</li>
+          <li>No ASOP distress call, no security forces on demand.</li>
+          <li>The dying star's searing radiation over everything.</li>
         </ul>
       </div>
     </div>
@@ -106,7 +106,7 @@ import Attribution from '../../components/Attribution.astro';
 
   <!-- SCROLLYTELLING — Die Reise nach Pyro (a process) -->
   <section style="padding-bottom:0">
-    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>Die Reise nach Pyro</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>The journey to Pyro</h2><span class="rule"></span></div></div>
   </section>
   <div class="scrolly">
     <div class="scrolly__media" aria-hidden="true">
@@ -116,10 +116,10 @@ import Attribution from '../../components/Attribution.astro';
       <div class="frame" style="background-image:url('/assets/t-ruin-1.jpg')"></div>
     </div>
     <div class="scrolly__steps">
-      <div class="sstep"><div class="sn">01</div><h3>Start in Stanton</h3><p>Jede Reise nach Pyro beginnt im bekannten Heimatsystem Stanton — dem ersten voll simulierten Sternsystem des Persistent Universe.</p></div>
-      <div class="sstep"><div class="sn">02</div><h3>Durch den Jump Point</h3><p>Der Tunnel zwischen den Systemen ist eng und kurvenreich — wer die Wände touchiert, riskiert sein Schiff. Hier lauern Piraten auf Reisende, die ohne Geleit aus dem Sprung kommen.</p></div>
-      <div class="sstep"><div class="sn">03</div><h3>Ankunft in Pyro</h3><p>Auf der anderen Seite blendet sofort der Flare Star: aufgeblähter Stern, fahles Licht, treibende Trümmer. Die ersten Planeten und Stationen zeichnen sich als dunkle Silhouetten vor der Glut ab.</p></div>
-      <div class="sstep"><div class="sn">04</div><h3>Anflug auf Ruin Station</h3><p>Quanten-Sprung zur größten Marke im System: Ruin Station wächst aus dem Dunkel — eine umgebaute Bergbauplattform, an deren Docks fremde Schiffe ankern. Hier legt man an, wenn man Treibstoff, Reparatur oder einen Handel braucht.</p></div>
+      <div class="sstep"><div class="sn">01</div><h3>Start in Stanton</h3><p>Every journey to Pyro begins in the familiar home system Stanton — the first fully simulated star system of the Persistent Universe.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Through the Jump Point</h3><p>The tunnel between the systems is narrow and winding — those who scrape the walls risk their ship. Pirates lie in wait here for travelers who come out of the jump without an escort.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Arrival in Pyro</h3><p>On the other side, the Flare Star immediately blinds you: a bloated star, pale light, drifting debris. The first planets and stations stand out as dark silhouettes against the glow.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Approach to Ruin Station</h3><p>A quantum jump to the largest landmark in the system: Ruin Station grows out of the darkness — a repurposed mining platform whose docks are moored by strange ships. This is where you dock when you need fuel, repairs or a deal.</p></div>
     </div>
   </div>
 
@@ -128,10 +128,10 @@ import Attribution from '../../components/Attribution.astro';
     <div class="split reveal">
       <div class="split__media"><div class="m" style="background-image:url('/assets/cz-ruin.jpg')"></div></div>
       <div class="split__text">
-        <div class="kx">04 · Der zentrale Außenposten</div>
+        <div class="kx">04 · The central outpost</div>
         <h3>Ruin Station</h3>
-        <p>Im gesetzlosen Pyro ist <b>Ruin Station</b> der zentrale Anlaufpunkt — eine alte Gold-Horizon-Bergbauplattform, längst ihrer ursprünglichen Bestimmung beraubt.</p>
-        <p>Heute dient die verfallene Struktur als Zuflucht für <b>Schwarzmarkt und Gangs</b>: ein Ort, an dem man verschwinden, handeln und neue Aufträge finden kann — wenn man die Risiken überlebt.</p>
+        <p>In lawless Pyro, <b>Ruin Station</b> is the central hub — an old Gold Horizon mining platform, long stripped of its original purpose.</p>
+        <p>Today the decaying structure serves as a refuge for <b>the black market and gangs</b>: a place to disappear, trade and find new contracts — if you survive the risks.</p>
       </div>
     </div>
   </section>
@@ -140,9 +140,9 @@ import Attribution from '../../components/Attribution.astro';
   <section class="band band--right">
     <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-pyro-5.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">05 · Pyro V &amp; sein Mondsystem</div>
-      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">SECHS MONDE</div>
-      <p>Pyro V wird von gleich sechs Monden umkreist — ihre Namen verraten ihr Wesen: <b style="color:var(--accent-2)">Ignis</b>, <b style="color:var(--accent-2)">Fuego</b> und <b style="color:var(--accent-2)">Vuur</b> bedeuten in verschiedenen Sprachen „Feuer", <b style="color:var(--accent-2)">Vatra</b> steht für Flamme und Glut, <b style="color:var(--accent-2)">Adir</b> und <b style="color:var(--accent-2)">Fairo</b> für schroffes, lebensfeindliches Gestein. Karge, abweisende Felswelten, auf denen Schmuggler und Banden ihre Verstecke graben.</p>
+      <div class="kx">05 · Pyro V &amp; its moon system</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">SIX MOONS</div>
+      <p>Pyro V is orbited by no fewer than six moons — their names reveal their nature: <b style="color:var(--accent-2)">Ignis</b>, <b style="color:var(--accent-2)">Fuego</b> and <b style="color:var(--accent-2)">Vuur</b> mean "fire" in different languages, <b style="color:var(--accent-2)">Vatra</b> stands for flame and ember, <b style="color:var(--accent-2)">Adir</b> and <b style="color:var(--accent-2)">Fairo</b> for harsh, hostile rock. Barren, forbidding rock worlds where smugglers and gangs dig their hideouts.</p>
       <div class="moons">
         <span class="moon"><b>Ignis</b></span><span class="moon"><b>Vatra</b></span><span class="moon"><b>Adir</b></span><span class="moon"><b>Fairo</b></span><span class="moon"><b>Fuego</b></span><span class="moon"><b>Vuur</b></span>
       </div>
@@ -153,9 +153,9 @@ import Attribution from '../../components/Attribution.astro';
   <section class="band" style="min-height:64vh">
     <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-pyro-7.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">Hohes Risiko · Hoher Lohn</div>
-      <div class="big outline">KEINE RETTUNG.</div>
-      <p>Genau diese Schutzlosigkeit macht Pyro lohnend: seltene Ressourcen, ungesicherte Frachten und Aufträge, die in Stanton niemand vergibt. Wer hier besteht, nimmt mit, was er verteidigen kann — und lässt zurück, was ihn zu langsam macht.</p>
+      <div class="kx">High risk · High reward</div>
+      <div class="big outline">NO RESCUE.</div>
+      <p>It is precisely this defenselessness that makes Pyro rewarding: rare resources, unsecured cargo and contracts that no one hands out in Stanton. Those who prevail here take what they can defend — and leave behind whatever slows them down.</p>
     </div>
   </section>
 
@@ -164,14 +164,14 @@ import Attribution from '../../components/Attribution.astro';
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">06</span><h2>Media</h2><span class="rule"></span></div>
       <div class="gallery reveal">
-        <figure class="gtile full b2" data-lb="img:/assets/t-pyro-1.jpg"><img src="/assets/t-pyro-1.jpg" alt="Pyro — sterbender Stern und ruinierte Welt" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro · Flare Star</figcaption></figure>
-        <figure class="gtile w2" data-lb="img:/assets/img-pyro.jpg"><img src="/assets/img-pyro.jpg" alt="Systemkarte von Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Systemkarte</figcaption></figure>
-        <figure class="gtile" data-lb="img:/assets/t-pyro-2.jpg"><img src="/assets/t-pyro-2.jpg" alt="Ruinierte Welt in Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruinierte Welt</figcaption></figure>
-        <figure class="gtile" data-lb="img:/assets/t-pyro-6.jpg"><img src="/assets/t-pyro-6.jpg" alt="Leuchtende Vegetation zwischen Felsnadeln auf einer Pyro-Welt" loading="lazy"><span class="zoomic">⤢</span><figcaption>Leuchtende Vegetation</figcaption></figure>
-        <figure class="gtile w2" data-lb="img:/assets/t-ruin-1.jpg"><img src="/assets/t-ruin-1.jpg" alt="Ruin Station vor dem Planeten Terminus" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruin Station · Terminus</figcaption></figure>
+        <figure class="gtile full b2" data-lb="img:/assets/t-pyro-1.jpg"><img src="/assets/t-pyro-1.jpg" alt="Pyro — dying star and ruined world" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro · Flare Star</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/img-pyro.jpg"><img src="/assets/img-pyro.jpg" alt="System map of Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>System map</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-pyro-2.jpg"><img src="/assets/t-pyro-2.jpg" alt="Ruined world in Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruined world</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-pyro-6.jpg"><img src="/assets/t-pyro-6.jpg" alt="Glowing vegetation among rock spires on a Pyro world" loading="lazy"><span class="zoomic">⤢</span><figcaption>Glowing vegetation</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-ruin-1.jpg"><img src="/assets/t-ruin-1.jpg" alt="Ruin Station in front of the planet Terminus" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruin Station · Terminus</figcaption></figure>
       </div>
-      <div class="video reveal" data-yt="DE3ePRgpUQo" style="background-image:url('/assets/trailer-4-0-0.jpg')"><span class="vlbl">Destination Pyro — Trailer</span><button class="play" aria-label="Trailer abspielen">▶</button></div>
-      <p class="src reveal">Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=DE3ePRgpUQo" target="_blank" rel="noopener">Auf YouTube ansehen ↗</a></p>
+      <div class="video reveal" data-yt="DE3ePRgpUQo" style="background-image:url('/assets/trailer-4-0-0.jpg')"><span class="vlbl">Destination Pyro — Trailer</span><button class="play" aria-label="Play trailer">▶</button></div>
+      <p class="src reveal">Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=DE3ePRgpUQo" target="_blank" rel="noopener">Watch on YouTube ↗</a></p>
     </div>
   </section>
 
@@ -181,7 +181,7 @@ import Attribution from '../../components/Attribution.astro';
 
 <Attribution />
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Close">✕</button><div class="lb__content"></div></div></div>
 
 <script is:inline src="/assets/detail.js"></script>
 </Layout>
