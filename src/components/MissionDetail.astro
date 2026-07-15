@@ -306,7 +306,9 @@ const desc = m.desc
   <script is:inline src="/assets/detail.js"></script>
 </Layout>
 
-<style is:inline>
+{/* KEIN is:inline: gebuendelt in den <head> statt hinter den Inhalt (FOUC).
+    Die :root-Palette oben bleibt inline — die muss detail.css ueberschreiben. */}
+<style>
   .md { padding: 5.5rem 0 4rem; }
   .md__wrap { width: min(var(--maxw), 100%); margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem); }
   .md__back {
