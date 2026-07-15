@@ -18,6 +18,7 @@
     "verify:mining": "node scripts/verify-mining.mjs",
     "datamine:mining": "node scripts/datamine-mining.mjs",
     "datamine:locations": "node scripts/datamine-locations.mjs",
+    "datamine:missions": "node scripts/datamine-missions.mjs",
     "sync:extras": "node scripts/sync-fleetyards-extras.mjs",
     "extract:hardpoints": "node scripts/extract-hardpoints.mjs",
     "calibrate:holo": "node scripts/calibrate-holo-markers.mjs",
