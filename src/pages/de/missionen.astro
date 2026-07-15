@@ -1,0 +1,33 @@
+---
+// MISSIONEN (DE) — /de/missionen.html
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import Attribution from '../../components/Attribution.astro';
+import MissionsApp from '../../components/MissionsApp.astro';
+import { db } from '../../lib/missions';
+---
+<Layout
+  title="Missionen — Datenbank | VerseBase"
+  description={`${db.meta.counts.families} Star-Citizen-Missionen mit Belohnung, Reputationshürden, Auftraggebern, Orten und allen ${db.meta.counts.live} Angeboten — direkt aus den Spieldateien extrahiert (${db.meta.generated}).`}
+  themeColor="#0b0906"
+  footer={false}
+  translated={true}
+>
+  <link slot="head" rel="stylesheet" href="/assets/detail.css" />
+  <style is:inline>
+    :root {
+      --bg: #0b0906; --bg-2: #110d08; --surface: #191309; --surface-2: #221a0e;
+      --accent: #f5a524; --accent-2: #ffd79a; --hot: #ff7a45;
+      --text: #f3ece1; --muted: #a1927c; --line: rgba(245, 165, 36, .22); --line-soft: rgba(243, 236, 225, .10);
+      --glow: 0 0 44px rgba(245, 165, 36, .26); --ink: #0b0906; --maxw: 1440px;
+    }
+  </style>
+  <a class="skip" href="#main">Zum Inhalt</a>
+  <div class="cursorglow" aria-hidden="true"></div>
+  <SiteNav />
+  <main id="main">
+    <MissionsApp lang="de" />
+  </main>
+  <Attribution />
+  <script is:inline src="/assets/detail.js"></script>
+</Layout>

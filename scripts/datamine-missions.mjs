@@ -85,6 +85,11 @@ const shortName = (r) => String(r.name ?? '').replace(/^[^.]*\./, '');
 const kebab = (s) => String(s).trim().toLowerCase()
   .replace(/[''`]/g, '').replace(/&/g, ' and ')
   .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 72) || 'mission';
+// Interner Recordname -> lesbares Label (Notnagel, wo das Spiel keinen Text hat)
+const humanize = (key) => String(key)
+  .replace(/^PU_/, '').replace(/_/g, ' ')
+  .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+  .replace(/\s+/g, ' ').trim();
 
 /* ---------------- Nachschlagetabellen ---------------- */
 // Tags: 18.600 Records, Name ist die GUID -> echter Name steckt in tagName.
@@ -113,6 +118,30 @@ for (const r of byStruct('FactionReputation')) {
 }
 console.log(`factions: ${factions.size}`);
 
+// Eigennamen retten: humanize() zerlegt Binnenmajuskeln, aus "BlacJac" wird
+// "Blac Jac" und aus "MicroTech" "Micro Tech". Die richtige Schreibweise kennt
+// das Spiel selbst — aus den Fraktionsnamen und den *_repui_name-Keys (dort
+// steht z. B. "BlacJac", zu dem es gar keine FactionReputation gibt). Nur Namen
+// MIT Binnenmajuskel sind interessant; laengste zuerst, damit "InterSec Defense
+// Solutions" vor "InterSec" greift.
+const properNames = [
+  ...[...factions.values()].map((f) => f.name),
+  ...[...EN].filter(([k]) => /_repui_name$/.test(k)).map(([, v]) => v),
+].filter((n) => n && /[a-z0-9][A-Z]/.test(n))
+  .sort((a, b) => b.length - a.length);
+const RX_ESC = /[.*+?^${}()|[\]\\]/g;
+function fixProper(s) {
+  let out = String(s);
+  for (const p of properNames) {
+    const spaced = p.replace(/([a-z0-9])([A-Z])/g, '$1 $2');
+    if (spaced === p) continue;
+    // case-insensitiv: humanize liefert "Micro Tech", der echte Name ist "microTech"
+    out = out.replace(new RegExp(spaced.replace(RX_ESC, '\\$&'), 'gi'), p);
+  }
+  return out;
+}
+const nameFrom = (key, prefix) => fixProper(humanize(String(key).replace(prefix, '')));
+
 // Reputations-Raenge: minReputation + Anzeigename + Perk
 const standings = new Map(); // record.id -> {...}
 for (const r of byStruct('SReputationStandingParams')) {
@@ -132,22 +161,31 @@ console.log(`standings: ${standings.size}`);
 const scopes = new Map();
 for (const r of byStruct('SReputationScopeParams')) scopes.set(r.id, shortName(r).replace(/^ReputationScope_/, ''));
 
-// Missionstypen
+// Missionstypen — der Anzeigename haengt an LocalisedTypeName (NICHT displayName;
+// das Feld existiert auf MissionType gar nicht). Genau das, was das mobiGlas zeigt.
 const missionTypes = new Map();
 for (const r of byStruct('MissionType')) {
   const d = db.readRecord(r, { maxDepth: 1 });
   const key = shortName(r);
-  missionTypes.set(r.id, { id: kebab(key), key, name: loc(d?.displayName) ?? key.replace(/_/g, ' ') });
+  missionTypes.set(r.id, {
+    id: kebab(key), key,
+    name: loc(d?.LocalisedTypeName) ?? nameFrom(key, /^$/),
+    icon: typeof d?.svgIconPath === 'string' && d.svgIconPath ? d.svgIconPath : null,
+  });
 }
 
-// Missionsgeber
+// Missionsgeber — die meisten displayName sind @LOC_UNINITIALIZED. Dann greift
+// die verknuepfte Fraktion (die hat einen echten Namen), zuletzt der Recordname.
 const givers = new Map();
 for (const r of byStruct('MissionGiver')) {
   const d = db.readRecord(r, { maxDepth: 2 });
   const key = shortName(r);
+  const fac = d?.reputation?.__ref ? factions.get(d.reputation.__ref) : null;
   givers.set(r.id, {
     id: kebab(key), key,
-    name: loc(d?.displayName) ?? loc(d?.name) ?? key.replace(/^MissionGiver_/, '').replace(/_/g, ' '),
+    name: loc(d?.displayName) ?? nameFrom(key, /^MissionGiver_/) ?? fac?.name ?? key,
+    faction: fac?.id ?? null,
+    desc: loc(d?.description),
   });
 }
 
@@ -180,7 +218,7 @@ for (const r of byStruct('MissionOrganization')) {
     const tn = refTag(v?.tag);
     if (tn && typeof v.string === 'string') strings.set(tn, v.string);
   }
-  const org = { id: kebab(key), key, name: key.replace(/([a-z])([A-Z])/g, '$1 $2'), strings };
+  const org = { id: kebab(key), key, name: nameFrom(key, /^$/), strings };
   orgs.set(r.id, org);
   for (const [tn, lk] of strings) {
     const txt = loc(lk);
@@ -198,13 +236,30 @@ console.log(`orgs: ${orgs.size} | contractor-Fragmente: ${contractorTitles.size}
 const TMPL_RE = /~mission\(([^)]*)\)/g;
 // Platzhalter lesbar machen: ~mission(ReputationRank) -> {ReputationRank}
 const braces = (s) => String(s).replace(TMPL_RE, (_, t) => `{${t.split('|').pop()}}`);
-const clean = (s) => String(s).replace(/\\n/g, ' ').replace(/\s+/g, ' ').trim();
+// Das Spiel formatiert Missionstexte mit eigenen Tags: <EM4> hebt Werte hervor
+// (6.736 Vorkommen), <EM>/<I> selten. Inhalt behalten, Tag weg — die
+// {Platzhalter} darin werden ohnehin als Chip gerendert. Andere spitze Klammern
+// bleiben stehen, damit echter Text nicht stillschweigend verschwindet.
+const stripTags = (s) => String(s).replace(/<\/?(?:EM\d*|I)>/gi, '');
+// Zeilenumbrueche stehen in der global.ini als literales \n (Backslash + n).
+// Titel: alles auf eine Zeile.
+const clean = (s) => stripTags(s).replace(/\\n/g, ' ').replace(/\s+/g, ' ').trim();
+// Beschreibungen sind mehrabsaetzige Briefings — Absaetze erhalten, sonst wird
+// aus dem Auftragstext eine Textwurst.
+const cleanText = (s) => stripTags(s)
+  .replace(/\\n/g, '\n')
+  .replace(/[ \t]+/g, ' ')
+  .replace(/[ \t]*\n[ \t]*/g, '\n')
+  .replace(/\n{3,}/g, '\n\n')
+  .trim();
 
-function analyseTitle(rawKey) {
+// multi=true -> Absaetze erhalten (Beschreibungen); sonst einzeilig (Titel).
+function analyseTitle(rawKey, multi = false) {
+  const norm = multi ? cleanText : clean;
   const text = loc(rawKey);
   if (!text) return { text: null, dynamic: false, pure: false, tokens: [], variants: [], fragment: null };
   const tokens = [...text.matchAll(TMPL_RE)].map((m) => m[1]);
-  if (!tokens.length) return { text: clean(text), dynamic: false, pure: false, tokens: [], variants: [], fragment: null };
+  if (!tokens.length) return { text: norm(text), dynamic: false, pure: false, tokens: [], variants: [], fragment: null };
   // Contractor-Fragmente aufloesen -> die Titel, die im Spiel wirklich erscheinen
   const variants = [];
   let fragment = null;
@@ -218,18 +273,12 @@ function analyseTitle(rawKey) {
       variants.push({ org: v.org, text: clean(braces(text.replace(`~mission(${tok})`, v.text))) });
     }
   }
-  const display = clean(braces(text));
-  // "pure" = der Titel besteht NUR aus einem Platzhalter ("~mission(Title)") und
-  // taugt damit nicht als Name.
+  const display = norm(braces(text));
+  // "pure" = der Text besteht NUR aus einem Platzhalter ("~mission(Title)") und
+  // taugt damit nicht als Name/Beschreibung.
   const pure = /^\{[^}]*\}$/.test(display);
   return { text: display, dynamic: true, pure, tokens, variants: variants.slice(0, 24), fragment: pure ? fragment : null };
 }
-
-// Interner Recordname -> lesbares Label (nur als Notnagel, klar gekennzeichnet)
-const humanize = (key) => String(key)
-  .replace(/^PU_/, '').replace(/_/g, ' ')
-  .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-  .replace(/\s+/g, ' ').trim();
 
 /* ---------------- Reputationsanforderungen ---------------- */
 function repExpr(node) {
@@ -297,7 +346,7 @@ for (const r of brokers) {
   const locality = d.localityAvailable?.__ref ? localities.get(d.localityAvailable.__ref) : null;
   const reward = d.missionReward ?? {};
   const title = analyseTitle(d.title);
-  const desc = analyseTitle(d.description);
+  const desc = analyseTitle(d.description, true);
   const giverText = loc(d.missionGiver);
   const key = shortName(r);
   // Titelkaskade: echter Titel > Auftragssorte aus dem Contractor-Fragment
@@ -315,8 +364,11 @@ for (const r of brokers) {
     titleDynamic: title.dynamic && !title.pure,
     titleTokens: title.tokens,
     titleVariants: title.variants,
-    desc: desc.text,
-    descDynamic: desc.dynamic,
+    // Reine Platzhalter-Beschreibungen ("~mission(BountyDescription)") sagen dem
+    // Leser nichts — die traegt erst das Spiel zur Laufzeit nach. Weglassen
+    // statt "{BountyDescription}" hinschreiben.
+    desc: desc.pure ? null : desc.text,
+    descDynamic: desc.dynamic && !desc.pure,
     giverText: giverText && !giverText.includes('~mission(') ? giverText : null,
     giverTextDynamic: !!(giverText && giverText.includes('~mission(')),
     type: type?.id ?? null,

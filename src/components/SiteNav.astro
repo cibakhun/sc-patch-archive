@@ -94,6 +94,10 @@ const current = Astro.url.pathname;
             <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <span>Item Finder</span>
           </a>
+          <a href={L('/missionen.html')} aria-current={current.includes('/missionen') ? 'page' : undefined}>
+            <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+            <span>{t('nav.missions')}</span>
+          </a>
           <a href={L('/topics/mining.html')} aria-current={current.includes('/topics/mining') ? 'page' : undefined}>
             <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/></svg>
             <span>Mining</span>

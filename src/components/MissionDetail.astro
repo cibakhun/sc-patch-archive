@@ -1,0 +1,450 @@
+---
+// MISSION — Detailseite (geteilt DE/EN, Prop `lang`), /missionen/<slug>.html
+// Zeigt alles, was zu einer Mission in den Spieldateien steht: Belohnung,
+// Reputationshuerden, Auftraggeber, Orte, Regeln, Ablauf — und die Varianten-
+// tabelle, wenn die Familie mehrere Angebote buendelt.
+import Layout from '../layouts/Layout.astro';
+import SiteNav from '../components/SiteNav.astro';
+import Attribution from '../components/Attribution.astro';
+import { db, uec, dur, mins, cmpSign, repSummary, missions } from '../lib/missions';
+import type { Mission } from '../lib/missions';
+import { href } from '../i18n/ui';
+import type { Locale } from '../i18n/ui';
+
+interface Props { m: Mission; lang: Locale }
+const { m, lang } = Astro.props;
+const L = (p: string) => href(p, lang);
+const nf = lang === 'de' ? 'de-DE' : 'en-US';
+
+const S = {
+  de: {
+    back: 'Alle Missionen', kind: 'Mission',
+    internal: 'Interner Name', internalT: 'Diese Mission trägt in den Spieldateien keinen Titel. Angezeigt wird ihr interner Name aus dem DataCore — im Spiel heißt sie anders.',
+    dynamic: 'Titel wird zur Laufzeit gefüllt',
+    dynamicT: 'Die markierten Stellen sind Platzhalter. Das Spiel setzt dort Werte wie den Reputationsrang oder den Namen des Ziels ein.',
+    appears: 'Erscheint im Spiel als',
+    appearsP: 'Je nach Auftraggeber setzt das Spiel einen anderen Titel ein:',
+    facts: 'Eckdaten',
+    reward: 'Belohnung', rewardR: 'Belohnungsspanne', buyIn: 'Einsatz', type: 'Typ', giver: 'Auftraggeber',
+    region: 'Region', places: 'Orte', legal: 'Rechtslage', lawful: 'Legal', unlawful: 'Illegal', mixed: 'Gemischt',
+    players: 'Spieler je Instanz', shareable: 'Teilbar', yes: 'Ja', no: 'Nein',
+    deadline: 'Zeitlimit', lifetime: 'Angebot verfällt nach', cooldown: 'Abklingzeit', wanted: 'Max. Fahndungsstufe',
+    offers: 'Angebote', offersP: 'Dieselbe Mission wird %n% mal angeboten — mit unterschiedlichem Auftraggeber, Ort, Rang oder Lohn.',
+    single: 'Dieses Angebot gibt es genau einmal.',
+    rep: 'Reputation', repP: 'Diese Bedingungen müssen erfüllt sein, damit die Mission überhaupt erscheint.',
+    repNone: 'Keine Reputationsbedingung in den Spieldateien.',
+    faction: 'Fraktion', standing: 'Rang', scope: 'Bereich', threshold: 'Schwelle', perk: 'Vorteil',
+    flow: 'Ablauf', flowNote: 'Achtung: Das ist nicht der Zieltext aus dem mobiGlas.',
+    flowP: 'Der Spielertext der Missionsziele steckt nicht in den Client-Dateien — die Missionslogik läuft serverseitig. Was hier steht, sind die Schritte und Ablaufregeln, wie die Entwickler sie im DataCore benannt haben.',
+    steps: 'Schritte', rules: 'Ablaufregeln', flowNone: 'Kein Ablauf in den Spieldateien hinterlegt.',
+    tblKey: 'Eintrag', tblGiver: 'Auftraggeber', tblLoc: 'Region', tblReward: 'Belohnung', tblRep: 'Reputation', tblPlaces: 'Orte',
+    module: 'Missionsmodul', tags: 'Tags', none: '—', noReward: 'keine',
+    src: 'Quelle', srcP: 'Extrahiert aus <code>Data.p4k → Data/Game2.dcb</code> (DataCore v8) der installierten Live-Version. Missionstexte gibt es dort nur auf Englisch.',
+    rec: 'DataCore-Record',
+  },
+  en: {
+    back: 'All missions', kind: 'Mission',
+    internal: 'Internal name', internalT: 'This mission has no title in the game files. Shown is its internal DataCore name — in game it is called something else.',
+    dynamic: 'Title is filled in at runtime',
+    dynamicT: 'The marked spots are placeholders. The game substitutes values like the reputation rank or the target name.',
+    appears: 'Appears in game as',
+    appearsP: 'Depending on the contractor, the game uses a different title:',
+    facts: 'Key facts',
+    reward: 'Reward', rewardR: 'Reward range', buyIn: 'Buy-in', type: 'Type', giver: 'Contractor',
+    region: 'Region', places: 'Locations', legal: 'Legality', lawful: 'Lawful', unlawful: 'Unlawful', mixed: 'Mixed',
+    players: 'Players per instance', shareable: 'Shareable', yes: 'Yes', no: 'No',
+    deadline: 'Time limit', lifetime: 'Offer expires after', cooldown: 'Cooldown', wanted: 'Max. wanted level',
+    offers: 'Offers', offersP: 'The same mission is offered %n% times — with a different contractor, location, rank or payout.',
+    single: 'This offer exists exactly once.',
+    rep: 'Reputation', repP: 'These conditions must be met for the mission to show up at all.',
+    repNone: 'No reputation requirement in the game files.',
+    faction: 'Faction', standing: 'Standing', scope: 'Scope', threshold: 'Threshold', perk: 'Perk',
+    flow: 'Flow', flowNote: 'Note: this is not the objective text from your mobiGlas.',
+    flowP: 'The player-facing objective text is not in the client files — mission logic runs server-side. What follows are the steps and flow rules as the developers named them in the DataCore.',
+    steps: 'Steps', rules: 'Flow rules', flowNone: 'No flow recorded in the game files.',
+    tblKey: 'Entry', tblGiver: 'Contractor', tblLoc: 'Region', tblReward: 'Reward', tblRep: 'Reputation', tblPlaces: 'Locations',
+    module: 'Mission module', tags: 'Tags', none: '—', noReward: 'none',
+    src: 'Source', srcP: 'Extracted from <code>Data.p4k → Data/Game2.dcb</code> (DataCore v8) of the installed live build. Mission text exists there in English only.',
+    rec: 'DataCore record',
+  },
+}[lang];
+
+// Regex mit geschweiften Klammern gehoert ins Frontmatter: im Template zaehlt
+// der Astro-Compiler die Klammern des Literals mit und bricht ab.
+const parts = (s: string) => String(s).split(/(\{[^}]*\})/).filter(Boolean)
+  .map((x) => (x.startsWith('{') ? { t: x.slice(1, -1), ph: true } : { t: x, ph: false }));
+const plainTitle = (t: string) => String(t).replace(/\{([^}]*)\}/g, '$1');
+const titleParts = parts(m.title);
+const descParts = m.desc ? parts(m.desc) : null;
+const plain = plainTitle(m.title);
+const reps = repSummary(m);
+const legal = m.lawful && m.unlawful ? S.mixed : m.lawful ? S.lawful : S.unlawful;
+const v0 = m.variants[0];
+const rewardTxt = m.rewardMax
+  ? (m.rewardMin === m.rewardMax ? `${uec(m.rewardMax, lang)} aUEC` : `${uec(m.rewardMin, lang)} – ${uec(m.rewardMax, lang)} aUEC`)
+  : S.noReward;
+// Spalten der Variantentabelle nur zeigen, wenn sie irgendwo etwas enthalten —
+// bei 470 Hauling-Angeboten waeren 4 leere Spalten reines Rauschen.
+const colGiver = m.variants.some((v) => v.giver);
+const colLoc = m.variants.some((v) => v.locality);
+const colPlaces = m.variants.some((v) => v.places.length);
+const colRep = m.variants.some((v) => v.rep.length);
+const related = missions
+  .filter((o) => o.slug !== m.slug && o.types.some((t) => m.types.includes(t)))
+  .sort((a, b) => b.count - a.count).slice(0, 6);
+const desc = m.desc
+  ? `${plain} — ${m.desc}`.slice(0, 180)
+  : (lang === 'de'
+    ? `${plain}: Belohnung, Reputation, Auftraggeber und Orte aus den Star-Citizen-Spieldateien.`
+    : `${plain}: reward, reputation, contractors and locations from the Star Citizen game files.`);
+---
+<Layout
+  title={`${plain} — ${S.kind} | VerseBase`}
+  description={desc}
+  themeColor="#0b0906"
+  footer={false}
+  ogType="article"
+  translated={true}
+>
+  <link slot="head" rel="stylesheet" href="/assets/detail.css" />
+  <style is:inline>
+    :root {
+      --bg: #0b0906; --bg-2: #110d08; --surface: #191309; --surface-2: #221a0e;
+      --accent: #f5a524; --accent-2: #ffd79a; --hot: #ff7a45;
+      --text: #f3ece1; --muted: #a1927c; --line: rgba(245, 165, 36, .22); --line-soft: rgba(243, 236, 225, .10);
+      --glow: 0 0 44px rgba(245, 165, 36, .26); --ink: #0b0906; --maxw: 1180px;
+    }
+  </style>
+
+  <a class="skip" href="#main">{lang === 'de' ? 'Zum Inhalt' : 'Skip to content'}</a>
+  <div class="cursorglow" aria-hidden="true"></div>
+  <SiteNav />
+
+  <main id="main" class="md">
+    <div class="md__wrap">
+      <a class="md__back" href={L('/missionen.html')}>← {S.back}</a>
+
+      <header class="md__head">
+        <p class="md__eyebrow">{m.typeNames.join(' · ') || S.kind}</p>
+        <h1 class="md__h1">
+          {titleParts.map((p) => (p.ph ? <i class="md__ph">{p.t}</i> : <span>{p.t}</span>))}
+        </h1>
+        {descParts && (
+          <p class="md__desc">
+            {descParts.map((p) => (p.ph ? <i class="md__ph md__ph--sm">{p.t}</i> : <span>{p.t}</span>))}
+          </p>
+        )}
+
+        {m.noTitle && (
+          <p class="md__warn" role="note">
+            <b>{S.internal}.</b> {S.internalT}
+          </p>
+        )}
+        {m.titleDynamic && !m.noTitle && (
+          <p class="md__warn" role="note">
+            <b>{S.dynamic}.</b> {S.dynamicT}
+          </p>
+        )}
+      </header>
+
+      {/* Konkrete Titel je Auftraggeber */}
+      {m.titleVariants.length > 0 && (
+        <section class="md__sec">
+          <h2 class="md__h2">{S.appears}</h2>
+          <p class="md__p">{S.appearsP}</p>
+          <ul class="md__appear">
+            {m.titleVariants.map((v) => (
+              <li><span class="md__org">{v.org}</span><span class="md__at">{v.text}</span></li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Eckdaten */}
+      <section class="md__sec">
+        <h2 class="md__h2">{S.facts}</h2>
+        <dl class="md__facts">
+          <div><dt>{m.rewardMin === m.rewardMax ? S.reward : S.rewardR}</dt><dd class="md__uec">{rewardTxt}</dd></div>
+          <div><dt>{S.type}</dt><dd>{m.typeNames.join(', ') || S.none}</dd></div>
+          <div><dt>{S.giver}</dt><dd>{m.giverNames.length ? m.giverNames.join(', ') : S.none}</dd></div>
+          <div><dt>{S.region}</dt><dd>{m.localityNames.length ? m.localityNames.join(', ') : S.none}</dd></div>
+          <div><dt>{S.legal}</dt><dd>{legal}</dd></div>
+          <div><dt>{S.offers}</dt><dd>{m.count}</dd></div>
+          <div><dt>{S.players}</dt><dd>{m.maxPlayers || S.none}</dd></div>
+          <div><dt>{S.shareable}</dt><dd>{m.shareable ? S.yes : S.no}</dd></div>
+          {v0.buyIn > 0 && <div><dt>{S.buyIn}</dt><dd>{uec(v0.buyIn, lang)} aUEC</dd></div>}
+          {dur(v0.deadlineSec, lang) && <div><dt>{S.deadline}</dt><dd>{dur(v0.deadlineSec, lang)}</dd></div>}
+          {mins(v0.lifetimeMin, lang) && <div><dt>{S.lifetime}</dt><dd>{mins(v0.lifetimeMin, lang)}</dd></div>}
+          {mins(v0.cooldownMin, lang) && <div><dt>{S.cooldown}</dt><dd>{mins(v0.cooldownMin, lang)}</dd></div>}
+          {v0.wantedMax != null && <div><dt>{S.wanted}</dt><dd>{v0.wantedMax}</dd></div>}
+          {m.module && <div><dt>{S.module}</dt><dd><code class="md__code">{m.module}</code></dd></div>}
+        </dl>
+        {m.places.length > 0 && (
+          <>
+            <h3 class="md__h3">{S.places}</h3>
+            <ul class="md__tags">{m.places.map((p) => <li class="md__tag">{p}</li>)}</ul>
+          </>
+        )}
+      </section>
+
+      {/* Reputation */}
+      <section class="md__sec">
+        <h2 class="md__h2">{S.rep}</h2>
+        {reps.length ? (
+          <>
+            <p class="md__p">{S.repP}</p>
+            <div class="md__tblWrap">
+              <table class="md__tbl">
+                <thead><tr>
+                  <th>{S.faction}</th><th>{S.scope}</th><th>{S.standing}</th><th>{S.threshold}</th><th>{S.perk}</th>
+                </tr></thead>
+                <tbody>
+                  {reps.map((r) => (
+                    <tr>
+                      <td>{r.factionName ?? S.none}</td>
+                      <td class="md__dim">{r.scope ?? S.none}</td>
+                      <td><span class="md__cmp">{cmpSign(r.comparison)}</span> {r.standing ?? S.none}</td>
+                      <td class="md__num">{r.standingMin != null ? uec(r.standingMin, lang) : S.none}</td>
+                      <td class="md__dim">{r.perk ?? S.none}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : <p class="md__p md__dim">{S.repNone}</p>}
+      </section>
+
+      {/* Ablauf — bewusst NICHT "Ziele" */}
+      <section class="md__sec">
+        <h2 class="md__h2">{S.flow}</h2>
+        <p class="md__note"><b>{S.flowNote}</b> {S.flowP}</p>
+        {(m.flow.steps.length || m.flow.rules.length) ? (
+          <>
+            {m.flow.steps.length > 0 && (
+              <>
+                <h3 class="md__h3">{S.steps}</h3>
+                <ol class="md__steps">
+                  {m.flow.steps.map((s) => (
+                    <li><code class="md__code">{s.name}</code>{s.startsActive && <span class="md__badge">start</span>}</li>
+                  ))}
+                </ol>
+              </>
+            )}
+            {m.flow.rules.length > 0 && (
+              <>
+                <h3 class="md__h3">{S.rules}</h3>
+                <ul class="md__rules">{m.flow.rules.map((r) => <li>{r}</li>)}</ul>
+              </>
+            )}
+          </>
+        ) : <p class="md__p md__dim">{S.flowNone}</p>}
+      </section>
+
+      {/* Varianten */}
+      <section class="md__sec">
+        <h2 class="md__h2">{S.offers} <span class="md__n">{m.count}</span></h2>
+        {m.count > 1 ? (
+          <p class="md__p" set:html={S.offersP.replace('%n%', String(m.count))} />
+        ) : <p class="md__p md__dim">{S.single}</p>}
+        <div class="md__tblWrap">
+          <table class="md__tbl md__tbl--var">
+            <thead><tr>
+              <th>{S.tblKey}</th>
+              {colGiver && <th>{S.tblGiver}</th>}
+              {colLoc && <th>{S.tblLoc}</th>}
+              {colPlaces && <th>{S.tblPlaces}</th>}
+              <th>{S.tblReward}</th>
+              {colRep && <th>{S.tblRep}</th>}
+            </tr></thead>
+            <tbody>
+              {m.variants.map((v) => (
+                <tr>
+                  <td><code class="md__code">{v.key}</code>{!v.lawful && <span class="md__badge md__badge--il">{S.unlawful}</span>}</td>
+                  {colGiver && <td>{v.giver ?? S.none}</td>}
+                  {colLoc && <td>{v.locality ?? S.none}</td>}
+                  {colPlaces && <td class="md__dim md__places">{v.places.length ? v.places.join(', ') : S.none}</td>}
+                  <td class="md__num md__uec">{v.reward ? uec(v.reward, lang) : S.none}</td>
+                  {colRep && <td class="md__dim">{v.rep.length
+                    ? v.rep.map((r) => `${r.factionName} ${cmpSign(r.comparison)} ${r.standing}`).join(' · ')
+                    : S.none}</td>}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Verwandte */}
+      {related.length > 0 && (
+        <section class="md__sec">
+          <h2 class="md__h2">{lang === 'de' ? 'Ähnliche Missionen' : 'Related missions'}</h2>
+          <ul class="md__rel">
+            {related.map((r) => (
+              <li>
+                <a href={L(`/missionen/${r.slug}.html`)}>
+                  <b>{plainTitle(r.title)}</b>
+                  <span>{r.typeNames[0] ?? ''}{r.rewardMax ? ` · ${uec(r.rewardMax, lang)} aUEC` : ''}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <aside class="md__src">
+        <h2>{S.src}</h2>
+        <p set:html={S.srcP} />
+        <p class="md__srcMeta">
+          {S.rec}: <code>{v0.file}</code>{db.meta.patch && <> · Build <code>{db.meta.patch}</code></>} · {db.meta.generated}
+        </p>
+      </aside>
+    </div>
+  </main>
+
+  <Attribution />
+  <script is:inline src="/assets/detail.js"></script>
+</Layout>
+
+<style is:inline>
+  .md { padding: 5.5rem 0 4rem; }
+  .md__wrap { width: min(var(--maxw), 100%); margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem); }
+  .md__back {
+    display: inline-block; font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .12em;
+    font-size: .7rem; color: var(--muted); margin-bottom: 1.4rem;
+  }
+  .md__back:hover { color: var(--accent); }
+
+  .md__head { padding-bottom: 1.6rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }
+  .md__eyebrow {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .28em; font-size: .68rem;
+    color: var(--accent); margin-bottom: .6rem;
+  }
+  .md__h1 {
+    font-family: var(--font-display); font-size: clamp(1.9rem, 5vw, 3.4rem); line-height: 1.04; font-weight: 900;
+    letter-spacing: -.01em; margin-bottom: .7rem; color: var(--text);
+  }
+  .md__ph {
+    font-style: normal; font-size: .62em; vertical-align: .12em; padding: .1em .45em; border-radius: 7px;
+    white-space: nowrap; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border: 1px dashed color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+  /* Briefings sind mehrabsaetzig; die Umbrueche stehen als \n im Text. */
+  .md__desc { color: var(--muted); max-width: 70ch; font-size: 1.02rem; white-space: pre-line; }
+  .md__ph--sm { font-size: .8em; vertical-align: baseline; }
+  .md__warn {
+    margin-top: 1rem; padding: .7rem .9rem; border-radius: 10px; font-size: .86rem; color: var(--accent-2);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent); border-left-width: 3px;
+  }
+
+  .md__sec { margin-bottom: 2.6rem; }
+  .md__h2 {
+    font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: .7rem;
+  }
+  .md__n { color: var(--muted); font-size: .8em; }
+  .md__h3 {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .16em; font-size: .68rem;
+    color: var(--muted); margin: 1.2rem 0 .5rem;
+  }
+  .md__p { color: var(--muted); max-width: 74ch; font-size: .9rem; margin-bottom: .8rem; }
+  .md__dim { color: var(--muted); }
+  .md__note {
+    padding: .8rem 1rem; border-radius: 10px; font-size: .85rem; color: var(--muted); max-width: 82ch;
+    background: var(--bg-2); border: 1px solid var(--line-soft); border-left: 3px solid var(--accent); margin-bottom: 1rem;
+  }
+  .md__note b { color: var(--accent-2); }
+
+  .md__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .8rem; }
+  .md__facts > div {
+    padding: .7rem .8rem; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--surface); min-width: 0;
+  }
+  .md__facts dt {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .12em; font-size: .58rem;
+    color: var(--muted); margin-bottom: .25rem;
+  }
+  .md__facts dd { font-size: .92rem; overflow-wrap: anywhere; }
+  .md__uec { font-family: var(--font-display); font-weight: 700; color: var(--accent-2); }
+
+  .md__appear { display: grid; gap: .4rem; }
+  .md__appear li {
+    display: grid; grid-template-columns: minmax(8rem, 14rem) 1fr; gap: .8rem; align-items: baseline;
+    padding: .5rem .7rem; border: 1px solid var(--line-soft); border-radius: 9px; background: var(--surface);
+  }
+  .md__org {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .1em; font-size: .64rem; color: var(--muted);
+  }
+  .md__at { font-size: .95rem; color: var(--accent-2); }
+
+  .md__tblWrap { overflow-x: auto; border: 1px solid var(--line-soft); border-radius: 10px; }
+  .md__tbl { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  .md__tbl th {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .1em; font-size: .58rem; color: var(--muted);
+    text-align: left; padding: .55rem .7rem; background: var(--bg-2); border-bottom: 1px solid var(--line-soft);
+    white-space: nowrap; position: sticky; top: 0;
+  }
+  .md__tbl td { padding: .5rem .7rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  .md__tbl tr:last-child td { border-bottom: 0; }
+  .md__tbl tbody tr:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+  .md__num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .md__cmp { color: var(--accent); font-weight: 700; }
+  .md__places { max-width: 22rem; font-size: .78rem; }
+  .md__tbl--var { min-width: 44rem; }
+  /* 470 Zeilen: Tabelle deckeln, sonst scrollt die Seite ewig */
+  .md__tbl--var { display: table; }
+  .md__sec .md__tblWrap:has(.md__tbl--var) { max-height: 32rem; overflow-y: auto; }
+
+  .md__code {
+    font-family: ui-monospace, monospace; font-size: .8em; padding: .1em .35em; border-radius: 4px;
+    background: var(--bg-2); color: var(--accent-2); overflow-wrap: anywhere;
+  }
+  .md__badge {
+    display: inline-block; margin-left: .4rem; font-family: var(--font-ui); text-transform: uppercase;
+    letter-spacing: .08em; font-size: .54rem; padding: .1rem .35rem; border-radius: 4px; color: var(--muted);
+    border: 1px solid var(--line-soft);
+  }
+  .md__badge--il { color: #ff9d8a; border-color: rgba(255, 120, 90, .4); }
+
+  .md__steps { display: grid; gap: .3rem; padding-left: 1.2rem; }
+  .md__steps li { font-size: .86rem; }
+  .md__rules { display: grid; gap: .35rem; }
+  .md__rules li {
+    font-size: .84rem; color: var(--muted); padding: .45rem .7rem; border-radius: 8px; background: var(--surface);
+    border-left: 2px solid var(--line); overflow-wrap: anywhere;
+  }
+
+  .md__tags { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .md__tag {
+    font-family: var(--font-ui); font-size: .68rem; padding: .2rem .55rem; border-radius: 50px; color: var(--muted);
+    border: 1px solid var(--line-soft); background: var(--surface);
+  }
+
+  .md__rel { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .6rem; }
+  .md__rel a {
+    display: block; padding: .7rem .8rem; border: 1px solid var(--line-soft); border-radius: 10px;
+    background: var(--surface); transition: border-color .16s;
+  }
+  .md__rel a:hover { border-color: var(--accent); }
+  .md__rel b { display: block; font-family: var(--font-ui); font-size: .92rem; margin-bottom: .15rem; }
+  .md__rel span { font-size: .74rem; color: var(--muted); }
+
+  .md__src {
+    margin-top: 2.4rem; padding: 1rem 1.2rem; border: 1px solid var(--line-soft); border-radius: 12px;
+    background: var(--bg-2); color: var(--muted); font-size: .82rem; line-height: 1.6;
+  }
+  .md__src h2 {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .16em; font-size: .66rem;
+    color: var(--accent); margin-bottom: .4rem;
+  }
+  .md__src code {
+    font-family: ui-monospace, monospace; font-size: .82em; padding: .05em .3em; border-radius: 4px;
+    background: var(--surface); overflow-wrap: anywhere;
+  }
+  .md__srcMeta { margin-top: .5rem; font-size: .74rem; opacity: .85; }
+
+  @media (max-width: 640px) {
+    .md__appear li { grid-template-columns: 1fr; gap: .15rem; }
+    .md__tbl th { position: static; }
+  }
+</style>

@@ -21,6 +21,7 @@ const t = useTranslations(lang);
   data-empty-query={t('search.empty.query')}
   data-empty-hint={t('search.empty.hint')}
   data-k-schiff={t('search.kind.schiff')}
+  data-k-mission={t('search.kind.mission')}
   data-k-patch={t('search.kind.patch')}
   data-k-thema={t('search.kind.thema')}
   data-k-feature={t('search.kind.feature')}
@@ -206,6 +207,7 @@ const t = useTranslations(lang);
   }
   /* type colour-coding — instantly tells ships from patches from topics */
   .scs__hit--schiff { --c: var(--accent, #2dd4ff); }
+  .scs__hit--mission { --c: #f5a524; }
   .scs__hit--patch { --c: var(--gold, #d4af37); }
   .scs__hit--thema { --c: var(--accent-2, #6ea8ff); }
   .scs__hit--feature { --c: #5ad19a; }

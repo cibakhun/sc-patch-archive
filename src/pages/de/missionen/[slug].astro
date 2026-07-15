@@ -1,0 +1,12 @@
+---
+// Mission-Detailseite (DE) — /de/missionen/<slug>.html
+import MissionDetail from '../../../components/MissionDetail.astro';
+import { missions } from '../../../lib/missions';
+
+export async function getStaticPaths() {
+  return missions.map((m) => ({ params: { slug: m.slug }, props: { m } }));
+}
+
+const { m } = Astro.props;
+---
+<MissionDetail m={m} lang="de" />

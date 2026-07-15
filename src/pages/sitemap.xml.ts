@@ -15,6 +15,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { SITE } from '../consts';
 import vehiclesSnapshot from '../data/vehicles.json';
+import { db as missionsDb, missions } from '../lib/missions';
 
 // Alle statischen Seiten-Dateien. Dynamische [slug]-Routen und 404 werden in
 // fileToUrl() ausgefiltert; .ts-Endpunkte (diese Datei, robots, search-index)
@@ -56,6 +57,8 @@ export const GET: APIRoute = async () => {
     for (const t of p.data.topics) setMod(`/topics/${t.slug}.html`, p.data.date);
   }
   for (const v of vehicles) setMod(`/schiffe/${v.id}.html`, vehiclesSnapshot.fetchedAt);
+  setMod('/missionen.html', missionsDb.meta.generated);
+  for (const m of missions) setMod(`/missionen/${m.slug}.html`, missionsDb.meta.generated);
 
   // --- URL-Inventar: statische Seiten aus den Globs + dynamische Schiffe ---
   const enUrls: string[] = [];
@@ -69,6 +72,12 @@ export const GET: APIRoute = async () => {
   for (const v of vehicles) {
     enUrls.push(`/schiffe/${v.id}.html`);
     deSet.add(`/de/schiffe/${v.id}.html`);
+  }
+  // Missions-Detailseiten sind ebenfalls [slug]-Routen und fallen deshalb aus
+  // dem PAGE_FILES-Glob — hier von Hand nachziehen (wie bei den Schiffen).
+  for (const m of missions) {
+    enUrls.push(`/missionen/${m.slug}.html`);
+    deSet.add(`/de/missionen/${m.slug}.html`);
   }
 
   // --- Einträge bauen: EN mit Alternates, DE direkt dahinter --------------

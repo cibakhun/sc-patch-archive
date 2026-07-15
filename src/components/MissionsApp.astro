@@ -1,0 +1,336 @@
+---
+// MISSIONS — Datenbank-Browser (geteilt DE/EN, Prop `lang`).
+// Rendert alle Familien serverseitig als Karten mit data-Attributen; das
+// Client-JS blendet nur noch ein/aus und sortiert (kein Fetch, kein Framework —
+// wie schiffe.astro / MiningApp).
+//
+// Spieldaten (Titel, Fraktionen, Orte) bleiben englisch: die deutsche global.ini
+// enthaelt keine Missionstexte. Uebersetzt wird nur die Bedienoberflaeche.
+import { db, missions, rewardLabel, repSummary, searchText, uec, cmpSign } from '../lib/missions';
+import type { Mission } from '../lib/missions';
+import { href } from '../i18n/ui';
+import type { Locale } from '../i18n/ui';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const L = (p: string) => href(p, lang);
+
+const S = {
+  de: {
+    eyebrow: 'Spieldaten-Auszug',
+    title: 'Missionen',
+    lead: `${db.meta.counts.live.toLocaleString('de-DE')} Missionsangebote aus den Spieldateien, zu ${db.meta.counts.families} Missionen gebündelt — mit Belohnung, Reputation, Auftraggeber und Orten.`,
+    stMissions: 'Missionen', stVariants: 'Angebote', stReward: 'mit Belohnung', stRep: 'mit Reputationshürde',
+    search: 'Suchen', searchPh: 'Titel, Auftraggeber, Fraktion, Ort …',
+    fType: 'Typ', fGiver: 'Auftraggeber', fFaction: 'Fraktion', fLoc: 'Region', fLegal: 'Rechtslage',
+    all: 'Alle', lawful: 'Legal', unlawful: 'Illegal',
+    sort: 'Sortierung', sName: 'Name', sReward: 'Belohnung', sCount: 'Angebote',
+    reset: 'Zurücksetzen', results: 'Treffer', none: 'Keine Mission passt zu diesen Filtern.',
+    variants: 'Angebote', variant: 'Angebot',
+    reward: 'Belohnung', rep: 'Reputation', region: 'Region', giver: 'Auftraggeber',
+    internal: 'Interner Name', internalT: 'Diese Mission hat in den Spieldateien keinen Titel — angezeigt wird ihr interner Name.',
+    dynamic: 'Titel variiert', dynamicT: 'Der Titel wird im Spiel zur Laufzeit gefüllt; die Platzhalter stehen für Werte wie Rang oder Ziel.',
+    noReward: 'keine',
+    srcH: 'Woher die Daten kommen',
+    srcP: 'Extrahiert aus <code>Data.p4k → Data/Game2.dcb</code> (DataCore) und <code>Localization/english/global.ini</code> der installierten Live-Version. Nichts davon ist abgeschrieben.',
+    srcDev: `${db.meta.counts.notForRelease} Einträge sind in den Spieldateien als <em>notForRelease</em> markiert (Entwicklungsstände) und fehlen hier bewusst.`,
+    srcLang: 'Missionstexte liegen nur auf Englisch vor — die deutsche global.ini enthält keine Missionstitel. Übersetzt ist deshalb nur die Bedienoberfläche.',
+    srcObj: 'Der Schritt-für-Schritt-Text der Missionsziele ist nicht Teil der Client-Dateien: die Missionslogik läuft serverseitig. Auf den Detailseiten steht daher der Ablauf mit den Entwicklerbezeichnungen statt erfundener Zieltexte.',
+  },
+  en: {
+    eyebrow: 'Game-files extract',
+    title: 'Missions',
+    lead: `${db.meta.counts.live.toLocaleString('en-US')} mission offers from the game files, grouped into ${db.meta.counts.families} missions — with rewards, reputation, contractors and locations.`,
+    stMissions: 'missions', stVariants: 'offers', stReward: 'with reward', stRep: 'with rep gate',
+    search: 'Search', searchPh: 'Title, contractor, faction, location …',
+    fType: 'Type', fGiver: 'Contractor', fFaction: 'Faction', fLoc: 'Region', fLegal: 'Legality',
+    all: 'All', lawful: 'Lawful', unlawful: 'Unlawful',
+    sort: 'Sort', sName: 'Name', sReward: 'Reward', sCount: 'Offers',
+    reset: 'Reset', results: 'results', none: 'No mission matches these filters.',
+    variants: 'offers', variant: 'offer',
+    reward: 'Reward', rep: 'Reputation', region: 'Region', giver: 'Contractor',
+    internal: 'Internal name', internalT: 'This mission has no title in the game files — its internal name is shown instead.',
+    dynamic: 'Title varies', dynamicT: 'The title is filled in at runtime; the placeholders stand for values like rank or target.',
+    noReward: 'none',
+    srcH: 'Where this comes from',
+    srcP: 'Extracted from <code>Data.p4k → Data/Game2.dcb</code> (DataCore) and <code>Localization/english/global.ini</code> of the installed live build. None of it is copied from elsewhere.',
+    srcDev: `${db.meta.counts.notForRelease} entries are flagged <em>notForRelease</em> in the game files (work in progress) and are deliberately left out.`,
+    srcLang: 'Mission text exists in English only — the German global.ini carries no mission titles. Only the interface is translated.',
+    srcObj: 'The step-by-step objective text is not part of the client files: mission logic runs server-side. The detail pages therefore show the flow with its developer labels instead of invented objective text.',
+  },
+}[lang];
+
+// Platzhalter sichtbar machen: "{ReputationRank} Rank - ..." wird in Text/Chip-
+// Teile zerlegt, statt die geschweiften Klammern roh anzuzeigen.
+function titleParts(t: string): { t: string; ph: boolean }[] {
+  return String(t).split(/(\{[^}]*\})/).filter(Boolean)
+    .map((s) => (s.startsWith('{') ? { t: s.slice(1, -1), ph: true } : { t: s, ph: false }));
+}
+
+const nf = lang === 'de' ? 'de-DE' : 'en-US';
+const cards = missions.map((m: Mission) => {
+  const reps = repSummary(m);
+  return {
+    m,
+    parts: titleParts(m.title),
+    descParts: m.desc ? titleParts(m.desc) : null,
+    reward: rewardLabel(m, lang),
+    rep: reps[0] ?? null,
+    repMore: Math.max(0, reps.length - 1),
+    search: searchText(m),
+    legal: m.lawful && m.unlawful ? 'both' : m.lawful ? 'lawful' : 'unlawful',
+  };
+});
+---
+<section class="mx" id="missions">
+  <header class="mx__hero">
+    <div class="mx__heroIn">
+      <p class="mx__eyebrow">{S.eyebrow}</p>
+      <h1 class="mx__h1">{S.title}</h1>
+      <p class="mx__lead">{S.lead}</p>
+      <div class="mx__stats">
+        <div><b>{db.meta.counts.families}</b><span>{S.stMissions}</span></div>
+        <div><b>{db.meta.counts.live.toLocaleString(nf)}</b><span>{S.stVariants}</span></div>
+        <div><b>{db.meta.counts.withReward.toLocaleString(nf)}</b><span>{S.stReward}</span></div>
+        <div><b>{db.meta.counts.withRep.toLocaleString(nf)}</b><span>{S.stRep}</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="mx__wrap">
+    <!-- Filter -->
+    <form class="mx__bar" id="mx-bar" role="search" onsubmit="return false">
+      <div class="mx__f mx__f--grow">
+        <label for="mx-q">{S.search}</label>
+        <input type="search" id="mx-q" placeholder={S.searchPh} autocomplete="off" />
+      </div>
+      <div class="mx__f">
+        <label for="mx-type">{S.fType}</label>
+        <select id="mx-type"><option value="">{S.all}</option>{db.types.map((t) => <option value={t.id}>{t.name}</option>)}</select>
+      </div>
+      <div class="mx__f">
+        <label for="mx-giver">{S.fGiver}</label>
+        <select id="mx-giver"><option value="">{S.all}</option>{db.givers.map((g) => <option value={g.id}>{g.name}</option>)}</select>
+      </div>
+      <div class="mx__f">
+        <label for="mx-faction">{S.fFaction}</label>
+        <select id="mx-faction"><option value="">{S.all}</option>{db.factions.map((f) => <option value={f.id}>{f.name}</option>)}</select>
+      </div>
+      <div class="mx__f">
+        <label for="mx-loc">{S.fLoc}</label>
+        <select id="mx-loc"><option value="">{S.all}</option>{db.localities.map((l) => <option value={l.id}>{l.name}</option>)}</select>
+      </div>
+      <div class="mx__f">
+        <label for="mx-legal">{S.fLegal}</label>
+        <select id="mx-legal">
+          <option value="">{S.all}</option>
+          <option value="lawful">{S.lawful}</option>
+          <option value="unlawful">{S.unlawful}</option>
+        </select>
+      </div>
+      <div class="mx__f">
+        <label for="mx-sort">{S.sort}</label>
+        <select id="mx-sort">
+          <option value="count">{S.sCount}</option>
+          <option value="name">{S.sName}</option>
+          <option value="reward">{S.sReward}</option>
+        </select>
+      </div>
+      <button type="button" class="mx__reset" id="mx-reset">{S.reset}</button>
+      <output class="mx__count" id="mx-count" aria-live="polite"></output>
+    </form>
+
+    <!-- Karten -->
+    <div class="mx__grid" id="mx-grid">
+      {cards.map(({ m, parts, descParts, reward, rep, repMore, search, legal }) => (
+        <article
+          class="mc"
+          data-search={search}
+          data-name={m.title.toLowerCase()}
+          data-type={m.types.join(' ')}
+          data-giver={m.givers.join(' ')}
+          data-faction={m.factions.join(' ')}
+          data-loc={m.localities.join(' ')}
+          data-legal={legal}
+          data-reward={m.rewardMax}
+          data-count={m.count}
+        >
+          <a class="mc__link" href={L(`/missionen/${m.slug}.html`)}>
+            <div class="mc__top">
+              <h3 class="mc__h">
+                {parts.map((p) => (p.ph ? <i class="mc__ph">{p.t}</i> : <span>{p.t}</span>))}
+              </h3>
+              {m.count > 1 && <span class="mc__n">{m.count}&thinsp;×</span>}
+            </div>
+            <div class="mc__chips">
+              {m.typeNames.slice(0, 2).map((t) => <span class="mc__chip">{t}</span>)}
+              {legal === 'unlawful' && <span class="mc__chip mc__chip--il">{S.unlawful}</span>}
+              {m.noTitle && <span class="mc__chip mc__chip--warn" title={S.internalT}>{S.internal}</span>}
+              {m.titleDynamic && !m.noTitle && <span class="mc__chip mc__chip--dyn" title={S.dynamicT}>{S.dynamic}</span>}
+            </div>
+            {descParts && (
+              <p class="mc__desc">
+                {descParts.map((p) => (p.ph ? <i class="mc__ph">{p.t}</i> : <span>{p.t}</span>))}
+              </p>
+            )}
+            <dl class="mc__facts">
+              <div><dt>{S.reward}</dt><dd class={reward ? 'mc__uec' : 'mc__dim'}>{reward ? `${reward} aUEC` : S.noReward}</dd></div>
+              <div><dt>{S.rep}</dt><dd>{rep
+                ? <>{rep.factionName} <span class="mc__dim">{cmpSign(rep.comparison)} {rep.standing}</span>{repMore > 0 && <span class="mc__dim"> +{repMore}</span>}</>
+                : <span class="mc__dim">—</span>}</dd></div>
+              <div><dt>{S.region}</dt><dd>{m.localityNames.length ? m.localityNames.slice(0, 3).join(', ') : <span class="mc__dim">—</span>}</dd></div>
+            </dl>
+          </a>
+        </article>
+      ))}
+    </div>
+    <p class="mx__none" id="mx-none" hidden>{S.none}</p>
+
+    <!-- Quelle / Vorbehalte -->
+    <aside class="mx__src">
+      <h2>{S.srcH}</h2>
+      <p set:html={S.srcP} />
+      <ul>
+        <li set:html={S.srcDev} />
+        <li>{S.srcLang}</li>
+        <li>{S.srcObj}</li>
+      </ul>
+      <p class="mx__srcMeta">
+        <code>Game2.dcb</code> · DataCore v8{db.meta.patch && <> · Build <code>{db.meta.patch}</code></>} · {db.meta.generated}
+      </p>
+    </aside>
+  </div>
+</section>
+
+<script is:inline set:html={`window.__MX=${JSON.stringify({ lang, t: { results: S.results } })};`} />
+<script is:inline src="/assets/missions-app.js?v=1"></script>
+
+<style is:inline>
+  .mx { position: relative; }
+
+  /* ---------- Hero ---------- */
+  .mx__hero {
+    position: relative; min-height: clamp(320px, 42vh, 520px); display: flex; align-items: flex-end;
+    padding: 6.5rem clamp(1rem, 4vw, 3rem) 2.4rem; overflow: hidden; border-bottom: 1px solid var(--line);
+  }
+  .mx__hero::before {
+    content: ""; position: absolute; inset: 0; z-index: 0;
+    background: url('/assets/t-tsg-4.jpg') center 38% / cover no-repeat; animation: mxKb 40s ease-in-out infinite alternate;
+  }
+  .mx__hero::after {
+    content: ""; position: absolute; inset: 0; z-index: 1; background:
+      linear-gradient(90deg, rgba(9, 8, 6, .95) 0%, rgba(9, 8, 6, .7) 46%, rgba(9, 8, 6, .18) 100%),
+      linear-gradient(180deg, rgba(9, 8, 6, .6), transparent 30%, rgba(9, 8, 6, .5) 62%, var(--bg) 99%);
+  }
+  @keyframes mxKb { from { transform: scale(1); } to { transform: scale(1.07); } }
+  @media (prefers-reduced-motion: reduce) { .mx__hero::before { animation: none; } }
+  .mx__heroIn { position: relative; z-index: 2; width: min(var(--maxw), 100%); margin: 0 auto; }
+  .mx__eyebrow {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .3em; font-size: .7rem;
+    color: var(--accent); margin-bottom: .7rem;
+  }
+  .mx__h1 {
+    font-family: var(--font-display); font-size: clamp(2.4rem, 7vw, 5rem); line-height: .95; font-weight: 900;
+    letter-spacing: -.01em; margin-bottom: .8rem;
+    background: linear-gradient(180deg, #fff 0%, #ffd79a 58%, var(--accent) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 3px 18px rgba(0, 0, 0, .8));
+  }
+  .mx__lead { max-width: 62ch; color: var(--muted); font-size: clamp(.98rem, 1.6vw, 1.12rem); }
+  .mx__stats { display: flex; flex-wrap: wrap; gap: 1.6rem 2.6rem; margin-top: 1.6rem; }
+  .mx__stats b {
+    display: block; font-family: var(--font-display); font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+    font-weight: 800; color: var(--accent); line-height: 1;
+  }
+  .mx__stats span {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .16em; font-size: .66rem; color: var(--muted);
+  }
+
+  .mx__wrap { width: min(var(--maxw), 100%); margin: 0 auto; padding: 2.2rem clamp(1rem, 4vw, 3rem) 4rem; }
+
+  /* ---------- Filterleiste ---------- */
+  .mx__bar {
+    position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: .7rem 1rem; align-items: end;
+    padding: .9rem 1rem; margin-bottom: 1.6rem; border: 1px solid var(--line); border-radius: 14px;
+    background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(12px);
+  }
+  .mx__f { display: flex; flex-direction: column; gap: .25rem; min-width: 8.5rem; }
+  .mx__f--grow { flex: 1 1 16rem; }
+  .mx__f label {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .14em; font-size: .6rem; color: var(--muted);
+  }
+  .mx__bar input, .mx__bar select {
+    font-family: var(--font-body); font-size: .9rem; color: var(--text); background: var(--bg-2);
+    border: 1px solid var(--line); border-radius: 9px; padding: .5rem .7rem; width: 100%;
+  }
+  .mx__bar input:focus-visible, .mx__bar select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .mx__reset {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .1em; font-size: .7rem; cursor: pointer;
+    color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 9px; padding: .55rem .9rem;
+  }
+  .mx__reset:hover { color: var(--accent); border-color: var(--accent); }
+  .mx__count { font-family: var(--font-ui); font-size: .75rem; color: var(--muted); margin-left: auto; }
+
+  /* ---------- Karten ---------- */
+  /* 17rem, nicht 19: die Wurzel steht auf 112,5 %, 1rem sind also 18px — bei
+     19rem passen auf 1280er-Viewports nur zwei Spalten. */
+  .mx__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1rem; }
+  .mc {
+    border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+    transition: border-color .18s, transform .18s, box-shadow .18s;
+  }
+  .mc:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 10px 34px rgba(0, 0, 0, .45); }
+  .mc__link { display: flex; flex-direction: column; gap: .55rem; padding: 1rem 1.05rem 1.1rem; height: 100%; }
+  .mc__top { display: flex; align-items: baseline; gap: .6rem; }
+  .mc__h {
+    font-family: var(--font-ui); font-size: 1.05rem; font-weight: 700; line-height: 1.25; letter-spacing: .01em; flex: 1;
+  }
+  /* Laufzeit-Platzhalter im Titel: sichtbar als Variable, nicht als Name */
+  .mc__ph {
+    font-style: normal; font-size: .82em; padding: .05em .4em; border-radius: 5px; white-space: nowrap;
+    color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  .mc__n { font-family: var(--font-display); font-size: .8rem; font-weight: 700; color: var(--accent); }
+  .mc__chips { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .mc__chip {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .1em; font-size: .58rem; padding: .2rem .5rem;
+    border-radius: 50px; color: var(--muted); border: 1px solid var(--line-soft); background: var(--bg-2);
+  }
+  .mc__chip--il { color: #ff9d8a; border-color: rgba(255, 120, 90, .4); }
+  .mc__chip--warn, .mc__chip--dyn { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 42%, transparent); border-style: dashed; }
+  .mc__desc {
+    font-size: .84rem; color: var(--muted); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .mc__facts { display: grid; gap: .3rem; margin-top: auto; padding-top: .6rem; border-top: 1px solid var(--line-soft); }
+  .mc__facts > div { display: grid; grid-template-columns: 6.2rem 1fr; gap: .5rem; align-items: baseline; }
+  .mc__facts dt {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .1em; font-size: .58rem; color: var(--muted);
+  }
+  .mc__facts dd { font-size: .82rem; min-width: 0; overflow-wrap: anywhere; }
+  .mc__uec { font-family: var(--font-display); font-weight: 700; color: var(--accent-2); }
+  .mc__dim { color: var(--muted); }
+  .mx__none { text-align: center; color: var(--muted); padding: 3rem 1rem; font-family: var(--font-ui); }
+
+  /* ---------- Quelle ---------- */
+  .mx__src {
+    margin-top: 2.6rem; padding: 1.2rem 1.3rem; border: 1px solid var(--line-soft); border-radius: 14px;
+    background: var(--bg-2); color: var(--muted); font-size: .84rem; line-height: 1.6;
+  }
+  .mx__src h2 {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .16em; font-size: .68rem;
+    color: var(--accent); margin-bottom: .5rem;
+  }
+  .mx__src ul { margin: .5rem 0 0; padding-left: 1.1rem; display: grid; gap: .3rem; }
+  .mx__src code {
+    font-family: ui-monospace, monospace; font-size: .82em; padding: .05em .3em; border-radius: 4px; background: var(--surface);
+  }
+  .mx__srcMeta { margin-top: .7rem; font-size: .75rem; opacity: .8; }
+
+  @media (max-width: 640px) {
+    .mx__bar { position: static; }
+    .mx__f { min-width: 100%; }
+    .mx__count { margin-left: 0; }
+  }
+</style>

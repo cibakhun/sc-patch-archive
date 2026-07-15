@@ -3,6 +3,7 @@
 // k = kind, b = badge, t = title, s = snippet, u = url, x = extra keywords
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { missions, repSummary } from '../lib/missions';
 
 export const GET: APIRoute = async () => {
   const patches = (await getCollection('patches')).sort((a, b) =>
@@ -65,6 +66,26 @@ export const GET: APIRoute = async () => {
       u: `/schiffe/${v.id}.html`,
       x: [...v.data.fociDe, ...v.data.patches.map((p) => `alpha ${p}`)].join(' '),
     });
+
+  // mission families (DataCore snapshot) — one entry per mission, not per offer
+  for (const m of missions) {
+    const rep = repSummary(m)[0];
+    // Platzhalter ohne Klammern indizieren: gesucht wird nach "Rank", nicht "{Rank}"
+    const title = m.title.replace(/\{([^}]*)\}/g, '$1');
+    out.push({
+      k: 'mission',
+      b: m.typeNames[0] ?? 'Mission',
+      t: title,
+      s: [
+        m.rewardMax ? `${m.rewardMax.toLocaleString('en-US')} aUEC` : null,
+        rep?.factionName ?? null,
+        m.count > 1 ? `${m.count}×` : null,
+      ].filter(Boolean).join(' · '),
+      u: `/missionen/${m.slug}.html`,
+      x: [...m.giverNames, ...m.factionNames, ...m.localityNames, ...m.typeNames]
+        .join(' ').slice(0, 160),
+    });
+  }
 
   return new Response(JSON.stringify(out), {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
