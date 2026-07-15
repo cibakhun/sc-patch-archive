@@ -21,8 +21,19 @@ export interface MissionFlow {
   steps: { name: string; startsActive: boolean }[];
   rules: string[];
 }
+export interface BlueprintPool {
+  pool: string;
+  poolKey: string;
+  chance: number | null;
+  blueprints: { name: string; weight: number }[];
+}
 export interface MissionVariant {
   key: string;
+  source: 'broker' | 'contract';
+  guild: string | null;
+  rankMin: string | null;
+  rankMax: string | null;
+  blueprints: number;
   title: string | null;
   type: string | null;
   giver: string | null;
@@ -58,6 +69,15 @@ export interface Mission {
   titleVariants: { org: string; text: string }[];
   desc: string | null;
   descDynamic: boolean;
+  /** 'broker' = Missionsbrett (Legacy), 'contract' = Contract-Manager. Beides moeglich. */
+  sources: ('broker' | 'contract')[];
+  guilds: string[];
+  orgs: string[];
+  ranks: string[];
+  blueprints: BlueprintPool[];
+  bpChance: number | null;
+  /** Contract ohne feste Lohnzahl: der Betrag entsteht zur Laufzeit aus der Schwierigkeit. */
+  calcReward: boolean;
   types: string[];
   typeNames: string[];
   givers: string[];
@@ -84,9 +104,11 @@ export interface NamedRef { id: string; key: string; name: string }
 export interface MissionsDb {
   meta: {
     source: string; lang: string; objectives: string;
+    systems: string; guilds: string; blueprints: string;
     patch: string | null; generated: string;
     counts: Record<string, number>;
   };
+  guilds: NamedRef[];
   types: NamedRef[];
   givers: NamedRef[];
   factions: (NamedRef & { isNPC: boolean; logo: string | null })[];
@@ -148,12 +170,22 @@ export function repSummary(m: Mission): MissionRep[] {
   return out;
 }
 
+/** Wie viele verschiedene Blueprints kann diese Mission ueberhaupt abwerfen? */
+export function bpCount(m: Mission): number {
+  const seen = new Set<string>();
+  for (const p of m.blueprints) for (const b of p.blueprints) seen.add(b.name);
+  return seen.size;
+}
+
 /** Suchindex-Text einer Mission (klein geschrieben, fuer das data-Attribut). */
 export function searchText(m: Mission): string {
   return [
     m.title, m.desc, ...m.typeNames, ...m.giverNames, ...m.factionNames,
     ...m.localityNames, ...m.places.slice(0, 12),
     ...m.titleVariants.map((v) => `${v.org} ${v.text}`),
+    ...m.guilds, ...m.orgs,
+    ...m.blueprints.flatMap((p) => p.blueprints.map((b) => b.name)).slice(0, 30),
+    m.blueprints.length ? 'blueprint blueprints' : '',
     m.module,
   ].filter(Boolean).join(' ').toLowerCase();
 }

@@ -6,7 +6,7 @@
 //
 // Spieldaten (Titel, Fraktionen, Orte) bleiben englisch: die deutsche global.ini
 // enthaelt keine Missionstexte. Uebersetzt wird nur die Bedienoberflaeche.
-import { db, missions, rewardLabel, repSummary, searchText, uec, cmpSign } from '../lib/missions';
+import { db, missions, rewardLabel, repSummary, searchText, uec, cmpSign, bpCount } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { href } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
@@ -20,9 +20,11 @@ const S = {
     eyebrow: 'Spieldaten-Auszug',
     title: 'Missionen',
     lead: `${db.meta.counts.live.toLocaleString('de-DE')} Missionsangebote aus den Spieldateien, zu ${db.meta.counts.families} Missionen gebündelt — mit Belohnung, Reputation, Auftraggeber und Orten.`,
-    stMissions: 'Missionen', stVariants: 'Angebote', stReward: 'mit Belohnung', stRep: 'mit Reputationshürde',
+    stMissions: 'Missionen', stVariants: 'Angebote', stBp: 'mit Blueprints', stRep: 'mit Reputationshürde',
     search: 'Suchen', searchPh: 'Titel, Auftraggeber, Fraktion, Ort …',
     fType: 'Typ', fGiver: 'Auftraggeber', fFaction: 'Fraktion', fLoc: 'Region', fLegal: 'Rechtslage',
+    fGuild: 'Gilde', fBp: 'Blueprints', bpOnly: 'nur mit Blueprints',
+    bp: 'Blueprints', bpT: 'Diese Mission kann Blueprints abwerfen — gezogen aus einem gewichteten Pool, also Zufall.',
     all: 'Alle', lawful: 'Legal', unlawful: 'Illegal',
     sort: 'Sortierung', sName: 'Name', sReward: 'Belohnung', sCount: 'Angebote',
     reset: 'Zurücksetzen', results: 'Treffer', none: 'Keine Mission passt zu diesen Filtern.',
@@ -30,9 +32,12 @@ const S = {
     reward: 'Belohnung', rep: 'Reputation', region: 'Region', giver: 'Auftraggeber',
     internal: 'Interner Name', internalT: 'Diese Mission hat in den Spieldateien keinen Titel — angezeigt wird ihr interner Name.',
     dynamic: 'Titel variiert', dynamicT: 'Der Titel wird im Spiel zur Laufzeit gefüllt; die Platzhalter stehen für Werte wie Rang oder Ziel.',
-    noReward: 'keine',
+    noReward: 'keine', calcReward: 'wird berechnet', calcRewardT: 'Der Contract fuehrt keine feste Zahl — das Spiel berechnet den Lohn zur Laufzeit aus der Schwierigkeit.',
     srcH: 'Woher die Daten kommen',
     srcP: 'Extrahiert aus <code>Data.p4k → Data/Game2.dcb</code> (DataCore) und <code>Localization/english/global.ini</code> der installierten Live-Version. Nichts davon ist abgeschrieben.',
+    srcSys: `Zwei Systeme: das ältere <strong>Missionsbrett</strong> (${db.meta.counts.brokerLive.toLocaleString('de-DE')} Angebote) und der <strong>Contract-Manager</strong> (${db.meta.counts.contracts.toLocaleString('de-DE')}), in den CIG gerade migriert. ${db.meta.counts.legacyBridged} Angebote führen beide Systeme — die stehen hier nur einmal.`,
+    srcBp: `Blueprints hängen ausschließlich am Contract-Manager: ${db.meta.counts.withBlueprints} Missionen ziehen aus ${db.meta.counts.blueprintPools} Pools. Ein Pool ist eine gewichtete Liste — welcher Blueprint fällt, ist Zufall.`,
+    srcGuild: 'Die Gildenzuordnung stammt aus der Ordnerstruktur der Spieldateien, nicht aus einem lokalisierten Namen — lesbar gemacht, aber keine offizielle Schreibweise.',
     srcDev: `${db.meta.counts.notForRelease} Einträge sind in den Spieldateien als <em>notForRelease</em> markiert (Entwicklungsstände) und fehlen hier bewusst.`,
     srcLang: 'Missionstexte liegen nur auf Englisch vor — die deutsche global.ini enthält keine Missionstitel. Übersetzt ist deshalb nur die Bedienoberfläche.',
     srcObj: 'Der Schritt-für-Schritt-Text der Missionsziele ist nicht Teil der Client-Dateien: die Missionslogik läuft serverseitig. Auf den Detailseiten steht daher der Ablauf mit den Entwicklerbezeichnungen statt erfundener Zieltexte.',
@@ -41,9 +46,11 @@ const S = {
     eyebrow: 'Game-files extract',
     title: 'Missions',
     lead: `${db.meta.counts.live.toLocaleString('en-US')} mission offers from the game files, grouped into ${db.meta.counts.families} missions — with rewards, reputation, contractors and locations.`,
-    stMissions: 'missions', stVariants: 'offers', stReward: 'with reward', stRep: 'with rep gate',
+    stMissions: 'missions', stVariants: 'offers', stBp: 'with blueprints', stRep: 'with rep gate',
     search: 'Search', searchPh: 'Title, contractor, faction, location …',
     fType: 'Type', fGiver: 'Contractor', fFaction: 'Faction', fLoc: 'Region', fLegal: 'Legality',
+    fGuild: 'Guild', fBp: 'Blueprints', bpOnly: 'with blueprints only',
+    bp: 'Blueprints', bpT: 'This mission can drop blueprints — drawn from a weighted pool, so it is chance-based.',
     all: 'All', lawful: 'Lawful', unlawful: 'Unlawful',
     sort: 'Sort', sName: 'Name', sReward: 'Reward', sCount: 'Offers',
     reset: 'Reset', results: 'results', none: 'No mission matches these filters.',
@@ -51,9 +58,12 @@ const S = {
     reward: 'Reward', rep: 'Reputation', region: 'Region', giver: 'Contractor',
     internal: 'Internal name', internalT: 'This mission has no title in the game files — its internal name is shown instead.',
     dynamic: 'Title varies', dynamicT: 'The title is filled in at runtime; the placeholders stand for values like rank or target.',
-    noReward: 'none',
+    noReward: 'none', calcReward: 'calculated', calcRewardT: 'The contract carries no fixed number — the game computes the payout at runtime from the difficulty.',
     srcH: 'Where this comes from',
     srcP: 'Extracted from <code>Data.p4k → Data/Game2.dcb</code> (DataCore) and <code>Localization/english/global.ini</code> of the installed live build. None of it is copied from elsewhere.',
+    srcSys: `Two systems: the older <strong>mission board</strong> (${db.meta.counts.brokerLive.toLocaleString('en-US')} offers) and the <strong>Contract Manager</strong> (${db.meta.counts.contracts.toLocaleString('en-US')}) that CIG is migrating to. ${db.meta.counts.legacyBridged} offers exist in both — those are listed once.`,
+    srcBp: `Blueprints hang off the Contract Manager only: ${db.meta.counts.withBlueprints} missions draw from ${db.meta.counts.blueprintPools} pools. A pool is a weighted list — which blueprint drops is chance.`,
+    srcGuild: 'The guild grouping comes from the folder structure of the game files, not from a localised name — made readable, but not an official spelling.',
     srcDev: `${db.meta.counts.notForRelease} entries are flagged <em>notForRelease</em> in the game files (work in progress) and are deliberately left out.`,
     srcLang: 'Mission text exists in English only — the German global.ini carries no mission titles. Only the interface is translated.',
     srcObj: 'The step-by-step objective text is not part of the client files: mission logic runs server-side. The detail pages therefore show the flow with its developer labels instead of invented objective text.',
@@ -79,6 +89,7 @@ const cards = missions.map((m: Mission) => {
     repMore: Math.max(0, reps.length - 1),
     search: searchText(m),
     legal: m.lawful && m.unlawful ? 'both' : m.lawful ? 'lawful' : 'unlawful',
+    bps: bpCount(m),
   };
 });
 ---
@@ -91,7 +102,7 @@ const cards = missions.map((m: Mission) => {
       <div class="mx__stats">
         <div><b>{db.meta.counts.families}</b><span>{S.stMissions}</span></div>
         <div><b>{db.meta.counts.live.toLocaleString(nf)}</b><span>{S.stVariants}</span></div>
-        <div><b>{db.meta.counts.withReward.toLocaleString(nf)}</b><span>{S.stReward}</span></div>
+        <div><b>{db.meta.counts.withBlueprints.toLocaleString(nf)}</b><span>{S.stBp}</span></div>
         <div><b>{db.meta.counts.withRep.toLocaleString(nf)}</b><span>{S.stRep}</span></div>
       </div>
     </div>
@@ -117,8 +128,19 @@ const cards = missions.map((m: Mission) => {
         <select id="mx-faction"><option value="">{S.all}</option>{db.factions.map((f) => <option value={f.id}>{f.name}</option>)}</select>
       </div>
       <div class="mx__f">
+        <label for="mx-guild">{S.fGuild}</label>
+        <select id="mx-guild"><option value="">{S.all}</option>{db.guilds.map((g) => <option value={g.id}>{g.name}</option>)}</select>
+      </div>
+      <div class="mx__f">
         <label for="mx-loc">{S.fLoc}</label>
         <select id="mx-loc"><option value="">{S.all}</option>{db.localities.map((l) => <option value={l.id}>{l.name}</option>)}</select>
+      </div>
+      <div class="mx__f">
+        <label for="mx-bp">{S.fBp}</label>
+        <select id="mx-bp">
+          <option value="">{S.all}</option>
+          <option value="1">{S.bpOnly}</option>
+        </select>
       </div>
       <div class="mx__f">
         <label for="mx-legal">{S.fLegal}</label>
@@ -142,7 +164,7 @@ const cards = missions.map((m: Mission) => {
 
     <!-- Karten -->
     <div class="mx__grid" id="mx-grid">
-      {cards.map(({ m, parts, descParts, reward, rep, repMore, search, legal }) => (
+      {cards.map(({ m, parts, descParts, reward, rep, repMore, search, legal, bps }) => (
         <article
           class="mc"
           data-search={search}
@@ -151,7 +173,9 @@ const cards = missions.map((m: Mission) => {
           data-giver={m.givers.join(' ')}
           data-faction={m.factions.join(' ')}
           data-loc={m.localities.join(' ')}
+          data-guild={m.guilds.map((g) => g.toLowerCase().replace(/[^a-z0-9]+/g, '-')).join(' ')}
           data-legal={legal}
+          data-bp={bps ? '1' : '0'}
           data-reward={m.rewardMax}
           data-count={m.count}
         >
@@ -163,7 +187,14 @@ const cards = missions.map((m: Mission) => {
               {m.count > 1 && <span class="mc__n">{m.count}&thinsp;×</span>}
             </div>
             <div class="mc__chips">
+              {bps > 0 && (
+                <span class="mc__chip mc__chip--bp" title={S.bpT}>
+                  <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg>
+                  {bps}&thinsp;{S.bp}
+                </span>
+              )}
               {m.typeNames.slice(0, 2).map((t) => <span class="mc__chip">{t}</span>)}
+              {m.guilds.slice(0, 1).map((g) => <span class="mc__chip mc__chip--guild">{g}</span>)}
               {legal === 'unlawful' && <span class="mc__chip mc__chip--il">{S.unlawful}</span>}
               {m.noTitle && <span class="mc__chip mc__chip--warn" title={S.internalT}>{S.internal}</span>}
               {m.titleDynamic && !m.noTitle && <span class="mc__chip mc__chip--dyn" title={S.dynamicT}>{S.dynamic}</span>}
@@ -174,7 +205,10 @@ const cards = missions.map((m: Mission) => {
               </p>
             )}
             <dl class="mc__facts">
-              <div><dt>{S.reward}</dt><dd class={reward ? 'mc__uec' : 'mc__dim'}>{reward ? `${reward} aUEC` : S.noReward}</dd></div>
+              <div><dt>{S.reward}</dt><dd
+                class={reward ? 'mc__uec' : 'mc__dim'}
+                title={!reward && m.calcReward ? S.calcRewardT : undefined}
+              >{reward ? `${reward} aUEC` : (m.calcReward ? S.calcReward : S.noReward)}</dd></div>
               <div><dt>{S.rep}</dt><dd>{rep
                 ? <>{rep.factionName} <span class="mc__dim">{cmpSign(rep.comparison)} {rep.standing}</span>{repMore > 0 && <span class="mc__dim"> +{repMore}</span>}</>
                 : <span class="mc__dim">—</span>}</dd></div>
@@ -191,8 +225,11 @@ const cards = missions.map((m: Mission) => {
       <h2>{S.srcH}</h2>
       <p set:html={S.srcP} />
       <ul>
+        <li set:html={S.srcSys} />
+        <li>{S.srcBp}</li>
         <li set:html={S.srcDev} />
         <li>{S.srcLang}</li>
+        <li>{S.srcGuild}</li>
         <li>{S.srcObj}</li>
       </ul>
       <p class="mx__srcMeta">
@@ -305,6 +342,13 @@ const cards = missions.map((m: Mission) => {
     border-radius: 50px; color: var(--muted); border: 1px solid var(--line-soft); background: var(--bg-2);
   }
   .mc__chip--il { color: #ff9d8a; border-color: rgba(255, 120, 90, .4); }
+  /* Blueprint-Marker: der einzige gefuellte Chip — er beantwortet die haeufigste
+     Frage an die Liste ("wirft die was ab?") und muss ohne Suchen auffindbar sein. */
+  .mc__chip--bp {
+    display: inline-flex; align-items: center; gap: .25rem; color: var(--ink);
+    background: var(--accent-2); border-color: var(--accent-2); font-weight: 700;
+  }
+  .mc__chip--guild { color: #9fd8c8; border-color: rgba(159, 216, 200, .34); }
   .mc__chip--warn, .mc__chip--dyn { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 42%, transparent); border-style: dashed; }
   .mc__desc {
     font-size: .84rem; color: var(--muted); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2;

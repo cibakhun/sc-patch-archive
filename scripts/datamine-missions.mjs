@@ -332,6 +332,222 @@ function flowOf(d) {
   return { steps, rules: [...new Set(rules)] };
 }
 
+/* ---------------- Contract-System ---------------- */
+// Neben dem Missionsbrett (MissionBrokerEntry) laeuft der Contract-Manager:
+// ContractGenerator (nach Gilden sortiert) -> Handler -> Contract/CareerContract/
+// ContractLegacy -> ContractTemplate + contractResults. CIG migriert dorthin —
+// `ContractLegacy.missionBrokerEntry` ist die Bruecke zurueck aufs alte System,
+// und das Wort "Legacy" ist CIGs eigenes. Neue Features haengen NUR hier:
+// Blueprint-Pools, Karrierestufen, Gilden. Ohne diesen Zweig fehlt der
+// Datenbank genau das, was den heutigen Contract-Manager fuellt.
+
+// Blueprint-Pools: 116 Pools -> je eine gewichtete Blueprint-Liste
+const bpPools = new Map();
+for (const r of byStruct('BlueprintPoolRecord')) {
+  const d = db.readRecord(r, { maxDepth: 3 });
+  // Blueprint-Recordnamen sind Item-Keys (BP_CRAFT_SHLD_SECO_S00_PIN_SCItem).
+  // Praefix/Suffix weg — der Rest bleibt roh, weil es der Name ist, den das
+  // Spiel fuehrt; huebschere Namen haette nur die crafting-db (anderer Patch).
+  const bps = (d?.blueprintRewards ?? []).map((b) => ({
+    name: b?.blueprintRecord?.name
+      ? shortName(b.blueprintRecord).replace(/^BP_CRAFT_/i, '').replace(/_SCItem$/i, '')
+      : null,
+    weight: b?.weight ?? 1,
+  })).filter((b) => b.name);
+  bpPools.set(r.id, { id: kebab(shortName(r)), key: shortName(r), blueprints: bps });
+}
+console.log(`blueprint-pools: ${bpPools.size} (${[...bpPools.values()].reduce((s, p) => s + p.blueprints.length, 0)} Eintraege)`);
+
+// ContractTemplates: liefern Titel/Beschreibung/Typ, wenn der Contract nichts ueberschreibt
+const templates = new Map();
+for (const r of byStruct('ContractTemplate')) {
+  const d = db.readRecord(r, { maxDepth: 4 });
+  const ds = d?.contractDisplayInfo?.displayString ?? [];
+  templates.set(r.id, {
+    key: shortName(r),
+    title: ds[0] ?? null,
+    desc: ds[2] ?? null,
+    type: d?.contractDisplayInfo?.type?.__ref ?? null,
+    illegal: !!d?.contractDisplayInfo?.illegal,
+    notForRelease: !!d?.notForRelease,
+    flow: flowOf(d ?? {}),
+  });
+}
+console.log(`contract-templates: ${templates.size}`);
+
+// Gilde + Auftraggeber stehen im Pfad des Generators:
+//   contracts/contractgenerator/<gilde>_guild/<org>/[...]/<name>.xml
+//
+// Die Gildennamen sind NICHT lokalisiert — in der global.ini gibt es keine
+// Entsprechung, es sind CIGs Ordnernamen. Sie werden hier nur lesbar gemacht
+// (die Zuordnung ist eindeutig, aber es ist keine offizielle Bezeichnung; das
+// steht so im Quellenhinweis). Ordner ohne `_guild` (tutorial,
+// yearspecificcontent) sind Ablagen, keine Gilden -> null.
+const GUILDS = {
+  academyofsciences: 'Academy of Sciences',
+  interstellartransport: 'Interstellar Transport',
+  mercenary: 'Mercenary',
+  thebackpocket: 'The Back Pocket',
+  thecouncil: 'The Council',
+  unitedresourceworkers: 'United Resource Workers',
+};
+// Org-Ordner gegen die echten Fraktions-/Org-Namen aufloesen, statt zu raten:
+// "headhunters" -> "Headhunters", "eckhartsecurity" -> "Eckhart Security".
+const orgLookup = new Map();
+const orgKey = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+for (const f of factions.values()) orgLookup.set(orgKey(f.name), f.name);
+for (const o of orgs.values()) if (!orgLookup.has(orgKey(o.name))) orgLookup.set(orgKey(o.name), o.name);
+// Zwei Ordner weichen zu stark ab, als dass ein Praefix greift ("bountyhunterguild"
+// gegen "Bounty Hunters Guild" — das fehlende s; "ftl" ist zu kurz zum Matchen).
+const ORG_ALIAS = { ftl: 'FTL Courier', bountyhunterguild: 'Bounty Hunters Guild' };
+function prettyOrg(s) {
+  const k = orgKey(s);
+  const exact = ORG_ALIAS[k] ?? orgLookup.get(k);
+  if (exact) return exact;
+  // Ordnername und Fraktionsname weichen oft leicht ab: "ftl" -> "FTL Courier",
+  // "redwind" -> "Red Wind Linehaul", "rayariinc" -> "Rayari Incorporated".
+  // Laengster Praefix-Treffer in beide Richtungen; ab 4 Zeichen, damit kurze
+  // Namen nicht wild matchen.
+  let best = null;
+  for (const [lk, name] of orgLookup) {
+    if (lk.length < 4 || k.length < 4) continue;
+    if (!lk.startsWith(k) && !k.startsWith(lk)) continue;
+    const score = Math.min(lk.length, k.length);
+    if (!best || score > best.score) best = { name, score };
+  }
+  if (best) return best.name;
+  return nameFrom(s, /^$/).replace(/\b[a-z]/g, (c) => c.toUpperCase());
+}
+
+function guildOf(fileName) {
+  const m = /contractgenerator\/([^/]+)(?:\/([^/]+))?/i.exec(fileName ?? '');
+  if (!m || /\.xml$/i.test(m[1])) return { guild: null, org: null };
+  const gm = /^(.+)_guild$/i.exec(m[1]);
+  const o = m[2] && !/\.xml$/i.test(m[2]) ? m[2] : null;
+  return {
+    guild: gm ? (GUILDS[gm[1].toLowerCase()] ?? nameFrom(gm[1], /^$/)) : null,
+    org: o ? prettyOrg(o) : null,
+  };
+}
+
+// Prerequisites eines Contracts -> Reputationsbedingungen (wie repExpr, andere Form)
+function contractRep(list) {
+  const out = [];
+  for (const p of list ?? []) {
+    if (p?.__type !== 'ContractPrerequisite_Reputation') continue;
+    const f = p.factionReputation?.__ref ? factions.get(p.factionReputation.__ref) : null;
+    const mn = p.minStanding?.__ref ? standings.get(p.minStanding.__ref) : null;
+    const mx = p.maxStanding?.__ref ? standings.get(p.maxStanding.__ref) : null;
+    if (!f && !mn && !mx) continue;
+    out.push({
+      faction: f?.id ?? null, factionName: f?.name ?? null,
+      scope: p.scope?.__ref ? scopes.get(p.scope.__ref) ?? null : null,
+      comparison: p.exclude ? 'NotEqualTo' : 'GreaterThanOrEqualTo',
+      standing: mn?.name ?? mx?.name ?? null,
+      standingMin: mn?.min ?? null,
+      perk: mn?.perk ?? null,
+    });
+  }
+  return out;
+}
+
+// contractResults -> Belohnungen. Der Baum ist polymorph (ContractResultBase),
+// __type sagt, was drinsteckt.
+function contractResults(node) {
+  const out = { uec: 0, calculated: false, blueprints: [], bpChance: null, rep: [] };
+  for (const r of node?.contractResults ?? []) {
+    if (!r) continue;
+    // ContractResult_CalculatedReward fuehrt KEINE Zahl — der Lohn entsteht zur
+    // Laufzeit aus der Schwierigkeit. "0" waere hier gelogen ("keine Belohnung"),
+    // also merken und die UI "wird berechnet" sagen lassen.
+    if (r.__type === 'ContractResult_CalculatedReward') out.calculated = true;
+    if (r.__type === 'BlueprintRewards' && r.blueprintPool?.__ref) {
+      const pool = bpPools.get(r.blueprintPool.__ref);
+      if (pool) {
+        out.blueprints.push({ pool: pool.id, poolKey: pool.key, chance: r.chance ?? null, blueprints: pool.blueprints });
+        if (r.chance != null) out.bpChance = Math.max(out.bpChance ?? 0, r.chance);
+      }
+    } else if (r.__type === 'ContractResult_Reward' && typeof r.reward === 'number') {
+      out.uec = Math.max(out.uec, r.reward);
+    } else if (r.contractResultReputationAmounts) {
+      const f = r.contractResultReputationAmounts.factionReputation?.__ref
+        ? factions.get(r.contractResultReputationAmounts.factionReputation.__ref) : null;
+      if (f) out.rep.push(f.id);
+    }
+  }
+  return out;
+}
+
+const contracts = [];
+const brokerLinked = new Map(); // MissionBrokerEntry-Recordname -> Contract-Zusatzinfos
+let genCount = 0;
+for (const gen of byStruct('ContractGenerator')) {
+  const d = db.readRecord(gen, { maxDepth: 9, typed: true });
+  if (!d) continue;
+  genCount++;
+  const { guild, org } = guildOf(gen.fileName);
+  for (const h of d.generators ?? []) {
+    if (!h || h.notForRelease) continue;
+    const hFaction = h.factionReputation?.__ref ? factions.get(h.factionReputation.__ref) : null;
+    const hPre = h.defaultAvailability?.prerequisites ?? [];
+    // alle Contract-Sorten eines Handlers einsammeln
+    const lists = [
+      ...(h.contracts ?? []), ...(h.introContracts ?? []), ...(h.legacyContracts ?? []),
+      ...(h.serviceBeaconContracts ?? []), ...(h.PVPBountyContract ?? []),
+    ];
+    for (const c of lists) {
+      if (!c || c.notForRelease) continue;
+      const tpl = c.template?.__ref ? templates.get(c.template.__ref) : null;
+      // Der Spielertext steht in den stringParamOverrides (param = Title/Description/
+      // Contractor); nur wenn dort nichts steht, greift der Template-Text.
+      const ov = {};
+      for (const s of c.paramOverrides?.stringParamOverrides ?? []) if (s?.param) ov[s.param] = s.value;
+      const rawTitle = ov.Title ?? tpl?.title ?? null;
+      const rawDesc = ov.Description ?? tpl?.desc ?? null;
+      const title = analyseTitle(rawTitle);
+      const desc = analyseTitle(rawDesc, true);
+      const typeRef = c.paramOverrides?.missionTypeOverride?.__ref ?? tpl?.type;
+      const type = typeRef ? missionTypes.get(typeRef) : null;
+      const res = contractResults(c.contractResults);
+      const rep = [...contractRep(c.additionalPrerequisites), ...contractRep(hPre)];
+      const mn = c.minStanding?.__ref ? standings.get(c.minStanding.__ref) : null;
+      const mx = c.maxStanding?.__ref ? standings.get(c.maxStanding.__ref) : null;
+      const brokerKey = c.missionBrokerEntry?.name ? shortName(c.missionBrokerEntry) : null;
+
+      const entry = {
+        key: c.debugName || tpl?.key || 'contract',
+        kind: c.__type ?? 'Contract',
+        guild, org,
+        contractor: loc(ov.Contractor),
+        title: title.text, titleDynamic: title.dynamic, pure: title.pure,
+        titleTokens: title.tokens,
+        desc: desc.pure ? null : desc.text,
+        type: type?.id ?? null, typeName: type?.name ?? null,
+        illegal: !!tpl?.illegal,
+        faction: hFaction?.id ?? null, factionName: hFaction?.name ?? null,
+        rankMin: mn?.name ?? null, rankMax: mx?.name ?? null,
+        uec: res.uec,
+        calcReward: res.calculated,
+        blueprints: res.blueprints,
+        bpChance: res.bpChance,
+        rep,
+        template: tpl?.key ?? null,
+        generator: shortName(gen),
+        brokerKey,
+      };
+      // Legacy-Contract: gehoert zu einem Brett-Eintrag, den die Seite schon hat.
+      // Nicht doppelt listen — nur die Zusatzinfos an die Familie haengen.
+      if (brokerKey) {
+        brokerLinked.set(brokerKey, entry);
+      } else {
+        contracts.push(entry);
+      }
+    }
+  }
+}
+console.log(`contracts: ${genCount} Generatoren -> ${contracts.length} eigenstaendig + ${brokerLinked.size} an Brett-Eintraege gebunden`);
+console.log(`  mit Blueprints: ${contracts.filter((c) => c.blueprints.length).length}`);
+
 /* ---------------- Missionen einlesen ---------------- */
 const brokers = byStruct('MissionBrokerEntry');
 const entries = [];
@@ -354,9 +570,17 @@ for (const r of brokers) {
   // UI das nicht als offiziellen Namen ausgibt).
   const hasTitle = !!title.text && !title.pure;
   const label = hasTitle ? title.text : (title.fragment || humanize(key));
+  // Haengt an diesem Brett-Eintrag ein Legacy-Contract? Der kennt Gilde und
+  // Auftraggeber, die das Brett selbst nicht fuehrt.
+  const ctr = brokerLinked.get(key);
 
   entries.push({
     key,
+    source: 'broker',
+    guild: ctr?.guild ?? null,
+    org: ctr?.org ?? null,
+    blueprints: ctr?.blueprints ?? [],
+    bpChance: ctr?.bpChance ?? null,
     file: r.fileName,
     titleKey: typeof d.title === 'string' ? d.title : null,
     title: label,
@@ -410,6 +634,60 @@ for (const r of brokers) {
   });
 }
 console.log(`broker entries: ${brokers.length} | notForRelease uebersprungen: ${skippedDev} | live: ${entries.length}`);
+
+// Eigenstaendige Contracts in dieselbe Form bringen, damit sie durch dieselbe
+// Familienbildung laufen wie die Brett-Eintraege. Felder, die es im Contract-
+// System schlicht nicht gibt (Ort, Deadline, Cooldown), bleiben leer statt
+// geraten zu werden.
+for (const c of contracts) {
+  const hasTitle = !!c.title && !c.pure;
+  entries.push({
+    key: c.key,
+    source: 'contract',
+    guild: c.guild,
+    org: c.org,
+    blueprints: c.blueprints,
+    bpChance: c.bpChance,
+    file: `contracts/${c.generator}`,
+    titleKey: null,
+    title: hasTitle ? c.title : humanize(c.key),
+    noTitle: !hasTitle,
+    titleDynamic: !!c.titleDynamic,
+    titleTokens: c.titleTokens ?? [],
+    titleVariants: [],
+    desc: c.desc,
+    descDynamic: false,
+    giverText: c.contractor,
+    giverTextDynamic: false,
+    type: c.type, typeName: c.typeName,
+    giver: null, giverName: c.org ?? c.factionName ?? null,
+    locality: null, localityName: null, places: [],
+    reward: { uec: c.uec ?? 0, max: 0, currency: 'UEC', plusBonuses: false },
+    calcReward: !!c.calcReward,
+    buyIn: 0,
+    difficulty: null,
+    lawful: !c.illegal,
+    tutorial: false,
+    shareable: false,
+    onceOnly: false,
+    maxPlayers: null,
+    maxInstances: null,
+    requestOnly: false,
+    availableInPrison: false,
+    failIfCriminal: false,
+    failIfPrison: false,
+    deadlineSec: 0, lifetimeMin: 0, cooldownMin: 0,
+    wantedMax: null, wantedMin: null,
+    rankMin: c.rankMin, rankMax: c.rankMax,
+    rep: c.rep,
+    repPre: [],
+    tags: [],
+    missionTags: [],
+    module: c.template ? `Contract/${c.template}` : null,
+    flow: { steps: [], rules: [] },
+  });
+}
+console.log(`gesamt (Brett + Contracts): ${entries.length} Angebote`);
 
 /* ---------------- Familien bilden ---------------- */
 // Gruppenschluessel = angezeigter Titel + Missionsmodul.
@@ -483,6 +761,18 @@ for (const list of famKeys.map((k) => famMap.get(k))) {
     titleVariants: head.titleVariants,
     desc: list.find((e) => e.desc)?.desc ?? null,
     descDynamic: !!list.find((e) => e.desc)?.descDynamic,
+    sources: uniq(list.map((e) => e.source)),
+    guilds: uniq(list.map((e) => e.guild)),
+    orgs: uniq(list.map((e) => e.org)),
+    ranks: uniq(list.flatMap((e) => [e.rankMin, e.rankMax])),
+    // Blueprint-Pools der Familie, dedupliziert (mehrere Varianten teilen sich Pools)
+    blueprints: (() => {
+      const seen = new Map();
+      for (const e of list) for (const b of e.blueprints ?? []) if (!seen.has(b.poolKey)) seen.set(b.poolKey, b);
+      return [...seen.values()];
+    })(),
+    bpChance: Math.max(0, ...list.map((e) => e.bpChance ?? 0)) || null,
+    calcReward: list.some((e) => e.calcReward),
     types: uniq(list.map((e) => e.type)),
     typeNames: uniq(list.map((e) => e.typeName)),
     givers: uniq(list.map((e) => e.giver)),
@@ -505,6 +795,11 @@ for (const list of famKeys.map((k) => famMap.get(k))) {
     count: list.length,
     variants: list.map((e) => ({
       key: e.key,
+      source: e.source,
+      guild: e.guild,
+      rankMin: e.rankMin ?? null,
+      rankMax: e.rankMax ?? null,
+      blueprints: (e.blueprints ?? []).length,
       title: e.title,
       type: e.typeName,
       giver: e.giverName ?? e.giverText,
@@ -546,6 +841,9 @@ const out = {
   meta: {
     source: 'Star Citizen Data.p4k -> Data/Game2.dcb (DataCore v8) + Localization/english/global.ini — eigene Extraktion',
     lang: 'Missionstexte liegen in den Spieldateien nur auf Englisch vor; die deutsche global.ini enthaelt keine Missionstitel/-beschreibungen.',
+    systems: 'Zwei Quellen: das Missionsbrett (MissionBrokerEntry) und der Contract-Manager (ContractGenerator -> Contract/CareerContract). CIG migriert vom ersten zum zweiten; ContractLegacy.missionBrokerEntry ist die Bruecke, ueber die beide Systeme dieselbe Mission bezeichnen — solche Eintraege stehen hier nur einmal.',
+    guilds: 'Die Gildenzuordnung stammt aus der Ordnerstruktur der Spieldateien (contractgenerator/<gilde>_guild/...), nicht aus einem lokalisierten Namen — die global.ini fuehrt dafuer keine Bezeichnungen. Lesbar gemacht, aber keine offizielle Schreibweise.',
+    blueprints: 'Blueprint-Belohnungen haengen ausschliesslich am Contract-System; kein einziger der 419 Legacy-Contracts hat einen Pool. Ein Pool ist eine gewichtete Liste, aus der gezogen wird — welcher Blueprint faellt, ist Zufall.',
     objectives: 'Der Spielertext der Missionsziele ist nicht Teil der Client-Dateien: MissionObjective/ObjectiveDisplayInfo haben im DataCore null Instanzen, gefuellt werden sie von den Subsumption-Modulen, die serverseitig laufen (unter Libs/Subsumption/Missions liegen nur AC/EA/Environmental). Ausgegeben wird darum der Ablauf aus objectiveTokens (Entwicklernamen) und missionFlow (Designer-Beschreibungen).',
     patch: patchLabel,
     generated: process.env.SNAP_DATE ?? new Date().toISOString().slice(0, 10),
@@ -553,14 +851,20 @@ const out = {
       brokerEntries: brokers.length,
       notForRelease: skippedDev,
       live: entries.length,
+      brokerLive: entries.filter((e) => e.source === 'broker').length,
+      contracts: entries.filter((e) => e.source === 'contract').length,
+      legacyBridged: brokerLinked.size,
       families: families.length,
       withReward: entries.filter((e) => e.reward.uec > 0).length,
       withRep: entries.filter((e) => e.rep.length).length,
       withFlow: entries.filter((e) => e.flow.steps.length || e.flow.rules.length).length,
+      withBlueprints: families.filter((f) => f.blueprints.length).length,
+      blueprintPools: bpPools.size,
       dynamicTitles: entries.filter((e) => e.titleDynamic).length,
       noTitle: entries.filter((e) => e.noTitle).length,
     },
   },
+  guilds: uniq(families.flatMap((f) => f.guilds)).sort().map((g) => ({ id: kebab(g), key: g, name: g })),
   types: [...missionTypes.values()].filter((x) => usedTypes.has(x.id)).sort((a, b) => a.name.localeCompare(b.name)),
   givers: [...givers.values()].filter((x) => usedGivers.has(x.id)).sort((a, b) => a.name.localeCompare(b.name)),
   factions: [...factions.values()].filter((f) => usedFactions.has(f.id)).sort((a, b) => a.name.localeCompare(b.name)),

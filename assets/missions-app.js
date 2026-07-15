@@ -15,6 +15,8 @@
   var selGiver = document.getElementById('mx-giver');
   var selFaction = document.getElementById('mx-faction');
   var selLoc = document.getElementById('mx-loc');
+  var selGuild = document.getElementById('mx-guild');
+  var selBp = document.getElementById('mx-bp');
   var selLegal = document.getElementById('mx-legal');
   var selSort = document.getElementById('mx-sort');
   var reset = document.getElementById('mx-reset');
@@ -31,7 +33,9 @@
       giver: (el.getAttribute('data-giver') || '').split(' ').filter(Boolean),
       faction: (el.getAttribute('data-faction') || '').split(' ').filter(Boolean),
       loc: (el.getAttribute('data-loc') || '').split(' ').filter(Boolean),
+      guild: (el.getAttribute('data-guild') || '').split(' ').filter(Boolean),
       legal: el.getAttribute('data-legal') || '',
+      bp: el.getAttribute('data-bp') === '1',
       reward: +(el.getAttribute('data-reward') || 0),
       count: +(el.getAttribute('data-count') || 0),
     };
@@ -48,13 +52,15 @@
     var toks = (q.value || '').toLowerCase().trim().split(/\s+/).filter(Boolean);
     var vType = selType.value, vGiver = selGiver.value, vFaction = selFaction.value;
     var vLoc = selLoc.value, vLegal = selLegal.value;
+    var vGuild = selGuild ? selGuild.value : '';
+    var vBp = selBp ? selBp.value : '';
     var n = 0;
     for (var i = 0; i < cards.length; i++) {
       var c = cards[i];
       // "both" (Familie hat legale UND illegale Angebote) passt auf beide Filter
       var okLegal = !vLegal || c.legal === vLegal || c.legal === 'both';
-      var ok = okLegal && has(c.type, vType) && has(c.giver, vGiver)
-        && has(c.faction, vFaction) && has(c.loc, vLoc) && matchQ(c, toks);
+      var ok = okLegal && (!vBp || c.bp) && has(c.type, vType) && has(c.giver, vGiver)
+        && has(c.faction, vFaction) && has(c.loc, vLoc) && has(c.guild, vGuild) && matchQ(c, toks);
       c.el.hidden = !ok;
       if (ok) n++;
     }
@@ -80,14 +86,13 @@
   var timer = null;
   function debounced() { clearTimeout(timer); timer = setTimeout(apply, 110); }
 
+  var SELECTS = [selType, selGiver, selFaction, selLoc, selGuild, selBp, selLegal, selSort].filter(Boolean);
   q.addEventListener('input', debounced);
-  [selType, selGiver, selFaction, selLoc, selLegal, selSort].forEach(function (s) {
-    s.addEventListener('change', apply);
-  });
+  SELECTS.forEach(function (s) { s.addEventListener('change', apply); });
   if (reset) {
     reset.addEventListener('click', function () {
       q.value = '';
-      [selType, selGiver, selFaction, selLoc, selLegal].forEach(function (s) { s.value = ''; });
+      SELECTS.forEach(function (s) { if (s !== selSort) s.value = ''; });
       selSort.value = 'count';
       apply();
     });
@@ -96,11 +101,12 @@
   // Deeplink: /missionen.html?type=bounty&q=hurston
   (function fromUrl() {
     var p = new URLSearchParams(location.search);
-    var map = { q: q, type: selType, giver: selGiver, faction: selFaction, loc: selLoc, legal: selLegal, sort: selSort };
+    var map = { q: q, type: selType, giver: selGiver, faction: selFaction, loc: selLoc,
+      guild: selGuild, bp: selBp, legal: selLegal, sort: selSort };
     var any = false;
     for (var k in map) {
       var v = p.get(k);
-      if (v == null) continue;
+      if (v == null || !map[k]) continue;
       // Nur setzen, wenn das Select den Wert wirklich kennt — sonst leert der
       // Browser die Auswahl und alles waere gefiltert.
       if (map[k].tagName === 'SELECT' && !map[k].querySelector('option[value="' + CSS.escape(v) + '"]')) continue;

@@ -227,10 +227,15 @@ export function openDataCore(data) {
   // opts.maxDepth begrenzt die Rekursion; StrongPointer-Graphen sind tief und
   // teils zyklisch (Loadouts zeigen auf Loadouts). opts.follow(name,depth) darf
   // Aeste abschneiden, damit ein Record nicht das halbe DataCore aufzieht.
+  // opts.typed setzt __type auf polymorph aufgeloeste StrongPointer: bei einem
+  // Array vom Basistyp (z. B. ContractGeneratorHandlerBase) steht sonst nirgends,
+  // WELCHE Ableitung man in der Hand haelt.
   function readInstance(structIndex, instanceIndex, opts = {}) {
     const maxDepth = opts.maxDepth ?? 12;
     const seen = new Set();
     const readRef = opts.readRef ?? false;
+    const typed = opts.typed ?? false;
+    const tag = (si, obj) => (typed && obj && !obj.__cycle ? { __type: structs[si]?.name, ...obj } : obj);
 
     function rd(si, ii, depth) {
       const sd = structs[si];
@@ -278,7 +283,7 @@ export function openDataCore(data) {
           const si = instance.readInt32LE(at), ii = instance.readInt32LE(at + 4);
           if (si === -1 || ii === -1 || depth >= maxDepth) return null;
           if (opts.follow && !opts.follow(pr.name, depth)) return null;
-          return rd(si, ii, depth + 1);
+          return tag(si, rd(si, ii, depth + 1));
         }
         case DT.WeakPointer: {
           const si = instance.readInt32LE(at), ii = instance.readInt32LE(at + 4);
@@ -347,7 +352,8 @@ export function openDataCore(data) {
             const ptr = poolPtr(off.strong, idx);
             out[n] = (ptr.structIndex === -1 || ptr.instanceIndex === -1 || depth >= maxDepth)
               ? null
-              : (opts.follow && !opts.follow(pr.name, depth)) ? null : rd(ptr.structIndex, ptr.instanceIndex, depth + 1);
+              : (opts.follow && !opts.follow(pr.name, depth)) ? null
+                : tag(ptr.structIndex, rd(ptr.structIndex, ptr.instanceIndex, depth + 1));
             break;
           }
           case DT.WeakPointer: {

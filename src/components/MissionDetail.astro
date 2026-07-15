@@ -6,7 +6,7 @@
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
-import { db, uec, dur, mins, cmpSign, repSummary, missions } from '../lib/missions';
+import { db, uec, dur, mins, cmpSign, repSummary, missions, bpCount } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { href } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
@@ -39,6 +39,12 @@ const S = {
     steps: 'Schritte', rules: 'Ablaufregeln', flowNone: 'Kein Ablauf in den Spieldateien hinterlegt.',
     tblKey: 'Eintrag', tblGiver: 'Auftraggeber', tblLoc: 'Region', tblReward: 'Belohnung', tblRep: 'Reputation', tblPlaces: 'Orte',
     module: 'Missionsmodul', tags: 'Tags', none: '—', noReward: 'keine',
+    guild: 'Gilde', rank: 'Karrierestufe', src: 'Quelle', calcReward: 'wird zur Laufzeit berechnet',
+    bpH: 'Blueprints', bpChance: 'Chance',
+    bpP: 'Diese Mission kann Blueprints abwerfen. Ein Pool ist eine gewichtete Liste — welcher Blueprint fällt, entscheidet der Zufall, du bekommst nicht die ganze Liste.',
+    bpPool: 'Pool', bpWeight: 'Gewicht',
+    srcBroker: 'Missionsbrett', srcContract: 'Contract-Manager',
+    srcNote: 'Die Spieldateien führen zwei Missionssysteme: das ältere Missionsbrett und den Contract-Manager, in den CIG gerade migriert. Blueprints und Gilden gibt es nur im zweiten.',
     src: 'Quelle', srcP: 'Extrahiert aus <code>Data.p4k → Data/Game2.dcb</code> (DataCore v8) der installierten Live-Version. Missionstexte gibt es dort nur auf Englisch.',
     rec: 'DataCore-Record',
   },
@@ -64,6 +70,12 @@ const S = {
     steps: 'Steps', rules: 'Flow rules', flowNone: 'No flow recorded in the game files.',
     tblKey: 'Entry', tblGiver: 'Contractor', tblLoc: 'Region', tblReward: 'Reward', tblRep: 'Reputation', tblPlaces: 'Locations',
     module: 'Mission module', tags: 'Tags', none: '—', noReward: 'none',
+    guild: 'Guild', rank: 'Career rank', src: 'Source', calcReward: 'calculated at runtime',
+    bpH: 'Blueprints', bpChance: 'Chance',
+    bpP: 'This mission can drop blueprints. A pool is a weighted list — which blueprint drops is chance-based, you do not get the whole list.',
+    bpPool: 'Pool', bpWeight: 'Weight',
+    srcBroker: 'Mission board', srcContract: 'Contract Manager',
+    srcNote: 'The game files carry two mission systems: the older mission board and the Contract Manager that CIG is migrating to. Blueprints and guilds exist only in the latter.',
     src: 'Source', srcP: 'Extracted from <code>Data.p4k → Data/Game2.dcb</code> (DataCore v8) of the installed live build. Mission text exists there in English only.',
     rec: 'DataCore record',
   },
@@ -78,9 +90,11 @@ const titleParts = parts(m.title);
 const descParts = m.desc ? parts(m.desc) : null;
 const plain = plainTitle(m.title);
 const reps = repSummary(m);
+const bpTotal = bpCount(m);
+const srcLabel = m.sources.map((s) => (s === 'broker' ? S.srcBroker : S.srcContract)).join(' + ');
 const legal = m.lawful && m.unlawful ? S.mixed : m.lawful ? S.lawful : S.unlawful;
 const v0 = m.variants[0];
-const rewardTxt = m.rewardMax
+const rewardTxt = !m.rewardMax && m.calcReward ? S.calcReward : m.rewardMax
   ? (m.rewardMin === m.rewardMax ? `${uec(m.rewardMax, lang)} aUEC` : `${uec(m.rewardMin, lang)} – ${uec(m.rewardMax, lang)} aUEC`)
   : S.noReward;
 // Spalten der Variantentabelle nur zeigen, wenn sie irgendwo etwas enthalten —
@@ -168,8 +182,11 @@ const desc = m.desc
           <div><dt>{S.type}</dt><dd>{m.typeNames.join(', ') || S.none}</dd></div>
           <div><dt>{S.giver}</dt><dd>{m.giverNames.length ? m.giverNames.join(', ') : S.none}</dd></div>
           <div><dt>{S.region}</dt><dd>{m.localityNames.length ? m.localityNames.join(', ') : S.none}</dd></div>
+          {m.guilds.length > 0 && <div><dt>{S.guild}</dt><dd>{m.guilds.join(', ')}{m.orgs.length > 0 && <span class="md__dim"> · {m.orgs.join(', ')}</span>}</dd></div>}
+          {m.ranks.length > 0 && <div><dt>{S.rank}</dt><dd>{m.ranks.join(' – ')}</dd></div>}
           <div><dt>{S.legal}</dt><dd>{legal}</dd></div>
           <div><dt>{S.offers}</dt><dd>{m.count}</dd></div>
+          <div><dt>{S.src}</dt><dd>{srcLabel}</dd></div>
           <div><dt>{S.players}</dt><dd>{m.maxPlayers || S.none}</dd></div>
           <div><dt>{S.shareable}</dt><dd>{m.shareable ? S.yes : S.no}</dd></div>
           {v0.buyIn > 0 && <div><dt>{S.buyIn}</dt><dd>{uec(v0.buyIn, lang)} aUEC</dd></div>}
@@ -186,6 +203,27 @@ const desc = m.desc
           </>
         )}
       </section>
+
+      {/* Blueprints — die Antwort auf "wirft die was ab?" */}
+      {m.blueprints.length > 0 && (
+        <section class="md__sec">
+          <h2 class="md__h2">
+            {S.bpH} <span class="md__n">{bpTotal}</span>
+            {m.bpChance != null && <span class="md__badge md__badge--bp">{S.bpChance} {Math.round(m.bpChance * 100)}%</span>}
+          </h2>
+          <p class="md__p">{S.bpP}</p>
+          {m.blueprints.map((p) => (
+            <>
+              <h3 class="md__h3">{S.bpPool}: <code class="md__code">{p.poolKey}</code>{p.chance != null && ` · ${S.bpChance} ${Math.round(p.chance * 100)}%`}</h3>
+              <ul class="md__tags">
+                {p.blueprints.map((b) => (
+                  <li class="md__tag md__tag--bp">{b.name}{b.weight !== 1 && <span class="md__dim"> ×{b.weight}</span>}</li>
+                ))}
+              </ul>
+            </>
+          ))}
+        </section>
+      )}
 
       {/* Reputation */}
       <section class="md__sec">
@@ -407,6 +445,8 @@ const desc = m.desc
     border: 1px solid var(--line-soft);
   }
   .md__badge--il { color: #ff9d8a; border-color: rgba(255, 120, 90, .4); }
+  .md__badge--bp { color: var(--ink); background: var(--accent-2); border-color: var(--accent-2); font-weight: 700; }
+  .md__tag--bp { font-family: ui-monospace, monospace; font-size: .66rem; color: var(--accent-2); border-color: color-mix(in srgb, var(--accent-2) 30%, transparent); }
 
   .md__steps { display: grid; gap: .3rem; padding-left: 1.2rem; }
   .md__steps li { font-size: .86rem; }
