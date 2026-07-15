@@ -132,6 +132,9 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-get{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.5rem;border-left:1px solid var(--line-soft);padding-left:.7rem}
 .wk-get-media{width:100%;aspect-ratio:16/10;overflow:hidden;border:1px solid var(--line);background:linear-gradient(150deg,var(--surface-2),var(--bg-2));position:relative}
 .wk-get-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease}
+.wk-get-media[data-lb]{cursor:pointer}
+.wk-get-media .zoomic{position:absolute;top:.5rem;right:.5rem;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.55);border:1px solid var(--line);display:grid;place-items:center;font-size:.85rem;color:#fff;opacity:.55;transition:opacity .2s,background .2s,transform .2s}
+.wk-get-media:hover .zoomic{opacity:1;background:var(--accent);color:var(--ink);transform:scale(1.12)}
 /* Portrait renders (full-body armor, ATLS exosuit) would be cropped to a middle
    sliver under cover — contain shows the whole figure, centred on the card's
    dark gradient (transparent PNGs then read as intentional). */
@@ -302,7 +305,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
             <div class="wk-get">
               <div class="wk-side-h">Get</div>
               {t.img && showImg[ti]
-                ? (<div class:list={['wk-get-media', (t.cat === 'armor' || (t.img ?? '').startsWith('wk-atls')) && 'is-contain']}><img src={`/assets/${t.img}`} alt={t.name} loading="lazy" decoding="async" /></div>)
+                ? (<div class:list={['wk-get-media', (t.cat === 'armor' || (t.img ?? '').startsWith('wk-atls')) && 'is-contain']} data-lb={`img:/assets/${t.img}`} data-title={t.get ?? t.name}><img src={`/assets/${t.img}`} alt={t.name} loading="lazy" decoding="async" /><span class="zoomic" aria-hidden="true">⤢</span></div>)
                 : (<div class="wk-get-media wk-get-media--ph" aria-hidden="true" set:html={ICON[CAT_ICON[t.cat]]}></div>)}
               <div class:list={['wk-get-name', matchItemName(t.get ?? t.name) && 'wk-linkable']} {...linkAttrs(t.get ?? t.name)}>{t.get ?? t.name}</div>
             </div>

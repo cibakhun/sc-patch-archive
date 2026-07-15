@@ -28,7 +28,7 @@
   if(lb){
     var lbc=lb.querySelector('.lb__content'), lastTrigger=null;
     lb.setAttribute('role','dialog'); lb.setAttribute('aria-modal','true');
-    function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
     function txtOf(el){
       var t=el.getAttribute('data-title');
       if(!t){var c=el.querySelector('figcaption,.vlbl,.lbl,h3,.tn');t=c?c.textContent:(el.textContent||'');}
