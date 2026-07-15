@@ -13,7 +13,7 @@ import SiteNav from './SiteNav.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import vehiclesSnapshot from '../data/vehicles.json';
-import { buildFacts, buildArmament, crewFmt } from '../lib/shipFacts';
+import { buildFacts, buildArmament, buildArmStats, crewFmt } from '../lib/shipFacts';
 import { buildVisuals } from '../lib/shipVisuals';
 import type { Visuals } from '../lib/shipVisuals';
 import { pickHero } from '../lib/shipRenders';
@@ -78,6 +78,7 @@ const spine = d.patches
 // key ausfiltern (sprachunabhängig, da Labels jetzt lokalisiert sind).
 const facts = buildFacts(d, lang).filter((f) => !['cargo', 'ore', 'dims'].includes(f.key ?? ''));
 const armament = buildArmament(d, lang);
+const armStats = buildArmStats(d, lang);
 const desc = vDesc(d, lang);
 // FleetYards liefert vereinzelt "<= PLACEHOLDER =>" als Komponentennamen
 // (z. B. Javelin, ROC-DS) — solche Einträge tragen keine Information und
@@ -710,21 +711,66 @@ span.sd__ref{color:var(--muted)}
 .sd__item dd{margin:.15rem 0 0;font-weight:500;font-size:1.15rem;line-height:1.35;font-variant-numeric:tabular-nums;color:var(--text)}
 .sd__sub{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
   margin:1.6rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--line)}
-.sd__arm{display:flex;flex-direction:column}
-.sd__armrow{display:grid;grid-template-columns:200px minmax(0,1fr) auto;gap:.35rem 1.2rem;align-items:baseline;
-  padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.06)}
-.sd__armrow:last-child{border-bottom:0;padding-bottom:.15rem}
-.sd__armhead{display:flex;flex-direction:column;gap:.05rem}
-.sd__armlabel{font-family:var(--font-ui);font-weight:700;font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text)}
-.sd__armmeta{font-family:var(--font-ui);font-weight:600;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.sd__armmid{display:flex;flex-wrap:wrap;gap:.4rem .6rem;align-items:baseline;min-width:0}
-.sd__chip{font-family:var(--font-ui);font-weight:700;font-size:.85rem;line-height:1;color:var(--accent);
-  border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);background:color-mix(in srgb,var(--accent) 7%,transparent);
-  padding:.3rem .5rem;white-space:nowrap}
-.sd__chip i{font-style:normal;opacity:.78;margin-left:.28rem;font-size:.78rem}
-.sd__armitems{font-size:.98rem;color:var(--text);opacity:.9}
-.sd__armval{font-family:var(--font-ui);font-weight:700;font-size:1.05rem;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}
-@media(max-width:640px){.sd__armrow{grid-template-columns:1fr}.sd__armval{justify-self:start}}
+/* ---------------- Bewaffnung: Hardpoint-Ledger ----------------
+   Eine Zeile je Waffenart statt einer Reihe nackter Zahlen. Jede Zeile ist
+   für sich lesbar: Stückzahl · Größenklasse (mit maßstäblichem Balken) ·
+   Name · Schadensart · Hardpoint-Reserve. Die Größen-Chips bilden eine
+   linksbündige Spalte -> das Kaliberprofil ist senkrecht abscanbar. */
+.arm__sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);margin-bottom:1.2rem}
+.arm__scell{background:var(--bg-2);padding:.6rem .8rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:.05rem .45rem}
+.arm__scell b{font-family:var(--font-ui);font-weight:700;font-size:1.5rem;line-height:1.1;color:var(--accent);
+  font-variant-numeric:tabular-nums}
+.arm__scell span{font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted)}
+.arm__scell i{flex-basis:100%;font-style:normal;font-family:var(--font-ui);font-weight:700;font-size:.76rem;
+  letter-spacing:.06em;color:var(--text);opacity:.75;font-variant-numeric:tabular-nums}
+.arm__scell--g b{color:var(--gold)}
+
+.arm__list{display:flex;flex-direction:column;gap:1.1rem}
+.arm__grp{border-left:2px solid color-mix(in srgb,var(--accent) 55%,transparent);padding-left:.9rem}
+.arm__grp--g{border-left-color:color-mix(in srgb,var(--gold) 60%,transparent)}
+.arm__ghead{display:flex;flex-wrap:wrap;align-items:baseline;gap:.3rem .7rem;
+  padding-bottom:.45rem;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:.5rem}
+.arm__glabel{font-family:var(--font-ui);font-weight:700;font-size:.84rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text)}
+.arm__gmeta{font-family:var(--font-ui);font-weight:600;font-size:.76rem;letter-spacing:.06em;color:var(--muted)}
+.arm__gval{margin-left:auto;font-family:var(--font-ui);font-weight:700;font-size:1rem;color:var(--text);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.arm__grp--g .arm__gval{color:var(--gold)}
+
+.arm__lines{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.3rem}
+.arm__line{display:grid;grid-template-columns:2.6rem 54px minmax(0,1fr) auto;align-items:center;gap:.7rem}
+.arm__n{font-family:var(--font-ui);font-weight:700;font-size:1rem;color:var(--text);
+  font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.arm__n i{font-style:normal;font-size:.78rem;color:var(--muted);margin-left:.06rem}
+/* Größen-Chip: fixe Breite (Spalte bleibt bündig), Füllbalken = Klasse
+   maßstäblich (S1 fast leer … S10+ voll) — dieselbe Sprache wie die Gauges */
+.arm__size{position:relative;display:grid;place-items:center;height:26px;overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);background:rgba(255,255,255,.03)}
+.arm__size::before{content:"";position:absolute;left:0;top:0;bottom:0;width:calc(100% * min(var(--s,1) / 10, 1));
+  background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 22%,transparent),color-mix(in srgb,var(--accent) 48%,transparent))}
+.arm__size em{position:relative;font-style:normal;font-family:var(--font-ui);font-weight:700;font-size:.84rem;
+  line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.arm__size--n{border-style:dashed;border-color:var(--line)}
+.arm__size--n em{color:var(--muted)}
+.arm__grp--g .arm__size{border-color:color-mix(in srgb,var(--gold) 50%,transparent)}
+.arm__grp--g .arm__size::before{background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 20%,transparent),color-mix(in srgb,var(--gold) 45%,transparent))}
+.arm__grp--g .arm__size em{color:var(--gold)}
+.arm__name{min-width:0;font-size:1rem;color:var(--text)}
+.arm__anon{color:var(--muted)}
+.arm__bdg{font-family:var(--font-ui);font-weight:700;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);white-space:nowrap}
+.arm__bdg--up{color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);
+  background:color-mix(in srgb,var(--accent) 8%,transparent);padding:.14rem .4rem}
+.arm__note{margin:.5rem 0 0;font-size:.9rem;color:var(--muted);line-height:1.5}
+.arm__note span{font-family:var(--font-ui);font-weight:700;font-size:.68rem;letter-spacing:.1em;
+  text-transform:uppercase;margin-right:.4rem}
+@media(max-width:640px){
+  .arm__line{grid-template-columns:2.2rem 48px minmax(0,1fr);row-gap:.15rem}
+  .arm__bdg{grid-column:3;justify-self:start}
+  .arm__gval{margin-left:0;flex-basis:100%}
+}
 
 .sd__desc{max-width:78ch;margin:0 0 1.6rem;font-size:1.05rem;line-height:1.65;color:var(--text);opacity:.92}
 .sd__spine{margin-bottom:1.6rem;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--bg-2);padding:1rem 1.2rem}
@@ -777,25 +823,12 @@ span.sd__ref{color:var(--muted)}
 .sd__cubes{display:flex;flex-wrap:wrap;gap:4px;margin:.55rem 0 .35rem}
 .sd__cube{width:15px;height:15px;background:color-mix(in srgb,var(--gold) 30%,transparent);border:1px solid color-mix(in srgb,var(--gold) 75%,transparent)}
 
-/* Hardpoint-Slots */
+/* Hardpoint-Slots (Komponenten-Abschnitt) */
 .sd__hp{display:inline-grid;place-items:center;height:24px;min-width:calc(15px + var(--hs,1)*4px);padding:0 .3rem;
   border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent);
   font-family:var(--font-ui);font-weight:700;font-size:.78rem;line-height:1}
-.sd__hp--m{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 10%,transparent);color:var(--gold)}
 .sd__hpmore{font-family:var(--font-ui);font-weight:700;font-size:.8rem;color:var(--muted);align-self:center}
 .sd__hprow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-
-/* Waffen-Paar-Chip: Hardpoint (max) -> montierte Waffe */
-.sd__wpair{display:inline-flex;align-items:center;gap:.28rem;height:24px;padding:0 .4rem;
-  border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:2px}
-.sd__wp{display:inline-grid;place-items:center;font-family:var(--font-ui);font-weight:700;font-size:.78rem;line-height:1;min-width:1.5rem;height:18px;padding:0 .25rem;border-radius:2px}
-.sd__wp--hp{color:var(--muted);border:1px solid var(--line)}
-.sd__wp--w{color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
-.sd__wparr{font-family:var(--font-ui);font-weight:700;font-size:.72rem;color:var(--muted);font-style:normal}
-.sd__wpx{font-family:var(--font-ui);font-weight:700;font-size:.74rem;color:var(--muted);margin-left:.1rem}
-.sd__wpnote{font-family:var(--font-ui);font-weight:600;font-size:.72rem;letter-spacing:.04em;color:var(--muted);align-self:center;margin-left:.15rem}
-.sd__wplegend{font-family:var(--font-ui);font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:.1rem 0 .7rem;display:inline-flex;align-items:center;gap:.35rem}
-.sd__wplegend .a{color:var(--muted)}.sd__wplegend .b{color:var(--accent)}
 
 /* Komponenten-Slots */
 .sd__slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem}
@@ -1145,63 +1178,62 @@ span.sd__ref{color:var(--muted)}
             ))}
           </div>
         )}
-        {armament.some((r) => r.mountPairs && r.mountPairs.length) && (
-          <div class="sd__wplegend">
-            <i class="sd__wp sd__wp--hp">S<span class="a">n</span></i>
-            <i class="sd__wparr" aria-hidden="true">→</i>
-            <i class="sd__wp sd__wp--w">S<span class="b">n</span></i>
-            <span>{t('arm.mountLegend')}</span>
+        {armStats.length > 0 && (
+          <div class="arm__sum">
+            {armStats.map((s) => (
+              <div class={`arm__scell${s.gold ? ' arm__scell--g' : ''}`}>
+                <b>{s.n}</b>
+                <span>{s.label}</span>
+                {s.range && <i>{s.range}</i>}
+              </div>
+            ))}
           </div>
         )}
-        <div class="sd__arm">
-          {armament.map((r) => {
-            const gold = r.gold ?? false;
-            return (
-              <div class="sd__armrow">
-                <div class="sd__armhead">
-                  <span class="sd__armlabel">{r.label}</span>
-                  {r.meta && <span class="sd__armmeta">{r.meta}</span>}
-                </div>
-                <div class="sd__armmid">
-                  {r.mountPairs ? (
-                    <span class="sd__hprow">
-                      {r.mountPairs.map((p) => (
-                        <span class="sd__wpair" title={p.mount != null
-                          ? `${t('arm.mount')} S${p.mount} · ${t('arm.weapon')} S${p.weapon}`
-                          : `${t('arm.weapon')} S${p.weapon}`}>
-                          {p.mount != null && (
-                            <><i class="sd__wp sd__wp--hp">S{p.mount}</i><i class="sd__wparr" aria-hidden="true">→</i></>
-                          )}
-                          <i class="sd__wp sd__wp--w">S{p.weapon}</i>
-                          {p.count > 1 && <b class="sd__wpx">×{p.count}</b>}
-                        </span>
-                      ))}
-                      {r.mountsNote && (
-                        <span class="sd__wpnote">{t('arm.mountsMax')}: {r.mountsNote}</span>
-                      )}
-                    </span>
-                  ) : (
-                    <span class="sd__hprow">
-                      {r.chips.map((c) => {
-                        const s = parseInt(c.label.replace(/\D/g, ''), 10) || 1;
-                        const shown = Math.min(c.count, 10);
-                        return (
-                          <>
-                            {Array.from({ length: shown }).map(() => (
-                              <i class={`sd__hp${gold ? ' sd__hp--m' : ''}`} style={`--hs:${s}`}>{s}</i>
-                            ))}
-                            {c.count > shown && <span class="sd__hpmore">+{c.count - shown}</span>}
-                          </>
-                        );
-                      })}
-                    </span>
-                  )}
-                  {r.items && <span class="sd__armitems">{r.items}</span>}
-                </div>
-                {r.value && <div class="sd__armval">{r.value}</div>}
+        <div class="arm__list">
+          {armament.map((r) => (
+            <div class={`arm__grp${r.gold ? ' arm__grp--g' : ''}`}>
+              <div class="arm__ghead">
+                <span class="arm__glabel">{r.label}</span>
+                {r.meta && <span class="arm__gmeta">{r.meta}</span>}
+                {r.value && <span class="arm__gval">{r.value}</span>}
               </div>
-            );
-          })}
+              {r.lines.length > 0 && (
+                <ul class="arm__lines">
+                  {r.lines.map((l) => (
+                    <li class="arm__line">
+                      <span class="arm__n">{l.count}<i>×</i></span>
+                      {l.size != null ? (
+                        <span class="arm__size" style={`--s:${l.size}`}
+                              title={`${t('arm.sizeTip')} ${l.size}`}>
+                          <em>S{l.size}</em>
+                        </span>
+                      ) : (
+                        <span class="arm__size arm__size--n"><em>?</em></span>
+                      )}
+                      <span class="arm__name">
+                        {l.name ?? <span class="arm__anon">{t('arm.weapon')}</span>}
+                      </span>
+                      {l.mount != null && l.size != null && (
+                        l.mount > l.size ? (
+                          <span class="arm__bdg arm__bdg--up"
+                                title={`${t('arm.mountTip')} S${l.mount} · ${t('arm.fittedTip')} S${l.size}`}>
+                            {t('arm.upgrade')} S{l.mount}
+                          </span>
+                        ) : (
+                          <span class="arm__bdg" title={`${t('arm.mountTip')} S${l.mount} · ${t('arm.fittedTip')} S${l.size}`}>
+                            {t('arm.maxed')}
+                          </span>
+                        )
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {r.note && (
+                <p class="arm__note"><span>{t('arm.loadout')}</span>{r.note}</p>
+              )}
+            </div>
+          ))}
         </div>
         <p class="sd__hint">{t('ship.arms.hint')}</p>
       </section>

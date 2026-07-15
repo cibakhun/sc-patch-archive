@@ -6,7 +6,8 @@
 // Zahlenformat pro Locale. `key` erlaubt sprachunabhängiges Filtern.
 import type { CollectionEntry } from 'astro:content';
 import { useTranslations, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
-import { vType, vSize, vStatus, vFoci } from '../i18n/vehicleText';
+import { vType, vSize, vStatus, vFoci, vTurret } from '../i18n/vehicleText';
+import { resolveGuns } from './weaponSizes';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
 export type Fact = { label: string; value: string; key?: string };
@@ -53,29 +54,39 @@ export function buildFacts(d: VehicleData, lang: Locale = DEFAULT_LOCALE): Fact[
 }
 
 /* ------------------------------------------------------------------------ */
-/* Bewaffnung — the weapon-hardpoint panel. Size-class chips per category    */
-/* plus the equipped loadout. Sizes come from turret mounts and racks; the   */
-/* game files' list view carries no per-mount size for pilot-fixed guns, so  */
-/* those stay name/DPS-only instead of getting a fabricated S-class.         */
+/* Bewaffnung — das Waffen-Hardpoint-Panel.                                  */
+/*                                                                           */
+/* Grundsatz: EINE Zeile je Waffenart, überall dieselbe Grammatik            */
+/*   [S5] ×4  CF-557 Galdereen Repeater                                      */
+/* also Größe + Stückzahl + Name zusammen statt einer Reihe nackter Zahlen,  */
+/* die man abzählen und selbst dem Namen darunter zuordnen muss.             */
+/*                                                                           */
+/* Die Größe je Waffe liefert weaponSizes.ts (Rückrechnung aus dem           */
+/* Snapshot). Wo das nicht eindeutig geht, fällt die Zeile ehrlich auf die   */
+/* aggregierten Größen ohne Namen zurück — geraten wird nichts.              */
 /* ------------------------------------------------------------------------ */
-export type ArmChip = { label: string; count: number };
-/** a pilot-gun hardpoint paired with the size of the weapon fitted in it.
- *  `mount` is null when the hardpoint size can't be reliably matched to the
- *  weapon (count mismatch / inconsistent data) — then only the weapon shows. */
-export type MountPair = { mount: number | null; weapon: number; count: number };
+export type ArmLine = {
+  /** Größe der montierten Waffe / des Werfers (null = unbekannt) */
+  size: number | null;
+  /** max. Größe des Hardpoints, wenn eindeutig zuordenbar (Pilotwaffen) */
+  mount: number | null;
+  count: number;
+  /** null in der Fallback-Darstellung (Größe bekannt, Zuordnung nicht) */
+  name: string | null;
+};
 export type ArmRow = {
+  key: 'pilot' | 'turret' | 'missile' | 'cm';
   label: string;
   meta?: string;
-  chips: ArmChip[];
-  /** fixed pilot-weapon row: hardpoint↔weapon size pairs (replaces plain chips) */
-  mountPairs?: MountPair[];
-  /** fallback note: hardpoint max sizes when they couldn't be paired 1:1 */
-  mountsNote?: string;
-  items?: string;
+  lines: ArmLine[];
+  /** Namensliste, wenn sie den Zeilen nicht zuzuordnen war */
+  note?: string;
   value?: string;
-  /** stable flag: this row is the missiles row (drives the gold styling) */
+  /** stable flag: Raketenreihe (steuert die goldene Einfärbung) */
   gold?: boolean;
 };
+/** Kopfzeile des Panels: die Antwort auf "was hat das Schiff überhaupt?" */
+export type ArmStat = { n: number; label: string; range?: string; gold?: boolean };
 
 /** expand an aggregated [{size,count}] list into a flat per-item size array */
 const expandSizes = (list: { size: number; count: number }[] | undefined): number[] => {
@@ -84,52 +95,65 @@ const expandSizes = (list: { size: number; count: number }[] | undefined): numbe
   return out;
 };
 
-/** aggregate a size array back into "S3×2 · S4×1" for a note */
-const noteSizes = (sizes: number[]): string => {
-  const m = new Map<number, number>();
-  for (const s of sizes) m.set(s, (m.get(s) ?? 0) + 1);
-  return [...m.entries()]
-    .sort((a, b) => a[0] - b[0])
-    .map(([s, c]) => `S${s}×${c}`)
-    .join(' · ');
+const countOf = (l: readonly { count: number }[] | undefined) =>
+  (l ?? []).reduce((n, x) => n + x.count, 0);
+
+/** "S3" bzw. "S3 – S5" */
+const sizeRange = (sizes: readonly number[]): string | undefined => {
+  if (!sizes.length) return undefined;
+  const lo = Math.min(...sizes), hi = Math.max(...sizes);
+  return lo === hi ? `S${lo}` : `S${lo} – S${hi}`;
+};
+
+/** aggregierte Größen -> namenlose Zeilen (Fallback, wenn Name↔Größe unklar) */
+const sizeLines = (agg: { size: number; count: number }[] | undefined): ArmLine[] =>
+  [...(agg ?? [])]
+    .sort((a, b) => b.size - a.size)
+    .map((s) => ({ size: s.size, mount: null, count: s.count, name: null }));
+
+/**
+ * Zeilen einer Waffengruppe: nach Größe absteigend, mit Namen — oder, wenn die
+ * Zuordnung Name↔Größe nicht sauber aufgeht, die aggregierten Größen ohne
+ * Namen (`exact: false`); die Namen wandern dann in die Bestückungs-Zeile.
+ */
+const gunLines = (
+  weapons: readonly { name: string; count: number }[] | undefined,
+  agg: { size: number; count: number }[] | undefined
+): { lines: ArmLine[]; exact: boolean } => {
+  const { lines, exact } = resolveGuns(weapons, agg);
+  return {
+    exact,
+    lines: exact
+      ? lines
+          .map((g) => ({ size: g.size, mount: null, count: g.count, name: g.name }))
+          .sort((a, b) => (b.size ?? 0) - (a.size ?? 0))
+      : sizeLines(agg),
+  };
 };
 
 /**
- * Pair each pilot-gun hardpoint (max mountable size) with the size of the weapon
- * actually fitted in it. When the two lists have equal length and every weapon
- * fits its hardpoint (weapon ≤ hardpoint after size-desc sort), the pairing is
- * unambiguous and we return grouped pairs. Otherwise (e.g. pilot-turret guns the
- * hardpoint list doesn't count) we fall back to weapon-only pairs + a note.
+ * Hardpoint-Maximalgrößen den Waffenzeilen zuordnen: größte Waffe in den
+ * größten Hardpoint. Nur wenn die Stückzahlen passen und jede Waffe auch in
+ * ihren Hardpoint passt — sonst zählt die Hardpoint-Liste etwas anderes
+ * (z. B. Pilot-Turm-Waffen) und `mount` bleibt null statt zu lügen.
+ * Bekommen die Waffen einer Zeile unterschiedliche Hardpoints, bleibt sie
+ * ebenfalls leer: eine Zeile kann nur eine eindeutige Aussage tragen.
  */
-function pairMountsAndWeapons(
-  mounts: { size: number; count: number }[] | undefined,
-  weapons: { size: number; count: number }[] | undefined
-): { pairs: MountPair[]; note?: string } {
-  const w = expandSizes(weapons).sort((a, b) => b - a);
-  if (!w.length) return { pairs: [] };
+function assignMounts(lines: ArmLine[], mounts: { size: number; count: number }[] | undefined): void {
   const hp = expandSizes(mounts).sort((a, b) => b - a);
-  const feasible = hp.length === w.length && w.every((x, i) => x <= hp[i]);
-  const group = (key: (i: number) => string, make: (k: string, c: number) => MountPair) => {
-    const g = new Map<string, number>();
-    for (let i = 0; i < w.length; i++) g.set(key(i), (g.get(key(i)) ?? 0) + 1);
-    return [...g.entries()].map(([k, c]) => make(k, c));
-  };
-  if (feasible) {
-    const pairs = group(
-      (i) => `${hp[i]}-${w[i]}`,
-      (k, count) => {
-        const [m, wv] = k.split('-').map(Number);
-        return { mount: m, weapon: wv, count };
-      }
-    ).sort((a, b) => b.weapon - a.weapon || (b.mount ?? 0) - (a.mount ?? 0));
-    return { pairs };
-  }
-  // fallback: show the weapon sizes (always correct), hardpoints as a note
-  const pairs = group(
-    (i) => String(w[i]),
-    (k, count) => ({ mount: null, weapon: Number(k), count })
-  ).sort((a, b) => b.weapon - a.weapon);
-  return { pairs, note: hp.length ? noteSizes(hp) : undefined };
+  const guns = lines.flatMap((l, i) =>
+    Array.from({ length: l.count }, () => ({ i, s: l.size ?? -1 }))
+  );
+  if (!hp.length || hp.length !== guns.length || guns.some((g) => g.s < 0)) return;
+  guns.sort((a, b) => b.s - a.s);
+  if (!guns.every((g, k) => g.s <= hp[k])) return; // nicht plausibel -> nichts zeigen
+  const per = new Map<number, Set<number>>();
+  guns.forEach((g, k) => {
+    const set = per.get(g.i) ?? new Set<number>();
+    set.add(hp[k]);
+    per.set(g.i, set);
+  });
+  for (const [i, set] of per) if (set.size === 1) lines[i].mount = [...set][0];
 }
 
 const payloadMap = (t: ReturnType<typeof useTranslations>): Record<string, string> => ({
@@ -138,6 +162,9 @@ const payloadMap = (t: ReturnType<typeof useTranslations>): Record<string, strin
   'BombLauncher.BombRack': t('payload.bomb'),
 });
 
+const namesNote = (l: readonly { name: string; count: number }[]): string =>
+  l.map((w) => `${w.count}× ${w.name}`).join(' · ');
+
 export function buildArmament(d: VehicleData, lang: Locale = DEFAULT_LOCALE): ArmRow[] {
   const t = useTranslations(lang);
   const loc = numLoc(lang);
@@ -145,54 +172,97 @@ export function buildArmament(d: VehicleData, lang: Locale = DEFAULT_LOCALE): Ar
   const rows: ArmRow[] = [];
 
   if (d.fixedWeapons.length) {
-    // pair each hardpoint (max mountable size) with the fitted weapon's size
-    const { pairs, note } = pairMountsAndWeapons(d.fixedWeaponMounts, d.fixedWeaponSizes);
+    // Name -> Größe zurückrechnen; nur bei sauberer Gegenprobe je Waffe zeigen
+    const { lines, exact } = gunLines(d.fixedWeapons, d.fixedWeaponSizes);
+    assignMounts(lines, d.fixedWeaponMounts);
     rows.push({
+      key: 'pilot',
       label: t('arm.pilotFixed'),
-      meta: `${d.fixedWeapons.reduce((n, w) => n + w.count, 0)} ${t('arm.weapons')}`,
-      chips: [],
-      mountPairs: pairs,
-      mountsNote: note,
-      items: d.fixedWeapons.map((w) => `${w.count}× ${w.name}`).join(' · '),
+      meta: `${countOf(d.fixedWeapons)} ${t('arm.weapons')}`,
+      lines,
+      note: exact ? undefined : namesNote(d.fixedWeapons),
       value: d.pilotDps ? `${num(d.pilotDps, loc)} DPS` : undefined,
     });
   }
 
   for (const tr of d.turrets) {
-    const items = tr.weapons.length
-      ? tr.weapons.map((w) => `${w.count}× ${w.name}`).join(' · ')
-      : tr.payloadTypes.map((p) => PAYLOAD[p] ?? p).join(' · ') || undefined;
+    const { lines, exact } = gunLines(tr.weapons, tr.sizes);
+    // Waffen pro Station — nur wenn es aufgeht, sonst ist die Turmliste
+    // unvollständig und die Rechnung wäre erfunden
+    const guns = countOf(tr.sizes);
+    const perStation =
+      guns && tr.stations && guns % tr.stations === 0 && guns !== tr.stations
+        ? `${guns / tr.stations} ${t('arm.perStation')}`
+        : undefined;
+    const stations = `${tr.stations} ${tr.stations === 1 ? t('arm.station') : t('arm.stations')}`;
     rows.push({
-      label: tr.label,
-      meta: `${tr.stations} ${tr.stations === 1 ? t('arm.station') : t('arm.stations')}`,
-      chips: tr.sizes.map((s) => ({ label: `S${s.size}`, count: s.count })),
-      items,
+      key: 'turret',
+      label: vTurret(tr.label, lang),
+      meta: [stations, perStation].filter(Boolean).join(' · '),
+      lines,
+      note: exact
+        ? undefined
+        : tr.weapons.length
+          ? namesNote(tr.weapons)
+          : tr.payloadTypes.map((p) => PAYLOAD[p] ?? p).join(' · ') || undefined,
       value: tr.dps ? `${num(tr.dps, loc)} DPS` : undefined,
     });
   }
 
   if (d.missileRacks.length || d.missileCount) {
-    // aggregate rack chips by size — separate rack types of the same class
-    // stay distinguishable via the item list next to them
-    const bySize = new Map<number, number>();
-    for (const r of d.missileRacks)
-      if (r.size != null) bySize.set(r.size, (bySize.get(r.size) ?? 0) + r.count);
+    // Werfer tragen ihre Größe direkt im Snapshot -> Zeilen ohne Rückrechnung
+    const lines: ArmLine[] = d.missileRacks
+      .map((r) => ({ size: r.size, mount: null, count: r.count, name: r.name }))
+      .sort((a, b) => (b.size ?? 0) - (a.size ?? 0));
     rows.push({
+      key: 'missile',
       label: t('arm.missiles'),
       gold: true,
-      chips: [...bySize.entries()]
-        .sort((a, b) => a[0] - b[0])
-        .map(([size, count]) => ({ label: `S${size}`, count })),
-      items: d.missileRacks.map((r) => `${r.count}× ${r.name}`).join(' · ') || undefined,
+      meta: lines.length ? `${countOf(d.missileRacks)} ${t('arm.racks')}` : undefined,
+      lines,
       value: d.missileCount ? `${num(d.missileCount, loc)} ${t('arm.count')}` : undefined,
     });
   }
 
   if (d.cmLaunchers) {
-    rows.push({ label: t('arm.countermeasures'), chips: [], value: `${d.cmLaunchers}× ${t('arm.launchers')}` });
+    rows.push({
+      key: 'cm',
+      label: t('arm.countermeasures'),
+      lines: [],
+      value: `${d.cmLaunchers}× ${t('arm.launchers')}`,
+    });
   }
 
   return rows;
+}
+
+/**
+ * Kopfzahlen des Panels — beantwortet "welche Waffen-Hardpoints hat das
+ * Schiff?" ohne dass man Kästchen zählen muss.
+ */
+export function buildArmStats(d: VehicleData, lang: Locale = DEFAULT_LOCALE): ArmStat[] {
+  const t = useTranslations(lang);
+  const stats: ArmStat[] = [];
+  // Gezählt werden die Aufhängungen selbst (Pilot + Turm), nicht die Waffen:
+  // bei einzelnen Türmen listen die Quelldaten weniger Waffen als Mounts.
+  const gunSizes = [
+    ...expandSizes(d.fixedWeaponSizes),
+    ...d.turrets.flatMap((tr) => expandSizes(tr.sizes)),
+  ];
+  if (gunSizes.length)
+    stats.push({ n: gunSizes.length, label: t('arm.stat.guns'), range: sizeRange(gunSizes) });
+  const rackCount = countOf(d.missileRacks);
+  if (rackCount)
+    stats.push({
+      n: rackCount,
+      label: t('arm.stat.racks'),
+      range: sizeRange(expandSizes(d.missileRacks.filter((r) => r.size != null) as { size: number; count: number }[])),
+      gold: true,
+    });
+  if (d.turrets.length)
+    stats.push({ n: d.turrets.reduce((n, tr) => n + tr.stations, 0), label: t('arm.stat.stations') });
+  if (d.cmLaunchers) stats.push({ n: d.cmLaunchers, label: t('arm.stat.cm') });
+  return stats;
 }
 
 /** "2× Stellate (S4)" — equipped component list for a fact value */

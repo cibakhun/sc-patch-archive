@@ -108,6 +108,14 @@ const FOCI_EN: Record<string, string> = {
   'Zerstörer': 'Destroyer',
 };
 
+// turrets[].label (3 Werte) -> EN. Der Sync erzeugt die Labels deutsch, das
+// Datenblatt zeigt sie aber in beiden Sprachen (Bewaffnung).
+const TURRET_EN: Record<string, string> = {
+  'Bemannte Türme': 'Manned turrets',
+  'Ferngesteuerte Türme': 'Remote turrets',
+  'Punktverteidigung (PDC)': 'Point defense (PDC)',
+};
+
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 /** Typ-Anzeige (z. B. Holo-Chip / Datenblatt) */
@@ -124,6 +132,10 @@ export function vSize(d: VehicleData, lang: Locale): string | null {
 export function vStatus(d: VehicleData, lang: Locale): string | null {
   if (lang === 'en') return d.statusDe ? STATUS_EN[d.statusDe] ?? d.statusEn ?? null : d.statusEn ?? null;
   return d.statusDe ?? null;
+}
+/** Turm-Bezeichnung (Bewaffnung) */
+export function vTurret(label: string, lang: Locale): string {
+  return lang === 'en' ? TURRET_EN[label] ?? label : label;
 }
 /** Fokus-Tags (Liste) */
 export function vFoci(d: VehicleData, lang: Locale): string[] {
