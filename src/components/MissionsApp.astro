@@ -253,8 +253,11 @@ const cards = missions.map((m: Mission) => {
   .mx__wrap { width: min(var(--maxw), 100%); margin: 0 auto; padding: 2.2rem clamp(1rem, 4vw, 3rem) 4rem; }
 
   /* ---------- Filterleiste ---------- */
+  /* top:68px = Hoehe der fixen SiteNav (z-index 9100). Bei top:0 klebt die
+     Leiste hinter der Nav und ihre obere Zeile verschwindet. Gleiche Konstante
+     wie .mdb-bar in MiningApp. */
   .mx__bar {
-    position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: .7rem 1rem; align-items: end;
+    position: sticky; top: 68px; z-index: 20; display: flex; flex-wrap: wrap; gap: .7rem 1rem; align-items: end;
     padding: .9rem 1rem; margin-bottom: 1.6rem; border: 1px solid var(--line); border-radius: 14px;
     background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(12px);
   }
