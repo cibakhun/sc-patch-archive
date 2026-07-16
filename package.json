@@ -16,6 +16,7 @@
     "sync:mining-model": "node scripts/fetch-scmdb-model.mjs",
     "refresh:mining": "node scripts/fetch-scmdb-model.mjs && node scripts/build-mining-db.mjs && node scripts/_sync-assets.mjs && node scripts/build-thumbs.mjs && node scripts/build-downloads.mjs && astro build",
     "verify:mining": "node scripts/verify-mining.mjs",
+    "datamine:crafting": "node scripts/datamine-crafting.mjs",
     "datamine:mining": "node scripts/datamine-mining.mjs",
     "datamine:locations": "node scripts/datamine-locations.mjs",
     "datamine:missions": "node scripts/datamine-missions.mjs",

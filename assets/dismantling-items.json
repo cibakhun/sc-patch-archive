@@ -3210,15 +3210,15 @@
     "recipe": [
       {
         "materialId": "agricium",
-        "quantity_cSCU": 200
+        "quantity_cSCU": 120
       },
       {
         "materialId": "laranite",
-        "quantity_cSCU": 80
+        "quantity_cSCU": 30
       },
       {
         "materialId": "gold",
-        "quantity_cSCU": 80
+        "quantity_cSCU": 30
       }
     ]
   },
@@ -4193,15 +4193,15 @@
     "recipe": [
       {
         "materialId": "iron",
-        "quantity_cSCU": 3
+        "quantity_cSCU": 4
       },
       {
         "materialId": "copper",
-        "quantity_cSCU": 3
+        "quantity_cSCU": 4
       },
       {
         "materialId": "sadaryx",
-        "quantity_cSCU": 300
+        "quantity_cSCU": 400
       }
     ]
   },
@@ -7145,7 +7145,7 @@
   },
   {
     "id": "c7c36fea-dcf5-48b9-9939-bf2771f9f8f4",
-    "name": "Hellion Scattergun",
+    "name": "Hellion Scattergun",
     "category": "Vehiclegear / Weapons / Ballistic / Scatter",
     "purchasePrice_aUEC": 22500,
     "purchaseLocation": "Shop Terminal - Fallow Field",
@@ -9570,7 +9570,7 @@
   },
   {
     "id": "5512d873-28bb-4e2c-a452-f2474ec26d36",
-    "name": "Oracle Helmet",
+    "name": "Oracle Helmet",
     "category": "Armour / Engineer / Light",
     "purchasePrice_aUEC": 1161,
     "purchaseLocation": "Guns Checkmate",
@@ -11178,7 +11178,7 @@
   },
   {
     "id": "c65903b1-82da-4da8-aed9-ee05a7610fe2",
-    "name": "P8-SC \"Midnight\" SMG",
+    "name": "P8-SC \"Midnight\" SMG",
     "category": "Weapons / SMG",
     "purchasePrice_aUEC": 3220,
     "purchaseLocation": "FPS Armor MIC-L1",
@@ -11199,7 +11199,7 @@
   },
   {
     "id": "c28c3a87-80a5-4df0-9faf-f61dcdebb16e",
-    "name": "P8-SC \"Nightstalker\" SMG",
+    "name": "P8-SC \"Nightstalker\" SMG",
     "category": "Weapons / SMG",
     "purchasePrice_aUEC": 3233,
     "purchaseLocation": "CenterMass Area 18",
@@ -11241,7 +11241,7 @@
   },
   {
     "id": "0aedfb61-ae31-4eca-98ea-0fb0216513f0",
-    "name": "P8-SC \"Warhawk\" SMG",
+    "name": "P8-SC \"Warhawk\" SMG",
     "category": "Weapons / SMG",
     "purchasePrice_aUEC": 3112,
     "purchaseLocation": "Live Fire Seraphim",
