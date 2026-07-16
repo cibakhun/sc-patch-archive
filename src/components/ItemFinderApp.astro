@@ -3,6 +3,8 @@
 // Bezugsquellen (Shop-Snapshot, Loot-Recherche, UEX-Fahrzeugpreise). Ohne Quelle
 // wird ein Item ehrlich als Katalog-Eintrag gezeigt — keine erfundenen Werte.
 // Daten: assets/universal-items.json (scripts/build-universal-db.mjs).
+import { ICON_BLUEPRINT } from '../lib/icons';
+
 interface Props { lang?: 'de' | 'en' }
 const { lang = 'en' } = Astro.props;
 
@@ -653,5 +655,5 @@ const JS_T = {
   }
 </style>
 
-<script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl: '/assets/universal-items.json', craftUrl: '/assets/crafting-db.json', t: JS_T })};`} />
+<script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl: '/assets/universal-items.json', craftUrl: '/assets/crafting-db.json', icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />
 <script is:inline src="/assets/item-finder-app.js"></script>

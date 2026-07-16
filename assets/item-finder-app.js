@@ -5,6 +5,9 @@
 (function () {
   var CFG = window.__UIF || {};
   var T = CFG.t || {};
+  // Cross-Link-Icons aus src/lib/icons.ts — NICHT "ICONS" nennen: die
+  // Kategorie-Icon-Map weiter unten heißt schon so.
+  var XLINK_ICONS = CFG.icons || {};
   function tr(key, fallback) { return T[key] != null ? T[key] : fallback; }
 
   var ALL_ITEMS = [];
@@ -353,7 +356,8 @@
           (bp.tiers ? '<div><strong>' + esc(tr('craftTiers', 'Stufen')) + ':</strong> ' + esc(String(bp.tiers)) + '</div>' : '') +
         '</div>' +
         (ingredients ? '<div class="uif-crafting-ingredients"><h5>' + esc(tr('craftMaterials', 'Materialien')) + '</h5>' + ingredients + '</div>' : '') +
-        '<a class="uif-xlink" href="' + (CFG.lang === 'en' ? '/en' : '') + '/topics/crafting.html?bp=' + encodeURIComponent(item.name) + '">' + esc(tr('openInCrafting', 'Im Crafting-Planer öffnen')) + ' →</a>' +
+        // DE liegt unter /de/, EN im Root (ein /en/-Prefix existiert nicht).
+        '<a class="uif-xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/topics/crafting.html?bp=' + encodeURIComponent(item.name) + '">' + (XLINK_ICONS.bp || '') + esc(tr('openInCrafting', 'Im Crafting-Planer öffnen')) + ' →</a>' +
       '</div>';
     }
 
