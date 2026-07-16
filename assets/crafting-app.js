@@ -565,22 +565,46 @@
   // =========================================================
   //  STAR CITIZEN DISMANTLING CALCULATOR
   // =========================================================
+  // `isRare` = Material steht auf der globalen Dismantle-Blacklist des Spiels
+  // (CraftingGlobalParams.dismantleBlacklistResources, Game2.dcb LIVE 4.9):
+  // Quantanium, Stileron, Savrilium, Lindinium, Riccite, Ouratite. Diese
+  // Materialien stecken zwar in der Zusammensetzung vieler Items, werden beim
+  // Zerlegen aber NIE zurückgegeben (Schutz gegen „kaufen → zerlegen“-Farming
+  // seltener Erze). Alles andere kommt mit der Effizienz des generischen
+  // Dismantle-Blueprints zurück (GlobalGenericDismantle: 50 %).
   var materialsMap = {
-    "titanium": { "id": "titanium", "name": "Titanium", "isRare": false },
-    "gold": { "id": "gold", "name": "Gold", "isRare": false },
-    "laranite": { "id": "laranite", "name": "Laranite", "isRare": false },
-    "iron": { "id": "iron", "name": "Iron", "isRare": false },
-    "copper": { "id": "copper", "name": "Copper", "isRare": false },
-    "tungsten": { "id": "tungsten", "name": "Tungsten", "isRare": false },
-    "silicon": { "id": "silicon", "name": "Silicon", "isRare": false },
     "agricium": { "id": "agricium", "name": "Agricium", "isRare": false },
-    "torite": { "id": "torite", "name": "Torite", "isRare": false },
+    "aluminum": { "id": "aluminum", "name": "Aluminum", "isRare": false },
+    "aphorite": { "id": "aphorite", "name": "Aphorite", "isRare": false },
+    "aslarite": { "id": "aslarite", "name": "Aslarite", "isRare": false },
+    "beradom": { "id": "beradom", "name": "Beradom", "isRare": false },
+    "beryl": { "id": "beryl", "name": "Beryl", "isRare": false },
+    "bexalite": { "id": "bexalite", "name": "Bexalite", "isRare": false },
     "borase": { "id": "borase", "name": "Borase", "isRare": false },
+    "copper": { "id": "copper", "name": "Copper", "isRare": false },
+    "corundum": { "id": "corundum", "name": "Corundum", "isRare": false },
+    "dolivine": { "id": "dolivine", "name": "Dolivine", "isRare": false },
+    "glacosite": { "id": "glacosite", "name": "Glacosite", "isRare": false },
+    "gold": { "id": "gold", "name": "Gold", "isRare": false },
+    "hadanite": { "id": "hadanite", "name": "Hadanite", "isRare": false },
+    "hephaestanite": { "id": "hephaestanite", "name": "Hephaestanite", "isRare": false },
+    "iron": { "id": "iron", "name": "Iron", "isRare": false },
+    "laranite": { "id": "laranite", "name": "Laranite", "isRare": false },
+    "lindinium": { "id": "lindinium", "name": "Lindinium", "isRare": true },
+    "ouratite": { "id": "ouratite", "name": "Ouratite", "isRare": true },
+    "pressurized ice": { "id": "pressurized ice", "name": "Pressurized Ice", "isRare": false },
+    "quantanium": { "id": "quantanium", "name": "Quantanium", "isRare": true },
+    "quartz": { "id": "quartz", "name": "Quartz", "isRare": false },
     "riccite": { "id": "riccite", "name": "Riccite", "isRare": true },
+    "sadaryx": { "id": "sadaryx", "name": "Sadaryx", "isRare": false },
     "savrilium": { "id": "savrilium", "name": "Savrilium", "isRare": true },
-    "glacosite": { "id": "glacosite", "name": "Glacosite", "isRare": true },
-    "beradom": { "id": "beradom", "name": "Beradom", "isRare": true },
-    "aslarite": { "id": "aslarite", "name": "Aslarite", "isRare": true }
+    "silicon": { "id": "silicon", "name": "Silicon", "isRare": false },
+    "stileron": { "id": "stileron", "name": "Stileron", "isRare": true },
+    "taranite": { "id": "taranite", "name": "Taranite", "isRare": false },
+    "tin": { "id": "tin", "name": "Tin", "isRare": false },
+    "titanium": { "id": "titanium", "name": "Titanium", "isRare": false },
+    "torite": { "id": "torite", "name": "Torite", "isRare": false },
+    "tungsten": { "id": "tungsten", "name": "Tungsten", "isRare": false }
   };
 
   var ITEMS = [];
