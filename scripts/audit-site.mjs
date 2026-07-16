@@ -140,7 +140,7 @@ for (const f of htmlFiles) {
     if (before.includes('sd__sim')) continue;
     // Geprüfte Ausnahmen: Datei zeigt das Benannte, Name matcht nur nicht wörtlich.
     const SLUG_OK = new Set([
-      '/assets/wk-a2b.jpg',      // A2 Hercules („b“ = Bomber-Kürzel der Datei)
+      '/assets/wk-a2b.png',      // A2 Hercules („b“ = Bomber-Kürzel der Datei)
       '/assets/vid-isc48.jpg',   // Inside-Star-Citizen-4.8-Poster
       '/assets/img-kruger.jpg',  // Kruger L-21 Wolf (Datei nach Hersteller benannt, s. shipRenders.ts)
     ]);

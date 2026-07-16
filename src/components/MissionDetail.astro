@@ -109,11 +109,13 @@ const colRep = m.variants.some((v) => v.rep.length);
 const related = missions
   .filter((o) => o.slug !== m.slug && o.types.some((t) => m.types.includes(t)))
   .sort((a, b) => b.count - a.count).slice(0, 6);
-const desc = m.desc
-  ? `${plain} — ${m.desc}`.slice(0, 180)
-  : (lang === 'de'
-    ? `${plain}: Belohnung, Reputation, Auftraggeber und Orte aus den Star-Citizen-Spieldateien.`
-    : `${plain}: reward, reputation, contractors and locations from the Star Citizen game files.`);
+// Platzhalter-Descs aus dem DataCore („Mission description (WIP)“) fallen
+// unter die 50-Zeichen-SEO-Schwelle — dann trägt das generische Template mehr.
+const descFallback = lang === 'de'
+  ? `${plain}: Belohnung, Reputation, Auftraggeber und Orte aus den Star-Citizen-Spieldateien.`
+  : `${plain}: reward, reputation, contractors and locations from the Star Citizen game files.`;
+const descFromData = m.desc ? `${plain} — ${m.desc}`.slice(0, 180) : '';
+const desc = descFromData.length >= 50 ? descFromData : descFallback;
 ---
 <Layout
   title={`${plain} — ${S.titleKind} | VerseBase`}
