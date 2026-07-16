@@ -68,6 +68,7 @@ const JS_T = {
     openInFinder: 'Im Item Finder öffnen',
     openInDismantle: 'Im Zerlegungs-Rechner öffnen',
     openBlueprint: 'Blueprint öffnen',
+    owned: 'Im Besitz',
   },
   en: {
     craftTime: 'Craft time', tier: 'Tier', addPlan: 'Add to planner', ingredients: 'Ingredients',
@@ -92,6 +93,7 @@ const JS_T = {
     openInFinder: 'Open in Item Finder',
     openInDismantle: 'Open in Dismantling Calculator',
     openBlueprint: 'Open blueprint',
+    owned: 'Owned',
   },
 }[lang];
 
@@ -134,14 +136,12 @@ const cardsData = DB.blueprints.map((b, i) => {
   const p = (b.category || '').split(' / ');
   const top = p[0] || '—';
   const sub = p[1] || '';
-  const leaf = p[p.length - 1] || '';
   const resNames = [...new Set((b.ingredients || []).flatMap((ing) => (ing.options || []).map((o) => o.name)))];
   const nIng = (b.ingredients || []).length;
   const hasMis = !!(b.missions && b.missions.length);
   return {
-    i, name: b.name, top, sub, leaf, resNames, nIng, hasMis,
+    i, name: b.name, top, sub, resNames, nIng, hasMis,
     time: b.craft_time_seconds || 0, timeLabel: fmtT(b.craft_time_seconds),
-    resLower: resNames.join('|').toLowerCase(),
   };
 });
 
@@ -242,25 +242,21 @@ const total = DB.counts.blueprints;
         <span><b id="cdb-count">{total}</b> / {total} {S.results}</span>
       </div>
       <div class="cdb-grid" id="cdb-grid">
+        {/* HTML-Diät (SEO/Ladegewicht): 1534 Karten × ~340 Zeichen tote Fracht
+            waren ~0,5 MB pro Sprachseite. Filter-Metadaten (name/cat/sub/res/
+            mis/ings) stehen sichtbar in der Karte bzw. in der DB — crafting-app.js
+            hebt sie beim Init selbst ins dataset. Nur data-i (localStorage-Key
+            für Besitz/Planer, muss DB-stabil bleiben) und data-time (Craft-Zeit
+            steht sichtbar nur als gerundetes Label) bleiben im Markup. Die
+            ★/＋-Buttons sind ohne JS funktionslos → injiziert ebenfalls das JS. */}
         {cardsData.map((c) => (
           <article
             class="cbp"
             data-i={c.i}
-            data-name={c.name.toLowerCase()}
-            data-cat={c.top}
-            data-sub={c.sub}
-            data-leaf={c.leaf.toLowerCase()}
-            data-res={c.resLower}
-            data-mis={c.hasMis ? '1' : '0'}
             data-time={c.time}
-            data-ings={c.nIng}
           >
             <div class="cbp__top">
               <span class="cbp__cat">{c.top}{c.sub && (<em>{c.sub}</em>)}</span>
-              <div class="cbp__btns">
-                <button class="cbp__own" aria-pressed="false" title={S.owned}>★</button>
-                <button class="cbp__add" title={S.addToPlan}>＋</button>
-              </div>
             </div>
             <h3 class="cbp__name">{c.name}</h3>
             <div class="cbp__meta">
@@ -362,7 +358,10 @@ const total = DB.counts.blueprints;
 </section>
 
 <script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json', dismantleUrl: '/assets/dismantling-items.json', icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE }, t: JS_T })};`} />
-<script is:inline src="/assets/crafting-app.js"></script>
+{/* ?v=2: Cache-Buster — nginx/Cloudflare cachen JS 1 Tag; das JS erwartet jetzt
+    Karten OHNE Filter-data-Attribute. Altes gecachtes JS auf neuem HTML fände
+    kein data-name mehr. Bei künftigen Änderungen an crafting-app.js mitbumpen. */}
+<script is:inline src="/assets/crafting-app.js?v=2"></script>
 
 <style is:inline>
   /* ===== Crafting-DB — funktionale App ===== */
@@ -429,7 +428,10 @@ const total = DB.counts.blueprints;
   .cbp[data-cat="Ammo"]{border-top-color:#c9a227}
   .cbp[hidden]{display:none}
   .cbp.is-owned{box-shadow:inset 0 0 0 1px var(--accent,#FF5E1A)}
-  .cbp__top{display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem}
+  /* min-height 26px = Button-Höhe: die ★/＋-Buttons injiziert das JS nach dem
+     First Paint — ohne reservierte Höhe würde jede Karte nachträglich wachsen
+     (Layout-Shift auf 1500 Karten). */
+  .cbp__top{display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem;min-height:26px}
   .cbp__cat{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.58rem;color:var(--accent,#FF5E1A)}
   .cbp__cat em{font-style:normal;color:var(--muted,#9ba2ae);margin-left:.3rem}
   .cbp__btns{display:flex;gap:.25rem;flex:none}
