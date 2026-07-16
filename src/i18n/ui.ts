@@ -111,7 +111,9 @@ const UI = {
       'Inoffizielles Fan-Projekt zu Dokumentationszwecken. Star Citizen® und alle zugehörigen Marken gehören der Cloud Imperium Rights LLC & Ltd. Keine Verbindung zu oder Förderung durch Cloud Imperium Games. Wiki-Inhalte von starcitizen.tools stehen unter CC-BY-SA 4.0; eingebettete Trailer und Standbilder © Cloud Imperium Games (Fan-Content-Nutzung).',
     // -- Schiff-Datenblatt (Template-Chrome; Daten-Row-Labels aus src/lib -> Stufe 2) --
     'ship.pill': 'DATENBLATT',
-    'ship.title.suffix': 'Datenblatt',
+    // Title-Suffix trägt „Star Citizen" — die Suchanfrage ist „star citizen
+    // <schiff>", nicht „<schiff> datenblatt“. Nur im <title>, nicht sichtbar.
+    'ship.title.suffix': 'Star-Citizen-Schiff · Datenblatt',
     'ship.novisual': 'Kein Visual im Datenbestand',
     'ship.view.video': 'Video',
     'ship.view.img': 'Bilder',
@@ -208,7 +210,7 @@ const UI = {
     'ship.source.ingame': 'Ingame-Preise',
     'ship.source.extras': '3D-Modell, Lackierungen & Serien-Daten',
     'ship.asof': 'Stand',
-    'ship.meta.desc': '%name% von %maker%: 3D-Ansicht, Specs, Ingame-Preis & Kauforte, Lackierungen, Varianten und Patch-Historie.',
+    'ship.meta.desc': '%name% von %maker% — Star-Citizen-Schiff: 3D-Ansicht, Specs, Ingame-Preis & Kauforte, Lackierungen, Varianten und Patch-Historie.',
     'ship.maker.unknown': 'unbekannt',
     'ship.slot.generators': 'Generatoren',
     'ship.slot.shields': 'Schildgeneratoren',
@@ -405,7 +407,9 @@ const UI = {
       'Unofficial fan project for documentation purposes. Star Citizen® and all related marks are property of Cloud Imperium Rights LLC & Ltd. Not affiliated with or endorsed by Cloud Imperium Games. Wiki content from starcitizen.tools is licensed under CC-BY-SA 4.0; embedded trailers and stills © Cloud Imperium Games (fan-content use).',
     // -- Ship data sheet (template chrome; data-row labels from src/lib -> Stufe 2) --
     'ship.pill': 'DATA SHEET',
-    'ship.title.suffix': 'Data Sheet',
+    // title suffix carries "Star Citizen" — people search "star citizen
+    // <ship>", not "<ship> data sheet". <title> only, never visible on page.
+    'ship.title.suffix': 'Star Citizen Ship · Data Sheet',
     'ship.novisual': 'No visual in the dataset',
     'ship.view.video': 'Video',
     'ship.view.img': 'Images',
@@ -500,7 +504,7 @@ const UI = {
     'ship.source.ingame': 'In-game prices',
     'ship.source.extras': '3D model, paints & series data',
     'ship.asof': 'as of',
-    'ship.meta.desc': '%name% by %maker%: 3D view, specs, in-game price & locations, paints, variants and patch history.',
+    'ship.meta.desc': '%name% by %maker% — Star Citizen ship: 3D view, specs, in-game price & locations, paints, variants and patch history.',
     'ship.maker.unknown': 'unknown',
     'ship.slot.generators': 'Power plants',
     'ship.slot.shields': 'Shield generators',

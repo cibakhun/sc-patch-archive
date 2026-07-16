@@ -2,21 +2,11 @@
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
-import { SITE } from '../../consts';
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
 );
 
-const websiteLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: SITE.name,
-  url: SITE.url.replace(/\/$/, '') + '/',
-  inLanguage: 'de',
-  description: SITE.defaultDescription,
-  publisher: { '@type': 'Organization', name: SITE.name },
-};
 const latest = patches[patches.length - 1];
 
 // Hero still image: cinematic wide render (ship, station, planet)
@@ -35,7 +25,6 @@ const tools = [
 ];
 ---
 <Layout title={"VerseBase — das Star-Citizen-Kompendium"} description={"VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder mit Preisen & Fundorten, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv der Alpha-4-Ära. Game-akkurat, zweisprachig."} themeColor="#04060c" footer={true} translated={true}>
-<script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
 <style is:inline>
   :root{
     --bg:#04060c;--bg-2:#080d18;--surface:#0e1626;

@@ -18,7 +18,9 @@ const nf = lang === 'de' ? 'de-DE' : 'en-US';
 
 const S = {
   de: {
-    back: 'Alle Missionen', kind: 'Mission',
+    // titleKind nur im <title> (Suchanfrage ist „star citizen <mission>");
+    // kind bleibt der sichtbare Eyebrow-Text auf der Seite.
+    back: 'Alle Missionen', kind: 'Mission', titleKind: 'Star-Citizen-Mission',
     internal: 'Interner Name', internalT: 'Diese Mission trägt in den Spieldateien keinen Titel. Angezeigt wird ihr interner Name aus dem DataCore — im Spiel heißt sie anders.',
     dynamic: 'Titel wird zur Laufzeit gefüllt',
     dynamicT: 'Die markierten Stellen sind Platzhalter. Das Spiel setzt dort Werte wie den Reputationsrang oder den Namen des Ziels ein.',
@@ -49,7 +51,7 @@ const S = {
     rec: 'DataCore-Record',
   },
   en: {
-    back: 'All missions', kind: 'Mission',
+    back: 'All missions', kind: 'Mission', titleKind: 'Star Citizen Mission',
     internal: 'Internal name', internalT: 'This mission has no title in the game files. Shown is its internal DataCore name — in game it is called something else.',
     dynamic: 'Title is filled in at runtime',
     dynamicT: 'The marked spots are placeholders. The game substitutes values like the reputation rank or the target name.',
@@ -113,7 +115,7 @@ const desc = m.desc
     : `${plain}: reward, reputation, contractors and locations from the Star Citizen game files.`);
 ---
 <Layout
-  title={`${plain} — ${S.kind} | VerseBase`}
+  title={`${plain} — ${S.titleKind} | VerseBase`}
   description={desc}
   themeColor="#0b0906"
   footer={false}
