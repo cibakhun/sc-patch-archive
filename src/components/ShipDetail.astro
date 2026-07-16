@@ -291,6 +291,11 @@ const defaultMode: 'video' | 'img' | 'holo' = videoId ? 'video' : hasGallery ? '
 const metaDesc = t('ship.meta.desc')
   .replace('%name%', d.name)
   .replace('%maker%', d.manufacturer ?? t('ship.maker.unknown'));
+// Alt-Texte: jede Galerie-Kachel benennt, WAS sie zeigt (A11y + Bilder-SEO) —
+// Lacke mit Namen, Hero/Store-Bild generisch. Astro würde alt={''} als nacktes
+// `alt` ohne Wert rendern, deshalb nie leer lassen.
+const altView = t('ship.img.view').replace('%name%', d.name);
+const altPaint = (paint: string) => t('ship.img.paint').replace('%name%', d.name).replace('%paint%', paint);
 
 // Icon-Pfade (24×24, stroke)
 const IC: Record<string, string> = {
@@ -899,12 +904,12 @@ span.sd__ref{color:var(--muted)}
       >
         <figure class="holo__ship" id="shipfig">
           {hasGallery ? (
-            gallery.map((src, i) => (
+            gallery.map((g, i) => (
               <img
-                src={i === 0 ? src : undefined}
-                data-src={i === 0 ? undefined : src}
+                src={i === 0 ? g.src : undefined}
+                data-src={i === 0 ? undefined : g.src}
                 class={i === 0 ? 'is-active' : undefined}
-                alt={i === 0 ? `${d.name} — Darstellung` : ''}
+                alt={g.paint ? altPaint(g.paint) : altView}
                 referrerpolicy="no-referrer"
                 onerror="this.dataset.bad='1';this.style.display='none'"
               />
@@ -916,7 +921,7 @@ span.sd__ref{color:var(--muted)}
         {videoId && (
           <div class="holo__video" id="holovideo" data-vid={videoId}>
             {gallery[0] && (
-              <span class="holo__videoposter" style={`background-image:url('${gallery[0]}')`} aria-hidden="true"></span>
+              <span class="holo__videoposter" style={`background-image:url('${gallery[0].src}')`} aria-hidden="true"></span>
             )}
             <div class="holo__playertarget" id="holoplayer"></div>
             <span class="holo__videoshield" id="holovideoshield" aria-hidden="true"></span>
@@ -1355,7 +1360,7 @@ span.sd__ref{color:var(--muted)}
           {paints.map((p) => (
             <figure class="sd__paint">
               <div class="im">
-                <img src={p.image} alt={`${d.name} — Lackierung ${p.name}`} loading="lazy" referrerpolicy="no-referrer"
+                <img src={p.image} alt={altPaint(p.name)} loading="lazy" referrerpolicy="no-referrer"
                   onerror="this.closest('figure').style.display='none'" />
               </div>
               <figcaption class="nm">{p.name}</figcaption>

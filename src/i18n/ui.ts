@@ -115,6 +115,10 @@ const UI = {
     // <schiff>", nicht „<schiff> datenblatt“. Nur im <title>, nicht sichtbar.
     'ship.title.suffix': 'Star-Citizen-Schiff · Datenblatt',
     'ship.novisual': 'Kein Visual im Datenbestand',
+    // Alt-Texte der Kopf-Galerie & Lackierungs-Kacheln (A11y + Bilder-SEO).
+    // %name% = Schiffsname, %paint% = Lack-Name aus FleetYards.
+    'ship.img.view': '%name% — Darstellung',
+    'ship.img.paint': '%name% — Lackierung %paint%',
     'ship.view.video': 'Video',
     'ship.view.img': 'Bilder',
     'ship.view.3d': '3D-Holo',
@@ -412,6 +416,10 @@ const UI = {
     // <ship>", not "<ship> data sheet". <title> only, never visible on page.
     'ship.title.suffix': 'Star Citizen Ship · Data Sheet',
     'ship.novisual': 'No visual in the dataset',
+    // alt texts for the head gallery & paint tiles (a11y + image SEO).
+    // %name% = ship name, %paint% = paint name from FleetYards.
+    'ship.img.view': '%name% — ship view',
+    'ship.img.paint': '%name% — %paint% paint',
     'ship.view.video': 'Video',
     'ship.view.img': 'Images',
     'ship.view.3d': '3D Holo',
