@@ -6,7 +6,7 @@
 //
 // Spieldaten (Titel, Fraktionen, Orte) bleiben englisch: die deutsche global.ini
 // enthaelt keine Missionstexte. Uebersetzt wird nur die Bedienoberflaeche.
-import { db, missions, rewardLabel, repSummary, searchText, uec, cmpSign, bpCount } from '../lib/missions';
+import { db, missions, rewardLabel, repSummary, searchText, uec, cmpSign, bpCount, clip } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { href } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
@@ -83,7 +83,11 @@ const cards = missions.map((m: Mission) => {
   return {
     m,
     parts: titleParts(m.title),
-    descParts: m.desc ? titleParts(m.desc) : null,
+    // Teaser statt Volltext: .mc__desc clampt auf 2 Zeilen — der volle
+    // DataCore-Brief (bis ~2 KB) stand trotzdem im Markup und summierte sich
+    // auf ~0,8 MB pro Sprachindex. clip() schneidet an der Wortgrenze und
+    // zerreisst nie einen {Platzhalter} (Token enthalten keine Leerzeichen).
+    descParts: m.desc ? titleParts(clip(m.desc, 200)) : null,
     reward: rewardLabel(m, lang),
     rep: reps[0] ?? null,
     repMore: Math.max(0, reps.length - 1),
@@ -245,8 +249,11 @@ const cards = missions.map((m: Mission) => {
 {/* KEIN is:inline: Astro buendelt diesen Block und verlinkt ihn im <head>.
     Inline stuende er hinter 800 KB Karten-Markup — der Browser malt dann erst
     ungestylt und stylt nach (FOUC). Die :root-Palette der Seite bleibt inline,
-    die muss detail.css ueberschreiben. */}
-<style>
+    die muss detail.css ueberschreiben.
+    is:global: ohne Scoping entfallen ~35.000 data-astro-cid-Attribute
+    (~0,8 MB pro Sprachindex). Gefahrlos, weil JEDER Selektor hier mx__/mc__-
+    praefixiert ist und die Klassen nur in dieser Komponente existieren. */}
+<style is:global>
   .mx { position: relative; }
 
   /* ---------- Hero ---------- */

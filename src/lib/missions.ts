@@ -241,7 +241,11 @@ export function clip(s: string, max = 160): string {
 /** Suchindex-Text einer Mission (klein geschrieben, fuer das data-Attribut). */
 export function searchText(m: Mission): string {
   return [
-    m.title, m.desc, ...m.typeNames, ...m.giverNames, ...m.factionNames,
+    // desc nur als Anfang: die vollen DataCore-Briefe (bis ~2 KB) standen hier
+    // komplett drin und machten den Missionen-Index zur 3,7-MB-Seite. Gesucht
+    // wird realistisch nach Titel/Namen/Orten — 200 Zeichen Brieftext reichen.
+    m.title, m.desc ? clip(seoText(m.desc), 200) : '',
+    ...m.typeNames, ...m.giverNames, ...m.factionNames,
     ...m.localityNames, ...m.places.slice(0, 12),
     ...m.titleVariants.map((v) => `${v.org} ${v.text}`),
     ...m.guilds, ...m.orgs,
