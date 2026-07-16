@@ -2,6 +2,7 @@
 // CraftingApp.astro — funktionale Blueprint-Datenbank (SSR-Liste + Client-App).
 // Sprachneutrales Gerüst; UI-Chrome via `lang`, Game-Daten bleiben englisch.
 import DB from '../../assets/crafting-db.json';
+import { ICON_BLUEPRINT, ICON_DISMANTLE } from '../lib/icons';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
@@ -22,6 +23,7 @@ const S = {
     calcSelectMats: '1. Rohstoffe wählen', calcParameters: '2. Parameter', calcTargetQty: 'Zielmenge (SCU)',
     calcYieldRate: 'Ausbeute-Rate', calcReset: 'Rechner zurücksetzen', calcTitle: 'Effiziente Items zum Zerlegen',
     calcTabDb: 'Blueprint-Datenbank', calcTabCalc: 'Zerlegungs-Rechner (Dismantle)',
+    calcItemSearch: 'Suche: Item-Name…',
   },
   en: {
     toolbarSearch: 'Search: blueprint or resource…',
@@ -37,6 +39,7 @@ const S = {
     calcSelectMats: '1. Select Raw Materials', calcParameters: '2. Parameters', calcTargetQty: 'Target Quantity (SCU)',
     calcYieldRate: 'Yield Rate', calcReset: 'Reset Calculator', calcTitle: 'Efficient Items to Dismantle',
     calcTabDb: 'Blueprint Database', calcTabCalc: 'Dismantling Calculator',
+    calcItemSearch: 'Search: item name…',
   },
 }[lang];
 
@@ -55,13 +58,16 @@ const JS_T = {
     fireMode: 'Feuermodus', added: 'hinzugefügt',
     planEmpty: 'Noch keine Blueprints im Planer. „＋" auf einer Karte fügt hinzu.',
     calcSearchPlaceholder: 'Material suchen...',
-    calcSelectPrompt: 'Bitte wähle mindestens ein Material in der Seitenleiste aus.',
+    calcSelectPrompt: 'Bitte wähle mindestens ein Material aus oder suche oben nach einem Item-Namen.',
+    calcNoResults: 'Keine Items für diese Auswahl gefunden.',
     calcWarningRareBycatch: 'Dieses Item enthält {name}, dieser kann jedoch nicht durch Zerlegen gewonnen werden.',
     calcCostUnit: 'Gesamtkosten',
     calcQtyBuy: '{qty}x kaufen',
     calcFound: '{count} kompatible Items gefunden',
     calcRareLabel: '(selten)',
     openInFinder: 'Im Item Finder öffnen',
+    openInDismantle: 'Im Zerlegungs-Rechner öffnen',
+    openBlueprint: 'Blueprint öffnen',
   },
   en: {
     craftTime: 'Craft time', tier: 'Tier', addPlan: 'Add to planner', ingredients: 'Ingredients',
@@ -76,13 +82,16 @@ const JS_T = {
     fireMode: 'Fire mode', added: 'added',
     planEmpty: 'No blueprints in the planner yet. Use “＋” on a card to add.',
     calcSearchPlaceholder: 'Search material...',
-    calcSelectPrompt: 'Please select at least one material in the sidebar.',
+    calcSelectPrompt: 'Please select at least one material or search for an item name above.',
+    calcNoResults: 'No items found for this selection.',
     calcWarningRareBycatch: 'This item contains {name}, but it cannot be obtained by dismantling.',
     calcCostUnit: 'Total Cost',
     calcQtyBuy: 'Buy {qty}x',
     calcFound: '{count} compatible items found',
     calcRareLabel: '(rare)',
     openInFinder: 'Open in Item Finder',
+    openInDismantle: 'Open in Dismantling Calculator',
+    openBlueprint: 'Open blueprint',
   },
 }[lang];
 
@@ -144,8 +153,8 @@ const total = DB.counts.blueprints;
 <section class="cdb" id="cdb">
   <!-- Tab Switcher -->
   <div class="cdb-tabs">
-    <button class="cdb-tab-btn active" data-tab="db">{S.calcTabDb}</button>
-    <button class="cdb-tab-btn" data-tab="dismantle">{S.calcTabCalc}</button>
+    <button class="cdb-tab-btn active" data-tab="db"><Fragment set:html={ICON_BLUEPRINT} />{S.calcTabDb}</button>
+    <button class="cdb-tab-btn" data-tab="dismantle"><Fragment set:html={ICON_DISMANTLE} />{S.calcTabCalc}</button>
   </div>
 
   <div id="cdb-tab-db-content">
@@ -313,10 +322,14 @@ const total = DB.counts.blueprints;
       <!-- Outputs list -->
       <div class="calc-results-wrap" style="flex:1 1 auto; min-width:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;gap:1rem;flex-wrap:wrap;">
-          <h2 style="font-family:var(--font-display,inherit);font-weight:900;font-size:1.4rem;color:#fff;margin:0;">{S.calcTitle}</h2>
+          <h2 style="display:inline-flex;align-items:center;gap:.55rem;font-family:var(--font-display,inherit);font-weight:900;font-size:1.4rem;color:#fff;margin:0;"><span style="display:inline-flex;color:var(--accent,#FF5E1A);" aria-hidden="true"><Fragment set:html={ICON_DISMANTLE} /></span>{S.calcTitle}</h2>
           <span id="calc-results-count" style="font-size:0.85rem;color:var(--muted,#9ba2ae);">0 Items gefunden</span>
         </div>
-        
+
+        <div class="calc-search-row">
+          <input type="search" id="calc-item-search" class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
+        </div>
+
         <div id="calc-results" class="calc-grid">
           <!-- Results rendered dynamically via JS -->
         </div>
@@ -348,7 +361,7 @@ const total = DB.counts.blueprints;
   </aside>
 </section>
 
-<script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json', dismantleUrl: '/assets/dismantling-items.json', t: JS_T })};`} />
+<script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json', dismantleUrl: '/assets/dismantling-items.json', icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE }, t: JS_T })};`} />
 <script is:inline src="/assets/crafting-app.js"></script>
 
 <style is:inline>
@@ -448,6 +461,8 @@ const total = DB.counts.blueprints;
   /* Cross-Link ins Item-Finder (Deep-Link zur Item-Card) */
   .cbm__xlink{display:inline-flex;align-items:center;gap:.35rem;text-decoration:none;font-family:var(--font-ui,inherit);font-weight:700;font-size:.82rem;color:var(--accent-2,#1FA2FF);border:1px solid color-mix(in srgb,var(--accent-2,#1FA2FF) 45%,transparent);padding:.4rem .8rem;border-radius:6px;transition:background-color .15s,border-color .15s}
   .cbm__xlink:hover{background:color-mix(in srgb,var(--accent-2,#1FA2FF) 12%,transparent);border-color:var(--accent-2,#1FA2FF)}
+  /* …auch als <button> (Sprung in den Zerlegungs-Rechner) */
+  button.cbm__xlink{background:transparent;cursor:pointer}
   .cbm__h{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.66rem;color:var(--accent,#FF5E1A);margin:1.2rem 0 .5rem;border-top:1px solid var(--line-soft,rgba(255,255,255,.08));padding-top:.9rem}
   .cbm__c{color:var(--muted,#9ba2ae);font-size:.7rem}
   .cbm__ings{display:flex;flex-direction:column;gap:.7rem}
@@ -535,7 +550,8 @@ const total = DB.counts.blueprints;
   }
   /* Tabs switcher */
   .cdb-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;border-bottom:1px solid var(--line,rgba(255,94,26,.22));padding-bottom:.2rem}
-  .cdb-tab-btn{background:transparent;border:0;color:var(--muted,#9ba2ae);padding:.55rem 1rem;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;font-size:.9rem;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;outline:none}
+  .cdb-tab-btn{display:inline-flex;align-items:center;gap:.45rem;background:transparent;border:0;color:var(--muted,#9ba2ae);padding:.55rem 1rem;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;font-size:.9rem;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;outline:none}
+  .cdb-tab-btn .cic{width:1.15em;height:1.15em}
   .cdb-tab-btn:hover{color:var(--text,#eef1f5)}
   .cdb-tab-btn.active{color:var(--accent,#FF5E1A);border-color:var(--accent,#FF5E1A)}
   
@@ -556,6 +572,7 @@ const total = DB.counts.blueprints;
   .calc-mat-list .calc-check:has(input:checked) span{font-weight:700}
   
   /* Calculator Output Cards */
+  .calc-search-row{margin-bottom:1.2rem}
   .calc-grid{display:flex;flex-direction:column;gap:.8rem}
   .calc-card{background:var(--surface,#232329);border:1px solid var(--line,rgba(255,94,26,.22));border-radius:8px;padding:1.2rem;display:grid;grid-template-columns:1fr auto;gap:1.2rem;position:relative;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s}
   .calc-card:hover{transform:translateY(-2px);border-color:var(--accent,#FF5E1A);box-shadow:0 4px 20px rgba(255,94,26,.15)}
@@ -573,7 +590,13 @@ const total = DB.counts.blueprints;
   .calc-card__cost{font-family:var(--font-display,inherit);font-weight:900;font-size:1.35rem;color:var(--accent,#FF5E1A)}
   .calc-card__cost-unit{font-size:.76rem;color:var(--muted,#9ba2ae);margin-top:-.2rem}
   .calc-card__qty{font-size:.9rem;font-weight:700;color:#fff;margin-top:.4rem}
-  
+  /* Sprung zur Blueprint-Datenbank */
+  .calc-card__bp{display:inline-flex;align-items:center;gap:.4rem;margin-top:.6rem;background:transparent;border:1px solid color-mix(in srgb,var(--accent-2,#1FA2FF) 45%,transparent);color:var(--accent-2,#1FA2FF);padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;font-size:.78rem;white-space:nowrap;transition:background-color .15s,border-color .15s}
+  .calc-card__bp:hover{background:color-mix(in srgb,var(--accent-2,#1FA2FF) 12%,transparent);border-color:var(--accent-2,#1FA2FF)}
+  /* Ziel-Karte nach Sprung aus dem Blueprint-Modal kurz hervorheben */
+  .calc-card.is-jump{border-color:var(--accent-2,#1FA2FF);animation:calcjump 1.6s ease-out}
+  @keyframes calcjump{0%{box-shadow:0 0 0 4px rgba(31,162,255,.55)}100%{box-shadow:0 0 0 4px transparent}}
+
   @media(max-width:820px){
     .calc-layout{grid-template-columns:1fr}
     .calc-sidebar{position:static;max-height:none}

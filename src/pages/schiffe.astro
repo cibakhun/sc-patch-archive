@@ -39,11 +39,12 @@ const crewFmt = (v: (typeof vehicles)[number]['data']) =>
 const auecShort = (n: number) => n.toLocaleString('en-US');
 ---
 <Layout
-  title="Ships & Vehicles — Database | VerseBase"
-  description={`${vehicles.length} ships and vehicles with specs, pledge and in-game prices, English descriptions and patch history — data as of ${vehiclesSnapshot.fetchedAt}.`}
+  title="Star Citizen Ships & Vehicles — Database | VerseBase"
+  description={`${vehicles.length} Star Citizen ships and vehicles with specs, pledge and in-game prices, English descriptions and patch history — data as of ${vehiclesSnapshot.fetchedAt}.`}
   themeColor="#05070d"
   footer={true}
   translated={true}
+  ogImage="/assets/img-hammerhead.jpg"
 >
 <style is:inline>
 :root{

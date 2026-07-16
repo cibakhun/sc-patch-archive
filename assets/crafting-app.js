@@ -6,6 +6,7 @@
   'use strict';
   var CFG = window.__CRAFT || {};
   var T = CFG.t || {};
+  var ICONS = CFG.icons || {}; // inline-SVG-Strings aus src/lib/icons.ts
   var LOC = CFG.lang === 'en' ? 'en-US' : 'de-DE';
   function tr(k, d) { return T[k] != null ? T[k] : d; }
 
@@ -22,6 +23,7 @@
   // ---- Data (async; UI works without it, enriched once loaded) ----
   var DB = null;
   var MISSIONS = null; // id -> {id,name,pool:[{i,dc}]}
+  var pendingBpName = null; // vorgemerkter Blueprint, falls DB beim Sprung noch lädt
   fetch(CFG.dbUrl).then(function (r) { return r.json(); }).then(function (j) {
     DB = j;
     buildMissionIndex();
@@ -29,14 +31,19 @@
     // Deep-Link aus dem Item Finder: ?bp=<Blueprint-Name> öffnet direkt das Modal.
     try {
       var wantBp = new URLSearchParams(location.search).get('bp');
-      if (wantBp && DB.blueprints) {
-        var tgt = wantBp.trim().toLowerCase();
-        for (var bi = 0; bi < DB.blueprints.length; bi++) {
-          if ((DB.blueprints[bi].name || '').toLowerCase() === tgt) { openModal(bi); break; }
-        }
-      }
+      if (wantBp) openModalByName(wantBp);
     } catch (e) {}
+    if (pendingBpName) { openModalByName(pendingBpName); pendingBpName = null; }
   }).catch(function () {});
+
+  // Blueprint per Name öffnen — Deep-Link + Sprung aus dem Zerlegungs-Rechner.
+  function openModalByName(name) {
+    if (!DB || !DB.blueprints) { pendingBpName = name; return; }
+    var tgt = String(name).trim().toLowerCase();
+    for (var bi = 0; bi < DB.blueprints.length; bi++) {
+      if ((DB.blueprints[bi].name || '').toLowerCase() === tgt) { openModal(bi); return; }
+    }
+  }
 
   // Umkehrung Blueprint -> Mission: pro Mission der Pool aller Blueprints.
   function buildMissionIndex() {
@@ -325,7 +332,12 @@
     html += '<span>' + tr('craftTime', 'Craft-Zeit') + ': <b>' + fmtTime(b.craft_time_seconds) + '</b></span>';
     if (b.tiers != null) html += '<span>' + tr('tier', 'Tier') + ': <b>' + b.tiers + '</b></span>';
     html += '<button class="cbm__plan" data-plan="' + i + '">＋ ' + tr('addPlan', 'Zum Planer') + '</button>';
-    html += '<a class="cbm__xlink" href="' + (CFG.lang === 'en' ? '/en' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + ' →</a>';
+    // DE liegt unter /de/, EN im Root (ein /en/-Prefix existiert nicht).
+    html += '<a class="cbm__xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + ' →</a>';
+    // Sprung zum Zerlegungs-Rechner — nur wenn ein gleichnamiges Item existiert.
+    if (DISMANTLE_NAMES && DISMANTLE_NAMES[(b.name || '').toLowerCase()] != null) {
+      html += '<button type="button" class="cbm__xlink" data-goto-dismantle="' + esc(b.name) + '">' + (ICONS.dis || '') + tr('openInDismantle', 'Im Zerlegungs-Rechner öffnen') + ' →</button>';
+    }
     html += '</div>';
 
     if (b.ingredients && b.ingredients.length) {
@@ -426,6 +438,9 @@
 
     var pb = $('[data-plan]', modalBody);
     if (pb) pb.addEventListener('click', function () { plan[i] = (plan[i] || 0) + 1; save('craft.plan.v1', plan); syncCards(); renderPlanner(); flashPlan(); pb.textContent = '✓ ' + tr('added', 'hinzugefügt'); });
+
+    var gd = $('[data-goto-dismantle]', modalBody);
+    if (gd) gd.addEventListener('click', function () { gotoDismantle(gd.getAttribute('data-goto-dismantle')); });
 
     $$('.cbm__mlink', modalBody).forEach(function (btn) {
       btn.addEventListener('click', function () { go({ t: 'pool', key: btn.dataset.mkey }); });
@@ -569,9 +584,11 @@
   };
 
   var ITEMS = [];
+  var DISMANTLE_NAMES = null; // Item-Name (lowercase) -> Index in ITEMS
 
   var calcState = {
     res: {},
+    q: '',
     targetQty: 1.0,
     yieldRate: 50
   };
@@ -599,9 +616,10 @@
     var countEl = $('#calc-results-count');
     if (!resultsEl) return;
 
+    var q = calcState.q;
     var selectedMats = Object.keys(calcState.res).filter(function (k) { return calcState.res[k]; });
-    if (selectedMats.length === 0) {
-      resultsEl.innerHTML = '<div style="background:var(--bg,#16161a);border:1px dashed var(--line,rgba(255,94,26,.3));padding:2rem;text-align:center;color:var(--muted,#9ba2ae);border-radius:8px;">' + tr('calcSelectPrompt', 'Bitte wähle mindestens ein Material in der Seitenleiste aus.') + '</div>';
+    if (selectedMats.length === 0 && !q) {
+      resultsEl.innerHTML = '<div style="background:var(--bg,#16161a);border:1px dashed var(--line,rgba(255,94,26,.3));padding:2rem;text-align:center;color:var(--muted,#9ba2ae);border-radius:8px;">' + tr('calcSelectPrompt', 'Bitte wähle mindestens ein Material aus oder suche oben nach einem Item-Namen.') + '</div>';
       if (countEl) countEl.textContent = tr('calcFound', '{count} kompatible Items gefunden').replace('{count}', '0');
       return;
     }
@@ -613,7 +631,10 @@
     // Kompatibel = Item liefert JEDES gewählte Material beim Zerlegen.
     // Seltene Materialien liefern nichts — ein gewähltes seltenes Material
     // macht daher jedes Item inkompatibel (Auswahl ist als „(selten)" markiert).
+    // Reine Namenssuche (keine Materialien gewählt): Item mit Ausbeute für
+    // 1 Exemplar anzeigen.
     ITEMS.forEach(function (item) {
+      if (q && item.name.toLowerCase().indexOf(q) < 0) return;
       var maxQty = 0;
       var isComp = true;
 
@@ -639,6 +660,7 @@
       });
 
       if (!isComp) return;
+      if (selectedMats.length === 0) maxQty = 1;
 
       // Beifang-Hinweis: seltene Materialien im REZEPT gehen beim Zerlegen verloren.
       var warnings = [];
@@ -659,6 +681,12 @@
 
     list.sort(function (a, b) { return a.cost - b.cost; });
 
+    if (!list.length) {
+      resultsEl.innerHTML = '<div style="background:var(--bg,#16161a);border:1px dashed var(--line,rgba(255,94,26,.3));padding:2rem;text-align:center;color:var(--muted,#9ba2ae);border-radius:8px;">' + tr('calcNoResults', 'Keine Items für diese Auswahl gefunden.') + '</div>';
+      if (countEl) countEl.textContent = tr('calcFound', '{count} kompatible Items gefunden').replace('{count}', '0');
+      return;
+    }
+
     resultsEl.innerHTML = list.map(function (res) {
       var item = res.item;
 
@@ -678,7 +706,7 @@
         return '<div class="calc-card__warning">' + esc(w) + '</div>';
       }).join('');
 
-      return '<div class="calc-card">' +
+      return '<div class="calc-card" data-name="' + esc(item.name.toLowerCase()) + '">' +
         '<div class="calc-card__left">' +
           '<h3 class="calc-card__title">' + esc(item.name) + '</h3>' +
           '<div class="calc-card__meta">' + tr('category', 'Kategorie') + ': <strong>' + esc(item.category) + '</strong> &nbsp;·&nbsp; ' + tr('calcLocation', 'Kaufort') + ': <strong>' + esc(item.purchaseLocation) + '</strong></div>' +
@@ -689,6 +717,7 @@
           '<div class="calc-card__cost">' + fmtNum(res.cost) + ' aUEC</div>' +
           '<div class="calc-card__cost-unit">' + tr('calcCostUnit', 'Gesamtkosten') + '</div>' +
           '<div class="calc-card__qty">' + tr('calcQtyBuy', '{qty}x kaufen').replace('{qty}', res.qty) + '</div>' +
+          '<button type="button" class="calc-card__bp" data-bp-name="' + esc(item.name) + '">' + (ICONS.bp || '') + tr('openBlueprint', 'Blueprint öffnen') + ' →</button>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -712,6 +741,9 @@
   }
 
   function setupCalc() {
+    DISMANTLE_NAMES = {};
+    ITEMS.forEach(function (it, i) { DISMANTLE_NAMES[(it.name || '').toLowerCase()] = i; });
+
     var mats = {};
     ITEMS.forEach(function (item) {
       item.recipe.forEach(function (r) {
@@ -763,6 +795,27 @@
       });
     });
 
+    // Item-Namenssuche über den Ergebnissen.
+    var itemSearch = $('#calc-item-search');
+    if (itemSearch) {
+      itemSearch.addEventListener('input', function () {
+        calcState.q = this.value.trim().toLowerCase();
+        calcApply();
+      });
+    }
+
+    // Sprung Zerlegungs-Karte -> Blueprint-Modal (delegiert; Karten werden
+    // bei jedem calcApply neu gerendert).
+    var resultsHost = $('#calc-results');
+    if (resultsHost) {
+      resultsHost.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-bp-name]');
+        if (!btn) return;
+        switchTab('db');
+        openModalByName(btn.getAttribute('data-bp-name'));
+      });
+    }
+
     var targetInput = $('#calc-target-qty');
     if (targetInput) {
       targetInput.addEventListener('input', function () {
@@ -785,9 +838,11 @@
     if (calcReset) {
       calcReset.addEventListener('click', function () {
         calcState.res = {};
+        calcState.q = '';
         calcState.targetQty = 1.0;
         calcState.yieldRate = 50;
         if (matSearch) matSearch.value = '';
+        if (itemSearch) itemSearch.value = '';
         if (targetInput) targetInput.value = '1.0';
         if (yieldSlider) yieldSlider.value = '50';
         if (yieldVal) yieldVal.textContent = '50%';
@@ -804,24 +859,53 @@
     calcApply();
   }
 
-  // Tab switching logic
+  // Tab switching logic — auch programmatisch nutzbar (Cross-Links).
+  function switchTab(tab) {
+    $$('.cdb-tab-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
+    var dbContent = $('#cdb-tab-db-content');
+    var dismantleContent = $('#cdb-tab-dismantle-content');
+    if (tab === 'db') {
+      if (dbContent) dbContent.removeAttribute('hidden');
+      if (dismantleContent) dismantleContent.setAttribute('hidden', '');
+    } else {
+      if (dbContent) dbContent.setAttribute('hidden', '');
+      if (dismantleContent) dismantleContent.removeAttribute('hidden');
+    }
+  }
   $$('.cdb-tab-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      $$('.cdb-tab-btn').forEach(function (b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      
-      var tab = btn.dataset.tab;
-      var dbContent = $('#cdb-tab-db-content');
-      var dismantleContent = $('#cdb-tab-dismantle-content');
-      if (tab === 'db') {
-        if (dbContent) dbContent.removeAttribute('hidden');
-        if (dismantleContent) dismantleContent.setAttribute('hidden', '');
-      } else {
-        if (dbContent) dbContent.setAttribute('hidden', '');
-        if (dismantleContent) dismantleContent.removeAttribute('hidden');
-      }
-    });
+    btn.addEventListener('click', function () { switchTab(btn.dataset.tab); });
   });
+
+  // Sprung Blueprint-Modal -> Zerlegungs-Rechner: Tab wechseln, Item-Name in
+  // die Suche setzen und die passende Karte hervorheben. Kollidiert die
+  // Material-Auswahl mit dem Item, wird sie geleert — das Item hat Vorrang.
+  function gotoDismantle(name) {
+    closeModal();
+    switchTab('dismantle');
+    var lowName = String(name).trim().toLowerCase();
+    var input = $('#calc-item-search');
+    if (input) input.value = name;
+    calcState.q = lowName;
+    calcApply();
+    var target = findCalcCard(lowName);
+    if (!target && Object.keys(calcState.res).some(function (k) { return calcState.res[k]; })) {
+      calcState.res = {};
+      $$('.calc-mat-cb').forEach(function (cb) { cb.checked = false; });
+      sortCalcMatsList();
+      calcApply();
+      target = findCalcCard(lowName);
+    }
+    if (target) {
+      target.classList.add('is-jump');
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(function () { target.classList.remove('is-jump'); }, 1800);
+    }
+  }
+  function findCalcCard(lowName) {
+    var all = $$('#calc-results .calc-card');
+    for (var ci = 0; ci < all.length; ci++) if (all[ci].dataset.name === lowName) return all[ci];
+    return all[0] || null;
+  }
 
   initCalc();
 

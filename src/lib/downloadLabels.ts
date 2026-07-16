@@ -35,6 +35,8 @@ const TOPIC: Record<string, { de: string; en: string }> = {
   ironclad: { de: 'Ironclad', en: 'Ironclad' },
   hangar: { de: 'Hangar', en: 'Hangar' },
   ruin: { de: 'Ruinen', en: 'Ruins' },
+  frontier: { de: 'Frontier Tensions', en: 'Frontier Tensions' },
+  basher: { de: "Grey's Market Basher", en: "Grey's Market Basher" },
 };
 
 // Bekannte Akronyme/Schreibweisen für die Titelaufbereitung.

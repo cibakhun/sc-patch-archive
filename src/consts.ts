@@ -8,9 +8,15 @@
 export const SITE = {
   name: 'VerseBase',
   url: 'https://verse-base.com',
-  defaultDescription:
-    'VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv von Alpha 4.0.0 bis 4.8.3. Game-akkurat, zweisprachig, ein Fan-Projekt.',
-  locale: 'de',
+  // Fallback-Description pro Sprache (Layout wählt nach URL-Locale). Vorher
+  // ein einziger DE-String — der landete auch auf EN-Seiten ohne eigene
+  // description und als WebSite-JSON-LD-Text der EN-Ausgabe.
+  defaultDescription: {
+    de: 'VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv von Alpha 4.0.0 bis 4.9.0. Game-akkurat, zweisprachig, ein Fan-Projekt.',
+    en: 'VerseBase — the unofficial Star Citizen compendium: item finder, mining tools, crafting database, Wikelo trades, ship database and the complete patch archive from Alpha 4.0.0 to 4.9.0. Game-accurate, bilingual, a fan project.',
+  },
+  /** site-weites Social-Preview-Fallback (1200×630) — Seiten ohne eigenes ogImage */
+  ogDefault: '/assets/og-default.jpg',
 } as const;
 
 // Feedback-Formular — die Site bleibt statisch (kein eigenes Backend). Der

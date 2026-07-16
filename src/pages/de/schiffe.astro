@@ -38,11 +38,12 @@ const crewFmt = (v: (typeof vehicles)[number]['data']) =>
 const auecShort = (n: number) => n.toLocaleString('de-DE');
 ---
 <Layout
-  title="Schiffe & Fahrzeuge — Datenbank | VerseBase"
-  description={`${vehicles.length} Schiffe und Fahrzeuge mit Specs, Pledge- und Ingame-Preisen, deutschen Beschreibungen und Patch-Historie — Datenstand ${vehiclesSnapshot.fetchedAt}.`}
+  title="Star-Citizen-Schiffe & Fahrzeuge — Datenbank | VerseBase"
+  description={`${vehicles.length} Star-Citizen-Schiffe und Fahrzeuge mit Specs, Pledge- und Ingame-Preisen, deutschen Beschreibungen und Patch-Historie — Datenstand ${vehiclesSnapshot.fetchedAt}.`}
   themeColor="#05070d"
   footer={true}
   translated={true}
+  ogImage="/assets/img-hammerhead.jpg"
 >
 <style is:inline>
 :root{

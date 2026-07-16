@@ -2,20 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
-import { SITE } from '../consts';
 import { mergePatchEn } from '../i18n/patchText';
 
 const patches = (await getCollection('patches')).sort((a, b) => a.data.date.localeCompare(b.data.date)).map((p) => ({ ...p, data: mergePatchEn(p.id, p.data, 'en') }));
 
-const websiteLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: SITE.name,
-  url: SITE.url.replace(/\/$/, '') + '/',
-  inLanguage: 'en',
-  description: 'Star Citizen patches from Alpha 4.0.0 to 4.8.2.',
-  publisher: { '@type': 'Organization', name: SITE.name },
-};
 const latest = patches[patches.length - 1];
 
 // Hero still image: cinematic wide render (ship, station, planet)
@@ -34,7 +24,6 @@ const tools = [
 ];
 ---
 <Layout title={"VerseBase — the Star Citizen compendium"} description={"VerseBase — the unofficial Star Citizen compendium: item finder with prices & locations, mining tools, crafting database, Wikelo trades, ship database and the complete patch archive of the Alpha 4 era. Game-accurate, bilingual."} themeColor="#04060c" footer={true} translated={true}>
-<script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
 <style is:inline>
   :root{
     --bg:#04060c;--bg-2:#080d18;--surface:#0e1626;

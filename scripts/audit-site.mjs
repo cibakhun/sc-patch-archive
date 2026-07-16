@@ -43,7 +43,12 @@ const errors = [];   // publish-blockierend
 const warns = [];    // sollte gefixt werden
 const infos = [];    // Hinweise
 
-const PLACEHOLDER_RE = /\bTODO\b|\bFIXME\b|lorem ipsum|PLACEHOLDER|\bTBD\b|\[object Object\]|>undefined<|>null<|>NaN\b/i;
+// Case-SENSITIV: Entwicklungs-Marker sind konventionell GROSS (TODO, FIXME,
+// FleetYards' "<= PLACEHOLDER =>"); kleingeschrieben ist es Fließtext — die
+// Missions-Tooltips erklären z. B. „the marked spots are placeholders".
+// JS-Leckagen (>undefined<, [object Object]) sind ohnehin exakt geschrieben.
+const PLACEHOLDER_RE = /\bTODO\b|\bFIXME\b|PLACEHOLDER|\bTBD\b|\[object Object\]|>undefined<|>null<|>NaN\b/;
+const PLACEHOLDER_CI_RE = /lorem ipsum/i;
 const MOJIBAKE_RE = /Ã[¤¶¼Ÿ„–©¨]|â€“|â€ž|â€œ|â€¦|Â°|Ã¢/;
 
 let pagesDe = 0, pagesEn = 0;
@@ -71,7 +76,11 @@ for (const f of htmlFiles) {
   const markup = html
     .replace(/<script\b[\s\S]*?<\/script>/gi, '')
     .replace(/<style\b[\s\S]*?<\/style>/gi, '');
-  const isEn = page === '/en.html' || page.startsWith('/en/');
+  // Sprach-Tausch (i18n Stufe 3): EN ist Standardsprache und liegt PRÄFIXLOS
+  // auf der Wurzel, DE unter /de/…. Vorher andersherum (/en/-Präfix) — der
+  // alte Check hielt deshalb JEDE Wurzel-Seite für Deutsch.
+  const isDe = page === '/de.html' || page.startsWith('/de/');
+  const isEn = !isDe;
   if (isEn) pagesEn++; else pagesDe++;
 
   // --- html lang (Onepager sind eigenständige EN-Artefakte, kein DE/EN-Paar) ---
@@ -88,7 +97,11 @@ for (const f of htmlFiles) {
   if (!desc) seoIssues.push(`${page}: keine meta description`);
   else if (desc.length < 50) seoIssues.push(`${page}: meta description sehr kurz (${desc.length})`);
   const og = /<meta\s+property="og:image"\s+content="([^"]*)"/.exec(html)?.[1];
-  if (og) {
+  // Datei-Existenz nur für EIGENE Bilder prüfbar: Schiffs-Datenblätter nutzen
+  // Wiki-CDN-Bilder (media.starcitizen.tools) als og:image — fremde Hosts
+  // überspringen statt ihren Pfad fälschlich in dist/ zu suchen.
+  const ogRemote = og && /^https?:\/\//.test(og) && !/^https?:\/\/(www\.)?verse-base\.com\//.test(og);
+  if (og && !ogRemote) {
     const ogPath = og.replace(/^https?:\/\/[^/]+/, '');
     if (ogPath.startsWith('/') && !fileSet.has(ogPath)) {
       const baseM = /^\/([^/]+)(\/.*)$/.exec(ogPath);
@@ -147,7 +160,7 @@ for (const f of htmlFiles) {
 
   // --- Platzhalter / Mojibake (nur sichtbarer Text, placeholder=-Attribute raus) ---
   const visibleText = markup.replace(/\splaceholder="[^"]*"/gi, '');
-  const ph = PLACEHOLDER_RE.exec(visibleText);
+  const ph = PLACEHOLDER_RE.exec(visibleText) ?? PLACEHOLDER_CI_RE.exec(visibleText);
   if (ph) placeholderHits.push(`${page}: "${ph[0]}"`);
   const mj = MOJIBAKE_RE.exec(html);
   if (mj) mojibakeHits.push(`${page}: "${mj[0]}"`);
@@ -213,7 +226,10 @@ for (const f of htmlFiles) {
   for (const m of html.matchAll(/hreflang="(de|en)"\s+href="([^"]+)"/g)) {
     const target = m[2].replace(/^https?:\/\/[^/]+/, '');
     if (!target.startsWith('/')) continue;
-    const clean = target.split('#')[0];
+    // Verzeichnis-URLs bedient nginx über `index index.html` — die Startseite
+    // heißt in canonical/hreflang bewusst '/' (nicht /index.html).
+    let clean = target.split('#')[0];
+    if (clean.endsWith('/')) clean += 'index.html';
     if (fileSet.has(clean)) continue;
     const basePrefixM = /^\/([^/]+)(\/.*)$/.exec(clean);
     if (basePrefixM && fileSet.has(basePrefixM[2])) {
@@ -225,12 +241,14 @@ for (const f of htmlFiles) {
 }
 
 // --- DE/EN-Parität (informativ) ---
-const missingEn = [];
+// EN präfixlos, DE unter /de/… (Sprach-Tausch): für jede EN-Seite muss das
+// /de/-Pendant existieren (DE-Startseite = /de.html wegen build.format:'file').
+const missingDe = [];
 for (const f of htmlFiles) {
   const page = rel(f);
-  if (page.startsWith('/en/') || page === '/en.html' || page === '/404.html' || page.startsWith('/onepager/')) continue;
-  const enPage = page === '/index.html' ? '/en.html' : '/en' + page;
-  if (!fileSet.has(enPage)) missingEn.push(page);
+  if (page === '/de.html' || page.startsWith('/de/') || page === '/404.html' || page.startsWith('/onepager/')) continue;
+  const dePage = page === '/index.html' ? '/de.html' : '/de' + page;
+  if (!fileSet.has(dePage)) missingDe.push(page);
 }
 
 // --- Seitengewichte ---
@@ -291,7 +309,7 @@ section('WARNUNG Media-Semantik: 1 Datei, widersprüchliche Alt-Texte', multiAlt
 section('WARNUNG Media-Semantik: Dateiname passt nicht zum Alt-Text', slugMismatch, warns, 20);
 section('WARNUNG SEO', seoIssues, warns);
 section('WARNUNG A11y', a11yIssues, warns, 20);
-section('INFO DE-Seiten ohne EN-Gegenstück', missingEn, infos, 10);
+section('INFO EN-Seiten ohne DE-Gegenstück', missingDe, infos, 10);
 section('INFO Schwere Seiten (>500 KB HTML)', heavy, infos);
 section('INFO Schwere Assets (>1,5 MB)', heavyAssets, infos);
 

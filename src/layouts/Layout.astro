@@ -30,7 +30,7 @@ interface Props {
 
 const {
   title,
-  description = SITE.defaultDescription,
+  description: descriptionProp,
   themeColor = '#05070d',
   footer = false,
   ogImage,
@@ -41,10 +41,16 @@ const {
 
 const base = SITE.url.replace(/\/$/, '');
 const canonical = base + Astro.url.pathname;
-const ogImageAbs = ogImage ? (ogImage.startsWith('http') ? ogImage : base + ogImage) : null;
 
-// Locale aus dem Pfad (DE lebt unter /de/…). Steuert lang + og:locale.
+// Locale aus dem Pfad (DE lebt unter /de/…). Steuert lang + og:locale und
+// welche Fallback-Description greift (vorher: DE-Text auch auf EN-Seiten).
 const lang = localeFromPath(Astro.url.pathname);
+const description = descriptionProp ?? SITE.defaultDescription[lang];
+
+// og:image mit Site-Fallback: twitter:card "summary_large_image" ohne Bild ist
+// wirkungslos — Seiten ohne eigenes Motiv bekommen das VerseBase-Standardbild.
+const ogImageEff = ogImage ?? SITE.ogDefault;
+const ogImageAbs = ogImageEff.startsWith('http') ? ogImageEff : base + ogImageEff;
 // hreflang-Ziele (nur wenn ein Übersetzungspaar existiert).
 // '/' und '/index.html' sind dieselbe Seite; canonical nennt '/' (Astro liefert
 // den Pfad so). hreflang MUSS dieselbe URL nennen — nennt es die andere Form,
@@ -78,9 +84,11 @@ const enHref = base + canon(pathForLocale(Astro.url.pathname, 'en'));
   <meta property="og:description" content={description} />
   <meta property="og:url" content={canonical} />
   <meta property="og:locale" content={OG_LOCALE[lang]} />
-  {ogImageAbs && <meta property="og:image" content={ogImageAbs} />}
+  {translated && <meta property="og:locale:alternate" content={OG_LOCALE[lang === 'de' ? 'en' : 'de']} />}
+  <meta property="og:image" content={ogImageAbs} />
+  <meta property="og:image:alt" content={title} />
   <meta name="twitter:card" content="summary_large_image" />
-  {ogImageAbs && <meta name="twitter:image" content={ogImageAbs} />}
+  <meta name="twitter:image" content={ogImageAbs} />
   {/* Strukturierte Daten (JSON-LD): sagt Suchmaschinen, dass alle Seiten zu
       EINEM Werk gehören (WebSite + Fan-Projekt als Herausgeber). Rein additiv —
       ändert nichts am sichtbaren HTML, hilft aber bei Sitelinks/Wissensgraph. */}
@@ -93,11 +101,12 @@ const enHref = base + canon(pathForLocale(Astro.url.pathname, 'en'));
       name: SITE.name,
       url: base + '/',
       inLanguage: HTML_LANG[lang],
-      description: SITE.defaultDescription,
+      description: SITE.defaultDescription[lang],
       publisher: {
         '@type': 'Organization',
         name: SITE.name,
         url: base + '/',
+        logo: { '@type': 'ImageObject', url: base + '/favicon.svg' },
       },
     })}
   />
