@@ -6,6 +6,7 @@
   'use strict';
   var CFG = window.__CRAFT || {};
   var T = CFG.t || {};
+  var ICONS = CFG.icons || {}; // inline-SVG-Strings aus src/lib/icons.ts
   var LOC = CFG.lang === 'en' ? 'en-US' : 'de-DE';
   function tr(k, d) { return T[k] != null ? T[k] : d; }
 
@@ -331,10 +332,11 @@
     html += '<span>' + tr('craftTime', 'Craft-Zeit') + ': <b>' + fmtTime(b.craft_time_seconds) + '</b></span>';
     if (b.tiers != null) html += '<span>' + tr('tier', 'Tier') + ': <b>' + b.tiers + '</b></span>';
     html += '<button class="cbm__plan" data-plan="' + i + '">＋ ' + tr('addPlan', 'Zum Planer') + '</button>';
-    html += '<a class="cbm__xlink" href="' + (CFG.lang === 'en' ? '/en' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + ' →</a>';
+    // DE liegt unter /de/, EN im Root (ein /en/-Prefix existiert nicht).
+    html += '<a class="cbm__xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + ' →</a>';
     // Sprung zum Zerlegungs-Rechner — nur wenn ein gleichnamiges Item existiert.
     if (DISMANTLE_NAMES && DISMANTLE_NAMES[(b.name || '').toLowerCase()] != null) {
-      html += '<button type="button" class="cbm__xlink" data-goto-dismantle="' + esc(b.name) + '">' + tr('openInDismantle', 'Im Zerlegungs-Rechner öffnen') + ' →</button>';
+      html += '<button type="button" class="cbm__xlink" data-goto-dismantle="' + esc(b.name) + '">' + (ICONS.dis || '') + tr('openInDismantle', 'Im Zerlegungs-Rechner öffnen') + ' →</button>';
     }
     html += '</div>';
 
@@ -715,7 +717,7 @@
           '<div class="calc-card__cost">' + fmtNum(res.cost) + ' aUEC</div>' +
           '<div class="calc-card__cost-unit">' + tr('calcCostUnit', 'Gesamtkosten') + '</div>' +
           '<div class="calc-card__qty">' + tr('calcQtyBuy', '{qty}x kaufen').replace('{qty}', res.qty) + '</div>' +
-          '<button type="button" class="calc-card__bp" data-bp-name="' + esc(item.name) + '">' + tr('openBlueprint', 'Blueprint öffnen') + ' →</button>' +
+          '<button type="button" class="calc-card__bp" data-bp-name="' + esc(item.name) + '">' + (ICONS.bp || '') + tr('openBlueprint', 'Blueprint öffnen') + ' →</button>' +
         '</div>' +
       '</div>';
     }).join('');
