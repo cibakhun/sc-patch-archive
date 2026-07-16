@@ -309,8 +309,12 @@ const showImg = TRADES.map((t: { img?: string }) => {
             <div class="wk-arrow" aria-hidden="true" set:html={ICON.arrow}></div>
             <div class="wk-get">
               <div class="wk-side-h">Bekomm</div>
+              {/* Karte lädt das 480-px-WebP-Thumb (build-thumbs.mjs, ~20–50 KB);
+                  die wk-*.png-Originale (1,5–2,7 MB) holt erst die Lightbox
+                  (data-lb) beim bewussten Zoom-Klick — vorher lud die Seite
+                  beim Durchscrollen ~45 MB PNGs. */}
               {t.img && showImg[ti]
-                ? (<div class:list={['wk-get-media', (t.cat === 'armor' || (t.img ?? '').startsWith('wk-atls')) && 'is-contain']} data-lb={`img:/assets/${t.img}`} data-title={t.get ?? t.name}><img src={`/assets/${t.img}`} alt={t.name} loading="lazy" decoding="async" /><span class="zoomic" aria-hidden="true">⤢</span></div>)
+                ? (<div class:list={['wk-get-media', (t.cat === 'armor' || (t.img ?? '').startsWith('wk-atls')) && 'is-contain']} data-lb={`img:/assets/${t.img}`} data-title={t.get ?? t.name}><img src={`/assets/thumb/${(t.img ?? '').replace(/\.[^.]+$/, '')}.webp`} alt={t.name} loading="lazy" decoding="async" /><span class="zoomic" aria-hidden="true">⤢</span></div>)
                 : (<div class="wk-get-media wk-get-media--ph" aria-hidden="true" set:html={ICON[CAT_ICON[t.cat]]}></div>)}
               <div class:list={['wk-get-name', matchItemName(t.get ?? t.name) && 'wk-linkable']} {...linkAttrs(t.get ?? t.name)}>{t.get ?? t.name}</div>
             </div>

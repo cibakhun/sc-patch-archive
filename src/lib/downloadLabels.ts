@@ -119,6 +119,29 @@ export function mediaLabel(file: string, lang: Lang): MediaLabel {
     return { title: pretty(m[1]), sub: T(lang, 'Render', 'Render') };
   }
 
+  // wk-<x>: Wikelo's-Emporium-Assets (Trade-Belohnungen). Kuratiert, wo der
+  // Dateiname das Item nicht trägt — dieselben Dateien stehen auf der Wikelo-
+  // Seite mit dem echten Item-Namen als Alt-Text; Download-Titel und Trade-Alt
+  // müssen vom selben Ding sprechen (Audit: Media-Semantik).
+  m = base.match(/^wk-(.+)$/);
+  if (m) {
+    const WK: Record<string, string> = {
+      'a2b': 'A2 Hercules Starlifter',
+      'c1': 'C1 Spirit',
+      'superhornet': 'F7C-M Super Hornet Mk II',
+      'w-kopionskull': 'Parallax "Fun Kopion Skull" Rifle',
+      'w-militaryskull': 'Parallax "Fun Military Skull" Rifle',
+      // pretty() würde die Modellnummer als trailing-Zahl abschneiden ("R").
+      'w-r97': 'R97 "Crimson Camo" Shotgun',
+    };
+    // Kategorie-Kürzel (a- = Armor, w- = Waffe) trägt keine Information im Titel.
+    const tokens = m[1].split('-').filter((t, i) => !(i === 0 && /^[aw]$/.test(t)));
+    return {
+      title: WK[m[1]] ?? tokens.map(pretty).join(' '),
+      sub: T(lang, 'Wikelo’s Emporium', 'Wikelo’s Emporium'),
+    };
+  }
+
   // Fallback: Dateiname aufhübschen
   return { title: pretty(base.replace(/[-_]/g, ' ')), sub: '' };
 }
