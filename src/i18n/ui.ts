@@ -73,6 +73,7 @@ const UI = {
     // -- Breadcrumbs --
     'crumbs.archive': 'Archiv',
     'crumbs.ships': 'Schiffe',
+    'crumbs.missions': 'Missionen',
     // -- Suche (Overlay) --
     'search.dialog': 'Archiv durchsuchen',
     'search.placeholder': 'Patches, Themen, Schiffe, Features…',
@@ -374,6 +375,7 @@ const UI = {
     // -- Breadcrumbs --
     'crumbs.archive': 'Archive',
     'crumbs.ships': 'Ships',
+    'crumbs.missions': 'Missions',
     // -- Search (overlay) --
     'search.dialog': 'Search the archive',
     'search.placeholder': 'Patches, topics, ships, features…',

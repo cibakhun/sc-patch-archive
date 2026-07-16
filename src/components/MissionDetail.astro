@@ -6,10 +6,10 @@
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
-import { db, uec, dur, mins, cmpSign, repSummary, missions, bpCount } from '../lib/missions';
+import { db, uec, dur, mins, cmpSign, repSummary, missions, bpCount, seoTitle, seoText, clip } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { ICON_BLUEPRINT } from '../lib/icons';
-import { href } from '../i18n/ui';
+import { href, useTranslations } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
 
 interface Props { m: Mission; lang: Locale }
@@ -88,10 +88,8 @@ const S = {
 // der Astro-Compiler die Klammern des Literals mit und bricht ab.
 const parts = (s: string) => String(s).split(/(\{[^}]*\})/).filter(Boolean)
   .map((x) => (x.startsWith('{') ? { t: x.slice(1, -1), ph: true } : { t: x, ph: false }));
-const plainTitle = (t: string) => String(t).replace(/\{([^}]*)\}/g, '$1');
 const titleParts = parts(m.title);
 const descParts = m.desc ? parts(m.desc) : null;
-const plain = plainTitle(m.title);
 const reps = repSummary(m);
 const bpTotal = bpCount(m);
 const srcLabel = m.sources.map((s) => (s === 'broker' ? S.srcBroker : S.srcContract)).join(' + ');
@@ -109,16 +107,22 @@ const colRep = m.variants.some((v) => v.rep.length);
 const related = missions
   .filter((o) => o.slug !== m.slug && o.types.some((t) => m.types.includes(t)))
   .sort((a, b) => b.count - a.count).slice(0, 6);
+// SEO-Meta: seoName statt plain — plain laesst {TargetName} & Co. als rohes
+// CamelCase stehen; im h1 bleiben die Marker sichtbar (titleParts), aber in
+// <title>/description sollen lesbare Woerter stehen. clip() kuerzt an der
+// Wortgrenze auf SERP-Laenge (~160), statt hart bei 180 abzuschneiden.
+const seoName = seoTitle(m.title);
 // Platzhalter-Descs aus dem DataCore („Mission description (WIP)“) fallen
 // unter die 50-Zeichen-SEO-Schwelle — dann trägt das generische Template mehr.
 const descFallback = lang === 'de'
-  ? `${plain}: Belohnung, Reputation, Auftraggeber und Orte aus den Star-Citizen-Spieldateien.`
-  : `${plain}: reward, reputation, contractors and locations from the Star Citizen game files.`;
-const descFromData = m.desc ? `${plain} — ${m.desc}`.slice(0, 180) : '';
-const desc = descFromData.length >= 50 ? descFromData : descFallback;
+  ? `${seoName}: Belohnung, Reputation, Auftraggeber und Orte aus den Star-Citizen-Spieldateien.`
+  : `${seoName}: reward, reputation, contractors and locations from the Star Citizen game files.`;
+const descFromData = m.desc ? `${seoName} — ${seoText(m.desc)}` : '';
+const desc = clip(descFromData.length >= 50 ? descFromData : descFallback);
+const t = useTranslations(lang);
 ---
 <Layout
-  title={`${plain} — ${S.titleKind} | VerseBase`}
+  title={`${seoName} — ${S.titleKind} | VerseBase`}
   description={desc}
   themeColor="#0b0906"
   footer={false}
@@ -137,7 +141,16 @@ const desc = descFromData.length >= 50 ? descFromData : descFallback;
 
   <a class="skip" href="#main">{lang === 'de' ? 'Zum Inhalt' : 'Skip to content'}</a>
   <div class="cursorglow" aria-hidden="true"></div>
-  <SiteNav />
+  {/* crumbs -> BreadcrumbList-JSON-LD (wie Schiffe/Topics); hasEn, damit der
+      Sprachumschalter zur Mission wechselt statt zur EN-Startseite. */}
+  <SiteNav
+    crumbs={[
+      { label: t('crumbs.archive'), href: L('/index.html') },
+      { label: t('crumbs.missions'), href: L('/missionen.html') },
+      { label: seoName },
+    ]}
+    hasEn={true}
+  />
 
   <main id="main" class="md">
     <div class="md__wrap">
@@ -326,7 +339,7 @@ const desc = descFromData.length >= 50 ? descFromData : descFallback;
             {related.map((r) => (
               <li>
                 <a href={L(`/missionen/${r.slug}.html`)}>
-                  <b>{plainTitle(r.title)}</b>
+                  <b>{seoTitle(r.title)}</b>
                   <span>{r.typeNames[0] ?? ''}{r.rewardMax ? ` · ${uec(r.rewardMax, lang)} aUEC` : ''}</span>
                 </a>
               </li>

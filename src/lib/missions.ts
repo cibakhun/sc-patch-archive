@@ -177,6 +177,67 @@ export function bpCount(m: Mission): number {
   return seen.size;
 }
 
+/* ---------- SEO-Meta (Titel/Description ohne rohe Platzhalter) ---------- */
+// 227 Missionstitel tragen Laufzeit-Platzhalter ({TargetName}, {ReputationRank},
+// …). Auf der SEITE bleiben sie als gestylte Marker sichtbar (Ehrlichkeit),
+// aber in <title>/og:title/meta description stuende sonst rohes CamelCase —
+// "Bounty Assignment: TargetName (HRT)" sieht in Suchergebnissen kaputt aus.
+// Kuratiertes Woerterbuch fuer die Titel-Slots; Fallback ist CamelCase-Split.
+const PH_TITLE: Record<string, string> = {
+  // Bounty-/Vermissten-Familien: das Spiel setzt einen NPC-Namen ein
+  targetname: 'Target',
+  last: 'Target', // {Last} = Nachname des Ziels
+  // Orts-Slots, die nicht schon selbst lesbar sind ({Location} bleibt via Split)
+  defendlocationwrapperlocation: 'Location',
+  address: 'Location',
+  racetype: 'Race',
+  // Rang-/Frachtklassen-/Lohn-Slots: ersatzlos — der Satz traegt ohne sie
+  // ("{ReputationRank} Hauler Needed for {CargoGradeToken} Shipment"
+  //  -> "Hauler Needed for Shipment")
+  reputationrank: '',
+  cargogradetoken: '',
+  reward: '',
+  // Recovery-/Delivery-Familien tragen den ganzen Titel im Token
+  timesensitiverecovertitle: 'Time-Sensitive Recovery',
+  recoverstashtitle: 'Stash Recovery',
+  recoverstashstealtitle: 'Stash Recovery',
+  localdeliverydrugprodtitle: 'Local Delivery',
+  // Einzelfall "{Title} ({Item})" (mission-station-wastedisposal, Typ maintenance)
+  title: 'Maintenance',
+  item: '',
+};
+
+/** "CargoGradeToken" -> "Cargo Grade Token"; "location" -> "Location". */
+const deCamel = (s: string) =>
+  s.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^[a-z]/, (c) => c.toUpperCase());
+
+/** Missionstitel fuer <title>/og — Platzhalter ersetzt, Trenner aufgeraeumt. */
+export function seoTitle(title: string): string {
+  return String(title)
+    .replace(/\{([^}]*)\}/g, (_, t) => PH_TITLE[t.toLowerCase()] ?? deCamel(t))
+    .replace(/\(\s*\)/g, ' ') // leere Klammerpaare nach ersatzlosen Slots
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^[\s,:–—-]+|[\s,:–—-]+$/g, '');
+}
+
+/**
+ * Description-Text: Platzhalter stehen hier mitten in Prosa ("processed a
+ * bunch of {Item}") — nur CamelCase-Split, KEIN Woerterbuch (ein ersatzloser
+ * Drop risse Luecken in den Satz). Whitespace flach fuer das Meta-Attribut.
+ */
+export function seoText(s: string): string {
+  return String(s)
+    .replace(/\{([^}]*)\}/g, (_, t) => deCamel(t))
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Auf max. `max` Zeichen kuerzen — an der Wortgrenze, mit Ellipse. */
+export function clip(s: string, max = 160): string {
+  if (s.length <= max) return s;
+  return s.slice(0, max - 1).replace(/\s+\S*$/, '') + '…';
+}
+
 /** Suchindex-Text einer Mission (klein geschrieben, fuer das data-Attribut). */
 export function searchText(m: Mission): string {
   return [
