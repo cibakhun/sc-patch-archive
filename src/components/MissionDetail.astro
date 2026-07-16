@@ -23,6 +23,8 @@ const S = {
     // kind bleibt der sichtbare Eyebrow-Text auf der Seite.
     back: 'Alle Missionen', kind: 'Mission', titleKind: 'Star-Citizen-Mission',
     internal: 'Interner Name', internalT: 'Diese Mission trägt in den Spieldateien keinen Titel. Angezeigt wird ihr interner Name aus dem DataCore — im Spiel heißt sie anders.',
+    mgHead: 'Auftragstext', mgCode: 'mobiGlas // Übertragung',
+    mgEnd: 'Ende der Übertragung', mgAria: 'Auftragstext, wie ihn das mobiGlas anzeigt',
     dynamic: 'Titel wird zur Laufzeit gefüllt',
     dynamicT: 'Die markierten Stellen sind Platzhalter. Das Spiel setzt dort Werte wie den Reputationsrang oder den Namen des Ziels ein.',
     appears: 'Erscheint im Spiel als',
@@ -54,6 +56,8 @@ const S = {
   en: {
     back: 'All missions', kind: 'Mission', titleKind: 'Star Citizen Mission',
     internal: 'Internal name', internalT: 'This mission has no title in the game files. Shown is its internal DataCore name — in game it is called something else.',
+    mgHead: 'Contract briefing', mgCode: 'mobiGlas // transmission',
+    mgEnd: 'End of transmission', mgAria: 'Contract briefing as the mobiGlas shows it',
     dynamic: 'Title is filled in at runtime',
     dynamicT: 'The marked spots are placeholders. The game substitutes values like the reputation rank or the target name.',
     appears: 'Appears in game as',
@@ -162,10 +166,20 @@ const t = useTranslations(lang);
         <h1 class="md__h1">
           {titleParts.map((p) => (p.ph ? <i class="md__ph">{p.t}</i> : <span>{p.t}</span>))}
         </h1>
+        {/* Original-Auftragstext aus den Spieldateien — inszeniert als
+            mobiGlas-Uebertragung (Holo-Panel mit Brackets + Scanlines). */}
         {descParts && (
-          <p class="md__desc">
-            {descParts.map((p) => (p.ph ? <i class="md__ph md__ph--sm">{p.t}</i> : <span>{p.t}</span>))}
-          </p>
+          <figure class="md__mg" role="group" aria-label={S.mgAria}>
+            <figcaption class="md__mgHead">
+              <span class="md__mgDot" aria-hidden="true"></span>
+              <span>{S.mgHead}</span>
+              <span class="md__mgCode">{S.mgCode}</span>
+            </figcaption>
+            <p class="md__desc">
+              {descParts.map((p) => (p.ph ? <i class="md__ph md__ph--sm">{p.t}</i> : <span>{p.t}</span>))}
+            </p>
+            <p class="md__mgEnd" aria-hidden="true">{S.mgEnd}</p>
+          </figure>
         )}
 
         {m.noTitle && (
@@ -388,8 +402,58 @@ const t = useTranslations(lang);
     white-space: nowrap; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent);
     border: 1px dashed color-mix(in srgb, var(--accent) 50%, transparent);
   }
+  /* ---------- mobiGlas-Panel: der In-Game-Auftragstext als Holo-Uebertragung ---------- */
+  /* Eckig statt Site-Radius: SC-HUD-Sprache (Brackets vertragen keine runden
+     Ecken). Amber-Glow nutzt die Seitenpalette, keine neuen Farben. */
+  .md__mg {
+    position: relative; max-width: 74ch; margin: 1.3rem 0 .3rem; padding: 1rem 1.3rem .9rem;
+    background:
+      linear-gradient(color-mix(in srgb, var(--accent) 6%, transparent), transparent 46%),
+      color-mix(in srgb, var(--surface) 74%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+    box-shadow: inset 0 0 36px rgba(245, 165, 36, .05), 0 0 26px rgba(245, 165, 36, .08);
+  }
+  /* Eck-Brackets (je Ecke zwei Striche) */
+  .md__mg::before {
+    content: ""; position: absolute; inset: -1px; pointer-events: none;
+    background:
+      linear-gradient(var(--accent), var(--accent)) left 0 top 0 / 16px 2px,
+      linear-gradient(var(--accent), var(--accent)) left 0 top 0 / 2px 16px,
+      linear-gradient(var(--accent), var(--accent)) right 0 top 0 / 16px 2px,
+      linear-gradient(var(--accent), var(--accent)) right 0 top 0 / 2px 16px,
+      linear-gradient(var(--accent), var(--accent)) left 0 bottom 0 / 16px 2px,
+      linear-gradient(var(--accent), var(--accent)) left 0 bottom 0 / 2px 16px,
+      linear-gradient(var(--accent), var(--accent)) right 0 bottom 0 / 16px 2px,
+      linear-gradient(var(--accent), var(--accent)) right 0 bottom 0 / 2px 16px;
+    background-repeat: no-repeat;
+  }
+  /* Scanlines — reine Deko, bewusst sehr leise */
+  .md__mg::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(180deg, transparent 0 3px, rgba(245, 165, 36, .03) 3px 4px);
+  }
+  .md__mgHead {
+    display: flex; align-items: center; gap: .55rem; margin-bottom: .85rem; padding-bottom: .6rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .22em; font-size: .62rem;
+    color: var(--accent);
+  }
+  .md__mgDot {
+    width: 7px; height: 7px; border-radius: 50%; flex: none;
+    background: var(--accent); box-shadow: 0 0 9px var(--accent);
+    animation: mdMgPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes mdMgPulse { 50% { opacity: .3; } }
+  @media (prefers-reduced-motion: reduce) { .md__mgDot { animation: none; } }
+  .md__mgCode { margin-left: auto; color: var(--muted); letter-spacing: .14em; white-space: nowrap; }
+  .md__mgEnd {
+    margin-top: .95rem; padding-top: .6rem;
+    border-top: 1px dashed color-mix(in srgb, var(--accent) 26%, transparent);
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .3em; font-size: .56rem;
+    color: color-mix(in srgb, var(--accent) 55%, var(--muted));
+  }
   /* Briefings sind mehrabsaetzig; die Umbrueche stehen als \n im Text. */
-  .md__desc { color: var(--muted); max-width: 70ch; font-size: 1.02rem; white-space: pre-line; }
+  .md__desc { color: color-mix(in srgb, var(--accent-2) 12%, var(--muted)); max-width: 70ch; font-size: 1.02rem; white-space: pre-line; }
   .md__ph--sm { font-size: .8em; vertical-align: baseline; }
   .md__warn {
     margin-top: 1rem; padding: .7rem .9rem; border-radius: 10px; font-size: .86rem; color: var(--accent-2);
