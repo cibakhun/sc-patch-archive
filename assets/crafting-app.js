@@ -502,9 +502,15 @@
     plannerBtn.addEventListener('click', function () { drawer.classList.add('is-open'); drawer.setAttribute('aria-hidden', 'false'); });
     $$('[data-planner-close]', drawer).forEach(function (b) { b.addEventListener('click', closeDrawer); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeDrawer(); });
-    // Klick außerhalb des offenen Planers schließt ihn (nicht der Öffnen-Button selbst)
+    // Klick außerhalb des offenen Planers schließt ihn (nicht der Öffnen-Button selbst).
+    // composedPath() statt contains(e.target): die +/−/✕-Buttons in der Planer-Liste
+    // werden im Click-Handler per innerHTML neu gerendert — e.target hängt dann nicht
+    // mehr im DOM, contains() meldete fälschlich „außerhalb" und der Planer ging zu.
+    // Der Event-Pfad ist beim Dispatch eingefroren und kennt den Drawer trotzdem noch.
     document.addEventListener('click', function (e) {
-      if (drawer.classList.contains('is-open') && !drawer.contains(e.target) && !plannerBtn.contains(e.target)) closeDrawer();
+      if (!drawer.classList.contains('is-open')) return;
+      var path = e.composedPath ? e.composedPath() : [e.target];
+      if (path.indexOf(drawer) === -1 && path.indexOf(plannerBtn) === -1) closeDrawer();
     });
   }
   // Slide-Transitions (Planer-Drawer / Mobil-Sidebar) erst nach dem ersten
