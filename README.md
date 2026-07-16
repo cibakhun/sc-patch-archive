@@ -1,10 +1,10 @@
 # SC Patch-Archiv
 
-Ein statisches Web-Archiv aller **Star Citizen** Alpha-Patches von **4.0.0 bis 4.8.2** — jede Version mit eigener, zum Inhalt passender Design-Welt.
+Ein statisches Web-Archiv aller **Star Citizen** Alpha-Patches von **4.0.0 bis 4.9.0** — jede Version mit eigener, zum Inhalt passender Design-Welt.
 
 ## Aufbau
 
-- `index.html` — Hub mit allen 17 Patches (nach Ären gruppiert, je eigene Akzentfarbe & Trailer-Standbild).
+- `index.html` — Hub mit allen 19 Patches (nach Ären gruppiert, je eigene Akzentfarbe & Trailer-Standbild).
 - `patches/sc-4-X-Y.html` — eine eigenständige, themierte Seite pro Patch (Kino-Hero, Bento-Highlights, Schiff-Garage, Video-Wall, Galerie, klickbare Info-Lightboxen).
 - `topics/<slug>.html` — Detailseiten für große Features (z. B. Contested Zones).
 - `assets/` — lokale Bilder (Trailer-Standbilder, Schiff-/System-Renders, Video-Poster).

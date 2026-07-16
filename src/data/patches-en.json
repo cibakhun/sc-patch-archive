@@ -2413,6 +2413,233 @@
           "title": "XenoThreat"
         }
       ]
+    },
+    "4-9-0": {
+      "dateDisplayEn": "July 15, 2026",
+      "tagline": "People's Alliance contracts in Nyx, the scrapyard fighter Grey's Market Basher, and hit markers for ship combat.",
+      "summary": "Alpha 4.9.0 shifts the spotlight to the frontier: in Nyx, the elusive group known as the Moraine threatens the independents, and the People's Alliance calls for help — a new evergreen mission series around mining logistics coordinator Recco Battaglia in Levski (prospecting, recovery, salvage, ship reclamation), with her storyline continuing in 4.10. On top of that: Grey's Market's first light fighter, the Basher (welded together from Buccaneer, Avenger, Gladius, and Aurora parts), hit markers with six impact states for ship combat, a ballistic weapon rebalance, roughly +20% mining laser power with experimental scanning updates, the Behring CQ7, and the Bellator suit. Under the hood: new flyby audio, automatic abandoned-ship cleanup, redeployed distribution centers, and 80+ documented fixes — Siege of Orison and instancing were deliberately moved to 4.10.",
+      "keyFacts": [
+        {
+          "label": "People's Alliance Contracts",
+          "value": "Evergreen mission series around Recco Battaglia (Levski, Nyx) — storyline follows in 4.10"
+        },
+        {
+          "label": "New Ship",
+          "value": "Grey's Market Basher — light fighter built from salvaged parts ($110)"
+        },
+        {
+          "label": "Ship Combat",
+          "value": "Hit markers with 6 impact states + dedicated audio feedback"
+        },
+        {
+          "label": "Mining",
+          "value": "Roughly +20% ship laser power; experimental scanning updates"
+        },
+        {
+          "label": "Bug Fixes",
+          "value": "80+ documented fixes in the LIVE notes (incl. 8 client & 2 server crash fixes)"
+        },
+        {
+          "label": "Wipe",
+          "value": "None — Long-Term Persistence preserved, starting aUEC 20,000"
+        }
+      ],
+      "features": [
+        {
+          "name": "People's Alliance Contracts (\"Support the Miners\")",
+          "system": "Missions & Activities",
+          "desc": "New evergreen, repeatable mission series in Nyx: the group known as the Moraine threatens the independents, and the People's Alliance is looking for help. Contracts via mobiGlas range from prospecting, searching for missing workers, boarding hijacked ships, and recovering cargo to salvage and ship reclamation. Building reputation with the Alliance catches the attention of Recco Battaglia — an independent mining logistics coordinator based in Levski; her story missions follow in Alpha 4.10.",
+          "facts": [
+            {
+              "label": "Contract Giver",
+              "value": "Recco Battaglia · Levski (Nyx)"
+            },
+            {
+              "label": "Rewards",
+              "value": "Blueprints (People's Alliance armor, Klescher laser repeater) + unique variants of Golem, Prospector & MOLE"
+            },
+            {
+              "label": "Continuation",
+              "value": "Story missions in Alpha 4.10"
+            }
+          ]
+        },
+        {
+          "name": "Grey's Market Basher",
+          "system": "Ship systems",
+          "desc": "Grey's Market's first light fighter — and the scrap dealer's second flyable build after the Shiv (4.3.2): a single-seater welded together from salvaged parts of the Drake Buccaneer, Aegis Avenger, Gladius, and RSI Aurora Mk I. Heavily armed for its class — six S2 hardpoints (stock: 4× \"Snapper\" laser repeaters + 2× \"Deathroll\" ballistic gatlings) plus four S1 missiles. Signature trait: a detachable crane whose tip doubles as an improvised iron sight.",
+          "facts": [
+            {
+              "label": "Armament",
+              "value": "6× S2 (4 Snapper + 2 Deathroll) · 4× S1 missiles"
+            },
+            {
+              "label": "Dimensions",
+              "value": "13.7 m × 11.3 m × 4.5 m · 1 seat"
+            },
+            {
+              "label": "Price",
+              "value": "$110 (warbond $100) · not yet purchasable for aUEC"
+            }
+          ]
+        },
+        {
+          "name": "Ship Combat Hit Markers",
+          "system": "Combat & Weapons",
+          "desc": "Ships finally give precise hit feedback on the reticle: six states distinguish deflected shots (no damage), shield, armor, hull, and component hits, plus destroyed components. Each state carries its own audio cue — refined down to three core layers after director feedback (armor, component, component destroyed) and fully decoupled from the legacy Ships Computer audio.",
+          "facts": [
+            {
+              "label": "Impact States",
+              "value": "6 (deflect · shield · armor · hull · component · component destroyed)"
+            },
+            {
+              "label": "Audio",
+              "value": "3 core layers, rebuilt"
+            }
+          ]
+        },
+        {
+          "name": "Ballistic Weapon Rebalance",
+          "system": "Combat & Weapons",
+          "desc": "Balance pass across vehicle ballistics: ballistic repeaters lose significant damage. The Behring S4 ballistic cannon (C-788) is reworked — damage per shot rises from 325 to 1,090, but armor penetration distance drops and the fire rate slows. Deadbolt cannons (S4: 683→610, S5: 1,024→950), the Behring S5 gatling (126.5→102.5), and the Vanduul S5 plasma cannon (1,000→970) are toned down.",
+          "facts": [
+            {
+              "label": "BEHR S4 Cannon",
+              "value": "325 → 1,090 damage/shot, less penetration & fire rate"
+            },
+            {
+              "label": "Repeaters",
+              "value": "Ballistic repeaters significantly reduced"
+            }
+          ]
+        },
+        {
+          "name": "Mining & Scanning",
+          "system": "Mining & Resources",
+          "desc": "Ship mining laser power increases by roughly 20% across the board. Experimental scanning updates make locating materials throughout the verse easier (being monitored on LIVE). In Nyx, common resource distribution was adjusted at the Glacium and Keeger HPP locations — flanked by the new Alliance mining contracts.",
+          "facts": [
+            {
+              "label": "Laser Power",
+              "value": "+20% on all ship mining lasers"
+            },
+            {
+              "label": "Scanning",
+              "value": "Experimental — easier material scanning"
+            }
+          ]
+        },
+        {
+          "name": "Ordnance Cargo Holder",
+          "system": "Cargo & Logistics",
+          "desc": "Missiles and torpedoes on cargo grids now sit in bounding-box frames: the footprint is visible, stacking and alignment become plannable. The frame appears anywhere a cargo grid exists — including ship interiors and freight elevators; when snapping, the hologram preview shows ordnance plus frame, and the snap direction is selectable.",
+          "facts": [
+            {
+              "label": "Applies To",
+              "value": "Missiles, torpedoes & bombs on all cargo grids"
+            }
+          ]
+        },
+        {
+          "name": "Behring CQ7 Bullpup Rifle",
+          "system": "Combat & Weapons",
+          "desc": "New standard assault rifle in a bullpup layout: a sharp TTK with a consistently readable, vertical recoil pattern — an all-rounder with the typical Behring character. Found in Ship in Distress missions and the Moraine missions (Data Retrieval, Movements), plus shops across multiple locations.",
+          "facts": [
+            {
+              "label": "Fire Modes",
+              "value": "Automatic / burst · 650 RPM"
+            },
+            {
+              "label": "Stats",
+              "value": "16.5 damage · 550 m/s · 40 rounds · 0.25 s ADS"
+            }
+          ]
+        },
+        {
+          "name": "Bellator Combat Suit",
+          "system": "Combat & Weapons",
+          "desc": "A tailored civilian suit (jacket, trousers, dress shirt, shoes) inspired by high-end professional clothing — with light damage mitigation and weapon slots standard civilian clothing doesn't offer. Jacket: 2 magazine slots + 1 visible stocked weapon; a sidearm and knife stay concealed under the jacket. Trousers: 2 medpen + 1 knife slot.",
+          "facts": [
+            {
+              "label": "Concept",
+              "value": "Armed & protected without standing out"
+            }
+          ]
+        },
+        {
+          "name": "Valakkar Behavior",
+          "system": "AI & Creatures",
+          "desc": "Behavior update for the sand worms: sentry Valakkar no longer bite and instead hide when approached; mobile Valakkar actively chase their targets and reposition in combat; juveniles gain a bite attack. Valakkar now only surface with a recognizable purpose (less idle wiggling), and damage bugs on some attacks were fixed.",
+          "facts": [
+            {
+              "label": "Types",
+              "value": "Sentry · mobile · juvenile — clearly distinct"
+            }
+          ]
+        },
+        {
+          "name": "Flyby Audio",
+          "system": "Core Tech & Audio",
+          "desc": "Ship flyby audio was rebuilt from the ground up: a new procedural system now triggers flyby sounds reliably — with new audio assets, better distance attenuation, and positional feedback. Fixes the long-standing issue of silent flybys; attenuation rules were tuned across all ships.",
+          "facts": [
+            {
+              "label": "System",
+              "value": "Procedural, new assets, all ships"
+            }
+          ]
+        },
+        {
+          "name": "Vehicle Cleanup & ASOP",
+          "system": "Stability & Performance",
+          "desc": "New cleanup code clears abandoned ships from landing zones and stations after 5 hours — targeting ship clutter at hotspots, effective across all of Stanton and Nyx including Grim Hex and Levski. ASOP terminals now correctly suppress the claim button while a ship is in transit to a pad and recognize ships stored in hangar inventory (no more false \"claim only\" state). Plus experimental VR updates (body-aligned stereo cursor).",
+          "facts": [
+            {
+              "label": "Cleanup",
+              "value": "Abandoned ships after 5 h · Stanton & Nyx"
+            }
+          ]
+        },
+        {
+          "name": "Additional Updates",
+          "system": "UI & Comfort",
+          "desc": "Two new hairstyles plus a quality rework of an existing one; capital ships now reach hangar services as soon as any part of the ship overlaps the servicing zone (instead of the exact pivot point); Vanduul shields with reworked glow and hexagon effects. Plus shop upkeep: item kiosks replacing commodity kiosks at Dumper's Depot & Platinum Bay, jump drives and food added to the Dumper's Depot range (Area18), and additional kiosks at the New Deal dealership in Lorville.",
+          "facts": [
+            {
+              "label": "Characters",
+              "value": "2 new hairstyles + 1 rework"
+            },
+            {
+              "label": "Capital Ships",
+              "value": "Hangar services on partial zone overlap"
+            }
+          ]
+        },
+        {
+          "name": "Distribution Centers & Mission Rebalance",
+          "system": "Missions & Activities",
+          "desc": "All existing distribution centers were redeployed with systemic and physics improvements — repairing many long-broken missions at those locations; tractor beams now also work inside their armistice zones. Combat missions were rebalanced around ship armor: no more industrial ships as enemies, and defend missions spawn lower-class attackers. Freight elevator kiosk with a \"Show External\" checkbox and clearer error messages; Bombing Run and satellite missions now only appear regionally.",
+          "facts": [
+            {
+              "label": "Scope",
+              "value": "All distribution centers redeployed"
+            },
+            {
+              "label": "QoL",
+              "value": "Grenade HUD markers · regional mission offers · kiosk update"
+            }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Light fighter",
+          "status": "new",
+          "notes": "Built from salvaged Buccaneer, Avenger, Gladius & Aurora Mk I parts — $110 (warbond $100), not yet purchasable for aUEC"
+        }
+      ],
+      "events": [],
+      "fixesNote": "80+ documented fixes in the LIVE notes (roughly 70 bug fixes plus crash/stability fixes, 8 client / 2 server) — including docking collars, jump tunnel misdestinations, player-to-player aUEC trade, inaccessible inventories, and the Railen instant explosion. The Spectrum post cited \"166+ since 4.8\" — a block accidentally recycled from the 4.8 notes.",
+      "wipe": "No wipe — Long-Term Persistence preserved, starting aUEC 20,000.",
+      "topics": []
     }
   }
 }

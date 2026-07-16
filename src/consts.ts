@@ -9,7 +9,7 @@ export const SITE = {
   name: 'VerseBase',
   url: 'https://verse-base.com',
   defaultDescription:
-    'VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv von Alpha 4.0.0 bis 4.8.3. Game-akkurat, zweisprachig, ein Fan-Projekt.',
+    'VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv von Alpha 4.0.0 bis 4.9.0. Game-akkurat, zweisprachig, ein Fan-Projekt.',
   locale: 'de',
 } as const;
 
