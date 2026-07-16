@@ -53,22 +53,26 @@ export function shipVideo(id: string): string | null {
   return v && v.trim() ? v.trim() : null;
 }
 
+/** Ein Bild der Kopf-Slideshow; `paint` = Lack-Name für den Alt-Text
+ *  (null bei Hero-Render/Store-Bild). */
+export type GalleryImage = { src: string; paint: string | null };
+
 /** Geordnete, deduplizierte Bildliste pro Schiff für die Kopf-Slideshow:
  *  Hero-Render zuerst, dann FleetYards-Store-Bild, dann die Paint-Varianten.
  *  Auf 12 Bilder gedeckelt (DOM/Traffic). */
-export function shipGallery(id: string, d: VehicleData): string[] {
-  const urls: string[] = [];
-  const push = (u?: string | null) => {
-    if (u && !urls.includes(u)) urls.push(u);
+export function shipGallery(id: string, d: VehicleData): GalleryImage[] {
+  const imgs: GalleryImage[] = [];
+  const push = (u?: string | null, paint: string | null = null) => {
+    if (u && !imgs.some((g) => g.src === u)) imgs.push({ src: u, paint });
   };
   const hero = pickHero(d);
   if (hero) push(hero.src);
   const e = extrasInfo(id);
   if (e) {
     push(e.storeImage);
-    for (const p of e.paints) push(p.image);
+    for (const p of e.paints) push(p.image, p.name);
   }
-  return urls.slice(0, 12);
+  return imgs.slice(0, 12);
 }
 
 /* ---------- Leistungsprofil: Perzentile im Gesamtkatalog ---------- */
