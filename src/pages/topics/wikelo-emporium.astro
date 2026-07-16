@@ -8,6 +8,7 @@ import WikeloBridge from '../../components/WikeloBridge.astro';
 import { matchItemName } from '../../lib/wikeloItemMatch';
 import TRADES from '../../../assets/wikelo-trades.json';
 import { existsSync } from 'node:fs';
+import TopicSeo from '../../components/dossier/TopicSeo.astro';
 
 // Only show trade photos whose image file actually exists (build-time check
 // against public/assets). If missing, the category-icon fallback kicks in —
@@ -67,6 +68,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 });
 ---
 <Layout title={"Wikelo's Emporium — Star Citizen 4.1 | VerseBase"} description={"Wikelo's Emporium: the Banu trader Wikelo — the first playable alien NPC in Star Citizen. Barter instead of money: deliver items, earn Wikelo Favor, trade for rewards from his stock. Three asteroid stations in Stanton, since Alpha 4.1."} themeColor="#0d1513" ogType="article" ogImage="/assets/wk-hero.jpg" translated={true}>
+<TopicSeo slug="wikelo-emporium" image="/assets/wk-hero.jpg" />
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
 

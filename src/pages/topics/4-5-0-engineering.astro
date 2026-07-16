@@ -4,8 +4,10 @@ import SiteNav from '../../components/SiteNav.astro';
 import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
+import TopicSeo from '../../components/dossier/TopicSeo.astro';
 ---
 <Layout title={"Engineering — Star Citizen 4.5.0 | VerseBase"} description={"Dawn of Engineering: With Alpha 4.5.0, operating your ship becomes gameplay in itself — distribute power, manage Ship Armor, put out fires. Plus Vulkan as the default renderer and experimental VR support."} themeColor="#0f1316" ogType="article" ogImage="/assets/t-eng-3.jpg" translated={true}>
+<TopicSeo slug="4-5-0-engineering" image="/assets/t-eng-3.jpg" />
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
 

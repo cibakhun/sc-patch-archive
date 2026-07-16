@@ -1,0 +1,48 @@
+---
+// Article JSON-LD for topic deep-dives — same body-rendered pattern as
+// PatchSeo, but resolved from the OWNING patch record: the slug identifies
+// the topic, the patch supplies version + datePublished, mergePatchEn the
+// language-correct title. Purely additive, no visible HTML.
+import { getCollection } from 'astro:content';
+import { SITE } from '../../consts';
+import { HTML_LANG, localeFromPath } from '../../i18n/ui';
+import { mergePatchEn } from '../../i18n/patchText';
+
+interface Props {
+  /** slug of this topic page (filename under /topics/, without .html) */
+  slug: string;
+  /** site-relative social image, e.g. "/assets/t-xeno-1.jpg" */
+  image?: string;
+}
+const { slug, image } = Astro.props;
+
+const base = SITE.url.replace(/\/$/, '');
+const url = base + Astro.url.pathname;
+const lang = localeFromPath(Astro.url.pathname);
+
+const patches = await getCollection('patches');
+const parentEntry = patches.find((p) => p.data.topics.some((tp) => tp.slug === slug));
+const parent = parentEntry ? mergePatchEn(parentEntry.id, parentEntry.data, lang) : null;
+const topic = parent?.topics.find((tp) => tp.slug === slug);
+// Beschreibung: das Feature, dessen Vertiefung diese Seite ist; sonst die
+// Patch-Tagline. (Die meta description der Seite kennt nur das Layout.)
+const feat = parent?.features.find((f) => f.topicSlug === slug);
+
+const ld =
+  parent && topic
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: `${topic.title} — Star Citizen Alpha ${parent.version}`,
+        description: feat?.desc ?? parent.tagline,
+        ...(image ? { image: base + image } : {}),
+        url,
+        inLanguage: HTML_LANG[lang],
+        datePublished: parent.date,
+        about: { '@type': 'VideoGame', name: 'Star Citizen' },
+        isPartOf: { '@type': 'WebSite', name: SITE.name, url: `${base}/` },
+        publisher: { '@type': 'Organization', name: SITE.name },
+      }
+    : null;
+---
+{ld && <script type="application/ld+json" set:html={JSON.stringify(ld)} />}

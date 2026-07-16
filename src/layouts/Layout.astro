@@ -26,6 +26,13 @@ interface Props {
    * keine 404-URL, und die DE-Ausgabe bleibt byte-gleich zu vorher.
    */
   translated?: boolean;
+  /**
+   * ItemPage-JSON-LD für Datenblätter (Schiffe/Missionen): sagt Suchmaschinen,
+   * dass die Seite EIN Ding beschreibt, und trägt den Datenstand (dateModified
+   * = Snapshot-/Extraktionsdatum). Redaktionelle Seiten nutzen stattdessen
+   * PatchSeo/TopicSeo (Article, im Body gerendert).
+   */
+  itemPage?: { modified?: string };
 }
 
 const {
@@ -37,6 +44,7 @@ const {
   ogType = 'website',
   noindex = false,
   translated = false,
+  itemPage,
 } = Astro.props;
 
 const base = SITE.url.replace(/\/$/, '');
@@ -110,6 +118,24 @@ const enHref = base + canon(pathForLocale(Astro.url.pathname, 'en'));
       },
     })}
   />
+  {itemPage && (
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ItemPage',
+        name: title,
+        description,
+        image: ogImageAbs,
+        url: canonical,
+        inLanguage: HTML_LANG[lang],
+        ...(itemPage.modified ? { dateModified: itemPage.modified } : {}),
+        about: { '@type': 'VideoGame', name: 'Star Citizen' },
+        isPartOf: { '@type': 'WebSite', name: SITE.name, url: base + '/' },
+      })}
+    />
+  )}
 
   {/* Webfonts selbst gehostet (scripts/fetch-fonts.mjs) — kein Google-CDN,
       keine IP-Übertragung an Dritte beim Seitenaufruf (DSGVO). */}
