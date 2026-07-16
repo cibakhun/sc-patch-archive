@@ -1,0 +1,260 @@
+{
+  "version": "4.9.0",
+  "codename": "Frontier Tensions",
+  "date": "2026-07-15",
+  "dateDisplay": "15. Juli 2026",
+  "notesUrl": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21245-Star-Citizen-Alpha-49",
+  "era": "Frontier",
+  "type": "major",
+  "tagline": "People's-Alliance-Kontrakte in Nyx, der Schrott-Jäger Grey's Market Basher und Hit-Marker für den Schiffskampf.",
+  "heroImage": "/assets/trailer-4-9-0.jpg",
+  "summary": "Alpha 4.9.0 verlagert den Fokus an die Frontier: In Nyx bedroht die mysteriöse Gruppierung „Moraine\" die Unabhängigen, und die People's Alliance ruft zu Hilfe — eine neue, dauerhafte Missionsreihe rund um die Bergbau-Koordinatorin Recco Battaglia in Levski (Prospecting, Bergung, Salvage, Schiffs-Rückgewinnung), deren Story-Fortsetzung in 4.10 folgt. Dazu kommen Grey's Markets erster leichter Jäger Basher (zusammengeschweißt aus Buccaneer-, Avenger-, Gladius- und Aurora-Teilen), Hit-Marker mit sechs Trefferzuständen für den Schiffskampf, eine Ballistik-Rebalance, rund +20 % Mining-Laserleistung samt experimentellen Scanning-Updates, die Behring CQ7 und der Bellator-Anzug. Unter der Haube: neues Flyby-Audio, automatische Schiffs-Bereinigung, überarbeitete Distribution-Center und über 80 dokumentierte Fixes — Siege of Orison und Instancing wurden bewusst auf 4.10 verschoben.",
+  "palette": {
+    "bg": "#140f0c",
+    "accent": "#e94f3d",
+    "accent2": "#e3aa4b",
+    "warm": true
+  },
+  "trailer": {
+    "yt": "OX__JZULs-Y",
+    "own": true,
+    "title": "Inside Star Citizen — Alpha 4.9 Patch Report"
+  },
+  "keyFacts": [
+    {
+      "label": "People's-Alliance-Kontrakte",
+      "value": "Dauerhafte Missionsreihe um Recco Battaglia (Levski, Nyx) — Story folgt in 4.10"
+    },
+    {
+      "label": "Neues Schiff",
+      "value": "Grey's Market Basher — leichter Jäger aus Schrottteilen (110 $)"
+    },
+    {
+      "label": "Schiffskampf",
+      "value": "Hit-Marker mit 6 Trefferzuständen + eigenem Audio-Feedback"
+    },
+    {
+      "label": "Mining",
+      "value": "Rund +20 % Schiffs-Laserleistung; experimentelle Scanning-Updates"
+    },
+    {
+      "label": "Bugfixes",
+      "value": "80+ dokumentierte Fixes in den LIVE-Notes (davon 8 Client- & 2 Server-Crash-Fixes)"
+    },
+    {
+      "label": "Wipe",
+      "value": "Keiner — Long-Term Persistence erhalten, Start-aUEC 20.000"
+    }
+  ],
+  "features": [
+    {
+      "name": "People's-Alliance-Kontrakte („Support the Miners\")",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Neue dauerhafte, wiederholbare Missionsreihe in Nyx: Die Gruppierung „Moraine\" bedroht die Unabhängigen, die People's Alliance sucht Helfer. Aufträge übers mobiGlas reichen von Prospecting über Vermisstensuche, Entern gekaperter Schiffe und Fracht-Rückholung bis zu Salvage und Schiffs-Rückgewinnung. Wer Ruf bei der Alliance aufbaut, weckt das Interesse von Recco Battaglia — einer unabhängigen Bergbau-Logistik-Koordinatorin in Levski; ihre Story-Missionen folgen in Alpha 4.10.",
+      "facts": [
+        {
+          "label": "Auftraggeberin",
+          "value": "Recco Battaglia · Levski (Nyx)"
+        },
+        {
+          "label": "Belohnungen",
+          "value": "Blueprints (People's-Alliance-Rüstung, Klescher-Laser-Repeater) + Unikat-Varianten von Golem, Prospector & MOLE"
+        },
+        {
+          "label": "Fortsetzung",
+          "value": "Story-Missionen in Alpha 4.10"
+        }
+      ]
+    },
+    {
+      "name": "Grey's Market Basher",
+      "system": "Schiffs-Systeme",
+      "kind": "ship-system",
+      "desc": "Grey's Markets erster leichter Jäger — nach der Shiv (4.3.2) der zweite fliegbare Eigenbau des Schrotthändlers: ein Einsitzer, zusammengeschweißt aus Bergungsteilen von Drake Buccaneer, Aegis Avenger, Gladius und RSI Aurora Mk I. Massiv bewaffnet für seine Klasse — sechs S2-Waffenaufhängungen (ab Werk 4× „Snapper\"-Laser-Repeater + 2× „Deathroll\"-Ballistik-Gatlings) plus vier S1-Raketen. Markenzeichen: ein abnehmbarer Kran, dessen Spitze als improvisiertes Visier dient.",
+      "facts": [
+        {
+          "label": "Bewaffnung",
+          "value": "6× S2 (4 Snapper + 2 Deathroll) · 4× S1-Raketen"
+        },
+        {
+          "label": "Maße",
+          "value": "13,7 m × 11,3 m × 4,5 m · 1 Sitz"
+        },
+        {
+          "label": "Preis",
+          "value": "110 $ (Warbond 100 $) · noch nicht für aUEC"
+        }
+      ]
+    },
+    {
+      "name": "Hit-Marker im Schiffskampf",
+      "system": "Combat & Waffen",
+      "kind": "gameplay",
+      "desc": "Schiffe geben endlich präzises Treffer-Feedback am Fadenkreuz: Sechs Zustände unterscheiden abgeprallte Schüsse (kein Schaden), Schild-, Panzerungs-, Hüllen- und Komponententreffer sowie zerstörte Komponenten. Jeder Zustand hat einen eigenen Audio-Cue — nach Director-Feedback auf drei Kern-Ebenen reduziert (Panzerung, Komponente, Komponente zerstört) und vom alten Ships-Computer-Audio entkoppelt.",
+      "facts": [
+        {
+          "label": "Trefferzustände",
+          "value": "6 (Deflect · Schild · Panzerung · Hülle · Komponente · Komponente zerstört)"
+        },
+        {
+          "label": "Audio",
+          "value": "3 Kern-Ebenen, neu aufgebaut"
+        }
+      ]
+    },
+    {
+      "name": "Ballistik-Rebalance",
+      "system": "Combat & Waffen",
+      "kind": "balance",
+      "desc": "Balance-Pass über die Fahrzeug-Ballistik: Ballistik-Repeater verlieren deutlich Schaden. Die Behring S4-Ballistik-Kanone (C-788) wird umgebaut — Schaden pro Schuss steigt von 325 auf 1.090, dafür sinkt die Panzerdurchdringungs-Distanz und die Feuerrate fällt. Deadbolt-Kanonen (S4: 683→610, S5: 1.024→950), Behring S5-Gatling (126,5→102,5) und Vanduul-Plasma S5 (1.000→970) werden abgeschwächt.",
+      "facts": [
+        {
+          "label": "BEHR S4-Kanone",
+          "value": "325 → 1.090 Schaden/Schuss, weniger Durchschlag & Feuerrate"
+        },
+        {
+          "label": "Repeater",
+          "value": "Ballistik-Repeater deutlich abgeschwächt"
+        }
+      ]
+    },
+    {
+      "name": "Mining & Scanning",
+      "system": "Mining & Ressourcen",
+      "kind": "balance",
+      "desc": "Die Laserleistung aller Schiffs-Mining-Laser steigt pauschal um rund 20 %. Experimentelle Scanning-Updates erleichtern das Aufspüren von Materialien im ganzen Verse (Beobachtung auf LIVE läuft). In Nyx wurde die Verteilung häufiger Ressourcen an den Glacium- und Keeger-HPP-Standorten angepasst — flankiert von den neuen Alliance-Bergbau-Kontrakten.",
+      "facts": [
+        {
+          "label": "Laserleistung",
+          "value": "+20 % auf alle Schiffs-Mining-Laser"
+        },
+        {
+          "label": "Scanning",
+          "value": "Experimentell — leichteres Material-Scannen"
+        }
+      ]
+    },
+    {
+      "name": "Ordnance Cargo Holder",
+      "system": "Cargo & Logistik",
+      "kind": "qol",
+      "desc": "Raketen und Torpedos auf Cargo-Grids stecken jetzt in Bounding-Box-Rahmen: Platzbedarf ist sichtbar, Stapeln und Ausrichten wird planbar. Der Rahmen erscheint überall, wo Cargo-Grids existieren — auch in Schiffsinnenräumen und auf Frachtaufzügen; beim Einrasten zeigt die Hologramm-Vorschau Ordnance samt Rahmen, die Snap-Richtung ist wählbar.",
+      "facts": [
+        {
+          "label": "Gilt für",
+          "value": "Raketen, Torpedos & Bomben auf allen Cargo-Grids"
+        }
+      ]
+    },
+    {
+      "name": "Behring CQ7 Bullpup-Gewehr",
+      "system": "Combat & Waffen",
+      "kind": "gameplay",
+      "desc": "Neues Standard-Sturmgewehr im Bullpup-Layout: knackige TTK bei konsequent lesbarem, vertikalem Rückstoßmuster — ein Allrounder im typischen Behring-Charakter. Zu finden in Ship-in-Distress-Missionen und den Moraine-Missionen (Data Retrieval, Movements), außerdem in Shops an mehreren Standorten.",
+      "facts": [
+        {
+          "label": "Feuermodi",
+          "value": "Automatik / Burst · 650 RPM"
+        },
+        {
+          "label": "Werte",
+          "value": "16,5 Schaden · 550 m/s · 40 Schuss · ADS 0,25 s"
+        }
+      ]
+    },
+    {
+      "name": "Bellator Combat Suit",
+      "system": "Combat & Waffen",
+      "kind": "gameplay",
+      "desc": "Maßgeschneiderter Zivil-Anzug (Jackett, Hose, Hemd, Schuhe) im Look gehobener Berufskleidung — mit leichter Schadensminderung und Waffen-Slots, die normale Zivilkleidung nicht bietet. Jackett: 2 Magazin-Slots + 1 sichtbare Langwaffe; Seitenwaffe und Messer verschwinden verdeckt unterm Jackett. Hose: 2 MedPen- + 1 Messer-Slot.",
+      "facts": [
+        {
+          "label": "Konzept",
+          "value": "Bewaffnet & geschützt, ohne aufzufallen"
+        }
+      ]
+    },
+    {
+      "name": "Valakkar-Verhalten",
+      "system": "KI & Kreaturen",
+      "kind": "gameplay",
+      "desc": "Verhaltens-Update für die Sandwürmer: Sentry-Valakkar beißen nicht mehr, sondern verstecken sich bei Annäherung; mobile Valakkar verfolgen ihre Ziele aktiv und repositionieren sich im Kampf; Jungtiere erhalten einen Biss-Angriff. Valakkar tauchen nur noch mit erkennbarem Zweck auf (weniger Leerlauf-Gewackel), Schadens-Bugs einzelner Angriffe wurden behoben.",
+      "facts": [
+        {
+          "label": "Typen",
+          "value": "Sentry · Mobil · Juvenil — klar unterscheidbar"
+        }
+      ]
+    },
+    {
+      "name": "Flyby-Audio",
+      "system": "Core Tech & Audio",
+      "kind": "tech",
+      "desc": "Das Vorbeiflug-Audio wurde von Grund auf neu gebaut: Ein prozedurales System löst Flyby-Sounds jetzt zuverlässig aus — mit neuen Audio-Assets, besserer Distanz-Abschwächung und Positions-Feedback. Behebt das Altproblem stummer Vorbeiflüge; die Lautstärke-Regeln wurden über alle Schiffe hinweg abgestimmt.",
+      "facts": [
+        {
+          "label": "System",
+          "value": "Prozedural, neue Assets, alle Schiffe"
+        }
+      ]
+    },
+    {
+      "name": "Schiffs-Bereinigung & ASOP",
+      "system": "Stabilität & Performance",
+      "kind": "tech",
+      "desc": "Neuer Cleanup-Code räumt verlassene Schiffe nach 5 Stunden von Landezonen und Stationen — gegen Schiffs-Müll an Hotspots, wirksam in ganz Stanton und Nyx inklusive Grim Hex und Levski. ASOP-Terminals unterdrücken den Claim-Knopf korrekt, während ein Schiff zum Pad unterwegs ist, und erkennen im Hangar eingelagerte Schiffe (kein falsches „nur Claim\" mehr). Dazu experimentelle VR-Updates (körper-ausgerichteter Stereo-Cursor).",
+      "facts": [
+        {
+          "label": "Cleanup",
+          "value": "Verlassene Schiffe nach 5 h · Stanton & Nyx"
+        }
+      ]
+    },
+    {
+      "name": "Weitere Updates",
+      "system": "UI & Komfort",
+      "kind": "qol",
+      "desc": "Zwei neue Frisuren plus ein Qualitäts-Rework einer bestehenden; Kapitalschiffe erreichen Hangar-Services jetzt, sobald irgendein Teil des Schiffs die Service-Zone überlappt (statt exakt mit dem Drehpunkt); Vanduul-Schilde mit überarbeitetem Glow- und Hexagon-Effekt. Dazu Shop-Pflege: Item-Kiosks statt Commodity-Kiosks bei Dumper's Depot & Platinum Bay, Jump Drives und Verpflegung im Dumper's-Depot-Sortiment (Area18), zusätzliche Kiosks beim New-Deal-Händler in Lorville.",
+      "facts": [
+        {
+          "label": "Charaktere",
+          "value": "2 neue Frisuren + 1 Rework"
+        },
+        {
+          "label": "Kapitalschiffe",
+          "value": "Hangar-Services schon bei Teil-Überlappung der Zone"
+        }
+      ]
+    },
+    {
+      "name": "Distribution-Center & Missions-Rebalance",
+      "system": "Missionen & Aktivitäten",
+      "kind": "qol",
+      "desc": "Alle bestehenden Distribution-Center wurden mit System- und Physik-Verbesserungen neu ausgerollt — das repariert viele lange defekte Missionen an diesen Orten; Traktorstrahlen funktionieren dort jetzt auch in Armistice-Zonen. Kampfmissionen wurden auf die Schiffspanzerung rebalanciert: keine Industrie-Schiffe mehr als Gegner, Verteidigungs-Missionen spawnen schwächere Angreifer. Frachtaufzug-Kiosk mit „Extern\"-Checkbox und klareren Fehlermeldungen; Bombing-Run- und Satelliten-Missionen erscheinen nur noch regional.",
+      "facts": [
+        {
+          "label": "Umfang",
+          "value": "Alle Distribution-Center neu ausgerollt"
+        },
+        {
+          "label": "QoL",
+          "value": "Granaten-HUD-Marker · regionale Missionsangebote · Kiosk-Update"
+        }
+      ]
+    }
+  ],
+  "ships": [
+    {
+      "name": "Basher",
+      "manufacturer": "Grey's Market",
+      "role": "Leichter Jäger",
+      "status": "neu",
+      "notes": "Aus Bergungsteilen von Buccaneer, Avenger, Gladius & Aurora Mk I — 110 $ (Warbond 100 $), noch nicht für aUEC kaufbar"
+    }
+  ],
+  "events": [],
+  "fixesNote": "80+ dokumentierte Fixes in den LIVE-Notes (rund 70 Bugfixes + Crash-/Stabilitäts-Fixes, 8 Client / 2 Server) — u. a. Docking-Kragen, Jump-Tunnel-Fehlziele, Spieler-Handel (aUEC), unzugängliche Inventare und die Railen-Sofortexplosion. Der Spectrum-Post nannte „166+ seit 4.8\" — ein versehentlich recycelter Block aus den 4.8-Notes.",
+  "wipe": "Kein Wipe — Long-Term Persistence erhalten, Start-aUEC 20.000.",
+  "topics": []
+}

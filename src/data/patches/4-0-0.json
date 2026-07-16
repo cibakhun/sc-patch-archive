@@ -3,18 +3,43 @@
   "codename": "Destination Pyro",
   "date": "2024-12-19",
   "dateDisplay": "19. Dez 2024",
+  "notesUrl": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/20360-Star-Citizen-Alpha-40",
   "era": "Pyro-Ära",
   "type": "major",
   "tagline": "Server Meshing & das gesetzlose Pyro-System.",
   "summary": "Der größte technische Sprung seit Jahren: Statisches Server Meshing verbindet erstmals mehrere Server zu einem Shard, Pyro öffnet als zweites Sternsystem — erreichbar per Jump Point — und die Contested Zones bringen PvPvE-Beutezonen tief in Pyros Anlagen.",
-  "palette": { "bg": "#1a1714", "accent": "#ff5a1f", "accent2": "#c8861d", "warm": true },
-  "trailer": { "yt": "DE3ePRgpUQo", "own": true, "title": "Alpha 4.0 - Destination Pyro" },
+  "palette": {
+    "bg": "#1a1714",
+    "accent": "#ff5a1f",
+    "accent2": "#c8861d",
+    "warm": true
+  },
+  "trailer": {
+    "yt": "DE3ePRgpUQo",
+    "own": true,
+    "title": "Alpha 4.0 - Destination Pyro"
+  },
   "keyFacts": [
-    { "label": "Server Meshing", "value": "≈10 Server pro Shard · bis 500 Spieler (vorher ~100)" },
-    { "label": "Neues Sternsystem", "value": "Pyro — 6 Planeten, Ruin Station, Rest-Stops" },
-    { "label": "Systemreise", "value": "Jump Point Stanton ↔ Pyro" },
-    { "label": "Contested Zones", "value": "PvPvE-Loot-Zonen in Pyro-Anlagen" },
-    { "label": "Wipe", "value": "Voller Wipe · +20.000 aUEC Startguthaben" }
+    {
+      "label": "Server Meshing",
+      "value": "≈10 Server pro Shard · bis 500 Spieler (vorher ~100)"
+    },
+    {
+      "label": "Neues Sternsystem",
+      "value": "Pyro — 6 Planeten, Ruin Station, Rest-Stops"
+    },
+    {
+      "label": "Systemreise",
+      "value": "Jump Point Stanton ↔ Pyro"
+    },
+    {
+      "label": "Contested Zones",
+      "value": "PvPvE-Loot-Zonen in Pyro-Anlagen"
+    },
+    {
+      "label": "Wipe",
+      "value": "Voller Wipe · +20.000 aUEC Startguthaben"
+    }
   ],
   "features": [
     {
@@ -23,8 +48,14 @@
       "kind": "tech",
       "desc": "Mehrere Server bilden erstmals gemeinsam einen Shard und reichen Objekte nahtlos aneinander weiter — die Spielerzahl pro Shard steigt von rund 100 auf bis zu 500.",
       "facts": [
-        { "label": "Server pro Shard", "value": "≈10" },
-        { "label": "Spieler pro Shard", "value": "bis 500" }
+        {
+          "label": "Server pro Shard",
+          "value": "≈10"
+        },
+        {
+          "label": "Spieler pro Shard",
+          "value": "bis 500"
+        }
       ],
       "topicSlug": "4-0-0-server-meshing"
     },
@@ -34,8 +65,14 @@
       "kind": "location",
       "desc": "Das zweite spielbare Sternsystem: gesetzlos, von Gangs beherrscht, ohne Sicherheitszonen. Sechs Planeten (u. a. Monox, Bloom, Terminus und der Gasriese Pyro V), dazu Ruin Station, Rest-Stops und Asteroidenbasen.",
       "facts": [
-        { "label": "Planeten", "value": "6 — inkl. Monox, Bloom, Terminus, Pyro V" },
-        { "label": "Stationen", "value": "Ruin Station · Rest-Stops · Asteroidenbasen" }
+        {
+          "label": "Planeten",
+          "value": "6 — inkl. Monox, Bloom, Terminus, Pyro V"
+        },
+        {
+          "label": "Stationen",
+          "value": "Ruin Station · Rest-Stops · Asteroidenbasen"
+        }
       ],
       "topicSlug": "4-0-0-pyro-system"
     },
@@ -54,16 +91,38 @@
     }
   ],
   "ships": [
-    { "name": "Mirai Guardian", "manufacturer": "Mirai", "role": "Jäger", "status": "neu" },
-    { "name": "RSI Polaris", "manufacturer": "RSI", "role": "Korvette", "status": "neu im 4.0-Zyklus" }
+    {
+      "name": "Mirai Guardian",
+      "manufacturer": "Mirai",
+      "role": "Jäger",
+      "status": "neu"
+    },
+    {
+      "name": "RSI Polaris",
+      "manufacturer": "RSI",
+      "role": "Korvette",
+      "status": "neu im 4.0-Zyklus"
+    }
   ],
   "events": [
-    { "name": "Save Stanton — Kapitel 1", "desc": "Auftakt des Fraktions-Narrativs rund um die Rettung Stantons; kein dediziertes Live-Event." }
+    {
+      "name": "Save Stanton — Kapitel 1",
+      "desc": "Auftakt des Fraktions-Narrativs rund um die Rettung Stantons; kein dediziertes Live-Event."
+    }
   ],
   "wipe": "Voller Wipe · +20.000 aUEC Startguthaben",
   "topics": [
-    { "slug": "4-0-0-server-meshing", "title": "Server Meshing" },
-    { "slug": "4-0-0-pyro-system", "title": "Pyro-System" },
-    { "slug": "4-0-0-contested-zones", "title": "Contested Zones" }
+    {
+      "slug": "4-0-0-server-meshing",
+      "title": "Server Meshing"
+    },
+    {
+      "slug": "4-0-0-pyro-system",
+      "title": "Pyro-System"
+    },
+    {
+      "slug": "4-0-0-contested-zones",
+      "title": "Contested Zones"
+    }
   ]
 }

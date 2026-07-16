@@ -1,4 +1,4 @@
-# Star Citizen Patch-Archiv — Konsolidierte Datenquelle (4.0.0 → 4.8.3)
+# Star Citizen Patch-Archiv — Konsolidierte Datenquelle (4.0.0 → 4.9.0)
 
 ## MEDIEN-MANIFEST (verifiziert via YouTube oEmbed, 2026-06-20)
 
@@ -16,6 +16,7 @@ Offizielle Trailer (Kanal "Star Citizen" / CIG) — Embed: `https://www.youtube-
 | 4.6.0 | ja | `OPp6dd2WSpI` | Alpha 4.6: Lifeline for Levski |
 | 4.7.0 | ja | `sX4_Q6AuqSI` | Alpha 4.7: Welcome to the Rock |
 | 4.8.0 | ja | `RWQSxN-ZukE` | Alpha 4.8: Tactical Strike |
+| 4.9.0 | ja (ISC Patch Report, kein Kino-Trailer) | `OX__JZULs-Y` | Inside Star Citizen — Alpha 4.9 Patch Report |
 
 Point-Releases ohne eigenen Trailer → Hero-Standbild + (optional) Trailer der jeweiligen 4.x-Reihe, klar als solcher gekennzeichnet:
 - 4.0.1, 4.0.2 → `DE3ePRgpUQo` (4.0-Reihe)
@@ -56,6 +57,11 @@ Reihenfolge & Dateinamen:
 16. 4.8.1 → `sc-4-8-1.html`
 17. 4.8.2 → `sc-4-8-2.html`
 18. 4.8.3 → `sc-4-8-3.html`
+19. 4.9.0 → `sc-4-9-0.html`
+
+Offizielle CIG-Patch-Notes (Feld `notesUrl` in `src/data/patches/*.json`, rendert im Dossier; verifiziert 16.07.2026 via RSI-Hub `/en/patch-notes`):
+- 4.0.0 `…/Patch-Notes/20360-Star-Citizen-Alpha-40` · 4.0.1 `20418` · 4.0.2 `20445` · 4.1.0 `20522` · 4.1.1 `20598` · 4.2.0 `20638` · 4.2.1 `20702` · 4.3.0 `20728` · 4.3.1 `20777` · 4.3.2 `20852` · 4.4.0 `20899` · 4.5.0 `20934` · 4.6.0 `20969` · 4.7.0 `21070` · 4.8.0 `21168` · 4.9.0 `21245`
+- Ohne eigenen Comm-Link: 4.8.1 & 4.8.2 → Spectrum-Threads `star-citizen-alpha-4-8-1-live-hotfix` / `…4-8-2-live-hotfix` (Forum 190048); 4.8.3 → Transmission `21206-Star-Citizen-Alpha-483`.
 
 ---
 
@@ -204,3 +210,18 @@ Reihenfolge & Dateinamen:
 - **Orte:** Stanton (Event).
 - **Wipe:** kein neuer Wipe (Fortführung des 4.8-Zyklus).
 - **Medien:** XenoThreat-Trailer `SsOtI2dtvBc` (eigenes Event-Video); Hero-Standbild `t-xeno-1.jpg`.
+
+## 4.9.0 — „Frontier Tensions" · 15. Juli 2026
+**Theme:** Rust-Frontier — Nyx-Staub, Alliance-Zinnober `#e94f3d`, Dust-Gold `#e3aa4b` auf warmem Kohle-Grund `#140f0c`; Schrott-Manifest-Mono (Share Tech Mono) für Kontrakt-Aushang & Bergungs-Manifest. Major-Release als bewusster Fokus-Patch: **Siege of Orison + Instancing wurden per Roadmap Roundup (1. Juli) auf ein eigenes Alpha 4.10 (Ziel Mitte August) verschoben**, damit Grundsysteme und Altlasten-Bugs Vorrang bekommen. PTU-Zyklus: Evocati 20.06. → Wave 1 26.06. → All Waves → LIVE 15.07.2026. **Quellen:** RSI Patch Notes Comm-Link 21245 + Spectrum-LIVE-Thread, Announcement „Alpha 4.9: Frontier Tensions" (Comm-Link 21220 + Spectrum), Comm-Link „Grey's Market Basher" 21227 + Behind the Ships, starcitizen.tools (Update:4.9.0, Basher, Grey's Market), ISC „Alpha 4.9 Patch Report", MassivelyOP, The Impound, MMOPIXEL.
+- **Headline:** **People's-Alliance-Kontrakte** („Support the Miners"-Mission-Pack): Die mysteriöse Gruppierung **„Moraine"** bedroht die Unabhängigen von Nyx; die People's Alliance sucht Helfer. Dauerhafte, wiederholbare Missionen übers mobiGlas — Standorte auskundschaften, Vermisste suchen, gekaperte Schiffe entern & Überlebende retten, Fracht aus Piratenüberfällen zurückholen, Salvage/Schiffs-Rückgewinnung. Ruf-Aufbau weckt das Interesse von **Recco Battaglia**, unabhängige Bergbau-Logistik-Koordinatorin in **Levski**; ihre **Story-Missionen folgen in 4.10**. Belohnungen: Blueprints (People's-Alliance-Rüstung, Klescher-Laser-Repeater) + **Unikat-Varianten von Drake Golem, MISC Prospector & Argo MOLE** (Lieferung an den Heimatstandort auf hohen Ruf-Stufen).
+- **Grey's Market Basher:** Grey's Markets erster **leichter** Jäger — das zweite fliegbare GLSN-Schiff nach der Shiv (Heavy Fighter, fliegbar seit 4.3.2); einsitzer Light Fighter aus Bergungsteilen von **Drake Buccaneer, Aegis Avenger, Gladius, RSI Aurora Mk I** („u. a."). **6× S2**-Hardpoints (ab Werk 4× „Snapper"-Laser-Repeater + 2× „Deathroll"-Ballistik-Gatling, Grey's-Market-Netzwerk) + **2× S2-Ordnance → 4× S1-Raketen**. Markenzeichen: abnehmbarer **Kran** (Spitze = improvisiertes Visier), Waffenhalter aus Maschendrahtzaun, integrierter Aktenschrank. Maße 13,7 × 11,3 × 4,5 m. **110 $ / Warbond 100 $**, noch **nicht für aUEC** kaufbar. Paints: Corroded, Blue Blossom, Nightmare, Razorburn. Angeteasert seit DefenseCon 2956 (15.05.2026).
+- **Hit-Marker (Schiffskampf):** 6 Trefferzustände am Fadenkreuz — **Deflect (kein Schaden) · Schild · Panzerung · Hülle · Komponente · Komponente zerstört** — je mit eigenem Audio-Cue; nach Director-Feedback von sechs auf **3 Kern-Audio-Ebenen** reduziert (Panzerung/Komponente/Komponente zerstört), komplett vom alten Ships-Computer-Audio entkoppelt.
+- **Ballistik-Rebalance:** Ballistik-Repeater deutlich generft. **BEHR S4-Kanone (C-788): 325 → 1.090 Schaden/Schuss**, dafür weniger Panzerdurchdringungs-Distanz + höherer Feuerraten-Delay (Rework, kein reiner Buff). BEHR S5-Gatling 126,5 → 102,5 · Deadbolt S4 683,1 → 610 · Deadbolt S5 1.024,2 → 950 · Vanduul-Plasma S5 1.000 → 970.
+- **Mining & Scanning:** Schiffs-Mining-Laserleistung **pauschal +20 %**; **experimentelle Scanning-Updates** (leichteres Material-Scannen, Beobachtung auf LIVE); Nyx-Ressourcenverteilung an **Glacium- & Keeger-HPP** angepasst.
+- **Weitere Features:** **Ordnance Cargo Holder** (Bounding-Box-Rahmen für Raketen/Torpedos auf allen Cargo-Grids, Hologramm-Vorschau, wählbare Snap-Richtung) · **Behring CQ7** Bullpup (Auto/Burst, 16,5 Schaden, 550 m/s, 650 RPM, 40er-Magazin, ADS 0,25 s; Fundorte: Ship-in-Distress- & Moraine-Missionen, Shops) · **Bellator Combat Suit** (Zivil-Anzug mit leichter Schadensminderung; Jackett 2 Magazine + 1 sichtbare Langwaffe, verdeckte Seitenwaffe/Messer; Hose 2 MedPens + Messer) · **Valakkar-Verhalten** (Sentry versteckt sich statt Biss, Mobile verfolgen/repositionieren, Jungtiere mit Biss-Angriff) · **2 neue Frisuren** + 1 Rework · **Flyby-Audio** von Grund auf neu (prozedural, neue Assets) · **Abandoned-Vehicle-Cleanup** (5 h, Stanton & Nyx inkl. Grim Hex/Levski) + ASOP-Claim-Fixes · **VR experimentell** (körper-ausgerichteter Stereo-Cursor) · **Distribution-Center komplett neu ausgerollt** (System-/Physik-Verbesserungen, repariert Alt-Missionen; Traktorstrahlen in DC-Armistice-Zonen) · Kampfmissions-Rebalance auf Schiffspanzerung (keine Industrie-Schiffe als Gegner, schwächere Angreifer bei Verteidigungs-Missionen) · Frachtaufzug-Kiosk („Extern"-Checkbox, Claim-Tooltips, klarere Teil-Transfer-Meldung) · Granaten-HUD-Marker · Bombing-Run-/Satelliten-Missionen nur noch regional · benannte Nyx-Wegpunkte · Adagio-Salvage-Unlock-Kette · Shop-Updates (Dumper's Depot/Platinum Bay Item-Kiosks, Jump Drives Area18, New Deal Lorville).
+- **Bugfixes:** **80+ dokumentierte Fixes in den LIVE-Notes** — 70 Einzel-Bugfixes (26 Missionen, 19 Schiffe, 10 Orte, 6 Inventar, 3 FPS, 6 UI/Economy) + 8 Client-/2 Server-Crash-Fixes + 3 Error-Code-Fixes (64008/64006/60029); u. a. Docking-Kragen, Jump-Tunnel mit falschem Zielsystem, Spieler-Handel (aUEC-Transfer), komplett unzugängliche Inventare, Railen-Sofortexplosion, Idris-Laser ohne Schaden, Pyro-CZ-Airlock, Levski-Hangar-Erstickung. ⚠ Der Spectrum-LIVE-Post behauptete „über 166 Fixes seit 4.8 (73 Issue Council, 17 Client/4 Server)" — das ist der wortgleich recycelte Block aus dem **4.8**-LIVE-Post (dort „seit 4.7", identische Zahlen, identischer Build-String 1825000). Comm-Link-Notes sind maßgeblich; NICHT die 166 zitieren.
+- **Roadmap-Anmerkung:** Nine-Tails-Armor-Update stand als 4.9-Deliverable auf der Roadmap, taucht in den LIVE-Notes aber nicht auf (nicht bestätigt ausgeliefert — nicht in die Site übernommen).
+- **Ships:** Grey's Market Basher (neu, s. o.). Keine weiteren Neuschiffe; Golem/Prospector/MOLE-Unikate sind Ruf-Belohnungen, keine Releases.
+- **Orte:** Nyx im Fokus (Levski, Glacium/Keeger HPP, benannte Wegpunkte); Distribution-Center verse-weit neu ausgerollt.
+- **Wipe:** keiner — **LTP erhalten**, Start-aUEC 20.000. LIVE-Build **4.9.0-LIVE.12232306** (der Spectrum-Post nannte fälschlich „1825000"; Comm-Link-Notes sind maßgeblich). Community meldete am Launch-Tag verlorene Erze/Rohstoffe (außer Edelsteinen) und Fire-Extinguisher-Inventar-Bugs — Launch-Rauschen, nicht Teil der offiziellen Notes.
+- **Medien:** ISC Patch Report `OX__JZULs-Y` (Standbild `t-frontier-1.jpg`); Behind the Ships: Basher `whpBNeYsJQA` (Standbild `t-basher-1.jpg`); Key-Art „Basher-Staffel über Dünen" `trailer-4-9-0.jpg` (og:image der RSI-Comm-Links 21220/21227, 1920×1080).

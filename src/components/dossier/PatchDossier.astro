@@ -50,6 +50,13 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
 
     <p class="do__summary">{patch.summary}</p>
 
+    {patch.notesUrl && (
+      <a class="do__notesrsi" href={patch.notesUrl} target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7M21 3l-9 9M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/></svg>
+        {t('do.notesRsi')}
+      </a>
+    )}
+
     <h3 class="do__sub">{t('do.featsystems')}</h3>
     <div class="do__features">
       {patch.features.map((f) => (
@@ -202,6 +209,30 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     color: var(--text, #e8eefc);
     opacity: 0.88;
     margin-bottom: 1.8rem;
+  }
+  /* Link zu den offiziellen CIG-Notes — direkt unter der Zusammenfassung,
+     im Registratur-Ton (Akzent, uppercase), kein zusätzlicher Lärm */
+  .do__notesrsi {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: -1rem 0 1.8rem;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent, #2dd4ff);
+    border: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 35%, transparent);
+    padding: 0.4rem 0.75rem;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+  .do__notesrsi:hover {
+    border-color: var(--accent, #2dd4ff);
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 8%, transparent);
+  }
+  .do__notesrsi svg {
+    flex: none;
   }
   .do__sub {
     font-family: var(--font-ui, sans-serif);

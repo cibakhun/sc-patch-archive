@@ -18,6 +18,7 @@ export const ERA_EN: Record<string, string> = {
   'Onyx & Heilung': 'Onyx & Healing',
   'Neue Horizonte': 'New Horizons',
   'Tactical Strike': 'Tactical Strike',
+  Frontier: 'Frontier',
 };
 export function eraLabel(era: string, lang: Locale): string {
   return lang === 'en' ? ERA_EN[era] ?? era : era;
