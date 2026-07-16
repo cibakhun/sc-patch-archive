@@ -1,22 +1,28 @@
 ---
 // Ctrl+K search — an in-universe terminal prompt over the whole archive.
-// Zero dependencies: lazy-fetches /search-index.json (built from the data
-// layer) and scores with a tiny normalized matcher. Palette-aware, no motion
-// beyond open/close. Rendered once per page via SiteNav.
+// Zero dependencies: lazy-fetches the page's language index (EN =
+// /search-index.json, DE = /de/search-index.json — via data-index, aus
+// href() im Frontmatter) and scores with a tiny normalized matcher.
+// Palette-aware, no motion beyond open/close. Rendered once per page via
+// SiteNav.
 //
 // i18n: Chrome kommt aus t(); die zwei JS-Strings (Leer-Zustand) reicht das
 // Frontmatter via data-Attribute an das is:inline-Script durch.
-import { useTranslations, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
+import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
 interface Props {
   lang?: Locale;
 }
 const { lang = DEFAULT_LOCALE } = Astro.props;
 const t = useTranslations(lang);
+// Sprach-Index dieser Seite (EN präfixlos, DE unter /de/) — ans inline-Script
+// via data-Attribut, wie die übrigen i18n-Strings.
+const indexUrl = href('/search-index.json', lang);
 ---
 <div
   class="scs"
   id="scs"
   hidden
+  data-index={indexUrl}
   data-empty-title={t('search.empty.title')}
   data-empty-query={t('search.empty.query')}
   data-empty-hint={t('search.empty.hint')}
@@ -355,7 +361,7 @@ const t = useTranslations(lang);
 
     function load() {
       if (index) return Promise.resolve(index);
-      return fetch('/search-index.json')
+      return fetch(root.getAttribute('data-index') || '/search-index.json')
         .then(function (r) { return r.json(); })
         .then(function (j) {
           index = j.map(function (e) {
