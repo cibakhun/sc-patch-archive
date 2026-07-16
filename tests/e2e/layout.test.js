@@ -4,10 +4,12 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const deHtml = fs.readFileSync(path.resolve('dist/item-finder.html'), 'utf8');
-const enHtml = fs.readFileSync(path.resolve('dist/en/item-finder.html'), 'utf8');
+// Sprach-Tausch (i18n Stufe 3): EN ist Standardsprache und liegt PRÄFIXLOS
+// auf der Wurzel, DE unter /de/… (DE-Startseite = /de.html, format:'file').
+const deHtml = fs.readFileSync(path.resolve('dist/de/item-finder.html'), 'utf8');
+const enHtml = fs.readFileSync(path.resolve('dist/item-finder.html'), 'utf8');
 const indexHtml = fs.readFileSync(path.resolve('dist/index.html'), 'utf8');
-const enIndexHtml = fs.readFileSync(path.resolve('dist/en.html'), 'utf8');
+const deIndexHtml = fs.readFileSync(path.resolve('dist/de.html'), 'utf8');
 
 describe('Item-Finder-Seite (DE)', () => {
   test('1. Seite existiert und lädt das App-Script', () => {
@@ -57,14 +59,14 @@ describe('Item-Finder-Seite (EN)', () => {
 });
 
 describe('Navigation', () => {
-  test('9. DE-Nav verlinkt /item-finder.html (mit .html, wie alle Links)', () => {
+  test('9. EN-Nav verlinkt /item-finder.html (mit .html, wie alle Links)', () => {
     assert.ok(indexHtml.includes('href="/item-finder.html"'));
     assert.ok(!indexHtml.includes('href="/item-finder"'));
   });
 
-  test('10. EN-Nav verlinkt /en/item-finder.html (existiert wirklich)', () => {
-    assert.ok(enIndexHtml.includes('href="/en/item-finder.html"'));
-    assert.ok(fs.existsSync(path.resolve('dist/en/item-finder.html')));
+  test('10. DE-Nav verlinkt /de/item-finder.html (existiert wirklich)', () => {
+    assert.ok(deIndexHtml.includes('href="/de/item-finder.html"'));
+    assert.ok(fs.existsSync(path.resolve('dist/de/item-finder.html')));
   });
 });
 
