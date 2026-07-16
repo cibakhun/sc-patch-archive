@@ -317,6 +317,7 @@ const UI = {
     'do.specsNote': 'Fan-Projekt, basiert auf der offiziellen Ship Matrix',
     'do.events': 'Events',
     'do.sources': 'Quellen: starcitizen.tools, RSI Comm-Links, Patch Notes',
+    'do.notesRsi': 'Offizielle Patch Notes (RSI)',
     'do.unvNote': '* unbestätigt · ',
     // -- TopicFacts / RelatedTopics (Topic-Seiten, Stufe 3) --
     'tf.topic': 'Thema',
@@ -611,6 +612,7 @@ const UI = {
     'do.specsNote': 'fan project, based on the official Ship Matrix',
     'do.events': 'Events',
     'do.sources': 'Sources: starcitizen.tools, RSI Comm-Links, patch notes',
+    'do.notesRsi': 'Official patch notes (RSI)',
     'do.unvNote': '* unverified · ',
     // -- TopicFacts / RelatedTopics (topic pages, Stufe 3) --
     'tf.topic': 'Topic',

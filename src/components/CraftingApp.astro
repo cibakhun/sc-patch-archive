@@ -2,6 +2,7 @@
 // CraftingApp.astro — funktionale Blueprint-Datenbank (SSR-Liste + Client-App).
 // Sprachneutrales Gerüst; UI-Chrome via `lang`, Game-Daten bleiben englisch.
 import DB from '../../assets/crafting-db.json';
+import { ICON_BLUEPRINT, ICON_DISMANTLE } from '../lib/icons';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
@@ -152,8 +153,8 @@ const total = DB.counts.blueprints;
 <section class="cdb" id="cdb">
   <!-- Tab Switcher -->
   <div class="cdb-tabs">
-    <button class="cdb-tab-btn active" data-tab="db">{S.calcTabDb}</button>
-    <button class="cdb-tab-btn" data-tab="dismantle">{S.calcTabCalc}</button>
+    <button class="cdb-tab-btn active" data-tab="db"><Fragment set:html={ICON_BLUEPRINT} />{S.calcTabDb}</button>
+    <button class="cdb-tab-btn" data-tab="dismantle"><Fragment set:html={ICON_DISMANTLE} />{S.calcTabCalc}</button>
   </div>
 
   <div id="cdb-tab-db-content">
@@ -321,7 +322,7 @@ const total = DB.counts.blueprints;
       <!-- Outputs list -->
       <div class="calc-results-wrap" style="flex:1 1 auto; min-width:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;gap:1rem;flex-wrap:wrap;">
-          <h2 style="font-family:var(--font-display,inherit);font-weight:900;font-size:1.4rem;color:#fff;margin:0;">{S.calcTitle}</h2>
+          <h2 style="display:inline-flex;align-items:center;gap:.55rem;font-family:var(--font-display,inherit);font-weight:900;font-size:1.4rem;color:#fff;margin:0;"><span style="display:inline-flex;color:var(--accent,#FF5E1A);" aria-hidden="true"><Fragment set:html={ICON_DISMANTLE} /></span>{S.calcTitle}</h2>
           <span id="calc-results-count" style="font-size:0.85rem;color:var(--muted,#9ba2ae);">0 Items gefunden</span>
         </div>
 
@@ -360,7 +361,7 @@ const total = DB.counts.blueprints;
   </aside>
 </section>
 
-<script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json', dismantleUrl: '/assets/dismantling-items.json', t: JS_T })};`} />
+<script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json', dismantleUrl: '/assets/dismantling-items.json', icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE }, t: JS_T })};`} />
 <script is:inline src="/assets/crafting-app.js"></script>
 
 <style is:inline>
@@ -549,7 +550,8 @@ const total = DB.counts.blueprints;
   }
   /* Tabs switcher */
   .cdb-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;border-bottom:1px solid var(--line,rgba(255,94,26,.22));padding-bottom:.2rem}
-  .cdb-tab-btn{background:transparent;border:0;color:var(--muted,#9ba2ae);padding:.55rem 1rem;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;font-size:.9rem;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;outline:none}
+  .cdb-tab-btn{display:inline-flex;align-items:center;gap:.45rem;background:transparent;border:0;color:var(--muted,#9ba2ae);padding:.55rem 1rem;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;font-size:.9rem;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;outline:none}
+  .cdb-tab-btn .cic{width:1.15em;height:1.15em}
   .cdb-tab-btn:hover{color:var(--text,#eef1f5)}
   .cdb-tab-btn.active{color:var(--accent,#FF5E1A);border-color:var(--accent,#FF5E1A)}
   
@@ -589,7 +591,7 @@ const total = DB.counts.blueprints;
   .calc-card__cost-unit{font-size:.76rem;color:var(--muted,#9ba2ae);margin-top:-.2rem}
   .calc-card__qty{font-size:.9rem;font-weight:700;color:#fff;margin-top:.4rem}
   /* Sprung zur Blueprint-Datenbank */
-  .calc-card__bp{margin-top:.6rem;background:transparent;border:1px solid color-mix(in srgb,var(--accent-2,#1FA2FF) 45%,transparent);color:var(--accent-2,#1FA2FF);padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;font-size:.78rem;white-space:nowrap;transition:background-color .15s,border-color .15s}
+  .calc-card__bp{display:inline-flex;align-items:center;gap:.4rem;margin-top:.6rem;background:transparent;border:1px solid color-mix(in srgb,var(--accent-2,#1FA2FF) 45%,transparent);color:var(--accent-2,#1FA2FF);padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;font-size:.78rem;white-space:nowrap;transition:background-color .15s,border-color .15s}
   .calc-card__bp:hover{background:color-mix(in srgb,var(--accent-2,#1FA2FF) 12%,transparent);border-color:var(--accent-2,#1FA2FF)}
   /* Ziel-Karte nach Sprung aus dem Blueprint-Modal kurz hervorheben */
   .calc-card.is-jump{border-color:var(--accent-2,#1FA2FF);animation:calcjump 1.6s ease-out}

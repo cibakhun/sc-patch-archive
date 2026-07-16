@@ -19,7 +19,7 @@ const patches = defineCollection({
     /** ISO date for sorting/JSON-LD */
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     dateDisplay: z.string(),
-    era: z.enum(['Pyro-Ära', 'Sturm & Stahl', 'Onyx & Heilung', 'Neue Horizonte', 'Tactical Strike']),
+    era: z.enum(['Pyro-Ära', 'Sturm & Stahl', 'Onyx & Heilung', 'Neue Horizonte', 'Tactical Strike', 'Frontier']),
     type: z.enum(['major', 'point']),
     /** factual one-liner — no marketing filler */
     tagline: z.string(),
@@ -27,6 +27,9 @@ const patches = defineCollection({
     /** Landing-"Aktuell"-Kachel + Social-Card: das Leitbild dieses Patches.
      *  Fällt sonst auf die Konvention /assets/trailer-<id>.jpg zurück. */
     heroImage: z.string().optional(),
+    /** offizielle CIG-Patch-Notes (Comm-Link; Point-Releases z. T. Spectrum-Thread) —
+     *  rendert im Dossier als "Offizielle Patch Notes (RSI)"-Link */
+    notesUrl: z.string().url().optional(),
     palette: z.object({
       bg: z.string(),
       accent: z.string(),
