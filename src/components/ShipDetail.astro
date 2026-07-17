@@ -1427,7 +1427,7 @@ span.sd__ref{color:var(--muted)}
     <div class="sd__links">
       <a href={L('/schiffe.html')}>{t('ship.links.all')}</a>
       {d.pledgeUrl && <a href={d.pledgeUrl} target="_blank" rel="noopener">{t('ship.pledge.store')}</a>}
-      {extras && <a href={`https://www.fleetyards.net/ships/${extras.fySlug}`} target="_blank" rel="noopener">FleetYards ↗</a>}
+      {extras?.fySlug && <a href={`https://www.fleetyards.net/ships/${extras.fySlug}`} target="_blank" rel="noopener">FleetYards ↗</a>}
     </div>
 
     <p class="sd__src">

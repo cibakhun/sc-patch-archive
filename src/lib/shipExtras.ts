@@ -30,8 +30,12 @@ export function priceInfo(id: string): ShipPrices {
 /* ---------- FleetYards extras: 3D holo, paints, variants, loaners ---------- */
 export type ShipRef = { name: string; id: string | null };
 export type ShipExtras = {
-  fySlug: string;
+  /** null bei Lack-Editionen, die FleetYards nicht als eigenes Modell führt */
+  fySlug: string | null;
   holo: string | null;
+  /** id des Basisschiffs, von dem das Holo geliehen ist (identische Geometrie,
+   *  siehe PAINT_BASE in scripts/sync-fleetyards-extras.mjs). Sonst undefined. */
+  holoFrom?: string;
   storeImage: string | null;
   paints: { name: string; image: string | null }[];
   variants: ShipRef[];
