@@ -32,7 +32,7 @@ const ship = (MODEL.elements || [])
   .sort((a, b) => (RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity)) || (a.sig - b.sig));
 
 // Sonder-Kategorie: ROC-/Boden-Deposits scannen mit der groundScanSignature der
-// Spieldaten (4.8.3: durchgängig 4000). FPS-Hand- und Salvage-Signaturen sind in
+// Spieldaten (4.9: durchgängig 4000). FPS-Hand- und Salvage-Signaturen sind in
 // den datamined Spieldaten NICHT enthalten und daher hier bewusst weggelassen.
 const SPECIAL = [
   { name: 'ROC / Bodenerz', sig: 4000, rarity: 'roc' },
@@ -79,7 +79,7 @@ const S = {
     matches: 'Treffer', noMatch: 'Kein Mineral passt zu diesem Wert.',
     base: 'Basis (1 Stein)', bestSpot: 'Bester Fundort', top5: 'Top-5 Fundorte', noLoc: 'keine Fundort-Daten',
     locSystem: 'System', allSys: 'Alle', noLocSys: 'nicht in diesem System',
-    src: 'Signaturen & Fundorte aus datamined 4.8.3-Spieldaten. Cluster = n × Basis-Signatur (In-Game-Werte streuen mit der Rock-Masse leicht). Fundorte nach Vorkommens-Häufigkeit gerankt (Deposit-Wahrscheinlichkeit × Anteil); „bis X%" = maximaler Erz-Anteil im Rock. Bei Gleichstand zuerst Asteroiden-Reviere (Gürtel/Cluster).',
+    src: 'Signaturen & Fundorte aus eigenen 4.9-Spieldaten (Data.p4k). Cluster = n × Basis-Signatur (In-Game-Werte streuen mit der Rock-Masse leicht). Fundorte nach Vorkommens-Häufigkeit gerankt (Deposit-Wahrscheinlichkeit × Anteil); „bis X%" = maximaler Erz-Anteil im Rock. Bei Gleichstand zuerst Asteroiden-Reviere (Gürtel/Cluster).',
   },
   en: {
     intro: 'A cluster of n rocks shows n × the base signature; the max cluster size depends on rarity. Pick your ores — only those appear in the table (your personal list, saved). Enter a scanned value to identify mineral + cluster size.',
@@ -89,7 +89,7 @@ const S = {
     matches: 'Matches', noMatch: 'No mineral matches this value.',
     base: 'base (1 rock)', bestSpot: 'Best spot', top5: 'Top 5 locations', noLoc: 'no location data',
     locSystem: 'System', allSys: 'All', noLocSys: 'not in this system',
-    src: 'Signatures & locations from datamined 4.8.3 game files. Cluster = n × base signature (in-game values vary slightly with rock mass). Locations ranked by occurrence frequency (deposit probability × share); “up to X%” = max ore share in a rock. Ties favour asteroid fields (belts/clusters) first.',
+    src: 'Signatures & locations from the game files (4.9, own Data.p4k extraction). Cluster = n × base signature (in-game values vary slightly with rock mass). Locations ranked by occurrence frequency (deposit probability × share); “up to X%” = max ore share in a rock. Ties favour asteroid fields (belts/clusters) first.',
   },
 }[lang];
 ---

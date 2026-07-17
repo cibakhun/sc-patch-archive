@@ -1,0 +1,799 @@
+{
+ "source_note": "EIN Feld liegt prinzipiell nicht in der Data.p4k und ist aus scmdb eingefroren: Refinery-Yield-Profile (serverseitige CIG-Economy — kein Client-Record). Alles Übrige hier ist nur Fallback und wird primär game-sourced (density=resourceType.densityType, scanSignature=element-spez. mineable-Rock, qualityBands=crafting/qualityquantization, rarity=Kompositions-Namensschema). Hinweis: Edelsteine haben in den Spieldaten GAR KEINE Seltenheit (kein rarity-Feld existiert; scmdb ebenfalls leer) — sie bleiben bewusst ohne Stufe. Manuell pflegen, wenn CIG die Refinery-Economy ändert (selten).",
+ "frozen_from": "scmdb 4.9.0-live.12232306",
+ "snapshot_date": "2026-07-18",
+ "counts": {
+  "elementMeta": 37,
+  "refineries": 20,
+  "refineryProfiles": 10
+ },
+ "elementMeta": {
+  "Agricium": {
+   "scanSignature": 3885,
+   "qualityBands": [
+    346,
+    588,
+    667,
+    796,
+    852,
+    943,
+    971,
+    1000
+   ],
+   "rarity": "uncommon",
+   "density": 7.14
+  },
+  "Aluminum": {
+   "scanSignature": 4285,
+   "qualityBands": [
+    318,
+    511,
+    614,
+    783,
+    896,
+    919,
+    953,
+    1000
+   ],
+   "rarity": "common",
+   "density": 2.7
+  },
+  "Aslarite": {
+   "scanSignature": 3840,
+   "qualityBands": [
+    287,
+    575,
+    602,
+    741,
+    854,
+    927,
+    963,
+    1000
+   ],
+   "rarity": "uncommon",
+   "density": 2.47
+  },
+  "Beryl": {
+   "scanSignature": 3540,
+   "qualityBands": [
+    324,
+    547,
+    677,
+    717,
+    860,
+    937,
+    955,
+    1000
+   ],
+   "rarity": "rare",
+   "density": 2.74
+  },
+  "Bexalite": {
+   "scanSignature": 3600,
+   "qualityBands": [
+    302,
+    597,
+    632,
+    756,
+    875,
+    941,
+    959,
+    1000
+   ],
+   "rarity": "rare",
+   "density": 6.97
+  },
+  "Borase": {
+   "scanSignature": 3570,
+   "qualityBands": [
+    359,
+    584,
+    676,
+    743,
+    892,
+    903,
+    976,
+    1000
+   ],
+   "rarity": "rare",
+   "density": 4.2
+  },
+  "Copper": {
+   "scanSignature": 4240,
+   "qualityBands": [
+    359,
+    593,
+    652,
+    742,
+    855,
+    917,
+    958,
+    1000
+   ],
+   "rarity": "common",
+   "density": 9.03
+  },
+  "Corundum": {
+   "scanSignature": 4225,
+   "qualityBands": [
+    309,
+    504,
+    665,
+    793,
+    886,
+    904,
+    971,
+    1000
+   ],
+   "rarity": "common",
+   "density": 4.03
+  },
+  "Gold": {
+   "scanSignature": 3585,
+   "qualityBands": [
+    264,
+    553,
+    644,
+    786,
+    864,
+    916,
+    959,
+    1000
+   ],
+   "rarity": "rare",
+   "density": 21.07
+  },
+  "Hephaestanite": {
+   "scanSignature": 4180,
+   "qualityBands": [
+    330,
+    572,
+    692,
+    758,
+    896,
+    916,
+    975,
+    1000
+   ],
+   "rarity": "common",
+   "density": 3.2
+  },
+  "Pressurized Ice": {
+   "scanSignature": 4300,
+   "qualityBands": [
+    322,
+    561,
+    659,
+    714,
+    873,
+    922,
+    966,
+    1000
+   ],
+   "rarity": "common",
+   "density": 1
+  },
+  "Iron": {
+   "scanSignature": 4270,
+   "qualityBands": [
+    325,
+    521,
+    664,
+    710,
+    874,
+    907,
+    970,
+    1000
+   ],
+   "rarity": "common",
+   "density": 7.87
+  },
+  "Laranite": {
+   "scanSignature": 3825,
+   "qualityBands": [
+    298,
+    510,
+    698,
+    707,
+    858,
+    910,
+    975,
+    1000
+   ],
+   "rarity": "uncommon",
+   "density": 11.49
+  },
+  "Lindinium": {
+   "scanSignature": 3400,
+   "qualityBands": [
+    305,
+    585,
+    618,
+    729,
+    853,
+    930,
+    954,
+    1000
+   ],
+   "rarity": "epic",
+   "density": 10.69
+  },
+  "Aphorite": {
+   "scanSignature": null,
+   "qualityBands": [
+    348,
+    523,
+    686,
+    717,
+    861,
+    916,
+    975,
+    1000
+   ],
+   "rarity": null,
+   "density": 0
+  },
+  "Carinite": {
+   "scanSignature": null,
+   "qualityBands": [
+    273,
+    554,
+    647,
+    716,
+    880,
+    909,
+    959,
+    1000
+   ],
+   "rarity": null,
+   "density": 0
+  },
+  "Dolivine": {
+   "scanSignature": null,
+   "qualityBands": [
+    304,
+    577,
+    621,
+    743,
+    886,
+    901,
+    957,
+    1000
+   ],
+   "rarity": null,
+   "density": 0
+  },
+  "Hadanite": {
+   "scanSignature": null,
+   "qualityBands": [
+    274,
+    526,
+    665,
+    762,
+    867,
+    916,
+    959,
+    1000
+   ],
+   "rarity": null,
+   "density": 0
+  },
+  "Jaclium": {
+   "scanSignature": null,
+   "qualityBands": [
+    284,
+    576,
+    607,
+    781,
+    864,
+    941,
+    955,
+    1000
+   ],
+   "rarity": null,
+   "density": 0
+  },
+  "Janalite": {
+   "scanSignature": null,
+   "qualityBands": [
+    269,
+    596,
+    632,
+    732,
+    898,
+    926,
+    964,
+    1000
+   ],
+   "rarity": null,
+   "density": 0
+  },
+  "Sadaryx": {
+   "scanSignature": null,
+   "qualityBands": [
+    258,
+    510,
+    688,
+    797,
+    865,
+    940,
+    971,
+    1000
+   ],
+   "rarity": null,
+   "density": 0
+  },
+  "Saldynium": {
+   "scanSignature": null,
+   "qualityBands": [
+    301,
+    575,
+    674,
+    757,
+    861,
+    938,
+    955,
+    1000
+   ],
+   "rarity": null,
+   "density": 0
+  },
+  "Beradom": {
+   "scanSignature": null,
+   "qualityBands": [
+    287,
+    578,
+    656,
+    723,
+    881,
+    937,
+    969,
+    1000
+   ],
+   "rarity": null,
+   "density": 0
+  },
+  "Feynmaline": {
+   "scanSignature": null,
+   "qualityBands": [
+    371,
+    561,
+    682,
+    769,
+    880,
+    906,
+    965,
+    1000
+   ],
+   "rarity": null,
+   "density": 0
+  },
+  "Glacosite": {
+   "scanSignature": null,
+   "qualityBands": [
+    360,
+    567,
+    678,
+    724,
+    857,
+    916,
+    972,
+    1000
+   ],
+   "rarity": null,
+   "density": 0
+  },
+  "Ouratite": {
+   "scanSignature": 3370,
+   "qualityBands": [
+    310,
+    523,
+    647,
+    779,
+    860,
+    912,
+    960,
+    1000
+   ],
+   "rarity": "epic",
+   "density": 1.12
+  },
+  "Quantainium": {
+   "scanSignature": 3170,
+   "qualityBands": [
+    344,
+    514,
+    669,
+    762,
+    852,
+    901,
+    974,
+    1000
+   ],
+   "rarity": "legendary",
+   "density": 20.46
+  },
+  "Quartz": {
+   "scanSignature": 4210,
+   "qualityBands": [
+    330,
+    522,
+    641,
+    710,
+    899,
+    914,
+    969,
+    1000
+   ],
+   "rarity": "common",
+   "density": 2.53
+  },
+  "Riccite": {
+   "scanSignature": 3385,
+   "qualityBands": [
+    325,
+    525,
+    671,
+    743,
+    870,
+    942,
+    965,
+    1000
+   ],
+   "rarity": "epic",
+   "density": 1.61
+  },
+  "Savrilium": {
+   "scanSignature": 3200,
+   "qualityBands": [
+    322,
+    580,
+    636,
+    776,
+    878,
+    905,
+    967,
+    1000
+   ],
+   "rarity": "legendary",
+   "density": 17.59
+  },
+  "Stileron": {
+   "scanSignature": 3185,
+   "qualityBands": [
+    330,
+    517,
+    681,
+    747,
+    874,
+    947,
+    972,
+    1000
+   ],
+   "rarity": "legendary",
+   "density": 4.75
+  },
+  "Silicon": {
+   "scanSignature": 4255,
+   "qualityBands": [
+    310,
+    510,
+    672,
+    782,
+    889,
+    926,
+    968,
+    1000
+   ],
+   "rarity": "common",
+   "density": 2.49
+  },
+  "Taranite": {
+   "scanSignature": 3555,
+   "qualityBands": [
+    310,
+    525,
+    646,
+    718,
+    853,
+    925,
+    957,
+    1000
+   ],
+   "rarity": "rare",
+   "density": 10.2
+  },
+  "Tin": {
+   "scanSignature": 4195,
+   "qualityBands": [
+    340,
+    537,
+    664,
+    704,
+    880,
+    940,
+    964,
+    1000
+   ],
+   "rarity": "common",
+   "density": 5.54
+  },
+  "Titanium": {
+   "scanSignature": 3855,
+   "qualityBands": [
+    295,
+    516,
+    622,
+    784,
+    866,
+    916,
+    959,
+    1000
+   ],
+   "rarity": "uncommon",
+   "density": 4.48
+  },
+  "Torite": {
+   "scanSignature": 3900,
+   "qualityBands": [
+    262,
+    528,
+    661,
+    785,
+    873,
+    944,
+    951,
+    1000
+   ],
+   "rarity": "uncommon",
+   "density": 2.8
+  },
+  "Tungsten": {
+   "scanSignature": 3870,
+   "qualityBands": [
+    363,
+    530,
+    662,
+    787,
+    858,
+    902,
+    964,
+    1000
+   ],
+   "rarity": "uncommon",
+   "density": 19.35
+  }
+ },
+ "refineries": [
+  {
+   "name": "ARC-L1 Wide Forest Station",
+   "system": "Stanton",
+   "profileId": "d71ccec0dd94"
+  },
+  {
+   "name": "ARC-L2 Lively Pathway Station",
+   "system": "Stanton",
+   "profileId": "065b7c280b3e"
+  },
+  {
+   "name": "ARC-L4 Faint Glen Station",
+   "system": "Stanton",
+   "profileId": "e8c554e591e5"
+  },
+  {
+   "name": "CRU-L1 Ambitious Dream Station",
+   "system": "Stanton",
+   "profileId": "64fd607101f5"
+  },
+  {
+   "name": "HUR-L1 Green Glade Station",
+   "system": "Stanton",
+   "profileId": "3c47572dd971"
+  },
+  {
+   "name": "HUR-L2 Faithful Dream Station",
+   "system": "Stanton",
+   "profileId": "85714bf9a92f"
+  },
+  {
+   "name": "MIC-L1 Shallow Frontier Station",
+   "system": "Stanton",
+   "profileId": "754d4c6080c2"
+  },
+  {
+   "name": "MIC-L2 Long Forest Station",
+   "system": "Stanton",
+   "profileId": "890ccda50b14"
+  },
+  {
+   "name": "MIC-L5 Modern Icarus Station",
+   "system": "Stanton",
+   "profileId": "87b1058c24e9"
+  },
+  {
+   "name": "Stanton Gateway (Nyx)",
+   "system": "Nyx",
+   "profileId": "3c47572dd971"
+  },
+  {
+   "name": "Stanton Gateway (Pyro)",
+   "system": "Pyro",
+   "profileId": "3c47572dd971"
+  },
+  {
+   "name": "Levski",
+   "system": "Nyx",
+   "profileId": "5654b1535d14"
+  },
+  {
+   "name": "Nyx Gateway (Stanton)",
+   "system": "Stanton",
+   "profileId": "d71ccec0dd94"
+  },
+  {
+   "name": "Nyx Gateway (Pyro)",
+   "system": "Pyro",
+   "profileId": "3c47572dd971"
+  },
+  {
+   "name": "Ruin Station",
+   "system": "Pyro",
+   "profileId": "3c47572dd971"
+  },
+  {
+   "name": "Orbituary",
+   "system": "Pyro",
+   "profileId": "3c47572dd971"
+  },
+  {
+   "name": "Checkmate",
+   "system": "Pyro",
+   "profileId": "3c47572dd971"
+  },
+  {
+   "name": "Pyro Gateway (Nyx)",
+   "system": "Nyx",
+   "profileId": "3c47572dd971"
+  },
+  {
+   "name": "Pyro Gateway (Stanton)",
+   "system": "Stanton",
+   "profileId": "64fd607101f5"
+  },
+  {
+   "name": "Terra Gateway (Stanton)",
+   "system": "Stanton",
+   "profileId": "754d4c6080c2"
+  }
+ ],
+ "refineryProfiles": {
+  "d71ccec0dd94": {
+   "Iron (Ore)": 1,
+   "Corundum (Raw)": -4,
+   "Quantainium (Raw)": 3,
+   "Titanium (Ore)": 5,
+   "Laranite (Raw)": -2,
+   "Quartz (Raw)": 11,
+   "Taranite (Raw)": -6,
+   "Hephaestanite": -4,
+   "Aluminum (Ore)": -5,
+   "Beryl (Raw)": 7
+  },
+  "065b7c280b3e": {
+   "Bexalite (Raw)": 2,
+   "Corundum (Raw)": -3,
+   "Quantainium (Raw)": 3,
+   "Gold (Ore)": 7,
+   "Titanium (Ore)": 3,
+   "Borase (Ore)": 2,
+   "Tungsten (Ore)": -6,
+   "Hephaestanite": -8,
+   "Copper (Ore)": 6
+  },
+  "e8c554e591e5": {
+   "Corundum (Raw)": -9,
+   "Gold (Ore)": -4,
+   "Titanium (Ore)": -2,
+   "Quartz (Raw)": -2,
+   "Tungsten (Ore)": -5,
+   "Taranite (Raw)": 5,
+   "Hephaestanite": -5,
+   "Copper (Ore)": -4,
+   "Aluminum (Ore)": -3,
+   "Beryl (Raw)": -4,
+   "Agricium (Ore)": -4
+  },
+  "64fd607101f5": {
+   "Iron (Ore)": 2,
+   "Bexalite (Raw)": -6,
+   "Corundum (Raw)": 7,
+   "Gold (Ore)": -6,
+   "Titanium (Ore)": -1,
+   "Laranite (Raw)": -8,
+   "Tungsten (Ore)": 2,
+   "Hephaestanite": -2,
+   "Beryl (Raw)": 7
+  },
+  "3c47572dd971": {
+   "Iron (Ore)": -5,
+   "Bexalite (Raw)": -2,
+   "Corundum (Raw)": -5,
+   "Quantainium (Raw)": 2,
+   "Gold (Ore)": -3,
+   "Borase (Ore)": 1,
+   "Laranite (Raw)": 2,
+   "Tungsten (Ore)": 4,
+   "Copper (Ore)": -5,
+   "Aluminum (Ore)": -4,
+   "Agricium (Ore)": -8
+  },
+  "85714bf9a92f": {
+   "Corundum (Raw)": 1,
+   "Quantainium (Raw)": 2,
+   "Gold (Ore)": 1,
+   "Laranite (Raw)": -1,
+   "Taranite (Raw)": -3,
+   "Copper (Ore)": -3,
+   "Beryl (Raw)": 1,
+   "Agricium (Ore)": -2
+  },
+  "754d4c6080c2": {
+   "Corundum (Raw)": 2,
+   "Gold (Ore)": 1,
+   "Laranite (Raw)": 2,
+   "Quartz (Raw)": -3,
+   "Copper (Ore)": 4,
+   "Aluminum (Ore)": 7,
+   "Beryl (Raw)": -6,
+   "Agricium (Ore)": 8
+  },
+  "890ccda50b14": {
+   "Bexalite (Raw)": 9,
+   "Corundum (Raw)": 6,
+   "Quantainium (Raw)": 1,
+   "Gold (Ore)": 9,
+   "Titanium (Ore)": 6,
+   "Borase (Ore)": -3,
+   "Laranite (Raw)": -1,
+   "Quartz (Raw)": -5,
+   "Tungsten (Ore)": 9,
+   "Copper (Ore)": 2,
+   "Beryl (Raw)": -8
+  },
+  "87b1058c24e9": {
+   "Iron (Ore)": 8,
+   "Bexalite (Raw)": 12,
+   "Titanium (Ore)": 13,
+   "Borase (Ore)": 9,
+   "Hephaestanite": 8,
+   "Copper (Ore)": 9,
+   "Beryl (Raw)": 7
+  },
+  "5654b1535d14": {
+   "Iron (Ore)": 8,
+   "Construction Rubble": 9,
+   "Bexalite (Raw)": 8,
+   "Torite (Ore)": 1,
+   "Corundum (Raw)": 8,
+   "Quantainium (Raw)": 5,
+   "Tin (Ore)": 9,
+   "Gold (Ore)": 5,
+   "Titanium (Ore)": 8,
+   "Borase (Ore)": 8,
+   "Laranite (Raw)": 7,
+   "Quartz (Raw)": 8,
+   "Lindinium (Ore)": 4,
+   "Tungsten (Ore)": 8,
+   "Taranite (Raw)": 8,
+   "Hephaestanite": 8,
+   "Raw Silicon": 8,
+   "Copper (Ore)": 8,
+   "Savrilium (Ore)": 1,
+   "Raw Ice": 10,
+   "Aluminum (Ore)": 8,
+   "Beryl (Raw)": 8,
+   "Construction Salvage": 8,
+   "Agricium (Ore)": 8
+  }
+ }
+}

@@ -1,133 +1,71 @@
-# Mining-Datenquelle & Exaktheits-Beweis (Patch 4.8.3)
+# Mining-Datenquelle & Exaktheits-Beweis (Patch 4.9)
 
-**Kurz:** Alle Mining-Fakten auf der Seite (Fundorte, Abundance %, Signaturen,
-Physik, Refinery-Profile) sind **byte-identisch zu den rohen Spieldateien** von
-Star Citizen 4.8.3 — verifiziert gegen die extrahierte `Data.p4k`. Keine
-Annäherung, keine Schätzung. Preise werden bewusst **nicht** angezeigt
-(crowdsourced/volatil, nicht game-verifizierbar).
+**Kurz:** Die Mining-Daten kommen zu ~95 % aus der **eigenen Extraktion der lokalen
+`Data.p4k`** — node-nativ über einen selbstgeschriebenen DataCore-Reader, ohne
+unp4k/unforge und ohne Live-Abhängigkeit von scmdb/UEX. Nur vier Felder, die nicht
+sauber im Client-DataCore liegen, sind als gelabelte Konstanten aus einem letzten
+scmdb-4.9-Zug eingefroren. Preise werden bewusst **nicht** angezeigt (serverseitig,
+volatil, nicht game-verifizierbar).
 
 ## Woher die Daten kommen
 
-Zwei Ebenen, beide game-akkurat:
+Patch-Kennung aus dem Client-`build_manifest.id`: **`4.9.0-live.12232306`**
+(Branch `sc-alpha-4.9.0`).
 
-1. **`assets/mining-model.json`** ← `scmdb.net` (datamined CIG-Spieldaten).
-   Treibt Signatur-Identifier, Fracturing-Rechner, Refinery-Finder.
-2. **`assets/mining-db.json`** ← gebaut aus derselben scmdb-Quelle via
-   `scripts/build-mining-db.mjs`. Treibt die Mineral-Datenbank (Abschnitt 01).
+**Eigene Extraktion (node-nativ, `scripts/lib/p4k.mjs` + `scripts/lib/datacore.mjs`):**
 
-scmdb veröffentlicht die datamined Spieldaten **versioniert** (`versions.json`,
-`mining_data-<version>.json`). Unsere Skripte ziehen automatisch die **LIVE**-
-Version (nie PTU — Guard eingebaut).
+| Skript | Ausgabe | Inhalt |
+|---|---|---|
+| `datamine-mining.mjs` | `mining-gamefiles.json` | Element-Physik, Kompositionen (die „bis X %"), Global-Params, **density** (aus `resourceType.densityType`), **rarity** (aus Kompositions-Namensschema `<rarity>shipmineables_*`), **scanSignature** (element-spezifische `mineablerock_*_<erz>`), groundScanSignature, **qualityBands** (`crafting/qualityquantization/quantization_<erz>`) — alle byte-genau zu scmdb |
+| `datamine-locations.mjs` | `mining-locations-gamefiles.json` | Fundorte je Erz + Abundance + Fund-Chance + Bodies (Reverse), Kette `providerpreset → harvestablepreset → mineablerock → composition → element` |
+| `datamine-gear.mjs` | `mining-gear-gamefiles.json` | 17 Laser (DPS = `FireBeam.damagePerSecond.DamageEnergy`), 26 Module, 6 Gadgets — Mods aus `MiningLaserModifier`, Namen/Hersteller aus `Localization/english/global.ini` |
 
-## Wie die % (Fundort-Abundance) entstehen
+`build-mining-model.mjs` + `build-mining-db.mjs` assemblieren daraus die getrackten
+`assets/mining-model.json` + `assets/mining-db.json`. Kuratierte Attribute
+(code/kind/weight_scu, Planeten-Anzeigenamen) in `assets/mining-curated.json` bzw. im
+Build (Starmap-Zuordnung, nicht rein im Mining-DataCore).
 
-Die „bis X %" sind **Rohwerte aus den Spieldateien**, keine Berechnung von uns:
+**Geliehen (`assets/mining-frozen.json`, aus scmdb 4.9): nur EIN Feld.**
 
-- **`maxPercentage`** in den `MineableComposition`-Records = maximaler Erz-Anteil
-  im Rock. Beispiel Quantainium (`.../rockcompositionpresets/surfaceshipmining/legendaryshipmineables_quantainium.xml`):
-  `maxPercentage="78.3"` → wir zeigen „bis 78 %".
-- **Welche Orte / Rangfolge** = `relativeProbability` der Deposits je Location,
-  normiert innerhalb der Gruppe, × maxPercentage. Top-5 je System.
+- **Refinery-Yield-Profile** — serverseitige CIG-Economy, steht prinzipiell in keinem Client.
 
-## Der Beweis (2026-07-06)
+**Edelstein-Seltenheit** gibt es in den Spieldaten gar nicht: ein `rarity`-Feld existiert
+nirgends: die Erz-Seltenheit kommt allein aus der Datei-Namenskonvention
+(`<rarity>shipmineables_<erz>`), die die Gems (`fps_composition_<gem>deposit`) nicht haben —
+scmdb ist für sie ebenfalls leer. Gems bleiben also bewusst ohne Stufe (das ist game-korrekt,
+kein fehlender Wert). density, scanSignature und qualityBands sind game-sourced (in
+`mining-frozen.json` nur noch Fallback).
 
-Der lokal installierte Client (`F:\...\StarCitizen\LIVE`) hat Build-Changelist
-**`12122953`** — **exakt** scmdbs Quelle `4.8.3-live.12122953`. Also dieselben Bytes.
+## Der Beweis
 
-Verifikation direkt aus der Spieldatei:
-1. `Data.p4k` (149 GB) mit **unp4k** entpackt → `Data/Game2.dcb` (DataCore, 307 MB).
-2. **unforge** → XML-Records, u. a. `libs/foundry/records/mining/mineableelements/*.xml`
-   und `.../mining/rockcompositionpresets/*.xml`.
-3. Automatischer Abgleich der Element-Physik (instability, resistance, optimal-
-   window×3, explosionMultiplier, clusterFactor) **Spieldatei ↔ scmdb**:
+Jeder Extraktor hat einen `--verify`-Modus, der die eigene DataCore-Extraktion gegen
+LIVE-scmdb (gleicher Patch, 4.9.0-live.12232306) prüft — 0-Diff = byte-genau:
 
-   **25 Elemente · 175 Einzelwerte · 0 Abweichungen** → byte-identisch.
+- **Physik + Kompositionen:** 39/40 Elemente, 63 Kompositionen, **0 Abweichungen**.
+- **Fundorte:** 30/33 Elemente identisch (system+abundance-Multiset); die 3 Reste sind
+  eine Event-Location außerhalb `providerpresets/system` (Nyx „Breaker Stations").
+- **Gear:** Laser 15/15 DPS, Module 26/26, Gadgets 6/6 Mods == scmdb (DPS-Einzelabw. =
+  live-4.9 maßgeblich, scmdb-Lag).
 
-   Zusätzlich Fundort-%: Quantainium `maxPercentage=78.3` (Spiel) = „bis 78 %" (Seite).
+Der GUID-Abgleich beachtet, dass der DataCore die GUID als zwei little-endian uint64
+speichert (beide 8-Byte-Hälften byteweise umgedreht = scmdb/unforge-Format).
 
 ## Frisch halten
 
-- `npm run refresh:mining` — Modell + DB frisch aus LIVE scmdb + Build (ein Befehl).
-- `npm run verify:mining` — zieht LIVE scmdb neu, bricht bei jeder Abweichung
-  (Exit 1) ab. So kann kein „ungefährer" Wert unbemerkt reinrutschen.
+- `npm run sync:mining` — alle drei Extraktoren + Build + Asset-Spiegelung (Patch-Day,
+  braucht lokale SC-Installation; Pfad via `SC_P4K` überschreibbar).
+- `npm run refresh:mining` — dasselbe + Thumbnails/Downloads + `astro build`.
+- `npm run verify:mining` — Integritäts-/Konsistenz-Check der committeten JSONs (ohne
+  scmdb/p4k): Namen-Joins, Physik-Vollständigkeit, Laser-DPS, Refineries, Body-Refs,
+  game_version. Bricht bei jeder Inkonsistenz ab.
+- `npm run freeze:mining` — die vier eingefrorenen Felder neu aus scmdb ziehen (nur
+  nötig, wenn CIG Refinery-Economy/Signaturen ändert — selten).
 
-### scmdb-unabhängiger Eigen-Extraktor: `scripts/datamine-mining.mjs`
+## Client-vs-Server-Grenze
 
-Extrahiert die **numerische Kernschicht** (Element-Physik + Kompositionen/„bis X %")
-**100 % aus der eigenen SC-Installation**, ohne scmdb:
-
-```
-# 1) DataCore aus dem Client holen (einmal je Patch)
-unp4k.exe  "F:\...\StarCitizen\LIVE\Data.p4k" .dcb     # -> Data/Game2.dcb
-unforge.cli.exe  Data/Game2.dcb                         # -> XML-Records
-# unp4k bauen: git clone github.com/dolkensp/unp4k; in *.csproj net10.0->net8.0; dotnet build
-
-# 2) parsen + gegen scmdb 0-Diff prüfen
-node scripts/datamine-mining.mjs  "<...>/extract/Data" --verify
-```
-
-**Verifiziert (2026-07-06):** 25 Elemente × 7 Physikwerte + alle 63 scmdb-
-Kompositionen (860 %-Werte) = **1035 Einzelwerte, 0 Abweichungen** gegen scmdb.
-D. h. die Physik und die Fundort-Prozente kommen nachweislich byte-genau aus den
-Spieldateien — scmdb ist nur ein bequemer, verifizierbarer Umweg zu denselben Bytes.
-Ausgabe: `assets/mining-gamefiles.json` (gitignored, maschinenspezifisch).
-
-### Location-/Fundort-Ebene: ebenfalls eigen extrahiert (`scripts/datamine-locations.mjs`)
-
-Auch WELCHER Belt/Planet welches Erz mit welcher Wahrscheinlichkeit führt, liegt
-vollständig im DataCore — über diese Kette:
-
-```
-HarvestableProviderPreset   (harvestable/providerpresets/system/<sys>/…  = die Location)
-  └ HarvestableElementGroup groupName="SpaceShip_Mineables"  (= scmdb "groups")
-      └ HarvestableElement harvestable=<GUID> relativeProbability=…   (= scmdb "deposits")
-          └ HarvestablePreset entityClass=<GUID>
-              └ MineableRock  MineableParams composition=<GUID> + scanSignature
-                  └ MineableComposition part.maxPercentage   (= die "bis X %")
-```
-
-`node scripts/datamine-locations.mjs "<extract>/Data"` löst diese Kette auf, rankt
-je Element (effectivePct = depositAnteil × maxPercentage, Top-5/System) und schreibt
-`assets/mining-locations-gamefiles.json`.
-
-**Validierung gegen scmdb: 23 von 25 Elementen liefern das identische
-(System+Abundance)-Fundort-Set** — d. h. die Fundorte sind aus den Spieldateien
-reproduziert. Beispiel Aaron Halo (rein aus dem Game): Beryl 88 %, Aslarite 83 %,
-Titanium 74 %, Quantainium 78 % = exakt scmdb.
-
-**Zwei bekannte Rest-Punkte (kein Blocker):**
-1. **1 Event-Location** „Breaker Stations Large Geode" (Nyx-Operation) liegt außerhalb
-   von `providerpresets/system/` (Event-/Mission-Config) → aktuell nicht mitgezogen;
-   betrifft nur Savrilium/Torite-Randeinträge.
-2. **Anzeigenamen der Planeten/Monde:** die Preset-Interna heißen `hpp_stanton1`
-   usw.; die Zuordnung zu „Hurston/Cellin/…" kommt aus der Starmap (Body → Provider).
-   Die DATEN (System, Abundance, welche Erze) stimmen; nur das hübsche Label braucht
-   dieses letzte Mapping.
-
-Fazit: Physik, Kompositionen/%, **Fundorte** und (via Localization) auch die
-**Gear-Namen** sind nachweislich aus den eigenen Spieldateien extrahierbar.
-
-### Client-vs-Server-Grenze (wichtig für „100 % self-sourced")
-
-Beim Voll-Extraktions-Versuch (2026-07-06) hat sich eine **harte technische Grenze**
-gezeigt — manche Felder liegen NICHT im Client (`Data.p4k`), sondern server-/
-economyseitig und sind daher lokal grundsätzlich nicht extrahierbar:
-
-| Feld | Im Client? | Quelle |
-|---|---|---|
-| Element-Physik (instability/resistance/window/explosion/cluster) | **Ja** | `mining/mineableelements` |
-| Kompositionen / `maxPercentage` (die „bis X %") | **Ja** | `mining/rockcompositionpresets` |
-| Fundorte / Deposit-Wahrscheinlichkeiten | **Ja** | `harvestable/providerpresets` → `harvestablepresets` → `mineablerock` |
-| scanSignature / groundScanSignature | **Ja** | `entities/mineable/*` (`SSCSignatureSystemBaseSignatureParams`) |
-| rarity | **Ja** | Komposition-Namensschema (common/…/legendary) |
-| Laser/Module/Gadgets — Stats + Namen | **Ja** | `entities/scitem/ships/weapons/mining_laser_*` + `Localization/english/global.ini` |
-| Mining-Global-Params | **Ja** | `mining/miningglobalparams` |
-| **Refinery-Yield-Profile (je Erz/Station)** | **NEIN** | Server-/Economy-Daten — kein Record im Client-DataCore |
-| **density** | **NEIN (nicht im Mining-Record)** | vermutlich Physik-Material-Lib / berechnet |
-| Planeten-/Mond-Anzeigenamen (hpp_stanton1→Hurston) | teils | Objekt-Container/Starmap (nicht reiner DataCore) |
-
-**Konsequenz:** „komplett self-sourced" heißt praktisch: **alles Client-Extrahierbare
-aus der eigenen `Data.p4k`**, plus die **2 server-seitigen Felder (Refinery-Yields,
-density)** aus dem per `verify:mining` byte-geprüften Snapshot — denn die stehen in
-KEINEM lokalen Spielclient. Das ist keine Bequemlichkeit, sondern die Natur der Daten
-(CIG hält die Refinery-Economy serverseitig).
+„~95 % self-sourced" heißt praktisch: **alles Client-Extrahierbare** (Physik,
+Kompositionen/%, Fundorte, Signaturen[Boden], rarity[Erze], density, Gear, Params)
+aus der eigenen `Data.p4k`, plus **genau EIN Feld aus dem geprüften scmdb-4.9-Snapshot**:
+die **Refinery-Economy** (steht in KEINEM lokalen Client). Alles andere — auch density,
+scanSignature und qualityBands — kommt aus den eigenen Spieldateien. Die Edelstein-Seltenheit
+existiert in den Spieldaten überhaupt nicht und wird bewusst leer gelassen.
