@@ -60,7 +60,7 @@
         },
         {
           "name": "Contested Zones",
-          "system": "Missions & activities",
+          "system": "Missions & Activities",
           "desc": "Sealed-off PvPvE areas deep inside Pyro's facilities: AI factions, rival players and high-tier loot — only those who make it out alive keep the spoils."
         },
         {
@@ -149,7 +149,7 @@
         },
         {
           "name": "Top crash/deadlock fixes",
-          "system": "Stability & performance",
+          "system": "Stability & Performance",
           "desc": "4.0.1 was a stability point release with targeted fixes against the most common client and server crashes of the 4.0 launch, particularly deadlock scenarios.",
           "facts": [
             {
@@ -160,7 +160,7 @@
         },
         {
           "name": "Save Stanton Chapter 2: Fight for Pyro",
-          "system": "Missions & activities",
+          "system": "Missions & Activities",
           "desc": "A dynamic event with a permanent faction choice: after the first mission, players commit to Citizens for Prosperity, Headhunters or Frontier Fighters. From then on all missions are reputation-bound. Completing it before 4.0.2 rewards an exclusive Ripper SMG.",
           "facts": [
             {
@@ -245,7 +245,7 @@
         },
         {
           "name": "Faction resupply economy",
-          "system": "Economy & trading",
+          "system": "Economy & Trading",
           "desc": "A dynamic delivery system with two competing factions: Citizens for Prosperity gather industrial goods and Detatrine for medical supplies; Headhunters procure salvage and mining raw materials by any means necessary.",
           "facts": [
             {
@@ -260,7 +260,7 @@
         },
         {
           "name": "PvPvE depot battles",
-          "system": "Combat & weapons",
+          "system": "Combat & Weapons",
           "desc": "Players fight at contested Pyro depots against AI and rival players for supplies for their faction.",
           "facts": [
             {
@@ -271,7 +271,7 @@
         },
         {
           "name": "Ravager-212 Outcast shotgun",
-          "system": "Combat & weapons",
+          "system": "Combat & Weapons",
           "desc": "A twin-shotgun reward (event Tier 2). Paired with Outcast skins for the MISC Fortune, Drake Vulture and MISC Prospector (Tier 3).",
           "facts": [
             {
@@ -327,7 +327,7 @@
       "features": [
         {
           "name": "Align & Mine",
-          "system": "Missions & activities",
+          "system": "Missions & Activities",
           "desc": "A persistent cooperative sandbox activity: players align ground-based Hathor Alignment Facilities on Aberdeen and Daymar, whereupon the Orbital Mining Station fires a laser and blasts open a brand-new, mineral-rich cave.",
           "facts": [
             {
@@ -387,13 +387,13 @@
         },
         {
           "name": "NPC interactions & facial DNA",
-          "system": "UI & convenience",
+          "system": "UI & Comfort",
           "desc": "New NPC interaction options and expanded DNA-based facial generators for diverse NPC characters.",
           "facts": []
         },
         {
           "name": "Arena Commander maps",
-          "system": "Combat & weapons",
+          "system": "Combat & Weapons",
           "desc": "New maps added for Arena Commander.",
           "facts": []
         },
@@ -405,7 +405,7 @@
         },
         {
           "name": "Wikelo's Emporium",
-          "system": "Missions & activities",
+          "system": "Missions & Activities",
           "desc": "Alpha 4.1 introduces Wikelo — a Banu trader and the first playable alien NPC in Star Citizen. His Emporium runs as a pure barter system with no money: players accept contracts, deliver the requested items and materials at the freight elevator and receive rewards from Wikelo's stock in return. The currency is \"Wikelo Favor\" tokens, spread across three asteroid stations in Stanton.",
           "facts": [
             {
@@ -477,7 +477,7 @@
       "features": [
         {
           "name": "Recoil system (new)",
-          "system": "Combat & weapons",
+          "system": "Combat & Weapons",
           "desc": "A newly implemented recoil system with actor-based effects when firing ship and vehicle weapons. The effects are visible, scalable and can be turned off — every shot feels more controlled and tangible.",
           "facts": [
             {
@@ -507,7 +507,7 @@
         },
         {
           "name": "Weapon balancing",
-          "system": "Combat & weapons",
+          "system": "Combat & Weapons",
           "desc": "Extensive tuning of ship and personal weapons: damage values, ranges and firing behavior were rebalanced to make combat feel fairer and more consistent.",
           "facts": [
             {
@@ -1819,7 +1819,7 @@
         },
         {
           "name": "Inventory Rework",
-          "system": "UI & Convenience",
+          "system": "UI & Comfort",
           "desc": "Major overhaul cycle of the inventory system to support Crafting and Operation Breaker Stations.",
           "facts": [
             {
@@ -1891,7 +1891,7 @@
       "features": [
         {
           "name": "G-Force Flight Model",
-          "system": "Flight Model",
+          "system": "Flight model",
           "desc": "High-intensity G-forces directly affect pilots: positive Gs lead through greyout to blackout, negative Gs to redout. Specialized flight and racing suits with different G-tolerance values determine the strain limit and become a tactical factor.",
           "facts": [
             {
@@ -2034,7 +2034,7 @@
         },
         {
           "name": "Mining",
-          "system": "Mining & Resources",
+          "system": "Mining & Industry",
           "desc": "Resource extraction from hand-mined gems to multicrew ship mining. The system spans the Prospector (since Alpha 3.2), the reworked ARGO MOLE (4.7/4.8), ROC and hand mining; Pyro widened the ore pool (Stileron, Riccite, Lindinium). Raw ore is refined at refinery decks using one of nine methods and sold.",
           "facts": [
             {
