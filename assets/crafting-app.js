@@ -26,6 +26,7 @@
   var pendingBpName = null; // vorgemerkter Blueprint, falls DB beim Sprung noch lädt
   fetch(CFG.dbUrl).then(function (r) { return r.json(); }).then(function (j) {
     DB = j;
+    buildDismantleBlacklist();
     buildMissionIndex();
     renderPlanner();
     // Deep-Link aus dem Item Finder: ?bp=<Blueprint-Name> öffnet direkt das Modal.
@@ -565,47 +566,42 @@
   // =========================================================
   //  STAR CITIZEN DISMANTLING CALCULATOR
   // =========================================================
-  // `isRare` = Material steht auf der globalen Dismantle-Blacklist des Spiels
-  // (CraftingGlobalParams.dismantleBlacklistResources, Game2.dcb LIVE 4.9):
-  // Quantanium, Stileron, Savrilium, Lindinium, Riccite, Ouratite. Diese
-  // Materialien stecken zwar in der Zusammensetzung vieler Items, werden beim
-  // Zerlegen aber NIE zurückgegeben (Schutz gegen „kaufen → zerlegen“-Farming
-  // seltener Erze). Alles andere kommt mit der Effizienz des generischen
+  // „Selten“ = Material steht auf der globalen Dismantle-Blacklist des Spiels
+  // (CraftingGlobalParams.dismantleBlacklistResources, Game2.dcb): diese Erze
+  // stecken in der Zusammensetzung vieler Items, kommen beim Zerlegen aber NIE
+  // zurück (Anti-Farming). Alles andere kommt mit der Effizienz des generischen
   // Dismantle-Blueprints zurück (GlobalGenericDismantle: 50 %).
-  var materialsMap = {
-    "agricium": { "id": "agricium", "name": "Agricium", "isRare": false },
-    "aluminum": { "id": "aluminum", "name": "Aluminum", "isRare": false },
-    "aphorite": { "id": "aphorite", "name": "Aphorite", "isRare": false },
-    "aslarite": { "id": "aslarite", "name": "Aslarite", "isRare": false },
-    "beradom": { "id": "beradom", "name": "Beradom", "isRare": false },
-    "beryl": { "id": "beryl", "name": "Beryl", "isRare": false },
-    "bexalite": { "id": "bexalite", "name": "Bexalite", "isRare": false },
-    "borase": { "id": "borase", "name": "Borase", "isRare": false },
-    "copper": { "id": "copper", "name": "Copper", "isRare": false },
-    "corundum": { "id": "corundum", "name": "Corundum", "isRare": false },
-    "dolivine": { "id": "dolivine", "name": "Dolivine", "isRare": false },
-    "glacosite": { "id": "glacosite", "name": "Glacosite", "isRare": false },
-    "gold": { "id": "gold", "name": "Gold", "isRare": false },
-    "hadanite": { "id": "hadanite", "name": "Hadanite", "isRare": false },
-    "hephaestanite": { "id": "hephaestanite", "name": "Hephaestanite", "isRare": false },
-    "iron": { "id": "iron", "name": "Iron", "isRare": false },
-    "laranite": { "id": "laranite", "name": "Laranite", "isRare": false },
-    "lindinium": { "id": "lindinium", "name": "Lindinium", "isRare": true },
-    "ouratite": { "id": "ouratite", "name": "Ouratite", "isRare": true },
-    "pressurized ice": { "id": "pressurized ice", "name": "Pressurized Ice", "isRare": false },
-    "quantanium": { "id": "quantanium", "name": "Quantanium", "isRare": true },
-    "quartz": { "id": "quartz", "name": "Quartz", "isRare": false },
-    "riccite": { "id": "riccite", "name": "Riccite", "isRare": true },
-    "sadaryx": { "id": "sadaryx", "name": "Sadaryx", "isRare": false },
-    "savrilium": { "id": "savrilium", "name": "Savrilium", "isRare": true },
-    "silicon": { "id": "silicon", "name": "Silicon", "isRare": false },
-    "stileron": { "id": "stileron", "name": "Stileron", "isRare": true },
-    "taranite": { "id": "taranite", "name": "Taranite", "isRare": false },
-    "tin": { "id": "tin", "name": "Tin", "isRare": false },
-    "titanium": { "id": "titanium", "name": "Titanium", "isRare": false },
-    "torite": { "id": "torite", "name": "Torite", "isRare": false },
-    "tungsten": { "id": "tungsten", "name": "Tungsten", "isRare": false }
-  };
+  //
+  // Die Liste wird NICHT mehr im JS gepflegt (das veraltete still, sobald CIG
+  // sie ändert — genau der Lindinium-Bug), sondern kommt data-driven aus
+  // crafting-db.json (`dismantle_blacklist`, von datamine-crafting.mjs direkt
+  // aus dem DataCore extrahiert). `buildDismantleBlacklist()` füllt das Set,
+  // sobald die DB geladen ist. Anzeigenamen leiten wir per Title-Case aus der
+  // materialId ab (die Rezepte führen den Ressourcennamen kleingeschrieben) —
+  // kein zweiter Datenstand, der driften könnte.
+  var DISMANTLE_BLACKLIST = null; // { mid: true } sobald DB geladen; null = noch unbekannt
+  function matIsRare(mid) { return !!(DISMANTLE_BLACKLIST && DISMANTLE_BLACKLIST[mid]); }
+  function matName(mid) { return String(mid).replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
+  function matLabelHtml(mid) {
+    return esc(matName(mid)) + (matIsRare(mid)
+      ? ' <em style="color:#ff5b5b; font-size:0.75rem; font-style:normal;">' + tr('calcRareLabel', '(selten)') + '</em>'
+      : '');
+  }
+  // Aus DB.dismantle_blacklist das Set bauen. Läuft die DB nach dem Rechner ein
+  // (beide Fetches parallel), Rarity-Marker + Ergebnisse in place nachziehen —
+  // ohne setupCalc erneut aufzurufen (das würde Doppel-Listener anhängen).
+  function buildDismantleBlacklist() {
+    if (!DB || !DB.dismantle_blacklist) return;
+    DISMANTLE_BLACKLIST = {};
+    DB.dismantle_blacklist.forEach(function (n) { DISMANTLE_BLACKLIST[String(n).toLowerCase()] = true; });
+    if (ITEMS.length && $('.calc-mat-list')) {
+      $$('.calc-mat-list .calc-check').forEach(function (label) {
+        var cb = label.querySelector('input'), span = label.querySelector('span');
+        if (cb && span) span.innerHTML = matLabelHtml(cb.value);
+      });
+      calcApply();
+    }
+  }
 
   var ITEMS = [];
   var DISMANTLE_NAMES = null; // Item-Name (lowercase) -> Index in ITEMS
@@ -663,10 +659,9 @@
       var isComp = true;
 
       selectedMats.forEach(function (mid) {
-        var matDef = materialsMap[mid] || { id: mid, name: mid, isRare: false };
         var recipeItem = item.recipe.find(function (r) { return r.materialId.toLowerCase() === mid; });
 
-        if (!recipeItem || matDef.isRare) {
+        if (!recipeItem || matIsRare(mid)) {
           isComp = false;
           return;
         }
@@ -689,9 +684,9 @@
       // Beifang-Hinweis: seltene Materialien im REZEPT gehen beim Zerlegen verloren.
       var warnings = [];
       item.recipe.forEach(function (r) {
-        var matDef = materialsMap[r.materialId.toLowerCase()];
-        if (matDef && matDef.isRare) {
-          warnings.push(tr('calcWarningRareBycatch', 'Dieses Item enthält {name}, dieser kann jedoch nicht durch Zerlegen gewonnen werden.').replace('{name}', matDef.name));
+        var rid = r.materialId.toLowerCase();
+        if (matIsRare(rid)) {
+          warnings.push(tr('calcWarningRareBycatch', 'Dieses Item enthält {name}, dieser kann jedoch nicht durch Zerlegen gewonnen werden.').replace('{name}', matName(rid)));
         }
       });
 
@@ -716,13 +711,12 @@
 
       var yieldHtml = item.recipe.map(function (r) {
         var mid = r.materialId.toLowerCase();
-        var matDef = materialsMap[mid] || { id: mid, name: r.materialId, isRare: false };
         var isTarget = calcState.res[mid];
-        var itemYield = matDef.isRare ? 0 : r.quantity_cSCU * rate;
+        var itemYield = matIsRare(mid) ? 0 : r.quantity_cSCU * rate;
         var totalYield = (res.qty * itemYield) / 100;
 
         return '<span class="calc-card__yield-tag' + (isTarget ? ' target' : '') + '">' +
-          esc(matDef.name) + ': ' + fmtNum(totalYield) + ' SCU' +
+          esc(matName(mid)) + ': ' + fmtNum(totalYield) + ' SCU' +
           '</span>';
       }).join(' ');
 
@@ -768,28 +762,25 @@
     DISMANTLE_NAMES = {};
     ITEMS.forEach(function (it, i) { DISMANTLE_NAMES[(it.name || '').toLowerCase()] = i; });
 
+    // Materialliste = alle Materialien, die in irgendeinem Rezept vorkommen.
+    // Die Menge hängt nicht von der Blacklist ab (nur der „(selten)“-Marker);
+    // läuft die DB später ein, zieht buildDismantleBlacklist() die Marker nach.
     var mats = {};
     ITEMS.forEach(function (item) {
-      item.recipe.forEach(function (r) {
-        var mid = r.materialId.toLowerCase();
-        if (!mats[mid]) {
-          var details = materialsMap[mid] || { id: mid, name: r.materialId, isRare: false };
-          mats[mid] = details;
-        }
-      });
+      item.recipe.forEach(function (r) { mats[r.materialId.toLowerCase()] = true; });
     });
-    
-    var sortedMats = Object.keys(mats).map(function (k) { return mats[k]; });
-    sortedMats.sort(function (a, b) {
-      return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+
+    var sortedMats = Object.keys(mats).sort(function (a, b) {
+      var na = matName(a), nb = matName(b);
+      return na < nb ? -1 : na > nb ? 1 : 0;
     });
 
     var calcList = $('.calc-mat-list');
     if (calcList) {
-      calcList.innerHTML = sortedMats.map(function (m) {
+      calcList.innerHTML = sortedMats.map(function (mid) {
         return '<label class="cdb-check calc-check">' +
-          '<input type="checkbox" class="calc-mat-cb" value="' + esc(m.id) + '" />' +
-          '<span>' + esc(m.name) + (m.isRare ? ' <em style="color:#ff5b5b; font-size:0.75rem; font-style:normal;">' + tr('calcRareLabel', '(selten)') + '</em>' : '') + '</span>' +
+          '<input type="checkbox" class="calc-mat-cb" value="' + esc(mid) + '" />' +
+          '<span>' + matLabelHtml(mid) + '</span>' +
           '</label>';
       }).join('');
     }

@@ -361,7 +361,12 @@ const total = DB.counts.blueprints;
   </aside>
 </section>
 
-<script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json', dismantleUrl: '/assets/dismantling-items.json', icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE }, t: JS_T })};`} />
+{/* Daten-URLs mit dem Patch-Stand versioniert (?v=<DB.version>): nginx cacht
+    JSON 1 Tag; ohne Version sähe neues Markup nach einem Datamine-Lauf u. U.
+    die alte crafting-db.json OHNE dismantle_blacklist — die App fiele dann auf
+    „nichts selten“ zurück (der Lindinium-Bug). Da das HTML no-cache ist, zieht
+    jeder Aufruf so die zum Markup passende Datenversion. */}
+<script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json?v=' + version, dismantleUrl: '/assets/dismantling-items.json?v=' + version, icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE }, t: JS_T })};`} />
 <script is:inline src="/assets/crafting-app.js"></script>
 
 <style is:inline>

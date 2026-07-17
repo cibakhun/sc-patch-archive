@@ -31,7 +31,7 @@
 //     SAmmoContainerComponentParams.maxAmmoCount/maxRestockCount -> magazine
 //     SCItemClothingParams.TemperatureResistance              -> armor temp min/max
 //     SCItemSuitArmorParams.damageResistance -> DamageResistanceMacro (profile + Multiplikatoren)
-//   CraftingGlobalParams.dismantleBlacklistResources          -> (nur Doku; App-seitig gepflegt)
+//   CraftingGlobalParams.dismantleBlacklistResources          -> out.dismantle_blacklist (App leitet isRare daraus ab)
 //   Missionszuordnung: invertiert aus src/data/missions.json (datamine-missions.mjs),
 //   Blueprint-Schluessel = Recordname ohne BP_CRAFT_/_SCItem.
 
@@ -277,6 +277,26 @@ for (const r of db.records) {
 }
 console.log(`resources: ${allResources.length}`);
 
+/* ---------------- Dismantle-Blacklist (globaler Crafting-Param) ---------------- */
+// CraftingGlobalParams.dismantleBlacklistResources: Materialien, die beim
+// Zerlegen NIE zurueckkommen (Anti-Farming seltener Erze). Wird in die Ausgabe
+// geschrieben, damit die App `isRare` daraus ableitet statt aus einer Handliste
+// im JS — die veraltete sonst still, sobald CIG die Blacklist aendert (genau der
+// Lindinium-Bug). Namen ueber dieselbe resourceName-Map wie die Rezepte, damit
+// die Kleinschreibung exakt auf recipe.materialId passt.
+const gp = db.records.find((r) => sname(r) === 'CraftingGlobalParams');
+const dismantleBlacklist = [];
+if (gp) {
+  const d = db.readRecord(gp, { typed: true, maxDepth: 4 });
+  for (const e of d?.dismantleBlacklistResources ?? []) {
+    const n = (e?.__ref && resourceName.get(e.__ref)) ?? String(e?.name ?? '').replace('ResourceType.', '');
+    if (n) dismantleBlacklist.push(n.toLowerCase());
+  }
+  dismantleBlacklist.sort((a, b) => a.localeCompare(b, 'en'));
+}
+console.log(`dismantle-blacklist: ${dismantleBlacklist.length} Materialien (${dismantleBlacklist.join(', ') || '—'})`);
+if (!dismantleBlacklist.length) console.warn('  WARNUNG: leere Blacklist — CraftingGlobalParams nicht gefunden? App faellt auf „nichts selten“ zurueck.');
+
 /* ---------------- Missionen -> Blueprint-Schluessel invertieren ---------------- */
 // missions.json fuehrt pro Mission die Blueprint-Pools (Item-Keys ohne
 // BP_CRAFT_/_SCItem). drop_chance = Pool-Chance der Mission (Gewichte innerhalb
@@ -423,6 +443,7 @@ const out = {
   version: patchLabel ?? 'LIVE (Build unbekannt)',
   snapshot_date: new Date().toISOString().slice(0, 10),
   counts: { blueprints: blueprints.length, resources: resources.length },
+  dismantle_blacklist: dismantleBlacklist,
   blueprints,
   resources,
 };
