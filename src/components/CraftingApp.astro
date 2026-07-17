@@ -24,6 +24,7 @@ const S = {
     calcYieldRate: 'Ausbeute-Rate', calcReset: 'Rechner zurücksetzen', calcTitle: 'Effiziente Items zum Zerlegen',
     calcTabDb: 'Blueprint-Datenbank', calcTabCalc: 'Zerlegungs-Rechner (Dismantle)',
     calcItemSearch: 'Suche: Item-Name…',
+    calcDataIncomplete: 'Zerlege-Daten unvollständig — die Seltenheits-Markierung der Materialien fehlt gerade, Ausbeuten für seltene Erze können daher zu hoch angezeigt werden. Bitte die Seite neu laden.',
   },
   en: {
     toolbarSearch: 'Search: blueprint or resource…',
@@ -40,6 +41,7 @@ const S = {
     calcYieldRate: 'Yield Rate', calcReset: 'Reset Calculator', calcTitle: 'Efficient Items to Dismantle',
     calcTabDb: 'Blueprint Database', calcTabCalc: 'Dismantling Calculator',
     calcItemSearch: 'Search: item name…',
+    calcDataIncomplete: 'Dismantling data incomplete — the material rarity markers are currently missing, so yields for rare ores may be shown too high. Please reload the page.',
   },
 }[lang];
 
@@ -148,6 +150,12 @@ const cardsData = DB.blueprints.map((b, i) => {
 const snapDate = DB.snapshot_date;
 const version = DB.version;
 const total = DB.counts.blueprints;
+// Basis-Effizienz des generischen Dismantle-Blueprints (GlobalGenericDismantle)
+// aus den Spieldaten -> Default des Ausbeute-Sliders. Fallback 0.5 nur, falls
+// eine ältere DB das Feld noch nicht führt. Zur Build-Zeit ins Markup gerendert
+// (kein Laufzeit-Race) und zusätzlich ans Client-JS durchgereicht.
+const dismantleEff = typeof DB.dismantle_efficiency === 'number' ? DB.dismantle_efficiency : 0.5;
+const defaultYield = Math.round(dismantleEff * 100);
 ---
 
 <section class="cdb" id="cdb">
@@ -311,9 +319,11 @@ const total = DB.counts.blueprints;
         <div class="calc-fgroup">
           <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--muted,#9ba2ae);margin-bottom:0.4rem;">
             <span>{S.calcYieldRate}</span>
-            <span id="calc-yield-val">50%</span>
+            <span id="calc-yield-val">{defaultYield}%</span>
           </div>
-          <input type="range" id="calc-yield-rate" min="1" max="100" value="50" style="width:100%;accent-color:var(--accent,#FF5E1A);" />
+          {/* Default = Basis-Effizienz aus dem Spiel (GlobalGenericDismantle),
+              nicht mehr hartes 50. */}
+          <input type="range" id="calc-yield-rate" min="1" max="100" value={defaultYield} style="width:100%;accent-color:var(--accent,#FF5E1A);" />
         </div>
         
         <button id="calc-reset" class="cdb-reset" style="margin-top:1rem;">{S.calcReset}</button>
@@ -329,6 +339,11 @@ const total = DB.counts.blueprints;
         <div class="calc-search-row">
           <input type="search" id="calc-item-search" class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
         </div>
+
+        {/* Ehrlichkeits-Hinweis: nur sichtbar, wenn das Client-JS feststellt,
+            dass die Blacklist-Daten fehlen (alte JSON / DB-Fetch gescheitert) —
+            dann kann der Rechner Seltenheit nicht garantieren. Normal hidden. */}
+        <p id="calc-datanote" role="alert" hidden style="margin:0 0 1rem;padding:.7rem .9rem;border:1px solid #ff5b5b;border-left-width:3px;border-radius:6px;background:rgba(255,91,91,.09);color:var(--text,#eef1f5);font-size:.85rem;line-height:1.45;">{S.calcDataIncomplete}</p>
 
         <div id="calc-results" class="calc-grid">
           <!-- Results rendered dynamically via JS -->
@@ -366,7 +381,7 @@ const total = DB.counts.blueprints;
     die alte crafting-db.json OHNE dismantle_blacklist — die App fiele dann auf
     „nichts selten“ zurück (der Lindinium-Bug). Da das HTML no-cache ist, zieht
     jeder Aufruf so die zum Markup passende Datenversion. */}
-<script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json?v=' + version, dismantleUrl: '/assets/dismantling-items.json?v=' + version, icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE }, t: JS_T })};`} />
+<script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json?v=' + version, dismantleUrl: '/assets/dismantling-items.json?v=' + version, dismantleEfficiency: dismantleEff, icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE }, t: JS_T })};`} />
 <script is:inline src="/assets/crafting-app.js"></script>
 
 <style is:inline>

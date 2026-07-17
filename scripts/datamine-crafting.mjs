@@ -32,6 +32,8 @@
 //     SCItemClothingParams.TemperatureResistance              -> armor temp min/max
 //     SCItemSuitArmorParams.damageResistance -> DamageResistanceMacro (profile + Multiplikatoren)
 //   CraftingGlobalParams.dismantleBlacklistResources          -> out.dismantle_blacklist (App leitet isRare daraus ab)
+//   CraftingBlueprintRecord(GlobalGenericDismantle)
+//     .blueprint.processSpecificData.efficiency               -> out.dismantle_efficiency (Default des Ausbeute-Sliders)
 //   Missionszuordnung: invertiert aus src/data/missions.json (datamine-missions.mjs),
 //   Blueprint-Schluessel = Recordname ohne BP_CRAFT_/_SCItem.
 
@@ -297,6 +299,22 @@ if (gp) {
 console.log(`dismantle-blacklist: ${dismantleBlacklist.length} Materialien (${dismantleBlacklist.join(', ') || '—'})`);
 if (!dismantleBlacklist.length) console.warn('  WARNUNG: leere Blacklist — CraftingGlobalParams nicht gefunden? App faellt auf „nichts selten“ zurueck.');
 
+/* ---------------- Generischer Dismantle-Blueprint: Effizienz ---------------- */
+// Es gibt genau EIN Zerlege-Blueprint (GlobalGenericDismantle): dessen
+// efficiency (0.5 = 50 %) ist die Basis-Ausbeute beim Zerlegen und damit der
+// ehrliche Default des Ausbeute-Sliders im Rechner. Wird extrahiert statt im
+// JS/HTML als „50“ hartkodiert — ändert CIG den Wert, zieht er automatisch nach.
+let dismantleEfficiency = null;
+for (const r of db.records) {
+  if (sname(r) !== 'CraftingBlueprintRecord') continue;
+  if (!/blueprints\/dismantle/i.test(r.fileName)) continue;
+  const d = db.readRecord(r, { typed: true, maxDepth: 6 });
+  const eff = d?.blueprint?.processSpecificData?.efficiency;
+  if (typeof eff === 'number') { dismantleEfficiency = r6(eff); break; }
+}
+console.log(`dismantle-efficiency: ${dismantleEfficiency ?? '—'}`);
+if (dismantleEfficiency == null) console.warn('  WARNUNG: keine Dismantle-Effizienz gefunden — Rechner nutzt den 50-%-Fallback.');
+
 /* ---------------- Missionen -> Blueprint-Schluessel invertieren ---------------- */
 // missions.json fuehrt pro Mission die Blueprint-Pools (Item-Keys ohne
 // BP_CRAFT_/_SCItem). drop_chance = Pool-Chance der Mission (Gewichte innerhalb
@@ -418,10 +436,15 @@ for (const r of db.records) {
 
   blueprints.push(entry);
 
-  // Zerlege-Rezept (Zusammensetzung = Mandatory-Slots)
+  // Zerlege-Rezept (Zusammensetzung = Mandatory-Slots). `name` = Spiel-
+  // Anzeigename des Materials (proper-case, wie ihn das Spiel führt), damit der
+  // Rechner keinen Namen erraten muss — deckt auch Item-Materialien (Edelsteine)
+  // ab, die nicht als ResourceType vorliegen. `materialId` bleibt der Klein-
+  // schreibungs-Schlüssel für Vergleich/Blacklist.
   if (!dismantleByName.has(ent.name.toLowerCase())) {
     const recipe = ingredients.flatMap((ing) => ing.options.map((o) => ({
       materialId: o.name.toLowerCase(),
+      name: o.name,
       quantity_cSCU: Math.round((o.quantity_scu ?? 0) * 100),
     }))).filter((x) => x.quantity_cSCU > 0);
     dismantleByName.set(ent.name.toLowerCase(), recipe);
@@ -444,6 +467,7 @@ const out = {
   snapshot_date: new Date().toISOString().slice(0, 10),
   counts: { blueprints: blueprints.length, resources: resources.length },
   dismantle_blacklist: dismantleBlacklist,
+  dismantle_efficiency: dismantleEfficiency,
   blueprints,
   resources,
 };

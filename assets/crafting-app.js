@@ -35,7 +35,12 @@
       if (wantBp) openModalByName(wantBp);
     } catch (e) {}
     if (pendingBpName) { openModalByName(pendingBpName); pendingBpName = null; }
-  }).catch(function () {});
+  }).catch(function () {
+    // DB unerreichbar: der Zerlege-Rechner kann Seltenheit nicht garantieren —
+    // ehrlich ausweisen (updateDataNote), statt still falsche Ausbeuten zeigen.
+    dbFailed = true;
+    updateDataNote();
+  });
 
   // Blueprint per Name öffnen — Deep-Link + Sprung aus dem Zerlegungs-Rechner.
   function openModalByName(name) {
@@ -569,31 +574,56 @@
   // „Selten“ = Material steht auf der globalen Dismantle-Blacklist des Spiels
   // (CraftingGlobalParams.dismantleBlacklistResources, Game2.dcb): diese Erze
   // stecken in der Zusammensetzung vieler Items, kommen beim Zerlegen aber NIE
-  // zurück (Anti-Farming). Alles andere kommt mit der Effizienz des generischen
-  // Dismantle-Blueprints zurück (GlobalGenericDismantle: 50 %).
+  // zurück (Anti-Farming). Alles andere kommt mit der Basis-Effizienz des
+  // generischen Dismantle-Blueprints zurück (GlobalGenericDismantle).
   //
-  // Die Liste wird NICHT mehr im JS gepflegt (das veraltete still, sobald CIG
-  // sie ändert — genau der Lindinium-Bug), sondern kommt data-driven aus
-  // crafting-db.json (`dismantle_blacklist`, von datamine-crafting.mjs direkt
-  // aus dem DataCore extrahiert). `buildDismantleBlacklist()` füllt das Set,
-  // sobald die DB geladen ist. Anzeigenamen leiten wir per Title-Case aus der
-  // materialId ab (die Rezepte führen den Ressourcennamen kleingeschrieben) —
-  // kein zweiter Datenstand, der driften könnte.
+  // ALLES kommt aus dem Spiel, nichts wird im JS gepflegt (das veraltet still —
+  // genau der Lindinium-Bug): die Blacklist aus crafting-db.json
+  // (`dismantle_blacklist`), die Material-Anzeigenamen aus den Rezepten selbst
+  // (`recipe[].name`, proper-case wie im Spiel — deckt auch Edelstein-/Item-
+  // Materialien ab), die Slider-Default-Effizienz aus
+  // `window.__CRAFT.dismantleEfficiency` (= DB.dismantle_efficiency, zur Build-
+  // Zeit ins Markup gerendert). datamine-crafting.mjs extrahiert alles direkt
+  // aus dem DataCore; ein neuer Lauf zieht Patch-Änderungen automatisch nach.
   var DISMANTLE_BLACKLIST = null; // { mid: true } sobald DB geladen; null = noch unbekannt
+  var MAT_NAMES = {};             // mid -> Spiel-Anzeigename (aus recipe[].name)
+  var dbFailed = false;           // DB-Fetch endgültig fehlgeschlagen?
+  // Basis-Effizienz (0..1) als Slider-Default aus dem Spiel; 0.5 nur als Notnagel,
+  // falls die Config fehlt (uralte gecachte Seite ohne dismantleEfficiency).
+  var BASE_EFFICIENCY = (CFG.dismantleEfficiency != null ? Number(CFG.dismantleEfficiency) : 0.5);
+  var DEFAULT_YIELD = Math.round(BASE_EFFICIENCY * 100);
+
   function matIsRare(mid) { return !!(DISMANTLE_BLACKLIST && DISMANTLE_BLACKLIST[mid]); }
-  function matName(mid) { return String(mid).replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
+  // Anzeigename: der Spiel-Name aus dem Rezept; Title-Case nur als Fallback,
+  // falls ein Material (noch) ohne name-Feld kommt.
+  function matName(mid) { return MAT_NAMES[mid] || String(mid).replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
   function matLabelHtml(mid) {
     return esc(matName(mid)) + (matIsRare(mid)
       ? ' <em style="color:#ff5b5b; font-size:0.75rem; font-style:normal;">' + tr('calcRareLabel', '(selten)') + '</em>'
       : '');
   }
+
+  // Ehrlichkeits-Guard: die Blacklist ist die einzige Korrektheits-Abhängigkeit
+  // zur Laufzeit. Fehlt sie (uralte JSON ohne das Feld) ODER scheiterte der
+  // DB-Fetch, kann der Rechner Seltenheit nicht garantieren — dann sichtbar
+  // ausweisen statt still falsche Ausbeuten zeigen (der Bug, den wir gerade
+  // schließen). Normal ist die Blacklist da; das ist der Ausnahme-Pfad.
+  function dismantleDataIncomplete() {
+    return dbFailed || (DB != null && !Array.isArray(DB.dismantle_blacklist));
+  }
+  function updateDataNote() {
+    var note = $('#calc-datanote');
+    if (note) note.hidden = !dismantleDataIncomplete();
+  }
+
   // Aus DB.dismantle_blacklist das Set bauen. Läuft die DB nach dem Rechner ein
   // (beide Fetches parallel), Rarity-Marker + Ergebnisse in place nachziehen —
   // ohne setupCalc erneut aufzurufen (das würde Doppel-Listener anhängen).
   function buildDismantleBlacklist() {
-    if (!DB || !DB.dismantle_blacklist) return;
-    DISMANTLE_BLACKLIST = {};
-    DB.dismantle_blacklist.forEach(function (n) { DISMANTLE_BLACKLIST[String(n).toLowerCase()] = true; });
+    if (DB && Array.isArray(DB.dismantle_blacklist)) {
+      DISMANTLE_BLACKLIST = {};
+      DB.dismantle_blacklist.forEach(function (n) { DISMANTLE_BLACKLIST[String(n).toLowerCase()] = true; });
+    }
     if (ITEMS.length && $('.calc-mat-list')) {
       $$('.calc-mat-list .calc-check').forEach(function (label) {
         var cb = label.querySelector('input'), span = label.querySelector('span');
@@ -601,6 +631,7 @@
       });
       calcApply();
     }
+    updateDataNote();
   }
 
   var ITEMS = [];
@@ -610,7 +641,7 @@
     res: {},
     q: '',
     targetQty: 1.0,
-    yieldRate: 50
+    yieldRate: DEFAULT_YIELD
   };
 
   function sortCalcMatsList() {
@@ -763,11 +794,18 @@
     ITEMS.forEach(function (it, i) { DISMANTLE_NAMES[(it.name || '').toLowerCase()] = i; });
 
     // Materialliste = alle Materialien, die in irgendeinem Rezept vorkommen.
-    // Die Menge hängt nicht von der Blacklist ab (nur der „(selten)“-Marker);
-    // läuft die DB später ein, zieht buildDismantleBlacklist() die Marker nach.
+    // Dabei den Spiel-Anzeigenamen (recipe[].name) je Material einsammeln, damit
+    // Liste, Ausbeute-Tags und Warnungen den echten Namen zeigen — sofort, ohne
+    // auf die DB zu warten. Die Menge hängt nicht von der Blacklist ab (nur der
+    // „(selten)“-Marker); läuft die DB später ein, zieht buildDismantleBlacklist()
+    // die Marker nach.
     var mats = {};
     ITEMS.forEach(function (item) {
-      item.recipe.forEach(function (r) { mats[r.materialId.toLowerCase()] = true; });
+      item.recipe.forEach(function (r) {
+        var mid = r.materialId.toLowerCase();
+        mats[mid] = true;
+        if (r.name && !MAT_NAMES[mid]) MAT_NAMES[mid] = r.name;
+      });
     });
 
     var sortedMats = Object.keys(mats).sort(function (a, b) {
@@ -843,7 +881,7 @@
     var yieldVal = $('#calc-yield-val');
     if (yieldSlider && yieldVal) {
       yieldSlider.addEventListener('input', function () {
-        calcState.yieldRate = parseInt(this.value) || 50;
+        calcState.yieldRate = parseInt(this.value) || DEFAULT_YIELD;
         yieldVal.textContent = calcState.yieldRate + '%';
         calcApply();
       });
@@ -855,12 +893,12 @@
         calcState.res = {};
         calcState.q = '';
         calcState.targetQty = 1.0;
-        calcState.yieldRate = 50;
+        calcState.yieldRate = DEFAULT_YIELD; // Spiel-Basis-Effizienz, nicht hartes 50
         if (matSearch) matSearch.value = '';
         if (itemSearch) itemSearch.value = '';
         if (targetInput) targetInput.value = '1.0';
-        if (yieldSlider) yieldSlider.value = '50';
-        if (yieldVal) yieldVal.textContent = '50%';
+        if (yieldSlider) yieldSlider.value = String(DEFAULT_YIELD);
+        if (yieldVal) yieldVal.textContent = DEFAULT_YIELD + '%';
         $$('.calc-mat-cb').forEach(function (cb) {
           cb.checked = false;
           var label = cb.closest('.calc-check');
@@ -872,6 +910,7 @@
     }
 
     calcApply();
+    updateDataNote(); // falls DB schon (fehlerhaft) geladen war, bevor der Rechner stand
   }
 
   // Tab switching logic — auch programmatisch nutzbar (Cross-Links).
