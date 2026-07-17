@@ -264,7 +264,7 @@ a{color:inherit;text-decoration:none}
         data-type={d.typeDe ?? ''}
         data-status={d.statusEn ?? ''}
         data-archive={d.patches.length ? '1' : ''}
-        data-href={`/schiffe/${id}.html`}
+        data-href={`/de/schiffe/${id}.html`}
         data-pledge={d.msrpUSD ?? -1}
         data-game={buy ?? -1}
         data-cargo={d.cargoSCU ?? -1}
@@ -282,13 +282,13 @@ a{color:inherit;text-decoration:none}
             <span class="fcard__dot"></span>{d.statusDe ?? '—'}
           </span>
           {d.patches.length > 0 && (
-            <a class="fcard__patch" href={`/patches/sc-${d.patches[0].replaceAll('.', '-')}.html`}>
+            <a class="fcard__patch" href={`/de/patches/sc-${d.patches[0].replaceAll('.', '-')}.html`}>
               {d.patches[0]}
             </a>
           )}
           <div class="fcard__id">
             <div class="fcard__maker">{d.manufacturer ?? '—'}</div>
-            <div class="fcard__name"><a href={`/schiffe/${id}.html`}>{d.name}</a></div>
+            <div class="fcard__name"><a href={`/de/schiffe/${id}.html`}>{d.name}</a></div>
           </div>
         </div>
         <div class="fcard__body">

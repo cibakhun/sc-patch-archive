@@ -186,7 +186,7 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
     <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>Schlüsselthemen</h2><span class="rule"></span></div></div>
     <div class="ktgrid reveal">
       {keyTopics.map((k, i) => (
-        <a class="ktcard" style={`--c:${k!.accent}`} href={`/topics/${k!.slug}.html`}>
+        <a class="ktcard" style={`--c:${k!.accent}`} href={`/de/topics/${k!.slug}.html`}>
           <span class="ktnum" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
           <span class="ktbody">
             <b>{k!.title}</b>
@@ -211,7 +211,7 @@ footer .credit{font-family:var(--font-ui);letter-spacing:.1em;text-transform:upp
           </div>
           <div class="hubrows">
             {g.topics.map((t) => (
-              <a href={`/topics/${t.slug}.html`}>
+              <a href={`/de/topics/${t.slug}.html`}>
                 <span class="ht">{t.title}</span>
                 <span class="hv">{t.version}</span>
               </a>
