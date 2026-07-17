@@ -201,7 +201,7 @@
     },
     {
       "name": "Mining",
-      "system": "Mining & Ressourcen",
+      "system": "Mining & Industrie",
       "kind": "gameplay",
       "desc": "Ressourcenabbau von Hand-Edelsteinen bis zum Multicrew-Schiff-Mining. Das System reicht von der Prospector (seit Alpha 3.2) über die überarbeitete ARGO MOLE (4.7/4.8) bis zu ROC- und Hand-Mining; Pyro erweiterte den Erz-Pool (Stileron, Riccite, Lindinium). Roherz wird an Refinery-Decks nach einer von neun Methoden raffiniert und verkauft.",
       "facts": [
