@@ -153,6 +153,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .hm small{color:var(--muted);font-size:.8rem;line-height:1.4}
 .hmaudio{margin-top:1rem;font-family:var(--font-mono);font-size:.82rem;letter-spacing:.04em;color:var(--muted);border:1px dashed rgba(227,170,75,.4);padding:.7rem .9rem}
 .hmaudio b{color:var(--accent-2);font-weight:400}
+.hmsrc{margin-top:.6rem;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.04em;color:var(--muted);opacity:.75}
 
 /* Video wall */
 .vwall{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:1rem}
@@ -325,14 +326,15 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sec-head reveal"><span class="num">04</span><h2>Hit markers</h2><span class="rule"></span></div>
       <p class="hmnote reveal">Every shot now reports what it did — <b>six reticle states</b>, each with its own audio cue. Alongside: a ballistic rebalance (repeaters down, BEHR S4 cannon reworked to 1,090 damage per shot with less penetration and a slower fire rate).</p>
       <div class="hms reveal">
-        <div class="hm"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="15" fill="none" stroke="#8b8175" stroke-width="2" stroke-dasharray="4 5"/><path d="M14 34 34 14" stroke="#8b8175" stroke-width="2"/></svg><b>Deflected</b><small>Armor bounced the shot — no damage</small></div>
-        <div class="hm"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="15" fill="none" stroke="#58b7c9" stroke-width="2"/><circle cx="24" cy="24" r="10" fill="none" stroke="#58b7c9" stroke-width="1.4" opacity=".55"/></svg><b>Shield hit</b><small>Connected with an active shield</small></div>
-        <div class="hm"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 8l13 8v16l-13 8-13-8V16z" fill="none" stroke="#e3aa4b" stroke-width="2"/></svg><b>Armor hit</b><small>Damaged the armor layer</small></div>
-        <div class="hm"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="15" fill="none" stroke="#e97a3d" stroke-width="2"/><path d="M24 4v10M24 34v10M4 24h10M34 24h10" stroke="#e97a3d" stroke-width="2"/></svg><b>Hull hit</b><small>Reached the hull through or past armor</small></div>
-        <div class="hm"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 10h8M10 10v8M38 10h-8M38 10v8M10 38h8M10 38v-8M38 38h-8M38 38v-8" stroke="#e94f3d" stroke-width="2" fill="none"/><circle cx="24" cy="24" r="4.5" fill="#e94f3d"/></svg><b>Component hit</b><small>Struck a power plant, cooler, or weapon</small></div>
-        <div class="hm"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="15" fill="none" stroke="#fff" stroke-width="2" opacity=".8"/><path d="M15 15l18 18M33 15L15 33" stroke="#fff" stroke-width="2.4"/></svg><b>Component destroyed</b><small>Internal component knocked out</small></div>
+        <div class="hm"><svg viewBox="0 0 60.1 60.1" aria-hidden="true"><g fill="#828282"><rect x="2.1" y="27.8" transform="matrix(.7071 -.7071 .7071 .7071 -12.5935 29.9949)" width="55.6" height="4.9"/><path d="M30.1,60.1C13.5,60.1,0,46.6,0,30.1C0,13.5,13.5,0,30.1,0s30.1,13.5,30.1,30.1C60.1,46.6,46.6,60.1,30.1,60.1z M30.1,4.9C16.2,4.9,4.9,16.2,4.9,30.1c0,13.9,11.3,25.2,25.2,25.2s25.2-11.3,25.2-25.2C55.2,16.2,43.9,4.9,30.1,4.9z"/></g></svg><b>Deflected</b><small>Armor bounced the shot — no damage</small></div>
+        <div class="hm"><svg viewBox="0 0 200 200" aria-hidden="true"><polygon points="100,14 186,100 100,186 14,100" fill="none" stroke="#0070E9" stroke-width="16"/></svg><b>Shield hit</b><small>Connected with an active shield</small></div>
+        <div class="hm"><svg viewBox="0 0 200 200" aria-hidden="true"><path d="M12 12l52 52M188 12l-52 52M188 188l-52-52M12 188l52-52" fill="none" stroke="#FFFFFF" stroke-width="12"/></svg><b>Armor hit</b><small>Damaged the armor layer</small></div>
+        <div class="hm"><svg viewBox="0 0 200 200" aria-hidden="true"><path d="M6 18l52 52M194 18l-52 52M194 182l-52-52M6 182l52-52" fill="none" stroke="#FFFFFF" stroke-width="10"/><path d="M18 6l52 52M182 6l-52 52M182 194l-52-52M18 194l52-52" fill="none" stroke="#0070E9" stroke-width="10"/></svg><b>Hull hit</b><small>Reached the hull through or past armor</small></div>
+        <div class="hm"><svg viewBox="0 0 200 200" aria-hidden="true"><path d="M12 12l52 52M188 12l-52 52M188 188l-52-52M12 188l52-52" fill="none" stroke="#F31A1A" stroke-width="12"/></svg><b>Component hit</b><small>Struck a power plant, cooler, or weapon</small></div>
+        <div class="hm"><svg viewBox="0 0 200 200" aria-hidden="true"><path d="M6 18l52 52M194 18l-52 52M194 182l-52-52M6 182l52-52M18 6l52 52M182 6l-52 52M182 194l-52-52M18 194l52-52" fill="none" stroke="#F31A1A" stroke-width="10"/></svg><b>Component destroyed</b><small>Internal component knocked out</small></div>
       </div>
       <p class="hmaudio reveal">AUDIO // <b>3 core layers</b> — armor hit · component hit · component destroyed — rebuilt after director feedback, decoupled from the legacy ships-computer palette.</p>
+      <p class="hmsrc reveal">SOURCE // marker shapes &amp; colors taken straight from the 4.9 game files (Building-Blocks UI, Data.p4k).</p>
     </div>
   </section>
 
