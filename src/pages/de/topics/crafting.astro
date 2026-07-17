@@ -12,8 +12,12 @@ const total = DB.counts.blueprints;
 const nRes = DB.counts.resources;
 const snap = DB.snapshot_date;
 const ver = DB.version;
+// Patch-Label aus der Datenbank-Version ableiten ("LIVE-4.9.0-12232306" -> "4.9"),
+// damit Titel/Breadcrumbs bei jeder Regeneration automatisch mitziehen.
+const patch = (ver.match(/(\d+\.\d+)/) ?? [])[1] ?? '4.9';
+const patchHref = `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html`;
 ---
-<Layout title={"Crafting-Datenbank — Star Citizen 4.8 | VerseBase"} description={`Interaktive Crafting-Datenbank für Star Citizen 4.8: ${total} Blueprints durchsuchen, nach Kategorie & Ressource filtern, Zutaten und Item-Werte ansehen, Materialqualität simulieren und im Fabricator-Planer eine Einkaufsliste aggregieren.`} themeColor="#16161a" ogType="article" ogImage="/assets/t-craft-1.jpg" translated={true}>
+<Layout title={`Crafting-Datenbank — Star Citizen ${patch} | VerseBase`} description={`Interaktive Crafting-Datenbank für Star Citizen ${patch}: ${total} Blueprints durchsuchen, nach Kategorie & Ressource filtern, Zutaten und Item-Werte ansehen, Materialqualität simulieren und im Fabricator-Planer eine Einkaufsliste aggregieren.`} themeColor="#16161a" ogType="article" ogImage="/assets/t-craft-1.jpg" translated={true}>
 <TopicSeo slug="crafting" image="/assets/t-craft-1.jpg" />
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
@@ -35,7 +39,7 @@ const ver = DB.version;
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.8', href: '/de/patches/sc-4-8-0.html' }, { label: "Crafting" }]} pill={"THEMA · DATENBANK"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archiv', href: '/de/archiv.html' }, { label: `Alpha ${patch}`, href: patchHref }, { label: "Crafting" }]} pill={"THEMA · DATENBANK"} hasEn={true} />
 
 <main id="main">
   <section class="hero">
@@ -43,10 +47,10 @@ const ver = DB.version;
     <canvas id="stars" aria-hidden="true"></canvas>
     <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
-      <div class="eyebrow"><a href="/de/patches/sc-4-8-0.html">Alpha 4.8</a> &nbsp;·&nbsp; <span class="cr-tag">Crafting-Datenbank</span></div>
+      <div class="eyebrow"><a href={patchHref}>Alpha {patch}</a> &nbsp;·&nbsp; <span class="cr-tag">Crafting-Datenbank</span></div>
       <h1><span class="thin">Blueprint-Datenbank</span>Crafting</h1>
       <p class="lead">Blueprints, Zutaten, Qualitäts-Simulator, Fabricator-Planer — direkt aus den Spieldaten.</p>
-      <div class="qbar"><span>Blueprints <b>{total}</b></span><span>Ressourcen <b>{nRes}</b></span><span>Patch <b>4.8</b></span><span>Stand <b>{snap}</b></span></div>
+      <div class="qbar"><span>Blueprints <b>{total}</b></span><span>Ressourcen <b>{nRes}</b></span><span>Patch <b>{patch}</b></span><span>Stand <b>{snap}</b></span></div>
     </div>
     <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
   </section>
