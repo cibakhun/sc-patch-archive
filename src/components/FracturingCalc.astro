@@ -1,6 +1,6 @@
 ---
 // FracturingCalc.astro — "Kann ich diesen Rock brechen?" mit dem game-akkuraten
-// Mining-Modell (datamined 4.8.x-Werte aus assets/mining-model.json).
+// Mining-Modell (eigenen 4.9-Werten (Data.p4k) aus assets/mining-model.json).
 // Formeln 1:1 nach dem community-verifizierten Solver-Modell:
 //   Rock-Blend (Resistance): w = clamp(frac^rcf × r, −1, 1); pos zuerst,
 //     R += w·(1−R) wenn w>0, sonst R += w·R
@@ -53,7 +53,7 @@ const S = {
     recMarginal: 'Knapp: Laser-DPS liegt nur wenig über dem Abbau. Stärkeren Laser oder Resistance-senkendes Modul/Gadget zuschalten.',
     recImposs: 'Laser-DPS überwindet den Rock-Abbau nicht — der Rock füllt nie. Resistance senken (Gadget/Modul), größeren Laser (S2/MOLE) oder in der Gruppe brechen.',
     recOver: ' Zusätzlich: hohe Instabilität bei kleinem Fenster → Überlade-Gefahr. Fenster vergrößern / Instabilität senken.',
-    note: 'Game-akkurates Modell aus datamined 4.8.3-Werten; die Formeln (Rock-Blending, Energie, Fenster, Ertrag, Charge = DPS × (1 − eff. Resistance)) sind gegen das Referenz-Solver-Modell auf <0,5% verifiziert. Rock-Werte sind repräsentativ (Mitte der Anteils-Range) — echte Rocks streuen darin. Ingame prüfen.',
+    note: 'Game-akkurates Modell aus eigenen 4.9-Werten (Data.p4k); die Formeln (Rock-Blending, Energie, Fenster, Ertrag, Charge = DPS × (1 − eff. Resistance)) sind gegen das Referenz-Solver-Modell auf <0,5% verifiziert. Rock-Werte sind repräsentativ (Mitte der Anteils-Range) — echte Rocks streuen darin. Ingame prüfen.',
   },
   en: {
     rock: 'Rock', comp: 'Composition (signature)', mass: 'Mass (kg)', custom: 'Custom values',
@@ -67,7 +67,7 @@ const S = {
     recMarginal: 'Tight: laser DPS is only just above decay. Add a stronger laser or a resistance-lowering module/gadget.',
     recImposs: 'Laser DPS cannot overcome rock decay — the charge never fills. Lower resistance (gadget/module), use a bigger laser (S2/MOLE), or crack it as a group.',
     recOver: ' Also: high instability with a small window → overcharge risk. Widen the window / lower instability.',
-    note: 'Game-accurate model from datamined 4.8.3 values; the formulas (rock blending, energy, window, yield, charge = DPS × (1 − eff. resistance)) are verified against the reference solver model to <0.5%. Rock stats are representative (midpoint of the share range) — real rocks vary within it. Verify in-game.',
+    note: 'Game-accurate model from the game files (4.9, own Data.p4k extraction); the formulas (rock blending, energy, window, yield, charge = DPS × (1 − eff. resistance)) are verified against the reference solver model to <0.5%. Rock stats are representative (midpoint of the share range) — real rocks vary within it. Verify in-game.',
   },
 }[lang];
 ---

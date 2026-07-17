@@ -2,7 +2,7 @@
 // RefineryFinder.astro — welche Raffinerie gibt pro Erz den besten Yield-Bonus?
 // Zwei Ansichten: "Liste" (beste Raffinerie pro Erz auf einen Blick, Default)
 // und "Matrix" (volles Erz × Raffinerie-Gitter). Erz-Suche + System-Filter.
-// Werte = echte datamined 4.8.3-Yield-Boni pro Station-Profil.
+// Werte = Refinery-Yield-Boni pro Station-Profil (serverseitige CIG-Economy, aus scmdb 4.9 eingefroren — kein Client-Record).
 // Zusätzlich eine Methoden-Referenz (qualitativ, Stand 4.8.0) — exakte
 // Methoden-Yields sind für 4.8 nicht öffentlich datamined.
 import MODEL from '../../assets/mining-model.json';
@@ -64,22 +64,22 @@ const METHODS = [
 
 const S = {
   de: {
-    intro: 'Jede Raffinerie gibt pro Erz einen eigenen Yield-Bonus (in %) — echte datamined 4.8.3-Werte. Suche dein Erz und sieh sofort die beste Station, oder wechsle zur vollen Matrix.',
+    intro: 'Jede Raffinerie gibt pro Erz einen eigenen Yield-Bonus (in %) — echte Yield-Werte (serverseitig, scmdb 4.9). Suche dein Erz und sieh sofort die beste Station, oder wechsle zur vollen Matrix.',
     search: 'Erz suchen…', view: 'Ansicht', list: 'Liste', matrix: 'Matrix', system: 'System', all: 'Alle',
     bestAt: 'Beste', others: 'weitere', noBonus: 'kein Bonus-Wert', ore: 'Erz',
     methodsH: 'Refinery-Methoden im Überblick', method: 'Methode', speed: 'Tempo', cost: 'Kosten', yield: 'Ausbeute',
     methodsNote: 'Qualitative Trade-offs (Stand 4.8.0) — höhere Ausbeute kostet Zeit oder Geld. Exakte Yield-Prozente pro Methode sind für 4.8 nicht öffentlich datamined; wähle die Methode nach Ziel (Menge vs. Tempo vs. Kosten).',
     lvl: { vlow: 'sehr niedrig', low: 'niedrig', mid: 'mittel', high: 'hoch' },
-    note: 'Yield-Boni je Raffinerie-Profil aus datamined 4.8.3-Spieldaten. Mehrere Stationen teilen ein Profil (identische Boni; alle im Tooltip der Spalte). Patch-volatil.',
+    note: 'Yield-Boni je Raffinerie-Profil (serverseitige Economy, aus scmdb 4.9 eingefroren). Mehrere Stationen teilen ein Profil (identische Boni; alle im Tooltip der Spalte). Patch-volatil.',
   },
   en: {
-    intro: 'Each refinery gives its own yield bonus per ore (in %) — real datamined 4.8.3 values. Search your ore and see the best station instantly, or switch to the full matrix.',
+    intro: 'Each refinery gives its own yield bonus per ore (in %) — real yield values (server-side economy, scmdb 4.9 snapshot). Search your ore and see the best station instantly, or switch to the full matrix.',
     search: 'Search ore…', view: 'View', list: 'List', matrix: 'Matrix', system: 'System', all: 'All',
     bestAt: 'Best', others: 'more', noBonus: 'no bonus value', ore: 'Ore',
     methodsH: 'Refinery methods overview', method: 'Method', speed: 'Speed', cost: 'Cost', yield: 'Yield',
     methodsNote: 'Qualitative trade-offs (as of 4.8.0) — higher yield costs time or money. Exact per-method yield percentages are not publicly datamined for 4.8; pick the method by goal (volume vs. speed vs. cost).',
     lvl: { vlow: 'very low', low: 'low', mid: 'mid', high: 'high' },
-    note: 'Yield bonuses per refinery profile from datamined 4.8.3 game files. Several stations share a profile (identical bonuses; all in the column tooltip). Patch-volatile.',
+    note: 'Yield bonuses per refinery profile (server-side economy, frozen from scmdb 4.9). Several stations share a profile (identical bonuses; all in the column tooltip). Patch-volatile.',
   },
 }[lang];
 

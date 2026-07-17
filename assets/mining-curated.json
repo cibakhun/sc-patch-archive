@@ -1,0 +1,227 @@
+{
+  "source": "Kuratierte Mineral-Attribute (Code/Kind/Gewicht/Basis-Methode) — von Hand gepflegt, NICHT game-extrahiert. Von build-mining-db gelesen, nie überschrieben.",
+  "minerals": {
+    "Agricium": {
+      "code": "AGRI",
+      "kind": "Metal",
+      "weight_scu": 1.2,
+      "method": "ship"
+    },
+    "Aluminum": {
+      "code": "ALUM",
+      "kind": "Metal",
+      "weight_scu": 1.2,
+      "method": "ship"
+    },
+    "Aphorite": {
+      "code": "APHO",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "hand"
+    },
+    "Aslarite": {
+      "code": "ASLA",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Beradom": {
+      "code": "BERA",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "roc"
+    },
+    "Beryl": {
+      "code": "BERY",
+      "kind": "Mineral",
+      "weight_scu": 1.1,
+      "method": "ship"
+    },
+    "Bexalite": {
+      "code": "BEXA",
+      "kind": "Mineral",
+      "weight_scu": 1.1,
+      "method": "ship"
+    },
+    "Borase": {
+      "code": "BORA",
+      "kind": "Metal",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Carinite": {
+      "code": "CARI",
+      "kind": "Mineral",
+      "weight_scu": 1,
+      "method": "roc"
+    },
+    "Copper": {
+      "code": "COPP",
+      "kind": "Metal",
+      "weight_scu": 1.2,
+      "method": "ship"
+    },
+    "Corundum": {
+      "code": "CORU",
+      "kind": "Mineral",
+      "weight_scu": 1.1,
+      "method": "ship"
+    },
+    "Dolivine": {
+      "code": "DOLI",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "hand"
+    },
+    "Feynmaline": {
+      "code": "FEYN",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "roc"
+    },
+    "Glacosite": {
+      "code": "GLAC",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "roc"
+    },
+    "Gold": {
+      "code": "GOLD",
+      "kind": "Metal",
+      "weight_scu": 1.25,
+      "method": "ship"
+    },
+    "Hadanite": {
+      "code": "HADA",
+      "kind": "Mineral",
+      "weight_scu": 1,
+      "method": "hand"
+    },
+    "Hephaestanite": {
+      "code": "HEPH",
+      "kind": "Mineral",
+      "weight_scu": 1.1,
+      "method": "ship"
+    },
+    "Ice": {
+      "code": "ICEW",
+      "kind": "Ice",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Iron": {
+      "code": "IRON",
+      "kind": "Metal",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Jaclium": {
+      "code": "JACO",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "hand"
+    },
+    "Janalite": {
+      "code": "JANA",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "hand"
+    },
+    "Laranite": {
+      "code": "LARA",
+      "kind": "Metal",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Lindinium": {
+      "code": "LINW",
+      "kind": "Metal",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Ouratite": {
+      "code": "OURW",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Quantainium": {
+      "code": "QUAN",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Quartz": {
+      "code": "QUAR",
+      "kind": "Metal",
+      "weight_scu": 1.1,
+      "method": "ship"
+    },
+    "Riccite": {
+      "code": "RICO",
+      "kind": "Metal",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Sadaryx": {
+      "code": "SADA",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "hand"
+    },
+    "Saldynium": {
+      "code": "SALD",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "hand"
+    },
+    "Savrilium": {
+      "code": "SAVR",
+      "kind": "Metal",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Silicon": {
+      "code": "SILI",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Stileron": {
+      "code": "STIL",
+      "kind": "Metal",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Taranite": {
+      "code": "TARA",
+      "kind": "Mineral",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Tin": {
+      "code": "TINO",
+      "kind": "Metal",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Titanium": {
+      "code": "TITA",
+      "kind": "Metal",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Torite": {
+      "code": "TORI",
+      "kind": "Metal",
+      "weight_scu": null,
+      "method": "ship"
+    },
+    "Tungsten": {
+      "code": "TUNG",
+      "kind": "Metal",
+      "weight_scu": 1.2,
+      "method": "ship"
+    }
+  }
+}
