@@ -87,7 +87,7 @@ a{color:inherit;text-decoration:none}
           {patches.map((p, pi) => (
             <th scope="col" class={`evo__col${eraStarts[pi] ? ' evo__erastart' : ''}`} style={`--c:${p.data.palette.accent}`}>
               {eraStarts[pi] && <span class="evo__era">{p.data.era}</span>}
-              <a href={`/patches/sc-${p.id}.html`} title={`${p.data.codename} · ${p.data.dateDisplay}`}>
+              <a href={`/de/patches/sc-${p.id}.html`} title={`${p.data.codename} · ${p.data.dateDisplay}`}>
                 {p.data.version}
               </a>
             </th>
@@ -135,7 +135,7 @@ a{color:inherit;text-decoration:none}
             <header class="edet__head">
               <span class="edet__sys">{sys}</span>
               <span class="edet__meta">
-                <a class="edet__patch" href={`/patches/sc-${p.id}.html`}>
+                <a class="edet__patch" href={`/de/patches/sc-${p.id}.html`}>
                   Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay} →
                 </a>
                 <button class="edet__x" data-eclose aria-label="Details schließen">Esc</button>
@@ -152,7 +152,7 @@ a{color:inherit;text-decoration:none}
                     ))}
                   </dl>
                 )}
-                {f.topicSlug && <a class="edet__link" href={`/topics/${f.topicSlug}.html`}>Deep-Dive ansehen →</a>}
+                {f.topicSlug && <a class="edet__link" href={`/de/topics/${f.topicSlug}.html`}>Deep-Dive ansehen →</a>}
               </article>
             ))}
           </div>
