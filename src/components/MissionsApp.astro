@@ -6,7 +6,7 @@
 //
 // Spieldaten (Titel, Fraktionen, Orte) bleiben englisch: die deutsche global.ini
 // enthaelt keine Missionstexte. Uebersetzt wird nur die Bedienoberflaeche.
-import { db, missions, rewardLabel, repSummary, searchText, uec, cmpSign, bpCount, clip } from '../lib/missions';
+import { db, missions, rewardLabel, repSummary, uec, cmpSign, bpCount, clip } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { href } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
@@ -91,7 +91,6 @@ const cards = missions.map((m: Mission) => {
     reward: rewardLabel(m, lang),
     rep: reps[0] ?? null,
     repMore: Math.max(0, reps.length - 1),
-    search: searchText(m),
     legal: m.lawful && m.unlawful ? 'both' : m.lawful ? 'lawful' : 'unlawful',
     bps: bpCount(m),
   };
@@ -168,11 +167,14 @@ const cards = missions.map((m: Mission) => {
 
     <!-- Karten -->
     <div class="mx__grid" id="mx-grid">
-      {cards.map(({ m, parts, descParts, reward, rep, repMore, search, legal, bps }) => (
+      {/* HTML-Diät: data-search (~500 unsichtbare Zeichen je Karte — Blueprint-
+          Namen, Orte, Titel-Varianten) liegt jetzt als 1-Tag-cachebarer Index
+          unter /missions-search.json (siehe pages/missions-search.json.ts);
+          data-name liest missions-app.js aus dem sichtbaren <h3>. Zusammen
+          ~0,75 MB weniger pro Sprachindex. */}
+      {cards.map(({ m, parts, descParts, reward, rep, repMore, legal, bps }) => (
         <article
           class="mc"
-          data-search={search}
-          data-name={m.title.toLowerCase()}
           data-type={m.types.join(' ')}
           data-giver={m.givers.join(' ')}
           data-faction={m.factions.join(' ')}
@@ -243,8 +245,12 @@ const cards = missions.map((m: Mission) => {
   </div>
 </section>
 
-<script is:inline set:html={`window.__MX=${JSON.stringify({ lang, t: { results: S.results } })};`} />
-<script is:inline src="/assets/missions-app.js?v=1"></script>
+{/* searchUrl versioniert mit dem DB-Stand: neuer Datamine-Lauf -> neue URL ->
+    kein 1-Tag-alter Suchindex zu frischen Karten. */}
+<script is:inline set:html={`window.__MX=${JSON.stringify({ lang, searchUrl: `/missions-search.json?v=${db.meta.generated}`, t: { results: S.results } })};`} />
+{/* ?v=2: missions-app.js erwartet jetzt Karten ohne data-search/data-name —
+    altes gecachtes JS (1 Tag) fände auf neuem HTML nur leere Suchtexte. */}
+<script is:inline src="/assets/missions-app.js?v=2"></script>
 
 {/* KEIN is:inline: Astro buendelt diesen Block und verlinkt ihn im <head>.
     Inline stuende er hinter 800 KB Karten-Markup — der Browser malt dann erst

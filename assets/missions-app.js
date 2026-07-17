@@ -24,11 +24,18 @@
   var none = document.getElementById('mx-none');
 
   // Karten einmal einlesen; ab dann nur noch Zahlen/Strings vergleichen.
+  // name kommt aus dem sichtbaren <h3> (data-name entfiel als HTML-Diät);
+  // search startet als sichtbarer Kartentext und wird durch den vollen Index
+  // aus /missions-search.json ersetzt, sobald der Fetch unten durch ist.
   var cards = [].slice.call(grid.children).map(function (el) {
+    var h = el.querySelector('.mc__h');
+    var link = el.querySelector('.mc__link');
+    var hrefM = link ? /\/missionen\/([^/]+)\.html/.exec(link.getAttribute('href') || '') : null;
     return {
       el: el,
-      search: el.getAttribute('data-search') || '',
-      name: el.getAttribute('data-name') || '',
+      slug: hrefM ? hrefM[1] : '',
+      search: (el.textContent || '').replace(/\s+/g, ' ').toLowerCase(),
+      name: h ? h.textContent.trim().toLowerCase() : '',
       type: (el.getAttribute('data-type') || '').split(' ').filter(Boolean),
       giver: (el.getAttribute('data-giver') || '').split(' ').filter(Boolean),
       faction: (el.getAttribute('data-faction') || '').split(' ').filter(Boolean),
@@ -81,6 +88,19 @@
     var frag = document.createDocumentFragment();
     for (var i = 0; i < vis.length; i++) frag.appendChild(vis[i].el);
     grid.appendChild(frag);
+  }
+
+  // Voller Suchindex (Blueprint-Namen, Orte, Titel-Varianten — nichts davon
+  // steht sichtbar auf der Karte): einmal laden, 1 Tag Browser-Cache, per
+  // ?v=<DB-Stand> versioniert. Bis dahin trägt der Kartentext die Suche.
+  if (CFG.searchUrl) {
+    fetch(CFG.searchUrl).then(function (r) { return r.json(); }).then(function (idx) {
+      for (var i = 0; i < cards.length; i++) {
+        var full = idx[cards[i].slug];
+        if (full) cards[i].search = cards[i].search + ' ' + full;
+      }
+      if ((q.value || '').trim()) apply();
+    }).catch(function () {});
   }
 
   var timer = null;

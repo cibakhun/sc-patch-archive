@@ -20,12 +20,55 @@
   var emptyEl = $('#cdb-empty');
   var resSearch = $('#cdb-res-search');
 
+  // ---- HTML-Diät: Karten tragen im Markup nur noch data-i + data-time ----
+  // Die übrigen Filter-Metadaten (name/cat/sub/res/mis/ings) standen als
+  // data-Attribute doppelt zum sichtbaren Karteninhalt im HTML (~0,5 MB pro
+  // Sprachseite bei 1534 Karten). Sie werden hier einmalig aus dem Markup ins
+  // dataset gehoben — matches()/sortCards() lesen dataset unverändert weiter.
+  // data-res kennt zunächst nur die 5 sichtbaren Chips; die volle Zutatenliste
+  // liefert enrichCardsFromDb() nach dem DB-Fetch nach.
+  // Die ★/＋-Buttons sind ohne JS funktionslos und kommen deshalb ebenfalls von
+  // hier (Klicks fängt die bestehende Delegation auf #cdb-grid).
+  cards.forEach(function (card, pos) {
+    var d = card.dataset;
+    if (d.i == null || d.i === '') d.i = String(pos);
+    var nameEl = $('.cbp__name', card);
+    d.name = nameEl ? nameEl.textContent.trim().toLowerCase() : '';
+    var catEl = $('.cbp__cat', card);
+    var subEl = catEl && catEl.querySelector('em');
+    d.sub = subEl ? subEl.textContent.trim() : '';
+    d.cat = catEl && catEl.firstChild ? String(catEl.firstChild.nodeValue || '').trim() : '';
+    d.mis = $('.cbp__mis', card) ? '1' : '0';
+    var ings = 0;
+    $$('.cbp__meta span', card).forEach(function (s) {
+      if (s.textContent.indexOf('◆') >= 0) ings = parseInt(s.textContent.replace(/\D+/g, ''), 10) || 0;
+    });
+    d.ings = String(ings);
+    var res = [];
+    $$('.cbp__res li', card).forEach(function (li) {
+      if (!li.classList.contains('more')) res.push(li.textContent.trim().toLowerCase());
+    });
+    d.res = res.join('|');
+    if (!$('.cbp__btns', card)) {
+      var top = $('.cbp__top', card);
+      if (top) {
+        var btns = document.createElement('div');
+        btns.className = 'cbp__btns';
+        btns.innerHTML =
+          '<button class="cbp__own" aria-pressed="false" title="' + tr('owned', 'Im Besitz') + '">★</button>' +
+          '<button class="cbp__add" title="' + tr('addPlan', 'Zum Planer') + '">＋</button>';
+        top.appendChild(btns);
+      }
+    }
+  });
+
   // ---- Data (async; UI works without it, enriched once loaded) ----
   var DB = null;
   var MISSIONS = null; // id -> {id,name,pool:[{i,dc}]}
   var pendingBpName = null; // vorgemerkter Blueprint, falls DB beim Sprung noch lädt
   fetch(CFG.dbUrl).then(function (r) { return r.json(); }).then(function (j) {
     DB = j;
+    enrichCardsFromDb();
     buildMissionIndex();
     renderPlanner();
     // Deep-Link aus dem Item Finder: ?bp=<Blueprint-Name> öffnet direkt das Modal.
@@ -35,6 +78,27 @@
     } catch (e) {}
     if (pendingBpName) { openModalByName(pendingBpName); pendingBpName = null; }
   }).catch(function () {});
+
+  // Volle Zutatenliste je Karte: das SSR-Markup zeigt nur 5 Ressourcen-Chips,
+  // Ressourcen-Filter und Suche sollen aber über ALLE Zutaten gehen. Danach
+  // einmal apply(), falls jemand schon vor dem DB-Load gefiltert hat.
+  function enrichCardsFromDb() {
+    if (!DB || !DB.blueprints) return;
+    cards.forEach(function (card) {
+      var b = DB.blueprints[+card.dataset.i];
+      if (!b) return;
+      var seen = {}, out = [];
+      (b.ingredients || []).forEach(function (ing) {
+        (ing.options || []).forEach(function (o) {
+          var n = (o.name || '').toLowerCase();
+          if (n && !seen[n]) { seen[n] = 1; out.push(n); }
+        });
+      });
+      card.dataset.res = out.join('|');
+      card.dataset.ings = String((b.ingredients || []).length);
+    });
+    apply();
+  }
 
   // Blueprint per Name öffnen — Deep-Link + Sprung aus dem Zerlegungs-Rechner.
   function openModalByName(name) {
