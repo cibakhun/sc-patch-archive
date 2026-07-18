@@ -423,9 +423,11 @@
             '</div>';
         });
         if (ing.quality_effects && ing.quality_effects.length) {
+          // Editierbares Zahlenfeld statt reiner Anzeige + Slider in 1er-Schritten
+          // (vorher step=10): feinere Kontrolle per Ziehen UND direkte Eingabe.
           html += '<div class="cbm__sim">' +
-            '<label>' + tr('quality', 'Qualität') + ' <output data-out="' + gi + '">500</output></label>' +
-            '<input type="range" class="cbm__slider" data-ing="' + gi + '" min="0" max="1000" step="10" value="500">' +
+            '<label>' + tr('quality', 'Qualität') + ' <input type="number" class="cbm__qnum" data-num="' + gi + '" min="0" max="1000" step="1" value="500" inputmode="numeric" aria-label="' + tr('quality', 'Qualität') + ' 0–1000"></label>' +
+            '<input type="range" class="cbm__slider" data-ing="' + gi + '" min="0" max="1000" step="1" value="500">' +
             '</div>';
         }
         html += '</div>';
@@ -462,7 +464,10 @@
       var perStat = {};
       sliders.forEach(function (sl) {
         var gi = +sl.dataset.ing, q = +sl.value;
-        var out = $('[data-out="' + gi + '"]', modalBody); if (out) out.textContent = q;
+        // Zahlenfeld mit dem Slider spiegeln — aber NICHT überschreiben, während
+        // der User gerade dort tippt (sonst springt der Cursor / die Eingabe).
+        var num = $('[data-num="' + gi + '"]', modalBody);
+        if (num && document.activeElement !== num) num.value = q;
         var ing = b.ingredients[gi];
         (ing.quality_effects || []).forEach(function (qe) {
           var span = (qe.quality_max - qe.quality_min) || 1;
@@ -504,6 +509,26 @@
       }
     }
     sliders.forEach(function (sl) { sl.addEventListener('input', recompute); });
+    // Zahlenfeld ↔ Slider koppeln: Slider ist die Quelle der Wahrheit für die
+    // Simulation. Beim Tippen den Slider mitziehen (ohne das Feld zu clobbern),
+    // beim Verlassen/Enter den Wert auf gültige Ganzzahl 0–1000 normalisieren.
+    $$('.cbm__qnum', modalBody).forEach(function (num) {
+      var gi = +num.dataset.num;
+      var sl = $('.cbm__slider[data-ing="' + gi + '"]', modalBody);
+      num.addEventListener('input', function () {
+        var v = parseInt(num.value, 10);
+        if (isNaN(v)) return; // leeres/teilweises Feld beim Tippen tolerieren
+        if (sl) sl.value = clamp(v, 0, 1000);
+        recompute();
+      });
+      num.addEventListener('change', function () {
+        var v = parseInt(num.value, 10);
+        if (isNaN(v)) v = sl ? +sl.value : 500;
+        v = clamp(v, 0, 1000);
+        num.value = v; if (sl) sl.value = v;
+        recompute();
+      });
+    });
     recompute();
 
     var pb = $('[data-plan]', modalBody);
