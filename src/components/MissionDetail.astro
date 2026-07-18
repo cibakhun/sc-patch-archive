@@ -22,7 +22,7 @@ const S = {
     // titleKind nur im <title> (Suchanfrage ist „star citizen <mission>");
     // kind bleibt der sichtbare Eyebrow-Text auf der Seite.
     back: 'Alle Missionen', kind: 'Mission', titleKind: 'Star-Citizen-Mission',
-    internal: 'Interner Name', internalT: 'Diese Mission trägt in den Spieldateien keinen Titel. Angezeigt wird ihr interner Name aus dem DataCore — im Spiel heißt sie anders.',
+    internal: 'Interner Name', internalT: 'Diese Mission trägt keinen festen Titel. Angezeigt wird ihr interner Name — im Spiel heißt sie anders.',
     mgHead: 'Auftragstext', mgCode: 'mobiGlas // Übertragung',
     mgEnd: 'Ende der Übertragung', mgAria: 'Auftragstext, wie ihn das mobiGlas anzeigt',
     dynamic: 'Titel wird zur Laufzeit gefüllt',
@@ -40,7 +40,7 @@ const S = {
     repNone: 'Keine Reputationsbedingung in den Spieldateien.',
     faction: 'Fraktion', standing: 'Rang', scope: 'Bereich', threshold: 'Schwelle', perk: 'Vorteil',
     flow: 'Ablauf', flowNote: 'Achtung: Das ist nicht der Zieltext aus dem mobiGlas.',
-    flowP: 'Der Spielertext der Missionsziele steckt nicht in den Client-Dateien — die Missionslogik läuft serverseitig. Was hier steht, sind die Schritte und Ablaufregeln, wie die Entwickler sie im DataCore benannt haben.',
+    flowP: 'Der Spielertext der Missionsziele ist nicht verfügbar — die Missionslogik läuft serverseitig. Was hier steht, sind die Schritte und Ablaufregeln, wie die Entwickler sie benannt haben.',
     steps: 'Schritte', rules: 'Ablaufregeln', flowNone: 'Kein Ablauf in den Spieldateien hinterlegt.',
     tblKey: 'Eintrag', tblGiver: 'Auftraggeber', tblLoc: 'Region', tblReward: 'Belohnung', tblRep: 'Reputation', tblPlaces: 'Orte',
     module: 'Missionsmodul', tags: 'Tags', none: '—', noReward: 'keine',
@@ -55,7 +55,7 @@ const S = {
   },
   en: {
     back: 'All missions', kind: 'Mission', titleKind: 'Star Citizen Mission',
-    internal: 'Internal name', internalT: 'This mission has no title in the game files. Shown is its internal DataCore name — in game it is called something else.',
+    internal: 'Internal name', internalT: 'This mission has no fixed title. Shown is its internal name — in game it is called something else.',
     mgHead: 'Contract briefing', mgCode: 'mobiGlas // transmission',
     mgEnd: 'End of transmission', mgAria: 'Contract briefing as the mobiGlas shows it',
     dynamic: 'Title is filled in at runtime',
@@ -73,7 +73,7 @@ const S = {
     repNone: 'No reputation requirement in the game files.',
     faction: 'Faction', standing: 'Standing', scope: 'Scope', threshold: 'Threshold', perk: 'Perk',
     flow: 'Flow', flowNote: 'Note: this is not the objective text from your mobiGlas.',
-    flowP: 'The player-facing objective text is not in the client files — mission logic runs server-side. What follows are the steps and flow rules as the developers named them in the DataCore.',
+    flowP: 'The player-facing objective text is not available — mission logic runs server-side. What follows are the steps and flow rules as the developers named them.',
     steps: 'Steps', rules: 'Flow rules', flowNone: 'No flow recorded in the game files.',
     tblKey: 'Entry', tblGiver: 'Contractor', tblLoc: 'Region', tblReward: 'Reward', tblRep: 'Reputation', tblPlaces: 'Locations',
     module: 'Mission module', tags: 'Tags', none: '—', noReward: 'none',
@@ -363,13 +363,6 @@ const t = useTranslations(lang);
         </section>
       )}
 
-      <aside class="md__src">
-        <h2>{S.src}</h2>
-        <p set:html={S.srcP} />
-        <p class="md__srcMeta">
-          {S.rec}: <code>{v0.file}</code>{db.meta.patch && <> · Build <code>{db.meta.patch}</code></>} · {db.meta.generated}
-        </p>
-      </aside>
     </div>
   </main>
 

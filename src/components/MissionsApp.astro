@@ -19,7 +19,7 @@ const S = {
   de: {
     eyebrow: 'Spieldaten-Auszug',
     title: 'Missionen',
-    lead: `${db.meta.counts.live.toLocaleString('de-DE')} Missionsangebote aus den Spieldateien, zu ${db.meta.counts.families} Missionen gebündelt — mit Belohnung, Reputation, Auftraggeber und Orten.`,
+    lead: `${db.meta.counts.live.toLocaleString('de-DE')} Missionsangebote, zu ${db.meta.counts.families} Missionen gebündelt — mit Belohnung, Reputation, Auftraggeber und Orten.`,
     stMissions: 'Missionen', stVariants: 'Angebote', stBp: 'mit Blueprints', stRep: 'mit Reputationshürde',
     search: 'Suchen', searchPh: 'Titel, Auftraggeber, Fraktion, Ort …',
     fType: 'Typ', fGiver: 'Auftraggeber', fFaction: 'Fraktion', fLoc: 'Region', fLegal: 'Rechtslage',
@@ -33,7 +33,7 @@ const S = {
     internal: 'Interner Name', internalT: 'Diese Mission hat in den Spieldateien keinen Titel — angezeigt wird ihr interner Name.',
     dynamic: 'Titel variiert', dynamicT: 'Der Titel wird im Spiel zur Laufzeit gefüllt; die Platzhalter stehen für Werte wie Rang oder Ziel.',
     noReward: 'keine', calcReward: 'wird berechnet', calcRewardT: 'Der Contract fuehrt keine feste Zahl — das Spiel berechnet den Lohn zur Laufzeit aus der Schwierigkeit.',
-    srcH: 'Woher die Daten kommen',
+    srcH: 'Gut zu wissen',
     srcP: 'Extrahiert aus <code>Data.p4k → Data/Game2.dcb</code> (DataCore) und <code>Localization/english/global.ini</code> der installierten Live-Version. Nichts davon ist abgeschrieben.',
     srcSys: `Zwei Systeme: das ältere <strong>Missionsbrett</strong> (${db.meta.counts.brokerLive.toLocaleString('de-DE')} Angebote) und der <strong>Contract-Manager</strong> (${db.meta.counts.contracts.toLocaleString('de-DE')}), in den CIG gerade migriert. ${db.meta.counts.legacyBridged} Angebote führen beide Systeme — die stehen hier nur einmal.`,
     srcBp: `Blueprints hängen ausschließlich am Contract-Manager: ${db.meta.counts.withBlueprints} Missionen ziehen aus ${db.meta.counts.blueprintPools} Pools. Ein Pool ist eine gewichtete Liste — welcher Blueprint fällt, ist Zufall.`,
@@ -45,7 +45,7 @@ const S = {
   en: {
     eyebrow: 'Game-files extract',
     title: 'Missions',
-    lead: `${db.meta.counts.live.toLocaleString('en-US')} mission offers from the game files, grouped into ${db.meta.counts.families} missions — with rewards, reputation, contractors and locations.`,
+    lead: `${db.meta.counts.live.toLocaleString('en-US')} mission offers, grouped into ${db.meta.counts.families} missions — with rewards, reputation, contractors and locations.`,
     stMissions: 'missions', stVariants: 'offers', stBp: 'with blueprints', stRep: 'with rep gate',
     search: 'Search', searchPh: 'Title, contractor, faction, location …',
     fType: 'Type', fGiver: 'Contractor', fFaction: 'Faction', fLoc: 'Region', fLegal: 'Legality',
@@ -59,7 +59,7 @@ const S = {
     internal: 'Internal name', internalT: 'This mission has no title in the game files — its internal name is shown instead.',
     dynamic: 'Title varies', dynamicT: 'The title is filled in at runtime; the placeholders stand for values like rank or target.',
     noReward: 'none', calcReward: 'calculated', calcRewardT: 'The contract carries no fixed number — the game computes the payout at runtime from the difficulty.',
-    srcH: 'Where this comes from',
+    srcH: 'Good to know',
     srcP: 'Extracted from <code>Data.p4k → Data/Game2.dcb</code> (DataCore) and <code>Localization/english/global.ini</code> of the installed live build. None of it is copied from elsewhere.',
     srcSys: `Two systems: the older <strong>mission board</strong> (${db.meta.counts.brokerLive.toLocaleString('en-US')} offers) and the <strong>Contract Manager</strong> (${db.meta.counts.contracts.toLocaleString('en-US')}) that CIG is migrating to. ${db.meta.counts.legacyBridged} offers exist in both — those are listed once.`,
     srcBp: `Blueprints hang off the Contract Manager only: ${db.meta.counts.withBlueprints} missions draw from ${db.meta.counts.blueprintPools} pools. A pool is a weighted list — which blueprint drops is chance.`,
@@ -229,7 +229,6 @@ const cards = missions.map((m: Mission) => {
     <!-- Quelle / Vorbehalte -->
     <aside class="mx__src">
       <h2>{S.srcH}</h2>
-      <p set:html={S.srcP} />
       <ul>
         <li set:html={S.srcSys} />
         <li>{S.srcBp}</li>
@@ -238,9 +237,6 @@ const cards = missions.map((m: Mission) => {
         <li>{S.srcGuild}</li>
         <li>{S.srcObj}</li>
       </ul>
-      <p class="mx__srcMeta">
-        <code>Game2.dcb</code> · DataCore v8{db.meta.patch && <> · Build <code>{db.meta.patch}</code></>} · {db.meta.generated}
-      </p>
     </aside>
   </div>
 </section>
