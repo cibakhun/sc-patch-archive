@@ -921,6 +921,14 @@ span.sd__ref{color:var(--muted)}
         </figure>
         {videoId && (
           <div class="holo__video" id="holovideo" data-vid={videoId}>
+            {/* Schneller Videostart: Verbindungen zu den YouTube-Hosts schon
+                beim Parsen aufbauen und die IFrame-API parallel zum Seiten-
+                aufbau laden — loadYT() findet das Script per id und wartet
+                nur noch auf ready, statt die Ladekette seriell zu starten */}
+            <link rel="preconnect" href="https://www.youtube.com" />
+            <link rel="preconnect" href="https://www.youtube-nocookie.com" />
+            <link rel="preconnect" href="https://i.ytimg.com" />
+            <script is:inline id="yt-iframe-api" src="https://www.youtube.com/iframe_api" async></script>
             {/* Poster IMMER rendern (ohne Galerie-Bild dunkel) — es verdeckt
                 YouTubes Start-Chrome; fehlte es (Schiffe ohne Bilder, z. B.
                 Basher), blitzte die Player-UI beim Start nackt durch */}
@@ -1596,10 +1604,12 @@ span.sd__ref{color:var(--muted)}
           },
           onStateChange: function (e) {
             // erst kurz NACH echtem Abspielstart das Poster wegblenden -> das
-            // YouTube-Start-Symbol (Pause/Play) blitzt darunter unsichtbar durch.
+            // YouTube-Start-Chrome (Titel-Einblendung oben, ~3 s) liegt darunter
+            // unsichtbar. 3000 ms + 0,9 s Fade decken das ab; die frueheren
+            // 4500 ms waren unnoetig traege (User-Feedback "startet nicht direkt").
             // Inline-Style (kein Klassen-Toggle): umgeht ein Astro-Scoping-Problem,
             // bei dem die opacity-Klassenregel nicht zuverlässig greift.
-            if (e.data === 1) { playStarted = true; setTimeout(fadePoster, 4500); }
+            if (e.data === 1) { playStarted = true; setTimeout(fadePoster, 3000); }
             // Endlosschleife OHNE playlist-Param (der sonst Zurück/Weiter-Buttons zeigt):
             // am Ende (0) einfach zurück an 3,8 s und weiterspielen
             else if (e.data === 0) { try { e.target.seekTo(3.8, true); e.target.playVideo(); } catch (er) {} }
