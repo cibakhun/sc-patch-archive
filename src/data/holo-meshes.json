@@ -1,11 +1,1137 @@
 {
-  "fetchedAt": "2026-07-12",
+  "fetchedAt": "2026-07-18",
   "source": "StarBreaker entity export (Data.p4k) -> gltf-transform/meshopt Dezimierung",
-  "count": 1,
+  "count": 226,
   "meshes": {
+    "aegs-avenger-stalker": {
+      "url": "/holo/aegs-avenger-stalker.glb",
+      "tris": 21745,
+      "v": "837121eb"
+    },
+    "aegs-avenger-titan-renegade": {
+      "url": "/holo/aegs-avenger-titan-renegade.glb",
+      "tris": 21745,
+      "v": "485c6679"
+    },
+    "aegs-avenger-titan": {
+      "url": "/holo/aegs-avenger-titan.glb",
+      "tris": 21745,
+      "v": "d9774903"
+    },
+    "aegs-avenger-warlock": {
+      "url": "/holo/aegs-avenger-warlock.glb",
+      "tris": 21745,
+      "v": "a7434867"
+    },
+    "aegs-eclipse": {
+      "url": "/holo/aegs-eclipse.glb",
+      "tris": 82063,
+      "v": "36b73cf2"
+    },
+    "aegs-gladius-pir": {
+      "url": "/holo/aegs-gladius-pir.glb",
+      "tris": 133833,
+      "v": "a3618172"
+    },
+    "aegs-gladius-valiant": {
+      "url": "/holo/aegs-gladius-valiant.glb",
+      "tris": 133833,
+      "v": "1d78098e"
+    },
+    "aegs-gladius": {
+      "url": "/holo/aegs-gladius.glb",
+      "tris": 133833,
+      "v": "b800b266"
+    },
+    "aegs-hammerhead-showdown": {
+      "url": "/holo/aegs-hammerhead-showdown.glb",
+      "tris": 112339,
+      "v": "6b99acf5"
+    },
+    "aegs-hammerhead": {
+      "url": "/holo/aegs-hammerhead.glb",
+      "tris": 112339,
+      "v": "8d5ab2d9"
+    },
+    "aegs-idris-m": {
+      "url": "/holo/aegs-idris-m.glb",
+      "tris": 139487,
+      "v": "ded5e7c2"
+    },
+    "aegs-idris-p": {
+      "url": "/holo/aegs-idris-p.glb",
+      "tris": 139487,
+      "v": "b741fa87"
+    },
+    "aegs-javelin": {
+      "url": "/holo/aegs-javelin.glb",
+      "tris": 131852,
+      "v": "ab287c5e"
+    },
+    "aegs-reclaimer-showdown": {
+      "url": "/holo/aegs-reclaimer-showdown.glb",
+      "tris": 131648,
+      "v": "a8ff26d5"
+    },
+    "aegs-reclaimer": {
+      "url": "/holo/aegs-reclaimer.glb",
+      "tris": 131648,
+      "v": "d640eb35"
+    },
+    "aegs-redeemer": {
+      "url": "/holo/aegs-redeemer.glb",
+      "tris": 125530,
+      "v": "50ba55d8"
+    },
+    "aegs-retaliator": {
+      "url": "/holo/aegs-retaliator.glb",
+      "tris": 118728,
+      "v": "e9aa15f7"
+    },
+    "aegs-sabre-comet": {
+      "url": "/holo/aegs-sabre-comet.glb",
+      "tris": 68262,
+      "v": "199bf96d"
+    },
+    "aegs-sabre-firebird": {
+      "url": "/holo/aegs-sabre-firebird.glb",
+      "tris": 73424,
+      "v": "02fd08d5"
+    },
+    "aegs-sabre-peregrine": {
+      "url": "/holo/aegs-sabre-peregrine.glb",
+      "tris": 76798,
+      "v": "dca95b09"
+    },
+    "aegs-sabre-raven": {
+      "url": "/holo/aegs-sabre-raven.glb",
+      "tris": 80431,
+      "v": "be3b06b3"
+    },
+    "aegs-sabre": {
+      "url": "/holo/aegs-sabre.glb",
+      "tris": 68262,
+      "v": "a6474460"
+    },
+    "aegs-tiburon": {
+      "url": "/holo/aegs-tiburon.glb",
+      "tris": 141135,
+      "v": "65ed6d41"
+    },
+    "aegs-vanguard-harbinger": {
+      "url": "/holo/aegs-vanguard-harbinger.glb",
+      "tris": 85610,
+      "v": "d9d1629c"
+    },
+    "aegs-vanguard-hoplite": {
+      "url": "/holo/aegs-vanguard-hoplite.glb",
+      "tris": 85610,
+      "v": "1496eabc"
+    },
+    "aegs-vanguard-sentinel": {
+      "url": "/holo/aegs-vanguard-sentinel.glb",
+      "tris": 85610,
+      "v": "a23030a1"
+    },
+    "aegs-vanguard": {
+      "url": "/holo/aegs-vanguard.glb",
+      "tris": 85610,
+      "v": "cdd2aac5"
+    },
+    "anvl-arrow": {
+      "url": "/holo/anvl-arrow.glb",
+      "tris": 48497,
+      "v": "32d8797b"
+    },
+    "anvl-asgard": {
+      "url": "/holo/anvl-asgard.glb",
+      "tris": 135970,
+      "v": "670eed46"
+    },
+    "anvl-ballista-dunestalker": {
+      "url": "/holo/anvl-ballista-dunestalker.glb",
+      "tris": 49286,
+      "v": "918f49f2"
+    },
+    "anvl-ballista-snowblind": {
+      "url": "/holo/anvl-ballista-snowblind.glb",
+      "tris": 49286,
+      "v": "61b4d241"
+    },
+    "anvl-ballista": {
+      "url": "/holo/anvl-ballista.glb",
+      "tris": 49286,
+      "v": "ef8be3bd"
+    },
+    "anvl-c8-pisces": {
+      "url": "/holo/anvl-c8-pisces.glb",
+      "tris": 35234,
+      "v": "0d9a072d"
+    },
+    "anvl-c8r-pisces": {
+      "url": "/holo/anvl-c8r-pisces.glb",
+      "tris": 35234,
+      "v": "a1ffd063"
+    },
+    "anvl-c8x-pisces-expedition": {
+      "url": "/holo/anvl-c8x-pisces-expedition.glb",
+      "tris": 35234,
+      "v": "25bd672b"
+    },
+    "anvl-carrack-expedition": {
+      "url": "/holo/anvl-carrack-expedition.glb",
+      "tris": 96513,
+      "v": "9f587b2f"
+    },
+    "anvl-carrack": {
+      "url": "/holo/anvl-carrack.glb",
+      "tris": 96513,
+      "v": "61f09c1e"
+    },
+    "anvl-centurion": {
+      "url": "/holo/anvl-centurion.glb",
+      "tris": 74607,
+      "v": "015548e4"
+    },
+    "anvl-gladiator": {
+      "url": "/holo/anvl-gladiator.glb",
+      "tris": 47053,
+      "v": "3dfafd86"
+    },
+    "anvl-hawk": {
+      "url": "/holo/anvl-hawk.glb",
+      "tris": 120014,
+      "v": "7b13fbb3"
+    },
+    "anvl-hornet-f7a-mk1": {
+      "url": "/holo/anvl-hornet-f7a-mk1.glb",
+      "tris": 112623,
+      "v": "5d95a3b4"
+    },
+    "anvl-hornet-f7a-mk2": {
+      "url": "/holo/anvl-hornet-f7a-mk2.glb",
+      "tris": 69222,
+      "v": "b55155fd"
+    },
+    "anvl-hornet-f7c-mk2": {
+      "url": "/holo/anvl-hornet-f7c-mk2.glb",
+      "tris": 69222,
+      "v": "a4c7206a"
+    },
+    "anvl-hornet-f7c-wildfire": {
+      "url": "/holo/anvl-hornet-f7c-wildfire.glb",
+      "tris": 35599,
+      "v": "1839074f"
+    },
+    "anvl-hornet-f7c": {
+      "url": "/holo/anvl-hornet-f7c.glb",
+      "tris": 35599,
+      "v": "ee855ca4"
+    },
+    "anvl-hornet-f7cm-heartseeker": {
+      "url": "/holo/anvl-hornet-f7cm-heartseeker.glb",
+      "tris": 38153,
+      "v": "85d49746"
+    },
+    "anvl-hornet-f7cm-mk2-heartseeker": {
+      "url": "/holo/anvl-hornet-f7cm-mk2-heartseeker.glb",
+      "tris": 97669,
+      "v": "fb4e12ec"
+    },
+    "anvl-hornet-f7cm-mk2": {
+      "url": "/holo/anvl-hornet-f7cm-mk2.glb",
+      "tris": 119959,
+      "v": "fe4b1b78"
+    },
+    "anvl-hornet-f7cm": {
+      "url": "/holo/anvl-hornet-f7cm.glb",
+      "tris": 38153,
+      "v": "ca5ce2ea"
+    },
+    "anvl-hornet-f7cr-mk2": {
+      "url": "/holo/anvl-hornet-f7cr-mk2.glb",
+      "tris": 69222,
+      "v": "d3a5bcc9"
+    },
+    "anvl-hornet-f7cr": {
+      "url": "/holo/anvl-hornet-f7cr.glb",
+      "tris": 35599,
+      "v": "0a1e6ca1"
+    },
+    "anvl-hornet-f7cs-mk2": {
+      "url": "/holo/anvl-hornet-f7cs-mk2.glb",
+      "tris": 69222,
+      "v": "af0df90d"
+    },
+    "anvl-hornet-f7cs": {
+      "url": "/holo/anvl-hornet-f7cs.glb",
+      "tris": 35599,
+      "v": "55776175"
+    },
+    "anvl-hurricane": {
+      "url": "/holo/anvl-hurricane.glb",
+      "tris": 104983,
+      "v": "bc5208fe"
+    },
+    "anvl-lightning-f8": {
+      "url": "/holo/anvl-lightning-f8.glb",
+      "tris": 119950,
+      "v": "558b4743"
+    },
+    "anvl-lightning-f8c-exec": {
+      "url": "/holo/anvl-lightning-f8c-exec.glb",
+      "tris": 119950,
+      "v": "fda93b53"
+    },
+    "anvl-lightning-f8c": {
+      "url": "/holo/anvl-lightning-f8c.glb",
+      "tris": 119950,
+      "v": "03afb00f"
+    },
+    "anvl-paladin": {
+      "url": "/holo/anvl-paladin.glb",
+      "tris": 145770,
+      "v": "b37649e1"
+    },
+    "anvl-spartan": {
+      "url": "/holo/anvl-spartan.glb",
+      "tris": 33151,
+      "v": "68ef1e73"
+    },
+    "anvl-terrapin-medic": {
+      "url": "/holo/anvl-terrapin-medic.glb",
+      "tris": 127156,
+      "v": "eb1be539"
+    },
+    "anvl-terrapin": {
+      "url": "/holo/anvl-terrapin.glb",
+      "tris": 127156,
+      "v": "93d341ed"
+    },
+    "anvl-valkyrie": {
+      "url": "/holo/anvl-valkyrie.glb",
+      "tris": 139095,
+      "v": "fec0262c"
+    },
+    "argo-atls-geo-collector-grad01": {
+      "url": "/holo/argo-atls-geo-collector-grad01.glb",
+      "tris": 126841,
+      "v": "f1950b52"
+    },
+    "argo-atls-geo-collector-grad03": {
+      "url": "/holo/argo-atls-geo-collector-grad03.glb",
+      "tris": 126841,
+      "v": "389621ab"
+    },
+    "argo-atls-geo": {
+      "url": "/holo/argo-atls-geo.glb",
+      "tris": 126841,
+      "v": "095acd04"
+    },
+    "argo-atls": {
+      "url": "/holo/argo-atls.glb",
+      "tris": 126816,
+      "v": "f67aa63e"
+    },
+    "argo-csv-cargo": {
+      "url": "/holo/argo-csv-cargo.glb",
+      "tris": 79400,
+      "v": "bf19db27"
+    },
+    "argo-mole": {
+      "url": "/holo/argo-mole.glb",
+      "tris": 128821,
+      "v": "18eb00ea"
+    },
+    "argo-moth": {
+      "url": "/holo/argo-moth.glb",
+      "tris": 149255,
+      "v": "a5b6d98b"
+    },
+    "argo-mpuv-1t": {
+      "url": "/holo/argo-mpuv-1t.glb",
+      "tris": 56556,
+      "v": "ec1c8a3e"
+    },
+    "argo-mpuv-transport": {
+      "url": "/holo/argo-mpuv-transport.glb",
+      "tris": 63426,
+      "v": "4bcc4415"
+    },
+    "argo-mpuv": {
+      "url": "/holo/argo-mpuv.glb",
+      "tris": 44243,
+      "v": "19fb4ad2"
+    },
+    "argo-raft": {
+      "url": "/holo/argo-raft.glb",
+      "tris": 125173,
+      "v": "7869833e"
+    },
+    "argo-srv": {
+      "url": "/holo/argo-srv.glb",
+      "tris": 126559,
+      "v": "02033b26"
+    },
+    "banu-defender": {
+      "url": "/holo/banu-defender.glb",
+      "tris": 121695,
+      "v": "5b713ebe"
+    },
+    "cnou-hoverquad": {
+      "url": "/holo/cnou-hoverquad.glb",
+      "tris": 82097,
+      "v": "07ceab9d"
+    },
+    "cnou-mustang-alpha-citizencon2018": {
+      "url": "/holo/cnou-mustang-alpha-citizencon2018.glb",
+      "tris": 73295,
+      "v": "509fcabc"
+    },
+    "cnou-mustang-alpha": {
+      "url": "/holo/cnou-mustang-alpha.glb",
+      "tris": 73295,
+      "v": "6a10d71a"
+    },
+    "cnou-mustang-beta": {
+      "url": "/holo/cnou-mustang-beta.glb",
+      "tris": 73295,
+      "v": "a764c099"
+    },
+    "cnou-mustang-delta": {
+      "url": "/holo/cnou-mustang-delta.glb",
+      "tris": 73295,
+      "v": "8f9fa6d8"
+    },
+    "cnou-mustang-gamma": {
+      "url": "/holo/cnou-mustang-gamma.glb",
+      "tris": 73295,
+      "v": "e14e05c7"
+    },
+    "cnou-mustang-omega": {
+      "url": "/holo/cnou-mustang-omega.glb",
+      "tris": 73295,
+      "v": "6244c618"
+    },
+    "cnou-nomad": {
+      "url": "/holo/cnou-nomad.glb",
+      "tris": 28723,
+      "v": "2fc612e3"
+    },
+    "crus-intrepid": {
+      "url": "/holo/crus-intrepid.glb",
+      "tris": 112318,
+      "v": "ed6dfe9b"
+    },
+    "crus-spirit-a1": {
+      "url": "/holo/crus-spirit-a1.glb",
+      "tris": 132381,
+      "v": "e049719b"
+    },
+    "crus-spirit-c1": {
+      "url": "/holo/crus-spirit-c1.glb",
+      "tris": 132381,
+      "v": "2d48cd61"
+    },
+    "crus-star-runner": {
+      "url": "/holo/crus-star-runner.glb",
+      "tris": 128838,
+      "v": "64008990"
+    },
+    "crus-starfighter-inferno": {
+      "url": "/holo/crus-starfighter-inferno.glb",
+      "tris": 119786,
+      "v": "93e6c25a"
+    },
+    "crus-starfighter-ion": {
+      "url": "/holo/crus-starfighter-ion.glb",
+      "tris": 119786,
+      "v": "faf95fa0"
+    },
+    "crus-starlifter-a2": {
+      "url": "/holo/crus-starlifter-a2.glb",
+      "tris": 99179,
+      "v": "35c4d5e6"
+    },
+    "crus-starlifter-c2": {
+      "url": "/holo/crus-starlifter-c2.glb",
+      "tris": 99179,
+      "v": "4b0c913a"
+    },
+    "crus-starlifter-m2": {
+      "url": "/holo/crus-starlifter-m2.glb",
+      "tris": 99179,
+      "v": "101b118c"
+    },
+    "drak-buccaneer": {
+      "url": "/holo/drak-buccaneer.glb",
+      "tris": 83847,
+      "v": "8463ddd1"
+    },
+    "drak-caterpillar-pirate": {
+      "url": "/holo/drak-caterpillar-pirate.glb",
+      "tris": 120973,
+      "v": "e61281c5"
+    },
+    "drak-caterpillar": {
+      "url": "/holo/drak-caterpillar.glb",
+      "tris": 120973,
+      "v": "0be0d420"
+    },
+    "drak-clipper": {
+      "url": "/holo/drak-clipper.glb",
+      "tris": 133948,
+      "v": "bf36b77e"
+    },
     "drak-corsair": {
       "url": "/holo/drak-corsair.glb",
-      "tris": 117765
+      "tris": 126047,
+      "v": "99111ffb"
+    },
+    "drak-cutlass-black": {
+      "url": "/holo/drak-cutlass-black.glb",
+      "tris": 115662,
+      "v": "81339728"
+    },
+    "drak-cutlass-blue": {
+      "url": "/holo/drak-cutlass-blue.glb",
+      "tris": 119174,
+      "v": "015fc054"
+    },
+    "drak-cutlass-red": {
+      "url": "/holo/drak-cutlass-red.glb",
+      "tris": 116139,
+      "v": "32491dce"
+    },
+    "drak-cutlass-steel": {
+      "url": "/holo/drak-cutlass-steel.glb",
+      "tris": 115662,
+      "v": "6efe88bd"
+    },
+    "drak-cutter-rambler": {
+      "url": "/holo/drak-cutter-rambler.glb",
+      "tris": 143554,
+      "v": "0ad3eb89"
+    },
+    "drak-cutter-scout": {
+      "url": "/holo/drak-cutter-scout.glb",
+      "tris": 143554,
+      "v": "d4334da6"
+    },
+    "drak-cutter": {
+      "url": "/holo/drak-cutter.glb",
+      "tris": 143554,
+      "v": "a214885d"
+    },
+    "drak-dragonfly-yellow": {
+      "url": "/holo/drak-dragonfly-yellow.glb",
+      "tris": 107127,
+      "v": "220b76ea"
+    },
+    "drak-dragonfly": {
+      "url": "/holo/drak-dragonfly.glb",
+      "tris": 107127,
+      "v": "e92ec8af"
+    },
+    "drak-golem-ox": {
+      "url": "/holo/drak-golem-ox.glb",
+      "tris": 125862,
+      "v": "03ef471a"
+    },
+    "drak-golem": {
+      "url": "/holo/drak-golem.glb",
+      "tris": 123141,
+      "v": "0b45a8ea"
+    },
+    "drak-herald": {
+      "url": "/holo/drak-herald.glb",
+      "tris": 114087,
+      "v": "35f34dca"
+    },
+    "drak-ironclad-assault": {
+      "url": "/holo/drak-ironclad-assault.glb",
+      "tris": 106435,
+      "v": "90a4ba6f"
+    },
+    "drak-ironclad": {
+      "url": "/holo/drak-ironclad.glb",
+      "tris": 106435,
+      "v": "2c0eb2a4"
+    },
+    "drak-mule": {
+      "url": "/holo/drak-mule.glb",
+      "tris": 126093,
+      "v": "688fd83a"
+    },
+    "drak-pitbull": {
+      "url": "/holo/drak-pitbull.glb",
+      "tris": 138958,
+      "v": "3874b152"
+    },
+    "drak-vulture": {
+      "url": "/holo/drak-vulture.glb",
+      "tris": 126998,
+      "v": "42d92d97"
+    },
+    "espr-prowler-utility": {
+      "url": "/holo/espr-prowler-utility.glb",
+      "tris": 137563,
+      "v": "3f58daf0"
+    },
+    "espr-prowler": {
+      "url": "/holo/espr-prowler.glb",
+      "tris": 118703,
+      "v": "085c8d1d"
+    },
+    "espr-talon-shrike": {
+      "url": "/holo/espr-talon-shrike.glb",
+      "tris": 111777,
+      "v": "508b689e"
+    },
+    "espr-talon": {
+      "url": "/holo/espr-talon.glb",
+      "tris": 111777,
+      "v": "ebe6fbb4"
+    },
+    "gama-railen": {
+      "url": "/holo/gama-railen.glb",
+      "tris": 147120,
+      "v": "f1b10d94"
+    },
+    "gama-syulen": {
+      "url": "/holo/gama-syulen.glb",
+      "tris": 130214,
+      "v": "0ae1fbb0"
+    },
+    "gama-tyilui": {
+      "url": "/holo/gama-tyilui.glb",
+      "tris": 121817,
+      "v": "0ee5a8da"
+    },
+    "glsn-basher": {
+      "url": "/holo/glsn-basher.glb",
+      "tris": 124549,
+      "v": "3c07586d"
+    },
+    "glsn-shiv": {
+      "url": "/holo/glsn-shiv.glb",
+      "tris": 127248,
+      "v": "848e9b63"
+    },
+    "grin-mdc": {
+      "url": "/holo/grin-mdc.glb",
+      "tris": 25508,
+      "v": "885fdc4b"
+    },
+    "grin-mtc": {
+      "url": "/holo/grin-mtc.glb",
+      "tris": 25508,
+      "v": "063ede24"
+    },
+    "grin-ptv": {
+      "url": "/holo/grin-ptv.glb",
+      "tris": 5484,
+      "v": "d5649184"
+    },
+    "grin-roc-ds": {
+      "url": "/holo/grin-roc-ds.glb",
+      "tris": 47512,
+      "v": "5d947db9"
+    },
+    "grin-roc": {
+      "url": "/holo/grin-roc.glb",
+      "tris": 36034,
+      "v": "9067a850"
+    },
+    "grin-stv": {
+      "url": "/holo/grin-stv.glb",
+      "tris": 70457,
+      "v": "7ebe519f"
+    },
+    "grin-utv": {
+      "url": "/holo/grin-utv.glb",
+      "tris": 97443,
+      "v": "8bb17cea"
+    },
+    "krig-l21-wolf": {
+      "url": "/holo/krig-l21-wolf.glb",
+      "tris": 127342,
+      "v": "9eab3084"
+    },
+    "krig-l22-alphawolf": {
+      "url": "/holo/krig-l22-alphawolf.glb",
+      "tris": 127646,
+      "v": "257c9b26"
+    },
+    "krig-p52-merlin": {
+      "url": "/holo/krig-p52-merlin.glb",
+      "tris": 98101,
+      "v": "659c634e"
+    },
+    "krig-p72-archimedes-emerald": {
+      "url": "/holo/krig-p72-archimedes-emerald.glb",
+      "tris": 98101,
+      "v": "3a7196e0"
+    },
+    "krig-p72-archimedes": {
+      "url": "/holo/krig-p72-archimedes.glb",
+      "tris": 98101,
+      "v": "6f409171"
+    },
+    "misc-fortune": {
+      "url": "/holo/misc-fortune.glb",
+      "tris": 125548,
+      "v": "f9f8a24c"
+    },
+    "misc-freelancer-dur": {
+      "url": "/holo/misc-freelancer-dur.glb",
+      "tris": 64270,
+      "v": "95ae7f00"
+    },
+    "misc-freelancer-max": {
+      "url": "/holo/misc-freelancer-max.glb",
+      "tris": 57756,
+      "v": "cf99731f"
+    },
+    "misc-freelancer-mis": {
+      "url": "/holo/misc-freelancer-mis.glb",
+      "tris": 48546,
+      "v": "a4dff28c"
+    },
+    "misc-freelancer": {
+      "url": "/holo/misc-freelancer.glb",
+      "tris": 37658,
+      "v": "bf013af7"
+    },
+    "misc-fury-lx": {
+      "url": "/holo/misc-fury-lx.glb",
+      "tris": 120645,
+      "v": "7d203199"
+    },
+    "misc-fury-miru": {
+      "url": "/holo/misc-fury-miru.glb",
+      "tris": 138024,
+      "v": "1bdc2a4d"
+    },
+    "misc-fury": {
+      "url": "/holo/misc-fury.glb",
+      "tris": 138024,
+      "v": "2b64ef8e"
+    },
+    "misc-hull-a": {
+      "url": "/holo/misc-hull-a.glb",
+      "tris": 103559,
+      "v": "1e1c356c"
+    },
+    "misc-hull-b": {
+      "url": "/holo/misc-hull-b.glb",
+      "tris": 137539,
+      "v": "a353f335"
+    },
+    "misc-hull-c": {
+      "url": "/holo/misc-hull-c.glb",
+      "tris": 128555,
+      "v": "600114a4"
+    },
+    "misc-prospector": {
+      "url": "/holo/misc-prospector.glb",
+      "tris": 120322,
+      "v": "ed5fd9dc"
+    },
+    "misc-razor-ex": {
+      "url": "/holo/misc-razor-ex.glb",
+      "tris": 73604,
+      "v": "aa6aa960"
+    },
+    "misc-razor-lx": {
+      "url": "/holo/misc-razor-lx.glb",
+      "tris": 73604,
+      "v": "99f3bf8c"
+    },
+    "misc-razor": {
+      "url": "/holo/misc-razor.glb",
+      "tris": 73604,
+      "v": "c8ef3263"
+    },
+    "misc-reliant-mako": {
+      "url": "/holo/misc-reliant-mako.glb",
+      "tris": 120712,
+      "v": "389d2597"
+    },
+    "misc-reliant-sen": {
+      "url": "/holo/misc-reliant-sen.glb",
+      "tris": 120712,
+      "v": "2117069c"
+    },
+    "misc-reliant-tana": {
+      "url": "/holo/misc-reliant-tana.glb",
+      "tris": 120712,
+      "v": "b830e805"
+    },
+    "misc-reliant": {
+      "url": "/holo/misc-reliant.glb",
+      "tris": 120712,
+      "v": "2114f22a"
+    },
+    "misc-starfarer-gemini": {
+      "url": "/holo/misc-starfarer-gemini.glb",
+      "tris": 136623,
+      "v": "fa9797df"
+    },
+    "misc-starfarer": {
+      "url": "/holo/misc-starfarer.glb",
+      "tris": 136623,
+      "v": "3d66bf11"
+    },
+    "misc-starlancer-max": {
+      "url": "/holo/misc-starlancer-max.glb",
+      "tris": 122878,
+      "v": "5c646681"
+    },
+    "misc-starlancer-tac": {
+      "url": "/holo/misc-starlancer-tac.glb",
+      "tris": 130684,
+      "v": "4adf8f9d"
+    },
+    "misc-starlite": {
+      "url": "/holo/misc-starlite.glb",
+      "tris": 127373,
+      "v": "cbe2402c"
+    },
+    "mrai-guardian-mx": {
+      "url": "/holo/mrai-guardian-mx.glb",
+      "tris": 125154,
+      "v": "98865137"
+    },
+    "mrai-guardian-qi": {
+      "url": "/holo/mrai-guardian-qi.glb",
+      "tris": 116568,
+      "v": "161f885f"
+    },
+    "mrai-guardian": {
+      "url": "/holo/mrai-guardian.glb",
+      "tris": 116568,
+      "v": "3cadef19"
+    },
+    "mrai-pulse-lx": {
+      "url": "/holo/mrai-pulse-lx.glb",
+      "tris": 73988,
+      "v": "a2b388fa"
+    },
+    "mrai-pulse": {
+      "url": "/holo/mrai-pulse.glb",
+      "tris": 73988,
+      "v": "37e70a94"
+    },
+    "orig-100i": {
+      "url": "/holo/orig-100i.glb",
+      "tris": 49197,
+      "v": "e944ff9e"
+    },
+    "orig-125a": {
+      "url": "/holo/orig-125a.glb",
+      "tris": 49197,
+      "v": "c15ca606"
+    },
+    "orig-135c": {
+      "url": "/holo/orig-135c.glb",
+      "tris": 49197,
+      "v": "dd3e2225"
+    },
+    "orig-300i": {
+      "url": "/holo/orig-300i.glb",
+      "tris": 30765,
+      "v": "24d56c5b"
+    },
+    "orig-315p": {
+      "url": "/holo/orig-315p.glb",
+      "tris": 30765,
+      "v": "9fa86492"
+    },
+    "orig-325a": {
+      "url": "/holo/orig-325a.glb",
+      "tris": 30765,
+      "v": "5b1188bb"
+    },
+    "orig-350r": {
+      "url": "/holo/orig-350r.glb",
+      "tris": 30765,
+      "v": "a887b697"
+    },
+    "orig-400i": {
+      "url": "/holo/orig-400i.glb",
+      "tris": 85253,
+      "v": "0b0f4b6a"
+    },
+    "orig-600i-bis2951": {
+      "url": "/holo/orig-600i-bis2951.glb",
+      "tris": 128514,
+      "v": "dfb2ee62"
+    },
+    "orig-600i-touring": {
+      "url": "/holo/orig-600i-touring.glb",
+      "tris": 128514,
+      "v": "0ae9d7f3"
+    },
+    "orig-600i": {
+      "url": "/holo/orig-600i.glb",
+      "tris": 128514,
+      "v": "b5220bc2"
+    },
+    "orig-85x": {
+      "url": "/holo/orig-85x.glb",
+      "tris": 61110,
+      "v": "c0e6d1aa"
+    },
+    "orig-890jump": {
+      "url": "/holo/orig-890jump.glb",
+      "tris": 139225,
+      "v": "7115f6b9"
+    },
+    "orig-m50": {
+      "url": "/holo/orig-m50.glb",
+      "tris": 86654,
+      "v": "0a501c22"
+    },
+    "orig-m80": {
+      "url": "/holo/orig-m80.glb",
+      "tris": 124220,
+      "v": "12702a9e"
+    },
+    "orig-x1-force": {
+      "url": "/holo/orig-x1-force.glb",
+      "tris": 118042,
+      "v": "2e97f45c"
+    },
+    "orig-x1-velocity": {
+      "url": "/holo/orig-x1-velocity.glb",
+      "tris": 118042,
+      "v": "fbc35d5c"
+    },
+    "orig-x1": {
+      "url": "/holo/orig-x1.glb",
+      "tris": 118042,
+      "v": "2a725c98"
+    },
+    "rsi-apollo-medivac": {
+      "url": "/holo/rsi-apollo-medivac.glb",
+      "tris": 110676,
+      "v": "9e582738"
+    },
+    "rsi-apollo-triage": {
+      "url": "/holo/rsi-apollo-triage.glb",
+      "tris": 110676,
+      "v": "98b9142f"
+    },
+    "rsi-aurora-gs-cl": {
+      "url": "/holo/rsi-aurora-gs-cl.glb",
+      "tris": 116976,
+      "v": "58b68d5b"
+    },
+    "rsi-aurora-gs-es": {
+      "url": "/holo/rsi-aurora-gs-es.glb",
+      "tris": 116976,
+      "v": "40cbb436"
+    },
+    "rsi-aurora-gs-ln": {
+      "url": "/holo/rsi-aurora-gs-ln.glb",
+      "tris": 116976,
+      "v": "05436a8c"
+    },
+    "rsi-aurora-gs-lx": {
+      "url": "/holo/rsi-aurora-gs-lx.glb",
+      "tris": 116976,
+      "v": "529d785d"
+    },
+    "rsi-aurora-gs-mr": {
+      "url": "/holo/rsi-aurora-gs-mr.glb",
+      "tris": 116976,
+      "v": "6bf1117a"
+    },
+    "rsi-aurora-gs-se": {
+      "url": "/holo/rsi-aurora-gs-se.glb",
+      "tris": 116976,
+      "v": "a2e67b10"
+    },
+    "rsi-aurora-mk2": {
+      "url": "/holo/rsi-aurora-mk2.glb",
+      "tris": 111564,
+      "v": "3c0cd6da"
+    },
+    "rsi-constellation-andromeda": {
+      "url": "/holo/rsi-constellation-andromeda.glb",
+      "tris": 147570,
+      "v": "4ee315ad"
+    },
+    "rsi-constellation-aquila": {
+      "url": "/holo/rsi-constellation-aquila.glb",
+      "tris": 126996,
+      "v": "56c79b45"
+    },
+    "rsi-constellation-phoenix-emerald": {
+      "url": "/holo/rsi-constellation-phoenix-emerald.glb",
+      "tris": 126360,
+      "v": "4b0d31b6"
+    },
+    "rsi-constellation-phoenix": {
+      "url": "/holo/rsi-constellation-phoenix.glb",
+      "tris": 126360,
+      "v": "c1fe40d8"
+    },
+    "rsi-constellation-taurus": {
+      "url": "/holo/rsi-constellation-taurus.glb",
+      "tris": 142775,
+      "v": "9d51f023"
+    },
+    "rsi-lynx": {
+      "url": "/holo/rsi-lynx.glb",
+      "tris": 30278,
+      "v": "cadb2c9a"
+    },
+    "rsi-mantis": {
+      "url": "/holo/rsi-mantis.glb",
+      "tris": 51068,
+      "v": "6664b08b"
+    },
+    "rsi-meteor": {
+      "url": "/holo/rsi-meteor.glb",
+      "tris": 123497,
+      "v": "5350755e"
+    },
+    "rsi-perseus": {
+      "url": "/holo/rsi-perseus.glb",
+      "tris": 107712,
+      "v": "a7e63c7e"
+    },
+    "rsi-polaris": {
+      "url": "/holo/rsi-polaris.glb",
+      "tris": 119521,
+      "v": "33603e53"
+    },
+    "rsi-salvation": {
+      "url": "/holo/rsi-salvation.glb",
+      "tris": 148228,
+      "v": "b458b6f5"
+    },
+    "rsi-scorpius-antares": {
+      "url": "/holo/rsi-scorpius-antares.glb",
+      "tris": 145957,
+      "v": "9cd317ef"
+    },
+    "rsi-scorpius": {
+      "url": "/holo/rsi-scorpius.glb",
+      "tris": 145957,
+      "v": "76edbd40"
+    },
+    "rsi-ursa-medivac": {
+      "url": "/holo/rsi-ursa-medivac.glb",
+      "tris": 15385,
+      "v": "1d52a7a4"
+    },
+    "rsi-ursa-rover-emerald": {
+      "url": "/holo/rsi-ursa-rover-emerald.glb",
+      "tris": 15385,
+      "v": "a0c63b54"
+    },
+    "rsi-ursa-rover": {
+      "url": "/holo/rsi-ursa-rover.glb",
+      "tris": 15385,
+      "v": "3bd1fa2f"
+    },
+    "rsi-zeus-cl": {
+      "url": "/holo/rsi-zeus-cl.glb",
+      "tris": 126343,
+      "v": "a1b48010"
+    },
+    "rsi-zeus-es": {
+      "url": "/holo/rsi-zeus-es.glb",
+      "tris": 126343,
+      "v": "36d4d944"
+    },
+    "tmbl-cyclone-aa": {
+      "url": "/holo/tmbl-cyclone-aa.glb",
+      "tris": 27015,
+      "v": "61380878"
+    },
+    "tmbl-cyclone-mt": {
+      "url": "/holo/tmbl-cyclone-mt.glb",
+      "tris": 27015,
+      "v": "d89066d7"
+    },
+    "tmbl-cyclone-rc": {
+      "url": "/holo/tmbl-cyclone-rc.glb",
+      "tris": 27015,
+      "v": "c4e6a53f"
+    },
+    "tmbl-cyclone-rn": {
+      "url": "/holo/tmbl-cyclone-rn.glb",
+      "tris": 27015,
+      "v": "1e8ff338"
+    },
+    "tmbl-cyclone-tr": {
+      "url": "/holo/tmbl-cyclone-tr.glb",
+      "tris": 27015,
+      "v": "db0a4a69"
+    },
+    "tmbl-cyclone": {
+      "url": "/holo/tmbl-cyclone.glb",
+      "tris": 27015,
+      "v": "717be731"
+    },
+    "tmbl-nova": {
+      "url": "/holo/tmbl-nova.glb",
+      "tris": 35932,
+      "v": "c233cbe0"
+    },
+    "tmbl-storm-aa": {
+      "url": "/holo/tmbl-storm-aa.glb",
+      "tris": 141081,
+      "v": "3ab674c2"
+    },
+    "tmbl-storm": {
+      "url": "/holo/tmbl-storm.glb",
+      "tris": 141081,
+      "v": "768e0f8d"
+    },
+    "vncl-blade": {
+      "url": "/holo/vncl-blade.glb",
+      "tris": 73628,
+      "v": "b07fb2b8"
+    },
+    "vncl-glaive": {
+      "url": "/holo/vncl-glaive.glb",
+      "tris": 87228,
+      "v": "7ff6748f"
+    },
+    "vncl-scythe": {
+      "url": "/holo/vncl-scythe.glb",
+      "tris": 95998,
+      "v": "d3d741c4"
+    },
+    "vncl-stinger": {
+      "url": "/holo/vncl-stinger.glb",
+      "tris": 128459,
+      "v": "62ec830c"
+    },
+    "xian-nox-kue": {
+      "url": "/holo/xian-nox-kue.glb",
+      "tris": 35323,
+      "v": "88f69fa6"
+    },
+    "xian-nox": {
+      "url": "/holo/xian-nox.glb",
+      "tris": 35323,
+      "v": "17bca9b1"
+    },
+    "xian-scout": {
+      "url": "/holo/xian-scout.glb",
+      "tris": 91595,
+      "v": "ab8c52ac"
+    },
+    "xnaa-santokyai": {
+      "url": "/holo/xnaa-santokyai.glb",
+      "tris": 142348,
+      "v": "8f84c919"
     }
   }
 }

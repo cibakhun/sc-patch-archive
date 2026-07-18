@@ -17,8 +17,10 @@ import { KHRDracoMeshCompression } from '@gltf-transform/extensions';
 import { dedup, prune, weld, flatten, join, draco } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
-import { readdirSync, existsSync, mkdirSync, statSync } from 'node:fs';
+import { readdirSync, existsSync, mkdirSync, statSync, readFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 
 const IN_DIR = new URL('../.cache/starbreaker-glb/', import.meta.url);
 const OUT_DIR = new URL('../public/holo/', import.meta.url);
@@ -89,25 +91,44 @@ async function buildOne(slug, inPath) {
   }
   await doc.transform(prune(), draco({ method: 'edgebreaker', quantizePosition: 14, quantizeNormal: 8 }));
 
+  // fileURLToPath statt url.pathname: Letzteres laesst %20 im Pfad stehen
+  // ("Star Citizen") -> ENOENT. Node-fs mit URL-OBJEKTEN waere auch ok.
   const outPath = new URL(`${slug}.glb`, OUT_DIR);
-  await io.write(outPath.pathname.replace(/^\//, ''), doc);
-  return { tris: countTris(root), bytes: statSync(outPath).size };
+  await io.write(fileURLToPath(outPath), doc);
+  // Content-Hash als Cache-Buster: nginx cached /holo/ 1 Jahr; der Client
+  // haengt ?v=<hash> an, damit ein Patch-Re-Export sofort durchschlaegt.
+  const v = createHash('sha1').update(readFileSync(outPath)).digest('hex').slice(0, 8);
+  return { tris: countTris(root), bytes: statSync(outPath).size, v };
 }
 
 const inputs = readdirSync(IN_DIR).filter((f) => f.toLowerCase().endsWith('.glb'));
 console.log(`${inputs.length} StarBreaker-GLB(s) gefunden`);
+// Resume: Output juenger als Input UND schon im Manifest -> nicht neu dezimieren
+// (der Batch ueber alle ~226 dauert sonst bei jedem Neustart wieder Minuten).
+let prev = {};
+try { prev = JSON.parse(readFileSync(MANIFEST, 'utf8')).meshes ?? {}; } catch { /* erster Lauf */ }
 const meshes = {};
+let built = 0, reused = 0;
 for (const f of inputs) {
   const slug = f.replace(/\.glb$/i, '');
-  const inPath = new URL(f, IN_DIR).pathname.replace(/^\//, '');
+  const inPath = fileURLToPath(new URL(f, IN_DIR));
+  const outPath = fileURLToPath(new URL(`${slug}.glb`, OUT_DIR));
+  if (prev[slug] && existsSync(outPath) && statSync(outPath).mtimeMs > statSync(inPath).mtimeMs) {
+    const v = createHash('sha1').update(readFileSync(outPath)).digest('hex').slice(0, 8);
+    meshes[slug] = { ...prev[slug], v };
+    reused++;
+    continue;
+  }
   try {
-    const { tris, bytes } = await buildOne(slug, inPath);
-    meshes[slug] = { url: `/holo/${slug}.glb`, tris };
+    const { tris, bytes, v } = await buildOne(slug, inPath);
+    meshes[slug] = { url: `/holo/${slug}.glb`, tris, v };
+    built++;
     console.log(`  ${slug.padEnd(30)} ${tris.toLocaleString().padStart(8)} Dreiecke  ${(bytes / 1024).toFixed(0)} KB`);
   } catch (err) {
     console.error(`  ${slug}: FEHLER ${err.message}`);
   }
 }
+console.log(`${built} gebaut, ${reused} unveraendert uebernommen`);
 
 await writeFile(MANIFEST, JSON.stringify({
   fetchedAt: new Date().toISOString().slice(0, 10),

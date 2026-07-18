@@ -189,7 +189,9 @@ if (hasHolo) {
   let est = false;
   let srcPorts: { k: string; p: number[] }[] = [];
   if (gameMesh && gameHp) {
-    meshUrl = gameMesh.url;
+    // ?v=<Content-Hash> aus dem Manifest: nginx cached /holo/ 1 Jahr — der
+    // Buster laesst Patch-Re-Exporte sofort durchschlagen (vgl. holoViewerSrc)
+    meshUrl = gameMesh.v ? `${gameMesh.url}?v=${gameMesh.v}` : gameMesh.url;
     const hull = gameHp.hull ?? gameHp.bbox; // cry-AABB
     // cry -> glTF: (x, z, -y) — feste Achsvertauschung, keine Kalibrierung
     meshBox = {
