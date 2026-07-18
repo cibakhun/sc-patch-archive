@@ -9,8 +9,12 @@ import { mergePatchEn } from '../i18n/patchText';
 
 interface Props {
   topicSlug: string;
+  /** Echte Datenversion der Seite (z. B. Mining-DB 4.9), falls sie vom
+   *  Eltern-Patch abweicht — dann zeigt der Aktencode diese statt der
+   *  Patch-Version. Nur für Evergreen-Tool-Seiten gesetzt. */
+  dataVersion?: string;
 }
-const { topicSlug } = Astro.props;
+const { topicSlug, dataVersion } = Astro.props;
 
 const lang = localeFromPath(Astro.url.pathname);
 const t = useTranslations(lang);
@@ -34,20 +38,23 @@ const system = feats.find((f) => f.system)?.system;
 // Evergreen-Systeme (z. B. Mining seit Alpha 3.2) wurden NICHT in diesem Patch
 // eingeführt — dann ist die Herkunfts-Zeile eine Archiv-Ablage, kein Debüt.
 const evergreen = feats.some((f) => f.evergreen);
+// Evergreen-Tools sind vom Patch entkoppelt: Der Aktencode zeigt die echte
+// Datenversion (falls übergeben), und die Herkunfts-/Debüt-Zeile entfällt ganz.
+const dispVersion = dataVersion ?? parent?.data.version;
 ---
 {parent && (
   <>
     <div class="reg-divider">
       <div class="reg-divider__in">
         <span class="reg-divider__l">{t('qf.register')}</span>
-        <span class="reg-divider__r">DAT&nbsp;//&nbsp;{system ?? t('tf.topic')} · {t('tf.source')} {parent.data.version}</span>
+        <span class="reg-divider__r">DAT&nbsp;//&nbsp;{system ?? t('tf.topic')} · {t('tf.source')} {dispVersion}</span>
       </div>
     </div>
     <section class="tf" aria-label={t('qf.title')}>
       <div class="tf__in">
         <header class="tf__head">
           <h2>{t('qf.title')}</h2>
-          <span class="tf__code">DAT&nbsp;//&nbsp;{system ?? t('tf.topic')} · {t('tf.source')} {parent.data.version}</span>
+          <span class="tf__code">DAT&nbsp;//&nbsp;{system ?? t('tf.topic')} · {t('tf.source')} {dispVersion}</span>
         </header>
         {shown.length > 0 ? (
           <dl class="tf__grid">
@@ -61,9 +68,11 @@ const evergreen = feats.some((f) => f.evergreen);
         ) : (
           feats[0] && <p class="tf__desc">{feats[0].desc}</p>
         )}
-        <a class="tf__prov" href={L(`/patches/sc-${parent.id}.html`)}>
-          {(evergreen ? t('tf.documented') : t('tf.introduced')).replace('%v%', parent.data.version)}{parent.data.codename} · {parent.data.dateDisplay} →
-        </a>
+        {!evergreen && (
+          <a class="tf__prov" href={L(`/patches/sc-${parent.id}.html`)}>
+            {t('tf.introduced').replace('%v%', parent.data.version)}{parent.data.codename} · {parent.data.dateDisplay} →
+          </a>
+        )}
       </div>
     </section>
   </>
