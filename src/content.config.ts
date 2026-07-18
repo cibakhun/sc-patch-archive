@@ -58,6 +58,10 @@ const patches = defineCollection({
         /** slug of the deep-dive page under /topics/ (without .html) */
         topicSlug: z.string().optional(),
         unverified: z.boolean().optional(),
+        /** Evergreen-System, das VOR diesem Patch existierte (z. B. Mining seit 3.2).
+         *  Die Herkunfts-Zeile der Topic-Seite zeigt dann "Abgelegt unter" statt
+         *  "Eingeführt in" — das Dossier ist hier nur archiviert, nicht debütiert. */
+        evergreen: z.boolean().optional(),
       })
     ),
     ships: z
