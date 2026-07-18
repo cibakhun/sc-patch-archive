@@ -1,0 +1,120 @@
+---
+// Passwort vergessen — schickt den Recovery-Link. Ziel des Links ist
+// /account/update-password.html (sprachbewusst); dort setzt der User das neue
+// Passwort. Antwort ist bewusst immer „Mail ist raus" (keine Adress-Enumeration).
+import { SITE } from '../../consts';
+import { href } from '../../i18n/ui';
+
+interface Props {
+  lang: 'de' | 'en';
+}
+const { lang } = Astro.props;
+
+const COPY = {
+  de: {
+    email: 'E-Mail', emailPh: 'du@beispiel.de',
+    hint: 'Wir schicken dir einen Link zum Zurücksetzen deines Passworts.',
+    submit: 'Link anfordern', busy: 'Sende Link …',
+    doneTitle: 'Schau in dein Postfach',
+    doneBody: 'Falls ein Konto zu %e% existiert, ist ein Link zum Zurücksetzen unterwegs. Der Link ist etwa eine Stunde gültig.',
+    errRate: 'Zu viele Anfragen — bitte kurz warten und erneut probieren.',
+    errNet: 'Netzwerkfehler — bitte später erneut versuchen.',
+    toLogin: '← Zurück zur Anmeldung',
+  },
+  en: {
+    email: 'E-mail', emailPh: 'you@example.com',
+    hint: 'We will send you a link to reset your password.',
+    submit: 'Send reset link', busy: 'Sending …',
+    doneTitle: 'Check your inbox',
+    doneBody: 'If an account exists for %e%, a reset link is on its way. The link is valid for about an hour.',
+    errRate: 'Too many requests — please wait a moment and try again.',
+    errNet: 'Network error — please try again later.',
+    toLogin: '← Back to sign-in',
+  },
+}[lang];
+
+const base = SITE.url.replace(/\/$/, '');
+const updateRedirect = base + href('/account/update-password.html', lang);
+const loginHref = href('/account/login.html', lang);
+---
+
+<div class="acx-card reveal">
+  <form id="rsForm" novalidate
+    data-redirect={updateRedirect}
+    data-msg-rate={COPY.errRate}
+    data-msg-net={COPY.errNet}
+    data-busy={COPY.busy}
+    data-submit={COPY.submit}
+  >
+    <div class="acx-field">
+      <label class="acx-label" for="rsEmail">{COPY.email} <span class="reqm">*</span></label>
+      <input class="acx-input" id="rsEmail" name="email" type="email" required autocomplete="email" placeholder={COPY.emailPh} />
+      <p class="acx-hint">{COPY.hint}</p>
+    </div>
+    <div class="acx-actions">
+      <button class="acx-submit" type="submit" id="rsBtn"><span id="rsBtnTxt">{COPY.submit}</span></button>
+    </div>
+    <p class="acx-status" id="rsStatus" role="alert" aria-live="assertive" hidden></p>
+  </form>
+
+  <div class="acx-done" id="rsDone" hidden>
+    <div class="acx-done__mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    </div>
+    <h2 tabindex="-1" id="rsDoneTitle">{COPY.doneTitle}</h2>
+    <p id="rsDoneMsg" data-tpl={COPY.doneBody}></p>
+  </div>
+
+  <div class="acx-links">
+    <a href={loginHref}>{COPY.toLogin}</a>
+  </div>
+</div>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const form = document.getElementById('rsForm') as HTMLFormElement | null;
+  if (form) {
+    const D = form.dataset;
+    const status = document.getElementById('rsStatus')!;
+    const done = document.getElementById('rsDone')!;
+    const doneTitle = document.getElementById('rsDoneTitle')!;
+    const doneMsg = document.getElementById('rsDoneMsg')!;
+    const btn = document.getElementById('rsBtn') as HTMLButtonElement;
+    const btnTxt = document.getElementById('rsBtnTxt')!;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.hidden = true;
+      const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim();
+      if (!email) return;
+
+      btn.disabled = true;
+      btnTxt.textContent = D.busy!;
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: D.redirect!,
+        });
+        if (error) {
+          const code = (error as { code?: string }).code || '';
+          if (code === 'over_email_send_rate_limit' || code === 'over_request_rate_limit') {
+            status.textContent = D.msgRate!;
+            status.hidden = false;
+            return;
+          }
+          // Alles andere bewusst als Erfolg maskieren (keine Enumeration).
+        }
+        form.hidden = true;
+        doneMsg.textContent = (doneMsg.getAttribute('data-tpl') || '').replace('%e%', email);
+        done.hidden = false;
+        try { (doneTitle as HTMLElement).focus(); } catch { /* noop */ }
+      } catch {
+        status.textContent = D.msgNet!;
+        status.hidden = false;
+      } finally {
+        btn.disabled = false;
+        btnTxt.textContent = D.submit!;
+      }
+    });
+  }
+</script>

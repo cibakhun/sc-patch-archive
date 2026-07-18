@@ -34,9 +34,10 @@ import Attribution from '../../components/Attribution.astro';
       Diese Website ist ein rein statisches, nicht-kommerzielles Fan-Projekt. Sie verwendet
       <strong>keine Cookies</strong>, <strong>keine Analyse- oder Tracking-Dienste</strong>,
       keine Werbung und keine Kommentarfunktionen. Beim bloßen Aufrufen der Seite werden keine
-      personenbezogenen Daten von dir an uns übermittelt. Eine Ausnahme ist ausschließlich das
-      <a href="#feedback">Feedback-Formular</a>, das du freiwillig nutzen kannst — die dabei
-      verarbeiteten Daten sind unten gesondert beschrieben.
+      personenbezogenen Daten von dir an uns übermittelt. Ausnahmen sind ausschließlich das
+      <a href="#feedback">Feedback-Formular</a> und das optionale
+      <a href="#accounts">Benutzerkonto</a> — beides freiwillig; die dabei verarbeiteten Daten
+      sind unten gesondert beschrieben.
     </p>
 
     <h2>Server-Logdateien (Hosting)</h2>
@@ -112,6 +113,36 @@ import Attribution from '../../components/Attribution.astro';
       eine Verbindung zu Web3Forms hergestellt.
     </p>
 
+    <h2 id="accounts">Benutzerkonto (Supabase)</h2>
+    <p>
+      Du kannst freiwillig ein Benutzerkonto anlegen, um Favoriten (z. B. gemerkte Schiffe) zu
+      speichern und ein Profil zu verwalten. Die Konto-Funktion wird über den Dienst
+      <strong>Supabase</strong> bereitgestellt; die Daten liegen in einem EU-Rechenzentrum
+      (AWS Frankfurt am Main, Region eu-central-1). Verarbeitet werden:
+    </p>
+    <ul>
+      <li><strong>E-Mail-Adresse</strong> und <strong>Passwort</strong> (das Passwort wird
+        ausschließlich als kryptografischer Hash gespeichert, niemals im Klartext)</li>
+      <li><strong>Profildaten</strong>, die du selbst angibst (Anzeigename, Handle — beides optional)</li>
+      <li><strong>Favoriten</strong>, die du aktiv speicherst</li>
+      <li>technisch bedingt Sitzungs- und Sicherheitsdaten des Anbieters (z. B. Zeitpunkt der
+        Anmeldung, IP-Adresse in Sicherheits-Logs)</li>
+    </ul>
+    <p>
+      Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung der Konto-Funktion auf deinen
+      Wunsch). Die Anmeldung erfolgt ohne Cookies: das Sitzungs-Token wird ausschließlich lokal in
+      deinem Browser gespeichert (localStorage). Du kannst dein Konto jederzeit selbst im
+      <a href="/de/account.html">Konto-Dashboard</a> endgültig löschen — dabei werden alle
+      zugehörigen Daten (Profil, Favoriten, Anmeldedaten) unwiderruflich entfernt.
+    </p>
+    <p class="muted">
+      Auftragsverarbeiter: Supabase, Inc.; Datenhaltung in der EU (AWS eu-central-1, Frankfurt).
+      Details zur Datenverarbeitung durch den Dienst:
+      <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a>.
+      Eine Verbindung zu Supabase wird nur hergestellt, wenn du Konto-Funktionen nutzt
+      (Registrierung, Anmeldung, Favoriten) — nicht beim bloßen Betrachten der Seiten.
+    </p>
+
     <h2>Schriftarten</h2>
     <p>Alle Webfonts werden lokal von dieser Website ausgeliefert. Es findet keine Verbindung zu Google Fonts statt.</p>
 
@@ -119,8 +150,9 @@ import Attribution from '../../components/Attribution.astro';
     <p class="muted">
       Dir stehen die Rechte aus Art. 15–21 DSGVO zu (Auskunft, Berichtigung, Löschung, Einschränkung,
       Datenübertragbarkeit, Widerspruch) sowie das Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde
-      (Art. 77 DSGVO). Da diese Website keine personenbezogenen Daten von dir erhebt oder speichert,
-      laufen Auskunftsersuchen in der Regel ins Leere — melde dich im Zweifel per E-Mail.
+      (Art. 77 DSGVO). Ohne Benutzerkonto erhebt oder speichert diese Website keine
+      personenbezogenen Daten von dir; mit Konto kannst du deine Daten jederzeit selbst im
+      Dashboard einsehen, ändern und vollständig löschen — melde dich im Zweifel per E-Mail.
     </p>
   </div>
 </main>

@@ -1,0 +1,41 @@
+---
+// Registrierung — EN.
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import Attribution from '../../components/Attribution.astro';
+import AccountShell from '../../components/account/AccountShell.astro';
+import AuthRegister from '../../components/account/AuthRegister.astro';
+---
+<Layout
+  title={'Create account | VerseBase'}
+  description={'Create your free VerseBase account: bookmark your favorite Star Citizen ships and manage your profile.'}
+  themeColor="#05070d"
+  ogImage="/assets/og-default.jpg"
+  translated={true}
+>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+:root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0d1322;--surface-2:#131b30;--accent:#2dd4ff;--accent-2:#7ae2ff;--hot:#2dd4ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(45,212,255,.22);--line-soft:rgba(232,238,252,.10);--glow:0 0 46px rgba(45,212,255,.18);--ink:#04121a;--maxw:1180px;}
+.reveal{opacity:1 !important;transform:none !important}
+.hero__in{max-width:var(--maxw)}
+</style>
+<a class="skip" href="#main">Skip to content</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Account', href: '/account.html' }, { label: 'Create account' }]} pill={"ACCESS"} hasEn={true} />
+
+<main id="main">
+  <AccountShell
+    eyebrow="VerseBase · System access"
+    titleThin="Join the base"
+    title="Create account"
+    lead="Free, fast, no strings attached — star your favorite ships and keep your profile in one place."
+  >
+    <AuthRegister lang="en" />
+  </AccountShell>
+</main>
+
+<Attribution sources={[]} />
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

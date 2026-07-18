@@ -39,3 +39,16 @@ export const FEEDBACK = {
 
 /** true, solange kein echter Web3Forms-Key hinterlegt ist (Demo-Modus). */
 export const FEEDBACK_DEMO = FEEDBACK.web3formsKey === 'REPLACE_WITH_YOUR_WEB3FORMS_ACCESS_KEY';
+
+// Benutzerkonten — Supabase (Projekt „verse-base", AWS eu-central-1/Frankfurt).
+// Die Site bleibt statisch: Auth + Profil + Favoriten laufen clientseitig gegen
+// die Supabase-API. Der Publishable Key ist ÖFFENTLICH (dafür gemacht, im
+// Browser zu stehen) — Datenzugriff schützt Row Level Security, nicht der Key.
+// Volles supabase-js wird NUR auf den /account/-Seiten gebundelt; alle anderen
+// Seiten nutzen das schlanke /assets/account-lite.js (Nav-Status, Favoriten).
+export const SUPABASE = {
+  url: 'https://trgjhmbnodoarnfmlcqx.supabase.co',
+  publishableKey: 'sb_publishable_AN3O0va6kEsCmHr6zDcwRQ_8sT68W3J',
+  /** localStorage-Schlüssel der supabase-js-Session (Projekt-Ref-gebunden) */
+  storageKey: 'sb-trgjhmbnodoarnfmlcqx-auth-token',
+} as const;

@@ -80,6 +80,18 @@ const current = Astro.url.pathname;
       <kbd>{t('nav.search.kbd')}</kbd>
     </button>
     {pill && <span class="snav__pill">{pill}</span>}
+    <a
+      class="snav__acct js-nav-acct"
+      href={L('/account/login.html')}
+      data-login={L('/account/login.html')}
+      data-dash={L('/account.html')}
+      data-l-login={t('nav.account.login')}
+      data-l-acct={t('nav.account')}
+      aria-label={t('nav.account.aria')}
+    >
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="js-nav-acct-txt">{t('nav.account.login')}</span>
+    </a>
     <LangSwitcher hasEn={hasEn} />
     <details class="snav__dd snav__menu">
       <summary aria-label={t('nav.menu.open')}>
@@ -139,6 +151,18 @@ const current = Astro.url.pathname;
             <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
             <span>{t('nav.feedback')}</span>
           </a>
+          <a
+            class="js-nav-acct"
+            href={L('/account/login.html')}
+            data-login={L('/account/login.html')}
+            data-dash={L('/account.html')}
+            data-l-login={t('nav.account.login')}
+            data-l-acct={t('nav.account')}
+            aria-current={current.includes('/account/') ? 'page' : undefined}
+          >
+            <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="js-nav-acct-txt">{t('nav.account.login')}</span>
+          </a>
           <details class="snav__sub-details" open={current.includes('/patches/') ? true : undefined}>
             <summary class="snav__sub-summary">
               <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01"/></svg>
@@ -176,6 +200,8 @@ const current = Astro.url.pathname;
 </nav>
 {crumbLd && <script type="application/ld+json" set:html={JSON.stringify(crumbLd)} />}
 <SearchOverlay lang={lang} />
+{/* Konto-Status + Favoriten-Sterne (leichtgewichtig, ohne supabase-js) */}
+<script is:inline src="/assets/account-lite.js" defer></script>
 
 <style>
   .snav {
@@ -311,6 +337,35 @@ const current = Astro.url.pathname;
     background: rgba(0, 0, 0, 0.3);
     padding: 0.08rem 0.4rem;
     border-radius: 1px;
+  }
+  /* Konto-Schaltfläche im Header — Optik wie die Suche; account-lite.js
+     schaltet Ziel + Label (Login <-> Konto) und setzt .is-authed */
+  .snav__acct {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
+    color: var(--muted, #8a99b8);
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.42rem 0.75rem;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .snav__acct:hover {
+    color: var(--accent, #2dd4ff);
+    border-color: var(--accent, #2dd4ff);
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 7%, transparent);
+  }
+  .snav__acct.is-authed {
+    color: var(--accent, #2dd4ff);
+  }
+  .snav__acct.is-authed svg {
+    color: var(--accent, #2dd4ff);
   }
   .snav__dd {
     position: relative;
@@ -532,6 +587,10 @@ const current = Astro.url.pathname;
     }
     .snav__search {
       padding: 0.4rem 0.5rem;
+    }
+    /* Konto wandert bei schmalen Breiten ins Burger-Menü (dort als Zeile) */
+    .snav__acct {
+      display: none;
     }
   }
   /* Menü — die eine Navigation für alle Breiten: Bereiche, Feature-Links
