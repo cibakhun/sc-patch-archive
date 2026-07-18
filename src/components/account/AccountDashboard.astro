@@ -277,7 +277,17 @@ const confirmRedirect = loginHref + '?confirmed=1';
         location.replace(D.login! + '?next=' + encodeURIComponent(here));
         return;
       }
-      const user = session.user;
+      // Serverseitig validieren: Ein lokal gecachtes JWT bleibt bis zum Ablauf
+      // „gültig", auch wenn der Account längst gelöscht wurde (anderes Gerät).
+      // Ohne diesen Check zeigte das Dashboard eine leere Hülle und die
+      // Login-Seite leitete sofort wieder hierher — Sackgasse.
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData.user) {
+        await supabase.auth.signOut({ scope: 'local' });
+        location.replace(D.login!);
+        return;
+      }
+      const user = userData.user;
 
       // Kopf
       document.getElementById('idEmail')!.textContent = user.email || '—';
@@ -357,10 +367,11 @@ const confirmRedirect = loginHref + '?confirmed=1';
           return;
         }
         pfBtn.disabled = true;
+        // upsert statt update: fehlt die Profilzeile (Trigger-Ausfall o. Ä.),
+        // wäre update ein stilles 0-Zeilen-No-Op mit falscher Erfolgsmeldung.
         const { error } = await supabase
           .from('profiles')
-          .update({ display_name, handle })
-          .eq('id', user.id);
+          .upsert({ id: user.id, display_name, handle });
         pfBtn.disabled = false;
         if (error) {
           show(pfStatus as HTMLElement, error.code === '23505' ? D.msgHandleTaken! : D.msgNet!);
