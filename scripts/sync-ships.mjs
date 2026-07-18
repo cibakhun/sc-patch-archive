@@ -42,6 +42,14 @@ async function fyModel(slug) {
   return res.json();
 }
 
+// Canonical vehicle ids come from the Wiki snapshot (= detail-page slugs).
+// FY slugs normally coincide, but not always (Basher: FY "grey-basher" vs
+// game/Wiki "glsn-basher") — join by name so ships.json ids stay canonical.
+const VEH = JSON.parse(
+  await readFile(new URL('../src/data/vehicles.json', import.meta.url), 'utf8')
+).vehicles;
+const vehId = new Map(VEH.map((v) => [v.name.toLowerCase(), v.id]));
+
 // 1) collect unique ship names from the patch data layer
 const PDIR = new URL('../src/data/patches/', import.meta.url);
 const wanted = new Map();
@@ -77,7 +85,7 @@ for (const [key, w] of wanted) {
     continue;
   }
   ships.push({
-    id: m.slug,
+    id: vehId.get(m.name.toLowerCase()) ?? vehId.get(strip(w.name)) ?? m.slug,
     name: m.name,
     matchedFrom: w.name,
     manufacturer: m.manufacturer?.name ?? null,

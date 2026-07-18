@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-07-02",
+  "fetchedAt": "2026-07-18",
   "source": "FleetYards.net (api.fleetyards.net/v1) — fan-made, based on the official Ship Matrix",
   "misses": [
     "Drake Command Module"
@@ -44,7 +44,7 @@
       ]
     },
     {
-      "id": "rsi-aurora-mk-ii",
+      "id": "rsi-aurora-mk2",
       "name": "Aurora Mk II",
       "matchedFrom": "Aurora Mk II",
       "manufacturer": "Roberts Space Industries",
@@ -63,7 +63,26 @@
       ]
     },
     {
-      "id": "anvl-f7c-m-super-hornet-mk-ii",
+      "id": "glsn-basher",
+      "name": "Basher",
+      "matchedFrom": "Basher",
+      "manufacturer": "Grey's Market",
+      "classification": "Combat",
+      "focus": "Light Fighter",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 0,
+      "crewMin": 1,
+      "crewMax": 1,
+      "lengthM": 13.7,
+      "sizeLabel": "Small",
+      "priceUSD": 110,
+      "fleetyardsUrl": "https://fleetyards.net/ships/grey-basher",
+      "patches": [
+        "4.9.0"
+      ]
+    },
+    {
+      "id": "anvl-hornet-f7cm-mk2",
       "name": "F7C-M Super Hornet Mk II",
       "matchedFrom": "F7C-M Super Hornet Mk II",
       "manufacturer": "Anvil Aerospace",
@@ -196,7 +215,7 @@
       ]
     },
     {
-      "id": "krig-l-21-wolf",
+      "id": "krig-l21-wolf",
       "name": "L-21 Wolf",
       "matchedFrom": "Kruger L-21 Wolf",
       "manufacturer": "Kruger Intergalactic",

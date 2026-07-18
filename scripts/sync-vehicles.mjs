@@ -248,7 +248,24 @@ console.log(`deduped ${dropped} edition duplicates -> ${deduped.length} vehicles
 // "—" rows. Self-maintaining: an entry gaining classification upstream is
 // re-admitted on the next sync.
 const classified = deduped.filter((v) => v.typeDe != null || v.statusDe != null);
-const unclassified = deduped.filter((v) => v.typeDe == null && v.statusDe == null);
+let unclassified = deduped.filter((v) => v.typeDe == null && v.statusDe == null);
+
+// Patch-day rescue: a brand-new REAL ship ships for its first days without
+// type/production_status in the Wiki (4.9.0 Basher was the first case).
+// career/role are no substitute filter — the promo SKUs above carry those
+// too — so the distinction ship-vs-reskin stays a curated call. Values use
+// the site vocabulary; once the Wiki classifies the entry upstream it never
+// reaches `unclassified`, the rescue becomes a no-op and can be removed.
+const RESCUE = new Map([
+  ['glsn-basher', { typeDe: 'Gefecht', typeEn: 'combat', statusDe: 'Flugbereit', statusEn: 'flight-ready', fociDe: ['Leichter Jäger'] }],
+]);
+for (const v of unclassified.filter((x) => RESCUE.has(x.id))) {
+  Object.assign(v, RESCUE.get(v.id));
+  classified.push(v);
+  console.log(`rescued "${v.name}" (${v.id}) — curated type/status until the Wiki classifies it`);
+}
+unclassified = unclassified.filter((v) => !RESCUE.has(v.id));
+
 if (unclassified.length) {
   console.log(
     `dropped ${unclassified.length} unclassified entries (editions/liveries/modules):`
