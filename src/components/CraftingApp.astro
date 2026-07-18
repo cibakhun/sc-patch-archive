@@ -378,11 +378,12 @@ const defaultYield = Math.round(dismantleEff * 100);
     „nichts selten“ zurück (der Lindinium-Bug). Da das HTML no-cache ist, zieht
     jeder Aufruf so die zum Markup passende Datenversion. */}
 <script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json?v=' + version, dismantleUrl: '/assets/dismantling-items.json?v=' + version, dismantleEfficiency: dismantleEff, icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE }, t: JS_T })};`} />
-{/* ?v=3: Cache-Buster — das gebündelte crafting-app.js vereint die Karten-Diät
+{/* ?v=4: Cache-Buster — das gebündelte crafting-app.js vereint die Karten-Diät
     (Filter-data-Attribute entfallen, JS hebt sie beim Init aus dem Markup) UND
     den game-sourced Zerlege-Rechner. Altes gecachtes JS auf neuem HTML bräche
-    beides. Bei künftigen Änderungen an crafting-app.js mitbumpen. */}
-<script is:inline src="/assets/crafting-app.js?v=3"></script>
+    beides. Bei künftigen Änderungen an crafting-app.js mitbumpen.
+    v4: Qualitäts-Slider step=1 + editierbares Zahlenfeld. */}
+<script is:inline src="/assets/crafting-app.js?v=4"></script>
 
 <style is:inline>
   /* ===== Crafting-DB — funktionale App ===== */
@@ -496,8 +497,10 @@ const defaultYield = Math.round(dismantleEff * 100);
   .cbm__opt .oq{color:var(--accent,#FF5E1A);font-weight:700;font-size:.82rem}
   .cbm__opt .omq{color:var(--muted,#9ba2ae);font-size:.74rem}
   .cbm__sim{margin-top:.6rem}
-  .cbm__sim label{display:flex;justify-content:space-between;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted,#9ba2ae);font-family:var(--font-ui,inherit);margin-bottom:.2rem}
-  .cbm__sim output{color:var(--accent,#FF5E1A);font-weight:800}
+  .cbm__sim label{display:flex;align-items:center;justify-content:space-between;gap:.5rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted,#9ba2ae);font-family:var(--font-ui,inherit);margin-bottom:.2rem}
+  /* editierbares Qualitäts-Zahlenfeld (ersetzt das frühere read-only <output>) */
+  .cbm__qnum{width:4.6em;text-align:right;color:var(--accent,#FF5E1A);font-weight:800;font-family:var(--font-ui,inherit);font-size:.9rem;background:rgba(0,0,0,.32);border:1px solid var(--line,rgba(255,255,255,.16));border-radius:3px;padding:.1rem .35rem;text-transform:none;letter-spacing:0}
+  .cbm__qnum:focus{outline:none;border-color:var(--accent,#FF5E1A);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent,#FF5E1A) 25%,transparent)}
   .cbm__slider{width:100%;accent-color:var(--accent,#FF5E1A);height:22px}
   .cbm__out{display:flex;flex-direction:column;gap:.3rem}
   .cbm__ostat,.cbm__st{display:flex;justify-content:space-between;gap:1rem;font-size:.88rem;padding:.28rem .5rem;background:var(--surface,#232329);border-radius:4px}
