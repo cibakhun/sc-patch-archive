@@ -19,8 +19,13 @@ const patches = await getCollection('patches');
 const parentEntry = patches.find((p) => p.data.topics.some((tp) => tp.slug === topicSlug));
 const parentData = parentEntry ? mergePatchEn(parentEntry.id, parentEntry.data, lang) : null;
 const siblings = parentData ? parentData.topics.filter((tp) => tp.slug !== topicSlug) : [];
+// Evergreen-Tools (z. B. Mining) sind vom Patch entkoppelt — kein "Mehr aus
+// Alpha X" mit Patch-Geschwistern, das hier nur Fehlbezüge (z. B. zu Tactical
+// Strike Groups) erzeugen würde.
+const feats = parentData ? parentData.features.filter((f) => f.topicSlug === topicSlug) : [];
+const evergreen = feats.some((f) => f.evergreen);
 ---
-{parentEntry && parentData && (
+{parentEntry && parentData && !evergreen && (
   <section class="rel" aria-label={t('rel.aria')}>
     <div class="rel__in">
       <h2 class="rel__h">{t('rel.more').replace('%v%', parentData.version)}</h2>

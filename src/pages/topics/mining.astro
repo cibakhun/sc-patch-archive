@@ -15,10 +15,11 @@ import TopicSeo from '../../components/dossier/TopicSeo.astro';
 const total = DB.counts.minerals;
 const snap = DB.snapshot_date;
 const ver = DB.game_version;
+const verShort = ver.split('-')[0]; // "4.9.0-live.12248363" -> "4.9.0"
 
 const ships = buildMiningShips('en');
 ---
-<Layout title={"Mining Database — Star Citizen 4.9 | VerseBase"} description={`Interactive mining database for Star Citizen 4.9: browse ${total} minerals extracted straight from the game files, filter by system, method & type, see real deposit regions with ore-share %, identify scan signatures, weigh refinery methods and plan fracturing.`} themeColor="#14181a" ogType="article" ogImage="/assets/img-mole.jpg" translated={true}>
+<Layout title={"Mining Database — Star Citizen 4.9 | VerseBase"} description={`Interactive mining database for Star Citizen 4.9: browse ${total} minerals, filter by system, method & type, see real deposit regions with ore-share %, identify scan signatures, weigh refinery methods and plan fracturing.`} themeColor="#14181a" ogType="article" ogImage="/assets/img-mole.jpg" translated={true}>
 <TopicSeo slug="mining" image="/assets/img-mole.jpg" />
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
@@ -66,7 +67,7 @@ const ships = buildMiningShips('en');
 <a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.8', href: '/patches/sc-4-8-0.html' }, { label: "Mining" }]} pill={"TOPIC · DATABASE"} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: "Mining" }]} pill={"TOPIC · DATABASE"} hasEn={true} />
 
 <main id="main">
   <section class="hero">
@@ -74,14 +75,14 @@ const ships = buildMiningShips('en');
     <canvas id="stars" aria-hidden="true"></canvas>
     <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
-      <div class="eyebrow"><a href="/patches/sc-4-8-0.html">Alpha 4.8</a></div>
+      <div class="eyebrow">Alpha {verShort} · live data</div>
       <h1>Mining</h1>
       <p class="lead">Minerals, locations, signatures, refinery &amp; fracturing — game-accurate, searchable.</p>
     </div>
     <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
 
-  <TopicFacts topicSlug="mining" />
+  <TopicFacts topicSlug="mining" dataVersion={verShort} />
 
   <div class="mn-sec-h reveal" id="db"><span class="num">01</span><h2>Mineral database</h2></div>
 
