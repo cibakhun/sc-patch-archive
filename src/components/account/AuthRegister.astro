@@ -26,6 +26,7 @@ const COPY = {
     errExists: 'Diese E-Mail ist bereits registriert — melde dich an oder setze dein Passwort zurück.',
     errInvalidMail: 'Diese E-Mail-Adresse wird nicht akzeptiert — bitte prüfe die Schreibweise.',
     errWeak: 'Das Passwort ist zu schwach — bitte wähle ein längeres.',
+    errRate: 'Zu viele Registrierungen von deiner Verbindung — bitte später erneut versuchen.',
     errNet: 'Das hat nicht geklappt — bitte später erneut versuchen.',
     okLogin: 'Konto erstellt! Du wirst angemeldet …',
     toLogin: 'Schon ein Konto? Anmelden',
@@ -43,6 +44,7 @@ const COPY = {
     errExists: 'This e-mail is already registered — sign in or reset your password.',
     errInvalidMail: 'This e-mail address was not accepted — please check the spelling.',
     errWeak: 'This password is too weak — please pick a longer one.',
+    errRate: 'Too many sign-ups from your connection — please try again later.',
     errNet: 'That did not work — please try again later.',
     okLogin: 'Account created! Signing you in …',
     toLogin: 'Already have an account? Sign in',
@@ -63,6 +65,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
     data-msg-exists={COPY.errExists}
     data-msg-invalid-mail={COPY.errInvalidMail}
     data-msg-weak={COPY.errWeak}
+    data-msg-rate={COPY.errRate}
     data-msg-net={COPY.errNet}
     data-msg-ok={COPY.okLogin}
     data-busy={COPY.busy}
@@ -147,6 +150,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
             code === 'user_already_exists' ? D.msgExists!
             : code === 'email_address_invalid' ? D.msgInvalidMail!
             : code === 'weak_password' ? D.msgWeak!
+            : code === 'over_request_rate_limit' ? D.msgRate!
             : D.msgNet!,
           );
           return;
