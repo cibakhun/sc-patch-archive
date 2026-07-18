@@ -921,9 +921,10 @@ span.sd__ref{color:var(--muted)}
         </figure>
         {videoId && (
           <div class="holo__video" id="holovideo" data-vid={videoId}>
-            {gallery[0] && (
-              <span class="holo__videoposter" style={`background-image:url('${gallery[0].src}')`} aria-hidden="true"></span>
-            )}
+            {/* Poster IMMER rendern (ohne Galerie-Bild dunkel) — es verdeckt
+                YouTubes Start-Chrome; fehlte es (Schiffe ohne Bilder, z. B.
+                Basher), blitzte die Player-UI beim Start nackt durch */}
+            <span class="holo__videoposter" style={gallery[0] ? `background-image:url('${gallery[0].src}')` : undefined} aria-hidden="true"></span>
             <div class="holo__playertarget" id="holoplayer"></div>
             <span class="holo__videoshield" id="holovideoshield" aria-hidden="true"></span>
           </div>
@@ -1554,26 +1555,25 @@ span.sd__ref{color:var(--muted)}
   }
   function initVideo() {
     if (!videoBox) return;
-    if (ytPlayer) { if (ytReady && !reduce) { try { ytPlayer.mute(); ytPlayer.playVideo(); } catch (e) {} } return; }
+    if (ytPlayer) { if (ytReady) { try { ytPlayer.mute(); ytPlayer.playVideo(); } catch (e) {} } return; }
     if (ytLoading) return;
     var vid = videoBox.getAttribute('data-vid');
     if (!vid) return;
-    // reduce-motion: Player zeigt Controls -> Schutzschicht UND Deck-Poster aus,
-    // damit der Player sichtbar und bedienbar ist (kein Autoplay -> kein PLAYING)
     var shield = document.getElementById('holovideoshield');
-    if (reduce && shield) shield.style.display = 'none';
-    if (reduce) fadePoster();
     ytLoading = true;
     loadYT().then(function () {
       ytPlayer = new YT.Player('holoplayer', {
         videoId: vid,
         host: 'https://www.youtube-nocookie.com',
         playerVars: {
-          // Natives stummes Autoplay ab Sekunde 4 (start-Param). KEIN
-          // programmatisches playVideo() -> YouTube zeigt keinen bleibenden
-          // Play/Pause-Button; das kurze Start-Symbol liegt unter dem Poster.
-          autoplay: reduce ? 0 : 1, mute: reduce ? 0 : 1, playsinline: 1,
-          controls: reduce ? 1 : 0, disablekb: 1, fs: 0, iv_load_policy: 3,
+          // Ambient-Video: IMMER stummes Autoplay ohne jede Player-UI — auch
+          // bei prefers-reduced-motion (frueher gab es dort einen Player MIT
+          // Controls; genau diese Icons sollen nie zu sehen sein — der Modus
+          // bleibt ueber die Umschalter abwaehlbar). KEIN programmatisches
+          // playVideo() -> YouTube zeigt keinen bleibenden Play/Pause-Button;
+          // das kurze Start-Symbol liegt unter dem Poster.
+          autoplay: 1, mute: 1, playsinline: 1,
+          controls: 0, disablekb: 1, fs: 0, iv_load_policy: 3,
           rel: 0, modestbranding: 1, start: 4, origin: location.origin,
         },
         events: {
@@ -1582,6 +1582,17 @@ span.sd__ref{color:var(--muted)}
             // Nur Stummschaltung sicherstellen; Start/Position macht das native
             // Autoplay + start-Param. Kein playVideo()/seekTo() -> kein Button.
             try { e.target.mute(); } catch (er) {}
+            // Nahtlos-Loop: kurz VOR dem Ende zurueckspringen, damit YouTubes
+            // Endscreen (Vorschlags-Kacheln) nie aufblitzt. Der ENDED-Zweig in
+            // onStateChange bleibt als Fallback, falls ein Tick das Fenster
+            // verpasst (Tab gedrosselt o. ae.).
+            setInterval(function () {
+              try {
+                if (!ytPlayer || ytPlayer.getPlayerState() !== 1) return;
+                var d = ytPlayer.getDuration();
+                if (d > 0 && ytPlayer.getCurrentTime() > d - 0.9) ytPlayer.seekTo(3.8, true);
+              } catch (er) {}
+            }, 500);
           },
           onStateChange: function (e) {
             // erst kurz NACH echtem Abspielstart das Poster wegblenden -> das
@@ -1601,17 +1612,29 @@ span.sd__ref{color:var(--muted)}
           },
         },
       });
-      // Fallback: sollte Autoplay wider Erwarten blockiert bleiben, das Poster
-      // nach 4 s trotzdem lösen und die Schutzschicht deaktivieren, damit der
-      // Player nie dauerhaft verdeckt/unbedienbar ist
+      // Fallback: bleibt Autoplay wider Erwarten blockiert, NICHT den Player
+      // samt YouTube-UI freischalten (es soll nie Player-Chrome zu sehen sein),
+      // sondern auf die Bilder-Galerie ausweichen. Nur ohne Galerie als letzter
+      // Ausweg die Schutzschicht loesen, damit kein totes schwarzes Feld bleibt.
       setTimeout(function () {
-        if (!playStarted) { fadePoster(); if (shield) shield.style.pointerEvents = 'none'; }
+        if (playStarted) return;
+        if (slides.length) { fadePoster(); showImg(); }
+        else { fadePoster(); if (shield) shield.style.pointerEvents = 'none'; }
       }, 7000);
     });
   }
   function pauseVideo() {
     if (ytPlayer && ytReady) { try { ytPlayer.pauseVideo(); } catch (e) {} }
   }
+  // Tab-Rueckkehr: YouTube pausiert Videos in Hintergrund-Tabs — beim
+  // Sichtbarwerden laeuft das Ambient-Video im Video-Modus sonst nicht wieder
+  // an und es bliebe ein Standbild stehen (API-play zeigt kein Overlay-Icon,
+  // anders als ein Klick auf den Player).
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && mode === 'video' && ytPlayer && ytReady) {
+      try { ytPlayer.mute(); ytPlayer.playVideo(); } catch (e) {}
+    }
+  });
 
   // ---------- Holo (nur wenn Holodaten vorhanden) ----------
   var dataEl = document.getElementById('holodata');
