@@ -5,6 +5,8 @@
 // existing per-page scroll JS keeps working.
 // Plumbing, not a reskin: themes itself via the page's palette variables,
 // no motion beyond the existing scrolled-state.
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { getCollection } from 'astro:content';
 import SearchOverlay from './SearchOverlay.astro';
 import LangSwitcher from './LangSwitcher.astro';
@@ -54,6 +56,17 @@ const eras: string[] = [];
 for (const p of patches) if (!eras.includes(p.data.era)) eras.push(p.data.era);
 const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
 const current = Astro.url.pathname;
+
+// Cache-Busting für /assets/account-lite.js: die Datei hat eine FESTE URL und
+// wird von Cloudflare 1 Tag gecacht (nginx-Map: application/javascript → 1d).
+// Ohne Content-Hash im Query lieferte das CDN nach einem Deploy bis zu 24 h die
+// ALTE Datei — kritisch, weil dieses Skript die Auth-Session refresht und die
+// Favoriten bedient. Gleiche Technik wie /assets/holo-viewer.js (?v=hash).
+let acctLiteVer = 'x';
+try {
+  acctLiteVer = createHash('sha1').update(readFileSync('assets/account-lite.js')).digest('hex').slice(0, 8);
+} catch { /* dev-Fallback */ }
+const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 ---
 <nav class="snav" id="topbar" aria-label={t('nav.main')}>
   <div class="snav__left">
@@ -200,8 +213,9 @@ const current = Astro.url.pathname;
 </nav>
 {crumbLd && <script type="application/ld+json" set:html={JSON.stringify(crumbLd)} />}
 <SearchOverlay lang={lang} />
-{/* Konto-Status + Favoriten-Sterne (leichtgewichtig, ohne supabase-js) */}
-<script is:inline src="/assets/account-lite.js" defer></script>
+{/* Konto-Status + Favoriten-Sterne (leichtgewichtig, ohne supabase-js).
+    ?v=<contenthash> bricht den 1-Tag-CDN-Cache bei jeder Änderung. */}
+<script is:inline src={acctLiteSrc} defer></script>
 
 <style>
   .snav {
