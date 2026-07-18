@@ -1540,6 +1540,12 @@ span.sd__ref{color:var(--muted)}
         next = (next + 1) % slides.length;
         if (!slides[next].dataset.bad) break; // kaputte Bilder überspringen
       }
+      // Nie auf ein noch ladendes Bild blenden (grosse FleetYards-Dateien
+      // brauchen laenger als der 6-s-Vorlauf -> schwarze Buehne): Laden
+      // anstossen, Tick aussetzen, der naechste versucht es erneut.
+      var im = slides[next];
+      ensureLoaded(next);
+      if (next !== slideIdx && !(im.complete && im.naturalWidth > 0)) return;
       slideIdx = next; paint(slideIdx);
     }, 6000);
   }
