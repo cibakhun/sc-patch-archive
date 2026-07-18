@@ -85,10 +85,24 @@ const resetHref = href('/account/reset.html', lang);
     const btn = document.getElementById('loBtn') as HTMLButtonElement;
     const btnTxt = document.getElementById('loBtnTxt')!;
 
-    // Nur relative Rücksprungziele akzeptieren (kein offener Redirect).
+    // Nur SAME-ORIGIN-Rücksprungziele akzeptieren (kein offener Redirect).
+    // Naiver startsWith('/')-Check reichte NICHT: „/\evil.com" beginnt mit
+    // genau einem Slash, der Browser normalisiert „\" aber zu „/" -> protokoll-
+    // relativ -> Fremd-Origin. Robust: gegen die eigene Origin auflösen und
+    // die Origin vergleichen; nur den normalisierten Pfad weiterverwenden.
     const params = new URLSearchParams(location.search);
     const rawNext = params.get('next') || '';
-    const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : D.dash!;
+    const safeNext = (raw: string): string => {
+      if (!raw) return D.dash!;
+      try {
+        const u = new URL(raw, location.origin);
+        if (u.origin !== location.origin) return D.dash!;
+        return u.pathname + u.search + u.hash;
+      } catch {
+        return D.dash!;
+      }
+    };
+    const next = safeNext(rawNext);
 
     const go = () => location.replace(next);
 

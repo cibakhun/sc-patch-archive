@@ -13,12 +13,14 @@ const { lang } = Astro.props;
 const COPY = {
   de: {
     loading: 'Lade dein Konto …',
+    loadError: 'Dein Konto konnte nicht geladen werden — bitte prüfe deine Verbindung.',
+    retry: 'Neu laden',
     signedInAs: 'Angemeldet als',
     memberSince: 'Dabei seit',
     logout: 'Abmelden',
     secProfile: 'Profil',
     name: 'Anzeigename', namePh: 'z. B. StarRunner',
-    handle: 'Handle', optional: '— optional', handlePh: 'z. b. star_runner',
+    handle: 'Handle', optional: '— optional', handlePh: 'z. B. star_runner',
     handleHint: '3–24 Zeichen: Kleinbuchstaben, Ziffern, Unterstrich. Eindeutig auf VerseBase.',
     saveProfile: 'Profil speichern', savingProfile: 'Speichere …', savedProfile: 'Profil gespeichert.',
     errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
@@ -48,6 +50,8 @@ const COPY = {
   },
   en: {
     loading: 'Loading your account …',
+    loadError: 'Could not load your account — please check your connection.',
+    retry: 'Reload',
     signedInAs: 'Signed in as',
     memberSince: 'Member since',
     logout: 'Sign out',
@@ -107,6 +111,8 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-msg-same={COPY.errSame}
   data-msg-net={COPY.errNet}
   data-msg-rate={COPY.errRate}
+  data-msg-loaderr={COPY.loadError}
+  data-retry={COPY.retry}
   data-danger-word={COPY.dangerWord}
   data-fav-remove={COPY.favRemove}
 >
@@ -282,7 +288,20 @@ const confirmRedirect = loginHref + '?confirmed=1';
       // Ohne diesen Check zeigte das Dashboard eine leere Hülle und die
       // Login-Seite leitete sofort wieder hierher — Sackgasse.
       const { data: userData, error: userErr } = await supabase.auth.getUser();
-      if (userErr || !userData.user) {
+      if (userErr) {
+        // NUR bei echtem Auth-Fehler (Account gelöscht/ungültig) abmelden.
+        // Ein Netzwerkfehler (status 0/undefined) darf den User NICHT ausloggen
+        // — sonst wirft ein kurzer Verbindungsabbruch ihn aus dem Konto; der
+        // wird stattdessen als Ladefehler mit „Neu laden" behandelt (throw).
+        const st = (userErr as { status?: number }).status;
+        if (st === 401 || st === 403) {
+          await supabase.auth.signOut({ scope: 'local' });
+          location.replace(D.login!);
+          return;
+        }
+        throw userErr;
+      }
+      if (!userData.user) {
         await supabase.auth.signOut({ scope: 'local' });
         location.replace(D.login!);
         return;
@@ -464,6 +483,20 @@ const confirmRedirect = loginHref + '?confirmed=1';
       });
     };
 
-    init();
+    // Ohne .catch() blieb ein Netzwerkfehler in init() (getSession/getUser/
+    // profile/favorites) für immer auf „Lade dein Konto …" hängen. Jetzt:
+    // Fehlerzustand mit „Neu laden"-Schaltfläche.
+    init().catch((e) => {
+      console.error('dashboard init failed', e);
+      loadingEl.textContent = D.msgLoaderr || 'Could not load your account.';
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'acx-submit acx-submit--ghost';
+      retry.style.marginTop = '1.1rem';
+      retry.textContent = D.retry || 'Reload';
+      retry.addEventListener('click', () => location.reload());
+      loadingEl.appendChild(document.createElement('br'));
+      loadingEl.appendChild(retry);
+    });
   }
 </script>

@@ -117,18 +117,23 @@
         var q = 'favorites?select=id&kind=eq.' + encodeURIComponent(kind) + '&slug=eq.' + encodeURIComponent(slug);
         var favId = null;
         var busy = false;
+        // Hat der User schon geklickt? Dann darf das (evtl. langsamere) initiale
+        // GET den vom Klick gesetzten Zustand NICHT mehr überschreiben — sonst
+        // zeigte der Stern nach einem schnellen Klick den falschen Zustand.
+        var touched = false;
 
         rest(sess, 'GET', q)
           .then(function (r) { return r.ok ? r.json() : []; })
           .then(function (rows) {
+            if (touched) return;
             favId = rows && rows.length ? rows[0].id : null;
             paint(btn, !!favId);
-            btn.removeAttribute('data-fav-wait');
           })
-          .catch(function () { paint(btn, false); });
+          .catch(function () { if (!touched) paint(btn, false); });
 
         btn.addEventListener('click', function () {
           if (busy) return;
+          touched = true;
           busy = true;
           ensureSession().then(function (s) {
             if (!s) { busy = false; return; }
