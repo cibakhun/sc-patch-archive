@@ -31,6 +31,9 @@ for (const f of feats)
   }
 const shown = facts.slice(0, 9);
 const system = feats.find((f) => f.system)?.system;
+// Evergreen-Systeme (z. B. Mining seit Alpha 3.2) wurden NICHT in diesem Patch
+// eingeführt — dann ist die Herkunfts-Zeile eine Archiv-Ablage, kein Debüt.
+const evergreen = feats.some((f) => f.evergreen);
 ---
 {parent && (
   <>
@@ -59,7 +62,7 @@ const system = feats.find((f) => f.system)?.system;
           feats[0] && <p class="tf__desc">{feats[0].desc}</p>
         )}
         <a class="tf__prov" href={L(`/patches/sc-${parent.id}.html`)}>
-          {t('tf.introduced').replace('%v%', parent.data.version)}{parent.data.codename} · {parent.data.dateDisplay} →
+          {(evergreen ? t('tf.documented') : t('tf.introduced')).replace('%v%', parent.data.version)}{parent.data.codename} · {parent.data.dateDisplay} →
         </a>
       </div>
     </section>

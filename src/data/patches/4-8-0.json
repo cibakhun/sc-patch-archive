@@ -218,7 +218,8 @@
           "value": "9 (Ertrag/Kosten/Tempo)"
         }
       ],
-      "topicSlug": "mining"
+      "topicSlug": "mining",
+      "evergreen": true
     }
   ],
   "ships": [
