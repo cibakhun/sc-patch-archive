@@ -32,9 +32,9 @@ import Attribution from '../components/Attribution.astro';
     <p>
       This website is a purely static, non-commercial fan project. It uses <strong>no cookies</strong>,
       <strong>no analytics or tracking services</strong>, no advertising and no comment functions.
-      Simply viewing the site transmits no personal data from you to us. The only exception is the
-      <a href="#feedback">feedback form</a>, which you may use voluntarily — the data processed there
-      is described separately below.
+      Simply viewing the site transmits no personal data from you to us. The only exceptions are the
+      <a href="#feedback">feedback form</a> and the optional <a href="#accounts">user account</a> —
+      both voluntary; the data processed there is described separately below.
     </p>
 
     <h2>Server log files (hosting)</h2>
@@ -104,6 +104,35 @@ import Attribution from '../components/Attribution.astro';
       submission.
     </p>
 
+    <h2 id="accounts">User account (Supabase)</h2>
+    <p>
+      You can voluntarily create a user account to save favorites (e.g. bookmarked ships) and manage
+      a profile. The account feature is provided via <strong>Supabase</strong>; the data is stored in
+      an EU data center (AWS Frankfurt, region eu-central-1). The following data is processed:
+    </p>
+    <ul>
+      <li><strong>e-mail address</strong> and <strong>password</strong> (the password is stored
+        exclusively as a cryptographic hash, never in plain text)</li>
+      <li><strong>profile data</strong> you enter yourself (display name, handle — both optional)</li>
+      <li><strong>favorites</strong> you actively save</li>
+      <li>technically, session and security data of the provider (e.g. sign-in timestamps,
+        IP address in security logs)</li>
+    </ul>
+    <p>
+      The legal basis is Art. 6 (1) (b) GDPR (providing the account feature at your request).
+      Sign-in works without cookies: the session token is stored exclusively locally in your browser
+      (localStorage). You can permanently delete your account yourself at any time in the
+      <a href="/account.html">account dashboard</a> — this irreversibly removes all associated
+      data (profile, favorites, credentials).
+    </p>
+    <p class="muted">
+      Processor: Supabase, Inc.; data residency in the EU (AWS eu-central-1, Frankfurt). For details
+      on how the service processes data, see
+      <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a>.
+      A connection to Supabase is only established when you use account features
+      (registration, sign-in, favorites) — not when merely browsing the site.
+    </p>
+
     <h2>Fonts</h2>
     <p>All web fonts are served locally by this website. No connection to Google Fonts is made.</p>
 
@@ -111,8 +140,9 @@ import Attribution from '../components/Attribution.astro';
     <p class="muted">
       You have the rights under Art. 15–21 GDPR (access, rectification, erasure, restriction, data
       portability, objection) and the right to lodge a complaint with a supervisory authority
-      (Art. 77 GDPR). Since this website does not collect or store personal data about you, access
-      requests will usually come up empty — if in doubt, reach out by e-mail.
+      (Art. 77 GDPR). Without a user account, this website does not collect or store personal data
+      about you; with an account, you can view, change and fully delete your data yourself in the
+      dashboard at any time — if in doubt, reach out by e-mail.
     </p>
   </div>
 </main>

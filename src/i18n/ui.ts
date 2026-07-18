@@ -61,6 +61,9 @@ const UI = {
     'nav.downloads': 'Downloads',
     'nav.downloads.sub': 'Medien & Onepager',
     'nav.feedback': 'Feedback',
+    'nav.account': 'Konto',
+    'nav.account.login': 'Login',
+    'nav.account.aria': 'Benutzerkonto',
     // -- Startseiten-Launchpad (großes zentrales Menü, schrumpft beim Scrollen) --
     'home.launch.aria': 'Hauptbereiche',
     'home.launch.hint': 'Bereiche',
@@ -222,6 +225,10 @@ const UI = {
     'ship.slot.coolers': 'Kühler',
     'ship.slot.quantum': 'Quantum-Antrieb',
     'ship.slot.radar': 'Radar',
+    // -- Favoriten (Konto-Feature; account-lite.js toggelt den Zustand) --
+    'fav.save': 'Merken',
+    'fav.saved': 'Gemerkt',
+    'fav.aria': 'Als Favorit merken (Konto nötig)',
     // stilisierte Mono-Codes (in-universe „Register"-Kürzel)
     'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SCHIFF',
@@ -363,6 +370,9 @@ const UI = {
     'nav.downloads': 'Downloads',
     'nav.downloads.sub': 'Media & one-pagers',
     'nav.feedback': 'Feedback',
+    'nav.account': 'Account',
+    'nav.account.login': 'Sign in',
+    'nav.account.aria': 'User account',
     // -- Home launchpad (large centered menu that shrinks on scroll) --
     'home.launch.aria': 'Main sections',
     'home.launch.hint': 'Sections',
@@ -522,6 +532,10 @@ const UI = {
     'ship.slot.coolers': 'Coolers',
     'ship.slot.quantum': 'Quantum drive',
     'ship.slot.radar': 'Radar',
+    // -- Favorites (account feature; account-lite.js toggles the state) --
+    'fav.save': 'Save',
+    'fav.saved': 'Saved',
+    'fav.aria': 'Save as favorite (account required)',
     // stylized mono codes (in-universe “register” tags)
     'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SHIP',

@@ -862,6 +862,15 @@ span.sd__ref{color:var(--muted)}
   border:1px solid rgba(110,168,255,.4);color:var(--accent-2);padding:.1rem .4rem;margin-left:.5rem;vertical-align:1px}
 .sd__sys.sys-pyro{border-color:rgba(255,138,80,.45);color:#ff8a50}
 .sd__sys.sys-nyx{border-color:rgba(192,154,255,.45);color:#c09aff}
+
+/* Favoriten-Stern (Konto-Feature; /assets/account-lite.js toggelt .is-fav) */
+.holo__fav{margin-top:.7rem}
+.favbtn{display:inline-flex;align-items:center;gap:.45rem;background:rgba(0,0,0,.35);border:1px solid var(--line);color:var(--muted);
+  font-family:var(--font-ui);font-weight:700;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;padding:.42rem .85rem;cursor:pointer;
+  transition:color .15s,border-color .15s,background-color .15s}
+.favbtn:hover{color:var(--accent);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.favbtn.is-fav{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 60%,transparent);background:color-mix(in srgb,var(--accent-2) 10%,transparent)}
+.favbtn.is-fav .favbtn__star path{fill:currentColor}
 </style>
 
 <SiteNav
@@ -890,6 +899,24 @@ span.sd__ref{color:var(--muted)}
           {vRole(d, lang) && <span>{vRole(d, lang)}</span>}
           {vSize(d, lang) && <span>{vSize(d, lang)}</span>}
           {vStatus(d, lang) && <span>{vStatus(d, lang)}</span>}
+        </div>
+        <div class="holo__fav">
+          <button
+            type="button"
+            class="favbtn"
+            data-fav
+            data-fav-kind="ship"
+            data-fav-slug={id}
+            data-fav-label={d.name}
+            data-fav-on={t('fav.saved')}
+            data-fav-off={t('fav.save')}
+            aria-pressed="false"
+            aria-label={t('fav.aria')}
+            title={t('fav.aria')}
+          >
+            <svg class="favbtn__star" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5 9.5l6.6-.9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            <span class="js-fav-txt">{t('fav.save')}</span>
+          </button>
         </div>
         {holoData && holoData.ports.length > 0 && (
           <div class="holo__src">

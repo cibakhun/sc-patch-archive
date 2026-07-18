@@ -1,0 +1,135 @@
+---
+// Login-Form — geteilt DE/EN (Muster FeedbackForm). Behandelt außerdem:
+//  - #access_token im Fragment (Bestätigungs-Link): supabase-js übernimmt die
+//    Session automatisch -> direkter Sprung ins Dashboard
+//  - ?confirmed=1 (Register-Redirect ohne Auto-Login): Erfolgsbanner
+//  - ?next=/… (nur relative Pfade): Rücksprungziel nach Login
+import { href } from '../../i18n/ui';
+
+interface Props {
+  lang: 'de' | 'en';
+}
+const { lang } = Astro.props;
+
+const COPY = {
+  de: {
+    email: 'E-Mail', emailPh: 'du@beispiel.de',
+    pass: 'Passwort', passPh: 'Dein Passwort',
+    submit: 'Anmelden', busy: 'Anmelden …',
+    confirmed: 'E-Mail bestätigt — du kannst dich jetzt anmelden.',
+    errCreds: 'E-Mail oder Passwort ist falsch.',
+    errUnconfirmed: 'Bitte bestätige zuerst deine E-Mail-Adresse — wir haben dir einen Link geschickt.',
+    errRate: 'Zu viele Versuche — bitte kurz warten und erneut probieren.',
+    errNet: 'Netzwerkfehler — bitte später erneut versuchen.',
+    toRegister: 'Neu hier? Konto erstellen',
+    toReset: 'Passwort vergessen?',
+  },
+  en: {
+    email: 'E-mail', emailPh: 'you@example.com',
+    pass: 'Password', passPh: 'Your password',
+    submit: 'Sign in', busy: 'Signing in …',
+    confirmed: 'E-mail confirmed — you can sign in now.',
+    errCreds: 'Wrong e-mail or password.',
+    errUnconfirmed: 'Please confirm your e-mail address first — we sent you a link.',
+    errRate: 'Too many attempts — please wait a moment and try again.',
+    errNet: 'Network error — please try again later.',
+    toRegister: 'New here? Create an account',
+    toReset: 'Forgot your password?',
+  },
+}[lang];
+
+const dashboardHref = href('/account.html', lang);
+const registerHref = href('/account/register.html', lang);
+const resetHref = href('/account/reset.html', lang);
+---
+
+<div class="acx-card reveal">
+  <p class="acx-status acx-status--ok" id="loginOk" hidden></p>
+  <form id="loginForm" novalidate
+    data-dash={dashboardHref}
+    data-msg-confirmed={COPY.confirmed}
+    data-msg-creds={COPY.errCreds}
+    data-msg-unconfirmed={COPY.errUnconfirmed}
+    data-msg-rate={COPY.errRate}
+    data-msg-net={COPY.errNet}
+    data-busy={COPY.busy}
+    data-submit={COPY.submit}
+  >
+    <div class="acx-field">
+      <label class="acx-label" for="loEmail">{COPY.email} <span class="reqm">*</span></label>
+      <input class="acx-input" id="loEmail" name="email" type="email" required autocomplete="email" placeholder={COPY.emailPh} />
+    </div>
+    <div class="acx-field">
+      <label class="acx-label" for="loPass">{COPY.pass} <span class="reqm">*</span></label>
+      <input class="acx-input" id="loPass" name="password" type="password" required autocomplete="current-password" placeholder={COPY.passPh} />
+    </div>
+    <div class="acx-actions">
+      <button class="acx-submit" type="submit" id="loBtn"><span id="loBtnTxt">{COPY.submit}</span></button>
+    </div>
+    <p class="acx-status" id="loginStatus" role="alert" aria-live="assertive" hidden></p>
+  </form>
+  <div class="acx-links">
+    <a href={registerHref}>{COPY.toRegister}</a>
+    <a href={resetHref}>{COPY.toReset}</a>
+  </div>
+</div>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const form = document.getElementById('loginForm') as HTMLFormElement | null;
+  if (form) {
+    const D = form.dataset;
+    const status = document.getElementById('loginStatus')!;
+    const ok = document.getElementById('loginOk')!;
+    const btn = document.getElementById('loBtn') as HTMLButtonElement;
+    const btnTxt = document.getElementById('loBtnTxt')!;
+
+    // Nur relative Rücksprungziele akzeptieren (kein offener Redirect).
+    const params = new URLSearchParams(location.search);
+    const rawNext = params.get('next') || '';
+    const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : D.dash!;
+
+    const go = () => location.replace(next);
+
+    if (params.get('confirmed') === '1') {
+      ok.textContent = D.msgConfirmed!;
+      ok.hidden = false;
+    }
+
+    // Bereits eingeloggt (oder Session frisch aus dem E-Mail-Link übernommen)?
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) go();
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.hidden = true;
+      const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim();
+      const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+      if (!email || !password) return;
+
+      btn.disabled = true;
+      btnTxt.textContent = D.busy!;
+      try {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (!error) {
+          go();
+          return;
+        }
+        const code = (error as { code?: string }).code || '';
+        status.textContent =
+          code === 'email_not_confirmed' ? D.msgUnconfirmed!
+          : code === 'over_request_rate_limit' ? D.msgRate!
+          : D.msgCreds!;
+        status.hidden = false;
+      } catch {
+        status.textContent = D.msgNet!;
+        status.hidden = false;
+      } finally {
+        btn.disabled = false;
+        btnTxt.textContent = D.submit!;
+      }
+    });
+  }
+</script>

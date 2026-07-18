@@ -1,0 +1,458 @@
+---
+// Account-Dashboard — Profil, Favoriten, Sicherheit (E-Mail/Passwort),
+// Konto-Löschung, Logout. Auth-Guard: ohne Session -> Login mit ?next=.
+// Dynamisch erzeugte Zeilen (Favoriten) nutzen is:global-Styles, weil
+// Astro-Scoping nur statisch gerenderte Elemente erfasst.
+import { href } from '../../i18n/ui';
+
+interface Props {
+  lang: 'de' | 'en';
+}
+const { lang } = Astro.props;
+
+const COPY = {
+  de: {
+    loading: 'Lade dein Konto …',
+    signedInAs: 'Angemeldet als',
+    memberSince: 'Dabei seit',
+    logout: 'Abmelden',
+    secProfile: 'Profil',
+    name: 'Anzeigename', namePh: 'z. B. StarRunner',
+    handle: 'Handle', optional: '— optional', handlePh: 'z. b. star_runner',
+    handleHint: '3–24 Zeichen: Kleinbuchstaben, Ziffern, Unterstrich. Eindeutig auf VerseBase.',
+    saveProfile: 'Profil speichern', savingProfile: 'Speichere …', savedProfile: 'Profil gespeichert.',
+    errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
+    errHandleFormat: 'Handle bitte nur mit a–z, 0–9 und _ (3–24 Zeichen).',
+    secFavs: 'Favoriten',
+    favsEmpty: 'Noch keine Favoriten. Markiere Schiffe in der Datenbank mit dem Stern ☆ — sie erscheinen dann hier.',
+    favsShips: 'Zur Schiffs-Datenbank →',
+    favRemove: 'Entfernen',
+    kind: { ship: 'Schiff', mission: 'Mission', mineral: 'Mineral', item: 'Item', patch: 'Patch', topic: 'Thema' } as Record<string, string>,
+    secSecurity: 'Sicherheit',
+    email: 'E-Mail-Adresse ändern', emailPh: 'neue@beispiel.de',
+    emailBtn: 'E-Mail ändern', emailBusy: 'Sende Bestätigung …',
+    emailSent: 'Bestätigungs-Mails sind unterwegs — der Wechsel wird nach dem Bestätigen wirksam.',
+    pass: 'Neues Passwort', passPh: 'Mindestens 8 Zeichen',
+    pass2: 'Passwort wiederholen', pass2Ph: 'Nochmal dasselbe Passwort',
+    passBtn: 'Passwort ändern', passBusy: 'Speichere …', passSaved: 'Passwort geändert.',
+    errShort: 'Das Passwort braucht mindestens 8 Zeichen.',
+    errMatch: 'Die Passwörter stimmen nicht überein.',
+    errSame: 'Das neue Passwort muss sich vom alten unterscheiden.',
+    secDanger: 'Konto löschen',
+    dangerBody: 'Löscht dein Konto samt Profil und Favoriten endgültig. Das lässt sich nicht rückgängig machen.',
+    dangerConfirmLabel: 'Zum Bestätigen „LÖSCHEN" eintippen',
+    dangerWord: 'LÖSCHEN',
+    dangerBtn: 'Konto endgültig löschen', dangerBusy: 'Lösche Konto …',
+    errNet: 'Das hat nicht geklappt — bitte erneut versuchen.',
+    errRate: 'Zu viele Anfragen — bitte kurz warten.',
+  },
+  en: {
+    loading: 'Loading your account …',
+    signedInAs: 'Signed in as',
+    memberSince: 'Member since',
+    logout: 'Sign out',
+    secProfile: 'Profile',
+    name: 'Display name', namePh: 'e.g. StarRunner',
+    handle: 'Handle', optional: '— optional', handlePh: 'e.g. star_runner',
+    handleHint: '3–24 characters: lowercase letters, digits, underscore. Unique on VerseBase.',
+    saveProfile: 'Save profile', savingProfile: 'Saving …', savedProfile: 'Profile saved.',
+    errHandleTaken: 'This handle is already taken — please pick another one.',
+    errHandleFormat: 'Handles may only use a–z, 0–9 and _ (3–24 characters).',
+    secFavs: 'Favorites',
+    favsEmpty: 'No favorites yet. Star ☆ ships in the database and they will show up here.',
+    favsShips: 'Browse the ship database →',
+    favRemove: 'Remove',
+    kind: { ship: 'Ship', mission: 'Mission', mineral: 'Mineral', item: 'Item', patch: 'Patch', topic: 'Topic' } as Record<string, string>,
+    secSecurity: 'Security',
+    email: 'Change e-mail address', emailPh: 'new@example.com',
+    emailBtn: 'Change e-mail', emailBusy: 'Sending confirmation …',
+    emailSent: 'Confirmation e-mails are on their way — the change takes effect after confirming.',
+    pass: 'New password', passPh: 'At least 8 characters',
+    pass2: 'Repeat password', pass2Ph: 'Same password again',
+    passBtn: 'Change password', passBusy: 'Saving …', passSaved: 'Password changed.',
+    errShort: 'The password needs at least 8 characters.',
+    errMatch: 'The passwords do not match.',
+    errSame: 'The new password must differ from the old one.',
+    secDanger: 'Delete account',
+    dangerBody: 'Permanently deletes your account including profile and favorites. This cannot be undone.',
+    dangerConfirmLabel: 'Type “DELETE” to confirm',
+    dangerWord: 'DELETE',
+    dangerBtn: 'Delete account permanently', dangerBusy: 'Deleting account …',
+    errNet: 'That did not work — please try again.',
+    errRate: 'Too many requests — please wait a moment.',
+  },
+}[lang];
+
+const loginHref = href('/account/login.html', lang);
+const homeHref = lang === 'de' ? '/de.html' : '/';
+const shipsHref = href('/schiffe.html', lang);
+const confirmRedirect = loginHref + '?confirmed=1';
+---
+
+<div id="dashLoading" class="acx-hint" style="text-align:center">{COPY.loading}</div>
+
+<div id="dash" hidden
+  data-lang={lang}
+  data-login={loginHref}
+  data-home={homeHref}
+  data-confirm-redirect={confirmRedirect}
+  data-kinds={JSON.stringify(COPY.kind)}
+  data-msg-handle-taken={COPY.errHandleTaken}
+  data-msg-handle-format={COPY.errHandleFormat}
+  data-msg-saved={COPY.savedProfile}
+  data-msg-email-sent={COPY.emailSent}
+  data-msg-pass-saved={COPY.passSaved}
+  data-msg-short={COPY.errShort}
+  data-msg-match={COPY.errMatch}
+  data-msg-same={COPY.errSame}
+  data-msg-net={COPY.errNet}
+  data-msg-rate={COPY.errRate}
+  data-danger-word={COPY.dangerWord}
+  data-fav-remove={COPY.favRemove}
+>
+  <!-- Kopf: Identität + Logout -->
+  <div class="acx-card acx-idcard reveal">
+    <div class="acx-id">
+      <div class="acx-id__avatar" aria-hidden="true" id="idAvatar">◆</div>
+      <div class="acx-id__meta">
+        <div class="acx-id__label">{COPY.signedInAs}</div>
+        <div class="acx-id__email" id="idEmail">—</div>
+        <div class="acx-id__since"><span>{COPY.memberSince}</span> <b id="idSince">—</b></div>
+      </div>
+    </div>
+    <button class="acx-submit acx-submit--ghost" type="button" id="btnLogout">{COPY.logout}</button>
+  </div>
+
+  <!-- 01 Profil -->
+  <div class="sec-head reveal"><span class="num">01</span><h2>{COPY.secProfile}</h2><span class="rule"></span></div>
+  <div class="acx-card reveal">
+    <form id="profileForm" novalidate>
+      <div class="acx-field">
+        <label class="acx-label" for="pfName">{COPY.name}</label>
+        <input class="acx-input" id="pfName" name="display_name" type="text" maxlength="60" autocomplete="nickname" placeholder={COPY.namePh} />
+      </div>
+      <div class="acx-field">
+        <label class="acx-label" for="pfHandle">{COPY.handle} <span class="opt">{COPY.optional}</span></label>
+        <input class="acx-input" id="pfHandle" name="handle" type="text" maxlength="24" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder={COPY.handlePh} />
+        <p class="acx-hint">{COPY.handleHint}</p>
+      </div>
+      <div class="acx-actions">
+        <button class="acx-submit" type="submit" id="pfBtn"><span id="pfBtnTxt">{COPY.saveProfile}</span></button>
+      </div>
+      <p class="acx-status" id="pfStatus" role="status" aria-live="polite" hidden></p>
+    </form>
+  </div>
+
+  <!-- 02 Favoriten -->
+  <div class="sec-head reveal"><span class="num">02</span><h2>{COPY.secFavs}</h2><span class="rule"></span></div>
+  <div class="acx-card reveal">
+    <ul class="acx-favs" id="favList"></ul>
+    <div id="favEmpty" hidden>
+      <p class="acx-hint">{COPY.favsEmpty}</p>
+      <div class="acx-links"><a href={shipsHref}>{COPY.favsShips}</a></div>
+    </div>
+  </div>
+
+  <!-- 03 Sicherheit -->
+  <div class="sec-head reveal"><span class="num">03</span><h2>{COPY.secSecurity}</h2><span class="rule"></span></div>
+  <div class="acx-card reveal">
+    <form id="emailForm" novalidate>
+      <div class="acx-field">
+        <label class="acx-label" for="seEmail">{COPY.email}</label>
+        <input class="acx-input" id="seEmail" name="email" type="email" autocomplete="email" placeholder={COPY.emailPh} />
+      </div>
+      <div class="acx-actions">
+        <button class="acx-submit acx-submit--ghost" type="submit" id="seEmailBtn" data-busy={COPY.emailBusy} data-idle={COPY.emailBtn}>{COPY.emailBtn}</button>
+      </div>
+      <p class="acx-status" id="seEmailStatus" role="status" aria-live="polite" hidden></p>
+    </form>
+  </div>
+  <div class="acx-card reveal">
+    <form id="passForm" novalidate>
+      <div class="acx-field">
+        <label class="acx-label" for="sePass">{COPY.pass}</label>
+        <input class="acx-input" id="sePass" name="password" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.passPh} />
+      </div>
+      <div class="acx-field">
+        <label class="acx-label" for="sePass2">{COPY.pass2}</label>
+        <input class="acx-input" id="sePass2" name="password2" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.pass2Ph} />
+      </div>
+      <div class="acx-actions">
+        <button class="acx-submit acx-submit--ghost" type="submit" id="sePassBtn" data-busy={COPY.passBusy} data-idle={COPY.passBtn}>{COPY.passBtn}</button>
+      </div>
+      <p class="acx-status" id="sePassStatus" role="status" aria-live="polite" hidden></p>
+    </form>
+  </div>
+
+  <!-- 04 Danger-Zone -->
+  <div class="sec-head reveal"><span class="num">04</span><h2>{COPY.secDanger}</h2><span class="rule"></span></div>
+  <div class="acx-card acx-card--danger reveal">
+    <p class="acx-hint" style="margin:0 0 1.1rem">{COPY.dangerBody}</p>
+    <form id="deleteForm" novalidate>
+      <div class="acx-field">
+        <label class="acx-label" for="delConfirm">{COPY.dangerConfirmLabel}</label>
+        <input class="acx-input" id="delConfirm" name="confirm" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder={COPY.dangerWord} />
+      </div>
+      <div class="acx-actions">
+        <button class="acx-submit acx-submit--danger" type="submit" id="delBtn" disabled data-busy={COPY.dangerBusy} data-idle={COPY.dangerBtn}>{COPY.dangerBtn}</button>
+      </div>
+      <p class="acx-status" id="delStatus" role="alert" aria-live="assertive" hidden></p>
+    </form>
+  </div>
+</div>
+
+<style is:global>
+  .acx-idcard { display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; flex-wrap: wrap; }
+  .acx-id { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+  .acx-id__avatar {
+    width: 54px; height: 54px; flex: none; border-radius: 50%;
+    display: grid; place-items: center; font-size: 1.3rem;
+    color: var(--accent); border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 25%, transparent);
+    font-family: var(--font-display, sans-serif);
+  }
+  .acx-id__meta { min-width: 0; }
+  .acx-id__label {
+    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.72rem;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent);
+  }
+  .acx-id__email { font-size: 1.05rem; color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+  .acx-id__since { font-size: 0.85rem; color: var(--muted); margin-top: 0.15rem; }
+  .acx-id__since b { color: var(--text); font-weight: 600; }
+
+  .acx-card--danger { border-color: rgba(255, 122, 122, 0.35); }
+
+  .acx-favs { list-style: none; margin: 0; padding: 0; }
+  .acx-fav {
+    display: flex; align-items: center; gap: 0.8rem;
+    padding: 0.65rem 0.2rem; border-bottom: 1px solid var(--line-soft);
+  }
+  .acx-fav:last-child { border-bottom: 0; }
+  .acx-fav__kind {
+    flex: none; font-family: var(--font-ui, sans-serif); font-weight: 700;
+    font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); border: 1px solid var(--line);
+    padding: 0.18rem 0.5rem; border-radius: 2px;
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+  .acx-fav__link { min-width: 0; flex: 1; color: var(--text); font-size: 0.98rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .acx-fav__link:hover { color: var(--accent); }
+  .acx-fav__rm {
+    flex: none; background: none; border: 1px solid transparent; color: var(--muted);
+    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.72rem;
+    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; padding: 0.3rem 0.55rem;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .acx-fav__rm:hover { color: #ff8a8a; border-color: rgba(255, 122, 122, 0.45); }
+</style>
+
+<script>
+  import { supabase, FAV_PATH } from '../../lib/supabase';
+
+  const dash = document.getElementById('dash');
+  if (dash) {
+    const D = (dash as HTMLElement).dataset;
+    const lang = D.lang === 'de' ? 'de' : 'en';
+    const loadingEl = document.getElementById('dashLoading')!;
+    const KINDS: Record<string, string> = JSON.parse(D.kinds || '{}');
+
+    const favPath = (kind: string, slug: string) => {
+      const tpl = FAV_PATH[kind] || '/index.html';
+      const p = tpl.replace('%s', encodeURIComponent(slug).replace(/%2F/gi, '/'));
+      return lang === 'de' ? '/de' + p : p;
+    };
+
+    const show = (el: HTMLElement, msg: string, ok = false) => {
+      el.textContent = msg;
+      el.classList.toggle('acx-status--ok', ok);
+      el.hidden = false;
+    };
+
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      const session = data.session;
+      if (!session) {
+        const here = location.pathname + location.search;
+        location.replace(D.login! + '?next=' + encodeURIComponent(here));
+        return;
+      }
+      const user = session.user;
+
+      // Kopf
+      document.getElementById('idEmail')!.textContent = user.email || '—';
+      if (user.created_at) {
+        document.getElementById('idSince')!.textContent = new Date(user.created_at).toLocaleDateString(
+          lang === 'de' ? 'de-DE' : 'en-US',
+          { month: 'long', year: 'numeric' },
+        );
+      }
+
+      // Profil laden
+      const nameInput = document.getElementById('pfName') as HTMLInputElement;
+      const handleInput = document.getElementById('pfHandle') as HTMLInputElement;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name, handle')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (profile) {
+        nameInput.value = profile.display_name || '';
+        handleInput.value = profile.handle || '';
+        const initial = (profile.display_name || user.email || '◆').trim().charAt(0).toUpperCase();
+        document.getElementById('idAvatar')!.textContent = initial || '◆';
+      }
+
+      // Favoriten laden
+      const favList = document.getElementById('favList')!;
+      const favEmpty = document.getElementById('favEmpty')!;
+      const { data: favs } = await supabase
+        .from('favorites')
+        .select('id, kind, slug, label')
+        .order('created_at', { ascending: false });
+      const renderFavs = (rows: Array<{ id: number; kind: string; slug: string; label: string | null }>) => {
+        favList.innerHTML = '';
+        favEmpty.hidden = rows.length > 0;
+        for (const f of rows) {
+          const li = document.createElement('li');
+          li.className = 'acx-fav';
+          const kind = document.createElement('span');
+          kind.className = 'acx-fav__kind';
+          kind.textContent = KINDS[f.kind] || f.kind;
+          const link = document.createElement('a');
+          link.className = 'acx-fav__link';
+          link.href = favPath(f.kind, f.slug);
+          link.textContent = f.label || f.slug;
+          const rm = document.createElement('button');
+          rm.className = 'acx-fav__rm';
+          rm.type = 'button';
+          rm.textContent = D.favRemove || 'Remove';
+          rm.addEventListener('click', async () => {
+            rm.disabled = true;
+            const { error } = await supabase.from('favorites').delete().eq('id', f.id);
+            if (!error) li.remove();
+            else rm.disabled = false;
+            if (!favList.children.length) favEmpty.hidden = false;
+          });
+          li.append(kind, link, rm);
+          favList.appendChild(li);
+        }
+      };
+      renderFavs(favs || []);
+
+      loadingEl.hidden = true;
+      (dash as HTMLElement).hidden = false;
+
+      // Profil speichern
+      const pfForm = document.getElementById('profileForm') as HTMLFormElement;
+      const pfStatus = document.getElementById('pfStatus')!;
+      const pfBtn = document.getElementById('pfBtn') as HTMLButtonElement;
+      pfForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        pfStatus.hidden = true;
+        const display_name = nameInput.value.trim() || null;
+        const handle = handleInput.value.trim().toLowerCase() || null;
+        if (handle && !/^[a-z0-9_]{3,24}$/.test(handle)) {
+          show(pfStatus as HTMLElement, D.msgHandleFormat!);
+          return;
+        }
+        pfBtn.disabled = true;
+        const { error } = await supabase
+          .from('profiles')
+          .update({ display_name, handle })
+          .eq('id', user.id);
+        pfBtn.disabled = false;
+        if (error) {
+          show(pfStatus as HTMLElement, error.code === '23505' ? D.msgHandleTaken! : D.msgNet!);
+          return;
+        }
+        show(pfStatus as HTMLElement, D.msgSaved!, true);
+      });
+
+      // E-Mail ändern
+      const emailForm = document.getElementById('emailForm') as HTMLFormElement;
+      const emailStatus = document.getElementById('seEmailStatus')!;
+      const emailBtn = document.getElementById('seEmailBtn') as HTMLButtonElement;
+      emailForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        emailStatus.hidden = true;
+        const email = (document.getElementById('seEmail') as HTMLInputElement).value.trim();
+        if (!email || email === user.email) return;
+        emailBtn.disabled = true;
+        emailBtn.textContent = emailBtn.dataset.busy!;
+        const { error } = await supabase.auth.updateUser(
+          { email },
+          { emailRedirectTo: location.origin + D.confirmRedirect! },
+        );
+        emailBtn.disabled = false;
+        emailBtn.textContent = emailBtn.dataset.idle!;
+        if (error) {
+          const code = (error as { code?: string }).code || '';
+          show(emailStatus as HTMLElement, code.includes('rate_limit') ? D.msgRate! : D.msgNet!);
+          return;
+        }
+        show(emailStatus as HTMLElement, D.msgEmailSent!, true);
+      });
+
+      // Passwort ändern
+      const passForm = document.getElementById('passForm') as HTMLFormElement;
+      const passStatus = document.getElementById('sePassStatus')!;
+      const passBtn = document.getElementById('sePassBtn') as HTMLButtonElement;
+      passForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        passStatus.hidden = true;
+        const p1 = (document.getElementById('sePass') as HTMLInputElement).value;
+        const p2 = (document.getElementById('sePass2') as HTMLInputElement).value;
+        if (p1.length < 8) { show(passStatus as HTMLElement, D.msgShort!); return; }
+        if (p1 !== p2) { show(passStatus as HTMLElement, D.msgMatch!); return; }
+        passBtn.disabled = true;
+        passBtn.textContent = passBtn.dataset.busy!;
+        const { error } = await supabase.auth.updateUser({ password: p1 });
+        passBtn.disabled = false;
+        passBtn.textContent = passBtn.dataset.idle!;
+        if (error) {
+          const code = (error as { code?: string }).code || '';
+          show(passStatus as HTMLElement, code === 'same_password' ? D.msgSame! : D.msgNet!);
+          return;
+        }
+        (document.getElementById('sePass') as HTMLInputElement).value = '';
+        (document.getElementById('sePass2') as HTMLInputElement).value = '';
+        show(passStatus as HTMLElement, D.msgPassSaved!, true);
+      });
+
+      // Logout
+      document.getElementById('btnLogout')!.addEventListener('click', async () => {
+        await supabase.auth.signOut({ scope: 'local' });
+        location.href = D.home!;
+      });
+
+      // Konto löschen
+      const delForm = document.getElementById('deleteForm') as HTMLFormElement;
+      const delConfirm = document.getElementById('delConfirm') as HTMLInputElement;
+      const delBtn = document.getElementById('delBtn') as HTMLButtonElement;
+      const delStatus = document.getElementById('delStatus')!;
+      delConfirm.addEventListener('input', () => {
+        delBtn.disabled = delConfirm.value.trim().toUpperCase() !== D.dangerWord!;
+      });
+      delForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (delBtn.disabled) return;
+        delStatus.hidden = true;
+        delBtn.disabled = true;
+        delBtn.textContent = delBtn.dataset.busy!;
+        try {
+          const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
+          if (error) throw error;
+          await supabase.auth.signOut({ scope: 'local' });
+          location.href = D.home!;
+        } catch {
+          show(delStatus as HTMLElement, D.msgNet!);
+          delBtn.textContent = delBtn.dataset.idle!;
+          delBtn.disabled = false;
+        }
+      });
+    };
+
+    init();
+  }
+</script>

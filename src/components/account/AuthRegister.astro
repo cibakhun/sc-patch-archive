@@ -1,0 +1,169 @@
+---
+// Registrierung — geteilt DE/EN. Läuft über die Edge Function „register"
+// (legt den User per Admin-API direkt bestätigt an), danach sofortiger Login.
+// Hintergrund: Der eingebaute Supabase-Mailer ist hart limitiert (2 Mails/h)
+// und das Projekt verlangt Bestätigungs-Mails — der native /signup würde
+// Registrierungen deshalb regelmäßig zurückrollen. Der Edge-Weg macht die
+// Registrierung mailer-unabhängig; fachlich identisch mit „Confirm email: off".
+import { href } from '../../i18n/ui';
+
+interface Props {
+  lang: 'de' | 'en';
+}
+const { lang } = Astro.props;
+
+const COPY = {
+  de: {
+    name: 'Anzeigename', optional: '— optional', namePh: 'z. B. StarRunner',
+    nameHint: 'Wird im Dashboard angezeigt. Später jederzeit änderbar.',
+    email: 'E-Mail', emailPh: 'du@beispiel.de',
+    pass: 'Passwort', passPh: 'Mindestens 8 Zeichen',
+    pass2: 'Passwort wiederholen', pass2Ph: 'Nochmal dasselbe Passwort',
+    submit: 'Konto erstellen', busy: 'Erstelle Konto …',
+    privacyPre: 'Mit der Registrierung stimmst du der Verarbeitung laut', privacy: 'Datenschutzerklärung', privacyPost: 'zu.',
+    errShort: 'Das Passwort braucht mindestens 8 Zeichen.',
+    errMatch: 'Die Passwörter stimmen nicht überein.',
+    errExists: 'Diese E-Mail ist bereits registriert — melde dich an oder setze dein Passwort zurück.',
+    errInvalidMail: 'Diese E-Mail-Adresse wird nicht akzeptiert — bitte prüfe die Schreibweise.',
+    errWeak: 'Das Passwort ist zu schwach — bitte wähle ein längeres.',
+    errNet: 'Das hat nicht geklappt — bitte später erneut versuchen.',
+    okLogin: 'Konto erstellt! Du wirst angemeldet …',
+    toLogin: 'Schon ein Konto? Anmelden',
+  },
+  en: {
+    name: 'Display name', optional: '— optional', namePh: 'e.g. StarRunner',
+    nameHint: 'Shown in your dashboard. Can be changed anytime.',
+    email: 'E-mail', emailPh: 'you@example.com',
+    pass: 'Password', passPh: 'At least 8 characters',
+    pass2: 'Repeat password', pass2Ph: 'Same password again',
+    submit: 'Create account', busy: 'Creating account …',
+    privacyPre: 'By registering you agree to the processing described in our', privacy: 'privacy policy', privacyPost: '.',
+    errShort: 'The password needs at least 8 characters.',
+    errMatch: 'The passwords do not match.',
+    errExists: 'This e-mail is already registered — sign in or reset your password.',
+    errInvalidMail: 'This e-mail address was not accepted — please check the spelling.',
+    errWeak: 'This password is too weak — please pick a longer one.',
+    errNet: 'That did not work — please try again later.',
+    okLogin: 'Account created! Signing you in …',
+    toLogin: 'Already have an account? Sign in',
+  },
+}[lang];
+
+const loginHref = href('/account/login.html', lang);
+const dashboardHref = href('/account.html', lang);
+const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datenschutz.html#accounts';
+---
+
+<div class="acx-card reveal">
+  <form id="regForm" novalidate
+    data-dash={dashboardHref}
+    data-login={loginHref}
+    data-msg-short={COPY.errShort}
+    data-msg-match={COPY.errMatch}
+    data-msg-exists={COPY.errExists}
+    data-msg-invalid-mail={COPY.errInvalidMail}
+    data-msg-weak={COPY.errWeak}
+    data-msg-net={COPY.errNet}
+    data-msg-ok={COPY.okLogin}
+    data-busy={COPY.busy}
+    data-submit={COPY.submit}
+  >
+    <div class="acx-field">
+      <label class="acx-label" for="rgName">{COPY.name} <span class="opt">{COPY.optional}</span></label>
+      <input class="acx-input" id="rgName" name="display_name" type="text" maxlength="60" autocomplete="nickname" placeholder={COPY.namePh} />
+      <p class="acx-hint">{COPY.nameHint}</p>
+    </div>
+    <div class="acx-field">
+      <label class="acx-label" for="rgEmail">{COPY.email} <span class="reqm">*</span></label>
+      <input class="acx-input" id="rgEmail" name="email" type="email" required autocomplete="email" placeholder={COPY.emailPh} />
+    </div>
+    <div class="acx-field">
+      <label class="acx-label" for="rgPass">{COPY.pass} <span class="reqm">*</span></label>
+      <input class="acx-input" id="rgPass" name="password" type="password" required minlength="8" autocomplete="new-password" placeholder={COPY.passPh} />
+    </div>
+    <div class="acx-field">
+      <label class="acx-label" for="rgPass2">{COPY.pass2} <span class="reqm">*</span></label>
+      <input class="acx-input" id="rgPass2" name="password2" type="password" required minlength="8" autocomplete="new-password" placeholder={COPY.pass2Ph} />
+    </div>
+    <div class="acx-actions">
+      <button class="acx-submit" type="submit" id="rgBtn"><span id="rgBtnTxt">{COPY.submit}</span></button>
+      <span class="acx-privacy">{COPY.privacyPre} <a href={privacyHref}>{COPY.privacy}</a> {COPY.privacyPost}</span>
+    </div>
+    <p class="acx-status" id="regStatus" role="alert" aria-live="assertive" hidden></p>
+  </form>
+
+  <div class="acx-links" id="regFootLinks">
+    <a href={loginHref}>{COPY.toLogin}</a>
+  </div>
+</div>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const form = document.getElementById('regForm') as HTMLFormElement | null;
+  if (form) {
+    const D = form.dataset;
+    const status = document.getElementById('regStatus')!;
+    const btn = document.getElementById('rgBtn') as HTMLButtonElement;
+    const btnTxt = document.getElementById('rgBtnTxt')!;
+
+    // Eingeloggt? Dann gibt es hier nichts zu registrieren.
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) location.replace(D.dash!);
+    });
+
+    const setStatus = (msg: string, ok = false) => {
+      status.textContent = msg;
+      status.classList.toggle('acx-status--ok', ok);
+      status.hidden = !msg;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      setStatus('');
+      const displayName = (form.elements.namedItem('display_name') as HTMLInputElement).value.trim();
+      const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim();
+      const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+      const password2 = (form.elements.namedItem('password2') as HTMLInputElement).value;
+
+      if (password.length < 8) { setStatus(D.msgShort!); return; }
+      if (password !== password2) { setStatus(D.msgMatch!); return; }
+
+      btn.disabled = true;
+      btnTxt.textContent = D.busy!;
+      try {
+        const { error } = await supabase.functions.invoke('register', {
+          body: { email, password, display_name: displayName || undefined },
+        });
+        if (error) {
+          // FunctionsHttpError trägt die Response — Fehlercode herausziehen
+          let code = '';
+          const ctx = (error as { context?: Response }).context;
+          if (ctx && typeof ctx.json === 'function') {
+            try { code = ((await ctx.json()) as { error?: string }).error || ''; } catch { /* noop */ }
+          }
+          setStatus(
+            code === 'user_already_exists' ? D.msgExists!
+            : code === 'email_address_invalid' ? D.msgInvalidMail!
+            : code === 'weak_password' ? D.msgWeak!
+            : D.msgNet!,
+          );
+          return;
+        }
+        setStatus(D.msgOk!, true);
+        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInErr) {
+          // Konto existiert, nur der Auto-Login scheiterte -> zur Anmeldung
+          location.assign(D.login!);
+          return;
+        }
+        location.replace(D.dash!);
+      } catch {
+        setStatus(D.msgNet!);
+      } finally {
+        btn.disabled = false;
+        btnTxt.textContent = D.submit!;
+      }
+    });
+  }
+</script>
