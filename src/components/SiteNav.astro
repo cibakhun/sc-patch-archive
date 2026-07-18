@@ -20,11 +20,17 @@ interface Crumb {
 }
 interface Props {
   crumbs?: Crumb[];
+  /**
+   * @deprecated Wird NICHT mehr gerendert. Das kleine Rahmen-Label oben rechts
+   * („TOPIC · DATABASE", „ACCOUNT" …) war redundant zu Breadcrumb + Menü und
+   * wurde entfernt. Der Prop bleibt akzeptiert, damit die ~100 aufrufenden
+   * Seiten nicht brechen — der Wert wird schlicht ignoriert.
+   */
   pill?: string;
   /** hat DIESE Seite ein EN-Gegenstück? -> steuert den Umschalter (kein 404) */
   hasEn?: boolean;
 }
-const { crumbs = [], pill, hasEn = false } = Astro.props;
+const { crumbs = [], hasEn = false } = Astro.props;
 
 // Locale aus dem Pfad; t() + L() halten Chrome/Links in der aktiven Sprache.
 // Für DE liefern beide exakt die bisherigen Werte -> DE-Ausgabe unverändert.
@@ -92,7 +98,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       <span>{t('nav.search')}</span>
       <kbd>{t('nav.search.kbd')}</kbd>
     </button>
-    {pill && <span class="snav__pill">{pill}</span>}
     <a
       class="snav__acct js-nav-acct"
       href={L('/account/login.html')}
@@ -561,26 +566,9 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     min-width: 3.6rem;
     flex: none;
   }
-  .snav__pill {
-    font-family: var(--font-display, sans-serif);
-    font-weight: 700;
-    font-size: 0.8rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--accent, #2dd4ff);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.2));
-    padding: 0.32rem 0.7rem;
-    border-radius: 2px;
-    white-space: nowrap;
-  }
   /* the nav carries more links since Phase 1 (Schiffe, Evolution) — shed
      ballast in stages before anything can collide (breakpoints calibrated
      for the 18px root scale) */
-  @media (max-width: 1280px) {
-    .snav__pill {
-      display: none;
-    }
-  }
   @media (max-width: 1120px) {
     /* must out-rank the `.snav__crumbs li` base rule (scoped specificity) */
     .snav__crumbs li.snav__mid {
