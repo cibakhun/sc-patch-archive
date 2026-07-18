@@ -87,7 +87,8 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
     </div>
     <div class="acx-actions">
       <button class="acx-submit" type="submit" id="rgBtn"><span id="rgBtnTxt">{COPY.submit}</span></button>
-      <span class="acx-privacy">{COPY.privacyPre} <a href={privacyHref}>{COPY.privacy}</a> {COPY.privacyPost}</span>
+      {/* DE hängt „zu." mit Leerzeichen an, EN nur den Punkt — direkt am Link */}
+      <span class="acx-privacy">{COPY.privacyPre} <a href={privacyHref}>{COPY.privacy}</a>{lang === 'de' ? ' ' : ''}{COPY.privacyPost}</span>
     </div>
     <p class="acx-status" id="regStatus" role="alert" aria-live="assertive" hidden></p>
   </form>
