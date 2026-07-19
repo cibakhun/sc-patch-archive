@@ -21,6 +21,7 @@
     "datamine:mining": "node scripts/datamine-mining.mjs",
     "datamine:locations": "node scripts/datamine-locations.mjs",
     "datamine:missions": "node scripts/datamine-missions.mjs",
+    "datamine:logos": "node scripts/datamine-manufacturer-logos.mjs",
     "sync:extras": "node scripts/sync-fleetyards-extras.mjs",
     "extract:hardpoints": "node scripts/extract-hardpoints.mjs",
     "calibrate:holo": "node scripts/calibrate-holo-markers.mjs",
