@@ -20,7 +20,7 @@ import { pickHero } from '../lib/shipRenders';
 import {
   priceInfo, aUEC, pricesFetchedAt,
   extrasInfo, extrasFetchedAt,
-  shipVideo, shipGallery,
+  shipVideo, shipLocalVideo, shipGallery,
 } from '../lib/shipExtras';
 import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
@@ -55,8 +55,11 @@ const hero = pickHero(d);
 const makerLogo =
   (d.manufacturer && (manufacturerLogos as Record<string, { file: string; w: number; h: number; full?: boolean }>)[d.manufacturer]) ||
   null;
-// Kopf-Medien: kuratiertes Commercial (YouTube) + Bild-Galerie (Hero + Paints)
-const videoId = shipVideo(id);
+// Kopf-Medien: Video (selbst-gehostet ODER YouTube-Commercial) + Bild-Galerie.
+// localVid (stummer <video>-Loop, kein Player-Chrome) hat Vorrang; sonst YouTube.
+const localVid = shipLocalVideo(id);
+const videoId = localVid ? null : shipVideo(id);
+const hasVideo = !!(localVid || videoId);
 const gallery = shipGallery(id, d);
 // Cache-Busting: /assets/holo-viewer.js hat eine feste URL und wird vom CDN
 // (Cloudflare, 4h) gecached -> nach einem Deploy sonst die ALTE Datei. Ein
@@ -295,8 +298,8 @@ const shipCode = d.manufacturer ?? d.makerCode ?? t('ship.code.ship');
 // holoAvail deckt sich mit der Bedingung, unter der das Holodata-Script unten ausgegeben wird.
 const holoAvail = !!(holoData || holoUrl);
 const hasGallery = gallery.length > 0;
-const stageModeCount = (videoId ? 1 : 0) + (hasGallery ? 1 : 0) + (holoAvail ? 1 : 0);
-const defaultMode: 'video' | 'img' | 'holo' = videoId ? 'video' : hasGallery ? 'img' : 'holo';
+const stageModeCount = (hasVideo ? 1 : 0) + (hasGallery ? 1 : 0) + (holoAvail ? 1 : 0);
+const defaultMode: 'video' | 'img' | 'holo' = hasVideo ? 'video' : hasGallery ? 'img' : 'holo';
 const metaDesc = t('ship.meta.desc')
   .replace('%name%', d.name)
   .replace('%maker%', d.manufacturer ?? t('ship.maker.unknown'));
@@ -405,6 +408,14 @@ a{color:inherit;text-decoration:none}
 .holo__stage:not(.is-video):not(.is-3d) .holo__dots{opacity:.9}
 .holo__dots i{width:6px;height:6px;border-radius:50%;background:var(--muted);opacity:.4;transition:opacity .3s,background .3s}
 .holo__dots i.on{background:var(--accent);opacity:1}
+/* ===== Selbst-gehostetes Loop-Video (Basher) ===== */
+/* Randloses <video> (cover) mit eigenem poster (Schiffsbild) — kein Player-
+   Chrome, kein Start-Icon. Nur im Video-Modus sichtbar; poster deckt bis zum
+   ersten Frame, der Bild-Boden dahinter fängt einen Ladefehler auf -> nie
+   schwarz. Kein is-playing nötig: das <video> zeigt selbst poster->Frame. */
+.holo__localvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:5;
+  opacity:0;pointer-events:none;transition:opacity .5s;background:transparent}
+.holo__stage.is-video .holo__localvid{opacity:1}
 /* ===== Video-Layer (Commercial): Facade -> YouTube-Embed on demand ===== */
 /* Video randlos bis zum Bildschirmrand (Hero ist full-bleed). Die Ebene wird
    erst mit is-playing sichtbar — bis dahin traegt der Bilder-Backdrop. */
@@ -992,6 +1003,23 @@ span.sd__ref{color:var(--muted)}
             <span class="holo__none">{t('ship.novisual')}</span>
           )}
         </figure>
+        {localVid && (
+          /* Selbst-gehosteter, stummer Loop: KEIN Player-Chrome, kein Start-Icon.
+             poster = Schiffs-Standbild (deckt bis zum ersten Frame ab); der
+             Bild-Boden dahinter fängt einen Ladefehler auf -> nie schwarz. */
+          <video
+            class="holo__localvid"
+            id="hololocalvid"
+            src={localVid}
+            poster={gallery[0]?.src}
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="auto"
+            aria-hidden="true"
+          ></video>
+        )}
         {videoId && (
           <div class="holo__video" id="holovideo" data-vid={videoId}>
             {/* Schneller Videostart: Verbindungen zu den YouTube-Hosts schon
@@ -1063,7 +1091,7 @@ span.sd__ref{color:var(--muted)}
     </div>
     {stageModeCount > 1 && (
       <div class="holo__toggle" role="group" aria-label={t('ship.view.switch')}>
-        {videoId && <button type="button" id="btnvid" aria-pressed={String(defaultMode === 'video')}>{t('ship.view.video')}</button>}
+        {hasVideo && <button type="button" id="btnvid" aria-pressed={String(defaultMode === 'video')}>{t('ship.view.video')}</button>}
         {hasGallery && <button type="button" id="btnimg" aria-pressed={String(defaultMode === 'img')}>{t('ship.view.img')}</button>}
         {holoAvail && <button type="button" id="btn3d" aria-pressed={String(defaultMode === 'holo')}>{t('ship.view.3d')}</button>}
       </div>
@@ -1548,6 +1576,7 @@ span.sd__ref{color:var(--muted)}
   var btn3d = document.getElementById('btn3d');
   var videoBox = document.getElementById('holovideo');
   var videoPoster = videoBox ? videoBox.querySelector('.holo__videoposter') : null;
+  var localVideo = document.getElementById('hololocalvid'); // selbst-gehosteter Loop (Basher), sonst null
   var dots = document.getElementById('holodots');
   var status = document.getElementById('holostatus');
   var slides = fig ? [].slice.call(fig.querySelectorAll('img')) : [];
@@ -1571,7 +1600,14 @@ span.sd__ref{color:var(--muted)}
     var f = document.getElementById('holofilters');
     if (f) f.hidden = !(mode === 'holo' && viewer);
     if (mode === 'img') startSlideshow();
-    if (mode === 'video') initVideo(); else pauseVideo();
+    // Video-Modus: selbst-gehostetes <video> (stummer Loop, kein Chrome) hat
+    // Vorrang; sonst der YouTube-Pfad. Beim Verlassen jeweils pausieren.
+    if (localVideo) {
+      if (mode === 'video') { localVideo.muted = true; var p = localVideo.play(); if (p && p.catch) p.catch(function () {}); }
+      else localVideo.pause();
+    } else {
+      if (mode === 'video') initVideo(); else pauseVideo();
+    }
     setPressed();
   }
   function showVideo() { mode = 'video'; applyMode(); }
@@ -1916,9 +1952,9 @@ span.sd__ref{color:var(--muted)}
   // an und es bliebe ein Standbild stehen (API-play zeigt kein Overlay-Icon,
   // anders als ein Klick auf den Player).
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden && mode === 'video' && ytPlayer && ytReady) {
-      try { ytPlayer.mute(); ytPlayer.playVideo(); } catch (e) {}
-    }
+    if (document.hidden || mode !== 'video') return;
+    if (localVideo) { localVideo.muted = true; var p = localVideo.play(); if (p && p.catch) p.catch(function () {}); }
+    else if (ytPlayer && ytReady) { try { ytPlayer.mute(); ytPlayer.playVideo(); } catch (e) {} }
   });
 
   // ---------- Holo (nur wenn Holodaten vorhanden) ----------
