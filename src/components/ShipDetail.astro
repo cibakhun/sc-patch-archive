@@ -393,7 +393,10 @@ a{color:inherit;text-decoration:none}
 /* ===== Bilder-Slideshow: alle Slides liegen im selben Grid-Feld, langsames Crossfade ===== */
 .holo__ship img{opacity:0;transition:opacity 1.2s ease}
 .holo__ship img.is-active{opacity:1}
-.holo__stage.is-video .holo__ship img,
+/* Video-Modus: Bilder bleiben als Backdrop sichtbar, BIS das Video wirklich
+   abspielt (is-playing via YT-PLAYING-Event) — vorher waere die Buehne schwarz
+   (YouTube laedt/Autoplay blockiert/Netz zaeh). is-3d blendet sofort aus. */
+.holo__stage.is-video.is-playing .holo__ship img,
 .holo__stage.is-3d .holo__ship img{opacity:0}
 /* dezente Slide-Zähler-Punkte unten */
 .holo__dots{position:absolute;left:50%;bottom:2.4%;transform:translateX(-50%);z-index:5;display:flex;gap:.4rem;pointer-events:none;opacity:0;transition:opacity .4s}
@@ -401,9 +404,10 @@ a{color:inherit;text-decoration:none}
 .holo__dots i{width:6px;height:6px;border-radius:50%;background:var(--muted);opacity:.4;transition:opacity .3s,background .3s}
 .holo__dots i.on{background:var(--accent);opacity:1}
 /* ===== Video-Layer (Commercial): Facade -> YouTube-Embed on demand ===== */
-/* Video randlos bis zum Bildschirmrand (Hero ist full-bleed) */
+/* Video randlos bis zum Bildschirmrand (Hero ist full-bleed). Die Ebene wird
+   erst mit is-playing sichtbar — bis dahin traegt der Bilder-Backdrop. */
 .holo__video{position:absolute;inset:0;z-index:5;opacity:0;pointer-events:none;transition:opacity .5s;background:#000;overflow:hidden}
-.holo__stage.is-video .holo__video{opacity:1;pointer-events:auto}
+.holo__stage.is-video.is-playing .holo__video{opacity:1;pointer-events:auto}
 /* Poster deckt den Player anfangs voll ab (Schiffsbild) und blendet erst kurz
    NACH Abspielstart aus -> YouTubes kurzes Pause/Play-Symbol beim Start bleibt
    darunter verborgen. z-index über iframe UND Schutzschicht. */
@@ -578,16 +582,21 @@ a{color:inherit;text-decoration:none}
     linear-gradient(270deg,var(--accent) 0 22px,transparent 22px) bottom right/44px 2px no-repeat,
     linear-gradient(0deg,var(--accent) 0 22px,transparent 22px) bottom right/2px 44px no-repeat;
   opacity:.6}
-.holo__hud{position:absolute;top:26px;left:30px;font-family:var(--font-ui);font-weight:700;font-size:.78rem;
+/* HUD/Dims: z-index ueber .holo__wrap (z2) -> auch ueber Video und Bildern
+   sichtbar (User-Wunsch: Titel-Chrome auch im Video-Modus) */
+.holo__hud{position:absolute;top:26px;left:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:.78rem;
   letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
 .holo__hud b{color:var(--accent);font-weight:700}
-.holo__dims{position:absolute;top:26px;right:30px;font-family:var(--font-ui);font-weight:700;font-size:.78rem;
+.holo__dims{position:absolute;top:26px;right:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:.78rem;
   letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:right}
 .holo__toggle{position:absolute;right:26px;bottom:24px;z-index:6;display:flex;border:1px solid var(--line);background:rgba(5,7,13,.65);backdrop-filter:blur(4px)}
 .holo__toggle button{appearance:none;border:0;background:transparent;color:var(--muted);cursor:pointer;
   font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;padding:.5rem .95rem}
 .holo__toggle button[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
-.holo__title{position:absolute;left:clamp(18px,3.5vw,46px);bottom:clamp(18px,4vh,40px);z-index:4;
+/* z6: ueber der Video-Ebene (z5) — Schiffsname/Logo/Chips/Save bleiben in
+   ALLEN Modi lesbar (User-Wunsch). pointer-events:none laesst Drag/Hover fuers
+   Holo durch; nur der Save-Button faengt Klicks (siehe .holo__fav). */
+.holo__title{position:absolute;left:clamp(18px,3.5vw,46px);bottom:clamp(18px,4vh,40px);z-index:6;
   max-width:min(56%,600px);pointer-events:none;display:flex;flex-direction:column}
 .holo__title .sd__maker{margin-bottom:.15rem}
 .holo__title h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,4.5vw,3.2rem);line-height:1.02;color:#fff;
@@ -879,8 +888,10 @@ span.sd__ref{color:var(--muted)}
 .sd__sys.sys-pyro{border-color:rgba(255,138,80,.45);color:#ff8a50}
 .sd__sys.sys-nyx{border-color:rgba(192,154,255,.45);color:#c09aff}
 
-/* Favoriten-Stern (Konto-Feature; /assets/account-lite.js toggelt .is-fav) */
-.holo__fav{margin-top:.7rem}
+/* Favoriten-Stern (Konto-Feature; /assets/account-lite.js toggelt .is-fav).
+   pointer-events:auto hebt das pointer-events:none des Titels auf — sonst
+   kaeme kein Klick am Button an. */
+.holo__fav{margin-top:.7rem;pointer-events:auto}
 .favbtn{display:inline-flex;align-items:center;gap:.45rem;background:rgba(0,0,0,.35);border:1px solid var(--line);color:var(--muted);
   font-family:var(--font-ui);font-weight:700;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;padding:.42rem .85rem;cursor:pointer;
   transition:color .15s,border-color .15s,background-color .15s}
@@ -1566,10 +1577,10 @@ span.sd__ref{color:var(--muted)}
     mode = 'img'; applyMode();
     if (!loading) { stage.classList.remove('is-loading'); if (status) status.textContent = ''; }
     if (showPanel) showPanel(null);
-    // Bühne darf nach dem Umschalten nicht dunkel sein: aktives Bild tot
-    // (z. B. im Video-Modus gestorben) oder gar keins intakt -> auf das erste
-    // fertige Bild wechseln bzw. weiter eskalieren (Holo/Hinweis)
-    if (slides.length && (!goodSlides().length || slides[slideIdx].dataset.bad)) showFirstReady();
+    // Bühne darf nach dem Umschalten nicht dunkel sein: aktives Bild tot,
+    // hängend oder gar keins intakt -> auf das erste fertige Bild wechseln
+    // bzw. weiter eskalieren (Holo/Hinweis)
+    if (slides.length && readyIdx() !== slideIdx) showFirstReady();
   }
   function showHolo() { mode = 'holo'; applyMode(); }
   if (btnVid) btnVid.addEventListener('click', showVideo);
@@ -1640,11 +1651,14 @@ span.sd__ref{color:var(--muted)}
     }
     return -1;
   }
+  // Läuft im Bilder-Modus (volle Kette bis Holo/Hinweis) UND im Video-Modus
+  // (nur painten — die Bilder sind dort der Backdrop bis zum Playstart, das
+  // Video bleibt zuständig, es wird nie weg-eskaliert). Holo: nichts zu tun.
   var waitTimer = null;
   function showFirstReady() {
-    if (mode !== 'img') return;
+    if (mode === 'holo') return;
     var good = goodSlides();
-    if (!good.length) { escalateNoImages(); return; }
+    if (!good.length) { if (mode === 'img') escalateNoImages(); return; }
     var r = readyIdx();
     if (r >= 0) { slideIdx = r; paint(r); return; }
     // Nichts fertig: Laden der intakten anstoßen und kurz nachhalten; kommt
@@ -1653,16 +1667,17 @@ span.sd__ref{color:var(--muted)}
     if (waitTimer) return;
     var t0 = Date.now();
     waitTimer = setInterval(function () {
-      if (mode !== 'img') { clearInterval(waitTimer); waitTimer = null; return; }
+      if (mode === 'holo') { clearInterval(waitTimer); waitTimer = null; return; }
       var i = readyIdx();
       if (i >= 0) { clearInterval(waitTimer); waitTimer = null; slideIdx = i; paint(i); return; }
       if (!goodSlides().length || Date.now() - t0 > 8000) {
-        clearInterval(waitTimer); waitTimer = null; escalateNoImages();
+        clearInterval(waitTimer); waitTimer = null;
+        if (mode === 'img') escalateNoImages();
       }
     }, 400);
   }
   function slideFailed(im) {
-    if (mode !== 'img') return; // Video/Holo laufen sichtbar weiter; showImg() heilt beim Umschalten
+    if (mode === 'holo') return; // 3D läuft sichtbar weiter; showImg() heilt beim Umschalten
     // Totes Hintergrund-Bild stört nicht, solange das aktive intakt ist
     if (!im.classList.contains('is-active') && goodSlides().length) return;
     showFirstReady();
@@ -1702,6 +1717,16 @@ span.sd__ref{color:var(--muted)}
     if (ytLoading) return;
     var vid = videoBox.getAttribute('data-vid');
     if (!vid) return;
+    // Poster-Preflight: das Poster ist ein CSS-Background OHNE onerror — eine
+    // tote URL würde beim Playstart-Übergang 3 s lang dunkel übers Video legen.
+    if (videoPoster) {
+      var bg = ((videoPoster.style.backgroundImage || '').match(/url\(["']?(.+?)["']?\)/) || [])[1];
+      if (bg) {
+        var probe = new Image();
+        probe.onerror = function () { videoPoster.style.background = 'transparent'; };
+        probe.src = bg;
+      }
+    }
     var shield = document.getElementById('holovideoshield');
     ytLoading = true;
     loadYT().then(function () {
@@ -1744,16 +1769,20 @@ span.sd__ref{color:var(--muted)}
             // 4500 ms waren unnoetig traege (User-Feedback "startet nicht direkt").
             // Inline-Style (kein Klassen-Toggle): umgeht ein Astro-Scoping-Problem,
             // bei dem die opacity-Klassenregel nicht zuverlässig greift.
-            if (e.data === 1) { playStarted = true; setTimeout(fadePoster, 3000); }
+            if (e.data === 1) { playStarted = true; stage.classList.add('is-playing'); setTimeout(fadePoster, 3000); }
             // Endlosschleife OHNE playlist-Param (der sonst Zurück/Weiter-Buttons zeigt):
             // am Ende (0) einfach zurück an 3,8 s und weiterspielen
             else if (e.data === 0) { try { e.target.seekTo(3.8, true); e.target.playVideo(); } catch (er) {} }
           },
           onError: function (e) {
             // Video nicht abspielbar (Region/Embed/Netz) -> auf Bilder ausweichen,
-            // damit kein YouTube-Fehlerbildschirm stehen bleibt
+            // damit kein YouTube-Fehlerbildschirm stehen bleibt; ganz ohne
+            // Bilder weiter zu Holo/Hinweis (escalateNoImages) statt Schwarz
             console.warn('YT player error', e && e.data);
-            if (slides.length) { fadePoster(); showImg(); if (btnVid) btnVid.style.display = 'none'; }
+            fadePoster();
+            if (btnVid) btnVid.style.display = 'none';
+            showImg();
+            if (!slides.length) escalateNoImages();
           },
         },
       });
@@ -1897,9 +1926,12 @@ span.sd__ref{color:var(--muted)}
     if (defaultMode === 'holo') start(false);
   }
 
-  // Bilder, die schon VOR diesem Script gescheitert sind (nur der inline-
-  // onerror lief), jetzt nachziehen — autoHolo ist ab hier gesetzt.
-  slides.forEach(function (im) { if (im.dataset.bad) slideFailed(im); });
+  // Start-Watchdog (autoHolo ist ab hier gesetzt): das aktive Bild kann schon
+  // vor diesem Script gestorben sein (nur der inline-onerror lief) ODER es
+  // hängt einfach (kein error-Event!) — beides deckt derselbe Check ab: ist
+  // das aktive Bild nicht das erste fertige, zeigt showFirstReady das erste,
+  // das ankommt, und eskaliert im Bilder-Modus notfalls zu Holo/Hinweis.
+  if (slides.length && readyIdx() !== slideIdx) showFirstReady();
   applyMode();
 })();
 </script>
