@@ -1,92 +1,110 @@
 {
   "Aegis Dynamics": {
     "file": "aegis-dynamics.png",
-    "w": 202,
-    "h": 152
+    "w": 403,
+    "h": 469,
+    "full": true
   },
   "Anvil Aerospace": {
     "file": "anvil-aerospace.png",
-    "w": 142,
-    "h": 224
+    "w": 472,
+    "h": 480,
+    "full": true
   },
   "Roberts Space Industries": {
     "file": "roberts-space-industries.png",
-    "w": 206,
-    "h": 94
+    "w": 231,
+    "h": 120,
+    "full": true
   },
   "Origin Jumpworks": {
     "file": "origin-jumpworks.png",
-    "w": 216,
-    "h": 124
-  },
-  "Musashi Industrial and Starflight Concern": {
-    "file": "musashi-industrial-and-starflight-concern.png",
-    "w": 154,
-    "h": 204
-  },
-  "Mirai": {
-    "file": "mirai.png",
-    "w": 154,
-    "h": 206
-  },
-  "Argo Astronautics": {
-    "file": "argo-astronautics.png",
-    "w": 140,
-    "h": 116
+    "w": 568,
+    "h": 420,
+    "full": true
   },
   "Drake Interplanetary": {
     "file": "drake-interplanetary.png",
-    "w": 133,
-    "h": 141
+    "w": 272,
+    "h": 392,
+    "full": true
   },
-  "Crusader Industries": {
-    "file": "crusader-industries.png",
-    "w": 132,
-    "h": 218
+  "Musashi Industrial and Starflight Concern": {
+    "file": "musashi-industrial-and-starflight-concern.png",
+    "w": 339,
+    "h": 203,
+    "full": true
   },
-  "Consolidated Outland": {
-    "file": "consolidated-outland.png",
-    "w": 212,
-    "h": 146
+  "Argo Astronautics": {
+    "file": "argo-astronautics.png",
+    "w": 734,
+    "h": 544,
+    "full": true
   },
-  "Esperia": {
-    "file": "esperia.png",
-    "w": 154,
-    "h": 178
+  "Mirai": {
+    "file": "mirai.png",
+    "w": 826,
+    "h": 449,
+    "full": true
   },
   "Greycat Industrial": {
     "file": "greycat-industrial.png",
-    "w": 196,
-    "h": 196
+    "w": 373,
+    "h": 484,
+    "full": true
   },
-  "Kruger Intergalactic": {
-    "file": "kruger-intergalactic.png",
-    "w": 232,
-    "h": 176
-  },
-  "Aopoa": {
-    "file": "aopoa.png",
-    "w": 102,
-    "h": 222
+  "Consolidated Outland": {
+    "file": "consolidated-outland.png",
+    "w": 386,
+    "h": 359,
+    "full": true
   },
   "Gatac Manufacture": {
     "file": "gatac-manufacture.png",
-    "w": 204,
-    "h": 166
+    "w": 711,
+    "h": 569,
+    "full": true
+  },
+  "Kruger Intergalactic": {
+    "file": "kruger-intergalactic.png",
+    "w": 234,
+    "h": 178,
+    "full": false
+  },
+  "Esperia": {
+    "file": "esperia.png",
+    "w": 156,
+    "h": 180,
+    "full": false
+  },
+  "Crusader Industries": {
+    "file": "crusader-industries.png",
+    "w": 134,
+    "h": 220,
+    "full": false
+  },
+  "Aopoa": {
+    "file": "aopoa.png",
+    "w": 104,
+    "h": 224,
+    "full": false
   },
   "Banu Souli": {
     "file": "banu-souli.png",
-    "w": 202,
-    "h": 184
+    "w": 204,
+    "h": 186,
+    "full": false
   },
   "Tumbril Land Systems": {
     "file": "tumbril-land-systems.png",
-    "w": 190,
-    "h": 198
+    "w": 192,
+    "h": 200,
+    "full": false
   },
   "Grey's Market": {
     "file": "greys-market.png",
-    "w": 252,
-    "h": 252
+    "w": 253,
+    "h": 254,
+    "full": false
   }
 }
