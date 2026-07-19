@@ -1,7 +1,7 @@
 {
-  "fetchedAt": "2026-07-18",
+  "fetchedAt": "2026-07-19",
   "source": "StarBreaker entity export (Data.p4k) -> gltf-transform/meshopt Dezimierung",
-  "count": 226,
+  "count": 227,
   "meshes": {
     "aegs-avenger-stalker": {
       "url": "/holo/aegs-avenger-stalker.glb",
@@ -982,6 +982,11 @@
       "url": "/holo/rsi-constellation-taurus.glb",
       "tris": 142775,
       "v": "9d51f023"
+    },
+    "rsi-hermes": {
+      "url": "/holo/rsi-hermes.glb",
+      "tris": 107677,
+      "v": "c5f98a3a"
     },
     "rsi-lynx": {
       "url": "/holo/rsi-lynx.glb",

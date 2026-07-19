@@ -282,7 +282,11 @@ function parseBones(buf) {
 const KINDS = [
   ['quantum', /quantum_?drive|hardpoint_quantum(?!_fuel)/i],
   ['power', /power_?plant/i],
-  ['shield', /shield_?gen/i],
+  // Primär der Generator-Mount (*_shield_generator_*); ergänzt um rein richtungs-
+  // benannte Generator-Mounts (ESPR Talon: hardpoint_shield_left/right) — aber
+  // NICHT hardpoint_blastshield / _windshield / _shield_emitter / _housing_shields
+  // (das sind Panzerklappen, Cockpitglas, Emitter, Gehäuse — keine Komponenten).
+  ['shield', /shield_?gen|^hardpoint_shield_(?:left|right|top|bottom)$/i],
   ['cooler', /cooler/i],
   ['radar', /radar/i],
   ['fuel', /fuel_?(tank|intake|port)|quantum_fuel|hydrogen/i],
