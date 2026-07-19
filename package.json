@@ -22,6 +22,7 @@
     "datamine:locations": "node scripts/datamine-locations.mjs",
     "datamine:missions": "node scripts/datamine-missions.mjs",
     "datamine:logos": "node scripts/datamine-manufacturer-logos.mjs",
+    "datamine:loadouts": "node scripts/datamine-ship-loadouts.mjs",
     "sync:extras": "node scripts/sync-fleetyards-extras.mjs",
     "extract:hardpoints": "node scripts/extract-hardpoints.mjs",
     "extract:hardpoints:assembled": "node scripts/extract-hardpoints-assembled.mjs",
