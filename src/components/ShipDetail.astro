@@ -1562,9 +1562,10 @@ span.sd__ref{color:var(--muted)}
     mode = 'img'; applyMode();
     if (!loading) { stage.classList.remove('is-loading'); if (status) status.textContent = ''; }
     if (showPanel) showPanel(null);
-    // Bilder-Modus ohne ein einziges intaktes Bild (alle URLs tot) -> nicht
-    // stumm dunkel stehen lassen, sondern weiter eskalieren (Holo/Hinweis)
-    if (slides.length && !goodSlides().length) escalateNoImages();
+    // Bühne darf nach dem Umschalten nicht dunkel sein: aktives Bild tot
+    // (z. B. im Video-Modus gestorben) oder gar keins intakt -> auf das erste
+    // fertige Bild wechseln bzw. weiter eskalieren (Holo/Hinweis)
+    if (slides.length && (!goodSlides().length || slides[slideIdx].dataset.bad)) showFirstReady();
   }
   function showHolo() { mode = 'holo'; applyMode(); }
   if (btnVid) btnVid.addEventListener('click', showVideo);
@@ -1625,19 +1626,42 @@ span.sd__ref{color:var(--muted)}
       fig.appendChild(sp);
     }
   }
-  function slideFailed(im) {
-    if (mode !== 'img') return; // Video/Holo laufen sichtbar weiter — nichts zu tun
-    var good = goodSlides();
-    if (good.length) {
-      // Das aktive Bild ist gestorben -> sofort aufs nächste intakte wechseln
-      // (der 6-s-Tick käme spät und bei nur einem Bild gar nicht)
-      if (im.classList.contains('is-active')) {
-        slideIdx = slides.indexOf(good[0]);
-        paint(slideIdx);
-      }
-      return;
+  // Erstes Bild, das intakt UND fertig geladen ist — nur auf solche wird
+  // gewechselt. is-active auf einem noch leeren lazy-Bild = schwarze Bühne
+  // (FleetYards-Blobs können zudem lange hängen), genau das darf nie passieren.
+  function readyIdx() {
+    for (var i = 0; i < slides.length; i++) {
+      var im = slides[i];
+      if (!im.dataset.bad && im.getAttribute('src') && im.complete && im.naturalWidth > 0) return i;
     }
-    escalateNoImages();
+    return -1;
+  }
+  var waitTimer = null;
+  function showFirstReady() {
+    if (mode !== 'img') return;
+    var good = goodSlides();
+    if (!good.length) { escalateNoImages(); return; }
+    var r = readyIdx();
+    if (r >= 0) { slideIdx = r; paint(r); return; }
+    // Nichts fertig: Laden der intakten anstoßen und kurz nachhalten; kommt
+    // binnen 8 s keins an (tote/hängende Quellen), weiter zu Holo/Hinweis.
+    good.slice(0, 2).forEach(function (im) { ensureLoaded(slides.indexOf(im)); });
+    if (waitTimer) return;
+    var t0 = Date.now();
+    waitTimer = setInterval(function () {
+      if (mode !== 'img') { clearInterval(waitTimer); waitTimer = null; return; }
+      var i = readyIdx();
+      if (i >= 0) { clearInterval(waitTimer); waitTimer = null; slideIdx = i; paint(i); return; }
+      if (!goodSlides().length || Date.now() - t0 > 8000) {
+        clearInterval(waitTimer); waitTimer = null; escalateNoImages();
+      }
+    }, 400);
+  }
+  function slideFailed(im) {
+    if (mode !== 'img') return; // Video/Holo laufen sichtbar weiter; showImg() heilt beim Umschalten
+    // Totes Hintergrund-Bild stört nicht, solange das aktive intakt ist
+    if (!im.classList.contains('is-active') && goodSlides().length) return;
+    showFirstReady();
   }
   slides.forEach(function (im) {
     im.addEventListener('error', function () {
