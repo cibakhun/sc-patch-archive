@@ -36,7 +36,7 @@ const comps = (MODEL.compositions || []).map((c: any) => {
 // Nur eigenständige Schiffs-Laser (keine fahrzeuggebundenen Built-ins).
 const lasers = (MODEL.lasers || [])
   .filter((l: any) => !l.builtIn && l.mining?.dps)
-  .map((l: any) => ({ name: l.name, size: l.size, slots: l.slots || 0, throttleMin: l.throttleMin ?? 0.05, dps: l.mining.dps, ext: l.extraction?.dps, range: [l.mining.full, l.mining.zero], mods: l.mods || {} }));
+  .map((l: any) => ({ name: l.name, size: l.size, slots: l.moduleSlots || 0, throttleMin: l.throttleMin ?? 0.05, dps: l.mining.dps, ext: l.extraction?.dps, range: [l.mining.full, l.mining.zero], mods: l.mods || {} }));
 const modules = (MODEL.modules || []).map((m: any) => ({ name: m.name, type: m.type, miningMult: m.miningMult, mods: m.mods || {} }));
 const gadgets = (MODEL.gadgets || []).map((g: any) => ({ name: g.name, mods: g.mods || {} }));
 
