@@ -62,22 +62,20 @@ export function shipVideo(id: string): string | null {
  *  die der Client bei einem Ladefehler von `src` probiert. */
 export type GalleryImage = { src: string; paint: string | null; fb?: string };
 
-/** Geordnete, deduplizierte Bildliste pro Schiff für die Kopf-Slideshow:
- *  Hero-Render zuerst, dann FleetYards-Store-Bild, dann die Paint-Varianten.
- *  Auf 12 Bilder gedeckelt (DOM/Traffic). */
+/** Kopf-Bild(er) pro Schiff. BEWUSST nur EIN Bild: das zuverlässige Hero
+ *  (lokaler Render / Wiki-Thumb, klein & schnell dekodiert). Die FleetYards-
+ *  Store-/Paint-Bilder wurden entfernt — es sind 4K–8K-Blobs (bis 7680px!), die
+ *  200–800 ms zum Dekodieren brauchen und die auto-rotierende Bühne beim
+ *  Umblenden schwarz flashen liessen (alte Ebene weg, bevor die neue gemalt
+ *  ist). Solche Riesen gehören nicht in eine Hero-Slideshow. Ergebnis: 1 Bild
+ *  -> keine Punkte, kein Wechsel, nie schwarz (User-Vorgabe „1 Bild = 1 Bild").
+ *  Fallback auf das Store-Bild NUR, wenn gar kein Hero existiert (sonst bliebe
+ *  die Bühne bildlos); als Einzelbild flasht auch das nicht (kein Crossfade). */
 export function shipGallery(id: string, d: VehicleData): GalleryImage[] {
-  const imgs: GalleryImage[] = [];
-  const push = (u?: string | null, paint: string | null = null, fb?: string) => {
-    if (u && !imgs.some((g) => g.src === u)) imgs.push({ src: u, paint, ...(fb && fb !== u ? { fb } : {}) });
-  };
   const hero = pickHero(d);
-  if (hero) push(hero.src, null, hero.fallback);
-  const e = extrasInfo(id);
-  if (e) {
-    push(e.storeImage);
-    for (const p of e.paints) push(p.image, p.name);
-  }
-  return imgs.slice(0, 12);
+  if (hero) return [{ src: hero.src, paint: null, ...(hero.fallback && hero.fallback !== hero.src ? { fb: hero.fallback } : {}) }];
+  const store = extrasInfo(id)?.storeImage;
+  return store ? [{ src: store, paint: null }] : [];
 }
 
 /* ---------- Leistungsprofil: Perzentile im Gesamtkatalog ---------- */
