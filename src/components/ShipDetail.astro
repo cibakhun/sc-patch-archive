@@ -1771,11 +1771,16 @@ span.sd__ref{color:var(--muted)}
   function fadePoster() {
     if (videoPoster) { videoPoster.style.opacity = '0'; videoPoster.style.pointerEvents = 'none'; }
   }
-  // Poster (Schiffs-Standbild) NUR wegblenden, wenn getCurrentTime wirklich
-  // vorwärtsläuft — der einzig verlässliche Beleg, dass echte Videobilder
-  // ankommen. Ein gemeldetes PLAYING, das dann schwarz bleibt (YouTube-
-  // Flakiness), hält so das Standbild oben statt schwarz zu werden. Kommt binnen
-  // ~8 s kein Fortschritt, taugt das Video nicht -> auf Bilder/Holo ausweichen.
+  // Poster (Schiffs-Standbild) NUR wegblenden, wenn ZWEI Dinge zutreffen:
+  //  1. getCurrentTime läuft wirklich vorwärts (ct > startT+0.4) — der einzige
+  //     verlässliche Beleg für echte Frames; ein PLAYING, das dann schwarz
+  //     hängt (YouTube-Flakiness, A1 Spirit), hält so das Standbild oben.
+  //  2. seit dem Abspielstart sind ~3 s vergangen (ticks >= 12 × 250 ms) —
+  //     YouTubes Start-Chrome (Play-Icon, Titel-Einblendung oben) ist erst dann
+  //     weg; früher wegzublenden zeigt genau dieses Icon (User-Report). 3 s war
+  //     der bewährte Wert, bevor die Frames-Prüfung ihn versehentlich auf 0,4 s
+  //     zog. Der 0,9-s-Fade des Posters deckt den Rest.
+  // Kommt binnen ~8 s kein Fortschritt, taugt das Video nicht -> Bilder/Holo.
   function confirmThenFadePoster() {
     if (posterFaded || confirmTimer) return;
     var startT = -1, ticks = 0;
@@ -1784,8 +1789,8 @@ span.sd__ref{color:var(--muted)}
       var ct = 0, ps = -1;
       try { ct = ytPlayer.getCurrentTime(); ps = ytPlayer.getPlayerState(); } catch (e) {}
       if (startT < 0 && ps === 1) startT = ct;
-      if (startT >= 0 && ps === 1 && ct > startT + 0.4) {
-        // Belegt: echte Frames laufen -> Standbild weg, Bühne gilt als sichtbar
+      if (startT >= 0 && ps === 1 && ct > startT + 0.4 && ticks >= 12) {
+        // Belegt: echte Frames laufen UND ~3 s vorbei (Chrome weg) -> Poster weg
         clearInterval(confirmTimer); confirmTimer = null; posterFaded = true; fadePoster();
       } else if (ticks >= 32 && !goodSlides().length) {
         // NUR bildlose Schiffe: Video liefert nach ~8 s keine Frames und es gibt
