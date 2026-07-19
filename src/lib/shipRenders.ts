@@ -28,6 +28,10 @@ export const RENDERS: Record<string, string> = {
   atls: 'img-atls.jpg',
   mole: 'img-mole.jpg',
   'cutlass black': 'img-cutlass.jpg',
+  // Basher hat kein Wiki-/FleetYards-Bild -> Standbild aus dem offiziellen
+  // "Behind the Ships"-Commercial (reine Schiffsansicht, Frontpose). Gibt der
+  // sonst bildlosen Bühne einen Bild-Boden (kein Schwarz mehr).
+  basher: 'img-basher.jpg',
 };
 
 const MAKERS = ['rsi', 'drake', 'aegis', 'anvil', 'mirai', 'gatac', 'argo', 'misc', 'origin', 'crusader', 'esperia', 'kruger', 'banu', 'aopoa', 'vanduul'];
