@@ -393,10 +393,12 @@ a{color:inherit;text-decoration:none}
 /* ===== Bilder-Slideshow: alle Slides liegen im selben Grid-Feld, langsames Crossfade ===== */
 .holo__ship img{opacity:0;transition:opacity 1.2s ease}
 .holo__ship img.is-active{opacity:1}
-/* Video-Modus: Bilder bleiben als Backdrop sichtbar, BIS das Video wirklich
-   abspielt (is-playing via YT-PLAYING-Event) — vorher waere die Buehne schwarz
-   (YouTube laedt/Autoplay blockiert/Netz zaeh). is-3d blendet sofort aus. */
-.holo__stage.is-video.is-playing .holo__ship img,
+/* Bilder-Backdrop im Video-Modus DAUERHAFT sichtbar (kein opacity:0): der
+   Bilder-Layer ist der "Boden", der strukturell nie schwarz ist. Das Video
+   liegt darueber und DECKT das Bild mit echten Pixeln, sobald es rendert; tut
+   es das nicht (Autoplay-Verzoegerung, Stall, Style-Invalidierungs-Quirk bei
+   is-playing), scheint das Bild durch die transparente Video-Box durch statt
+   Schwarz. Nur is-3d blendet die Bilder aus. */
 .holo__stage.is-3d .holo__ship img{opacity:0}
 /* dezente Slide-Zähler-Punkte unten */
 .holo__dots{position:absolute;left:50%;bottom:2.4%;transform:translateX(-50%);z-index:5;display:flex;gap:.4rem;pointer-events:none;opacity:0;transition:opacity .4s}
@@ -406,7 +408,7 @@ a{color:inherit;text-decoration:none}
 /* ===== Video-Layer (Commercial): Facade -> YouTube-Embed on demand ===== */
 /* Video randlos bis zum Bildschirmrand (Hero ist full-bleed). Die Ebene wird
    erst mit is-playing sichtbar — bis dahin traegt der Bilder-Backdrop. */
-.holo__video{position:absolute;inset:0;z-index:5;opacity:0;pointer-events:none;transition:opacity .5s;background:#000;overflow:hidden}
+.holo__video{position:absolute;inset:0;z-index:5;opacity:0;pointer-events:none;transition:opacity .5s;overflow:hidden}
 .holo__stage.is-video.is-playing .holo__video{opacity:1;pointer-events:auto}
 /* Poster deckt den Player anfangs voll ab (Schiffsbild) und blendet erst kurz
    NACH Abspielstart aus -> YouTubes kurzes Pause/Play-Symbol beim Start bleibt
@@ -1630,6 +1632,13 @@ span.sd__ref{color:var(--muted)}
   function escalateNoImages() {
     if (viewer) { showHolo(); return; }
     if (autoHolo && !holoTried) { holoTried = true; autoHolo(false); return; }
+    // Kein Holo -> ehrlicher Hinweis. Video-/3D-Modus MUSS verlassen werden,
+    // sonst versteckt .holo__stage.is-video .holo__none{display:none} den Text
+    // (bildloses Schiff mit totem Video, z. B. Basher -> sonst schwarz).
+    stage.classList.remove('is-video', 'is-playing');
+    if (holoSec) holoSec.classList.remove('is-3d-active');
+    if (btnVid) btnVid.style.display = 'none';
+    mode = 'img';
     if (fig && !fig.querySelector('.holo__none')) {
       var sp = document.createElement('span');
       sp.className = 'holo__none';
@@ -1685,20 +1694,32 @@ span.sd__ref{color:var(--muted)}
       if (im.dataset.bad) slideFailed(im);
     });
   });
-  // Letzte Verteidigungslinie gegen JEDEN dunklen Bühnenzustand — auch solche,
-  // die kein vorhergesehener Pfad erzeugt (Races, YouTube-Eigenheiten, künftige
-  // Regressionen). Kriterium "es ist etwas zu sehen": spielendes Video, aktives
-  // Holo, sichtbares fertiges Bild oder der ehrliche Hinweis. Sonst heilen.
-  // showFirstReady ist idempotent (paint/Poll-Guard/holoTried) -> 2-s-Takt ok.
+  // Letzte, SELBSTSTÄNDIGE Verteidigungslinie gegen JEDEN dunklen Bühnenzustand
+  // — unabhängig davon, ob YouTube-Events/Fallback-Timer wie erwartet feuern
+  // (die tun es nicht immer, s. Basher/A1). Alle 2 s wird geprüft, ob WIRKLICH
+  // etwas Sichtbares auf der Bühne ist. Drei gültige Sicht-Quellen:
+  //   • ein fertig geladenes aktives Bild (Video-Modus hat einen Bild-Boden),
+  //   • ein Video mit BESTÄTIGT laufenden Frames (posterFaded — nicht die bloße
+  //     is-playing-Klasse, die auch bei schwarz hängendem Player gesetzt wird),
+  //   • ein TATSÄCHLICH sichtbarer Hinweis (Existenz reicht nicht: im Video-
+  //     Modus ist .holo__none per CSS display:none).
+  // Fehlt alles: Bild-Schiffe sofort auf das erste fertige Bild heilen; bildlose
+  // Video-Schiffe erst nach ~8 s Kulanz (Video darf laden) zu Holo/Hinweis
+  // eskalieren — escalateNoImages verlässt dafür den Video-Modus.
+  var darkTicks = 0;
   setInterval(function () {
     if (document.hidden) return;
     if (mode === 'holo') return;
-    if (mode === 'video' && stage.classList.contains('is-playing')) return;
     var a = slides[slideIdx];
-    if (a && a.classList.contains('is-active') && !a.dataset.bad &&
-        a.getAttribute('src') && a.complete && a.naturalWidth > 0) return;
-    if (mode === 'img' && fig && fig.querySelector('.holo__none')) return;
-    showFirstReady();
+    var imgOk = !!(a && a.classList.contains('is-active') && !a.dataset.bad &&
+      a.getAttribute('src') && a.complete && a.naturalWidth > 0);
+    var videoOk = mode === 'video' && posterFaded;
+    var none = fig && fig.querySelector('.holo__none');
+    var hintOk = !!(none && getComputedStyle(none).display !== 'none');
+    if (imgOk || videoOk || hintOk) { darkTicks = 0; return; }
+    darkTicks++;
+    if (goodSlides().length) showFirstReady();
+    else if (darkTicks >= 4) escalateNoImages();
   }, 2000);
 
   // ---------- Video: YouTube-IFrame-API -> stummes Autoplay im Video-Modus ----------
@@ -1706,8 +1727,41 @@ span.sd__ref{color:var(--muted)}
   // (fehlender origin). Die offizielle IFrame-API konfiguriert den Player
   // korrekt, erlaubt browser-konformes Muted-Autoplay und meldet Fehler sauber.
   var ytPlayer = null, ytLoading = false, ytReady = false, playStarted = false;
+  // posterFaded = das Standbild wurde weggeblendet, WEIL das Video nachweislich
+  // Frames liefert. Erst dann gilt die Bühne im Video-Modus als "sichtbar"
+  // (Dunkelheits-Wächter oben). Bloßes is-playing reicht nicht — es wird laut
+  // A1 Spirit auch bei schwarz hängendem Player gesetzt.
+  var posterFaded = false, confirmTimer = null;
   function fadePoster() {
     if (videoPoster) { videoPoster.style.opacity = '0'; videoPoster.style.pointerEvents = 'none'; }
+  }
+  // Poster (Schiffs-Standbild) NUR wegblenden, wenn getCurrentTime wirklich
+  // vorwärtsläuft — der einzig verlässliche Beleg, dass echte Videobilder
+  // ankommen. Ein gemeldetes PLAYING, das dann schwarz bleibt (YouTube-
+  // Flakiness), hält so das Standbild oben statt schwarz zu werden. Kommt binnen
+  // ~8 s kein Fortschritt, taugt das Video nicht -> auf Bilder/Holo ausweichen.
+  function confirmThenFadePoster() {
+    if (posterFaded || confirmTimer) return;
+    var startT = -1, ticks = 0;
+    confirmTimer = setInterval(function () {
+      ticks++;
+      var ct = 0, ps = -1;
+      try { ct = ytPlayer.getCurrentTime(); ps = ytPlayer.getPlayerState(); } catch (e) {}
+      if (startT < 0 && ps === 1) startT = ct;
+      if (startT >= 0 && ps === 1 && ct > startT + 0.4) {
+        // Belegt: echte Frames laufen -> Standbild weg, Bühne gilt als sichtbar
+        clearInterval(confirmTimer); confirmTimer = null; posterFaded = true; fadePoster();
+      } else if (ticks >= 32 && !goodSlides().length) {
+        // NUR bildlose Schiffe: Video liefert nach ~8 s keine Frames und es gibt
+        // kein Standbild -> zu Holo/Hinweis ausweichen statt Schwarz. Schiffe MIT
+        // Bild lassen das Standbild einfach oben (nie schwarz); der Timer läuft
+        // weiter und blendet, falls das Video doch noch Frames liefert.
+        clearInterval(confirmTimer); confirmTimer = null;
+        stage.classList.remove('is-playing');
+        if (btnVid) btnVid.style.display = 'none';
+        escalateNoImages();
+      }
+    }, 250);
   }
   function loadYT() {
     return new Promise(function (res) {
@@ -1774,13 +1828,11 @@ span.sd__ref{color:var(--muted)}
             }, 500);
           },
           onStateChange: function (e) {
-            // erst kurz NACH echtem Abspielstart das Poster wegblenden -> das
-            // YouTube-Start-Chrome (Titel-Einblendung oben, ~3 s) liegt darunter
-            // unsichtbar. 3000 ms + 0,9 s Fade decken das ab; die frueheren
-            // 4500 ms waren unnoetig traege (User-Feedback "startet nicht direkt").
-            // Inline-Style (kein Klassen-Toggle): umgeht ein Astro-Scoping-Problem,
-            // bei dem die opacity-Klassenregel nicht zuverlässig greift.
-            if (e.data === 1) { playStarted = true; stage.classList.add('is-playing'); setTimeout(fadePoster, 3000); }
+            // Poster (Standbild) NICHT mehr zeitbasiert wegblenden, sondern erst
+            // wenn getCurrentTime nachweislich vorwärtsläuft (confirmThenFadePoster).
+            // Das YouTube-Start-Chrome liegt bis dahin unter dem Poster; ein
+            // schwarz hängendes PLAYING (A1 Spirit) blendet das Standbild NIE weg.
+            if (e.data === 1) { playStarted = true; stage.classList.add('is-playing'); confirmThenFadePoster(); }
             // Endlosschleife OHNE playlist-Param (der sonst Zurück/Weiter-Buttons zeigt):
             // am Ende (0) einfach zurück an 3,8 s und weiterspielen
             else if (e.data === 0) { try { e.target.seekTo(3.8, true); e.target.playVideo(); } catch (er) {} }
@@ -1802,12 +1854,15 @@ span.sd__ref{color:var(--muted)}
       });
       // Fallback: bleibt Autoplay wider Erwarten blockiert, NICHT den Player
       // samt YouTube-UI freischalten (es soll nie Player-Chrome zu sehen sein),
-      // sondern auf die Bilder-Galerie ausweichen. Nur ohne Galerie als letzter
-      // Ausweg die Schutzschicht loesen, damit kein totes schwarzes Feld bleibt.
+      // sondern auf die Bilder-Galerie ausweichen; ganz ohne Bilder zu Holo/
+      // Hinweis (escalateNoImages) statt den nackten schwarzen Player zu zeigen.
       setTimeout(function () {
         if (playStarted) return;
-        if (slides.length) { fadePoster(); showImg(); }
-        else { fadePoster(); if (shield) shield.style.pointerEvents = 'none'; }
+        stage.classList.remove('is-playing');
+        if (btnVid) btnVid.style.display = 'none';
+        fadePoster();
+        showImg();
+        if (!slides.length) escalateNoImages();
       }, 7000);
     });
   }
