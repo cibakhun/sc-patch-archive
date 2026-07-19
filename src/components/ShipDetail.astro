@@ -1585,36 +1585,68 @@ span.sd__ref{color:var(--muted)}
   if (btnImg) btnImg.addEventListener('click', showImg);
 
   // ---------- Bilder-Slideshow (langsames Crossfade) ----------
+  // GRUNDREGEL (User-Vorgabe): Die Bühne zeigt NUR Bilder, die WIRKLICH geladen
+  // sind. Punkte UND Rotation richten sich nach den geladenen Bildern — NICHT
+  // nach der optimistischen Server-Liste. Die Paints sind grosse FleetYards-
+  // Blobs, die einzeln nachladen und teils fehlen; bis dahin dürfen sie weder
+  // einen Punkt bekommen noch angeblendet werden. Effekt: 1 geladenes Bild ->
+  // 1 Punkt (bzw. Punktleiste aus), kein Wechsel, NIE schwarz; weitere Punkte
+  // erscheinen erst, sobald ihr Bild tatsächlich da ist.
   var slideTimer = null, slideIdx = 0;
-  // Bilder erst bei Bedarf laden (data-src -> src), sonst feuern alle 11 gleich-
-  // zeitig gegen FleetYards und haengen. Aktives + naechstes Bild vorladen.
+  // data-src -> src erst bei Bedarf (sonst feuern alle Blobs gleichzeitig gegen
+  // FleetYards und haengen); pro Tick wird genau EINES nachgezogen.
   function ensureLoaded(i) {
     var im = slides[i];
     if (im && !im.getAttribute('src') && im.dataset.src) im.src = im.dataset.src;
   }
+  // Indizes der WIRKLICH geladenen, intakten Slides (DOM-Reihenfolge).
+  function liveSlides() {
+    var out = [];
+    for (var i = 0; i < slides.length; i++) {
+      var im = slides[i];
+      if (!im.dataset.bad && im.getAttribute('src') && im.complete && im.naturalWidth > 0) out.push(i);
+    }
+    return out;
+  }
+  // Punkte spiegeln exakt die geladenen Bilder: ein Punkt je geladenes Bild,
+  // aktiver markiert. < 2 geladene -> Punktleiste ganz aus (1 Bild = keine Show).
+  function syncDots() {
+    if (!dots) return;
+    var live = liveSlides();
+    for (var k = 0; k < dots.children.length; k++) {
+      dots.children[k].style.display = live.indexOf(k) >= 0 ? '' : 'none';
+      dots.children[k].classList.toggle('on', k === slideIdx);
+    }
+    dots.style.display = live.length >= 2 ? '' : 'none';
+  }
   function paint(i) {
-    slides.forEach(function (im, k) { im.classList.toggle('is-active', k === i); });
-    if (dots) [].forEach.call(dots.children, function (dd, k) { dd.classList.toggle('on', k === i); });
+    for (var k = 0; k < slides.length; k++) slides[k].classList.toggle('is-active', k === i);
+    syncDots();
     ensureLoaded(i); ensureLoaded((i + 1) % slides.length);
   }
+  // Sobald ein Bild fertig lädt, wächst die Punktzahl mit — genau um die real
+  // angekommenen Bilder.
+  slides.forEach(function (im) { im.addEventListener('load', syncDots); });
   function startSlideshow() {
     ensureLoaded(slideIdx); ensureLoaded((slideIdx + 1) % slides.length);
-    if (slideTimer || reduce || slides.length < 2) return;
+    syncDots();
+    if (slideTimer || reduce) return;
     slideTimer = setInterval(function () {
       if (mode !== 'img' || document.hidden) return;
       var r = stage.getBoundingClientRect();
       if (r.bottom < 0 || r.top > innerHeight) return; // offscreen -> pausieren
-      var next = slideIdx;
-      for (var n = 0; n < slides.length; n++) {
-        next = (next + 1) % slides.length;
-        if (!slides[next].dataset.bad) break; // kaputte Bilder überspringen
+      // Nächstes noch ungeladenes intaktes Bild anstossen (lazy, kein Hammer):
+      // so wächst die Show, ohne alle Blobs gleichzeitig zu ziehen.
+      for (var j = 1; j <= slides.length; j++) {
+        var c = (slideIdx + j) % slides.length;
+        if (!slides[c].dataset.bad && !slides[c].getAttribute('src') && slides[c].dataset.src) { ensureLoaded(c); break; }
       }
-      // Nie auf ein noch ladendes Bild blenden (grosse FleetYards-Dateien
-      // brauchen laenger als der 6-s-Vorlauf -> schwarze Buehne): Laden
-      // anstossen, Tick aussetzen, der naechste versucht es erneut.
-      var im = slides[next];
-      ensureLoaded(next);
-      if (next !== slideIdx && !(im.complete && im.naturalWidth > 0)) return;
+      // NUR unter geladenen Bildern weiterschalten -> nie auf ein leeres/ladendes.
+      var live = liveSlides();
+      if (live.length < 2) return; // nur 1 Bild -> nichts zu wechseln, bleibt stehen
+      var pos = live.indexOf(slideIdx);
+      var next = pos < 0 ? live[0] : live[(pos + 1) % live.length];
+      if (next === slideIdx) return;
       slideIdx = next; paint(slideIdx);
     }, 6000);
   }
