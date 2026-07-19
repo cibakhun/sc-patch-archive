@@ -142,12 +142,15 @@ for (let n = 1; ; n++) {
       .reduce((n, g) => n + g.count, 0);
 
     // ship image from the API (starcitizen.tools media). MediaWiki thumbs are
-    // width-addressable — swap the `NNNpx-` segment, capped at the original.
+    // width-addressable — swap the `NNNpx-` segment. A derivative at (or above)
+    // the original width 404s though (e.g. Ballista Dunestalker) — MediaWiki
+    // won't upscale — so link the original file itself in that case.
     const img0 = v.images?.[0] ?? null;
     const thumbAt = (img, w) => {
       if (!img.thumbnail_url) return img.original_url ?? null;
-      const cap = img.original_width ? Math.min(w, img.original_width) : w;
-      return img.thumbnail_url.replace(/\/\d+px-/, `/${cap}px-`);
+      if (img.original_width && w >= img.original_width)
+        return img.original_url ?? img.thumbnail_url;
+      return img.thumbnail_url.replace(/\/\d+px-/, `/${w}px-`);
     };
     const image = img0
       ? {

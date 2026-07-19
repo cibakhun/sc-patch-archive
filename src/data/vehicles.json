@@ -4592,7 +4592,7 @@
       "patches": [],
       "gameVersion": "4.9.0-LIVE.12232306",
       "image": {
-        "hero": "https://media.starcitizen.tools/thumb/c/c6/Ballista_Dunestalker_on_Hurston_with_weapons_pointing_upwards.jpg/1040px-Ballista_Dunestalker_on_Hurston_with_weapons_pointing_upwards.jpg.webp",
+        "hero": "https://media.starcitizen.tools/c/c6/Ballista_Dunestalker_on_Hurston_with_weapons_pointing_upwards.jpg",
         "thumb": "https://media.starcitizen.tools/thumb/c/c6/Ballista_Dunestalker_on_Hurston_with_weapons_pointing_upwards.jpg/320px-Ballista_Dunestalker_on_Hurston_with_weapons_pointing_upwards.jpg.webp",
         "source": "starcitizen.tools"
       },
@@ -4711,7 +4711,7 @@
       "patches": [],
       "gameVersion": "4.9.0-LIVE.12232306",
       "image": {
-        "hero": "https://media.starcitizen.tools/thumb/1/16/Ballista_Snowblind_firing_its_torpedo_-_Cropped_2.png/720px-Ballista_Snowblind_firing_its_torpedo_-_Cropped_2.png.webp",
+        "hero": "https://media.starcitizen.tools/1/16/Ballista_Snowblind_firing_its_torpedo_-_Cropped_2.png",
         "thumb": "https://media.starcitizen.tools/thumb/1/16/Ballista_Snowblind_firing_its_torpedo_-_Cropped_2.png/320px-Ballista_Snowblind_firing_its_torpedo_-_Cropped_2.png.webp",
         "source": "starcitizen.tools"
       },
@@ -14980,7 +14980,7 @@
       ],
       "gameVersion": "4.9.0-LIVE.12232306",
       "image": {
-        "hero": "https://media.starcitizen.tools/thumb/0/03/L-21_Wolf_flying_above_clouds.png/1280px-L-21_Wolf_flying_above_clouds.png.webp",
+        "hero": "https://media.starcitizen.tools/0/03/L-21_Wolf_flying_above_clouds.png",
         "thumb": "https://media.starcitizen.tools/thumb/0/03/L-21_Wolf_flying_above_clouds.png/320px-L-21_Wolf_flying_above_clouds.png.webp",
         "source": "starcitizen.tools"
       },
@@ -25126,7 +25126,7 @@
       "patches": [],
       "gameVersion": "4.9.0-LIVE.12232306",
       "image": {
-        "hero": "https://media.starcitizen.tools/thumb/f/f5/Talon_-_Diving_blurred_background.jpg/720px-Talon_-_Diving_blurred_background.jpg.webp",
+        "hero": "https://media.starcitizen.tools/f/f5/Talon_-_Diving_blurred_background.jpg",
         "thumb": "https://media.starcitizen.tools/thumb/f/f5/Talon_-_Diving_blurred_background.jpg/320px-Talon_-_Diving_blurred_background.jpg.webp",
         "source": "starcitizen.tools"
       },

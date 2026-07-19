@@ -58,19 +58,20 @@ export function shipVideo(id: string): string | null {
 }
 
 /** Ein Bild der Kopf-Slideshow; `paint` = Lack-Name für den Alt-Text
- *  (null bei Hero-Render/Store-Bild). */
-export type GalleryImage = { src: string; paint: string | null };
+ *  (null bei Hero-Render/Store-Bild). `fb` = kleinere Ersatz-URL (Wiki-Thumb),
+ *  die der Client bei einem Ladefehler von `src` probiert. */
+export type GalleryImage = { src: string; paint: string | null; fb?: string };
 
 /** Geordnete, deduplizierte Bildliste pro Schiff für die Kopf-Slideshow:
  *  Hero-Render zuerst, dann FleetYards-Store-Bild, dann die Paint-Varianten.
  *  Auf 12 Bilder gedeckelt (DOM/Traffic). */
 export function shipGallery(id: string, d: VehicleData): GalleryImage[] {
   const imgs: GalleryImage[] = [];
-  const push = (u?: string | null, paint: string | null = null) => {
-    if (u && !imgs.some((g) => g.src === u)) imgs.push({ src: u, paint });
+  const push = (u?: string | null, paint: string | null = null, fb?: string) => {
+    if (u && !imgs.some((g) => g.src === u)) imgs.push({ src: u, paint, ...(fb && fb !== u ? { fb } : {}) });
   };
   const hero = pickHero(d);
-  if (hero) push(hero.src);
+  if (hero) push(hero.src, null, hero.fallback);
   const e = extrasInfo(id);
   if (e) {
     push(e.storeImage);

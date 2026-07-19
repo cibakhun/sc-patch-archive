@@ -603,6 +603,8 @@ a{color:inherit;text-decoration:none}
 .holo__caveat{color:var(--gold);opacity:.95;letter-spacing:.08em;text-transform:none;font-size:.74rem;
   padding-left:.5rem;border-left:2px dashed color-mix(in srgb,var(--gold) 55%,transparent)}
 .holo__none{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);opacity:.6}
+/* Hinweis nur auf der leeren Bilder-Bühne — nie über Video oder 3D-Holo */
+.holo__stage.is-video .holo__none,.holo__stage.is-3d .holo__none{display:none}
 @media(max-width:900px){
   .holo__panel{top:auto;bottom:52px;right:clamp(10px,3vw,20px);left:auto;width:min(280px,92%)}
   .holo__title{max-width:74%}
@@ -958,6 +960,7 @@ span.sd__ref{color:var(--muted)}
         data-holo-src={holoViewerSrc}
         data-loading={t('ship.holo.loading')}
         data-error={t('ship.holo.error')}
+        data-novisual={t('ship.novisual')}
       >
         <figure class="holo__ship" id="shipfig">
           {hasGallery ? (
@@ -965,10 +968,11 @@ span.sd__ref{color:var(--muted)}
               <img
                 src={i === 0 ? g.src : undefined}
                 data-src={i === 0 ? undefined : g.src}
+                data-fb={g.fb}
                 class={i === 0 ? 'is-active' : undefined}
                 alt={g.paint ? altPaint(g.paint) : altView}
                 referrerpolicy="no-referrer"
-                onerror="this.dataset.bad='1';this.style.display='none'"
+                onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.removeAttribute('data-fb')}else{this.dataset.bad='1';this.style.display='none'}"
               />
             ))
           ) : (
@@ -1562,6 +1566,10 @@ span.sd__ref{color:var(--muted)}
     mode = 'img'; applyMode();
     if (!loading) { stage.classList.remove('is-loading'); if (status) status.textContent = ''; }
     if (showPanel) showPanel(null);
+    // Bühne darf nach dem Umschalten nicht dunkel sein: aktives Bild tot
+    // (z. B. im Video-Modus gestorben) oder gar keins intakt -> auf das erste
+    // fertige Bild wechseln bzw. weiter eskalieren (Holo/Hinweis)
+    if (slides.length && (!goodSlides().length || slides[slideIdx].dataset.bad)) showFirstReady();
   }
   function showHolo() { mode = 'holo'; applyMode(); }
   if (btnVid) btnVid.addEventListener('click', showVideo);
@@ -1601,6 +1609,71 @@ span.sd__ref{color:var(--muted)}
       slideIdx = next; paint(slideIdx);
     }, 6000);
   }
+
+  // ---------- Kaputte Bilder: Kette Ersatz-Thumb -> nächstes Bild -> Holo -> Hinweis ----------
+  // Externe Bild-URLs (Wiki/FleetYards) können jederzeit sterben. Der inline-
+  // onerror am <img> probiert erst data-fb (kleineres Wiki-Thumb) und markiert
+  // das Bild sonst als bad+unsichtbar. Hier die Stufen danach — eine dauerhaft
+  // schwarze Bühne darf es nicht geben.
+  var autoHolo = null; // wird im Holo-Block auf start() gesetzt, wenn 3D verfügbar
+  var holoTried = false; // Schleifen-Schutz: Holo-Fehlschlag -> showImg -> nicht erneut Holo
+  function goodSlides() {
+    return slides.filter(function (im) { return !im.dataset.bad; });
+  }
+  function escalateNoImages() {
+    if (viewer) { showHolo(); return; }
+    if (autoHolo && !holoTried) { holoTried = true; autoHolo(false); return; }
+    if (fig && !fig.querySelector('.holo__none')) {
+      var sp = document.createElement('span');
+      sp.className = 'holo__none';
+      sp.textContent = stage.getAttribute('data-novisual') || '';
+      fig.appendChild(sp);
+    }
+  }
+  // Erstes Bild, das intakt UND fertig geladen ist — nur auf solche wird
+  // gewechselt. is-active auf einem noch leeren lazy-Bild = schwarze Bühne
+  // (FleetYards-Blobs können zudem lange hängen), genau das darf nie passieren.
+  function readyIdx() {
+    for (var i = 0; i < slides.length; i++) {
+      var im = slides[i];
+      if (!im.dataset.bad && im.getAttribute('src') && im.complete && im.naturalWidth > 0) return i;
+    }
+    return -1;
+  }
+  var waitTimer = null;
+  function showFirstReady() {
+    if (mode !== 'img') return;
+    var good = goodSlides();
+    if (!good.length) { escalateNoImages(); return; }
+    var r = readyIdx();
+    if (r >= 0) { slideIdx = r; paint(r); return; }
+    // Nichts fertig: Laden der intakten anstoßen und kurz nachhalten; kommt
+    // binnen 8 s keins an (tote/hängende Quellen), weiter zu Holo/Hinweis.
+    good.slice(0, 2).forEach(function (im) { ensureLoaded(slides.indexOf(im)); });
+    if (waitTimer) return;
+    var t0 = Date.now();
+    waitTimer = setInterval(function () {
+      if (mode !== 'img') { clearInterval(waitTimer); waitTimer = null; return; }
+      var i = readyIdx();
+      if (i >= 0) { clearInterval(waitTimer); waitTimer = null; slideIdx = i; paint(i); return; }
+      if (!goodSlides().length || Date.now() - t0 > 8000) {
+        clearInterval(waitTimer); waitTimer = null; escalateNoImages();
+      }
+    }, 400);
+  }
+  function slideFailed(im) {
+    if (mode !== 'img') return; // Video/Holo laufen sichtbar weiter; showImg() heilt beim Umschalten
+    // Totes Hintergrund-Bild stört nicht, solange das aktive intakt ist
+    if (!im.classList.contains('is-active') && goodSlides().length) return;
+    showFirstReady();
+  }
+  slides.forEach(function (im) {
+    im.addEventListener('error', function () {
+      // Der inline-Handler lief zuerst: entweder hat er den Ersatz-Thumb
+      // eingesetzt (kein bad -> neuer Ladeversuch läuft) oder bad gesetzt.
+      if (im.dataset.bad) slideFailed(im);
+    });
+  });
 
   // ---------- Video: YouTube-IFrame-API -> stummes Autoplay im Video-Modus ----------
   // Der rohe iframe-Embed scheiterte auf localhost mit "Fehler 153"
@@ -1800,6 +1873,7 @@ span.sd__ref{color:var(--muted)}
         });
     };
 
+    autoHolo = start; // Eskalationsziel, wenn alle Galerie-Bilder tot sind
     if (btn3d) btn3d.addEventListener('click', function () { viewer ? showHolo() : start(true); });
     if (pclose) pclose.addEventListener('click', function () { showPanel(null); });
     var layersToggle = document.getElementById('holo-layers-toggle');
@@ -1823,6 +1897,9 @@ span.sd__ref{color:var(--muted)}
     if (defaultMode === 'holo') start(false);
   }
 
+  // Bilder, die schon VOR diesem Script gescheitert sind (nur der inline-
+  // onerror lief), jetzt nachziehen — autoHolo ist ab hier gesetzt.
+  slides.forEach(function (im) { if (im.dataset.bad) slideFailed(im); });
   applyMode();
 })();
 </script>
