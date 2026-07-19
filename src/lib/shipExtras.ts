@@ -57,6 +57,18 @@ export function shipVideo(id: string): string | null {
   return v && v.trim() ? v.trim() : null;
 }
 
+/** Selbst-gehostetes, stummes Schiff-Loop-Video (KEIN YouTube) — für Schiffe,
+ *  deren offizieller Clip Personen/Interviews enthält. Basher: aus dem
+ *  "Behind the Ships"-Clip NUR die reinen Schiffsaufnahmen geschnitten (keine
+ *  Entwickler, kein WIP-Wasserzeichen). Ein <video>-Element hat kein Player-
+ *  Chrome -> kein YouTube-Start-Icon, nie schwarz. Nimmt Vorrang vor shipVideo. */
+const LOCAL_VIDEOS: Record<string, string> = {
+  'glsn-basher': '/assets/basher-ship.mp4',
+};
+export function shipLocalVideo(id: string): string | null {
+  return LOCAL_VIDEOS[id] ?? null;
+}
+
 /** Ein Bild der Kopf-Slideshow; `paint` = Lack-Name für den Alt-Text
  *  (null bei Hero-Render/Store-Bild). `fb` = kleinere Ersatz-URL (Wiki-Thumb),
  *  die der Client bei einem Ladefehler von `src` probiert. */
