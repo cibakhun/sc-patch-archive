@@ -28,6 +28,7 @@ import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
 import holoMarkersSnapshot from '../data/holo-markers.json';
 import holoMeshesSnapshot from '../data/holo-meshes.json';
 import shipHardpointsSnapshot from '../data/ship-hardpoints.json';
+import shipLoadoutsSnapshot from '../data/ship-loadouts.json';
 // Hersteller-Logos (game-sourced aus Data.p4k, self-hosted unter /assets/manufacturers/).
 // Manifest: exakter Herstellername -> { file, w, h }. Kein Treffer -> Text-Fallback.
 import manufacturerLogos from '../data/manufacturer-logos.json';
@@ -194,7 +195,7 @@ if (hasHolo) {
   let meshBox: { c: number[]; s: number[] } | null = null;
   let axis: number[] | null = null;
   let est = false;
-  let srcPorts: { k: string; p: number[] }[] = [];
+  let srcPorts: { k: string; p: number[]; n?: string }[] = [];
   if (gameMesh && gameHp) {
     // ?v=<Content-Hash> aus dem Manifest: nginx cached /holo/ 1 Jahr — der
     // Buster laesst Patch-Re-Exporte sofort durchschlagen (vgl. holoViewerSrc)
@@ -205,9 +206,9 @@ if (hasHolo) {
       c: [(hull[0][0] + hull[1][0]) / 2, (hull[0][2] + hull[1][2]) / 2, -((hull[0][1] + hull[1][1]) / 2)],
       s: [Math.abs(hull[1][0] - hull[0][0]), Math.abs(hull[1][2] - hull[0][2]), Math.abs(hull[1][1] - hull[0][1])],
     };
-    srcPorts = (gameHp.hp as { k: string; p: number[] }[])
+    srcPorts = (gameHp.hp as { k: string; p: number[]; n: string }[])
       .filter((h) => HOLO_GRP[h.k])
-      .map((h) => ({ k: h.k, p: [h.p[0], h.p[2], -h.p[1]] }));
+      .map((h) => ({ k: h.k, n: h.n, p: [h.p[0], h.p[2], -h.p[1]] }));
   } else if (holoUrl && holoShip) {
     meshUrl = holoUrl;
     meshBox = holoShip.mesh;
@@ -225,26 +226,55 @@ if (hasHolo) {
     if (!info) return {};
     return { cat: info.cat, shops: info.shops, iid: info.id, ...(info.price != null ? { price: info.price } : {}) };
   };
+  // Echtes Stock-Loadout aus dem DataCore: itemPortName -> verbautes Item.
+  // itemPortName == Bone-Name -> exakter Join per Namen (keine Reihenfolge-
+  // Raterei). Nur der Spielmesh-Pfad; der FY-Fallback nutzt weiter die Pools.
+  type StockItem = { name: string | null; size: number | null; cat: string; cls: string; count: number };
+  const stock: Record<string, StockItem[]> | null =
+    (gameMesh && gameHp) ? ((shipLoadoutsSnapshot as any).ships?.[id] ?? null) : null;
+
   // Marker -> Loadout joinen
   const holoPorts: HoloPort[] = [];
   const taken: Record<string, number> = {};
+  const coreKindsSeen = new Set<string>(); // Kern-Arten, die einen echten Marker bekamen
   for (const hp of srcPorts) {
     const g = HOLO_GRP[hp.k];
-    const pool = pools[hp.k];
-    const item = pool ? pool[(taken[hp.k] = (taken[hp.k] ?? 0) + 1) - 1] : undefined;
-    const mixed = mixedLabel[hp.k];
-    holoPorts.push({
-      k: hp.k, g, p: hp.p,
-      label: mixed ?? item?.name ?? null,
-      size: mixed ? null : item?.size ?? null,
-      ...(!mixed ? enrich(item?.name) : {}),
-      ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
-      // Kein Badge für est: 83 Schiffe sind komplett "mapped/mid", ein Badge an
-      // JEDEM Chip würde das Gold abstumpfen, das "Ohne Einbauort" (np) tragen
-      // muss. est ist die schwächere Aussage (echte Daten, ungefähr platziert)
-      // und bleibt bei gestrichelt + Vorbehalt in Kopfzeile/Detailkarte.
-      ...(est ? { est: true, dim: true } : {}),
-    });
+    if (stock) {
+      // DataCore-Pfad: Marker NUR, wenn der Bone ein echtes Stock-Item trägt.
+      // Bones ohne Item (Controller, Regen-Pools, Waffenschränke, Phantom-Bones
+      // geteilter Varianten-Geometrie) fallen weg — kein namenloser/gestapelter
+      // Müll mehr.
+      const items = hp.n ? stock[hp.n.toLowerCase()] : undefined;
+      if (!items || !items.length) continue;
+      if (g === 'core') coreKindsSeen.add(hp.k);
+      // Name aus den Spieldateien; fehlt die Lokalisierung (z.B. fest verbaute
+      // Capital-Ship-Komponenten ohne Shop-Namen), auf das Art-Label ausweichen
+      // statt den internen Klassennamen (COOL_AEGS_S04_…) zu zeigen.
+      const label = items.map((it) => (it.count > 1 ? `${it.count}× ` : '') + (it.name || t(`holo.kind.${hp.k}` as any))).join(' / ');
+      const sizes = new Set(items.map((it) => it.size));
+      const single = items.length === 1 ? items[0] : null;
+      holoPorts.push({
+        k: hp.k, g, p: hp.p,
+        label,
+        size: sizes.size === 1 ? (items[0].size ?? null) : null,
+        ...(single?.name ? enrich(single.name) : {}),
+        ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
+      });
+    } else {
+      // FY-Fallback (kein DataCore-Loadout): alte Reihenfolge-Zuordnung + est.
+      const pool = pools[hp.k];
+      const item = pool ? pool[(taken[hp.k] = (taken[hp.k] ?? 0) + 1) - 1] : undefined;
+      const mixed = mixedLabel[hp.k];
+      if (g === 'core') coreKindsSeen.add(hp.k);
+      holoPorts.push({
+        k: hp.k, g, p: hp.p,
+        label: mixed ?? item?.name ?? null,
+        size: mixed ? null : item?.size ?? null,
+        ...(!mixed ? enrich(item?.name) : {}),
+        ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
+        ...(est ? { est: true, dim: true } : {}),
+      });
+    }
   }
   // Kern-Komponente ganz ohne physisches Hardpoint -> schematisch mittig + Vermerk
   if (meshBox) {
@@ -252,7 +282,7 @@ if (hasHolo) {
     let stackI = 0;
     for (const k of Object.keys(HOLO_GRP).filter((x) => HOLO_GRP[x] === 'core')) {
       const pool = pools[k] ?? [];
-      if (!pool.length || (taken[k] ?? 0) > 0) continue;
+      if (!pool.length || coreKindsSeen.has(k)) continue;
       const off = (stackI++ - 1) * 0.08;
       holoPorts.push({
         k, g: 'core',
@@ -261,6 +291,31 @@ if (hasHolo) {
         ...(!mixedLabel[k] ? enrich(pool[0].name) : {}),
         lab: t(`holo.kind.${k}` as any),
         np: true, dim: true, badge: t('holo.badge.np' as any),
+      });
+    }
+  }
+  // Ko-lozierte Marker leicht auffächern: einige Schiffe legen mehrere echte
+  // Komponenten auf EINEN Maschinenraum-Bone-Punkt (Spielgeometrie, z.B.
+  // Hammerhead 7×). Ohne Versatz lägen Sprites + Leader exakt übereinander ->
+  // kleiner Ring (leichte Helix) um den Originalpunkt, Radius an die Hülle
+  // gekoppelt. Betrifft real nur ~5 Schiffe.
+  if (meshBox) {
+    const groups = new Map<string, HoloPort[]>();
+    for (const p of holoPorts) {
+      const key = p.p.map((x) => Math.round(x * 100) / 100).join(',');
+      const arr = groups.get(key); if (arr) arr.push(p); else groups.set(key, [p]);
+    }
+    const r = Math.min(2.2, Math.max(0.35, Math.max(...meshBox.s) * 0.02));
+    for (const grp of groups.values()) {
+      if (grp.length < 2) continue;
+      const c = [...grp[0].p];
+      grp.forEach((p, i) => {
+        const a = (i / grp.length) * Math.PI * 2;
+        p.p = [
+          c[0] + Math.cos(a) * r,
+          c[1] + (i - (grp.length - 1) / 2) * r * 0.3,
+          c[2] + Math.sin(a) * r,
+        ].map((x) => Math.round(x * 1000) / 1000);
       });
     }
   }

@@ -167,6 +167,9 @@ const UI = {
     'holo.kind.turret': 'Geschützturm',
     'holo.kind.missile': 'Raketenaufhängung',
     'holo.kind.weapon': 'Waffen-Hardpoint',
+    'holo.kind.thruster_mav': 'Manövriertriebwerk',
+    'holo.kind.countermeasure': 'Täuschkörper',
+    'holo.kind.fuel': 'Treibstoff',
     'holo.src': 'Komponenten-Positionen spielgetreu',
     // Für Schiffe, bei denen KEIN Marker eine echte Position hat (kein Hardpoint
     // im Mesh) — die Kopfzeile darf dort keine Verortung behaupten.
@@ -476,6 +479,9 @@ const UI = {
     'holo.kind.turret': 'Turret',
     'holo.kind.missile': 'Missile rack',
     'holo.kind.weapon': 'Weapon hardpoint',
+    'holo.kind.thruster_mav': 'Maneuvering thruster',
+    'holo.kind.countermeasure': 'Countermeasure',
+    'holo.kind.fuel': 'Fuel',
     'holo.src': 'Component positions game-accurate',
     'holo.src.none': 'Component positions schematic, not exactly located',
     'ship.stage.length': 'Length',
