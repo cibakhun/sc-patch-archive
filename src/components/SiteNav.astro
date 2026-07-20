@@ -1,8 +1,9 @@
 ---
-// Global sticky navigation: brand monogram + breadcrumbs (left),
-// Suche + Sprachumschalter + Menü-Dropdown (right) — eine Leiste für alle
-// Breiten, das Menü trägt Bereiche + Patch-Liste. Keeps id="topbar" so
-// existing per-page scroll JS keeps working.
+// Global sticky navigation: Burger-Menü + Suche (links), Marke mittig,
+// Sprachumschalter + Konto (rechts) — eine Leiste für alle Breiten, das Menü
+// trägt Bereiche + Patch-Liste. Keeps id="topbar" so existing per-page scroll
+// JS keeps working. Breadcrumbs werden nicht mehr im Header angezeigt, das
+// BreadcrumbList-JSON-LD für SEO bleibt aber (crumbLd).
 // Plumbing, not a reskin: themes itself via the page's palette variables,
 // no motion beyond the existing scrolled-state.
 import { readFileSync } from 'node:fs';
@@ -76,44 +77,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 ---
 <nav class="snav" id="topbar" aria-label={t('nav.main')}>
   <div class="snav__left">
-    <a class="snav__brand" href={L('/index.html')} aria-label={t('nav.home.aria')}>
-      <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="32" cy="32" r="6" fill="currentColor"/></svg>
-      <span>Verse·Base</span>
-    </a>
-    {crumbs.length > 0 && (
-      <nav class="snav__crumbs" aria-label={t('nav.path')}>
-        <ol>
-          {crumbs.map((c, i) => (
-            <li class={i < crumbs.length - 1 ? 'snav__mid' : undefined}>
-              {c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    )}
-  </div>
-  <div class="snav__right">
-    <button class="snav__search" type="button" data-scs-open aria-label={t('nav.search.open')}>
-      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-      <span>{t('nav.search')}</span>
-      <kbd>{t('nav.search.kbd')}</kbd>
-    </button>
-    <a
-      class="snav__acct js-nav-acct"
-      href={L('/account/login.html')}
-      data-login={L('/account/login.html')}
-      data-dash={L('/account.html')}
-      data-l-login={t('nav.account.login')}
-      data-l-acct={t('nav.account')}
-      aria-label={t('nav.account.aria')}
-    >
-      <span class="snav__acct-icon">
-        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span class="snav__acct-dot" aria-hidden="true"></span>
-      </span>
-      <span class="js-nav-acct-txt">{t('nav.account.login')}</span>
-    </a>
-    <LangSwitcher hasEn={hasEn} />
     <details class="snav__dd snav__menu">
       <summary aria-label={t('nav.menu.open')}>
         <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
@@ -228,6 +191,35 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
         </div>
       </div>
     </details>
+    <button class="snav__search" type="button" data-scs-open aria-label={t('nav.search.open')}>
+      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      <span>{t('nav.search')}</span>
+      <kbd>{t('nav.search.kbd')}</kbd>
+    </button>
+  </div>
+  <div class="snav__center">
+    <a class="snav__brand" href={L('/index.html')} aria-label={t('nav.home.aria')}>
+      <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="32" cy="32" r="6" fill="currentColor"/></svg>
+      <span>Verse·Base</span>
+    </a>
+  </div>
+  <div class="snav__right">
+    <LangSwitcher hasEn={hasEn} />
+    <a
+      class="snav__acct js-nav-acct"
+      href={L('/account/login.html')}
+      data-login={L('/account/login.html')}
+      data-dash={L('/account.html')}
+      data-l-login={t('nav.account.login')}
+      data-l-acct={t('nav.account')}
+      aria-label={t('nav.account.aria')}
+    >
+      <span class="snav__acct-icon">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="snav__acct-dot" aria-hidden="true"></span>
+      </span>
+      <span class="js-nav-acct-txt">{t('nav.account.login')}</span>
+    </a>
   </div>
 </nav>
 {crumbLd && <script type="application/ld+json" set:html={JSON.stringify(crumbLd)} />}
@@ -243,9 +235,9 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     left: 0;
     right: 0;
     z-index: 9100;
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
     gap: 1rem;
     padding: 0.7rem clamp(1rem, 4vw, 2.5rem);
     background: linear-gradient(180deg, rgba(0, 0, 0, 0.9), transparent);
@@ -256,11 +248,16 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     background: rgba(0, 0, 0, 0.95);
     border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
   }
+  /* left = burger + search, center = brand (true visual center regardless of
+     how wide the left/right groups are), right = lang + account */
   .snav__left {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    min-width: 0;
+    gap: 0.6rem;
+    justify-self: start;
+  }
+  .snav__center {
+    justify-self: center;
   }
   .snav__brand {
     display: inline-flex;
@@ -278,60 +275,11 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     color: var(--accent, #2dd4ff);
     flex: none;
   }
-  .snav__crumbs ol {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    min-width: 0;
-  }
-  .snav__crumbs li {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    font-family: var(--font-ui, sans-serif);
-    font-weight: 600;
-    font-size: 0.85rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted, #8a99b8);
-    white-space: nowrap;
-  }
-  .snav__crumbs li + li::before {
-    content: '›';
-    color: var(--muted, #8a99b8);
-    opacity: 0.6;
-    flex: none;
-  }
-  .snav__crumbs a:hover {
-    color: var(--accent, #2dd4ff);
-  }
-  .snav__crumbs [aria-current] {
-    color: var(--text, #e8eefc);
-  }
-  /* long leaf crumbs (ship names) truncate instead of colliding with the
-     nav actions — the whole flex chain must be allowed to shrink */
-  .snav__crumbs {
-    min-width: 0;
-  }
-  .snav__crumbs li:last-child {
-    /* shrinkable, but never below a readable ellipsis stub */
-    min-width: 96px;
-    overflow: hidden;
-  }
-  .snav__crumbs li:last-child [aria-current] {
-    display: block;
-    max-width: min(320px, 100%);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
   .snav__right {
     display: flex;
     align-items: center;
     gap: 0.6rem;
+    justify-self: end;
   }
   .snav__search {
     display: inline-flex;
@@ -461,7 +409,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
   .snav__panel {
     position: absolute;
-    right: 0;
+    left: 0;
     top: calc(100% + 8px);
     z-index: 9200;
     min-width: 360px;
@@ -614,16 +562,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   /* the nav carries more links since Phase 1 (Schiffe, Evolution) — shed
      ballast in stages before anything can collide (breakpoints calibrated
      for the 18px root scale) */
-  @media (max-width: 1120px) {
-    /* must out-rank the `.snav__crumbs li` base rule (scoped specificity) */
-    .snav__crumbs li.snav__mid {
-      display: none;
-    }
-    /* a hidden mid still counts for `li + li` — suppress the orphaned › */
-    .snav__crumbs li.snav__mid + li::before {
-      display: none;
-    }
-  }
   @media (max-width: 860px) {
     .snav__panel {
       min-width: 270px;
@@ -674,13 +612,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       right: 0.75rem;
       top: 3.6rem;
       min-width: 0;
-    }
-  }
-  /* very narrow: brand + actions only — the crumb would collide with the
-     search/menu buttons, and the page hero already states the location */
-  @media (max-width: 640px) {
-    .snav__crumbs {
-      display: none;
     }
   }
   /* small phones: the burger keeps its icon, the label goes — otherwise
