@@ -1,0 +1,6 @@
+# Secrets — the bot token lives here. NEVER commit it.
+.env
+
+# Local install + logs
+node_modules/
+*.log

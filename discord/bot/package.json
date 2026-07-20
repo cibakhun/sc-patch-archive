@@ -1,0 +1,23 @@
+{
+  "name": "verse-base-rank-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "VerseBase — full-depth leveling & rank system for Discord (always-on gateway bot).",
+  "scripts": {
+    "start": "node src/index.mjs",
+    "dev": "node --watch src/index.mjs",
+    "register": "node src/register-commands.mjs",
+    "selftest": "node src/selftest.mjs"
+  },
+  "engines": {
+    "node": ">=20.9"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "discord.js": "^14.16.3"
+  },
+  "optionalDependencies": {
+    "@napi-rs/canvas": "^0.1.65"
+  }
+}

@@ -1,6 +1,19 @@
+# Node / build artifacts
 node_modules
+**/node_modules
 dist
+.astro
+
+# VCS / CI / editor / session
 .git
 .github
 .claude
+
+# Logs
 *.log
+**/*.log
+
+# Secrets & local runtime state — NEVER bake these into any image
+.env
+**/.env
+discord/bot/data

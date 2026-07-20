@@ -1,0 +1,11 @@
+# Secret — bot token
+.env
+
+# Local install, data, logs
+node_modules/
+data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.log
