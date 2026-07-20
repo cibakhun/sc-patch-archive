@@ -10,6 +10,11 @@
 //  PermissionFlagsBits keys (e.g. "ManageMessages"); the builder resolves them
 //  and warns on anything unknown, so newer names degrade gracefully.
 //
+//  Bilingual: Discord can't show static channel content per-user, so shared
+//  text (topics, seed posts, onboarding, welcome screen) carries BOTH languages
+//  inline — English first, then Deutsch, on a "·" or a divider line. The always-
+//  on bot renders per-user replies in the caller's language instead (see bot/).
+//
 //  Brand colours mirror verse-base.com: the signature cyan, plus each site
 //  tool's own accent mapped onto its matching role/channel.
 // ═════════════════════════════════════════════════════════════════════════
@@ -113,70 +118,73 @@ const STAFF_VIEW = {
 // ── Categories & channels ──────────────────────────────────────────────────
 // type: text | announcement | voice | stage | forum | category
 // readonly: @everyone can read + react but not post (staff can post)
+// Topics are bilingual (EN · DE); voice/stage topics are ignored by Discord.
 export const categories = [
   {
     key: 'cat-start', name: '⁘ START HERE',
     channels: [
-      { key: 'welcome', name: '📜・welcome', type: 'announcement', readonly: true, topic: 'Welcome aboard. What VerseBase is, and how to get moving.' },
-      { key: 'rules', name: '📏・rules', type: 'text', readonly: true, topic: 'The house rules. Read once, fly right.' },
-      { key: 'start-here', name: '🧭・start-here', type: 'text', readonly: true, topic: 'Server map + every verse-base.com tool, linked.' },
-      { key: 'announcements', name: '📣・announcements', type: 'announcement', readonly: true, topic: 'Server news. Opt into 📢 Announcement Pings in onboarding.' },
-      { key: 'patch-notes', name: '🩹・patch-notes', type: 'announcement', readonly: true, topic: 'Star Citizen patch drops, mirrored from the archive. Opt into 🔔 Patch Pings.' },
-      { key: 'roles-info', name: '🎭・pick-your-roles', type: 'text', readonly: true, topic: 'How to grab interest, ping, language & pronoun roles any time.' },
+      { key: 'welcome', name: '📜・welcome', type: 'announcement', readonly: true, topic: 'Welcome aboard — what VerseBase is, and how to get moving · Willkommen an Bord — was VerseBase ist und wie du loslegst' },
+      { key: 'rules', name: '📏・rules', type: 'text', readonly: true, topic: 'The house rules. Read once, fly right · Die Serverregeln. Einmal lesen, sauber fliegen' },
+      { key: 'start-here', name: '🧭・start-here', type: 'text', readonly: true, topic: 'Server map + every verse-base.com tool, linked · Server-Karte + alle verse-base.com-Tools, verlinkt' },
+      { key: 'announcements', name: '📣・announcements', type: 'announcement', readonly: true, topic: 'Server news · opt into 📢 Announcement Pings · Server-News · 📢-Ankündigungs-Pings aktivieren' },
+      { key: 'patch-notes', name: '🩹・patch-notes', type: 'announcement', readonly: true, topic: 'Every patch, mirrored from the archive · opt into 🔔 Patch Pings · Jeder Patch, aus dem Archiv gespiegelt · 🔔 Patch-Pings' },
+      { key: 'roles-info', name: '🎭・pick-your-roles', type: 'text', readonly: true, topic: 'Grab interest, ping, language & pronoun roles any time · Interessen-, Ping-, Sprach- & Pronomen-Rollen jederzeit' },
     ],
   },
   {
     key: 'cat-verse', name: '🌌 THE VERSE',
     channels: [
-      { key: 'general', name: '💬・general', type: 'text', topic: 'Main hangar. All-purpose chat.' },
-      { key: 'introductions', name: '👋・introductions', type: 'text', topic: 'New here? Say hi — handle, playstyle, home system.' },
-      { key: 'screenshots', name: '📸・screenshots', type: 'text', topic: 'Your best shots of the ’verse. Images & clips welcome.' },
-      { key: 'clips', name: '🎬・clips', type: 'text', topic: 'Highlight reels, montages, that one impossible save.' },
-      { key: 'memes', name: '😂・memes', type: 'text', topic: '30k survivors welcome. Keep it light.' },
-      { key: 'off-topic', name: '🪐・off-topic', type: 'text', topic: 'Everything that isn’t Star Citizen.' },
-      { key: 'bot-commands', name: '🤖・bot-commands', type: 'text', topic: 'Slash-command spam lives here.', slowmode: 3 },
+      { key: 'general', name: '💬・general', type: 'text', topic: 'Main hangar — all-purpose chat · Haupt-Hangar — Plausch über alles' },
+      { key: 'introductions', name: '👋・introductions', type: 'text', topic: 'New here? Say hi — handle, playstyle, home system · Neu hier? Sag Hallo — Name, Spielstil, Heimatsystem' },
+      { key: 'screenshots', name: '📸・screenshots', type: 'text', topic: 'Your best shots of the ’verse — images & clips welcome · Deine besten Aufnahmen aus dem ’Verse — Bilder & Clips willkommen' },
+      { key: 'clips', name: '🎬・clips', type: 'text', topic: 'Highlight reels, montages, that one impossible save · Highlight-Clips, Montagen, die eine unmögliche Rettung' },
+      { key: 'memes', name: '😂・memes', type: 'text', topic: '30k survivors welcome. Keep it light · 30k-Überlebende willkommen. Locker bleiben' },
+      { key: 'off-topic', name: '🪐・off-topic', type: 'text', topic: 'Everything that isn’t Star Citizen · Alles, was nicht Star Citizen ist' },
+      { key: 'bot-commands', name: '🤖・bot-commands', type: 'text', topic: 'Slash-command spam lives here · Slash-Command-Spam gehört hierher', slowmode: 3 },
     ],
   },
   {
     key: 'cat-tools', name: '🛠 TOOLS & DATA',
     channels: [
-      { key: 'mining', name: '⛏・mining', type: 'text', topic: `Minerals, refining, calculators → ${SITE}/topics/mining.html` },
-      { key: 'trading', name: '💰・trading', type: 'text', topic: `Commodity routes & live prices → ${SITE}/item-finder.html` },
-      { key: 'crafting', name: '🔧・crafting-salvage', type: 'text', topic: `Blueprints, planner & dismantling → ${SITE}/topics/crafting.html` },
-      { key: 'ships', name: '🚀・ships', type: 'text', topic: `Data sheets, specs & the 3D holo viewer → ${SITE}/schiffe.html` },
-      { key: 'missions', name: '📜・missions', type: 'text', topic: `Rewards & reputation → ${SITE}/missionen.html` },
-      { key: 'wikelo-ch', name: '🐟・wikelo-emporium', type: 'text', topic: `Banu trades & the Emporium → ${SITE}/topics/wikelo-emporium.html` },
-      { key: 'guides', name: '📚・guides', type: 'forum', topic: 'Community guides & resources. Post one per thread.' },
+      { key: 'mining', name: '⛏・mining', type: 'text', topic: `Minerals, refining & calculators · Erze, Raffination & Rechner → ${SITE}/topics/mining.html` },
+      { key: 'trading', name: '💰・trading', type: 'text', topic: `Commodity routes & live prices · Warenrouten & Live-Preise → ${SITE}/item-finder.html` },
+      { key: 'crafting', name: '🔧・crafting-salvage', type: 'text', topic: `Blueprints, planner & dismantling · Baupläne, Planer & Zerlegen → ${SITE}/topics/crafting.html` },
+      { key: 'ships', name: '🚀・ships', type: 'text', topic: `Data sheets, specs & the 3D holo viewer · Datenblätter, Werte & 3D-Holo-Viewer → ${SITE}/schiffe.html` },
+      { key: 'combat', name: '⚔・combat', type: 'text', topic: `Dogfights, loadouts & fleet ops · ship data sheets · Dogfights, Loadouts & Flottenops · Schiffs-Datenblätter → ${SITE}/schiffe.html` },
+      { key: 'exploration', name: '🧭・exploration', type: 'text', topic: `Deep space & the Aaron Halo jump calc by Jordessey · Tiefraum & Aaron-Halo-Rechner von Jordessey → ${SITE}/precision-jump.html` },
+      { key: 'missions', name: '📜・missions', type: 'text', topic: `Rewards & reputation · Belohnungen & Reputation → ${SITE}/missionen.html` },
+      { key: 'wikelo-ch', name: '🐟・wikelo-emporium', type: 'text', topic: `Banu trades & the Emporium · Banu-Tauschgeschäfte & das Emporium → ${SITE}/topics/wikelo-emporium.html` },
+      { key: 'guides', name: '📚・guides', type: 'forum', topic: 'Community guides & resources — one per thread · Community-Guides & Ressourcen — eins pro Thread' },
     ],
   },
   {
     key: 'cat-crew', name: '🤝 CREW UP',
     channels: [
-      { key: 'lfg', name: '🔎・looking-for-group', type: 'text', topic: 'Find a crew or fill a seat. Ping the playstyle roles.' },
-      { key: 'trade-deals', name: '💱・trade-deals', type: 'text', topic: 'Buy / sell / haul. Post the route and the split.' },
-      { key: 'org-recruitment', name: '🛡・org-recruitment', type: 'text', topic: 'Recruiting for your org? Pitch it here. One post, no spam.', slowmode: 30 },
-      { key: 'events-chat', name: '📅・events', type: 'text', topic: 'Community events & fleet ops. Check the Events tab up top.' },
+      { key: 'lfg', name: '🔎・looking-for-group', type: 'text', topic: 'Find a crew or fill a seat — ping the playstyle roles · Crew finden oder Platz füllen — Spielstil-Rollen pingen' },
+      { key: 'trade-deals', name: '💱・trade-deals', type: 'text', topic: 'Buy / sell / haul — post the route and the split · Kaufen / verkaufen / transportieren — Route & Anteil posten' },
+      { key: 'org-recruitment', name: '🛡・org-recruitment', type: 'text', topic: 'Recruiting for your org? One post, no spam · Für deine Org rekrutieren? Ein Post, kein Spam', slowmode: 30 },
+      { key: 'events-chat', name: '📅・events', type: 'text', topic: 'Community events & fleet ops — check the Events tab up top · Community-Events & Flottenops — Events-Tab oben' },
     ],
   },
   {
     key: 'cat-voice', name: '🔊 VOICE CHANNELS',
     channels: [
-      { key: 'v-landing', name: '🛬 Landing Zone', type: 'voice', topic: 'General voice.' },
+      { key: 'v-landing', name: '🛬 Landing Zone', type: 'voice' },
       { key: 'v-mining', name: '⛏ Mining Op', type: 'voice' },
       { key: 'v-trade', name: '💰 Trade Run', type: 'voice' },
       { key: 'v-combat', name: '🚀 Combat Wing', type: 'voice' },
       { key: 'v-chill', name: '🎧 Chill Lounge', type: 'voice' },
-      { key: 'stage-briefing', name: '📻 Briefing Room', type: 'stage', topic: 'Events, AMAs & fleet briefings.' },
+      { key: 'stage-briefing', name: '📻 Briefing Room', type: 'stage' },
       { key: 'v-afk', name: '💤 AFK', type: 'voice' },
     ],
   },
   {
     key: 'cat-staff', name: '🛡 FLIGHT DECK', private: true, overwrites: STAFF_VIEW,
     channels: [
-      { key: 'staff-chat', name: '🗝・staff-chat', type: 'text', topic: 'Crew coordination.' },
-      { key: 'mod-log', name: '🧾・mod-log', type: 'text', topic: 'Moderation trail.' },
-      { key: 'bot-config', name: '⚙・bot-config', type: 'text', topic: 'Bot commands & configuration.' },
-      { key: 'staff-updates', name: '📥・community-updates', type: 'text', topic: 'Discord’s admin & Community notices land here.' },
+      { key: 'staff-chat', name: '🗝・staff-chat', type: 'text', topic: 'Crew coordination · Crew-Koordination' },
+      { key: 'mod-log', name: '🧾・mod-log', type: 'text', topic: 'Moderation trail · Moderations-Protokoll' },
+      { key: 'bot-config', name: '⚙・bot-config', type: 'text', topic: 'Bot commands & configuration · Bot-Befehle & Konfiguration' },
+      { key: 'staff-updates', name: '📥・community-updates', type: 'text', topic: 'Discord’s admin & Community notices land here · Discord-Admin- & Community-Hinweise landen hier' },
     ],
   },
 ];
@@ -191,76 +199,82 @@ export const community = {
 };
 
 // ── Welcome screen (the invite splash) ─────────────────────────────────────
+// Discord caps description at 140 chars and each channel line at 50 — kept
+// bilingual and compact.
 export const welcomeScreen = {
   enabled: true,
-  description: 'The Star Citizen compendium, now with a crew. Tools, patch intel & people who fly.',
+  description: 'The Star Citizen compendium, now with a crew · Das Star-Citizen-Kompendium, jetzt mit Crew',
   channels: [
-    { channel: 'start-here', emoji: '🧭', description: 'Server map + every tool' },
-    { channel: 'rules', emoji: '📏', description: 'The house rules' },
-    { channel: 'patch-notes', emoji: '🩹', description: 'Every patch, mirrored' },
-    { channel: 'mining', emoji: '⛏', description: 'Minerals & calculators' },
-    { channel: 'general', emoji: '💬', description: 'Say hi' },
+    { channel: 'start-here', emoji: '🧭', description: 'Map & tools · Karte & Tools' },
+    { channel: 'rules', emoji: '📏', description: 'House rules · Serverregeln' },
+    { channel: 'patch-notes', emoji: '🩹', description: 'Every patch · Alle Patches' },
+    { channel: 'mining', emoji: '⛏', description: 'Minerals & calc · Erze & Rechner' },
+    { channel: 'general', emoji: '💬', description: 'Say hi · Sag Hallo' },
   ],
 };
 
-// ── Onboarding (native role/interest selection — no 24/7 bot needed) ────────
+// ── Onboarding (native role/interest selection) ────────────────────────────
+// Prompt/option titles are bilingual (EN · DE). Combat and Exploration now map
+// to real home channels (they used to grant a role but no channel).
 export const onboarding = {
   enabled: true,
   defaultChannels: [
     'welcome', 'rules', 'start-here', 'announcements', 'patch-notes', 'roles-info',
     'general', 'introductions', 'screenshots', 'mining', 'trading', 'ships',
-    'missions', 'lfg', 'guides',
+    'combat', 'exploration', 'missions', 'lfg', 'guides',
   ],
   prompts: [
     {
-      title: 'What do you fly for?',
+      title: 'What do you fly for? · Wofür fliegst du?',
       type: 'multi', required: false,
       options: [
-        { title: 'Mining', description: 'Rocks, gems & refining', emoji: '⛏', roles: ['miner'], channels: ['mining'] },
-        { title: 'Trading', description: 'Routes, cargo & margins', emoji: '💰', roles: ['trader'], channels: ['trading'] },
-        { title: 'Crafting & Salvage', description: 'Blueprints & scrap', emoji: '🔧', roles: ['industrialist'], channels: ['crafting'] },
-        { title: 'Combat', description: 'PvP, bounties & fleet ops', emoji: '🚀', roles: ['combat-pilot'], channels: [] },
-        { title: 'Exploration', description: 'Deep space & discovery', emoji: '🧭', roles: ['explorer'], channels: [] },
-        { title: 'Missions', description: 'Contracts & reputation', emoji: '📜', roles: ['contractor'], channels: ['missions'] },
-        { title: 'Banu Trades', description: 'Wikelo’s Emporium', emoji: '🐟', roles: ['wikelo'], channels: ['wikelo-ch'] },
+        { title: 'Mining · Bergbau', description: 'Rocks, gems & refining · Erze, Edelsteine & Raffination', emoji: '⛏', roles: ['miner'], channels: ['mining'] },
+        { title: 'Trading · Handel', description: 'Routes, cargo & margins · Routen, Fracht & Margen', emoji: '💰', roles: ['trader'], channels: ['trading'] },
+        { title: 'Crafting & Salvage · Handwerk & Bergung', description: 'Blueprints & scrap · Baupläne & Schrott', emoji: '🔧', roles: ['industrialist'], channels: ['crafting'] },
+        { title: 'Combat · Kampf', description: 'PvP, bounties & fleet ops · PvP, Kopfgelder & Flottenops', emoji: '🚀', roles: ['combat-pilot'], channels: ['combat'] },
+        { title: 'Exploration · Erkundung', description: 'Deep space & discovery · Tiefraum & Entdeckung', emoji: '🧭', roles: ['explorer'], channels: ['exploration'] },
+        { title: 'Missions · Missionen', description: 'Contracts & reputation · Aufträge & Reputation', emoji: '📜', roles: ['contractor'], channels: ['missions'] },
+        { title: 'Banu Trades · Banu-Handel', description: 'Wikelo’s Emporium · Wikelos Emporium', emoji: '🐟', roles: ['wikelo'], channels: ['wikelo-ch'] },
       ],
     },
     {
-      title: 'Where should we ping you?',
+      title: 'Where should we ping you? · Wobei sollen wir dich pingen?',
       type: 'multi', required: false,
       options: [
-        { title: 'Patch drops', description: 'New Star Citizen patches', emoji: '🔔', roles: ['patch-watch'], channels: ['patch-notes'] },
-        { title: 'Announcements', description: 'Server news', emoji: '📢', roles: ['announce-ping'], channels: ['announcements'] },
-        { title: 'Events', description: 'Community events & ops', emoji: '🎉', roles: ['event-ping'], channels: ['events-chat'] },
+        { title: 'Patch drops · Patch-Releases', description: 'New Star Citizen patches · Neue Star-Citizen-Patches', emoji: '🔔', roles: ['patch-watch'], channels: ['patch-notes'] },
+        { title: 'Announcements · Ankündigungen', description: 'Server news · Server-News', emoji: '📢', roles: ['announce-ping'], channels: ['announcements'] },
+        { title: 'Events · Events', description: 'Community events & ops · Community-Events & Ops', emoji: '🎉', roles: ['event-ping'], channels: ['events-chat'] },
       ],
     },
     {
-      title: 'Pick your language',
+      title: 'Pick your language · Wähle deine Sprache',
       type: 'single', required: false,
       options: [
-        { title: 'English', emoji: '🇬🇧', roles: ['lang-en'], channels: [] },
-        { title: 'Deutsch', emoji: '🇩🇪', roles: ['lang-de'], channels: [] },
+        { title: 'English', description: 'The bot replies to you in English', emoji: '🇬🇧', roles: ['lang-en'], channels: [] },
+        { title: 'Deutsch', description: 'Der Bot antwortet dir auf Deutsch', emoji: '🇩🇪', roles: ['lang-de'], channels: [] },
       ],
     },
     {
-      title: 'Pronouns (optional)',
+      title: 'Pronouns (optional) · Pronomen (optional)',
       type: 'multi', required: false,
       options: [
         { title: 'they/them', roles: ['pn-they'], channels: [] },
         { title: 'she/her', roles: ['pn-she'], channels: [] },
         { title: 'he/him', roles: ['pn-he'], channels: [] },
-        { title: 'ask me', roles: ['pn-ask'], channels: [] },
+        { title: 'ask me · frag mich', roles: ['pn-ask'], channels: [] },
       ],
     },
   ],
 };
 
 // ── Seed content (posted + pinned once; re-runs skip already-seeded channels)
-// Each entry is a list of embeds. Default colour is the brand cyan.
+// Each entry is a list of embeds. Default colour is the brand cyan. Content is
+// bilingual: an English block, a divider, then the German block.
+const DIV = '\n─────────────\n';
 export const seed = {
   welcome: [
     {
-      title: '⬡ Welcome to VerseBase',
+      title: '⬡ Welcome to VerseBase · Willkommen bei VerseBase',
       color: C.cyan,
       description: [
         `This is the community hangar for **[verse-base.com](${SITE})** — the unofficial Star Citizen compendium.`,
@@ -270,62 +284,79 @@ export const seed = {
         '**Get moving:**',
         '🧭 Read <#start-here> for the map + every tool',
         '📏 Skim the <#rules>',
-        '🎭 Pick your roles in onboarding (or <#roles-info>)',
+        '🎭 Pick your roles in onboarding (or <#roles-info>) — including your **language**, which sets the language the bot answers you in',
         '👋 Drop a line in <#introductions>',
+        DIV,
+        `Das ist der Community-Hangar für **[verse-base.com](${SITE})** — das inoffizielle Star-Citizen-Kompendium.`,
+        '',
+        'Item-Preise & Fundorte, Mining-Tools, eine Handwerks-Datenbank, Wikelo-Tauschgeschäfte, Schiffs-Datenblätter mit 3D-Holo-Viewer und das komplette Patch-Archiv der Alpha-4-Ära — alles spielgenau, und jetzt mit Leuten zum Mitfliegen.',
+        '',
+        '**Leg los:**',
+        '🧭 Lies <#start-here> für die Karte + alle Tools',
+        '📏 Überflieg die <#rules>',
+        '🎭 Wähl deine Rollen im Onboarding (oder <#roles-info>) — inkl. deiner **Sprache**, die bestimmt, in welcher Sprache der Bot dir antwortet',
+        '👋 Sag Hallo in <#introductions>',
       ].join('\n'),
       footer: 'VerseBase • verse-base.com',
     },
   ],
   rules: [
     {
-      title: '📏 The House Rules',
+      title: '📏 The House Rules · Die Serverregeln',
       color: C.blue,
-      description: 'Short version: be decent, keep it on-topic, fly right.',
+      description: 'Short version: be decent, keep it on-topic, fly right.\nKurzfassung: sei anständig, bleib beim Thema, flieg sauber.',
       fields: [
-        { name: '1 · Respect the crew', value: 'No harassment, hate, slurs or personal attacks. Treat people the way you’d want on your own ship.' },
-        { name: '2 · English first', value: 'This server runs in English so everyone can follow along. Deutsch is welcome in DMs and among 🇩🇪 members.' },
-        { name: '3 · Use the right channel', value: 'Keep tools talk in <#mining>, <#trading>, <#ships> and friends. It keeps threads findable.' },
-        { name: '4 · No spam or ads', value: 'No unsolicited DMs, invites, referral links or self-promo outside <#org-recruitment>.' },
-        { name: '5 · Keep it SFW & legal', value: 'No NSFW, no piracy, no cheats/exploits, no account or credit trading. Follow Discord’s ToS and CIG’s rules.' },
-        { name: '6 · No drama-farming', value: 'Disagree fine, dogpile no. Staff (🛰 Navigators, ⭐ Fleet Command) have the final call.' },
+        { name: '1 · Respect the crew · Respektiere die Crew', value: 'No harassment, hate, slurs or personal attacks. Treat people the way you’d want on your own ship.\nKeine Belästigung, kein Hass, keine Beleidigungen oder persönlichen Angriffe. Behandle andere so, wie du es auf deinem eigenen Schiff wollen würdest.' },
+        { name: '2 · Any language welcome · Jede Sprache willkommen', value: 'English and Deutsch are both at home here — pick your language role and the bot answers you in it. Use whichever channel language you like; be readable.\nEnglisch und Deutsch sind beide zu Hause — wähl deine Sprachrolle und der Bot antwortet dir darin. Schreib in der Sprache, die dir liegt; bleib verständlich.' },
+        { name: '3 · Use the right channel · Nutze den richtigen Kanal', value: 'Keep tools talk in <#mining>, <#trading>, <#ships> and friends. It keeps threads findable.\nHalte Tool-Themen in <#mining>, <#trading>, <#ships> & Co. So bleiben Threads auffindbar.' },
+        { name: '4 · No spam or ads · Kein Spam, keine Werbung', value: 'No unsolicited DMs, invites, referral links or self-promo outside <#org-recruitment>.\nKeine ungefragten DMs, Invites, Referral-Links oder Eigenwerbung außerhalb von <#org-recruitment>.' },
+        { name: '5 · Keep it SFW & legal · Halte es SFW & legal', value: 'No NSFW, no piracy, no cheats/exploits, no account or credit trading. Follow Discord’s ToS and CIG’s rules.\nKein NSFW, keine Piraterie, keine Cheats/Exploits, kein Konto- oder Credit-Handel. Halte dich an Discords ToS und CIGs Regeln.' },
+        { name: '6 · No drama-farming · Kein Drama-Farming', value: 'Disagree fine, dogpile no. Staff (🛰 Navigators, ⭐ Fleet Command) have the final call.\nUneinigkeit okay, Dogpiling nein. Das Team (🛰 Navigators, ⭐ Fleet Command) hat das letzte Wort.' },
       ],
-      footer: 'Breaking these can mean a mute, kick or ban. Ping a Navigator if you need help.',
+      footer: 'Breaking these can mean a mute, kick or ban · Verstöße können Mute, Kick oder Bann bedeuten',
     },
   ],
   'start-here': [
     {
-      title: '🧭 Start Here — the VerseBase map',
+      title: '🧭 Start Here — the VerseBase map · Der VerseBase-Wegweiser',
       color: C.cyan,
-      description: 'Everything on the server, and the tool behind each channel.',
+      description: 'Everything on the server, and the tool behind each channel.\nAlles auf dem Server, und das Tool hinter jedem Kanal.',
       fields: [
-        { name: '🛠 Tools & Data', value: `Each channel pairs with a live tool on the site:\n⛏ <#mining> — [Minerals & calculators](${SITE}/topics/mining.html)\n💰 <#trading> — [Prices & locations](${SITE}/item-finder.html)\n🔧 <#crafting> — [Blueprints & planner](${SITE}/topics/crafting.html)\n🚀 <#ships> — [Data sheets & holo viewer](${SITE}/schiffe.html)\n📜 <#missions> — [Rewards & reputation](${SITE}/missionen.html)\n🐟 <#wikelo-ch> — [Wikelo’s Emporium](${SITE}/topics/wikelo-emporium.html)` },
-        { name: '🤝 Crew up', value: 'Find a group in <#lfg>, deals in <#trade-deals>, and events in <#events-chat>. Voice is one click down the list.' },
-        { name: '🎭 Your roles', value: 'Re-open **Onboarding** (top of the channel list → "Channels & Roles") any time to add or drop interest, ping, language and pronoun roles.' },
-        { name: '🌐 The whole compendium', value: `[verse-base.com](${SITE}) · [Patch archive](${SITE}/archiv.html) · [Evolution timeline](${SITE}/evolution.html) · [Downloads](${SITE}/downloads.html)` },
+        { name: '🛠 Tools & Data', value: `Each channel pairs with a live tool on the site · Jeder Kanal ist mit einem Live-Tool der Seite verknüpft:\n⛏ <#mining> — [Minerals & calculators](${SITE}/topics/mining.html)\n💰 <#trading> — [Prices & locations](${SITE}/item-finder.html)\n🔧 <#crafting> — [Blueprints & planner](${SITE}/topics/crafting.html)\n🚀 <#ships> — [Data sheets & holo viewer](${SITE}/schiffe.html)\n🧭 <#exploration> — [Aaron Halo jump calc](${SITE}/precision-jump.html)\n📜 <#missions> — [Rewards & reputation](${SITE}/missionen.html)\n🐟 <#wikelo-ch> — [Wikelo’s Emporium](${SITE}/topics/wikelo-emporium.html)` },
+        { name: '🤝 Crew up · Zusammen fliegen', value: 'Find a group in <#lfg>, deals in <#trade-deals>, and events in <#events-chat>. Voice is one click down.\nGruppe in <#lfg>, Deals in <#trade-deals>, Events in <#events-chat>. Voice ist einen Klick weiter unten.' },
+        { name: '🎭 Your roles · Deine Rollen', value: 'Re-open **Channels & Roles** (top of the list) any time to add or drop interest, ping, language & pronoun roles.\nÖffne **Kanäle & Rollen** (oben in der Liste) jederzeit, um Interessen-, Ping-, Sprach- & Pronomen-Rollen zu ändern.' },
+        { name: '🌐 The whole compendium · Das ganze Kompendium', value: `[verse-base.com](${SITE}) · [Patch archive / Patch-Archiv](${SITE}/archiv.html) · [Evolution timeline / Evolution](${SITE}/evolution.html) · [Downloads](${SITE}/downloads.html)` },
+        { name: '🙏 Credits · Danksagung', value: `The Aaron Halo / Precision Jump calculator was contributed by **Jordessey** — with thanks. · Der Aaron-Halo-/Precision-Jump-Rechner stammt mit Dank von **Jordessey**. → [precision-jump](${SITE}/precision-jump.html)` },
       ],
       footer: 'VerseBase • verse-base.com',
     },
   ],
   'patch-notes': [
     {
-      title: '🩹 Patch feed is live',
+      title: '🩹 Patch feed is live · Der Patch-Feed ist aktiv',
       color: C.gold,
       description: [
-        'Every Star Citizen patch gets mirrored here from the archive, so you never miss a drop.',
+        'Every Star Citizen patch gets mirrored here from the archive, so you never miss a drop. New patches post in **both English and German**.',
         '',
-        `Browse the full history — the entire Alpha 4 era — on the **[patch archive](${SITE}/archiv.html)**, or trace how each system evolved patch-by-patch on the **[evolution timeline](${SITE}/evolution.html)**.`,
+        `Browse the full history — the entire Alpha 4 era — on the **[patch archive](${SITE}/archiv.html)**, or trace how each system evolved on the **[evolution timeline](${SITE}/evolution.html)**.`,
         '',
         'Want the ping when a patch lands? Grab **🔔 Patch Pings** in onboarding.',
+        DIV,
+        'Jeder Star-Citizen-Patch wird hier aus dem Archiv gespiegelt, damit du keinen verpasst. Neue Patches erscheinen **auf Englisch und Deutsch**.',
+        '',
+        `Durchstöbere die ganze Historie — die komplette Alpha-4-Ära — im **[Patch-Archiv](${SITE}/archiv.html)**, oder verfolge die Entwicklung jedes Systems in der **[Evolution](${SITE}/evolution.html)**.`,
+        '',
+        'Willst du den Ping, wenn ein Patch landet? Schnapp dir **🔔 Patch Pings** im Onboarding.',
       ].join('\n'),
       footer: 'VerseBase • verse-base.com',
     },
   ],
   'roles-info': [
     {
-      title: '🎭 Pick your roles',
+      title: '🎭 Pick your roles · Wähle deine Rollen',
       color: C.tradePurple,
       description: [
-        'Roles colour your name, unlock interest channels and control which pings you get. Grab as many or as few as you like — nothing is required.',
+        'Roles colour your name, unlock interest channels and control which pings you get. Grab as many or as few as you like — nothing is required. Your **language** role also sets the language the bot replies to you in.',
         '',
         '**How:** open **Channels & Roles** at the very top of the channel list (or re-run onboarding) and toggle what fits.',
         '',
@@ -333,6 +364,15 @@ export const seed = {
         '**🔔 Pings** — Patch drops · Announcements · Events',
         '**🌐 Language** — English · Deutsch',
         '**🙂 Pronouns** — they/them · she/her · he/him · ask me',
+        DIV,
+        'Rollen färben deinen Namen, schalten Interessen-Kanäle frei und steuern deine Pings. Nimm so viele oder wenige du willst — nichts ist Pflicht. Deine **Sprach**-Rolle legt außerdem fest, in welcher Sprache der Bot dir antwortet.',
+        '',
+        '**So geht’s:** Öffne **Kanäle & Rollen** ganz oben in der Kanalliste (oder starte das Onboarding neu) und schalte um, was passt.',
+        '',
+        '**⛏ Spielstil** — Miner · Trader · Industrialist · Combat Pilot · Explorer · Contractor · Wikelo Regular',
+        '**🔔 Pings** — Patch-Releases · Ankündigungen · Events',
+        '**🌐 Sprache** — English · Deutsch',
+        '**🙂 Pronomen** — they/them · she/her · he/him · frag mich',
       ].join('\n'),
       footer: 'VerseBase • verse-base.com',
     },

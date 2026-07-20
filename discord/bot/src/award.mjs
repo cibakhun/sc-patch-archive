@@ -5,7 +5,8 @@
 // ═══════════════════════════════════════════════════════════════════════════
 import { EmbedBuilder } from 'discord.js';
 import { levelForXp, progress } from './leveling.mjs';
-import { rankForLevel, nextRank, prestigeStars } from './ranks.mjs';
+import { rankForLevel, nextRank, prestigeStars, rankBlurb } from './ranks.mjs';
+import { resolveLocale, t } from './i18n.mjs';
 
 /**
  * Grant XP to a member and handle any resulting level-up.
@@ -35,15 +36,18 @@ async function onLevelUp(ctx, { member, guild, beforeLevel, afterLevel, row, cur
   const prevRank = rankForLevel(beforeLevel);
   const rank = await ctx.roles.sync(member, afterLevel, row.prestige, config);
   const rankChanged = rank.key !== prevRank.key;
+  // The announcement is about this member and pings them → render in THEIR
+  // language (their 🇩🇪/🇬🇧 role), the closest we get to per-user for a broadcast.
+  const locale = resolveLocale(member);
 
-  if (config.announce.dm) await dmMember(member, guild, afterLevel, rank, rankChanged).catch(() => {});
+  if (config.announce.dm) await dmMember(member, guild, afterLevel, rank, rankChanged, locale).catch(() => {});
   if (config.announce.mode === 'off') return;
   if (config.announce.onlyRanks && !rankChanged) return;
 
   const channel = resolveChannel(guild, config, currentChannel);
   if (!channel) return;
 
-  const embed = buildLevelEmbed({ member, afterLevel, rank, rankChanged, row });
+  const embed = buildLevelEmbed({ member, afterLevel, rank, rankChanged, row, locale });
   await channel.send({
     content: config.announce.pingUser ? `<@${member.id}>` : undefined,
     embeds: [embed],
@@ -63,7 +67,7 @@ function resolveChannel(guild, config, currentChannel) {
   return null;
 }
 
-function buildLevelEmbed({ member, afterLevel, rank, rankChanged, row }) {
+function buildLevelEmbed({ member, afterLevel, rank, rankChanged, row, locale }) {
   const stars = prestigeStars(row.prestige);
   const nxt = nextRank(afterLevel);
   const embed = new EmbedBuilder()
@@ -72,23 +76,23 @@ function buildLevelEmbed({ member, afterLevel, rank, rankChanged, row }) {
     .setFooter({ text: 'VerseBase • rank system' });
 
   if (rankChanged) {
-    embed.setTitle(`${rank.insignia}  New rank — ${rank.name}`)
-      .setDescription(`${member} hit **Level ${afterLevel}** and earned the **${rank.name}** rank.\n_${rank.blurb}_`);
+    embed.setTitle(t(locale, 'levelup.newRankTitle', { ins: rank.insignia, name: rank.name }))
+      .setDescription(t(locale, 'levelup.newRankDesc', { user: member, level: afterLevel, name: rank.name, blurb: rankBlurb(rank, locale) }));
   } else {
-    embed.setTitle(`⬡  Level ${afterLevel}`)
-      .setDescription(`${member} leveled up to **Level ${afterLevel}**.`);
+    embed.setTitle(t(locale, 'levelup.title', { level: afterLevel }))
+      .setDescription(t(locale, 'levelup.desc', { user: member, level: afterLevel }));
   }
 
   const fields = [];
-  if (stars) fields.push({ name: 'Prestige', value: stars, inline: true });
-  if (nxt) fields.push({ name: 'Next rank', value: `${nxt.insignia} ${nxt.name} · Lv ${nxt.level}`, inline: true });
+  if (stars) fields.push({ name: t(locale, 'levelup.prestige'), value: stars, inline: true });
+  if (nxt) fields.push({ name: t(locale, 'levelup.nextRank'), value: t(locale, 'levelup.nextVal', { ins: nxt.insignia, name: nxt.name, level: nxt.level }), inline: true });
   if (fields.length) embed.addFields(fields);
   return embed;
 }
 
-async function dmMember(member, guild, level, rank, rankChanged) {
+async function dmMember(member, guild, level, rank, rankChanged, locale) {
   const line = rankChanged
-    ? `You reached **Level ${level}** in **${guild.name}** and earned the **${rank.insignia} ${rank.name}** rank! 🎉`
-    : `You reached **Level ${level}** in **${guild.name}**.`;
+    ? t(locale, 'dm.rankChanged', { level, guild: guild.name, ins: rank.insignia, name: rank.name })
+    : t(locale, 'dm.level', { level, guild: guild.name });
   await member.send(line);
 }

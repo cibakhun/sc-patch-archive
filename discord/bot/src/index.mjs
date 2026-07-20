@@ -17,6 +17,7 @@ import * as commands from './commands.mjs';
 import { ensureEmoji } from './emoji.mjs';
 import { loadEnv } from './env.mjs';
 import { effectiveMultiplier, applyMultiplier, randomXp } from './leveling.mjs';
+import { resolveLocale, t } from './i18n.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 loadEnv();
@@ -98,7 +99,8 @@ client.on(Events.InteractionCreate, async (i) => {
   } catch (e) {
     console.error('[interaction]', e);
     if (i.isAutocomplete?.()) return;
-    const payload = { content: 'Something went wrong handling that.', ephemeral: true };
+    const locale = resolveLocale(i.member, i.locale);
+    const payload = { content: t(locale, 'err.generic'), ephemeral: true };
     if (i.deferred || i.replied) i.followUp(payload).catch(() => {});
     else i.reply(payload).catch(() => {});
   }

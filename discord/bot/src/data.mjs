@@ -1,10 +1,17 @@
 // ═══════════════════════════════════════════════════════════════════════════
-//  data.mjs — the "Flight Computer" data layer.
+//  data.mjs — the "Flight Computer" data layer (bilingual EN / DE).
 //
 //  Loads a snapshot of the site's own JSON (ships, commodity/item prices,
 //  patches, manufacturers) and exposes fuzzy search. Same data that builds
 //  verse-base.com, so nothing drifts. Reloaded periodically so committed
 //  price/patch updates flow through without a restart.
+//
+//  Language: the raw records carry both languages where the site has them
+//  (ships: typeEn/typeDe/statusEn/statusDe; patches: German base + an English
+//  overlay in patches-en.json). Records are stored language-neutral; call
+//  localizedShip()/localizedPatch(record, locale) at render time to project
+//  the record into one language. Commodity/item data (names, kinds, sale
+//  locations) is UEX-canonical English and shown as-is in both languages.
 //
 //  Path: DATA_DIR env (set in the container) or the repo's src/data in dev.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -57,6 +64,45 @@ function topMatches(list, q, nameFn, n = 5) {
     .map((x) => x.it);
 }
 
+// ── language maps (German source → English) ─────────────────────────────────
+// Ship size is a 6-value enum; ship focus is a bounded gameplay vocabulary. The
+// site stores these German-only, so we translate for English readers. German
+// readers get the raw value. Anything unmapped falls back to the source string.
+const SIZE_EN = {
+  Klein: 'Small', Mittel: 'Medium', Groß: 'Large',
+  Kapitalklasse: 'Capital', Beiboot: 'Snub', Fahrzeug: 'Vehicle',
+};
+const FOCUS_EN = {
+  Einsteiger: 'Starter', Reisen: 'Touring', 'Leichter Jäger': 'Light Fighter',
+  'Leichter Frachter': 'Light Freight', Komfort: 'Comfort', Pfadfinder: 'Pathfinder',
+  Abriegelung: 'Interdiction', Abrieglung: 'Interdiction', Rennsport: 'Racing',
+  Forschungsreisen: 'Expedition', 'Luxus-Reisen': 'Luxury Touring', Bomber: 'Bomber',
+  'Schwerer Bomber': 'Heavy Bomber', Medizin: 'Medical', 'Schwerer Jäger': 'Heavy Fighter',
+  Landungsschiff: 'Dropship', Industrie: 'Industrial', Militär: 'Military',
+  'Mittlerer Frachter': 'Medium Freight', Schwertransport: 'Heavy Hauling',
+  Erkundung: 'Exploration', Gefecht: 'Combat', Generalist: 'Generalist',
+  Kanonenboot: 'Gunship', Aufklärung: 'Reconnaissance', Luftabwehr: 'Anti-Air',
+  Angriff: 'Assault', Tarnkappenbomber: 'Stealth Bomber', 'Mittlerer Jäger': 'Medium Fighter',
+  Tarnkappenjäger: 'Stealth Fighter', 'Beiboot Jäger': 'Snub Fighter', Bergbau: 'Mining',
+  'Schweres Kanonenboot': 'Heavy Gunship', 'Mittlerer Datentransport': 'Medium Data Runner',
+  Fregatte: 'Frigate', Zerstörer: 'Destroyer', 'Luxus-Transport': 'Luxury Transport',
+  'Militärischer Transport': 'Military Transport', 'Mittlerer Frachttransport': 'Medium Cargo',
+  Prospektierung: 'Prospecting', Berichterstattung: 'Journalism', 'Einfache Forschung': 'Basic Research',
+  Passagier: 'Passenger', Transport: 'Transport', Fracht: 'Cargo', Korvette: 'Corvette',
+  Tarnung: 'Stealth', Großbergung: 'Heavy Salvage', 'Einfache Bergung': 'Light Salvage',
+  Bergung: 'Salvage', Kampfunterstützung: 'Combat Support', Transporter: 'Hauler',
+};
+
+// Patch metadata (German-only in the base data) → English.
+const ERA_EN = {
+  'Pyro-Ära': 'Pyro', 'Sturm & Stahl': 'Storm & Steel', 'Onyx & Heilung': 'Onyx & Healing',
+  'Neue Horizonte': 'New Horizons', 'Tactical Strike': 'Tactical Strike', Frontier: 'Frontier',
+};
+const PATCH_TYPE = {
+  en: { major: 'Major', point: 'Point' },
+  de: { major: 'Großes Update', point: 'Point-Release' },
+};
+
 // ── loaders ─────────────────────────────────────────────────────────────────
 function loadShips() {
   const vehicles = load('vehicles.json')?.vehicles || [];
@@ -69,10 +115,13 @@ function loadShips() {
       name: v.name,
       manufacturer: v.manufacturer,
       makerCode: v.makerCode,
-      type: v.typeEn || v.typeDe || null,
-      size: v.sizeDe || null,
-      status: v.statusEn || v.statusDe || null,
-      focus: Array.isArray(v.fociDe) ? v.fociDe.join(', ') : null,
+      // language-typed fields kept raw; project with localizedShip()
+      typeEn: v.typeEn || null,
+      typeDe: v.typeDe || null,
+      sizeDe: v.sizeDe || null,
+      statusEn: v.statusEn || null,
+      statusDe: v.statusDe || null,
+      fociDe: Array.isArray(v.fociDe) ? v.fociDe : [],
       classification: s.classification || null,
       cargoSCU: s.cargoSCU ?? null,
       crewMin: s.crewMin ?? null,
@@ -101,7 +150,13 @@ function loadPatches() {
   const patches = files
     .map((f) => load(join('patches', f)))
     .filter(Boolean)
-    .map((p) => ({ ...p, ...(en[p.version] || {}) }));
+    .map((p) => {
+      // patches-en.json is keyed "4-9-0"; base files carry version "4.9.0".
+      // Normalize so the English overlay actually matches (this join silently
+      // failed before → every patch fell back to German).
+      const key = String(p.version).replace(/\./g, '-');
+      return { ...p, en: en[key] || en[p.version] || null };
+    });
   patches.sort((a, b) => (String(b.date) > String(a.date) ? 1 : -1)); // newest first
   return patches;
 }
@@ -131,6 +186,48 @@ export function counts() {
 }
 
 reload(); // initial load at import
+
+// ── localization projections ────────────────────────────────────────────────
+/** Project a raw ship record into one language for display. */
+export function localizedShip(s, locale) {
+  if (!s) return s;
+  const de = locale === 'de';
+  const foci = s.fociDe.length
+    ? (de ? s.fociDe : s.fociDe.map((f) => FOCUS_EN[f] || f)).join(', ')
+    : null;
+  return {
+    id: s.id, name: s.name, manufacturer: s.manufacturer, makerCode: s.makerCode,
+    type: de ? (s.typeDe || s.classification || s.typeEn) : (s.classification || s.typeEn || s.typeDe),
+    size: s.sizeDe ? (de ? s.sizeDe : (SIZE_EN[s.sizeDe] || s.sizeDe)) : null,
+    status: de ? (s.statusDe || s.statusEn) : (s.statusEn || s.statusDe),
+    focus: foci,
+    cargoSCU: s.cargoSCU, crewMin: s.crewMin, crewMax: s.crewMax,
+    lengthM: s.lengthM, priceUSD: s.priceUSD,
+  };
+}
+
+/** Project a raw patch record into one language for display. */
+export function localizedPatch(p, locale) {
+  if (!p) return p;
+  const de = locale === 'de';
+  const en = p.en || {};
+  const typeMap = de ? PATCH_TYPE.de : PATCH_TYPE.en;
+  return {
+    version: p.version,
+    codename: p.codename,
+    era: p.era ? (de ? p.era : (ERA_EN[p.era] || p.era)) : null,
+    type: p.type ? (typeMap[p.type] || p.type) : null,
+    date: p.date,
+    dateDisplay: de ? p.dateDisplay : (en.dateDisplayEn || en.dateDisplay || p.dateDisplay),
+    notesUrl: p.notesUrl,
+    summary: de ? (p.summary || p.tagline) : (en.summary || en.tagline || p.summary || p.tagline),
+    tagline: de ? p.tagline : (en.tagline || p.tagline),
+    keyFacts: de ? p.keyFacts : (en.keyFacts || p.keyFacts),
+    features: de ? p.features : (en.features || p.features),
+    wipe: de ? p.wipe : (en.wipe || p.wipe),
+    heroImage: p.heroImage,
+  };
+}
 
 // ── public queries ──────────────────────────────────────────────────────────
 export const findShip = (q) => bestMatch(store.ships, q, (s) => s.name)

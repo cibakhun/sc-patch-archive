@@ -2,6 +2,7 @@
 //  card.mjs — the /rank card. Renders a VerseBase-themed PNG via
 //  @napi-rs/canvas when available (registering the site's own fonts), and
 //  gracefully falls back to a rich embed with a unicode progress bar otherwise.
+//  All labels render in the caller's language (locale threaded in).
 // ═══════════════════════════════════════════════════════════════════════════
 import { EmbedBuilder, AttachmentBuilder } from 'discord.js';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +10,7 @@ import { dirname, join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { levelForXp, progress } from './leveling.mjs';
 import { rankForLevel, nextRank, rankIndex, prestigeStars, RANKS } from './ranks.mjs';
+import { t } from './i18n.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const FONT_DIR = process.env.CARD_FONT_DIR || join(here, '..', 'assets', 'fonts');
@@ -45,27 +47,27 @@ const DISPLAY = 'VBDisplay, "Arial", sans-serif';
 const UI = 'VBUI, "Arial", sans-serif';
 const BODY = 'VBBody, "Arial", sans-serif';
 
-const fmt = (n) => Math.round(n).toLocaleString('en-US');
+const fmt = (n, loc) => Math.round(n).toLocaleString(loc === 'de' ? 'de-DE' : 'en-US');
 const truncate = (s, n) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 
 /**
  * Returns a message payload ({ files?, embeds }) for a member's rank.
  * ctx = { db }
  */
-export async function buildRankCard(ctx, { member, row, position, totalUsers }) {
+export async function buildRankCard(ctx, { member, row, position, totalUsers, locale = 'en' }) {
   const config = ctx.db.getConfig(member.guild.id);
   if (config.card.image) {
     const canvas = await getCanvas();
     if (canvas) {
       try {
-        const file = await renderImageCard(canvas, { member, row, position, totalUsers });
+        const file = await renderImageCard(canvas, { member, row, position, totalUsers, locale });
         return { files: [file] };
       } catch (e) {
         console.warn('[card] image render failed, using embed:', e.message);
       }
     }
   }
-  return { embeds: [buildEmbedCard({ member, row, position, totalUsers })] };
+  return { embeds: [buildEmbedCard({ member, row, position, totalUsers, locale })] };
 }
 
 function hexPath(g, cx, cy, r) {
@@ -103,7 +105,7 @@ function star(g, cx, cy, outerR, innerR, color) {
   g.fill();
 }
 
-async function renderImageCard({ createCanvas, loadImage }, { member, row, position, totalUsers }) {
+async function renderImageCard({ createCanvas, loadImage }, { member, row, position, totalUsers, locale }) {
   const W = 934, H = 282, PAD = 24;
   const level = levelForXp(row.xp);
   const rank = rankForLevel(level);
@@ -164,13 +166,13 @@ async function renderImageCard({ createCanvas, loadImage }, { member, row, posit
 
   // tier + position
   g.fillStyle = '#8ea0be'; g.font = `500 21px ${BODY}`;
-  const posText = position ? `   ·   #${position} of ${totalUsers}` : '';
-  g.fillText(`Rank tier ${tier}/${RANKS.length}${posText}`, tx, 166);
+  const posText = position ? `   ·   ${t(locale, 'card.posOf', { pos: position, total: totalUsers })}` : '';
+  g.fillText(`${t(locale, 'card.rankTier', { tier, total: RANKS.length })}${posText}`, tx, 166);
 
   // big LEVEL (right aligned)
   g.textAlign = 'right';
   g.fillStyle = '#9fb2cc'; g.font = `700 22px ${UI}`;
-  g.fillText('LEVEL', W - 40, 66);
+  g.fillText(t(locale, 'card.level'), W - 40, 66);
   g.fillStyle = rank.color; g.font = `700 88px ${DISPLAY}`;
   g.fillText(String(level), W - 40, 150);
   g.textAlign = 'left';
@@ -187,9 +189,9 @@ async function renderImageCard({ createCanvas, loadImage }, { member, row, posit
 
   // xp + next-rank labels
   g.fillStyle = '#c6d2e6'; g.font = `500 20px ${BODY}`;
-  g.fillText(`${fmt(p.into)} / ${fmt(p.needed)} XP`, bx, by + bh + 28);
+  g.fillText(`${fmt(p.into, locale)} / ${fmt(p.needed, locale)} XP`, bx, by + bh + 28);
   g.textAlign = 'right';
-  g.fillText(nxt ? `Next: ${nxt.name} · Lv ${nxt.level}` : 'MAX RANK', bx + bw, by + bh + 28);
+  g.fillText(nxt ? t(locale, 'card.next', { name: nxt.name, level: nxt.level }) : t(locale, 'card.maxRank'), bx + bw, by + bh + 28);
   g.textAlign = 'left';
 
   return new AttachmentBuilder(canvas.toBuffer('image/png'), { name: 'rank.png' });
@@ -200,7 +202,7 @@ function bar(pct, len = 20) {
   return '█'.repeat(filled) + '░'.repeat(len - filled);
 }
 
-function buildEmbedCard({ member, row, position, totalUsers }) {
+function buildEmbedCard({ member, row, position, totalUsers, locale }) {
   const level = levelForXp(row.xp);
   const rank = rankForLevel(level);
   const p = progress(row.xp);
@@ -213,12 +215,12 @@ function buildEmbedCard({ member, row, position, totalUsers }) {
     .setTitle(`${rank.insignia} ${rank.name}${row.prestige ? '  ' + prestigeStars(row.prestige) : ''}`)
     .setDescription(`\`${bar(p.pct)}\`  **${Math.round(p.pct * 100)}%**`)
     .addFields(
-      { name: 'Level', value: `**${level}**`, inline: true },
-      { name: 'XP', value: `${fmt(p.into)} / ${fmt(p.needed)}`, inline: true },
-      { name: 'Server rank', value: position ? `#${position} / ${totalUsers}` : '—', inline: true },
-      { name: 'Rank tier', value: `${tier} of ${RANKS.length}`, inline: true },
-      { name: 'Lifetime XP', value: fmt(row.total_xp), inline: true },
-      { name: 'Next rank', value: nxt ? `${nxt.insignia} ${nxt.name} · Lv ${nxt.level}` : 'MAX', inline: true },
+      { name: t(locale, 'card.eLevel'), value: `**${level}**`, inline: true },
+      { name: t(locale, 'card.eXp'), value: `${fmt(p.into, locale)} / ${fmt(p.needed, locale)}`, inline: true },
+      { name: t(locale, 'card.eServerRank'), value: position ? `#${position} / ${totalUsers}` : t(locale, 'common.dash'), inline: true },
+      { name: t(locale, 'card.eRankTier'), value: t(locale, 'card.tierOf', { tier, total: RANKS.length }), inline: true },
+      { name: t(locale, 'card.eLifetime'), value: fmt(row.total_xp, locale), inline: true },
+      { name: t(locale, 'card.eNextRank'), value: nxt ? `${nxt.insignia} ${nxt.name} · Lv ${nxt.level}` : t(locale, 'card.max'), inline: true },
     )
     .setFooter({ text: 'VerseBase • rank system' });
   return embed;

@@ -93,8 +93,10 @@ Everything lives in [`blueprint.mjs`](./blueprint.mjs):
 - **Add a role** → add to `roles` (top → bottom order). Reference its `key` from onboarding
   options or channel `overwrites`.
 - **Change onboarding** → edit `onboarding.prompts`.
-- **Reword the pinned posts** → edit `seed`. To re-post after editing, delete the bot's old
-  message in that channel first (the builder skips channels it has already seeded).
+- **Reword the pinned posts** → edit `seed`, then re-run `npm run build`. The builder finds
+  its own **pinned** seed post and updates it in place (or replaces it) — no manual deletion.
+  Other bot messages (like the rank bot's patch auto-posts, which are never pinned) are left
+  untouched.
 
 `npm run validate` catches broken references (a channel that points at a missing role, a typo
 in a permission name) before you ever hit the API.

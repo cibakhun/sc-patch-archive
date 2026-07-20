@@ -6,8 +6,9 @@
 // ═══════════════════════════════════════════════════════════════════════════
 import assert from 'node:assert/strict';
 import { xpToNext, totalXpForLevel, levelForXp, progress, effectiveMultiplier, applyMultiplier, randomXp } from './leveling.mjs';
-import { RANKS, rankForLevel, nextRank, rankRoleName, allRankRoleNames, prestigeStars } from './ranks.mjs';
+import { RANKS, rankForLevel, nextRank, rankRoleName, allRankRoleNames, prestigeStars, rankBlurb } from './ranks.mjs';
 import { DEFAULT_CONFIG, mergeConfig } from './config.mjs';
+import { STRINGS, LOCALES, t as tr, resolveLocale } from './i18n.mjs';
 
 let n = 0;
 const t = (name, fn) => { fn(); n++; console.log(`  \x1b[32m✓\x1b[0m ${name}`); };
@@ -121,6 +122,38 @@ t('defaults are sane', () => {
   assert.ok(DEFAULT_CONFIG.prestige.atLevel > 0);
 });
 
+console.log('\n▸ i18n (EN / DE)');
+const flatKeys = (obj, prefix = '') => Object.entries(obj).flatMap(([k, v]) =>
+  (v && typeof v === 'object' && !Array.isArray(v)) ? flatKeys(v, `${prefix}${k}.`) : [`${prefix}${k}`]);
+t('EN and DE have identical key sets', () => {
+  const en = new Set(flatKeys(STRINGS.en));
+  const de = new Set(flatKeys(STRINGS.de));
+  for (const k of en) assert.ok(de.has(k), `DE missing key "${k}"`);
+  for (const k of de) assert.ok(en.has(k), `EN missing key "${k}"`);
+  assert.equal(LOCALES.length, 2);
+});
+t('resolveLocale: role wins → client locale → English default', () => {
+  const member = (roleName) => ({ roles: { cache: new Map([['r', { name: roleName }]]) } });
+  assert.equal(resolveLocale(member('🇩🇪 Deutsch'), 'en-US'), 'de'); // role beats client
+  assert.equal(resolveLocale(member('🇬🇧 English'), 'de'), 'en');
+  assert.equal(resolveLocale(null, 'de'), 'de');     // client locale
+  assert.equal(resolveLocale(null, 'en-US'), 'en');
+  assert.equal(resolveLocale(null, null), 'en');     // default
+});
+t('t() interpolates, falls back to EN, then to the key', () => {
+  assert.equal(tr('en', 'common.notFoundNone', { q: 'X' }), 'Nothing found for **X**.');
+  assert.equal(tr('de', 'common.notFoundNone', { q: 'X' }), 'Nichts gefunden für **X**.');
+  assert.equal(tr('xx', 'common.on'), 'on');          // unknown locale → EN
+  assert.equal(tr('en', 'no.such.key'), 'no.such.key'); // missing → key visible
+});
+t('every rank has a German blurb', () => {
+  for (const r of RANKS) {
+    assert.ok(r.blurbDe && r.blurbDe !== r.blurb, `blurbDe for ${r.key}`);
+    assert.equal(rankBlurb(r, 'de'), r.blurbDe);
+    assert.equal(rankBlurb(r, 'en'), r.blurb);
+  }
+});
+
 // Optional: exercise the real SQLite layer if better-sqlite3 is installed.
 console.log('\n▸ Persistence (SQLite)');
 try {
@@ -191,6 +224,37 @@ try {
 } catch (e) {
   if (e.code === 'ERR_MODULE_NOT_FOUND') console.log('  · skipped (run `npm install` to validate the command tree)');
   else throw e;
+}
+
+// Bilingual data projections (needs the bundled game-data snapshot present).
+console.log('\n▸ Bilingual data');
+try {
+  const { latestPatch, localizedPatch, findShip, localizedShip } = await import('./data.mjs');
+  const p = latestPatch();
+  if (p) {
+    t('patch English overlay applies (guards the German-leak bug)', () => {
+      const en = localizedPatch(p, 'en');
+      const de = localizedPatch(p, 'de');
+      assert.ok(en.summary && de.summary, 'both summaries present');
+      assert.notEqual(en.summary, de.summary, 'EN and DE summaries must differ');
+      assert.notEqual(en.dateDisplay, de.dateDisplay, 'dates localize');
+    });
+  } else {
+    console.log('  · no patch data found — skipped patch projection');
+  }
+  const ship = findShip('Carrack');
+  if (ship) {
+    t('ship size localizes (Groß ↔ Large)', () => {
+      const en = localizedShip(ship, 'en');
+      const de = localizedShip(ship, 'de');
+      assert.ok(en.size && de.size, 'size present in both');
+    });
+  } else {
+    console.log('  · no ship data found — skipped ship projection');
+  }
+} catch (e) {
+  if (e.code === 'ERR_MODULE_NOT_FOUND') console.log('  · skipped (run `npm install`)');
+  else console.log(`  · skipped (${e.message})`);
 }
 
 console.log(`\n\x1b[32;1m✓ ${n} checks passed.\x1b[0m\n`);

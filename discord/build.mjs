@@ -428,17 +428,35 @@ async function build() {
     if (e.url) b.setURL(e.url);
     return b;
   };
+  const nameOf = (key) => expectedName(bp.categories.flatMap((c) => c.channels).find((c) => c.key === key)?.name ?? key, 'text');
   for (const [key, embeds] of Object.entries(bp.seed)) {
     const ch = guild.channels.cache.get(channelId[key]);
     if (!ch) { warn(`Seed: channel "${key}" not found`); continue; }
-    const recent = await ch.messages.fetch({ limit: 10 }).catch(() => null);
-    if (recent && recent.some((m) => m.author.id === client.user.id)) { chg(`${key} (already seeded)`); continue; }
+    const built = embeds.map(buildEmbed);
+
+    // The seed post is the bot's PINNED message in the channel. Any other bot
+    // messages here (e.g. the rank bot's patch auto-posts in #patch-notes — same
+    // application) are never pinned, so this never edits or deletes them. This
+    // makes re-seeding automatic: edit the blueprint, run build, done — no
+    // manual deletion of old posts.
+    let pinned = null;
+    try { pinned = await ch.messages.fetchPinned(); } catch { /* ignore */ }
+    const mine = pinned ? [...pinned.values()].filter((m) => m.author.id === client.user.id) : [];
+
+    // Fast path: one pinned seed post ↔ one embed → update it in place (no delete).
+    if (mine.length === 1 && built.length === 1) {
+      try { await mine[0].edit({ embeds: built }); chg(`#${nameOf(key)} (seed updated in place)`); continue; }
+      catch (e) { warn(`seed edit failed for ${key}: ${e.message}`); }
+    }
+    // Otherwise remove the old seed post(s) and re-post fresh.
+    for (const m of mine) { await m.delete().catch(() => {}); }
+    if (mine.length) chg(`#${nameOf(key)} (removed ${mine.length} old seed post${mine.length > 1 ? 's' : ''})`);
     let first = true;
-    for (const e of embeds) {
-      const msg = await ch.send({ embeds: [buildEmbed(e)] });
+    for (const e of built) {
+      const msg = await ch.send({ embeds: [e] });
       if (first) { await msg.pin().catch(() => {}); first = false; }
     }
-    add(`seeded #${expectedName(bp.categories.flatMap((c) => c.channels).find((c) => c.key === key)?.name ?? key, 'text')}`);
+    add(`seeded #${nameOf(key)}`);
   }
 
   // ── Done ───────────────────────────────────────────────────────────────────
