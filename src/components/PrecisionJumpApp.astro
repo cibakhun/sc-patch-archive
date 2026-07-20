@@ -1,0 +1,974 @@
+---
+// PrecisionJumpApp.astro — Aaron-Halo-Routenrechner (SSR-Gerüst + Client-App).
+// Sprachneutrales Gerüst; UI-Chrome via `lang`. Der Geometrie-Kern
+// (Strahl-Kugel-Schnitt) läuft live im Client — der Server rendert Auswahl,
+// Anker-/Band-Tabellen (SEO) und Infotext. Werkzeug + Rohdaten sind eine
+// Open-Source-Einsendung von „Jordessey"; Band-Höhen von cstone.space.
+import {
+  AH_BAND_INFO,
+  AH_BAND_METADATA,
+  buildAnchorRecords,
+  getBandMetrics,
+  type AnchorRecord,
+} from '../data/precision-jump';
+
+interface Props {
+  lang: 'de' | 'en';
+}
+const { lang } = Astro.props;
+
+// -- i18n: server-gerenderte Chrome-Strings --
+const S = {
+  de: {
+    solver: 'Routen-Solver',
+    start: 'Startort',
+    dest: 'Ziel-QT-Marker',
+    swap: 'Start und Ziel tauschen',
+    band: 'Aaron-Halo-Zielband',
+    density: 'Dichteklasse',
+    densitySub: 'Vermessungsklasse',
+    radius: 'Spitzendichte-Radius',
+    radiusSub: 'ab Stanton-Zentrum',
+    reset: 'Standard',
+    grpStations: 'Orbitalstationen',
+    grpPlanets: 'Planeten',
+    grpMoons: 'Monde',
+    grpLagrange: 'Lagrange-Punkte',
+    usesCentre: 'nutzt %s%',
+    mapTitle: 'Draufsicht-Plot',
+    mapSub: 'Stanton-Ebene · maßstäblich',
+    mapLegBand: 'Zielband',
+    mapLegRoute: 'QT-Route',
+    mapLegDrop: 'Ausstieg',
+    anchorIdx: 'Anker-Register',
+    anchorIdxSub: 'alle QT-Marker & ihre Stanton-Koordinaten',
+    bandIdx: 'Aaron-Halo-Bänder',
+    bandIdxSub: 'Vermessungsdaten der Ringzonen',
+    filterAnchor: 'Anker filtern…',
+    thName: 'Name',
+    thType: 'Typ',
+    thAnchor: 'Kanonischer Anker',
+    thBand: 'Band',
+    thPeak: 'Spitze (km)',
+    thInner: 'Innen (km)',
+    thOuter: 'Außen (km)',
+    thWidth: 'Breite (km)',
+    thDensity: 'Dichte',
+    tType: { planet: 'Planet', moon: 'Mond', lagrange: 'Lagrange', 'station alias': 'Stations-Alias' } as Record<string, string>,
+    howTitle: 'So funktioniert es',
+    howBody:
+      'Wähle deinen Startort, den QT-Marker, den du anspringst, und das Halo-Band, das du abbauen willst. Spool im Flug den Quantum-Antrieb Richtung Ziel und brich den Sprung ab, sobald die empfohlene X/Y-Koordinate den angezeigten Auslösewert erreicht.',
+    howSteps: 'Koordinaten im Spiel ablesen (Debug-Overlay):',
+    howStep1: 'Konsole mit <b>`</b> (Backtick) öffnen',
+    howStep2: '<b>r_DisplayInfo 1</b> eingeben',
+    howStep3: 'die Zonen- / Sonnensystem-Koordinaten X-Y-Z beobachten',
+    confTitle: 'Vertrauens-Wert',
+    confBody:
+      'Der Wert misst die Tangenten-Empfindlichkeit. Eine Route, die den Radius fast frontal kreuzt, ist <b>hoch</b>; eine Route, die den Radius nur streift, reagiert stärker auf Endpunkt-Fehler und gilt als <b>tangenten-empfindlich</b>.',
+    stationTitle: 'Stations-Anker',
+    stationBody:
+      'Everus Harbor, Seraphim, Baijini Point und Port Tressler lösen auf das Zentrum ihres Mutterplaneten auf — ein kleiner Endpunkt-Fehler gegen eine einfache, wiederholbare Routen-Bibliothek.',
+    creditTitle: 'Quelle & Dank',
+    creditBody:
+      'Ursprüngliches Werkzeug und Routendaten von <b>Jordessey</b> (Open-Source-Einsendung). Höhen der Aaron-Halo-Bänder vermessen vom Team bei <b>cstone.space</b>.',
+    honesty:
+      'Community-Vermessungsdaten (Patch ~3.16) — Koordinaten sind <b>patch-volatil, im Spiel gegenprüfen</b>. Ein Navigations-Hilfsmittel, keine Live-Spieldaten.',
+  },
+  en: {
+    solver: 'Route solver',
+    start: 'Departure point',
+    dest: 'Destination QT marker',
+    swap: 'Swap start and destination',
+    band: 'Aaron Halo target band',
+    density: 'Density class',
+    densitySub: 'survey density class',
+    radius: 'Peak-density radius',
+    radiusSub: 'from Stanton centre',
+    reset: 'Default',
+    grpStations: 'Orbital stations',
+    grpPlanets: 'Planets',
+    grpMoons: 'Moons',
+    grpLagrange: 'Lagrange points',
+    usesCentre: 'uses %s%',
+    mapTitle: 'Top-down plot',
+    mapSub: 'Stanton ecliptic · to scale',
+    mapLegBand: 'Target band',
+    mapLegRoute: 'QT route',
+    mapLegDrop: 'Dropout',
+    anchorIdx: 'Anchor index',
+    anchorIdxSub: 'every QT marker & its Stanton coordinates',
+    bandIdx: 'Aaron Halo bands',
+    bandIdxSub: 'survey data for the ring zones',
+    filterAnchor: 'Filter anchor…',
+    thName: 'Name',
+    thType: 'Type',
+    thAnchor: 'Canonical anchor',
+    thBand: 'Band',
+    thPeak: 'Peak (km)',
+    thInner: 'Inner (km)',
+    thOuter: 'Outer (km)',
+    thWidth: 'Width (km)',
+    thDensity: 'Density',
+    tType: { planet: 'Planet', moon: 'Moon', lagrange: 'Lagrange', 'station alias': 'Station alias' } as Record<string, string>,
+    howTitle: 'How it works',
+    howBody:
+      'Pick where you are leaving, the QT marker you will jump toward, and the Halo band you want to mine. In flight, spool quantum travel toward the destination and cancel the jump the moment the recommended X/Y coordinate reaches the displayed trigger value.',
+    howSteps: 'Reading the coordinate in game (debug overlay):',
+    howStep1: 'Open the console with <b>`</b> (backtick)',
+    howStep2: 'Enter <b>r_DisplayInfo 1</b>',
+    howStep3: 'Watch the Zone / solar-system X-Y-Z coordinates',
+    confTitle: 'Confidence rating',
+    confBody:
+      'Confidence measures tangent sensitivity. A route crossing the radius nearly head-on is <b>high</b>; a route skimming the radius is more sensitive to endpoint errors and is marked <b>tangent-sensitive</b>.',
+    stationTitle: 'Station anchors',
+    stationBody:
+      'Everus Harbor, Seraphim, Baijini Point and Port Tressler resolve to their parent planet centres — a small endpoint variance traded for a simple, repeatable route library.',
+    creditTitle: 'Source & credit',
+    creditBody:
+      'Original tool and route data by <b>Jordessey</b> (open-source submission). Aaron Halo band elevations surveyed by the team at <b>cstone.space</b>.',
+    honesty:
+      'Community survey data (patch ~3.16) — coordinates are <b>patch-volatile, verify in game</b>. A navigation aid, not a live game feed.',
+  },
+}[lang];
+
+// -- Strings, die das Client-JS braucht (window.__PJUMP.t) --
+const JS_T = {
+  monitor: lang === 'de' ? 'Beobachte' : 'Monitor',
+  increasing: lang === 'de' ? 'STEIGT' : 'INCREASING',
+  decreasing: lang === 'de' ? 'FÄLLT' : 'DECREASING',
+  triggerSubUp: lang === 'de'
+    ? 'Diagnose-Koordinate in Metern · QT abbrechen, wenn der Wert von unten den Auslöser erreicht'
+    : 'Diagnostic coordinate in metres · cancel QT as the value rises to the trigger',
+  triggerSubDown: lang === 'de'
+    ? 'Diagnose-Koordinate in Metern · QT abbrechen, wenn der Wert von oben den Auslöser erreicht'
+    : 'Diagnostic coordinate in metres · cancel QT as the value falls to the trigger',
+  solved: lang === 'de' ? 'Route gelöst — Spitzendichte-Kreuzung gefunden' : 'Route solved — peak-density crossing found',
+  crossing: lang === 'de' ? 'Kreuzung %n%' : 'Crossing %n%',
+  noCrossTitle: lang === 'de' ? 'Keine Kreuzung auf dieser Route' : 'No crossing on this route',
+  noCrossSub: lang === 'de'
+    ? 'Diese QT-Linie erreicht den Spitzenradius von %band% (%r% km) nicht. Nächste Annäherung: %c% km.'
+    : "This QT line doesn't reach the %band% peak radius (%r% km). Closest approach: %c% km.",
+  sameError: lang === 'de'
+    ? 'Start und Ziel lösen auf denselben Punkt auf.'
+    : 'Start and destination resolve to the same point.',
+  cRoute: lang === 'de' ? 'Route' : 'Route',
+  cRouteSub: lang === 'de' ? 'Kanonisch: %s%' : 'Canonical: %s%',
+  cBand: lang === 'de' ? 'Zielband' : 'Target band',
+  cBandSub: lang === 'de' ? 'Spitze %p% km · %d% Dichte' : 'Peak %p% km · %d% density',
+  cConf: lang === 'de' ? 'Tangenten-Vertrauen' : 'Tangent confidence',
+  cConfSub: lang === 'de' ? 'Kreuzungsfaktor %f% · %a%° von radial' : 'Crossing factor %f% · %a%° from radial',
+  cPlane: lang === 'de' ? 'Halo-Ebenen-Check' : 'Halo plane check',
+  cPlaneSub: lang === 'de' ? '|Z| %z% km · nominale Halbdicke %h% km' : '|Z| %z% km · nominal half-thickness %h% km',
+  cProgress: lang === 'de' ? 'Routen-Fortschritt' : 'Route progress',
+  cProgressSub: lang === 'de' ? '%k% km zurückgelegt' : '%k% km travelled',
+  cDist: lang === 'de' ? 'Restdistanz' : 'Distance remaining',
+  cDistSub: lang === 'de' ? '%k% km bis zum Ziel' : '%k% km to selected endpoint',
+  cSens: lang === 'de' ? 'Beobachtungsachse' : 'Monitor axis',
+  cSensSub: lang === 'de' ? '|ΔX| %x% km · |ΔY| %y% km' : '|ΔX| %x% km · |ΔY| %y% km',
+  cWidth: lang === 'de' ? 'Bandbreite' : 'Band width',
+  cWidthSub: lang === 'de' ? 'Spanne: %i% km innen / %o% km außen' : 'Margin: %i% km inward / %o% km outward',
+  confHigh: lang === 'de' ? 'HOCH' : 'HIGH',
+  confMod: lang === 'de' ? 'MITTEL' : 'MODERATE',
+  confLow: lang === 'de' ? 'TANGENTEN-EMPFINDLICH' : 'TANGENT-SENSITIVE',
+  planeSafe: lang === 'de' ? 'EBENE SICHER' : 'PLANE SAFE',
+  planeMarg: lang === 'de' ? 'EBENE KNAPP' : 'PLANE MARGINAL',
+  planeOut: lang === 'de' ? 'AUSSERHALB DER EBENE' : 'OUTSIDE NOMINAL PLANE',
+  coordsTitle: lang === 'de' ? 'Erwartete Ausstiegs-Koordinaten — Stanton, Meter' : 'Expected dropout coordinates — Stanton global metres',
+  winTitle: lang === 'de' ? 'Bandfenster auf der Beobachtungsachse' : 'Band window on the monitored axis',
+  winEnter: lang === 'de' ? 'BAND BETRETEN BEI %a%' : 'ENTER BAND AT %a%',
+  winPeak: lang === 'de' ? 'SPITZENDICHTE BEI %a%' : 'PEAK DENSITY AT %a%',
+  winLeave: lang === 'de' ? 'BAND VERLASSEN BEI %a%' : 'LEAVE BAND AT %a%',
+  winNote: lang === 'de' ? 'Reihenfolge für diese Route. Radiale Breite: %w% km.' : 'Travel order for this route. Radial width: %w% km.',
+  winPartial: lang === 'de'
+    ? 'Die Route erreicht den Spitzenradius, aber eine oder beide Bandgrenzen werden von diesem QT-Segment nicht geschnitten.'
+    : 'The route reaches the peak radius, but one or both band boundaries are not crossed by this QT segment.',
+  copy: lang === 'de' ? 'Auslösewert kopieren' : 'Copy trigger value',
+  copied: lang === 'de' ? 'KOPIERT' : 'COPIED',
+  copyFail: lang === 'de' ? 'FEHLGESCHLAGEN' : 'COPY FAILED',
+  dens: lang === 'de'
+    ? { low: 'NIEDRIG', 'medium-low': 'MITTEL-NIEDRIG', medium: 'MITTEL', high: 'HOCH' }
+    : { low: 'LOW', 'medium-low': 'MEDIUM-LOW', medium: 'MEDIUM', high: 'HIGH' },
+  tagStart: lang === 'de' ? 'START' : 'START',
+  tagQt: 'QT',
+  locale: lang === 'de' ? 'de-DE' : 'en-US',
+};
+
+// -- Anker + Gruppen für die Auswahl / Tabellen --
+const ANCHORS = buildAnchorRecords();
+const GROUPS: { key: AnchorRecord['group']; label: string }[] = [
+  { key: 'Orbital Station Aliases', label: S.grpStations },
+  { key: 'Major Planets', label: S.grpPlanets },
+  { key: 'Moons', label: S.grpMoons },
+  { key: 'Lagrange Centres', label: S.grpLagrange },
+];
+const byGroup = (g: AnchorRecord['group']) =>
+  ANCHORS.filter((a) => a.group === g).sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+const bandEntries = Object.entries(AH_BAND_INFO);
+const anchorRows = [...ANCHORS].sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+// Standard-Route: microTech → Hurston, Band 10 (kreuzt den Halo klar).
+const DEF = { start: 'body:microTech', end: 'body:hurston', band: 'band10' };
+
+const fmt0 = new Intl.NumberFormat(JS_T.locale, { maximumFractionDigits: 0 });
+const fmt3 = new Intl.NumberFormat(JS_T.locale, { maximumFractionDigits: 3 });
+
+// Datenpaket für den Client (Live-Neuberechnung nutzt dieselben Datensätze).
+const CLIENT = {
+  anchors: ANCHORS,
+  bands: AH_BAND_INFO,
+  meta: { half: AH_BAND_METADATA.verticalHalfThicknessKm },
+  def: DEF,
+  t: JS_T,
+};
+---
+
+<section class="pj" id="pjump">
+  <div class="pj-wrap">
+    <p class="pj-honesty" set:html={S.honesty} />
+
+    <!-- ==== Console / inputs ==== -->
+    <div class="pj-console">
+      <div class="pj-console__head">
+        <span class="pj-console__title">{S.solver}</span>
+        <button type="button" class="pj-reset" id="pj-reset">{S.reset}</button>
+      </div>
+
+      <div class="pj-route">
+        <div class="pj-field">
+          <label class="pj-label" for="pj-start">{S.start}</label>
+          <select id="pj-start" class="pj-select">
+            {GROUPS.map((g) => (
+              <optgroup label={g.label}>
+                {byGroup(g.key).map((a) => (
+                  <option value={a.id}>
+                    {a.type === 'station alias' ? `${a.displayName} — ${S.usesCentre.replace('%s%', a.canonicalName)}` : a.displayName}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+
+        <button type="button" class="pj-swap" id="pj-swap" title={S.swap} aria-label={S.swap}>⇄</button>
+
+        <div class="pj-field">
+          <label class="pj-label" for="pj-end">{S.dest}</label>
+          <select id="pj-end" class="pj-select">
+            {GROUPS.map((g) => (
+              <optgroup label={g.label}>
+                {byGroup(g.key).map((a) => (
+                  <option value={a.id}>
+                    {a.type === 'station alias' ? `${a.displayName} — ${S.usesCentre.replace('%s%', a.canonicalName)}` : a.displayName}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div class="pj-band">
+        <div class="pj-field">
+          <label class="pj-label" for="pj-bandsel">{S.band}</label>
+          <select id="pj-bandsel" class="pj-select">
+            {bandEntries.map(([key, b]) => (
+              <option value={key}>{b.name}</option>
+            ))}
+          </select>
+        </div>
+        <div class="pj-field">
+          <span class="pj-label">{S.density}</span>
+          <div class="pj-readout">
+            <b id="pj-density">—</b>
+            <i>{S.densitySub}</i>
+          </div>
+        </div>
+        <div class="pj-field">
+          <span class="pj-label">{S.radius}</span>
+          <div class="pj-readout">
+            <b id="pj-radius">—</b>
+            <i>{S.radiusSub}</i>
+          </div>
+        </div>
+      </div>
+
+      <p class="pj-summary" id="pj-summary"></p>
+    </div>
+
+    <!-- ==== Result ==== -->
+    <div class="pj-result" id="pj-result" aria-live="polite">
+      <div class="pj-trigger" id="pj-trigger">
+        <div class="pj-trigger__axis" id="pj-trigaxis">{JS_T.monitor} X</div>
+        <div class="pj-trigger__val" id="pj-trigval">0</div>
+        <div class="pj-trigger__sub" id="pj-trigsub"></div>
+        <button type="button" class="pj-copy" id="pj-copy">{JS_T.copy}</button>
+      </div>
+
+      <div class="pj-grid2">
+        <figure class="pj-map">
+          <figcaption class="pj-map__cap">
+            <span>{S.mapTitle}</span>
+            <i>{S.mapSub}</i>
+          </figcaption>
+          <div class="pj-map__frame">
+            <svg id="pj-svg" viewBox="0 0 1000 1000" role="img" aria-label={S.mapTitle}></svg>
+          </div>
+          <div class="pj-map__legend">
+            <span class="pj-lg pj-lg--band">{S.mapLegBand}</span>
+            <span class="pj-lg pj-lg--route">{S.mapLegRoute}</span>
+            <span class="pj-lg pj-lg--drop">{S.mapLegDrop}</span>
+          </div>
+        </figure>
+
+        <div class="pj-stats" id="pj-stats"></div>
+      </div>
+
+      <div class="pj-coords">
+        <div class="pj-coords__title" id="pj-coordstitle"></div>
+        <div class="pj-coords__grid">
+          <div class="pj-coord"><span>X</span><b id="pj-cx">—</b></div>
+          <div class="pj-coord"><span>Y</span><b id="pj-cy">—</b></div>
+          <div class="pj-coord"><span>Z</span><b id="pj-cz">—</b></div>
+        </div>
+      </div>
+
+      <div class="pj-window" id="pj-window"></div>
+    </div>
+
+    <!-- ==== Reference tables (SSR — crawlable) ==== -->
+    <details class="pj-tbl">
+      <summary>
+        <span class="pj-tbl__ttl">{S.anchorIdx}</span>
+        <i class="pj-tbl__sub">{S.anchorIdxSub}</i>
+        <span class="pj-tbl__chev" aria-hidden="true">▾</span>
+      </summary>
+      <div class="pj-tbl__body">
+        <input type="search" id="pj-anchorfilter" class="pj-filter" placeholder={S.filterAnchor} aria-label={S.filterAnchor} autocomplete="off" />
+        <div class="pj-tblscroll">
+          <table>
+            <thead>
+              <tr><th>{S.thName}</th><th>{S.thType}</th><th>{S.thAnchor}</th><th>X (m)</th><th>Y (m)</th><th>Z (m)</th></tr>
+            </thead>
+            <tbody id="pj-anchorbody">
+              {anchorRows.map((a) => (
+                <tr data-name={`${a.displayName} ${S.tType[a.type]} ${a.canonicalName}`.toLowerCase()}>
+                  <td class="pj-td-name">{a.displayName}</td>
+                  <td class="pj-td-type">{S.tType[a.type]}</td>
+                  <td class="pj-td-anchor">{a.canonicalName}</td>
+                  <td class="pj-td-num">{fmt3.format(a.point.x)}</td>
+                  <td class="pj-td-num">{fmt3.format(a.point.y)}</td>
+                  <td class="pj-td-num">{fmt3.format(a.point.z)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <details class="pj-tbl">
+      <summary>
+        <span class="pj-tbl__ttl">{S.bandIdx}</span>
+        <i class="pj-tbl__sub">{S.bandIdxSub}</i>
+        <span class="pj-tbl__chev" aria-hidden="true">▾</span>
+      </summary>
+      <div class="pj-tbl__body">
+        <div class="pj-tblscroll">
+          <table>
+            <thead>
+              <tr><th>{S.thBand}</th><th>{S.thPeak}</th><th>{S.thInner}</th><th>{S.thOuter}</th><th>{S.thWidth}</th><th>{S.thDensity}</th></tr>
+            </thead>
+            <tbody>
+              {bandEntries.map(([, b]) => {
+                const m = getBandMetrics(b);
+                return (
+                  <tr>
+                    <td class="pj-td-name">{b.name}</td>
+                    <td class="pj-td-anchor">{fmt0.format(b.peakDensityRadiusKm)}</td>
+                    <td class="pj-td-num">{fmt0.format(b.innerRadiusKm)}</td>
+                    <td class="pj-td-num">{fmt0.format(b.outerRadiusKm)}</td>
+                    <td class="pj-td-type">{fmt0.format(m.widthKm)}</td>
+                    <td><span class={`pj-dens pj-dens--${b.densityClass}`}>{JS_T.dens[b.densityClass]}</span></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <!-- ==== Info / credit ==== -->
+    <div class="pj-info">
+      <div class="pj-infocard">
+        <div class="pj-infocard__ttl">{S.howTitle}</div>
+        <p class="pj-infocard__body">{S.howBody}</p>
+        <div class="pj-steps">
+          <span class="pj-steps__ttl">{S.howSteps}</span>
+          <ol>
+            <li set:html={S.howStep1} />
+            <li set:html={S.howStep2} />
+            <li set:html={S.howStep3} />
+          </ol>
+        </div>
+      </div>
+      <div class="pj-infocard">
+        <div class="pj-infocard__ttl">{S.confTitle}</div>
+        <p class="pj-infocard__body" set:html={S.confBody} />
+      </div>
+      <div class="pj-infocard">
+        <div class="pj-infocard__ttl">{S.stationTitle}</div>
+        <p class="pj-infocard__body">{S.stationBody}</p>
+      </div>
+      <div class="pj-infocard pj-infocard--credit">
+        <div class="pj-infocard__ttl">{S.creditTitle}</div>
+        <p class="pj-infocard__body" set:html={S.creditBody} />
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline set:html={`window.__PJUMP=${JSON.stringify(CLIENT)};`} />
+
+<script is:inline>
+(function () {
+  var D = window.__PJUMP;
+  if (!D) return;
+  var T = D.t;
+  var HALF = D.meta.half;
+  var ORIGIN = { x: 0, y: 0, z: 0 };
+
+  var byId = function (id) { return document.getElementById(id); };
+  var loc = T.locale;
+  var nf0 = new Intl.NumberFormat(loc, { maximumFractionDigits: 0 });
+  var nf2 = new Intl.NumberFormat(loc, { maximumFractionDigits: 2 });
+  var nf3 = new Intl.NumberFormat(loc, { maximumFractionDigits: 3 });
+  var fill = function (s, map) { return Object.keys(map).reduce(function (a, k) { return a.split('%' + k + '%').join(map[k]); }, s); };
+
+  // Anker als Map (id -> record)
+  var AMAP = {};
+  D.anchors.forEach(function (a) { AMAP[a.id] = a; });
+
+  // -- Geometrie (Strahl-Kugel-Schnitt) --
+  function dot(a, b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+  function sub(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
+  function add(a, b) { return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }; }
+  function scl(a, s) { return { x: a.x * s, y: a.y * s, z: a.z * s }; }
+  function mag(a) { return Math.sqrt(dot(a, a)); }
+  function ptAt(s, d, u) { return add(s, scl(d, u)); }
+  function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+  function rootsForRadius(start, end, radiusM) {
+    var d = sub(end, start);
+    var q = sub(start, ORIGIN);
+    var a = dot(d, d);
+    var b = 2 * dot(q, d);
+    var c = dot(q, q) - radiusM * radiusM;
+    var disc = b * b - 4 * a * c;
+    if (a === 0 || disc < 0) return [];
+    var sq = Math.sqrt(Math.max(0, disc));
+    return [(-b - sq) / (2 * a), (-b + sq) / (2 * a)]
+      .filter(function (u) { return isFinite(u) && u > 1e-10 && u <= 1 + 1e-10; })
+      .map(function (u) { return clamp(u, 0, 1); })
+      .sort(function (x, y) { return x - y; })
+      .filter(function (u, i, arr) { return i === 0 || Math.abs(u - arr[i - 1]) > 1e-10; });
+  }
+  function closestApproach(start, end) {
+    var d = sub(end, start);
+    var den = dot(d, d);
+    var u = den === 0 ? 0 : clamp(-dot(start, d) / den, 0, 1);
+    var p = ptAt(start, d, u);
+    return { u: u, point: p, radiusKm: mag(p) / 1000 };
+  }
+  function selectRootNear(roots, target) {
+    if (!roots.length) return null;
+    return roots.reduce(function (best, cur) { return Math.abs(cur - target) < Math.abs(best - target) ? cur : best; });
+  }
+  function confidence(start, end, exit) {
+    var d = sub(end, start);
+    var rl = mag(d), radl = mag(exit);
+    var f = rl === 0 || radl === 0 ? 0 : Math.abs(dot(d, exit) / (rl * radl));
+    var score = Math.round(f * 100);
+    var ang = Math.acos(clamp(f, -1, 1)) * 180 / Math.PI;
+    if (f >= 0.5) return { label: T.confHigh, cls: 'ok', f: f, score: score, ang: ang };
+    if (f >= 0.25) return { label: T.confMod, cls: 'warn', f: f, score: score, ang: ang };
+    return { label: T.confLow, cls: 'bad', f: f, score: score, ang: ang };
+  }
+  function planeStatus(exit) {
+    var zKm = Math.abs(exit.z) / 1000;
+    if (zKm <= HALF * 0.6) return { label: T.planeSafe, cls: 'ok', zKm: zKm };
+    if (zKm <= HALF) return { label: T.planeMarg, cls: 'warn', zKm: zKm };
+    return { label: T.planeOut, cls: 'bad', zKm: zKm };
+  }
+  function monitorAxis(dir) { return Math.abs(dir.x) >= Math.abs(dir.y) ? 'x' : 'y'; }
+
+  // -- Karten-Rendering (Draufsicht, z≈0-Ebene) --
+  var SVG = byId('pj-svg');
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function drawMap(start, end, band, exit) {
+    var CX = 500, CY = 500, PAD = 56, R = CY - PAD;
+    var outerM = band.outerRadiusKm * 1000;
+    var maxR = Math.max(outerM, mag(start), mag(end)) * 1.14;
+    var sc = function (v) { return (v / maxR) * R; };
+    var tx = function (wx) { return CX + sc(wx); };
+    var ty = function (wy) { return CY - sc(wy); };
+    var parts = [];
+
+    // Hintergrund-Ringe
+    [0.25, 0.5, 0.75, 1].forEach(function (f) {
+      parts.push('<circle cx="500" cy="500" r="' + (R * f).toFixed(1) + '" class="pj-svg-grid"/>');
+    });
+    parts.push('<line x1="' + (CX - R) + '" y1="500" x2="' + (CX + R) + '" y2="500" class="pj-svg-axis"/>');
+    parts.push('<line x1="500" y1="' + (CY - R) + '" x2="500" y2="' + (CY + R) + '" class="pj-svg-axis"/>');
+
+    // Halo-Band (Donut inner→outer) + Spitzenradius gestrichelt
+    var rOut = sc(outerM), rIn = sc(band.innerRadiusKm * 1000), rPk = sc(band.peakDensityRadiusKm * 1000);
+    var donut = 'M ' + CX + ' ' + (CY - rOut) + ' A ' + rOut + ' ' + rOut + ' 0 1 0 ' + CX + ' ' + (CY + rOut) +
+      ' A ' + rOut + ' ' + rOut + ' 0 1 0 ' + CX + ' ' + (CY - rOut) + ' Z' +
+      ' M ' + CX + ' ' + (CY - rIn) + ' A ' + rIn + ' ' + rIn + ' 0 1 0 ' + CX + ' ' + (CY + rIn) +
+      ' A ' + rIn + ' ' + rIn + ' 0 1 0 ' + CX + ' ' + (CY - rIn) + ' Z';
+    parts.push('<path d="' + donut + '" class="pj-svg-band" fill-rule="evenodd"/>');
+    parts.push('<circle cx="500" cy="500" r="' + rPk.toFixed(1) + '" class="pj-svg-peak"/>');
+
+    // Route: solide Start→Ausstieg, gestrichelt Ausstieg→Ziel (bzw. ganz gestrichelt, wenn keine Kreuzung)
+    var sx = tx(start.x), sy = ty(start.y), ex = tx(end.x), ey = ty(end.y);
+    if (exit) {
+      var dx = tx(exit.x), dy = ty(exit.y);
+      parts.push('<line x1="' + sx + '" y1="' + sy + '" x2="' + dx + '" y2="' + dy + '" class="pj-svg-route"/>');
+      parts.push('<line x1="' + dx + '" y1="' + dy + '" x2="' + ex + '" y2="' + ey + '" class="pj-svg-route pj-svg-route--rem"/>');
+    } else {
+      parts.push('<line x1="' + sx + '" y1="' + sy + '" x2="' + ex + '" y2="' + ey + '" class="pj-svg-route pj-svg-route--miss"/>');
+    }
+
+    // Anker-Punkte (alle) + Planeten-Labels
+    D.anchors.forEach(function (a) {
+      if (a.type === 'station alias') return; // deckt sich mit Planet
+      var px = tx(a.point.x), py = ty(a.point.y);
+      if (a.type === 'planet') {
+        parts.push('<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="6" class="pj-svg-planet"/>');
+        var anchor = a.point.x >= 0 ? 'start' : 'end';
+        var lx = a.point.x >= 0 ? px + 11 : px - 11;
+        parts.push('<text x="' + lx.toFixed(1) + '" y="' + (py + 4).toFixed(1) + '" class="pj-svg-plabel" text-anchor="' + anchor + '">' + a.displayName + '</text>');
+      } else {
+        parts.push('<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="2.6" class="pj-svg-dot"/>');
+      }
+    });
+
+    // Star (Ursprung)
+    parts.push('<circle cx="500" cy="500" r="15" class="pj-svg-starglow"/>');
+    parts.push('<circle cx="500" cy="500" r="5.5" class="pj-svg-star"/>');
+
+    // Start / Ziel markieren
+    function marker(x, y, cls, tag) {
+      var mx = tx(x), my = ty(y);
+      var out = '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="8" class="pj-svg-node ' + cls + '"/>';
+      var anchor = x >= 0 ? 'start' : 'end';
+      var lx = x >= 0 ? mx + 12 : mx - 12;
+      out += '<text x="' + lx.toFixed(1) + '" y="' + (my - 11).toFixed(1) + '" class="pj-svg-tag" text-anchor="' + anchor + '">' + tag + '</text>';
+      return out;
+    }
+    parts.push(marker(start.x, start.y, 'pj-svg-node--start', T.tagStart));
+    parts.push(marker(end.x, end.y, 'pj-svg-node--end', T.tagQt));
+
+    // Ausstiegspunkt (pulsierend)
+    if (exit) {
+      var ox = tx(exit.x), oy = ty(exit.y);
+      parts.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="10" class="pj-svg-pulse"/>');
+      parts.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="5" class="pj-svg-drop"/>');
+    }
+
+    SVG.innerHTML = parts.join('');
+  }
+
+  // -- Ergebnis rendern --
+  var result = byId('pj-result');
+  function card(label, val, cls, sub, bar) {
+    return '<div class="pj-card">' +
+      '<div class="pj-card__lbl">' + label + '</div>' +
+      '<div class="pj-card__val' + (cls ? ' pj-' + cls : '') + '">' + val + '</div>' +
+      (sub ? '<div class="pj-card__sub">' + sub + '</div>' : '') +
+      (bar != null ? '<div class="pj-bar"><i class="pj-bar__f pj-' + bar.cls + '" style="width:' + bar.score + '%"></i></div>' : '') +
+      '</div>';
+  }
+
+  function setStatus(cls) { result.className = 'pj-result pj-result--' + cls; }
+
+  function showError(title, sub) {
+    setStatus('bad');
+    byId('pj-trigaxis').textContent = title;
+    byId('pj-trigval').textContent = '—';
+    byId('pj-trigsub').textContent = sub || '';
+    byId('pj-stats').innerHTML = '';
+    byId('pj-cx').textContent = byId('pj-cy').textContent = byId('pj-cz').textContent = '—';
+    byId('pj-coordstitle').textContent = '';
+    byId('pj-window').innerHTML = '';
+    byId('pj-copy').style.visibility = 'hidden';
+  }
+
+  function render() {
+    var sa = AMAP[byId('pj-start').value], ea = AMAP[byId('pj-end').value];
+    var band = D.bands[byId('pj-bandsel').value];
+    if (!sa || !ea || !band) return;
+
+    // Readouts + Zusammenfassung
+    byId('pj-density').textContent = T.dens[band.densityClass];
+    byId('pj-density').className = 'pj-dens-txt pj-dens--' + band.densityClass;
+    byId('pj-radius').textContent = nf0.format(band.peakDensityRadiusKm) + ' km';
+    byId('pj-summary').innerHTML =
+      '<b>' + sa.displayName + '</b> → ' + sa.canonicalName + ' &nbsp;·&nbsp; <b>' + ea.displayName + '</b> → ' + ea.canonicalName;
+
+    var start = sa.point, end = ea.point;
+
+    // Gleiche Koordinate?
+    if (sa.id === ea.id || (start.x === end.x && start.y === end.y && start.z === end.z)) {
+      showError(T.sameError, '');
+      drawMap(start, end, band, null);
+      return;
+    }
+
+    var roots = rootsForRadius(start, end, band.peakDensityRadiusKm * 1000);
+    if (!roots.length) {
+      var ca = closestApproach(start, end);
+      showError(T.noCrossTitle, fill(T.noCrossSub, { band: band.name, r: nf0.format(band.peakDensityRadiusKm), c: nf0.format(ca.radiusKm) }));
+      drawMap(start, end, band, null);
+      return;
+    }
+
+    var u = roots[0];
+    var dir = sub(end, start);
+    var exit = ptAt(start, dir, u);
+    var routeKm = mag(dir) / 1000;
+    var travelledKm = routeKm * u;
+    var remainKm = routeKm * (1 - u);
+    var axis = monitorAxis(dir);
+    var trend = dir[axis] >= 0 ? T.increasing : T.decreasing;
+    var rising = dir[axis] >= 0;
+    var trig = exit[axis];
+    var conf = confidence(start, end, exit);
+    var plane = planeStatus(exit);
+    var widthKm = band.outerRadiusKm - band.innerRadiusKm;
+    var innerToPeak = band.peakDensityRadiusKm - band.innerRadiusKm;
+    var peakToOuter = band.outerRadiusKm - band.peakDensityRadiusKm;
+
+    setStatus(conf.cls === 'ok' && plane.cls === 'ok' ? 'ok' : (conf.cls === 'bad' || plane.cls === 'bad' ? 'bad' : 'warn'));
+
+    byId('pj-trigaxis').textContent = T.monitor + ' ' + axis.toUpperCase() + ' // ' + trend;
+    byId('pj-trigval').textContent = nf3.format(trig);
+    byId('pj-trigsub').textContent = rising ? T.triggerSubUp : T.triggerSubDown;
+    var copyBtn = byId('pj-copy');
+    copyBtn.style.visibility = 'visible';
+    copyBtn.dataset.value = String(trig);
+
+    byId('pj-stats').innerHTML =
+      card(T.cRoute, sa.displayName + ' → ' + ea.displayName, 'accent', fill(T.cRouteSub, { s: sa.canonicalName + ' → ' + ea.canonicalName })) +
+      card(T.cBand, band.name, 'accent2', fill(T.cBandSub, { p: nf0.format(band.peakDensityRadiusKm), d: T.dens[band.densityClass] })) +
+      card(T.cConf, conf.label, conf.cls, fill(T.cConfSub, { f: conf.f.toFixed(3), a: conf.ang.toFixed(1) }), { cls: conf.cls, score: conf.score }) +
+      card(T.cPlane, plane.label, plane.cls, fill(T.cPlaneSub, { z: nf2.format(plane.zKm), h: nf0.format(HALF) })) +
+      card(T.cProgress, (u * 100).toFixed(3) + '%', '', fill(T.cProgressSub, { k: nf0.format(travelledKm) })) +
+      card(T.cDist, nf3.format(remainKm / 1e6) + ' Gm', '', fill(T.cDistSub, { k: nf0.format(remainKm) })) +
+      card(T.cSens, axis.toUpperCase(), 'accent2', fill(T.cSensSub, { x: nf0.format(Math.abs(dir.x) / 1000), y: nf0.format(Math.abs(dir.y) / 1000) })) +
+      card(T.cWidth, nf0.format(widthKm) + ' km', '', fill(T.cWidthSub, { i: nf0.format(innerToPeak), o: nf0.format(peakToOuter) }));
+
+    byId('pj-coordstitle').textContent = '// ' + T.coordsTitle;
+    byId('pj-cx').textContent = nf3.format(exit.x);
+    byId('pj-cy').textContent = nf3.format(exit.y);
+    byId('pj-cz').textContent = nf3.format(exit.z);
+
+    // Bandfenster auf der Beobachtungsachse
+    var innerRoots = rootsForRadius(start, end, band.innerRadiusKm * 1000);
+    var outerRoots = rootsForRadius(start, end, band.outerRadiusKm * 1000);
+    var iu = selectRootNear(innerRoots, u), ou = selectRootNear(outerRoots, u);
+    var AX = axis.toUpperCase();
+    if (iu !== null && ou !== null) {
+      var ord = [iu, ou].sort(function (a, b) { return a - b; });
+      var entryP = ptAt(start, dir, ord[0]), leaveP = ptAt(start, dir, ord[1]);
+      byId('pj-window').innerHTML =
+        '<div class="pj-window__ttl">// ' + T.winTitle + '</div>' +
+        '<div class="pj-window__rows">' +
+        '<div>' + fill(T.winEnter, { a: AX }) + ' <b>' + nf3.format(entryP[axis]) + '</b></div>' +
+        '<div>' + fill(T.winPeak, { a: AX }) + ' <b>' + nf3.format(trig) + '</b></div>' +
+        '<div>' + fill(T.winLeave, { a: AX }) + ' <b>' + nf3.format(leaveP[axis]) + '</b></div>' +
+        '</div>' +
+        '<div class="pj-window__note">' + fill(T.winNote, { w: nf0.format(widthKm) }) + '</div>';
+    } else {
+      byId('pj-window').innerHTML = '<div class="pj-window__ttl">// ' + T.winTitle + '</div><div class="pj-window__note">' + T.winPartial + '</div>';
+    }
+
+    drawMap(start, end, band, exit);
+  }
+
+  // -- Persistenz --
+  var KEY = 'pj-route';
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ s: byId('pj-start').value, e: byId('pj-end').value, b: byId('pj-bandsel').value })); } catch (e) {}
+  }
+  function load() {
+    var v = null;
+    try { v = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    var s = byId('pj-start'), e = byId('pj-end'), b = byId('pj-bandsel');
+    s.value = (v && AMAP[v.s]) ? v.s : D.def.start;
+    e.value = (v && AMAP[v.e]) ? v.e : D.def.end;
+    b.value = (v && D.bands[v.b]) ? v.b : D.def.band;
+    if (!s.value) s.value = D.def.start;
+    if (!e.value) e.value = D.def.end;
+  }
+
+  function onChange() { save(); render(); }
+
+  byId('pj-start').addEventListener('change', onChange);
+  byId('pj-end').addEventListener('change', onChange);
+  byId('pj-bandsel').addEventListener('change', onChange);
+  byId('pj-swap').addEventListener('click', function () {
+    var s = byId('pj-start'), e = byId('pj-end');
+    var tmp = s.value; s.value = e.value; e.value = tmp;
+    onChange();
+  });
+  byId('pj-reset').addEventListener('click', function () {
+    byId('pj-start').value = D.def.start;
+    byId('pj-end').value = D.def.end;
+    byId('pj-bandsel').value = D.def.band;
+    onChange();
+  });
+  byId('pj-copy').addEventListener('click', function () {
+    var btn = byId('pj-copy'), val = btn.dataset.value;
+    if (!val) return;
+    var done = function (txt) { var o = btn.textContent; btn.textContent = txt; setTimeout(function () { btn.textContent = o; }, 1100); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(val).then(function () { done(T.copied); }).catch(function () { done(T.copyFail); });
+    } else { done(T.copyFail); }
+  });
+
+  // Anker-Tabelle filtern
+  var af = byId('pj-anchorfilter');
+  if (af) af.addEventListener('input', function () {
+    var q = af.value.trim().toLowerCase();
+    var rows = byId('pj-anchorbody').children;
+    for (var i = 0; i < rows.length; i++) {
+      var name = rows[i].getAttribute('data-name') || '';
+      rows[i].style.display = (!q || name.indexOf(q) > -1) ? '' : 'none';
+    }
+  });
+
+  load();
+  render();
+})();
+</script>
+
+<style is:inline>
+  .pj { padding-top: clamp(1.5rem, 4vw, 2.5rem); }
+  .pj-wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  .pj-honesty {
+    display: block; margin: 0 0 1.4rem; padding: .85rem 1.1rem;
+    border: 1px solid var(--accent-2); border-left-width: 3px;
+    background: color-mix(in srgb, var(--accent-2) 8%, transparent);
+    border-radius: 4px; color: var(--text); font-size: .9rem; line-height: 1.55;
+  }
+  .pj-honesty b { color: #fff; }
+
+  /* ---- Console ---- */
+  .pj-console {
+    position: relative; background: var(--surface); border: 1px solid var(--line);
+    border-top: 2px solid var(--accent); border-radius: 4px;
+    padding: 1.3rem clamp(1rem, 2.5vw, 1.6rem) 1.5rem;
+  }
+  .pj-console__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
+  .pj-console__title {
+    font-family: var(--font-ui); font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+    font-size: .74rem; color: var(--accent);
+  }
+  .pj-reset {
+    background: transparent; border: 1px solid var(--line); color: var(--muted);
+    font-family: var(--font-ui); font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    font-size: .68rem; padding: .4rem .8rem; border-radius: 3px; cursor: pointer; transition: all .15s;
+  }
+  .pj-reset:hover { color: var(--accent); border-color: var(--accent); }
+
+  .pj-route { display: grid; grid-template-columns: 1fr auto 1fr; gap: .9rem; align-items: end; }
+  .pj-band { display: grid; grid-template-columns: 1.3fr 1fr 1.3fr; gap: .9rem; align-items: end; margin-top: 1rem; }
+  .pj-field { min-width: 0; display: flex; flex-direction: column; gap: .4rem; }
+  .pj-label {
+    font-family: var(--font-ui); font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    font-size: .66rem; color: var(--muted);
+  }
+  .pj-select {
+    width: 100%; background: var(--bg); border: 1px solid var(--line); border-bottom: 2px solid var(--accent-2);
+    color: var(--text); font-family: var(--font-ui); font-weight: 600; font-size: .95rem;
+    padding: .7rem .8rem; border-radius: 2px; outline: none; cursor: pointer; transition: box-shadow .15s, border-color .15s;
+  }
+  .pj-select:focus { border-color: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 20%, transparent); }
+  .pj-swap {
+    width: 46px; height: 46px; align-self: end; background: transparent; border: 1px solid var(--line);
+    color: var(--accent-2); font-size: 1.2rem; border-radius: 2px; cursor: pointer; transition: all .15s;
+  }
+  .pj-swap:hover { border-color: var(--accent-2); box-shadow: 0 0 14px color-mix(in srgb, var(--accent-2) 30%, transparent); }
+  .pj-readout {
+    min-height: 46px; background: var(--bg); border: 1px solid var(--line); border-bottom: 2px solid var(--accent-2);
+    border-radius: 2px; padding: .45rem .8rem; display: flex; flex-direction: column; justify-content: center;
+  }
+  .pj-readout b { font-family: var(--font-display); font-weight: 800; font-size: 1rem; color: var(--accent-2); line-height: 1.15; }
+  .pj-readout i { font-style: normal; font-family: var(--font-ui); font-size: .58rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: .15rem; }
+  .pj-dens-txt.pj-dens--high { color: var(--accent); }
+  .pj-dens-txt.pj-dens--medium { color: #3ddc84; }
+  .pj-dens-txt.pj-dens--medium-low { color: var(--accent-2); }
+  .pj-dens-txt.pj-dens--low { color: var(--muted); }
+  .pj-summary {
+    margin-top: 1rem; padding: .7rem .9rem; background: color-mix(in srgb, var(--accent-2) 5%, transparent);
+    border-left: 2px solid var(--accent-2); border-radius: 2px;
+    font-family: var(--font-ui); font-size: .85rem; color: var(--muted); line-height: 1.5;
+  }
+  .pj-summary b { color: var(--text); font-weight: 700; }
+
+  /* ---- Result ---- */
+  .pj-result {
+    margin-top: 1rem; border: 1px solid var(--line); border-radius: 4px; overflow: hidden;
+    background: linear-gradient(180deg, var(--surface), var(--bg-2));
+  }
+  .pj-result--ok { border-color: color-mix(in srgb, #3ddc84 50%, var(--line)); }
+  .pj-result--warn { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+  .pj-result--bad { border-color: color-mix(in srgb, var(--hot) 45%, var(--line)); }
+
+  .pj-trigger { text-align: center; padding: 1.6rem 1rem 1.5rem; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .pj-trigger__axis { font-family: var(--font-ui); font-weight: 700; letter-spacing: .22em; text-transform: uppercase; font-size: .74rem; color: var(--accent-2); }
+  .pj-trigger__val {
+    font-family: var(--font-display); font-weight: 900; color: var(--accent);
+    text-shadow: 0 0 26px color-mix(in srgb, var(--accent) 40%, transparent);
+    font-size: clamp(1.6rem, 5.5vw, 3rem); letter-spacing: .01em; margin: .35rem 0 .2rem; word-break: break-word;
+  }
+  .pj-trigger__sub { font-family: var(--font-ui); font-size: .78rem; color: var(--muted); max-width: 52ch; margin: 0 auto; }
+  .pj-copy {
+    margin-top: .9rem; background: transparent; border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line));
+    color: var(--accent); font-family: var(--font-ui); font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    font-size: .68rem; padding: .5rem 1rem; border-radius: 3px; cursor: pointer; transition: all .15s;
+  }
+  .pj-copy:hover { border-color: var(--accent); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent); }
+
+  .pj-grid2 { display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: 1px; background: var(--line); }
+
+  /* Map */
+  .pj-map { margin: 0; background: var(--bg); padding: 1rem 1.1rem 1.1rem; display: flex; flex-direction: column; }
+  .pj-map__cap { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .7rem; }
+  .pj-map__cap span { font-family: var(--font-ui); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: .72rem; color: var(--text); }
+  .pj-map__cap i { font-style: normal; font-family: var(--font-ui); font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pj-map__frame {
+    position: relative; aspect-ratio: 1 / 1; border: 1px solid var(--line); border-radius: 3px; overflow: hidden;
+    background: radial-gradient(120% 120% at 50% 50%, color-mix(in srgb, var(--accent-2) 5%, var(--bg)), var(--bg) 72%);
+  }
+  .pj-map__frame svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .pj-svg-grid { fill: none; stroke: var(--line-soft); stroke-width: 1; }
+  .pj-svg-axis { stroke: var(--line-soft); stroke-width: 1; stroke-dasharray: 3 7; }
+  .pj-svg-band { fill: color-mix(in srgb, var(--accent-2) 16%, transparent); stroke: color-mix(in srgb, var(--accent-2) 45%, transparent); stroke-width: 1; }
+  .pj-svg-peak { fill: none; stroke: var(--accent-2); stroke-width: 1.4; stroke-dasharray: 6 6; opacity: .8; }
+  .pj-svg-route { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+  .pj-svg-route--rem { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 7 7; opacity: .7; }
+  .pj-svg-route--miss { stroke: var(--hot); stroke-width: 2.4; stroke-dasharray: 7 7; opacity: .85; }
+  .pj-svg-dot { fill: var(--muted); opacity: .55; }
+  .pj-svg-planet { fill: var(--text); opacity: .8; }
+  .pj-svg-plabel { fill: var(--muted); font-family: var(--font-ui, sans-serif); font-size: 17px; font-weight: 600; }
+  .pj-svg-star { fill: #fff2c8; }
+  .pj-svg-starglow { fill: color-mix(in srgb, var(--accent) 55%, transparent); }
+  .pj-svg-node { stroke: var(--bg); stroke-width: 2.5; }
+  .pj-svg-node--start { fill: var(--accent-2); }
+  .pj-svg-node--end { fill: var(--accent); }
+  .pj-svg-tag { font-family: var(--font-ui, sans-serif); font-size: 18px; font-weight: 700; letter-spacing: .08em; }
+  .pj-svg-node--start + .pj-svg-tag, .pj-svg-tag { fill: var(--text); }
+  .pj-svg-drop { fill: #3ddc84; stroke: var(--bg); stroke-width: 2; }
+  .pj-svg-pulse { fill: color-mix(in srgb, #3ddc84 55%, transparent); transform-box: fill-box; transform-origin: center; animation: pjpulse 1.9s ease-out infinite; }
+  @keyframes pjpulse { 0% { transform: scale(.5); opacity: .9; } 100% { transform: scale(2.4); opacity: 0; } }
+
+  /* Stats */
+  .pj-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); }
+  .pj-card { background: var(--surface); padding: .95rem 1rem; min-width: 0; }
+  .pj-card__lbl { font-family: var(--font-ui); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: .6rem; color: var(--muted); margin-bottom: .3rem; }
+  .pj-card__val { font-family: var(--font-display); font-weight: 800; font-size: 1.02rem; color: #fff; overflow-wrap: anywhere; line-height: 1.2; }
+  .pj-card__val.pj-accent { color: var(--accent); }
+  .pj-card__val.pj-accent2 { color: var(--accent-2); }
+  .pj-card__val.pj-ok { color: #3ddc84; }
+  .pj-card__val.pj-warn { color: var(--accent); }
+  .pj-card__val.pj-bad { color: color-mix(in srgb, var(--hot) 80%, #fff); }
+  .pj-card__sub { font-family: var(--font-ui); font-size: .72rem; color: var(--muted); margin-top: .3rem; line-height: 1.45; }
+  .pj-bar { height: 3px; background: var(--line); margin-top: .6rem; border-radius: 2px; overflow: hidden; }
+  .pj-bar__f { display: block; height: 100%; transition: width .5s ease; }
+  .pj-bar__f.pj-ok { background: #3ddc84; }
+  .pj-bar__f.pj-warn { background: var(--accent); }
+  .pj-bar__f.pj-bad { background: var(--hot); }
+
+  /* Coords + window */
+  .pj-coords { padding: 1.1rem clamp(1rem, 2.5vw, 1.4rem); background: var(--bg); border-top: 1px solid var(--line); }
+  .pj-coords__title { font-family: var(--font-ui); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: .64rem; color: var(--muted); margin-bottom: .7rem; }
+  .pj-coords__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem; }
+  .pj-coord { border: 1px solid var(--line); background: var(--surface); border-radius: 2px; padding: .6rem .8rem; min-width: 0; }
+  .pj-coord span { font-family: var(--font-display); font-weight: 800; color: var(--accent-2); font-size: .8rem; }
+  .pj-coord b { display: block; font-family: var(--font-ui); font-weight: 600; color: var(--text); font-size: .82rem; margin-top: .25rem; overflow-wrap: anywhere; }
+  .pj-window { padding: 0 clamp(1rem, 2.5vw, 1.4rem) 1.2rem; background: var(--bg); }
+  .pj-window__ttl { font-family: var(--font-ui); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: .64rem; color: var(--muted); margin-bottom: .5rem; }
+  .pj-window__rows { display: grid; gap: .3rem; font-family: var(--font-ui); font-size: .85rem; color: var(--muted); }
+  .pj-window__rows b { color: var(--accent); font-weight: 700; }
+  .pj-window__note { font-family: var(--font-ui); font-size: .74rem; color: var(--muted); margin-top: .5rem; line-height: 1.45; opacity: .85; }
+
+  /* ---- Tables ---- */
+  .pj-tbl { margin-top: 1rem; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); overflow: hidden; }
+  .pj-tbl > summary {
+    display: flex; align-items: baseline; gap: .7rem; padding: .95rem 1.2rem; cursor: pointer; list-style: none;
+    user-select: none; transition: background .15s;
+  }
+  .pj-tbl > summary::-webkit-details-marker { display: none; }
+  .pj-tbl > summary:hover { background: color-mix(in srgb, var(--accent-2) 5%, transparent); }
+  .pj-tbl__ttl { font-family: var(--font-ui); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: .74rem; color: var(--accent-2); }
+  .pj-tbl__sub { font-style: normal; font-family: var(--font-ui); font-size: .68rem; color: var(--muted); }
+  .pj-tbl__chev { margin-left: auto; color: var(--muted); transition: transform .25s; }
+  .pj-tbl[open] .pj-tbl__chev { transform: rotate(180deg); }
+  .pj-tbl__body { border-top: 1px solid var(--line); }
+  .pj-filter {
+    width: calc(100% - 2.4rem); margin: 1rem 1.2rem .4rem; background: var(--bg); border: 1px solid var(--line);
+    border-bottom: 1px solid var(--accent-2); color: var(--text); font-family: var(--font-ui); font-size: .85rem;
+    padding: .55rem .8rem; border-radius: 2px; outline: none;
+  }
+  .pj-filter:focus { border-color: var(--accent-2); }
+  .pj-tblscroll { overflow-x: auto; }
+  .pj-tbl table { width: 100%; border-collapse: collapse; }
+  .pj-tbl thead tr { background: var(--bg-2); border-bottom: 2px solid var(--line); }
+  .pj-tbl th { font-family: var(--font-ui); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; font-size: .6rem; color: var(--muted); padding: .7rem 1rem; text-align: left; white-space: nowrap; }
+  .pj-tbl tbody tr { border-bottom: 1px solid var(--line-soft); }
+  .pj-tbl tbody tr:hover { background: color-mix(in srgb, var(--accent-2) 4%, transparent); }
+  .pj-tbl td { padding: .55rem 1rem; font-family: var(--font-ui); font-size: .82rem; white-space: nowrap; }
+  .pj-td-name { color: #fff; font-weight: 600; }
+  .pj-td-type { color: var(--muted); font-size: .74rem; }
+  .pj-td-anchor { color: var(--accent); }
+  .pj-td-num { color: var(--accent-2); font-size: .74rem; }
+  .pj-dens { display: inline-block; font-family: var(--font-ui); font-weight: 700; font-size: .6rem; letter-spacing: .06em; padding: .18rem .5rem; border: 1px solid var(--line); border-radius: 2px; color: var(--muted); }
+  .pj-dens--high { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+  .pj-dens--medium { color: #3ddc84; border-color: color-mix(in srgb, #3ddc84 40%, var(--line)); }
+  .pj-dens--medium-low { color: var(--accent-2); border-color: color-mix(in srgb, var(--accent-2) 40%, var(--line)); }
+
+  /* ---- Info cards ---- */
+  .pj-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; background: var(--line); margin-top: 1rem; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .pj-infocard { background: var(--surface); padding: 1.1rem 1.2rem; }
+  .pj-infocard--credit { border-top: 2px solid var(--accent); }
+  .pj-infocard__ttl { font-family: var(--font-ui); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: .66rem; color: var(--accent-2); margin-bottom: .55rem; }
+  .pj-infocard__body { font-size: .86rem; color: var(--muted); line-height: 1.6; }
+  .pj-infocard__body b { color: var(--text); font-weight: 600; }
+  .pj-infocard--credit .pj-infocard__body b { color: var(--accent); }
+  .pj-steps { margin-top: .8rem; }
+  .pj-steps__ttl { display: block; font-family: var(--font-ui); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: .64rem; color: var(--muted); margin-bottom: .4rem; }
+  .pj-steps ol { margin: 0; padding-left: 1.1rem; display: grid; gap: .25rem; }
+  .pj-steps li { font-size: .82rem; color: var(--muted); line-height: 1.5; }
+  .pj-steps li b { color: var(--accent-2); font-family: var(--font-ui); font-weight: 700; }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 860px) {
+    .pj-grid2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .pj-route { grid-template-columns: 1fr; }
+    .pj-swap { width: 100%; height: 42px; }
+    .pj-band { grid-template-columns: 1fr; }
+    .pj-stats { grid-template-columns: 1fr; }
+    .pj-coords__grid { grid-template-columns: 1fr; }
+    .pj-tbl > summary { flex-wrap: wrap; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pj-svg-pulse { animation: none; opacity: 0; }
+  }
+</style>
