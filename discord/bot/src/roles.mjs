@@ -57,19 +57,11 @@ export class RankRoles {
       if (role) map.set(rank.key, role.id);
     }
 
-    // Best-effort: order the rank roles just under the bot's highest role.
-    if (canManage) {
-      try {
-        const top = (await guild.members.fetchMe()).roles.highest.position;
-        let pos = Math.max(1, top - 1);
-        const positions = [];
-        for (const rank of RANKS) {
-          const id = map.get(rank.key);
-          if (id) { positions.push({ role: id, position: pos }); pos = Math.max(1, pos - 1); }
-        }
-        if (positions.length) await guild.roles.setPositions(positions);
-      } catch { /* cosmetic */ }
-    }
+    // Positioning is NOT done here: a previous version bulk-reordered the rank
+    // roles on every startup (ascending, ignoring Team roles) using the same
+    // `guild.roles.setPositions` call that's unreliable on this API — it fought
+    // with and repeatedly scrambled the hierarchy `npm run order` (order-roles.mjs)
+    // sets up. Ordering is that script's sole job now; run it after roles change.
 
     this.byGuild.set(guild.id, map);
     return map;

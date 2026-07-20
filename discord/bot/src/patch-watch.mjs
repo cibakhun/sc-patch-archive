@@ -13,7 +13,10 @@ import { t } from './i18n.mjs';
 const CHECK_MS = 30 * 60 * 1000;
 // Post-format tag. Bump this to force a one-time, silent re-post of the current
 // patch in the new format (used for the English-only → bilingual cutover).
-const POST_FMT = 'bi1';
+// Bumped bi1 → bi2: the bi1 cutover never actually posted (an earlier bot run
+// hit the "channel not found" branch below, which wrongly recorded the version
+// as handled without posting anything — #patch-notes had only the seed post).
+const POST_FMT = 'bi2';
 
 const findPatchChannel = (guild) =>
   guild.channels.cache.find((c) => c.isTextBased?.() && !c.isVoiceBased?.() && /patch-notes/i.test(c.name));
@@ -47,7 +50,9 @@ async function check(ctx) {
     if (last === p.version && !cutover) continue;
 
     const channel = findPatchChannel(guild);
-    if (!channel) { ctx.db.setMeta(guild.id, 'lastPatch', p.version); ctx.db.setMeta(guild.id, 'lastPatchFmt', POST_FMT); continue; }
+    // Don't record the version as handled if the channel isn't found — that
+    // would silently skip the actual post forever. Just retry next tick.
+    if (!channel) continue;
 
     const role = findPatchRole(guild);
     const isNew = last != null && !cutover; // genuine new patch → ping; cutover → silent
