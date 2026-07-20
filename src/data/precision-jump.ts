@@ -4,13 +4,24 @@
 // Gürtels (Radien vom System-Ursprung) und die QT-Anker (Planeten-, Mond-,
 // Lagrange- und Stations-Zentren als Stanton-Weltkoordinaten in Metern).
 //
-// Herkunft: Community-Vermessung (cstone.space) für die Halo-Band-Höhen; die
-// Anker-Koordinaten sind die kanonischen Stanton-Zentren. Werkzeug und Rohdaten
-// stammen aus einer Open-Source-Einsendung von „Jordessey". Die Werte sind
-// PATCH-VOLATIL — im Spiel gegenprüfen (s. AH_BAND_METADATA.status).
+// Herkunft (transparent, drei Ebenen):
+//  1. Aaron-Halo-HÜLLE (Innen-/Mittel-/Außenkante + vertikale Dicke) = GAME-
+//     SOURCED aus Data.p4k 4.9 (aaronhalo.socpak) via scripts/datamine-aaron-halo.mjs
+//     -> assets/aaron-halo-gamefiles.json. Siehe AH_GAME_ENVELOPE.
+//  2. Die feinen 10 Dichtebänder = cstone.space-Community-Vermessung (~Patch 3.16).
+//     Sie liegen INNERHALB der game-sourced Hülle (validiert), sind aber selbst
+//     kein sauberer Spielwert -> Ehrlichkeitsmarker im UI.
+//  3. QT-Anker-Koordinaten (Planeten/Monde/Lagrange) = GAME-SOURCED aus Data.p4k
+//     4.9 (stantonsystem.socpak OOC_*-Platzierungen). Jordesseys Einsendung war
+//     die Vorlage und deckt sich fast überall auf den Meter; einzelne Punkte
+//     (z. B. MIC-L5) korrigiert der Spielwert. Stations-Aliase lösen weiterhin
+//     bewusst auf das (game-sourced) Planetenzentrum auf.
+// Alle Werte sind PATCH-VOLATIL — im Spiel gegenprüfen.
 //
 // Geometrie-Kern (Strahl-Kugel-Schnitt) lebt bewusst NUR im Client-JS der
 // Komponente — der Server rendert Auswahl/Tabellen, der Client rechnet live.
+import halo from '../../assets/aaron-halo-gamefiles.json';
+import anchorsData from '../../assets/stanton-anchors-gamefiles.json';
 
 export type DensityClass = 'low' | 'medium-low' | 'medium' | 'high';
 
@@ -66,69 +77,40 @@ export const ORBITAL_STATION_ANCHORS: Record<
   portTressler: { name: 'Port Tressler', canonicalAnchor: 'microTech', note: 'Uses microTech centre' },
 };
 
-// -- Lagrange-Container-Zentren (Stanton-Weltkoordinaten, Meter) --------------
-export const LAGRANGE_CENTRES: Record<string, { name: string; parent: string } & Vec3> = {
-  hurL1: { name: 'HUR-L1', parent: 'hurston', x: 11565411328, y: 0, z: 0 },
-  hurL2: { name: 'HUR-L2', parent: 'hurston', x: 14135502848, y: 0, z: 0 },
-  hurL3: { name: 'HUR-L3', parent: 'hurston', x: -12850457600, y: -1123.422729, z: 0 },
-  hurL4: { name: 'HUR-L4', parent: 'hurston', x: 6425228288, y: 11128823808, z: 0 },
-  hurL5: { name: 'HUR-L5', parent: 'hurston', x: 6425227776, y: -11128823808, z: 0 },
+// -- Körper- + Lagrange-Zentren: GAME-SOURCED aus Data.p4k 4.9 ----------------
+// (stantonsystem.socpak OOC_*-Container-Platzierungen, via
+//  scripts/datamine-stanton-anchors.mjs -> assets/stanton-anchors-gamefiles.json).
+// Weltkoordinaten in Metern, volle Präzision aus den Spieldateien.
+type BodyRec = { name: string; type: 'planet' | 'moon'; parent?: string } & Vec3;
+type LagRec = { name: string; parent: string } & Vec3;
+export const BODY_CENTRES = anchorsData.bodies as unknown as Record<string, BodyRec>;
+export const LAGRANGE_CENTRES = anchorsData.lagrange as unknown as Record<string, LagRec>;
 
-  cruL1: { name: 'CRU-L1', parent: 'crusader', x: -17065957376, y: -2398464000, z: 0 },
-  cruL2: { name: 'CRU-L2', parent: 'crusader', x: -20858376485, y: -2931474402, z: 0 },
-  cruL3: { name: 'CRU-L3', parent: 'crusader', x: 18962164826, y: 2664965040, z: 0 },
-  cruL4: { name: 'CRU-L4', parent: 'crusader', x: -7173168640, y: -17754204160, z: 0 },
-  cruL5: { name: 'CRU-L5', parent: 'crusader', x: -11789008988, y: 15089246107, z: 0 },
-
-  arcL1: { name: 'ARC-L1', parent: 'arcCorp', x: 16729134637, y: -19937006925, z: 8076.625 },
-  arcL2: { name: 'ARC-L2', parent: 'arcCorp', x: 20446718503, y: -24367450991, z: 8076.625 },
-  arcL3: { name: 'ARC-L3', parent: 'arcCorp', x: -25043446884, y: 14458841788, z: 8076.625 },
-  arcL4: { name: 'ARC-L4', parent: 'arcCorp', x: 28478354916, y: 5021502483, z: 8076.625 },
-  arcL5: { name: 'ARC-L5', parent: 'arcCorp', x: -9890422516, y: -27173732225, z: 8076.625 },
-
-  micL1: { name: 'MIC-L1', parent: 'microTech', x: 20215824238, y: 33467065007, z: 0 },
-  micL2: { name: 'MIC-L2', parent: 'microTech', x: 24708827153, y: 40905202459, z: 0 },
-  micL3: { name: 'MIC-L3', parent: 'microTech', x: -22457170265, y: -37187612395, z: 0 },
-  micL4: { name: 'MIC-L4', parent: 'microTech', x: -20971933230, y: 38045504032, z: 0 },
-  micL5: { name: 'MIC-L5', parent: 'microTech', x: 43434842423.47, y: -859863968.2, z: 0 },
-};
-
-// -- Körper-Zentren: Planeten + ihre Monde ------------------------------------
-export const BODY_CENTRES: Record<
-  string,
-  { name: string; type: 'planet' | 'moon'; parent?: string } & Vec3
-> = {
-  hurston: { name: 'Hurston', type: 'planet', x: 12850457093, y: 0, z: 0 },
-  arial: { name: 'Arial', type: 'moon', parent: 'hurston', x: 12892673308, y: -31476128, z: 0 },
-  aberdeen: { name: 'Aberdeen', type: 'moon', parent: 'hurston', x: 12905757636, y: 40955550, z: 0 },
-  magda: { name: 'Magda', type: 'moon', parent: 'hurston', x: 12792686359, y: -74464581, z: 0 },
-  ita: { name: 'Ita', type: 'moon', parent: 'hurston', x: 12830194716, y: 114913608, z: 0 },
-
-  crusader: { name: 'Crusader', type: 'planet', x: -18962176000, y: -2664960000, z: 0 },
-  cellin: { name: 'Cellin', type: 'moon', parent: 'crusader', x: -18987611119, y: -2709009661, z: 0 },
-  daymar: { name: 'Daymar', type: 'moon', parent: 'crusader', x: -18930539540, y: -2610158765, z: 0 },
-  yela: { name: 'Yela', type: 'moon', parent: 'crusader', x: -19022916799, y: -2613996152, z: 0 },
-
-  arcCorp: { name: 'ArcCorp', type: 'planet', x: 18587664740, y: -22151916920, z: 0 },
-  lyria: { name: 'Lyria', type: 'moon', parent: 'arcCorp', x: 18703607170, y: -22121650134, z: 0 },
-  wala: { name: 'Wala', type: 'moon', parent: 'arcCorp', x: 18379649310, y: -22000466768, z: 0 },
-
-  microTech: { name: 'microTech', type: 'planet', x: 22462085252, y: 37185744964, z: 0 },
-  calliope: { name: 'Calliope', type: 'moon', parent: 'microTech', x: 22398369308, y: 37168840679, z: 0 },
-  clio: { name: 'Clio', type: 'moon', parent: 'microTech', x: 22476728212, y: 37091020112, z: 0 },
-  euterpe: { name: 'Euterpe', type: 'moon', parent: 'microTech', x: 22488109736, y: 37081123565, z: 0 },
-};
+/**
+ * Game-sourced Aaron-Halo-Hülle aus Data.p4k 4.9 (aaronhalo.socpak): die echten
+ * radialen Kanten + vertikale Dicke des Rings, wie das Spiel sie definiert. Die
+ * feinen 10 Dichtebänder (cstone-Vermessung) liegen innerhalb dieser Grenzen.
+ */
+export const AH_GAME_ENVELOPE = {
+  innerEdgeKm: halo.innerEdgeKm,
+  middleKm: halo.middleKm,
+  outerEdgeKm: halo.outerEdgeKm,
+  verticalHalfThicknessKm: halo.verticalHalfThicknessKm,
+  source: 'Data.p4k 4.9 · aaronhalo.socpak',
+} as const;
 
 export const AH_BAND_METADATA = {
   name: 'Aaron Halo',
   system: 'Stanton',
   units: 'km',
   radiusOrigin: 'Stanton system origin',
-  /** nominale halbe Ringdicke senkrecht zur Ebene, km */
-  verticalHalfThicknessKm: 5_000,
-  /** Community-Vermessung, deren Patch-Stand die Band-Höhen tragen */
-  sourceSurveyVersion: '3.16.1-LIVE',
-  status: 'community-survey-data' as const,
+  /** vertikale Halbdicke des Rings — GAME-SOURCED (aaronhalo.socpak, ±5.000 km) */
+  verticalHalfThicknessKm: halo.verticalHalfThicknessKm,
+  /** die 10 feinen Dichtebänder: cstone.space-Community-Vermessung */
+  bandSurveySource: 'cstone.space (~3.16)',
+  /** die Ring-Hülle (Kanten + Dicke): game-sourced */
+  envelopeSource: 'Data.p4k 4.9',
+  status: 'game-envelope + community-density-bands' as const,
 } as const;
 
 /**

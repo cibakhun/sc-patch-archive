@@ -20,6 +20,8 @@
     "datamine:crafting": "node scripts/datamine-crafting.mjs",
     "datamine:mining": "node scripts/datamine-mining.mjs",
     "datamine:locations": "node scripts/datamine-locations.mjs",
+    "datamine:aaron-halo": "node scripts/datamine-aaron-halo.mjs",
+    "datamine:stanton-anchors": "node scripts/datamine-stanton-anchors.mjs",
     "datamine:missions": "node scripts/datamine-missions.mjs",
     "datamine:logos": "node scripts/datamine-manufacturer-logos.mjs",
     "datamine:loadouts": "node scripts/datamine-ship-loadouts.mjs",

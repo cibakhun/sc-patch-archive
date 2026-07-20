@@ -1,0 +1,277 @@
+{
+ "source": "Star Citizen Data.p4k -> ObjectContainers/PU/system/stanton/stantonsystem.socpak (OOC_* Object-Container-Platzierungen) — eigene Extraktion",
+ "system": "Stanton",
+ "units": "m",
+ "counts": {
+  "bodies": 16,
+  "lagrange": 20
+ },
+ "bodies": {
+  "ita": {
+   "name": "Ita",
+   "type": "moon",
+   "parent": "hurston",
+   "x": 12830194715.812735,
+   "y": 114913608.600053,
+   "z": 0
+  },
+  "hurston": {
+   "name": "Hurston",
+   "type": "planet",
+   "x": 12850457093,
+   "y": 0,
+   "z": 0
+  },
+  "calliope": {
+   "name": "Calliope",
+   "type": "moon",
+   "parent": "microTech",
+   "x": 22398369308.247227,
+   "y": 37168840679.01129,
+   "z": 0
+  },
+  "daymar": {
+   "name": "Daymar",
+   "type": "moon",
+   "parent": "crusader",
+   "x": -18930539539.53483,
+   "y": -2610158765.498556,
+   "z": 0
+  },
+  "arial": {
+   "name": "Arial",
+   "type": "moon",
+   "parent": "hurston",
+   "x": 12892673308.86082,
+   "y": -31476128.840109,
+   "z": 0
+  },
+  "euterpe": {
+   "name": "Euterpe",
+   "type": "moon",
+   "parent": "microTech",
+   "x": 22488109735.701077,
+   "y": 37081123564.67918,
+   "z": 0
+  },
+  "arcCorp": {
+   "name": "ArcCorp",
+   "type": "planet",
+   "x": 18587664739.85602,
+   "y": -22151916920.3126,
+   "z": 0
+  },
+  "microTech": {
+   "name": "microTech",
+   "type": "planet",
+   "x": 22462085252.484795,
+   "y": 37185744964.8301,
+   "z": 0
+  },
+  "aberdeen": {
+   "name": "Aberdeen",
+   "type": "moon",
+   "parent": "hurston",
+   "x": 12905757636.431002,
+   "y": 40955550.560376,
+   "z": 0
+  },
+  "wala": {
+   "name": "Wala",
+   "type": "moon",
+   "parent": "arcCorp",
+   "x": 18379649309.867424,
+   "y": -22000466768.038277,
+   "z": 0
+  },
+  "yela": {
+   "name": "Yela",
+   "type": "moon",
+   "parent": "crusader",
+   "x": -19022916798.927376,
+   "y": -2613996151.998472,
+   "z": 0
+  },
+  "clio": {
+   "name": "Clio",
+   "type": "moon",
+   "parent": "microTech",
+   "x": 22476728220.510056,
+   "y": 37091020074.37551,
+   "z": 0
+  },
+  "crusader": {
+   "name": "Crusader",
+   "type": "planet",
+   "x": -18962176000,
+   "y": -2664959999.999996,
+   "z": 0
+  },
+  "cellin": {
+   "name": "Cellin",
+   "type": "moon",
+   "parent": "crusader",
+   "x": -18987611119.23337,
+   "y": -2709009660.70514,
+   "z": 0
+  },
+  "lyria": {
+   "name": "Lyria",
+   "type": "moon",
+   "parent": "arcCorp",
+   "x": 18703607171.55599,
+   "y": -22121650133.86418,
+   "z": 0
+  },
+  "magda": {
+   "name": "Magda",
+   "type": "moon",
+   "parent": "hurston",
+   "x": 12792686359.418285,
+   "y": -74464580.982047,
+   "z": 0
+  }
+ },
+ "lagrange": {
+  "micL3": {
+   "name": "MIC-L3",
+   "parent": "microTech",
+   "x": -22457170265.786125,
+   "y": -37187612395.6401,
+   "z": 0
+  },
+  "arcL1": {
+   "name": "ARC-L1",
+   "parent": "arcCorp",
+   "x": 16729134637.384644,
+   "y": -19937006924.891357,
+   "z": 8076.625
+  },
+  "hurL2": {
+   "name": "HUR-L2",
+   "parent": "hurston",
+   "x": 14135502848,
+   "y": 0,
+   "z": 0
+  },
+  "micL2": {
+   "name": "MIC-L2",
+   "parent": "microTech",
+   "x": 24708827153.475586,
+   "y": 40905202459.222755,
+   "z": -0.050088
+  },
+  "hurL5": {
+   "name": "HUR-L5",
+   "parent": "hurston",
+   "x": 6425227776,
+   "y": -11128823808,
+   "z": 0
+  },
+  "arcL2": {
+   "name": "ARC-L2",
+   "parent": "arcCorp",
+   "x": 20446718503.390137,
+   "y": -24367450990.706055,
+   "z": 8076.625
+  },
+  "micL5": {
+   "name": "MIC-L5",
+   "parent": "microTech",
+   "x": 43435204288.21857,
+   "y": -851406955.90843,
+   "z": 0
+  },
+  "cruL5": {
+   "name": "CRU-L5",
+   "parent": "crusader",
+   "x": -11789008988.260246,
+   "y": 15089246106.763807,
+   "z": 0
+  },
+  "arcL3": {
+   "name": "ARC-L3",
+   "parent": "arcCorp",
+   "x": -25043446883.50293,
+   "y": 14458841787.628052,
+   "z": 8076.625
+  },
+  "cruL4": {
+   "name": "CRU-L4",
+   "parent": "crusader",
+   "x": -7173168639.999996,
+   "y": -17754204160.000004,
+   "z": 0
+  },
+  "cruL1": {
+   "name": "CRU-L1",
+   "parent": "crusader",
+   "x": -17065957375.999998,
+   "y": -2398463999.999994,
+   "z": 0
+  },
+  "arcL5": {
+   "name": "ARC-L5",
+   "parent": "arcCorp",
+   "x": -9890422516.169678,
+   "y": -27173732225.140015,
+   "z": 8076.625
+  },
+  "hurL3": {
+   "name": "HUR-L3",
+   "parent": "hurston",
+   "x": -12850457600,
+   "y": -1123.422729,
+   "z": 0
+  },
+  "hurL4": {
+   "name": "HUR-L4",
+   "parent": "hurston",
+   "x": 6425228288,
+   "y": 11128823808,
+   "z": 0
+  },
+  "micL1": {
+   "name": "MIC-L1",
+   "parent": "microTech",
+   "x": 20215824238.186035,
+   "y": 33467065007.614746,
+   "z": 0
+  },
+  "micL4": {
+   "name": "MIC-L4",
+   "parent": "microTech",
+   "x": -20971933230.165882,
+   "y": 38045504032.01936,
+   "z": 0
+  },
+  "cruL3": {
+   "name": "CRU-L3",
+   "parent": "crusader",
+   "x": 18962164826.094032,
+   "y": 2664965040.501728,
+   "z": 0
+  },
+  "cruL2": {
+   "name": "CRU-L2",
+   "parent": "crusader",
+   "x": -20858376485.43327,
+   "y": -2931474402.05844,
+   "z": 0
+  },
+  "arcL4": {
+   "name": "ARC-L4",
+   "parent": "arcCorp",
+   "x": 28478354915.65576,
+   "y": 5021502482.911743,
+   "z": 8076.625
+  },
+  "hurL1": {
+   "name": "HUR-L1",
+   "parent": "hurston",
+   "x": 11565411328,
+   "y": 0,
+   "z": 0
+  }
+ }
+}
