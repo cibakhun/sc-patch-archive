@@ -18,6 +18,10 @@ const COPY = {
     signedInAs: 'Angemeldet als',
     memberSince: 'Dabei seit',
     logout: 'Abmelden',
+    toolsHead: 'Werkzeuge',
+    refineryTitle: 'Refinery-Dashboard',
+    refineryDesc: 'Verfolge deine Raffinerie-Aufträge: Station, Methode, Live-Countdown und Erlös.',
+    refineryGo: 'Öffnen →',
     secProfile: 'Profil',
     name: 'Anzeigename', namePh: 'z. B. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'z. B. star_runner',
@@ -55,6 +59,10 @@ const COPY = {
     signedInAs: 'Signed in as',
     memberSince: 'Member since',
     logout: 'Sign out',
+    toolsHead: 'Tools',
+    refineryTitle: 'Refinery dashboard',
+    refineryDesc: 'Track your refinery jobs: station, method, live countdown and payout.',
+    refineryGo: 'Open →',
     secProfile: 'Profile',
     name: 'Display name', namePh: 'e.g. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'e.g. star_runner',
@@ -90,6 +98,7 @@ const COPY = {
 const loginHref = href('/account/login.html', lang);
 const homeHref = lang === 'de' ? '/de.html' : '/';
 const shipsHref = href('/schiffe.html', lang);
+const refineryHref = href('/account/refinery.html', lang);
 const confirmRedirect = loginHref + '?confirmed=1';
 ---
 
@@ -128,6 +137,18 @@ const confirmRedirect = loginHref + '?confirmed=1';
     </div>
     <button class="acx-submit acx-submit--ghost" type="button" id="btnLogout">{COPY.logout}</button>
   </div>
+
+  <!-- Werkzeuge: Refinery-Dashboard -->
+  <a class="acx-card acx-toolcard reveal" href={refineryHref}>
+    <span class="acx-toolcard__ico" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v5.5L4.6 19A1.4 1.4 0 0 0 5.8 21h12.4a1.4 1.4 0 0 0 1.2-2L14 8.5V3"/><path d="M7.5 15h9"/></svg>
+    </span>
+    <span class="acx-toolcard__body">
+      <span class="acx-toolcard__title">{COPY.refineryTitle}</span>
+      <span class="acx-toolcard__desc">{COPY.refineryDesc}</span>
+    </span>
+    <span class="acx-toolcard__go">{COPY.refineryGo}</span>
+  </a>
 
   <!-- 01 Profil -->
   <div class="sec-head reveal"><span class="num">01</span><h2>{COPY.secProfile}</h2><span class="rule"></span></div>
@@ -228,6 +249,29 @@ const confirmRedirect = loginHref + '?confirmed=1';
   .acx-id__since b { color: var(--text); font-weight: 600; }
 
   .acx-card--danger { border-color: rgba(255, 122, 122, 0.35); }
+
+  /* Werkzeug-Karte (Refinery-Dashboard) — Discovery-Link auf der Konto-Startseite */
+  .acx-toolcard {
+    display: flex; align-items: center; gap: 1rem; margin-top: 1.6rem;
+    text-decoration: none; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+  .acx-toolcard:hover { border-color: var(--accent); box-shadow: var(--glow); }
+  .acx-toolcard__ico {
+    flex: none; width: 50px; height: 50px; display: grid; place-items: center;
+    color: var(--accent); border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+  .acx-toolcard__body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 0.15rem; }
+  .acx-toolcard__title { font-family: var(--font-display, sans-serif); font-weight: 800; color: var(--text); font-size: 1.05rem; }
+  .acx-toolcard__desc { font-size: 0.86rem; color: var(--muted); line-height: 1.45; }
+  .acx-toolcard__go {
+    flex: none; font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.8rem;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); white-space: nowrap;
+  }
+  @media (max-width: 520px) {
+    .acx-toolcard { flex-wrap: wrap; }
+    .acx-toolcard__go { width: 100%; text-align: right; }
+  }
 
   .acx-favs { list-style: none; margin: 0; padding: 0; }
   .acx-fav {
