@@ -105,8 +105,12 @@ in a permission name) before you ever hit the API.
 
 ## Notes & troubleshooting
 
-- **Roles look out of order.** The bot can only sort roles *below its own*. Drag the bot's
-  role to the top of the list once, then re-run `npm run build`.
+- **Roles look out of order.** Run **`npm run order`** — it sorts every role into the
+  intended hierarchy (staff → ranks → playstyles → pings → language → pronouns) one role at a
+  time. It's a separate step because (a) Discord's *bulk* reorder API returns a misleading
+  "Missing Permissions" even when the bot's role is on top, and (b) the rank roles are created
+  by the always-on bot, so they only exist to be ordered after that bot has run. Make sure the
+  bot's own role sits above the roles it manages (it does by default).
 - **Onboarding / welcome screen skipped.** They require Community mode. The builder turns it
   on first, but if that step failed, fix it (Server Settings → Enable Community) and re-run.
 - **"Bot is in multiple servers."** Set `GUILD_ID` in `.env` (right-click the server →

@@ -217,15 +217,12 @@ async function build() {
   await guild.roles.everyone.setPermissions(perms(bp.everyonePermissions), 'VerseBase baseline');
   chg('@everyone baseline permissions');
 
-  // Order roles (cosmetic; best-effort — capped below the bot's own role)
-  try {
-    const top = (await guild.members.fetchMe()).roles.highest.position;
-    let pos = Math.max(1, top - 1);
-    const positions = [];
-    for (const def of bp.roles) { positions.push({ role: roleId[def.key], position: pos }); pos = Math.max(1, pos - 1); }
-    await guild.roles.setPositions(positions);
-    chg('role order');
-  } catch (e) { warn(`Could not fully order roles (cosmetic): ${e.message}. Drag the bot's role to the top and re-run to fix.`); }
+  // Role ORDER is applied by a separate step: `npm run order` (order-roles.mjs).
+  // Two reasons: (1) Discord's BULK setPositions rejects with "Missing Permissions"
+  // even when the bot's role is on top — it must be done one role at a time; and
+  // (2) the rank roles are created by the always-on bot, so they only exist to be
+  // ordered AFTER the bot has run. Run `npm run order` once the bot is live.
+  chg('roles (order via `npm run order`)');
 
   // ── Overwrite resolver ─────────────────────────────────────────────────────
   const resolveOverwrites = (spec, { readonly } = {}) => {
