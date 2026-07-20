@@ -37,11 +37,11 @@ const S = {
     offers: 'Angebote', offersP: 'Dieselbe Mission wird %n% mal angeboten — mit unterschiedlichem Auftraggeber, Ort, Rang oder Lohn.',
     single: 'Dieses Angebot gibt es genau einmal.',
     rep: 'Reputation', repP: 'Diese Bedingungen müssen erfüllt sein, damit die Mission überhaupt erscheint.',
-    repNone: 'Keine Reputationsbedingung in den Spieldateien.',
+    repNone: 'Keine Reputationsbedingung im Spiel.',
     faction: 'Fraktion', standing: 'Rang', scope: 'Bereich', threshold: 'Schwelle', perk: 'Vorteil',
     flow: 'Ablauf', flowNote: 'Achtung: Das ist nicht der Zieltext aus dem mobiGlas.',
     flowP: 'Der Spielertext der Missionsziele ist nicht verfügbar — die Missionslogik läuft serverseitig. Was hier steht, sind die Schritte und Ablaufregeln, wie die Entwickler sie benannt haben.',
-    steps: 'Schritte', rules: 'Ablaufregeln', flowNone: 'Kein Ablauf in den Spieldateien hinterlegt.',
+    steps: 'Schritte', rules: 'Ablaufregeln', flowNone: 'Kein Ablauf im Spiel hinterlegt.',
     tblKey: 'Eintrag', tblGiver: 'Auftraggeber', tblLoc: 'Region', tblReward: 'Belohnung', tblRep: 'Reputation', tblPlaces: 'Orte',
     module: 'Missionsmodul', tags: 'Tags', none: '—', noReward: 'keine',
     guild: 'Gilde', rank: 'Karrierestufe', src: 'Quelle', calcReward: 'wird zur Laufzeit berechnet',
@@ -49,9 +49,9 @@ const S = {
     bpP: 'Diese Mission kann Blueprints abwerfen. Ein Pool ist eine gewichtete Liste — welcher Blueprint fällt, entscheidet der Zufall, du bekommst nicht die ganze Liste.',
     bpPool: 'Pool', bpWeight: 'Gewicht',
     srcBroker: 'Missionsbrett', srcContract: 'Contract-Manager',
-    srcNote: 'Die Spieldateien führen zwei Missionssysteme: das ältere Missionsbrett und den Contract-Manager, in den CIG gerade migriert. Blueprints und Gilden gibt es nur im zweiten.',
-    src: 'Quelle', srcP: 'Extrahiert aus <code>Data.p4k → Data/Game2.dcb</code> (DataCore v8) der installierten Live-Version. Missionstexte gibt es dort nur auf Englisch.',
-    rec: 'DataCore-Record',
+    srcNote: 'Es gibt zwei Missionssysteme: das ältere Missionsbrett und den Contract-Manager, in den CIG gerade migriert. Blueprints und Gilden gibt es nur im zweiten.',
+    src: 'Quelle', srcP: 'Spielgenau zur aktuellen Live-Version (Patch 4.9). Missionstexte gibt es nur auf Englisch.',
+    rec: 'Datensatz',
   },
   en: {
     back: 'All missions', kind: 'Mission', titleKind: 'Star Citizen Mission',
@@ -70,11 +70,11 @@ const S = {
     offers: 'Offers', offersP: 'The same mission is offered %n% times — with a different contractor, location, rank or payout.',
     single: 'This offer exists exactly once.',
     rep: 'Reputation', repP: 'These conditions must be met for the mission to show up at all.',
-    repNone: 'No reputation requirement in the game files.',
+    repNone: 'No reputation requirement in the game.',
     faction: 'Faction', standing: 'Standing', scope: 'Scope', threshold: 'Threshold', perk: 'Perk',
     flow: 'Flow', flowNote: 'Note: this is not the objective text from your mobiGlas.',
     flowP: 'The player-facing objective text is not available — mission logic runs server-side. What follows are the steps and flow rules as the developers named them.',
-    steps: 'Steps', rules: 'Flow rules', flowNone: 'No flow recorded in the game files.',
+    steps: 'Steps', rules: 'Flow rules', flowNone: 'No flow recorded in the game.',
     tblKey: 'Entry', tblGiver: 'Contractor', tblLoc: 'Region', tblReward: 'Reward', tblRep: 'Reputation', tblPlaces: 'Locations',
     module: 'Mission module', tags: 'Tags', none: '—', noReward: 'none',
     guild: 'Guild', rank: 'Career rank', src: 'Source', calcReward: 'calculated at runtime',
@@ -82,9 +82,9 @@ const S = {
     bpP: 'This mission can drop blueprints. A pool is a weighted list — which blueprint drops is chance-based, you do not get the whole list.',
     bpPool: 'Pool', bpWeight: 'Weight',
     srcBroker: 'Mission board', srcContract: 'Contract Manager',
-    srcNote: 'The game files carry two mission systems: the older mission board and the Contract Manager that CIG is migrating to. Blueprints and guilds exist only in the latter.',
-    src: 'Source', srcP: 'Extracted from <code>Data.p4k → Data/Game2.dcb</code> (DataCore v8) of the installed live build. Mission text exists there in English only.',
-    rec: 'DataCore record',
+    srcNote: 'There are two mission systems: the older mission board and the Contract Manager that CIG is migrating to. Blueprints and guilds exist only in the latter.',
+    src: 'Source', srcP: 'Game-accurate to the current live build (patch 4.9). Mission text exists in English only.',
+    rec: 'Record',
   },
 }[lang];
 
@@ -119,8 +119,8 @@ const seoName = seoTitle(m.title);
 // Platzhalter-Descs aus dem DataCore („Mission description (WIP)“) fallen
 // unter die 50-Zeichen-SEO-Schwelle — dann trägt das generische Template mehr.
 const descFallback = lang === 'de'
-  ? `${seoName}: Belohnung, Reputation, Auftraggeber und Orte aus den Star-Citizen-Spieldateien.`
-  : `${seoName}: reward, reputation, contractors and locations from the Star Citizen game files.`;
+  ? `${seoName}: Belohnung, Reputation, Auftraggeber und Orte für Star Citizen.`
+  : `${seoName}: reward, reputation, contractors and locations for Star Citizen.`;
 const descFromData = m.desc ? `${seoName} — ${seoText(m.desc)}` : '';
 const desc = clip(descFromData.length >= 50 ? descFromData : descFallback);
 const t = useTranslations(lang);

@@ -96,7 +96,7 @@ export const AH_GAME_ENVELOPE = {
   middleKm: halo.middleKm,
   outerEdgeKm: halo.outerEdgeKm,
   verticalHalfThicknessKm: halo.verticalHalfThicknessKm,
-  source: 'Data.p4k 4.9 · aaronhalo.socpak',
+  source: 'Patch 4.9',
 } as const;
 
 export const AH_BAND_METADATA = {
@@ -108,8 +108,8 @@ export const AH_BAND_METADATA = {
   verticalHalfThicknessKm: halo.verticalHalfThicknessKm,
   /** die 10 feinen Dichtebänder: cstone.space-Community-Vermessung */
   bandSurveySource: 'cstone.space (~3.16)',
-  /** die Ring-Hülle (Kanten + Dicke): game-sourced */
-  envelopeSource: 'Data.p4k 4.9',
+  /** die Ring-Hülle (Kanten + Dicke): spielgenau für den aktuellen Patch */
+  envelopeSource: 'Patch 4.9',
   status: 'game-envelope + community-density-bands' as const,
 } as const;
 

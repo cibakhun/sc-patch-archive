@@ -71,11 +71,11 @@ const S = {
       'Everus Harbor, Seraphim, Baijini Point und Port Tressler lösen auf das Zentrum ihres Mutterplaneten auf — ein kleiner Endpunkt-Fehler gegen eine einfache, wiederholbare Routen-Bibliothek.',
     creditTitle: 'Quellen & Dank',
     creditBody:
-      'QT-Anker (Planeten/Monde/Lagrange) + Aaron-Halo-Hülle sind <b>game-sourced aus Data.p4k 4.9</b> (eigene Extraktion). Die 10 feinen Dichtebänder: Community-Vermessung von <b>cstone.space</b>. Werkzeug + Original-Routendaten: Open-Source-Einsendung von <b>Jordessey</b> (gegen die Spieldaten verifiziert).',
-    gameHalo: 'Spiel-definierter Halo',
+      'QT-Anker (Planeten/Monde/Lagrange) + Aaron-Halo-Hülle sind spielgenau für Patch 4.9. Die 10 feinen Dichtebänder: Community-Vermessung von <b>cstone.space</b>. Precision-Jump-Rechner: mit Dank an <b>Jordessey</b> — Werkzeug + Original-Routendaten (Open-Source-Einsendung).',
+    gameHalo: 'Aaron-Halo-Hülle',
     gameHaloSep: 'Innen',
     honesty:
-      'QT-Anker (Planeten/Monde/Lagrange) + Halo-Hülle sind <b>game-sourced aus Data.p4k 4.9</b>; nur die 10 feinen Dichtebänder sind cstone-Community-Vermessung (liegen innerhalb der Spiel-Hülle). Alles <b>patch-volatil — im Spiel gegenprüfen</b>.',
+      'QT-Anker (Planeten/Monde/Lagrange) + Halo-Hülle sind spielgenau für Patch 4.9; nur die 10 feinen Dichtebänder sind cstone-Community-Vermessung (liegen innerhalb der Hülle). Alles <b>patch-volatil — im Spiel gegenprüfen</b>.',
   },
   en: {
     solver: 'Route solver',
@@ -128,11 +128,11 @@ const S = {
       'Everus Harbor, Seraphim, Baijini Point and Port Tressler resolve to their parent planet centres — a small endpoint variance traded for a simple, repeatable route library.',
     creditTitle: 'Sources & credit',
     creditBody:
-      "QT anchors (planets/moons/Lagrange) + the Aaron Halo envelope are <b>game-sourced from Data.p4k 4.9</b> (own extraction). The 10 finer density bands are a community survey by <b>cstone.space</b>. Tool + original route data: open-source submission by <b>Jordessey</b> (verified against the game data).",
-    gameHalo: 'Game-defined Halo',
+      "QT anchors (planets/moons/Lagrange) + the Aaron Halo envelope are game-accurate for patch 4.9. The 10 finer density bands are a community survey by <b>cstone.space</b>. Precision Jump calculator: with thanks to <b>Jordessey</b> — tool + original route data (open-source submission).",
+    gameHalo: 'Aaron Halo envelope',
     gameHaloSep: 'inner',
     honesty:
-      'QT anchors (planets/moons/Lagrange) + the Halo envelope are <b>game-sourced from Data.p4k 4.9</b>; only the 10 finer density bands are a cstone community survey (inside the game envelope). All <b>patch-volatile — verify in game</b>.',
+      'QT anchors (planets/moons/Lagrange) + the Halo envelope are game-accurate for patch 4.9; only the 10 finer density bands are a cstone community survey (inside the envelope). All <b>patch-volatile — verify in game</b>.',
   },
 }[lang];
 
@@ -527,7 +527,7 @@ const CLIENT = {
       return ((t ^ t >>> 14) >>> 0) / 4294967296;
     };
   }
-  // Ring-Ausdehnung für den Asteroidengürtel — game-sourced (Data.p4k), sonst
+  // Ring-Ausdehnung für den Asteroidengürtel, sonst
   // Fallback auf die Band-Grenzen.
   var HALO_IN, HALO_OUT;
   if (D.env) { HALO_IN = D.env.inner; HALO_OUT = D.env.outer; }
