@@ -132,7 +132,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
             <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/></svg>
             <span>Mining</span>
           </a>
-          <a href={L('/account/refinery.html')} aria-current={current.includes('/account/refinery') ? 'page' : undefined}>
+          <a href={L('/refinery.html')} aria-current={current === L('/refinery.html') ? 'page' : undefined}>
             <svg class="snav__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v5.5L4.6 19A1.4 1.4 0 0 0 5.8 21h12.4a1.4 1.4 0 0 0 1.2-2L14 8.5V3"/><path d="M7.5 15h9"/></svg>
             <span>Refinery</span>
           </a>

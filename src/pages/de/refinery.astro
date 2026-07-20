@@ -1,5 +1,6 @@
 ---
-// Refinery-Dashboard — EN (/account/refinery.html). noindex: private Inhalte.
+// Refinery-Dashboard — DE (/de/refinery.html). Kontogebunden (Auth-Guard in der
+// Komponente, RLS), aber als Mining-WERKZEUG platziert — nicht unter /account/.
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
@@ -7,8 +8,8 @@ import AccountShell from '../../components/account/AccountShell.astro';
 import RefineryDashboard from '../../components/account/RefineryDashboard.astro';
 ---
 <Layout
-  title={'Refinery dashboard | VerseBase'}
-  description={'Track your Star Citizen refinery jobs — station, method, ores, countdown and payout. Bound to your VerseBase account.'}
+  title={'Refinery-Dashboard | VerseBase'}
+  description={'Verfolge deine Star-Citizen-Refinery-Aufträge — Station, Methode, Erze, Countdown und Erlös. In deinem VerseBase-Konto gespeichert.'}
   themeColor="#05070d"
   ogImage="/assets/og-default.jpg"
   translated={true}
@@ -22,20 +23,20 @@ import RefineryDashboard from '../../components/account/RefineryDashboard.astro'
 .hero--acct{min-height:34svh}
 .acwrap--wide .sec-head{margin-top:2.6rem}
 </style>
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Account', href: '/account.html' }, { label: 'Refinery' }]} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Mining', href: '/de/topics/mining.html' }, { label: 'Refinery' }]} hasEn={true} />
 
 <main id="main">
   <AccountShell
-    eyebrow="VerseBase · Mining operations"
+    eyebrow="VerseBase · Bergbau-Betrieb"
     titleThin="Refinery"
     title="Dashboard"
-    lead="Track every refinery work order — station, method, ores, live countdown and payout — bound to your account."
+    lead="Verfolge jeden Refinery-Auftrag — Station, Methode, Erze, Live-Countdown und Erlös. In deinem Konto gespeichert."
     wide={true}
   >
-    <RefineryDashboard lang="en" />
+    <RefineryDashboard lang="de" />
   </AccountShell>
 </main>
 

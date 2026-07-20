@@ -22,7 +22,7 @@ const COPY = {
     loading: 'Lade deine Refinery-Aufträge …',
     loadError: 'Konnte deine Aufträge nicht laden — bitte Verbindung prüfen.',
     retry: 'Neu laden',
-    backToAccount: '← Konto',
+    backToMining: '← Mining',
     // Statistik
     ovTitle: 'Übersicht',
     stActive: 'Aktive Aufträge', stReady: 'Fertig zum Abholen',
@@ -68,7 +68,7 @@ const COPY = {
     loading: 'Loading your refinery orders …',
     loadError: 'Could not load your orders — please check your connection.',
     retry: 'Reload',
-    backToAccount: '← Account',
+    backToMining: '← Mining',
     ovTitle: 'Overview',
     stActive: 'Active orders', stReady: 'Ready to collect',
     stPipeScu: 'Refining now', stPipeVal: 'Pipeline value',
@@ -109,7 +109,7 @@ const COPY = {
 }[lang];
 
 const loginHref = href('/account/login.html', lang);
-const accountHref = lang === 'de' ? '/de/account.html' : '/account.html';
+const miningHref = href('/topics/mining.html', lang);
 const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—');
 ---
 
@@ -119,7 +119,7 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
   <script type="application/json" id="rfd-copy" is:inline set:html={JSON.stringify(COPY)} />
 
   <div class="rfd-top">
-    <a class="rfd-back" href={accountHref}>{COPY.backToAccount}</a>
+    <a class="rfd-back" href={miningHref}>{COPY.backToMining}</a>
   </div>
 
   <!-- Übersicht / Statistik -->
