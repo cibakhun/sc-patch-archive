@@ -7,6 +7,7 @@
 import {
   AH_BAND_INFO,
   AH_BAND_METADATA,
+  AH_GAME_ENVELOPE,
   buildAnchorRecords,
   getBandMetrics,
   type AnchorRecord,
@@ -68,11 +69,13 @@ const S = {
     stationTitle: 'Stations-Anker',
     stationBody:
       'Everus Harbor, Seraphim, Baijini Point und Port Tressler lösen auf das Zentrum ihres Mutterplaneten auf — ein kleiner Endpunkt-Fehler gegen eine einfache, wiederholbare Routen-Bibliothek.',
-    creditTitle: 'Quelle & Dank',
+    creditTitle: 'Quellen & Dank',
     creditBody:
-      'Ursprüngliches Werkzeug und Routendaten von <b>Jordessey</b> (Open-Source-Einsendung). Höhen der Aaron-Halo-Bänder vermessen vom Team bei <b>cstone.space</b>.',
+      'QT-Anker (Planeten/Monde/Lagrange) + Aaron-Halo-Hülle sind <b>game-sourced aus Data.p4k 4.9</b> (eigene Extraktion). Die 10 feinen Dichtebänder: Community-Vermessung von <b>cstone.space</b>. Werkzeug + Original-Routendaten: Open-Source-Einsendung von <b>Jordessey</b> (gegen die Spieldaten verifiziert).',
+    gameHalo: 'Spiel-definierter Halo',
+    gameHaloSep: 'Innen',
     honesty:
-      'Community-Vermessungsdaten (Patch ~3.16) — Koordinaten sind <b>patch-volatil, im Spiel gegenprüfen</b>. Ein Navigations-Hilfsmittel, keine Live-Spieldaten.',
+      'QT-Anker (Planeten/Monde/Lagrange) + Halo-Hülle sind <b>game-sourced aus Data.p4k 4.9</b>; nur die 10 feinen Dichtebänder sind cstone-Community-Vermessung (liegen innerhalb der Spiel-Hülle). Alles <b>patch-volatil — im Spiel gegenprüfen</b>.',
   },
   en: {
     solver: 'Route solver',
@@ -123,11 +126,13 @@ const S = {
     stationTitle: 'Station anchors',
     stationBody:
       'Everus Harbor, Seraphim, Baijini Point and Port Tressler resolve to their parent planet centres — a small endpoint variance traded for a simple, repeatable route library.',
-    creditTitle: 'Source & credit',
+    creditTitle: 'Sources & credit',
     creditBody:
-      'Original tool and route data by <b>Jordessey</b> (open-source submission). Aaron Halo band elevations surveyed by the team at <b>cstone.space</b>.',
+      "QT anchors (planets/moons/Lagrange) + the Aaron Halo envelope are <b>game-sourced from Data.p4k 4.9</b> (own extraction). The 10 finer density bands are a community survey by <b>cstone.space</b>. Tool + original route data: open-source submission by <b>Jordessey</b> (verified against the game data).",
+    gameHalo: 'Game-defined Halo',
+    gameHaloSep: 'inner',
     honesty:
-      'Community survey data (patch ~3.16) — coordinates are <b>patch-volatile, verify in game</b>. A navigation aid, not a live game feed.',
+      'QT anchors (planets/moons/Lagrange) + the Halo envelope are <b>game-sourced from Data.p4k 4.9</b>; only the 10 finer density bands are a cstone community survey (inside the game envelope). All <b>patch-volatile — verify in game</b>.',
   },
 }[lang];
 
@@ -218,6 +223,8 @@ const CLIENT = {
   anchors: ANCHORS,
   bands: AH_BAND_INFO,
   meta: { half: AH_BAND_METADATA.verticalHalfThicknessKm },
+  // game-sourced Ring-Hülle (Data.p4k) — treibt den Asteroidengürtel der Karte
+  env: { inner: AH_GAME_ENVELOPE.innerEdgeKm, outer: AH_GAME_ENVELOPE.outerEdgeKm },
   def: DEF,
   t: JS_T,
 };
@@ -294,6 +301,11 @@ const CLIENT = {
       </div>
 
       <p class="pj-summary" id="pj-summary"></p>
+      <p class="pj-gamesrc">
+        <span class="pj-gamesrc__tag">{S.gameHalo}</span>
+        {S.gameHaloSep} {fmt0.format(AH_GAME_ENVELOPE.innerEdgeKm)} · {fmt0.format(AH_GAME_ENVELOPE.middleKm)} · {fmt0.format(AH_GAME_ENVELOPE.outerEdgeKm)} km · ±{fmt0.format(AH_GAME_ENVELOPE.verticalHalfThicknessKm)} km
+        <span class="pj-gamesrc__src">{AH_GAME_ENVELOPE.source}</span>
+      </p>
     </div>
 
     <!-- ==== Result ==== -->
@@ -503,82 +515,123 @@ const CLIENT = {
   }
   function monitorAxis(dir) { return Math.abs(dir.x) >= Math.abs(dir.y) ? 'x' : 'y'; }
 
-  // -- Karten-Rendering (Draufsicht, z≈0-Ebene) --
+  // -- Holografische Sternenkarte (Draufsicht auf die Stanton-Ebene, z≈0) --
   var SVG = byId('pj-svg');
-  var SVGNS = 'http://www.w3.org/2000/svg';
+  // Kleiner deterministischer PRNG -> der Asteroidengürtel ist bei jedem Redraw
+  // identisch (springt nicht), obwohl er prozedural gestreut wird.
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  // Ring-Ausdehnung für den Asteroidengürtel — game-sourced (Data.p4k), sonst
+  // Fallback auf die Band-Grenzen.
+  var HALO_IN, HALO_OUT;
+  if (D.env) { HALO_IN = D.env.inner; HALO_OUT = D.env.outer; }
+  else {
+    HALO_IN = Infinity; HALO_OUT = 0;
+    Object.keys(D.bands).forEach(function (k) {
+      HALO_IN = Math.min(HALO_IN, D.bands[k].innerRadiusKm);
+      HALO_OUT = Math.max(HALO_OUT, D.bands[k].outerRadiusKm);
+    });
+  }
+  var GM = 1e9; // 1 Gigameter = 1e9 m (Anker-Koordinaten sind in Metern)
+
   function drawMap(start, end, band, exit) {
-    var CX = 500, CY = 500, PAD = 56, R = CY - PAD;
-    var outerM = band.outerRadiusKm * 1000;
-    var maxR = Math.max(outerM, mag(start), mag(end)) * 1.14;
+    var CX = 500, CY = 500, PAD = 60, R = CY - PAD;
+    var maxR = Math.max(HALO_OUT * 1000, mag(start), mag(end)) * 1.16;
     var sc = function (v) { return (v / maxR) * R; };
     var tx = function (wx) { return CX + sc(wx); };
     var ty = function (wy) { return CY - sc(wy); };
-    var parts = [];
+    var P = [];
 
-    // Hintergrund-Ringe
-    [0.25, 0.5, 0.75, 1].forEach(function (f) {
-      parts.push('<circle cx="500" cy="500" r="' + (R * f).toFixed(1) + '" class="pj-svg-grid"/>');
+    // --- Entfernungs-Ringe (alle N Gm) mit Beschriftung ---
+    var maxGm = maxR / GM;
+    var step = maxGm > 30 ? 10 : (maxGm > 12 ? 5 : 2);
+    for (var g = step; ; g += step) {
+      var rr = sc(g * GM);
+      if (rr > R) break;
+      P.push('<circle cx="500" cy="500" r="' + rr.toFixed(1) + '" class="pj-svg-range"/>');
+      P.push('<text x="507" y="' + (CY - rr - 4).toFixed(1) + '" class="pj-svg-rangelbl">' + g + ' Gm</text>');
+    }
+    P.push('<line x1="' + (CX - R) + '" y1="500" x2="' + (CX + R) + '" y2="500" class="pj-svg-axis"/>');
+    P.push('<line x1="500" y1="' + (CY - R) + '" x2="500" y2="' + (CY + R) + '" class="pj-svg-axis"/>');
+
+    // --- Planeten-Orbits (echte Bahnradien) ---
+    var planets = D.anchors.filter(function (a) { return a.type === 'planet'; });
+    planets.forEach(function (a) {
+      var r = mag(a.point);
+      if (r <= maxR) P.push('<circle cx="500" cy="500" r="' + sc(r).toFixed(1) + '" class="pj-svg-orbit"/>');
     });
-    parts.push('<line x1="' + (CX - R) + '" y1="500" x2="' + (CX + R) + '" y2="500" class="pj-svg-axis"/>');
-    parts.push('<line x1="500" y1="' + (CY - R) + '" x2="500" y2="' + (CY + R) + '" class="pj-svg-axis"/>');
 
-    // Halo-Band (Donut inner→outer) + Spitzenradius gestrichelt
-    var rOut = sc(outerM), rIn = sc(band.innerRadiusKm * 1000), rPk = sc(band.peakDensityRadiusKm * 1000);
+    // --- Aaron-Halo als Asteroidengürtel (seeded, über den ganzen Ring gestreut) ---
+    var rnd = mulberry32(0x5C0FA10);
+    var bIn = sc(HALO_IN * 1000), bOut = sc(HALO_OUT * 1000);
+    var belt = '';
+    for (var i = 0; i < 300; i++) {
+      var ang = rnd() * Math.PI * 2;
+      var rad = bIn + rnd() * (bOut - bIn);
+      var ax = CX + Math.cos(ang) * rad, ay = CY - Math.sin(ang) * rad;
+      var sz = (0.6 + rnd() * 1.5).toFixed(2);
+      var op = (0.22 + rnd() * 0.5).toFixed(2);
+      belt += '<circle cx="' + ax.toFixed(1) + '" cy="' + ay.toFixed(1) + '" r="' + sz + '" opacity="' + op + '"/>';
+    }
+    P.push('<g class="pj-svg-belt">' + belt + '</g>');
+
+    // --- Ausgewähltes Band hervorheben (Annulus + Spitzenradius) ---
+    var rOut = sc(band.outerRadiusKm * 1000), rIn = sc(band.innerRadiusKm * 1000), rPk = sc(band.peakDensityRadiusKm * 1000);
     var donut = 'M ' + CX + ' ' + (CY - rOut) + ' A ' + rOut + ' ' + rOut + ' 0 1 0 ' + CX + ' ' + (CY + rOut) +
       ' A ' + rOut + ' ' + rOut + ' 0 1 0 ' + CX + ' ' + (CY - rOut) + ' Z' +
       ' M ' + CX + ' ' + (CY - rIn) + ' A ' + rIn + ' ' + rIn + ' 0 1 0 ' + CX + ' ' + (CY + rIn) +
       ' A ' + rIn + ' ' + rIn + ' 0 1 0 ' + CX + ' ' + (CY - rIn) + ' Z';
-    parts.push('<path d="' + donut + '" class="pj-svg-band" fill-rule="evenodd"/>');
-    parts.push('<circle cx="500" cy="500" r="' + rPk.toFixed(1) + '" class="pj-svg-peak"/>');
+    P.push('<path d="' + donut + '" class="pj-svg-band" fill-rule="evenodd"/>');
+    P.push('<circle cx="500" cy="500" r="' + rPk.toFixed(1) + '" class="pj-svg-peak"/>');
 
-    // Route: solide Start→Ausstieg, gestrichelt Ausstieg→Ziel (bzw. ganz gestrichelt, wenn keine Kreuzung)
+    // --- QT-Route: solide Start→Ausstieg, gestrichelt Ausstieg→Ziel ---
     var sx = tx(start.x), sy = ty(start.y), ex = tx(end.x), ey = ty(end.y);
     if (exit) {
       var dx = tx(exit.x), dy = ty(exit.y);
-      parts.push('<line x1="' + sx + '" y1="' + sy + '" x2="' + dx + '" y2="' + dy + '" class="pj-svg-route"/>');
-      parts.push('<line x1="' + dx + '" y1="' + dy + '" x2="' + ex + '" y2="' + ey + '" class="pj-svg-route pj-svg-route--rem"/>');
+      P.push('<line x1="' + sx + '" y1="' + sy + '" x2="' + dx + '" y2="' + dy + '" class="pj-svg-route"/>');
+      P.push('<line x1="' + dx + '" y1="' + dy + '" x2="' + ex + '" y2="' + ey + '" class="pj-svg-route pj-svg-route--rem"/>');
     } else {
-      parts.push('<line x1="' + sx + '" y1="' + sy + '" x2="' + ex + '" y2="' + ey + '" class="pj-svg-route pj-svg-route--miss"/>');
+      P.push('<line x1="' + sx + '" y1="' + sy + '" x2="' + ex + '" y2="' + ey + '" class="pj-svg-route pj-svg-route--miss"/>');
     }
 
-    // Anker-Punkte (alle) + Planeten-Labels
-    D.anchors.forEach(function (a) {
-      if (a.type === 'station alias') return; // deckt sich mit Planet
-      var px = tx(a.point.x), py = ty(a.point.y);
-      if (a.type === 'planet') {
-        parts.push('<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="6" class="pj-svg-planet"/>');
-        var anchor = a.point.x >= 0 ? 'start' : 'end';
-        var lx = a.point.x >= 0 ? px + 11 : px - 11;
-        parts.push('<text x="' + lx.toFixed(1) + '" y="' + (py + 4).toFixed(1) + '" class="pj-svg-plabel" text-anchor="' + anchor + '">' + a.displayName + '</text>');
-      } else {
-        parts.push('<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="2.6" class="pj-svg-dot"/>');
-      }
+    // --- Planeten-Knoten + Labels ---
+    planets.forEach(function (a) {
+      var r = mag(a.point);
+      if (r > maxR) return;
+      var px = tx(a.point.x), py = ty(a.point.y), right = a.point.x >= 0;
+      P.push('<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="5" class="pj-svg-planet"/>');
+      P.push('<text x="' + (right ? px + 10 : px - 10).toFixed(1) + '" y="' + (py + 4).toFixed(1) + '" text-anchor="' + (right ? 'start' : 'end') + '" class="pj-svg-plabel">' + a.displayName + '</text>');
     });
 
-    // Star (Ursprung)
-    parts.push('<circle cx="500" cy="500" r="15" class="pj-svg-starglow"/>');
-    parts.push('<circle cx="500" cy="500" r="5.5" class="pj-svg-star"/>');
+    // --- Star (Systemzentrum) ---
+    P.push('<circle cx="500" cy="500" r="22" class="pj-svg-starglow"/>');
+    P.push('<circle cx="500" cy="500" r="6" class="pj-svg-star"/>');
 
-    // Start / Ziel markieren
-    function marker(x, y, cls, tag) {
-      var mx = tx(x), my = ty(y);
-      var out = '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="8" class="pj-svg-node ' + cls + '"/>';
-      var anchor = x >= 0 ? 'start' : 'end';
-      var lx = x >= 0 ? mx + 12 : mx - 12;
-      out += '<text x="' + lx.toFixed(1) + '" y="' + (my - 11).toFixed(1) + '" class="pj-svg-tag" text-anchor="' + anchor + '">' + tag + '</text>';
-      return out;
+    // --- Start-/Ziel-Knoten ---
+    function node(pt, cls, tag) {
+      var mx = tx(pt.x), my = ty(pt.y), right = pt.x >= 0;
+      return '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="7" class="pj-svg-node ' + cls + '"/>' +
+        '<text x="' + (right ? mx + 12 : mx - 12).toFixed(1) + '" y="' + (my - 11).toFixed(1) + '" text-anchor="' + (right ? 'start' : 'end') + '" class="pj-svg-tag">' + tag + '</text>';
     }
-    parts.push(marker(start.x, start.y, 'pj-svg-node--start', T.tagStart));
-    parts.push(marker(end.x, end.y, 'pj-svg-node--end', T.tagQt));
+    P.push(node(start, 'pj-svg-node--start', T.tagStart));
+    P.push(node(end, 'pj-svg-node--end', T.tagQt));
 
-    // Ausstiegspunkt (pulsierend)
+    // --- Ausstiegs-Reticle (die eigentliche Antwort — Fadenkreuz + Puls) ---
     if (exit) {
       var ox = tx(exit.x), oy = ty(exit.y);
-      parts.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="10" class="pj-svg-pulse"/>');
-      parts.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="5" class="pj-svg-drop"/>');
+      P.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="13" class="pj-svg-reticle"/>');
+      P.push('<path d="M ' + (ox - 19).toFixed(1) + ' ' + oy.toFixed(1) + ' h 8 M ' + (ox + 11).toFixed(1) + ' ' + oy.toFixed(1) + ' h 8 M ' + ox.toFixed(1) + ' ' + (oy - 19).toFixed(1) + ' v 8 M ' + ox.toFixed(1) + ' ' + (oy + 11).toFixed(1) + ' v 8" class="pj-svg-cross"/>');
+      P.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="12" class="pj-svg-pulse"/>');
+      P.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="4.5" class="pj-svg-drop"/>');
     }
 
-    SVG.innerHTML = parts.join('');
+    SVG.innerHTML = P.join('');
   }
 
   // -- Ergebnis rendern --
@@ -819,6 +872,9 @@ const CLIENT = {
     font-family: var(--font-ui); font-size: .85rem; color: var(--muted); line-height: 1.5;
   }
   .pj-summary b { color: var(--text); font-weight: 700; }
+  .pj-gamesrc { margin-top: .55rem; display: flex; flex-wrap: wrap; align-items: center; gap: .45rem .6rem; font-family: var(--font-ui); font-size: .74rem; color: var(--muted); }
+  .pj-gamesrc__tag { font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: .58rem; color: #3ddc84; border: 1px solid color-mix(in srgb, #3ddc84 40%, var(--line)); padding: .16rem .46rem; border-radius: 2px; }
+  .pj-gamesrc__src { color: var(--accent-2); opacity: .75; font-size: .66rem; letter-spacing: .04em; }
 
   /* ---- Result ---- */
   .pj-result {
@@ -853,29 +909,47 @@ const CLIENT = {
   .pj-map__cap i { font-style: normal; font-family: var(--font-ui); font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
   .pj-map__frame {
     position: relative; aspect-ratio: 1 / 1; border: 1px solid var(--line); border-radius: 3px; overflow: hidden;
-    background: radial-gradient(120% 120% at 50% 50%, color-mix(in srgb, var(--accent-2) 5%, var(--bg)), var(--bg) 72%);
+    background:
+      radial-gradient(140% 140% at 50% 50%, color-mix(in srgb, var(--accent-2) 9%, var(--bg)), var(--bg) 70%),
+      repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,.16) 2px 3px);
+  }
+  .pj-map__frame::after { /* holografische Vignette + Eck-Glow */
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(90% 90% at 50% 46%, transparent 62%, rgba(0,0,0,.55));
+    box-shadow: inset 0 0 60px color-mix(in srgb, var(--accent-2) 12%, transparent);
   }
   .pj-map__frame svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .pj-svg-grid { fill: none; stroke: var(--line-soft); stroke-width: 1; }
-  .pj-svg-axis { stroke: var(--line-soft); stroke-width: 1; stroke-dasharray: 3 7; }
-  .pj-svg-band { fill: color-mix(in srgb, var(--accent-2) 16%, transparent); stroke: color-mix(in srgb, var(--accent-2) 45%, transparent); stroke-width: 1; }
-  .pj-svg-peak { fill: none; stroke: var(--accent-2); stroke-width: 1.4; stroke-dasharray: 6 6; opacity: .8; }
-  .pj-svg-route { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
-  .pj-svg-route--rem { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 7 7; opacity: .7; }
-  .pj-svg-route--miss { stroke: var(--hot); stroke-width: 2.4; stroke-dasharray: 7 7; opacity: .85; }
-  .pj-svg-dot { fill: var(--muted); opacity: .55; }
-  .pj-svg-planet { fill: var(--text); opacity: .8; }
-  .pj-svg-plabel { fill: var(--muted); font-family: var(--font-ui, sans-serif); font-size: 17px; font-weight: 600; }
-  .pj-svg-star { fill: #fff2c8; }
-  .pj-svg-starglow { fill: color-mix(in srgb, var(--accent) 55%, transparent); }
+  /* Entfernungs-Ringe + Achsen */
+  .pj-svg-range { fill: none; stroke: var(--line-soft); stroke-width: 1; opacity: .55; }
+  .pj-svg-rangelbl { fill: var(--muted); font-family: var(--font-ui, sans-serif); font-size: 13px; font-weight: 600; letter-spacing: .04em; opacity: .5; }
+  .pj-svg-axis { stroke: var(--line-soft); stroke-width: 1; stroke-dasharray: 2 8; opacity: .6; }
+  /* Planeten-Bahnen (echte Orbits) */
+  .pj-svg-orbit { fill: none; stroke: color-mix(in srgb, var(--accent-2) 30%, transparent); stroke-width: 1.2; }
+  /* Aaron-Halo-Asteroidengürtel */
+  .pj-svg-belt circle { fill: color-mix(in srgb, var(--accent-2) 45%, #c9d8e6); }
+  .pj-svg-band { fill: color-mix(in srgb, var(--accent-2) 15%, transparent); stroke: color-mix(in srgb, var(--accent-2) 55%, transparent); stroke-width: 1; }
+  .pj-svg-peak { fill: none; stroke: var(--accent-2); stroke-width: 1.4; stroke-dasharray: 6 6; opacity: .85; filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent-2) 60%, transparent)); }
+  /* QT-Route mit Glow */
+  .pj-svg-route { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 65%, transparent)); }
+  .pj-svg-route--rem { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 7 7; opacity: .65; filter: none; }
+  .pj-svg-route--miss { stroke: var(--hot); stroke-width: 2.4; stroke-dasharray: 7 7; opacity: .9; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--hot) 55%, transparent)); }
+  /* Planeten */
+  .pj-svg-planet { fill: #dfe9f7; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent-2) 70%, transparent)); }
+  .pj-svg-plabel { fill: color-mix(in srgb, var(--text) 78%, transparent); font-family: var(--font-ui, sans-serif); font-size: 16px; font-weight: 600; letter-spacing: .02em; }
+  /* Stern */
+  .pj-svg-star { fill: #fff4d2; filter: drop-shadow(0 0 8px #ffcf6e) drop-shadow(0 0 18px color-mix(in srgb, var(--accent) 80%, transparent)); }
+  .pj-svg-starglow { fill: color-mix(in srgb, var(--accent) 40%, transparent); filter: blur(6px); }
+  /* Start-/Ziel-Knoten */
   .pj-svg-node { stroke: var(--bg); stroke-width: 2.5; }
-  .pj-svg-node--start { fill: var(--accent-2); }
-  .pj-svg-node--end { fill: var(--accent); }
-  .pj-svg-tag { font-family: var(--font-ui, sans-serif); font-size: 18px; font-weight: 700; letter-spacing: .08em; }
-  .pj-svg-node--start + .pj-svg-tag, .pj-svg-tag { fill: var(--text); }
-  .pj-svg-drop { fill: #3ddc84; stroke: var(--bg); stroke-width: 2; }
-  .pj-svg-pulse { fill: color-mix(in srgb, #3ddc84 55%, transparent); transform-box: fill-box; transform-origin: center; animation: pjpulse 1.9s ease-out infinite; }
-  @keyframes pjpulse { 0% { transform: scale(.5); opacity: .9; } 100% { transform: scale(2.4); opacity: 0; } }
+  .pj-svg-node--start { fill: var(--accent-2); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent-2) 75%, transparent)); }
+  .pj-svg-node--end { fill: var(--accent); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 75%, transparent)); }
+  .pj-svg-tag { fill: var(--text); font-family: var(--font-ui, sans-serif); font-size: 17px; font-weight: 700; letter-spacing: .08em; }
+  /* Ausstiegs-Reticle */
+  .pj-svg-reticle { fill: none; stroke: #3ddc84; stroke-width: 1.5; opacity: .9; }
+  .pj-svg-cross { stroke: #3ddc84; stroke-width: 1.6; stroke-linecap: round; }
+  .pj-svg-drop { fill: #3ddc84; stroke: var(--bg); stroke-width: 2; filter: drop-shadow(0 0 7px #3ddc84); }
+  .pj-svg-pulse { fill: color-mix(in srgb, #3ddc84 50%, transparent); transform-box: fill-box; transform-origin: center; animation: pjpulse 1.9s ease-out infinite; }
+  @keyframes pjpulse { 0% { transform: scale(.4); opacity: .9; } 100% { transform: scale(2.6); opacity: 0; } }
 
   /* Stats */
   .pj-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); }

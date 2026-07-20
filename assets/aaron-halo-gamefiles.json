@@ -1,0 +1,27 @@
+{
+  "source": "Star Citizen Data.p4k -> ObjectContainers/PU/system/stanton/aaronhalo.socpak (aaronhalo.xml bounds + gotopoint) — eigene Extraktion",
+  "editorBuildChangelist": "11959921",
+  "units": "km",
+  "innerEdgeKm": 19597600,
+  "middleKm": 20495200,
+  "outerEdgeKm": 21392800,
+  "outerRadiusKm": 21392800,
+  "verticalHalfThicknessKm": 5000,
+  "raw": {
+    "minBoundsM": [
+      -21392799744,
+      -21392799744,
+      -5000000
+    ],
+    "maxBoundsM": [
+      21392799744,
+      21392799744,
+      5000000
+    ],
+    "gotoM": [
+      19597600000,
+      20495200000,
+      21392800000
+    ]
+  }
+}
