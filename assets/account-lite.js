@@ -70,7 +70,9 @@
   }
 
   // ---- Nav-Status (alle Elemente mit .js-nav-acct) -------------------------
-  function paintNav(sess) {
+  // uname optional: Anzeigename/Handle aus profiles — ersetzt das generische
+  // "Konto"-Label, sobald der Zusatz-Request (fetchUsername) zurück ist.
+  function paintNav(sess, uname) {
     var els = document.querySelectorAll('.js-nav-acct');
     if (!els.length) return;
     var loggedIn = !!sess;
@@ -78,9 +80,24 @@
       var el = els[i];
       el.href = loggedIn ? el.getAttribute('data-dash') : el.getAttribute('data-login');
       var txt = el.querySelector('.js-nav-acct-txt');
-      if (txt) txt.textContent = loggedIn ? el.getAttribute('data-l-acct') : el.getAttribute('data-l-login');
+      if (txt) txt.textContent = loggedIn ? (uname || el.getAttribute('data-l-acct')) : el.getAttribute('data-l-login');
+      if (loggedIn && uname) el.title = uname;
       el.classList.toggle('is-authed', loggedIn);
     }
+  }
+
+  // Anzeigename bevorzugt vor Handle (Handle ist optional/eindeutig, aber
+  // der Anzeigename ist das, was der User selbst als "seinen Namen" versteht).
+  function fetchUsername(sess) {
+    if (!sess || !sess.user || !sess.user.id) return Promise.resolve(null);
+    return rest(sess, 'GET', 'profiles?select=display_name,handle&id=eq.' + sess.user.id)
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (rows) {
+        var p = rows && rows[0];
+        if (!p) return null;
+        return p.display_name || (p.handle ? '@' + p.handle : null);
+      })
+      .catch(function () { return null; });
   }
 
   // ---- Favoriten-Buttons ([data-fav]) --------------------------------------
@@ -161,10 +178,14 @@
     ensureSession().then(function (sess) {
       paintNav(sess);
       initFavs(sess);
+      if (sess) fetchUsername(sess).then(function (uname) { if (uname) paintNav(sess, uname); });
     });
     // Login/Logout in einem anderen Tab -> Nav nachziehen
     addEventListener('storage', function (e) {
-      if (e.key === STORE) paintNav(readRaw());
+      if (e.key !== STORE) return;
+      var sess = readRaw();
+      paintNav(sess);
+      if (sess) fetchUsername(sess).then(function (uname) { if (uname) paintNav(sess, uname); });
     });
   }
 

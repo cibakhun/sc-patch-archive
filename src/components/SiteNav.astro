@@ -400,6 +400,13 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav__acct.is-authed svg {
     color: var(--accent, #2dd4ff);
   }
+  /* Anzeigename statt "Konto" kann lang werden — nicht den Header sprengen */
+  .snav__acct .js-nav-acct-txt {
+    max-width: 12ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   /* kleiner "online"-Punkt am Konto-Icon — deutlicheres Signal für „eingeloggt"
      als nur die Textfarbe, bewusst grün statt Akzent-Cyan (kein Verwechseln
      mit Hover-Zustand) */
