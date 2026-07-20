@@ -1,0 +1,791 @@
+---
+// Refinery-Dashboard — kontogebundener Tracker für Raffinerie-Aufträge.
+// Design: TRACKER (exakt), kein Schätzmodell. Der Nutzer trägt die Zahlen ein,
+// die ihm das Ingame-Refinery-Terminal zeigt (Ausbeute/Kosten/Dauer) — die
+// exakte Refinery-Ökonomie ist serverseitig. Verkaufswert-Schätzung aus UEX.
+// Auth-Guard wie AccountDashboard: ohne Session -> Login mit ?next=.
+// Dynamisch erzeugte Zeilen nutzen is:global-Styles.
+import { href } from '../../i18n/ui';
+import { REFINERY, stationsBySystem } from '../../lib/refinery';
+
+interface Props {
+  lang: 'de' | 'en';
+}
+const { lang } = Astro.props;
+
+const stationGroups = stationsBySystem();
+const methods = REFINERY.methods;
+const ores = REFINERY.ores;
+
+const COPY = {
+  de: {
+    loading: 'Lade deine Refinery-Aufträge …',
+    loadError: 'Konnte deine Aufträge nicht laden — bitte Verbindung prüfen.',
+    retry: 'Neu laden',
+    backToAccount: '← Konto',
+    // Statistik
+    ovTitle: 'Übersicht',
+    stActive: 'Aktive Aufträge', stReady: 'Fertig zum Abholen',
+    stPipeScu: 'In Arbeit', stPipeVal: 'Wert in Arbeit',
+    stDone: 'Abgeschlossen', stRefined: 'Raffiniert gesamt', stValue: 'Wert gesamt',
+    stCost: 'Refining-Kosten', stProfit: 'Netto-Gewinn',
+    stTopMethod: 'Top-Methode', stTopStation: 'Top-Raffinerie',
+    lifetime: 'Gesamt', none: '—',
+    // Aktiv
+    activeTitle: 'Aktive Aufträge',
+    activeEmpty: 'Keine aktiven Aufträge. Trag unten einen an, um das Tracking zu starten.',
+    readyNow: 'Fertig zum Abholen', remaining: 'übrig', readyAt: 'fertig',
+    started: 'gestartet', yieldLbl: 'Ausbeute', valueLbl: 'gesch. Wert',
+    collect: 'Abholen', del: 'Löschen', confirmDel: 'Diesen Auftrag löschen?',
+    // Neuer Auftrag
+    newTitle: 'Neuer Auftrag',
+    fromTerminal: 'Trage die Werte ein, die dir das Ingame-Refinery-Terminal anzeigt — dann ist das Tracking exakt.',
+    fStation: 'Raffinerie', pickStation: 'Raffinerie wählen',
+    fMethod: 'Methode', pickMethod: 'Methode wählen',
+    tagYield: 'Ausbeute', tagSpeed: 'Tempo', tagCost: 'Kosten',
+    lvl: { vlow: 'sehr niedrig', low: 'niedrig', mid: 'mittel', high: 'hoch' } as Record<string, string>,
+    fOres: 'Erze', fOre: 'Erz', pickOre: 'Erz wählen',
+    fRaw: 'Roh-SCU', fYield: 'Ausbeute-SCU', addOre: '+ Erz hinzufügen', removeOre: 'Entfernen',
+    oreHintPrice: '≈ %p aUEC/SCU', oreHintBest: 'beste Raffinerie: %s (%b%)', oreHintSell: 'bester Verkauf: %s',
+    fDuration: 'Bearbeitungszeit', hLbl: 'Std', mLbl: 'Min',
+    fCost: 'Kosten (aUEC)', fCostPh: 'z. B. 4200',
+    fNote: 'Notiz', fNotePh: '— optional',
+    pvYield: 'Ausbeute gesamt', pvValue: 'gesch. Verkaufswert', pvReady: 'Fertig um',
+    submit: 'Tracking starten', submitBusy: 'Speichere …',
+    errForm: 'Wähle Raffinerie, Methode, mind. ein Erz mit Roh-SCU und eine Bearbeitungszeit > 0.',
+    errNet: 'Das hat nicht geklappt — bitte erneut versuchen.',
+    // Historie
+    histTitle: 'Historie',
+    histEmpty: 'Noch nichts hier — abgeschlossene Aufträge erscheinen hier.',
+    profit: 'Gewinn', soldFor: 'Verkauft für', setSold: 'Verkaufserlös eintragen',
+    collectedOn: 'abgeholt', reactivate: 'Reaktivieren',
+    save: 'Speichern', cancel: 'Abbrechen',
+    scu: 'SCU', perScu: '/SCU',
+    methodNote: 'Methoden-Trade-offs sind qualitativ (exakte Yield-Prozente sind nicht öffentlich). Die echten Zahlen deines Auftrags trägst du oben aus dem Terminal ein.',
+    priceNote: 'Verkaufswerte auf Basis von UEX-Durchschnittspreisen (%d) — nur eine Schätzung; deinen echten Erlös kannst du in der Historie eintragen.',
+  },
+  en: {
+    loading: 'Loading your refinery orders …',
+    loadError: 'Could not load your orders — please check your connection.',
+    retry: 'Reload',
+    backToAccount: '← Account',
+    ovTitle: 'Overview',
+    stActive: 'Active orders', stReady: 'Ready to collect',
+    stPipeScu: 'Refining now', stPipeVal: 'Pipeline value',
+    stDone: 'Completed', stRefined: 'Refined total', stValue: 'Value total',
+    stCost: 'Refining cost', stProfit: 'Net profit',
+    stTopMethod: 'Top method', stTopStation: 'Top refinery',
+    lifetime: 'Lifetime', none: '—',
+    activeTitle: 'Active work orders',
+    activeEmpty: 'No active work orders. Log one below to start tracking.',
+    readyNow: 'Ready to collect', remaining: 'left', readyAt: 'ready',
+    started: 'started', yieldLbl: 'Yield', valueLbl: 'est. value',
+    collect: 'Collect', del: 'Delete', confirmDel: 'Delete this work order?',
+    newTitle: 'New work order',
+    fromTerminal: 'Enter the figures the in-game refinery terminal shows you — then the tracking is exact.',
+    fStation: 'Refinery', pickStation: 'Select refinery',
+    fMethod: 'Method', pickMethod: 'Select method',
+    tagYield: 'Yield', tagSpeed: 'Speed', tagCost: 'Cost',
+    lvl: { vlow: 'very low', low: 'low', mid: 'mid', high: 'high' } as Record<string, string>,
+    fOres: 'Ores', fOre: 'Ore', pickOre: 'Select ore',
+    fRaw: 'Raw SCU', fYield: 'Yield SCU', addOre: '+ Add ore', removeOre: 'Remove',
+    oreHintPrice: '≈ %p aUEC/SCU', oreHintBest: 'best refinery: %s (%b%)', oreHintSell: 'best sale: %s',
+    fDuration: 'Processing time', hLbl: 'h', mLbl: 'min',
+    fCost: 'Cost (aUEC)', fCostPh: 'e.g. 4200',
+    fNote: 'Note', fNotePh: '— optional',
+    pvYield: 'Total yield', pvValue: 'est. sell value', pvReady: 'Ready at',
+    submit: 'Start tracking', submitBusy: 'Saving …',
+    errForm: 'Pick a refinery, a method, at least one ore with raw SCU, and a processing time > 0.',
+    errNet: 'That did not work — please try again.',
+    histTitle: 'History',
+    histEmpty: 'Nothing here yet — completed orders show up here.',
+    profit: 'Profit', soldFor: 'Sold for', setSold: 'Record sale value',
+    collectedOn: 'collected', reactivate: 'Reactivate',
+    save: 'Save', cancel: 'Cancel',
+    scu: 'SCU', perScu: '/SCU',
+    methodNote: 'Method trade-offs are qualitative (exact yield percentages are not public). Enter your order’s real numbers above from the terminal.',
+    priceNote: 'Sell values based on UEX average prices (%d) — an estimate only; record your actual proceeds in the history.',
+  },
+}[lang];
+
+const loginHref = href('/account/login.html', lang);
+const accountHref = lang === 'de' ? '/de/account.html' : '/account.html';
+const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—');
+---
+
+<div id="rfd-loading" class="acx-hint" style="text-align:center">{COPY.loading}</div>
+
+<div id="rfd" hidden data-lang={lang} data-login={loginHref}>
+  <script type="application/json" id="rfd-copy" is:inline set:html={JSON.stringify(COPY)} />
+
+  <div class="rfd-top">
+    <a class="rfd-back" href={accountHref}>{COPY.backToAccount}</a>
+  </div>
+
+  <!-- Übersicht / Statistik -->
+  <div class="rfd-stats reveal" id="rfd-stats"></div>
+
+  <!-- 01 Aktive Aufträge -->
+  <div class="sec-head reveal"><span class="num">01</span><h2>{COPY.activeTitle}</h2><span class="rule"></span></div>
+  <div id="rfd-active" class="rfd-jobs"></div>
+  <div id="rfd-active-empty" class="acx-card rfd-empty" hidden>{COPY.activeEmpty}</div>
+
+  <!-- 02 Neuer Auftrag -->
+  <div class="sec-head reveal"><span class="num">02</span><h2>{COPY.newTitle}</h2><span class="rule"></span></div>
+  <div class="acx-card reveal">
+    <p class="acx-note">{COPY.fromTerminal}</p>
+    <form id="rfd-form" novalidate>
+      <div class="rfd-grid2">
+        <div class="acx-field">
+          <label class="acx-label" for="rfd-station">{COPY.fStation}</label>
+          <select class="acx-input" id="rfd-station" name="station" required>
+            <option value="" selected disabled>{COPY.pickStation}</option>
+            {stationGroups.map((g) => (
+              <optgroup label={g.system}>
+                {g.stations.map((s) => (<option value={s.name}>{s.name}</option>))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+        <div class="acx-field">
+          <label class="acx-label" for="rfd-method">{COPY.fMethod}</label>
+          <select class="acx-input" id="rfd-method" name="method" required>
+            <option value="" selected disabled>{COPY.pickMethod}</option>
+            {methods.map((m) => (<option value={m.name} data-key={m.key}>{m.name}</option>))}
+          </select>
+          <div class="rfd-mtags" id="rfd-mtags" hidden></div>
+        </div>
+      </div>
+
+      <div class="acx-field">
+        <label class="acx-label">{COPY.fOres}</label>
+        <div id="rfd-ores" class="rfd-ores"></div>
+        <button type="button" class="rfd-addore" id="rfd-addore">{COPY.addOre}</button>
+      </div>
+
+      <div class="rfd-grid3">
+        <div class="acx-field">
+          <label class="acx-label" for="rfd-hours">{COPY.fDuration}</label>
+          <div class="rfd-dur">
+            <input class="acx-input rfd-num" id="rfd-hours" name="hours" type="number" min="0" max="240" step="1" inputmode="numeric" placeholder="0" />
+            <span class="rfd-durlbl">{COPY.hLbl}</span>
+            <input class="acx-input rfd-num" id="rfd-mins" name="mins" type="number" min="0" max="59" step="1" inputmode="numeric" placeholder="0" />
+            <span class="rfd-durlbl">{COPY.mLbl}</span>
+          </div>
+        </div>
+        <div class="acx-field">
+          <label class="acx-label" for="rfd-cost">{COPY.fCost}</label>
+          <input class="acx-input" id="rfd-cost" name="cost" type="number" min="0" step="1" inputmode="numeric" placeholder={COPY.fCostPh} />
+        </div>
+        <div class="acx-field">
+          <label class="acx-label" for="rfd-note">{COPY.fNote} <span class="opt">{COPY.fNotePh}</span></label>
+          <input class="acx-input" id="rfd-note" name="note" type="text" maxlength="500" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="rfd-preview" id="rfd-preview" aria-live="polite">
+        <div class="rfd-pv"><span class="rfd-pv__k">{COPY.pvYield}</span><b class="rfd-pv__v" id="rfd-pv-yield">— {COPY.scu}</b></div>
+        <div class="rfd-pv"><span class="rfd-pv__k">{COPY.pvValue}</span><b class="rfd-pv__v rfd-pv__v--auec" id="rfd-pv-value">—</b></div>
+        <div class="rfd-pv"><span class="rfd-pv__k">{COPY.pvReady}</span><b class="rfd-pv__v" id="rfd-pv-ready">—</b></div>
+      </div>
+
+      <div class="acx-actions">
+        <button class="acx-submit" type="submit" id="rfd-submit"><span id="rfd-submit-txt">{COPY.submit}</span></button>
+      </div>
+      <p class="acx-status" id="rfd-form-status" role="status" aria-live="polite" hidden></p>
+    </form>
+    <p class="rfd-src">{priceNote}</p>
+    <p class="rfd-src">{COPY.methodNote}</p>
+  </div>
+
+  <!-- 03 Historie -->
+  <div class="sec-head reveal"><span class="num">03</span><h2>{COPY.histTitle}</h2><span class="rule"></span></div>
+  <div id="rfd-history" class="rfd-hist"></div>
+  <div id="rfd-history-empty" class="acx-card rfd-empty" hidden>{COPY.histEmpty}</div>
+</div>
+
+<!-- Vorlage einer Erz-Zeile (Optionen serverseitig gerendert -> Klon behält sie) -->
+<template id="rfd-ore-tpl">
+  <div class="rfd-ore">
+    <div class="rfd-ore__main">
+      <select class="acx-input rfd-ore__sel" data-role="ore">
+        <option value="" selected disabled>{COPY.pickOre}</option>
+        {ores.map((o) => (
+          <option value={o.name} data-sell={o.sell ?? ''} data-best={o.bestRefinery ?? ''} data-bonus={o.bestRefineryBonus ?? ''} data-loc={o.sellLoc ?? ''}>{o.name}</option>
+        ))}
+      </select>
+      <input class="acx-input rfd-num" data-role="raw" type="number" min="0" step="0.01" inputmode="decimal" placeholder={COPY.fRaw} aria-label={COPY.fRaw} />
+      <input class="acx-input rfd-num" data-role="yield" type="number" min="0" step="0.01" inputmode="decimal" placeholder={COPY.fYield} aria-label={COPY.fYield} />
+      <button type="button" class="rfd-ore__rm" data-role="remove" aria-label={COPY.removeOre}>×</button>
+    </div>
+    <p class="rfd-ore__hint" data-role="hint" hidden></p>
+  </div>
+</template>
+
+<style is:global>
+  /* ---- Layout ---- */
+  .rfd-top { margin-bottom: 1.4rem; }
+  .rfd-back { color: var(--muted); font-size: 0.9rem; border-bottom: 1px solid transparent; }
+  .rfd-back:hover { color: var(--accent); border-color: var(--line); }
+  .rfd-empty { color: var(--muted); text-align: center; font-size: 0.95rem; }
+
+  /* ---- Statistik-Kacheln ---- */
+  .rfd-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.9rem; margin-bottom: 0.6rem; }
+  .rfd-tile {
+    border: 1px solid var(--line); background: linear-gradient(180deg, var(--surface), var(--bg-2));
+    padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.2rem;
+  }
+  .rfd-tile--hot { border-color: color-mix(in srgb, var(--accent) 55%, transparent); box-shadow: var(--glow); }
+  .rfd-tile__k { font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .rfd-tile--hot .rfd-tile__k { color: var(--accent); }
+  .rfd-tile__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1.5rem; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .rfd-tile__v small { font-size: 0.7rem; color: var(--muted); font-weight: 600; margin-left: 0.15rem; }
+  .rfd-tile__v.pos { color: #9be8a8; } .rfd-tile__v.neg { color: #ff8a8a; }
+  .rfd-tile__sub { font-size: 0.72rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rfd-statgroup { grid-column: 1 / -1; font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin: 0.6rem 0 -0.2rem; }
+
+  /* ---- Job-Karten ---- */
+  .rfd-jobs { display: flex; flex-direction: column; gap: 1rem; }
+  .rfd-job {
+    border: 1px solid var(--line); background: linear-gradient(180deg, var(--surface), var(--bg-2));
+    padding: clamp(1rem, 3vw, 1.4rem); position: relative; overflow: hidden;
+  }
+  .rfd-job.is-ready { border-color: color-mix(in srgb, var(--accent) 60%, transparent); box-shadow: var(--glow); }
+  .rfd-job__head { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+  .rfd-mtag, .rfd-job__method {
+    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.66rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent); border: 1px solid var(--line);
+    padding: 0.2rem 0.55rem; background: color-mix(in srgb, var(--accent) 8%, transparent); white-space: nowrap;
+  }
+  .rfd-job__station { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1.05rem; color: var(--text); }
+  .rfd-job__sys { font-size: 0.72rem; color: var(--muted); }
+  .rfd-job__spacer { flex: 1; }
+  .rfd-badge {
+    font-family: var(--font-ui, sans-serif); font-weight: 800; font-size: 0.66rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink); background: var(--accent); padding: 0.24rem 0.6rem;
+    box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .rfd-job__ores { display: flex; flex-wrap: wrap; gap: 0.35rem 0.5rem; margin-bottom: 0.8rem; }
+  .rfd-orepill {
+    font-size: 0.82rem; color: var(--text); background: rgba(0,0,0,0.3);
+    border: 1px solid var(--line-soft); padding: 0.2rem 0.55rem; font-variant-numeric: tabular-nums;
+  }
+  .rfd-orepill b { color: var(--accent); font-weight: 700; }
+  .rfd-orepill span { color: var(--muted); }
+  /* Fortschritt */
+  .rfd-prog { height: 8px; background: rgba(0,0,0,0.4); border: 1px solid var(--line-soft); overflow: hidden; margin-bottom: 0.6rem; }
+  .rfd-prog__bar { height: 100%; width: 0%; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 55%, transparent), var(--accent)); transition: width 0.9s linear; }
+  .rfd-job.is-ready .rfd-prog__bar { background: var(--accent); }
+  .rfd-job__meta { display: flex; align-items: baseline; justify-content: space-between; gap: 0.8rem 1.4rem; flex-wrap: wrap; }
+  .rfd-cd { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1.15rem; color: var(--accent); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+  .rfd-job.is-ready .rfd-cd { color: #9be8a8; }
+  .rfd-cd__sub { font-size: 0.76rem; color: var(--muted); font-weight: 400; font-family: var(--font-ui, sans-serif); letter-spacing: 0; margin-left: 0.5rem; }
+  .rfd-job__figs { display: flex; gap: 1.2rem; text-align: right; }
+  .rfd-fig__k { display: block; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; }
+  .rfd-fig__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1rem; color: var(--text); font-variant-numeric: tabular-nums; }
+  .rfd-job__act { display: flex; gap: 0.7rem; margin-top: 1rem; flex-wrap: wrap; }
+
+  /* ---- Neuer-Auftrag-Formular ---- */
+  .rfd-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.35rem; }
+  .rfd-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.35rem; margin-top: 0.2rem; }
+  @media (max-width: 640px) { .rfd-grid2, .rfd-grid3 { grid-template-columns: 1fr; } }
+  .rfd-mtags { display: flex; gap: 0.4rem; margin-top: 0.6rem; flex-wrap: wrap; }
+  .rfd-mtags span { font-size: 0.7rem; color: var(--muted); font-family: var(--font-ui, sans-serif); }
+  .rfd-mtags b { color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .rfd-ores { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.7rem; }
+  .rfd-ore__main { display: grid; grid-template-columns: minmax(0, 1.6fr) 1fr 1fr auto; gap: 0.5rem; align-items: center; }
+  @media (max-width: 560px) { .rfd-ore__main { grid-template-columns: 1fr 1fr auto; } .rfd-ore__sel { grid-column: 1 / -1; } }
+  .rfd-num { text-align: right; font-variant-numeric: tabular-nums; }
+  .rfd-ore__rm { flex: none; background: none; border: 1px solid var(--line-soft); color: var(--muted); font-size: 1.1rem; line-height: 1; width: 2.2rem; height: 2.2rem; cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+  .rfd-ore__rm:hover { color: #ff8a8a; border-color: rgba(255,122,122,0.45); }
+  .rfd-ore__hint { font-size: 0.76rem; color: var(--muted); margin: 0.35rem 0 0; }
+  .rfd-ore__hint b { color: var(--accent); }
+  .rfd-addore { background: none; border: 1px dashed var(--line); color: var(--accent); font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.5rem 0.9rem; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
+  .rfd-addore:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); border-color: var(--accent); }
+  .rfd-dur { display: flex; align-items: center; gap: 0.5rem; }
+  .rfd-dur .rfd-num { max-width: 5rem; }
+  .rfd-durlbl { font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .rfd-preview { display: flex; flex-wrap: wrap; gap: 0.8rem 2rem; margin-top: 1.6rem; padding: 1rem 1.1rem; border: 1px solid var(--line-soft); background: rgba(0,0,0,0.25); }
+  .rfd-pv { display: flex; flex-direction: column; gap: 0.15rem; }
+  .rfd-pv__k { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; }
+  .rfd-pv__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1.2rem; color: var(--text); font-variant-numeric: tabular-nums; }
+  .rfd-pv__v--auec { color: var(--accent); }
+  .rfd-src { font-size: 0.76rem; color: var(--muted); font-style: italic; line-height: 1.5; margin: 0.9rem 0 0; }
+
+  /* ---- Historie ---- */
+  .rfd-hist { display: flex; flex-direction: column; gap: 0.6rem; }
+  .rfd-hrow {
+    border: 1px solid var(--line-soft); background: linear-gradient(180deg, var(--surface), var(--bg-2));
+    padding: 0.85rem 1rem; display: grid; grid-template-columns: 1fr auto; gap: 0.5rem 1rem; align-items: center;
+  }
+  .rfd-hrow__main { min-width: 0; }
+  .rfd-hrow__top { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .rfd-hrow__station { font-family: var(--font-display, sans-serif); font-weight: 800; color: var(--text); font-size: 0.98rem; }
+  .rfd-hrow__date { font-size: 0.74rem; color: var(--muted); }
+  .rfd-hrow__ores { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; overflow: hidden; text-overflow: ellipsis; }
+  .rfd-hrow__figs { display: flex; gap: 1.1rem; align-items: baseline; text-align: right; }
+  .rfd-hrow__right { display: flex; flex-direction: column; gap: 0.55rem; align-items: flex-end; }
+  .rfd-hrow__act { display: flex; gap: 0.5rem; align-items: center; }
+  .rfd-mini { background: none; border: 1px solid transparent; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; padding: 0.3rem 0.5rem; transition: color 0.15s, border-color 0.15s; }
+  .rfd-mini:hover { color: var(--accent); border-color: var(--line); }
+  .rfd-mini--rm:hover { color: #ff8a8a; border-color: rgba(255,122,122,0.45); }
+  .rfd-sold { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.4rem; }
+  .rfd-sold input { max-width: 8rem; padding: 0.4rem 0.55rem; }
+  @media (max-width: 560px) { .rfd-hrow { grid-template-columns: 1fr; } .rfd-hrow__figs { text-align: left; } }
+</style>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+  import {
+    REFINERY, oreByName, estimateValue, fmtCountdown, fmtDuration, fmtAuec, fmtScu,
+    type RefineryJob, type RefineryItem,
+  } from '../../lib/refinery';
+
+  const root = document.getElementById('rfd');
+  if (root) {
+    const D = (root as HTMLElement).dataset;
+    const lang: 'de' | 'en' = D.lang === 'de' ? 'de' : 'en';
+    const loadingEl = document.getElementById('rfd-loading')!;
+    const C: any = JSON.parse(document.getElementById('rfd-copy')!.textContent || '{}');
+    const locale = lang === 'de' ? 'de-DE' : 'en-US';
+
+    // Kleine DOM-Helfer
+    const el = (tag: string, cls?: string, txt?: string) => {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (txt != null) n.textContent = txt;
+      return n;
+    };
+    const methodByName = (name: string) => REFINERY.methods.find((m) => m.name === name) || null;
+    const stationByName = (name: string) => REFINERY.stations.find((s) => s.name === name) || null;
+
+    const fmtReadyAt = (iso: string) => {
+      const d = new Date(iso);
+      const now = new Date();
+      const sameDay = d.toDateString() === now.toDateString();
+      const time = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+      return sameDay ? time : d.toLocaleDateString(locale, { day: '2-digit', month: 'short' }) + ' ' + time;
+    };
+    const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
+
+    let jobs: RefineryJob[] = [];
+
+    // ---- Rendering ---------------------------------------------------------
+    const activeWrap = document.getElementById('rfd-active')!;
+    const activeEmpty = document.getElementById('rfd-active-empty')!;
+    const histWrap = document.getElementById('rfd-history')!;
+    const histEmpty = document.getElementById('rfd-history-empty')!;
+    const statsWrap = document.getElementById('rfd-stats')!;
+
+    function oresLine(items: RefineryItem[]) {
+      return items.map((it) => `${it.ore} ${fmtScu(it.rawScu, lang)}${it.yieldScu ? '→' + fmtScu(it.yieldScu, lang) : ''}`).join(' · ');
+    }
+
+    function tile(k: string, v: string, opts: { sub?: string; hot?: boolean; cls?: string } = {}) {
+      const t = el('div', 'rfd-tile' + (opts.hot ? ' rfd-tile--hot' : ''));
+      t.appendChild(el('div', 'rfd-tile__k', k));
+      const val = el('div', 'rfd-tile__v' + (opts.cls ? ' ' + opts.cls : ''));
+      val.innerHTML = v;
+      t.appendChild(val);
+      if (opts.sub) t.appendChild(el('div', 'rfd-tile__sub', opts.sub));
+      return t;
+    }
+
+    function renderStats() {
+      const active = jobs.filter((j) => j.status === 'active');
+      const done = jobs.filter((j) => j.status === 'done');
+      const now = Date.now();
+      const ready = active.filter((j) => new Date(j.ready_at).getTime() <= now);
+      const pipeScu = active.reduce((s, j) => s + Number(j.yield_scu || 0), 0);
+      const pipeVal = active.reduce((s, j) => s + Number(j.est_value || 0), 0);
+      const refined = done.reduce((s, j) => s + Number(j.yield_scu || 0), 0);
+      const valueTotal = done.reduce((s, j) => s + Number(j.sold_value ?? j.est_value ?? 0), 0);
+      const costTotal = done.reduce((s, j) => s + Number(j.cost || 0), 0);
+      const profit = valueTotal - costTotal;
+
+      // Häufigste Methode / Station (über alle Aufträge)
+      const freq = (key: 'method' | 'station') => {
+        const m = new Map<string, number>();
+        for (const j of jobs) m.set(j[key], (m.get(j[key]) || 0) + 1);
+        let top = '', n = 0;
+        for (const [k, c] of m) if (c > n) { top = k; n = c; }
+        return top;
+      };
+      const topMethod = freq('method');
+      const topStation = freq('station');
+      const topStationShort = topStation ? (stationByName(topStation)?.short || topStation) : C.none;
+
+      statsWrap.innerHTML = '';
+      statsWrap.appendChild(tile(C.stActive, String(active.length), { hot: active.length > 0 }));
+      statsWrap.appendChild(tile(C.stReady, String(ready.length), { hot: ready.length > 0 }));
+      statsWrap.appendChild(tile(C.stPipeScu, `${fmtScu(pipeScu, lang)}<small>${C.scu}</small>`));
+      statsWrap.appendChild(tile(C.stPipeVal, `${fmtAuec(pipeVal, lang)}<small>aUEC</small>`));
+      if (done.length) {
+        statsWrap.appendChild(el('div', 'rfd-statgroup', C.lifetime));
+        statsWrap.appendChild(tile(C.stDone, String(done.length)));
+        statsWrap.appendChild(tile(C.stRefined, `${fmtScu(refined, lang)}<small>${C.scu}</small>`));
+        statsWrap.appendChild(tile(C.stValue, `${fmtAuec(valueTotal, lang)}<small>aUEC</small>`));
+        statsWrap.appendChild(tile(C.stProfit, `${fmtAuec(profit, lang)}<small>aUEC</small>`, { cls: profit > 0 ? 'pos' : profit < 0 ? 'neg' : '' }));
+        statsWrap.appendChild(tile(C.stTopMethod, topMethod || C.none, { sub: C.stTopStation + ': ' + topStationShort }));
+      }
+    }
+
+    function jobCard(j: RefineryJob) {
+      const card = el('article', 'rfd-job');
+      card.dataset.id = String(j.id);
+      card.dataset.started = j.started_at;
+      card.dataset.ready = j.ready_at;
+
+      const head = el('div', 'rfd-job__head');
+      head.appendChild(el('span', 'rfd-job__method', j.method));
+      const st = stationByName(j.station);
+      const stName = el('span', 'rfd-job__station', st?.short || j.station);
+      head.appendChild(stName);
+      head.appendChild(el('span', 'rfd-job__sys', st ? st.system : ''));
+      head.appendChild(el('span', 'rfd-job__spacer'));
+      const badge = el('span', 'rfd-badge', C.readyNow);
+      badge.hidden = true;
+      badge.dataset.role = 'badge';
+      head.appendChild(badge);
+      card.appendChild(head);
+
+      if (j.items?.length) {
+        const ow = el('div', 'rfd-job__ores');
+        for (const it of j.items) {
+          const p = el('span', 'rfd-orepill');
+          p.innerHTML = `${it.ore} <b>${fmtScu(it.yieldScu || it.rawScu, lang)}</b> <span>${it.yieldScu ? C.yieldLbl : C.fRaw} ${C.scu}</span>`;
+          ow.appendChild(p);
+        }
+        card.appendChild(ow);
+      }
+
+      const prog = el('div', 'rfd-prog');
+      const bar = el('div', 'rfd-prog__bar');
+      bar.dataset.role = 'bar';
+      prog.appendChild(bar);
+      card.appendChild(prog);
+
+      const meta = el('div', 'rfd-job__meta');
+      const cd = el('div', 'rfd-cd');
+      cd.dataset.role = 'cd';
+      meta.appendChild(cd);
+      const figs = el('div', 'rfd-job__figs');
+      const y = el('div');
+      y.innerHTML = `<span class="rfd-fig__k">${C.yieldLbl}</span><span class="rfd-fig__v">${fmtScu(Number(j.yield_scu), lang)} ${C.scu}</span>`;
+      figs.appendChild(y);
+      if (j.est_value != null) {
+        const v = el('div');
+        v.innerHTML = `<span class="rfd-fig__k">${C.valueLbl}</span><span class="rfd-fig__v">${fmtAuec(j.est_value, lang)}</span>`;
+        figs.appendChild(v);
+      }
+      meta.appendChild(figs);
+      card.appendChild(meta);
+
+      const act = el('div', 'rfd-job__act');
+      const collectBtn = el('button', 'acx-submit', C.collect) as HTMLButtonElement;
+      collectBtn.type = 'button';
+      collectBtn.addEventListener('click', () => collect(j.id, collectBtn));
+      const delBtn = el('button', 'acx-submit acx-submit--ghost', C.del) as HTMLButtonElement;
+      delBtn.type = 'button';
+      delBtn.addEventListener('click', () => del(j.id, C.confirmDel));
+      act.appendChild(collectBtn);
+      act.appendChild(delBtn);
+      card.appendChild(act);
+
+      tickCard(card); // Erstzustand
+      return card;
+    }
+
+    function renderActive() {
+      const active = jobs
+        .filter((j) => j.status === 'active')
+        .sort((a, b) => new Date(a.ready_at).getTime() - new Date(b.ready_at).getTime());
+      activeWrap.innerHTML = '';
+      activeEmpty.hidden = active.length > 0;
+      for (const j of active) activeWrap.appendChild(jobCard(j));
+    }
+
+    function histRow(j: RefineryJob) {
+      const row = el('div', 'rfd-hrow');
+      row.dataset.id = String(j.id);
+      const main = el('div', 'rfd-hrow__main');
+      const top = el('div', 'rfd-hrow__top');
+      top.appendChild(el('span', 'rfd-hrow__station', (stationByName(j.station)?.short || j.station)));
+      top.appendChild(el('span', 'rfd-job__method', j.method));
+      top.appendChild(el('span', 'rfd-hrow__date', C.collectedOn + ' ' + fmtDate(j.collected_at || j.created_at)));
+      main.appendChild(top);
+      if (j.items?.length) main.appendChild(el('div', 'rfd-hrow__ores', oresLine(j.items)));
+
+      // Verkaufserlös-Editor
+      const soldWrap = el('div', 'rfd-sold');
+      const val = j.sold_value ?? j.est_value ?? 0;
+      const profit = Number(val) - Number(j.cost || 0);
+      const figs = el('div', 'rfd-hrow__figs');
+      figs.innerHTML =
+        `<div><span class="rfd-fig__k">${C.yieldLbl}</span><span class="rfd-fig__v">${fmtScu(Number(j.yield_scu), lang)}</span></div>` +
+        `<div><span class="rfd-fig__k">${j.sold_value != null ? C.soldFor : C.valueLbl}</span><span class="rfd-fig__v">${fmtAuec(val, lang)}</span></div>` +
+        `<div><span class="rfd-fig__k">${C.profit}</span><span class="rfd-fig__v ${profit >= 0 ? 'pos' : 'neg'}" style="color:${profit >= 0 ? '#9be8a8' : '#ff8a8a'}">${fmtAuec(profit, lang)}</span></div>`;
+
+      const act = el('div', 'rfd-hrow__act');
+      const soldBtn = el('button', 'rfd-mini', C.setSold) as HTMLButtonElement;
+      soldBtn.type = 'button';
+      soldBtn.addEventListener('click', () => {
+        const inp = el('input', 'acx-input rfd-num') as HTMLInputElement;
+        inp.type = 'number'; inp.min = '0'; inp.placeholder = 'aUEC';
+        inp.value = j.sold_value != null ? String(j.sold_value) : '';
+        const ok = el('button', 'rfd-mini', C.save) as HTMLButtonElement; ok.type = 'button';
+        const cancel = el('button', 'rfd-mini', C.cancel) as HTMLButtonElement; cancel.type = 'button';
+        soldWrap.innerHTML = ''; soldWrap.append(inp, ok, cancel); inp.focus();
+        ok.addEventListener('click', async () => {
+          const v = parseFloat(inp.value);
+          await update(j.id, { sold_value: isFinite(v) && v >= 0 ? v : null });
+        });
+        cancel.addEventListener('click', () => renderHistory());
+      });
+      const delBtn = el('button', 'rfd-mini rfd-mini--rm', C.del) as HTMLButtonElement;
+      delBtn.type = 'button';
+      delBtn.addEventListener('click', () => del(j.id, C.confirmDel));
+      act.append(soldBtn, delBtn);
+
+      const right = el('div', 'rfd-hrow__right');
+      right.append(figs, act);
+      main.appendChild(soldWrap);
+      row.append(main, right);
+      return row;
+    }
+
+    function renderHistory() {
+      const done = jobs
+        .filter((j) => j.status === 'done')
+        .sort((a, b) => new Date(b.collected_at || b.created_at).getTime() - new Date(a.collected_at || a.created_at).getTime());
+      histWrap.innerHTML = '';
+      histEmpty.hidden = done.length > 0;
+      for (const j of done) histWrap.appendChild(histRow(j));
+    }
+
+    function renderAll() { renderStats(); renderActive(); renderHistory(); }
+
+    // ---- Live-Ticker -------------------------------------------------------
+    function tickCard(card: HTMLElement) {
+      const started = new Date(card.dataset.started!).getTime();
+      const ready = new Date(card.dataset.ready!).getTime();
+      const now = Date.now();
+      const total = Math.max(1, ready - started);
+      const remaining = ready - now;
+      const pct = Math.max(0, Math.min(100, ((now - started) / total) * 100));
+      const bar = card.querySelector('[data-role="bar"]') as HTMLElement;
+      const cd = card.querySelector('[data-role="cd"]') as HTMLElement;
+      const badge = card.querySelector('[data-role="badge"]') as HTMLElement;
+      if (bar) bar.style.width = pct + '%';
+      if (remaining <= 0) {
+        card.classList.add('is-ready');
+        if (badge) badge.hidden = false;
+        if (cd) cd.innerHTML = `${C.readyNow}<span class="rfd-cd__sub">${C.readyAt} ${fmtReadyAt(card.dataset.ready!)}</span>`;
+      } else {
+        card.classList.remove('is-ready');
+        if (badge) badge.hidden = true;
+        if (cd) cd.innerHTML = `${fmtCountdown(remaining / 1000)}<span class="rfd-cd__sub">${C.remaining} · ${C.readyAt} ${fmtReadyAt(card.dataset.ready!)}</span>`;
+      }
+    }
+    setInterval(() => {
+      const cards = activeWrap.querySelectorAll('.rfd-job');
+      cards.forEach((c) => tickCard(c as HTMLElement));
+    }, 1000);
+
+    // ---- Mutationen --------------------------------------------------------
+    async function collect(id: number, btn?: HTMLButtonElement) {
+      if (btn) { btn.disabled = true; btn.textContent = '…'; }
+      const { error } = await supabase
+        .from('refinery_jobs')
+        .update({ status: 'done', collected_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) { if (btn) { btn.disabled = false; btn.textContent = C.collect; } return; }
+      const j = jobs.find((x) => x.id === id);
+      if (j) { j.status = 'done'; j.collected_at = new Date().toISOString(); }
+      renderAll();
+    }
+    async function del(id: number, confirmMsg: string) {
+      if (!confirm(confirmMsg)) return;
+      const { error } = await supabase.from('refinery_jobs').delete().eq('id', id);
+      if (error) return;
+      jobs = jobs.filter((x) => x.id !== id);
+      renderAll();
+    }
+    async function update(id: number, patch: Partial<RefineryJob>) {
+      const { error } = await supabase.from('refinery_jobs').update(patch).eq('id', id);
+      if (error) return;
+      const j = jobs.find((x) => x.id === id);
+      if (j) Object.assign(j, patch);
+      renderAll();
+    }
+
+    // ---- Neuer-Auftrag-Formular -------------------------------------------
+    const form = document.getElementById('rfd-form') as HTMLFormElement;
+    const oresBox = document.getElementById('rfd-ores')!;
+    const oreTpl = document.getElementById('rfd-ore-tpl') as HTMLTemplateElement;
+    const methodSel = document.getElementById('rfd-method') as HTMLSelectElement;
+    const mtags = document.getElementById('rfd-mtags')!;
+    const hoursEl = document.getElementById('rfd-hours') as HTMLInputElement;
+    const minsEl = document.getElementById('rfd-mins') as HTMLInputElement;
+    const costEl = document.getElementById('rfd-cost') as HTMLInputElement;
+    const pvYield = document.getElementById('rfd-pv-yield')!;
+    const pvValue = document.getElementById('rfd-pv-value')!;
+    const pvReady = document.getElementById('rfd-pv-ready')!;
+
+    function currentItems(): RefineryItem[] {
+      const items: RefineryItem[] = [];
+      oresBox.querySelectorAll('.rfd-ore').forEach((row) => {
+        const ore = (row.querySelector('[data-role="ore"]') as HTMLSelectElement).value;
+        const rawScu = parseFloat((row.querySelector('[data-role="raw"]') as HTMLInputElement).value) || 0;
+        const yieldScu = parseFloat((row.querySelector('[data-role="yield"]') as HTMLInputElement).value) || 0;
+        if (ore && (rawScu > 0 || yieldScu > 0)) items.push({ ore, rawScu, yieldScu });
+      });
+      return items;
+    }
+
+    function updatePreview() {
+      const items = currentItems();
+      const totalYield = items.reduce((s, it) => s + it.yieldScu, 0);
+      const val = estimateValue(items);
+      pvYield.textContent = `${fmtScu(totalYield, lang)} ${C.scu}`;
+      pvValue.textContent = val > 0 ? `${fmtAuec(val, lang)} aUEC` : '—';
+      const mins = (parseInt(hoursEl.value) || 0) * 60 + (parseInt(minsEl.value) || 0);
+      if (mins > 0) {
+        const ready = new Date(Date.now() + mins * 60000);
+        pvReady.textContent = `${fmtReadyAt(ready.toISOString())} (${fmtDuration(mins * 60)})`;
+      } else pvReady.textContent = '—';
+    }
+
+    function wireOreRow(row: HTMLElement) {
+      const sel = row.querySelector('[data-role="ore"]') as HTMLSelectElement;
+      const hint = row.querySelector('[data-role="hint"]') as HTMLElement;
+      sel.addEventListener('change', () => {
+        const opt = sel.selectedOptions[0];
+        const sell = parseFloat(opt?.dataset.sell || '');
+        const best = opt?.dataset.best || '';
+        const bonus = opt?.dataset.bonus || '';
+        const loc = opt?.dataset.loc || '';
+        const bits: string[] = [];
+        if (isFinite(sell)) bits.push(C.oreHintPrice.replace('%p', fmtAuec(sell, lang)));
+        if (best) bits.push(C.oreHintBest.replace('%s', best).replace('%b', (Number(bonus) > 0 ? '+' : '') + bonus));
+        if (loc) bits.push(C.oreHintSell.replace('%s', loc));
+        if (bits.length) { hint.innerHTML = bits.join(' · '); hint.hidden = false; } else hint.hidden = true;
+        updatePreview();
+      });
+      row.querySelector('[data-role="raw"]')!.addEventListener('input', updatePreview);
+      row.querySelector('[data-role="yield"]')!.addEventListener('input', updatePreview);
+      row.querySelector('[data-role="remove"]')!.addEventListener('click', () => {
+        if (oresBox.querySelectorAll('.rfd-ore').length > 1) row.remove();
+        else { // letzte Zeile: nur leeren
+          sel.value = ''; (row.querySelector('[data-role="raw"]') as HTMLInputElement).value = '';
+          (row.querySelector('[data-role="yield"]') as HTMLInputElement).value = ''; hint.hidden = true;
+        }
+        updatePreview();
+      });
+    }
+    function addOreRow() {
+      const frag = oreTpl.content.cloneNode(true) as DocumentFragment;
+      const row = frag.querySelector('.rfd-ore') as HTMLElement;
+      oresBox.appendChild(row);
+      wireOreRow(row);
+      return row;
+    }
+    document.getElementById('rfd-addore')!.addEventListener('click', () => addOreRow());
+
+    methodSel.addEventListener('change', () => {
+      const m = methodByName(methodSel.value);
+      if (!m) { mtags.hidden = true; return; }
+      mtags.innerHTML =
+        `<span><b>${C.tagYield}:</b> ${C.lvl[m.yield] || m.yield}</span>` +
+        `<span><b>${C.tagSpeed}:</b> ${C.lvl[m.speed] || m.speed}</span>` +
+        `<span><b>${C.tagCost}:</b> ${C.lvl[m.cost] || m.cost}</span>`;
+      mtags.hidden = false;
+    });
+    [hoursEl, minsEl, costEl].forEach((e) => e.addEventListener('input', updatePreview));
+
+    const formStatus = document.getElementById('rfd-form-status')!;
+    const submitBtn = document.getElementById('rfd-submit') as HTMLButtonElement;
+    const submitTxt = document.getElementById('rfd-submit-txt')!;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      formStatus.hidden = true;
+      const station = (document.getElementById('rfd-station') as HTMLSelectElement).value;
+      const method = methodSel.value;
+      const items = currentItems();
+      const mins = (parseInt(hoursEl.value) || 0) * 60 + (parseInt(minsEl.value) || 0);
+      const cost = parseFloat(costEl.value) || 0;
+      const note = (document.getElementById('rfd-note') as HTMLInputElement).value.trim();
+      if (!station || !method || !items.length || mins <= 0) {
+        formStatus.textContent = C.errForm; formStatus.hidden = false; return;
+      }
+      const input_scu = items.reduce((s, it) => s + it.rawScu, 0);
+      const yield_scu = items.reduce((s, it) => s + it.yieldScu, 0);
+      const est = estimateValue(items);
+      const started = new Date();
+      const ready = new Date(started.getTime() + mins * 60000);
+
+      submitBtn.disabled = true; submitTxt.textContent = C.submitBusy;
+      const { data, error } = await supabase.from('refinery_jobs').insert({
+        station, method, items,
+        input_scu, yield_scu, cost,
+        est_value: est > 0 ? est : null,
+        started_at: started.toISOString(),
+        ready_at: ready.toISOString(),
+        status: 'active',
+        note: note || null,
+      }).select().single();
+      submitBtn.disabled = false; submitTxt.textContent = C.submit;
+      if (error || !data) { formStatus.textContent = C.errNet; formStatus.hidden = false; return; }
+
+      jobs.unshift(data as RefineryJob);
+      renderAll();
+      // Formular zurücksetzen
+      form.reset();
+      mtags.hidden = true;
+      oresBox.innerHTML = ''; addOreRow();
+      updatePreview();
+      activeWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // ---- Init --------------------------------------------------------------
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        location.replace(D.login! + '?next=' + encodeURIComponent(location.pathname + location.search));
+        return;
+      }
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr) {
+        const st = (userErr as { status?: number }).status;
+        if (st === 401 || st === 403) { await supabase.auth.signOut({ scope: 'local' }); location.replace(D.login!); return; }
+        throw userErr;
+      }
+      if (!userData.user) { await supabase.auth.signOut({ scope: 'local' }); location.replace(D.login!); return; }
+
+      const { data: rows, error } = await supabase
+        .from('refinery_jobs')
+        .select('*')
+        .order('ready_at', { ascending: true });
+      if (error) throw error;
+      jobs = (rows || []) as RefineryJob[];
+
+      addOreRow();
+      renderAll();
+      updatePreview();
+      loadingEl.hidden = true;
+      (root as HTMLElement).hidden = false;
+    };
+
+    init().catch((e) => {
+      console.error('refinery dashboard init failed', e);
+      loadingEl.textContent = C.loadError;
+      const retry = document.createElement('button');
+      retry.type = 'button'; retry.className = 'acx-submit acx-submit--ghost';
+      retry.style.marginTop = '1.1rem'; retry.textContent = C.retry;
+      retry.addEventListener('click', () => location.reload());
+      loadingEl.appendChild(document.createElement('br'));
+      loadingEl.appendChild(retry);
+    });
+  }
+</script>
