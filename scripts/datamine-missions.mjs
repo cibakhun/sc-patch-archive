@@ -48,7 +48,7 @@ if (dcbArg) {
   // Patch-Kennung aus der Build-Manifest-Datei neben dem p4k (best effort)
   const bm = resolve(dirname(p4k.path), 'build_manifest.id');
   if (existsSync(bm)) {
-    try { patchLabel = JSON.parse(readFileSync(bm, 'utf8'))?.Data?.RequestedP4kVersion ?? null; } catch { /* egal */ }
+    try { const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data; patchLabel = d?.Branch ?? d?.Version ?? null; } catch { /* egal */ }
   }
   p4k.close();
 }

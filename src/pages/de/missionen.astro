@@ -7,8 +7,8 @@ import MissionsApp from '../../components/MissionsApp.astro';
 import { db } from '../../lib/missions';
 ---
 <Layout
-  title="Star-Citizen-Missionen — Datenbank | VerseBase"
-  description={`${db.meta.counts.families} Star-Citizen-Missionen mit Belohnung, Reputationshürden, Auftraggebern, Orten und allen ${db.meta.counts.live} Angeboten (${db.meta.generated}).`}
+  title={`${db.meta.counts.families} Star-Citizen-Missionen — Belohnungen & Orte | VerseBase`}
+  description={`Alle ${db.meta.counts.families} Star-Citizen-Missionen durchsuchen — Belohnungen, Auszahlungen, Reputation, Auftraggeber und Orte. ${db.meta.counts.live} aktive Angebote, Stand ${db.meta.generated}.`}
   themeColor="#0b0906"
   footer={false}
   translated={true}

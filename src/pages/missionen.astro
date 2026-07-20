@@ -8,8 +8,8 @@ import MissionsApp from '../components/MissionsApp.astro';
 import { db } from '../lib/missions';
 ---
 <Layout
-  title="Star Citizen Missions — Database | VerseBase"
-  description={`${db.meta.counts.families} Star Citizen missions with rewards, reputation requirements, contractors, locations and all ${db.meta.counts.live} offers (${db.meta.generated}).`}
+  title={`${db.meta.counts.families} Star Citizen Missions — Rewards & Locations | VerseBase`}
+  description={`Browse all ${db.meta.counts.families} Star Citizen missions — rewards, payouts, reputation, contractors and locations. ${db.meta.counts.live} live offers, updated ${db.meta.generated}.`}
   themeColor="#0b0906"
   footer={false}
   translated={true}

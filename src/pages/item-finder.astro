@@ -9,7 +9,7 @@ const total = DB.counts.items;
 const sourced = DB.counts.withObtain;
 const snap = DB.generatedAt;
 ---
-<Layout title={"Universal Item Finder — Star Citizen 4.8 | VerseBase"} description={`Universal Item Finder for Star Citizen 4.8: search ${total} items — ${sourced} of them with verified sources (shop prices, loot locations, ship dealers). No fabricated data.`} themeColor="#0d0c14" ogType="article" ogImage="/assets/cz-loot.jpg" translated={true}>
+<Layout title={`Star Citizen Item Finder — ${total} Items & Prices | VerseBase`} description={`Search all ${total} Star Citizen items in one finder: buy prices, shop locations, loot spots and ship dealers — ${sourced} with verified in-game sources.`} themeColor="#0d0c14" ogType="article" ogImage="/assets/cz-loot.jpg" translated={true}>
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
 /* Item finder theme — violet & amber (quartermaster catalog) */
@@ -31,7 +31,7 @@ const snap = DB.generatedAt;
 <a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.8', href: '/patches/sc-4-8-0.html' }, { label: 'Item Finder' }]} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.9', href: '/patches/sc-4-9-0.html' }, { label: 'Item Finder' }]} hasEn={true} />
 
 <main id="main">
   <section class="hero">
@@ -39,10 +39,10 @@ const snap = DB.generatedAt;
     <canvas id="stars" aria-hidden="true"></canvas>
     <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
-      <div class="eyebrow"><a href="/patches/sc-4-8-0.html">Alpha 4.8</a> &nbsp;·&nbsp; <span class="uf-tag">Item database</span></div>
+      <div class="eyebrow"><a href="/patches/sc-4-9-0.html">Alpha 4.9</a> &nbsp;·&nbsp; <span class="uf-tag">Item database</span></div>
       <h1><span class="thin">Universal</span>Item Finder</h1>
       <p class="lead">Every item in the game: buy prices, locations, loot guides.</p>
-      <div class="qbar"><span>Items <b>{total.toLocaleString('en-US')}</b></span><span>With sources <b>{sourced.toLocaleString('en-US')}</b></span><span>Patch <b>4.8</b></span><span>As of <b>{snap}</b></span></div>
+      <div class="qbar"><span>Items <b>{total.toLocaleString('en-US')}</b></span><span>With sources <b>{sourced.toLocaleString('en-US')}</b></span><span>Patch <b>4.9</b></span><span>As of <b>{snap}</b></span></div>
     </div>
     <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>

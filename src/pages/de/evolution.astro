@@ -32,8 +32,8 @@ const rowTotal = (sys: string) => patches.reduce((n, p) => n + cell(sys, p).leng
 const tierOf = (n: number) => (n <= 2 ? '1' : n <= 5 ? '2' : '3');
 ---
 <Layout
-  title="Star Citizen Evolution — Systeme × Patches | VerseBase"
-  description={`Wie sich jedes Star-Citizen-System von Alpha 4.0.0 bis ${patches[patches.length - 1].data.version} entwickelt hat: ${total} dokumentierte Änderungen in ${systems.length} Systemen über ${patches.length} Patches.`}
+  title="Star Citizen Evolution — Patch-Verlauf je System | VerseBase"
+  description={`Jedes Star-Citizen-System über jeden Patch: ${total} dokumentierte Änderungen über ${patches.length} Patches, von Alpha 4.0.0 bis ${patches[patches.length - 1].data.version}. Die interaktive Übersicht.`}
   themeColor="#04060c"
   footer={true}
   translated={true}
