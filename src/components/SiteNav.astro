@@ -1,6 +1,6 @@
 ---
 // Global sticky navigation: Burger-Menü + Suche (links), Marke mittig,
-// Sprachumschalter + Konto (rechts) — eine Leiste für alle Breiten. Das Menü
+// Konto + Sprachumschalter + Theme-Toggle (rechts) — eine Leiste für alle Breiten. Das Menü
 // ist ein Vollbild-Overlay („Ops-Terminal") mit vier Gruppen-Panels; alle
 // Einträge sind gleichzeitig sichtbar, mit Untertitel und Tastatur-Navigation.
 // Keeps id="topbar" so existing per-page scroll JS keeps working. Breadcrumbs
@@ -270,8 +270,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     </a>
   </div>
   <div class="snav__right">
-    <ThemeToggle />
-    <LangSwitcher hasEn={hasEn} />
     <a
       class="snav__acct js-nav-acct"
       href={L('/account/login.html')}
@@ -287,6 +285,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       </span>
       <span class="js-nav-acct-txt">{t('nav.account.login')}</span>
     </a>
+    <LangSwitcher hasEn={hasEn} />
+    <ThemeToggle />
   </div>
 </nav>
 
