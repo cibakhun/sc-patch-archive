@@ -59,12 +59,14 @@ const patches = (await getCollection('patches')).sort((a, b) =>
 );
 const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
 const current = Astro.url.pathname;
+// jüngster Patch — echte Statuszeile im Menükopf statt dekorativer Füllung
+const latestPatch = patches[patches.length - 1];
 
-// Menü-Overlay („Ops-Terminal"): vier fachliche Gruppen, jede als eigenes
-// Panel mit Kopfzeile, Zähler und Zeilen. Jede Zeile trägt Label UND einen
-// kurzen Untertitel — das Menü erklärt sich damit selbst, statt nur Icons zu
-// zeigen. Gruppen unterscheiden sich über Farbe (--gc) UND Icon-Rahmenform
-// (--shape, clip-path), nicht nur über Farbe allein.
+// Menü-Overlay: links eine große Bühne, die den gerade anvisierten Eintrag
+// groß ausspielt, rechts die kompakte Liste aller Einträge in vier Gruppen.
+// BEWUSST einfarbig: genau EIN Akzent (die Palette der Seite), Hierarchie
+// entsteht über Schriftgrad, Weißraum und Material — nicht über eine Farbe
+// je Gruppe (das las sich wie ein beliebiges Dashboard).
 // `icon` ist der rohe <path>/<circle>-Rumpf (kompiliert, keine Nutzereingabe)
 // -> via set:html in den <svg>-Slot injiziert.
 interface DeckItem {
@@ -79,17 +81,12 @@ interface DeckItem {
 interface DeckGroup {
   id: string;
   label: string;
-  color: string;
-  /** clip-path des Icon-Rahmens — zweite Unterscheidungsebene neben der Farbe */
-  shape: string;
   items: DeckItem[];
 }
 const deckGroups: DeckGroup[] = [
   {
     id: 'mining',
     label: t('nav.deck.grp.mining'),
-    color: 'var(--gold, #d4af37)',
-    shape: 'polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%)',
     items: [
       {
         href: L('/topics/mining.html'),
@@ -117,8 +114,6 @@ const deckGroups: DeckGroup[] = [
   {
     id: 'gear',
     label: t('nav.deck.grp.gear'),
-    color: 'var(--accent, #2dd4ff)',
-    shape: 'circle(50% at 50% 50%)',
     items: [
       {
         href: L('/schiffe.html'),
@@ -160,8 +155,6 @@ const deckGroups: DeckGroup[] = [
   {
     id: 'archive',
     label: t('nav.deck.grp.archive'),
-    color: 'var(--accent-2, #6ea8ff)',
-    shape: 'polygon(50% 0%,100% 50%,50% 100%,0% 50%)',
     items: [
       {
         href: L('/archiv.html'),
@@ -189,8 +182,6 @@ const deckGroups: DeckGroup[] = [
   {
     id: 'account',
     label: t('nav.deck.grp.account'),
-    color: '#3ddc84',
-    shape: 'inset(0% round 9px)',
     items: [
       {
         account: true,
@@ -278,65 +269,89 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   </div>
 </nav>
 
-<!-- Menü-Overlay („Ops-Terminal"): Vollbild-Takeover mit vier Gruppen-Panels.
-     Alles ist gleichzeitig sichtbar und horizontal lesbar (kein abgeschnittener
-     Text), jede Zeile trägt Label + Untertitel. Reveal läuft gestaffelt über
-     --seq (laufender Index quer über alle Gruppen). -->
+<!-- Menü-Overlay: links die Bühne (spielt den anvisierten Eintrag groß aus),
+     rechts die kompakte Liste. Ein Akzent, keine Farbe je Gruppe. Die Bühne
+     ist reine Verstärkung — ohne JS/Hover bleibt die Liste vollständig
+     bedienbar, sie zeigt dann schlicht den ersten Eintrag. -->
 <div class="snav-deck" id="snavDeck" hidden role="dialog" aria-modal="true" aria-label={t('nav.menu')}>
   <div class="snav-deck__back" data-deck-close></div>
   <div class="snav-deck__frame">
     <header class="snav-deck__head">
       <a class="snav-deck__brand" href={L('/index.html')} aria-label={t('nav.home.aria')}>
-        <svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true"><path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="32" cy="32" r="6" fill="currentColor"/></svg>
+        <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="32" cy="32" r="6" fill="currentColor"/></svg>
         <span class="snav-deck__wordmark">Verse·Base</span>
-        <span class="snav-deck__eyebrow">{t('nav.deck.title')}</span>
       </a>
+      <p class="snav-deck__status">
+        <span class="snav-deck__pulse" aria-hidden="true"></span>
+        <span>Live</span>
+        <b>{latestPatch.data.version}</b>
+        <span class="snav-deck__codename">{latestPatch.data.codename}</span>
+      </p>
       <button class="snav-deck__close" type="button" data-deck-close aria-label={t('nav.menu.close')}>
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
         <kbd>Esc</kbd>
       </button>
     </header>
 
-    <div class="snav-deck__grid">
-      {deckGroups.map((group) => (
-        <section class="snav-deck__panel" style={`--gc:${group.color}; --shape:${group.shape}`}>
-          <h2 class="snav-deck__ghead">
-            <span class="snav-deck__gname">{group.label}</span>
-            <span class="snav-deck__gcount">{String(group.items.length).padStart(2, '0')}</span>
-          </h2>
-          <ul class="snav-deck__list">
-            {group.items.map((item) => {
-              const seq = deckSeq++;
-              const acct = item.account;
-              return (
-                <li>
-                  <a
-                    class={acct ? 'snav-deck__row js-nav-acct' : 'snav-deck__row'}
-                    style={`--seq:${seq}`}
-                    href={item.href}
-                    data-deck-row
-                    aria-current={item.current ? 'page' : undefined}
-                    data-login={acct ? L('/account/login.html') : undefined}
-                    data-dash={acct ? L('/account.html') : undefined}
-                    data-l-login={acct ? t('nav.account.login') : undefined}
-                    data-l-acct={acct ? t('nav.account') : undefined}
-                  >
-                    <span class={acct ? 'snav-deck__icon snav__acct-icon' : 'snav-deck__icon'}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icon} />
-                      {acct && <span class="snav__acct-dot" aria-hidden="true"></span>}
-                    </span>
-                    <span class="snav-deck__text">
-                      <span class={acct ? 'snav-deck__label js-nav-acct-txt' : 'snav-deck__label'}>{item.label}</span>
-                      <span class="snav-deck__sub">{item.sub}</span>
-                    </span>
-                    <svg class="snav-deck__go" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"/></svg>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ))}
+    <div class="snav-deck__body">
+      <!-- Bühne: wird per JS aus der aktiven Zeile gefüllt (aria-hidden, weil
+           sie den Inhalt der Liste nur wiederholt — Screenreader lesen die
+           Zeilen selbst, nicht die Dopplung) -->
+      <div class="snav-deck__stage" aria-hidden="true">
+        <div class="snav-deck__glyph" id="deckGlyph"></div>
+        <div class="snav-deck__stagetext">
+          <span class="snav-deck__stagegrp" id="deckStageGrp"></span>
+          <span class="snav-deck__stagetitle" id="deckStageTitle"></span>
+          <span class="snav-deck__stagesub" id="deckStageSub"></span>
+          <span class="snav-deck__stagego">
+            {t('nav.deck.hint.open')}
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"/></svg>
+          </span>
+        </div>
+      </div>
+
+      <nav class="snav-deck__cols" aria-label={t('nav.deck.title')}>
+        {deckGroups.map((group) => (
+          <section class="snav-deck__group">
+            <h2 class="snav-deck__ghead">
+              <span class="snav-deck__gname">{group.label}</span>
+              <span class="snav-deck__grule" aria-hidden="true"></span>
+              <span class="snav-deck__gcount">{String(group.items.length).padStart(2, '0')}</span>
+            </h2>
+            <ul class="snav-deck__list">
+              {group.items.map((item) => {
+                const seq = deckSeq++;
+                const acct = item.account;
+                return (
+                  <li>
+                    <a
+                      class={acct ? 'snav-deck__row js-nav-acct' : 'snav-deck__row'}
+                      style={`--seq:${seq}`}
+                      href={item.href}
+                      data-deck-row
+                      data-group={group.label}
+                      aria-current={item.current ? 'page' : undefined}
+                      data-login={acct ? L('/account/login.html') : undefined}
+                      data-dash={acct ? L('/account.html') : undefined}
+                      data-l-login={acct ? t('nav.account.login') : undefined}
+                      data-l-acct={acct ? t('nav.account') : undefined}
+                    >
+                      <span class={acct ? 'snav-deck__icon snav__acct-icon' : 'snav-deck__icon'}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icon} />
+                        {acct && <span class="snav__acct-dot" aria-hidden="true"></span>}
+                      </span>
+                      <span class="snav-deck__text">
+                        <span class={acct ? 'snav-deck__label js-nav-acct-txt' : 'snav-deck__label'}>{item.label}</span>
+                        <span class="snav-deck__sub">{item.sub}</span>
+                      </span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
+      </nav>
     </div>
 
     <footer class="snav-deck__foot">
@@ -555,11 +570,10 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
 
   /* ============================================================
-     Menü-Overlay („Ops-Terminal") — Vollbild-Takeover statt Dropdown.
-     Vier Gruppen-Panels nebeneinander, alles gleichzeitig lesbar. Die
-     Reveal-Animation läuft über --seq (laufender Zeilenindex quer über
-     alle Gruppen); Panels und Zeilen teilen sich dieselbe Kurve, damit
-     das Öffnen als EINE Bewegung liest statt als vier Einzelanimationen.
+     Menü-Overlay — Bühne + Liste.
+     Gestaltungsregel: EIN Akzent (die Palette der Seite). Alles andere ist
+     Grauwert, Weißraum und Schriftgrad. Hierarchie kommt aus dem Größen-
+     sprung zwischen Bühne (riesig) und Liste (kompakt), nicht aus Farbe.
      ============================================================ */
   .snav-deck {
     position: fixed;
@@ -567,7 +581,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     z-index: 9500;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.26s ease;
+    transition: opacity 0.24s ease;
   }
   .snav-deck[hidden] {
     display: none;
@@ -579,71 +593,48 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav-deck__back {
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse 120% 90% at 50% 0%, rgba(8, 13, 24, 0.92), rgba(2, 3, 7, 0.975));
-    backdrop-filter: blur(14px);
+    background:
+      radial-gradient(90% 70% at 22% 30%, color-mix(in srgb, var(--accent, #2dd4ff) 7%, transparent), transparent 70%),
+      radial-gradient(120% 100% at 50% 0%, rgba(9, 14, 26, 0.94), rgba(1, 2, 5, 0.985));
+    backdrop-filter: blur(18px) saturate(0.9);
   }
-  /* feine Scanlines + ein einmaliger Sweep beim Öffnen: gibt dem Takeover
-     den „Terminal fährt hoch"-Moment, ohne dauerhaft zu flimmern */
+  /* Filmkorn statt flacher Fläche — die Textur ist das, was den Unterschied
+     zwischen „dunkler Kasten" und „Material" macht. Feines feTurbulence als
+     data-URI, kein externer Request. */
   .snav-deck__back::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.022) 0 1px, transparent 1px 3px);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.05;
     mix-blend-mode: overlay;
-  }
-  .snav-deck__back::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      color-mix(in srgb, var(--accent, #2dd4ff) 9%, transparent) 45%,
-      color-mix(in srgb, var(--accent, #2dd4ff) 16%, transparent) 50%,
-      color-mix(in srgb, var(--accent, #2dd4ff) 9%, transparent) 55%,
-      transparent 100%
-    );
-    opacity: 0;
-  }
-  .snav-deck.is-open .snav-deck__back::after {
-    animation: deckSweep 0.85s cubic-bezier(0.3, 0, 0.2, 1) 1;
-  }
-  @keyframes deckSweep {
-    0% {
-      opacity: 0.9;
-      transform: translateY(-100%);
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(100%);
-    }
   }
   .snav-deck__frame {
     position: relative;
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: clamp(1.1rem, 2.4vh, 1.9rem);
-    width: min(1180px, 100%);
+    width: min(1240px, 100%);
     height: 100%;
     margin: 0 auto;
-    padding: clamp(1.1rem, 3.5vh, 2.2rem) clamp(1.1rem, 4vw, 2.4rem);
+    padding: clamp(1rem, 3vh, 1.9rem) clamp(1.1rem, 4vw, 2.6rem);
     overflow-y: auto;
   }
+
+  /* ---- Kopf: Marke | Live-Status | Schließen ---- */
   .snav-deck__head {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-bottom: clamp(0.7rem, 1.6vh, 1.05rem);
-    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    gap: clamp(0.9rem, 3vw, 2rem);
+    padding-bottom: clamp(0.8rem, 1.8vh, 1.2rem);
+    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.12));
     opacity: 0;
-    animation: deckRise 0.42s cubic-bezier(0.2, 0.7, 0.25, 1) 0.04s forwards;
+    animation: deckFade 0.4s ease 0.05s forwards;
   }
   .snav-deck__brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.7rem;
+    gap: 0.65rem;
     color: var(--text, #e8eefc);
     text-decoration: none;
   }
@@ -654,178 +645,276 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav-deck__wordmark {
     font-family: var(--font-display, sans-serif);
     font-weight: 700;
-    font-size: clamp(0.92rem, 1.6vw, 1.05rem);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-  }
-  /* „// NAVIGATION" — Terminal-Präfix, gleiche Sprache wie der Suche-Leerzustand */
-  .snav-deck__eyebrow {
-    font-family: var(--font-ui, sans-serif);
-    font-weight: 700;
-    font-size: 0.68rem;
+    font-size: 0.95rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--muted, #8a99b8);
-    padding-left: 0.75rem;
-    border-left: 1px solid var(--line, rgba(255, 255, 255, 0.16));
   }
-  .snav-deck__eyebrow::before {
-    content: '// ';
-    color: color-mix(in srgb, var(--accent, #2dd4ff) 60%, transparent);
+  /* echte Statuszeile (jüngster Patch aus der Collection), kein Deko-Text */
+  .snav-deck__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    margin-right: auto;
+    padding-left: clamp(0.9rem, 3vw, 2rem);
+    border-left: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-size: 0.76rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted, #8a99b8);
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .snav-deck__status b {
+    font-weight: 400;
+    color: var(--text, #e8eefc);
+  }
+  .snav-deck__codename {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .snav-deck__pulse {
+    width: 6px;
+    height: 6px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--accent, #2dd4ff);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent, #2dd4ff) 60%, transparent);
+    animation: deckPulse 2.6s ease-out infinite;
+  }
+  @keyframes deckPulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent, #2dd4ff) 55%, transparent); }
+    70% { box-shadow: 0 0 0 7px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
   }
   .snav-deck__close {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.45rem;
     flex: none;
-    padding: 0.4rem 0.7rem;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.2));
+    padding: 0.35rem 0.65rem;
+    background: transparent;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
     color: var(--muted, #8a99b8);
     cursor: pointer;
-    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+    transition: color 0.16s, border-color 0.16s;
   }
   .snav-deck__close:hover,
   .snav-deck__close:focus-visible {
-    color: var(--accent, #2dd4ff);
-    border-color: var(--accent, #2dd4ff);
-    background: color-mix(in srgb, var(--accent, #2dd4ff) 10%, transparent);
+    color: var(--text, #e8eefc);
+    border-color: color-mix(in srgb, var(--accent, #2dd4ff) 60%, transparent);
+    outline: none;
   }
   .snav-deck__close kbd {
-    font-family: var(--font-ui, sans-serif);
-    font-weight: 700;
-    font-size: 0.68rem;
-    letter-spacing: 0.08em;
+    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
   }
-  .snav-deck__grid {
+
+  /* ---- Körper: Bühne links, Spalten rechts ---- */
+  .snav-deck__body {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
-    gap: clamp(0.85rem, 1.8vw, 1.35rem);
-    align-content: start;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: clamp(1.5rem, 5vw, 4rem);
+    align-items: start;
     flex: 1;
+    padding: clamp(1.2rem, 4vh, 2.6rem) 0;
   }
-  .snav-deck__panel {
+
+  /* ---- Bühne ---- */
+  .snav-deck__stage {
+    position: relative;
+    align-self: center;
+    padding-left: clamp(0.5rem, 2vw, 1.6rem);
+    opacity: 0;
+    animation: deckFade 0.5s ease 0.14s forwards;
+  }
+  /* das große, halbtransparente Glyph hinter dem Text — trägt die Bühne
+     optisch, ohne mit dem Text um Aufmerksamkeit zu konkurrieren */
+  .snav-deck__glyph {
+    position: absolute;
+    top: 50%;
+    left: clamp(-0.5rem, 1vw, 1rem);
+    transform: translateY(-52%);
+    width: clamp(160px, 22vw, 280px);
+    height: clamp(160px, 22vw, 280px);
+    color: var(--accent, #2dd4ff);
+    opacity: 0.09;
+    pointer-events: none;
+  }
+  .snav-deck__glyph :global(svg) {
+    width: 100%;
+    height: 100%;
+    stroke-width: 0.9;
+  }
+  .snav-deck__stagetext {
+    position: relative;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    gap: 0.55rem;
+  }
+  .snav-deck__stagegrp {
+    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-size: 0.74rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted, #8a99b8);
+  }
+  .snav-deck__stagetitle {
+    font-family: var(--font-display, sans-serif);
+    font-weight: 700;
+    font-size: clamp(1.9rem, 4.4vw, 3.4rem);
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+    color: var(--text, #e8eefc);
+    text-wrap: balance;
+  }
+  .snav-deck__stagesub {
+    font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+    line-height: 1.45;
+    color: var(--muted, #8a99b8);
+    max-width: 34ch;
+  }
+  .snav-deck__stagego {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    padding-bottom: 0.3rem;
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.76rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent, #2dd4ff);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 40%, transparent);
+  }
+  /* Wechsel der Bühne: kurzer Versatz + Aufblenden, damit der Sprung
+     zwischen zwei Einträgen als Bewegung liest statt als harter Schnitt */
+  .snav-deck__stage.is-swapping .snav-deck__stagetext,
+  .snav-deck__stage.is-swapping .snav-deck__glyph {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  .snav-deck__stage .snav-deck__stagetext {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .snav-deck__stage .snav-deck__glyph {
+    transition: opacity 0.28s ease, transform 0.28s ease;
+  }
+  .snav-deck__stage.is-swapping .snav-deck__glyph {
+    transform: translateY(-52%) scale(0.97);
+  }
+
+  /* ---- Spalten ---- */
+  .snav-deck__cols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.1rem, 2.4vw, 2.2rem) clamp(1.2rem, 3vw, 2.6rem);
+    align-content: start;
+  }
+  .snav-deck__group {
     min-width: 0;
-    padding: 0.9rem 0 0.35rem;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--gc) 7%, transparent), transparent 42%);
-    border-top: 2px solid var(--gc);
-    /* abgeschrägte untere Ecke — dieselbe HUD-Sprache wie Suche/Schiffsseiten */
-    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+    opacity: 0;
+    animation: deckFade 0.42s ease forwards;
+    animation-delay: calc(0.16s + var(--seq, 0) * 0.01s);
   }
   .snav-deck__ghead {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.6rem;
-    margin: 0 0 0.55rem;
-    padding: 0 0.8rem;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0 0 0.45rem;
   }
+  /* Gruppenname: klein, mono, weit gesperrt — liest als Registerkarte einer
+     Akte, nicht als bunte Kategorie-Pille */
   .snav-deck__gname {
-    font-family: var(--font-ui, sans-serif);
-    font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.16em;
+    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-size: 0.7rem;
+    letter-spacing: 0.24em;
     text-transform: uppercase;
-    color: var(--gc);
+    color: var(--muted, #8a99b8);
+    white-space: nowrap;
+  }
+  .snav-deck__grule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--line, rgba(255, 255, 255, 0.16)), transparent);
   }
   .snav-deck__gcount {
-    font-family: var(--font-display, sans-serif);
-    font-weight: 700;
-    font-size: 0.66rem;
+    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-size: 0.7rem;
     letter-spacing: 0.1em;
-    color: color-mix(in srgb, var(--gc) 55%, var(--muted, #8a99b8));
+    color: color-mix(in srgb, var(--muted, #8a99b8) 65%, transparent);
     font-variant-numeric: tabular-nums;
   }
   .snav-deck__list {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
   }
   .snav-deck__row {
     position: relative;
     display: flex;
     align-items: center;
     gap: 0.7rem;
-    padding: 0.55rem 0.8rem;
+    padding: 0.5rem 0.55rem 0.5rem 0.75rem;
     color: var(--text, #e8eefc);
     text-decoration: none;
-    border-left: 2px solid transparent;
     opacity: 0;
-    animation: deckRise 0.4s cubic-bezier(0.2, 0.7, 0.25, 1) forwards;
-    animation-delay: calc(90ms + var(--seq) * 26ms);
-    transition: background-color 0.16s ease, border-color 0.16s ease;
+    animation: deckRowIn 0.42s cubic-bezier(0.2, 0.7, 0.25, 1) forwards;
+    animation-delay: calc(0.2s + var(--seq) * 0.022s);
+    transition: background-color 0.18s ease;
   }
-  /* Hover-Füllung wischt von links ein, statt nur die Hintergrundfarbe zu
-     schalten — der Unterschied, der das Antippen „fühlbar" macht */
+  /* der Marker links: wächst aus der Mitte, statt als Balken zu erscheinen —
+     die eine Bewegung, die das Anvisieren fühlbar macht */
   .snav-deck__row::before {
     content: '';
     position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, color-mix(in srgb, var(--gc) 16%, transparent), transparent 78%);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.24s cubic-bezier(0.2, 0.7, 0.25, 1);
-    pointer-events: none;
-  }
-  .snav-deck__row:hover::before,
-  .snav-deck__row:focus-visible::before {
-    transform: scaleX(1);
+    left: 0;
+    top: 50%;
+    width: 2px;
+    height: 0;
+    background: var(--accent, #2dd4ff);
+    transform: translateY(-50%);
+    transition: height 0.22s cubic-bezier(0.2, 0.7, 0.25, 1);
   }
   .snav-deck__row:hover,
-  .snav-deck__row:focus-visible {
-    border-left-color: var(--gc);
+  .snav-deck__row:focus-visible,
+  .snav-deck__row.is-active {
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 6%, transparent);
     outline: none;
   }
-  .snav-deck__row:focus-visible {
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gc) 55%, transparent);
+  .snav-deck__row:hover::before,
+  .snav-deck__row:focus-visible::before,
+  .snav-deck__row.is-active::before {
+    height: 62%;
   }
-  .snav-deck__row[aria-current] {
-    border-left-color: var(--gc);
-    background: color-mix(in srgb, var(--gc) 11%, transparent);
+  .snav-deck__row[aria-current]::before {
+    height: 62%;
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 55%, transparent);
   }
-  @keyframes deckRise {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  /* Icon-Rahmenform je Gruppe (--shape) — zweite Unterscheidungsebene
-     neben der Farbe, damit die Cluster nicht rein farbcodiert sind */
   .snav-deck__icon {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     flex: none;
-    clip-path: var(--shape);
-    border: 1px solid color-mix(in srgb, var(--gc) 40%, var(--line, rgba(255, 255, 255, 0.18)));
-    background: color-mix(in srgb, var(--surface, #0e1626) 80%, transparent);
-    color: color-mix(in srgb, var(--gc) 70%, var(--muted, #8a99b8));
-    transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+    color: var(--muted, #8a99b8);
+    transition: color 0.18s ease, transform 0.18s ease;
   }
   .snav-deck__icon svg {
-    width: 16px;
-    height: 16px;
+    width: 17px;
+    height: 17px;
   }
   .snav-deck__row:hover .snav-deck__icon,
   .snav-deck__row:focus-visible .snav-deck__icon,
+  .snav-deck__row.is-active .snav-deck__icon,
   .snav-deck__row[aria-current] .snav-deck__icon {
-    color: var(--gc);
-    border-color: var(--gc);
-    background: color-mix(in srgb, var(--gc) 18%, var(--surface, #0e1626));
-    box-shadow: 0 0 18px -5px color-mix(in srgb, var(--gc) 75%, transparent);
+    color: var(--accent, #2dd4ff);
   }
   .snav-deck__text {
     display: flex;
@@ -833,63 +922,61 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     gap: 1px;
     min-width: 0;
     flex: 1;
+    transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.25, 1);
+  }
+  .snav-deck__row:hover .snav-deck__text,
+  .snav-deck__row:focus-visible .snav-deck__text,
+  .snav-deck__row.is-active .snav-deck__text {
+    transform: translateX(3px);
   }
   .snav-deck__label {
     font-family: var(--font-ui, sans-serif);
-    font-weight: 700;
-    font-size: 0.94rem;
+    font-weight: 600;
+    font-size: 0.95rem;
     line-height: 1.2;
-    letter-spacing: 0.01em;
     color: var(--text, #e8eefc);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .snav-deck__sub {
-    font-size: 0.76rem;
+    font-size: 0.74rem;
     line-height: 1.25;
-    color: var(--muted, #8a99b8);
+    color: color-mix(in srgb, var(--muted, #8a99b8) 82%, transparent);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .snav-deck__go {
-    flex: none;
-    color: var(--gc);
-    opacity: 0;
-    transform: translateX(-5px);
-    transition: opacity 0.16s ease, transform 0.16s ease;
+  .snav-deck__row .snav__acct-dot {
+    top: 2px;
+    right: 2px;
+    border-color: var(--bg, #05070d);
   }
-  .snav-deck__row:hover .snav-deck__go,
-  .snav-deck__row:focus-visible .snav-deck__go,
-  .snav-deck__row[aria-current] .snav-deck__go {
-    opacity: 1;
-    transform: none;
-  }
+
+  /* ---- Fuß ---- */
   .snav-deck__foot {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
-    padding-top: clamp(0.6rem, 1.4vh, 0.95rem);
-    border-top: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    padding-top: clamp(0.6rem, 1.4vh, 1rem);
+    border-top: 1px solid var(--line, rgba(255, 255, 255, 0.12));
     opacity: 0;
-    animation: deckRise 0.42s cubic-bezier(0.2, 0.7, 0.25, 1) 0.34s forwards;
+    animation: deckFade 0.4s ease 0.42s forwards;
   }
   .snav-deck__foot :global(.langsw) {
-    background: rgba(0, 0, 0, 0.35);
+    border-color: var(--line, rgba(255, 255, 255, 0.16));
   }
   .snav-deck__hints {
     display: flex;
-    gap: 1.15rem;
+    gap: 1.2rem;
     flex-wrap: wrap;
-    font-family: var(--font-ui, sans-serif);
-    font-weight: 700;
+    font-family: var(--font-mono, 'Share Tech Mono', monospace);
     font-size: 0.7rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--muted, #8a99b8);
+    color: color-mix(in srgb, var(--muted, #8a99b8) 75%, transparent);
   }
   .snav-deck__hints span {
     display: inline-flex;
@@ -898,28 +985,37 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
   .snav-deck__hints kbd {
     font-family: inherit;
-    font-weight: 700;
-    font-size: 0.66rem;
-    color: var(--muted, #8a99b8);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.2));
-    background: rgba(0, 0, 0, 0.3);
-    padding: 0.04rem 0.34rem;
-    border-radius: 1px;
+    font-size: 0.68rem;
+    color: inherit;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
+    padding: 0.02rem 0.3rem;
   }
-  /* Konto-Punkt sitzt am Icon-Rahmen; der Rahmen ist beschnitten (clip-path),
-     der Punkt darf NICHT mitbeschnitten werden -> eigenes Offset am Row */
-  .snav-deck__row .snav__acct-dot {
-    top: 1px;
-    right: 1px;
-    border-color: var(--bg-2, #0a0e18);
+
+  @keyframes deckFade {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
   }
-  @media (max-width: 720px) {
-    .snav-deck__grid {
+  @keyframes deckRowIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* Bühne kostet Platz und braucht Hover — auf schmalen Viewports fällt sie
+     weg, die Liste wird einspaltig und trägt dann allein */
+  @media (max-width: 900px) {
+    .snav-deck__body {
       grid-template-columns: 1fr;
-      gap: 1.1rem;
+      gap: 1.4rem;
     }
-    .snav-deck__eyebrow {
+    .snav-deck__stage {
       display: none;
+    }
+    .snav-deck__cols {
+      grid-template-columns: 1fr;
+    }
+    .snav-deck__status {
+      padding-left: 0;
+      border-left: 0;
     }
     .snav-deck__hints {
       display: none;
@@ -928,26 +1024,36 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       justify-content: center;
     }
   }
-  /* Bewegung ist Zierde, nie Voraussetzung: bei reduzierter Bewegung sind
-     alle Elemente sofort da (Reveal-Animationen setzen opacity:0 als
-     Startwert — ohne dieses Override bliebe das Menü unsichtbar) */
+  @media (max-width: 560px) {
+    .snav-deck__codename {
+      display: none;
+    }
+  }
+  /* Bewegung ist Zierde, nie Voraussetzung: die Reveals starten auf
+     opacity:0 — ohne dieses Override bliebe das Menü unsichtbar */
   @media (prefers-reduced-motion: reduce) {
     .snav-deck,
     .snav-deck__head,
+    .snav-deck__stage,
+    .snav-deck__group,
     .snav-deck__row,
     .snav-deck__foot {
       transition: none;
       animation: none;
       opacity: 1;
+      transform: none;
     }
     .snav-deck:not(.is-open) {
       opacity: 0;
     }
-    .snav-deck.is-open .snav-deck__back::after {
+    .snav-deck__pulse {
       animation: none;
     }
-    .snav-deck__row::before,
-    .snav-deck__go {
+    .snav-deck__stagetext,
+    .snav-deck__glyph,
+    .snav-deck__text,
+    .snav-deck__icon,
+    .snav-deck__row::before {
       transition: none;
     }
   }
@@ -977,16 +1083,72 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       });
     }
 
-    /** Zeilen spaltenweise (ein Array je Gruppen-Panel) — Basis der 2D-Navigation */
+    /** Zeilen spaltenweise (ein Array je Gruppen-Block) — Basis der 2D-Navigation */
     function columns() {
-      return [].slice.call(deck.querySelectorAll('.snav-deck__panel')).map(function (panel) {
-        return [].slice.call(panel.querySelectorAll('[data-deck-row]'));
+      return [].slice.call(deck.querySelectorAll('.snav-deck__group')).map(function (grp) {
+        return [].slice.call(grp.querySelectorAll('[data-deck-row]'));
       }).filter(function (col) { return col.length; });
+    }
+
+    // ---- Bühne: spiegelt die gerade anvisierte Zeile groß ------------------
+    var stage = deck.querySelector('.snav-deck__stage');
+    var stageGrp = document.getElementById('deckStageGrp');
+    var stageTitle = document.getElementById('deckStageTitle');
+    var stageSub = document.getElementById('deckStageSub');
+    var stageGlyph = document.getElementById('deckGlyph');
+    var allRows = [].slice.call(deck.querySelectorAll('[data-deck-row]'));
+    var activeRow = null;
+    var swapTimer = null;
+
+    function paintStage(row, instant) {
+      if (!row || !stage || row === activeRow) return;
+      activeRow = row;
+      allRows.forEach(function (r) { r.classList.toggle('is-active', r === row); });
+      var apply = function () {
+        stageGrp.textContent = row.getAttribute('data-group') || '';
+        stageTitle.textContent = row.querySelector('.snav-deck__label').textContent;
+        stageSub.textContent = row.querySelector('.snav-deck__sub').textContent;
+        stageGlyph.textContent = '';
+        var svg = row.querySelector('.snav-deck__icon svg');
+        // Klon statt innerHTML: kein String-Parsing, Markup bleibt identisch
+        if (svg) stageGlyph.appendChild(svg.cloneNode(true));
+        stage.classList.remove('is-swapping');
+      };
+      clearTimeout(swapTimer);
+      if (instant) { apply(); return; }
+      stage.classList.add('is-swapping');
+      swapTimer = setTimeout(apply, 130);
+    }
+
+    // Hover UND Fokus füttern dieselbe Bühne -> Maus und Tastatur fühlen sich
+    // identisch an; Delegation, damit nur zwei Listener nötig sind
+    deck.addEventListener('mouseover', function (e) {
+      var row = e.target.closest && e.target.closest('[data-deck-row]');
+      if (row) paintStage(row);
+    });
+    deck.addEventListener('focusin', function (e) {
+      var row = e.target.closest && e.target.closest('[data-deck-row]');
+      if (row) paintStage(row);
+    });
+
+    /** Fokus setzen UND Bühne nachziehen. focusin allein reicht nicht: hat das
+     *  Fenster keinen Fokus, verschiebt .focus() zwar activeElement, feuert
+     *  aber kein focusin — die Bühne bliebe stehen. Doppelaufruf ist billig,
+     *  paintStage steigt bei unveränderter Zeile sofort aus. */
+    function focusRow(row) {
+      if (!row) return;
+      row.focus();
+      paintStage(row);
     }
 
     function openDeck() {
       lastFocus = document.activeElement;
       deck.hidden = false;
+      // Bühne auf die aktuelle Seite setzen (sonst erste Zeile) — ohne
+      // Übergang, das Menü soll bereits gefüllt aufblenden
+      activeRow = null;
+      var start = deck.querySelector('[data-deck-row][aria-current]') || allRows[0];
+      paintStage(start, true);
       // erzwungener Reflow statt requestAnimationFrame: garantiert, dass der
       // Browser den hidden->visible-Wechsel VOR dem Klassenwechsel committet,
       // sonst startet die Opacity-Transition in manchen Rendering-Kontexten
@@ -1035,7 +1197,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
           if (idx > -1) { c = i; r = idx; break; }
         }
         // noch keine Zeile fokussiert -> erste Zeile übernehmen
-        if (c === -1) { cols[0][0].focus(); return; }
+        if (c === -1) { focusRow(cols[0][0]); return; }
         if (e.key === 'ArrowDown') r = (r + 1) % cols[c].length;
         else if (e.key === 'ArrowUp') r = (r - 1 + cols[c].length) % cols[c].length;
         else {
@@ -1043,7 +1205,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
           // Spalten sind unterschiedlich lang: Zeilenindex klemmen statt springen
           r = Math.min(r, cols[c].length - 1);
         }
-        cols[c][r].focus();
+        focusRow(cols[c][r]);
         return;
       }
       if (e.key !== 'Tab') return;
