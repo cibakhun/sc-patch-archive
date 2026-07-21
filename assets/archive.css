@@ -1,0 +1,1406 @@
+/* ============================================================================
+   VerseBase — PATCH ARCHIVE  (assets/archive.css)
+
+   The archive hub is a chronicle, so the page is built as one: a timeline spine
+   the reader walks down, chaptered by era. Its one signature idea is that the
+   page has no fixed accent — `--era` morphs from Pyro orange through storm cyan,
+   Onyx amber, Nyx ice, Drake orange to Frontier vermilion as the eras scroll
+   past, and every accented pixel (rail, glow, ribbon, chips, focus rings) is
+   downstream of it.
+
+   Self-contained on purpose: it does NOT load detail.css. That kit is tuned for
+   the per-patch "Kino" pages and its ambient overlays/heroes would have to be
+   fought here. SiteNav and Attribution style themselves from the palette vars
+   declared below, so they inherit the era morph for free.
+   ========================================================================== */
+
+/* Custom properties only animate when registered — this is what makes the era
+   transition a fade rather than a jump-cut. Unsupported browsers get the swap
+   instantly, which is a graceful degradation, not a break. */
+@property --era {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #ff5a1f;
+}
+@property --era-2 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #d9d12a;
+}
+
+:root {
+  --era: #ff5a1f;
+  --era-2: #d9d12a;
+
+  --bg: #05070d;
+  --bg-2: #080c15;
+  --surface: #0c111d;
+  --surface-2: #111828;
+  --text: #e8eefc;
+  --muted: #8a99b8;
+  /* 4.8:1 on --bg. The obvious darker grey for these micro-caps labels lands
+     around 3.8:1, which fails AA for text under 18pt. */
+  --dim: #6b7c9c;
+  --ink: #05070d;
+  --line: rgba(232, 238, 252, 0.11);
+  --line-2: rgba(232, 238, 252, 0.06);
+
+  /* SiteNav + Attribution read these — keeping them aliased to the live era is
+     what pulls the shared chrome into the morph. */
+  --accent: var(--era);
+  --accent-2: var(--era-2);
+
+  --font-display: 'Orbitron', sans-serif;
+  --font-ui: 'Rajdhani', sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-mono: 'Share Tech Mono', ui-monospace, monospace;
+
+  --maxw: 1200px;
+  --pad: clamp(1.1rem, 4vw, 3rem);
+  /* clearance under the fixed SiteNav for the sticky control bar + jump targets */
+  --stick: 4.15rem;
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  transition: --era 900ms var(--ease), --era-2 900ms var(--ease);
+}
+
+/* Accent-coloured MICRO text only.
+   Patch accents are picked for atmosphere, and three of them (Supply or Die's
+   #c0271f, Resource Drive's #2E8B57, Fractured Frontiers' #B5642A) sit at
+   3.2–4.5:1 on this background — fine for a 42px version numeral, which counts
+   as large text, but failing AA for a 12px caps label. Lifting toward white
+   fixes the dark ones and leaves the already-bright ones legible. Large accent
+   type, rails, nodes and borders keep the pure hue. */
+   sRGB rather than oklab on purpose: oklab() computed values are opaque to the
+   contrast checkers used on this site, and mixing in sRGB keeps every rendered
+   colour reported as plain rgb() so the result stays auditable. */
+.ent,
+.era,
+.ktc,
+.tgroup {
+  --c-lift: color-mix(in srgb, var(--c) 72%, #fff);
+}
+:root {
+  --era-lift: color-mix(in srgb, var(--era) 72%, #fff);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img {
+  display: block;
+  max-width: 100%;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+ul,
+ol {
+  list-style: none;
+}
+::selection {
+  background: var(--era);
+  color: var(--ink);
+}
+:focus-visible {
+  outline: 2px solid var(--era-2);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+.skip {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  z-index: 9300;
+  background: var(--era);
+  color: var(--ink);
+  padding: 0.6rem 1rem;
+  font-family: var(--font-ui);
+  font-weight: 700;
+}
+.skip:focus {
+  left: 0;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Ambient ───────────────────────────────────────────────────────────────
+   Two fixed layers under everything: a drifting dust canvas tinted to the live
+   era, and a vignette + faint CRT scanline that keeps the deep background from
+   reading as flat black. */
+#dust {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.85;
+}
+.veil {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 0%, transparent 45%, rgba(0, 0, 0, 0.55) 100%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.13) 0 1px, transparent 1px 3px);
+  opacity: 0.6;
+}
+/* A wash of the era colour bleeding in from the edges — the most visible carrier
+   of the morph, and it costs one repaint. */
+.wash {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(70% 55% at 8% 12%, color-mix(in srgb, var(--era) 14%, transparent), transparent 70%),
+    radial-gradient(60% 50% at 96% 78%, color-mix(in srgb, var(--era-2) 11%, transparent), transparent 70%);
+}
+main {
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Masthead ───────────────────────────────────────────────────────────── */
+.mast {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: clamp(5.5rem, 13vh, 9rem) var(--pad) clamp(1.3rem, 2.8vw, 2rem);
+}
+.mast__eyebrow {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  font-size: 0.76rem;
+  color: var(--era-2);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.mast__eyebrow::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  max-width: 8rem;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--era-2) 60%, transparent), transparent);
+}
+.mast h1 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  margin: 1.1rem 0 0;
+  font-size: clamp(2.6rem, 9vw, 5.6rem);
+  text-transform: uppercase;
+}
+/* "ALPHA 4" is the quiet half of the lockup: outlined, so the solid archive
+   title reads as the subject and the era label as its frame. */
+.mast h1 .thin {
+  display: block;
+  font-size: 0.42em;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--era) 75%, transparent);
+  margin-bottom: 0.42em;
+}
+.mast__lead {
+  margin-top: 1.5rem;
+  max-width: 54ch;
+  font-size: clamp(1.02rem, 1.6vw, 1.2rem);
+  color: var(--muted);
+}
+
+/* ── Release ribbon ────────────────────────────────────────────────────────
+   A real plot, not decoration: ticks sit at their true position between the
+   first and last release, so the eye reads the cadence — the dense 4.8 cluster,
+   the summer-2025 gaps — before reading a single word. */
+.ribbon {
+  margin-top: clamp(2.2rem, 5vw, 3.2rem);
+}
+.ribbon__scale {
+  position: relative;
+  height: 74px;
+  border-bottom: 1px solid var(--line);
+}
+.ribbon__band {
+  position: absolute;
+  bottom: 0;
+  left: var(--from);
+  width: calc(var(--to) - var(--from));
+  height: 5px;
+  background: var(--c);
+  opacity: 0.34;
+  transition: opacity 0.45s var(--ease), height 0.45s var(--ease);
+}
+.ribbon__band.is-now {
+  opacity: 1;
+  height: 7px;
+}
+.ribbon__tick {
+  position: absolute;
+  bottom: 0;
+  left: var(--x);
+  width: 22px;
+  margin-left: -11px;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-radius: 2px;
+}
+.ribbon__tick::before {
+  content: '';
+  width: 3px;
+  height: 42%;
+  background: var(--c);
+  opacity: 0.62;
+  border-radius: 2px 2px 0 0;
+  transform-origin: bottom;
+  transition: opacity 0.25s, height 0.25s var(--ease), box-shadow 0.25s;
+}
+.ribbon__tick.is-major::before {
+  height: 78%;
+  opacity: 0.9;
+}
+.ribbon__tick.is-latest::before {
+  height: 100%;
+  opacity: 1;
+  box-shadow: 0 0 16px var(--c);
+}
+.ribbon__tick:hover::before,
+.ribbon__tick:focus-visible::before {
+  opacity: 1;
+  height: 100%;
+  box-shadow: 0 0 18px var(--c);
+}
+/* CSS-only tooltip — the label is already in the DOM for screen readers, so
+   this stays purely presentational. */
+.ribbon__tick::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translate(-50%, 4px);
+  white-space: nowrap;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.74rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text);
+  background: rgba(4, 6, 12, 0.96);
+  border: 1px solid var(--c);
+  padding: 0.28rem 0.6rem;
+  border-radius: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s var(--ease-out);
+  z-index: 5;
+}
+.ribbon__tick:hover::after,
+.ribbon__tick:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.ribbon__axis {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-top: 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+.ribbon__hint {
+  font-family: var(--font-ui);
+  letter-spacing: 0.12em;
+  font-weight: 600;
+}
+@media (max-width: 620px) {
+  .ribbon__hint {
+    display: none;
+  }
+}
+
+/* ── Stat strip ─────────────────────────────────────────────────────────── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  margin-top: clamp(2rem, 4vw, 2.8rem);
+  background: var(--line-2);
+  border: 1px solid var(--line-2);
+}
+@media (min-width: 760px) {
+  .stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.stat {
+  background: var(--bg);
+  padding: 1.05rem 1.2rem;
+}
+.stat__n {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  line-height: 1;
+  color: var(--era);
+  font-variant-numeric: tabular-nums;
+}
+.stat__l {
+  margin-top: 0.4rem;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* ── Sticky control bar ────────────────────────────────────────────────────
+   Doubles as the "you are here" readout: the era name on the left is driven by
+   the same observer that morphs --era, so the label and the colour never
+   disagree. */
+.cbar {
+  position: sticky;
+  top: var(--stick);
+  z-index: 60;
+  margin: clamp(1.2rem, 2.4vw, 1.8rem) auto 0;
+  max-width: var(--maxw);
+  padding: 0 var(--pad);
+}
+.cbar__in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(6, 9, 16, 0.92);
+  backdrop-filter: blur(14px) saturate(1.3);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--era);
+  border-radius: 3px;
+  box-shadow: 0 12px 34px -18px rgba(0, 0, 0, 0.9);
+  transition: border-color 0.5s var(--ease);
+}
+.cbar__era {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text);
+  min-width: 0;
+}
+.cbar__dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  background: var(--era);
+  transform: rotate(45deg);
+  box-shadow: 0 0 10px var(--era);
+}
+.cbar__search {
+  flex: 1 1 12rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.3rem 0.6rem;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.cbar__search:focus-within {
+  border-color: color-mix(in srgb, var(--era) 60%, transparent);
+  background: rgba(255, 255, 255, 0.06);
+}
+.cbar__search svg {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  stroke: var(--dim);
+  fill: none;
+  stroke-width: 2;
+}
+.cbar__search input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: 0;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.94rem;
+  padding: 0.15rem 0;
+}
+.cbar__search input::placeholder {
+  color: var(--dim);
+}
+.cbar__search input:focus {
+  outline: none;
+}
+.cbar__search input::-webkit-search-cancel-button {
+  display: none;
+}
+.cbar__x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.cbar__x:hover {
+  background: var(--era);
+  color: var(--ink);
+}
+.cbar__chips {
+  display: flex;
+  gap: 0.3rem;
+}
+.chipbtn {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  padding: 0.32rem 0.7rem;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s, background-color 0.18s;
+}
+.chipbtn:hover {
+  color: var(--text);
+  border-color: var(--line);
+}
+.chipbtn[aria-pressed='true'] {
+  color: var(--ink);
+  background: var(--era);
+  border-color: var(--era);
+}
+.cbar__count {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+  margin-left: auto;
+  white-space: nowrap;
+}
+/* Below 700px the bar wraps to three rows — pinned, that is a quarter of a
+   phone screen given up permanently. It scrolls with the page instead; the
+   era headings are inline anyway and #totop covers the trip back up. */
+@media (max-width: 700px) {
+  .cbar {
+    position: static;
+  }
+  .cbar__era {
+    order: -1;
+    flex: 1 1 auto;
+  }
+  .cbar__count {
+    margin-left: auto;
+  }
+  .cbar__search {
+    order: 1;
+    flex-basis: 100%;
+  }
+  .cbar__chips {
+    order: 2;
+    flex-wrap: wrap;
+  }
+}
+
+/* ── Section frame ─────────────────────────────────────────────────────── */
+.sec {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 5rem) var(--pad);
+}
+/* The control bar already sits directly above the timeline — a second full
+   section gap on top of it just pushes the first patch off the fold. */
+.sec--tight {
+  padding-top: clamp(1.6rem, 3vw, 2.4rem);
+}
+.sec__head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: clamp(1.6rem, 3vw, 2.4rem);
+}
+.sec__num {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  letter-spacing: 0.12em;
+  color: var(--era-lift);
+}
+.sec__head h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.35rem, 3.2vw, 2rem);
+  line-height: 1.05;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+.sec__rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--line), transparent);
+}
+.sec__tag {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--era-lift);
+  border: 1px solid color-mix(in srgb, var(--era) 40%, transparent);
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+/* ── Era chapter ───────────────────────────────────────────────────────── */
+.era {
+  --c: var(--era);
+  scroll-margin-top: calc(var(--stick) + 4rem);
+}
+.era__head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  padding: clamp(2.2rem, 4vw, 3.2rem) 0 1.5rem;
+}
+.era:first-child .era__head {
+  padding-top: 0;
+}
+.era__no {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--c-lift);
+}
+.era__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.15rem, 2.6vw, 1.6rem);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+.era__range {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+.era__count {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-lift);
+  margin-left: auto;
+}
+@media (max-width: 620px) {
+  .era__count {
+    margin-left: 0;
+  }
+}
+
+/* ── The spine ─────────────────────────────────────────────────────────── */
+.ent {
+  --c: var(--era);
+  display: grid;
+  grid-template-columns: 5.5rem 1.9rem minmax(0, 1fr);
+  scroll-margin-top: calc(var(--stick) + 5rem);
+}
+.ent__when {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 0.15rem 1rem 0 0;
+  text-align: right;
+}
+.ent__day {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1.1;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.4s var(--ease);
+}
+.ent.lit .ent__day {
+  color: var(--c);
+}
+.ent__my {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* The rail: a continuous hairline made of per-entry segments, plus an overlay
+   that scales from 0 → 1 when the entry enters view. Scroll progress is drawn
+   by an IntersectionObserver toggling one class, so there is no scroll handler
+   and nothing to throttle. */
+.ent__node {
+  grid-column: 2;
+  position: relative;
+}
+.ent__node::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--line);
+}
+.ent__node i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  margin-left: -0.5px;
+  background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 25%, transparent));
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.85s var(--ease-out);
+}
+.ent.lit .ent__node i {
+  transform: scaleY(1);
+}
+/* Marker sits on the card's title line, not the card's top edge. */
+.ent__node b {
+  position: absolute;
+  top: 1.55rem;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  background: var(--bg);
+  border: 1px solid var(--c);
+  transform: rotate(45deg) scale(0.75);
+  opacity: 0.5;
+  transition: transform 0.5s var(--ease-out) 0.15s, opacity 0.5s 0.15s, background-color 0.5s 0.15s,
+    box-shadow 0.5s 0.15s;
+}
+.ent.lit .ent__node b {
+  transform: rotate(45deg) scale(1);
+  opacity: 1;
+  background: var(--c);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--c) 70%, transparent);
+}
+.ent--major .ent__node b {
+  width: 15px;
+  height: 15px;
+  margin: -7.5px 0 0 -7.5px;
+}
+/* The newest release keeps a slow breathing halo — the one looping animation on
+   the page, and the only element that earns it. */
+.ent--latest .ent__node b::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border: 1px solid var(--c);
+  opacity: 0;
+}
+.ent--latest.lit .ent__node b::after {
+  animation: ping 2.6s var(--ease-out) infinite;
+}
+@keyframes ping {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.8;
+  }
+  70%,
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+.ent__card {
+  grid-column: 3;
+  margin-bottom: 1.1rem;
+}
+.era .ent:last-child .ent__card {
+  margin-bottom: 0;
+}
+
+/* ── Card ──────────────────────────────────────────────────────────────── */
+.card {
+  position: relative;
+  isolation: isolate;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 3px;
+  overflow: hidden;
+  transition: border-color 0.3s var(--ease), transform 0.3s var(--ease), box-shadow 0.3s var(--ease),
+    background-color 0.3s;
+}
+/* The rail already carries a vertical accent a few pixels to the left, so a
+   permanent bar here just reads as a doubled line. It arrives on hover instead,
+   where it has something to say. */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--c);
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 2;
+}
+.card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--c) 45%, transparent);
+  box-shadow: 0 18px 44px -24px var(--c);
+}
+.card:hover::before {
+  opacity: 1;
+}
+.card:focus-within {
+  border-color: color-mix(in srgb, var(--c) 55%, transparent);
+}
+/* Arriving from a ribbon tick: the landing row identifies itself, otherwise a
+   jump into a wall of 19 similar rows leaves the reader hunting. */
+.ent:target .card {
+  border-color: var(--c);
+  box-shadow: 0 0 0 1px var(--c), 0 18px 44px -24px var(--c);
+}
+.ent:target .card::before {
+  opacity: 1;
+  width: 3px;
+}
+
+/* Art layer: drifts on hover rather than the whole card scaling, which would
+   soften the 1px borders. Majors and point releases share the mechanism but not
+   the dose — see the two scrims below. */
+.card__art {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--art);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.62;
+  transform: scale(1.04);
+  transition: transform 1.1s var(--ease), opacity 0.4s;
+}
+.card:hover .card__art {
+  transform: scale(1.1);
+  opacity: 0.75;
+}
+.card__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(0deg, color-mix(in srgb, var(--c) 12%, transparent), transparent 60%);
+}
+/* Major: the scrim clears to the right so the trailer still is genuinely
+   visible past the text column — these are the cinematic rows. */
+.card--major .card__art {
+  opacity: 0.92;
+}
+.card--major .card__scrim {
+  background: linear-gradient(
+      100deg,
+      rgba(6, 9, 16, 0.99) 0%,
+      rgba(6, 9, 16, 0.98) 44%,
+      rgba(6, 9, 16, 0.55) 76%,
+      rgba(6, 9, 16, 0.24) 100%
+    ),
+    linear-gradient(0deg, color-mix(in srgb, var(--c) 14%, transparent), transparent 55%);
+}
+/* Source art is a 480px thumbnail. Covering the full card width would upscale
+   it ~2×; anchoring the panel to the right half keeps it at roughly 1:1, so the
+   part that is actually visible stays sharp. The panel's left edge sits under
+   the fully opaque end of the scrim, so there is no seam. */
+@media (min-width: 900px) {
+  .card--major .card__art {
+    left: 44%;
+  }
+}
+/* Point release: the art stays a texture, never a picture. The contrast between
+   the two treatments is what gives the spine its rhythm over 19 entries. */
+.card--point .card__art {
+  opacity: 0.2;
+}
+.card--point:hover .card__art {
+  opacity: 0.3;
+}
+.card--point .card__scrim {
+  background: linear-gradient(100deg, rgba(6, 9, 16, 0.96) 30%, rgba(6, 9, 16, 0.86) 100%),
+    linear-gradient(0deg, color-mix(in srgb, var(--c) 10%, transparent), transparent 70%);
+}
+
+.card__body {
+  padding: 1.15rem 1.3rem 1.2rem;
+}
+.card--major .card__body {
+  padding: 1.5rem 1.5rem 1.35rem;
+}
+/* Keep the copy off the exposed art on wide rows, and drop the call to action
+   to the baseline so the extra height reads as composition, not slack. */
+@media (min-width: 900px) {
+  .card--major {
+    display: flex;
+    min-height: 15rem;
+  }
+  .card--major .card__body {
+    display: flex;
+    flex-direction: column;
+    max-width: 68%;
+  }
+  .card--major .card__foot {
+    margin-top: auto;
+    padding-top: 1.1rem;
+  }
+}
+
+/* Point releases are log lines: the version hangs in its own column and the
+   text runs beside it. Same markup as a major, a third of the height — the
+   contrast is what stops 19 rows reading as one undifferentiated stack. */
+.card--point .card__body {
+  padding: 0.95rem 1.15rem 1rem;
+}
+.card--point .card__ver {
+  font-size: 1.12rem;
+}
+.card--point .card__name {
+  font-size: 1.05rem;
+}
+.card--point .card__tag {
+  font-size: 0.9rem;
+}
+@media (min-width: 660px) {
+  .card--point .card__body {
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: 1.1rem;
+    row-gap: 0.15rem;
+  }
+  .card--point .card__top {
+    grid-area: 1 / 1 / 4 / 2;
+    align-content: start;
+    align-items: baseline;
+    row-gap: 0.35rem;
+    max-width: 11rem;
+  }
+  .card--point .card__name,
+  .card--point .card__tag,
+  .card--point .card__foot {
+    grid-column: 2;
+    margin-top: 0;
+  }
+  .card--point .card__foot {
+    margin-top: 0.65rem;
+  }
+}
+.card__top {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.card__ver {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.28rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--c);
+  font-variant-numeric: tabular-nums;
+}
+.card--major .card__ver {
+  font-size: clamp(1.7rem, 3.6vw, 2.35rem);
+}
+.chip {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.5rem;
+  border-radius: 2px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.chip--major {
+  color: var(--c-lift);
+  border-color: color-mix(in srgb, var(--c) 45%, transparent);
+}
+.chip--latest {
+  color: var(--ink);
+  background: var(--c);
+  border-color: var(--c);
+}
+.card__name {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 1.18rem;
+  line-height: 1.2;
+  margin-top: 0.5rem;
+  letter-spacing: 0.005em;
+}
+.card--major .card__name {
+  font-size: clamp(1.3rem, 2.8vw, 1.62rem);
+}
+/* Stretched link: the whole card is clickable while the DOM keeps exactly one
+   anchor for the patch — so topic pills below can stay real, separate links
+   instead of being illegally nested inside it. */
+.card__name a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.card__name a:focus-visible {
+  outline: none;
+}
+.card:has(.card__name a:focus-visible) {
+  outline: 2px solid var(--era-2);
+  outline-offset: 3px;
+}
+.card__tag {
+  margin-top: 0.4rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  max-width: 62ch;
+}
+.card--major .card__tag {
+  color: #b9c6de;
+}
+.card__foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+  margin-top: 1rem;
+}
+.card__go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--c-lift);
+}
+.card__go .ar {
+  transition: transform 0.25s var(--ease-out);
+}
+.card:hover .card__go .ar {
+  transform: translateX(5px);
+}
+/* Deep dives are the archive's own writing — flagged as a distinct affordance
+   so they never read as generic tags. */
+.card__dives {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  position: relative;
+  z-index: 2;
+  margin-left: auto;
+}
+.dive {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border: 1px solid var(--line-2);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.22rem 0.6rem;
+  border-radius: 50px;
+  transition: color 0.18s, border-color 0.18s, background-color 0.18s;
+}
+.dive::before {
+  content: '↳ ';
+  color: var(--c);
+}
+.dive:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--c) 55%, transparent);
+  background: color-mix(in srgb, var(--c) 10%, transparent);
+}
+@media (max-width: 620px) {
+  .card__dives {
+    margin-left: 0;
+  }
+}
+
+/* ── Reveal ───────────────────────────────────────────────────────────────
+   Entries wipe in from the rail side, which reads as the timeline extruding
+   the card rather than a generic fade-up.
+
+   Gated on .js — the class is set by an inline script before this content is
+   parsed. Without it these rules never apply, so a blocked or broken
+   archive.js leaves the archive fully readable instead of blank. */
+.js .ent__card {
+  opacity: 0;
+  transform: translateX(-14px);
+  transition: opacity 0.6s var(--ease-out), transform 0.7s var(--ease-out);
+}
+.js .ent.lit .ent__card {
+  opacity: 1;
+  transform: none;
+}
+.js .reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s var(--ease-out), transform 0.8s var(--ease-out);
+}
+.js .reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Filtering ─────────────────────────────────────────────────────────── */
+.ent[hidden],
+.era[hidden],
+.tgroup[hidden],
+.trow[hidden] {
+  display: none;
+}
+.empty {
+  display: none;
+  padding: 2.5rem 0;
+  text-align: center;
+  color: var(--muted);
+}
+.empty.on {
+  display: block;
+}
+.empty button {
+  margin-top: 0.9rem;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--era);
+  border: 0;
+  border-radius: 2px;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+}
+/* Matched substrings inside the spine, painted by the filter. */
+mark {
+  background: color-mix(in srgb, var(--era) 30%, transparent);
+  color: inherit;
+  border-radius: 2px;
+}
+
+/* ── Key topics ────────────────────────────────────────────────────────── */
+.kt {
+  display: grid;
+  gap: 1px;
+  background: var(--line-2);
+  border: 1px solid var(--line-2);
+}
+@media (min-width: 720px) {
+  .kt {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.ktc {
+  --c: var(--era);
+  position: relative;
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0 0.9rem;
+  padding: 1.15rem 1.3rem;
+  background: var(--bg);
+  transition: background-color 0.22s;
+}
+.ktc:hover {
+  background: color-mix(in srgb, var(--c) 8%, var(--bg));
+}
+/* The left edge grows into a full accent rule on hover — a small, cheap signal
+   that reads as "this row is armed". */
+.ktc::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--c);
+  transform: scaleY(0.18);
+  transform-origin: center;
+  opacity: 0.7;
+  transition: transform 0.35s var(--ease-out), opacity 0.35s;
+}
+.ktc:hover::before,
+.ktc:focus-within::before {
+  transform: scaleY(1);
+  opacity: 1;
+}
+.ktc__n {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--c-lift);
+  padding-top: 0.28rem;
+}
+.ktc__t {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 1.16rem;
+  line-height: 1.25;
+}
+.ktc__t a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.ktc__v {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+.ktc__d {
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.93rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Topic index ───────────────────────────────────────────────────────── */
+.tgroups {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.tgroup {
+  --c: var(--era);
+  border: 1px solid var(--line-2);
+  border-radius: 3px;
+  padding: 0.95rem 1.2rem 1.05rem;
+  background: color-mix(in srgb, var(--surface) 45%, transparent);
+}
+.tgroup__h {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px solid var(--line-2);
+}
+.tgroup__sw {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  background: var(--c);
+  transform: rotate(45deg);
+}
+.tgroup__l {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.tgroup__n {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--dim);
+  margin-left: auto;
+}
+.trows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 0 1.6rem;
+}
+.trow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.8rem;
+  padding: 0.42rem 0.35rem;
+  border-bottom: 1px solid var(--line-2);
+  transition: background-color 0.15s, color 0.15s, padding-left 0.2s var(--ease);
+}
+.trow:hover {
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 7%, transparent);
+  padding-left: 0.65rem;
+}
+.trow span:first-child {
+  min-width: 0;
+}
+.trow__v {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+  flex: none;
+}
+
+/* ── Back to top ───────────────────────────────────────────────────────── */
+.totop {
+  position: fixed;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid color-mix(in srgb, var(--era) 45%, transparent);
+  border-radius: 50%;
+  background: rgba(6, 9, 16, 0.9);
+  backdrop-filter: blur(8px);
+  color: var(--era);
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s var(--ease-out), background-color 0.2s, color 0.2s;
+}
+.totop.on {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.totop:hover {
+  background: var(--era);
+  color: var(--ink);
+}
+
+/* ── Responsive: rail reflow ───────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .ent {
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+  }
+  .ent__node {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+  .ent__when {
+    grid-column: 2;
+    grid-row: 1;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.45rem;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 0 0 0.3rem;
+  }
+  .ent__day {
+    font-size: 0.92rem;
+  }
+  .ent__card {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .ent__node b {
+    top: 0.55rem;
+  }
+}
+
+/* ── Motion policy ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  :root {
+    transition: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .js .ent__card,
+  .js .reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .ent__node i {
+    transform: scaleY(1);
+  }
+  .ent__node b {
+    transform: rotate(45deg) scale(1);
+    opacity: 1;
+  }
+  .card:hover {
+    transform: none;
+  }
+}
+
+@media print {
+  #dust,
+  .veil,
+  .wash,
+  .cbar,
+  .totop,
+  .ribbon {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+}

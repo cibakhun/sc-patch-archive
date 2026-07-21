@@ -24,6 +24,18 @@ export function eraLabel(era: string, lang: Locale): string {
   return lang === 'en' ? ERA_EN[era] ?? era : era;
 }
 
+/**
+ * Codenamen sind strukturell (englische Eigennamen) und liegen deshalb NICHT in
+ * patches-en.json. Ausnahme: die wenigen beschreibenden Titel von Point-Releases,
+ * die auf Deutsch verfasst sind — die brauchen eine EN-Fassung.
+ */
+const CODENAME_EN: Record<string, string> = {
+  '4-0-1': 'Stability & Save Stanton II',
+};
+export function codenameLabel(id: string, codename: string, lang: Locale): string {
+  return lang === 'en' ? CODENAME_EN[id] ?? codename : codename;
+}
+
 /** at(index) mit Fallback auf das DE-Objekt, falls EN fehlt/kürzer */
 function pick<T>(enArr: any[] | undefined, i: number, de: T, keys: (keyof T)[]): T {
   const e = enArr?.[i];
