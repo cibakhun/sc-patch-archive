@@ -307,7 +307,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     </div>
   </div>
 
-  <div class="snav-orbit__drawer-scrim" data-patch-close></div>
+  <div class="snav-orbit__drawer-scrim" data-patch-close hidden></div>
   <div class="snav-orbit__drawer" id="snavPatchDrawer" hidden>
     <div class="snav-orbit__drawer-head">
       <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01"/></svg>
@@ -987,13 +987,16 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     function openOrbit() {
       lastFocus = document.activeElement;
       orbit.hidden = false;
+      // erzwungener Reflow statt requestAnimationFrame: garantiert, dass der
+      // Browser den hidden->visible-Wechsel VOR dem Klassenwechsel committet,
+      // sonst startet die Opacity-Transition in manchen Rendering-Kontexten
+      // nie (rAF kann in gedrosselten/eingebetteten Views ausbleiben).
+      void orbit.offsetHeight;
+      orbit.classList.add('is-open');
       document.documentElement.style.overflow = 'hidden';
       btn.setAttribute('aria-expanded', 'true');
-      requestAnimationFrame(function () {
-        orbit.classList.add('is-open');
-        var close = orbit.querySelector('.snav-orbit__close');
-        if (close) close.focus();
-      });
+      var close = orbit.querySelector('.snav-orbit__close');
+      if (close) close.focus();
     }
 
     function closeOrbit() {
