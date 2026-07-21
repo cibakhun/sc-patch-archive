@@ -110,16 +110,13 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
       var doc=document.documentElement;
       if(isArchive) doc.classList.add('is-archive-guarded');
       try{
-        var raw=localStorage.getItem('sb-trgjhmbnodoarnfmlcqx-auth-token');
-        if(raw){
-          var sess=JSON.parse(raw);
-          var email=(sess&&sess.user&&sess.user.email)?sess.user.email.toLowerCase():'';
-          var meta=(sess&&sess.user&&sess.user.user_metadata)?sess.user.user_metadata:{};
-          var dName=(meta.display_name||meta.handle||meta.name||'').toLowerCase();
-          if(email.indexOf('krysx141')!==-1||dName==='krysx141'){
-            doc.classList.add('is-krysx141');
+          var raw=sessionStorage.getItem('vb_user_role');
+          if(raw){
+            var parsed=JSON.parse(raw);
+            if(parsed.role==='admin'){
+              doc.classList.add('is-admin');
+            }
           }
-        }
       }catch(e){}
     })()`}
   />
@@ -228,12 +225,12 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
     /* Flex-Mono-Code-Zeilen (…//…): min-width:0 lässt die Ellipsis greifen,
        statt die Zeile (langer EN-System-Name) über den Rand zu drücken. */
     .tf__code, .qf__code, .do__code, .sd__code { min-width: 0; }
-    /* Account-bound restricted content (e.g. Patch Archive for KrysX141) */
-    html:not(.is-krysx141) [data-restricted="patch-archive"],
-    html:not(.is-krysx141) .js-restricted-archive {
+    /* Admin-only restricted content (Patch Archive, Account) */
+    html:not(.is-admin) [data-restricted="patch-archive"],
+    html:not(.is-admin) .js-restricted-archive {
       display: none !important;
     }
-    html.is-archive-guarded:not(.is-krysx141) body {
+    html.is-archive-guarded:not(.is-admin) body {
       display: none !important;
     }</style>
   <slot name="head" />

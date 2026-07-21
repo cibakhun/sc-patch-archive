@@ -63,3 +63,27 @@ CREATE POLICY "Empfänger können Anfragen aktualisieren" ON public.friend_reque
 
 CREATE POLICY "Nutzer können Anfragen löschen" ON public.friend_requests
   FOR DELETE USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
+
+-- ============================================================================
+-- 4. Rollen-System: `user_roles` Tabelle
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.user_roles (
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  role text NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  created_at timestamptz DEFAULT now()
+);
+
+-- RLS: Jeder eingeloggte Nutzer darf seine eigene Rolle LESEN (noetig fuer
+-- den client-seitigen Guard). Nur service_role darf schreiben.
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Nutzer koennen eigene Rolle lesen" ON public.user_roles
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Admin-Eintrag fuer KrysX141 (krysx141@gmail.com).
+-- Ersetze die UUID falls noetig — diese Abfrage findet sie automatisch.
+INSERT INTO public.user_roles (user_id, role)
+SELECT id, 'admin'
+FROM auth.users
+WHERE email = 'krysx141@gmail.com'
+ON CONFLICT (user_id) DO UPDATE SET role = 'admin';

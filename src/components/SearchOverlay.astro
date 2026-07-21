@@ -381,7 +381,7 @@ const indexUrl = href('/search-index.json', lang);
       list.innerHTML = '';
       sel = 0;
       if (!terms.length || !index) { results = []; return; }
-      var isAllowed = document.documentElement.classList.contains('is-krysx141');
+      var isAllowed = document.documentElement.classList.contains('is-admin');
       results = index
         .filter(function (e) {
           if (!isAllowed) {
