@@ -18,12 +18,10 @@ const COPY = {
     signedInAs: 'Angemeldet als',
     memberSince: 'Dabei seit',
     logout: 'Abmelden',
-    // Tabs
     tabProfile: 'Profil & Identität',
     tabFriends: 'Freunde & Social',
     tabFavs: 'Favoriten',
     tabSecurity: 'Sicherheit & Konto',
-    // Sections
     secProfile: 'Profil-Anpassung',
     secDesign: 'Banner & Avatar Design',
     secRoleStatus: 'Status & Citizen-Rolle',
@@ -32,7 +30,6 @@ const COPY = {
     secFavs: 'Deine Favoriten',
     secSecurity: 'Sicherheit',
     secDanger: 'Konto löschen',
-    // Fields
     name: 'Anzeigename', namePh: 'z. B. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'z. B. star_runner',
     handleHint: '3–24 Zeichen: Kleinbuchstaben, Ziffern, Unterstrich. Eindeutig auf VerseBase.',
@@ -43,7 +40,7 @@ const COPY = {
     avatarColorSelect: 'Avatar-Akzentfarbe',
     avatarUrl: 'Oder eigene Avatar-Bild-URL',
     statusState: 'Präsenz-Status',
-    statusText: 'Custom Status-Text', statusTextPh: 'z. B. Mining auf Lyria ⛏️',
+    statusText: 'Custom Status-Text', statusTextPh: 'z. B. Mining auf Lyria',
     roleLabel: 'Haupt-Spezialisierung / Rolle',
     rsiHandle: 'RSI Citizen Handle', rsiPh: 'z. B. Roberts',
     rsiVerifyBtn: 'RSI Account verifizieren',
@@ -108,7 +105,7 @@ const COPY = {
     avatarColorSelect: 'Avatar accent color',
     avatarUrl: 'Or custom avatar image URL',
     statusState: 'Presence Status',
-    statusText: 'Custom status text', statusTextPh: 'e.g. Mining on Lyria ⛏️',
+    statusText: 'Custom status text', statusTextPh: 'e.g. Mining on Lyria',
     roleLabel: 'Primary Specialization / Role',
     rsiHandle: 'RSI Citizen Handle', rsiPh: 'e.g. Roberts',
     rsiVerifyBtn: 'Verify RSI Account',
@@ -176,7 +173,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-fav-remove={COPY.favRemove}
 >
   <!-- Identity Header -->
-  <div class="acx-card acx-idcard reveal">
+  <div class="acx-idcard reveal">
     <div class="acx-id">
       <div class="acx-id__avatar" aria-hidden="true" id="idAvatar">◆</div>
       <div class="acx-id__meta">
@@ -191,16 +188,16 @@ const confirmRedirect = loginHref + '?confirmed=1';
   <!-- Main Navigation Tabs -->
   <nav class="acx-tabs-nav reveal" aria-label="Account Navigation">
     <button type="button" class="acx-tab-btn active" data-tab="profile">
-      <span>👤</span> <span>{COPY.tabProfile}</span>
+      <span>◆</span> <span>{COPY.tabProfile}</span>
     </button>
     <button type="button" class="acx-tab-btn" data-tab="friends">
-      <span>👥</span> <span>{COPY.tabFriends}</span>
+      <span>◈</span> <span>{COPY.tabFriends}</span>
     </button>
     <button type="button" class="acx-tab-btn" data-tab="favs">
-      <span>⭐</span> <span>{COPY.tabFavs}</span>
+      <span>★</span> <span>{COPY.tabFavs}</span>
     </button>
     <button type="button" class="acx-tab-btn" data-tab="security">
-      <span>🛡️</span> <span>{COPY.tabSecurity}</span>
+      <span>▲</span> <span>{COPY.tabSecurity}</span>
     </button>
   </nav>
 
@@ -260,11 +257,11 @@ const confirmRedirect = loginHref + '?confirmed=1';
                 <button
                   type="button"
                   class={`avatar-thumb-card ${idx === 0 ? 'selected' : ''}`}
-                  data-avatar-icon={a.icon}
+                  data-avatar-icon={a.symbol}
                   data-avatar-color={a.defaultColor}
                   title={a.name}
                 >
-                  <span>{a.icon}</span>
+                  <span>{a.symbol}</span>
                 </button>
               ))}
             </div>
@@ -306,7 +303,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
             <select class="acx-input" id="pfRole">
               <option value="">-- Keine Rolle gewählt --</option>
               {CITIZEN_ROLES.map(r => (
-                <option value={r.id}>{r.icon} {lang === 'de' ? r.labelDe : r.labelEn}</option>
+                <option value={r.id}>{r.symbol} {lang === 'de' ? r.labelDe : r.labelEn}</option>
               ))}
             </select>
           </div>
@@ -427,12 +424,12 @@ const confirmRedirect = loginHref + '?confirmed=1';
   <!-- RSI Verification Wizard Modal -->
   <dialog id="rsiModal" class="acx-modal">
     <div class="acx-modal-content">
-      <h3>🚀 RSI Account Verifizierung</h3>
+      <h3>RSI Account Verifizierung</h3>
       <p class="acx-hint">{COPY.rsiVerifyInstruction}</p>
 
       <div class="rsi-code-box">
         <code id="rsiVerifyCode">VERSEBASE-VERIFY-LOADING</code>
-        <button type="button" class="acx-btn-copy" id="btnCopyRsiCode">Kopieren 📋</button>
+        <button type="button" class="acx-btn-copy" id="btnCopyRsiCode">Kopieren</button>
       </div>
 
       <div class="acx-actions" style="margin-top:1.2rem">
@@ -445,6 +442,80 @@ const confirmRedirect = loginHref + '?confirmed=1';
 </div>
 
 <style is:global>
+  .acx-idcard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.25rem 1.6rem;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--bg-2) 96%, transparent));
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px color-mix(in srgb, var(--accent) 15%, transparent);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .acx-id {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    min-width: 0;
+  }
+
+  .acx-id__avatar {
+    width: 58px;
+    height: 58px;
+    flex: none;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--accent);
+    border: 2px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 30%, transparent);
+    font-family: var(--font-display, sans-serif);
+  }
+
+  .acx-id__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .acx-id__label {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .acx-id__email {
+    font-size: 1.1rem;
+    color: var(--text);
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .acx-id__since {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .acx-id__since b {
+    color: var(--text);
+    font-weight: 600;
+  }
+
   .acx-tabs-nav {
     display: flex;
     gap: 0.6rem;
@@ -752,7 +823,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
         bio: '',
         banner_url: '/assets/t-pyro-2.jpg',
         avatar_url: '',
-        avatar_icon: '🪖',
+        avatar_icon: '◆',
         avatar_color: '#2dd4ff',
         status_state: 'online',
         status_text: '',
@@ -779,7 +850,6 @@ const confirmRedirect = loginHref + '?confirmed=1';
 
         if (profile) Object.assign(profileState, profile);
       } catch (err) {
-        // Fallback for basic schema if extra columns aren't created yet
         const { data: basicProfile } = await supabase
           .from('profiles')
           .select('display_name, handle')
@@ -831,7 +901,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
         btn.addEventListener('click', () => {
           avatarButtons.forEach(a => a.classList.remove('selected'));
           btn.classList.add('selected');
-          const icon = (btn as HTMLElement).dataset.avatarIcon || '🪖';
+          const icon = (btn as HTMLElement).dataset.avatarIcon || '◆';
           const defaultColor = (btn as HTMLElement).dataset.avatarColor || '#2dd4ff';
           profileState.avatar_icon = icon;
           profileState.avatar_color = defaultColor;
@@ -923,7 +993,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
         const roleObj = CITIZEN_ROLES.find(r => r.id === selectedRoleKey);
         const roleBadge = document.getElementById('pcRoleBadge')!;
         if (roleObj) {
-          document.getElementById('pcRoleIcon')!.textContent = roleObj.icon;
+          document.getElementById('pcRoleIcon')!.textContent = roleObj.symbol;
           document.getElementById('pcRoleText')!.textContent = lang === 'de' ? roleObj.labelDe : roleObj.labelEn;
           roleBadge.hidden = false;
         } else {
@@ -996,7 +1066,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
       btnCopyRsiCode.addEventListener('click', () => {
         navigator.clipboard.writeText(genCode);
         btnCopyRsiCode.textContent = 'Kopiert! ✓';
-        setTimeout(() => btnCopyRsiCode.textContent = 'Kopieren 📋', 2000);
+        setTimeout(() => btnCopyRsiCode.textContent = 'Kopieren', 2000);
       });
 
       btnCheckRsiNow.addEventListener('click', async () => {
@@ -1049,7 +1119,6 @@ const confirmRedirect = loginHref + '?confirmed=1';
         };
 
         pfBtn.disabled = true;
-        // Save to LocalStorage immediately
         localStorage.setItem(localKey, JSON.stringify(payload));
 
         try {
@@ -1063,7 +1132,6 @@ const confirmRedirect = loginHref + '?confirmed=1';
               show(pfStatus as HTMLElement, D.msgHandleTaken!);
               return;
             }
-            // Fall back to upserting basic fields if extended schema isn't created in Supabase SQL yet
             await supabase.from('profiles').upsert({ id: user.id, display_name, handle });
           }
         } catch {

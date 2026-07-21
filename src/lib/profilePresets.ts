@@ -8,7 +8,7 @@ export interface BannerPreset {
 export interface AvatarPreset {
   id: string;
   name: string;
-  icon: string;
+  symbol: string;
   defaultColor: string;
 }
 
@@ -22,7 +22,7 @@ export interface CitizenRole {
   id: string;
   labelDe: string;
   labelEn: string;
-  icon: string;
+  symbol: string;
 }
 
 export const ACCENT_COLORS: AccentColor[] = [
@@ -44,25 +44,25 @@ export const BANNER_PRESETS: BannerPreset[] = [
 ];
 
 export const AVATAR_PRESETS: AvatarPreset[] = [
-  { id: 'helmet', name: 'Pilot Helmet', icon: '🪖', defaultColor: '#2dd4ff' },
-  { id: 'aegis', name: 'Aegis Vanguard', icon: '🛡️', defaultColor: '#38bdf8' },
-  { id: 'drake', name: 'Drake Skull', icon: '☠️', defaultColor: '#f43f5e' },
-  { id: 'quantum', name: 'Quantum Core', icon: '⚛️', defaultColor: '#a855f7' },
-  { id: 'miner', name: 'Mining Laser', icon: '⛏️', defaultColor: '#f59e0b' },
-  { id: 'medic', name: 'Fleet Medic', icon: '✚', defaultColor: '#10b981' },
-  { id: 'explorer', name: 'Deep Explorer', icon: '🌌', defaultColor: '#6366f1' },
-  { id: 'command', name: 'Fleet Commander', icon: '🛰️', defaultColor: '#ec4899' },
+  { id: 'helmet', name: 'Pilot Helmet', symbol: '◆', defaultColor: '#2dd4ff' },
+  { id: 'aegis', name: 'Aegis Vanguard', symbol: '▲', defaultColor: '#38bdf8' },
+  { id: 'drake', name: 'Drake Emblem', symbol: '✕', defaultColor: '#f43f5e' },
+  { id: 'quantum', name: 'Quantum Core', symbol: '❖', defaultColor: '#a855f7' },
+  { id: 'miner', name: 'Mining Laser', symbol: '⬢', defaultColor: '#f59e0b' },
+  { id: 'medic', name: 'Fleet Medic', symbol: '✚', defaultColor: '#10b981' },
+  { id: 'explorer', name: 'Deep Explorer', symbol: '◈', defaultColor: '#6366f1' },
+  { id: 'command', name: 'Fleet Commander', symbol: '★', defaultColor: '#ec4899' },
 ];
 
 export const CITIZEN_ROLES: CitizenRole[] = [
-  { id: 'bounty_hunter', labelDe: 'Kopfgeldjäger', labelEn: 'Bounty Hunter', icon: '🎯' },
-  { id: 'miner', labelDe: 'Bergbau-Spezialist', labelEn: 'Mining Specialist', icon: '⛏️' },
-  { id: 'salvager', labelDe: 'Bergung & Salvage', labelEn: 'Salvage Specialist', icon: '🦾' },
-  { id: 'trader', labelDe: 'Händler & Fracht-Pilot', labelEn: 'Hauler & Trader', icon: '📦' },
-  { id: 'commander', labelDe: 'Flottenkommandant', labelEn: 'Fleet Commander', icon: '🛰️' },
-  { id: 'explorer', labelDe: 'Erkunder & Kartograf', labelEn: 'Explorer & Cartographer', icon: '🌌' },
-  { id: 'medic', labelDe: 'Sanitäter & Search & Rescue', labelEn: 'Search & Rescue Medic', icon: '🚑' },
-  { id: 'pirate', labelDe: 'Gesetzloser / Outlaw', labelEn: 'Outlaw / Pirate', icon: '🏴‍☠️' },
+  { id: 'bounty_hunter', labelDe: 'Kopfgeldjäger', labelEn: 'Bounty Hunter', symbol: '◆' },
+  { id: 'miner', labelDe: 'Bergbau-Spezialist', labelEn: 'Mining Specialist', symbol: '⬢' },
+  { id: 'salvager', labelDe: 'Bergung & Salvage', labelEn: 'Salvage Specialist', symbol: '⚙' },
+  { id: 'trader', labelDe: 'Händler & Fracht-Pilot', labelEn: 'Hauler & Trader', symbol: '◈' },
+  { id: 'commander', labelDe: 'Flottenkommandant', labelEn: 'Fleet Commander', symbol: '★' },
+  { id: 'explorer', labelDe: 'Erkunder & Kartograf', labelEn: 'Explorer & Cartographer', symbol: '▲' },
+  { id: 'medic', labelDe: 'Sanitäter & Search & Rescue', labelEn: 'Search & Rescue Medic', symbol: '✚' },
+  { id: 'pirate', labelDe: 'Gesetzloser / Outlaw', labelEn: 'Outlaw / Pirate', symbol: '✕' },
 ];
 
 export const STATUS_STATES = {

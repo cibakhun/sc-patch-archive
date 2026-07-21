@@ -17,7 +17,7 @@ const COPY = {
     tabRequests: 'Offene Anfragen',
     emptyFriends: 'Du hast noch keine Freunde in deiner Liste. Füge andere Piloten über ihr Handle hinzu!',
     emptyRequests: 'Keine offenen Freundschaftsanfragen.',
-    spectrumLink: 'RSI Spectrum 🚀',
+    spectrumLink: 'RSI Spectrum',
     removeFriend: 'Entfernen',
     accept: 'Annehmen',
     decline: 'Ablehnen',
@@ -40,7 +40,7 @@ const COPY = {
     tabRequests: 'Pending requests',
     emptyFriends: 'No friends in your list yet. Add other pilots by their handle!',
     emptyRequests: 'No pending friend requests.',
-    spectrumLink: 'RSI Spectrum 🚀',
+    spectrumLink: 'RSI Spectrum',
     removeFriend: 'Remove',
     accept: 'Accept',
     decline: 'Decline',
@@ -59,7 +59,7 @@ const COPY = {
   <!-- Add Friend & Search Header Card -->
   <div class="acx-card fm-add-card">
     <div class="fm-add-head">
-      <div class="fm-icon">👥</div>
+      <div class="fm-icon">◆</div>
       <div>
         <h3 class="fm-title">{COPY.title}</h3>
         <p class="acx-hint" style="margin:0">{COPY.subtitle}</p>
@@ -110,7 +110,7 @@ const COPY = {
   <div id="fmPanelFriends" class="fm-panel">
     <div id="fmFriendsList" class="fm-grid"></div>
     <div id="fmFriendsEmpty" class="fm-empty-box" hidden>
-      <div class="fm-empty-icon">🛰️</div>
+      <div class="fm-empty-icon">◆</div>
       <p class="acx-hint">{COPY.emptyFriends}</p>
     </div>
   </div>
@@ -119,7 +119,7 @@ const COPY = {
   <div id="fmPanelRequests" class="fm-panel" hidden>
     <div id="fmRequestsList" class="fm-list"></div>
     <div id="fmRequestsEmpty" class="fm-empty-box" hidden>
-      <div class="fm-empty-icon">📬</div>
+      <div class="fm-empty-icon">◈</div>
       <p class="acx-hint">{COPY.emptyRequests}</p>
     </div>
   </div>
@@ -145,7 +145,7 @@ const COPY = {
   }
 
   .fm-icon {
-    font-size: 2.2rem;
+    font-size: 1.6rem;
     width: 52px;
     height: 52px;
     border-radius: 10px;
@@ -246,9 +246,10 @@ const COPY = {
   }
 
   .fm-empty-icon {
-    font-size: 2.8rem;
+    font-size: 2.4rem;
     margin-bottom: 0.6rem;
     opacity: 0.75;
+    color: var(--accent);
   }
 
   .fm-grid {
@@ -432,42 +433,41 @@ const COPY = {
     type: 'incoming' | 'outgoing';
   }
 
-  // Demo fleet pilots with realistic Star Citizen statuses
   const DEFAULT_FRIENDS: FriendItem[] = [
     {
       id: 'f-1',
       display_name: 'Vanguard_Actual',
       handle: 'vanguard_actual',
-      role: '🎯 Kopfgeldjäger',
+      role: 'Kopfgeldjäger',
       rsi_handle: 'Vanguard_Actual',
       rsi_verified: true,
       status_state: 'ingame',
-      status_text: 'Patrolling Pyro System 🚀',
-      avatar_icon: '🪖',
+      status_text: 'Patrolling Pyro System',
+      avatar_icon: '◆',
       avatar_color: '#2dd4ff',
     },
     {
       id: 'f-2',
       display_name: 'QuantumMiner_DE',
       handle: 'quantum_miner',
-      role: '⛏️ Bergbau-Spezialist',
+      role: 'Bergbau-Spezialist',
       rsi_handle: 'QuantumMiner',
       rsi_verified: true,
       status_state: 'online',
-      status_text: 'Mining Quantainium in Lyria 💎',
-      avatar_icon: '⛏️',
+      status_text: 'Mining Quantainium in Lyria',
+      avatar_icon: '⬢',
       avatar_color: '#f59e0b',
     },
     {
       id: 'f-3',
       display_name: 'Aegis_Commander',
       handle: 'aegis_commander',
-      role: '🛰️ Flottenkommandant',
+      role: 'Flottenkommandant',
       rsi_handle: 'Aegis_Commander',
       rsi_verified: true,
       status_state: 'ingame',
-      status_text: 'Commanding Idris Frigate 🛡️',
-      avatar_icon: '🛰️',
+      status_text: 'Commanding Idris Frigate',
+      avatar_icon: '★',
       avatar_color: '#38bdf8',
     },
   ];
@@ -502,7 +502,6 @@ const COPY = {
       localStorage.setItem('vb_requests', JSON.stringify(requestsList));
     };
 
-    // UI Elements
     const tabFriendsBtn = document.getElementById('fmTabBtnFriends')!;
     const tabRequestsBtn = document.getElementById('fmTabBtnRequests')!;
     const panelFriends = document.getElementById('fmPanelFriends')!;
@@ -517,7 +516,6 @@ const COPY = {
     const badgeRequestsEl = document.getElementById('fmBadgeRequests')!;
     const filterInput = document.getElementById('fmFilterInput') as HTMLInputElement;
 
-    // Sub-tab toggling
     tabFriendsBtn.addEventListener('click', () => {
       tabFriendsBtn.classList.add('active');
       tabRequestsBtn.classList.remove('active');
@@ -529,7 +527,7 @@ const COPY = {
       tabRequestsBtn.classList.add('active');
       tabFriendsBtn.classList.remove('active');
       panelRequests.hidden = false;
-      panelRequests.hidden = true;
+      panelFriends.hidden = true;
     });
 
     const render = () => {
@@ -545,12 +543,10 @@ const COPY = {
         );
       });
 
-      // Badges
       badgeFriendsEl.textContent = String(friendsList.length);
       badgeRequestsEl.textContent = String(requestsList.length);
       badgeRequestsEl.hidden = requestsList.length === 0;
 
-      // Render Friends Grid
       listFriendsEl.innerHTML = '';
       emptyFriendsEl.hidden = filteredFriends.length > 0;
 
@@ -581,7 +577,7 @@ const COPY = {
           </div>
           <div class="fm-card-actions">
             <a href="${rsiUrl}" target="_blank" rel="noopener noreferrer" class="fm-btn fm-btn--primary">
-              ${lang === 'de' ? 'RSI Spectrum 🚀' : 'RSI Spectrum 🚀'}
+              RSI Spectrum →
             </a>
             <button type="button" class="fm-btn fm-btn--danger btn-rm" data-id="${f.id}">
               ${lang === 'de' ? 'Entfernen' : 'Remove'}
@@ -598,7 +594,6 @@ const COPY = {
         listFriendsEl.appendChild(card);
       });
 
-      // Render Requests
       listRequestsEl.innerHTML = '';
       emptyRequestsEl.hidden = requestsList.length > 0;
 
@@ -652,7 +647,6 @@ const COPY = {
 
     filterInput?.addEventListener('input', render);
 
-    // Add Friend Form Submit
     const addForm = document.getElementById('fmAddForm') as HTMLFormElement;
     const handleInput = document.getElementById('fmHandleInput') as HTMLInputElement;
     const statusMsg = document.getElementById('fmStatusMsg')!;
