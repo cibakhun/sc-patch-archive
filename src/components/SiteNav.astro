@@ -1,6 +1,6 @@
 ---
-// Global sticky navigation: Burger-Menü + Suche (links), Marke mittig,
-// Sprachumschalter + Konto (rechts) — eine Leiste für alle Breiten. Das Menü
+// Global sticky navigation: Theme + Sprache + Konto (links), Marke mittig,
+// Burger-Menü + Suche (rechts) — eine Leiste für alle Breiten. Das Menü
 // ist ein Vollbild-Overlay („Ops-Terminal") mit vier Gruppen-Panels; alle
 // Einträge sind gleichzeitig sichtbar, mit Untertitel und Tastatur-Navigation.
 // Keeps id="topbar" so existing per-page scroll JS keeps working. Breadcrumbs
@@ -245,31 +245,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 ---
 <nav class="snav" id="topbar" aria-label={t('nav.main')}>
   <div class="snav__left">
-    <button
-      class="snav__menu-btn"
-      id="snavMenuBtn"
-      type="button"
-      aria-haspopup="dialog"
-      aria-expanded="false"
-      aria-controls="snavDeck"
-      aria-label={t('nav.menu.open')}
-    >
-      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-      <span>{t('nav.menu')}</span>
-    </button>
-    <button class="snav__search" type="button" data-scs-open aria-label={t('nav.search.open')}>
-      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-      <span>{t('nav.search')}</span>
-      <kbd>{t('nav.search.kbd')}</kbd>
-    </button>
-  </div>
-  <div class="snav__center">
-    <a class="snav__brand" href={L('/index.html')} aria-label={t('nav.home.aria')}>
-      <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="32" cy="32" r="6" fill="currentColor"/></svg>
-      <span>Verse·Base</span>
-    </a>
-  </div>
-  <div class="snav__right">
     <ThemeToggle />
     <LangSwitcher hasEn={hasEn} />
     <a
@@ -287,6 +262,31 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       </span>
       <span class="js-nav-acct-txt">{t('nav.account.login')}</span>
     </a>
+  </div>
+  <div class="snav__center">
+    <a class="snav__brand" href={L('/index.html')} aria-label={t('nav.home.aria')}>
+      <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="32" cy="32" r="6" fill="currentColor"/></svg>
+      <span>Verse·Base</span>
+    </a>
+  </div>
+  <div class="snav__right">
+    <button
+      class="snav__menu-btn"
+      id="snavMenuBtn"
+      type="button"
+      aria-haspopup="dialog"
+      aria-expanded="false"
+      aria-controls="snavDeck"
+      aria-label={t('nav.menu.open')}
+    >
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      <span>{t('nav.menu')}</span>
+    </button>
+    <button class="snav__search" type="button" data-scs-open aria-label={t('nav.search.open')}>
+      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      <span>{t('nav.search')}</span>
+      <kbd>{t('nav.search.kbd')}</kbd>
+    </button>
   </div>
 </nav>
 
@@ -604,8 +604,25 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     .snav__search {
       padding: 0.4rem 0.5rem;
     }
-    /* Konto wandert bei schmalen Breiten ins Orbital-Menü (innerer Ring) */
+    /* Konto wandert bei schmalen Breiten ins Menü (Gruppe „Konto & Service") */
     .snav__acct {
+      display: none;
+    }
+  }
+  /* Unter 640px reicht die Breite nicht mehr für Theme + Sprache + Wortmarke
+     + Menü + Suche — die linke Gruppe drückte Menü und Suche sonst aus dem
+     Viewport heraus (bei 400px lagen sie auf x=404 bzw. x=457, also
+     unerreichbar). Theme und Sprache treten zurück: beide stehen im Fuß des
+     Menü-Overlays und bleiben damit erreichbar. Menü und Suche bleiben, sie
+     sind die primären Aktionen.
+     Ausgeblendet werden die KINDER, nicht der Container: verschwände das
+     Grid-Item selbst, rückte die Wortmarke aus der Mitte in die erste
+     Spalte.
+     :global() ist nötig, weil ThemeToggle und LangSwitcher eigene
+     Komponenten sind — deren Wurzelelemente tragen den Scope-Hash von
+     SiteNav nicht, ein scoped `> *` greift dort also nicht. */
+  @media (max-width: 640px) {
+    .snav__left > :global(*) {
       display: none;
     }
   }
@@ -616,8 +633,14 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       display: none;
     }
   }
-  /* very small phones (320px): monogram only */
-  @media (max-width: 360px) {
+  /* Unter 580px nur noch das Monogramm. Grund ist die Zentrierung: die
+     Wortmarke sitzt in der auto-Spalte eines 1fr-auto-1fr-Rasters, mittig
+     ist sie nur, solange BEIDE Randspalten so breit werden können wie die
+     rechte Gruppe. Bei 400px stehen dafür 328px zur Verfügung, der volle
+     Schriftzug (206) plus zweimal die rechte Gruppe (2×86) bräuchte 378 —
+     die linke Spalte schrumpfte auf 36px und die Marke rutschte sichtbar
+     aus der Mitte. Das Monogramm (24px) hält sie exakt zentriert. */
+  @media (max-width: 580px) {
     .snav__brand span {
       display: none;
     }
