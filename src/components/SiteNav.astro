@@ -402,6 +402,11 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     <footer class="snav-deck__foot">
       <ThemeToggle />
       <LangSwitcher hasEn={hasEn} />
+      <div class="snav-deck__anim-demo">
+        <span class="snav-deck__demo-title">DEMO ANIMATION:</span>
+        <button type="button" class="snav-deck__demo-btn is-active" data-set-anim="terminal">1: Terminal Reveal</button>
+        <button type="button" class="snav-deck__demo-btn" data-set-anim="radial">2: Radial Wipe</button>
+      </div>
       <div class="snav-deck__hints" aria-hidden="true">
         <span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> {t('nav.deck.hint.nav')}</span>
         <span><kbd>↵</kbd> {t('nav.deck.hint.open')}</span>
@@ -720,6 +725,89 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     opacity: 0.05;
     mix-blend-mode: overlay;
   }
+  /* Option 1: Tech Terminal Reveal (Default) */
+  .snav-deck[data-anim='terminal'] {
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .snav-deck[data-anim='terminal'] .snav-deck__back {
+    transform: scale(1.04);
+    filter: blur(10px);
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .snav-deck[data-anim='terminal'].is-open .snav-deck__back {
+    transform: scale(1);
+    filter: blur(0);
+  }
+  .snav-deck[data-anim='terminal'] .snav-deck__frame {
+    transform: translateY(-14px);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .snav-deck[data-anim='terminal'].is-open .snav-deck__frame {
+    transform: translateY(0);
+  }
+
+  /* Option 2: Radial Iris Wipe */
+  .snav-deck[data-anim='radial'] {
+    opacity: 1 !important;
+    pointer-events: none;
+  }
+  .snav-deck[data-anim='radial'].is-open {
+    pointer-events: auto;
+  }
+  .snav-deck[data-anim='radial'] .snav-deck__back {
+    clip-path: circle(0% at calc(100% - 40px) 25px);
+    transition: clip-path 0.52s cubic-bezier(0.25, 1, 0.3, 1);
+  }
+  .snav-deck[data-anim='radial'].is-open .snav-deck__back {
+    clip-path: circle(160% at calc(100% - 40px) 25px);
+  }
+  .snav-deck[data-anim='radial'] .snav-deck__frame {
+    opacity: 0;
+    transform: scale(0.96);
+    transition: opacity 0.35s ease 0.1s, transform 0.48s cubic-bezier(0.25, 1, 0.3, 1) 0.05s;
+  }
+  .snav-deck[data-anim='radial'].is-open .snav-deck__frame {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Demo Switcher Buttons */
+  .snav-deck__anim-demo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    padding: 0.25rem 0.6rem;
+    border: 1px dashed var(--line, var(--line-soft));
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 6%, transparent);
+    border-radius: 2px;
+  }
+  .snav-deck__demo-title {
+    color: var(--accent, #2dd4ff);
+    font-weight: bold;
+  }
+  .snav-deck__demo-btn {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--muted, #8a99b8);
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 0.15rem 0.45rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+  }
+  .snav-deck__demo-btn:hover {
+    color: var(--text, #e8eefc);
+  }
+  .snav-deck__demo-btn.is-active {
+    color: var(--accent, #2dd4ff);
+    border-color: var(--accent, #2dd4ff);
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 16%, transparent);
+  }
+
   .snav-deck__frame {
     position: relative;
     z-index: 1;
@@ -1363,6 +1451,28 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     });
     deck.querySelectorAll('[data-deck-close]').forEach(function (el) {
       el.addEventListener('click', closeDeck);
+    });
+
+    // Demo animation switcher: allows testing Option 1 (Terminal Reveal) vs Option 2 (Radial Wipe)
+    var currentAnim = localStorage.getItem('vb.deckAnim') || 'terminal';
+    deck.setAttribute('data-anim', currentAnim);
+    var demoBtns = deck.querySelectorAll('[data-set-anim]');
+    function updateDemoBtns(anim) {
+      demoBtns.forEach(function(b) {
+        b.classList.toggle('is-active', b.getAttribute('data-set-anim') === anim);
+      });
+    }
+    updateDemoBtns(currentAnim);
+    demoBtns.forEach(function(b) {
+      b.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var anim = b.getAttribute('data-set-anim');
+        localStorage.setItem('vb.deckAnim', anim);
+        deck.setAttribute('data-anim', anim);
+        updateDemoBtns(anim);
+        closeDeck();
+        setTimeout(openDeck, 300);
+      });
     });
 
     var ARROWS = { ArrowUp: 1, ArrowDown: 1, ArrowLeft: 1, ArrowRight: 1 };
