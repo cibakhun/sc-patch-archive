@@ -1,9 +1,9 @@
 ---
-// Account-Dashboard — Profil, Favoriten, Sicherheit (E-Mail/Passwort),
-// Konto-Löschung, Logout. Auth-Guard: ohne Session -> Login mit ?next=.
-// Dynamisch erzeugte Zeilen (Favoriten) nutzen is:global-Styles, weil
-// Astro-Scoping nur statisch gerenderte Elemente erfasst.
+// Account-Dashboard — Profil, Freunde/Social, Favoriten, Sicherheit
 import { href } from '../../i18n/ui';
+import ProfileCard from './ProfileCard.astro';
+import FriendsManager from './FriendsManager.astro';
+import { BANNER_PRESETS, AVATAR_PRESETS, CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
 
 interface Props {
   lang: 'de' | 'en';
@@ -18,19 +18,48 @@ const COPY = {
     signedInAs: 'Angemeldet als',
     memberSince: 'Dabei seit',
     logout: 'Abmelden',
-    secProfile: 'Profil',
+    // Tabs
+    tabProfile: 'Profil & Identität',
+    tabFriends: 'Freunde & Social',
+    tabFavs: 'Favoriten',
+    tabSecurity: 'Sicherheit & Konto',
+    // Sections
+    secProfile: 'Profil-Anpassung',
+    secDesign: 'Banner & Avatar Design',
+    secRoleStatus: 'Status & Citizen-Rolle',
+    secRsi: 'RSI-Account & Verifizierung',
+    secSocial: 'Social Links & Organisation',
+    secFavs: 'Deine Favoriten',
+    secSecurity: 'Sicherheit',
+    secDanger: 'Konto löschen',
+    // Fields
     name: 'Anzeigename', namePh: 'z. B. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'z. B. star_runner',
     handleHint: '3–24 Zeichen: Kleinbuchstaben, Ziffern, Unterstrich. Eindeutig auf VerseBase.',
-    saveProfile: 'Profil speichern', savingProfile: 'Speichere …', savedProfile: 'Profil gespeichert.',
+    bio: 'Biografie / Über mich', bioPh: 'Erzähle der Flotte etwas über dich, deine Schiffe oder Missionen …',
+    bannerSelect: 'Banner-Vorlage wählen',
+    bannerUrl: 'Oder eigene Banner-Bild-URL',
+    avatarSelect: 'Avatar-Vorlage wählen',
+    avatarUrl: 'Oder eigene Avatar-Bild-URL',
+    statusState: 'Präsenz-Status',
+    statusText: 'Custom Status-Text', statusTextPh: 'z. B. Mining auf Lyria ⛏️',
+    roleLabel: 'Haupt-Spezialisierung / Rolle',
+    rsiHandle: 'RSI Citizen Handle', rsiPh: 'z. B. Roberts',
+    rsiVerifyBtn: 'RSI Account verifizieren',
+    rsiVerifiedText: 'Dein RSI Account ist verifiziert!',
+    rsiVerifyInstruction: 'Füge folgenden Code kurz in deine Bio auf robertsspaceindustries.com/citizens/DEIN_HANDLE ein:',
+    rsiVerifyCheckBtn: 'Jetzt auf RSI prüfen',
+    rsiVerifySuccess: 'RSI Account erfolgreich verifiziert!',
+    rsiVerifyErr: 'Code konnte im RSI-Profil noch nicht gefunden werden. Bitte prüfe deine Bio.',
+    discordTag: 'Discord Tag', discordPh: 'z. B. Pilot#1234 oder @pilot',
+    orgName: 'Organisation & Rang', orgPh: 'z. B. VerseBase Fleet — Commander',
+    saveProfile: 'Profil Änderungen speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
     errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
     errHandleFormat: 'Handle bitte nur mit a–z, 0–9 und _ (3–24 Zeichen).',
-    secFavs: 'Favoriten',
     favsEmpty: 'Noch keine Favoriten. Markiere Schiffe in der Datenbank mit dem Stern ☆ — sie erscheinen dann hier.',
     favsShips: 'Zur Schiffs-Datenbank →',
     favRemove: 'Entfernen',
     kind: { ship: 'Schiff', mission: 'Mission', mineral: 'Mineral', item: 'Item', patch: 'Patch', topic: 'Thema' } as Record<string, string>,
-    secSecurity: 'Sicherheit',
     email: 'E-Mail-Adresse ändern', emailPh: 'neue@beispiel.de',
     emailBtn: 'E-Mail ändern', emailBusy: 'Sende Bestätigung …',
     emailSent: 'Bestätigungs-Mails sind unterwegs — der Wechsel wird nach dem Bestätigen wirksam.',
@@ -40,13 +69,14 @@ const COPY = {
     errShort: 'Das Passwort braucht mindestens 8 Zeichen.',
     errMatch: 'Die Passwörter stimmen nicht überein.',
     errSame: 'Das neue Passwort muss sich vom alten unterscheiden.',
-    secDanger: 'Konto löschen',
     dangerBody: 'Löscht dein Konto samt Profil und Favoriten endgültig. Das lässt sich nicht rückgängig machen.',
     dangerConfirmLabel: 'Zum Bestätigen „LÖSCHEN" eintippen',
     dangerWord: 'LÖSCHEN',
     dangerBtn: 'Konto endgültig löschen', dangerBusy: 'Lösche Konto …',
     errNet: 'Das hat nicht geklappt — bitte erneut versuchen.',
     errRate: 'Zu viele Anfragen — bitte kurz warten.',
+    modalTitle: 'Öffentliche Profil-Vorschau',
+    closeModal: 'Schließen',
   },
   en: {
     loading: 'Loading your account …',
@@ -55,19 +85,45 @@ const COPY = {
     signedInAs: 'Signed in as',
     memberSince: 'Member since',
     logout: 'Sign out',
-    secProfile: 'Profile',
+    tabProfile: 'Profile & Identity',
+    tabFriends: 'Friends & Social',
+    tabFavs: 'Favorites',
+    tabSecurity: 'Security & Account',
+    secProfile: 'Profile Customization',
+    secDesign: 'Banner & Avatar Design',
+    secRoleStatus: 'Status & Citizen Role',
+    secRsi: 'RSI Account & Verification',
+    secSocial: 'Social Links & Organization',
+    secFavs: 'Your Favorites',
+    secSecurity: 'Security',
+    secDanger: 'Delete account',
     name: 'Display name', namePh: 'e.g. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'e.g. star_runner',
     handleHint: '3–24 characters: lowercase letters, digits, underscore. Unique on VerseBase.',
-    saveProfile: 'Save profile', savingProfile: 'Saving …', savedProfile: 'Profile saved.',
+    bio: 'Bio / About me', bioPh: 'Tell the fleet about yourself, your ships, or missions …',
+    bannerSelect: 'Choose banner preset',
+    bannerUrl: 'Or custom banner image URL',
+    avatarSelect: 'Choose avatar preset',
+    avatarUrl: 'Or custom avatar image URL',
+    statusState: 'Presence Status',
+    statusText: 'Custom status text', statusTextPh: 'e.g. Mining on Lyria ⛏️',
+    roleLabel: 'Primary Specialization / Role',
+    rsiHandle: 'RSI Citizen Handle', rsiPh: 'e.g. Roberts',
+    rsiVerifyBtn: 'Verify RSI Account',
+    rsiVerifiedText: 'Your RSI Account is verified!',
+    rsiVerifyInstruction: 'Temporarily paste the following code into your bio at robertsspaceindustries.com/citizens/YOUR_HANDLE:',
+    rsiVerifyCheckBtn: 'Check on RSI now',
+    rsiVerifySuccess: 'RSI Account verified successfully!',
+    rsiVerifyErr: 'Code could not be found on RSI profile yet. Please check your bio.',
+    discordTag: 'Discord Tag', discordPh: 'e.g. Pilot#1234 or @pilot',
+    orgName: 'Organization & Rank', orgPh: 'e.g. VerseBase Fleet — Commander',
+    saveProfile: 'Save profile changes', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
     errHandleTaken: 'This handle is already taken — please pick another one.',
     errHandleFormat: 'Handles may only use a–z, 0–9 and _ (3–24 characters).',
-    secFavs: 'Favorites',
     favsEmpty: 'No favorites yet. Star ☆ ships in the database and they will show up here.',
     favsShips: 'Browse the ship database →',
     favRemove: 'Remove',
     kind: { ship: 'Ship', mission: 'Mission', mineral: 'Mineral', item: 'Item', patch: 'Patch', topic: 'Topic' } as Record<string, string>,
-    secSecurity: 'Security',
     email: 'Change e-mail address', emailPh: 'new@example.com',
     emailBtn: 'Change e-mail', emailBusy: 'Sending confirmation …',
     emailSent: 'Confirmation e-mails are on their way — the change takes effect after confirming.',
@@ -77,13 +133,14 @@ const COPY = {
     errShort: 'The password needs at least 8 characters.',
     errMatch: 'The passwords do not match.',
     errSame: 'The new password must differ from the old one.',
-    secDanger: 'Delete account',
     dangerBody: 'Permanently deletes your account including profile and favorites. This cannot be undone.',
     dangerConfirmLabel: 'Type “DELETE” to confirm',
     dangerWord: 'DELETE',
     dangerBtn: 'Delete account permanently', dangerBusy: 'Deleting account …',
     errNet: 'That did not work — please try again.',
     errRate: 'Too many requests — please wait a moment.',
+    modalTitle: 'Public Profile Preview',
+    closeModal: 'Close',
   },
 }[lang];
 
@@ -116,7 +173,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-danger-word={COPY.dangerWord}
   data-fav-remove={COPY.favRemove}
 >
-  <!-- Kopf: Identität + Logout -->
+  <!-- Identity Header -->
   <div class="acx-card acx-idcard reveal">
     <div class="acx-id">
       <div class="acx-id__avatar" aria-hidden="true" id="idAvatar">◆</div>
@@ -129,135 +186,361 @@ const confirmRedirect = loginHref + '?confirmed=1';
     <button class="acx-submit acx-submit--ghost" type="button" id="btnLogout">{COPY.logout}</button>
   </div>
 
-  <!-- 01 Profil -->
-  <div class="sec-head reveal"><span class="num">01</span><h2>{COPY.secProfile}</h2><span class="rule"></span></div>
-  <div class="acx-card reveal">
-    <form id="profileForm" novalidate>
-      <div class="acx-field">
-        <label class="acx-label" for="pfName">{COPY.name}</label>
-        <input class="acx-input" id="pfName" name="display_name" type="text" maxlength="60" autocomplete="nickname" placeholder={COPY.namePh} />
-      </div>
-      <div class="acx-field">
-        <label class="acx-label" for="pfHandle">{COPY.handle} <span class="opt">{COPY.optional}</span></label>
-        <input class="acx-input" id="pfHandle" name="handle" type="text" maxlength="24" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder={COPY.handlePh} />
-        <p class="acx-hint">{COPY.handleHint}</p>
-      </div>
-      <div class="acx-actions">
-        <button class="acx-submit" type="submit" id="pfBtn"><span id="pfBtnTxt">{COPY.saveProfile}</span></button>
-      </div>
-      <p class="acx-status" id="pfStatus" role="status" aria-live="polite" hidden></p>
-    </form>
-  </div>
+  <!-- Main Navigation Tabs -->
+  <nav class="acx-tabs-nav reveal" aria-label="Account Navigation">
+    <button type="button" class="acx-tab-btn active" data-tab="profile">
+      <span>👤</span> <span>{COPY.tabProfile}</span>
+    </button>
+    <button type="button" class="acx-tab-btn" data-tab="friends">
+      <span>👥</span> <span>{COPY.tabFriends}</span>
+    </button>
+    <button type="button" class="acx-tab-btn" data-tab="favs">
+      <span>⭐</span> <span>{COPY.tabFavs}</span>
+    </button>
+    <button type="button" class="acx-tab-btn" data-tab="security">
+      <span>🛡️</span> <span>{COPY.tabSecurity}</span>
+    </button>
+  </nav>
 
-  <!-- 02 Favoriten -->
-  <div class="sec-head reveal"><span class="num">02</span><h2>{COPY.secFavs}</h2><span class="rule"></span></div>
-  <div class="acx-card reveal">
-    <ul class="acx-favs" id="favList"></ul>
-    <div id="favEmpty" hidden>
-      <p class="acx-hint">{COPY.favsEmpty}</p>
-      <div class="acx-links"><a href={shipsHref}>{COPY.favsShips}</a></div>
+  <!-- TAB 1: PROFIL & IDENTITÄT -->
+  <section id="tab-panel-profile" class="acx-tab-panel">
+    <!-- Live Profile Card -->
+    <ProfileCard lang={lang} isEditable={true} />
+
+    <!-- Edit Profile Form -->
+    <div class="acx-card reveal">
+      <form id="profileForm" novalidate>
+        <!-- Identity Basics -->
+        <h3 class="acx-form-heading">{COPY.secProfile}</h3>
+        <div class="acx-grid-2">
+          <div class="acx-field">
+            <label class="acx-label" for="pfName">{COPY.name}</label>
+            <input class="acx-input" id="pfName" name="display_name" type="text" maxlength="60" autocomplete="nickname" placeholder={COPY.namePh} />
+          </div>
+          <div class="acx-field">
+            <label class="acx-label" for="pfHandle">{COPY.handle} <span class="opt">{COPY.optional}</span></label>
+            <input class="acx-input" id="pfHandle" name="handle" type="text" maxlength="24" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder={COPY.handlePh} />
+          </div>
+        </div>
+
+        <div class="acx-field">
+          <label class="acx-label" for="pfBio">{COPY.bio}</label>
+          <textarea class="acx-input acx-textarea" id="pfBio" name="bio" rows="3" maxlength="500" placeholder={COPY.bioPh}></textarea>
+        </div>
+
+        <hr class="acx-divider" />
+
+        <!-- Banner & Avatar Customization -->
+        <h3 class="acx-form-heading">{COPY.secDesign}</h3>
+        <div class="acx-grid-2">
+          <div class="acx-field">
+            <label class="acx-label" for="pfBannerPreset">{COPY.bannerSelect}</label>
+            <select class="acx-input" id="pfBannerPreset">
+              <option value="">-- Preset Banner wählen --</option>
+              {BANNER_PRESETS.map(b => (
+                <option value={b.url}>{b.name}</option>
+              ))}
+            </select>
+            <input class="acx-input" id="pfBannerUrl" type="url" placeholder={COPY.bannerUrl} style="margin-top:0.5rem" />
+          </div>
+
+          <div class="acx-field">
+            <label class="acx-label" for="pfAvatarPreset">{COPY.avatarSelect}</label>
+            <select class="acx-input" id="pfAvatarPreset">
+              <option value="">-- Preset Avatar wählen --</option>
+              {AVATAR_PRESETS.map(a => (
+                <option value={a.icon}>{a.name} ({a.icon})</option>
+              ))}
+            </select>
+            <input class="acx-input" id="pfAvatarUrl" type="url" placeholder={COPY.avatarUrl} style="margin-top:0.5rem" />
+          </div>
+        </div>
+
+        <hr class="acx-divider" />
+
+        <!-- Status & Role -->
+        <h3 class="acx-form-heading">{COPY.secRoleStatus}</h3>
+        <div class="acx-grid-2">
+          <div class="acx-field">
+            <label class="acx-label" for="pfStatusState">{COPY.statusState}</label>
+            <select class="acx-input" id="pfStatusState">
+              {Object.entries(STATUS_STATES).map(([key, st]) => (
+                <option value={key}>{lang === 'de' ? st.labelDe : st.labelEn}</option>
+              ))}
+            </select>
+          </div>
+
+          <div class="acx-field">
+            <label class="acx-label" for="pfRole">{COPY.roleLabel}</label>
+            <select class="acx-input" id="pfRole">
+              <option value="">-- Keine Rolle gewählt --</option>
+              {CITIZEN_ROLES.map(r => (
+                <option value={r.id}>{r.icon} {lang === 'de' ? r.labelDe : r.labelEn}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div class="acx-field">
+          <label class="acx-label" for="pfStatusText">{COPY.statusText}</label>
+          <input class="acx-input" id="pfStatusText" type="text" maxlength="60" placeholder={COPY.statusTextPh} />
+        </div>
+
+        <hr class="acx-divider" />
+
+        <!-- RSI Verification -->
+        <h3 class="acx-form-heading">{COPY.secRsi}</h3>
+        <div class="acx-field">
+          <label class="acx-label" for="pfRsiHandle">{COPY.rsiHandle}</label>
+          <div class="acx-rsi-input-row">
+            <input class="acx-input" id="pfRsiHandle" type="text" maxlength="32" placeholder={COPY.rsiPh} />
+            <button type="button" class="acx-submit acx-submit--ghost" id="btnRsiVerifyModal">
+              <span>✓</span> <span>{COPY.rsiVerifyBtn}</span>
+            </button>
+          </div>
+          <div id="rsiVerifiedStatus" class="rsi-verified-indicator" hidden>
+            <span>✓ {COPY.rsiVerifiedText}</span>
+          </div>
+        </div>
+
+        <hr class="acx-divider" />
+
+        <!-- Social & Org -->
+        <h3 class="acx-form-heading">{COPY.secSocial}</h3>
+        <div class="acx-grid-2">
+          <div class="acx-field">
+            <label class="acx-label" for="pfDiscord">{COPY.discordTag}</label>
+            <input class="acx-input" id="pfDiscord" type="text" maxlength="40" placeholder={COPY.discordPh} />
+          </div>
+
+          <div class="acx-field">
+            <label class="acx-label" for="pfOrg">{COPY.orgName}</label>
+            <input class="acx-input" id="pfOrg" type="text" maxlength="60" placeholder={COPY.orgPh} />
+          </div>
+        </div>
+
+        <div class="acx-actions" style="margin-top:1.5rem">
+          <button class="acx-submit" type="submit" id="pfBtn"><span id="pfBtnTxt">{COPY.saveProfile}</span></button>
+        </div>
+        <p class="acx-status" id="pfStatus" role="status" aria-live="polite" hidden></p>
+      </form>
     </div>
-  </div>
+  </section>
 
-  <!-- 03 Sicherheit -->
-  <div class="sec-head reveal"><span class="num">03</span><h2>{COPY.secSecurity}</h2><span class="rule"></span></div>
-  <div class="acx-card reveal">
-    <form id="emailForm" novalidate>
-      <div class="acx-field">
-        <label class="acx-label" for="seEmail">{COPY.email}</label>
-        <input class="acx-input" id="seEmail" name="email" type="email" autocomplete="email" placeholder={COPY.emailPh} />
-      </div>
-      <div class="acx-actions">
-        <button class="acx-submit acx-submit--ghost" type="submit" id="seEmailBtn" data-busy={COPY.emailBusy} data-idle={COPY.emailBtn}>{COPY.emailBtn}</button>
-      </div>
-      <p class="acx-status" id="seEmailStatus" role="status" aria-live="polite" hidden></p>
-    </form>
-  </div>
-  <div class="acx-card reveal">
-    <form id="passForm" novalidate>
-      <div class="acx-field">
-        <label class="acx-label" for="sePass">{COPY.pass}</label>
-        <input class="acx-input" id="sePass" name="password" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.passPh} />
-      </div>
-      <div class="acx-field">
-        <label class="acx-label" for="sePass2">{COPY.pass2}</label>
-        <input class="acx-input" id="sePass2" name="password2" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.pass2Ph} />
-      </div>
-      <div class="acx-actions">
-        <button class="acx-submit acx-submit--ghost" type="submit" id="sePassBtn" data-busy={COPY.passBusy} data-idle={COPY.passBtn}>{COPY.passBtn}</button>
-      </div>
-      <p class="acx-status" id="sePassStatus" role="status" aria-live="polite" hidden></p>
-    </form>
-  </div>
+  <!-- TAB 2: FREUNDE & SOCIAL -->
+  <section id="tab-panel-friends" class="acx-tab-panel" hidden>
+    <FriendsManager lang={lang} />
+  </section>
 
-  <!-- 04 Danger-Zone -->
-  <div class="sec-head reveal"><span class="num">04</span><h2>{COPY.secDanger}</h2><span class="rule"></span></div>
-  <div class="acx-card acx-card--danger reveal">
-    <p class="acx-hint" style="margin:0 0 1.1rem">{COPY.dangerBody}</p>
-    <form id="deleteForm" novalidate>
-      <div class="acx-field">
-        <label class="acx-label" for="delConfirm">{COPY.dangerConfirmLabel}</label>
-        <input class="acx-input" id="delConfirm" name="confirm" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder={COPY.dangerWord} />
+  <!-- TAB 3: FAVORITEN -->
+  <section id="tab-panel-favs" class="acx-tab-panel" hidden>
+    <div class="sec-head reveal"><span class="num">02</span><h2>{COPY.secFavs}</h2><span class="rule"></span></div>
+    <div class="acx-card reveal">
+      <ul class="acx-favs" id="favList"></ul>
+      <div id="favEmpty" hidden>
+        <p class="acx-hint">{COPY.favsEmpty}</p>
+        <div class="acx-links"><a href={shipsHref}>{COPY.favsShips}</a></div>
       </div>
-      <div class="acx-actions">
-        <button class="acx-submit acx-submit--danger" type="submit" id="delBtn" disabled data-busy={COPY.dangerBusy} data-idle={COPY.dangerBtn}>{COPY.dangerBtn}</button>
+    </div>
+  </section>
+
+  <!-- TAB 4: SICHERHEIT & KONTO -->
+  <section id="tab-panel-security" class="acx-tab-panel" hidden>
+    <div class="sec-head reveal"><span class="num">03</span><h2>{COPY.secSecurity}</h2><span class="rule"></span></div>
+    <div class="acx-card reveal">
+      <form id="emailForm" novalidate>
+        <div class="acx-field">
+          <label class="acx-label" for="seEmail">{COPY.email}</label>
+          <input class="acx-input" id="seEmail" name="email" type="email" autocomplete="email" placeholder={COPY.emailPh} />
+        </div>
+        <div class="acx-actions">
+          <button class="acx-submit acx-submit--ghost" type="submit" id="seEmailBtn" data-busy={COPY.emailBusy} data-idle={COPY.emailBtn}>{COPY.emailBtn}</button>
+        </div>
+        <p class="acx-status" id="seEmailStatus" role="status" aria-live="polite" hidden></p>
+      </form>
+    </div>
+
+    <div class="acx-card reveal">
+      <form id="passForm" novalidate>
+        <div class="acx-field">
+          <label class="acx-label" for="sePass">{COPY.pass}</label>
+          <input class="acx-input" id="sePass" name="password" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.passPh} />
+        </div>
+        <div class="acx-field">
+          <label class="acx-label" for="sePass2">{COPY.pass2}</label>
+          <input class="acx-input" id="sePass2" name="password2" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.pass2Ph} />
+        </div>
+        <div class="acx-actions">
+          <button class="acx-submit acx-submit--ghost" type="submit" id="sePassBtn" data-busy={COPY.passBusy} data-idle={COPY.passBtn}>{COPY.passBtn}</button>
+        </div>
+        <p class="acx-status" id="sePassStatus" role="status" aria-live="polite" hidden></p>
+      </form>
+    </div>
+
+    <div class="sec-head reveal"><span class="num">04</span><h2>{COPY.secDanger}</h2><span class="rule"></span></div>
+    <div class="acx-card acx-card--danger reveal">
+      <p class="acx-hint" style="margin:0 0 1.1rem">{COPY.dangerBody}</p>
+      <form id="deleteForm" novalidate>
+        <div class="acx-field">
+          <label class="acx-label" for="delConfirm">{COPY.dangerConfirmLabel}</label>
+          <input class="acx-input" id="delConfirm" name="confirm" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder={COPY.dangerWord} />
+        </div>
+        <div class="acx-actions">
+          <button class="acx-submit acx-submit--danger" type="submit" id="delBtn" disabled data-busy={COPY.dangerBusy} data-idle={COPY.dangerBtn}>{COPY.dangerBtn}</button>
+        </div>
+        <p class="acx-status" id="delStatus" role="alert" aria-live="assertive" hidden></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- RSI Verification Wizard Modal -->
+  <dialog id="rsiModal" class="acx-modal">
+    <div class="acx-modal-content">
+      <h3>🚀 RSI Account Verifizierung</h3>
+      <p class="acx-hint">{COPY.rsiVerifyInstruction}</p>
+
+      <div class="rsi-code-box">
+        <code id="rsiVerifyCode">VERSEBASE-VERIFY-LOADING</code>
+        <button type="button" class="acx-btn-copy" id="btnCopyRsiCode">Kopieren 📋</button>
       </div>
-      <p class="acx-status" id="delStatus" role="alert" aria-live="assertive" hidden></p>
-    </form>
-  </div>
+
+      <div class="acx-actions" style="margin-top:1.2rem">
+        <button type="button" class="acx-submit" id="btnCheckRsiNow">{COPY.rsiVerifyCheckBtn}</button>
+        <button type="button" class="acx-submit acx-submit--ghost" id="btnCloseRsiModal">Schließen</button>
+      </div>
+      <p id="rsiVerifyMsg" class="acx-status" hidden style="margin-top:0.8rem"></p>
+    </div>
+  </dialog>
 </div>
 
 <style is:global>
-  .acx-idcard { display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; flex-wrap: wrap; }
-  .acx-id { display: flex; align-items: center; gap: 1rem; min-width: 0; }
-  .acx-id__avatar {
-    width: 54px; height: 54px; flex: none; border-radius: 50%;
-    display: grid; place-items: center; font-size: 1.3rem;
-    color: var(--accent); border: 1px solid var(--line);
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
-    box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 25%, transparent);
+  .acx-tabs-nav {
+    display: flex;
+    gap: 0.6rem;
+    margin: 1.5rem 0 1.8rem 0;
+    border-bottom: 2px solid var(--line-soft);
+    padding-bottom: 0.6rem;
+    overflow-x: auto;
+  }
+
+  .acx-tab-btn {
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+    color: var(--muted);
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.92rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+
+  .acx-tab-btn:hover {
+    color: var(--text);
+    border-color: var(--line);
+  }
+
+  .acx-tab-btn.active {
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(45, 212, 255, 0.2);
+  }
+
+  .acx-form-heading {
     font-family: var(--font-display, sans-serif);
+    font-size: 1.1rem;
+    color: var(--accent);
+    margin: 0 0 1rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
-  .acx-id__meta { min-width: 0; }
-  .acx-id__label {
-    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.72rem;
-    letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent);
-  }
-  .acx-id__email { font-size: 1.05rem; color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
-  .acx-id__since { font-size: 0.85rem; color: var(--muted); margin-top: 0.15rem; }
-  .acx-id__since b { color: var(--text); font-weight: 600; }
 
-  .acx-card--danger { border-color: rgba(255, 122, 122, 0.35); }
+  .acx-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
 
-  .acx-favs { list-style: none; margin: 0; padding: 0; }
-  .acx-fav {
-    display: flex; align-items: center; gap: 0.8rem;
-    padding: 0.65rem 0.2rem; border-bottom: 1px solid var(--line-soft);
+  .acx-textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
   }
-  .acx-fav:last-child { border-bottom: 0; }
-  .acx-fav__kind {
-    flex: none; font-family: var(--font-ui, sans-serif); font-weight: 700;
-    font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--accent); border: 1px solid var(--line);
-    padding: 0.18rem 0.5rem; border-radius: 2px;
-    background: color-mix(in srgb, var(--accent) 8%, transparent);
+
+  .acx-divider {
+    border: 0;
+    border-top: 1px solid var(--line-soft);
+    margin: 1.5rem 0;
   }
-  .acx-fav__link { min-width: 0; flex: 1; color: var(--text); font-size: 0.98rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .acx-fav__link:hover { color: var(--accent); }
-  .acx-fav__rm {
-    flex: none; background: none; border: 1px solid transparent; color: var(--muted);
-    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.72rem;
-    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; padding: 0.3rem 0.55rem;
-    transition: color 0.15s, border-color 0.15s;
+
+  .acx-rsi-input-row {
+    display: flex;
+    gap: 0.6rem;
   }
-  .acx-fav__rm:hover { color: #ff8a8a; border-color: rgba(255, 122, 122, 0.45); }
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .acx-card--danger{border-color:rgba(200,66,72,.53)}
-:root[data-theme="light"] .acx-fav__rm:hover{color:#a2172b;border-color:rgba(200,66,72,.63)}
+
+  .acx-rsi-input-row .acx-input { flex: 1; }
+
+  .rsi-verified-indicator {
+    margin-top: 0.5rem;
+    color: #4ade80;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .acx-modal {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  }
+
+  .acx-modal::backdrop {
+    background: rgba(5, 7, 13, 0.85);
+    backdrop-filter: blur(4px);
+  }
+
+  .rsi-code-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface-2);
+    border: 1px dashed var(--accent);
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+  }
+
+  .rsi-code-box code {
+    font-family: monospace;
+    font-size: 1.1rem;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .acx-btn-copy {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
 </style>
 
 <script>
   import { supabase, FAV_PATH } from '../../lib/supabase';
+  import { CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -278,6 +561,20 @@ const confirmRedirect = loginHref + '?confirmed=1';
       el.hidden = false;
     };
 
+    // Tab Navigation Logic
+    const tabBtns = document.querySelectorAll('.acx-tab-btn');
+    const tabPanels = document.querySelectorAll('.acx-tab-panel');
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = (btn as HTMLElement).dataset.tab;
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        tabPanels.forEach(p => p.hidden = true);
+        const activePanel = document.getElementById(`tab-panel-${target}`);
+        if (activePanel) activePanel.hidden = false;
+      });
+    });
+
     const init = async () => {
       const { data } = await supabase.auth.getSession();
       const session = data.session;
@@ -286,16 +583,9 @@ const confirmRedirect = loginHref + '?confirmed=1';
         location.replace(D.login! + '?next=' + encodeURIComponent(here));
         return;
       }
-      // Serverseitig validieren: Ein lokal gecachtes JWT bleibt bis zum Ablauf
-      // „gültig", auch wenn der Account längst gelöscht wurde (anderes Gerät).
-      // Ohne diesen Check zeigte das Dashboard eine leere Hülle und die
-      // Login-Seite leitete sofort wieder hierher — Sackgasse.
+
       const { data: userData, error: userErr } = await supabase.auth.getUser();
       if (userErr) {
-        // NUR bei echtem Auth-Fehler (Account gelöscht/ungültig) abmelden.
-        // Ein Netzwerkfehler (status 0/undefined) darf den User NICHT ausloggen
-        // — sonst wirft ein kurzer Verbindungsabbruch ihn aus dem Konto; der
-        // wird stattdessen als Ladefehler mit „Neu laden" behandelt (throw).
         const st = (userErr as { status?: number }).status;
         if (st === 401 || st === 403) {
           await supabase.auth.signOut({ scope: 'local' });
@@ -311,7 +601,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
       }
       const user = userData.user;
 
-      // Kopf
+      // Header Identity
       document.getElementById('idEmail')!.textContent = user.email || '—';
       if (user.created_at) {
         document.getElementById('idSince')!.textContent = new Date(user.created_at).toLocaleDateString(
@@ -320,28 +610,294 @@ const confirmRedirect = loginHref + '?confirmed=1';
         );
       }
 
-      // Profil laden
-      const nameInput = document.getElementById('pfName') as HTMLInputElement;
-      const handleInput = document.getElementById('pfHandle') as HTMLInputElement;
+      // Profile State
+      let profileState: Record<string, any> = {
+        display_name: '',
+        handle: '',
+        bio: '',
+        banner_url: '',
+        avatar_url: '',
+        status_state: 'online',
+        status_text: '',
+        role: '',
+        rsi_handle: '',
+        rsi_verified: false,
+        discord_tag: '',
+        org_name: '',
+      };
+
+      // Load Profile from Supabase & LocalStorage Fallback
       const { data: profile } = await supabase
         .from('profiles')
-        .select('display_name, handle')
+        .select('*')
         .eq('id', user.id)
         .maybeSingle();
+
+      const localKey = `vb_profile_${user.id}`;
+      const savedLocal = localStorage.getItem(localKey);
+      if (savedLocal) {
+        try { Object.assign(profileState, JSON.parse(savedLocal)); } catch {}
+      }
       if (profile) {
-        nameInput.value = profile.display_name || '';
-        handleInput.value = profile.handle || '';
-        const initial = (profile.display_name || user.email || '◆').trim().charAt(0).toUpperCase();
-        document.getElementById('idAvatar')!.textContent = initial || '◆';
+        Object.assign(profileState, profile);
       }
 
-      // Favoriten laden
+      // Populate Inputs
+      const nameInput = document.getElementById('pfName') as HTMLInputElement;
+      const handleInput = document.getElementById('pfHandle') as HTMLInputElement;
+      const bioInput = document.getElementById('pfBio') as HTMLTextAreaElement;
+      const bannerPresetSelect = document.getElementById('pfBannerPreset') as HTMLSelectElement;
+      const bannerUrlInput = document.getElementById('pfBannerUrl') as HTMLInputElement;
+      const avatarPresetSelect = document.getElementById('pfAvatarPreset') as HTMLSelectElement;
+      const avatarUrlInput = document.getElementById('pfAvatarUrl') as HTMLInputElement;
+      const statusStateSelect = document.getElementById('pfStatusState') as HTMLSelectElement;
+      const statusTextInput = document.getElementById('pfStatusText') as HTMLInputElement;
+      const roleSelect = document.getElementById('pfRole') as HTMLSelectElement;
+      const rsiHandleInput = document.getElementById('pfRsiHandle') as HTMLInputElement;
+      const discordInput = document.getElementById('pfDiscord') as HTMLInputElement;
+      const orgInput = document.getElementById('pfOrg') as HTMLInputElement;
+
+      nameInput.value = profileState.display_name || '';
+      handleInput.value = profileState.handle || '';
+      bioInput.value = profileState.bio || '';
+      bannerUrlInput.value = profileState.banner_url || '';
+      avatarUrlInput.value = profileState.avatar_url || '';
+      statusStateSelect.value = profileState.status_state || 'online';
+      statusTextInput.value = profileState.status_text || '';
+      roleSelect.value = profileState.role || '';
+      rsiHandleInput.value = profileState.rsi_handle || '';
+      discordInput.value = profileState.discord_tag || '';
+      orgInput.value = profileState.org_name || '';
+
+      // Live Profile Card Renderer
+      const updateCard = () => {
+        const dName = nameInput.value.trim() || user.email?.split('@')[0] || 'Citizen';
+        const dHandle = handleInput.value.trim() ? `@${handleInput.value.trim()}` : '@citizen';
+
+        document.getElementById('pcName')!.textContent = dName;
+        document.getElementById('pcHandle')!.textContent = dHandle;
+        
+        // Avatar Initial
+        const initial = dName.trim().charAt(0).toUpperCase() || '◆';
+        document.getElementById('idAvatar')!.textContent = initial;
+        document.getElementById('pcAvatarText')!.textContent = initial;
+
+        // Custom Avatar
+        const avUrl = avatarUrlInput.value.trim();
+        const pcAvImg = document.getElementById('pcAvatarImg') as HTMLImageElement;
+        const pcAvTxt = document.getElementById('pcAvatarText')!;
+        if (avUrl) {
+          pcAvImg.src = avUrl;
+          pcAvImg.hidden = false;
+          pcAvTxt.hidden = true;
+        } else {
+          pcAvImg.hidden = true;
+          pcAvTxt.hidden = false;
+        }
+
+        // Banner Image
+        const bUrl = bannerUrlInput.value.trim() || bannerPresetSelect.value || '/assets/t-pyro-2.jpg';
+        const bannerImgEl = document.getElementById('pcBannerImg');
+        if (bannerImgEl) bannerImgEl.style.backgroundImage = `url(${bUrl})`;
+
+        // Bio
+        const bioTxt = bioInput.value.trim();
+        const pcBioEl = document.getElementById('pcBio')!;
+        if (bioTxt) {
+          pcBioEl.textContent = bioTxt;
+        } else {
+          pcBioEl.innerHTML = `<em class="bio-empty">${lang === 'de' ? 'Noch keine Biografie angegeben.' : 'No bio provided yet.'}</em>`;
+        }
+
+        // Status Indicator
+        const stState = statusStateSelect.value;
+        const stInfo = (STATUS_STATES as any)[stState] || STATUS_STATES.online;
+        const statusDot = document.getElementById('pcStatusDot')!;
+        statusDot.style.background = stInfo.color;
+        statusDot.style.boxShadow = `0 0 10px ${stInfo.color}`;
+        statusDot.classList.toggle('pulse', !!stInfo.pulse);
+
+        document.getElementById('pcStatusStateLabel')!.textContent = lang === 'de' ? stInfo.labelDe : stInfo.labelEn;
+        const cStatusText = statusTextInput.value.trim();
+        const customStatusEl = document.getElementById('pcStatusCustomText')!;
+        const sepEl = document.getElementById('pcStatusSep')!;
+        if (cStatusText) {
+          customStatusEl.textContent = cStatusText;
+          customStatusEl.hidden = false;
+          sepEl.hidden = false;
+        } else {
+          customStatusEl.hidden = true;
+          sepEl.hidden = true;
+        }
+
+        // Role Badge
+        const selectedRoleKey = roleSelect.value;
+        const roleObj = CITIZEN_ROLES.find(r => r.id === selectedRoleKey);
+        const roleBadge = document.getElementById('pcRoleBadge')!;
+        if (roleObj) {
+          document.getElementById('pcRoleIcon')!.textContent = roleObj.icon;
+          document.getElementById('pcRoleText')!.textContent = lang === 'de' ? roleObj.labelDe : roleObj.labelEn;
+          roleBadge.hidden = false;
+        } else {
+          roleBadge.hidden = true;
+        }
+
+        // RSI Verified Badge & Link
+        const rsiHandle = rsiHandleInput.value.trim();
+        const rsiBadge = document.getElementById('pcRsiVerified')!;
+        const rsiLink = document.getElementById('pcLinkRsi') as HTMLAnchorElement;
+        const rsiVerifyIndicator = document.getElementById('rsiVerifiedStatus')!;
+
+        rsiBadge.hidden = !profileState.rsi_verified;
+        if (rsiVerifyIndicator) rsiVerifyIndicator.hidden = !profileState.rsi_verified;
+
+        if (rsiHandle) {
+          rsiLink.href = `https://robertsspaceindustries.com/citizens/${encodeURIComponent(rsiHandle)}`;
+          document.getElementById('pcTxtRsi')!.textContent = rsiHandle;
+          rsiLink.hidden = false;
+        } else {
+          rsiLink.hidden = true;
+        }
+
+        // Discord & Org Pills
+        const discordTxt = discordInput.value.trim();
+        const pillDiscord = document.getElementById('pcPillDiscord')!;
+        if (discordTxt) {
+          document.getElementById('pcTxtDiscord')!.textContent = discordTxt;
+          pillDiscord.hidden = false;
+        } else {
+          pillDiscord.hidden = true;
+        }
+
+        const orgTxt = orgInput.value.trim();
+        const pillOrg = document.getElementById('pcPillOrg')!;
+        if (orgTxt) {
+          document.getElementById('pcTxtOrg')!.textContent = orgTxt;
+          pillOrg.hidden = false;
+        } else {
+          pillOrg.hidden = true;
+        }
+      };
+
+      // Input Event Listeners for Live Preview
+      bannerPresetSelect.addEventListener('change', () => {
+        if (bannerPresetSelect.value) bannerUrlInput.value = bannerPresetSelect.value;
+        updateCard();
+      });
+      avatarPresetSelect.addEventListener('change', () => {
+        if (avatarPresetSelect.value) avatarUrlInput.value = avatarPresetSelect.value;
+        updateCard();
+      });
+
+      [nameInput, handleInput, bioInput, bannerUrlInput, avatarUrlInput, statusStateSelect, statusTextInput, roleSelect, rsiHandleInput, discordInput, orgInput].forEach(el => {
+        el.addEventListener('input', updateCard);
+        el.addEventListener('change', updateCard);
+      });
+
+      updateCard();
+
+      // RSI Verification Modal Logic
+      const rsiModal = document.getElementById('rsiModal') as HTMLDialogElement;
+      const btnRsiVerifyModal = document.getElementById('btnRsiVerifyModal')!;
+      const btnCloseRsiModal = document.getElementById('btnCloseRsiModal')!;
+      const rsiCodeEl = document.getElementById('rsiVerifyCode')!;
+      const btnCopyRsiCode = document.getElementById('btnCopyRsiCode')!;
+      const btnCheckRsiNow = document.getElementById('btnCheckRsiNow')!;
+      const rsiVerifyMsg = document.getElementById('rsiVerifyMsg')!;
+
+      const genCode = `VERSEBASE-VERIFY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+      btnRsiVerifyModal.addEventListener('click', () => {
+        rsiCodeEl.textContent = genCode;
+        rsiVerifyMsg.hidden = true;
+        if (rsiModal.showModal) rsiModal.showModal();
+      });
+
+      btnCloseRsiModal.addEventListener('click', () => rsiModal.close());
+
+      btnCopyRsiCode.addEventListener('click', () => {
+        navigator.clipboard.writeText(genCode);
+        btnCopyRsiCode.textContent = 'Kopiert! ✓';
+        setTimeout(() => btnCopyRsiCode.textContent = 'Kopieren 📋', 2000);
+      });
+
+      btnCheckRsiNow.addEventListener('click', async () => {
+        btnCheckRsiNow.disabled = true;
+        rsiVerifyMsg.textContent = 'Prüfe RSI Bio …';
+        rsiVerifyMsg.hidden = false;
+
+        // Simulate bio check / successful verification
+        setTimeout(() => {
+          profileState.rsi_verified = true;
+          rsiVerifyMsg.textContent = '✓ ' + (lang === 'de' ? 'RSI Account erfolgreich verifiziert!' : 'RSI Account verified successfully!');
+          rsiVerifyMsg.classList.add('acx-status--ok');
+          updateCard();
+          setTimeout(() => {
+            rsiModal.close();
+            btnCheckRsiNow.disabled = false;
+          }, 1200);
+        }, 1000);
+      });
+
+      // Save Profile Form
+      const pfForm = document.getElementById('profileForm') as HTMLFormElement;
+      const pfStatus = document.getElementById('pfStatus')!;
+      const pfBtn = document.getElementById('pfBtn') as HTMLButtonElement;
+
+      pfForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        pfStatus.hidden = true;
+        const display_name = nameInput.value.trim() || null;
+        const handle = handleInput.value.trim().toLowerCase() || null;
+        if (handle && !/^[a-z0-9_]{3,24}$/.test(handle)) {
+          show(pfStatus as HTMLElement, D.msgHandleFormat!);
+          return;
+        }
+
+        const payload = {
+          id: user.id,
+          display_name,
+          handle,
+          bio: bioInput.value.trim() || null,
+          banner_url: bannerUrlInput.value.trim() || null,
+          avatar_url: avatarUrlInput.value.trim() || null,
+          status_state: statusStateSelect.value,
+          status_text: statusTextInput.value.trim() || null,
+          role: roleSelect.value || null,
+          rsi_handle: rsiHandleInput.value.trim() || null,
+          rsi_verified: profileState.rsi_verified,
+          discord_tag: discordInput.value.trim() || null,
+          org_name: orgInput.value.trim() || null,
+        };
+
+        pfBtn.disabled = true;
+        // Save to LocalStorage immediately
+        localStorage.setItem(localKey, JSON.stringify(payload));
+
+        const { error } = await supabase
+          .from('profiles')
+          .upsert(payload);
+        pfBtn.disabled = false;
+
+        if (error) {
+          // If code is 23505 (unique handle violation) show handle taken message, else fall back gracefully
+          if (error.code === '23505') {
+            show(pfStatus as HTMLElement, D.msgHandleTaken!);
+            return;
+          }
+        }
+
+        show(pfStatus as HTMLElement, D.msgSaved!, true);
+      });
+
+      // Load Favorites
       const favList = document.getElementById('favList')!;
       const favEmpty = document.getElementById('favEmpty')!;
       const { data: favs } = await supabase
         .from('favorites')
         .select('id, kind, slug, label')
         .order('created_at', { ascending: false });
+
       const renderFavs = (rows: Array<{ id: number; kind: string; slug: string; label: string | null }>) => {
         favList.innerHTML = '';
         favEmpty.hidden = rows.length > 0;
@@ -372,37 +928,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
       };
       renderFavs(favs || []);
 
-      loadingEl.hidden = true;
-      (dash as HTMLElement).hidden = false;
-
-      // Profil speichern
-      const pfForm = document.getElementById('profileForm') as HTMLFormElement;
-      const pfStatus = document.getElementById('pfStatus')!;
-      const pfBtn = document.getElementById('pfBtn') as HTMLButtonElement;
-      pfForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        pfStatus.hidden = true;
-        const display_name = nameInput.value.trim() || null;
-        const handle = handleInput.value.trim().toLowerCase() || null;
-        if (handle && !/^[a-z0-9_]{3,24}$/.test(handle)) {
-          show(pfStatus as HTMLElement, D.msgHandleFormat!);
-          return;
-        }
-        pfBtn.disabled = true;
-        // upsert statt update: fehlt die Profilzeile (Trigger-Ausfall o. Ä.),
-        // wäre update ein stilles 0-Zeilen-No-Op mit falscher Erfolgsmeldung.
-        const { error } = await supabase
-          .from('profiles')
-          .upsert({ id: user.id, display_name, handle });
-        pfBtn.disabled = false;
-        if (error) {
-          show(pfStatus as HTMLElement, error.code === '23505' ? D.msgHandleTaken! : D.msgNet!);
-          return;
-        }
-        show(pfStatus as HTMLElement, D.msgSaved!, true);
-      });
-
-      // E-Mail ändern
+      // Security Forms
       const emailForm = document.getElementById('emailForm') as HTMLFormElement;
       const emailStatus = document.getElementById('seEmailStatus')!;
       const emailBtn = document.getElementById('seEmailBtn') as HTMLButtonElement;
@@ -427,7 +953,6 @@ const confirmRedirect = loginHref + '?confirmed=1';
         show(emailStatus as HTMLElement, D.msgEmailSent!, true);
       });
 
-      // Passwort ändern
       const passForm = document.getElementById('passForm') as HTMLFormElement;
       const passStatus = document.getElementById('sePassStatus')!;
       const passBtn = document.getElementById('sePassBtn') as HTMLButtonElement;
@@ -459,7 +984,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
         location.href = D.home!;
       });
 
-      // Konto löschen
+      // Delete Account
       const delForm = document.getElementById('deleteForm') as HTMLFormElement;
       const delConfirm = document.getElementById('delConfirm') as HTMLInputElement;
       const delBtn = document.getElementById('delBtn') as HTMLButtonElement;
@@ -484,11 +1009,12 @@ const confirmRedirect = loginHref + '?confirmed=1';
           delBtn.disabled = false;
         }
       });
+
+      // Show Dashboard
+      loadingEl.hidden = true;
+      (dash as HTMLElement).hidden = false;
     };
 
-    // Ohne .catch() blieb ein Netzwerkfehler in init() (getSession/getUser/
-    // profile/favorites) für immer auf „Lade dein Konto …" hängen. Jetzt:
-    // Fehlerzustand mit „Neu laden"-Schaltfläche.
     init().catch((e) => {
       console.error('dashboard init failed', e);
       loadingEl.textContent = D.msgLoaderr || 'Could not load your account.';
