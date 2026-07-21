@@ -618,6 +618,42 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      Grauwert, Weißraum und Schriftgrad. Hierarchie kommt aus dem Größen-
      sprung zwischen Bühne (riesig) und Liste (kompakt), nicht aus Farbe.
      ============================================================ */
+  /* Panzerung gegen fremdes Seiten-CSS.
+     Das Overlay wird auf ~100 Seiten eingebettet, die alle ihr eigenes
+     seitenlokales CSS mitbringen — darunter blanke Element-Selektoren wie
+     `section { padding: 0 4rem }`. Die greifen auch hier und verschieben das
+     Layout: auf den Konto-Seiten bekam jede <section> 72 px Seitenpadding,
+     was die Spalten von 282 auf 138 px halbierte und 17 Labels abschnitt.
+     Klassenselektoren schlagen Element-Selektoren, also werden die riskanten
+     Eigenschaften hier EINMAL gesetzt statt sie zufällig zu erben. Steht
+     bewusst VOR den echten Regeln — bei gleicher Spezifität gewinnt die
+     spätere, die eigentlichen Werte überschreiben diesen Reset also. */
+  .snav-deck__frame,
+  .snav-deck__head,
+  .snav-deck__status,
+  .snav-deck__body,
+  .snav-deck__stage,
+  .snav-deck__cols,
+  .snav-deck__group,
+  .snav-deck__ghead,
+  .snav-deck__list,
+  .snav-deck__list li,
+  .snav-deck__row,
+  .snav-deck__foot {
+    margin: 0;
+    padding: 0;
+    position: static;
+    float: none;
+    max-width: none;
+    min-width: 0;
+    inset: auto;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    text-transform: none;
+    list-style: none;
+  }
   .snav-deck {
     position: fixed;
     inset: 0;
