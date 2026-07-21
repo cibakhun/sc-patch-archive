@@ -275,6 +275,11 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     </a>
   </div>
   <div class="snav__right">
+    <button class="snav__search" type="button" data-scs-open aria-label={t('nav.search.open')}>
+      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      <span>{t('nav.search')}</span>
+      <kbd>{t('nav.search.kbd')}</kbd>
+    </button>
     <button
       class="snav__menu-btn"
       id="snavMenuBtn"
@@ -286,11 +291,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     >
       <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
       <span>{t('nav.menu')}</span>
-    </button>
-    <button class="snav__search" type="button" data-scs-open aria-label={t('nav.search.open')}>
-      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-      <span>{t('nav.search')}</span>
-      <kbd>{t('nav.search.kbd')}</kbd>
     </button>
   </div>
 </nav>
