@@ -1226,11 +1226,12 @@ const confirmRedirect = loginHref + '?confirmed=1';
 
             // Persist immediately to Supabase
             if (user) {
-              await supabase.from('profiles').update({
+              await supabase.from('profiles').upsert({
+                id: user.id,
                 rsi_handle: rsiHandle,
                 rsi_verified: true,
                 updated_at: new Date().toISOString()
-              }).eq('id', user.id);
+              });
             }
 
             rsiVerifyMsg.textContent = '✓ ' + (lang === 'de' ? 'RSI Account erfolgreich verifiziert!' : 'RSI Account verified successfully!');
@@ -1269,24 +1270,25 @@ const confirmRedirect = loginHref + '?confirmed=1';
           updateCard();
 
           if (user) {
-            await supabase.from('profiles').update({
-              rsi_verified: false,
-              updated_at: new Date().toISOString()
-            }).eq('id', user.id);
+            try {
+              await supabase.from('profiles').upsert({
+                id: user.id,
+                rsi_verified: false,
+                updated_at: new Date().toISOString()
+              });
+            } catch (e) { console.warn('Supabase reset error:', e); }
           }
 
           try {
             const saved = localStorage.getItem(localKey);
-            if (saved) {
-              const parsed = JSON.parse(saved);
-              parsed.rsi_verified = false;
-              localStorage.setItem(localKey, JSON.stringify(parsed));
-            } else {
-              localStorage.removeItem(localKey);
-            }
-          } catch (e) {}
+            let parsed = saved ? JSON.parse(saved) : {};
+            parsed.rsi_verified = false;
+            localStorage.setItem(localKey, JSON.stringify(parsed));
+          } catch (e) {
+            localStorage.removeItem(localKey);
+          }
 
-          show(pfStatus as HTMLElement, lang === 'de' ? 'RSI-Verifizierung wurde zurückgesetzt.' : 'RSI verification reset.');
+          show(pfStatus as HTMLElement, lang === 'de' ? 'RSI-Verifizierung wurde erfolgreich zurückgesetzt.' : 'RSI verification successfully reset.', true);
         });
       }
 
