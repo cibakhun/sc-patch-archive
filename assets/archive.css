@@ -66,24 +66,39 @@
   transition: --era 900ms var(--ease), --era-2 900ms var(--ease);
 }
 
-/* Accent-coloured MICRO text only.
+/* The accent, adjusted until it is legible against whatever it sits on.
+
    Patch accents are picked for atmosphere, and three of them (Supply or Die's
    #c0271f, Resource Drive's #2E8B57, Fractured Frontiers' #B5642A) sit at
-   3.2–4.5:1 on this background — fine for a 42px version numeral, which counts
-   as large text, but failing AA for a 12px caps label. Lifting toward white
-   fixes the dark ones and leaves the already-bright ones legible. Large accent
-   type, rails, nodes and borders keep the pure hue. */
+   3.2–4.5:1 on the dark page — fine for a 42px version numeral, which counts as
+   large text, but failing AA for a 12px caps label. Lifting toward white fixes
+   the dark ones and leaves the bright ones legible. Large accent type, rails,
+   nodes and borders keep the pure hue.
+
    sRGB rather than oklab on purpose: oklab() computed values are opaque to the
    contrast checkers used on this site, and mixing in sRGB keeps every rendered
-   colour reported as plain rgb() so the result stays auditable. */
-.ent,
+   colour reported as plain rgb() so the result stays auditable.
+
+   .card is declared separately from the page-chrome scopes because a card stays
+   dark in BOTH themes (see the light block at the end of this file), so its
+   accent must keep lifting toward white even on a light page — while the date
+   gutter beside it, which sits on the page, must not. */
 .era,
 .ktc,
 .tgroup {
   --c-lift: color-mix(in srgb, var(--c) 72%, #fff);
 }
+.card {
+  --c-lift: color-mix(in srgb, var(--c) 72%, #fff);
+  /* Re-resolve `color` from the card's own --text. Redefining the token alone
+     is not enough: `color` was already inherited from <body>, and inheritance
+     carries the computed colour, not the var() that produced it — so in the
+     light theme the title would arrive as dark ink on the dark card. */
+  color: var(--text);
+}
 :root {
   --era-lift: color-mix(in srgb, var(--era) 72%, #fff);
+  --era-2-lift: color-mix(in srgb, var(--era-2) 72%, #fff);
 }
 
 * {
@@ -193,7 +208,7 @@ main {
   letter-spacing: 0.34em;
   text-transform: uppercase;
   font-size: 0.76rem;
-  color: var(--era-2);
+  color: var(--era-2-lift);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -1388,6 +1403,148 @@ mark {
   .card:hover {
     transform: none;
   }
+}
+
+/* ── Light theme ───────────────────────────────────────────────────────────
+   The site-wide toggle stamps data-theme on <html> (assets/theme.css). This
+   file is a standalone stylesheet, so the generators in scripts/ — which only
+   rewrite inline style blocks inside .astro pages — never see it; the light
+   palette below is authored, not generated.
+
+   The governing rule is the same one theme.css states: what lies over a PHOTO
+   stays dark in both modes, because it has to contrast with the image, not
+   with the page. Every patch card carries trailer art, so all 19 cards keep
+   their dark treatment and only the page chrome turns to paper. Re-declaring
+   the palette tokens ON .card is what does it — custom properties inherit, so
+   each card becomes an island of the dark theme without touching one rule
+   above. */
+:root[data-theme='light'] {
+  --bg: #f4f7fe;
+  --bg-2: #e9eef9;
+  --surface: #fdfdff;
+  --surface-2: #eef2fc;
+  --text: #1b1f29;
+  --muted: #4e586c;
+  --dim: #5a6478; /* 5.5:1 on --bg */
+  --ink: #ffffff;
+  --line: rgba(41, 46, 56, 0.2);
+  --line-2: rgba(41, 46, 56, 0.1);
+  /* On paper the accent has to darken instead of lighten — same 62% oklab mix
+     the site's own generator uses for accent-on-light. */
+  --era-lift: color-mix(in oklab, var(--era) 62%, #000);
+  --era-2-lift: color-mix(in oklab, var(--era-2) 62%, #000);
+}
+:root[data-theme='light'] .era,
+:root[data-theme='light'] .ktc,
+:root[data-theme='light'] .tgroup {
+  --c-lift: color-mix(in oklab, var(--c) 62%, #000);
+}
+
+/* Cards keep the dark palette (see above). */
+:root[data-theme='light'] .card {
+  --surface: #0c111d;
+  --surface-2: #111828;
+  --text: #e8eefc;
+  --muted: #8a99b8;
+  --dim: #6b7c9c;
+  --line: rgba(232, 238, 252, 0.11);
+  --line-2: rgba(232, 238, 252, 0.06);
+  /* Text ON an accent fill (the "Latest" chip). White-on-accent only reaches
+     3.7:1 against the brighter patch colours; near-black stays legible on all
+     nineteen. */
+  --ink: #05070d;
+}
+/* The ribbon tooltip is a dark chip in both modes, for the same reason. */
+:root[data-theme='light'] .ribbon__tick {
+  --text: #e8eefc;
+}
+
+/* Ambient layers are built for a dark page: a black vignette and glowing dust
+   only muddy a light one. */
+:root[data-theme='light'] #dust {
+  display: none;
+}
+:root[data-theme='light'] .veil {
+  background: repeating-linear-gradient(0deg, rgba(41, 46, 56, 0.035) 0 1px, transparent 1px 3px);
+  opacity: 1;
+}
+:root[data-theme='light'] .wash {
+  background: radial-gradient(70% 55% at 8% 12%, color-mix(in srgb, var(--era) 12%, transparent), transparent 70%),
+    radial-gradient(60% 50% at 96% 78%, color-mix(in srgb, var(--era-2) 9%, transparent), transparent 70%);
+}
+
+/* Accent marks sitting directly on paper. */
+:root[data-theme='light'] .stat__n {
+  color: var(--era-lift);
+}
+:root[data-theme='light'] .ent.lit .ent__day,
+:root[data-theme='light'] .trow:hover {
+  color: var(--c-lift);
+}
+:root[data-theme='light'] .mast h1 .thin {
+  -webkit-text-stroke-color: color-mix(in srgb, var(--era-lift) 80%, transparent);
+}
+:root[data-theme='light'] .cbar__dot {
+  background: var(--era-lift);
+  box-shadow: none;
+}
+:root[data-theme='light'] .tgroup__sw {
+  background: var(--c-lift);
+}
+:root[data-theme='light'] .cbar__in {
+  background: rgba(253, 253, 255, 0.92);
+  border-left-color: var(--era-lift);
+  box-shadow: 0 12px 30px -20px rgba(27, 31, 41, 0.5);
+}
+:root[data-theme='light'] .cbar__search {
+  background: rgba(41, 46, 56, 0.04);
+}
+:root[data-theme='light'] .cbar__search:focus-within {
+  background: rgba(41, 46, 56, 0.06);
+}
+/* Filled controls: white-on-accent needs the darkened accent behind it. */
+:root[data-theme='light'] .chipbtn[aria-pressed='true'],
+:root[data-theme='light'] .empty button,
+:root[data-theme='light'] .skip {
+  background: var(--era-lift);
+  border-color: var(--era-lift);
+  color: #fff;
+}
+:root[data-theme='light'] ::selection {
+  background: var(--era-lift);
+  color: #fff;
+}
+:root[data-theme='light'] mark {
+  background: color-mix(in srgb, var(--era) 38%, #fff);
+}
+:root[data-theme='light'] .totop {
+  background: rgba(253, 253, 255, 0.9);
+  border-color: color-mix(in srgb, var(--era-lift) 45%, transparent);
+  color: var(--era-lift);
+}
+:root[data-theme='light'] .totop:hover {
+  background: var(--era-lift);
+  color: #fff;
+}
+/* Ribbon marks are graphics, but pale accents (Nyx ice blue, engineering gold)
+   all but vanish on paper — darken them to keep the plot readable. */
+:root[data-theme='light'] .ribbon__tick::before,
+:root[data-theme='light'] .ribbon__band {
+  background: color-mix(in oklab, var(--c) 62%, #000);
+}
+:root[data-theme='light'] .ent__node i {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--c) 62%, #000),
+    color-mix(in oklab, var(--c) 25%, transparent)
+  );
+}
+:root[data-theme='light'] .ent__node b {
+  border-color: color-mix(in oklab, var(--c) 62%, #000);
+}
+:root[data-theme='light'] .ent.lit .ent__node b {
+  background: color-mix(in oklab, var(--c) 62%, #000);
+  box-shadow: none;
 }
 
 @media print {
