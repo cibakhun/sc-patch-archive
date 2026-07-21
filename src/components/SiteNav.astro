@@ -64,17 +64,43 @@ for (const p of patches) if (!eras.includes(p.data.era)) eras.push(p.data.era);
 const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
 const current = Astro.url.pathname;
 
-// Orbital-Menü: zwei Ringe um den Marken-Hub. `icon` ist der rohe <path>/<circle>-
-// Rumpf (kompiliert, keine Nutzereingabe) -> via set:html in den <svg>-Slot der
-// jeweiligen Node injiziert. --i/--n (Winkel-Index/Ringgröße) treiben die
-// reine CSS-Platzierung (kein JS-Trig nötig, siehe .snav-orbit__node im <style>).
+// Orbital-Menü: Items sind fachlich GRUPPIERT statt in Ad-hoc-Reihenfolge
+// verteilt — pro Gruppe eine Winkel-Lücke (gapDeg) + eine Akzentfarbe (--gc),
+// damit auf den ersten Blick erkennbar ist, welche Einträge zusammengehören.
+// layoutRing() verteilt Items gleichmäßig INNERHALB einer Gruppe und reserviert
+// gapDeg an jeder Gruppengrenze: stepDeg*(Items-Gruppen) + gapDeg*Gruppen = 360.
+// `icon` ist der rohe <path>/<circle>-Rumpf (kompiliert, keine Nutzereingabe)
+// -> via set:html in den <svg>-Slot injiziert.
 interface OrbitItem {
   href: string;
   label: string;
   icon: string;
   current: boolean;
 }
-const toolItems: OrbitItem[] = [
+interface LaidOutItem extends OrbitItem {
+  angle: number;
+  group: number;
+}
+function layoutRing<T>(groups: T[][], gapDeg: number): (T & { angle: number; group: number })[] {
+  const totalItems = groups.reduce((n, g) => n + g.length, 0);
+  const intraEdges = totalItems - groups.length;
+  const stepDeg = (360 - groups.length * gapDeg) / intraEdges;
+  let angle = 0;
+  const out: (T & { angle: number; group: number })[] = [];
+  groups.forEach((group, gi) => {
+    group.forEach((item, ii) => {
+      if (gi > 0 && ii === 0) angle += gapDeg;
+      else if (ii > 0) angle += stepDeg;
+      out.push({ ...item, angle, group: gi });
+    });
+  });
+  return out;
+}
+const GROUP_COLOR = ['var(--accent, #2dd4ff)', 'var(--accent-2, #6ea8ff)'];
+
+// äußerer Ring: „Nachschlagen" (Datenbanken/Referenz) vs. „Vor Ort" (aktive
+// Feld-/Wirtschaftswerkzeuge) — zwei fachliche Cluster statt Ad-hoc-Reihenfolge.
+const toolLookupGroup: OrbitItem[] = [
   {
     href: L('/item-finder.html'),
     label: 'Item Finder',
@@ -87,6 +113,26 @@ const toolItems: OrbitItem[] = [
     current: current.includes('/missionen'),
     icon: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>',
   },
+  {
+    href: L('/schiffe.html'),
+    label: t('nav.ships'),
+    current: current === L('/schiffe.html') || current.startsWith(L('/schiffe/')),
+    icon: '<path d="M12 2L2 22h9l1-6 1 6h9L12 2z"/>',
+  },
+  {
+    href: L('/topics/wikelo-emporium.html'),
+    label: "Wikelo's Emporium",
+    current: current === L('/topics/wikelo-emporium.html'),
+    icon: '<path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>',
+  },
+  {
+    href: L('/evolution.html'),
+    label: t('nav.evolution'),
+    current: current === L('/evolution.html'),
+    icon: '<path d="M3 3v18h18M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>',
+  },
+];
+const toolFieldGroup: OrbitItem[] = [
   {
     href: L('/topics/mining.html'),
     label: 'Mining',
@@ -111,55 +157,62 @@ const toolItems: OrbitItem[] = [
     current: current === L('/topics/crafting.html'),
     icon: '<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>',
   },
-  {
-    href: L('/topics/wikelo-emporium.html'),
-    label: "Wikelo's Emporium",
-    current: current === L('/topics/wikelo-emporium.html'),
-    icon: '<path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>',
-  },
-  {
-    href: L('/schiffe.html'),
-    label: t('nav.ships'),
-    current: current === L('/schiffe.html') || current.startsWith(L('/schiffe/')),
-    icon: '<path d="M12 2L2 22h9l1-6 1 6h9L12 2z"/>',
-  },
-  {
-    href: L('/evolution.html'),
-    label: t('nav.evolution'),
-    current: current === L('/evolution.html'),
-    icon: '<path d="M3 3v18h18M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>',
-  },
 ];
-// innerer Ring: Archiv-Links + Konto (Sonderfall, account-lite.js-Klassen) +
-// Patches (Sonderfall, öffnet die Log-Drawer statt zu verlinken)
-const archiveLinkItems: OrbitItem[] = [
+const toolItems: LaidOutItem[] = layoutRing([toolLookupGroup, toolFieldGroup], 56);
+
+// innerer Ring: „Archiv" (Patch-/Themen-Historie inkl. Patches-Drawer) vs.
+// „Konto & mehr" (Downloads/Feedback/Konto). Konto + Patches bleiben
+// Sonderfälle (`kind`), laufen aber durch denselben Render-Loop wie die Links.
+interface InnerItem extends OrbitItem {
+  kind: 'link' | 'account' | 'patches';
+}
+const archiveGroup: InnerItem[] = [
   {
+    kind: 'link',
     href: L('/archiv.html'),
     label: t('nav.archive'),
     current: current === L('/archiv.html'),
     icon: '<path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/>',
   },
   {
+    kind: 'link',
     href: L('/archiv.html#themen'),
     label: `${t('nav.allTopics')} (${topicCount})`,
     current: false,
     icon: '<path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>',
   },
   {
+    kind: 'patches',
+    href: '',
+    label: t('nav.patches'),
+    current: current.includes('/patches/'),
+    icon: '<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01"/>',
+  },
+];
+const metaGroup: InnerItem[] = [
+  {
+    kind: 'link',
     href: L('/downloads.html'),
     label: t('nav.downloads'),
     current: current === L('/downloads.html'),
     icon: '<path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>',
   },
   {
+    kind: 'link',
     href: L('/feedback.html'),
     label: t('nav.feedback'),
     current: current === L('/feedback.html'),
     icon: '<path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>',
   },
+  {
+    kind: 'account',
+    href: L('/account/login.html'),
+    label: t('nav.account.login'),
+    current: current.includes('/account/'),
+    icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  },
 ];
-// inner ring = 4 Archiv-Links + Konto + Patches -> 6 Positionen
-const innerRingCount = archiveLinkItems.length + 2;
+const innerItems: (InnerItem & { angle: number; group: number })[] = layoutRing([archiveGroup, metaGroup], 76);
 
 // Cache-Busting für /assets/account-lite.js: die Datei hat eine FESTE URL und
 // wird von Cloudflare 1 Tag gecacht (nginx-Map: application/javascript → 1d).
@@ -219,10 +272,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 </nav>
 
 <!-- Orbital-Menü: Hub (Marke) im Zentrum, Tools auf dem äußeren, Archiv/Konto/
-     Patches auf dem inneren Ring — reine CSS-Platzierung via --i/--n
-     (rotate → translate → counter-rotate, "Uhrzeiger"-Trick), keine
-     Client-Trigonometrie nötig. Patches ist ein Sonderfall: öffnet die
-     Log-Drawer statt zu verlinken (Ären-Liste würde den Ring sprengen). -->
+     Patches auf dem inneren Ring. Jeder Ring ist fachlich in zwei Gruppen
+     sortiert (layoutRing() im Frontmatter) — Winkel kommt vorgerechnet über
+     --angle, reine CSS-Platzierung (rotate → translate → counter-rotate,
+     "Uhrzeiger"-Trick), keine Client-Trigonometrie. --gc färbt Spoke+Dot je
+     Gruppe ein. Patches ist ein Sonderfall: öffnet die Log-Drawer statt zu
+     verlinken (Ären-Liste würde den Ring sprengen). -->
 <div class="snav-orbit" id="snavOrbit" hidden role="dialog" aria-modal="true" aria-label={t('nav.menu')}>
   <div class="snav-orbit__back" data-orbit-close></div>
   <div class="snav-orbit__stage">
@@ -234,14 +289,18 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       <span>Verse·Base</span>
     </a>
 
-    <div class="snav-orbit__ring snav-orbit__ring--outer" style={`--n:${toolItems.length}`}>
+    <div class="snav-orbit__ring snav-orbit__ring--outer">
       {toolItems.map((item, i) => (
-        <span class="snav-orbit__spoke" style={`--i:${i}`} aria-hidden="true"></span>
+        <span
+          class="snav-orbit__spoke"
+          style={`--angle:${item.angle}deg; --gc:${GROUP_COLOR[item.group]}`}
+          aria-hidden="true"
+        ></span>
       ))}
       {toolItems.map((item, i) => (
         <a
           class="snav-orbit__node"
-          style={`--i:${i}`}
+          style={`--angle:${item.angle}deg; --gc:${GROUP_COLOR[item.group]}; --i:${i}`}
           href={item.href}
           aria-current={item.current ? 'page' : undefined}
         >
@@ -253,53 +312,68 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       ))}
     </div>
 
-    <div class="snav-orbit__ring snav-orbit__ring--inner" style={`--n:${innerRingCount}`}>
-      {Array.from({ length: innerRingCount }).map((_, i) => (
-        <span class="snav-orbit__spoke snav-orbit__spoke--inner" style={`--i:${i}`} aria-hidden="true"></span>
+    <div class="snav-orbit__ring snav-orbit__ring--inner">
+      {innerItems.map((item, i) => (
+        <span
+          class="snav-orbit__spoke"
+          style={`--angle:${item.angle}deg; --gc:${GROUP_COLOR[item.group]}`}
+          aria-hidden="true"
+        ></span>
       ))}
-      {archiveLinkItems.map((item, i) => (
-        <a
-          class="snav-orbit__node snav-orbit__node--inner"
-          style={`--i:${i}`}
-          href={item.href}
-          aria-current={item.current ? 'page' : undefined}
-        >
-          <span class="snav-orbit__dot">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icon} />
-          </span>
-          <span class="snav-orbit__label">{item.label}</span>
-        </a>
-      ))}
-      <a
-        class="js-nav-acct snav-orbit__node snav-orbit__node--inner"
-        style={`--i:${archiveLinkItems.length}`}
-        href={L('/account/login.html')}
-        data-login={L('/account/login.html')}
-        data-dash={L('/account.html')}
-        data-l-login={t('nav.account.login')}
-        data-l-acct={t('nav.account')}
-        aria-current={current.includes('/account/') ? 'page' : undefined}
-      >
-        <span class="snav-orbit__dot snav__acct-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span class="snav__acct-dot" aria-hidden="true"></span>
-        </span>
-        <span class="snav-orbit__label js-nav-acct-txt">{t('nav.account.login')}</span>
-      </a>
-      <button
-        type="button"
-        class="snav-orbit__node snav-orbit__node--inner snav-orbit__node--patches"
-        style={`--i:${archiveLinkItems.length + 1}`}
-        data-patch-toggle
-        aria-expanded="false"
-        aria-controls="snavPatchDrawer"
-        aria-current={current.includes('/patches/') ? 'page' : undefined}
-      >
-        <span class="snav-orbit__dot">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01"/></svg>
-        </span>
-        <span class="snav-orbit__label">{t('nav.patches')}</span>
-      </button>
+      {innerItems.map((item, i) => {
+        const style = `--angle:${item.angle}deg; --gc:${GROUP_COLOR[item.group]}; --i:${i}`;
+        if (item.kind === 'patches') {
+          return (
+            <button
+              type="button"
+              class="snav-orbit__node snav-orbit__node--inner snav-orbit__node--patches"
+              style={style}
+              data-patch-toggle
+              aria-expanded="false"
+              aria-controls="snavPatchDrawer"
+              aria-current={item.current ? 'page' : undefined}
+            >
+              <span class="snav-orbit__dot">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icon} />
+              </span>
+              <span class="snav-orbit__label">{item.label}</span>
+            </button>
+          );
+        }
+        if (item.kind === 'account') {
+          return (
+            <a
+              class="js-nav-acct snav-orbit__node snav-orbit__node--inner"
+              style={style}
+              href={item.href}
+              data-login={L('/account/login.html')}
+              data-dash={L('/account.html')}
+              data-l-login={t('nav.account.login')}
+              data-l-acct={t('nav.account')}
+              aria-current={item.current ? 'page' : undefined}
+            >
+              <span class="snav-orbit__dot snav__acct-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icon} />
+                <span class="snav__acct-dot" aria-hidden="true"></span>
+              </span>
+              <span class="snav-orbit__label js-nav-acct-txt">{item.label}</span>
+            </a>
+          );
+        }
+        return (
+          <a
+            class="snav-orbit__node snav-orbit__node--inner"
+            style={style}
+            href={item.href}
+            aria-current={item.current ? 'page' : undefined}
+          >
+            <span class="snav-orbit__dot">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icon} />
+            </span>
+            <span class="snav-orbit__label">{item.label}</span>
+          </a>
+        );
+      })}
     </div>
 
     <div class="snav-orbit__lang">
@@ -673,16 +747,9 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     width: var(--r);
     height: 1px;
     transform-origin: 0 0;
-    transform: rotate(calc(360deg / var(--n) * var(--i)));
-    background: linear-gradient(90deg, color-mix(in srgb, var(--accent, #2dd4ff) 55%, transparent), transparent 85%);
+    transform: rotate(var(--angle));
+    background: linear-gradient(90deg, color-mix(in srgb, var(--gc, var(--accent, #2dd4ff)) 55%, transparent), transparent 85%);
     opacity: 0.45;
-  }
-  .snav-orbit__spoke--inner {
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--accent-2, #6ea8ff) 55%, transparent),
-      transparent 85%
-    );
   }
   .snav-orbit__node {
     position: absolute;
@@ -693,8 +760,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     align-items: center;
     gap: 0.5rem;
     width: clamp(64px, 9vmin, 92px);
-    transform: rotate(calc(360deg / var(--n) * var(--i))) translate(var(--r))
-      rotate(calc(-360deg / var(--n) * var(--i))) translate(-50%, -50%);
+    transform: rotate(var(--angle)) translate(var(--r)) rotate(calc(-1 * var(--angle))) translate(-50%, -50%);
     color: var(--muted, #8a99b8);
     text-decoration: none;
     background: none;
@@ -713,6 +779,9 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       scale: 1;
     }
   }
+  /* dezente Gruppenfarbe schon im Ruhezustand am Dot-Rahmen (nicht erst bei
+     Hover) — zusammen mit der Winkel-Lücke macht das die zwei Cluster pro
+     Ring auf den ersten Blick erkennbar */
   .snav-orbit__dot {
     display: inline-flex;
     align-items: center;
@@ -721,7 +790,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     height: clamp(38px, 5vmin, 48px);
     flex: none;
     border-radius: 50%;
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.18));
+    border: 1px solid color-mix(in srgb, var(--gc, var(--accent, #2dd4ff)) 32%, var(--line, rgba(255, 255, 255, 0.18)));
     background: color-mix(in srgb, var(--surface, #0e1626) 75%, transparent);
     color: var(--muted, #8a99b8);
     transition: color 0.15s, border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
@@ -760,18 +829,18 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
   .snav-orbit__node:hover .snav-orbit__dot,
   .snav-orbit__node:focus-visible .snav-orbit__dot {
-    color: var(--accent, #2dd4ff);
-    border-color: var(--accent, #2dd4ff);
-    background: color-mix(in srgb, var(--accent, #2dd4ff) 16%, var(--surface, #0e1626));
-    box-shadow: 0 0 22px -4px color-mix(in srgb, var(--accent, #2dd4ff) 70%, transparent);
+    color: var(--gc, var(--accent, #2dd4ff));
+    border-color: var(--gc, var(--accent, #2dd4ff));
+    background: color-mix(in srgb, var(--gc, var(--accent, #2dd4ff)) 16%, var(--surface, #0e1626));
+    box-shadow: 0 0 22px -4px color-mix(in srgb, var(--gc, var(--accent, #2dd4ff)) 70%, transparent);
   }
   .snav-orbit__node[aria-current] {
     color: var(--text, #e8eefc);
   }
   .snav-orbit__node[aria-current] .snav-orbit__dot {
-    color: var(--accent, #2dd4ff);
-    border-color: var(--accent, #2dd4ff);
-    background: color-mix(in srgb, var(--accent, #2dd4ff) 22%, var(--surface, #0e1626));
+    color: var(--gc, var(--accent, #2dd4ff));
+    border-color: var(--gc, var(--accent, #2dd4ff));
+    background: color-mix(in srgb, var(--gc, var(--accent, #2dd4ff)) 22%, var(--surface, #0e1626));
   }
   .snav-orbit__lang {
     position: absolute;
