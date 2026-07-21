@@ -1169,27 +1169,50 @@ const confirmRedirect = loginHref + '?confirmed=1';
 
         try {
           const rsiUrl = `https://robertsspaceindustries.com/citizens/${encodeURIComponent(rsiHandle)}`;
-          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rsiUrl)}`;
-
           let html = '';
-          let ok = false;
-          try {
-            const res = await fetch(proxyUrl);
-            if (res.ok) {
-              html = await res.text();
-              if (html.length > 500) ok = true;
-            }
-          } catch (e1) { console.warn('Primary RSI proxy error:', e1); }
 
-          if (!ok || !html) {
-            try {
-              const backupUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rsiUrl)}`;
-              const res2 = await fetch(backupUrl);
-              if (res2.ok) {
-                html = await res2.text();
-                if (html.length > 500) ok = true;
+          // 1. AllOrigins JSON (Befällt nie CORS Preflight in Browsern)
+          try {
+            const res1 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rsiUrl)}`);
+            if (res1.ok) {
+              const data = await res1.json();
+              if (data && data.contents && data.contents.length > 500) {
+                html = data.contents;
               }
-            } catch (e2) { console.warn('Backup RSI proxy error:', e2); }
+            }
+          } catch (e1) { console.warn('Proxy 1 (AllOrigins JSON) failed:', e1); }
+
+          // 2. AllOrigins RAW
+          if (!html) {
+            try {
+              const res2 = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(rsiUrl)}`);
+              if (res2.ok) {
+                const text = await res2.text();
+                if (text && text.length > 500) html = text;
+              }
+            } catch (e2) { console.warn('Proxy 2 (AllOrigins RAW) failed:', e2); }
+          }
+
+          // 3. CorsProxy.io
+          if (!html) {
+            try {
+              const res3 = await fetch(`https://corsproxy.io/?${encodeURIComponent(rsiUrl)}`);
+              if (res3.ok) {
+                const text = await res3.text();
+                if (text && text.length > 500) html = text;
+              }
+            } catch (e3) { console.warn('Proxy 3 (CorsProxy) failed:', e3); }
+          }
+
+          // 4. CodeTabs Proxy
+          if (!html) {
+            try {
+              const res4 = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rsiUrl)}`);
+              if (res4.ok) {
+                const text = await res4.text();
+                if (text && text.length > 500) html = text;
+              }
+            } catch (e4) { console.warn('Proxy 4 (CodeTabs) failed:', e4); }
           }
 
           if (!html) {
