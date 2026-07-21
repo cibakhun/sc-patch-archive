@@ -1233,6 +1233,9 @@ const confirmRedirect = loginHref + '?confirmed=1';
           }
         } catch (err: any) {
           rsiVerifyMsg.textContent = (lang === 'de' ? 'Fehler bei der Prüfung: ' : 'Verification error: ') + (err.message || err);
+          rsiVerifyMsg.className = 'acx-status acx-status--err';
+          btnCheckRsiNow.disabled = false;
+        }
       });
 
       // Reset RSI Verification Handler
