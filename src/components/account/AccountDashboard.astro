@@ -451,7 +451,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
         <div class="rsi-step" style="margin-top:0.8rem">
           <span class="step-num">2</span>
           <div class="step-txt">
-            <span>Öffne dein <a id="rsiModalProfileLink" href="https://robertsspaceindustries.com/citizens" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">RSI Bürger-Profil</a> und füge den Code kurz in deine <strong>Bio</strong> ein.</span>
+            <span>Öffne deine <a id="rsiModalProfileLink" href="https://robertsspaceindustries.com/account/profile" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">RSI Profil-Einstellungen</a> und füge den Code kurz in deine <strong>Bio</strong> ein.</span>
           </div>
         </div>
 
@@ -1135,8 +1135,8 @@ const confirmRedirect = loginHref + '?confirmed=1';
 
         if (targetHandleEl) targetHandleEl.textContent = `@${handle}`;
         if (profileLinkEl) {
-          profileLinkEl.href = `https://robertsspaceindustries.com/citizens/${encodeURIComponent(handle)}`;
-          profileLinkEl.textContent = `RSI Profil (@${handle})`;
+          profileLinkEl.href = `https://robertsspaceindustries.com/account/profile`;
+          profileLinkEl.textContent = `RSI Profil-Einstellungen (@${handle})`;
         }
 
         rsiCodeEl.textContent = genCode;
