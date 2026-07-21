@@ -292,7 +292,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       <span class="snav__menu-txt snav__menu-txt--close"><kbd>Esc</kbd></span>
     </button>
   </div>
-  <div class="snav__progress" id="snavProgress" aria-hidden="true"></div>
+  <div class="snav__progress-bar" aria-hidden="true">
+    <div class="snav__progress-fill">
+      <span class="snav__progress-spark"></span>
+    </div>
+    <span class="snav__progress-pct" id="snavProgressPct">00%</span>
+  </div>
 </nav>
 
 <!-- Menü-Overlay: links die Bühne (spielt den anvisierten Eintrag groß aus),
@@ -435,16 +440,60 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
   .snav.scrolled {background:var(--chrome-solid);border-bottom:1px solid var(--line, var(--line-soft));
   }
-  .snav__progress {
+  .snav__progress-bar {
     position: absolute;
     bottom: 0;
     left: 0;
-    height: 2px;
-    width: 0%;
-    background: linear-gradient(90deg, var(--accent, #2dd4ff), color-mix(in srgb, var(--accent, #2dd4ff) 70%, #ffffff));
-    box-shadow: 0 0 10px var(--accent, #2dd4ff);
-    transition: width 0.08s linear;
+    right: 0;
+    height: 3px;
+    background: color-mix(in srgb, var(--chrome-solid, #05070d) 90%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 15%, transparent);
     pointer-events: none;
+    overflow: visible;
+  }
+  .snav__progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      color-mix(in srgb, var(--accent, #2dd4ff) 40%, transparent) 25%, 
+      var(--accent, #2dd4ff) 80%, 
+      #ffffff 100%);
+    box-shadow: 0 0 12px var(--accent, #2dd4ff);
+    transition: width 0.06s linear;
+  }
+  .snav__progress-spark {
+    position: absolute;
+    right: -3px;
+    top: -2px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 12px var(--accent, #2dd4ff), 0 0 4px #ffffff;
+  }
+  .snav__progress-pct {
+    position: absolute;
+    right: 1.2rem;
+    top: -18px;
+    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    color: var(--accent, #2dd4ff);
+    background: color-mix(in srgb, var(--chrome-solid, #05070d) 85%, transparent);
+    padding: 0.05rem 0.38rem;
+    border: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 35%, transparent);
+    border-radius: 1px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .snav.scrolled .snav__progress-pct {
+    opacity: 0.88;
+    transform: translateY(0);
   }
   /* left = burger + search, center = brand (true visual center regardless of
      how wide the left/right groups are), right = lang + account */
@@ -1364,12 +1413,15 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     var nav = document.getElementById('topbar');
     if (!nav) return;
     addEventListener('scroll', function () {
-      nav.classList.toggle('scrolled', scrollY > 40);
-      var prog = document.getElementById('snavProgress');
+      var scrolled = scrollY > 40;
+      nav.classList.toggle('scrolled', scrolled);
+      var prog = nav.querySelector('.snav__progress-fill');
+      var pctTxt = document.getElementById('snavProgressPct');
       if (prog) {
         var h = document.documentElement.scrollHeight - innerHeight;
-        var pct = h > 0 ? (scrollY / h) * 100 : 0;
-        prog.style.width = Math.min(100, Math.max(0, pct)) + '%';
+        var pct = h > 0 ? Math.min(100, Math.max(0, (scrollY / h) * 100)) : 0;
+        prog.style.width = pct + '%';
+        if (pctTxt) pctTxt.textContent = String(Math.round(pct)).padStart(2, '0') + '%';
       }
     }, { passive: true });
 
