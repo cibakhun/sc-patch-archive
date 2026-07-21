@@ -2,13 +2,20 @@ export interface BannerPreset {
   id: string;
   name: string;
   url: string;
+  thumb: string;
 }
 
 export interface AvatarPreset {
   id: string;
   name: string;
   icon: string;
-  color: string;
+  defaultColor: string;
+}
+
+export interface AccentColor {
+  id: string;
+  name: string;
+  hex: string;
 }
 
 export interface CitizenRole {
@@ -18,24 +25,33 @@ export interface CitizenRole {
   icon: string;
 }
 
+export const ACCENT_COLORS: AccentColor[] = [
+  { id: 'cyan', name: 'Quantum Cyan', hex: '#2dd4ff' },
+  { id: 'blue', name: 'Aegis Blue', hex: '#38bdf8' },
+  { id: 'crimson', name: 'Drake Red', hex: '#f43f5e' },
+  { id: 'purple', name: 'Nebula Purple', hex: '#a855f7' },
+  { id: 'amber', name: 'Mining Gold', hex: '#f59e0b' },
+  { id: 'emerald', name: 'Medic Green', hex: '#10b981' },
+];
+
 export const BANNER_PRESETS: BannerPreset[] = [
-  { id: 'pyro', name: 'Pyro System Nebula', url: '/assets/t-pyro-2.jpg' },
-  { id: 'hangar', name: 'Fleet Hangar', url: '/assets/t-hangar-1.jpg' },
-  { id: 'polaris', name: 'Capital Bridge', url: '/assets/t-polaris-1.jpg' },
-  { id: 'deepspace', name: 'Deep Space Belt', url: '/assets/t-nyx-1.jpg' },
-  { id: 'alien', name: 'Alien Artifact', url: '/assets/t-alien-1.jpg' },
-  { id: 'refinery', name: 'Refinery Hub', url: '/assets/img-refinery.jpg' },
+  { id: 'pyro', name: 'Pyro System Nebula', url: '/assets/t-pyro-2.jpg', thumb: '/assets/t-pyro-2.jpg' },
+  { id: 'hangar', name: 'Fleet Hangar', url: '/assets/t-hangar-1.jpg', thumb: '/assets/t-hangar-1.jpg' },
+  { id: 'polaris', name: 'Capital Bridge', url: '/assets/t-polaris-1.jpg', thumb: '/assets/t-polaris-1.jpg' },
+  { id: 'deepspace', name: 'Deep Space Belt', url: '/assets/t-nyx-1.jpg', thumb: '/assets/t-nyx-1.jpg' },
+  { id: 'alien', name: 'Alien Artifact', url: '/assets/t-alien-1.jpg', thumb: '/assets/t-alien-1.jpg' },
+  { id: 'refinery', name: 'Refinery Hub', url: '/assets/img-refinery.jpg', thumb: '/assets/img-refinery.jpg' },
 ];
 
 export const AVATAR_PRESETS: AvatarPreset[] = [
-  { id: 'helmet', name: 'Pilot Helmet', icon: '🪖', color: '#2dd4ff' },
-  { id: 'aegis', name: 'Aegis Vanguard', icon: '🛡️', color: '#38bdf8' },
-  { id: 'drake', name: 'Drake Skull', icon: '☠️', color: '#f43f5e' },
-  { id: 'quantum', name: 'Quantum Core', icon: '⚛️', color: '#a855f7' },
-  { id: 'miner', name: 'Mining Specialist', icon: '⛏️', color: '#f59e0b' },
-  { id: 'medic', name: 'Fleet Medic', icon: '✚', color: '#10b981' },
-  { id: 'explorer', name: 'Deep Explorer', icon: '🌌', color: '#6366f1' },
-  { id: 'command', name: 'Fleet Commander', icon: '🛰️', color: '#ec4899' },
+  { id: 'helmet', name: 'Pilot Helmet', icon: '🪖', defaultColor: '#2dd4ff' },
+  { id: 'aegis', name: 'Aegis Vanguard', icon: '🛡️', defaultColor: '#38bdf8' },
+  { id: 'drake', name: 'Drake Skull', icon: '☠️', defaultColor: '#f43f5e' },
+  { id: 'quantum', name: 'Quantum Core', icon: '⚛️', defaultColor: '#a855f7' },
+  { id: 'miner', name: 'Mining Laser', icon: '⛏️', defaultColor: '#f59e0b' },
+  { id: 'medic', name: 'Fleet Medic', icon: '✚', defaultColor: '#10b981' },
+  { id: 'explorer', name: 'Deep Explorer', icon: '🌌', defaultColor: '#6366f1' },
+  { id: 'command', name: 'Fleet Commander', icon: '🛰️', defaultColor: '#ec4899' },
 ];
 
 export const CITIZEN_ROLES: CitizenRole[] = [

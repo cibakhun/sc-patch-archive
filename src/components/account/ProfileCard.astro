@@ -7,14 +7,20 @@ interface Props {
 const { lang = 'de', isEditable = true } = Astro.props;
 ---
 
-<div class="profile-card-wrap">
+<div class="mobiglas-card-wrap">
+  <div class="mobiglas-frame-corner top-left"></div>
+  <div class="mobiglas-frame-corner top-right"></div>
+  <div class="mobiglas-frame-corner bottom-left"></div>
+  <div class="mobiglas-frame-corner bottom-right"></div>
+
   <div class="profile-banner-container" id="pcBannerContainer">
     <div class="profile-banner-img" id="pcBannerImg"></div>
     <div class="profile-banner-overlay"></div>
+    <div class="profile-banner-hud-grid"></div>
     {isEditable && (
       <div class="profile-banner-badge" id="pcBannerBadge">
         <span class="pc-badge-icon">📷</span>
-        <span id="pcBannerLabel">{lang === 'de' ? 'Banner anpassen' : 'Customize Banner'}</span>
+        <span id="pcBannerLabel">{lang === 'de' ? 'Banner angepasst' : 'Banner customized'}</span>
       </div>
     )}
   </div>
@@ -30,8 +36,8 @@ const { lang = 'de', isEditable = true } = Astro.props;
       </div>
 
       <div class="profile-actions-row">
-        <button type="button" class="pc-btn pc-btn--ghost" id="btnPreviewModal">
-          <span>👁️</span>
+        <button type="button" class="pc-btn pc-btn--mobiglas" id="btnPreviewModal">
+          <span class="pc-btn-icon">👁️</span>
           <span>{lang === 'de' ? 'Öffentliches Profil' : 'Public Profile'}</span>
         </button>
       </div>
@@ -42,22 +48,24 @@ const { lang = 'de', isEditable = true } = Astro.props;
         <h2 class="profile-name" id="pcName">Citizen</h2>
         <span class="profile-handle" id="pcHandle">@citizen</span>
         <span class="rsi-verified-badge" id="pcRsiVerified" hidden title="RSI Verified Account">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          RSI Verified
+          ✓ RSI VERIFIED
         </span>
       </div>
 
-      <div class="profile-role-badge" id="pcRoleBadge" hidden>
-        <span class="role-icon" id="pcRoleIcon">🎯</span>
-        <span class="role-text" id="pcRoleText">Pilot</span>
-      </div>
+      <div class="profile-meta-line">
+        <div class="profile-role-badge" id="pcRoleBadge" hidden>
+          <span class="role-icon" id="pcRoleIcon">🎯</span>
+          <span class="role-text" id="pcRoleText">Pilot</span>
+        </div>
 
-      <div class="profile-status-box" id="pcStatusBox">
-        <span class="status-label" id="pcStatusStateLabel">In-Verse</span>
-        <span class="status-sep" id="pcStatusSep" hidden>·</span>
-        <span class="status-text" id="pcStatusCustomText"></span>
+        <div class="profile-status-box" id="pcStatusBox">
+          <span class="status-label" id="pcStatusStateLabel">In-Verse</span>
+          <span class="status-sep" id="pcStatusSep" hidden>·</span>
+          <span class="status-text" id="pcStatusCustomText"></span>
+        </div>
       </div>
 
       <p class="profile-bio" id="pcBio">
@@ -86,20 +94,34 @@ const { lang = 'de', isEditable = true } = Astro.props;
 </div>
 
 <style>
-  .profile-card-wrap {
+  .mobiglas-card-wrap {
     position: relative;
     border-radius: 12px;
     background: var(--surface);
     border: 1px solid var(--line);
     overflow: hidden;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
     margin-bottom: 2rem;
   }
 
+  .mobiglas-frame-corner {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--accent);
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .mobiglas-frame-corner.top-left { top: 6px; left: 6px; border-right: 0; border-bottom: 0; }
+  .mobiglas-frame-corner.top-right { top: 6px; right: 6px; border-left: 0; border-bottom: 0; }
+  .mobiglas-frame-corner.bottom-left { bottom: 6px; left: 6px; border-right: 0; border-top: 0; }
+  .mobiglas-frame-corner.bottom-right { bottom: 6px; right: 6px; border-left: 0; border-top: 0; }
+
   .profile-banner-container {
     position: relative;
-    height: 180px;
-    background: #090e1a;
+    height: 200px;
+    background: #060913;
     overflow: hidden;
   }
 
@@ -108,23 +130,32 @@ const { lang = 'de', isEditable = true } = Astro.props;
     height: 100%;
     background-size: cover;
     background-position: center;
-    transition: transform 0.4s ease, filter 0.3s ease;
+    transition: transform 0.5s ease, filter 0.3s ease;
   }
 
   .profile-banner-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(5, 7, 13, 0.1) 0%, rgba(5, 7, 13, 0.85) 100%);
+    background: linear-gradient(to bottom, rgba(5, 7, 13, 0.15) 0%, rgba(5, 7, 13, 0.9) 100%);
+  }
+
+  .profile-banner-hud-grid {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(45, 212, 255, 0.05) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(45, 212, 255, 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
   }
 
   .profile-banner-badge {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    background: rgba(13, 19, 34, 0.75);
-    backdrop-filter: blur(8px);
+    top: 14px;
+    right: 14px;
+    background: rgba(13, 19, 34, 0.85);
+    backdrop-filter: blur(10px);
     border: 1px solid var(--line);
-    padding: 0.35rem 0.75rem;
+    padding: 0.35rem 0.8rem;
     border-radius: 20px;
     font-size: 0.78rem;
     font-weight: 600;
@@ -137,8 +168,8 @@ const { lang = 'de', isEditable = true } = Astro.props;
 
   .profile-body {
     position: relative;
-    padding: 0 1.5rem 1.5rem 1.5rem;
-    margin-top: -48px;
+    padding: 0 1.6rem 1.6rem 1.6rem;
+    margin-top: -54px;
   }
 
   .profile-avatar-row {
@@ -146,7 +177,7 @@ const { lang = 'de', isEditable = true } = Astro.props;
     align-items: flex-end;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.1rem;
   }
 
   .profile-avatar-wrapper {
@@ -155,18 +186,19 @@ const { lang = 'de', isEditable = true } = Astro.props;
   }
 
   .profile-avatar-box {
-    width: 96px;
-    height: 96px;
+    width: 104px;
+    height: 104px;
     border-radius: 50%;
     background: var(--surface-2);
     border: 3px solid var(--surface);
-    box-shadow: 0 0 25px rgba(45, 212, 255, 0.3);
+    box-shadow: 0 0 30px color-mix(in srgb, var(--accent, #2dd4ff) 35%, transparent);
     display: grid;
     place-items: center;
-    font-size: 2.5rem;
-    color: var(--accent);
+    font-size: 2.8rem;
+    color: var(--accent, #2dd4ff);
     overflow: hidden;
     position: relative;
+    transition: all 0.3s ease;
   }
 
   .profile-avatar-box img {
@@ -179,12 +211,13 @@ const { lang = 'de', isEditable = true } = Astro.props;
     position: absolute;
     bottom: 4px;
     right: 4px;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: #38bdf8;
     border: 3px solid var(--surface);
-    box-shadow: 0 0 10px #38bdf8;
+    box-shadow: 0 0 12px #38bdf8;
+    transition: all 0.3s ease;
   }
 
   .profile-status-indicator.pulse {
@@ -192,62 +225,64 @@ const { lang = 'de', isEditable = true } = Astro.props;
   }
 
   @keyframes statusPulse {
-    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.8); }
+    70% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
     100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
   }
 
   .profile-actions-row {
-    margin-top: 50px;
+    margin-top: 55px;
   }
 
   .pc-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.45rem 0.9rem;
+    padding: 0.5rem 1rem;
     border-radius: 6px;
     font-size: 0.82rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
+    font-family: var(--font-ui, sans-serif);
   }
 
-  .pc-btn--ghost {
-    background: var(--surface-2);
+  .pc-btn--mobiglas {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
     border: 1px solid var(--line);
-    color: var(--text);
+    color: var(--accent);
   }
 
-  .pc-btn--ghost:hover {
+  .pc-btn--mobiglas:hover {
     border-color: var(--accent);
-    color: var(--accent);
-    box-shadow: 0 0 14px rgba(45, 212, 255, 0.2);
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 30%, transparent);
   }
 
   .profile-info-block {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.65rem;
   }
 
   .profile-name-row {
     display: flex;
     align-items: baseline;
-    gap: 0.6rem;
+    gap: 0.7rem;
     flex-wrap: wrap;
   }
 
   .profile-name {
     font-family: var(--font-display, sans-serif);
-    font-size: 1.45rem;
+    font-size: 1.55rem;
     font-weight: 700;
     color: var(--text);
     margin: 0;
+    letter-spacing: 0.02em;
   }
 
   .profile-handle {
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     color: var(--muted);
     font-family: monospace;
   }
@@ -255,34 +290,39 @@ const { lang = 'de', isEditable = true } = Astro.props;
   .rsi-verified-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.35rem;
     background: rgba(34, 197, 94, 0.15);
-    border: 1px solid rgba(34, 197, 94, 0.4);
+    border: 1px solid rgba(34, 197, 94, 0.45);
     color: #4ade80;
-    padding: 0.15rem 0.55rem;
+    padding: 0.18rem 0.6rem;
     border-radius: 12px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  .profile-meta-line {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
   }
 
   .profile-role-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    align-self: flex-start;
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
     border: 1px solid var(--line);
-    padding: 0.2rem 0.65rem;
+    padding: 0.22rem 0.7rem;
     border-radius: 4px;
-    font-size: 0.78rem;
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 700;
     color: var(--accent);
   }
 
   .profile-status-box {
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     color: var(--text);
     display: flex;
     align-items: center;
@@ -290,60 +330,54 @@ const { lang = 'de', isEditable = true } = Astro.props;
   }
 
   .status-label {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--accent-2);
   }
 
-  .status-sep {
-    color: var(--muted);
-  }
-
-  .status-text {
-    color: var(--muted);
-    font-style: italic;
-  }
+  .status-sep { color: var(--muted); }
+  .status-text { color: var(--muted); font-style: italic; }
 
   .profile-bio {
-    font-size: 0.92rem;
+    font-size: 0.94rem;
     color: var(--text);
-    line-height: 1.5;
-    margin: 0.3rem 0 0.5rem 0;
+    line-height: 1.55;
+    margin: 0.2rem 0 0.4rem 0;
     white-space: pre-wrap;
   }
 
   .bio-empty {
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: 0.88rem;
   }
 
   .profile-social-pills {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
-    margin-top: 0.4rem;
+    margin-top: 0.3rem;
   }
 
   .social-pill {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.45rem;
     background: var(--surface-2);
     border: 1px solid var(--line-soft);
-    padding: 0.3rem 0.65rem;
+    padding: 0.35rem 0.7rem;
     border-radius: 6px;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     color: var(--text);
     text-decoration: none;
     transition: all 0.2s ease;
   }
 
   .social-pill--rsi {
-    border-color: rgba(45, 212, 255, 0.3);
+    border-color: rgba(45, 212, 255, 0.35);
   }
 
   .social-pill--rsi:hover {
     border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
   }
 
   .pill-action {
