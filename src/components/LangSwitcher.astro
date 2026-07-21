@@ -57,8 +57,7 @@ function targetFor(l: Locale): string {
     font-size: 0.8rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    padding: 0.35rem 0.55rem;
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
+    padding: 0.35rem 0.55rem;border:1px solid var(--line, var(--line-soft));
   }
   /* Die aktive Sprache steht in der Textfarbe, nicht im Akzent: sie ist der
      Ist-Zustand, kein Angebot. Der Akzent gehört der anklickbaren Option
@@ -76,5 +75,4 @@ function targetFor(l: Locale): string {
   .langsw__sep {
     color: var(--muted, #8a99b8);
     opacity: 0.5;
-  }
-</style>
+  }</style>

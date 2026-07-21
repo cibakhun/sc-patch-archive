@@ -14,20 +14,22 @@ const snap = DB.generatedAt;
 <style is:inline>
 /* Item-Finder-Theme — Violett & Bernstein (Quartiermeister-Katalog) */
 :root{--bg:#0d0c14;--bg-2:#14121c;--surface:#17151f;--surface-2:#1e1b29;--accent:#A78BFA;--accent-2:#FFB84D;--hot:#A78BFA;--text:#eef1f5;--muted:#9d9cb0;--line:rgba(167,139,250,.22);--line-soft:rgba(238,241,245,.10);--glow:0 0 44px rgba(167,139,250,.28);--ink:#0d0c14;--maxw:1240px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f7f6fe;--bg-2:#eeecf8;--surface:#fdfdff;--surface-2:#f3f1fb;--text:#1d1f22;--muted:#575668;--accent:#643bb5;--accent-2:#744c00;--hot:#5c31ab;--ink:#ffffff;--accent-media:#A78BFA;--accent-2-media:#FFB84D;--line:rgba(117,101,166,.3);--line-soft:rgba(44,46,49,.12);--glow:0 6px 22px rgba(118,98,176,.18)}
+
 .reveal{opacity:1 !important;transform:none !important}
 /* Hero-Titel: heller Gradient + kräftiger Scrim, lesbar über dem Loot-Foto */
-.hero h1{font-size:clamp(2.4rem,9vw,7rem);background:linear-gradient(180deg,#ffffff,#d6c6ff 58%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 3px 20px rgba(0,0,0,.85)) drop-shadow(0 0 30px rgba(167,139,250,.4))}
+.hero h1{font-size:clamp(2.4rem,9vw,7rem);background:linear-gradient(180deg,var(--title-hi),#d6c6ff 58%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 3px 20px var(--on-media-shadow)) drop-shadow(0 0 30px rgba(167,139,250,.4))}
 .hero{background:radial-gradient(120% 90% at 78% 12%,rgba(167,139,250,.16),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(255,184,77,.10),transparent 55%),var(--bg)}
 .hero__in{max-width:var(--maxw)}
 .uf-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--accent-2)}
 .qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;color:var(--muted)}
 .qbar b{color:var(--accent-2)}
 .uf-note{max-width:var(--maxw);margin:0 auto 1.2rem;display:flex;align-items:flex-start;gap:.75rem;border:1px solid var(--accent-2);border-left-width:3px;background:color-mix(in srgb,var(--accent-2) 8%,transparent);padding:.9rem 1.1rem;border-radius:4px;color:var(--text);font-size:.92rem;line-height:1.55}
-.uf-note b{color:#fff}
+.uf-note b{color:var(--text)}
 .uf-sec-h{max-width:var(--maxw);margin:2.2rem auto 1rem;display:flex;align-items:baseline;gap:.8rem;padding:0 clamp(1rem,4vw,2rem)}
-.uf-sec-h h2{font-family:var(--font-display);font-weight:900;font-size:clamp(1.5rem,4vw,2.4rem);color:#fff;margin:0}
-.uf-sec-h .num{font-family:var(--font-display);font-weight:900;color:transparent;-webkit-text-stroke:1.4px var(--accent);font-size:clamp(1.4rem,3.6vw,2.2rem)}
-</style>
+.uf-sec-h h2{font-family:var(--font-display);font-weight:900;font-size:clamp(1.5rem,4vw,2.4rem);color:var(--text);margin:0}
+.uf-sec-h .num{font-family:var(--font-display);font-weight:900;color:transparent;-webkit-text-stroke:1.4px var(--accent);font-size:clamp(1.4rem,3.6vw,2.2rem)}</style>
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 

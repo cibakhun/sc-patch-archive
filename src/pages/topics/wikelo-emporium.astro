@@ -74,6 +74,9 @@ const showImg = TRADES.map((t: { img?: string }) => {
 
 /* Wikelo / Banu Emporium theme (4.1) — turquoise & brass */
 :root{--bg:#0d1513;--bg-2:#111d1a;--surface:#152420;--surface-2:#1c302b;--accent:#1FB8A6;--accent-2:#E8A33D;--hot:#C0392B;--text:#eef4f2;--muted:#93a7a1;--line:rgba(31,184,166,.22);--line-soft:rgba(238,244,242,.10);--glow:0 0 44px rgba(31,184,166,.28);--ink:#0d1513;--maxw:1180px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#effaf7;--bg-2:#e3f2ed;--surface:#f9fffd;--surface-2:#e9f6f2;--text:#1c201f;--muted:#4a5d57;--accent:#046a5f;--accent-2:#754b02;--hot:#9e0500;--ink:#ffffff;--accent-media:#1FB8A6;--accent-2-media:#E8A33D;--line:rgba(43,129,118,.3);--line-soft:rgba(43,47,46,.12);--glow:0 6px 22px rgba(43,129,118,.18)}
+
 /* Neutralize the reveal gate: content is ALWAYS visible.
    Reason: the very tall trade-card column (19 cards) never meets the
    IntersectionObserver's 12% visibility threshold on mobile → it would stay
@@ -91,7 +94,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-cell .wk-ic{color:var(--accent);line-height:0;width:34px;height:34px}
 .wk-cell.alt .wk-ic{color:var(--accent-2)}
 .wk-cell .wk-ic svg{width:100%;height:100%;display:block}
-.wk-cell h3{font-family:var(--font-display);font-weight:800;font-size:1.25rem;color:#fff;line-height:1.1}
+.wk-cell h3{font-family:var(--font-display);font-weight:800;font-size:1.25rem;color:var(--text);line-height:1.1}
 .wk-cell .wk-sub{font-family:var(--font-ui);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.68rem;color:var(--accent)}
 .wk-cell p{color:var(--muted);font-size:.98rem;line-height:1.5;margin:0}
 .wk-cell.alt{border-top-color:var(--accent-2)}
@@ -107,7 +110,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 
 /* ---- Trade overview: GIVE → GET cards ---- */
 .wk-filters{max-width:var(--maxw);margin:0 auto 1.2rem;display:flex;flex-wrap:wrap;gap:.5rem}
-.wk-pill{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.72rem;color:var(--muted);border:1px solid var(--line);background:rgba(0,0,0,.25);padding:.42rem .9rem;border-radius:50px;cursor:pointer;transition:color .18s,border-color .18s,background-color .18s}
+.wk-pill{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.72rem;color:var(--muted);border:1px solid var(--line);background:var(--veil);padding:.42rem .9rem;border-radius:50px;cursor:pointer;transition:color .18s,border-color .18s,background-color .18s}
 .wk-pill:hover{color:var(--text);border-color:var(--accent)}
 .wk-pill[aria-pressed="true"]{color:var(--ink);background:var(--accent);border-color:var(--accent)}
 .wk-tc-grid{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem}
@@ -135,7 +138,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-get-media{width:100%;aspect-ratio:16/10;overflow:hidden;border:1px solid var(--line);background:linear-gradient(150deg,var(--surface-2),var(--bg-2));position:relative}
 .wk-get-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease}
 .wk-get-media[data-lb]{cursor:pointer}
-.wk-get-media .zoomic{position:absolute;top:.5rem;right:.5rem;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.55);border:1px solid var(--line);display:grid;place-items:center;font-size:.85rem;color:#fff;opacity:.55;transition:opacity .2s,background .2s,transform .2s}
+.wk-get-media .zoomic{position:absolute;top:.5rem;right:.5rem;width:30px;height:30px;border-radius:50%;background:var(--scrim-4);border:1px solid var(--line);display:grid;place-items:center;font-size:.85rem;color:var(--on-media);opacity:.55;transition:opacity .2s,background .2s,transform .2s}
 .wk-get-media:hover .zoomic{opacity:1;background:var(--accent);color:var(--ink);transform:scale(1.12)}
 /* Portrait renders (full-body armor, ATLS exosuit) would be cropped to a middle
    sliver under cover — contain shows the whole figure, centred on the card's
@@ -145,7 +148,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-get-media--ph{display:grid;place-items:center;color:var(--accent);padding:12px}
 .wk-tc[data-cat="conv"] .wk-get-media--ph{color:var(--accent-2)}
 .wk-get-media--ph svg{width:42px;height:42px}
-.wk-get-name{font-family:var(--font-display);font-weight:800;font-size:.98rem;line-height:1.15;color:#fff}
+.wk-get-name{font-family:var(--font-display);font-weight:800;font-size:.98rem;line-height:1.15;color:var(--text)}
 .wk-tc-empty{max-width:var(--maxw);margin:.5rem auto 0;color:var(--muted);font-size:.9rem}
 
 /* ---- Ship loadout (components) ---- */
@@ -177,10 +180,8 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-trow{display:grid;grid-template-columns:auto 1fr;gap:1.2rem;padding:1.1rem 0;border-bottom:1px solid var(--line-soft)}
 .wk-trow:last-child{border-bottom:0}
 .wk-ver{font-family:var(--font-display);font-weight:900;font-size:clamp(1.4rem,3vw,2rem);color:transparent;-webkit-text-stroke:1.5px var(--accent);line-height:1;min-width:3.2em}
-.wk-tbody h3{font-family:var(--font-display);font-weight:800;font-size:1.15rem;color:#fff;margin:0 0 .25rem}
-.wk-tbody p{color:var(--muted);font-size:.98rem;line-height:1.55;margin:0;max-width:64ch}
-
-</style>
+.wk-tbody h3{font-family:var(--font-display);font-weight:800;font-size:1.15rem;color:var(--text);margin:0 0 .25rem}
+.wk-tbody p{color:var(--muted);font-size:.98rem;line-height:1.55;margin:0;max-width:64ch}</style>
 <a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 

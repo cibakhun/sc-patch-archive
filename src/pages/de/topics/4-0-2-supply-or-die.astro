@@ -12,10 +12,11 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 <style is:inline>
 
 :root{--bg:#1a1d20;--bg-2:#21252a;--surface:#2a2e33;--surface-2:#33373b;--accent:#c0271f;--accent-2:#e8771a;--hot:#c0271f;--text:#ece6da;--muted:#9aa0a6;--line:rgba(192,39,31,.22);--line-soft:rgba(236,230,218,.10);--glow:0 0 44px rgba(192,39,31,.30);--ink:#1a1d20;--maxw:1180px;}
-/* page-local accents */
-.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f4f8fc;--bg-2:#e9eef5;--surface:#fcfdff;--surface-2:#eef3f8;--text:#231f16;--muted:#53595e;--accent:#ac0507;--accent-2:#853f02;--hot:#9e0004;--ink:#ffffff;--accent-media:#c0271f;--accent-2-media:#e8771a;--line:rgba(164,89,79,.3);--line-soft:rgba(50,45,36,.12);--glow:0 6px 22px rgba(173,83,72,.18)}
 
-</style>
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}</style>
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 

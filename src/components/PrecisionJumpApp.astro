@@ -818,7 +818,7 @@ const CLIENT = {
     background: color-mix(in srgb, var(--accent-2) 8%, transparent);
     border-radius: 4px; color: var(--text); font-size: .9rem; line-height: 1.55;
   }
-  .pj-honesty b { color: #fff; }
+  .pj-honesty b {color:var(--text); }
 
   /* ---- Console ---- */
   .pj-console {
@@ -908,14 +908,11 @@ const CLIENT = {
   .pj-map__cap span { font-family: var(--font-ui); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: .72rem; color: var(--text); }
   .pj-map__cap i { font-style: normal; font-family: var(--font-ui); font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
   .pj-map__frame {
-    position: relative; aspect-ratio: 1 / 1; border: 1px solid var(--line); border-radius: 3px; overflow: hidden;
-    background:
-      radial-gradient(140% 140% at 50% 50%, color-mix(in srgb, var(--accent-2) 9%, var(--bg)), var(--bg) 70%),
-      repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,.16) 2px 3px);
+    position: relative; aspect-ratio: 1 / 1; border: 1px solid var(--line); border-radius: 3px; overflow: hidden;background:radial-gradient(140% 140% at 50% 50%, color-mix(in srgb, var(--accent-2) 9%, var(--bg)), var(--bg) 70%),
+      repeating-linear-gradient(0deg, transparent 0 2px, var(--veil) 2px 3px);
   }
   .pj-map__frame::after { /* holografische Vignette + Eck-Glow */
-    content: ''; position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(90% 90% at 50% 46%, transparent 62%, rgba(0,0,0,.55));
+    content: ''; position: absolute; inset: 0; pointer-events: none;background:radial-gradient(90% 90% at 50% 46%, transparent 62%, var(--veil-2));
     box-shadow: inset 0 0 60px color-mix(in srgb, var(--accent-2) 12%, transparent);
   }
   .pj-map__frame svg { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -955,12 +952,12 @@ const CLIENT = {
   .pj-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); }
   .pj-card { background: var(--surface); padding: .95rem 1rem; min-width: 0; }
   .pj-card__lbl { font-family: var(--font-ui); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: .6rem; color: var(--muted); margin-bottom: .3rem; }
-  .pj-card__val { font-family: var(--font-display); font-weight: 800; font-size: 1.02rem; color: #fff; overflow-wrap: anywhere; line-height: 1.2; }
+  .pj-card__val { font-family: var(--font-display); font-weight: 800; font-size: 1.02rem;color:var(--text); overflow-wrap: anywhere; line-height: 1.2; }
   .pj-card__val.pj-accent { color: var(--accent); }
   .pj-card__val.pj-accent2 { color: var(--accent-2); }
   .pj-card__val.pj-ok { color: #3ddc84; }
   .pj-card__val.pj-warn { color: var(--accent); }
-  .pj-card__val.pj-bad { color: color-mix(in srgb, var(--hot) 80%, #fff); }
+  .pj-card__val.pj-bad {color:color-mix(in srgb, var(--hot) 80%, var(--text)); }
   .pj-card__sub { font-family: var(--font-ui); font-size: .72rem; color: var(--muted); margin-top: .3rem; line-height: 1.45; }
   .pj-bar { height: 3px; background: var(--line); margin-top: .6rem; border-radius: 2px; overflow: hidden; }
   .pj-bar__f { display: block; height: 100%; transition: width .5s ease; }
@@ -1007,7 +1004,7 @@ const CLIENT = {
   .pj-tbl tbody tr { border-bottom: 1px solid var(--line-soft); }
   .pj-tbl tbody tr:hover { background: color-mix(in srgb, var(--accent-2) 4%, transparent); }
   .pj-tbl td { padding: .55rem 1rem; font-family: var(--font-ui); font-size: .82rem; white-space: nowrap; }
-  .pj-td-name { color: #fff; font-weight: 600; }
+  .pj-td-name {color:var(--text); font-weight: 600; }
   .pj-td-type { color: var(--muted); font-size: .74rem; }
   .pj-td-anchor { color: var(--accent); }
   .pj-td-num { color: var(--accent-2); font-size: .74rem; }
@@ -1045,4 +1042,14 @@ const CLIENT = {
   @media (prefers-reduced-motion: reduce) {
     .pj-svg-pulse { animation: none; opacity: 0; }
   }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .pj-dens-txt.pj-dens--medium{color:#006a38}
+:root[data-theme="light"] .pj-gamesrc__tag{color:#006a38}
+:root[data-theme="light"] .pj-svg-planet{fill:#4f5967}
+:root[data-theme="light"] .pj-svg-star{fill:#635733}
+:root[data-theme="light"] .pj-svg-reticle{stroke:#078f4f}
+:root[data-theme="light"] .pj-svg-cross{stroke:#078f4f}
+:root[data-theme="light"] .pj-svg-drop{fill:#006a38}
+:root[data-theme="light"] .pj-card__val.pj-ok{color:#006a38}
+:root[data-theme="light"] .pj-dens--medium{color:#006a38}
 </style>

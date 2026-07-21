@@ -46,10 +46,7 @@ const heading = title ?? t('qf.title');
 
 <style>
   /* Registertrenner — the seam between film and file */
-  .reg-divider {
-    border-top: 1px solid var(--line, rgba(255, 255, 255, 0.14));
-    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
-    background: var(--bg-2, rgba(0, 0, 0, 0.25));
+  .reg-divider {border-top:1px solid var(--line, var(--line-soft));border-bottom:1px solid var(--line, var(--line-soft));background:var(--bg-2, var(--veil));
     padding: 0.45rem clamp(1.25rem, 5vw, 4.5rem);
   }
   .reg-divider__in {
@@ -86,9 +83,7 @@ const heading = title ?? t('qf.title');
   }
   .qf__in {
     max-width: var(--maxw, 1280px);
-    margin: 0 auto;
-    background: var(--surface, #10151f);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    margin: 0 auto;background:var(--surface, var(--veil-2));border:1px solid var(--line, var(--line-soft));
     border-top: 2px solid var(--accent, #2dd4ff);
     padding: 1.25rem 1.5rem 1.4rem;
     clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
@@ -97,8 +92,7 @@ const heading = title ?? t('qf.title');
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 1rem;
-    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    gap: 1rem;border-bottom:1px solid var(--line, var(--line-soft));
     padding-bottom: 0.55rem;
     margin-bottom: 1rem;
   }
@@ -125,8 +119,7 @@ const heading = title ?? t('qf.title');
     gap: 0.7rem 1.4rem;
     margin: 0;
   }
-  .qf__item {
-    border-left: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+  .qf__item {border-left:1px solid var(--line, var(--line-soft));
     padding-left: 0.8rem;
   }
   .qf__item dt {
@@ -178,5 +171,4 @@ const heading = title ?? t('qf.title');
       overflow-wrap: anywhere;
       min-width: 0;
     }
-  }
-</style>
+  }</style>

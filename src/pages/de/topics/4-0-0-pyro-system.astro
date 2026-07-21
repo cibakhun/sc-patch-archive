@@ -13,14 +13,15 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 
 /* Pyro-Theme (System 4.0.0) */
 :root{--bg:#120f0c;--bg-2:#1a1714;--surface:#211b16;--surface-2:#2b231b;--accent:#ff5a1f;--accent-2:#d9d12a;--hot:#c0271f;--text:#f3e9df;--muted:#b6a596;--line:rgba(255,90,31,.22);--line-soft:rgba(243,233,223,.10);--glow:0 0 44px rgba(255,90,31,.32);--ink:#120f0c;--maxw:1180px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#fbf7f2;--bg-2:#f1ede9;--surface:#fefdfc;--surface-2:#f9f1e9;--text:#251e17;--muted:#645547;--accent:#9e2f01;--accent-2:#5c5801;--hot:#9e0004;--ink:#ffffff;--accent-media:#ff5a1f;--accent-2-media:#d9d12a;--line:rgba(163,91,69,.3);--line-soft:rgba(52,44,37,.12);--glow:0 6px 22px rgba(171,85,59,.18)}
+
 /* page-local accents */
 .hero h1{font-size:clamp(3.2rem,13vw,10.5rem)}
 .moons{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.3rem}
-.moons .moon{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.74rem;padding:.4rem .85rem;border:1px solid var(--line);border-radius:50px;background:rgba(0,0,0,.4);color:var(--text)}
+.moons .moon{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.74rem;padding:.4rem .85rem;border:1px solid var(--line);border-radius:50px;background:var(--veil);color:var(--text)}
 .moons .moon b{color:var(--accent-2);font-weight:700}
-.band .big.flare{color:transparent;background:linear-gradient(180deg,#fff,var(--accent) 72%,var(--hot));-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 36px color-mix(in srgb,var(--accent) 50%,transparent))}
-
-</style>
+.band .big.flare{color:transparent;background:linear-gradient(180deg,var(--title-hi),var(--accent) 72%,var(--hot));-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 36px color-mix(in srgb,var(--accent) 50%,transparent))}</style>
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 

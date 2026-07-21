@@ -18,7 +18,7 @@ const tools = [
   { name: 'Schiffe', href: '/de/schiffe.html', sub: 'Datenblätter & Specs', img: '/assets/t-perseus-1.jpg', size: 'xl' },
   { name: 'Missionen', href: '/de/missionen.html', sub: 'Belohnung & Reputation', img: '/assets/t-tsg-4.jpg', size: 'w' },
   { name: 'Mining', href: '/de/topics/mining.html', sub: 'Mineralien & Rechner', img: '/assets/t-align-1.jpg', size: 'w' },
-  { name: 'Refinery', href: '/de/refinery.html', sub: 'Deine Ausbeute im Blick', img: '/assets/t-align-8.jpg', size: 't' },
+  { name: 'Refinery', href: '/de/refinery.html', sub: 'Deine Ausbeute im Blick', img: '/assets/img-refinery.jpg', size: 't' },
   { name: 'Crafting', href: '/de/topics/crafting.html', sub: 'Blueprints & Planer', img: '/assets/t-craft-1.jpg', size: 't' },
   { name: "Wikelo's Emporium", href: '/de/topics/wikelo-emporium.html', sub: 'Banu-Trades', img: '/assets/img-railen.jpg', size: 't' },
   { name: 'Item Finder', href: '/de/item-finder.html', sub: 'Preise & Fundorte', img: '/assets/cz-loot.jpg', size: 't' },
@@ -34,44 +34,55 @@ const tools = [
     --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
     --maxw:1280px;
   }
+  /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+  :root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e8eef9;--surface:#fdfdff;--text:#1c1f25;--muted:#4d596c;--accent:#05657c;--ink:#ffffff;--accent-media:#2dd4ff;--line:rgba(43,125,148,.3);--line-2:rgba(43,125,148,.42)}
+
+
+
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}
-  ::selection{background:var(--accent);color:#04060c}
+  ::selection{background:var(--accent);color:var(--ink)}
   :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-  .skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:#04060c;padding:.6rem 1rem;font-weight:700}
+  .skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:var(--ink);padding:.6rem 1rem;font-weight:700}
   .skip:focus{left:0}
 
   /* ========== HERO ========== */
   .hero{position:relative;min-height:94svh;display:flex;align-items:flex-end;overflow:hidden;isolation:isolate}
-  .hero__img{position:absolute;inset:0;z-index:-2;background:#04060c center right/cover no-repeat;
+  .hero__img{position:absolute;inset:0;z-index:-2;background:var(--media-void) center right/cover no-repeat;
     background-image:var(--hero);transform:scale(1.06);animation:kenburns 34s ease-in-out infinite alternate}
   @keyframes kenburns{from{transform:scale(1.06)}to{transform:scale(1.15) translate3d(-1.5%,-1%,0)}}
+  /* Der Schleier bleibt in beiden Modi dunkel — das Motiv ist dunkel und der
+     Text darauf hell. Nur der untere Verlauf endet auf var(--bg) und blendet
+     damit von selbst in die helle bzw. dunkle Seite über. */
   .hero__scrim{position:absolute;inset:0;z-index:-1;background:
-    linear-gradient(90deg,rgba(4,6,12,.92) 0%,rgba(4,6,12,.6) 40%,rgba(4,6,12,.08) 78%,transparent 100%),
-    linear-gradient(0deg,var(--bg) 1%,rgba(4,6,12,.4) 24%,transparent 58%)}
+    linear-gradient(90deg,var(--scrim-6) 0%,var(--scrim-4) 40%,var(--scrim-0) 78%,transparent 100%),
+    linear-gradient(0deg,var(--bg) 1%,var(--scrim-2) 24%,transparent 58%)}
   .hero__inner{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;padding:9rem clamp(1.25rem,5vw,3.5rem) clamp(3.5rem,8vw,6rem)}
   .hero__kicker{display:inline-flex;align-items:center;gap:.7rem;font-family:var(--font-ui);font-weight:700;
-    letter-spacing:.3em;text-transform:uppercase;font-size:.74rem;color:var(--accent)}
-  .hero__kicker::before{content:"";width:28px;height:1px;background:var(--accent)}
+    letter-spacing:.3em;text-transform:uppercase;font-size:.74rem;color:var(--accent-media)}
+  .hero__kicker::before{content:"";width:28px;height:1px;background:var(--accent-media)}
   .hero h1{font-family:var(--font-display);font-weight:900;line-height:.92;margin:1.1rem 0 .5rem;
     font-size:clamp(2.9rem,12vw,8.5rem);letter-spacing:-.02em;
-    background:linear-gradient(180deg,#fff 52%,#c4dae6);-webkit-background-clip:text;background-clip:text;color:transparent;
-    text-shadow:0 10px 60px rgba(4,6,12,.5)}
-  .hero__lede{max-width:40ch;color:#d3ddef;font-size:clamp(1.05rem,1.8vw,1.3rem);font-weight:500;
-    text-shadow:0 2px 22px rgba(4,6,12,.85)}
+    background:linear-gradient(180deg,var(--title-hi) 52%,color-mix(in srgb,var(--title-hi) 62%,var(--accent-media)));-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 10px 60px var(--on-media-shadow)}
+  .hero__lede{max-width:40ch;color:var(--on-media-dim);font-size:clamp(1.05rem,1.8vw,1.3rem);font-weight:500;
+    text-shadow:0 2px 22px var(--on-media-shadow)}
+  /* Das Suchfeld liegt auf dem Hero-Foto, nicht auf der Seitenfläche —
+     deshalb durchgehend Medien-Farben statt --muted/--accent. Im Hellmodus
+     wären das sonst dunkle Schrift und dunkler Akzent auf dunklem Bild. */
   .hero__search{display:flex;align-items:center;gap:.8rem;width:100%;max-width:520px;margin:1.9rem 0 0;
-    padding:.95rem 1.15rem;background:rgba(6,10,20,.68);border:1px solid var(--line-2);border-radius:9px;
-    color:var(--muted);font-family:var(--font-ui);font-size:1rem;cursor:pointer;text-align:left;
+    padding:.95rem 1.15rem;background:var(--scrim-5);border:1px solid var(--on-media-line);border-radius:9px;
+    color:var(--on-media-dim);font-family:var(--font-ui);font-size:1rem;cursor:pointer;text-align:left;
     backdrop-filter:blur(8px);transition:border-color .2s,box-shadow .2s,background-color .2s}
-  .hero__search:hover,.hero__search:focus-visible{border-color:var(--accent);background:rgba(6,10,20,.82);
-    box-shadow:0 0 30px rgba(45,212,255,.2);outline:none}
-  .hero__search .p{color:var(--accent);font-weight:800;flex:none}
+  .hero__search:hover,.hero__search:focus-visible{border-color:var(--accent-media);background:var(--scrim-6);
+    box-shadow:0 0 30px color-mix(in srgb,var(--accent-media) 22%,transparent);outline:none}
+  .hero__search .p{color:var(--accent-media);font-weight:800;flex:none}
   .hero__search .h{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
   .hero__search .k{display:flex;gap:.3rem;flex:none}
-  .hero__search kbd{font-family:var(--font-ui);font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--muted);
-    border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;padding:.1rem .42rem;background:rgba(255,255,255,.05)}
+  .hero__search kbd{font-family:var(--font-ui);font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--on-media-dim);
+    border:1px solid var(--on-media-line);border-bottom-width:2px;border-radius:4px;padding:.1rem .42rem;background:var(--on-media-veil)}
   .hero__cue{position:absolute;bottom:1.3rem;left:50%;transform:translateX(-50%);z-index:1;
     font-family:var(--font-ui);letter-spacing:.24em;text-transform:uppercase;font-size:.66rem;color:var(--muted);
     animation:bob 2.2s ease-in-out infinite}
@@ -88,22 +99,22 @@ const tools = [
   .tools{display:grid;gap:.85rem;grid-template-columns:1fr}
   .tool{position:relative;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate;
     min-height:210px;padding:1.4rem 1.5rem;border-radius:14px;overflow:hidden;border:1px solid var(--line);
-    background:#0a0e18;color:#fff;transition:border-color .3s,box-shadow .3s,transform .3s cubic-bezier(.2,.7,.3,1)}
+    background:var(--media-void);color:var(--on-media);transition:border-color .3s,box-shadow .3s,transform .3s cubic-bezier(.2,.7,.3,1)}
   .tool::before{content:"";position:absolute;inset:0;z-index:-2;background:var(--img) center/cover no-repeat;
     filter:saturate(.8) brightness(.66);transform:scale(1.03);transition:transform .7s ease,filter .7s ease}
   .tool::after{content:"";position:absolute;inset:0;z-index:-1;
-    background:linear-gradient(to top,rgba(4,6,12,.95) 4%,rgba(4,6,12,.55) 42%,rgba(4,6,12,.1) 100%)}
+    background:linear-gradient(to top,var(--scrim-6) 4%,var(--scrim-4) 42%,var(--scrim-0) 100%)}
   .tool:hover,.tool:focus-visible{transform:translateY(-4px);border-color:var(--accent);
-    box-shadow:0 22px 50px -24px rgba(0,0,0,.9);outline:none}
+    box-shadow:0 22px 50px -24px var(--shadow-color);outline:none}
   .tool:hover::before,.tool:focus-visible::before{transform:scale(1.09);filter:saturate(1.02) brightness(.82)}
   .tool__name{font-family:var(--font-display);font-weight:800;font-size:1.45rem;line-height:1.04;letter-spacing:.01em;
-    text-shadow:0 2px 18px rgba(4,6,12,.85)}
-  .tool__sub{margin-top:.3rem;font-family:var(--font-ui);font-weight:600;letter-spacing:.04em;color:#c6d4ec;font-size:.9rem}
+    text-shadow:0 2px 18px var(--on-media-shadow)}
+  .tool__sub{margin-top:.3rem;font-family:var(--font-ui);font-weight:600;letter-spacing:.04em;color:var(--on-media-dim);font-size:.9rem}
   .tool__arrow{position:absolute;top:1.15rem;right:1.25rem;width:38px;height:38px;display:grid;place-items:center;
-    border:1px solid rgba(255,255,255,.28);border-radius:50%;font-size:1.05rem;color:#fff;line-height:1;
-    background:rgba(4,6,12,.28);backdrop-filter:blur(4px);opacity:.85;transition:.25s}
-  .tool:hover .tool__arrow,.tool:focus-visible .tool__arrow{background:var(--accent);color:#04060c;
-    border-color:var(--accent);opacity:1;transform:translate(2px,-2px)}
+    border:1px solid var(--on-media-line);border-radius:50%;font-size:1.05rem;color:var(--on-media);line-height:1;
+    background:var(--scrim-1);backdrop-filter:blur(4px);opacity:.85;transition:.25s}
+  .tool:hover .tool__arrow,.tool:focus-visible .tool__arrow{background:var(--accent-media);color:var(--ink-media);
+    border-color:var(--accent-media);opacity:1;transform:translate(2px,-2px)}
   .tool--xl .tool__name{font-size:clamp(1.9rem,4vw,2.7rem)}
   .tool--xl .tool__sub{font-size:1rem}
   @media(min-width:600px){
@@ -127,10 +138,10 @@ const tools = [
   .fresh__ver{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,5vw,3.1rem);line-height:1;margin-top:.2rem}
   .fresh__name{font-family:var(--font-ui);font-weight:700;font-size:1.2rem;color:var(--text)}
   .fresh__go{align-self:flex-start;margin-top:.8rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;
-    text-transform:uppercase;font-size:.78rem;color:#04060c;background:var(--accent);padding:.6rem 1.15rem;border-radius:7px;
+    text-transform:uppercase;font-size:.78rem;color:var(--ink);background:var(--accent);padding:.6rem 1.15rem;border-radius:7px;
     display:inline-flex;gap:.5rem;align-items:center;transition:filter .18s,transform .18s}
   .fresh__go:hover{filter:brightness(1.08);transform:translateX(2px)}
-  .fresh__media{position:relative;background:#04060c center/cover no-repeat;min-height:180px}
+  .fresh__media{position:relative;background:var(--media-void) center/cover no-repeat;min-height:180px}
   .fresh__media::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--surface),transparent 42%)}
 
   .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
@@ -147,8 +158,7 @@ const tools = [
     .reveal{opacity:1;transform:none}
     .hero__img{animation:none}
     *{animation:none!important;scroll-behavior:auto!important}
-  }
-</style>
+  }</style>
 
 <a class="skip" href="#tools">Zu den Werkzeugen springen</a>
 
