@@ -1,0 +1,93 @@
+---
+// Hell/Dunkel-Umschalter. Gestaltet wie der Sprachumschalter daneben:
+// gerahmte Pille, Akzentfarbe für den aktiven Zustand.
+//
+// Der Anfangszustand steht NICHT im HTML — er entsteht erst zur Laufzeit
+// (gespeicherte Wahl bzw. Betriebssystem, siehe Layout.astro). aria-pressed
+// wird deshalb dort gesetzt; hier steht nur ein Platzhalter.
+//
+// Als Knopf mit aria-pressed statt role="switch": dasselbe Muster benutzt
+// die Seite schon bei den Filterknöpfen im Signatur-Werkzeug, und es wird
+// von Screenreadern durchgängig unterstützt. Der Name benennt die Sache
+// („Dunkle Darstellung"), der Zustand sagt an/aus — nicht die Aktion.
+import { localeFromPath, useTranslations } from '../i18n/ui';
+
+const t = useTranslations(localeFromPath(Astro.url.pathname));
+---
+
+<button class="themesw js-theme-toggle" type="button" aria-pressed="true" aria-label={t('nav.theme.dark')}>
+  <span class="themesw__track" aria-hidden="true">
+    <svg class="themesw__ic themesw__ic--sun" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+      <circle cx="12" cy="12" r="4.2" />
+      <path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.3 6.3 4.8 4.8M19.2 19.2l-1.5-1.5M17.7 6.3l1.5-1.5M4.8 19.2l1.5-1.5" />
+    </svg>
+    <svg class="themesw__ic themesw__ic--moon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.2 8.2 0 1 0 10.2 10.2z" />
+    </svg>
+    <span class="themesw__knob"></span>
+  </span>
+</button>
+
+<style>
+  .themesw {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.5rem;border:1px solid var(--line, var(--line-soft));
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    line-height: 0;
+  }
+  .themesw:hover {
+    border-color: var(--accent, #2dd4ff);
+  }
+
+  /* Schiene mit zwei Symbolen und einem wandernden Knopf: der aktive Modus
+     ist am Ort des Knopfes ablesbar, nicht nur an einer Farbe. */
+  .themesw__track {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    padding: 0.05rem 0.1rem;
+  }
+  .themesw__ic {
+    position: relative;
+    z-index: 1;
+    display: block;
+    color: var(--muted, #8a99b8);
+    transition: color 0.18s;
+  }
+  .themesw__knob {
+    position: absolute;
+    z-index: 0;
+    top: 50%;
+    left: 0;
+    width: 19px;
+    height: 19px;
+    margin-top: -9.5px;
+    margin-left: -3px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 18%, transparent);
+    transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+
+  /* Dunkel = Mond aktiv (Knopf rechts), Hell = Sonne aktiv (Knopf links). */
+  :global(html[data-theme='dark']) .themesw__knob {
+    transform: translateX(21px);
+  }
+  :global(html[data-theme='dark']) .themesw__ic--moon,
+  :global(html[data-theme='light']) .themesw__ic--sun {
+    color: var(--accent, #2dd4ff);
+  }
+
+  .themesw:focus-visible {
+    outline: 2px solid var(--accent-2, var(--accent, #2dd4ff));
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .themesw__knob {
+      transition: none;
+    }
+  }</style>

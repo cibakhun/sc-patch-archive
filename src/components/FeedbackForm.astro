@@ -138,8 +138,7 @@ const stars = [1, 2, 3, 4, 5];
   .fbx-card {
     border: 1px solid var(--line);
     background: linear-gradient(180deg, var(--surface), var(--bg-2));
-    padding: clamp(1.3rem, 4vw, 2.3rem);
-    box-shadow: 0 30px 80px -34px rgba(0, 0, 0, 0.92), var(--glow, 0 0 0 transparent);
+    padding: clamp(1.3rem, 4vw, 2.3rem);box-shadow:0 30px 80px -34px var(--shadow-color), var(--glow, 0 0 0 transparent);
   }
 
   .fbx-demo {
@@ -169,7 +168,7 @@ const stars = [1, 2, 3, 4, 5];
   .fbx-clear:hover { color: var(--accent); }
 
   .fbx-input, .fbx-textarea {
-    width: 100%; box-sizing: border-box; background: rgba(0, 0, 0, 0.35); color: var(--text);
+    width: 100%; box-sizing: border-box;background:var(--veil); color: var(--text);
     border: 1px solid var(--line); padding: 0.72rem 0.9rem;
     font-family: var(--font-ui, sans-serif); font-size: 1rem; line-height: 1.5;
     transition: border-color 0.15s, box-shadow 0.15s;
@@ -200,8 +199,7 @@ const stars = [1, 2, 3, 4, 5];
   .fbx-submit {
     display: inline-flex; align-items: center; gap: 0.55rem;
     font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.9rem;
-    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
-    color: var(--ink, #05070d); background: var(--accent); border: 1px solid var(--accent);
+    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;color:var(--ink, var(--ink)); background: var(--accent); border: 1px solid var(--accent);
     padding: 0.82rem 1.6rem; transition: filter 0.15s, opacity 0.15s;
   }
   .fbx-submit:hover { filter: brightness(1.08); }
@@ -215,7 +213,7 @@ const stars = [1, 2, 3, 4, 5];
   .fbx-done { text-align: center; padding: 1.8rem 0.5rem; }
   .fbx-done__mark {
     width: 66px; height: 66px; margin: 0 auto 1.2rem; border-radius: 50%;
-    display: grid; place-items: center; color: var(--ink, #05070d); background: var(--accent-2);
+    display: grid; place-items: center;color:var(--ink, var(--ink)); background: var(--accent-2);
     box-shadow: 0 0 44px color-mix(in srgb, var(--accent-2) 45%, transparent);
   }
   .fbx-done h2 {
@@ -230,6 +228,9 @@ const stars = [1, 2, 3, 4, 5];
     transition: border-color 0.15s, background-color 0.15s;
   }
   .fbx-done__again:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .fbx-input:user-invalid, .fbx-textarea:user-invalid{border-color:#c84248}
+:root[data-theme="light"] .fbx-status{color:#a2172b}
 </style>
 
 <script is:inline>

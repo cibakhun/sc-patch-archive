@@ -35,6 +35,11 @@
     "verify:items": "node scripts/verify-item-prices.mjs",
     "sync:refinery": "node scripts/fetch-uex-commodities.mjs && node scripts/build-refinery-data.mjs",
     "build:refinery-data": "node scripts/build-refinery-data.mjs",
+    "build:light-palettes": "node scripts/build-light-palettes.mjs",
+    "sync:style-blocks": "node scripts/sync-style-blocks.mjs",
+    "build:light-overrides": "node scripts/build-light-overrides.mjs",
+    "tokenize:theme": "node scripts/tokenize-theme-colors.mjs",
+    "theme": "node scripts/build-light-palettes.mjs && node scripts/tokenize-theme-colors.mjs && node scripts/build-light-overrides.mjs",
     "audit:site": "node scripts/audit-site.mjs",
     "test:e2e": "node --test tests/e2e/**/*.test.js"
   },

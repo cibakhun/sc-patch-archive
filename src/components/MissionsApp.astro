@@ -268,9 +268,8 @@ const cards = missions.map((m: Mission) => {
     background: url('/assets/t-tsg-4.jpg') center 38% / cover no-repeat; animation: mxKb 40s ease-in-out infinite alternate;
   }
   .mx__hero::after {
-    content: ""; position: absolute; inset: 0; z-index: 1; background:
-      linear-gradient(90deg, rgba(9, 8, 6, .95) 0%, rgba(9, 8, 6, .7) 46%, rgba(9, 8, 6, .18) 100%),
-      linear-gradient(180deg, rgba(9, 8, 6, .6), transparent 30%, rgba(9, 8, 6, .5) 62%, var(--bg) 99%);
+    content: ""; position: absolute; inset: 0; z-index: 1;background:linear-gradient(90deg, var(--veil-2) 0%, var(--veil-2) 46%, var(--veil) 100%),
+      linear-gradient(180deg, var(--veil-2), transparent 30%, var(--veil) 62%, var(--bg) 99%);
   }
   @keyframes mxKb { from { transform: scale(1); } to { transform: scale(1.07); } }
   @media (prefers-reduced-motion: reduce) { .mx__hero::before { animation: none; } }
@@ -281,10 +280,8 @@ const cards = missions.map((m: Mission) => {
   }
   .mx__h1 {
     font-family: var(--font-display); font-size: clamp(2.4rem, 7vw, 5rem); line-height: .95; font-weight: 900;
-    letter-spacing: -.01em; margin-bottom: .8rem;
-    background: linear-gradient(180deg, #fff 0%, #ffd79a 58%, var(--accent) 100%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    filter: drop-shadow(0 3px 18px rgba(0, 0, 0, .8));
+    letter-spacing: -.01em; margin-bottom: .8rem;background:linear-gradient(180deg, var(--title-hi) 0%, #ffd79a 58%, var(--accent) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;filter:drop-shadow(0 3px 18px var(--shadow-color));
   }
   .mx__lead { max-width: 62ch; color: var(--muted); font-size: clamp(.98rem, 1.6vw, 1.12rem); }
   .mx__stats { display: flex; flex-wrap: wrap; gap: 1.6rem 2.6rem; margin-top: 1.6rem; }
@@ -332,7 +329,7 @@ const cards = missions.map((m: Mission) => {
     border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
     transition: border-color .18s, transform .18s, box-shadow .18s;
   }
-  .mc:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 10px 34px rgba(0, 0, 0, .45); }
+  .mc:hover { border-color: var(--accent); transform: translateY(-2px);box-shadow:0 10px 34px var(--shadow-color); }
   .mc__link { display: flex; flex-direction: column; gap: .55rem; padding: 1rem 1.05rem 1.1rem; height: 100%; }
   .mc__top { display: flex; align-items: baseline; gap: .6rem; }
   .mc__h {
@@ -393,4 +390,7 @@ const cards = missions.map((m: Mission) => {
     .mx__f { min-width: 100%; }
     .mx__count { margin-left: 0; }
   }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .mc__chip--il{color:#982d1d;border-color:rgba(199,70,42,.58)}
+:root[data-theme="light"] .mc__chip--guild{color:#1c6656;border-color:rgba(71,133,117,.52)}
 </style>

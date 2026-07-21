@@ -267,13 +267,13 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
   }
   .rfd-job__ores { display: flex; flex-wrap: wrap; gap: 0.35rem 0.5rem; margin-bottom: 0.8rem; }
   .rfd-orepill {
-    font-size: 0.82rem; color: var(--text); background: rgba(0,0,0,0.3);
+    font-size: 0.82rem; color: var(--text);background:var(--veil);
     border: 1px solid var(--line-soft); padding: 0.2rem 0.55rem; font-variant-numeric: tabular-nums;
   }
   .rfd-orepill b { color: var(--accent); font-weight: 700; }
   .rfd-orepill span { color: var(--muted); }
   /* Fortschritt */
-  .rfd-prog { height: 8px; background: rgba(0,0,0,0.4); border: 1px solid var(--line-soft); overflow: hidden; margin-bottom: 0.6rem; }
+  .rfd-prog { height: 8px;background:var(--veil); border: 1px solid var(--line-soft); overflow: hidden; margin-bottom: 0.6rem; }
   .rfd-prog__bar { height: 100%; width: 0%; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 55%, transparent), var(--accent)); transition: width 0.9s linear; }
   .rfd-job.is-ready .rfd-prog__bar { background: var(--accent); }
   .rfd-job__meta { display: flex; align-items: baseline; justify-content: space-between; gap: 0.8rem 1.4rem; flex-wrap: wrap; }
@@ -305,7 +305,7 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
   .rfd-dur { display: flex; align-items: center; gap: 0.5rem; }
   .rfd-dur .rfd-num { max-width: 5rem; }
   .rfd-durlbl { font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-  .rfd-preview { display: flex; flex-wrap: wrap; gap: 0.8rem 2rem; margin-top: 1.6rem; padding: 1rem 1.1rem; border: 1px solid var(--line-soft); background: rgba(0,0,0,0.25); }
+  .rfd-preview { display: flex; flex-wrap: wrap; gap: 0.8rem 2rem; margin-top: 1.6rem; padding: 1rem 1.1rem; border: 1px solid var(--line-soft);background:var(--veil); }
   .rfd-pv { display: flex; flex-direction: column; gap: 0.15rem; }
   .rfd-pv__k { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; }
   .rfd-pv__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1.2rem; color: var(--text); font-variant-numeric: tabular-nums; }
@@ -332,6 +332,12 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
   .rfd-sold { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.4rem; }
   .rfd-sold input { max-width: 8rem; padding: 0.4rem 0.55rem; }
   @media (max-width: 560px) { .rfd-hrow { grid-template-columns: 1fr; } .rfd-hrow__figs { text-align: left; } }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .rfd-tile__v.pos{color:#016b2b}
+:root[data-theme="light"] .rfd-tile__v.neg{color:#a2172b}
+:root[data-theme="light"] .rfd-job.is-ready .rfd-cd{color:#016b2b}
+:root[data-theme="light"] .rfd-ore__rm:hover{color:#a2172b;border-color:rgba(200,66,72,.63)}
+:root[data-theme="light"] .rfd-mini--rm:hover{color:#a2172b;border-color:rgba(200,66,72,.63)}
 </style>
 
 <script>

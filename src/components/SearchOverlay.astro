@@ -69,16 +69,13 @@ const indexUrl = href('/search-index.json', lang);
   }
   .scs__back {
     position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.82);
+    inset: 0;background:var(--veil-2);
     backdrop-filter: blur(5px);
   }
   .scs__panel {
     position: relative;
     max-width: 660px;
-    margin: 11vh auto 0;
-    background: var(--bg-2, #0a0e18);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
+    margin: 11vh auto 0;background:var(--bg-2, var(--veil-2));border:1px solid var(--line, var(--line-soft));
     border-top: 2px solid var(--accent, #2dd4ff);
     clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
   }
@@ -86,8 +83,7 @@ const indexUrl = href('/search-index.json', lang);
     display: flex;
     align-items: center;
     gap: 0.7rem;
-    padding: 0.9rem 1.1rem;
-    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    padding: 0.9rem 1.1rem;border-bottom:1px solid var(--line, var(--line-soft));
   }
   .scs__prompt {
     font-family: var(--font-ui, sans-serif);
@@ -123,9 +119,7 @@ const indexUrl = href('/search-index.json', lang);
     color: var(--muted, #8a99b8);
     opacity: 0.7;
   }
-  .scs__x {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.2));
+  .scs__x {background:var(--veil);border:1px solid var(--line, var(--line-soft));
     border-radius: 1px;
     color: var(--muted, #8a99b8);
     font-family: var(--font-ui, sans-serif);
@@ -168,11 +162,9 @@ const indexUrl = href('/search-index.json', lang);
     align-items: center;
     column-gap: 0.9rem;
     row-gap: 0.1rem;
-    padding: 0.7rem 0.85rem 0.7rem 0.75rem;
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+    padding: 0.7rem 0.85rem 0.7rem 0.75rem;border:1px solid var(--line, var(--line-soft));
     border-left: 3px solid transparent;
-    border-radius: 3px;
-    background: color-mix(in srgb, var(--surface, #0f1524) 55%, transparent);
+    border-radius: 3px;background:color-mix(in srgb, var(--surface, var(--veil-2)) 55%, transparent);
     cursor: pointer;
     scroll-margin: 0.5rem;
     transition: background-color 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
@@ -180,14 +172,12 @@ const indexUrl = href('/search-index.json', lang);
   /* hover AND keyboard selection share one unmistakable highlighted state —
      kept as two self-contained rules (not a shared selector list) so the
      keyboard `.sel` row always gets the full highlight, not just part of it */
-  .scs__hit:hover {
-    background: color-mix(in srgb, var(--c) 16%, var(--surface, #0f1524)) !important;
+  .scs__hit:hover {background:color-mix(in srgb, var(--c) 16%, var(--surface, var(--veil-2))) !important;
     border-color: color-mix(in srgb, var(--c) 45%, transparent) !important;
     border-left-color: var(--c) !important;
     transform: translateX(2px);
   }
-  .scs__hit.sel {
-    background: color-mix(in srgb, var(--c) 18%, var(--surface, #0f1524)) !important;
+  .scs__hit.sel {background:color-mix(in srgb, var(--c) 18%, var(--surface, var(--veil-2))) !important;
     border-color: color-mix(in srgb, var(--c) 45%, transparent) !important;
     border-left-color: var(--c) !important;
     transform: translateX(2px);
@@ -296,9 +286,7 @@ const indexUrl = href('/search-index.json', lang);
     display: flex;
     gap: 1.4rem;
     justify-content: flex-end;
-    padding: 0.55rem 1.1rem;
-    border-top: 1px solid var(--line, rgba(255, 255, 255, 0.14));
-    background: rgba(0, 0, 0, 0.25);
+    padding: 0.55rem 1.1rem;border-top:1px solid var(--line, var(--line-soft));background:var(--veil);
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
     font-size: 0.78rem;
@@ -311,9 +299,7 @@ const indexUrl = href('/search-index.json', lang);
     font-weight: 700;
     font-size: 0.72rem;
     letter-spacing: 0.08em;
-    color: var(--muted, #8a99b8);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.2));
-    background: rgba(0, 0, 0, 0.3);
+    color: var(--muted, #8a99b8);border:1px solid var(--line, var(--line-soft));background:var(--veil);
     padding: 0.08rem 0.4rem;
     border-radius: 1px;
   }
@@ -335,6 +321,10 @@ const indexUrl = href('/search-index.json', lang);
       column-gap: 0.7rem;
     }
   }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .scs__hit--mission{--c:#794d01}
+:root[data-theme="light"] .scs__hit--feature{--c:#046945}
+:root[data-theme="light"] .scs__hit--event{--c:#903a00}
 </style>
 
 <script is:inline>
