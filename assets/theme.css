@@ -38,71 +38,16 @@
 :root { color-scheme: dark; }
 :root[data-theme='light'] { color-scheme: light; }
 
-/* Prevent scrollbar layout shift globally across all modals and pages */
-html {
-  scrollbar-gutter: stable;
+/* Completely hide side scrollbar visually while keeping full scrollability */
+html, body, * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-/* ============================================================
-   HIGH-END SCI-FI / CYBER HUD SCROLLBAR DESIGN (Chromium / WebKit)
-   ============================================================ */
 ::-webkit-scrollbar {
-  width: 11px;
-  height: 11px;
-}
-
-::-webkit-scrollbar-track {
-  background: color-mix(in srgb, var(--chrome-solid, #05070d) 92%, #000);
-  border-left: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 18%, transparent);
-  background-image: 
-    linear-gradient(180deg, 
-      transparent 0, 
-      transparent 9px, 
-      color-mix(in srgb, var(--accent, #2dd4ff) 25%, transparent) 9px, 
-      color-mix(in srgb, var(--accent, #2dd4ff) 25%, transparent) 11px);
-  background-size: 100% 12px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, 
-    #ffffff 0%, 
-    var(--accent, #2dd4ff) 35%, 
-    color-mix(in srgb, var(--accent, #2dd4ff) 75%, #05070d) 70%, 
-    var(--accent, #2dd4ff) 100%);
-  border: 1px solid var(--accent, #2dd4ff);
-  box-shadow: 
-    0 0 12px color-mix(in srgb, var(--accent, #2dd4ff) 60%, transparent),
-    inset 0 0 4px #ffffff;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, 
-    #ffffff 0%, 
-    var(--accent, #2dd4ff) 50%, 
-    #ffffff 100%);
-  box-shadow: 
-    0 0 20px var(--accent, #2dd4ff),
-    0 0 6px #ffffff,
-    inset 0 0 6px #ffffff;
-}
-
-::-webkit-scrollbar-thumb:active {
-  background: #ffffff;
-  box-shadow: 
-    0 0 28px var(--accent, #2dd4ff),
-    0 0 10px #ffffff;
-}
-
-::-webkit-scrollbar-corner {
-  background: #05070d;
-}
-
-/* Firefox Fallback */
-@supports not selector(::-webkit-scrollbar) {
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--accent, #2dd4ff) #05070d;
-  }
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ============================================================
