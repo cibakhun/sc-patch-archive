@@ -328,6 +328,9 @@ const confirmRedirect = loginHref + '?confirmed=1';
           </div>
           <div id="rsiVerifiedStatus" class="rsi-verified-indicator" hidden>
             <span>✓ {COPY.rsiVerifiedText}</span>
+            <button type="button" id="btnResetRsiVerify" style="margin-left:0.8rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.8rem;text-decoration:underline">
+              (Verifizierung aufheben)
+            </button>
           </div>
         </div>
 
@@ -1070,8 +1073,9 @@ const confirmRedirect = loginHref + '?confirmed=1';
         const rsiLink = document.getElementById('pcLinkRsi') as HTMLAnchorElement;
         const rsiVerifyIndicator = document.getElementById('rsiVerifiedStatus')!;
 
-        rsiBadge.hidden = !profileState.rsi_verified;
-        if (rsiVerifyIndicator) rsiVerifyIndicator.hidden = !profileState.rsi_verified;
+        const isVerified = !!(profileState.rsi_verified && rsiHandle);
+        rsiBadge.hidden = !isVerified;
+        if (rsiVerifyIndicator) rsiVerifyIndicator.hidden = !isVerified;
 
         if (rsiHandle) {
           rsiLink.href = `https://robertsspaceindustries.com/citizens/${encodeURIComponent(rsiHandle)}`;
@@ -1229,10 +1233,25 @@ const confirmRedirect = loginHref + '?confirmed=1';
           }
         } catch (err: any) {
           rsiVerifyMsg.textContent = (lang === 'de' ? 'Fehler bei der Prüfung: ' : 'Verification error: ') + (err.message || err);
-          rsiVerifyMsg.className = 'acx-status acx-status--err';
-          btnCheckRsiNow.disabled = false;
-        }
       });
+
+      // Reset RSI Verification Handler
+      const btnResetRsiVerify = document.getElementById('btnResetRsiVerify');
+      if (btnResetRsiVerify) {
+        btnResetRsiVerify.addEventListener('click', async () => {
+          profileState.rsi_verified = false;
+          updateCard();
+
+          if (sess && sess.user) {
+            await supabase.from('profiles').update({
+              rsi_verified: false,
+              updated_at: new Date().toISOString()
+            }).eq('id', sess.user.id);
+          }
+          try { localStorage.removeItem(localKey); } catch (e) {}
+          show(pfStatus as HTMLElement, lang === 'de' ? 'RSI-Verifizierung wurde zurückgesetzt.' : 'RSI verification reset.');
+        });
+      }
 
       // Save Profile Form
       const pfForm = document.getElementById('profileForm') as HTMLFormElement;
