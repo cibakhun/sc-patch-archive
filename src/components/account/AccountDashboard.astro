@@ -1274,7 +1274,18 @@ const confirmRedirect = loginHref + '?confirmed=1';
               updated_at: new Date().toISOString()
             }).eq('id', user.id);
           }
-          try { localStorage.removeItem(localKey); } catch (e) {}
+
+          try {
+            const saved = localStorage.getItem(localKey);
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              parsed.rsi_verified = false;
+              localStorage.setItem(localKey, JSON.stringify(parsed));
+            } else {
+              localStorage.removeItem(localKey);
+            }
+          } catch (e) {}
+
           show(pfStatus as HTMLElement, lang === 'de' ? 'RSI-Verifizierung wurde zurückgesetzt.' : 'RSI verification reset.');
         });
       }
