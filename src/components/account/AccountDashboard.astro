@@ -1225,12 +1225,12 @@ const confirmRedirect = loginHref + '?confirmed=1';
             profileState.rsi_handle = rsiHandle;
 
             // Persist immediately to Supabase
-            if (sess && sess.user) {
+            if (user) {
               await supabase.from('profiles').update({
                 rsi_handle: rsiHandle,
                 rsi_verified: true,
                 updated_at: new Date().toISOString()
-              }).eq('id', sess.user.id);
+              }).eq('id', user.id);
             }
 
             rsiVerifyMsg.textContent = '✓ ' + (lang === 'de' ? 'RSI Account erfolgreich verifiziert!' : 'RSI Account verified successfully!');
@@ -1268,11 +1268,11 @@ const confirmRedirect = loginHref + '?confirmed=1';
           profileState.rsi_verified = false;
           updateCard();
 
-          if (sess && sess.user) {
+          if (user) {
             await supabase.from('profiles').update({
               rsi_verified: false,
               updated_at: new Date().toISOString()
-            }).eq('id', sess.user.id);
+            }).eq('id', user.id);
           }
           try { localStorage.removeItem(localKey); } catch (e) {}
           show(pfStatus as HTMLElement, lang === 'de' ? 'RSI-Verifizierung wurde zurückgesetzt.' : 'RSI verification reset.');
