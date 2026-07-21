@@ -1,0 +1,272 @@
+---
+// Patch archive hub — the whole page body, rendered once for both languages.
+// The DE and EN routes are thin wrappers that only supply <Layout> metadata;
+// every string here comes from the i18n catalog and every fact from the patch
+// collection via buildArchive(), so the two outputs can never drift apart.
+import { getCollection } from 'astro:content';
+import SiteNav from './SiteNav.astro';
+import { buildArchive } from '../lib/archive';
+import { localeFromPath, useTranslations, href } from '../i18n/ui';
+
+const lang = localeFromPath(Astro.url.pathname);
+const t = useTranslations(lang);
+const L = (p: string) => href(p, lang);
+const a = buildArchive(await getCollection('patches'), lang);
+
+/** t() with %placeholders% filled in */
+const tf = (key: Parameters<typeof t>[0], vars: Record<string, string | number>) =>
+  Object.entries(vars).reduce((s, [k, v]) => s.replace(`%${k}%`, String(v)), t(key));
+
+const dives = (n: number) => tf(n === 1 ? 'arch.deepdive' : 'arch.deepdives', { n });
+---
+
+{/* Runs while the document is still parsing, so the reveal styles are armed
+    before the timeline exists — no flash, and no blank page if archive.js
+    never arrives (see the .js gate in archive.css). */}
+<script is:inline>document.documentElement.classList.add('js');</script>
+
+<a class="skip" href="#main">{lang === 'de' ? 'Zum Inhalt springen' : 'Skip to content'}</a>
+
+<canvas id="dust" aria-hidden="true"></canvas>
+<div class="wash" aria-hidden="true"></div>
+<div class="veil" aria-hidden="true"></div>
+
+<SiteNav
+  crumbs={[{ label: 'VerseBase', href: L('/index.html') }, { label: t('nav.archive') }]}
+  hasEn={true}
+/>
+
+<main id="main">
+  <!-- ── Masthead ─────────────────────────────────────────────────────── -->
+  <header class="mast">
+    <p class="mast__eyebrow" set:html={t('arch.eyebrow')} />
+    <h1><span class="thin">{t('arch.titleThin')}</span>{t('arch.title')}</h1>
+    <p class="mast__lead">{t('arch.lead')}</p>
+
+    {/* Release ribbon — ticks sit at their true position in time, so the
+        cadence of the era is legible before any card is read. */}
+    <nav class="ribbon" aria-label={t('arch.ribbon.aria')}>
+      <div class="ribbon__scale">
+        {a.eras.map((era) => (
+          <span
+            class="ribbon__band"
+            style={`--from:${era.from.toFixed(2)}%;--to:${era.to.toFixed(2)}%;--c:${era.accent}`}
+            aria-hidden="true"
+          />
+        ))}
+        {a.entries.map((e) => (
+          <a
+            class:list={['ribbon__tick', { 'is-major': e.type === 'major', 'is-latest': e.isLatest }]}
+            style={`--x:${(e.t * 100).toFixed(2)}%;--c:${e.accent}`}
+            href={`#p-${e.anchor}`}
+            data-label={`${e.version} · ${e.codename}`}
+          >
+            <span class="sr">{`Alpha ${e.version} — ${e.codename}, ${e.dateDisplay}`}</span>
+          </a>
+        ))}
+      </div>
+      <p class="ribbon__axis">
+        <span>{a.ribbon.startLabel}</span>
+        <span class="ribbon__hint">{t('arch.ribbon.hint')}</span>
+        <span>{a.ribbon.endLabel}</span>
+      </p>
+    </nav>
+
+    <dl class="stats">
+      <div class="stat">
+        <dd class="stat__n count" data-to={a.stats.patches}>{a.stats.patches}</dd>
+        <dt class="stat__l">{t('arch.stat.patches')}</dt>
+      </div>
+      <div class="stat">
+        <dd class="stat__n count" data-to={a.stats.majors}>{a.stats.majors}</dd>
+        <dt class="stat__l">{t('arch.stat.majors')}</dt>
+      </div>
+      <div class="stat">
+        <dd class="stat__n count" data-to={a.stats.topics}>{a.stats.topics}</dd>
+        <dt class="stat__l">{t('arch.stat.topics')}</dt>
+      </div>
+      <div class="stat">
+        <dd class="stat__n count" data-to={a.stats.days}>{a.stats.days}</dd>
+        <dt class="stat__l">{t('arch.stat.days')}</dt>
+      </div>
+    </dl>
+  </header>
+
+  <!-- ── Control bar ──────────────────────────────────────────────────── -->
+  <div class="cbar">
+    <div class="cbar__in">
+      <p class="cbar__era">
+        <span class="cbar__dot" aria-hidden="true"></span>
+        <span class="sr">{t('arch.here')}:</span>
+        <span id="eraNow">{a.eras[0]?.label}</span>
+      </p>
+
+      <div class="cbar__search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"
+          ><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg
+        >
+        <label class="sr" for="q">{t('arch.filter.label')}</label>
+        <input id="q" type="search" autocomplete="off" placeholder={t('arch.filter.placeholder')} />
+        <button id="qx" class="cbar__x" type="button" hidden aria-label={t('arch.filter.clear')}>×</button>
+      </div>
+
+      <div class="cbar__chips" role="group" aria-label={t('arch.filter.label')}>
+        <button class="chipbtn" type="button" data-type="all" aria-pressed="true">{t('arch.filter.all')}</button>
+        <button class="chipbtn" type="button" data-type="major" aria-pressed="false">{t('arch.filter.major')}</button>
+        <button class="chipbtn" type="button" data-type="point" aria-pressed="false">{t('arch.filter.point')}</button>
+      </div>
+
+      <output
+        id="count"
+        class="cbar__count"
+        data-tpl={t('arch.filter.count')}
+        aria-live="polite"
+        set:text={tf('arch.filter.count', { n: a.stats.patches, t: a.stats.patches })}
+      />
+    </div>
+  </div>
+
+  <!-- ── 01 · Timeline ────────────────────────────────────────────────── -->
+  <section class="sec sec--tight" id="timeline">
+    <div class="sec__head reveal">
+      <span class="sec__num">01</span>
+      <h2>{t('arch.sec.timeline')}</h2>
+      <span class="sec__rule"></span>
+      <span class="sec__tag">{a.stats.patches} {t('arch.versions')}</span>
+    </div>
+
+    {a.eras.map((era, ei) => (
+      <div
+        class="era"
+        id={`era-${ei}`}
+        style={`--era:${era.accent}`}
+        data-accent={era.accent}
+        data-accent2={era.accent2}
+        data-label={era.label}
+      >
+        <div class="era__head">
+          <span class="era__no">{String(ei + 1).padStart(2, '0')}</span>
+          <h3 class="era__name">{era.label}</h3>
+          <span class="era__range">{era.range}</span>
+          <span class="era__count">
+            {era.entries.length} {era.entries.length === 1 ? t('arch.entry') : t('arch.entries')}
+          </span>
+        </div>
+
+        {era.entries.map((e) => (
+          <article
+            class:list={['ent', `ent--${e.type}`, { 'ent--latest': e.isLatest }]}
+            id={`p-${e.anchor}`}
+            style={`--c:${e.accent}`}
+            data-type={e.type}
+            data-search={e.search}
+          >
+            <p class="ent__when">
+              <span class="ent__day">{e.day}</span>
+              <time class="ent__my" datetime={e.date}>{e.dateShort}</time>
+            </p>
+
+            <div class="ent__node" aria-hidden="true"><i></i><b></b></div>
+
+            <div class="ent__card">
+              <div class:list={['card', `card--${e.type}`]}>
+                {e.art && (
+                  <>
+                    <div class="card__art" style={`--art:url('${e.art}')`}></div>
+                    <div class="card__scrim"></div>
+                  </>
+                )}
+                <div class="card__body">
+                  <p class="card__top">
+                    <span class="card__ver">{e.version}</span>
+                    <span class="chip chip--major" set:text={t(e.type === 'major' ? 'arch.badge.major' : 'arch.badge.point')} />
+                    {e.isLatest && <span class="chip chip--latest">{t('arch.badge.latest')}</span>}
+                  </p>
+                  <h4 class="card__name">
+                    <a href={e.href} aria-label={tf('arch.openAria', { v: e.version })}>{e.codename}</a>
+                  </h4>
+                  <p class="card__tag">{e.tagline}</p>
+                  <p class="card__foot">
+                    <span class="card__go">{t('arch.open')} <span class="ar" aria-hidden="true">→</span></span>
+                    {e.topics.length > 0 && (
+                      <span class="card__dives">
+                        {e.topics.map((tp) => (
+                          <a class="dive" href={tp.href}>{tp.title}</a>
+                        ))}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    ))}
+
+    <div class="empty" id="empty">
+      <p>{t('arch.filter.empty')}</p>
+      <button id="reset" type="button">{t('arch.filter.emptyHint')}</button>
+    </div>
+  </section>
+
+  <!-- ── 02 · Key topics ──────────────────────────────────────────────── -->
+  <section class="sec">
+    <div class="sec__head reveal">
+      <span class="sec__num">02</span>
+      <h2>{t('arch.sec.key')}</h2>
+      <span class="sec__rule"></span>
+    </div>
+    <div class="kt reveal">
+      {a.keyTopics.map((k, i) => (
+        <article class="ktc" style={`--c:${k.accent}`}>
+          <span class="ktc__n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          <div>
+            <h3 class="ktc__t"><a href={k.href}>{k.title}</a></h3>
+            <p class="ktc__v">Alpha {k.version}</p>
+            <p class="ktc__d">{k.desc}</p>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- ── 03 · All topics ──────────────────────────────────────────────── -->
+  <section class="sec" id="themen">
+    <div class="sec__head reveal">
+      <span class="sec__num">03</span>
+      <h2>{t('arch.sec.all')}</h2>
+      <span class="sec__rule"></span>
+      <span class="sec__tag">{dives(a.stats.topics)}</span>
+    </div>
+    <div class="tgroups reveal">
+      {a.topicGroups.map((g) => (
+        <div class="tgroup" style={`--c:${g.accent}`}>
+          <div class="tgroup__h">
+            <span class="tgroup__sw" aria-hidden="true"></span>
+            <h3 class="tgroup__l">Alpha {g.line}.x</h3>
+            <span class="tgroup__n">
+              {g.topics.length} {g.topics.length === 1 ? t('arch.entry') : t('arch.entries')}
+            </span>
+          </div>
+          <div class="trows">
+            {g.topics.map((tp) => (
+              <a class="trow" href={tp.href} data-search={`${tp.title} ${tp.version}`.toLowerCase()}>
+                <span>{tp.title}</span>
+                <span class="trow__v">{tp.version}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+</main>
+
+<a class="totop" id="totop" href="#main" aria-label={t('arch.toTop')}>
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"
+    ><path d="M12 19V5M5 12l7-7 7 7"></path></svg
+  >
+</a>
+
+<script is:inline src="/assets/archive.js" defer></script>
