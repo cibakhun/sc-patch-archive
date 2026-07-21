@@ -38,6 +38,31 @@
 :root { color-scheme: dark; }
 :root[data-theme='light'] { color-scheme: light; }
 
+/* Prevent scrollbar layout shift globally across all modals and pages */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Custom Cyber Scrollbars — replaces thick default browser scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent, #2dd4ff) 25%, rgba(255, 255, 255, 0.15));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent, #2dd4ff);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent, #2dd4ff) 25%, rgba(255, 255, 255, 0.15)) transparent;
+}
+
 /* ============================================================
    1 + 2 — DUNKEL
 

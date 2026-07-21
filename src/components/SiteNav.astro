@@ -760,6 +760,10 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   /* ============================================================
      Menü-Overlay — High-End Custom Radial Morphing Reveal
      ============================================================ */
+  :global(html.is-deck-open) {
+    overflow: hidden !important;
+    scrollbar-gutter: stable;
+  }
   .snav-deck {
     position: fixed;
     inset: 0;
@@ -1466,13 +1470,13 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       // nie (rAF kann in gedrosselten/eingebetteten Views ausbleiben).
       void deck.offsetHeight;
       deck.classList.add('is-open');
-      document.documentElement.style.overflow = 'hidden';
+      document.documentElement.classList.add('is-deck-open');
       btn.setAttribute('aria-expanded', 'true');
     }
 
     function closeDeck() {
       deck.classList.remove('is-open');
-      document.documentElement.style.overflow = '';
+      document.documentElement.classList.remove('is-deck-open');
       btn.setAttribute('aria-expanded', 'false');
       setTimeout(function () { deck.hidden = true; }, 380);
       if (lastFocus && lastFocus.focus) lastFocus.focus();
