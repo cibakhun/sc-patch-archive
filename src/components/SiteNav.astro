@@ -307,19 +307,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   <div class="snav-deck__ring" aria-hidden="true"></div>
   <div class="snav-deck__back" data-deck-close></div>
   <div class="snav-deck__frame">
-    <header class="snav-deck__head">
-      <a class="snav-deck__brand" href={L('/index.html')} aria-label={t('nav.home.aria')}>
-        <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="32" cy="32" r="6" fill="currentColor"/></svg>
-        <span class="snav-deck__wordmark">Verse·Base</span>
-      </a>
-      <p class="snav-deck__status">
-        <span class="snav-deck__pulse" aria-hidden="true"></span>
-        <span>Live</span>
-        <b>{latestPatch.data.version}</b>
-        <span class="snav-deck__codename">{latestPatch.data.codename}</span>
-      </p>
-    </header>
-
     <div class="snav-deck__body">
       <!-- Bühne: wird per JS aus der aktiven Zeile gefüllt (aria-hidden, weil
            sie den Inhalt der Liste nur wiederholt — Screenreader lesen die
@@ -875,7 +862,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     width: min(1240px, 100%);
     height: 100%;
     margin: 0 auto;
-    padding: clamp(1rem, 3vh, 1.9rem) clamp(1.1rem, 4vw, 2.6rem);
+    padding: clamp(4.5rem, 7vh, 5.5rem) clamp(1.1rem, 4vw, 2.6rem) clamp(1rem, 3vh, 1.9rem);
     overflow-y: auto;
     opacity: 0;
     transform: perspective(1000px) rotateX(2deg) translateY(-8px) scale(0.97);
@@ -884,18 +871,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav-deck.is-open .snav-deck__frame {
     opacity: 1;
     transform: perspective(1000px) rotateX(0deg) translateY(0) scale(1);
-  }
-
-  .snav-deck__frame {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    width: min(1240px, 100%);
-    height: 100%;
-    margin: 0 auto;
-    padding: clamp(1rem, 3vh, 1.9rem) clamp(1.1rem, 4vw, 2.6rem);
-    overflow-y: auto;
   }
 
   /* ---- Kopf: Marke | Live-Status | Schließen ---- */
