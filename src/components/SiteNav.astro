@@ -460,6 +460,23 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     color: var(--accent, #2dd4ff);
     flex: none;
   }
+  /* Glyphen wie eine technische Zeichnung: dünner Strich, gerade Enden,
+     spitze Ecken. Die dicken runden Konturen davor lasen als Spiel-HUD von
+     der Stange. Als CSS gesetzt, nicht als Attribut — so bleibt die
+     Wortmarke (eigene Strichstärke) unangetastet.
+     Die Kindelemente müssen mit adressiert werden: ein stroke-width direkt
+     am <path> ist ein Präsentationsattribut und schlägt den vom <svg>
+     geerbten CSS-Wert. */
+  .snav__menu-btn svg,
+  .snav__menu-btn svg *,
+  .snav__search svg,
+  .snav__search svg *,
+  .snav__acct svg,
+  .snav__acct svg * {
+    stroke-width: 1.7;
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+  }
   .snav__right {
     display: flex;
     align-items: center;
@@ -482,11 +499,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     cursor: pointer;
     transition: background-color 0.15s, border-color 0.15s, color 0.15s;
   }
-  /* Suchlabel + Lupe sind dauerhaft blau (Akzent); nur der Tastenkürzel-
-     Hinweis (kbd) bleibt grau. */
-  .snav__search svg,
-  .snav__search span {
-    color: var(--accent, #2dd4ff);
+  /* Der Header trägt GENAU EINEN Akzentpunkt: die Wortmarke. Suche, Konto,
+     Sprache und Menü bleiben im Grauwert und färben sich erst bei Hover,
+     Fokus oder echtem Zustand ein. Vorher leuchtete jedes Element dauerhaft
+     im Akzent — wenn alles leuchtet, führt nichts mehr. */
+  .snav__search svg {
+    color: inherit;
   }
   .snav__search:hover {
     color: var(--accent, #2dd4ff);
@@ -527,11 +545,11 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     border-color: var(--accent, #2dd4ff);
     background: color-mix(in srgb, var(--accent, #2dd4ff) 7%, transparent);
   }
+  /* Eingeloggt: der Name tritt in die Textfarbe, nicht in den Akzent — den
+     Zustand signalisiert bereits der grüne Punkt am Icon. Zwei Signale für
+     dieselbe Information sind eins zu viel. */
   .snav__acct.is-authed {
-    color: var(--accent, #2dd4ff);
-  }
-  .snav__acct.is-authed svg {
-    color: var(--accent, #2dd4ff);
+    color: var(--text, #e8eefc);
   }
   /* Anzeigename statt "Konto" kann lang werden — nicht den Header sprengen */
   .snav__acct .js-nav-acct-txt {
@@ -1038,6 +1056,17 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav-deck__icon svg {
     width: 17px;
     height: 17px;
+  }
+  /* gleiche Zeichenregel wie die Header-Glyphen — ein Set, keine zwei Stile */
+  .snav-deck__icon svg,
+  .snav-deck__icon svg *,
+  .snav-deck__close svg,
+  .snav-deck__close svg *,
+  .snav-deck__stagego svg,
+  .snav-deck__stagego svg * {
+    stroke-width: 1.7;
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
   }
   .snav-deck__row:hover .snav-deck__icon,
   .snav-deck__row:focus-visible .snav-deck__icon,
