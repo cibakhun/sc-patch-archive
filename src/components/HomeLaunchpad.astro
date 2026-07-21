@@ -123,16 +123,14 @@ const items = [
     align-items: center;
     gap: 0.6rem;
     height: 100%;
-    padding: 1.15rem 0.6rem 1rem;
-    background: color-mix(in srgb, var(--surface, #0f1524) 82%, transparent);
+    padding: 1.15rem 0.6rem 1rem;background:color-mix(in srgb, var(--surface, var(--veil-2)) 82%, transparent);
     border: 1px solid var(--line, rgba(110, 168, 255, 0.16));
     border-radius: 6px;
     transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
   }
   .lp__tile:hover {
     transform: translateY(-4px);
-    border-color: var(--accent, #2dd4ff);
-    background: color-mix(in srgb, var(--accent, #2dd4ff) 8%, var(--surface, #0f1524));
+    border-color: var(--accent, #2dd4ff);background:color-mix(in srgb, var(--accent, #2dd4ff) 8%, var(--surface, var(--veil-2)));
     box-shadow: 0 14px 34px -16px var(--accent, #2dd4ff);
   }
   .lp__ic {
@@ -219,8 +217,7 @@ const items = [
       opacity: 1;
       transition: none;
     }
-  }
-</style>
+  }</style>
 
 <script is:inline>
   (function () {

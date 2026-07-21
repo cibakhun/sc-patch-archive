@@ -108,13 +108,14 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
       --ink: #05090c;
       --maxw: 1240px;
     }
+    /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+    :root[data-theme="light"]{--bg:#f0f9ff;--bg-2:#e5eff8;--surface:#fcfeff;--surface-2:#eaf4fb;--text:#1a2024;--muted:#465c67;--accent:#05657c;--accent-2:#01654d;--hot:#9e030d;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#5ff0c4;--line:rgba(43,125,148,.3);--line-soft:rgba(40,47,51,.12);--glow:0 6px 22px rgba(43,125,148,.18)}
+
     /* Hero title: bright teal fill without the dark gradient end the shared
        detail.css applies (accent×#000 goes near-black in teal) + shadow for the
        photo behind it. Mirrors the Mining readability fix. */
-    .hero h1 {
-      background: linear-gradient(180deg, #fff, #7fe8ff 58%, var(--accent));
-      -webkit-background-clip: text; background-clip: text;
-      filter: drop-shadow(0 3px 20px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 30px rgba(45, 212, 255, 0.4));
+    .hero h1 {background:linear-gradient(180deg, var(--title-hi), #7fe8ff 58%, var(--accent));
+      -webkit-background-clip: text; background-clip: text;filter:drop-shadow(0 3px 20px var(--on-media-shadow)) drop-shadow(0 0 30px rgba(45, 212, 255, 0.4));
     }
 
     .qbar {
@@ -201,8 +202,8 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
       background: var(--surface); position: relative; overflow: hidden;
       transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
     }
-    .dl:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.8); }
-    .dl__thumb { aspect-ratio: 16 / 10; background: #05090c; overflow: hidden; }
+    .dl:hover { border-color: var(--accent); transform: translateY(-3px);box-shadow:0 12px 30px -14px var(--shadow-color); }
+    .dl__thumb { aspect-ratio: 16 / 10;background:var(--veil-2); overflow: hidden; }
     .dl__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
     .dl:hover .dl__thumb img { transform: scale(1.04); }
     .dl__meta { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.55rem 0.65rem 0.2rem; }
@@ -234,8 +235,7 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
 
     @media (max-width: 560px) {
       .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-    }
-  </style>
+    }</style>
 
   <a class="skip" href="#main">Skip to content</a>
   <div class="cursorglow" aria-hidden="true"></div>

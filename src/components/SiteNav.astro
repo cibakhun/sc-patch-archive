@@ -11,6 +11,7 @@ import { createHash } from 'node:crypto';
 import { getCollection } from 'astro:content';
 import SearchOverlay from './SearchOverlay.astro';
 import LangSwitcher from './LangSwitcher.astro';
+import ThemeToggle from './ThemeToggle.astro';
 import { SITE } from '../consts';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
 
@@ -269,6 +270,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     </a>
   </div>
   <div class="snav__right">
+    <ThemeToggle />
     <LangSwitcher hasEn={hasEn} />
     <a
       class="snav__acct js-nav-acct"
@@ -398,6 +400,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     </div>
 
     <footer class="snav-deck__foot">
+      <ThemeToggle />
       <LangSwitcher hasEn={hasEn} />
       <div class="snav-deck__hints" aria-hidden="true">
         <span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> {t('nav.deck.hint.nav')}</span>
@@ -424,14 +427,11 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 1rem;
-    padding: 0.7rem clamp(1rem, 4vw, 2.5rem);
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.9), transparent);
+    padding: 0.7rem clamp(1rem, 4vw, 2.5rem);background:linear-gradient(180deg, var(--chrome-solid), transparent);
     backdrop-filter: blur(6px);
     transition: background 0.3s;
   }
-  .snav.scrolled {
-    background: rgba(0, 0, 0, 0.95);
-    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+  .snav.scrolled {background:var(--chrome-solid);border-bottom:1px solid var(--line, var(--line-soft));
   }
   /* left = burger + search, center = brand (true visual center regardless of
      how wide the left/right groups are), right = lang + account */
@@ -469,9 +469,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav__search {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
+    gap: 0.45rem;background:var(--veil);border:1px solid var(--line, var(--line-soft));
     color: var(--muted, #8a99b8);
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
@@ -498,9 +496,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     font-weight: 700;
     font-size: 0.72rem;
     letter-spacing: 0.08em;
-    color: var(--muted, #8a99b8);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.2));
-    background: rgba(0, 0, 0, 0.3);
+    color: var(--muted, #8a99b8);border:1px solid var(--line, var(--line-soft));background:var(--veil);
     padding: 0.08rem 0.4rem;
     border-radius: 1px;
   }
@@ -509,9 +505,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav__acct {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
+    gap: 0.45rem;background:var(--veil);border:1px solid var(--line, var(--line-soft));
     color: var(--muted, #8a99b8);
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
@@ -555,8 +549,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #3ddc84;
-    border: 1.5px solid var(--bg, #05070d);
+    background: #3ddc84;border:1.5px solid var(--bg, var(--chrome-solid));
   }
   .js-nav-acct.is-authed .snav__acct-dot {
     display: block;
@@ -581,9 +574,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     color: var(--accent, #2dd4ff);
   }
   .snav__menu-btn[aria-expanded='true'] {
-    color: var(--accent, #2dd4ff);
-    border-color: var(--line, rgba(255, 255, 255, 0.14));
-    background: rgba(0, 0, 0, 0.6);
+    color: var(--accent, #2dd4ff);border-color:var(--line, var(--line-soft));background:var(--veil-2);
   }
   @media (max-width: 860px) {
     .snav__search span,
@@ -635,10 +626,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
   .snav-deck__back {
     position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(90% 70% at 22% 30%, color-mix(in srgb, var(--accent, #2dd4ff) 7%, transparent), transparent 70%),
-      radial-gradient(120% 100% at 50% 0%, rgba(9, 14, 26, 0.94), rgba(1, 2, 5, 0.985));
+    inset: 0;background:radial-gradient(90% 70% at 22% 30%, color-mix(in srgb, var(--accent, #2dd4ff) 7%, transparent), transparent 70%),
+      radial-gradient(120% 100% at 50% 0%, var(--chrome-solid), var(--chrome-solid));
     backdrop-filter: blur(18px) saturate(0.9);
   }
   /* Filmkorn statt flacher Fläche — die Textur ist das, was den Unterschied
@@ -669,8 +658,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     display: flex;
     align-items: center;
     gap: clamp(0.9rem, 3vw, 2rem);
-    padding-bottom: clamp(0.8rem, 1.8vh, 1.2rem);
-    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+    padding-bottom: clamp(0.8rem, 1.8vh, 1.2rem);border-bottom:1px solid var(--line, var(--line-soft));
     opacity: 0;
     animation: deckFade 0.4s ease 0.05s forwards;
   }
@@ -699,8 +687,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     gap: 0.5rem;
     margin: 0;
     margin-right: auto;
-    padding-left: clamp(0.9rem, 3vw, 2rem);
-    border-left: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+    padding-left: clamp(0.9rem, 3vw, 2rem);border-left:1px solid var(--line, var(--line-soft));
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
     font-size: 0.76rem;
     letter-spacing: 0.12em;
@@ -737,8 +724,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     gap: 0.45rem;
     flex: none;
     padding: 0.35rem 0.65rem;
-    background: transparent;
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
+    background: transparent;border:1px solid var(--line, var(--line-soft));
     color: var(--muted, #8a99b8);
     cursor: pointer;
     transition: color 0.16s, border-color 0.16s;
@@ -782,9 +768,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav-deck__shots {
     position: relative;
     aspect-ratio: 16 / 9;
-    overflow: hidden;
-    background: color-mix(in srgb, var(--surface, #0e1626) 70%, #000);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+    overflow: hidden;background:color-mix(in srgb, var(--surface, var(--media-void)) 70%, var(--media-void));border:1px solid var(--line, var(--on-media-line));
     /* angeschrägte Ecke — dieselbe HUD-Sprache wie Suche und Schiffsseiten */
     clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
   }
@@ -812,10 +796,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     content: '';
     position: absolute;
     inset: 0;
-    pointer-events: none;
-    background:
-      linear-gradient(180deg, transparent 35%, rgba(3, 5, 10, 0.55) 100%),
-      radial-gradient(120% 90% at 50% 40%, transparent 40%, rgba(3, 5, 10, 0.5) 100%),
+    pointer-events: none;background:linear-gradient(180deg, transparent 35%, var(--scrim-4) 100%),
+      radial-gradient(120% 90% at 50% 40%, transparent 40%, var(--scrim-3) 100%),
       linear-gradient(140deg, color-mix(in srgb, var(--accent, #2dd4ff) 14%, transparent), transparent 60%);
   }
   .snav-deck__grain {
@@ -933,7 +915,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav-deck__grule {
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, var(--line, rgba(255, 255, 255, 0.16)), transparent);
+    background: linear-gradient(90deg, var(--line, var(--line-soft)), transparent);
   }
   .snav-deck__gcount {
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
@@ -1042,8 +1024,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
   .snav-deck__row .snav__acct-dot {
     top: 2px;
-    right: 2px;
-    border-color: var(--bg, #05070d);
+    right: 2px;border-color:var(--bg, var(--chrome-solid));
   }
 
   /* ---- Fuß ---- */
@@ -1053,13 +1034,11 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
-    padding-top: clamp(0.6rem, 1.4vh, 1rem);
-    border-top: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+    padding-top: clamp(0.6rem, 1.4vh, 1rem);border-top:1px solid var(--line, var(--line-soft));
     opacity: 0;
     animation: deckFade 0.4s ease 0.42s forwards;
   }
-  .snav-deck__foot :global(.langsw) {
-    border-color: var(--line, rgba(255, 255, 255, 0.16));
+  .snav-deck__foot :global(.langsw) {border-color:var(--line, var(--line-soft));
   }
   .snav-deck__hints {
     display: flex;
@@ -1079,8 +1058,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav-deck__hints kbd {
     font-family: inherit;
     font-size: 0.68rem;
-    color: inherit;
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.16));
+    color: inherit;border:1px solid var(--line, var(--line-soft));
     padding: 0.02rem 0.3rem;
   }
 
@@ -1149,8 +1127,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     .snav-deck__row::before {
       transition: none;
     }
-  }
-</style>
+  }</style>
 
 <script is:inline>
   (function () {

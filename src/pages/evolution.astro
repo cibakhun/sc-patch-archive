@@ -48,12 +48,16 @@ const tierOf = (n: number) => (n <= 2 ? '1' : n <= 5 ? '2' : '3');
   --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
   --maxw:1400px;
 }
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e8eef9;--surface:#fdfdff;--surface-2:#edf3fc;--text:#1c1f25;--muted:#4d596c;--accent:#05657c;--accent-2:#0850ad;--gold:#685301;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3);--line-2:rgba(43,125,148,.42)}
+
+
+
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
-::selection{background:var(--accent);color:#04060c}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-</style>
+::selection{background:var(--accent);color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}</style>
 
 <SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Evolution' }]} hasEn={true} />
 
@@ -168,13 +172,12 @@ a{color:inherit;text-decoration:none}
 .evo__head{margin-bottom:1.8rem}
 .evo__kicker{display:inline-flex;align-items:center;gap:.7rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:.74rem;color:var(--accent)}
 .evo__kicker::before{content:"";width:26px;height:1px;background:var(--accent)}
-.evo__head h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2.4rem,6vw,4rem);line-height:.95;margin:.7rem 0 0;letter-spacing:-.02em;
-  background:linear-gradient(180deg,#fff 55%,#c4dae6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.evo__head h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2.4rem,6vw,4rem);line-height:.95;margin:.7rem 0 0;letter-spacing:-.02em;background:linear-gradient(180deg,var(--title-hi) 55%,#c4dae6);-webkit-background-clip:text;background-clip:text;color:transparent}
 .evo__sub{max-width:64ch;color:var(--muted);margin-top:.8rem;font-size:1.05rem}
 .evo__metrics{display:flex;flex-wrap:wrap;gap:.5rem 2.6rem;margin:1.6rem 0 0;padding-top:1.4rem;border-top:1px solid var(--line)}
 .evo__metrics div{display:flex;flex-direction:column;line-height:1.1}
 .evo__metrics dt{order:2;font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:.2rem}
-.evo__metrics dd{order:1;font-family:var(--font-display);font-weight:800;font-size:clamp(1.4rem,2.5vw,1.9rem);color:#fff;font-variant-numeric:tabular-nums}
+.evo__metrics dd{order:1;font-family:var(--font-display);font-weight:800;font-size:clamp(1.4rem,2.5vw,1.9rem);color:var(--text);font-variant-numeric:tabular-nums}
 .evo__legend{display:flex;align-items:center;gap:.7rem 1rem;flex-wrap:wrap;padding:.7rem 1.1rem;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);margin-bottom:1rem;
   font-family:var(--font-ui);font-weight:600;font-size:0.78rem;letter-spacing:.06em;color:var(--muted)}
 .evo__legdot{opacity:.45}
@@ -200,7 +203,7 @@ a{color:inherit;text-decoration:none}
 .evo__sys{position:sticky;left:0;z-index:2;background:var(--bg-2);text-align:left;
   font-family:var(--font-ui);font-weight:700;font-size:0.98rem;color:var(--text);
   padding:.5rem 1rem;border-right:1px solid var(--line-2);white-space:nowrap;transition:background-color .12s,color .12s}
-tbody tr:hover .evo__sys{background:var(--surface);color:#fff}
+tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
 .evo__td{text-align:center;padding:.32rem .28rem}
 .evo__cell{font-family:var(--font-ui);font-weight:700;
   width:2.15rem;height:2.15rem;cursor:pointer;color:var(--c);
@@ -210,18 +213,26 @@ tbody tr:hover .evo__sys{background:var(--surface);color:#fff}
 .evo__cell[data-tier="2"]{background:color-mix(in srgb,var(--c) 26%,transparent);font-size:0.95rem}
 .evo__cell[data-tier="3"]{background:color-mix(in srgb,var(--c) 42%,transparent);font-size:1rem}
 .evo__cell:hover{background:color-mix(in srgb,var(--c) 55%,transparent);border-color:var(--c);transform:translateY(-1px)}
-.evo__cell.sel{background:var(--c);color:#04060c;border-color:var(--c)}
+.evo__cell.sel{background:var(--c);color:var(--ink);border-color:var(--c)}
 .evo__dot{color:var(--muted);opacity:.22}
+/* --c ist die Patch-Akzentfarbe und kommt als style="--c:…" aus den Daten —
+   eine Palette kann sie deshalb nicht überschreiben. Für Papier wird sie hier
+   zur Laufzeit abgedunkelt: Farbton bleibt (jede Ära behält ihre Farbe),
+   Helligkeit wird lesbar. In oklab gemischt, damit der Ton beim Abdunkeln
+   nicht kippt. */
+:root[data-theme="light"] .evo__cell{color:color-mix(in oklab,var(--c) 58%,#000);border-color:color-mix(in oklab,var(--c) 46%,#000)}
+:root[data-theme="light"] .evo__cell.sel{background:color-mix(in oklab,var(--c) 62%,#000);border-color:color-mix(in oklab,var(--c) 62%,#000);color:#fff}
+:root[data-theme="light"] :is(.evo__col,.evo__col a,.evo__era,.edet__sys,.edet__patch){color:color-mix(in oklab,var(--c) 58%,#000)}
 
 .evo__detail{margin-top:1.4rem}
 .edet{border:1px solid var(--line);border-top:2px solid var(--c);border-radius:12px;background:var(--surface);padding:1.4rem 1.6rem 1.5rem}
 .edet__head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.6rem 1.2rem;
   border-bottom:1px solid var(--line);padding-bottom:.6rem;margin-bottom:1rem}
-.edet__sys{font-family:var(--font-display);font-weight:800;font-size:1.05rem;letter-spacing:.02em;color:#fff}
+.edet__sys{font-family:var(--font-display);font-weight:800;font-size:1.05rem;letter-spacing:.02em;color:var(--text)}
 .edet__meta{display:inline-flex;align-items:baseline;gap:1rem}
 .edet__patch{font-family:var(--font-ui);font-weight:700;font-size:0.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);transition:color .15s}
 .edet__patch:hover{color:var(--c)}
-.edet__x{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:1px;color:var(--muted);
+.edet__x{background:var(--veil);border:1px solid var(--line);border-radius:1px;color:var(--muted);
   font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.08em;text-transform:uppercase;
   padding:.14rem .45rem;cursor:pointer;transition:color .15s,border-color .15s}
 .edet__x:hover{color:var(--c);border-color:color-mix(in srgb,var(--c) 55%,transparent)}
@@ -251,8 +262,7 @@ tbody tr:hover .evo__sys{background:var(--surface);color:#fff}
   .evo{padding-top:6.5rem}
   .evo__syshead,.evo__sys{min-width:128px}
   .evo__sys{white-space:normal}
-}
-</style>
+}</style>
 
 <script is:inline>
 (function () {

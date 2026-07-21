@@ -36,8 +36,7 @@ const creditText = credit ?? t('footer.credit');
   {updated && <div class="asof">{t('footer.dataAsOf')}: {updated}</div>}
 </footer>
 <style>
-  .site-attr {
-    border-top: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+  .site-attr {border-top:1px solid var(--line, var(--line-soft));
     padding: 3rem clamp(1.25rem, 5vw, 3rem);
     text-align: center;
     background: var(--bg-2, transparent);
@@ -91,5 +90,4 @@ const creditText = credit ?? t('footer.credit');
     color: var(--accent, #2dd4ff);
     letter-spacing: 0.08em;
     text-transform: uppercase;
-  }
-</style>
+  }</style>

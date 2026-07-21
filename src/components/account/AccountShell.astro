@@ -37,8 +37,7 @@ const { eyebrow, titleThin, title, lead, wide = false } = Astro.props;
   .acx-card {
     border: 1px solid var(--line);
     background: linear-gradient(180deg, var(--surface), var(--bg-2));
-    padding: clamp(1.3rem, 4vw, 2.1rem);
-    box-shadow: 0 30px 80px -34px rgba(0, 0, 0, 0.92), var(--glow, 0 0 0 transparent);
+    padding: clamp(1.3rem, 4vw, 2.1rem);box-shadow:0 30px 80px -34px var(--shadow-color), var(--glow, 0 0 0 transparent);
   }
   .acx-card + .acx-card { margin-top: 1.6rem; }
 
@@ -54,7 +53,7 @@ const { eyebrow, titleThin, title, lead, wide = false } = Astro.props;
   .acx-hint { font-size: 0.85rem; color: var(--muted); margin: 0.45rem 0 0; line-height: 1.5; }
 
   .acx-input {
-    width: 100%; box-sizing: border-box; background: rgba(0, 0, 0, 0.35); color: var(--text);
+    width: 100%; box-sizing: border-box;background:var(--veil); color: var(--text);
     border: 1px solid var(--line); padding: 0.72rem 0.9rem;
     font-family: var(--font-ui, sans-serif); font-size: 1rem; line-height: 1.5;
     transition: border-color 0.15s, box-shadow 0.15s;
@@ -70,8 +69,7 @@ const { eyebrow, titleThin, title, lead, wide = false } = Astro.props;
   .acx-submit {
     display: inline-flex; align-items: center; gap: 0.55rem;
     font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.9rem;
-    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
-    color: var(--ink, #05070d); background: var(--accent); border: 1px solid var(--accent);
+    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;color:var(--ink, var(--ink)); background: var(--accent); border: 1px solid var(--accent);
     padding: 0.82rem 1.6rem; transition: filter 0.15s, opacity 0.15s;
   }
   .acx-submit:hover { filter: brightness(1.08); }
@@ -106,7 +104,7 @@ const { eyebrow, titleThin, title, lead, wide = false } = Astro.props;
   .acx-done { text-align: center; padding: 1.8rem 0.5rem; }
   .acx-done__mark {
     width: 66px; height: 66px; margin: 0 auto 1.2rem; border-radius: 50%;
-    display: grid; place-items: center; color: var(--ink, #05070d); background: var(--accent-2);
+    display: grid; place-items: center;color:var(--ink, var(--ink)); background: var(--accent-2);
     box-shadow: 0 0 44px color-mix(in srgb, var(--accent-2) 45%, transparent);
   }
   .acx-done h2 {
@@ -114,4 +112,9 @@ const { eyebrow, titleThin, title, lead, wide = false } = Astro.props;
     font-size: clamp(1.4rem, 4vw, 1.9rem); margin: 0 0 0.55rem; outline: none;
   }
   .acx-done p { color: var(--muted); font-size: 1rem; line-height: 1.6; margin: 0 auto; max-width: 46ch; }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .acx-input:user-invalid{border-color:#c84248}
+:root[data-theme="light"] .acx-submit--danger{color:#734c4d}
+:root[data-theme="light"] .acx-status{color:#a2172b}
+:root[data-theme="light"] .acx-status--ok{color:#016b2b}
 </style>

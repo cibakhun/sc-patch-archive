@@ -13,13 +13,14 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 
 /* Strike-Theme (4.8.0 Tactical Strike) */
 :root{--bg:#0d0a16;--bg-2:#140f24;--surface:#1a1330;--surface-2:#231a3e;--accent:#E8651E;--accent-2:#1FB8A6;--hot:#E8651E;--text:#ede9f5;--muted:#a39db5;--line:rgba(232,101,30,.22);--line-soft:rgba(237,233,245,.10);--glow:0 0 44px rgba(232,101,30,.30);--ink:#0d0a16;--maxw:1180px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f8f6ff;--bg-2:#eeecf8;--surface:#fdfdff;--surface-2:#f2f1fb;--text:#201e26;--muted:#5a546a;--accent:#963a01;--accent-2:#056359;--hot:#893400;--ink:#ffffff;--accent-media:#E8651E;--accent-2-media:#1FB8A6;--line:rgba(162,93,63,.3);--line-soft:rgba(46,44,53,.12);--glow:0 6px 22px rgba(170,87,49,.18)}
+
 /* page-local accents */
 .hero h1{font-size:clamp(3.2rem,13vw,10rem)}
 .kx-teal{color:var(--accent-2)}
 .roleline{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.1rem}
-.rolechip{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.72rem;padding:.4rem .85rem;border:1px solid var(--line);border-radius:3px;background:rgba(0,0,0,.4);color:var(--accent-2)}
-
-</style>
+.rolechip{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.72rem;padding:.4rem .85rem;border:1px solid var(--line);border-radius:3px;background:var(--veil);color:var(--accent-2)}</style>
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 

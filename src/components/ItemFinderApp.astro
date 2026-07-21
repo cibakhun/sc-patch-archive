@@ -130,20 +130,16 @@ const JS_T = {
 
   .uif-sidebar {
     width: 300px;
-    flex-shrink: 0;
-    background: var(--surface, #0f1524);
+    flex-shrink: 0;background:var(--surface, var(--veil-2));
     border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     border-radius: 8px;
     padding: 1.5rem;
     position: sticky;
-    top: 2rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    top: 2rem;box-shadow:0 4px 12px var(--shadow-color);
   }
 
   .uif-search input {
-    width: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--line-soft, rgba(255, 255, 255, 0.1));
+    width: 100%;background:var(--veil);border:1px solid var(--line-soft, var(--line-soft));
     color: var(--text, #eef1f5);
     padding: 0.75rem 1rem;
     border-radius: 6px;
@@ -175,8 +171,7 @@ const JS_T = {
   }
 
   .uif-chip {
-    background: transparent;
-    border: 1px solid var(--line-soft, rgba(255, 255, 255, 0.12));
+    background: transparent;border:1px solid var(--line-soft, var(--line-soft));
     color: var(--muted, #9ba2ae);
     padding: 0.35rem 0.7rem;
     border-radius: 999px;
@@ -186,12 +181,11 @@ const JS_T = {
     transition: all 0.2s ease;
   }
 
-  .uif-chip:hover { color: var(--text, #fff); border-color: var(--accent, #ff5e1a); }
+  .uif-chip:hover {color:var(--text, var(--text)); border-color: var(--accent, #ff5e1a); }
 
   .uif-chip.active {
     background: var(--accent, #ff5e1a);
-    border-color: var(--accent, #ff5e1a);
-    color: var(--ink, #16161a);
+    border-color: var(--accent, #ff5e1a);color:var(--ink, var(--ink));
     font-weight: 700;
   }
 
@@ -219,14 +213,11 @@ const JS_T = {
     transition: all 0.2s ease;
   }
 
-  .uif-category-btn:hover {
-    background: rgba(255, 255, 255, 0.03);
-    color: var(--text, #fff);
+  .uif-category-btn:hover {background:var(--veil-hi);color:var(--text, var(--text));
   }
 
   .uif-category-btn.active {
-    background: color-mix(in srgb, var(--accent, #ff5e1a) 12%, transparent);
-    color: var(--text, #fff);
+    background: color-mix(in srgb, var(--accent, #ff5e1a) 12%, transparent);color:var(--text, var(--text));
     border: 1px solid var(--accent, #ff5e1a);
   }
 
@@ -238,8 +229,7 @@ const JS_T = {
   }
 
   .uif-category-count {
-    font-size: 0.8rem;
-    background: rgba(255, 255, 255, 0.05);
+    font-size: 0.8rem;background:var(--veil-hi);
     padding: 0.15rem 0.5rem;
     border-radius: 12px;
     color: var(--muted, #9ba2ae);
@@ -247,8 +237,7 @@ const JS_T = {
   }
 
   .uif-category-btn.active .uif-category-count {
-    background: var(--accent, #ff5e1a);
-    color: var(--ink, #16161a);
+    background: var(--accent, #ff5e1a);color:var(--ink, var(--ink));
   }
 
   .uif-main { flex-grow: 1; min-width: 0; }
@@ -264,9 +253,7 @@ const JS_T = {
 
   .uif-stats { color: var(--muted, #9ba2ae); font-size: 0.95rem; }
 
-  .uif-sort select {
-    background: var(--surface, #0f1524);
-    color: var(--text, #fff);
+  .uif-sort select {background:var(--surface, var(--veil-2));color:var(--text, var(--text));
     border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     padding: 0.5rem 1rem;
     border-radius: 6px;
@@ -291,8 +278,7 @@ const JS_T = {
   }
 
   /* Karten */
-  .uif-card {
-    background: var(--surface, #0f1524);
+  .uif-card {background:var(--surface, var(--veil-2));
     border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     border-radius: 8px;
     padding: 1.25rem;
@@ -300,8 +286,7 @@ const JS_T = {
     flex-direction: column;
     justify-content: space-between;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s, box-shadow 0.25s;
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    cursor: pointer;box-shadow:0 4px 6px var(--shadow-color);
     position: relative;
     overflow: hidden;
   }
@@ -339,8 +324,7 @@ const JS_T = {
   }
 
   .uif-card-title {
-    margin: 0.5rem 0 1rem;
-    color: var(--text, #fff);
+    margin: 0.5rem 0 1rem;color:var(--text, var(--text));
     font-size: 1.1rem;
     line-height: 1.4;
     font-weight: 600;
@@ -350,8 +334,7 @@ const JS_T = {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 0.6rem;
-    border-top: 1px solid var(--line-soft, rgba(255, 255, 255, 0.05));
+    gap: 0.6rem;border-top:1px solid var(--line-soft, var(--line-soft));
     padding-top: 0.75rem;
     margin-top: auto;
   }
@@ -392,8 +375,7 @@ const JS_T = {
     flex-wrap: wrap;
   }
 
-  .uif-page-btn {
-    background: var(--surface, #0f1524);
+  .uif-page-btn {background:var(--surface, var(--veil-2));
     color: var(--muted, #9ba2ae);
     border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     padding: 0.5rem 0.85rem;
@@ -405,8 +387,7 @@ const JS_T = {
     user-select: none;
   }
 
-  .uif-page-btn:hover:not(:disabled) {
-    color: var(--text, #fff);
+  .uif-page-btn:hover:not(:disabled) {color:var(--text, var(--text));
     border-color: var(--accent, #ff5e1a);
   }
 
@@ -422,8 +403,7 @@ const JS_T = {
   /* Modal */
   .uif-modal-overlay {
     position: fixed;
-    inset: 0;
-    background: rgba(5, 7, 13, 0.85);
+    inset: 0;background:var(--veil-2);
     backdrop-filter: blur(6px);
     display: flex;
     justify-content: center;
@@ -435,8 +415,7 @@ const JS_T = {
 
   @keyframes uif-fade-in { from { opacity: 0; } to { opacity: 1; } }
 
-  .uif-modal-container {
-    background: var(--surface, #0f1524);
+  .uif-modal-container {background:var(--surface, var(--veil-2));
     border: 1px solid var(--accent, #ff5e1a);
     box-shadow: 0 0 30px color-mix(in srgb, var(--accent, #ff5e1a) 25%, transparent);
     border-radius: 12px;
@@ -473,8 +452,7 @@ const JS_T = {
   }
 
   .uif-modal-title {
-    margin: 0.25rem 0 0.5rem;
-    color: var(--text, #fff);
+    margin: 0.25rem 0 0.5rem;color:var(--text, var(--text));
     font-size: 1.6rem;
     font-weight: 700;
   }
@@ -497,8 +475,7 @@ const JS_T = {
     font-size: 1.1rem;
     margin: 0 0 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 1px solid var(--line-soft, rgba(255, 255, 255, 0.05));
+    letter-spacing: 1px;border-bottom:1px solid var(--line-soft, var(--line-soft));
     padding-bottom: 0.4rem;
   }
 
@@ -518,23 +495,18 @@ const JS_T = {
   .uif-locations-table th,
   .uif-locations-table td { padding: 0.75rem 1rem; }
 
-  .uif-locations-table th {
-    background: var(--surface-2, #1c1d22);
-    color: var(--text, #fff);
+  .uif-locations-table th {background:var(--surface-2, var(--veil-2));color:var(--text, var(--text));
     font-weight: 600;
     border-bottom: 1px solid var(--line, rgba(255, 94, 26, 0.22));
   }
 
-  .uif-locations-table td {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  .uif-locations-table td {border-bottom:1px solid var(--line-soft);
     color: var(--muted, #9ba2ae);
   }
 
   .uif-locations-table tr:last-child td { border-bottom: none; }
 
-  .uif-locations-table tr:hover td {
-    background: rgba(255, 255, 255, 0.02);
-    color: var(--text, #fff);
+  .uif-locations-table tr:hover td {background:var(--veil-hi);color:var(--text, var(--text));
   }
 
   .uif-td-kind { white-space: nowrap; }
@@ -552,9 +524,7 @@ const JS_T = {
     margin: 0;
     color: var(--text, #eef1f5);
     font-size: 0.95rem;
-    line-height: 1.65;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--line-soft, rgba(255, 255, 255, 0.08));
+    line-height: 1.65;background:var(--veil-hi);border:1px solid var(--line-soft, var(--line-soft));
     border-left: 3px solid var(--accent, #ff5e1a);
     border-radius: 6px;
     padding: 0.9rem 1.1rem;
@@ -563,8 +533,7 @@ const JS_T = {
   .uif-crafting-header {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    background: var(--surface-2, #1c1d22);
+    gap: 1rem;background:var(--surface-2, var(--veil-2));
     padding: 1rem;
     border-radius: 6px;
     border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
@@ -573,8 +542,7 @@ const JS_T = {
   }
 
   .uif-crafting-ingredients h5 {
-    font-size: 0.9rem;
-    color: var(--text, #fff);
+    font-size: 0.9rem;color:var(--text, var(--text));
     margin: 0 0 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -589,16 +557,14 @@ const JS_T = {
     gap: 0.5rem;
   }
 
-  .uif-crafting-ingredients li {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--line-soft, rgba(255, 255, 255, 0.08));
+  .uif-crafting-ingredients li {background:var(--veil-hi);border:1px solid var(--line-soft, var(--line-soft));
     padding: 0.6rem 1rem;
     border-radius: 6px;
     font-size: 0.9rem;
     color: var(--muted, #9ba2ae);
   }
 
-  .uif-crafting-ingredients li strong { color: var(--text, #fff); }
+  .uif-crafting-ingredients li strong {color:var(--text, var(--text)); }
 
   /* Cross-Link ins Crafting (Deep-Link zum Blueprint) */
   .uif-xlink {
@@ -652,8 +618,7 @@ const JS_T = {
   @media (max-width: 480px) {
     #uif-category-list { grid-template-columns: repeat(2, 1fr); }
     .uif-modal-title { font-size: 1.3rem; }
-  }
-</style>
+  }</style>
 
 <script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl: '/assets/universal-items.json', craftUrl: '/assets/crafting-db.json', icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />
 <script is:inline src="/assets/item-finder-app.js"></script>

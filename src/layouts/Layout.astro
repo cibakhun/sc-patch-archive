@@ -6,6 +6,7 @@
 import Attribution from '../components/Attribution.astro';
 import { SITE } from '../consts';
 import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui';
+import { LIGHT_RULES } from '../../scripts/lib/theme-color.mjs';
 
 interface Props {
   title: string;
@@ -67,6 +68,16 @@ const ogImageAbs = ogImageEff.startsWith('http') ? ogImageEff : base + ogImageEf
 const canon = (p: string) => (p === '/index.html' ? '/' : p);
 const deHref = base + canon(pathForLocale(Astro.url.pathname, 'de'));
 const enHref = base + canon(pathForLocale(Astro.url.pathname, 'en'));
+
+// Die Browserleisten-Farbe (Android/Safari) muss im Hellmodus mitziehen —
+// sonst rahmt eine schwarze Leiste eine weiße Seite. Der helle Wert wird
+// beim Bauen aus dem dunklen abgeleitet (gleicher Farbton, Papier-
+// Helligkeit), damit jede Seite ihre Tönung behält.
+// Nur echte Hex-Werte gehen in das inline-Script (unten per set:html
+// eingesetzt) — so kann eine Seite nicht versehentlich Code einschleusen.
+const HEX = /^#[0-9a-f]{3,8}$/i;
+const themeColorSafe = HEX.test(themeColor) ? themeColor : '#05070d';
+const themeColorLight = LIGHT_RULES['--bg'](themeColorSafe);
 ---
 <!doctype html>
 <html lang={HTML_LANG[lang]}>
@@ -75,7 +86,22 @@ const enHref = base + canon(pathForLocale(Astro.url.pathname, 'en'));
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title}</title>
   <meta name="description" content={description} />
-  <meta name="theme-color" content={themeColor} />
+  {/* Beide Leistenfarben hängen am Meta-Tag selbst — so kommt der Umschalter
+      in SiteNav an den zur Seite passenden Wert, ohne ihn kennen zu müssen. */}
+  <meta name="theme-color" content={themeColor} data-dark={themeColorSafe} data-light={themeColorLight} />
+  {/* Hell/Dunkel VOR dem ersten Paint festlegen — synchron und so früh wie
+      möglich. Läuft dieses Script später (oder als Modul/defer), sieht der
+      Nutzer erst die dunkle und dann die helle Seite: das klassische
+      Aufblitzen. Reihenfolge der Quellen: gespeicherte Wahl > Betriebssystem.
+      Ohne gültigen localStorage-Wert bleibt data-theme-auto gesetzt — daran
+      erkennt der Umschalter, dass er weiter dem System folgen darf. */}
+  <script
+    is:inline
+    set:html={`(function(){var d=document.documentElement,t=null;try{t=localStorage.getItem('vb.theme')}catch(e){}
+var auto=(t!=='light'&&t!=='dark');if(auto){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark'}
+d.setAttribute('data-theme',t);if(auto)d.setAttribute('data-theme-auto','');
+var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='light'?'${themeColorLight}':'${themeColorSafe}')})()`}
+  />
   {noindex && <meta name="robots" content="noindex" />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="canonical" href={canonical} />
@@ -142,6 +168,10 @@ const enHref = base + canon(pathForLocale(Astro.url.pathname, 'en'));
   <link rel="preload" href="/assets/fonts/orbitron-700-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/barlow-400-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link href="/assets/fonts.css" rel="stylesheet" />
+  {/* Farbfundament für beide Modi. Muss VOR dem Seiten-CSS stehen: die
+      hellen Paletten der Seiten liegen in deren inline-<style> und sollen
+      diese Rückfallwerte über die Quellreihenfolge schlagen. */}
+  <link href="/assets/theme.css" rel="stylesheet" />
   <style is:inline>
     /* Lesbarkeits-Grundlage: 18px-Wurzel statt Browser-Default 16px. Die
        gesamte Typo-Skala der Seite ist rem-basiert und wächst proportional —
@@ -163,12 +193,34 @@ const enHref = base + canon(pathForLocale(Astro.url.pathname, 'en'));
     }
     /* Flex-Mono-Code-Zeilen (…//…): min-width:0 lässt die Ellipsis greifen,
        statt die Zeile (langer EN-System-Name) über den Rand zu drücken. */
-    .tf__code, .qf__code, .do__code, .sd__code { min-width: 0; }
-  </style>
+    .tf__code, .qf__code, .do__code, .sd__code { min-width: 0; }</style>
   <slot name="head" />
 </head>
 <body>
   <slot />
   {footer && <Attribution />}
+  {/* Umschalt-Verhalten. Bewusst hier und nicht in ThemeToggle.astro: der
+      Umschalter steht zweimal auf der Seite (Leiste + Menü), das Verhalten
+      soll aber nur einmal existieren. Delegierter Klick -> beliebig viele
+      Umschalter, auch nachträglich eingefügte. */}
+  <script
+    is:inline
+    set:html={`(function(){var d=document.documentElement,meta=document.querySelector('meta[name="theme-color"]');
+function paint(t){d.setAttribute('data-theme',t);
+  if(meta&&meta.dataset.dark)meta.setAttribute('content',t==='light'?meta.dataset.light:meta.dataset.dark);
+  var b=document.querySelectorAll('.js-theme-toggle');
+  for(var i=0;i<b.length;i++)b[i].setAttribute('aria-pressed',t==='dark'?'true':'false');}
+paint(d.getAttribute('data-theme')==='light'?'light':'dark');
+function choose(t){try{localStorage.setItem('vb.theme',t)}catch(e){}
+  d.removeAttribute('data-theme-auto');paint(t);}
+document.addEventListener('click',function(e){
+  var b=e.target&&e.target.closest&&e.target.closest('.js-theme-toggle');
+  if(b)choose(d.getAttribute('data-theme')==='light'?'dark':'light');});
+if(window.matchMedia){var mq=matchMedia('(prefers-color-scheme: light)');
+  var os=function(){if(d.hasAttribute('data-theme-auto'))paint(mq.matches?'light':'dark')};
+  mq.addEventListener?mq.addEventListener('change',os):mq.addListener(os);}
+addEventListener('storage',function(e){if(e.key==='vb.theme'&&(e.newValue==='light'||e.newValue==='dark')){
+  d.removeAttribute('data-theme-auto');paint(e.newValue);}});})()`}
+  />
 </body>
 </html>

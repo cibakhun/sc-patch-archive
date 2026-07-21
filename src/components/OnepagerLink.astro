@@ -37,16 +37,13 @@ const {
     display: flex;
     align-items: center;
     gap: 1.1rem;
-    padding: 1.15rem 1.4rem;
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.18));
-    background: color-mix(in srgb, var(--accent, #2dd4ff) 6%, var(--surface, rgba(0, 0, 0, 0.35)));
+    padding: 1.15rem 1.4rem;border:1px solid var(--line, var(--line-soft));background:color-mix(in srgb, var(--accent, #2dd4ff) 6%, var(--surface, var(--veil)));
     box-shadow: var(--glow, none);
     transition: transform 0.18s, border-color 0.18s, background-color 0.18s;
   }
   .opl:hover {
     transform: translateY(-2px);
-    border-color: var(--accent, #2dd4ff);
-    background: color-mix(in srgb, var(--accent, #2dd4ff) 12%, var(--surface, rgba(0, 0, 0, 0.35)));
+    border-color: var(--accent, #2dd4ff);background:color-mix(in srgb, var(--accent, #2dd4ff) 12%, var(--surface, var(--veil)));
   }
   .opl__ic {
     flex: none;
@@ -54,9 +51,7 @@ const {
     place-items: center;
     width: 52px;
     height: 52px;
-    color: var(--accent, #2dd4ff);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.18));
-    background: rgba(0, 0, 0, 0.25);
+    color: var(--accent, #2dd4ff);border:1px solid var(--line, var(--line-soft));background:var(--veil);
   }
   .opl__txt {
     display: flex;
@@ -96,5 +91,4 @@ const {
     .opl__note {
       display: none;
     }
-  }
-</style>
+  }</style>
