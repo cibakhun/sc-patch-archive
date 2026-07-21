@@ -38,6 +38,22 @@
 :root { color-scheme: dark; }
 :root[data-theme='light'] { color-scheme: light; }
 
+/* Completely hide side scrollbar visually while keeping full scrollability */
+html, body, * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar,
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
 /* ============================================================
    1 + 2 — DUNKEL
 

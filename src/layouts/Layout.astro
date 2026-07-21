@@ -173,6 +173,19 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
       diese Rückfallwerte über die Quellreihenfolge schlagen. */}
   <link href="/assets/theme.css" rel="stylesheet" />
   <style is:inline>
+    /* Scrollbar überall komplett unsichtbar machen (Browser-Cache-sicher inline) */
+    html, body, * {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar,
+    *::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      background: transparent !important;
+    }
     /* Lesbarkeits-Grundlage: 18px-Wurzel statt Browser-Default 16px. Die
        gesamte Typo-Skala der Seite ist rem-basiert und wächst proportional —
        Fließtext 18px, Datentabellen ~17px, Micro-Caps-Labels ≥14px effektiv.
