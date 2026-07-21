@@ -59,15 +59,18 @@ function targetFor(l: Locale): string {
     text-transform: uppercase;
     padding: 0.35rem 0.55rem;border:1px solid var(--line, var(--line-soft));
   }
+  /* Die aktive Sprache steht in der Textfarbe, nicht im Akzent: sie ist der
+     Ist-Zustand, kein Angebot. Der Akzent gehört der anklickbaren Option
+     beim Hover — sonst leuchtet im Header wieder alles gleichzeitig. */
   .langsw__cur {
-    color: var(--accent, #2dd4ff);
+    color: var(--text, #e8eefc);
   }
   .langsw__opt {
     color: var(--muted, #8a99b8);
     transition: color 0.15s;
   }
   .langsw__opt:hover {
-    color: var(--text, #e8eefc);
+    color: var(--accent, #2dd4ff);
   }
   .langsw__sep {
     color: var(--muted, #8a99b8);
