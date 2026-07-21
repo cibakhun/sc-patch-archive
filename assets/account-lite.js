@@ -174,18 +174,60 @@
     }
   }
 
+  // ---- Account-Bound Access Guard (KrysX141) ------------------------------
+  function isKrysX141User(sess, uname) {
+    if (!sess || !sess.user) return false;
+    var email = (sess.user.email || '').toLowerCase();
+    if (email.indexOf('krysx141') !== -1) return true;
+    if (uname) {
+      var u = uname.toLowerCase().replace(/^@/, '');
+      if (u === 'krysx141') return true;
+    }
+    var meta = sess.user.user_metadata || {};
+    if ((meta.display_name || '').toLowerCase() === 'krysx141') return true;
+    if ((meta.handle || '').toLowerCase() === 'krysx141') return true;
+    if ((meta.name || '').toLowerCase() === 'krysx141') return true;
+    return false;
+  }
+
+  function applyRestrictions(sess, uname) {
+    var allowed = isKrysX141User(sess, uname);
+    var doc = document.documentElement;
+    doc.classList.toggle('is-krysx141', allowed);
+
+    var path = location.pathname.toLowerCase();
+    var isArchivePage = path.indexOf('/archiv') !== -1 || path.indexOf('/patches/') !== -1;
+    if (isArchivePage && !allowed) {
+      if (document.body) document.body.style.display = 'none';
+      var notFound = IS_DE ? '/de/404.html' : '/404.html';
+      location.replace(notFound);
+    }
+  }
+
   function boot() {
     ensureSession().then(function (sess) {
       paintNav(sess);
       initFavs(sess);
-      if (sess) fetchUsername(sess).then(function (uname) { if (uname) paintNav(sess, uname); });
+      applyRestrictions(sess, null);
+      if (sess) {
+        fetchUsername(sess).then(function (uname) {
+          if (uname) paintNav(sess, uname);
+          applyRestrictions(sess, uname);
+        });
+      }
     });
     // Login/Logout in einem anderen Tab -> Nav nachziehen
     addEventListener('storage', function (e) {
       if (e.key !== STORE) return;
       var sess = readRaw();
       paintNav(sess);
-      if (sess) fetchUsername(sess).then(function (uname) { if (uname) paintNav(sess, uname); });
+      applyRestrictions(sess, null);
+      if (sess) {
+        fetchUsername(sess).then(function (uname) {
+          if (uname) paintNav(sess, uname);
+          applyRestrictions(sess, uname);
+        });
+      }
     });
   }
 

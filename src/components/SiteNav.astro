@@ -355,21 +355,30 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       </div>
 
       <nav class="snav-deck__cols" aria-label={t('nav.deck.title')}>
-        {deckGroups.map((group) => (
-          <section class="snav-deck__group">
-            <h2 class="snav-deck__ghead">
-              <span class="snav-deck__gname">{group.label}</span>
-              <span class="snav-deck__grule" aria-hidden="true"></span>
-              <span class="snav-deck__gcount">{String(group.items.length).padStart(2, '0')}</span>
-            </h2>
-            <ul class="snav-deck__list">
-              {group.items.map((item) => {
-                const seq = deckSeq++;
-                const acct = item.account;
-                return (
-                  <li>
-                    <a
-                      class={acct ? 'snav-deck__row js-nav-acct' : 'snav-deck__row'}
+        {deckGroups.map((group) => {
+          const isArchiveGrp = group.id === 'archive';
+          return (
+            <section
+              class:list={['snav-deck__group', { 'js-restricted-archive': isArchiveGrp }]}
+              data-restricted={isArchiveGrp ? 'patch-archive' : undefined}
+            >
+              <h2 class="snav-deck__ghead">
+                <span class="snav-deck__gname">{group.label}</span>
+                <span class="snav-deck__grule" aria-hidden="true"></span>
+                <span class="snav-deck__gcount">{String(group.items.length).padStart(2, '0')}</span>
+              </h2>
+              <ul class="snav-deck__list">
+                {group.items.map((item) => {
+                  const seq = deckSeq++;
+                  const acct = item.account;
+                  const isArchiveItem = item.href.includes('archiv');
+                  return (
+                    <li
+                      class:list={[{ 'js-restricted-archive': isArchiveItem }]}
+                      data-restricted={isArchiveItem ? 'patch-archive' : undefined}
+                    >
+                      <a
+                        class={acct ? 'snav-deck__row js-nav-acct' : 'snav-deck__row'}
                       style={`--seq:${seq}`}
                       href={item.href}
                       data-deck-row
@@ -395,7 +404,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
               })}
             </ul>
           </section>
-        ))}
+        );
+      })}
       </nav>
     </div>
 

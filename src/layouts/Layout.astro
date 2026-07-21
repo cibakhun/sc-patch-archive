@@ -102,6 +102,27 @@ var auto=(t!=='light'&&t!=='dark');if(auto){t=(window.matchMedia&&matchMedia('(p
 d.setAttribute('data-theme',t);if(auto)d.setAttribute('data-theme-auto','');
 var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='light'?'${themeColorLight}':'${themeColorSafe}')})()`}
   />
+  <script
+    is:inline
+    set:html={`(function(){
+      var p=location.pathname.toLowerCase();
+      var isArchive=p.indexOf('/archiv')!==-1||p.indexOf('/patches/')!==-1;
+      var doc=document.documentElement;
+      if(isArchive) doc.classList.add('is-archive-guarded');
+      try{
+        var raw=localStorage.getItem('sb-trgjhmbnodoarnfmlcqx-auth-token');
+        if(raw){
+          var sess=JSON.parse(raw);
+          var email=(sess&&sess.user&&sess.user.email)?sess.user.email.toLowerCase():'';
+          var meta=(sess&&sess.user&&sess.user.user_metadata)?sess.user.user_metadata:{};
+          var dName=(meta.display_name||meta.handle||meta.name||'').toLowerCase();
+          if(email.indexOf('krysx141')!==-1||dName==='krysx141'){
+            doc.classList.add('is-krysx141');
+          }
+        }
+      }catch(e){}
+    })()`}
+  />
   {noindex && <meta name="robots" content="noindex" />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="canonical" href={canonical} />
@@ -193,7 +214,15 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
     }
     /* Flex-Mono-Code-Zeilen (…//…): min-width:0 lässt die Ellipsis greifen,
        statt die Zeile (langer EN-System-Name) über den Rand zu drücken. */
-    .tf__code, .qf__code, .do__code, .sd__code { min-width: 0; }</style>
+    .tf__code, .qf__code, .do__code, .sd__code { min-width: 0; }
+    /* Account-bound restricted content (e.g. Patch Archive for KrysX141) */
+    html:not(.is-krysx141) [data-restricted="patch-archive"],
+    html:not(.is-krysx141) .js-restricted-archive {
+      display: none !important;
+    }
+    html.is-archive-guarded:not(.is-krysx141) body {
+      display: none !important;
+    }</style>
   <slot name="head" />
 </head>
 <body>

@@ -381,7 +381,14 @@ const indexUrl = href('/search-index.json', lang);
       list.innerHTML = '';
       sel = 0;
       if (!terms.length || !index) { results = []; return; }
+      var isAllowed = document.documentElement.classList.contains('is-krysx141');
       results = index
+        .filter(function (e) {
+          if (!isAllowed) {
+            if (e.k === 'patch' || (e.u && (e.u.indexOf('/archiv') !== -1 || e.u.indexOf('/patches/') !== -1))) return false;
+          }
+          return true;
+        })
         .map(function (e) { return { e: e, sc: score(e, terms) }; })
         .filter(function (r) { return r.sc > 0; })
         .sort(function (a, b) { return b.sc - a.sc; })
