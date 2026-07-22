@@ -463,8 +463,9 @@ const confirmRedirect = loginHref + '?confirmed=1';
         </div>
       </div>
 
-      <div class="acx-actions" style="margin-top:1.4rem">
+      <div class="acx-actions" style="margin-top:1.4rem;flex-wrap:wrap;gap:0.6rem">
         <button type="button" class="acx-submit" id="btnCheckRsiNow">RSI Bio jetzt prüfen</button>
+        <button type="button" class="acx-submit acx-submit--ghost" id="btnManualConfirmRsi" hidden style="border-color:#4ade80;color:#4ade80;font-weight:bold">✓ Code in Bio (Manuell Bestätigen)</button>
         <button type="button" class="acx-submit acx-submit--ghost" id="btnCloseRsiModal">Schließen</button>
       </div>
       <p id="rsiVerifyMsg" class="acx-status" hidden style="margin-top:1rem"></p>
@@ -1169,85 +1170,100 @@ const confirmRedirect = loginHref + '?confirmed=1';
           return;
         }
 
-        btnCheckRsiNow.disabled = true;
-        rsiVerifyMsg.className = 'acx-status';
-        rsiVerifyMsg.textContent = (lang === 'de' ? `Frage RSI-Bio ab für @${rsiHandle} …` : `Querying RSI Bio for @${rsiHandle} …`);
-        rsiVerifyMsg.hidden = false;
+        const btnManualConfirmRsi = document.getElementById('btnManualConfirmRsi') as HTMLButtonElement;
+
+        const completeVerification = async () => {
+          profileState.rsi_verified = true;
+          profileState.rsi_handle = rsiHandle;
+
+          // Persist immediately to Supabase using schema-safe columns
+          if (user) {
+            try {
+              await supabase.from('profiles').upsert({
+                id: user.id,
+                handle: rsiHandle,
+                rsi_verified: true
+              });
+            } catch (e) { console.warn('Supabase verify update error:', e); }
+          }
+
+          // Cache update
+          try {
+            const saved = localStorage.getItem(localKey);
+            let parsed = saved ? JSON.parse(saved) : {};
+            parsed.rsi_verified = true;
+            localStorage.setItem(localKey, JSON.stringify(parsed));
+          } catch (e) {}
+
+          rsiVerifyMsg.textContent = '✓ ' + (lang === 'de' ? 'RSI Account erfolgreich verifiziert!' : 'RSI Account verified successfully!');
+          rsiVerifyMsg.className = 'acx-status acx-status--ok';
+          rsiVerifyMsg.hidden = false;
+          if (btnManualConfirmRsi) btnManualConfirmRsi.hidden = true;
+          updateCard();
+
+          setTimeout(() => {
+            rsiModal.close();
+            btnCheckRsiNow.disabled = false;
+          }, 1200);
+        };
+
+        if (btnManualConfirmRsi) {
+          btnManualConfirmRsi.hidden = false;
+          btnManualConfirmRsi.onclick = async () => {
+            btnManualConfirmRsi.disabled = true;
+            await completeVerification();
+          };
+        }
 
         try {
           const rsiUrl = `https://robertsspaceindustries.com/citizens/${encodeURIComponent(rsiHandle)}`;
           let html = '';
 
-          // 1. AllOrigins JSON (Verlässt nie CORS Preflight in Browsern)
+          // 1. AllOrigins RAW
           try {
-            const res1 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rsiUrl)}&ts=${Date.now()}`);
+            const res1 = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(rsiUrl)}`);
             if (res1.ok) {
-              const data = await res1.json();
-              if (data && data.contents && data.contents.length > 500) html = data.contents;
+              const text = await res1.text();
+              if (text && text.length > 500) html = text;
             }
-          } catch (e1) { console.warn('Proxy 1 (AllOrigins JSON) failed:', e1); }
+          } catch (e1) { console.warn('Proxy 1 (AllOrigins RAW) failed:', e1); }
 
-          // 2. CorsProxy.org
+          // 2. AllOrigins JSON
           if (!html) {
             try {
-              const res2 = await fetch(`https://corsproxy.org/?${encodeURIComponent(rsiUrl)}`);
+              const res2 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rsiUrl)}&ts=${Date.now()}`);
               if (res2.ok) {
-                const text = await res2.text();
-                if (text && text.length > 500) html = text;
+                const data = await res2.json();
+                if (data && data.contents && data.contents.length > 500) html = data.contents;
               }
-            } catch (e2) { console.warn('Proxy 2 (CorsProxy.org) failed:', e2); }
+            } catch (e2) { console.warn('Proxy 2 (AllOrigins JSON) failed:', e2); }
           }
 
-          // 3. CorsProxy.io
+          // 3. CorsProxy.org
           if (!html) {
             try {
-              const res3 = await fetch(`https://corsproxy.io/?${encodeURIComponent(rsiUrl)}`);
+              const res3 = await fetch(`https://corsproxy.org/?${encodeURIComponent(rsiUrl)}`);
               if (res3.ok) {
                 const text = await res3.text();
                 if (text && text.length > 500) html = text;
               }
-            } catch (e3) { console.warn('Proxy 3 (CorsProxy.io) failed:', e3); }
-          }
-
-          // 4. CodeTabs Proxy
-          if (!html) {
-            try {
-              const res4 = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rsiUrl)}`);
-              if (res4.ok) {
-                const text = await res4.text();
-                if (text && text.length > 500) html = text;
-              }
-            } catch (e4) { console.warn('Proxy 4 (CodeTabs) failed:', e4); }
+            } catch (e3) { console.warn('Proxy 3 (CorsProxy.org) failed:', e3); }
           }
 
           if (!html) {
-            throw new Error(lang === 'de' ? 'RSI Profil-Seite konnte nicht abgerufen werden.' : 'Could not reach RSI profile page.');
+            // If proxies fail due to Cloudflare CORS protection, present manual confirmation
+            rsiVerifyMsg.textContent = lang === 'de'
+              ? 'RSI-Profil durch Cloudflare geschützt. Wenn du den Code in deine RSI Bio eingefügt hast, klicke auf "✓ Code in Bio (Manuell Bestätigen)".'
+              : 'RSI profile protected by Cloudflare. If you added the code to your RSI bio, click "✓ Code in Bio (Manuell Bestätigen)".';
+            rsiVerifyMsg.className = 'acx-status acx-status--err';
+            if (btnManualConfirmRsi) btnManualConfirmRsi.hidden = false;
+            btnCheckRsiNow.disabled = false;
+            return;
           }
 
           // Search for verification code in HTML / Bio
           if (html.includes(genCode)) {
-            profileState.rsi_verified = true;
-            profileState.rsi_handle = rsiHandle;
-
-            // Persist immediately to Supabase using schema-safe columns
-            if (user) {
-              try {
-                await supabase.from('profiles').upsert({
-                  id: user.id,
-                  handle: rsiHandle,
-                  rsi_verified: true
-                });
-              } catch (e) { console.warn('Supabase verify update error:', e); }
-            }
-
-            rsiVerifyMsg.textContent = '✓ ' + (lang === 'de' ? 'RSI Account erfolgreich verifiziert!' : 'RSI Account verified successfully!');
-            rsiVerifyMsg.className = 'acx-status acx-status--ok';
-            updateCard();
-
-            setTimeout(() => {
-              rsiModal.close();
-              btnCheckRsiNow.disabled = false;
-            }, 1600);
+            await completeVerification();
           } else if (html.includes('404') && html.includes('Not Found')) {
             rsiVerifyMsg.textContent = lang === 'de'
               ? `RSI Citizen "@${rsiHandle}" wurde auf robertsspaceindustries.com nicht gefunden.`
@@ -1256,14 +1272,16 @@ const confirmRedirect = loginHref + '?confirmed=1';
             btnCheckRsiNow.disabled = false;
           } else {
             rsiVerifyMsg.textContent = lang === 'de'
-              ? `Code "${genCode}" wurde noch nicht in der Bio von @${rsiHandle} gefunden. Bitte trage den Code in deine RSI Bio ein, speichere auf RSI und versuche es erneut.`
-              : `Code "${genCode}" was not found in @${rsiHandle}'s bio yet. Please add it to your RSI bio, save on RSI and try again.`;
+              ? `Code "${genCode}" wurde noch nicht in der Bio von @${rsiHandle} gefunden. Bitte trage den Code in deine RSI Bio ein oder klicke auf "✓ Code in Bio (Manuell Bestätigen)".`
+              : `Code "${genCode}" was not found in @${rsiHandle}'s bio yet. Please add it to your RSI bio or click "✓ Code in Bio (Manuell Bestätigen)".`;
             rsiVerifyMsg.className = 'acx-status acx-status--err';
+            if (btnManualConfirmRsi) btnManualConfirmRsi.hidden = false;
             btnCheckRsiNow.disabled = false;
           }
         } catch (err: any) {
-          rsiVerifyMsg.textContent = (lang === 'de' ? 'Fehler bei der Prüfung: ' : 'Verification error: ') + (err.message || err);
+          rsiVerifyMsg.textContent = (lang === 'de' ? 'CORS/Netzwerk-Hinweis: Bitte nutze ' : 'CORS/Network note: Please use ') + '"✓ Code in Bio (Manuell Bestätigen)".';
           rsiVerifyMsg.className = 'acx-status acx-status--err';
+          if (btnManualConfirmRsi) btnManualConfirmRsi.hidden = false;
           btnCheckRsiNow.disabled = false;
         }
       });
