@@ -1178,35 +1178,35 @@ const confirmRedirect = loginHref + '?confirmed=1';
           const rsiUrl = `https://robertsspaceindustries.com/citizens/${encodeURIComponent(rsiHandle)}`;
           let html = '';
 
-          // 1. CorsProxy.io (Extrem zuverlässig & schnell)
+          // 1. AllOrigins JSON (Verlässt nie CORS Preflight in Browsern)
           try {
-            const res1 = await fetch(`https://corsproxy.io/?${encodeURIComponent(rsiUrl)}`);
+            const res1 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rsiUrl)}&ts=${Date.now()}`);
             if (res1.ok) {
-              const text = await res1.text();
-              if (text && text.length > 500) html = text;
+              const data = await res1.json();
+              if (data && data.contents && data.contents.length > 500) html = data.contents;
             }
-          } catch (e1) { console.warn('Proxy 1 (CorsProxy) failed:', e1); }
+          } catch (e1) { console.warn('Proxy 1 (AllOrigins JSON) failed:', e1); }
 
-          // 2. Cors.lol
+          // 2. CorsProxy.org
           if (!html) {
             try {
-              const res2 = await fetch(`https://api.cors.lol/?url=${encodeURIComponent(rsiUrl)}`);
+              const res2 = await fetch(`https://corsproxy.org/?${encodeURIComponent(rsiUrl)}`);
               if (res2.ok) {
                 const text = await res2.text();
                 if (text && text.length > 500) html = text;
               }
-            } catch (e2) { console.warn('Proxy 2 (Cors.lol) failed:', e2); }
+            } catch (e2) { console.warn('Proxy 2 (CorsProxy.org) failed:', e2); }
           }
 
-          // 3. AllOrigins JSON
+          // 3. CorsProxy.io
           if (!html) {
             try {
-              const res3 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rsiUrl)}`);
+              const res3 = await fetch(`https://corsproxy.io/?${encodeURIComponent(rsiUrl)}`);
               if (res3.ok) {
-                const data = await res3.json();
-                if (data && data.contents && data.contents.length > 500) html = data.contents;
+                const text = await res3.text();
+                if (text && text.length > 500) html = text;
               }
-            } catch (e3) { console.warn('Proxy 3 (AllOrigins JSON) failed:', e3); }
+            } catch (e3) { console.warn('Proxy 3 (CorsProxy.io) failed:', e3); }
           }
 
           // 4. CodeTabs Proxy
@@ -1229,14 +1229,15 @@ const confirmRedirect = loginHref + '?confirmed=1';
             profileState.rsi_verified = true;
             profileState.rsi_handle = rsiHandle;
 
-            // Persist immediately to Supabase
+            // Persist immediately to Supabase using schema-safe columns
             if (user) {
-              await supabase.from('profiles').upsert({
-                id: user.id,
-                rsi_handle: rsiHandle,
-                rsi_verified: true,
-                updated_at: new Date().toISOString()
-              });
+              try {
+                await supabase.from('profiles').upsert({
+                  id: user.id,
+                  handle: rsiHandle,
+                  rsi_verified: true
+                });
+              } catch (e) { console.warn('Supabase verify update error:', e); }
             }
 
             rsiVerifyMsg.textContent = '✓ ' + (lang === 'de' ? 'RSI Account erfolgreich verifiziert!' : 'RSI Account verified successfully!');
@@ -1278,8 +1279,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
             try {
               await supabase.from('profiles').upsert({
                 id: user.id,
-                rsi_verified: false,
-                updated_at: new Date().toISOString()
+                rsi_verified: false
               });
             } catch (e) { console.warn('Supabase reset error:', e); }
           }
@@ -1316,21 +1316,11 @@ const confirmRedirect = loginHref + '?confirmed=1';
           id: user.id,
           display_name,
           handle,
-          bio: bioInput.value.trim() || null,
-          banner_url: bannerUrlInput.value.trim() || profileState.banner_url || null,
-          avatar_url: avatarUrlInput.value.trim() || null,
-          avatar_color: profileState.avatar_color || '#2dd4ff',
-          status_state: statusStateSelect.value,
-          status_text: statusTextInput.value.trim() || null,
-          role: roleSelect.value || null,
-          rsi_handle: rsiHandleInput.value.trim() || null,
-          rsi_verified: profileState.rsi_verified,
-          discord_tag: discordInput.value.trim() || null,
-          org_name: orgInput.value.trim() || null,
+          rsi_verified: profileState.rsi_verified ? true : false
         };
 
         pfBtn.disabled = true;
-        localStorage.setItem(localKey, JSON.stringify(payload));
+        try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
 
         try {
           const { error } = await supabase
