@@ -915,7 +915,17 @@ const confirmRedirect = loginHref + '?confirmed=1';
           .eq('id', user.id)
           .maybeSingle();
 
-        if (profile) Object.assign(profileState, profile);
+        if (profile) {
+          Object.assign(profileState, profile);
+          profileState.rsi_verified = profile.rsi_verified === true;
+          if (!profileState.rsi_verified) {
+            try {
+              const curLocal = JSON.parse(localStorage.getItem(localKey) || '{}');
+              curLocal.rsi_verified = false;
+              localStorage.setItem(localKey, JSON.stringify(curLocal));
+            } catch {}
+          }
+        }
       } catch (err) {
         const { data: basicProfile } = await supabase
           .from('profiles')
