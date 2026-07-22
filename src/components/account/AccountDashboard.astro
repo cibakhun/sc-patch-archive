@@ -1178,37 +1178,35 @@ const confirmRedirect = loginHref + '?confirmed=1';
           const rsiUrl = `https://robertsspaceindustries.com/citizens/${encodeURIComponent(rsiHandle)}`;
           let html = '';
 
-          // 1. AllOrigins JSON (Befällt nie CORS Preflight in Browsern)
+          // 1. CorsProxy.io (Extrem zuverlässig & schnell)
           try {
-            const res1 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rsiUrl)}`);
+            const res1 = await fetch(`https://corsproxy.io/?${encodeURIComponent(rsiUrl)}`);
             if (res1.ok) {
-              const data = await res1.json();
-              if (data && data.contents && data.contents.length > 500) {
-                html = data.contents;
-              }
+              const text = await res1.text();
+              if (text && text.length > 500) html = text;
             }
-          } catch (e1) { console.warn('Proxy 1 (AllOrigins JSON) failed:', e1); }
+          } catch (e1) { console.warn('Proxy 1 (CorsProxy) failed:', e1); }
 
-          // 2. AllOrigins RAW
+          // 2. Cors.lol
           if (!html) {
             try {
-              const res2 = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(rsiUrl)}`);
+              const res2 = await fetch(`https://api.cors.lol/?url=${encodeURIComponent(rsiUrl)}`);
               if (res2.ok) {
                 const text = await res2.text();
                 if (text && text.length > 500) html = text;
               }
-            } catch (e2) { console.warn('Proxy 2 (AllOrigins RAW) failed:', e2); }
+            } catch (e2) { console.warn('Proxy 2 (Cors.lol) failed:', e2); }
           }
 
-          // 3. CorsProxy.io
+          // 3. AllOrigins JSON
           if (!html) {
             try {
-              const res3 = await fetch(`https://corsproxy.io/?${encodeURIComponent(rsiUrl)}`);
+              const res3 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rsiUrl)}`);
               if (res3.ok) {
-                const text = await res3.text();
-                if (text && text.length > 500) html = text;
+                const data = await res3.json();
+                if (data && data.contents && data.contents.length > 500) html = data.contents;
               }
-            } catch (e3) { console.warn('Proxy 3 (CorsProxy) failed:', e3); }
+            } catch (e3) { console.warn('Proxy 3 (AllOrigins JSON) failed:', e3); }
           }
 
           // 4. CodeTabs Proxy
