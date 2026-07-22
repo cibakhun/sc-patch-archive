@@ -905,7 +905,11 @@ const confirmRedirect = loginHref + '?confirmed=1';
       const localKey = `vb_profile_${user.id}`;
       const savedLocal = localStorage.getItem(localKey);
       if (savedLocal) {
-        try { Object.assign(profileState, JSON.parse(savedLocal)); } catch {}
+        try {
+          const parsed = JSON.parse(savedLocal);
+          delete parsed.rsi_verified;
+          Object.assign(profileState, parsed);
+        } catch {}
       }
 
       try {
@@ -915,25 +919,18 @@ const confirmRedirect = loginHref + '?confirmed=1';
           .eq('id', user.id)
           .maybeSingle();
 
-        if (profile) {
-          Object.assign(profileState, profile);
-          profileState.rsi_verified = profile.rsi_verified === true;
-          if (!profileState.rsi_verified) {
-            try {
-              const curLocal = JSON.parse(localStorage.getItem(localKey) || '{}');
-              curLocal.rsi_verified = false;
-              localStorage.setItem(localKey, JSON.stringify(curLocal));
-            } catch {}
-          }
-        }
+        if (profile) Object.assign(profileState, profile);
       } catch (err) {
         const { data: basicProfile } = await supabase
           .from('profiles')
-          .select('display_name, handle')
+          .select('display_name, handle, rsi_verified')
           .eq('id', user.id)
           .maybeSingle();
         if (basicProfile) Object.assign(profileState, basicProfile);
       }
+
+      // Enforce DB value: rsi_verified is only true if explicitly boolean true in DB
+      profileState.rsi_verified = profileState.rsi_verified === true;
 
       // Populate Inputs
       const nameInput = document.getElementById('pfName') as HTMLInputElement;
@@ -1083,7 +1080,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
         const rsiLink = document.getElementById('pcLinkRsi') as HTMLAnchorElement;
         const rsiVerifyIndicator = document.getElementById('rsiVerifiedStatus')!;
 
-        const isVerified = !!(profileState.rsi_verified && rsiHandle);
+        const isVerified = profileState.rsi_verified === true && !!rsiHandle;
         rsiBadge.hidden = !isVerified;
         if (rsiVerifyIndicator) rsiVerifyIndicator.hidden = !isVerified;
 
