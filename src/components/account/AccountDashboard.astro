@@ -123,6 +123,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
       <div class="acx-id__meta">
         <div class="acx-id__label">{COPY.signedInAs}</div>
         <div class="acx-id__email" id="idEmail">—</div>
+        <div id="rsiBadge" class="acx-badge-verified" hidden>✓ RSI VERIFIED</div>
         <div class="acx-id__since"><span>{COPY.memberSince}</span> <b id="idSince">—</b></div>
       </div>
     </div>
@@ -224,6 +225,12 @@ const confirmRedirect = loginHref + '?confirmed=1';
     letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent);
   }
   .acx-id__email { font-size: 1.05rem; color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+  .acx-badge-verified {
+    display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.3rem; margin-bottom: 0.2rem;
+    padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; color: #34d399;
+    background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.28);
+  }
   .acx-id__since { font-size: 0.85rem; color: var(--muted); margin-top: 0.15rem; }
   .acx-id__since b { color: var(--text); font-weight: 600; }
 
@@ -325,7 +332,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
       const handleInput = document.getElementById('pfHandle') as HTMLInputElement;
       const { data: profile } = await supabase
         .from('profiles')
-        .select('display_name, handle')
+        .select('display_name, handle, rsi_verified')
         .eq('id', user.id)
         .maybeSingle();
       if (profile) {
@@ -333,6 +340,11 @@ const confirmRedirect = loginHref + '?confirmed=1';
         handleInput.value = profile.handle || '';
         const initial = (profile.display_name || user.email || '◆').trim().charAt(0).toUpperCase();
         document.getElementById('idAvatar')!.textContent = initial || '◆';
+
+        const rsiBadge = document.getElementById('rsiBadge');
+        if (rsiBadge) {
+          rsiBadge.hidden = (profile as { rsi_verified?: boolean }).rsi_verified !== true;
+        }
       }
 
       // Favoriten laden
