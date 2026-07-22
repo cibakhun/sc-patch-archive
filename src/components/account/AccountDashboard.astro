@@ -1176,14 +1176,21 @@ const confirmRedirect = loginHref + '?confirmed=1';
           profileState.rsi_verified = true;
           profileState.rsi_handle = rsiHandle;
 
-          // Persist immediately to Supabase using schema-safe columns
+          // Persist immediately to Supabase (storing linked rsi_handle)
           if (user) {
             try {
-              await supabase.from('profiles').upsert({
+              const { error } = await supabase.from('profiles').upsert({
                 id: user.id,
-                handle: rsiHandle,
+                rsi_handle: rsiHandle,
                 rsi_verified: true
               });
+              if (error) {
+                // Fallback to basic schema if rsi_handle column isn't added yet
+                await supabase.from('profiles').upsert({
+                  id: user.id,
+                  rsi_verified: true
+                });
+              }
             } catch (e) { console.warn('Supabase verify update error:', e); }
           }
 
