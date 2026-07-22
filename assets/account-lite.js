@@ -174,18 +174,106 @@
     }
   }
 
+  // ---- Rollen-basierter Zugriffs-Guard (user_roles Tabelle) ----------------
+  // Fragt die user_roles Tabelle via PostgREST ab und cached das Ergebnis
+  // fuer die Dauer der Session im sessionStorage.
+  var ROLE_CACHE_KEY = 'vb_user_role';
+
+  function fetchUserRole(sess) {
+    if (!sess || !sess.user || !sess.user.id) return Promise.resolve(null);
+
+    // Cache-Hit aus sessionStorage (vermeidet wiederholte DB-Abfragen pro Tab)
+    try {
+      var cached = sessionStorage.getItem(ROLE_CACHE_KEY);
+      if (cached) {
+        var parsed = JSON.parse(cached);
+        if (parsed.uid === sess.user.id && parsed.ts > Date.now() - 300000) {
+          return Promise.resolve(parsed.role);
+        }
+      }
+    } catch (e) { /* noop */ }
+
+    return rest(sess, 'GET', 'user_roles?select=role&user_id=eq.' + sess.user.id)
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (rows) {
+        var role = rows && rows[0] ? rows[0].role : 'user';
+        try {
+          sessionStorage.setItem(ROLE_CACHE_KEY, JSON.stringify({
+            uid: sess.user.id, role: role, ts: Date.now()
+          }));
+        } catch (e) { /* noop */ }
+        return role;
+      })
+      .catch(function () { return 'user'; });
+  }
+
+  function applyRestrictions(role) {
+    var isAdmin = role === 'admin';
+    var doc = document.documentElement;
+    doc.classList.toggle('is-admin', isAdmin);
+
+    // Archiv- und Patch-Seiten: nur fuer Admins sichtbar
+    var path = location.pathname.toLowerCase();
+    var isArchivePage = path.indexOf('/archiv') !== -1 || path.indexOf('/patches/') !== -1;
+    var isAccountPage = (path.indexOf('/account') !== -1)
+      && path.indexOf('/account/login') === -1
+      && path.indexOf('/account/register') === -1
+      && path.indexOf('/account/reset') === -1
+      && path.indexOf('/account/update-password') === -1;
+
+    if ((isArchivePage || isAccountPage) && !isAdmin) {
+      if (document.body) document.body.style.display = 'none';
+      var home = IS_DE ? '/de.html' : '/';
+      location.replace(home);
+    }
+
+    // Nav-Links mit data-restricted ausblenden fuer Nicht-Admins
+    var restricted = document.querySelectorAll('[data-restricted]');
+    for (var i = 0; i < restricted.length; i++) {
+      restricted[i].style.display = isAdmin ? '' : 'none';
+    }
+  }
+
   function boot() {
     ensureSession().then(function (sess) {
       paintNav(sess);
       initFavs(sess);
-      if (sess) fetchUsername(sess).then(function (uname) { if (uname) paintNav(sess, uname); });
+
+      if (sess) {
+        // Parallel: Username + Rolle laden
+        var unameP = fetchUsername(sess);
+        var roleP = fetchUserRole(sess);
+
+        unameP.then(function (uname) {
+          if (uname) paintNav(sess, uname);
+        });
+
+        roleP.then(function (role) {
+          applyRestrictions(role);
+        });
+      } else {
+        // Nicht eingeloggt — prüfen ob geschuetzte Seite
+        applyRestrictions(null);
+      }
     });
+
     // Login/Logout in einem anderen Tab -> Nav nachziehen
     addEventListener('storage', function (e) {
       if (e.key !== STORE) return;
+      // Role-Cache invalidieren bei Session-Wechsel
+      try { sessionStorage.removeItem(ROLE_CACHE_KEY); } catch (ex) { /* noop */ }
       var sess = readRaw();
       paintNav(sess);
-      if (sess) fetchUsername(sess).then(function (uname) { if (uname) paintNav(sess, uname); });
+      if (sess) {
+        fetchUsername(sess).then(function (uname) {
+          if (uname) paintNav(sess, uname);
+        });
+        fetchUserRole(sess).then(function (role) {
+          applyRestrictions(role);
+        });
+      } else {
+        applyRestrictions(null);
+      }
     });
   }
 

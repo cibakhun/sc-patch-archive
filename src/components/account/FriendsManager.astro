@@ -1,0 +1,684 @@
+---
+interface Props {
+  lang: 'de' | 'en';
+}
+
+const { lang } = Astro.props;
+
+const COPY = {
+  de: {
+    title: 'Freunde & Pilot Directory',
+    subtitle: 'Vernetze dich mit anderen VerseBase-Piloten, vergleiche Flotten und starte gemeinsame Missionen.',
+    addBtn: 'Freund hinzufügen',
+    addPh: 'VerseBase-Handle eingeben (z. B. star_runner)',
+    searchPh: 'Freunde nach Name, Handle oder Rolle filtern …',
+    sendReq: 'Anfrage senden',
+    tabFriends: 'Deine Freunde',
+    tabRequests: 'Offene Anfragen',
+    emptyFriends: 'Du hast noch keine Freunde in deiner Liste. Füge andere Piloten über ihr Handle hinzu!',
+    emptyRequests: 'Keine offenen Freundschaftsanfragen.',
+    spectrumLink: 'RSI Spectrum',
+    removeFriend: 'Entfernen',
+    accept: 'Annehmen',
+    decline: 'Ablehnen',
+    cancel: 'Abbrechen',
+    incoming: 'Eingehend',
+    outgoing: 'Ausstehend',
+    errSelf: 'Du kannst dir nicht selbst eine Anfrage senden.',
+    errNotFound: 'Kein Pilot mit diesem Handle gefunden.',
+    errAlready: 'Dieser Pilot ist bereits in deiner Freundesliste oder angefragt.',
+    successSent: 'Freundschaftsanfrage erfolgreich gesendet!',
+  },
+  en: {
+    title: 'Friends & Pilot Directory',
+    subtitle: 'Connect with fellow VerseBase pilots, compare fleets, and launch missions together.',
+    addBtn: 'Add friend',
+    addPh: 'Enter VerseBase handle (e.g. star_runner)',
+    searchPh: 'Filter friends by name, handle, or role …',
+    sendReq: 'Send request',
+    tabFriends: 'Your friends',
+    tabRequests: 'Pending requests',
+    emptyFriends: 'No friends in your list yet. Add other pilots by their handle!',
+    emptyRequests: 'No pending friend requests.',
+    spectrumLink: 'RSI Spectrum',
+    removeFriend: 'Remove',
+    accept: 'Accept',
+    decline: 'Decline',
+    cancel: 'Cancel',
+    incoming: 'Incoming',
+    outgoing: 'Outgoing',
+    errSelf: 'You cannot send a friend request to yourself.',
+    errNotFound: 'No pilot found with this handle.',
+    errAlready: 'This pilot is already in your friends list or requested.',
+    successSent: 'Friend request sent successfully!',
+  },
+}[lang];
+---
+
+<div class="friends-manager" data-lang={lang}>
+  <!-- Add Friend & Search Header Card -->
+  <div class="acx-card fm-add-card">
+    <div class="fm-add-head">
+      <div class="fm-icon">◆</div>
+      <div>
+        <h3 class="fm-title">{COPY.title}</h3>
+        <p class="acx-hint" style="margin:0">{COPY.subtitle}</p>
+      </div>
+    </div>
+
+    <form id="fmAddForm" class="fm-add-form" novalidate>
+      <div class="fm-input-group">
+        <input
+          type="text"
+          id="fmHandleInput"
+          class="acx-input"
+          placeholder={COPY.addPh}
+          maxlength="24"
+          required
+        />
+        <button type="submit" class="acx-submit" id="fmAddBtn">
+          <span>+</span>
+          <span>{COPY.sendReq}</span>
+        </button>
+      </div>
+      <p id="fmStatusMsg" class="acx-status" hidden></p>
+    </form>
+
+    <div class="fm-search-bar">
+      <input
+        type="search"
+        id="fmFilterInput"
+        class="acx-input fm-search-input"
+        placeholder={COPY.searchPh}
+      />
+    </div>
+  </div>
+
+  <!-- Sub-Tabs: Friends vs Requests -->
+  <div class="fm-tabs-bar">
+    <button type="button" class="fm-tab-btn active" id="fmTabBtnFriends">
+      <span>{COPY.tabFriends}</span>
+      <span class="fm-badge" id="fmBadgeFriends">0</span>
+    </button>
+    <button type="button" class="fm-tab-btn" id="fmTabBtnRequests">
+      <span>{COPY.tabRequests}</span>
+      <span class="fm-badge fm-badge--accent" id="fmBadgeRequests" hidden>0</span>
+    </button>
+  </div>
+
+  <!-- Tab Content: Friends List Grid -->
+  <div id="fmPanelFriends" class="fm-panel">
+    <div id="fmFriendsList" class="fm-grid"></div>
+    <div id="fmFriendsEmpty" class="fm-empty-box" hidden>
+      <div class="fm-empty-icon">◆</div>
+      <p class="acx-hint">{COPY.emptyFriends}</p>
+    </div>
+  </div>
+
+  <!-- Tab Content: Requests List -->
+  <div id="fmPanelRequests" class="fm-panel" hidden>
+    <div id="fmRequestsList" class="fm-list"></div>
+    <div id="fmRequestsEmpty" class="fm-empty-box" hidden>
+      <div class="fm-empty-icon">◈</div>
+      <p class="acx-hint">{COPY.emptyRequests}</p>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .friends-manager {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+  }
+
+  .fm-add-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+
+  .fm-add-head {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+  }
+
+  .fm-icon {
+    font-size: 1.6rem;
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border: 1px solid var(--line);
+    display: grid;
+    place-items: center;
+    color: var(--accent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+
+  .fm-title {
+    font-family: var(--font-display, sans-serif);
+    font-size: 1.25rem;
+    margin: 0 0 0.25rem 0;
+    color: var(--text);
+  }
+
+  .fm-add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .fm-input-group {
+    display: flex;
+    gap: 0.8rem;
+  }
+
+  .fm-input-group .acx-input {
+    flex: 1;
+  }
+
+  .fm-search-bar {
+    margin-top: 0.2rem;
+  }
+
+  .fm-search-input {
+    background: var(--surface);
+    border-color: var(--line-soft);
+  }
+
+  .fm-tabs-bar {
+    display: flex;
+    gap: 0.8rem;
+    border-bottom: 1px solid var(--line-soft);
+    padding-bottom: 0.6rem;
+  }
+
+  .fm-tab-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.92rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    transition: all 0.2s ease;
+  }
+
+  .fm-tab-btn:hover {
+    color: var(--text);
+    background: var(--surface-2);
+  }
+
+  .fm-tab-btn.active {
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border: 1px solid var(--line);
+  }
+
+  .fm-badge {
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 0.75rem;
+    padding: 0.12rem 0.5rem;
+    border-radius: 10px;
+    border: 1px solid var(--line-soft);
+  }
+
+  .fm-badge--accent {
+    background: var(--accent);
+    color: var(--ink, #05070d);
+    font-weight: 800;
+  }
+
+  .fm-empty-box {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: var(--surface);
+    border: 1px dashed var(--line-soft);
+    border-radius: 10px;
+  }
+
+  .fm-empty-icon {
+    font-size: 2.4rem;
+    margin-bottom: 0.6rem;
+    opacity: 0.75;
+    color: var(--accent);
+  }
+
+  .fm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.1rem;
+  }
+
+  .fm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .fm-pilot-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    transition: all 0.2s ease;
+  }
+
+  .fm-pilot-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--accent) 20%, transparent);
+    transform: translateY(-2px);
+  }
+
+  .fm-card-main {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+    min-width: 0;
+  }
+
+  .fm-avatar-box {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 2px solid var(--accent, #2dd4ff);
+    display: grid;
+    place-items: center;
+    font-size: 1.5rem;
+    color: var(--accent);
+    flex: none;
+    overflow: hidden;
+    box-shadow: 0 0 16px color-mix(in srgb, var(--accent, #2dd4ff) 30%, transparent);
+  }
+
+  .fm-avatar-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .fm-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #38bdf8;
+    border: 2px solid var(--surface);
+  }
+
+  .fm-dot.ingame { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+  .fm-dot.away { background: #f97316; }
+
+  .fm-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+
+  .fm-user-name {
+    font-weight: 700;
+    font-size: 1.02rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .fm-user-handle {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-family: monospace;
+  }
+
+  .fm-user-status {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .fm-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    border-top: 1px solid var(--line-soft);
+    padding-top: 0.75rem;
+    margin-top: 0.2rem;
+  }
+
+  .fm-btn {
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+    color: var(--text);
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.2s ease;
+  }
+
+  .fm-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .fm-btn--primary {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border-color: var(--line);
+    color: var(--accent);
+  }
+
+  .fm-btn--primary:hover {
+    background: color-mix(in srgb, var(--accent) 24%, transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+
+  .fm-btn--danger {
+    color: var(--muted);
+  }
+
+  .fm-btn--danger:hover {
+    border-color: rgba(255, 122, 122, 0.4);
+    color: #ff8a8a;
+  }
+</style>
+
+<script>
+  interface FriendItem {
+    id: string;
+    display_name: string;
+    handle: string;
+    role?: string;
+    rsi_handle?: string;
+    rsi_verified?: boolean;
+    status_state?: string;
+    status_text?: string;
+    avatar_icon?: string;
+    avatar_color?: string;
+    avatar_url?: string;
+  }
+
+  interface RequestItem {
+    id: string;
+    from_name: string;
+    from_handle: string;
+    type: 'incoming' | 'outgoing';
+  }
+
+  const DEFAULT_FRIENDS: FriendItem[] = [
+    {
+      id: 'f-1',
+      display_name: 'Vanguard_Actual',
+      handle: 'vanguard_actual',
+      role: 'Kopfgeldjäger',
+      rsi_handle: 'Vanguard_Actual',
+      rsi_verified: true,
+      status_state: 'ingame',
+      status_text: 'Patrolling Pyro System',
+      avatar_icon: '◆',
+      avatar_color: '#2dd4ff',
+    },
+    {
+      id: 'f-2',
+      display_name: 'QuantumMiner_DE',
+      handle: 'quantum_miner',
+      role: 'Bergbau-Spezialist',
+      rsi_handle: 'QuantumMiner',
+      rsi_verified: true,
+      status_state: 'online',
+      status_text: 'Mining Quantainium in Lyria',
+      avatar_icon: '⬢',
+      avatar_color: '#f59e0b',
+    },
+    {
+      id: 'f-3',
+      display_name: 'Aegis_Commander',
+      handle: 'aegis_commander',
+      role: 'Flottenkommandant',
+      rsi_handle: 'Aegis_Commander',
+      rsi_verified: true,
+      status_state: 'ingame',
+      status_text: 'Commanding Idris Frigate',
+      avatar_icon: '★',
+      avatar_color: '#38bdf8',
+    },
+  ];
+
+  const DEFAULT_REQUESTS: RequestItem[] = [
+    {
+      id: 'r-1',
+      from_name: 'Drake_Outlaw',
+      from_handle: 'drake_outlaw',
+      type: 'incoming',
+    },
+  ];
+
+  const fmWrap = document.querySelector('.friends-manager');
+  if (fmWrap) {
+    const lang = fmWrap.getAttribute('data-lang') === 'de' ? 'de' : 'en';
+
+    let friendsList: FriendItem[] = [...DEFAULT_FRIENDS];
+    let requestsList: RequestItem[] = [...DEFAULT_REQUESTS];
+
+    const localFriends = localStorage.getItem('vb_friends');
+    if (localFriends) {
+      try { friendsList = JSON.parse(localFriends); } catch {}
+    }
+    const localRequests = localStorage.getItem('vb_requests');
+    if (localRequests) {
+      try { requestsList = JSON.parse(localRequests); } catch {}
+    }
+
+    const saveState = () => {
+      localStorage.setItem('vb_friends', JSON.stringify(friendsList));
+      localStorage.setItem('vb_requests', JSON.stringify(requestsList));
+    };
+
+    const tabFriendsBtn = document.getElementById('fmTabBtnFriends')!;
+    const tabRequestsBtn = document.getElementById('fmTabBtnRequests')!;
+    const panelFriends = document.getElementById('fmPanelFriends')!;
+    const panelRequests = document.getElementById('fmPanelRequests')!;
+
+    const listFriendsEl = document.getElementById('fmFriendsList')!;
+    const emptyFriendsEl = document.getElementById('fmFriendsEmpty')!;
+    const listRequestsEl = document.getElementById('fmRequestsList')!;
+    const emptyRequestsEl = document.getElementById('fmRequestsEmpty')!;
+
+    const badgeFriendsEl = document.getElementById('fmBadgeFriends')!;
+    const badgeRequestsEl = document.getElementById('fmBadgeRequests')!;
+    const filterInput = document.getElementById('fmFilterInput') as HTMLInputElement;
+
+    tabFriendsBtn.addEventListener('click', () => {
+      tabFriendsBtn.classList.add('active');
+      tabRequestsBtn.classList.remove('active');
+      panelFriends.hidden = false;
+      panelRequests.hidden = true;
+    });
+
+    tabRequestsBtn.addEventListener('click', () => {
+      tabRequestsBtn.classList.add('active');
+      tabFriendsBtn.classList.remove('active');
+      panelRequests.hidden = false;
+      panelFriends.hidden = true;
+    });
+
+    const render = () => {
+      const query = (filterInput?.value || '').trim().toLowerCase();
+
+      const filteredFriends = friendsList.filter(f => {
+        if (!query) return true;
+        return (
+          f.display_name.toLowerCase().includes(query) ||
+          f.handle.toLowerCase().includes(query) ||
+          (f.role && f.role.toLowerCase().includes(query)) ||
+          (f.status_text && f.status_text.toLowerCase().includes(query))
+        );
+      });
+
+      badgeFriendsEl.textContent = String(friendsList.length);
+      badgeRequestsEl.textContent = String(requestsList.length);
+      badgeRequestsEl.hidden = requestsList.length === 0;
+
+      listFriendsEl.innerHTML = '';
+      emptyFriendsEl.hidden = filteredFriends.length > 0;
+
+      filteredFriends.forEach(f => {
+        const card = document.createElement('div');
+        card.className = 'fm-pilot-card';
+
+        const dotClass = f.status_state === 'ingame' ? 'ingame' : f.status_state === 'away' ? 'away' : '';
+        const iconSymbol = f.avatar_icon || f.display_name.charAt(0).toUpperCase();
+        const avColor = f.avatar_color || '#2dd4ff';
+
+        const rsiUrl = f.rsi_handle ? `https://robertsspaceindustries.com/citizens/${encodeURIComponent(f.rsi_handle)}` : `https://robertsspaceindustries.com/citizens/${encodeURIComponent(f.handle)}`;
+
+        card.innerHTML = `
+          <div class="fm-card-main">
+            <div class="fm-avatar-box" style="border-color:${avColor}; color:${avColor}; box-shadow: 0 0 16px ${avColor}44">
+              <span>${iconSymbol}</span>
+              <div class="fm-dot ${dotClass}"></div>
+            </div>
+            <div class="fm-user-info">
+              <div class="fm-user-name">
+                <span>${f.display_name}</span>
+                ${f.rsi_verified ? '<span style="color:#4ade80;font-size:0.75rem" title="RSI Verified">✓</span>' : ''}
+              </div>
+              <div class="fm-user-handle">@${f.handle}</div>
+              <div class="fm-user-status">${f.status_text || f.role || (f.status_state === 'ingame' ? 'In-Verse (Star Citizen)' : 'Online')}</div>
+            </div>
+          </div>
+          <div class="fm-card-actions">
+            <a href="${rsiUrl}" target="_blank" rel="noopener noreferrer" class="fm-btn fm-btn--primary">
+              RSI Spectrum →
+            </a>
+            <button type="button" class="fm-btn fm-btn--danger btn-rm" data-id="${f.id}">
+              ${lang === 'de' ? 'Entfernen' : 'Remove'}
+            </button>
+          </div>
+        `;
+
+        card.querySelector('.btn-rm')?.addEventListener('click', () => {
+          friendsList = friendsList.filter(item => item.id !== f.id);
+          saveState();
+          render();
+        });
+
+        listFriendsEl.appendChild(card);
+      });
+
+      listRequestsEl.innerHTML = '';
+      emptyRequestsEl.hidden = requestsList.length > 0;
+
+      requestsList.forEach(r => {
+        const card = document.createElement('div');
+        card.className = 'fm-pilot-card';
+
+        card.innerHTML = `
+          <div class="fm-card-main">
+            <div class="fm-avatar-box">
+              <span>${r.from_name.charAt(0).toUpperCase()}</span>
+            </div>
+            <div class="fm-user-info">
+              <div class="fm-user-name">${r.from_name}</div>
+              <div class="fm-user-handle">@${r.from_handle}</div>
+              <div class="fm-user-status" style="color:var(--accent)">${r.type === 'incoming' ? (lang === 'de' ? 'Eingehende Anfrage' : 'Incoming request') : (lang === 'de' ? 'Ausstehend' : 'Outgoing')}</div>
+            </div>
+          </div>
+          <div class="fm-card-actions">
+            ${r.type === 'incoming' ? `
+              <button type="button" class="fm-btn fm-btn--primary btn-accept" data-id="${r.id}">${lang === 'de' ? 'Annehmen' : 'Accept'}</button>
+              <button type="button" class="fm-btn fm-btn--danger btn-decline" data-id="${r.id}">${lang === 'de' ? 'Ablehnen' : 'Decline'}</button>
+            ` : `
+              <button type="button" class="fm-btn fm-btn--danger btn-decline" data-id="${r.id}">${lang === 'de' ? 'Abbrechen' : 'Cancel'}</button>
+            `}
+          </div>
+        `;
+
+        card.querySelector('.btn-accept')?.addEventListener('click', () => {
+          friendsList.push({
+            id: `f-${Date.now()}`,
+            display_name: r.from_name,
+            handle: r.from_handle,
+            status_state: 'online',
+            rsi_verified: true,
+          });
+          requestsList = requestsList.filter(item => item.id !== r.id);
+          saveState();
+          render();
+        });
+
+        card.querySelector('.btn-decline')?.addEventListener('click', () => {
+          requestsList = requestsList.filter(item => item.id !== r.id);
+          saveState();
+          render();
+        });
+
+        listRequestsEl.appendChild(card);
+      });
+    };
+
+    filterInput?.addEventListener('input', render);
+
+    const addForm = document.getElementById('fmAddForm') as HTMLFormElement;
+    const handleInput = document.getElementById('fmHandleInput') as HTMLInputElement;
+    const statusMsg = document.getElementById('fmStatusMsg')!;
+
+    addForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      statusMsg.hidden = true;
+      const rawHandle = handleInput.value.trim().toLowerCase().replace(/^@/, '');
+      if (!rawHandle) return;
+
+      if (friendsList.some(f => f.handle.toLowerCase() === rawHandle)) {
+        statusMsg.textContent = lang === 'de' ? 'Dieser Pilot ist bereits in deiner Freundesliste.' : 'This pilot is already in your friends list.';
+        statusMsg.classList.remove('acx-status--ok');
+        statusMsg.hidden = false;
+        return;
+      }
+
+      requestsList.push({
+        id: `r-${Date.now()}`,
+        from_name: rawHandle,
+        from_handle: rawHandle,
+        type: 'outgoing',
+      });
+      saveState();
+      render();
+
+      handleInput.value = '';
+      statusMsg.textContent = lang === 'de' ? 'Freundschaftsanfrage erfolgreich gesendet!' : 'Friend request sent successfully!';
+      statusMsg.classList.add('acx-status--ok');
+      statusMsg.hidden = false;
+    });
+
+    render();
+  }
+</script>

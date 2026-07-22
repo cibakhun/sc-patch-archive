@@ -69,19 +69,22 @@ const items = [
 <nav class="lp" id="lp" aria-label={t('home.launch.aria')}>
   <span class="lp__hint" aria-hidden="true">{t('home.launch.hint')}</span>
   <ul class="lp__grid">
-    {items.map((it) => (
-      <li>
-        <a class="lp__tile" href={it.href}>
-          <span class="lp__ic" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="26" height="26"><path d={it.icon} /></svg>
-          </span>
-          <span class="lp__txt">
-            <b>{it.label}</b>
-            <i>{it.sub}</i>
-          </span>
-        </a>
-      </li>
-    ))}
+    {items.map((it) => {
+      const isArc = it.href.includes('archiv');
+      return (
+        <li class:list={[{ 'js-restricted-archive': isArc }]} data-restricted={isArc ? 'patch-archive' : undefined}>
+          <a class="lp__tile" href={it.href}>
+            <span class="lp__ic" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26"><path d={it.icon} /></svg>
+            </span>
+            <span class="lp__txt">
+              <b>{it.label}</b>
+              <i>{it.sub}</i>
+            </span>
+          </a>
+        </li>
+      );
+    })}
   </ul>
 </nav>
 

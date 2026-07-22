@@ -21,8 +21,8 @@ const creditText = credit ?? t('footer.credit');
 <footer class="site-attr">
   <nav class="attr-nav" aria-label={t('footer.pageNav')}>
     <a href={L('/index.html')}>{t('nav.home')}</a>
-    <span aria-hidden="true">·</span>
-    <a href={L('/archiv.html')}>{t('nav.allPatches')}</a>
+    <span aria-hidden="true" class="js-restricted-archive" data-restricted="patch-archive">·</span>
+    <a href={L('/archiv.html')} class="js-restricted-archive" data-restricted="patch-archive">{t('nav.allPatches')}</a>
     <span aria-hidden="true">·</span>
     <a href={L('/impressum.html')}>{t('footer.imprint')}</a>
     <span aria-hidden="true">·</span>
