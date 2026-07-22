@@ -49,6 +49,25 @@ const COPY = {
     rsiVerifyCheckBtn: 'Jetzt auf RSI prüfen',
     rsiVerifySuccess: 'RSI Account erfolgreich verifiziert!',
     rsiVerifyErr: 'Code konnte im RSI-Profil noch nicht gefunden werden. Bitte prüfe deine Bio.',
+    rsiReset: 'Verifizierung aufheben',
+    rsiResetOk: 'RSI-Verifizierung wurde erfolgreich zurückgesetzt.',
+    rsiModalTitle: 'RSI Account Verifizierung',
+    rsiModalIntroPre: 'Verifiziere deinen Star Citizen Account',
+    rsiModalIntroPost: 'auf Roberts Space Industries.',
+    rsiStep1: 'Kopiere diesen persönlichen Verifizierungscode (er bleibt dauerhaft gleich):',
+    rsiCopy: 'Kopieren',
+    rsiCopied: 'Kopiert! ✓',
+    rsiStep2Pre: 'Öffne deine',
+    rsiStep2Link: 'RSI Profil-Einstellungen',
+    rsiStep2Post: 'und füge den Code in das Textfeld Bio ein (Account → Profile) und speichere.',
+    rsiStep3: 'Klicke auf Prüfen — VerseBase sucht serverseitig in deiner RSI Bio nach dem Code.',
+    rsiCheckNow: 'RSI Bio jetzt prüfen',
+    rsiClose: 'Schließen',
+    rsiChecking: 'Prüfe RSI-Bio serverseitig für @%handle% …',
+    rsiNoHandle: 'Kein RSI Handle angegeben.',
+    rsiEnterHandle: 'Bitte trage zuerst dein RSI Citizen Handle im Feld oben ein (z. B. Roberts).',
+    rsiNotFound: 'Code "%code%" wurde noch nicht in der Bio von @%handle% auf robertsspaceindustries.com gefunden. Bitte speichere die Bio auf RSI (die Anzeige kann 1–2 Minuten dauern).',
+    rsiServerErr: 'Der Verifizierungsserver ist gerade nicht erreichbar — bitte später erneut versuchen.',
     discordTag: 'Discord Tag', discordPh: 'z. B. Pilot#1234 oder @pilot',
     orgName: 'Organisation & Rang', orgPh: 'z. B. VerseBase Fleet — Commander',
     saveProfile: 'Profil Änderungen speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
@@ -114,6 +133,25 @@ const COPY = {
     rsiVerifyCheckBtn: 'Check on RSI now',
     rsiVerifySuccess: 'RSI Account verified successfully!',
     rsiVerifyErr: 'Code could not be found on RSI profile yet. Please check your bio.',
+    rsiReset: 'Revoke verification',
+    rsiResetOk: 'RSI verification has been reset successfully.',
+    rsiModalTitle: 'RSI Account Verification',
+    rsiModalIntroPre: 'Verify your Star Citizen account',
+    rsiModalIntroPost: 'on Roberts Space Industries.',
+    rsiStep1: 'Copy your personal verification code (it always stays the same):',
+    rsiCopy: 'Copy',
+    rsiCopied: 'Copied! ✓',
+    rsiStep2Pre: 'Open your',
+    rsiStep2Link: 'RSI profile settings',
+    rsiStep2Post: 'and paste the code into the Bio text field (Account → Profile), then save.',
+    rsiStep3: 'Click Check — VerseBase searches your RSI bio for the code server-side.',
+    rsiCheckNow: 'Check RSI bio now',
+    rsiClose: 'Close',
+    rsiChecking: 'Checking RSI bio server-side for @%handle% …',
+    rsiNoHandle: 'No RSI handle specified.',
+    rsiEnterHandle: 'Please enter your RSI Citizen handle in the field above first (e.g. Roberts).',
+    rsiNotFound: 'Code "%code%" was not found in @%handle%\'s bio on robertsspaceindustries.com yet. Please save your bio on RSI (it can take 1–2 minutes to show up).',
+    rsiServerErr: 'The verification server is currently unreachable — please try again later.',
     discordTag: 'Discord Tag', discordPh: 'e.g. Pilot#1234 or @pilot',
     orgName: 'Organization & Rank', orgPh: 'e.g. VerseBase Fleet — Commander',
     saveProfile: 'Save profile changes', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
@@ -171,6 +209,15 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-retry={COPY.retry}
   data-danger-word={COPY.dangerWord}
   data-fav-remove={COPY.favRemove}
+  data-msg-rsi-checking={COPY.rsiChecking}
+  data-msg-rsi-no-handle={COPY.rsiNoHandle}
+  data-msg-rsi-enter-handle={COPY.rsiEnterHandle}
+  data-msg-rsi-not-found={COPY.rsiNotFound}
+  data-msg-rsi-server-err={COPY.rsiServerErr}
+  data-msg-rsi-success={COPY.rsiVerifySuccess}
+  data-msg-rsi-reset-ok={COPY.rsiResetOk}
+  data-rsi-copy={COPY.rsiCopy}
+  data-rsi-copied={COPY.rsiCopied}
 >
   <!-- Identity Header -->
   <div class="acx-idcard reveal">
@@ -329,7 +376,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
           <div id="rsiVerifiedStatus" class="rsi-verified-indicator" hidden>
             <span>✓ {COPY.rsiVerifiedText}</span>
             <button type="button" id="btnResetRsiVerify" style="margin-left:0.8rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.8rem;text-decoration:underline">
-              (Verifizierung aufheben)
+              ({COPY.rsiReset})
             </button>
           </div>
         </div>
@@ -429,21 +476,21 @@ const confirmRedirect = loginHref + '?confirmed=1';
     <div class="acx-modal-content">
       <div class="acx-modal-head">
         <span class="acx-modal-icon">◆</span>
-        <h3>RSI Account Verifizierung</h3>
+        <h3>{COPY.rsiModalTitle}</h3>
       </div>
       
       <p class="acx-hint" style="margin-bottom:1rem">
-        Verifiziere deinen Star Citizen Account <strong id="rsiModalTargetHandle">@...</strong> auf Roberts Space Industries.
+        {COPY.rsiModalIntroPre} <strong id="rsiModalTargetHandle">@...</strong> {COPY.rsiModalIntroPost}
       </p>
 
       <div class="rsi-steps">
         <div class="rsi-step">
           <span class="step-num">1</span>
           <div class="step-txt">
-            <span>Kopiere diesen einmaligen Verifizierungscode:</span>
+            <span>{COPY.rsiStep1}</span>
             <div class="rsi-code-box" style="margin-top:0.4rem">
               <code id="rsiVerifyCode">VERSEBASE-VERIFY-LOADING</code>
-              <button type="button" class="acx-btn-copy" id="btnCopyRsiCode">Kopieren</button>
+              <button type="button" class="acx-btn-copy" id="btnCopyRsiCode">{COPY.rsiCopy}</button>
             </div>
           </div>
         </div>
@@ -451,21 +498,21 @@ const confirmRedirect = loginHref + '?confirmed=1';
         <div class="rsi-step" style="margin-top:0.8rem">
           <span class="step-num">2</span>
           <div class="step-txt">
-            <span>Öffne deine <a id="rsiModalProfileLink" href="https://robertsspaceindustries.com/account/profile" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">RSI Profil-Einstellungen</a> und füge den Code kurz in deine <strong>Bio</strong> ein.</span>
+            <span>{COPY.rsiStep2Pre} <a id="rsiModalProfileLink" href="https://robertsspaceindustries.com/account/profile" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">{COPY.rsiStep2Link}</a> {COPY.rsiStep2Post}</span>
           </div>
         </div>
 
         <div class="rsi-step" style="margin-top:0.8rem">
           <span class="step-num">3</span>
           <div class="step-txt">
-            <span>Klicke auf <strong>Prüfen</strong> — VerseBase sucht automatisch in deiner RSI Bio nach dem Code.</span>
+            <span>{COPY.rsiStep3}</span>
           </div>
         </div>
       </div>
 
       <div class="acx-actions" style="margin-top:1.4rem">
-        <button type="button" class="acx-submit" id="btnCheckRsiNow">RSI Bio jetzt prüfen</button>
-        <button type="button" class="acx-submit acx-submit--ghost" id="btnCloseRsiModal">Schließen</button>
+        <button type="button" class="acx-submit" id="btnCheckRsiNow">{COPY.rsiCheckNow}</button>
+        <button type="button" class="acx-submit acx-submit--ghost" id="btnCloseRsiModal">{COPY.rsiClose}</button>
       </div>
       <p id="rsiVerifyMsg" class="acx-status" hidden style="margin-top:1rem"></p>
     </div>
@@ -932,20 +979,42 @@ const confirmRedirect = loginHref + '?confirmed=1';
       // Enforce DB value: rsi_verified is only true if explicitly boolean true in DB
       profileState.rsi_verified = profileState.rsi_verified === true;
 
-      // Silent Re-verification check if user is marked verified
-      if (profileState.rsi_verified && (profileState.rsi_handle || profileState.handle) && profileState.rsi_code) {
+      // Serverseitige RSI-Bio-Prüfung über die native verse-base.com Function
+      // (/api/verify-rsi) — Browser-Aufrufe auf RSI werden von Cloudflare
+      // CORS/Bot-Protection blockiert. Das Session-JWT geht im Authorization-
+      // Header mit; die Function persistiert das Ergebnis serverseitig in der
+      // DB (ein DB-Trigger verbietet Client-Writes auf rsi_verified=true).
+      // Rückgabe: { verified, error?, persisted? } oder null, wenn der Server
+      // nicht erreicht werden konnte (dann darf NICHT revokiert werden).
+      const serverVerify = async (rHandle: string, rCode: string): Promise<{ verified: boolean; error?: string; persisted?: boolean } | null> => {
+        try {
+          const apiRes = await fetch(`/api/verify-rsi?handle=${encodeURIComponent(rHandle)}&code=${encodeURIComponent(rCode)}`, {
+            headers: { 'Authorization': `Bearer ${session.access_token}` }
+          });
+          if (apiRes.ok) {
+            const apiData = await apiRes.json();
+            if (apiData && typeof apiData.verified === 'boolean') {
+              return { verified: apiData.verified, error: apiData.error, persisted: apiData.persisted };
+            }
+          }
+        } catch (apiErr) {
+          console.warn('Native verse-base API verify call failed:', apiErr);
+        }
+
+        return null;
+      };
+
+      // Silent Re-verification check if user is marked verified (Auto-Revocation)
+      if (profileState.rsi_verified === true && profileState.rsi_handle && profileState.rsi_code) {
         (async () => {
           try {
-            const rHandle = profileState.rsi_handle || profileState.handle;
-            const { data } = await supabase.functions.invoke('verify-rsi', {
-              body: { rsi_handle: rHandle, rsi_code: profileState.rsi_code, user_id: user ? user.id : null }
-            });
-            if (data && data.verified === false) {
+            const result = await serverVerify(profileState.rsi_handle, profileState.rsi_code);
+            // Nur bei einem definitiv erfolgreichen Server-Check OHNE Code-Fund revokieren —
+            // bei Netzwerk-/Server-Fehlern (result === null oder error gesetzt) bleibt das Badge.
+            if (result && result.verified === false && !result.error) {
               console.warn('Re-verification failed: RSI bio code missing. Revoking badge.');
               profileState.rsi_verified = false;
-              if (user) {
-                await supabase.from('profiles').update({ rsi_verified: false }).eq('id', user.id);
-              }
+              await supabase.from('profiles').update({ rsi_verified: false }).eq('id', user.id);
               updateCard();
             }
           } catch (reErr) { console.warn('Background re-verify check skipped:', reErr); }
@@ -1100,7 +1169,11 @@ const confirmRedirect = loginHref + '?confirmed=1';
         const rsiLink = document.getElementById('pcLinkRsi') as HTMLAnchorElement;
         const rsiVerifyIndicator = document.getElementById('rsiVerifiedStatus')!;
 
-        const isVerified = profileState.rsi_verified === true && !!rsiHandle;
+        // Badge nur, wenn das eingetragene Handle dem serverseitig verifizierten
+        // Handle entspricht (Handle-Wechsel entzieht das Badge; RSI-Handles sind
+        // case-insensitiv, daher Case-frei vergleichen).
+        const isVerified = profileState.rsi_verified === true && !!rsiHandle
+          && rsiHandle.toLowerCase() === (profileState.rsi_handle || '').toLowerCase();
         rsiBadge.hidden = !isVerified;
         if (rsiVerifyIndicator) rsiVerifyIndicator.hidden = !isVerified;
 
@@ -1148,9 +1221,19 @@ const confirmRedirect = loginHref + '?confirmed=1';
       const btnCheckRsiNow = document.getElementById('btnCheckRsiNow')!;
       const rsiVerifyMsg = document.getElementById('rsiVerifyMsg')!;
 
-      let activeCode = profileState.rsi_code || localStorage.getItem('vb_rsi_code') || `VERSEBASE-VERIFY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      // Fester, eindeutiger Verifizierungscode pro Nutzer: DB-Wert hat Vorrang,
+      // dann localStorage; ein neu generierter Code wird sofort serverseitig
+      // persistiert, damit er geräteübergreifend und bei jedem Aufruf gleich bleibt.
+      const codeFromDb = typeof profileState.rsi_code === 'string' && profileState.rsi_code.length > 0;
+      let activeCode = codeFromDb ? profileState.rsi_code
+        : (localStorage.getItem('vb_rsi_code') || `VERSEBASE-VERIFY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
       try { localStorage.setItem('vb_rsi_code', activeCode); } catch {}
       profileState.rsi_code = activeCode;
+      if (!codeFromDb) {
+        supabase.from('profiles').upsert({ id: user.id, rsi_code: activeCode })
+          .then(({ error }) => { if (error) console.warn('Could not persist rsi_code:', error); })
+          .catch(() => {});
+      }
 
       btnRsiVerifyModal.addEventListener('click', () => {
         const handle = rsiHandleInput.value.trim();
@@ -1158,14 +1241,13 @@ const confirmRedirect = loginHref + '?confirmed=1';
         const profileLinkEl = document.getElementById('rsiModalProfileLink') as HTMLAnchorElement;
 
         if (!handle) {
-          show(pfStatus as HTMLElement, lang === 'de' ? 'Bitte trage zuerst dein RSI Citizen Handle im Feld oben ein (z. B. Roberts).' : 'Please enter your RSI Citizen Handle above first.');
+          show(pfStatus as HTMLElement, D.msgRsiEnterHandle!);
           return;
         }
 
         if (targetHandleEl) targetHandleEl.textContent = `@${handle}`;
         if (profileLinkEl) {
           profileLinkEl.href = `https://robertsspaceindustries.com/account/profile`;
-          profileLinkEl.textContent = `RSI Profil-Einstellungen (@${handle})`;
         }
 
         rsiCodeEl.textContent = activeCode;
@@ -1178,14 +1260,14 @@ const confirmRedirect = loginHref + '?confirmed=1';
 
       btnCopyRsiCode.addEventListener('click', () => {
         navigator.clipboard.writeText(activeCode);
-        btnCopyRsiCode.textContent = 'Kopiert! ✓';
-        setTimeout(() => btnCopyRsiCode.textContent = 'Kopieren', 2000);
+        btnCopyRsiCode.textContent = D.rsiCopied || 'Copied! ✓';
+        setTimeout(() => btnCopyRsiCode.textContent = D.rsiCopy || 'Copy', 2000);
       });
 
       btnCheckRsiNow.addEventListener('click', async () => {
         const rsiHandle = rsiHandleInput.value.trim();
         if (!rsiHandle) {
-          rsiVerifyMsg.textContent = lang === 'de' ? 'Kein RSI Handle angegeben.' : 'No RSI Handle specified.';
+          rsiVerifyMsg.textContent = D.msgRsiNoHandle!;
           rsiVerifyMsg.className = 'acx-status acx-status--err';
           rsiVerifyMsg.hidden = false;
           return;
@@ -1193,80 +1275,29 @@ const confirmRedirect = loginHref + '?confirmed=1';
 
         btnCheckRsiNow.disabled = true;
         rsiVerifyMsg.className = 'acx-status';
-        rsiVerifyMsg.textContent = (lang === 'de' ? `Prüfe RSI-Bio serverseitig für @${rsiHandle} …` : `Querying RSI Bio server-side for @${rsiHandle} …`);
+        rsiVerifyMsg.textContent = D.msgRsiChecking!.replace('%handle%', rsiHandle);
         rsiVerifyMsg.hidden = false;
 
         try {
-          let verified = false;
-          let errorMessage = '';
-
-          // 1. Try Native verse-base.com Serverless Function (/api/verify-rsi)
-          try {
-            const apiRes = await fetch(`/api/verify-rsi?handle=${encodeURIComponent(rsiHandle)}&code=${encodeURIComponent(activeCode)}`);
-            if (apiRes.ok) {
-              const apiData = await apiRes.json();
-              if (apiData) {
-                verified = apiData.verified === true;
-                if (!verified && apiData.message) errorMessage = apiData.message;
-              }
-            }
-          } catch (apiErr) {
-            console.warn('Native verse-base API failed, trying fallbacks:', apiErr);
-          }
-
-          // 2. Try Supabase Edge Function
-          if (!verified && !errorMessage) {
-            try {
-              const { data, error } = await supabase.functions.invoke('verify-rsi', {
-                body: { rsi_handle: rsiHandle, rsi_code: activeCode, user_id: user ? user.id : null }
-              });
-              if (!error && data) {
-                verified = data.verified === true;
-                if (!verified) errorMessage = data.message || data.error;
-              }
-            } catch (efErr) {
-              console.warn('Edge Function invoke failed:', efErr);
-            }
-          }
-
-          // 3. Fallback Client Fetcher
-          if (!verified && !errorMessage) {
-            const rsiUrl = `https://robertsspaceindustries.com/citizens/${encodeURIComponent(rsiHandle)}`;
-            let html = '';
-
-            try {
-              const res1 = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(rsiUrl)}`);
-              if (res1.ok) {
-                const text = await res1.text();
-                if (text && text.length > 500) html = text;
-              }
-            } catch (e1) {}
-
-            if (html && html.includes(activeCode)) {
-              verified = true;
-            } else if (html && html.includes('404') && html.includes('Not Found')) {
-              errorMessage = lang === 'de'
-                ? `RSI Citizen "@${rsiHandle}" wurde auf robertsspaceindustries.com nicht gefunden.`
-                : `RSI Citizen "@${rsiHandle}" was not found on robertsspaceindustries.com.`;
-            }
-          }
+          // Ausschließlich serverseitige Prüfung (CF Function → Supabase Edge Function).
+          // KEIN Client-Fallback: Browser-Fetches auf RSI werden von Cloudflare
+          // CORS/Bot-Protection blockiert bzw. liefern gecachte Seiten ohne Bio.
+          const result = await serverVerify(rsiHandle, activeCode);
+          const verified = result?.verified === true;
+          const errorMessage = result?.error || '';
 
           if (verified) {
             profileState.rsi_verified = true;
             profileState.rsi_handle = rsiHandle;
 
-            if (user) {
-              try {
-                await supabase.from('profiles').upsert({
-                  id: user.id,
-                  rsi_handle: rsiHandle,
-                  rsi_verified: true,
-                  rsi_code: activeCode
-                });
-              } catch (e) { console.warn('Supabase verify update error:', e); }
+            // DB-Persistierung läuft ausschließlich serverseitig in
+            // /api/verify-rsi (mit Session-JWT) — der Client schreibt
+            // rsi_verified NICHT selbst, ein DB-Trigger verbietet das.
+            if (result && result.persisted === false) {
+              console.warn('RSI verify: Server konnte nicht persistieren — sind die CF-Env-Vars SUPABASE_* gesetzt?');
             }
 
-            rsiVerifyMsg.textContent = '✓ ' + (lang === 'de' ? 'RSI Account erfolgreich verifiziert!' : 'RSI Account verified successfully!');
+            rsiVerifyMsg.textContent = '✓ ' + D.msgRsiSuccess!;
             rsiVerifyMsg.className = 'acx-status acx-status--ok';
             updateCard();
 
@@ -1275,14 +1306,14 @@ const confirmRedirect = loginHref + '?confirmed=1';
               btnCheckRsiNow.disabled = false;
             }, 1200);
           } else {
-            rsiVerifyMsg.textContent = errorMessage || (lang === 'de'
-              ? `Code "${genCode}" wurde noch nicht in der Bio von @${rsiHandle} auf robertsspaceindustries.com gefunden. Bitte speichere die Bio auf RSI.`
-              : `Code "${genCode}" was not found in @${rsiHandle}'s bio on robertsspaceindustries.com yet. Please save your bio on RSI.`);
+            rsiVerifyMsg.textContent = result === null
+              ? D.msgRsiServerErr!
+              : (errorMessage || D.msgRsiNotFound!.replace('%code%', activeCode).replace('%handle%', rsiHandle));
             rsiVerifyMsg.className = 'acx-status acx-status--err';
             btnCheckRsiNow.disabled = false;
           }
         } catch (err: any) {
-          rsiVerifyMsg.textContent = (lang === 'de' ? 'Fehler bei der Verifizierung: ' : 'Verification error: ') + (err.message || err);
+          rsiVerifyMsg.textContent = D.msgRsiServerErr! + ' (' + (err.message || err) + ')';
           rsiVerifyMsg.className = 'acx-status acx-status--err';
           btnCheckRsiNow.disabled = false;
         }
@@ -1313,7 +1344,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
             localStorage.removeItem(localKey);
           }
 
-          show(pfStatus as HTMLElement, lang === 'de' ? 'RSI-Verifizierung wurde erfolgreich zurückgesetzt.' : 'RSI verification successfully reset.', true);
+          show(pfStatus as HTMLElement, D.msgRsiResetOk!, true);
         });
       }
 
@@ -1332,12 +1363,25 @@ const confirmRedirect = loginHref + '?confirmed=1';
           return;
         }
 
-        const payload = {
+        // WICHTIG: rsi_verified wird hier NIEMALS mitgesendet — das Badge darf
+        // ausschließlich nach erfolgreicher serverseitiger Prüfung (bzw. durch
+        // Auto-Revocation auf false) gesetzt werden. Sonst wäre der Speichern-
+        // Button ein manueller Bypass der Verifizierung.
+        // Das RSI-Handle wird normal persistiert; weicht es vom verifizierten
+        // Handle ab, erlischt die Verknüpfung (Revoke in Richtung false).
+        const rsiHandleVal = rsiHandleInput.value.trim() || null;
+        const payload: Record<string, any> = {
           id: user.id,
           display_name,
           handle,
-          rsi_verified: profileState.rsi_verified ? true : false
+          rsi_handle: rsiHandleVal
         };
+        if (profileState.rsi_verified === true
+          && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
+          payload.rsi_verified = false;
+          profileState.rsi_verified = false;
+          updateCard();
+        }
 
         pfBtn.disabled = true;
         try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
