@@ -1148,7 +1148,9 @@ const confirmRedirect = loginHref + '?confirmed=1';
       const btnCheckRsiNow = document.getElementById('btnCheckRsiNow')!;
       const rsiVerifyMsg = document.getElementById('rsiVerifyMsg')!;
 
-      const genCode = `VERSEBASE-VERIFY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      let activeCode = profileState.rsi_code || localStorage.getItem('vb_rsi_code') || `VERSEBASE-VERIFY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      try { localStorage.setItem('vb_rsi_code', activeCode); } catch {}
+      profileState.rsi_code = activeCode;
 
       btnRsiVerifyModal.addEventListener('click', () => {
         const handle = rsiHandleInput.value.trim();
@@ -1166,7 +1168,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
           profileLinkEl.textContent = `RSI Profil-Einstellungen (@${handle})`;
         }
 
-        rsiCodeEl.textContent = genCode;
+        rsiCodeEl.textContent = activeCode;
         rsiVerifyMsg.hidden = true;
         rsiVerifyMsg.className = 'acx-status';
         if (rsiModal.showModal) rsiModal.showModal();
@@ -1175,7 +1177,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
       btnCloseRsiModal.addEventListener('click', () => rsiModal.close());
 
       btnCopyRsiCode.addEventListener('click', () => {
-        navigator.clipboard.writeText(genCode);
+        navigator.clipboard.writeText(activeCode);
         btnCopyRsiCode.textContent = 'Kopiert! ✓';
         setTimeout(() => btnCopyRsiCode.textContent = 'Kopieren', 2000);
       });
@@ -1195,24 +1197,39 @@ const confirmRedirect = loginHref + '?confirmed=1';
         rsiVerifyMsg.hidden = false;
 
         try {
-          // 1. Try Supabase Edge Function (server-side fetch, bypasses Cloudflare & browser CORS)
           let verified = false;
           let errorMessage = '';
 
+          // 1. Try Native verse-base.com Serverless Function (/api/verify-rsi)
           try {
-            const { data, error } = await supabase.functions.invoke('verify-rsi', {
-              body: { rsi_handle: rsiHandle, rsi_code: genCode, user_id: user ? user.id : null }
-            });
-
-            if (!error && data) {
-              verified = data.verified === true;
-              if (!verified) errorMessage = data.message || data.error;
+            const apiRes = await fetch(`/api/verify-rsi?handle=${encodeURIComponent(rsiHandle)}&code=${encodeURIComponent(activeCode)}`);
+            if (apiRes.ok) {
+              const apiData = await apiRes.json();
+              if (apiData) {
+                verified = apiData.verified === true;
+                if (!verified && apiData.message) errorMessage = apiData.message;
+              }
             }
-          } catch (efErr) {
-            console.warn('Edge Function invoke failed, trying fallback fetcher:', efErr);
+          } catch (apiErr) {
+            console.warn('Native verse-base API failed, trying fallbacks:', apiErr);
           }
 
-          // 2. Client Fallback Fetcher if Edge Function is not active
+          // 2. Try Supabase Edge Function
+          if (!verified && !errorMessage) {
+            try {
+              const { data, error } = await supabase.functions.invoke('verify-rsi', {
+                body: { rsi_handle: rsiHandle, rsi_code: activeCode, user_id: user ? user.id : null }
+              });
+              if (!error && data) {
+                verified = data.verified === true;
+                if (!verified) errorMessage = data.message || data.error;
+              }
+            } catch (efErr) {
+              console.warn('Edge Function invoke failed:', efErr);
+            }
+          }
+
+          // 3. Fallback Client Fetcher
           if (!verified && !errorMessage) {
             const rsiUrl = `https://robertsspaceindustries.com/citizens/${encodeURIComponent(rsiHandle)}`;
             let html = '';
@@ -1225,17 +1242,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
               }
             } catch (e1) {}
 
-            if (!html) {
-              try {
-                const res2 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rsiUrl)}&ts=${Date.now()}`);
-                if (res2.ok) {
-                  const data = await res2.json();
-                  if (data && data.contents && data.contents.length > 500) html = data.contents;
-                }
-              } catch (e2) {}
-            }
-
-            if (html && html.includes(genCode)) {
+            if (html && html.includes(activeCode)) {
               verified = true;
             } else if (html && html.includes('404') && html.includes('Not Found')) {
               errorMessage = lang === 'de'
@@ -1254,7 +1261,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
                   id: user.id,
                   rsi_handle: rsiHandle,
                   rsi_verified: true,
-                  rsi_code: genCode
+                  rsi_code: activeCode
                 });
               } catch (e) { console.warn('Supabase verify update error:', e); }
             }
