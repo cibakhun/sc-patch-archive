@@ -1,0 +1,983 @@
+---
+// Öffentliche Piloten-Profilseite /pilot/<handle> (VersePass als ganze Seite).
+// Statisch gebaut; Handle + Profil-/Favoriten-Daten lädt die Seite clientseitig
+// aus den Supabase-Views public_profiles / public_favorites (anon-Key, kein
+// Login nötig). nginx mappt /pilot/<handle> -> /pilot.html?h=<handle>.
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../SiteNav.astro';
+import Attribution from '../Attribution.astro';
+import { getCollection } from 'astro:content';
+import { RENDERS, stripName } from '../../lib/shipRenders';
+import makerLogos from '../../data/manufacturer-logos.json';
+import { href } from '../../i18n/ui';
+
+interface Props {
+  lang?: 'de' | 'en';
+}
+const { lang = 'en' } = Astro.props;
+
+// slug (= vehicles-Collection-ID, so speichern die Fav-Buttons) -> Render-Daten
+// für das clientseitige Fleet-Showcase. Render-System der Schiffs-DB:
+// lokale verifizierte Archive-Renders (RENDERS, über stripName gemappt) schlagen
+// die Wiki-API-Thumbs aus vehicles.json; ohne Bild greift das Hersteller-Logo.
+const vehicles = await getCollection('vehicles');
+const logosByMaker = makerLogos as Record<string, { file: string }>;
+const SHIPS: Record<string, { n: string; i: string | null; m: string | null }> = {};
+for (const v of vehicles) {
+  const local = RENDERS[stripName(v.data.name)];
+  const img = local ? `/assets/${local}` : v.data.image?.thumb || v.data.image?.hero || null;
+  const logo = v.data.manufacturer ? logosByMaker[v.data.manufacturer] : undefined;
+  SHIPS[v.id] = {
+    n: v.data.name,
+    i: img,
+    m: logo ? `/assets/manufacturers/${logo.file}` : null,
+  };
+}
+
+const COPY = lang === 'de'
+  ? {
+      chromeLeft: 'UEE CITIZEN REGISTRY // VERSEBASE',
+      regLabel: 'REG',
+      loadingLabel: 'Registry wird abgefragt …',
+      notFoundCode: '404',
+      notFoundTitle: 'SIGNAL VERLOREN',
+      notFoundBody: 'Kein Pilot mit diesem Handle in der Registry gefunden. Prüfe die Schreibweise — oder der Pilot hat seine öffentliche Seite noch nicht aktiviert.',
+      errorTitle: 'VERBINDUNGSFEHLER',
+      errorBody: 'Die Registry ist gerade nicht erreichbar. Bitte lade die Seite neu.',
+      backHome: 'Zur Startseite',
+      transmission: 'TRANSMISSION',
+      since: 'Dabei seit',
+      verified: 'RSI VERIFIED',
+      badgeSince: 'SEIT',
+      statFavs: 'Favoriten gesamt',
+      statShips: 'Schiffe in der Flotte',
+      statMissions: 'Missionen',
+      statSince: 'Mitglied seit',
+      secFleet: 'Flotte',
+      secFavs: 'Weitere Favoriten',
+      secOrg: 'Org & Links',
+      kinds: { mission: 'Missionen', mineral: 'Mineralien', item: 'Items', patch: 'Patches', topic: 'Themen' } as Record<string, string>,
+      ctaText: 'Profil auf VerseBase — sichere dir deine eigene Piloten-Seite mit Flotte, Status und VersePass.',
+      ctaBtn: 'Eigenes Profil erstellen',
+      locale: 'de-DE',
+    }
+  : {
+      chromeLeft: 'UEE CITIZEN REGISTRY // VERSEBASE',
+      regLabel: 'REG',
+      loadingLabel: 'Querying the registry …',
+      notFoundCode: '404',
+      notFoundTitle: 'SIGNAL LOST',
+      notFoundBody: 'No pilot with this handle found in the registry. Check the spelling — or the pilot has not activated their public page yet.',
+      errorTitle: 'CONNECTION ERROR',
+      errorBody: 'The registry is unreachable right now. Please reload the page.',
+      backHome: 'Back to the homepage',
+      transmission: 'TRANSMISSION',
+      since: 'Member since',
+      verified: 'RSI VERIFIED',
+      badgeSince: 'SINCE',
+      statFavs: 'Total favorites',
+      statShips: 'Ships in fleet',
+      statMissions: 'Missions',
+      statSince: 'Member since',
+      secFleet: 'Fleet',
+      secFavs: 'More favorites',
+      secOrg: 'Org & Links',
+      kinds: { mission: 'Missions', mineral: 'Minerals', item: 'Items', patch: 'Patches', topic: 'Topics' } as Record<string, string>,
+      ctaText: 'Profile on VerseBase — claim your own pilot page with fleet, status and VersePass.',
+      ctaBtn: 'Create your profile',
+      locale: 'en-US',
+    };
+
+const registerHref = href('/account/register.html', lang);
+const homeHref = lang === 'de' ? '/de.html' : '/';
+const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
+---
+
+<Layout
+  title={lang === 'de' ? 'Pilot | VerseBase' : 'Pilot | VerseBase'}
+  description={lang === 'de'
+    ? 'Öffentliches Piloten-Profil auf VerseBase: Status, Rolle, Flotte und Favoriten.'
+    : 'Public pilot profile on VerseBase: status, role, fleet and favorites.'}
+  themeColor="#05070d"
+  ogImage="/assets/og-default.jpg"
+  translated={true}
+>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+:root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0d1322;--surface-2:#131b30;--accent:#2dd4ff;--accent-2:#7ae2ff;--hot:#2dd4ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(45,212,255,.22);--line-soft:rgba(232,238,252,.10);--glow:0 0 46px rgba(45,212,255,.18);--ink:#04121a;--maxw:1180px;--accent-media:#2dd4ff;--accent-2-media:#7ae2ff;--font-mono:'Share Tech Mono',monospace;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#025f73;--hot:#065c71;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#7ae2ff;--line:rgba(43,125,148,.3);--line-soft:rgba(41,46,56,.12);--glow:0 6px 22px rgba(43,125,148,.18)}
+.reveal{opacity:1 !important;transform:none !important}
+</style>
+
+<a class="skip" href="#main">Skip to content</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Pilot' }]} hasEn={true} />
+
+<main id="main" data-lang={lang}>
+  <div id="ppApp" data-register={registerHref} data-home={homeHref}>
+
+    <!-- Loading-Skeleton (Kartenform, pulsierend) -->
+    <div class="pp-skel" id="ppLoading" role="status" aria-label={COPY.loadingLabel}>
+      <div class="pp-skel__hero">
+        <span class="pp-skel__pulse pp-skel__avatar"></span>
+        <div class="pp-skel__idlines">
+          <span class="pp-skel__pulse" style="width:42%"></span>
+          <span class="pp-skel__pulse" style="width:24%"></span>
+          <span class="pp-skel__pulse" style="width:58%"></span>
+        </div>
+      </div>
+      <div class="pp-skel__cells">
+        <span class="pp-skel__pulse"></span>
+        <span class="pp-skel__pulse"></span>
+        <span class="pp-skel__pulse"></span>
+        <span class="pp-skel__pulse"></span>
+      </div>
+    </div>
+
+    <!-- Fehler-State: Pilot nicht gefunden / Registry-Fehler -->
+    <section class="pp-error" id="ppError" hidden>
+      <div class="pp-error__panel">
+        <span class="pp-corner pp-corner--tl" aria-hidden="true"></span>
+        <span class="pp-corner pp-corner--tr" aria-hidden="true"></span>
+        <span class="pp-corner pp-corner--bl" aria-hidden="true"></span>
+        <span class="pp-corner pp-corner--br" aria-hidden="true"></span>
+        <span class="pp-error__code" id="ppErrorCode">{COPY.notFoundCode}</span>
+        <h1 class="pp-error__title" id="ppErrorTitle">{COPY.notFoundTitle}</h1>
+        <p class="pp-error__body" id="ppErrorBody">{COPY.notFoundBody}</p>
+        <a class="pp-error__home" href={homeHref}>&larr; {COPY.backHome}</a>
+      </div>
+    </section>
+
+    <!-- Profil (wird nach dem Laden eingeblendet) -->
+    <div id="ppRoot" hidden>
+
+      <!-- Identity-Hero (dunkle Medien-Fläche, bleibt im Light-Theme dunkel) -->
+      <section class="pp-hero" data-media-surface>
+        <div class="pp-hero__media" aria-hidden="true">
+          <div class="pp-hero__img" id="ppBannerImg"></div>
+          <div class="pp-hero__grid"></div>
+          <div class="pp-hero__sweep"></div>
+          <div class="pp-hero__scrim"></div>
+        </div>
+        <span class="pp-bracket pp-bracket--tl" aria-hidden="true"></span>
+        <span class="pp-bracket pp-bracket--tr" aria-hidden="true"></span>
+        <span class="pp-bracket pp-bracket--bl" aria-hidden="true"></span>
+        <span class="pp-bracket pp-bracket--br" aria-hidden="true"></span>
+
+        <header class="pp-chrome">
+          <span class="pp-chrome__left">{COPY.chromeLeft}</span>
+          <span class="pp-chrome__right">{COPY.regLabel} <b id="ppRegId">—</b></span>
+        </header>
+
+        <div class="pp-hero__body">
+          <div class="pp-avatar-module" id="ppAvatarModule">
+            <svg class="pp-ring pp-ring--a" viewBox="0 0 132 132" aria-hidden="true">
+              <circle cx="66" cy="66" r="62" fill="none" stroke="currentColor" stroke-width="1.5"
+                stroke-dasharray="22 12" stroke-linecap="butt" opacity="0.85" />
+              <circle cx="66" cy="66" r="62" fill="none" stroke="currentColor" stroke-width="3"
+                stroke-dasharray="4 90" opacity="0.9" />
+            </svg>
+            <svg class="pp-ring pp-ring--b" viewBox="0 0 132 132" aria-hidden="true">
+              <polygon points="66,6 118,36 118,96 66,126 14,96 14,36" fill="none"
+                stroke="currentColor" stroke-width="1" stroke-dasharray="10 8" opacity="0.55" />
+            </svg>
+            <div class="pp-avatar-box" id="ppAvatarBox">
+              <span id="ppAvatarText">◆</span>
+              <img id="ppAvatarImg" src="" alt="" hidden />
+              <span class="pp-avatar-scan" aria-hidden="true"></span>
+            </div>
+            <div class="pp-status-dot" id="ppStatusDot" aria-hidden="true"></div>
+          </div>
+
+          <div class="pp-identity">
+            <div class="pp-name-row">
+              <h1 class="pp-name" id="ppName">Citizen</h1>
+              <span class="pp-verified" id="ppVerified" hidden>
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                {COPY.verified}
+              </span>
+            </div>
+            <div class="pp-handle" id="ppHandle">@citizen</div>
+            <div class="pp-meta">
+              <span class="pp-role" id="ppRoleBadge" hidden>
+                <span id="ppRoleIcon" aria-hidden="true">◆</span>
+                <span id="ppRoleText"></span>
+              </span>
+              <div class="pp-transmission">
+                <span class="pp-transmission__tag">{COPY.transmission}</span>
+                <span class="pp-transmission__state" id="ppStatusState"></span>
+                <span class="pp-transmission__sep" id="ppStatusSep" hidden>·</span>
+                <span class="pp-transmission__text" id="ppStatusText"></span>
+              </div>
+            </div>
+            <p class="pp-bio" id="ppBio" hidden></p>
+            <div class="pp-since" id="ppSince"></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="pp-wrap">
+        <!-- Badges-Zeile (Sammler-Chips, per JS gefüllt) -->
+        <div class="pp-badges" id="ppBadges"></div>
+
+        <!-- Stats-Readout -->
+        <dl class="pp-stats">
+          <div class="pp-stat">
+            <dt>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2.5l2.9 5.9 6.5.95-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.05 1.1-6.5-4.7-4.6 6.5-.95z" />
+              </svg>
+              {COPY.statFavs}
+            </dt>
+            <dd id="ppStatFavs">0</dd>
+          </div>
+          <div class="pp-stat">
+            <dt>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 15l8-11 8 11-8 3z" />
+                <path d="M4 15l3 5h10l3-5" />
+                <path d="M12 4v13" />
+              </svg>
+              {COPY.statShips}
+            </dt>
+            <dd id="ppStatShips">0</dd>
+          </div>
+          <div class="pp-stat">
+            <dt>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+              </svg>
+              {COPY.statMissions}
+            </dt>
+            <dd id="ppStatMissions">0</dd>
+          </div>
+          <div class="pp-stat">
+            <dt>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.5" y="5" width="17" height="16" rx="2" />
+                <path d="M3.5 9.5h17M8 2.5V6M16 2.5V6" />
+                <path d="M7.5 14h3M13.5 14h3M7.5 17.5h6" />
+              </svg>
+              {COPY.statSince}
+            </dt>
+            <dd id="ppStatSince">—</dd>
+          </div>
+        </dl>
+
+        <!-- FLEET SHOWCASE -->
+        <section class="pp-sec" id="ppFleetSec" hidden>
+          <div class="sec-head">
+            <span class="num" data-secnum></span>
+            <h2>{COPY.secFleet}</h2>
+            <span class="rule"></span>
+          </div>
+          <div class="pp-fleet" id="ppFleetGrid"></div>
+        </section>
+
+        <!-- Weitere Favoriten (gruppiert nach kind) -->
+        <section class="pp-sec" id="ppFavsSec" hidden>
+          <div class="sec-head">
+            <span class="num" data-secnum></span>
+            <h2>{COPY.secFavs}</h2>
+            <span class="rule"></span>
+          </div>
+          <div class="pp-favgroups" id="ppFavGroups"></div>
+        </section>
+
+        <!-- Org & Social -->
+        <section class="pp-sec" id="ppOrgSec" hidden>
+          <div class="sec-head">
+            <span class="num" data-secnum></span>
+            <h2>{COPY.secOrg}</h2>
+            <span class="rule"></span>
+          </div>
+          <div class="pp-links">
+            <span class="pp-chip" id="ppOrgChip" hidden>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3l7 9-7 9-7-9z" />
+                <path d="M12 7.5l3.5 4.5L12 16.5 8.5 12z" />
+              </svg>
+              <span id="ppOrg"></span>
+            </span>
+            <a class="pp-chip" id="ppRsiLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
+              <span class="pp-chip__dot" id="ppRsiDot" hidden aria-hidden="true"></span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M3 12h18M12 3c2.8 2.6 4 5.6 4 9s-1.2 6.4-4 9c-2.8-2.6-4-5.6-4-9s1.2-6.4 4-9z" />
+              </svg>
+              <span id="ppRsiTxt"></span>
+              <span class="pp-chip__go" aria-hidden="true">&nearr;</span>
+            </a>
+          </div>
+        </section>
+
+        <!-- VerseBase-CTA-Strip -->
+        <aside class="pp-cta">
+          <span class="pp-cta__text">{COPY.ctaText}</span>
+          <a class="pp-cta__btn" href={registerHref}>{COPY.ctaBtn} &rarr;</a>
+        </aside>
+      </div>
+    </div>
+  </div>
+</main>
+
+<Attribution sources={[]} />
+
+<script type="application/json" id="ppCopyData" set:html={jsonSafe(COPY)}></script>
+<script type="application/json" id="ppShipData" set:html={jsonSafe(SHIPS)}></script>
+<script is:inline src="/assets/detail.js"></script>
+
+<style is:global>
+  /* ---------- Skeleton ---------- */
+  .pp-skel { max-width: var(--maxw); margin: 0 auto; padding: clamp(1.25rem, 5vw, 4rem); }
+  .pp-skel__hero {
+    display: flex; align-items: flex-end; gap: 1.6rem;
+    height: 300px; padding: 2rem;
+    background: var(--surface); border: 1px solid var(--line-soft);
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  }
+  .pp-skel__idlines { flex: 1; display: flex; flex-direction: column; gap: 0.8rem; }
+  .pp-skel__avatar { width: 118px; height: 118px; border-radius: 50%; flex: none; }
+  .pp-skel__pulse {
+    display: block; height: 18px; background: var(--surface-2);
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    animation: ppPulse 1.6s ease-in-out infinite;
+  }
+  .pp-skel__cells { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.9rem; margin-top: 1.4rem; }
+  .pp-skel__cells .pp-skel__pulse { height: 74px; }
+  @keyframes ppPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+  /* ---------- Error-State ---------- */
+  .pp-error { max-width: 720px; margin: 0 auto; padding: clamp(3rem, 10vh, 6rem) clamp(1.25rem, 5vw, 4rem); }
+  .pp-error__panel {
+    position: relative; text-align: center;
+    background: var(--surface); border: 1px solid var(--line);
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+    padding: clamp(2.2rem, 6vw, 3.6rem) clamp(1.4rem, 5vw, 3rem);
+  }
+  .pp-error__code {
+    font-family: var(--font-display); font-weight: 900;
+    font-size: clamp(3.4rem, 10vw, 5.6rem); line-height: 0.9;
+    color: transparent; -webkit-text-stroke: 2px var(--accent);
+    display: block; margin-bottom: 0.9rem;
+  }
+  .pp-error__title {
+    font-family: var(--font-display); font-weight: 800; letter-spacing: 0.06em;
+    font-size: clamp(1.2rem, 3.4vw, 1.7rem); color: var(--text); margin: 0 0 0.8rem;
+  }
+  .pp-error__body { color: var(--muted); max-width: 46ch; margin: 0 auto 1.6rem; font-size: 0.95rem; }
+  .pp-error__home {
+    font-family: var(--font-ui); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    font-size: 0.82rem; color: var(--accent); border-bottom: 1px solid var(--line);
+  }
+  .pp-error__home:hover { border-color: var(--accent); }
+
+  .pp-corner { position: absolute; width: 10px; height: 10px; border: 2px solid var(--accent); pointer-events: none; }
+  .pp-corner--tl { top: 5px; left: 5px; border-right: 0; border-bottom: 0; }
+  .pp-corner--tr { top: 5px; right: 5px; border-left: 0; border-bottom: 0; }
+  .pp-corner--bl { bottom: 5px; left: 5px; border-right: 0; border-top: 0; }
+  .pp-corner--br { bottom: 5px; right: 5px; border-left: 0; border-top: 0; }
+
+  /* ---------- Identity-Hero ---------- */
+  .pp-hero {
+    position: relative; min-height: 420px;
+    display: flex; flex-direction: column;
+    background: #05070d;
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .pp-hero__media { position: absolute; inset: 0; }
+  .pp-hero__img {
+    position: absolute; inset: -6%;
+    background-size: cover; background-position: center;
+    animation: ppKb 26s ease-in-out infinite alternate;
+    filter: drop-shadow(2px 0 0 rgba(255, 64, 96, 0.10)) drop-shadow(-2px 0 0 rgba(45, 212, 255, 0.12));
+  }
+  @keyframes ppKb {
+    from { transform: scale(1) translate(0, 0); }
+    to   { transform: scale(1.08) translate(1.4%, -1.4%); }
+  }
+  .pp-hero__grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(45, 212, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(45, 212, 255, 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .pp-hero__sweep {
+    position: absolute; top: 0; bottom: 0; width: 34%;
+    background: linear-gradient(100deg, transparent 0%, rgba(45, 212, 255, 0.14) 42%, rgba(122, 226, 255, 0.22) 50%, rgba(45, 212, 255, 0.14) 58%, transparent 100%);
+    mix-blend-mode: screen;
+    transform: translateX(-140%) skewX(-8deg);
+    animation: ppSweep 7s linear infinite;
+  }
+  @keyframes ppSweep {
+    0%   { transform: translateX(-140%) skewX(-8deg); }
+    55%  { transform: translateX(360%) skewX(-8deg); }
+    100% { transform: translateX(360%) skewX(-8deg); }
+  }
+  .pp-hero__scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom,
+      rgba(5, 7, 13, 0.35) 0%,
+      rgba(5, 7, 13, 0.45) 45%,
+      color-mix(in srgb, var(--bg) 78%, transparent) 82%,
+      var(--bg) 100%);
+  }
+  .pp-bracket { position: absolute; width: 12px; height: 12px; border: 2px solid var(--accent-media); opacity: 0.8; z-index: 3; pointer-events: none; }
+  .pp-bracket--tl { top: 12px; left: 12px; border-right: 0; border-bottom: 0; }
+  .pp-bracket--tr { top: 12px; right: 12px; border-left: 0; border-bottom: 0; }
+  .pp-bracket--bl { bottom: 12px; left: 12px; border-right: 0; border-top: 0; }
+  .pp-bracket--br { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
+
+  .pp-chrome {
+    position: relative; z-index: 4;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.45rem clamp(1.25rem, 5vw, 4rem);
+    border-top: 2px solid var(--accent-media);
+    border-bottom: 1px solid rgba(232, 238, 252, 0.14);
+    background:
+      repeating-linear-gradient(-45deg, rgba(45, 212, 255, 0.07) 0 6px, transparent 6px 12px),
+      rgba(5, 7, 13, 0.55);
+    backdrop-filter: blur(6px);
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.16em;
+    text-transform: uppercase; color: #8a99b8;
+  }
+  .pp-chrome__left { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pp-chrome__right { flex: none; white-space: nowrap; }
+  .pp-chrome__right b { color: var(--accent-media); font-weight: 400; letter-spacing: 0.1em; }
+
+  .pp-hero__body {
+    position: relative; z-index: 4;
+    margin-top: auto;
+    max-width: var(--maxw); width: 100%;
+    margin-inline: auto;
+    padding: 2.4rem clamp(1.25rem, 5vw, 4rem) 1.9rem;
+    display: flex; align-items: flex-end; gap: 1.7rem;
+  }
+
+  .pp-avatar-module {
+    position: relative; flex: none;
+    width: 148px; height: 148px;
+    display: grid; place-items: center;
+    color: var(--accent-media);
+  }
+  .pp-ring { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; filter: drop-shadow(0 0 6px currentColor); }
+  .pp-ring--a { animation: ppSpin 24s linear infinite; }
+  .pp-ring--b { animation: ppSpinRev 36s linear infinite; }
+  @keyframes ppSpin    { to { transform: rotate(360deg); } }
+  @keyframes ppSpinRev { to { transform: rotate(-360deg); } }
+  .pp-avatar-box {
+    width: 108px; height: 108px; border-radius: 50%;
+    background: #0a0e18; border: 3px solid currentColor;
+    box-shadow: 0 0 30px color-mix(in srgb, currentColor 35%, transparent);
+    display: grid; place-items: center;
+    font-size: 2.8rem; overflow: hidden; position: relative;
+  }
+  .pp-avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+  .pp-avatar-scan {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(45, 212, 255, 0.09) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+  }
+  .pp-status-dot {
+    position: absolute; bottom: 14px; right: 14px; z-index: 2;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #64748b; border: 3px solid #05070d;
+    box-shadow: 0 0 12px currentColor;
+  }
+  .pp-status-dot.pulse { animation: ppStatusPulse 2s infinite; }
+  @keyframes ppStatusPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.8); }
+    70%  { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+  }
+
+  .pp-identity { min-width: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+  .pp-name-row { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+  .pp-name {
+    margin: 0; font-family: var(--font-display); font-weight: 900;
+    font-size: clamp(1.7rem, 4.6vw, 2.6rem); line-height: 1.02; letter-spacing: -0.01em;
+    overflow-wrap: break-word;
+    background: linear-gradient(180deg, #ffffff, var(--accent-media) 78%, color-mix(in srgb, var(--accent-media) 45%, #05070d));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 26px color-mix(in srgb, var(--accent-media) 42%, transparent));
+  }
+  .pp-verified {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.45);
+    color: #4ade80; padding: 0.2rem 0.65rem;
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    font-family: var(--font-ui); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em;
+  }
+  .pp-verified[hidden] { display: none !important; }
+  .pp-handle {
+    font-family: var(--font-mono); font-size: 1rem; letter-spacing: 0.04em;
+    color: var(--accent-2-media);
+  }
+  .pp-meta { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+  .pp-role {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(45, 212, 255, 0.14); border: 1px solid rgba(45, 212, 255, 0.3);
+    color: var(--accent-media); padding: 0.24rem 0.75rem;
+    clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+    font-family: var(--font-ui); font-size: 0.82rem; font-weight: 700;
+  }
+  .pp-role[hidden] { display: none !important; }
+  .pp-transmission {
+    display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+    font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #8a99b8; hyphens: none;
+  }
+  .pp-transmission__tag {
+    color: var(--accent-media); border: 1px solid rgba(45, 212, 255, 0.3);
+    padding: 0.02rem 0.4rem; font-size: 0.6rem; letter-spacing: 0.18em;
+  }
+  .pp-transmission__state { color: var(--accent-2-media); font-weight: 700; }
+  .pp-transmission__text { font-style: italic; text-transform: none; letter-spacing: 0.02em; }
+  .pp-bio {
+    margin: 0.3rem 0 0; max-width: 68ch;
+    color: #c6d2e8; font-size: 0.95rem; line-height: 1.6;
+    white-space: pre-wrap;
+    border-left: 2px solid var(--accent-media); padding-left: 0.9rem;
+  }
+  .pp-bio[hidden] { display: none !important; }
+  .pp-since {
+    font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #8a99b8;
+  }
+
+  /* ---------- Content-Wrapper ---------- */
+  .pp-wrap { max-width: var(--maxw); margin: 0 auto; padding: 1.8rem clamp(1.25rem, 5vw, 4rem) 4.5rem; }
+
+  /* ---------- Badges ---------- */
+  .pp-badges { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1.6rem; }
+  .pp-badges:empty { display: none; }
+  .pp-badge {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    background: var(--surface); border: 1px solid var(--line);
+    padding: 0.4rem 0.85rem;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    font-family: var(--font-ui); font-size: 0.76rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text);
+  }
+  .pp-badge svg { color: var(--accent); flex: none; }
+  .pp-badge--verified { border-color: rgba(34, 197, 94, 0.5); color: #4ade80; }
+  .pp-badge--verified svg { color: #4ade80; }
+  .pp-badge--era { border-color: var(--line-soft); color: var(--muted); }
+  .pp-badge--era svg { color: var(--muted); }
+
+  /* ---------- Stats-Readout ---------- */
+  .pp-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.9rem;
+    margin: 0 0 2.6rem; padding: 0;
+  }
+  .pp-stat {
+    background: var(--surface); border: 1px solid var(--line-soft);
+    border-top: 2px solid var(--accent);
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    padding: 0.95rem 1.1rem 1rem;
+    min-width: 0;
+  }
+  .pp-stat dt {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: var(--font-ui); font-size: 0.64rem; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+  }
+  .pp-stat dt svg { color: var(--accent); flex: none; }
+  .pp-stat dd {
+    margin: 0.35rem 0 0;
+    font-family: var(--font-mono); font-size: 1.5rem; line-height: 1;
+    color: var(--accent);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* ---------- Sektionen ---------- */
+  /* padding: 0 — detail.css gibt globalen <section>-Blöcken ein großes
+     Block-/Inline-Padding; hier soll allein das eigene margin-top den
+     Rhythmus steuern und die Kanten mit Stats/CTA fluchten. */
+  .pp-sec { margin-top: 2.6rem; padding: 0; }
+  .pp-sec[hidden] { display: none !important; }
+
+  /* ---------- Fleet-Showcase ---------- */
+  .pp-fleet {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .pp-ship {
+    position: relative; display: flex; flex-direction: column;
+    background: var(--surface); border: 1px solid var(--line-soft);
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    text-decoration: none;
+    transition: border-color 0.2s ease, transform 0.2s ease, filter 0.2s ease;
+  }
+  .pp-ship:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent) 32%, transparent));
+  }
+  .pp-ship:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .pp-ship__media {
+    position: relative; aspect-ratio: 16 / 9; overflow: hidden;
+    background: #05070d;
+    display: grid; place-items: center;
+  }
+  .pp-ship__media img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
+  .pp-ship:hover .pp-ship__media img { transform: scale(1.05); }
+  .pp-ship__media--logo img { width: 46%; height: 46%; object-fit: contain; opacity: 0.85; filter: grayscale(0.2); }
+  .pp-ship__media--void {
+    background:
+      linear-gradient(rgba(45, 212, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(45, 212, 255, 0.06) 1px, transparent 1px),
+      #05070d;
+    background-size: 18px 18px;
+  }
+  .pp-ship__voidname {
+    font-family: 'Teko', sans-serif; font-weight: 500; font-size: 2rem;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(45, 212, 255, 0.55);
+    padding: 0 0.8rem; text-align: center; line-height: 1;
+  }
+  .pp-ship__name {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    font-family: var(--font-ui); font-weight: 700; font-size: 0.9rem;
+    letter-spacing: 0.04em; color: var(--text);
+    border-top: 1px solid var(--line-soft);
+  }
+  .pp-ship__go { color: var(--accent); font-size: 0.8rem; flex: none; }
+
+  /* ---------- Weitere Favoriten ---------- */
+  .pp-favgroups { display: flex; flex-direction: column; gap: 1.3rem; }
+  .pp-favgroup__title {
+    font-family: var(--font-ui); font-weight: 700; font-size: 0.74rem;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-2);
+    margin: 0 0 0.55rem;
+  }
+  .pp-favchips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .pp-favchip {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: var(--surface-2); border: 1px solid var(--line-soft);
+    padding: 0.34rem 0.75rem;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    font-size: 0.84rem; color: var(--text); text-decoration: none;
+    transition: border-color 0.2s ease, background 0.2s ease, filter 0.2s ease;
+  }
+  .pp-favchip:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 28%, transparent));
+  }
+  .pp-favchip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- Org & Links ---------- */
+  .pp-links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .pp-chip {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--surface-2); border: 1px solid var(--line-soft);
+    padding: 0.42rem 0.85rem;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    font-family: var(--font-ui); font-size: 0.88rem; font-weight: 600; color: var(--text);
+    text-decoration: none;
+    transition: border-color 0.2s ease, background 0.2s ease, filter 0.2s ease;
+  }
+  .pp-chip svg { color: var(--accent); flex: none; }
+  .pp-chip[hidden] { display: none !important; }
+  a.pp-chip:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 28%, transparent));
+  }
+  a.pp-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .pp-chip__dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; flex: none; }
+  .pp-chip__dot[hidden] { display: none !important; }
+  .pp-chip__go { color: var(--accent); font-size: 0.8rem; }
+
+  /* ---------- CTA-Strip ---------- */
+  .pp-cta {
+    margin-top: 3rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; flex-wrap: wrap;
+    padding: 1rem 1.4rem;
+    border: 1px solid var(--line-soft); border-left: 3px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+  .pp-cta__text { color: var(--muted); font-size: 0.9rem; }
+  .pp-cta__btn {
+    font-family: var(--font-ui); font-weight: 700; font-size: 0.8rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+    white-space: nowrap; border-bottom: 1px solid var(--line);
+  }
+  .pp-cta__btn:hover { border-color: var(--accent); }
+
+  /* ---------- Light-Theme: Badges/Status kontraststark ---------- */
+  :root[data-theme='light'] .pp-badge--verified { color: #15803d; border-color: rgba(21, 128, 61, 0.45); }
+  :root[data-theme='light'] .pp-badge--verified svg { color: #15803d; }
+  :root[data-theme='light'] .pp-chip__dot { background: #16a34a; box-shadow: 0 0 6px rgba(22, 163, 74, 0.55); }
+  /* Light-Theme: --surface-2 auf --surface hat fast keinen Kontrast —
+     die Pulse-Blöcke deutlich dunkler mischen, sonst wirkt die Seite leer. */
+  :root[data-theme='light'] .pp-skel__pulse {
+    background: color-mix(in srgb, var(--muted) 22%, var(--surface));
+  }
+  :root[data-theme='light'] .pp-skel__hero {
+    border-color: var(--line);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 720px) {
+    .pp-hero { min-height: 0; }
+    .pp-hero__body { flex-direction: column; align-items: flex-start; gap: 1.1rem; padding-top: 5.2rem; }
+    .pp-avatar-module { width: 122px; height: 122px; }
+    .pp-avatar-box { width: 88px; height: 88px; font-size: 2.2rem; }
+    .pp-stats { grid-template-columns: repeat(2, 1fr); }
+    .pp-skel__cells { grid-template-columns: repeat(2, 1fr); }
+    .pp-chrome { font-size: 0.58rem; letter-spacing: 0.1em; }
+  }
+
+  /* ---------- Reduced Motion ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    .pp-hero__img, .pp-hero__sweep, .pp-ring--a, .pp-ring--b,
+    .pp-status-dot.pulse, .pp-skel__pulse, .pp-ship__media img {
+      animation: none !important;
+      transition: none !important;
+    }
+    .pp-hero__sweep { display: none; }
+  }
+</style>
+
+<script>
+  import { supabase, FAV_PATH } from '../../lib/supabase';
+  import { CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
+
+  const app = document.getElementById('ppApp');
+  if (app) {
+    const $ = (id: string) => document.getElementById(id);
+    const main = document.getElementById('main') as HTMLElement;
+    const lang = main?.dataset.lang === 'de' ? 'de' : 'en';
+    const COPY = JSON.parse($('ppCopyData')?.textContent || '{}');
+    const SHIPS: Record<string, { n: string; i: string | null; m: string | null }> =
+      JSON.parse($('ppShipData')?.textContent || '{}');
+
+    const esc = (s: string) =>
+      s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+
+    const favPath = (kind: string, slug: string) => {
+      const tpl = FAV_PATH[kind] || '/index.html';
+      const p = tpl.replace('%s', encodeURIComponent(slug).replace(/%2F/gi, '/'));
+      return lang === 'de' ? '/de' + p : p;
+    };
+
+    // Handle aus ?h=<handle> (nginx-Rewrite) oder direkt aus /pilot/<handle>.
+    const params = new URLSearchParams(location.search);
+    let handle = (params.get('h') || '').trim();
+    if (!handle) {
+      const m = location.pathname.match(/\/(?:de\/)?pilot\/([A-Za-z0-9_-]+)/);
+      if (m) handle = m[1];
+    }
+    handle = handle.toLowerCase();
+
+    const showError = (title: string, body: string, code: string) => {
+      $('ppLoading')!.hidden = true;
+      $('ppRoot')!.hidden = true;
+      const err = $('ppError')!;
+      err.hidden = false;
+      $('ppErrorCode')!.textContent = code;
+      $('ppErrorTitle')!.textContent = title;
+      $('ppErrorBody')!.textContent = body;
+    };
+
+    const load = async () => {
+      if (!/^[a-z0-9_]{3,24}$/.test(handle)) {
+        showError(COPY.notFoundTitle, COPY.notFoundBody, COPY.notFoundCode);
+        return;
+      }
+
+      const [profileRes, favsRes] = await Promise.all([
+        supabase.from('public_profiles').select('*').eq('handle', handle).maybeSingle(),
+        supabase.from('public_favorites').select('*').eq('handle', handle).order('created_at', { ascending: false }),
+      ]);
+      if (profileRes.error) throw profileRes.error;
+      const p = profileRes.data;
+      if (!p) {
+        showError(COPY.notFoundTitle, COPY.notFoundBody, COPY.notFoundCode);
+        return;
+      }
+      const favs = favsRes.error ? [] : favsRes.data || [];
+
+      const name = p.display_name || p.handle;
+
+      // SEO: Title/Description clientseitig aus dem Profil
+      document.title = `${name} (@${p.handle}) — VerseBase Pilot`;
+      document.querySelector('meta[name="description"]')?.setAttribute(
+        'content',
+        (p.bio ? String(p.bio).slice(0, 150) : `${name} — VerseBase Pilot Profile`),
+      );
+
+      // Registry-Chrome: Handle (uppercase) als Registrierungs-Kennung
+      $('ppRegId')!.textContent = 'VB-' + String(p.handle).toUpperCase();
+
+      // Banner
+      ($('ppBannerImg') as HTMLElement).style.backgroundImage =
+        `url('${p.banner_url || '/assets/t-pyro-2.jpg'}')`;
+
+      // Avatar (Icon + Farbe oder Bild) inkl. Ring- und Box-Farbe
+      const color = p.avatar_color || '#2dd4ff';
+      const module_ = $('ppAvatarModule') as HTMLElement;
+      module_.style.color = color;
+      const avTxt = $('ppAvatarText')!;
+      const avImg = $('ppAvatarImg') as HTMLImageElement;
+      if (p.avatar_url) {
+        avImg.src = p.avatar_url;
+        avImg.hidden = false;
+        avTxt.hidden = true;
+      } else {
+        avTxt.textContent = p.avatar_icon || '◆';
+      }
+
+      // Status (Dot + Transmission)
+      const st = (STATUS_STATES as Record<string, { labelDe: string; labelEn: string; color: string; pulse: boolean }>)[p.status_state]
+        || STATUS_STATES.online;
+      const dot = $('ppStatusDot') as HTMLElement;
+      dot.style.background = st.color;
+      dot.style.boxShadow = `0 0 12px ${st.color}`;
+      dot.classList.toggle('pulse', st.pulse);
+      $('ppStatusState')!.textContent = lang === 'de' ? st.labelDe : st.labelEn;
+      if (p.status_text) {
+        $('ppStatusSep')!.hidden = false;
+        $('ppStatusText')!.textContent = p.status_text;
+      }
+
+      // Identity
+      $('ppName')!.textContent = name;
+      $('ppHandle')!.textContent = '@' + p.handle;
+      if (p.rsi_verified === true) $('ppVerified')!.hidden = false;
+
+      // Rolle
+      const role = CITIZEN_ROLES.find((r) => r.id === p.role);
+      if (role) {
+        $('ppRoleBadge')!.hidden = false;
+        $('ppRoleIcon')!.textContent = role.symbol;
+        $('ppRoleText')!.textContent = lang === 'de' ? role.labelDe : role.labelEn;
+      }
+
+      // Bio
+      if (p.bio) {
+        const bioEl = $('ppBio')!;
+        bioEl.hidden = false;
+        bioEl.textContent = p.bio;
+      }
+
+      // Dabei seit
+      let sinceYear = '';
+      if (p.created_at) {
+        const d = new Date(p.created_at);
+        sinceYear = String(d.getFullYear());
+        const sinceTxt = d.toLocaleDateString(COPY.locale, { month: 'long', year: 'numeric' });
+        $('ppSince')!.textContent = `${COPY.since} ${sinceTxt}`;
+        $('ppStatSince')!.textContent = sinceYear;
+      }
+
+      // Badges-Zeile
+      const badges: string[] = [];
+      if (p.rsi_verified === true) {
+        badges.push(`<span class="pp-badge pp-badge--verified"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>${COPY.verified}</span>`);
+      }
+      if (role) {
+        badges.push(`<span class="pp-badge"><span aria-hidden="true">${role.symbol}</span>${esc(lang === 'de' ? role.labelDe : role.labelEn)}</span>`);
+      }
+      if (sinceYear) {
+        badges.push(`<span class="pp-badge pp-badge--era"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 9.5h17M8 2.5V6M16 2.5V6"/></svg>${COPY.badgeSince} ${sinceYear}</span>`);
+      }
+      $('ppBadges')!.innerHTML = badges.join('');
+
+      // Stats
+      const ships = favs.filter((f: { kind: string }) => f.kind === 'ship');
+      const missions = favs.filter((f: { kind: string }) => f.kind === 'mission');
+      $('ppStatFavs')!.textContent = String(favs.length);
+      $('ppStatShips')!.textContent = String(ships.length);
+      $('ppStatMissions')!.textContent = String(missions.length);
+
+      // Sektions-Nummerierung nur für sichtbare Sektionen
+      let secNo = 0;
+      const showSec = (id: string) => {
+        const sec = $(id)!;
+        sec.hidden = false;
+        secNo += 1;
+        const num = sec.querySelector('[data-secnum]');
+        if (num) num.textContent = String(secNo).padStart(2, '0');
+      };
+
+      // FLEET SHOWCASE — slug -> Render (lokale Archive-Renders > Wiki-Thumb >
+      // Hersteller-Logo > Platzhalter-Kachel mit Name in Teko)
+      if (ships.length > 0) {
+        const cards = ships.map((f: { slug: string; label: string }) => {
+          const info = SHIPS[f.slug];
+          const shipName = info?.n || f.label || f.slug;
+          let media: string;
+          if (info?.i) {
+            media = `<span class="pp-ship__media"><img src="${esc(info.i)}" alt="${esc(shipName)}" loading="lazy"></span>`;
+          } else if (info?.m) {
+            media = `<span class="pp-ship__media pp-ship__media--logo"><img src="${esc(info.m)}" alt="" loading="lazy"></span>`;
+          } else {
+            media = `<span class="pp-ship__media pp-ship__media--void"><span class="pp-ship__voidname">${esc(shipName)}</span></span>`;
+          }
+          return `<a class="pp-ship" href="${favPath('ship', f.slug)}">${media}<span class="pp-ship__name"><span>${esc(shipName)}</span><span class="pp-ship__go" aria-hidden="true">&nearr;</span></span></a>`;
+        });
+        $('ppFleetGrid')!.innerHTML = cards.join('');
+        showSec('ppFleetSec');
+      }
+
+      // Weitere Favoriten (gruppiert nach kind, ohne Schiffe)
+      const groups: Record<string, { slug: string; label: string }[]> = {};
+      for (const f of favs) {
+        if (f.kind === 'ship') continue;
+        if (!COPY.kinds[f.kind]) continue;
+        (groups[f.kind] ||= []).push(f);
+      }
+      const groupKeys = Object.keys(groups);
+      if (groupKeys.length > 0) {
+        $('ppFavGroups')!.innerHTML = groupKeys.map((kind) => {
+          const chips = groups[kind]
+            .map((f) => `<a class="pp-favchip" href="${favPath(kind, f.slug)}">${esc(f.label || f.slug)}</a>`)
+            .join('');
+          return `<div class="pp-favgroup"><h3 class="pp-favgroup__title">${esc(COPY.kinds[kind])}</h3><div class="pp-favchips">${chips}</div></div>`;
+        }).join('');
+        showSec('ppFavsSec');
+      }
+
+      // Org & Links
+      let hasLinks = false;
+      if (p.org_name) {
+        $('ppOrgChip')!.hidden = false;
+        $('ppOrg')!.textContent = p.org_name;
+        hasLinks = true;
+      }
+      if (p.rsi_handle) {
+        const link = $('ppRsiLink') as HTMLAnchorElement;
+        link.hidden = false;
+        link.href = `https://robertsspaceindustries.com/citizens/${encodeURIComponent(p.rsi_handle)}`;
+        $('ppRsiTxt')!.textContent = 'RSI: ' + p.rsi_handle;
+        if (p.rsi_verified === true) $('ppRsiDot')!.hidden = false;
+        hasLinks = true;
+      }
+      if (hasLinks) showSec('ppOrgSec');
+
+      // Umschalten: Skeleton raus, Profil rein
+      $('ppLoading')!.hidden = true;
+      $('ppRoot')!.hidden = false;
+    };
+
+    load().catch((err) => {
+      console.warn('Pilot profile load failed:', err);
+      showError(COPY.errorTitle, COPY.errorBody, 'ERR');
+    });
+  }
+</script>
+</Layout>
