@@ -212,6 +212,13 @@
     var doc = document.documentElement;
     doc.classList.toggle('is-admin', isAdmin);
 
+    // Theme-Wahl ist Admin-only. Jetzt steht die echte Rolle fest -> Theme
+    // angleichen: Nicht-Admins zurueck auf Dunkel zwingen (falls der frueh im
+    // <head> gelesene Rollen-Cache noch kalt/veraltet war), Admins ihre
+    // gespeicherte Wahl bzw. das OS-Theme geben. reconcile() lebt im Inline-
+    // Script von Layout.astro (single source of truth fuers Painting).
+    try { if (window.__vbReconcileTheme) window.__vbReconcileTheme(); } catch (e) { /* noop */ }
+
     // Archiv- und Patch-Seiten: nur fuer Admins sichtbar
     var path = location.pathname.toLowerCase();
     var isArchivePage = path.indexOf('/archiv') !== -1 || path.indexOf('/patches/') !== -1;

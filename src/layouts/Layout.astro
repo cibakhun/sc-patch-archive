@@ -89,36 +89,29 @@ const themeColorLight = LIGHT_RULES['--bg'](themeColorSafe);
   {/* Beide Leistenfarben hängen am Meta-Tag selbst — so kommt der Umschalter
       in SiteNav an den zur Seite passenden Wert, ohne ihn kennen zu müssen. */}
   <meta name="theme-color" content={themeColor} data-dark={themeColorSafe} data-light={themeColorLight} />
-  {/* Hell/Dunkel VOR dem ersten Paint festlegen — synchron und so früh wie
-      möglich. Läuft dieses Script später (oder als Modul/defer), sieht der
-      Nutzer erst die dunkle und dann die helle Seite: das klassische
-      Aufblitzen. Reihenfolge der Quellen: gespeicherte Wahl > Betriebssystem.
-      Ohne gültigen localStorage-Wert bleibt data-theme-auto gesetzt — daran
-      erkennt der Umschalter, dass er weiter dem System folgen darf. */}
+  {/* Rolle (aus dem Session-Cache) UND Hell/Dunkel VOR dem ersten Paint
+      festlegen — synchron und so früh wie möglich. Läuft das später, blitzt
+      erst die dunkle und dann die helle Seite auf (bzw. der Umschalter für
+      Nicht-Admins). Die Theme-Wahl ist ein Admin-Recht: nur Admins folgen
+      ihrer gespeicherten Wahl bzw. dem Betriebssystem, alle anderen bekommen
+      fest das dunkle Standard-Design. Der Rollen-Cache (vb_user_role) wird von
+      account-lite.js gefüllt; steht er noch nicht (kalter Erstaufruf), gilt
+      man als Nicht-Admin und account-lite gleicht das Theme nach dem Laden der
+      echten Rolle an. Ohne gültigen localStorage-Wert bleibt data-theme-auto
+      gesetzt — daran erkennt der Umschalter, dass er (für Admins) weiter dem
+      System folgen darf. */}
   <script
     is:inline
-    set:html={`(function(){var d=document.documentElement,t=null;try{t=localStorage.getItem('vb.theme')}catch(e){}
-var auto=(t!=='light'&&t!=='dark');if(auto){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark'}
-d.setAttribute('data-theme',t);if(auto)d.setAttribute('data-theme-auto','');
+    set:html={`(function(){var d=document.documentElement;
+var p=location.pathname.toLowerCase();
+if(p.indexOf('/archiv')!==-1||p.indexOf('/patches/')!==-1)d.classList.add('is-archive-guarded');
+var admin=false;try{var raw=sessionStorage.getItem('vb_user_role');if(raw){var pr=JSON.parse(raw);if(pr&&pr.role==='admin')admin=true}}catch(e){}
+if(admin)d.classList.add('is-admin');
+var t=null;if(admin){try{t=localStorage.getItem('vb.theme')}catch(e){}}
+var auto=admin&&(t!=='light'&&t!=='dark');
+if(!admin){t='dark'}else if(auto){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark'}
+d.setAttribute('data-theme',t==='light'?'light':'dark');if(auto)d.setAttribute('data-theme-auto','');
 var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='light'?'${themeColorLight}':'${themeColorSafe}')})()`}
-  />
-  <script
-    is:inline
-    set:html={`(function(){
-      var p=location.pathname.toLowerCase();
-      var isArchive=p.indexOf('/archiv')!==-1||p.indexOf('/patches/')!==-1;
-      var doc=document.documentElement;
-      if(isArchive) doc.classList.add('is-archive-guarded');
-      try{
-          var raw=sessionStorage.getItem('vb_user_role');
-          if(raw){
-            var parsed=JSON.parse(raw);
-            if(parsed.role==='admin'){
-              doc.classList.add('is-admin');
-            }
-          }
-      }catch(e){}
-    })()`}
   />
   {noindex && <meta name="robots" content="noindex" />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -230,6 +223,11 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
     html:not(.is-admin) .js-restricted-archive {
       display: none !important;
     }
+    /* Hell/Dunkel-Umschalter ist ein Admin-Recht — für alle anderen weg
+       (Leiste + Menü). Das Verhalten ist zusätzlich in JS abgesichert. */
+    html:not(.is-admin) .js-theme-toggle {
+      display: none !important;
+    }
     html.is-archive-guarded:not(.is-admin) body {
       display: none !important;
     }</style>
@@ -245,20 +243,28 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
   <script
     is:inline
     set:html={`(function(){var d=document.documentElement,meta=document.querySelector('meta[name="theme-color"]');
+function isAdmin(){return d.classList.contains('is-admin');}
 function paint(t){d.setAttribute('data-theme',t);
   if(meta&&meta.dataset.dark)meta.setAttribute('content',t==='light'?meta.dataset.light:meta.dataset.dark);
   var b=document.querySelectorAll('.js-theme-toggle');
   for(var i=0;i<b.length;i++)b[i].setAttribute('aria-pressed',t==='dark'?'true':'false');}
-paint(d.getAttribute('data-theme')==='light'?'light':'dark');
-function choose(t){try{localStorage.setItem('vb.theme',t)}catch(e){}
+/* Theme-Wahl ist Admin-only: Nicht-Admins sind fest auf Dunkel. reconcile()
+   gleicht das Theme an die aktuelle Rolle an und wird auch von account-lite.js
+   aufgerufen, sobald die echte Rolle vom Server feststeht. */
+function reconcile(){if(!isAdmin()){d.removeAttribute('data-theme-auto');paint('dark');return;}
+  var t=null;try{t=localStorage.getItem('vb.theme')}catch(e){}
+  if(t==='light'||t==='dark'){d.removeAttribute('data-theme-auto');paint(t);}
+  else{d.setAttribute('data-theme-auto','');paint((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');}}
+window.__vbReconcileTheme=reconcile;reconcile();
+function choose(t){if(!isAdmin())return;try{localStorage.setItem('vb.theme',t)}catch(e){}
   d.removeAttribute('data-theme-auto');paint(t);}
 document.addEventListener('click',function(e){
   var b=e.target&&e.target.closest&&e.target.closest('.js-theme-toggle');
   if(b)choose(d.getAttribute('data-theme')==='light'?'dark':'light');});
 if(window.matchMedia){var mq=matchMedia('(prefers-color-scheme: light)');
-  var os=function(){if(d.hasAttribute('data-theme-auto'))paint(mq.matches?'light':'dark')};
+  var os=function(){if(isAdmin()&&d.hasAttribute('data-theme-auto'))paint(mq.matches?'light':'dark')};
   mq.addEventListener?mq.addEventListener('change',os):mq.addListener(os);}
-addEventListener('storage',function(e){if(e.key==='vb.theme'&&(e.newValue==='light'||e.newValue==='dark')){
+addEventListener('storage',function(e){if(e.key==='vb.theme'&&isAdmin()&&(e.newValue==='light'||e.newValue==='dark')){
   d.removeAttribute('data-theme-auto');paint(e.newValue);}});})()`}
   />
 </body>
