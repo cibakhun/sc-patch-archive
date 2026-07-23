@@ -1,57 +1,38 @@
 /* ============================================================================
    VerseBase — PATCH ARCHIVE  (assets/archive.css)
 
-   The archive hub is a chronicle, so the page is built as one: a timeline spine
-   the reader walks down, chaptered by era. Its one signature idea is that the
-   page has no fixed accent — `--era` morphs from Pyro orange through storm cyan,
-   Onyx amber, Nyx ice, Drake orange to Frontier vermilion as the eras scroll
-   past, and every accented pixel (rail, glow, ribbon, chips, focus rings) is
-   downstream of it.
+   „The Chronicle": das Archiv ist eine Chronik und sieht so aus — ein
+   redaktioneller Sternenatlas zwischen Flugbetrieb-Jahresbericht und
+   Hochglanzmagazin. Warm, taktil, typografisch.
 
-   Self-contained on purpose: it does NOT load detail.css. That kit is tuned for
-   the per-patch "Kino" pages and its ambient overlays/heroes would have to be
-   fought here. SiteNav and Attribution style themselves from the palette vars
-   declared below, so they inherit the era morph for free.
+   Genau EIN Akzent: Messing (--accent). Die Ären werden nicht mehr über
+   Farbe unterschieden, sondern als KAPITEL erzählt — große Serifen-
+   Kapitelziffern (Fraunces) statt Neon-Morphing. archive.js setzt weiterhin
+   --era/--era-2 (Vertrag bleibt), die Datei hier liest sie nur nicht mehr.
+
+   Self-contained on purpose: it does NOT load detail.css. SiteNav and
+   Attribution style themselves from the palette vars declared below, so the
+   shared chrome inherits the chronicle voice for free.
    ========================================================================== */
 
-/* Custom properties only animate when registered — this is what makes the era
-   transition a fade rather than a jump-cut. Unsupported browsers get the swap
-   instantly, which is a graceful degradation, not a break. */
-@property --era {
-  syntax: '<color>';
-  inherits: true;
-  initial-value: #ff5a1f;
-}
-@property --era-2 {
-  syntax: '<color>';
-  inherits: true;
-  initial-value: #d9d12a;
-}
-
 :root {
-  --era: #ff5a1f;
-  --era-2: #d9d12a;
+  --bg: #0e0d0b; /* warm charcoal */
+  --bg-2: #151310;
+  --surface: #1b1814;
+  --surface-2: #221e18;
+  --text: #f0ead9; /* parchment, 16.2:1 on --bg */
+  --muted: #a39a86; /* 7.0:1 on --bg */
+  /* 5.05:1 on --bg — the obvious darker warm grey for these micro-caps labels
+     lands under 4.5:1, which fails AA for text under 18pt. */
+  --dim: #8a8172;
+  --accent: #e0a33e; /* brass, 8.8:1 on --bg */
+  --accent-2: #eec27a; /* helles Messing: Hover/Fokus-Helle */
+  --ink: #171208; /* 8.4:1 auf --accent (Text auf Messing-Füllung) */
+  --line: rgba(220, 200, 160, 0.26); /* warm hairlines */
+  --line-2: rgba(220, 200, 160, 0.13);
 
-  --bg: #05070d;
-  --bg-2: #080c15;
-  --surface: #0c111d;
-  --surface-2: #111828;
-  --text: #e8eefc;
-  --muted: #8a99b8;
-  /* 4.8:1 on --bg. The obvious darker grey for these micro-caps labels lands
-     around 3.8:1, which fails AA for text under 18pt. */
-  --dim: #6b7c9c;
-  --ink: #05070d;
-  --line: rgba(232, 238, 252, 0.11);
-  --line-2: rgba(232, 238, 252, 0.06);
-
-  /* SiteNav + Attribution read these — keeping them aliased to the live era is
-     what pulls the shared chrome into the morph. */
-  --accent: var(--era);
-  --accent-2: var(--era-2);
-
-  --font-display: 'Orbitron', sans-serif;
-  --font-ui: 'Rajdhani', sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-ui: 'Barlow', system-ui, sans-serif;
   --font-body: 'Barlow', system-ui, sans-serif;
   --font-mono: 'Share Tech Mono', ui-monospace, monospace;
 
@@ -63,42 +44,9 @@
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
-  transition: --era 900ms var(--ease), --era-2 900ms var(--ease);
-}
-
-/* The accent, adjusted until it is legible against whatever it sits on.
-
-   Patch accents are picked for atmosphere, and three of them (Supply or Die's
-   #c0271f, Resource Drive's #2E8B57, Fractured Frontiers' #B5642A) sit at
-   3.2–4.5:1 on the dark page — fine for a 42px version numeral, which counts as
-   large text, but failing AA for a 12px caps label. Lifting toward white fixes
-   the dark ones and leaves the bright ones legible. Large accent type, rails,
-   nodes and borders keep the pure hue.
-
-   sRGB rather than oklab on purpose: oklab() computed values are opaque to the
-   contrast checkers used on this site, and mixing in sRGB keeps every rendered
-   colour reported as plain rgb() so the result stays auditable.
-
-   .card is declared separately from the page-chrome scopes because a card stays
-   dark in BOTH themes (see the light block at the end of this file), so its
-   accent must keep lifting toward white even on a light page — while the date
-   gutter beside it, which sits on the page, must not. */
-.era,
-.ktc,
-.tgroup {
-  --c-lift: color-mix(in srgb, var(--c) 72%, #fff);
-}
-.card {
-  --c-lift: color-mix(in srgb, var(--c) 72%, #fff);
-  /* Re-resolve `color` from the card's own --text. Redefining the token alone
-     is not enough: `color` was already inherited from <body>, and inheritance
-     carries the computed colour, not the var() that produced it — so in the
-     light theme the title would arrive as dark ink on the dark card. */
-  color: var(--text);
-}
-:root {
-  --era-lift: color-mix(in srgb, var(--era) 72%, #fff);
-  --era-2-lift: color-mix(in srgb, var(--era-2) 72%, #fff);
+  /* Papierkorn als Data-URI (feTurbulence) — an zwei Stellen verwendet:
+     Seitenkorn (body::after) und Korn auf den gerahmten Tafeln. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 * {
@@ -117,6 +65,19 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+/* Feines Papierkorn über der ganzen Seite: nimmt dem warmen Charcoal die
+   digitale Glätte. Statisch (keine Animation), overlay-Blend, kaum sichtbar —
+   es soll sich anfühlen wie Papier, nicht wie ein Filter. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9000; /* über dem Inhalt, unter der SiteNav (9600) */
+  pointer-events: none;
+  background-image: var(--grain);
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+}
 img {
   display: block;
   max-width: 100%;
@@ -130,24 +91,25 @@ ol {
   list-style: none;
 }
 ::selection {
-  background: var(--era);
+  background: var(--accent);
   color: var(--ink);
 }
 :focus-visible {
-  outline: 2px solid var(--era-2);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 2px;
+  border-radius: 1px;
 }
 .skip {
   position: absolute;
   left: -999px;
   top: 0;
   z-index: 9300;
-  background: var(--era);
+  background: var(--accent);
   color: var(--ink);
   padding: 0.6rem 1rem;
-  font-family: var(--font-ui);
-  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .skip:focus {
   left: 0;
@@ -161,102 +123,107 @@ ol {
   white-space: nowrap;
 }
 
-/* ── Ambient ───────────────────────────────────────────────────────────────
-   Two fixed layers under everything: a drifting dust canvas tinted to the live
-   era, and a vignette + faint CRT scanline that keeps the deep background from
-   reading as flat black. */
-#dust {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.85;
-}
-.veil {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(120% 100% at 50% 0%, transparent 45%, rgba(0, 0, 0, 0.55) 100%),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.13) 0 1px, transparent 1px 3px);
-  opacity: 0.6;
-}
-/* A wash of the era colour bleeding in from the edges — the most visible carrier
-   of the morph, and it costs one repaint. */
-.wash {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(70% 55% at 8% 12%, color-mix(in srgb, var(--era) 14%, transparent), transparent 70%),
-    radial-gradient(60% 50% at 96% 78%, color-mix(in srgb, var(--era-2) 11%, transparent), transparent 70%);
-}
-main {
-  position: relative;
-  z-index: 2;
-}
-
-/* ── Masthead ───────────────────────────────────────────────────────────── */
+/* ── Masthead ─────────────────────────────────────────────────────────────
+   Umschlagseite: Metadatenzeile zwischen Linealen, Titel in Fraunces 900,
+   Deko-Zeile in Kursiv. Kein Bild, kein Glow — die Typo trägt allein. */
 .mast {
   max-width: var(--maxw);
   margin: 0 auto;
-  padding: clamp(5.5rem, 13vh, 9rem) var(--pad) clamp(1.3rem, 2.8vw, 2rem);
+  padding: clamp(5.5rem, 13vh, 9rem) var(--pad) clamp(1.6rem, 3vw, 2.4rem);
 }
 .mast__eyebrow {
-  font-family: var(--font-ui);
-  font-weight: 700;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  font-size: 0.76rem;
-  color: var(--era-2-lift);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  color: var(--dim);
+}
+.mast__eyebrow::before {
+  content: '';
+  flex: 0 0 2.6rem;
+  height: 1px;
+  background: var(--line);
 }
 .mast__eyebrow::after {
   content: '';
   flex: 1;
   height: 1px;
-  max-width: 8rem;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--era-2) 60%, transparent), transparent);
+  background: var(--line-2);
 }
 .mast h1 {
   font-family: var(--font-display);
   font-weight: 900;
-  line-height: 0.9;
-  letter-spacing: -0.01em;
-  margin: 1.1rem 0 0;
-  font-size: clamp(2.6rem, 9vw, 5.6rem);
-  text-transform: uppercase;
+  line-height: 0.95;
+  letter-spacing: -0.015em;
+  margin: 1.4rem 0 0;
+  font-size: clamp(2.7rem, 8.6vw, 5.9rem);
 }
-/* "ALPHA 4" is the quiet half of the lockup: outlined, so the solid archive
-   title reads as the subject and the era label as its frame. */
+/* „ALPHA 4" ist die halblaute Hälfte des Lockups: Kursiv in Messing, damit
+   der massige 900er-Titel als Gegenstand und die Ärenmarke als Rahmen liest. */
 .mast h1 .thin {
   display: block;
-  font-size: 0.42em;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  color: transparent;
-  -webkit-text-stroke: 1px color-mix(in srgb, var(--era) 75%, transparent);
-  margin-bottom: 0.42em;
+  font-size: 0.4em;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  margin-bottom: 0.35em;
 }
 .mast__lead {
   margin-top: 1.5rem;
-  max-width: 54ch;
+  max-width: 56ch;
   font-size: clamp(1.02rem, 1.6vw, 1.2rem);
   color: var(--muted);
 }
 
+/* ── Kolophon (Statistik) ──────────────────────────────────────────────────
+   Buchhaltung der Chronik: eine einfache Lineal-Zeile, keine Kacheln. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.9rem 2rem;
+  margin-top: clamp(2.2rem, 4.5vw, 3rem);
+  padding: 1rem 0;
+  border-top: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--line-2);
+}
+@media (min-width: 760px) {
+  .stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.stat__n {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.45rem, 3vw, 1.9rem);
+  line-height: 1;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.stat__l {
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
 /* ── Release ribbon ────────────────────────────────────────────────────────
    A real plot, not decoration: ticks sit at their true position between the
-   first and last release, so the eye reads the cadence — the dense 4.8 cluster,
-   the summer-2025 gaps — before reading a single word. */
+   first and last release, so the eye reads the cadence — the dense 4.8
+   cluster, the summer-2025 gaps — before reading a single word. Neu: ein
+   einziges warmes Metall statt Ären-Regenbogen; die Kapitel sind nur noch
+   entsättigte Segmente, der aktive Abschnitt trägt Messing. */
 .ribbon {
-  margin-top: clamp(2.2rem, 5vw, 3.2rem);
+  margin-top: clamp(2.4rem, 5vw, 3.4rem);
 }
 .ribbon__scale {
   position: relative;
-  height: 74px;
+  height: 66px;
   border-bottom: 1px solid var(--line);
 }
 .ribbon__band {
@@ -264,14 +231,17 @@ main {
   bottom: 0;
   left: var(--from);
   width: calc(var(--to) - var(--from));
-  height: 5px;
-  background: var(--c);
-  opacity: 0.34;
-  transition: opacity 0.45s var(--ease), height 0.45s var(--ease);
+  height: 7px;
+  background: rgba(220, 200, 160, 0.07);
+  transition: background-color 0.45s var(--ease), height 0.45s var(--ease);
+}
+/* Abwechselnde Tönung, damit die Kapitelgrenzen ohne Farbe lesbar bleiben. */
+.ribbon__band:nth-of-type(even) {
+  background: rgba(220, 200, 160, 0.13);
 }
 .ribbon__band.is-now {
-  opacity: 1;
-  height: 7px;
+  background: color-mix(in srgb, var(--accent) 42%, transparent);
+  height: 9px;
 }
 .ribbon__tick {
   position: absolute;
@@ -283,35 +253,34 @@ main {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  border-radius: 2px;
 }
 .ribbon__tick::before {
   content: '';
-  width: 3px;
-  height: 42%;
-  background: var(--c);
-  opacity: 0.62;
-  border-radius: 2px 2px 0 0;
+  width: 2px;
+  height: 34%;
+  background: var(--accent);
+  opacity: 0.5;
   transform-origin: bottom;
-  transition: opacity 0.25s, height 0.25s var(--ease), box-shadow 0.25s;
+  transition: opacity 0.25s, height 0.25s var(--ease);
 }
 .ribbon__tick.is-major::before {
-  height: 78%;
-  opacity: 0.9;
+  height: 68%;
+  opacity: 0.8;
 }
 .ribbon__tick.is-latest::before {
   height: 100%;
+  width: 3px;
   opacity: 1;
-  box-shadow: 0 0 16px var(--c);
 }
 .ribbon__tick:hover::before,
 .ribbon__tick:focus-visible::before {
   opacity: 1;
   height: 100%;
-  box-shadow: 0 0 18px var(--c);
 }
 /* CSS-only tooltip — the label is already in the DOM for screen readers, so
-   this stays purely presentational. */
+   this stays purely presentational. Bewusst in BEIDEN Modi dunkel: der Chip
+   schwebt über dem Strich, nicht über der Seite, und bricht sonst aus dem
+   warmen Papier heraus (gleiche Regel wie die Medien-Tokens in theme.css). */
 .ribbon__tick::after {
   content: attr(data-label);
   position: absolute;
@@ -319,16 +288,14 @@ main {
   left: 50%;
   transform: translate(-50%, 4px);
   white-space: nowrap;
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 0.74rem;
-  letter-spacing: 0.09em;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text);
-  background: rgba(4, 6, 12, 0.96);
-  border: 1px solid var(--c);
+  color: #f0ead9;
+  background: #171208;
+  border: 1px solid rgba(224, 163, 62, 0.45);
   padding: 0.28rem 0.6rem;
-  border-radius: 2px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s, transform 0.2s var(--ease-out);
@@ -347,14 +314,12 @@ main {
   margin-top: 0.55rem;
   font-family: var(--font-mono);
   font-size: 0.74rem;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--dim);
   text-transform: uppercase;
 }
 .ribbon__hint {
-  font-family: var(--font-ui);
-  letter-spacing: 0.12em;
-  font-weight: 600;
+  letter-spacing: 0.14em;
 }
 @media (max-width: 620px) {
   .ribbon__hint {
@@ -362,75 +327,34 @@ main {
   }
 }
 
-/* ── Stat strip ─────────────────────────────────────────────────────────── */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1px;
-  margin-top: clamp(2rem, 4vw, 2.8rem);
-  background: var(--line-2);
-  border: 1px solid var(--line-2);
-}
-@media (min-width: 760px) {
-  .stats {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-.stat {
-  background: var(--bg);
-  padding: 1.05rem 1.2rem;
-}
-.stat__n {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
-  line-height: 1;
-  color: var(--era);
-  font-variant-numeric: tabular-nums;
-}
-.stat__l {
-  margin-top: 0.4rem;
-  font-family: var(--font-ui);
-  font-weight: 600;
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--dim);
-}
-
 /* ── Sticky control bar ────────────────────────────────────────────────────
-   Doubles as the "you are here" readout: the era name on the left is driven by
-   the same observer that morphs --era, so the label and the colour never
-   disagree. */
+   Kontrollleiste als liniertes Werkzeugband: volle Breite, Haarlinien statt
+   schwebender Kapsel. Doubles as the "you are here" readout — the era name
+   on the left is driven by the same observer that marks the ribbon band. */
 .cbar {
   position: sticky;
   top: var(--stick);
   z-index: 60;
-  margin: clamp(1.2rem, 2.4vw, 1.8rem) auto 0;
-  max-width: var(--maxw);
-  padding: 0 var(--pad);
+  margin: clamp(1.2rem, 2.4vw, 1.8rem) 0 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line-2);
 }
 .cbar__in {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.6rem 0.9rem;
-  padding: 0.6rem 0.75rem;
-  background: rgba(6, 9, 16, 0.92);
-  backdrop-filter: blur(14px) saturate(1.3);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--era);
-  border-radius: 3px;
-  box-shadow: 0 12px 34px -18px rgba(0, 0, 0, 0.9);
-  transition: border-color 0.5s var(--ease);
+  gap: 0.6rem 1rem;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0.55rem var(--pad);
 }
 .cbar__era {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 0.8rem;
+  gap: 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text);
@@ -440,9 +364,7 @@ main {
   width: 7px;
   height: 7px;
   flex: none;
-  background: var(--era);
-  transform: rotate(45deg);
-  box-shadow: 0 0 10px var(--era);
+  background: var(--accent);
 }
 .cbar__search {
   flex: 1 1 12rem;
@@ -450,15 +372,13 @@ main {
   align-items: center;
   gap: 0.5rem;
   min-width: 0;
-  padding: 0.3rem 0.6rem;
-  background: rgba(255, 255, 255, 0.035);
+  padding: 0.28rem 0.6rem;
   border: 1px solid var(--line-2);
-  border-radius: 2px;
   transition: border-color 0.2s, background-color 0.2s;
 }
 .cbar__search:focus-within {
-  border-color: color-mix(in srgb, var(--era) 60%, transparent);
-  background: rgba(255, 255, 255, 0.06);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
 }
 .cbar__search svg {
   flex: none;
@@ -493,33 +413,30 @@ main {
   place-items: center;
   width: 20px;
   height: 20px;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text);
+  border: 1px solid var(--line-2);
+  background: none;
+  color: var(--muted);
   font-size: 0.85rem;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 0.15s;
+  transition: color 0.15s, border-color 0.15s;
 }
 .cbar__x:hover {
-  background: var(--era);
-  color: var(--ink);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 .cbar__chips {
   display: flex;
   gap: 0.3rem;
 }
 .chipbtn {
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 0.76rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
   background: none;
   border: 1px solid var(--line-2);
-  border-radius: 2px;
   padding: 0.32rem 0.7rem;
   cursor: pointer;
   transition: color 0.18s, border-color 0.18s, background-color 0.18s;
@@ -528,10 +445,12 @@ main {
   color: var(--text);
   border-color: var(--line);
 }
+/* Eine von zwei Messing-Füllungen der Seite (die andere ist der Aktuell-
+   Stempel): der aktive Filter ist ein Zustand, keine Dekoration. */
 .chipbtn[aria-pressed='true'] {
   color: var(--ink);
-  background: var(--era);
-  border-color: var(--era);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 .cbar__count {
   font-family: var(--font-mono);
@@ -578,7 +497,7 @@ main {
 }
 .sec__head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 1rem;
   margin-bottom: clamp(1.6rem, 3vw, 2.4rem);
 }
@@ -586,87 +505,88 @@ main {
   font-family: var(--font-mono);
   font-size: 0.86rem;
   letter-spacing: 0.12em;
-  color: var(--era-lift);
+  color: var(--accent);
 }
 .sec__head h2 {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(1.35rem, 3.2vw, 2rem);
-  line-height: 1.05;
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
+  font-weight: 600;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  line-height: 1.1;
+  letter-spacing: 0.005em;
 }
 .sec__rule {
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, var(--line), transparent);
+  align-self: center;
+  background: linear-gradient(90deg, var(--line-2), transparent);
 }
 .sec__tag {
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 0.74rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--era-lift);
-  border: 1px solid color-mix(in srgb, var(--era) 40%, transparent);
+  color: var(--dim);
+  border: 1px solid var(--line-2);
   padding: 0.2rem 0.6rem;
-  border-radius: 2px;
   white-space: nowrap;
 }
 
-/* ── Era chapter ───────────────────────────────────────────────────────── */
+/* ── Kapitelkopf (Ära) ─────────────────────────────────────────────────────
+   Chapter opener: übergroße konturierte Serifenziffer + Kapitelname + Zeitraum
+   + Eintragszahl, auf einem Lineal. Keine Farbe pro Kapitel — die Ziffer und
+   der Name tragen die Unterscheidung. */
 .era {
-  --c: var(--era);
   scroll-margin-top: calc(var(--stick) + 4rem);
 }
 .era__head {
   display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0.5rem 0.9rem;
-  padding: clamp(2.2rem, 4vw, 3.2rem) 0 1.5rem;
+  align-items: flex-end;
+  gap: clamp(0.9rem, 2.4vw, 1.5rem);
+  padding-bottom: 0.9rem;
+  margin: clamp(2.6rem, 5vw, 4rem) 0 0;
+  border-bottom: 1px solid var(--line);
 }
 .era:first-child .era__head {
-  padding-top: 0;
+  margin-top: 0;
 }
 .era__no {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--c-lift);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(3rem, 7vw, 5.4rem);
+  line-height: 0.78;
+  /* Kontur statt Füllung: die Ziffer ist Ornament (aria-hidden), nicht Text —
+     eine gefüllte 900er in der Größe würde jeden Kapitelnamen erschlagen. */
+  color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.era__id {
+  padding-bottom: 0.25rem;
+  min-width: 0;
 }
 .era__name {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(1.15rem, 2.6vw, 1.6rem);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  font-weight: 600;
+  font-size: clamp(1.35rem, 3vw, 2.1rem);
+  line-height: 1.1;
   color: var(--text);
 }
-.era__range {
+.era__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+  margin-top: 0.35rem;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  letter-spacing: 0.05em;
-  color: var(--dim);
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: var(--dim);
 }
 .era__count {
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 0.74rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--c-lift);
-  margin-left: auto;
-}
-@media (max-width: 620px) {
-  .era__count {
-    margin-left: 0;
-  }
+  color: var(--muted);
 }
 
 /* ── The spine ─────────────────────────────────────────────────────────── */
 .ent {
-  --c: var(--era);
   display: grid;
   grid-template-columns: 5.5rem 1.9rem minmax(0, 1fr);
   scroll-margin-top: calc(var(--stick) + 5rem);
@@ -676,25 +596,25 @@ main {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  padding: 0.15rem 1rem 0 0;
+  padding: 0.35rem 1rem 0 0;
   text-align: right;
 }
 .ent__day {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.15rem;
+  font-weight: 600;
+  font-size: 1.25rem;
   line-height: 1.1;
-  color: var(--text);
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
   transition: color 0.4s var(--ease);
 }
 .ent.lit .ent__day {
-  color: var(--c);
+  color: var(--accent);
 }
 .ent__my {
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--dim);
   text-transform: uppercase;
   white-space: nowrap;
@@ -716,7 +636,7 @@ main {
   left: 50%;
   width: 1px;
   margin-left: -0.5px;
-  background: var(--line);
+  background: var(--line-2);
 }
 .ent__node i {
   position: absolute;
@@ -725,7 +645,7 @@ main {
   left: 50%;
   width: 1px;
   margin-left: -0.5px;
-  background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 25%, transparent));
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 25%, transparent));
   transform: scaleY(0);
   transform-origin: top;
   transition: transform 0.85s var(--ease-out);
@@ -733,287 +653,125 @@ main {
 .ent.lit .ent__node i {
   transform: scaleY(1);
 }
-/* Marker sits on the card's title line, not the card's top edge. */
+/* Marker sits on the row's title line, not the row's top edge. */
 .ent__node b {
   position: absolute;
   top: 1.55rem;
   left: 50%;
-  width: 11px;
-  height: 11px;
-  margin: -5.5px 0 0 -5.5px;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
   background: var(--bg);
-  border: 1px solid var(--c);
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
   transform: rotate(45deg) scale(0.75);
   opacity: 0.5;
-  transition: transform 0.5s var(--ease-out) 0.15s, opacity 0.5s 0.15s, background-color 0.5s 0.15s,
-    box-shadow 0.5s 0.15s;
+  transition: transform 0.5s var(--ease-out) 0.15s, opacity 0.5s 0.15s, background-color 0.5s 0.15s;
 }
 .ent.lit .ent__node b {
   transform: rotate(45deg) scale(1);
   opacity: 1;
-  background: var(--c);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--c) 70%, transparent);
+  background: var(--accent);
 }
 .ent--major .ent__node b {
-  width: 15px;
-  height: 15px;
-  margin: -7.5px 0 0 -7.5px;
-}
-/* The newest release keeps a slow breathing halo — the one looping animation on
-   the page, and the only element that earns it. */
-.ent--latest .ent__node b::after {
-  content: '';
-  position: absolute;
-  inset: -6px;
-  border: 1px solid var(--c);
-  opacity: 0;
-}
-.ent--latest.lit .ent__node b::after {
-  animation: ping 2.6s var(--ease-out) infinite;
-}
-@keyframes ping {
-  0% {
-    transform: scale(0.7);
-    opacity: 0.8;
-  }
-  70%,
-  100% {
-    transform: scale(1.7);
-    opacity: 0;
-  }
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
 }
 
 .ent__card {
   grid-column: 3;
-  margin-bottom: 1.1rem;
+  margin-bottom: 1.4rem;
 }
 .era .ent:last-child .ent__card {
   margin-bottom: 0;
 }
 
-/* ── Card ──────────────────────────────────────────────────────────────── */
+/* ── Ledger row (card) ─────────────────────────────────────────────────────
+   Kein Kartenlook mehr: jeder Eintrag ist eine Registerzeile auf dem Papier —
+   Haarlinie unten, zarter Warnton bei Hover, rechts die gerahmte Tafel. */
 .card {
   position: relative;
-  isolation: isolate;
-  background: var(--surface);
-  border: 1px solid var(--line-2);
-  border-radius: 3px;
-  overflow: hidden;
-  transition: border-color 0.3s var(--ease), transform 0.3s var(--ease), box-shadow 0.3s var(--ease),
-    background-color 0.3s;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 34%);
+  gap: clamp(1rem, 2.6vw, 2rem);
+  align-items: stretch;
+  padding: 1.1rem 0.4rem 1.3rem;
+  border-bottom: 1px solid var(--line-2);
+  transition: background-color 0.3s var(--ease);
 }
-/* The rail already carries a vertical accent a few pixels to the left, so a
-   permanent bar here just reads as a doubled line. It arrives on hover instead,
-   where it has something to say. */
-.card::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 2px;
-  background: var(--c);
-  opacity: 0;
-  transition: opacity 0.3s;
-  z-index: 2;
-}
-.card:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--c) 45%, transparent);
-  box-shadow: 0 18px 44px -24px var(--c);
-}
-.card:hover::before {
-  opacity: 1;
-}
+.card:hover,
 .card:focus-within {
-  border-color: color-mix(in srgb, var(--c) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
 }
 /* Arriving from a ribbon tick: the landing row identifies itself, otherwise a
    jump into a wall of 19 similar rows leaves the reader hunting. */
 .ent:target .card {
-  border-color: var(--c);
-  box-shadow: 0 0 0 1px var(--c), 0 18px 44px -24px var(--c);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: -1px;
 }
-.ent:target .card::before {
-  opacity: 1;
-  width: 3px;
-}
-
-/* Art layer: drifts on hover rather than the whole card scaling, which would
-   soften the 1px borders. Majors and point releases share the mechanism but not
-   the dose — see the two scrims below. */
-.card__art {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background-image: var(--art);
-  background-size: cover;
-  background-position: center;
-  opacity: 0.62;
-  transform: scale(1.04);
-  transition: transform 1.1s var(--ease), opacity 0.4s;
-}
-.card:hover .card__art {
-  transform: scale(1.1);
-  opacity: 0.75;
-}
-.card__scrim {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(0deg, color-mix(in srgb, var(--c) 12%, transparent), transparent 60%);
-}
-/* Major: the scrim clears to the right so the trailer still is genuinely
-   visible past the text column — these are the cinematic rows. */
-.card--major .card__art {
-  opacity: 0.92;
-}
-.card--major .card__scrim {
-  background: linear-gradient(
-      100deg,
-      rgba(6, 9, 16, 0.99) 0%,
-      rgba(6, 9, 16, 0.98) 44%,
-      rgba(6, 9, 16, 0.55) 76%,
-      rgba(6, 9, 16, 0.24) 100%
-    ),
-    linear-gradient(0deg, color-mix(in srgb, var(--c) 14%, transparent), transparent 55%);
-}
-/* Source art is a 480px thumbnail. Covering the full card width would upscale
-   it ~2×; anchoring the panel to the right half keeps it at roughly 1:1, so the
-   part that is actually visible stays sharp. The panel's left edge sits under
-   the fully opaque end of the scrim, so there is no seam. */
-@media (min-width: 900px) {
-  .card--major .card__art {
-    left: 44%;
-  }
-}
-/* Point release: the art stays a texture, never a picture. The contrast between
-   the two treatments is what gives the spine its rhythm over 19 entries. */
-.card--point .card__art {
-  opacity: 0.2;
-}
-.card--point:hover .card__art {
-  opacity: 0.3;
-}
-.card--point .card__scrim {
-  background: linear-gradient(100deg, rgba(6, 9, 16, 0.96) 30%, rgba(6, 9, 16, 0.86) 100%),
-    linear-gradient(0deg, color-mix(in srgb, var(--c) 10%, transparent), transparent 70%);
-}
-
 .card__body {
-  padding: 1.15rem 1.3rem 1.2rem;
+  min-width: 0;
+  align-self: center;
 }
 .card--major .card__body {
-  padding: 1.5rem 1.5rem 1.35rem;
-}
-/* Keep the copy off the exposed art on wide rows, and drop the call to action
-   to the baseline so the extra height reads as composition, not slack. */
-@media (min-width: 900px) {
-  .card--major {
-    display: flex;
-    min-height: 15rem;
-  }
-  .card--major .card__body {
-    display: flex;
-    flex-direction: column;
-    max-width: 68%;
-  }
-  .card--major .card__foot {
-    margin-top: auto;
-    padding-top: 1.1rem;
-  }
-}
-
-/* Point releases are log lines: the version hangs in its own column and the
-   text runs beside it. Same markup as a major, a third of the height — the
-   contrast is what stops 19 rows reading as one undifferentiated stack. */
-.card--point .card__body {
-  padding: 0.95rem 1.15rem 1rem;
-}
-.card--point .card__ver {
-  font-size: 1.12rem;
-}
-.card--point .card__name {
-  font-size: 1.05rem;
-}
-.card--point .card__tag {
-  font-size: 0.9rem;
-}
-@media (min-width: 660px) {
-  .card--point .card__body {
-    display: grid;
-    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-    align-items: baseline;
-    column-gap: 1.1rem;
-    row-gap: 0.15rem;
-  }
-  .card--point .card__top {
-    grid-area: 1 / 1 / 4 / 2;
-    align-content: start;
-    align-items: baseline;
-    row-gap: 0.35rem;
-    max-width: 11rem;
-  }
-  .card--point .card__name,
-  .card--point .card__tag,
-  .card--point .card__foot {
-    grid-column: 2;
-    margin-top: 0;
-  }
-  .card--point .card__foot {
-    margin-top: 0.65rem;
-  }
+  align-self: start;
+  padding-top: 0.2rem;
 }
 .card__top {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  align-items: baseline;
+  gap: 0.7rem;
   flex-wrap: wrap;
 }
 .card__ver {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 1.28rem;
+  font-size: 1.35rem;
   line-height: 1;
-  letter-spacing: 0.01em;
-  color: var(--c);
+  letter-spacing: 0.005em;
+  color: var(--text);
   font-variant-numeric: tabular-nums;
+  transition: color 0.25s;
 }
 .card--major .card__ver {
-  font-size: clamp(1.7rem, 3.6vw, 2.35rem);
+  font-size: clamp(1.9rem, 3.8vw, 2.6rem);
+}
+.card:hover .card__ver {
+  color: var(--accent);
 }
 .chip {
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 0.66rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 0.18rem 0.5rem;
-  border-radius: 2px;
-  border: 1px solid var(--line);
-  color: var(--muted);
+  border: 1px solid var(--line-2);
+  color: var(--dim);
   white-space: nowrap;
 }
-.chip--major {
-  color: var(--c-lift);
-  border-color: color-mix(in srgb, var(--c) 45%, transparent);
-}
+/* Der Aktuell-Stempel: die einzige gefüllte Messing-Fläche im Fluss der
+   Zeilen. Leicht gedreht wie ein Archiv-Stempel — die eine bewusste
+   Unregelmäßigkeit der Seite. */
 .chip--latest {
   color: var(--ink);
-  background: var(--c);
-  border-color: var(--c);
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: rotate(-1.5deg);
 }
 .card__name {
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 1.18rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.16rem;
   line-height: 1.2;
-  margin-top: 0.5rem;
+  margin-top: 0.45rem;
   letter-spacing: 0.005em;
 }
 .card--major .card__name {
-  font-size: clamp(1.3rem, 2.8vw, 1.62rem);
+  font-size: clamp(1.35rem, 2.8vw, 1.7rem);
 }
-/* Stretched link: the whole card is clickable while the DOM keeps exactly one
-   anchor for the patch — so topic pills below can stay real, separate links
+/* Stretched link: the whole row is clickable while the DOM keeps exactly one
+   anchor for the patch — so topic chips below can stay real, separate links
    instead of being illegally nested inside it. */
 .card__name a::after {
   content: '';
@@ -1021,39 +779,53 @@ main {
   inset: 0;
   z-index: 1;
 }
+.card__name a {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color 0.2s;
+}
+.card__name a:hover {
+  text-decoration-color: var(--accent);
+}
 .card__name a:focus-visible {
   outline: none;
 }
 .card:has(.card__name a:focus-visible) {
-  outline: 2px solid var(--era-2);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+/* Die Tagline als Dek: Fraunces-Kursiv, die zweite Stimme der Chronik neben
+   dem 900er. Genau dafür sind die Kursivschnitte selbst gehostet. */
 .card__tag {
   margin-top: 0.4rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 1.02rem;
   max-width: 62ch;
 }
 .card--major .card__tag {
-  color: #b9c6de;
+  font-size: 1.1rem;
 }
 .card__foot {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.55rem 1rem;
-  margin-top: 1rem;
+  margin-top: 0.9rem;
 }
 .card__go {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--c-lift);
+  color: var(--accent);
 }
 .card__go .ar {
   transition: transform 0.25s var(--ease-out);
@@ -1073,25 +845,22 @@ main {
   margin-left: auto;
 }
 .dive {
-  font-family: var(--font-ui);
-  font-weight: 600;
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
   color: var(--muted);
   border: 1px solid var(--line-2);
-  background: rgba(255, 255, 255, 0.03);
   padding: 0.22rem 0.6rem;
-  border-radius: 50px;
   transition: color 0.18s, border-color 0.18s, background-color 0.18s;
 }
 .dive::before {
   content: '↳ ';
-  color: var(--c);
+  color: var(--accent);
 }
 .dive:hover {
   color: var(--text);
-  border-color: color-mix(in srgb, var(--c) 55%, transparent);
-  background: color-mix(in srgb, var(--c) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 @media (max-width: 620px) {
   .card__dives {
@@ -1099,9 +868,90 @@ main {
   }
 }
 
+/* ── Gerahmte Tafel (Artwork) ──────────────────────────────────────────────
+   Das Trailer-Still als gerahmte Platte: Passepartout aus Doppel-Haarlinie,
+   warme Sepia-Gradierung, feines Korn. Die Tafel ist in BEIDEN Modi gleich —
+   sie zeigt ein Foto und steht damit unter dem Medien-Vertrag (theme.css):
+   was über einem Foto liegt, bleibt dunkel bzw. unverändert. */
+.card__plate {
+  align-self: stretch;
+  padding: 5px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-2);
+}
+.card__art {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 6rem;
+  background-image: var(--art);
+  background-size: cover;
+  background-position: center;
+  /* warme Gradierung: zieht 19 bunte Trailer-Stills auf die Tonwelt der
+     Chronik, ohne sie unkenntlich zu machen */
+  filter: sepia(0.42) saturate(0.82) contrast(1.04) brightness(0.92);
+  box-shadow: inset 0 0 0 1px rgba(220, 200, 160, 0.16);
+  transition: filter 0.5s var(--ease);
+}
+.card__art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--grain);
+  opacity: 0.22;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+.card:hover .card__art {
+  filter: sepia(0.3) saturate(0.92) contrast(1.05) brightness(0.98);
+}
+/* Majors bekommen die große Tafel, Point-Releases eine kleine — derselbe
+   Mechanismus, andere Dosis; der Kontrast gibt dem Rückgrat über 19 Einträge
+   seinen Rhythmus. */
+@media (min-width: 900px) {
+  .card--major {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 38%);
+  }
+}
+.card--point {
+  grid-template-columns: minmax(0, 1fr) 9rem;
+}
+.card--point .card__art {
+  min-height: 5.5rem;
+}
+@media (max-width: 899px) {
+  .card {
+    display: flex;
+    flex-direction: column;
+  }
+  .card--major .card__plate {
+    order: -1; /* Bild zuerst — auf dem Phone liest sich die Tafel als Kapitelbild */
+    margin-bottom: 1rem;
+  }
+  .card--major .card__art {
+    aspect-ratio: 21 / 9;
+    min-height: 0;
+  }
+  .card--point {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 8rem;
+  }
+}
+@media (max-width: 560px) {
+  /* Die kleine Tafel ist Deko (aria-hidden); bei 360px kostet sie mehr Zeile,
+     als sie erzählt — die großen Tafeln der Majors bleiben. */
+  .card--point {
+    display: flex;
+  }
+  .card--point .card__plate {
+    display: none;
+  }
+}
+
 /* ── Reveal ───────────────────────────────────────────────────────────────
    Entries wipe in from the rail side, which reads as the timeline extruding
-   the card rather than a generic fade-up.
+   the row rather than a generic fade-up.
 
    Gated on .js — the class is set by an inline script before this content is
    parsed. Without it these rules never apply, so a blocked or broken
@@ -1143,81 +993,74 @@ main {
 }
 .empty button {
   margin-top: 0.9rem;
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink);
-  background: var(--era);
+  background: var(--accent);
   border: 0;
-  border-radius: 2px;
   padding: 0.45rem 1rem;
   cursor: pointer;
 }
 /* Matched substrings inside the spine, painted by the filter. */
 mark {
-  background: color-mix(in srgb, var(--era) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
   color: inherit;
-  border-radius: 2px;
 }
 
-/* ── Key topics ────────────────────────────────────────────────────────── */
+/* ── Key topics ──────────────────────────────────────────────────────────
+   Nummerierte Register-Einträge: Serifen-Zählung, Haarlinien, Mono-Version. */
 .kt {
-  display: grid;
-  gap: 1px;
-  background: var(--line-2);
-  border: 1px solid var(--line-2);
+  border-top: 1px solid var(--line-2);
 }
 @media (min-width: 720px) {
   .kt {
+    display: grid;
     grid-template-columns: 1fr 1fr;
+    gap: 0 2.6rem;
   }
 }
 .ktc {
-  --c: var(--era);
   position: relative;
   display: grid;
-  grid-template-columns: 2rem minmax(0, 1fr);
+  grid-template-columns: 2.4rem minmax(0, 1fr);
   gap: 0 0.9rem;
-  padding: 1.15rem 1.3rem;
-  background: var(--bg);
+  padding: 1.05rem 0.3rem;
+  border-bottom: 1px solid var(--line-2);
   transition: background-color 0.22s;
 }
 .ktc:hover {
-  background: color-mix(in srgb, var(--c) 8%, var(--bg));
-}
-/* The left edge grows into a full accent rule on hover — a small, cheap signal
-   that reads as "this row is armed". */
-.ktc::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--c);
-  transform: scaleY(0.18);
-  transform-origin: center;
-  opacity: 0.7;
-  transition: transform 0.35s var(--ease-out), opacity 0.35s;
-}
-.ktc:hover::before,
-.ktc:focus-within::before {
-  transform: scaleY(1);
-  opacity: 1;
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
 }
 .ktc__n {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  color: var(--c-lift);
-  padding-top: 0.28rem;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--dim);
+  padding-top: 0.15rem;
+  transition: color 0.22s;
+}
+.ktc:hover .ktc__n,
+.ktc:focus-within .ktc__n {
+  color: var(--accent);
 }
 .ktc__t {
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 1.16rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.14rem;
   line-height: 1.25;
+}
+.ktc__t a {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color 0.2s;
+}
+.ktc__t a:hover {
+  text-decoration-color: var(--accent);
 }
 .ktc__t a::after {
   content: '';
@@ -1226,10 +1069,11 @@ mark {
 }
 .ktc__v {
   font-family: var(--font-mono);
-  font-size: 0.74rem;
-  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
   color: var(--dim);
   text-transform: uppercase;
+  margin-top: 0.15rem;
 }
 .ktc__d {
   margin-top: 0.35rem;
@@ -1245,36 +1089,22 @@ mark {
 .tgroups {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-}
-.tgroup {
-  --c: var(--era);
-  border: 1px solid var(--line-2);
-  border-radius: 3px;
-  padding: 0.95rem 1.2rem 1.05rem;
-  background: color-mix(in srgb, var(--surface) 45%, transparent);
+  gap: 1.8rem;
 }
 .tgroup__h {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.6rem;
-  padding-bottom: 0.5rem;
-  margin-bottom: 0.35rem;
-  border-bottom: 1px solid var(--line-2);
-}
-.tgroup__sw {
-  width: 7px;
-  height: 7px;
-  flex: none;
-  background: var(--c);
-  transform: rotate(45deg);
+  padding-bottom: 0.45rem;
+  margin-bottom: 0.3rem;
+  border-bottom: 1px solid var(--line);
 }
 .tgroup__l {
-  font-family: var(--font-ui);
-  font-weight: 700;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  color: var(--text);
 }
 .tgroup__n {
   font-family: var(--font-mono);
@@ -1285,21 +1115,21 @@ mark {
 .trows {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
-  gap: 0 1.6rem;
+  gap: 0 1.8rem;
 }
 .trow {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 0.8rem;
-  padding: 0.42rem 0.35rem;
+  padding: 0.42rem 0.3rem;
   border-bottom: 1px solid var(--line-2);
   transition: background-color 0.15s, color 0.15s, padding-left 0.2s var(--ease);
 }
 .trow:hover {
-  color: var(--c);
-  background: color-mix(in srgb, var(--c) 7%, transparent);
-  padding-left: 0.65rem;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  padding-left: 0.6rem;
 }
 .trow span:first-child {
   min-width: 0;
@@ -1322,11 +1152,10 @@ mark {
   place-items: center;
   width: 42px;
   height: 42px;
-  border: 1px solid color-mix(in srgb, var(--era) 45%, transparent);
-  border-radius: 50%;
-  background: rgba(6, 9, 16, 0.9);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(8px);
-  color: var(--era);
+  color: var(--accent);
   opacity: 0;
   transform: translateY(10px);
   pointer-events: none;
@@ -1338,7 +1167,7 @@ mark {
   pointer-events: auto;
 }
 .totop:hover {
-  background: var(--era);
+  background: var(--accent);
   color: var(--ink);
 }
 
@@ -1362,7 +1191,7 @@ mark {
     padding: 0 0 0.3rem;
   }
   .ent__day {
-    font-size: 0.92rem;
+    font-size: 0.98rem;
   }
   .ent__card {
     grid-column: 2;
@@ -1378,15 +1207,18 @@ mark {
   html {
     scroll-behavior: auto;
   }
-  :root {
-    transition: none;
-  }
   *,
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+  /* Korn aus: bei reduzierter Bewegung gilt „keine Effektschichten" — die
+     Textur ist Deko, der Inhalt bleibt ohne sie vollständig lesbar. */
+  body::after,
+  .card__art::after {
+    display: none;
   }
   .js .ent__card,
   .js .reveal {
@@ -1400,157 +1232,56 @@ mark {
     transform: rotate(45deg) scale(1);
     opacity: 1;
   }
-  .card:hover {
-    transform: none;
-  }
 }
 
 /* ── Light theme ───────────────────────────────────────────────────────────
    The site-wide toggle stamps data-theme on <html> (assets/theme.css). This
    file is a standalone stylesheet, so the generators in scripts/ — which only
    rewrite inline style blocks inside .astro pages — never see it; the light
-   palette below is authored, not generated.
+   palette below is AUTHORED, not generated (marker comment kept from the
+   pre-Chronicle file). It follows the generators' role rules
+   (scripts/lib/theme-color.mjs): paper surfaces, ink text, and the brass
+   accent darkened until it holds ≥4.5:1 on paper (#7a5200 = 5.9:1).
 
    The governing rule is the same one theme.css states: what lies over a PHOTO
-   stays dark in both modes, because it has to contrast with the image, not
-   with the page. Every patch card carries trailer art, so all 19 cards keep
-   their dark treatment and only the page chrome turns to paper. Re-declaring
-   the palette tokens ON .card is what does it — custom properties inherit, so
-   each card becomes an island of the dark theme without touching one rule
-   above. */
+   stays dark in both modes. Here that covers exactly two things — the framed
+   plates (their sepia grade is theme-independent, nothing to do) and the
+   ribbon tooltip (hardcoded dark above). Everything else turns to paper. */
 :root[data-theme='light'] {
-  --bg: #f4f7fe;
-  --bg-2: #e9eef9;
-  --surface: #fdfdff;
-  --surface-2: #eef2fc;
-  --text: #1b1f29;
-  --muted: #4e586c;
-  --dim: #5a6478; /* 5.5:1 on --bg */
-  --ink: #ffffff;
-  --line: rgba(41, 46, 56, 0.2);
-  --line-2: rgba(41, 46, 56, 0.1);
-  /* On paper the accent has to darken instead of lighten — same 62% oklab mix
-     the site's own generator uses for accent-on-light. */
-  --era-lift: color-mix(in oklab, var(--era) 62%, #000);
-  --era-2-lift: color-mix(in oklab, var(--era-2) 62%, #000);
+  --bg: #f2ede1; /* paper */
+  --bg-2: #eae2d0;
+  --surface: #faf6ec;
+  --surface-2: #f0e9d8;
+  --text: #191510; /* 14.9:1 on --bg */
+  --muted: #5c5342; /* 6.5:1 on --bg */
+  --dim: #6b6150; /* 5.2:1 on --bg — Micro-Caps brauchen AA wie Fließtext */
+  --accent: #7a5200; /* darkened brass, 5.9:1 on --bg */
+  --accent-2: #6b4800;
+  --ink: #ffffff; /* Text auf der (jetzt dunklen) Messing-Füllung */
+  --line: rgba(90, 70, 30, 0.3);
+  --line-2: rgba(90, 70, 30, 0.15);
 }
-:root[data-theme='light'] .era,
-:root[data-theme='light'] .ktc,
-:root[data-theme='light'] .tgroup {
-  --c-lift: color-mix(in oklab, var(--c) 62%, #000);
+/* Auf Papier blendet overlay-Getreide nur auf; multiply drückt das Korn wie
+   echte Papierstruktur IN die Fläche. */
+:root[data-theme='light'] body::after {
+  mix-blend-mode: multiply;
+  opacity: 0.05;
 }
-
-/* Cards keep the dark palette (see above). */
-:root[data-theme='light'] .card {
-  --surface: #0c111d;
-  --surface-2: #111828;
-  --text: #e8eefc;
-  --muted: #8a99b8;
-  --dim: #6b7c9c;
-  --line: rgba(232, 238, 252, 0.11);
-  --line-2: rgba(232, 238, 252, 0.06);
-  /* Text ON an accent fill (the "Latest" chip). White-on-accent only reaches
-     3.7:1 against the brighter patch colours; near-black stays legible on all
-     nineteen. */
-  --ink: #05070d;
-}
-/* The ribbon tooltip is a dark chip in both modes, for the same reason. */
-:root[data-theme='light'] .ribbon__tick {
-  --text: #e8eefc;
-}
-
-/* Ambient layers are built for a dark page: a black vignette and glowing dust
-   only muddy a light one. */
-:root[data-theme='light'] #dust {
-  display: none;
-}
-:root[data-theme='light'] .veil {
-  background: repeating-linear-gradient(0deg, rgba(41, 46, 56, 0.035) 0 1px, transparent 1px 3px);
-  opacity: 1;
-}
-:root[data-theme='light'] .wash {
-  background: radial-gradient(70% 55% at 8% 12%, color-mix(in srgb, var(--era) 12%, transparent), transparent 70%),
-    radial-gradient(60% 50% at 96% 78%, color-mix(in srgb, var(--era-2) 9%, transparent), transparent 70%);
-}
-
-/* Accent marks sitting directly on paper. */
-:root[data-theme='light'] .stat__n {
-  color: var(--era-lift);
-}
-:root[data-theme='light'] .ent.lit .ent__day,
-:root[data-theme='light'] .trow:hover {
-  color: var(--c-lift);
-}
-:root[data-theme='light'] .mast h1 .thin {
-  -webkit-text-stroke-color: color-mix(in srgb, var(--era-lift) 80%, transparent);
-}
-:root[data-theme='light'] .cbar__dot {
-  background: var(--era-lift);
-  box-shadow: none;
-}
-:root[data-theme='light'] .tgroup__sw {
-  background: var(--c-lift);
-}
-:root[data-theme='light'] .cbar__in {
-  background: rgba(253, 253, 255, 0.92);
-  border-left-color: var(--era-lift);
-  box-shadow: 0 12px 30px -20px rgba(27, 31, 41, 0.5);
-}
-:root[data-theme='light'] .cbar__search {
-  background: rgba(41, 46, 56, 0.04);
-}
-:root[data-theme='light'] .cbar__search:focus-within {
-  background: rgba(41, 46, 56, 0.06);
-}
-/* Filled controls: white-on-accent needs the darkened accent behind it. */
-:root[data-theme='light'] .chipbtn[aria-pressed='true'],
-:root[data-theme='light'] .empty button,
-:root[data-theme='light'] .skip {
-  background: var(--era-lift);
-  border-color: var(--era-lift);
-  color: #fff;
-}
-:root[data-theme='light'] ::selection {
-  background: var(--era-lift);
-  color: #fff;
-}
-:root[data-theme='light'] mark {
-  background: color-mix(in srgb, var(--era) 38%, #fff);
-}
-:root[data-theme='light'] .totop {
-  background: rgba(253, 253, 255, 0.9);
-  border-color: color-mix(in srgb, var(--era-lift) 45%, transparent);
-  color: var(--era-lift);
-}
-:root[data-theme='light'] .totop:hover {
-  background: var(--era-lift);
-  color: #fff;
-}
-/* Ribbon marks are graphics, but pale accents (Nyx ice blue, engineering gold)
-   all but vanish on paper — darken them to keep the plot readable. */
-:root[data-theme='light'] .ribbon__tick::before,
+/* Warme Segmente der Ribbon auf Papier: dieselbe Tönung, aus der Tinte
+   statt aus dem Pergament gerechnet, sonst unsichtbar. */
 :root[data-theme='light'] .ribbon__band {
-  background: color-mix(in oklab, var(--c) 62%, #000);
+  background: rgba(90, 70, 30, 0.08);
 }
-:root[data-theme='light'] .ent__node i {
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--c) 62%, #000),
-    color-mix(in oklab, var(--c) 25%, transparent)
-  );
+:root[data-theme='light'] .ribbon__band:nth-of-type(even) {
+  background: rgba(90, 70, 30, 0.15);
 }
-:root[data-theme='light'] .ent__node b {
-  border-color: color-mix(in oklab, var(--c) 62%, #000);
-}
-:root[data-theme='light'] .ent.lit .ent__node b {
-  background: color-mix(in oklab, var(--c) 62%, #000);
-  box-shadow: none;
+/* Kapitelziffern brauchen auf Papier mehr Tinte, um nicht auszubleichen. */
+:root[data-theme='light'] .era__no {
+  -webkit-text-stroke-color: color-mix(in srgb, var(--accent) 70%, transparent);
 }
 
 @media print {
-  #dust,
-  .veil,
-  .wash,
+  body::after,
   .cbar,
   .totop,
   .ribbon {

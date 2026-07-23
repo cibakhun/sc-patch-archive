@@ -27,10 +27,6 @@ const dives = (n: number) => tf(n === 1 ? 'arch.deepdive' : 'arch.deepdives', { 
 
 <a class="skip" href="#main">{lang === 'de' ? 'Zum Inhalt springen' : 'Skip to content'}</a>
 
-<canvas id="dust" aria-hidden="true"></canvas>
-<div class="wash" aria-hidden="true"></div>
-<div class="veil" aria-hidden="true"></div>
-
 <SiteNav
   crumbs={[{ label: 'VerseBase', href: L('/index.html') }, { label: t('nav.archive') }]}
   hasEn={true}
@@ -43,35 +39,7 @@ const dives = (n: number) => tf(n === 1 ? 'arch.deepdive' : 'arch.deepdives', { 
     <h1><span class="thin">{t('arch.titleThin')}</span>{t('arch.title')}</h1>
     <p class="mast__lead">{t('arch.lead')}</p>
 
-    {/* Release ribbon — ticks sit at their true position in time, so the
-        cadence of the era is legible before any card is read. */}
-    <nav class="ribbon" aria-label={t('arch.ribbon.aria')}>
-      <div class="ribbon__scale">
-        {a.eras.map((era) => (
-          <span
-            class="ribbon__band"
-            style={`--from:${era.from.toFixed(2)}%;--to:${era.to.toFixed(2)}%;--c:${era.accent}`}
-            aria-hidden="true"
-          />
-        ))}
-        {a.entries.map((e) => (
-          <a
-            class:list={['ribbon__tick', { 'is-major': e.type === 'major', 'is-latest': e.isLatest }]}
-            style={`--x:${(e.t * 100).toFixed(2)}%;--c:${e.accent}`}
-            href={`#p-${e.anchor}`}
-            data-label={`${e.version} · ${e.codename}`}
-          >
-            <span class="sr">{`Alpha ${e.version} — ${e.codename}, ${e.dateDisplay}`}</span>
-          </a>
-        ))}
-      </div>
-      <p class="ribbon__axis">
-        <span>{a.ribbon.startLabel}</span>
-        <span class="ribbon__hint">{t('arch.ribbon.hint')}</span>
-        <span>{a.ribbon.endLabel}</span>
-      </p>
-    </nav>
-
+    {/* Colophon: the ledger's own bookkeeping, set as a quiet ruled row. */}
     <dl class="stats">
       <div class="stat">
         <dd class="stat__n count" data-to={a.stats.patches}>{a.stats.patches}</dd>
@@ -90,6 +58,35 @@ const dives = (n: number) => tf(n === 1 ? 'arch.deepdive' : 'arch.deepdives', { 
         <dt class="stat__l">{t('arch.stat.days')}</dt>
       </div>
     </dl>
+
+    {/* Release ribbon — ticks sit at their true position in time, so the
+        cadence of the era is legible before any entry is read. */}
+    <nav class="ribbon" aria-label={t('arch.ribbon.aria')}>
+      <div class="ribbon__scale">
+        {a.eras.map((era) => (
+          <span
+            class="ribbon__band"
+            style={`--from:${era.from.toFixed(2)}%;--to:${era.to.toFixed(2)}%`}
+            aria-hidden="true"
+          />
+        ))}
+        {a.entries.map((e) => (
+          <a
+            class:list={['ribbon__tick', { 'is-major': e.type === 'major', 'is-latest': e.isLatest }]}
+            style={`--x:${(e.t * 100).toFixed(2)}%`}
+            href={`#p-${e.anchor}`}
+            data-label={`${e.version} · ${e.codename}`}
+          >
+            <span class="sr">{`Alpha ${e.version} — ${e.codename}, ${e.dateDisplay}`}</span>
+          </a>
+        ))}
+      </div>
+      <p class="ribbon__axis">
+        <span>{a.ribbon.startLabel}</span>
+        <span class="ribbon__hint">{t('arch.ribbon.hint')}</span>
+        <span>{a.ribbon.endLabel}</span>
+      </p>
+    </nav>
   </header>
 
   <!-- ── Control bar ──────────────────────────────────────────────────── -->
@@ -136,28 +133,32 @@ const dives = (n: number) => tf(n === 1 ? 'arch.deepdive' : 'arch.deepdives', { 
     </div>
 
     {a.eras.map((era, ei) => (
+      // data-accent/-2 are read by archive.js for the shared --era contract;
+      // the Chronicle keeps the hooks but no longer paints with them.
       <div
         class="era"
         id={`era-${ei}`}
-        style={`--era:${era.accent}`}
         data-accent={era.accent}
         data-accent2={era.accent2}
         data-label={era.label}
       >
         <div class="era__head">
-          <span class="era__no">{String(ei + 1).padStart(2, '0')}</span>
-          <h3 class="era__name">{era.label}</h3>
-          <span class="era__range">{era.range}</span>
-          <span class="era__count">
-            {era.entries.length} {era.entries.length === 1 ? t('arch.entry') : t('arch.entries')}
-          </span>
+          <span class="era__no" aria-hidden="true">{String(ei + 1).padStart(2, '0')}</span>
+          <div class="era__id">
+            <h3 class="era__name">{era.label}</h3>
+            <p class="era__meta">
+              <span class="era__range">{era.range}</span>
+              <span class="era__count">
+                {era.entries.length} {era.entries.length === 1 ? t('arch.entry') : t('arch.entries')}
+              </span>
+            </p>
+          </div>
         </div>
 
         {era.entries.map((e) => (
           <article
             class:list={['ent', `ent--${e.type}`, { 'ent--latest': e.isLatest }]}
             id={`p-${e.anchor}`}
-            style={`--c:${e.accent}`}
             data-type={e.type}
             data-search={e.search}
           >
@@ -170,16 +171,10 @@ const dives = (n: number) => tf(n === 1 ? 'arch.deepdive' : 'arch.deepdives', { 
 
             <div class="ent__card">
               <div class:list={['card', `card--${e.type}`]}>
-                {e.art && (
-                  <>
-                    <div class="card__art" style={`--art:url('${e.art}')`}></div>
-                    <div class="card__scrim"></div>
-                  </>
-                )}
                 <div class="card__body">
                   <p class="card__top">
                     <span class="card__ver">{e.version}</span>
-                    <span class="chip chip--major" set:text={t(e.type === 'major' ? 'arch.badge.major' : 'arch.badge.point')} />
+                    <span class="chip" set:text={t(e.type === 'major' ? 'arch.badge.major' : 'arch.badge.point')} />
                     {e.isLatest && <span class="chip chip--latest">{t('arch.badge.latest')}</span>}
                   </p>
                   <h4 class="card__name">
@@ -197,6 +192,11 @@ const dives = (n: number) => tf(n === 1 ? 'arch.deepdive' : 'arch.deepdives', { 
                     )}
                   </p>
                 </div>
+                {e.art && (
+                  <figure class="card__plate" aria-hidden="true">
+                    <span class="card__art" style={`--art:url('${e.art}')`}></span>
+                  </figure>
+                )}
               </div>
             </div>
           </article>
@@ -219,7 +219,7 @@ const dives = (n: number) => tf(n === 1 ? 'arch.deepdive' : 'arch.deepdives', { 
     </div>
     <div class="kt reveal">
       {a.keyTopics.map((k, i) => (
-        <article class="ktc" style={`--c:${k.accent}`}>
+        <article class="ktc">
           <span class="ktc__n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
           <div>
             <h3 class="ktc__t"><a href={k.href}>{k.title}</a></h3>
@@ -241,9 +241,8 @@ const dives = (n: number) => tf(n === 1 ? 'arch.deepdive' : 'arch.deepdives', { 
     </div>
     <div class="tgroups reveal">
       {a.topicGroups.map((g) => (
-        <div class="tgroup" style={`--c:${g.accent}`}>
+        <div class="tgroup">
           <div class="tgroup__h">
-            <span class="tgroup__sw" aria-hidden="true"></span>
             <h3 class="tgroup__l">Alpha {g.line}.x</h3>
             <span class="tgroup__n">
               {g.topics.length} {g.topics.length === 1 ? t('arch.entry') : t('arch.entries')}

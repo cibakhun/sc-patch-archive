@@ -14,13 +14,15 @@ const OUT_DIR = resolve(__dirname, '..', 'assets', 'fonts');
 const OUT_CSS = resolve(__dirname, '..', 'assets', 'fonts.css');
 mkdirSync(OUT_DIR, { recursive: true });
 
-// Familien der Hauptseite (Layout.astro) + der Onepager (Share Tech Mono, Teko).
+// Familien der Hauptseite (Layout.astro) + der Onepager (Share Tech Mono, Teko)
+// + Fraunces (Display-Serif des Archivs, inkl. Kursivschnitten für Deks).
 const CSS2 = 'https://fonts.googleapis.com/css2?' + [
   'family=Orbitron:wght@500;700;900',
   'family=Rajdhani:wght@500;600;700',
   'family=Barlow:wght@400;500;600',
   'family=Share+Tech+Mono',
   'family=Teko:wght@400;600',
+  'family=Fraunces:ital,wght@0,400;0,600;0,900;1,400;1,600;1,900',
 ].join('&') + '&display=swap';
 
 // Moderner UA -> Google liefert woff2 mit unicode-range-Blöcken
@@ -40,17 +42,20 @@ for (const [, subset, block] of blocks) {
   if (!KEEP.has(subset)) continue;
   const family = /font-family:\s*'([^']+)'/.exec(block)?.[1];
   const weight = /font-weight:\s*(\d+)/.exec(block)?.[1] ?? '400';
+  const style = /font-style:\s*(\w+)/.exec(block)?.[1] ?? 'normal';
   const url = /url\((https:[^)]+\.woff2)\)/.exec(block)?.[1];
   if (!family || !url) continue;
   const slug = family.toLowerCase().replace(/\s+/g, '-');
-  const fname = `${slug}-${weight}-${subset}.woff2`;
+  // Stil im Dateinamen, sonst überschreiben Kursiv- und Normalschnitt
+  // einander (gleiche Familie, gleiche Weight, gleiches Subset).
+  const fname = `${slug}-${weight}${style === 'normal' ? '' : `-${style}`}-${subset}.woff2`;
   if (!seen.has(fname)) {
     seen.add(fname);
     const buf = Buffer.from(await fetch(url, { headers: { 'User-Agent': UA } }).then((r) => r.arrayBuffer()));
     writeFileSync(resolve(OUT_DIR, fname), buf);
     files++;
   }
-  out += '\n/* ' + family + ' ' + weight + ' ' + subset + ' */\n' +
+  out += '\n/* ' + family + ' ' + weight + (style === 'normal' ? '' : ' ' + style) + ' ' + subset + ' */\n' +
     block.replace(/url\(https:[^)]+\.woff2\)/, `url(/assets/fonts/${fname})`) + '\n';
 }
 
