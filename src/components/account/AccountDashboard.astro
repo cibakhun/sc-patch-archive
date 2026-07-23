@@ -39,6 +39,15 @@ const COPY = {
     avatarSelect: 'Avatar-Icon wählen',
     avatarColorSelect: 'Avatar-Akzentfarbe',
     avatarUrl: 'Oder eigene Avatar-Bild-URL',
+    uploadAvatar: 'Avatar-Bild hochladen',
+    uploadBanner: 'Banner-Bild hochladen',
+    uploadHint: 'JPG, PNG, WebP oder GIF',
+    uploading: 'Lade hoch …',
+    uploadRemove: '✕ Bild entfernen',
+    uploadTooBig: 'Bild ist zu groß (max. %max% MB).',
+    uploadBadType: 'Bitte ein Bild wählen (JPG, PNG, WebP oder GIF).',
+    uploadErr: 'Upload fehlgeschlagen — bitte erneut versuchen.',
+    roleNone: '— Keine Rolle gewählt —',
     statusState: 'Präsenz-Status',
     statusText: 'Custom Status-Text', statusTextPh: 'z. B. Mining auf Lyria',
     roleLabel: 'Haupt-Spezialisierung / Rolle',
@@ -128,6 +137,15 @@ const COPY = {
     avatarSelect: 'Choose avatar icon',
     avatarColorSelect: 'Avatar accent color',
     avatarUrl: 'Or custom avatar image URL',
+    uploadAvatar: 'Upload avatar image',
+    uploadBanner: 'Upload banner image',
+    uploadHint: 'JPG, PNG, WebP or GIF',
+    uploading: 'Uploading …',
+    uploadRemove: '✕ Remove image',
+    uploadTooBig: 'Image is too large (max %max% MB).',
+    uploadBadType: 'Please choose an image (JPG, PNG, WebP or GIF).',
+    uploadErr: 'Upload failed — please try again.',
+    roleNone: '— No role selected —',
     statusState: 'Presence Status',
     statusText: 'Custom status text', statusTextPh: 'e.g. Mining on Lyria',
     roleLabel: 'Primary Specialization / Role',
@@ -228,6 +246,10 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-msg-rsi-reset-ok={COPY.rsiResetOk}
   data-rsi-copy={COPY.rsiCopy}
   data-rsi-copied={COPY.rsiCopied}
+  data-msg-uploading={COPY.uploading}
+  data-msg-upload-toobig={COPY.uploadTooBig}
+  data-msg-upload-badtype={COPY.uploadBadType}
+  data-msg-upload-err={COPY.uploadErr}
 >
   <!-- Identity Header -->
   <div class="acx-idcard reveal">
@@ -302,7 +324,15 @@ const confirmRedirect = loginHref + '?confirmed=1';
               </button>
             ))}
           </div>
-          <input class="acx-input" id="pfBannerUrl" type="hidden" />
+          <div class="acx-upload" data-kind="banner">
+            <input type="file" id="pfBannerFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+            <button type="button" class="acx-upload__btn" id="pfBannerUploadBtn">
+              <span class="acx-upload__ico" aria-hidden="true">⬆</span> <span>{COPY.uploadBanner}</span>
+            </button>
+            <button type="button" class="acx-upload__remove" id="pfBannerRemove" hidden>{COPY.uploadRemove}</button>
+            <span class="acx-upload__status" id="pfBannerUploadStatus" role="status" aria-live="polite"></span>
+          </div>
+          <input class="acx-input" id="pfBannerUrl" type="url" placeholder={COPY.bannerUrl} style="margin-top:0.6rem" />
         </div>
 
         <!-- Visual Avatar & Color Picker Grid -->
@@ -321,6 +351,14 @@ const confirmRedirect = loginHref + '?confirmed=1';
                   <span>{a.symbol}</span>
                 </button>
               ))}
+            </div>
+            <div class="acx-upload" data-kind="avatar">
+              <input type="file" id="pfAvatarFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+              <button type="button" class="acx-upload__btn" id="pfAvatarUploadBtn">
+                <span class="acx-upload__ico" aria-hidden="true">⬆</span> <span>{COPY.uploadAvatar}</span>
+              </button>
+              <button type="button" class="acx-upload__remove" id="pfAvatarRemove" hidden>{COPY.uploadRemove}</button>
+              <span class="acx-upload__status" id="pfAvatarUploadStatus" role="status" aria-live="polite"></span>
             </div>
             <input class="acx-input" id="pfAvatarUrl" type="url" placeholder={COPY.avatarUrl} style="margin-top:0.8rem" />
           </div>
@@ -358,7 +396,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
           <div class="acx-field">
             <label class="acx-label" for="pfRole">{COPY.roleLabel}</label>
             <select class="acx-input" id="pfRole">
-              <option value="">-- Keine Rolle gewählt --</option>
+              <option value="">{COPY.roleNone}</option>
               {CITIZEN_ROLES.map(r => (
                 <option value={r.id}>{r.symbol} {lang === 'de' ? r.labelDe : r.labelEn}</option>
               ))}
@@ -826,6 +864,50 @@ const confirmRedirect = loginHref + '?confirmed=1';
     border-color: #fff;
     transform: scale(1.2);
   }
+
+  /* ---------- Bild-Upload-Controls (Avatar + Banner) ---------- */
+  .acx-upload {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.7rem;
+  }
+  .acx-upload__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+  }
+  .acx-upload__btn:hover {
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+  .acx-upload__btn:disabled { opacity: 0.6; cursor: default; box-shadow: none; }
+  .acx-upload__ico { font-size: 0.95rem; line-height: 1; }
+  .acx-upload__remove {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.8rem;
+    padding: 0.42rem 0.7rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .acx-upload__remove:hover { color: #f87171; border-color: #f87171; }
+  .acx-upload__status { font-size: 0.8rem; color: var(--muted); }
+  .acx-upload__status.err { color: #f87171; }
+  .acx-upload__status.ok { color: #4ade80; }
 
   .acx-textarea {
     resize: vertical;
@@ -1436,6 +1518,14 @@ const confirmRedirect = loginHref + '?confirmed=1';
           const defaultColor = (btn as HTMLElement).dataset.avatarColor || '#2dd4ff';
           profileState.avatar_icon = icon;
           profileState.avatar_color = defaultColor;
+          // Icon gewählt → ein evtl. hochgeladenes/URL-Avatarbild weichen lassen,
+          // damit das Icon sichtbar wird.
+          avatarUrlInput.value = '';
+          profileState.avatar_url = '';
+          const avRemoveBtn = document.getElementById('pfAvatarRemove');
+          if (avRemoveBtn) avRemoveBtn.hidden = true;
+          // Farbschwatch-Highlight passend zur Icon-Standardfarbe mitziehen
+          colorSwatches.forEach(s => s.classList.toggle('selected', ((s as HTMLElement).dataset.color || '').toLowerCase() === defaultColor.toLowerCase()));
           updateCard();
         });
       });
@@ -1614,6 +1704,96 @@ const confirmRedirect = loginHref + '?confirmed=1';
       });
 
       updateCard();
+
+      // ---- Preset-Highlights an den geladenen Profil-Zustand angleichen ----
+      // (früher hart auf idx===0; jetzt spiegeln sie den echten gespeicherten Wert)
+      document.querySelectorAll('.banner-thumb-card').forEach(b =>
+        b.classList.toggle('selected', (b as HTMLElement).dataset.bannerUrl === (profileState.banner_url || '')));
+      document.querySelectorAll('.avatar-thumb-card').forEach(b =>
+        b.classList.toggle('selected', (b as HTMLElement).dataset.avatarIcon === (profileState.avatar_icon || '')));
+      colorSwatches.forEach(s =>
+        s.classList.toggle('selected', ((s as HTMLElement).dataset.color || '').toLowerCase() === (profileState.avatar_color || '').toLowerCase()));
+
+      // ---- Echte Bild-Uploads (Avatar + Banner) zu Supabase Storage ----
+      const UPLOAD_MAX: Record<string, number> = { avatar: 5 * 1024 * 1024, banner: 8 * 1024 * 1024 };
+      const UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+      const wireUpload = (o: {
+        kind: 'avatar' | 'banner'; bucket: string;
+        fileId: string; btnId: string; removeId: string; statusId: string;
+        urlInput: HTMLInputElement; stateKey: 'avatar_url' | 'banner_url';
+      }) => {
+        const fileEl = document.getElementById(o.fileId) as HTMLInputElement | null;
+        const btnEl = document.getElementById(o.btnId) as HTMLButtonElement | null;
+        const removeEl = document.getElementById(o.removeId) as HTMLButtonElement | null;
+        const statusEl = document.getElementById(o.statusId);
+        if (!fileEl || !btnEl) return;
+
+        const setStatus = (msg: string, cls = '') => {
+          if (!statusEl) return;
+          statusEl.textContent = msg;
+          statusEl.className = 'acx-upload__status' + (cls ? ' ' + cls : '');
+        };
+        const syncRemove = () => { if (removeEl) removeEl.hidden = !o.urlInput.value.trim(); };
+        syncRemove();
+
+        btnEl.addEventListener('click', () => fileEl.click());
+
+        fileEl.addEventListener('change', async () => {
+          const file = fileEl.files && fileEl.files[0];
+          if (!file) return;
+          if (!UPLOAD_TYPES.includes(file.type)) {
+            setStatus(D.msgUploadBadtype || 'Invalid image type.', 'err');
+            fileEl.value = '';
+            return;
+          }
+          const max = UPLOAD_MAX[o.kind];
+          if (file.size > max) {
+            setStatus((D.msgUploadToobig || 'Image too large.').replace('%max%', String(Math.round(max / 1024 / 1024))), 'err');
+            fileEl.value = '';
+            return;
+          }
+
+          btnEl.disabled = true;
+          setStatus(D.msgUploading || 'Uploading …');
+          try {
+            // Stabiler Pfad je Nutzer+Art -> überschreibt (upsert), kein Datei-Wildwuchs.
+            // Cache-Busting per ?v= im gespeicherten URL.
+            const path = `${user.id}/${o.kind}`;
+            const { error: upErr } = await supabase.storage.from(o.bucket).upload(path, file, {
+              upsert: true, contentType: file.type, cacheControl: '3600',
+            });
+            if (upErr) throw upErr;
+            const { data: pub } = supabase.storage.from(o.bucket).getPublicUrl(path);
+            const url = `${pub.publicUrl}?v=${Date.now()}`;
+            o.urlInput.value = url;
+            profileState[o.stateKey] = url;
+            updateCard();
+            syncRemove();
+            setStatus('✓', 'ok');
+            setTimeout(() => setStatus(''), 1600);
+          } catch (err) {
+            console.warn('image upload failed', err);
+            setStatus(D.msgUploadErr || 'Upload failed.', 'err');
+          } finally {
+            btnEl.disabled = false;
+            fileEl.value = '';
+          }
+        });
+
+        if (removeEl) {
+          removeEl.addEventListener('click', () => {
+            o.urlInput.value = '';
+            profileState[o.stateKey] = '';
+            updateCard();
+            syncRemove();
+            setStatus('');
+          });
+        }
+      };
+
+      wireUpload({ kind: 'avatar', bucket: 'avatars', fileId: 'pfAvatarFile', btnId: 'pfAvatarUploadBtn', removeId: 'pfAvatarRemove', statusId: 'pfAvatarUploadStatus', urlInput: avatarUrlInput, stateKey: 'avatar_url' });
+      wireUpload({ kind: 'banner', bucket: 'banners', fileId: 'pfBannerFile', btnId: 'pfBannerUploadBtn', removeId: 'pfBannerRemove', statusId: 'pfBannerUploadStatus', urlInput: bannerUrlInput, stateKey: 'banner_url' });
 
       // RSI Verification Modal Logic
       const rsiModal = document.getElementById('rsiModal') as HTMLDialogElement;
@@ -1900,11 +2080,39 @@ const confirmRedirect = loginHref + '?confirmed=1';
         // Das RSI-Handle wird normal persistiert; weicht es vom verifizierten
         // Handle ab, erlischt die Verknüpfung (Revoke in Richtung false).
         const rsiHandleVal = rsiHandleInput.value.trim() || null;
+
+        // Alle sichtbaren Profilfelder aus Inputs + Picker-State übernehmen,
+        // damit DB-Persistenz UND der localStorage-Cache konsistent sind.
+        // (avatar_icon/avatar_color liegen bereits im profileState via Picker.)
+        Object.assign(profileState, {
+          display_name: display_name || '',
+          handle: handle || '',
+          bio: bioInput.value.trim(),
+          banner_url: bannerUrlInput.value.trim(),
+          avatar_url: avatarUrlInput.value.trim(),
+          status_state: statusStateSelect.value || 'online',
+          status_text: statusTextInput.value.trim(),
+          role: roleSelect.value,
+          rsi_handle: rsiHandleVal || '',
+          discord_tag: discordInput.value.trim(),
+          org_name: orgInput.value.trim(),
+        });
+
         const payload: Record<string, any> = {
           id: user.id,
           display_name,
           handle,
-          rsi_handle: rsiHandleVal
+          bio: profileState.bio || null,
+          banner_url: profileState.banner_url || null,
+          avatar_url: profileState.avatar_url || null,
+          avatar_icon: profileState.avatar_icon || null,
+          avatar_color: profileState.avatar_color || null,
+          status_state: profileState.status_state || null,
+          status_text: profileState.status_text || null,
+          role: profileState.role || null,
+          discord_tag: profileState.discord_tag || null,
+          org_name: profileState.org_name || null,
+          rsi_handle: rsiHandleVal,
         };
         if (profileState.rsi_verified === true
           && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
