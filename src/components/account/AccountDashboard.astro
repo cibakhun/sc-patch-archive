@@ -979,26 +979,26 @@ const confirmRedirect = loginHref + '?confirmed=1';
       // Enforce DB value: rsi_verified is only true if explicitly boolean true in DB
       profileState.rsi_verified = profileState.rsi_verified === true;
 
-      // Serverseitige RSI-Bio-Prüfung über die native verse-base.com Function
-      // (/api/verify-rsi) — Browser-Aufrufe auf RSI werden von Cloudflare
-      // CORS/Bot-Protection blockiert. Das Session-JWT geht im Authorization-
-      // Header mit; die Function persistiert das Ergebnis serverseitig in der
-      // DB (ein DB-Trigger verbietet Client-Writes auf rsi_verified=true).
-      // Rückgabe: { verified, error?, persisted? } oder null, wenn der Server
-      // nicht erreicht werden konnte (dann darf NICHT revokiert werden).
+      // Serverseitige RSI-Bio-Prüfung über die Supabase Edge Function
+      // 'verify-rsi' — die Site ist statisch (Docker/nginx auf Coolify) und
+      // kann selbst keinen Server-Code ausführen; Browser-Aufrufe auf RSI
+      // werden von Cloudflare CORS/Bot-Protection blockiert. supabase-js hängt
+      // das Session-JWT automatisch an; die Function persistiert das Ergebnis
+      // serverseitig per Service Role (ein DB-Trigger verbietet Client-Writes
+      // auf rsi_verified=true).
+      // Rückgabe: { verified, error?, persisted? } oder null, wenn die
+      // Function nicht erreicht werden konnte (dann darf NICHT revokiert
+      // werden).
       const serverVerify = async (rHandle: string, rCode: string): Promise<{ verified: boolean; error?: string; persisted?: boolean } | null> => {
         try {
-          const apiRes = await fetch(`/api/verify-rsi?handle=${encodeURIComponent(rHandle)}&code=${encodeURIComponent(rCode)}`, {
-            headers: { 'Authorization': `Bearer ${session.access_token}` }
+          const { data, error } = await supabase.functions.invoke('verify-rsi', {
+            body: { rsi_handle: rHandle, rsi_code: rCode }
           });
-          if (apiRes.ok) {
-            const apiData = await apiRes.json();
-            if (apiData && typeof apiData.verified === 'boolean') {
-              return { verified: apiData.verified, error: apiData.error, persisted: apiData.persisted };
-            }
+          if (!error && data && typeof data.verified === 'boolean') {
+            return { verified: data.verified, error: data.error, persisted: data.persisted };
           }
-        } catch (apiErr) {
-          console.warn('Native verse-base API verify call failed:', apiErr);
+        } catch (efErr) {
+          console.warn('verify-rsi edge function call failed:', efErr);
         }
 
         return null;
@@ -1290,11 +1290,11 @@ const confirmRedirect = loginHref + '?confirmed=1';
             profileState.rsi_verified = true;
             profileState.rsi_handle = rsiHandle;
 
-            // DB-Persistierung läuft ausschließlich serverseitig in
-            // /api/verify-rsi (mit Session-JWT) — der Client schreibt
-            // rsi_verified NICHT selbst, ein DB-Trigger verbietet das.
+            // DB-Persistierung läuft ausschließlich serverseitig in der Edge
+            // Function (mit Session-JWT) — der Client schreibt rsi_verified
+            // NICHT selbst, ein DB-Trigger verbietet das.
             if (result && result.persisted === false) {
-              console.warn('RSI verify: Server konnte nicht persistieren — sind die CF-Env-Vars SUPABASE_* gesetzt?');
+              console.warn('RSI verify: Edge Function konnte nicht persistieren (JWT/Service-Role prüfen).');
             }
 
             rsiVerifyMsg.textContent = '✓ ' + D.msgRsiSuccess!;
