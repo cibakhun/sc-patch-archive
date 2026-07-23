@@ -83,9 +83,35 @@ function entry(name) {
   }
   return byName.get(k);
 }
-// catSource: kleiner = vertrauenswürdiger (0 Shop-Snapshot, 1 UEX/Vehicle, 2 Inferenz)
+// catSource: kleiner = vertrauenswürdiger (-1 DataCore/Spieldateien, 0 Shop-Snapshot,
+// 1 UEX/Vehicle, 2 Inferenz)
 function setCategory(e, cat, rank) {
   if (cat && rank < e.catSource) { e.category = cat; e.catSource = rank; }
+}
+
+// 0) DataCore-Items (Spieldateien, scripts/datamine-items.mjs) — Identitäts-Basis:
+//    echte Kategorie (spiel-eigene Taxonomie statt Namens-Regex) + Size/Grade/Hersteller/
+//    Volumen + typ-spezifische Stats. Höchste Kategorie-Priorität (rank -1). Preise/Orte
+//    kommen weiter aus UEX (serverseitig, nicht in der p4k) und werden per Name gejoint.
+const gameDbPath = resolve(ROOT, 'assets', 'items-gamefiles.json');
+let gameRows = 0, gameStats = 0;
+if (existsSync(gameDbPath)) {
+  const gameDb = readJson(gameDbPath);
+  for (const g of gameDb.items) {
+    if (isPlaceholder(g.name)) continue;
+    const e = entry(g.name);
+    setCategory(e, g.category, -1);
+    const gm = {};
+    for (const k of ['gameType', 'subType', 'size', 'grade', 'class', 'manufacturer', 'manufacturerCode', 'volumeScu', 'stats', 'nameDe', 'desc', 'descDe']) {
+      if (g[k] != null) gm[k] = g[k];
+    }
+    gm.guid = g.id;
+    e.game = gm;
+    gameRows++;
+    if (g.stats) gameStats++;
+  }
+} else {
+  console.warn(`WARN: ${gameDbPath} nicht gefunden — DataCore-Anreicherung übersprungen ('npm run datamine:items' auf Patch-Day).`);
 }
 
 // 1) UEX-Kaufpreise (wie auf starcitizen.tools angezeigt)
@@ -200,6 +226,9 @@ for (const e of items) e.id = slugId(e.name);
 const counts = {
   items: items.length,
   withObtain: items.filter((i) => i.obtain.length).length,
+  withGameData: items.filter((i) => i.game).length,
+  withGameStats: items.filter((i) => i.game && i.game.stats).length,
+  gameRows, gameStats,
   uexRows, snapFallbackRows, lootRows, vehicleRows,
   catalogOnly: items.filter((i) => !i.obtain.length).length,
   catalogSkippedPlaceholders: catalogSkipped,
@@ -211,6 +240,7 @@ const db = {
   pricesAsOf: uexDb.fetchedAt,
   note: 'Keine fabrizierten Werte: Items ohne bekannte Quelle haben obtain:[] (Katalog). Preise/Orte Patch-volatil — ingame prüfen.',
   sources: {
+    gamefiles: existsSync(gameDbPath) ? 'assets/items-gamefiles.json — eigene DataCore-Extraktion (Kategorie, Size/Grade/Hersteller, Stats)' : 'ÜBERSPRUNGEN (items-gamefiles.json nicht gefunden)',
     prices: `src/data/item-prices.json — UEX Corp, Stand ${uexDb.fetchedAt}; identisch mit den Kaufpreis-Tabellen auf starcitizen.tools`,
     shopsFallback: 'assets/dismantling-items.json — kuratierter Shop-Snapshot, greift nur ohne UEX-Treffer',
     loot: 'src/data/loot-items.json — eigene Loot-Recherche (Fundorte + Guides)',
@@ -221,6 +251,7 @@ const db = {
   items: items.map((e) => {
     const o = { id: e.id, name: e.name, category: e.category || 'Other', obtain: e.obtain };
     if (e.guide) o.guide = e.guide;
+    if (e.game) o.game = e.game; // Spieldaten: size/grade/manufacturer/volumeScu/subType/stats/… (nur belegte Felder)
     return o;
   }),
 };
