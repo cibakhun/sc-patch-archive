@@ -14,9 +14,36 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import * as bp from './blueprint.mjs';
+// The rank ladder + bot XP defaults are the bot's source of truth. Both files are
+// pure data (no third-party imports), so importing them here keeps `npm run
+// validate` fully offline while letting the builder resolve rank-gated channels
+// and cross-check no-XP channels against what the always-on bot actually uses.
+import { RANKS, PRESTIGE, rankRoleName, rankPermissions, TRUSTED_PERMS } from './bot/src/ranks.mjs';
+import { DEFAULT_CONFIG } from './bot/src/config.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const VALIDATE = process.argv.includes('--validate');
+
+// Live-guild role ids to admit into a rank-gated channel: every rank role at or
+// above the threshold, plus every prestige (Ascended) role — a prestiged member
+// drops to level 0 but keeps their star and must not lose a room they earned.
+function rankGateRoleIds(guild, minRankKey) {
+  const min = RANKS.find((r) => r.key === minRankKey)?.level;
+  if (min == null) return [];
+  const ids = [];
+  for (const r of RANKS) {
+    if (r.level < min) continue;
+    const role = guild.roles.cache.find((x) => x.name === rankRoleName(r) && !x.managed);
+    if (role) ids.push(role.id);
+  }
+  for (const role of guild.roles.cache.values()) {
+    if (!role.managed && role.name.includes(PRESTIGE.name) && !ids.includes(role.id)) ids.push(role.id);
+  }
+  return ids;
+}
+
+// The plain trailing segment of a channel name ("🤖・bot-commands" → "bot-commands").
+const baseChannelName = (name) => String(name).split('・').pop().trim();
 
 // ── tiny logger ────────────────────────────────────────────────────────────
 const clr = (c, s) => `\x1b[${c}m${s}\x1b[0m`;
@@ -94,6 +121,19 @@ function validate() {
       for (const k of Object.keys(ch.overwrites ?? {})) {
         if (k !== 'everyone' && !roleKeys.has(k)) errors.push(`Channel ${ch.key}: overwrite → unknown role "${k}"`);
       }
+      if (ch.minRank && !RANKS.some((r) => r.key === ch.minRank)) {
+        errors.push(`Channel ${ch.key}: minRank → unknown rank key "${ch.minRank}" (see bot/src/ranks.mjs)`);
+      }
+      if (ch.noXp && !(DEFAULT_CONFIG.noXpChannelNames ?? []).some((n) => ch.name.includes(n))) {
+        warns.push(`Channel ${ch.key}: marked noXp, but no bot noXpChannelNames entry matches its name — the bot will still grant XP there`);
+      }
+    }
+  }
+  // Reverse coherence check: every bot no-XP name should map to a marked channel.
+  const noXpMarked = bp.categories.flatMap((c) => c.channels).filter((ch) => ch.noXp);
+  for (const n of DEFAULT_CONFIG.noXpChannelNames ?? []) {
+    if (!noXpMarked.some((ch) => ch.name.includes(n))) {
+      warns.push(`bot noXpChannelNames has "${n}" but no blueprint channel marked noXp matches it`);
     }
   }
 
@@ -110,22 +150,41 @@ function validate() {
   }
   for (const k of Object.keys(bp.seed)) need('channel', chanKeys, k, 'seed');
 
+  // AutoMod
+  const AUTOMOD_TRIGGERS = new Set(['Spam', 'MentionSpam', 'Keyword', 'KeywordPreset']);
+  const AUTOMOD_PRESETS = new Set(['Profanity', 'SexualContent', 'Slurs']);
+  if (bp.autoMod?.enabled) {
+    need('channel', chanKeys, bp.autoMod.alertChannel, 'autoMod.alertChannel');
+    for (const k of bp.autoMod.exemptRoles ?? []) need('role', roleKeys, k, 'autoMod.exemptRoles');
+    for (const rule of bp.autoMod.rules ?? []) {
+      if (!AUTOMOD_TRIGGERS.has(rule.trigger)) errors.push(`autoMod "${rule.name}": unknown trigger "${rule.trigger}"`);
+      if (rule.trigger === 'Keyword' && !rule.regexPatterns && !rule.keywords) errors.push(`autoMod "${rule.name}": Keyword rule needs regexPatterns or keywords`);
+      if (rule.trigger === 'KeywordPreset') for (const p of rule.presets ?? []) if (!AUTOMOD_PRESETS.has(p)) errors.push(`autoMod "${rule.name}": unknown preset "${p}"`);
+      for (const k of rule.exemptChannels ?? []) need('channel', chanKeys, k, `autoMod "${rule.name}".exemptChannels`);
+    }
+  }
+
   // Plan tree
   step('Plan');
   log(clr('37;1', `  Server: ${bp.guild.name}`));
   log(clr('37;1', `  Roles (${bp.roles.length}):`));
   for (const r of bp.roles) log(`    ${r.color ? clr('90', '●') : '○'} ${r.name}${r.hoist ? clr('90', '  (hoisted)') : ''}`);
   log(clr('37;1', `\n  Channels:`));
-  let txt = 0, vc = 0;
+  let txt = 0, vc = 0, gated = 0, noxp = 0;
   for (const cat of bp.categories) {
     log(`    ${clr('34;1', cat.name)}${cat.private ? clr('33', '  🔒') : ''}`);
     for (const ch of cat.channels) {
       const icon = ch.type === 'voice' ? '🔊' : ch.type === 'stage' ? '📻' : ch.type === 'forum' ? '🗂' : ch.readonly ? '🔒' : '#';
       if (ch.type === 'voice' || ch.type === 'stage') vc++; else txt++;
-      log(`      ${icon} ${ch.name}`);
+      const tags = [];
+      if (ch.minRank) { gated++; tags.push(`🎖 ${ch.minRank}+`); }
+      if (ch.noXp) { noxp++; tags.push('no-xp'); }
+      if (ch.slowmode) tags.push(`${ch.slowmode}s`);
+      log(`      ${icon} ${ch.name}${tags.length ? clr('90', `  (${tags.join(', ')})`) : ''}`);
     }
   }
-  log(clr('90', `\n  ${txt} text · ${vc} voice/stage · ${bp.onboarding.prompts.length} onboarding prompts · ${Object.keys(bp.seed).length} seeded channels`));
+  const amRules = bp.autoMod?.enabled ? (bp.autoMod.rules?.length ?? 0) : 0;
+  log(clr('90', `\n  ${txt} text · ${vc} voice/stage · ${gated} rank-gated · ${noxp} no-XP · ${amRules} automod rule(s) · ${bp.onboarding.prompts.length} onboarding prompts · ${Object.keys(bp.seed).length} seeded`));
 
   if (warns.length) { step('Warnings'); warns.forEach(warn); }
   if (errors.length) { step('Errors'); errors.forEach((e) => console.log(clr('31', `  ✗ ${e}`))); fail(`${errors.length} error(s). Fix the blueprint and re-run.`); }
@@ -139,6 +198,8 @@ async function build() {
     Client, GatewayIntentBits, PermissionsBitField, PermissionFlagsBits, ChannelType,
     GuildVerificationLevel, GuildExplicitContentFilter, GuildDefaultMessageNotifications,
     EmbedBuilder, Routes, OverwriteType, resolveColor,
+    AutoModerationRuleTriggerType, AutoModerationRuleEventType,
+    AutoModerationActionType, AutoModerationRuleKeywordPresetType,
   } = DJS;
 
   const token = process.env.DISCORD_TOKEN;
@@ -197,6 +258,10 @@ async function build() {
   }
 
   const everyoneId = guild.roles.everyone.id;
+  // The bot's own managed role — granted Send/Embed in read-only + rank-gated
+  // channels so patch posts, announcements and seed posts work even if the bot
+  // is ever re-invited without Administrator.
+  const botRoleId = me.roles.botRole?.id ?? null;
 
   // ── Roles ────────────────────────────────────────────────────────────────
   step('Roles');
@@ -217,6 +282,22 @@ async function build() {
   await guild.roles.everyone.setPermissions(perms(bp.everyonePermissions), 'VerseBase baseline');
   chg('@everyone baseline permissions');
 
+  // Newcomer gate: keep the rank roles' Embed/Attach permissions in sync HERE too
+  // (the always-on bot also does this on startup). Doing it in the same run that
+  // strips those permissions from @everyone means `npm run build` alone lifts the
+  // gate for Prospect+ and prestige members — no dependency on the bot having
+  // redeployed first, so there's no window where everyone loses images/links.
+  let rankPermsSynced = 0;
+  for (const r of RANKS) {
+    const role = guild.roles.cache.find((x) => x.name === rankRoleName(r) && !x.managed);
+    if (role) { await role.setPermissions(perms(rankPermissions(r)), 'VerseBase newcomer gate').catch(() => {}); rankPermsSynced++; }
+  }
+  for (const role of guild.roles.cache.values()) {
+    if (!role.managed && role.name.includes(PRESTIGE.name)) { await role.setPermissions(perms(TRUSTED_PERMS), 'VerseBase newcomer gate').catch(() => {}); rankPermsSynced++; }
+  }
+  if (rankPermsSynced) chg(`rank/prestige gate permissions synced (${rankPermsSynced} role${rankPermsSynced > 1 ? 's' : ''})`);
+  else warn('no rank roles found to sync gate permissions — start the bot once so they exist, then re-run');
+
   // Role ORDER is applied by a separate step: `npm run order` (order-roles.mjs).
   // Two reasons: (1) Discord's BULK setPositions rejects with "Missing Permissions"
   // even when the bot's role is on top — it must be done one role at a time; and
@@ -225,7 +306,7 @@ async function build() {
   chg('roles (order via `npm run order`)');
 
   // ── Overwrite resolver ─────────────────────────────────────────────────────
-  const resolveOverwrites = (spec, { readonly } = {}) => {
+  const resolveOverwrites = (spec, { readonly, minRank } = {}) => {
     const map = new Map();
     const touch = (id) => { if (!map.has(id)) map.set(id, { allow: new PermissionsBitField(), deny: new PermissionsBitField() }); return map.get(id); };
     const put = (id, allow = [], deny = []) => { const e = touch(id); e.allow.add(perms(allow)); e.deny.add(perms(deny)); };
@@ -238,6 +319,22 @@ async function build() {
       put(everyoneId, ['ViewChannel', 'ReadMessageHistory', 'AddReactions'],
         ['SendMessages', 'SendMessagesInThreads', 'CreatePublicThreads', 'CreatePrivateThreads']);
       if (roleId['navigators']) put(roleId['navigators'], ['SendMessages', 'SendMessagesInThreads']);
+      // The bot posts patch feeds / announcements / seed embeds here — grant it
+      // Send + Embed + Attach explicitly (@everyone no longer carries Embed/Attach).
+      if (botRoleId) put(botRoleId, ['ViewChannel', 'SendMessages', 'SendMessagesInThreads', 'EmbedLinks', 'AttachFiles']);
+    }
+    if (minRank) {
+      // Rank reward: hide from @everyone, admit every rank role at/above the
+      // threshold (+ prestige, resolved live by name), plus staff and the bot so
+      // it can seed and post. Fleet Command sees it via Administrator regardless.
+      const grant = ['ViewChannel', 'ReadMessageHistory', 'SendMessages', 'SendMessagesInThreads',
+        'CreatePublicThreads', 'AddReactions', 'EmbedLinks', 'AttachFiles', 'UseExternalEmojis', 'UseExternalStickers'];
+      put(everyoneId, [], ['ViewChannel']);
+      const gateIds = rankGateRoleIds(guild, minRank);
+      for (const id of gateIds) put(id, grant);
+      if (roleId['navigators']) put(roleId['navigators'], grant);
+      if (botRoleId) put(botRoleId, grant);
+      if (!gateIds.length) warn(`Rank-gated channel: no live rank roles for minRank "${minRank}" yet — start the bot once, then re-run build (staff-only until then).`);
     }
     return [...map.entries()].map(([id, e]) => ({ id, allow: e.allow, deny: e.deny, type: OverwriteType.Role }));
   };
@@ -265,8 +362,8 @@ async function build() {
         continue;
       }
       const wantName = expectedName(ch.name, ch.type);
-      const explicit = !!ch.overwrites || !!ch.readonly;
-      const chOw = resolveOverwrites(ch.overwrites, { readonly: ch.readonly });
+      const explicit = !!ch.overwrites || !!ch.readonly || !!ch.minRank;
+      const chOw = resolveOverwrites(ch.overwrites, { readonly: ch.readonly, minRank: ch.minRank });
 
       const edit = { name: ch.name, parent: category.id };
       if (ch.topic && TEXTLIKE.has(ch.type)) edit.topic = ch.topic;
@@ -360,6 +457,67 @@ async function build() {
         channelId[s.key] = c.id;
         add(`stage ${s.name}`);
       } catch (e) { warn(`stage ${s.name} skipped: ${e.message}`); }
+    }
+  }
+
+  // ── AutoMod rules ──────────────────────────────────────────────────────────
+  step('AutoMod');
+  if (!bp.autoMod?.enabled) {
+    ok('AutoMod disabled in blueprint — skipped');
+  } else if (AutoModerationRuleTriggerType === undefined) {
+    warn('This discord.js build has no AutoModeration API — skipped. Upgrade discord.js to enable it.');
+  } else {
+    const TRIGGER = {
+      Spam: AutoModerationRuleTriggerType.Spam,
+      MentionSpam: AutoModerationRuleTriggerType.MentionSpam,
+      Keyword: AutoModerationRuleTriggerType.Keyword,
+      KeywordPreset: AutoModerationRuleTriggerType.KeywordPreset,
+    };
+    const PRESET = {
+      Profanity: AutoModerationRuleKeywordPresetType.Profanity,
+      SexualContent: AutoModerationRuleKeywordPresetType.SexualContent,
+      Slurs: AutoModerationRuleKeywordPresetType.Slurs,
+    };
+    const alertId = channelId[bp.autoMod.alertChannel] || null;
+    const exemptRoleIds = (bp.autoMod.exemptRoles || []).map((k) => roleId[k]).filter(Boolean);
+    if (bp.autoMod.alertChannel && !alertId) warn(`AutoMod alert channel "${bp.autoMod.alertChannel}" not found — rules will still block, just won't alert.`);
+    let existing = new Map();
+    try {
+      const rules = await guild.autoModerationRules.fetch();
+      existing = new Map([...rules.values()].map((r) => [r.name, r]));
+    } catch (e) { warn(`Couldn't read existing AutoMod rules: ${e.message}`); }
+
+    for (const rule of bp.autoMod.rules) {
+      const triggerType = TRIGGER[rule.trigger];
+      if (triggerType === undefined) { warn(`AutoMod: unknown trigger "${rule.trigger}" — skipped`); continue; }
+      const triggerMetadata = {};
+      if (rule.trigger === 'MentionSpam') triggerMetadata.mentionTotalLimit = rule.mentionLimit ?? 5;
+      if (rule.trigger === 'Keyword') {
+        if (rule.regexPatterns) triggerMetadata.regexPatterns = rule.regexPatterns;
+        if (rule.keywords) triggerMetadata.keywordFilter = rule.keywords;
+      }
+      if (rule.trigger === 'KeywordPreset') {
+        triggerMetadata.presets = (rule.presets || []).map((p) => PRESET[p]).filter((v) => v !== undefined);
+        if (rule.allowList) triggerMetadata.allowList = rule.allowList;
+      }
+      const actions = [];
+      if (rule.block) actions.push({ type: AutoModerationActionType.BlockMessage, metadata: rule.customMessage ? { customMessage: rule.customMessage } : {} });
+      if (rule.alert && alertId) actions.push({ type: AutoModerationActionType.SendAlertMessage, metadata: { channel: alertId } });
+      if (!actions.length) actions.push({ type: AutoModerationActionType.BlockMessage, metadata: {} });
+
+      const exemptChannelIds = (rule.exemptChannels || []).map((k) => channelId[k]).filter(Boolean);
+      const data = {
+        name: rule.name,
+        eventType: AutoModerationRuleEventType.MessageSend,
+        triggerType, triggerMetadata, actions,
+        enabled: true, exemptRoles: exemptRoleIds, exemptChannels: exemptChannelIds,
+        reason: 'VerseBase AutoMod',
+      };
+      try {
+        const found = existing.get(rule.name);
+        if (found) { await found.edit(data); chg(`automod ${rule.name}`); }
+        else { await guild.autoModerationRules.create(data); add(`automod ${rule.name}`); }
+      } catch (e) { warn(`AutoMod "${rule.name}" skipped: ${e.message}`); }
     }
   }
 

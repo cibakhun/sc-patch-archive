@@ -5,6 +5,8 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as bp from './blueprint.mjs';
+import { RANKS } from './bot/src/ranks.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 for (const line of readFileSync(join(__dirname, '.env'), 'utf8').split(/\r?\n/)) {
@@ -12,15 +14,18 @@ for (const line of readFileSync(join(__dirname, '.env'), 'utf8').split(/\r?\n/))
   if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].trim().replace(/^['"]|['"]$/g, '');
 }
 
-// Desired order, TOP → bottom (staff, ranks high→low, playstyles, pings, language, pronouns)
-const ORDER = [
-  'Fleet Command', 'Navigators', 'Flight Computer',
-  'Frontier Legend', 'Trailblazer', 'Pathfinder', 'Vanguard', 'Ace', 'Veteran',
-  'Journeyman', 'Wayfarer', 'Citizen', 'Rookie Pilot', 'Prospect', 'Drifter',
-  'Miner', 'Trader', 'Industrialist', 'Combat Pilot', 'Explorer', 'Contractor', 'Wikelo Regular',
-  'Patch Pings', 'Announcement Pings', 'Event Pings',
-  'English', 'Deutsch', 'they/them', 'she/her', 'he/him', 'ask me',
-];
+// Emoji-agnostic label for a role name ("⭐ Fleet Command" → "Fleet Command").
+const label = (name) => String(name).replace(/^[^\p{L}\p{N}]+/u, '').trim();
+
+// Desired order, TOP → bottom, derived from the single sources of truth so it can
+// never drift from the actual roles: hoisted staff roles (blueprint) → ranks
+// high→low (the bot's ladder) → everything else in blueprint order (playstyles,
+// pings, language, pronouns). Prestige (✦ Ascended) roles are hoisted and
+// self-manage, so they're intentionally left where they are.
+const staff = bp.roles.filter((r) => r.hoist).map((r) => label(r.name));
+const rest = bp.roles.filter((r) => !r.hoist).map((r) => label(r.name));
+const ranks = [...RANKS].reverse().map((r) => r.name);
+const ORDER = [...staff, ...ranks, ...rest];
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 await client.login(process.env.DISCORD_TOKEN);

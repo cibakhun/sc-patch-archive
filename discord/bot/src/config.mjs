@@ -32,12 +32,20 @@ export const DEFAULT_CONFIG = {
   },
 
   // Channels where NO XP is earned at all (e.g. bot-commands, spam).
-  noXpChannels: [],
+  noXpChannels: [],          // admin-added channel IDs (via /rank-admin noxp)
+
+  // No-XP channels matched by NAME, resolved live so the always-on bot mirrors
+  // the server blueprint (channels marked `noXp: true`) without any manual setup.
+  // A channel counts if its name CONTAINS any of these — "🤖・bot-commands"
+  // matches "bot-commands". Threads inherit their parent's status.
+  noXpChannelNames: ['bot-commands', 'memes', 'off-topic'],
 
   // ── Level-up announcements ─────────────────────────────────────────────
   announce: {
     mode: 'channel',   // 'channel' (fixed), 'current' (where they leveled), 'off'
-    channelId: null,   // used when mode === 'channel'
+    channelId: null,   // used when mode === 'channel'; an admin-set ID always wins
+    channelName: 'bot-commands', // fallback when no channelId: post level-ups to the
+                                 // channel whose name contains this (keeps bot noise in one place)
     dm: false,         // also DM the member on rank-up
     onlyRanks: false,  // true = only announce when the named RANK changes, not every level
     pingUser: true,    // mention the user in the announcement
@@ -67,6 +75,22 @@ export const DEFAULT_CONFIG = {
     image: true,   // render a PNG card if @napi-rs/canvas is available; else embed
   },
 };
+
+/**
+ * True if a channel earns NO XP — by admin-added ID (noXpChannels) or by the
+ * blueprint's name list (noXpChannelNames). Threads inherit their parent's
+ * status. Dependency-free so the selftest can exercise it offline.
+ */
+export function isNoXpChannel(channel, config) {
+  if (!channel) return false;
+  const ids = config.noXpChannels || [];
+  const names = config.noXpChannelNames || [];
+  const hit = (c) => !!c && (ids.includes(c.id) || names.some((n) => String(c.name || '').includes(n)));
+  if (hit(channel)) return true;
+  if (hit(channel.parent)) return true;                 // thread → parent channel
+  if (channel.parentId && ids.includes(channel.parentId)) return true;
+  return false;
+}
 
 // Deep-merge stored overrides on top of defaults (arrays & scalars replace,
 // plain objects merge). Small and dependency-free.

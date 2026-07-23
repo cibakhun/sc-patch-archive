@@ -6,8 +6,8 @@
 // ═══════════════════════════════════════════════════════════════════════════
 import assert from 'node:assert/strict';
 import { xpToNext, totalXpForLevel, levelForXp, progress, effectiveMultiplier, applyMultiplier, randomXp } from './leveling.mjs';
-import { RANKS, rankForLevel, nextRank, rankRoleName, allRankRoleNames, prestigeStars, rankBlurb } from './ranks.mjs';
-import { DEFAULT_CONFIG, mergeConfig } from './config.mjs';
+import { RANKS, rankForLevel, nextRank, rankRoleName, allRankRoleNames, prestigeStars, rankBlurb, rankPermissions, TRUSTED_PERMS, TRUSTED_LEVEL } from './ranks.mjs';
+import { DEFAULT_CONFIG, mergeConfig, isNoXpChannel } from './config.mjs';
 import { STRINGS, LOCALES, t as tr, resolveLocale } from './i18n.mjs';
 
 let n = 0;
@@ -107,6 +107,31 @@ t('role names carry insignia and are unique', () => {
 t('prestige stars render', () => {
   assert.equal(prestigeStars(0), '');
   assert.equal(prestigeStars(3).length, 3);
+});
+
+console.log('\n▸ Newcomer gate & no-XP');
+t('rankPermissions gates below Prospect, trusts at/above', () => {
+  const drifter = RANKS.find((r) => r.key === 'drifter');
+  const prospect = RANKS.find((r) => r.key === 'prospect');
+  assert.deepEqual(rankPermissions(drifter), []);
+  assert.deepEqual(rankPermissions(prospect), TRUSTED_PERMS);
+  assert.equal(TRUSTED_LEVEL, prospect.level);
+  assert.ok(TRUSTED_PERMS.includes('EmbedLinks') && TRUSTED_PERMS.includes('AttachFiles'));
+  for (const r of RANKS) assert.equal(rankPermissions(r).length, r.level >= TRUSTED_LEVEL ? TRUSTED_PERMS.length : 0, `rank ${r.key}`);
+});
+t('config carries the no-XP name list + announce channel name', () => {
+  assert.ok(Array.isArray(DEFAULT_CONFIG.noXpChannelNames));
+  assert.ok(DEFAULT_CONFIG.noXpChannelNames.includes('bot-commands'));
+  assert.equal(typeof DEFAULT_CONFIG.announce.channelName, 'string');
+});
+t('isNoXpChannel matches id, name, and thread parent', () => {
+  const cfg = mergeConfig(DEFAULT_CONFIG, { noXpChannels: ['id-123'] });
+  assert.equal(isNoXpChannel({ id: 'id-123', name: '💬・general' }, cfg), true);   // by admin id
+  assert.equal(isNoXpChannel({ id: 'x', name: '🤖・bot-commands' }, cfg), true);   // by blueprint name
+  assert.equal(isNoXpChannel({ id: 'x', name: '💬・general' }, cfg), false);        // neither
+  assert.equal(isNoXpChannel({ id: 't', name: 'a thread', parent: { id: 'p', name: '😂・memes' } }, cfg), true); // thread → parent
+  assert.equal(isNoXpChannel({ id: 't', name: 'a thread', parentId: 'id-123' }, cfg), true);
+  assert.equal(isNoXpChannel(null, cfg), false);
 });
 
 console.log('\n▸ Config');

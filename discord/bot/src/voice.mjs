@@ -7,7 +7,7 @@
 //  there's nothing to lose if the process bounces.
 // ═══════════════════════════════════════════════════════════════════════════
 import { ChannelType } from 'discord.js';
-import { DEFAULT_CONFIG } from './config.mjs';
+import { DEFAULT_CONFIG, isNoXpChannel } from './config.mjs';
 import { effectiveMultiplier, applyMultiplier } from './leveling.mjs';
 import { grantXp } from './award.mjs';
 
@@ -24,7 +24,7 @@ export function startVoiceSweep(ctx) {
       for (const channel of guild.channels.cache.values()) {
         if (channel.type !== ChannelType.GuildVoice && channel.type !== ChannelType.GuildStageVoice) continue;
         if (config.voice.ignoreAfk && channel.id === guild.afkChannelId) continue;
-        if (config.noXpChannels.includes(channel.id)) continue;
+        if (isNoXpChannel(channel, config)) continue;
 
         const humans = channel.members.filter((m) => !m.user.bot);
         if (config.voice.requireOthers && humans.size < 2) continue;

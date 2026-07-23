@@ -6,8 +6,8 @@
 //  level-up it swaps a member to their current rank role (or stacks, per
 //  config) and grants the prestige role for their star count.
 // ═══════════════════════════════════════════════════════════════════════════
-import { resolveColor } from 'discord.js';
-import { RANKS, PRESTIGE, rankForLevel, rankRoleName, prestigeRoleName } from './ranks.mjs';
+import { resolveColor, PermissionsBitField } from 'discord.js';
+import { RANKS, PRESTIGE, rankForLevel, rankRoleName, prestigeRoleName, rankPermissions, TRUSTED_PERMS } from './ranks.mjs';
 
 // discord.js ≥14.18 moved solid role color from `color` to `colors.primaryColor`
 // (and Role#setColor → setColors). These helpers use the new API when present
@@ -23,6 +23,15 @@ async function applyRoleColor(role, hex) {
     if (typeof role.setColors === 'function') await role.setColors({ primaryColor: target });
     else await role.setColor(target);
   } catch { /* ignore */ }
+}
+
+// Keep a role's guild permissions in sync (used for the newcomer-gate lift). Only
+// writes when they actually differ, so it's cheap to call on every startup.
+async function applyRolePerms(role, permNames) {
+  const target = PermissionsBitField.resolve(permNames.length ? permNames : 0n);
+  const current = role.permissions?.bitfield ?? 0n;
+  if (current === target) return;
+  try { await role.setPermissions(target, 'VerseBase rank permissions'); } catch { /* ignore */ }
 }
 
 export class RankRoles {
@@ -47,14 +56,23 @@ export class RankRoles {
       let role = guild.roles.cache.find((r) => r.name === name && !r.managed);
       if (!role && canManage) {
         try {
-          role = await guild.roles.create({ name, ...roleColorOptions(rank.color), hoist: false, mentionable: false, permissions: [], reason: 'VerseBase rank role' });
+          role = await guild.roles.create({ name, ...roleColorOptions(rank.color), hoist: false, mentionable: false, permissions: rankPermissions(rank), reason: 'VerseBase rank role' });
         } catch (e) {
           console.warn(`[roles] could not create ${name}: ${e.message}`);
         }
       } else if (role && canManage) {
         await applyRoleColor(role, rank.color);
+        await applyRolePerms(role, rankPermissions(rank));
       }
       if (role) map.set(rank.key, role.id);
+    }
+
+    // Prestige (✦ Ascended) roles carry the newcomer-gate lift too — a prestiged
+    // member drops to level 0 but has plainly earned link/image posting.
+    if (canManage) {
+      for (const role of guild.roles.cache.values()) {
+        if (!role.managed && role.name.includes(PRESTIGE.name)) await applyRolePerms(role, TRUSTED_PERMS);
+      }
     }
 
     // Positioning is NOT done here: a previous version bulk-reordered the rank
@@ -76,7 +94,7 @@ export class RankRoles {
     const name = prestigeRoleName(stars);
     let role = guild.roles.cache.find((r) => r.name === name && !r.managed);
     if (!role) {
-      role = await guild.roles.create({ name, ...roleColorOptions(PRESTIGE.color), hoist: true, mentionable: false, permissions: [], reason: 'VerseBase prestige role' }).catch(() => null);
+      role = await guild.roles.create({ name, ...roleColorOptions(PRESTIGE.color), hoist: true, mentionable: false, permissions: TRUSTED_PERMS, reason: 'VerseBase prestige role' }).catch(() => null);
     }
     return role;
   }
