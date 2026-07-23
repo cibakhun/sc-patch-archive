@@ -1,15 +1,13 @@
 ---
 interface Props {
   lang?: 'de' | 'en';
-  isEditable?: boolean;
 }
 
-const { lang = 'de', isEditable = true } = Astro.props;
+const { lang = 'de' } = Astro.props;
 
 const t = {
   registry: 'UEE CITIZEN REGISTRY // VERSEBASE',
   idLabel: 'ID',
-  bannerBadge: lang === 'de' ? 'Banner angepasst' : 'Banner customized',
   bioEmpty: lang === 'de' ? 'Noch keine Biografie angegeben.' : 'No bio provided yet.',
   copyTitle: lang === 'de' ? 'Handle kopieren' : 'Copy handle',
   publicProfile: lang === 'de' ? 'Öffentliches Profil' : 'Public Profile',
@@ -46,12 +44,6 @@ const t = {
     <span class="vp-bracket vp-bracket--tr" aria-hidden="true"></span>
     <span class="vp-bracket vp-bracket--bl" aria-hidden="true"></span>
     <span class="vp-bracket vp-bracket--br" aria-hidden="true"></span>
-    {isEditable && (
-      <div class="vp-banner__badge" id="pcBannerBadge" data-media-surface>
-        <span class="vp-banner__badge-icon" aria-hidden="true">◆</span>
-        <span id="pcBannerLabel">{t.bannerBadge}</span>
-      </div>
-    )}
   </div>
 
   <!-- 3 · Avatar-Modul mit Holo-Ringen -->
@@ -310,26 +302,6 @@ const t = {
   .vp-bracket--bl { bottom: 10px; left: 10px; border-right: 0; border-top: 0; }
   .vp-bracket--br { bottom: 10px; right: 10px; border-left: 0; border-top: 0; }
 
-  .vp-banner__badge {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    z-index: 4;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: rgba(13, 19, 34, 0.85);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--line);
-    padding: 0.35rem 0.8rem;
-    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text);
-    pointer-events: none;
-  }
-  .vp-banner__badge-icon { color: var(--accent); font-size: 0.7rem; }
-
   /* ---------- 3 · Avatar-Modul ---------- */
   .vp-avatar-row {
     position: relative;
@@ -473,17 +445,34 @@ const t = {
   }
 
   .rsi-verified-badge {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
     background: rgba(34, 197, 94, 0.15);
-    border: 1px solid rgba(34, 197, 94, 0.45);
     color: #4ade80;
     padding: 0.18rem 0.6rem;
     clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
     font-size: 0.7rem;
     font-weight: 800;
     letter-spacing: 0.08em;
+    --rsi-line: rgba(34, 197, 94, 0.45);
+  }
+  /* Rahmen als 1px-Ring, der der abgeschrägten Kante folgt.
+     Ein normaler `border` würde vom clip-path an den Diagonalen abgeschnitten
+     — deshalb zeichnen wir die Linie als eigene Ring-Kontur (außen + innen). */
+  .rsi-verified-badge::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--rsi-line);
+    clip-path: polygon(evenodd,
+      6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px,
+      6px 0,
+      7px 1px, calc(100% - 1px) 1px, calc(100% - 1px) calc(100% - 7px),
+      calc(100% - 7px) calc(100% - 1px), 1px calc(100% - 1px), 1px 7px,
+      7px 1px);
   }
   .rsi-verified-badge[hidden] { display: none !important; }
 
@@ -672,7 +661,7 @@ const t = {
   /* ---------- Light-Theme: Status-Grün kontraststark machen ---------- */
   :root[data-theme='light'] .rsi-verified-badge {
     background: rgba(21, 128, 61, 0.1);
-    border-color: rgba(21, 128, 61, 0.45);
+    --rsi-line: rgba(21, 128, 61, 0.45);
     color: #15803d;
   }
   :root[data-theme='light'] .vp-copy.copied {
