@@ -47,6 +47,23 @@ const COPY = {
     uploadTooBig: 'Bild ist zu groß (max. %max% MB).',
     uploadBadType: 'Bitte ein Bild wählen (JPG, PNG, WebP oder GIF).',
     uploadErr: 'Upload fehlgeschlagen — bitte erneut versuchen.',
+    cropTitleAvatar: 'Avatar zuschneiden',
+    cropTitleBanner: 'Banner zuschneiden',
+    cropHint: 'Ziehen zum Verschieben · Regler, Mausrad oder Pfeiltasten zum Anpassen. Der Rahmen zeigt exakt den später sichtbaren Ausschnitt.',
+    cropZoom: 'Zoom',
+    cropReset: 'Zurücksetzen',
+    cropApply: 'Übernehmen & hochladen',
+    cropCancel: 'Abbrechen',
+    cropPreview: 'Ergebnis-Vorschau',
+    cropSource: 'Original',
+    cropOutput: 'Ausgabe',
+    cropEstSize: 'Dateigröße ca.',
+    cropLowRes: 'Das Bild ist für diesen Ausschnitt recht klein — es wird hochskaliert und kann unscharf wirken.',
+    cropRotateLeft: 'Nach links drehen',
+    cropRotateRight: 'Nach rechts drehen',
+    cropFlip: 'Horizontal spiegeln',
+    cropCalc: 'berechne …',
+    dropHint: 'oder Bild hierher ziehen',
     roleNone: '— Keine Rolle gewählt —',
     statusState: 'Präsenz-Status',
     statusText: 'Custom Status-Text', statusTextPh: 'z. B. Mining auf Lyria',
@@ -145,6 +162,23 @@ const COPY = {
     uploadTooBig: 'Image is too large (max %max% MB).',
     uploadBadType: 'Please choose an image (JPG, PNG, WebP or GIF).',
     uploadErr: 'Upload failed — please try again.',
+    cropTitleAvatar: 'Crop avatar',
+    cropTitleBanner: 'Crop banner',
+    cropHint: 'Drag to reposition · slider, mouse wheel or arrow keys to adjust. The frame shows exactly what will be visible.',
+    cropZoom: 'Zoom',
+    cropReset: 'Reset',
+    cropApply: 'Apply & upload',
+    cropCancel: 'Cancel',
+    cropPreview: 'Result preview',
+    cropSource: 'Source',
+    cropOutput: 'Output',
+    cropEstSize: 'Approx. size',
+    cropLowRes: 'This image is fairly small for the crop — it will be upscaled and may look soft.',
+    cropRotateLeft: 'Rotate left',
+    cropRotateRight: 'Rotate right',
+    cropFlip: 'Flip horizontally',
+    cropCalc: 'calculating …',
+    dropHint: 'or drop an image here',
     roleNone: '— No role selected —',
     statusState: 'Presence Status',
     statusText: 'Custom status text', statusTextPh: 'e.g. Mining on Lyria',
@@ -250,6 +284,9 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-msg-upload-toobig={COPY.uploadTooBig}
   data-msg-upload-badtype={COPY.uploadBadType}
   data-msg-upload-err={COPY.uploadErr}
+  data-crop-title-avatar={COPY.cropTitleAvatar}
+  data-crop-title-banner={COPY.cropTitleBanner}
+  data-crop-calc={COPY.cropCalc}
 >
   <!-- Identity Header -->
   <div class="acx-idcard reveal">
@@ -631,6 +668,65 @@ const confirmRedirect = loginHref + '?confirmed=1';
       </div>
     </div>
   </dialog>
+
+  <!-- Bild-Zuschnitt: Vorschau + Ausschnitt/Zoom vor dem Upload -->
+  <dialog id="cropModal" class="acx-modal acx-modal--crop">
+    <div class="acx-modal-content">
+      <div class="acx-modal-head">
+        <span class="acx-modal-icon">◈</span>
+        <h3 id="cropTitle">{COPY.cropTitleAvatar}</h3>
+      </div>
+
+      <p class="acx-hint" style="margin-bottom:0.9rem">{COPY.cropHint}</p>
+
+      <div class="crop-layout">
+        <div class="crop-stage" id="cropStage" data-shape="circle">
+          <img id="cropImg" alt="" draggable="false" />
+          <div class="crop-grid" id="cropGrid" aria-hidden="true"></div>
+          <div class="crop-frame" aria-hidden="true"></div>
+        </div>
+
+        <aside class="crop-side">
+          <div class="crop-side__label">{COPY.cropPreview}</div>
+          <div class="crop-previews" id="cropPreviews">
+            <figure class="crop-pv">
+              <canvas id="cropPvLg"></canvas>
+            </figure>
+            <figure class="crop-pv crop-pv--sm">
+              <canvas id="cropPvSm"></canvas>
+            </figure>
+          </div>
+
+          <dl class="crop-info">
+            <div><dt>{COPY.cropSource}</dt><dd id="cropInfoSrc">—</dd></div>
+            <div><dt>{COPY.cropOutput}</dt><dd id="cropInfoOut">—</dd></div>
+            <div><dt>{COPY.cropEstSize}</dt><dd id="cropInfoSize">—</dd></div>
+          </dl>
+
+          <p class="crop-warn" id="cropWarn" hidden>{COPY.cropLowRes}</p>
+        </aside>
+      </div>
+
+      <div class="crop-controls">
+        <button type="button" class="crop-btn" id="cropZoomOut" aria-label="Zoom −">−</button>
+        <input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1" aria-label={COPY.cropZoom} />
+        <button type="button" class="crop-btn" id="cropZoomIn" aria-label="Zoom +">+</button>
+        <span class="crop-zoomval" id="cropZoomVal">100%</span>
+      </div>
+
+      <div class="crop-tools">
+        <button type="button" class="crop-btn" id="cropRotL" title={COPY.cropRotateLeft} aria-label={COPY.cropRotateLeft}>↺</button>
+        <button type="button" class="crop-btn" id="cropRotR" title={COPY.cropRotateRight} aria-label={COPY.cropRotateRight}>↻</button>
+        <button type="button" class="crop-btn" id="cropFlip" title={COPY.cropFlip} aria-label={COPY.cropFlip}>⇄</button>
+        <button type="button" class="acx-upload__remove" id="cropReset">{COPY.cropReset}</button>
+      </div>
+
+      <div class="acx-actions" style="margin-top:1.1rem">
+        <button type="button" class="acx-submit" id="cropApply">{COPY.cropApply}</button>
+        <button type="button" class="acx-submit acx-submit--ghost" id="cropCancel">{COPY.cropCancel}</button>
+      </div>
+    </div>
+  </dialog>
 </div>
 
 <style is:global>
@@ -908,6 +1004,169 @@ const confirmRedirect = loginHref + '?confirmed=1';
   .acx-upload__status { font-size: 0.8rem; color: var(--muted); }
   .acx-upload__status.err { color: #f87171; }
   .acx-upload__status.ok { color: #4ade80; }
+  .acx-upload.dragover {
+    outline: 2px dashed var(--accent);
+    outline-offset: 6px;
+    border-radius: 8px;
+  }
+
+  /* ---------- Bild-Zuschnitt-Dialog ---------- */
+  .acx-modal--crop { max-width: 760px; }
+
+  .crop-layout {
+    display: flex;
+    gap: 1.1rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .crop-stage {
+    position: relative;
+    overflow: hidden;
+    background: var(--media-void, #05070d);
+    border: 1px solid var(--line);
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    flex: none;
+  }
+  .crop-stage.dragging { cursor: grabbing; }
+  .crop-stage[data-shape='circle'] { width: 300px; height: 300px; }
+  .crop-stage[data-shape='wide'] { width: 420px; height: 118px; }
+
+  .crop-stage img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    max-width: none;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .crop-frame {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: 0 0 0 9999px rgba(5, 7, 13, 0.62);
+    border: 2px solid var(--accent);
+  }
+  .crop-stage[data-shape='circle'] .crop-frame { border-radius: 50%; }
+
+  /* Drittel-Raster — nur beim Ziehen sichtbar */
+  .crop-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 1px, transparent 1px);
+    background-size: 33.333% 100%, 100% 33.333%;
+  }
+  .crop-stage.dragging .crop-grid { opacity: 1; }
+
+  .crop-side {
+    flex: 1 1 200px;
+    min-width: 190px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .crop-side__label {
+    font-family: var(--font-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .crop-previews {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .crop-pv { margin: 0; }
+  .crop-pv canvas {
+    display: block;
+    background: var(--media-void, #05070d);
+    border: 1px solid var(--line);
+  }
+  .crop-previews[data-shape='circle'] .crop-pv canvas {
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+  }
+
+  .crop-info {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.78rem;
+  }
+  .crop-info > div { display: flex; justify-content: space-between; gap: 0.6rem; }
+  .crop-info dt { color: var(--muted); margin: 0; }
+  .crop-info dd {
+    margin: 0;
+    color: var(--text);
+    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+  }
+
+  .crop-warn {
+    margin: 0;
+    font-size: 0.76rem;
+    line-height: 1.35;
+    color: #fbbf24;
+    border-left: 2px solid #fbbf24;
+    padding-left: 0.5rem;
+  }
+
+  .crop-controls,
+  .crop-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .crop-controls { margin-top: 1rem; }
+  .crop-tools { margin-top: 0.6rem; }
+  .crop-controls input[type='range'] {
+    flex: 1;
+    min-width: 120px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .crop-zoomval {
+    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-size: 0.8rem;
+    color: var(--muted);
+    min-width: 3.4em;
+    text-align: right;
+  }
+
+  .crop-btn {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .crop-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  @media (max-width: 640px) {
+    .crop-stage[data-shape='circle'] { width: 240px; height: 240px; }
+    .crop-stage[data-shape='wide'] { width: 100%; height: 96px; }
+    .crop-layout { gap: 0.9rem; }
+  }
 
   .acx-textarea {
     resize: vertical;
@@ -944,6 +1203,12 @@ const confirmRedirect = loginHref + '?confirmed=1';
     max-width: 480px;
     width: 90%;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    /* Sicher mittig: ohne max-height waechst ein hoher Dialog aus dem Viewport
+       heraus und margin:auto kann ihn nicht mehr zentrieren (er klebt oben). */
+    margin: auto;
+    max-height: 92svh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .acx-modal::backdrop {
@@ -1395,8 +1660,9 @@ const confirmRedirect = loginHref + '?confirmed=1';
         org_name: '',
       };
 
-      // Favoriten-Anzahl für den Stats-Readout (wird nach dem Favs-Load gesetzt)
+      // Zähler für den Stats-Readout (werden nach dem jeweiligen Load gesetzt)
       let favCount = 0;
+      let friendCount = 0;
 
       // Load Profile from LocalStorage + Supabase with schema fault-tolerance
       const localKey = `vb_profile_${user.id}`;
@@ -1665,17 +1931,12 @@ const confirmRedirect = loginHref + '?confirmed=1';
           pillOrg.hidden = true;
         }
 
-        // Stats-Readout: Freunde (localStorage), Favoriten, Profil-Vollständigkeit
-        let friendsCount = 0;
-        try {
-          const parsedFriends = JSON.parse(localStorage.getItem('vb_friends') || '[]');
-          if (Array.isArray(parsedFriends)) friendsCount = parsedFriends.length;
-        } catch {}
+        // Stats-Readout: Freunde (echt aus der DB), Favoriten, Vollständigkeit
         const setStat = (id: string, val: string) => {
           const el = document.getElementById(id);
           if (el) el.textContent = val;
         };
-        setStat('pcStatFriends', String(friendsCount));
+        setStat('pcStatFriends', String(friendCount));
         setStat('pcStatFavs', String(favCount));
 
         const completeFields = [
@@ -1714,6 +1975,259 @@ const confirmRedirect = loginHref + '?confirmed=1';
       colorSwatches.forEach(s =>
         s.classList.toggle('selected', ((s as HTMLElement).dataset.color || '').toLowerCase() === (profileState.avatar_color || '').toLowerCase()));
 
+      // ---- Bild-Zuschnitt: Vorschau, Verschieben, Zoomen vor dem Upload ----
+      // Der Rahmen zeigt exakt den spaeter sichtbaren Ausschnitt; beim Uebernehmen
+      // wird genau dieser Bereich auf die Zielgroesse gerendert (WebP) und NUR der
+      // zugeschnittene Blob hochgeladen — nicht das Original.
+      const CROP_OUT: Record<string, { w: number; h: number }> = {
+        avatar: { w: 512, h: 512 },
+        banner: { w: 1600, h: 450 },
+      };
+      const cropModal = document.getElementById('cropModal') as HTMLDialogElement | null;
+      const cropStage = document.getElementById('cropStage') as HTMLElement | null;
+      const cropImg = document.getElementById('cropImg') as HTMLImageElement | null;
+      const cropZoomEl = document.getElementById('cropZoom') as HTMLInputElement | null;
+      const cropApplyBtn = document.getElementById('cropApply') as HTMLButtonElement | null;
+      const cropCancelBtn = document.getElementById('cropCancel') as HTMLButtonElement | null;
+      const cropResetBtn = document.getElementById('cropReset') as HTMLButtonElement | null;
+      const cropTitleEl = document.getElementById('cropTitle');
+      const cropPreviewsEl = document.getElementById('cropPreviews');
+      const cropPvLg = document.getElementById('cropPvLg') as HTMLCanvasElement | null;
+      const cropPvSm = document.getElementById('cropPvSm') as HTMLCanvasElement | null;
+      const cropZoomVal = document.getElementById('cropZoomVal');
+      const cropZoomIn = document.getElementById('cropZoomIn');
+      const cropZoomOut = document.getElementById('cropZoomOut');
+      const cropRotL = document.getElementById('cropRotL');
+      const cropRotR = document.getElementById('cropRotR');
+      const cropFlipBtn = document.getElementById('cropFlip');
+      const cropInfoSrc = document.getElementById('cropInfoSrc');
+      const cropInfoOut = document.getElementById('cropInfoOut');
+      const cropInfoSize = document.getElementById('cropInfoSize');
+      const cropWarn = document.getElementById('cropWarn');
+
+      // Vorschau-Groessen je Art — gleiches Seitenverhaeltnis wie die Ausgabe
+      const CROP_PV: Record<string, Array<{ w: number; h: number }>> = {
+        avatar: [{ w: 96, h: 96 }, { w: 40, h: 40 }],
+        banner: [{ w: 232, h: 65 }, { w: 116, h: 33 }],
+      };
+
+      const cropState = {
+        nw: 0, nh: 0, sw: 0, sh: 0, base: 1, zoom: 1, tx: 0, ty: 0,
+        rot: 0, flip: false, kind: 'avatar' as 'avatar' | 'banner',
+      };
+
+      // Sichtbare Bildmasse nach Drehung (bei 90/270 vertauscht)
+      const cropEff = () => (cropState.rot % 180 === 0
+        ? { w: cropState.nw, h: cropState.nh }
+        : { w: cropState.nh, h: cropState.nw });
+
+      // Zeichnet den aktuellen Ausschnitt in ein Canvas beliebiger Groesse und
+      // spiegelt dabei exakt die CSS-Transform der Buehne — dadurch ist die
+      // Vorschau garantiert identisch mit dem spaeteren Ergebnis.
+      const cropDrawTo = (canvas: HTMLCanvasElement, ow: number, oh: number) => {
+        if (!cropImg || !cropState.sw) return;
+        canvas.width = ow; canvas.height = oh;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const k = cropState.base * cropState.zoom;
+        const s = ow / cropState.sw;
+        ctx.clearRect(0, 0, ow, oh);
+        ctx.imageSmoothingQuality = 'high';
+        ctx.save();
+        ctx.translate(ow / 2, oh / 2);
+        ctx.scale(s, s);
+        ctx.translate(cropState.tx, cropState.ty);
+        ctx.rotate((cropState.rot * Math.PI) / 180);
+        ctx.scale(cropState.flip ? -k : k, k);
+        ctx.drawImage(cropImg, -cropState.nw / 2, -cropState.nh / 2, cropState.nw, cropState.nh);
+        ctx.restore();
+      };
+
+      let cropSizeTimer = 0;
+      const cropUpdateInfo = () => {
+        const out = CROP_OUT[cropState.kind];
+        if (cropInfoSrc) cropInfoSrc.textContent = cropState.nw ? `${cropState.nw} × ${cropState.nh}` : '—';
+        if (cropInfoOut) cropInfoOut.textContent = `${out.w} × ${out.h}`;
+        // Warnen, wenn der gewaehlte Ausschnitt kleiner ist als die Zielgroesse
+        const k = cropState.base * cropState.zoom;
+        const srcPx = k > 0 ? cropState.sw / k : 0;
+        if (cropWarn) cropWarn.hidden = !(srcPx > 0 && srcPx < out.w * 0.9);
+        // Dateigroesse verzoegert schaetzen — Encoding ist zu teuer fuer jeden Frame
+        if (cropInfoSize) {
+          cropInfoSize.textContent = D.cropCalc || '…';
+          clearTimeout(cropSizeTimer);
+          cropSizeTimer = window.setTimeout(() => {
+            const c = document.createElement('canvas');
+            cropDrawTo(c, out.w, out.h);
+            c.toBlob((b) => {
+              if (cropInfoSize) cropInfoSize.textContent = b ? `~ ${Math.max(1, Math.round(b.size / 1024))} KB` : '—';
+            }, 'image/webp', 0.9);
+          }, 450);
+        }
+      };
+
+      const renderCrop = () => {
+        if (!cropImg) return;
+        const k = cropState.base * cropState.zoom;
+        const eff = cropEff();
+        // Verschiebung so begrenzen, dass nie ein Rand frei liegt
+        const maxDx = Math.max(0, (eff.w * k - cropState.sw) / 2);
+        const maxDy = Math.max(0, (eff.h * k - cropState.sh) / 2);
+        cropState.tx = Math.min(maxDx, Math.max(-maxDx, cropState.tx));
+        cropState.ty = Math.min(maxDy, Math.max(-maxDy, cropState.ty));
+        cropImg.style.width = cropState.nw + 'px';
+        cropImg.style.height = cropState.nh + 'px';
+        cropImg.style.transform =
+          `translate(-50%, -50%) translate(${cropState.tx}px, ${cropState.ty}px) ` +
+          `rotate(${cropState.rot}deg) scale(${cropState.flip ? -k : k}, ${k})`;
+        if (cropZoomVal) cropZoomVal.textContent = Math.round(cropState.zoom * 100) + '%';
+        const pv = CROP_PV[cropState.kind];
+        if (cropPvLg) cropDrawTo(cropPvLg, pv[0].w, pv[0].h);
+        if (cropPvSm) cropDrawTo(cropPvSm, pv[1].w, pv[1].h);
+        cropUpdateInfo();
+      };
+
+      const cropSetZoom = (z: number) => {
+        cropState.zoom = Math.min(4, Math.max(1, z));
+        if (cropZoomEl) cropZoomEl.value = String(cropState.zoom);
+        renderCrop();
+      };
+
+      // Drehen: Basis-Zoom neu berechnen, da sich die effektiven Masse tauschen
+      const cropRotate = (deg: number) => {
+        cropState.rot = (((cropState.rot + deg) % 360) + 360) % 360;
+        const eff = cropEff();
+        if (cropState.sw && eff.w && eff.h) {
+          cropState.base = Math.max(cropState.sw / eff.w, cropState.sh / eff.h);
+        }
+        cropState.tx = 0; cropState.ty = 0;
+        renderCrop();
+      };
+
+      if (cropStage) {
+        const pts = new Map<number, { x: number; y: number }>();
+        let pinchStart = 0, pinchZoom = 1;
+
+        cropStage.addEventListener('pointerdown', (e: PointerEvent) => {
+          pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          cropStage.classList.add('dragging');
+          try { cropStage.setPointerCapture(e.pointerId); } catch {}
+          if (pts.size === 2) {
+            const [a, b] = [...pts.values()];
+            pinchStart = Math.hypot(a.x - b.x, a.y - b.y);
+            pinchZoom = cropState.zoom;
+          }
+        });
+        cropStage.addEventListener('pointermove', (e: PointerEvent) => {
+          const prev = pts.get(e.pointerId);
+          if (!prev) return;
+          const cur = { x: e.clientX, y: e.clientY };
+          pts.set(e.pointerId, cur);
+          if (pts.size === 2) {
+            const [a, b] = [...pts.values()];
+            const dist = Math.hypot(a.x - b.x, a.y - b.y);
+            if (pinchStart > 0) cropSetZoom(pinchZoom * (dist / pinchStart));
+            return;
+          }
+          cropState.tx += cur.x - prev.x;
+          cropState.ty += cur.y - prev.y;
+          renderCrop();
+        });
+        const endDrag = (e: PointerEvent) => {
+          pts.delete(e.pointerId);
+          if (pts.size < 2) pinchStart = 0;
+          if (pts.size === 0) cropStage.classList.remove('dragging');
+          try { cropStage.releasePointerCapture(e.pointerId); } catch {}
+        };
+        cropStage.addEventListener('pointerup', endDrag);
+        cropStage.addEventListener('pointercancel', endDrag);
+        cropStage.addEventListener('wheel', (e: WheelEvent) => {
+          e.preventDefault();
+          cropSetZoom(cropState.zoom + (e.deltaY < 0 ? 0.12 : -0.12));
+        }, { passive: false });
+      }
+
+      if (cropZoomEl) cropZoomEl.addEventListener('input', () => cropSetZoom(parseFloat(cropZoomEl.value) || 1));
+      if (cropZoomIn) cropZoomIn.addEventListener('click', () => cropSetZoom(cropState.zoom + 0.15));
+      if (cropZoomOut) cropZoomOut.addEventListener('click', () => cropSetZoom(cropState.zoom - 0.15));
+      if (cropRotL) cropRotL.addEventListener('click', () => cropRotate(-90));
+      if (cropRotR) cropRotR.addEventListener('click', () => cropRotate(90));
+      if (cropFlipBtn) cropFlipBtn.addEventListener('click', () => { cropState.flip = !cropState.flip; renderCrop(); });
+      if (cropResetBtn) {
+        cropResetBtn.addEventListener('click', () => {
+          cropState.rot = 0; cropState.flip = false;
+          const eff = cropEff();
+          if (cropState.sw && eff.w && eff.h) {
+            cropState.base = Math.max(cropState.sw / eff.w, cropState.sh / eff.h);
+          }
+          cropState.tx = 0; cropState.ty = 0;
+          cropSetZoom(1);
+        });
+      }
+
+      // Tastatur: Pfeile verschieben (Shift = grosse Schritte), +/- zoomen, Enter uebernimmt
+      if (cropModal) {
+        cropModal.addEventListener('keydown', (e: KeyboardEvent) => {
+          const step = e.shiftKey ? 20 : 6;
+          if (e.key === 'ArrowLeft') { cropState.tx -= step; renderCrop(); e.preventDefault(); }
+          else if (e.key === 'ArrowRight') { cropState.tx += step; renderCrop(); e.preventDefault(); }
+          else if (e.key === 'ArrowUp') { cropState.ty -= step; renderCrop(); e.preventDefault(); }
+          else if (e.key === 'ArrowDown') { cropState.ty += step; renderCrop(); e.preventDefault(); }
+          else if (e.key === '+' || e.key === '=') { cropSetZoom(cropState.zoom + 0.15); e.preventDefault(); }
+          else if (e.key === '-' || e.key === '_') { cropSetZoom(cropState.zoom - 0.15); e.preventDefault(); }
+          else if (e.key === 'Enter') { cropApplyBtn?.click(); e.preventDefault(); }
+        });
+      }
+
+      // Oeffnet den Zuschnitt-Dialog und loest mit dem fertigen Blob auf
+      // (null = abgebrochen). Fehlt der Dialog, wird das Original durchgereicht.
+      const openCropper = (file: File, kind: 'avatar' | 'banner'): Promise<Blob | null> =>
+        new Promise((resolve) => {
+          if (!cropModal || !cropStage || !cropImg || !cropApplyBtn || !cropCancelBtn) { resolve(file); return; }
+          const out = CROP_OUT[kind];
+          cropState.kind = kind;
+          cropStage.dataset.shape = kind === 'avatar' ? 'circle' : 'wide';
+          if (cropPreviewsEl) cropPreviewsEl.dataset.shape = kind === 'avatar' ? 'circle' : 'wide';
+          if (cropTitleEl) cropTitleEl.textContent = (kind === 'avatar' ? D.cropTitleAvatar : D.cropTitleBanner) || '';
+          const url = URL.createObjectURL(file);
+
+          const finish = (blob: Blob | null) => {
+            cropApplyBtn.removeEventListener('click', onApply);
+            cropCancelBtn.removeEventListener('click', onCancel);
+            cropModal.removeEventListener('cancel', onCancel);
+            URL.revokeObjectURL(url);
+            if (cropModal.open) cropModal.close();
+            resolve(blob);
+          };
+          const onApply = () => {
+            // Exakt dieselbe Zeichenfunktion wie die Live-Vorschau -> WYSIWYG
+            const canvas = document.createElement('canvas');
+            cropDrawTo(canvas, out.w, out.h);
+            canvas.toBlob((b) => finish(b), 'image/webp', 0.9);
+          };
+          const onCancel = () => finish(null);
+
+          cropApplyBtn.addEventListener('click', onApply);
+          cropCancelBtn.addEventListener('click', onCancel);
+          cropModal.addEventListener('cancel', onCancel);
+
+          cropImg.onload = () => {
+            const r = cropStage.getBoundingClientRect();
+            cropState.nw = cropImg.naturalWidth;
+            cropState.nh = cropImg.naturalHeight;
+            cropState.sw = r.width;
+            cropState.sh = r.height;
+            cropState.rot = 0; cropState.flip = false;
+            const eff0 = cropEff();
+            cropState.base = Math.max(r.width / eff0.w, r.height / eff0.h);
+            cropState.zoom = 1; cropState.tx = 0; cropState.ty = 0;
+            if (cropZoomEl) cropZoomEl.value = '1';
+            renderCrop();
+          };
+          cropModal.showModal();
+          cropImg.src = url;
+        });
+
       // ---- Echte Bild-Uploads (Avatar + Banner) zu Supabase Storage ----
       const UPLOAD_MAX: Record<string, number> = { avatar: 5 * 1024 * 1024, banner: 8 * 1024 * 1024 };
       const UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -1737,22 +2251,24 @@ const confirmRedirect = loginHref + '?confirmed=1';
         const syncRemove = () => { if (removeEl) removeEl.hidden = !o.urlInput.value.trim(); };
         syncRemove();
 
-        btnEl.addEventListener('click', () => fileEl.click());
+        const zone = btnEl.closest('.acx-upload') as HTMLElement | null;
 
-        fileEl.addEventListener('change', async () => {
-          const file = fileEl.files && fileEl.files[0];
+        const handleFile = async (file: File | null | undefined) => {
           if (!file) return;
           if (!UPLOAD_TYPES.includes(file.type)) {
             setStatus(D.msgUploadBadtype || 'Invalid image type.', 'err');
-            fileEl.value = '';
             return;
           }
           const max = UPLOAD_MAX[o.kind];
           if (file.size > max) {
             setStatus((D.msgUploadToobig || 'Image too large.').replace('%max%', String(Math.round(max / 1024 / 1024))), 'err');
-            fileEl.value = '';
             return;
           }
+
+          // Erst zuschneiden lassen — hochgeladen wird NUR der bestaetigte Ausschnitt
+          setStatus('');
+          const blob = await openCropper(file, o.kind);
+          if (!blob) return; // abgebrochen
 
           btnEl.disabled = true;
           setStatus(D.msgUploading || 'Uploading …');
@@ -1760,8 +2276,8 @@ const confirmRedirect = loginHref + '?confirmed=1';
             // Stabiler Pfad je Nutzer+Art -> überschreibt (upsert), kein Datei-Wildwuchs.
             // Cache-Busting per ?v= im gespeicherten URL.
             const path = `${user.id}/${o.kind}`;
-            const { error: upErr } = await supabase.storage.from(o.bucket).upload(path, file, {
-              upsert: true, contentType: file.type, cacheControl: '3600',
+            const { error: upErr } = await supabase.storage.from(o.bucket).upload(path, blob, {
+              upsert: true, contentType: blob.type || 'image/webp', cacheControl: '3600',
             });
             if (upErr) throw upErr;
             const { data: pub } = supabase.storage.from(o.bucket).getPublicUrl(path);
@@ -1777,9 +2293,26 @@ const confirmRedirect = loginHref + '?confirmed=1';
             setStatus(D.msgUploadErr || 'Upload failed.', 'err');
           } finally {
             btnEl.disabled = false;
-            fileEl.value = '';
           }
+        };
+
+        btnEl.addEventListener('click', () => fileEl.click());
+        fileEl.addEventListener('change', async () => {
+          await handleFile(fileEl.files && fileEl.files[0]);
+          fileEl.value = '';
         });
+
+        // Drag & Drop direkt auf den Upload-Bereich
+        if (zone) {
+          ['dragenter', 'dragover'].forEach((ev) =>
+            zone.addEventListener(ev, (e: Event) => { e.preventDefault(); zone.classList.add('dragover'); }));
+          ['dragleave', 'drop'].forEach((ev) =>
+            zone.addEventListener(ev, (e: Event) => { e.preventDefault(); zone.classList.remove('dragover'); }));
+          zone.addEventListener('drop', async (e: DragEvent) => {
+            const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+            if (f) await handleFile(f);
+          });
+        }
 
         if (removeEl) {
           removeEl.addEventListener('click', () => {
@@ -2188,6 +2721,14 @@ const confirmRedirect = loginHref + '?confirmed=1';
       };
       renderFavs(favs || []);
       favCount = (favs || []).length;
+
+      // Echte Freundes-Anzahl aus der DB (ersetzt den frueheren localStorage-Zaehler)
+      try {
+        const { count: fc } = await supabase
+          .from('friends')
+          .select('id', { count: 'exact', head: true });
+        friendCount = fc || 0;
+      } catch {}
       updateCard();
 
       // Security Forms
