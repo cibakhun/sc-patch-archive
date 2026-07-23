@@ -19,6 +19,7 @@
   var itemsPerPage = 60;
   var activeCategory = null;
   var activeKind = 'all'; // all | buy | loot | catalog
+  var activeSize = null;  // Größenfilter (0–12) oder null
   var searchTerm = '';
   var sortCriteria = 'name_asc';
 
@@ -49,6 +50,27 @@
     return false;
   }
 
+  // Schlüssel-Stat je Item (Badge auf der Karte + Wert-Sortierung). n = Zahl zum Sortieren.
+  function primaryStat(item) {
+    var g = item.game, s = g && g.stats;
+    if (!s) return null;
+    if (s.dps) return { l: tr('statDps', 'DPS'), v: fmtNum(s.dps) + ' DPS', n: s.dps };
+    if (s.shieldHp) return { l: tr('statShieldHp', 'Schild-HP'), v: fmtNum(s.shieldHp) + ' HP', n: s.shieldHp };
+    if (s.driveSpeed) return { l: tr('statQtSpeed', 'QT'), v: fmtNum(Math.round(s.driveSpeed / 1e6)) + ' Mm/s', n: s.driveSpeed };
+    if (s.coolingRate) return { l: tr('statCooling', 'Kühlleistung'), v: fmtNum(s.coolingRate), n: s.coolingRate };
+    if (s.powerOutput) return { l: tr('statPower', 'Leistung'), v: fmtNum(s.powerOutput), n: s.powerOutput };
+    if (s.jammerRange) return { l: tr('statJammer', 'Jammer'), v: fmtNum(s.jammerRange) + ' m', n: s.jammerRange };
+    if (s.empRadius) return { l: tr('statEmpRadius', 'EMP'), v: fmtNum(s.empRadius) + ' m', n: s.empRadius };
+    if (s.fuelCapacity) return { l: tr('statFuel', 'Treibstoff'), v: fmtNum(s.fuelCapacity), n: s.fuelCapacity };
+    if (s.damage) { var tot = 0; for (var k in s.damage) tot += s.damage[k]; return { l: tr('statDamage', 'Schaden'), v: fmtNum(tot), n: tot }; }
+    if (s.resist && s.resist.physical != null) { var red = Math.round((1 - s.resist.physical) * 100); return { l: tr('statResist', 'Reduktion'), v: red + '%', n: red }; }
+    if (s.ndr) return { l: tr('statNdr', 'NDR'), v: fmtNum(s.ndr) + ' NDR', n: s.ndr };
+    if (s.sensitivity) return { l: tr('statSensitivity', 'Empfindlichkeit'), v: fmtNum(s.sensitivity), n: s.sensitivity };
+    if (s.storageScu) return { l: tr('statStorage', 'Stauraum'), v: s.storageScu + ' SCU', n: s.storageScu };
+    if (s.health) return { l: tr('statHealth', 'HP'), v: fmtNum(s.health) + ' HP', n: s.health };
+    return null;
+  }
+
   // Kategorie-Icons (Feather-Style, wie Bestand)
   var ICONS = {
     'Armour': '<svg class="uif-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>',
@@ -76,9 +98,17 @@
     filteredItems = ALL_ITEMS.filter(function (item) {
       if (activeCategory && parentCategory(item.category) !== activeCategory) return false;
       if (!hasKind(item, activeKind)) return false;
+      if (activeSize != null && !(item.game && item.game.size === activeSize)) return false;
       if (!term) return true;
       if (item.name.toLowerCase().indexOf(term) !== -1) return true;
       if (item.category && item.category.toLowerCase().indexOf(term) !== -1) return true;
+      if (item.game) {
+        var g = item.game;
+        if (g.manufacturer && g.manufacturer.toLowerCase().indexOf(term) !== -1) return true;
+        if (g.class && g.class.toLowerCase().indexOf(term) !== -1) return true;
+        if (g.subType && g.subType.toLowerCase().indexOf(term) !== -1) return true;
+        if (g.nameDe && g.nameDe.toLowerCase().indexOf(term) !== -1) return true;
+      }
       for (var i = 0; i < item.obtain.length; i++) {
         if (item.obtain[i].loc.toLowerCase().indexOf(term) !== -1) return true;
       }
@@ -88,6 +118,15 @@
     filteredItems.sort(function (a, b) {
       if (sortCriteria === 'name_asc') return a.name.localeCompare(b.name);
       if (sortCriteria === 'name_desc') return b.name.localeCompare(a.name);
+      if (sortCriteria === 'stat_desc') {
+        // Nach Schlüssel-Stat (hoch→niedrig); Items ohne Stat ans Ende
+        var sa = primaryStat(a), sb = primaryStat(b);
+        var na = sa ? sa.n : null, nb = sb ? sb.n : null;
+        if (na == null && nb == null) return a.name.localeCompare(b.name);
+        if (na == null) return 1;
+        if (nb == null) return -1;
+        return nb - na || a.name.localeCompare(b.name);
+      }
       // Preis-Sortierung: Items ohne Preis immer ans Ende
       var pa = minPrice(a), pb = minPrice(b);
       if (pa == null && pb == null) return a.name.localeCompare(b.name);
@@ -165,6 +204,32 @@
     });
   }
 
+  // ---- Größen-Filter (nur Ausrüstung mit echter Size) ----
+  function renderSizeChips() {
+    var wrap = document.getElementById('uif-size-chips');
+    if (!wrap) return;
+    var sizes = {};
+    ALL_ITEMS.forEach(function (item) {
+      if (item.game && item.game.size != null && hasGradeSemantics(item)) sizes[item.game.size] = true;
+    });
+    var list = Object.keys(sizes).map(Number).sort(function (a, b) { return a - b; });
+    if (!list.length) { wrap.innerHTML = ''; return; }
+    var html = '<button class="uif-chip' + (activeSize == null ? ' active' : '') + '" data-size="all">' + esc(tr('kindAll', 'Alle')) + '</button>';
+    html += list.map(function (sz) {
+      return '<button class="uif-chip' + (activeSize === sz ? ' active' : '') + '" data-size="' + sz + '">S' + sz + '</button>';
+    }).join('');
+    wrap.innerHTML = html;
+    wrap.querySelectorAll('.uif-chip').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var v = btn.getAttribute('data-size');
+        activeSize = v === 'all' ? null : Number(v);
+        currentPage = 1;
+        applyFiltersAndSort();
+        renderSizeChips();
+      });
+    });
+  }
+
   // ---- Ergebnis-Grid ----
   function renderItemsGrid() {
     var grid = document.getElementById('uif-results-grid');
@@ -197,11 +262,26 @@
         locHtml = '<span class="uif-loc-none">' + esc(tr('noSourceData', 'Kein Fundort bekannt')) + '</span>';
       }
 
+      var specLine = '';
+      if (item.game) {
+        var g = item.game, bits = [];
+        if (g.manufacturer) bits.push(g.manufacturer);
+        if (hasGradeSemantics(item)) {
+          if (g.size != null) bits.push('S' + g.size);
+          if (g.grade) bits.push(g.grade);
+        }
+        if (bits.length) specLine = '<div class="uif-card-spec">' + esc(bits.join(' · ')) + '</div>';
+      }
+      var ps = primaryStat(item);
+      var statBadge = ps ? '<span class="uif-card-stat" title="' + esc(ps.l) + '">' + esc(ps.v) + '</span>' : '';
+
       return '<div class="uif-card" data-id="' + esc(item.id) + '" data-category="' + esc(parent) + '" tabindex="0" role="button">' +
         '<div class="uif-card-header">' +
           '<div class="uif-card-cat-wrapper">' + categoryIcon(parent) + ' <span>' + esc(item.category) + '</span></div>' +
+          statBadge +
         '</div>' +
         '<h4 class="uif-card-title">' + esc(item.name) + '</h4>' +
+        specLine +
         '<div class="uif-card-footer">' +
           '<div class="uif-card-price">' + priceHtml + '</div>' +
           '<div class="uif-card-location" title="' + esc(item.obtain.length ? item.obtain[0].loc : '') + '">' + locHtml + '</div>' +
@@ -286,6 +366,78 @@
     return KIND_LABEL[kind] || kind;
   }
 
+  // ---- Technische Daten (Spieldaten aus dem DataCore) ----
+  var DMG_LABEL = null;
+  function dmgLabels() {
+    if (!DMG_LABEL) DMG_LABEL = {
+      physical: tr('dmgPhysical', 'Physisch'), energy: tr('dmgEnergy', 'Energie'),
+      distortion: tr('dmgDistortion', 'Distortion'), thermal: tr('dmgThermal', 'Thermal'),
+      biochemical: tr('dmgBio', 'Biochem'), stun: tr('dmgStun', 'Betäubung')
+    };
+    return DMG_LABEL;
+  }
+  function fmtDamage(dmg) {
+    var L = dmgLabels(), parts = [];
+    ['physical', 'energy', 'distortion', 'thermal', 'biochemical', 'stun'].forEach(function (k) {
+      if (dmg[k] && dmg[k] > 0) parts.push(fmtNum(dmg[k]) + ' ' + L[k]);
+    });
+    return parts.join(' · ');
+  }
+  function fmtResist(res) {
+    // Schadensmultiplikator -> Schadensreduktion in % (1 - Multiplikator)
+    var L = dmgLabels(), keys = ['physical', 'energy', 'distortion', 'thermal', 'biochemical'];
+    var vals = keys.filter(function (k) { return res[k] != null; });
+    if (!vals.length) return null;
+    var uniform = vals.every(function (k) { return res[k] === res[vals[0]]; });
+    var pct = function (k) { return Math.round((1 - res[k]) * 100) + '%'; };
+    if (uniform) return tr('resistAll', 'Alle') + ' ' + pct(vals[0]);
+    return vals.map(function (k) { return L[k] + ' ' + pct(k); }).join(' · ');
+  }
+  // Anzeigbare Stats als [label, value] — nur sinnvolle, ehrliche Werte (leere weggelassen)
+  function statEntries(item) {
+    var g = item.game, s = g && g.stats; if (!s) return [];
+    var out = [];
+    if (s.damage) { var d = fmtDamage(s.damage); if (d) out.push([tr('statDamage', 'Schaden'), d]); }
+    if (s.blastRadius) out.push([tr('statBlast', 'Explosionsradius'), fmtNum(s.blastRadius) + ' m']);
+    if (s.fireRate) out.push([tr('statFireRate', 'Feuerrate'), fmtNum(s.fireRate) + ' ' + tr('unitRpm', 'Schuss/min')]);
+    if (s.dps) out.push([tr('statDps', 'DPS'), fmtNum(s.dps)]);
+    if (s.magazine) out.push([tr('statMagazine', 'Magazin'), fmtNum(s.magazine)]);
+    if (s.shieldHp) out.push([tr('statShieldHp', 'Schild-HP'), fmtNum(s.shieldHp)]);
+    if (s.regen) out.push([tr('statRegen', 'Schild-Regen'), fmtNum(s.regen) + '/s']);
+    if (s.driveSpeed) out.push([tr('statQtSpeed', 'QT-Geschwindigkeit'), fmtNum(Math.round(s.driveSpeed / 1e6)) + ' Mm/s']);
+    if (s.cooldown) out.push([tr('statCooldown', 'Abklingzeit'), fmtNum(s.cooldown) + ' s']);
+    if (s.coolingRate) out.push([tr('statCooling', 'Kühlleistung'), fmtNum(s.coolingRate)]);
+    if (s.powerOutput) out.push([tr('statPower', 'Leistung'), fmtNum(s.powerOutput)]);
+    if (s.fuelCapacity) out.push([tr('statFuel', 'Treibstoff-Kapazität'), fmtNum(s.fuelCapacity)]);
+    if (s.sensitivity) out.push([tr('statSensitivity', 'Signatur-Empfindlichkeit'), fmtNum(s.sensitivity)]);
+    if (s.jammerRange) out.push([tr('statJammer', 'QT-Jammer-Reichweite'), fmtNum(s.jammerRange) + ' m']);
+    if (s.empRadius) out.push([tr('statEmpRadius', 'EMP-Radius'), fmtNum(s.empRadius) + ' m']);
+    if (s.distortionDamage) out.push([tr('statDistortion', 'Distortion-Schaden'), fmtNum(s.distortionDamage)]);
+    if (s.chargeTime) out.push([tr('statCharge', 'Ladezeit'), fmtNum(s.chargeTime) + ' s']);
+    if (s.resist) { var r = fmtResist(s.resist); if (r) out.push([tr('statResist', 'Schadensreduktion'), r]); }
+    if (s.tempMin != null && s.tempMax != null) out.push([tr('statTemp', 'Temp.-Rating'), s.tempMin + ' / ' + s.tempMax + ' °C']);
+    if (s.radiation) out.push([tr('statRadiation', 'Strahlungsschutz'), fmtNum(s.radiation) + ' REM']);
+    if (s.ndr) out.push([tr('statNdr', 'Nährwert (NDR)'), fmtNum(s.ndr)]);
+    if (s.effects && s.effects.length) out.push([tr('statEffects', 'Effekte'), s.effects.join(', ')]);
+    if (s.storageScu) out.push([tr('statStorage', 'Stauraum'), s.storageScu + ' SCU']);
+    if (s.lifetime) out.push([tr('statLifetime', 'Flugzeit'), fmtNum(s.lifetime) + ' s']);
+    if (s.health) out.push([tr('statHealth', 'Bauteil-HP'), fmtNum(s.health)]);
+    return out;
+  }
+  // Größe/Grade nur bei Ausrüstung anzeigen (bei Kleidung/Nahrung ist Grade immer „A")
+  function hasGradeSemantics(item) { return /Vehiclegear|Weapons|Armour|Attachment/.test(parentCategory(item.category)); }
+  // Kopf-Chips: Hersteller / Größe / Grade / Klasse / Volumen
+  function specChips(item) {
+    var g = item.game; if (!g) return [];
+    var eq = hasGradeSemantics(item), chips = [];
+    if (g.manufacturer) chips.push([tr('specMfr', 'Hersteller'), g.manufacturer]);
+    if (eq && g.size != null) chips.push([tr('specSize', 'Größe'), 'S' + g.size]);
+    if (eq && g.grade) chips.push([tr('specGrade', 'Grade'), g.grade]);
+    if (g.class) chips.push([tr('specClass', 'Klasse'), g.class]);
+    if (g.volumeScu) chips.push([tr('specVolume', 'Volumen'), g.volumeScu + ' SCU']);
+    return chips;
+  }
+
   function openModal(item) {
     var modal = document.getElementById('uif-item-modal');
     var content = document.getElementById('uif-modal-body-content');
@@ -298,6 +450,22 @@
       '</div>' +
       '<h2 class="uif-modal-title">' + esc(item.name) + '</h2>' +
     '</div>';
+
+    // Technische Daten (Spieldaten) — zuerst: was IST das Item, was kann es
+    var chips = specChips(item), stats = statEntries(item);
+    var descText = item.game ? (CFG.lang === 'de' && item.game.descDe ? item.game.descDe : item.game.desc) : null;
+    if (chips.length || stats.length || descText) {
+      html += '<div class="uif-modal-section uif-specs">' +
+        '<h4>' + esc(tr('sectionSpecs', 'Technische Daten')) + '</h4>' +
+        (chips.length ? '<div class="uif-spec-chips">' + chips.map(function (c) {
+          return '<span class="uif-spec-chip"><b>' + esc(c[0]) + '</b> ' + esc(c[1]) + '</span>';
+        }).join('') + '</div>' : '') +
+        (stats.length ? '<div class="uif-stat-grid">' + stats.map(function (st) {
+          return '<div class="uif-stat"><span class="uif-stat-l">' + esc(st[0]) + '</span><span class="uif-stat-v">' + esc(st[1]) + '</span></div>';
+        }).join('') + '</div>' : '') +
+        (descText ? '<p class="uif-item-desc">' + esc(descText) + '</p>' : '') +
+      '</div>';
+    }
 
     // Bezugsquellen — oder ehrlicher Katalog-Hinweis
     if (item.obtain.length) {
@@ -437,6 +605,7 @@
       applyFiltersAndSort();
       renderCategories();
       renderKindChips();
+      renderSizeChips();
       // Deep-Link aus dem Crafting-Planer: ?item=<Item-Name oder -id> öffnet die Card.
       try {
         var wantItem = new URLSearchParams(location.search).get('item');

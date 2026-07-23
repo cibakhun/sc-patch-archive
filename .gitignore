@@ -31,6 +31,7 @@ build.log
 /assets/mining-gamefiles.json
 /assets/mining-locations-gamefiles.json
 /assets/mining-gear-gamefiles.json
+/assets/items-gamefiles.json
 
 # cloudflared tunnel logs
 .cf-*.log

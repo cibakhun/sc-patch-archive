@@ -30,6 +30,7 @@
     "extract:hardpoints:assembled": "node scripts/extract-hardpoints-assembled.mjs",
     "calibrate:holo": "node scripts/calibrate-holo-markers.mjs",
     "build:holo-meshes": "node scripts/build-holo-meshes.mjs",
+    "datamine:items": "node scripts/datamine-items.mjs",
     "sync:items": "node scripts/build-universal-db.mjs",
     "sync:item-prices": "node scripts/fetch-uex-item-prices.mjs && node scripts/build-universal-db.mjs",
     "verify:items": "node scripts/verify-item-prices.mjs",
