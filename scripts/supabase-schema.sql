@@ -8,6 +8,7 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS bio text,
   ADD COLUMN IF NOT EXISTS banner_url text,
   ADD COLUMN IF NOT EXISTS avatar_url text,
+  ADD COLUMN IF NOT EXISTS avatar_icon text DEFAULT '◆',
   ADD COLUMN IF NOT EXISTS avatar_color text DEFAULT '#2dd4ff',
   ADD COLUMN IF NOT EXISTS status_state text DEFAULT 'online',
   ADD COLUMN IF NOT EXISTS status_text text,
