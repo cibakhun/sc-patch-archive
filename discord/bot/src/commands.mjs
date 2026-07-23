@@ -328,7 +328,7 @@ async function cmdAdmin(ctx, i) {
         { name: t(locale, 'admin.vVoiceXp'), value: t(locale, 'admin.vVoiceXpVal', { perMin: c.voice.perMinute, req: onoff(c.voice.requireOthers) }), inline: false },
         { name: t(locale, 'admin.vMultipliers'), value: t(locale, 'admin.vMultVal', { global: c.multipliers.global, booster: c.multipliers.booster, roles: Object.keys(c.multipliers.roles).length, channels: Object.keys(c.multipliers.channels).length }), inline: false },
         { name: t(locale, 'admin.vAnnounce'), value: t(locale, 'admin.vAnnVal', { mode: modeLabel(locale, c.announce.mode), channel: chan, onlyRanks: onoff(c.announce.onlyRanks), dm: onoff(c.announce.dm) }), inline: false },
-        { name: t(locale, 'admin.vNoXp'), value: c.noXpChannels.length ? c.noXpChannels.map((id) => `<#${id}>`).join(' ') : t(locale, 'common.dash'), inline: false },
+        { name: t(locale, 'admin.vNoXp'), value: [...c.noXpChannels.map((id) => `<#${id}>`), ...(c.noXpChannelNames || []).map((n) => `\`${n}\``)].join(' ') || t(locale, 'common.dash'), inline: false },
         { name: t(locale, 'admin.vPrestige'), value: t(locale, 'admin.vPrestigeVal', { atLevel: c.prestige.atLevel, pct: Math.round(c.prestige.bonusPerStar * 100), max: c.prestige.maxStars }), inline: false },
       )
       .setFooter({ text: 'VerseBase • rank system' });

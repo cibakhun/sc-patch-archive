@@ -36,6 +36,21 @@ export const PRESTIGE = {
   star: '✦',
 };
 
+// ── Newcomer anti-spam gate ────────────────────────────────────────────────
+// The server blueprint removes EmbedLinks + AttachFiles from @everyone, so brand-
+// new / throwaway accounts can chat but can't post link embeds, images or files.
+// Rank roles from Prospect (level 5) up carry those two permissions back — the bot
+// stamps them onto each rank role it provisions (see roles.mjs), and prestige
+// (✦ Ascended) roles carry them too (a prestiged member is level 0 but trusted).
+// Keep TRUSTED_PERMS in sync with the blueprint's everyonePermissions.
+export const TRUSTED_LEVEL = 5;                      // first rank that lifts the gate (Prospect)
+export const TRUSTED_PERMS = ['EmbedLinks', 'AttachFiles'];
+
+/** The guild permissions a rank role should carry (lifts the newcomer gate). */
+export function rankPermissions(rank) {
+  return rank.level >= TRUSTED_LEVEL ? [...TRUSTED_PERMS] : [];
+}
+
 /** The rank object for a given level (highest threshold met). */
 export function rankForLevel(level) {
   let current = RANKS[0];

@@ -17,6 +17,7 @@ import * as commands from './commands.mjs';
 import { ensureEmoji } from './emoji.mjs';
 import { loadEnv } from './env.mjs';
 import { effectiveMultiplier, applyMultiplier, randomXp } from './leveling.mjs';
+import { isNoXpChannel } from './config.mjs';
 import { resolveLocale, t } from './i18n.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -65,7 +66,7 @@ client.on(Events.MessageCreate, async (message) => {
   if (!message.inGuild() || message.author.bot || message.webhookId || message.system) return;
 
   const config = db.getConfig(message.guildId);
-  if (config.noXpChannels.includes(message.channelId)) return;
+  if (isNoXpChannel(message.channel, config)) return;
 
   const member = message.member ?? await message.guild.members.fetch(message.author.id).catch(() => null);
   if (!member) return;

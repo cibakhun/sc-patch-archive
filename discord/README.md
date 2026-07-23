@@ -27,14 +27,30 @@ discord/
 - **19 roles** — staff (⭐ Fleet Command, 🛰 Navigators, 🤖 Flight Computer), self-assign
   playstyle roles colour-matched to each site tool (⛏ Miner, 💰 Trader, 🔧 Industrialist,
   🚀 Combat Pilot, 🧭 Explorer, 📜 Contractor, 🐟 Wikelo Regular), ping opt-ins, language
-  and pronoun roles.
-- **6 categories · 35 channels** — Start Here, The Verse, Tools & Data (each channel paired
-  with its verse-base.com tool), Crew Up, Voice, and a private staff Flight Deck.
+  and pronoun roles. Plus the **12 rank roles + prestige** the always-on bot provisions
+  (see [`bot/`](./bot)).
+- **6 categories · 41 channels** — Start Here, The Verse (chat, #patch-chat, #suggestions,
+  a rank-gated 🎖 #veterans-lounge, #bot-commands), Tools & Data (each channel paired with
+  its verse-base.com tool, plus #support), Crew Up, Voice, and a private staff Flight Deck.
+- **Coherent permissions** — read-only info/announcement channels (the bot can still post
+  its patch feed there); a **newcomer anti-spam gate** (new accounts chat freely but unlock
+  links/images/attachments at rank Prospect, level 5); and a **rank-gated veterans’ lounge**
+  that opens at Citizen (level 15).
+- **AutoMod** — spam, mass-mention, invite-link and slur filters, blocking + logging to
+  #mod-log, with staff exempt.
 - **Community features** — rules & community-updates channels, medium verification, media
   scanning, mention-only default notifications.
 - **Native onboarding** — new members pick playstyle / ping / language / pronoun roles.
 - **Welcome screen**, **server icon** (the site's hexagon mark) and **pinned seed posts**
-  (welcome, rules, server map, patch feed, roles guide).
+  (welcome, rules, server map, patch feed, roles guide, bot-commands guide, lounge, support…).
+
+> **The two halves fit together.** The builder owns roles, channels, permissions and AutoMod;
+> the always-on **bot** (`bot/`) owns XP, ranks and prestige. They share one source of truth:
+> the builder reads the bot's rank ladder (`bot/src/ranks.mjs`) to place rank-gated channels
+> and to keep role order in sync, and the bot reads channel **names** to know where to stay
+> silent (no-XP channels) and where to post level-ups — so no manual `/rank-admin` wiring is
+> needed. **Deploy order:** update the bot first (so rank roles carry the gate permissions),
+> then `npm run build`, then `npm run order`.
 
 ---
 
@@ -92,6 +108,15 @@ Everything lives in [`blueprint.mjs`](./blueprint.mjs):
 - **Add a channel** → add an entry to a category's `channels` array (give it a unique `key`).
 - **Add a role** → add to `roles` (top → bottom order). Reference its `key` from onboarding
   options or channel `overwrites`.
+- **Gate a channel by rank** → add `minRank: '<rankKey>'` (a key from `bot/src/ranks.mjs`,
+  e.g. `'citizen'`). @everyone loses view; everyone at that rank and above (and prestiged
+  members) gets it. Needs the bot to have created the rank roles first.
+- **Exclude a channel from XP** → add `noXp: true`, and mirror its base name in the bot's
+  `noXpChannelNames` (`bot/src/config.mjs`). `npm run validate` warns if the two drift apart.
+- **Tune the newcomer gate** → it lives across two files: `everyonePermissions` here (drops
+  `EmbedLinks`/`AttachFiles`) and `TRUSTED_LEVEL`/`rankPermissions` in `bot/src/ranks.mjs`
+  (which rank lifts it). To switch it off, add those two perms back to `everyonePermissions`.
+- **Tune AutoMod** → edit the `autoMod` block (rules, mention limit, exempt roles, alert channel).
 - **Change onboarding** → edit `onboarding.prompts`.
 - **Reword the pinned posts** → edit `seed`, then re-run `npm run build`. The builder finds
   its own **pinned** seed post and updates it in place (or replaces it) — no manual deletion.
@@ -99,7 +124,8 @@ Everything lives in [`blueprint.mjs`](./blueprint.mjs):
   untouched.
 
 `npm run validate` catches broken references (a channel that points at a missing role, a typo
-in a permission name) before you ever hit the API.
+in a permission name, an unknown `minRank` or AutoMod trigger, a no-XP mismatch) before you
+ever hit the API.
 
 ---
 
@@ -111,6 +137,13 @@ in a permission name) before you ever hit the API.
   "Missing Permissions" even when the bot's role is on top, and (b) the rank roles are created
   by the always-on bot, so they only exist to be ordered after that bot has run. Make sure the
   bot's own role sits above the roles it manages (it does by default).
+- **New members can't post links or images.** That's the newcomer anti-spam gate working —
+  it lifts at rank Prospect (level 5). Make sure you **updated the bot before building**, so
+  the rank roles carry the `EmbedLinks`/`AttachFiles` permissions; otherwise even veterans lose
+  them until the bot's next start. To relax the gate, see *Customise* above.
+- **#veterans-lounge is staff-only after a build.** The rank roles didn't exist yet. Start the
+  bot once (it creates them), then re-run `npm run build` — the gate resolves and members at
+  Citizen+ get in. `validate` and the build log both warn when this happens.
 - **Onboarding / welcome screen skipped.** They require Community mode. The builder turns it
   on first, but if that step failed, fix it (Server Settings → Enable Community) and re-run.
 - **"Bot is in multiple servers."** Set `GUILD_ID` in `.env` (right-click the server →

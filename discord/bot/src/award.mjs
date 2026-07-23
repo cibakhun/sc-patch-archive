@@ -62,6 +62,12 @@ function resolveChannel(guild, config, currentChannel) {
     const c = guild.channels.cache.get(config.announce.channelId);
     if (usable(c)) return c;
   }
+  // Fallback: a channel whose name matches announce.channelName (blueprint default
+  // is #bot-commands), so level-ups have a sensible home without manual setup.
+  if (config.announce.channelName) {
+    const c = guild.channels.cache.find((x) => usable(x) && String(x.name || '').includes(config.announce.channelName));
+    if (c) return c;
+  }
   if (usable(currentChannel)) return currentChannel;
   if (usable(guild.systemChannel)) return guild.systemChannel;
   return null;

@@ -48,10 +48,19 @@ export const guild = {
 
 // Baseline permissions for @everyone. Anything not listed is denied.
 // (Notably absent: MentionEveryone and every Manage* permission.)
+//
+// NEWCOMER ANTI-SPAM GATE: EmbedLinks and AttachFiles are deliberately NOT here.
+// Brand-new members can chat immediately, but can't post link embeds, images or
+// file attachments until they reach the starter rank Prospect (level 5) — the
+// always-on bot grants those two permissions to every rank role from Prospect up
+// (see bot/src/ranks.mjs → rankPermissions, and bot/src/roles.mjs). This stops
+// drive-by image/embed spam from throwaway accounts without hurting real talk.
+// Moderators keep them via the 🛰 Navigators role below; admins via Administrator.
+// To relax the gate, add 'EmbedLinks'/'AttachFiles' back to this list.
 export const everyonePermissions = [
   'ViewChannel', 'CreateInstantInvite',
   'SendMessages', 'SendMessagesInThreads', 'CreatePublicThreads',
-  'EmbedLinks', 'AttachFiles', 'AddReactions',
+  'AddReactions',
   'UseExternalEmojis', 'UseExternalStickers', 'ReadMessageHistory',
   'Connect', 'Speak', 'Stream', 'UseVAD', 'RequestToSpeak',
   'UseApplicationCommands', 'ChangeNickname',
@@ -72,6 +81,8 @@ export const roles = [
       'KickMembers', 'BanMembers', 'ModerateMembers', 'ManageMessages',
       'ManageThreads', 'ManageNicknames', 'MuteMembers', 'DeafenMembers',
       'MoveMembers', 'ViewAuditLog', 'MentionEveryone', 'ManageEvents',
+      // Mods are exempt from the newcomer gate — they always keep these.
+      'EmbedLinks', 'AttachFiles',
     ],
     reason: 'Moderators',
   },
@@ -136,11 +147,16 @@ export const categories = [
     channels: [
       { key: 'general', name: '💬・general', type: 'text', topic: 'Main hangar — all-purpose chat · Haupt-Hangar — Plausch über alles' },
       { key: 'introductions', name: '👋・introductions', type: 'text', topic: 'New here? Say hi — handle, playstyle, home system · Neu hier? Sag Hallo — Name, Spielstil, Heimatsystem' },
+      { key: 'patch-chat', name: '🩹・patch-chat', type: 'text', topic: 'Talk about the latest patch — the read-only feed is #patch-notes · Sprich über den neuesten Patch — der reine Feed ist #patch-notes' },
       { key: 'screenshots', name: '📸・screenshots', type: 'text', topic: 'Your best shots of the ’verse — images & clips welcome · Deine besten Aufnahmen aus dem ’Verse — Bilder & Clips willkommen' },
       { key: 'clips', name: '🎬・clips', type: 'text', topic: 'Highlight reels, montages, that one impossible save · Highlight-Clips, Montagen, die eine unmögliche Rettung' },
-      { key: 'memes', name: '😂・memes', type: 'text', topic: '30k survivors welcome. Keep it light · 30k-Überlebende willkommen. Locker bleiben' },
-      { key: 'off-topic', name: '🪐・off-topic', type: 'text', topic: 'Everything that isn’t Star Citizen · Alles, was nicht Star Citizen ist' },
-      { key: 'bot-commands', name: '🤖・bot-commands', type: 'text', topic: 'Slash-command spam lives here · Slash-Command-Spam gehört hierher', slowmode: 3 },
+      { key: 'memes', name: '😂・memes', type: 'text', topic: '30k survivors welcome. Keep it light · 30k-Überlebende willkommen. Locker bleiben', noXp: true },
+      { key: 'off-topic', name: '🪐・off-topic', type: 'text', topic: 'Everything that isn’t Star Citizen · Alles, was nicht Star Citizen ist', noXp: true },
+      { key: 'suggestions', name: '💡・suggestions', type: 'text', topic: 'Ideas for the server & verse-base.com — one per post, react to vote · Ideen für den Server & verse-base.com — eine pro Post, mit Reaktion abstimmen', slowmode: 30 },
+      // Rank reward: only members at ⬡ Citizen (level 15) or above can see + post here.
+      // Change the threshold by editing `minRank` (any rank key from bot/src/ranks.mjs).
+      { key: 'veterans-lounge', name: '🎖・veterans-lounge', type: 'text', minRank: 'citizen', topic: 'Regulars’ lounge — unlocks at ⬡ Citizen (level 15) · Stammgäste-Lounge — schaltet ab ⬡ Citizen (Level 15) frei' },
+      { key: 'bot-commands', name: '🤖・bot-commands', type: 'text', topic: 'Home for /rank, /leaderboard & friends — earns no XP, so spam freely · Zuhause für /rank, /leaderboard & Co. — bringt kein XP, also leg los', slowmode: 3, noXp: true },
     ],
   },
   {
@@ -155,6 +171,7 @@ export const categories = [
       { key: 'missions', name: '📜・missions', type: 'text', topic: `Rewards & reputation · Belohnungen & Reputation → ${SITE}/missionen.html` },
       { key: 'wikelo-ch', name: '🐟・wikelo-emporium', type: 'text', topic: `Banu trades & the Emporium · Banu-Tauschgeschäfte & das Emporium → ${SITE}/topics/wikelo-emporium.html` },
       { key: 'guides', name: '📚・guides', type: 'forum', topic: 'Community guides & resources — one per thread · Community-Guides & Ressourcen — eins pro Thread' },
+      { key: 'support', name: '🛟・support', type: 'text', topic: `Stuck on a tool, the bot, or the game? Ask here · Hängst du an einem Tool, dem Bot oder dem Spiel? Frag hier → ${SITE}` },
     ],
   },
   {
@@ -198,6 +215,32 @@ export const community = {
   notifications: 'OnlyMentions', // default: only @mentions ping
 };
 
+// ── AutoMod (server-side spam / abuse filters) ─────────────────────────────
+// Applied idempotently by the builder through Discord's Auto Moderation API.
+// Each rule blocks the offending message and, where a log channel exists, posts
+// an alert to #mod-log. Staff roles are exempt. `trigger` maps to discord.js
+// AutoModerationRuleTriggerType; unknown/older names are skipped with a warning
+// so the rest still apply. Discord allows one Spam / MentionSpam / KeywordPreset
+// rule and up to six Keyword rules — this set stays within that.
+export const autoMod = {
+  enabled: true,
+  alertChannel: 'mod-log',
+  exemptRoles: ['fleet-command', 'navigators'],
+  rules: [
+    { name: 'VerseBase • Spam filter', trigger: 'Spam', block: true },
+    { name: 'VerseBase • Mention spam', trigger: 'MentionSpam', mentionLimit: 6, block: true, alert: true },
+    {
+      name: 'VerseBase • Invite links', trigger: 'Keyword', block: true, alert: true,
+      // Blocks other servers’ invite links (poaching / raid bait) — except where
+      // linking an org’s Discord is the whole point.
+      regexPatterns: ['(?:discord(?:app)?\\.com/invite|discord\\.gg|discord\\.me|dsc\\.gg|discord\\.io)/\\S+'],
+      exemptChannels: ['org-recruitment'],
+      customMessage: 'Invite links aren’t allowed here — share them in #org-recruitment instead.',
+    },
+    { name: 'VerseBase • Hate speech', trigger: 'KeywordPreset', presets: ['Slurs'], block: true, alert: true },
+  ],
+};
+
 // ── Welcome screen (the invite splash) ─────────────────────────────────────
 // Discord caps description at 140 chars and each channel line at 50 — kept
 // bilingual and compact.
@@ -219,9 +262,9 @@ export const welcomeScreen = {
 export const onboarding = {
   enabled: true,
   defaultChannels: [
-    'welcome', 'rules', 'start-here', 'announcements', 'patch-notes', 'roles-info',
+    'welcome', 'rules', 'start-here', 'announcements', 'patch-notes', 'patch-chat', 'roles-info',
     'general', 'introductions', 'screenshots', 'mining', 'trading', 'ships',
-    'combat', 'exploration', 'missions', 'lfg', 'guides',
+    'combat', 'exploration', 'missions', 'lfg', 'guides', 'suggestions', 'support',
   ],
   prompts: [
     {
@@ -312,6 +355,7 @@ export const seed = {
         { name: '4 · No spam or ads · Kein Spam, keine Werbung', value: 'No unsolicited DMs, invites, referral links or self-promo outside <#org-recruitment>.\nKeine ungefragten DMs, Invites, Referral-Links oder Eigenwerbung außerhalb von <#org-recruitment>.' },
         { name: '5 · Keep it SFW & legal · Halte es SFW & legal', value: 'No NSFW, no piracy, no cheats/exploits, no account or credit trading. Follow Discord’s ToS and CIG’s rules.\nKein NSFW, keine Piraterie, keine Cheats/Exploits, kein Konto- oder Credit-Handel. Halte dich an Discords ToS und CIGs Regeln.' },
         { name: '6 · No drama-farming · Kein Drama-Farming', value: 'Disagree fine, dogpile no. Staff (🛰 Navigators, ⭐ Fleet Command) have the final call.\nUneinigkeit okay, Dogpiling nein. Das Team (🛰 Navigators, ⭐ Fleet Command) hat das letzte Wort.' },
+        { name: '🚦 New arrivals · Neuankömmlinge', value: 'Not a rule, just a heads-up: you can chat straight away, but **links, images & attachments** unlock once you reach ⛏ Prospect (level 5) — a few good messages. It keeps spam bots out, not you.\nKeine Regel, nur ein Hinweis: du kannst sofort schreiben, aber **Links, Bilder & Anhänge** schalten ab ⛏ Prospect (Level 5) frei — ein paar gute Nachrichten. Das hält Spam-Bots draußen, nicht dich.' },
       ],
       footer: 'Breaking these can mean a mute, kick or ban · Verstöße können Mute, Kick oder Bann bedeuten',
     },
@@ -322,8 +366,10 @@ export const seed = {
       color: C.cyan,
       description: 'Everything on the server, and the tool behind each channel.\nAlles auf dem Server, und das Tool hinter jedem Kanal.',
       fields: [
-        { name: '🛠 Tools & Data', value: `Each channel pairs with a live tool on the site · Jeder Kanal ist mit einem Live-Tool der Seite verknüpft:\n⛏ <#mining> — [Minerals & calculators](${SITE}/topics/mining.html)\n💰 <#trading> — [Prices & locations](${SITE}/item-finder.html)\n🔧 <#crafting> — [Blueprints & planner](${SITE}/topics/crafting.html)\n🚀 <#ships> — [Data sheets & holo viewer](${SITE}/schiffe.html)\n🧭 <#exploration> — [Aaron Halo jump calc](${SITE}/precision-jump.html)\n📜 <#missions> — [Rewards & reputation](${SITE}/missionen.html)\n🐟 <#wikelo-ch> — [Wikelo’s Emporium](${SITE}/topics/wikelo-emporium.html)` },
-        { name: '🤝 Crew up · Zusammen fliegen', value: 'Find a group in <#lfg>, deals in <#trade-deals>, and events in <#events-chat>. Voice is one click down.\nGruppe in <#lfg>, Deals in <#trade-deals>, Events in <#events-chat>. Voice ist einen Klick weiter unten.' },
+        { name: '🛠 Tools & Data', value: `Each channel pairs with a live tool on the site — and the bot’s **/ship /price /item /patch** work right here · Jeder Kanal ist mit einem Live-Tool verknüpft — und **/ship /price /item /patch** des Bots gehen direkt hier:\n⛏ <#mining> — [Minerals & calculators](${SITE}/topics/mining.html)\n💰 <#trading> — [Prices & locations](${SITE}/item-finder.html)\n🔧 <#crafting> — [Blueprints & planner](${SITE}/topics/crafting.html)\n🚀 <#ships> — [Data sheets & holo viewer](${SITE}/schiffe.html)\n🧭 <#exploration> — [Aaron Halo jump calc](${SITE}/precision-jump.html)\n📜 <#missions> — [Rewards & reputation](${SITE}/missionen.html)\n🐟 <#wikelo-ch> — [Wikelo’s Emporium](${SITE}/topics/wikelo-emporium.html)\n🛟 <#support> — stuck on a tool, the bot or the game? · hängst du fest? Frag hier` },
+        { name: '💬 Chat & crew · Reden & Crew', value: 'Hang out in <#general>, say hi in <#introductions>, talk patches in <#patch-chat>, share shots in <#screenshots>, and drop ideas in <#suggestions>. Crew up in <#lfg>, <#trade-deals> & <#events-chat> — voice is one click down.\nPlausch in <#general>, sag Hallo in <#introductions>, sprich über Patches in <#patch-chat>, teile Aufnahmen in <#screenshots>, und wirf Ideen in <#suggestions>. Crew finden in <#lfg>, <#trade-deals> & <#events-chat> — Voice ist einen Klick weiter unten.' },
+        { name: '🏅 Ranks & rewards · Ränge & Belohnungen', value: 'Chatting and hanging in voice earn XP — climb from 🌑 Drifter to 👑 Frontier Legend. Check your card with **/rank**, **/leaderboard** & **/ranks** in <#bot-commands> (it earns no XP, so spam away). 🎖 <#veterans-lounge> unlocks at ⬡ **Citizen (level 15)**.\nMit Chatten und Voice sammelst du XP — steig von 🌑 Drifter zu 👑 Frontier Legend auf. Deine Karte mit **/rank**, **/leaderboard** & **/ranks** in <#bot-commands> (bringt kein XP, also leg los). 🎖 <#veterans-lounge> schaltet ab ⬡ **Citizen (Level 15)** frei.' },
+        { name: '🚦 New here? · Neu hier?', value: 'You can chat right away. Posting **links, images & file attachments** unlocks at ⛏ **Prospect (level 5)** — a handful of good messages and you’re there. It quietly keeps spam bots out.\nDu kannst sofort mitreden. **Links, Bilder & Datei-Anhänge** schalten ab ⛏ **Prospect (Level 5)** frei — ein paar gute Nachrichten und du bist da. Das hält Spam-Bots leise draußen.' },
         { name: '🎭 Your roles · Deine Rollen', value: 'Re-open **Channels & Roles** (top of the list) any time to add or drop interest, ping, language & pronoun roles.\nÖffne **Kanäle & Rollen** (oben in der Liste) jederzeit, um Interessen-, Ping-, Sprach- & Pronomen-Rollen zu ändern.' },
         { name: '🌐 The whole compendium · Das ganze Kompendium', value: `[verse-base.com](${SITE}) · [Patch archive / Patch-Archiv](${SITE}/archiv.html) · [Evolution timeline / Evolution](${SITE}/evolution.html) · [Downloads](${SITE}/downloads.html)` },
         { name: '🙏 Credits · Danksagung', value: `The Aaron Halo / Precision Jump calculator was contributed by **Jordessey** — with thanks. · Der Aaron-Halo-/Precision-Jump-Rechner stammt mit Dank von **Jordessey**. → [precision-jump](${SITE}/precision-jump.html)` },
@@ -373,6 +419,102 @@ export const seed = {
         '**🔔 Pings** — Patch-Releases · Ankündigungen · Events',
         '**🌐 Sprache** — English · Deutsch',
         '**🙂 Pronomen** — they/them · she/her · he/him · frag mich',
+      ].join('\n'),
+      footer: 'VerseBase • verse-base.com',
+    },
+  ],
+  'bot-commands': [
+    {
+      title: '🤖 Bot commands · Bot-Befehle',
+      color: C.gold,
+      description: [
+        'The home for bot spam — **this channel earns no XP**, so run commands as much as you like. The Flight Computer answers in your language (set it in onboarding).',
+        '',
+        '**Rank & leveling** — best kept here:',
+        '**/rank** your card · **/leaderboard** the server top · **/ranks** the full ladder · **/prestige** at max level',
+        '',
+        '**Flight Computer** — game data, also works in the tool channels:',
+        '**/ship** ‹name› · **/price** ‹commodity› · **/item** ‹name› · **/patch** ‹version›',
+        DIV,
+        'Die Heimat für Bot-Spam — **dieser Kanal bringt kein XP**, also nutze Befehle so viel du willst. Der Flight Computer antwortet in deiner Sprache (im Onboarding einstellen).',
+        '',
+        '**Ränge & Level** — am besten hier:',
+        '**/rank** deine Karte · **/leaderboard** die Server-Spitze · **/ranks** die ganze Leiter · **/prestige** beim Maximallevel',
+        '',
+        '**Flight Computer** — Spieldaten, gehen auch in den Tool-Kanälen:',
+        '**/ship** ‹Name› · **/price** ‹Ware› · **/item** ‹Name› · **/patch** ‹Version›',
+      ].join('\n'),
+      footer: 'VerseBase • Flight Computer',
+    },
+  ],
+  'veterans-lounge': [
+    {
+      title: '🎖 Veterans’ Lounge · Stammgäste-Lounge',
+      color: C.gold,
+      description: [
+        'You made it — this room only opens at ⬡ **Citizen (level 15)** and up. The quieter table for the regulars who keep the ’verse turning.',
+        '',
+        'No special rules, just the house ones. Prestige keeps your seat: an ✦ Ascended badge stays welcome here even after a reset.',
+        DIV,
+        'Du hast es geschafft — dieser Raum öffnet erst ab ⬡ **Citizen (Level 15)** aufwärts. Der ruhigere Tisch für die Stammgäste, die das ’Verse am Laufen halten.',
+        '',
+        'Keine Sonderregeln, nur die des Hauses. Prestige behält deinen Platz: ein ✦ Ascended-Abzeichen bleibt auch nach einem Reset willkommen.',
+      ].join('\n'),
+      footer: 'VerseBase • earned, not given',
+    },
+  ],
+  suggestions: [
+    {
+      title: '💡 Suggestions · Vorschläge',
+      color: C.blue,
+      description: [
+        'Ideas for the **server** or for **verse-base.com** go here. One idea per post so others can react to vote — 👍 for yes, 👎 for no.',
+        '',
+        'Bugs or broken data on the site? Take those to <#support> instead. Big thanks — the site grew from feedback like yours.',
+        DIV,
+        'Ideen für den **Server** oder für **verse-base.com** kommen hier rein. Eine Idee pro Post, damit andere per Reaktion abstimmen können — 👍 für ja, 👎 für nein.',
+        '',
+        'Fehler oder kaputte Daten auf der Seite? Ab damit in <#support>. Großen Dank — die Seite ist aus Feedback wie deinem gewachsen.',
+      ].join('\n'),
+      footer: 'VerseBase • verse-base.com',
+    },
+  ],
+  support: [
+    {
+      title: '🛟 Support · Hilfe',
+      color: C.miningTeal,
+      description: [
+        'Stuck on a tool, the Discord bot, or something in-game? Ask here — say what you tried, and add a screenshot if you can.',
+        '',
+        '• **Site & tools** — mining, trading, ships, the item finder, the jump calc…',
+        '• **The bot** — ranks, commands, roles not showing up',
+        '• **The game** — the crew is happy to help',
+        '',
+        `Prefer the website? The [feedback form](${SITE}/feedback.html) reaches the same inbox.`,
+        DIV,
+        'Hängst du an einem Tool, dem Discord-Bot oder etwas im Spiel? Frag hier — schreib, was du versucht hast, und ein Screenshot hilft.',
+        '',
+        '• **Seite & Tools** — Mining, Handel, Schiffe, der Item-Finder, der Sprung-Rechner…',
+        '• **Der Bot** — Ränge, Befehle, Rollen die nicht auftauchen',
+        '• **Das Spiel** — die Crew hilft gern',
+        '',
+        `Lieber über die Website? Das [Feedback-Formular](${SITE}/feedback.html) landet im selben Postfach.`,
+      ].join('\n'),
+      footer: 'VerseBase • verse-base.com',
+    },
+  ],
+  'patch-chat': [
+    {
+      title: '🩹 Patch chat · Patch-Talk',
+      color: C.gold,
+      description: [
+        `Talk through the latest Star Citizen patch here — the read-only feed lives in <#patch-notes>, and the full history is on the [patch archive](${SITE}/archiv.html).`,
+        '',
+        'Want the ping when a patch drops? Grab 🔔 **Patch Pings** in <#roles-info>. Ask the bot for any version with **/patch** in <#bot-commands>.',
+        DIV,
+        `Sprich hier über den neuesten Star-Citizen-Patch — der reine Feed steht in <#patch-notes>, und die ganze Historie im [Patch-Archiv](${SITE}/archiv.html).`,
+        '',
+        'Willst du den Ping, wenn ein Patch landet? Schnapp dir 🔔 **Patch Pings** in <#roles-info>. Frag den Bot mit **/patch** in <#bot-commands> nach jeder Version.',
       ].join('\n'),
       footer: 'VerseBase • verse-base.com',
     },

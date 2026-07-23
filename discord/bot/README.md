@@ -14,7 +14,12 @@ fully configurable from inside Discord.
 > only that a message happened).
 
 This complements the one-shot server **builder** in [`../`](../): the builder
-creates the channels/roles once; this bot runs continuously for ranks.
+creates the channels/roles once; this bot runs continuously for ranks. They share
+one source of truth — the builder reads this bot's rank ladder
+([`src/ranks.mjs`](src/ranks.mjs)) to place rank-gated channels and order roles,
+and this bot reads channel **names** to know where to stay silent and where to
+post level-ups. **When both change, update this bot first**, then run the builder,
+so the rank roles carry the newcomer-gate permissions before @everyone loses them.
 
 ---
 
@@ -25,9 +30,17 @@ creates the channels/roles once; this bot runs continuously for ranks.
   self-muted/deafened members (configurable). Survives restarts (stateless sweep).
 - **Multipliers** — global event boost (double-XP weekend), server-booster bonus,
   per-role and per-channel multipliers, and a permanent prestige bonus. They stack.
-- **No-XP channels** — blacklist spam/bot channels.
+- **No-XP channels** — blacklist by ID (`/rank-admin noxp`) *or* by name: the bot
+  skips XP in channels whose name matches `noXpChannelNames` (default
+  `bot-commands`, `memes`, `off-topic`), so it mirrors the server blueprint's
+  `noXp: true` channels with zero manual setup. Threads inherit their parent.
 - **Deep rank ladder** — 12 ranks from *Drifter* to *Frontier Legend*, each a
   colored role the bot **self-provisions** and assigns on rank-up.
+- **Newcomer anti-spam gate** — the server blueprint drops `EmbedLinks`/`AttachFiles`
+  from @everyone; the bot grants them back on every rank role from **Prospect
+  (level 5)** up (and on prestige roles), so new accounts can chat but unlock
+  links/images/files once they've settled in. Tune it via `TRUSTED_LEVEL` in
+  [`src/ranks.mjs`](src/ranks.mjs).
 - **Prestige** — prestige at max level for a permanent XP bonus and a ✦ role.
 - **Rank card** — a themed PNG (`/rank`) rendered with the site's own fonts, with
   a rich embed fallback if the image renderer isn't available.
