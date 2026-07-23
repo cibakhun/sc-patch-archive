@@ -11,18 +11,20 @@ const { lang = 'en' } = Astro.props;
 const t = {
   de: {
     searchPlaceholder: 'Item, Waffe, Schiff, Fundort suchen…',
-    hAvailability: 'Fundart', hCategories: 'Kategorien',
+    hAvailability: 'Fundart', hCategories: 'Kategorien', hSize: 'Größe',
     loading: 'Datenbank wird geladen…',
     sortNameAsc: 'Name (A–Z)', sortNameDesc: 'Name (Z–A)',
     sortPriceAsc: 'Preis (aufsteigend)', sortPriceDesc: 'Preis (absteigend)',
+    sortStat: 'Wert (hoch→niedrig)',
     modalClose: 'Schließen',
   },
   en: {
     searchPlaceholder: 'Search item, weapon, ship, location…',
-    hAvailability: 'Availability', hCategories: 'Categories',
+    hAvailability: 'Availability', hCategories: 'Categories', hSize: 'Size',
     loading: 'Loading database…',
     sortNameAsc: 'Name (A–Z)', sortNameDesc: 'Name (Z–A)',
     sortPriceAsc: 'Price (low–high)', sortPriceDesc: 'Price (high–low)',
+    sortStat: 'Value (high–low)',
     modalClose: 'Close',
   },
 }[lang];
@@ -49,7 +51,20 @@ const JS_T = {
     catArmour: 'Rüstung', catClothing: 'Kleidung', catWeapons: 'Waffen',
     catVehicle: 'Fahrzeuge', catVehiclegear: 'Schiffskomponenten', catAmmo: 'Munition',
     catAttachment: 'Aufsätze', catUtility: 'Werkzeug & Verbrauch', catOther: 'Sonstiges',
-    catComponent: 'Komponenten',
+    catComponent: 'Komponenten', catCommodity: 'Handelswaren',
+    sectionSpecs: 'Technische Daten',
+    specMfr: 'Hersteller', specSize: 'Größe', specGrade: 'Grade', specClass: 'Klasse', specVolume: 'Volumen',
+    statDamage: 'Schaden', statFireRate: 'Feuerrate', statMagazine: 'Magazin',
+    statShieldHp: 'Schild-HP', statRegen: 'Schild-Regen', statQtSpeed: 'QT-Geschwindigkeit',
+    statCooldown: 'Abklingzeit', statResist: 'Schadensreduktion', statStorage: 'Stauraum',
+    statLifetime: 'Flugzeit', statHealth: 'Bauteil-HP', unitRpm: 'Schuss/min', resistAll: 'Alle',
+    statBlast: 'Explosionsradius', statCooling: 'Kühlleistung', statPower: 'Leistung',
+    statTemp: 'Temp.-Rating', statRadiation: 'Strahlungsschutz',
+    statFuel: 'Treibstoff-Kapazität', statNdr: 'Nährwert (NDR)', statEffects: 'Effekte',
+    statJammer: 'QT-Jammer-Reichweite', statEmpRadius: 'EMP-Radius', statDistortion: 'Distortion-Schaden',
+    statCharge: 'Ladezeit', statDps: 'DPS', statSensitivity: 'Signatur-Empfindlichkeit',
+    dmgPhysical: 'Physisch', dmgEnergy: 'Energie', dmgDistortion: 'Distortion',
+    dmgThermal: 'Thermisch', dmgBio: 'Biochem', dmgStun: 'Betäubung',
   },
   en: {
     kindAll: 'All', kindBuy: 'Buyable', kindLoot: 'Loot', kindCatalog: 'Catalog only',
@@ -71,7 +86,20 @@ const JS_T = {
     catArmour: 'Armor', catClothing: 'Clothing', catWeapons: 'Weapons',
     catVehicle: 'Vehicles', catVehiclegear: 'Ship components', catAmmo: 'Ammo',
     catAttachment: 'Attachments', catUtility: 'Tools & consumables', catOther: 'Other',
-    catComponent: 'Components',
+    catComponent: 'Components', catCommodity: 'Commodities',
+    sectionSpecs: 'Technical data',
+    specMfr: 'Manufacturer', specSize: 'Size', specGrade: 'Grade', specClass: 'Class', specVolume: 'Volume',
+    statDamage: 'Damage', statFireRate: 'Fire rate', statMagazine: 'Magazine',
+    statShieldHp: 'Shield HP', statRegen: 'Shield regen', statQtSpeed: 'QT speed',
+    statCooldown: 'Cooldown', statResist: 'Damage reduction', statStorage: 'Storage',
+    statLifetime: 'Flight time', statHealth: 'Item HP', unitRpm: 'rpm', resistAll: 'All',
+    statBlast: 'Blast radius', statCooling: 'Cooling rate', statPower: 'Power output',
+    statTemp: 'Temp. rating', statRadiation: 'Radiation protection',
+    statFuel: 'Fuel capacity', statNdr: 'Nutrition (NDR)', statEffects: 'Effects',
+    statJammer: 'QT jammer range', statEmpRadius: 'EMP radius', statDistortion: 'Distortion damage',
+    statCharge: 'Charge time', statDps: 'DPS', statSensitivity: 'Signature sensitivity',
+    dmgPhysical: 'Physical', dmgEnergy: 'Energy', dmgDistortion: 'Distortion',
+    dmgThermal: 'Thermal', dmgBio: 'Biochem', dmgStun: 'Stun',
   },
 }[lang];
 ---
@@ -85,6 +113,8 @@ const JS_T = {
     <div class="uif-filters">
       <h3>{t.hAvailability}</h3>
       <div id="uif-kind-chips" class="uif-chips"><!-- Chips via JS --></div>
+      <h3>{t.hSize}</h3>
+      <div id="uif-size-chips" class="uif-chips"><!-- Größen via JS --></div>
       <h3>{t.hCategories}</h3>
       <div id="uif-category-list"><!-- Kategorien via JS --></div>
     </div>
@@ -97,6 +127,7 @@ const JS_T = {
         <select id="uif-sort-select" aria-label="Sort">
           <option value="name_asc">{t.sortNameAsc}</option>
           <option value="name_desc">{t.sortNameDesc}</option>
+          <option value="stat_desc">{t.sortStat}</option>
           <option value="price_asc">{t.sortPriceAsc}</option>
           <option value="price_desc">{t.sortPriceDesc}</option>
         </select>
@@ -528,6 +559,41 @@ const JS_T = {
     border-left: 3px solid var(--accent, #ff5e1a);
     border-radius: 6px;
     padding: 0.9rem 1.1rem;
+  }
+
+  /* Technische Daten (Spieldaten aus dem DataCore) */
+  .uif-spec-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+  .uif-spec-chip {
+    font-size: 0.82rem; color: var(--muted, #9ba2ae);
+    background: var(--surface-2, var(--veil-2));
+    border: 1px solid var(--line-soft, var(--line-soft));
+    border-radius: 999px; padding: 0.3rem 0.75rem; white-space: nowrap;
+  }
+  .uif-spec-chip b { color: var(--text, #eef1f5); font-weight: 600; margin-right: 0.3rem; }
+  .uif-stat-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.6rem; margin-bottom: 1rem;
+  }
+  .uif-stat {
+    display: flex; flex-direction: column; gap: 0.2rem;
+    background: var(--veil-hi, var(--surface-2));
+    border: 1px solid var(--line-soft, var(--line-soft));
+    border-left: 3px solid var(--accent-2, var(--accent, #ff5e1a));
+    border-radius: 6px; padding: 0.55rem 0.75rem;
+  }
+  .uif-stat-l { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted, #9ba2ae); }
+  .uif-stat-v { font-size: 1.05rem; font-weight: 700; color: var(--text, #eef1f5); }
+  .uif-item-desc { margin: 0; color: var(--muted, #9ba2ae); font-size: 0.92rem; line-height: 1.6; white-space: pre-line; }
+  .uif-card-spec {
+    font-size: 0.78rem; color: var(--muted, #9ba2ae); margin: -0.35rem 0 0.6rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .uif-card-stat {
+    font-weight: 700; font-size: 0.8rem; white-space: nowrap; flex-shrink: 0; margin-left: 0.5rem;
+    color: var(--accent-2, var(--accent, #ff5e1a));
+    background: color-mix(in srgb, var(--accent-2, var(--accent, #ff5e1a)) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-2, var(--accent, #ff5e1a)) 35%, transparent);
+    border-radius: 999px; padding: 0.15rem 0.55rem;
   }
 
   .uif-crafting-header {
