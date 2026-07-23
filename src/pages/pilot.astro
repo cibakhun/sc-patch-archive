@@ -1,0 +1,8 @@
+---
+// Öffentliche Piloten-Profilseite (EN, Standardsprache) — /pilot.html.
+// Handle kommt per ?h=<handle> (nginx-Rewrite von /pilot/<handle>) bzw. wird
+// clientseitig aus dem Pfad gelesen; Daten lädt die Seite aus den Supabase-
+// Views public_profiles / public_favorites.
+import PilotPage from '../components/pilot/PilotPage.astro';
+---
+<PilotPage lang="en" />

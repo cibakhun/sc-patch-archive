@@ -95,6 +95,10 @@ const COPY = {
     modalTitle: 'Öffentliche Profil-Vorschau',
     closeModal: 'Schließen',
     previewHint: 'So sehen andere Piloten dein Profil.',
+    publicPageLabel: 'Öffentliche Seite',
+    publicPageCopy: 'Link kopieren',
+    publicPageCopied: 'Kopiert! ✓',
+    publicPageNoHandle: 'Setze ein Handle, um deine öffentliche Seite zu aktivieren.',
   },
   en: {
     loading: 'Loading your account …',
@@ -180,6 +184,10 @@ const COPY = {
     modalTitle: 'Public Profile Preview',
     closeModal: 'Close',
     previewHint: 'This is how other pilots see your profile.',
+    publicPageLabel: 'Public page',
+    publicPageCopy: 'Copy link',
+    publicPageCopied: 'Copied! ✓',
+    publicPageNoHandle: 'Set a handle to activate your public page.',
   },
 }[lang];
 
@@ -566,6 +574,19 @@ const confirmRedirect = loginHref + '?confirmed=1';
           </div>
         </div>
       </div>
+
+      <div class="pv-public" id="pvPublicRow" hidden>
+        <span class="pv-public__label">{COPY.publicPageLabel}</span>
+        <a class="pv-public__link" id="pvPublicLink" href="#" target="_blank" rel="noopener noreferrer"></a>
+        <button
+          type="button"
+          class="pv-public__copy"
+          id="pvPublicCopy"
+          data-label={COPY.publicPageCopy}
+          data-done={COPY.publicPageCopied}
+        >{COPY.publicPageCopy}</button>
+      </div>
+      <p class="acx-hint" id="pvPublicNoHandle" hidden>{COPY.publicPageNoHandle}</p>
 
       <div class="acx-actions" style="margin-top:1.2rem">
         <button type="button" class="acx-submit acx-submit--ghost" id="btnClosePreviewModal">{COPY.closeModal}</button>
@@ -1104,6 +1125,60 @@ const confirmRedirect = loginHref + '?confirmed=1';
     background: color-mix(in srgb, var(--accent) 14%, transparent);
   }
   a.pv-chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Öffentliche-Seite-Zeile im Vorschau-Modal */
+  .pv-public {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+  .pv-public[hidden] { display: none !important; }
+  .pv-public__label {
+    font-family: var(--font-ui, sans-serif);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .pv-public__link {
+    font-family: var(--font-mono, 'Share Tech Mono', monospace);
+    font-size: 0.85rem;
+    color: var(--accent);
+    border-bottom: 1px solid var(--line);
+    overflow-wrap: anywhere;
+  }
+  .pv-public__link:hover { border-color: var(--accent); }
+  .pv-public__copy {
+    margin-left: auto;
+    font-family: var(--font-ui, sans-serif);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .pv-public__copy:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .pv-public__copy:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
@@ -1665,6 +1740,23 @@ const confirmRedirect = loginHref + '?confirmed=1';
         copyChip('pcLinkRsi', 'pvChipRsi');
         copyChip('pcPillDiscord', 'pvChipDiscord');
         copyChip('pcPillOrg', 'pvChipOrg');
+
+        // Öffentliche Seite: /pilot/<handle> — nur mit gesetztem, gültigem
+        // Handle (gleicher Regex wie beim Speichern). Ohne Handle stattdessen
+        // der Aktivierungs-Hinweis.
+        const pvPublicRow = document.getElementById('pvPublicRow');
+        const pvPublicNoHandle = document.getElementById('pvPublicNoHandle');
+        const pvPublicLink = document.getElementById('pvPublicLink') as HTMLAnchorElement | null;
+        const pubHandle = /^[a-z0-9_]{3,24}$/.test(profileState.handle || '') ? profileState.handle : '';
+        if (pvPublicRow && pvPublicNoHandle && pvPublicLink) {
+          pvPublicRow.hidden = !pubHandle;
+          pvPublicNoHandle.hidden = !!pubHandle;
+          if (pubHandle) {
+            const publicPath = (lang === 'de' ? '/de/pilot/' : '/pilot/') + pubHandle;
+            pvPublicLink.href = publicPath;
+            pvPublicLink.textContent = publicPath;
+          }
+        }
       };
 
       if (btnPreviewModal && previewModal) {
@@ -1679,6 +1771,20 @@ const confirmRedirect = loginHref + '?confirmed=1';
       if (previewModal) {
         previewModal.addEventListener('click', (e: MouseEvent) => {
           if (e.target === previewModal) previewModal.close();
+        });
+      }
+
+      // Copy-Link-Button der öffentlichen Seite (kopiert die absolute URL)
+      const pvPublicCopy = document.getElementById('pvPublicCopy') as HTMLButtonElement | null;
+      if (pvPublicCopy) {
+        pvPublicCopy.addEventListener('click', async () => {
+          const link = document.getElementById('pvPublicLink') as HTMLAnchorElement | null;
+          const hrefVal = link?.getAttribute('href') || '';
+          if (!hrefVal || hrefVal === '#') return;
+          try { await navigator.clipboard.writeText(new URL(hrefVal, location.origin).href); } catch {}
+          const lbl = pvPublicCopy.dataset.label || 'Copy link';
+          pvPublicCopy.textContent = pvPublicCopy.dataset.done || 'Copied! ✓';
+          setTimeout(() => { pvPublicCopy.textContent = lbl; }, 2000);
         });
       }
 

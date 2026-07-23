@@ -74,13 +74,6 @@ const t = {
       </div>
       <div class="vp-status-dot" id="pcStatusDot" title={t.statusTitle}></div>
     </div>
-
-    <div class="vp-actions">
-      <button type="button" class="vp-btn-ghost" id="btnPreviewModal">
-        <span class="vp-btn-ghost__icon" aria-hidden="true">◈</span>
-        <span>{t.publicProfile}</span>
-      </button>
-    </div>
   </div>
 
   <!-- 4 · Identity-Block -->
@@ -93,6 +86,13 @@ const t = {
         </svg>
         RSI VERIFIED
       </span>
+
+      <div class="vp-actions">
+        <button type="button" class="vp-btn-ghost" id="btnPreviewModal">
+          <span class="vp-btn-ghost__icon" aria-hidden="true">◈</span>
+          <span>{t.publicProfile}</span>
+        </button>
+      </div>
     </div>
 
     <div class="vp-handle-row">
@@ -121,19 +121,45 @@ const t = {
     <!-- 6 · Stats-Readout -->
     <dl class="vp-stats">
       <div class="vp-stat">
-        <dt>{t.statSince}</dt>
+        <dt>
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <rect x="3.5" y="5" width="17" height="16" rx="2" />
+            <path d="M3.5 9.5h17M8 2.5V6M16 2.5V6" />
+          </svg>
+          {t.statSince}
+        </dt>
         <dd id="pcStatSince">—</dd>
       </div>
       <div class="vp-stat">
-        <dt>{t.statFavs}</dt>
+        <dt>
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2.5l2.9 5.9 6.5.95-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.05 1.1-6.5-4.7-4.6 6.5-.95z" />
+          </svg>
+          {t.statFavs}
+        </dt>
         <dd id="pcStatFavs">0</dd>
       </div>
       <div class="vp-stat">
-        <dt>{t.statFriends}</dt>
+        <dt>
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <circle cx="9" cy="8" r="3.2" />
+            <path d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5" />
+            <circle cx="17" cy="9" r="2.4" />
+            <path d="M16.5 14.6c2.3.3 4 2 4 4.4" />
+          </svg>
+          {t.statFriends}
+        </dt>
         <dd id="pcStatFriends">0</dd>
       </div>
       <div class="vp-stat">
-        <dt>{t.statComplete}</dt>
+        <dt>
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 20V4" />
+            <path d="M4 20h16" />
+            <path d="M8.5 16v-5M13 16V7.5M17.5 16v-3" />
+          </svg>
+          {t.statComplete}
+        </dt>
         <dd id="pcStatComplete">0%</dd>
         <span class="vp-stat-bar" aria-hidden="true"><span id="pcStatBar"></span></span>
       </div>
@@ -148,18 +174,34 @@ const t = {
     <div class="vp-chips" id="pcSocialPills">
       <a id="pcLinkRsi" href="#" target="_blank" rel="noopener noreferrer" class="vp-chip vp-chip--rsi" hidden>
         <span class="vp-chip__dot" id="pcRsiDot" hidden aria-hidden="true"></span>
-        <span class="vp-chip__icon" aria-hidden="true">◆</span>
+        <span class="vp-chip__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18M12 3c2.8 2.6 4 5.6 4 9s-1.2 6.4-4 9c-2.8-2.6-4-5.6-4-9s1.2-6.4 4-9z" />
+          </svg>
+        </span>
         <span class="vp-chip__label">RSI: <strong id="pcTxtRsi"></strong></span>
         <span class="vp-chip__action">Spectrum →</span>
       </a>
 
       <span id="pcPillDiscord" class="vp-chip" hidden>
-        <span class="vp-chip__icon" aria-hidden="true">💬</span>
+        <span class="vp-chip__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 7.5C7 6 9.5 5.4 12 5.4s5 .6 7 2.1c1.2 2 1.8 4.6 1.8 7.3-1.6 1.4-3.4 2.3-5.3 2.7l-.9-1.7c-1.8.5-3.4.5-5.2 0l-.9 1.7c-1.9-.4-3.7-1.3-5.3-2.7 0-2.7.6-5.3 1.8-7.3z" />
+            <circle cx="9.2" cy="11.6" r="0.4" fill="currentColor" />
+            <circle cx="14.8" cy="11.6" r="0.4" fill="currentColor" />
+          </svg>
+        </span>
         <span class="vp-chip__label">Discord: <strong id="pcTxtDiscord"></strong></span>
       </span>
 
       <span id="pcPillOrg" class="vp-chip" hidden>
-        <span class="vp-chip__icon" aria-hidden="true">❖</span>
+        <span class="vp-chip__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+            <path d="M12 3l7 9-7 9-7-9z" />
+            <path d="M12 7.5l3.5 4.5L12 16.5 8.5 12z" />
+          </svg>
+        </span>
         <span class="vp-chip__label"><strong id="pcTxtOrg"></strong></span>
       </span>
     </div>
@@ -228,7 +270,7 @@ const t = {
   /* ---------- 2 · Banner ---------- */
   .vp-banner {
     position: relative;
-    height: 220px;
+    height: 190px;
     background: var(--media-void, #05070d);
     overflow: hidden;
   }
@@ -415,8 +457,7 @@ const t = {
   }
 
   .vp-actions {
-    margin-top: 62px;
-    padding-bottom: 0.4rem;
+    margin-left: auto;
   }
 
   .vp-btn-ghost {
@@ -464,7 +505,7 @@ const t = {
   }
   .vp-name {
     font-family: var(--font-display, sans-serif);
-    font-size: 1.6rem;
+    font-size: clamp(1.45rem, 3.4vw, 2rem);
     font-weight: 700;
     color: var(--text);
     margin: 0;
@@ -556,6 +597,8 @@ const t = {
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--muted);
+    hyphens: none;
+    overflow-wrap: normal;
   }
   .vp-transmission__tag {
     color: var(--accent);
@@ -579,12 +622,19 @@ const t = {
   }
   .vp-stat { min-width: 0; }
   .vp-stat dt {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
     font-family: var(--font-ui, sans-serif);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--muted);
+  }
+  .vp-stat dt svg {
+    color: var(--accent);
+    flex: none;
   }
   .vp-stat dd {
     margin: 0.2rem 0 0;
@@ -647,6 +697,7 @@ const t = {
     transition: border-color 0.2s ease, background 0.2s ease, filter 0.2s ease;
   }
   .vp-chip[hidden] { display: none !important; }
+  .vp-chip__icon { display: inline-flex; color: var(--accent); }
   .vp-chip--rsi { border-color: var(--line); }
   a.vp-chip:hover {
     border-color: var(--accent);
@@ -685,20 +736,41 @@ const t = {
     background: #16a34a;
     box-shadow: 0 0 6px rgba(22, 163, 74, 0.55);
   }
+  /* Light-Theme: Scrim nicht auswaschen — die Banner-Zone bleibt eine dunkle
+     Medien-Insel, erst der unterste Übergang geht in die helle Kartenfläche. */
+  :root[data-theme='light'] .vp-banner__scrim {
+    background: linear-gradient(
+      to bottom,
+      rgba(5, 7, 13, 0.3) 0%,
+      rgba(5, 7, 13, 0.5) 55%,
+      color-mix(in srgb, var(--surface) 82%, transparent) 86%,
+      var(--surface) 100%
+    );
+  }
+  /* "Banner customized"-Badge: auf der dunklen Medien-Insel auch im Light-
+     Theme dunkel halten, statt als heller Fremdkörper zu wirken. */
+  :root[data-theme='light'] .vp-banner__badge {
+    background: rgba(13, 19, 34, 0.92);
+    color: #e8eefc;
+    border-color: rgba(45, 212, 255, 0.35);
+  }
 
   /* ---------- Responsive ---------- */
   @media (max-width: 560px) {
     .vp-chrome { font-size: 0.58rem; letter-spacing: 0.1em; }
-    .vp-banner { height: 170px; }
+    .vp-banner { height: 150px; }
     .vp-avatar-row {
-      flex-direction: column;
-      align-items: flex-start;
-      margin-top: -58px;
+      margin-top: -54px;
     }
-    .vp-actions { margin-top: 0; padding-bottom: 0; }
     .vp-avatar-module { width: 116px; height: 116px; }
     .vp-avatar-box { width: 84px; height: 84px; font-size: 2.1rem; }
-    .vp-name { font-size: 1.3rem; }
+    .vp-name { font-size: 1.4rem; }
+    /* Meta-Zeile gestapelt: Rolle über Transmission, kein Wortbruch.
+       Beim Umbruch der Transmission hängt der „·“ sonst sinnlos am
+       Zeilenende — mobil ausblenden, der Custom-Text steht allein. */
+    .vp-meta { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    .vp-transmission { flex-wrap: wrap; }
+    .vp-transmission__sep { display: none; }
     .vp-stats { grid-template-columns: repeat(2, 1fr); }
   }
 
