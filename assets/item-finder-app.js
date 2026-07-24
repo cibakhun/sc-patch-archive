@@ -39,6 +39,21 @@
     }
     return p === Infinity ? null : p;
   }
+  // Hat das Item eine eigene Detailseite? Muss mit isIndexable() in
+  // src/lib/items.ts uebereinstimmen — dort entscheidet dieselbe Regel, welche
+  // /items/<id>.html gebaut wird. Weicht sie ab, verlinken Karten ins Leere.
+  function hasPage(item) {
+    if (item.obtain.length > 0) return true;
+    if (item.guide) return true;
+    var g = item.game;
+    if (!g || !g.stats) return false;
+    for (var k in g.stats) if (Object.prototype.hasOwnProperty.call(g.stats, k)) return true;
+    return false;
+  }
+  function itemUrl(item) {
+    return (CFG.itemBase || '/items/') + encodeURIComponent(item.id) + '.html';
+  }
+
   function hasKind(item, kind) {
     if (kind === 'all') return true;
     if (kind === 'catalog') return item.obtain.length === 0;
@@ -275,7 +290,15 @@
       var ps = primaryStat(item);
       var statBadge = ps ? '<span class="uif-card-stat" title="' + esc(ps.l) + '">' + esc(ps.v) + '</span>' : '';
 
-      return '<div class="uif-card" data-id="' + esc(item.id) + '" data-category="' + esc(parent) + '" tabindex="0" role="button">' +
+      // Karten mit Detailseite sind echte Links (Crawler + Strg-Klick + „in
+      // neuem Tab öffnen"); Katalog-Reste ohne Seite bleiben Buttons.
+      var linked = hasPage(item);
+      var tag = linked ? 'a' : 'div';
+      var attrs = linked
+        ? ' href="' + esc(itemUrl(item)) + '"'
+        : ' tabindex="0" role="button"';
+
+      return '<' + tag + ' class="uif-card" data-id="' + esc(item.id) + '" data-category="' + esc(parent) + '"' + attrs + '>' +
         '<div class="uif-card-header">' +
           '<div class="uif-card-cat-wrapper">' + categoryIcon(parent) + ' <span>' + esc(item.category) + '</span></div>' +
           statBadge +
@@ -286,18 +309,31 @@
           '<div class="uif-card-price">' + priceHtml + '</div>' +
           '<div class="uif-card-location" title="' + esc(item.obtain.length ? item.obtain[0].loc : '') + '">' + locHtml + '</div>' +
         '</div>' +
-      '</div>';
+      '</' + tag + '>';
     }).join('');
 
     grid.querySelectorAll('.uif-card').forEach(function (card) {
-      function open() {
+      function find() {
         var id = card.getAttribute('data-id');
-        var item = null;
-        for (var i = 0; i < ALL_ITEMS.length; i++) if (ALL_ITEMS[i].id === id) { item = ALL_ITEMS[i]; break; }
-        if (item) openModal(item);
+        for (var i = 0; i < ALL_ITEMS.length; i++) if (ALL_ITEMS[i].id === id) return ALL_ITEMS[i];
+        return null;
       }
-      card.addEventListener('click', open);
-      card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+      card.addEventListener('click', function (e) {
+        // Modifier-Klick und Mittelklick gehoeren dem Browser (neuer Tab).
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+        var item = find();
+        if (!item) return;
+        e.preventDefault();
+        openModal(item);
+      });
+      card.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          var item = find();
+          if (!item) return;
+          e.preventDefault();
+          openModal(item);
+        }
+      });
     });
   }
 
@@ -449,6 +485,11 @@
         '<span class="uif-modal-meta-item">' + categoryIcon(parent) + ' ' + esc(item.category) + '</span>' +
       '</div>' +
       '<h2 class="uif-modal-title">' + esc(item.name) + '</h2>' +
+      // Weg zur teilbaren, verlinkbaren Fassung derselben Daten.
+      (hasPage(item)
+        ? '<a class="uif-xlink uif-xlink--page" href="' + esc(itemUrl(item)) + '">' +
+            esc(tr('openPage', 'Detailseite öffnen')) + ' →</a>'
+        : '') +
     '</div>';
 
     // Technische Daten (Spieldaten) — zuerst: was IST das Item, was kann es
@@ -524,8 +565,12 @@
           (bp.tiers ? '<div><strong>' + esc(tr('craftTiers', 'Stufen')) + ':</strong> ' + esc(String(bp.tiers)) + '</div>' : '') +
         '</div>' +
         (ingredients ? '<div class="uif-crafting-ingredients"><h5>' + esc(tr('craftMaterials', 'Materialien')) + '</h5>' + ingredients + '</div>' : '') +
-        // DE liegt unter /de/, EN im Root (ein /en/-Prefix existiert nicht).
-        '<a class="uif-xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/topics/crafting.html?bp=' + encodeURIComponent(item.name) + '">' + (XLINK_ICONS.bp || '') + esc(tr('openInCrafting', 'Im Crafting-Planer öffnen')) + ' →</a>' +
+        // Zwei Ziele: die statische Blueprint-Seite (verlinkbar, indexiert) und
+        // der interaktive Planer. DE liegt unter /de/, EN im Root.
+        (bp.__slug
+          ? '<a class="uif-xlink" href="' + (CFG.craftBase || '/crafting/') + esc(bp.__slug) + '.html">' + (XLINK_ICONS.bp || '') + esc(bp.name) + ' →</a> '
+          : '') +
+        '<a class="uif-xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/topics/crafting.html?bp=' + encodeURIComponent(item.name) + '">' + esc(tr('openInCrafting', 'Im Crafting-Planer öffnen')) + ' →</a>' +
       '</div>';
     }
 
@@ -589,8 +634,20 @@
 
       var craft = results[1];
       if (craft && craft.blueprints) {
+        // Slugs exakt wie in src/lib/crafting.ts vergeben (gleiche Reihenfolge,
+        // gleiches "-2"-Suffix bei Namensdubletten) — sonst zeigt der Link aus
+        // dem Modal auf eine URL, die es nicht gibt.
+        var usedSlug = {};
         craft.blueprints.forEach(function (bp) {
-          if (bp.name) CRAFTING_MAP[bp.name.toLowerCase()] = bp;
+          if (!bp.name) return;
+          var base = String(bp.name).toLowerCase()
+            .replace(/['’"]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '') || 'blueprint';
+          var n = (usedSlug[base] || 0) + 1;
+          usedSlug[base] = n;
+          bp.__slug = n > 1 ? base + '-' + n : base;
+          CRAFTING_MAP[bp.name.toLowerCase()] = bp;
         });
       }
 

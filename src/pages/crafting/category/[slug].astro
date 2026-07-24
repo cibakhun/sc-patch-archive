@@ -1,0 +1,17 @@
+---
+// Blueprint-Kategorie (EN) — /crafting/category/<cat>.html
+import CraftingListing from '../../../components/CraftingListing.astro';
+import { craftCategories, craftPageCount } from '../../../lib/crafting';
+
+export async function getStaticPaths() {
+  return craftCategories.flatMap((node) =>
+    Array.from({ length: craftPageCount(node) }, (_, n) => n + 1).map((page) => ({
+      params: { slug: page > 1 ? `${node.slug}-${page}` : node.slug },
+      props: { node, page },
+    }))
+  );
+}
+
+const { node, page } = Astro.props;
+---
+<CraftingListing node={node} page={page} lang="en" />

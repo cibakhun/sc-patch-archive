@@ -1,0 +1,17 @@
+---
+// Kategorie-Liste (EN) — /items/category/<cat>.html, Folgeseiten "<cat>-2".
+import ItemListing from '../../../components/ItemListing.astro';
+import { categories, pageCount } from '../../../lib/items';
+
+export async function getStaticPaths() {
+  return categories.flatMap((node) =>
+    Array.from({ length: pageCount(node) }, (_, n) => n + 1).map((page) => ({
+      params: { slug: page > 1 ? `${node.slug}-${page}` : node.slug },
+      props: { node, page },
+    }))
+  );
+}
+
+const { node, page } = Astro.props;
+---
+<ItemListing node={node} page={page} lang="en" />

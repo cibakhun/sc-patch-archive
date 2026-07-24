@@ -1,0 +1,432 @@
+/* ============================================================
+   data-page.css — EINE Datei fuer alle generierten Datenseiten
+   (Item-Datenblaetter, Blueprint-Seiten, Kategorie-Listen).
+
+   Sie wird von ~14.000 Seiten geladen und liegt deshalb bewusst
+   AUSSERHALB des HTML: einmal geladen, einmal gecacht.
+
+   FARBEN: ausschliesslich Tokens (--bg, --surface, --text,
+   --muted, --accent, --line, --veil …). Die Palette selbst steht
+   inline in DataShell.astro, damit scripts/build-light-palettes
+   .mjs den Hellmodus daraus erzeugen kann. Hier darf KEIN
+   Hex-Wert stehen — sonst bricht der Hellmodus.
+   ============================================================ */
+
+/* ---------- Grundgeruest ---------- */
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body, 'Barlow', system-ui, sans-serif);
+  line-height: 1.6;
+}
+
+.dp-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--accent);
+  color: var(--ink);
+  padding: 0.6rem 1rem;
+  font-weight: 700;
+}
+.dp-skip:focus { left: 0; }
+
+.dp {
+  --dp-w: var(--maxw, 1080px);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Crafting-Zweig: bernsteiner Akzent. Beide Tokens sind in Hell UND
+   Dunkel definiert — der Tausch funktioniert deshalb in beiden Modi. */
+.dp[data-tone='craft'] {
+  --accent-swap: var(--accent);
+  --accent: var(--accent-2);
+  --accent-2: var(--accent-swap);
+}
+
+/* ---------- Kopfleiste ---------- */
+
+.dp-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.7rem clamp(0.8rem, 4vw, 2rem);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.dp-home {
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  font-size: 0.92rem;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.dp-home:hover { color: var(--accent); }
+
+.dp-crumbs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.dp-crumbs a { color: var(--muted); text-decoration: none; }
+.dp-crumbs a:hover { color: var(--accent); text-decoration: underline; }
+.dp-crumbs [aria-current='page'] {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 28ch;
+}
+.dp-sep { opacity: 0.5; }
+
+.dp-lang {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  text-decoration: none;
+}
+.dp-lang:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ---------- Rumpf ---------- */
+
+.dp-main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--dp-w);
+  margin: 0 auto;
+  padding: clamp(1.4rem, 4vw, 2.6rem) clamp(0.9rem, 4vw, 2rem) 3rem;
+}
+
+.dp-eyebrow {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-ui, 'Barlow Condensed', sans-serif);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  color: var(--accent-2);
+}
+
+.dp-main h1 {
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 900;
+  font-size: clamp(1.6rem, 5vw, 2.7rem);
+  line-height: 1.15;
+  margin: 0 0 0.4rem;
+  overflow-wrap: break-word;
+}
+
+.dp-alt {
+  margin: 0 0 0.8rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.dp-lead {
+  margin: 0 0 1.4rem;
+  font-size: 1.05rem;
+  color: var(--text);
+  max-width: 68ch;
+}
+
+/* Kennzahlen direkt unter der Einleitung (Preis ab / Verkaufsstellen / …) */
+.dp-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0 0 1.8rem;
+  padding: 0;
+  list-style: none;
+}
+.dp-key {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 5px;
+  background: var(--surface);
+  padding: 0.5rem 0.9rem;
+  min-width: 8rem;
+}
+.dp-key b {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dp-key span {
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+/* ---------- Abschnitte ---------- */
+
+.dp-sec { margin: 0 0 2.2rem; }
+.dp-sec > h2 {
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-size: clamp(1.05rem, 2.6vw, 1.35rem);
+  font-weight: 800;
+  margin: 0 0 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+}
+.dp-sec > h3 {
+  font-size: 1rem;
+  margin: 1.2rem 0 0.5rem;
+  color: var(--accent-2);
+}
+
+/* ---------- Tabellen ---------- */
+
+.dp-tablewrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.dp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  text-align: left;
+}
+.dp-table th,
+.dp-table td { padding: 0.6rem 0.9rem; }
+.dp-table th {
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.dp-table td {
+  color: var(--muted);
+  border-bottom: 1px solid var(--line-soft);
+}
+.dp-table tr:last-child td { border-bottom: none; }
+.dp-table tbody tr:hover td { background: var(--veil-hi); color: var(--text); }
+.dp-table a { color: var(--text); text-decoration: none; }
+.dp-table a:hover { color: var(--accent); text-decoration: underline; }
+.dp-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.dp-price { font-weight: 700; color: var(--accent); }
+.dp-best td { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.dp-best .dp-price::after {
+  content: '★';
+  margin-left: 0.35rem;
+  font-size: 0.75em;
+  color: var(--accent-2);
+}
+.dp-muted { color: var(--muted); }
+
+/* ---------- Chips & Werte ---------- */
+
+.dp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+.dp-chip {
+  font-size: 0.82rem;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  white-space: nowrap;
+}
+.dp-chip b { color: var(--text); font-weight: 600; margin-right: 0.3rem; }
+
+.dp-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dp-stat {
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--accent-2);
+  border-radius: 5px;
+  padding: 0.5rem 0.7rem;
+}
+.dp-stat b {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dp-stat span { font-weight: 700; color: var(--text); }
+
+.dp-desc {
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  white-space: pre-line;
+  max-width: 72ch;
+}
+
+/* ---------- Hinweise ---------- */
+
+.dp-note {
+  margin: 0.8rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.dp-callout {
+  margin: 0;
+  background: var(--veil-hi);
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 5px;
+  padding: 0.85rem 1rem;
+  color: var(--text);
+  max-width: 72ch;
+}
+
+/* ---------- Karten (verwandte Items, Kategorien) ---------- */
+
+.dp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dp-card {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.75rem 0.85rem;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.2s, transform 0.2s;
+}
+.dp-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.dp-card strong { display: block; font-size: 0.95rem; line-height: 1.35; }
+.dp-card em {
+  display: block;
+  font-style: normal;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+.dp-card .dp-card-price { color: var(--accent); font-weight: 700; }
+
+/* ---------- Bloetterung ---------- */
+
+.dp-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 1.6rem 0 0;
+}
+.dp-pager a,
+.dp-pager span {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.85rem;
+  text-decoration: none;
+  color: var(--muted);
+}
+.dp-pager a:hover { color: var(--accent); border-color: var(--accent); }
+.dp-pager [aria-current='page'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ---------- Aktionen ---------- */
+
+.dp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.2rem 0 0;
+}
+.dp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+}
+.dp-btn:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.dp-btn--ghost { border-color: var(--line); color: var(--muted); }
+.dp-btn--ghost:hover { border-color: var(--accent-2); color: var(--accent-2); background: none; }
+
+/* ---------- Fuss ---------- */
+
+.dp-foot {
+  border-top: 1px solid var(--line);
+  padding: 1.4rem clamp(0.9rem, 4vw, 2rem) 2.4rem;
+  background: var(--bg-2);
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.dp-foot > * {
+  max-width: var(--dp-w);
+  margin-left: auto;
+  margin-right: auto;
+}
+.dp-foot-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  margin: 0 auto 0.8rem;
+}
+.dp-foot-nav a { color: var(--muted); text-decoration: none; }
+.dp-foot-nav a:hover { color: var(--accent); text-decoration: underline; }
+.dp-src { margin: 0 auto 0.6rem; }
+.dp-legal { margin: 0 auto 0.8rem; font-size: 0.76rem; line-height: 1.5; opacity: 0.85; }
+.dp-foot-legal { margin-bottom: 0; }
+
+/* ---------- Schmale Viewports ---------- */
+
+@media (max-width: 640px) {
+  .dp-crumbs { font-size: 0.74rem; }
+  .dp-crumbs [aria-current='page'] { max-width: 16ch; }
+  .dp-key { min-width: 6.5rem; flex: 1 1 40%; }
+}

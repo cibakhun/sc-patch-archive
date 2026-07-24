@@ -1,0 +1,221 @@
+// Item-/Blueprint-Vokabular — EINE Quelle fuer zwei Konsumenten:
+//   1. die statischen Detailseiten (/items/…, /crafting/…), gerendert in Astro
+//   2. das Client-JS des Item-Finders (window.__UIF.t, assets/item-finder-app.js)
+//
+// Vorher lag der Katalog als JS_T-Literal in ItemFinderApp.astro. Sobald die
+// Seiten dieselben Stat-Labels rendern, muessen beide Seiten exakt dieselben
+// Woerter benutzen — sonst heisst dieselbe Zahl im Modal "Kuehlleistung" und auf
+// der Seite "Kuehlrate". Deshalb steht der Katalog jetzt hier.
+
+import type { Locale } from './ui';
+
+export const ITEM_UI = {
+  de: {
+    /* -- Finder-App (window.__UIF.t) -- */
+    kindAll: 'Alle', kindBuy: 'Kaufbar', kindLoot: 'Loot', kindCatalog: 'Nur Katalog',
+    kindShop: 'Shop', kindVehicleShop: 'Schiffshändler',
+    noResults: 'Keine passenden Items gefunden.',
+    priceFrom: 'ab', lootOnly: 'Nur Loot', noTradeData: 'Keine Handelsdaten',
+    noSourceData: 'Kein Fundort bekannt',
+    showing: '{start}–{end} von {total} Einträgen', showingNone: '0 Einträge',
+    pageFirst: 'Anfang', pagePrev: 'Zurück', pageNext: 'Weiter', pageLast: 'Ende',
+    pageOf: 'Seite {p} von {t}',
+    sectionObtain: 'Bezugsquellen', thLocation: 'Ort', thKind: 'Art', thPrice: 'Preis',
+    volatileNote: 'Preise und Fundorte sind Patch-volatil — ingame prüfen.',
+    catalogNote: 'Katalog-Eintrag: Für dieses Item liegen keine verifizierten Shop- oder Loot-Daten vor.',
+    sectionGuide: 'Fundort-Guide', sectionCrafting: 'Crafting-Rezept',
+    craftTime: 'Dauer', craftTiers: 'Stufen', craftMaterials: 'Materialien',
+    openInCrafting: 'Im Crafting-Planer öffnen',
+    loadError: 'Die Item-Datenbank konnte nicht geladen werden. Bitte später erneut versuchen.',
+    subline: '{total} Items, {sourced} mit verifizierten Bezugsquellen',
+    catArmour: 'Rüstung', catClothing: 'Kleidung', catWeapons: 'Waffen',
+    catVehicle: 'Fahrzeuge', catVehiclegear: 'Schiffskomponenten', catAmmo: 'Munition',
+    catAttachment: 'Aufsätze', catUtility: 'Werkzeug & Verbrauch', catOther: 'Sonstiges',
+    catComponent: 'Komponenten', catCommodity: 'Handelswaren', catMissionitems: 'Missions-Items',
+    sectionSpecs: 'Technische Daten',
+    specMfr: 'Hersteller', specSize: 'Größe', specGrade: 'Grade', specClass: 'Klasse', specVolume: 'Volumen',
+    statDamage: 'Schaden', statFireRate: 'Feuerrate', statMagazine: 'Magazin',
+    statShieldHp: 'Schild-HP', statRegen: 'Schild-Regen', statQtSpeed: 'QT-Geschwindigkeit',
+    statCooldown: 'Abklingzeit', statResist: 'Schadensreduktion', statStorage: 'Stauraum',
+    statLifetime: 'Flugzeit', statHealth: 'Bauteil-HP', unitRpm: 'Schuss/min', resistAll: 'Alle',
+    statBlast: 'Explosionsradius', statCooling: 'Kühlleistung', statPower: 'Leistung',
+    statTemp: 'Temp.-Rating', statRadiation: 'Strahlungsschutz', statOxygen: 'Sauerstoff-Vorrat',
+    statFuel: 'Treibstoff-Kapazität', statNdr: 'Nährwert (NDR)', statEffects: 'Effekte',
+    statJammer: 'QT-Jammer-Reichweite', statEmpRadius: 'EMP-Radius', statDistortion: 'Distortion-Schaden',
+    statCharge: 'Ladezeit', statDps: 'DPS', statSensitivity: 'Signatur-Empfindlichkeit',
+    dmgPhysical: 'Physisch', dmgEnergy: 'Energie', dmgDistortion: 'Distortion',
+    dmgThermal: 'Thermisch', dmgBio: 'Biochem', dmgStun: 'Betäubung',
+
+    /* -- Detailseite -- */
+    openPage: 'Detailseite öffnen',
+    pageEyebrow: 'Item-Datenblatt',
+    breadcrumbItems: 'Items',
+    breadcrumbCrafting: 'Blueprints',
+    cheapest: 'Günstigster Kaufpreis',
+    cheapestAt: 'günstigster Kaufort',
+    priceRange: 'Preisspanne',
+    soldAt: 'Verkaufsstellen',
+    soldAtOne: 'Verkaufsstelle',
+    lootSources: 'Loot-Fundorte',
+    noPurchase: 'An keinem bekannten Ingame-Terminal kaufbar.',
+    pricesAsOf: 'Preisstand',
+    dataAsOf: 'Datenstand',
+    sectionRelated: 'Ähnliche Items',
+    sectionCategory: 'Kategorie',
+    allInCategory: 'Alle Items dieser Kategorie',
+    backToFinder: 'Zum Item Finder',
+    backToHub: 'Alle Kategorien',
+    hubTitle: 'Item-Verzeichnis',
+    hubLead: 'Alle {total} Items aus Star Citizen {patch} nach Kategorie — mit Kaufpreisen, Verkaufsstellen und Spielwerten.',
+    hubItemsWithPage: '{n} mit Datenblatt',
+    withDataSheet: 'Mit Datenblatt',
+    listingLead: '{n} Einträge in {cat}. Kaufpreise und Verkaufsstellen aus dem Snapshot vom {date}.',
+    listingNoPage: 'Kein Datenblatt: für diesen Eintrag liegen weder Bezugsquellen noch Spielwerte vor.',
+    thItem: 'Item', thSources: 'Bezugsquellen', thFrom: 'ab',
+    pagination: 'Seiten',
+    page: 'Seite',
+    prevPage: '← Zurück',
+    nextPage: 'Weiter →',
+
+    /* -- Blueprint-Seite -- */
+    bpEyebrow: 'Blueprint',
+    bpIngredients: 'Zutaten',
+    bpSlot: 'Slot',
+    bpMaterial: 'Material',
+    bpAmount: 'Menge',
+    bpMinQuality: 'min. Qualität',
+    bpQualityEffects: 'Qualitäts-Effekte',
+    bpQualityNote: 'Materialqualität 0–1000 skaliert die genannten Werte zwischen den beiden Faktoren; „×" multipliziert den Basiswert, „+" addiert.',
+    bpStat: 'Wert', bpAtMin: 'bei Q0', bpAtMax: 'bei Q1000',
+    bpItemStats: 'Item-Werte',
+    bpMass: 'Masse', bpOverheat: 'Überhitzungs-Temperatur',
+    bpTempRes: 'Temperatur-Fenster', bpDmgRes: 'Schadensreduktion', bpArmorClass: 'Rüstungsklasse',
+    bpFireModes: 'Feuermodi', bpMaxAmmo: 'Magazin', bpMaxRestock: 'Nachschub',
+    bpMissions: 'Missionen, die diesen Blueprint droppen',
+    bpMissionsNote: 'Drop-Chance laut Spieldaten; mehrere Blueprints teilen sich einen Pool.',
+    bpNoMissions: 'Keine Missions-Quelle in den Spieldaten — evtl. über Shop oder Reputation erhältlich.',
+    bpDropChance: 'Drop-Chance',
+    bpOpenPlanner: 'Im Fabricator-Planer öffnen',
+    bpOpenItem: 'Item-Datenblatt öffnen',
+    bpRelated: 'Blueprints mit ähnlichen Materialien',
+    bpTotalScu: 'Materialbedarf gesamt',
+    bpHubTitle: 'Blueprint-Verzeichnis',
+    bpHubLead: 'Alle {total} Crafting-Blueprints aus Star Citizen {patch} nach Kategorie — mit Zutaten, Craft-Zeit und Missions-Quellen.',
+    bpListingLead: '{n} Blueprints in {cat}. Zutaten und Craft-Zeiten aus dem Snapshot vom {date}.',
+    thBlueprint: 'Blueprint', thTime: 'Craft-Zeit', thMaterials: 'Materialien',
+    bpCraftedItem: 'Gecraftetes Item',
+  },
+  en: {
+    /* -- finder app (window.__UIF.t) -- */
+    kindAll: 'All', kindBuy: 'Buyable', kindLoot: 'Loot', kindCatalog: 'Catalog only',
+    kindShop: 'Shop', kindVehicleShop: 'Ship dealer',
+    noResults: 'No matching items found.',
+    priceFrom: 'from', lootOnly: 'Loot only', noTradeData: 'No trade data',
+    noSourceData: 'No known source',
+    showing: '{start}–{end} of {total} entries', showingNone: '0 entries',
+    pageFirst: 'First', pagePrev: 'Prev', pageNext: 'Next', pageLast: 'Last',
+    pageOf: 'Page {p} of {t}',
+    sectionObtain: 'Where to get it', thLocation: 'Location', thKind: 'Kind', thPrice: 'Price',
+    volatileNote: 'Prices and locations are patch-volatile — verify in game.',
+    catalogNote: 'Catalog entry: no verified shop or loot data is available for this item.',
+    sectionGuide: 'Loot guide', sectionCrafting: 'Crafting recipe',
+    craftTime: 'Time', craftTiers: 'Tiers', craftMaterials: 'Materials',
+    openInCrafting: 'Open in crafting planner',
+    loadError: 'The item database could not be loaded. Please try again later.',
+    subline: '{total} items, {sourced} with verified sources',
+    catArmour: 'Armor', catClothing: 'Clothing', catWeapons: 'Weapons',
+    catVehicle: 'Vehicles', catVehiclegear: 'Ship components', catAmmo: 'Ammo',
+    catAttachment: 'Attachments', catUtility: 'Tools & consumables', catOther: 'Other',
+    catComponent: 'Components', catCommodity: 'Commodities', catMissionitems: 'Mission items',
+    sectionSpecs: 'Technical data',
+    specMfr: 'Manufacturer', specSize: 'Size', specGrade: 'Grade', specClass: 'Class', specVolume: 'Volume',
+    statDamage: 'Damage', statFireRate: 'Fire rate', statMagazine: 'Magazine',
+    statShieldHp: 'Shield HP', statRegen: 'Shield regen', statQtSpeed: 'QT speed',
+    statCooldown: 'Cooldown', statResist: 'Damage reduction', statStorage: 'Storage',
+    statLifetime: 'Flight time', statHealth: 'Item HP', unitRpm: 'rpm', resistAll: 'All',
+    statBlast: 'Blast radius', statCooling: 'Cooling rate', statPower: 'Power output',
+    statTemp: 'Temp. rating', statRadiation: 'Radiation protection', statOxygen: 'Oxygen supply',
+    statFuel: 'Fuel capacity', statNdr: 'Nutrition (NDR)', statEffects: 'Effects',
+    statJammer: 'QT jammer range', statEmpRadius: 'EMP radius', statDistortion: 'Distortion damage',
+    statCharge: 'Charge time', statDps: 'DPS', statSensitivity: 'Signature sensitivity',
+    dmgPhysical: 'Physical', dmgEnergy: 'Energy', dmgDistortion: 'Distortion',
+    dmgThermal: 'Thermal', dmgBio: 'Biochem', dmgStun: 'Stun',
+
+    /* -- detail page -- */
+    openPage: 'Open detail page',
+    pageEyebrow: 'Item data sheet',
+    breadcrumbItems: 'Items',
+    breadcrumbCrafting: 'Blueprints',
+    cheapest: 'Cheapest price',
+    cheapestAt: 'cheapest at',
+    priceRange: 'Price range',
+    soldAt: 'vendors',
+    soldAtOne: 'vendor',
+    lootSources: 'loot locations',
+    noPurchase: 'Not sold at any known in-game terminal.',
+    pricesAsOf: 'Prices as of',
+    dataAsOf: 'Data as of',
+    sectionRelated: 'Similar items',
+    sectionCategory: 'Category',
+    allInCategory: 'All items in this category',
+    backToFinder: 'To the Item Finder',
+    backToHub: 'All categories',
+    hubTitle: 'Item directory',
+    hubLead: 'All {total} Star Citizen {patch} items by category — with buy prices, vendor locations and game stats.',
+    hubItemsWithPage: '{n} with a data sheet',
+    withDataSheet: 'With data sheet',
+    listingLead: '{n} entries in {cat}. Buy prices and vendors from the {date} snapshot.',
+    listingNoPage: 'No data sheet: this entry has neither a known source nor game stats.',
+    thItem: 'Item', thSources: 'Sources', thFrom: 'from',
+    pagination: 'Pages',
+    page: 'Page',
+    prevPage: '← Previous',
+    nextPage: 'Next →',
+
+    /* -- blueprint page -- */
+    bpEyebrow: 'Blueprint',
+    bpIngredients: 'Ingredients',
+    bpSlot: 'Slot',
+    bpMaterial: 'Material',
+    bpAmount: 'Amount',
+    bpMinQuality: 'min. quality',
+    bpQualityEffects: 'Quality effects',
+    bpQualityNote: 'Material quality 0–1000 scales the listed stats between the two factors; “×” multiplies the base value, “+” adds to it.',
+    bpStat: 'Stat', bpAtMin: 'at Q0', bpAtMax: 'at Q1000',
+    bpItemStats: 'Item stats',
+    bpMass: 'Mass', bpOverheat: 'Overheat temperature',
+    bpTempRes: 'Temperature window', bpDmgRes: 'Damage reduction', bpArmorClass: 'Armor class',
+    bpFireModes: 'Fire modes', bpMaxAmmo: 'Magazine', bpMaxRestock: 'Restock',
+    bpMissions: 'Missions that drop this blueprint',
+    bpMissionsNote: 'Drop chance per game data; several blueprints share one pool.',
+    bpNoMissions: 'No mission source in the game data — may be obtainable via shop or reputation.',
+    bpDropChance: 'Drop chance',
+    bpOpenPlanner: 'Open in the fabricator planner',
+    bpOpenItem: 'Open item data sheet',
+    bpRelated: 'Blueprints with similar materials',
+    bpTotalScu: 'Total material need',
+    bpHubTitle: 'Blueprint directory',
+    bpHubLead: 'All {total} Star Citizen {patch} crafting blueprints by category — with ingredients, craft time and mission sources.',
+    bpListingLead: '{n} blueprints in {cat}. Ingredients and craft times from the {date} snapshot.',
+    thBlueprint: 'Blueprint', thTime: 'Craft time', thMaterials: 'Materials',
+    bpCraftedItem: 'Crafted item',
+  },
+} as const;
+
+export type ItemUIKey = keyof (typeof ITEM_UI)['en'];
+
+/** t = itemT(lang) — Labels der Item-/Blueprint-Schicht, EN als Rueckfall. */
+export function itemT(lang: Locale) {
+  return (key: ItemUIKey): string => ITEM_UI[lang]?.[key] ?? ITEM_UI.en[key] ?? String(key);
+}
+
+/** Platzhalter {a} in einem Label ersetzen. */
+export function fill(s: string, vars: Record<string, string | number>): string {
+  return s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+}
+
+/** Anzeige-Label einer Kategorie-Wurzel ("Armour" -> "Rüstung"). */
+export function categoryLabel(root: string, lang: Locale): string {
+  const key = ('cat' + root.replace(/[^A-Za-z]/g, '')) as ItemUIKey;
+  return ITEM_UI[lang]?.[key] ?? ITEM_UI.en[key] ?? root;
+}
