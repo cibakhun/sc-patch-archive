@@ -93,8 +93,8 @@
 .acbtn--primary:hover{filter:brightness(1.08)}
 
 /* Readouts */
-.rds{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);border-radius:12px;overflow:hidden}
-.rd{background:var(--surface);padding:.9rem .95rem;position:relative;text-align:left;color:inherit;text-decoration:none;font:inherit;border:0;transition:background .15s;display:block}
+.rds{display:flex;flex-wrap:wrap;gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);border-radius:12px;overflow:hidden}
+.rd{flex:1 1 160px;background:var(--surface);padding:.9rem .95rem;position:relative;text-align:left;color:inherit;text-decoration:none;font:inherit;border:0;transition:background .15s;display:block}
 button.rd,a.rd{cursor:pointer;width:100%}
 .rd:hover{background:var(--surface-2)}
 .rd:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
