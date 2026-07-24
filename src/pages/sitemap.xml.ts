@@ -14,6 +14,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { SITE } from '../consts';
+import { isNoindex } from '../lib/seo';
 import vehiclesSnapshot from '../data/vehicles.json';
 import { db as missionsDb, missions } from '../lib/missions';
 
@@ -27,9 +28,22 @@ function fileToUrl(file: string): string | null {
   if (file.includes('[')) return null; // dynamische Route -> via Collection
   const rel = file.replace(/^\.\//, '').replace(/\.astro$/, '');
   if (rel === '404') return null; // noindex, gehört nicht in die Sitemap
-  if (rel === 'index') return '/index.html'; // EN-Startseite (Standardsprache)
-  if (rel === 'de/index') return '/de.html'; // DE-Startseite (format:'file')
-  return '/' + rel + '.html';
+
+  let url: string;
+  if (rel === 'index') url = '/index.html'; // EN-Startseite (Standardsprache)
+  else if (rel === 'de/index') url = '/de.html'; // DE-Startseite (format:'file')
+  // build.format:'file' legt JEDES index.astro als <ordner>.html ab, nicht als
+  // <ordner>/index.html: src/pages/account/index.astro -> /account.html. Ohne
+  // diesen Zweig bewarb die Sitemap /account/index.html — eine URL, die es im
+  // Build nicht gibt (404 in der Search Console).
+  else if (rel.endsWith('/index')) url = '/' + rel.slice(0, -'/index'.length) + '.html';
+  else url = '/' + rel + '.html';
+
+  // Seiten auf noindex gehören nicht in die Sitemap: beides zusammen meldet
+  // Google als „Übermittelte URL als ‚noindex' markiert". Eine Quelle für beide
+  // Signale ist lib/seo#NOINDEX_PATHS. Die Prüfung steht bewusst NACH allen
+  // Zweigen — sonst rutscht ausgerechnet /account.html an ihr vorbei.
+  return isNoindex(url) ? null : url;
 }
 
 /** DE-Pendant eines EN-Pfads (spiegelt i18n/pathForLocale, ohne Import-Zyklus). */

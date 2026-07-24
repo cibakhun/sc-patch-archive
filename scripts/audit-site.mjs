@@ -47,6 +47,54 @@ const infos = [];    // Hinweise
 // FleetYards' "<= PLACEHOLDER =>"); kleingeschrieben ist es Fließtext — die
 // Missions-Tooltips erklären z. B. „the marked spots are placeholders".
 // JS-Leckagen (>undefined<, [object Object]) sind ohnehin exakt geschrieben.
+/**
+ * Entfernt Teilbäume, deren Wurzel-Tag `hidden` trägt. Solche Knoten stehen
+ * NICHT im Accessibility-Baum — für die Überschriften-Gliederung existieren sie
+ * also nicht. Seiten mit sich gegenseitig ausschließenden Zuständen (Profil da
+ * / Profil nicht gefunden) haben je Zustand ein <h1>, sichtbar ist immer nur
+ * eines. Ohne diesen Filter meldet der Audit das als „2× <h1>".
+ *
+ * Bewusst NUR für die h1-Zählung: bei Bildern wollen wir den Alt-Text auch dann
+ * sehen, wenn der Block gerade ausgeblendet ist — er wird ja später sichtbar.
+ */
+function stripHiddenSubtrees(html) {
+  // Leere Elemente haben kein schließendes Tag — sie können nichts umschließen.
+  // (Ohne diese Liste hält `<img … hidden>` für ein Container-Tag her, findet
+  // nie ein </img> und reißt den ganzen Rest des Dokuments mit.)
+  const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+    'link', 'meta', 'param', 'source', 'track', 'wbr']);
+  const OPEN = /<([a-z][a-z0-9-]*)\b([^>]*?)(\/?)>/gi;
+  for (let guard = 0; guard < 100; guard++) {
+    OPEN.lastIndex = 0;
+    let m;
+    let cut = null;
+    while ((m = OPEN.exec(html))) {
+      const [, rawName, attrs, selfClose] = m;
+      const name = rawName.toLowerCase();
+      if (selfClose || VOID.has(name)) continue;
+      // `hidden` als eigenständiges Attribut (nicht data-hidden, nicht hidden-xy)
+      if (!/(^|\s)hidden(\s|=|$)/i.test(attrs)) continue;
+      // passendes </name> suchen; gleichnamige Verschachtelung mitzählen
+      const TAGS = new RegExp(`<(/?)${name}\\b([^>]*?)(/?)>`, 'gi');
+      TAGS.lastIndex = m.index + m[0].length;
+      let depth = 1;
+      let t;
+      while ((t = TAGS.exec(html))) {
+        if (t[3]) continue; // self-closing
+        depth += t[1] ? -1 : 1;
+        if (depth === 0) break;
+      }
+      // Kein passendes Ende gefunden -> lieber nichts entfernen als zu viel.
+      if (depth !== 0) continue;
+      cut = [m.index, TAGS.lastIndex];
+      break;
+    }
+    if (!cut) break;
+    html = html.slice(0, cut[0]) + html.slice(cut[1]);
+  }
+  return html;
+}
+
 const PLACEHOLDER_RE = /\bTODO\b|\bFIXME\b|PLACEHOLDER|\bTBD\b|\[object Object\]|>undefined<|>null<|>NaN\b/;
 const PLACEHOLDER_CI_RE = /lorem ipsum/i;
 const MOJIBAKE_RE = /Ã[¤¶¼Ÿ„–©¨]|â€“|â€ž|â€œ|â€¦|Â°|Ã¢/;
@@ -111,12 +159,18 @@ for (const f of htmlFiles) {
   }
 
   // --- h1 ---
-  const h1Count = (html.match(/<h1[\s>]/g) || []).length;
+  // Gegen `markup`, nicht `html`: Inline-Scripts bauen <h1> als Template-String
+  // zusammen (Piloten-Seite) — das ist EIN gerendertes h1, kein zweites.
+  const h1Count = (stripHiddenSubtrees(markup).match(/<h1[\s>]/g) || []).length;
   if (h1Count === 0) a11yIssues.push(`${page}: kein <h1>`);
   else if (h1Count > 1) a11yIssues.push(`${page}: ${h1Count}× <h1>`);
 
   // --- img alt + Media-Semantik ---
-  for (const m of html.matchAll(/<img\b[^>]*>/g)) {
+  // Ebenfalls gegen `markup`: die Bild-Fallback-Logik ERWÄHNT „<img>" in
+  // Kommentaren, und ein Kommentar hat keinen Alt-Text. Gegen `html` gescannt
+  // waren 454 der 456 A11y-Warnungen genau dieser Fehlalarm — die echten
+  // Befunde gingen darin unter.
+  for (const m of markup.matchAll(/<img\b[^>]*>/g)) {
     const src = /src="([^"]*)"/.exec(m[0])?.[1] || '?';
     const altM = /\salt="([^"]*)"/.exec(m[0]);
     if (!altM) {
@@ -251,6 +305,51 @@ for (const f of htmlFiles) {
   if (!fileSet.has(dePage)) missingDe.push(page);
 }
 
+// --- Sitemap gegen die Wirklichkeit prüfen ---------------------------------
+// Die Sitemap ist ein Versprechen an Google: „diese URLs gibt es und sie
+// gehören in den Index". Zwei Arten, es zu brechen — beide gab es hier:
+//   1. beworbene URL existiert gar nicht (/account/index.html statt
+//      /account.html) -> „URL nicht gefunden (404)" in der Search Console;
+//   2. beworbene URL trägt <meta robots noindex> -> „Übermittelte URL als
+//      ‚noindex' markiert".
+// Beides ist aus dem fertigen Build eindeutig entscheidbar, also hier.
+const sitemapIssues = [];
+const sitemapPath = join(DIST, 'sitemap.xml');
+if (!existsSync(sitemapPath)) {
+  sitemapIssues.push('sitemap.xml fehlt im Build');
+} else {
+  const xml = readFileSync(sitemapPath, 'utf8');
+  const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  if (!locs.length) sitemapIssues.push('sitemap.xml enthält keine <loc>-Einträge');
+  const seen = new Set();
+  for (const loc of locs) {
+    // '/' ist die Startseite und liegt als index.html im Build.
+    const p = loc.replace(/^https?:\/\/[^/]+/, '') || '/';
+    const file = p === '/' ? '/index.html' : p;
+    if (seen.has(p)) sitemapIssues.push(`doppelter Eintrag: ${p}`);
+    seen.add(p);
+    if (!fileSet.has(file)) {
+      sitemapIssues.push(`beworben, aber nicht gebaut: ${p}`);
+      continue;
+    }
+    const html = readFileSync(join(DIST, file.slice(1)), 'utf8');
+    if (/<meta\s+name="robots"\s+content="[^"]*noindex/i.test(html)) {
+      sitemapIssues.push(`steht auf noindex, aber in der Sitemap: ${p}`);
+    }
+  }
+  // Gegenprobe: gebaute, indexierbare Seiten, die NICHT beworben werden.
+  // Onepager sind eigenständige Artefakte und bewusst nicht in der Sitemap.
+  for (const f of htmlFiles) {
+    const p = rel(f);
+    if (p === '/404.html' || p.startsWith('/onepager/') || p.startsWith('/downloads/')) continue;
+    const canon = p === '/index.html' ? '/' : p;
+    if (seen.has(canon)) continue;
+    const html = readFileSync(f, 'utf8');
+    if (/<meta\s+name="robots"\s+content="[^"]*noindex/i.test(html)) continue; // korrekt weggelassen
+    sitemapIssues.push(`indexierbar, fehlt aber in der Sitemap: ${p}`);
+  }
+}
+
 // --- Seitengewichte ---
 const heavy = [];
 for (const f of htmlFiles) {
@@ -281,6 +380,7 @@ if (basePrefixPages.size) {
   console.log('   Entscheid nötig: Root-Deploy (SITE.url ohne Pfad) ODER base: setzen + Links umstellen.');
   errors.push(`Basis-Präfix-Widerspruch auf ${basePrefixPages.size} Seiten`);
 }
+section('FEHLER Sitemap widerspricht dem Build', sitemapIssues, errors, 20);
 section('FEHLER Platzhalter im HTML', placeholderHits, errors);
 section('FEHLER Mojibake/Encoding', mojibakeHits, errors);
 section('WARNUNG Media-Wiederholung (>2×/Seite)', mediaViolations, warns);
