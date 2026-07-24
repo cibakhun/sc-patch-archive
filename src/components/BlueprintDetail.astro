@@ -1,0 +1,214 @@
+---
+// Blueprint-Seite — die indexierbare Fassung der Karten-Detailansicht aus dem
+// Crafting-Planer: Zutaten-Slots, Qualitaets-Effekte, Item-Werte und die
+// Missionen, die den Blueprint droppen. Verlinkt in beide Richtungen: zum
+// Item-Datenblatt, zu den Missions-Seiten und zurueck in den Planer.
+import DataShell from './DataShell.astro';
+import { href, type Locale } from '../i18n/ui';
+import { itemT } from '../i18n/itemText';
+import {
+  type BlueprintEntry, blueprintPath, craftCategoryPath, craftDb, craftLeaf,
+  craftPatch, craftTime, itemForBlueprint, plannerPath, relatedBlueprints,
+  resourceNames, slugify, totalScu,
+} from '../lib/crafting';
+import { itemPath, num, pageItemIds } from '../lib/items';
+import { formatResist } from '../lib/itemStats';
+import { blueprintSeo } from '../lib/itemSeo';
+import { missionBySlug, seoTitle } from '../lib/missions';
+
+interface Props { bp: BlueprintEntry; lang: Locale }
+const { bp, lang } = Astro.props;
+
+const t = itemT(lang);
+const seo = blueprintSeo(bp, lang, craftPatch, craftDb.snapshot_date);
+const item = itemForBlueprint(bp);
+const linkedItem = item && pageItemIds.has(item.id) ? item : null;
+const related = relatedBlueprints(bp, 12);
+const stats = bp.item_stats ?? {};
+const missions = bp.missions ?? [];
+const scu = totalScu(bp);
+
+const crumbs = [
+  { label: t('breadcrumbCrafting'), href: '/crafting.html' },
+  { label: craftLeaf(bp.category), href: craftCategoryPath(slugify(bp.category)) },
+  { label: bp.name },
+];
+
+/** Qualitaets-Effekt als "× 0,9 → × 1,1" bzw. "+ 0 → + 12". */
+const effect = (v: number, mult: boolean) =>
+  mult ? `× ${num(v, lang)}` : `+ ${num(v, lang)}`;
+
+// temperature_resistance und damage_resistance sind OBJEKTE, keine Zahlen:
+// {min,max} bzw. Schadens-Multiplikatoren je Kanal (+ Ruestungsprofil).
+// Angezeigt wird die Reduktion (1 − Multiplikator), wie im Item-Datenblatt und
+// im Spiel-UI — 0,6 als "60 %" zu lesen waere genau verkehrt herum.
+const tempRes = stats.temperature_resistance;
+const dmgRes = stats.damage_resistance;
+// formatResist ist dieselbe Funktion, die das Item-Datenblatt benutzt — gleiche
+// Rechnung, gleiche Kanal-Labels in beiden Sprachen.
+const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
+---
+<DataShell
+  lang={lang}
+  title={seo.title}
+  description={seo.description}
+  crumbs={crumbs}
+  eyebrow={`${bp.category} · ${t('bpEyebrow')}`}
+  tone="craft"
+  ogImage="/assets/t-craft-1.jpg"
+  modified={craftDb.snapshot_date}
+  ldName={bp.name}
+  sources={['sc-craft.tools']}
+  updated={craftDb.snapshot_date}
+>
+  <h1>{bp.name}</h1>
+  <p class="dp-lead">{seo.lead}</p>
+
+  <ul class="dp-keys">
+    <li class="dp-key"><b>{t('craftTime')}</b><span>{craftTime(bp.craft_time_seconds, lang)}</span></li>
+    <li class="dp-key"><b>{t('bpIngredients')}</b><span>{bp.ingredients.length}</span></li>
+    {scu > 0 && <li class="dp-key"><b>{t('bpTotalScu')}</b><span>{num(scu, lang)} SCU</span></li>}
+    {bp.tiers > 0 && <li class="dp-key"><b>{t('craftTiers')}</b><span>{bp.tiers}</span></li>}
+    {missions.length > 0 && <li class="dp-key"><b>{t('bpMissions')}</b><span>{missions.length}</span></li>}
+  </ul>
+
+  {/* -- Zutaten je Slot -- */}
+  <section class="dp-sec">
+    <h2>{t('bpIngredients')}</h2>
+    <div class="dp-tablewrap">
+      <table class="dp-table">
+        <thead>
+          <tr>
+            <th>{t('bpSlot')}</th>
+            <th>{t('bpMaterial')}</th>
+            <th class="dp-num">{t('bpAmount')}</th>
+            <th class="dp-num">{t('bpMinQuality')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {bp.ingredients.flatMap((ing) =>
+            (ing.options ?? []).map((o, oi) => (
+              <tr>
+                <td>{oi === 0 ? ing.slot : ''}</td>
+                <td>{o.name}</td>
+                <td class="dp-num">{num(o.quantity_scu, lang)} SCU</td>
+                <td class="dp-num">{num(o.min_quality, lang)}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+
+    {bp.ingredients.some((i) => i.quality_effects?.length) && (
+      <>
+        <h3>{t('bpQualityEffects')}</h3>
+        <div class="dp-tablewrap">
+          <table class="dp-table">
+            <thead>
+              <tr>
+                <th>{t('bpSlot')}</th>
+                <th>{t('bpStat')}</th>
+                <th class="dp-num">{t('bpAtMin')}</th>
+                <th class="dp-num">{t('bpAtMax')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bp.ingredients.flatMap((ing) =>
+                (ing.quality_effects ?? []).map((q, qi) => (
+                  <tr>
+                    <td>{qi === 0 ? ing.slot : ''}</td>
+                    <td>{q.stat}</td>
+                    <td class="dp-num">{effect(q.modifier_at_min, q.multiplicative)}</td>
+                    <td class="dp-num">{effect(q.modifier_at_max, q.multiplicative)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        <p class="dp-note">{t('bpQualityNote')}</p>
+      </>
+    )}
+  </section>
+
+  {/* -- Werte des fertigen Items -- */}
+  {(stats.mass_kg || stats.overheat_temperature || tempRes || resistRow ||
+    stats.fire_modes?.length || stats.max_ammo) && (
+    <section class="dp-sec">
+      <h2>{t('bpItemStats')}</h2>
+      <ul class="dp-stats">
+        {stats.mass_kg != null && <li class="dp-stat"><b>{t('bpMass')}</b><span>{num(stats.mass_kg, lang)} kg</span></li>}
+        {stats.overheat_temperature != null && <li class="dp-stat"><b>{t('bpOverheat')}</b><span>{num(stats.overheat_temperature, lang)} °C</span></li>}
+        {tempRes && <li class="dp-stat"><b>{t('bpTempRes')}</b><span>{tempRes.min} / {tempRes.max} °C</span></li>}
+        {resistRow && <li class="dp-stat"><b>{t('bpDmgRes')}</b><span>{resistRow}</span></li>}
+        {dmgRes?.profile && <li class="dp-stat"><b>{t('bpArmorClass')}</b><span>{dmgRes.profile}</span></li>}
+        {stats.max_ammo != null && <li class="dp-stat"><b>{t('bpMaxAmmo')}</b><span>{num(stats.max_ammo, lang)}</span></li>}
+        {stats.max_restock != null && <li class="dp-stat"><b>{t('bpMaxRestock')}</b><span>{num(stats.max_restock, lang)}</span></li>}
+        {stats.fire_modes && stats.fire_modes.length > 0 && (
+          <li class="dp-stat"><b>{t('bpFireModes')}</b><span>{stats.fire_modes.map((f) => f.name).join(', ')}</span></li>
+        )}
+      </ul>
+    </section>
+  )}
+
+  {/* -- Missions-Quellen: verlinkt auf die vorhandenen Missions-Datenblaetter -- */}
+  <section class="dp-sec">
+    <h2>{t('bpMissions')}</h2>
+    {missions.length > 0 ? (
+      <>
+        <div class="dp-tablewrap">
+          <table class="dp-table">
+            <thead>
+              <tr>
+                <th>{t('sectionObtain')}</th>
+                <th class="dp-num">{t('bpDropChance')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {missions.map((m) => {
+                const known = missionBySlug.get(m.id);
+                const label = seoTitle(m.name);
+                return (
+                  <tr>
+                    <td>
+                      {known
+                        ? <a href={href(`/missionen/${m.id}.html`, lang)}>{label}</a>
+                        : label}
+                    </td>
+                    <td class="dp-num">{Math.round(m.drop_chance * 100)}%</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p class="dp-note">{t('bpMissionsNote')}</p>
+      </>
+    ) : (
+      <p class="dp-callout">{t('bpNoMissions')}</p>
+    )}
+  </section>
+
+  {related.length > 0 && (
+    <section class="dp-sec">
+      <h2>{t('bpRelated')}</h2>
+      <ul class="dp-cards">
+        {related.map((r) => (
+          <li>
+            <a class="dp-card" href={href(blueprintPath(r), lang)}>
+              <strong>{r.name}</strong>
+              <em>{resourceNames(r).slice(0, 3).join(', ')}</em>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <div class="dp-actions">
+    {linkedItem && <a class="dp-btn" href={href(itemPath(linkedItem), lang)}>{t('bpOpenItem')} →</a>}
+    <a class="dp-btn dp-btn--ghost" href={href(plannerPath(bp), lang)}>{t('bpOpenPlanner')}</a>
+    <a class="dp-btn dp-btn--ghost" href={href(craftCategoryPath(slugify(bp.category)), lang)}>{craftLeaf(bp.category)}</a>
+  </div>
+</DataShell>

@@ -38,7 +38,10 @@ const patchHref = `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html`;
 .cr-note a{color:var(--accent-2);border-bottom:1px solid var(--line);white-space:nowrap}
 .cr-sec-h{max-width:var(--maxw);margin:2.4rem auto 1rem;display:flex;align-items:baseline;gap:.8rem}
 .cr-sec-h h2{font-family:var(--font-display);font-weight:900;font-size:clamp(1.5rem,4vw,2.4rem);color:var(--text);margin:0}
-.cr-sec-h .num{font-family:var(--font-display);font-weight:900;color:transparent;-webkit-text-stroke:1.4px var(--accent);font-size:clamp(1.4rem,3.6vw,2.2rem)}</style>
+.cr-sec-h .num{font-family:var(--font-display);font-weight:900;color:transparent;-webkit-text-stroke:1.4px var(--accent);font-size:clamp(1.4rem,3.6vw,2.2rem)}
+.cr-browse{max-width:var(--maxw);margin:0 auto 1.2rem;display:flex;flex-wrap:wrap;gap:.6rem 1.6rem;font-weight:700;font-size:.92rem}
+.cr-browse a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--line)}
+.cr-browse a:hover{color:var(--accent-2);border-color:var(--accent-2)}</style>
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
@@ -64,6 +67,13 @@ const patchHref = `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html`;
   <div class="cr-note reveal">
     <span>Patch <b>{ver}</b>, Stand <b>{snap}</b> — <b>patch-volatil, ingame prüfen</b>. „Im Besitz"-Markierungen &amp; der Planer werden nur lokal im Browser gespeichert.</span>
   </div>
+
+  {/* Statischer Einstieg in dieselbe Datenschicht — der Planer selbst rendert
+      Zutaten & Missionen erst im Browser. */}
+  <p class="cr-browse reveal">
+    <a href="/de/crafting.html">Blueprint-Verzeichnis →</a>
+    <a href="/de/items.html">Item-Verzeichnis →</a>
+  </p>
 
   <CraftingApp lang="de" />
 </main>

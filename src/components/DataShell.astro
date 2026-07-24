@@ -1,0 +1,138 @@
+---
+// Schlanke Huelle fuer die MASSEN-Seiten der Datenschicht (Item-Datenblaetter,
+// Blueprint-Seiten, Kategorie-Listen).
+//
+// Warum nicht SiteNav wie ueberall sonst: das volle Nav-Deck plus Such-Overlay
+// sind ~18 KB Markup und ~19 KB inline-JS PRO Seite. Bei ~14.000 generierten
+// Seiten waeren das ~500 MB HTML im Build — fuer Seiten, deren eigener Inhalt
+// 3–8 KB gross ist. Diese Huelle traegt dieselbe Identitaet (Farben, Typo,
+// Hell/Dunkel, Sprachumschalter, Rechtliches), kostet aber ~1,5 KB und kommt
+// ohne eigenes JavaScript aus.
+//
+// Alles Wiederkehrende (Layoutregeln) liegt in der EINEN externen Datei
+// /assets/data-page.css; nur die Farbpalette steht inline, weil
+// scripts/build-light-palettes.mjs den Hellmodus genau aus solchen inline-
+// :root-Bloecken generiert (eigenstaendige .css-Dateien sieht der Generator
+// nicht — siehe Kommentar in theme.css).
+import Layout from '../layouts/Layout.astro';
+import { SITE } from '../consts';
+import { href, pathForLocale, useTranslations, LOCALE_SHORT, HTML_LANG, type Locale } from '../i18n/ui';
+
+export interface Crumb {
+  label: string;
+  /** Basisform (EN-Pfad); wird fuer DE automatisch praefixt. Fehlt = aktuelle Seite. */
+  href?: string;
+}
+
+interface Props {
+  lang: Locale;
+  title: string;
+  description: string;
+  crumbs: Crumb[];
+  /** kleiner Kicker ueber der H1 */
+  eyebrow?: string;
+  /** violett (Items) oder bernstein (Crafting) — beide Tokens gibt es in beiden Modi */
+  tone?: 'items' | 'craft';
+  ogImage?: string;
+  /** Datenstand fuer ItemPage-JSON-LD (dateModified) */
+  modified?: string;
+  /** Name des beschriebenen Dings im ItemPage-LD (sonst steht der ganze <title> drin) */
+  ldName?: string;
+  /** zusaetzliche JSON-LD-Knoten (z. B. Product) */
+  jsonLd?: Record<string, unknown>[];
+  /** Quellenzeile im Fuss */
+  sources?: string[];
+  updated?: string;
+}
+
+const {
+  lang, title, description, crumbs, eyebrow, tone = 'items',
+  ogImage, modified, ldName, jsonLd = [], sources = [], updated,
+} = Astro.props;
+
+const t = useTranslations(lang);
+const base = SITE.url.replace(/\/$/, '');
+const other: Locale = lang === 'de' ? 'en' : 'de';
+const otherHref = pathForLocale(Astro.url.pathname, other);
+
+// Breadcrumb-JSON-LD: gibt der Trefferzeile in Google den Pfad statt der nackten
+// URL — und macht die Kategorie-Ebene als eigenes Ziel sichtbar.
+const crumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { name: t('nav.home'), href: '/index.html' },
+    ...crumbs.map((c) => ({ name: c.label, href: c.href })),
+  ].map((c, idx) => ({
+    '@type': 'ListItem',
+    position: idx + 1,
+    name: c.name,
+    ...(c.href ? { item: base + (c.href === '/index.html' ? '/' : href(c.href, lang)) } : {}),
+  })),
+};
+---
+<Layout
+  title={title}
+  description={description}
+  themeColor="#0d0c14"
+  ogType="article"
+  ogImage={ogImage ?? '/assets/cz-loot.jpg'}
+  translated={true}
+  itemPage={{ modified, name: ldName }}
+>
+  <link slot="head" rel="stylesheet" href="/assets/data-page.css" />
+  <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(crumbLd)} />
+  {jsonLd.map((node) => (
+    <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(node)} />
+  ))}
+  <style is:inline>
+:root{--bg:#0d0c14;--bg-2:#14121c;--surface:#17151f;--surface-2:#1e1b29;--accent:#A78BFA;--accent-2:#FFB84D;--hot:#A78BFA;--text:#eef1f5;--muted:#9d9cb0;--line:rgba(167,139,250,.22);--line-soft:rgba(238,241,245,.10);--glow:0 0 44px rgba(167,139,250,.28);--ink:#0d0c14;--maxw:1080px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f7f6fe;--bg-2:#eeecf8;--surface:#fdfdff;--surface-2:#f3f1fb;--text:#1d1f22;--muted:#575668;--accent:#643bb5;--accent-2:#744c00;--hot:#5c31ab;--ink:#ffffff;--accent-media:#A78BFA;--accent-2-media:#FFB84D;--line:rgba(117,101,166,.3);--line-soft:rgba(44,46,49,.12);--glow:0 6px 22px rgba(118,98,176,.18)}
+  </style>
+
+  <a class="dp-skip" href="#main">{t('skip.toContent')}</a>
+
+  <div class="dp" data-tone={tone}>
+    <header class="dp-bar">
+      <a class="dp-home" href={href('/index.html', lang)} aria-label={t('nav.home.aria')}>VerseBase</a>
+      <nav class="dp-crumbs" aria-label={t('nav.path')}>
+        {crumbs.map((c, idx) => (
+          <>
+            {idx > 0 && <span class="dp-sep" aria-hidden="true">›</span>}
+            {c.href ? <a href={href(c.href, lang)}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+          </>
+        ))}
+      </nav>
+      <a class="dp-lang" href={otherHref} hreflang={HTML_LANG[other]} rel="alternate">{LOCALE_SHORT[other]}</a>
+    </header>
+
+    <main id="main" class="dp-main">
+      {eyebrow && <p class="dp-eyebrow">{eyebrow}</p>}
+      <slot />
+    </main>
+
+    <footer class="dp-foot">
+      <nav class="dp-foot-nav" aria-label={t('footer.pageNav')}>
+        <a href={href('/item-finder.html', lang)}>Item Finder</a>
+        <a href={href('/items.html', lang)}>{t('nav.deck.sub.items')}</a>
+        <a href={href('/crafting.html', lang)}>{t('nav.deck.sub.crafting')}</a>
+        <a href={href('/schiffe.html', lang)}>{t('nav.ships')}</a>
+        <a href={href('/missionen.html', lang)}>{t('nav.missions')}</a>
+        <a href={href('/index.html', lang)}>{t('nav.home')}</a>
+      </nav>
+      {(sources.length > 0 || updated) && (
+        <p class="dp-src">
+          {sources.length > 0 && <>{t('footer.sources')}: {sources.join(' · ')}</>}
+          {updated && <> · {t('footer.dataAsOf')} {updated}</>}
+        </p>
+      )}
+      <p class="dp-legal">{t('footer.disclaimer')}</p>
+      <p class="dp-foot-nav dp-foot-legal">
+        <a href={href('/impressum.html', lang)}>{t('footer.imprint')}</a>
+        <a href={href('/datenschutz.html', lang)}>{t('footer.privacy')}</a>
+        <a href={href('/feedback.html', lang)}>{t('footer.feedback')}</a>
+      </p>
+    </footer>
+  </div>
+</Layout>

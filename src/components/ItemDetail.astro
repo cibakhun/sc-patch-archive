@@ -1,0 +1,187 @@
+---
+// Item-Datenblatt — die indexierbare Fassung dessen, was der Item-Finder sonst
+// nur als Modal zeigt. Reihenfolge folgt der Frage, mit der Leute ankommen:
+// erst "was kostet das und wo", dann "was kann das", dann Fundort-Guide,
+// Rezept und Nachbarn.
+import DataShell from './DataShell.astro';
+import { href, type Locale } from '../i18n/ui';
+import { itemT, categoryLabel } from '../i18n/itemText';
+import {
+  ITEM_PATCH, altName, auec, categoryPath, categorySlug, db, description,
+  displayName, itemPath, itemsHubPath, leafCategory, maxPrice, minPrice, num,
+  pageItemIds, relatedItems, rootCategory, sortedObtain, type Item,
+} from '../lib/items';
+import { specChips, statEntries, primaryStat } from '../lib/itemStats';
+import { itemSeo } from '../lib/itemSeo';
+import { blueprintForItem, blueprintPath, craftTime, resourceNames } from '../lib/crafting';
+
+interface Props { item: Item; lang: Locale }
+const { item, lang } = Astro.props;
+
+const t = itemT(lang);
+const seo = itemSeo(item, lang);
+const name = displayName(item, lang);
+const alt = altName(item, lang);
+const desc = description(item, lang);
+const chips = specChips(item, lang);
+const stats = statEntries(item, lang);
+const key = primaryStat(item, lang);
+const rows = sortedObtain(item);
+const lo = minPrice(item);
+const hi = maxPrice(item);
+const vendors = item.obtain.filter((o) => o.kind === 'shop' || o.kind === 'vehicle').length;
+const loot = item.obtain.filter((o) => o.kind === 'loot').length;
+const bp = blueprintForItem(item);
+const related = relatedItems(item, 12);
+
+const root = rootCategory(item.category);
+const catSlug = categorySlug(item.category);
+const kindLabel = (k: string) =>
+  k === 'shop' ? t('kindShop') : k === 'vehicle' ? t('kindVehicleShop') : t('kindLoot');
+
+const crumbs = [
+  { label: t('breadcrumbItems'), href: itemsHubPath },
+  { label: leafCategory(item.category), href: categoryPath(catSlug) },
+  { label: name },
+];
+---
+<DataShell
+  lang={lang}
+  title={seo.title}
+  description={seo.description}
+  crumbs={crumbs}
+  eyebrow={`${categoryLabel(root, lang)} · ${t('pageEyebrow')}`}
+  modified={db.generatedAt}
+  ldName={name}
+  sources={['UEX Corp']}
+  updated={db.pricesAsOf}
+>
+  <h1>{name}</h1>
+  {alt && <p class="dp-alt">{alt}</p>}
+  <p class="dp-lead">{seo.lead}</p>
+
+  <ul class="dp-keys">
+    {lo != null && (
+      <li class="dp-key"><b>{t('cheapest')}</b><span>{auec(lo, lang)}</span></li>
+    )}
+    {lo != null && hi != null && hi !== lo && (
+      <li class="dp-key"><b>{t('priceRange')}</b><span>{num(lo, lang)}–{num(hi, lang)}</span></li>
+    )}
+    {vendors > 0 && (
+      <li class="dp-key"><b>{vendors === 1 ? t('soldAtOne') : t('soldAt')}</b><span>{num(vendors, lang)}</span></li>
+    )}
+    {loot > 0 && (
+      <li class="dp-key"><b>{t('lootSources')}</b><span>{num(loot, lang)}</span></li>
+    )}
+    {key && <li class="dp-key"><b>{key[0]}</b><span>{key[1]}</span></li>}
+  </ul>
+
+  {/* -- Bezugsquellen: die eigentliche Antwort auf "where to buy" -- */}
+  <section class="dp-sec">
+    <h2>{t('sectionObtain')}</h2>
+    {rows.length > 0 ? (
+      <>
+        <div class="dp-tablewrap">
+          <table class="dp-table">
+            <thead>
+              <tr>
+                <th>{t('thLocation')}</th>
+                <th>{t('thKind')}</th>
+                <th class="dp-num">{t('thPrice')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((o, idx) => (
+                <tr class={idx === 0 && o.price != null ? 'dp-best' : undefined}>
+                  <td>{o.loc}</td>
+                  <td>{kindLabel(o.kind)}</td>
+                  <td class="dp-num">
+                    {o.price != null ? <span class="dp-price">{auec(o.price, lang)}</span> : <span class="dp-muted">—</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="dp-note">{t('volatileNote')} · {t('pricesAsOf')} {db.pricesAsOf}</p>
+      </>
+    ) : (
+      <p class="dp-callout">{t('catalogNote')}</p>
+    )}
+  </section>
+
+  {/* -- Spielwerte -- */}
+  {(chips.length > 0 || stats.length > 0 || desc) && (
+    <section class="dp-sec">
+      <h2>{t('sectionSpecs')}</h2>
+      {chips.length > 0 && (
+        <ul class="dp-chips">
+          {chips.map(([l, v]) => <li class="dp-chip"><b>{l}</b>{v}</li>)}
+        </ul>
+      )}
+      {stats.length > 0 && (
+        <ul class="dp-stats">
+          {stats.map(([l, v]) => <li class="dp-stat"><b>{l}</b><span>{v}</span></li>)}
+        </ul>
+      )}
+      {desc && <p class="dp-desc">{desc}</p>}
+    </section>
+  )}
+
+  {/* -- Fundort-Guide (eigene Recherche) -- */}
+  {item.guide && (
+    <section class="dp-sec">
+      <h2>{t('sectionGuide')}</h2>
+      <p class="dp-callout">{item.guide}</p>
+    </section>
+  )}
+
+  {/* -- Rezept: Kurzfassung + Link auf die Blueprint-Seite -- */}
+  {bp && (
+    <section class="dp-sec">
+      <h2>{t('sectionCrafting')}</h2>
+      <ul class="dp-chips">
+        <li class="dp-chip"><b>{t('craftTime')}</b>{craftTime(bp.craft_time_seconds, lang)}</li>
+        {bp.tiers > 0 && <li class="dp-chip"><b>{t('craftTiers')}</b>{bp.tiers}</li>}
+        <li class="dp-chip"><b>{t('craftMaterials')}</b>{resourceNames(bp).join(', ')}</li>
+      </ul>
+      <div class="dp-actions">
+        <a class="dp-btn" href={href(blueprintPath(bp), lang)}>{t('breadcrumbCrafting')}: {bp.name} →</a>
+      </div>
+    </section>
+  )}
+
+  {/* -- Nachbarn: haelt den Crawler in der Kategorie und den Klickpfad kurz -- */}
+  {related.length > 0 && (
+    <section class="dp-sec">
+      <h2>{t('sectionRelated')}</h2>
+      <ul class="dp-cards">
+        {related.map((r) => {
+          const p = minPrice(r);
+          const linked = pageItemIds.has(r.id);
+          return (
+            <li>
+              {linked ? (
+                <a class="dp-card" href={href(itemPath(r), lang)}>
+                  <strong>{displayName(r, lang)}</strong>
+                  <em>{p != null ? <span class="dp-card-price">{t('thFrom')} {auec(p, lang)}</span> : leafCategory(r.category)}</em>
+                </a>
+              ) : (
+                <span class="dp-card">
+                  <strong>{displayName(r, lang)}</strong>
+                  <em>{leafCategory(r.category)}</em>
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )}
+
+  <div class="dp-actions">
+    <a class="dp-btn dp-btn--ghost" href={href(categoryPath(catSlug), lang)}>{t('allInCategory')}: {leafCategory(item.category)}</a>
+    <a class="dp-btn dp-btn--ghost" href={href('/item-finder.html', lang)}>{t('backToFinder')}</a>
+    <a class="dp-btn dp-btn--ghost" href={href(`/patches/sc-${ITEM_PATCH.replace(/\./g, '-')}-0.html`, lang)}>Alpha {ITEM_PATCH}</a>
+  </div>
+</DataShell>

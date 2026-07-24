@@ -1,0 +1,61 @@
+---
+// Blueprint-Verzeichnis — krabbelbarer Einstieg in die 1.594 Rezepte.
+import DataShell from './DataShell.astro';
+import { href, type Locale } from '../i18n/ui';
+import { itemT, fill, categoryLabel } from '../i18n/itemText';
+import {
+  craftCategoryPath, craftDb, craftHubPath, craftLeaf, craftPatch, craftRoots,
+} from '../lib/crafting';
+import { itemsHubPath, num } from '../lib/items';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+
+const t = itemT(lang);
+const total = craftDb.counts.blueprints;
+const lead = fill(t('bpHubLead'), { total: num(total, lang), patch: craftPatch });
+---
+<DataShell
+  lang={lang}
+  title={lang === 'de'
+    ? `Blueprint-Verzeichnis — alle ${num(total, lang)} Rezepte | Star Citizen ${craftPatch} | VerseBase`
+    : `Blueprint Directory — all ${num(total, lang)} recipes | Star Citizen ${craftPatch} | VerseBase`}
+  description={lead}
+  crumbs={[{ label: t('breadcrumbCrafting') }]}
+  eyebrow={`Star Citizen ${craftPatch}`}
+  tone="craft"
+  ogImage="/assets/t-craft-1.jpg"
+  modified={craftDb.snapshot_date}
+  sources={['sc-craft.tools']}
+  updated={craftDb.snapshot_date}
+>
+  <h1>{t('bpHubTitle')}</h1>
+  <p class="dp-lead">{lead}</p>
+
+  <ul class="dp-keys">
+    <li class="dp-key"><b>{t('breadcrumbCrafting')}</b><span>{num(total, lang)}</span></li>
+    <li class="dp-key"><b>{t('craftMaterials')}</b><span>{num(craftDb.counts.resources, lang)}</span></li>
+    <li class="dp-key"><b>{t('dataAsOf')}</b><span>{craftDb.snapshot_date}</span></li>
+  </ul>
+
+  {craftRoots.map((r) => (
+    <section class="dp-sec">
+      <h2>{categoryLabel(r.root, lang)} <span class="dp-muted">({num(r.count, lang)})</span></h2>
+      <ul class="dp-cards">
+        {r.nodes.map((c) => (
+          <li>
+            <a class="dp-card" href={href(craftCategoryPath(c), lang)}>
+              <strong>{craftLeaf(c.cat)}</strong>
+              <em>{num(c.blueprints.length, lang)}</em>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+
+  <div class="dp-actions">
+    <a class="dp-btn" href={href('/topics/crafting.html', lang)}>{t('bpOpenPlanner')} →</a>
+    <a class="dp-btn dp-btn--ghost" href={href(itemsHubPath, lang)}>{t('hubTitle')}</a>
+  </div>
+</DataShell>
