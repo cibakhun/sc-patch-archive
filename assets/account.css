@@ -5,41 +5,32 @@
    ========================================================================== */
 .ic{width:20px;height:20px;flex:none;stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:middle}
 
-.acshell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:clamp(1.1rem,2.4vw,1.9rem);align-items:start}
+.acshell{display:block}
 .acmain{min-width:0}
 
-/* Rail */
-.acnav{position:sticky;top:1.1rem;display:flex;flex-direction:column;gap:1.1rem;padding:1.1rem .75rem;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 92%,transparent),color-mix(in srgb,var(--bg-2) 94%,transparent));
-  border:1px solid var(--line)}
-.acnav__brand{display:flex;align-items:center;gap:.55rem;padding:.15rem .45rem}
-.acnav__mk{width:24px;height:24px;color:var(--accent);flex:none}
-.acnav__name{display:block;font-family:var(--font-display,sans-serif);font-weight:700;font-size:1rem;letter-spacing:.15em;color:var(--text)}
-.acnav__eye{display:block;font-family:var(--font-mono,monospace);font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:1px}
-.acnav__list{display:flex;flex-direction:column;gap:1px}
-.acnav__group{font-family:var(--font-mono,monospace);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);padding:.7rem .65rem .2rem}
-.acnav__item{display:flex;align-items:center;gap:.65rem;padding:.5rem .65rem;border-radius:8px;color:var(--muted);
-  font-family:var(--font-ui,sans-serif);font-weight:600;font-size:.9rem;border:0;background:none;width:100%;text-align:left;cursor:pointer;position:relative;
-  transition:color .15s,background .15s}
-.acnav__item .ic{width:18px;height:18px;color:var(--muted);transition:color .15s}
-.acnav__item:hover{color:var(--text);background:var(--surface-2)}
+/* Horizontale Sektions-Leiste (site-native, statt linker Sidebar) */
+.acnav{display:flex;align-items:center;gap:.15rem;flex-wrap:wrap;
+  margin:0 0 1.9rem;padding:.15rem 0 0;border-bottom:1px solid var(--line)}
+.acnav__brand,.acnav__group{display:none}
+.acnav__list{display:flex;flex-direction:row;align-items:center;gap:.15rem;flex-wrap:wrap}
+.acnav__item{display:flex;align-items:center;gap:.5rem;padding:.7rem .95rem;color:var(--muted);
+  font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.86rem;letter-spacing:.03em;border:0;background:none;text-align:left;cursor:pointer;position:relative;
+  transition:color .15s}
+.acnav__item .ic{width:17px;height:17px;color:var(--muted);transition:color .15s}
+.acnav__item:hover{color:var(--text)}
 .acnav__item:hover .ic{color:var(--text)}
-.acnav__item:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.acnav__item.active{color:var(--text);background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 13%,transparent),transparent 82%)}
-.acnav__item.active::before{content:"";position:absolute;left:0;top:20%;bottom:20%;width:2px;border-radius:2px;background:var(--accent)}
+.acnav__item:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.acnav__item.active{color:var(--accent)}
+.acnav__item.active::after{content:"";position:absolute;left:.7rem;right:.7rem;bottom:-1px;height:2px;background:var(--accent);box-shadow:0 0 10px var(--accent)}
 .acnav__item.active .ic{color:var(--accent)}
-.acnav__item .badge{margin-left:auto;font-family:var(--font-mono,monospace);font-size:10px;background:var(--surface-2);border:1px solid var(--line-soft);border-radius:20px;padding:0 .45rem;min-width:1.5em;text-align:center;color:var(--muted)}
-.acnav__item.active .badge{color:var(--accent);border-color:var(--line)}
-.acnav__ext{margin-left:auto;width:14px;height:14px;color:var(--muted);opacity:.7}
-.acnav__foot{margin-top:auto;border-top:1px solid var(--line-soft);padding:.85rem .35rem 0;display:flex;align-items:center;gap:.55rem}
-.acnav__mini{width:32px;height:32px;flex:none;border-radius:8px;display:grid;place-items:center;border:1px solid var(--line);color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);font-weight:700;font-size:.85rem;overflow:hidden;font-family:var(--font-mono,monospace)}
-.acnav__mini img{width:100%;height:100%;object-fit:cover}
-.acnav__who{min-width:0;line-height:1.25}
-.acnav__who b{font-size:.82rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
-.acnav__who span{font-family:var(--font-mono,monospace);font-size:10px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.acnav__out{margin-left:auto;color:var(--muted);padding:.3rem;border-radius:6px;display:grid;background:none;border:0;cursor:pointer}
+.acnav__item .badge{font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.66rem;background:var(--surface-2);border:1px solid var(--line);padding:.05rem .4rem;min-width:1.5em;text-align:center;color:var(--muted)}
+.acnav__item.active .badge{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.acnav__ext{width:13px;height:13px;color:var(--muted);opacity:.7}
+.acnav__foot{margin-left:auto;display:flex;align-items:center;gap:.6rem;padding-right:.2rem}
+.acnav__mini,.acnav__who{display:none}
+.acnav__out{color:var(--muted);padding:.4rem;display:grid;background:none;border:1px solid var(--line);cursor:pointer}
 .acnav__out .ic{width:17px;height:17px}
-.acnav__out:hover{color:var(--accent);background:var(--surface-2)}
+.acnav__out:hover{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
 
 /* Head + Labels */
 .ov-head{margin-bottom:1.6rem}
@@ -155,12 +146,9 @@ button.rd,a.rd{cursor:pointer;width:100%}
 
 /* Responsive */
 @media (max-width:860px){
-  .acshell{grid-template-columns:1fr}
-  .acnav{position:static;flex-direction:row;align-items:center;gap:.7rem;overflow-x:auto;padding:.6rem .8rem}
-  .acnav__brand,.acnav__group,.acnav__foot{display:none}
-  .acnav__list{flex-direction:row;gap:.3rem}
-  .acnav__item{white-space:nowrap}
-  .acnav__item .badge{display:none}
+  .acnav{gap:.05rem;overflow-x:auto;flex-wrap:nowrap;position:static}
+  .acnav__list{flex-wrap:nowrap}
+  .acnav__item{white-space:nowrap;padding:.6rem .7rem;font-size:.82rem}
   .rg__body{grid-template-columns:auto 1fr}.rg__act{grid-column:1 / -1;flex-direction:row;flex-wrap:wrap;padding-top:.6rem}
 }
 /* ============================================================================
