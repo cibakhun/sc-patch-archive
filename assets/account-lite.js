@@ -209,6 +209,9 @@
 
   function applyRestrictions(role) {
     var isAdmin = role === 'admin';
+    // Beta-Whitelist-Modell: 'beta' darf die Kontofläche sehen, ist aber KEIN
+    // Admin (kein Theme-Umschalter, kein Archiv). is-admin bleibt exklusiv admin.
+    var isBeta = isAdmin || role === 'beta';
     var doc = document.documentElement;
     doc.classList.toggle('is-admin', isAdmin);
 
@@ -228,7 +231,9 @@
       && path.indexOf('/account/reset') === -1
       && path.indexOf('/account/update-password') === -1;
 
-    if ((isArchivePage || isAccountPage) && !isAdmin) {
+    // Archiv/Patches bleiben admin-only; die Kontofläche öffnet sich für Admins
+    // ODER Beta-Whitelist-Nutzer.
+    if ((isArchivePage && !isAdmin) || (isAccountPage && !isBeta)) {
       if (document.body) document.body.style.display = 'none';
       var home = IS_DE ? '/de.html' : '/';
       location.replace(home);
