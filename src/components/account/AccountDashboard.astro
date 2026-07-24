@@ -327,27 +327,44 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-crop-title-banner={COPY.cropTitleBanner}
   data-crop-calc={COPY.cropCalc}
 >
+  <!-- Icon-Sprite: ein kohärentes Linien-Set (ersetzt die Unicode-Glyphen) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M12 15l3.6-3.4"/><circle cx="12" cy="15" r="1.1"/></symbol>
+    <symbol id="i-id" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M5.4 16.4c.5-1.4 1.7-2.1 3.1-2.1s2.6.7 3.1 2.1"/><path d="M14.5 10h4M14.5 13h3"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.6L12 16.9l-5.1 2.3 1-5.6-4.1-4 5.7-.8z"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.6 18.6c.6-2.9 2.8-4.3 5.4-4.3s4.8 1.4 5.4 4.3"/><path d="M16.2 5.3a3 3 0 0 1 0 5.4"/><path d="M17.6 14.5c1.9.6 3.2 1.9 3.8 4.1"/></symbol>
+    <symbol id="i-hex" viewBox="0 0 24 24"><path d="M12 3l7.4 4.2v8.4L12 21l-7.4-4.2V7.2z"/><path d="M12 8l3.5 2v4L12 16l-3.5-2v-4z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 2.4v5.4c0 4.4-3 7.5-7 8.9-4-1.4-7-4.5-7-8.9V5.4z"/></symbol>
+    <symbol id="i-verified" viewBox="0 0 24 24"><path d="M12 3l7 2.4v5.4c0 4.4-3 7.5-7 8.9-4-1.4-7-4.5-7-8.9V5.4z"/><path d="M8.6 12l2.2 2.2 4.4-4.7"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3.5v7.5"/><path d="M7 6.8a7 7 0 1 0 10 0"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M8 16L16 8"/><path d="M9.5 8H16v6.5"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20.5h16"/><path d="M14.5 5.5l4 4L9 19l-4.5 1 1-4.5z"/></symbol>
+    <symbol id="i-org" viewBox="0 0 24 24"><path d="M4 20V6l6-2.5V20"/><path d="M10 8h6a2 2 0 0 1 2 2v10"/><path d="M13 12h2M13 15h2"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21c4-4.5 6-7.6 6-10.5A6 6 0 0 0 6 10.5C6 13.4 8 16.5 12 21z"/><circle cx="12" cy="10.5" r="2"/></symbol>
+  </defs></svg>
+
   <div class="acshell reveal">
     <!-- Sidebar-Rail -->
     <aside class="acnav" aria-label={COPY.ovNav}>
       <div class="acnav__brand">
-        <span class="acnav__eye">System Access</span>
-        <span class="acnav__name">VERSEBASE</span>
+        <svg class="acnav__mk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M12 2l9 5.2v9.6L12 22l-9-5.2V7.2z"/><path d="M12 7l4.5 2.6v5.3L12 17.5l-4.5-2.6V9.6z"/></svg>
+        <span><span class="acnav__name">VERSEBASE</span><span class="acnav__eye">System Access</span></span>
       </div>
       <nav class="acnav__list">
         <span class="acnav__group">{COPY.ovNav}</span>
-        <button type="button" class="acnav__item active" data-tab="overview"><span class="g" aria-hidden="true">⬡</span> <span>{lang === 'de' ? 'Übersicht' : 'Overview'}</span></button>
-        <button type="button" class="acnav__item" data-tab="profile"><span class="g" aria-hidden="true">◆</span> <span>{COPY.tabProfile}</span></button>
-        <button type="button" class="acnav__item" data-tab="favs"><span class="g" aria-hidden="true">★</span> <span>{COPY.tabFavs}</span> <span class="badge" id="navFavCount" hidden>0</span></button>
-        <button type="button" class="acnav__item" data-tab="friends"><span class="g" aria-hidden="true">◈</span> <span>{COPY.tabFriends}</span> <span class="badge" id="navFriendCount" hidden>0</span></button>
+        <button type="button" class="acnav__item active" data-tab="overview"><svg class="ic" aria-hidden="true"><use href="#i-gauge" /></svg> <span>{lang === 'de' ? 'Übersicht' : 'Overview'}</span></button>
+        <button type="button" class="acnav__item" data-tab="profile"><svg class="ic" aria-hidden="true"><use href="#i-id" /></svg> <span>{COPY.tabProfile}</span></button>
+        <button type="button" class="acnav__item" data-tab="favs"><svg class="ic" aria-hidden="true"><use href="#i-star" /></svg> <span>{COPY.tabFavs}</span> <span class="badge" id="navFavCount" hidden>0</span></button>
+        <button type="button" class="acnav__item" data-tab="friends"><svg class="ic" aria-hidden="true"><use href="#i-users" /></svg> <span>{COPY.tabFriends}</span> <span class="badge" id="navFriendCount" hidden>0</span></button>
         <span class="acnav__group">{COPY.ovTools}</span>
-        <a class="acnav__item" href={refineryHref}><span class="g" aria-hidden="true">⬢</span> <span>{COPY.ovJRefinery}</span> <span class="acnav__ext" aria-hidden="true">↗</span></a>
-        <button type="button" class="acnav__item" data-tab="security"><span class="g" aria-hidden="true">▲</span> <span>{COPY.tabSecurity}</span></button>
+        <a class="acnav__item" href={refineryHref}><svg class="ic" aria-hidden="true"><use href="#i-hex" /></svg> <span>{COPY.ovJRefinery}</span> <svg class="ic acnav__ext" aria-hidden="true"><use href="#i-out" /></svg></a>
+        <button type="button" class="acnav__item" data-tab="security"><svg class="ic" aria-hidden="true"><use href="#i-shield" /></svg> <span>{COPY.tabSecurity}</span></button>
       </nav>
       <div class="acnav__foot">
         <div class="acnav__mini" aria-hidden="true" id="idAvatar">◆</div>
         <div class="acnav__who"><b id="navWho">—</b><span id="idEmail">—</span></div>
-        <button type="button" class="acnav__out" id="btnLogout" title={COPY.logout} aria-label={COPY.logout}>⏻</button>
+        <button type="button" class="acnav__out" id="btnLogout" title={COPY.logout} aria-label={COPY.logout}><svg class="ic" aria-hidden="true"><use href="#i-power" /></svg></button>
       </div>
     </aside>
 
@@ -360,95 +377,94 @@ const confirmRedirect = loginHref + '?confirmed=1';
       data-l-rsi-yes={COPY.ovRsiYes} data-l-rsi-no={COPY.ovRsiNo}
       data-l-act-fav={COPY.ovActFav} data-l-act-req={COPY.ovActReq} data-l-act-job={COPY.ovActJob} data-l-act-empty={COPY.ovActEmpty}>
       <div class="ov-head">
-        <h2><span class="thin">{COPY.ovWelcome},</span><span id="ovHeadName">Citizen</span></h2>
+        <div class="ov-eyebrow">{lang === 'de' ? 'UEE Citizen Registry // Übersicht' : 'UEE Citizen Registry // Overview'}</div>
+        <h2><span class="thin">{COPY.ovWelcome},</span> <span id="ovHeadName">Citizen</span></h2>
         <p>{COPY.ovLead}</p>
       </div>
 
-      <!-- Identitäts-Streifen -->
-      <div class="ov-id">
-        <div class="ov-id__banner" id="ovBanner"></div>
-        <div class="ov-id__body">
-          <div class="ov-id__avatar">
-            <svg class="ov-id__ring" viewBox="0 0 132 132" width="106" height="106" aria-hidden="true">
-              <circle cx="66" cy="66" r="62" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="22 12" opacity=".8" />
-              <circle cx="66" cy="66" r="62" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="4 90" />
+      <!-- Registry-Identitätskarte -->
+      <section class="rg">
+        <div class="rg__chrome"><span>UEE Citizen Registry // VerseBase</span><span>ID <b id="ovRegId">VB-••••••••</b></span></div>
+        <div class="rg__banner" id="ovBanner"><span class="rg__scan" aria-hidden="true"></span><span class="rg__brk a" aria-hidden="true"></span><span class="rg__brk b" aria-hidden="true"></span></div>
+        <div class="rg__body">
+          <div class="rg__av">
+            <svg class="rg__ring" viewBox="0 0 98 98" fill="none" stroke="currentColor" aria-hidden="true">
+              <path d="M49 4a45 45 0 0 1 0 90" stroke-width="1.4" stroke-dasharray="3 6" />
+              <path d="M49 10l34 20v38L49 88 15 68V30z" stroke-width="1" opacity=".45" />
             </svg>
-            <div class="ov-id__box" id="ovAvatarBox"><span id="ovAvatarText">◆</span><img id="ovAvatarImg" src="" alt="" hidden /></div>
-            <span class="ov-id__dot" id="ovStatusDot"></span>
+            <div class="rg__core" id="ovAvatarBox"><span id="ovAvatarText">◆</span><img id="ovAvatarImg" src="" alt="" hidden /></div>
+            <span class="rg__dot" id="ovStatusDot" aria-hidden="true"></span>
           </div>
-          <div class="ov-id__meta">
-            <div class="ov-id__name">
+          <div class="rg__meta">
+            <div class="rg__name">
               <h3 id="ovName">Citizen</h3>
-              <span class="ov-vbadge" id="ovVerified" hidden>
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                RSI Verified
-              </span>
+              <span class="rg__chip rg__chip--ok" id="ovVerified" hidden><svg class="ic" aria-hidden="true"><use href="#i-verified" /></svg> RSI Verified</span>
             </div>
-            <div class="ov-id__handle" id="ovHandle">@citizen</div>
-            <div class="ov-id__row">
-              <span class="ov-pill" id="ovRolePill" hidden><span class="g" id="ovRoleIcon" aria-hidden="true">◆</span> <span id="ovRoleText"></span></span>
-              <span class="ov-pill" id="ovStatusPill"><span id="ovStatusLabel"></span></span>
-              <span class="ov-pill" id="ovOrgPill" hidden><span class="g" aria-hidden="true">◈</span> <span id="ovOrgText"></span></span>
-            </div>
-            <div class="ov-id__row" style="margin-top:.4rem;font-size:.78rem">
-              <span>{COPY.memberSince} <b id="idSince" style="color:var(--text)">—</b></span>
+            <div class="rg__handle" id="ovHandle">@citizen</div>
+            <div class="rg__tags">
+              <span class="rg__tag" id="ovRolePill" hidden><svg class="ic" aria-hidden="true"><use href="#i-hex" /></svg> <b id="ovRoleText"></b></span>
+              <span class="rg__tag" id="ovStatusPill"><span id="ovStatusLabel"></span></span>
+              <span class="rg__tag" id="ovOrgPill" hidden><svg class="ic" aria-hidden="true"><use href="#i-org" /></svg> <span id="ovOrgText"></span></span>
+              <span class="rg__tag rg__tag--meta">{COPY.memberSince} <b id="idSince">—</b></span>
             </div>
           </div>
-          <div class="ov-id__actions">
-            <button type="button" class="acx-submit acx-submit--ghost" id="ovBtnShare"><span aria-hidden="true">◈</span> <span>{lang === 'de' ? 'Öffentliches Profil' : 'Public Profile'}</span></button>
+          <div class="rg__act">
+            <button type="button" class="acbtn acbtn--primary" id="ovBtnShare"><svg class="ic" aria-hidden="true"><use href="#i-out" /></svg> <span>{lang === 'de' ? 'Öffentliches Profil' : 'Public Profile'}</span></button>
+            <button type="button" class="acbtn" data-tab-jump="profile"><svg class="ic" aria-hidden="true"><use href="#i-edit" /></svg> <span>{COPY.ovJProfile}</span></button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Stat-Kacheln -->
-      <div class="ov-label"><h4>{COPY.ovAtAGlance}</h4><span class="rule"></span></div>
-      <div class="ov-stats">
-        <button type="button" class="ov-tile" data-tab-jump="favs">
-          <div class="ov-tile__k"><span class="g" aria-hidden="true">★</span> {COPY.ovTFavs}</div>
-          <div class="ov-tile__v" id="ovStatFavs">0</div>
+      <!-- Readouts -->
+      <div class="ov-label"><span class="n">A</span><span>{COPY.ovAtAGlance}</span><span class="rule"></span></div>
+      <div class="rds">
+        <button type="button" class="rd" data-tab-jump="favs">
+          <div class="rd__k"><svg class="ic" aria-hidden="true"><use href="#i-star" /></svg> {COPY.ovTFavs}</div>
+          <div class="rd__v" id="ovStatFavs">0</div>
         </button>
-        <button type="button" class="ov-tile" data-tab-jump="friends">
-          <div class="ov-tile__k"><span class="g" aria-hidden="true">◈</span> {COPY.ovTFriends}</div>
-          <div class="ov-tile__v" id="ovStatFriends">0</div>
-          <div class="ov-tile__s" id="ovFriendsSub"></div>
+        <button type="button" class="rd" data-tab-jump="friends">
+          <div class="rd__k"><svg class="ic" aria-hidden="true"><use href="#i-users" /></svg> {COPY.ovTFriends}</div>
+          <div class="rd__v" id="ovStatFriends">0</div>
+          <div class="rd__s" id="ovFriendsSub"></div>
         </button>
-        <a class="ov-tile" href={refineryHref}>
-          <div class="ov-tile__k"><span class="g" aria-hidden="true">⬢</span> {COPY.ovTRefValue}</div>
-          <div class="ov-tile__v" id="ovRefValue">—</div>
-          <div class="ov-tile__s" id="ovRefSub"></div>
+        <a class="rd rd--gold" href={refineryHref}>
+          <div class="rd__k"><svg class="ic" aria-hidden="true"><use href="#i-hex" /></svg> {COPY.ovTRefValue}</div>
+          <div class="rd__v" id="ovRefValue">—</div>
+          <svg class="rd__spark" id="ovRefSpark" viewBox="0 0 120 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <div class="rd__s" id="ovRefSub"></div>
         </a>
-        <div class="ov-tile ov-tile--accent">
-          <div class="ov-tile__k"><span class="g" aria-hidden="true">◆</span> {COPY.ovTComplete}</div>
-          <div class="ov-ring">
-            <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true">
-              <circle cx="22" cy="22" r="18" fill="none" stroke="var(--line-soft)" stroke-width="4" />
-              <circle id="ovRing" cx="22" cy="22" r="18" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="113" transform="rotate(-90 22 22)" />
+        <div class="rd rd--feat">
+          <div class="rd__k"><svg class="ic" aria-hidden="true"><use href="#i-id" /></svg> {COPY.ovTComplete}</div>
+          <div class="rd__ring">
+            <svg viewBox="0 0 46 46" aria-hidden="true">
+              <circle cx="23" cy="23" r="18" fill="none" stroke="var(--line-soft)" stroke-width="3.5" />
+              <circle id="ovRing" cx="23" cy="23" r="18" fill="none" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="113" transform="rotate(-90 23 23)" />
             </svg>
-            <div><div class="ov-ring__v" id="ovComplete">0%</div><div class="ov-tile__s" id="ovCompleteSub"></div></div>
+            <div><div class="rd__rv" id="ovComplete">0%</div><div class="rd__s" id="ovCompleteSub"></div></div>
           </div>
         </div>
-        <div class="ov-tile">
-          <div class="ov-tile__k"><span class="g" aria-hidden="true">▲</span> {COPY.ovTRsi}</div>
-          <div class="ov-verbadge no" id="ovRsi">—</div>
-          <div class="ov-tile__s" id="ovRsiSub"></div>
+        <div class="rd">
+          <div class="rd__k"><svg class="ic" aria-hidden="true"><use href="#i-shield" /></svg> {COPY.ovTRsi}</div>
+          <div class="rd__rsi" id="ovRsi">—</div>
+          <div class="rd__s" id="ovRsiSub"></div>
         </div>
       </div>
 
       <!-- Schnellzugriff -->
-      <div class="ov-label"><h4>{COPY.ovQuick}</h4><span class="rule"></span></div>
-      <div class="ov-jumps">
-        <button type="button" class="ov-jump" data-tab-jump="profile"><span class="ov-jump__ic" aria-hidden="true">◆</span><span class="ov-jump__tx"><b>{COPY.ovJProfile}</b><span>{COPY.ovJProfileSub}</span></span><span class="ov-jump__arr" aria-hidden="true">→</span></button>
-        <button type="button" class="ov-jump" data-tab-jump="favs"><span class="ov-jump__ic" aria-hidden="true">★</span><span class="ov-jump__tx"><b>{COPY.ovJFavs}</b><span>{COPY.ovJFavsSub}</span></span><span class="ov-jump__arr" aria-hidden="true">→</span></button>
-        <button type="button" class="ov-jump" data-tab-jump="friends"><span class="ov-jump__ic" aria-hidden="true">◈</span><span class="ov-jump__tx"><b>{COPY.ovJFriends}</b><span>{COPY.ovJFriendsSub}</span></span><span class="ov-jump__arr" aria-hidden="true">→</span></button>
-        <a class="ov-jump" href={refineryHref}><span class="ov-jump__ic" aria-hidden="true">⬢</span><span class="ov-jump__tx"><b>{COPY.ovJRefinery}</b><span>{COPY.ovJRefinerySub}</span></span><span class="ov-jump__arr" aria-hidden="true">↗</span></a>
-        <button type="button" class="ov-jump" id="ovBtnShare2"><span class="ov-jump__ic" aria-hidden="true">◈</span><span class="ov-jump__tx"><b>{COPY.ovJShare}</b><span>{COPY.ovJShareSub}</span></span><span class="ov-jump__arr" aria-hidden="true">↗</span></button>
-        <button type="button" class="ov-jump" data-tab-jump="security"><span class="ov-jump__ic" aria-hidden="true">▲</span><span class="ov-jump__tx"><b>{COPY.ovJSecurity}</b><span>{COPY.ovJSecuritySub}</span></span><span class="ov-jump__arr" aria-hidden="true">→</span></button>
+      <div class="ov-label"><span class="n">B</span><span>{COPY.ovQuick}</span><span class="rule"></span></div>
+      <div class="qa">
+        <button type="button" class="qa__item" data-tab-jump="profile"><span class="qa__i"><svg class="ic" aria-hidden="true"><use href="#i-id" /></svg></span><span class="qa__t"><b>{COPY.ovJProfile}</b><span>{COPY.ovJProfileSub}</span></span><svg class="ic qa__go" aria-hidden="true"><use href="#i-chev" /></svg></button>
+        <button type="button" class="qa__item" data-tab-jump="favs"><span class="qa__i"><svg class="ic" aria-hidden="true"><use href="#i-star" /></svg></span><span class="qa__t"><b>{COPY.ovJFavs}</b><span>{COPY.ovJFavsSub}</span></span><svg class="ic qa__go" aria-hidden="true"><use href="#i-chev" /></svg></button>
+        <button type="button" class="qa__item" data-tab-jump="friends"><span class="qa__i"><svg class="ic" aria-hidden="true"><use href="#i-users" /></svg></span><span class="qa__t"><b>{COPY.ovJFriends}</b><span>{COPY.ovJFriendsSub}</span></span><svg class="ic qa__go" aria-hidden="true"><use href="#i-chev" /></svg></button>
+        <a class="qa__item qa__item--gold" href={refineryHref}><span class="qa__i"><svg class="ic" aria-hidden="true"><use href="#i-hex" /></svg></span><span class="qa__t"><b>{COPY.ovJRefinery}</b><span>{COPY.ovJRefinerySub}</span></span><svg class="ic qa__go" aria-hidden="true"><use href="#i-out" /></svg></a>
+        <button type="button" class="qa__item" id="ovBtnShare2"><span class="qa__i"><svg class="ic" aria-hidden="true"><use href="#i-out" /></svg></span><span class="qa__t"><b>{COPY.ovJShare}</b><span>{COPY.ovJShareSub}</span></span><svg class="ic qa__go" aria-hidden="true"><use href="#i-out" /></svg></button>
+        <button type="button" class="qa__item" data-tab-jump="security"><span class="qa__i"><svg class="ic" aria-hidden="true"><use href="#i-shield" /></svg></span><span class="qa__t"><b>{COPY.ovJSecurity}</b><span>{COPY.ovJSecuritySub}</span></span><svg class="ic qa__go" aria-hidden="true"><use href="#i-chev" /></svg></button>
       </div>
 
-      <!-- Letzte Aktivität -->
-      <div class="ov-label"><h4>{COPY.ovRecent}</h4><span class="rule"></span></div>
-      <div class="ov-act" id="ovActivity">
-        <div class="ov-act__empty" id="ovActEmpty">{COPY.ovActEmpty}</div>
+      <!-- Aktivitätsprotokoll -->
+      <div class="ov-label"><span class="n">C</span><span>{COPY.ovRecent}</span><span class="rule"></span></div>
+      <div class="lg" id="ovActivity">
+        <div class="lg__empty" id="ovActEmpty">{COPY.ovActEmpty}</div>
       </div>
     </section>
 
