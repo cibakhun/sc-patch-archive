@@ -1,0 +1,12 @@
+---
+// Blueprint-Seite (DE) — /de/crafting/<slug>.html
+import BlueprintDetail from '../../../components/BlueprintDetail.astro';
+import { blueprints } from '../../../lib/crafting';
+
+export async function getStaticPaths() {
+  return blueprints.map((bp) => ({ params: { slug: bp.slug }, props: { bp } }));
+}
+
+const { bp } = Astro.props;
+---
+<BlueprintDetail bp={bp} lang="de" />

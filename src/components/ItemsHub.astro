@@ -1,0 +1,63 @@
+---
+// Item-Verzeichnis — die Wurzel der Datenschicht.
+//
+// Der Item-Finder ist das Werkzeug (Filter, Suche, Modal); dieses Verzeichnis
+// ist der KRABBELBARE Weg dorthin: Wurzel -> Kategorie -> Datenblatt, alles als
+// echte Links. Ohne diese Ebene haengen 5.000 Detailseiten nur an der Sitemap.
+import DataShell from './DataShell.astro';
+import { href, type Locale } from '../i18n/ui';
+import { itemT, fill, categoryLabel } from '../i18n/itemText';
+import {
+  ITEM_PATCH, categoryPath, db, itemsHubPath, leafCategory, num, pageItems, roots,
+} from '../lib/items';
+import { craftHubPath } from '../lib/crafting';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+
+const t = itemT(lang);
+const total = db.counts.items;
+---
+<DataShell
+  lang={lang}
+  title={lang === 'de'
+    ? `Item-Verzeichnis — alle ${num(total, lang)} Items | Star Citizen ${ITEM_PATCH} | VerseBase`
+    : `Item Directory — all ${num(total, lang)} items | Star Citizen ${ITEM_PATCH} | VerseBase`}
+  description={fill(t('hubLead'), { total: num(total, lang), patch: ITEM_PATCH })}
+  crumbs={[{ label: t('breadcrumbItems') }]}
+  eyebrow={`Star Citizen ${ITEM_PATCH}`}
+  modified={db.generatedAt}
+  sources={['UEX Corp']}
+  updated={db.pricesAsOf}
+>
+  <h1>{t('hubTitle')}</h1>
+  <p class="dp-lead">{fill(t('hubLead'), { total: num(total, lang), patch: ITEM_PATCH })}</p>
+
+  <ul class="dp-keys">
+    <li class="dp-key"><b>Items</b><span>{num(total, lang)}</span></li>
+    <li class="dp-key"><b>{t('withDataSheet')}</b><span>{num(pageItems.length, lang)}</span></li>
+    <li class="dp-key"><b>{t('sectionCategory')}</b><span>{num(roots.reduce((n, r) => n + r.nodes.length, 0), lang)}</span></li>
+    <li class="dp-key"><b>{t('dataAsOf')}</b><span>{db.pricesAsOf}</span></li>
+  </ul>
+
+  {roots.map((r) => (
+    <section class="dp-sec">
+      <h2>{categoryLabel(r.root, lang)} <span class="dp-muted">({num(r.count, lang)})</span></h2>
+      <ul class="dp-cards">
+        {r.nodes.map((c) => (
+          <li>
+            <a class="dp-card" href={href(categoryPath(c), lang)}>
+              <strong>{leafCategory(c.cat)}</strong>
+              <em>{num(c.items.length, lang)}</em>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+
+  <div class="dp-actions">
+    <a class="dp-btn" href={href('/item-finder.html', lang)}>{t('backToFinder')} →</a>
+    <a class="dp-btn dp-btn--ghost" href={href(craftHubPath, lang)}>{t('bpHubTitle')}</a>
+  </div>
+</DataShell>

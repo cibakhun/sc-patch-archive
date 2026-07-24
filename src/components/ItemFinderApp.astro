@@ -3,7 +3,13 @@
 // Bezugsquellen (Shop-Snapshot, Loot-Recherche, UEX-Fahrzeugpreise). Ohne Quelle
 // wird ein Item ehrlich als Katalog-Eintrag gezeigt — keine erfundenen Werte.
 // Daten: assets/universal-items.json (scripts/build-universal-db.mjs).
+//
+// Jede Karte ist ein echter <a> auf /items/<id>.html (die statische Detailseite).
+// Ein normaler Linksklick oeffnet weiterhin das Modal — Strg/Cmd/Mittelklick und
+// Crawler folgen dem href. Ohne diese Links haengen die Detailseiten nur an der
+// Sitemap und bekommen keinerlei internes Gewicht.
 import { ICON_BLUEPRINT } from '../lib/icons';
+import { ITEM_UI } from '../i18n/itemText';
 
 interface Props { lang?: 'de' | 'en' }
 const { lang = 'en' } = Astro.props;
@@ -29,79 +35,10 @@ const t = {
   },
 }[lang];
 
-// Strings, die das Client-JS braucht (window.__UIF.t)
-const JS_T = {
-  de: {
-    kindAll: 'Alle', kindBuy: 'Kaufbar', kindLoot: 'Loot', kindCatalog: 'Nur Katalog',
-    kindShop: 'Shop', kindVehicleShop: 'Schiffshändler',
-    noResults: 'Keine passenden Items gefunden.',
-    priceFrom: 'ab', lootOnly: 'Nur Loot', noTradeData: 'Keine Handelsdaten',
-    noSourceData: 'Kein Fundort bekannt',
-    showing: '{start}–{end} von {total} Einträgen', showingNone: '0 Einträge',
-    pageFirst: 'Anfang', pagePrev: 'Zurück', pageNext: 'Weiter', pageLast: 'Ende',
-    pageOf: 'Seite {p} von {t}',
-    sectionObtain: 'Bezugsquellen', thLocation: 'Ort', thKind: 'Art', thPrice: 'Preis',
-    volatileNote: 'Preise und Fundorte sind Patch-volatil — ingame prüfen.',
-    catalogNote: 'Katalog-Eintrag: Für dieses Item liegen keine verifizierten Shop- oder Loot-Daten vor.',
-    sectionGuide: 'Fundort-Guide', sectionCrafting: 'Crafting-Rezept',
-    craftTime: 'Dauer', craftTiers: 'Stufen', craftMaterials: 'Materialien',
-    openInCrafting: 'Im Crafting-Planer öffnen',
-    loadError: 'Die Item-Datenbank konnte nicht geladen werden. Bitte später erneut versuchen.',
-    subline: '{total} Items, {sourced} mit verifizierten Bezugsquellen',
-    catArmour: 'Rüstung', catClothing: 'Kleidung', catWeapons: 'Waffen',
-    catVehicle: 'Fahrzeuge', catVehiclegear: 'Schiffskomponenten', catAmmo: 'Munition',
-    catAttachment: 'Aufsätze', catUtility: 'Werkzeug & Verbrauch', catOther: 'Sonstiges',
-    catComponent: 'Komponenten', catCommodity: 'Handelswaren',
-    sectionSpecs: 'Technische Daten',
-    specMfr: 'Hersteller', specSize: 'Größe', specGrade: 'Grade', specClass: 'Klasse', specVolume: 'Volumen',
-    statDamage: 'Schaden', statFireRate: 'Feuerrate', statMagazine: 'Magazin',
-    statShieldHp: 'Schild-HP', statRegen: 'Schild-Regen', statQtSpeed: 'QT-Geschwindigkeit',
-    statCooldown: 'Abklingzeit', statResist: 'Schadensreduktion', statStorage: 'Stauraum',
-    statLifetime: 'Flugzeit', statHealth: 'Bauteil-HP', unitRpm: 'Schuss/min', resistAll: 'Alle',
-    statBlast: 'Explosionsradius', statCooling: 'Kühlleistung', statPower: 'Leistung',
-    statTemp: 'Temp.-Rating', statRadiation: 'Strahlungsschutz',
-    statFuel: 'Treibstoff-Kapazität', statNdr: 'Nährwert (NDR)', statEffects: 'Effekte',
-    statJammer: 'QT-Jammer-Reichweite', statEmpRadius: 'EMP-Radius', statDistortion: 'Distortion-Schaden',
-    statCharge: 'Ladezeit', statDps: 'DPS', statSensitivity: 'Signatur-Empfindlichkeit',
-    dmgPhysical: 'Physisch', dmgEnergy: 'Energie', dmgDistortion: 'Distortion',
-    dmgThermal: 'Thermisch', dmgBio: 'Biochem', dmgStun: 'Betäubung',
-  },
-  en: {
-    kindAll: 'All', kindBuy: 'Buyable', kindLoot: 'Loot', kindCatalog: 'Catalog only',
-    kindShop: 'Shop', kindVehicleShop: 'Ship dealer',
-    noResults: 'No matching items found.',
-    priceFrom: 'from', lootOnly: 'Loot only', noTradeData: 'No trade data',
-    noSourceData: 'No known source',
-    showing: '{start}–{end} of {total} entries', showingNone: '0 entries',
-    pageFirst: 'First', pagePrev: 'Prev', pageNext: 'Next', pageLast: 'Last',
-    pageOf: 'Page {p} of {t}',
-    sectionObtain: 'Where to get it', thLocation: 'Location', thKind: 'Kind', thPrice: 'Price',
-    volatileNote: 'Prices and locations are patch-volatile — verify in game.',
-    catalogNote: 'Catalog entry: no verified shop or loot data is available for this item.',
-    sectionGuide: 'Loot guide', sectionCrafting: 'Crafting recipe',
-    craftTime: 'Time', craftTiers: 'Tiers', craftMaterials: 'Materials',
-    openInCrafting: 'Open in crafting planner',
-    loadError: 'The item database could not be loaded. Please try again later.',
-    subline: '{total} items, {sourced} with verified sources',
-    catArmour: 'Armor', catClothing: 'Clothing', catWeapons: 'Weapons',
-    catVehicle: 'Vehicles', catVehiclegear: 'Ship components', catAmmo: 'Ammo',
-    catAttachment: 'Attachments', catUtility: 'Tools & consumables', catOther: 'Other',
-    catComponent: 'Components', catCommodity: 'Commodities',
-    sectionSpecs: 'Technical data',
-    specMfr: 'Manufacturer', specSize: 'Size', specGrade: 'Grade', specClass: 'Class', specVolume: 'Volume',
-    statDamage: 'Damage', statFireRate: 'Fire rate', statMagazine: 'Magazine',
-    statShieldHp: 'Shield HP', statRegen: 'Shield regen', statQtSpeed: 'QT speed',
-    statCooldown: 'Cooldown', statResist: 'Damage reduction', statStorage: 'Storage',
-    statLifetime: 'Flight time', statHealth: 'Item HP', unitRpm: 'rpm', resistAll: 'All',
-    statBlast: 'Blast radius', statCooling: 'Cooling rate', statPower: 'Power output',
-    statTemp: 'Temp. rating', statRadiation: 'Radiation protection',
-    statFuel: 'Fuel capacity', statNdr: 'Nutrition (NDR)', statEffects: 'Effects',
-    statJammer: 'QT jammer range', statEmpRadius: 'EMP radius', statDistortion: 'Distortion damage',
-    statCharge: 'Charge time', statDps: 'DPS', statSensitivity: 'Signature sensitivity',
-    dmgPhysical: 'Physical', dmgEnergy: 'Energy', dmgDistortion: 'Distortion',
-    dmgThermal: 'Thermal', dmgBio: 'Biochem', dmgStun: 'Stun',
-  },
-}[lang];
+// Strings, die das Client-JS braucht (window.__UIF.t). Der Katalog liegt in
+// i18n/itemText.ts, weil die statischen Item-Seiten DIESELBEN Labels rendern —
+// zwei Kopien wuerden zwangslaeufig auseinanderlaufen.
+const JS_T = ITEM_UI[lang];
 ---
 
 <div class="uif-container" id="uif-app">
@@ -321,6 +258,10 @@ const JS_T = {
     position: relative;
     overflow: hidden;
   }
+
+  /* Karten mit Detailseite sind <a> — Linkfarbe/Unterstreichung zurücksetzen,
+     das Aussehen bleibt exakt wie bei den Karten ohne Seite. */
+  a.uif-card { text-decoration: none; color: inherit; }
 
   .uif-card:hover,
   .uif-card:focus-visible {
@@ -651,6 +592,8 @@ const JS_T = {
     background: color-mix(in srgb, var(--accent, #2dd4ff) 12%, transparent);
     border-color: var(--accent, #2dd4ff);
   }
+  /* Weg vom Schnellblick (Modal) zur verlinkbaren Detailseite */
+  .uif-xlink--page { margin-top: 0.75rem; }
 
   /* Responsive */
   @media (max-width: 900px) {
@@ -684,7 +627,8 @@ const JS_T = {
   @media (max-width: 480px) {
     #uif-category-list { grid-template-columns: repeat(2, 1fr); }
     .uif-modal-title { font-size: 1.3rem; }
-  }</style>
+  }
+</style>
 
-<script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl: '/assets/universal-items.json', craftUrl: '/assets/crafting-db.json', icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />
+<script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl: '/assets/universal-items.json', craftUrl: '/assets/crafting-db.json', itemBase: lang === 'de' ? '/de/items/' : '/items/', craftBase: lang === 'de' ? '/de/crafting/' : '/crafting/', icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />
 <script is:inline src="/assets/item-finder-app.js"></script>

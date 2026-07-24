@@ -1,0 +1,112 @@
+---
+// Kategorie-Liste — die Bruecke zwischen Hub und Datenblatt.
+//
+// Sie listet ALLE Eintraege der Kategorie, auch die ohne eigene Seite: so ist
+// jeder Item-Name irgendwo im HTML auffindbar, ohne dass fuer jeden Katalog-
+// Rest eine eigene, leere URL entsteht.
+import DataShell from './DataShell.astro';
+import { href, type Locale } from '../i18n/ui';
+import { itemT, fill, categoryLabel } from '../i18n/itemText';
+import {
+  PER_PAGE, auec, categoryPath, db, displayName, itemPath, itemsHubPath,
+  leafCategory, minPrice, num, pageCount, pageItemIds, roots, type CategoryNode,
+} from '../lib/items';
+import { categorySeo } from '../lib/itemSeo';
+
+interface Props { node: CategoryNode; page: number; lang: Locale }
+const { node, page, lang } = Astro.props;
+
+const t = itemT(lang);
+const pages = pageCount(node);
+const seo = categorySeo(node.cat, node.items.length, page, pages, lang);
+const slice = node.items.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+const siblings = roots.find((r) => r.root === node.root)?.nodes ?? [];
+
+const crumbs = [
+  { label: t('breadcrumbItems'), href: itemsHubPath },
+  { label: leafCategory(node.cat), href: pages > 1 && page > 1 ? categoryPath(node) : undefined },
+  ...(page > 1 ? [{ label: `${t('page')} ${page}` }] : []),
+];
+
+const sourceLabel = (n: number, first?: string) =>
+  first ? (n > 1 ? `${first} +${n - 1}` : first) : t('noSourceData');
+---
+<DataShell
+  lang={lang}
+  title={seo.title}
+  description={seo.description}
+  crumbs={crumbs}
+  eyebrow={`${categoryLabel(node.root, lang)} · ${t('sectionCategory')}`}
+  modified={db.generatedAt}
+  sources={['UEX Corp']}
+  updated={db.pricesAsOf}
+>
+  <h1>{leafCategory(node.cat)}</h1>
+  <p class="dp-lead">
+    {fill(t('listingLead'), { n: num(node.items.length, lang), cat: node.cat, date: db.pricesAsOf })}
+  </p>
+
+  <div class="dp-tablewrap">
+    <table class="dp-table">
+      <thead>
+        <tr>
+          <th>{t('thItem')}</th>
+          <th>{t('thSources')}</th>
+          <th class="dp-num">{t('thFrom')}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {slice.map((i) => {
+          const p = minPrice(i);
+          const linked = pageItemIds.has(i.id);
+          return (
+            <tr>
+              <td>
+                {linked
+                  ? <a href={href(itemPath(i), lang)}>{displayName(i, lang)}</a>
+                  : <span title={t('listingNoPage')}>{displayName(i, lang)}</span>}
+              </td>
+              <td>{sourceLabel(i.obtain.length, i.obtain[0]?.loc)}</td>
+              <td class="dp-num">
+                {p != null ? <span class="dp-price">{auec(p, lang)}</span> : <span class="dp-muted">—</span>}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+
+  {pages > 1 && (
+    <nav class="dp-pager" aria-label={t('pagination')}>
+      {page > 1 && <a href={href(categoryPath(node, page - 1), lang)} rel="prev">{t('prevPage')}</a>}
+      {Array.from({ length: pages }, (_, n) => n + 1).map((n) =>
+        n === page
+          ? <span aria-current="page">{n}</span>
+          : <a href={href(categoryPath(node, n), lang)}>{n}</a>
+      )}
+      {page < pages && <a href={href(categoryPath(node, page + 1), lang)} rel="next">{t('nextPage')}</a>}
+    </nav>
+  )}
+
+  {siblings.length > 1 && (
+    <section class="dp-sec" style="margin-top:2.4rem">
+      <h2>{categoryLabel(node.root, lang)}</h2>
+      <ul class="dp-cards">
+        {siblings.filter((s) => s.slug !== node.slug).map((s) => (
+          <li>
+            <a class="dp-card" href={href(categoryPath(s), lang)}>
+              <strong>{leafCategory(s.cat)}</strong>
+              <em>{num(s.items.length, lang)}</em>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <div class="dp-actions">
+    <a class="dp-btn dp-btn--ghost" href={href(itemsHubPath, lang)}>{t('backToHub')}</a>
+    <a class="dp-btn dp-btn--ghost" href={href('/item-finder.html', lang)}>{t('backToFinder')}</a>
+  </div>
+</DataShell>

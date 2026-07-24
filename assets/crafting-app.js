@@ -330,10 +330,16 @@
     var pb = $('.cbp__add', card); if (pb) pb.classList.toggle('in-plan', !!plan[i]);
   }
   grid.addEventListener('click', function (e) {
+    // Der Kartenname ist ein echter Link auf /crafting/<slug>.html (Crawler,
+    // Strg-Klick, „in neuem Tab öffnen"). Der normale Linksklick soll aber wie
+    // bisher das Detail-Modal öffnen — also Standard unterdrücken, sobald wir
+    // die Karte übernehmen, und Modifier-Klicks dem Browser überlassen.
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     var ownBtn = e.target.closest('.cbp__own');
     var addBtn = e.target.closest('.cbp__add');
     var card = e.target.closest('.cbp');
     if (!card) return;
+    if (e.target.closest('.cbp__name a')) e.preventDefault();
     var i = card.dataset.i;
     if (ownBtn) { e.stopPropagation(); if (owned[i]) delete owned[i]; else owned[i] = true; save('craft.owned.v1', owned); refreshCardState(card); if (state.ownedOnly) apply(); return; }
     if (addBtn) { e.stopPropagation(); plan[i] = (plan[i] || 0) + 1; save('craft.plan.v1', plan); refreshCardState(card); renderPlanner(); flashPlan(); return; }

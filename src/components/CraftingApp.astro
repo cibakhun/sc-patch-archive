@@ -3,6 +3,8 @@
 // Sprachneutrales Gerüst; UI-Chrome via `lang`, Game-Daten bleiben englisch.
 import DB from '../../assets/crafting-db.json';
 import { ICON_BLUEPRINT, ICON_DISMANTLE } from '../lib/icons';
+import { blueprints, blueprintPath } from '../lib/crafting';
+import { href } from '../i18n/ui';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
@@ -134,7 +136,10 @@ function fmtT(sec: number | null) {
   if (m) return `${m}m`;
   return `${sec}s`;
 }
-const cardsData = DB.blueprints.map((b, i) => {
+// Reihenfolge und Index kommen aus lib/crafting (identisch mit DB.blueprints) —
+// von dort stammt auch der Slug, damit der Kartenname auf dieselbe URL zeigt
+// wie Sitemap und Blueprint-Seite.
+const cardsData = blueprints.map((b) => {
   const p = (b.category || '').split(' / ');
   const top = p[0] || '—';
   const sub = p[1] || '';
@@ -142,7 +147,8 @@ const cardsData = DB.blueprints.map((b, i) => {
   const nIng = (b.ingredients || []).length;
   const hasMis = !!(b.missions && b.missions.length);
   return {
-    i, name: b.name, top, sub, resNames, nIng, hasMis,
+    i: b.index, name: b.name, top, sub, resNames, nIng, hasMis,
+    url: href(blueprintPath(b), lang),
     time: b.craft_time_seconds || 0, timeLabel: fmtT(b.craft_time_seconds),
   };
 });
@@ -266,7 +272,7 @@ const defaultYield = Math.round(dismantleEff * 100);
             <div class="cbp__top">
               <span class="cbp__cat">{c.top}{c.sub && (<em>{c.sub}</em>)}</span>
             </div>
-            <h3 class="cbp__name">{c.name}</h3>
+            <h3 class="cbp__name"><a href={c.url}>{c.name}</a></h3>
             <div class="cbp__meta">
               <span title={S.craftTime}>⏱ {c.timeLabel}</span>
               <span title={S.ings}>◆ {c.nIng}</span>
@@ -462,6 +468,9 @@ const defaultYield = Math.round(dismantleEff * 100);
   .cbp__own[aria-pressed="true"]{color:var(--accent,#FF5E1A);border-color:var(--accent,#FF5E1A)}
   .cbp__add.in-plan{color:var(--accent-2,#1FA2FF);border-color:var(--accent-2,#1FA2FF)}
   .cbp__name{font-family:var(--font-display,inherit);font-weight:800;font-size:1.02rem;line-height:1.15;color:var(--text);margin:0;overflow-wrap:break-word}
+  /* Der Name ist ein Link auf die Blueprint-Seite — optisch bleibt es Text. */
+  .cbp__name a{color:inherit;text-decoration:none}
+  .cbp:hover .cbp__name a{color:var(--accent)}
   .cbp__meta{display:flex;gap:.8rem;font-size:.76rem;color:var(--muted,#9ba2ae);font-family:var(--font-ui,inherit)}
   .cbp__mis{color:var(--accent-2,#1FA2FF)}
   .cbp__res{list-style:none;margin:.1rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.25rem}

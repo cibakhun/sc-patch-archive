@@ -1,0 +1,103 @@
+---
+// Blueprint-Kategorie-Liste — Hub -> Kategorie -> Blueprint.
+import DataShell from './DataShell.astro';
+import { href, type Locale } from '../i18n/ui';
+import { itemT, fill, categoryLabel } from '../i18n/itemText';
+import {
+  CRAFT_PER_PAGE, type CraftCategory, blueprintPath, craftCategoryPath, craftDb,
+  craftHubPath, craftLeaf, craftPageCount, craftPatch, craftRoots, craftTime,
+  resourceNames,
+} from '../lib/crafting';
+import { num } from '../lib/items';
+
+interface Props { node: CraftCategory; page: number; lang: Locale }
+const { node, page, lang } = Astro.props;
+
+const t = itemT(lang);
+const pages = craftPageCount(node);
+const slice = node.blueprints.slice((page - 1) * CRAFT_PER_PAGE, page * CRAFT_PER_PAGE);
+const siblings = craftRoots.find((r) => r.root === node.root)?.nodes ?? [];
+
+const pageSuffix = page > 1 ? (lang === 'de' ? ` — Seite ${page}/${pages}` : ` — page ${page}/${pages}`) : '';
+const countPart = page > 1 ? '' : lang === 'de' ? ` — alle ${node.blueprints.length} Blueprints` : ` — all ${node.blueprints.length} blueprints`;
+const label = craftLeaf(node.cat) === node.root ? node.root : `${craftLeaf(node.cat)} (${categoryLabel(node.root, lang)})`;
+
+const crumbs = [
+  { label: t('breadcrumbCrafting'), href: craftHubPath },
+  { label: craftLeaf(node.cat), href: page > 1 ? craftCategoryPath(node) : undefined },
+  ...(page > 1 ? [{ label: `${t('page')} ${page}` }] : []),
+];
+---
+<DataShell
+  lang={lang}
+  title={`${label}${countPart}${pageSuffix} | Star Citizen ${craftPatch} | VerseBase`}
+  description={fill(t('bpListingLead'), {
+    n: num(node.blueprints.length, lang), cat: node.cat, date: craftDb.snapshot_date,
+  })}
+  crumbs={crumbs}
+  eyebrow={`${categoryLabel(node.root, lang)} · ${t('breadcrumbCrafting')}`}
+  tone="craft"
+  ogImage="/assets/t-craft-1.jpg"
+  modified={craftDb.snapshot_date}
+  sources={['sc-craft.tools']}
+  updated={craftDb.snapshot_date}
+>
+  <h1>{craftLeaf(node.cat)}</h1>
+  <p class="dp-lead">
+    {fill(t('bpListingLead'), { n: num(node.blueprints.length, lang), cat: node.cat, date: craftDb.snapshot_date })}
+  </p>
+
+  <div class="dp-tablewrap">
+    <table class="dp-table">
+      <thead>
+        <tr>
+          <th>{t('thBlueprint')}</th>
+          <th>{t('thMaterials')}</th>
+          <th class="dp-num">{t('thTime')}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {slice.map((b) => (
+          <tr>
+            <td><a href={href(blueprintPath(b), lang)}>{b.name}</a></td>
+            <td>{resourceNames(b).slice(0, 4).join(', ')}</td>
+            <td class="dp-num">{craftTime(b.craft_time_seconds, lang)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  {pages > 1 && (
+    <nav class="dp-pager" aria-label={t('pagination')}>
+      {page > 1 && <a href={href(craftCategoryPath(node, page - 1), lang)} rel="prev">{t('prevPage')}</a>}
+      {Array.from({ length: pages }, (_, n) => n + 1).map((n) =>
+        n === page
+          ? <span aria-current="page">{n}</span>
+          : <a href={href(craftCategoryPath(node, n), lang)}>{n}</a>
+      )}
+      {page < pages && <a href={href(craftCategoryPath(node, page + 1), lang)} rel="next">{t('nextPage')}</a>}
+    </nav>
+  )}
+
+  {siblings.length > 1 && (
+    <section class="dp-sec" style="margin-top:2.4rem">
+      <h2>{categoryLabel(node.root, lang)}</h2>
+      <ul class="dp-cards">
+        {siblings.filter((s) => s.slug !== node.slug).map((s) => (
+          <li>
+            <a class="dp-card" href={href(craftCategoryPath(s), lang)}>
+              <strong>{craftLeaf(s.cat)}</strong>
+              <em>{num(s.blueprints.length, lang)}</em>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <div class="dp-actions">
+    <a class="dp-btn dp-btn--ghost" href={href(craftHubPath, lang)}>{t('backToHub')}</a>
+    <a class="dp-btn dp-btn--ghost" href={href('/topics/crafting.html', lang)}>{t('bpOpenPlanner')}</a>
+  </div>
+</DataShell>

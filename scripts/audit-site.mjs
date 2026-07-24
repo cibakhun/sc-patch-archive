@@ -313,18 +313,37 @@ for (const f of htmlFiles) {
 //   2. beworbene URL trägt <meta robots noindex> -> „Übermittelte URL als
 //      ‚noindex' markiert".
 // Beides ist aus dem fertigen Build eindeutig entscheidbar, also hier.
+//
+// sitemap.xml ist ein Sitemap-INDEX: seine <loc> zeigen auf fünf Teil-Sitemaps
+// (Seiten/Schiffe/Missionen/Items/Crafting). Erst den Index auflösen, dann die
+// echten Seiten-URLs aus den Teilen einsammeln.
 const sitemapIssues = [];
 const sitemapPath = join(DIST, 'sitemap.xml');
+const locsOf = (xml) => [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+const toPath = (loc) => loc.replace(/^https?:\/\/[^/]+/, '') || '/';
 if (!existsSync(sitemapPath)) {
   sitemapIssues.push('sitemap.xml fehlt im Build');
 } else {
-  const xml = readFileSync(sitemapPath, 'utf8');
-  const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-  if (!locs.length) sitemapIssues.push('sitemap.xml enthält keine <loc>-Einträge');
+  const indexXml = readFileSync(sitemapPath, 'utf8');
+  const isIndex = /<sitemapindex[\s>]/.test(indexXml);
+  // Teil-Sitemaps auflösen (oder die eine Datei selbst, falls es doch ein
+  // flaches urlset ist — Rückfall, damit der Check nicht an der Form hängt).
+  const partPaths = isIndex ? locsOf(indexXml).map(toPath) : ['/sitemap.xml'];
+  const pageLocs = [];
+  for (const part of partPaths) {
+    const partFile = join(DIST, part.slice(1));
+    if (!existsSync(partFile)) {
+      sitemapIssues.push(`Teil-Sitemap fehlt im Build: ${part}`);
+      continue;
+    }
+    pageLocs.push(...locsOf(readFileSync(partFile, 'utf8')));
+  }
+  if (!pageLocs.length) sitemapIssues.push('Sitemap enthält keine Seiten-<loc>-Einträge');
+
   const seen = new Set();
-  for (const loc of locs) {
+  for (const loc of pageLocs) {
     // '/' ist die Startseite und liegt als index.html im Build.
-    const p = loc.replace(/^https?:\/\/[^/]+/, '') || '/';
+    const p = toPath(loc);
     const file = p === '/' ? '/index.html' : p;
     if (seen.has(p)) sitemapIssues.push(`doppelter Eintrag: ${p}`);
     seen.add(p);

@@ -9,6 +9,7 @@ import Attribution from '../components/Attribution.astro';
 import { db, uec, dur, mins, cmpSign, repSummary, missions, bpCount, seoTitle, seoText, clip } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { ICON_BLUEPRINT } from '../lib/icons';
+import { blueprintPath, blueprintsByMission } from '../lib/crafting';
 import { href, useTranslations } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
 
@@ -46,6 +47,7 @@ const S = {
     module: 'Missionsmodul', tags: 'Tags', none: '—', noReward: 'keine',
     guild: 'Gilde', rank: 'Karrierestufe', src: 'Quelle', calcReward: 'wird zur Laufzeit berechnet',
     bpH: 'Blueprints', bpChance: 'Chance',
+    bpCraft: 'Rezepte mit dieser Mission als Quelle',
     bpP: 'Diese Mission kann Blueprints abwerfen. Ein Pool ist eine gewichtete Liste — welcher Blueprint fällt, entscheidet der Zufall, du bekommst nicht die ganze Liste.',
     bpPool: 'Pool', bpWeight: 'Gewicht',
     srcBroker: 'Missionsbrett', srcContract: 'Contract-Manager',
@@ -79,6 +81,7 @@ const S = {
     module: 'Mission module', tags: 'Tags', none: '—', noReward: 'none',
     guild: 'Guild', rank: 'Career rank', src: 'Source', calcReward: 'calculated at runtime',
     bpH: 'Blueprints', bpChance: 'Chance',
+    bpCraft: 'Recipes that name this mission as a source',
     bpP: 'This mission can drop blueprints. A pool is a weighted list — which blueprint drops is chance-based, you do not get the whole list.',
     bpPool: 'Pool', bpWeight: 'Weight',
     srcBroker: 'Mission board', srcContract: 'Contract Manager',
@@ -96,6 +99,9 @@ const titleParts = parts(m.title);
 const descParts = m.desc ? parts(m.desc) : null;
 const reps = repSummary(m);
 const bpTotal = bpCount(m);
+// Rezepte, die DIESE Mission als Quelle nennen (Join nur in dieser Richtung
+// moeglich — die Pools oben tragen interne Kennungen, keine Anzeigenamen).
+const craftedHere = blueprintsByMission.get(m.slug) ?? [];
 const srcLabel = m.sources.map((s) => (s === 'broker' ? S.srcBroker : S.srcContract)).join(' + ');
 const legal = m.lawful && m.unlawful ? S.mixed : m.lawful ? S.lawful : S.unlawful;
 const v0 = m.variants[0];
@@ -241,13 +247,13 @@ const t = useTranslations(lang);
       </section>
 
       {/* Blueprints — die Antwort auf "wirft die was ab?" */}
-      {m.blueprints.length > 0 && (
+      {(m.blueprints.length > 0 || craftedHere.length > 0) && (
         <section class="md__sec">
           <h2 class="md__h2">
-            <Fragment set:html={ICON_BLUEPRINT} /> {S.bpH} <span class="md__n">{bpTotal}</span>
+            <Fragment set:html={ICON_BLUEPRINT} /> {S.bpH} <span class="md__n">{bpTotal || craftedHere.length}</span>
             {m.bpChance != null && <span class="md__badge md__badge--bp">{S.bpChance} {Math.round(m.bpChance * 100)}%</span>}
           </h2>
-          <p class="md__p">{S.bpP}</p>
+          {m.blueprints.length > 0 && <p class="md__p">{S.bpP}</p>}
           {m.blueprints.map((p) => (
             <>
               <h3 class="md__h3">{S.bpPool}: <code class="md__code">{p.poolKey}</code>{p.chance != null && ` · ${S.bpChance} ${Math.round(p.chance * 100)}%`}</h3>
@@ -258,6 +264,19 @@ const t = useTranslations(lang);
               </ul>
             </>
           ))}
+          {/* Die Pools oben führen interne Kennungen. Die Crafting-Datenbank
+              nennt umgekehrt pro Rezept seine Missionen — daraus entsteht die
+              lesbare, verlinkte Liste. */}
+          {craftedHere.length > 0 && (
+            <>
+              <h3 class="md__h3">{S.bpCraft}</h3>
+              <ul class="md__tags">
+                {craftedHere.map((b) => (
+                  <li class="md__tag md__tag--bp"><a href={L(blueprintPath(b))}>{b.name}</a></li>
+                ))}
+              </ul>
+            </>
+          )}
         </section>
       )}
 
@@ -526,6 +545,9 @@ const t = useTranslations(lang);
   .md__badge--il { color: #ff9d8a; border-color: rgba(255, 120, 90, .4); }
   .md__badge--bp { color: var(--ink); background: var(--accent-2); border-color: var(--accent-2); font-weight: 700; }
   .md__tag--bp { font-family: ui-monospace, monospace; font-size: .66rem; color: var(--accent-2); border-color: color-mix(in srgb, var(--accent-2) 30%, transparent); }
+  /* Blueprint-Namen verlinken auf ihre Rezeptseite, bleiben aber Tag-optik. */
+  .md__tag--bp a { color: inherit; text-decoration: none; }
+  .md__tag--bp a:hover { text-decoration: underline; }
 
   .md__steps { display: grid; gap: .3rem; padding-left: 1.2rem; }
   .md__steps li { font-size: .86rem; }

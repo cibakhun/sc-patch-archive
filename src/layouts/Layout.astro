@@ -39,7 +39,11 @@ interface Props {
    * = Snapshot-/Extraktionsdatum). Redaktionelle Seiten nutzen stattdessen
    * PatchSeo/TopicSeo (Article, im Body gerendert).
    */
-  itemPage?: { modified?: string };
+  itemPage?: {
+    modified?: string;
+    /** Name des beschriebenen Dings; ohne Angabe steht der volle <title> im LD. */
+    name?: string;
+  };
 }
 
 const {
@@ -173,7 +177,7 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
       set:html={JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'ItemPage',
-        name: title,
+        name: itemPage.name ?? title,
         description,
         image: ogImageAbs,
         url: canonical,
