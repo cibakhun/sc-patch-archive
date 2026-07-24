@@ -143,7 +143,7 @@
    (unter dem später gerenderten .ov-id__body), also hinter dem Text. */
 .ov-id__banner::before {
   content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(to bottom, transparent 38%, rgba(5, 7, 13, .82) 100%);
+  background: linear-gradient(to bottom, transparent 18%, rgba(5, 7, 13, .5) 52%, rgba(5, 7, 13, .93) 100%);
 }
 .ov-id__body { display: flex; align-items: flex-end; gap: 1.1rem; padding: 0 1.4rem 1.2rem; margin-top: -44px; position: relative; flex-wrap: wrap; }
 .ov-id__avatar { position: relative; width: 90px; height: 90px; flex: none; }
