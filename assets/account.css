@@ -137,6 +137,14 @@
     linear-gradient(90deg, rgba(45, 212, 255, .10) 1px, transparent 1px);
   background-size: 34px 34px; -webkit-mask: linear-gradient(180deg, transparent, #000 92%); mask: linear-gradient(180deg, transparent, #000 92%);
 }
+/* Scrim: dunkelt den unteren Banner-Rand ab, wo Name/Badge liegen — hält den
+   Text über JEDEM Banner (auch sehr hellen) lesbar. Fixe dunkle Farbe, damit
+   der Medien-Kontext in beiden Themes dunkel bleibt. Liegt im Banner-Subtree
+   (unter dem später gerenderten .ov-id__body), also hinter dem Text. */
+.ov-id__banner::before {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(to bottom, transparent 38%, rgba(5, 7, 13, .82) 100%);
+}
 .ov-id__body { display: flex; align-items: flex-end; gap: 1.1rem; padding: 0 1.4rem 1.2rem; margin-top: -44px; position: relative; flex-wrap: wrap; }
 .ov-id__avatar { position: relative; width: 90px; height: 90px; flex: none; }
 .ov-id__ring { position: absolute; inset: -8px; color: var(--accent); }
@@ -151,7 +159,9 @@
 .ov-id__dot.pulse { animation: ovpulse 2s ease-in-out infinite; }
 .ov-id__meta { flex: 1 1 240px; min-width: 0; padding-bottom: .15rem; }
 .ov-id__name { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
-.ov-id__name h3 { font-family: var(--font-display, sans-serif); margin: 0; font-size: 1.4rem; letter-spacing: .01em; color: var(--text); }
+/* Name liegt über dem Banner (Medien-Kontext) → fixe helle Farbe in BEIDEN
+   Themes + weicher Schatten, damit er über dem Scrim immer lesbar ist. */
+.ov-id__name h3 { font-family: var(--font-display, sans-serif); margin: 0; font-size: 1.4rem; letter-spacing: .01em; color: #eaf1ff; text-shadow: 0 1px 10px rgba(5, 7, 13, .55); }
 .ov-id__handle { font-family: var(--font-mono, monospace); color: var(--accent-2); font-size: .88rem; margin-top: .12rem; }
 .ov-id__row { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-top: .55rem; color: var(--muted); font-size: .82rem; }
 .ov-pill { display: inline-flex; align-items: center; gap: .4rem; background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 20px; padding: .22rem .7rem; }
