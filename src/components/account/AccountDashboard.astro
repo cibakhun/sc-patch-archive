@@ -583,26 +583,6 @@ const confirmRedirect = loginHref + '?confirmed=1';
 
         <hr class="acx-divider" />
 
-        <!-- RSI Verification -->
-        <h3 class="acx-form-heading">{COPY.secRsi}</h3>
-        <div class="acx-field">
-          <label class="acx-label" for="pfRsiHandle">{COPY.rsiHandle}</label>
-          <div class="acx-rsi-input-row">
-            <input class="acx-input" id="pfRsiHandle" type="text" maxlength="32" placeholder={COPY.rsiPh} />
-            <button type="button" class="acx-submit acx-submit--ghost" id="btnRsiVerifyModal">
-              <span>✓</span> <span>{COPY.rsiVerifyBtn}</span>
-            </button>
-          </div>
-          <div id="rsiVerifiedStatus" class="rsi-verified-indicator" hidden>
-            <span>✓ {COPY.rsiVerifiedText}</span>
-            <button type="button" id="btnResetRsiVerify" style="margin-left:0.8rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.8rem;text-decoration:underline">
-              ({COPY.rsiReset})
-            </button>
-          </div>
-        </div>
-
-        <hr class="acx-divider" />
-
         <!-- Social & Org -->
         <h3 class="acx-form-heading">{COPY.secSocial}</h3>
         <div class="acx-grid-2">
@@ -645,6 +625,27 @@ const confirmRedirect = loginHref + '?confirmed=1';
   <!-- TAB 4: SICHERHEIT & KONTO -->
   <section id="tab-panel-security" class="acx-tab-panel" hidden>
     <div class="sec-head reveal"><span class="num">03</span><h2>{COPY.secSecurity}</h2><span class="rule"></span></div>
+
+    <!-- RSI Account & Verifizierung (aus Profil hierher verschoben) -->
+    <div class="acx-card reveal">
+      <h3 class="acx-form-heading">{COPY.secRsi}</h3>
+      <div class="acx-field">
+        <label class="acx-label" for="pfRsiHandle">{COPY.rsiHandle}</label>
+        <div class="acx-rsi-input-row">
+          <input class="acx-input" id="pfRsiHandle" type="text" maxlength="32" placeholder={COPY.rsiPh} />
+          <button type="button" class="acx-submit acx-submit--ghost" id="btnRsiVerifyModal">
+            <span>✓</span> <span>{COPY.rsiVerifyBtn}</span>
+          </button>
+        </div>
+        <div id="rsiVerifiedStatus" class="rsi-verified-indicator" hidden>
+          <span>✓ {COPY.rsiVerifiedText}</span>
+          <button type="button" id="btnResetRsiVerify" style="margin-left:0.8rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.8rem;text-decoration:underline">
+            ({COPY.rsiReset})
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="acx-card reveal">
       <form id="emailForm" novalidate>
         <div class="acx-field">
