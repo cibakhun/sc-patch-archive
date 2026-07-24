@@ -118,11 +118,12 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       }
 
       // Registry-ID: erste 8 Hex-Zeichen der User-ID (uppercase)
+      const regHex = (user.id || '').replace(/[^a-f0-9]/gi, '').toUpperCase();
+      const regId = 'VB-' + (regHex.slice(0, 8) || '00000000');
       const regEl = document.getElementById('pcRegistryId');
-      if (regEl) {
-        const hex = (user.id || '').replace(/[^a-f0-9]/gi, '').toUpperCase();
-        regEl.textContent = 'VB-' + (hex.slice(0, 8) || '00000000');
-      }
+      if (regEl) regEl.textContent = regId;
+      const ovRegEl = document.getElementById('ovRegId');
+      if (ovRegEl) ovRegEl.textContent = regId;
 
       // Profile State
       let profileState: Record<string, any> = {
@@ -491,7 +492,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         // RSI-Kachel
         const ovRsi = document.getElementById('ovRsi') as HTMLElement | null;
         if (ovRsi) {
-          ovRsi.textContent = isVerified ? ('✓ ' + ovTpl('lRsiYes')) : ovTpl('lRsiNo');
+          ovRsi.textContent = isVerified ? ovTpl('lRsiYes') : ovTpl('lRsiNo');
           ovRsi.classList.toggle('no', !isVerified);
         }
         ovTxt('ovRsiSub', rsiHandle ? '@' + rsiHandle : '');
@@ -1290,7 +1291,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       const pendingLbl = pendingCount === 1 ? ovTpl('lPending1') : ovTpl('lPending').replace('%n%', String(pendingCount));
       const ovFriendsSub = document.getElementById('ovFriendsSub');
       if (ovFriendsSub) ovFriendsSub.textContent = pendingCount <= 0 ? '' : pendingLbl;
-      if (pendingCount > 0) activity.push({ g: '◈', html: pendingLbl, ts: Date.now() });
+      if (pendingCount > 0) activity.push({ g: 'i-users', html: pendingLbl, ts: Date.now() });
 
       // Refinery: Gesamtwert (verkauft, sonst geschätzt) + aktive Jobs
       try {
@@ -1309,12 +1310,37 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         const ovRefSub = document.getElementById('ovRefSub');
         if (ovRefSub) ovRefSub.textContent = active <= 0 ? ovTpl('lNoactive')
           : active === 1 ? ovTpl('lActive1') : ovTpl('lActive').replace('%n%', String(active));
-        if (jobs[0]) activity.push({ g: '⬢', html: ovTpl('lActJob').replace('%x%', `<em>${escHtml((jobs[0].station || '') + ' · ' + (jobs[0].method || ''))}</em>`), ts: +new Date(jobs[0].started_at) });
+
+        // Sparkline aus echten Job-Werten (alt -> neu)
+        const spark = document.getElementById('ovRefSpark');
+        if (spark) {
+          const vals = jobs.slice(0, 10).map(j => {
+            const v = j.sold_value != null ? Number(j.sold_value) : (j.est_value != null ? Number(j.est_value) : 0);
+            return Number.isNaN(v) ? 0 : v;
+          }).reverse();
+          if (vals.length >= 2) {
+            const W = 120, H = 24, mx = Math.max(...vals), mn = Math.min(...vals), rng = (mx - mn) || 1;
+            const pts = vals.map((v, i) => [
+              +((i / (vals.length - 1)) * W).toFixed(1),
+              +(H - 2 - ((v - mn) / rng) * (H - 4)).toFixed(1),
+            ] as [number, number]);
+            const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ',' + p[1]).join(' ');
+            const area = 'M' + pts[0][0] + ',' + H + ' ' + pts.map(p => 'L' + p[0] + ',' + p[1]).join(' ') + ' L' + pts[pts.length - 1][0] + ',' + H + ' Z';
+            const end = pts[pts.length - 1];
+            spark.innerHTML =
+              '<defs><linearGradient id="sparkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--gold);stop-opacity:.28"/><stop offset="1" style="stop-color:var(--gold);stop-opacity:0"/></linearGradient></defs>' +
+              `<path d="${area}" fill="url(#sparkg)"/>` +
+              `<path d="${line}" fill="none" style="stroke:var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +
+              `<circle cx="${end[0]}" cy="${end[1]}" r="2.2" style="fill:var(--gold)"/>`;
+          }
+        }
+
+        if (jobs[0]) activity.push({ g: 'i-hex', html: ovTpl('lActJob').replace('%x%', `<em>${escHtml((jobs[0].station || '') + ' · ' + (jobs[0].method || ''))}</em>`), ts: +new Date(jobs[0].started_at) });
       } catch {}
 
       // Neueste Favoriten (created_at nicht im Select → als aktuelle Ergänzungen)
       for (const f of (favs || []).slice(0, 3)) {
-        activity.push({ g: '★', html: ovTpl('lActFav').replace('%x%', `<em>${escHtml(f.label || f.slug)}</em>`), ts: 0 });
+        activity.push({ g: 'i-star', html: ovTpl('lActFav').replace('%x%', `<em>${escHtml(f.label || f.slug)}</em>`), ts: 0 });
       }
 
       // Aktivität rendern (ts absteigend; Einträge ohne ts ans Ende)
@@ -1327,7 +1353,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           activity.sort((a, b) => (b.ts || 0) - (a.ts || 0));
           const fmtDate = (ts: number) => ts > 0 ? new Date(ts).toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US', { day: 'numeric', month: 'short' }) : '';
           ovAct.innerHTML = activity.slice(0, 5).map(it =>
-            `<div class="ov-act__row"><span class="g" aria-hidden="true">${it.g}</span><div>${it.html}</div><span class="t">${fmtDate(it.ts)}</span></div>`
+            `<div class="lg__row"><span class="lg__ic"><svg class="ic" aria-hidden="true"><use href="#${it.g}"/></svg></span><div>${it.html}</div><span class="lg__tm">${fmtDate(it.ts)}</span></div>`
           ).join('');
         }
       }
