@@ -125,6 +125,25 @@ const COPY = {
     publicPageCopy: 'Link kopieren',
     publicPageCopied: 'Kopiert! ✓',
     publicPageNoHandle: 'Setze ein Handle, um deine öffentliche Seite zu aktivieren.',
+    ovWelcome: 'Willkommen zurück',
+    ovLead: 'Dein Cockpit — Profil, Netzwerk und Werkzeuge auf einen Blick.',
+    ovAtAGlance: 'Auf einen Blick',
+    ovQuick: 'Schnellzugriff',
+    ovRecent: 'Letzte Aktivität',
+    ovTFavs: 'Favoriten', ovTFriends: 'Freunde', ovTRefValue: 'Refinery-Wert',
+    ovTComplete: 'Profil-Vollständigkeit', ovTRsi: 'RSI-Status',
+    ovJProfile: 'Profil bearbeiten', ovJProfileSub: 'Name, Avatar, Banner, Rolle',
+    ovJFavs: 'Favoriten ansehen', ovJFavsSub: 'Schiffe, Items & Missionen',
+    ovJFriends: 'Freunde verwalten', ovJFriendsSub: 'Netzwerk & Anfragen',
+    ovJRefinery: 'Refinery-Tracker', ovJRefinerySub: 'Erz-Jobs & Ausbeute',
+    ovJShare: 'Öffentliches Profil teilen', ovJShareSub: 'Deine Pilotenkarte',
+    ovJSecurity: 'Sicherheit', ovJSecuritySub: 'E-Mail, Passwort, Konto',
+    ovPending: '%n% offene Anfragen', ovPending1: '1 offene Anfrage', ovNoPending: 'Keine offenen Anfragen',
+    ovActive: '%n% laufende Jobs', ovActive1: '1 laufender Job', ovNoActive: 'Keine laufenden Jobs',
+    ovMissing: 'Noch %n% Felder offen', ovMissing1: 'Noch 1 Feld offen', ovComplete: 'Profil vollständig ✓',
+    ovRsiYes: 'Verifiziert', ovRsiNo: 'Nicht verifiziert', ovNav: 'Konto', ovTools: 'Werkzeuge',
+    ovActFav: 'Favorit hinzugefügt: %x%', ovActReq: 'Freundschaftsanfrage von @%x%', ovActJob: 'Refinery-Job: %x%',
+    ovActEmpty: 'Noch keine Aktivität — leg mit einem Favoriten oder einer Freundschaftsanfrage los.',
   },
   en: {
     loading: 'Loading your account …',
@@ -240,12 +259,32 @@ const COPY = {
     publicPageCopy: 'Copy link',
     publicPageCopied: 'Copied! ✓',
     publicPageNoHandle: 'Set a handle to activate your public page.',
+    ovWelcome: 'Welcome back',
+    ovLead: 'Your cockpit — profile, network and tools at a glance.',
+    ovAtAGlance: 'At a glance',
+    ovQuick: 'Quick access',
+    ovRecent: 'Recent activity',
+    ovTFavs: 'Favorites', ovTFriends: 'Friends', ovTRefValue: 'Refinery value',
+    ovTComplete: 'Profile completeness', ovTRsi: 'RSI status',
+    ovJProfile: 'Edit profile', ovJProfileSub: 'Name, avatar, banner, role',
+    ovJFavs: 'View favorites', ovJFavsSub: 'Ships, items & missions',
+    ovJFriends: 'Manage friends', ovJFriendsSub: 'Network & requests',
+    ovJRefinery: 'Refinery tracker', ovJRefinerySub: 'Ore jobs & yield',
+    ovJShare: 'Share public profile', ovJShareSub: 'Your pilot card',
+    ovJSecurity: 'Security', ovJSecuritySub: 'E-mail, password, account',
+    ovPending: '%n% pending requests', ovPending1: '1 pending request', ovNoPending: 'No pending requests',
+    ovActive: '%n% active jobs', ovActive1: '1 active job', ovNoActive: 'No active jobs',
+    ovMissing: '%n% fields still open', ovMissing1: '1 field still open', ovComplete: 'Profile complete ✓',
+    ovRsiYes: 'Verified', ovRsiNo: 'Not verified', ovNav: 'Account', ovTools: 'Tools',
+    ovActFav: 'Favorited: %x%', ovActReq: 'Friend request from @%x%', ovActJob: 'Refinery job: %x%',
+    ovActEmpty: 'No activity yet — start with a favorite or a friend request.',
   },
 }[lang];
 
 const loginHref = href('/account/login.html', lang);
 const homeHref = lang === 'de' ? '/de.html' : '/';
 const shipsHref = href('/schiffe.html', lang);
+const refineryHref = href('/refinery.html', lang);
 const confirmRedirect = loginHref + '?confirmed=1';
 ---
 
@@ -288,37 +327,133 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-crop-title-banner={COPY.cropTitleBanner}
   data-crop-calc={COPY.cropCalc}
 >
-  <!-- Identity Header -->
-  <div class="acx-idcard reveal">
-    <div class="acx-id">
-      <div class="acx-id__avatar" aria-hidden="true" id="idAvatar">◆</div>
-      <div class="acx-id__meta">
-        <div class="acx-id__label">{COPY.signedInAs}</div>
-        <div class="acx-id__email" id="idEmail">—</div>
-        <div class="acx-id__since"><span>{COPY.memberSince}</span> <b id="idSince">—</b></div>
+  <div class="acshell reveal">
+    <!-- Sidebar-Rail -->
+    <aside class="acnav" aria-label={COPY.ovNav}>
+      <div class="acnav__brand">
+        <span class="acnav__eye">System Access</span>
+        <span class="acnav__name">VERSEBASE</span>
       </div>
-    </div>
-    <button class="acx-submit acx-submit--ghost" type="button" id="btnLogout">{COPY.logout}</button>
-  </div>
+      <nav class="acnav__list">
+        <span class="acnav__group">{COPY.ovNav}</span>
+        <button type="button" class="acnav__item active" data-tab="overview"><span class="g" aria-hidden="true">⬡</span> <span>{lang === 'de' ? 'Übersicht' : 'Overview'}</span></button>
+        <button type="button" class="acnav__item" data-tab="profile"><span class="g" aria-hidden="true">◆</span> <span>{COPY.tabProfile}</span></button>
+        <button type="button" class="acnav__item" data-tab="favs"><span class="g" aria-hidden="true">★</span> <span>{COPY.tabFavs}</span> <span class="badge" id="navFavCount" hidden>0</span></button>
+        <button type="button" class="acnav__item" data-tab="friends"><span class="g" aria-hidden="true">◈</span> <span>{COPY.tabFriends}</span> <span class="badge" id="navFriendCount" hidden>0</span></button>
+        <span class="acnav__group">{COPY.ovTools}</span>
+        <a class="acnav__item" href={refineryHref}><span class="g" aria-hidden="true">⬢</span> <span>{COPY.ovJRefinery}</span> <span class="acnav__ext" aria-hidden="true">↗</span></a>
+        <button type="button" class="acnav__item" data-tab="security"><span class="g" aria-hidden="true">▲</span> <span>{COPY.tabSecurity}</span></button>
+      </nav>
+      <div class="acnav__foot">
+        <div class="acnav__mini" aria-hidden="true" id="idAvatar">◆</div>
+        <div class="acnav__who"><b id="navWho">—</b><span id="idEmail">—</span></div>
+        <button type="button" class="acnav__out" id="btnLogout" title={COPY.logout} aria-label={COPY.logout}>⏻</button>
+      </div>
+    </aside>
 
-  <!-- Main Navigation Tabs -->
-  <nav class="acx-tabs-nav reveal" aria-label="Account Navigation">
-    <button type="button" class="acx-tab-btn active" data-tab="profile">
-      <span>◆</span> <span>{COPY.tabProfile}</span>
-    </button>
-    <button type="button" class="acx-tab-btn" data-tab="friends">
-      <span>◈</span> <span>{COPY.tabFriends}</span>
-    </button>
-    <button type="button" class="acx-tab-btn" data-tab="favs">
-      <span>★</span> <span>{COPY.tabFavs}</span>
-    </button>
-    <button type="button" class="acx-tab-btn" data-tab="security">
-      <span>▲</span> <span>{COPY.tabSecurity}</span>
-    </button>
-  </nav>
+    <div class="acmain">
+    <!-- SECTION: ÜBERSICHT (Default) -->
+    <section id="tab-panel-overview" class="acx-tab-panel"
+      data-l-pending={COPY.ovPending} data-l-pending1={COPY.ovPending1} data-l-nopending={COPY.ovNoPending}
+      data-l-active={COPY.ovActive} data-l-active1={COPY.ovActive1} data-l-noactive={COPY.ovNoActive}
+      data-l-missing={COPY.ovMissing} data-l-missing1={COPY.ovMissing1} data-l-complete={COPY.ovComplete}
+      data-l-rsi-yes={COPY.ovRsiYes} data-l-rsi-no={COPY.ovRsiNo}
+      data-l-act-fav={COPY.ovActFav} data-l-act-req={COPY.ovActReq} data-l-act-job={COPY.ovActJob} data-l-act-empty={COPY.ovActEmpty}>
+      <div class="ov-head">
+        <h2><span class="thin">{COPY.ovWelcome},</span><span id="ovHeadName">Citizen</span></h2>
+        <p>{COPY.ovLead}</p>
+      </div>
 
-  <!-- TAB 1: PROFIL & IDENTITÄT -->
-  <section id="tab-panel-profile" class="acx-tab-panel">
+      <!-- Identitäts-Streifen -->
+      <div class="ov-id">
+        <div class="ov-id__banner" id="ovBanner"></div>
+        <div class="ov-id__body">
+          <div class="ov-id__avatar">
+            <svg class="ov-id__ring" viewBox="0 0 132 132" width="106" height="106" aria-hidden="true">
+              <circle cx="66" cy="66" r="62" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="22 12" opacity=".8" />
+              <circle cx="66" cy="66" r="62" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="4 90" />
+            </svg>
+            <div class="ov-id__box" id="ovAvatarBox"><span id="ovAvatarText">◆</span><img id="ovAvatarImg" src="" alt="" hidden /></div>
+            <span class="ov-id__dot" id="ovStatusDot"></span>
+          </div>
+          <div class="ov-id__meta">
+            <div class="ov-id__name">
+              <h3 id="ovName">Citizen</h3>
+              <span class="ov-vbadge" id="ovVerified" hidden>
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                RSI Verified
+              </span>
+            </div>
+            <div class="ov-id__handle" id="ovHandle">@citizen</div>
+            <div class="ov-id__row">
+              <span class="ov-pill" id="ovRolePill" hidden><span class="g" id="ovRoleIcon" aria-hidden="true">◆</span> <span id="ovRoleText"></span></span>
+              <span class="ov-pill" id="ovStatusPill"><span id="ovStatusLabel"></span></span>
+              <span class="ov-pill" id="ovOrgPill" hidden><span class="g" aria-hidden="true">◈</span> <span id="ovOrgText"></span></span>
+            </div>
+            <div class="ov-id__row" style="margin-top:.4rem;font-size:.78rem">
+              <span>{COPY.memberSince} <b id="idSince" style="color:var(--text)">—</b></span>
+            </div>
+          </div>
+          <div class="ov-id__actions">
+            <button type="button" class="acx-submit acx-submit--ghost" id="ovBtnShare"><span aria-hidden="true">◈</span> <span>{lang === 'de' ? 'Öffentliches Profil' : 'Public Profile'}</span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stat-Kacheln -->
+      <div class="ov-label"><h4>{COPY.ovAtAGlance}</h4><span class="rule"></span></div>
+      <div class="ov-stats">
+        <button type="button" class="ov-tile" data-tab-jump="favs">
+          <div class="ov-tile__k"><span class="g" aria-hidden="true">★</span> {COPY.ovTFavs}</div>
+          <div class="ov-tile__v" id="ovStatFavs">0</div>
+        </button>
+        <button type="button" class="ov-tile" data-tab-jump="friends">
+          <div class="ov-tile__k"><span class="g" aria-hidden="true">◈</span> {COPY.ovTFriends}</div>
+          <div class="ov-tile__v" id="ovStatFriends">0</div>
+          <div class="ov-tile__s" id="ovFriendsSub"></div>
+        </button>
+        <a class="ov-tile" href={refineryHref}>
+          <div class="ov-tile__k"><span class="g" aria-hidden="true">⬢</span> {COPY.ovTRefValue}</div>
+          <div class="ov-tile__v" id="ovRefValue">—</div>
+          <div class="ov-tile__s" id="ovRefSub"></div>
+        </a>
+        <div class="ov-tile ov-tile--accent">
+          <div class="ov-tile__k"><span class="g" aria-hidden="true">◆</span> {COPY.ovTComplete}</div>
+          <div class="ov-ring">
+            <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true">
+              <circle cx="22" cy="22" r="18" fill="none" stroke="var(--line-soft)" stroke-width="4" />
+              <circle id="ovRing" cx="22" cy="22" r="18" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="113" transform="rotate(-90 22 22)" />
+            </svg>
+            <div><div class="ov-ring__v" id="ovComplete">0%</div><div class="ov-tile__s" id="ovCompleteSub"></div></div>
+          </div>
+        </div>
+        <div class="ov-tile">
+          <div class="ov-tile__k"><span class="g" aria-hidden="true">▲</span> {COPY.ovTRsi}</div>
+          <div class="ov-verbadge no" id="ovRsi">—</div>
+          <div class="ov-tile__s" id="ovRsiSub"></div>
+        </div>
+      </div>
+
+      <!-- Schnellzugriff -->
+      <div class="ov-label"><h4>{COPY.ovQuick}</h4><span class="rule"></span></div>
+      <div class="ov-jumps">
+        <button type="button" class="ov-jump" data-tab-jump="profile"><span class="ov-jump__ic" aria-hidden="true">◆</span><span class="ov-jump__tx"><b>{COPY.ovJProfile}</b><span>{COPY.ovJProfileSub}</span></span><span class="ov-jump__arr" aria-hidden="true">→</span></button>
+        <button type="button" class="ov-jump" data-tab-jump="favs"><span class="ov-jump__ic" aria-hidden="true">★</span><span class="ov-jump__tx"><b>{COPY.ovJFavs}</b><span>{COPY.ovJFavsSub}</span></span><span class="ov-jump__arr" aria-hidden="true">→</span></button>
+        <button type="button" class="ov-jump" data-tab-jump="friends"><span class="ov-jump__ic" aria-hidden="true">◈</span><span class="ov-jump__tx"><b>{COPY.ovJFriends}</b><span>{COPY.ovJFriendsSub}</span></span><span class="ov-jump__arr" aria-hidden="true">→</span></button>
+        <a class="ov-jump" href={refineryHref}><span class="ov-jump__ic" aria-hidden="true">⬢</span><span class="ov-jump__tx"><b>{COPY.ovJRefinery}</b><span>{COPY.ovJRefinerySub}</span></span><span class="ov-jump__arr" aria-hidden="true">↗</span></a>
+        <button type="button" class="ov-jump" id="ovBtnShare2"><span class="ov-jump__ic" aria-hidden="true">◈</span><span class="ov-jump__tx"><b>{COPY.ovJShare}</b><span>{COPY.ovJShareSub}</span></span><span class="ov-jump__arr" aria-hidden="true">↗</span></button>
+        <button type="button" class="ov-jump" data-tab-jump="security"><span class="ov-jump__ic" aria-hidden="true">▲</span><span class="ov-jump__tx"><b>{COPY.ovJSecurity}</b><span>{COPY.ovJSecuritySub}</span></span><span class="ov-jump__arr" aria-hidden="true">→</span></button>
+      </div>
+
+      <!-- Letzte Aktivität -->
+      <div class="ov-label"><h4>{COPY.ovRecent}</h4><span class="rule"></span></div>
+      <div class="ov-act" id="ovActivity">
+        <div class="ov-act__empty" id="ovActEmpty">{COPY.ovActEmpty}</div>
+      </div>
+    </section>
+
+    <!-- SECTION: PROFIL & IDENTITÄT -->
+    <section id="tab-panel-profile" class="acx-tab-panel" hidden>
     <!-- Live Profile Card -->
     <ProfileCard lang={lang} />
 
@@ -555,6 +690,8 @@ const confirmRedirect = loginHref + '?confirmed=1';
       </form>
     </div>
   </section>
+    </div><!-- /.acmain -->
+  </div><!-- /.acshell -->
 
   <!-- RSI Verification Wizard Modal -->
   <dialog id="rsiModal" class="acx-modal">
@@ -1542,6 +1679,16 @@ const confirmRedirect = loginHref + '?confirmed=1';
     const loadingEl = document.getElementById('dashLoading')!;
     const KINDS: Record<string, string> = JSON.parse(D.kinds || '{}');
 
+    // Übersicht-Panel: trägt die dynamischen i18n-Templates als data-l-* Attribute
+    const ovPanel = document.getElementById('tab-panel-overview');
+    const ovTpl = (k: string) => (ovPanel && ovPanel.dataset[k]) || '';
+    const escHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
+    const fmtAuec = (n: number) => {
+      if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1) + '<small>M aUEC</small>';
+      if (n >= 1000) return Math.round(n / 1000) + '<small>k aUEC</small>';
+      return Math.round(n) + '<small> aUEC</small>';
+    };
+
     const favPath = (kind: string, slug: string) => {
       const tpl = FAV_PATH[kind] || '/index.html';
       const p = tpl.replace('%s', encodeURIComponent(slug).replace(/%2F/gi, '/'));
@@ -1583,19 +1730,22 @@ const confirmRedirect = loginHref + '?confirmed=1';
       });
     }
 
-    // Tab Navigation Logic
-    const tabBtns = document.querySelectorAll('.acx-tab-btn');
-    const tabPanels = document.querySelectorAll('.acx-tab-panel');
-    tabBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const target = (btn as HTMLElement).dataset.tab;
-        tabBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        tabPanels.forEach(p => p.hidden = true);
-        const activePanel = document.getElementById(`tab-panel-${target}`);
-        if (activePanel) activePanel.hidden = false;
-      });
-    });
+    // Section-Navigation: Sidebar-Items (data-tab) schalten die Panels; die
+    // Schnellsprung-Karten der Übersicht (data-tab-jump) springen in dieselben
+    // Panels. Übersicht ist Default (im Markup aktiv/sichtbar gerendert).
+    const navItems = document.querySelectorAll<HTMLElement>('.acnav__item[data-tab]');
+    const tabPanels = document.querySelectorAll<HTMLElement>('.acx-tab-panel');
+    const activateSection = (target: string | undefined) => {
+      if (!target) return;
+      navItems.forEach(b => b.classList.toggle('active', b.dataset.tab === target));
+      tabPanels.forEach(p => { p.hidden = p.id !== `tab-panel-${target}`; });
+      if (window.matchMedia('(max-width: 860px)').matches) {
+        document.getElementById('main')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+    navItems.forEach(btn => btn.addEventListener('click', () => activateSection(btn.dataset.tab)));
+    document.querySelectorAll<HTMLElement>('[data-tab-jump]').forEach(btn =>
+      btn.addEventListener('click', () => activateSection(btn.dataset.tabJump)));
 
     const init = async () => {
       const { data } = await supabase.auth.getSession();
@@ -1957,6 +2107,62 @@ const confirmRedirect = loginHref + '?confirmed=1';
         setStat('pcStatComplete', pct + '%');
         const statBar = document.getElementById('pcStatBar') as HTMLElement | null;
         if (statBar) statBar.style.width = pct + '%';
+
+        // ---- Übersicht spiegeln (identische Werte wie die Profilkarte) ----
+        const ovTxt = (id: string, val: string) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        ovTxt('ovHeadName', dName);
+        ovTxt('ovName', dName);
+        ovTxt('navWho', dName);
+        ovTxt('ovHandle', dHandle);
+
+        const ovBox = document.getElementById('ovAvatarBox') as HTMLElement | null;
+        if (ovBox) { ovBox.style.color = avColor; ovBox.style.borderColor = avColor; ovBox.style.boxShadow = `0 0 25px ${avColor}55`; }
+        const ovAvTxt = document.getElementById('ovAvatarText') as HTMLElement | null;
+        const ovAvImg = document.getElementById('ovAvatarImg') as HTMLImageElement | null;
+        if (ovAvTxt) ovAvTxt.textContent = initial;
+        if (ovAvImg && ovAvTxt) {
+          if (avUrl) { ovAvImg.src = avUrl; ovAvImg.hidden = false; ovAvTxt.hidden = true; }
+          else { ovAvImg.hidden = true; ovAvTxt.hidden = false; }
+        }
+        // Sidebar-Mini-Avatar (Bild oder Initiale)
+        const navMini = document.getElementById('idAvatar') as HTMLElement | null;
+        if (navMini) {
+          if (avUrl) { navMini.innerHTML = ''; const im = document.createElement('img'); im.src = avUrl; im.alt = ''; navMini.appendChild(im); }
+          else { navMini.textContent = dName.trim().charAt(0).toUpperCase() || '◆'; navMini.style.color = avColor; navMini.style.borderColor = avColor; }
+        }
+
+        const ovBanner = document.getElementById('ovBanner') as HTMLElement | null;
+        if (ovBanner) ovBanner.style.backgroundImage = `url('${bUrl}')`;
+
+        const ovDot = document.getElementById('ovStatusDot') as HTMLElement | null;
+        if (ovDot) { ovDot.style.background = stInfo.color; ovDot.classList.toggle('pulse', !!stInfo.pulse); }
+        ovTxt('ovStatusLabel', (lang === 'de' ? stInfo.labelDe : stInfo.labelEn) + (cStatusText ? ' · ' + cStatusText : ''));
+
+        const ovRolePill = document.getElementById('ovRolePill') as HTMLElement | null;
+        if (ovRolePill) {
+          ovRolePill.hidden = !roleObj;
+          if (roleObj) { ovTxt('ovRoleIcon', roleObj.symbol); ovTxt('ovRoleText', lang === 'de' ? roleObj.labelDe : roleObj.labelEn); }
+        }
+        const ovVer = document.getElementById('ovVerified') as HTMLElement | null;
+        if (ovVer) ovVer.hidden = !isVerified;
+        const ovOrgPill = document.getElementById('ovOrgPill') as HTMLElement | null;
+        if (ovOrgPill) { ovOrgPill.hidden = !orgTxt; if (orgTxt) ovTxt('ovOrgText', orgTxt); }
+
+        // Vollständigkeits-Ring + Resttext
+        ovTxt('ovComplete', pct + '%');
+        const ovRing = document.getElementById('ovRing') as unknown as SVGCircleElement | null;
+        if (ovRing) ovRing.style.strokeDashoffset = String(113 * (1 - pct / 100));
+        const missing = completeFields.filter(v => !v).length;
+        ovTxt('ovCompleteSub', missing === 0 ? ovTpl('lComplete')
+          : missing === 1 ? ovTpl('lMissing1') : ovTpl('lMissing').replace('%n%', String(missing)));
+
+        // RSI-Kachel
+        const ovRsi = document.getElementById('ovRsi') as HTMLElement | null;
+        if (ovRsi) {
+          ovRsi.textContent = isVerified ? ('✓ ' + ovTpl('lRsiYes')) : ovTpl('lRsiNo');
+          ovRsi.classList.toggle('no', !isVerified);
+        }
+        ovTxt('ovRsiSub', rsiHandle ? '@' + rsiHandle : '');
       };
 
       [nameInput, handleInput, bioInput, bannerUrlInput, avatarUrlInput, statusStateSelect, statusTextInput, roleSelect, rsiHandleInput, discordInput, orgInput].forEach(el => {
@@ -2472,12 +2678,13 @@ const confirmRedirect = loginHref + '?confirmed=1';
         }
       };
 
-      if (btnPreviewModal && previewModal) {
-        btnPreviewModal.addEventListener('click', () => {
+      // Vorschau öffnen: Profilkarten-Button + die beiden Übersicht-Trigger
+      [btnPreviewModal, document.getElementById('ovBtnShare'), document.getElementById('ovBtnShare2')].forEach((b) => {
+        if (b && previewModal) b.addEventListener('click', () => {
           fillPreview();
           if (previewModal.showModal) previewModal.showModal();
         });
-      }
+      });
       if (btnClosePreviewModal && previewModal) {
         btnClosePreviewModal.addEventListener('click', () => previewModal.close());
       }
@@ -2730,6 +2937,68 @@ const confirmRedirect = loginHref + '?confirmed=1';
         friendCount = fc || 0;
       } catch {}
       updateCard();
+
+      // ---- Übersicht: Kennzahlen, Sidebar-Badges, Aktivitäts-Feed ----
+      const setBadge = (id: string, n: number) => { const el = document.getElementById(id); if (!el) return; el.textContent = String(n); el.hidden = n <= 0; };
+      setBadge('navFavCount', favCount);
+      setBadge('navFriendCount', friendCount);
+      const ovFavsEl = document.getElementById('ovStatFavs'); if (ovFavsEl) ovFavsEl.textContent = String(favCount);
+      const ovFriEl = document.getElementById('ovStatFriends'); if (ovFriEl) ovFriEl.textContent = String(friendCount);
+
+      const activity: Array<{ g: string; html: string; ts: number }> = [];
+
+      // Offene eingehende Freundschaftsanfragen (Zähler + Kachel-Unterzeile)
+      let pendingCount = 0;
+      try {
+        const { count: pc } = await supabase.from('friend_requests')
+          .select('id', { count: 'exact', head: true })
+          .eq('receiver_id', user.id).eq('status', 'pending');
+        pendingCount = pc || 0;
+      } catch {}
+      const pendingLbl = pendingCount === 1 ? ovTpl('lPending1') : ovTpl('lPending').replace('%n%', String(pendingCount));
+      const ovFriendsSub = document.getElementById('ovFriendsSub');
+      if (ovFriendsSub) ovFriendsSub.textContent = pendingCount <= 0 ? '' : pendingLbl;
+      if (pendingCount > 0) activity.push({ g: '◈', html: pendingLbl, ts: Date.now() });
+
+      // Refinery: Gesamtwert (verkauft, sonst geschätzt) + aktive Jobs
+      try {
+        const { data: rjobs } = await supabase.from('refinery_jobs')
+          .select('station, method, status, est_value, sold_value, started_at')
+          .order('started_at', { ascending: false });
+        const jobs = rjobs || [];
+        let total = 0, active = 0;
+        for (const j of jobs) {
+          const v = j.sold_value != null ? Number(j.sold_value) : (j.est_value != null ? Number(j.est_value) : 0);
+          if (!Number.isNaN(v)) total += v;
+          if (j.status === 'active') active++;
+        }
+        const ovRefValue = document.getElementById('ovRefValue');
+        if (ovRefValue) ovRefValue.innerHTML = fmtAuec(total);
+        const ovRefSub = document.getElementById('ovRefSub');
+        if (ovRefSub) ovRefSub.textContent = active <= 0 ? ovTpl('lNoactive')
+          : active === 1 ? ovTpl('lActive1') : ovTpl('lActive').replace('%n%', String(active));
+        if (jobs[0]) activity.push({ g: '⬢', html: ovTpl('lActJob').replace('%x%', `<em>${escHtml((jobs[0].station || '') + ' · ' + (jobs[0].method || ''))}</em>`), ts: +new Date(jobs[0].started_at) });
+      } catch {}
+
+      // Neueste Favoriten (created_at nicht im Select → als aktuelle Ergänzungen)
+      for (const f of (favs || []).slice(0, 3)) {
+        activity.push({ g: '★', html: ovTpl('lActFav').replace('%x%', `<em>${escHtml(f.label || f.slug)}</em>`), ts: 0 });
+      }
+
+      // Aktivität rendern (ts absteigend; Einträge ohne ts ans Ende)
+      const ovAct = document.getElementById('ovActivity');
+      const ovActEmpty = document.getElementById('ovActEmpty');
+      if (ovAct) {
+        if (!activity.length) { if (ovActEmpty) ovActEmpty.hidden = false; }
+        else {
+          if (ovActEmpty) ovActEmpty.hidden = true;
+          activity.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+          const fmtDate = (ts: number) => ts > 0 ? new Date(ts).toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US', { day: 'numeric', month: 'short' }) : '';
+          ovAct.innerHTML = activity.slice(0, 5).map(it =>
+            `<div class="ov-act__row"><span class="g" aria-hidden="true">${it.g}</span><div>${it.html}</div><span class="t">${fmtDate(it.ts)}</span></div>`
+          ).join('');
+        }
+      }
 
       // Security Forms
       const emailForm = document.getElementById('emailForm') as HTMLFormElement;

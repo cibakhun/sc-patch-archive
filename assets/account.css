@@ -1,0 +1,228 @@
+/* ============================================================================
+   VerseBase · Account-Bereich — geteilte Token- und Stil-Schicht
+   ----------------------------------------------------------------------------
+   Einzige Quelle der cyan „System-Access"-Palette (früher in JEDE /account/-
+   Seite inline kopiert) plus die App-Shell-, Sidebar- und Übersicht-Stile der
+   Neustrukturierung. Wird via <link slot="head"> NACH theme.css geladen und
+   schlägt dessen Rückfallwerte über die Quellreihenfolge.
+
+   ⚠ Hellmodus wird hier VON HAND gepflegt: die Paletten-Generatoren
+   (scripts/build-light-palettes.mjs) sehen nur inline-<style> in .astro,
+   nicht diese Datei. Jede neue Farbentscheidung braucht ihr :root[data-theme]-
+   Gegenstück gleich mit.
+   ========================================================================== */
+
+/* ---------- Palette (Dunkel = Standard) ---------- */
+:root {
+  --bg: #05070d; --bg-2: #0a0e18; --surface: #0d1322; --surface-2: #131b30;
+  --accent: #2dd4ff; --accent-2: #7ae2ff; --hot: #2dd4ff;
+  --text: #e8eefc; --muted: #8a99b8;
+  --line: rgba(45, 212, 255, .22); --line-soft: rgba(232, 238, 252, .10);
+  --glow: 0 0 46px rgba(45, 212, 255, .18); --ink: #04121a; --maxw: 1180px;
+  /* Semantische Zustandsfarben — bleiben in beiden Modi lesbar */
+  --ok: #4ade80; --warn: #fbbf24; --danger: #f87171;
+}
+
+/* ---------- Palette (Hell) — von Hand gepflegt ---------- */
+:root[data-theme="light"] {
+  --bg: #f4f7fe; --bg-2: #e9eef9; --surface: #fdfdff; --surface-2: #eef2fc;
+  --text: #1b1f29; --muted: #4e586c;
+  --accent: #05657c; --accent-2: #025f73; --hot: #065c71; --ink: #ffffff;
+  --accent-media: #2dd4ff; --accent-2-media: #7ae2ff;
+  --line: rgba(43, 125, 148, .3); --line-soft: rgba(41, 46, 56, .12);
+  --glow: 0 6px 22px rgba(43, 125, 148, .18);
+  --ok: #15803d; --warn: #b45309; --danger: #dc2626;
+}
+
+/* ============================================================================
+   App-Shell — Sidebar-Rail + Inhaltsspalte (nur Dashboard)
+   ========================================================================== */
+.acshell {
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: clamp(1.1rem, 2.5vw, 2rem);
+  align-items: start;
+}
+
+/* ---------- Sidebar-Rail ---------- */
+.acnav {
+  position: sticky;
+  top: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 1.2rem 0.9rem;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 94%, transparent), color-mix(in srgb, var(--bg-2) 96%, transparent));
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .35);
+}
+.acnav__brand { display: flex; flex-direction: column; gap: .15rem; padding: .1rem .5rem .3rem; }
+.acnav__eye {
+  font-family: var(--font-mono, 'Share Tech Mono', monospace);
+  font-size: .6rem; letter-spacing: .24em; text-transform: uppercase; color: var(--accent);
+}
+.acnav__name {
+  font-family: var(--font-display, sans-serif);
+  font-weight: 700; font-size: 1.1rem; letter-spacing: .14em; color: var(--text);
+}
+.acnav__list { display: flex; flex-direction: column; gap: .2rem; }
+.acnav__group {
+  font-family: var(--font-mono, 'Share Tech Mono', monospace);
+  font-size: .58rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted);
+  padding: .55rem .6rem .15rem;
+}
+.acnav__item {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .6rem .7rem; border-radius: 8px;
+  color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 600; font-size: .92rem;
+  border: 1px solid transparent; cursor: pointer; text-align: left; background: none;
+  width: 100%; transition: background .16s ease, border-color .16s ease;
+}
+.acnav__item .g { width: 1.3rem; text-align: center; font-size: 1rem; color: var(--muted); flex: none; }
+.acnav__item:hover { color: var(--text); background: var(--surface-2); border-color: var(--line-soft); }
+.acnav__item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.acnav__item.active {
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: var(--accent); box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.acnav__item.active .g { color: var(--accent); }
+.acnav__item .badge {
+  margin-left: auto; font-family: var(--font-mono, monospace); font-size: .68rem;
+  background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 20px;
+  padding: .05rem .5rem; color: var(--muted); min-width: 1.5em; text-align: center;
+}
+.acnav__item.active .badge { color: var(--accent); border-color: var(--line); }
+.acnav__ext { margin-left: auto; font-size: .8rem; opacity: .6; }
+
+.acnav__foot { margin-top: auto; border-top: 1px solid var(--line-soft); padding: .9rem .35rem 0; display: flex; align-items: center; gap: .6rem; }
+.acnav__mini {
+  width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center;
+  border: 1.5px solid var(--accent); color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent); font-weight: 700; overflow: hidden;
+}
+.acnav__mini img { width: 100%; height: 100%; object-fit: cover; }
+.acnav__who { min-width: 0; line-height: 1.2; }
+.acnav__who b { font-size: .84rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.acnav__who span { font-size: .72rem; color: var(--muted); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acnav__out {
+  margin-left: auto; color: var(--muted); font-size: 1.15rem; line-height: 1; flex: none;
+  background: none; border: 1px solid transparent; border-radius: 6px; padding: .25rem .35rem; cursor: pointer;
+}
+.acnav__out:hover { color: var(--accent); border-color: var(--line); }
+
+.acmain { min-width: 0; }
+
+/* ============================================================================
+   Übersicht (Default-Section)
+   ========================================================================== */
+.ov-head { margin-bottom: 1.3rem; }
+.ov-head h2 { font-family: var(--font-display, sans-serif); font-size: clamp(1.5rem, 3vw, 2rem); margin: 0 0 .15rem; }
+.ov-head h2 .thin { font-weight: 300; color: var(--muted); margin-right: .5rem; }
+.ov-head p { color: var(--muted); font-size: .95rem; margin: 0; }
+
+/* ---------- Identitäts-Streifen ---------- */
+.ov-id {
+  position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  background: var(--surface); margin-bottom: 1.4rem;
+}
+.ov-id__banner {
+  height: 108px; background-color: var(--media-void, #05070d); background-size: cover; background-position: center;
+  position: relative;
+}
+.ov-id__banner::after {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(45, 212, 255, .10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45, 212, 255, .10) 1px, transparent 1px);
+  background-size: 34px 34px; -webkit-mask: linear-gradient(180deg, transparent, #000 92%); mask: linear-gradient(180deg, transparent, #000 92%);
+}
+.ov-id__body { display: flex; align-items: flex-end; gap: 1.1rem; padding: 0 1.4rem 1.2rem; margin-top: -44px; position: relative; flex-wrap: wrap; }
+.ov-id__avatar { position: relative; width: 90px; height: 90px; flex: none; }
+.ov-id__ring { position: absolute; inset: -8px; color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) { .ov-id__ring { animation: ovspin 20s linear infinite; } }
+.ov-id__box {
+  position: absolute; inset: 0; border-radius: 50%; background: var(--bg-2); border: 2px solid var(--accent);
+  display: grid; place-items: center; font-size: 1.9rem; color: var(--accent);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--accent) 35%, transparent); overflow: hidden;
+}
+.ov-id__box img { width: 100%; height: 100%; object-fit: cover; }
+.ov-id__dot { position: absolute; right: 3px; bottom: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--ok); border: 3px solid var(--surface); }
+.ov-id__dot.pulse { animation: ovpulse 2s ease-in-out infinite; }
+.ov-id__meta { flex: 1 1 240px; min-width: 0; padding-bottom: .15rem; }
+.ov-id__name { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
+.ov-id__name h3 { font-family: var(--font-display, sans-serif); margin: 0; font-size: 1.4rem; letter-spacing: .01em; color: var(--text); }
+.ov-id__handle { font-family: var(--font-mono, monospace); color: var(--accent-2); font-size: .88rem; margin-top: .12rem; }
+.ov-id__row { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-top: .55rem; color: var(--muted); font-size: .82rem; }
+.ov-pill { display: inline-flex; align-items: center; gap: .4rem; background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 20px; padding: .22rem .7rem; }
+.ov-pill .g { color: var(--accent); }
+.ov-pill[hidden] { display: none; }
+.ov-id__actions { display: flex; gap: .55rem; align-self: flex-start; margin-top: .2rem; }
+
+.ov-vbadge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  font-family: var(--font-mono, monospace); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ok); border: 1px solid color-mix(in srgb, var(--ok) 50%, transparent);
+  background: color-mix(in srgb, var(--ok) 12%, transparent); padding: .2rem .5rem; border-radius: 20px;
+}
+.ov-vbadge[hidden] { display: none; }
+
+/* ---------- Sektions-Label ---------- */
+.ov-label { display: flex; align-items: center; gap: .8rem; margin: 1.8rem 0 .9rem; }
+.ov-label h4 { margin: 0; font-family: var(--font-ui, sans-serif); font-size: .8rem; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+.ov-label .rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+
+/* ---------- Stat-Kacheln ---------- */
+.ov-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; }
+.ov-tile { background: var(--surface); border: 1px solid var(--line-soft); border-radius: 12px; padding: 1rem 1.05rem; position: relative; overflow: hidden; transition: border-color .16s ease, transform .16s ease; font: inherit; text-align: left; color: inherit; text-decoration: none; display: block; }
+button.ov-tile, a.ov-tile { cursor: pointer; width: 100%; }
+button.ov-tile:focus-visible, a.ov-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ov-tile:hover { border-color: var(--line); transform: translateY(-2px); }
+.ov-tile__k { font-family: var(--font-mono, monospace); font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: .4rem; }
+.ov-tile__k .g { color: var(--accent); font-size: .9rem; }
+.ov-tile__v { font-size: 1.85rem; font-weight: 700; margin-top: .35rem; font-variant-numeric: tabular-nums; line-height: 1; color: var(--text); }
+.ov-tile__v small { font-size: .78rem; color: var(--muted); font-weight: 600; margin-left: .2rem; }
+.ov-tile__s { font-size: .76rem; color: var(--muted); margin-top: .3rem; }
+.ov-tile__s.up { color: var(--ok); }
+.ov-tile--accent { border-color: var(--accent); box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 12%, transparent); }
+.ov-ring { display: flex; align-items: center; gap: .8rem; margin-top: .5rem; }
+.ov-ring svg { flex: none; }
+.ov-ring__v { font-size: 1.45rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+.ov-verbadge { display: inline-flex; align-items: center; gap: .4rem; color: var(--ok); font-weight: 700; font-size: 1.05rem; margin-top: .4rem; }
+.ov-verbadge.no { color: var(--muted); }
+
+/* ---------- Schnellzugriff ---------- */
+.ov-jumps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .9rem; }
+.ov-jump { display: flex; align-items: center; gap: .9rem; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 12px; padding: 1rem 1.1rem; transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease; cursor: pointer; text-align: left; color: inherit; text-decoration: none; font: inherit; width: 100%; }
+.ov-jump:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 0, .3); }
+.ov-jump:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ov-jump__ic { width: 42px; height: 42px; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 1.25rem; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid var(--line); }
+.ov-jump__tx { min-width: 0; }
+.ov-jump__tx b { display: block; font-size: .95rem; color: var(--text); font-weight: 700; }
+.ov-jump__tx span { display: block; font-size: .77rem; color: var(--muted); margin-top: .15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-jump__arr { margin-left: auto; color: var(--muted); font-size: 1.1rem; transition: color .16s ease, transform .16s ease; }
+.ov-jump:hover .ov-jump__arr { color: var(--accent); transform: translateX(3px); }
+
+/* ---------- Letzte Aktivität ---------- */
+.ov-act { background: var(--surface); border: 1px solid var(--line-soft); border-radius: 12px; padding: .3rem 1.1rem; }
+.ov-act__row { display: flex; align-items: center; gap: .8rem; padding: .7rem 0; border-bottom: 1px solid var(--line-soft); font-size: .87rem; color: var(--text); }
+.ov-act__row:last-child { border-bottom: 0; }
+.ov-act__row .g { width: 1.4rem; text-align: center; color: var(--accent); flex: none; }
+.ov-act__row .t { margin-left: auto; font-family: var(--font-mono, monospace); font-size: .72rem; color: var(--muted); white-space: nowrap; }
+.ov-act__row em { font-style: normal; color: var(--accent-2); }
+.ov-act__empty { color: var(--muted); font-size: .88rem; padding: 1rem 0; }
+
+@keyframes ovspin { to { transform: rotate(360deg); } }
+@keyframes ovpulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); } 50% { box-shadow: 0 0 0 5px transparent; } }
+
+/* ============================================================================
+   Responsive — Rail wird oben zum horizontalen Scroller
+   ========================================================================== */
+@media (max-width: 860px) {
+  .acshell { grid-template-columns: 1fr; }
+  .acnav { position: static; flex-direction: row; align-items: center; gap: .8rem; overflow-x: auto; padding: .7rem .8rem; }
+  .acnav__brand, .acnav__group, .acnav__foot { display: none; }
+  .acnav__list { flex-direction: row; gap: .4rem; }
+  .acnav__item { white-space: nowrap; }
+  .acnav__item .badge { display: none; }
+}
