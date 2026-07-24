@@ -6,6 +6,7 @@
 import Attribution from '../components/Attribution.astro';
 import { SITE } from '../consts';
 import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui';
+import { isNoindex } from '../lib/seo';
 import { LIGHT_RULES } from '../../scripts/lib/theme-color.mjs';
 
 interface Props {
@@ -19,7 +20,12 @@ interface Props {
   ogImage?: string;
   /** og:type — patch/topic pages pass "article" */
   ogType?: 'website' | 'article';
-  /** keep crawlers off utility pages (404) */
+  /**
+   * Crawler von dieser Seite fernhalten. Zusätzlich zu diesem Schalter greift
+   * die Pfad-Liste in lib/seo (NOINDEX_PATHS) — die kennt auch die Sitemap,
+   * damit beide Signale nicht auseinanderlaufen. Hier nur setzen, was sich
+   * NICHT am Pfad festmachen lässt (404).
+   */
   noindex?: boolean;
   /**
    * DE↔EN-Gegenstück existiert -> hreflang-Alternates ausgeben. Default false:
@@ -59,6 +65,11 @@ const canonical = base + Astro.url.pathname;
 // welche Fallback-Description greift (vorher: DE-Text auch auf EN-Seiten).
 const lang = localeFromPath(Astro.url.pathname);
 const description = descriptionProp ?? SITE.defaultDescription[lang];
+
+// noindex kommt aus zwei Quellen: dem Prop (404) und der Pfad-Liste, die auch
+// die Sitemap auswertet. Oder-Verknüpfung, damit ein gesetztes Prop nie durch
+// die Liste entwertet wird.
+const noindexEff = noindex || isNoindex(Astro.url.pathname);
 
 // og:image mit Site-Fallback: twitter:card "summary_large_image" ohne Bild ist
 // wirkungslos — Seiten ohne eigenes Motiv bekommen das VerseBase-Standardbild.
@@ -117,7 +128,7 @@ if(!admin){t='dark'}else if(auto){t=(window.matchMedia&&matchMedia('(prefers-col
 d.setAttribute('data-theme',t==='light'?'light':'dark');if(auto)d.setAttribute('data-theme-auto','');
 var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='light'?'${themeColorLight}':'${themeColorSafe}')})()`}
   />
-  {noindex && <meta name="robots" content="noindex" />}
+  {noindexEff && <meta name="robots" content="noindex" />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="canonical" href={canonical} />
   {translated && (

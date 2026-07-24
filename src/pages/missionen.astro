@@ -29,7 +29,10 @@ import { db } from '../lib/missions';
     /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */</style>
   <a class="skip" href="#main">Skip to content</a>
   <div class="cursorglow" aria-hidden="true"></div>
-  <SiteNav />
+  {/* crumbs speisen die BreadcrumbList-JSON-LD in SiteNav (sichtbar rendern sie
+      nicht mehr). Ohne sie war dieser Hub die einzige Index-Seite der Site ganz
+      ohne strukturierte Daten. */}
+  <SiteNav crumbs={[{ label: 'VerseBase', href: '/index.html' }, { label: 'Missions' }]} />
   <main id="main">
     <MissionsApp lang="en" />
   </main>

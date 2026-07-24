@@ -12,6 +12,7 @@
 
 import { getCollection } from 'astro:content';
 import { SITE } from '../consts';
+import { isNoindex } from './seo';
 import vehiclesSnapshot from '../data/vehicles.json';
 import { db as missionsDb, missions } from './missions';
 import { categories, categoryPath, db as itemsDb, itemPath, itemsHubPath, pageCount, pageItems } from './items';
@@ -58,8 +59,15 @@ function fileToUrl(file: string): string | null {
   if (rel === 'index') return '/index.html'; // EN-Startseite (Standardsprache)
   if (rel === 'de/index') return '/de.html'; // DE-Startseite (format:'file')
   // Unterverzeichnis-Index: src/pages/items/index.astro -> Route /items -> /items.html
-  if (rel.endsWith('/index')) return '/' + rel.slice(0, -'/index'.length) + '.html';
-  return '/' + rel + '.html';
+  const url = rel.endsWith('/index')
+    ? '/' + rel.slice(0, -'/index'.length) + '.html'
+    : '/' + rel + '.html';
+  // Seiten auf noindex gehoeren nicht in die Sitemap: beides zusammen meldet
+  // Google als „Uebermittelte URL als ‚noindex' markiert". Layout.astro und
+  // diese Liste lesen aus derselben Quelle (lib/seo#NOINDEX_PATHS), damit die
+  // beiden Signale nicht auseinanderlaufen. Betrifft /account.html,
+  // /refinery.html, /pilot.html und die Konto-Unterseiten.
+  return isNoindex(url) ? null : url;
 }
 
 /** Redaktionelle Seiten: alles Statische aus dem Glob, mit lastmod aus den Patches. */
