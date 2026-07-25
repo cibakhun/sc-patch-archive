@@ -97,6 +97,10 @@ const tools = [
 
   /* ========== Werkzeuge — Bento aus Bild-Kacheln ========== */
   .tools{display:grid;gap:.85rem;grid-template-columns:1fr}
+  .tools__more{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.3rem;font-family:var(--font-ui);font-weight:700;font-size:.9rem;align-items:baseline}
+  .tools__more>span{color:var(--muted);text-transform:uppercase;letter-spacing:.14em;font-size:.74rem}
+  .tools__more a{color:var(--accent);border-bottom:1px solid var(--line-2);padding-bottom:1px;transition:color .2s,border-color .2s}
+  .tools__more a:hover,.tools__more a:focus-visible{color:var(--text);border-color:var(--accent);outline:none}
   .tool{position:relative;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate;
     min-height:210px;padding:1.4rem 1.5rem;border-radius:14px;overflow:hidden;border:1px solid var(--line);
     background:var(--media-void);color:var(--on-media);transition:border-color .3s,box-shadow .3s,transform .3s cubic-bezier(.2,.7,.3,1)}
@@ -170,7 +174,7 @@ const tools = [
   <div class="hero__inner">
     <span class="hero__kicker">Star-Citizen-Kompendium</span>
     <h1>VerseBase</h1>
-    <p class="hero__lede">Game-akkurate Werkzeuge, Daten und das Patch-Archiv der Alpha-4-Ära.</p>
+    <p class="hero__lede">Game-akkurate Star-Citizen-Werkzeuge — Item Finder, Mining, Crafting, Schiffe und das komplette Alpha-4-Patch-Archiv.</p>
     <button class="hero__search" type="button" data-scs-open aria-label="Suche öffnen">
       <span class="p" aria-hidden="true">&gt;_</span>
       <span class="h">Items, Schiffe, Patches durchsuchen…</span>
@@ -193,6 +197,14 @@ const tools = [
         </a>
       ))}
     </div>
+    <p class="tools__more">
+      <span>Komplette Datenbank:</span>
+      <a href="/de/items.html">Alle Items nach Kategorie</a>
+      <a href="/de/crafting.html">Blueprints</a>
+      <a href="/de/schiffe.html">Schiffs-Index</a>
+      <a href="/de/missionen.html">Missionen</a>
+      <a href="/de/archiv.html">Patch-Archiv</a>
+    </p>
   </section>
 
   <!-- AKTUELL -->
