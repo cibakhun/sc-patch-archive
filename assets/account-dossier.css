@@ -93,3 +93,30 @@
 
 /* ---- Tab-Leiste ---- */
 .acnav__item { font-size: .95rem; }
+
+/* ---- ProfileCard (.vp-card, Profil-Tab) auf Hero-Größe angleichen ---- */
+.vp-card {
+  border-radius: 16px !important; clip-path: none !important; overflow: hidden;
+  background: color-mix(in srgb, var(--surface) 55%, transparent) !important;
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  filter: drop-shadow(0 20px 50px rgba(0, 0, 0, .5));
+}
+.vp-corner, .vp-bracket { display: none !important; }
+.vp-banner { height: 240px; }
+.vp-name#pcName {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: .98; letter-spacing: -.01em;
+  padding-bottom: .14em; /* Unterlänge nicht kappen (background-clip:text) */
+  background: linear-gradient(180deg, #fff 55%, color-mix(in srgb, #fff 60%, var(--accent)));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: 0 10px 50px rgba(0, 0, 0, .5);
+}
+.vp-handle { font-size: 1.05rem; }
+.rsi-verified-badge, .vp-role, .vp-chip, .vp-btn-ghost { clip-path: none !important; border-radius: 8px !important; }
+.rsi-verified-badge { border: 1px solid var(--rsi-line); }
+.rsi-verified-badge::after { display: none; }
+
+/* ---- Formulare (Profil-Edit + Security) harmonisieren: Satzschrift + gerundet ---- */
+.acx-form-heading, .acx-label { text-transform: none; letter-spacing: .02em; }
+.acx-input, .acx-submit, .acx-btn-copy { border-radius: 9px; }
+.acx-submit { text-transform: none; letter-spacing: .03em; }
