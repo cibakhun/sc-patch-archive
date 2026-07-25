@@ -103,18 +103,32 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
       </div>
     </dl>
 
-    {/* Spectral ribbon — a real plot: ticks sit at their true position in time
-        and take their era's colour, so the cadence of the voyage (the dense
-        4.8 cluster, the 2025 summer gaps) is legible before any entry is read. */}
+    {/* Release trace — a real plot, not a progress bar. Releases are stems
+        rising from a hairline axis at their true position in time; the axis
+        itself is segmented into the six chapters, each segment in its era's
+        colour and captioned with the same numeral the chapter carries below.
+        The cadence of the voyage (the dense 4.8 cluster, the 2025 summer gaps)
+        is legible before any entry is read. */}
     <nav class="ribbon" aria-label={t('arch.ribbon.aria')}>
       <div class="ribbon__plot">
-        {a.eras.map((era) => (
+        {a.eras.map((era, ei) => (
           <span
-            class="ribbon__band"
+            class:list={['ribbon__band', { 'is-narrow': era.to - era.from < 6 }]}
             style={`--from:${era.from.toFixed(2)}%;--to:${era.to.toFixed(2)}%;--c:${era.accent}`}
             aria-hidden="true"
-          />
+          >
+            <i class="ribbon__band-n">{pad2(ei + 1)}</i>
+          </span>
         ))}
+
+        {/* Calendar gridlines — the plot needs a scale, or the cadence has
+            nothing to be a cadence against. */}
+        {a.ribbon.years.map((y) => (
+          <span class="ribbon__year" style={`--x:${(y.t * 100).toFixed(2)}%`} aria-hidden="true">
+            <i>{y.label}</i>
+          </span>
+        ))}
+
         {a.entries.map((e) => (
           <a
             class:list={['ribbon__tick', { 'is-major': e.type === 'major', 'is-latest': e.isLatest }]}
@@ -122,13 +136,18 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
             href={`#p-${e.anchor}`}
             data-label={`${e.version} · ${e.codename}`}
           >
+            <i class="ribbon__pip" aria-hidden="true"></i>
             <span class="sr">{`Alpha ${e.version} — ${e.codename}, ${e.dateDisplay}`}</span>
           </a>
         ))}
       </div>
       <p class="ribbon__axis">
         <span>{a.ribbon.startLabel}</span>
-        <span class="ribbon__hint">{t('arch.ribbon.hint')}</span>
+        <span class="ribbon__legend" aria-hidden="true">
+          <span class="ribbon__k ribbon__k--major">{t('arch.filter.major')}</span>
+          <span class="ribbon__k ribbon__k--point">{t('arch.filter.point')}</span>
+          <span class="ribbon__hint">{t('arch.ribbon.hint')}</span>
+        </span>
         <span>{a.ribbon.endLabel}</span>
       </p>
     </nav>
@@ -299,7 +318,12 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
           </div>
           <div class="trows">
             {g.topics.map((tp) => (
-              <a class="trow" href={tp.href} data-search={`${tp.title} ${tp.version}`.toLowerCase()}>
+              <a
+                class="trow"
+                href={tp.href}
+                title={tp.title}
+                data-search={`${tp.title} ${tp.version}`.toLowerCase()}
+              >
                 <span class="trow__t">{tp.title}</span>
                 <span class="trow__v">{tp.version}</span>
               </a>

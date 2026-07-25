@@ -123,7 +123,12 @@ export interface Archive {
   keyTopics: ArchiveTopic[];
   topicGroups: { line: string; accent: string; topics: ArchiveTopic[] }[];
   stats: { patches: number; majors: number; topics: number; days: number; eras: number };
-  ribbon: { startLabel: string; endLabel: string };
+  ribbon: {
+    startLabel: string;
+    endLabel: string;
+    /** calendar gridlines for the plot: every new year inside the span */
+    years: { label: string; t: number }[];
+  };
 }
 
 /** Curated lead topics — deliberately spread across eras and palettes. */
@@ -229,6 +234,14 @@ export function buildArchive(raw: Patch[], lang: Locale): Archive {
     era.to = i === eras.length - 1 ? 100 : (eras[i + 1].entries[0].t * 100 + era.to) / 2;
   });
 
+  // Calendar gridlines: one per new year that falls inside the span. Without
+  // them the plot has no scale — the reader can see the cadence but not place it.
+  const years: Archive['ribbon']['years'] = [];
+  for (let y = new Date(first).getUTCFullYear() + 1; y <= new Date(last).getUTCFullYear(); y++) {
+    const at = Date.UTC(y, 0, 1);
+    if (at > first && at < last) years.push({ label: String(y), t: (at - first) / span });
+  }
+
   const allTopics = [...topicIndex.values()];
   const line = (v: string) => v.split('.').slice(0, 2).join('.');
   const topicGroups: Archive['topicGroups'] = [];
@@ -255,6 +268,7 @@ export function buildArchive(raw: Patch[], lang: Locale): Archive {
     ribbon: {
       startLabel: monthYear(patches[0].data.date, lang),
       endLabel: monthYear(patches[patches.length - 1].data.date, lang),
+      years,
     },
   };
 }
