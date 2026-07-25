@@ -16,7 +16,7 @@ import AccountDashboard from '../../../components/account/AccountDashboard.astro
 >
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <link slot="head" rel="stylesheet" href="/assets/account.css?v=5" />
-<link slot="head" rel="stylesheet" href="/assets/account-dossier.css?v=3" />
+<link slot="head" rel="stylesheet" href="/assets/account-dossier.css?v=4" />
 <style is:inline>
 /* Palette + Shell-Stile leben jetzt in /assets/account.css (geteilt, entdoppelt). */
 .reveal{opacity:1 !important;transform:none !important}
@@ -29,12 +29,7 @@ import AccountDashboard from '../../../components/account/AccountDashboard.astro
 <SiteNav crumbs={[{ label: 'Konto' }]} hasEn={true} />
 
 <main id="main">
-  <AccountShell
-    eyebrow="VerseBase · Systemzugang"
-    titleThin="Deine Basis"
-    title="Konto"
-    wide={true}
-  >
+  <AccountShell bare={true}>
     <AccountDashboard lang="de" />
   </AccountShell>
 </main>

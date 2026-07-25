@@ -62,22 +62,52 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       });
     }
 
-    // Section-Navigation: Sidebar-Items (data-tab) schalten die Panels; die
-    // Schnellsprung-Karten der Übersicht (data-tab-jump) springen in dieselben
-    // Panels. Übersicht ist Default (im Markup aktiv/sichtbar gerendert).
-    const navItems = document.querySelectorAll<HTMLElement>('.acnav__item[data-tab]');
+    // Section-Navigation: Top-Tabs (data-tab) schalten die Panels; die
+    // Schnellsprung-/Metrik-Karten der Übersicht (data-tab-jump) springen in
+    // dieselben Panels. Übersicht ist Default (im Markup aktiv/sichtbar gerendert).
+    const navItems = document.querySelectorAll<HTMLElement>('.tab[data-tab]');
     const tabPanels = document.querySelectorAll<HTMLElement>('.acx-tab-panel');
     const activateSection = (target: string | undefined) => {
       if (!target) return;
-      navItems.forEach(b => b.classList.toggle('active', b.dataset.tab === target));
+      navItems.forEach(b => b.setAttribute('aria-selected', b.dataset.tab === target ? 'true' : 'false'));
       tabPanels.forEach(p => { p.hidden = p.id !== `tab-panel-${target}`; });
-      if (window.matchMedia('(max-width: 860px)').matches) {
-        document.getElementById('main')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Sanft zur Tab-Leiste scrollen, wenn man darüber steht — Inhalt sichtbar
+      // machen, ohne über dem Hero hängen zu bleiben.
+      const bar = document.querySelector('.tabsbar') as HTMLElement | null;
+      const navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav')) || 64;
+      if (bar) {
+        const y = Math.max(0, bar.getBoundingClientRect().top + window.pageYOffset - navH);
+        if (window.pageYOffset > y + 4) { try { window.scrollTo({ top: y, behavior: 'smooth' }); } catch { window.scrollTo(0, y); } }
       }
     };
     navItems.forEach(btn => btn.addEventListener('click', () => activateSection(btn.dataset.tab)));
-    document.querySelectorAll<HTMLElement>('[data-tab-jump]').forEach(btn =>
-      btn.addEventListener('click', () => activateSection(btn.dataset.tabJump)));
+
+    // Pfeil-/Home-/End-Navigation der ARIA-Tablist (a11y)
+    const tablistEl = document.querySelector('[role="tablist"]');
+    if (tablistEl) tablistEl.addEventListener('keydown', (e) => {
+      const ev = e as KeyboardEvent;
+      const arr = Array.from(navItems);
+      const i = arr.indexOf(document.activeElement as HTMLElement);
+      if (i < 0) return;
+      let n = -1;
+      if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') n = (i + 1) % arr.length;
+      else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') n = (i - 1 + arr.length) % arr.length;
+      else if (ev.key === 'Home') n = 0;
+      else if (ev.key === 'End') n = arr.length - 1;
+      else return;
+      ev.preventDefault(); arr[n].focus(); arr[n].click();
+    });
+
+    document.querySelectorAll<HTMLElement>('[data-tab-jump]').forEach(btn => {
+      btn.addEventListener('click', () => activateSection(btn.dataset.tabJump));
+      // Klickbare Metrik-Karten (role=button) auch per Enter/Space bedienen
+      if (btn.getAttribute('role') === 'button') {
+        btn.addEventListener('keydown', (e) => {
+          const ev = e as KeyboardEvent;
+          if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); activateSection(btn.dataset.tabJump); }
+        });
+      }
+    });
 
     const init = async () => {
       const { data } = await supabase.auth.getSession();
@@ -481,6 +511,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         const ovOrgPill = document.getElementById('ovOrgPill') as HTMLElement | null;
         if (ovOrgPill) { ovOrgPill.hidden = !orgTxt; if (orgTxt) ovTxt('ovOrgText', orgTxt); }
 
+        // Hero-Lede aus der Bio (erste Zeile), sonst ausblenden
+        const ovLede = document.getElementById('ovLede') as HTMLElement | null;
+        if (ovLede) { ovLede.textContent = bioTxt; ovLede.hidden = !bioTxt; }
+
         // Vollständigkeits-Ring + Resttext
         ovTxt('ovComplete', pct + '%');
         const ovRing = document.getElementById('ovRing') as unknown as SVGCircleElement | null;
@@ -867,6 +901,23 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       wireUpload({ kind: 'avatar', bucket: 'avatars', fileId: 'pfAvatarFile', btnId: 'pfAvatarUploadBtn', removeId: 'pfAvatarRemove', statusId: 'pfAvatarUploadStatus', urlInput: avatarUrlInput, stateKey: 'avatar_url' });
       wireUpload({ kind: 'banner', bucket: 'banners', fileId: 'pfBannerFile', btnId: 'pfBannerUploadBtn', removeId: 'pfBannerRemove', statusId: 'pfBannerUploadStatus', urlInput: bannerUrlInput, stateKey: 'banner_url' });
 
+      // Direkt-Upload über die Live-Vorschau: Avatar anklicken bzw. Banner-Edit-
+      // Button lösen denselben Datei-Dialog → Zuschnitt → Upload aus wie die
+      // regulären Upload-Buttons (dieselben file-Inputs, via wireUpload verdrahtet).
+      const avatarFileTrigger = document.getElementById('pfAvatarFile') as HTMLInputElement | null;
+      const pcAvatarBoxEl = document.getElementById('pcAvatarBox');
+      if (avatarFileTrigger && pcAvatarBoxEl) {
+        pcAvatarBoxEl.addEventListener('click', () => avatarFileTrigger.click());
+        pcAvatarBoxEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); avatarFileTrigger.click(); }
+        });
+      }
+      const bannerFileTrigger = document.getElementById('pfBannerFile') as HTMLInputElement | null;
+      const pcBannerEditEl = document.getElementById('pcBannerEdit');
+      if (bannerFileTrigger && pcBannerEditEl) {
+        pcBannerEditEl.addEventListener('click', () => bannerFileTrigger.click());
+      }
+
       // RSI Verification Modal Logic
       const rsiModal = document.getElementById('rsiModal') as HTMLDialogElement;
       const btnRsiVerifyModal = document.getElementById('btnRsiVerifyModal')!;
@@ -1226,36 +1277,51 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         .select('id, kind, slug, label')
         .order('created_at', { ascending: false });
 
+      // Icon + Akzentfarbe je Favoriten-Art (Dossier-Kartendesign)
+      const FAV_ICON: Record<string, { ic: string; c: string }> = {
+        ship: { ic: 'ic-ship', c: 'var(--accent)' },
+        mineral: { ic: 'ic-gem', c: 'var(--gold)' },
+        mission: { ic: 'ic-target', c: 'var(--accent-2)' },
+        item: { ic: 'ic-item', c: '#a855f7' },
+        patch: { ic: 'ic-tag', c: 'var(--ok)' },
+        topic: { ic: 'ic-hash', c: 'var(--muted)' },
+      };
       const renderFavs = (rows: Array<{ id: number; kind: string; slug: string; label: string | null }>) => {
         favList.innerHTML = '';
         favEmpty.hidden = rows.length > 0;
         for (const f of rows) {
+          const meta = FAV_ICON[f.kind] || { ic: 'ic-star', c: 'var(--accent)' };
+          const name = f.label || f.slug;
           const li = document.createElement('li');
-          li.className = 'acx-fav';
-          const kind = document.createElement('span');
-          kind.className = 'acx-fav__kind';
-          kind.textContent = KINDS[f.kind] || f.kind;
-          const link = document.createElement('a');
-          link.className = 'acx-fav__link';
-          link.href = favPath(f.kind, f.slug);
-          link.textContent = f.label || f.slug;
+          li.className = 'fav';
+          li.innerHTML =
+            `<span class="fic" style="--kc:${meta.c}"><svg viewBox="0 0 24 24"><use href="#${meta.ic}"/></svg></span>` +
+            `<span class="fmain"><span class="fkind" style="--kc:${meta.c}">${escHtml(KINDS[f.kind] || f.kind)}</span>` +
+            `<a class="fname" href="${favPath(f.kind, f.slug)}">${escHtml(name)}</a></span>`;
           const rm = document.createElement('button');
-          rm.className = 'acx-fav__rm';
+          rm.className = 'frm';
           rm.type = 'button';
-          rm.textContent = D.favRemove || 'Remove';
+          rm.title = D.favRemove || 'Remove';
+          rm.setAttribute('aria-label', (D.favRemove || 'Remove') + ' — ' + name);
+          rm.innerHTML = '<svg viewBox="0 0 24 24"><use href="#ic-x"/></svg>';
           rm.addEventListener('click', async () => {
             rm.disabled = true;
             const { error } = await supabase.from('favorites').delete().eq('id', f.id);
             if (!error) {
-              li.remove();
+              li.classList.add('removing');
+              setTimeout(() => li.remove(), 260);
               favCount = Math.max(0, favCount - 1);
               const statFavsEl = document.getElementById('pcStatFavs');
               if (statFavsEl) statFavsEl.textContent = String(favCount);
+              const ovFavsEl2 = document.getElementById('ovStatFavs');
+              if (ovFavsEl2) ovFavsEl2.textContent = String(favCount);
+              const navFav = document.getElementById('navFavCount');
+              if (navFav) { navFav.textContent = String(favCount); navFav.hidden = favCount <= 0; }
+              if (favCount <= 0) favEmpty.hidden = false;
             }
             else rm.disabled = false;
-            if (!favList.children.length) favEmpty.hidden = false;
           });
-          li.append(kind, link, rm);
+          li.appendChild(rm);
           favList.appendChild(li);
         }
       };
@@ -1353,7 +1419,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           activity.sort((a, b) => (b.ts || 0) - (a.ts || 0));
           const fmtDate = (ts: number) => ts > 0 ? new Date(ts).toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US', { day: 'numeric', month: 'short' }) : '';
           ovAct.innerHTML = activity.slice(0, 5).map(it =>
-            `<div class="lg__row"><span class="lg__ic"><svg class="ic" aria-hidden="true"><use href="#${it.g}"/></svg></span><div>${it.html}</div><span class="lg__tm">${fmtDate(it.ts)}</span></div>`
+            `<div class="logrow"><span class="lnode"><span class="ldot"></span></span><span class="ltext">${it.html}</span><span class="ltime">${fmtDate(it.ts)}</span></div>`
           ).join('');
         }
       }
