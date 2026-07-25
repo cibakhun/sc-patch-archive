@@ -332,7 +332,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         const initial = profileState.avatar_icon || dName.trim().charAt(0).toUpperCase() || '◆';
         const avColor = profileState.avatar_color || '#2dd4ff';
         
-        document.getElementById('idAvatar')!.textContent = dName.trim().charAt(0).toUpperCase() || '◆';
+        { const idAvHead = document.getElementById('idAvatar'); if (idAvHead) idAvHead.textContent = dName.trim().charAt(0).toUpperCase() || '◆'; }
         const pcAvTxt = document.getElementById('pcAvatarText')!;
         pcAvTxt.textContent = initial;
 
