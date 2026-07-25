@@ -18,6 +18,7 @@ const t = {
   de: {
     searchPlaceholder: 'Item, Waffe, Schiff, Fundort suchen…',
     hAvailability: 'Fundart', hCategories: 'Kategorien', hSize: 'Größe',
+    hWeight: 'Panzerungsklasse', hRarity: 'Seltenheit',
     loading: 'Datenbank wird geladen…',
     sortNameAsc: 'Name (A–Z)', sortNameDesc: 'Name (Z–A)',
     sortPriceAsc: 'Preis (aufsteigend)', sortPriceDesc: 'Preis (absteigend)',
@@ -27,6 +28,7 @@ const t = {
   en: {
     searchPlaceholder: 'Search item, weapon, ship, location…',
     hAvailability: 'Availability', hCategories: 'Categories', hSize: 'Size',
+    hWeight: 'Armor class', hRarity: 'Rarity',
     loading: 'Loading database…',
     sortNameAsc: 'Name (A–Z)', sortNameDesc: 'Name (Z–A)',
     sortPriceAsc: 'Price (low–high)', sortPriceDesc: 'Price (high–low)',
@@ -52,6 +54,10 @@ const JS_T = ITEM_UI[lang];
       <div id="uif-kind-chips" class="uif-chips"><!-- Chips via JS --></div>
       <h3>{t.hSize}</h3>
       <div id="uif-size-chips" class="uif-chips"><!-- Größen via JS --></div>
+      <h3>{t.hWeight}</h3>
+      <div id="uif-weight-chips" class="uif-chips"><!-- Panzerungsklassen via JS --></div>
+      <h3>{t.hRarity}</h3>
+      <div id="uif-rarity-chips" class="uif-chips"><!-- Seltenheiten via JS --></div>
       <h3>{t.hCategories}</h3>
       <div id="uif-category-list"><!-- Kategorien via JS --></div>
     </div>
@@ -624,11 +630,39 @@ const JS_T = ITEM_UI[lang];
     .uif-modal-container { padding: 1.25rem; }
   }
 
+  /* --- Tag-Facetten: Seltenheit + Set ------------------------------------
+     Die Seltenheitsfarben sind eine reine Lesehilfe (Spiel-Konvention grau →
+     grün → blau → violett → gold). Sie stehen bewusst NICHT im Theme-Token-Satz:
+     sie sollen in beiden Modi identisch bleiben, damit „Rare" nicht je nach
+     Hell/Dunkel eine andere Farbe hat. */
+  .uif-chip-n { opacity: .6; font-size: .74em; margin-left: .15rem; }
+  .uif-card-tags { display: flex; gap: .35rem; margin: -0.2rem 0 .45rem; }
+  .uif-rarity {
+    font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    padding: .1rem .45rem; border-radius: 3px; border: 1px solid currentColor;
+    background: color-mix(in srgb, currentColor 12%, transparent);
+  }
+  .uif-rarity--common { color: #9aa3b2; }
+  .uif-rarity--uncommon { color: #4ec97a; }
+  .uif-rarity--rare { color: #4aa3ff; }
+  .uif-rarity--epic { color: #b07cff; }
+  .uif-rarity--legendary { color: #f0a52e; }
+
+  .uif-setbox h4 a { color: var(--accent, #ff5e1a); text-decoration: none; border-bottom: 1px solid var(--line); }
+  .uif-setbox h4 a:hover { color: var(--accent-2, var(--accent)); border-color: currentColor; }
+  .uif-set-meta { margin: 0 0 .6rem; font-size: .84rem; color: var(--muted, #9ba2ae); }
+  .uif-set-links { display: flex; flex-wrap: wrap; gap: .35rem; }
+  .uif-set-link {
+    font-size: .78rem; padding: .2rem .5rem; border-radius: 3px;
+    border: 1px solid var(--line-soft); color: var(--muted, #9ba2ae); text-decoration: none;
+  }
+  a.uif-set-link:hover { color: var(--text); border-color: var(--accent, #ff5e1a); }
+
   @media (max-width: 480px) {
     #uif-category-list { grid-template-columns: repeat(2, 1fr); }
     .uif-modal-title { font-size: 1.3rem; }
   }
 </style>
 
-<script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl: '/assets/universal-items.json', craftUrl: '/assets/crafting-db.json', itemBase: lang === 'de' ? '/de/items/' : '/items/', craftBase: lang === 'de' ? '/de/crafting/' : '/crafting/', icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />
+<script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl: '/assets/universal-items.json', craftUrl: '/assets/crafting-db.json', itemBase: lang === 'de' ? '/de/items/' : '/items/', craftBase: lang === 'de' ? '/de/crafting/' : '/crafting/', setBase: lang === 'de' ? '/de/armor-sets.html' : '/armor-sets.html', icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />
 <script is:inline src="/assets/item-finder-app.js"></script>

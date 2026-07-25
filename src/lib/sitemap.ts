@@ -85,6 +85,8 @@ export async function corePages(): Promise<Entry[]> {
   setMod('/schiffe.html', vehiclesSnapshot.fetchedAt);
   setMod('/item-finder.html', itemsDb.pricesAsOf);
   setMod(itemsHubPath, itemsDb.pricesAsOf);
+  // Set-Verzeichnis haengt an den Spieldaten, nicht an den UEX-Preisen
+  setMod('/armor-sets.html', itemsDb.generatedAt);
   setMod(craftHubPath, craftDb.snapshot_date);
   setMod('/missionen.html', missionsDb.meta.generated);
   for (const p of patches) {

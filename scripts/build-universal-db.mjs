@@ -94,15 +94,19 @@ function setCategory(e, cat, rank) {
 //    Volumen + typ-spezifische Stats. Höchste Kategorie-Priorität (rank -1). Preise/Orte
 //    kommen weiter aus UEX (serverseitig, nicht in der p4k) und werden per Name gejoint.
 const gameDbPath = resolve(ROOT, 'assets', 'items-gamefiles.json');
-let gameRows = 0, gameStats = 0;
+let gameRows = 0, gameStats = 0, gameSets = [];
 if (existsSync(gameDbPath)) {
   const gameDb = readJson(gameDbPath);
+  gameSets = gameDb.sets || [];
   for (const g of gameDb.items) {
     if (isPlaceholder(g.name)) continue;
     const e = entry(g.name);
     setCategory(e, g.category, -1);
     const gm = {};
-    for (const k of ['gameType', 'subType', 'size', 'grade', 'class', 'manufacturer', 'manufacturerCode', 'volumeScu', 'stats', 'nameDe', 'desc', 'descDe']) {
+    // Tag-Facetten (weight/rarity/part/color/setId/lootable) reisen im selben Block
+    // wie die Stats — die UI liest alles unter `item.game`.
+    for (const k of ['gameType', 'subType', 'size', 'grade', 'class', 'manufacturer', 'manufacturerCode', 'volumeScu', 'stats', 'nameDe', 'desc', 'descDe',
+      'weight', 'part', 'rarity', 'archetype', 'specialization', 'color', 'lootable', 'lootReason', 'setId']) {
       if (g[k] != null) gm[k] = g[k];
     }
     gm.guid = g.id;
@@ -201,6 +205,41 @@ if (iniFound) {
 // =========================================================
 //  Dedupe je Item (identische obtain-Zeilen), sortieren, schreiben
 // =========================================================
+// --- Widerlegte Fundorte entfernen ---------------------------------------
+// Die Spieldaten markieren per Tag, ob ein Item ueberhaupt als Loot entstehen
+// kann. Ist das ausgeschlossen (`LootGeneration.CannotGenerateAsLoot.*`), sind
+// Loot-Zeilen aus der kuratierten Recherche NACHWEISLICH falsch — sie schicken
+// Spieler auf Farm-Jagden nach Items, die dort nie fallen (gemessen: 289 Zeilen,
+// u. a. „ADP-mk4 Helmet Exec" = Concierge-Belohnung, „Dust Devil … Epoque" = Promo).
+// Statt der Falschangabe kommt die echte Bezugsart rein.
+const EXCLUSIVE_LABEL = {
+  PromotionalItem: 'Promotional item — not obtainable in-game',
+  Concierge: 'Concierge reward',
+  SubscriberFlair: 'Subscriber flair',
+  TwitchDrop: 'Twitch drop',
+  ReferralProgram: 'Referral program reward',
+  'InGameReward.Wikelo': "Wikelo's Emporium reward",
+  'InGameReward.GoblinGathering': 'Goblin Gathering event reward',
+  'InGameReward.Luminalia': 'Luminalia event reward',
+  'InGameReward.CleanAir': 'Clean Air event reward',
+  InGameReward: 'In-game event reward',
+};
+let purgedLootRows = 0, purgedGuides = 0, exclusiveRows = 0;
+for (const e of byName.values()) {
+  if (e.game?.lootable !== false) continue;
+  const before = e.obtain.length;
+  e.obtain = e.obtain.filter((o) => o.kind !== 'loot');
+  purgedLootRows += before - e.obtain.length;
+  if (e.guide) { e.guide = null; purgedGuides++; }
+  const reason = e.game.lootReason || null;
+  e.obtain.push({
+    kind: 'exclusive',
+    loc: (reason && EXCLUSIVE_LABEL[reason]) || 'Not obtainable as loot',
+    ...(reason ? { reason } : {}),
+  });
+  exclusiveRows++;
+}
+
 const items = [];
 let snapFallbackRows = 0;
 for (const e of byName.values()) {
@@ -232,6 +271,12 @@ const counts = {
   uexRows, snapFallbackRows, lootRows, vehicleRows,
   catalogOnly: items.filter((i) => !i.obtain.length).length,
   catalogSkippedPlaceholders: catalogSkipped,
+  // Bereinigung: widerlegte Loot-Angaben (siehe EXCLUSIVE_LABEL oben)
+  purgedLootRows, purgedGuides, exclusiveRows,
+  armorSets: gameSets.length,
+  inSet: items.filter((i) => i.game?.setId).length,
+  withWeight: items.filter((i) => i.game?.weight).length,
+  withRarity: items.filter((i) => i.game?.rarity).length,
 };
 
 const db = {
@@ -248,6 +293,9 @@ const db = {
     catalog: iniFound ? 'global.ini (item_Name* + items_commodities_*) aus lokaler Data.p4k-Extraktion' : 'ÜBERSPRUNGEN (global.ini nicht gefunden)',
   },
   counts,
+  // Ruestungs-Sets (Dreier-Kette aus scripts/lib/armor-sets.mjs) — Grundlage der
+  // Set-Seite; der Finder verlinkt je Item ueber `game.setId` hierher.
+  sets: gameSets,
   items: items.map((e) => {
     const o = { id: e.id, name: e.name, category: e.category || 'Other', obtain: e.obtain };
     if (e.guide) o.guide = e.guide;

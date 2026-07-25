@@ -26,16 +26,25 @@ export interface ItemSeo {
 }
 
 /** Wie kommt man an das Item? Steuert Titel-Variante und Einleitung. */
-export function acquisition(i: Item): 'buy' | 'loot' | 'none' {
+export function acquisition(i: Item): 'buy' | 'loot' | 'exclusive' | 'none' {
   if (minPrice(i) != null) return 'buy';
-  if (i.obtain.length || i.guide) return 'loot';
+  // Eine `exclusive`-Zeile ist KEIN Fundort — sie sagt gerade, dass es keinen
+  // gibt (Promo, Concierge, Twitch-Drop). Sonst stuende "1 bekannter Fundort"
+  // ueber einem Item, das nachweislich nirgends droppt.
+  if (i.obtain.some((o) => o.kind === 'loot') || i.guide) return 'loot';
+  if (i.obtain.length) return 'exclusive';
   return 'none';
 }
 
 /** "Ballistic Cannon" — die Gattung laut Spieldaten, sonst die Kategorie. */
 function kindOf(i: Item): string {
   const g = i.game;
-  if (g?.gameType) return g.subType && g.subType !== g.gameType ? `${g.subType} ${g.gameType}` : g.gameType;
+  // `Char_Armor_Torso` & Co. sind INTERNE Typnamen und gehoeren nicht in eine
+  // Meta-Description. Fuer sie steht die lesbare Blatt-Kategorie ("Core") da;
+  // die uebrigen Typen (WeaponGun, Shield, …) sind bereits lesbar.
+  if (g?.gameType && !/^Char_/.test(g.gameType)) {
+    return g.subType && g.subType !== g.gameType ? `${g.subType} ${g.gameType}` : g.gameType;
+  }
   return leafCategory(i.category);
 }
 
