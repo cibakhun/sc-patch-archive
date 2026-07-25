@@ -1489,8 +1489,11 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         show(passStatus as HTMLElement, D.msgPassSaved!, true);
       });
 
-      // Logout
+      // Logout — Präsenz sofort auf offline setzen (last_seen leeren), DANN abmelden.
+      // So erscheint man beim expliziten Abmelden gleich offline statt erst nach
+      // dem 15-min-Fenster (das nur fürs stille Verlassen/Tab-Schließen greift).
       document.getElementById('btnLogout')!.addEventListener('click', async () => {
+        try { await supabase.from('profiles').update({ last_seen: null }).eq('id', user.id); } catch { /* egal */ }
         await supabase.auth.signOut({ scope: 'local' });
         location.href = D.home!;
       });
