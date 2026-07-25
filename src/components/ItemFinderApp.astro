@@ -119,6 +119,11 @@ const JS_T = ITEM_UI[lang];
     padding: 2rem 1rem;
     gap: 2rem;
     align-items: flex-start;
+    /* Die Seiten-Navigation (.snav) ist fixed, immer sichtbar und ~67 px hoch.
+       ALLES, was hier klebt, muss darunter anhalten — sonst verschwindet es
+       hinter der Nav. Genau das passierte der Sidebar bisher: sie klebte bei
+       2rem (36 px) und schob sich unter die Nav. Eine Zahl fuer beide. */
+    --uif-stick: 4.6rem;
   }
 
   .uif-sidebar {
@@ -128,7 +133,7 @@ const JS_T = ITEM_UI[lang];
     border-radius: 8px;
     padding: 1.5rem;
     position: sticky;
-    top: 2rem;box-shadow:0 4px 12px var(--shadow-color);
+    top: var(--uif-stick);box-shadow:0 4px 12px var(--shadow-color);
   }
 
   .uif-search input {
@@ -235,13 +240,24 @@ const JS_T = ITEM_UI[lang];
 
   .uif-main { flex-grow: 1; min-width: 0; }
 
+  /* Bleibt beim Scrollen stehen: Trefferzahl, Ansichts-Umschalter und
+     Sortierung gehoeren zu den Ergebnissen darunter — wer auf Seite 3 einer
+     Trefferliste umschalten will, soll nicht erst nach oben scrollen muessen.
+     z-index unter dem Modal (1000) und ueber den Karten. */
   .uif-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
     margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
+    padding: 0.85rem 0 1rem;
     border-bottom: 1px solid var(--line, rgba(255, 94, 26, 0.22));
+    position: sticky;
+    top: var(--uif-stick);
+    z-index: 20;
+    background: var(--bg, #0d0c14);
+    background: color-mix(in srgb, var(--bg, #0d0c14) 92%, transparent);
+    backdrop-filter: blur(8px);
   }
 
   .uif-stats { color: var(--muted, #9ba2ae); font-size: 0.95rem; }
@@ -622,7 +638,8 @@ const JS_T = ITEM_UI[lang];
 
   /* Responsive */
   @media (max-width: 900px) {
-    .uif-container { flex-direction: column; padding: 1rem; }
+    /* Die Nav ist auf schmalen Schirmen niedriger (~58 px) — Klebepunkt mit */
+    .uif-container { flex-direction: column; padding: 1rem; --uif-stick: 4rem; }
 
     .uif-sidebar {
       width: 100%;
@@ -638,13 +655,29 @@ const JS_T = ITEM_UI[lang];
 
     .uif-category-btn { padding: 0.5rem; font-size: 0.85rem; }
 
+    /* Mobil NICHT stapeln: als Spalte waere die klebende Leiste ~150 px hoch
+       und fraesse den halben Bildschirm. Stattdessen umbrechende Zeile —
+       Trefferzahl links, Umschalter und Sortierung rechts daneben. */
     .uif-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 0.75rem;
+      padding: 0.7rem 0 0.75rem;
     }
 
-    .uif-sort, .uif-sort select { width: 100%; }
+    /* Trefferzahl bekommt die erste Zeile, Umschalter und Sortierung teilen
+       sich die zweite. Der Umschalter behaelt seine natuerliche Breite
+       (flex:0 0 auto), die Sortierung nimmt den Rest — sonst waere jedes
+       Element 100 % breit und die Leiste dreizeilig. */
+    .uif-stats { flex: 1 1 100%; font-size: 0.86rem; }
+    .uif-view { flex: 0 0 auto; }
+    /* flex-basis MUSS 0 sein, nicht auto: mit `auto` fordert die Sortierung die
+       intrinsische Breite ihres <select> (nach der laengsten Option „Preis
+       (absteigend)") — Flexbox bricht dann UM, statt zu schrumpfen, und die
+       Leiste bleibt dreizeilig. Mit Basis 0 nimmt sie schlicht den Rest. */
+    .uif-sort { flex: 1 1 0; min-width: 0; }
+    .uif-sort select { width: 100%; min-width: 0; padding: 0.4rem 0.7rem; }
+    .uif-viewbtn { padding: 0.4rem 0.65rem; font-size: 0.76rem; }
 
     .uif-modal-container { padding: 1.25rem; }
   }
