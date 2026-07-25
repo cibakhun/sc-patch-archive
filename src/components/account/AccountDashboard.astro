@@ -396,8 +396,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
           <button type="button" class="tab" role="tab" aria-selected="false" data-tab="friends"><span class="lbl">{COPY.tabFriends}</span><span class="badge" id="navFriendCount" hidden>0</span></button>
           <button type="button" class="tab" role="tab" aria-selected="false" data-tab="security"><span class="lbl">{COPY.tabSecurity}</span></button>
           <div class="tabs__acct">
-            <div class="who"><b id="navWho">—</b><span id="idEmail">—</span></div>
-            <div class="mini" id="idAvatar">◆</div>
+            <div class="who"><b id="navWho">—</b></div>
             <button type="button" class="logout" id="btnLogout" title={COPY.logout} aria-label={COPY.logout}><svg viewBox="0 0 24 24"><use href="#ic-power"/></svg> <span>{COPY.logout}</span></button>
           </div>
         </div>
@@ -637,7 +636,8 @@ const confirmRedirect = loginHref + '?confirmed=1';
             <div class="sc-h"><span class="sci"><svg viewBox="0 0 24 24"><use href="#ic-mail"/></svg></span><h3>{COPY.email}</h3></div>
             <p class="sc-desc">{lang === 'de' ? 'Für Konto-Wiederherstellung und Benachrichtigungen. Erfordert Bestätigung auf beiden Adressen.' : 'Used for account recovery and notifications. Requires confirmation on both addresses.'}</p>
             <form id="emailForm" novalidate>
-              <div class="field"><label for="seEmail">{COPY.email}</label><input class="inp mono" id="seEmail" name="email" type="email" autocomplete="email" placeholder={COPY.emailPh} /></div>
+              <div class="field"><label>{lang === 'de' ? 'Aktuelle E-Mail' : 'Current e-mail'}</label><div class="sec-current mono" id="idEmail">—</div></div>
+              <div class="field"><label for="seEmail">{lang === 'de' ? 'Neue E-Mail' : 'New e-mail'}</label><input class="inp mono" id="seEmail" name="email" type="email" autocomplete="email" placeholder={COPY.emailPh} /></div>
               <div class="sc-foot"><button class="btn" type="submit" id="seEmailBtn" data-busy={COPY.emailBusy} data-idle={COPY.emailBtn}>{COPY.emailBtn}</button></div>
               <p class="acx-status" id="seEmailStatus" role="status" aria-live="polite" hidden></p>
             </form>

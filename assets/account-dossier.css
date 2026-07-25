@@ -795,9 +795,9 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .tabs__acct{display:flex;align-items:center;gap:12px;margin-left:auto;padding:0 clamp(16px,4vw,40px) 0 20px;flex:none}
 .tabs__acct .who{display:flex;flex-direction:column;line-height:1.15;min-width:0;text-align:right}
 .tabs__acct .who b{font-family:var(--font-ui);font-weight:700;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22ch}
-.tabs__acct .who span{font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22ch}
-.tabs__acct .mini{width:34px;height:34px;flex:none;display:grid;place-items:center;border:1px solid var(--line-2);border-radius:9px;background:var(--surface-2);color:var(--accent);font-family:var(--font-display);font-weight:700;font-size:15px;overflow:hidden}
-.tabs__acct .mini img{width:100%;height:100%;object-fit:cover}
+/* Konto-Chip trägt nur noch Name + Logout (E-Mail/Avatar entfernt) */
+/* Nur-Anzeige der aktuellen E-Mail unter Sicherheit */
+.dsr .sec-current{padding:11px 13px;border:1px solid var(--line-soft);border-radius:9px;background:var(--bg-2);color:var(--muted);font-family:var(--font-mono);font-size:14.5px;word-break:break-all}
 .tabs__acct .logout{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;flex:none;border:1px solid color-mix(in srgb,var(--hot) 55%,transparent);border-radius:10px;color:var(--hot);background:color-mix(in srgb,var(--hot) 14%,transparent);font-family:var(--font-ui);font-weight:700;font-size:13.5px;letter-spacing:.02em;white-space:nowrap;transition:.16s ease}
 .tabs__acct .logout:hover{color:#fff;border-color:var(--hot);background:var(--hot);box-shadow:0 6px 18px -6px color-mix(in srgb,var(--hot) 70%,transparent)}
 .tabs__acct .logout:active{transform:translateY(1px)}
