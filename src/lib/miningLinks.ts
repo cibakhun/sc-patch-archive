@@ -39,10 +39,25 @@ export const mineralByMaterial: Record<string, string> = (() => {
   return out;
 })();
 
-/** Materialname (Originalschreibweise) -> Zahl der Rezepte, die es verlangen. */
-export const usedIn: Record<string, number> = Object.fromEntries(
-  CRAFT.resources.map((r) => [r.name, r.used_in_blueprints ?? 0]),
-);
+/**
+ * Materialname (Originalschreibweise) -> Zahl der Blueprints, die es verlangen.
+ *
+ * Selbst gezaehlt statt `resources[].used_in_blueprints` uebernommen: das Feld
+ * zaehlt SLOT-Vorkommen, und 8 Materialien stecken in manchen Rezepten in zwei
+ * Slots (Iron 248 statt 228, Riccite 96 statt 84). Die Zahl steht als
+ * "Wird in N Blueprints gebraucht" neben einem Link, der genau diese Liste
+ * filtert — sie muss also dasselbe zaehlen wie der Filter: DISTINKTE Rezepte.
+ */
+export const usedIn: Record<string, number> = (() => {
+  const out: Record<string, number> = {};
+  for (const b of CRAFT.blueprints) {
+    const seen = new Set<string>();
+    for (const ing of b.ingredients ?? [])
+      for (const o of ing.options ?? []) if (o.name) seen.add(o.name);
+    for (const name of seen) out[name] = (out[name] ?? 0) + 1;
+  }
+  return out;
+})();
 
 /** Gegenrichtung: Mineral -> Materialname, wie ihn der Crafting-Filter kennt. */
 export const materialByMineral: Record<string, string> = (() => {
@@ -53,7 +68,7 @@ export const materialByMineral: Record<string, string> = (() => {
     // Bei Dubletten (z. B. "Raw Ice" und "Pressurized Ice" zeigen beide auf
     // "Ice") gewinnt das Material, das tatsächlich in Rezepten steckt.
     const cur = out[mineral];
-    if (!cur || (r.used_in_blueprints ?? 0) > (usedIn[cur] ?? 0)) out[mineral] = r.name;
+    if (!cur || (usedIn[r.name] ?? 0) > (usedIn[cur] ?? 0)) out[mineral] = r.name;
   }
   return out;
 })();
