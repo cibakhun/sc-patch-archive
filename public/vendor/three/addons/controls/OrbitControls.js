@@ -1087,7 +1087,10 @@ class OrbitControls extends Controls {
 
 	_handleMouseDownDolly( event ) {
 
-		this._updateZoomParameters( event.clientX, event.clientX );
+		// VerseBase-Patch: upstream übergibt hier zweimal clientX — mit
+		// zoomToCursor zoomt das Mittelklick-Ziehen dadurch auf einen falschen
+		// Punkt (y = x). Wheel/Pinch (Zeile ~1157/1426) machen es korrekt.
+		this._updateZoomParameters( event.clientX, event.clientY );
 		this._dollyStart.set( event.clientX, event.clientY );
 
 	}

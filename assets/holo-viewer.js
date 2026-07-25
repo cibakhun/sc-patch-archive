@@ -640,6 +640,10 @@ export async function initHolo(container, cfg) {
   controls.screenSpacePanning = true;     // in Bildschirmebene schieben (intuitiver)
   controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
   controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+  // Zum Zeiger zoomen statt stur zur Modellmitte: so fährt man an EIN Bauteil
+  // heran (Turm, Triebwerk), statt in den Rumpf hineinzutauchen — der Punkt
+  // unter dem Cursor bleibt beim Zoomen stehen.
+  controls.zoomToCursor = true;
   // Kontextmenü auf dem Canvas unterdrücken, damit Rechtsklick-Ziehen läuft
   renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
 
@@ -647,6 +651,26 @@ export async function initHolo(container, cfg) {
   // oder sehr breite Schiffe (Bounding-Sphere gegen vertikales UND horizontales
   // Sichtfeld gefittet), inkl. Neuanpassung bei Größenänderung.
   const fitSphere = new THREE.Box3().setFromObject(rig).getBoundingSphere(new THREE.Sphere());
+
+  // Nah-/Fernebene an die AKTUELLE Zoom-Distanz koppeln.
+  //
+  // Vorher wurden beide EINMAL beim Einpassen gesetzt (near ≈ ein Modellradius).
+  // Beim Heranzoomen blieb die Nahebene stehen, während das Schiff näher kam —
+  // ab etwa halber Startdistanz schnitt sie den Rumpf von vorne weg: „die Kamera
+  // clippt durchs Schiff". Jetzt liegt die Nahebene immer bei 5 % der Distanz,
+  // also grundsätzlich vor der nächsten Modellfläche (solange d > 1,05·r), und
+  // die Tiefengenauigkeit bleibt trotzdem hoch, weil far/near klein bleibt.
+  const NEAR_MIN = 1e-3;
+  let clipD = -1;
+  function updateClipPlanes() {
+    const d = camera.position.distanceTo(controls.target);
+    if (Math.abs(d - clipD) < clipD * 0.002) return;   // nur bei echter Änderung
+    clipD = d;
+    camera.near = Math.max(NEAR_MIN, d * 0.05);
+    camera.far = Math.max(camera.near * 100, d + fitSphere.radius * 3);
+    camera.updateProjectionMatrix();
+  }
+
   function fitCamera(margin = 1.18) {
     const r = fitSphere.radius * margin;
     const vFov = (camera.fov * Math.PI) / 180;
@@ -657,12 +681,13 @@ export async function initHolo(container, cfg) {
     dir.normalize();
     controls.target.copy(fitSphere.center);
     camera.position.copy(fitSphere.center).addScaledVector(dir, dist);
-    camera.near = Math.max(0.01, dist - r * 2.2);
-    camera.far = dist + r * 2.5;
-    camera.updateProjectionMatrix();
-    controls.minDistance = r * 0.5;
+    // Nah heran erlaubt (Detail-Ansicht einzelner Hardpoints) — der Anschlag
+    // hält die Kamera nur so weit vor dem Zielpunkt, dass sie nicht im Rumpf
+    // steckt; früher war hier bei ~0,6 Modellradien Schluss.
+    controls.minDistance = fitSphere.radius * 0.03;
     controls.maxDistance = dist * 2.2;
     controls.update();
+    updateClipPlanes();
   }
   fitCamera();
 
@@ -800,6 +825,7 @@ export async function initHolo(container, cfg) {
       sp.scale.setScalar(sc);
     }
     controls.update();
+    updateClipPlanes();   // Nahebene der aktuellen Zoom-Distanz nachführen
     renderer.render(scene, camera);
     // Labels aus 3D auf den Bildschirm projizieren (nach dem Render, damit die
     // Kamera aktuell ist), entzerren und mit Leader-Linien verbinden.
