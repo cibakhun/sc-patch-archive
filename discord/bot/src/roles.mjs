@@ -34,6 +34,14 @@ async function applyRolePerms(role, permNames) {
   try { await role.setPermissions(target, 'VerseBase rank permissions'); } catch { /* ignore */ }
 }
 
+// Keep a role's hoist (show-separately) flag in sync. Only the Team roles are
+// hoisted server-wide; rank/prestige roles must stay unhoisted so rank drives the
+// name color, not a member-list group header. No-op when already correct.
+async function applyRoleHoist(role, hoist) {
+  if (role.hoist === hoist) return;
+  try { await role.setHoist(hoist, 'VerseBase hoist sync'); } catch { /* ignore */ }
+}
+
 export class RankRoles {
   constructor() {
     this.byGuild = new Map(); // guildId -> Map(rankKey -> roleId)
@@ -68,10 +76,15 @@ export class RankRoles {
     }
 
     // Prestige (✦ Ascended) roles carry the newcomer-gate lift too — a prestiged
-    // member drops to level 0 but has plainly earned link/image posting.
+    // member drops to level 0 but has plainly earned link/image posting. They must
+    // stay unhoisted (only Team is hoisted), so reconcile that flag here as well —
+    // this un-hoists any prestige role created by an older build.
     if (canManage) {
       for (const role of guild.roles.cache.values()) {
-        if (!role.managed && role.name.includes(PRESTIGE.name)) await applyRolePerms(role, TRUSTED_PERMS);
+        if (!role.managed && role.name.includes(PRESTIGE.name)) {
+          await applyRolePerms(role, TRUSTED_PERMS);
+          await applyRoleHoist(role, false);
+        }
       }
     }
 
@@ -94,7 +107,7 @@ export class RankRoles {
     const name = prestigeRoleName(stars);
     let role = guild.roles.cache.find((r) => r.name === name && !r.managed);
     if (!role) {
-      role = await guild.roles.create({ name, ...roleColorOptions(PRESTIGE.color), hoist: true, mentionable: false, permissions: TRUSTED_PERMS, reason: 'VerseBase prestige role' }).catch(() => null);
+      role = await guild.roles.create({ name, ...roleColorOptions(PRESTIGE.color), hoist: false, mentionable: false, permissions: TRUSTED_PERMS, reason: 'VerseBase prestige role' }).catch(() => null);
     }
     return role;
   }
