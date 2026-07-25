@@ -1,0 +1,95 @@
+/* ============================================================================
+   account-dossier.css — Dossier-Look-Overlay über das bestehende Account-Dashboard.
+   REINES RE-STYLING: ändert KEINE Markup-/JS-Hooks (alle ov*/pf*/pc*-IDs bleiben).
+   Wird NACH account.css geladen (gewinnt per Quellreihenfolge). Dark-only.
+   Ziel: cinematic Hero + Frosted-Glass + Atmosphäre, echte Supabase-Daten.
+   ========================================================================== */
+
+/* CRT-Scanlines aus — schlagen auf dem hellen Metallic-Namen als "Glitch" durch
+   (Vignette aus body::after bleibt). Siehe Hero-Name unten. */
+:root { --scanline: rgba(0, 0, 0, 0); }
+
+/* ---- seitenweite Atmosphäre hinter dem Account-Inhalt ---- */
+.acwrap--wide { position: relative; z-index: 0; padding-top: calc(64px + 1.5rem) !important; }
+.acwrap--wide::before {
+  content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background: url('/assets/t-nyx-1.jpg') center/cover no-repeat;
+  opacity: .16; filter: blur(4px) saturate(.8) brightness(.7);
+}
+.acwrap--wide::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(1200px 760px at 82% -6%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 58%),
+    radial-gradient(1000px 700px at 0% 12%, color-mix(in srgb, var(--accent-2) 10%, transparent), transparent 55%);
+}
+@media (prefers-reduced-motion: reduce) { .acwrap--wide::before { filter: blur(4px) saturate(.8) brightness(.7); } }
+
+/* ---- Doppel-Hero weg: generischen AccountShell-Hero + "Welcome back" ausblenden,
+        die Registry-Karte trägt die Identität ---- */
+.hero--acct { display: none !important; }
+#tab-panel-overview .ov-head { display: none !important; }
+
+/* ---- Registry-Karte -> cinematic Hero-Karte ---- */
+.rg {
+  border-radius: 16px; overflow: hidden;
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.rg__banner { height: 230px; }
+.rg__body { margin-top: -70px; }
+.rg__meta { padding-top: 64px; }
+.rg__av { width: 104px; height: 104px; }
+.rg__name { align-items: flex-end !important; gap: .8rem !important; flex-wrap: wrap; }
+.rg__name h3#ovName {
+  margin: 0; font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(2.4rem, 6vw, 4.6rem); line-height: .98; letter-spacing: -.01em;
+  padding-bottom: .14em; /* Unterlänge (y/g/j) nicht kappen — background-clip:text */
+  background: linear-gradient(180deg, #fff 55%, color-mix(in srgb, #fff 60%, var(--accent)));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: 0 10px 50px rgba(0, 0, 0, .5);
+}
+.rg__chip--ok { align-self: center; padding: .3rem .6rem; border-radius: 7px; }
+.rg__handle { font-size: 1.05rem; margin-top: .3rem; }
+.rg__tags { margin-top: 1rem; }
+.rg__tag { border-radius: 8px; }
+.rg__act { padding-top: 60px; gap: .7rem; }
+.acbtn { border-radius: 9px; }
+
+/* ---- Readouts -> saubere Frosted-Glass-Metrik-Karten ---- */
+.rds { background: transparent; border: 0; gap: 16px; flex-wrap: wrap; }
+.rd {
+  min-height: 150px; padding: 20px; border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--line-2) 55%, transparent);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  -webkit-backdrop-filter: blur(13px); backdrop-filter: blur(13px);
+}
+.rd::before { display: none; }
+.rd__k { font-size: .72rem; }
+.rd__v { font-family: var(--font-ui); font-weight: 700; font-size: clamp(2rem, 3vw, 2.6rem); }
+.rd__rsi { font-size: 1.35rem; }
+
+/* ---- Quick access ---- */
+.qa__item {
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--line-2) 55%, transparent);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  -webkit-backdrop-filter: blur(13px); backdrop-filter: blur(13px);
+}
+.qa__item::before, .qa__item::after { display: none; }
+
+/* ---- Aktivitätslog ---- */
+.lg {
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  -webkit-backdrop-filter: blur(13px); backdrop-filter: blur(13px);
+}
+
+/* ---- Karten in den anderen Tabs (Profil/Favoriten/Security) mitziehen ---- */
+.acx-card {
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 55%, transparent) !important;
+  -webkit-backdrop-filter: blur(13px); backdrop-filter: blur(13px);
+}
+
+/* ---- Tab-Leiste ---- */
+.acnav__item { font-size: .95rem; }
