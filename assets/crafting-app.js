@@ -29,10 +29,21 @@
   // liefert enrichCardsFromDb() nach dem DB-Fetch nach.
   // Die ★/＋-Buttons sind ohne JS funktionslos und kommen deshalb ebenfalls von
   // hier (Klicks fängt die bestehende Delegation auf #cdb-grid).
+  // Index -> Slug und zurück. Der SLUG ist der Schlüssel für „im Besitz" und
+  // Planer (localStorage wie Konto): der DB-Index verschiebt sich bei jedem
+  // Datamine-Lauf, der Slug ist derselbe wie in /crafting/<slug>.html und
+  // überlebt Patches. Er kostet kein zusätzliches Markup — der Kartenname ist
+  // ohnehin ein Link auf genau diese Seite.
+  var SLUG_BY_I = {};
+  var I_BY_SLUG = {};
+
   cards.forEach(function (card, pos) {
     var d = card.dataset;
     if (d.i == null || d.i === '') d.i = String(pos);
     var nameEl = $('.cbp__name', card);
+    var linkEl = nameEl && nameEl.querySelector('a');
+    var m = linkEl && /([^/]+)\.html(?:[?#]|$)/.exec(linkEl.getAttribute('href') || '');
+    if (m) { d.slug = m[1]; SLUG_BY_I[d.i] = m[1]; I_BY_SLUG[m[1]] = d.i; }
     d.name = nameEl ? nameEl.textContent.trim().toLowerCase() : '';
     var catEl = $('.cbp__cat', card);
     var subEl = catEl && catEl.querySelector('em');
@@ -135,11 +146,297 @@
   }
   function missionKey(m) { return m.id != null ? 'id' + m.id : 'nm' + m.name; }
 
-  // ---- Persistence ----
+  // =========================================================
+  //  PERSISTENZ: „im Besitz" + Planer — lokal UND kontogebunden
+  // =========================================================
+  // Wahrheit im Speicher: owned = {slug:true}, plan = {slug:qty}.
+  //
+  // Nicht angemeldet -> localStorage (Gast-Ablage, wie bisher, nur slug-keyed).
+  // Angemeldet       -> Supabase-Tabelle crafting_entries (eine Zeile je
+  //                     Blueprint) ist die Wahrheit; der localStorage hält
+  //                     zusätzlich einen Spiegel PRO KONTO, damit die Seite
+  //                     sofort den richtigen Zustand zeigt, statt auf die
+  //                     Server-Antwort zu warten.
+  // Beim ersten Anmelden auf einem Gerät wandert die Gast-Ablage EINMALIG ins
+  // Konto (Vereinigung) und wird danach geleert — sonst stünde dieselbe Liste
+  // an zwei Orten und liefe still auseinander.
   function load(key, def) { try { return JSON.parse(localStorage.getItem(key)) || def; } catch (e) { return def; } }
   function save(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
-  var owned = load('craft.owned.v1', {});      // {index:true}
-  var plan = load('craft.plan.v1', {});         // {index:qty}
+  function drop(key) { try { localStorage.removeItem(key); } catch (e) {} }
+
+  var LS_GUEST = 'craft.state.v2';
+  function lsKey(uid) { return uid ? LS_GUEST + '.' + uid : LS_GUEST; }
+  function loadState(uid) {
+    var s = load(lsKey(uid), null);
+    return { owned: (s && s.owned) || {}, plan: (s && s.plan) || {}, pending: (s && s.pending) || [] };
+  }
+
+  // Einmalige Übernahme der alten, INDEX-basierten Ablage (craft.owned.v1 /
+  // craft.plan.v1). Die Indizes stammen aus derselben Seite, die sie geschrieben
+  // hat — nach einem Datamine-Lauf können sie verschoben sein. Genau deshalb
+  // wechseln wir auf Slugs; die Übernahme ist der bestmögliche Stand, nicht mehr.
+  (function migrateV1() {
+    if (localStorage.getItem(LS_GUEST) != null) return;
+    var oldOwned = load('craft.owned.v1', null);
+    var oldPlan = load('craft.plan.v1', null);
+    if (!oldOwned && !oldPlan) return;
+    var st = { owned: {}, plan: {} };
+    Object.keys(oldOwned || {}).forEach(function (i) { var s = SLUG_BY_I[i]; if (s && oldOwned[i]) st.owned[s] = true; });
+    Object.keys(oldPlan || {}).forEach(function (i) { var s = SLUG_BY_I[i]; if (s && oldPlan[i] > 0) st.plan[s] = oldPlan[i]; });
+    save(LS_GUEST, st);
+    drop('craft.owned.v1');
+    drop('craft.plan.v1');
+  })();
+
+  var acctUid = null;                    // null = Gast
+  var initial = loadState(null);
+  var owned = initial.owned;             // {slug:true}
+  var plan = initial.plan;               // {slug:qty}
+
+  // `pending` = Slugs, die noch nicht beim Server angekommen sind. Sie MÜSSEN
+  // mit im Spiegel stehen: wer klickt und sofort den Tab schließt (oder gerade
+  // offline ist), fände sonst beim nächsten Laden den Server-Stand vor und die
+  // Änderung wäre still weg. Beim nächsten Besuch werden sie erneut geschickt.
+  function persist() {
+    save(lsKey(acctUid), { owned: owned, plan: plan, pending: acctUid ? Object.keys(dirty) : [] });
+  }
+
+  // Slug <-> Karte/DB-Index. Alles, was noch mit Indizes hantiert (Modal,
+  // Planer-Liste), geht durch diese beiden Funktionen.
+  function slugOfIndex(i) { return SLUG_BY_I[i] != null ? SLUG_BY_I[i] : null; }
+  function indexOfSlug(s) { return I_BY_SLUG[s] != null ? I_BY_SLUG[s] : null; }
+
+  // ---------------------------------------------------------
+  //  Konto-Synchronisation (PostgREST über window.VBAccount)
+  // ---------------------------------------------------------
+  // account-lite.js liefert Session + authentifizierten REST-Aufruf; hier liegt
+  // nur die Crafting-Logik. Ohne Konto passiert nichts — die App bleibt exakt so
+  // benutzbar wie vorher, nur eben lokal.
+  var TABLE = 'crafting_entries';
+  var dirty = {};            // slug -> wartet auf Server
+  var flushTimer = null;
+  var lastPull = 0;
+  var syncState = 'local';   // local | syncing | synced | error
+  var VB = null;
+
+  function markDirty(slug) {
+    // Erst vormerken, dann speichern — persist() schreibt die offene Liste mit.
+    if (acctUid && slug) dirty[slug] = true;
+    persist();
+    if (!acctUid || !slug) return;
+    setSync('syncing');
+    clearTimeout(flushTimer);
+    flushTimer = setTimeout(flush, 700);
+  }
+
+  function flush() {
+    clearTimeout(flushTimer);
+    var slugs = Object.keys(dirty);
+    if (!acctUid || !VB || !slugs.length) return null;
+    dirty = {};
+    return VB.session().then(function (sess) {
+      if (!sess) { goGuest(); return; }
+      var up = [], del = [];
+      slugs.forEach(function (s) {
+        var o = !!owned[s], q = plan[s] || 0;
+        // Leere Zeile (weder Besitz noch Planmenge) wird gelöscht statt mit
+        // Nullen gespeichert — die Tabelle bleibt so klein wie der echte Bestand.
+        if (o || q > 0) up.push({ user_id: acctUid, slug: s, owned: o, plan_qty: q });
+        else del.push(s);
+      });
+      var jobs = [];
+      if (up.length) {
+        jobs.push(VB.rest(sess, 'POST', TABLE + '?on_conflict=user_id,slug', up,
+          'resolution=merge-duplicates,return=minimal'));
+      }
+      if (del.length) {
+        jobs.push(VB.rest(sess, 'DELETE', TABLE + '?user_id=eq.' + acctUid +
+          '&slug=in.(' + del.map(encodeURIComponent).join(',') + ')'));
+      }
+      return Promise.all(jobs).then(function (rs) {
+        var ok = rs.every(function (r) { return r && r.ok; });
+        if (!ok) throw new Error('rest');
+        persist();          // offene Liste im Spiegel leeren
+        setSync('synced');
+      });
+    }).catch(function () {
+      // Fehlgeschlagene Slugs bleiben schmutzig -> nächster Versuch (Klick auf
+      // „Erneut versuchen", nächste Änderung, Tab-Rückkehr oder der nächste
+      // Seitenaufruf über den Spiegel) nimmt sie mit.
+      slugs.forEach(function (s) { dirty[s] = true; });
+      persist();
+      setSync('error');
+    });
+  }
+
+  // Erst schreiben, dann lesen — nie gleichzeitig: ein GET, der neben einem
+  // laufenden POST eintrifft, brächte den gerade geklickten Zustand wieder weg.
+  function flushThenPull() {
+    var p = flush();
+    if (p && p.then) p.then(function () { pull(false); }, function () { /* Fehler steht schon */ });
+    else pull(false);
+  }
+
+  // Server -> Client. `withMerge` nur beim ersten Zug nach dem Anmelden.
+  function pull(withMerge) {
+    if (!acctUid || !VB) return Promise.resolve();
+    setSync('syncing');
+    return VB.session().then(function (sess) {
+      if (!sess) { goGuest(); return; }
+      return VB.rest(sess, 'GET', TABLE + '?select=slug,owned,plan_qty')
+        .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+        .then(function (rows) {
+          var so = {}, sp = {};
+          (rows || []).forEach(function (row) {
+            // Blueprints, die es im aktuellen Patch nicht mehr gibt, werden nur
+            // nicht angezeigt — die Zeile bleibt stehen (kommt das Item zurück,
+            // ist der Eintrag wieder da).
+            if (indexOfSlug(row.slug) == null) return;
+            if (row.owned) so[row.slug] = true;
+            if (row.plan_qty > 0) sp[row.slug] = row.plan_qty;
+          });
+
+          // Reihenfolge ist wichtig: ERST die noch nicht geschriebenen lokalen
+          // Änderungen über den Server-Stand legen (sonst überschriebe ein
+          // langsamer GET den frischen Klick), DANN die einmalige Übernahme der
+          // Gast-Ablage. Andersherum würde der Abgleich die eben übernommenen
+          // Einträge wieder wegwerfen — sie stehen ja noch in keiner der beiden
+          // Listen, gegen die er prüft.
+          Object.keys(dirty).forEach(function (s) {
+            if (owned[s]) so[s] = true; else delete so[s];
+            if (plan[s] > 0) sp[s] = plan[s]; else delete sp[s];
+          });
+
+          // Übernahme braucht KEINEN „schon erledigt"-Merker: eine erfolgreiche
+          // Übernahme leert die Gast-Ablage, es kann also nichts doppelt oder
+          // veraltet wandern. Ein Merker hätte im Gegenteil geschadet — was man
+          // abgemeldet anklickt, wäre beim nächsten Anmelden liegengeblieben.
+          var merged = 0;
+          if (withMerge) {
+            var guest = loadState(null);
+            // Gezählt werden BLUEPRINTS, nicht Felder: ein Blueprint, der lokal
+            // „im Besitz" UND im Planer stand, ist ein Eintrag, nicht zwei.
+            var touched = {};
+            Object.keys(guest.owned).forEach(function (s) {
+              if (indexOfSlug(s) == null || so[s]) return;
+              so[s] = true; dirty[s] = true; touched[s] = 1;
+            });
+            Object.keys(guest.plan).forEach(function (s) {
+              if (indexOfSlug(s) == null || (sp[s] || 0) >= guest.plan[s]) return;
+              sp[s] = guest.plan[s]; dirty[s] = true; touched[s] = 1;
+            });
+            merged = Object.keys(touched).length;
+            // Gast-Ablage nach der Übernahme leeren: ab jetzt lebt der Bestand
+            // im Konto, sonst gäbe es zwei Listen, die auseinanderlaufen.
+            if (merged) { drop(LS_GUEST); toast(tr('syncMerged', '{n} lokale Einträge in dein Konto übernommen.').replace('{n}', merged)); }
+          }
+
+          owned = so; plan = sp;
+          lastPull = Date.now();
+          persist();
+          repaintAll();
+          if (Object.keys(dirty).length) flush(); else setSync('synced');
+        });
+    }).catch(function () { setSync('error'); });
+  }
+
+  function goGuest() {
+    if (acctUid === null) { setSync('local'); return; }
+    // Abgemeldet: den Konto-Spiegel aus diesem Browser entfernen. Die Daten
+    // stehen im Konto — auf einem geteilten Rechner soll nach dem Abmelden
+    // niemand mehr sehen, was der Vorgänger besitzt oder plant.
+    drop(lsKey(acctUid));
+    acctUid = null;
+    dirty = {};
+    var g = loadState(null);
+    owned = g.owned; plan = g.plan;
+    repaintAll();
+    setSync('local');
+  }
+
+  function onSession() {
+    if (!VB) return;
+    VB.session().then(function (sess) {
+      var uid = sess && sess.user && sess.user.id;
+      if (!uid) { goGuest(); return; }
+      if (uid === acctUid) { pull(false); return; }
+      acctUid = uid;
+      // Konto-Spiegel sofort zeigen (kein Flackern), Server-Stand zieht nach.
+      // Beim letzten Besuch nicht abgeschickte Änderungen (Tab zu, offline)
+      // stehen im Spiegel und gehen jetzt mit raus.
+      var m = loadState(uid);
+      owned = m.owned; plan = m.plan;
+      dirty = {};
+      m.pending.forEach(function (s) { dirty[s] = true; });
+      repaintAll();
+      pull(true);
+    });
+  }
+
+  function bootSync() {
+    VB = window.VBAccount || null;
+    if (!VB) { setSync('local'); return; }
+    onSession();
+    // Anmelden/Abmelden in einem anderen Tab.
+    addEventListener('vb-account-session', onSession);
+    // Rückkehr auf den Tab: offene Schreibvorgänge nachreichen und den Stand
+    // vom Server holen (anderes Gerät/anderer Tab kann ihn geändert haben).
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState !== 'visible' || !acctUid) return;
+      var stale = Date.now() - lastPull > 60000;
+      if (Object.keys(dirty).length) { if (stale) flushThenPull(); else flush(); }
+      else if (stale) pull(false);
+    });
+    // Seite wird verlassen: letzten Stand noch rausschicken (best effort).
+    addEventListener('pagehide', function () { if (Object.keys(dirty).length) flush(); });
+  }
+
+  if (window.VBAccount) bootSync();
+  else addEventListener('vb-account-ready', bootSync, { once: true });
+
+  // ---- Sync-Statusanzeige ----
+  function setSync(s) {
+    syncState = s;
+    $$('.cdb-sync').forEach(function (host) {
+      host.dataset.state = s;
+      var txt = $('.cdb-sync__txt', host);
+      var login = $('.cdb-sync__login', host);
+      var retry = $('.cdb-sync__retry', host);
+      if (txt) {
+        txt.textContent =
+          s === 'syncing' ? tr('syncBusy', 'Synchronisiere…') :
+          s === 'synced' ? tr('syncOn', 'Mit Konto synchronisiert') :
+          s === 'error' ? tr('syncErr', 'Nicht gespeichert') :
+          tr('syncLocal', 'Nur auf diesem Gerät');
+      }
+      if (login) {
+        login.hidden = s !== 'local';
+        if (!login.hidden && VB) login.href = VB.loginHref();
+      }
+      if (retry) retry.hidden = s !== 'error';
+    });
+  }
+
+  $$('.cdb-sync__retry').forEach(function (b) {
+    b.addEventListener('click', function () { if (acctUid) flushThenPull(); });
+  });
+
+  var toastTimer = null;
+  function toast(msg) {
+    var el = $('#cdb-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.hidden = true; }, 6000);
+  }
+
+  // Kompletter Neuanstrich nach einem Zustandswechsel (Login/Logout/Server-Stand).
+  function repaintAll() {
+    cards.forEach(refreshCardState);
+    renderPlanner();
+    if (state.ownedOnly) apply();
+  }
 
   // ---- Helpers ----
   function fmtTime(sec) {
@@ -181,7 +478,7 @@
       if (!hasAll) return false;
     }
     if (state.missionOnly && d.mis !== '1') return false;
-    if (state.ownedOnly && !owned[d.i]) return false;
+    if (state.ownedOnly && !owned[d.slug]) return false;
     return true;
   }
 
@@ -324,10 +621,10 @@
   //  OWNED + ADD-TO-PLAN (delegated on grid)
   // =========================================================
   function refreshCardState(card) {
-    var i = card.dataset.i;
-    card.classList.toggle('is-owned', !!owned[i]);
-    var ob = $('.cbp__own', card); if (ob) ob.setAttribute('aria-pressed', owned[i] ? 'true' : 'false');
-    var pb = $('.cbp__add', card); if (pb) pb.classList.toggle('in-plan', !!plan[i]);
+    var s = card.dataset.slug;
+    card.classList.toggle('is-owned', !!owned[s]);
+    var ob = $('.cbp__own', card); if (ob) ob.setAttribute('aria-pressed', owned[s] ? 'true' : 'false');
+    var pb = $('.cbp__add', card); if (pb) pb.classList.toggle('in-plan', !!plan[s]);
   }
   grid.addEventListener('click', function (e) {
     // Der Kartenname ist ein echter Link auf /crafting/<slug>.html (Crawler,
@@ -341,8 +638,12 @@
     if (!card) return;
     if (e.target.closest('.cbp__name a')) e.preventDefault();
     var i = card.dataset.i;
-    if (ownBtn) { e.stopPropagation(); if (owned[i]) delete owned[i]; else owned[i] = true; save('craft.owned.v1', owned); refreshCardState(card); if (state.ownedOnly) apply(); return; }
-    if (addBtn) { e.stopPropagation(); plan[i] = (plan[i] || 0) + 1; save('craft.plan.v1', plan); refreshCardState(card); renderPlanner(); flashPlan(); return; }
+    var s = card.dataset.slug;
+    // Ohne Slug (Karte ohne Namenslink) gäbe es keinen stabilen Schlüssel —
+    // dann lieber nur das Detail öffnen als Müll speichern.
+    if (!s && (ownBtn || addBtn)) { e.stopPropagation(); return; }
+    if (ownBtn) { e.stopPropagation(); if (owned[s]) delete owned[s]; else owned[s] = true; markDirty(s); refreshCardState(card); if (state.ownedOnly) apply(); return; }
+    if (addBtn) { e.stopPropagation(); plan[s] = (plan[s] || 0) + 1; markDirty(s); refreshCardState(card); renderPlanner(); flashPlan(); return; }
     openModal(+i);
   });
   cards.forEach(refreshCardState);
@@ -538,7 +839,12 @@
     recompute();
 
     var pb = $('[data-plan]', modalBody);
-    if (pb) pb.addEventListener('click', function () { plan[i] = (plan[i] || 0) + 1; save('craft.plan.v1', plan); syncCards(); renderPlanner(); flashPlan(); pb.textContent = '✓ ' + tr('added', 'hinzugefügt'); });
+    if (pb) pb.addEventListener('click', function () {
+      var s = slugOfIndex(i);
+      if (!s) return;
+      plan[s] = (plan[s] || 0) + 1; markDirty(s);
+      syncCards(); renderPlanner(); flashPlan(); pb.textContent = '✓ ' + tr('added', 'hinzugefügt');
+    });
 
     var gd = $('[data-goto-dismantle]', modalBody);
     if (gd) gd.addEventListener('click', function () { gotoDismantle(gd.getAttribute('data-goto-dismantle')); });
@@ -624,14 +930,15 @@
   function flashPlan() { if (plannerBtn) { plannerBtn.classList.remove('flash'); void plannerBtn.offsetWidth; plannerBtn.classList.add('flash'); } }
 
   function renderPlanner() {
-    var idxs = Object.keys(plan).filter(function (k) { return plan[k] > 0; });
-    var totalItems = idxs.reduce(function (a, k) { return a + plan[k]; }, 0);
+    // Schlüssel sind Slugs; für die DB-Suche wird pro Zeile der Index geholt.
+    var slugs = Object.keys(plan).filter(function (k) { return plan[k] > 0; });
+    var totalItems = slugs.reduce(function (a, k) { return a + plan[k]; }, 0);
     if (plannerBadge) { plannerBadge.textContent = totalItems; plannerBadge.hidden = totalItems === 0; }
     var listEl = $('#cdb-plan-list');
     var shopEl = $('#cdb-plan-shop');
     var timeEl = $('#cdb-plan-time');
     if (!listEl) return;
-    if (!DB || !idxs.length) {
+    if (!DB || !slugs.length) {
       listEl.innerHTML = '<li class="cdb-plan-empty">' + tr('planEmpty', 'Noch keine Blueprints im Planer. „＋" auf einer Karte fügt hinzu.') + '</li>';
       if (shopEl) shopEl.innerHTML = '';
       if (timeEl) timeEl.textContent = '—';
@@ -639,8 +946,9 @@
     }
     var totalTime = 0;
     var shop = {}; // resource -> total cSCU
-    listEl.innerHTML = idxs.map(function (k) {
-      var b = DB.blueprints[k]; if (!b) return '';
+    listEl.innerHTML = slugs.map(function (k) {
+      var idx = indexOfSlug(k);
+      var b = idx != null ? DB.blueprints[idx] : null; if (!b) return '';
       var qty = plan[k];
       totalTime += (b.craft_time_seconds || 0) * qty;
       (b.ingredients || []).forEach(function (ing) {
@@ -659,13 +967,21 @@
     }
     if (timeEl) timeEl.textContent = fmtTime(totalTime);
     // wire qty buttons
-    $$('[data-inc]', listEl).forEach(function (btn) { btn.addEventListener('click', function () { var k = btn.dataset.inc; plan[k]++; save('craft.plan.v1', plan); renderPlanner(); syncCards(); }); });
-    $$('[data-dec]', listEl).forEach(function (btn) { btn.addEventListener('click', function () { var k = btn.dataset.dec; plan[k]--; if (plan[k] <= 0) delete plan[k]; save('craft.plan.v1', plan); renderPlanner(); syncCards(); }); });
-    $$('[data-rm]', listEl).forEach(function (btn) { btn.addEventListener('click', function () { delete plan[btn.dataset.rm]; save('craft.plan.v1', plan); renderPlanner(); syncCards(); }); });
+    $$('[data-inc]', listEl).forEach(function (btn) { btn.addEventListener('click', function () { var k = btn.dataset.inc; plan[k]++; markDirty(k); renderPlanner(); syncCards(); }); });
+    $$('[data-dec]', listEl).forEach(function (btn) { btn.addEventListener('click', function () { var k = btn.dataset.dec; plan[k]--; if (plan[k] <= 0) delete plan[k]; markDirty(k); renderPlanner(); syncCards(); }); });
+    $$('[data-rm]', listEl).forEach(function (btn) { btn.addEventListener('click', function () { var k = btn.dataset.rm; delete plan[k]; markDirty(k); renderPlanner(); syncCards(); }); });
   }
   function syncCards() { cards.forEach(refreshCardState); }
   var clearBtn = $('#cdb-plan-clear');
-  if (clearBtn) clearBtn.addEventListener('click', function () { plan = {}; save('craft.plan.v1', plan); renderPlanner(); syncCards(); });
+  if (clearBtn) clearBtn.addEventListener('click', function () {
+    // Jeder geleerte Blueprint muss einzeln zum Server (die Zeile wird gelöscht) —
+    // die Slugs also VOR dem Leeren einsammeln.
+    var wiped = Object.keys(plan);
+    plan = {};
+    persist();
+    wiped.forEach(markDirty);
+    renderPlanner(); syncCards();
+  });
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 

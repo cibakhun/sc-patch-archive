@@ -1,6 +1,8 @@
 ---
 // CraftingApp.astro — funktionale Blueprint-Datenbank (SSR-Liste + Client-App).
 // Sprachneutrales Gerüst; UI-Chrome via `lang`, Game-Daten bleiben englisch.
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import DB from '../../assets/crafting-db.json';
 import { ICON_BLUEPRINT, ICON_DISMANTLE } from '../lib/icons';
 import { blueprints, blueprintPath } from '../lib/crafting';
@@ -22,6 +24,8 @@ const S = {
     close: 'Schließen', craftTime: 'Craft-Zeit', ings: 'Zutaten', mission: 'Mission',
     plannerTitle: 'Fabricator-Planer', shoppingList: 'Einkaufsliste (Ressourcen)',
     totalTime: 'Gesamt-Craft-Zeit', clearPlan: 'Planer leeren', owned: 'Im Besitz', addToPlan: 'Zum Planer',
+    syncLocal: 'Nur auf diesem Gerät', syncLogin: 'Anmelden', syncRetry: 'Erneut versuchen',
+    syncTitle: 'Besitz und Planer werden mit deinem Konto synchronisiert, sobald du angemeldet bist.',
     calcSelectMats: '1. Rohstoffe wählen', calcParameters: '2. Parameter', calcTargetQty: 'Zielmenge (SCU)',
     calcYieldRate: 'Ausbeute-Rate', calcReset: 'Rechner zurücksetzen', calcTitle: 'Effiziente Items zum Zerlegen',
     calcTabDb: 'Blueprint-Datenbank', calcTabCalc: 'Zerlegungs-Rechner (Dismantle)',
@@ -39,6 +43,8 @@ const S = {
     close: 'Close', craftTime: 'Craft time', ings: 'Ingredients', mission: 'Mission',
     plannerTitle: 'Fabricator planner', shoppingList: 'Shopping list (resources)',
     totalTime: 'Total craft time', clearPlan: 'Clear planner', owned: 'Owned', addToPlan: 'Add to planner',
+    syncLocal: 'This device only', syncLogin: 'Sign in', syncRetry: 'Retry',
+    syncTitle: 'Owned items and planner sync with your account once you are signed in.',
     calcSelectMats: '1. Select Raw Materials', calcParameters: '2. Parameters', calcTargetQty: 'Target Quantity (SCU)',
     calcYieldRate: 'Yield Rate', calcReset: 'Reset Calculator', calcTitle: 'Efficient Items to Dismantle',
     calcTabDb: 'Blueprint Database', calcTabCalc: 'Dismantling Calculator',
@@ -73,6 +79,11 @@ const JS_T = {
     openInDismantle: 'Im Zerlegungs-Rechner öffnen',
     openBlueprint: 'Blueprint öffnen',
     owned: 'Im Besitz',
+    syncLocal: 'Nur auf diesem Gerät',
+    syncBusy: 'Synchronisiere…',
+    syncOn: 'Mit Konto synchronisiert',
+    syncErr: 'Nicht gespeichert',
+    syncMerged: '{n} lokale Einträge in dein Konto übernommen.',
   },
   en: {
     craftTime: 'Craft time', tier: 'Tier', addPlan: 'Add to planner', ingredients: 'Ingredients',
@@ -98,6 +109,11 @@ const JS_T = {
     openInDismantle: 'Open in Dismantling Calculator',
     openBlueprint: 'Open blueprint',
     owned: 'Owned',
+    syncLocal: 'This device only',
+    syncBusy: 'Syncing…',
+    syncOn: 'Synced to your account',
+    syncErr: 'Not saved',
+    syncMerged: '{n} local entries moved into your account.',
   },
 }[lang];
 
@@ -162,6 +178,13 @@ const total = DB.counts.blueprints;
 // (kein Laufzeit-Race) und zusätzlich ans Client-JS durchgereicht.
 const dismantleEff = typeof DB.dismantle_efficiency === 'number' ? DB.dismantle_efficiency : 0.5;
 const defaultYield = Math.round(dismantleEff * 100);
+
+// Cache-Busting per Content-Hash (siehe Kommentar am Skript-Tag unten).
+let craftAppVer = 'x';
+try {
+  craftAppVer = createHash('sha1').update(readFileSync('assets/crafting-app.js')).digest('hex').slice(0, 8);
+} catch { /* dev-Fallback */ }
+const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
 ---
 
 <section class="cdb" id="cdb">
@@ -195,6 +218,15 @@ const defaultYield = Math.round(dismantleEff * 100);
     <button class="cdb-planner-open" id="cdb-planner-open" title={S.plannerTitle}>
       ⚙ {S.planner}<span class="cdb-badge" id="cdb-planner-badge" hidden>0</span>
     </button>
+    {/* Speicher-Status für Besitz + Planer. Ohne Konto: „Nur auf diesem Gerät"
+        + Anmelde-Link; angemeldet zeigt crafting-app.js hier den Sync-Zustand.
+        data-state wird vom JS gesetzt (local | syncing | synced | error). */}
+    <div class="cdb-sync" data-state="local" title={S.syncTitle} aria-live="polite">
+      <span class="cdb-sync__dot" aria-hidden="true"></span>
+      <span class="cdb-sync__txt">{S.syncLocal}</span>
+      <a class="cdb-sync__login" href={href('/account/login.html', lang)}>{S.syncLogin}</a>
+      <button type="button" class="cdb-sync__retry" hidden>{S.syncRetry}</button>
+    </div>
   </div>
 
   <div class="cdb-layout">
@@ -373,9 +405,20 @@ const defaultYield = Math.round(dismantleEff * 100);
       <div class="cdb-plan-time-row"><span>{S.totalTime}</span><b id="cdb-plan-time">—</b></div>
       <h4>{S.shoppingList}</h4>
       <div id="cdb-plan-shop" class="cdb-plan-shop"></div>
+      {/* Zweite Statusanzeige: im Planer sieht man den Speicherort dort, wo die
+          Liste steht — nicht nur oben in der Toolbar. */}
+      <div class="cdb-sync cdb-sync--drawer" data-state="local" title={S.syncTitle}>
+        <span class="cdb-sync__dot" aria-hidden="true"></span>
+        <span class="cdb-sync__txt">{S.syncLocal}</span>
+        <a class="cdb-sync__login" href={href('/account/login.html', lang)}>{S.syncLogin}</a>
+        <button type="button" class="cdb-sync__retry" hidden>{S.syncRetry}</button>
+      </div>
       <button id="cdb-plan-clear" class="cdb-plan-clear">{S.clearPlan}</button>
     </div>
   </aside>
+
+  {/* Kurzmeldung, z. B. nach der einmaligen Übernahme lokaler Daten ins Konto. */}
+  <div class="cdb-toast" id="cdb-toast" role="status" hidden></div>
 </section>
 
 {/* Daten-URLs mit dem Patch-Stand versioniert (?v=<DB.version>): nginx cacht
@@ -384,12 +427,17 @@ const defaultYield = Math.round(dismantleEff * 100);
     „nichts selten“ zurück (der Lindinium-Bug). Da das HTML no-cache ist, zieht
     jeder Aufruf so die zum Markup passende Datenversion. */}
 <script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json?v=' + version, dismantleUrl: '/assets/dismantling-items.json?v=' + version, dismantleEfficiency: dismantleEff, icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE }, t: JS_T })};`} />
-{/* ?v=4: Cache-Buster — das gebündelte crafting-app.js vereint die Karten-Diät
-    (Filter-data-Attribute entfallen, JS hebt sie beim Init aus dem Markup) UND
-    den game-sourced Zerlege-Rechner. Altes gecachtes JS auf neuem HTML bräche
-    beides. Bei künftigen Änderungen an crafting-app.js mitbumpen.
-    v4: Qualitäts-Slider step=1 + editierbares Zahlenfeld. */}
-<script is:inline src="/assets/crafting-app.js?v=4"></script>
+{/* Cache-Buster jetzt als Content-Hash statt handgezähltem ?v=N (dasselbe
+    Verfahren wie /assets/account-lite.js in SiteNav): das JS hängt eng am
+    Markup — altes gecachtes Skript auf neuem HTML bräche Karten-Diät, Zerlege-
+    Rechner und Konto-Sync. Ein vergessener Bump war live nicht sichtbar, weil
+    der Dev-Server nie cacht; der Hash kann nicht vergessen werden.
+
+    defer: crafting-app.js braucht window.VBAccount aus account-lite.js (Session
+    + PostgREST). Beide sind defer, und SiteNav steht im Dokument vor dieser
+    Komponente — damit läuft account-lite garantiert zuerst. Zusätzlich wartet
+    das Skript notfalls auf das Event 'vb-account-ready'. */}
+<script is:inline src={craftAppSrc} defer></script>
 
 <style is:inline>
   /* ===== Crafting-DB — funktionale App ===== */
@@ -411,6 +459,21 @@ const defaultYield = Math.round(dismantleEff * 100);
   .cdb-planner-open.flash{animation:cdbflash .5s}
   @keyframes cdbflash{0%{box-shadow:0 0 0 0 var(--accent-2,#1FA2FF)}100%{box-shadow:0 0 0 12px transparent}}
   .cdb-badge{position:absolute;top:-8px;right:-8px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--accent,#FF5E1A);color:var(--ink);font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+  /* Speicher-Status (lokal vs. Konto) — bewusst leise: eine Zeile, ein Punkt. */
+  .cdb-sync{display:inline-flex;align-items:center;gap:.45rem;padding:.35rem .6rem;border:1px solid var(--line,rgba(255,94,26,.3));border-radius:999px;background:var(--surface,#232329);font-size:.72rem;color:var(--muted,#9ba2ae);white-space:nowrap}
+  .cdb-sync__dot{width:7px;height:7px;border-radius:50%;background:var(--muted,#9ba2ae);flex:none}
+  .cdb-sync[data-state="syncing"] .cdb-sync__dot{background:var(--accent-2,#1FA2FF);animation:cdbpulse 1.1s ease-in-out infinite}
+  .cdb-sync[data-state="synced"] .cdb-sync__dot{background:#3ddc84}
+  .cdb-sync[data-state="synced"]{color:var(--text,#eef1f5)}
+  .cdb-sync[data-state="error"] .cdb-sync__dot{background:#ff5b5b}
+  .cdb-sync[data-state="error"]{border-color:#ff5b5b;color:#ff8c8c}
+  @keyframes cdbpulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .cdb-sync__login,.cdb-sync__retry{background:none;border:0;padding:0;font:inherit;color:var(--accent-2,#1FA2FF);text-decoration:underline;cursor:pointer}
+  .cdb-sync__login:hover,.cdb-sync__retry:hover{color:var(--accent,#FF5E1A)}
+  .cdb-sync--drawer{display:flex;width:100%;justify-content:center;margin:.6rem 0 .2rem}
+  /* Kurzmeldung (Datenübernahme ins Konto) */
+  .cdb-toast{position:fixed;left:50%;bottom:1.4rem;transform:translateX(-50%);z-index:120;max-width:min(92vw,420px);padding:.7rem 1rem;border:1px solid var(--accent-2,#1FA2FF);border-radius:8px;background:var(--surface,#232329);color:var(--text,#eef1f5);font-size:.85rem;line-height:1.4;box-shadow:0 8px 28px var(--shadow-color)}
+  .cdb-toast[hidden]{display:none}
   /* Layout */
   .cdb-layout{display:grid;grid-template-columns:250px 1fr;gap:1.4rem;align-items:start}
   .cdb-sidebar{position:sticky;top:146px;align-self:start;max-height:calc(100vh - 162px);overflow:auto;border:1px solid var(--line,rgba(255,94,26,.22));background:var(--surface,#232329);border-radius:8px;padding:1rem}
@@ -639,6 +702,7 @@ const defaultYield = Math.round(dismantleEff * 100);
     .calc-card__right{border-left:0;border-top:1px solid var(--line-soft,var(--line-soft));padding-left:0;padding-top:1rem;align-items:flex-start;text-align:left}
   }
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .cdb-sync[data-state="error"]{border-color:#c84243;color:#a11a2c}
 :root[data-theme="light"] .cbp[data-cat="Ammo"]{border-top-color:#927303}
 :root[data-theme="light"] .calc-card.incompatible{border-color:rgba(200,67,64,.34)}
 :root[data-theme="light"] .calc-card.incompatible:hover{border-color:rgba(200,67,64,.58)}

@@ -56,18 +56,42 @@
       .catch(function () { return expiresIn(sess) > 0 ? sess : null; });
   }
 
-  function rest(sess, method, path, body) {
+  function rest(sess, method, path, body, prefer) {
     return fetch(SB_URL + '/rest/v1/' + path, {
       method: method,
       headers: {
         apikey: SB_KEY,
         Authorization: 'Bearer ' + sess.access_token,
         'Content-Type': 'application/json',
-        Prefer: method === 'POST' ? 'return=minimal' : 'count=none',
+        Prefer: prefer || (method === 'POST' ? 'return=minimal' : 'count=none'),
       },
       body: body ? JSON.stringify(body) : undefined,
     });
   }
+
+  // ---- Öffentliche Mini-API für Seiten-Skripte ----------------------------
+  // Andere Seiten-Apps (crafting-app.js …) brauchen genau das, was hier schon
+  // steht: eine gültige Session und einen authentifizierten PostgREST-Aufruf.
+  // Statt Session-Format, Refresh-Lock und Keys ein zweites Mal zu
+  // implementieren (zwei Wahrheiten = ein Bug), reichen wir sie hier durch.
+  // Wird SOFORT gesetzt (nicht erst nach boot()), damit ein Skript, das nach
+  // account-lite läuft, synchron darauf zugreifen kann; wer vorher lief, wartet
+  // auf das Event.
+  window.VBAccount = {
+    /** Gespeicherte Session ohne Netz-Zugriff (evtl. abgelaufen) — nur für UI-Vorentscheidungen. */
+    peek: readRaw,
+    /** Gültige Session (refresht bei Bedarf) oder null. */
+    session: ensureSession,
+    /** Authentifizierter PostgREST-Aufruf: rest(sess, 'GET', 'tabelle?select=*'). */
+    rest: rest,
+    /** Login-Link inkl. Rücksprung auf die aktuelle Seite. */
+    loginHref: function () {
+      return (IS_DE ? '/de' : '') + '/account/login.html?next=' +
+        encodeURIComponent(location.pathname + location.search);
+    },
+    isDE: IS_DE,
+  };
+  try { dispatchEvent(new Event('vb-account-ready')); } catch (e) { /* noop */ }
 
   // ---- Nav-Status (alle Elemente mit .js-nav-acct) -------------------------
   // uname optional: Anzeigename/Handle aus profiles — ersetzt das generische
@@ -118,8 +142,7 @@
         (function (btn) {
           paint(btn, false);
           btn.addEventListener('click', function () {
-            var login = (IS_DE ? '/de' : '') + '/account/login.html';
-            location.href = login + '?next=' + encodeURIComponent(location.pathname + location.search);
+            location.href = window.VBAccount.loginHref();
           });
         })(btns[i]);
       }
@@ -290,6 +313,8 @@
       try { sessionStorage.removeItem(ROLE_CACHE_KEY); } catch (ex) { /* noop */ }
       var sess = readRaw();
       paintNav(sess);
+      // Seiten-Apps (crafting-app.js …) ziehen ihren Konto-Zustand nach.
+      try { dispatchEvent(new Event('vb-account-session')); } catch (ex) { /* noop */ }
       if (sess) {
         startHeartbeat();
         fetchUsername(sess).then(function (uname) {
