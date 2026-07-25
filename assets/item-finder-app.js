@@ -12,6 +12,7 @@
 
   var ALL_ITEMS = [];
   var CRAFTING_MAP = {};
+  var SETS = {};   // setId -> Set-Datensatz (aus universal-items.json)
   var META = null;
 
   var filteredItems = [];
@@ -20,8 +21,15 @@
   var activeCategory = null;
   var activeKind = 'all'; // all | buy | loot | catalog
   var activeSize = null;  // Größenfilter (0–12) oder null
+  var activeWeight = null; // Panzerungsklasse (Light/Medium/Heavy/…) oder null
+  var activeRarity = null; // Seltenheit (Common…Legendary) oder null
   var searchTerm = '';
   var sortCriteria = 'name_asc';
+
+  // Seltenheit ist eine ORDINALE Skala — die Reihenfolge kommt aus den Spieldaten,
+  // nicht aus dem Alphabet (sonst stünde „Common" vor „Legendary" vor „Rare").
+  var RARITY_ORDER = { Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5 };
+  var WEIGHT_ORDER = { Undersuit: 1, Light: 2, Medium: 3, Heavy: 4, SuperHeavy: 5, Flightsuit: 6 };
 
   // ---- Helfer ----
   function esc(s) {
@@ -61,9 +69,21 @@
       var k = item.obtain[i].kind;
       if (kind === 'buy' && (k === 'shop' || k === 'vehicle')) return true;
       if (kind === 'loot' && k === 'loot') return true;
+      if (kind === 'exclusive' && k === 'exclusive') return true;
     }
     return false;
   }
+
+  // ---- Tag-Facetten: Anzeige-Labels ----
+  // Die Werte kommen englisch aus den Spieldaten; die UI uebersetzt sie ueber
+  // einen Schluessel. Fehlt einer, wird der Rohwert gezeigt statt zu raten.
+  function weightLabel(w) { return w ? tr('w' + w.replace(/[^A-Za-z]/g, ''), w.replace(/\./g, ' ')) : ''; }
+  function rarityLabel(r) { return r ? tr('r' + r, r) : ''; }
+  function exclusiveLabel(reason) {
+    if (!reason) return tr('notLootable', 'Nicht als Loot erhältlich');
+    return tr('ex' + reason.replace(/[^A-Za-z]/g, ''), reason);
+  }
+  function setOf(item) { return item.game && item.game.setId ? SETS[item.game.setId] || null : null; }
 
   // Schlüssel-Stat je Item (Badge auf der Karte + Wert-Sortierung). n = Zahl zum Sortieren.
   function primaryStat(item) {
@@ -114,6 +134,8 @@
       if (activeCategory && parentCategory(item.category) !== activeCategory) return false;
       if (!hasKind(item, activeKind)) return false;
       if (activeSize != null && !(item.game && item.game.size === activeSize)) return false;
+      if (activeWeight && !(item.game && item.game.weight === activeWeight)) return false;
+      if (activeRarity && !(item.game && item.game.rarity === activeRarity)) return false;
       if (!term) return true;
       if (item.name.toLowerCase().indexOf(term) !== -1) return true;
       if (item.category && item.category.toLowerCase().indexOf(term) !== -1) return true;
@@ -123,6 +145,10 @@
         if (g.class && g.class.toLowerCase().indexOf(term) !== -1) return true;
         if (g.subType && g.subType.toLowerCase().indexOf(term) !== -1) return true;
         if (g.nameDe && g.nameDe.toLowerCase().indexOf(term) !== -1) return true;
+        // Set-Name mitsuchen: „venture" soll alle Venture-Teile finden, auch die,
+        // deren Anzeigename das Wort nicht traegt.
+        var st = setOf(item);
+        if (st && st.name.toLowerCase().indexOf(term) !== -1) return true;
       }
       for (var i = 0; i < item.obtain.length; i++) {
         if (item.obtain[i].loc.toLowerCase().indexOf(term) !== -1) return true;
@@ -204,6 +230,7 @@
       ['all', tr('kindAll', 'Alle')],
       ['buy', tr('kindBuy', 'Kaufbar')],
       ['loot', tr('kindLoot', 'Loot')],
+      ['exclusive', tr('kindExclusive', 'Exklusiv')],
       ['catalog', tr('kindCatalog', 'Nur Katalog')]
     ];
     wrap.innerHTML = kinds.map(function (k) {
@@ -245,6 +272,50 @@
     });
   }
 
+  // ---- Panzerungsklasse (Armor.FPS.Type) + Seltenheit (LootRarity) ----
+  // Beide Chip-Leisten folgen demselben Muster wie die Groessen-Chips: Werte aus
+  // dem Bestand ableiten (keine feste Liste — sonst zeigt die UI Klassen an, die
+  // es im Patch gar nicht gibt) und in der spiel-eigenen Reihenfolge sortieren.
+  function renderFacetChips(elId, field, order, labelFn, getActive, setActive) {
+    var wrap = document.getElementById(elId);
+    if (!wrap) return;
+    var seen = {};
+    ALL_ITEMS.forEach(function (item) {
+      var v = item.game && item.game[field];
+      if (v) seen[v] = (seen[v] || 0) + 1;
+    });
+    var list = Object.keys(seen).sort(function (a, b) {
+      var oa = order[a] || 99, ob = order[b] || 99;
+      return oa - ob || a.localeCompare(b);
+    });
+    if (!list.length) { wrap.innerHTML = ''; return; }
+    var active = getActive();
+    var html = '<button class="uif-chip' + (active == null ? ' active' : '') + '" data-v="all">' + esc(tr('kindAll', 'Alle')) + '</button>';
+    html += list.map(function (v) {
+      return '<button class="uif-chip' + (active === v ? ' active' : '') + '" data-v="' + esc(v) + '">' +
+        esc(labelFn(v)) + ' <span class="uif-chip-n">' + fmtNum(seen[v]) + '</span></button>';
+    }).join('');
+    wrap.innerHTML = html;
+    wrap.querySelectorAll('.uif-chip').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var v = btn.getAttribute('data-v');
+        setActive(v === 'all' ? null : v);
+        currentPage = 1;
+        applyFiltersAndSort();
+        renderWeightChips();
+        renderRarityChips();
+      });
+    });
+  }
+  function renderWeightChips() {
+    renderFacetChips('uif-weight-chips', 'weight', WEIGHT_ORDER, weightLabel,
+      function () { return activeWeight; }, function (v) { activeWeight = v; });
+  }
+  function renderRarityChips() {
+    renderFacetChips('uif-rarity-chips', 'rarity', RARITY_ORDER, rarityLabel,
+      function () { return activeRarity; }, function (v) { activeRarity = v; });
+  }
+
   // ---- Ergebnis-Grid ----
   function renderItemsGrid() {
     var grid = document.getElementById('uif-results-grid');
@@ -265,14 +336,19 @@
       if (p != null) {
         priceHtml = (item.obtain.length > 1 ? esc(tr('priceFrom', 'ab')) + ' ' : '') + fmtNum(p) + ' aUEC';
       } else if (item.obtain.length) {
-        priceHtml = esc(tr('lootOnly', 'Nur Loot'));
+        // Ein Item, das laut Spieldaten gar nicht droppen kann, ist nicht „nur
+        // Loot" — es ist exklusiv. Sonst widerspraeche die Karte ihrer eigenen
+        // Quellenzeile („Promo-Gegenstand").
+        var onlyExcl = item.obtain.every(function (o) { return o.kind === 'exclusive'; });
+        priceHtml = esc(onlyExcl ? tr('kindExclusive', 'Exklusiv') : tr('lootOnly', 'Nur Loot'));
       } else {
         priceHtml = esc(tr('noTradeData', 'Keine Handelsdaten'));
       }
       var locHtml;
       if (item.obtain.length) {
-        var extra = item.obtain.length - 1;
-        locHtml = esc(item.obtain[0].loc) + (extra > 0 ? ' <span class="uif-loc-more">+' + extra + '</span>' : '');
+        var extra = item.obtain.length - 1, o0 = item.obtain[0];
+        locHtml = esc(o0.kind === 'exclusive' ? exclusiveLabel(o0.reason) : o0.loc) +
+          (extra > 0 ? ' <span class="uif-loc-more">+' + extra + '</span>' : '');
       } else {
         locHtml = '<span class="uif-loc-none">' + esc(tr('noSourceData', 'Kein Fundort bekannt')) + '</span>';
       }
@@ -281,6 +357,7 @@
       if (item.game) {
         var g = item.game, bits = [];
         if (g.manufacturer) bits.push(g.manufacturer);
+        if (g.weight) bits.push(weightLabel(g.weight));
         if (hasGradeSemantics(item)) {
           if (g.size != null) bits.push('S' + g.size);
           if (g.grade) bits.push(g.grade);
@@ -289,6 +366,11 @@
       }
       var ps = primaryStat(item);
       var statBadge = ps ? '<span class="uif-card-stat" title="' + esc(ps.l) + '">' + esc(ps.v) + '</span>' : '';
+      // Seltenheit als farbiger Punkt-Badge — nur wo die Spieldaten sie fuehren
+      var rar = item.game && item.game.rarity;
+      var rarBadge = rar
+        ? '<span class="uif-rarity uif-rarity--' + esc(rar.toLowerCase()) + '" title="' + esc(tr('facetRarity', 'Seltenheit')) + '">' + esc(rarityLabel(rar)) + '</span>'
+        : '';
 
       // Karten mit Detailseite sind echte Links (Crawler + Strg-Klick + „in
       // neuem Tab öffnen"); Katalog-Reste ohne Seite bleiben Buttons.
@@ -304,6 +386,7 @@
           statBadge +
         '</div>' +
         '<h4 class="uif-card-title">' + esc(item.name) + '</h4>' +
+        (rarBadge ? '<div class="uif-card-tags">' + rarBadge + '</div>' : '') +
         specLine +
         '<div class="uif-card-footer">' +
           '<div class="uif-card-price">' + priceHtml + '</div>' +
@@ -396,7 +479,8 @@
       KIND_LABEL = {
         shop: tr('kindShop', 'Shop'),
         vehicle: tr('kindVehicleShop', 'Schiffshändler'),
-        loot: tr('kindLoot', 'Loot')
+        loot: tr('kindLoot', 'Loot'),
+        exclusive: tr('kindExclusive', 'Exklusiv')
       };
     }
     return KIND_LABEL[kind] || kind;
@@ -467,6 +551,8 @@
     var g = item.game; if (!g) return [];
     var eq = hasGradeSemantics(item), chips = [];
     if (g.manufacturer) chips.push([tr('specMfr', 'Hersteller'), g.manufacturer]);
+    if (g.weight) chips.push([tr('facetWeight', 'Panzerungsklasse'), weightLabel(g.weight)]);
+    if (g.rarity) chips.push([tr('facetRarity', 'Seltenheit'), rarityLabel(g.rarity)]);
     if (eq && g.size != null) chips.push([tr('specSize', 'Größe'), 'S' + g.size]);
     if (eq && g.grade) chips.push([tr('specGrade', 'Grade'), g.grade]);
     if (g.class) chips.push([tr('specClass', 'Klasse'), g.class]);
@@ -508,11 +594,43 @@
       '</div>';
     }
 
+    // Set-Zugehörigkeit — Teile desselben Sets sind direkt anklickbar
+    var st = setOf(item);
+    if (st) {
+      var slotNames = Object.keys(st.slots).map(function (s) { return tr('slot' + s, s); });
+      var siblings = [];
+      for (var si = 0; si < ALL_ITEMS.length; si++) {
+        var o2 = ALL_ITEMS[si];
+        if (o2.id !== item.id && o2.game && o2.game.setId === st.id) siblings.push(o2);
+      }
+      siblings.sort(function (a, b) { return a.name.localeCompare(b.name); });
+      html += '<div class="uif-modal-section uif-setbox">' +
+        '<h4>' + esc(tr('setPartOf', 'Teil des Sets')) + ' · <a href="' + esc((CFG.setBase || '/armor-sets.html') + '#' + st.id) + '">' + esc(st.name) + '</a></h4>' +
+        '<p class="uif-set-meta">' +
+          (st.manufacturer ? esc(st.manufacturer) + ' · ' : '') +
+          (st.weight ? esc(weightLabel(st.weight)) + ' · ' : '') +
+          esc(st.parts + ' ' + tr('setPieces', 'Teile')) + ' · ' + esc(slotNames.join(' / ')) +
+        '</p>' +
+        (siblings.length
+          ? '<div class="uif-set-links">' + siblings.slice(0, 24).map(function (s2) {
+              return hasPage(s2)
+                ? '<a class="uif-set-link" href="' + esc(itemUrl(s2)) + '">' + esc(s2.name) + '</a>'
+                : '<span class="uif-set-link">' + esc(s2.name) + '</span>';
+            }).join('') +
+            (siblings.length > 24 ? '<span class="uif-set-link">+' + (siblings.length - 24) + '</span>' : '') +
+            '</div>'
+          : '') +
+      '</div>';
+    }
+
     // Bezugsquellen — oder ehrlicher Katalog-Hinweis
     if (item.obtain.length) {
       var rows = item.obtain.map(function (o) {
+        // Exklusiv-Zeilen tragen keinen ORT, sondern eine Bezugsart — die wird
+        // uebersetzt. Alle anderen `loc` sind Eigennamen und bleiben, wie sie sind.
+        var locText = o.kind === 'exclusive' ? exclusiveLabel(o.reason) : o.loc;
         return '<tr class="uif-obtain-row">' +
-          '<td>' + esc(o.loc) + '</td>' +
+          '<td>' + esc(locText) + '</td>' +
           '<td class="uif-td-kind">' + esc(kindLabel(o.kind)) + '</td>' +
           '<td class="uif-td-price">' + (o.price != null ? fmtNum(o.price) + ' aUEC' : '&mdash;') + '</td>' +
         '</tr>';
@@ -631,6 +749,8 @@
       var db = results[0] || {};
       META = db.counts || null;
       ALL_ITEMS = db.items || [];
+      SETS = {};
+      (db.sets || []).forEach(function (s) { SETS[s.id] = s; });
 
       var craft = results[1];
       if (craft && craft.blueprints) {
@@ -663,6 +783,8 @@
       renderCategories();
       renderKindChips();
       renderSizeChips();
+      renderWeightChips();
+      renderRarityChips();
       // Deep-Link aus dem Crafting-Planer: ?item=<Item-Name oder -id> öffnet die Card.
       try {
         var wantItem = new URLSearchParams(location.search).get('item');

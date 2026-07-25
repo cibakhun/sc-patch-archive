@@ -14,13 +14,20 @@ import type { Locale } from '../i18n/ui';
 
 /* ---------- Typen (Spiegel von scripts/build-universal-db.mjs) ---------- */
 
-export type ObtainKind = 'shop' | 'vehicle' | 'loot';
+export type ObtainKind = 'shop' | 'vehicle' | 'loot' | 'exclusive';
 
 export interface Obtain {
   kind: ObtainKind;
   loc: string;
   /** aUEC; fehlt bei Loot-Fundorten */
   price?: number;
+  /**
+   * Nur bei `kind: 'exclusive'`: warum das Item nicht als Loot entstehen kann
+   * (PromotionalItem, Concierge, TwitchDrop, InGameReward.Wikelo, …). Kommt aus
+   * dem Spiel-Tag `LootGeneration.CannotGenerateAsLoot.*` — das ist die einzige
+   * beweisbare Aussage darueber, ob ein Item ueberhaupt droppen kann.
+   */
+  reason?: string;
 }
 
 /** Schadens-/Widerstandswerte je Typ (nur gesetzte Kanaele stehen drin). */
@@ -78,6 +85,35 @@ export interface ItemGame {
   descDe?: string;
   nameDe?: string;
   guid?: string;
+  /* -- Tag-Facetten aus der spiel-eigenen Tag-Datenbank (scripts/lib/tags.mjs) -- */
+  /** Panzerungsklasse: Undersuit | Light | Medium | Heavy | SuperHeavy | Flightsuit | FullSuit.* */
+  weight?: string;
+  /** Slot laut Spiel: Helmet | Arms | Core | Legs | Backpack | FullBody */
+  part?: string;
+  /** Common | Uncommon | Rare | Epic | Legendary */
+  rarity?: string;
+  archetype?: string;
+  specialization?: string;
+  color?: string;
+  /** false = kann laut Spieldaten NIE als Loot entstehen (siehe Obtain.reason) */
+  lootable?: boolean;
+  lootReason?: string;
+  /** Verweis in `db.sets` */
+  setId?: string;
+}
+
+/** Ruestungs-Set (scripts/lib/armor-sets.mjs). `slots` bildet Slot -> Teilenamen ab. */
+export interface ArmorSet {
+  id: string;
+  name: string;
+  manufacturer: string | null;
+  weight: string | null;
+  /** woher der Set-Name stammt: short (global.ini) | prefix (Anzeigenamen) | tag */
+  source: 'short' | 'prefix' | 'tag';
+  parts: number;
+  slots: Record<string, string[]>;
+  /** wie viele der vier Kernslots (Helm/Core/Arme/Beine) das Set fuehrt */
+  coreSlots: number;
 }
 
 export interface Item {
@@ -97,12 +133,65 @@ export interface ItemsDb {
   note?: string;
   sources?: unknown;
   counts: Record<string, number>;
+  sets?: ArmorSet[];
   items: Item[];
 }
 
 export const db = DB as unknown as ItemsDb;
 export const items = db.items;
 export const itemById = new Map(items.map((i) => [i.id, i]));
+
+/* ---------- Ruestungs-Sets ---------- */
+
+export const armorSets: ArmorSet[] = db.sets ?? [];
+export const armorSetById = new Map(armorSets.map((s) => [s.id, s]));
+
+/** Alle Items eines Sets, nach Slot gruppiert — Reihenfolge wie im Anzug getragen. */
+export const SLOT_ORDER = ['Helmet', 'Torso', 'Arms', 'Legs', 'Backpack', 'Undersuit'];
+
+const bySet = (() => {
+  const m = new Map<string, Item[]>();
+  for (const i of items) {
+    const sid = i.game?.setId;
+    if (!sid) continue;
+    const list = m.get(sid);
+    if (list) list.push(i);
+    else m.set(sid, [i]);
+  }
+  for (const list of m.values()) list.sort((a, b) => a.name.localeCompare(b.name, 'en'));
+  return m;
+})();
+
+export const setItems = (id: string): Item[] => bySet.get(id) ?? [];
+
+/** Teile eines Sets nach Slot, in SLOT_ORDER; unbekannte Slots haengen hinten an. */
+export function setItemsBySlot(id: string): Array<[slot: string, list: Item[]]> {
+  const m = new Map<string, Item[]>();
+  for (const i of setItems(id)) {
+    const slot = (i.game?.gameType || '').replace(/^Char_Armor_/, '') || 'Other';
+    const list = m.get(slot);
+    if (list) list.push(i);
+    else m.set(slot, [i]);
+  }
+  return [...m.entries()].sort((a, b) => {
+    const ia = SLOT_ORDER.indexOf(a[0]), ib = SLOT_ORDER.indexOf(b[0]);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a[0].localeCompare(b[0]);
+  });
+}
+
+/** Sets nach Hersteller gruppiert (fuer die Set-Seite), groesste Gruppe zuerst. */
+export const setsByManufacturer = (() => {
+  const m = new Map<string, ArmorSet[]>();
+  for (const s of armorSets) {
+    const key = s.manufacturer || 'Unknown';
+    const list = m.get(key);
+    if (list) list.push(s);
+    else m.set(key, [s]);
+  }
+  return [...m.entries()]
+    .map(([mfr, list]) => ({ mfr, sets: list.sort((a, b) => b.parts - a.parts || a.name.localeCompare(b.name, 'en')) }))
+    .sort((a, b) => b.sets.length - a.sets.length || a.mfr.localeCompare(b.mfr, 'en'));
+})();
 
 /* ---------- Was bekommt eine eigene Seite? ---------- */
 

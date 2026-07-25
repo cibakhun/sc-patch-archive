@@ -1,0 +1,149 @@
+---
+// Ruestungs-Set-Verzeichnis — /armor-sets.html
+//
+// Warum eine eigene Seite: der Finder beantwortet "was kann dieses Teil", aber
+// nicht "was fehlt mir noch zum kompletten Set". Genau danach wird gesucht
+// ("star citizen <set> armor set", "where to get <set> helmet"). Die Set-Ebene
+// existiert in den Spieldaten (siehe scripts/lib/armor-sets.mjs) und war bis
+// jetzt nirgends sichtbar.
+//
+// Alles hier ist statisches HTML mit echten Links auf die Item-Datenblaetter —
+// kein JavaScript, keine Nachladerei.
+import DataShell from './DataShell.astro';
+import { href, type Locale } from '../i18n/ui';
+import { itemT, fill } from '../i18n/itemText';
+import {
+  ITEM_PATCH, armorSets, db, itemPath, num, pageItemIds, setItemsBySlot, setsByManufacturer,
+} from '../lib/items';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const t = itemT(lang);
+
+const totalParts = armorSets.reduce((n, s) => n + s.parts, 0);
+const complete = armorSets.filter((s) => s.coreSlots === 4).length;
+
+const slotLabel = (slot: string) => t(('slot' + slot) as never) || slot;
+// Panzerungsklasse: dieselben Schluessel wie im Finder (w<Wert> ohne Sonderzeichen)
+const weightLabel = (w: string | null) => (w ? t(('w' + w.replace(/[^A-Za-z]/g, '')) as never) || w : null);
+const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
+---
+<DataShell
+  lang={lang}
+  title={lang === 'de'
+    ? `Rüstungs-Sets — alle ${num(armorSets.length, lang)} Sets | Star Citizen ${ITEM_PATCH} | VerseBase`
+    : `Armor Sets — all ${num(armorSets.length, lang)} sets | Star Citizen ${ITEM_PATCH} | VerseBase`}
+  description={fill(t('setsLead'), { sets: num(armorSets.length, lang), parts: num(totalParts, lang), patch: ITEM_PATCH })}
+  crumbs={[{ label: t('breadcrumbItems'), href: '/items.html' }, { label: t('setsBreadcrumb') }]}
+  eyebrow={`Star Citizen ${ITEM_PATCH}`}
+  modified={db.generatedAt}
+  sources={['UEX Corp']}
+  updated={db.pricesAsOf}
+>
+  <h1>{t('setsTitle')}</h1>
+  <p class="dp-lead">{fill(t('setsLead'), { sets: num(armorSets.length, lang), parts: num(totalParts, lang), patch: ITEM_PATCH })}</p>
+
+  <ul class="dp-keys">
+    <li class="dp-key"><b>{t('setsCountLabel')}</b><span>{num(armorSets.length, lang)}</span></li>
+    <li class="dp-key"><b>{t('setsPartsLabel')}</b><span>{num(totalParts, lang)}</span></li>
+    <li class="dp-key"><b>{t('setsCompleteLabel')}</b><span>{num(complete, lang)}</span></li>
+    <li class="dp-key"><b>{t('dataAsOf')}</b><span>{db.generatedAt}</span></li>
+  </ul>
+
+  <p class="as-intro">{t('setsIntro')}</p>
+
+  {/* Sprungmarken je Hersteller — bei 20+ Herstellern sonst endloses Scrollen */}
+  <nav class="as-jump" aria-label={t('setsBreadcrumb')}>
+    {setsByManufacturer.map((g) => (
+      <a href={`#mfr-${g.mfr.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{g.mfr} <span>({g.sets.length})</span></a>
+    ))}
+  </nav>
+
+  {setsByManufacturer.map((g) => (
+    <section class="dp-sec" id={`mfr-${g.mfr.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+      <h2>{g.mfr} <span class="dp-muted">({num(g.sets.length, lang)})</span></h2>
+
+      {g.sets.map((s) => (
+        <article class="as-set" id={s.id}>
+          <header class="as-set-h">
+            <h3>{s.name}</h3>
+            <div class="as-set-meta">
+              {s.weight && <span class="as-badge">{weightLabel(s.weight)}</span>}
+              <span class={s.coreSlots === 4 ? 'as-badge as-badge--ok' : 'as-badge as-badge--part'}>
+                {s.coreSlots === 4 ? t('setsComplete') : fill(t('setsPartial'), { n: s.coreSlots })}
+              </span>
+              <span class="dp-muted">{num(s.parts, lang)} {t('setPieces')}</span>
+            </div>
+          </header>
+
+          {/* Fehlt der Helm, ist das eine echte Aussage ueber die Spieldaten —
+              kein Datenfehler unsererseits. Deshalb benennen statt verschweigen. */}
+          {!s.slots.Helmet && <p class="as-note">{t('setsNoHelmet')}</p>}
+
+          {setItemsBySlot(s.id).map(([slot, list]) => (
+            <div class="as-slot">
+              <h4>{slotLabel(slot)} <span class="dp-muted">({num(list.length, lang)})</span></h4>
+              <ul class="as-parts">
+                {list.map((i) => (
+                  <li>
+                    {pageItemIds.has(i.id)
+                      ? <a href={href(itemPath(i), lang)}>{lang === 'de' && i.game?.nameDe ? i.game.nameDe : i.name}</a>
+                      : <span>{lang === 'de' && i.game?.nameDe ? i.game.nameDe : i.name}</span>}
+                    {i.game?.rarity && i.game.rarity !== 'Common' && (
+                      <em class={`as-rar as-rar--${i.game.rarity.toLowerCase()}`}>{rarityLabel(i.game.rarity)}</em>
+                    )}
+                    {i.game?.lootable === false && <em class="as-rar as-rar--excl">{t('notLootable')}</em>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </article>
+      ))}
+    </section>
+  ))}
+
+  <div class="dp-actions">
+    <a class="dp-btn" href={href('/item-finder.html', lang)}>{t('backToFinder')} →</a>
+    <a class="dp-btn" href={href('/items.html', lang)}>{t('breadcrumbItems')} →</a>
+  </div>
+</DataShell>
+
+<style is:inline>
+  .as-intro { color: var(--muted); font-size: .94rem; line-height: 1.6; margin: 0 0 1.4rem; }
+  .as-jump { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 2rem; }
+  .as-jump a {
+    font-size: .8rem; padding: .25rem .6rem; border: 1px solid var(--line-soft);
+    border-radius: 999px; color: var(--muted); text-decoration: none;
+  }
+  .as-jump a:hover { color: var(--text); border-color: var(--accent); }
+  .as-jump span { opacity: .6; }
+
+  .as-set { border-top: 1px solid var(--line-soft); padding: 1.1rem 0; }
+  .as-set-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: .6rem 1rem; }
+  .as-set-h h3 { margin: 0; font-size: 1.15rem; }
+  .as-set-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; font-size: .8rem; }
+  .as-badge {
+    font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    padding: .1rem .45rem; border-radius: 3px; border: 1px solid var(--line); color: var(--muted);
+  }
+  .as-badge--ok { color: #4ec97a; border-color: currentColor; }
+  .as-badge--part { color: #d7a13a; border-color: currentColor; }
+  .as-note { margin: .5rem 0 0; font-size: .84rem; color: var(--muted); font-style: italic; }
+
+  .as-slot { margin-top: .8rem; }
+  .as-slot h4 { margin: 0 0 .35rem; font-size: .82rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .as-parts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .3rem .5rem; }
+  .as-parts li { font-size: .86rem; }
+  .as-parts a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--line); }
+  .as-parts a:hover { color: var(--accent); }
+  .as-rar {
+    font-size: .66rem; font-style: normal; margin-left: .25rem; padding: 0 .3rem;
+    border: 1px solid currentColor; border-radius: 2px;
+  }
+  .as-rar--uncommon { color: #4ec97a; }
+  .as-rar--rare { color: #4aa3ff; }
+  .as-rar--epic { color: #b07cff; }
+  .as-rar--legendary { color: #f0a52e; }
+  .as-rar--excl { color: #d7a13a; }
+</style>

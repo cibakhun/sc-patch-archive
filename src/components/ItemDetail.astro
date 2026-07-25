@@ -10,6 +10,7 @@ import {
   ITEM_PATCH, altName, auec, categoryPath, categorySlug, db, description,
   displayName, itemPath, itemsHubPath, leafCategory, maxPrice, minPrice, num,
   pageItemIds, relatedItems, rootCategory, sortedObtain, type Item,
+  armorSetById, setItemsBySlot,
 } from '../lib/items';
 import { specChips, statEntries, primaryStat } from '../lib/itemStats';
 import { itemSeo } from '../lib/itemSeo';
@@ -33,11 +34,20 @@ const vendors = item.obtain.filter((o) => o.kind === 'shop' || o.kind === 'vehic
 const loot = item.obtain.filter((o) => o.kind === 'loot').length;
 const bp = blueprintForItem(item);
 const related = relatedItems(item, 12);
+const set = item.game?.setId ? armorSetById.get(item.game.setId) ?? null : null;
+const setSlots = set ? setItemsBySlot(set.id) : [];
 
 const root = rootCategory(item.category);
 const catSlug = categorySlug(item.category);
 const kindLabel = (k: string) =>
-  k === 'shop' ? t('kindShop') : k === 'vehicle' ? t('kindVehicleShop') : t('kindLoot');
+  k === 'shop' ? t('kindShop') : k === 'vehicle' ? t('kindVehicleShop')
+  : k === 'exclusive' ? t('kindExclusive') : t('kindLoot');
+// Exklusiv-Zeilen tragen keinen Ort, sondern eine Bezugsart (Promo, Concierge,
+// Twitch-Drop …) — die wird uebersetzt. Echte Orte sind Eigennamen und bleiben.
+const locLabel = (o: { kind: string; loc: string; reason?: string }) =>
+  o.kind !== 'exclusive' ? o.loc
+    : o.reason ? (t(('ex' + o.reason.replace(/[^A-Za-z]/g, '')) as never) || o.loc)
+      : t('notLootable');
 
 const crumbs = [
   { label: t('breadcrumbItems'), href: itemsHubPath },
@@ -93,7 +103,7 @@ const crumbs = [
             <tbody>
               {rows.map((o, idx) => (
                 <tr class={idx === 0 && o.price != null ? 'dp-best' : undefined}>
-                  <td>{o.loc}</td>
+                  <td>{locLabel(o)}</td>
                   <td>{kindLabel(o.kind)}</td>
                   <td class="dp-num">
                     {o.price != null ? <span class="dp-price">{auec(o.price, lang)}</span> : <span class="dp-muted">—</span>}
@@ -125,6 +135,41 @@ const crumbs = [
         </ul>
       )}
       {desc && <p class="dp-desc">{desc}</p>}
+    </section>
+  )}
+
+  {/* -- Set-Zugehoerigkeit: beantwortet "was fehlt mir noch" und haelt den
+         Crawler auf den Geschwisterteilen statt nur in der Kategorie. -- */}
+  {set && (
+    <section class="dp-sec">
+      <h2>{t('setPartOf')}: {set.name}</h2>
+      <ul class="dp-chips">
+        {set.manufacturer && <li class="dp-chip"><b>{t('specMfr')}</b>{set.manufacturer}</li>}
+        {set.weight && <li class="dp-chip"><b>{t('facetWeight')}</b>{t(('w' + set.weight.replace(/[^A-Za-z]/g, '')) as never) || set.weight}</li>}
+        <li class="dp-chip"><b>{t('setPieces')}</b>{num(set.parts, lang)}</li>
+        <li class="dp-chip">
+          <b>{t('setsCompleteLabel')}</b>
+          {set.coreSlots === 4 ? t('setsComplete') : `${set.coreSlots}/4`}
+        </li>
+      </ul>
+      {setSlots.map(([slot, list]) => (
+        <p class="dp-desc">
+          <b>{t(('slot' + slot) as never) || slot}:</b>{' '}
+          {list.map((s, i) => (
+            <>
+              {i > 0 && ', '}
+              {s.id === item.id
+                ? <b>{displayName(s, lang)}</b>
+                : pageItemIds.has(s.id)
+                  ? <a href={href(itemPath(s), lang)}>{displayName(s, lang)}</a>
+                  : <span>{displayName(s, lang)}</span>}
+            </>
+          ))}
+        </p>
+      ))}
+      <div class="dp-actions">
+        <a class="dp-btn" href={`${href('/armor-sets.html', lang)}#${set.id}`}>{t('setViewAll')} →</a>
+      </div>
     </section>
   )}
 
