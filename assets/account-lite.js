@@ -209,9 +209,6 @@
 
   function applyRestrictions(role) {
     var isAdmin = role === 'admin';
-    // Beta-Whitelist-Modell: 'beta' darf die Kontofläche sehen, ist aber KEIN
-    // Admin (kein Theme-Umschalter, kein Archiv). is-admin bleibt exklusiv admin.
-    var isBeta = isAdmin || role === 'beta';
     var doc = document.documentElement;
     doc.classList.toggle('is-admin', isAdmin);
 
@@ -222,18 +219,14 @@
     // Script von Layout.astro (single source of truth fuers Painting).
     try { if (window.__vbReconcileTheme) window.__vbReconcileTheme(); } catch (e) { /* noop */ }
 
-    // Archiv- und Patch-Seiten: nur fuer Admins sichtbar
+    // Archiv- und Patch-Seiten bleiben admin-only. Die Kontofläche ist jetzt für
+    // ALLE freigeschaltet — jede eingeloggte Person verwaltet ihr eigenes Konto
+    // (RLS isoliert die Daten); die /account-Seite leitet Nicht-Eingeloggte
+    // selbst zum Login weiter (account-dashboard.ts prüft nur die Session).
     var path = location.pathname.toLowerCase();
     var isArchivePage = path.indexOf('/archiv') !== -1 || path.indexOf('/patches/') !== -1;
-    var isAccountPage = (path.indexOf('/account') !== -1)
-      && path.indexOf('/account/login') === -1
-      && path.indexOf('/account/register') === -1
-      && path.indexOf('/account/reset') === -1
-      && path.indexOf('/account/update-password') === -1;
 
-    // Archiv/Patches bleiben admin-only; die Kontofläche öffnet sich für Admins
-    // ODER Beta-Whitelist-Nutzer.
-    if ((isArchivePage && !isAdmin) || (isAccountPage && !isBeta)) {
+    if (isArchivePage && !isAdmin) {
       if (document.body) document.body.style.display = 'none';
       var home = IS_DE ? '/de.html' : '/';
       location.replace(home);
