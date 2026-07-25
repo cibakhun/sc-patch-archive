@@ -118,8 +118,6 @@ const themeColorLight = LIGHT_RULES['--bg'](themeColorSafe);
   <script
     is:inline
     set:html={`(function(){var d=document.documentElement;
-var p=location.pathname.toLowerCase();
-if(p.indexOf('/archiv')!==-1||p.indexOf('/patches/')!==-1)d.classList.add('is-archive-guarded');
 var admin=false;try{var raw=sessionStorage.getItem('vb_user_role');if(raw){var pr=JSON.parse(raw);if(pr&&pr.role==='admin')admin=true}}catch(e){}
 if(admin)d.classList.add('is-admin');
 var t=null;if(admin){try{t=localStorage.getItem('vb.theme')}catch(e){}}
@@ -233,17 +231,9 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
     /* Flex-Mono-Code-Zeilen (…//…): min-width:0 lässt die Ellipsis greifen,
        statt die Zeile (langer EN-System-Name) über den Rand zu drücken. */
     .tf__code, .qf__code, .do__code, .sd__code { min-width: 0; }
-    /* Admin-only restricted content (Patch Archive) — Account ist offen für alle */
-    html:not(.is-admin) [data-restricted="patch-archive"],
-    html:not(.is-admin) .js-restricted-archive {
-      display: none !important;
-    }
     /* Hell/Dunkel-Umschalter ist ein Admin-Recht — für alle anderen weg
        (Leiste + Menü). Das Verhalten ist zusätzlich in JS abgesichert. */
     html:not(.is-admin) .js-theme-toggle {
-      display: none !important;
-    }
-    html.is-archive-guarded:not(.is-admin) body {
       display: none !important;
     }</style>
   <slot name="head" />
