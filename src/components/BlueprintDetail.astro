@@ -12,6 +12,7 @@ import {
   resourceNames, slugify, totalScu,
 } from '../lib/crafting';
 import { itemPath, num, pageItemIds } from '../lib/items';
+import { mineralFor, miningLink } from '../lib/miningLinks';
 import { formatResist } from '../lib/itemStats';
 import { blueprintSeo } from '../lib/itemSeo';
 import { missionBySlug, seoTitle } from '../lib/missions';
@@ -90,7 +91,14 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
             (ing.options ?? []).map((o, oi) => (
               <tr>
                 <td>{oi === 0 ? ing.slot : ''}</td>
-                <td>{o.name}</td>
+                {/* Material -> Mineral-Datenblatt: die Frage nach dem Rezept ist
+                    immer „und wo bekomme ich das her?". Ohne Mineral in der
+                    Mining-DB (Yormandi Eye) bleibt der Name schlichter Text. */}
+                <td>
+                  {miningLink(o.name, lang)
+                    ? <a href={miningLink(o.name, lang)} title={t('bpWhereToMine').replace('{name}', mineralFor(o.name)!)}>{o.name}</a>
+                    : o.name}
+                </td>
                 <td class="dp-num">{num(o.quantity_scu, lang)} SCU</td>
                 <td class="dp-num">{num(o.min_quality, lang)}</td>
               </tr>
@@ -99,6 +107,9 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
         </tbody>
       </table>
     </div>
+    {bp.ingredients.some((ing) => (ing.options ?? []).some((o) => mineralFor(o.name))) && (
+      <p class="dp-note">{t('bpMaterialsNote')}</p>
+    )}
 
     {bp.ingredients.some((i) => i.quality_effects?.length) && (
       <>
