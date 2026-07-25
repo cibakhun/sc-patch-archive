@@ -96,6 +96,10 @@ const tools = [
 
   /* ========== Tools — bento of image tiles ========== */
   .tools{display:grid;gap:.85rem;grid-template-columns:1fr}
+  .tools__more{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.3rem;font-family:var(--font-ui);font-weight:700;font-size:.9rem;align-items:baseline}
+  .tools__more>span{color:var(--muted);text-transform:uppercase;letter-spacing:.14em;font-size:.74rem}
+  .tools__more a{color:var(--accent);border-bottom:1px solid var(--line-2);padding-bottom:1px;transition:color .2s,border-color .2s}
+  .tools__more a:hover,.tools__more a:focus-visible{color:var(--text);border-color:var(--accent);outline:none}
   .tool{position:relative;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate;
     min-height:210px;padding:1.4rem 1.5rem;border-radius:14px;overflow:hidden;border:1px solid var(--line);
     background:var(--media-void);color:var(--on-media);transition:border-color .3s,box-shadow .3s,transform .3s cubic-bezier(.2,.7,.3,1)}
@@ -169,7 +173,7 @@ const tools = [
   <div class="hero__inner">
     <span class="hero__kicker">Star Citizen compendium</span>
     <h1>VerseBase</h1>
-    <p class="hero__lede">Game-accurate tools, data and the patch archive of the Alpha 4 era.</p>
+    <p class="hero__lede">Game-accurate tools for Star Citizen — item finder, mining, crafting, ships and the full Alpha 4 patch archive.</p>
     <button class="hero__search" type="button" data-scs-open aria-label="Open search">
       <span class="p" aria-hidden="true">&gt;_</span>
       <span class="h">Search items, ships, patches…</span>
@@ -192,6 +196,14 @@ const tools = [
         </a>
       ))}
     </div>
+    <p class="tools__more">
+      <span>Full database:</span>
+      <a href="/items.html">All items by category</a>
+      <a href="/crafting.html">Blueprints</a>
+      <a href="/schiffe.html">Ship index</a>
+      <a href="/missionen.html">Missions</a>
+      <a href="/archiv.html">Patch archive</a>
+    </p>
   </section>
 
   <!-- LATEST -->
