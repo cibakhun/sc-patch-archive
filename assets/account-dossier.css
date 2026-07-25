@@ -43,6 +43,14 @@ html{-webkit-text-size-adjust:100%}
 .dsr ::selection{background:rgba(45,212,255,.28);color:#fff}
 .tnum{font-variant-numeric:tabular-nums}
 
+/* [hidden] muss IMMER gewinnen.
+   Diese Datei stammt aus der statischen Vorschau, in der nichts per JS
+   getoggelt wurde — darum setzen viele Regeln display:… ohne Guard
+   (.ph__chip{display:inline-flex}, .dsr img{display:block} …). Autor-CSS
+   schlaegt die UA-Regel [hidden]{display:none} immer, egal wie speziell,
+   d.h. das RSI-Verified-Chip war auch ohne Verifizierung sichtbar. */
+.dsr [hidden]{display:none!important}
+
 /* ---------- shared type ---------- */
 .eyebrow{font-family:var(--font-ui);font-weight:700;text-transform:uppercase;letter-spacing:.24em;font-size:11px;color:var(--muted)}
 .mono{font-family:var(--font-mono);letter-spacing:.02em;font-variant-numeric:tabular-nums}
