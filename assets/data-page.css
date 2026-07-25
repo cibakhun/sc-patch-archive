@@ -36,6 +36,10 @@ body {
 
 .dp {
   --dp-w: var(--maxw, 1080px);
+  /* Seitenrinne EINMAL definiert: Rumpf und Fuss muessen exakt denselben
+     Wert benutzen, sonst bricht die Flucht der Inhaltsspalte (siehe
+     .dp-main / .dp-foot). */
+  --dp-gut: clamp(0.9rem, 4vw, 2rem);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -112,10 +116,20 @@ body {
 
 .dp-main {
   flex: 1;
+  /* Gezielt border-box (KEIN globaler *-Reset — der wuerde alle bestehenden
+     Layouts verschieben): ohne ihn addiert sich das Seiten-Padding auf die
+     100 % Breite. Auf einem 375-px-Viewport waere die Box 407 px breit; der
+     Ueberlauf wird von html{overflow-x:clip} (Layout.astro) nur abgeschnitten,
+     nicht behoben — Inhalt am rechten Rand fiel weg. */
+  box-sizing: border-box;
   width: 100%;
-  max-width: var(--dp-w);
+  /* --dp-w meint die INHALTS-Spalte: der Fuss richtet seine Kinder mit genau
+     var(--dp-w) daran aus. Mit border-box zaehlt das Padding in die max-width
+     hinein — ohne den Gutter-Aufschlag schrumpfte die Spalte auf dem Desktop
+     um 2 Rinnen und die Flucht mit dem Fuss braeche. */
+  max-width: calc(var(--dp-w) + 2 * var(--dp-gut));
   margin: 0 auto;
-  padding: clamp(1.4rem, 4vw, 2.6rem) clamp(0.9rem, 4vw, 2rem) 3rem;
+  padding: clamp(1.4rem, 4vw, 2.6rem) var(--dp-gut) 3rem;
 }
 
 .dp-eyebrow {
@@ -401,7 +415,9 @@ body {
 
 .dp-foot {
   border-top: 1px solid var(--line);
-  padding: 1.4rem clamp(0.9rem, 4vw, 2rem) 2.4rem;
+  /* gleiche Rinne wie .dp-main — daher dieselbe Variable, nicht derselbe
+     Wert zweimal (identischer Rechenwert wie vorher). */
+  padding: 1.4rem var(--dp-gut) 2.4rem;
   background: var(--bg-2);
   font-size: 0.82rem;
   color: var(--muted);
