@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/_sync-assets.mjs && node scripts/build-thumbs.mjs && node scripts/build-downloads.mjs && astro dev",
-    "build": "node scripts/_sync-assets.mjs && node scripts/build-thumbs.mjs && node scripts/build-downloads.mjs && astro build",
+    "dev": "node scripts/_sync-assets.mjs && node scripts/build-fav-thumbs.mjs && node scripts/build-thumbs.mjs && node scripts/build-downloads.mjs && astro dev",
+    "build": "node scripts/_sync-assets.mjs && node scripts/build-fav-thumbs.mjs && node scripts/build-thumbs.mjs && node scripts/build-downloads.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "verify": "node scripts/_verify.mjs",
