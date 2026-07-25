@@ -514,6 +514,15 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       render();
     };
 
+    // Präsenz-Punkt stylen (geteilt von avatarNode + Live-Poll)
+    const applyDot = (dot: HTMLElement, presence: string | null, activity: string | null) => {
+      const pres = (presence === 'online' || presence === 'away') ? presence : 'offline';
+      const st = (STATUS_STATES as Record<string, { color: string; labelDe: string; labelEn: string }>)[resolveStatusKey(pres, activity)];
+      if (!st) return;
+      dot.style.background = st.color;
+      dot.title = lang === 'de' ? st.labelDe : st.labelEn;
+    };
+
     // ---- Karten ---------------------------------------------------------
     const avatarNode = (p: Prof) => {
       const box = document.createElement('div');
@@ -531,15 +540,11 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         sp.textContent = p.avatar_icon || (p.display_name || p.handle || '?').charAt(0).toUpperCase();
         box.appendChild(sp);
       }
-      const presence = (p.presence === 'online' || p.presence === 'away') ? p.presence : 'offline';
-      const st = (STATUS_STATES as Record<string, { color: string; labelDe: string; labelEn: string }>)[resolveStatusKey(presence, p.status_state)];
-      if (st) {
-        const dot = document.createElement('div');
-        dot.className = 'fm-dot';
-        dot.style.background = st.color;
-        dot.title = lang === 'de' ? st.labelDe : st.labelEn;
-        box.appendChild(dot);
-      }
+      const dot = document.createElement('div');
+      dot.className = 'fm-dot';
+      dot.dataset.uid = p.id;
+      applyDot(dot, p.presence, p.status_state);
+      box.appendChild(dot);
       return box;
     };
 
@@ -742,5 +747,32 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     });
 
     loadAll().catch(() => { loadingEl.hidden = true; say(D.msgNet!); });
+
+    // Live-Präsenz: alle 40s die Präsenz der angezeigten Profile neu abfragen und
+    // NUR die Punkte aktualisieren (kein Voll-Re-Render). So sieht man Statuswechsel
+    // anderer ohne Seiten-Refresh. Der offline-Wechsel entsteht durch Zeitablauf
+    // (kein DB-Event), daher Polling statt Realtime.
+    const pollPresence = async () => {
+      const ids = [...new Set(
+        [...friends, ...incoming, ...outgoing].map((x) => x.p && x.p.id).filter(Boolean) as string[],
+      )];
+      if (!ids.length) return;
+      const { data } = await supabase.from('social_profiles').select('id, presence, status_state').in('id', ids);
+      if (!data) return;
+      const map = new Map(
+        (data as Array<{ id: string; presence: string | null; status_state: string | null }>).map((r) => [r.id, r]),
+      );
+      const upd = (x: { p: Prof }) => {
+        const r = map.get(x.p.id);
+        if (r) { x.p.presence = r.presence; x.p.status_state = r.status_state; }
+      };
+      friends.forEach(upd); incoming.forEach(upd); outgoing.forEach(upd);
+      (fmWrap || document).querySelectorAll<HTMLElement>('.fm-dot[data-uid]').forEach((dot) => {
+        const r = map.get(dot.dataset.uid!);
+        if (r) applyDot(dot, r.presence, r.status_state);
+      });
+    };
+    setInterval(pollPresence, 40000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) pollPresence(); });
   }
 </script>

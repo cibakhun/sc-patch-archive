@@ -844,22 +844,31 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
         avTxt.textContent = p.avatar_icon || '◆';
       }
 
-      // Status (Dot + Transmission) — dynamische Präsenz aus der View (p.presence:
-      // online/away/offline, serverseitig aus last_seen) + optionale manuelle
-      // Aktivität (p.status_state = ingame/mission überschreibt "online").
-      const presence = (p.presence === 'online' || p.presence === 'away') ? p.presence : 'offline';
-      const stKey = resolveStatusKey(presence, p.status_state);
-      const st = (STATUS_STATES as Record<string, { labelDe: string; labelEn: string; color: string; pulse: boolean }>)[stKey]
-        || STATUS_STATES.offline;
-      const dot = $('ppStatusDot') as HTMLElement;
-      dot.style.background = st.color;
-      dot.style.boxShadow = `0 0 12px ${st.color}`;
-      dot.classList.toggle('pulse', st.pulse);
-      $('ppStatusState')!.textContent = lang === 'de' ? st.labelDe : st.labelEn;
+      // Status (Dot + Transmission) — dynamische Präsenz aus der View
+      // (p.presence online/away/offline) + optionale manuelle Aktivität
+      // (status_state ingame/mission überschreibt "online"). Wird per Poll live
+      // aktualisiert, damit man Statuswechsel ohne Refresh sieht.
+      const applyPresence = (presenceVal: string | null, activityVal: string | null) => {
+        const presence = (presenceVal === 'online' || presenceVal === 'away') ? presenceVal : 'offline';
+        const st = (STATUS_STATES as Record<string, { labelDe: string; labelEn: string; color: string; pulse: boolean }>)[resolveStatusKey(presence, activityVal)]
+          || STATUS_STATES.offline;
+        const dot = $('ppStatusDot') as HTMLElement;
+        dot.style.background = st.color;
+        dot.style.boxShadow = `0 0 12px ${st.color}`;
+        dot.classList.toggle('pulse', st.pulse);
+        $('ppStatusState')!.textContent = lang === 'de' ? st.labelDe : st.labelEn;
+      };
+      applyPresence(p.presence, p.status_state);
       if (p.status_text) {
         $('ppStatusSep')!.hidden = false;
         $('ppStatusText')!.textContent = p.status_text;
       }
+      // Live-Präsenz: alle 40s neu abfragen (offline entsteht durch Zeitablauf,
+      // kein DB-Event -> Polling statt Realtime).
+      setInterval(async () => {
+        const { data } = await supabase.from('public_profiles').select('presence, status_state').eq('handle', handle).maybeSingle();
+        if (data) applyPresence(data.presence, data.status_state);
+      }, 40000);
 
       // Identity
       $('ppName')!.textContent = name;
