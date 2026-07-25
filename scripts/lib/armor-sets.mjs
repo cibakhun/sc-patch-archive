@@ -219,14 +219,21 @@ export function resolveArmorSets(parts, shortByStem) {
     }
     for (const k of Object.keys(slots)) slots[k].sort((a, b) => a.localeCompare(b, 'en'));
 
-    // Gewichtsklasse des Sets = haeufigste unter den Teilen (Undersuits weichen ab)
-    const wc = new Map();
+    // Gewichtsklasse des Sets = haeufigste unter den Teilen. „Undersuit" bleibt
+    // dabei aussen vor, sonst zieht ein einzelner Unteranzug die Klasse eines
+    // Kampf-Sets nach unten. ABER: manche Sets bestehen NUR aus Teilen, die das
+    // Spiel als Undersuit fuehrt (Flughelm-Reihen wie A23) — die haetten sonst
+    // gar keine Klasse. Deshalb Rueckfallebene mit Undersuit statt null.
+    const wc = new Map(), wcAll = new Map();
     for (const p of m.parts) {
       const w = p.tagPaths.find((t) => t.startsWith('Armor.FPS.Type.'));
-      if (w) { const v = w.slice('Armor.FPS.Type.'.length); if (v !== 'Undersuit') wc.set(v, (wc.get(v) || 0) + 1); }
+      if (!w) continue;
+      const v = w.slice('Armor.FPS.Type.'.length);
+      wcAll.set(v, (wcAll.get(v) || 0) + 1);
+      if (v !== 'Undersuit') wc.set(v, (wc.get(v) || 0) + 1);
     }
-    let weight = null, wBest = 0;
-    for (const [w, n] of wc) if (n > wBest) { weight = w; wBest = n; }
+    const top = (map) => { let k = null, n = 0; for (const [a, b] of map) if (b > n) { k = a; n = b; } return k; };
+    const weight = top(wc) ?? top(wcAll);
 
     sets.push({
       id, name: m.name, manufacturer: m.mfr || null, weight, source: m.source,
