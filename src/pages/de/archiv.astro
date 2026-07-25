@@ -4,20 +4,29 @@
 import Layout from '../../layouts/Layout.astro';
 import PatchArchive from '../../components/PatchArchive.astro';
 import { getCollection } from 'astro:content';
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 
 const patches = await getCollection('patches');
 const patchCount = patches.length;
 const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
+
+// Cache-Bust für /assets/archive.css: feste URL, sonst liefert das CDN nach
+// einem Deploy bis zu 1 Tag die ALTE Datei aus (siehe SiteNav/account-lite.js).
+let cssVer = 'x';
+try {
+  cssVer = createHash('sha1').update(readFileSync('assets/archive.css')).digest('hex').slice(0, 8);
+} catch { /* dev-Fallback */ }
 ---
 
 <Layout
   title="Star Citizen Patch-Archiv — Alpha 4.0 bis 4.9 | VerseBase"
   description={`Das komplette Star-Citizen-Patch-Archiv der Alpha-4-Ära: ${patchCount} Patches von Destination Pyro (4.0.0) bis Frontier Tensions (4.9.0), mit ${topicCount} Themen-Deep-Dives.`}
-  themeColor="#0e0d0b"
+  themeColor="#04060e"
   footer={true}
   translated={true}
   ogImage="/assets/trailer-4-9-0.jpg"
 >
-  <link slot="head" rel="stylesheet" href="/assets/archive.css" />
+  <link slot="head" rel="stylesheet" href={`/assets/archive.css?v=${cssVer}`} />
   <PatchArchive />
 </Layout>
