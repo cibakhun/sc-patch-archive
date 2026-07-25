@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import DB from '../../assets/crafting-db.json';
 import { ICON_BLUEPRINT, ICON_DISMANTLE } from '../lib/icons';
 import { blueprints, blueprintPath } from '../lib/crafting';
+import { mineralByMaterial, miningPath } from '../lib/miningLinks';
 import { href } from '../i18n/ui';
 
 interface Props { lang: 'de' | 'en'; }
@@ -78,6 +79,8 @@ const JS_T = {
     openInFinder: 'Im Item Finder öffnen',
     openInDismantle: 'Im Zerlegungs-Rechner öffnen',
     openBlueprint: 'Blueprint öffnen',
+    whereToMine: 'Wo abbauen: {name}',
+    mineAll: 'Alle Fundorte ansehen',
     owned: 'Im Besitz',
     syncLocal: 'Nur auf diesem Gerät',
     syncBusy: 'Synchronisiere…',
@@ -108,6 +111,8 @@ const JS_T = {
     openInFinder: 'Open in Item Finder',
     openInDismantle: 'Open in Dismantling Calculator',
     openBlueprint: 'Open blueprint',
+    whereToMine: 'Where to mine: {name}',
+    mineAll: 'See all locations',
     owned: 'Owned',
     syncLocal: 'This device only',
     syncBusy: 'Syncing…',
@@ -142,6 +147,18 @@ for (const b of DB.blueprints)
   for (const ing of b.ingredients || [])
     for (const o of ing.options || []) if (o.name) resSet.add(o.name);
 const resources = [...resSet].sort();
+
+// -- Materialname -> Mineral-Datenblatt ("wo baue ich das ab?") --
+// Nur die Materialien, die auch wirklich als Zutat vorkommen; 36 der 37 haben
+// ein Mineral in der Mining-DB (Yormandi Eye nicht -> bleibt bewusst ohne Link).
+// Die Tabelle geht ans Client-JS, das daraus die Links baut (Karten-Chips,
+// Detail-Modal, Einkaufsliste des Planers).
+const miningUrl = href(miningPath, lang);
+const mineralOf: Record<string, string> = {};
+for (const r of resources) {
+  const mineral = mineralByMaterial[r.toLowerCase()];
+  if (mineral) mineralOf[r] = mineral;
+}
 
 // -- SSR-Kartenmodell --
 function fmtT(sec: number | null) {
@@ -310,6 +327,12 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
               <span title={S.ings}>◆ {c.nIng}</span>
               {c.hasMis && (<span class="cbp__mis" title={S.mission}>◈</span>)}
             </div>
+            {/* Ressourcen-Chips werden von crafting-app.js zu Links auf das
+                Mineral-Datenblatt gemacht („wo baue ich das ab?"). Wie die
+                ★/＋-Buttons bewusst NICHT serverseitig: 4197 Chips × ~100
+                Zeichen Link-Markup wären ~0,4 MB tote Fracht pro Sprachseite.
+                Die crawlbaren Material→Mining-Links stehen auf den statischen
+                Blueprint-Seiten (BlueprintDetail.astro). */}
             {c.resNames.length > 0 && (
               <ul class="cbp__res">
                 {c.resNames.slice(0, 5).map((r) => (<li>{r}</li>))}
@@ -426,7 +449,17 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
     die alte crafting-db.json OHNE dismantle_blacklist — die App fiele dann auf
     „nichts selten“ zurück (der Lindinium-Bug). Da das HTML no-cache ist, zieht
     jeder Aufruf so die zum Markup passende Datenversion. */}
-<script is:inline set:html={`window.__CRAFT=${JSON.stringify({ lang, dbUrl: '/assets/crafting-db.json?v=' + version, dismantleUrl: '/assets/dismantling-items.json?v=' + version, dismantleEfficiency: dismantleEff, icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE }, t: JS_T })};`} />
+<script is:inline set:html={`window.__CRAFT=${JSON.stringify({
+  lang,
+  dbUrl: '/assets/crafting-db.json?v=' + version,
+  dismantleUrl: '/assets/dismantling-items.json?v=' + version,
+  dismantleEfficiency: dismantleEff,
+  icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE },
+  // Materialname (Schreibweise wie im Rezept) -> Mineral, für die Abbau-Links
+  // im Detail-Modal und in der Einkaufsliste des Planers (rendert das JS).
+  mine: { url: miningUrl, names: mineralOf },
+  t: JS_T,
+})};`} />
 {/* Cache-Buster jetzt als Content-Hash statt handgezähltem ?v=N (dasselbe
     Verfahren wie /assets/account-lite.js in SiteNav): das JS hängt eng am
     Markup — altes gecachtes Skript auf neuem HTML bräche Karten-Diät, Zerlege-
@@ -539,6 +572,13 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .cbp__res{list-style:none;margin:.1rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.25rem}
   .cbp__res li{font-size:.68rem;color:var(--text,#eef1f5);background:var(--veil);border:1px solid var(--line-soft,var(--line-soft));padding:.1rem .4rem;border-radius:3px}
   .cbp__res li.more{color:var(--muted,#9ba2ae)}
+  /* Ressourcen-Chip = Link zum Fundort. Optisch bleibt es ein Chip; erst der
+     Hover verrät, dass er woanders hinführt (⛏ per ::after, damit die 1500
+     Karten kein zusätzliches Markup tragen). */
+  .cbp__res li:has(.cbp__mine){padding:0}
+  .cbp__mine{display:block;color:inherit;text-decoration:none;padding:.1rem .4rem;border-radius:3px}
+  .cbp__mine:hover,.cbp__mine:focus-visible{color:var(--accent-2,#1FA2FF);background:color-mix(in srgb,var(--accent-2,#1FA2FF) 14%,transparent);outline:none}
+  .cbp__mine:hover::after,.cbp__mine:focus-visible::after{content:" ⛏";font-size:.62rem}
   .cdb-grid.is-list .cbp{flex-direction:row;flex-wrap:wrap;align-items:center}
   .cdb-grid.is-list .cbp__name{flex:1 1 200px;font-size:.98rem}
   .cdb-grid.is-list .cbp__res{flex:1 1 100%}
@@ -568,6 +608,12 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .cbm__opt .on{color:var(--text);font-weight:600}
   .cbm__opt .oq{color:var(--accent,#FF5E1A);font-weight:700;font-size:.82rem}
   .cbm__opt .omq{color:var(--muted,#9ba2ae);font-size:.74rem}
+  /* Material -> Fundort. Gleiche Optik im Modal und in der Einkaufsliste des
+     Planers: Name bleibt lesbar, das ⛏ markiert ihn als Weg zur Mining-DB. */
+  a.cdb-mine{text-decoration:none;border-bottom:1px dotted var(--line,rgba(255,94,26,.45));transition:color .15s,border-color .15s}
+  a.cdb-mine:hover,a.cdb-mine:focus-visible{color:var(--accent-2,#1FA2FF);border-bottom-color:var(--accent-2,#1FA2FF);outline:none}
+  .cdb-mine__ico{font-style:normal;font-size:.72em;margin-left:.28rem;opacity:.55}
+  a.cdb-mine:hover .cdb-mine__ico,a.cdb-mine:focus-visible .cdb-mine__ico{opacity:1}
   .cbm__sim{margin-top:.6rem}
   .cbm__sim label{display:flex;align-items:center;justify-content:space-between;gap:.5rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted,#9ba2ae);font-family:var(--font-ui,inherit);margin-bottom:.2rem}
   /* editierbares Qualitäts-Zahlenfeld (ersetzt das frühere read-only <output>) */
@@ -628,8 +674,9 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .cdb-plan-time-row b{color:var(--accent,#FF5E1A);font-size:1rem}
   .cdb-plan-sum h4{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.64rem;color:var(--accent-2,#1FA2FF);margin:0 0 .5rem}
   .cdb-plan-shop{display:flex;flex-direction:column;gap:.2rem;max-height:32vh;overflow:auto;margin-bottom:.8rem}
-  .ps__row{display:flex;justify-content:space-between;gap:1rem;font-size:.82rem;padding:.22rem .4rem;background:var(--surface,#232329);border-radius:4px}
+  .ps__row{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;font-size:.82rem;padding:.22rem .4rem;background:var(--surface,#232329);border-radius:4px}
   .ps__row b{color:var(--accent,#FF5E1A);flex:none}
+  .ps__n{color:var(--text,#eef1f5);min-width:0}
   .cdb-plan-clear{width:100%;background:transparent;border:1px solid var(--line,rgba(255,94,26,.3));color:var(--muted,#9ba2ae);padding:.5rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700}
   .cdb-plan-clear:hover{border-color:var(--accent,#FF5E1A);color:var(--accent,#FF5E1A)}
   /* Mobile */

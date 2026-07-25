@@ -37,6 +37,32 @@
   var SLUG_BY_I = {};
   var I_BY_SLUG = {};
 
+  // =========================================================
+  //  MATERIAL -> FUNDORT (Mining-DB)
+  // =========================================================
+  // Die Rezepte nennen ihre Zutaten beim Spielnamen, die Mining-DB führt
+  // dieselben Namen als Mineral mit Fundorten. Die Zuordnung (inkl. der zwei
+  // Ausreißer Ice/Saldynium) kommt fertig aus src/lib/miningLinks.ts in
+  // window.__CRAFT.mine — hier wird sie nur noch zu Links. Materialien ohne
+  // Mineral (Yormandi Eye) bekommen bewusst keinen Link statt einen toten.
+  var MINE = CFG.mine || {};
+  var MINE_NAMES = MINE.names || {};
+  function mineHref(material) {
+    var mineral = MINE_NAMES[material];
+    if (!mineral || !MINE.url) return null;
+    return MINE.url + '?mineral=' + encodeURIComponent(mineral) + '#db';
+  }
+  function mineTitle(material) {
+    return tr('whereToMine', 'Wo abbauen: {name}').replace('{name}', MINE_NAMES[material] || material);
+  }
+  /** Materialname als Fundort-Link (oder unverändert, wenn es kein Mineral gibt). */
+  function mineNameHtml(material, cls) {
+    var url = mineHref(material);
+    if (!url) return '<span class="' + cls + '">' + esc(material) + '</span>';
+    return '<a class="' + cls + ' cdb-mine" href="' + esc(url) + '" title="' + esc(mineTitle(material)) + '">' +
+      esc(material) + '<i class="cdb-mine__ico" aria-hidden="true">⛏</i></a>';
+  }
+
   cards.forEach(function (card, pos) {
     var d = card.dataset;
     if (d.i == null || d.i === '') d.i = String(pos);
@@ -57,7 +83,20 @@
     d.ings = String(ings);
     var res = [];
     $$('.cbp__res li', card).forEach(function (li) {
-      if (!li.classList.contains('more')) res.push(li.textContent.trim().toLowerCase());
+      if (li.classList.contains('more')) return;
+      var name = li.textContent.trim();
+      res.push(name.toLowerCase());
+      // Chip -> Fundort: derselbe Grund wie bei den ★/＋-Buttons, das Markup
+      // dafür kommt von hier statt aus dem SSR (~0,4 MB pro Sprachseite).
+      var url = mineHref(name);
+      if (!url) return;
+      var a = document.createElement('a');
+      a.className = 'cbp__mine';
+      a.href = url;
+      a.title = mineTitle(name);
+      a.textContent = name;
+      li.textContent = '';
+      li.appendChild(a);
     });
     d.res = res.join('|');
     if (!$('.cbp__btns', card)) {
@@ -556,6 +595,23 @@
       apply();
     });
   });
+
+  // Rückweg aus der Mining-DB: ?res=<Material> setzt den Ressourcen-Filter,
+  // zeigt also sofort alles, was sich aus dem gerade angesehenen Erz bauen
+  // lässt. Der Wert der Checkbox ist der kleingeschriebene Materialname.
+  (function applyResQuery() {
+    var want;
+    try { want = new URLSearchParams(location.search).get('res'); } catch (e) { return; }
+    if (!want) return;
+    var key = want.trim().toLowerCase();
+    var hit = null;
+    $$('.cdb-res-cb').forEach(function (cb) { if (cb.value === key) hit = cb; });
+    if (!hit) return;
+    hit.checked = true;
+    state.res[key] = true;
+    sortResourcesList();
+    apply();
+  })();
   if (resSearch) {
     resSearch.addEventListener('input', function () {
       var q = this.value.trim().toLowerCase();
@@ -632,6 +688,9 @@
     // bisher das Detail-Modal öffnen — also Standard unterdrücken, sobald wir
     // die Karte übernehmen, und Modifier-Klicks dem Browser überlassen.
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    // Ressourcen-Chips sind echte Links auf das Mineral-Datenblatt. Sie sollen
+    // navigieren, nicht das Blueprint-Modal öffnen — also gar nicht anfassen.
+    if (e.target.closest('.cbp__mine')) return;
     var ownBtn = e.target.closest('.cbp__own');
     var addBtn = e.target.closest('.cbp__add');
     var card = e.target.closest('.cbp');
@@ -724,7 +783,9 @@
         html += '<div class="cbm__ing">';
         html += '<div class="cbm__slot">' + esc(ing.slot || '') + '</div>';
         (ing.options || []).forEach(function (o) {
-          html += '<div class="cbm__opt"><span class="on">' + esc(o.name) + '</span>' +
+          // Zutatenname ist der Sprung zum Fundort — genau hier steht man, wenn
+          // man wissen will, wo das Zeug herkommt.
+          html += '<div class="cbm__opt">' + mineNameHtml(o.name, 'on') +
             '<span class="oq">' + fmtNum((o.quantity_scu || 0) * 100) + ' cSCU</span>' +
             (o.min_quality != null ? '<span class="omq">' + tr('minQ', 'min. Q') + ' ' + o.min_quality + '</span>' : '') +
             '</div>';
@@ -960,9 +1021,11 @@
         '<button data-rm="' + k + '" class="pi__rm" aria-label="remove">✕</button></div></li>';
     }).join('');
     if (shopEl) {
+      // Einkaufsliste = die Abbauliste: jeder Posten führt direkt zu seinen
+      // Fundorten, statt dass man die Namen in die Mining-Suche tippt.
       var names = Object.keys(shop).sort();
       shopEl.innerHTML = names.length ? names.map(function (n) {
-        return '<div class="ps__row"><span>' + esc(n) + '</span><b>' + fmtNum(shop[n] * 100) + ' cSCU</b></div>';
+        return '<div class="ps__row">' + mineNameHtml(n, 'ps__n') + '<b>' + fmtNum(shop[n] * 100) + ' cSCU</b></div>';
       }).join('') : '';
     }
     if (timeEl) timeEl.textContent = fmtTime(totalTime);

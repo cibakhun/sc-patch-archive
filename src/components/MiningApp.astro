@@ -2,6 +2,8 @@
 // MiningApp.astro — funktionale Mineral-Datenbank (SSR-Grid + Client-App).
 // Sprachneutrales Gerüst; UI-Chrome via `lang`, Game-Daten bleiben englisch.
 import DB from '../../assets/mining-db.json';
+import { blueprintsPerMineral, craftingPath, materialByMineral } from '../lib/miningLinks';
+import { href } from '../i18n/ui';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
@@ -45,6 +47,9 @@ const JS_T = {
     reverseTitle: 'Fundorte nach Himmelskörper', reverseIntro: 'Wähle einen Körper/eine Region — zeigt den ganzen Mineral-Mix dort mit Fund-Chance (%). ★ = wertvollstes Erz.',
     reverseSearch: 'Körper suchen…', mineralsHere: 'Minerale hier',
     rLegendary: 'Legendär', rEpic: 'Episch', rRare: 'Selten', rUncommon: 'Ungewöhnlich', rCommon: 'Häufig',
+    craftUse: 'Wird in {n} Blueprints gebraucht',
+    craftUseOne: 'Wird in 1 Blueprint gebraucht',
+    craftUseAs: 'im Rezept: {name}',
   },
   en: {
     kind: 'Type', method: 'Method', scu: 'SCU weight', systems: 'Systems', rarity: 'Rarity',
@@ -57,6 +62,9 @@ const JS_T = {
     reverseTitle: 'Locations by celestial body', reverseIntro: 'Pick a body/region — shows the full mineral mix there with find chance (%). ★ = most valuable ore.',
     reverseSearch: 'Search body…', mineralsHere: 'Minerals here',
     rLegendary: 'Legendary', rEpic: 'Epic', rRare: 'Rare', rUncommon: 'Uncommon', rCommon: 'Common',
+    craftUse: 'Used in {n} blueprints',
+    craftUseOne: 'Used in 1 blueprint',
+    craftUseAs: 'in recipes as: {name}',
   },
 }[lang];
 
@@ -195,8 +203,16 @@ const total = DB.counts.minerals;
   </aside>
 </section>
 
-<script is:inline set:html={`window.__MINE=${JSON.stringify({ lang, dbUrl: '/assets/mining-db.json?v=' + DB.snapshot_date + '-c4', t: JS_T })};`} />
-<script is:inline src={`/assets/mining-app.js?v=${DB.snapshot_date}-c4`}></script>
+{/* craft = Rückweg ins Crafting: pro Mineral die Zahl der Rezepte, die es
+    verlangen, und der Materialname, unter dem der Ressourcen-Filter dort läuft
+    (meist identisch, bei Ice/Saldynium nicht — siehe src/lib/miningLinks.ts). */}
+<script is:inline set:html={`window.__MINE=${JSON.stringify({
+  lang,
+  dbUrl: '/assets/mining-db.json?v=' + DB.snapshot_date + '-c5',
+  t: JS_T,
+  craft: { url: href(craftingPath, lang), counts: blueprintsPerMineral, materials: materialByMineral },
+})};`} />
+<script is:inline src={`/assets/mining-app.js?v=${DB.snapshot_date}-c5`}></script>
 
 <style is:inline>
   .mdb{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
@@ -233,6 +249,9 @@ const total = DB.counts.minerals;
   .mcd:hover{border-color:var(--accent,#2FBFA4);transform:translateY(-2px)}
   .mcd[data-method="hand"]:hover{border-color:var(--accent-2,#E0A526)}
   .mcd[hidden]{display:none}
+  /* Ziel eines ?mineral=-Deep-Links: die Karte bleibt markiert, damit man nach
+     dem Schließen des Datenblatts noch sieht, wo man gelandet ist. */
+  .mcd.is-target{border-color:var(--accent,#2FBFA4);box-shadow:0 0 0 1px var(--accent,#2FBFA4),var(--glow,0 0 24px rgba(47,191,164,.26))}
   .mcd__top{display:flex;justify-content:space-between;align-items:center;gap:.4rem}
   .mcd__kind{display:inline-flex;align-items:center;gap:.36rem;font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.58rem;color:var(--muted,#8fa3a0)}
   .mcd__kind::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent,#2FBFA4);flex:none}
@@ -286,6 +305,13 @@ const total = DB.counts.minerals;
   .mm__rar--legendary{--rar:#e0564b}.mm__rar--epic{--rar:#b06ae0}.mm__rar--rare{--rar:var(--accent-2,#E0A526)}
   .mm__rar--uncommon{--rar:var(--accent,#2FBFA4)}.mm__rar--common{--rar:#8fa3a0}
   .mm__note{font-size:.78rem;color:var(--muted,#8fa3a0);line-height:1.5;margin:.4rem 0 0;font-style:italic}
+  /* Rückweg ins Crafting — dieselbe CTA-Sprache wie .mn-cta auf der Seite. */
+  .mm__craft{display:flex;align-items:center;gap:.7rem;margin-top:1.2rem;padding:.7rem .85rem;text-decoration:none;color:inherit;border:1px solid var(--line,rgba(47,191,164,.22));border-left:3px solid var(--accent-2,#E0A526);background:color-mix(in srgb,var(--accent-2,#E0A526) 7%,transparent);border-radius:4px;transition:border-color .15s,background-color .15s}
+  .mm__craft:hover{border-color:var(--accent-2,#E0A526);background:color-mix(in srgb,var(--accent-2,#E0A526) 14%,transparent)}
+  .mm__craft__ico{flex:none;color:var(--accent-2,#E0A526);font-size:1.05rem;line-height:1}
+  .mm__craft__tx{flex:1;min-width:0;font-family:var(--font-ui,inherit);font-weight:700;font-size:.86rem;color:var(--text,#eaf2f1)}
+  .mm__craft__tx em{display:block;font-style:normal;font-weight:400;font-size:.76rem;color:var(--muted,#8fa3a0);margin-top:.1rem}
+  .mm__craft__go{flex:none;color:var(--accent-2,#E0A526);font-weight:800}
   .mm__terms{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.25rem;max-height:200px;overflow:auto}
   .mm__terms li{display:flex;justify-content:space-between;gap:.8rem;font-size:.82rem;padding:.28rem .5rem;background:var(--surface,#1e2427);border-radius:4px}
   .mm__terms li .tn{color:var(--text,#eaf2f1);min-width:0;overflow-wrap:anywhere}

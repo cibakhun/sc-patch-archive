@@ -191,6 +191,29 @@
     return html + '</div>';
   }
 
+  // Rückweg ins Crafting: „wofür brauche ich das eigentlich?" — führt in den
+  // Blueprint-Filter, der schon auf diese Ressource gesetzt ist. Nur wenn das
+  // Mineral überhaupt in Rezepten vorkommt (sonst keine tote Verlinkung).
+  function craftBackLink(mineralName) {
+    var C = CFG.craft;
+    if (!C || !C.url) return '';
+    var n = (C.counts || {})[mineralName] || 0;
+    if (!n) return '';
+    var material = (C.materials || {})[mineralName] || mineralName;
+    var label = n === 1
+      ? (T.craftUseOne || 'Used in 1 blueprint')
+      : (T.craftUse || 'Used in {n} blueprints').replace('{n}', n);
+    // Nur nennen, wenn das Rezept das Erz anders nennt als die Mining-DB
+    // (Ice -> Pressurized Ice) — sonst wäre die Zeile bloß Rauschen.
+    var asNote = material.toLowerCase() !== String(mineralName).toLowerCase()
+      ? ' <em>' + esc((T.craftUseAs || 'in recipes as: {name}').replace('{name}', material)) + '</em>'
+      : '';
+    return '<a class="mm__craft" href="' + esc(C.url) + '?res=' + encodeURIComponent(material) + '#cdb">' +
+      '<span class="mm__craft__ico" aria-hidden="true">⚒</span>' +
+      '<span class="mm__craft__tx">' + esc(label) + asNote + '</span>' +
+      '<span class="mm__craft__go" aria-hidden="true">→</span></a>';
+  }
+
   function openMineral(idx) {
     loadDB().then(function () {
       var m = DB.minerals[idx];
@@ -218,6 +241,8 @@
       } else {
         html += '<p class="mm__note">' + esc(T.noLoc) + '</p>';
       }
+
+      html += craftBackLink(m.name);
 
       modalBody.innerHTML = html;
       modal.hidden = false;
@@ -290,6 +315,30 @@
     });
   }
 
+  // ---- Deep-Link ?mineral=<Name> ----
+  // Sprung aus dem Crafting-Planer („wo baue ich Titanium ab?"): Karte suchen,
+  // ins Bild holen, kurz markieren und das Datenblatt direkt öffnen. Der Name
+  // kommt aus denselben Spieldaten, verglichen wird trotzdem case-insensitiv.
+  function openFromQuery() {
+    var want;
+    try { want = new URLSearchParams(location.search).get('mineral'); } catch (e) { return; }
+    if (!want) return;
+    var key = want.trim().toLowerCase();
+    var card = null;
+    for (var i = 0; i < cards.length; i++) {
+      if (cards[i].getAttribute('data-name') === key) { card = cards[i]; break; }
+    }
+    if (!card) return;
+    card.classList.add('is-target');
+    // scrollIntoView erst nach dem Sprung auf #db, sonst überschreibt der
+    // Hash-Sprung des Browsers die Position wieder.
+    requestAnimationFrame(function () {
+      card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+    openMineral(+card.getAttribute('data-i'));
+  }
+
   // Initial
   apply();
+  openFromQuery();
 })();
