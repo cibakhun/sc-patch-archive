@@ -23,6 +23,9 @@
   var activeSize = null;  // Größenfilter (0–12) oder null
   var activeWeight = null; // Panzerungsklasse (Light/Medium/Heavy/…) oder null
   var activeRarity = null; // Seltenheit (Common…Legendary) oder null
+  var activeSet = null;    // Set-Id: zeigt nur die Teile EINES Sets
+  var viewMode = 'items';  // 'items' | 'sets'
+  var filteredSets = [];
   var searchTerm = '';
   var sortCriteria = 'name_asc';
 
@@ -136,6 +139,7 @@
       if (activeSize != null && !(item.game && item.game.size === activeSize)) return false;
       if (activeWeight && !(item.game && item.game.weight === activeWeight)) return false;
       if (activeRarity && !(item.game && item.game.rarity === activeRarity)) return false;
+      if (activeSet && !(item.game && item.game.setId === activeSet)) return false;
       if (!term) return true;
       if (item.name.toLowerCase().indexOf(term) !== -1) return true;
       if (item.category && item.category.toLowerCase().indexOf(term) !== -1) return true;
@@ -177,13 +181,58 @@
       return d !== 0 ? d : a.name.localeCompare(b.name);
     });
 
+    // Sets leiten sich AUS den gefilterten Items ab, statt eigene Filter zu
+    // fuehren: „Schwer" + Suche „venture" liefert damit automatisch genau die
+    // Sets, zu denen die sichtbaren Teile gehoeren — ohne doppelte Filterlogik.
+    var seen = {};
+    filteredSets = [];
+    for (var i = 0; i < filteredItems.length; i++) {
+      var sid = filteredItems[i].game && filteredItems[i].game.setId;
+      if (!sid || seen[sid] || !SETS[sid]) continue;
+      seen[sid] = 1;
+      filteredSets.push(SETS[sid]);
+    }
+    filteredSets.sort(function (a, b) {
+      if (sortCriteria === 'name_desc') return b.name.localeCompare(a.name);
+      if (sortCriteria === 'name_asc') return a.name.localeCompare(b.name);
+      return b.parts - a.parts || a.name.localeCompare(b.name);
+    });
+    // Ohne Sets im Ergebnis ist die Set-Ansicht sinnlos -> zurueck auf Einzelteile
+    if (viewMode === 'sets' && !filteredSets.length) viewMode = 'items';
+
     render();
   }
 
   function render() {
-    renderItemsGrid();
+    renderViewToggle();
+    if (viewMode === 'sets') renderSetsGrid(); else renderItemsGrid();
     renderStatsHeader();
     renderPagination();
+  }
+
+  // ---- Umschalter Einzelteile <-> Sets ----
+  function renderViewToggle() {
+    var wrap = document.getElementById('uif-view-toggle');
+    if (!wrap) return;
+    // Kein Set im Ergebnis (z. B. Kategorie „Waffen") -> Schalter waere tot
+    if (!filteredSets.length && viewMode !== 'sets') { wrap.innerHTML = ''; return; }
+    var modes = [['items', tr('viewPieces', 'Einzelteile')], ['sets', tr('viewSets', 'Sets')]];
+    wrap.innerHTML = modes.map(function (m) {
+      return '<button class="uif-viewbtn' + (viewMode === m[0] ? ' active' : '') + '" data-view="' + m[0] + '"' +
+        ' aria-pressed="' + (viewMode === m[0]) + '">' + esc(m[1]) +
+        (m[0] === 'sets' ? ' <span class="uif-chip-n">' + fmtNum(filteredSets.length) + '</span>' : '') +
+        '</button>';
+    }).join('');
+    wrap.querySelectorAll('.uif-viewbtn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        viewMode = btn.getAttribute('data-view');
+        // Set-Filter und Set-Ansicht schliessen sich aus: in der Set-Liste will
+        // man alle Sets sehen, nicht die Teile eines einzelnen.
+        if (viewMode === 'sets') activeSet = null;
+        currentPage = 1;
+        applyFiltersAndSort();
+      });
+    });
   }
 
   // ---- Sidebar: Kategorien ----
@@ -316,6 +365,56 @@
       function () { return activeRarity; }, function (v) { activeRarity = v; });
   }
 
+  // ---- Set-Grid: eine Karte = ein Set ----
+  function renderSetsGrid() {
+    var grid = document.getElementById('uif-results-grid');
+    if (!grid) return;
+    if (!filteredSets.length) {
+      grid.innerHTML = '<div class="uif-empty">' + esc(tr('setNoResults', 'Keine passenden Sets gefunden.')) + '</div>';
+      return;
+    }
+    var start = (currentPage - 1) * itemsPerPage;
+    var page = filteredSets.slice(start, Math.min(start + itemsPerPage, filteredSets.length));
+
+    grid.innerHTML = page.map(function (s) {
+      var slots = Object.keys(s.slots).map(function (k) { return tr('slot' + k, k); }).join(' · ');
+      var complete = s.coreSlots === 4;
+      var badge = '<span class="uif-setbadge' + (complete ? ' is-ok' : '') + '">' +
+        esc(complete ? tr('setsComplete', 'komplett') : tr('setsPartial', '{n}/4 Kernslots').replace('{n}', s.coreSlots)) + '</span>';
+      var meta = [];
+      if (s.manufacturer) meta.push(s.manufacturer);
+      if (s.weight) meta.push(weightLabel(s.weight));
+      return '<div class="uif-card uif-setcard" data-set="' + esc(s.id) + '" tabindex="0" role="button">' +
+        '<div class="uif-card-header">' +
+          '<div class="uif-card-cat-wrapper">' + categoryIcon('Armour') + ' <span>' + esc(meta.join(' · ')) + '</span></div>' +
+          badge +
+        '</div>' +
+        '<h4 class="uif-card-title">' + esc(s.name) + '</h4>' +
+        '<div class="uif-card-spec">' + esc(slots) + '</div>' +
+        '<div class="uif-card-footer">' +
+          '<div class="uif-card-price">' + fmtNum(s.parts) + ' ' +
+            esc(s.parts === 1 ? tr('setPiece', 'Teil') : tr('setPieces', 'Teile')) + '</div>' +
+          '<div class="uif-card-location">' + esc(tr('setOpen', 'Teile anzeigen')) + ' →</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    grid.querySelectorAll('.uif-setcard').forEach(function (card) {
+      function open() {
+        activeSet = card.getAttribute('data-set');
+        viewMode = 'items';
+        currentPage = 1;
+        applyFiltersAndSort();
+        var top = document.getElementById('uif-app');
+        if (top) top.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      card.addEventListener('click', open);
+      card.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+      });
+    });
+  }
+
   // ---- Ergebnis-Grid ----
   function renderItemsGrid() {
     var grid = document.getElementById('uif-results-grid');
@@ -371,29 +470,54 @@
       var rarBadge = rar
         ? '<span class="uif-rarity uif-rarity--' + esc(rar.toLowerCase()) + '" title="' + esc(tr('facetRarity', 'Seltenheit')) + '">' + esc(rarityLabel(rar)) + '</span>'
         : '';
+      // Set-Chip: macht die Set-Zugehoerigkeit im Vorbeigehen sichtbar und
+      // filtert per Klick — man muss nicht wissen, dass es Sets gibt.
+      var st0 = setOf(item);
+      var setChip = st0 && st0.id !== activeSet
+        ? '<button type="button" class="uif-setchip" data-set="' + esc(st0.id) + '" title="' + esc(tr('facetSet', 'Set')) + '">' + esc(st0.name) + '</button>'
+        : '';
 
       // Karten mit Detailseite sind echte Links (Crawler + Strg-Klick + „in
       // neuem Tab öffnen"); Katalog-Reste ohne Seite bleiben Buttons.
+      //
+      // Die Karte ist bewusst KEIN <a> mehr, sondern ein <div> mit einem
+      // „stretched link" auf dem Titel (::after deckt die Karte ab). Grund: der
+      // Set-Chip ist ein <button> — ein Button INNERHALB eines Links ist
+      // ungültiges HTML und für Tastatur/Screenreader eine Falle. So bleibt die
+      // ganze Karte klickbar und crawlbar, der Chip liegt sauber darüber.
       var linked = hasPage(item);
-      var tag = linked ? 'a' : 'div';
-      var attrs = linked
-        ? ' href="' + esc(itemUrl(item)) + '"'
-        : ' tabindex="0" role="button"';
+      var titleHtml = linked
+        ? '<a class="uif-card-link" href="' + esc(itemUrl(item)) + '">' + esc(item.name) + '</a>'
+        : esc(item.name);
 
-      return '<' + tag + ' class="uif-card" data-id="' + esc(item.id) + '" data-category="' + esc(parent) + '"' + attrs + '>' +
+      return '<div class="uif-card' + (linked ? ' is-linked' : '') + '" data-id="' + esc(item.id) + '" data-category="' + esc(parent) + '"' +
+        (linked ? '' : ' tabindex="0" role="button"') + '>' +
         '<div class="uif-card-header">' +
           '<div class="uif-card-cat-wrapper">' + categoryIcon(parent) + ' <span>' + esc(item.category) + '</span></div>' +
           statBadge +
         '</div>' +
-        '<h4 class="uif-card-title">' + esc(item.name) + '</h4>' +
-        (rarBadge ? '<div class="uif-card-tags">' + rarBadge + '</div>' : '') +
+        '<h4 class="uif-card-title">' + titleHtml + '</h4>' +
+        (rarBadge || setChip ? '<div class="uif-card-tags">' + rarBadge + setChip + '</div>' : '') +
         specLine +
         '<div class="uif-card-footer">' +
           '<div class="uif-card-price">' + priceHtml + '</div>' +
           '<div class="uif-card-location" title="' + esc(item.obtain.length ? item.obtain[0].loc : '') + '">' + locHtml + '</div>' +
         '</div>' +
-      '</' + tag + '>';
+      '</div>';
     }).join('');
+
+    // Set-Chip zuerst verdrahten und die Klicks dort stoppen — sonst oeffnet
+    // der Karten-Handler darunter zusaetzlich das Modal.
+    grid.querySelectorAll('.uif-setchip').forEach(function (chip) {
+      chip.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        activeSet = chip.getAttribute('data-set');
+        viewMode = 'items';
+        currentPage = 1;
+        applyFiltersAndSort();
+      });
+    });
 
     grid.querySelectorAll('.uif-card').forEach(function (card) {
       function find() {
@@ -410,12 +534,14 @@
         openModal(item);
       });
       card.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          var item = find();
-          if (!item) return;
-          e.preventDefault();
-          openModal(item);
-        }
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        // Liegt der Fokus auf dem Titel-Link oder dem Set-Chip, gehoert die
+        // Taste denen — sonst navigiert der Browser UND das Modal geht auf.
+        if (e.target !== card) return;
+        var item = find();
+        if (!item) return;
+        e.preventDefault();
+        openModal(item);
       });
     });
   }
@@ -424,16 +550,34 @@
   function renderStatsHeader() {
     var count = document.getElementById('uif-stats-count');
     if (!count) return;
-    if (filteredItems.length === 0) {
-      count.textContent = tr('showingNone', '0 Einträge');
+    var sets = viewMode === 'sets';
+    var total = sets ? filteredSets.length : filteredItems.length;
+    if (total === 0) {
+      count.textContent = sets ? tr('setsShowingNone', '0 Sets') : tr('showingNone', '0 Einträge');
       return;
     }
     var start = (currentPage - 1) * itemsPerPage + 1;
-    var end = Math.min(currentPage * itemsPerPage, filteredItems.length);
-    count.textContent = tr('showing', '{start}–{end} von {total} Einträgen')
+    var end = Math.min(currentPage * itemsPerPage, total);
+    var txt = (sets ? tr('setsShowing', '{start}–{end} von {total} Sets') : tr('showing', '{start}–{end} von {total} Einträgen'))
       .replace('{start}', fmtNum(start))
       .replace('{end}', fmtNum(end))
-      .replace('{total}', fmtNum(filteredItems.length));
+      .replace('{total}', fmtNum(total));
+    // Aktiver Set-Filter: ohne sichtbaren Hinweis wirkt der Katalog kaputt
+    // („warum sehe ich nur noch 6 Items?") — deshalb Name + Ausstieg anzeigen.
+    var st = activeSet ? SETS[activeSet] : null;
+    if (st) {
+      count.innerHTML = esc(txt) +
+        ' <span class="uif-activeset">' + esc(st.name) +
+        ' <button type="button" id="uif-clear-set" title="' + esc(tr('setFilterClear', 'Set-Filter aufheben')) + '">×</button></span>';
+      var btn = document.getElementById('uif-clear-set');
+      if (btn) btn.addEventListener('click', function () {
+        activeSet = null;
+        currentPage = 1;
+        applyFiltersAndSort();
+      });
+    } else {
+      count.textContent = txt;
+    }
   }
 
   // ---- Pagination ----
@@ -441,7 +585,8 @@
     var container = document.getElementById('uif-pagination-container');
     if (!container) return;
 
-    var totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    var listLen = viewMode === 'sets' ? filteredSets.length : filteredItems.length;
+    var totalPages = Math.ceil(listLen / itemsPerPage);
     if (totalPages <= 1) { container.innerHTML = ''; return; }
 
     var offFirst = currentPage === 1 ? ' disabled="disabled"' : '';
@@ -455,7 +600,7 @@
 
     var go = function (page) {
       currentPage = page;
-      renderItemsGrid();
+      if (viewMode === 'sets') renderSetsGrid(); else renderItemsGrid();
       renderStatsHeader();
       renderPagination();
       var app = document.getElementById('uif-app');

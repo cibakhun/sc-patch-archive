@@ -61,8 +61,9 @@ const snap = DB.generatedAt;
   {/* Krabbelbarer Weg in die Datenschicht: der Finder selbst lädt seine Items
       per JavaScript nach, die Verzeichnis-Seiten sind statisches HTML. */}
   <p class="uf-browse reveal">
+    {/* /de/armor-sets.html steht bewusst NICHT hier — siehe Kommentar in der
+        EN-Variante: die Sets sind jetzt eine Ansicht im Finder selbst. */}
     <a href="/de/items.html">Alle Items nach Kategorie →</a>
-    <a href="/de/armor-sets.html">Rüstungs-Sets →</a>
     <a href="/de/crafting.html">Blueprint-Verzeichnis →</a>
   </p>
 
