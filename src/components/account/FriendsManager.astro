@@ -402,6 +402,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 <script>
   import { supabase } from '../../lib/supabase';
   import { STATUS_STATES } from '../../lib/profilePresets';
+  import { resolveStatusKey } from '../../lib/presence';
 
   const fmWrap = document.querySelector('.friends-manager') as HTMLElement | null;
   if (fmWrap) {
@@ -437,7 +438,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     type Prof = {
       id: string; handle: string; display_name: string | null;
       avatar_url: string | null; avatar_icon: string | null; avatar_color: string | null;
-      role: string | null; status_state: string | null; status_text: string | null;
+      role: string | null; status_state: string | null; status_text: string | null; presence: string | null;
       rsi_verified: boolean | null;
     };
 
@@ -495,7 +496,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 
       const fallback = (id: string): Prof => ({
         id, handle: '', display_name: null, avatar_url: null, avatar_icon: null,
-        avatar_color: null, role: null, status_state: null, status_text: null, rsi_verified: null,
+        avatar_color: null, role: null, status_state: null, status_text: null, presence: null, rsi_verified: null,
       });
 
       friends = fr.map((r) => {
@@ -530,7 +531,8 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         sp.textContent = p.avatar_icon || (p.display_name || p.handle || '?').charAt(0).toUpperCase();
         box.appendChild(sp);
       }
-      const st = (STATUS_STATES as Record<string, { color: string; labelDe: string; labelEn: string }>)[p.status_state || 'online'];
+      const presence = (p.presence === 'online' || p.presence === 'away') ? p.presence : 'offline';
+      const st = (STATUS_STATES as Record<string, { color: string; labelDe: string; labelEn: string }>)[resolveStatusKey(presence, p.status_state)];
       if (st) {
         const dot = document.createElement('div');
         dot.className = 'fm-dot';

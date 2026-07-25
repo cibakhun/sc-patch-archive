@@ -3,6 +3,7 @@
 
 import { supabase, FAV_PATH } from '../lib/supabase';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
+  import { resolveStatusKey } from '../lib/presence';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -268,7 +269,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       bioInput.value = profileState.bio || '';
       bannerUrlInput.value = profileState.banner_url || '';
       avatarUrlInput.value = profileState.avatar_url || '';
-      statusStateSelect.value = profileState.status_state || 'online';
+      // Aktivität: nur ingame/mission sind gültige manuelle Werte; alles andere
+      // (Alt-Präsenz online/away/offline oder leer) => "Automatisch" ('').
+      statusStateSelect.value = (profileState.status_state === 'ingame' || profileState.status_state === 'mission')
+        ? profileState.status_state : '';
       statusTextInput.value = profileState.status_text || '';
       roleSelect.value = profileState.role || '';
       rsiHandleInput.value = profileState.rsi_handle || '';
@@ -368,7 +372,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         }
 
         // Status Indicator
-        const stState = statusStateSelect.value;
+        // Präsenz auf dem eigenen Dashboard = online (der Nutzer schaut aktiv zu);
+        // eine manuelle Aktivität (ingame/mission) überschreibt nur das Label.
+        // Andere sehen die echte Auto-Präsenz aus last_seen (Views public/social_profiles).
+        const stState = resolveStatusKey('online', statusStateSelect.value);
         const stInfo = (STATUS_STATES as any)[stState] || STATUS_STATES.online;
         const statusDot = document.getElementById('pcStatusDot')!;
         statusDot.style.background = stInfo.color;

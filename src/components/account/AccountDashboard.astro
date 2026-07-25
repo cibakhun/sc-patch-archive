@@ -550,11 +550,11 @@ const confirmRedirect = loginHref + '?confirmed=1';
                 <h3 class="subhead">{COPY.secRoleStatus}</h3>
                 <div class="pf-grid2">
                   <div class="field">
-                    <label for="pfStatusState">{COPY.statusState}</label>
+                    <label for="pfStatusState">{lang === 'de' ? 'Aktivität' : 'Activity'} <span class="hint">{lang === 'de' ? 'Online/Abwesend/Offline automatisch' : 'Online/Away/Offline are automatic'}</span></label>
                     <select class="ctrl" id="pfStatusState">
-                      {Object.entries(STATUS_STATES).map(([key, st]) => (
-                        <option value={key}>{lang === 'de' ? st.labelDe : st.labelEn}</option>
-                      ))}
+                      <option value="">{lang === 'de' ? '— Automatisch (Präsenz) —' : '— Automatic (presence) —'}</option>
+                      <option value="ingame">{lang === 'de' ? STATUS_STATES.ingame.labelDe : STATUS_STATES.ingame.labelEn}</option>
+                      <option value="mission">{lang === 'de' ? STATUS_STATES.mission.labelDe : STATUS_STATES.mission.labelEn}</option>
                     </select>
                   </div>
                   <div class="field">
