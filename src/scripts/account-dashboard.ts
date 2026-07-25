@@ -1308,11 +1308,13 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           li.className = img ? 'fav fav--poster' : 'fav';
           const nameBlock =
             `<span class="fmain"><span class="fkind" style="--kc:${meta.c}">${escHtml(KINDS[f.kind] || f.kind)}</span>` +
-            `<a class="fname" href="${favPath(f.kind, f.slug)}">${escHtml(name)}</a></span>`;
-          li.innerHTML = img
+            `<span class="fname">${escHtml(name)}</span></span>`;
+          // Ganze Karte klickbar: Overlay-Link deckt die Karte ab (Remove-Button liegt darueber).
+          const cardLink = `<a class="fav__link" href="${favPath(f.kind, f.slug)}" aria-label="${escHtml(name)}"></a>`;
+          li.innerHTML = (img
             ? `<span class="fav__bg" style="background-image:url('${img}')" aria-hidden="true"></span>` +
               `<span class="fav__scrim" aria-hidden="true"></span>${nameBlock}`
-            : `<span class="fic" style="--kc:${meta.c}"><svg viewBox="0 0 24 24"><use href="#${meta.ic}"/></svg></span>${nameBlock}`;
+            : `<span class="fic" style="--kc:${meta.c}"><svg viewBox="0 0 24 24"><use href="#${meta.ic}"/></svg></span>${nameBlock}`) + cardLink;
           const rm = document.createElement('button');
           rm.className = 'frm';
           rm.type = 'button';
