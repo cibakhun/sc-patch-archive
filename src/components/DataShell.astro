@@ -15,6 +15,7 @@
 // :root-Bloecken generiert (eigenstaendige .css-Dateien sieht der Generator
 // nicht — siehe Kommentar in theme.css).
 import Layout from '../layouts/Layout.astro';
+import { versioned } from '../lib/assetVersion';
 import { SITE } from '../consts';
 import { href, pathForLocale, useTranslations, LOCALE_SHORT, HTML_LANG, type Locale } from '../i18n/ui';
 
@@ -52,6 +53,15 @@ const {
 
 const t = useTranslations(lang);
 const base = SITE.url.replace(/\/$/, '');
+
+// Cache-Busting fuer /assets/data-page.css: feste URL, von Cloudflare 1 Tag
+// gecacht (nginx-Map: text/css -> 1d). Ohne Content-Hash im Query lieferte die
+// Edge nach einem Deploy bis zu 24 h die ALTE Datei — genau das ist nach dem
+// box-sizing-Fix passiert (cf-cache-status HIT, age 6213). Gleiche Technik wie
+// /assets/account-lite.js (SiteNav) und /assets/archive.js (PatchArchive).
+// Der Hash wird pro Prozess EINMAL berechnet, nicht pro Seite: diese Huelle
+// rendert ~17.000 Mal.
+const cssHref = versioned('assets/data-page.css', '/assets/data-page.css');
 const other: Locale = lang === 'de' ? 'en' : 'de';
 const otherHref = pathForLocale(Astro.url.pathname, other);
 
@@ -80,7 +90,7 @@ const crumbLd = {
   translated={true}
   itemPage={{ modified, name: ldName }}
 >
-  <link slot="head" rel="stylesheet" href="/assets/data-page.css" />
+  <link slot="head" rel="stylesheet" href={cssHref} />
   <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(crumbLd)} />
   {jsonLd.map((node) => (
     <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(node)} />
