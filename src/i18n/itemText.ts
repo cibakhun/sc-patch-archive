@@ -31,6 +31,11 @@ export const ITEM_UI = {
     exInGameRewardLuminalia: 'Belohnung: Luminalia',
     exInGameRewardCleanAir: 'Belohnung: Clean Air',
     setPartOf: 'Teil des Sets', setViewAll: 'Alle Set-Teile ansehen', setPieces: 'Teile',
+    /* -- Set-Ansicht im Finder -- */
+    viewPieces: 'Einzelteile', viewSets: 'Sets', setPiece: 'Teil',
+    setsShowing: '{start}–{end} von {total} Sets', setsShowingNone: '0 Sets',
+    setFilterClear: 'Set-Filter aufheben', setOpen: 'Teile anzeigen',
+    setNoResults: 'Keine passenden Sets gefunden.',
     /* -- Set-Seite (/armor-sets.html) -- */
     setsBreadcrumb: 'Rüstungs-Sets',
     setsTitle: 'Star Citizen Rüstungs-Sets',
@@ -155,6 +160,11 @@ export const ITEM_UI = {
     exInGameRewardLuminalia: 'Luminalia reward',
     exInGameRewardCleanAir: 'Clean Air reward',
     setPartOf: 'Part of set', setViewAll: 'View all set pieces', setPieces: 'pieces',
+    /* -- set view inside the finder -- */
+    viewPieces: 'Individual pieces', viewSets: 'Sets', setPiece: 'piece',
+    setsShowing: '{start}–{end} of {total} sets', setsShowingNone: '0 sets',
+    setFilterClear: 'Clear set filter', setOpen: 'Show pieces',
+    setNoResults: 'No matching sets found.',
     /* -- sets page (/armor-sets.html) -- */
     setsBreadcrumb: 'Armor sets',
     setsTitle: 'Star Citizen Armor Sets',
