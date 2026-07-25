@@ -381,12 +381,21 @@
       var complete = s.coreSlots === 4;
       var badge = '<span class="uif-setbadge' + (complete ? ' is-ok' : '') + '">' +
         esc(complete ? tr('setsComplete', 'komplett') : tr('setsPartial', '{n}/4 Kernslots').replace('{n}', s.coreSlots)) + '</span>';
-      var meta = [];
-      if (s.manufacturer) meta.push(s.manufacturer);
-      if (s.weight) meta.push(weightLabel(s.weight));
+      // Hersteller und Panzerungsklasse in GETRENNTE Spans. Zusammen in einem
+      // Span kuerzt `text-overflow: ellipsis` von rechts — und weil die Klasse
+      // hinten steht, verschwindet als Erstes genau die Information, wegen der
+      // die Zeile da ist („CLARK DEFENSE SYSTEMS · HEA…", bei Roussimoff
+      // Rehabilitation Systems fiel sie ganz weg). Jetzt kuerzt nur der
+      // Herstellername; die Klasse schrumpft nie (CSS: flex 0 0 auto).
+      var mfrHtml = s.manufacturer
+        ? '<span class="uif-setcard-mfr" title="' + esc(s.manufacturer) + '">' + esc(s.manufacturer) + '</span>'
+        : '';
+      var weightHtml = s.weight
+        ? '<span class="uif-setcard-weight">' + esc(weightLabel(s.weight)) + '</span>'
+        : '';
       return '<div class="uif-card uif-setcard" data-set="' + esc(s.id) + '" tabindex="0" role="button">' +
         '<div class="uif-card-header">' +
-          '<div class="uif-card-cat-wrapper">' + categoryIcon('Armour') + ' <span>' + esc(meta.join(' · ')) + '</span></div>' +
+          '<div class="uif-card-cat-wrapper">' + categoryIcon('Armour') + mfrHtml + weightHtml + '</div>' +
           badge +
         '</div>' +
         '<h4 class="uif-card-title">' + esc(s.name) + '</h4>' +

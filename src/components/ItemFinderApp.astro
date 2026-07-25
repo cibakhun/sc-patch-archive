@@ -710,6 +710,12 @@ const JS_T = ITEM_UI[lang];
   .uif-viewbtn.active { background: var(--accent, #ff5e1a); color: var(--ink); font-weight: 700; }
 
   .uif-setcard { cursor: pointer; }
+  /* Eyebrow der Set-Karte: nur der Herstellername darf gekuerzt werden.
+     Die Panzerungsklasse ist kurz und die eigentliche Aussage der Zeile —
+     sie schrumpft nie. Der volle Herstellername steht im title-Attribut. */
+  .uif-setcard-mfr { flex: 0 1 auto; min-width: 0; }
+  .uif-setcard-weight { flex: 0 0 auto; }
+  .uif-setcard-weight::before { content: '·'; margin-right: .35rem; opacity: .55; }
   .uif-setbadge {
     font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
     padding: .1rem .45rem; border-radius: 3px; border: 1px solid currentColor;
