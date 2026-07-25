@@ -16,7 +16,11 @@ const CHECK_MS = 30 * 60 * 1000;
 // Bumped bi1 → bi2: the bi1 cutover never actually posted (an earlier bot run
 // hit the "channel not found" branch below, which wrongly recorded the version
 // as handled without posting anything — #patch-notes had only the seed post).
-const POST_FMT = 'bi2';
+// Bumped bi2 → bi3: the server moved to a new Discord application, and Discord
+// strips the embeds off every message sent by a deleted application — the 4.9.0
+// mirror survived as a blank message. The DB still said "posted", so only a
+// format bump gets it re-posted (silently, no ping).
+const POST_FMT = 'bi3';
 
 const findPatchChannel = (guild) =>
   guild.channels.cache.find((c) => c.isTextBased?.() && !c.isVoiceBased?.() && /patch-notes/i.test(c.name));

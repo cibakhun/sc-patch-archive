@@ -2,16 +2,25 @@
 // bot's own (managed) role. Matches roles by a text key (emoji-agnostic).
 // Safe/reversible; a failed attempt changes nothing. Prints the exact error.
 import { Client, GatewayIntentBits } from 'discord.js';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as bp from './blueprint.mjs';
 import { RANKS } from './bot/src/ranks.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-for (const line of readFileSync(join(__dirname, '.env'), 'utf8').split(/\r?\n/)) {
-  const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)\s*$/);
-  if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].trim().replace(/^['"]|['"]$/g, '');
+// .env is optional — a git worktree has none, so the vars may come from the
+// environment instead. (Reading it unconditionally used to crash with ENOENT.)
+const envPath = join(__dirname, '.env');
+if (existsSync(envPath)) {
+  for (const line of readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)\s*$/);
+    if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].trim().replace(/^['"]|['"]$/g, '');
+  }
+}
+if (!process.env.DISCORD_TOKEN) {
+  console.error('✗ No DISCORD_TOKEN — set it in discord/.env or the environment.');
+  process.exit(1);
 }
 
 // Emoji-agnostic label for a role name ("⭐ Fleet Command" → "Fleet Command").

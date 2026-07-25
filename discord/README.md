@@ -14,6 +14,8 @@ keep running afterwards.
 discord/
 ├─ blueprint.mjs   ← the entire server as data (edit this)
 ├─ build.mjs       ← the engine (validate + build)
+├─ order-roles.mjs ← sorts the role hierarchy (npm run order)
+├─ audit.mjs       ← read-only health check of the live server (npm run audit)
 ├─ make-icon.mjs   ← generates the server icon (zero deps)
 ├─ assets/         ← verse-base-icon.png (generated)
 ├─ .env            ← your bot token (git-ignored; you create this)
@@ -94,10 +96,26 @@ npm install         # once
 npm run icon        # generate assets/verse-base-icon.png (optional; already committed)
 npm run validate    # offline sanity check of the blueprint
 npm run build       # log in and build the server
+npm run order       # sort the role hierarchy (after the bot has created rank roles)
+npm run audit       # read-only: diff the live server against the blueprint
 ```
 
 You'll see a step-by-step log. When it finishes, the server is live. **Re-run `npm run build`
 any time** after editing the blueprint — it reconciles the live server to match.
+
+### `npm run audit` — does the live server still match?
+
+A read-only pass that **never writes to Discord**. It fetches the live guild and diffs every
+role, permission bit, channel, overwrite, AutoMod rule, onboarding prompt, welcome-screen
+entry, emoji and pinned seed post against `blueprint.mjs` and the bot's rank ladder — then
+**simulates Discord's own permission resolution** to print what a brand-new member, a
+Prospect, a Citizen, a moderator and the bot can actually do in every channel. It also
+catches things the blueprint can't describe: foreign global slash commands on the
+application, Public Bot left on, invites that expire, staff roles nobody holds, ping roles
+anyone can @mention, and stage channels where the audience can put itself on stage.
+
+Findings are `✗ ERROR` (broken), `! WARN` (drifted) or `· INFO`. Add `--json <file>` to dump
+them for tooling. Run it after every build, and before opening the server to new members.
 
 ---
 
@@ -106,8 +124,17 @@ any time** after editing the blueprint — it reconciles the live server to matc
 Everything lives in [`blueprint.mjs`](./blueprint.mjs):
 
 - **Add a channel** → add an entry to a category's `channels` array (give it a unique `key`).
+  The order of the arrays **is** the order on the server — the builder applies positions.
 - **Add a role** → add to `roles` (top → bottom order). Reference its `key` from onboarding
   options or channel `overwrites`.
+- **Give a role to someone** → `roleAssignments` (`owner` / `bot`). Creating a role isn't the
+  same as anyone holding it: without this the hoisted staff group is empty, the private
+  Flight Deck has no humans in it and the AutoMod exemptions apply to nobody.
+- **Forum tags** → `tags: [...]` on a forum channel. Existing tags keep their id (matched by
+  name), so posts already filed under a tag don't lose it on a re-run.
+- **The permanent invite** → `guild.inviteChannel`. Hand-made invites expire after 30 days,
+  which quietly kills any link on the website; the builder keeps one never-expiring invite
+  alive and prints it.
 - **Gate a channel by rank** → add `minRank: '<rankKey>'` (a key from `bot/src/ranks.mjs`,
   e.g. `'citizen'`). @everyone loses view; everyone at that rank and above (and prestiged
   members) gets it. Needs the bot to have created the rank roles first.
@@ -152,3 +179,68 @@ ever hit the API.
   once you have boosts.
 - **Never commit `.env`.** It holds the bot token and is git-ignored. If it ever leaks, hit
   **Reset Token** in the Developer Portal.
+- **Stage channels have their own rules.** A Stage *moderator* needs `ManageChannels` +
+  `MuteMembers` + `MoveMembers` **in that channel** — 🛰 Navigators get the first one as a
+  channel overwrite only, so moderators can run 📻 Briefing Room without server-wide channel
+  management. And anyone holding `Speak` can put *themselves* on stage, so @everyone loses
+  `Speak` there and keeps `RequestToSpeak` (raise a hand) instead.
+
+---
+
+## Moving the bot to its own application
+
+One application = one bot identity = one set of global slash commands. If the token is shared
+with another project, **that project's global commands show up in this server's command
+picker for every member**, and the bot's name and profile are whatever that project called
+it. `npm run audit` reports both. Migrating is safe — rank roles, the XP database, emoji and
+every channel survive, because none of them belong to the application.
+
+**You do these (Claude can't sign in for you):**
+
+1. <https://discord.com/developers/applications> → **New Application** → name it `VerseBase`.
+2. **General Information** → set the description and upload `assets/verse-base-icon.png` as
+   the app icon. Copy the **Application ID**.
+3. **Bot** tab → set **Username** to `Verse-Bot`, upload the same image as the avatar,
+   **untick Public Bot**, leave every privileged intent **off** → **Reset Token** → copy it.
+4. Paste that token into **both** `discord/.env` and `discord/bot/.env` (keep `GUILD_ID`).
+5. Invite it — the old bot stays for now, so the server is never without an admin bot:
+   ```
+   https://discord.com/oauth2/authorize?client_id=YOUR_APPLICATION_ID&scope=bot+applications.commands&permissions=8
+   ```
+6. Server Settings → **Roles** → drag the new bot's role to the **top**, above ⭐ Fleet Command.
+7. Coolify → *VerseBase Bot* → **Environment** → replace `DISCORD_TOKEN` → **Redeploy**.
+8. Once the new bot is online: **kick the old bot** from the server.
+
+**Then re-run these — in this order:**
+
+```bash
+npm run build    # re-points every bot-role overwrite at the NEW managed role
+npm run order    # rebuilds the hierarchy under the new bot role
+npm run audit    # lists whatever the swap left behind
+```
+
+Step 8 deletes the old bot's managed role, and Discord drops the channel overwrites that
+referenced it — the read-only channels and 🎖 veterans-lounge lose their "the bot may post
+here" grant until `npm run build` puts it back. Don't skip it.
+
+### Two things the swap leaves behind
+
+**Blank ghost messages.** Deleting the old application **strips the embeds off every message
+it ever sent** — the pinned seed posts survive as empty messages, and the builder can't edit
+or replace them (different author), so it posts a second copy alongside. `npm run build` and
+`npm run audit` both report them. Clear them with:
+
+```bash
+node clean-orphaned-messages.mjs --author OLD_APPLICATION_ID            # dry run
+node clean-orphaned-messages.mjs --author OLD_APPLICATION_ID --delete   # remove
+```
+
+It only ever touches messages that are bot-written, from an account no longer in the server,
+not a system notice, and **completely empty** — and it skips the public-updates channel,
+because Discord's own "Community Updates" and "automod" accounts look identical to an
+orphaned bot. Run the dry run first and read the list.
+
+**The patch feed goes blank too.** The mirrored patch post is one of those stripped messages,
+and the bot's database still says that version was posted, so it won't re-post on its own.
+Bump `POST_FMT` in [`bot/src/patch-watch.mjs`](./bot/src/patch-watch.mjs) (e.g. `bi2` → `bi3`)
+and deploy: the next start re-posts the current patch silently, with no ping.

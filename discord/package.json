@@ -8,7 +8,8 @@
     "icon": "node make-icon.mjs",
     "validate": "node build.mjs --validate",
     "build": "node build.mjs",
-    "order": "node order-roles.mjs"
+    "order": "node order-roles.mjs",
+    "audit": "node audit.mjs"
   },
   "engines": {
     "node": ">=20.6"
