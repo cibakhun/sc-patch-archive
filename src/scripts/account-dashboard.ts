@@ -1277,6 +1277,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         .select('id, kind, slug, label')
         .order('created_at', { ascending: false });
 
+      // Schiffbild-Manifest (id -> Bild-URL) für Poster-Karten; leise/non-blocking
+      const shipThumbs: Record<string, string> = await fetch('/assets/ship-thumbs.json')
+        .then(r => (r.ok ? r.json() : {})).catch(() => ({}));
+
       // Icon + Akzentfarbe je Favoriten-Art (Dossier-Kartendesign)
       const FAV_ICON: Record<string, { ic: string; c: string }> = {
         ship: { ic: 'ic-ship', c: 'var(--accent)' },
@@ -1292,12 +1296,16 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         for (const f of rows) {
           const meta = FAV_ICON[f.kind] || { ic: 'ic-star', c: 'var(--accent)' };
           const name = f.label || f.slug;
+          const img = f.kind === 'ship' ? shipThumbs[f.slug] : null;
           const li = document.createElement('li');
-          li.className = 'fav';
-          li.innerHTML =
-            `<span class="fic" style="--kc:${meta.c}"><svg viewBox="0 0 24 24"><use href="#${meta.ic}"/></svg></span>` +
+          li.className = img ? 'fav fav--poster' : 'fav';
+          const nameBlock =
             `<span class="fmain"><span class="fkind" style="--kc:${meta.c}">${escHtml(KINDS[f.kind] || f.kind)}</span>` +
             `<a class="fname" href="${favPath(f.kind, f.slug)}">${escHtml(name)}</a></span>`;
+          li.innerHTML = img
+            ? `<span class="fav__bg" style="background-image:url('${img}')" aria-hidden="true"></span>` +
+              `<span class="fav__scrim" aria-hidden="true"></span>${nameBlock}`
+            : `<span class="fic" style="--kc:${meta.c}"><svg viewBox="0 0 24 24"><use href="#${meta.ic}"/></svg></span>${nameBlock}`;
           const rm = document.createElement('button');
           rm.className = 'frm';
           rm.type = 'button';
