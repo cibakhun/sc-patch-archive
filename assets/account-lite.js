@@ -207,7 +207,13 @@
       .catch(function () { return 'user'; });
   }
 
-  function applyRestrictions(role) {
+  // ---- Rolle anwenden ------------------------------------------------------
+  // Setzt nur noch die Rollen-Klasse: das einzige verbliebene Admin-Recht ist die
+  // Theme-Wahl. Archiv und Patch-Seiten waren bis 25.07.2026 admin-only (Body
+  // versteckt + Redirect auf die Startseite); sie sind jetzt fuer alle offen —
+  // sie standen ohnehin im Suchindex und in der Sitemap, echte Besucher wurden
+  // also von genau den Seiten weggeleitet, die Google zu sehen bekam.
+  function applyRole(role) {
     var isAdmin = role === 'admin';
     var doc = document.documentElement;
     doc.classList.toggle('is-admin', isAdmin);
@@ -218,25 +224,6 @@
     // gespeicherte Wahl bzw. das OS-Theme geben. reconcile() lebt im Inline-
     // Script von Layout.astro (single source of truth fuers Painting).
     try { if (window.__vbReconcileTheme) window.__vbReconcileTheme(); } catch (e) { /* noop */ }
-
-    // Archiv- und Patch-Seiten bleiben admin-only. Die Kontofläche ist jetzt für
-    // ALLE freigeschaltet — jede eingeloggte Person verwaltet ihr eigenes Konto
-    // (RLS isoliert die Daten); die /account-Seite leitet Nicht-Eingeloggte
-    // selbst zum Login weiter (account-dashboard.ts prüft nur die Session).
-    var path = location.pathname.toLowerCase();
-    var isArchivePage = path.indexOf('/archiv') !== -1 || path.indexOf('/patches/') !== -1;
-
-    if (isArchivePage && !isAdmin) {
-      if (document.body) document.body.style.display = 'none';
-      var home = IS_DE ? '/de.html' : '/';
-      location.replace(home);
-    }
-
-    // Nav-Links mit data-restricted ausblenden fuer Nicht-Admins
-    var restricted = document.querySelectorAll('[data-restricted]');
-    for (var i = 0; i < restricted.length; i++) {
-      restricted[i].style.display = isAdmin ? '' : 'none';
-    }
   }
 
   // ---- Zwei-Signal-Präsenz-Heartbeat --------------------------------------
@@ -288,11 +275,11 @@
         });
 
         roleP.then(function (role) {
-          applyRestrictions(role);
+          applyRole(role);
         });
       } else {
         // Nicht eingeloggt — prüfen ob geschuetzte Seite
-        applyRestrictions(null);
+        applyRole(null);
       }
     });
 
@@ -309,10 +296,10 @@
           if (uname) paintNav(sess, uname);
         });
         fetchUserRole(sess).then(function (role) {
-          applyRestrictions(role);
+          applyRole(role);
         });
       } else {
-        applyRestrictions(null);
+        applyRole(null);
       }
     });
   }

@@ -240,8 +240,8 @@ ol {
 }
 
 /* ── Masthead — command console ─────────────────────────────────────────────
-   No hero image: the void IS the image. The type + telemetry + spectral ribbon
-   carry the opening, framed by two HUD corner brackets. */
+   No hero image: the void IS the image. The type, the telemetry readout and the
+   release trace carry the opening on their own. */
 .mast {
   position: relative;
   max-width: var(--maxw);
@@ -387,74 +387,230 @@ ol {
   color: var(--muted);
 }
 
-/* ── Spectral ribbon ────────────────────────────────────────────────────────
-   A real plot: ticks sit at their true position between the first and last
-   release and take their era's colour. The eye reads the cadence — the dense
-   4.8 cluster, the summer-2025 gaps — before a single word. */
+/* ── Release trace ──────────────────────────────────────────────────────────
+   Instrument, not progress bar. A hairline AXIS runs the width of the span and
+   is segmented into the six chapters — each segment in its era's colour, lit
+   when that chapter owns the screen, captioned with the same numeral the
+   chapter carries below. Releases are STEMS rising from that axis at their true
+   position in time, capped by a dot (point) or an outlined diamond (major, the
+   same marker the timeline uses). Dotted CALENDAR GRIDLINES give the cadence a
+   scale to be read against.
+
+   Colour discipline is what makes nineteen ticks legible: only majors spend the
+   full era colour. Point releases carry one-off accents in the data (a green
+   convoy event, a teal alien week) and are mixed most of the way to the cool
+   --dim, so the strip reads as one spectral voyage instead of a rainbow. */
 .ribbon {
+  --plot-h: 104px; /* stems + gridlines + the numeral row under the axis */
+  --axis-b: 22px; /* axis height above the plot floor — numerals live below it */
   margin-top: clamp(1.8rem, 3.4vw, 2.5rem);
 }
 .ribbon__plot {
   position: relative;
-  height: 58px;
-  border-bottom: 1px solid var(--line);
+  height: var(--plot-h);
 }
+/* chart end caps — a short riser at each end of the axis */
+.ribbon__plot::before,
+.ribbon__plot::after {
+  content: '';
+  position: absolute;
+  bottom: var(--axis-b);
+  width: 1px;
+  height: 9px;
+  background: color-mix(in srgb, var(--muted) 45%, transparent);
+}
+.ribbon__plot::before {
+  left: 0;
+}
+.ribbon__plot::after {
+  right: 0;
+}
+
+/* — Chapter zone: axis segment + ground wash + numeral — */
 .ribbon__band {
   position: absolute;
+  top: 0;
   bottom: 0;
   left: var(--from);
   width: calc(var(--to) - var(--from));
-  height: 6px;
-  background: color-mix(in srgb, var(--c) 26%, transparent);
-  transition: height 0.4s var(--ease), background-color 0.4s var(--ease);
 }
-.ribbon__band.is-now {
-  height: 10px;
-  background: color-mix(in srgb, var(--c) 68%, transparent);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--c) 45%, transparent);
-}
-.ribbon__tick {
+/* the axis itself, in this chapter's colour */
+.ribbon__band::before {
+  content: '';
   position: absolute;
-  bottom: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--axis-b);
+  height: 2px;
+  background: color-mix(in srgb, var(--c) 40%, transparent);
+  transition: background-color 0.45s var(--ease), box-shadow 0.45s var(--ease);
+}
+/* the era's light pooling on the axis — atmosphere, kept under 15% so it never
+   reads as a filled bar */
+.ribbon__band::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--axis-b) + 2px);
+  height: 34%;
+  background: linear-gradient(to top, color-mix(in srgb, var(--c) 14%, transparent), transparent);
+  opacity: 0.5;
+  transition: opacity 0.45s var(--ease);
+}
+/* chapter divider — a hairline that fades out before it reaches the axis */
+.ribbon__band + .ribbon__band {
+  background-image: linear-gradient(to bottom, transparent, var(--line-2) 30%, var(--line-2));
+  background-size: 1px calc(100% - var(--axis-b));
+  background-repeat: no-repeat;
+  background-position: left top;
+}
+.ribbon__band-n {
+  position: absolute;
+  left: 0;
+  bottom: 0.1rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-style: normal;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: color-mix(in srgb, var(--c) 50%, var(--dim));
+  transition: color 0.45s var(--ease), text-shadow 0.45s var(--ease);
+}
+/* the chapter under the reader's screen lights its own segment */
+.ribbon__band.is-now::before {
+  background: var(--c);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--c) 55%, transparent);
+}
+.ribbon__band.is-now::after {
+  opacity: 1;
+}
+.ribbon__band.is-now .ribbon__band-n {
+  color: var(--c);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--c) 45%, transparent);
+}
+/* A chapter can be a sliver — the newest one is a week old. Its numeral would
+   only collide with its neighbour's. */
+.ribbon__band.is-narrow .ribbon__band-n {
+  display: none;
+}
+
+/* — Calendar gridlines — */
+.ribbon__year {
+  position: absolute;
+  top: 0;
+  bottom: var(--axis-b);
   left: var(--x);
-  width: 24px;
-  margin-left: -12px;
-  height: 100%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  width: 1px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--line) 90%, transparent) 0 3px,
+    transparent 3px 7px
+  );
+}
+.ribbon__year i {
+  position: absolute;
+  top: -0.15rem;
+  left: 0.4rem;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+}
+
+/* — Release stem + cap — */
+.ribbon__tick {
+  --stem: 24%;
+  --sc: color-mix(in srgb, var(--c) 32%, var(--dim));
+  position: absolute;
+  bottom: var(--axis-b);
+  left: var(--x);
+  width: 22px;
+  margin-left: -11px;
+  height: calc(100% - var(--axis-b) - 18px);
+}
+.ribbon__tick.is-major {
+  --stem: 62%;
+  --sc: var(--c);
+}
+.ribbon__tick.is-latest {
+  --stem: 88%;
+}
+.ribbon__tick:hover,
+.ribbon__tick:focus-visible {
+  --stem: 100%;
+  --sc: var(--c);
 }
 .ribbon__tick::before {
   content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 1px;
+  margin-left: -0.5px;
+  height: var(--stem);
+  background: linear-gradient(to top, var(--sc), color-mix(in srgb, var(--sc) 35%, transparent));
+  transition: height 0.28s var(--ease-out), background-image 0.25s;
+}
+.ribbon__tick.is-major::before,
+.ribbon__tick:hover::before {
   width: 2px;
-  height: 32%;
+  margin-left: -1px;
+}
+.ribbon__pip {
+  position: absolute;
+  left: 50%;
+  bottom: var(--stem);
+  width: 5px;
+  height: 5px;
+  margin: 0 0 -2.5px -2.5px;
+  border-radius: 50%;
+  background: var(--sc);
+  transition: bottom 0.28s var(--ease-out), background-color 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+/* majors get the timeline's own diamond marker, so the strip and the flight
+   path speak the same language */
+.ribbon__tick.is-major .ribbon__pip {
+  width: 8px;
+  height: 8px;
+  margin: 0 0 -4px -4px;
+  border-radius: 0;
+  transform: rotate(45deg);
+  background: var(--void);
+  border: 1.5px solid var(--c);
+}
+.ribbon__tick.is-latest .ribbon__pip {
   background: var(--c);
-  opacity: 0.55;
-  transform-origin: bottom;
-  transition: opacity 0.25s, height 0.25s var(--ease), box-shadow 0.25s;
-}
-.ribbon__tick.is-major::before {
-  height: 66%;
-  opacity: 0.85;
-}
-.ribbon__tick.is-latest::before {
-  height: 100%;
-  width: 3px;
-  opacity: 1;
-  box-shadow: 0 0 12px var(--c), 0 0 4px var(--c);
-}
-.ribbon__tick:hover::before,
-.ribbon__tick:focus-visible::before {
-  opacity: 1;
-  height: 100%;
   box-shadow: 0 0 12px var(--c);
+}
+/* lock-on ring on the current release */
+.ribbon__tick.is-latest .ribbon__pip::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 1px solid var(--c);
+  animation: pipRing 2.8s var(--ease-out) infinite;
+}
+@keyframes pipRing {
+  0% { transform: scale(0.55); opacity: 0.85; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+.ribbon__tick:hover .ribbon__pip,
+.ribbon__tick:focus-visible .ribbon__pip {
+  box-shadow: 0 0 14px var(--c);
+}
+.ribbon__tick:not(.is-major):hover .ribbon__pip {
+  width: 7px;
+  height: 7px;
+  margin: 0 0 -3.5px -3.5px;
 }
 /* CSS-only tooltip (the label is already in the DOM for screen readers). Dark
    in both modes: it floats over the plot, not the page. */
 .ribbon__tick::after {
   content: attr(data-label);
   position: absolute;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 6px);
   left: 50%;
   transform: translate(-50%, 4px);
   white-space: nowrap;
@@ -477,24 +633,74 @@ ol {
   opacity: 1;
   transform: translate(-50%, 0);
 }
+.ribbon__tick:hover,
+.ribbon__tick:focus-visible {
+  z-index: 6; /* the raised stem and its tooltip clear the neighbours */
+}
+
+/* — Axis labels + legend — */
 .ribbon__axis {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 1rem;
-  margin-top: 0.55rem;
+  margin-top: 0.6rem;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
   color: var(--dim);
   text-transform: uppercase;
 }
+.ribbon__legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.1rem;
+}
+.ribbon__k {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.ribbon__k::before {
+  content: '';
+  flex: none;
+}
+/* the key swatches ride --era, so they always name the colour on screen */
+.ribbon__k--major::before {
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid var(--era);
+  transform: rotate(45deg);
+  transition: border-color 0.85s var(--ease);
+}
+.ribbon__k--point::before {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--dim);
+}
 .ribbon__hint {
-  letter-spacing: 0.12em;
-  color: color-mix(in srgb, var(--dim) 80%, transparent);
+  color: color-mix(in srgb, var(--dim) 72%, transparent);
+}
+@media (max-width: 760px) {
+  .ribbon__hint {
+    display: none;
+  }
 }
 @media (max-width: 620px) {
-  .ribbon__hint {
+  .ribbon {
+    --plot-h: 82px;
+    --axis-b: 18px;
+  }
+  /* nineteen releases in ~350px: narrower hit areas so neighbouring targets
+     overlap less and a tap lands on the marker under the finger */
+  .ribbon__tick {
+    width: 16px;
+    margin-left: -8px;
+  }
+  .ribbon__legend {
     display: none;
   }
 }
@@ -1243,31 +1449,70 @@ mark {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: clamp(0.8rem, 1.6vw, 1.1rem);
 }
+/* The curated list is seven, so the last row is always one card short of full —
+   a single orphan card reads as a layout bug. Give it the whole row instead. */
+.icard:last-child:nth-child(3n + 1) {
+  grid-column: 1 / -1;
+}
 .icard {
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0 0.9rem;
   align-items: start;
-  padding: 1.2rem 2.6rem 1.2rem 1.3rem;
+  padding: 1.2rem 2.6rem 1.2rem 1.4rem;
   background: var(--panel);
   border: 1px solid var(--line-2);
-  border-left: 2px solid color-mix(in srgb, var(--c) 55%, transparent);
   clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
   transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s var(--ease);
 }
+/* the topic's own light pooling in the corner the numeral sits in */
+.icard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(115% 85% at 0% 0%, color-mix(in srgb, var(--c) 13%, transparent), transparent 62%);
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease);
+}
+/* edge strip — a lit rail rather than a flat 2px border */
+.icard::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 10%, transparent));
+  opacity: 0.65;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
 .icard:hover {
   border-color: color-mix(in srgb, var(--c) 45%, transparent);
-  border-left-color: var(--c);
   box-shadow: 0 0 30px color-mix(in srgb, var(--c) 14%, transparent);
   transform: translateY(-2px);
 }
+.icard:hover::before,
+.icard:hover::after {
+  opacity: 1;
+}
+/* Orbitron, matching the chapter numerals' family — filled, not outlined: at
+   1.5rem a stroke closes its own counters and reads as a muddy fill anyway. */
 .icard__n {
-  font-family: var(--font-num);
-  font-weight: 600;
-  font-size: 1.9rem;
-  line-height: 0.9;
-  color: color-mix(in srgb, var(--c) 70%, var(--muted));
+  position: relative;
+  margin-top: -0.05rem;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--c) 72%, var(--muted));
+  transition: color 0.25s;
+}
+.icard:hover .icard__n {
+  color: var(--c);
 }
 .icard__t {
   font-family: var(--font-display);
@@ -1351,27 +1596,52 @@ mark {
   color: var(--dim);
   font-variant-numeric: tabular-nums;
 }
+/* Three columns, not four: the widest topic titles ("Storm Breaker · Weather
+   becomes a hazard") need the room, and a register that ellipsises half its
+   entries is not a register. */
 .trows {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 0 1.8rem;
 }
+/* One line per entry, always: a long topic title used to wrap to three lines and
+   knock the whole register's rules out of alignment. The full text stays in the
+   link's title attribute. */
 .trow {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 0.8rem;
-  padding: 0.5rem 0.4rem;
+  padding: 0.52rem 0.4rem 0.52rem 0.72rem;
   border-bottom: 1px solid var(--line-2);
-  transition: background-color 0.15s, color 0.15s, padding-left 0.2s var(--ease);
+  transition: background-color 0.15s, color 0.15s;
+}
+/* the hover marker grows out of the left rule — no padding shift, so the text
+   under the cursor never moves */
+.trow::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 2px;
+  height: 0;
+  background: var(--c);
+  transform: translateY(-50%);
+  transition: height 0.2s var(--ease-out);
 }
 .trow__t {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .trow:hover {
   color: var(--accent);
   background: color-mix(in srgb, var(--c) 8%, transparent);
-  padding-left: 0.7rem;
+}
+.trow:hover::before {
+  height: 62%;
 }
 .trow__v {
   font-family: var(--font-mono);
