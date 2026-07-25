@@ -20,8 +20,8 @@ const label = (name) => String(name).replace(/^[^\p{L}\p{N}]+/u, '').trim();
 // Desired order, TOP → bottom, derived from the single sources of truth so it can
 // never drift from the actual roles: hoisted staff roles (blueprint) → ranks
 // high→low (the bot's ladder) → everything else in blueprint order (playstyles,
-// pings, language, pronouns). Prestige (✦ Ascended) roles are hoisted and
-// self-manage, so they're intentionally left where they are.
+// pings, language, pronouns). Prestige (✦ Ascended) roles are bot-created (not in
+// the blueprint) and self-manage, so they're intentionally left where they are.
 const staff = bp.roles.filter((r) => r.hoist).map((r) => label(r.name));
 const rest = bp.roles.filter((r) => !r.hoist).map((r) => label(r.name));
 const ranks = [...RANKS].reverse().map((r) => r.name);
