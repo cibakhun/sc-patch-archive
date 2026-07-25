@@ -755,6 +755,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 <script>
   import { supabase, FAV_PATH } from '../../lib/supabase';
   import { CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
+  import { resolveStatusKey } from '../../lib/presence';
 
   const app = document.getElementById('ppApp');
   if (app) {
@@ -841,9 +842,13 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
         avTxt.textContent = p.avatar_icon || '◆';
       }
 
-      // Status (Dot + Transmission)
-      const st = (STATUS_STATES as Record<string, { labelDe: string; labelEn: string; color: string; pulse: boolean }>)[p.status_state]
-        || STATUS_STATES.online;
+      // Status (Dot + Transmission) — dynamische Präsenz aus der View (p.presence:
+      // online/away/offline, serverseitig aus last_seen) + optionale manuelle
+      // Aktivität (p.status_state = ingame/mission überschreibt "online").
+      const presence = (p.presence === 'online' || p.presence === 'away') ? p.presence : 'offline';
+      const stKey = resolveStatusKey(presence, p.status_state);
+      const st = (STATUS_STATES as Record<string, { labelDe: string; labelEn: string; color: string; pulse: boolean }>)[stKey]
+        || STATUS_STATES.offline;
       const dot = $('ppStatusDot') as HTMLElement;
       dot.style.background = st.color;
       dot.style.boxShadow = `0 0 12px ${st.color}`;
