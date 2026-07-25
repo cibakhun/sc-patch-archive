@@ -233,7 +233,7 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
     /* Flex-Mono-Code-Zeilen (…//…): min-width:0 lässt die Ellipsis greifen,
        statt die Zeile (langer EN-System-Name) über den Rand zu drücken. */
     .tf__code, .qf__code, .do__code, .sd__code { min-width: 0; }
-    /* Admin-only restricted content (Patch Archive, Account) */
+    /* Admin-only restricted content (Patch Archive) — Account ist offen für alle */
     html:not(.is-admin) [data-restricted="patch-archive"],
     html:not(.is-admin) .js-restricted-archive {
       display: none !important;
