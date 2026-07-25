@@ -512,7 +512,8 @@ const confirmRedirect = loginHref + '?confirmed=1';
                     <button type="button" class="acx-upload__remove" id="pfBannerRemove" hidden>{COPY.uploadRemove}</button>
                     <span class="acx-upload__status" id="pfBannerUploadStatus" role="status" aria-live="polite"></span>
                   </div>
-                  <input class="inp" id="pfBannerUrl" type="url" placeholder={COPY.bannerUrl} style="margin-top:0.6rem" />
+                  <!-- Datenträger für die Banner-URL (Picker/Upload schreiben rein); nicht sichtbar -->
+                  <input type="hidden" id="pfBannerUrl" />
                 </div>
 
                 <div class="field" style="margin-bottom:0;margin-top:1.2rem">
@@ -532,7 +533,8 @@ const confirmRedirect = loginHref + '?confirmed=1';
                         <button type="button" class="acx-upload__remove" id="pfAvatarRemove" hidden>{COPY.uploadRemove}</button>
                         <span class="acx-upload__status" id="pfAvatarUploadStatus" role="status" aria-live="polite"></span>
                       </div>
-                      <input class="inp" id="pfAvatarUrl" type="url" placeholder={COPY.avatarUrl} style="margin-top:0.6rem" />
+                      <!-- Datenträger für die Avatar-URL (Picker/Upload schreiben rein); nicht sichtbar -->
+                      <input type="hidden" id="pfAvatarUrl" />
                     </div>
                     <div>
                       <label>{COPY.avatarColorSelect}</label>
