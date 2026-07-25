@@ -513,7 +513,9 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     display: inline-flex; align-items: center; gap: 0.35rem;
     background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.45);
     color: #4ade80; padding: 0.2rem 0.65rem;
-    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    /* gerundet statt clip-path-Abschraegung: ein normaler border wird vom
+       clip-path an den Diagonalen abgeschnitten (Kontur "bricht an der Schraege ab") */
+    border-radius: 7px;
     font-family: var(--font-ui); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em;
   }
   .pp-verified[hidden] { display: none !important; }
