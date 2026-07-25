@@ -345,6 +345,33 @@ const confirmRedirect = loginHref + '?confirmed=1';
   </defs></svg>
 
   <div class="acshell reveal">
+      <!-- Cinematic Pilot Hero (Preview-Design, persistent, echte Daten via ov*) -->
+      <header class="phero">
+        <div class="phero__img" id="ovBanner" aria-hidden="true"></div>
+        <div class="phero__scrim" aria-hidden="true"></div>
+        <div class="phero__in">
+          <span class="phero__kicker">{lang === 'de' ? 'UEE Citizen Registry · Piloten-Dossier' : 'UEE Citizen Registry · Pilot Dossier'}</span>
+          <div class="phero__row">
+            <div class="phero__av" id="ovAvatarBox"><span id="ovAvatarText">◆</span><img id="ovAvatarImg" src="" alt="" hidden /><span class="phero__dot" id="ovStatusDot" aria-hidden="true"></span></div>
+            <h1 class="phero__name" id="ovName">Citizen</h1>
+            <span class="phero__badge" id="ovVerified" hidden><svg class="ic" aria-hidden="true"><use href="#i-verified" /></svg> RSI Verified</span>
+          </div>
+          <div class="phero__chips">
+            <span class="phero__handle" id="ovHandle">@citizen</span>
+            <span class="phero__chip" id="ovRolePill" hidden><svg class="ic" aria-hidden="true"><use href="#i-hex" /></svg> <b id="ovRoleText"></b></span>
+            <span class="phero__chip" id="ovStatusPill"><span id="ovStatusLabel"></span></span>
+            <span class="phero__chip" id="ovOrgPill" hidden><svg class="ic" aria-hidden="true"><use href="#i-org" /></svg> <span id="ovOrgText"></span></span>
+          </div>
+          <div class="phero__meta">
+            <span><b>{COPY.memberSince}</b> <span id="idSince">—</span></span>
+            <span><b>ID</b> <span id="ovRegId">VB-••••••••</span></span>
+          </div>
+          <div class="phero__acts">
+            <button type="button" class="acbtn acbtn--primary" id="ovBtnShare"><svg class="ic" aria-hidden="true"><use href="#i-out" /></svg> <span>{lang === 'de' ? 'Öffentliches Profil' : 'Public Profile'}</span></button>
+            <button type="button" class="acbtn" data-tab-jump="profile"><svg class="ic" aria-hidden="true"><use href="#i-edit" /></svg> <span>{COPY.ovJProfile}</span></button>
+          </div>
+        </div>
+      </header>
     <!-- Sidebar-Rail -->
     <aside class="acnav" aria-label={COPY.ovNav}>
       <div class="acnav__brand">
@@ -376,45 +403,6 @@ const confirmRedirect = loginHref + '?confirmed=1';
       data-l-missing={COPY.ovMissing} data-l-missing1={COPY.ovMissing1} data-l-complete={COPY.ovComplete}
       data-l-rsi-yes={COPY.ovRsiYes} data-l-rsi-no={COPY.ovRsiNo}
       data-l-act-fav={COPY.ovActFav} data-l-act-req={COPY.ovActReq} data-l-act-job={COPY.ovActJob} data-l-act-empty={COPY.ovActEmpty}>
-      <div class="ov-head">
-        <div class="ov-eyebrow">{lang === 'de' ? 'UEE Citizen Registry // Übersicht' : 'UEE Citizen Registry // Overview'}</div>
-        <h2><span class="thin">{COPY.ovWelcome},</span> <span id="ovHeadName">Citizen</span></h2>
-        <p>{COPY.ovLead}</p>
-      </div>
-
-      <!-- Registry-Identitätskarte -->
-      <div class="rg">
-        <div class="rg__chrome"><span>UEE Citizen Registry // VerseBase</span><span>ID <b id="ovRegId">VB-••••••••</b></span></div>
-        <div class="rg__banner" id="ovBanner"><span class="rg__scan" aria-hidden="true"></span><span class="rg__brk a" aria-hidden="true"></span><span class="rg__brk b" aria-hidden="true"></span></div>
-        <div class="rg__body">
-          <div class="rg__av">
-            <svg class="rg__ring" viewBox="0 0 98 98" fill="none" stroke="currentColor" aria-hidden="true">
-              <path d="M49 4a45 45 0 0 1 0 90" stroke-width="1.4" stroke-dasharray="3 6" />
-              <path d="M49 10l34 20v38L49 88 15 68V30z" stroke-width="1" opacity=".45" />
-            </svg>
-            <div class="rg__core" id="ovAvatarBox"><span id="ovAvatarText">◆</span><img id="ovAvatarImg" src="" alt="" hidden /></div>
-            <span class="rg__dot" id="ovStatusDot" aria-hidden="true"></span>
-          </div>
-          <div class="rg__meta">
-            <div class="rg__name">
-              <h3 id="ovName">Citizen</h3>
-              <span class="rg__chip rg__chip--ok" id="ovVerified" hidden><svg class="ic" aria-hidden="true"><use href="#i-verified" /></svg> RSI Verified</span>
-            </div>
-            <div class="rg__handle" id="ovHandle">@citizen</div>
-            <div class="rg__tags">
-              <span class="rg__tag" id="ovRolePill" hidden><svg class="ic" aria-hidden="true"><use href="#i-hex" /></svg> <b id="ovRoleText"></b></span>
-              <span class="rg__tag" id="ovStatusPill"><span id="ovStatusLabel"></span></span>
-              <span class="rg__tag" id="ovOrgPill" hidden><svg class="ic" aria-hidden="true"><use href="#i-org" /></svg> <span id="ovOrgText"></span></span>
-              <span class="rg__tag rg__tag--meta">{COPY.memberSince} <b id="idSince">—</b></span>
-            </div>
-          </div>
-          <div class="rg__act">
-            <button type="button" class="acbtn acbtn--primary" id="ovBtnShare"><svg class="ic" aria-hidden="true"><use href="#i-out" /></svg> <span>{lang === 'de' ? 'Öffentliches Profil' : 'Public Profile'}</span></button>
-            <button type="button" class="acbtn" data-tab-jump="profile"><svg class="ic" aria-hidden="true"><use href="#i-edit" /></svg> <span>{COPY.ovJProfile}</span></button>
-          </div>
-        </div>
-      </div>
-
       <!-- Readouts -->
       <div class="ov-label"><span class="n">A</span><span>{COPY.ovAtAGlance}</span><span class="rule"></span></div>
       <div class="rds">

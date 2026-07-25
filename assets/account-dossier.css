@@ -10,7 +10,74 @@
 :root { --scanline: rgba(0, 0, 0, 0); }
 
 /* ---- seitenweite Atmosphäre hinter dem Account-Inhalt ---- */
-.acwrap--wide { position: relative; z-index: 0; padding-top: calc(64px + 1.5rem) !important; }
+/* padding-top:0 — der vollflächige Hero übernimmt die Nav-Freistellung selbst */
+.acwrap--wide { position: relative; z-index: 0; padding-top: 0 !important; }
+
+/* ---- Persistenter Cinematic Pilot Hero (Preview-Design), vollflächig über den Tabs ---- */
+.phero {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: flex; align-items: flex-end;
+  min-height: clamp(380px, 52svh, 520px);
+  width: 100vw; margin-left: calc(50% - 50vw); margin-bottom: 1.5rem;
+}
+.phero__img {
+  position: absolute; inset: 0; z-index: -2;
+  background-color: var(--media-void, #05070d); background-size: cover; background-position: center;
+  transform: scale(1.04);
+}
+.phero__scrim {
+  position: absolute; inset: 0; z-index: -1; background:
+    linear-gradient(90deg, rgba(4,6,12,.9) 0%, rgba(4,6,12,.55) 44%, rgba(4,6,12,.12) 78%, transparent 100%),
+    linear-gradient(0deg, var(--bg) 1%, rgba(4,6,12,.55) 26%, transparent 64%);
+}
+.phero__in {
+  position: relative; z-index: 1; width: 100%; max-width: 1680px; margin: 0 auto;
+  padding: calc(64px + clamp(1.5rem, 4vw, 2.5rem)) clamp(1.25rem, 5vw, 3.5rem) clamp(1.6rem, 3vw, 2.4rem);
+}
+.phero__kicker {
+  display: inline-flex; align-items: center; gap: .7rem;
+  font-family: var(--font-ui); font-weight: 700; letter-spacing: .28em; text-transform: uppercase;
+  font-size: .74rem; color: var(--accent);
+}
+.phero__kicker::before { content: ""; width: 28px; height: 1px; background: var(--accent); }
+.phero__row { display: flex; align-items: flex-end; gap: clamp(14px, 2vw, 22px); margin-top: 1rem; flex-wrap: wrap; }
+.phero__av {
+  position: relative; width: clamp(64px, 6vw, 88px); aspect-ratio: 1; flex: none;
+  display: grid; place-items: center; border-radius: 16px; border: 1px solid var(--line-2);
+  background: radial-gradient(120% 90% at 50% 12%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%), linear-gradient(180deg, var(--surface-2), #0b1120);
+  color: var(--accent); overflow: hidden;
+}
+.phero__av img { width: 100%; height: 100%; object-fit: cover; }
+.phero__av span { font-size: clamp(28px, 3vw, 38px); }
+.phero__dot { position: absolute; right: -2px; bottom: -2px; width: 16px; height: 16px; border-radius: 50%; background: var(--ok); border: 3px solid var(--bg); }
+.phero__name {
+  margin: 0; font-family: var(--font-display); font-weight: 900; line-height: .98; letter-spacing: -.01em;
+  font-size: clamp(2.4rem, 6.5vw, 5rem); padding-bottom: .14em;
+  background: linear-gradient(180deg, #fff 55%, color-mix(in srgb, #fff 60%, var(--accent)));
+  -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 10px 50px rgba(0,0,0,.5);
+}
+.phero__badge {
+  display: inline-flex; align-items: center; gap: 5px; align-self: center;
+  font-family: var(--font-ui); font-weight: 700; font-size: 12px; padding: 6px 11px; border-radius: 8px;
+  color: var(--ok); border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent); background: color-mix(in srgb, var(--ok) 10%, transparent);
+}
+.phero__badge[hidden] { display: none !important; }
+.phero__badge .ic { width: 14px; height: 14px; }
+.phero__chips { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.phero__handle { font-family: var(--font-mono); font-size: 1.05rem; color: var(--accent-2); }
+.phero__chip {
+  display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-ui); font-weight: 600;
+  font-size: 12.5px; padding: 6px 11px; border-radius: 8px;
+  border: 1px solid var(--on-media-line); background: rgba(4,6,12,.5); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  color: var(--on-media-dim);
+}
+.phero__chip[hidden] { display: none !important; }
+.phero__chip .ic { width: 14px; height: 14px; color: var(--accent); }
+.phero__chip b { color: var(--on-media-dim); font-weight: 600; }
+.phero__meta { display: flex; flex-wrap: wrap; gap: 6px 28px; margin-top: 16px; font-family: var(--font-mono); font-size: 13px; color: var(--on-media-dim); }
+.phero__meta b { color: var(--muted); font-weight: 400; text-transform: uppercase; letter-spacing: .12em; font-size: 10px; margin-right: 8px; }
+.phero__acts { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+@media (max-width: 640px) { .phero__name { font-size: clamp(2.1rem, 11vw, 3rem); } .phero__meta { gap: 6px 18px; } }
 .acwrap--wide::before {
   content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
   background: url('/assets/t-nyx-1.jpg') center/cover no-repeat;
