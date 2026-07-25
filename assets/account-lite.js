@@ -239,27 +239,24 @@
     }
   }
 
-  // ---- Präsenz-Heartbeat (last_seen) --------------------------------------
-  // Aktualisiert profiles.last_seen, SOLANGE der Tab sichtbar UND der Nutzer
-  // aktiv ist. Bei Idle (keine Interaktion) oder verstecktem Tab friert der
-  // Wert ein -> die serverseitige Ableitung (Views) macht daraus nach ~3 min
-  // "away", nach ~15 min "offline". Läuft auf ALLEN Seiten (account-lite ist
-  // überall eingebunden). Nutzt pro Schreibvorgang eine frische Session.
-  var HB_MS = 60000, HB_IDLE_MS = 4 * 60000, hbLastActivity = Date.now(), hbLastWrite = 0, hbStarted = false;
+  // ---- Zwei-Signal-Präsenz-Heartbeat --------------------------------------
+  // last_seen   = "Tab offen"-Ping: alle 30s, SOLANGE der Tab offen ist (auch
+  //               idle oder versteckt). Stoppt erst beim Schließen/Abmelden.
+  // last_active = letzte Interaktion (Maus/Taste/Scroll/…). Trennt online (aktiv)
+  //               von away (untätig).
+  // Die Views leiten daraus ab: Tab offen + idle >3min = away (NIE offline);
+  // Tab zu -> nach ~1min away, nach 3min offline. Läuft auf ALLEN Seiten
+  // (account-lite ist überall eingebunden), frische Session pro Write.
+  var HB_MS = 30000, hbLastActivity = Date.now(), hbStarted = false;
   function hbMarkActivity() { hbLastActivity = Date.now(); }
   function hbWrite() {
-    hbLastWrite = Date.now();
     ensureSession().then(function (sess) {
       if (!sess || !sess.user || !sess.user.id) return;
-      rest(sess, 'PATCH', 'profiles?id=eq.' + sess.user.id, { last_seen: new Date().toISOString() })
-        .catch(function () { /* noop */ });
+      rest(sess, 'PATCH', 'profiles?id=eq.' + sess.user.id, {
+        last_seen: new Date().toISOString(),
+        last_active: new Date(hbLastActivity).toISOString()
+      }).catch(function () { /* noop */ });
     }).catch(function () { /* noop */ });
-  }
-  function hbTick() {
-    if (document.visibilityState !== 'visible') return;        // Tab versteckt -> einfrieren
-    if (Date.now() - hbLastActivity > HB_IDLE_MS) return;      // idle -> einfrieren (-> away)
-    if (Date.now() - hbLastWrite < HB_MS - 5000) return;       // Drosselung
-    hbWrite();
   }
   function startHeartbeat() {
     if (hbStarted) return;
@@ -267,11 +264,12 @@
     ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'pointerdown', 'wheel'].forEach(function (ev) {
       addEventListener(ev, hbMarkActivity, { passive: true });
     });
+    // Bei Rückkehr auf den Tab sofort pingen (schnelleres Zurück-auf-online)
     document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'visible') { hbMarkActivity(); hbTick(); }
+      if (document.visibilityState === 'visible') { hbMarkActivity(); hbWrite(); }
     });
     hbWrite();                                                 // sofort beim Laden
-    setInterval(hbTick, HB_MS);
+    setInterval(hbWrite, HB_MS);                               // Ping alle 30s, solange Tab offen
   }
 
   function boot() {
