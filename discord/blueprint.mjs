@@ -40,10 +40,14 @@ export const C = {
 
 // ── Guild-level settings ───────────────────────────────────────────────────
 export const guild = {
-  name: 'VerseBase',
+  name: 'Verse-Base',            // applied by the builder — keep it the live name
+  // Shown on the invite splash and in Discovery (Community servers only).
+  description: 'The community hangar for verse-base.com — the unofficial Star Citizen compendium · Der Community-Hangar für verse-base.com',
   systemChannel: 'general',      // where join / boost messages land
   afkChannel: 'v-afk',
   afkTimeout: 3600,              // seconds
+  // A never-expiring invite the builder keeps alive for the website / signatures.
+  inviteChannel: 'welcome',
 };
 
 // Baseline permissions for @everyone. Anything not listed is denied.
@@ -102,10 +106,12 @@ export const roles = [
   { key: 'contractor', name: '📜 Contractor', color: C.missionAmber, hoist: false, mentionable: true, permissions: [] },
   { key: 'wikelo', name: '🐟 Wikelo Regular', color: C.wikeloTeal, hoist: false, mentionable: true, permissions: [] },
 
-  // Notification opt-ins
-  { key: 'patch-watch', name: '🔔 Patch Pings', color: C.pingCyan, hoist: false, mentionable: true, permissions: [] },
-  { key: 'announce-ping', name: '📢 Announcement Pings', color: C.pingBlue, hoist: false, mentionable: true, permissions: [] },
-  { key: 'event-ping', name: '🎉 Event Pings', color: C.pingGold, hoist: false, mentionable: true, permissions: [] },
+  // Notification opt-ins. Deliberately NOT mentionable: these reach everyone who
+  // opted in, so a single member shouldn't be able to broadcast to all of them.
+  // Staff (MentionEveryone) and the bot's patch auto-post can still ping them.
+  { key: 'patch-watch', name: '🔔 Patch Pings', color: C.pingCyan, hoist: false, mentionable: false, permissions: [] },
+  { key: 'announce-ping', name: '📢 Announcement Pings', color: C.pingBlue, hoist: false, mentionable: false, permissions: [] },
+  { key: 'event-ping', name: '🎉 Event Pings', color: C.pingGold, hoist: false, mentionable: false, permissions: [] },
 
   // Language
   { key: 'lang-en', name: '🇬🇧 English', color: null, hoist: false, mentionable: false, permissions: [] },
@@ -117,6 +123,14 @@ export const roles = [
   { key: 'pn-he', name: 'he/him', color: null, hoist: false, mentionable: false, permissions: [] },
   { key: 'pn-ask', name: 'ask me', color: null, hoist: false, mentionable: false, permissions: [] },
 ];
+
+// Roles the builder assigns to real members, rather than just creating.
+// The server owner rules by ownership anyway, but without the role the hoisted
+// staff group, the private Flight Deck and the AutoMod exemptions have no members.
+export const roleAssignments = {
+  owner: ['fleet-command'],   // the guild owner
+  bot: ['flight-computer'],   // the bot itself (display role, staff-category access)
+};
 
 // Convenience: who can view/talk in the private staff category.
 const STAFF_VIEW = {
@@ -170,7 +184,12 @@ export const categories = [
       { key: 'exploration', name: '🧭・exploration', type: 'text', topic: `Deep space & the Aaron Halo jump calc by Jordessey · Tiefraum & Aaron-Halo-Rechner von Jordessey → ${SITE}/precision-jump.html` },
       { key: 'missions', name: '📜・missions', type: 'text', topic: `Rewards & reputation · Belohnungen & Reputation → ${SITE}/missionen.html` },
       { key: 'wikelo-ch', name: '🐟・wikelo-emporium', type: 'text', topic: `Banu trades & the Emporium · Banu-Tauschgeschäfte & das Emporium → ${SITE}/topics/wikelo-emporium.html` },
-      { key: 'guides', name: '📚・guides', type: 'forum', topic: 'Community guides & resources — one per thread · Community-Guides & Ressourcen — eins pro Thread' },
+      {
+        key: 'guides', name: '📚・guides', type: 'forum',
+        topic: 'Community guides & resources — one per thread · Community-Guides & Ressourcen — eins pro Thread',
+        // Forum post tags, so guides stay filterable as the channel fills up.
+        tags: ['Mining', 'Trading', 'Crafting', 'Combat', 'Exploration', 'Missions', 'Ships', 'Beginner'],
+      },
       { key: 'support', name: '🛟・support', type: 'text', topic: `Stuck on a tool, the bot, or the game? Ask here · Hängst du an einem Tool, dem Bot oder dem Spiel? Frag hier → ${SITE}` },
     ],
   },
@@ -191,7 +210,20 @@ export const categories = [
       { key: 'v-trade', name: '💰 Trade Run', type: 'voice' },
       { key: 'v-combat', name: '🚀 Combat Wing', type: 'voice' },
       { key: 'v-chill', name: '🎧 Chill Lounge', type: 'voice' },
-      { key: 'stage-briefing', name: '📻 Briefing Room', type: 'stage' },
+      // Stage channel. Two things Discord handles differently from voice:
+      //   · A Stage MODERATOR needs ManageChannels + MuteMembers + MoveMembers
+      //     *in this channel*. Navigators carry the last two server-wide, so the
+      //     first is granted here only — no server-wide channel management.
+      //   · Anyone holding Speak can put themselves on stage. The audience should
+      //     raise a hand instead, so @everyone loses Speak and keeps RequestToSpeak.
+      {
+        key: 'stage-briefing', name: '📻 Briefing Room', type: 'stage',
+        overwrites: {
+          everyone: { deny: ['Speak'] },
+          navigators: { allow: ['ManageChannels', 'MuteMembers', 'MoveMembers', 'Speak'] },
+          'fleet-command': { allow: ['Speak'] },
+        },
+      },
       { key: 'v-afk', name: '💤 AFK', type: 'voice' },
     ],
   },

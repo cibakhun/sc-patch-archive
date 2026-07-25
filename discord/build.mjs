@@ -124,6 +124,11 @@ function validate() {
       if (ch.minRank && !RANKS.some((r) => r.key === ch.minRank)) {
         errors.push(`Channel ${ch.key}: minRank → unknown rank key "${ch.minRank}" (see bot/src/ranks.mjs)`);
       }
+      if (ch.tags) {
+        if (ch.type !== 'forum') errors.push(`Channel ${ch.key}: tags only apply to forum channels`);
+        if (ch.tags.length > 20) errors.push(`Channel ${ch.key}: ${ch.tags.length} tags (Discord allows 20)`);
+        for (const t of ch.tags) if (t.length > 20) errors.push(`Channel ${ch.key}: tag "${t}" is longer than 20 characters`);
+      }
       if (ch.noXp && !(DEFAULT_CONFIG.noXpChannelNames ?? []).some((n) => ch.name.includes(n))) {
         warns.push(`Channel ${ch.key}: marked noXp, but no bot noXpChannelNames entry matches its name — the bot will still grant XP there`);
       }
@@ -140,6 +145,11 @@ function validate() {
   const need = (kind, set, key, ctx) => { if (!set.has(key)) errors.push(`${ctx} → unknown ${kind} "${key}"`); };
   need('channel', chanKeys, bp.guild.systemChannel, 'guild.systemChannel');
   need('channel', chanKeys, bp.guild.afkChannel, 'guild.afkChannel');
+  if (bp.guild.inviteChannel) need('channel', chanKeys, bp.guild.inviteChannel, 'guild.inviteChannel');
+  if (bp.guild.description && bp.guild.description.length > 300) errors.push(`guild.description is ${bp.guild.description.length} chars (Discord allows 300)`);
+  for (const [who, keys] of Object.entries(bp.roleAssignments ?? {})) {
+    for (const k of keys) need('role', roleKeys, k, `roleAssignments.${who}`);
+  }
   need('channel', chanKeys, bp.community.rulesChannel, 'community.rulesChannel');
   need('channel', chanKeys, bp.community.updatesChannel, 'community.updatesChannel');
   for (const c of bp.welcomeScreen.channels) need('channel', chanKeys, c.channel, 'welcomeScreen');
@@ -197,7 +207,7 @@ async function build() {
   const {
     Client, GatewayIntentBits, PermissionsBitField, PermissionFlagsBits, ChannelType,
     GuildVerificationLevel, GuildExplicitContentFilter, GuildDefaultMessageNotifications,
-    EmbedBuilder, Routes, OverwriteType, resolveColor,
+    EmbedBuilder, Routes, OverwriteType, resolveColor, MessageType,
     AutoModerationRuleTriggerType, AutoModerationRuleEventType,
     AutoModerationActionType, AutoModerationRuleKeywordPresetType,
   } = DJS;
@@ -369,10 +379,18 @@ async function build() {
       if (ch.topic && TEXTLIKE.has(ch.type)) edit.topic = ch.topic;
       if (ch.slowmode && (ch.type === 'text' || ch.type === 'forum')) edit.rateLimitPerUser = ch.slowmode;
       if (ch.nsfw) edit.nsfw = true;
+      // Forum post tags. Existing tags keep their id (matched by name) so posts
+      // already filed under them don't lose their tag on a re-run.
+      if (ch.tags && ch.type === 'forum') edit.availableTags = ch.tags.map((name) => ({ name, moderated: false }));
 
       let channel = guild.channels.cache.find((c) => c.parentId === category.id && c.name === wantName);
       try {
         if (channel) {
+          // Reuse existing tag ids (matched by name) so already-tagged posts keep them.
+          if (edit.availableTags && channel.availableTags) {
+            const byName = new Map(channel.availableTags.map((t) => [t.name, t.id]));
+            edit.availableTags = edit.availableTags.map((t) => (byName.has(t.name) ? { ...t, id: byName.get(t.name) } : t));
+          }
           await channel.edit(edit);
           if (cat.private && !explicit) await channel.lockPermissions();
           else if (explicit) await channel.permissionOverwrites.set(chOw);
@@ -404,8 +422,12 @@ async function build() {
   feats.add('COMMUNITY');
   const communityEdit = {
     features: [...feats],
+    name: bp.guild.name,
+    description: bp.guild.description,
     rulesChannel: channelId[bp.community.rulesChannel],
     publicUpdatesChannel: channelId[bp.community.updatesChannel],
+    // Discord's raid / safety notices land with the moderators, not in public.
+    safetyAlertsChannel: channelId[bp.autoMod?.alertChannel] ?? null,
     verificationLevel: GuildVerificationLevel[bp.community.verification],
     explicitContentFilter: GuildExplicitContentFilter[bp.community.contentFilter],
     defaultMessageNotifications: GuildDefaultMessageNotifications[bp.community.notifications],
@@ -458,6 +480,62 @@ async function build() {
         add(`stage ${s.name}`);
       } catch (e) { warn(`stage ${s.name} skipped: ${e.message}`); }
     }
+  }
+
+  // ── Channel order ──────────────────────────────────────────────────────────
+  // Positions are applied LAST, once every channel exists (including the ones
+  // deferred until Community was on). Without this the blueprint's order is
+  // decorative: Discord appends each newly created channel to the bottom of its
+  // category, so anything added in a later run drifts away from its neighbours.
+  // Unlike roles, the bulk channel-position endpoint is reliable.
+  step('Channel order');
+  const positions = [];
+  bp.categories.forEach((cat, ci) => {
+    if (channelId[cat.key]) positions.push({ channel: channelId[cat.key], position: ci });
+    cat.channels.forEach((ch, i) => {
+      if (channelId[ch.key]) positions.push({ channel: channelId[ch.key], position: i });
+    });
+  });
+  try {
+    await guild.channels.setPositions(positions);
+    ok(`${positions.length} categories/channels ordered to match the blueprint`);
+  } catch (e) {
+    warn(`channel ordering skipped: ${e.message}`);
+  }
+
+  // ── Role assignments ───────────────────────────────────────────────────────
+  // Creating a role isn't the same as anyone holding it. Without this the hoisted
+  // staff group is empty, the private Flight Deck has no humans in it and the
+  // AutoMod exemptions apply to nobody.
+  step('Role assignments');
+  const assign = async (member, keys, who) => {
+    if (!member) return;
+    const ids = (keys ?? []).map((k) => roleId[k]).filter((id) => id && !member.roles.cache.has(id));
+    if (!ids.length) { ok(`${who} already holds ${(keys ?? []).join(', ') || 'nothing'}`); return; }
+    try {
+      await member.roles.add(ids, 'VerseBase role assignment');
+      add(`${who} → ${ids.map((id) => guild.roles.cache.get(id)?.name).join(', ')}`);
+    } catch (e) { warn(`could not give ${who} their roles: ${e.message}`); }
+  };
+  const ownerMember = await guild.members.fetch(guild.ownerId).catch(() => null);
+  await assign(ownerMember, bp.roleAssignments?.owner, `owner ${ownerMember?.user.username ?? ''}`);
+  await assign(me, bp.roleAssignments?.bot, 'the bot');
+
+  // ── Permanent invite ───────────────────────────────────────────────────────
+  // Invites created by hand expire (30 days by default), which quietly breaks any
+  // link on the website. Keep exactly one never-expiring invite alive.
+  step('Invite');
+  if (bp.guild.inviteChannel && channelId[bp.guild.inviteChannel]) {
+    try {
+      const existing = await guild.invites.fetch();
+      const permanent = [...existing.values()].find((i) => i.maxAge === 0 && i.maxUses === 0);
+      if (permanent) ok(`permanent invite already live: https://discord.gg/${permanent.code} (→ #${permanent.channel?.name})`);
+      else {
+        const ch = guild.channels.cache.get(channelId[bp.guild.inviteChannel]);
+        const inv = await ch.createInvite({ maxAge: 0, maxUses: 0, unique: false, reason: 'VerseBase permanent invite' });
+        add(`permanent invite created: https://discord.gg/${inv.code} (→ #${ch.name})`);
+      }
+    } catch (e) { warn(`invite step skipped: ${e.message}`); }
   }
 
   // ── AutoMod rules ──────────────────────────────────────────────────────────
@@ -584,6 +662,20 @@ async function build() {
     return b;
   };
   const nameOf = (key) => expectedName(bp.categories.flatMap((c) => c.channels).find((c) => c.key === key)?.name ?? key, 'text');
+  // Pinning leaves a "… pinned a message to this channel" system line sitting
+  // under the seed post — untidy in channels that are meant to hold exactly one
+  // pristine card. Only ever removes OUR OWN pin notices, nothing else.
+  const sweepPinNotices = async (ch) => {
+    try {
+      const msgs = await ch.messages.fetch({ limit: 30 });
+      const notices = [...msgs.values()].filter((m) => m.type === MessageType.ChannelPinnedMessage && m.author.id === client.user.id);
+      for (const m of notices) await m.delete().catch(() => {});
+      return notices.length;
+    } catch { return 0; }
+  };
+
+  let sweptTotal = 0;
+  const staleSeedPins = [];
   for (const [key, embeds] of Object.entries(bp.seed)) {
     const ch = guild.channels.cache.get(channelId[key]);
     if (!ch) { warn(`Seed: channel "${key}" not found`); continue; }
@@ -596,12 +688,23 @@ async function build() {
     // manual deletion of old posts.
     let pinned = null;
     try { pinned = await ch.messages.fetchPinned(); } catch { /* ignore */ }
-    const mine = pinned ? [...pinned.values()].filter((m) => m.author.id === client.user.id) : [];
+    const allPins = pinned ? [...pinned.values()] : [];
+    const mine = allPins.filter((m) => m.author.id === client.user.id);
+    // Seed posts pinned by a PREVIOUS bot identity (after swapping the Discord
+    // application) can't be edited by this one, so the loop below would post a
+    // second copy next to them. Worse, Discord strips the embeds off messages
+    // whose application is gone, leaving blank pinned ghosts. We only report
+    // them: deleting someone else's messages isn't the builder's call.
+    const orphaned = allPins.filter((m) => m.author.bot && m.author.id !== client.user.id);
+    if (orphaned.length) staleSeedPins.push(`#${nameOf(key)} (${orphaned.length})`);
 
     // Fast path: one pinned seed post ↔ one embed → update it in place (no delete).
     if (mine.length === 1 && built.length === 1) {
-      try { await mine[0].edit({ embeds: built }); chg(`#${nameOf(key)} (seed updated in place)`); continue; }
-      catch (e) { warn(`seed edit failed for ${key}: ${e.message}`); }
+      try {
+        await mine[0].edit({ embeds: built });
+        sweptTotal += await sweepPinNotices(ch);
+        chg(`#${nameOf(key)} (seed updated in place)`); continue;
+      } catch (e) { warn(`seed edit failed for ${key}: ${e.message}`); }
     }
     // Otherwise remove the old seed post(s) and re-post fresh.
     for (const m of mine) { await m.delete().catch(() => {}); }
@@ -611,7 +714,15 @@ async function build() {
       const msg = await ch.send({ embeds: [e] });
       if (first) { await msg.pin().catch(() => {}); first = false; }
     }
+    sweptTotal += await sweepPinNotices(ch);
     add(`seeded #${nameOf(key)}`);
+  }
+  if (sweptTotal) chg(`removed ${sweptTotal} "pinned a message" system notice(s)`);
+  if (staleSeedPins.length) {
+    warn(`pinned seed posts from a previous bot identity still sit in ${staleSeedPins.join(', ')}`);
+    warn('  → they are blank (Discord drops the embeds with the old application). Clean them up with:');
+    warn('    node clean-orphaned-messages.mjs            # dry run, lists what would go');
+    warn('    node clean-orphaned-messages.mjs --delete   # actually remove them');
   }
 
   // ── Done ───────────────────────────────────────────────────────────────────
