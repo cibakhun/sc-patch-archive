@@ -1,17 +1,21 @@
 /* ============================================================================
-   VerseBase — PATCH ARCHIVE  (assets/archive.js)
+   VerseBase — PATCH ARCHIVE  ·  "Stellar Cartography"  (assets/archive.js)
 
-   Five independent behaviours, each guarded so a missing node never takes the
-   rest of the page down:
-     1. era morph      — scroll position drives --era/--era-2 + the "you are
-                         here" readout + the ribbon band highlight
-     2. spine draw     — one class per entry; the rail and card reveal are CSS
-     3. counters       — the masthead stats count up once
-     4. filter         — live text + type filtering over spine and topic index
-     5. chrome         — sticky offset measurement and back-to-top
+   Independent behaviours, each guarded so a missing node never takes the rest
+   of the page down:
+     1. sticky offset  — measure the fixed SiteNav so the control bar clears it
+     2. era morph      — scroll position drives --era/--era-2 + the "you are
+                         here" readout + the ribbon band + the starfield tint
+     3. spine draw     — one class per node; the rail charge + card reveal are CSS
+     4. reveals        — section heads fade up once
+     5. counters       — the telemetry numerals count up once
+     6. filter         — live text + type filtering over the flight path + index
+     7. back-to-top    — appears past one viewport
+     8. starfield      — a parallax, twinkling, era-tinted canvas backdrop
 
-   No scroll listeners for the drawing work: IntersectionObserver does it, which
-   keeps the timeline smooth on long pages.
+   No scroll listeners drive the drawing work — IntersectionObserver does, which
+   keeps the timeline smooth on long pages. The starfield reads scrollY inside
+   its own rAF (a cheap property read, never a forced layout).
    ========================================================================== */
 (function () {
   'use strict';
@@ -31,8 +35,8 @@
   var topbar = $('#topbar');
   function stick() {
     if (!topbar) return;
-    // px, not rem: the site's root font-size is 112.5%, so a rem conversion here
-    // would silently add ~15px of dead space under the bar.
+    // px, not rem: the root font-size is 112.5%, so a rem conversion here would
+    // silently add ~15px of dead space under the bar.
     root.style.setProperty('--stick', topbar.offsetHeight + 8 + 'px');
   }
   stick();
@@ -42,7 +46,7 @@
   var eras = $$('.era');
   var eraNow = $('#eraNow');
   var bands = $$('.ribbon__band');
-  var setDustColor = null; // wired by the canvas below, if it runs
+  var setStarTint = null; // wired by the starfield below, if it runs
   var activeEra = -1;
 
   function applyEra(i) {
@@ -58,23 +62,20 @@
     bands.forEach(function (b, k) {
       b.classList.toggle('is-now', k === i);
     });
-    if (setDustColor) setDustColor(c);
+    if (setStarTint) setStarTint(c);
   }
 
   // Which chapter owns the screen: the one containing the viewport's midline —
-  // the same rule the reader's eye uses. Computed from geometry rather than
-  // from whichever observer entry happened to be last in the batch, because at
-  // a chapter boundary two blocks straddle the trigger band and callback order
-  // is not document order (that mismatch showed up as the readout naming the
-  // previous era while the page had already recoloured for the next one).
+  // the rule the reader's eye uses. Computed from geometry rather than from
+  // whichever observer entry happened to be last in the batch, because at a
+  // chapter boundary two blocks straddle the trigger band and callback order is
+  // not document order.
   function pickEra() {
     var mid = innerHeight / 2;
     var best = 0;
     var bestDist = Infinity;
     for (var i = 0; i < eras.length; i++) {
-      // A chapter filtered out of view has a zero-height rect at the origin and
-      // would otherwise look like the closest match to everything.
-      if (eras[i].hidden) continue;
+      if (eras[i].hidden) continue; // a filtered-out chapter has a zero rect at origin
       var r = eras[i].getBoundingClientRect();
       if (r.top <= mid && r.bottom >= mid) {
         best = i;
@@ -91,35 +92,32 @@
 
   if (eras.length) {
     pickEra();
-    // The observer is only a trigger: between a chapter crossing the band and
-    // the next crossing, the answer cannot change, so this stays far cheaper
-    // than a scroll handler.
     var eraIO = new IntersectionObserver(pickEra, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
     eras.forEach(function (el) {
       eraIO.observe(el);
     });
   }
 
-  /* ── 3. Spine draw + generic reveals ───────────────────────────────────── */
-  var ents = $$('.ent');
-  if (ents.length) {
+  /* ── 3. Spine draw + 4. generic reveals ─────────────────────────────────── */
+  var nodes = $$('.node');
+  if (nodes.length) {
     if (reduce) {
-      ents.forEach(function (el) {
+      nodes.forEach(function (el) {
         el.classList.add('lit');
       });
     } else {
-      var entIO = new IntersectionObserver(
+      var nodeIO = new IntersectionObserver(
         function (entries) {
           entries.forEach(function (e) {
             if (!e.isIntersecting) return;
             e.target.classList.add('lit');
-            entIO.unobserve(e.target);
+            nodeIO.unobserve(e.target);
           });
         },
         { rootMargin: '0px 0px -12% 0px', threshold: 0.05 }
       );
-      ents.forEach(function (el) {
-        entIO.observe(el);
+      nodes.forEach(function (el) {
+        nodeIO.observe(el);
       });
     }
   }
@@ -138,7 +136,7 @@
     revealIO.observe(el);
   });
 
-  /* ── 4. Counters ───────────────────────────────────────────────────────── */
+  /* ── 5. Counters ───────────────────────────────────────────────────────── */
   $$('.count[data-to]').forEach(function (el) {
     var to = parseFloat(el.getAttribute('data-to')) || 0;
     if (reduce) {
@@ -163,7 +161,7 @@
     io.observe(el);
   });
 
-  /* ── 5. Filter ─────────────────────────────────────────────────────────── */
+  /* ── 6. Filter ─────────────────────────────────────────────────────────── */
   var q = $('#q');
   var clearBtn = $('#qx');
   var countOut = $('#count');
@@ -196,9 +194,9 @@
 
   // Cache the original strings once so repeated filtering never re-parses
   // already-highlighted markup.
-  var cache = ents.map(function (el) {
-    var name = $('.card__name a', el);
-    var ver = $('.card__ver', el);
+  var cache = nodes.map(function (el) {
+    var name = $('.node__name a', el);
+    var ver = $('.node__ver', el);
     return {
       el: el,
       hay: el.getAttribute('data-search') || '',
@@ -224,7 +222,7 @@
 
     // An era chapter with nothing left in it would leave a dangling heading.
     eras.forEach(function (el) {
-      el.hidden = !$$('.ent', el).some(function (e) {
+      el.hidden = !$$('.node', el).some(function (e) {
         return !e.hidden;
       });
     });
@@ -244,14 +242,13 @@
     if (empty) empty.classList.toggle('on', shown === 0);
     if (clearBtn) clearBtn.hidden = !needle;
 
-    // Filtering reflows the whole spine, so the chapter under the midline has
-    // almost certainly changed — the observer won't fire for a layout shift.
+    // Filtering reflows the whole flight path, so the chapter under the midline
+    // has almost certainly changed — the observer won't fire for a layout shift.
     if (eras.length) pickEra();
   }
 
   if (q) {
     q.addEventListener('input', applyFilter);
-    // Esc clears while the field has focus — expected of a search box.
     q.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && q.value) {
         e.stopPropagation();
@@ -299,7 +296,7 @@
     });
   });
 
-  /* ── 6. Back to top ────────────────────────────────────────────────────── */
+  /* ── 7. Back to top ────────────────────────────────────────────────────── */
   var top = $('#totop');
   if (top) {
     var ticking = false;
@@ -321,86 +318,104 @@
     });
   }
 
-  /* ── 7. Ambient dust ───────────────────────────────────────────────────── */
-  var cv = $('#dust');
-  if (cv && !reduce) {
+  /* ── 8. Starfield ──────────────────────────────────────────────────────────
+     Three depth layers of twinkling stars over the void. Nearer layers are
+     bigger, brighter and parallax more with scroll. A third of the field takes
+     the era tint, so the morph reads as a shift in mood, not a colour wash. */
+  var cv = $('#stars');
+  if (cv && cv.getContext) {
     var ctx = cv.getContext('2d');
     var w = 0;
     var h = 0;
     var dpr = 1;
-    var motes = [];
+    var stars = [];
     var tint = { r: 255, g: 90, b: 31 };
     var running = true;
 
-    setDustColor = function (hex) {
+    setStarTint = function (hex) {
       var m = /^#?([0-9a-f]{6})$/i.exec((hex || '').trim());
       if (!m) return;
       var n = parseInt(m[1], 16);
       tint = { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
     };
-    if (eras[0]) setDustColor(eras[0].dataset.accent);
+    if (eras[0]) setStarTint(eras[0].dataset.accent);
 
-    function size() {
+    function build() {
       dpr = Math.min(devicePixelRatio || 1, 2);
       w = cv.width = Math.floor(innerWidth * dpr);
       h = cv.height = Math.floor(innerHeight * dpr);
       cv.style.width = innerWidth + 'px';
       cv.style.height = innerHeight + 'px';
       // Density scales with area so a phone doesn't pay for a desktop's count.
-      var n = Math.min(110, Math.round((innerWidth * innerHeight) / 14000));
-      motes = [];
+      var n = Math.min(260, Math.round((innerWidth * innerHeight) / 8200));
+      stars = [];
       for (var i = 0; i < n; i++) {
-        motes.push({
+        var depth = Math.random(); // 0 = far, 1 = near
+        stars.push({
           x: Math.random() * w,
           y: Math.random() * h,
-          r: (Math.random() * 1.5 + 0.35) * dpr,
-          vx: (Math.random() - 0.5) * 0.11 * dpr,
-          vy: -(Math.random() * 0.14 + 0.03) * dpr,
-          a: Math.random() * 6.28,
-          sp: Math.random() * 0.012 + 0.004,
-          // A third of the field takes the era tint; the rest stays starlight,
-          // so the morph reads as a shift in mood, not a colour filter.
-          hot: Math.random() < 0.34,
+          z: depth,
+          r: (0.4 + depth * 1.7) * dpr,
+          // slow autonomous drift, faster for nearer stars
+          vy: (0.02 + depth * 0.06) * dpr,
+          vx: (Math.random() - 0.5) * 0.03 * dpr,
+          tw: Math.random() * 6.28,
+          tws: Math.random() * 0.02 + 0.006,
+          hot: Math.random() < 0.32,
         });
       }
     }
 
-    function frame() {
-      if (!running) return;
+    function draw() {
       ctx.clearRect(0, 0, w, h);
-      for (var i = 0; i < motes.length; i++) {
-        var m = motes[i];
-        m.x += m.vx;
-        m.y += m.vy;
-        m.a += m.sp;
-        if (m.y < -4) {
-          m.y = h + 4;
-          m.x = Math.random() * w;
+      var scroll = (scrollY || 0) * dpr;
+      for (var i = 0; i < stars.length; i++) {
+        var s = stars[i];
+        s.tw += s.tws;
+        s.y += s.vy;
+        s.x += s.vx;
+        // wrap the autonomous drift
+        if (s.y > h + 4) { s.y = -4; s.x = Math.random() * w; }
+        if (s.x < -4) s.x = w + 4;
+        else if (s.x > w + 4) s.x = -4;
+        // scroll parallax: nearer layers shift more. mod keeps the field infinite.
+        var py = s.y - scroll * (0.04 + s.z * 0.22);
+        py = ((py % h) + h) % h;
+        var a = (0.25 + s.z * 0.45) * (0.55 + 0.45 * Math.sin(s.tw));
+        ctx.globalAlpha = a;
+        if (s.hot) {
+          ctx.fillStyle = 'rgb(' + tint.r + ',' + tint.g + ',' + tint.b + ')';
+        } else {
+          ctx.fillStyle = s.z > 0.7 ? '#dce8ff' : '#9fb4dc';
         }
-        if (m.x < -4) m.x = w + 4;
-        else if (m.x > w + 4) m.x = -4;
-        var o = 0.16 + Math.abs(Math.sin(m.a)) * 0.5;
-        ctx.globalAlpha = o;
-        ctx.fillStyle = m.hot ? 'rgb(' + tint.r + ',' + tint.g + ',' + tint.b + ')' : '#9fb0d0';
         ctx.beginPath();
-        ctx.arc(m.x, m.y, m.r, 0, 6.284);
+        ctx.arc(s.x, py, s.r, 0, 6.284);
         ctx.fill();
       }
       ctx.globalAlpha = 1;
+    }
+
+    function frame() {
+      if (!running) return;
+      draw();
       requestAnimationFrame(frame);
     }
 
-    size();
-    addEventListener('resize', size, { passive: true });
-    // Stop burning frames on a tab nobody is looking at.
-    document.addEventListener('visibilitychange', function () {
-      if (document.hidden) {
-        running = false;
-      } else if (!running) {
-        running = true;
-        requestAnimationFrame(frame);
-      }
-    });
-    frame();
+    build();
+    addEventListener('resize', build, { passive: true });
+
+    if (reduce) {
+      draw(); // a single static field, no animation loop
+    } else {
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+          running = false;
+        } else if (!running) {
+          running = true;
+          requestAnimationFrame(frame);
+        }
+      });
+      frame();
+    }
   }
 })();
