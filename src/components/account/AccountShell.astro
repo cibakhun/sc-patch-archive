@@ -1,29 +1,40 @@
 ---
 // Geteilter Rahmen aller /account/-Seiten: kompakter Hero + zentrierte Spalte
 // + die acx-* Formular-Stilbasis.
+// bare=true: kein Hero, keine zentrierte Spalte — das Dashboard trägt sein
+// eigenes vollflächiges Dossier-Layout (Hero + Top-Tabs). Die acx-*-Stilbasis
+// unten bleibt aber verfügbar (Modals, FriendsManager, Formulare).
 interface Props {
-  eyebrow: string;
-  titleThin: string;
-  title: string;
+  eyebrow?: string;
+  titleThin?: string;
+  title?: string;
   lead?: string;
   /** breite Spalte (Dashboard) statt schmaler Formular-Spalte */
   wide?: boolean;
+  /** rahmenlos: Inhalt trägt eigenes Vollbreiten-Layout */
+  bare?: boolean;
 }
-const { eyebrow, titleThin, title, lead, wide = false } = Astro.props;
+const { eyebrow, titleThin, title, lead, wide = false, bare = false } = Astro.props;
 ---
 
-<section class="hero hero--acct">
-  <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-polaris-1.jpg')" aria-hidden="true"></div>
-  <div class="hero__in">
-    <div class="eyebrow">{eyebrow}</div>
-    <h1><span class="thin">{titleThin}</span>{title}</h1>
-    {lead && <p class="lead">{lead}</p>}
-  </div>
-</section>
+{bare ? (
+  <div class="acbare"><slot /></div>
+) : (
+  <>
+    <section class="hero hero--acct">
+      <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-polaris-1.jpg')" aria-hidden="true"></div>
+      <div class="hero__in">
+        <div class="eyebrow">{eyebrow}</div>
+        <h1><span class="thin">{titleThin}</span>{title}</h1>
+        {lead && <p class="lead">{lead}</p>}
+      </div>
+    </section>
 
-<div class:list={['acwrap', wide && 'acwrap--wide']}>
-  <slot />
-</div>
+    <div class:list={['acwrap', wide && 'acwrap--wide']}>
+      <slot />
+    </div>
+  </>
+)}
 
 <style is:global>
   .hero--acct { min-height: 40svh; padding-bottom: 2.4rem; }
@@ -31,6 +42,8 @@ const { eyebrow, titleThin, title, lead, wide = false } = Astro.props;
 
   .acwrap { max-width: 560px; margin: 0 auto; padding: 0 clamp(1.25rem, 5vw, 4rem) 4.5rem; }
   .acwrap--wide { max-width: 1440px; padding-left: clamp(1rem, 3vw, 2.5rem); padding-right: clamp(1rem, 3vw, 2.5rem); }
+  /* rahmenloses Dashboard: volle Breite, eigenes Dossier-Layout */
+  .acbare { width: 100%; }
 
   .acx-card {
     border: 1px solid var(--line);

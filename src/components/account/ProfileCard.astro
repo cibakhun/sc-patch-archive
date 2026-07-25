@@ -1,12 +1,16 @@
 ---
 interface Props {
   lang?: 'de' | 'en';
+  /** interaktiv: Avatar anklickbar + Banner-Edit-Button (nur im Dashboard) */
+  editable?: boolean;
 }
 
-const { lang = 'de' } = Astro.props;
+const { lang = 'de', editable = false } = Astro.props;
 
 const t = {
   registry: 'UEE CITIZEN REGISTRY // VERSEBASE',
+  editAvatar: lang === 'de' ? 'Avatar ändern' : 'Change avatar',
+  editBanner: lang === 'de' ? 'Banner ändern' : 'Change banner',
   idLabel: 'ID',
   bioEmpty: lang === 'de' ? 'Noch keine Biografie angegeben.' : 'No bio provided yet.',
   copyTitle: lang === 'de' ? 'Handle kopieren' : 'Copy handle',
@@ -44,6 +48,15 @@ const t = {
     <span class="vp-bracket vp-bracket--tr" aria-hidden="true"></span>
     <span class="vp-bracket vp-bracket--bl" aria-hidden="true"></span>
     <span class="vp-bracket vp-bracket--br" aria-hidden="true"></span>
+    {editable && (
+      <button type="button" class="vp-banner-edit" id="pcBannerEdit" title={t.editBanner} aria-label={t.editBanner}>
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 20h4L18.5 9.5a2 2 0 0 0-3-3L5 17z" />
+          <path d="M13.5 6.5l3 3" />
+        </svg>
+        <span>{t.editBanner}</span>
+      </button>
+    )}
   </div>
 
   <!-- 3 · Avatar-Modul mit Holo-Ringen -->
@@ -59,10 +72,25 @@ const t = {
         <polygon points="66,6 118,36 118,96 66,126 14,96 14,36" fill="none"
           stroke="currentColor" stroke-width="1" stroke-dasharray="10 8" opacity="0.55" />
       </svg>
-      <div class="vp-avatar-box" id="pcAvatarBox">
+      <div
+        class:list={['vp-avatar-box', editable && 'vp-avatar-box--editable']}
+        id="pcAvatarBox"
+        role={editable ? 'button' : undefined}
+        tabindex={editable ? '0' : undefined}
+        title={editable ? t.editAvatar : undefined}
+        aria-label={editable ? t.editAvatar : undefined}
+      >
         <span id="pcAvatarText">◆</span>
         <img id="pcAvatarImg" src="" alt={t.avatarAlt} hidden />
         <span class="vp-avatar-scan" aria-hidden="true"></span>
+        {editable && (
+          <span class="vp-avatar-edit" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
+              <circle cx="12" cy="13" r="3.2" />
+            </svg>
+          </span>
+        )}
       </div>
       <div class="vp-status-dot" id="pcStatusDot" title={t.statusTitle}></div>
     </div>
@@ -405,6 +433,58 @@ const t = {
     inset: 0;
     background: repeating-linear-gradient(0deg, rgba(45, 212, 255, 0.09) 0 1px, transparent 1px 3px);
     pointer-events: none;
+  }
+
+  /* ---------- Direkt-Upload: Avatar anklickbar + Banner-Edit-Button ---------- */
+  .vp-avatar-box--editable { cursor: pointer; }
+  .vp-avatar-edit {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(5, 7, 13, 0.58);
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    z-index: 4;
+  }
+  .vp-avatar-box--editable:hover .vp-avatar-edit,
+  .vp-avatar-box--editable:focus-visible .vp-avatar-edit { opacity: 1; }
+  .vp-avatar-box--editable:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .vp-banner-edit {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 6;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    background: rgba(5, 7, 13, 0.6);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: var(--font-ui, sans-serif);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+  }
+  .vp-banner-edit:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(5, 7, 13, 0.78);
+  }
+  .vp-banner-edit:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .vp-status-dot {
