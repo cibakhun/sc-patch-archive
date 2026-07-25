@@ -1001,3 +1001,19 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .dsr .fav .frm svg{width:14px;height:14px}
 
 @media(max-width:560px){.dsr .favgrid{grid-template-columns:1fr}}
+
+
+/* ============================================================================
+   Metrik-Karten: Überschriften (Labels) größer + lesbarer
+   ("Favoriten", "Freunde", "Refinery-Wert", "Profil-Vollständigkeit", "RSI-Status")
+   waren zu klein/blass auf dem Frosted-Glass. Jetzt groesser, fetter, kontrastreicher.
+   ========================================================================== */
+.dsr .metric .mlabel .k{
+  font-family:var(--font-ui);font-size:17px;font-weight:700;letter-spacing:.005em;
+  text-transform:none;color:color-mix(in srgb,var(--text) 90%,var(--muted));line-height:1.25;
+}
+.dsr .metric .mlabel{align-items:flex-start;margin-bottom:2px}
+.dsr .metric .micon svg{width:20px;height:20px}
+/* Unterzeilen (aktive Jobs / offene Felder / RSI-Handle) einen Tick heller */
+.dsr .metric .sub,.dsr .metric .versub,.dsr .metric .rmeta{color:color-mix(in srgb,var(--text) 62%,var(--muted));font-size:14px}
+.dsr .metric .rmeta b{color:var(--text)}
