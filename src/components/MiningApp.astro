@@ -96,7 +96,7 @@ const total = DB.counts.minerals;
 
 <section class="mdb" id="mdb">
   <div class="mdb-bar">
-    <button class="mdb-filter-toggle" id="mdb-filter-toggle" aria-expanded="false">☰ {S.filterBtn}</button>
+    <button class="mdb-filter-toggle" id="mdb-filter-toggle" aria-expanded="false" aria-controls="mdb-sidebar" data-offcanvas-toggle="mdb-sidebar">☰ {S.filterBtn}</button>
     <div class="mdb-search-wrap">
       <input type="search" id="mdb-search" class="mdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
     </div>
@@ -117,7 +117,9 @@ const total = DB.counts.minerals;
   </div>
 
   <div class="mdb-layout">
-    <aside class="mdb-sidebar" id="mdb-sidebar" aria-label={S.filters}>
+    {/* data-offcanvas: siehe assets/offcanvas.js (Verdunkler, Scroll-Sperre,
+        Esc, Tippen-daneben, Wischen) — dasselbe Verhalten wie im Crafting. */}
+    <aside class="mdb-sidebar" id="mdb-sidebar" aria-label={S.filters} data-offcanvas>
       <div class="mdb-side-hd"><span>{S.filters}</span><button id="mdb-filter-close" class="mdb-x" aria-label={S.close}>✕</button></div>
 
       <div class="mdb-fgroup">

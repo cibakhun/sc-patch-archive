@@ -131,13 +131,31 @@ const indexUrl = href('/search-index.json', lang);
     cursor: pointer;
     transition: color 0.15s, border-color 0.15s;
   }
-  .scs__x:hover {
+  .scs__x:hover,
+  .scs__x:active {
     color: var(--accent, #2dd4ff);
     border-color: color-mix(in srgb, var(--accent, #2dd4ff) 55%, transparent);
   }
   @media (max-width: 480px) {
     .scs__sys {
       display: none;
+    }
+  }
+  /* Der Schließen-Knopf war 41x23 px — der einzige Ausweg aus dem Overlay
+     neben der Esc-Taste, die es auf dem Telefon nicht gibt. Der Kasten
+     behält seine Optik, die Trefferfläche wird auf 44 px gezogen. */
+  @media (max-width: 700px) {
+    .scs__x {
+      min-height: 44px;
+      min-width: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* 56 vh liessen unter der Liste ~240 px ungenutzt (gemessen bei 375x812).
+       Mehr Trefferhöhe = weniger Scrollen im Overlay. */
+    .scs__list {
+      max-height: 68vh;
     }
   }
   .scs__list {
@@ -176,6 +194,12 @@ const indexUrl = href('/search-index.json', lang);
     border-color: color-mix(in srgb, var(--c) 45%, transparent) !important;
     border-left-color: var(--c) !important;
     transform: translateX(2px);
+  }
+  /* Touch kennt kein Hover: der Druckzustand ist die einzige Rückmeldung,
+     dass die Zeile getroffen wurde, bevor die neue Seite lädt. */
+  .scs__hit:active {background:color-mix(in srgb, var(--c) 26%, var(--surface, var(--veil-2))) !important;
+    border-color: var(--c) !important;
+    transform: scale(0.99);
   }
   .scs__hit.sel {background:color-mix(in srgb, var(--c) 18%, var(--surface, var(--veil-2))) !important;
     border-color: color-mix(in srgb, var(--c) 45%, transparent) !important;

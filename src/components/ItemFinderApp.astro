@@ -224,6 +224,12 @@ const JS_T = ITEM_UI[lang];
     align-items: center;
     gap: 0.6rem;
     min-width: 0;
+    /* Gehoert zur Null-Untergrenze des Rasters (s. u., 480 px): erst wenn
+       der Text auch KUERZEN darf, kann die Spur wirklich schrumpfen —
+       sonst schiebt er die Schaltflaeche wieder auf. */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .uif-category-count {
@@ -763,7 +769,14 @@ const JS_T = ITEM_UI[lang];
   a.uif-set-link:hover { color: var(--text); border-color: var(--accent, #ff5e1a); }
 
   @media (max-width: 480px) {
-    #uif-category-list { grid-template-columns: repeat(2, 1fr); }
+    /* minmax(0, 1fr), NICHT 1fr: `1fr` ist die Kurzform von
+       `minmax(auto, 1fr)` — die Untergrenze ist damit die MIN-CONTENT-Breite
+       der Schaltflaeche. Der laengste Eintrag ("Tools & consumables (344)")
+       zwang die Spuren so auf 183 + 189 px in einem 283 px breiten
+       Behaelter; die rechte Spalte reichte bis x=428 bei 375 px Viewport
+       und wurde von html{overflow-x:clip} einfach abgeschnitten. Mit der
+       Null-Untergrenze duerfen die Spuren schrumpfen. */
+    #uif-category-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .uif-modal-title { font-size: 1.3rem; }
   }
 </style>
