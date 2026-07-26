@@ -1,8 +1,13 @@
 ---
 // Precision Jump — Aaron-Halo-Routenrechner (EN, /precision-jump.html).
-// Reines Client-Werkzeug (kein Konto), indexierbar. Navigations-HUD-Theme
-// (Amber/Cyan). Open-Source-Einsendung von „Jordessey", auf den Site-Design-
-// Kit portiert. DE-Pendant: /de/precision-jump.html.
+// Reines Client-Werkzeug (kein Konto), indexierbar.
+//
+// RICHTUNGSVERTRAG — siehe DESIGN.md. Kurz: diese Flaeche ist ein
+// Nachschlagewerk, kein Cockpit. Satzspiegel ist eine Tafelseite:
+// schmale Marginalspalte links, die auf einzelne Tafelzeilen verweist,
+// Tafeln rechts. Das ist die Bewegung, die aus „Text plus Tabelle" ein
+// Tabellenwerk macht. Abbildung 1 (Schnitt) steht in der Marginalie.
+// DE-Pendant: /de/precision-jump.html.
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
@@ -10,7 +15,34 @@ import PrecisionJumpApp from '../components/PrecisionJumpApp.astro';
 import { buildAnchorRecords, AH_BAND_INFO } from '../data/precision-jump';
 
 const anchorCount = buildAnchorRecords().length;
-const bandCount = Object.keys(AH_BAND_INFO).length;
+const bands = Object.values(AH_BAND_INFO);
+const bandCount = bands.length;
+
+// ── Abbildung 1: radialer Schnitt, aus den echten Bandwerten gerechnet.
+// x = Abstand vom Stern, Balkenbreite = Ausdehnung des Bandes,
+// Balkenhoehe = Dichteklasse. Nichts daran ist von Hand platziert.
+const DENSITY_H: Record<string, number> = { low: 0.3, 'medium-low': 0.5, medium: 0.68, high: 1 };
+const rMin = Math.min(...bands.map((b) => b.innerRadiusKm));
+const rMax = Math.max(...bands.map((b) => b.outerRadiusKm));
+const FIG_W = 1200, FIG_H = 300, BASE = 244, PAD = 24;
+const scaleX = (km: number) => PAD + ((km - rMin) / (rMax - rMin)) * (FIG_W - PAD * 2);
+const figure = bands.map((b, i) => {
+  const x = scaleX(b.innerRadiusKm);
+  const h = DENSITY_H[b.densityClass] * 196;
+  return {
+    n: i + 1,
+    x,
+    w: Math.max(2.5, scaleX(b.outerRadiusKm) - x),
+    y: BASE - h,
+    h,
+    peak: b.densityClass === 'high',
+    widthKm: Math.round((b.outerRadiusKm - b.innerRadiusKm) / 1000),
+  };
+});
+const peak = figure.find((f) => f.peak)!;
+const widest = figure.reduce((a, b) => (b.widthKm > a.widthKm ? b : a));
+const narrowest = figure.reduce((a, b) => (b.widthKm < a.widthKm ? b : a));
+const gm = (km: number) => (km / 1_000_000).toFixed(2);
 ---
 <Layout
   title={'Precision Jump — Aaron Halo Route Calculator · Star Citizen | VerseBase'}
@@ -22,37 +54,91 @@ const bandCount = Object.keys(AH_BAND_INFO).length;
 >
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
-:root{--bg:#080a14;--bg-2:#0c1020;--surface:#111726;--surface-2:#18203a;--accent:#f5a623;--accent-2:#35d0ff;--hot:#ff5b6e;--text:#e8eefc;--muted:#8a97b5;--line:rgba(245,166,35,.20);--line-soft:rgba(232,238,252,.10);--glow:0 0 46px rgba(245,166,35,.24);--ink:#0a0d16;--maxw:1240px;}
+/* Farbstrategie „Restrained": neutraler Grund plus GENAU EIN Akzent (Amber).
+   --accent-2 war die zweite, cyanfarbene Leitfarbe und traegt allein auf
+   dieser Seite rund 140 Fundstellen. Statt 140 Aufrufstellen anzufassen,
+   wird der Token zur neutralen Sekundaerfarbe herabgestuft: die
+   Zweitfarbigkeit verschwindet an der Wurzel, jede bestehende Regel bleibt
+   gueltig. --glow existiert nicht mehr; Hoehe kommt aus Versatzschatten. */
+:root{--bg:#0b0d12;--bg-2:#11141b;--surface:#151922;--surface-2:#1c212c;--accent:#f5a623;--accent-2:#9aa6bd;--hot:#ff5b6e;--text:#e9edf5;--muted:#9aa6bd;--line:rgba(233,237,245,.16);--line-soft:rgba(233,237,245,.08);--ink:#0a0d16;--maxw:1240px;--measure:68ch;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"]{--bg:#f5f7fe;--bg-2:#eaedf9;--surface:#fdfdff;--surface-2:#eff2fc;--text:#1b1f29;--muted:#4f586c;--accent:#7c5104;--accent-2:#045f77;--hot:#9c002c;--ink:#ffffff;--accent-media:#f5a623;--accent-2-media:#35d0ff;--line:rgba(148,104,38,.3);--line-soft:rgba(41,46,56,.12);--glow:0 6px 22px rgba(148,104,38,.18)}
 
 
 .reveal{opacity:1 !important;transform:none !important}
-.hero{min-height:74svh;background:radial-gradient(120% 90% at 82% 8%,rgba(245,166,35,.16),transparent 58%),radial-gradient(100% 90% at 10% 96%,rgba(53,208,255,.14),transparent 55%),var(--bg)}
-.hero h1{font-size:clamp(2.6rem,11vw,7.6rem);background:linear-gradient(180deg,var(--title-hi),#ffd27f 56%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 3px 20px var(--on-media-shadow)) drop-shadow(0 0 30px rgba(245,166,35,.4))}
-.hero__in{max-width:var(--maxw)}
-.pj-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--accent-2)}
-.qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;color:var(--muted)}
-.qbar b{color:var(--accent-2)}</style>
+
+/* ── Titelei ─────────────────────────────────────────────────────────────
+   Kein Hero-Foto, kein Riesentitel, keine Kennzahlenzeile. Ein Almanach
+   beginnt mit einer Titelseite: Reihe, Werktitel, Untertitel, Vorspann.
+   Die Zahlen (25 Anker, 10 Baender) stehen im Satz, nicht in Kacheln —
+   die Kennzahlenreihe war die Schablone, die diese Kategorie immer baut. */
+/* ── Titelei ── volle Breite, darunter beginnt der zweispaltige Satzspiegel */
+/* Kompakt: der Kopf darf das Werkzeug nicht unter die Falz schieben. */
+.alm{max-width:var(--maxw);margin:0 auto;padding:clamp(1.2rem,3vw,2rem) clamp(1.25rem,5vw,3rem) 0}
+.alm__series{font-family:var(--font-ui);font-size:.84rem;color:var(--muted);margin:0 0 .7rem}
+.alm__series a{color:var(--muted);border-bottom:1px solid var(--line)}
+.alm__series a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.alm__title{font-family:var(--font-display);font-weight:800;line-height:1.02;
+  font-size:clamp(1.7rem,3.4vw,2.4rem);letter-spacing:-.02em;color:var(--text);margin:0}
+.alm__sub{font-family:var(--font-ui);font-size:.95rem;color:var(--muted);
+  margin:.4rem 0 0;padding-bottom:.9rem;border-bottom:1px solid var(--line);max-width:74ch}
+
+/* Erklaerender Text steht am FUSS, nicht vor dem Werkzeug. */
+.alm__foot{max-width:var(--maxw);margin:2.6rem auto 0;padding:1.4rem clamp(1.25rem,5vw,3rem) 0;
+  border-top:1px solid var(--line-soft)}
+.alm__foot p{font-size:.94rem;line-height:1.66;color:var(--muted);margin:0 0 .9rem;max-width:68ch}
+.alm__foot p b{color:var(--text);font-weight:600}
+
+/* ── Der Ring ── volle Breite, eigenes Feld. Die Farbe besetzt hier eine
+   ganze Region statt als Tupfer ueber neutralem Grund zu liegen. */
+.ring{margin:0;padding:clamp(1.8rem,4vw,3rem) 0 clamp(1.4rem,3vw,2.2rem);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 7%,var(--bg)),var(--bg) 82%);
+  border-top:1px solid color-mix(in srgb,var(--accent) 26%,transparent);
+  border-bottom:1px solid var(--line)}
+.ring__svg{display:block;width:100%;height:clamp(190px,26vw,300px)}
+.ring__band{fill:color-mix(in srgb,var(--accent) 34%,var(--muted));opacity:.5}
+.ring__band--peak{fill:var(--accent);opacity:1}
+.ring__base{stroke:color-mix(in srgb,var(--accent) 40%,transparent);stroke-width:1}
+.ring__num{fill:var(--muted);font-size:15px;font-family:var(--font-ui,sans-serif);font-weight:600}
+.ring__tick{fill:var(--muted);font-size:15px;font-family:var(--font-ui,sans-serif)}
+.ring__peak{fill:var(--accent);font-size:16px;font-weight:700;font-family:var(--font-ui,sans-serif);
+  letter-spacing:.02em}
+.ring__cap{max-width:var(--maxw);margin:1.1rem auto 0;padding:0 clamp(1.25rem,5vw,3rem);
+  font-size:.92rem;line-height:1.6;color:var(--muted)}
+.ring__cap b{color:var(--text);font-weight:600}
+
+.alm__note{margin-top:1.3rem;padding-top:1rem;border-top:1px solid var(--line-soft);
+  font-size:.88rem;line-height:1.58;color:var(--muted);max-width:46ch}
+.alm__note b{color:var(--text);font-weight:600}
+
+@media(max-width:1000px){
+  .alm__page{grid-template-columns:1fr}
+  .alm__marg{position:static}
+  .alm__marg p,.alm__note{max-width:68ch}
+}</style>
 <a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={[{ label: 'Mining', href: '/topics/mining.html' }, { label: 'Precision Jump' }]} hasEn={true} />
 
 <main id="main">
-  <section class="hero">
-    <canvas id="stars" aria-hidden="true"></canvas>
-    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
-    <div class="hero__in">
-      <div class="eyebrow"><a href="/topics/mining.html">Mining</a> &nbsp;·&nbsp; <span class="pj-tag">Aaron Halo navigation</span></div>
-      <h1><span class="thin">Aaron Halo route calculator</span>Precision Jump</h1>
-      <p class="lead">Plot the quantum-travel line between two markers and get the exact coordinate to drop out of QT — straight into the asteroid band you want to mine.</p>
-      <div class="qbar"><span>QT anchors <b>{anchorCount}</b></span><span>Halo bands <b>{bandCount}</b></span><span>System <b>Stanton</b></span><span>Patch <b>4.9</b></span></div>
-    </div>
-    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
-  </section>
+  <header class="alm">
+    <nav class="alm__series" aria-label="Breadcrumb"><a href="/topics/mining.html">Mining</a></nav>
+    <h1 class="alm__title">Aaron Halo</h1>
+    <p class="alm__sub">Where to leave quantum to land in the asteroid band you want · Stanton · 4.9</p>
+  </header>
 
   <PrecisionJumpApp lang="en" />
+
+  <aside class="alm__foot">
+    <p>Quantum travel crosses the ring in seconds. Mining it is less about flying
+      there than about stopping in the right place — you leave quantum on a line you
+      cannot see. Any two of the {anchorCount} anchors define that line;
+      {bandCount} density bands lie between {gm(rMin)} and {gm(rMax)} Gm from the star.</p>
+    <p class="alm__note">Route method and original data by <b>Jordessey</b>; one anchor
+      value (MIC-L5) was corrected against the game during validation. Band survey by
+      <b>cstone.space</b>.</p>
+  </aside>
 </main>
 
 <Attribution sources={["Jordessey (tool & route data)", "cstone.space (Halo band survey)"]} credit="VerseBase · a Star Citizen fan project" />
