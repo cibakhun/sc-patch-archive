@@ -253,6 +253,10 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
       weil das Skript nur auf spaetere Klassenwechsel reagiert und nichts
       am ersten Bild aendert. Auf Seiten ohne [data-offcanvas] kostet es
       einen leeren querySelectorAll. */}
+  {/* Scroll-Sperre fuer ALLE Overlays (Suche, Menue, Item-Modal, Panels).
+      Muss vor offcanvas.js stehen, das sie mitbenutzt. Reines Bereitstellen
+      einer Funktion — laeuft beim Laden nichts an. */}
+  <script is:inline defer src={versioned('assets/scroll-lock.js', '/assets/scroll-lock.js')}></script>
   <script is:inline defer src={versioned('assets/offcanvas.js', '/assets/offcanvas.js')}></script>
   {/* Umschalt-Verhalten. Bewusst hier und nicht in ThemeToggle.astro: der
       Umschalter steht zweimal auf der Seite (Leiste + Menü), das Verhalten

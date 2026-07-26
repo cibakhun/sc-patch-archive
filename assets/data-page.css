@@ -484,13 +484,18 @@ body {
   }
 
   /* Fuss- und Krumen-Links standen als 21-px-Textstreifen direkt
-     uebereinander — ohne Trefferhoehe erwischt man staendig den Nachbarn. */
+     uebereinander — ohne Trefferhoehe erwischt man staendig den Nachbarn.
+     44 statt der 40, die hier zuerst standen: 40 war die einzige Stelle
+     der ganzen Seite, die knapp unter dem Mass blieb, und sie sitzt auf
+     den ~17.000 Item- und Blueprint-Seiten, also der groessten
+     Seitengruppe ueberhaupt. Die vier Pixel kosten nichts — die Zeile
+     umfliesst ohnehin (flex-wrap) — und ersparen die Sonderregel. */
   .dp-foot-nav { gap: 0.1rem 1.1rem; }
   .dp-foot-nav a,
   .dp-crumbs a {
     display: inline-flex;
     align-items: center;
-    min-height: 40px;
+    min-height: 44px;
   }
 
   /* Tabellenlinks fuellen ihre Zeile statt nur die Glyphen. */

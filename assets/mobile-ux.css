@@ -80,6 +80,25 @@
   .cbp__add {
     min-width: 44px;
   }
+  /* `.cbar__x` (Loeschkreuz der Archivsuche), gemessen 20x44 px: die
+     Breite fehlte. BEWUSST nicht ueber die `min-width`-Liste darueber —
+     die Klasse setzt in archive.css `width: 20px`, und `min-width`
+     schlaegt `width`. Das Kreuz waere sichtbar auf 44 px aufgegangen und
+     hockte als klobiger Kasten im schlanken Suchfeld. Stattdessen
+     derselbe Kniff wie bei den Kontrollkaestchen: die gezeichnete Box
+     bleibt 20 px, ein transparentes ::after spannt die Fingerkuppe auf. */
+  .cbar__x {
+    position: relative;
+  }
+  .cbar__x::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
   /* Ein `min-height` allein reicht nicht, wenn das Element per
      `display:inline-block` gesetzt ist — dort wirkt es nicht wie
      erwartet und der Text klebt oben. */
@@ -112,7 +131,15 @@
        .ribbon__tick Zeitstrahl-Marken im Archiv-Kopf; darunter steht
                      dieselbe Auswahl als Liste (.dive) in voller Hoehe.
      Bei 19 Marken auf 343 px LIESSEN sich 44 px auch gar nicht
-     ueberschneidungsfrei vergeben. */
+     ueberschneidungsfrei vergeben.
+
+     Aus demselben Grund bleibt auch der Versions-Verweis im Kopf der
+     Evolutions-Matrix (`.evo__col a`, gemessen 36x15) klein: er ist die
+     Spaltenueberschrift EINER von 19 Spalten in einer 1695 px breiten
+     Tabelle, die seitwaerts gescrollt wird. Auf 44 px gezogen wuerde er
+     die Spaltenbreite und damit die ganze Matrix sprengen. Derselbe
+     Patch ist ueber /archiv in voller Groesse erreichbar — die
+     Information ist also nirgends nur ueber dieses Ziel zu bekommen. */
   .evo__cell,
   .ribbon__tick {
     min-height: 0;
@@ -141,6 +168,48 @@
   .cdb-sync__login,
   .mdb-loc-link {
     display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Nachzuegler aus dem zweiten Messdurchgang. Sie standen in keiner
+     Liste, weil die Liste von Hand gepflegt wird:
+       .md__back        109x21  Missions-Datenblatt, „Alle Missionen"
+       .pp-error__home  195x20  Pilotenseite, Rueckweg zur Startseite
+       .uf-browse a     240x29  Item Finder, „Alle Items nach Kategorie"
+
+     Ein vierter Fall, die Brotkrume der DataShell (33x40 auf ~17.000
+     Item- und Blueprint-Seiten), steht bewusst NICHT hier, sondern in
+     assets/data-page.css: die Datei wird nach dieser geladen und setzte
+     dort selbst `min-height: 40px`. Eine Regel hier haette bei gleicher
+     Spezifitaet verloren — sie gehoert an die Stelle, die sie korrigiert.
+
+     ZUR EHRLICHKEIT, damit es niemand noch einmal versucht: hier stand
+     kurzzeitig eine STRUKTURELLE Regel statt weiterer Namen —
+     `:where(p,div,li,…) > a:only-child`, in der Annahme, ein allein
+     stehender Verweis sei per Definition kein Verweis im Fliesstext.
+     Nachgemessen trifft sie KEINEN dieser vier Faelle: alle vier haben
+     Geschwister im Elternelement (7, 8, 5 bzw. 2 Kinder). Ein
+     brauchbares CSS-Praedikat fuer „allein stehender Verweis" gibt es
+     hier nicht — `display` taugt auch nicht, .pp-error__home ist
+     `inline` und .dp-crumbs a ist `flex`. Die Regel war reine
+     Blindleistung und ist wieder raus; die Namen bleiben die ehrliche
+     Loesung. */
+  .md__back,
+  .pp-error__home,
+  .uf-browse a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  /* Teileliste eines Ruestungs-Sets (/armor-sets.html): gemessen 19 px
+     hohe Verweise, direkt untereinander in einer <ul> — der schlimmste
+     Fall, weil hier ZWEI Ziele mit fast gleichem Namen aufeinander
+     folgen („ORC-mkV Core" und „ORC-mkV Core (Modified)"). Ein Fehlgriff
+     fuehrt auf das falsche Teil. Als flex mit voller Zeilenhoehe, damit
+     die Zeile selbst das Ziel ist. */
+  .as-parts li a {
+    display: flex;
     align-items: center;
     min-height: 44px;
   }
@@ -321,13 +390,120 @@ summary:active {
   backdrop-filter: blur(2px);
   opacity: 0;
   transition: opacity 0.25s ease;
+  /* PFLICHT, nicht Kosmetik: der Verdunkler wird seit der Umstellung
+     einmal beim Start erzeugt und liegt damit dauerhaft im DOM
+     (Begruendung in offcanvas.js). Ohne pointer-events:none faenge
+     dieses unsichtbare Vollbild-Element JEDEN Tipp der Seite ab. */
+  pointer-events: none;
 }
 .vb-offcanvas-scrim.is-open {
   opacity: 1;
+  pointer-events: auto;
 }
 @media (prefers-reduced-motion: reduce) {
   .vb-offcanvas-scrim {
     transition: none;
+  }
+}
+
+/* ------------------------------------------------------------
+   4b) Rollen-Pille der Schiffskarte darf kuerzen
+   ------------------------------------------------------------
+   `.fcard__chip` traegt `white-space: nowrap` — richtig, damit eine
+   Pille nicht mittendrin umbricht. Wird der Text aber laenger als die
+   Karte, laeuft sie hinaus und `.fcard` schneidet sie ab. Gemessen bei
+   375 px: „Einsteiger · Leichter Frachter" war 199 px breit in einer
+   140 px schmalen Karte, die Rolle also unlesbar. Betroffen ist die
+   zweispaltige Kartenansicht in BEIDEN Sprachen — im Deutschen
+   haeufiger, weil die Rollennamen dort laenger sind.
+
+   Steht bewusst HIER und nicht im Seiten-CSS: src/pages/schiffe.astro
+   und src/pages/de/schiffe.astro sind zwei Dateien mit je einer eigenen
+   Kopie dieses Blocks. Eine Regel im Seiten-CSS muesste man doppelt
+   pflegen — beim ersten Anlauf blieb dadurch genau die deutsche Seite
+   kaputt. Eine Stelle, beide Sprachen.
+------------------------------------------------------------ */
+@media (max-width: 820px) {
+  .fcard__chip {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* ------------------------------------------------------------
+   5c) Seitwaerts scrollende Tabellen sichtbar machen
+   ------------------------------------------------------------
+   Gemessen bei 375 px: die breiten Tabellen liegen ALLE korrekt in
+   einem Kasten mit overflow-x:auto und lassen sich wischen —
+
+     .do__tablewrap     Patch-Datenblatt       409 px in 274 px
+     .md__tblWrap       Missions-Datenblatt    585 px in 333 px
+     .pj-tblscroll      Precision Jump         801 px in 327 px
+     .evo__scroll       Evolutions-Matrix     1695 px in 351 px
+     .uif-table-wrapper Item-Modal
+     .sd__paints        Lackierungen im Schiffs-Datenblatt
+
+   ... nur SIEHT man das nicht. Auf Touch gibt es keine dauerhafte
+   Bildlaufleiste, und die Tabellen sind rechts glatt abgeschnitten —
+   sie lesen sich wie eine vollstaendige Tabelle, deren letzte Spalte
+   zufaellig „Status" heisst. Wer nicht zufaellig quer wischt, erfaehrt
+   nie, dass rechts noch Daten stehen.
+
+   Zwei Signale, beide ohne JS:
+     1. eine duenne, dauerhaft sichtbare Bildlaufleiste (Chrome/Android,
+        Firefox zeichnen sie damit),
+     2. ein Verlauf an der rechten Kante fuer die Browser mit
+        Overlay-Leisten, die im Ruhezustand nichts zeigen — allen voran
+        iOS Safari.
+
+   EHRLICH zur Einschraenkung: der Verlauf haengt an der Kante des
+   Kastens (`background-attachment: scroll`), nicht am Inhalt. Er steht
+   also auch dann noch da, wenn man schon ganz nach rechts gewischt hat.
+   Die saubere Variante braucht eine zweite, DECKENDE Verlaufsebene mit
+   `attachment: local` — und damit die Hintergrundfarbe des Kastens. Die
+   ist hier je nach Seite eine andere (die Kaesten sind durchsichtig),
+   ein fester Wert waere in einer der Paletten falsch. Ein Hinweis, der
+   einmal zu viel steht, ist besser als eine Tabelle, deren rechte
+   Haelfte niemand findet.
+
+   NUR mobil: am Desktop gibt es eine echte Bildlaufleiste.
+------------------------------------------------------------ */
+@media (max-width: 820px) {
+  .do__tablewrap,
+  .md__tblWrap,
+  .pj-tblscroll,
+  .evo__scroll,
+  .uif-table-wrapper,
+  .sd__paints {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--accent) 55%, transparent) transparent;
+    background-image: linear-gradient(
+      to left,
+      color-mix(in srgb, var(--accent) 20%, transparent),
+      transparent 34px
+    );
+    background-repeat: no-repeat;
+    background-size: 34px 100%;
+    background-position: right center;
+    background-attachment: scroll;
+  }
+  .do__tablewrap::-webkit-scrollbar,
+  .md__tblWrap::-webkit-scrollbar,
+  .pj-tblscroll::-webkit-scrollbar,
+  .evo__scroll::-webkit-scrollbar,
+  .uif-table-wrapper::-webkit-scrollbar,
+  .sd__paints::-webkit-scrollbar {
+    height: 4px;
+  }
+  .do__tablewrap::-webkit-scrollbar-thumb,
+  .md__tblWrap::-webkit-scrollbar-thumb,
+  .pj-tblscroll::-webkit-scrollbar-thumb,
+  .evo__scroll::-webkit-scrollbar-thumb,
+  .uif-table-wrapper::-webkit-scrollbar-thumb,
+  .sd__paints::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--accent) 55%, transparent);
   }
 }
 

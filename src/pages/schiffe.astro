@@ -163,6 +163,11 @@ a{color:inherit;text-decoration:none}
 
 .fcard__body{display:flex;flex-direction:column;gap:.6rem;padding:.75rem .85rem .85rem;flex:1}
 .fcard__chips{display:flex;flex-wrap:wrap;gap:.32rem;min-height:1.4rem}
+/* Die Mobil-Kuerzung dieser Pille steht NICHT hier, sondern in
+   assets/mobile-ux.css. Grund: src/pages/de/schiffe.astro ist eine eigene
+   Kopie dieser Seite mit einer eigenen Kopie dieses CSS-Blocks — eine
+   Aenderung hier greift nur auf der englischen Seite. Genau das ist beim
+   ersten Anlauf passiert (EN gekuerzt, DE weiter abgeschnitten). */
 .fcard__chip{font-family:var(--font-ui);font-weight:600;font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;
   color:var(--accent-2);border:1px solid var(--line);background:rgba(110,168,255,.06);padding:.1rem .42rem;white-space:nowrap}
 

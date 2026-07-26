@@ -365,19 +365,32 @@ const JS_T = ITEM_UI[lang];
     white-space: nowrap;
   }
 
+  /* Fundort-Zeile: der Name darf kuerzen, die Zahl der weiteren Fundorte
+     nicht. Vorher kuerzte die Box als Ganzes und schnitt damit genau das
+     `+N` ab, das hinten steht (gemessen bei 375 px: x=409, also ausserhalb
+     des Bildes). Jetzt traegt der Name die Kuerzung allein. */
   .uif-card-location {
     font-size: 0.8rem;
     color: var(--muted, #9ba2ae);
     min-width: 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: baseline;
+    gap: 0.3rem;
+    text-align: right;
+  }
+
+  .uif-loc-name {
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-align: right;
   }
 
   .uif-loc-more {
     color: var(--accent-2, var(--accent, #ff5e1a));
     font-weight: 700;
+    flex: none;
   }
 
   .uif-loc-none { font-style: italic; opacity: 0.8; }
@@ -427,7 +440,14 @@ const JS_T = ITEM_UI[lang];
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    /* 1000 lag UNTER der festen Kopfleiste (.snav, z-index 9600): die
+       Leiste samt Verlauf und Weichzeichner stand ueber dem Modal, und
+       ein Tipp auf ihre obere Kante traf die Navigation statt des
+       Dialogs. 9650 legt das Modal darueber — ueber die Leiste, aber
+       unter nichts anderes: die Suche und das Menue teilen sich 9500 bis
+       9600, und die duerfen ein Modal ueberdecken, weil sie es beim
+       Oeffnen ohnehin ersetzen. */
+    z-index: 9650;
     padding: 1.5rem;
     animation: uif-fade-in 0.2s ease-out;
   }
