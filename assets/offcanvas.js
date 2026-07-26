@@ -33,7 +33,6 @@
   var OPEN = 'is-open';
   var scrim = null;
   var active = null; // aktuell offenes Panel
-  var scrollY = 0;
 
   /* Zwei Bedingungen, beide noetig:
      - position:fixed — das Panel faehrt wirklich ueber die Seite (die
@@ -49,22 +48,17 @@
     return panel.id ? document.querySelector('[data-offcanvas-toggle="' + panel.id + '"]') : null;
   }
 
+  /* Die Sperre selbst steht seit dem Vereinheitlichen in
+     assets/scroll-lock.js — dieselbe position:fixed-Technik wie vorher,
+     nur eben an EINER Stelle und mit Zaehler, damit zwei offene Ebenen
+     (Suche ueber offenem Filterschub) sich nicht gegenseitig entsperren.
+     Vorher kannte die Seite drei verschiedene Sperren. */
   function lock() {
-    // position:fixed am <body> statt overflow:hidden am <html>: iOS Safari
-    // ignoriert overflow:hidden auf dem Wurzelelement und scrollt weiter.
-    // Die Scroll-Position wird gemerkt und beim Entsperren exakt
-    // wiederhergestellt, sonst springt die Seite nach oben.
-    scrollY = window.scrollY || window.pageYOffset || 0;
-    document.body.style.position = 'fixed';
-    document.body.style.top = -scrollY + 'px';
-    document.body.style.width = '100%';
+    if (window.VBScrollLock) window.VBScrollLock.lock();
   }
 
   function unlock() {
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
-    window.scrollTo(0, scrollY);
+    if (window.VBScrollLock) window.VBScrollLock.unlock();
   }
 
   function close() {
@@ -95,23 +89,39 @@
 
   function setup(panel) {
     active = panel;
-    if (!scrim) {
-      scrim = document.createElement('div');
-      scrim.className = 'vb-offcanvas-scrim';
-      scrim.setAttribute('aria-hidden', 'true');
-      scrim.addEventListener('click', close);
-      document.body.appendChild(scrim);
-    }
     // z-index eine Stufe unter dem Panel: der Verdunkler deckt die Seite,
     // nie das Panel selbst.
     var z = parseInt(getComputedStyle(panel).zIndex, 10);
     scrim.style.zIndex = (isNaN(z) ? 9250 : z) - 1;
     lock();
-    // Erzwungener Reflow statt requestAnimationFrame: rAF erwies sich im
-    // Test als unzuverlaessig (der Verdunkler blieb bei opacity 0). Das
-    // Auslesen von offsetWidth zwingt den Browser, den Startzustand zu
-    // berechnen — danach ist das Setzen der Klasse ein echter Uebergang.
-    void scrim.offsetWidth;
+    // Schlichtes Setzen der Klasse — bewusst ohne den `void
+    // scrim.offsetWidth`, der hier vorher stand, und bewusst ohne
+    // requestAnimationFrame.
+    //
+    // Vorgeschichte, damit niemand den Reflow-Kniff gutgemeint wieder
+    // einbaut: bei der Messung sah es zunaechst so aus, als bliebe der
+    // Verdunkler dauerhaft bei opacity 0 — die CSSTransition stand auf
+    // playState "running" mit currentTime fest bei 0. Das war jedoch ein
+    // ARTEFAKT der Messumgebung: in der benutzten eingebetteten Ansicht
+    // lief ueberhaupt kein Rendering-Zyklus (0 rAF-Frames in 800 ms), und
+    // ohne Frames kann keine Transition fortschreiten. In einem normalen
+    // Browser ist der Effekt NICHT nachgewiesen.
+    //
+    // Geblieben ist trotzdem eine echte Verbesserung: der Verdunkler wird
+    // jetzt EINMAL beim Start erzeugt (siehe init) statt beim ersten
+    // Oeffnen. Damit haengt sein Uebergang nicht mehr daran, dass ein
+    // gerade erst eingefuegtes Element im selben Arbeitsschritt schon
+    // eine laufende Zeitachse hat — die Klasse von Problemen, gegen die
+    // der Reflow-Kniff ueberhaupt gedacht war, entsteht so gar nicht
+    // erst. rAF waere hier das falsche Mittel: es laeuft in gedrosselten
+    // und eingebetteten Ansichten nicht zuverlaessig, und ein
+    // Verdunkler, der dort ausbleibt, waere schlimmer als einer ohne
+    // Uebergang.
+    //
+    // PREIS dieser Umstellung: das Element liegt jetzt dauerhaft im DOM.
+    // Es MUSS deshalb pointer-events:none tragen, solange `is-open`
+    // fehlt — sonst faengt ein unsichtbarer Vollbild-Kasten jeden Tipp
+    // der Seite ab. Die Regel steht in mobile-ux.css.
     scrim.classList.add(OPEN);
     document.addEventListener('keydown', onKey);
     panel.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -148,6 +158,15 @@
 
   function init() {
     var panels = document.querySelectorAll('[data-offcanvas]');
+    if (!panels.length) return;
+    // Der Verdunkler entsteht hier, nicht beim ersten Oeffnen — siehe die
+    // Begruendung in setup(). Er kostet nichts: opacity 0 und
+    // pointer-events:none, solange `is-open` fehlt.
+    scrim = document.createElement('div');
+    scrim.className = 'vb-offcanvas-scrim';
+    scrim.setAttribute('aria-hidden', 'true');
+    scrim.addEventListener('click', close);
+    document.body.appendChild(scrim);
     for (var i = 0; i < panels.length; i++) watch(panels[i]);
   }
 

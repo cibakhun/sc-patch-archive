@@ -483,16 +483,25 @@ const indexUrl = href('/search-index.json', lang);
     }
 
     function open() {
+      // Der Zaehler in scroll-lock.js darf nicht doppelt hochlaufen: ein
+      // zweites Ctrl+K bei offener Suche wuerde sonst zweimal sperren, das
+      // eine Schliessen aber nur einmal entsperren — die Seite bliebe
+      // festgenagelt.
+      if (!root.hidden) { input.focus(); input.select(); return; }
       lastFocus = document.activeElement;
       root.hidden = false;
-      document.documentElement.style.overflow = 'hidden';
+      // Geteilte Sperre statt overflow am Wurzelelement: iOS Safari
+      // uebergeht overflow:hidden dort und scrollt den Hintergrund weiter.
+      // Siehe assets/scroll-lock.js.
+      if (window.VBScrollLock) window.VBScrollLock.lock();
       load().then(function () { render(input.value); });
       requestAnimationFrame(function () { input.focus(); input.select(); });
     }
 
     function close() {
+      if (root.hidden) return;
       root.hidden = true;
-      document.documentElement.style.overflow = '';
+      if (window.VBScrollLock) window.VBScrollLock.unlock();
       if (lastFocus && lastFocus.focus) lastFocus.focus();
     }
 

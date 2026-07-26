@@ -1538,13 +1538,22 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       // nie (rAF kann in gedrosselten/eingebetteten Views ausbleiben).
       void deck.offsetHeight;
       deck.classList.add('is-open');
+      // is-deck-open bleibt (scrollbar-gutter), die eigentliche Sperre
+      // uebernimmt die geteilte Fassung: overflow:hidden am Wurzelelement
+      // reicht auf iOS Safari nicht. Siehe assets/scroll-lock.js.
       document.documentElement.classList.add('is-deck-open');
+      if (window.VBScrollLock) window.VBScrollLock.lock();
       btn.setAttribute('aria-expanded', 'true');
     }
 
     function closeDeck() {
+      // Auf die Klasse pruefen, NICHT auf `hidden`: das wird erst 380 ms
+      // spaeter gesetzt (Ausblend-Dauer). In diesem Fenster wuerde ein
+      // zweiter Klick sonst ein zweites Mal entsperren.
+      if (!deck.classList.contains('is-open')) return;
       deck.classList.remove('is-open');
       document.documentElement.classList.remove('is-deck-open');
+      if (window.VBScrollLock) window.VBScrollLock.unlock();
       btn.setAttribute('aria-expanded', 'false');
       setTimeout(function () { deck.hidden = true; }, 380);
       if (lastFocus && lastFocus.focus) lastFocus.focus();
