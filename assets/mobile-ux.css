@@ -67,10 +67,17 @@
   }
   /* Icon-Knoepfe (Schliessen, Ansichts-Umschalter) sind quadratisch
      gedacht und brauchen die Breite mit. */
-  :where(
-      .cdb-x, .mdb-x, .scs__x, .cdb-view, .mdb-view, .rff__vbtn,
-      .uif-viewbtn, .sid__mini, .cbp__own, .cbp__add
-    ) {
+  .cdb-x,
+  .mdb-x,
+  .scs__x,
+  .cdb-view,
+  .mdb-view,
+  .rff__vbtn,
+  .uif-viewbtn,
+  .uif-modal-close,
+  .sid__mini,
+  .cbp__own,
+  .cbp__add {
     min-width: 44px;
   }
   /* Ein `min-height` allein reicht nicht, wenn das Element per
@@ -143,6 +150,57 @@
     min-height: 44px;
     display: flex;
     align-items: center;
+  }
+
+  /* Titel-Links IN Karten (Schiffskarte, Blueprint-Karte, Archiv-Knoten).
+     Sie sind der Weg in die Karte hinein, waren aber nur so hoch wie ihre
+     Zeile (23–31 px). Kein negatives margin zum Ausgleich: die Flaeche
+     wuerde sonst ueber die Knoepfe direkt darunter greifen und deren
+     Tipps abfangen. Die Karten werden dadurch mobil etwas hoeher — das
+     ist hier erwuenscht, sie standen ohnehin sehr dicht. */
+  .cbp__name a,
+  .fcard__name a,
+  .node__name a {
+    display: inline-block;
+    padding-block: 0.7rem;
+  }
+  /* Einzelne Verweiszeilen (Startseite „Alle Items nach Kategorie",
+     Themenseiten-Absaetze, Hero-Brotkrume) — hier reicht die Hoehe
+     direkt, es steht nichts unmittelbar darunter. */
+  .tools__more a,
+  .cr-browse a,
+  .eyebrow a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Gestapelte Verweis-Reihen: je eine Zeile pro Link, untereinander.
+     Gemessen 29–34 px — die Nachbarzeile war jeweils nur ein paar
+     Pixel entfernt.
+       .sd__pledgerow  Schiffs-Datenblatt, Kaufverweis
+       .sd__links      Schiffs-Datenblatt, Fusszeilen-Verweise
+       .acx-links      Konto-Formulare (Registrieren / Passwort)
+       .as-jump        Ruestungs-Sets, Sprungmarken nach Hersteller */
+  .sd__pledgerow a,
+  .sd__links a,
+  .acx-links a,
+  .as-jump a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Textfelder: nur die Schriftgroesse zu heben reichte nicht, die Felder
+     selbst waren 22–43 px hoch (Schiffssuche, Archivsuche, Zutatensuche,
+     Refinery-Suche, Rechnerfelder). */
+  input[type='search'],
+  input[type='text'],
+  input[type='number'],
+  input[type='email'],
+  input[type='password'],
+  textarea {
+    min-height: 44px;
   }
 }
 
