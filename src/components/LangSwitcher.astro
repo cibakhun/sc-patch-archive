@@ -69,8 +69,31 @@ function targetFor(l: Locale): string {
     color: var(--muted, #8a99b8);
     transition: color 0.15s;
   }
-  .langsw__opt:hover {
+  .langsw__opt:hover,
+  .langsw__opt:active {
     color: var(--accent, #2dd4ff);
+  }
+  /* Auf schmalen Schirmen ist der Umschalter aus der Kopfleiste ausgeblendet
+     und steht NUR noch im Menü-Fuß — dort war die anklickbare Fläche 18x23 px.
+     Statt den Kasten optisch aufzublähen bekommen beide Sprachkürzel eine
+     unsichtbare 44-px-Fläche; das Erscheinungsbild bleibt identisch. */
+  @media (max-width: 860px) {
+    .langsw__opt,
+    .langsw__cur {
+      position: relative;
+      display: inline-block;
+      line-height: 1;
+    }
+    .langsw__opt::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      min-width: 44px;
+      width: 100%;
+      height: 44px;
+      transform: translate(-50%, -50%);
+    }
   }
   .langsw__sep {
     color: var(--muted, #8a99b8);
