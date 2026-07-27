@@ -16,7 +16,7 @@ const patches = (await getCollection('patches')).sort((a, b) =>
 const counts = new Map<string, number>();
 for (const p of patches)
   for (const f of p.data.features)
-    counts.set(f.system ?? 'Sonstiges', (counts.get(f.system ?? 'Sonstiges') ?? 0) + 1);
+    counts.set(f.system ?? 'Egyéb', (counts.get(f.system ?? 'Egyéb') ?? 0) + 1);
 const systems = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => s);
 
 // cells: system × patch -> features
@@ -32,7 +32,7 @@ const rowTotal = (sys: string) => patches.reduce((n, p) => n + cell(sys, p).leng
 const tierOf = (n: number) => (n <= 2 ? '1' : n <= 5 ? '2' : '3');
 ---
 <Layout
-  title="Star Citizen Evolution — Patch-Verlauf je System | VerseBase"
+  title="Star Citizen Evolúció — patch-történet rendszerenként | VerseBase"
   description={`Minden Star Citizen-rendszer minden patchen át: ${total} dokumentált változás ${patches.length} patchen keresztül, az Alpha 4.0.0-tól a ${patches[patches.length - 1].data.version}-ig. Az interaktív áttekintés.`}
   themeColor="#04060c"
   footer={true}
@@ -62,28 +62,28 @@ a{color:inherit;text-decoration:none}
 
 <main class="evo">
   <header class="evo__head">
-    <span class="evo__kicker">Systeme × Patches</span>
+    <span class="evo__kicker">Rendszerek × patchek</span>
     <h1>Evolution</h1>
     <p class="evo__sub">
       Hogyan fejlődött minden játékrendszer az Alpha 4.0.0-tól a {patches[patches.length - 1].data.version}-ig.
       Minden oszlop a saját patchének színét viseli — kattints egy cellára a részletekért.
     </p>
     <dl class="evo__metrics">
-      <div><dt>Änderungen</dt><dd>{total}</dd></div>
-      <div><dt>Systeme</dt><dd>{systems.length}</dd></div>
+      <div><dt>Változás</dt><dd>{total}</dd></div>
+      <div><dt>Rendszer</dt><dd>{systems.length}</dd></div>
       <div><dt>Patches</dt><dd>{patches.length}</dd></div>
-      <div><dt>Ären</dt><dd>{eraCount}</dd></div>
+      <div><dt>Éra</dt><dd>{eraCount}</dd></div>
     </dl>
   </header>
 
   <div class="evo__legend">
     <span class="evo__lg" aria-hidden="true"><i class="t1"></i><i class="t2"></i><i class="t3"></i></span>
-    <span>Intensität = Aktivität</span>
+    <span>Intenzitás = aktivitás</span>
     <span class="evo__legdot" aria-hidden="true">·</span>
-    <span>Zahl = Einträge · Klick = Details</span>
+    <span>Szám = bejegyzés · kattintás = részletek</span>
   </div>
 
-  <div class="evo__scroll" tabindex="0" aria-label="Evolutions-Matrix (horizontal scrollbar)">
+  <div class="evo__scroll" tabindex="0" aria-label="Evolúciós mátrix (vízszintesen görgethető)">
     <table class="evo__table">
       <thead>
         <tr>
@@ -96,7 +96,7 @@ a{color:inherit;text-decoration:none}
               </a>
             </th>
           ))}
-          <th scope="col" class="evo__tot" title="Einträge gesamt">Σ</th>
+          <th scope="col" class="evo__tot" title="Bejegyzés összesen">Σ</th>
         </tr>
       </thead>
       <tbody>
@@ -142,12 +142,12 @@ a{color:inherit;text-decoration:none}
                 <a class="edet__patch" href={`/hu/patches/sc-${p.id}.html`}>
                   Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay} →
                 </a>
-                <button class="edet__x" data-eclose aria-label="Details schließen">Esc</button>
+                <button class="edet__x" data-eclose aria-label="Részletek bezárása">Esc</button>
               </span>
             </header>
             {feats.map((f) => (
               <article class="edet__feat">
-                <h3>{f.name}{f.unverified && <abbr class="edet__unv" title="unbestätigt">*</abbr>}</h3>
+                <h3>{f.name}{f.unverified && <abbr class="edet__unv" title="megerősítetlen">*</abbr>}</h3>
                 <p>{f.desc}</p>
                 {(f.facts?.length ?? 0) > 0 && (
                   <dl class="edet__facts">
@@ -156,7 +156,7 @@ a{color:inherit;text-decoration:none}
                     ))}
                   </dl>
                 )}
-                {f.topicSlug && <a class="edet__link" href={`/hu/topics/${f.topicSlug}.html`}>Deep-Dive ansehen →</a>}
+                {f.topicSlug && <a class="edet__link" href={`/hu/topics/${f.topicSlug}.html`}>Mélymerülés megtekintése →</a>}
               </article>
             ))}
           </div>

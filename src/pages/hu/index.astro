@@ -176,13 +176,13 @@ const tools = [
   <div class="hero__img" style={`--hero:url('${HERO_IMG}')`} aria-hidden="true"></div>
   <div class="hero__scrim" aria-hidden="true"></div>
   <div class="hero__inner">
-    <span class="hero__kicker">Star-Citizen-Kompendium</span>
+    <span class="hero__kicker">Star Citizen-kompendium</span>
     <h1>VerseBase</h1>
     <p class="hero__lede">Játékhű Star Citizen-eszközök — tárgykereső, bányászat, crafting, hajók és a teljes Alpha 4 patch-archívum.</p>
     <button class="hero__search" type="button" data-scs-open aria-label="Keresés megnyitása">
       <span class="p" aria-hidden="true">&gt;_</span>
-      <span class="h">Items, Schiffe, Patches durchsuchen…</span>
-      <span class="k" aria-hidden="true"><kbd>Strg</kbd><kbd>K</kbd></span>
+      <span class="h">Tárgyak, hajók, patchek keresése…</span>
+      <span class="k" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
     </button>
   </div>
   <div class="hero__cue" aria-hidden="true">Eszközök ↓</div>
@@ -205,20 +205,20 @@ const tools = [
       <span>Teljes adatbázis:</span>
       <a href="/hu/items.html">Összes tárgy kategória szerint</a>
       <a href="/hu/crafting.html">Tervrajzok</a>
-      <a href="/hu/schiffe.html">Schiffs-Index</a>
+      <a href="/hu/schiffe.html">Hajójegyzék</a>
       <a href="/hu/missionen.html">Küldetések</a>
     </p>
   </section>
 
   <!-- AKTUELL -->
   <section class="sec reveal">
-    <div class="sec__head"><h2>Aktuell</h2><span class="rule"></span></div>
+    <div class="sec__head"><h2>Aktuális</h2><span class="rule"></span></div>
     <a class="fresh" href={`/hu/patches/sc-${latest.id}.html`}>
       <div class="fresh__body">
         <span class="fresh__ey"><span class="fresh__dot" aria-hidden="true"></span>Live · {latest.data.dateDisplay}</span>
         <span class="fresh__ver">Alpha {latest.data.version}</span>
         <span class="fresh__name">{latest.data.codename ?? latest.data.tagline}</span>
-        <span class="fresh__go">Patch öffnen <span aria-hidden="true">→</span></span>
+        <span class="fresh__go">Patch megnyitása <span aria-hidden="true">→</span></span>
       </div>
       <div class="fresh__media" style={`background-image:url('${latest.data.heroImage ?? `/assets/trailer-${latest.id}.jpg`}')`} aria-hidden="true"></div>
     </a>
