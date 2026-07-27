@@ -47,7 +47,24 @@ export const NOINDEX_PATHS: ReadonlySet<string> = new Set([
   '/pilot.html',
 ]);
 
+/**
+ * Vorschau-Build (Staging). Wird von .github/workflows/deploy-staging.yml
+ * gesetzt und macht die GANZE Seite unindexierbar.
+ *
+ * Warum das hier steht und nicht im Layout: Indexierbarkeit hat genau eine
+ * Quelle, und audit-site.mjs prueft nach dem Bauen, dass <meta robots> und
+ * Sitemap uebereinstimmen. Eine zweite, oeffentlich erreichbare Kopie der
+ * Site waere sonst Duplicate Content gegen die eigene Domain.
+ *
+ * `process.env` statt `import.meta.env`: dieses Modul laeuft ausschliesslich
+ * zur Bauzeit (Layout-Frontmatter, sitemap.xml.ts, robots.txt.ts), und die
+ * Variable soll NICHT ins Client-Bundle wandern.
+ */
+export const IS_STAGING: boolean =
+  typeof process !== 'undefined' && process.env?.STAGING === '1';
+
 /** true, wenn dieser Pfad (DE oder EN) auf noindex stehen soll. */
 export function isNoindex(pathname: string): boolean {
+  if (IS_STAGING) return true;
   return NOINDEX_PATHS.has(toBaseForm(pathname));
 }

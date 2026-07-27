@@ -6,7 +6,7 @@
 import Attribution from '../components/Attribution.astro';
 import { SITE } from '../consts';
 import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui';
-import { isNoindex } from '../lib/seo';
+import { isNoindex, IS_STAGING } from '../lib/seo';
 import { versioned } from '../lib/assetVersion';
 import { LIGHT_RULES } from '../../scripts/lib/theme-color.mjs';
 
@@ -243,6 +243,16 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
   <slot name="head" />
 </head>
 <body>
+  {/* Vorschau-Build: unuebersehbar kennzeichnen. Ohne Marke verwechselt man
+      Staging frueher oder spaeter mit Live und wundert sich, warum eine
+      Aenderung „schon draussen" ist. Inline gestylt, damit die Marke auch
+      dann steht, wenn das Seiten-CSS kaputt ist — genau der Fall, den man
+      auf einer Vorschau sehen will. */}
+  {IS_STAGING && (
+    <div
+      style="position:fixed;top:0;left:0;z-index:2147483647;background:#b4342a;color:#fff;font:700 11px/1 system-ui,sans-serif;letter-spacing:.08em;padding:5px 9px;border-bottom-right-radius:4px;pointer-events:none"
+    >VORSCHAU — NICHT LIVE</div>
+  )}
   <slot />
   {footer && <Attribution />}
   {/* Umschalt-Verhalten. Bewusst hier und nicht in ThemeToggle.astro: der
