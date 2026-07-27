@@ -24,141 +24,139 @@ import Attribution from '../../components/Attribution.astro';
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"] .lg-fill{color:#893c40}
 </style>
-<SiteNav crumbs={[{ label: 'Archiv', href: '/hu/archiv.html' }, { label: 'Datenschutz' }]} translated={true} />
+<SiteNav crumbs={[{ label: 'Archívum', href: '/hu/archiv.html' }, { label: 'Adatvédelem' }]} translated={true} />
 <main id="main">
   <div class="lg-wrap">
-    <h1>Datenschutzerklärung</h1>
+    <h1>Adatvédelmi tájékoztató</h1>
 
-    <h2>Verantwortlicher</h2>
+    <h2>Adatkezelő</h2>
     <p>
-      Krisztofer Milánkovits, Schlossstraße 6, 85411 Hohenkammer, Deutschland —
-      E-Mail: <a href="mailto:krysx141@gmail.com">krysx141@gmail.com</a>
+      Krisztofer Milánkovits, Schlossstraße 6, 85411 Hohenkammer, Németország —
+      e-mail: <a href="mailto:krysx141@gmail.com">krysx141@gmail.com</a>
     </p>
 
-    <h2>Grundsatz</h2>
+    <h2>Alapelv</h2>
     <p>
-      Diese Website ist ein rein statisches, nicht-kommerzielles Fan-Projekt. Sie verwendet
-      <strong>keine Cookies</strong>, <strong>keine Analyse- oder Tracking-Dienste</strong>,
-      keine Werbung und keine Kommentarfunktionen. Beim bloßen Aufrufen der Seite werden keine
-      personenbezogenen Daten von dir an uns übermittelt. Ausnahmen sind ausschließlich das
-      <a href="#feedback">Feedback-Formular</a> und das optionale
-      <a href="#accounts">Benutzerkonto</a> — beides freiwillig; die dabei verarbeiteten Daten
-      sind unten gesondert beschrieben.
+      Ez a webhely tisztán statikus, nem kereskedelmi rajongói projekt. <strong>Nem használ
+      sütiket</strong>, <strong>nem használ analitikai vagy nyomkövető szolgáltatást</strong>,
+      nincs rajta hirdetés és hozzászólás-funkció. A webhely puszta megnyitásakor semmilyen
+      személyes adat nem jut el hozzánk. Kivétel kizárólag a
+      <a href="#feedback">visszajelzési űrlap</a> és az opcionális
+      <a href="#accounts">felhasználói fiók</a> — mindkettő önkéntes; az ezek során kezelt adatokat
+      lentebb külön ismertetjük.
     </p>
 
-    <h2>Server-Logdateien (Hosting)</h2>
+    <h2>Szerver-naplófájlok (tárhely)</h2>
     <p>
-      Beim Aufruf der Website verarbeitet der Hosting-Anbieter
-      Hetzner Online GmbH (Industriestr. 25, 91710 Gunzenhausen, Deutschland) technisch bedingt
-      Verbindungsdaten (IP-Adresse, Zeitpunkt, aufgerufene Ressource, User-Agent) in Server-Logs.
-      Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der sicheren
-      Bereitstellung). Auf diese Logs haben wir keinen inhaltlichen Zugriff über das für den
-      Betrieb Erforderliche hinaus.
+      A webhely megnyitásakor a tárhelyszolgáltató, a
+      Hetzner Online GmbH (Industriestr. 25, 91710 Gunzenhausen, Németország) technikai okokból
+      kapcsolati adatokat (IP-cím, időpont, lekért erőforrás, user agent) kezel a szervernaplókban.
+      A jogalap a GDPR 6. cikk (1) bekezdés f) pontja (jogos érdek a biztonságos szolgáltatáshoz).
+      Ezekhez a naplókhoz az üzemeltetéshez szükséges mértéken túl nincs tartalmi hozzáférésünk.
     </p>
 
-    <h2>Lokale Speicherung im Browser (localStorage)</h2>
+    <h2>Helyi tárolás a böngészőben (localStorage)</h2>
     <p>
-      Einzelne Werkzeuge der Seite (z. B. Crafting-Planer, „Im Besitz“-Markierungen,
-      Ansichts-Einstellungen) speichern ihre Einstellungen ausschließlich <strong>lokal in deinem
-      Browser</strong> (localStorage). Diese Daten verlassen dein Gerät nicht und können jederzeit
-      über die Browser-Einstellungen gelöscht werden.
+      A webhely egyes eszközei (pl. a crafting-tervező, a „birtokolt” jelölések, a nézetbeállítások)
+      kizárólag <strong>helyben, a böngésződben</strong> tárolják a beállításaikat (localStorage).
+      Ezek az adatok nem hagyják el az eszközödet, és a böngésző beállításain keresztül bármikor
+      törölhetők.
     </p>
 
-    <h2>Extern eingebundene Bilder</h2>
+    <h2>Külső forrásból beágyazott képek</h2>
     <p>
-      Teile der Bilddaten werden von externen Quellen geladen. Beim Abruf dieser Bilder wird deine
-      IP-Adresse technisch bedingt an den jeweiligen Anbieter übermittelt:
-    </p>
-    <ul>
-      <li><strong>fleetyards.net</strong> — Schiffs- und Fahrzeugbilder</li>
-      <li><strong>starcitizen.tools / cstone.space</strong> — einzelne Medieninhalte</li>
-    </ul>
-
-    <h2>Ambient-Hintergrundvideos</h2>
-    <p>
-      Einzelne Seiten zeigen kurze, stumme Videoschleifen (Trailer-Ausschnitte) als
-      Hintergrund. Diese Dateien werden <strong>lokal von dieser Website</strong> ausgeliefert —
-      es wird kein Drittserver kontaktiert. Bei aktivierter Bewegungsreduzierung
-      (prefers-reduced-motion), aktivem Datensparmodus oder auf kleinen Bildschirmen
-      wird stattdessen nur das Standbild geladen.
-    </p>
-
-    <h2>YouTube-Videos (Klick-Aktivierung)</h2>
-    <p>
-      Videos sind als Vorschaubild eingebunden und werden <strong>erst nach deinem Klick</strong>
-      über youtube-nocookie.com (Google Ireland Ltd.) geladen. Vor dem Klick findet keine
-      Verbindung zu Google statt; mit dem Klick gelten die
-      <a href="https://policies.google.com/privacy" rel="noopener">Datenschutzhinweise von Google</a>.
-    </p>
-
-    <h2 id="feedback">Feedback-Formular (Web3Forms)</h2>
-    <p>
-      Auf der Seite <a href="/hu/feedback.html">Feedback</a> kannst du uns freiwillig eine Nachricht
-      senden. Da diese Website statisch ist und keinen eigenen Server-Backend hat, wird der Versand
-      über den Dienst <strong>Web3Forms</strong> abgewickelt. Beim Absenden werden folgende Daten an
-      Web3Forms übermittelt und von dort per E-Mail an uns zugestellt:
+      A képi adatok egy része külső forrásból töltődik be. Ezeknek a képeknek a lekérésekor az
+      IP-címed technikai okokból eljut az adott szolgáltatóhoz:
     </p>
     <ul>
-      <li><strong>Nachrichtentext</strong> (Pflichtfeld)</li>
-      <li><strong>Bewertung</strong> (1–5 Sterne, optional)</li>
-      <li><strong>E-Mail-Adresse</strong> (optional — nur wenn du eine Antwort möchtest; sie wird als
-        Antwortadresse gesetzt)</li>
-      <li>technisch bedingt deine IP-Adresse sowie Absendezeitpunkt</li>
+      <li><strong>fleetyards.net</strong> — hajó- és járműképek</li>
+      <li><strong>starcitizen.tools / cstone.space</strong> — egyes médiatartalmak</li>
+    </ul>
+
+    <h2>Háttérvideók (ambient)</h2>
+    <p>
+      Egyes oldalak rövid, néma videohurkokat (trailer-részleteket) jelenítenek meg háttérként.
+      Ezeket a fájlokat <strong>helyben, erről a webhelyről</strong> szolgáljuk ki — harmadik fél
+      szerverével nincs kapcsolatfelvétel. Bekapcsolt mozgáscsökkentés (prefers-reduced-motion),
+      aktív adattakarékos mód esetén vagy kis képernyőkön csak az állókép töltődik be.
+    </p>
+
+    <h2>YouTube-videók (kattintásra aktiválva)</h2>
+    <p>
+      A videók előnézeti képként vannak beágyazva, és <strong>csak a kattintásod után</strong>
+      töltődnek be a youtube-nocookie.com (Google Ireland Ltd.) címről. A kattintás előtt nem jön
+      létre kapcsolat a Google-lel; a kattintással a
+      <a href="https://policies.google.com/privacy" rel="noopener">Google adatvédelmi tájékoztatója</a> érvényes.
+    </p>
+
+    <h2 id="feedback">Visszajelzési űrlap (Web3Forms)</h2>
+    <p>
+      A <a href="/hu/feedback.html">Visszajelzés</a> oldalon önkéntesen küldhetsz nekünk üzenetet.
+      Mivel ez a webhely statikus, és nincs saját szerveroldali háttere, a küldést a
+      <strong>Web3Forms</strong> szolgáltatás bonyolítja le. Elküldéskor a következő adatok jutnak el
+      a Web3Formshoz, majd onnan e-mailben hozzánk:
+    </p>
+    <ul>
+      <li><strong>üzenetszöveg</strong> (kötelező mező)</li>
+      <li><strong>értékelés</strong> (1–5 csillag, opcionális)</li>
+      <li><strong>e-mail-cím</strong> (opcionális — csak ha választ szeretnél; ez lesz beállítva
+        válaszcímként)</li>
+      <li>technikai okokból az IP-címed és a küldés időpontja</li>
     </ul>
     <p>
-      Rechtsgrundlage ist deine Einwilligung durch das aktive Absenden des Formulars
-      (Art. 6 Abs. 1 lit. a DSGVO). Die Angabe der E-Mail-Adresse ist freiwillig; ohne sie können
-      wir nicht auf dein Feedback antworten. Wir verwenden die Daten ausschließlich zur Bearbeitung
-      und Beantwortung deines Feedbacks und geben sie nicht zu anderen Zwecken weiter.
+      A jogalap a hozzájárulásod, amelyet az űrlap tevőleges elküldésével adsz meg
+      (GDPR 6. cikk (1) bekezdés a) pont). Az e-mail-cím megadása önkéntes; nélküle nem tudunk
+      válaszolni a visszajelzésedre. Az adatokat kizárólag a visszajelzésed feldolgozására és
+      megválaszolására használjuk, és más célból nem adjuk tovább.
     </p>
     <p class="muted">
-      Anbieter des Formular-Dienstes ist Web3Forms. Bei der Übermittlung kann eine Verarbeitung auf
-      Servern außerhalb der EU stattfinden. Details zur Datenverarbeitung durch den Dienst findest du
-      in dessen Datenschutzerklärung: <a href="https://web3forms.com/privacy" rel="noopener">web3forms.com/privacy</a>.
-      Das Formular setzt keine Cookies und lädt keine externen Skripte; es wird erst beim Absenden
-      eine Verbindung zu Web3Forms hergestellt.
+      Az űrlapszolgáltatás nyújtója a Web3Forms. A továbbítás során az adatkezelés az EU-n kívüli
+      szervereken is történhet. A szolgáltatás adatkezelésének részletei az adatvédelmi
+      tájékoztatójában olvashatók: <a href="https://web3forms.com/privacy" rel="noopener">web3forms.com/privacy</a>.
+      Az űrlap nem helyez el sütiket és nem tölt be külső szkripteket; a Web3Formsszal csak az
+      elküldéskor jön létre kapcsolat.
     </p>
 
-    <h2 id="accounts">Benutzerkonto (Supabase)</h2>
+    <h2 id="accounts">Felhasználói fiók (Supabase)</h2>
     <p>
-      Du kannst freiwillig ein Benutzerkonto anlegen, um Favoriten (z. B. gemerkte Schiffe) zu
-      speichern und ein Profil zu verwalten. Die Konto-Funktion wird über den Dienst
-      <strong>Supabase</strong> bereitgestellt; die Daten liegen in einem EU-Rechenzentrum
-      (AWS Frankfurt am Main, Region eu-central-1). Verarbeitet werden:
+      Önkéntesen létrehozhatsz felhasználói fiókot, hogy kedvenceket (pl. megjelölt hajókat)
+      menthess, és profilt kezelhess. A fiókfunkciót a <strong>Supabase</strong> szolgáltatás
+      biztosítja; az adatok egy uniós adatközpontban vannak
+      (AWS Frankfurt am Main, eu-central-1 régió). A kezelt adatok:
     </p>
     <ul>
-      <li><strong>E-Mail-Adresse</strong> und <strong>Passwort</strong> (das Passwort wird
-        ausschließlich als kryptografischer Hash gespeichert, niemals im Klartext)</li>
-      <li><strong>Profildaten</strong>, die du selbst angibst (Anzeigename, Handle — beides optional)</li>
-      <li><strong>Favoriten</strong>, die du aktiv speicherst</li>
-      <li>technisch bedingt Sitzungs- und Sicherheitsdaten des Anbieters (z. B. Zeitpunkt der
-        Anmeldung, IP-Adresse in Sicherheits-Logs)</li>
+      <li><strong>e-mail-cím</strong> és <strong>jelszó</strong> (a jelszó kizárólag kriptográfiai
+        hashként tárolódik, soha nem nyílt szövegként)</li>
+      <li><strong>profiladatok</strong>, amelyeket magad adsz meg (megjelenített név, handle — mindkettő opcionális)</li>
+      <li><strong>kedvencek</strong>, amelyeket tevőlegesen elmentesz</li>
+      <li>technikai okokból a szolgáltató munkamenet- és biztonsági adatai (pl. a bejelentkezés
+        időpontja, IP-cím a biztonsági naplókban)</li>
     </ul>
     <p>
-      Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung der Konto-Funktion auf deinen
-      Wunsch). Die Anmeldung erfolgt ohne Cookies: das Sitzungs-Token wird ausschließlich lokal in
-      deinem Browser gespeichert (localStorage). Du kannst dein Konto jederzeit selbst im
-      <a href="/hu/account.html">Konto-Dashboard</a> endgültig löschen — dabei werden alle
-      zugehörigen Daten (Profil, Favoriten, Anmeldedaten) unwiderruflich entfernt.
+      A jogalap a GDPR 6. cikk (1) bekezdés b) pontja (a fiókfunkció biztosítása a kérésedre).
+      A bejelentkezés sütik nélkül működik: a munkamenet-tokent kizárólag helyben, a böngésződben
+      tároljuk (localStorage). A fiókodat bármikor véglegesen törölheted a
+      <a href="/hu/account.html">fiók-vezérlőpulton</a> — ekkor minden hozzá tartozó adat
+      (profil, kedvencek, belépési adatok) visszavonhatatlanul törlődik.
     </p>
     <p class="muted">
-      Auftragsverarbeiter: Supabase, Inc.; Datenhaltung in der EU (AWS eu-central-1, Frankfurt).
-      Details zur Datenverarbeitung durch den Dienst:
+      Adatfeldolgozó: Supabase, Inc.; adattárolás az EU-ban (AWS eu-central-1, Frankfurt).
+      A szolgáltatás adatkezelésének részletei:
       <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a>.
-      Eine Verbindung zu Supabase wird nur hergestellt, wenn du Konto-Funktionen nutzt
-      (Registrierung, Anmeldung, Favoriten) — nicht beim bloßen Betrachten der Seiten.
+      A Supabase-szel csak akkor jön létre kapcsolat, ha fiókfunkciókat használsz
+      (regisztráció, bejelentkezés, kedvencek) — az oldalak puszta böngészésekor nem.
     </p>
 
-    <h2>Schriftarten</h2>
-    <p>Alle Webfonts werden lokal von dieser Website ausgeliefert. Es findet keine Verbindung zu Google Fonts statt.</p>
+    <h2>Betűtípusok</h2>
+    <p>Minden webfontot helyben, erről a webhelyről szolgálunk ki. A Google Fontsszal nem jön létre kapcsolat.</p>
 
-    <h2>Deine Rechte</h2>
+    <h2>A jogaid</h2>
     <p class="muted">
-      Dir stehen die Rechte aus Art. 15–21 DSGVO zu (Auskunft, Berichtigung, Löschung, Einschränkung,
-      Datenübertragbarkeit, Widerspruch) sowie das Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde
-      (Art. 77 DSGVO). Ohne Benutzerkonto erhebt oder speichert diese Website keine
-      personenbezogenen Daten von dir; mit Konto kannst du deine Daten jederzeit selbst im
-      Dashboard einsehen, ändern und vollständig löschen — melde dich im Zweifel per E-Mail.
+      Megilletnek a GDPR 15–21. cikke szerinti jogok (hozzáférés, helyesbítés, törlés, korlátozás,
+      adathordozhatóság, tiltakozás), valamint a felügyeleti hatósághoz benyújtott panasz joga
+      (GDPR 77. cikk). Felhasználói fiók nélkül ez a webhely semmilyen személyes adatot nem gyűjt
+      és nem tárol rólad; fiókkal az adataidat bármikor megtekintheted, módosíthatod és teljesen
+      törölheted a vezérlőpulton — kétség esetén jelentkezz e-mailben.
     </p>
   </div>
 </main>
