@@ -1,7 +1,7 @@
 # Hero-Sprungmarke „V" — UI Review
 
 **Audited:** 2026-07-28
-**Scope:** `src/pages/index.astro`, `src/pages/de/index.astro` — Lede entfernt, Textzeile „Tools ↓" / „Werkzeuge ↓" durch eine dreifache V-Marke ersetzt
+**Scope:** `src/pages/index.astro`, `src/pages/de/index.astro` — Lede entfernt, Textzeile „Tools ↓" / „Werkzeuge ↓" durch eine **vierstufige** V-Marke ersetzt
 **Baseline:** abstrakte 6-Säulen-Standards (kein UI-SPEC.md vorhanden) + `.planning/codebase/CONVENTIONS.md`
 **Screenshots:** erfasst (Chrome, 1135×910 dark + light; Messungen zusätzlich bei 1280/700/375 px)
 
@@ -30,7 +30,7 @@ deshalb hier statt unter `{phase}-UI-REVIEW.md`.
 
 1. **Doppelter Tab-Stopp auf `#tools`** — WARNING — Skip-Link und V-Marke führen beide dorthin. Tastaturnutzer bekommen zwei Wege zum selben Ziel. Vertretbar (verschiedene Zielgruppen: Skip-Link oben für Screenreader, Marke unten für Zeiger), aber bewusst zu entscheiden statt zu übersehen.
 2. ~~**EN-Wortwahl vereinheitlichen**~~ — BEHOBEN — war „Skip to tools" (Skip-Link) vs. „Go to the tools" (Marke). Jetzt „Go to tools": das Zielwort deckt sich in beiden Sprachen exakt mit der Abschnittsüberschrift („Tools" / „Werkzeuge"), nur das Verb unterscheidet sich — richtig so, weil die Aktionen verschieden sind (Bypass vs. Sprungmarke).
-3. **Hellmodus-Deckkraft** — WARNING — das dritte V steht bei 0,42 auf dem mittelgrauen Teil des Verlaufs; im Dunkelmodus trägt es, im Hellmodus wird es schwach. Betrifft nur Admins (Theme-Wahl ist admin-only), deshalb nicht behoben.
+3. ~~**Hellmodus-Deckkraft**~~ — BEHOBEN — die unteren V standen auf dem mittelgrauen Teil des Verlaufs zu schwach. Jetzt eigener Deckkraft-Boden für den Hellmodus (0,84 / 0,68 / 0,54 statt 0,74 / 0,52 / 0,34) über eine handgeschriebene `:root[data-theme="light"]`-Regel — `build-light-overrides.mjs` kennt nur Farbwerte, keine Deckkraft. Am Bildschirm gegengeprüft: alle vier Stufen tragen jetzt in beiden Modi.
 
 ---
 
@@ -58,11 +58,18 @@ Aufmerksamkeit ohne Textzeile.
 Icon-only-Bedienelement mit Zugangsname belegt (`aria-label` am `<a>`,
 `aria-hidden` + `focusable="false"` am SVG) — verifiziert im DOM.
 
-Erster Entwurf war zu schwach und wurde verworfen: 28 px breit, Strich 2,4 px,
-drittes V bei 0,32. Am Screenshot gemessen las sich das als beliebiger
-UI-Pfeil, nicht als der Buchstabe, und das dritte V verschwand — die Marke
-zeigte faktisch zwei V statt drei. Korrigiert auf 46 px / Strich 4,5 /
-Deckkraft 1 – 0,68 – 0,42, abgenommen an der Wortmarke im selben Viewport.
+Zwei Fassungen wurden am Bildschirm verworfen, bevor die dritte stand:
+
+1. **28 px breit, Strich 2,4, drittes V bei 0,32** — las sich als beliebiger
+   UI-Pfeil statt als Buchstabe, und das dritte V verschwand: die Marke zeigte
+   faktisch zwei V statt drei.
+2. **46 px, drei Stufen** — Buchstabe erkennbar, aber im Hellmodus fiel die
+   unterste Stufe wieder ab, und die reine Deckkraft-Staffelung las sich als
+   Flackern statt als Richtung.
+
+Endstand: vier Stufen, 40 px (Marke wächst nur bis 40 statt 46, damit die
+zusätzliche Stufe die Gesamtmasse nicht aufbläht), Strich 4,5, Deckkraft
+1 – 0,74 – 0,52 – 0,34 mit eigenem Boden im Hellmodus.
 
 ### Pillar 3: Color (4/4)
 
@@ -108,11 +115,16 @@ sitzt bewusst als `clamp()`-Minimum statt im 520er-Umbruch: mit der alten
 3,5rem-Untergrenze hätte die 70 px hohe Marke im Bereich 521–880 px auf dem
 Suchfeld gesessen. Nachgemessen im Browser:
 
-| Viewport | SVG | Abstand Suchfeld → Marke | Kollision |
-|----------|-----|--------------------------|-----------|
-| 1280 px | 46×70 | nebeneinander (kein Überlapp) | nein |
-| 700 px | 34×52 | 15 px | nein |
-| 375 px | 34×52 | 15 px | nein |
+| Viewport | SVG | Innenkante unten | Abstand Suchfeld → Marke | Kollision |
+|----------|-----|------------------|--------------------------|-----------|
+| 1440 px | 40×71 | 117 px | 13 px | nein |
+| 1200 px | 36×64 | 117 px | 20 px | nein |
+| 375 px | 30×53 | 117 px | 31 px | nein |
+
+Die enge Stelle liegt bei vw≈1200: dort greift schon das clamp-Minimum, die
+Marke wächst aber noch mit. Entwarnung kam erst aus der Messung — die
+Handrechnung war zu pessimistisch, weil die Wurzel-Schriftgröße hier **18 px**
+ist, nicht 16, und 6,5rem damit 117 px statt 104 px ergibt.
 
 Punktabzug: die Seite hat keine Spacing-Skala (`1.9rem`, `1.3rem`, `.85rem`,
 `.4rem` …). Die neuen Werte fügen sich ein, aber sie fügen sich in etwas
@@ -134,9 +146,16 @@ Zustände am laufenden Objekt geprüft, nicht aus dem Code geschlossen:
   (`opacity:var(--o)`) auf dem Pfad und bleibt — die Marke bleibt vollständig
   sichtbar, sie steht nur still.
 - **Tap-Ziel:** 74×66 px bei 375 px Breite (Minimum 44×44 erfüllt).
-- **Animation:** ein Signal läuft gestaffelt (0 / 0,17 / 0,34 s) durch den
-  Stapel, dann Ruhe bis 2,6 s. Kein Halo — das entspricht der Hausregel
-  („Höhenschatten statt Akzent-Halo").
+- **Animation:** ein Signal FÄLLT durch den Stapel — schneller Anstieg
+  (0,17 s), langsames Abklingen (0,55 s), dazu ein Versatz von 1,6 Einheiten
+  nach unten; 0,13 s Abstand je Stufe, danach 1,7 s Ruhe. Der Versatz ist der
+  Unterschied zur ersten Fassung: ohne ihn war es ein Flackern, mit ihm wandert
+  die Welle sichtbar abwärts. Kein Halo — Hausregel „Höhenschatten statt
+  Akzent-Halo". Am laufenden Objekt belegt: bei t≈463 ms steht das UNTERSTE V
+  mit 0,88 heller als die beiden darüber (0,80 / 0,75) — der Puls ist also
+  tatsächlich unten angekommen; bei t≈1470 ms liegen alle vier exakt auf ihren
+  Grundwerten (1 / 0,74 / 0,52 / 0,34), die Ruhephase greift. Im Ruhezustand
+  ist die Transformation `matrix(1,0,0,1,0,0)` — kein bleibender Versatz.
 
 Punktabzug für den doppelten Tab-Stopp auf `#tools` (siehe Fix 1).
 
@@ -155,7 +174,10 @@ bestätigt, dass `#tools` auflöst.
   Fallback) in `src/components/SiteNav.astro`, plus eine Leerzeile pro Datei
   und Lauf. Der Lauf wurde vollständig zurückgenommen; diese Änderung braucht
   ihn nicht, weil sie ausschließlich Tokens verwendet.
-- **Hellmodus-Deckkraft** (siehe Fix 3) — Theme-Wahl ist admin-only.
+- **Doppelter Tab-Stopp auf `#tools`** (siehe Fix 1) — bewusst behalten:
+  Skip-Link oben bedient Screenreader, die Marke unten bedient Zeiger und
+  Tastatur am Ende des Heros. Zwei Wege zum selben Ziel, aber für zwei
+  verschiedene Zugänge.
 
 ## Files Audited
 

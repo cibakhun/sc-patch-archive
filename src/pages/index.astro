@@ -62,10 +62,12 @@ const tools = [
   .hero__scrim{position:absolute;inset:0;z-index:-1;background:
     linear-gradient(90deg,var(--scrim-6) 0%,var(--scrim-4) 40%,var(--scrim-0) 78%,transparent 100%),
     linear-gradient(0deg,var(--bg) 1%,var(--scrim-2) 24%,transparent 58%)}
-  /* Untere Innenkante 5,5rem statt 3,5rem: darunter steht die V-Marke (bis
-     70 px hoch). Als Mindestwert im clamp statt als Sonderfall im 520er-
-     Umbruch — sonst kollidiert sie im Bereich 521–880 px mit dem Suchfeld. */
-  .hero__inner{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;padding:9rem clamp(1.25rem,5vw,3.5rem) clamp(5.5rem,8vw,6rem)}
+  /* Untere Innenkante deutlich höher als die ursprünglichen 3,5rem: darunter
+     steht die vierstufige V-Marke (bis 71 px + Klickfläche). Als Mindestwert
+     im clamp statt als Sonderfall im 520er-Umbruch — sonst kollidiert sie im
+     Bereich 521–880 px mit dem Suchfeld. Enge Stelle ist vw≈1200, wo das
+     clamp-Minimum greift, die Marke aber schon mitwächst. */
+  .hero__inner{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;padding:9rem clamp(1.25rem,5vw,3.5rem) clamp(6.5rem,8vw,7rem)}
   /* Kein Eyebrow mehr über dem H1: die getrackte Versalien-Kleinzeile direkt
      über einer übergroßen Überschrift ist der Standard-Hero jeder generierten
      SaaS-Seite. Der Inhalt ("Star Citizen compendium") stand ohnehin doppelt
@@ -107,7 +109,7 @@ const tools = [
   .hero__cue{position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);z-index:1;
     display:block;padding:.4rem 1.1rem;color:var(--accent);
     transition:transform .25s cubic-bezier(.2,.7,.3,1)}
-  .hero__cue svg{display:block;width:clamp(34px,3.6vw,46px);height:auto;overflow:visible}
+  .hero__cue svg{display:block;width:clamp(30px,3vw,40px);height:auto;overflow:visible}
   /* Maße vom Wortmarken-V abgenommen, nicht geraten: Orbitron 900 setzt ein
      breites V mit ~60°-Schenkeln und schwerem Strich. Eine 2,4px-Haarlinie
      las sich als beliebiger UI-Pfeil — erst Strich 4,5 bei 46px Breite
@@ -116,13 +118,24 @@ const tools = [
      bleiben die Schenkel parallel und die Lücken gleich breit. Die
      Tiefenstaffelung liegt allein in der Deckkraft. */
   .hero__cue path{fill:none;stroke:currentColor;stroke-width:4.5;stroke-linejoin:miter;
-    opacity:var(--o);animation:vdrop 2.6s ease-in-out infinite;transition:opacity .25s}
+    opacity:var(--o);animation:vdrop 2.4s ease-out infinite;transition:opacity .25s}
   .hero__cue path:nth-child(1){--o:1}
-  .hero__cue path:nth-child(2){--o:.68;animation-delay:.17s}
-  .hero__cue path:nth-child(3){--o:.42;animation-delay:.34s}
-  /* Das Signal läuft einmal von oben nach unten durch den Stapel, dann Ruhe.
-     Kein Hüpfen des ganzen Zeichens, kein Halo — die Bewegung IST die Richtung. */
-  @keyframes vdrop{0%,54%,100%{opacity:var(--o)}20%{opacity:1}}
+  .hero__cue path:nth-child(2){--o:.74;animation-delay:.13s}
+  .hero__cue path:nth-child(3){--o:.52;animation-delay:.26s}
+  .hero__cue path:nth-child(4){--o:.34;animation-delay:.39s}
+  /* Hellmodus braucht einen höheren Boden: dort ist der Akzent dunkles
+     Petrol auf hellem Verlauf statt hellem Cyan auf Schwarz, und die unteren
+     V verlieren bei gleicher Deckkraft deutlich mehr. Von Hand geschrieben —
+     build-light-overrides.mjs kennt nur Farbwerte, keine Deckkraft. */
+  :root[data-theme="light"] .hero__cue path:nth-child(2){--o:.84}
+  :root[data-theme="light"] .hero__cue path:nth-child(3){--o:.68}
+  :root[data-theme="light"] .hero__cue path:nth-child(4){--o:.54}
+  /* Ein Signal FÄLLT durch den Stapel: schneller Anstieg (0,17 s), langsames
+     Abklingen (0,55 s), dazu ein kurzer Versatz nach unten. Erst der Versatz
+     macht aus dem Flackern eine Welle, die sichtbar nach unten wandert —
+     0,13 s Abstand je Stufe, danach 1,7 s Ruhe. Kein Halo. */
+  @keyframes vdrop{0%,30%,100%{opacity:var(--o);transform:translateY(0)}
+    7%{opacity:1;transform:translateY(1.6px)}}
   /* animation:none statt play-state: eine laufende Animation schlägt jede
      normale Deklaration, sonst käme opacity:1 beim Hover nie an. */
   .hero__cue:hover,.hero__cue:focus-visible{transform:translate(-50%,3px)}
@@ -220,10 +233,11 @@ const tools = [
     </button>
   </div>
   <a class="hero__cue" href="#tools" aria-label="Go to tools">
-    <svg viewBox="0 0 46 70" aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 46 82" aria-hidden="true" focusable="false">
       <path d="M3 3 23 38 43 3"/>
       <path d="M3 16 23 51 43 16"/>
       <path d="M3 29 23 64 43 29"/>
+      <path d="M3 42 23 77 43 42"/>
     </svg>
   </a>
 </header>
