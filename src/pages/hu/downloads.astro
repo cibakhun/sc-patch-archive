@@ -46,7 +46,7 @@ const groups = CATS.map((c) => ({
     .filter((f) => !CATS.some((o) => o !== c && CATS.indexOf(o) < CATS.indexOf(c) && o.match(f)))
     .sort((a, b) => a.localeCompare(b))
     .map((f) => {
-      const l = mediaLabel(f, 'de');
+      const l = mediaLabel(f, 'hu');
       return {
         file: f,
         thumb: thumbOf(f),
@@ -68,13 +68,13 @@ const ONEPAGERS = [
     slug: 'contested-zones',
     title: 'Contested Zones',
     tag: 'Alpha 4.0 · Pyro',
-    desc: 'Keycards, Sicherungen, Comboards und Routen durch die PvPvE-Zonen — was mitzunehmen ist und wo der Loot liegt.',
+    desc: 'Kulcskártyák, biztosítékok, comboardok és útvonalak a PvPvE-zónákon át — mit vigyél magaddal, és hol hever a loot.',
   },
   {
     slug: 'storm-breaker',
     title: 'Storm Breaker',
     tag: 'Alpha 4.2 · Valakkar',
-    desc: 'Ablauf, Karten (Farro & Lazarus) und Ziele der Storm-Breaker-Jagd auf den Apex-Valakkar.',
+    desc: 'A Storm Breaker Apex-Valakkar-vadászatának menete, térképei (Farro és Lazarus) és céljai.',
   },
 ]
   .map((o) => {
@@ -84,11 +84,11 @@ const ONEPAGERS = [
   })
   .filter(Boolean);
 
-const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der Seite (Schiffs-Renders, Themen-Bilder, Patch-Trailer-Standbilder) einzeln herunterladen — plus die visuellen Onepager-Guides als eigenständige Offline-HTML-Datei.`;
+const desc = `A VerseBase letöltési területe: a webhely mind a(z) ${totalImgs} képi médiuma (hajórenderek, témaképek, patch-trailer állóképek) egyenként letölthető — plusz a vizuális onepager-útmutatók önálló, offline HTML-fájlként.`;
 ---
 
 <Layout
-  title={'Downloads — Medien & Onepager | VerseBase'}
+  title={'Letöltések — média és onepagerek | VerseBase'}
   description={desc}
   themeColor="#0a1014"
   ogType="article"
@@ -246,11 +246,11 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
       .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
     }</style>
 
-  <a class="skip" href="#main">Zum Inhalt springen</a>
+  <a class="skip" href="#main">Ugrás a tartalomra</a>
   <div class="cursorglow" aria-hidden="true"></div>
 
   <SiteNav
-    crumbs={[{ label: 'Archiv', href: '/hu.html' }, { label: 'Downloads' }]}
+    crumbs={[{ label: 'Archívum', href: '/hu.html' }, { label: 'Letöltések' }]}
     translated={true}
   />
 
@@ -260,20 +260,20 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
       <canvas id="stars" aria-hidden="true"></canvas>
       <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
       <div class="hero__in">
-        <div class="eyebrow">VerseBase · Medienarchiv</div>
-        <h1><span class="thin">Download-Bereich</span>Medien &amp; Onepager</h1>
+        <div class="eyebrow">VerseBase · médiaarchívum</div>
+        <h1><span class="thin">Letöltési terület</span>Média &amp; onepagerek</h1>
         <p class="lead">
-          Alle Bild-Medien dieser Seite zum <b>Herunterladen</b> — Schiffs-Renders, Themen-Bilder und
-          Patch-Trailer-Standbilder. Dazu die visuellen <b>Onepager-Guides</b> als eigenständige,
-          offline nutzbare HTML-Datei.
+          A webhely összes képi médiuma <b>letöltésre</b> — hajórenderek, témaképek és
+          patch-trailer állóképek. Ehhez jönnek a vizuális <b>onepager-útmutatók</b> önálló,
+          offline használható HTML-fájlként.
         </p>
         <div class="qbar">
-          <span>Bilder <b>{totalImgs}</b></span>
-          <span>Onepager <b>{ONEPAGERS.length}</b></span>
-          <span>Formate <b>JPG · PNG · WEBP</b></span>
+          <span>Képek <b>{totalImgs}</b></span>
+          <span>Onepagerek <b>{ONEPAGERS.length}</b></span>
+          <span>Formátumok <b>JPG · PNG · WEBP</b></span>
         </div>
       </div>
-      <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+      <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
     </section>
 
     {ONEPAGERS.length > 0 && (
@@ -281,29 +281,29 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
         <div class="wrap">
           <div class="sec-head reveal">
             <span class="num">01</span>
-            <h2>Onepager-Guides</h2>
+            <h2>Onepager-útmutatók</h2>
             <span class="rule"></span>
           </div>
           <p class="sec-intro reveal">
-            Eine einzige HTML-Datei pro Guide — <b>alle Bilder eingebettet</b>. Herunterladen, doppelklicken,
-            offline lesen. Nichts zu entpacken.
+            Útmutatónként egyetlen HTML-fájl — <b>minden kép beágyazva</b>. Letöltés, dupla kattintás,
+            offline olvasás. Semmit sem kell kicsomagolni.
           </p>
           <div class="ops">
             {ONEPAGERS.map((o) => (
               <article class="op reveal">
-                <span class="op__kx">Onepager · Offline-HTML</span>
+                <span class="op__kx">Onepager · offline HTML</span>
                 <h3 class="op__title">{o.title}</h3>
                 <span class="op__tag">{o.tag}</span>
                 <p class="op__desc">{o.desc}</p>
                 <div class="op__actions">
                   <a class="op__dl" href={`/downloads/${o.file}`} download>
-                    <span aria-hidden="true">⭳</span> Herunterladen <em>{fmtSize(o.bytes)}</em>
+                    <span aria-hidden="true">⭳</span> Letöltés <em>{fmtSize(o.bytes)}</em>
                   </a>
                   <a class="op__view" href={`/onepager/${o.slug}/index.html`} target="_blank" rel="noopener">
-                    Ansehen <span aria-hidden="true">↗</span>
+                    Megtekintés <span aria-hidden="true">↗</span>
                   </a>
                 </div>
-                <p class="op__hint">Eigenständige HTML-Datei · funktioniert offline im Browser.</p>
+                <p class="op__hint">Önálló HTML-fájl · offline is működik a böngészőben.</p>
               </article>
             ))}
           </div>
@@ -315,21 +315,21 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
       <div class="wrap">
         <div class="sec-head reveal">
           <span class="num">02</span>
-          <h2>Bild-Medien</h2>
+          <h2>Képi média</h2>
           <span class="rule"></span>
         </div>
         <p class="sec-intro reveal">
-          <b>{totalImgs} Bilder</b>, jedes einzeln herunterladbar. Filtere nach Kategorie oder tippe einen
-          Namen, ein Thema oder einen Dateinamen ein.
+          <b>{totalImgs} kép</b>, mindegyik külön letölthető. Szűrj kategóriára, vagy írj be egy
+          nevet, témát vagy fájlnevet.
         </p>
 
         <div class="tools" role="search">
           <label class="tsearch">
             <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2" /><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
-            <input type="search" id="dlq" placeholder="Suchen — Thema, Schiff oder Dateiname …" aria-label="Bilder filtern" autocomplete="off" />
+            <input type="search" id="dlq" placeholder="Keresés — téma, hajó vagy fájlnév …" aria-label="Képek szűrése" autocomplete="off" />
           </label>
           <div class="chips" id="dlchips">
-            <button class="chip" type="button" data-cat="all" aria-pressed="true">Alle <b>{totalImgs}</b></button>
+            <button class="chip" type="button" data-cat="all" aria-pressed="true">Mind <b>{totalImgs}</b></button>
             {groups.map((g) => (
               <button class="chip" type="button" data-cat={g.id} aria-pressed="false">{g.label} <b>{g.items.length}</b></button>
             ))}
@@ -361,12 +361,12 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
             </div>
           </div>
         ))}
-        <p class="grid--empty" id="dlempty" hidden>Keine Datei passt zu deinem Filter.</p>
+        <p class="grid--empty" id="dlempty" hidden>Egyetlen fájl sem felel meg a szűrőnek.</p>
 
         <p class="usage">
-          <b>Nutzungshinweis.</b> Die Bilder stammen aus Star-Citizen-Spieldaten und Comm-Links
-          © Cloud Imperium Games sowie aus Community-Quellen. Nutzung im Rahmen der offiziellen
-          Fan-Content-Richtlinie — kein kommerzieller Einsatz.
+          <b>Felhasználási tájékoztató.</b> A képek Star Citizen-játékadatokból és Comm-Linkekből származnak
+          © Cloud Imperium Games, valamint közösségi forrásokból. Felhasználás a hivatalos
+          rajongóitartalom-irányelv keretében — kereskedelmi felhasználás nélkül.
         </p>
       </div>
     </section>

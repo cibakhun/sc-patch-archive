@@ -7,7 +7,7 @@ import AccountShell from '../../../components/account/AccountShell.astro';
 import AuthReset from '../../../components/account/AuthReset.astro';
 ---
 <Layout
-  title={'Passwort zurücksetzen | VerseBase'}
+  title={'Jelszó visszaállítása | VerseBase'}
   description={'Elfelejtetted a jelszavad? Kérj visszaállító linket a VerseBase-fiókodhoz, és pár perc múlva újra a kedvenc hajóidnál vagy.'}
   themeColor="#05070d"
   ogImage="/assets/og-default.jpg"
@@ -26,13 +26,13 @@ import AuthReset from '../../../components/account/AuthReset.astro';
 <a class="skip" href="#main">Ugrás a tartalomra</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Konto', href: '/hu/account.html' }, { label: 'Passwort zurücksetzen' }]} translated={true} />
+<SiteNav crumbs={[{ label: 'Fiók', href: '/hu/account.html' }, { label: 'Jelszó visszaállítása' }]} translated={true} />
 
 <main id="main">
   <AccountShell
-    eyebrow="VerseBase · Systemzugang"
-    titleThin="Ausgesperrt?"
-    title="Passwort zurücksetzen"
+    eyebrow="VerseBase · rendszerhozzáférés"
+    titleThin="Kizártad magad?"
+    title="Jelszó visszaállítása"
   >
     <AuthReset lang="hu" />
   </AccountShell>

@@ -1,5 +1,5 @@
 ---
-// Konto erstellen — DE-Spiegel von /account/register.html.
+// Fiók létrehozása — DE-Spiegel von /account/register.html.
 import Layout from '../../../layouts/Layout.astro';
 import SiteNav from '../../../components/SiteNav.astro';
 import Attribution from '../../../components/Attribution.astro';
@@ -7,7 +7,7 @@ import AccountShell from '../../../components/account/AccountShell.astro';
 import AuthRegister from '../../../components/account/AuthRegister.astro';
 ---
 <Layout
-  title={'Konto erstellen | VerseBase'}
+  title={'Fiók létrehozása | VerseBase'}
   description={'Készítsd el az ingyenes VerseBase-fiókodat: jegyezd meg a kedvenc Star Citizen-hajóidat, és kezeld a profilodat.'}
   themeColor="#05070d"
   ogImage="/assets/og-default.jpg"
@@ -25,13 +25,13 @@ import AuthRegister from '../../../components/account/AuthRegister.astro';
 <a class="skip" href="#main">Ugrás a tartalomra</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Konto', href: '/hu/account.html' }, { label: 'Konto erstellen' }]} translated={true} />
+<SiteNav crumbs={[{ label: 'Fiók', href: '/hu/account.html' }, { label: 'Fiók létrehozása' }]} translated={true} />
 
 <main id="main">
   <AccountShell
-    eyebrow="VerseBase · Systemzugang"
+    eyebrow="VerseBase · rendszerhozzáférés"
     titleThin="Csatlakozz a bázishoz"
-    title="Konto erstellen"
+    title="Fiók létrehozása"
     lead="Ingyenes és kötelezettség nélküli — jelöld meg a kedvenc hajóidat, és kezeld a profilodat egy helyen."
   >
     <AuthRegister lang="hu" />

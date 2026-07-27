@@ -1,5 +1,5 @@
 ---
-// Anmelden — DE-Spiegel von /account/login.html.
+// Bejelentkezés — DE-Spiegel von /account/login.html.
 import Layout from '../../../layouts/Layout.astro';
 import SiteNav from '../../../components/SiteNav.astro';
 import Attribution from '../../../components/Attribution.astro';
@@ -7,7 +7,7 @@ import AccountShell from '../../../components/account/AccountShell.astro';
 import AuthLogin from '../../../components/account/AuthLogin.astro';
 ---
 <Layout
-  title={'Anmelden | VerseBase'}
+  title={'Bejelentkezés | VerseBase'}
   description={'Jelentkezz be a VerseBase-fiókodba: kezeld a profilodat, és tartsd szemmel a kedvenc Star Citizen-hajóidat.'}
   themeColor="#05070d"
   ogImage="/assets/og-default.jpg"
@@ -26,13 +26,13 @@ import AuthLogin from '../../../components/account/AuthLogin.astro';
 <a class="skip" href="#main">Ugrás a tartalomra</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Konto', href: '/hu/account.html' }, { label: 'Anmelden' }]} translated={true} />
+<SiteNav crumbs={[{ label: 'Fiók', href: '/hu/account.html' }, { label: 'Bejelentkezés' }]} translated={true} />
 
 <main id="main">
   <AccountShell
-    eyebrow="VerseBase · Systemzugang"
+    eyebrow="VerseBase · rendszerhozzáférés"
     titleThin="Üdv újra itt"
-    title="Anmelden"
+    title="Bejelentkezés"
     lead="A profilod és a kedvenc hajóid — egy fiók az egész VerseBase-hez."
   >
     <AuthLogin lang="hu" />

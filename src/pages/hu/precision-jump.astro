@@ -13,8 +13,8 @@ const anchorCount = buildAnchorRecords().length;
 const bandCount = Object.keys(AH_BAND_INFO).length;
 ---
 <Layout
-  title={'Precision Jump — Aaron-Halo-Routenrechner · Star Citizen | VerseBase'}
-  description={`Aaron-Halo-Routenrechner fürs Star-Citizen-Mining: plotte die Quantum-Travel-Linie zwischen zwei von ${anchorCount} QT-Ankern und erhalte die exakte Ausstiegs-Koordinate samt Bandfenster für jedes der ${bandCount} Halo-Dichtebänder. Kostenloses, zweisprachiges Navigations-Werkzeug.`}
+  title={'Precision Jump — Aaron Halo-útvonaltervező · Star Citizen | VerseBase'}
+  description={`Aaron Halo-útvonaltervező a Star Citizen-bányászathoz: rajzold meg a kvantumugrás vonalát ${anchorCount} QT-horgony közül kettő között, és kapd meg a pontos kilépési koordinátát a ${bandCount} Halo-sűrűségsáv mindegyikének sávablakával együtt. Ingyenes, többnyelvű navigációs eszköz.`}
   themeColor="#080a14"
   ogType="article"
   ogImage="/assets/og-default.jpg"
@@ -34,7 +34,7 @@ const bandCount = Object.keys(AH_BAND_INFO).length;
 .pj-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--accent-2)}
 .qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;color:var(--muted)}
 .qbar b{color:var(--accent-2)}</style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Ugrás a tartalomra</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={[{ label: 'Mining', href: '/hu/topics/mining.html' }, { label: 'Precision Jump' }]} translated={true} />
@@ -44,10 +44,10 @@ const bandCount = Object.keys(AH_BAND_INFO).length;
     <canvas id="stars" aria-hidden="true"></canvas>
     <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
-      <div class="eyebrow"><a href="/hu/topics/mining.html">Mining</a> &nbsp;·&nbsp; <span class="pj-tag">Aaron-Halo-Navigation</span></div>
-      <h1><span class="thin">Aaron-Halo-Routenrechner</span>Precision Jump</h1>
-      <p class="lead">Plotte die Quantum-Travel-Linie zwischen zwei Markern und erhalte die exakte Koordinate zum Aussteigen — direkt in das Asteroidenband, das du abbauen willst.</p>
-      <div class="qbar"><span>QT-Anker <b>{anchorCount}</b></span><span>Halo-Bänder <b>{bandCount}</b></span><span>System <b>Stanton</b></span><span>Patch <b>4.9</b></span></div>
+      <div class="eyebrow"><a href="/hu/topics/mining.html">Mining</a> &nbsp;·&nbsp; <span class="pj-tag">Aaron Halo-navigáció</span></div>
+      <h1><span class="thin">Aaron Halo-útvonaltervező</span>Precision Jump</h1>
+      <p class="lead">Rajzold meg a kvantumugrás vonalát két jelölő között, és kapd meg a pontos koordinátát a kilépéshez — egyenesen abba az aszteroidasávba, amelyet fejteni akarsz.</p>
+      <div class="qbar"><span>QT-horgony <b>{anchorCount}</b></span><span>Halo-sáv <b>{bandCount}</b></span><span>System <b>Stanton</b></span><span>Patch <b>4.9</b></span></div>
     </div>
     <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
   </section>
@@ -55,7 +55,7 @@ const bandCount = Object.keys(AH_BAND_INFO).length;
   <PrecisionJumpApp lang="hu" />
 </main>
 
-<Attribution sources={["Jordessey (Werkzeug & Routendaten)", "cstone.space (Halo-Band-Vermessung)"]} credit="VerseBase · ein Star-Citizen-Fan-Projekt" />
+<Attribution sources={["Jordessey (eszköz és útvonaladatok)", "cstone.space (Halo-sávok bemérése)"]} credit="VerseBase · Star Citizen-rajongói projekt" />
 
 <script is:inline src="/assets/detail.js"></script>
 </Layout>

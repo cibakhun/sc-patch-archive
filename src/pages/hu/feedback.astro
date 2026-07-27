@@ -10,7 +10,7 @@ import FeedbackForm from '../../components/FeedbackForm.astro';
 ---
 <Layout
   title={'Feedback | VerseBase'}
-  description={'Gib uns Feedback zu VerseBase: Fehler melden, Verbesserungen vorschlagen, einen falschen Datenwert korrigieren — oder einfach Danke sagen. Kurze Nachricht, optionale Bewertung, optionale Antwort-Adresse.'}
+  description={'Küldj visszajelzést a VerseBase-ről: jelents hibát, javasolj fejlesztést, javíts ki egy téves adatot — vagy csak mondj köszönetet. Rövid üzenet, opcionális értékelés, opcionális válaszcím.'}
   themeColor="#0f0b06"
   ogType="article"
   ogImage="/assets/t-def-1.jpg"
@@ -28,10 +28,10 @@ import FeedbackForm from '../../components/FeedbackForm.astro';
 .hero__in{max-width:var(--maxw)}
 .fbwrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(1.25rem,5vw,4rem) 1rem}
 .sec-head{max-width:var(--maxw);margin:0 auto 1.8rem;padding:0 clamp(1.25rem,5vw,4rem)}</style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Ugrás a tartalomra</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/hu/archiv.html' }, { label: 'Feedback' }]} translated={true} />
+<SiteNav crumbs={[{ label: 'Archívum', href: '/hu/archiv.html' }, { label: 'Feedback' }]} translated={true} />
 
 <main id="main">
   <section class="hero">
@@ -39,19 +39,19 @@ import FeedbackForm from '../../components/FeedbackForm.astro';
     <canvas id="stars" aria-hidden="true"></canvas>
     <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
-      <div class="eyebrow">VerseBase · Community-Draht</div>
-      <h1><span class="thin">Deine Stimme zählt</span>Feedback</h1>
-      <p class="lead">Fehler gefunden, eine Idee, ein falscher Wert in den Daten — oder einfach ein Danke? Ein kurzer Draht direkt ins Team.</p>
+      <div class="eyebrow">VerseBase · közösségi vonal</div>
+      <h1><span class="thin">A hangod számít</span>Feedback</h1>
+      <p class="lead">Hibát találtál, van egy ötleted, téves érték van az adatokban — vagy csak köszönetet mondanál? Rövid, közvetlen vonal a csapathoz.</p>
       <div class="tags">
-        <span class="tag">Nur die Nachricht ist Pflicht</span>
-        <span class="tag">Kein Login nötig</span>
-        <span class="tag">DSGVO-konform</span>
+        <span class="tag">Csak az üzenet kötelező</span>
+        <span class="tag">Nem kell bejelentkezni</span>
+        <span class="tag">GDPR-konform</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
   </section>
 
-  <div class="sec-head reveal"><span class="num">01</span><h2>Schreib uns</h2><span class="rule"></span></div>
+  <div class="sec-head reveal"><span class="num">01</span><h2>Írj nekünk</h2><span class="rule"></span></div>
 
   <div class="fbwrap">
     <FeedbackForm lang="hu" />
