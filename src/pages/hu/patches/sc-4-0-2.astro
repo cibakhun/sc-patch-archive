@@ -5,10 +5,11 @@ import QuickFacts from '../../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatch } from '../../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-0-2');
 if (!entry) throw new Error('Patch-Daten 4-0-2 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatch('4-0-2', entry.data, 'hu');
 ---
 <Layout title={"Star Citizen Alpha 4.0.2 — Supply or Die | VerseBase"} description={"Alpha 4.0.2 „Supply or Die“: a Pyro utánpótlásháborúja — Citizens for Prosperity a Headhunters ellen, PvPvE raktárharcok a kulcsfontosságú Detatrine erőforrásért, és a Ravager-212 mint eseményjutalom."} themeColor="#1a1d20" ogType="article" ogImage="/assets/t-pyro-3.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/t-pyro-3.jpg" />

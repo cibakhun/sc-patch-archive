@@ -5,10 +5,11 @@ import QuickFacts from '../../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatch } from '../../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-4-0');
 if (!entry) throw new Error('Patch-Daten 4-4-0 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatch('4-4-0', entry.data, 'hu');
 ---
 <Layout title={"Star Citizen Alpha 4.4.0 — Welcome to Nyx | VerseBase"} description={"Alpha 4.4.0 „Welcome to Nyx“: megnyílik a harmadik csillagrendszer, a vanduulok MI-ellenfélfrakcióként belépnek a perzisztens univerzumba, és az IAE 2955 elhozza az év legnagyobb hajókiállítását."} themeColor="#0c1020" ogType="article" ogImage="/assets/trailer-4-4-0.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/trailer-4-4-0.jpg" />

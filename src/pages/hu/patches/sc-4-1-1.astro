@@ -5,10 +5,11 @@ import QuickFacts from '../../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatch } from '../../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-1-1');
 if (!entry) throw new Error('Patch-Daten 4-1-1 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatch('4-1-1', entry.data, 'hu');
 ---
 <Layout title={"Star Citizen Alpha 4.1.1 — Balancing & Fleet Week | VerseBase"} description={"Alpha 4.1.1: fegyverhangolás, új hátrarúgás-rendszer, több lövegtorony-lőszer és a Fleet Week 2955 a „Hunt The Polaris“ eseménnyel."} themeColor="#0c1422" ogType="article" ogImage="/assets/trailer-4-1-0.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/trailer-4-1-0.jpg" />

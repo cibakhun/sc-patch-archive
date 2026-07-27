@@ -337,6 +337,9 @@ export const auec = (n: number, lang: Locale) => `${num(n, lang)} aUEC`;
 export function altName(i: Item, lang: Locale): string | null {
   const de = i.game?.nameDe?.trim();
   if (!de || de === i.name) return null;
+  // Der Alias ist das DE/EN-Namenspaar aus den Spieldaten. Auf einer HU-Seite
+  // hilft der deutsche Name niemandem — und wäre der einzige deutsche Text dort.
+  if (lang !== 'de' && lang !== 'en') return null;
   return lang === 'de' ? i.name : de;
 }
 

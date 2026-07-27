@@ -5,10 +5,11 @@ import QuickFacts from '../../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatch } from '../../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-1-0');
 if (!entry) throw new Error('Patch-Daten 4-1-0 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatch('4-1-0', entry.data, 'hu');
 ---
 <Layout title={"Star Citizen Alpha 4.1.0 — Orbital Assault | VerseBase"} description={"Alpha 4.1.0: orbitális Hathor-lézerek, aszteroidabányászat az Align &amp; Mine-nal és a játszható Aegis Idris."} themeColor="#10141a" ogType="article" ogImage="/assets/trailer-4-1-0.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/trailer-4-1-0.jpg" />

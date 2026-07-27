@@ -2,10 +2,11 @@
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
+import { mergePatch } from '../../i18n/patchText';
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
-);
+).map((p) => ({ ...p, data: mergePatch(p.id, p.data, 'hu') }));
 
 const latest = patches[patches.length - 1];
 const first = patches[0];

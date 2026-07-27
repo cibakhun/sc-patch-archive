@@ -7,10 +7,11 @@
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
+import { mergePatch } from '../../i18n/patchText';
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
-);
+).map((p) => ({ ...p, data: mergePatch(p.id, p.data, 'hu') }));
 
 // rows: systems ordered by how often they were touched
 const counts = new Map<string, number>();
@@ -114,7 +115,7 @@ a{color:inherit;text-decoration:none}
                       data-ed={`ed-${si}-${pi}`}
                       data-tier={tierOf(feats.length)}
                       aria-expanded="false"
-                      aria-label={`${sys} in Alpha ${p.data.version}: ${feats.length} Änderung${feats.length > 1 ? 'en' : ''}`}
+                      aria-label={`${sys} — Alpha ${p.data.version}: ${feats.length} változás`}
                     >{feats.length}</button>
                   ) : (
                     <span class="evo__dot" aria-hidden="true">·</span>

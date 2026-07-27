@@ -5,10 +5,11 @@ import QuickFacts from '../../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatch } from '../../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-8-1');
 if (!entry) throw new Error('Patch-Daten 4-8-1 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatch('4-8-1', entry.data, 'hu');
 ---
 <Layout title={"Star Citizen Alpha 4.8.1 — Defend Location | VerseBase"} description={"Alpha 4.8.1: 385 védelmi küldetés, bombázó-rárepülések és először egyedi tervrajzok."} themeColor="#15181b" ogType="article" ogImage="/assets/trailer-4-8-0.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/trailer-4-8-0.jpg" />

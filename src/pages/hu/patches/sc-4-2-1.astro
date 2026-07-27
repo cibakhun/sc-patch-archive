@@ -5,10 +5,11 @@ import QuickFacts from '../../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { mergePatch } from '../../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-2-1');
 if (!entry) throw new Error('Patch-Daten 4-2-1 fehlen in src/data/patches/');
-const patch = entry.data;
+const patch = mergePatch('4-2-1', entry.data, 'hu');
 ---
 <Layout title={"Star Citizen Alpha 4.2.1 — Resource Drive | VerseBase"} description={"Alpha 4.2.1: Resource Drive — globális konvojesemény, hajókíséret és az RSI Meteor."} themeColor="#0e1620" ogType="article" ogImage="/assets/img-meteor.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/img-meteor.jpg" />
