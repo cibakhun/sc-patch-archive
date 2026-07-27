@@ -10,7 +10,7 @@ const entry = await getEntry('patches', '4-4-0');
 if (!entry) throw new Error('Patch-Daten 4-4-0 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.4.0 — Welcome to Nyx | VerseBase"} description={"Alpha 4.4.0 „Welcome to Nyx“: das dritte Sternsystem öffnet, die Vanduul betreten als KI-Gegner-Fraktion das persistente Universum, und die IAE 2955 bringt die größte Schiffs-Expo des Jahres."} themeColor="#0c1020" ogType="article" ogImage="/assets/trailer-4-4-0.jpg" translated={true}>
+<Layout title={"Star Citizen Alpha 4.4.0 — Welcome to Nyx | VerseBase"} description={"Alpha 4.4.0 „Welcome to Nyx“: megnyílik a harmadik csillagrendszer, a vanduulok MI-ellenfélfrakcióként belépnek a perzisztens univerzumba, és az IAE 2955 elhozza az év legnagyobb hajókiállítását."} themeColor="#0c1020" ogType="article" ogImage="/assets/trailer-4-4-0.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/trailer-4-4-0.jpg" />
 <style is:inline>
 
@@ -188,10 +188,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <script is:inline src="/assets/hero-video.js"></script>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">19. November 2025 · Major Release</div>
+      <div class="eyebrow">2025. november 19. · nagy kiadás</div>
       <h1 data-text="4.4.0">4.4.0</h1>
       <div class="codename">Welcome to <span>Nyx</span></div>
-      <div class="tagline">Drittes System Nyx, erste Vanduul und die IAE 2955.</div>
+      <div class="tagline">A harmadik rendszer, a Nyx, az első vanduulok és az IAE 2955.</div>
       <div class="tags">
         <span class="tag">Nyx</span><span class="tag hot">Vanduul</span><span class="tag">Levski</span><span class="tag">Interstellar Hauling</span><span class="tag">IAE 2955</span>
       </div>
@@ -215,14 +215,14 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/img-nyx.jpg"><div class="tbg" style="background-image:url('/assets/img-nyx.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Nyx</div><div class="sub">Das dritte Sternsystem</div></div>
+        <div class="tile img b2" data-lb="img:/assets/img-nyx.jpg"><div class="tbg" style="background-image:url('/assets/img-nyx.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Nyx</div><div class="sub">A harmadik csillagrendszer</div></div>
         <a class="tile word hot" href="/hu/topics/4-4-0-vanduul.html"><span class="zoomic">→</span><b>VANDUUL</b><small>Adatlap megtekintése</small></a>
-        <a class="tile stat" href="/hu/topics/4-4-0-nyx-system.html"><span class="zoomic">→</span><div class="num">3</div><div class="cap">Sternsysteme · Nyx-Detail</div></a>
-        <div class="tile img w2" data-lb="img:/assets/img-perseus.jpg"><div class="tbg" style="background-image:url('/assets/img-perseus.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">RSI Perseus</div><div class="sub">Schweres Gunship</div></div>
-        <div class="tile stat" data-info data-title="IAE 2955" data-text="Die Intergalactic Aerospace Expo in Orison: über 200 Schiffe kostenlos zur Probe, herstellerweise präsentiert — Free-Fly bis 3. Dezember 2025." data-img="/assets/trailer-4-4-0.jpg"><span class="zoomic">+</span><div class="num">200+</div><div class="cap">Schiffe · IAE</div></div>
-        <div class="tile word" data-info data-title="Interstellares Hauling" data-text="Prozedurale Fracht-Missionen, die in einem System starten und in einem anderen enden — über Stanton, Pyro und Nyx hinweg."><span class="zoomic">+</span><b>HAULING</b><small>System-übergreifend</small></div>
-        <div class="tile img w2" data-lb="img:/assets/img-levski.jpg"><div class="tbg" style="background-image:url('/assets/img-levski.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Levski</div><div class="sub">Stadt im Asteroiden</div></div>
-        <div class="tile word" data-info data-title="Operation Sworn Enemies" data-text="Eine Untersuchungs-Mission: Spüre in verlassenen Stationen Hinweisen auf gefährliche Vanduul-Technologie nach."><span class="zoomic">+</span><b>SWORN<br>ENEMIES</b><small>Untersuchungs-Op</small></div>
+        <a class="tile stat" href="/hu/topics/4-4-0-nyx-system.html"><span class="zoomic">→</span><div class="num">3</div><div class="cap">Csillagrendszerek · Nyx részletek</div></a>
+        <div class="tile img w2" data-lb="img:/assets/img-perseus.jpg"><div class="tbg" style="background-image:url('/assets/img-perseus.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">RSI Perseus</div><div class="sub">Nehéz ágyúnaszád</div></div>
+        <div class="tile stat" data-info data-title="IAE 2955" data-text="Az Intergalactic Aerospace Expo Orisonban: több mint 200 hajó ingyen kipróbálható, gyártónként bemutatva — Free Fly 2025. december 3-ig." data-img="/assets/trailer-4-4-0.jpg"><span class="zoomic">+</span><div class="num">200+</div><div class="cap">Hajók · IAE</div></div>
+        <div class="tile word" data-info data-title="Csillagközi fuvarozás" data-text="Procedurális teherküldetések, amelyek az egyik rendszerben indulnak és egy másikban érnek véget — Stantonon, Pyrón és Nyxen át."><span class="zoomic">+</span><b>HAULING</b><small>Rendszereken átívelő</small></div>
+        <div class="tile img w2" data-lb="img:/assets/img-levski.jpg"><div class="tbg" style="background-image:url('/assets/img-levski.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Levski</div><div class="sub">Város az aszteroidában</div></div>
+        <div class="tile word" data-info data-title="Operation Sworn Enemies" data-text="Nyomozói küldetés: elhagyott állomásokon eredj a veszélyes vanduul technológia nyomába."><span class="zoomic">+</span><b>SWORN<br>ENEMIES</b><small>Nyomozói művelet</small></div>
       </div>
     </div>
   </section>
@@ -231,20 +231,20 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-nyx-1.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Das dritte Sternsystem</div>
+      <div class="kx">A harmadik csillagrendszer</div>
       <div class="big">NYX</div>
-      <p>Dunkel, asteroidendicht, nebelverhangen — der Glaciem Ring.</p>
+      <p>Sötét, aszteroidákkal sűrű, ködbe burkolt — a Glaciem Ring.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe &amp; Gegner</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Hajók &amp; ellenfelek</h2><span class="rule"></span></div>
       <div class="garage">
         <article class="ship reveal" data-lb="yt:ui921Uom_PY"><div class="sbg" style="background-image:url('/assets/img-perseus.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · Gunship</span><h3>RSI Perseus</h3></div></article>
         <article class="ship reveal" data-lb="yt:F-eJb7pwZrY"><div class="sbg" style="background-image:url('/assets/vid-salvation.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · Salvage</span><h3>RSI Salvation</h3></div></article>
-        <article class="ship foe reveal" data-lb="img:/assets/img-vanduul.jpg"><div class="sbg" style="background-image:url('/assets/img-vanduul.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Vanduul · Feindlich</span><h3>Vanduul Scythe</h3></div></article>
+        <article class="ship foe reveal" data-lb="img:/assets/img-vanduul.jpg"><div class="sbg" style="background-image:url('/assets/img-vanduul.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Vanduul · ellenséges</span><h3>Vanduul Scythe</h3></div></article>
       </div>
     </div>
   </section>
@@ -253,9 +253,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-nyx-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Landezone · People's Alliance</div>
+      <div class="kx">Leszállózóna · People's Alliance</div>
       <div class="big outline">LEVSKI</div>
-      <p>In den Fels von Delamar gebaut.</p>
+      <p>A Delamar sziklájába építve.</p>
     </div>
   </section>
 
@@ -277,11 +277,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">04</span><h2>Galéria</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-nyx-3.jpg"><img src="/assets/t-nyx-3.jpg" alt="Der Nyx-Stern mit Nebel" loading="lazy"><span class="zoomic">⤢</span><figcaption>Nyx · Stern</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-nyx-3.jpg"><img src="/assets/t-nyx-3.jpg" alt="A Nyx csillaga ködökkel" loading="lazy"><span class="zoomic">⤢</span><figcaption>Nyx · csillag</figcaption></figure>
         <figure class="w2" data-lb="img:/assets/img-levski.jpg"><img src="/assets/img-levski.jpg" alt="Levski" loading="lazy"><span class="zoomic">⤢</span><figcaption>Levski</figcaption></figure>
         <figure data-lb="img:/assets/vid-perseus.jpg"><img src="/assets/vid-perseus.jpg" alt="Perseus" loading="lazy"><span class="zoomic">⤢</span><figcaption>Perseus</figcaption></figure>
         <figure data-lb="img:/assets/img-vanduul.jpg"><img src="/assets/img-vanduul.jpg" alt="Vanduul Scythe" loading="lazy"><span class="zoomic">⤢</span><figcaption>Scythe</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-vanduul-1.jpg"><img src="/assets/t-vanduul-1.jpg" alt="Vanduul-Jäger über Nyx" loading="lazy"><span class="zoomic">⤢</span><figcaption>Vanduul über Nyx</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-vanduul-1.jpg"><img src="/assets/t-vanduul-1.jpg" alt="Vanduul vadászgép a Nyx felett" loading="lazy"><span class="zoomic">⤢</span><figcaption>Vanduul a Nyx felett</figcaption></figure>
       </div>
     </div>
   </section>

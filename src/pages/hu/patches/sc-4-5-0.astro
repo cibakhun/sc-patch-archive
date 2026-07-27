@@ -10,7 +10,7 @@ const entry = await getEntry('patches', '4-5-0');
 if (!entry) throw new Error('Patch-Daten 4-5-0 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.5.0 — Dawn of Engineering | VerseBase"} description={"Alpha 4.5.0: Engineering-Gameplay, Ship Armor und sich ausbreitendes Feuer."} themeColor="#0f1316" ogType="article" ogImage="/assets/trailer-4-5-0.jpg" translated={true}>
+<Layout title={"Star Citizen Alpha 4.5.0 — Dawn of Engineering | VerseBase"} description={"Alpha 4.5.0: Engineering-játékmenet, Ship Armor és terjedő tűz."} themeColor="#0f1316" ogType="article" ogImage="/assets/trailer-4-5-0.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/trailer-4-5-0.jpg" />
 <style is:inline>
 
@@ -174,14 +174,14 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">17. Dezember 2025 · Major Release</div>
+      <div class="eyebrow">2025. december 17. · nagy kiadás</div>
       <h1 data-text="4.5.0">4.5.0</h1>
       <div class="codename">Dawn of <span>Engineering</span></div>
-      <div class="tagline">Engineering-Gameplay, Ship Armor und sich ausbreitendes Feuer.</div>
+      <div class="tagline">Engineering-játékmenet, Ship Armor és terjedő tűz.</div>
       <div class="tags">
-        <span class="tag">Engineering</span><span class="tag">Ship Armor</span><span class="tag hot">Feuer</span><span class="tag">Vulkan</span><span class="tag">VR</span>
+        <span class="tag">Engineering</span><span class="tag">Ship Armor</span><span class="tag hot">Tűz</span><span class="tag">Vulkan</span><span class="tag">VR</span>
       </div>
-      <a href="/hu/topics/4-5-0-engineering.html" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;color:var(--bg);background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;box-shadow:0 6px 20px -6px rgba(0,0,0,.5)">Engineering · Detailseite →</a>
+      <a href="/hu/topics/4-5-0-engineering.html" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;color:var(--bg);background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;box-shadow:0 6px 20px -6px rgba(0,0,0,.5)">Engineering · adatlap →</a>
     </div>
     <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
   </section>
@@ -189,8 +189,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>DAWN OF ENGINEERING</span><span class="dot">◆</span><span>SHIP ARMOR</span><span class="dot">◆</span><span>FEUER-HAZARD</span><span class="dot">◆</span><span>POWER MANAGEMENT</span><span class="dot">◆</span><span>VULKAN</span><span class="dot">◆</span><span>VR</span><span class="dot">◆</span>
-      <span>DAWN OF ENGINEERING</span><span class="dot">◆</span><span>SHIP ARMOR</span><span class="dot">◆</span><span>FEUER-HAZARD</span><span class="dot">◆</span><span>POWER MANAGEMENT</span><span class="dot">◆</span><span>VULKAN</span><span class="dot">◆</span><span>VR</span><span class="dot">◆</span>
+      <span>DAWN OF ENGINEERING</span><span class="dot">◆</span><span>SHIP ARMOR</span><span class="dot">◆</span><span>TŰZVESZÉLY</span><span class="dot">◆</span><span>POWER MANAGEMENT</span><span class="dot">◆</span><span>VULKAN</span><span class="dot">◆</span><span>VR</span><span class="dot">◆</span>
+      <span>DAWN OF ENGINEERING</span><span class="dot">◆</span><span>SHIP ARMOR</span><span class="dot">◆</span><span>TŰZVESZÉLY</span><span class="dot">◆</span><span>POWER MANAGEMENT</span><span class="dot">◆</span><span>VULKAN</span><span class="dot">◆</span><span>VR</span><span class="dot">◆</span>
     </div>
   </div>
 
@@ -203,11 +203,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
         <div class="tile img b2" data-lb="img:/assets/t-eng-1.jpg"><div class="tbg" style="background-image:url('/assets/t-eng-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Engineering</div><div class="sub">Dawn of Engineering</div></div>
-        <div class="tile word" data-info data-title="Ship Armor" data-text="Schiffspanzerung wird mit 4.5.0 zu einer eigenen physischen Schicht: Armor sitzt über Hülle und Komponenten, dämpft eingehenden Schaden und nutzt sich mit der Zeit ab — ein erster Schritt der überarbeiteten Schadens- und Engineering-Systeme." data-img="/assets/t-def-2.jpg"><span class="zoomic">+</span><b>SHIP<br>ARMOR</b><small>eigene Schicht</small></div>
-        <div class="tile word hot" data-info data-title="Feuer-Hazard" data-text="Brände breiten sich mit 4.5.0 dynamisch durch das Schiff aus, fressen Sauerstoff und greifen auf benachbarte Räume und Komponenten über. Crews müssen Feuer als Engineering-Gefahr aktiv löschen, statt nur Schaden zu reparieren." data-img="/assets/t-ffp-1.jpg"><span class="zoomic">+</span><b>FEUER</b><small>breitet sich aus</small></div>
-        <div class="tile word" data-info data-title="Power Management" data-text="Im Engineering-Gameplay verteilen Spieler Energie in Echtzeit auf Komponenten und Systeme. Über- oder Fehlbelastung kann zu Hitze, Ausfällen und Schäden führen — Energie wird zur knappen Ressource im Schiffsbetrieb."><span class="zoomic">+</span><b>POWER</b><small>Echtzeit</small></div>
-        <div class="tile word" data-info data-title="Vulkan-Renderer" data-text="Mit 4.5.0 wurde Vulkan zum Standard-Renderer. Die Vulkan-API gibt es in Star Citizen bereits seit Alpha 3.23; 4.5.0 stabilisierte sie (u.a. Multithread-Rendering, HDR) und löste die ältere DirectX-11-Pipeline als Standard ab."><span class="zoomic">+</span><b>VULKAN</b><small>Renderer</small></div>
-        <div class="tile word" data-info data-title="VR-Unterstützung" data-text="Mit 4.5.0 wurde experimentelle Virtual-Reality-Unterstützung eingeführt, die durch den Wechsel zur Vulkan-Renderpipeline ermöglicht wird. Ein früher, optionaler Schritt Richtung immersives Cockpit-Erlebnis."><span class="zoomic">+</span><b>VR</b><small>experimentell</small></div>
+        <div class="tile word" data-info data-title="Ship Armor" data-text="A hajópáncélzat a 4.5.0-val önálló fizikai réteggé válik: az Armor a hajótest és a komponensek felett ül, tompítja a beérkező sebzést, és idővel elhasználódik — első lépés az átdolgozott sérülés- és Engineering-rendszerek felé." data-img="/assets/t-def-2.jpg"><span class="zoomic">+</span><b>SHIP<br>ARMOR</b><small>önálló réteg</small></div>
+        <div class="tile word hot" data-info data-title="Tűzveszély" data-text="A tüzek a 4.5.0-val dinamikusan terjednek szét a hajón, felemésztik az oxigént, és átterjednek a szomszédos terekre és komponensekre. A legénységnek a tüzet Engineering-veszélyként aktívan oltania kell, nem csak a sérülést javítani." data-img="/assets/t-ffp-1.jpg"><span class="zoomic">+</span><b>TŰZ</b><small>terjed</small></div>
+        <div class="tile word" data-info data-title="Power Management" data-text="Az Engineering-játékmenetben a játékosok valós időben osztják el az energiát a komponensek és rendszerek között. A túl- vagy alulterhelés hőt, kimaradást és sérülést okozhat — az energia szűkös erőforrássá válik a hajóüzemeltetésben."><span class="zoomic">+</span><b>POWER</b><small>Valós idő</small></div>
+        <div class="tile word" data-info data-title="Vulkan-renderer" data-text="A 4.5.0-val a Vulkan lett az alapértelmezett renderer. A Vulkan API már az Alpha 3.23 óta jelen van a Star Citizenben; a 4.5.0 stabilizálta (többek között többszálú renderelés, HDR), és leváltotta a régebbi DirectX 11-es pipeline-t alapértelmezettként."><span class="zoomic">+</span><b>VULKAN</b><small>Renderer</small></div>
+        <div class="tile word" data-info data-title="VR-támogatás" data-text="A 4.5.0-val kísérleti virtuálisvalóság-támogatás került be, amelyet a Vulkan renderpipeline-ra való áttérés tesz lehetővé. Korai, opcionális lépés a magával ragadó pilótafülke-élmény felé."><span class="zoomic">+</span><b>VR</b><small>kísérleti</small></div>
       </div>
     </div>
   </section>
@@ -216,9 +216,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-eng-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Schiff am Leben halten</div>
+      <div class="kx">Tartsd életben a hajót</div>
       <div class="big">ENGINEERING</div>
-      <p>Halte Energie, Hüllen und Feuer unter Kontrolle.</p>
+      <p>Tartsd kordában az energiát, a hajótestet és a tüzet.</p>
     </div>
   </section>
 
@@ -238,7 +238,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Galéria</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-eng-4.jpg"><img src="/assets/t-eng-4.jpg" alt="Engineering-Terminal" loading="lazy"><span class="zoomic">⤢</span><figcaption>Engineering-Terminal</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-eng-4.jpg"><img src="/assets/t-eng-4.jpg" alt="Engineering-terminál" loading="lazy"><span class="zoomic">⤢</span><figcaption>Engineering-terminál</figcaption></figure>
       </div>
     </div>
   </section>

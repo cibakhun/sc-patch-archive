@@ -10,7 +10,7 @@ const entry = await getEntry('patches', '4-8-1');
 if (!entry) throw new Error('Patch-Daten 4-8-1 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.8.1 — Defend Location | VerseBase"} description={"Alpha 4.8.1: 385 Verteidigungsmissionen, Bomber-Anflüge und erstmals einzigartige Blueprints."} themeColor="#15181b" ogType="article" ogImage="/assets/trailer-4-8-0.jpg" translated={true}>
+<Layout title={"Star Citizen Alpha 4.8.1 — Defend Location | VerseBase"} description={"Alpha 4.8.1: 385 védelmi küldetés, bombázó-rárepülések és először egyedi tervrajzok."} themeColor="#15181b" ogType="article" ogImage="/assets/trailer-4-8-0.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/trailer-4-8-0.jpg" />
 <style is:inline>
 
@@ -164,12 +164,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">3. Juni 2026 · Point-Release</div>
+      <div class="eyebrow">2026. június 3. · pontkiadás</div>
       <h1 data-text="4.8.1">4.8.1</h1>
       <div class="codename"><span>Defend Location</span></div>
-      <div class="tagline">Neuer Missionstyp Defend Location — 385 Verteidigungen.</div>
+      <div class="tagline">Új küldetéstípus, a Defend Location — 385 védelem.</div>
       <div class="tags">
-        <span class="tag">Defend Location</span><span class="tag">385 Missionen</span><span class="tag hot">Bomber</span><span class="tag">Blueprints</span>
+        <span class="tag">Defend Location</span><span class="tag">385 küldetés</span><span class="tag hot">Bomber</span><span class="tag">Blueprints</span>
       </div>
     </div>
     <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
@@ -178,8 +178,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>DEFEND LOCATION</span><span class="dot">◆</span><span>385 MISSIONEN</span><span class="dot">◆</span><span>BOMBER</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span><span>ESCORT</span><span class="dot">◆</span><span>STABILITÄT</span><span class="dot">◆</span>
-      <span>DEFEND LOCATION</span><span class="dot">◆</span><span>385 MISSIONEN</span><span class="dot">◆</span><span>BOMBER</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span><span>ESCORT</span><span class="dot">◆</span><span>STABILITÄT</span><span class="dot">◆</span>
+      <span>DEFEND LOCATION</span><span class="dot">◆</span><span>385 KÜLDETÉS</span><span class="dot">◆</span><span>BOMBER</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span><span>ESCORT</span><span class="dot">◆</span><span>STABILITÁS</span><span class="dot">◆</span>
+      <span>DEFEND LOCATION</span><span class="dot">◆</span><span>385 KÜLDETÉS</span><span class="dot">◆</span><span>BOMBER</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span><span>ESCORT</span><span class="dot">◆</span><span>STABILITÁS</span><span class="dot">◆</span>
     </div>
   </div>
 
@@ -192,11 +192,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
         <a class="tile img b2" href="/hu/topics/4-8-1-defend-location.html"><div class="tbg" style="background-image:url('/assets/t-def-2.jpg')"></div><span class="zoomic">→</span><div class="lbl">Defend Location</div><div class="sub">Adatlap megtekintése</div></a>
-        <div class="tile stat" data-info data-title="385 Missionen" data-text="Der neue Missionstyp Defend Location wurde in 4.8.1 breit im Universum ausgerollt — mit rund 385 platzierten Verteidigungs-Aufträgen an belagerten Außenposten und Stationen, die einzeln oder im Team gespielt werden können." data-img="/assets/t-def-1.jpg"><span class="zoomic">+</span><div class="num">385</div><div class="cap">Missionen</div></div>
-        <div class="tile word hot" data-info data-title="Bomber-Anflüge" data-text="Bei Defend Location greifen die Angreifer in Wellen an, darunter Bomber, die Anflüge auf den zu verteidigenden Ort fliegen. Verteidiger müssen sie abfangen, bevor sie ihre Last auf die Basis abwerfen."><span class="zoomic">+</span><b>BOMBER</b><small>Anflüge</small></div>
-        <div class="tile word" data-info data-title="Blueprints" data-text="Mit 4.8.1 tauchen erstmals einzigartige Blueprints als Belohnung auf. Sie speisen das in 4.7.0 eingeführte Crafting-System und ermöglichen das Herstellen besonderer Gegenstände aus geborgenen Ressourcen."><span class="zoomic">+</span><b>BLUEPRINTS</b><small>erstmals</small></div>
-        <div class="tile word" data-info data-title="Escort-Hybrid" data-text="Defend Location verbindet statische Verteidigung mit Escort-Elementen: Neben dem Halten eines Ortes müssen Spieler ankommende Einheiten oder Konvois schützen — ein hybrider Missionsablauf."><span class="zoomic">+</span><b>ESCORT</b><small>Hybrid</small></div>
-        <div class="tile stat" data-info data-title="30+ Fixes" data-text="Als Point-Release konzentrierte sich 4.8.1 auf den neuen Missionstyp und brachte zusätzlich über 30 Bugfixes und Stabilitätsverbesserungen nach dem großen 4.8.0-Patch."><span class="zoomic">+</span><div class="num">30+</div><div class="cap">Fixes</div></div>
+        <div class="tile stat" data-info data-title="385 küldetés" data-text="A Defend Location új küldetéstípust a 4.8.1-ben széles körben kiterjesztették az univerzumban — nagyjából 385 elhelyezett védelmi megbízással ostromlott előőrsöknél és állomásoknál, amelyek egyedül vagy csapatban is játszhatók." data-img="/assets/t-def-1.jpg"><span class="zoomic">+</span><div class="num">385</div><div class="cap">Küldetések</div></div>
+        <div class="tile word hot" data-info data-title="Bombázó-rárepülések" data-text="A Defend Locationnél a támadók hullámokban érkeznek, köztük bombázókkal, amelyek rárepülnek a védendő helyszínre. A védőknek el kell fogniuk őket, mielőtt ledobják a terhüket a bázisra."><span class="zoomic">+</span><b>BOMBER</b><small>Rárepülések</small></div>
+        <div class="tile word" data-info data-title="Blueprints" data-text="A 4.8.1-gyel először bukkannak fel egyedi tervrajzok jutalomként. Ezek a 4.7.0-ban bevezetett crafting-rendszert táplálják, és lehetővé teszik különleges tárgyak előállítását kimentett erőforrásokból."><span class="zoomic">+</span><b>BLUEPRINTS</b><small>először</small></div>
+        <div class="tile word" data-info data-title="Kísérő hibrid" data-text="A Defend Location a statikus védelmet kísérőelemekkel köti össze: egy helyszín tartása mellett a játékosoknak érkező egységeket vagy konvojokat is védeniük kell — hibrid küldetésmenet."><span class="zoomic">+</span><b>ESCORT</b><small>Hybrid</small></div>
+        <div class="tile stat" data-info data-title="30+ Fixes" data-text="Pontkiadásként a 4.8.1 az új küldetéstípusra összpontosított, és emellett több mint 30 hibajavítást és stabilitásjavítást hozott a nagy 4.8.0 patch után."><span class="zoomic">+</span><div class="num">30+</div><div class="cap">Fixes</div></div>
       </div>
     </div>
   </section>
@@ -205,9 +205,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-def-1.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Belagerter Außenposten</div>
+      <div class="kx">Ostromlott előőrs</div>
       <div class="big outline">DEFEND</div>
-      <p>Halte die Asteroidenbasis gegen Bomber-Anflüge.</p>
+      <p>Tartsd az aszteroidabázist a bombázó-rárepülésekkel szemben.</p>
     </div>
   </section>
 

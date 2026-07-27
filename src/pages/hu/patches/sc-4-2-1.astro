@@ -10,7 +10,7 @@ const entry = await getEntry('patches', '4-2-1');
 if (!entry) throw new Error('Patch-Daten 4-2-1 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.2.1 — Resource Drive | VerseBase"} description={"Alpha 4.2.1: Resource Drive — globales Konvoi-Event, Ship-Escort und die RSI Meteor."} themeColor="#0e1620" ogType="article" ogImage="/assets/img-meteor.jpg" translated={true}>
+<Layout title={"Star Citizen Alpha 4.2.1 — Resource Drive | VerseBase"} description={"Alpha 4.2.1: Resource Drive — globális konvojesemény, hajókíséret és az RSI Meteor."} themeColor="#0e1620" ogType="article" ogImage="/assets/img-meteor.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/img-meteor.jpg" />
 <style is:inline>
 
@@ -187,12 +187,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">17. Juli 2025 · Point-Release &amp; Event</div>
+      <div class="eyebrow">2025. július 17. · pontkiadás &amp; esemény</div>
       <h1 data-text="4.2.1">4.2.1</h1>
       <div class="codename">Resource <span>Drive</span></div>
-      <div class="tagline">Konvoi-Event, Ship-Escort-Missionen und die RSI Meteor.</div>
+      <div class="tagline">Konvojesemény, hajókísérő küldetések és az RSI Meteor.</div>
       <div class="tags">
-        <span class="tag">Resource Drive</span><span class="tag">Konvoi</span><span class="tag">Escort</span><span class="tag hot">RSI Meteor</span>
+        <span class="tag">Resource Drive</span><span class="tag">Konvoj</span><span class="tag">Escort</span><span class="tag hot">RSI Meteor</span>
       </div>
     </div>
     <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
@@ -201,8 +201,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>RESOURCE DRIVE</span><span class="dot">◆</span><span>KONVOI</span><span class="dot">◆</span><span>SHIP ESCORT</span><span class="dot">◆</span><span>RSI METEOR</span><span class="dot">◆</span><span>WIKELO</span><span class="dot">◆</span><span>FLIGHT TUNING</span><span class="dot">◆</span>
-      <span>RESOURCE DRIVE</span><span class="dot">◆</span><span>KONVOI</span><span class="dot">◆</span><span>SHIP ESCORT</span><span class="dot">◆</span><span>RSI METEOR</span><span class="dot">◆</span><span>WIKELO</span><span class="dot">◆</span><span>FLIGHT TUNING</span><span class="dot">◆</span>
+      <span>RESOURCE DRIVE</span><span class="dot">◆</span><span>KONVOJ</span><span class="dot">◆</span><span>SHIP ESCORT</span><span class="dot">◆</span><span>RSI METEOR</span><span class="dot">◆</span><span>WIKELO</span><span class="dot">◆</span><span>FLIGHT TUNING</span><span class="dot">◆</span>
+      <span>RESOURCE DRIVE</span><span class="dot">◆</span><span>KONVOJ</span><span class="dot">◆</span><span>SHIP ESCORT</span><span class="dot">◆</span><span>RSI METEOR</span><span class="dot">◆</span><span>WIKELO</span><span class="dot">◆</span><span>FLIGHT TUNING</span><span class="dot">◆</span>
     </div>
   </div>
 
@@ -214,12 +214,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/vid-meteor.jpg"><div class="tbg" style="background-image:url('/assets/vid-meteor.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">RSI Meteor</div><div class="sub">neu</div></div>
+        <div class="tile img b2" data-lb="img:/assets/vid-meteor.jpg"><div class="tbg" style="background-image:url('/assets/vid-meteor.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">RSI Meteor</div><div class="sub">új</div></div>
         <a class="tile word hot" href="/hu/topics/4-2-1-resource-drive.html"><span class="zoomic">→</span><b>RESOURCE<br>DRIVE</b><small>Adatlap megtekintése</small></a>
-        <div class="tile word" data-info data-title="Ship Escort" data-text="Neuer Missions-Archetyp: Spieler verteidigen befreundete Schiffe gegen Angreifer, eskortieren sie in die Hangars der Asteroiden-Mining-Basen und wieder hinaus, bis sie per Quantum Travel entkommen. Sechs Schwierigkeitsstufen der Foxwell-Gruppe in Stanton und Pyro, belohnt mit Scrip."><span class="zoomic">+</span><b>SHIP<br>ESCORT</b><small>6 Stufen</small></div>
-        <div class="tile word" data-info data-title="Konvoi" data-text="Im Zentrum des Resource Drive stehen Konvois rund um die Mining-Basen in Stanton und Pyro — eskortierte Frachtzüge, die gegen feindliche Schiffe verteidigt werden müssen." data-img="/assets/t-supply-2.jpg"><span class="zoomic">+</span><b>KONVOI</b><small>Stanton &amp; Pyro</small></div>
-        <div class="tile word" data-info data-title="Wikelo-Rezepte" data-text="Die Rezepte des Händlers Wikelo wurden überarbeitet und in drei Zutaten-Stufen gegliedert: garantierte Core-Drops, sehr seltene Rare-Items und content-gebundene Items. Zufalls-Belohnungen entfallen — klar erkennbar, was sich zu horten lohnt."><span class="zoomic">+</span><b>WIKELO</b><small>Rezepte</small></div>
-        <div class="tile stat" data-info data-title="Flight Tuning" data-text="4.2.1 bringt Anpassungen am Flugmodell — Feinschliff am Flugverhalten der Schiffe, der das Handling über das reine Event-Update hinaus verändert."><span class="zoomic">+</span><div class="num">+</div><div class="cap">Flight Tuning</div></div>
+        <div class="tile word" data-info data-title="Ship Escort" data-text="Új küldetés-archetípus: a játékosok baráti hajókat védenek a támadóktól, bekísérik őket az aszteroida-bányászbázisok hangárjaiba, majd ki is, amíg kvantumugrással el nem menekülnek. A Foxwell-csoport hat nehézségi fokozata Stantonban és Pyróban, Scrip-jutalommal."><span class="zoomic">+</span><b>SHIP<br>ESCORT</b><small>6 fokozat</small></div>
+        <div class="tile word" data-info data-title="Konvoj" data-text="A Resource Drive középpontjában a stantoni és pyrói bányászbázisok körüli konvojok állnak — kísért teherszerelvények, amelyeket meg kell védeni az ellenséges hajóktól." data-img="/assets/t-supply-2.jpg"><span class="zoomic">+</span><b>KONVOJ</b><small>Stanton &amp; Pyro</small></div>
+        <div class="tile word" data-info data-title="Wikelo-receptek" data-text="Wikelo kereskedő receptjeit átdolgozták, és három alapanyagszintbe sorolták: garantált core-dropok, nagyon ritka rare-tárgyak és tartalomhoz kötött tárgyak. A véletlenszerű jutalmak megszűnnek — jól látszik, mit érdemes felhalmozni."><span class="zoomic">+</span><b>WIKELO</b><small>Receptek</small></div>
+        <div class="tile stat" data-info data-title="Flight Tuning" data-text="A 4.2.1 módosításokat hoz a repülési modellen — finomhangolást a hajók repülési viselkedésén, ami a puszta eseményfrissítésen túl is megváltoztatja a kezelhetőséget."><span class="zoomic">+</span><div class="num">+</div><div class="cap">Flight Tuning</div></div>
       </div>
     </div>
   </section>
@@ -228,9 +228,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-supply-1.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Globales Event</div>
+      <div class="kx">Globális esemény</div>
       <div class="big">RESOURCE DRIVE</div>
-      <p>Eskortiere Konvois und liefere für die Belohnung.</p>
+      <p>Kísérj konvojokat, és szállíts a jutalomért.</p>
     </div>
   </section>
 
@@ -239,7 +239,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">02</span><h2>Hajók</h2><span class="rule"></span></div>
       <div class="garage">
-        <article class="ship reveal" data-lb="yt:aMeyPCQuaDw"><div class="sbg" style="background-image:url('/assets/img-meteor.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · neu</span><h3>RSI Meteor</h3></div></article>
+        <article class="ship reveal" data-lb="yt:aMeyPCQuaDw"><div class="sbg" style="background-image:url('/assets/img-meteor.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · új</span><h3>RSI Meteor</h3></div></article>
       </div>
     </div>
   </section>
@@ -260,8 +260,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">04</span><h2>Galéria</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-rd-1.jpg"><img src="/assets/t-rd-1.jpg" alt="Frachter werden am Container-Depot beladen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Konvoi · Frachtdepot</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-rd-2.jpg"><img src="/assets/t-rd-2.jpg" alt="RSI-Schiff im Gefecht im Asteroidenfeld" loading="lazy"><span class="zoomic">⤢</span><figcaption>Eskorte · Asteroidenfeld</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-rd-1.jpg"><img src="/assets/t-rd-1.jpg" alt="Teherhajók rakodása a konténerdepónál" loading="lazy"><span class="zoomic">⤢</span><figcaption>Konvoj · teherdepó</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-rd-2.jpg"><img src="/assets/t-rd-2.jpg" alt="RSI-hajó harcban az aszteroidamezőben" loading="lazy"><span class="zoomic">⤢</span><figcaption>Kíséret · aszteroidamező</figcaption></figure>
       </div>
     </div>
   </section>

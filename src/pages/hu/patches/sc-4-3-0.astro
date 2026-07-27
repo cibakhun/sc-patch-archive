@@ -10,7 +10,7 @@ const entry = await getEntry('patches', '4-3-0');
 if (!entry) throw new Error('Patch-Daten 4-3-0 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.3.0 — Dark Territory | VerseBase"} description={"Alpha 4.3.0: Personal Hangars, ~100 Onyx Facilities und die Regen Crisis."} themeColor="#0B0B0F" ogType="article" ogImage="/assets/trailer-4-3-0.jpg" translated={true}>
+<Layout title={"Star Citizen Alpha 4.3.0 — Dark Territory | VerseBase"} description={"Alpha 4.3.0: Personal Hangars, ~100 Onyx Facility és a Regen Crisis."} themeColor="#0B0B0F" ogType="article" ogImage="/assets/trailer-4-3-0.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/trailer-4-3-0.jpg" />
 <style is:inline>
 
@@ -188,10 +188,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <script is:inline src="/assets/hero-video.js"></script>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">16. August 2025 · Major Release</div>
+      <div class="eyebrow">2025. augusztus 16. · nagy kiadás</div>
       <h1 data-text="4.3.0">4.3.0</h1>
       <div class="codename"><span>Dark Territory</span></div>
-      <div class="tagline">Personal Hangars und ~100 verlassene Onyx Facilities.</div>
+      <div class="tagline">Personal Hangars és ~100 elhagyott Onyx Facility.</div>
       <div class="tags">
         <span class="tag">Dark Territory</span><span class="tag">Personal Hangars</span><span class="tag">Onyx</span><span class="tag hot">Regen Crisis</span>
       </div>
@@ -215,12 +215,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/t-onyx-1.jpg"><div class="tbg" style="background-image:url('/assets/t-onyx-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Onyx</div><div class="sub">verlassene Forschung</div></div>
-        <div class="tile word" data-info data-title="Personal Hangars" data-text="Persönliche, instanzierte Hangars am eigenen Heimat-Standort: Spieler spawnen direkt im eigenen Hangar — ohne Umweg über Habs oder Transit. Sofortiger Zugriff auf Schiffe und Lager am gesetzten Home-Hangar."><span class="zoomic">+</span><b>PERSONAL HANGARS</b><small>eigener Hafen</small></div>
+        <div class="tile img b2" data-lb="img:/assets/t-onyx-1.jpg"><div class="tbg" style="background-image:url('/assets/t-onyx-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Onyx</div><div class="sub">elhagyott kutatás</div></div>
+        <div class="tile word" data-info data-title="Personal Hangars" data-text="Személyes, példányosított hangárok a saját otthoni helyszíneden: a játékosok közvetlenül a saját hangárjukban jelennek meg — habok és tranzit kerülőútja nélkül. Azonnali hozzáférés a hajókhoz és a raktárhoz a beállított otthoni hangárnál."><span class="zoomic">+</span><b>PERSONAL HANGARS</b><small>saját kikötő</small></div>
         <a class="tile stat" href="/hu/topics/4-3-0-onyx-facilities.html"><span class="zoomic">→</span><div class="num">~100</div><div class="cap">Onyx Facilities · Detail</div></a>
-        <div class="tile img w2" data-lb="img:/assets/img-kruger.jpg"><div class="tbg" style="background-image:url('/assets/img-kruger.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Kruger L-21 Wolf</div><div class="sub">Leichter Jäger</div></div>
-        <div class="tile word" data-info data-title="Arken Mallor" data-text="Neuer Missionsgeber der Hockrow Agency. Über die Investigation-Tab des mobiGlas schickt er Spieler in die verlassenen ASD Onyx Facilities, um Forschungsdaten zu bergen und das wahre Ausmaß der ASD-Experimente rund um die Regen Crisis aufzudecken."><span class="zoomic">+</span><b>ARKEN MALLOR</b><small>Missionsgeber</small></div>
-        <div class="tile word hot" data-info data-title="Regen Crisis" data-text="Narrativer roter Faden von Dark Territory: Die Onyx-Untersuchungen drehen sich um die Experimente der ASD zur Regeneration (Regen) — die Wurzel der laufenden Regen-Crisis-Story."><span class="zoomic">+</span><b>REGEN CRISIS</b><small>Narrativ</small></div>
+        <div class="tile img w2" data-lb="img:/assets/img-kruger.jpg"><div class="tbg" style="background-image:url('/assets/img-kruger.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Kruger L-21 Wolf</div><div class="sub">Könnyű vadász</div></div>
+        <div class="tile word" data-info data-title="Arken Mallor" data-text="A Hockrow Agency új küldetésadója. A mobiGlas Investigation fülén keresztül küldi a játékosokat az elhagyott ASD Onyx Facilitykbe, hogy kutatási adatokat mentsenek ki, és feltárják az ASD Regen Crisis körüli kísérleteinek valódi mértékét."><span class="zoomic">+</span><b>ARKEN MALLOR</b><small>Küldetésadó</small></div>
+        <div class="tile word hot" data-info data-title="Regen Crisis" data-text="A Dark Territory narratív vezérfonala: az Onyx-vizsgálatok az ASD regenerációval (Regen) kapcsolatos kísérletei körül forognak — ez a folyó Regen Crisis-történet gyökere."><span class="zoomic">+</span><b>REGEN CRISIS</b><small>Narratíva</small></div>
       </div>
     </div>
   </section>
@@ -229,9 +229,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-onyx-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Verlassene ASD-Forschung</div>
+      <div class="kx">Elhagyott ASD-kutatás</div>
       <div class="big">ONYX</div>
-      <p>Verlassene Forschungsstationen voller Geheimnisse.</p>
+      <p>Elhagyott kutatóállomások, tele titkokkal.</p>
     </div>
   </section>
 
@@ -240,7 +240,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">02</span><h2>Hajók</h2><span class="rule"></span></div>
       <div class="garage">
-        <article class="ship reveal" data-lb="img:/assets/img-kruger.jpg"><div class="sbg" style="background-image:url('/assets/img-kruger.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Kruger · Leichter Jäger</span><h3>Kruger L-21 Wolf</h3></div></article>
+        <article class="ship reveal" data-lb="img:/assets/img-kruger.jpg"><div class="sbg" style="background-image:url('/assets/img-kruger.jpg')"></div><span class="zoomic">⤢</span><div class="ship__in"><span class="role">Kruger · könnyű vadász</span><h3>Kruger L-21 Wolf</h3></div></article>
       </div>
     </div>
   </section>
@@ -261,8 +261,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">04</span><h2>Galéria</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-onyx-2.jpg"><img src="/assets/t-onyx-2.jpg" alt="Verlassenes ASD-Labor in einer Onyx Facility" loading="lazy"><span class="zoomic">⤢</span><figcaption>Onyx Facility · ASD-Labor</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/t-onyx-1.jpg"><img src="/assets/t-onyx-1.jpg" alt="Schacht in einer Onyx Facility" loading="lazy"><span class="zoomic">⤢</span><figcaption>Onyx Facility · Schacht</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-onyx-2.jpg"><img src="/assets/t-onyx-2.jpg" alt="Elhagyott ASD-labor egy Onyx Facilityben" loading="lazy"><span class="zoomic">⤢</span><figcaption>Onyx Facility · ASD-labor</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/t-onyx-1.jpg"><img src="/assets/t-onyx-1.jpg" alt="Akna egy Onyx Facilityben" loading="lazy"><span class="zoomic">⤢</span><figcaption>Onyx Facility · akna</figcaption></figure>
       </div>
     </div>
   </section>
