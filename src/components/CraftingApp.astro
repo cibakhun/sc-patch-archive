@@ -214,7 +214,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   <div id="cdb-tab-db-content">
   <!-- Toolbar -->
   <div class="cdb-bar">
-    <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false">☰ {S.filterBtn}</button>
+    <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar">☰ {S.filterBtn}</button>
     <div class="cdb-search-wrap">
       <input type="search" id="cdb-search" class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
     </div>
@@ -248,7 +248,9 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
 
   <div class="cdb-layout">
     <!-- Filter sidebar -->
-    <aside class="cdb-sidebar" id="cdb-sidebar" aria-label={S.filters}>
+    {/* data-offcanvas: assets/offcanvas.js ergaenzt Verdunkler, Scroll-Sperre,
+        Esc, Tippen-daneben und Wischen — einmal fuer alle Panels der Seite. */}
+    <aside class="cdb-sidebar" id="cdb-sidebar" aria-label={S.filters} data-offcanvas>
       <div class="cdb-side-hd">
         <span>{S.filters}</span>
         <button id="cdb-filter-close" class="cdb-x" aria-label={S.close}>✕</button>
@@ -418,7 +420,10 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   </div>
 
   <!-- Planner drawer -->
-  <aside class="cdb-drawer" id="cdb-planner" aria-hidden="true" aria-label={S.plannerTitle}>
+  {/* data-offcanvas greift hier NUR unter 820 px (siehe offcanvas.js): am
+      Desktop bleibt der Planer wie er ist, mobil bekommt er Verdunkler und
+      Scroll-Sperre — ohne sie scrollte die Blueprint-Liste dahinter weg. */}
+  <aside class="cdb-drawer" id="cdb-planner" aria-hidden="true" aria-label={S.plannerTitle} data-offcanvas>
     <div class="cdb-drawer__hd">
       <span>{S.plannerTitle}</span>
       <button class="cdb-x" data-planner-close aria-label={S.close}>✕</button>

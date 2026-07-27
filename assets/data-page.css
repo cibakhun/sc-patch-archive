@@ -446,3 +446,78 @@ body {
   .dp-crumbs [aria-current='page'] { max-width: 16ch; }
   .dp-key { min-width: 6.5rem; flex: 1 1 40%; }
 }
+
+/* ---------- Touch-Ergonomie (nur schmale Viewports) ----------
+
+   Gemessen bei 375 px auf /items.html, /crafting.html, /armor-sets.html
+   und den Datenblaettern: Kopfzeilen-Link 27 px hoch, Sprachkuerzel 31,
+   Blaetterung 30, Fuss- und Tabellenlinks 21–24. Die Empfehlung fuer eine
+   Fingerkuppe liegt bei ~44 px.
+
+   Die Optik bleibt: gewachsen ist nur die anfassbare Box (min-height +
+   inline-flex), keine Schriftgroesse, keine Rahmung, keine Farbe. Am
+   Desktop greift nichts davon.
+
+   Die allgemeinen Touch-Regeln (Felder auf 16 px, Kaestchen, Regler,
+   Druckzustand) stehen in assets/mobile-ux.css — hier steht nur, was
+   .dp-* betrifft, weil diese Datei nach mobile-ux.css geladen wird und
+   bei gleicher Spezifitaet gewaenne. */
+
+@media (max-width: 820px) {
+  .dp-home,
+  .dp-lang {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .dp-lang { min-width: 44px; justify-content: center; }
+
+  .dp-btn { min-height: 44px; }
+
+  .dp-pager a,
+  .dp-pager span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Fuss- und Krumen-Links standen als 21-px-Textstreifen direkt
+     uebereinander — ohne Trefferhoehe erwischt man staendig den Nachbarn.
+     44 statt der 40, die hier zuerst standen: 40 war die einzige Stelle
+     der ganzen Seite, die knapp unter dem Mass blieb, und sie sitzt auf
+     den ~17.000 Item- und Blueprint-Seiten, also der groessten
+     Seitengruppe ueberhaupt. Die vier Pixel kosten nichts — die Zeile
+     umfliesst ohnehin (flex-wrap) — und ersparen die Sonderregel. */
+  .dp-foot-nav { gap: 0.1rem 1.1rem; }
+  .dp-foot-nav a,
+  .dp-crumbs a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Tabellenlinks fuellen ihre Zeile statt nur die Glyphen. */
+  .dp-table td a { display: inline-block; padding-block: 0.45rem; }
+  .dp-table th,
+  .dp-table td { padding: 0.55rem 0.75rem; }
+
+  .dp-card { min-height: 60px; }
+
+  /* Chips klebten bei 0,45 rem zu einem durchgehenden Band zusammen. */
+  .dp-chips { gap: 0.55rem; }
+  .dp-chip { padding: 0.4rem 0.8rem; }
+}
+
+/* Druckzustand — Touch kennt kein :hover, ohne ihn bleibt jeder Tipp bis
+   zum Seitenwechsel ohne Antwort. Gilt auch mit Maus, das ist dort
+   ebenfalls richtig. */
+.dp-card:active { border-color: var(--accent); transform: translateY(0); }
+.dp-btn:active { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.dp-pager a:active { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+.dp-home:active,
+.dp-lang:active,
+.dp-foot-nav a:active,
+.dp-crumbs a:active,
+.dp-table a:active { color: var(--accent); }

@@ -455,8 +455,17 @@
       var locHtml;
       if (item.obtain.length) {
         var extra = item.obtain.length - 1, o0 = item.obtain[0];
-        locHtml = esc(o0.kind === 'exclusive' ? exclusiveLabel(o0.reason) : o0.loc) +
-          (extra > 0 ? ' <span class="uif-loc-more">+' + extra + '</span>' : '');
+        // Der Fundort-Name steht in einem EIGENEN span, nicht als blosser
+        // Textknoten. Grund: `.uif-card-location` kuerzt mit
+        // white-space:nowrap + text-overflow:ellipsis. Das kuerzt die ganze
+        // Box — und damit zuerst das, was hinten steht. Gemessen bei 375 px
+        // lag `+11` bei x=409, also komplett ausserhalb des Bildes: dass es
+        // weitere Fundorte gibt, war auf dem Telefon nicht zu sehen. Mit
+        // eigenem span kuerzt nur der Name, das `+N` bleibt als nicht
+        // schrumpfender Nachbar stehen.
+        locHtml = '<span class="uif-loc-name">' +
+          esc(o0.kind === 'exclusive' ? exclusiveLabel(o0.reason) : o0.loc) + '</span>' +
+          (extra > 0 ? '<span class="uif-loc-more">+' + extra + '</span>' : '');
       } else {
         locHtml = '<span class="uif-loc-none">' + esc(tr('noSourceData', 'Kein Fundort bekannt')) + '</span>';
       }
@@ -847,15 +856,20 @@
     }
 
     content.innerHTML = html;
+    // Doppeltes Sperren verhindern: openModal kann aus einem offenen Modal
+    // heraus erneut laufen (Verweis auf ein anderes Item).
+    var wasOpen = modal.style.display === 'flex';
     modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    // Geteilte Sperre statt body{overflow:hidden} — die Variante, die iOS
+    // Safari am zuverlaessigsten uebergeht. Siehe assets/scroll-lock.js.
+    if (!wasOpen && window.VBScrollLock) window.VBScrollLock.lock();
   }
 
   function closeModal() {
     var modal = document.getElementById('uif-item-modal');
     if (modal && modal.style.display !== 'none') {
       modal.style.display = 'none';
-      document.body.style.overflow = '';
+      if (window.VBScrollLock) window.VBScrollLock.unlock();
     }
   }
 

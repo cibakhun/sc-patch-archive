@@ -1,0 +1,529 @@
+/* ============================================================
+   mobile-ux.css — EINE geteilte Schicht fuer die Touch-Ergonomie.
+
+   Wird von Layout.astro auf JEDER Seite geladen und liegt damit
+   an genau einer Stelle statt in ~40 Seiten-<style>-Bloecken.
+
+   REGELN, an die sich diese Datei haelt:
+
+   1. Alles steht in `@media (max-width: 820px)` (bzw. engeren
+      Abfragen). Die Desktop-Optik bleibt damit unangetastet —
+      das ist die Vorgabe fuer diesen Durchgang.
+      AUSNAHME: die :active-Zustaende. Ein Druckzustand ist auch
+      mit Maus richtig und stoert dort niemanden; ihn an
+      (hover:none) zu haengen wuerde ihn zusaetzlich untestbar
+      machen.
+
+   2. KEINE Hex-Werte. Nur Tokens (--accent, --line, --surface,
+      --veil-hi …), sonst bricht der Hellmodus.
+
+   3. Die Fingerkuppen-Flaeche waechst, die Optik nicht. Wo ein
+      Element sichtbar klein bleiben soll (Zeitstrahl-Ticks,
+      Sprachkuerzel, Wortmarke), spannt ein transparentes
+      ::after die 44 px auf — der gezeichnete Kasten bleibt, wo
+      er war.
+
+   4. Keine !important-Kaskade. Wo Seiten-CSS spaeter kommt,
+      gewinnt die hoehere Spezifitaet der Klassenkette, nicht ein
+      Holzhammer.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1) Formularfelder: 16 px ist die iOS-Grenze
+   ------------------------------------------------------------
+   Safari zoomt beim Fokus automatisch in JEDES Feld mit weniger
+   als 16 px Schriftgroesse hinein und der Nutzer sitzt danach in
+   einem verschobenen Viewport fest. Gemessen wurden u. a.
+   .cdb-res-search 15,1 px, .pj-filter 15,3 px und
+   #uif-sort-select 13,3 px.
+   16px hart, nicht 1rem: die Wurzel steht auf 112,5 % (18 px),
+   ein rem-Wert waere hier groesser als noetig.
+------------------------------------------------------------ */
+@media (max-width: 820px) {
+  input:not([type='range']):not([type='checkbox']):not([type='radio']):not([type='submit']):not([type='button']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* ------------------------------------------------------------
+   2) Bedienelemente auf Fingerkuppen-Mass
+   ------------------------------------------------------------
+   Gilt fuer echte Schaltflaechen und Felder. Fliesstext-Links
+   sind bewusst NICHT dabei — ein min-height auf `a` wuerde jeden
+   Link im Absatz zu einem Block aufblasen und den Zeilenfall
+   zerreissen. Link-Listen werden weiter unten pro Muster
+   angefasst.
+------------------------------------------------------------ */
+@media (max-width: 820px) {
+  button,
+  [role='button'],
+  input[type='submit'],
+  input[type='button'],
+  select,
+  summary {
+    min-height: 44px;
+  }
+  /* Icon-Knoepfe (Schliessen, Ansichts-Umschalter) sind quadratisch
+     gedacht und brauchen die Breite mit. */
+  .cdb-x,
+  .mdb-x,
+  .scs__x,
+  .cdb-view,
+  .mdb-view,
+  .rff__vbtn,
+  .uif-viewbtn,
+  .uif-modal-close,
+  .sid__mini,
+  .cbp__own,
+  .cbp__add {
+    min-width: 44px;
+  }
+  /* `.cbar__x` (Loeschkreuz der Archivsuche), gemessen 20x44 px: die
+     Breite fehlte. BEWUSST nicht ueber die `min-width`-Liste darueber —
+     die Klasse setzt in archive.css `width: 20px`, und `min-width`
+     schlaegt `width`. Das Kreuz waere sichtbar auf 44 px aufgegangen und
+     hockte als klobiger Kasten im schlanken Suchfeld. Stattdessen
+     derselbe Kniff wie bei den Kontrollkaestchen: die gezeichnete Box
+     bleibt 20 px, ein transparentes ::after spannt die Fingerkuppe auf. */
+  .cbar__x {
+    position: relative;
+  }
+  .cbar__x::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+  /* Ein `min-height` allein reicht nicht, wenn das Element per
+     `display:inline-block` gesetzt ist — dort wirkt es nicht wie
+     erwartet und der Text klebt oben. */
+  button,
+  [role='button'],
+  summary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Ausnahmen: Elemente, deren Layout von flex-Zentrierung lebt
+     bzw. bewusst blockig/linksbuendig sind. */
+  .uif-category-btn,
+  .cbp,
+  .cdb-card,
+  .mdb-card {
+    justify-content: flex-start;
+  }
+  summary {
+    display: list-item;
+    min-height: 44px;
+    padding-block: 0.35rem;
+  }
+
+  /* AUSNAHMEN von der 44-px-Hoehe. Beides sind dichte Raster, in denen
+     eine erzwungene Zellhoehe die Form der Darstellung zerstoert — und
+     bei denen die Information daneben ohnehin in voller Groesse
+     bedienbar ist:
+       .evo__cell    Matrix der Feature-Entwicklung (84 Zellen)
+       .ribbon__tick Zeitstrahl-Marken im Archiv-Kopf; darunter steht
+                     dieselbe Auswahl als Liste (.dive) in voller Hoehe.
+     Bei 19 Marken auf 343 px LIESSEN sich 44 px auch gar nicht
+     ueberschneidungsfrei vergeben.
+
+     Aus demselben Grund bleibt auch der Versions-Verweis im Kopf der
+     Evolutions-Matrix (`.evo__col a`, gemessen 36x15) klein: er ist die
+     Spaltenueberschrift EINER von 19 Spalten in einer 1695 px breiten
+     Tabelle, die seitwaerts gescrollt wird. Auf 44 px gezogen wuerde er
+     die Spaltenbreite und damit die ganze Matrix sprengen. Derselbe
+     Patch ist ueber /archiv in voller Groesse erreichbar — die
+     Information ist also nirgends nur ueber dieses Ziel zu bekommen. */
+  .evo__cell,
+  .ribbon__tick {
+    min-height: 0;
+  }
+}
+
+/* ------------------------------------------------------------
+   2b) Verlinkte Zeilen und Karten
+   ------------------------------------------------------------
+   Was kein <button> ist, faellt nicht unter die Regel oben.
+   Gemessen: .dive 31 px, .sd__ref 43, .fcard__patch 26,
+   .uif-card-link 24, .cbp__mine 24, .wk-linkable 21,
+   .home-link 23, .do__notesrsi 41.
+   Wichtig: kein pauschales `a { min-height }` — das wuerde jeden
+   Link im Fliesstext zu einem Block machen und den Zeilenfall
+   zerreissen. Deshalb namentlich.
+------------------------------------------------------------ */
+@media (max-width: 820px) {
+  .dive,
+  .sd__ref,
+  .fcard__patch,
+  .uif-card-link,
+  .cbp__mine,
+  .home-link,
+  .do__notesrsi,
+  .cdb-sync__login,
+  .mdb-loc-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Nachzuegler aus dem zweiten Messdurchgang. Sie standen in keiner
+     Liste, weil die Liste von Hand gepflegt wird:
+       .md__back        109x21  Missions-Datenblatt, „Alle Missionen"
+       .pp-error__home  195x20  Pilotenseite, Rueckweg zur Startseite
+       .uf-browse a     240x29  Item Finder, „Alle Items nach Kategorie"
+
+     Ein vierter Fall, die Brotkrume der DataShell (33x40 auf ~17.000
+     Item- und Blueprint-Seiten), steht bewusst NICHT hier, sondern in
+     assets/data-page.css: die Datei wird nach dieser geladen und setzte
+     dort selbst `min-height: 40px`. Eine Regel hier haette bei gleicher
+     Spezifitaet verloren — sie gehoert an die Stelle, die sie korrigiert.
+
+     ZUR EHRLICHKEIT, damit es niemand noch einmal versucht: hier stand
+     kurzzeitig eine STRUKTURELLE Regel statt weiterer Namen —
+     `:where(p,div,li,…) > a:only-child`, in der Annahme, ein allein
+     stehender Verweis sei per Definition kein Verweis im Fliesstext.
+     Nachgemessen trifft sie KEINEN dieser vier Faelle: alle vier haben
+     Geschwister im Elternelement (7, 8, 5 bzw. 2 Kinder). Ein
+     brauchbares CSS-Praedikat fuer „allein stehender Verweis" gibt es
+     hier nicht — `display` taugt auch nicht, .pp-error__home ist
+     `inline` und .dp-crumbs a ist `flex`. Die Regel war reine
+     Blindleistung und ist wieder raus; die Namen bleiben die ehrliche
+     Loesung. */
+  .md__back,
+  .pp-error__home,
+  .uf-browse a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  /* Teileliste eines Ruestungs-Sets (/armor-sets.html): gemessen 19 px
+     hohe Verweise, direkt untereinander in einer <ul> — der schlimmste
+     Fall, weil hier ZWEI Ziele mit fast gleichem Namen aufeinander
+     folgen („ORC-mkV Core" und „ORC-mkV Core (Modified)"). Ein Fehlgriff
+     fuehrt auf das falsche Teil. Als flex mit voller Zeilenhoehe, damit
+     die Zeile selbst das Ziel ist. */
+  .as-parts li a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  /* Listenzeilen, die als Ganzes klickbar sind (Wikelo-Handelsposten):
+     als Zeile, nicht als Textstreifen. */
+  .wk-linkable {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Titel-Links IN Karten (Schiffskarte, Blueprint-Karte, Archiv-Knoten).
+     Sie sind der Weg in die Karte hinein, waren aber nur so hoch wie ihre
+     Zeile (23–31 px). Kein negatives margin zum Ausgleich: die Flaeche
+     wuerde sonst ueber die Knoepfe direkt darunter greifen und deren
+     Tipps abfangen. Die Karten werden dadurch mobil etwas hoeher — das
+     ist hier erwuenscht, sie standen ohnehin sehr dicht. */
+  .cbp__name a,
+  .fcard__name a,
+  .node__name a {
+    display: inline-block;
+    padding-block: 0.7rem;
+  }
+  /* Einzelne Verweiszeilen (Startseite „Alle Items nach Kategorie",
+     Themenseiten-Absaetze, Hero-Brotkrume) — hier reicht die Hoehe
+     direkt, es steht nichts unmittelbar darunter. */
+  .tools__more a,
+  .cr-browse a,
+  .eyebrow a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Gestapelte Verweis-Reihen: je eine Zeile pro Link, untereinander.
+     Gemessen 29–34 px — die Nachbarzeile war jeweils nur ein paar
+     Pixel entfernt.
+       .sd__pledgerow  Schiffs-Datenblatt, Kaufverweis
+       .sd__links      Schiffs-Datenblatt, Fusszeilen-Verweise
+       .acx-links      Konto-Formulare (Registrieren / Passwort)
+       .as-jump        Ruestungs-Sets, Sprungmarken nach Hersteller */
+  .sd__pledgerow a,
+  .sd__links a,
+  .acx-links a,
+  .as-jump a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Textfelder: nur die Schriftgroesse zu heben reichte nicht, die Felder
+     selbst waren 22–43 px hoch (Schiffssuche, Archivsuche, Zutatensuche,
+     Refinery-Suche, Rechnerfelder). */
+  input[type='search'],
+  input[type='text'],
+  input[type='number'],
+  input[type='email'],
+  input[type='password'],
+  textarea {
+    min-height: 44px;
+  }
+}
+
+/* ------------------------------------------------------------
+   3) Kontrollkaestchen sind auf dem Telefon 15 px klein
+   ------------------------------------------------------------
+   Gemessen in Crafting- und Mining-Filtern: 15x15 px.
+
+   Die SICHTBARE Box bleibt, wie sie ist. Ein Versuch, sie per
+   width/height auf 20 px zu ziehen, wurde nachgemessen und
+   verworfen: die nativ gezeichneten Kaestchen nehmen die Groesse
+   in diesem Kontext nicht an (gemessen blieben sie bei 15 px,
+   waehrend position/::after aus derselben Regel griffen). Statt
+   dagegen anzurennen — was nur mit appearance:none und einem
+   selbstgezeichneten Haken ginge, also mit echter Optikaenderung —
+   waechst nur die TREFFERFLAECHE:
+
+     - ein unsichtbares ::after spannt 44 px um das Kaestchen,
+     - die umgebende <label>-Zeile wird selbst 44 px hoch und
+       leitet den Tipp ohnehin an die Box weiter.
+
+   Das Raster der Filterliste bleibt unveraendert.
+------------------------------------------------------------ */
+@media (max-width: 820px) {
+  input[type='checkbox'],
+  input[type='radio'] {
+    position: relative;
+    flex: none;
+  }
+  input[type='checkbox']::after,
+  input[type='radio']::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+  /* Die Zeile um das Kaestchen ist selbst der Treffer (ein <label>
+     leitet den Tipp an sein Feld weiter) und bekommt Luft, damit
+     zwei benachbarte Flaechen sich nicht ueberlappen.
+     Klassenselektoren statt :where(), weil das Seiten-CSS spaeter
+     geladen wird — mit Spezifitaet 0 verloere die Regel. */
+  .cdb-sidebar label,
+  .mdb-sidebar label,
+  .cdb-check,
+  .mdb-check {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+}
+
+/* ------------------------------------------------------------
+   4) Schieberegler
+   ------------------------------------------------------------
+   Der Standard-Griff ist ~12–14 px breit. Auf Touch trifft man
+   ihn kaum und die Bahn ist so duenn, dass ein Fehlgriff die
+   Seite scrollt statt den Wert zu aendern. Griff auf 26 px,
+   Bahn auf 8 px, plus grosszuegige vertikale Trefferzone.
+------------------------------------------------------------ */
+@media (max-width: 820px) {
+  input[type='range'] {
+    height: 44px;
+    /* touch-action: die vertikale Wischgeste bleibt Scrollen,
+       die horizontale gehoert dem Regler. */
+    touch-action: pan-y;
+  }
+  input[type='range']::-webkit-slider-thumb {
+    width: 26px;
+    height: 26px;
+  }
+  input[type='range']::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* ------------------------------------------------------------
+   5) Druckzustand (bewusst OHNE Medienabfrage, s. Kopf)
+   ------------------------------------------------------------
+   Auf dem Telefon gibt es kein :hover. Ohne :active bleibt jeder
+   Tipp bis zum Seitenwechsel ohne Antwort — das liest sich als
+   „kaputt". Zwei Ebenen: leichte Einfaerbung fuer Flaechen,
+   minimales Zusammenziehen fuer Knoepfe.
+------------------------------------------------------------ */
+button:active,
+[role='button']:active,
+summary:active {
+  transform: scale(0.97);
+}
+:where(
+    .dp-btn, .dp-card, .dp-pager a, .chip, .chipbtn, .wk-pill, .uif-chip,
+    .uif-viewbtn, .uif-page-btn, .uif-category-btn, .frac-preset,
+    .sid__chip, .sid__sys, .rff__sys, .evo__cell, .cdb-view, .mdb-view
+  ):active {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-color: var(--accent);
+}
+:where(.dp-card, .fcard, .cbp, .dive, .wk-linkable, .uif-card-link):active {
+  border-color: var(--accent);
+}
+
+/* ------------------------------------------------------------
+   5b) Verdunkler fuer ausfahrende Panels
+   ------------------------------------------------------------
+   Wird von assets/offcanvas.js eingehaengt. Ohne Medienabfrage:
+   das Element existiert nur, wenn ein Panel tatsaechlich im
+   Off-Canvas-Modus offen ist — und das ist per CSS ohnehin auf
+   schmale Viewports beschraenkt.
+------------------------------------------------------------ */
+.vb-offcanvas-scrim {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  /* PFLICHT, nicht Kosmetik: der Verdunkler wird seit der Umstellung
+     einmal beim Start erzeugt und liegt damit dauerhaft im DOM
+     (Begruendung in offcanvas.js). Ohne pointer-events:none faenge
+     dieses unsichtbare Vollbild-Element JEDEN Tipp der Seite ab. */
+  pointer-events: none;
+}
+.vb-offcanvas-scrim.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vb-offcanvas-scrim {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------
+   4b) Rollen-Pille der Schiffskarte darf kuerzen
+   ------------------------------------------------------------
+   `.fcard__chip` traegt `white-space: nowrap` — richtig, damit eine
+   Pille nicht mittendrin umbricht. Wird der Text aber laenger als die
+   Karte, laeuft sie hinaus und `.fcard` schneidet sie ab. Gemessen bei
+   375 px: „Einsteiger · Leichter Frachter" war 199 px breit in einer
+   140 px schmalen Karte, die Rolle also unlesbar. Betroffen ist die
+   zweispaltige Kartenansicht in BEIDEN Sprachen — im Deutschen
+   haeufiger, weil die Rollennamen dort laenger sind.
+
+   Steht bewusst HIER und nicht im Seiten-CSS: src/pages/schiffe.astro
+   und src/pages/de/schiffe.astro sind zwei Dateien mit je einer eigenen
+   Kopie dieses Blocks. Eine Regel im Seiten-CSS muesste man doppelt
+   pflegen — beim ersten Anlauf blieb dadurch genau die deutsche Seite
+   kaputt. Eine Stelle, beide Sprachen.
+------------------------------------------------------------ */
+@media (max-width: 820px) {
+  .fcard__chip {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* ------------------------------------------------------------
+   5c) Seitwaerts scrollende Tabellen sichtbar machen
+   ------------------------------------------------------------
+   Gemessen bei 375 px: die breiten Tabellen liegen ALLE korrekt in
+   einem Kasten mit overflow-x:auto und lassen sich wischen —
+
+     .do__tablewrap     Patch-Datenblatt       409 px in 274 px
+     .md__tblWrap       Missions-Datenblatt    585 px in 333 px
+     .pj-tblscroll      Precision Jump         801 px in 327 px
+     .evo__scroll       Evolutions-Matrix     1695 px in 351 px
+     .uif-table-wrapper Item-Modal
+     .sd__paints        Lackierungen im Schiffs-Datenblatt
+
+   ... nur SIEHT man das nicht. Auf Touch gibt es keine dauerhafte
+   Bildlaufleiste, und die Tabellen sind rechts glatt abgeschnitten —
+   sie lesen sich wie eine vollstaendige Tabelle, deren letzte Spalte
+   zufaellig „Status" heisst. Wer nicht zufaellig quer wischt, erfaehrt
+   nie, dass rechts noch Daten stehen.
+
+   Zwei Signale, beide ohne JS:
+     1. eine duenne, dauerhaft sichtbare Bildlaufleiste (Chrome/Android,
+        Firefox zeichnen sie damit),
+     2. ein Verlauf an der rechten Kante fuer die Browser mit
+        Overlay-Leisten, die im Ruhezustand nichts zeigen — allen voran
+        iOS Safari.
+
+   EHRLICH zur Einschraenkung: der Verlauf haengt an der Kante des
+   Kastens (`background-attachment: scroll`), nicht am Inhalt. Er steht
+   also auch dann noch da, wenn man schon ganz nach rechts gewischt hat.
+   Die saubere Variante braucht eine zweite, DECKENDE Verlaufsebene mit
+   `attachment: local` — und damit die Hintergrundfarbe des Kastens. Die
+   ist hier je nach Seite eine andere (die Kaesten sind durchsichtig),
+   ein fester Wert waere in einer der Paletten falsch. Ein Hinweis, der
+   einmal zu viel steht, ist besser als eine Tabelle, deren rechte
+   Haelfte niemand findet.
+
+   NUR mobil: am Desktop gibt es eine echte Bildlaufleiste.
+------------------------------------------------------------ */
+@media (max-width: 820px) {
+  .do__tablewrap,
+  .md__tblWrap,
+  .pj-tblscroll,
+  .evo__scroll,
+  .uif-table-wrapper,
+  .sd__paints {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--accent) 55%, transparent) transparent;
+    background-image: linear-gradient(
+      to left,
+      color-mix(in srgb, var(--accent) 20%, transparent),
+      transparent 34px
+    );
+    background-repeat: no-repeat;
+    background-size: 34px 100%;
+    background-position: right center;
+    background-attachment: scroll;
+  }
+  .do__tablewrap::-webkit-scrollbar,
+  .md__tblWrap::-webkit-scrollbar,
+  .pj-tblscroll::-webkit-scrollbar,
+  .evo__scroll::-webkit-scrollbar,
+  .uif-table-wrapper::-webkit-scrollbar,
+  .sd__paints::-webkit-scrollbar {
+    height: 4px;
+  }
+  .do__tablewrap::-webkit-scrollbar-thumb,
+  .md__tblWrap::-webkit-scrollbar-thumb,
+  .pj-tblscroll::-webkit-scrollbar-thumb,
+  .evo__scroll::-webkit-scrollbar-thumb,
+  .uif-table-wrapper::-webkit-scrollbar-thumb,
+  .sd__paints::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+}
+
+/* ------------------------------------------------------------
+   6) Sprungmarken unter klebenden Leisten
+   ------------------------------------------------------------
+   Sowohl die Seiten-Leiste (.topbar / .snav, fix) als auch die
+   Datenseiten-Leiste (.dp-bar, sticky) liegen ueber dem Inhalt.
+   Ein Anker sprang bisher exakt auf die Ueberschrift — und die
+   verschwand unter der Leiste. scroll-margin-top loest das
+   generisch fuer alles mit id, ohne ein einziges Anker-Ziel
+   einzeln kennen zu muessen.
+------------------------------------------------------------ */
+@media (max-width: 820px) {
+  :where([id]) {
+    scroll-margin-top: 4.5rem;
+  }
+}
+
+/* Die Touch-Regeln der Datenseiten (.dp-*) stehen bewusst NICHT hier,
+   sondern in assets/data-page.css: diese Datei wird VOR dem Seiten-CSS
+   geladen, gleiche Spezifitaet verlore dann gegen data-page.css. Am
+   richtigen Ort steht sie ausserdem neben den Regeln, die sie korrigiert. */

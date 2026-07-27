@@ -200,6 +200,12 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
       `expires 1d` ausgeliefert — ohne ?v= liefert die Edge nach einem Deploy
       bis zu 24 h die alte Palette an ALLE Seiten. Siehe lib/assetVersion.ts. */}
   <link href={versioned('assets/theme.css', '/assets/theme.css')} rel="stylesheet" />
+  {/* Touch-Ergonomie-Schicht. Steht bewusst NACH theme.css und VOR dem
+      Seiten-CSS: sie soll die Farbtokens kennen, aber keine Seiten-Optik
+      ueberschreiben — ihre Regeln stehen alle in Mobil-Medienabfragen und
+      kollidieren dort mit nichts. Cache-Bust ueber den Inhaltshash, damit
+      eine Aenderung Live-Nutzer sofort erreicht (siehe lib/assetVersion). */}
+  <link href={versioned('assets/mobile-ux.css', '/assets/mobile-ux.css')} rel="stylesheet" />
   <style is:inline>
     /* Scrollbar überall komplett unsichtbar machen (Browser-Cache-sicher inline) */
     html, body, * {
@@ -255,6 +261,16 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
   )}
   <slot />
   {footer && <Attribution />}
+  {/* Ausfahrende Panels (Filterspalten, Planer): Verdunkler, Scroll-Sperre,
+      Esc, Tippen-daneben, Wischen — einmal fuer die ganze Seite. `defer`,
+      weil das Skript nur auf spaetere Klassenwechsel reagiert und nichts
+      am ersten Bild aendert. Auf Seiten ohne [data-offcanvas] kostet es
+      einen leeren querySelectorAll. */}
+  {/* Scroll-Sperre fuer ALLE Overlays (Suche, Menue, Item-Modal, Panels).
+      Muss vor offcanvas.js stehen, das sie mitbenutzt. Reines Bereitstellen
+      einer Funktion — laeuft beim Laden nichts an. */}
+  <script is:inline defer src={versioned('assets/scroll-lock.js', '/assets/scroll-lock.js')}></script>
+  <script is:inline defer src={versioned('assets/offcanvas.js', '/assets/offcanvas.js')}></script>
   {/* Umschalt-Verhalten. Bewusst hier und nicht in ThemeToggle.astro: der
       Umschalter steht zweimal auf der Seite (Leiste + Menü), das Verhalten
       soll aber nur einmal existieren. Delegierter Klick -> beliebig viele
