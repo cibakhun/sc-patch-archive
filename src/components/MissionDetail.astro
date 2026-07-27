@@ -1,5 +1,5 @@
 ---
-import { pickLang } from '../i18n/ui';
+import { pickLang, NUMBER_LOCALE } from '../i18n/ui';
 // MISSION — Detailseite (geteilt DE/EN, Prop `lang`), /missionen/<slug>.html
 // Zeigt alles, was zu einer Mission in den Spieldateien steht: Belohnung,
 // Reputationshuerden, Auftraggeber, Orte, Regeln, Ablauf — und die Varianten-
@@ -17,7 +17,7 @@ import type { Locale } from '../i18n/ui';
 interface Props { m: Mission; lang: Locale }
 const { m, lang } = Astro.props;
 const L = (p: string) => href(p, lang);
-const nf = lang === 'de' ? 'de-DE' : 'en-US';
+const nf = NUMBER_LOCALE[lang];
 
 const S = pickLang({
   de: {
@@ -90,6 +90,40 @@ const S = pickLang({
     src: 'Source', srcP: 'Game-accurate to the current live build (patch 4.9). Mission text exists in English only.',
     rec: 'Record',
   },
+  hu: {
+    back: 'Összes küldetés', kind: 'Küldetés', titleKind: 'Star Citizen-küldetés',
+    internal: 'Belső név', internalT: 'Ennek a küldetésnek nincs állandó címe. A belső neve látszik — a játékban máshogy hívják.',
+    mgHead: 'Szerződés-eligazítás', mgCode: 'mobiGlas // adás',
+    mgEnd: 'Az adás vége', mgAria: 'Szerződés-eligazítás úgy, ahogy a mobiGlas mutatja',
+    dynamic: 'A címet a játék futásidőben tölti ki',
+    dynamicT: 'A megjelölt helyek helyőrzők. A játék olyan értékeket helyettesít be, mint a reputációs rang vagy a célpont neve.',
+    appears: 'A játékban így jelenik meg',
+    appearsP: 'A megbízótól függően a játék más-más címet használ:',
+    facts: 'Kulcsadatok',
+    reward: 'Jutalom', rewardR: 'Jutalomsáv', buyIn: 'Belépő', type: 'Típus', giver: 'Megbízó',
+    region: 'Régió', places: 'Helyszínek', legal: 'Jogi státusz', lawful: 'Legális', unlawful: 'Illegális', mixed: 'Vegyes',
+    players: 'Játékos példányonként', shareable: 'Megosztható', yes: 'Igen', no: 'Nem',
+    deadline: 'Időkorlát', lifetime: 'Az ajánlat lejár', cooldown: 'Várakozási idő', wanted: 'Max. körözési szint',
+    offers: 'Ajánlatok', offersP: 'Ugyanezt a küldetést %n% alkalommal kínálják — más megbízóval, helyszínnel, ranggal vagy fizetséggel.',
+    single: 'Ez az ajánlat pontosan egyszer létezik.',
+    rep: 'Reputáció', repP: 'Ezeknek a feltételeknek teljesülniük kell ahhoz, hogy a küldetés egyáltalán megjelenjen.',
+    repNone: 'A játékban nincs reputációs követelmény.',
+    faction: 'Frakció', standing: 'Megítélés', scope: 'Hatókör', threshold: 'Küszöb', perk: 'Előny',
+    flow: 'Folyamat', flowNote: 'Megjegyzés: ez nem a mobiGlasodban látható célszöveg.',
+    flowP: 'A játékosnak szóló célszöveg nem elérhető — a küldetéslogika szerveroldalon fut. Az alábbiakban a lépések és a folyamatszabályok állnak úgy, ahogy a fejlesztők elnevezték őket.',
+    steps: 'Lépések', rules: 'Folyamatszabályok', flowNone: 'A játékban nincs rögzített folyamat.',
+    tblKey: 'Bejegyzés', tblGiver: 'Megbízó', tblLoc: 'Régió', tblReward: 'Jutalom', tblRep: 'Reputáció', tblPlaces: 'Helyszínek',
+    module: 'Küldetésmodul', tags: 'Címkék', none: '—', noReward: 'nincs',
+    guild: 'Céh', rank: 'Karrierrang', src: 'Forrás', calcReward: 'futásidőben számított',
+    bpH: 'Tervrajzok', bpChance: 'Esély',
+    bpCraft: 'Receptek, amelyek ezt a küldetést jelölik meg forrásként',
+    bpP: 'Ez a küldetés tervrajzot dobhat. A készlet súlyozott lista — hogy melyik tervrajz esik, az véletlen; nem kapod meg az egész listát.',
+    bpPool: 'Készlet', bpWeight: 'Súly',
+    srcBroker: 'Küldetéstábla', srcContract: 'Contract Manager',
+    srcNote: 'Két küldetésrendszer létezik: a régebbi küldetéstábla és a Contract Manager, amelyre a CIG átáll. Tervrajzok és céhek csak az utóbbiban vannak.',
+    src: 'Forrás', srcP: 'Játékhű az aktuális élő verzióhoz (4.9 patch). A küldetésszövegek csak angolul léteznek.',
+    rec: 'Rekord',
+  },
 }, lang);
 
 // Regex mit geschweiften Klammern gehoert ins Frontmatter: im Template zaehlt
@@ -154,7 +188,7 @@ const t = useTranslations(lang);
 
     /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */</style>
 
-  <a class="skip" href="#main">{lang === 'de' ? 'Zum Inhalt' : 'Skip to content'}</a>
+  <a class="skip" href="#main">{pickLang({ de: 'Zum Inhalt', en: 'Skip to content', hu: 'Ugrás a tartalomra' }, lang)}</a>
   <div class="cursorglow" aria-hidden="true"></div>
   {/* crumbs -> BreadcrumbList-JSON-LD (wie Schiffe/Topics); translated, damit der
       Sprachumschalter zur Mission wechselt statt zur EN-Startseite. */}
@@ -372,7 +406,7 @@ const t = useTranslations(lang);
       {/* Verwandte */}
       {related.length > 0 && (
         <section class="md__sec">
-          <h2 class="md__h2">{lang === 'de' ? 'Ähnliche Missionen' : 'Related missions'}</h2>
+          <h2 class="md__h2">{pickLang({ de: 'Ähnliche Missionen', en: 'Related missions', hu: 'Hasonló küldetések' }, lang)}</h2>
           <ul class="md__rel">
             {related.map((r) => (
               <li>
