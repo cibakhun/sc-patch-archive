@@ -5,10 +5,11 @@ import TopicFacts from '../../../components/TopicFacts.astro';
 import RelatedTopics from '../../../components/RelatedTopics.astro';
 import Attribution from '../../../components/Attribution.astro';
 import TopicSeo from '../../../components/dossier/TopicSeo.astro';
+import { versioned } from '../../../lib/assetVersion';
 ---
 <Layout title={"Medical Overhaul — Star Citizen 4.3.1 | VerseBase"} description={"Medical Overhaul: Alpha 4.3.1 baut das Medizin-System um — Wunden, Heilung, Rettung und Wiederbelebung neu gedacht, angeführt vom RSI Apollo und dem MedGel-System."} themeColor="#0f2336" ogType="article" ogImage="/assets/t-med-1.jpg" translated={true}>
 <TopicSeo slug="4-3-1-medical-overhaul" image="/assets/t-med-1.jpg" />
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <style is:inline>
 
 /* Medical-Theme (4.3.1 "Virtue's Descent") */
@@ -177,5 +178,5 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 
 <div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
 
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>

@@ -6,6 +6,7 @@ import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 import AccountShell from '../../components/account/AccountShell.astro';
 import RefineryDashboard from '../../components/account/RefineryDashboard.astro';
+import { versioned } from '../../lib/assetVersion';
 ---
 <Layout
   title={'Refinery-Dashboard | VerseBase'}
@@ -15,7 +16,7 @@ import RefineryDashboard from '../../components/account/RefineryDashboard.astro'
   translated={true}
   noindex={true}
 >
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0d1322;--surface-2:#131b30;--accent:#2dd4ff;--accent-2:#7ae2ff;--hot:#2dd4ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(45,212,255,.22);--line-soft:rgba(232,238,252,.10);--glow:0 0 46px rgba(45,212,255,.18);--ink:#04121a;--maxw:1180px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
@@ -45,5 +46,5 @@ import RefineryDashboard from '../../components/account/RefineryDashboard.astro'
 
 <Attribution sources={[]} />
 
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>

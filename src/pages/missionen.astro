@@ -6,6 +6,7 @@ import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
 import MissionsApp from '../components/MissionsApp.astro';
 import { db } from '../lib/missions';
+import { versioned } from '../lib/assetVersion';
 ---
 <Layout
   title={`${db.meta.counts.families} Star Citizen Missions — Rewards & Locations | VerseBase`}
@@ -15,7 +16,7 @@ import { db } from '../lib/missions';
   translated={true}
   ogImage="/assets/t-tsg-4.jpg"
 >
-  <link slot="head" rel="stylesheet" href="/assets/detail.css" />
+  <link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
   <style is:inline>
     :root {
       --bg: #0b0906; --bg-2: #110d08; --surface: #191309; --surface-2: #221a0e;
@@ -37,5 +38,5 @@ import { db } from '../lib/missions';
     <MissionsApp lang="en" />
   </main>
   <Attribution />
-  <script is:inline src="/assets/detail.js"></script>
+  <script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>

@@ -64,12 +64,14 @@ const tools = [
     linear-gradient(90deg,var(--scrim-6) 0%,var(--scrim-4) 40%,var(--scrim-0) 78%,transparent 100%),
     linear-gradient(0deg,var(--bg) 1%,var(--scrim-2) 24%,transparent 58%)}
   .hero__inner{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;padding:9rem clamp(1.25rem,5vw,3.5rem) clamp(3.5rem,8vw,6rem)}
-  .hero__kicker{display:inline-flex;align-items:center;gap:.7rem;font-family:var(--font-ui);font-weight:700;
-    letter-spacing:.3em;text-transform:uppercase;font-size:.74rem;color:var(--accent-media)}
-  .hero__kicker::before{content:"";width:28px;height:1px;background:var(--accent-media)}
-  .hero h1{font-family:var(--font-display);font-weight:900;line-height:.92;margin:1.1rem 0 .5rem;
+  /* Kein Eyebrow mehr über dem H1: die getrackte Versalien-Kleinzeile direkt
+     über einer übergroßen Überschrift ist der Standard-Hero jeder generierten
+     SaaS-Seite. Der Inhalt ("Star-Citizen-Kompendium") stand ohnehin doppelt
+     in der Lede darunter. Titel jetzt in Volltonfarbe statt Verlauf — der
+     Verlauf drückte "VerseBase" auf 3,0:1 gegen das Hero-Foto. */
+  .hero h1{font-family:var(--font-display);font-weight:900;line-height:.92;margin:0 0 .5rem;
     font-size:clamp(2.9rem,12vw,8.5rem);letter-spacing:-.02em;
-    background:linear-gradient(180deg,var(--title-hi) 52%,color-mix(in srgb,var(--title-hi) 62%,var(--accent-media)));-webkit-background-clip:text;background-clip:text;color:transparent;
+    color:var(--title-hi);
     text-shadow:0 10px 60px var(--on-media-shadow)}
   .hero__lede{max-width:40ch;color:var(--on-media-dim);font-size:clamp(1.05rem,1.8vw,1.3rem);font-weight:500;
     text-shadow:0 2px 22px var(--on-media-shadow)}
@@ -80,13 +82,17 @@ const tools = [
     padding:.95rem 1.15rem;background:var(--scrim-5);border:1px solid var(--on-media-line);border-radius:9px;
     color:var(--on-media-dim);font-family:var(--font-ui);font-size:1rem;cursor:pointer;text-align:left;
     backdrop-filter:blur(8px);transition:border-color .2s,box-shadow .2s,background-color .2s}
+  /* Höhenschatten statt Akzent-Halo: ein Glow ohne Versatz ist der
+     auffälligste Standard-Effekt generierter Oberflächen. */
   .hero__search:hover,.hero__search:focus-visible{border-color:var(--accent-media);background:var(--scrim-6);
-    box-shadow:0 0 30px color-mix(in srgb,var(--accent-media) 22%,transparent);outline:none}
+    box-shadow:var(--shadow-2);outline:none}
   .hero__search .p{color:var(--accent-media);font-weight:800;flex:none}
   .hero__search .h{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
   .hero__search .k{display:flex;gap:.3rem;flex:none}
-  .hero__search kbd{font-family:var(--font-ui);font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--on-media-dim);
-    border:1px solid var(--on-media-line);border-bottom-width:2px;border-radius:4px;padding:.1rem .42rem;background:var(--on-media-veil)}
+  /* Tastenkappen auf undurchsichtigem Grund: der aufhellende Schleier ließ
+     "Strg"/"K" über hellen Stellen des Hero-Fotos auf 1,3:1 fallen. */
+  .hero__search kbd{font-family:var(--font-ui);font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--on-media);
+    border:1px solid var(--on-media-line);border-bottom-width:2px;border-radius:4px;padding:.1rem .42rem;background:var(--scrim-6)}
   .hero__cue{position:absolute;bottom:1.3rem;left:50%;transform:translateX(-50%);z-index:1;
     font-family:var(--font-ui);letter-spacing:.24em;text-transform:uppercase;font-size:.66rem;color:var(--muted);
     animation:bob 2.2s ease-in-out infinite}
@@ -176,7 +182,6 @@ const tools = [
   <div class="hero__img" style={`--hero:url('${HERO_IMG}')`} aria-hidden="true"></div>
   <div class="hero__scrim" aria-hidden="true"></div>
   <div class="hero__inner">
-    <span class="hero__kicker">Star-Citizen-Kompendium</span>
     <h1>VerseBase</h1>
     <p class="hero__lede">Game-akkurate Star-Citizen-Werkzeuge — Item Finder, Mining, Crafting, Schiffe und das komplette Alpha-4-Patch-Archiv.</p>
     <button class="hero__search" type="button" data-scs-open aria-label="Suche öffnen">

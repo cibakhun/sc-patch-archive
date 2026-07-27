@@ -6,9 +6,9 @@
 import Attribution from '../components/Attribution.astro';
 import { SITE } from '../consts';
 import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui';
-import { isNoindex } from '../lib/seo';
-import { LIGHT_RULES } from '../../scripts/lib/theme-color.mjs';
+import { isNoindex, IS_STAGING } from '../lib/seo';
 import { versioned } from '../lib/assetVersion';
+import { LIGHT_RULES } from '../../scripts/lib/theme-color.mjs';
 
 interface Props {
   title: string;
@@ -192,11 +192,14 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
       keine IP-Übertragung an Dritte beim Seitenaufruf (DSGVO). */}
   <link rel="preload" href="/assets/fonts/orbitron-700-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/barlow-400-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <link href="/assets/fonts.css" rel="stylesheet" />
+  <link href={versioned('assets/fonts.css', '/assets/fonts.css')} rel="stylesheet" />
   {/* Farbfundament für beide Modi. Muss VOR dem Seiten-CSS stehen: die
       hellen Paletten der Seiten liegen in deren inline-<style> und sollen
       diese Rückfallwerte über die Quellreihenfolge schlagen. */}
-  <link href="/assets/theme.css" rel="stylesheet" />
+  {/* Content-Hash: theme.css liegt unter FESTER URL und wird von nginx mit
+      `expires 1d` ausgeliefert — ohne ?v= liefert die Edge nach einem Deploy
+      bis zu 24 h die alte Palette an ALLE Seiten. Siehe lib/assetVersion.ts. */}
+  <link href={versioned('assets/theme.css', '/assets/theme.css')} rel="stylesheet" />
   {/* Touch-Ergonomie-Schicht. Steht bewusst NACH theme.css und VOR dem
       Seiten-CSS: sie soll die Farbtokens kennen, aber keine Seiten-Optik
       ueberschreiben — ihre Regeln stehen alle in Mobil-Medienabfragen und
@@ -246,6 +249,16 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
   <slot name="head" />
 </head>
 <body>
+  {/* Vorschau-Build: unuebersehbar kennzeichnen. Ohne Marke verwechselt man
+      Staging frueher oder spaeter mit Live und wundert sich, warum eine
+      Aenderung „schon draussen" ist. Inline gestylt, damit die Marke auch
+      dann steht, wenn das Seiten-CSS kaputt ist — genau der Fall, den man
+      auf einer Vorschau sehen will. */}
+  {IS_STAGING && (
+    <div
+      style="position:fixed;top:0;left:0;z-index:2147483647;background:#b4342a;color:#fff;font:700 11px/1 system-ui,sans-serif;letter-spacing:.08em;padding:5px 9px;border-bottom-right-radius:4px;pointer-events:none"
+    >VORSCHAU — NICHT LIVE</div>
+  )}
   <slot />
   {footer && <Attribution />}
   {/* Ausfahrende Panels (Filterspalten, Planer): Verdunkler, Scroll-Sperre,

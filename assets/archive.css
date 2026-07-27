@@ -621,7 +621,7 @@ ol {
   color: var(--text);
   background: #05070f;
   border: 1px solid color-mix(in srgb, var(--c) 55%, transparent);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--c) 22%, transparent);
+  box-shadow: var(--shadow-2);
   padding: 0.26rem 0.55rem;
   opacity: 0;
   pointer-events: none;
@@ -648,7 +648,10 @@ ol {
   font-family: var(--font-mono);
   font-size: 0.7rem;
   letter-spacing: 0.1em;
-  color: var(--dim);
+  /* --muted statt --dim: die Achsenbeschriftung liegt ohne eigene Flaeche
+     direkt auf dem Sternenfeld, nicht auf --void. Dort trug --dim nur
+     3,3:1 ("Major") bzw. 3,9:1 ("Point"). */
+  color: var(--muted);
   text-transform: uppercase;
 }
 .ribbon__legend {
@@ -682,7 +685,9 @@ ol {
   background: var(--dim);
 }
 .ribbon__hint {
-  color: color-mix(in srgb, var(--dim) 72%, transparent);
+  /* Volltonfarbe statt 72-%-Transparenz: die Durchsichtigkeit stapelte sich
+     mit dem Sternenfeld darunter zu einem unvorhersehbaren Kontrast. */
+  color: var(--dim);
 }
 @media (max-width: 760px) {
   .ribbon__hint {
@@ -713,7 +718,10 @@ ol {
   top: var(--stick);
   z-index: 60;
   margin-top: clamp(1.2rem, 2.4vw, 1.8rem);
-  background: color-mix(in srgb, var(--void) 82%, transparent);
+  /* 92 statt 82 %: bei 82 % schlug das Sternenfeld durch und drueckte die
+     Zaehlung ("19 von 19") in --dim auf 2,8:1. Der Token ist auf --void
+     gerechnet, also muss die Leiste auch nahe --void liegen. */
+  background: color-mix(in srgb, var(--void) 92%, transparent);
   backdrop-filter: blur(12px) saturate(1.1);
   border-top: 1px solid var(--line-2);
   border-bottom: 1px solid var(--line-2);
@@ -762,7 +770,7 @@ ol {
 }
 .cbar__search:focus-within {
   border-color: color-mix(in srgb, var(--accent) 60%, transparent);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: var(--shadow-1);
 }
 .cbar__search svg {
   flex: none;
@@ -836,7 +844,7 @@ ol {
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 60%, transparent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: var(--shadow-1);
 }
 .cbar__count {
   font-family: var(--font-mono);
@@ -1113,13 +1121,13 @@ ol {
 .node__card:hover,
 .node__card:focus-within {
   border-color: color-mix(in srgb, var(--c) 45%, transparent);
-  box-shadow: 0 0 32px color-mix(in srgb, var(--c) 14%, transparent);
+  box-shadow: var(--shadow-2);
 }
 /* Arriving from a ribbon tick: the landing card identifies itself, otherwise a
    jump into a wall of similar cards leaves the reader hunting. */
 .node:target .node__card {
   border-color: color-mix(in srgb, var(--c) 60%, transparent);
-  box-shadow: 0 0 40px color-mix(in srgb, var(--c) 22%, transparent);
+  box-shadow: var(--shadow-2);
 }
 
 /* Artwork plate */
@@ -1376,7 +1384,7 @@ ol {
 /* — Latest: spotlight the current patch — */
 .node--latest .node__card {
   border-color: color-mix(in srgb, var(--c) 45%, transparent);
-  box-shadow: 0 0 34px color-mix(in srgb, var(--c) 16%, transparent);
+  box-shadow: var(--shadow-2);
 }
 
 @keyframes cardIn {
@@ -1491,7 +1499,7 @@ mark {
 }
 .icard:hover {
   border-color: color-mix(in srgb, var(--c) 45%, transparent);
-  box-shadow: 0 0 30px color-mix(in srgb, var(--c) 14%, transparent);
+  box-shadow: var(--shadow-2);
   transform: translateY(-2px);
 }
 .icard:hover::before,
@@ -1679,7 +1687,7 @@ mark {
 .totop:hover {
   background: var(--accent);
   color: var(--ink);
-  box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow: var(--shadow-1);
 }
 
 /* ── Responsive: rail reflow ─────────────────────────────────────────────────── */

@@ -6,10 +6,11 @@ import RelatedTopics from '../../../components/RelatedTopics.astro';
 import Attribution from '../../../components/Attribution.astro';
 import OnepagerLink from '../../../components/OnepagerLink.astro';
 import TopicSeo from '../../../components/dossier/TopicSeo.astro';
+import { versioned } from '../../../lib/assetVersion';
 ---
 <Layout title={"Storm Breaker — Star Citizen 4.2.0 | VerseBase"} description={"Storm Breaker: Mit Alpha 4.2.0 wird das Wetter zur tödlichen Gefahr — dynamischer Regen, Flug-Turbulenzen und die brandneue Strahlungs-Gefahr verwandeln Stanton und Pyro in Schauplätze des Überlebens."} themeColor="#16142a" ogType="article" ogImage="/assets/t-storm-3.jpg" translated={true}>
 <TopicSeo slug="4-2-0-storm-breaker" image="/assets/t-storm-3.jpg" />
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <style is:inline>
 
 /* Storm-Breaker-Theme (4.2.0) */
@@ -182,5 +183,5 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 
 <div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
 
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>

@@ -1,16 +1,29 @@
 ---
 // Precision Jump — Aaron-Halo-Routenrechner (DE, /de/precision-jump.html).
-// Reines Client-Werkzeug (kein Konto), indexierbar. Navigations-HUD-Theme
-// (Amber/Cyan). Open-Source-Einsendung von „Jordessey", auf den Site-Design-
-// Kit portiert. EN-Pendant: /precision-jump.html.
+// Reines Client-Werkzeug (kein Konto), indexierbar.
+//
+// RICHTUNGSVERTRAG — siehe DESIGN.md, Fassung 2 (Modus `operate`).
+// Kurz: das Werkzeug IST das Produkt dieser Seite. Kompakte Titelei,
+// darunter sofort Bedienung und Karte; alles Erklaerende steht am Fuss.
+// Kein Hero, keine Marginalspalte — beides gehoerte zur verworfenen
+// Fassung 1 (Modus `read`).
+// Diese Huelle muss mit /precision-jump.astro deckungsgleich bleiben;
+// beide teilen sich PrecisionJumpApp.astro.
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 import PrecisionJumpApp from '../../components/PrecisionJumpApp.astro';
 import { buildAnchorRecords, AH_BAND_INFO } from '../../data/precision-jump';
+import { versioned } from '../../lib/assetVersion';
 
 const anchorCount = buildAnchorRecords().length;
-const bandCount = Object.keys(AH_BAND_INFO).length;
+const bands = Object.values(AH_BAND_INFO);
+const bandCount = bands.length;
+
+// Ausdehnung des Rings, fuer den Fliesstext am Seitenfuss.
+const rMin = Math.min(...bands.map((b) => b.innerRadiusKm));
+const rMax = Math.max(...bands.map((b) => b.outerRadiusKm));
+const gm = (km: number) => (km / 1_000_000).toFixed(2);
 ---
 <Layout
   title={'Precision Jump — Aaron-Halo-Routenrechner · Star Citizen | VerseBase'}
@@ -20,42 +33,67 @@ const bandCount = Object.keys(AH_BAND_INFO).length;
   ogImage="/assets/og-default.jpg"
   translated={true}
 >
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <style is:inline>
-:root{--bg:#080a14;--bg-2:#0c1020;--surface:#111726;--surface-2:#18203a;--accent:#f5a623;--accent-2:#35d0ff;--hot:#ff5b6e;--text:#e8eefc;--muted:#8a97b5;--line:rgba(245,166,35,.20);--line-soft:rgba(232,238,252,.10);--glow:0 0 46px rgba(245,166,35,.24);--ink:#0a0d16;--maxw:1240px;}
+/* Farbstrategie „Restrained": neutraler Grund plus GENAU EIN Akzent (Amber).
+   --accent-2 war die zweite, cyanfarbene Leitfarbe und traegt allein auf
+   dieser Seite rund 140 Fundstellen. Statt 140 Aufrufstellen anzufassen,
+   wird der Token zur neutralen Sekundaerfarbe herabgestuft: die
+   Zweitfarbigkeit verschwindet an der Wurzel, jede bestehende Regel bleibt
+   gueltig. --glow existiert nicht mehr; Hoehe kommt aus Versatzschatten. */
+:root{--bg:#0b0d12;--bg-2:#11141b;--surface:#151922;--surface-2:#1c212c;--accent:#f5a623;--accent-2:#9aa6bd;--hot:#ff5b6e;--text:#e9edf5;--muted:#9aa6bd;--line:rgba(233,237,245,.16);--line-soft:rgba(233,237,245,.08);--ink:#0a0d16;--maxw:1240px;--measure:68ch;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"]{--bg:#f5f7fe;--bg-2:#eaedf9;--surface:#fdfdff;--surface-2:#eff2fc;--text:#1b1f29;--muted:#4f586c;--accent:#7c5104;--accent-2:#045f77;--hot:#9c002c;--ink:#ffffff;--accent-media:#f5a623;--accent-2-media:#35d0ff;--line:rgba(148,104,38,.3);--line-soft:rgba(41,46,56,.12);--glow:0 6px 22px rgba(148,104,38,.18)}
 
 
 .reveal{opacity:1 !important;transform:none !important}
-.hero{min-height:74svh;background:radial-gradient(120% 90% at 82% 8%,rgba(245,166,35,.16),transparent 58%),radial-gradient(100% 90% at 10% 96%,rgba(53,208,255,.14),transparent 55%),var(--bg)}
-.hero h1{font-size:clamp(2.6rem,11vw,7.6rem);background:linear-gradient(180deg,var(--title-hi),#ffd27f 56%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 3px 20px var(--on-media-shadow)) drop-shadow(0 0 30px rgba(245,166,35,.4))}
-.hero__in{max-width:var(--maxw)}
-.pj-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--accent-2)}
-.qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;color:var(--muted)}
-.qbar b{color:var(--accent-2)}</style>
+
+/* Kompakt: der Kopf darf das Werkzeug nicht unter die Falz schieben. */
+.alm{max-width:var(--maxw);margin:0 auto;padding:clamp(1.2rem,3vw,2rem) clamp(1.25rem,5vw,3rem) 0}
+.alm__series{font-family:var(--font-ui);font-size:.84rem;color:var(--muted);margin:0 0 .7rem}
+.alm__series a{color:var(--muted);border-bottom:1px solid var(--line)}
+.alm__series a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.alm__title{font-family:var(--font-display);font-weight:800;line-height:1.02;
+  font-size:clamp(1.7rem,3.4vw,2.4rem);letter-spacing:-.02em;color:var(--text);margin:0}
+.alm__sub{font-family:var(--font-ui);font-size:.95rem;color:var(--muted);
+  margin:.4rem 0 0;padding-bottom:.9rem;border-bottom:1px solid var(--line);max-width:74ch}
+
+/* Erklaerender Text steht am FUSS, nicht vor dem Werkzeug. */
+.alm__foot{max-width:var(--maxw);margin:2.6rem auto 0;padding:1.4rem clamp(1.25rem,5vw,3rem) 0;
+  border-top:1px solid var(--line-soft)}
+.alm__foot p{font-size:.94rem;line-height:1.66;color:var(--muted);margin:0 0 .9rem;max-width:68ch}
+.alm__foot p b{color:var(--text);font-weight:600}
+
+.alm__note{margin-top:1.3rem;padding-top:1rem;border-top:1px solid var(--line-soft);
+  font-size:.88rem;line-height:1.58;color:var(--muted);max-width:68ch}
+.alm__note b{color:var(--text);font-weight:600}</style>
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={[{ label: 'Mining', href: '/de/topics/mining.html' }, { label: 'Precision Jump' }]} hasEn={true} />
 
 <main id="main">
-  <section class="hero">
-    <canvas id="stars" aria-hidden="true"></canvas>
-    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
-    <div class="hero__in">
-      <div class="eyebrow"><a href="/de/topics/mining.html">Mining</a> &nbsp;·&nbsp; <span class="pj-tag">Aaron-Halo-Navigation</span></div>
-      <h1><span class="thin">Aaron-Halo-Routenrechner</span>Precision Jump</h1>
-      <p class="lead">Plotte die Quantum-Travel-Linie zwischen zwei Markern und erhalte die exakte Koordinate zum Aussteigen — direkt in das Asteroidenband, das du abbauen willst.</p>
-      <div class="qbar"><span>QT-Anker <b>{anchorCount}</b></span><span>Halo-Bänder <b>{bandCount}</b></span><span>System <b>Stanton</b></span><span>Patch <b>4.9</b></span></div>
-    </div>
-    <div class="scrollcue" aria-hidden="true">Scroll ↓</div>
-  </section>
+  <header class="alm">
+    <nav class="alm__series" aria-label="Brotkrumen"><a href="/de/topics/mining.html">Mining</a></nav>
+    <h1 class="alm__title">Aaron Halo</h1>
+    <p class="alm__sub">Wo du den Quantenflug verlässt, um im gewünschten Asteroidenband zu landen · Stanton · 4.9</p>
+  </header>
 
   <PrecisionJumpApp lang="de" />
+
+  <aside class="alm__foot">
+    <p>Der Quantenflug durchquert den Ring in Sekunden. Sein Abbau ist deshalb
+      weniger eine Frage des Hinfliegens als des Anhaltens — man verlässt den
+      Antrieb auf einer Linie, die man nicht sieht. Je zwei der {anchorCount} Anker
+      spannen diese Linie auf; {bandCount} Dichtebänder liegen zwischen
+      {gm(rMin)} und {gm(rMax)} Gm vom Stern entfernt.</p>
+    <p class="alm__note">Verfahren und Ursprungsdaten der Route stammen von
+      <b>Jordessey</b>; ein Ankerwert (MIC-L5) wurde bei der Prüfung gegen das Spiel
+      korrigiert. Vermessung der Dichtebänder von <b>cstone.space</b>.</p>
+  </aside>
 </main>
 
 <Attribution sources={["Jordessey (Werkzeug & Routendaten)", "cstone.space (Halo-Band-Vermessung)"]} credit="VerseBase · ein Star-Citizen-Fan-Projekt" />
 
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>

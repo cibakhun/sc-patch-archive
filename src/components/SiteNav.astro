@@ -448,8 +448,10 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       color-mix(in srgb, var(--accent, #2dd4ff) 40%, transparent) 25%, 
       var(--accent, #2dd4ff) 80%, 
       #ffffff 100%);
-    box-shadow: 0 0 12px var(--accent, #2dd4ff);
-    transition: width 0.06s linear;
+    /* Kein farbiger Halo mehr; der Verlauf traegt den Balken selbst.
+       Auch keine width-Transition: der Fortschritt wird ohnehin bei jedem
+       Scroll-Ereignis neu gesetzt, die 0,06 s tweenten nur eine
+       Layout-Eigenschaft ohne sichtbaren Gewinn. */
   }
   .snav__progress-spark {
     position: absolute;
@@ -459,7 +461,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     height: 7px;
     border-radius: 50%;
     background: #ffffff;
-    box-shadow: 0 0 12px var(--accent, #2dd4ff), 0 0 4px #ffffff;
+    /* nur der enge, unbunte Schein bleibt — der 12px-Akzent-Halo war der Tell */
+    box-shadow: 0 0 4px #ffffff;
   }
   /* left = burger + search, center = brand (true visual center regardless of
      how wide the left/right groups are), right = lang + account */
@@ -636,7 +639,9 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav__menu-svg {
     position: absolute;
     inset: 0;
-    transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+    /* ease-out-quart statt Ueberschwinger: echte Massen bremsen sanft aus,
+       Bounce/Elastic wirkt aufgesetzt. */
+    transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
   }
   .snav__menu-svg--burger {
     opacity: 1;
@@ -674,7 +679,9 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     color: var(--accent, #2dd4ff);
     border-color: var(--accent, #2dd4ff);
     background: color-mix(in srgb, var(--accent, #2dd4ff) 14%, transparent);
-    box-shadow: 0 0 18px color-mix(in srgb, var(--accent, #2dd4ff) 28%, transparent);
+    /* Farbe und Rahmen zeigen den offenen Zustand bereits an — der
+       Akzent-Halo war doppelt gemoppelt und der auffaelligste Standard-Effekt. */
+    box-shadow: var(--shadow-1, 0 2px 10px rgba(0, 0, 0, 0.5));
   }
   .snav__menu-btn[aria-expanded='true'] .snav__menu-svg--burger {
     opacity: 0;
@@ -1216,10 +1223,14 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     left: 0;
     top: 50%;
     width: 2px;
-    height: 0;
+    /* Feste Hoehe, skaliert statt animierter height: eine Hoehenanimation
+       stoesst bei jedem Frame das Layout an, scaleY laeuft auf dem Compositor.
+       Die Bewegung sieht identisch aus. */
+    height: 62%;
     background: var(--accent, #2dd4ff);
-    transform: translateY(-50%);
-    transition: height 0.22s cubic-bezier(0.2, 0.7, 0.25, 1);
+    transform: translateY(-50%) scaleY(0);
+    transform-origin: center;
+    transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.25, 1);
   }
   .snav-deck__row:hover,
   .snav-deck__row:focus-visible,
@@ -1230,10 +1241,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav-deck__row:hover::before,
   .snav-deck__row:focus-visible::before,
   .snav-deck__row.is-active::before {
-    height: 62%;
+    transform: translateY(-50%) scaleY(1);
   }
   .snav-deck__row[aria-current]::before {
-    height: 62%;
+    /* Sichtbarkeit haengt jetzt an scaleY, nicht mehr an height — ohne diese
+       Zeile bliebe der Marker der aktuellen Seite auf scaleY(0) unsichtbar. */
+    transform: translateY(-50%) scaleY(1);
     background: color-mix(in srgb, var(--accent, #2dd4ff) 55%, transparent);
   }
   .snav-deck__icon {

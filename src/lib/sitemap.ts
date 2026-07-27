@@ -12,7 +12,7 @@
 
 import { getCollection } from 'astro:content';
 import { SITE } from '../consts';
-import { isNoindex } from './seo';
+import { isNoindex, IS_STAGING } from './seo';
 import vehiclesSnapshot from '../data/vehicles.json';
 import { db as missionsDb, missions } from './missions';
 import { categories, categoryPath, db as itemsDb, itemPath, itemsHubPath, pageCount, pageItems } from './items';
@@ -160,6 +160,11 @@ const altXml = (a?: { de: string; en: string }) =>
     : '';
 
 export function urlsetXml(entries: Entry[]): string {
+  // Vorschau-Build traegt keine SEO-Oberflaeche: leere Sitemaps. Die eine
+  // Stelle, durch die alle fuenf Teil-Sitemaps laufen. (Die Eintraege zeigen
+  // ohnehin auf die Produktionsdomain — sie waeren nicht schaedlich, aber
+  // 17.000 nutzlose Zeilen in einem Vorschau-Image sind Unsinn.)
+  if (IS_STAGING) entries = [];
   return (
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n` +
@@ -177,6 +182,7 @@ export function urlsetXml(entries: Entry[]): string {
 }
 
 export function sitemapIndexXml(parts: { path: string; mod?: string }[]): string {
+  if (IS_STAGING) parts = [];
   return (
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
