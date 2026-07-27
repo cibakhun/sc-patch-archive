@@ -5,6 +5,7 @@ import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 import AccountShell from '../../components/account/AccountShell.astro';
 import AuthReset from '../../components/account/AuthReset.astro';
+import { versioned } from '../../lib/assetVersion';
 ---
 <Layout
   title={'Reset password | VerseBase'}
@@ -14,8 +15,8 @@ import AuthReset from '../../components/account/AuthReset.astro';
   translated={true}
   noindex={true}
 >
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
-<link slot="head" rel="stylesheet" href="/assets/account.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
+<link slot="head" rel="stylesheet" href={versioned('assets/account.css', '/assets/account.css')} />
 <style is:inline>
 /* Palette lebt jetzt in /assets/account.css (geteilt, entdoppelt). */
 

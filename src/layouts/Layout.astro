@@ -7,6 +7,7 @@ import Attribution from '../components/Attribution.astro';
 import { SITE } from '../consts';
 import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui';
 import { isNoindex } from '../lib/seo';
+import { versioned } from '../lib/assetVersion';
 import { LIGHT_RULES } from '../../scripts/lib/theme-color.mjs';
 
 interface Props {
@@ -195,7 +196,10 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
   {/* Farbfundament für beide Modi. Muss VOR dem Seiten-CSS stehen: die
       hellen Paletten der Seiten liegen in deren inline-<style> und sollen
       diese Rückfallwerte über die Quellreihenfolge schlagen. */}
-  <link href="/assets/theme.css" rel="stylesheet" />
+  {/* Content-Hash: theme.css liegt unter FESTER URL und wird von nginx mit
+      `expires 1d` ausgeliefert — ohne ?v= liefert die Edge nach einem Deploy
+      bis zu 24 h die alte Palette an ALLE Seiten. Siehe lib/assetVersion.ts. */}
+  <link href={versioned('assets/theme.css', '/assets/theme.css')} rel="stylesheet" />
   <style is:inline>
     /* Scrollbar überall komplett unsichtbar machen (Browser-Cache-sicher inline) */
     html, body, * {

@@ -5,10 +5,11 @@ import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
 import TopicSeo from '../../components/dossier/TopicSeo.astro';
+import { versioned } from '../../lib/assetVersion';
 ---
 <Layout title={"Vanduul — Star Citizen 4.4.0 | VerseBase"} description={"Vanduul: aggressive blade aliens that arrive with Alpha 4.4.0 as AI enemies in the persistent universe for the first time — Stinger, Glaive, Scythe and Blade patrol Nyx and attack without warning."} themeColor="#0c1020" ogType="article" ogImage="/assets/t-vanduul-3.jpg" translated={true}>
 <TopicSeo slug="4-4-0-vanduul" image="/assets/t-vanduul-3.jpg" />
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <style is:inline>
 
 :root{--bg:#0c1020;--bg-2:#121a30;--surface:#16203a;--surface-2:#1d2949;--accent:#7fb2d9;--accent-2:#d4af37;--hot:#c0271f;--text:#e6edfb;--muted:#93a4c4;--line:rgba(127,178,217,.22);--line-soft:rgba(230,237,251,.10);--glow:0 0 44px rgba(127,178,217,.30);--ink:#0c1020;--maxw:1180px;}

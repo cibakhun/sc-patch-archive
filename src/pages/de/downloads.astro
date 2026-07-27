@@ -5,6 +5,7 @@ import Attribution from '../../components/Attribution.astro';
 import { mediaLabel } from '../../lib/downloadLabels';
 import fs from 'node:fs';
 import path from 'node:path';
+import { versioned } from '../../lib/assetVersion';
 
 // Medien-Bibliothek: alle Bilder aus public/assets (Top-Level) — build-time per
 // fs gelesen. Videos/Loops und Schriften sind bewusst NICHT enthalten (nur
@@ -95,7 +96,7 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
   ogImage="/assets/t-hangar-1.jpg"
   translated={true}
 >
-  <link slot="head" rel="stylesheet" href="/assets/detail.css" />
+  <link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
   <style is:inline>
     :root {
       --bg: #0a1014;

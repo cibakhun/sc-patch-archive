@@ -4,13 +4,14 @@ import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
 import ItemFinderApp from '../components/ItemFinderApp.astro';
 import DB from '../../assets/universal-items.json';
+import { versioned } from '../lib/assetVersion';
 
 const total = DB.counts.items;
 const sourced = DB.counts.withObtain;
 const snap = DB.generatedAt;
 ---
 <Layout title={`Star Citizen Item Finder — ${total} Items & Prices | VerseBase`} description={`Search all ${total} Star Citizen items in one finder: buy prices, shop locations, loot spots and ship dealers — ${sourced} with verified in-game sources.`} themeColor="#0d0c14" ogType="article" ogImage="/assets/cz-loot.jpg" translated={true}>
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <style is:inline>
 /* Item finder theme — violet & amber (quartermaster catalog) */
 :root{--bg:#0d0c14;--bg-2:#14121c;--surface:#17151f;--surface-2:#1e1b29;--accent:#A78BFA;--accent-2:#FFB84D;--hot:#A78BFA;--text:#eef1f5;--muted:#9d9cb0;--line:rgba(167,139,250,.22);--line-soft:rgba(238,241,245,.10);--glow:0 0 44px rgba(167,139,250,.28);--ink:#0d0c14;--maxw:1240px;}

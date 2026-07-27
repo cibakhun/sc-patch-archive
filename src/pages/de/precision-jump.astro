@@ -1,16 +1,29 @@
 ---
 // Precision Jump — Aaron-Halo-Routenrechner (DE, /de/precision-jump.html).
-// Reines Client-Werkzeug (kein Konto), indexierbar. Navigations-HUD-Theme
-// (Amber/Cyan). Open-Source-Einsendung von „Jordessey", auf den Site-Design-
-// Kit portiert. EN-Pendant: /precision-jump.html.
+// Reines Client-Werkzeug (kein Konto), indexierbar.
+//
+// RICHTUNGSVERTRAG — siehe DESIGN.md, Fassung 2 (Modus `operate`).
+// Kurz: das Werkzeug IST das Produkt dieser Seite. Kompakte Titelei,
+// darunter sofort Bedienung und Karte; alles Erklaerende steht am Fuss.
+// Kein Hero, keine Marginalspalte — beides gehoerte zur verworfenen
+// Fassung 1 (Modus `read`).
+// Diese Huelle muss mit /precision-jump.astro deckungsgleich bleiben;
+// beide teilen sich PrecisionJumpApp.astro.
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 import PrecisionJumpApp from '../../components/PrecisionJumpApp.astro';
 import { buildAnchorRecords, AH_BAND_INFO } from '../../data/precision-jump';
+import { versioned } from '../../lib/assetVersion';
 
 const anchorCount = buildAnchorRecords().length;
-const bandCount = Object.keys(AH_BAND_INFO).length;
+const bands = Object.values(AH_BAND_INFO);
+const bandCount = bands.length;
+
+// Ausdehnung des Rings, fuer den Fliesstext am Seitenfuss.
+const rMin = Math.min(...bands.map((b) => b.innerRadiusKm));
+const rMax = Math.max(...bands.map((b) => b.outerRadiusKm));
+const gm = (km: number) => (km / 1_000_000).toFixed(2);
 ---
 <Layout
   title={'Precision Jump — Aaron-Halo-Routenrechner · Star Citizen | VerseBase'}
@@ -20,7 +33,7 @@ const bandCount = Object.keys(AH_BAND_INFO).length;
   ogImage="/assets/og-default.jpg"
   translated={true}
 >
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <style is:inline>
 /* Farbstrategie „Restrained": neutraler Grund plus GENAU EIN Akzent (Amber).
    --accent-2 war die zweite, cyanfarbene Leitfarbe und traegt allein auf
@@ -35,24 +48,24 @@ const bandCount = Object.keys(AH_BAND_INFO).length;
 
 .reveal{opacity:1 !important;transform:none !important}
 
-/* ── Titelei ─────────────────────────────────────────────────────────────
-   Kein Hero-Foto, kein Riesentitel, keine Kennzahlenzeile. Ein Almanach
-   beginnt mit einer Titelseite: Reihe, Werktitel, Untertitel, Vorspann.
-   Die Zahlen (25 Anker, 10 Baender) stehen im Satz, nicht in Kacheln —
-   die Kennzahlenreihe war die Schablone, die diese Kategorie immer baut. */
-.alm{max-width:var(--maxw);margin:0 auto;padding:clamp(2.5rem,7vw,5rem) clamp(1.25rem,5vw,3rem) 0}
-.alm__series{font-family:var(--font-ui);font-size:.82rem;color:var(--muted);margin:0 0 1.6rem}
+/* Kompakt: der Kopf darf das Werkzeug nicht unter die Falz schieben. */
+.alm{max-width:var(--maxw);margin:0 auto;padding:clamp(1.2rem,3vw,2rem) clamp(1.25rem,5vw,3rem) 0}
+.alm__series{font-family:var(--font-ui);font-size:.84rem;color:var(--muted);margin:0 0 .7rem}
 .alm__series a{color:var(--muted);border-bottom:1px solid var(--line)}
 .alm__series a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 .alm__title{font-family:var(--font-display);font-weight:800;line-height:1.02;
-  font-size:clamp(2.2rem,5.5vw,3.8rem);letter-spacing:-.02em;color:var(--text);margin:0}
-.alm__sub{font-family:var(--font-ui);font-size:1.02rem;color:var(--muted);
-  margin:.6rem 0 0;padding-bottom:1.5rem;border-bottom:1px solid var(--line);max-width:var(--measure)}
-.alm__body{margin-top:1.8rem;max-width:var(--measure)}
-.alm__body p{font-size:1.04rem;line-height:1.68;color:var(--text);margin:0 0 1.1rem}
-.alm__body p:last-child{margin-bottom:0}
-.alm__note{margin-top:1.7rem;padding-top:1.1rem;border-top:1px solid var(--line-soft);
-  max-width:var(--measure);font-size:.94rem;line-height:1.6;color:var(--muted)}
+  font-size:clamp(1.7rem,3.4vw,2.4rem);letter-spacing:-.02em;color:var(--text);margin:0}
+.alm__sub{font-family:var(--font-ui);font-size:.95rem;color:var(--muted);
+  margin:.4rem 0 0;padding-bottom:.9rem;border-bottom:1px solid var(--line);max-width:74ch}
+
+/* Erklaerender Text steht am FUSS, nicht vor dem Werkzeug. */
+.alm__foot{max-width:var(--maxw);margin:2.6rem auto 0;padding:1.4rem clamp(1.25rem,5vw,3rem) 0;
+  border-top:1px solid var(--line-soft)}
+.alm__foot p{font-size:.94rem;line-height:1.66;color:var(--muted);margin:0 0 .9rem;max-width:68ch}
+.alm__foot p b{color:var(--text);font-weight:600}
+
+.alm__note{margin-top:1.3rem;padding-top:1rem;border-top:1px solid var(--line-soft);
+  font-size:.88rem;line-height:1.58;color:var(--muted);max-width:68ch}
 .alm__note b{color:var(--text);font-weight:600}</style>
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
@@ -63,28 +76,21 @@ const bandCount = Object.keys(AH_BAND_INFO).length;
   <header class="alm">
     <nav class="alm__series" aria-label="Brotkrumen"><a href="/de/topics/mining.html">Mining</a></nav>
     <h1 class="alm__title">Aaron Halo</h1>
-    <p class="alm__sub">Austrittstafeln und Interpolationshilfe für den Quantenflug · Stanton · Spielstand 4.9</p>
-    <div class="alm__body">
-      <p>Der Aaron Halo ist der Asteroidenring zwischen Crusader und Hurston.
-        Der Quantenflug durchquert ihn in Sekunden, und deshalb ist sein Abbau
-        weniger eine Frage des Hinfliegens als des Anhaltens: Man verlässt den
-        Antrieb auf einer Linie, die man nicht sieht, und wenige hundert
-        Kilometer entscheiden, ob man im dichten Gestein ankommt oder im Leeren.</p>
-      <p>Diese Tafeln geben dem Ring seine Zahlen. {bandCount} Dichtebänder sind
-        nach Radius verzeichnet, und je zwei der {anchorCount} Quantenanker in
-        Stanton spannen eine Flugline darüber auf. Wo eine Linie ein Band trifft,
-        gibt es genau eine Entfernung, bei der man den Antrieb abschaltet — die
-        Tafeln unten führen die Bänder, die Interpolationshilfe rechnet diese
-        Entfernung für das gewählte Paar aus.</p>
-    </div>
-    <p class="alm__note">Ankerpositionen und Ringgeometrie sind spielgenau für 4.9.
-      Die Dichtebänder sind die eine Ausnahme: Sie stammen aus einer
-      Community-Vermessung von <b>cstone.space</b> und sind Schätzwerte. Verfahren
-      und Ursprungsdaten der Route stammen von <b>Jordessey</b>; ein Ankerwert
-      (MIC-L5) wurde bei der Prüfung gegen das Spiel korrigiert.</p>
+    <p class="alm__sub">Wo du den Quantenflug verlässt, um im gewünschten Asteroidenband zu landen · Stanton · 4.9</p>
   </header>
 
   <PrecisionJumpApp lang="de" />
+
+  <aside class="alm__foot">
+    <p>Der Quantenflug durchquert den Ring in Sekunden. Sein Abbau ist deshalb
+      weniger eine Frage des Hinfliegens als des Anhaltens — man verlässt den
+      Antrieb auf einer Linie, die man nicht sieht. Je zwei der {anchorCount} Anker
+      spannen diese Linie auf; {bandCount} Dichtebänder liegen zwischen
+      {gm(rMin)} und {gm(rMax)} Gm vom Stern entfernt.</p>
+    <p class="alm__note">Verfahren und Ursprungsdaten der Route stammen von
+      <b>Jordessey</b>; ein Ankerwert (MIC-L5) wurde bei der Prüfung gegen das Spiel
+      korrigiert. Vermessung der Dichtebänder von <b>cstone.space</b>.</p>
+  </aside>
 </main>
 
 <Attribution sources={["Jordessey (Werkzeug & Routendaten)", "cstone.space (Halo-Band-Vermessung)"]} credit="VerseBase · ein Star-Citizen-Fan-Projekt" />

@@ -7,6 +7,7 @@ import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 import AccountShell from '../../components/account/AccountShell.astro';
 import AccountDashboard from '../../components/account/AccountDashboard.astro';
+import { versioned } from '../../lib/assetVersion';
 
 // CSS-Cache-Bust per Content-Hash (sha1): die Dateien haben feste URLs und
 // werden von Cloudflare/Browser gecacht; der Hash im ?v= erzwingt bei jeder
@@ -23,7 +24,7 @@ const dossierCss = `/assets/account-dossier.css?v=${cssVer('assets/account-dossi
   translated={true}
   noindex={true}
 >
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <link slot="head" rel="stylesheet" href={accountCss} />
 <link slot="head" rel="stylesheet" href={dossierCss} />
 <style is:inline>

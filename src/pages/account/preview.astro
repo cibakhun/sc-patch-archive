@@ -4,9 +4,10 @@
 // Design gewaehlt aus einem 4-Wege-Konzeptwettbewerb (v1 Dossier gewann Craft).
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
+import { versioned } from '../../lib/assetVersion';
 ---
 <Layout title="Citizen Dossier — Account Preview | VerseBase" noindex={true} themeColor="#05070d">
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <style is:inline>
 :root{
   --bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;

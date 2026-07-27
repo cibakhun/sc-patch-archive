@@ -12,6 +12,7 @@ import { ICON_BLUEPRINT } from '../lib/icons';
 import { blueprintPath, blueprintsByMission } from '../lib/crafting';
 import { href, useTranslations } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
+import { versioned } from '../lib/assetVersion';
 
 interface Props { m: Mission; lang: Locale }
 const { m, lang } = Astro.props;
@@ -140,7 +141,7 @@ const t = useTranslations(lang);
   translated={true}
   itemPage={{ modified: db.meta.generated }}
 >
-  <link slot="head" rel="stylesheet" href="/assets/detail.css" />
+  <link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
   <style is:inline>
     :root {
       --bg: #0b0906; --bg-2: #110d08; --surface: #191309; --surface-2: #221a0e;

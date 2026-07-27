@@ -6,6 +6,7 @@ import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
 import FeedbackForm from '../components/FeedbackForm.astro';
+import { versioned } from '../lib/assetVersion';
 ---
 <Layout
   title={'Feedback | VerseBase'}
@@ -15,7 +16,7 @@ import FeedbackForm from '../components/FeedbackForm.astro';
   ogImage="/assets/t-def-1.jpg"
   translated={true}
 >
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <style is:inline>
 /* Feedback theme — community hub in amber/gold (warm -> ember field active) */
 :root{--bg:#0f0b06;--bg-2:#161009;--surface:#1b130a;--surface-2:#241a0f;--accent:#f0a830;--accent-2:#ffd27a;--hot:#f0a830;--text:#f4ede0;--muted:#b6a892;--line:rgba(240,168,48,.20);--line-soft:rgba(244,237,224,.10);--glow:0 0 46px rgba(240,168,48,.24);--ink:#140d05;--maxw:1180px;}
