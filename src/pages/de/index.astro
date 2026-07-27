@@ -108,9 +108,15 @@ const tools = [
      Seitenfläche und nicht mehr auf dem Foto — im Hellmodus wäre das helle
      Medien-Cyan auf hellem Grund unlesbar. */
   .hero__cue{position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);z-index:1;
-    display:block;padding:.4rem 1.1rem;color:var(--accent);
+    display:flex;align-items:flex-start;gap:clamp(9px,1.1vw,16px);padding:.4rem 1.1rem;color:var(--accent);
     transition:transform .25s cubic-bezier(.2,.7,.3,1)}
-  .hero__cue svg{display:block;width:clamp(30px,3vw,40px);height:auto;overflow:visible}
+  /* Vier Stapel nebeneinander, jeder vier Stufen tief. Die Welle läuft nicht
+     nur abwärts, sondern auch nach rechts (0,09 s je Spalte) — der Puls
+     streicht diagonal durch das Feld wie eine Anflug-Befeuerung. */
+  .hero__cue svg{display:block;width:clamp(30px,3vw,40px);height:auto;overflow:visible;--col:0s}
+  .hero__cue svg:nth-child(2){--col:.09s}
+  .hero__cue svg:nth-child(3){--col:.18s}
+  .hero__cue svg:nth-child(4){--col:.27s}
   /* Maße vom Wortmarken-V abgenommen, nicht geraten: Orbitron 900 setzt ein
      breites V mit ~60°-Schenkeln und schwerem Strich. Eine 2,4px-Haarlinie
      las sich als beliebiger UI-Pfeil — erst Strich 4,5 bei 46px Breite
@@ -118,12 +124,15 @@ const tools = [
      Gleicher Winkel, gleiche Strichstärke, konstanter Versatz — nur so
      bleiben die Schenkel parallel und die Lücken gleich breit. Die
      Tiefenstaffelung liegt allein in der Deckkraft. */
+  /* Verzögerung ist die Summe aus Zeile und Spalte — 8 Regeln statt 16
+     Einzelkombinationen; --col erbt vom <svg> auf die Pfade. */
   .hero__cue path{fill:none;stroke:currentColor;stroke-width:4.5;stroke-linejoin:miter;
-    opacity:var(--o);animation:vdrop 2.4s ease-out infinite;transition:opacity .25s}
+    opacity:var(--o);--row:0s;animation:vdrop 2.4s ease-out infinite;
+    animation-delay:calc(var(--row) + var(--col));transition:opacity .25s}
   .hero__cue path:nth-child(1){--o:1}
-  .hero__cue path:nth-child(2){--o:.74;animation-delay:.13s}
-  .hero__cue path:nth-child(3){--o:.52;animation-delay:.26s}
-  .hero__cue path:nth-child(4){--o:.34;animation-delay:.39s}
+  .hero__cue path:nth-child(2){--o:.74;--row:.13s}
+  .hero__cue path:nth-child(3){--o:.52;--row:.26s}
+  .hero__cue path:nth-child(4){--o:.34;--row:.39s}
   /* Hellmodus braucht einen höheren Boden: dort ist der Akzent dunkles
      Petrol auf hellem Verlauf statt hellem Cyan auf Schwarz, und die unteren
      V verlieren bei gleicher Deckkraft deutlich mehr. Von Hand geschrieben —
@@ -234,12 +243,14 @@ const tools = [
     </button>
   </div>
   <a class="hero__cue" href="#tools" aria-label="Zu den Werkzeugen">
-    <svg viewBox="0 0 46 90" aria-hidden="true" focusable="false">
-      <path d="M3 3 23 31 43 3"/>
-      <path d="M3 21 23 49 43 21"/>
-      <path d="M3 39 23 67 43 39"/>
-      <path d="M3 57 23 85 43 57"/>
-    </svg>
+    {[0, 1, 2, 3].map(() => (
+      <svg viewBox="0 0 46 90" aria-hidden="true" focusable="false">
+        <path d="M3 3 23 31 43 3"/>
+        <path d="M3 21 23 49 43 21"/>
+        <path d="M3 39 23 67 43 39"/>
+        <path d="M3 57 23 85 43 57"/>
+      </svg>
+    ))}
   </a>
 </header>
 
