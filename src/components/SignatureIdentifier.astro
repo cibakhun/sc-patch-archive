@@ -9,7 +9,7 @@ import { pickLang } from '../i18n/ui';
 // Größe du gescannt hast. Daten: mining-model.json.
 import MODEL from '../../assets/mining-model.json';
 
-interface Props { lang: 'de' | 'en'; }
+interface Props { lang: 'de' | 'en' | 'hu'; }
 const { lang } = Astro.props;
 
 // Max. Cluster-Größe je Seltenheit (aus dem Referenz-Tool).
@@ -43,14 +43,14 @@ const SPECIAL = [
 });
 
 // Fundort-Typ → Label.
-const TYPE_LABEL: Record<string, { de: string; en: string }> = {
-  moon: { de: 'Mond', en: 'moon' }, planet: { de: 'Planet', en: 'planet' }, belt: { de: 'Gürtel', en: 'belt' },
-  lagrange: { de: 'Lagrange', en: 'Lagrange' }, cluster: { de: 'Cluster', en: 'cluster' }, cave: { de: 'Höhle', en: 'cave' },
-  station: { de: 'Station', en: 'station' }, event: { de: 'Event', en: 'event' }, special: { de: 'Spezial', en: 'special' },
+const TYPE_LABEL: Record<string, { de: string; en: string; hu: string }> = {
+  moon: { de: 'Mond', en: 'moon', hu: 'hold' }, planet: { de: 'Planet', en: 'planet', hu: 'bolygó' }, belt: { de: 'Gürtel', en: 'belt', hu: 'öv' },
+  lagrange: { de: 'Lagrange', en: 'Lagrange', hu: 'Lagrange' }, cluster: { de: 'Cluster', en: 'cluster', hu: 'klaszter' }, cave: { de: 'Höhle', en: 'cave', hu: 'barlang' },
+  station: { de: 'Station', en: 'station', hu: 'állomás' }, event: { de: 'Event', en: 'event', hu: 'esemény' }, special: { de: 'Spezial', en: 'special', hu: 'különleges' },
 };
 // Mining-Typ → Label.
-const MINING_LABEL: Record<string, { de: string; en: string }> = {
-  ship: { de: 'Schiff', en: 'ship' }, roc: { de: 'ROC', en: 'ROC' }, fps: { de: 'Hand', en: 'hand' }, harvest: { de: 'Ernte', en: 'harvest' },
+const MINING_LABEL: Record<string, { de: string; en: string; hu: string }> = {
+  ship: { de: 'Schiff', en: 'ship', hu: 'hajó' }, roc: { de: 'ROC', en: 'ROC', hu: 'ROC' }, fps: { de: 'Hand', en: 'hand', hu: 'kézi' }, harvest: { de: 'Ernte', en: 'harvest', hu: 'gyűjtés' },
 };
 
 const entries = [...ship, ...SPECIAL];
@@ -65,10 +65,10 @@ const locSystems = SYS_ORDER.filter((s) => sysSet.has(s)).concat([...sysSet].fil
 const GROUP_ORDER = [...RARITY_ORDER, 'roc', 'fps', 'salvage'];
 const groups = GROUP_ORDER.map((r) => ({ rarity: r, items: entries.filter((e) => e.rarity === r) })).filter((g) => g.items.length);
 
-const RARITY_LABEL: Record<string, { de: string; en: string }> = {
-  legendary: { de: 'Legendär', en: 'Legendary' }, epic: { de: 'Episch', en: 'Epic' },
-  rare: { de: 'Selten', en: 'Rare' }, uncommon: { de: 'Ungewöhnlich', en: 'Uncommon' }, common: { de: 'Häufig', en: 'Common' },
-  roc: { de: 'ROC / Boden', en: 'ROC / ground' }, fps: { de: 'FPS-Hand', en: 'FPS hand' }, salvage: { de: 'Salvage', en: 'Salvage' },
+const RARITY_LABEL: Record<string, { de: string; en: string; hu: string }> = {
+  legendary: { de: 'Legendär', en: 'Legendary', hu: 'Legendás' }, epic: { de: 'Episch', en: 'Epic', hu: 'Epikus' },
+  rare: { de: 'Selten', en: 'Rare', hu: 'Ritka' }, uncommon: { de: 'Ungewöhnlich', en: 'Uncommon', hu: 'Nem gyakori' }, common: { de: 'Häufig', en: 'Common', hu: 'Gyakori' },
+  roc: { de: 'ROC / Boden', en: 'ROC / ground', hu: 'ROC / felszíni' }, fps: { de: 'FPS-Hand', en: 'FPS hand', hu: 'FPS kézi' }, salvage: { de: 'Salvage', en: 'Salvage', hu: 'Roncsmentés' },
 };
 
 const S = pickLang({
@@ -80,6 +80,7 @@ const S = pickLang({
     matches: 'Treffer', noMatch: 'Kein Mineral passt zu diesem Wert.',
     base: 'Basis (1 Stein)', bestSpot: 'Bester Fundort', top5: 'Top-5 Fundorte', noLoc: 'keine Fundort-Daten',
     locSystem: 'System', allSys: 'Alle', noLocSys: 'nicht in diesem System',
+    upTo: 'bis',
     src: 'Signaturen & Fundorte. Cluster = n × Basis-Signatur (In-Game-Werte streuen mit der Rock-Masse leicht). Fundorte nach Vorkommens-Häufigkeit gerankt (Deposit-Wahrscheinlichkeit × Anteil); „bis X%" = maximaler Erz-Anteil im Rock. Bei Gleichstand zuerst Asteroiden-Reviere (Gürtel/Cluster).',
   },
   en: {
@@ -90,7 +91,19 @@ const S = pickLang({
     matches: 'Matches', noMatch: 'No mineral matches this value.',
     base: 'base (1 rock)', bestSpot: 'Best spot', top5: 'Top 5 locations', noLoc: 'no location data',
     locSystem: 'System', allSys: 'All', noLocSys: 'not in this system',
+    upTo: 'up to',
     src: 'Signatures & locations. Cluster = n × base signature (in-game values vary slightly with rock mass). Locations ranked by occurrence frequency (deposit probability × share); “up to X%” = max ore share in a rock. Ties favour asteroid fields (belts/clusters) first.',
+  },
+  hu: {
+    intro: 'Egy n kőből álló klaszter az alapszignatúra n-szeresét mutatja; a maximális klaszterméret a ritkaságtól függ. Válaszd ki az érceidet — csak azok jelennek meg a táblázatban (a személyes listád, elmentve marad). Írj be egy szkennelt értéket az ásvány és a klaszterméret azonosításához.',
+    scanLabel: 'Szkennelt érték azonosítása', scanPh: 'pl. 6340 vagy ~6340 (±10%)',
+    pick: 'Ércek a listádhoz', all: 'Mind', none: 'Egyik sem',
+    selectedNone: 'Nincs kiválasztott érc — koppints fent az ércekre a személyes listádhoz.',
+    matches: 'Találatok', noMatch: 'Egyetlen ásvány sem illik erre az értékre.',
+    base: 'alap (1 kő)', bestSpot: 'Legjobb lelőhely', top5: 'Top 5 lelőhely', noLoc: 'nincs lelőhelyadat',
+    locSystem: 'Rendszer', allSys: 'Mind', noLocSys: 'ebben a rendszerben nincs',
+    upTo: 'max.',
+    src: 'Szignatúrák és lelőhelyek. Klaszter = n × alapszignatúra (a játékbeli értékek a kőzet tömegével kissé szórnak). A lelőhelyek előfordulási gyakoriság szerint rangsorolva (lerakódás-valószínűség × arány); a „max. X%” a kőzet legnagyobb ércaránya. Holtverseny esetén előnyt élveznek az aszteroidamezők (övek/klaszterek).',
   },
 }, lang);
 ---
@@ -157,7 +170,7 @@ const S = pickLang({
             <span class="sid__loclabel">{S.bestSpot}</span>
             {e.locations.map((l) => (
               <span class="sid__loc" data-system={l.system}>
-                <b>{l.location}</b><em>{l.system} · {TYPE_LABEL[l.type]?.[lang] ?? l.type}{l.mining ? ` · ${MINING_LABEL[l.mining]?.[lang] ?? l.mining}` : ''}</em><span class="sid__locab">bis {l.abundance}%</span>
+                <b>{l.location}</b><em>{l.system} · {TYPE_LABEL[l.type]?.[lang] ?? l.type}{l.mining ? ` · ${MINING_LABEL[l.mining]?.[lang] ?? l.mining}` : ''}</em><span class="sid__locab">{S.upTo} {l.abundance}%</span>
               </span>
             ))}
             <span class="sid__nolocs" hidden>{S.noLocSys}</span>

@@ -10,7 +10,7 @@ import { pickLang } from '../i18n/ui';
 import { FEEDBACK, FEEDBACK_DEMO } from '../consts';
 
 interface Props {
-  lang: 'de' | 'en';
+  lang: 'de' | 'en' | 'hu';
 }
 const { lang } = Astro.props;
 
@@ -53,6 +53,25 @@ const COPY = pickLang({
     errFail: 'Sending failed. Please try again later or e-mail krysx141@gmail.com.',
     errNet: 'Network error — could not send. Please try again later or e-mail krysx141@gmail.com.',
     ratingField: 'Rating',
+  },
+  hu: {
+    rate: 'Értékelés', optional: '— opcionális', clear: 'törlés',
+    star: (n: number) => `${n} csillag`,
+    msg: 'Az üzeneted', req: 'kötelező',
+    msgPh: 'Mit szeretnél elmondani? Minél konkrétabb (oldal, hajó, érték …), annál jobb.',
+    email: 'E-mail a visszajelzéshez', emailPh: 'te@pelda.hu',
+    emailHint: 'Csak akkor kell, ha választ szeretnél. Kizárólag a visszajelzésedre való válaszadásra használjuk.',
+    send: 'Visszajelzés küldése', sending: 'Küldés folyamatban …',
+    privacyPre: 'A beküldéssel hozzájárulsz az adatkezeléshez az', privacy: 'adatvédelmi tájékoztató', privacyHref: '/hu/datenschutz.html#feedback', privacyPost: 'szerint.',
+    demoTitle: 'Demó mód.', demoBody: 'Az űrlap még nincs összekötve a küldőszolgáltatással — a beküldés megmutatja a visszaigazolást, de még nem küld el semmit.',
+    doneTitle: 'Köszönjük a visszajelzésed!',
+    doneMail: 'Az üzeneted megérkezett — a(z) %e% címen jelentkezünk.',
+    doneNo: 'Az üzeneted megérkezett hozzánk. Köszönjük!',
+    again: 'További visszajelzés küldése',
+    errShort: 'Kérjük, írj egy rövid üzenetet (legalább 5 karakter).',
+    errFail: 'A küldés nem sikerült. Próbáld meg később, vagy írj a krysx141@gmail.com címre.',
+    errNet: 'Hálózati hiba — nem sikerült elküldeni. Próbáld meg később, vagy írj a krysx141@gmail.com címre.',
+    ratingField: 'Értékelés',
   },
 }, lang);
 

@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 import { ICON_BLUEPRINT } from '../lib/icons';
 import { ITEM_UI } from '../i18n/itemText';
 
-interface Props { lang?: 'de' | 'en' }
+interface Props { lang?: 'de' | 'en' | 'hu' }
 const { lang = 'en' } = Astro.props;
 
 // Cache-Bust per Content-Hash (sha1) — MUSS sein, und zwar fuer BEIDE Dateien:

@@ -15,7 +15,7 @@ import { pickLang } from '../i18n/ui';
 //     (Abweichung <0,5%).
 import MODEL from '../../assets/mining-model.json';
 
-interface Props { lang: 'de' | 'en'; }
+interface Props { lang: 'de' | 'en' | 'hu'; }
 const { lang } = Astro.props;
 
 const P = MODEL.params?.ship || {};
@@ -69,6 +69,20 @@ const S = pickLang({
     recImposs: 'Laser DPS cannot overcome rock decay — the charge never fills. Lower resistance (gadget/module), use a bigger laser (S2/MOLE), or crack it as a group.',
     recOver: ' Also: high instability with a small window → overcharge risk. Widen the window / lower instability.',
     note: 'Game-accurate 4.9 model; the formulas (rock blending, energy, window, yield, charge = DPS × (1 − eff. resistance)) are verified against the reference solver model to <0.5%. Rock stats are representative (midpoint of the share range) — real rocks vary within it. Verify in-game.',
+  },
+  hu: {
+    rock: 'Kőzet', comp: 'Összetétel (szignatúra)', mass: 'Tömeg (kg)', custom: 'Egyéni értékek',
+    resistance: 'Ellenállás', instability: 'Instabilitás', laser: 'Bányászlézer', module: 'Modul', gadget: 'Kütyü', none: '— nincs —',
+    small: 'Kicsi', medium: 'Közepes', large: 'Nagy', huge: 'Óriási',
+    verdictH: 'Eredmény', effDps: 'Effektív DPS', decay: 'Kőzetbomlás', net: 'Nettó energia', capacity: 'Kőzetkapacitás',
+    effRes: 'Eff. ellenállás', effInst: 'Eff. instabilitás', window: 'Optimális ablak', yield: 'Hozam (SCU)', overcharge: 'Túltöltés kockázata',
+    breakable: 'Törhető', marginal: 'Határeset', impossible: 'Nem törhető',
+    perSec: '/mp', energy: 'energia',
+    recBreak: 'Jó tartalék — a lézer érezhetően gyorsabban tölti a töltetet, mint ahogy a kőzet bomlik.',
+    recMarginal: 'Szoros: a lézer DPS-e csak kevéssel van a bomlás felett. Kapcsolj be erősebb lézert vagy ellenállást csökkentő modult/kütyüt.',
+    recImposs: 'A lézer DPS-e nem győzi le a kőzetbomlást — a töltet sosem telik meg. Csökkentsd az ellenállást (kütyü/modul), használj nagyobb lézert (S2/MOLE), vagy törd fel csapatban.',
+    recOver: ' Ráadásul: magas instabilitás kis ablaknál → túltöltés veszélye. Növeld az ablakot / csökkentsd az instabilitást.',
+    note: 'Játékhű 4.9-es modell; a képletek (kőzetkeverés, energia, ablak, hozam, töltet = DPS × (1 − eff. ellenállás)) a referencia-megoldómodellhez képest <0,5%-ra ellenőrizve. A kőzetértékek reprezentatívak (az aránytartomány közepe) — a valódi kőzetek ezen belül szórnak. Ellenőrizd a játékban.',
   },
 }, lang);
 ---

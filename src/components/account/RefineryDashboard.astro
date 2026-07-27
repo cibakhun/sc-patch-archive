@@ -10,7 +10,7 @@ import { href } from '../../i18n/ui';
 import { REFINERY, stationsBySystem } from '../../lib/refinery';
 
 interface Props {
-  lang: 'de' | 'en';
+  lang: 'de' | 'en' | 'hu';
 }
 const { lang } = Astro.props;
 
@@ -351,7 +351,7 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
   const root = document.getElementById('rfd');
   if (root) {
     const D = (root as HTMLElement).dataset;
-    const lang: 'de' | 'en' = D.lang === 'de' ? 'de' : 'en';
+    const lang: 'de' | 'en' | 'hu' = D.lang === 'de' ? 'de' : 'en';
     const loadingEl = document.getElementById('rfd-loading')!;
     const C: any = JSON.parse(document.getElementById('rfd-copy')!.textContent || '{}');
     const locale = lang === 'de' ? 'de-DE' : 'en-US';

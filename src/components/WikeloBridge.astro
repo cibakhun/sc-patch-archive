@@ -4,7 +4,7 @@ import { pickLang, href } from '../i18n/ui';
 // Material-/Belohnungs-Namen mit Item-Match werden klickbar und öffnen ein
 // kompaktes Bezugsquellen-Popup (Daten lazy aus assets/universal-items.json);
 // ?item=<Name> hebt passende Trades hervor. Logik: assets/wikelo-bridge.js.
-interface Props { lang?: 'de' | 'en' }
+interface Props { lang?: 'de' | 'en' | 'hu' }
 const { lang = 'en' } = Astro.props;
 
 const JS_T = pickLang({
@@ -26,9 +26,18 @@ const JS_T = pickLang({
     catalogNote: 'No verified shop or loot data for this item.',
     openFinder: 'Open in item finder',
   },
+  hu: {
+    linkTitle: 'Beszerzési források megjelenítése',
+    loading: 'Betöltés…',
+    sectionObtain: 'Beszerzési források',
+    kindShop: 'Üzlet', kindVehicle: 'Hajókereskedő', kindLoot: 'Loot',
+    more: '+{n} további forrás az Item Finderben',
+    catalogNote: 'Ehhez a tárgyhoz nincs ellenőrzött üzlet- vagy loot-adat.',
+    openFinder: 'Megnyitás az Item Finderben',
+  },
 }, lang);
 
-const closeLabel = lang === 'de' ? 'Schließen' : 'Close';
+const closeLabel = pickLang({ de: 'Schließen', en: 'Close', hu: 'Bezárás' }, lang);
 ---
 
 <div class="wkb" id="wkb-modal" hidden>

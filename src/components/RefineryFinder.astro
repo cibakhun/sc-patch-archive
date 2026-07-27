@@ -8,7 +8,7 @@ import { pickLang } from '../i18n/ui';
 // Methoden-Yields sind nicht öffentlich dokumentiert.
 import MODEL from '../../assets/mining-model.json';
 
-interface Props { lang: 'de' | 'en'; }
+interface Props { lang: 'de' | 'en' | 'hu'; }
 const { lang } = Astro.props;
 
 const refineries = MODEL.refineries || [];
@@ -81,6 +81,15 @@ const S = pickLang({
     methodsNote: 'Qualitative trade-offs (as of 4.8.0) — higher yield costs time or money. Exact per-method yield percentages are not publicly documented; pick the method by goal (volume vs. speed vs. cost).',
     lvl: { vlow: 'very low', low: 'low', mid: 'mid', high: 'high' },
     note: 'Yield bonuses per refinery profile. Several stations share a profile (identical bonuses; all in the column tooltip). Patch-volatile.',
+  },
+  hu: {
+    intro: 'Minden finomító ércenként saját kihozatal-bónuszt ad (%-ban) — valódi kihozatali értékek. Keresd meg az ércedet, és azonnal látod a legjobb állomást, vagy válts a teljes mátrixra.',
+    search: 'Érc keresése…', view: 'Nézet', list: 'Lista', matrix: 'Mátrix', system: 'Rendszer', all: 'Mind',
+    bestAt: 'Legjobb', others: 'további', noBonus: 'nincs bónuszérték', ore: 'Érc',
+    methodsH: 'A finomítási módszerek áttekintése', method: 'Módszer', speed: 'Tempó', cost: 'Költség', yield: 'Kihozatal',
+    methodsNote: 'Minőségi kompromisszumok (4.8.0 állapot) — a magasabb kihozatal időbe vagy pénzbe kerül. A módszerenkénti pontos kihozatali százalékok nem nyilvánosak; a célod szerint válassz (mennyiség vs. tempó vs. költség).',
+    lvl: { vlow: 'nagyon alacsony', low: 'alacsony', mid: 'közepes', high: 'magas' },
+    note: 'Kihozatal-bónuszok finomítóprofilonként. Több állomás osztozik egy profilon (azonos bónuszok; mind az oszlop elemleírásában). Patchenként változhat.',
   },
 }, lang);
 
