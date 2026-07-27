@@ -55,8 +55,8 @@ const patchHref = `/hu/patches/sc-${patch.replace(/\./g, '-')}-0.html`;
     <div class="hero__in">
       <div class="eyebrow"><a href={patchHref}>Alpha {patch}</a> &nbsp;·&nbsp; <span class="cr-tag">Crafting-Datenbank</span></div>
       <h1><span class="thin">Blueprint-Datenbank</span>Crafting</h1>
-      <p class="lead">Blueprints, Zutaten, Qualitäts-Simulator, Fabricator-Planer.</p>
-      <div class="qbar"><span>Blueprints <b>{total}</b></span><span>Ressourcen <b>{nRes}</b></span><span>Patch <b>{patch}</b></span><span>Stand <b>{snap}</b></span></div>
+      <p class="lead">Tervrajzok, alapanyagok, minőség-szimulátor, Fabricator-tervező.</p>
+      <div class="qbar"><span>Tervrajzok <b>{total}</b></span><span>Erőforrások <b>{nRes}</b></span><span>Patch <b>{patch}</b></span><span>Állapot <b>{snap}</b></span></div>
     </div>
     <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
   </section>
@@ -71,8 +71,8 @@ const patchHref = `/hu/patches/sc-${patch.replace(/\./g, '-')}-0.html`;
   {/* Statischer Einstieg in dieselbe Datenschicht — der Planer selbst rendert
       Zutaten & Missionen erst im Browser. */}
   <p class="cr-browse reveal">
-    <a href="/hu/crafting.html">Blueprint-Verzeichnis →</a>
-    <a href="/hu/items.html">Item-Verzeichnis →</a>
+    <a href="/hu/crafting.html">Tervrajz-jegyzék →</a>
+    <a href="/hu/items.html">Tárgyjegyzék →</a>
   </p>
 
   <CraftingApp lang="hu" />

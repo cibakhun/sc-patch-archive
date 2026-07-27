@@ -6,7 +6,7 @@ import RelatedTopics from '../../../components/RelatedTopics.astro';
 import Attribution from '../../../components/Attribution.astro';
 import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 ---
-<Layout title={"Pyro — Das zweite Sternsystem · Star Citizen 4.0.0 | VerseBase"} description={"Pyro: mit Alpha 4.0.0 wird das gesetzlose Sternsystem rund um einen sterbenden Stern zum zweiten voll simulierten System im Persistent Universe — sechs ruinierte Welten, Ruin Station und ein Jump Point von Stanton."} themeColor="#120f0c" ogType="article" ogImage="/assets/t-pyro-1.jpg" translated={true}>
+<Layout title={"Pyro — A második csillagrendszer · Star Citizen 4.0.0 | VerseBase"} description={"Pyro: az Alpha 4.0.0-val a haldokló csillag körüli törvényen kívüli csillagrendszer lesz a Persistent Universe második, teljesen szimulált rendszere — hat romba dőlt világ, a Ruin Station és egy Stantonból nyíló ugrópont."} themeColor="#120f0c" ogType="article" ogImage="/assets/t-pyro-1.jpg" translated={true}>
 <TopicSeo slug="4-0-0-pyro-system" image="/assets/t-pyro-1.jpg" />
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
@@ -23,10 +23,10 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 .moons .moon{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.74rem;padding:.4rem .85rem;border:1px solid var(--line);border-radius:50px;background:var(--veil);color:var(--text)}
 .moons .moon b{color:var(--accent-2);font-weight:700}
 .band .big.flare{color:transparent;background:linear-gradient(180deg,var(--title-hi),var(--accent) 72%,var(--hot));-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 36px color-mix(in srgb,var(--accent) 50%,transparent))}</style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Ugrás a tartalomra</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/hu/archiv.html' }, { label: 'Alpha 4.0.0', href: '/hu/patches/sc-4-0-0.html' }, { label: "Pyro-System" }]} translated={true} />
+<SiteNav crumbs={[{ label: 'Archívum', href: '/hu/archiv.html' }, { label: 'Alpha 4.0.0', href: '/hu/patches/sc-4-0-0.html' }, { label: "Pyro-rendszer" }]} translated={true} />
 
 
 <main id="main">
@@ -36,20 +36,20 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-pyro-1.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow"><a href="/hu/patches/sc-4-0-0.html">Alpha 4.0.0 · Destination Pyro</a> &nbsp;·&nbsp; Sternsystem</div>
-      <h1><span class="thin">Das zweite Sternsystem</span>Pyro</h1>
-      <p class="lead">Gesetzlos, sonnenverbrannt, von Gangs beherrscht: mit 4.0.0 wird Pyro das zweite voll simulierte Sternsystem — sechs ruinierte Welten um einen sterbenden Stern, ohne Sicherheit, ohne Rettung.</p>
-      <div class="tags"><span class="tag">Sternsystem</span><span class="tag">6 Planeten</span><span class="tag">Ruin Station</span><span class="tag hot">Gesetzlos</span><span class="tag">Jump Point</span></div>
-      <div class="hero__play" data-lb="yt:DE3ePRgpUQo"><span class="pbtn">▶</span>Trailer ansehen</div>
+      <div class="eyebrow"><a href="/hu/patches/sc-4-0-0.html">Alpha 4.0.0 · Destination Pyro</a> &nbsp;·&nbsp; Csillagrendszer</div>
+      <h1><span class="thin">A második csillagrendszer</span>Pyro</h1>
+      <p class="lead">Törvényen kívüli, napperzselte, bandák uralta világ: a 4.0.0-val a Pyro lesz a második teljesen szimulált csillagrendszer — hat romba dőlt világ egy haldokló csillag körül, biztonság nélkül, mentés nélkül.</p>
+      <div class="tags"><span class="tag">Csillagrendszer</span><span class="tag">6 bolygó</span><span class="tag">Ruin Station</span><span class="tag hot">Törvényen kívüli</span><span class="tag">Jump Point</span></div>
+      <div class="hero__play" data-lb="yt:DE3ePRgpUQo"><span class="pbtn">▶</span>Trailer megtekintése</div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="dmarquee" aria-hidden="true">
     <div class="dmtrack">
-      <span>PYRO</span><span class="dot">◆</span><span>6 RUINIERTE WELTEN</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span><span>FLARE STAR</span><span class="dot">◆</span><span>GESETZLOS</span><span class="dot">◆</span><span>JUMP POINT</span><span class="dot">◆</span>
-      <span>PYRO</span><span class="dot">◆</span><span>6 RUINIERTE WELTEN</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span><span>FLARE STAR</span><span class="dot">◆</span><span>GESETZLOS</span><span class="dot">◆</span><span>JUMP POINT</span><span class="dot">◆</span>
+      <span>PYRO</span><span class="dot">◆</span><span>6 ROMBA DŐLT VILÁG</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span><span>FLARE STAR</span><span class="dot">◆</span><span>TÖRVÉNYEN KÍVÜL</span><span class="dot">◆</span><span>JUMP POINT</span><span class="dot">◆</span>
+      <span>PYRO</span><span class="dot">◆</span><span>6 ROMBA DŐLT VILÁG</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span><span>FLARE STAR</span><span class="dot">◆</span><span>TÖRVÉNYEN KÍVÜL</span><span class="dot">◆</span><span>JUMP POINT</span><span class="dot">◆</span>
     </div>
   </div>
 
@@ -58,51 +58,51 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 
   <!-- STAT STRIP (animated counters) -->
   <div class="statstrip reveal">
-    <div class="s"><div class="n count" data-to="2">0</div><div class="c">Voll simuliertes System im PU</div></div>
-    <div class="s"><div class="n count" data-to="6">0</div><div class="c">Planeten · Pyro I–VI</div></div>
-    <div class="s"><div class="n count" data-to="6">0</div><div class="c">Monde um Pyro V</div></div>
-    <div class="s"><div class="n">0</div><div class="c">Sicherheitszonen</div></div>
+    <div class="s"><div class="n count" data-to="2">0</div><div class="c">Teljesen szimulált rendszer a PU-ban</div></div>
+    <div class="s"><div class="n count" data-to="6">0</div><div class="c">Bolygó · Pyro I–VI</div></div>
+    <div class="s"><div class="n count" data-to="6">0</div><div class="c">Hold a Pyro V körül</div></div>
+    <div class="s"><div class="n">0</div><div class="c">Biztonsági zóna</div></div>
   </div>
 
   <!-- FULL-BLEED BAND — Was ist Pyro? (parallax, image as background) -->
   <section class="band">
     <div class="bbg" data-par="0.13" style="background-image:url('/assets/t-pyro-4.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">01 · Ein sterbender Stern</div>
+      <div class="kx">01 · Egy haldokló csillag</div>
       <div class="big flare">FLARE STAR</div>
-      <p>Im Zentrum von Pyro brennt ein heller, sterbender Stern in einer verlängerten Nova-Phase. Um ihn kreisen <b style="color:var(--accent-2)">sechs Planeten</b> — Pyro I bis VI, ruinierte Welten, die seine Strahlung über Generationen verbrannt hat. Mit Alpha 4.0.0 wird Pyro nach Stanton das zweite voll simulierte Sternsystem im Persistent Universe.</p>
+      <p>A Pyro központjában fényes, haldokló csillag ég elnyújtott nóvafázisban. Körülötte <b style="color:var(--accent-2)">hat bolygó</b> kering — Pyro I-től VI-ig, romba dőlt világok, amelyeket a sugárzása nemzedékeken át perzselt. Az Alpha 4.0.0-val a Pyro Stanton után a Persistent Universe második, teljesen szimulált csillagrendszere lesz.</p>
     </div>
   </section>
 
   <!-- MANIFESTO pull-quote -->
   <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
-    <blockquote>In Pyro gibt es <span class="hl">kein Gesetz</span> — nur die Gangs, die übrig bleiben.</blockquote>
-    <cite>Pyro · Das gesetzlose System</cite>
+    <blockquote>A Pyróban <span class="hl">nincs törvény</span> — csak a bandák, amelyek megmaradnak.</blockquote>
+    <cite>Pyro · A törvényen kívüli rendszer</cite>
   </section>
 
   <!-- VERSUS — Stanton vs Pyro (two sides) -->
   <section style="padding:0">
     <div class="wrap" style="padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem) 0">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Zwei Systeme, zwei Welten</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Két rendszer, két világ</h2><span class="rule"></span></div>
     </div>
     <div class="versus reveal">
       <div class="side b">
         <h3>★ Stanton</h3>
         <ul>
-          <li>Das etablierte Heimatsystem des Persistent Universe.</li>
-          <li>Konzern-kontrollierte Welten mit Recht und Ordnung.</li>
-          <li>Sicherheitszonen und Schutz durch Behörden.</li>
-          <li>Schiffsverlust ist versichert — Wiederbeschaffung garantiert.</li>
+          <li>A Persistent Universe bejáratott anyarendszere.</li>
+          <li>Konszernek uralta világok renddel és törvénnyel.</li>
+          <li>Biztonsági zónák és hatósági védelem.</li>
+          <li>A hajóvesztés biztosított — a pótlás garantált.</li>
         </ul>
       </div>
       <div class="vs">VS</div>
       <div class="side a">
         <h3>⚠ Pyro</h3>
         <ul>
-          <li>Mit 4.0.0 das zweite voll simulierte Sternsystem.</li>
-          <li>Keine Versicherung, keine Bergung verlorener Schiffe.</li>
-          <li>Kein ASOP-Notruf, keine Sicherheitskräfte auf Abruf.</li>
-          <li>Sengende Strahlung des sterbenden Sterns über allem.</li>
+          <li>A 4.0.0-val a második teljesen szimulált csillagrendszer.</li>
+          <li>Nincs biztosítás, nincs mentés az elvesztett hajókra.</li>
+          <li>Nincs ASOP-vészhívás, nincs behívható biztonsági erő.</li>
+          <li>A haldokló csillag perzselő sugárzása mindenen átüt.</li>
         </ul>
       </div>
     </div>
@@ -110,7 +110,7 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 
   <!-- SCROLLYTELLING — Die Reise nach Pyro (a process) -->
   <section style="padding-bottom:0">
-    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>Die Reise nach Pyro</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>Az út a Pyróba</h2><span class="rule"></span></div></div>
   </section>
   <div class="scrolly">
     <div class="scrolly__media" aria-hidden="true">
@@ -120,10 +120,10 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
       <div class="frame" style="background-image:url('/assets/t-ruin-1.jpg')"></div>
     </div>
     <div class="scrolly__steps">
-      <div class="sstep"><div class="sn">01</div><h3>Start in Stanton</h3><p>Jede Reise nach Pyro beginnt im bekannten Heimatsystem Stanton — dem ersten voll simulierten Sternsystem des Persistent Universe.</p></div>
-      <div class="sstep"><div class="sn">02</div><h3>Durch den Jump Point</h3><p>Der Tunnel zwischen den Systemen ist eng und kurvenreich — wer die Wände touchiert, riskiert sein Schiff. Hier lauern Piraten auf Reisende, die ohne Geleit aus dem Sprung kommen.</p></div>
-      <div class="sstep"><div class="sn">03</div><h3>Ankunft in Pyro</h3><p>Auf der anderen Seite blendet sofort der Flare Star: aufgeblähter Stern, fahles Licht, treibende Trümmer. Die ersten Planeten und Stationen zeichnen sich als dunkle Silhouetten vor der Glut ab.</p></div>
-      <div class="sstep"><div class="sn">04</div><h3>Anflug auf Ruin Station</h3><p>Quanten-Sprung zur größten Marke im System: Ruin Station wächst aus dem Dunkel — eine umgebaute Bergbauplattform, an deren Docks fremde Schiffe ankern. Hier legt man an, wenn man Treibstoff, Reparatur oder einen Handel braucht.</p></div>
+      <div class="sstep"><div class="sn">01</div><h3>Indulás Stantonból</h3><p>Minden Pyróba vezető út az ismerős anyarendszerben, Stantonban kezdődik — a Persistent Universe első, teljesen szimulált csillagrendszerében.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Át az ugróponton</h3><p>A rendszerek közötti alagút szűk és kanyargós — aki nekiér a falnak, kockára teszi a hajóját. Itt kalózok lesnek az utazókra, akik kíséret nélkül érkeznek ki az ugrásból.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Megérkezés a Pyróba</h3><p>A túloldalon azonnal elvakít a Flare Star: felfúvódott csillag, fakó fény, sodródó törmelék. Az első bolygók és állomások sötét sziluettként rajzolódnak ki a parázs előtt.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Ráfordulás a Ruin Stationre</h3><p>Kvantumugrás a rendszer legnagyobb jelzőpontjához: a Ruin Station kinő a sötétből — átépített bányászplatform, dokkjaiban idegen hajókkal. Ide köt ki az ember, ha üzemanyag, javítás vagy üzlet kell.</p></div>
     </div>
   </div>
 
@@ -132,10 +132,10 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
     <div class="split reveal">
       <div class="split__media"><div class="m" style="background-image:url('/assets/cz-ruin.jpg')"></div></div>
       <div class="split__text">
-        <div class="kx">04 · Der zentrale Außenposten</div>
+        <div class="kx">04 · A központi előőrs</div>
         <h3>Ruin Station</h3>
-        <p>Im gesetzlosen Pyro ist <b>Ruin Station</b> der zentrale Anlaufpunkt — eine alte Gold-Horizon-Bergbauplattform, längst ihrer ursprünglichen Bestimmung beraubt.</p>
-        <p>Heute dient die verfallene Struktur als Zuflucht für <b>Schwarzmarkt und Gangs</b>: ein Ort, an dem man verschwinden, handeln und neue Aufträge finden kann — wenn man die Risiken überlebt.</p>
+        <p>A törvényen kívüli Pyróban a <b>Ruin Station</b> a központi találkozópont — egy régi Gold Horizon bányászplatform, amelyet rég megfosztottak eredeti rendeltetésétől.</p>
+        <p>Ma a düledező szerkezet a <b>feketepiac és a bandák</b> menedéke: hely, ahol el lehet tűnni, kereskedni és új megbízást találni — ha valaki túléli a kockázatot.</p>
       </div>
     </div>
   </section>
@@ -144,9 +144,9 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
   <section class="band band--right">
     <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-pyro-5.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">05 · Pyro V &amp; sein Mondsystem</div>
-      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">SECHS MONDE</div>
-      <p>Pyro V wird von gleich sechs Monden umkreist — ihre Namen verraten ihr Wesen: <b style="color:var(--accent-2)">Ignis</b>, <b style="color:var(--accent-2)">Fuego</b> und <b style="color:var(--accent-2)">Vuur</b> bedeuten in verschiedenen Sprachen „Feuer", <b style="color:var(--accent-2)">Vatra</b> steht für Flamme und Glut, <b style="color:var(--accent-2)">Adir</b> und <b style="color:var(--accent-2)">Fairo</b> für schroffes, lebensfeindliches Gestein. Karge, abweisende Felswelten, auf denen Schmuggler und Banden ihre Verstecke graben.</p>
+      <div class="kx">05 · A Pyro V &amp; holdrendszere</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">HAT HOLD</div>
+      <p>A Pyro V körül mindjárt hat hold kering — a nevük elárulja a természetüket: az <b style="color:var(--accent-2)">Ignis</b>, a <b style="color:var(--accent-2)">Fuego</b> és a <b style="color:var(--accent-2)">Vuur</b> különböző nyelveken „tüzet" jelent, a <b style="color:var(--accent-2)">Vatra</b> lángot és parazsat, az <b style="color:var(--accent-2)">Adir</b> és a <b style="color:var(--accent-2)">Fairo</b> pedig zord, életellenes kőzetet. Kopár, elutasító sziklavilágok, amelyekbe csempészek és bandák vájják a rejtekhelyüket.</p>
       <div class="moons">
         <span class="moon"><b>Ignis</b></span><span class="moon"><b>Vatra</b></span><span class="moon"><b>Adir</b></span><span class="moon"><b>Fairo</b></span><span class="moon"><b>Fuego</b></span><span class="moon"><b>Vuur</b></span>
       </div>
@@ -157,9 +157,9 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
   <section class="band" style="min-height:64vh">
     <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-pyro-7.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">Hohes Risiko · Hoher Lohn</div>
-      <div class="big outline">KEINE RETTUNG.</div>
-      <p>Genau diese Schutzlosigkeit macht Pyro lohnend: seltene Ressourcen, ungesicherte Frachten und Aufträge, die in Stanton niemand vergibt. Wer hier besteht, nimmt mit, was er verteidigen kann — und lässt zurück, was ihn zu langsam macht.</p>
+      <div class="kx">Nagy kockázat · nagy fizetség</div>
+      <div class="big outline">NINCS MENTÉS.</div>
+      <p>Épp ez a védtelenség teszi kifizetődővé a Pyrót: ritka erőforrások, biztosítatlan rakományok és olyan megbízások, amilyeneket Stantonban senki nem ad ki. Aki itt helytáll, azt viszi el, amit meg tud védeni — és hátrahagyja, ami lelassítja.</p>
     </div>
   </section>
 
@@ -168,14 +168,14 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">06</span><h2>Media</h2><span class="rule"></span></div>
       <div class="gallery reveal">
-        <figure class="gtile full b2" data-lb="img:/assets/t-pyro-1.jpg"><img src="/assets/t-pyro-1.jpg" alt="Pyro — sterbender Stern und ruinierte Welt" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro · Flare Star</figcaption></figure>
-        <figure class="gtile w2" data-lb="img:/assets/img-pyro.jpg"><img src="/assets/img-pyro.jpg" alt="Systemkarte von Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Systemkarte</figcaption></figure>
-        <figure class="gtile" data-lb="img:/assets/t-pyro-2.jpg"><img src="/assets/t-pyro-2.jpg" alt="Ruinierte Welt in Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruinierte Welt</figcaption></figure>
-        <figure class="gtile" data-lb="img:/assets/t-pyro-6.jpg"><img src="/assets/t-pyro-6.jpg" alt="Leuchtende Vegetation zwischen Felsnadeln auf einer Pyro-Welt" loading="lazy"><span class="zoomic">⤢</span><figcaption>Leuchtende Vegetation</figcaption></figure>
-        <figure class="gtile w2" data-lb="img:/assets/t-ruin-1.jpg"><img src="/assets/t-ruin-1.jpg" alt="Ruin Station vor dem Planeten Terminus" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruin Station · Terminus</figcaption></figure>
+        <figure class="gtile full b2" data-lb="img:/assets/t-pyro-1.jpg"><img src="/assets/t-pyro-1.jpg" alt="Pyro — haldokló csillag és romba dőlt világ" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro · Flare Star</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/img-pyro.jpg"><img src="/assets/img-pyro.jpg" alt="A Pyro rendszertérképe" loading="lazy"><span class="zoomic">⤢</span><figcaption>Rendszertérkép</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-pyro-2.jpg"><img src="/assets/t-pyro-2.jpg" alt="Romba dőlt világ a Pyróban" loading="lazy"><span class="zoomic">⤢</span><figcaption>Romba dőlt világ</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-pyro-6.jpg"><img src="/assets/t-pyro-6.jpg" alt="Világító növényzet sziklatűk között egy Pyro-világon" loading="lazy"><span class="zoomic">⤢</span><figcaption>Világító növényzet</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-ruin-1.jpg"><img src="/assets/t-ruin-1.jpg" alt="Ruin Station a Terminus bolygó előtt" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruin Station · Terminus</figcaption></figure>
       </div>
-      <div class="video reveal" data-yt="DE3ePRgpUQo" style="background-image:url('/assets/trailer-4-0-0.jpg')"><span class="vlbl">Destination Pyro — Trailer</span><button class="play" aria-label="Trailer abspielen">▶</button></div>
-      <p class="src reveal">Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=DE3ePRgpUQo" target="_blank" rel="noopener">Auf YouTube ansehen ↗</a></p>
+      <div class="video reveal" data-yt="DE3ePRgpUQo" style="background-image:url('/assets/trailer-4-0-0.jpg')"><span class="vlbl">Destination Pyro — Trailer</span><button class="play" aria-label="Trailer lejátszása">▶</button></div>
+      <p class="src reveal">Forrás: hivatalos Star Citizen YouTube-csatorna &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=DE3ePRgpUQo" target="_blank" rel="noopener">Megtekintés a YouTube-on ↗</a></p>
     </div>
   </section>
 
@@ -185,7 +185,7 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 
 <Attribution />
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Bezárás">✕</button><div class="lb__content"></div></div></div>
 
 <script is:inline src="/assets/detail.js"></script>
 </Layout>
