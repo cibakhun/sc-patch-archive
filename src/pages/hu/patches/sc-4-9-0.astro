@@ -10,7 +10,7 @@ const entry = await getEntry('patches', '4-9-0');
 if (!entry) throw new Error('Patch-Daten 4-9-0 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.9.0 — Frontier Tensions | VerseBase"} description={"Alpha 4.9: People's-Alliance-Kontrakte um Recco Battaglia in Nyx, der Schrott-Jäger Grey's Market Basher, Hit-Marker mit sechs Trefferzuständen, +20 % Mining-Laserleistung — live seit 15. Juli 2026."} themeColor="#140f0c" ogType="article" ogImage="/assets/trailer-4-9-0.jpg" translated={true}>
+<Layout title={"Star Citizen Alpha 4.9.0 — Frontier Tensions | VerseBase"} description={"Alpha 4.9: People's Alliance-szerződések Recco Battaglia körül a Nyxben, a roncsokból épült Grey's Market Basher vadász, találatjelzők hat találati állapottal, +20% bányászlézer-teljesítmény — 2026. július 15. óta élesben."} themeColor="#140f0c" ogType="article" ogImage="/assets/trailer-4-9-0.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/trailer-4-9-0.jpg" />
 <style is:inline>
 
@@ -120,7 +120,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.7rem}
 .chip{font-family:var(--font-mono);font-size:.74rem;letter-spacing:.06em;color:var(--text);border:1px solid rgba(227,170,75,.4);padding:.28rem .6rem;border-radius:2px;background:var(--veil)}
 
-/* BASHER — Schrott-Manifest + Spec-Readout */
+/* BASHER — Schrott-Manifest + Adatkijelzés */
 .basher{display:grid;grid-template-columns:1.15fr .85fr;gap:.9rem}
 @media(max-width:900px){.basher{grid-template-columns:1fr}}
 .panel{background:var(--surface);border:1px solid var(--line-soft);padding:1.15rem 1.3rem;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
@@ -228,12 +228,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="dust" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">15. Juli 2026 · Major-Patch</div>
+      <div class="eyebrow">2026. július 15. · nagy patch</div>
       <h1 data-text="4.9">4.9</h1>
       <div class="codename">Frontier<span>Tensions</span></div>
-      <div class="tagline">Nyx unter Druck — die Alliance sucht Helfer</div>
+      <div class="tagline">A Nyx nyomás alatt — az Alliance segítőket keres</div>
       <div class="tags">
-        <span class="tag hot">People's Alliance</span><span class="tag">Die Moraine</span><span class="tag">Recco Battaglia</span><span class="tag">Grey's Market Basher</span><span class="tag">Nyx</span><span class="tag">Kein Wipe</span>
+        <span class="tag hot">People's Alliance</span><span class="tag">A Moraine</span><span class="tag">Recco Battaglia</span><span class="tag">Grey's Market Basher</span><span class="tag">Nyx</span><span class="tag">Nincs wipe</span>
       </div>
     </div>
     <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
@@ -242,8 +242,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
-      <span>FRONTIER TENSIONS</span><span class="dot">◆</span><span>PEOPLE'S ALLIANCE</span><span class="dot">◆</span><span>DIE MORAINE</span><span class="dot">◆</span><span>RECCO BATTAGLIA</span><span class="dot">◆</span><span>GREY'S MARKET BASHER</span><span class="dot">◆</span><span>HIT-MARKER</span><span class="dot">◆</span><span>+20% MINING-POWER</span><span class="dot">◆</span><span>80+ FIXES</span><span class="dot">◆</span>
-      <span>FRONTIER TENSIONS</span><span class="dot">◆</span><span>PEOPLE'S ALLIANCE</span><span class="dot">◆</span><span>DIE MORAINE</span><span class="dot">◆</span><span>RECCO BATTAGLIA</span><span class="dot">◆</span><span>GREY'S MARKET BASHER</span><span class="dot">◆</span><span>HIT-MARKER</span><span class="dot">◆</span><span>+20% MINING-POWER</span><span class="dot">◆</span><span>80+ FIXES</span><span class="dot">◆</span>
+      <span>FRONTIER TENSIONS</span><span class="dot">◆</span><span>PEOPLE'S ALLIANCE</span><span class="dot">◆</span><span>A MORAINE</span><span class="dot">◆</span><span>RECCO BATTAGLIA</span><span class="dot">◆</span><span>GREY'S MARKET BASHER</span><span class="dot">◆</span><span>TALÁLATJELZŐK</span><span class="dot">◆</span><span>+20% BÁNYÁSZTELJESÍTMÉNY</span><span class="dot">◆</span><span>80+ FIXES</span><span class="dot">◆</span>
+      <span>FRONTIER TENSIONS</span><span class="dot">◆</span><span>PEOPLE'S ALLIANCE</span><span class="dot">◆</span><span>A MORAINE</span><span class="dot">◆</span><span>RECCO BATTAGLIA</span><span class="dot">◆</span><span>GREY'S MARKET BASHER</span><span class="dot">◆</span><span>TALÁLATJELZŐK</span><span class="dot">◆</span><span>+20% BÁNYÁSZTELJESÍTMÉNY</span><span class="dot">◆</span><span>80+ FIXES</span><span class="dot">◆</span>
     </div>
   </div>
 
@@ -255,13 +255,13 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/trailer-4-9-0.jpg"><div class="tbg" style="background-image:url('/assets/trailer-4-9-0.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Grey's Market Basher</div><div class="sub">Leichter Jäger aus Schrott</div></div>
-        <div class="tile word hot" data-info data-title="Support the Miners" data-text="Die mysteriöse Gruppierung „Moraine&quot; bedroht die Unabhängigen von Nyx — die People's Alliance ruft zu Hilfe. Neue dauerhafte Missionsreihe übers mobiGlas: Prospecting, Vermisstensuche, Entern gekaperter Schiffe, Fracht-Rückholung, Salvage und Schiffs-Rückgewinnung. Wer Ruf aufbaut, weckt das Interesse von Recco Battaglia; ihre Story-Missionen folgen in Alpha 4.10."><span class="zoomic">+</span><b>SUPPORT<br>THE MINERS</b><small>People's-Alliance-Kontrakte</small></div>
-        <div class="tile stat" data-info data-title="Sechs Trefferzustände" data-text="Der Schiffskampf gibt endlich präzises Feedback am Fadenkreuz: abgeprallt (kein Schaden), Schild-, Panzerungs-, Hüllen- und Komponententreffer sowie Komponente zerstört — jeder Zustand mit eigenem Audio-Cue, neu aufgebaut und vom alten Ships-Computer-Audio entkoppelt."><span class="zoomic">+</span><div class="num">6</div><div class="cap">Trefferzustände</div></div>
-        <div class="tile img w2" data-lb="img:/assets/t-frontier-1.jpg"><div class="tbg" style="background-image:url('/assets/t-frontier-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Mining-Schub</div><div class="sub">Schiffslaser ≈ +20 % · experimentelles Scanning</div></div>
-        <div class="tile stat" data-info data-title="80+ dokumentierte Fixes" data-text="Die 4.9-LIVE-Notes dokumentieren 80+ Einzel-Fixes — rund 70 Bugfixes plus Crash- und Stabilitäts-Fixes (8 Client / 2 Server), u. a. Docking-Kragen, Jump-Tunnel mit falschem Zielsystem, Spieler-Handel (aUEC), unzugängliche Inventare und die Railen-Sofortexplosion. (Der Spectrum-Post nannte 166+ — ein versehentlich aus den 4.8-Notes recycelter Block.)"><span class="zoomic">+</span><div class="num">80+</div><div class="cap">Dokumentierte Fixes</div></div>
-        <div class="tile word" data-info data-title="Recco Battaglia" data-text="Unabhängige Bergbau-Logistik-Koordinatorin in Levski und respektierte Anführerin unter den freien Leuten von Nyx. Wer Ruf bei der People's Alliance aufbaut, weckt ihr Interesse — auf höheren Stufen warten exklusive Blueprints und Unikat-Varianten von Golem, Prospector und MOLE."><span class="zoomic">+</span><b>RECCO</b><small>Battaglia · Levski</small></div>
-        <div class="tile img w2" data-lb="img:/assets/img-levski.jpg"><div class="tbg" style="background-image:url('/assets/img-levski.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Levski</div><div class="sub">Freihafen auf Delamar · Alliance-Revier</div></div>
+        <div class="tile img b2" data-lb="img:/assets/trailer-4-9-0.jpg"><div class="tbg" style="background-image:url('/assets/trailer-4-9-0.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Grey's Market Basher</div><div class="sub">Könnyű vadász roncsokból</div></div>
+        <div class="tile word hot" data-info data-title="Support the Miners" data-text="A titokzatos „Moraine&quot; csoportosulás fenyegeti a Nyx függetlenjeit — a People's Alliance segítséget kér. Új, állandó küldetéssorozat a mobiGlason keresztül: prospektálás, eltűntek keresése, elrabolt hajók megcsáklyázása, rakomány visszaszerzése, roncsmentés és hajó-visszanyerés. Aki hírnevet épít, felkelti Recco Battaglia érdeklődését; az ő történeti küldetései az Alpha 4.10-ben következnek."><span class="zoomic">+</span><b>SUPPORT<br>THE MINERS</b><small>People's Alliance-szerződések</small></div>
+        <div class="tile stat" data-info data-title="Hat találati állapot" data-text="A hajócsata végre pontos visszajelzést ad a célkeresztnél: lepattant (nincs sebzés), pajzs-, páncél-, hajótest- és komponenstalálat, valamint komponens megsemmisült — mindegyik állapot saját hangjelzéssel, újraépítve és leválasztva a régi hajószámítógép-hangokról."><span class="zoomic">+</span><div class="num">6</div><div class="cap">Találati állapotok</div></div>
+        <div class="tile img w2" data-lb="img:/assets/t-frontier-1.jpg"><div class="tbg" style="background-image:url('/assets/t-frontier-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Bányászlöket</div><div class="sub">Hajólézer ≈ +20% · kísérleti szkennelés</div></div>
+        <div class="tile stat" data-info data-title="80+ dokumentált javítás" data-text="A 4.9 LIVE-jegyzetek 80+ egyedi javítást dokumentálnak — nagyjából 70 hibajavítást, plusz összeomlás- és stabilitásjavításokat (8 kliens / 2 szerver), többek között a dokkolókarokat, a rossz célrendszerre nyíló ugróalagutat, a játékosok közti kereskedést (aUEC), a hozzáférhetetlen raktárakat és a Railen azonnali robbanását. (A Spectrum-bejegyzés 166+-ot említett — egy véletlenül a 4.8-as jegyzetekből újrahasznosított blokk.)"><span class="zoomic">+</span><div class="num">80+</div><div class="cap">Dokumentált javítások</div></div>
+        <div class="tile word" data-info data-title="Recco Battaglia" data-text="Független bányászati logisztikai koordinátor Levskin, és tisztelt vezető a Nyx szabad emberei között. Aki hírnevet épít a People's Alliance-nál, felkelti az érdeklődését — magasabb szinteken exkluzív tervrajzok és a Golem, a Prospector és a MOLE egyedi változatai várnak."><span class="zoomic">+</span><b>RECCO</b><small>Battaglia · Levski</small></div>
+        <div class="tile img w2" data-lb="img:/assets/img-levski.jpg"><div class="tbg" style="background-image:url('/assets/img-levski.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Levski</div><div class="sub">Szabadkikötő a Delamaron · Alliance-terület</div></div>
       </div>
     </div>
   </section>
@@ -270,25 +270,25 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-nyx-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Die Moraine · Nyx</div>
+      <div class="kx">A Moraine · Nyx</div>
       <div class="big">FRONTIER</div>
-      <p>Das Leben außerhalb der UEE ist hart erkämpft — und die mysteriöse Gruppierung „Moraine" bedroht jetzt die fragile Stabilität der Unabhängigen von Nyx. Die People's Alliance rekrutiert.</p>
+      <p>Az UEE-n kívüli élet keservesen kiharcolt — és a titokzatos „Moraine" csoportosulás most a Nyx függetlenjeinek törékeny stabilitását fenyegeti. A People's Alliance toboroz.</p>
     </div>
   </section>
 
   <!-- CONTRACT BOARD -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Alliance-Kontrakte</h2><span class="rule"></span></div>
-      <p class="cbnote reveal">Dauerhafte, wiederholbare Missionen übers mobiGlas — <b>die Ruf-Spur zu Recco Battaglia</b>, deren Story in Alpha 4.10 weitergeht.</p>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Alliance-szerződések</h2><span class="rule"></span></div>
+      <p class="cbnote reveal">Állandó, ismételhető küldetések a mobiGlason keresztül — <b>a hírnévsáv Recco Battagliához</b>, akinek a története az Alpha 4.10-ben folytatódik.</p>
       <div class="cboard reveal">
-        <article class="contract"><span class="cid">Kontrakt // 01</span><b>Standorte auskundschaften</b><small>Sichere Orte für künftige Alliance-Operationen in ganz Nyx erkunden.</small></article>
-        <article class="contract"><span class="cid">Kontrakt // 02</span><b>Vermisste finden</b><small>Die Frontier nach verschollenen Minenarbeitern und Crews absuchen.</small></article>
-        <article class="contract"><span class="cid">Kontrakt // 03</span><b>Entern &amp; retten</b><small>Gekaperte Schiffe betreten und die Überlebenden lebend herausholen.</small></article>
-        <article class="contract"><span class="cid">Kontrakt // 04</span><b>Fracht zurückholen</b><small>Wertvolle Ladung aus Piratenüberfällen sicherstellen.</small></article>
-        <article class="contract"><span class="cid">Kontrakt // 05</span><b>Salvage &amp; Rückgewinnung</b><small>Ausschlachten, was nicht mehr zu retten ist — jede Ressource erreicht ihr Ziel.</small></article>
-        <article class="contract rep"><span class="cid">Reputation // Belohnungsspur</span><b>Die Leute von Nyx vergessen nicht, wer an ihrer Seite stand</b><small>Alliance-Ruf schaltet exklusive Blueprints und Unikat-Industrieschiffe frei — auf höheren Stufen direkt an den Heimatstandort geliefert.</small>
-          <div class="chips"><span class="chip">People's-Alliance-Rüstung</span><span class="chip">Klescher-Laser-Repeater</span><span class="chip">Drake-Golem-Variante</span><span class="chip">MISC-Prospector-Variante</span><span class="chip">Argo-MOLE-Variante</span></div>
+        <article class="contract"><span class="cid">Szerződés // 01</span><b>Helyszínek felderítése</b><small>Biztonságos helyek felkutatása jövőbeli Alliance-műveletekhez Nyx-szerte.</small></article>
+        <article class="contract"><span class="cid">Szerződés // 02</span><b>Eltűntek megtalálása</b><small>A határvidék átfésülése eltűnt bányászok és legénységek után.</small></article>
+        <article class="contract"><span class="cid">Szerződés // 03</span><b>Csáklyázás &amp; mentés</b><small>Elrabolt hajókra behatolni, és élve kihozni a túlélőket.</small></article>
+        <article class="contract"><span class="cid">Szerződés // 04</span><b>Rakomány visszaszerzése</b><small>Értékes rakomány lefoglalása kalóztámadásokból.</small></article>
+        <article class="contract"><span class="cid">Szerződés // 05</span><b>Roncsmentés &amp; visszanyerés</b><small>Kibelezni, ami már menthetetlen — minden erőforrás célba ér.</small></article>
+        <article class="contract rep"><span class="cid">Reputáció // jutalomsáv</span><b>A Nyx népe nem felejti el, ki állt mellettük</b><small>Az Alliance-hírnév exkluzív tervrajzokat és egyedi ipari hajókat old fel — magasabb szinteken egyenesen az otthoni helyszínre szállítva.</small>
+          <div class="chips"><span class="chip">People's Alliance-páncél</span><span class="chip">Klescher lézerismétlő</span><span class="chip">Drake Golem-változat</span><span class="chip">MISC Prospector-változat</span><span class="chip">Argo MOLE-változat</span></div>
         </article>
       </div>
     </div>
@@ -297,30 +297,30 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <!-- BASHER -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">03</span><h2>Die Basher</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">03</span><h2>A Basher</h2><span class="rule"></span></div>
       <div class="basher reveal">
         <div class="panel">
-          <div class="phead"><h3>Bergungs-Manifest</h3><span class="pc">GLSN // Spender-Hüllen</span></div>
+          <div class="phead"><h3>Mentési jegyzék</h3><span class="pc">GLSN // donor-hajótestek</span></div>
           <ul class="manifest">
-            <li><span class="mk">DRAK</span>Buccaneer <small>— Spenderteile</small></li>
-            <li><span class="mk">AEGS</span>Avenger <small>— Spenderteile</small></li>
-            <li><span class="mk">AEGS</span>Gladius <small>— Spenderteile</small></li>
-            <li><span class="mk">RSI&nbsp;</span>Aurora Mk I <small>— Spenderteile</small></li>
-            <li><span class="mk">DIV.&nbsp;</span>Abnehmbarer Kran <small>— Spitze dient als improvisiertes Visier, für freie Sicht demontierbar</small></li>
-            <li><span class="mk">DIV.&nbsp;</span>Waffenhalter <small>— ein angeschraubtes Stück Maschendrahtzaun, außen montiert</small></li>
-            <li><span class="mk">DIV.&nbsp;</span>Aktenschrank <small>— integrierter Stauraum für robustes Gepäck</small></li>
+            <li><span class="mk">DRAK</span>Buccaneer <small>— donoralkatrészek</small></li>
+            <li><span class="mk">AEGS</span>Avenger <small>— donoralkatrészek</small></li>
+            <li><span class="mk">AEGS</span>Gladius <small>— donoralkatrészek</small></li>
+            <li><span class="mk">RSI&nbsp;</span>Aurora Mk I <small>— donoralkatrészek</small></li>
+            <li><span class="mk">VEGYES&nbsp;</span>Levehető daru <small>— a csúcsa rögtönzött irányzékként szolgál, szabad kilátásért leszerelhető</small></li>
+            <li><span class="mk">VEGYES&nbsp;</span>Fegyvertartó <small>— egy odacsavarozott darab drótkerítés, kívülre szerelve</small></li>
+            <li><span class="mk">VEGYES&nbsp;</span>Irattartó szekrény <small>— beépített tárhely strapabíró poggyásznak</small></li>
           </ul>
         </div>
         <div class="panel">
-          <div class="phead"><h3>Spec-Readout</h3><span class="pc">Leichter Jäger · 1 Sitz</span></div>
+          <div class="phead"><h3>Adatkijelzés</h3><span class="pc">Könnyű vadász · 1 ülés</span></div>
           <dl class="readout">
-            <div class="row"><dt>Waffen</dt><span class="lead"></span><dd>6× S2 — <em>4 Snapper</em> + <em>2 Deathroll</em></dd></div>
-            <div class="row"><dt>Ordnance</dt><span class="lead"></span><dd>4× S1-Raketen</dd></div>
-            <div class="row"><dt>Länge</dt><span class="lead"></span><dd>13,7 m</dd></div>
-            <div class="row"><dt>Breite</dt><span class="lead"></span><dd>11,3 m</dd></div>
-            <div class="row"><dt>Höhe</dt><span class="lead"></span><dd>4,5 m</dd></div>
+            <div class="row"><dt>Fegyverzet</dt><span class="lead"></span><dd>6× S2 — <em>4 Snapper</em> + <em>2 Deathroll</em></dd></div>
+            <div class="row"><dt>Ordnance</dt><span class="lead"></span><dd>4× S1 rakéta</dd></div>
+            <div class="row"><dt>Hossz</dt><span class="lead"></span><dd>13,7 m</dd></div>
+            <div class="row"><dt>Szélesség</dt><span class="lead"></span><dd>11,3 m</dd></div>
+            <div class="row"><dt>Magasság</dt><span class="lead"></span><dd>4,5 m</dd></div>
             <div class="row"><dt>Pledge</dt><span class="lead"></span><dd>110 $ <em>(Warbond 100 $)</em></dd></div>
-            <div class="row"><dt>aUEC</dt><span class="lead"></span><dd>noch nicht kaufbar</dd></div>
+            <div class="row"><dt>aUEC</dt><span class="lead"></span><dd>még nem vásárolható</dd></div>
           </dl>
         </div>
         <div class="bvid" data-yt="whpBNeYsJQA" style="background-image:url('/assets/t-basher-1.jpg')"><span class="vlbl">Behind the Ships: Grey's Market Basher</span><button class="play" aria-label="Lejátszás">▶</button></div>
@@ -331,9 +331,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <!-- HIT MARKERS -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Hit-Marker</h2><span class="rule"></span></div>
-      <p class="hmnote reveal">Jeder Schuss meldet jetzt, was er bewirkt hat — <b>sechs Fadenkreuz-Zustände</b>, jeder mit eigenem Audio-Cue. Flankierend: die Ballistik-Rebalance (Repeater runter, BEHR-S4-Kanone umgebaut auf 1.090 Schaden pro Schuss bei weniger Durchschlag und langsamerer Feuerrate).</p>
-      <p class="hmaudio reveal">AUDIO // <b>3 Kern-Ebenen</b> — Panzerungstreffer · Komponententreffer · Komponente zerstört — nach Director-Feedback neu aufgebaut, entkoppelt vom alten Ships-Computer-Audio.</p>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Találatjelzők</h2><span class="rule"></span></div>
+      <p class="hmnote reveal">Minden lövés jelzi, mit ért el — <b>hat célkereszt-állapot</b>, mindegyik saját hangjelzéssel. Kísérőként: a ballisztika újrahangolása (az ismétlők gyengültek, a BEHR S4 ágyú lövésenként 1090 sebzésre állítva, kisebb átütéssel és lassabb tűzgyorsasággal).</p>
+      <p class="hmaudio reveal">AUDIO // <b>3 alapszint</b> — páncéltalálat · komponenstalálat · komponens megsemmisült — a Director visszajelzései alapján újraépítve, leválasztva a régi hajószámítógép-hangokról.</p>
     </div>
   </section>
 
@@ -354,10 +354,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">06</span><h2>Galéria</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/trailer-4-9-0.jpg"><img src="/assets/trailer-4-9-0.jpg" alt="Basher-Staffel im Tiefflug über Wüstendünen, Staub aufwirbelnd" loading="lazy"><span class="zoomic">⤢</span><figcaption>Basher-Staffel über den Dünen</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/img-nyx.jpg"><img src="/assets/img-nyx.jpg" alt="Sternkarte des Nyx-Systems mit Delamar und dem Glaciem Ring" loading="lazy"><span class="zoomic">⤢</span><figcaption>Nyx-Systemkarte · Delamar &amp; Glaciem Ring</figcaption></figure>
-        <figure data-lb="img:/assets/img-levski.jpg"><img src="/assets/img-levski.jpg" alt="Levski, der Freihafen im Asteroiden Delamar" loading="lazy"><span class="zoomic">⤢</span><figcaption>Levski · Reccos Heimathafen</figcaption></figure>
-        <figure data-lb="img:/assets/t-align-2.jpg"><img src="/assets/t-align-2.jpg" alt="Mining-Laser bei der Arbeit in einer Höhle" loading="lazy"><span class="zoomic">⤢</span><figcaption>Mining an der Frontier</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/trailer-4-9-0.jpg"><img src="/assets/trailer-4-9-0.jpg" alt="Basher-raj alacsonyan a sivatagi dűnék felett, port kavarva" loading="lazy"><span class="zoomic">⤢</span><figcaption>Basher-raj a dűnék felett</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/img-nyx.jpg"><img src="/assets/img-nyx.jpg" alt="A Nyx-rendszer csillagtérképe a Delamarral és a Glaciem Ringgel" loading="lazy"><span class="zoomic">⤢</span><figcaption>Nyx rendszertérkép · Delamar &amp; Glaciem Ring</figcaption></figure>
+        <figure data-lb="img:/assets/img-levski.jpg"><img src="/assets/img-levski.jpg" alt="Levski, a szabadkikötő a Delamar aszteroidában" loading="lazy"><span class="zoomic">⤢</span><figcaption>Levski · Recco otthoni kikötője</figcaption></figure>
+        <figure data-lb="img:/assets/t-align-2.jpg"><img src="/assets/t-align-2.jpg" alt="Bányászlézer munka közben egy barlangban" loading="lazy"><span class="zoomic">⤢</span><figcaption>Bányászat a határvidéken</figcaption></figure>
       </div>
     </div>
   </section>
@@ -370,11 +370,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 <footer>
   <nav class="pager" aria-label="Patch-navigáció">
     <a href="/hu/patches/sc-4-8-3.html"><span class="dir">← Régebbi</span><span class="ttl">4.8.3 · XenoThreat</span></a>
-    <span class="next disabled"><span class="dir">Újabb →</span><span class="ttl">Aktuellster Patch</span></span>
+    <span class="next disabled"><span class="dir">Újabb →</span><span class="ttl">A legfrissebb patch</span></span>
   </nav>
   <div class="foot-meta">
     <a class="home-link" href="/hu/archiv.html">⌂ Összes patch</a>
-    <span>Quellen: RSI Patch Notes &amp; Comm-Links · starcitizen.tools · YouTube</span>
+    <span>Források: RSI patch-jegyzetek &amp; Comm-Linkek · starcitizen.tools · YouTube</span>
   </div>
   <p class="disclaimer">Nem hivatalos rajongói projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. — nincs kapcsolata a CIG-gel. A trailerek, állóképek &amp; hajó-/rendszerképek hivatalos, illetve közösségi forrásokból származnak (© Cloud Imperium Games), rajongói felhasználásban.</p>
 </footer>
