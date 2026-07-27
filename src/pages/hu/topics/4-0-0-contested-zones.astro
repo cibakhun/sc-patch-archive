@@ -7,7 +7,7 @@ import Attribution from '../../../components/Attribution.astro';
 import OnepagerLink from '../../../components/OnepagerLink.astro';
 import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 ---
-<Layout title={"Contested Zones — Star Citizen 4.0.0 | VerseBase"} description={"Contested Zones: die ersten PvPvE-Hochrisiko-Beutezonen des Verse, tief in Pyros Anlagen — eingeführt mit Alpha 4.0.0."} themeColor="#120f0c" ogType="article" ogImage="/assets/cz-facility.jpg" translated={true}>
+<Layout title={"Contested Zones — Star Citizen 4.0.0 | VerseBase"} description={"Contested Zones: a Verse első PvPvE nagy kockázatú zsákmányzónái, mélyen a Pyro üzemeiben — az Alpha 4.0.0-val bevezetve."} themeColor="#120f0c" ogType="article" ogImage="/assets/cz-facility.jpg" translated={true}>
 <TopicSeo slug="4-0-0-contested-zones" image="/assets/cz-facility.jpg" />
 <link slot="head" rel="stylesheet" href="/assets/detail.css" />
 <style is:inline>
@@ -28,10 +28,10 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 /* page-local accents */
 .hero h1{font-size:clamp(3.4rem,14vw,11rem)}
 .lede-kx{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}</style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Ugrás a tartalomra</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/hu/archiv.html' }, { label: 'Alpha 4.0.0', href: '/hu/patches/sc-4-0-0.html' }, { label: "Contested Zones" }]} translated={true} />
+<SiteNav crumbs={[{ label: 'Archívum', href: '/hu/archiv.html' }, { label: 'Alpha 4.0.0', href: '/hu/patches/sc-4-0-0.html' }, { label: "Contested Zones" }]} translated={true} />
 
 
 <main id="main">
@@ -42,19 +42,19 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
       <div class="eyebrow"><a href="/hu/patches/sc-4-0-0.html">Alpha 4.0.0 · Destination Pyro</a> &nbsp;·&nbsp; Feature</div>
-      <h1><span class="thin">Pyros Hochrisiko-Beutezonen</span>Contested Zones</h1>
-      <p class="lead">Abgeriegelte Areale tief in Pyros Anlagen, in denen KI-Fraktionen, rivalisierende Spieler und das beste Loot des Verse aufeinandertreffen — und nur überlebt, wer wieder rauskommt.</p>
-      <div class="tags"><span class="tag hot">PvPvE</span><span class="tag">On-Foot / FPS</span><span class="tag">High-Tier Loot</span><span class="tag">Extraktion</span><span class="tag">Keine Sicherheitszone</span></div>
-      <div class="hero__play" data-lb="yt:DE3ePRgpUQo"><span class="pbtn">▶</span>Trailer ansehen</div>
+      <h1><span class="thin">A Pyro nagy kockázatú zsákmányzónái</span>Contested Zones</h1>
+      <p class="lead">Lezárt területek mélyen a Pyro üzemeiben, ahol MI-frakciók, rivális játékosok és a Verse legjobb lootja találkozik — és csak az éli túl, aki ki is jut.</p>
+      <div class="tags"><span class="tag hot">PvPvE</span><span class="tag">On-Foot / FPS</span><span class="tag">High-Tier Loot</span><span class="tag">Kimenekítés</span><span class="tag">Nincs biztonsági zóna</span></div>
+      <div class="hero__play" data-lb="yt:DE3ePRgpUQo"><span class="pbtn">▶</span>Trailer megtekintése</div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
   </section>
 
   <!-- MARQUEE -->
   <div class="dmarquee" aria-hidden="true">
     <div class="dmtrack">
-      <span>PVPVE</span><span class="dot">◆</span><span>EXTRAKTION</span><span class="dot">◆</span><span>KEIN GESETZ</span><span class="dot">◆</span><span>HIGH-TIER LOOT</span><span class="dot">◆</span><span>KI-WACHEN</span><span class="dot">◆</span><span>TOD = LOOT WEG</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span>
-      <span>PVPVE</span><span class="dot">◆</span><span>EXTRAKTION</span><span class="dot">◆</span><span>KEIN GESETZ</span><span class="dot">◆</span><span>HIGH-TIER LOOT</span><span class="dot">◆</span><span>KI-WACHEN</span><span class="dot">◆</span><span>TOD = LOOT WEG</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span>
+      <span>PVPVE</span><span class="dot">◆</span><span>KIMENEKÍTÉS</span><span class="dot">◆</span><span>NINCS TÖRVÉNY</span><span class="dot">◆</span><span>HIGH-TIER LOOT</span><span class="dot">◆</span><span>MI-ŐRÖK</span><span class="dot">◆</span><span>HALÁL = ODA A LOOT</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span>
+      <span>PVPVE</span><span class="dot">◆</span><span>KIMENEKÍTÉS</span><span class="dot">◆</span><span>NINCS TÖRVÉNY</span><span class="dot">◆</span><span>HIGH-TIER LOOT</span><span class="dot">◆</span><span>MI-ŐRÖK</span><span class="dot">◆</span><span>HALÁL = ODA A LOOT</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span>
     </div>
   </div>
 
@@ -63,10 +63,10 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 
   <!-- STAT STRIP (animated counters) -->
   <div class="statstrip reveal">
-    <div class="s"><div class="n count" data-to="6">0</div><div class="c">Ruinierte Welten · Pyro</div></div>
-    <div class="s"><div class="n count" data-to="500">0</div><div class="c">Spieler pro Shard</div></div>
-    <div class="s"><div class="n count" data-to="0">0</div><div class="c">Sicherheitszonen</div></div>
-    <div class="s"><div class="n">PvPvE</div><div class="c">Endgame-Premiere im PU</div></div>
+    <div class="s"><div class="n count" data-to="6">0</div><div class="c">Romba dőlt világ · Pyro</div></div>
+    <div class="s"><div class="n count" data-to="500">0</div><div class="c">Játékos shardonként</div></div>
+    <div class="s"><div class="n count" data-to="0">0</div><div class="c">Biztonsági zóna</div></div>
+    <div class="s"><div class="n">PvPvE</div><div class="c">Endgame-bemutatkozás a PU-ban</div></div>
   </div>
 
   <!-- OVERVIEW as SPLIT -->
@@ -74,10 +74,10 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
     <div class="split reveal">
       <div class="split__media"><div class="m" style="background-image:url('/assets/cz-combat.jpg')"></div></div>
       <div class="split__text">
-        <div class="kx">01 · Überblick</div>
-        <h3>Die erste echte PvPvE-Beutezone</h3>
-        <p>Mit dem Sprung nach Pyro brachte Alpha 4.0.0 die <b>Contested Zones</b> — versiegelte Areale innerhalb bestimmter Pyro-Standorte, in denen sich die wertvollste Beute des Spiels findet. Keine Sicherheitszone, keine Garantien.</p>
-        <p>Wer eintritt, kämpft sich zu Fuß gegen KI-Fraktionen vor und teilt sich den Raum mit jedem anderen Spieler, der dasselbe will. Es ist die erste richtige <b>PvPvE-Endgame-Aktivität</b> im persistenten Universum — gebaut für genau die gesetzlose Stimmung, die Pyro definiert.</p>
+        <div class="kx">01 · Áttekintés</div>
+        <h3>Az első igazi PvPvE zsákmányzóna</h3>
+        <p>A Pyróba tett ugrással az Alpha 4.0.0 elhozta a <b>Contested Zones</b> zónákat — lezárt területeket bizonyos pyrói helyszíneken belül, ahol a játék legértékesebb zsákmánya hever. Nincs biztonsági zóna, nincsenek garanciák.</p>
+        <p>Aki belép, gyalog verekszi át magát az MI-frakciókon, és osztozik a téren minden más játékossal, aki ugyanezt akarja. Ez az első igazi <b>PvPvE endgame-tevékenység</b> a perzisztens univerzumban — pontosan arra a törvényen kívüli hangulatra építve, amely a Pyrót meghatározza.</p>
       </div>
     </div>
   </section>
@@ -86,15 +86,15 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
   <section class="band" style="padding-top:0">
     <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-pyro-4.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">Pyro kennt kein Gesetz</div>
-      <div class="big outline">KEIN NETZ.</div>
-      <p>Selbst der Trupp, mit dem du eingedrungen bist, kann sich für das Loot gegen dich wenden. Die brüchige Waffenruhe hält nur, solange die Taschen leer sind — kurz vor dem Ausgang, wenn alle voll beladen sind, zerbricht sie zuerst.</p>
+      <div class="kx">A Pyro nem ismer törvényt</div>
+      <div class="big outline">NINCS HÁLÓ.</div>
+      <p>Még az a csapat is ellened fordulhat a lootért, amellyel behatoltál. A törékeny fegyvernyugvás csak addig tart, amíg üresek a zsebek — a kijárat előtt, amikor már mindenki tele van pakolva, ott reped el elsőként.</p>
     </div>
   </section>
 
   <!-- SCROLLYTELLING: So läuft ein Run -->
   <section style="padding-bottom:0">
-    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>So läuft ein Run</h2><span class="rule"></span></div></div>
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>Így zajlik egy run</h2><span class="rule"></span></div></div>
   </section>
   <div class="scrolly">
     <div class="scrolly__media" aria-hidden="true">
@@ -104,10 +104,10 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
       <div class="frame" style="background-image:url('/assets/cz-ruin.jpg')"></div>
     </div>
     <div class="scrolly__steps">
-      <div class="sstep"><div class="sn">01</div><h3>Eindringen</h3><p>Lande an einem Pyro-Standort mit Contested Zone und betritt das gesicherte Areal zu Fuß — ab hier bist du auf dich gestellt.</p></div>
-      <div class="sstep"><div class="sn">02</div><h3>Durchkämpfen</h3><p>Schalte feindliche KI-Wachen aus und arbeite dich tiefer zu den verschlossenen Loot-Räumen vor — während andere Spieler dasselbe versuchen.</p></div>
-      <div class="sstep"><div class="sn">03</div><h3>Loot sichern</h3><p>Plündere hochwertige Waffen, Rüstung, Schiffskomponenten und Wertgüter aus den Depots — je tiefer, desto besser.</p></div>
-      <div class="sstep"><div class="sn">04</div><h3>Lebend raus</h3><p>Bring die Beute zurück zum Schiff und fliehe. Stirbst du in der Zone, ist alles, was du trägst, verloren.</p></div>
+      <div class="sstep"><div class="sn">01</div><h3>Behatolás</h3><p>Szállj le egy Contested Zone-nal rendelkező pyrói helyszínen, és lépj be gyalog a biztosított területre — innentől magadra vagy utalva.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Átverekedés</h3><p>Iktasd ki az ellenséges MI-őröket, és haladj egyre mélyebbre a lezárt loot-termek felé — miközben más játékosok ugyanezzel próbálkoznak.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>A loot bebiztosítása</h3><p>Fossz ki értékes fegyvereket, páncélt, hajókomponenseket és értékárut a raktárakból — minél mélyebbre jutsz, annál jobb.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Kijutni élve</h3><p>Vidd vissza a zsákmányt a hajóhoz, és menekülj. Ha a zónában halsz meg, minden elveszik, amit viszel.</p></div>
     </div>
   </div>
 
@@ -115,22 +115,22 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
   <section style="padding:0">
     <div class="versus reveal">
       <div class="side a">
-        <h3>⚠ Risiko</h3>
+        <h3>⚠ Kockázat</h3>
         <ul>
-          <li>Schwer bewaffnete Outlaw-Gang-Wachen verteidigen jedes Depot bis zum letzten Mann.</li>
-          <li>Kein Bett, kein Med-Bay in der Zone — wer fällt, hat keinen schnellen Respawn vor Ort.</li>
-          <li>Tod bedeutet Verlust der gesamten getragenen Beute an deine Mörder.</li>
-          <li>PvPvE-Sozialgefüge: Wackelige Waffenruhen zerbrechen, ein scheinbarer Verbündeter wird zum Verräter.</li>
+          <li>Nehézfegyverzetű bandaőrök az utolsó emberig védik a raktárakat.</li>
+          <li>Nincs ágy, nincs orvosi részleg a zónában — aki elesik, nem éled újra a helyszínen.</li>
+          <li>A halál a nálad lévő teljes zsákmány elvesztését jelenti — a gyilkosaid viszik el.</li>
+          <li>PvPvE-viszonyok: az ingatag fegyvernyugvás elpattan, a látszólagos szövetségesből áruló lesz.</li>
         </ul>
       </div>
       <div class="vs">VS</div>
       <div class="side b">
-        <h3>★ Belohnung</h3>
+        <h3>★ Jutalom</h3>
         <ul>
-          <li>High-Tier-Schiffskomponenten für deine eigene Flotte.</li>
-          <li>Hochwertige FPS-Waffen und Rüstung aus den verschlossenen Räumen.</li>
-          <li>Wertvolle Handels- und Schmuggelgüter zum Weiterverkauf.</li>
-          <li>Je tiefer du in die Zone vordringst, desto wertvoller das Loot.</li>
+          <li>Felső kategóriás hajókomponensek a saját flottádnak.</li>
+          <li>Értékes FPS-fegyverek és páncél a lezárt termekből.</li>
+          <li>Értékes kereskedelmi és csempészáru továbbértékesítésre.</li>
+          <li>Minél mélyebbre hatolsz a zónában, annál értékesebb a loot.</li>
         </ul>
       </div>
     </div>
@@ -140,15 +140,15 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
   <section class="band">
     <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-ruin-1.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">03 · Wo in Pyro?</div>
+      <div class="kx">03 · Hol a Pyróban?</div>
       <div class="big outline" style="font-size:clamp(2.4rem,7vw,5.5rem)">RUIN STATION</div>
-      <p>Contested Zones sitzen in ausgewählten Pyro-Standorten — von Outlaw-Gangs gehaltene Industrie- und Versorgungsanlagen, die als Beutezone versiegelt sind. Typische Schauplätze sind verfallene Bergbau- und Raffinerie-Plattformen sowie aufgegebene Versorgungs- und Lagerdepots, in denen die wertvollste Beute eingeschlossen liegt. Pyros sechs Planeten, sein Asteroidenfeld und Stationen wie <b style="color:var(--accent-2)">Ruin Station</b>, eine ehemalige Gold-Horizon-Bergbauplattform, bilden die gesetzlose Kulisse.</p>
+      <p>A Contested Zones kiválasztott pyrói helyszíneken ül — bandák kezén lévő ipari és ellátóüzemekben, amelyeket zsákmányzónaként zártak le. Tipikus helyszínek a düledező bányász- és finomítóplatformok, valamint az elhagyott ellátó- és raktárdepók, amelyekben a legértékesebb zsákmány be van zárva. A Pyro hat bolygója, aszteroidamezője és olyan állomások, mint a <b style="color:var(--accent-2)">Ruin Station</b> — egy egykori Gold Horizon bányászplatform — adják a törvényen kívüli díszletet.</p>
     </div>
   </section>
 
   <!-- MANIFESTO -->
   <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
-    <blockquote>Plünderst du <span class="hl">das beste Loot des Verse</span> — oder wirst du selbst zur Beute?</blockquote>
+    <blockquote>Te fosztod ki <span class="hl">a Verse legjobb lootját</span> — vagy magad válsz zsákmánnyá?</blockquote>
     <cite>Contested Zones · Pyro</cite>
   </section>
 
@@ -157,21 +157,21 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">04</span><h2>Media</h2><span class="rule"></span></div>
       <div class="gallery reveal">
-        <figure class="gtile full b2" data-lb="img:/assets/t-pyro-3.jpg"><img src="/assets/t-pyro-3.jpg" alt="Zerborstener, glühender Mond mit Trümmerfeld in Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Zerborstener Mond · Pyro</figcaption></figure>
-        <figure class="gtile w2" data-lb="img:/assets/cz-facility.jpg"><img src="/assets/cz-facility.jpg" alt="Contested Zone — Anlage von innen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Anlageninneres</figcaption></figure>
+        <figure class="gtile full b2" data-lb="img:/assets/t-pyro-3.jpg"><img src="/assets/t-pyro-3.jpg" alt="Széthasadt, izzó hold törmelékmezővel a Pyróban" loading="lazy"><span class="zoomic">⤢</span><figcaption>Széthasadt hold · Pyro</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/cz-facility.jpg"><img src="/assets/cz-facility.jpg" alt="Contested Zone — az üzem belülről" loading="lazy"><span class="zoomic">⤢</span><figcaption>Az üzem belseje</figcaption></figure>
         <figure class="gtile" data-lb="img:/assets/cz-loot.jpg"><img src="/assets/cz-loot.jpg" alt="High-Tier Loot" loading="lazy"><span class="zoomic">⤢</span><figcaption>High-Tier Loot</figcaption></figure>
-        <figure class="gtile" data-lb="img:/assets/t-pyro-7.jpg"><img src="/assets/t-pyro-7.jpg" alt="Patch City — Outlaw-Station in Pyros Asteroidenfeld" loading="lazy"><span class="zoomic">⤢</span><figcaption>Patch City · Outlaw-Hafen</figcaption></figure>
-        <figure class="gtile w2" data-lb="img:/assets/t-ruin-1.jpg"><img src="/assets/t-ruin-1.jpg" alt="Ruin Station vor dem Planeten Terminus" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruin Station · Terminus</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-pyro-7.jpg"><img src="/assets/t-pyro-7.jpg" alt="Patch City — bandaállomás a Pyro aszteroidamezőjében" loading="lazy"><span class="zoomic">⤢</span><figcaption>Patch City · bandakikötő</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-ruin-1.jpg"><img src="/assets/t-ruin-1.jpg" alt="Ruin Station a Terminus bolygó előtt" loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruin Station · Terminus</figcaption></figure>
       </div>
-      <div class="video reveal" data-yt="DE3ePRgpUQo" style="background-image:url('/assets/trailer-4-0-0.jpg')"><span class="vlbl">Destination Pyro — Trailer</span><button class="play" aria-label="Trailer abspielen">▶</button></div>
-      <p class="src reveal">Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=DE3ePRgpUQo" target="_blank" rel="noopener">Auf YouTube ansehen ↗</a></p>
+      <div class="video reveal" data-yt="DE3ePRgpUQo" style="background-image:url('/assets/trailer-4-0-0.jpg')"><span class="vlbl">Destination Pyro — Trailer</span><button class="play" aria-label="Trailer lejátszása">▶</button></div>
+      <p class="src reveal">Forrás: hivatalos Star Citizen YouTube-csatorna &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=DE3ePRgpUQo" target="_blank" rel="noopener">Megtekintés a YouTube-on ↗</a></p>
     </div>
   </section>
 
   <OnepagerLink
     href="/onepager/contested-zones/index.html"
-    title="Contested Zones — Visueller Guide"
-    note="Eigenständiger Onepager: Station-Karte, Keycards & Loot-Items im Überblick."
+    title="Contested Zones — vizuális útmutató"
+    note="Önálló onepager: állomástérkép, kulcskártyák és loot-tárgyak áttekintve."
   />
 
 </main>
@@ -180,7 +180,7 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 
 <Attribution />
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Bezárás">✕</button><div class="lb__content"></div></div></div>
 
 <script is:inline src="/assets/detail.js"></script>
 </Layout>
