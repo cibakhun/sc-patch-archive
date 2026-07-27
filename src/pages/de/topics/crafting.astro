@@ -82,5 +82,5 @@ const patchHref = `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html`;
 <RelatedTopics topicSlug="crafting" />
 <Attribution sources={["sc-craft.tools", "RSI"]} updated={snap} />
 
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>

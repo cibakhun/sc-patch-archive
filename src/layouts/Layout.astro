@@ -192,7 +192,7 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
       keine IP-Übertragung an Dritte beim Seitenaufruf (DSGVO). */}
   <link rel="preload" href="/assets/fonts/orbitron-700-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/barlow-400-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <link href="/assets/fonts.css" rel="stylesheet" />
+  <link href={versioned('assets/fonts.css', '/assets/fonts.css')} rel="stylesheet" />
   {/* Farbfundament für beide Modi. Muss VOR dem Seiten-CSS stehen: die
       hellen Paletten der Seiten liegen in deren inline-<style> und sollen
       diese Rückfallwerte über die Quellreihenfolge schlagen. */}

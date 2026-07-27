@@ -390,7 +390,7 @@ const t = useTranslations(lang);
   </main>
 
   <Attribution />
-  <script is:inline src="/assets/detail.js"></script>
+  <script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>
 
 {/* KEIN is:inline: gebuendelt in den <head> statt hinter den Inhalt (FOUC).

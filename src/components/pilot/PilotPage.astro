@@ -332,7 +332,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 
 <script type="application/json" id="ppCopyData" set:html={jsonSafe(COPY)}></script>
 <script type="application/json" id="ppShipData" set:html={jsonSafe(SHIPS)}></script>
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 
 <style is:global>
   /* ---------- Skeleton ---------- */

@@ -5,6 +5,7 @@ import QuickFacts from '../../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
+import { versioned } from '../../../lib/assetVersion';
 
 const entry = await getEntry('patches', '4-4-0');
 if (!entry) throw new Error('Patch-Daten 4-4-0 fehlen in src/data/patches/');
@@ -185,7 +186,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <!-- HERO -->
   <section class="hero">
     <div class="hero__photo" data-bgvid="/assets/loops/loop-nyx.mp4" aria-hidden="true"></div>
-    <script is:inline src="/assets/hero-video.js"></script>
+    <script is:inline src={versioned('assets/hero-video.js', '/assets/hero-video.js')}></script>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
       <div class="eyebrow">19. November 2025 · Major Release</div>
@@ -327,6 +328,6 @@ function tick(){x.clearRect(0,0,w,h);for(const s of st){s.a+=s.s;const o=.25+Mat
 size();addEventListener('resize',size);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)tick();})();
 
 </script>
-<link rel="stylesheet" href="/assets/a11y.css" />
-<script is:inline src="/assets/a11y.js"></script>
+<link rel="stylesheet" href={versioned('assets/a11y.css', '/assets/a11y.css')} />
+<script is:inline src={versioned('assets/a11y.js', '/assets/a11y.js')}></script>
 </Layout>

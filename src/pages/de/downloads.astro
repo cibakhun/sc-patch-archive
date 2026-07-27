@@ -375,7 +375,7 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
 
   <Attribution sources={['starcitizen.tools', 'RSI']} />
 
-  <script is:inline src="/assets/detail.js"></script>
+  <script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
   <script is:inline>
     (function () {
       var q = document.getElementById('dlq');

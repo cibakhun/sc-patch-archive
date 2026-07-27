@@ -3,8 +3,11 @@
 // Layout (noindex; hosts serve dist/404.html for unknown routes).
 //
 // EINE Datei für die ganze Seite: nginx liefert /404.html für JEDE unbekannte
-// Route aus, auch unter /de/. Sprache = Englisch, weil Englisch die
-// Standardsprache ist (vorher lag Deutsch auf der Wurzel, darum war sie deutsch).
+// Route aus, auch unter /de/. Eine eigene /de/404.html waere wirkungslos, weil
+// der Server sie nie ausliefert — deshalb traegt DIESE Seite beide Sprachen
+// und entscheidet am Pfad. Ohne JavaScript bleibt Englisch stehen (die
+// Standardsprache der Site), mit JavaScript wechselt sie unter /de/ auf
+// Deutsch und zieht lang + Titel + Heimweg-Link mit.
 import Layout from '../layouts/Layout.astro';
 ---
 <Layout
@@ -35,9 +38,24 @@ p{max-width:52ch;color:var(--muted);font-size:clamp(1rem,1.6vw,1.15rem)}
 .home:hover{transform:translateY(-2px);box-shadow:0 0 46px rgba(45,212,255,.6)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px}</style>
 
-<div class="kicker">Error 404 · Jump point failed</div>
+<div class="kicker" data-en="Error 404 · Jump point failed" data-de="Fehler 404 · Sprungpunkt fehlgeschlagen">Error 404 · Jump point failed</div>
 <div class="code">404</div>
-<h1>Lost in the Verse</h1>
-<p>These coordinates don't exist in the archive — maybe an old link, a typo, or a jump into the void.</p>
-<a class="home" href="/index.html">⌂ Back to VerseBase</a>
+<h1 data-en="Lost in the Verse" data-de="Verloren im Verse">Lost in the Verse</h1>
+<p data-en="These coordinates don't exist in the archive — maybe an old link, a typo, or a jump into the void."
+   data-de="Diese Koordinaten gibt es im Archiv nicht — vielleicht ein alter Link, ein Tippfehler oder ein Sprung ins Leere.">These coordinates don't exist in the archive — maybe an old link, a typo, or a jump into the void.</p>
+<a class="home" href="/index.html" data-en="⌂ Back to VerseBase" data-de="⌂ Zurück zu VerseBase">⌂ Back to VerseBase</a>
+
+<script is:inline>
+  // nginx liefert diese Datei auch fuer /de/-Routen aus; die URL im Browser
+  // bleibt dabei die angefragte. Daran haengt die Sprachwahl.
+  (function () {
+    if (location.pathname.indexOf('/de/') !== 0) return;
+    document.documentElement.lang = 'de';
+    document.title = '404 — Verloren im Verse | VerseBase';
+    var home = document.querySelector('.home');
+    if (home) home.setAttribute('href', '/de/index.html');
+    var els = document.querySelectorAll('[data-de]');
+    for (var i = 0; i < els.length; i++) els[i].textContent = els[i].getAttribute('data-de');
+  })();
+</script>
 </Layout>

@@ -138,15 +138,18 @@ const S = {
 
 // -- Strings, die das Client-JS braucht (window.__PJUMP.t) --
 const JS_T = {
-  monitor: lang === 'de' ? 'Beobachte' : 'Monitor',
-  increasing: lang === 'de' ? 'STEIGT' : 'INCREASING',
-  decreasing: lang === 'de' ? 'FÄLLT' : 'DECREASING',
+  // Menschensprache statt HUD-Kostuem: Versalien-Marken und Woerter wie
+  // "Monitor"/"Diagnostic" lasen sich wie Telemetrie, sagten aber weniger
+  // als ein normaler Satz.
+  monitor: lang === 'de' ? 'Im Spiel ablesen:' : 'Read in game:',
+  increasing: lang === 'de' ? 'steigt' : 'rising',
+  decreasing: lang === 'de' ? 'fällt' : 'falling',
   triggerSubUp: lang === 'de'
-    ? 'Diagnose-Koordinate in Metern · QT abbrechen, wenn der Wert von unten den Auslöser erreicht'
-    : 'Diagnostic coordinate in metres · cancel QT as the value rises to the trigger',
+    ? 'Diese Koordinate zeigt das Debug-Overlay (r_DisplayInfo 1) in Metern. Antrieb abschalten, sobald der Wert von unten hier ankommt.'
+    : 'The debug overlay (r_DisplayInfo 1) shows this coordinate in metres. Cut the drive as the value rises to it.',
   triggerSubDown: lang === 'de'
-    ? 'Diagnose-Koordinate in Metern · QT abbrechen, wenn der Wert von oben den Auslöser erreicht'
-    : 'Diagnostic coordinate in metres · cancel QT as the value falls to the trigger',
+    ? 'Diese Koordinate zeigt das Debug-Overlay (r_DisplayInfo 1) in Metern. Antrieb abschalten, sobald der Wert von oben hier ankommt.'
+    : 'The debug overlay (r_DisplayInfo 1) shows this coordinate in metres. Cut the drive as the value falls to it.',
   solved: lang === 'de' ? 'Route gelöst — Spitzendichte-Kreuzung gefunden' : 'Route solved — peak-density crossing found',
   crossing: lang === 'de' ? 'Kreuzung %n%' : 'Crossing %n%',
   noCrossTitle: lang === 'de' ? 'Keine Kreuzung auf dieser Route' : 'No crossing on this route',
@@ -172,14 +175,17 @@ const JS_T = {
   cSensSub: lang === 'de' ? '|ΔX| %x% km · |ΔY| %y% km' : '|ΔX| %x% km · |ΔY| %y% km',
   cWidth: lang === 'de' ? 'Bandbreite' : 'Band width',
   cWidthSub: lang === 'de' ? 'Spanne: %i% km innen / %o% km außen' : 'Margin: %i% km inward / %o% km outward',
-  confHigh: lang === 'de' ? 'HOCH' : 'HIGH',
-  confMod: lang === 'de' ? 'MITTEL' : 'MODERATE',
-  confLow: lang === 'de' ? 'TANGENTEN-EMPFINDLICH' : 'TANGENT-SENSITIVE',
-  planeSafe: lang === 'de' ? 'EBENE SICHER' : 'PLANE SAFE',
-  planeMarg: lang === 'de' ? 'EBENE KNAPP' : 'PLANE MARGINAL',
-  planeOut: lang === 'de' ? 'AUSSERHALB DER EBENE' : 'OUTSIDE NOMINAL PLANE',
-  coordsTitle: lang === 'de' ? 'Erwartete Ausstiegs-Koordinaten — Stanton, Meter' : 'Expected dropout coordinates — Stanton global metres',
-  winTitle: lang === 'de' ? 'Bandfenster auf der Beobachtungsachse' : 'Band window on the monitored axis',
+  // Zustandsmarken in Satzschreibung: Versalien nehmen Woertern die Ober-
+  // und Unterlaengen, an denen wir sie erkennen. Gewicht und Farbe tragen
+  // die Dringlichkeit, nicht Grossbuchstaben.
+  confHigh: lang === 'de' ? 'Hoch' : 'High',
+  confMod: lang === 'de' ? 'Mittel' : 'Moderate',
+  confLow: lang === 'de' ? 'Tangenten-empfindlich' : 'Tangent-sensitive',
+  planeSafe: lang === 'de' ? 'In der Ebene' : 'In plane',
+  planeMarg: lang === 'de' ? 'Ebene knapp' : 'Plane marginal',
+  planeOut: lang === 'de' ? 'Außerhalb der Ebene' : 'Outside the plane',
+  coordsTitle: lang === 'de' ? 'Erwarteter Ausstiegspunkt — Stanton, Meter' : 'Expected dropout point — Stanton global metres',
+  winTitle: lang === 'de' ? 'Bandfenster auf der abgelesenen Achse' : 'Band window on the axis you read',
   // Beschriftung der verschmolzenen Zeichnung. Ohne diese vier Zeilen ist
   // das Diagramm ein Strich ueber grauen Streifen: die Achsen sagen, was
   // aufgetragen ist, die Serie benennt die Linie, cutHere sagt, was die

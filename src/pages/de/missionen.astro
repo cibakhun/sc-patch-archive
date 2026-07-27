@@ -37,5 +37,5 @@ import { versioned } from '../../lib/assetVersion';
     <MissionsApp lang="de" />
   </main>
   <Attribution />
-  <script is:inline src="/assets/detail.js"></script>
+  <script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>
