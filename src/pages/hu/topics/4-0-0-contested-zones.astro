@@ -4,7 +4,6 @@ import SiteNav from '../../../components/SiteNav.astro';
 import TopicFacts from '../../../components/TopicFacts.astro';
 import RelatedTopics from '../../../components/RelatedTopics.astro';
 import Attribution from '../../../components/Attribution.astro';
-import OnepagerLink from '../../../components/OnepagerLink.astro';
 import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 ---
 <Layout title={"Contested Zones — Star Citizen 4.0.0 | VerseBase"} description={"Contested Zones: a Verse első PvPvE nagy kockázatú zsákmányzónái, mélyen a Pyro üzemeiben — az Alpha 4.0.0-val bevezetve."} themeColor="#120f0c" ogType="article" ogImage="/assets/cz-facility.jpg" translated={true}>
@@ -168,11 +167,8 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
     </div>
   </section>
 
-  <OnepagerLink
-    href="/onepager/contested-zones/index.html"
-    title="Contested Zones — vizuális útmutató"
-    note="Önálló onepager: állomástérkép, kulcskártyák és loot-tárgyak áttekintve."
-  />
+  {/* Kein OnepagerLink: den Onepager gibt es nur auf Deutsch — die EN-Seite
+      laesst ihn aus demselben Grund weg. */}
 
 </main>
 

@@ -4,7 +4,6 @@ import SiteNav from '../../../components/SiteNav.astro';
 import TopicFacts from '../../../components/TopicFacts.astro';
 import RelatedTopics from '../../../components/RelatedTopics.astro';
 import Attribution from '../../../components/Attribution.astro';
-import OnepagerLink from '../../../components/OnepagerLink.astro';
 import TopicSeo from '../../../components/dossier/TopicSeo.astro';
 ---
 <Layout title={"Storm Breaker — Star Citizen 4.2.0 | VerseBase"} description={"Storm Breaker: az Alpha 4.2.0-val az időjárás halálos veszéllyé válik — a dinamikus eső, a repülési turbulencia és a vadonatúj sugárzásveszély Stantont és Pyrót a túlélés színterévé változtatja."} themeColor="#16142a" ogType="article" ogImage="/assets/t-storm-3.jpg" translated={true}>
@@ -168,11 +167,8 @@ import TopicSeo from '../../../components/dossier/TopicSeo.astro';
     </div>
   </section>
 
-  <OnepagerLink
-    href="/onepager/storm-breaker/index.html"
-    title="Storm Breaker — vizuális útmutató"
-    note="Önálló onepager: Farro- és Lazarus-térképek, időjárási események és loot áttekintve."
-  />
+  {/* Kein OnepagerLink: den Onepager gibt es nur auf Deutsch — die EN-Seite
+      laesst ihn aus demselben Grund weg. */}
 
 </main>
 
