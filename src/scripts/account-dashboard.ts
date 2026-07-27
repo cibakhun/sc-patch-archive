@@ -8,7 +8,11 @@ import { supabase, FAV_PATH } from '../lib/supabase';
   const dash = document.getElementById('dash');
   if (dash) {
     const D = (dash as HTMLElement).dataset;
-    const lang = D.lang === 'de' ? 'de' : 'en';
+        // Seitensprache unverändert übernehmen (nicht mehr auf de/en zusammenfalten
+    // — sonst bekäme eine dritte Sprache stillschweigend englische Texte UND
+    // englische Links). Der Pfad-Präfix kommt separat aus data-prefix.
+    const lang = (D.lang || 'en') as 'de' | 'en' | 'hu';
+    const prefix = D.prefix || '';
     const loadingEl = document.getElementById('dashLoading')!;
     const KINDS: Record<string, string> = JSON.parse(D.kinds || '{}');
 
@@ -25,7 +29,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
     const favPath = (kind: string, slug: string) => {
       const tpl = FAV_PATH[kind] || '/index.html';
       const p = tpl.replace('%s', encodeURIComponent(slug).replace(/%2F/gi, '/'));
-      return lang === 'de' ? '/de' + p : p;
+      return prefix + p;
     };
 
     const show = (el: HTMLElement, msg: string, ok = false) => {
@@ -1062,7 +1066,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           pvPublicRow.hidden = !pubHandle;
           pvPublicNoHandle.hidden = !!pubHandle;
           if (pubHandle) {
-            const publicPath = (lang === 'de' ? '/de/pilot/' : '/pilot/') + pubHandle;
+            const publicPath = prefix + '/pilot/' + pubHandle;
             pvPublicLink.href = publicPath;
             pvPublicLink.textContent = publicPath;
           }

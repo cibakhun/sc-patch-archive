@@ -6,11 +6,17 @@ import pricesSnapshot from '../data/vehicle-prices.json';
 import extrasSnapshot from '../data/ship-extras.json';
 import videosSnapshot from '../data/ship-videos.json';
 import { pickThumb, pickHero } from './shipRenders';
-import { useTranslations, type Locale, type UIKey, DEFAULT_LOCALE } from '../i18n/ui';
+import {
+  useTranslations,
+  NUMBER_LOCALE,
+  type Locale,
+  type UIKey,
+  DEFAULT_LOCALE,
+} from '../i18n/ui';
 import { vType } from '../i18n/vehicleText';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
-const numLoc = (lang: Locale) => (lang === 'en' ? 'en-US' : 'de-DE');
+const numLoc = (lang: Locale) => NUMBER_LOCALE[lang];
 
 export type PricePlace = { price: number; shop: string; where: string; system: string };
 export type ShipPrices = { buy: PricePlace[]; rent: PricePlace[] } | null;

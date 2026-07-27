@@ -20,28 +20,51 @@ import {
   blueprintPath, blueprints, craftCategories, craftCategoryPath, craftDb, craftHubPath, craftPageCount,
 } from './crafting';
 
+/** hreflang-Code -> absolute URL. Enthaelt immer alle vorhandenen Sprachen. */
+export type Alt = Record<string, string>;
+
 export interface Entry {
   loc: string;
   mod?: string;
-  alt?: { de: string; en: string };
+  alt?: Alt;
 }
 
 export const BASE = SITE.url.replace(/\/$/, '');
 
-/** DE-Pendant eines EN-Pfads (spiegelt i18n/pathForLocale, ohne Import-Zyklus). */
-export function toDe(enUrl: string): string {
-  return enUrl === '/index.html' ? '/de.html' : '/de' + enUrl;
+/**
+ * Pfad-Praefixe der uebersetzten Sprachen — Spiegel von i18n/ui#LOCALE_PREFIX
+ * (EN ist Standardsprache und praefixlos). Bewusst dupliziert: sitemap.xml.ts
+ * meidet den Import von i18n/ui (Zyklus ueber astro:content).
+ */
+export const TRANSLATED = [
+  { lang: 'de', prefix: '/de' },
+  { lang: 'hu', prefix: '/hu' },
+] as const;
+
+/** Pendant eines EN-Pfads in einer uebersetzten Sprache (spiegelt pathForLocale). */
+export function toLang(enUrl: string, prefix: string): string {
+  return enUrl === '/index.html' ? `${prefix}.html` : prefix + enUrl;
 }
+
+/** Rueckwaerts-kompatibler Kurzname fuer das DE-Pendant. */
+export const toDe = (enUrl: string): string => toLang(enUrl, '/de');
 
 /** '/index.html' -> '/': die Startseite traegt canonical '/'. */
 const abs = (p: string) => BASE + (p === '/index.html' ? '/' : p);
 
-/** EN-Seite + DE-Pendant als verknuepftes Paar. */
+/** hreflang-Karte eines EN-Pfads ueber ALLE Sprachen. */
+function altFor(en: string): Alt {
+  const alt: Alt = { en };
+  for (const { lang, prefix } of TRANSLATED) alt[lang] = toLang(en, prefix);
+  return alt;
+}
+
+/** EN-Seite + alle uebersetzten Pendants als verknuepfte Gruppe. */
 function pair(en: string, mod?: string): Entry[] {
-  const alt = { de: toDe(en), en };
+  const alt = altFor(en);
   return [
     { loc: en, mod, alt },
-    { loc: alt.de, mod, alt },
+    ...TRANSLATED.map(({ lang }) => ({ loc: alt[lang], mod, alt })),
   ];
 }
 
@@ -57,7 +80,10 @@ function fileToUrl(file: string): string | null {
   const rel = file.replace(/^\.\.\/pages\//, '').replace(/\.astro$/, '');
   if (rel === '404') return null; // noindex, gehoert nicht in die Sitemap
   if (rel === 'index') return '/index.html'; // EN-Startseite (Standardsprache)
-  if (rel === 'de/index') return '/de.html'; // DE-Startseite (format:'file')
+  // Startseite einer uebersetzten Sprache: src/pages/de/index.astro -> /de.html
+  // (format:'file'), NICHT /de/index.html.
+  for (const { prefix } of TRANSLATED)
+    if (rel === `${prefix.slice(1)}/index`) return `${prefix}.html`;
   // Unterverzeichnis-Index: src/pages/items/index.astro -> Route /items -> /items.html
   const url = rel.endsWith('/index')
     ? '/' + rel.slice(0, -'/index'.length) + '.html'
@@ -94,12 +120,17 @@ export async function corePages(): Promise<Entry[]> {
     for (const t of p.data.topics) setMod(`/topics/${t.slug}.html`, p.data.date);
   }
 
+  // Seiten nach Sprache einsortieren: praefixlose gehoeren zur Standardsprache,
+  // alles unter /<praefix>/… (bzw. /<praefix>.html) zur jeweiligen Uebersetzung.
   const enUrls: string[] = [];
-  const deSet = new Set<string>();
+  const byLang = new Map<string, Set<string>>(TRANSLATED.map((t) => [t.lang, new Set<string>()]));
   for (const file of Object.keys(PAGE_FILES)) {
     const url = fileToUrl(file);
     if (!url) continue;
-    if (url === '/de.html' || url.startsWith('/de/')) deSet.add(url);
+    const owner = TRANSLATED.find(
+      ({ prefix }) => url === `${prefix}.html` || url.startsWith(`${prefix}/`)
+    );
+    if (owner) byLang.get(owner.lang)!.add(url);
     else enUrls.push(url);
   }
 
@@ -107,21 +138,32 @@ export async function corePages(): Promise<Entry[]> {
   const emitted = new Set<string>();
   for (const en of enUrls) {
     if (emitted.has(en)) continue;
-    const de = toDe(en);
-    const alt = deSet.has(de) ? { de, en } : undefined;
-    out.push({ loc: en, mod: lastmod.get(en), alt });
+    // hreflang nur fuer Sprachen, die diese Seite WIRKLICH haben — sonst
+    // bewirbt die Sitemap eine 404-URL.
+    const alt: Alt = { en };
+    for (const { lang, prefix } of TRANSLATED) {
+      const u = toLang(en, prefix);
+      if (byLang.get(lang)!.has(u)) alt[lang] = u;
+    }
+    const hasAlt = Object.keys(alt).length > 1;
+    out.push({ loc: en, mod: lastmod.get(en), alt: hasAlt ? alt : undefined });
     emitted.add(en);
-    if (alt && !emitted.has(de)) {
-      out.push({ loc: de, mod: lastmod.get(en), alt });
-      emitted.add(de);
+    if (!hasAlt) continue;
+    for (const { lang } of TRANSLATED) {
+      const u = alt[lang];
+      if (!u || emitted.has(u)) continue;
+      out.push({ loc: u, mod: lastmod.get(en), alt });
+      emitted.add(u);
     }
   }
-  // Etwaige DE-Seiten ohne EN-Pendant der Vollstaendigkeit halber allein listen.
-  for (const de of deSet) {
-    if (emitted.has(de)) continue;
-    out.push({ loc: de });
-    emitted.add(de);
-  }
+  // Etwaige uebersetzte Seiten ohne EN-Pendant der Vollstaendigkeit halber
+  // allein listen (ohne Alternates).
+  for (const urls of byLang.values())
+    for (const u of urls) {
+      if (emitted.has(u)) continue;
+      out.push({ loc: u });
+      emitted.add(u);
+    }
   return out;
 }
 
@@ -152,12 +194,16 @@ export function craftingDetailPages(): Entry[] {
 
 /* ---------- XML ---------- */
 
-const altXml = (a?: { de: string; en: string }) =>
-  a
-    ? `<xhtml:link rel="alternate" hreflang="de" href="${abs(a.de)}"/>` +
-      `<xhtml:link rel="alternate" hreflang="en" href="${abs(a.en)}"/>` +
-      `<xhtml:link rel="alternate" hreflang="x-default" href="${abs(a.en)}"/>`
-    : '';
+// Reihenfolge stabil halten (alphabetisch, x-default zuletzt) — sonst rauscht
+// jeder Build die Sitemap-Diffs voll.
+const altXml = (a?: Alt) => {
+  if (!a) return '';
+  const langs = Object.keys(a).sort();
+  return (
+    langs.map((l) => `<xhtml:link rel="alternate" hreflang="${l}" href="${abs(a[l])}"/>`).join('') +
+    (a.en ? `<xhtml:link rel="alternate" hreflang="x-default" href="${abs(a.en)}"/>` : '')
+  );
+};
 
 export function urlsetXml(entries: Entry[]): string {
   return (

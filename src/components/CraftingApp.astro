@@ -1,4 +1,5 @@
 ---
+import { pickLang } from '../i18n/ui';
 // CraftingApp.astro — funktionale Blueprint-Datenbank (SSR-Liste + Client-App).
 // Sprachneutrales Gerüst; UI-Chrome via `lang`, Game-Daten bleiben englisch.
 import { createHash } from 'node:crypto';
@@ -13,7 +14,7 @@ interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
 
 // -- i18n (App-spezifische Chrome-Strings) --
-const S = {
+const S = pickLang({
   de: {
     toolbarSearch: 'Suche: Blueprint oder Ressource…',
     filters: 'Filter', category: 'Kategorie', resource: 'Ressource', anyResource: 'Alle Ressourcen',
@@ -52,10 +53,10 @@ const S = {
     calcItemSearch: 'Search: item name…',
     calcDataIncomplete: 'Dismantling data incomplete — the material rarity markers are currently missing, so yields for rare ores may be shown too high. Please reload the page.',
   },
-}[lang];
+}, lang);
 
 // Strings, die das Client-JS braucht (window.__CRAFT.t)
-const JS_T = {
+const JS_T = pickLang({
   de: {
     craftTime: 'Craft-Zeit', tier: 'Tier', addPlan: 'Zum Planer', ingredients: 'Zutaten',
     minQ: 'min. Q', quality: 'Qualität', simOut: 'Simulierte Ausgabe-Werte',
@@ -120,7 +121,7 @@ const JS_T = {
     syncErr: 'Not saved',
     syncMerged: '{n} local entries moved into your account.',
   },
-}[lang];
+}, lang);
 
 // -- Kategorie-Baum aus den Daten --
 const tree: Record<string, Set<string>> = {};

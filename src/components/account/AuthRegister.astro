@@ -1,4 +1,5 @@
 ---
+import { pickLang } from '../../i18n/ui';
 // Registrierung — geteilt DE/EN. Läuft über die Edge Function „register"
 // (legt den User per Admin-API direkt bestätigt an), danach sofortiger Login.
 // Hintergrund: Der eingebaute Supabase-Mailer ist hart limitiert (2 Mails/h)
@@ -12,7 +13,7 @@ interface Props {
 }
 const { lang } = Astro.props;
 
-const COPY = {
+const COPY = pickLang({
   de: {
     name: 'Anzeigename', optional: '— optional', namePh: 'z. B. StarRunner',
     nameHint: 'Wird im Dashboard angezeigt. Später jederzeit änderbar.',
@@ -49,11 +50,11 @@ const COPY = {
     okLogin: 'Account created! Signing you in …',
     toLogin: 'Already have an account? Sign in',
   },
-}[lang];
+}, lang);
 
 const loginHref = href('/account/login.html', lang);
 const dashboardHref = href('/account.html', lang);
-const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datenschutz.html#accounts';
+const privacyHref = href('/datenschutz.html#accounts', lang);
 ---
 
 <div class="acx-card reveal">

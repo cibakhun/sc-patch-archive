@@ -1,4 +1,5 @@
 ---
+import { pickLang } from '../../i18n/ui';
 // Login-Form — geteilt DE/EN (Muster FeedbackForm). Behandelt außerdem:
 //  - #access_token im Fragment (Bestätigungs-Link): supabase-js übernimmt die
 //    Session automatisch -> direkter Sprung ins Dashboard
@@ -11,7 +12,7 @@ interface Props {
 }
 const { lang } = Astro.props;
 
-const COPY = {
+const COPY = pickLang({
   de: {
     email: 'E-Mail', emailPh: 'du@beispiel.de',
     pass: 'Passwort', passPh: 'Dein Passwort',
@@ -36,7 +37,7 @@ const COPY = {
     toRegister: 'New here? Create an account',
     toReset: 'Forgot your password?',
   },
-}[lang];
+}, lang);
 
 const dashboardHref = href('/account.html', lang);
 const registerHref = href('/account/register.html', lang);

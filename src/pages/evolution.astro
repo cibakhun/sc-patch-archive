@@ -7,11 +7,11 @@
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
-import { mergePatchEn } from '../i18n/patchText';
+import { mergePatch } from '../i18n/patchText';
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
-).map((p) => ({ ...p, data: mergePatchEn(p.id, p.data, 'en') }));
+).map((p) => ({ ...p, data: mergePatch(p.id, p.data, 'en') }));
 
 // rows: systems ordered by how often they were touched
 const counts = new Map<string, number>();
@@ -59,7 +59,7 @@ a{color:inherit;text-decoration:none}
 ::selection{background:var(--accent);color:var(--ink)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}</style>
 
-<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Evolution' }]} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Evolution' }]} translated={true} />
 
 <main class="evo">
   <header class="evo__head">

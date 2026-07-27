@@ -1,7 +1,8 @@
 ---
-// Sprachumschalter (DE | EN). Rein Build-Zeit, kein JS/Cookie: jede Sprach-
-// option verlinkt via pathForLocale() auf DIESELBE Seite in der anderen
+// Sprachumschalter (DE | EN | HU). Rein Build-Zeit, kein JS/Cookie: jede
+// Sprachoption verlinkt via pathForLocale() auf DIESELBE Seite in der anderen
 // Sprache — bleibt also auf der aktuellen Seite und wechselt nur die Sprache.
+// Die Liste kommt aus LOCALES; eine weitere Sprache erscheint hier von selbst.
 // Palette-agnostisch (nutzt die --accent/--line/--text-Variablen der Seite).
 import {
   LOCALES,
@@ -9,28 +10,29 @@ import {
   LOCALE_LABEL,
   localeFromPath,
   pathForLocale,
+  href,
   useTranslations,
   type Locale,
 } from '../i18n/ui';
 
 interface Props {
   /**
-   * Existiert für DIESE Seite ein EN-Gegenstück? DE ist komplett -> von EN
-   * nach DE klappt immer; von DE nach EN nur, wo die Seite schon übersetzt ist.
-   * Ohne Gegenstück zeigt die EN-Option auf die EN-Startseite statt ins 404.
+   * Existieren für DIESE Seite die übersetzten Gegenstücke? Alle redaktionellen
+   * Seiten sind vollständig dreisprachig, also true. Steht es auf false (Seite
+   * nur in einer Sprache vorhanden), zeigen die anderen Sprachoptionen auf ihre
+   * jeweilige Startseite statt ins 404.
    */
-  hasEn?: boolean;
+  translated?: boolean;
 }
-const { hasEn = false } = Astro.props;
+const { translated = false } = Astro.props;
 
 const current = Astro.url.pathname;
 const lang = localeFromPath(current);
 const t = useTranslations(lang);
 
 function targetFor(l: Locale): string {
-  // nur relevant auf Seiten, die (noch) kein EN-Pendant haben -> EN-Startseite
-  // (liegt seit dem Sprach-Tausch präfixlos auf der Wurzel)
-  if (l === 'en' && !hasEn) return '/index.html';
+  // Ohne Übersetzung dieser Seite: Startseite der Zielsprache statt 404.
+  if (!translated) return href('/index.html', l);
   return pathForLocale(current, l);
 }
 ---
@@ -75,24 +77,25 @@ function targetFor(l: Locale): string {
   }
   /* Auf schmalen Schirmen ist der Umschalter aus der Kopfleiste ausgeblendet
      und steht NUR noch im Menü-Fuß — dort war die anklickbare Fläche 18x23 px.
-     Statt den Kasten optisch aufzublähen bekommen beide Sprachkürzel eine
-     unsichtbare 44-px-Fläche; das Erscheinungsbild bleibt identisch. */
+     Früher lag darüber ein unsichtbares 44-px-Pseudoelement. Das ging auf,
+     solange nur EINE Option ein Link war (die aktive Sprache ist ein <span>
+     ohne ::after). Bei drei Sprachen sind ZWEI Optionen Links, und zwei
+     44 px breite Flächen im Abstand von ~24 px überlappen — die vordere hätte
+     die hintere verdeckt. Darum jetzt echtes Padding: die Fläche ist die des
+     Elements selbst, kann also grundsätzlich nicht mit der Nachbarfläche
+     kollidieren. Im Menü-Fuß ist der Platz dafür da. */
   @media (max-width: 860px) {
+    .langsw {
+      gap: 0;
+    }
     .langsw__opt,
     .langsw__cur {
-      position: relative;
-      display: inline-block;
-      line-height: 1;
-    }
-    .langsw__opt::after {
-      content: '';
-      position: absolute;
-      left: 50%;
-      top: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       min-width: 44px;
-      width: 100%;
-      height: 44px;
-      transform: translate(-50%, -50%);
+      min-height: 44px;
+      line-height: 1;
     }
   }
   .langsw__sep {

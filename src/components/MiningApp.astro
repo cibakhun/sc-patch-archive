@@ -1,4 +1,5 @@
 ---
+import { pickLang } from '../i18n/ui';
 // MiningApp.astro — funktionale Mineral-Datenbank (SSR-Grid + Client-App).
 // Sprachneutrales Gerüst; UI-Chrome via `lang`, Game-Daten bleiben englisch.
 import DB from '../../assets/mining-db.json';
@@ -9,7 +10,7 @@ interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
 
 // -- i18n (SSR-Chrome) --
-const S = {
+const S = pickLang({
   de: {
     toolbarSearch: 'Suche: Mineral oder Fundort…',
     filters: 'Filter', system: 'System', method: 'Methode', type: 'Typ',
@@ -32,10 +33,10 @@ const S = {
     locBtn: 'Locations', methShip: 'Ship mining', methHand: 'Hand / ROC',
     refine: 'refinable', gem: 'gem', nLocs: 'locations',
   },
-}[lang];
+}, lang);
 
 // Strings fürs Client-JS (window.__MINE.t)
-const JS_T = {
+const JS_T = pickLang({
   de: {
     kind: 'Typ', method: 'Methode', scu: 'SCU-Gewicht', systems: 'Systeme', rarity: 'Seltenheit',
     locations: 'Fundorte', abundance: 'bis', ofRock: 'Erz-Anteil',
@@ -66,7 +67,7 @@ const JS_T = {
     craftUseOne: 'Used in 1 blueprint',
     craftUseAs: 'in recipes as: {name}',
   },
-}[lang];
+}, lang);
 
 // -- SSR-Kartenmodell --
 // Seltenheits-Rang für Sortierung + Chip-Farbe (Hand/ROC ohne Rarity ans Ende).

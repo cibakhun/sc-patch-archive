@@ -5,11 +5,11 @@ import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
-import { mergePatchEn } from '../../i18n/patchText';
+import { mergePatch } from '../../i18n/patchText';
 
 const entry = await getEntry('patches', '4-8-2');
 if (!entry) throw new Error('Patch-Daten 4-8-2 fehlen in src/data/patches/');
-const patch = mergePatchEn('4-8-2', entry.data, 'en');
+const patch = mergePatch('4-8-2', entry.data, 'en');
 ---
 <Layout title={"Star Citizen Alpha 4.8.2 — Gatac & Alien Week | VerseBase"} description={"Alpha 4.8.2: Two Gatac ships and Alien Week 2956 around First Contact Day."} themeColor="#0c0a16" ogType="article" ogImage="/assets/img-railen.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/img-railen.jpg" lang="en" />
@@ -179,7 +179,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 <a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.8.2' }]} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.8.2' }]} translated={true} />
 
 
 <main id="main">

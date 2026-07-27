@@ -5,7 +5,7 @@
 // Stufe 2: locale-aware — Labels über t(), Freitext über vehicleText-Resolver,
 // Zahlenformat pro Locale. `key` erlaubt sprachunabhängiges Filtern.
 import type { CollectionEntry } from 'astro:content';
-import { useTranslations, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
+import { useTranslations, NUMBER_LOCALE, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
 import { vType, vSize, vStatus, vFoci, vTurret } from '../i18n/vehicleText';
 import { resolveGuns } from './weaponSizes';
 
@@ -13,7 +13,7 @@ type VehicleData = CollectionEntry<'vehicles'>['data'];
 export type Fact = { label: string; value: string; key?: string };
 export type FactGroup = { title: string; facts: Fact[] };
 
-const numLoc = (lang: Locale) => (lang === 'en' ? 'en-US' : 'de-DE');
+const numLoc = (lang: Locale) => NUMBER_LOCALE[lang];
 
 const num = (x: number | null, loc: string, unit = ''): string =>
   x != null

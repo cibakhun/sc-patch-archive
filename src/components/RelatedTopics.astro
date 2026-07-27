@@ -4,7 +4,7 @@
 // Plain cards, palette-aware, no motion (data register, not cinema).
 import { getCollection } from 'astro:content';
 import { useTranslations, href, localeFromPath } from '../i18n/ui';
-import { mergePatchEn } from '../i18n/patchText';
+import { mergePatch } from '../i18n/patchText';
 
 interface Props {
   topicSlug: string;
@@ -17,7 +17,7 @@ const L = (p: string) => href(p, lang);
 
 const patches = await getCollection('patches');
 const parentEntry = patches.find((p) => p.data.topics.some((tp) => tp.slug === topicSlug));
-const parentData = parentEntry ? mergePatchEn(parentEntry.id, parentEntry.data, lang) : null;
+const parentData = parentEntry ? mergePatch(parentEntry.id, parentEntry.data, lang) : null;
 const siblings = parentData ? parentData.topics.filter((tp) => tp.slug !== topicSlug) : [];
 // Evergreen-Tools (z. B. Mining) sind vom Patch entkoppelt — kein "Mehr aus
 // Alpha X" mit Patch-Geschwistern, das hier nur Fehlbezüge (z. B. zu Tactical

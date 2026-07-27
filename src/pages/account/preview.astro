@@ -781,7 +781,11 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 
 <a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
-<SiteNav crumbs={[{ label: 'Account' }]} hasEn={true} />
+{/* Diese Vorschau existiert NUR auf Englisch (kein /de/- oder /hu/-Pendant).
+    Mit translated={true} zeigte der Sprachumschalter auf
+    /de/account/preview.html bzw. /hu/… — beides 404. Auf false fallen die
+    Sprachoptionen auf die jeweilige Startseite zurück. */}
+<SiteNav crumbs={[{ label: 'Account' }]} translated={false} />
 
 <main id="main">
   <div class="dsr">

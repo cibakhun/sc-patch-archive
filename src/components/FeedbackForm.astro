@@ -1,4 +1,5 @@
 ---
+import { pickLang } from '../i18n/ui';
 // Geteilte Feedback-Form — die EINE Quelle für Markup, Style und Verhalten des
 // Formulars (analog ItemFinderApp/MiningApp/CraftingApp). DE- und EN-Seite sind
 // dünne Wrapper, die nur Hero + Copy tragen und <FeedbackForm lang="…" /> mounten.
@@ -14,7 +15,7 @@ interface Props {
 const { lang } = Astro.props;
 
 // Seiten-spezifische Copy (kein wiederkehrender Chrome -> lokal, nicht im UI-Katalog).
-const COPY = {
+const COPY = pickLang({
   de: {
     rate: 'Bewertung', optional: '— optional', clear: 'zurücksetzen',
     star: (n: number) => `${n} ${n === 1 ? 'Stern' : 'Sterne'}`,
@@ -53,7 +54,7 @@ const COPY = {
     errNet: 'Network error — could not send. Please try again later or e-mail krysx141@gmail.com.',
     ratingField: 'Rating',
   },
-}[lang];
+}, lang);
 
 const stars = [1, 2, 3, 4, 5];
 ---

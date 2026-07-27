@@ -1,0 +1,180 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import TopicFacts from '../../../components/TopicFacts.astro';
+import RelatedTopics from '../../../components/RelatedTopics.astro';
+import Attribution from '../../../components/Attribution.astro';
+import TopicSeo from '../../../components/dossier/TopicSeo.astro';
+---
+<Layout title={"Vanduul — Star Citizen 4.4.0 | VerseBase"} description={"Vanduulok: agresszív, pengeformájú idegenek, akik az Alpha 4.4.0-val először lépnek be MI-ellenségként a perzisztens univerzumba — a Stinger, a Glaive, a Scythe és a Blade járőrözik a Nyxben, és figyelmeztetés nélkül támad."} themeColor="#0c1020" ogType="article" ogImage="/assets/t-vanduul-3.jpg" translated={true}>
+<TopicSeo slug="4-4-0-vanduul" image="/assets/t-vanduul-3.jpg" />
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+:root{--bg:#0c1020;--bg-2:#121a30;--surface:#16203a;--surface-2:#1d2949;--accent:#7fb2d9;--accent-2:#d4af37;--hot:#c0271f;--text:#e6edfb;--muted:#93a4c4;--line:rgba(127,178,217,.22);--line-soft:rgba(230,237,251,.10);--glow:0 0 44px rgba(127,178,217,.30);--ink:#0c1020;--maxw:1180px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f5f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1a1f29;--muted:#4e586c;--accent:#246089;--accent-2:#685301;--hot:#9e0004;--ink:#ffffff;--accent-media:#7fb2d9;--accent-2-media:#d4af37;--line:rgba(61,119,162,.3);--line-soft:rgba(41,46,56,.12);--glow:0 6px 22px rgba(61,119,162,.18)}
+
+
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.lede-kx{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}</style>
+<a class="skip" href="#main">Ugrás a tartalomra</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archívum', href: '/hu/archiv.html' }, { label: 'Alpha 4.4.0', href: '/hu/patches/sc-4-4-0.html' }, { label: "Vanduul" }]} translated={true} />
+
+
+<main id="main">
+
+  <!-- HERO (full-bleed, kinetic) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-vanduul-3.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/hu/patches/sc-4-4-0.html">Alpha 4.4.0 · Welcome to Nyx</a> &nbsp;·&nbsp; Gegner</div>
+      <h1><span class="thin">Az első idegen fenyegetés a PU-ban</span>Vanduulok</h1>
+      <p class="lead">Agresszív, pengeformájú idegenek, akik a 4.4.0-val először lépnek be MI-ellenségként a perzisztens univerzumba — a Stinger, a Glaive, a Scythe és a Blade járőrözik a Nyxben, és figyelmeztetés nélkül támad.</p>
+      <div class="tags"><span class="tag hot">Alien</span><span class="tag">KI-Gegner</span><span class="tag">Nyx</span><span class="tag">Operation Sworn Enemies</span><span class="tag hot">Feindlich</span></div>
+      <div class="hero__play" data-lb="yt:ilDmGyHLQNg"><span class="pbtn">▶</span>Trailer ansehen</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>VANDUUL</span><span class="dot">◆</span><span>SCYTHE</span><span class="dot">◆</span><span>GLAIVE</span><span class="dot">◆</span><span>BLADE</span><span class="dot">◆</span><span>STINGER</span><span class="dot">◆</span><span>NYX</span><span class="dot">◆</span><span>OPERATION SWORN ENEMIES</span><span class="dot">◆</span>
+      <span>VANDUUL</span><span class="dot">◆</span><span>SCYTHE</span><span class="dot">◆</span><span>GLAIVE</span><span class="dot">◆</span><span>BLADE</span><span class="dot">◆</span><span>STINGER</span><span class="dot">◆</span><span>NYX</span><span class="dot">◆</span><span>OPERATION SWORN ENEMIES</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-4-0-vanduul" />
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="4">0</div><div class="c">KI-Schiffstypen · Stinger · Glaive · Scythe · Blade</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">Neues System · Nyx</div></div>
+    <div class="s"><div class="n count" data-to="0">0</div><div class="c">Figyelmeztetés a támadás előtt</div></div>
+    <div class="s"><div class="n">ERZFEIND</div><div class="c">Premiere im persistenten Universum</div></div>
+  </div>
+
+  <!-- FULL-BLEED BAND #1 (parallax, big overlaid text) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/img-vanduul.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">Egy ősellenség visszatér</div>
+      <div class="big outline">KLINGEN AM HIMMEL</div>
+      <p>A vanduulok agresszív idegen faj, pengeformájú hajókkal — az emberiség évtizedes ősellensége a vanduul háborúból. Az Alpha 4.4.0-val lépnek be először a perzisztens univerzumba.</p>
+    </div>
+  </section>
+
+  <!-- OVERVIEW as full-bleed BAND #2 (no card) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-vanduul-4.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">01 · Erstmals im PU</div>
+      <div class="big" style="font-size:clamp(2.4rem,8vw,6rem)">KI-FRAKTION</div>
+      <p>Ami eddig háttérlore volt, az a 4.4.0-val akut veszéllyé válik: a vanduulok először jelennek meg önálló <b style="color:var(--accent-2)">MI-ellenségfrakcióként</b> a perzisztens univerzumban. A pilótáik nem gondolnak tárgyalásra — vadásznak.</p>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: Operation Sworn Enemies -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>Operation Sworn Enemies</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/trailer-4-4-0.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/cz-ruin.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-vanduul-7.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-vanduul-2.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Megbízás a Nyxben</h3><p>Az Operation Sworn Enemies nyomozási küldetés az újonnan megnyílt Nyx rendszerbe vezet — oda, ahol a vanduulok járőröznek.</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>Elhagyott állomások</h3><p>A nyom elhagyott állomásokra vezet, ahol veszélyes vanduul technológiára utaló jelek maradtak hátra.</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>A technológia nyomában</h3><p>Összegyűjtöd és dokumentálod, amit a vanduulok hátrahagytak — és darabról darabra közelebb kerülsz az ősellenség lényegéhez.</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>Figyelmeztetés nélkül</h3><p>A vanduulok viszont nem tűrnek behatolókat: MI-pilótáik figyelmeztetés nélkül támadnak — a megbízás bármelyik pillanatban tűzharccá válhat.</p></div>
+    </div>
+  </div>
+
+  <!-- VERSUS: Menschheit vs Vanduul (full-bleed dual pane) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⚠ Vanduul</h3>
+        <ul>
+          <li>Aggressive Alien-Spezies, jahrzehntelanger Erzfeind.</li>
+          <li>Klingenförmige Schiffe, von KI-Piloten geflogen.</li>
+          <li>Járőröznek a Nyxben, és figyelmeztetés nélkül támadnak.</li>
+          <li>Négy MI-hajótípus a Nyx felett: Stinger, Glaive, Scythe, Blade.</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side b">
+        <h3>★ Menschheit</h3>
+        <ul>
+          <li>A játékosok a Nyxben találkoznak először közvetlenül az idegenekkel.</li>
+          <li>Operation Sworn Enemies untersucht ihre Technologie.</li>
+          <li>Minden Nyxbe tett ugrás lesállássá válhat.</li>
+          <li>A vanduul háború mostantól a PU-ban zajlik.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPLIT: Die vier Schiffstypen (one framed/split section) -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-vanduul-6.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">03 · A pengeflotta</div>
+        <h3>Stinger · Glaive · Scythe · Blade</h3>
+        <p>A vanduulok MI-pilótái <b>négy hajótípust</b> repülnek. Mindegyik a faj összetéveszthetetlen penge-sziluettjét viseli — és mindegyik felbukkan a Nyx feletti járőrökben.</p>
+        <p>A könnyű <b>Stingertől</b> a <b>Glaive-en</b> és a <b>Scythe-on</b> át a <b>Blade-ig</b>: aki behatol a felségterületükre, pontosan ezzel a kötelékkel gyűlik meg a baja.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED BAND #3: NYX -->
+  <section class="band">
+    <div class="bbg" data-par="0.13" style="background-image:url('/assets/img-nyx.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">04 · Ihr Revier</div>
+      <div class="big outline" style="font-size:clamp(2.6rem,9vw,7rem)">NYX</div>
+      <p>Az újonnan megnyitott <b style="color:var(--accent-2)">Nyx rendszer</b> a vadászterületük. Itt járőröznek a vanduulok — és figyelmeztetés nélkül támadnak minden játékosra, aki keresztezi az útjukat.</p>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Nem tárgyalnak. Ők <span class="hl">vadásznak</span> — és a Nyx mostantól az övék.</blockquote>
+    <cite>Vanduul · Operation Sworn Enemies</cite>
+  </section>
+
+  <!-- MEDIA (mixed gallery + trailer) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">05</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-vanduul-3.jpg"><img src="/assets/t-vanduul-3.jpg" alt="Vanduul-Krieger im Nahkampf" loading="lazy"><span class="zoomic">⤢</span><figcaption>Klingen im Gefecht</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-vanduul-5.jpg"><img src="/assets/t-vanduul-5.jpg" alt="Vanduul — fejtanulmány" loading="lazy"><span class="zoomic">⤢</span><figcaption>Az ősellenség</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-vanduul-4.jpg"><img src="/assets/t-vanduul-4.jpg" alt="Vanduul fenyeget egy tisztet" loading="lazy"><span class="zoomic">⤢</span><figcaption>Szemtől szemben</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-vanduul-1.jpg"><img src="/assets/t-vanduul-1.jpg" alt="Vanduul vadászgép a Nyx felett" loading="lazy"><span class="zoomic">⤢</span><figcaption>Vadászok a Nyx felett</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="ilDmGyHLQNg" style="background-image:url('/assets/trailer-4-4-0.jpg')"><span class="vlbl">Welcome to Nyx — Trailer</span><button class="play" aria-label="Trailer abspielen">▶</button></div>
+      <p class="src reveal">Forrás: hivatalos Star Citizen YouTube-csatorna és Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=ilDmGyHLQNg" target="_blank" rel="noopener">Megtekintés a YouTube-on ↗</a></p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-4-0-vanduul" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

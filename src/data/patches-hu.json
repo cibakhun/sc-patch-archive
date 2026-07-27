@@ -1,0 +1,1472 @@
+{
+  "_note": "Ungarisches Overlay über src/data/patches/*.json (DEUTSCH ist die Quelle). Index-aligned: keyFacts/features/facts/ships/events/topics stehen in DERSELBEN Reihenfolge wie in der Quelldatei — i18n/patchText#mergePatch legt sie positionsweise darüber. Strukturfelder (version, codename, palette, trailer, kind, topicSlug, period, slug, unverified) stehen NUR in der Quelle. Fehlt hier ein Feld, bleibt Deutsch stehen (sichtbar, aber nie kaputt). Eigennamen (Fraktionen, Schiffe, Orte, Event-Titel) bleiben englisch — so heißen sie im Spiel.",
+  "patches": {
+    "4-0-0": {
+      "tagline": "Server Meshing és a törvényen kívüli Pyro rendszer.",
+      "summary": "Az elmúlt évek legnagyobb technikai előrelépése: a statikus Server Meshing először kapcsol össze több szervert egyetlen shardba, a Pyro második naprendszerként nyílik meg — Jump Pointon keresztül elérhetően —, a Contested Zones pedig PvPvE loot-területeket hoz a Pyro létesítményeinek mélyére.",
+      "dateDisplay": "2024. december 19.",
+      "keyFacts": [
+        { "label": "Server Meshing", "value": "≈10 szerver shardonként · akár 500 játékos (korábban ~100)" },
+        { "label": "Új naprendszer", "value": "Pyro — 6 planéta, Ruin Station, Rest Stopok" },
+        { "label": "Utazás a rendszerek között", "value": "Jump Point Stanton ↔ Pyro" },
+        { "label": "Contested Zones", "value": "PvPvE loot-zónák a Pyro létesítményeiben" },
+        { "label": "Wipe", "value": "Teljes wipe · +20 000 aUEC kezdőegyenleg" }
+      ],
+      "features": [
+        {
+          "name": "Statikus Server Meshing",
+          "system": "Szervertechnológia",
+          "desc": "Több szerver először alkot együtt egyetlen shardot, és zökkenőmentesen adják át egymásnak az objektumokat — a shardonkénti játékosszám a korábbi kb. 100-ról akár 500-ra nő.",
+          "facts": [
+            { "label": "Szerver shardonként", "value": "≈10" },
+            { "label": "Játékos shardonként", "value": "akár 500" }
+          ]
+        },
+        {
+          "name": "Pyro rendszer",
+          "system": "Naprendszerek",
+          "desc": "A második játszható naprendszer: törvényen kívüli, bandák uralják, biztonsági zónák nélkül. Hat planéta (köztük a Monox, a Bloom, a Terminus és a Pyro V gázóriás), valamint a Ruin Station, a Rest Stopok és aszteroidabázisok.",
+          "facts": [
+            { "label": "Planéták", "value": "6 — köztük Monox, Bloom, Terminus, Pyro V" },
+            { "label": "Állomások", "value": "Ruin Station · Rest Stopok · aszteroidabázisok" }
+          ]
+        },
+        {
+          "name": "Contested Zones",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Lezárt PvPvE területek a Pyro létesítményeinek mélyén: MI-frakciók, rivális játékosok és magas szintű loot — a zsákmányt csak az tarthatja meg, aki élve kijut."
+        },
+        {
+          "name": "Utazás Jump Pointon át",
+          "system": "Naprendszerek",
+          "desc": "Rendszerek közötti utazás a Stanton és a Pyro között az első aktív Jump Pointon keresztül."
+        }
+      ],
+      "ships": [
+        { "role": "Vadászgép", "status": "új" },
+        { "role": "Korvett", "status": "új a 4.0 ciklusban" }
+      ],
+      "events": [
+        {
+          "name": "Save Stanton — 1. fejezet",
+          "desc": "A Stanton megmentése körüli frakciónarratíva nyitánya; önálló élő esemény nélkül."
+        }
+      ],
+      "wipe": "Teljes wipe · +20 000 aUEC kezdőegyenleg",
+      "topics": [
+        { "title": "Server Meshing" },
+        { "title": "Pyro rendszer" },
+        { "title": "Contested Zones" }
+      ]
+    },
+    "4-0-1": {
+      "tagline": "Crash-javítások, entitás-streaming és a Save Stanton 2. fejezete végleges frakcióválasztással.",
+      "summary": "Pontkiadás a 4.0.0 megjelenése után, célzott javításokkal a leggyakoribb crashek és deadlockok ellen. Az Entity Density Manager a sűrűn lakott zónák memóriakezelését optimalizálja, a streaming-javítások pedig a liftek és a hangárok problémáira válaszolnak. A Save Stanton 2. fejezete (Fight for Pyro) végleges frakcióválasztást hoz — Citizens for Prosperity, Headhunters vagy Frontier Fighters —, a határidőn belüli teljesítésért Ripper SMG a jutalom.",
+      "dateDisplay": "2025. január 28.",
+      "keyFacts": [
+        { "label": "Crash-javítások", "value": "A 10 leggyakoribb kliens- és szerveroldali crash javítva" },
+        { "label": "Entity Density Manager", "value": "Optimalizált takarítási logika a sűrűn lakott zónákhoz" },
+        { "label": "Streaming-fejlesztések", "value": "Megbízhatóbban töltődő liftek, hangárok és belső terek" },
+        { "label": "Save Stanton 2. fejezet", "value": "Fight for Pyro: végleges frakcióválasztás (3 frakció)" },
+        { "label": "Ripper SMG", "value": "Exklúzív jutalom a 4.0.2 megjelenése előtt" }
+      ],
+      "features": [
+        {
+          "name": "Entity Density Manager",
+          "system": "Szervertechnológia",
+          "desc": "Az entitás-takarítási logika optimalizálása: az elhagyott objektumok és a felgyűlt játékobjektumok hatékonyabban tűnnek el, ami javítja a teljesítményt és a szerverstabilitást a sűrűn lakott zónákban.",
+          "facts": [{ "label": "Fókusz", "value": "Memóriakezelés és teljesítmény" }]
+        },
+        {
+          "name": "Streaming-javítások",
+          "system": "Szervertechnológia",
+          "desc": "A Persistent Entity Streaming fejlesztései: a liftek, a hangárok és a belső terek megbízhatóbban töltődnek be, kevesebb hiányzó geometriával és kevesebb megállással belépéskor.",
+          "facts": [{ "label": "Érintett terület", "value": "Liftek, hangárok, belső terek" }]
+        },
+        {
+          "name": "Fő crash- és deadlock-javítások",
+          "system": "Stabilitás és teljesítmény",
+          "desc": "A 4.0.1 stabilitási pontkiadás volt, célzott javításokkal a 4.0 indulásának leggyakoribb kliens- és szerveroldali crashei, különösen a deadlock-helyzetek ellen.",
+          "facts": [{ "label": "Érintett terület", "value": "A 10 leggyakoribb crash-forgatókönyv" }]
+        },
+        {
+          "name": "Save Stanton 2. fejezet: Fight for Pyro",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Dinamikus esemény végleges frakcióválasztással: az első küldetés után a játékos elkötelezi magát a Citizens for Prosperity, a Headhunters vagy a Frontier Fighters mellett. Ettől kezdve minden küldetés reputációhoz kötött. A 4.0.2 előtti teljesítés exklúzív Ripper SMG-t ad.",
+          "facts": [
+            { "label": "Frakciók", "value": "3 (Citizens for Prosperity, Headhunters, Frontier Fighters)" },
+            { "label": "Jellemző", "value": "Végleges választás — váltani nem lehet" },
+            { "label": "Helyszín", "value": "Pyro (törvényen kívüli rendszer)" },
+            { "label": "Exklúzív jutalom", "value": "Ripper SMG (csak a 4.0.2 előtt)" }
+          ]
+        }
+      ],
+      "ships": [{ "role": "Vadászgép", "status": "a 4.0 ciklusban" }],
+      "events": [
+        {
+          "name": "Fight for Pyro (Save Stanton 2. fejezet)",
+          "desc": "Dinamikus esemény végleges frakcióválasztással a Pyróban. A játékosok az első küldetés során a három frakció (Citizens for Prosperity, Headhunters, Frontier Fighters) egyikét választják, majd reputációhoz kötötten harcolnak a kampány végéig. A 4.0.2 megjelenése előtti teljesítésért Ripper SMG a jutalom."
+        }
+      ],
+      "fixesNote": "10 fő crash-javítás",
+      "topics": [{ "title": "Fight for Pyro" }]
+    },
+    "4-0-2": {
+      "tagline": "Ellátási háború a Pyróért: Citizens for Prosperity a Headhunters ellen.",
+      "summary": "A Supply or Die egyszeri PvPvE ellátási esemény volt a Pyróban, amelyben a játékosok két frakció közül választottak: Citizens for Prosperity (stabilizálás ipari javakkal és Detatrine-nel) vagy Headhunters (káosz és salvage-kalózkodás). Raktárcsatákkal, bányászattal és salvage-dzsel juttattak anyagot a háborús erőfeszítésbe, és ezzel döntötték el, ki uralja végül a törvényen kívüli rendszert.",
+      "dateDisplay": "2025. február 28.",
+      "keyFacts": [
+        { "label": "Szemben álló frakciók", "value": "Citizens for Prosperity vs. Headhunters" },
+        { "label": "Ellátási háború", "value": "PvPvE raktárcsaták a Pyro feletti uralomért" },
+        { "label": "Kulcserőforrás", "value": "Detatrine — a Citizens ritka vegyülete" },
+        { "label": "Küldetéstípusok", "value": "3 út: raktárcsaták, bányászat és feldolgozás, salvage" },
+        { "label": "A 2. szint fődíja", "value": "Ravager-212 Outcast duplasörétes" }
+      ],
+      "features": [
+        {
+          "name": "Supply or Die esemény",
+          "system": "Események",
+          "desc": "Egyszeri, történetvezérelt PvPvE ellátási esemény a Pyro raktáraiban. A játékosok frakciót választanak, és harccal, bányászattal, salvage-dzsel gyűjtenek anyagot — minden beszállítás mozdítja a háborús erőfeszítést.",
+          "facts": [
+            { "label": "Küldetéstípusok", "value": "Raktárcsaták (PvPvE), bányászat és feldolgozás, salvage" },
+            { "label": "Frakciók", "value": "2 szemben álló oldal ellentétes célokkal" }
+          ]
+        },
+        {
+          "name": "Frakciós utánpótlás-gazdaság",
+          "system": "Gazdaság és kereskedelem",
+          "desc": "Dinamikus beszállítási rendszer két rivális frakcióval: a Citizens for Prosperity ipari javakat és Detatrine-t gyűjt gyógyszerekhez; a Headhunters salvage-et és bányászati alapanyagot szerez, bármilyen áron.",
+          "facts": [
+            { "label": "Citizens for Prosperity", "value": "Ipari javak, Detatrine, gyógyszerek" },
+            { "label": "Headhunters", "value": "Salvage, bányászati erőforrások, harc és kalózkodás" }
+          ]
+        },
+        {
+          "name": "PvPvE raktárcsaták",
+          "system": "Harc és fegyverek",
+          "desc": "A játékosok a Pyro vitatott raktárainál MI-vel és rivális játékosokkal küzdenek a frakciójuk utánpótlásáért.",
+          "facts": [{ "label": "Raktárak", "value": "Vitatott Pyro-létesítmények PvPvE tűzharcokkal" }]
+        },
+        {
+          "name": "Ravager-212 Outcast sörétes",
+          "system": "Harc és fegyverek",
+          "desc": "Duplasörétes jutalomfegyver (esemény, 2. szint). Mellé Outcast festések a MISC Fortune-hoz, a Drake Vulture-höz és a MISC Prospectorhoz (3. szint).",
+          "facts": [
+            { "label": "Fegyvertípus", "value": "Duplasörétes (közeli harc)" },
+            { "label": "3. szint kozmetikák", "value": "Outcast festések a Fortune-hoz, a Vulture-höz, a Prospectorhoz" }
+          ]
+        }
+      ],
+      "ships": [],
+      "events": [
+        {
+          "name": "Supply or Die",
+          "desc": "Egyszeri PvPvE ellátási esemény: a játékosok a Citizens for Prosperity (a Pyro stabilizálása) és a Headhunters (káosz) között választottak. Raktárcsatákkal, bányászattal és salvage-dzsel szállítottak anyagot, ami mozdította a háborús erőfeszítést, és eldöntötte, ki uralja a törvényen kívüli rendszert."
+        }
+      ],
+      "topics": [{ "title": "Supply or Die" }]
+    },
+    "4-1-0": {
+      "tagline": "Orbitális Hathor-lézerek, aszteroidabányászat és új ütközésfizika.",
+      "summary": "Az „Align & Mine\" perzisztens tevékenység az Aberdeenen és a Daymaron: a játékosok beállítják a földi Hathor Alignment Facilityket, mire az Orbital Mining Station lézert lő, és vadonatúj, ásványban gazdag barlangokat nyit meg. Emellett a 4.1.0 átdolgozott ütközésfizikát (massza/sebesség), az Aegis Idrist játszható fregattként és az új Valakkar élővilágot hozza.",
+      "dateDisplay": "2025. március 27.",
+      "keyFacts": [
+        { "label": "Perzisztens tevékenység", "value": "Align & Mine · Aberdeen és Daymar" },
+        { "label": "Hathor-létesítmények", "value": "2 hold · egyenként 1 Orbital Mining Station" },
+        { "label": "Játszható hajók", "value": "Aegis Idris (fregatt) a birtokosoknak" },
+        { "label": "Hibajavítások", "value": "~130 dokumentált javítás" },
+        { "label": "Új élővilág", "value": "Fiatal Valakkar (földben járó féreglények)" }
+      ],
+      "features": [
+        {
+          "name": "Align & Mine",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Perzisztens, kooperatív sandbox-tevékenység: a játékosok beállítják a földi Hathor Alignment Facilityket az Aberdeenen és a Daymaron, mire az Orbital Mining Station lézert lő, és vadonatúj, ásványban gazdag barlangot nyit meg.",
+          "facts": [
+            { "label": "Holdak", "value": "Aberdeen és Daymar" },
+            { "label": "Orbital Mining Stationök", "value": "holdanként 1" },
+            { "label": "Többjátékos", "value": "perzisztens, kooperatív" }
+          ]
+        },
+        {
+          "name": "Átdolgozott ütközésfizika",
+          "system": "Repülési modell",
+          "desc": "Kibővített ütközésrendszer, amely nagyobb súlyt ad az érintett objektumok masszájának és sebességének, így valósághűbb a törés- és becsapódásviselkedés.",
+          "facts": [{ "label": "Paraméterek", "value": "Massza és sebesség alapján" }]
+        },
+        {
+          "name": "Aegis Idris (játszható)",
+          "system": "Hajórendszerek",
+          "desc": "Az Aegis Idris-M és az Idris-P a birtokosaik számára először válik teljesen játszhatóvá a Persistent Universe-ben.",
+          "facts": [
+            { "label": "Változatok", "value": "Idris-M és Idris-P" },
+            { "label": "Elérhetőség", "value": "hajóbirtokosoknak" }
+          ]
+        },
+        {
+          "name": "Fiatal Valakkar élővilág",
+          "system": "Naprendszerek",
+          "desc": "Új, földben járó féreglények néhány holdon; tartják a távolságot a játékosoktól, a talajban mozognak, és kőzettel dobálják meg a játékosokat.",
+          "facts": [
+            { "label": "Típus", "value": "földben járó féreglények" },
+            { "label": "Viselkedés", "value": "földi, ellenséges" }
+          ]
+        },
+        {
+          "name": "NPC-interakciók és arc-DNS",
+          "system": "Felület és kényelem",
+          "desc": "Új NPC-interakciós lehetőségek és kibővített, DNS-alapú arcgenerátorok a sokszínű NPC-karakterekhez.",
+          "facts": []
+        },
+        {
+          "name": "Arena Commander-pályák",
+          "system": "Harc és fegyverek",
+          "desc": "Új pályák az Arena Commanderhez.",
+          "facts": []
+        },
+        {
+          "name": "Küldetés-igazítás a Server Meshinghez",
+          "system": "Szervertechnológia",
+          "desc": "Számos küldetést átdolgoztak és hozzáigazítottak a statikus Server Meshinghez.",
+          "facts": []
+        },
+        {
+          "name": "Wikelo's Emporium",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Az Alpha 4.1 bevezeti Wikelót — a banu kereskedőt, a Star Citizen első játszható idegen NPC-jét. Az Emporiuma tisztán cserekereskedelemként működik, pénz nélkül: a játékosok szerződéseket vállalnak, a kért tárgyakat és anyagokat a teherlifthez szállítják, és cserébe Wikelo készletéből kapnak jutalmat. A fizetőeszköz a „Wikelo Favor\"-zseton, három stantoni aszteroidaállomásra szétosztva.",
+          "facts": [
+            { "label": "Faj", "value": "Banu (az első játszható idegen NPC)" },
+            { "label": "Alapelv", "value": "Cserekereskedelem · pénz nélkül" },
+            { "label": "Állomások", "value": "3 · Dasi, Selo, Kinga" },
+            { "label": "Fizetőeszköz", "value": "Wikelo Favor (zsetonok)" },
+            { "label": "Jutalmak", "value": "a 4.2.1 óta determinisztikusak" }
+          ]
+        }
+      ],
+      "ships": [{ "role": "Fregatt", "status": "játszható" }],
+      "events": [],
+      "fixesNote": "~130 hibajavítás",
+      "topics": [{ "title": "Align & Mine" }, { "title": "Wikelo's Emporium" }]
+    },
+    "4-1-1": {
+      "tagline": "Fegyverkiegyensúlyozás, hátrarúgás és a Fleet Week a Hunt The Polarisszal.",
+      "summary": "Fegyverrendszerekre koncentráló pontkiadás: az új hátrarúgás-rendszer látható visszahatást ad tüzelésnél, a lövegtornyok lőszerkapacitása érezhetően nőtt, és több mint 200 hibajavítás stabilizálta a játékot. A Hunt The Polaris, a 2955-es Fleet Week szerverszintű küldetése, az egész shardot közösen ereszti egy ellopott RSI Polaris nyomába — a zsákmányon mindenki osztozik.",
+      "dateDisplay": "2025. május 13.",
+      "keyFacts": [
+        { "label": "Hibajavítások", "value": ">200 javítás (61 az Issue Councilból)" },
+        { "label": "Lövegtorony-lőszer", "value": "Érezhetően megnövelve (Redeemer, Retaliator, Reclaimer, Carrack, Polaris, Hammerhead)" },
+        { "label": "Hátrarúgás-rendszer", "value": "Újonnan bevezetve, actor-alapú, skálázható/kikapcsolható" },
+        { "label": "Fleet Week 2955", "value": "Invictus-expó · szerverszintű küldetés: Hunt The Polaris" },
+        { "label": "Fegyverkiegyensúlyozás", "value": "Kiterjedt finomhangolás a hajó- és személyi fegyvereken" }
+      ],
+      "features": [
+        {
+          "name": "Hátrarúgás-rendszer (új)",
+          "system": "Harc és fegyverek",
+          "desc": "Újonnan bevezetett hátrarúgás-rendszer, actor-alapú hatásokkal a hajó- és járműfegyverek tüzelésénél. A hatások láthatók, skálázhatók és kikapcsolhatók — minden lövés kézzelfoghatóbb és kontrolláltabb.",
+          "facts": [
+            { "label": "Megvalósítás", "value": "Actor-alapú hátrarúgás-hatások" },
+            { "label": "Tulajdonságok", "value": "Látható, skálázható/kikapcsolható" }
+          ]
+        },
+        {
+          "name": "Megnövelt lövegtorony-lőszer",
+          "system": "Hajórendszerek",
+          "desc": "A lövegtornyok lőszerkapacitása érezhetően megnőtt. Különösen érintett hajók: Redeemer, Retaliator, Reclaimer, Carrack, Polaris és Hammerhead. Néhány egyedi tornyfegyvert nagyobb sebzésre is újrahangoltak.",
+          "facts": [
+            { "label": "Érintett hajók", "value": "Redeemer, Retaliator, Reclaimer, Carrack, Polaris, Hammerhead" },
+            { "label": "Hatás", "value": "Hosszabb folyamatos tűz újratöltés nélkül" }
+          ]
+        },
+        {
+          "name": "Fegyverkiegyensúlyozás",
+          "system": "Harc és fegyverek",
+          "desc": "Kiterjedt finomhangolás a hajó- és személyi fegyvereken: a sebzésértékeket, a hatótávolságokat és a tüzelési viselkedést újrakalibrálták, hogy a harc igazságosabbnak és következetesebbnek érződjön.",
+          "facts": [
+            { "label": "Érintett terület", "value": "Hajó- és személyi fegyverek" },
+            { "label": "Paraméterek", "value": "Sebzés, hatótávolság, tüzelési viselkedés" }
+          ]
+        },
+        {
+          "name": "Hunt The Polaris (esemény)",
+          "system": "Események",
+          "desc": "Szerverszintű küldetés a 2955-es Fleet Week alatt: a Frontier Fighters a flottaparádé közepén ellop egy RSI Polarist. Az egész szerver a Stantonon át üldözi az elhajtott korvettet egy tovatűnő féreglyukig, ahol a döntő csata lezajlik. A zsákmányon minden résztvevő osztozik.",
+          "facts": [
+            { "label": "Lopás", "value": "RSI Polaris, a Frontier Fighters által" },
+            { "label": "Üldözés", "value": "Az egész Stantonon át" },
+            { "label": "Finálé", "value": "Csata a tovatűnő féreglyuknál" },
+            { "label": "Jutalom", "value": "Minden résztvevő között elosztva" }
+          ]
+        },
+        {
+          "name": "Fleet Week 2955 (Invictus)",
+          "system": "Események",
+          "desc": "Az évenkénti flottaparádé és Invictus-expó, ahol az UEE legnagyobb hajói állnak egymás mellett. A Hunt The Polaris ebbe a díszletbe épül be — miközben a flottaparádé zajlik, a Frontier Fighters lecsap.",
+          "facts": [
+            { "label": "Kontextus", "value": "Évenkénti Fleet Week / Invictus-expó" },
+            { "label": "Lépték", "value": "Az UEE legnagyobb hajói" }
+          ]
+        }
+      ],
+      "ships": [],
+      "events": [
+        {
+          "name": "Hunt The Polaris",
+          "desc": "Szerverszintű küldetés: a Frontier Fighters a 2955-es Fleet Week alatt ellop egy RSI Polarist. Az egész szerver a Stantonon át üldözi az elhajtott korvettet a féreglyuknál zajló csatáig. A jutalmon mindenki osztozik."
+        },
+        {
+          "name": "Fleet Week 2955 (Invictus)",
+          "desc": "Az UEE évenkénti flottaparádéja és expója a legnagyobb hajókkal. A Hunt The Polaris ezen a háttéren játszódik."
+        }
+      ],
+      "fixesNote": ">200 hibajavítás (61 az Issue Councilból); kiegyensúlyozó és stabilitási pontkiadás",
+      "topics": [{ "title": "Hunt The Polaris" }]
+    },
+    "4-2-0": {
+      "tagline": "Perzisztens viharaktivitás, dinamikus eső és az új környezeti veszély: a sugárzás.",
+      "summary": "Az ég lesz az ellenség: az Alpha 4.2.0 dinamikus időjárást hoz a Stantonra és a Pyróra — a zápor rontja a látótávolságot, a turbulencia megrázza a repülési stabilitást, és egy vadonatúj környezeti veszély, a sugárzás alattomosan halmozódik fel az idővel. A címadó Storm Breaker küldetés a viharok szívébe küldi a játékosokat, ahol a halálos sugárterhelés ellen csak a CureLife DeconPen Xtra védelmet ad.",
+      "dateDisplay": "2025. június 19.",
+      "keyFacts": [
+        { "label": "Dinamikus időjárás", "value": "Zápor + turbulencia a Stantonon és a Pyrón" },
+        { "label": "Sugárzás", "value": "Új környezeti veszély — idővel halmozódik, védelem nélkül halálos" },
+        { "label": "Ellenszer", "value": "CureLife DeconPen Xtra (Canoiodide + Hemozal)" },
+        { "label": "Hiba- és crash-javítások", "value": "~190" },
+        { "label": "VTOL-mechanika", "value": "A lebegés és a függőleges leszállás viharban jóval nehezebb" }
+      ],
+      "features": [
+        {
+          "name": "Dinamikus eső és időjárás",
+          "system": "Repülési modell",
+          "desc": "A 4.2.0-val az időjárás a Stanton és a Pyro helyszínein aktív játékmechanikává válik: a dinamikus eső drasztikusan rontja a látótávolságot, a viharfrontok erős szelet és turbulenciát hoznak, ami csökkenti a repülési stabilitást, és megbizonytalanítja a precíziós megközelítéseket.",
+          "facts": [
+            { "label": "Érintett rendszerek", "value": "Stanton és Pyro" },
+            { "label": "Fő hatás", "value": "Csökkent látótávolság + repülési stabilitás ↓" }
+          ]
+        },
+        {
+          "name": "Sugárzás — új környezeti veszély",
+          "system": "Engineering",
+          "desc": "Vadonatúj és alattomos környezeti veszély: a sugárzás az érintett zónákban idővel felhalmozódik. Láthatatlan, és halálos, ha a terhelés eléri a maximumát. A zónából visszavonulva a sugárzás újra leépül — aki viszont túl sokáig vár, már veszített.",
+          "facts": [
+            { "label": "Jellemző", "value": "Csendben, idővel halmozódik" },
+            { "label": "Ellenszer", "value": "CureLife DeconPen Xtra" }
+          ]
+        },
+        {
+          "name": "Storm Breaker — perzisztens tevékenység",
+          "system": "Küldetések és tevékenységek",
+          "desc": "A címadó küldetés mélyen a viharokba vezeti a játékosokat — perzisztens tevékenység, amely a folyamatban lévő esőkrízis történetéhez kötődik. Aki beszáll a viharba, az az elemekkel keresi a harcot.",
+          "facts": [
+            { "label": "Tevékenységtípus", "value": "Perzisztens" },
+            { "label": "Narratíva", "value": "Esőkrízis-történet" }
+          ]
+        },
+        {
+          "name": "Turbulencia repülés közben",
+          "system": "Repülési modell",
+          "desc": "A viharok repülési turbulenciát keltenek, ami csökkenti a repülési stabilitást. Minden széllökés megtépi az irányt, és a VTOL-manőverek (lebegés és függőleges leszállás) különösen kényessé, viharban idegtépő próbatétellé válnak.",
+          "facts": [{ "label": "Érintett műveletek", "value": "VTOL-manőverek, precíziós megközelítések" }]
+        },
+        {
+          "name": "CureLife DeconPen Xtra",
+          "system": "Orvoslás",
+          "desc": "Gyorsinjektor, amely a sugárzás ellenszereként szolgál. Canoiodide-ot és Hemozalt juttat közvetlenül a véráramba, így időt vásárol a pilótának a növekvő sugárterhelés ellen. A 4.2.0 óta kötelező darab a vihar-felszerelésben.",
+          "facts": [
+            { "label": "Hatóanyagok", "value": "Canoiodide + Hemozal" },
+            { "label": "Hatás", "value": "Csökkenti a sugárterhelést" }
+          ]
+        }
+      ],
+      "ships": [
+        { "role": "Mech-öltözet", "status": "új" },
+        { "role": "Segédjármű", "status": "új" }
+      ],
+      "events": [
+        {
+          "name": "Storm Breaker",
+          "desc": "Perzisztens tevékenység mélyen a viharban; az esőkrízis történetéhez kötve. Nem önálló, időhöz kötött élő esemény."
+        }
+      ],
+      "fixesNote": "~190 hibajavítás és stabilitási fejlesztés",
+      "topics": [{ "title": "Storm Breaker · Az időjárás veszéllyé válik" }]
+    },
+    "4-2-1": {
+      "tagline": "Globális konvoj-esemény négy rivális megavállalattal, hajókísérő küldetésekkel és az RSI Meteorral.",
+      "summary": "Az első igazi globális esemény shardokon átnyúló számlálással: Addison Imperator felszólítja a Stanton négy megavállalatát, hogy versenyezzenek a kutatási anyagért. A játékosok oldalt választanak, és fuvarozással, reclaim-küldetésekkel és konvojkísérettel járulnak hozzá. A Hurston Dynamics győz nagyjából 337 millió SCU-val. Új hajókísérő küldetések (6 szint, Foxwell-csoport) és az RSI Meteor logisztikai teherhajóként debütál.",
+      "dateDisplay": "2025. július 17.",
+      "keyFacts": [
+        { "label": "Globális esemény", "value": "Az első esemény shardokon átnyúló számlálással" },
+        { "label": "Versengő vállalatok", "value": "4 (Hurston Dynamics, Crusader Industries, ArcCorp, microTech)" },
+        { "label": "A győztes beszállítása", "value": "Hurston Dynamics: ~337 millió SCU" },
+        { "label": "Jutalomszintek", "value": "5 szint · T5: Strata Hurston Black + 5% állandó kedvezmény" },
+        { "label": "Hajókísérő küldetések", "value": "6 nehézségi szint · Foxwell-csoport · Scrip" }
+      ],
+      "features": [
+        {
+          "name": "Resource Drive",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Az első globális esemény shardokon átnyúló számlálással: négy megavállalat versenyez azon, mennyi kutatási anyagot szállít be. A játékosok oldalt választanak, és fuvarozással, reclaim-küldetésekkel és konvojkísérettel járulnak hozzá. Az előrehaladás minden szerveren összeadódik.",
+          "facts": [
+            { "label": "Versengő vállalatok", "value": "4 (Hurston, Crusader, ArcCorp, microTech)" },
+            { "label": "A győztes beszállítása", "value": "~337 millió SCU" },
+            { "label": "Jutalomszintek", "value": "5 szint (T5 = Strata Hurston Black + 5% kedvezmény)" },
+            { "label": "Eseményszámlálás", "value": "Globális, shardokon átnyúló" }
+          ]
+        },
+        {
+          "name": "Hajókísérő küldetések",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Új küldetéstípus: a játékosok baráti hajók szállítógépeit védik az ellenséges támadókkal szemben, és elkísérik őket az aszteroida-bányabázisokhoz és vissza, egészen a quantum-utazással történő elszakadásig. Hat nehézségi szint a Foxwell-csoporttól a Stantonon és a Pyrón, Scrip-jutalommal.",
+          "facts": [
+            { "label": "Nehézségi szintek", "value": "6" },
+            { "label": "Rendszerek", "value": "Stanton és Pyro" },
+            { "label": "Küldetéscsoport", "value": "Foxwell" },
+            { "label": "Jutalom", "value": "Scrip" }
+          ]
+        },
+        {
+          "name": "Konvojútvonalak",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Kísért teherszerelvények a stantoni és pyrói bányabázisok körül. Játékoskíséret védelme nélkül a rakomány nem ér el a gyűjtőpontig. A Resource Drive előrehaladásának központi eleme.",
+          "facts": [
+            { "label": "Útvonalak", "value": "Stanton és Pyro" },
+            { "label": "Megsemmisíthető áru", "value": "igen" }
+          ]
+        },
+        {
+          "name": "Wikelo-receptek",
+          "system": "Crafting",
+          "desc": "Átdolgozott crafting-rendszer: a receptek három összetevő-szintbe rendeződnek — garantált alapdropok, nagyon ritka tárgyak és tartalomhoz kötött tárgyak. A véletlenszerű jutalmak megszűntek, így világosan látszik, mit érdemes gyűjteni.",
+          "facts": [
+            { "label": "Összetevő-szintek", "value": "3 (Core, Rare, Content-Bound)" },
+            { "label": "Ami új", "value": "Determinisztikus felépítés a véletlen dropok helyett" }
+          ]
+        },
+        {
+          "name": "Flight Tuning",
+          "system": "Repülési modell",
+          "desc": "A repülési viselkedés finomhangolása minden hajón; a kezelhetőséget és a visszajelzés reszponzivitását optimalizálja, az esemény-frissítésen túl is.",
+          "facts": [{ "label": "Érintett terület", "value": "Általános repülésimodell-frissítés" }]
+        }
+      ],
+      "ships": [{ "role": "Teherhajó", "status": "új" }],
+      "events": [
+        {
+          "name": "Resource Drive",
+          "desc": "Globális versenyesemény négy megavállalat között azon, mennyi kutatási anyagot szállítanak be. A játékosok vállalatot választanak, és fuvarozással, konvojkísérettel járulnak hozzá az összesítéshez. Győztes: a Hurston Dynamics nagyjából 337 millió SCU-val. Ez volt az első esemény shardokon átnyúló számlálással."
+        }
+      ],
+      "topics": [{ "title": "Resource Drive" }]
+    },
+    "4-3-0": {
+      "tagline": "Személyes hangárok és ~100 elhagyott Onyx Facility.",
+      "summary": "Az Alpha 4.3.0 bevezeti a személyes hangárokat — instanciált otthoni kikötőket, ahol a játékos közvetlenül spawnol, és azonnal hozzáér a hajóihoz. Ezzel párhuzamosan mintegy 100 elhagyott ASD-kutatóállomás (Onyx Facility) jelenik meg szétszórva a Stantonon. Arken Mallor küldetésadó nyomozási láncokat indít, amelyek Dr. Logan Jorrit regenerációs kísérleteit tárják fel, és előreviszik a Regen Crisis narratívát. A könnyű vadászgépekre szabott repülés-finomhangolás és a futó Resource Drive esemény kerekíti le a bővítést.",
+      "dateDisplay": "2025. augusztus 16.",
+      "keyFacts": [
+        { "label": "Onyx Facilityk", "value": "~100 elhagyott ASD-kutatóállomás · a Stantonon szétszórva" },
+        { "label": "Személyes hangárok", "value": "Instanciált otthoni kikötők · közvetlen spawnolás" },
+        { "label": "Küldetésadó", "value": "Arken Mallor (Hockrow Agency)" },
+        { "label": "Új hajó", "value": "Kruger L-21 Wolf · könnyű vadászgép" },
+        { "label": "Narratíva", "value": "Regen Crisis · Dr. Logan Jorrit kísérletei" }
+      ],
+      "features": [
+        {
+          "name": "Személyes hangárok",
+          "system": "Hangárok és perzisztencia",
+          "desc": "A játékosok személyes, instanciált hangárt kapnak állandó otthoni helyszínként. NPC-habok helyett közvetlenül a saját hangárjukban spawnolnak, a beállított otthoni hangárban azonnal hozzáférve a hajókhoz és a raktárhoz.",
+          "facts": [{ "label": "Típus", "value": "Instanciált" }]
+        },
+        {
+          "name": "Onyx Facilityk",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Mintegy 100 elhagyott ASD-kutatóállomás szétszórva a Stantonon. Biztosítás nélküli belső terek, tele adatnyomokkal, hangnaplókkal és loottal — a Regen Crisis történethez kötve, Dr. Logan Jorrit vezetése alatt.",
+          "facts": [
+            { "label": "Állomások", "value": "~100" },
+            { "label": "Állapot", "value": "Biztosítás nélküli, elhagyott" },
+            { "label": "Narratíva", "value": "Dr. Jorrit regenerációs kísérletei" }
+          ]
+        },
+        {
+          "name": "Nyomozási küldetések",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Új nyomozási és adat-salvage küldetések a mobiGlason keresztül Arken Mallortól (Hockrow Agency). A játékosok bejárják az Onyx Facilityket, fejtörőket oldanak meg, és adatokat mentenek ki, hogy feltárják a Regen Crisis mögötti igazságot.",
+          "facts": [{ "label": "Megbízó", "value": "Arken Mallor" }]
+        },
+        {
+          "name": "Repülés-finomhangolás könnyű vadászgépekre",
+          "system": "Repülési modell",
+          "desc": "Átdolgozott repülési mechanika kifejezetten a könnyű vadászgépekhez, mint az új Kruger L-21 Wolf.",
+          "facts": []
+        },
+        {
+          "name": "Resource Drive",
+          "system": "Események",
+          "desc": "Futó esemény erőforrások fuvarozására, különösen az Aphorite-ra.",
+          "facts": [{ "label": "Fókusz", "value": "Erőforrás-fuvarozás" }]
+        }
+      ],
+      "ships": [{ "role": "Könnyű vadászgép", "status": "új" }],
+      "events": [{ "name": "Resource Drive", "desc": "Futó esemény fuvarozó küldetésekkel és jutalmakkal." }],
+      "fixesNote": "Nincs külön megadva",
+      "topics": [{ "title": "Onyx Facilityk" }]
+    },
+    "4-3-1": {
+      "tagline": "RSI Apollo, orvosi rendszer átdolgozása és a MedGel-rendszer.",
+      "summary": "A 4.3.1 alapjaiban dolgozza át az orvosi rendszert: az RSI Apollo orvosi hajó modulárisan alakítható orvosi terekkel a középpontba kerül, a MedGel fogyó erőforrássá válik az újraéledéshez és a gyógyításhoz, a T1–T3 ágyszintek pedig új újraéledési távolságokat határoznak meg. Az Onyx-történet a Site B-vel és Dr. Jorrit laborjával bővül, ahol a biológiai minták a titok következő rétegét fedik fel.",
+      "dateDisplay": "2025. szeptember 18.",
+      "keyFacts": [
+        { "label": "RSI Apollo", "value": "2 moduláris orvosi tér, Medivac és Triage konfiguráció" },
+        { "label": "MedGel-költség", "value": "T3=5 / T2=10 / T1=20 töltet újraéledésenként/gyógyításonként" },
+        { "label": "Ágyszintek", "value": "T1–T3 igazított újraéledési távolságokkal" },
+        { "label": "Onyx-bővítés", "value": "Site B – Dr. Jorrit laborja biológiai mintákkal" }
+      ],
+      "features": [
+        {
+          "name": "Orvosi rendszer átdolgozása",
+          "system": "Orvoslás",
+          "desc": "Az orvosi rendszer átfogó átdolgozása: a sérülések új szabályok szerint keletkeznek, a gyógyítás és a mentés mechanikája új, az újraélesztés pedig ágyszinteken keresztül működik, meghatározott újraéledési távolságokkal.",
+          "facts": [
+            { "label": "Ágyszintek", "value": "T1-től T3-ig" },
+            { "label": "Újraéledés menete", "value": "újradefiniálva a MedGel-fogyás mentén" }
+          ]
+        },
+        {
+          "name": "MedGel-rendszer",
+          "system": "Orvoslás",
+          "desc": "Új fogyóeszköz az orvosi ágyakhoz: az ágyaknál történő újraéledés és gyógyítás mostantól a bedokkolt MedGelek szintezett töltetét fogyasztja — a triázstól a teljes újraélesztésig. Ha a MedGel kifogy, az ágy leáll.",
+          "facts": [{ "label": "Szintenkénti költség", "value": "T1=20, T2=10, T3=5" }]
+        },
+        {
+          "name": "RSI Apollo orvosi hajó",
+          "system": "Hajórendszerek",
+          "desc": "Dedikált orvosi hajó két moduláris konfigurációval: a Medivac a sérültek terepről való kimentésére, a Triage a fedélzeti ellátásra regenerációs képességekkel. Repülő műveleti bázis a Verse mélyén dolgozó csapatoknak.",
+          "facts": [
+            { "label": "Szerep", "value": "Orvosi Medivac/Triage" },
+            { "label": "Kiemelt", "value": "2 moduláris orvosi tér regenerációs képességekkel" }
+          ]
+        },
+        {
+          "name": "Onyx Site B",
+          "system": "Naprendszerek",
+          "desc": "Az Onyx Facilityk bővítése: a Site B megnyitja Dr. Jorrit laborját, ahol a játékosoknak biológiai mintákat kell kimenteniük, hogy megértsék a kísérletek teljes összefüggését. Az Onyx nyomozói történet újabb rétege.",
+          "facts": [
+            { "label": "Történet", "value": "Dr. Jorrit és a biológiai minták" },
+            { "label": "Beépülés", "value": "összeszőve az orvosi átdolgozás témájával" }
+          ]
+        },
+        {
+          "name": "Atmospheric Control Surfaces",
+          "system": "Repülési modell",
+          "desc": "Repülésimodell-fejlesztés a valósághűbb légköri repülési viselkedésért, különösen az új orvosi hajókon."
+        },
+        {
+          "name": "Hajó-újraéledés dropshipekkel és őrtornyokkal",
+          "system": "Hajórendszerek",
+          "desc": "Alternatív újraéledési mechanika a megsemmisült hajókhoz dropship- vagy őrtorony-kihelyezéssel a klasszikus claim-várakozás helyett."
+        }
+      ],
+      "ships": [
+        {
+          "role": "Orvosi Medivac/Triage",
+          "status": "új",
+          "notes": "Két moduláris orvosi tér, regenerációs képességek"
+        }
+      ],
+      "events": [],
+      "topics": [{ "title": "Orvosi rendszer átdolgozása" }]
+    },
+    "4-3-2": {
+      "tagline": "A Frontier Fighters finálé, a salvage átdolgozása és a Yormandi boss.",
+      "summary": "A Pyro Must Burn történet záróepizódja: három fázison át a Headhunters és a Citizens for Prosperity Amelia Boyd vezette Frontier Fightersre vadászik a Stantonon és a Pyrón — a csúcspont egy szerverszinten összehangolt Polaris-lelövés. A patch átfogó salvage- és feldolgozás-átdolgozást, a Yormandi bosst az Onyx-barlangokban (ASD Site B) és az Anvil Paladint mint új nehéz gunshipet is hozza.",
+      "dateDisplay": "2025. október 16.",
+      "keyFacts": [
+        { "label": "Fázisok", "value": "3 (Felderítés → Ostrom → Lelövés)" },
+        { "label": "Frontier Fighters finálé", "value": "Szerverszintű küldetés; Polaris-lelövés a 3. fázisban" },
+        { "label": "Salvage átdolgozása", "value": "Nőtt az anyagérték; bővült a feldolgozási rendszer" },
+        { "label": "Yormandi boss", "value": "Kígyószerű lény az Onyx Site B-ben; egyedül/kettesben" },
+        { "label": "Anvil Paladin", "value": "Új nehéz gunship több lövegtoronnyal" },
+        { "label": "Frakciószövetség", "value": "Headhunters + Citizens for Prosperity Amelia Boyd Frontier Fighterse ellen" }
+      ],
+      "features": [
+        {
+          "name": "Frontier Fighters finálé",
+          "system": "Küldetések és tevékenységek",
+          "desc": "A Pyro Must Burn történet háromfázisú fináléja: az 1. fázisban a Frontier Fighters mozgásának felderítése, a 2. fázisban a támaszpontjaik ostroma, a 3. fázisban szerverszinten összehangolt Polaris-lelövés. A Headhunters és a Citizens for Prosperity frakció együtt dolgozik az Amelia Boyd vezette Frontier Fighters ellen.",
+          "facts": [
+            { "label": "Fázisok", "value": "3 (Felderítés → Ostrom → Lelövés)" },
+            { "label": "Szövetséges frakciók", "value": "Headhunters, Citizens for Prosperity" }
+          ]
+        },
+        {
+          "name": "Salvage-átdolgozás és feldolgozás",
+          "system": "Bányászat és ipar",
+          "desc": "A salvage-rendszer szerkezeti átdolgozása megnövelt anyagértékekkel és bővített feldolgozási gazdasággal. A salvage gazdaságilag vonzóbb lesz; a játékosok jobb loot–kredit arányt kapnak.",
+          "facts": [
+            { "label": "Anyagérték", "value": "megnövelve" },
+            { "label": "Feldolgozási rendszer", "value": "bővítve" }
+          ]
+        },
+        {
+          "name": "Yormandi boss-harc",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Új, kígyószerű biomechanikus lény az Onyx-létesítményekben (ASD Site B). Többfázisú boss-harc, amely egyedül is teljesíthető, kettesben viszont érezhetően könnyebb. Wikelo szerződései a lény szemeit és nyelveit kérik jutalomért.",
+          "facts": [
+            { "label": "Helyszín", "value": "ASD Site B (Onyx)" },
+            { "label": "Típus", "value": "Biomechanikus kígyó" },
+            { "label": "Játszhatóság", "value": "Egyedül vagy kettesben (opcionális)" }
+          ]
+        },
+        {
+          "name": "Anvil Paladin",
+          "system": "Hajórendszerek",
+          "desc": "Új nehéz gunship az Anviltól, több lövegtorony-állással és személyzeti fedélzettel. Összehangolt, többszemélyes harci küldetésekre és vadászműveletekre tervezve.",
+          "facts": [
+            { "label": "Gyártó", "value": "Anvil" },
+            { "label": "Osztály", "value": "Gunship" },
+            { "label": "Jellemzők", "value": "Több lövegtorony, személyzeti fedélzet" }
+          ]
+        },
+        {
+          "name": "Harc- és FPS-frissítések",
+          "system": "Harc és fegyverek",
+          "desc": "A közelharc- és lőfegyver-rendszer, valamint az FPS-mechanika átdolgozása a Frontier Fighters küldetések támogatására.",
+          "facts": [{ "label": "Fókusz", "value": "FPS-harc, osztagkoordináció" }]
+        },
+        {
+          "name": "Gazdasági és kereskedelmi hangolás",
+          "system": "Gazdaság és kereskedelem",
+          "desc": "A kereskedelmi útvonalak, az árak és a küldetésjutalmak igazítása a Stanton és a Pyro gazdaságához.",
+          "facts": [{ "label": "Terület", "value": "Árak, küldetések, útvonalak" }]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Gunship",
+          "status": "új",
+          "notes": "Nehéz gunship több lövegtoronnyal és személyzeti fedélzettel"
+        }
+      ],
+      "events": [
+        {
+          "name": "Frontier Fighters finálé",
+          "desc": "A Pyro Must Burn történet háromfázisú fináléja; szerverszintű hajtóvadászat egy ellopott Polarisra a 3. fázisban; a Headhunters és a Citizens for Prosperity szövetségben az Amelia Boyd vezette erők ellen."
+        }
+      ],
+      "fixesNote": "Számos stabilitási és játékmenet-javítás; a pontos szám nincs megadva",
+      "topics": [{ "title": "Frontier Fighters" }]
+    },
+    "4-4-0": {
+      "tagline": "A harmadik rendszer, a Nyx, az első vanduul MI és az IAE 2955.",
+      "summary": "A Nyx harmadik, teljesen szimulált naprendszerként nyílik meg — ködbe burkolt, törvényen kívüli, aszteroidákkal sűrűn tele. A vanduulok először jelennek meg MI-ellenségként a perzisztens univerzumban: Stingerrel, Glaive-vel, Scythe-tal és Blade-del járőröznek. A Levski sziklavárosként virágzik a Delamaron. Az orisoni IAE 2955 200-nál is több hajót ad kipróbálásra — december 3-ig ingyen. A csillagközi fuvarozás először kapcsol össze rendszereken átnyúló küldetéseket.",
+      "dateDisplay": "2025. november 19.",
+      "keyFacts": [
+        { "label": "Harmadik naprendszer", "value": "Nyx — Glaciem Ring, Levski a Delamaron" },
+        { "label": "Vanduulok a PU-ban", "value": "4 MI-hajótípus: Stinger, Glaive, Scythe, Blade" },
+        { "label": "IAE 2955", "value": "200+ hajó ingyen kipróbálható · Free-Fly 2025. december 3-ig" },
+        { "label": "Csillagközi fuvarozás", "value": "A Stantont, a Pyrót és a Nyxet átfogó küldetések" },
+        { "label": "Operation Sworn Enemies", "value": "Nyomozási küldetés a vanduul technológia után" },
+        { "label": "Javítások", "value": "180+ javítás" }
+      ],
+      "features": [
+        {
+          "name": "Nyx rendszer",
+          "system": "Naprendszerek",
+          "desc": "A harmadik, teljesen szimulált naprendszer: sötét, ködbe burkolt, aszteroidákkal sűrűn tele. Jump Pointokon kötődik a Stantonhoz és a Pyróhoz. Itt található a Glaciem Ring és a Levski sziklaváros.",
+          "facts": [
+            { "label": "Helye", "value": "A harmadik rendszer a Stanton és a Pyro után" },
+            { "label": "Jellege", "value": "Ködbe burkolt, aszteroidaöv, törvényen kívüli" }
+          ]
+        },
+        {
+          "name": "Glaciem Ring",
+          "system": "Naprendszerek",
+          "desc": "Sűrű, sötét, ködbe burkolt aszteroidaöv, amely a Nyx rendszeren fut át. A vanduulok vadászterülete: szűk látótávolság, nehezen járható.",
+          "facts": [
+            { "label": "Típus", "value": "Aszteroidaöv" },
+            { "label": "Említésre méltó", "value": "Vanduul-járőrök, sűrű köd" }
+          ]
+        },
+        {
+          "name": "Levski",
+          "system": "Naprendszerek",
+          "desc": "Leszállózóna a Delamaron, a Nyx rendszer egyik aszteroidáján. Város a sziklában, a Peoples Alliance székhelye. Az egyetlen állandó támaszpont a törvényen kívüli Nyxben.",
+          "facts": [
+            { "label": "Helyszín", "value": "A Delamar aszteroidában" },
+            { "label": "Frakció", "value": "Peoples Alliance" }
+          ]
+        },
+        {
+          "name": "Vanduulok MI-ellenségként",
+          "system": "Harc és fegyverek",
+          "desc": "A vanduulok először léptek be a perzisztens univerzumba önálló MI-ellenségfrakcióként. Négy hajótípus — Stinger (könnyű), Glaive, Scythe, Blade — járőrözik a Nyxben, és figyelmeztetés nélkül támad.",
+          "facts": [
+            { "label": "MI-hajótípusok", "value": "Stinger, Glaive, Scythe, Blade (4 típus)" },
+            { "label": "Viselkedés", "value": "Agresszív járőrök, figyelmeztetés nélküli támadás" },
+            { "label": "Működési terület", "value": "Nyx rendszer" }
+          ]
+        },
+        {
+          "name": "Operation Sworn Enemies",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Nyomozási küldetés a Nyx rendszer elhagyott állomásain. A játékosok nyomokat gyűjtenek a vanduul technológiáról, és közben egyenesen az idegenekbe futnak — a szerződés bármelyik pillanatban tűzharccá fordulhat.",
+          "facts": [
+            { "label": "Küldetéstípus", "value": "Nyomozás + harc" },
+            { "label": "Helyszín", "value": "Elhagyott állomások a Nyxben" }
+          ]
+        },
+        {
+          "name": "Csillagközi fuvarozás",
+          "system": "Gazdaság és kereskedelem",
+          "desc": "Procedurális rakományküldetések, amelyek az egyik rendszerben indulnak és egy másikban végződnek. A Stantont, a Pyrót és a Nyxet rendszereken átnyúló kereskedelmi láncokkal kapcsolja össze.",
+          "facts": [
+            { "label": "Hatókör", "value": "Stanton, Pyro, Nyx" },
+            { "label": "Küldetéstípus", "value": "Procedurális rakományútvonalak" }
+          ]
+        },
+        {
+          "name": "IAE 2955",
+          "system": "Események",
+          "desc": "Intergalactic Aerospace Expo Orisonban. 200-nál is több hajó minden gyártótól ingyen kipróbálható. Free-Fly 2025. december 3-ig. A Verse legnagyobb hajókiállítása.",
+          "facts": [
+            { "label": "Helyszín", "value": "Orison" },
+            { "label": "Időtartam", "value": "14 nap · Free-Fly 2025. december 3-ig" },
+            { "label": "Kipróbálható hajók", "value": "200+" }
+          ]
+        }
+      ],
+      "ships": [
+        { "role": "Nehéz gunship", "status": "új" },
+        { "role": "Salvage", "status": "új" },
+        { "role": "MI-vadászgép", "status": "MI-ellenség" }
+      ],
+      "events": [
+        {
+          "name": "IAE 2955",
+          "desc": "Intergalactic Aerospace Expo Orisonban, 200-nál is több ingyen kipróbálható hajóval. Free-Fly 2025. december 3-ig."
+        },
+        {
+          "name": "Operation Sworn Enemies",
+          "desc": "Nyomozási küldetés a vanduul technológia felderítésére a Nyx rendszer elhagyott állomásain. A játékosok közben futnak először bele az új MI-ellenségekbe."
+        }
+      ],
+      "fixesNote": "180+ javítás",
+      "topics": [{ "title": "Nyx rendszer" }, { "title": "Vanduulok" }]
+    },
+    "4-5-0": {
+      "tagline": "Engineering-játékmenet, hajópáncél és terjedő tűz.",
+      "summary": "A 4.5.0-val az engineering játékmenetté válik: a játékosok valós időben kezelik az energiát, a hajópáncél önálló rétegként nyeli el a sebzést, a tüzek pedig dinamikusan terjednek a hajókban. A Vulkan lesz az alapértelmezett renderelési útvonal (a DirectX 11 helyett), kísérleti VR-támogatással. A hajóharc mechanikájának személyzet-központú átdolgozása.",
+      "dateDisplay": "2025. december 17.",
+      "keyFacts": [
+        { "label": "Új engineering-rendszerek", "value": "4 — Engineering, hajópáncél, tűzveszély, energiakezelés" },
+        { "label": "Hajópáncél", "value": "Önálló fizikai réteg; a hajótest előtt nyeli el a sebzést; idővel elkopik" },
+        { "label": "Tűzveszély", "value": "Dinamikusan terjed, oxigént fogyaszt, aktív tűzoltást igényel" },
+        { "label": "Alap renderelő", "value": "Vulkan (a DirectX 11 helyett; a 3.23 óta kísérletileg elérhető)" },
+        { "label": "VR-támogatás", "value": "Kísérleti · a Vulkan-útvonalon keresztül" },
+        { "label": "Energiakezelés", "value": "Valós idejű energiaelosztás; a túlterhelés hőhöz és meghibásodásokhoz vezet" }
+      ],
+      "features": [
+        {
+          "name": "Engineering-játékmenet",
+          "system": "Engineering",
+          "desc": "A hajó üzemeltetése aktív játékmenetté válik: a játékosok az engineering-terminálon valós időben figyelik a hajó állapotát, és üzem közben javítják a megsérült komponenseket. A többszemélyes hajókon új személyzeti szerep születik.",
+          "facts": [
+            { "label": "Terminál-vezérlés", "value": "Valós idejű felügyelet és javítás a fedélzeten" },
+            { "label": "Személyzeti élmény", "value": "A hajók kooperatív eszközzé válnak meghatározott szerepekkel" }
+          ]
+        },
+        {
+          "name": "Hajópáncél",
+          "system": "Hajórendszerek",
+          "desc": "A hajópáncél önálló fizikai réteggé válik a hajótest és a komponensek felett. A páncél elnyeli a beérkező sebzést, mielőtt az elérné a szerkezetet, idővel elkopik, és a sebzéskezelést stratégiai döntéssé teszi.",
+          "facts": [
+            { "label": "Rétegfelépítés", "value": "Páncél → hajótest → komponensek" },
+            { "label": "Tartósság", "value": "Véges; találatoktól kopik" }
+          ]
+        },
+        {
+          "name": "Tűzveszély",
+          "system": "Hajórendszerek",
+          "desc": "A 4.5.0-val a tüzek dinamikusan terjednek a hajóban, oxigént fogyasztanak, és átcsapnak a szomszédos terekbe. A személyzetnek aktívan oltania kell, nem lehet passzívan figyelmen kívül hagyni.",
+          "facts": [
+            { "label": "Terjedési mechanika", "value": "Dinamikus a terek és komponensek között" },
+            { "label": "Erőforrás", "value": "Tűz esetén az oxigén kritikussá válik" }
+          ]
+        },
+        {
+          "name": "Energiakezelés",
+          "system": "Engineering",
+          "desc": "A játékosok valós időben osztják el az energiát a komponensek és rendszerek között. A túl- vagy félreosztás hőhöz, meghibásodáshoz és sérüléshez vezet — az energia szűkös erőforrássá válik a hajó üzemében.",
+          "facts": [
+            { "label": "Prioritások", "value": "A pajzsok, a hajtóművek és a fegyverek versenyeznek az energiáért" },
+            { "label": "Kockázat", "value": "A túlterhelésnek következménye van (meghibásodás, sérülés)" }
+          ]
+        },
+        {
+          "name": "Vulkan-renderelő",
+          "system": "Szervertechnológia",
+          "desc": "A 4.5.0-val a Vulkan lesz az alapértelmezett renderelési útvonal, és leváltja a DirectX 11-et. A Vulkan API az Alpha 3.23 óta kísérletileg elérhető volt; a 4.5.0 stabilizálta (többszálú renderelés, HDR-támogatás), és standarddá tette.",
+          "facts": [
+            { "label": "Elődje", "value": "DirectX 11 (visszaszorítva örökölt támogatásra)" },
+            { "label": "Előfeltétele ennek", "value": "Kísérleti VR-támogatás" }
+          ]
+        },
+        {
+          "name": "VR-támogatás",
+          "system": "Felület és kényelem",
+          "desc": "A 4.5.0-val kísérleti virtuálisvalóság-támogatás jelent meg, amit a Vulkan renderelési útvonal tesz lehetővé. Korai, opcionális lépés az immerzív pilótafülke-élmény felé.",
+          "facts": [
+            { "label": "Állapot", "value": "Kísérleti · opcionális funkció" },
+            { "label": "Függőség", "value": "Vulkan alap renderelő szükséges" }
+          ]
+        }
+      ],
+      "ships": [],
+      "events": [],
+      "topics": [{ "title": "Engineering" }]
+    },
+    "4-6-0": {
+      "tagline": "Járványesemény a Levskin, LAMP éjjellátó és az RSI Hermes.",
+      "summary": "A Levski aszteroidakolónia karantén alá kerül a Molina Mold (People's Ailment) miatt, amit hibás légszűrők váltottak ki. Az új LAMP éjjellátóval (Light Amplification) a játékosok ellátó küldetéseket teljesítenek a Moraine kalózai ellen, és gyógyszert szállítanak. Újonnan elérhető az RSI Hermes (blokádfutó teherhajó) és az Argo Moth (salvage-hajó). Több mint 160 hibajavítás stabilizálja tovább a server meshinget.",
+      "dateDisplay": "2026. január 29.",
+      "keyFacts": [
+        { "label": "Esemény", "value": "Lifeline for Levski — biológiai karantén 2026. március 17-ig" },
+        { "label": "Új hajók", "value": "RSI Hermes (~288 SCU teherhajó) · Argo Moth (salvage)" },
+        { "label": "LAMP-látás", "value": "Pilótafülke-éjjellátó a fertőzött Levski környezetéhez" },
+        { "label": "Molina Mold", "value": "Agresszív penész, hibás légszűrők okozzák" },
+        { "label": "Hibajavítások", "value": "160+ stabilitási és hibajavítás" },
+        { "label": "Ellátó küldetések", "value": "Clearing the Air: gyógyszerszállítás a The Moraine (kalózok) ellen" }
+      ],
+      "features": [
+        {
+          "name": "Lifeline for Levski esemény",
+          "system": "Események",
+          "desc": "Járványesemény a Levski aszteroidakolónián. A Molina Mold hibás légszűrőkön szabadult el, és People's Ailmentet okoz. A játékosoknak el kell látniuk a karantén alá vont kolóniát, miközben a The Moraine-ból működő kalózok megtámadják a konvojokat. Az esemény korlátozott ideig, 2026. március 17-ig fut.",
+          "facts": [
+            { "label": "Kiváltó ok", "value": "Hibás légszűrők a Levskin" },
+            { "label": "Betegség", "value": "People's Ailment (tüdőbetegség)" },
+            { "label": "Ellenség", "value": "The Moraine — kalózok a Glaciem Ring aszteroidatelepeiről" },
+            { "label": "Zárónap", "value": "2026. március 17." }
+          ]
+        },
+        {
+          "name": "LAMP (Light Amplification)",
+          "system": "Felület és kényelem",
+          "desc": "Új pilótafülke-éjjellátó funkció. A LAMP felerősíti a meglévő maradékfényt, és lehetővé teszi a navigációt és a repülést sötét környezetben — különösen hasznos, amikor a Molina Molddal fertőzött Levskihez közelítünk a sötét Nyx rendszerben.",
+          "facts": [
+            { "label": "Működés", "value": "Maradékfény-erősítés az éjjellátáshoz" },
+            { "label": "Alkalmazás", "value": "Repülés és navigáció sötét környezetben" }
+          ]
+        },
+        {
+          "name": "Clearing the Air — ellátó küldetések",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Új küldetések a Lifeline eseményhez. A játékosok gyógyszert, gombaellenes szereket, valamint szűrő- és gyógyszergyártó anyagot szállítanak a karantén alá vont Levskire, miközben a The Moraine kalózai támadják a konvojokat. Konvojvédelem szükséges.",
+          "facts": [
+            { "label": "Küldetéstípus", "value": "Ellátmánykíséret a The Moraine ellen" },
+            { "label": "Anyagok", "value": "Gombaellenes szer, gyógyszerek, légszűrő-alkatrészek" },
+            { "label": "Jutalmak", "value": "Kredit, reputáció, esemény-előrehaladás" }
+          ]
+        },
+        {
+          "name": "RSI Hermes",
+          "system": "Hajórendszerek",
+          "desc": "Új RSI blokádfutó teherhajó. A Hermes gyors, veszélyes körülmények közötti ellátmányfutásra specializálódott, és a Lifeline esemény idején az ellátási láncok fő hajójává válik.",
+          "facts": [
+            { "label": "Gyártó", "value": "Roberts Space Industries (RSI)" },
+            { "label": "Osztály", "value": "Blokádfutó teherhajó" },
+            { "label": "Kapacitás", "value": "kb. 288 SCU rakomány" },
+            { "label": "Funkció", "value": "Gyors ellátmányfutás krízishelyzetben" }
+          ]
+        },
+        {
+          "name": "Argo Moth",
+          "system": "Hajórendszerek",
+          "desc": "Közepes salvage-hajó az Argo Astronauticstól. A Moth salvage-re specializálódott, és a megjelenés után (2026. február 11-től) utánpótlásban lesz elérhető.",
+          "facts": [
+            { "label": "Gyártó", "value": "Argo Astronautics" },
+            { "label": "Osztály", "value": "Salvage-hajó (közepes)" },
+            { "label": "Specializáció", "value": "Salvage és hulladékfeldolgozás" },
+            { "label": "Megjelenési terv", "value": "Utánpótlás 2026. február 11-től" }
+          ]
+        },
+        {
+          "name": "Engineering és páncél finomítása",
+          "system": "Engineering",
+          "desc": "A 4.5.0-ban bevezetett engineering-mechanika folytatása. Az energiaelosztás és a hajópáncél sebzésszámításának optimalizálása; a rendszerek stabilizálása a patch indulása után.",
+          "facts": [
+            { "label": "Fókusz", "value": "Optimalizált valós idejű energiaelosztás" },
+            { "label": "Páncélrendszer", "value": "További kiegyensúlyozó igazítások" }
+          ]
+        },
+        {
+          "name": "A raktárból való lehelyezés újraaktiválva",
+          "system": "Felület és kényelem",
+          "desc": "A tárgyak raktárból való közvetlen lehelyezésének funkciója újraaktiválva, miután korábbi patchekben kikapcsolták.",
+          "facts": [
+            { "label": "Funkció", "value": "Közvetlen lehelyezés a raktárból" },
+            { "label": "Állapot", "value": "A 4.6.0-ban újraaktiválva" }
+          ]
+        },
+        {
+          "name": "Kitermelhető adatok a Star Mapon",
+          "system": "Naprendszerek",
+          "desc": "A Star Map adatokat kap a kitermelhető erőforráspontokról (harvestable-ök), hogy a játékosok jobban tervezhessék a bányász- és gyűjtőküldetéseket.",
+          "facts": [
+            { "label": "Adatok", "value": "Kitermelhető helyszínek a Star Mapon" },
+            { "label": "Alkalmazás", "value": "Küldetéstervezés bányászathoz és gyűjtéshez" }
+          ]
+        },
+        {
+          "name": "Kel-To hajó-ellátmánykioszkok",
+          "system": "Gazdaság és kereskedelem",
+          "desc": "Új ellátmánykioszkok a helyszíni hajó-utánpótláshoz, ami a Lifeline esemény gyors ellátmányfutásainál lényeges.",
+          "facts": [
+            { "label": "Funkció", "value": "Kioszk-alapú hajó-utánpótlás" },
+            { "label": "Használat", "value": "Az ellátó küldetések támogatása" }
+          ]
+        },
+        {
+          "name": "160+ stabilitási és hibajavítás",
+          "system": "Stabilitás és teljesítmény",
+          "desc": "Kiterjedt hibajavítási csomag a server meshing stabilitására, a streamingre, az NPC-interakciókra és az általános játékstabilitásra — nagy patcheknél megszokott.",
+          "facts": [
+            { "label": "Javítások száma", "value": "160+" },
+            { "label": "Fókusz", "value": "Server meshing, streaming, stabilitás" },
+            { "label": "Javított rendszerek", "value": "NPC, felület, küldetésjelölők, hangárok" }
+          ]
+        }
+      ],
+      "ships": [
+        { "role": "Blokádfutó teherhajó", "status": "új" },
+        { "role": "Salvage-hajó", "status": "új" }
+      ],
+      "events": [
+        {
+          "name": "Lifeline for Levski",
+          "desc": "Járványesemény: a Levski aszteroidakolóniát megtámadja a Molina Mold (People's Ailment). A játékosok ellátó küldetéseket teljesítenek (Clearing the Air), miközben a The Moraine kalózai támadják a konvojokat. Az esemény korlátozott ideig, 2026. március 17-ig fut."
+        }
+      ],
+      "fixesNote": "160+ hibajavítás és stabilitási fejlesztés a server meshinghez és az általános játékrendszerekhez.",
+      "topics": []
+    },
+    "4-7-0": {
+      "tagline": "Crafting T0, Operation Breaker Stations a Keeger Beltben és a moduláris Aurora Mk II.",
+      "summary": "A Keeger Belt aszteroidaövként nyílik meg a Nyx rendszerben. A Crafting T0-val a játékosok először építhetnek maguknak FPS-fegyvereket és páncélt tervrajzokból és ritka ásványokból. Az Operation Breaker Stations többlépcsős kooperatív küldetés a Shubin Breaker-állomások újraaktiválására. Az Aurora Mk II leváltja a régi Aurora modellt, harci vagy rakományos moduláris konfigurációval. A szezonális Stella Fortuna esemény versenyzést és kozmetikákat hoz.",
+      "dateDisplay": "2026. március 26.",
+      "keyFacts": [
+        { "label": "Crafting-szint", "value": "T0 · FPS-fegyverek és páncél tervrajzokból" },
+        { "label": "Operation Breaker Stations", "value": "Többlépcsős koop a Keeger Beltben · PvE/PvP változat" },
+        { "label": "Aurora Mk II", "value": "Moduláris kezdőhajó · +6 SCU rakomány vagy harci modul" },
+        { "label": "Keeger Belt", "value": "Aszteroidaöv a Nyxben QV Breaker-állomásokkal" },
+        { "label": "Stella Fortuna", "value": "Szezonális esemény · versenyzés, videópályázat, kozmetikák" }
+      ],
+      "features": [
+        {
+          "name": "Crafting T0",
+          "system": "Crafting",
+          "desc": "Az első crafting-szint: FPS-fegyverek és páncél építése tervrajzokból és ritka ásványokból. Az anyagminőség befolyásolja a tárgy végleges értékeit.",
+          "facts": [
+            { "label": "Készíthető tárgyak", "value": "FPS-fegyverek és páncél" },
+            { "label": "Összetevők", "value": "Tervrajzok + ritka ásványok" },
+            { "label": "Anyagminőség", "value": "Befolyásolja a fegyver/páncél értékeit" }
+          ]
+        },
+        {
+          "name": "Operation Breaker Stations",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Többlépcsős kooperatív küldetés a Keeger Beltben: a játékosok újraaktiválják a leszerelt Shubin Breaker-állomásokat, lézerrel aszteroidákat bontanak szét, és optikai alkatrészeket craftolnak. Játszható PvE módban (exklúzív) vagy nyílt FFA PvP-ben.",
+          "facts": [
+            { "label": "Helyszín", "value": "Keeger Belt (Nyx)" },
+            { "label": "Küldetéstípus", "value": "Többlépcsős koop" },
+            { "label": "Módok", "value": "PvE (exklúzív) és PvP (nyílt)" },
+            { "label": "Ellenségek", "value": "Claw Salamander, Ice Valakkar" }
+          ]
+        },
+        {
+          "name": "Aurora Mk II",
+          "system": "Hajórendszerek",
+          "desc": "Új moduláris kezdőhajó az RSI-től cserélhető modulokkal: alapkonfiguráció, +6 SCU rakománymodul vagy harci modul pajzzsal és rakétákkal. Leváltja a régi Aurora modellt.",
+          "facts": [
+            { "label": "Gyártó", "value": "RSI" },
+            { "label": "Osztály", "value": "Kezdőhajó" },
+            { "label": "Modulok", "value": "Rakomány (+6 SCU) vagy harci (pajzs + rakéta)" },
+            { "label": "Állapot", "value": "Leváltja a régi modellt" }
+          ]
+        },
+        {
+          "name": "Raktár átdolgozása",
+          "system": "Felület és kényelem",
+          "desc": "A raktárrendszer nagy átdolgozási ciklusa a crafting és az Operation Breaker Stations támogatására.",
+          "facts": [{ "label": "Fókusz", "value": "Crafting-integráció és elrendezés" }]
+        },
+        {
+          "name": "Harcrendszer átdolgozása",
+          "system": "Harc és fegyverek",
+          "desc": "Átdolgozott harcrendszer a pajzs, a páncél és a radar kiegyensúlyozására az Operation Breaker küldetés követelményei szerint.",
+          "facts": [{ "label": "Rendszerek", "value": "Pajzs/páncél/radar/rakéta" }]
+        }
+      ],
+      "ships": [{ "role": "Kezdőhajó", "status": "új" }],
+      "events": [
+        {
+          "name": "Stella Fortuna",
+          "desc": "Szezonális szerencse- és ünnepi esemény Arena Commander-versenyzéssel, videópályázattal és jutalmakkal (versenyfelszerelés, kozmetikák)."
+        }
+      ],
+      "topics": [{ "title": "Crafting" }]
+    },
+    "4-8-0": {
+      "tagline": "G-erő-tolerancia, a Drake Ironclad és a DefenseCon 2956 hajókiállítás.",
+      "summary": "Az Alpha 4.8.0 elhozza a G-erő repülési modellt greyouttal, redouttal és blackouttal, a Drake első nehéz páncélozott szállítóit (Ironclad és Assault), az összehangolt Tactical Strike Group küldetéseket szervezett orgoknak, az átdolgozott üzemanyagfelvételi rendszert és az évenkénti DefenseCon 2956 hajókiállítást — mindezt több mint 166 hibajavítás és a 4.0.0 óta első teljes wipe kíséretében.",
+      "dateDisplay": "2026. május 14.",
+      "keyFacts": [
+        { "label": "G-erő repülési modell", "value": "Grey-out → red-out → black-out; a ruha és a páncél dönt a toleranciáról" },
+        { "label": "Drake Ironclad és Assault", "value": "A Drake első nehéz páncélozott szállítói; az Assault változat harcra" },
+        { "label": "Tactical Strike Groups", "value": "Összehangolt, több hajós küldetések a Nyxben; 7+ játékos; Vanduul Mauler boss-harc" },
+        { "label": "DefenseCon 2956", "value": "Évenkénti hajókiállítás az Area18-on: Free Fly és Drake-expó (május 14–27.)" },
+        { "label": "Wipe", "value": "Teljes wipe (az első a 4.0.0 óta)" },
+        { "label": "Hibajavítások", "value": "166+ javítás és stabilitási fejlesztés" }
+      ],
+      "features": [
+        {
+          "name": "G-erő repülési modell",
+          "system": "Repülési modell",
+          "desc": "A nagy intenzitású G-erők közvetlenül hatnak a pilótára: a pozitív G-k greyouton át blackouthoz, a negatívak redouthoz vezetnek. A különböző G-toleranciaértékű, célzottan tervezett repülő- és versenyruhák határozzák meg a terhelési határt, és taktikai tényezővé válnak.",
+          "facts": [
+            { "label": "Greyout/redout/blackout", "value": "Fokozatos látásromlás a G-terheléstől és a ruhatípustól függően" },
+            { "label": "Ruhától függő", "value": "A repülőruhák, versenyruhák és páncélok befolyásolják a G-toleranciát" }
+          ]
+        },
+        {
+          "name": "Drake Ironclad és Ironclad Assault",
+          "system": "Hajórendszerek",
+          "desc": "A Drake első igazi páncélozott hajója és nehéz szállítója: masszívan páncélozott, tekintélyes rakodókapacitással (az Ironclad ~2 204 SCU) és harci konfigurációval (az Ironclad Assault 34 gyalogos üléssel). Mindkettő — akár a Caterpillar — hordozza a leválasztható Command Module-t: a híd leválhat a hajótestről felderítésre vagy mentőkabinként.",
+          "facts": [
+            { "label": "Osztály", "value": "Nehéz páncélozott szállító" },
+            { "label": "Változatok", "value": "Ironclad (~2 204 SCU) · Ironclad Assault (harci, 34 ülés)" }
+          ]
+        },
+        {
+          "name": "Tactical Strike Groups",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Új kooperatív, több hajós küldetések szervezett orgoknak: többfázisú raid hajóharccal, tunnelrepüléssel, magrombolással és a nyxi QV Extraction Stationök FPS-beszivárgásával. A fináléban Vanduul Mauler boss. Jutalom: exklúzív számszeríj-tervrajz és nagy értékű loot.",
+          "facts": [
+            { "label": "Javasolt csapatméret", "value": "7+ játékos" },
+            { "label": "Helyszín", "value": "QV Extraction Stationök · Nyx rendszer" },
+            { "label": "Szerepek", "value": "Vadászgép · bombázó · támogatás · kapitális hajók" },
+            { "label": "Boss", "value": "Vanduul Mauler" }
+          ]
+        },
+        {
+          "name": "DefenseCon 2956",
+          "system": "Események",
+          "desc": "Az UEE évenkénti hajókiállítása (korábban Fleet Week) az Area18 Bevic Convention Centerében. A gyártók naponta váltják egymást a kiállítótéren, a nyitány a Drake „For the People\" bemutatója. Több mint 100 hajó bérelhető és próbálható ki ingyen 48 órára a Traveler Rental terminálokon; a játék a teljes időtartam alatt ingyen játszható (nem kell game package).",
+          "facts": [
+            { "label": "Időpont", "value": "2026. május 14–27. · Free Fly május 15-től" },
+            { "label": "Helyszín", "value": "Bevic Convention Center · Area18, ArcCorp" },
+            { "label": "Nyitány", "value": "Drake „For the People\" (május 14–15.)" },
+            { "label": "Free Fly", "value": "100+ hajó, 48 órás bérlés · ingyen játszható" }
+          ]
+        },
+        {
+          "name": "Üzemanyagfelvétel átdolgozása",
+          "system": "Hajórendszerek",
+          "desc": "Átdolgozott üzemanyag-mechanika jobb felülettel és valósághűbb erőforrásfogyás-modellekkel; beépítve a hajószerviz-rendszerbe (T0).",
+          "facts": [{ "label": "Állapot", "value": "Rendszer átdolgozva" }]
+        },
+        {
+          "name": "Járműfelszerelés visszatöltése",
+          "system": "Hangárok és perzisztencia",
+          "desc": "A játékosok elmenthetik és betölthetik az eltárolt hajó- és járműkonfigurációkat (fegyverek, modulok, felszerelés); a Long-Term Persistence-be integrálva.",
+          "facts": [{ "label": "Funkció", "value": "Hajókonfigurációk mentése és betöltése" }]
+        },
+        {
+          "name": "Hajó-hangárszerviz (T0)",
+          "system": "Hangárok és perzisztencia",
+          "desc": "A hangáralapú karbantartási és javítási szolgáltatások első iterációja.",
+          "facts": [{ "label": "Iterációs szint", "value": "T0 (alpha)" }]
+        },
+        {
+          "name": "Új felszerelés",
+          "system": "Harc és fegyverek",
+          "desc": "Taktikai műveletekre szánt, célzottan tervezett felszerelés bevezetése: az UltiFlex számszeríj, a Kastak plazmagránát és a Tailwind repülőruha; mind a Strike Group-forgatókönyvekre optimalizálva.",
+          "facts": [
+            { "label": "Távolsági", "value": "UltiFlex számszeríj" },
+            { "label": "Robbanó", "value": "Kastak plazmagránát" },
+            { "label": "Védőfelszerelés", "value": "Tailwind repülőruha (megnövelt G-tolerancia)" }
+          ]
+        },
+        {
+          "name": "Stabilitási és hibajavítások",
+          "system": "Stabilitás és teljesítmény",
+          "desc": "Több mint 166 hibajavítás és stabilitási fejlesztés az új rendszerek mellé; teljes wipe az újrainicializáláshoz.",
+          "facts": [
+            { "label": "Hibajavítások", "value": "166+" },
+            { "label": "Wipe", "value": "Teljes wipe (az első a 4.0.0 óta)" }
+          ]
+        },
+        {
+          "name": "Bányászat",
+          "system": "Bányászat és ipar",
+          "desc": "Erőforrás-kitermelés a kézzel bányászott drágakövektől a többszemélyes hajóbányászatig. A rendszer átfogja a Prospectort (a 3.2 alpha óta), az átdolgozott ARGO MOLE-t (4.7/4.8), a ROC-ot és a kézi bányászatot; a Pyro kiszélesítette az érckészletet (Stileron, Riccite, Lindinium). A nyersércet a refinery-fedélzeteken kilenc módszer egyikével dolgozzák fel és adják el.",
+          "facts": [
+            { "label": "Rendszerek", "value": "Stanton · Pyro · Nyx" },
+            { "label": "Módszerek", "value": "Hajó (Prospector/MOLE) · ROC · kézi" },
+            { "label": "Feldolgozási módszerek", "value": "9 (kihozatal/költség/sebesség)" }
+          ]
+        }
+      ],
+      "ships": [
+        { "role": "Nehéz páncélozott szállító", "status": "új" },
+        { "role": "Páncélozott gunship", "status": "új" },
+        {
+          "role": "Leválasztható Command Module (nem önálló hajó)",
+          "status": "új",
+          "notes": "Alapfelszerelés a Drake Ironcladon és a Caterpillaron: a híd leválik a hajótestről — felderítésre vagy mentőkabinként. Modul, nem önálló hajó."
+        },
+        {
+          "role": "Gunship",
+          "status": "Gold Standard",
+          "notes": "A 4.8.0-ban Gold Standard átdolgozásként rögzítve"
+        }
+      ],
+      "events": [
+        {
+          "name": "Tactical Strike Groups",
+          "desc": "Új kooperatív küldetéssorozat szervezett orgoknak a Nyxben; többfázisú PvE-raid hajóharccal, FPS-szakasszal és boss-találkozással."
+        },
+        {
+          "name": "DefenseCon 2956",
+          "desc": "Évenkénti hajókiállítás (korábban Fleet Week) az Area18-on: napi gyártóváltás a Drake-kel kezdve, több mint 100 ingyen kipróbálható hajó és Free Fly-hozzáférés május 15-től 27-ig."
+        }
+      ],
+      "fixesNote": "166+ javítás és stabilitási fejlesztés",
+      "wipe": "Teljes wipe (az első a 4.0.0 óta)",
+      "topics": [{ "title": "Tactical Strike Groups" }, { "title": "Bányászat" }]
+    },
+    "4-8-1": {
+      "tagline": "Új küldetéstípus, a Defend Location — űrharc 385 aszteroidabázis felett bombázóvédelemmel és tervrajzokkal.",
+      "summary": "A Defend Location új, hullámalapú űrharc-küldetéstípust hoz: a játékosok aszteroida-bányabázisokat védenek bombázótámadások ellen 385 szétosztott helyszínen a Stantonon és a Pyrón. A hibrid változat a védelmet kísérési elemekkel köti össze. A 4.8.1-gyel először csábítanak egyedi crafting-tervrajzok jutalomként. A pontkiadás 30-nál is több stabilitási fejlesztést hoz a bukdácsoló 4.8.0-indulás után.",
+      "dateDisplay": "2026. június 3.",
+      "keyFacts": [
+        { "label": "Defend Location helyszínek", "value": "385 a Stantonon és a Pyrón" },
+        { "label": "Védhető bázisok", "value": "149 helyszín · 6 nehézségi szint" },
+        { "label": "Megbízók", "value": "Foxwell, Head Hunters, CFP, Rough and Ready" },
+        { "label": "Jutalmak", "value": "aUEC, reputáció, org-scrip, crafting-tervrajzok" },
+        { "label": "Stabilitási fejlesztések", "value": "30+ javítás a 4.8.0 után" }
+      ],
+      "features": [
+        {
+          "name": "Defend Location",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Új, hullámalapú űrharc-küldetéstípus: a játékosok aszteroida-bányabázisokat védenek az ellenséges bombázótámadások ellen. Minden áttörő bombázó kárt tesz az infrastruktúrában. A hibrid változat a védelmet kísérési elemekkel köti össze — a baráti hajókat felszállás vagy leszállás közben kell megvédeni.",
+          "facts": [
+            { "label": "Helyszínek", "value": "385 a Stantonon és a Pyrón" },
+            { "label": "Bázisok", "value": "149 helyszín" },
+            { "label": "Nehézségek", "value": "6 szint" }
+          ]
+        },
+        {
+          "name": "Tervrajzok és crafting",
+          "system": "Crafting",
+          "desc": "Először jelennek meg egyedi tervrajzok jutalomként — kifejezetten a Defend Location magasabb nehézségi szintjein. A 4.7.0-ban bevezetett crafting-rendszert táplálják.",
+          "facts": [
+            { "label": "Elérhetőség", "value": "Magasabb nehézségi szintek" },
+            { "label": "Integráció", "value": "A 4.7.0 crafting-rendszerével" }
+          ]
+        },
+        {
+          "name": "Stabilitási és hibajavítások",
+          "system": "Stabilitás és teljesítmény",
+          "desc": "Pontkiadásként a 4.8.1 a 4.8.0 utáni stabilitási fejlesztésekre koncentrált — a javítások a hajó-claim problémáit, a futóművet és a hangárkapukat, valamint a 60k-s shard-lock hibákat érintik.",
+          "facts": [
+            { "label": "Javítások köre", "value": "30+ hibajavítás" },
+            { "label": "Fókusz", "value": "A 4.8.0 regressziói" }
+          ]
+        }
+      ],
+      "ships": [],
+      "events": [],
+      "fixesNote": "30+ stabilitási és hibajavítás",
+      "topics": [{ "title": "Defend Location" }]
+    },
+    "4-8-2": {
+      "tagline": "Két repülésre bocsátott Gatac hajó grav-lev hajtással és az Alien Week a First Contact Day körül.",
+      "summary": "Pontkiadás két új Gatac idegen hajóval (Railen grav-lev teherhajó, Tyilui snub-hordozó) és az Alien Week 2956 egyidejű indulásával. Az esemény olyan xenotech-gyártókat ünnepel, mint a Gatac, az Aopoa, a Banu és az Esperia, időhöz kötött áruházi akciókkal és kedvezményekkel. Az LTP aktív, 20 000 aUEC kezdőegyenleggel; a fókusz a stabilitáson és a meglévő 4.8-rendszerek apró javításain van.",
+      "dateDisplay": "2026. június 17.",
+      "keyFacts": [
+        { "label": "Gatac Railen", "value": "~640 SCU · grav-lev teherhajó" },
+        { "label": "Gatac Tyilui", "value": "Snub-hordozó quantumra képtelen snub-vadászgépekhez" },
+        { "label": "Alien Week 2956", "value": "2026. június 17–25. · kedvezmény idegen hajókra és felszerelésre" },
+        { "label": "First Contact Day", "value": "Az emberiség és a Xi'an Birodalom első kontaktusának évenkénti emléknapja" },
+        { "label": "LTP aktív", "value": "+20 000 aUEC kezdőegyenleg" }
+      ],
+      "features": [
+        {
+          "name": "Gatac Railen",
+          "system": "Hajórendszerek",
+          "desc": "Közepes hibrid grav-lev teherhajó nagyjából 640 SCU rakodókapacitással, jellegzetes háromszögletű rakodókonténerekre osztva. Klasszikus hajtóművek helyett Xi'an graviton-levitációs technológiát használ, ami meghatározza az idegenekre jellemző formavilágot és repülési viselkedést.",
+          "facts": [
+            { "label": "Gyártó", "value": "Gatac" },
+            { "label": "Rakodókapacitás", "value": "~640 SCU" },
+            { "label": "Hajtás", "value": "Grav-lev (Xi'an)" }
+          ]
+        },
+        {
+          "name": "Gatac Tyilui",
+          "system": "Hajórendszerek",
+          "desc": "Snub-hordozó quantumra képtelen snub-vadászgépekhez. Sci-fi esztétika ihlette (2001-es stílus). Továbbviszi a Gatac-vonal titokzatos, a 2001: Űrodüsszeia által inspirált formatervezési elveit.",
+          "facts": [
+            { "label": "Gyártó", "value": "Gatac" },
+            { "label": "Szerep", "value": "Snub-hordozó" },
+            { "label": "Említésre méltó", "value": "Hordozó quantumra képtelen vadászgépekhez" }
+          ]
+        },
+        {
+          "name": "Alien Week 2956",
+          "system": "Események",
+          "desc": "Évenkénti esemény a First Contact Day körül (2026. június 17–25.), amely a xenotech-gyártókat állítja a középpontba. 2956-ban a Gatac a főszereplő a Railennel, a Syulennel és a Tyiluival. Pledge Store-akciók, limitált festések, idegen lore-anyagok és Xi'an nyelvórák kísérik.",
+          "facts": [
+            { "label": "Időtartam", "value": "2026. június 17–25." },
+            { "label": "Főszereplő", "value": "Gatac (Railen, Syulen, Tyilui)" },
+            { "label": "Kiemelt gyártók", "value": "Gatac, Aopoa, Banu, Esperia" }
+          ]
+        },
+        {
+          "name": "Grav-lev hajtástechnológia",
+          "system": "Hajórendszerek",
+          "desc": "A Gatac hajókban használt Xi'an graviton-levitációs technológia. Leváltja a klasszikus emberi hajtóműveket, és meghatározza az idegen hajók repülési viselkedését és formavilágát.",
+          "facts": [
+            { "label": "Származás", "value": "Xi'an Birodalom" },
+            { "label": "Alkalmazás", "value": "Gatac Railen, Gatac Tyilui" }
+          ]
+        }
+      ],
+      "ships": [
+        { "role": "Grav-lev teherhajó", "status": "új" },
+        { "role": "Snub-hordozó", "status": "új" }
+      ],
+      "events": [
+        {
+          "name": "Alien Week 2956",
+          "desc": "A nem emberi gyártók ünneplése a First Contact Day körül. A Gatac Railen, Syulen és Tyilui a főszereplők. Az esemény Pledge Store-kedvezményt hoz a Gatacra, az Aopoára, a Banura és az Esperiára, valamint limitált festéseket és idegen felszerelést."
+        },
+        {
+          "name": "First Contact Day",
+          "desc": "Az emberiség és a Xi'an Birodalom első kontaktusának évenkénti emléknapja. Az Alien Week idegen hajókra és felszerelésre adott kedvezményekkel tiszteli ezt az örökséget."
+        }
+      ],
+      "fixesNote": "További stabilitási és hibajavítások a 4.8.0-rendszerekhez (a pontos szám nincs megadva).",
+      "wipe": "LTP aktív · +20 000 aUEC kezdőegyenleg (nincs teljes wipe)",
+      "topics": [{ "title": "Alien Week 2956" }]
+    },
+    "4-8-3": {
+      "tagline": "Az emberfelsőbbség-hirdető XenoThreat frakció dinamikus harci eseményként tér vissza a Stantonra — 2026. július 1–15.",
+      "summary": "A 4.8-vonal pontkiadása, teljesen a XenoThreat esemény visszatérése körül felépítve. Az idegenellenes, UEE-ellenes törvényen kívüliek azért támadják a Stantont, mert a rendszer támogatja az idegen fajokkal való együttélést — a Foxwell Enforcement a játékosok segítségét kéri. Az esemény pontalapú PvE harci eseményként fut 2026. július 1-jétől 15-éig: öt küldetéstípuson át a játékosok akár 120 000 eseménypontot farmolnak, és közben tervrajz-jutalmakat nyitnak meg. A központi elem a frakció Idris fregattja mint kapitálishajó-célpont. Stabilitási és hibajavítások kísérik a meglévő 4.8-rendszerekhez.",
+      "dateDisplay": "2026. július 1.",
+      "keyFacts": [
+        { "label": "A XenoThreat visszatér", "value": "Dinamikus PvE harci esemény a Stanton rendszerben" },
+        { "label": "Esemény időablaka", "value": "2026. július 1–15." },
+        { "label": "Jutalomsáv", "value": "120 000 eseménypont a teljes jutalomsávhoz, tervrajzokkal" },
+        { "label": "Frakció", "value": "Emberfelsőbbség-hirdető, idegenellenes törvényen kívüliek (UEE-ellenes)" },
+        { "label": "Szerződésadó", "value": "Foxwell Enforcement" }
+      ],
+      "features": [
+        {
+          "name": "XenoThreat — támadás a Stanton ellen",
+          "system": "Események",
+          "desc": "A dinamikus XenoThreat esemény 2026. július 1-jétől 15-éig visszatér a Stantonra. Az idegengyűlölő, törvényen kívüli frakció azért támadja a rendszert, mert az az idegen fajokkal való együttélést hirdeti. Pontalapú harci eseményként (nem a régi narratív eseményként) a játékosok szerződéseket vállalnak, XenoThreat-flottákkal harcolnak, és felküzdik magukat a jutalomsávon a 120 000 eseménypont felé.",
+          "facts": [
+            { "label": "Időablak", "value": "2026. július 1–15." },
+            { "label": "Forma", "value": "Pontalapú PvE harci esemény" },
+            { "label": "Szerződésadó", "value": "Foxwell Enforcement" }
+          ]
+        },
+        {
+          "name": "Öt küldetéstípus",
+          "system": "Események",
+          "desc": "Az esemény öt harci tevékenységet kínál, amelyek eseménypontot adnak: idegen gyártmányú, támadás alatt álló hajók védelme; idegenellenes vadászgépek kiiktatása; a kirekesztő erők elfogása és megsemmisítése megérkezésükkor; idegengyűlölő hadnagyok kicsalogatása és legyőzése; valamint az Idris fregatt megsemmisítése vagy üzemképtelenné tétele.",
+          "facts": [
+            { "label": "Tevékenységek", "value": "5 küldetéstípus" },
+            { "label": "Célpontok", "value": "Vadászgépek · hadnagyok · Idris fregatt" }
+          ]
+        },
+        {
+          "name": "Jutalmak és tervrajzok",
+          "system": "Események",
+          "desc": "A régi narratív menet helyett a 4.8.3 harci pontfarmolás: az előrehaladást a napló követi, és a teljes, 120 000 pontos jutalomsáv végigvitele exklúzív jutalmakat nyit meg, tervrajzokkal együtt.",
+          "facts": [
+            { "label": "Teljes sáv", "value": "120 000 eseménypont" },
+            { "label": "Jutalmak", "value": "Exklúzív jutalmak és tervrajzok" }
+          ]
+        },
+        {
+          "name": "Idris fregatt",
+          "system": "Események",
+          "desc": "Az esemény kapitálishajó-célpontja: a XenoThreat-flotta Idris fregattja vagy a hajó megsemmisítésével, vagy a pilótája megölésével semlegesíthető — ez a jutalomsáv legkeményebb és legtöbb pontot adó szerződése.",
+          "facts": [
+            { "label": "Osztály", "value": "Idris fregatt (kapitális hajó)" },
+            { "label": "Teljesítés", "value": "A hajó megsemmisítése vagy a pilóta kiiktatása" }
+          ]
+        }
+      ],
+      "ships": [],
+      "events": [
+        {
+          "name": "XenoThreat — támadás a Stanton ellen",
+          "desc": "A dinamikus XenoThreat esemény visszatérése pontalapú harci eseményként. Az emberfelsőbbség-hirdető, idegenellenes frakció azért támadja a Stantont, mert az támogatja az idegenekkel való együttélést; a Foxwell Enforcement a játékosokat hívja segítségül. Öt küldetéstípuson át — egészen az Idris fregattig — a játékosok akár 120 000 eseménypontot farmolnak tervrajz-jutalmakért."
+        }
+      ],
+      "fixesNote": "Kísérő stabilitási és hibajavítások a 4.8-rendszerekhez (a szám nincs megadva).",
+      "wipe": "Nincs új wipe bejelentve — a futó 4.8-ciklus folytatása.",
+      "topics": [{ "title": "XenoThreat" }]
+    },
+    "4-9-0": {
+      "dateDisplay": "2026. július 15.",
+      "tagline": "People's Alliance-szerződések a Nyxben, a roncstelepi vadászgép Grey's Market Basher és találatjelzők a hajóharcban.",
+      "summary": "Az Alpha 4.9.0 a határvidékre irányítja a figyelmet: a Nyxben a Moraine néven ismert megfoghatatlan csoport fenyegeti a függetleneket, és a People's Alliance segítséget kér — új, örökzöld küldetéssorozat Recco Battaglia bányászati logisztikai koordinátor körül a Levskin (prospektálás, mentés, salvage, hajó-visszaszerzés), a szálának folytatása a 4.10-ben jön. Ezen túl: a Grey's Market első könnyű vadászgépe, a Basher (Buccaneer-, Avenger-, Gladius- és Aurora-alkatrészekből összehegesztve), találatjelzők hat találati állapottal a hajóharchoz, a ballisztikus fegyverek újrakiegyensúlyozása, nagyjából +20% bányászlézer-teljesítmény kísérleti szkennelési frissítésekkel, a Behring CQ7 és a Bellator öltözet. A motorháztető alatt: új elhúzás-hangzás, elhagyott hajók automatikus eltakarítása, újratelepített elosztóközpontok és 80-nál is több dokumentált javítás — a Siege of Orison és az instancing tudatosan a 4.10-be került.",
+      "keyFacts": [
+        {
+          "label": "People's Alliance-szerződések",
+          "value": "Örökzöld küldetéssorozat Recco Battaglia körül (Levski, Nyx) — a történetszál a 4.10-ben folytatódik"
+        },
+        {
+          "label": "Új hajó",
+          "value": "Grey's Market Basher — könnyű vadászgép mentett alkatrészekből (110 $)"
+        },
+        { "label": "Hajóharc", "value": "Találatjelzők 6 találati állapottal + saját hang-visszajelzés" },
+        { "label": "Bányászat", "value": "Nagyjából +20% hajólézer-teljesítmény; kísérleti szkennelési frissítések" },
+        {
+          "label": "Hibajavítások",
+          "value": "80+ dokumentált javítás a LIVE-jegyzetekben (ebből 8 kliens- és 2 szerver-crash-javítás)"
+        },
+        { "label": "Wipe", "value": "Nincs — a Long-Term Persistence megmarad, kezdő aUEC 20 000" }
+      ],
+      "features": [
+        {
+          "name": "People's Alliance-szerződések („Support the Miners\")",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Új, örökzöld, ismételhető küldetéssorozat a Nyxben: a Moraine néven ismert csoport fenyegeti a függetleneket, és a People's Alliance segítséget keres. A mobiGlason érkező szerződések a prospektálástól, az eltűnt munkások felkutatásától, az eltérített hajók megcsáklyázásától és a rakomány visszaszerzésétől a salvage-ig és a hajó-visszaszerzésig terjednek. Az Alliance-nál felépített reputáció felkelti Recco Battaglia figyelmét — ő független bányászati logisztikai koordinátor a Levskin; az ő történetküldetései az Alpha 4.10-ben jönnek.",
+          "facts": [
+            { "label": "Szerződésadó", "value": "Recco Battaglia · Levski (Nyx)" },
+            {
+              "label": "Jutalmak",
+              "value": "Tervrajzok (People's Alliance-páncél, Klescher lézerrepeater) + a Golem, a Prospector és a MOLE egyedi változatai"
+            },
+            { "label": "Folytatás", "value": "Történetküldetések az Alpha 4.10-ben" }
+          ]
+        },
+        {
+          "name": "Grey's Market Basher",
+          "system": "Hajórendszerek",
+          "desc": "A Grey's Market első könnyű vadászgépe — és a roncskereskedő második repülhető építése a Shiv (4.3.2) után: egyszemélyes gép, a Drake Buccaneer, az Aegis Avenger, a Gladius és az RSI Aurora Mk I mentett alkatrészeiből összehegesztve. Osztályához mérten súlyosan felfegyverzett — hat S2 hardpoint (alapból: 4× „Snapper\" lézerrepeater + 2× „Deathroll\" ballisztikus gatling), plusz négy S1 rakéta. Jellegzetessége: leválasztható daru, amelynek hegye rögtönzött nyílt irányzékként is szolgál.",
+          "facts": [
+            { "label": "Fegyverzet", "value": "6× S2 (4 Snapper + 2 Deathroll) · 4× S1 rakéta" },
+            { "label": "Méretek", "value": "13,7 m × 11,3 m × 4,5 m · 1 ülés" },
+            { "label": "Ár", "value": "110 $ (warbond 100 $) · aUEC-ért még nem vásárolható" }
+          ]
+        },
+        {
+          "name": "Találatjelzők a hajóharcban",
+          "system": "Harc és fegyverek",
+          "desc": "A hajók végre pontos találat-visszajelzést adnak a célkereszten: hat állapot különbözteti meg a lepattant lövéseket (nincs sebzés), a pajzs-, páncél-, hajótest- és komponenstalálatokat, valamint a megsemmisült komponenseket. Minden állapotnak saját hangjelzése van — a rendezői visszajelzés után három alaprétegre finomítva (páncél, komponens, megsemmisült komponens), és teljesen leválasztva az örökölt Ships Computer-hangzásról.",
+          "facts": [
+            {
+              "label": "Találati állapotok",
+              "value": "6 (lepattanás · pajzs · páncél · hajótest · komponens · megsemmisült komponens)"
+            },
+            { "label": "Hangzás", "value": "3 alapréteg, újraépítve" }
+          ]
+        },
+        {
+          "name": "Ballisztikus fegyverek újrakiegyensúlyozása",
+          "system": "Harc és fegyverek",
+          "desc": "Kiegyensúlyozó kör a járműves ballisztikán: a ballisztikus repeaterek jelentős sebzést vesztenek. A Behring S4 ballisztikus ágyú (C-788) átdolgozva — a lövésenkénti sebzés 325-ről 1 090-re nő, viszont csökken a páncélátütési távolság és lassul a tűzgyorsaság. A Deadbolt ágyúk (S4: 683→610, S5: 1 024→950), a Behring S5 gatling (126,5→102,5) és a vanduul S5 plazmaágyú (1 000→970) visszafogva.",
+          "facts": [
+            { "label": "BEHR S4 ágyú", "value": "325 → 1 090 sebzés/lövés, kisebb átütés és tűzgyorsaság" },
+            { "label": "Repeaterek", "value": "A ballisztikus repeaterek jelentősen visszafogva" }
+          ]
+        },
+        {
+          "name": "Bányászat és szkennelés",
+          "system": "Bányászat és erőforrások",
+          "desc": "A hajós bányászlézerek teljesítménye nagyjából 20%-kal nő, minden vonalon. A kísérleti szkennelési frissítések megkönnyítik az anyagok bemérését a verse-ben (LIVE-on figyelik). A Nyxben a gyakori erőforrások elosztását a Glacium és a Keeger HPP helyszíneken igazították — az új Alliance-bányászszerződések mellé.",
+          "facts": [
+            { "label": "Lézerteljesítmény", "value": "+20% minden hajós bányászlézeren" },
+            { "label": "Szkennelés", "value": "Kísérleti — könnyebb anyagszkennelés" }
+          ]
+        },
+        {
+          "name": "Ordnance Cargo Holder",
+          "system": "Rakomány és logisztika",
+          "desc": "A rakományrácsokon lévő rakéták és torpedók mostantól befoglaló keretben állnak: látszik a helyfoglalásuk, a halmozás és az igazítás tervezhetővé válik. A keret mindenhol megjelenik, ahol rakományrács van — a hajóbelsőkben és a teherlifteknél is; illesztésnél a hologram-előnézet a lőszert és a keretet együtt mutatja, az illesztés iránya pedig választható.",
+          "facts": [
+            { "label": "Mire vonatkozik", "value": "Rakéták, torpedók és bombák minden rakományrácson" }
+          ]
+        },
+        {
+          "name": "Behring CQ7 bullpup puska",
+          "system": "Harc és fegyverek",
+          "desc": "Új standard gépkarabély bullpup felépítésben: éles TTK, következetesen olvasható, függőleges hátrarúgás-minta — mindenes fegyver a Behringre jellemző karakterrel. Megtalálható a Ship in Distress küldetésekben és a Moraine-küldetésekben (Data Retrieval, Movements), valamint több helyszín üzleteiben.",
+          "facts": [
+            { "label": "Tüzelési módok", "value": "Automata / sorozat · 650 RPM" },
+            { "label": "Értékek", "value": "16,5 sebzés · 550 m/s · 40 lőszer · 0,25 s ADS" }
+          ]
+        },
+        {
+          "name": "Bellator harci öltözet",
+          "system": "Harc és fegyverek",
+          "desc": "Szabott civil öltözet (zakó, nadrág, ing, cipő) a felső kategóriás munkaruhák ihletésével — könnyű sebzéscsillapítással és olyan fegyverhelyekkel, amiket a hétköznapi civil ruha nem ad. A zakó: 2 tárhely + 1 látható, felszerelt fegyver; egy oldalfegyver és egy kés a zakó alatt marad rejtve. A nadrág: 2 medpen- és 1 késhely.",
+          "facts": [{ "label": "Koncepció", "value": "Felfegyverzetten és védetten, mégis feltűnés nélkül" }]
+        },
+        {
+          "name": "Valakkar-viselkedés",
+          "system": "MI és élőlények",
+          "desc": "Viselkedés-frissítés a homokférgeknek: az őrszem Valakkarok már nem harapnak, hanem elrejtőznek, ha közelítesz; a mozgó Valakkarok aktívan üldözik a célpontjukat, és harcban átpozicionálnak; a fiatalok harapástámadást kapnak. A Valakkarok mostantól csak felismerhető céllal bukkannak a felszínre (kevesebb ok nélküli tekergés), és néhány támadás sebzéshibáit is javították.",
+          "facts": [{ "label": "Típusok", "value": "Őrszem · mozgó · fiatal — világosan elkülönítve" }]
+        },
+        {
+          "name": "Elhúzás-hangzás",
+          "system": "Alaptechnológia és hang",
+          "desc": "A hajók elhúzási hangzását alapjaiban újraépítették: új procedurális rendszer szólaltatja meg megbízhatóan az elhúzás-hangokat — új hanganyagokkal, jobb távolsági csillapítással és pozicionális visszajelzéssel. Ez javítja a régóta ismert néma elhúzások problémáját; a csillapítási szabályokat minden hajón áthangolták.",
+          "facts": [{ "label": "Rendszer", "value": "Procedurális, új anyagokkal, minden hajón" }]
+        },
+        {
+          "name": "Járműtakarítás és ASOP",
+          "system": "Stabilitás és teljesítmény",
+          "desc": "Új takarítókód tünteti el az elhagyott hajókat a leszállózónákból és az állomásokról 5 óra után — a forgalmas pontok hajótorlódását célozva, az egész Stantonon és Nyxben hatályosan, a Grim Hexet és a Levskit is beleértve. Az ASOP-terminálok mostantól helyesen tiltják le a claim-gombot, amíg a hajó éppen egy leszállóhelyre tart, és felismerik a hangár-raktárban tárolt hajókat (nincs több hamis „csak claim\"-állapot). Emellett kísérleti VR-frissítések (testhez igazított sztereó kurzor).",
+          "facts": [{ "label": "Takarítás", "value": "Elhagyott hajók 5 óra után · Stanton és Nyx" }]
+        },
+        {
+          "name": "További frissítések",
+          "system": "Felület és kényelem",
+          "desc": "Két új frizura, valamint egy meglévő minőségi átdolgozása; a kapitális hajók mostantól akkor is elérik a hangárszervizt, ha a hajó bármely része átfedi a szervizzónát (nem csak a pontos forgáspontnál); vanduul pajzsok átdolgozott ragyogás- és hatszög-effektekkel. Emellett üzlet-karbantartás: a Dumper's Depotban és a Platinum Bayben tárgykioszkok váltják a nyersanyag-kioszkokat, a Dumper's Depot kínálata jump drive-okkal és élelemmel bővül (Area18), a lorville-i New Deal kereskedésben pedig további kioszkok állnak.",
+          "facts": [
+            { "label": "Karakterek", "value": "2 új frizura + 1 átdolgozás" },
+            { "label": "Kapitális hajók", "value": "Hangárszerviz részleges zónaátfedésnél" }
+          ]
+        },
+        {
+          "name": "Elosztóközpontok és küldetés-újrakiegyensúlyozás",
+          "system": "Küldetések és tevékenységek",
+          "desc": "Minden meglévő elosztóközpontot újratelepítettek rendszerbeli és fizikai fejlesztésekkel — ezzel sok, régóta törött küldetést megjavítva ezeken a helyszíneken; a vontatósugarak mostantól a fegyvernyugvási zónáikon belül is működnek. A harci küldetéseket a hajópáncélhoz igazítva újrakiegyensúlyozták: nincsenek többé ipari hajók ellenségként, a védekező küldetések pedig alacsonyabb osztályú támadókat dobnak be. Teherlift-kioszk „Show External\" jelölőmezővel és világosabb hibaüzenetekkel; a Bombing Run és a szatellit-küldetések mostantól csak regionálisan jelennek meg.",
+          "facts": [
+            { "label": "Hatókör", "value": "Minden elosztóközpont újratelepítve" },
+            { "label": "QoL", "value": "Gránát-HUD-jelölők · regionális küldetésajánlatok · kioszk-frissítés" }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Könnyű vadászgép",
+          "status": "új",
+          "notes": "Mentett Buccaneer-, Avenger-, Gladius- és Aurora Mk I-alkatrészekből — 110 $ (warbond 100 $), aUEC-ért még nem vásárolható"
+        }
+      ],
+      "events": [],
+      "fixesNote": "80+ dokumentált javítás a LIVE-jegyzetekben (nagyjából 70 hibajavítás, plusz crash-/stabilitási javítások, 8 kliens- / 2 szerveroldali) — köztük a dokkolónyakak, az ugrótunnel téves célpontjai, a játékosok közti aUEC-kereskedés, az elérhetetlen raktárak és a Railen azonnali felrobbanása. A Spectrum-bejegyzés „166+ a 4.8 óta\"-t írt — ez a blokk véletlenül a 4.8-jegyzetekből maradt benne.",
+      "wipe": "Nincs wipe — a Long-Term Persistence megmarad, kezdő aUEC 20 000.",
+      "topics": []
+    }
+  }
+}

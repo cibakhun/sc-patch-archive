@@ -2,8 +2,9 @@
 // Liefert Karten-Daten + Link auf das echte Datenblatt /schiffe/<id>.html.
 // Keine erfundenen Schiffsdaten: Bild, Fracht, Crew stammen aus vehicles.json.
 import raw from '../data/vehicles.json';
+import { href as langHref, type Locale } from '../i18n/ui';
 
-type Lang = 'de' | 'en';
+type Lang = Locale;
 const vehicles: any[] = (raw as any).vehicles || [];
 
 // id (= Slug der Detailseite) -> Mining-Rolle. Reihenfolge = Anzeige-Reihenfolge.
@@ -14,6 +15,20 @@ const MINING: { id: string; roleDe: string; roleEn: string }[] = [
   { id: 'grin-roc', roleDe: 'Fahrzeug', roleEn: 'Vehicle' },
   { id: 'grin-roc-ds', roleDe: 'Fahrzeug (2 Sitze)', roleEn: 'Vehicle (2-seat)' },
 ];
+
+/**
+ * Rollen-Label je Sprache, Schlüssel = Schiffs-Slug. roleDe/roleEn oben bleiben
+ * als Fallback stehen; hier stehen nur die zusätzlichen Sprachen.
+ */
+const ROLE: Partial<Record<Locale, Record<string, string>>> = {
+  hu: {
+    'misc-prospector': 'Egyszemélyes hajó',
+    'argo-mole': 'Többszemélyes hajó',
+    'drak-golem': 'Kezdőhajó',
+    'grin-roc': 'Jármű',
+    'grin-roc-ds': 'Jármű (2 üléses)',
+  },
+};
 
 export function buildMiningShips(lang: Lang) {
   return MINING.map((mn) => {
@@ -26,11 +41,11 @@ export function buildMiningShips(lang: Lang) {
       id: v.id,
       name: v.name as string,
       mfr: (v.manufacturer as string) || '',
-      role: lang === 'de' ? mn.roleDe : mn.roleEn,
+      role: ROLE[lang]?.[mn.id] ?? (lang === 'de' ? mn.roleDe : mn.roleEn),
       ore: ore ? `${ore} SCU` : null,
       crew: crewLo === crewHi ? `${crewLo}` : `${crewLo}–${crewHi}`,
       img: (v.image && (v.image.thumb || v.image.hero)) || null,
-      href: (lang === 'de' ? '/de/schiffe/' : '/schiffe/') + v.id + '.html',
+      href: langHref(`/schiffe/${v.id}.html`, lang),
     };
   }).filter(Boolean) as {
     id: string; name: string; mfr: string; role: string;

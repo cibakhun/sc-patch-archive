@@ -1,6 +1,7 @@
 ---
+import { pickLang } from '../../i18n/ui';
 // Account-Dashboard — Profil, Freunde/Social, Favoriten, Sicherheit
-import { href } from '../../i18n/ui';
+import { href, LOCALE_PREFIX } from '../../i18n/ui';
 import ProfileCard from './ProfileCard.astro';
 import FriendsManager from './FriendsManager.astro';
 import { BANNER_PRESETS, AVATAR_PRESETS, ACCENT_COLORS, CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
@@ -10,7 +11,7 @@ interface Props {
 }
 const { lang } = Astro.props;
 
-const COPY = {
+const COPY = pickLang({
   de: {
     loading: 'Lade dein Konto …',
     loadError: 'Dein Konto konnte nicht geladen werden — bitte prüfe deine Verbindung.',
@@ -279,10 +280,10 @@ const COPY = {
     ovActFav: 'Favorited: %x%', ovActReq: 'Friend request from @%x%', ovActJob: 'Refinery job: %x%',
     ovActEmpty: 'No activity yet — start with a favorite or a friend request.',
   },
-}[lang];
+}, lang);
 
 const loginHref = href('/account/login.html', lang);
-const homeHref = lang === 'de' ? '/de.html' : '/';
+const homeHref = href('/index.html', lang);
 const shipsHref = href('/schiffe.html', lang);
 const refineryHref = href('/refinery.html', lang);
 const confirmRedirect = loginHref + '?confirmed=1';
@@ -291,6 +292,10 @@ const confirmRedirect = loginHref + '?confirmed=1';
 
 <div id="dash" hidden
   data-lang={lang}
+  {/* Pfad-Präfix der Seitensprache ('' für die Standardsprache). Das Client-JS
+      baut daraus seine Favoriten-Links — es kann LOCALE_PREFIX nicht selbst
+      kennen, und aus `lang` allein ist der Präfix nicht ableitbar. */}
+  data-prefix={LOCALE_PREFIX[lang]}
   data-login={loginHref}
   data-home={homeHref}
   data-confirm-redirect={confirmRedirect}

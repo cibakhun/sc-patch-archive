@@ -99,7 +99,24 @@ const PLACEHOLDER_RE = /\bTODO\b|\bFIXME\b|PLACEHOLDER|\bTBD\b|\[object Object\]
 const PLACEHOLDER_CI_RE = /lorem ipsum/i;
 const MOJIBAKE_RE = /Ã[¤¶¼Ÿ„–©¨]|â€“|â€ž|â€œ|â€¦|Â°|Ã¢/;
 
-let pagesDe = 0, pagesEn = 0;
+/**
+ * Übersetzte Sprachen = ihre Pfad-Präfixe (Spiegel von LOCALE_PREFIX in
+ * src/i18n/ui.ts; die Standardsprache EN liegt präfixlos auf der Wurzel).
+ * Eine neue Sprache braucht NUR hier einen Eintrag.
+ */
+const PREFIXED = ['de', 'hu'];
+const DEFAULT_LANG = 'en';
+
+/** Sprache einer ausgelieferten Seite aus ihrem Pfad. */
+function localeOf(page) {
+  for (const p of PREFIXED) {
+    if (page === `/${p}.html` || page.startsWith(`/${p}/`)) return p;
+  }
+  return DEFAULT_LANG;
+}
+
+/** Seitenzahl je Sprache (für die Schlusszeile). */
+const langCount = {};
 const mediaViolations = [];
 const linkErrors = [];
 const anchorErrors = [];
@@ -124,19 +141,19 @@ for (const f of htmlFiles) {
   const markup = html
     .replace(/<script\b[\s\S]*?<\/script>/gi, '')
     .replace(/<style\b[\s\S]*?<\/style>/gi, '');
-  // Sprach-Tausch (i18n Stufe 3): EN ist Standardsprache und liegt PRÄFIXLOS
-  // auf der Wurzel, DE unter /de/…. Vorher andersherum (/en/-Präfix) — der
-  // alte Check hielt deshalb JEDE Wurzel-Seite für Deutsch.
-  const isDe = page === '/de.html' || page.startsWith('/de/');
-  const isEn = !isDe;
-  if (isEn) pagesEn++; else pagesDe++;
+  // EN ist Standardsprache und liegt PRÄFIXLOS auf der Wurzel; jede weitere
+  // Sprache hat ein Pfad-Präfix (siehe LOCALES/LOCALE_PREFIX in src/i18n/ui.ts).
+  // Der Check leitet die erwartete Sprache aus dem Präfix ab — eine neue Sprache
+  // braucht nur einen Eintrag in PREFIXED oben, keinen neuen Zweig.
+  const pageLang = localeOf(page);
+  langCount[pageLang] = (langCount[pageLang] || 0) + 1;
 
-  // --- html lang (Onepager sind eigenständige EN-Artefakte, kein DE/EN-Paar) ---
+  // --- html lang (Onepager sind eigenständige EN-Artefakte, kein Sprach-Cluster) ---
   const isStandalone = page.startsWith('/onepager/');
   const langM = /<html[^>]*\slang="([^"]*)"/.exec(html);
   if (!langM) a11yIssues.push(`${page}: <html> ohne lang-Attribut`);
-  else if (!isStandalone && isEn && langM[1] !== 'en') a11yIssues.push(`${page}: lang="${langM[1]}" auf EN-Seite`);
-  else if (!isStandalone && !isEn && langM[1] !== 'de') a11yIssues.push(`${page}: lang="${langM[1]}" auf DE-Seite`);
+  else if (!isStandalone && langM[1] !== pageLang)
+    a11yIssues.push(`${page}: lang="${langM[1]}" auf ${pageLang.toUpperCase()}-Seite`);
 
   // --- SEO ---
   const title = /<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim();
@@ -180,8 +197,9 @@ for (const f of htmlFiles) {
     if (!src.startsWith('/assets/')) continue;
     const alt = altM[1].trim();
     if (!alt) continue; // dekoratives Bild (alt="") ist legitim
-    // DE/EN getrennt gruppieren: Übersetzungen desselben Alt-Texts sind kein Konflikt.
-    const langKey = isEn ? 'en' : 'de';
+    // Je Sprache getrennt gruppieren: Übersetzungen desselben Alt-Texts sind
+    // kein Konflikt, zwei verschiedene Alt-Texte INNERHALB einer Sprache schon.
+    const langKey = pageLang;
     const altNorm = alt.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
     const assetKey = `${src}|${langKey}`;
     if (!altByAsset.has(assetKey)) altByAsset.set(assetKey, new Map());
@@ -277,7 +295,7 @@ for (const f of htmlFiles) {
   // --- Sprachumschalter-Ziel existiert? (hreflang/alternate) ---
   // Basis-Präfix-Widerspruch (SITE.url mit Pfad vs. base-lose Root-Links) wird
   // als EIN aggregierter Befund gezählt, nicht je Seite.
-  for (const m of html.matchAll(/hreflang="(de|en)"\s+href="([^"]+)"/g)) {
+  for (const m of html.matchAll(/hreflang="([a-z]{2}(?:-[A-Za-z]+)?)"\s+href="([^"]+)"/g)) {
     const target = m[2].replace(/^https?:\/\/[^/]+/, '');
     if (!target.startsWith('/')) continue;
     // Verzeichnis-URLs bedient nginx über `index index.html` — die Startseite
@@ -294,15 +312,20 @@ for (const f of htmlFiles) {
   }
 }
 
-// --- DE/EN-Parität (informativ) ---
-// EN präfixlos, DE unter /de/… (Sprach-Tausch): für jede EN-Seite muss das
-// /de/-Pendant existieren (DE-Startseite = /de.html wegen build.format:'file').
-const missingDe = [];
+// --- Sprach-Parität (informativ) ---
+// EN präfixlos auf der Wurzel; jede übersetzte Sprache unter /<präfix>/… (deren
+// Startseite ist /<präfix>.html wegen build.format:'file'). Geprüft wird pro
+// Sprache: fehlt einer EN-Seite ihr Pendant?
+const missingByLang = {};
+for (const p of PREFIXED) missingByLang[p] = [];
 for (const f of htmlFiles) {
   const page = rel(f);
-  if (page === '/de.html' || page.startsWith('/de/') || page === '/404.html' || page.startsWith('/onepager/')) continue;
-  const dePage = page === '/index.html' ? '/de.html' : '/de' + page;
-  if (!fileSet.has(dePage)) missingDe.push(page);
+  // Nur echte EN-Seiten sind Ausgangspunkt; 404 und Onepager stehen allein.
+  if (localeOf(page) !== 'en' || page === '/404.html' || page.startsWith('/onepager/')) continue;
+  for (const p of PREFIXED) {
+    const target = page === '/index.html' ? `/${p}.html` : `/${p}${page}`;
+    if (!fileSet.has(target)) missingByLang[p].push(page);
+  }
 }
 
 // --- Sitemap gegen die Wirklichkeit prüfen ---------------------------------
@@ -389,7 +412,10 @@ function section(title, list, bucket, cap = 15) {
   bucket.push(...list);
 }
 
-console.log(`Seiten: ${pagesDe} DE + ${pagesEn} EN = ${htmlFiles.length}`);
+const langLine = [DEFAULT_LANG, ...PREFIXED]
+  .map((l) => `${langCount[l] || 0} ${l.toUpperCase()}`)
+  .join(' + ');
+console.log(`Seiten: ${langLine} = ${htmlFiles.length}`);
 section('FEHLER Tote interne Links', linkErrors, errors);
 section('FEHLER Tote Anker', anchorErrors, errors);
 section('FEHLER Sprachumschalter-Ziele fehlen', switcherErrors, errors);
@@ -428,7 +454,8 @@ section('WARNUNG Media-Semantik: 1 Datei, widersprüchliche Alt-Texte', multiAlt
 section('WARNUNG Media-Semantik: Dateiname passt nicht zum Alt-Text', slugMismatch, warns, 20);
 section('WARNUNG SEO', seoIssues, warns);
 section('WARNUNG A11y', a11yIssues, warns, 20);
-section('INFO EN-Seiten ohne DE-Gegenstück', missingDe, infos, 10);
+for (const p of PREFIXED)
+  section(`INFO EN-Seiten ohne ${p.toUpperCase()}-Gegenstück`, missingByLang[p], infos, 10);
 section('INFO Schwere Seiten (>500 KB HTML)', heavy, infos);
 section('INFO Schwere Assets (>1,5 MB)', heavyAssets, infos);
 

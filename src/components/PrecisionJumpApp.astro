@@ -1,4 +1,5 @@
 ---
+import { pickLang } from '../i18n/ui';
 // PrecisionJumpApp.astro — Aaron-Halo-Routenrechner (SSR-Gerüst + Client-App).
 // Sprachneutrales Gerüst; UI-Chrome via `lang`. Der Geometrie-Kern
 // (Strahl-Kugel-Schnitt) läuft live im Client — der Server rendert Auswahl,
@@ -19,7 +20,7 @@ interface Props {
 const { lang } = Astro.props;
 
 // -- i18n: server-gerenderte Chrome-Strings --
-const S = {
+const S = pickLang({
   de: {
     solver: 'Routen-Solver',
     start: 'Startort',
@@ -134,7 +135,7 @@ const S = {
     honesty:
       'QT anchors (planets/moons/Lagrange) + the Halo envelope are game-accurate for patch 4.9; only the 10 finer density bands are a cstone community survey (inside the envelope). All <b>patch-volatile — verify in game</b>.',
   },
-}[lang];
+}, lang);
 
 // -- Strings, die das Client-JS braucht (window.__PJUMP.t) --
 const JS_T = {

@@ -9,12 +9,12 @@ import Attribution from '../Attribution.astro';
 import { getCollection } from 'astro:content';
 import { RENDERS, stripName } from '../../lib/shipRenders';
 import makerLogos from '../../data/manufacturer-logos.json';
-import { href } from '../../i18n/ui';
+import { href, pickLang, LOCALE_PREFIX, DEFAULT_LOCALE, type Locale } from '../../i18n/ui';
 
 interface Props {
-  lang?: 'de' | 'en';
+  lang?: Locale;
 }
-const { lang = 'en' } = Astro.props;
+const { lang = DEFAULT_LOCALE } = Astro.props;
 
 // slug (= vehicles-Collection-ID, so speichern die Fav-Buttons) -> Render-Daten
 // für das clientseitige Fleet-Showcase. Render-System der Schiffs-DB:
@@ -34,70 +34,99 @@ for (const v of vehicles) {
   };
 }
 
-const COPY = lang === 'de'
-  ? {
-      chromeLeft: 'UEE CITIZEN REGISTRY // VERSEBASE',
-      regLabel: 'REG',
-      loadingLabel: 'Registry wird abgefragt …',
-      notFoundCode: '404',
-      notFoundTitle: 'SIGNAL VERLOREN',
-      notFoundBody: 'Kein Pilot mit diesem Handle in der Registry gefunden. Prüfe die Schreibweise — oder der Pilot hat seine öffentliche Seite noch nicht aktiviert.',
-      errorTitle: 'VERBINDUNGSFEHLER',
-      errorBody: 'Die Registry ist gerade nicht erreichbar. Bitte lade die Seite neu.',
-      backHome: 'Zur Startseite',
-      transmission: 'TRANSMISSION',
-      since: 'Dabei seit',
-      verified: 'RSI VERIFIED',
-      badgeSince: 'SEIT',
-      statFavs: 'Favoriten gesamt',
-      statShips: 'Schiffe in der Flotte',
-      statMissions: 'Missionen',
-      statSince: 'Mitglied seit',
-      secFleet: 'Flotte',
-      secFavs: 'Weitere Favoriten',
-      secOrg: 'Org & Links',
-      kinds: { mission: 'Missionen', mineral: 'Mineralien', item: 'Items', patch: 'Patches', topic: 'Themen' } as Record<string, string>,
-      ctaText: 'Profil auf VerseBase — sichere dir deine eigene Piloten-Seite mit Flotte, Status und VersePass.',
-      ctaBtn: 'Eigenes Profil erstellen',
-      locale: 'de-DE',
-    }
-  : {
-      chromeLeft: 'UEE CITIZEN REGISTRY // VERSEBASE',
-      regLabel: 'REG',
-      loadingLabel: 'Querying the registry …',
-      notFoundCode: '404',
-      notFoundTitle: 'SIGNAL LOST',
-      notFoundBody: 'No pilot with this handle found in the registry. Check the spelling — or the pilot has not activated their public page yet.',
-      errorTitle: 'CONNECTION ERROR',
-      errorBody: 'The registry is unreachable right now. Please reload the page.',
-      backHome: 'Back to the homepage',
-      transmission: 'TRANSMISSION',
-      since: 'Member since',
-      verified: 'RSI VERIFIED',
-      badgeSince: 'SINCE',
-      statFavs: 'Total favorites',
-      statShips: 'Ships in fleet',
-      statMissions: 'Missions',
-      statSince: 'Member since',
-      secFleet: 'Fleet',
-      secFavs: 'More favorites',
-      secOrg: 'Org & Links',
-      kinds: { mission: 'Missions', mineral: 'Minerals', item: 'Items', patch: 'Patches', topic: 'Topics' } as Record<string, string>,
-      ctaText: 'Profile on VerseBase — claim your own pilot page with fleet, status and VersePass.',
-      ctaBtn: 'Create your profile',
-      locale: 'en-US',
-    };
+const COPY = pickLang({
+  de: {
+    chromeLeft: 'UEE CITIZEN REGISTRY // VERSEBASE',
+    regLabel: 'REG',
+    loadingLabel: 'Registry wird abgefragt …',
+    notFoundCode: '404',
+    notFoundTitle: 'SIGNAL VERLOREN',
+    notFoundBody: 'Kein Pilot mit diesem Handle in der Registry gefunden. Prüfe die Schreibweise — oder der Pilot hat seine öffentliche Seite noch nicht aktiviert.',
+    errorTitle: 'VERBINDUNGSFEHLER',
+    errorBody: 'Die Registry ist gerade nicht erreichbar. Bitte lade die Seite neu.',
+    backHome: 'Zur Startseite',
+    transmission: 'TRANSMISSION',
+    since: 'Dabei seit',
+    verified: 'RSI VERIFIED',
+    badgeSince: 'SEIT',
+    statFavs: 'Favoriten gesamt',
+    statShips: 'Schiffe in der Flotte',
+    statMissions: 'Missionen',
+    statSince: 'Mitglied seit',
+    secFleet: 'Flotte',
+    secFavs: 'Weitere Favoriten',
+    secOrg: 'Org & Links',
+    kinds: { mission: 'Missionen', mineral: 'Mineralien', item: 'Items', patch: 'Patches', topic: 'Themen' } as Record<string, string>,
+    ctaText: 'Profil auf VerseBase — sichere dir deine eigene Piloten-Seite mit Flotte, Status und VersePass.',
+    ctaBtn: 'Eigenes Profil erstellen',
+    locale: 'de-DE',
+  },
+  en: {
+    chromeLeft: 'UEE CITIZEN REGISTRY // VERSEBASE',
+    regLabel: 'REG',
+    loadingLabel: 'Querying the registry …',
+    notFoundCode: '404',
+    notFoundTitle: 'SIGNAL LOST',
+    notFoundBody: 'No pilot with this handle found in the registry. Check the spelling — or the pilot has not activated their public page yet.',
+    errorTitle: 'CONNECTION ERROR',
+    errorBody: 'The registry is unreachable right now. Please reload the page.',
+    backHome: 'Back to the homepage',
+    transmission: 'TRANSMISSION',
+    since: 'Member since',
+    verified: 'RSI VERIFIED',
+    badgeSince: 'SINCE',
+    statFavs: 'Total favorites',
+    statShips: 'Ships in fleet',
+    statMissions: 'Missions',
+    statSince: 'Member since',
+    secFleet: 'Fleet',
+    secFavs: 'More favorites',
+    secOrg: 'Org & Links',
+    kinds: { mission: 'Missions', mineral: 'Minerals', item: 'Items', patch: 'Patches', topic: 'Topics' } as Record<string, string>,
+    ctaText: 'Profile on VerseBase — claim your own pilot page with fleet, status and VersePass.',
+    ctaBtn: 'Create your profile',
+    locale: 'en-US',
+  },
+  hu: {
+    chromeLeft: 'UEE CITIZEN REGISTRY // VERSEBASE',
+    regLabel: 'REG',
+    loadingLabel: 'Lekérdezés a nyilvántartásból …',
+    notFoundCode: '404',
+    notFoundTitle: 'JEL ELVESZTVE',
+    notFoundBody: 'Nincs ilyen handle-lel pilóta a nyilvántartásban. Ellenőrizd a helyesírást — vagy a pilóta még nem kapcsolta be a nyilvános oldalát.',
+    errorTitle: 'KAPCSOLATI HIBA',
+    errorBody: 'A nyilvántartás éppen nem érhető el. Kérjük, töltsd újra az oldalt.',
+    backHome: 'A főoldalra',
+    transmission: 'ADÁS',
+    since: 'Tagság kezdete',
+    verified: 'RSI VERIFIED',
+    badgeSince: 'MIÓTA',
+    statFavs: 'Kedvencek összesen',
+    statShips: 'Hajók a flottában',
+    statMissions: 'Küldetések',
+    statSince: 'Tag ennyi ideje',
+    secFleet: 'Flotta',
+    secFavs: 'További kedvencek',
+    secOrg: 'Org és linkek',
+    kinds: { mission: 'Küldetések', mineral: 'Ásványok', item: 'Tárgyak', patch: 'Patchek', topic: 'Témák' } as Record<string, string>,
+    ctaText: 'Profil a VerseBase-en — szerezd meg a saját pilótaoldaladat flottával, státusszal és VersePass-szal.',
+    ctaBtn: 'Saját profil létrehozása',
+    locale: 'hu-HU',
+  },
+}, lang);
 
 const registerHref = href('/account/register.html', lang);
-const homeHref = lang === 'de' ? '/de.html' : '/';
+const homeHref = href('/index.html', lang);
 const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 ---
 
 <Layout
-  title={lang === 'de' ? 'Pilot | VerseBase' : 'Pilot | VerseBase'}
-  description={lang === 'de'
-    ? 'Öffentliches Piloten-Profil auf VerseBase: Status, Rolle, Flotte und Favoriten.'
-    : 'Public pilot profile on VerseBase: status, role, fleet and favorites.'}
+  title="Pilot | VerseBase"
+  description={pickLang({
+    de: 'Öffentliches Piloten-Profil auf VerseBase: Status, Rolle, Flotte und Favoriten.',
+    en: 'Public pilot profile on VerseBase: status, role, fleet and favorites.',
+    hu: 'Nyilvános pilótaprofil a VerseBase-en: státusz, szerep, flotta és kedvencek.',
+  }, lang)}
   themeColor="#05070d"
   ogImage="/assets/og-default.jpg"
   translated={true}
@@ -113,9 +142,9 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 <a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Pilot' }]} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Pilot' }]} translated={true} />
 
-<main id="main" data-lang={lang}>
+<main id="main" data-lang={lang} data-prefix={LOCALE_PREFIX[lang]}>
   <div id="ppApp" data-register={registerHref} data-home={homeHref}>
 
     <!-- Loading-Skeleton (Kartenform, pulsierend) -->
@@ -763,7 +792,11 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   if (app) {
     const $ = (id: string) => document.getElementById(id);
     const main = document.getElementById('main') as HTMLElement;
-    const lang = main?.dataset.lang === 'de' ? 'de' : 'en';
+    const lang = (main?.dataset.lang || 'en') as 'de' | 'en' | 'hu';
+    // Pfad-Präfix der Seitensprache ('' bei der Standardsprache). Kommt vom
+    // Server, weil dieses Bundle LOCALE_PREFIX nicht kennt und der Präfix aus
+    // `lang` allein nicht ableitbar ist.
+    const PREFIX = main?.dataset.prefix || '';
     const COPY = JSON.parse($('ppCopyData')?.textContent || '{}');
     const SHIPS: Record<string, { n: string; i: string | null; m: string | null }> =
       JSON.parse($('ppShipData')?.textContent || '{}');
@@ -774,14 +807,15 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     const favPath = (kind: string, slug: string) => {
       const tpl = FAV_PATH[kind] || '/index.html';
       const p = tpl.replace('%s', encodeURIComponent(slug).replace(/%2F/gi, '/'));
-      return lang === 'de' ? '/de' + p : p;
+      return PREFIX + p;
     };
 
     // Handle aus ?h=<handle> (nginx-Rewrite) oder direkt aus /pilot/<handle>.
     const params = new URLSearchParams(location.search);
     let handle = (params.get('h') || '').trim();
     if (!handle) {
-      const m = location.pathname.match(/\/(?:de\/)?pilot\/([A-Za-z0-9_-]+)/);
+      // Jeder Sprachpräfix ist erlaubt (/pilot/…, /de/pilot/…, /hu/pilot/…).
+    const m = location.pathname.match(/\/(?:[a-z]{2}\/)?pilot\/([A-Za-z0-9_-]+)/);
       if (m) handle = m[1];
     }
     handle = handle.toLowerCase();

@@ -1,0 +1,165 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import TopicFacts from '../../../components/TopicFacts.astro';
+import RelatedTopics from '../../../components/RelatedTopics.astro';
+import Attribution from '../../../components/Attribution.astro';
+import TopicSeo from '../../../components/dossier/TopicSeo.astro';
+---
+<Layout title={"Defend Location — Star Citizen 4.8.1 | VerseBase"} description={"Defend Location: az Alpha 4.8.1 új, hullámalapú űrharc-küldetéstípusa — védd meg az aszteroida-bányabázisokat a bombázótámadásoktól 385 helyszínen a Stantonon és a Pyrón."} themeColor="#0b1014" ogType="article" ogImage="/assets/t-def-1.jpg" translated={true}>
+<TopicSeo slug="4-8-1-defend-location" image="/assets/t-def-1.jpg" />
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<style is:inline>
+
+/* Strike-Theme (4.8.x) */
+:root{--bg:#0b1014;--bg-2:#111820;--surface:#17202a;--surface-2:#1f2b38;--accent:#36c5d6;--accent-2:#E6952A;--hot:#D94A38;--text:#e8f0f4;--muted:#9bb0ba;--line:rgba(54,197,214,.22);--line-soft:rgba(232,240,244,.10);--glow:0 0 44px rgba(54,197,214,.30);--ink:#0b1014;--maxw:1180px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f1f9ff;--bg-2:#e6eff9;--surface:#fcfdff;--surface-2:#ecf3fc;--text:#1a2023;--muted:#485b64;--accent:#036771;--accent-2:#794900;--hot:#9c0d01;--ink:#ffffff;--accent-media:#36c5d6;--accent-2-media:#E6952A;--line:rgba(43,127,137,.3);--line-soft:rgba(41,47,50,.12);--glow:0 6px 22px rgba(43,127,137,.18)}
+
+
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.band .big.huge{font-size:clamp(3rem,15vw,11rem)}</style>
+<a class="skip" href="#main">Ugrás a tartalomra</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Archívum', href: '/hu/archiv.html' }, { label: 'Alpha 4.8.1', href: '/hu/patches/sc-4-8-1.html' }, { label: "Defend Location" }]} translated={true} />
+
+
+<main id="main">
+
+  <!-- HERO (full-bleed lead media) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-def-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href="/hu/patches/sc-4-8-1.html">Alpha 4.8.1 · Gameplay</a> &nbsp;·&nbsp; Neuer Missionstyp</div>
+      <h1><span class="thin">Tartsd az állást</span>Defend Location</h1>
+      <p class="lead">A 4.8.1 új, hullámalapú űrharc-küldetéstípusa: védd meg az aszteroida-bányabázisokat a bombázótámadásoktól — 385 helyszínen át a Stantonon és a Pyrón.</p>
+      <div class="tags"><span class="tag hot">Neuer Missionstyp</span><span class="tag">385 Orte</span><span class="tag">Bomber-Abwehr</span><span class="tag">Escort-Hybrid</span><span class="tag">Blueprints</span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>DEFEND LOCATION</span><span class="dot">◆</span><span>385 EINSATZORTE</span><span class="dot">◆</span><span>BOMBER-ABWEHR</span><span class="dot">◆</span><span>ESCORT-HYBRID</span><span class="dot">◆</span><span>FOXWELL</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span>
+      <span>DEFEND LOCATION</span><span class="dot">◆</span><span>385 EINSATZORTE</span><span class="dot">◆</span><span>BOMBER-ABWEHR</span><span class="dot">◆</span><span>ESCORT-HYBRID</span><span class="dot">◆</span><span>FOXWELL</span><span class="dot">◆</span><span>BLUEPRINTS</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-8-1-defend-location" />
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="385">0</div><div class="c">Einsatzorte · Stanton & Pyro</div></div>
+    <div class="s"><div class="n count" data-to="149">0</div><div class="c">Verteidigbare Basen</div></div>
+    <div class="s"><div class="n count" data-to="6">0</div><div class="c">Schwierigkeitsstufen</div></div>
+    <div class="s"><div class="n">4.8.1</div><div class="c">A patch központi funkciója</div></div>
+  </div>
+
+  <!-- OVERVIEW as FULL-BLEED BAND (image as background, design on top) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-def-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">01 · A központi funkció</div>
+      <div class="big huge outline">WELLE UM WELLE</div>
+      <p>A <b style="color:var(--accent-2)">Defend Location</b> az új, hullámalapú űrharc-küldetéstípus és az Alpha 4.8.1 központi funkciója. A játékosok aszteroida-bányabázisokat védenek az ellenséges bombázókkal szemben — támadás támadás után, amíg a terep meg nem tisztul.</p>
+    </div>
+  </section>
+
+  <!-- THE TWO TARGETS — VERSUS (two sides fit: Standard vs Escort-Hybrid) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⊕ Standard · Bomber-Abwehr</h3>
+        <ul>
+          <li>Ellenséges bombázók támadják a kritikus infrastruktúrát, például a tartályokat.</li>
+          <li>Minden bombázót el kell fogni a bombázás előtt.</li>
+          <li>Ha egyet átengedsz, a terhelése eltalálja a bázist.</li>
+          <li>Tisztán védelmi cél: a létesítménynek állva kell maradnia.</li>
+        </ul>
+      </div>
+      <div class="vs">/</div>
+      <div class="side b">
+        <h3>★ Hybrid · Escort-Element</h3>
+        <ul>
+          <li>Egy baráti hajó felszáll vagy leszáll a bázison.</li>
+          <li>Ellenséges vadászgépek veszik célba, amíg sebezhető.</li>
+          <li>Egyszerre véded az infrastruktúrát és a hajót.</li>
+          <li>Mindkét célt teljesíteni kell — különben a megbízás meghiúsul.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABLAUF — kompakter Dreischritt. Bewusst KEIN Scrollytelling: eine
+       Wellen-Verteidigung ist kein Reiseprozess mit eigenen visuellen
+       Stationen; Escort & Belohnung stehen bereits in Versus bzw. Split. -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">02</span><h2>Így zajlik egy védelem</h2><span class="rule"></span></div>
+      <div class="flow reveal" style="margin-top:2.4rem">
+        <div class="node"><div class="dot">1</div><h3>Bázisválasztás</h3><p>149 védhető bázis a Stantonon és a Pyrón, hat fokozat a Very Easytől a Superig — a választás dönti el az ellenfelet és a fizetséget.</p></div>
+        <div class="node"><div class="dot">2</div><h3>Állásfoglalás</h3><p>Érd el az aszteroida-bányabázist az első támadás előtt. Az infrastruktúra nem eshet el — mostantól minden másodperc számít.</p></div>
+        <div class="node"><div class="dot">3</div><h3>Hullámok megtörése</h3><p>Fogd el a bombázókat a bombázás előtt — támadás támadás után, és minden hullám keményebben nyom, mint az előző.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFESTO pull-quote -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>Minden átengedett bombázó <span class="hl">egy kráter a bázison</span>.</blockquote>
+    <cite>Defend Location · Alpha 4.8.1</cite>
+  </section>
+
+  <!-- AUFTRAGGEBER & BELOHNUNG — the ONE framed/split section -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-hh-3.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">03 · Auftraggeber & Lohn</div>
+        <h3>Ki hív — és mit hoz</h3>
+        <p>A megbízások olyan nevektől érkeznek, mint a <b>Foxwell</b>, a <b>Head Hunters</b>, a <b>CFP</b> és a <b>Rough and Ready</b>. Minden frakció a saját bázisait helyezi a védelmed alá.</p>
+        <p>A jutalom <b>aUEC</b>, <b>reputáció</b> és <b>org-scrip</b> — a magasabb nehézségi szinteken ezen felül áhított <b>crafting-tervrajzok</b> is.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCALE — full-bleed band (big number, parallax, design on top) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-pyro-5.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">04 · Massstab</div>
+      <div class="big huge">385</div>
+      <p>A helyszínek a Stantonon és a Pyrón oszlanak meg — <b style="color:var(--accent-2)">149 bázisból</b> táplálkozva, hat nehézségi fokozattal a Very Easytől a Superig. A hibrid jelleg teszi a Defend Locationt híddá a klasszikus bounty- és kísérőküldetés között.</p>
+    </div>
+  </section>
+
+  <!-- MEDIA — closing mixed gallery (full-bleed close) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">05</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-def-1.jpg"><img src="/assets/t-def-1.jpg" alt="Defend Location — űrharc egy bányabázis felett" loading="lazy"><span class="zoomic">⤢</span><figcaption>Tartani az állást</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-def-2.jpg"><img src="/assets/t-def-2.jpg" alt="Bombázótámadás az infrastruktúra ellen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Bombázótámadás</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-hammerhead.jpg"><img src="/assets/img-hammerhead.jpg" alt="Aegis Hammerhead — schwerer Verteidiger" loading="lazy"><span class="zoomic">⤢</span><figcaption>Schwere Abwehr</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-idris.jpg"><img src="/assets/img-idris.jpg" alt="Aegis Idris im Einsatz" loading="lazy"><span class="zoomic">⤢</span><figcaption>Eskorte</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/cz-ruin.jpg"><img src="/assets/cz-ruin.jpg" alt="Verlassene Stationsruine als Schauplatz" loading="lazy"><span class="zoomic">⤢</span><figcaption>Vorposten · Schauplatz</figcaption></figure>
+      </div>
+      <p class="src reveal">Forrás: Star Citizen Wiki és az Alpha 4.8.1 patch notes (© Cloud Imperium Games). Nem hivatalos rajongói feldolgozás.</p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-8-1-defend-location" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

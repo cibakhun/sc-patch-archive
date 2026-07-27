@@ -9,7 +9,7 @@
 // /de/search-index.json (DE, URLs mit /de-Präfix). Beide Endpunkte sind dünne
 // Wrapper um diesen Builder; das Overlay lädt den Index seiner Seite über das
 // data-index-Attribut. Übersetzt wird nichts Neues — der Builder nutzt die
-// vorhandenen Resolver (mergePatchEn/eraLabel für Patches, vType/vSize/vFoci
+// vorhandenen Resolver (mergePatch/eraLabel für Patches, vType/vSize/vFoci
 // für Fahrzeuge) und href() für die URLs.
 //
 // Eintrag (kurze Keys, ~35 KB): k = kind (stabiler Schlüssel, Anzeige-Label
@@ -17,7 +17,7 @@
 // u = url, x = extra keywords.
 import { getCollection } from 'astro:content';
 import { href, useTranslations, type Locale } from '../i18n/ui';
-import { mergePatchEn, eraLabel } from '../i18n/patchText';
+import { mergePatch, eraLabel } from '../i18n/patchText';
 import { vType, vSize, vFoci } from '../i18n/vehicleText';
 import { missions, repSummary, uec } from './missions';
 
@@ -32,7 +32,7 @@ export async function buildSearchIndex(lang: Locale): Promise<SearchEntry[]> {
   const out: SearchEntry[] = [];
 
   for (const p of patches) {
-    const d = mergePatchEn(p.id, p.data, lang);
+    const d = mergePatch(p.id, p.data, lang);
     const purl = href(`/patches/sc-${p.id}.html`, lang);
     out.push({
       k: 'patch',

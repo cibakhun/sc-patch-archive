@@ -1,4 +1,5 @@
 ---
+import { pickLang } from '../i18n/ui';
 // SignatureIdentifier.astro — Scan-Signatur-Identifier (wie scmdb) mit eigener Liste.
 // Jedes Mineral hat eine n=1-Scan-Signatur; ein Cluster aus n Steinen zeigt
 // n × Signatur. Max. Cluster-Größe hängt von der Seltenheit ab (legendär 2 …
@@ -70,7 +71,7 @@ const RARITY_LABEL: Record<string, { de: string; en: string }> = {
   roc: { de: 'ROC / Boden', en: 'ROC / ground' }, fps: { de: 'FPS-Hand', en: 'FPS hand' }, salvage: { de: 'Salvage', en: 'Salvage' },
 };
 
-const S = {
+const S = pickLang({
   de: {
     intro: 'Ein Cluster aus n Steinen zeigt n × die Basis-Signatur; die maximale Cluster-Größe hängt von der Seltenheit ab. Wähle deine Erze aus — nur die stehen dann in der Tabelle (deine persönliche Liste, bleibt gespeichert). Gib einen gescannten Wert ein, um Mineral + Cluster-Größe zu identifizieren.',
     scanLabel: 'Scan-Wert identifizieren', scanPh: 'z.B. 6340 oder ~6340 (±10%)',
@@ -91,7 +92,7 @@ const S = {
     locSystem: 'System', allSys: 'All', noLocSys: 'not in this system',
     src: 'Signatures & locations. Cluster = n × base signature (in-game values vary slightly with rock mass). Locations ranked by occurrence frequency (deposit probability × share); “up to X%” = max ore share in a rock. Ties favour asteroid fields (belts/clusters) first.',
   },
-}[lang];
+}, lang);
 ---
 <section class="sid" id="sid" data-loc5="false">
   <p class="sid__intro">{S.intro}</p>

@@ -1,4 +1,5 @@
 ---
+import { pickLang } from '../i18n/ui';
 // FracturingCalc.astro — "Kann ich diesen Rock brechen?" mit dem game-akkuraten
 // Mining-Modell (eigenen 4.9-Werten (Data.p4k) aus assets/mining-model.json).
 // Formeln 1:1 nach dem community-verifizierten Solver-Modell:
@@ -40,7 +41,7 @@ const lasers = (MODEL.lasers || [])
 const modules = (MODEL.modules || []).map((m: any) => ({ name: m.name, type: m.type, miningMult: m.miningMult, mods: m.mods || {} }));
 const gadgets = (MODEL.gadgets || []).map((g: any) => ({ name: g.name, mods: g.mods || {} }));
 
-const S = {
+const S = pickLang({
   de: {
     rock: 'Rock', comp: 'Komposition (Signatur)', mass: 'Masse (kg)', custom: 'Eigene Werte',
     resistance: 'Resistance', instability: 'Instabilität', laser: 'Mining-Laser', module: 'Modul', gadget: 'Gadget', none: '— keins —',
@@ -69,7 +70,7 @@ const S = {
     recOver: ' Also: high instability with a small window → overcharge risk. Widen the window / lower instability.',
     note: 'Game-accurate 4.9 model; the formulas (rock blending, energy, window, yield, charge = DPS × (1 − eff. resistance)) are verified against the reference solver model to <0.5%. Rock stats are representative (midpoint of the share range) — real rocks vary within it. Verify in-game.',
   },
-}[lang];
+}, lang);
 ---
 <section class="frac" id="frac">
   <div class="frac__grid">

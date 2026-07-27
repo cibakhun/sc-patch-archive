@@ -1,0 +1,40 @@
+---
+// MISSIONEN (HU) — /hu/missionen.html
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import Attribution from '../../components/Attribution.astro';
+import MissionsApp from '../../components/MissionsApp.astro';
+import { db } from '../../lib/missions';
+---
+<Layout
+  title={`${db.meta.counts.families} Star Citizen-küldetés — jutalmak és helyszínek | VerseBase`}
+  description={`Keresés mind a ${db.meta.counts.families} Star Citizen-küldetés között — jutalmak, kifizetések, reputáció, megbízók és helyszínek. ${db.meta.counts.live} aktív ajánlat, adatok dátuma: ${db.meta.generated}.`}
+  themeColor="#0b0906"
+  footer={false}
+  translated={true}
+  ogImage="/assets/t-tsg-4.jpg"
+>
+  <link slot="head" rel="stylesheet" href="/assets/detail.css" />
+  <style is:inline>
+    :root {
+      --bg: #0b0906; --bg-2: #110d08; --surface: #191309; --surface-2: #221a0e;
+      --accent: #f5a524; --accent-2: #ffd79a; --hot: #ff7a45;
+      --text: #f3ece1; --muted: #a1927c; --line: rgba(245, 165, 36, .22); --line-soft: rgba(243, 236, 225, .10);
+      --glow: 0 0 44px rgba(245, 165, 36, .26); --ink: #0b0906; --maxw: 1440px;
+    }
+    /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+    :root[data-theme="light"]{--bg:#faf7f1;--bg-2:#f3ede5;--surface:#fffdfa;--surface-2:#f8f1e8;--text:#231e16;--muted:#635642;--accent:#7d5001;--accent-2:#714d02;--hot:#8c3001;--ink:#ffffff;--accent-media:#f5a524;--accent-2-media:#ffd79a;--line:rgba(149,103,37,.3);--line-soft:rgba(50,45,37,.12);--glow:0 6px 22px rgba(149,103,37,.18)}
+
+    /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */</style>
+  <a class="skip" href="#main">Ugrás a tartalomra</a>
+  <div class="cursorglow" aria-hidden="true"></div>
+  {/* crumbs speisen die BreadcrumbList-JSON-LD in SiteNav (sichtbar rendern sie
+      nicht mehr). Ohne sie war dieser Hub die einzige Index-Seite der Site ganz
+      ohne strukturierte Daten. */}
+  <SiteNav crumbs={[{ label: 'VerseBase', href: '/hu.html' }, { label: 'Küldetések' }]} />
+  <main id="main">
+    <MissionsApp lang="hu" />
+  </main>
+  <Attribution />
+  <script is:inline src="/assets/detail.js"></script>
+</Layout>

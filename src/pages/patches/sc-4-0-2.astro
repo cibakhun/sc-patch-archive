@@ -4,12 +4,12 @@ import SiteNav from '../../components/SiteNav.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
-import { mergePatchEn } from '../../i18n/patchText';
+import { mergePatch } from '../../i18n/patchText';
 import { getEntry } from 'astro:content';
 
 const entry = await getEntry('patches', '4-0-2');
 if (!entry) throw new Error('Patch-Daten 4-0-2 fehlen in src/data/patches/');
-const patch = mergePatchEn('4-0-2', entry.data, 'en');
+const patch = mergePatch('4-0-2', entry.data, 'en');
 ---
 <Layout title={"Star Citizen Alpha 4.0.2 — Supply or Die | VerseBase"} description={"Alpha 4.0.2 “Supply or Die”: Pyro's supply war — Citizens for Prosperity vs. the Headhunters, PvPvE depot battles over the key resource Detatrine, with the Ravager-212 as the event reward."} themeColor="#1a1d20" ogType="article" ogImage="/assets/t-pyro-3.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/t-pyro-3.jpg" lang="en" />
@@ -165,7 +165,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 <a class="skip" href="#main">Skip to content</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.0.2' }]} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.0.2' }]} translated={true} />
 
 
 <main id="main">

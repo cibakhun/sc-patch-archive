@@ -1,4 +1,5 @@
 ---
+import { pickLang } from '../../i18n/ui';
 // Passwort vergessen — schickt den Recovery-Link. Ziel des Links ist
 // /account/update-password.html (sprachbewusst); dort setzt der User das neue
 // Passwort. Antwort ist bewusst immer „Mail ist raus" (keine Adress-Enumeration).
@@ -10,7 +11,7 @@ interface Props {
 }
 const { lang } = Astro.props;
 
-const COPY = {
+const COPY = pickLang({
   de: {
     email: 'E-Mail', emailPh: 'du@beispiel.de',
     hint: 'Wir schicken dir einen Link zum Zurücksetzen deines Passworts.',
@@ -31,7 +32,7 @@ const COPY = {
     errNet: 'Network error — please try again later.',
     toLogin: '← Back to sign-in',
   },
-}[lang];
+}, lang);
 
 const base = SITE.url.replace(/\/$/, '');
 const updateRedirect = base + href('/account/update-password.html', lang);

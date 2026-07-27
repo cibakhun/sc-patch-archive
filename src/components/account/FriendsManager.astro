@@ -1,4 +1,5 @@
 ---
+import { pickLang, href } from '../../i18n/ui';
 // Freunde & Piloten-Verzeichnis — echte Daten aus Supabase.
 //
 // Tabellen: friends (eine Zeile je Freundschaft, beide Seiten sehen sie per RLS)
@@ -12,7 +13,7 @@ interface Props {
 
 const { lang } = Astro.props;
 
-const COPY = {
+const COPY = pickLang({
   de: {
     title: 'Freunde & Piloten-Verzeichnis',
     subtitle: 'Vernetze dich mit anderen VerseBase-Piloten. Gefunden wird man über das Handle.',
@@ -77,9 +78,9 @@ const COPY = {
     friendSince: 'Friends since',
     requested: 'Requested',
   },
-}[lang];
+}, lang);
 
-const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
+const pilotBase = href('/pilot/', lang);
 ---
 
 <div

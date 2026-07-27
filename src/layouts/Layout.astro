@@ -5,7 +5,14 @@
 // <script is:inline>) so the bespoke design ports over verbatim.
 import Attribution from '../components/Attribution.astro';
 import { SITE } from '../consts';
-import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui';
+import {
+  localeFromPath,
+  pathForLocale,
+  HTML_LANG,
+  OG_LOCALE,
+  LOCALES,
+  DEFAULT_LOCALE,
+} from '../i18n/ui';
 import { isNoindex } from '../lib/seo';
 import { LIGHT_RULES } from '../../scripts/lib/theme-color.mjs';
 import { versioned } from '../lib/assetVersion';
@@ -29,9 +36,9 @@ interface Props {
    */
   noindex?: boolean;
   /**
-   * DE↔EN-Gegenstück existiert -> hreflang-Alternates ausgeben. Default false:
-   * solange eine Seite noch KEIN Übersetzungspaar hat (Stufe 2/3), bewerben wir
-   * keine 404-URL, und die DE-Ausgabe bleibt byte-gleich zu vorher.
+   * Übersetzte Gegenstücke existieren -> hreflang-Alternates für ALLE Sprachen
+   * ausgeben. Default false: solange eine Seite kein vollständiges Sprach-
+   * Cluster hat, bewerben wir keine 404-URL.
    */
   translated?: boolean;
   /**
@@ -82,8 +89,13 @@ const ogImageAbs = ogImageEff.startsWith('http') ? ogImageEff : base + ogImageEf
 // widersprechen sich canonical und hreflang und Google verwirft das
 // Sprach-Cluster. Betrifft die Startseite, also die wichtigste URL der Seite.
 const canon = (p: string) => (p === '/index.html' ? '/' : p);
-const deHref = base + canon(pathForLocale(Astro.url.pathname, 'de'));
-const enHref = base + canon(pathForLocale(Astro.url.pathname, 'en'));
+// Ein Eintrag pro Sprache + x-default auf die Standardsprache. Google verlangt,
+// dass jede Seite des Clusters ALLE Geschwister nennt (sich selbst inklusive).
+const altLinks = LOCALES.map((l) => ({
+  lang: HTML_LANG[l],
+  href: base + canon(pathForLocale(Astro.url.pathname, l)),
+}));
+const defaultHref = base + canon(pathForLocale(Astro.url.pathname, DEFAULT_LOCALE));
 
 // Die Browserleisten-Farbe (Android/Safari) muss im Hellmodus mitziehen —
 // sonst rahmt eine schwarze Leiste eine weiße Seite. Der helle Wert wird
@@ -132,9 +144,8 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
   <link rel="canonical" href={canonical} />
   {translated && (
     <>
-      <link rel="alternate" hreflang="de" href={deHref} />
-      <link rel="alternate" hreflang="en" href={enHref} />
-      <link rel="alternate" hreflang="x-default" href={enHref} />
+      {altLinks.map((a) => <link rel="alternate" hreflang={a.lang} href={a.href} />)}
+      <link rel="alternate" hreflang="x-default" href={defaultHref} />
     </>
   )}
   <meta property="og:type" content={ogType} />
@@ -143,7 +154,10 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
   <meta property="og:description" content={description} />
   <meta property="og:url" content={canonical} />
   <meta property="og:locale" content={OG_LOCALE[lang]} />
-  {translated && <meta property="og:locale:alternate" content={OG_LOCALE[lang === 'de' ? 'en' : 'de']} />}
+  {translated &&
+    LOCALES.filter((l) => l !== lang).map((l) => (
+      <meta property="og:locale:alternate" content={OG_LOCALE[l]} />
+    ))}
   <meta property="og:image" content={ogImageAbs} />
   <meta property="og:image:alt" content={title} />
   <meta name="twitter:card" content="summary_large_image" />

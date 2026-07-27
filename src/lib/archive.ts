@@ -7,7 +7,7 @@
 // same facts the collection already validates, duplicated twice and drifting.
 // Everything below is derived from src/data/patches/*.json instead.
 import type { CollectionEntry } from 'astro:content';
-import { mergePatchEn, eraLabel, codenameLabel } from '../i18n/patchText';
+import { mergePatch, eraLabel, codenameLabel } from '../i18n/patchText';
 import { type Locale, href } from '../i18n/ui';
 
 type Patch = CollectionEntry<'patches'>;
@@ -53,12 +53,17 @@ const MONTHS: Record<Locale, string[]> = {
   // this can't shift with the build host's ICU data.
   de: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
   en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  hu: ['jan.', 'febr.', 'márc.', 'ápr.', 'máj.', 'jún.', 'júl.', 'aug.', 'szept.', 'okt.', 'nov.', 'dec.'],
 };
 
-/** "2024-12-19" -> "Dec 2024" / "Dez 2024" */
+/**
+ * "2024-12-19" -> "Dec 2024" / "Dez 2024" / "2024. dec."
+ * Ungarisch schreibt Jahr zuerst — deshalb die Reihenfolge pro Sprache.
+ */
 function monthYear(iso: string, lang: Locale): string {
   const [y, m] = iso.split('-');
-  return `${MONTHS[lang][Number(m) - 1]} ${y}`;
+  const mon = MONTHS[lang][Number(m) - 1];
+  return lang === 'hu' ? `${y}. ${mon}` : `${mon} ${y}`;
 }
 
 /** "2024-12-19" -> "19" (day cell of the timeline gutter) */
@@ -146,7 +151,7 @@ export function buildArchive(raw: Patch[], lang: Locale): Archive {
   const patches = raw
     .slice()
     .sort((a, b) => a.data.date.localeCompare(b.data.date))
-    .map((p) => ({ id: p.id, data: mergePatchEn(p.id, p.data, lang) }));
+    .map((p) => ({ id: p.id, data: mergePatch(p.id, p.data, lang) }));
 
   const first = utc(patches[0].data.date);
   const last = utc(patches[patches.length - 1].data.date);

@@ -15,12 +15,25 @@
 // darum bringt dieses Modul seine Pfad-Normalisierung selbst mit.
 
 /**
- * Basisform (= EN-Pfad) eines Pfads. Spiegelt i18n/ui#toBaseForm; DE lebt unter
- * /de/…, die Startseite heißt in beiden Sprachen '/index.html'.
+ * Pfad-Präfixe der übersetzten Sprachen — Spiegel von i18n/ui#LOCALE_PREFIX
+ * (die Standardsprache EN liegt präfixlos auf der Wurzel und hat keinen
+ * Eintrag). Eine neue Sprache braucht hier denselben Eintrag wie dort.
+ */
+const PREFIXES = ['/de', '/hu'] as const;
+
+/**
+ * Basisform (= EN-Pfad) eines Pfads. Spiegelt i18n/ui#toBaseForm; übersetzte
+ * Sprachen leben unter /<präfix>/…, die Startseite heißt in allen Sprachen
+ * '/index.html'.
  */
 function toBaseForm(pathname: string): string {
-  if (pathname === '/de' || pathname === '/de.html') return '/index.html';
-  if (pathname.startsWith('/de/')) pathname = pathname.slice(3);
+  for (const p of PREFIXES) {
+    if (pathname === p || pathname === `${p}.html`) return '/index.html';
+    if (pathname.startsWith(`${p}/`)) {
+      pathname = pathname.slice(p.length);
+      break;
+    }
+  }
   if (pathname === '' || pathname === '/') return '/index.html';
   return pathname;
 }

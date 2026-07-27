@@ -1,0 +1,48 @@
+---
+// Account-Dashboard — DE (/hu/account.html). noindex: private Inhalte.
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import Layout from '../../../layouts/Layout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import Attribution from '../../../components/Attribution.astro';
+import AccountShell from '../../../components/account/AccountShell.astro';
+import AccountDashboard from '../../../components/account/AccountDashboard.astro';
+
+// CSS-Cache-Bust per Content-Hash (sha1): siehe EN-Seite. Verhindert veraltetes
+// account-dossier.css im CDN/Browser bei Änderungen automatisch.
+const cssVer = (f: string) => { try { return createHash('sha1').update(readFileSync(f)).digest('hex').slice(0, 8); } catch { return 'x'; } };
+const accountCss = `/assets/account.css?v=${cssVer('assets/account.css')}`;
+const dossierCss = `/assets/account-dossier.css?v=${cssVer('assets/account-dossier.css')}`;
+---
+<Layout
+  title={'A fiókod | VerseBase'}
+  description={'A VerseBase-fiókod: profil, kedvenc hajók, biztonsági beállítások.'}
+  themeColor="#05070d"
+  ogImage="/assets/og-default.jpg"
+  translated={true}
+  noindex={true}
+>
+<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={accountCss} />
+<link slot="head" rel="stylesheet" href={dossierCss} />
+<style is:inline>
+/* Palette + Shell-Stile leben jetzt in /assets/account.css (geteilt, entdoppelt). */
+.reveal{opacity:1 !important;transform:none !important}
+.hero__in{max-width:var(--maxw)}
+.hero--acct{min-height:34svh}
+.acwrap--wide .sec-head{margin-top:2.6rem}</style>
+<a class="skip" href="#main">Ugrás a tartalomra</a>
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: 'Fiók' }]} translated={true} />
+
+<main id="main">
+  <AccountShell bare={true}>
+    <AccountDashboard lang="hu" />
+  </AccountShell>
+</main>
+
+<Attribution sources={[]} />
+
+<script is:inline src="/assets/detail.js"></script>
+</Layout>

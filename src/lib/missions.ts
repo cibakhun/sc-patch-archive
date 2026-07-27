@@ -6,7 +6,7 @@
 // den TS-Server im Editor zaeh.
 
 import DB from '../data/missions.json';
-import type { Locale } from '../i18n/ui';
+import { NUMBER_LOCALE, type Locale } from '../i18n/ui';
 
 export interface MissionRep {
   faction: string | null;
@@ -121,8 +121,7 @@ export const missions = db.missions;
 export const missionBySlug = new Map(missions.map((m) => [m.slug, m]));
 
 /* ---------- Format ---------- */
-const NUM = { de: 'de-DE', en: 'en-US' } as const;
-export const uec = (n: number, lang: Locale) => n.toLocaleString(NUM[lang]);
+export const uec = (n: number, lang: Locale) => n.toLocaleString(NUMBER_LOCALE[lang]);
 
 /** Sekunden -> "1 h 30 min" / "45 min". 0 => null (kein Limit). */
 export function dur(sec: number, lang: Locale): string | null {

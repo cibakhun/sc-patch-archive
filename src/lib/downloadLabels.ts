@@ -4,14 +4,16 @@
 // einen menschenlesbaren Titel + Untertitel um — statt kryptischer Dateinamen.
 // Sprach-neutral wo möglich (Schiffs-/Eigennamen), DE/EN nur wo es zählt.
 
-export type Lang = 'de' | 'en';
+import type { Locale } from '../i18n/ui';
+
+export type Lang = Locale;
 export interface MediaLabel {
   title: string; // kuratierter Haupttitel (z. B. "Storm Breaker")
   sub: string; // kurzer Kontext (z. B. "Bild 3", "Render", "Trailer-Standbild")
 }
 
 // t-<slug>-<n> -> Themen-Name. Slug = Kürzel aus dem Bild-Set.
-const TOPIC: Record<string, { de: string; en: string }> = {
+const TOPIC: Record<string, Partial<Record<Locale, string>> & { en: string }> = {
   storm: { de: 'Storm Breaker', en: 'Storm Breaker' },
   xeno: { de: 'XenoThreat', en: 'XenoThreat' },
   onyx: { de: 'Onyx-Facilities', en: 'Onyx Facilities' },
@@ -67,7 +69,8 @@ function pretty(token: string): string {
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
-const T = (lang: Lang, de: string, en: string) => (lang === 'de' ? de : en);
+const T = (lang: Lang, de: string, en: string, hu?: string) =>
+  lang === 'de' ? de : lang === 'hu' ? hu ?? en : en;
 
 /** Roher Dateiname (z. B. "t-storm-3.jpg") -> kuratiertes Label. */
 export function mediaLabel(file: string, lang: Lang): MediaLabel {
@@ -78,8 +81,8 @@ export function mediaLabel(file: string, lang: Lang): MediaLabel {
   if (m) {
     const topic = TOPIC[m[1]];
     return {
-      title: topic ? topic[lang] : pretty(m[1]),
-      sub: T(lang, `Bild ${m[2]}`, `Image ${m[2]}`),
+      title: topic ? topic[lang] ?? topic.en : pretty(m[1]),
+      sub: T(lang, `Bild ${m[2]}`, `Image ${m[2]}`, `${m[2]}. kép`),
     };
   }
 
@@ -88,7 +91,7 @@ export function mediaLabel(file: string, lang: Lang): MediaLabel {
   if (m) {
     return {
       title: `Patch ${m[1]}.${m[2]}.${m[3]}`,
-      sub: T(lang, 'Trailer-Standbild', 'Trailer still'),
+      sub: T(lang, 'Trailer-Standbild', 'Trailer still', 'Trailer-képkocka'),
     };
   }
 
@@ -103,20 +106,20 @@ export function mediaLabel(file: string, lang: Lang): MediaLabel {
   if (m) {
     return {
       title: 'Inside Star Citizen',
-      sub: T(lang, `Folge ${m[1]}`, `Episode ${m[1]}`),
+      sub: T(lang, `Folge ${m[1]}`, `Episode ${m[1]}`, `${m[1]}. rész`),
     };
   }
 
   // vid-<x>: Video-Standbilder
   m = base.match(/^vid-(.+)$/);
   if (m) {
-    return { title: pretty(m[1]), sub: T(lang, 'Video-Standbild', 'Video still') };
+    return { title: pretty(m[1]), sub: T(lang, 'Video-Standbild', 'Video still', 'Videó-képkocka') };
   }
 
   // img-<x>: Renders / Motive
   m = base.match(/^img-(.+)$/);
   if (m) {
-    return { title: pretty(m[1]), sub: T(lang, 'Render', 'Render') };
+    return { title: pretty(m[1]), sub: T(lang, 'Render', 'Render', 'Render') };
   }
 
   // wk-<x>: Wikelo's-Emporium-Assets (Trade-Belohnungen). Kuratiert, wo der

@@ -5,29 +5,52 @@
 // einzige Quelle für Chrome-Text.
 //
 // Default-Locale = 'en' — Englisch ist die Standardsprache der Seite und liegt
-// PRÄFIXLOS auf der Wurzel (/schiffe/x.html). Deutsch bekommt den /de/-Präfix
-// (/de/schiffe/x.html), die deutsche Startseite ist /de.html (build.format:
-// 'file' bildet src/pages/de/index.astro genau darauf ab).
+// PRÄFIXLOS auf der Wurzel (/schiffe/x.html). Jede weitere Sprache bekommt
+// einen Pfad-Präfix aus LOCALE_PREFIX: Deutsch /de/…, Ungarisch /hu/…. Die
+// Startseite einer präfigierten Sprache ist <präfix>.html (/de.html, /hu.html)
+// — build.format:'file' bildet src/pages/<präfix>/index.astro genau darauf ab.
 // Fehlt ein Key in einer Sprache, fällt t() sichtbar auf EN zurück statt zu
 // crashen.
 //
 // Vorher war es umgekehrt (DE präfixlos, EN unter /en/). Der Tausch macht die
 // alten /en/…-URLs frei — nginx leitet sie per 301 auf die Wurzel um.
+//
+// NICHTS in diesem Modul nennt eine Sprache namentlich: alle Pfad-Helfer lesen
+// LOCALE_PREFIX. Eine vierte Sprache ist damit ein Eintrag in LOCALES +
+// LOCALE_PREFIX + den Label-Maps, kein Eingriff in die Logik.
 
 export const DEFAULT_LOCALE = 'en' as const;
-export const LOCALES = ['de', 'en'] as const;
+export const LOCALES = ['de', 'en', 'hu'] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const LOCALE_LABEL: Record<Locale, string> = {
   de: 'Deutsch',
   en: 'English',
+  hu: 'Magyar',
 };
 /** kurzes Kürzel für den Umschalter */
-export const LOCALE_SHORT: Record<Locale, string> = { de: 'DE', en: 'EN' };
+export const LOCALE_SHORT: Record<Locale, string> = { de: 'DE', en: 'EN', hu: 'HU' };
 
 // html lang / og:locale Werte pro Locale
-export const HTML_LANG: Record<Locale, string> = { de: 'de', en: 'en' };
-export const OG_LOCALE: Record<Locale, string> = { de: 'de_DE', en: 'en_US' };
+export const HTML_LANG: Record<Locale, string> = { de: 'de', en: 'en', hu: 'hu' };
+export const OG_LOCALE: Record<Locale, string> = { de: 'de_DE', en: 'en_US', hu: 'hu_HU' };
+
+/**
+ * URL-Präfix je Locale — die Standardsprache hat keinen (sie liegt auf der
+ * Wurzel). Einzige Quelle für die Pfad-Formung; lib/seo.ts und lib/sitemap.ts
+ * spiegeln diese Tabelle bewusst (kein Import, sonst Zyklus über astro:content).
+ */
+export const LOCALE_PREFIX: Record<Locale, string> = { de: '/de', en: '', hu: '/hu' };
+
+/** Alle Sprachen MIT Präfix (also alles außer der Standardsprache). */
+export const PREFIXED_LOCALES = LOCALES.filter((l) => l !== DEFAULT_LOCALE);
+
+/** Zahlenformat-Locale (Tausendertrennung, Datum) je Sprache. */
+export const NUMBER_LOCALE: Record<Locale, string> = {
+  de: 'de-DE',
+  en: 'en-US',
+  hu: 'hu-HU',
+};
 
 // UI-String-Katalog. Flache, punkt-getrennte Keys -> pro Locale ein Wert.
 // Nur wiederkehrende Chrome-Strings; KEIN Seiten-Fließtext.
@@ -774,6 +797,378 @@ const UI = {
     'arch.versions': 'releases',
     'arch.toTop': 'Back to top',
   },
+  hu: {
+    // -- Navigáció --
+    'nav.ships': 'Hajók',
+    'nav.evolution': 'Evolúció',
+    'nav.search': 'Keresés',
+    'nav.search.open': 'Keresés megnyitása (Ctrl+K)',
+    'nav.search.kbd': 'Ctrl K',
+    'nav.patches': 'Patchek',
+    'nav.topics': 'Témák',
+    'nav.menu': 'Menü',
+    'nav.menu.open': 'Menü megnyitása',
+    'nav.menu.close': 'Menü bezárása',
+    'nav.section': 'Navigáció',
+    'nav.main': 'Főnavigáció',
+    'nav.path': 'Útvonal',
+    'nav.home': 'Főoldal',
+    'nav.home.aria': 'SC Archívum — Főoldal',
+    'nav.allPatches': 'Összes patch',
+    'nav.allTopics': 'Összes téma',
+    'nav.archive': 'Patch-archívum',
+    'nav.ships.long': 'Hajók és járművek — Adatbázis',
+    'nav.missions': 'Küldetések',
+    'nav.missions.long': 'Küldetések — Adatbázis',
+    'nav.evolution.long': 'Evolúció — Rendszerek × patchek',
+    'nav.langSwitch': 'Nyelvváltás',
+    'nav.theme.dark': 'Sötét megjelenés',
+    'nav.grp.tools': 'Eszközök',
+    'nav.grp.archive': 'Archívum',
+    'nav.downloads': 'Letöltések',
+    'nav.downloads.sub': 'Média és összefoglalók',
+    'nav.feedback': 'Visszajelzés',
+    'nav.account': 'Fiók',
+    'nav.account.login': 'Bejelentkezés',
+    'nav.account.aria': 'Felhasználói fiók',
+    // -- Menü-overlay („ops-terminál"): csoportok, sor-alcímek, lábjegyzetek --
+    'nav.deck.title': 'Navigáció',
+    'nav.deck.grp.mining': 'Bányászati körforgás',
+    'nav.deck.grp.gear': 'Felszerelés és bevetések',
+    'nav.deck.grp.archive': 'Archívum és történet',
+    'nav.deck.grp.account': 'Fiók és szolgáltatás',
+    'nav.deck.sub.mining': 'Ásványok és szkennelés',
+    'nav.deck.sub.refinery': 'Megbízások követése',
+    'nav.deck.sub.jump': 'Aaron Halo-útvonalak',
+    'nav.deck.sub.crafting': 'Tervrajzok és tervező',
+    'nav.deck.sub.wikelo': 'Banu kereskedés',
+    'nav.deck.sub.items': 'Árak és fellelhetőség',
+    'nav.deck.sub.ships': 'Adatlapok és specifikációk',
+    'nav.deck.sub.missions': 'Jutalmak és reputáció',
+    'nav.deck.sub.archive': 'Összes verzió',
+    'nav.deck.sub.topics': 'Témajegyzék',
+    'nav.deck.sub.evolution': 'Rendszerek × patchek',
+    'nav.deck.sub.feedback': 'Ötletek és hibák jelentése',
+    'nav.deck.sub.account': 'Kedvencek és profil',
+    'nav.deck.hint.nav': 'Navigálás',
+    'nav.deck.hint.open': 'Megnyitás',
+    'nav.deck.hint.close': 'Bezárás',
+    // -- Főoldali indítópult (nagy, középre zárt menü, görgetésre összehúzódik) --
+    'home.launch.aria': 'Fő területek',
+    'home.launch.hint': 'Területek',
+    'home.launch.ships.sub': 'Adatbázis',
+    'home.launch.evolution.sub': 'Rendszerek × patchek',
+    'home.launch.patches.sub': 'Összes verzió',
+    'home.launch.wikelo.sub': 'Banu kereskedő',
+    'home.launch.crafting.sub': 'Tervrajzok',
+    'home.launch.mining.sub': 'Ásványok',
+    // -- Morzsamenü --
+    'crumbs.archive': 'Archívum',
+    'crumbs.ships': 'Hajók',
+    'crumbs.missions': 'Küldetések',
+    // -- Keresés (overlay) --
+    'search.dialog': 'Keresés az archívumban',
+    'search.placeholder': 'Patchek, témák, hajók, funkciók…',
+    'search.term': 'Keresőszó',
+    'search.sys': 'Archívum&nbsp;//&nbsp;Keresés',
+    'search.close': 'Keresés bezárása',
+    'search.results': 'Találatok',
+    'search.pick': 'kiválasztás',
+    'search.open': 'megnyitás',
+    'search.dismiss': 'bezárás',
+    'search.empty.title': 'Nincs ilyen bejegyzés a nyilvántartásban',
+    'search.empty.query': 'A(z) „%q%” keresés ',
+    'search.empty.hint': 'nem adott találatot — próbáld verziószámmal vagy kódnévvel.',
+    'search.kind.schiff': 'Hajó',
+    'search.kind.mission': 'Küldetés',
+    'search.kind.patch': 'Patch',
+    'search.kind.thema': 'Téma',
+    'search.kind.feature': 'Funkció',
+    'search.kind.event': 'Esemény',
+    // -- Lapozó --
+    'pager.older': '← Régebbi',
+    'pager.newer': 'Újabb →',
+    'pager.latest': 'Legfrissebb patch',
+    'pager.nav': 'Patch-navigáció',
+    // -- Ugrás a tartalomra --
+    'skip.toContent': 'Ugrás a tartalomra',
+    // -- Lábléc / forrásmegjelölés --
+    'footer.pageNav': 'Oldalnavigáció',
+    'footer.sources': 'Források',
+    'footer.credit': 'VerseBase · Star Citizen rajongói projekt',
+    'footer.dataAsOf': 'Adatok dátuma',
+    'footer.imprint': 'Impresszum',
+    'footer.privacy': 'Adatvédelem',
+    'footer.feedback': 'Visszajelzés',
+    'footer.disclaimer':
+      'Nem hivatalos, dokumentációs célú rajongói projekt. A Star Citizen® és minden kapcsolódó védjegy a Cloud Imperium Rights LLC & Ltd. tulajdona. Nem áll kapcsolatban a Cloud Imperium Games-szel, és nem is támogatja azt. A starcitizen.tools wiki-tartalmai CC-BY-SA 4.0 licenc alatt állnak; a beágyazott előzetesek és képkockák © Cloud Imperium Games (rajongói tartalomként felhasználva).',
+    // -- Hajó-adatlap (sablon-keret; az adatsorok címkéi a src/lib-ből jönnek) --
+    'ship.pill': 'ADATLAP',
+    // A title-utótag hordozza a „Star Citizen"-t — a keresés „star citizen
+    // <hajó>", nem „<hajó> adatlap". Csak a <title>-ben, az oldalon nem látszik.
+    'ship.title.suffix': 'Star Citizen hajó · Adatlap',
+    'ship.novisual': 'Nincs kép az adatbázisban',
+    // A fejléc-galéria és a festés-kártyák alt-szövegei (akadálymentesség +
+    // kép-SEO). %name% = hajó neve, %paint% = festés neve a FleetYardsból.
+    'ship.img.view': '%name% — hajókép',
+    'ship.img.paint': '%name% — %paint% festés',
+    'ship.view.video': 'Videó',
+    'ship.view.img': 'Képek',
+    'ship.view.3d': '3D-holó',
+    'ship.view.switch': 'Nézet váltása',
+    'ship.video.play': 'Reklámfilm indítása',
+    'ship.video.fallback': 'Megnyitás a YouTube-on',
+    'ship.holo.drag': '3D-nézet — húzd az elforgatáshoz',
+    'ship.holo.loading': '3D-modell betöltése … %p% %',
+    'ship.holo.error': 'A 3D-modellt nem sikerült betölteni.',
+    // -- Interaktív komponens-hologram --
+    'holo.hint': 'Húzás: forgatás · jobb gomb: mozgatás · görgetés: nagyítás',
+    'holo.activate': 'Hologram aktiválása',
+    'holo.panel.title': 'Komponens részletei',
+    'holo.panel.size': 'Méret',
+    'holo.panel.cat': 'Kategória',
+    'holo.panel.price': 'Ár ettől',
+    'holo.panel.shops': 'Vásárlási helyek',
+    'holo.panel.auec': 'aUEC',
+    'holo.panel.finder': 'Megnyitás a tárgykeresőben →',
+    'holo.panel.notPhys': 'Ennek az alkatrésznek nincs helye a hajó modelljében. A jelölő sematikusan a hajótest közepén áll, és NEM a valódi beépítési helyet mutatja.',
+    'holo.panel.estimated': 'Hozzávetőleges pozíció: rajongói modellre átvetítve.',
+    'holo.badge.np': 'Hely nélkül',
+    'holo.legend.np': 'Szaggatott + rombusz: az alkatrésznek nincs helye a hajó modelljében — a jelölő csak sematikus.',
+    'holo.legend.est': 'Szaggatott: hozzávetőleges pozíció (rajongói modellre átvetítve).',
+    'holo.panel.close': 'Részletek bezárása',
+    'holo.labels.toggle': 'Feliratok be/ki',
+    'holo.labels.short': 'Feliratok',
+    'holo.filter.aria': 'Komponens-rétegek',
+    'holo.layers.title': 'Rétegek',
+    'holo.grp.core': 'Komponensek',
+    'holo.grp.prop': 'Hajtás',
+    'holo.grp.arms': 'Fegyverzet',
+    'holo.grp.other': 'Egyéb',
+    'holo.kind.power': 'Erőmű',
+    'holo.kind.shield': 'Pajzsgenerátor',
+    'holo.kind.cooler': 'Hűtő',
+    'holo.kind.quantum': 'Quantum-hajtómű',
+    'holo.kind.radar': 'Radar',
+    'holo.kind.thruster_main': 'Főhajtómű',
+    'holo.kind.thruster_retro': 'Retrohajtómű',
+    'holo.kind.thruster_vtol': 'VTOL-hajtómű',
+    'holo.kind.turret': 'Lövegtorony',
+    'holo.kind.missile': 'Rakétatartó',
+    'holo.kind.weapon': 'Fegyver-hardpoint',
+    'holo.kind.thruster_mav': 'Manőverhajtómű',
+    'holo.kind.countermeasure': 'Zavaró töltet',
+    'holo.kind.fuel': 'Üzemanyag',
+    'holo.src': 'A komponensek helye játékhű',
+    // Azoknál a hajóknál, ahol EGYETLEN jelölőnek sincs valódi pozíciója (nincs
+    // hardpoint a modellben) — a fejléc ott nem állíthat helymeghatározást.
+    'holo.src.none': 'A komponensek helye sematikus, nincs pontosan meghatározva',
+    'ship.stage.length': 'Hossz',
+    'ship.stage.crew': 'Személyzet',
+    'ship.stage.cargo': 'Rakomány',
+    'ship.stage.scm': 'SCM',
+    'ship.stage.priceIngame': 'A verse-ben ettől',
+    'ship.stage.pledge': 'Pledge',
+    'ship.buy.title': 'Vásárlás a verse-ben',
+    'ship.buy.cheapest': 'legkedvezőbb vásárlási hely:',
+    'ship.buy.more': 'további vásárlási hely',
+    'ship.buy.none': 'Jelenleg nem kapható játékbeli terminálokon — csak pledge-ként érhető el.',
+    'ship.rent.title': 'Bérlés',
+    'ship.rent.perDay': '/ nap',
+    'ship.pledge': 'Pledge:',
+    'ship.pledge.store': 'RSI pledge-áruház ↗',
+    'ship.buy.hint': 'Játékbeli árak: UEX Corp (közösségi adatok) · patchekkel és eseményekkel változnak.',
+    'ship.profile.title': 'Teljesítményprofil',
+    'ship.profile.rank': 'percentilis a katalógusban',
+    'ship.unit.ships': 'hajó',
+    'ship.profile.hint': 'P100 = a katalógus csúcsértéke, P50 = középmező — a sáv közepe jelöli a mediánt.',
+    'ship.sheet.title': 'Adatlap',
+    'ship.dims.title': 'Méretek és rakomány',
+    'ship.dims.top': 'Felülnézet · a katalógus legnagyobb hajójához méretarányosan',
+    'ship.dims.cargo': 'Raktér',
+    'ship.dims.oreExtra': 'ezen kívül érc',
+    'ship.arms.title': 'Fegyverzet',
+    'ship.arms.hint': 'S1–S12 mérethatár: minél magasabb, annál erősebb a fegyver. A kockán belüli sáv méretarányosan mutatja a kategóriát.',
+    'ship.flight.title': 'Repülési teljesítmény',
+    'ship.flight.agility': 'Mozgékonyság',
+    'ship.flight.quantum': 'Quantum-utazás',
+    'ship.comp.title': 'Komponensek és védelem',
+    'ship.ins.title': 'Biztosítás',
+    'ship.ins.hint': 'Claim = ingyenes pótlás veszteség után; az expressz aUEC-ért lerövidíti a várakozást.',
+    'ship.paints.title': 'Festések',
+    'ship.series.title': 'Változatok és kölcsönhajók',
+    'ship.series.variants': 'A sorozat változatai',
+    'ship.series.loaners': 'Kölcsönhajók (a repülésre bocsátásig)',
+    'ship.spine.title': 'A patch-archívumban',
+    'ship.similar.title': 'Hasonló hajók',
+    'ship.similar.noimg': 'NINCS KÉP',
+    'ship.links.all': '← Összes hajó',
+    'ship.source': 'Forrás:',
+    'ship.source.wikiNote': 'közösségi projekt',
+    'ship.source.gameData': 'játékadatok',
+    'ship.source.image': 'Kép',
+    'ship.source.ingame': 'Játékbeli árak',
+    'ship.source.extras': '3D-modell, festések és sorozatadatok',
+    'ship.asof': 'állapot',
+    'ship.meta.desc': '%name% a %maker% gyártótól — Star Citizen hajó: 3D-nézet, specifikációk, játékbeli ár és vásárlási helyek, festések, változatok és patch-történet.',
+    'ship.maker.unknown': 'ismeretlen',
+    'ship.slot.generators': 'Erőművek',
+    'ship.slot.shields': 'Pajzsgenerátorok',
+    'ship.slot.coolers': 'Hűtők',
+    'ship.slot.quantum': 'Quantum-hajtómű',
+    'ship.slot.radar': 'Radar',
+    // -- Kedvencek (fiók-funkció; az account-lite.js váltja az állapotot) --
+    'fav.save': 'Megjegyzés',
+    'fav.saved': 'Megjegyezve',
+    'fav.aria': 'Mentés kedvencként (fiók szükséges)',
+    // stilizált mono-kódok (in-universe „nyilvántartási" rövidítések)
+    'ship.code.hangar': 'HANGÁR',
+    'ship.code.ship': 'HAJÓ',
+    'ship.code.trade': 'KERESK',
+    'ship.code.rank': 'RANG',
+    'ship.code.dat': 'ADAT',
+    'ship.code.space': 'TÉR',
+    'ship.code.arsenal': 'ARZENÁL',
+    'ship.code.drive': 'HAJTÁS',
+    'ship.code.works': 'MŰVEK',
+    'ship.code.protect': 'VÉDELEM',
+    'ship.code.uee': 'UEE-standard',
+    'ship.code.skins': 'SKINEK',
+    'ship.code.series': 'SOROZAT',
+    // -- Adatréteg: sorcímkék a src/lib-ből --
+    'data.manufacturer': 'Gyártó',
+    'data.type': 'Típus',
+    'data.size': 'Méret',
+    'data.crew': 'Személyzet',
+    'data.cargo': 'Rakomány',
+    'data.ore': 'Érckapacitás',
+    'data.pledge': 'Ár (pledge)',
+    'data.dims': 'Méretek H×Sz×M',
+    'data.status': 'Állapot',
+    'arm.pilotFixed': 'Pilótafegyverek · fix',
+    'arm.weapons': 'fegyver',
+    'arm.station': 'állás',
+    'arm.stations': 'állás',
+    'arm.perStation': 'állásonként',
+    'arm.missiles': 'Rakéták',
+    'arm.racks': 'tartó',
+    'arm.count': 'darab',
+    'arm.countermeasures': 'Zavaró töltetek',
+    'arm.launchers': 'vető',
+    'arm.weapon': 'Fegyver',
+    'arm.loadout': 'Felszerelés',
+    'arm.maxed': 'teljesen kihasználva',
+    'arm.upgrade': 'hely eddig',
+    'arm.mountTip': 'A hardpoint befogad eddig',
+    'arm.fittedTip': 'beépítve',
+    'arm.sizeTip': 'Mérethatár',
+    'arm.stat.guns': 'Fegyver-hardpointok',
+    'arm.stat.racks': 'Rakétatartók',
+    'arm.stat.stations': 'Lövegtorony-állások',
+    'arm.stat.cm': 'Zavaró töltetek',
+    'payload.gun': 'Löveg',
+    'payload.missile': 'Rakétatartó',
+    'payload.bomb': 'Bombatér',
+    'gauge.length': 'Hossz',
+    'gauge.width': 'Szélesség',
+    'gauge.height': 'Magasság',
+    'gauge.h2': 'Hidrogéntartály',
+    'gauge.qtank': 'Quantum-tartály',
+    'gauge.scm': 'SCM',
+    'gauge.boost': 'Boost',
+    'gauge.max': 'Maximum',
+    'gauge.pitch': 'Pitch',
+    'gauge.yaw': 'Yaw',
+    'gauge.roll': 'Roll',
+    'gauge.pilotDps': 'Pilóta-DPS',
+    'gauge.turretDps': 'Torony-DPS',
+    'gauge.hull': 'Hajótest',
+    'gauge.shields': 'Pajzsok',
+    'gauge.qspeed': 'Utazósebesség',
+    'gauge.range': 'Hatótávolság',
+    'gauge.spool': 'Felfutási idő',
+    'gauge.qfuel': 'Quantum-üzemanyag',
+    'gauge.claim': 'Claim-idő',
+    'gauge.expressTime': 'Expressz-idő',
+    'gauge.expressCost': 'Expressz-költség',
+    'metric.speed': 'Sebesség',
+    'metric.agility': 'Mozgékonyság',
+    'metric.firepower': 'Tűzerő',
+    'metric.defense': 'Védelem',
+    'metric.cargo': 'Rakomány',
+    'metric.qspeed': 'Quantum-sebesség',
+    'ship.abbr.l': 'H',
+    'ship.abbr.w': 'Sz',
+    'ship.abbr.h': 'M',
+    'ship.dims.aria': 'Alapterület %l% m hosszú, %w% m széles',
+    'ship.profile.percentile': 'Percentilis',
+    // -- Dosszié / QuickFacts (patch-oldalak) --
+    'qf.title': 'Egy pillantásra',
+    'qf.register': '▚ Adatnyilvántartás',
+    'common.unverified': 'megerősítésre vár',
+    'do.title': 'Dosszié',
+    'do.aria': 'Alpha %v% dosszié',
+    'do.featsystems': 'Funkciók és rendszerek',
+    'do.deepdive': 'Részletes elemzés →',
+    'do.ships': 'Hajók',
+    'do.th.ship': 'Hajó',
+    'do.th.role': 'Szerep',
+    'do.th.crew': 'Személyzet',
+    'do.th.cargo': 'Rakomány',
+    'do.th.price': 'Ár',
+    'do.th.status': 'Állapot',
+    'do.specs': 'Specifikációk',
+    'do.specsNote': 'rajongói projekt, a hivatalos Ship Matrix alapján',
+    'do.events': 'Események',
+    'do.sources': 'Források: starcitizen.tools, RSI Comm-Linkek, patch notes',
+    'do.notesRsi': 'Hivatalos patch notes (RSI)',
+    'do.unvNote': '* megerősítésre vár · ',
+    // -- TopicFacts / RelatedTopics (téma-oldalak) --
+    'tf.topic': 'Téma',
+    'tf.source': 'Forrás · Alpha',
+    'tf.introduced': 'Bevezetve az Alpha %v%-ban — ',
+    'rel.aria': 'Kapcsolódó tartalmak',
+    'rel.more': 'Több az Alpha %v%-ból',
+    'rel.kind.patch': 'Patch',
+    'rel.kind.topic': 'Téma',
+    'rel.detail': 'Részletes oldal',
+    // -- Patch-archívum (/archiv) --
+    'arch.eyebrow': 'Verse&shy;Base · Krónika',
+    'arch.title': 'Patch-archívum',
+    'arch.titleThin': 'Alpha 4',
+    'arch.lead':
+      'Az Alpha 4 korszak minden verziója — a Destination Pyrótól a Frontier Tensionsig, kikeresve, nem újramesélve.',
+    'arch.stat.patches': 'Verzió',
+    'arch.stat.majors': 'Nagy kiadás',
+    'arch.stat.topics': 'Részletes elemzés',
+    'arch.stat.days': 'Nap futamidő',
+    'arch.ribbon.aria': 'Kiadási időszalag — ugrás a patchhez',
+    'arch.ribbon.hint': 'Kattints egy jelölőre az ugráshoz',
+    'arch.filter.label': 'Patchek szűrése',
+    'arch.filter.placeholder': 'Verzió, kódnév vagy téma …',
+    'arch.filter.clear': 'Szűrő törlése',
+    'arch.filter.all': 'Mind',
+    'arch.filter.major': 'Nagy',
+    'arch.filter.point': 'Pont',
+    'arch.filter.count': '%n% / %t%',
+    'arch.filter.empty': 'Egyetlen patch sem illeszkedik erre a szűrőre.',
+    'arch.filter.emptyHint': 'Szűrő törlése',
+    'arch.here': 'Jelenlegi szakasz',
+    'arch.sec.timeline': 'Időszalag',
+    'arch.sec.key': 'Kulcstémák',
+    'arch.sec.all': 'Összes téma',
+    'arch.badge.major': 'Nagy',
+    'arch.badge.point': 'Pont',
+    'arch.badge.latest': 'Aktuális',
+    'arch.open': 'Dosszié megnyitása',
+    'arch.openAria': 'Az Alpha %v% dosszié megnyitása',
+    'arch.deepdive': '%n% részletes elemzés',
+    'arch.deepdives': '%n% részletes elemzés',
+    'arch.entries': 'bejegyzés',
+    'arch.entry': 'bejegyzés',
+    'arch.versions': 'verzió',
+    'arch.toTop': 'Vissza a tetejére',
+  },
 } as const;
 
 export type UIKey = keyof (typeof UI)['de'];
@@ -786,14 +1181,32 @@ export function useTranslations(lang: Locale) {
 }
 
 /**
- * Locale aus dem URL-Pfad ableiten. DE-Seiten liegen unter /de/… ; die DE-
- * Startseite ist wegen build.format:'file' /de.html (nicht /de/index.html).
- * Alles andere ist Englisch (präfixlose Wurzel).
+ * Sprachblock aus einem Inline-Katalog holen — mit Rückfall auf die
+ * Standardsprache statt eines Absturzes.
+ *
+ * Viele Komponenten tragen ihren eigenen Textkatalog als Literal und griffen
+ * ihn früher direkt mit `{ de: {…}, en: {…} }[lang]` ab. Sobald eine dritte
+ * Sprache dazukam, war das Ergebnis `undefined` und die Seite starb beim ersten
+ * Feldzugriff („Cannot read properties of undefined"). Diese Funktion hält sich
+ * an dieselbe Regel wie t(): fehlt der Block, erscheint sichtbar die
+ * Standardsprache — die Seite baut und funktioniert weiter.
+ */
+export function pickLang<T>(table: Partial<Record<Locale, T>>, lang: Locale): T {
+  return (table[lang] ?? table[DEFAULT_LOCALE] ?? Object.values(table)[0]) as T;
+}
+
+/**
+ * Locale aus dem URL-Pfad ableiten. Präfigierte Sprachen liegen unter
+ * /<präfix>/… ; ihre Startseite ist wegen build.format:'file' /<präfix>.html
+ * (nicht /<präfix>/index.html). Alles andere ist die Standardsprache
+ * (präfixlose Wurzel).
  */
 export function localeFromPath(pathname: string): Locale {
-  return pathname === '/de' || pathname === '/de.html' || pathname.startsWith('/de/')
-    ? 'de'
-    : DEFAULT_LOCALE;
+  for (const l of PREFIXED_LOCALES) {
+    const p = LOCALE_PREFIX[l];
+    if (pathname === p || pathname === `${p}.html` || pathname.startsWith(`${p}/`)) return l;
+  }
+  return DEFAULT_LOCALE;
 }
 
 /**
@@ -801,31 +1214,41 @@ export function localeFromPath(pathname: string): Locale {
  * Alle href()-Aufrufer übergeben diese Form.
  */
 function toBaseForm(pathname: string): string {
-  if (pathname === '/de' || pathname === '/de.html') return '/index.html';
-  if (pathname.startsWith('/de/')) pathname = pathname.slice(3); // '/de' entfernen
+  for (const l of PREFIXED_LOCALES) {
+    const p = LOCALE_PREFIX[l];
+    if (pathname === p || pathname === `${p}.html`) return '/index.html';
+    if (pathname.startsWith(`${p}/`)) {
+      pathname = pathname.slice(p.length); // Präfix entfernen
+      break;
+    }
+  }
   if (pathname === '' || pathname === '/') return '/index.html';
   return pathname;
 }
 
 /**
- * Denselben Seiten-Pfad in die andere Sprache umschreiben (für den Umschalter).
- * en:  /patches/sc-4-8-2.html   <-> de: /de/patches/sc-4-8-2.html
- * en:  /index.html (oder /)     <-> de: /de.html  (format:'file'-Startseite)
+ * Denselben Seiten-Pfad in eine andere Sprache umschreiben (für den Umschalter).
+ * en: /patches/sc-4-8-2.html  <->  de: /de/patches/…  hu: /hu/patches/…
+ * en: /index.html (oder /)    <->  de: /de.html       hu: /hu.html
+ *                                  (format:'file'-Startseite)
  */
 export function pathForLocale(pathname: string, target: Locale): string {
   const base = toBaseForm(pathname);
   if (target === DEFAULT_LOCALE) return base;
-  return base === '/index.html' ? '/de.html' : '/de' + base;
+  const p = LOCALE_PREFIX[target];
+  return base === '/index.html' ? `${p}.html` : p + base;
 }
 
 /**
  * Locale-bewusster interner Link: nimmt einen Basisform-Pfad (z. B.
- * "/schiffe/x.html", "/index.html#archiv") und präfixt ihn für DE. EN bleibt
- * unverändert. Die Startseite wird korrekt auf /de.html abgebildet.
+ * "/schiffe/x.html", "/index.html#archiv") und präfixt ihn für die Zielsprache.
+ * Die Standardsprache bleibt unverändert; die Startseite wird korrekt auf
+ * /<präfix>.html abgebildet (samt Anker).
  */
 export function href(path: string, lang: Locale): string {
   if (lang === DEFAULT_LOCALE) return path;
-  if (path === '/' || path === '/index.html') return '/de.html';
-  if (path.startsWith('/index.html#')) return '/de.html' + path.slice('/index.html'.length);
-  return '/de' + path;
+  const p = LOCALE_PREFIX[lang];
+  if (path === '/' || path === '/index.html') return `${p}.html`;
+  if (path.startsWith('/index.html#')) return `${p}.html` + path.slice('/index.html'.length);
+  return p + path;
 }

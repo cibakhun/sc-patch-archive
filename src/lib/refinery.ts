@@ -7,6 +7,7 @@
 // Terminal ein. Dieses Modul liefert nur die Auswahllisten, den Verkaufspreis
 // für die Wert-Schätzung und Formatierungs-/Zeit-Helfer.
 import DATA from '../../assets/refinery-data.json';
+import { NUMBER_LOCALE, type Locale } from '../i18n/ui';
 
 export type RefLevel = 'vlow' | 'low' | 'mid' | 'high';
 
@@ -146,13 +147,13 @@ export function fmtCountdown(totalSeconds: number): string {
 }
 
 /** aUEC mit lokalisiertem Tausendertrennzeichen. */
-export function fmtAuec(n: number | null | undefined, lang: 'de' | 'en'): string {
+export function fmtAuec(n: number | null | undefined, lang: Locale): string {
   if (n == null || !isFinite(n)) return '—';
-  return Math.round(n).toLocaleString(lang === 'de' ? 'de-DE' : 'en-US');
+  return Math.round(n).toLocaleString(NUMBER_LOCALE[lang]);
 }
 
 /** SCU mit bis zu 2 Nachkommastellen, ohne unnötige Nullen. */
-export function fmtScu(n: number | null | undefined, lang: 'de' | 'en'): string {
+export function fmtScu(n: number | null | undefined, lang: Locale): string {
   if (n == null || !isFinite(n)) return '—';
-  return n.toLocaleString(lang === 'de' ? 'de-DE' : 'en-US', { maximumFractionDigits: 2 });
+  return n.toLocaleString(NUMBER_LOCALE[lang], { maximumFractionDigits: 2 });
 }

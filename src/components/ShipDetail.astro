@@ -43,9 +43,9 @@ interface Props {
   viz: Visuals;
   lang?: Locale;
   /** DE↔EN-Gegenstück existiert -> hreflang ausgeben */
-  hasEn?: boolean;
+  translated?: boolean;
 }
-const { d, id, similar, profile, viz, lang = DEFAULT_LOCALE, hasEn = false } = Astro.props;
+const { d, id, similar, profile, viz, lang = DEFAULT_LOCALE, translated = false } = Astro.props;
 
 const t = useTranslations(lang);
 const L = (p: string) => href(p, lang);
@@ -386,7 +386,7 @@ const IC: Record<string, string> = {
   description={metaDesc}
   themeColor="#05070d"
   footer={true}
-  translated={hasEn}
+  translated={translated}
   ogImage={hero?.src}
   itemPage={{ modified: vehiclesSnapshot.fetchedAt }}
 >
@@ -967,7 +967,7 @@ span.sd__ref{color:var(--muted)}
     { label: t('crumbs.ships'), href: L('/schiffe.html') },
     { label: d.name },
   ]}
-  hasEn={hasEn}
+  translated={translated}
 />
 
 <main>

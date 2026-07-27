@@ -10,7 +10,7 @@
 // Begruendung wie in lib/missions.ts).
 
 import DB from '../../assets/universal-items.json';
-import type { Locale } from '../i18n/ui';
+import { NUMBER_LOCALE, type Locale } from '../i18n/ui';
 
 /* ---------- Typen (Spiegel von scripts/build-universal-db.mjs) ---------- */
 
@@ -330,8 +330,7 @@ export const shopCount = (i: Item) =>
 
 /* ---------- Anzeige ---------- */
 
-const NUM = { de: 'de-DE', en: 'en-US' } as const;
-export const num = (n: number, lang: Locale) => n.toLocaleString(NUM[lang]);
+export const num = (n: number, lang: Locale) => n.toLocaleString(NUMBER_LOCALE[lang]);
 export const auec = (n: number, lang: Locale) => `${num(n, lang)} aUEC`;
 
 /** Deutscher Item-Name aus den Spieldaten, falls er sich vom englischen unterscheidet. */

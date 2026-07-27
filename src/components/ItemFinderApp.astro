@@ -1,4 +1,5 @@
 ---
+import { pickLang, href } from '../i18n/ui';
 // Universal Item Finder — durchsuchbarer Katalog aller Items mit verifizierten
 // Bezugsquellen (Shop-Snapshot, Loot-Recherche, UEX-Fahrzeugpreise). Ohne Quelle
 // wird ein Item ehrlich als Katalog-Eintrag gezeigt — keine erfundenen Werte.
@@ -29,7 +30,7 @@ const appJs = `/assets/item-finder-app.js?v=${ver('assets/item-finder-app.js')}`
 const dbUrl = `/assets/universal-items.json?v=${ver('assets/universal-items.json')}`;
 const craftUrl = `/assets/crafting-db.json?v=${ver('assets/crafting-db.json')}`;
 
-const t = {
+const t = pickLang({
   de: {
     searchPlaceholder: 'Item, Waffe, Schiff, Fundort suchen…',
     hAvailability: 'Fundart', hCategories: 'Kategorien', hSize: 'Größe',
@@ -50,7 +51,7 @@ const t = {
     sortStat: 'Value (high–low)',
     modalClose: 'Close',
   },
-}[lang];
+}, lang);
 
 // Strings, die das Client-JS braucht (window.__UIF.t). Der Katalog liegt in
 // i18n/itemText.ts, weil die statischen Item-Seiten DIESELBEN Labels rendern —
@@ -801,5 +802,5 @@ const JS_T = ITEM_UI[lang];
   }
 </style>
 
-<script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl, craftUrl, itemBase: lang === 'de' ? '/de/items/' : '/items/', craftBase: lang === 'de' ? '/de/crafting/' : '/crafting/', setBase: lang === 'de' ? '/de/armor-sets.html' : '/armor-sets.html', icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />
+<script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl, craftUrl, itemBase: href('/items/', lang), craftBase: href('/crafting/', lang), setBase: href('/armor-sets.html', lang), icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />
 <script is:inline src={appJs}></script>

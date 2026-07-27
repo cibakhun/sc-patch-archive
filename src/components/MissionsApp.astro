@@ -1,4 +1,5 @@
 ---
+import { pickLang } from '../i18n/ui';
 // MISSIONS — Datenbank-Browser (geteilt DE/EN, Prop `lang`).
 // Rendert alle Familien serverseitig als Karten mit data-Attributen; das
 // Client-JS blendet nur noch ein/aus und sortiert (kein Fetch, kein Framework —
@@ -15,7 +16,7 @@ interface Props { lang: Locale }
 const { lang } = Astro.props;
 const L = (p: string) => href(p, lang);
 
-const S = {
+const S = pickLang({
   de: {
     eyebrow: 'Missionsdatenbank',
     title: 'Missionen',
@@ -68,7 +69,7 @@ const S = {
     srcLang: 'Mission text exists in English only in the game — there are no German titles. Only the interface is translated.',
     srcObj: 'The step-by-step objective text is not delivered to the client: mission logic runs server-side. The detail pages therefore show the flow with its developer labels instead of invented objective text.',
   },
-}[lang];
+}, lang);
 
 // Platzhalter sichtbar machen: "{ReputationRank} Rank - ..." wird in Text/Chip-
 // Teile zerlegt, statt die geschweiften Klammern roh anzuzeigen.

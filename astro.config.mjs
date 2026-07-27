@@ -15,11 +15,12 @@ export default defineConfig({
   site: 'https://verse-base.com',
   build: { format: 'file' },
   // i18n: EN ist Default und liegt PRÄFIXLOS auf der Wurzel (Standardsprache).
-  // DE-Seiten leben explizit unter src/pages/de/ -> /de/… (harmoniert mit
-  // format:'file'; kein Auto-Fallback-Routing, das die .html-URLs verbiegt).
+  // Übersetzte Seiten leben explizit unter src/pages/<präfix>/ -> /de/…, /hu/…
+  // (harmoniert mit format:'file'; kein Auto-Fallback-Routing, das die
+  // .html-URLs verbiegt). Diese Liste muss zu LOCALES in src/i18n/ui.ts passen.
   i18n: {
     defaultLocale: 'en',
-    locales: ['de', 'en'],
+    locales: ['de', 'en', 'hu'],
     routing: { prefixDefaultLocale: false },
   },
   // Tunnel-Hosts (loca.lt/cloudflared). Astro-Level `server.allowedHosts`

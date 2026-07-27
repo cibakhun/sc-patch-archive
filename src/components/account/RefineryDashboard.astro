@@ -1,4 +1,5 @@
 ---
+import { pickLang } from '../../i18n/ui';
 // Refinery-Dashboard — kontogebundener Tracker für Raffinerie-Aufträge.
 // Design: TRACKER (exakt), kein Schätzmodell. Der Nutzer trägt die Zahlen ein,
 // die ihm das Ingame-Refinery-Terminal zeigt (Ausbeute/Kosten/Dauer) — die
@@ -17,7 +18,7 @@ const stationGroups = stationsBySystem();
 const methods = REFINERY.methods;
 const ores = REFINERY.ores;
 
-const COPY = {
+const COPY = pickLang({
   de: {
     loading: 'Lade deine Refinery-Aufträge …',
     loadError: 'Konnte deine Aufträge nicht laden — bitte Verbindung prüfen.',
@@ -106,7 +107,7 @@ const COPY = {
     methodNote: 'Method trade-offs are qualitative (exact yield percentages are not public). Enter your order’s real numbers above from the terminal.',
     priceNote: 'Sell values based on UEX average prices (%d) — an estimate only; record your actual proceeds in the history.',
   },
-}[lang];
+}, lang);
 
 const loginHref = href('/account/login.html', lang);
 const miningHref = href('/topics/mining.html', lang);

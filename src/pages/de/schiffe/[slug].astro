@@ -24,4 +24,4 @@ export async function getStaticPaths() {
 const { d, id, similar, profile, viz } = Astro.props;
 // Stufe 2: jede Schiffseite hat jetzt ein EN-Gegenstück -> hreflang immer.
 ---
-<ShipDetail d={d} id={id} similar={similar} profile={profile} viz={viz} lang="de" hasEn={true} />
+<ShipDetail d={d} id={id} similar={similar} profile={profile} viz={viz} lang="de" translated={true} />

@@ -5,7 +5,7 @@
 // single accent action row. Renders the page's Registertrenner first.
 import { getCollection } from 'astro:content';
 import { useTranslations, href, localeFromPath } from '../i18n/ui';
-import { mergePatchEn } from '../i18n/patchText';
+import { mergePatch } from '../i18n/patchText';
 
 interface Props {
   topicSlug: string;
@@ -22,7 +22,7 @@ const L = (p: string) => href(p, lang);
 
 const patches = await getCollection('patches');
 const parentEntry = patches.find((p) => p.data.topics.some((tp) => tp.slug === topicSlug));
-const parent = parentEntry ? { id: parentEntry.id, data: mergePatchEn(parentEntry.id, parentEntry.data, lang) } : null;
+const parent = parentEntry ? { id: parentEntry.id, data: mergePatch(parentEntry.id, parentEntry.data, lang) } : null;
 const feats = parent ? parent.data.features.filter((f) => f.topicSlug === topicSlug) : [];
 
 const seen = new Set<string>();

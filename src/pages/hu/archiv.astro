@@ -1,0 +1,32 @@
+---
+// Patch-Archiv (HU). Der Seitenkörper liegt in PatchArchive.astro — identisch
+// mit /archiv.astro, damit beide Sprachen nicht auseinanderlaufen.
+import Layout from '../../layouts/Layout.astro';
+import PatchArchive from '../../components/PatchArchive.astro';
+import { getCollection } from 'astro:content';
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+
+const patches = await getCollection('patches');
+const patchCount = patches.length;
+const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
+
+// Cache-Bust für /assets/archive.css: feste URL, sonst liefert das CDN nach
+// einem Deploy bis zu 1 Tag die ALTE Datei aus (siehe SiteNav/account-lite.js).
+let cssVer = 'x';
+try {
+  cssVer = createHash('sha1').update(readFileSync('assets/archive.css')).digest('hex').slice(0, 8);
+} catch { /* dev-Fallback */ }
+---
+
+<Layout
+  title="Star Citizen patch-archívum — Alpha 4.0-tól 4.9-ig | VerseBase"
+  description={`A teljes Star Citizen patch-archívum az Alpha 4 korszakról: ${patchCount} patch a Destination Pyrótól (4.0.0) a Frontier Tensionsig (4.9.0), ${topicCount} részletes témaelemzéssel.`}
+  themeColor="#04060e"
+  footer={true}
+  translated={true}
+  ogImage="/assets/trailer-4-9-0.jpg"
+>
+  <link slot="head" rel="stylesheet" href={`/assets/archive.css?v=${cssVer}`} />
+  <PatchArchive />
+</Layout>
