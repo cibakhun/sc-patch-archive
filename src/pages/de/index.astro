@@ -107,13 +107,22 @@ const tools = [
      endet am Fuß auf var(--bg), das Zeichen liegt dort also auf der
      Seitenfläche und nicht mehr auf dem Foto — im Hellmodus wäre das helle
      Medien-Cyan auf hellem Grund unlesbar. */
+  /* Die Reihe spannt sich über den Satzspiegel (dieselbe Breite und dieselben
+     Seitenränder wie .hero__inner), die vier Stapel sitzen per space-between
+     darauf — der äußerste links steht damit exakt auf der Fluchtlinie der
+     Wortmarke.
+     pointer-events:none auf dem Link, :auto auf den SVG: sonst wäre der halbe
+     Hero-Fuß eine unsichtbare Klickfläche. Der Klick auf ein Zeichen steigt
+     zum <a> auf, also bleibt es EIN Bedienelement mit EINEM Tab-Stopp. */
   .hero__cue{position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);z-index:1;
-    display:flex;align-items:flex-start;gap:clamp(36px,6vw,96px);padding:.4rem 1.1rem;color:var(--accent);
+    width:100%;max-width:var(--maxw);pointer-events:none;
+    display:flex;align-items:flex-start;justify-content:space-between;
+    padding:.4rem clamp(1.25rem,5vw,3.5rem);color:var(--accent);
     transition:transform .25s cubic-bezier(.2,.7,.3,1)}
   /* Vier Stapel nebeneinander, jeder vier Stufen tief. Die Welle läuft nicht
      nur abwärts, sondern auch nach rechts (0,09 s je Spalte) — der Puls
      streicht diagonal durch das Feld wie eine Anflug-Befeuerung. */
-  .hero__cue svg{display:block;width:clamp(30px,3vw,40px);height:auto;overflow:visible;--col:0s}
+  .hero__cue svg{display:block;width:clamp(30px,3vw,40px);height:auto;overflow:visible;pointer-events:auto;--col:0s}
   .hero__cue svg:nth-child(2){--col:.09s}
   .hero__cue svg:nth-child(3){--col:.18s}
   .hero__cue svg:nth-child(4){--col:.27s}
@@ -150,6 +159,11 @@ const tools = [
      normale Deklaration, sonst käme opacity:1 beim Hover nie an. */
   .hero__cue:hover,.hero__cue:focus-visible{transform:translate(-50%,3px)}
   .hero__cue:hover path,.hero__cue:focus-visible path{animation:none;opacity:1}
+  /* Der Ring sitzt an den Zeichen, nicht am Link: der Link ist jetzt so breit
+     wie der Satzspiegel, ein Rahmen darum wäre ein Kasten quer über den
+     Hero-Fuß statt einer Fokus-Anzeige. */
+  .hero__cue:focus-visible{outline:none}
+  .hero__cue:focus-visible svg{outline:2px solid var(--accent);outline-offset:4px}
 
   /* ========== Layout ========== */
   main{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 clamp(1.25rem,5vw,3.5rem)}
