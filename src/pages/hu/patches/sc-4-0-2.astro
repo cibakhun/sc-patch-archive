@@ -10,7 +10,7 @@ const entry = await getEntry('patches', '4-0-2');
 if (!entry) throw new Error('Patch-Daten 4-0-2 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.0.2 — Supply or Die | VerseBase"} description={"Alpha 4.0.2 „Supply or Die“: Pyros Nachschubkrieg — Citizens for Prosperity gegen Headhunters, PvPvE-Depotkämpfe um die Schlüsselressource Detatrine und die Ravager-212 als Event-Belohnung."} themeColor="#1a1d20" ogType="article" ogImage="/assets/t-pyro-3.jpg" translated={true}>
+<Layout title={"Star Citizen Alpha 4.0.2 — Supply or Die | VerseBase"} description={"Alpha 4.0.2 „Supply or Die“: a Pyro utánpótlásháborúja — Citizens for Prosperity a Headhunters ellen, PvPvE raktárharcok a kulcsfontosságú Detatrine erőforrásért, és a Ravager-212 mint eseményjutalom."} themeColor="#1a1d20" ogType="article" ogImage="/assets/t-pyro-3.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/t-pyro-3.jpg" />
 <style is:inline>
 
@@ -161,10 +161,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 :root[data-theme="light"] .tag.hot{color:#a7030f}
 :root[data-theme="light"] .tile.word.hot b{color:#a7030f}
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Ugrás a tartalomra</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/hu/archiv.html' }, { label: 'Alpha 4.0.2' }]} translated={true} />
+<SiteNav crumbs={[{ label: 'Archívum', href: '/hu/archiv.html' }, { label: 'Alpha 4.0.2' }]} translated={true} />
 
 
 <main id="main">
@@ -174,16 +174,16 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">28. Februar 2025 · Point-Release &amp; Event</div>
+      <div class="eyebrow">2025. február 28. · pontkiadás &amp; esemény</div>
       <h1 data-text="4.0.2">4.0.2</h1>
       <div class="codename">Supply or <span>Die</span></div>
-      <div class="tagline">Pyros Nachschubkrieg: Citizens for Prosperity vs. Headhunters.</div>
+      <div class="tagline">A Pyro utánpótlásháborúja: Citizens for Prosperity vs. Headhunters.</div>
       <div class="tags">
         <span class="tag">Supply or Die</span><span class="tag">Citizens for Prosperity</span><span class="tag hot">Headhunters</span><span class="tag">PvPvE</span>
       </div>
-      <a href="/hu/topics/4-0-2-supply-or-die.html" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;color:var(--bg);background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;box-shadow:0 6px 20px -6px rgba(0,0,0,.5)">Supply or Die · Detailseite →</a>
+      <a href="/hu/topics/4-0-2-supply-or-die.html" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;color:var(--bg);background:var(--accent);padding:.75rem 1.4rem;border-radius:4px;box-shadow:0 6px 20px -6px rgba(0,0,0,.5)">Supply or Die · adatlap →</a>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
   </section>
 
   <!-- MARQUEE -->
@@ -202,12 +202,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
-        <div class="tile img b2" data-lb="img:/assets/t-supply-1.jpg"><div class="tbg" style="background-image:url('/assets/t-supply-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Nachschub sichern</div><div class="sub">Depot-Schlachtfeld</div></div>
-        <div class="tile word" data-info data-title="Citizens for Prosperity" data-text="Eine der beiden Fraktionen im „Supply or Die“-Event. Sie sammeln Industriegüter und das seltene Chemikal Detatrine, um ihre erschöpften Reserven aufzufüllen und medizinische Hilfsgüter zur Stabilisierung von Pyro herzustellen." data-img="/assets/t-supply-2.jpg"><span class="zoomic">+</span><b>CITIZENS FOR PROSPERITY</b><small>Fraktion A</small></div>
-        <div class="tile word hot" data-info data-title="Headhunters" data-text="Die rivalisierende Fraktion im „Supply or Die“-Event. Sie beschaffen Salvage und Mining-Rohstoffe mit allen Mitteln — inklusive Kampf und Piraterie —, um ihre Truppen aufzurüsten." data-img="/assets/cz-combat.jpg"><span class="zoomic">+</span><b>HEADHUNTERS</b><small>Fraktion B</small></div>
-        <div class="tile word" data-info data-title="PvPvE-Depotkämpfe" data-text="Material für die Fraktionen wird unter anderem in PvPvE-fokussierten Depots erkämpft: Spieler stellen sich dort sowohl NPC-Gegnern als auch anderen Spielern, während sie Nachschub sichern."><span class="zoomic">+</span><b>PVPVE</b><small>Depotkämpfe</small></div>
-        <div class="tile word" data-info data-title="Ravager-212 „Outcast“" data-text="Die Ravager-212 „Outcast“ ist eine doppelläufige Schrotflinte (Twin Shotgun) und Belohnung der Event-Stufe 2. Höhere Stufen brachten zudem „Outcast“-Lackierungen für Vulture und Prospector."><span class="zoomic">+</span><b>RAVAGER-212</b><small>Outcast-Belohnung</small></div>
-        <div class="tile stat" data-info data-title="Zwei Fraktionen" data-text="„Supply or Die“ stellte zwei verfeindete Fraktionen gegenüber — Citizens for Prosperity und Headhunters. Spieler wählten eine Seite und versorgten sie mit Nachschub." data-img="/assets/vid-supplyordie.jpg"><span class="zoomic">+</span><div class="num">2</div><div class="cap">Fraktionen</div></div>
+        <div class="tile img b2" data-lb="img:/assets/t-supply-1.jpg"><div class="tbg" style="background-image:url('/assets/t-supply-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Utánpótlás bebiztosítása</div><div class="sub">Raktár-csatatér</div></div>
+        <div class="tile word" data-info data-title="Citizens for Prosperity" data-text="A „Supply or Die“ esemény két frakciójának egyike. Ipari árukat és a ritka Detatrine vegyszert gyűjtik, hogy feltöltsék kimerült tartalékaikat, és orvosi segélyszállítmányt állítsanak elő a Pyro stabilizálására." data-img="/assets/t-supply-2.jpg"><span class="zoomic">+</span><b>CITIZENS FOR PROSPERITY</b><small>A frakció</small></div>
+        <div class="tile word hot" data-info data-title="Headhunters" data-text="A rivális frakció a „Supply or Die“ eseményben. Roncsmentésből és bányászatból szereznek nyersanyagot minden eszközzel — a harcot és a kalózkodást is beleértve —, hogy felfegyverezzék a csapataikat." data-img="/assets/cz-combat.jpg"><span class="zoomic">+</span><b>HEADHUNTERS</b><small>B frakció</small></div>
+        <div class="tile word" data-info data-title="PvPvE raktárharcok" data-text="A frakciók anyagát többek között PvPvE-fókuszú raktárakban kell kiharcolni: a játékosok ott NPC-ellenfelekkel és más játékosokkal is szembenéznek, miközben utánpótlást biztosítanak."><span class="zoomic">+</span><b>PVPVE</b><small>Raktárharcok</small></div>
+        <div class="tile word" data-info data-title="Ravager-212 „Outcast“" data-text="A Ravager-212 „Outcast“ kétcsövű sörétes puska (twin shotgun), az esemény 2. fokozatának jutalma. A magasabb fokozatok ezen felül „Outcast“ festéseket hoztak a Vulture-höz és a Prospectorhoz."><span class="zoomic">+</span><b>RAVAGER-212</b><small>Outcast-jutalom</small></div>
+        <div class="tile stat" data-info data-title="Két frakció" data-text="A „Supply or Die“ két ellenséges frakciót állított szembe — a Citizens for Prosperityt és a Headhunterst. A játékosok oldalt választottak, és utánpótlással látták el őket." data-img="/assets/vid-supplyordie.jpg"><span class="zoomic">+</span><div class="num">2</div><div class="cap">Frakciók</div></div>
       </div>
     </div>
   </section>
@@ -216,9 +216,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section class="shot">
     <div class="sbg" style="background-image:url('/assets/t-pyro-2.jpg')" aria-hidden="true"></div>
     <div class="shot__in reveal">
-      <div class="kx">Nachschubkrieg in Pyro</div>
+      <div class="kx">Utánpótlásháború a Pyróban</div>
       <div class="big outline">SUPPLY OR DIE</div>
-      <p>Versorge eine Fraktion in Pyros umkämpften Depots.</p>
+      <p>Láss el egy frakciót a Pyro vitatott raktáraiban.</p>
     </div>
   </section>
 
@@ -227,19 +227,19 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">02</span><h2>Video</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="R9p2q5fFUJk" style="background-image:url('/assets/vid-supplyordie.jpg')"><span class="vlbl">Supply or Die — Event</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="R9p2q5fFUJk" style="background-image:url('/assets/vid-supplyordie.jpg')"><span class="vlbl">Supply or Die — Event</span><button class="play" aria-label="Lejátszás">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=R9p2q5fFUJk" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Hivatalos Star Citizen YouTube-csatorna (© Cloud Imperium Games). Kattintásra betölt a videó. · <a href="https://www.youtube.com/watch?v=R9p2q5fFUJk" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">03</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">03</span><h2>Galéria</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
         <figure class="b2" data-lb="img:/assets/t-pyro-1.jpg"><img src="/assets/t-pyro-1.jpg" alt="Pyro" loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro</figcaption></figure>
-        <figure class="w2" data-lb="img:/assets/cz-loot.jpg"><img src="/assets/cz-loot.jpg" alt="High-Tier-Loot in einer Pyro-Anlage" loading="lazy"><span class="zoomic">⤢</span><figcaption>Beute · Pyro-Anlage</figcaption></figure>
+        <figure class="w2" data-lb="img:/assets/cz-loot.jpg"><img src="/assets/cz-loot.jpg" alt="Felső kategóriás loot egy pyrói üzemben" loading="lazy"><span class="zoomic">⤢</span><figcaption>Zsákmány · pyrói üzem</figcaption></figure>
       </div>
     </div>
   </section>
@@ -250,18 +250,18 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/hu/patches/sc-4-0-1.html"><span class="dir">← Älter</span><span class="ttl">4.0.1 · Stabilität &amp; Save Stanton II</span></a>
-    <a class="next" href="/hu/patches/sc-4-1-0.html"><span class="dir">Neuer →</span><span class="ttl">4.1.0 · Orbital Assault</span></a>
+  <nav class="pager" aria-label="Patch-navigáció">
+    <a href="/hu/patches/sc-4-0-1.html"><span class="dir">← Régebbi</span><span class="ttl">4.0.1 · Stabilitás &amp; Save Stanton II</span></a>
+    <a class="next" href="/hu/patches/sc-4-1-0.html"><span class="dir">Újabb →</span><span class="ttl">4.1.0 · Orbital Assault</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/hu.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/hu.html">⌂ Összes patch</a>
+    <span>Források: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Nem hivatalos rajongói projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Nincs kapcsolata a CIG-gel. A trailerek, állóképek & hajó-/rendszerképek hivatalos, illetve közösségi forrásokból származnak (© Cloud Imperium Games), rajongói felhasználásban.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Bezárás">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');

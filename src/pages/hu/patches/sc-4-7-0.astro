@@ -10,7 +10,7 @@ const entry = await getEntry('patches', '4-7-0');
 if (!entry) throw new Error('Patch-Daten 4-7-0 fehlen in src/data/patches/');
 const patch = entry.data;
 ---
-<Layout title={"Star Citizen Alpha 4.7.0 — Welcome to the Rock | VerseBase"} description={"Alpha 4.7.0: Crafting, Operation Breaker Stations im Keeger Belt und die Aurora Mk II."} themeColor="#1c1c20" ogType="article" ogImage="/assets/trailer-4-7-0.jpg" translated={true}>
+<Layout title={"Star Citizen Alpha 4.7.0 — Welcome to the Rock | VerseBase"} description={"Alpha 4.7.0: crafting, az Operation Breaker Stations a Keeger Beltben és az Aurora Mk II."} themeColor="#1c1c20" ogType="article" ogImage="/assets/trailer-4-7-0.jpg" translated={true}>
 <PatchSeo patch={patch} image="/assets/trailer-4-7-0.jpg" />
 <style is:inline>
 
@@ -174,10 +174,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 :root[data-theme="light"] .tag.hot{border-color:rgba(198,73,22,.73);color:#953402}
 :root[data-theme="light"] .tile.word.hot b{color:#953402}
 </style>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">Ugrás a tartalomra</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: 'Archiv', href: '/hu/archiv.html' }, { label: 'Alpha 4.7.0' }]} translated={true} />
+<SiteNav crumbs={[{ label: 'Archívum', href: '/hu/archiv.html' }, { label: 'Alpha 4.7.0' }]} translated={true} />
 
 
 <main id="main">
@@ -187,15 +187,15 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow">26. März 2026 · Major Release</div>
+      <div class="eyebrow">2026. március 26. · nagy kiadás</div>
       <h1 data-text="4.7.0">4.7.0</h1>
       <div class="codename">Welcome to the <span>Rock</span></div>
-      <div class="tagline">Crafting, Operation Breaker Stations und die Aurora Mk II.</div>
+      <div class="tagline">Crafting, Operation Breaker Stations és az Aurora Mk II.</div>
       <div class="tags">
         <span class="tag">Crafting</span><span class="tag hot">Breaker Stations</span><span class="tag">Keeger Belt</span><span class="tag">Aurora Mk II</span>
       </div>
     </div>
-    <div class="scrollcue" aria-hidden="true">Scrollen ↓</div>
+    <div class="scrollcue" aria-hidden="true">Görgess ↓</div>
   </section>
 
   <!-- MARQUEE -->
@@ -215,11 +215,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
         <div class="tile img b2" data-lb="img:/assets/t-craft-2.jpg"><div class="tbg" style="background-image:url('/assets/t-craft-2.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Breaker Stations</div><div class="sub">Keeger Belt</div></div>
-        <a class="tile word hot" href="/hu/topics/crafting.html"><span class="zoomic">→</span><b>CRAFTING</b><small>Detailseite ansehen</small></a>
-        <div class="tile word" data-info data-title="Keeger Belt" data-text="Asteroidengürtel und Schauplatz von Operation Breaker Stations. Hier liegen Shubins kürzlich übernommene QV Breaker Stations verlassen und ohne Energie — Spieler reaktivieren sie, um den gewaltigen Laser zum Aufbrechen der Asteroiden zu nutzen." data-img="/assets/vid-isc47.jpg"><span class="zoomic">+</span><b>KEEGER<br>BELT</b><small>QV-Stationen</small></div>
+        <a class="tile word hot" href="/hu/topics/crafting.html"><span class="zoomic">→</span><b>CRAFTING</b><small>Adatlap megtekintése</small></a>
+        <div class="tile word" data-info data-title="Keeger Belt" data-text="Aszteroidaöv és az Operation Breaker Stations helyszíne. Itt hevernek a Shubin nemrég átvett QV Breaker Stationjei elhagyatva és energia nélkül — a játékosok újraaktiválják őket, hogy használhassák a hatalmas lézert az aszteroidák feltörésére." data-img="/assets/vid-isc47.jpg"><span class="zoomic">+</span><b>KEEGER<br>BELT</b><small>QV-állomások</small></div>
         <div class="tile img w2" data-lb="img:/assets/img-aurora.jpg"><div class="tbg" style="background-image:url('/assets/img-aurora.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Aurora Mk II</div><div class="sub">RSI · Starter</div></div>
-        <div class="tile word" data-info data-title="Stella Fortuna" data-text="Saisonales Glücks- und Feier-Event im Star-Citizen-Kalender. Es bringt zeitlich begrenzte Aktivitäten, Belohnungen und Festtags-Stimmung ins Universum und begleitet den 4.7.0-Zeitraum."><span class="zoomic">+</span><b>STELLA<br>FORTUNA</b><small>saisonal</small></div>
-        <div class="tile word hot" data-info data-title="Operation Breaker Stations" data-text="Mehrstufige Koop-Mission im Keeger Belt: Spieler kämpfen gegen Claw-Salamander und Valakkar, stellen die Energie wieder her, craften optische Komponenten für den Laser und bergen seltene Ressourcen. Wählbar als privater (PvE) oder offener Lauf mit PvP." data-img="/assets/t-craft-1.jpg"><span class="zoomic">+</span><b>PvE / PvP</b><small>Operation</small></div>
+        <div class="tile word" data-info data-title="Stella Fortuna" data-text="Szezonális szerencse- és ünnepi esemény a Star Citizen naptárában. Időben korlátozott tevékenységeket, jutalmakat és ünnepi hangulatot hoz az univerzumba, és végigkíséri a 4.7.0 időszakát."><span class="zoomic">+</span><b>STELLA<br>FORTUNA</b><small>szezonális</small></div>
+        <div class="tile word hot" data-info data-title="Operation Breaker Stations" data-text="Többlépcsős koop-küldetés a Keeger Beltben: a játékosok Claw-szalamandrák és Valakkarok ellen harcolnak, helyreállítják az energiaellátást, optikai komponenseket craftolnak a lézerhez, és ritka erőforrásokat mentenek ki. Választható privát (PvE) vagy nyílt, PvP-s futamként." data-img="/assets/t-craft-1.jpg"><span class="zoomic">+</span><b>PvE / PvP</b><small>Operation</small></div>
       </div>
     </div>
   </section>
@@ -230,14 +230,14 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="shot__in reveal">
       <div class="kx">Keeger Belt</div>
       <div class="big">BREAKER STATIONS</div>
-      <p>Reaktiviere die Shubin-Station im Keeger Belt.</p>
+      <p>Aktiváld újra a Shubin-állomást a Keeger Beltben.</p>
     </div>
   </section>
 
   <!-- SHIP GARAGE -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">02</span><h2>Schiffe</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">02</span><h2>Hajók</h2><span class="rule"></span></div>
       <div class="garage">
         <article class="ship reveal" data-lb="yt:SzMHlkiv4DQ"><div class="sbg" style="background-image:url('/assets/img-aurora.jpg')"></div><span class="zoomic">▶</span><div class="ship__in"><span class="role">RSI · Starter</span><h3>Aurora Mk II</h3></div></article>
       </div>
@@ -249,23 +249,23 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>Videos</h2><span class="rule"></span></div>
       <div class="vwall reveal">
-        <div class="video" data-yt="sX4_Q6AuqSI" style="background-image:url('/assets/trailer-4-7-0.jpg')"><span class="vlbl">Welcome to the Rock — Trailer</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="TsMvQtRtLfw" style="background-image:url('/assets/vid-isc47.jpg')"><span class="vlbl">Inside Star Citizen — 4.7</span><button class="play" aria-label="Abspielen">▶</button></div>
-        <div class="video" data-yt="SzMHlkiv4DQ" style="background-image:url('/assets/vid-aurora.jpg')"><span class="vlbl">Aurora Mk II — Commercial</span><button class="play" aria-label="Abspielen">▶</button></div>
+        <div class="video" data-yt="sX4_Q6AuqSI" style="background-image:url('/assets/trailer-4-7-0.jpg')"><span class="vlbl">Welcome to the Rock — Trailer</span><button class="play" aria-label="Lejátszás">▶</button></div>
+        <div class="video" data-yt="TsMvQtRtLfw" style="background-image:url('/assets/vid-isc47.jpg')"><span class="vlbl">Inside Star Citizen — 4.7</span><button class="play" aria-label="Lejátszás">▶</button></div>
+        <div class="video" data-yt="SzMHlkiv4DQ" style="background-image:url('/assets/vid-aurora.jpg')"><span class="vlbl">Aurora Mk II — Commercial</span><button class="play" aria-label="Lejátszás">▶</button></div>
       </div>
-      <p class="vsrc reveal">Offizieller Star-Citizen-YouTube-Kanal (© Cloud Imperium Games). Klick lädt das Video. · <a href="https://www.youtube.com/watch?v=sX4_Q6AuqSI" target="_blank" rel="noopener">YouTube ↗</a></p>
+      <p class="vsrc reveal">Hivatalos Star Citizen YouTube-csatorna (© Cloud Imperium Games). Kattintásra betölt a videó. · <a href="https://www.youtube.com/watch?v=sX4_Q6AuqSI" target="_blank" rel="noopener">YouTube ↗</a></p>
     </div>
   </section>
 
   <!-- MOSAIC -->
   <section>
     <div class="wrap">
-      <div class="sec-head reveal"><span class="num">04</span><h2>Galerie</h2><span class="rule"></span></div>
+      <div class="sec-head reveal"><span class="num">04</span><h2>Galéria</h2><span class="rule"></span></div>
       <div class="mosaic reveal">
-        <figure class="b2" data-lb="img:/assets/t-craft-3.jpg"><img src="/assets/t-craft-3.jpg" alt="Das CRAFT-Menü — Fertigung einer Volt Pulse Pistol" loading="lazy"><span class="zoomic">⤢</span><figcaption>CRAFT-Menü · Fertigung</figcaption></figure>
+        <figure class="b2" data-lb="img:/assets/t-craft-3.jpg"><img src="/assets/t-craft-3.jpg" alt="A CRAFT-menü — egy Volt Pulse Pistol gyártása" loading="lazy"><span class="zoomic">⤢</span><figcaption>CRAFT-menü · gyártás</figcaption></figure>
         <figure class="w2" data-lb="img:/assets/vid-aurora.jpg"><img src="/assets/vid-aurora.jpg" alt="Aurora · Film" loading="lazy"><span class="zoomic">⤢</span><figcaption>Aurora · Film</figcaption></figure>
-        <figure data-lb="img:/assets/t-craft-4.jpg"><img src="/assets/t-craft-4.jpg" alt="Crafting-Maschinen — Fabricator-Einheiten" loading="lazy"><span class="zoomic">⤢</span><figcaption>Crafting-Maschinen</figcaption></figure>
-        <figure data-lb="img:/assets/t-craft-1.jpg"><img src="/assets/t-craft-1.jpg" alt="CRAFT-Menü — Materialien" loading="lazy"><span class="zoomic">⤢</span><figcaption>CRAFT-Menü · Materialien</figcaption></figure>
+        <figure data-lb="img:/assets/t-craft-4.jpg"><img src="/assets/t-craft-4.jpg" alt="Crafting-gépek — Fabricator-egységek" loading="lazy"><span class="zoomic">⤢</span><figcaption>Crafting-gépek</figcaption></figure>
+        <figure data-lb="img:/assets/t-craft-1.jpg"><img src="/assets/t-craft-1.jpg" alt="CRAFT-menü — anyagok" loading="lazy"><span class="zoomic">⤢</span><figcaption>CRAFT-menü · anyagok</figcaption></figure>
       </div>
     </div>
   </section>
@@ -276,18 +276,18 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 </main>
 
 <footer>
-  <nav class="pager" aria-label="Patch-Navigation">
-    <a href="/hu/patches/sc-4-6-0.html"><span class="dir">← Älter</span><span class="ttl">4.6.0 · Lifeline for Levski</span></a>
-    <a class="next" href="/hu/patches/sc-4-8-0.html"><span class="dir">Neuer →</span><span class="ttl">4.8.0 · Tactical Strike</span></a>
+  <nav class="pager" aria-label="Patch-navigáció">
+    <a href="/hu/patches/sc-4-6-0.html"><span class="dir">← Régebbi</span><span class="ttl">4.6.0 · Lifeline for Levski</span></a>
+    <a class="next" href="/hu/patches/sc-4-8-0.html"><span class="dir">Újabb →</span><span class="ttl">4.8.0 · Tactical Strike</span></a>
   </nav>
   <div class="foot-meta">
-    <a class="home-link" href="/hu.html">⌂ Alle Patches</a>
-    <span>Quellen: starcitizen.tools · RSI · YouTube</span>
+    <a class="home-link" href="/hu.html">⌂ Összes patch</a>
+    <span>Források: starcitizen.tools · RSI · YouTube</span>
   </div>
-  <p class="disclaimer">Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Keine Verbindung zu CIG. Trailer, Standbilder & Schiff-/System-Bilder von offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.</p>
+  <p class="disclaimer">Nem hivatalos rajongói projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. Nincs kapcsolata a CIG-gel. A trailerek, állóképek & hajó-/rendszerképek hivatalos, illetve közösségi forrásokból származnak (© Cloud Imperium Games), rajongói felhasználásban.</p>
 </footer>
 
-<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Schließen">✕</button><div class="lb__content"></div></div></div>
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label="Bezárás">✕</button><div class="lb__content"></div></div></div>
 <script is:inline>
 
 const tb=document.getElementById('topbar');
