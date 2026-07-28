@@ -1,0 +1,243 @@
+---
+// Themenseite „Engineering" (4.5.0) — EIN Körper für DE und EN.
+//
+// Muster wie PatchArchive.astro: die beiden Routen unter src/pages/topics/ und
+// src/pages/de/topics/ sind duenne Huellen, die nur die <Layout>-Metadaten
+// setzen. Alles darunter steht hier genau einmal.
+//
+// Der Fliesstext steht bewusst INLINE als `de ? … : …` und nicht in einer
+// Schluessel-Tabelle am Dateikopf: so bleibt die Uebersetzung neben ihrem
+// Markup stehen und man sieht beim Aendern sofort beide Fassungen. Eine
+// Tabelle mit erfundenen Schluesseln (`T.p07`) waere kuerzer zu tippen und
+// schlechter zu pflegen.
+import SiteNav from '../SiteNav.astro';
+import TopicFacts from '../TopicFacts.astro';
+import RelatedTopics from '../RelatedTopics.astro';
+import Attribution from '../Attribution.astro';
+import TopicSeo from '../dossier/TopicSeo.astro';
+import { localeFromPath, href } from '../../i18n/ui';
+
+const lang = localeFromPath(Astro.url.pathname);
+const de = lang === 'de';
+const L = (p: string) => href(p, lang);
+---
+{/* ACHTUNG beim Aendern: ein Element auf OBERSTER Ebene dieses Templates darf
+    keinen `{ausdruck}` als Kind haben — der Astro-Compiler (5.18) verschluckt
+    dann dessen schliessendes Tag, und das Element frisst den halben Rest der
+    Seite. Deshalb steht der Sprungmarken-Text unten als `set:text` da und
+    nicht zwischen den Tags. Innerhalb von <main> tritt das Problem nicht auf. */}
+<TopicSeo slug="4-5-0-engineering" image="/assets/t-eng-3.jpg" />
+<style is:inline>
+
+/* Engineering-Theme (geerbt von 4.5.0 "Dawn of Engineering") */
+:root{--bg:#0f1316;--bg-2:#151a1e;--surface:#1c2024;--surface-2:#262c31;--accent:#FFB000;--accent-2:#2BC4C4;--hot:#D7263D;--text:#e9eef0;--muted:#9aa7ac;--line:rgba(255,176,0,.22);--line-soft:rgba(233,238,240,.10);--glow:0 0 44px rgba(255,176,0,.30);--ink:#0f1316;--maxw:1180px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f2f8fd;--bg-2:#e8eff5;--surface:#fcfeff;--surface-2:#ecf4fa;--text:#1c2021;--muted:#4f5a5f;--accent:#7a5201;--accent-2:#056262;--hot:#9d0223;--ink:#ffffff;--accent-media:#FFB000;--accent-2-media:#2BC4C4;--line:rgba(146,105,37,.3);--line-soft:rgba(42,47,48,.12);--glow:0 6px 22px rgba(146,105,37,.18)}
+
+
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.kx-hot{color:var(--hot)!important}</style>
+<a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={[{ label: de ? 'Archiv' : 'Archive', href: L('/archiv.html') }, { label: 'Alpha 4.5.0', href: L('/patches/sc-4-5-0.html') }, { label: "Engineering" }]} />
+
+
+<main id="main">
+
+  <!-- HERO (full-bleed media) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-eng-3.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href={L('/patches/sc-4-5-0.html')}>Alpha 4.5.0 · Dawn of Engineering</a> &nbsp;·&nbsp; Feature</div>
+      <h1><span class="thin">{de ? 'Das Schiff wird zum Schlachtfeld' : 'The ship becomes the battlefield'}</span>Engineering</h1>
+      <p class="lead">{de
+        ? 'Mit 4.5.0 wird der Schiffsbetrieb selbst zum Gameplay: Energie verteilen, Panzerung managen, Braende loeschen — wer im Gefecht ueberlebt, haelt sein Schiff am Laufen.'
+        : 'With 4.5.0, operating your ship becomes gameplay in itself: distribute power, manage armor, put out fires — whoever survives the fight is the one who keeps their ship running.'}</p>
+      <div class="tags"><span class="tag">Engineering</span><span class="tag">Ship Armor</span><span class="tag hot">{de ? 'Feuer-Hazard' : 'Fire Hazard'}</span><span class="tag">Power Management</span><span class="tag">VR</span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>ENGINEERING</span><span class="dot">◆</span><span>SHIP ARMOR</span><span class="dot">◆</span><span>{de ? 'FEUER-HAZARD' : 'FIRE HAZARD'}</span><span class="dot">◆</span><span>POWER MANAGEMENT</span><span class="dot">◆</span><span>VULKAN</span><span class="dot">◆</span><span>VR</span><span class="dot">◆</span>
+      <span>ENGINEERING</span><span class="dot">◆</span><span>SHIP ARMOR</span><span class="dot">◆</span><span>{de ? 'FEUER-HAZARD' : 'FIRE HAZARD'}</span><span class="dot">◆</span><span>POWER MANAGEMENT</span><span class="dot">◆</span><span>VULKAN</span><span class="dot">◆</span><span>VR</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-5-0-engineering" />
+
+  <!-- INTRO as FULL-BLEED BAND (parallax, big overlaid text) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-eng-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">Dawn of Engineering</div>
+      <div class="big outline">{de ? 'HALTE ES AM LAUFEN.' : 'KEEP IT RUNNING.'}</div>
+      <p set:html={de
+        ? 'Schilde fallen, Komponenten brennen durch, Energie wird knapp. In 4.5.0 entscheidet nicht mehr nur, wie gut du fliegst — sondern wie gut du dein Schiff im Gefecht <b style="color:var(--accent-2)">am Leben haeltst</b>.'
+        : 'Shields drop, components burn out, power runs low. In 4.5.0 it\'s no longer just about how well you fly — but how well you keep your ship <b style="color:var(--accent-2)">alive</b> in the fight.'} />
+    </div>
+  </section>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="4">0</div><div class="c">{de ? 'Neue Systeme · Engineering, Armor, Feuer, Power' : 'New systems · Engineering, Armor, Fire, Power'}</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">{de ? 'Physische Panzerschicht ueber der Huelle' : 'Physical armor layer over the hull'}</div></div>
+    <div class="s"><div class="n">VULKAN</div><div class="c">{de ? 'Standard-Renderer ab 4.5.0' : 'Default renderer from 4.5.0'}</div></div>
+    <div class="s"><div class="n">VR</div><div class="c">{de ? 'Experimentell · ueber Vulkan' : 'Experimental · via Vulkan'}</div></div>
+  </div>
+
+  <!-- OVERVIEW — single split section (the ONE framed/split allowed) -->
+  <section style="padding-bottom:0">
+    <div class="split reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-eng-4.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">{de ? '01 · Engineering-Gameplay' : '01 · Engineering Gameplay'}</div>
+        <h3>{de ? 'Der Maschinenraum wird zum Cockpit' : 'The engine room becomes the cockpit'}</h3>
+        <p set:html={de
+          ? 'An einem <b>Engineering-Terminal</b> ueberwachen Spieler den Zustand ihres Schiffs in Echtzeit — und reparieren beschaedigte Komponenten direkt waehrend des Betriebs. Was bisher unsichtbar im Hintergrund lief, wird zur aktiven Aufgabe an Bord.'
+          : 'At an <b>Engineering terminal</b>, players monitor the state of their ship in real time — and repair damaged components right in the middle of operation. What used to run invisibly in the background becomes an active task on board.'} />
+        <p set:html={de
+          ? 'Im Mehrspieler-Schiff entsteht so eine eigene Rolle: Waehrend die einen fliegen und feuern, haelt der Ingenieur Reaktor, Schilde und Antrieb am Laufen. Schiffe werden vom Werkzeug zur <b>Crew-Erfahrung</b>.'
+          : 'In a multi-crew ship, this creates a role of its own: while some fly and fire, the engineer keeps the reactor, shields, and drive running. Ships turn from a tool into a <b>crew experience</b>.'} />
+      </div>
+    </div>
+  </section>
+
+  <!-- VERSUS: Ship Armor vs Feuer-Hazard (full-bleed dual pane) -->
+  <section style="padding:0">
+    <div class="wrap" style="padding:clamp(2.5rem,6vw,4.5rem) 0 1.4rem"><div class="sec-head reveal"><span class="num">02</span><h2>{de ? 'Schutz & Gefahr' : 'Protection & Hazard'}</h2><span class="rule"></span></div></div>
+    <div class="versus reveal">
+      <div class="side b">
+        <h3>★ Ship Armor</h3>
+        <ul>
+          {(de
+            ? ['Eigene physische Schicht ueber Huelle und Komponenten.',
+               'Absorbiert eingehenden Schaden, bevor er die Struktur erreicht.',
+               'Verschleisst mit der Zeit — Panzerung ist endlich.',
+               'Macht Schadensmanagement zur strategischen Entscheidung.']
+            : ['Its own physical layer over the hull and components.',
+               'Absorbs incoming damage before it reaches the structure.',
+               'Wears down over time — armor is finite.',
+               'Makes damage management a strategic decision.']
+          ).map((li) => <li>{li}</li>)}
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side a">
+        <h3>⚠ {de ? 'Feuer-Hazard' : 'Fire Hazard'}</h3>
+        <ul>
+          {(de
+            ? ['Feuer breitet sich dynamisch durchs Schiff aus.',
+               'Frisst Sauerstoff — die Atmosphaere an Bord wird zur Gefahr.',
+               'Greift auf benachbarte Raeume ueber, wenn man nichts tut.',
+               'Muss aktiv geloescht werden — von selbst geht es nicht aus.']
+            : ['Fire spreads dynamically through the ship.',
+               'Consumes oxygen — the atmosphere on board becomes a hazard.',
+               'Spreads to adjacent rooms if you do nothing.',
+               'Must be actively put out — it won\'t die down on its own.']
+          ).map((li) => <li>{li}</li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: So ueberlebst du ein Gefecht (process) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>{de ? 'Krisenmanagement an Bord' : 'Crisis management on board'}</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/t-eng-5.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-eng-6.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-eng-7.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-eng-8.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      {(de
+        ? [['Treffer einstecken', 'Eingehendes Feuer trifft zuerst die Ship Armor. Die Panzerschicht absorbiert den Schaden — doch mit jedem Treffer verschleisst sie weiter.'],
+           ['Lage ablesen', 'Am Engineering-Terminal zeigt sich, welche Komponenten beschaedigt sind, wo Energie fehlt und wo es bereits gefaehrlich heiss wird.'],
+           ['Brand bekaempfen', 'Bricht ein Feuer aus, frisst es Sauerstoff und greift auf Nachbarraeume ueber. Es muss aktiv geloescht werden, bevor sich der Brand durchs Schiff frisst.'],
+           ['Reparieren & weiter', 'Beschaedigte Komponenten werden in Echtzeit repariert, Energie neu verteilt — und das Schiff bleibt im Kampf. Wer das beherrscht, ueberlebt.']]
+        : [['Take the hit', 'Incoming fire strikes the Ship Armor first. The armor layer absorbs the damage — but with every hit it wears down further.'],
+           ['Read the situation', 'At the Engineering terminal you can see which components are damaged, where power is lacking, and where it\'s already getting dangerously hot.'],
+           ['Fight the fire', 'If a fire breaks out, it consumes oxygen and spreads to neighboring rooms. It has to be actively put out before the blaze eats its way through the ship.'],
+           ['Repair & carry on', 'Damaged components are repaired in real time, power is redistributed — and the ship stays in the fight. Master this, and you survive.']]
+      ).map(([h, p], i) => (
+        <div class="sstep"><div class="sn">{String(i + 1).padStart(2, '0')}</div><h3>{h}</h3><p>{p}</p></div>
+      ))}
+    </div>
+  </div>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote set:html={de
+      ? 'Fliegen kann jeder. <span class="hl">Am Leben halten</span> ist die Kunst.'
+      : 'Anyone can fly. <span class="hl">Keeping it alive</span> is the art.'} />
+    <cite>Dawn of Engineering · Alpha 4.5.0</cite>
+  </section>
+
+  <!-- POWER MANAGEMENT — full-bleed band (image as background, design on top) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/trailer-4-5-0.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">04 · Power Management</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">{de ? 'JEDES WATT ZAEHLT' : 'EVERY WATT COUNTS'}</div>
+      <p set:html={de
+        ? 'Energie wird in Echtzeit auf die Komponenten verteilt — mehr Leistung fuer Schilde, Triebwerke oder Waffen, je nach Lage. Doch <b style="color:var(--hot)">Ueberlastung</b> fuehrt zu Hitze, Ausfaellen und Schaeden. Wer alles auf einmal will, riskiert, dass nichts mehr funktioniert.'
+        : 'Power is distributed to components in real time — more output for shields, thrusters, or weapons, depending on the situation. But <b style="color:var(--hot)">overload</b> leads to heat, failures, and damage. Try to have it all at once, and you risk nothing working at all.'} />
+    </div>
+  </section>
+
+  <!-- TECH BAND: Vulkan & VR (full-bleed, big overlaid text) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-eng-1.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? '05 · Unter der Haube' : '05 · Under the Hood'}</div>
+      <div class="big">VULKAN &amp; VR</div>
+      <p set:html={de
+        ? 'Ab 4.5.0 ist <b style="color:var(--accent-2)">Vulkan</b> der Standard-Renderer und loest DirectX 11 ab — die API gibt es im Spiel bereits seit 3.23. Auf dieser Pipeline baut die neue, <b>experimentelle VR-Unterstuetzung</b> auf: ein erster Schritt, das Verse durch die Brille zu erleben.'
+        : 'From 4.5.0, <b style="color:var(--accent-2)">Vulkan</b> is the default renderer, replacing DirectX 11 — the API has already been in the game since 3.23. This pipeline is the foundation for the new, <b>experimental VR support</b>: a first step toward experiencing the Verse through the goggles.'} />
+    </div>
+  </section>
+
+  <!-- MEDIA — closing mixed gallery (no video embed) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">06</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        {(de
+          ? [['t-eng-1', 'gtile full b2', 'Engineering — Schiffsbetrieb im Gefecht', 'Engineering · Schiffsbetrieb'],
+             ['t-eng-2', 'gtile w2', 'Schadens- und Komponentenmanagement', 'Komponenten unter Beschuss'],
+             ['trailer-4-5-0', 'gtile', 'Dawn of Engineering — Key-Art', 'Dawn of Engineering'],
+             ['t-eng-4', 'gtile', 'Das Engineering-Terminal an Bord', 'Engineering-Terminal'],
+             ['t-eng-3', 'gtile w2', 'Crew im Schiffsinneren während des Gefechts', 'Crew im Maschinenraum']]
+          : [['t-eng-1', 'gtile full b2', 'Engineering — ship operations in combat', 'Engineering · Ship operations'],
+             ['t-eng-2', 'gtile w2', 'Damage and component management', 'Components under fire'],
+             ['trailer-4-5-0', 'gtile', 'Dawn of Engineering — key art', 'Dawn of Engineering'],
+             ['t-eng-4', 'gtile', 'The Engineering terminal on board', 'Engineering terminal'],
+             ['t-eng-3', 'gtile w2', 'Crew inside the ship during combat', 'Crew in the engine room']]
+        ).map(([img, cls, alt, cap]) => (
+          <figure class={cls} data-lb={`img:/assets/${img}.jpg`}><img src={`/assets/${img}.jpg`} alt={alt} loading="lazy" /><span class="zoomic">⤢</span><figcaption>{cap}</figcaption></figure>
+        ))}
+      </div>
+      <p class="src reveal">{de
+        ? 'Quelle: offizieller Star-Citizen-YouTube-Kanal & Star Citizen Wiki (© Cloud Imperium Games). Inoffizielle Fan-Aufbereitung.'
+        : 'Source: official Star Citizen YouTube channel & Star Citizen Wiki (© Cloud Imperium Games). Unofficial fan compilation.'}</p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-5-0-engineering" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label={de ? 'Schließen' : 'Close'}>✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>

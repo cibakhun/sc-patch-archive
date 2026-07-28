@@ -1,0 +1,194 @@
+---
+// „4-0-0-pyro-system" — EIN Körper für DE und EN.
+// Muster und Begründung: siehe components/topics/4-5-0-engineering.astro.
+// Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
+// Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
+import SiteNav from '../../components/SiteNav.astro';
+import TopicFacts from '../../components/TopicFacts.astro';
+import RelatedTopics from '../../components/RelatedTopics.astro';
+import Attribution from '../../components/Attribution.astro';
+import TopicSeo from '../../components/dossier/TopicSeo.astro';
+import { localeFromPath } from '../../i18n/ui';
+
+const de = localeFromPath(Astro.url.pathname) === 'de';
+---
+<TopicSeo slug="4-0-0-pyro-system" image="/assets/t-pyro-1.jpg" />
+<style is:inline>
+
+/* Pyro-Theme (System 4.0.0) */
+:root{--bg:#120f0c;--bg-2:#1a1714;--surface:#211b16;--surface-2:#2b231b;--accent:#ff5a1f;--accent-2:#d9d12a;--hot:#c0271f;--text:#f3e9df;--muted:#b6a596;--line:rgba(255,90,31,.22);--line-soft:rgba(243,233,223,.10);--glow:0 0 44px rgba(255,90,31,.32);--ink:#120f0c;--maxw:1180px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#fbf7f2;--bg-2:#f1ede9;--surface:#fefdfc;--surface-2:#f9f1e9;--text:#251e17;--muted:#645547;--accent:#9e2f01;--accent-2:#5c5801;--hot:#9e0004;--ink:#ffffff;--accent-media:#ff5a1f;--accent-2-media:#d9d12a;--line:rgba(163,91,69,.3);--line-soft:rgba(52,44,37,.12);--glow:0 6px 22px rgba(171,85,59,.18)}
+
+
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10.5rem)}
+.moons{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.3rem}
+.moons .moon{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.74rem;padding:.4rem .85rem;border:1px solid var(--line);border-radius:50px;background:var(--veil);color:var(--text)}
+.moons .moon b{color:var(--accent-2);font-weight:700}
+.band .big.flare{color:transparent;background:linear-gradient(180deg,var(--title-hi),var(--accent) 72%,var(--hot));-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 36px color-mix(in srgb,var(--accent) 50%,transparent))}</style>
+<a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.0.0', href: '/de/patches/sc-4-0-0.html' }, { label: "Pyro-System" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.0.0', href: '/patches/sc-4-0-0.html' }, { label: "Pyro System" }]} />
+
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-pyro-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href={de ? '/de/patches/sc-4-0-0.html' : '/patches/sc-4-0-0.html'}>Alpha 4.0.0 · Destination Pyro</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Sternsystem' : ' &nbsp;·&nbsp; Star system'} /></div>
+      <h1><span class="thin">{de ? 'Das zweite Sternsystem' : 'The second star system'}</span>Pyro</h1>
+      <p class="lead">{de ? 'Gesetzlos, sonnenverbrannt, von Gangs beherrscht: mit 4.0.0 wird Pyro das zweite voll simulierte Sternsystem — sechs ruinierte Welten um einen sterbenden Stern, ohne Sicherheit, ohne Rettung.' : 'Lawless, sun-scorched, ruled by gangs: with 4.0.0, Pyro becomes the second fully simulated star system — six ruined worlds around a dying star, without security, without rescue.'}</p>
+      <div class="tags"><span class="tag">{de ? 'Sternsystem' : 'Star system'}</span><span class="tag">{de ? '6 Planeten' : '6 planets'}</span><span class="tag">Ruin Station</span><span class="tag hot">{de ? 'Gesetzlos' : 'Lawless'}</span><span class="tag">Jump Point</span></div>
+      <div class="hero__play" data-lb="yt:DE3ePRgpUQo"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>PYRO</span><span class="dot">◆</span><span>{de ? '6 RUINIERTE WELTEN' : '6 RUINED WORLDS'}</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span><span>FLARE STAR</span><span class="dot">◆</span><span>{de ? 'GESETZLOS' : 'LAWLESS'}</span><span class="dot">◆</span><span>JUMP POINT</span><span class="dot">◆</span>
+      <span>PYRO</span><span class="dot">◆</span><span>{de ? '6 RUINIERTE WELTEN' : '6 RUINED WORLDS'}</span><span class="dot">◆</span><span>RUIN STATION</span><span class="dot">◆</span><span>FLARE STAR</span><span class="dot">◆</span><span>{de ? 'GESETZLOS' : 'LAWLESS'}</span><span class="dot">◆</span><span>JUMP POINT</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-0-0-pyro-system" />
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="2">0</div><div class="c">{de ? 'Voll simuliertes System im PU' : 'Fully simulated systems in the PU'}</div></div>
+    <div class="s"><div class="n count" data-to="6">0</div><div class="c">{de ? 'Planeten · Pyro I–VI' : 'Planets · Pyro I–VI'}</div></div>
+    <div class="s"><div class="n count" data-to="6">0</div><div class="c">{de ? 'Monde um Pyro V' : 'Moons around Pyro V'}</div></div>
+    <div class="s"><div class="n">0</div><div class="c">{de ? 'Sicherheitszonen' : 'Security zones'}</div></div>
+  </div>
+
+  <!-- FULL-BLEED BAND — Was ist Pyro? (parallax, image as background) -->
+  <section class="band">
+    <div class="bbg" data-par="0.13" style="background-image:url('/assets/t-pyro-4.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? '01 · Ein sterbender Stern' : '01 · A dying star'}</div>
+      <div class="big flare">FLARE STAR</div>
+      <p>{de ? 'Im Zentrum von Pyro brennt ein heller, sterbender Stern in einer verlängerten Nova-Phase. Um ihn kreisen ' : 'At the center of Pyro burns a bright, dying star in a prolonged nova phase. Around it orbit '}<b style="color:var(--accent-2)">{de ? 'sechs Planeten' : 'six planets'}</b>{de ? ' — Pyro I bis VI, ruinierte Welten, die seine Strahlung über Generationen verbrannt hat. Mit Alpha 4.0.0 wird Pyro nach Stanton das zweite voll simulierte Sternsystem im Persistent Universe.' : ' — Pyro I through VI, ruined worlds scorched by its radiation over generations. With Alpha 4.0.0, Pyro becomes the second fully simulated star system in the Persistent Universe, after Stanton.'}</p>
+    </div>
+  </section>
+
+  <!-- MANIFESTO pull-quote -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>{de ? 'In Pyro gibt es ' : 'In Pyro there is '}<span class="hl">{de ? 'kein Gesetz' : 'no law'}</span>{de ? ' — nur die Gangs, die übrig bleiben.' : ' — only the gangs that remain.'}</blockquote>
+    <cite>{de ? 'Pyro · Das gesetzlose System' : 'Pyro · The lawless system'}</cite>
+  </section>
+
+  <!-- VERSUS — Stanton vs Pyro (two sides) -->
+  <section style="padding:0">
+    <div class="wrap" style="padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem) 0">
+      <div class="sec-head reveal"><span class="num">02</span><h2>{de ? 'Zwei Systeme, zwei Welten' : 'Two systems, two worlds'}</h2><span class="rule"></span></div>
+    </div>
+    <div class="versus reveal">
+      <div class="side b">
+        <h3>★ Stanton</h3>
+        <ul>
+          <li>{de ? 'Das etablierte Heimatsystem des Persistent Universe.' : 'The established home system of the Persistent Universe.'}</li>
+          <li>{de ? 'Konzern-kontrollierte Welten mit Recht und Ordnung.' : 'Corporation-controlled worlds with law and order.'}</li>
+          <li>{de ? 'Sicherheitszonen und Schutz durch Behörden.' : 'Security zones and protection by the authorities.'}</li>
+          <li>{de ? 'Schiffsverlust ist versichert — Wiederbeschaffung garantiert.' : 'Ship loss is insured — replacement guaranteed.'}</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side a">
+        <h3>⚠ Pyro</h3>
+        <ul>
+          <li>{de ? 'Mit 4.0.0 das zweite voll simulierte Sternsystem.' : 'With 4.0.0, the second fully simulated star system.'}</li>
+          <li>{de ? 'Keine Versicherung, keine Bergung verlorener Schiffe.' : 'No insurance, no salvage of lost ships.'}</li>
+          <li>{de ? 'Kein ASOP-Notruf, keine Sicherheitskräfte auf Abruf.' : 'No ASOP distress call, no security forces on demand.'}</li>
+          <li>{de ? 'Sengende Strahlung des sterbenden Sterns über allem.' : 'The dying star\'s searing radiation over everything.'}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING — Die Reise nach Pyro (a process) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>{de ? 'Die Reise nach Pyro' : 'The journey to Pyro'}</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/img-pyro.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-pyro-4.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-pyro-3.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-ruin-1.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>Start in Stanton</h3><p>{de ? 'Jede Reise nach Pyro beginnt im bekannten Heimatsystem Stanton — dem ersten voll simulierten Sternsystem des Persistent Universe.' : 'Every journey to Pyro begins in the familiar home system Stanton — the first fully simulated star system of the Persistent Universe.'}</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>{de ? 'Durch den Jump Point' : 'Through the Jump Point'}</h3><p>{de ? 'Der Tunnel zwischen den Systemen ist eng und kurvenreich — wer die Wände touchiert, riskiert sein Schiff. Hier lauern Piraten auf Reisende, die ohne Geleit aus dem Sprung kommen.' : 'The tunnel between the systems is narrow and winding — those who scrape the walls risk their ship. Pirates lie in wait here for travelers who come out of the jump without an escort.'}</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>{de ? 'Ankunft in Pyro' : 'Arrival in Pyro'}</h3><p>{de ? 'Auf der anderen Seite blendet sofort der Flare Star: aufgeblähter Stern, fahles Licht, treibende Trümmer. Die ersten Planeten und Stationen zeichnen sich als dunkle Silhouetten vor der Glut ab.' : 'On the other side, the Flare Star immediately blinds you: a bloated star, pale light, drifting debris. The first planets and stations stand out as dark silhouettes against the glow.'}</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>{de ? 'Anflug auf Ruin Station' : 'Approach to Ruin Station'}</h3><p>{de ? 'Quanten-Sprung zur größten Marke im System: Ruin Station wächst aus dem Dunkel — eine umgebaute Bergbauplattform, an deren Docks fremde Schiffe ankern. Hier legt man an, wenn man Treibstoff, Reparatur oder einen Handel braucht.' : 'A quantum jump to the largest landmark in the system: Ruin Station grows out of the darkness — a repurposed mining platform whose docks are moored by strange ships. This is where you dock when you need fuel, repairs or a deal.'}</p></div>
+    </div>
+  </div>
+
+  <!-- SPLIT — Ruin Station (the ONE framed/split section) -->
+  <section style="padding-bottom:0">
+    <div class="split reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/cz-ruin.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">{de ? '04 · Der zentrale Außenposten' : '04 · The central outpost'}</div>
+        <h3>Ruin Station</h3>
+        <p>{de ? 'Im gesetzlosen Pyro ist ' : 'In lawless Pyro, '}<b>Ruin Station</b>{de ? ' der zentrale Anlaufpunkt — eine alte Gold-Horizon-Bergbauplattform, längst ihrer ursprünglichen Bestimmung beraubt.' : ' is the central hub — an old Gold Horizon mining platform, long stripped of its original purpose.'}</p>
+        <p>{de ? 'Heute dient die verfallene Struktur als Zuflucht für ' : 'Today the decaying structure serves as a refuge for '}<b>{de ? 'Schwarzmarkt und Gangs' : 'the black market and gangs'}</b>{de ? ': ein Ort, an dem man verschwinden, handeln und neue Aufträge finden kann — wenn man die Risiken überlebt.' : ': a place to disappear, trade and find new contracts — if you survive the risks.'}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED BAND — Pyro V & seine Monde -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-pyro-5.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx"><Fragment set:html={de ? '05 · Pyro V &amp; sein Mondsystem' : '05 · Pyro V &amp; its moon system'} /></div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">{de ? 'SECHS MONDE' : 'SIX MOONS'}</div>
+      <p>{de ? 'Pyro V wird von gleich sechs Monden umkreist — ihre Namen verraten ihr Wesen: ' : 'Pyro V is orbited by no fewer than six moons — their names reveal their nature: '}<b style="color:var(--accent-2)">Ignis</b>, <b style="color:var(--accent-2)">Fuego</b>{de ? ' und ' : ' and '}<b style="color:var(--accent-2)">Vuur</b><Fragment set:html={de ? ' bedeuten in verschiedenen Sprachen „Feuer", ' : ' mean "fire" in different languages, '} /><b style="color:var(--accent-2)">Vatra</b>{de ? ' steht für Flamme und Glut, ' : ' stands for flame and ember, '}<b style="color:var(--accent-2)">Adir</b>{de ? ' und ' : ' and '}<b style="color:var(--accent-2)">Fairo</b>{de ? ' für schroffes, lebensfeindliches Gestein. Karge, abweisende Felswelten, auf denen Schmuggler und Banden ihre Verstecke graben.' : ' for harsh, hostile rock. Barren, forbidding rock worlds where smugglers and gangs dig their hideouts.'}</p>
+      <div class="moons">
+        <span class="moon"><b>Ignis</b></span><span class="moon"><b>Vatra</b></span><span class="moon"><b>Adir</b></span><span class="moon"><b>Fairo</b></span><span class="moon"><b>Fuego</b></span><span class="moon"><b>Vuur</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED BAND — Gesetzlos -->
+  <section class="band" style="min-height:64vh">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-pyro-7.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? 'Hohes Risiko · Hoher Lohn' : 'High risk · High reward'}</div>
+      <div class="big outline">{de ? 'KEINE RETTUNG.' : 'NO RESCUE.'}</div>
+      <p>{de ? 'Genau diese Schutzlosigkeit macht Pyro lohnend: seltene Ressourcen, ungesicherte Frachten und Aufträge, die in Stanton niemand vergibt. Wer hier besteht, nimmt mit, was er verteidigen kann — und lässt zurück, was ihn zu langsam macht.' : 'It is precisely this defenselessness that makes Pyro rewarding: rare resources, unsecured cargo and contracts that no one hands out in Stanton. Those who prevail here take what they can defend — and leave behind whatever slows them down.'}</p>
+    </div>
+  </section>
+
+  <!-- MEDIA — mixed gallery + closing trailer -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">06</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-pyro-1.jpg"><img src="/assets/t-pyro-1.jpg" alt={de ? 'Pyro — sterbender Stern und ruinierte Welt' : 'Pyro — dying star and ruined world'} loading="lazy"><span class="zoomic">⤢</span><figcaption>Pyro · Flare Star</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/img-pyro.jpg"><img src="/assets/img-pyro.jpg" alt={de ? 'Systemkarte von Pyro' : 'System map of Pyro'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Systemkarte' : 'System map'}</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-pyro-2.jpg"><img src="/assets/t-pyro-2.jpg" alt={de ? 'Ruinierte Welt in Pyro' : 'Ruined world in Pyro'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Ruinierte Welt' : 'Ruined world'}</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-pyro-6.jpg"><img src="/assets/t-pyro-6.jpg" alt={de ? 'Leuchtende Vegetation zwischen Felsnadeln auf einer Pyro-Welt' : 'Glowing vegetation among rock spires on a Pyro world'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Leuchtende Vegetation' : 'Glowing vegetation'}</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-ruin-1.jpg"><img src="/assets/t-ruin-1.jpg" alt={de ? 'Ruin Station vor dem Planeten Terminus' : 'Ruin Station in front of the planet Terminus'} loading="lazy"><span class="zoomic">⤢</span><figcaption>Ruin Station · Terminus</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="DE3ePRgpUQo" style="background-image:url('/assets/trailer-4-0-0.jpg')"><span class="vlbl">Destination Pyro — Trailer</span><button class="play" aria-label={de ? 'Trailer abspielen' : 'Play trailer'}>▶</button></div>
+      <p class="src reveal"><Fragment set:html={de ? 'Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · ' : 'Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · '} /><a href="https://www.youtube.com/watch?v=DE3ePRgpUQo" target="_blank" rel="noopener">{de ? 'Auf YouTube ansehen ↗' : 'Watch on YouTube ↗'}</a></p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-0-0-pyro-system" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label={de ? 'Schließen' : 'Close'}>✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>

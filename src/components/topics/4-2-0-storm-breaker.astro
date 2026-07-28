@@ -1,0 +1,194 @@
+---
+// „4-2-0-storm-breaker" — EIN Körper für DE und EN.
+// Muster und Begründung: siehe components/topics/4-5-0-engineering.astro.
+// Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
+// Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
+import SiteNav from '../../components/SiteNav.astro';
+import TopicFacts from '../../components/TopicFacts.astro';
+import RelatedTopics from '../../components/RelatedTopics.astro';
+import Attribution from '../../components/Attribution.astro';
+import OnepagerLink from '../../components/OnepagerLink.astro';
+import TopicSeo from '../../components/dossier/TopicSeo.astro';
+import { localeFromPath } from '../../i18n/ui';
+
+const lang = localeFromPath(Astro.url.pathname);
+const de = lang === 'de';
+---
+<TopicSeo slug="4-2-0-storm-breaker" image="/assets/t-storm-3.jpg" />
+<style is:inline>
+
+/* Storm-Breaker-Theme (4.2.0) */
+:root{--bg:#16142a;--bg-2:#1d1a38;--surface:#252247;--surface-2:#2e2a4a;--accent:#36e2f0;--accent-2:#f5c518;--hot:#f5c518;--text:#eef1f7;--muted:#a6abc4;--line:rgba(54,226,240,.22);--line-soft:rgba(238,241,247,.10);--glow:0 0 44px rgba(54,226,240,.30);--ink:#16142a;--maxw:1180px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f7f7fe;--bg-2:#ececf8;--surface:#fdfdff;--surface-2:#f2f1fc;--text:#1d1f23;--muted:#53576c;--accent:#05676f;--accent-2:#695200;--hot:#655000;--ink:#ffffff;--accent-media:#36e2f0;--accent-2-media:#f5c518;--line:rgba(44,127,135,.3);--line-soft:rgba(44,46,50,.12);--glow:0 6px 22px rgba(44,127,135,.18)}
+
+
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.kx-stat{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}</style>
+<a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.2.0', href: '/de/patches/sc-4-2-0.html' }, { label: "Storm Breaker · Wetter wird zur Gefahr" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.2.0', href: '/patches/sc-4-2-0.html' }, { label: "Storm Breaker · When Weather Becomes a Threat" }]} />
+
+
+<main id="main">
+
+  <!-- HERO (full-bleed cinematic) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-storm-3.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href={de ? '/de/patches/sc-4-2-0.html' : '/patches/sc-4-2-0.html'}>Alpha 4.2.0 · Storm Breaker</a> &nbsp;·&nbsp; Feature</div>
+      <h1><span class="thin">{de ? 'Wetter wird zur Gefahr' : 'When Weather Becomes a Threat'}</span>Storm Breaker</h1>
+      <p class="lead">{de ? 'Mit 4.2.0 schlägt das Wetter zurück: dynamischer Regen, Flug-Turbulenzen und eine brandneue Strahlungs-Gefahr verwandeln Planeten in tödliche Schauplätze — mittendrin die Storm-Breaker-Aktivität.' : 'With 4.2.0 the weather strikes back: dynamic rain, flight turbulence and a brand-new radiation hazard turn planets into deadly arenas — and at the heart of it all, the Storm Breaker activity.'}</p>
+      <div class="tags"><span class="tag hot">{de ? 'Dynamisches Wetter' : 'Dynamic Weather'}</span><span class="tag">{de ? 'Strahlung' : 'Radiation'}</span><span class="tag">{de ? 'Turbulenz' : 'Turbulence'}</span><span class="tag">{de ? 'Regen-Krise' : 'Rain Crisis'}</span><span class="tag">Hazard</span></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>STORM BREAKER</span><span class="dot">◆</span><span>{de ? 'STRAHLUNG' : 'RADIATION'}</span><span class="dot">◆</span><span>{de ? 'DYNAMISCHER REGEN' : 'DYNAMIC RAIN'}</span><span class="dot">◆</span><span>{de ? 'TURBULENZ' : 'TURBULENCE'}</span><span class="dot">◆</span><span>DECONPEN</span><span class="dot">◆</span><span>HAZARD</span><span class="dot">◆</span>
+      <span>STORM BREAKER</span><span class="dot">◆</span><span>{de ? 'STRAHLUNG' : 'RADIATION'}</span><span class="dot">◆</span><span>{de ? 'DYNAMISCHER REGEN' : 'DYNAMIC RAIN'}</span><span class="dot">◆</span><span>{de ? 'TURBULENZ' : 'TURBULENCE'}</span><span class="dot">◆</span><span>DECONPEN</span><span class="dot">◆</span><span>HAZARD</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-2-0-storm-breaker" />
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="190">0</div><div class="c"><Fragment set:html={de ? 'Bug- & Crash-Fixes' : 'Bug & Crash Fixes'} /></div></div>
+    <div class="s"><div class="n count" data-to="3">0</div><div class="c">{de ? 'Neue Wetter-Gefahren' : 'New Weather Hazards'}</div></div>
+    <div class="s"><div class="n count" data-to="2">0</div><div class="c"><Fragment set:html={de ? 'Systeme: Stanton & Pyro' : 'Systems: Stanton & Pyro'} /></div></div>
+    <div class="s"><div class="n">∞</div><div class="c">{de ? 'Strahlung baut sich auf — ohne Schutz tödlich' : 'Radiation builds up — deadly without protection'}</div></div>
+  </div>
+
+  <!-- FULL-BLEED OPENING BAND (parallax, design over media) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-storm-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? '01 · Das Wetter schlägt zurück' : '01 · The Weather Strikes Back'}</div>
+      <div class="big outline">{de ? 'REGEN FÄLLT.' : 'RAIN FALLS.'}</div>
+      <p>{de ? 'Alpha 4.2.0 bringt ' : 'Alpha 4.2.0 brings '}<b style="color:var(--accent-2)">{de ? 'dynamischen Regen und dynamisches Wetter' : 'dynamic rain and dynamic weather'}</b>{de ? ' an Stanton- und Pyro-Standorte. Was einst Kulisse war, wird jetzt zur aktiven Bedrohung — der Himmel entscheidet mit, ob du landest oder abstürzt.' : ' to Stanton and Pyro locations. What was once mere backdrop now becomes an active threat — the sky helps decide whether you land or crash.'}</p>
+    </div>
+  </section>
+
+  <!-- OVERVIEW as full-bleed band (right) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-storm-1.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">02 · Storm Breaker</div>
+      <div class="big" style="font-size:clamp(2.4rem,8vw,6rem)">{de ? 'DIE AKTIVITÄT' : 'THE ACTIVITY'}</div>
+      <p>{de ? 'Im Zentrum des Patches steht die namensgebende ' : 'At the core of the patch stands the namesake '}<b style="color:var(--accent-2)">{de ? 'Storm-Breaker-Aktivität' : 'Storm Breaker activity'}</b>{de ? ' — fest an die fortlaufende ' : ' — tied firmly to the ongoing '}<b style="color:var(--accent-2)">{de ? 'Regen-Krisen-Story' : 'Rain Crisis story'}</b>{de ? ' angebunden. Das Wetter ist nicht mehr nur Stimmung, sondern Spielziel: Wer in den Sturm fliegt, sucht den Konflikt mit den Elementen.' : '. The weather is no longer just atmosphere but a gameplay objective: anyone who flies into the storm is seeking conflict with the elements.'}</p>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: Anatomie eines Sturms -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">03</span><h2>{de ? 'Anatomie eines Sturms' : 'Anatomy of a Storm'}</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/t-storm-4.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-storm-5.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-storm-6.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-storm-7.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>{de ? 'Wetterumschwung' : 'Weather Shift'}</h3><p>{de ? 'An Stanton- und Pyro-Standorten zieht dynamisches Wetter auf — Regen setzt ein, die Sicht sinkt, der Boden wird zur unberechenbaren Variable.' : 'Dynamic weather rolls in at Stanton and Pyro locations — rain sets in, visibility drops, and the ground becomes an unpredictable variable.'}</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>{de ? 'Turbulenz' : 'Turbulence'}</h3><p>{de ? 'Stürme erzeugen Flug-Turbulenzen, die die Flugstabilität senken. Präzise Anflüge geraten ins Wanken — jede Böe zerrt am Kurs.' : 'Storms generate flight turbulence that reduces flight stability. Precise approaches start to waver — every gust tugs at your course.'}</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>{de ? 'VTOL am Limit' : 'VTOL at the Limit'}</h3><p>{de ? 'Besonders heikel: VTOL-Manöver werden im Sturm deutlich erschwert. Schweben und senkrechtes Landen verlangen jetzt volle Konzentration.' : 'Especially tricky: VTOL maneuvers become significantly harder in the storm. Hovering and vertical landing now demand full concentration.'}</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>{de ? 'Strahlung steigt' : 'Radiation Rises'}</h3><p>{de ? 'Über allem liegt die neue Gefahr: Strahlung baut sich mit der Zeit auf. Ohne Schutz ist sie tödlich — der Sturm tötet auch leise.' : 'Above it all looms the new hazard: radiation builds up over time. Without protection it is deadly — the storm also kills quietly.'}</p></div>
+    </div>
+  </div>
+
+  <!-- MANIFESTO (pull-quote) -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>{de ? 'Der Himmel ist nicht mehr ' : 'The sky is no longer '}<span class="hl">{de ? 'Kulisse' : 'backdrop'}</span>{de ? '. Er ist der Gegner.' : '. It is the enemy.'}</blockquote>
+    <cite>Storm Breaker · Alpha 4.2.0</cite>
+  </section>
+
+  <!-- VERSUS: Sturm vs Schutz (full-bleed dual pane) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>{de ? '⚠ Die Gefahr' : '⚠ The Hazard'}</h3>
+        <ul>
+          <li>{de ? 'Dynamischer Regen senkt Sicht und Kontrolle.' : 'Dynamic rain lowers visibility and control.'}</li>
+          <li>{de ? 'Turbulenzen drücken die Flugstabilität nach unten.' : 'Turbulence pushes flight stability downward.'}</li>
+          <li>{de ? 'VTOL-Manöver werden im Sturm zur Zitterpartie.' : 'VTOL maneuvers become a nail-biter in the storm.'}</li>
+          <li>{de ? 'Strahlung baut sich auf — ungeschützt tödlich.' : 'Radiation builds up — deadly if unprotected.'}</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side b">
+        <h3>{de ? '★ Das Gegenmittel' : '★ The Antidote'}</h3>
+        <ul>
+          <li>{de ? 'CureLife DeconPen Xtra als Notfall-Injektor.' : 'CureLife DeconPen Xtra as an emergency injector.'}</li>
+          <li>{de ? 'Injiziert Canoiodide gegen die Strahlung.' : 'Injects Canoiodide against the radiation.'}</li>
+          <li>{de ? 'Verabreicht zusätzlich Hemozal als Wirkstoff.' : 'Also administers Hemozal as an active agent.'}</li>
+          <li>{de ? 'Wer rechtzeitig sticht, überlebt den Aufbau.' : 'Inject in time and you survive the buildup.'}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FRAMED SPLIT (the one allowed card section) — DeconPen detail -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/trailer-4-2-0.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">{de ? '04 · Das Antidot' : '04 · The Antidote'}</div>
+        <h3>CureLife DeconPen Xtra</h3>
+        <p>{de ? 'Gegen die neue Strahlungs-Gefahr gibt es genau eine Antwort: den ' : 'There is exactly one answer to the new radiation hazard: the '}<b>CureLife DeconPen Xtra</b>{de ? '. Der Injektor verabreicht ' : '. The injector delivers '}<b>Canoiodide</b>{de ? ' und ' : ' and '}<b>Hemozal</b>{de ? ' direkt in den Blutkreislauf und kauft dir Zeit gegen die aufsteigende Dosis.' : ' straight into the bloodstream and buys you time against the rising dose.'}</p>
+        <p>{de ? 'Strahlung ist tückisch, weil sie sich ' : 'Radiation is insidious because it '}<b>{de ? 'still über die Zeit aufbaut' : 'builds up silently over time'}</b>{de ? ' — wer den DeconPen zu spät zieht, hat schon verloren. Im Sturm-Loadout gehört er ab 4.2.0 zur Pflichtausrüstung.' : ' — pull the DeconPen too late and you have already lost. As of 4.2.0 it is mandatory gear in any storm loadout.'}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED CLOSING BAND (radiation) -->
+  <section class="band band--center">
+    <div class="bbg" data-par="0.13" style="background-image:url('/assets/t-storm-8.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? '05 · Die unsichtbare Gefahr' : '05 · The Invisible Hazard'}</div>
+      <div class="big outline">{de ? 'STRAHLUNG.' : 'RADIATION.'}</div>
+      <p>{de ? 'Brandneu in 4.2.0 und anders als alles zuvor: Strahlung ist eine Umweltgefahr, die sich mit der Zeit aufbaut und ohne Schutz ' : 'Brand-new in 4.2.0 and unlike anything before: radiation is an environmental hazard that builds up over time and ends '}<b style="color:var(--accent-2)">{de ? 'tödlich' : 'deadly'}</b>{de ? ' endet. Sie zwingt zur Vorsorge — denn wenn der Zähler oben ist, hilft kein Rückzug mehr.' : ' without protection. It forces you to prepare — because once the counter is maxed, retreat no longer helps.'}</p>
+    </div>
+  </section>
+
+  <!-- MEDIA (mixed full-bleed gallery, no video embed) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">06</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-storm-1.jpg"><img src="/assets/t-storm-1.jpg" alt={de ? 'Storm Breaker — Sturm über dem Standort' : 'Storm Breaker — storm over the location'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Sturm über dem Standort' : 'Storm over the location'}</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-storm-2.jpg"><img src="/assets/t-storm-2.jpg" alt={de ? 'Dynamisches Wetter — Sturmsystem aus dem Orbit' : 'Dynamic weather — storm system from orbit'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Dynamischer Regen' : 'Dynamic rain'}</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-storm-3.jpg"><img src="/assets/t-storm-3.jpg" alt={de ? 'Sturm mit Blitz und Regen — 4.2.0 Schlüsselbild' : 'Storm with lightning and rain — 4.2.0 key art'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Im Auge des Sturms' : 'In the eye of the storm'}</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/trailer-4-2-0.jpg"><img src="/assets/trailer-4-2-0.jpg" alt="Alpha 4.2.0 Storm Breaker" loading="lazy"><span class="zoomic">⤢</span><figcaption>Alpha 4.2.0 · Storm Breaker</figcaption></figure>
+      </div>
+      <p class="src reveal"><Fragment set:html={de ? 'Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · ' : 'Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · '} /><a href={de ? '/de/patches/sc-4-2-0.html' : '/patches/sc-4-2-0.html'}>{de ? 'Zur Patch-Übersicht 4.2.0 ↗' : 'To the 4.2.0 patch overview ↗'}</a></p>
+    </div>
+  </section>
+
+  {/* Den Onepager gibt es nur auf Deutsch (public/onepager/) — die EN-Seite
+      verlinkte ihn deshalb noch nie und soll das auch nicht anfangen. */}
+  {de && (
+  <OnepagerLink
+    href="/onepager/storm-breaker/index.html"
+    title="Storm Breaker — Visueller Guide"
+    note="Eigenständiger Onepager: Farro- & Lazarus-Karten, Wetter-Events und Loot im Überblick."
+  />
+  )}
+
+</main>
+
+<RelatedTopics topicSlug="4-2-0-storm-breaker" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label={de ? 'Schließen' : 'Close'}>✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>

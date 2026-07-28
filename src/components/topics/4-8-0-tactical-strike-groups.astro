@@ -1,0 +1,192 @@
+---
+// Themenseite „4-8-0-tactical-strike-groups" — EIN Körper für DE und EN.
+// Muster und Begründung: siehe components/topics/4-5-0-engineering.astro.
+// Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
+// Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
+import SiteNav from '../SiteNav.astro';
+import TopicFacts from '../TopicFacts.astro';
+import RelatedTopics from '../RelatedTopics.astro';
+import Attribution from '../Attribution.astro';
+import TopicSeo from '../dossier/TopicSeo.astro';
+import { localeFromPath } from '../../i18n/ui';
+
+const de = localeFromPath(Astro.url.pathname) === 'de';
+---
+<TopicSeo slug="4-8-0-tactical-strike-groups" image="/assets/t-tsg-1.jpg" />
+<style is:inline>
+
+/* Strike-Theme (4.8.0 Tactical Strike) */
+:root{--bg:#0d0a16;--bg-2:#140f24;--surface:#1a1330;--surface-2:#231a3e;--accent:#E8651E;--accent-2:#1FB8A6;--hot:#E8651E;--text:#ede9f5;--muted:#a39db5;--line:rgba(232,101,30,.22);--line-soft:rgba(237,233,245,.10);--glow:0 0 44px rgba(232,101,30,.30);--ink:#0d0a16;--maxw:1180px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f8f6ff;--bg-2:#eeecf8;--surface:#fdfdff;--surface-2:#f2f1fb;--text:#201e26;--muted:#5a546a;--accent:#963a01;--accent-2:#056359;--hot:#893400;--ink:#ffffff;--accent-media:#E8651E;--accent-2-media:#1FB8A6;--line:rgba(162,93,63,.3);--line-soft:rgba(46,44,53,.12);--glow:0 6px 22px rgba(170,87,49,.18)}
+
+
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.kx-teal{color:var(--accent-2)}
+.roleline{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.1rem}
+.rolechip{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.72rem;padding:.4rem .85rem;border:1px solid var(--line);border-radius:3px;background:var(--veil);color:var(--accent-2)}</style>
+<a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.8.0', href: '/de/patches/sc-4-8-0.html' }, { label: "Tactical Strike Groups" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.8.0', href: '/patches/sc-4-8-0.html' }, { label: "Tactical Strike Groups" }]} />
+
+
+<main id="main">
+
+  <!-- HERO (full-bleed lead) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-tsg-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href={de ? '/de/patches/sc-4-8-0.html' : '/patches/sc-4-8-0.html'}>Alpha 4.8.0 · Tactical Strike</a> &nbsp;·&nbsp; Endgame</div>
+      <h1><span class="thin">{de ? 'Der erste echte Koop-Raid' : 'The first true co-op raid'}</span>Tactical Strike Groups</h1>
+      <p class="lead">{de ? '4.8.0s Endgame: eine mehrphasige, kooperative Schlacht gegen eine Vanduul-Bedrohung — im All und am Boden. Nur eine koordinierte Schiffs-Streitmacht mit klaren Rollen kommt durch.' : '4.8.0\'s endgame: a multi-phase, cooperative battle against a Vanduul threat — in space and on the ground. Only a coordinated ship force with clear roles makes it through.'}</p>
+      <div class="tags"><span class="tag hot">{de ? 'Koop-Raid' : 'Co-op Raid'}</span><span class="tag">{de ? 'PvE-Endgame' : 'PvE Endgame'}</span><span class="tag">Vanduul Mauler</span><span class="tag">Nyx</span><span class="tag">{de ? '7+ Spieler' : '7+ Players'}</span></div>
+      <div class="hero__play" data-lb="yt:SsOtI2dtvBc"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>TACTICAL STRIKE GROUPS</span><span class="dot">◆</span><span>VANDUUL MAULER</span><span class="dot">◆</span><span>QV EXTRACTION</span><span class="dot">◆</span><span>NYX</span><span class="dot">◆</span><span>FIGHTER · BOMBER · CAPITAL</span><span class="dot">◆</span><span>PVE-ENDGAME</span><span class="dot">◆</span>
+      <span>TACTICAL STRIKE GROUPS</span><span class="dot">◆</span><span>VANDUUL MAULER</span><span class="dot">◆</span><span>QV EXTRACTION</span><span class="dot">◆</span><span>NYX</span><span class="dot">◆</span><span>FIGHTER · BOMBER · CAPITAL</span><span class="dot">◆</span><span>PVE-ENDGAME</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-8-0-tactical-strike-groups" />
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="7" data-suffix="+">0</div><div class="c">{de ? 'Spieler · empfohlene Truppstärke' : 'Players · recommended squad size'}</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">{de ? 'Vanduul Mauler · der späte Boss' : 'Vanduul Mauler · the late boss'}</div></div>
+    <div class="s"><div class="n">∞</div><div class="c">{de ? 'Phasen · All bis FPS-Infiltration' : 'Phases · space to FPS infiltration'}</div></div>
+    <div class="s"><div class="n">{de ? 'Koop' : 'Co-op'}</div><div class="c">{de ? 'PvE-Endgame für Orgs' : 'PvE endgame for orgs'}</div></div>
+  </div>
+
+  <!-- MANIFESTO (moved up — varies from template) -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>{de ? 'Keine Solo-Helden. Nur eine ' : 'No solo heroes. Only a '}<span class="hl">{de ? 'koordinierte Streitmacht' : 'coordinated force'}</span>{de ? ' kommt durch.' : ' makes it through.'}</blockquote>
+    <cite>Tactical Strike Groups · Nyx</cite>
+  </section>
+
+  <!-- OVERVIEW — full-bleed band (image as background, design on top) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-tsg-2.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? '01 · Überblick' : '01 · Overview'}</div>
+      <div class="big outline">{de ? 'EINE FLOTTE.' : 'ONE FLEET.'}</div>
+      <p>{de ? 'Mit Alpha 4.8 ' : 'With Alpha 4.8 '}<b style="color:var(--accent-2)">Tactical Strike</b>{de ? ' kommt Star Citizens erste dedizierte kooperative Schiffskampf-Operation — eine mehrphasige Missionskette mit echter Rollen-Spezialisierung. Kein Glück, sondern Absprache entscheidet, wer den Kern erreicht.' : ' comes Star Citizen\'s first dedicated cooperative ship-combat operation — a multi-phase mission chain with real role specialization. Not luck, but coordination decides who reaches the core.'}</p>
+    </div>
+  </section>
+
+  <!-- VERSUS: Zwei Schauplätze (full-bleed, two sides) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>{de ? '✦ Im All' : '✦ In space'}</h3>
+        <ul>
+          <li>{de ? 'Offener Schiffskampf gegen Vanduul rund um die Station.' : 'Open ship combat against Vanduul around the station.'}</li>
+          <li>{de ? 'Power-Relais beschädigen, um die Anlage zu öffnen.' : 'Damage the power relays to open the facility.'}</li>
+          <li>{de ? 'Tunnelflug ins Innere — eng, präzise, gnadenlos.' : 'Tunnel flight into the interior — tight, precise, merciless.'}</li>
+          <li>{de ? 'Kühler zerstören und den Kern freilegen.' : 'Destroy the coolers and expose the core.'}</li>
+        </ul>
+      </div>
+      <div class="vs">&amp;</div>
+      <div class="side b">
+        <h3>{de ? '★ Am Boden' : '★ On the ground'}</h3>
+        <ul>
+          <li>{de ? 'FPS-Infiltration der QV Extraction Station.' : 'FPS infiltration of the QV Extraction Station.'}</li>
+          <li>{de ? 'Das verschollene Aufklärungsteam bergen.' : 'Recover the missing reconnaissance team.'}</li>
+          <li>{de ? 'Piloten-Extraktion unter Feindfeuer.' : 'Pilot extraction under enemy fire.'}</li>
+          <li>{de ? 'Standhalten gegen einen späten Vanduul-Mauler.' : 'Hold the line against a late Vanduul Mauler.'}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: Die Phasen (process, full-bleed) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>{de ? 'Die Phasen der Operation' : 'The phases of the operation'}</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/t-tsg-3.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-tsg-4.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-tsg-5.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-tsg-6.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-tsg-7.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>{de ? 'Schiffskampf außen' : 'Outer ship combat'}</h3><p>{de ? 'Die Strike Group erreicht die QV Extraction Station im Nyx-System und stellt sich der Vanduul-Bedrohung im offenen Raum — Jäger sichern den Himmel, Bomber und Support ziehen nach.' : 'The Strike Group reaches the QV Extraction Station in the Nyx system and faces the Vanduul threat in open space — fighters secure the sky, bombers and support move in behind.'}</p></div>
+      <div class="sstep"><div class="sn">02</div><h3><Fragment set:html={de ? 'Power-Relais &amp; Tunnelflug' : 'Power relays &amp; tunnel flight'} /></h3><p>{de ? 'Gezielter Schaden an den Power-Relais öffnet die Anlage. Danach folgt der Tunnelflug ins Innere des Asteroiden — enge Korridore, in denen jede Rolle zählt.' : 'Targeted damage to the power relays opens the facility. Then comes the tunnel flight into the interior of the asteroid — tight corridors where every role counts.'}</p></div>
+      <div class="sstep"><div class="sn">03</div><h3><Fragment set:html={de ? 'Kühler &amp; Kern' : 'Coolers &amp; core'} /></h3><p>{de ? 'Die Kühler der Station müssen zerstört werden, um den Kern freizulegen — der Übergang vom Schiffskampf zur Infiltration zu Fuß.' : 'The station\'s coolers must be destroyed to expose the core — the transition from ship combat to infiltration on foot.'}</p></div>
+      <div class="sstep"><div class="sn">04</div><h3><Fragment set:html={de ? 'FPS-Infiltration &amp; Extraktion' : 'FPS infiltration &amp; extraction'} /></h3><p>{de ? 'Zu Fuß wird die Station durchkämmt, das verschollene Aufklärungsteam gesucht und die Piloten-Extraktion eingeleitet — unter wachsendem Druck.' : 'On foot, the station is swept, the missing reconnaissance team is searched for, and the pilot extraction is initiated — under growing pressure.'}</p></div>
+      <div class="sstep"><div class="sn">05</div><h3>{de ? 'Der Vanduul Mauler' : 'The Vanduul Mauler'}</h3><p>{de ? 'Spät in der Operation taucht ein Vanduul-Mauler auf. Nur eine Truppe mit klaren Rollen — Fighter, Bomber, Support, Capital — hält stand und schließt den Raid ab.' : 'Late in the operation a Vanduul Mauler appears. Only a team with clear roles — Fighter, Bomber, Support, Capital — can hold and complete the raid.'}</p></div>
+    </div>
+  </div>
+
+  <!-- ROLLEN — full-bleed band (image as background) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/img-vanduul.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? '03 · Zusammensetzung' : '03 · Composition'}</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">{de ? 'ROLLEN ZÄHLEN' : 'ROLES MATTER'}</div>
+      <p>{de ? 'Ausgelegt für Gruppen ab ' : 'Designed for groups of '}<b style="color:var(--accent-2)">{de ? 'sieben Spielern' : 'seven players'}</b>{de ? ', die Jäger, Bomber, Support-Schiffe und sogar Capital Ships mischen. Wer die Rollen vernachlässigt, kommt nicht durch alle Phasen.' : ' or more, mixing fighters, bombers, support ships and even Capital Ships. Neglect the roles and you won\'t make it through all the phases.'}</p>
+      <div class="roleline" style="justify-content:flex-end">
+        <span class="rolechip">Fighter</span><span class="rolechip">Bomber</span><span class="rolechip">Support</span><span class="rolechip">Capital</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- BELOHNUNGEN — the single framed/split section -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-tsg-9.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">{de ? '04 · Beute' : '04 · Loot'}</div>
+        <h3>{de ? 'Das neue PvE-Endgame für Orgs' : 'The new PvE endgame for orgs'}</h3>
+        <p>{de ? 'Tactical Strike Groups ist das neue ' : 'Tactical Strike Groups is the new '}<b>{de ? 'PvE-Endgame für organisierte Orgs' : 'PvE endgame for organized orgs'}</b>{de ? ' — eine Operation, die sich nur mit Disziplin und Rollenverteilung bewältigen lässt.' : ' — an operation that can only be mastered with discipline and role distribution.'}</p>
+        <p>{de ? 'Wer durchkommt, wird mit einzigartigen Belohnungen entlohnt: einem exklusiven ' : 'Those who make it through are paid off with unique rewards: an exclusive '}<b>{de ? 'Armbrust-Blueprint' : 'Arbalest blueprint'}</b>{de ? ' und hochwertigem Loot, das diese Operation von allem bisher Dagewesenen abhebt.' : ' and high-value loot that sets this operation apart from anything before it.'}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCHAUPLATZ — full-bleed band (Nyx) -->
+  <section class="band">
+    <div class="bbg" data-par="0.13" style="background-image:url('/assets/t-tsg-8.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? '05 · Schauplatz' : '05 · Setting'}</div>
+      <div class="big">QV EXTRACTION</div>
+      <p>{de ? 'Schauplatz sind die ' : 'The setting is the '}<b style="color:var(--accent-2)">QV Extraction Stations</b>{de ? ' — große Asteroiden-Anlagen tief im ' : ' — large asteroid facilities deep in the '}<b style="color:var(--accent-2)">{de ? 'Nyx-System' : 'Nyx system'}</b>{de ? ', wo ein verschollenes Aufklärungsteam gesucht wird. Mit Alpha 4.8 Tactical Strike startete die Operation samt vollem Wipe.' : ', where a missing reconnaissance team is searched for. With Alpha 4.8 Tactical Strike, the operation launched alongside a full wipe.'}</p>
+    </div>
+  </section>
+
+  <!-- MEDIA (mixed gallery + trailer — full-bleed close) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">06</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-tsg-1.jpg"><img src="/assets/t-tsg-1.jpg" alt={de ? 'Tactical Strike Groups — Schiffskampf an der QV Extraction Station' : 'Tactical Strike Groups — ship combat at the QV Extraction Station'} loading="lazy"><span class="zoomic">⤢</span><figcaption>QV Extraction Station · Nyx</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-tsg-2.jpg"><img src="/assets/t-tsg-2.jpg" alt={de ? 'Strike Group im Anflug' : 'Strike Group on approach'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Strike Group · Anflug' : 'Strike Group · approach'}</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-vanduul.jpg"><img src="/assets/img-vanduul.jpg" alt={de ? 'Vanduul-Bedrohung' : 'Vanduul threat'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Vanduul-Bedrohung' : 'Vanduul threat'}</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/vid-isc48.jpg"><img src="/assets/vid-isc48.jpg" alt="Inside Star Citizen 4.8" loading="lazy"><span class="zoomic">⤢</span><figcaption>Inside Star Citizen 4.8</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/trailer-4-8-0.jpg"><img src="/assets/trailer-4-8-0.jpg" alt={de ? 'Alpha 4.8 Tactical Strike — Trailer' : 'Alpha 4.8 Tactical Strike — trailer'} loading="lazy"><span class="zoomic">⤢</span><figcaption>Tactical Strike · Trailer</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="SsOtI2dtvBc" style="background-image:url('/assets/trailer-4-8-0.jpg')"><span class="vlbl">Alpha 4.8 Tactical Strike — Trailer</span><button class="play" aria-label={de ? 'Trailer abspielen' : 'Play trailer'}>▶</button></div>
+      <p class="src reveal"><Fragment set:html={de ? 'Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · ' : 'Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · '} /><a href="https://www.youtube.com/watch?v=SsOtI2dtvBc" target="_blank" rel="noopener">{de ? 'Auf YouTube ansehen ↗' : 'Watch on YouTube ↗'}</a></p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-8-0-tactical-strike-groups" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label={de ? 'Schließen' : 'Close'}>✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>

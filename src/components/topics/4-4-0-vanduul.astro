@@ -1,0 +1,183 @@
+---
+// Themenseite „4-4-0-vanduul" — EIN Körper für DE und EN.
+// Muster und Begründung: siehe components/topics/4-5-0-engineering.astro.
+// Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
+// Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
+import SiteNav from '../SiteNav.astro';
+import TopicFacts from '../TopicFacts.astro';
+import RelatedTopics from '../RelatedTopics.astro';
+import Attribution from '../Attribution.astro';
+import TopicSeo from '../dossier/TopicSeo.astro';
+import { localeFromPath } from '../../i18n/ui';
+
+const de = localeFromPath(Astro.url.pathname) === 'de';
+---
+<TopicSeo slug="4-4-0-vanduul" image="/assets/t-vanduul-3.jpg" />
+<style is:inline>
+
+:root{--bg:#0c1020;--bg-2:#121a30;--surface:#16203a;--surface-2:#1d2949;--accent:#7fb2d9;--accent-2:#d4af37;--hot:#c0271f;--text:#e6edfb;--muted:#93a4c4;--line:rgba(127,178,217,.22);--line-soft:rgba(230,237,251,.10);--glow:0 0 44px rgba(127,178,217,.30);--ink:#0c1020;--maxw:1180px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f5f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1a1f29;--muted:#4e586c;--accent:#246089;--accent-2:#685301;--hot:#9e0004;--ink:#ffffff;--accent-media:#7fb2d9;--accent-2-media:#d4af37;--line:rgba(61,119,162,.3);--line-soft:rgba(41,46,56,.12);--glow:0 6px 22px rgba(61,119,162,.18)}
+
+
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.lede-kx{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}</style>
+<a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.4.0', href: '/de/patches/sc-4-4-0.html' }, { label: "Vanduul" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.4.0', href: '/patches/sc-4-4-0.html' }, { label: "Vanduul" }]} />
+
+
+<main id="main">
+
+  <!-- HERO (full-bleed, kinetic) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-vanduul-3.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href={de ? '/de/patches/sc-4-4-0.html' : '/patches/sc-4-4-0.html'}>Alpha 4.4.0 · Welcome to Nyx</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Gegner' : ' &nbsp;·&nbsp; Enemy'} /></div>
+      <h1><span class="thin">{de ? 'Die erste Alien-Bedrohung im PU' : 'The first alien threat in the PU'}</span>Vanduul</h1>
+      <p class="lead">{de ? 'Aggressive Klingen-Aliens, die mit 4.4.0 erstmals als KI-Gegner ins persistente Universum kommen — Stinger, Glaive, Scythe und Blade patrouillieren Nyx und greifen ohne Vorwarnung an.' : 'Aggressive blade aliens that arrive with 4.4.0 as AI enemies in the persistent universe for the first time — Stinger, Glaive, Scythe and Blade patrol Nyx and attack without warning.'}</p>
+      <div class="tags"><span class="tag hot">Alien</span><span class="tag">{de ? 'KI-Gegner' : 'AI enemy'}</span><span class="tag">Nyx</span><span class="tag">Operation Sworn Enemies</span><span class="tag hot">{de ? 'Feindlich' : 'Hostile'}</span></div>
+      <div class="hero__play" data-lb="yt:ilDmGyHLQNg"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>VANDUUL</span><span class="dot">◆</span><span>SCYTHE</span><span class="dot">◆</span><span>GLAIVE</span><span class="dot">◆</span><span>BLADE</span><span class="dot">◆</span><span>STINGER</span><span class="dot">◆</span><span>NYX</span><span class="dot">◆</span><span>OPERATION SWORN ENEMIES</span><span class="dot">◆</span>
+      <span>VANDUUL</span><span class="dot">◆</span><span>SCYTHE</span><span class="dot">◆</span><span>GLAIVE</span><span class="dot">◆</span><span>BLADE</span><span class="dot">◆</span><span>STINGER</span><span class="dot">◆</span><span>NYX</span><span class="dot">◆</span><span>OPERATION SWORN ENEMIES</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AT A GLANCE (data register, uniform) -->
+  <TopicFacts topicSlug="4-4-0-vanduul" />
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="4">0</div><div class="c">{de ? 'KI-Schiffstypen · Stinger · Glaive · Scythe · Blade' : 'AI ship types · Stinger · Glaive · Scythe · Blade'}</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">{de ? 'Neues System · Nyx' : 'New system · Nyx'}</div></div>
+    <div class="s"><div class="n count" data-to="0">0</div><div class="c">{de ? 'Vorwarnungen vor dem Angriff' : 'Warnings before the attack'}</div></div>
+    <div class="s"><div class="n">{de ? 'ERZFEIND' : 'ARCHENEMY'}</div><div class="c">{de ? 'Premiere im persistenten Universum' : 'Debut in the persistent universe'}</div></div>
+  </div>
+
+  <!-- FULL-BLEED BAND #1 (parallax, big overlaid text) -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/img-vanduul.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? 'Ein Erzfeind kehrt zurück' : 'An archenemy returns'}</div>
+      <div class="big outline">{de ? 'KLINGEN AM HIMMEL' : 'BLADES IN THE SKY'}</div>
+      <p>{de ? 'Die Vanduul sind eine aggressive Alien-Spezies mit klingenförmigen Schiffen — ein jahrzehntealter Erzfeind der Menschheit aus dem Vanduul-Krieg. Mit Alpha 4.4.0 betreten sie zum ersten Mal das persistente Universum.' : 'The Vanduul are an aggressive alien species with blade-shaped ships — a decades-old archenemy of humanity from the Vanduul War. With Alpha 4.4.0 they enter the persistent universe for the first time.'}</p>
+    </div>
+  </section>
+
+  <!-- OVERVIEW as full-bleed BAND #2 (no card) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-vanduul-4.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? '01 · Erstmals im PU' : '01 · First time in the PU'}</div>
+      <div class="big" style="font-size:clamp(2.4rem,8vw,6rem)">{de ? 'KI-FRAKTION' : 'AI FACTION'}</div>
+      <p>{de ? 'Was bislang Hintergrundlore war, wird mit 4.4.0 zur akuten Gefahr: Die Vanduul erscheinen erstmals als eigenständige ' : 'What was background lore until now becomes an acute danger with 4.4.0: the Vanduul appear for the first time as a standalone '}<b style="color:var(--accent-2)">{de ? 'KI-Gegner-Fraktion' : 'AI enemy faction'}</b>{de ? ' im persistenten Universum. Ihre Piloten denken nicht ans Verhandeln — sie jagen.' : ' in the persistent universe. Their pilots have no thought of negotiating — they hunt.'}</p>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: Operation Sworn Enemies -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">02</span><h2>Operation Sworn Enemies</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/trailer-4-4-0.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/cz-ruin.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-vanduul-7.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-vanduul-2.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>{de ? 'Auftrag in Nyx' : 'Mission in Nyx'}</h3><p>{de ? 'Die Untersuchungs-Mission Operation Sworn Enemies führt dich ins neu eröffnete Nyx-System — dorthin, wo die Vanduul patrouillieren.' : 'The investigation mission Operation Sworn Enemies takes you into the newly opened Nyx system — to where the Vanduul patrol.'}</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>{de ? 'Verlassene Stationen' : 'Abandoned stations'}</h3><p>{de ? 'Die Spur führt in verlassene Stationen, in denen Hinweise auf gefährliche Vanduul-Technologie zurückgeblieben sind.' : 'The trail leads to abandoned stations where clues to dangerous Vanduul technology have been left behind.'}</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>{de ? 'Der Technologie auf der Spur' : 'On the trail of the technology'}</h3><p>{de ? 'Du sammelst und dokumentierst, was die Vanduul hinterlassen haben — und kommst dem Wesen des Erzfeinds Stück für Stück näher.' : 'You collect and document what the Vanduul left behind — and get closer to the nature of the archenemy piece by piece.'}</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>{de ? 'Ohne Vorwarnung' : 'Without warning'}</h3><p>{de ? 'Doch die Vanduul dulden keine Eindringlinge: Ihre KI-Piloten greifen ohne Vorwarnung an — der Auftrag wird jederzeit zum Gefecht.' : 'But the Vanduul tolerate no intruders: their AI pilots attack without warning — the mission can turn into a firefight at any moment.'}</p></div>
+    </div>
+  </div>
+
+  <!-- VERSUS: Humanity vs Vanduul (full-bleed dual pane) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⚠ Vanduul</h3>
+        <ul>
+          <li>{de ? 'Aggressive Alien-Spezies, jahrzehntelanger Erzfeind.' : 'Aggressive alien species, decades-long archenemy.'}</li>
+          <li>{de ? 'Klingenförmige Schiffe, von KI-Piloten geflogen.' : 'Blade-shaped ships, flown by AI pilots.'}</li>
+          <li>{de ? 'Patrouillieren Nyx und greifen ohne Vorwarnung an.' : 'Patrol Nyx and attack without warning.'}</li>
+          <li>{de ? 'Vier KI-Schiffstypen über Nyx: Stinger, Glaive, Scythe, Blade.' : 'Four AI ship types over Nyx: Stinger, Glaive, Scythe, Blade.'}</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side b">
+        <h3>{de ? '★ Menschheit' : '★ Humanity'}</h3>
+        <ul>
+          <li>{de ? 'Spieler stoßen in Nyx erstmals direkt auf die Aliens.' : 'Players encounter the aliens directly for the first time in Nyx.'}</li>
+          <li>{de ? 'Operation Sworn Enemies untersucht ihre Technologie.' : 'Operation Sworn Enemies investigates their technology.'}</li>
+          <li>{de ? 'Jeder Sprung nach Nyx kann ein Hinterhalt werden.' : 'Every jump to Nyx can become an ambush.'}</li>
+          <li>{de ? 'Der Vanduul-Krieg findet jetzt im PU statt.' : 'The Vanduul War now takes place in the PU.'}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPLIT: The four ship types (one framed/split section) -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-vanduul-6.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">{de ? '03 · Die Klingenflotte' : '03 · The blade fleet'}</div>
+        <h3>Stinger · Glaive · Scythe · Blade</h3>
+        <p>{de ? 'Die KI-Piloten der Vanduul fliegen ' : 'The Vanduul AI pilots fly '}<b>{de ? 'vier Schiffstypen' : 'four ship types'}</b>{de ? '. Jeder trägt die unverkennbare Klingen-Silhouette der Spezies — und jeder taucht in den Patrouillen über Nyx auf.' : '. Each carries the unmistakable blade silhouette of the species — and each shows up in the patrols over Nyx.'}</p>
+        <p>{de ? 'Vom leichten ' : 'From the light '}<b>Stinger</b>{de ? ' über ' : ' through '}<b>Glaive</b>{de ? ' und ' : ' and '}<b>Scythe</b>{de ? ' bis zur ' : ' to the '}<b>Blade</b>{de ? ': Wer in ihr Revier eindringt, bekommt es mit genau dieser Staffel zu tun.' : ': whoever intrudes into their territory has to deal with exactly this squadron.'}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED BAND #3: NYX -->
+  <section class="band">
+    <div class="bbg" data-par="0.13" style="background-image:url('/assets/img-nyx.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? '04 · Ihr Revier' : '04 · Their territory'}</div>
+      <div class="big outline" style="font-size:clamp(2.6rem,9vw,7rem)">NYX</div>
+      <p>{de ? 'Das neu erschlossene ' : 'The newly opened '}<b style="color:var(--accent-2)">{de ? 'Nyx-System' : 'Nyx system'}</b>{de ? ' ist ihr Jagdgrund. Hier patrouillieren die Vanduul — und greifen jeden Spieler ohne Vorwarnung an, der ihren Kurs kreuzt.' : ' is their hunting ground. Here the Vanduul patrol — and attack without warning any player who crosses their path.'}</p>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>{de ? 'Sie verhandeln nicht. Sie ' : 'They do not negotiate. They '}<span class="hl">{de ? 'jagen' : 'hunt'}</span>{de ? ' — und Nyx gehört jetzt ihnen.' : ' — and Nyx belongs to them now.'}</blockquote>
+    <cite>Vanduul · Operation Sworn Enemies</cite>
+  </section>
+
+  <!-- MEDIA (mixed gallery + trailer) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">05</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-vanduul-3.jpg"><img src="/assets/t-vanduul-3.jpg" alt={de ? 'Vanduul-Krieger im Nahkampf' : 'Vanduul warrior in close combat'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Klingen im Gefecht' : 'Blades in battle'}</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-vanduul-5.jpg"><img src="/assets/t-vanduul-5.jpg" alt={de ? 'Vanduul — Kopfstudie' : 'Vanduul — head study'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Der Erzfeind' : 'The archenemy'}</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-vanduul-4.jpg"><img src="/assets/t-vanduul-4.jpg" alt={de ? 'Vanduul bedroht einen Offizier' : 'Vanduul threatening an officer'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Auge in Auge' : 'Eye to eye'}</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-vanduul-1.jpg"><img src="/assets/t-vanduul-1.jpg" alt={de ? 'Vanduul-Jäger über Nyx' : 'Vanduul fighter over Nyx'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Jäger über Nyx' : 'Hunter over Nyx'}</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="ilDmGyHLQNg" style="background-image:url('/assets/trailer-4-4-0.jpg')"><span class="vlbl">Welcome to Nyx — Trailer</span><button class="play" aria-label={de ? 'Trailer abspielen' : 'Play trailer'}>▶</button></div>
+      <p class="src reveal"><Fragment set:html={de ? 'Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · ' : 'Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · '} /><a href="https://www.youtube.com/watch?v=ilDmGyHLQNg" target="_blank" rel="noopener">{de ? 'Auf YouTube ansehen ↗' : 'Watch on YouTube ↗'}</a></p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-4-0-vanduul" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label={de ? 'Schließen' : 'Close'}>✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>

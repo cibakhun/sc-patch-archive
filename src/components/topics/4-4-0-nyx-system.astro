@@ -1,0 +1,179 @@
+---
+// Themenseite „4-4-0-nyx-system" — EIN Körper für DE und EN.
+// Muster und Begründung: siehe components/topics/4-5-0-engineering.astro.
+// Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
+// Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
+import SiteNav from '../SiteNav.astro';
+import TopicFacts from '../TopicFacts.astro';
+import RelatedTopics from '../RelatedTopics.astro';
+import Attribution from '../Attribution.astro';
+import TopicSeo from '../dossier/TopicSeo.astro';
+import { localeFromPath } from '../../i18n/ui';
+
+const de = localeFromPath(Astro.url.pathname) === 'de';
+---
+<TopicSeo slug="4-4-0-nyx-system" image="/assets/t-nyx-1.jpg" />
+<style is:inline>
+
+/* Nyx-Theme (Alpha 4.4.0) — dunkel, nebelverhangen, eisblau */
+:root{
+  --bg:#0c1020;--bg-2:#121a30;--surface:#16203a;--surface-2:#1d2949;
+  --accent:#7fb2d9;--accent-2:#d4af37;--hot:#c0271f;
+  --text:#e6edfb;--muted:#93a4c4;
+  --line:rgba(127,178,217,.22);--line-soft:rgba(230,237,251,.10);
+  --glow:0 0 44px rgba(127,178,217,.30);--ink:#0c1020;
+  --maxw:1180px;
+}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f5f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1a1f29;--muted:#4e586c;--accent:#246089;--accent-2:#685301;--hot:#9e0004;--ink:#ffffff;--accent-media:#7fb2d9;--accent-2-media:#d4af37;--line:rgba(61,119,162,.3);--line-soft:rgba(41,46,56,.12);--glow:0 6px 22px rgba(61,119,162,.18)}
+
+
+/* page-local accents */
+.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.lede-kx{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}</style>
+<a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.4.0', href: '/de/patches/sc-4-4-0.html' }, { label: "Nyx-System" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.4.0', href: '/patches/sc-4-4-0.html' }, { label: "Nyx System" }]} />
+
+
+<main id="main">
+
+  <!-- HERO (full-bleed lead media) -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-nyx-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href={de ? '/de/patches/sc-4-4-0.html' : '/patches/sc-4-4-0.html'}>Alpha 4.4.0 · Welcome to Nyx</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Sternsystem' : ' &nbsp;·&nbsp; Star System'} /></div>
+      <h1><span class="thin">{de ? 'Das dritte Sternsystem' : 'The third star system'}</span>Nyx</h1>
+      <p class="lead">{de ? 'Dunkel, asteroidendicht, nebelverhangen: mit 4.4.0 wird Nyx das dritte voll simulierte Sternsystem — Heimat des Glaciem Ring und der in den Fels gebauten Stadt Levski.' : 'Dark, asteroid-dense, fog-shrouded: with 4.4.0, Nyx becomes the third fully simulated star system — home to the Glaciem Ring and the city of Levski carved into the rock.'}</p>
+      <div class="tags"><span class="tag">{de ? 'Sternsystem' : 'Star system'}</span><span class="tag">Glaciem Ring</span><span class="tag">Levski</span><span class="tag">Delamar</span><span class="tag">Peoples Alliance</span></div>
+      <div class="hero__play" data-lb="yt:ilDmGyHLQNg"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>NYX</span><span class="dot">◆</span><span>GLACIEM RING</span><span class="dot">◆</span><span>LEVSKI</span><span class="dot">◆</span><span>DELAMAR</span><span class="dot">◆</span><span>PEOPLES ALLIANCE</span><span class="dot">◆</span><span>{de ? 'DRITTES SYSTEM' : 'THIRD SYSTEM'}</span><span class="dot">◆</span>
+      <span>NYX</span><span class="dot">◆</span><span>GLACIEM RING</span><span class="dot">◆</span><span>LEVSKI</span><span class="dot">◆</span><span>DELAMAR</span><span class="dot">◆</span><span>PEOPLES ALLIANCE</span><span class="dot">◆</span><span>{de ? 'DRITTES SYSTEM' : 'THIRD SYSTEM'}</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-4-0-nyx-system" />
+
+  <!-- FULL-BLEED BAND — the arrival statement (parallax) -->
+  <section class="band band--center">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/t-nyx-3.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? 'Nach Stanton. Nach Pyro.' : 'After Stanton. After Pyro.'}</div>
+      <div class="big outline">{de ? 'SYSTEM DREI.' : 'SYSTEM THREE.'}</div>
+      <p>{de ? 'Mit Alpha 4.4.0 öffnet sich Nyx als drittes voll simuliertes Sternsystem. Über Jump Points verbunden, betritt man eine gesetzlose, nebelverhangene Welt — die Bühne für die ersten Vanduul-KI-Gegner und die IAE 2955.' : 'With Alpha 4.4.0, Nyx opens up as the third fully simulated star system. Connected via Jump Points, you enter a lawless, fog-shrouded world — the stage for the first Vanduul AI enemies and IAE 2955.'}</p>
+    </div>
+  </section>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="3">0</div><div class="c"><Fragment set:html={de ? 'Voll simuliertes System · nach Stanton &amp; Pyro' : 'Fully simulated system · after Stanton &amp; Pyro'} /></div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">{de ? 'Felsenstadt · Levski in Delamar' : 'Rock city · Levski in Delamar'}</div></div>
+    <div class="s"><div class="n">VANDUUL</div><div class="c">{de ? 'Erste KI-Gegner · IAE 2955' : 'First AI enemies · IAE 2955'}</div></div>
+  </div>
+
+  <!-- VERSUS: Stanton/Pyro vs Nyx — the two faces (full-bleed dual pane) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>⚠ Glaciem Ring</h3>
+        <ul>
+          <li>{de ? 'Dichter, nebelverhangener Asteroidengürtel quer durchs System.' : 'Dense, fog-shrouded asteroid belt cutting right across the system.'}</li>
+          <li>{de ? 'Enge Sicht, kaum Orientierung zwischen den Felsen.' : 'Tight visibility, barely any orientation between the rocks.'}</li>
+          <li>{de ? 'Jagdrevier der ersten Vanduul-KI-Gegner.' : 'Hunting ground of the first Vanduul AI enemies.'}</li>
+        </ul>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side b">
+        <h3>✦ Levski · Delamar</h3>
+        <ul>
+          <li>{de ? 'Landezone, in den Asteroiden Delamar getrieben — Stadt im Fels.' : 'Landing zone driven into the asteroid Delamar — a city in the rock.'}</li>
+          <li>{de ? 'Sitz der Fraktion Peoples Alliance.' : 'Seat of the Peoples Alliance faction.'}</li>
+          <li>{de ? 'Einziger fester Halt im sonst gesetzlosen Nyx.' : 'The only fixed anchor in an otherwise lawless Nyx.'}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCROLLYTELLING: Ankunft in Nyx — der Weg ins System (full-bleed process) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>{de ? 'Ankunft in Nyx' : 'Arrival in Nyx'}</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/trailer-4-4-0.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-nyx-5.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-nyx-2.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/img-levski.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>{de ? 'Durch den Jump Point' : 'Through the Jump Point'}</h3><p>{de ? 'Nyx ist über Jump Points an das bekannte Verse angebunden. Mit Alpha 4.4.0 wird es als drittes voll simuliertes Sternsystem nach Stanton und Pyro erreichbar.' : 'Nyx is tied to the known Verse via Jump Points. With Alpha 4.4.0 it becomes reachable as the third fully simulated star system after Stanton and Pyro.'}</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>{de ? 'In den Glaciem Ring' : 'Into the Glaciem Ring'}</h3><p>{de ? 'Jenseits des Sprungs liegt der Glaciem Ring — ein dichter, dunkler, nebelverhangener Asteroidengürtel, der dem System sein raues, kaltes Gesicht gibt.' : 'Beyond the jump lies the Glaciem Ring — a dense, dark, fog-shrouded asteroid belt that gives the system its rough, cold face.'}</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>{de ? 'Gesetzloses Terrain' : 'Lawless terrain'}</h3><p>{de ? 'Nyx ist die düstere, gesetzlose Kulisse, in der die ersten Vanduul-KI-Gegner auftauchen — und in der zur IAE 2955 das Geschehen kulminiert.' : 'Nyx is the gloomy, lawless backdrop where the first Vanduul AI enemies appear — and where events culminate during IAE 2955.'}</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>{de ? 'Anflug auf Levski' : 'Approach to Levski'}</h3><p>{de ? 'Tief im System wartet Delamar: ein Asteroid, in dessen Fels die Landezone Levski gebaut wurde — verbunden mit der Fraktion Peoples Alliance.' : 'Deep in the system waits Delamar: an asteroid whose rock houses the landing zone Levski — tied to the Peoples Alliance faction.'}</p></div>
+    </div>
+  </div>
+
+  <!-- GLACIEM RING — full-bleed band (image as background, design on top) -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-nyx-4.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? '02 · Der Asteroidengürtel' : '02 · The asteroid belt'}</div>
+      <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">GLACIEM RING</div>
+      <p>{de ? 'Ein dichter, dunkler, nebelverhangener Asteroidengürtel zieht sich durch das System. Der ' : 'A dense, dark, fog-shrouded asteroid belt runs through the system. The '}<b style="color:var(--accent-2)">Glaciem Ring</b>{de ? ' prägt Nyx mehr als jeder andere Ort — kalt, eng, schwer zu durchqueren.' : ' shapes Nyx more than any other place — cold, tight, hard to cross.'}</p>
+    </div>
+  </section>
+
+  <!-- LEVSKI — the one framed/split section (50/50 media | text) -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/img-levski.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">{de ? '03 · Stadt im Fels' : '03 · City in the rock'}</div>
+        <h3>{de ? 'Levski — gebaut in Delamar' : 'Levski — built into Delamar'}</h3>
+        <p>{de ? 'Mitten im System liegt der Asteroid ' : 'In the middle of the system lies the asteroid '}<b>Delamar</b>{de ? '. In seinen Fels hinein wurde die Landezone ' : '. Driven into its rock is the landing zone '}<b>Levski</b>{de ? ' getrieben — kein orbitaler Außenposten, sondern eine Stadt im Gestein.' : ' — not an orbital outpost, but a city in the stone.'}</p>
+        <p>{de ? 'Levski ist eng mit der ' : 'Levski is tightly bound to the '}<b>Peoples Alliance</b>{de ? ' verbunden, einer Fraktion, deren Geschichte sich in den Gängen und Hallen dieses Ortes spiegelt. Ein Zufluchtsort am Rande der bekannten Welt.' : ', a faction whose history is reflected in the corridors and halls of this place. A refuge at the edge of the known world.'}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>{de ? 'Drei Systeme. ' : 'Three systems. '}<span class="hl">{de ? 'Ein neues Ende' : 'A new edge'}</span>{de ? ' der Karte.' : ' of the map.'}</blockquote>
+    <cite>Nyx · Alpha 4.4.0</cite>
+  </section>
+
+  <!-- MEDIA (mixed gallery + closing full-bleed trailer) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">04</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/img-nyx.jpg"><img src="/assets/img-nyx.jpg" alt={de ? 'Nyx-System — Übersichtskarte' : 'Nyx system — overview map'} loading="lazy"><span class="zoomic">⤢</span><figcaption>Nyx · System</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-nyx-4.jpg"><img src="/assets/t-nyx-4.jpg" alt={de ? 'Glaciem Ring mit Lichtstrahl im Nyx-Raum' : 'Glaciem Ring with a beam of light in Nyx space'} loading="lazy"><span class="zoomic">⤢</span><figcaption>Glaciem Ring</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-nyx-3.jpg"><img src="/assets/t-nyx-3.jpg" alt={de ? 'Der Nyx-Stern mit Nebel' : 'The Nyx star with nebula'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Nyx · Stern' : 'Nyx · Star'}</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-nyx-5.jpg"><img src="/assets/t-nyx-5.jpg" alt={de ? 'Der Keeger-Gürtel in Nyx' : 'The Keeger Belt in Nyx'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Keeger-Gürtel' : 'Keeger Belt'}</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-nyx-2.jpg"><img src="/assets/t-nyx-2.jpg" alt={de ? 'Levski — Landekrater im Asteroiden Delamar' : 'Levski — landing crater inside the asteroid Delamar'} loading="lazy"><span class="zoomic">⤢</span><figcaption>Levski · Delamar</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="ilDmGyHLQNg" style="background-image:url('/assets/trailer-4-4-0.jpg')"><span class="vlbl">Welcome to Nyx — Trailer</span><button class="play" aria-label={de ? 'Trailer abspielen' : 'Play trailer'}>▶</button></div>
+      <p class="src reveal"><Fragment set:html={de ? 'Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · ' : 'Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · '} /><a href="https://www.youtube.com/watch?v=ilDmGyHLQNg" target="_blank" rel="noopener">{de ? 'Auf YouTube ansehen ↗' : 'Watch on YouTube ↗'}</a></p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-4-0-nyx-system" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label={de ? 'Schließen' : 'Close'}>✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>

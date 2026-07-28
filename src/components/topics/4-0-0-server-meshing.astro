@@ -1,0 +1,175 @@
+---
+// Themenseite „4-0-0-server-meshing" — EIN Körper für DE und EN.
+// Muster und Begründung: siehe components/topics/4-5-0-engineering.astro.
+// Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
+// Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
+import SiteNav from '../SiteNav.astro';
+import TopicFacts from '../TopicFacts.astro';
+import RelatedTopics from '../RelatedTopics.astro';
+import Attribution from '../Attribution.astro';
+import TopicSeo from '../dossier/TopicSeo.astro';
+import { localeFromPath } from '../../i18n/ui';
+
+const de = localeFromPath(Astro.url.pathname) === 'de';
+---
+<TopicSeo slug="4-0-0-server-meshing" image="/assets/t-mesh-1.jpg" />
+<style is:inline>
+
+/* Pyro-Theme (geerbt von 4.0.0) */
+:root{--bg:#120f0c;--bg-2:#1a1714;--surface:#211b16;--surface-2:#2b231b;--accent:#ff5a1f;--accent-2:#d9d12a;--hot:#c0271f;--text:#f3e9df;--muted:#b6a596;--line:rgba(255,90,31,.22);--line-soft:rgba(243,233,223,.10);--glow:0 0 44px rgba(255,90,31,.32);--ink:#120f0c;--maxw:1180px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#fbf7f2;--bg-2:#f1ede9;--surface:#fefdfc;--surface-2:#f9f1e9;--text:#251e17;--muted:#645547;--accent:#9e2f01;--accent-2:#5c5801;--hot:#9e0004;--ink:#ffffff;--accent-media:#ff5a1f;--accent-2-media:#d9d12a;--line:rgba(163,91,69,.3);--line-soft:rgba(52,44,37,.12);--glow:0 6px 22px rgba(171,85,59,.18)}
+
+
+/* page-local accents */
+.hero h1{font-size:clamp(3rem,12vw,9.5rem)}
+.tech-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent-2);font-size:.8rem}
+.band .big.layer{-webkit-text-stroke:2px var(--accent-2);color:transparent}</style>
+<a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.0.0', href: '/de/patches/sc-4-0-0.html' }, { label: "Server Meshing" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.0.0', href: '/patches/sc-4-0-0.html' }, { label: "Server Meshing" }]} />
+
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-mesh-1.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow"><a href={de ? '/de/patches/sc-4-0-0.html' : '/patches/sc-4-0-0.html'}>Alpha 4.0.0 · Destination Pyro</a><Fragment set:html={de ? ' &nbsp;·&nbsp; Technologie' : ' &nbsp;·&nbsp; Technology'} /></div>
+      <h1><span class="thin">{de ? 'Die Technik hinter 4.0.0' : 'The technology behind 4.0.0'}</span>Server Meshing</h1>
+      <p class="lead">{de ? 'Die Schlüsseltechnik von Alpha 4.0.0: mehrere Game-Server bedienen unsichtbar und nahtlos einen einzigen Shard — erstmals teilen sich hunderte Spieler ein zusammenhängendes Universum.' : 'The key technology of Alpha 4.0.0: multiple game servers invisibly and seamlessly serve a single shard — for the first time, hundreds of players share one contiguous universe.'}</p>
+      <div class="tags"><span class="tag">Static Server Meshing</span><span class="tag">Replication Layer</span><span class="tag">1 Shard</span><span class="tag hot">{de ? '500 Spieler' : '500 players'}</span><span class="tag">Stanton + Pyro</span></div>
+      <div class="hero__play" data-lb="yt:DE3ePRgpUQo"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="dmarquee" aria-hidden="true">
+    <div class="dmtrack">
+      <span>SERVER MESHING</span><span class="dot">◆</span><span>REPLICATION LAYER</span><span class="dot">◆</span><span>1 SHARD</span><span class="dot">◆</span><span>{de ? '500 SPIELER' : '500 PLAYERS'}</span><span class="dot">◆</span><span>STATIC MESH</span><span class="dot">◆</span><span>STANTON + PYRO</span><span class="dot">◆</span>
+      <span>SERVER MESHING</span><span class="dot">◆</span><span>REPLICATION LAYER</span><span class="dot">◆</span><span>1 SHARD</span><span class="dot">◆</span><span>{de ? '500 SPIELER' : '500 PLAYERS'}</span><span class="dot">◆</span><span>STATIC MESH</span><span class="dot">◆</span><span>STANTON + PYRO</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AUF EINEN BLICK (Daten-Register, uniform) -->
+  <TopicFacts topicSlug="4-0-0-server-meshing" />
+
+  <!-- FULL-BLEED BAND (parallax) — the thesis -->
+  <section class="band">
+    <div class="bbg" data-par="0.14" style="background-image:url('/assets/img-pyro.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? 'Nach jahrelanger Entwicklung' : 'After years of development'}</div>
+      <div class="big outline">{de ? 'EIN SHARD.' : 'ONE SHARD.'}</div>
+      <p>{de ? 'Alpha 4.0.0 lieferte die erste Implementierung von ' : 'Alpha 4.0.0 delivered the first implementation of '}<b style="color:var(--accent-2)">Static Server Meshing</b>{de ? ' — die Schlüsseltechnologie des Patches. Statt einem Server pro Spielwelt simulieren nun mehrere Server gemeinsam ein einziges, nahtloses Universum.' : ' — the key technology of the patch. Instead of one server per game world, multiple servers now jointly simulate a single, seamless universe.'}</p>
+    </div>
+  </section>
+
+  <!-- STAT STRIP (animated counters) -->
+  <div class="statstrip reveal">
+    <div class="s"><div class="n count" data-to="500">0</div><div class="c">{de ? 'Spieler pro Shard' : 'Players per shard'}</div></div>
+    <div class="s"><div class="n count" data-to="1">0</div><div class="c">{de ? 'Geteilter Shard' : 'Shared shard'}</div></div>
+    <div class="s"><div class="n count" data-to="2">0</div><div class="c">{de ? 'Systeme · Stanton + Pyro' : 'Systems · Stanton + Pyro'}</div></div>
+    <div class="s"><div class="n">STATIC</div><div class="c">{de ? 'Server-Meshing-Premiere' : 'Server Meshing premiere'}</div></div>
+  </div>
+
+  <!-- SCROLLYTELLING: Wie Meshing funktioniert (process) -->
+  <section style="padding-bottom:0">
+    <div class="wrap"><div class="sec-head reveal"><span class="num">01</span><h2>{de ? 'Wie das Meshing funktioniert' : 'How the meshing works'}</h2><span class="rule"></span></div></div>
+  </section>
+  <div class="scrolly">
+    <div class="scrolly__media" aria-hidden="true">
+      <div class="frame active" style="background-image:url('/assets/img-pyro.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-pyro-3.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-pyro-7.jpg')"></div>
+      <div class="frame" style="background-image:url('/assets/t-pyro-5.jpg')"></div>
+    </div>
+    <div class="scrolly__steps">
+      <div class="sstep"><div class="sn">01</div><h3>{de ? 'Welt aufteilen' : 'Split the world'}</h3><p>{de ? 'Static Server Meshing nutzt eine feste, vordefinierte Aufteilung der Welt auf mehrere Server — jeder übernimmt einen klar zugewiesenen Teil des Universums.' : 'Static Server Meshing uses a fixed, predefined division of the world across multiple servers — each takes over a clearly assigned part of the universe.'}</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>{de ? 'Server simulieren' : 'Servers simulate'}</h3><p>{de ? 'Jeder Game-Server simuliert seinen Abschnitt — etwa Stanton oder Pyro — eigenständig, während alle zusammen denselben Spielraum tragen.' : 'Each game server simulates its section — such as Stanton or Pyro — independently, while all together carry the same play space.'}</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>Replication Layer</h3><p>{de ? 'Darunter liegt der Replication Layer, der die Spielstand-Persistenz von den einzelnen Servern trennt — der Zustand der Welt lebt unabhängig vom einzelnen Server.' : 'Beneath it lies the Replication Layer, which separates game state persistence from the individual servers — the state of the world lives independently of any single server.'}</p></div>
+      <div class="sstep"><div class="sn">04</div><h3>{de ? 'Nahtlos wechseln' : 'Switch seamlessly'}</h3><p>{de ? 'So wechseln Spieler ohne Disconnect zwischen gemeshten Servern und erleben das Ganze als einen einzigen, zusammenhängenden Shard.' : 'This lets players move between meshed servers without a disconnect and experience the whole as a single, contiguous shard.'}</p></div>
+    </div>
+  </div>
+
+  <!-- VERSUS: Vorher vs Nachher (full-bleed) -->
+  <section style="padding:0">
+    <div class="versus reveal">
+      <div class="side a">
+        <h3>{de ? '⚙ Einzelserver' : '⚙ Single server'}</h3>
+        <ul>
+          <li>{de ? 'Ein Server trägt allein eine Spielwelt.' : 'One server carries a game world on its own.'}</li>
+          <li>{de ? 'Rund 100 Spieler im selben Raum.' : 'Around 100 players in the same space.'}</li>
+          <li>{de ? 'Persistenz an den einzelnen Server gebunden.' : 'Persistence tied to the individual server.'}</li>
+          <li>{de ? 'Mehrere Systeme zusammen nicht möglich.' : 'Multiple systems together not possible.'}</li>
+        </ul>
+      </div>
+      <div class="vs">→</div>
+      <div class="side b">
+        <h3>★ Server Meshing</h3>
+        <ul>
+          <li>{de ? 'Mehrere Server bedienen einen Shard.' : 'Multiple servers serve one shard.'}</li>
+          <li>{de ? 'Bis zu rund 500 Spieler im selben Raum.' : 'Up to around 500 players in the same space.'}</li>
+          <li>{de ? 'Replication Layer hält die Persistenz.' : 'Replication Layer holds the persistence.'}</li>
+          <li>{de ? 'Stanton und Pyro im geteilten Shard.' : 'Stanton and Pyro in the shared shard.'}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
+    <blockquote>{de ? 'Viele Server. ' : 'Many servers. '}<span class="hl">{de ? 'Ein nahtloses Universum.' : 'One seamless universe.'}</span>{de ? ' Keine Naht zu sehen.' : ' No seam to be seen.'}</blockquote>
+    <cite>Static Server Meshing · Alpha 4.0.0</cite>
+  </section>
+
+  <!-- DER REPLICATION LAYER — single framed/split section (the only one) -->
+  <section style="padding-bottom:0">
+    <div class="split split--rev reveal">
+      <div class="split__media"><div class="m" style="background-image:url('/assets/t-mesh-2.jpg')"></div></div>
+      <div class="split__text">
+        <div class="kx">{de ? '02 · Das Fundament' : '02 · The foundation'}</div>
+        <h3>{de ? 'Der Replication Layer' : 'The Replication Layer'}</h3>
+        <p>{de ? 'Unter dem Meshing liegt der ' : 'Beneath the meshing lies the '}<b>Replication Layer</b>{de ? ' — die Schicht, die die Spielstand-Persistenz von den einzelnen Game-Servern löst. Der Zustand der Welt wird nicht mehr von einem einzelnen Server gehalten, sondern zentral repliziert.' : ' — the layer that decouples game state persistence from the individual game servers. The state of the world is no longer held by a single server, but replicated centrally.'}</p>
+        <p>{de ? 'Genau das macht den nahtlosen Übergang möglich: Spieler wechseln ' : 'This is exactly what makes the seamless transition possible: players switch '}<b>{de ? 'ohne Disconnect' : 'without a disconnect'}</b>{de ? ' zwischen gemeshten Servern. Es ist der erste Schritt Richtung des späteren ' : ' between meshed servers. It is the first step toward the later '}<b>Dynamic Server Meshing</b>{de ? ', bei dem sich die Aufteilung der Welt flexibel an die Last anpasst.' : ', in which the division of the world adapts flexibly to the load.'}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED BAND — warum es nötig war -->
+  <section class="band band--right">
+    <div class="bbg" data-par="0.12" style="background-image:url('/assets/t-pyro-4.jpg')" aria-hidden="true"></div>
+    <div class="band__in reveal">
+      <div class="kx">{de ? '03 · Warum überhaupt?' : '03 · Why at all?'}</div>
+      <div class="big layer" style="font-size:clamp(2.4rem,8vw,6rem)">STANTON + PYRO</div>
+      <p>{de ? 'Die Technik war nötig, um ' : 'The technology was needed to run '}<b style="color:var(--accent-2)">{de ? 'Stanton und Pyro' : 'Stanton and Pyro'}</b>{de ? ' gemeinsam in einem geteilten Shard zu betreiben. Zwei volle Sternensysteme in einem zusammenhängenden Raum — das überschritt die Grenzen eines einzelnen Servers und machte das Meshing zur Voraussetzung für Destination Pyro.' : ' together in a shared shard. Two full star systems in one contiguous space — that exceeded the limits of a single server and made meshing a prerequisite for Destination Pyro.'}</p>
+    </div>
+  </section>
+
+  <!-- MEDIA (mixed gallery + trailer) -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">04</span><h2>Media</h2><span class="rule"></span></div>
+      <div class="gallery reveal">
+        <figure class="gtile full b2" data-lb="img:/assets/t-mesh-1.jpg"><img src="/assets/t-mesh-1.jpg" alt={de ? 'Server Meshing — Serververbund' : 'Server Meshing — server cluster'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Serververbund · ein Shard' : 'Server cluster · one shard'}</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-mesh-2.jpg"><img src="/assets/t-mesh-2.jpg" alt="Replication Layer" loading="lazy"><span class="zoomic">⤢</span><figcaption>Replication Layer</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/t-pyro-3.jpg"><img src="/assets/t-pyro-3.jpg" alt={de ? 'Zerborstener, glühender Mond mit Trümmerfeld in Pyro' : 'Shattered, glowing moon with a debris field in Pyro'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Pyro · neues System' : 'Pyro · new system'}</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/cz-facility.jpg"><img src="/assets/cz-facility.jpg" alt={de ? 'Pyro-Anlage' : 'Pyro facility'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Geteilter Raum' : 'Shared space'}</figcaption></figure>
+      </div>
+      <div class="video reveal" data-yt="DE3ePRgpUQo" style="background-image:url('/assets/trailer-4-0-0.jpg')"><span class="vlbl">Destination Pyro — Trailer</span><button class="play" aria-label={de ? 'Trailer abspielen' : 'Play trailer'}>▶</button></div>
+      <p class="src reveal"><Fragment set:html={de ? 'Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · ' : 'Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · '} /><a href="https://www.youtube.com/watch?v=DE3ePRgpUQo" target="_blank" rel="noopener">{de ? 'Auf YouTube ansehen ↗' : 'Watch on YouTube ↗'}</a></p>
+    </div>
+  </section>
+
+</main>
+
+<RelatedTopics topicSlug="4-0-0-server-meshing" />
+
+<Attribution />
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label={de ? 'Schließen' : 'Close'}>✕</button><div class="lb__content"></div></div></div>
+
+<script is:inline src="/assets/detail.js"></script>
