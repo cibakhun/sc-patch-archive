@@ -74,13 +74,18 @@ describe('Universal Items DB — Integrität der Einträge', () => {
     }
   });
 
+  // 'exclusive' = im Spiel gar nicht erhältlich (Promo-/Event-Items). Die Art
+  // kam mit den Rüstungs-Sets dazu; sie verhält sich beim Preis wie Loot —
+  // es GIBT keinen, und einen zu erfinden wäre genau das, was die DB nicht tut.
+  const PRICELESS = new Set(['loot', 'exclusive']);
+
   test('9. obtain-Einträge sind wohlgeformt (kind/loc/price)', () => {
     for (const it of items) {
       for (const o of it.obtain) {
-        assert.ok(['shop', 'loot', 'vehicle'].includes(o.kind), `${it.id}: kind ${o.kind}`);
+        assert.ok(['shop', 'loot', 'vehicle', 'exclusive'].includes(o.kind), `${it.id}: kind ${o.kind}`);
         assert.ok(typeof o.loc === 'string' && o.loc.length > 0, `${it.id}: leerer Ort`);
-        if (o.kind === 'loot') {
-          assert.strictEqual(o.price, undefined, `${it.id}: Loot mit Preis`);
+        if (PRICELESS.has(o.kind)) {
+          assert.strictEqual(o.price, undefined, `${it.id}: ${o.kind} mit Preis`);
         } else {
           assert.ok(Number.isFinite(o.price) && o.price > 0, `${it.id}: ${o.kind} ohne gültigen Preis`);
         }

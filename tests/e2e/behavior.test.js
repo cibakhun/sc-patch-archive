@@ -101,9 +101,12 @@ describe('Laden & Grundzustand', () => {
     assert.ok(other.textContent.includes('(2)'));
   });
 
-  test('5. Fundart-Chips werden gerendert (Alle/Kaufbar/Loot/Nur Katalog)', () => {
+  test('5. Fundart-Chips werden gerendert (Alle/Kaufbar/Loot/Exklusiv/Nur Katalog)', () => {
     const chips = dom.elements['uif-kind-chips'].querySelectorAll('.uif-chip');
-    assert.deepStrictEqual(chips.map((c) => c.getAttribute('data-kind')), ['all', 'buy', 'loot', 'catalog']);
+    assert.deepStrictEqual(
+      chips.map((c) => c.getAttribute('data-kind')),
+      ['all', 'buy', 'loot', 'exclusive', 'catalog'],
+    );
     assert.ok(chips[0].classList.contains('active'));
   });
 
@@ -266,6 +269,42 @@ describe('Fundart-Filter (Chips)', () => {
   });
 });
 
+// Eigenes Fixture statt eines siebten Items im Standard-Fixture: die Zaehlungen
+// oben (6 Karten, „1–6 von 6“) sind Teil der Zusicherung und sollen nicht an
+// einer Erweiterung kippen.
+describe('Fundart „Exklusiv“ (im Spiel nicht erhältlich)', () => {
+  let dom;
+  beforeEach(async () => {
+    const db = makeDb();
+    db.items.push({
+      id: 'promo-blade', name: 'Promo Blade', category: 'Weapons / Melee',
+      obtain: [{ kind: 'exclusive', loc: 'Promotional item — not obtainable in-game', reason: 'PromotionalItem' }],
+    });
+    db.items.sort((a, b) => a.name.localeCompare(b.name));
+    db.counts = { items: 7, withObtain: 5, catalogOnly: 2 };
+    dom = await setupMockDOM({ db });
+    await dom.runScript(scriptPath);
+    await dom.wait(10);
+  });
+
+  test('45. Der Exklusiv-Chip filtert auf genau diese Items', () => {
+    dom.elements['uif-kind-chips'].querySelectorAll('.uif-chip')
+      .find((c) => c.getAttribute('data-kind') === 'exclusive').click();
+    assert.deepStrictEqual(cardTitles(dom), ['Promo Blade']);
+  });
+
+  test('46. Karte nennt „Exklusiv“ statt eines erfundenen Preises', () => {
+    const card = cards(dom).find((c) => c.getAttribute('data-id') === 'promo-blade');
+    assert.strictEqual(card.querySelector('.uif-card-price').textContent, 'Exklusiv');
+  });
+
+  test('47. Exklusiv-Items zählen NICHT als „Nur Katalog“', () => {
+    dom.elements['uif-kind-chips'].querySelectorAll('.uif-chip')
+      .find((c) => c.getAttribute('data-kind') === 'catalog').click();
+    assert.ok(!cardTitles(dom).includes('Promo Blade'));
+  });
+});
+
 describe('Sortierung', () => {
   let dom;
   beforeEach(async () => {
@@ -387,12 +426,15 @@ describe('Detail-Modal', () => {
     assert.ok(!body().textContent.includes('Crafting-Rezept'));
   });
 
+  // Die Sperre laeuft ueber die geteilte scroll-lock.js, nicht mehr ueber
+  // body{overflow:hidden} — die Variante haelt auf iOS Safari nicht. Geprueft
+  // wird deshalb position:fixed samt Positionsmerker, so wie die Sperre wirkt.
   test('40. Öffnen sperrt Hintergrund-Scroll, Schließen gibt ihn frei', () => {
     openCard('alpha-rifle');
-    assert.strictEqual(dom.body.style.overflow, 'hidden');
+    assert.strictEqual(dom.body.style.position, 'fixed');
     dom.elements['uif-modal-close-btn'].click();
     assert.strictEqual(modal().style.display, 'none');
-    assert.strictEqual(dom.body.style.overflow, '');
+    assert.strictEqual(dom.body.style.position, '');
   });
 
   test('41. Klick auf Overlay schließt das Modal', () => {

@@ -9,6 +9,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "verify": "node scripts/_verify.mjs",
+    "verify:vendor": "node scripts/verify-vendor-three.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",
     "sync:vehicles": "node scripts/sync-vehicles.mjs",
     "sync:prices": "node scripts/sync-prices.mjs",
@@ -42,10 +43,12 @@
     "tokenize:theme": "node scripts/tokenize-theme-colors.mjs",
     "theme": "node scripts/build-light-palettes.mjs && node scripts/tokenize-theme-colors.mjs && node scripts/build-light-overrides.mjs",
     "audit:site": "node scripts/audit-site.mjs",
+    "audit:csp": "node scripts/audit-csp.mjs",
+    "pretest:e2e": "node scripts/_test-prereqs.mjs",
     "test:e2e": "node --test tests/e2e/**/*.test.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.110.7",
+    "@supabase/supabase-js": "^2.110.9",
     "astro": "^5.0.0"
   },
   "devDependencies": {

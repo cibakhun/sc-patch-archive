@@ -145,15 +145,34 @@ export class MockElement {
     }
   }
 
-  dispatchEvent(event) {
+  // Das Event-Objekt muss die Felder tragen, die der Produktionscode ABFRAGT —
+  // sonst testet der Mock eine andere Wirklichkeit als der Browser. Konkret:
+  // item-finder-app.js laesst Modifier- und Mittelklick dem Browser
+  // (`e.button !== 0` -> return). Ohne `button: 0` war `undefined !== 0` wahr
+  // und JEDER Klick fiel still durch — die Modal-Tests schlugen fehl, obwohl
+  // die App korrekt ist. Defaults = "normaler Linksklick ohne Modifier";
+  // `init` ueberschreibt sie fuer die Faelle, die genau das pruefen wollen.
+  dispatchEvent(event, init = {}) {
     const handlers = this.listeners[event];
-    if (handlers) {
-      handlers.forEach(cb => cb({ target: this, preventDefault: () => {} }));
-    }
+    if (!handlers) return;
+    const ev = {
+      type: event,
+      target: this,
+      currentTarget: this,
+      button: 0,
+      metaKey: false,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      preventDefault: () => {},
+      stopPropagation: () => {},
+      ...init,
+    };
+    handlers.slice().forEach(cb => cb(ev));
   }
 
-  click() {
-    this.dispatchEvent('click');
+  click(init = {}) {
+    this.dispatchEvent('click', init);
   }
 
   querySelector(selector) {
@@ -341,6 +360,11 @@ export async function setupMockDOM(opts = {}) {
   const window = {
     location: { href: 'http://localhost/item-finder.html' },
     addEventListener: () => {},
+    // scroll-lock.js merkt sich die Scrollposition und stellt sie beim
+    // Entsperren wieder her — ohne diese beiden faellt es beim Sperren um.
+    scrollY: 0,
+    pageYOffset: 0,
+    scrollTo: (_x, y) => { window.scrollY = y; window.pageYOffset = y; },
     // DE-Seitenkontext wie im echten Build (Strings kommen aus den DE-Fallbacks)
     __UIF: opts.uifCfg || { lang: 'de' },
   };
@@ -424,6 +448,14 @@ export async function setupMockDOM(opts = {}) {
   global.window = window;
   global.document = document;
   global.fetch = fetchMock;
+
+  // Die geteilte Scroll-Sperre gehoert zur Laufzeit jeder Seite: item-finder-app
+  // .js ruft window.VBScrollLock.lock()/unlock() beim Oeffnen und Schliessen des
+  // Modals. Fehlt sie, ueberspringt der Guard `if (window.VBScrollLock)` die
+  // Sperre stillschweigend — der Test haette dann nie gemerkt, wenn die App das
+  // Sperren verliert. Also mitladen wie im Browser (scroll-lock.js steht in
+  // jedem Layout vor den Seiten-Skripten).
+  await result.runScript(path.resolve('assets/scroll-lock.js'));
 
   return result;
 }
