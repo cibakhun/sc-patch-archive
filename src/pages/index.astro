@@ -52,7 +52,13 @@ const tools = [
   .skip:focus{left:0}
 
   /* ========== HERO ========== */
-  .hero{position:relative;min-height:94svh;display:flex;align-items:flex-end;overflow:hidden;isolation:isolate}
+  /* Mittig statt am Fuss: seit die Ueberschrift oben steht und die Lede weg
+     ist, traegt .hero__inner nur noch das Suchfeld. Am unteren Rand sass es
+     weit weg von der Wortmarke; auf der Bildmitte stehen beide auf einer
+     Achse und das Motiv bleibt darunter frei.
+     flex-start statt center, weil die Hoehe unten ueber die Innenkante
+     gerechnet wird — siehe .hero__inner. */
+  .hero{position:relative;min-height:94svh;display:flex;align-items:flex-start;overflow:hidden;isolation:isolate}
   .hero__img{position:absolute;inset:0;z-index:-2;background:var(--media-void) center right/cover no-repeat;
     background-image:var(--hero);transform:scale(1.06);animation:kenburns 34s ease-in-out infinite alternate}
   @keyframes kenburns{from{transform:scale(1.06)}to{transform:scale(1.15) translate3d(-1.5%,-1%,0)}}
@@ -67,7 +73,16 @@ const tools = [
      im clamp statt als Sonderfall im 520er-Umbruch — sonst kollidiert sie im
      Bereich 521–880 px mit dem Suchfeld. Enge Stelle ist vw≈1200, wo das
      clamp-Minimum greift, die Marke aber schon mitwächst. */
-  .hero__inner{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;padding:9rem clamp(1.25rem,5vw,3.5rem) clamp(7rem,8vw,7.5rem)}
+  /* Mittig, aber nie so hoch, dass es die Ueberschrift trifft.
+     `calc(47svh - 38px)` ist die Mitte: der Hero misst 94svh, davon die
+     Haelfte, minus die halbe Feldhoehe. Reines align-items:center hat genau
+     das gemacht — und auf flachen Fenstern das Feld in die Ueberschrift
+     geschoben (gemessen bei 1280x560: 10 px Ueberlappung).
+     Die Untergrenze von 16rem haelt es unter der Ueberschrift, die im
+     ungueltigsten Fall (breites Fenster, Schriftgrad am Anschlag) bei ~235 px
+     endet. Auf normalen Hoehen gewinnt die Mitte, auf flachen die Grenze. */
+  .hero__inner{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;
+    padding:max(16rem,calc(47svh - 38px)) clamp(1.25rem,5vw,3.5rem) clamp(4rem,9vh,6rem)}
   /* Kein Eyebrow mehr über dem H1: die getrackte Versalien-Kleinzeile direkt
      über einer übergroßen Überschrift ist der Standard-Hero jeder generierten
      SaaS-Seite. Der Inhalt ("Star Citizen compendium") stand ohnehin doppelt
@@ -121,9 +136,9 @@ const tools = [
      das Suchfeld unten in der Mitte — der Hero steht damit auf einer Achse
      statt in zwei Ecken. width:100% mit max-width bleibt, damit auf schmalen
      Ansichten nichts ueber den Rand laeuft; `auto` an den Seiten zentriert. */
-  .hero__search{display:flex;align-items:center;gap:.9rem;width:100%;max-width:620px;margin:2.1rem auto 0;
-    padding:1.1rem 1.4rem;background:var(--scrim-5);border:1px solid var(--on-media-line);border-radius:10px;
-    color:var(--on-media-dim);font-family:var(--font-ui);font-size:1.06rem;cursor:pointer;text-align:left;
+  .hero__search{display:flex;align-items:center;gap:1rem;width:100%;max-width:720px;margin:0 auto;
+    padding:1.25rem 1.6rem;background:var(--scrim-5);border:1px solid var(--on-media-line);border-radius:11px;
+    color:var(--on-media-dim);font-family:var(--font-ui);font-size:1.15rem;cursor:pointer;text-align:left;
     backdrop-filter:blur(8px);transition:border-color .2s,box-shadow .2s,background-color .2s}
   /* Höhenschatten statt Akzent-Halo: ein Glow ohne Versatz ist der
      auffälligste Standard-Effekt generierter Oberflächen. */
@@ -134,8 +149,8 @@ const tools = [
   .hero__search .k{display:flex;gap:.3rem;flex:none}
   /* Tastenkappen auf undurchsichtigem Grund: der aufhellende Schleier ließ
      "Ctrl"/"K" über hellen Stellen des Hero-Fotos auf 1,3:1 fallen. */
-  .hero__search kbd{font-family:var(--font-ui);font-size:.76rem;font-weight:700;letter-spacing:.06em;color:var(--on-media);
-    border:1px solid var(--on-media-line);border-bottom-width:2px;border-radius:4px;padding:.14rem .48rem;background:var(--scrim-6)}
+  .hero__search kbd{font-family:var(--font-ui);font-size:.82rem;font-weight:700;letter-spacing:.06em;color:var(--on-media);
+    border:1px solid var(--on-media-line);border-bottom-width:2px;border-radius:5px;padding:.18rem .55rem;background:var(--scrim-6)}
   /* Sprungmarke nach unten: das „V" der Wortmarke zeigt selbst nach unten.
      Dreimal ineinandergesetzt wird aus dem Markenbuchstaben eine Abstiegs-
      Marke — HUD-Vokabular, das Spieler ohne Beschriftung lesen; deshalb
@@ -272,7 +287,10 @@ const tools = [
     .fresh__media{min-height:160px;order:-1}
     .fresh__media::after{background:linear-gradient(0deg,var(--surface),transparent 55%)}
   }
-  @media(max-width:520px){.hero__inner{padding-top:7.5rem}}
+  /* Die frühere Sonderregel padding-top:7.5rem unter 520px entfällt: sie
+     schob den Inhalt von der Kopfleiste weg, als er noch oben im Hero begann.
+     Mit align-items:center wäre sie eine einseitige Innenkante und zöge das
+     Suchfeld wieder aus der Mitte. */
   @media(max-width:360px){.hero__mark h1{font-size:2.5rem}}
   /* Unter 580px zeigt die Kopfleiste nur das Monogramm — es gibt dort keinen
      Schriftzug, auf den die Überschrift zulaufen könnte. Sie bleibt deshalb
