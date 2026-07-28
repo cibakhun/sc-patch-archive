@@ -118,13 +118,15 @@ const tools = [
     display:flex;align-items:flex-start;justify-content:space-between;
     padding:.4rem clamp(1.25rem,5vw,3.5rem);color:var(--accent);
     transition:transform .25s cubic-bezier(.2,.7,.3,1)}
-  /* Vier Stapel nebeneinander, jeder vier Stufen tief. Die Welle läuft nicht
+  /* Fuenf Stapel nebeneinander, jeder vier Stufen tief — ungerade Zahl,
+     damit einer genau auf der Mitte sitzt. Die Welle läuft nicht
      nur abwärts, sondern auch nach rechts (0,09 s je Spalte) — der Puls
      streicht diagonal durch das Feld wie eine Anflug-Befeuerung. */
   .hero__cue svg{display:block;width:clamp(30px,3vw,40px);height:auto;overflow:visible;pointer-events:auto;--col:0s}
   .hero__cue svg:nth-child(2){--col:.09s}
   .hero__cue svg:nth-child(3){--col:.18s}
   .hero__cue svg:nth-child(4){--col:.27s}
+  .hero__cue svg:nth-child(5){--col:.36s}
   /* Maße vom Wortmarken-V abgenommen, nicht geraten: Orbitron 900 setzt ein
      breites V mit ~60°-Schenkeln und schwerem Strich. Eine 2,4px-Haarlinie
      las sich als beliebiger UI-Pfeil — erst Strich 4,5 bei 46px Breite
@@ -256,7 +258,7 @@ const tools = [
     </button>
   </div>
   <a class="hero__cue" href="#tools" aria-label="Go to tools">
-    {[0, 1, 2, 3].map(() => (
+    {[0, 1, 2, 3, 4].map(() => (
       <svg viewBox="0 0 46 90" aria-hidden="true" focusable="false">
         <path d="M3 3 23 31 43 3"/>
         <path d="M3 21 23 49 43 21"/>
