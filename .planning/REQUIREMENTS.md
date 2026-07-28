@@ -11,25 +11,25 @@
 
 ### Wortmarke & Kopfleiste
 
-- [ ] **MARK-01**: Beim ungescrollten Aufruf der Startseite steht die Überschrift „VerseBase" oben mittig im Hero
-- [ ] **MARK-02**: Beim ungescrollten Aufruf der Startseite ist die Wortmarke in der Kopfleiste nicht sichtbar
-- [ ] **MARK-03**: Beim Runterscrollen wandert die Hero-Überschrift scroll-verknüpft in Position und Größe der Kopfleisten-Wortmarke — als stetiger Verlauf, nicht als harter Umschaltpunkt
-- [ ] **MARK-04**: Nach abgeschlossener Wandlung trägt die Kopfleiste den Schriftzug und dieser bleibt ein Verweis auf die Startseite mit `aria-label`
-- [ ] **MARK-05**: Auf allen Seiten ohne Hero ist die Kopfleisten-Wortmarke unverändert sofort sichtbar
-- [ ] **MARK-06**: Die Wandlung erzeugt keinen Layout-Sprung — animiert werden ausschließlich `transform` und `opacity`
-- [ ] **MARK-07**: Unter 580 px Breite zeigt die Kopfleiste weiterhin nur das Monogramm, wie bisher
-- [ ] **MARK-08**: Die Wandlung läuft in der deutschen und der englischen Startseite identisch
+- [x] **MARK-01**: Beim ungescrollten Aufruf der Startseite steht die Überschrift „VerseBase" oben mittig im Hero
+- [x] **MARK-02**: Beim ungescrollten Aufruf der Startseite ist die Wortmarke in der Kopfleiste nicht sichtbar
+- [x] **MARK-03**: Beim Runterscrollen wandert die Hero-Überschrift scroll-verknüpft in Position und Größe der Kopfleisten-Wortmarke — als stetiger Verlauf, nicht als harter Umschaltpunkt
+- [x] **MARK-04**: Nach abgeschlossener Wandlung trägt die Kopfleiste den Schriftzug und dieser bleibt ein Verweis auf die Startseite mit `aria-label`
+- [x] **MARK-05**: Auf allen Seiten ohne Hero ist die Kopfleisten-Wortmarke unverändert sofort sichtbar
+- [x] **MARK-06**: Die Wandlung erzeugt keinen Layout-Sprung — es wird keine Layout-Eigenschaft animiert. Bewegung und Größe laufen über `transform`, die Übergabe über `opacity`; dazu `color` als reine Malen-Eigenschaft, weil die Schrift unterwegs die Unterlage wechselt (ursprünglich als „ausschließlich `transform` und `opacity`" formuliert — in Phase 1 präzisiert, siehe 01-SUMMARY.md)
+- [x] **MARK-07**: Unter 580 px Breite zeigt die Kopfleiste weiterhin nur das Monogramm, wie bisher
+- [x] **MARK-08**: Die Wandlung läuft in der deutschen und der englischen Startseite identisch
 
 ### Bewegung & Zugänglichkeit
 
-- [ ] **MOTN-01**: Bei `prefers-reduced-motion: reduce` entfällt die scroll-verknüpfte Bewegung; Überschrift und Kopfleiste bleiben in jedem Scroll-Zustand lesbar und bedienbar
-- [ ] **MOTN-02**: Jede Seite hat genau eine sichtbare `h1`
-- [ ] **MOTN-03**: Der Effekt hängt am bestehenden Scroll-Listener in `SiteNav.astro`; es kommt kein zweiter globaler Scroll-Listener hinzu
-- [ ] **MOTN-04**: Die Wandlung läuft ruckelfrei — die Arbeit pro Bild bleibt auf Compositor-Eigenschaften beschränkt
+- [x] **MOTN-01**: Bei `prefers-reduced-motion: reduce` entfällt die scroll-verknüpfte Bewegung; Überschrift und Kopfleiste bleiben in jedem Scroll-Zustand lesbar und bedienbar
+- [x] **MOTN-02**: Jede Seite hat genau eine sichtbare `h1`
+- [x] **MOTN-03**: Der Effekt hängt am bestehenden Scroll-Listener in `SiteNav.astro`; es kommt kein zweiter globaler Scroll-Listener hinzu
+- [x] **MOTN-04**: Die Wandlung läuft ruckelfrei — die Arbeit pro Bild bleibt auf Compositor-Eigenschaften beschränkt
 
 ### Farbmodi
 
-- [ ] **THEME-01**: Die Wandlung ist in Hell- und Dunkelmodus gleichwertig lesbar — sowohl über dem Hero-Foto als auch über der Seitenfläche
+- [x] **THEME-01**: Die Wandlung ist in Hell- und Dunkelmodus gleichwertig lesbar — sowohl über dem Hero-Foto als auch über der Seitenfläche
 - [ ] **THEME-02**: Kein generierter `:root[data-theme="light"]`-Block wird von Hand verändert; Hellwerte entstehen über `npm run theme`
 
 ### Typografie & Bewegungsbild
@@ -74,19 +74,19 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MARK-01 | Phase 1 | Pending |
-| MARK-02 | Phase 1 | Pending |
-| MARK-03 | Phase 1 | Pending |
-| MARK-04 | Phase 1 | Pending |
-| MARK-05 | Phase 1 | Pending |
-| MARK-06 | Phase 1 | Pending |
-| MARK-07 | Phase 1 | Pending |
-| MARK-08 | Phase 1 | Pending |
-| MOTN-01 | Phase 1 | Pending |
-| MOTN-02 | Phase 1 | Pending |
-| MOTN-03 | Phase 1 | Pending |
-| MOTN-04 | Phase 1 | Pending |
-| THEME-01 | Phase 1 | Pending |
+| MARK-01 | Phase 1 | Complete |
+| MARK-02 | Phase 1 | Complete |
+| MARK-03 | Phase 1 | Complete |
+| MARK-04 | Phase 1 | Complete |
+| MARK-05 | Phase 1 | Complete |
+| MARK-06 | Phase 1 | Complete |
+| MARK-07 | Phase 1 | Complete |
+| MARK-08 | Phase 1 | Complete |
+| MOTN-01 | Phase 1 | Complete |
+| MOTN-02 | Phase 1 | Complete |
+| MOTN-03 | Phase 1 | Complete |
+| MOTN-04 | Phase 1 | Complete |
+| THEME-01 | Phase 1 | Complete |
 | TYPO-01 | Phase 2 | Pending |
 | TYPO-02 | Phase 2 | Pending |
 | TYPO-03 | Phase 2 | Pending |
