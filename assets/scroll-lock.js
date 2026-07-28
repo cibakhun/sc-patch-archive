@@ -33,6 +33,12 @@
     document.body.style.position = 'fixed';
     document.body.style.top = -scrollY + 'px';
     document.body.style.width = '100%';
+    // Marker fuer alles, was ueber den Overlays liegen wuerde. Die wandernde
+    // Hero-Wortmarke der Startseite (.hero__mark) muss ueber der Kopfleiste
+    // liegen (z-index 9600), damit sie dort landen kann — und laege damit
+    // auch ueber Suche (9600) und Menue (9500). Diese Sperre ist die eine
+    // Stelle, die jedes Overlay durchlaeuft, also haengt der Marker hier.
+    document.documentElement.classList.add('is-locked');
   }
 
   function unlock() {
@@ -42,6 +48,7 @@
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
+    document.documentElement.classList.remove('is-locked');
     // exakt dorthin zurueck, wo der Nutzer war — sonst springt die Seite
     // beim Schliessen nach oben.
     window.scrollTo(0, scrollY);

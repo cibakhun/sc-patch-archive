@@ -69,10 +69,44 @@ const tools = [
      SaaS-Seite. Der Inhalt ("Star-Citizen-Kompendium") stand ohnehin doppelt
      in der Lede darunter. Titel jetzt in Volltonfarbe statt Verlauf — der
      Verlauf drückte "VerseBase" auf 3,0:1 gegen das Hero-Foto. */
-  .hero h1{font-family:var(--font-display);font-weight:900;line-height:.92;margin:0 0 .5rem;
+  /* ---- Wortmarke: oben mittig, wandert beim Scrollen in die Kopfleiste ----
+     position:fixed, damit der Schriftzug die Kopfleiste (z-index 9600)
+     überhaupt erreichen kann — ein Element im Fluss läge hinter deren
+     Hintergrund und würde auf dem letzten Stück verschluckt.
+     Bewegt wird ausschliesslich per transform/opacity. Die Zielwerte
+     --dx/--dy/--s misst SiteNav.astro zur Laufzeit gegen den Schriftzug in
+     der Leiste; --p ist der Fortschritt 0..1. Ohne JS bleibt --p bei 0: die
+     Überschrift steht dann schlicht oben mittig — nichts ist kaputt, nur
+     unbewegt. */
+  /* Der Massstab laeuft der Fahrt voraus: die Ueberschrift ist bereits auf
+     Leistengroesse geschrumpft, bevor sie die Kopfleiste erreicht. Sonst
+     stuende sie in voller Groesse quer ueber deren Kante — halb auf dem
+     dunklen Motiv, halb auf der Fuellung, und keine Schriftfarbe waere fuer
+     beide Haelften richtig. */
+  .hero__mark{position:fixed;top:clamp(5.25rem,11vh,7.5rem);left:0;right:0;z-index:9601;
+    display:flex;justify-content:center;pointer-events:none;
+    --ps:clamp(0,(var(--p,0) / .55),1);
+    --pt:clamp(0,((var(--p,0) - .2) / .8),1);
+    transform:translate3d(calc(var(--dx,0px)*var(--pt)),calc(var(--dy,0px)*var(--pt)),0)
+              scale(calc(1 + (var(--s,1) - 1)*var(--ps)))}
+  /* Overlays (Suche 9600, Menü 9500) müssen die wandernde Überschrift
+     verdecken können. Die geteilte Scroll-Sperre ist die eine Stelle, die
+     jedes Overlay durchläuft — siehe assets/scroll-lock.js. */
+  :root.is-locked .hero__mark{visibility:hidden}
+  .hero__mark h1{font-family:var(--font-display);font-weight:900;line-height:.92;margin:0;
     font-size:clamp(2.9rem,12vw,8.5rem);letter-spacing:-.02em;
-    color:var(--title-hi);
-    text-shadow:0 10px 60px var(--on-media-shadow)}
+    /* Die Schrift wechselt unterwegs die Unterlage: erst das dunkle
+       Hero-Motiv (dort ist Weiss richtig, in BEIDEN Farbmodi — der Schleier
+       bleibt dunkel), am Ende die Fuellung der Kopfleiste. Im Hellmodus ist
+       die nahezu weiss; bliebe die Schrift weiss, verschwaende sie auf dem
+       letzten Stueck. Die Farbe folgt deshalb der Unterlage.
+       color ist eine reine Malen-Eigenschaft — kein Layout, kein Sprung. */
+    color:color-mix(in srgb,var(--text) calc(clamp(0,((var(--p,0) - .5) / .22),1) * 100%),var(--title-hi));
+    text-shadow:0 10px 60px var(--on-media-shadow);
+    /* Übergabe an die Kopfleiste: die Überschrift verlischt auf dem letzten
+       Fünftel des Wegs, während dort der Schriftzug aufblendet. Beide stehen
+       in diesem Moment an derselben Stelle und in derselben Höhe. */
+    opacity:calc(1 - clamp(0,(var(--p,0) - .8)*5,1))}
   .hero__lede{max-width:40ch;color:var(--on-media-dim);font-size:clamp(1.05rem,1.8vw,1.3rem);font-weight:500;
     text-shadow:0 2px 22px var(--on-media-shadow)}
   /* Das Suchfeld liegt auf dem Hero-Foto, nicht auf der Seitenfläche —
@@ -167,22 +201,38 @@ const tools = [
     .fresh__media::after{background:linear-gradient(0deg,var(--surface),transparent 55%)}
   }
   @media(max-width:520px){.hero__inner{padding-top:7.5rem}}
-  @media(max-width:360px){.hero h1{font-size:2.5rem}}
+  @media(max-width:360px){.hero__mark h1{font-size:2.5rem}}
+  /* Unter 580px zeigt die Kopfleiste nur das Monogramm — es gibt dort keinen
+     Schriftzug, auf den die Überschrift zulaufen könnte. Sie bleibt deshalb
+     im Hero stehen und scrollt schlicht mit weg. */
+  @media(max-width:580px){
+    .hero__mark{position:absolute;transform:none}
+    .hero__mark h1{opacity:1}
+  }
   @media (prefers-reduced-motion:reduce){
     .reveal{opacity:1;transform:none}
     .hero__img{animation:none}
+    /* Ohne Bewegung keine Wanderung: die Überschrift bleibt im Hero, die
+       Kopfleiste holt ihren Schriftzug beim Scrollen einfach herein. */
+    .hero__mark{position:absolute;transform:none}
+    .hero__mark h1{opacity:1}
     *{animation:none!important;scroll-behavior:auto!important}
   }</style>
 
 <a class="skip" href="#tools">Zu den Werkzeugen springen</a>
 
-<SiteNav hasEn={true} />
+<SiteNav hasEn={true} heroMorph={true} />
+
+{/* Bewusst AUSSERHALB von .hero: der Hero traegt isolation:isolate und damit
+    einen eigenen Stacking-Kontext — darin koennte die Wortmarke die
+    Kopfleiste (z-index 9600) nie ueberholen und wuerde auf dem letzten
+    Stueck hinter deren Hintergrund verschwinden. */}
+<div class="hero__mark"><h1>VerseBase</h1></div>
 
 <header class="hero">
   <div class="hero__img" style={`--hero:url('${HERO_IMG}')`} aria-hidden="true"></div>
   <div class="hero__scrim" aria-hidden="true"></div>
   <div class="hero__inner">
-    <h1>VerseBase</h1>
     <p class="hero__lede">Game-akkurate Star-Citizen-Werkzeuge — Item Finder, Mining, Crafting, Schiffe und das komplette Alpha-4-Patch-Archiv.</p>
     <button class="hero__search" type="button" data-scs-open aria-label="Suche öffnen">
       <span class="p" aria-hidden="true">&gt;_</span>
