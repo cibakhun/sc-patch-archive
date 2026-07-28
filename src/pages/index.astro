@@ -62,7 +62,12 @@ const tools = [
   .hero__scrim{position:absolute;inset:0;z-index:-1;background:
     linear-gradient(90deg,var(--scrim-6) 0%,var(--scrim-4) 40%,var(--scrim-0) 78%,transparent 100%),
     linear-gradient(0deg,var(--bg) 1%,var(--scrim-2) 24%,transparent 58%)}
-  .hero__inner{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;padding:9rem clamp(1.25rem,5vw,3.5rem) clamp(3.5rem,8vw,6rem)}
+  /* Untere Innenkante deutlich höher als die ursprünglichen 3,5rem: darunter
+     steht die vierstufige V-Marke (bis 71 px + Klickfläche). Als Mindestwert
+     im clamp statt als Sonderfall im 520er-Umbruch — sonst kollidiert sie im
+     Bereich 521–880 px mit dem Suchfeld. Enge Stelle ist vw≈1200, wo das
+     clamp-Minimum greift, die Marke aber schon mitwächst. */
+  .hero__inner{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;padding:9rem clamp(1.25rem,5vw,3.5rem) clamp(7rem,8vw,7.5rem)}
   /* Kein Eyebrow mehr über dem H1: die getrackte Versalien-Kleinzeile direkt
      über einer übergroßen Überschrift ist der Standard-Hero jeder generierten
      SaaS-Seite. Der Inhalt ("Star Citizen compendium") stand ohnehin doppelt
@@ -106,12 +111,13 @@ const tools = [
        Fünftel des Wegs, während dort der Schriftzug aufblendet. Beide stehen
        in diesem Moment an derselben Stelle und in derselben Höhe. */
     opacity:calc(1 - clamp(0,(var(--p,0) - .8)*5,1))}
-  .hero__lede{max-width:40ch;color:var(--on-media-dim);font-size:clamp(1.05rem,1.8vw,1.3rem);font-weight:500;
-    text-shadow:0 2px 22px var(--on-media-shadow)}
+  /* Kein Lede-Absatz mehr unter dem Titel: der Satz stand wortgleich in der
+     Meta-Description und wiederholte nur die Kachelnamen darunter. Das
+     Werkzeug ist das Produkt, nicht der Text — Wortmarke, Suchfeld, fertig. */
   /* Das Suchfeld liegt auf dem Hero-Foto, nicht auf der Seitenfläche —
      deshalb durchgehend Medien-Farben statt --muted/--accent. Im Hellmodus
      wären das sonst dunkle Schrift und dunkler Akzent auf dunklem Bild. */
-  .hero__search{display:flex;align-items:center;gap:.8rem;width:100%;max-width:520px;margin:1.9rem 0 0;
+  .hero__search{display:flex;align-items:center;gap:.8rem;width:100%;max-width:520px;margin:2.1rem 0 0;
     padding:.95rem 1.15rem;background:var(--scrim-5);border:1px solid var(--on-media-line);border-radius:9px;
     color:var(--on-media-dim);font-family:var(--font-ui);font-size:1rem;cursor:pointer;text-align:left;
     backdrop-filter:blur(8px);transition:border-color .2s,box-shadow .2s,background-color .2s}
@@ -126,10 +132,73 @@ const tools = [
      "Ctrl"/"K" über hellen Stellen des Hero-Fotos auf 1,3:1 fallen. */
   .hero__search kbd{font-family:var(--font-ui);font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--on-media);
     border:1px solid var(--on-media-line);border-bottom-width:2px;border-radius:4px;padding:.1rem .42rem;background:var(--scrim-6)}
-  .hero__cue{position:absolute;bottom:1.3rem;left:50%;transform:translateX(-50%);z-index:1;
-    font-family:var(--font-ui);letter-spacing:.24em;text-transform:uppercase;font-size:.66rem;color:var(--muted);
-    animation:bob 2.2s ease-in-out infinite}
-  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+  /* Sprungmarke nach unten: das „V" der Wortmarke zeigt selbst nach unten.
+     Dreimal ineinandergesetzt wird aus dem Markenbuchstaben eine Abstiegs-
+     Marke — HUD-Vokabular, das Spieler ohne Beschriftung lesen; deshalb
+     ersetzt das Zeichen die Textzeile „Tools ↓" ersatzlos.
+     Farbe ist --accent (Seitenakzent), NICHT --accent-media: der Hero-Schleier
+     endet am Fuß auf var(--bg), das Zeichen liegt dort also auf der
+     Seitenfläche und nicht mehr auf dem Foto — im Hellmodus wäre das helle
+     Medien-Cyan auf hellem Grund unlesbar. */
+  /* Die Reihe spannt sich über den Satzspiegel (dieselbe Breite und dieselben
+     Seitenränder wie .hero__inner), die vier Stapel sitzen per space-between
+     darauf — der äußerste links steht damit exakt auf der Fluchtlinie der
+     Wortmarke.
+     pointer-events:none auf dem Link, :auto auf den SVG: sonst wäre der halbe
+     Hero-Fuß eine unsichtbare Klickfläche. Der Klick auf ein Zeichen steigt
+     zum <a> auf, also bleibt es EIN Bedienelement mit EINEM Tab-Stopp. */
+  .hero__cue{position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);z-index:1;
+    width:100%;max-width:var(--maxw);pointer-events:none;
+    display:flex;align-items:flex-start;justify-content:space-between;
+    padding:.4rem clamp(1.25rem,5vw,3.5rem);color:var(--accent);
+    transition:transform .25s cubic-bezier(.2,.7,.3,1)}
+  /* Fuenf Stapel nebeneinander, jeder vier Stufen tief — ungerade Zahl,
+     damit einer genau auf der Mitte sitzt. Die Welle läuft nicht
+     nur abwärts, sondern auch nach rechts (0,09 s je Spalte) — der Puls
+     streicht diagonal durch das Feld wie eine Anflug-Befeuerung. */
+  .hero__cue svg{display:block;width:clamp(30px,3vw,40px);height:auto;overflow:visible;pointer-events:auto;--col:0s}
+  .hero__cue svg:nth-child(2){--col:.09s}
+  .hero__cue svg:nth-child(3){--col:.18s}
+  .hero__cue svg:nth-child(4){--col:.27s}
+  .hero__cue svg:nth-child(5){--col:.36s}
+  /* Maße vom Wortmarken-V abgenommen, nicht geraten: Orbitron 900 setzt ein
+     breites V mit ~60°-Schenkeln und schwerem Strich. Eine 2,4px-Haarlinie
+     las sich als beliebiger UI-Pfeil — erst Strich 4,5 bei 46px Breite
+     erkennt man den Buchstaben wieder.
+     Gleicher Winkel, gleiche Strichstärke, konstanter Versatz — nur so
+     bleiben die Schenkel parallel und die Lücken gleich breit. Die
+     Tiefenstaffelung liegt allein in der Deckkraft. */
+  /* Verzögerung ist die Summe aus Zeile und Spalte — 8 Regeln statt 16
+     Einzelkombinationen; --col erbt vom <svg> auf die Pfade. */
+  .hero__cue path{fill:none;stroke:currentColor;stroke-width:4.5;stroke-linejoin:miter;
+    opacity:var(--o);--row:0s;animation:vdrop 2.4s ease-out infinite;
+    animation-delay:calc(var(--row) + var(--col));transition:opacity .25s}
+  .hero__cue path:nth-child(1){--o:1}
+  .hero__cue path:nth-child(2){--o:.74;--row:.13s}
+  .hero__cue path:nth-child(3){--o:.52;--row:.26s}
+  .hero__cue path:nth-child(4){--o:.34;--row:.39s}
+  /* Hellmodus braucht einen höheren Boden: dort ist der Akzent dunkles
+     Petrol auf hellem Verlauf statt hellem Cyan auf Schwarz, und die unteren
+     V verlieren bei gleicher Deckkraft deutlich mehr. Von Hand geschrieben —
+     build-light-overrides.mjs kennt nur Farbwerte, keine Deckkraft. */
+  :root[data-theme="light"] .hero__cue path:nth-child(2){--o:.84}
+  :root[data-theme="light"] .hero__cue path:nth-child(3){--o:.68}
+  :root[data-theme="light"] .hero__cue path:nth-child(4){--o:.54}
+  /* Ein Signal FÄLLT durch den Stapel: schneller Anstieg (0,17 s), langsames
+     Abklingen (0,55 s), dazu ein kurzer Versatz nach unten. Erst der Versatz
+     macht aus dem Flackern eine Welle, die sichtbar nach unten wandert —
+     0,13 s Abstand je Stufe, danach 1,7 s Ruhe. Kein Halo. */
+  @keyframes vdrop{0%,30%,100%{opacity:var(--o);transform:translateY(0)}
+    7%{opacity:1;transform:translateY(1.6px)}}
+  /* animation:none statt play-state: eine laufende Animation schlägt jede
+     normale Deklaration, sonst käme opacity:1 beim Hover nie an. */
+  .hero__cue:hover,.hero__cue:focus-visible{transform:translate(-50%,3px)}
+  .hero__cue:hover path,.hero__cue:focus-visible path{animation:none;opacity:1}
+  /* Der Ring sitzt an den Zeichen, nicht am Link: der Link ist jetzt so breit
+     wie der Satzspiegel, ein Rahmen darum wäre ein Kasten quer über den
+     Hero-Fuß statt einer Fokus-Anzeige. */
+  .hero__cue:focus-visible{outline:none}
+  .hero__cue:focus-visible svg{outline:2px solid var(--accent);outline-offset:4px}
 
   /* ========== Layout ========== */
   main{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 clamp(1.25rem,5vw,3.5rem)}
@@ -232,14 +301,22 @@ const tools = [
   <div class="hero__img" style={`--hero:url('${HERO_IMG}')`} aria-hidden="true"></div>
   <div class="hero__scrim" aria-hidden="true"></div>
   <div class="hero__inner">
-    <p class="hero__lede">Game-accurate tools for Star Citizen — item finder, mining, crafting, ships and the full Alpha 4 patch archive.</p>
     <button class="hero__search" type="button" data-scs-open aria-label="Open search">
       <span class="p" aria-hidden="true">&gt;_</span>
       <span class="h">Search items, ships, patches…</span>
       <span class="k" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
     </button>
   </div>
-  <div class="hero__cue" aria-hidden="true">Tools ↓</div>
+  <a class="hero__cue" href="#tools" aria-label="Go to tools">
+    {[0, 1, 2, 3, 4].map(() => (
+      <svg viewBox="0 0 46 90" aria-hidden="true" focusable="false">
+        <path d="M3 3 23 31 43 3"/>
+        <path d="M3 21 23 49 43 21"/>
+        <path d="M3 39 23 67 43 39"/>
+        <path d="M3 57 23 85 43 57"/>
+      </svg>
+    ))}
+  </a>
 </header>
 
 <main>
