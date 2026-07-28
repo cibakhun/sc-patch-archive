@@ -28,10 +28,18 @@ interface Props {
    * Seiten nicht brechen — der Wert wird schlicht ignoriert.
    */
   pill?: string;
-  /** hat DIESE Seite ein EN-Gegenstück? -> steuert den Umschalter (kein 404) */
+  /**
+   * @deprecated Der Umschalter leitet die Existenz des Gegenstuecks selbst aus
+   * der Routenliste ab (lib/routeTwins.ts). Die ~110 Seiten, die den Prop noch
+   * setzen, brechen dadurch nicht — er wirkt nur noch als ausdrueckliches
+   * `false` (Option abschalten). Kein Default mehr: `false` als Default wuerde
+   * die acht Aufrufstellen ohne Prop faelschlich auf die Startseite schicken.
+   */
   hasEn?: boolean;
+  /** Gegenstueck zu hasEn, gleiche Regel. */
+  hasDe?: boolean;
 }
-const { crumbs = [], hasEn = false } = Astro.props;
+const { crumbs = [], hasEn, hasDe } = Astro.props;
 
 // Locale aus dem Pfad; t() + L() halten Chrome/Links in der aktiven Sprache.
 // Für DE liefern beide exakt die bisherigen Werte -> DE-Ausgabe unverändert.
@@ -260,7 +268,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       </span>
       <span class="js-nav-acct-txt">{t('nav.account.login')}</span>
     </a>
-    <LangSwitcher hasEn={hasEn} />
+    <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
     <ThemeToggle />
   </div>
   <div class="snav__center">
@@ -394,7 +402,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 
     <footer class="snav-deck__foot">
       <ThemeToggle />
-      <LangSwitcher hasEn={hasEn} />
+      <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
       <div class="snav-deck__hints" aria-hidden="true">
         <span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> {t('nav.deck.hint.nav')}</span>
         <span><kbd>↵</kbd> {t('nav.deck.hint.open')}</span>

@@ -5,7 +5,9 @@
    Die realen Komponenten (ProfileCard .vp-card, FriendsManager, die acx-*
    Modals/Uploads/Inputs, die Favoritenliste) werden am Ende überbrückt, damit
    sie sich nahtlos in das Dossier einfügen. Dark-only (wie die Vorschau).
-   QUELLE: src/pages/account/preview.astro <style> — via scratchpad/extract-dossier-css.mjs
+   HERKUNFT: einmal aus dem <style> der Vorschauseite src/pages/account/
+   preview.astro extrahiert. Die Vorschau ist entfernt, seit das Design hier
+   angekommen ist — DIESE Datei ist die Quelle, es gibt keine zweite mehr.
    ========================================================================== */
 
 :root{

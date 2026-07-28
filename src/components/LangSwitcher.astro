@@ -12,26 +12,37 @@ import {
   useTranslations,
   type Locale,
 } from '../i18n/ui';
+import { twinExists } from '../lib/routeTwins';
 
 interface Props {
   /**
-   * Existiert für DIESE Seite ein EN-Gegenstück? DE ist komplett -> von EN
-   * nach DE klappt immer; von DE nach EN nur, wo die Seite schon übersetzt ist.
-   * Ohne Gegenstück zeigt die EN-Option auf die EN-Startseite statt ins 404.
+   * @deprecated Wird nicht mehr gebraucht und nur noch als Notbremse gelesen.
+   *
+   * Frueher trug jede Seite hier von Hand ein, ob sie ein EN-Gegenstueck hat.
+   * Das war halb: fuer die Gegenrichtung (EN -> DE) gab es keine Flagge, sie
+   * galt pauschal als vorhanden. /account/preview.html hatte kein DE-Pendant
+   * und der Umschalter zeigte trotzdem darauf — ein 404 im Kopf jeder Seite.
+   * Die Existenz kommt jetzt aus der Routenliste (lib/routeTwins.ts). Ein
+   * ausdrueckliches `false` schaltet die Option weiterhin ab; `true` kann die
+   * Ableitung NICHT ueberstimmen, sonst waere der 404 nur anders benannt.
    */
   hasEn?: boolean;
+  /** Gegenstueck zu hasEn, gleiche Regel. Ebenfalls nur als `false` wirksam. */
+  hasDe?: boolean;
 }
-const { hasEn = false } = Astro.props;
+const { hasEn, hasDe } = Astro.props;
+const veto: Record<Locale, boolean | undefined> = { en: hasEn, de: hasDe };
 
 const current = Astro.url.pathname;
 const lang = localeFromPath(current);
 const t = useTranslations(lang);
 
+/** Startseite der Zielsprache — der Auffang, wenn es kein Gegenstueck gibt. */
+const HOME: Record<Locale, string> = { en: '/index.html', de: '/de.html' };
+
 function targetFor(l: Locale): string {
-  // nur relevant auf Seiten, die (noch) kein EN-Pendant haben -> EN-Startseite
-  // (liegt seit dem Sprach-Tausch präfixlos auf der Wurzel)
-  if (l === 'en' && !hasEn) return '/index.html';
-  return pathForLocale(current, l);
+  if (veto[l] === false) return HOME[l];
+  return twinExists(current, l, pathForLocale) ? pathForLocale(current, l) : HOME[l];
 }
 ---
 <div class="langsw" role="group" aria-label={t('nav.langSwitch')}>

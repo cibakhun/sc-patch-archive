@@ -40,7 +40,6 @@ function toBaseForm(pathname: string): string {
  */
 export const NOINDEX_PATHS: ReadonlySet<string> = new Set([
   '/account.html',
-  '/account/preview.html',
   '/account/reset.html',
   '/account/update-password.html',
   '/refinery.html',
