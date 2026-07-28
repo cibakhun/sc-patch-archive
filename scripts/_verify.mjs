@@ -39,8 +39,13 @@ for (const f of htmls) {
 console.log(`pages: ${htmls.length}`);
 console.log(`local refs checked: ${checked}`);
 if (missing.length) {
-  console.log(`MISSING (${missing.length}):`);
-  console.log([...new Set(missing)].slice(0, 50).join('\n'));
+  // Zählen, was zu TUN ist — nicht, wie oft es vorkommt. Ein falsches Ziel im
+  // Sprachumschalter steht zweimal je Seite (Kopfleiste + Menüfuß) und las sich
+  // sonst als zwei Aufgaben.
+  const uniq = [...new Set(missing)];
+  const extra = missing.length - uniq.length;
+  console.log(`MISSING (${uniq.length})${extra ? ` — ${extra} Wiederholung(en) zusammengefasst` : ''}:`);
+  console.log(uniq.slice(0, 50).join('\n'));
   process.exitCode = 1;
 } else {
   console.log('ALL LOCAL REFERENCES RESOLVE ✓');

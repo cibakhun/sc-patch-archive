@@ -28,6 +28,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Das Qualitaetstor (e2e-Tests + Link-Integritaet) steckt im Dockerfile,
+      # NICHT als eigener Schritt hier: dort existiert dist/ bereits, ein
+      # Schritt an dieser Stelle muesste die Seite ein zweites Mal bauen.
+      # Schlaegt es fehl, bricht dieser Build ab und es wird nichts gepusht.
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -36,6 +40,21 @@ jobs:
           tags: |
             ghcr.io/cibakhun/sc-patch-archive:latest
             ghcr.io/cibakhun/sc-patch-archive:${{ github.sha }}
+
+      # Aufbewahrung begrenzen: jeder Push auf main legt eine neue Paketversion
+      # an, und jede haelt ihre Layer (~700 MB unkomprimiert) fest. Ohne
+      # Aufraeumen waechst das Paket unbegrenzt. Die 10 neuesten bleiben — das
+      # deckt einen Rollback ueber mehrere Deploys ab; aelteres ist praktisch
+      # unerreichbar, weil Coolify ueber :latest zieht.
+      # continue-on-error: das Aufraeumen darf einen erfolgreichen Deploy nie
+      # nachtraeglich rot faerben.
+      - name: Prune old GHCR versions
+        uses: actions/delete-package-versions@v5
+        continue-on-error: true
+        with:
+          package-name: sc-patch-archive
+          package-type: container
+          min-versions-to-keep: 10
 
       # Coolify anstoßen, das neue Image zu ziehen (Webhook-URL + API-Token als Repo-Secrets).
       # Der Deploy-Webhook braucht einen Bearer-Token (COOLIFY_API_TOKEN, Permission "deploy").

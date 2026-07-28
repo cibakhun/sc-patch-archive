@@ -27,6 +27,48 @@ const htmlFiles = allFiles.filter((f) => f.endsWith('.html'));
 const fileSet = new Set(allFiles.map((f) => '/' + f.slice(DIST.length + 1).replaceAll('\\', '/')));
 const rel = (f) => '/' + f.slice(DIST.length + 1).replaceAll('\\', '/');
 
+// ---------------------------------------------------------------------------
+// Was nginx ausliefert, ist mehr als das, was in dist/ liegt.
+//
+// Der Audit hat bisher nur `fileSet` gefragt und deshalb Links gemeldet, die im
+// Browser tadellos funktionieren — /pilot/krysx141 etwa stand als „FEHLER Toter
+// interner Link", obwohl nginx dafür eine Rewrite-Regel hat. Solche Fehlalarme
+// sind teurer als gar keine Prüfung: Wer zweimal einem „FEHLER" nachgeht, der
+// keiner war, sieht beim dritten Mal weg.
+//
+// Diese Funktion bildet die Regeln aus nginx/default.conf nach. Ändert sich
+// dort etwas, muss es HIER mitgeführt werden — die Verdopplung ist der Preis
+// dafür, dass der Audit ohne laufenden nginx auskommt.
+// ---------------------------------------------------------------------------
+function servedBy(urlPath) {
+  // 1. /en/… -> /… (Sprach-Tausch, alte indexierte URLs)
+  if (urlPath === '/en' || urlPath === '/en.html') return '/index.html';
+  if (urlPath.startsWith('/en/')) urlPath = urlPath.slice(3) || '/';
+
+  // 2. Verzeichnisse ohne .html-Zwilling, die eigene Ziele haben
+  const FIXED = {
+    '/patches': '/archiv.html', '/patches/': '/archiv.html',
+    '/de/patches': '/de/archiv.html', '/de/patches/': '/de/archiv.html',
+  };
+  if (FIXED[urlPath]) return FIXED[urlPath];
+
+  // 3. Öffentliche Piloten-Profile: /pilot/<handle> -> /pilot.html?h=<handle>
+  const pilot = /^(\/de)?\/pilot\/[A-Za-z0-9_-]+\/?$/.exec(urlPath);
+  if (pilot) return `${pilot[1] || ''}/pilot.html`;
+
+  // 4. Die .html-Zwillingsregel: /schiffe und /schiffe/ treffen /schiffe.html
+  const base = urlPath.length > 1 && urlPath.endsWith('/') ? urlPath.slice(0, -1) : urlPath;
+  if (fileSet.has(base + '.html')) return base + '.html';
+
+  // 5. Verzeichnis-Index (die Onepager)
+  if (urlPath.endsWith('/') && fileSet.has(urlPath + 'index.html')) return urlPath + 'index.html';
+
+  return urlPath;
+}
+
+/** Erreicht dieser Link im Browser eine echte Seite — direkt oder über nginx? */
+const reachable = (urlPath) => fileSet.has(urlPath) || fileSet.has(servedBy(urlPath));
+
 // id-/name-Anker je Datei (lazy, gecacht)
 const idCache = new Map();
 function idsOf(path) {
@@ -246,13 +288,14 @@ for (const f of htmlFiles) {
     path = path.split('?')[0];
     if (!path.startsWith('/')) path = posix.normalize(posix.join(posix.dirname(page), path));
     if (path === '' || path === '/') path = '/index.html';
-    if (path.endsWith('/')) path += 'index.html';
-    if (!fileSet.has(path)) {
+    if (!reachable(path)) {
       linkErrors.push(`${page}: ${url} -> ${path} FEHLT`);
       continue;
     }
-    if (frag && path.endsWith('.html') && !idsOf(path).has(frag)) {
-      anchorErrors.push(`${page}: ${url} — Anker #${frag} fehlt in ${path}`);
+    // Für die Anker-Prüfung zählt die Datei, die nginx tatsächlich ausliefert.
+    const served = fileSet.has(path) ? path : servedBy(path);
+    if (frag && served.endsWith('.html') && !idsOf(served).has(frag)) {
+      anchorErrors.push(`${page}: ${url} — Anker #${frag} fehlt in ${served}`);
     }
   }
 
@@ -283,8 +326,8 @@ for (const f of htmlFiles) {
     // Verzeichnis-URLs bedient nginx über `index index.html` — die Startseite
     // heißt in canonical/hreflang bewusst '/' (nicht /index.html).
     let clean = target.split('#')[0];
-    if (clean.endsWith('/')) clean += 'index.html';
-    if (fileSet.has(clean)) continue;
+    if (clean === '/') clean = '/index.html';
+    if (reachable(clean)) continue;
     const basePrefixM = /^\/([^/]+)(\/.*)$/.exec(clean);
     if (basePrefixM && fileSet.has(basePrefixM[2])) {
       basePrefixPages.add(`${page} (Präfix /${basePrefixM[1]})`);
@@ -382,11 +425,17 @@ const heavyAssets = allFiles
   .map(([p, s]) => `${p}: ${(s / 1048576).toFixed(1)} MB`);
 
 // ---------- Report ----------
+// Ein Befund ist ein Befund, auch wenn er mehrfach auf derselben Seite steht.
+// Der Sprachumschalter etwa wird ZWEIMAL gerendert (Kopfleiste + Menüfuß) —
+// ein falsches Ziel dort erschien als zwei Fehler und blähte jede Zählung auf.
+// Die Zahl hinter dem Titel soll die Zahl der zu erledigenden Dinge sein.
 function section(title, list, bucket, cap = 15) {
-  console.log(`\n== ${title}: ${list.length} ==`);
-  for (const l of list.slice(0, cap)) console.log('   ' + l);
-  if (list.length > cap) console.log(`   … +${list.length - cap} weitere`);
-  bucket.push(...list);
+  const uniq = [...new Set(list)];
+  const dupes = list.length - uniq.length;
+  console.log(`\n== ${title}: ${uniq.length} ==${dupes ? `   (${dupes} Wiederholung(en) zusammengefasst)` : ''}`);
+  for (const l of uniq.slice(0, cap)) console.log('   ' + l);
+  if (uniq.length > cap) console.log(`   … +${uniq.length - cap} weitere`);
+  bucket.push(...uniq);
 }
 
 console.log(`Seiten: ${pagesDe} DE + ${pagesEn} EN = ${htmlFiles.length}`);
