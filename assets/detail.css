@@ -92,6 +92,11 @@ section{position:relative;padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem)
 .hero__photo--vid{animation:none}
 .hero__photo--vid .hero__vid{opacity:1}
 #stars{position:absolute;inset:0;z-index:1;opacity:.5}
+/* FX-Gatter (Partikel-Ambiente): ergaenzt das JS-Gatter in detail.js, ersetzt
+   es nicht (D-10) — ohne diese Regel bliebe beim Abschalten das zuletzt
+   gezeichnete Bild stehen. */
+html:not([data-fx="on"]) #stars,
+html:not([data-fx="on"]) #embers { display: none; }
 .hero__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
 /* padding statt enger Box: bei background-clip:text wird nur innerhalb der
    Paint-Fläche gemalt — Unterlängen (g, p, y) ragen bei line-height .86 sonst

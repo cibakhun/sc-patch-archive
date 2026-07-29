@@ -127,6 +127,19 @@ if(!admin){t='dark'}else if(auto){t=(window.matchMedia&&matchMedia('(prefers-col
 d.setAttribute('data-theme',t==='light'?'light':'dark');if(auto)d.setAttribute('data-theme-auto','');
 var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='light'?'${themeColorLight}':'${themeColorSafe}')})()`}
   />
+  {/* Partikel-Ambiente (Sterne/Embers/Staub) — data-fx als Vorgabe VOR dem
+      ersten Paint setzen, synchron, wie der Theme-Schnipsel darüber. Standard
+      ist AUS (FX-02/D-04): nur die gespeicherte Wahl 'on' UND NICHT-reduzierte
+      Bewegung schalten data-fx auf 'on'. Strenge Erlaubnisliste (T-01.1-01) —
+      jeder andere Wert faellt auf 'off'. Kein Admin-Gatter (FX-04/D-06),
+      anders als beim Theme oben. */}
+  <script
+    is:inline
+    set:html={`(function(){var d=document.documentElement;
+var v=null;try{v=localStorage.getItem('vb.fx')}catch(e){}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
+  />
   {noindexEff && <meta name="robots" content="noindex" />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="canonical" href={canonical} />
@@ -301,6 +314,30 @@ if(window.matchMedia){var mq=matchMedia('(prefers-color-scheme: light)');
   mq.addEventListener?mq.addEventListener('change',os):mq.addListener(os);}
 addEventListener('storage',function(e){if(e.key==='vb.theme'&&isAdmin()&&(e.newValue==='light'||e.newValue==='dark')){
   d.removeAttribute('data-theme-auto');paint(e.newValue);}});})()`}
+  />
+  {/* FX-Umschalt-Verhalten (Partikel-Ambiente). Kein Admin-Gatter (FX-04/D-06)
+      — jeder Besucher darf umschalten, anders als die Theme-Wahl oben. Sendet
+      'vbfxchange' auf document, damit laufende rAF-Schleifen (detail.js,
+      archive.js, Patch-Seiten-Inline-Skripte) live reagieren koennen, ohne
+      dass die Seite neu laedt (FX-05/D-09). */}
+  <script
+    is:inline
+    set:html={`(function(){var d=document.documentElement;
+function stored(){var v=null;try{v=localStorage.getItem('vb.fx')}catch(e){}return v==='on';}
+function reduce(){return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}
+function apply(onStored){var eff=onStored&&!reduce();d.setAttribute('data-fx',eff?'on':'off');
+  var b=document.querySelectorAll('.js-fx-toggle');
+  for(var i=0;i<b.length;i++)b[i].setAttribute('aria-pressed',onStored?'true':'false');
+  document.dispatchEvent(new CustomEvent('vbfxchange',{detail:{on:eff}}));}
+document.addEventListener('click',function(e){
+  var b=e.target&&e.target.closest&&e.target.closest('.js-fx-toggle');
+  if(!b)return;var next=!stored();try{localStorage.setItem('vb.fx',next?'on':'off')}catch(e){}
+  apply(next);});
+addEventListener('storage',function(e){if(e.key==='vb.fx')apply(e.newValue==='on');});
+if(window.matchMedia){var mq=matchMedia('(prefers-reduced-motion: reduce)');
+  var onReduceChange=function(){apply(stored())};
+  mq.addEventListener?mq.addEventListener('change',onReduceChange):mq.addListener(onReduceChange);}
+apply(stored());})()`}
   />
 </body>
 </html>

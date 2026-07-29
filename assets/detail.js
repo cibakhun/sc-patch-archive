@@ -72,15 +72,26 @@
     });
   }
 
+  // FX-Gatter (Partikel-Ambiente): fxOn() liest die vorab in <head> gesetzte
+  // data-fx-Flagge (Layout.astro). Im aeusseren IIFE-Bereich definiert, damit
+  // sowohl die Sterne- als auch die Ember-Schleife dieselbe Funktion nutzen.
+  function fxOn(){return document.documentElement.getAttribute('data-fx')==='on';}
+
   var c=document.getElementById('stars');
   if(c){
     var x=c.getContext('2d'),w,h,st;
     var cs=getComputedStyle(document.documentElement);
     var A=(cs.getPropertyValue('--accent')||'#7fb2d9').trim(),A2=(cs.getPropertyValue('--accent-2')||'#d4af37').trim();
     var COL=[A,A2,'#ffffff','#9aa8c9'];
+    var running=false;
     function size(){w=c.width=innerWidth;h=c.height=Math.max(innerHeight,1);st=Array.from({length:Math.min(140,Math.floor(w/10))},function(){return {x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+.3,a:Math.random(),s:Math.random()*.014+.004,c:COL[Math.floor(Math.random()*COL.length)]};});}
-    function tick(){x.clearRect(0,0,w,h);for(var i=0;i<st.length;i++){var s=st[i];s.a+=s.s;var o=.25+Math.abs(Math.sin(s.a))*.7;x.globalAlpha=o;x.fillStyle=s.c;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}
-    size();addEventListener('resize',size);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)tick();
+    function tick(){if(!running)return;x.clearRect(0,0,w,h);for(var i=0;i<st.length;i++){var s=st[i];s.a+=s.s;var o=.25+Math.abs(Math.sin(s.a))*.7;x.globalAlpha=o;x.fillStyle=s.c;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}
+    document.addEventListener('vbfxchange',function(e){
+      if(e.detail.on&&!running){size();running=true;requestAnimationFrame(tick);}
+      else if(!e.detail.on){running=false;}
+    });
+    size();addEventListener('resize',size);
+    if(!matchMedia('(prefers-reduced-motion:reduce)').matches&&fxOn()){running=true;requestAnimationFrame(tick);}
   }
 
   var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
