@@ -68,12 +68,12 @@ hereinholt.
   5. `prefers-reduced-motion: reduce` schlägt weiterhin die gespeicherte Wahl
   6. Parallaxe, Ken Burns, Scanlines/Vignette und Scroll-Reveal sind unverändert; Holo-Viewer-Orbit und Konto-Bildzuschnitt (eigene `pointermove`-Nutzer) funktionieren wie zuvor
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 Plans:
 
 - [x] 01.1-01-PLAN.md
-- [ ] 01.1-02-PLAN.md
+- [x] 01.1-02-PLAN.md
 - [ ] 01.1-03-PLAN.md
 
 - [x] 01.1-01 (Welle 1): Schaltstelle end-to-end auf EINER Seite beweisen — Kopf-Flagge, Umschalter für alle Besucher, `#stars`/`#embers` in `assets/detail.js` gattern, im Browser gemessen, dazu ein automatisierter Nachweis für reduzierte Bewegung
@@ -173,7 +173,7 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Wortmarken-Wandlung | 2/2 | Complete | 2026-07-28 |
-| 1.1 Ambiente-Effekte stilllegen | 1/3 | In Progress|  |
+| 1.1 Ambiente-Effekte stilllegen | 2/3 | In Progress|  |
 | 1.2 Werkzeuge erklären | 0/2 | Not started | - |
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
