@@ -330,7 +330,13 @@
     var dpr = 1;
     var stars = [];
     var tint = { r: 255, g: 90, b: 31 };
-    var running = true;
+    var running = false;
+
+    // FX-Gatter (Partikel-Ambiente): fxOn() liest die vorab in <head> gesetzte
+    // data-fx-Flagge (Layout.astro), analog zu assets/detail.js.
+    function fxOn() {
+      return document.documentElement.getAttribute('data-fx') === 'on';
+    }
 
     setStarTint = function (hex) {
       var m = /^#?([0-9a-f]{6})$/i.exec((hex || '').trim());
@@ -410,12 +416,23 @@
       document.addEventListener('visibilitychange', function () {
         if (document.hidden) {
           running = false;
-        } else if (!running) {
+        } else if (!running && fxOn()) {
           running = true;
           requestAnimationFrame(frame);
         }
       });
-      frame();
+      document.addEventListener('vbfxchange', function (e) {
+        if (!e.detail.on) {
+          running = false;
+        } else if (!running && !document.hidden) {
+          running = true;
+          requestAnimationFrame(frame);
+        }
+      });
+      if (fxOn()) {
+        running = true;
+        frame();
+      }
     }
   }
 })();
