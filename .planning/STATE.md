@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1.1
 current_phase_name: Ambiente-Effekte stilllegen
 status: in_progress
-stopped_at: Projekt-Initialisierung abgeschlossen — ROADMAP.md und STATE.md geschrieben
-last_updated: "2026-07-29T00:37:38.765Z"
+stopped_at: Completed 01.1-01-PLAN.md
+last_updated: "2026-07-29T02:56:19.467Z"
 last_activity: 2026-07-29
 last_activity_desc: Phase 1.1 recherchiert, gemappt, geplant und geprueft
 progress:
-  total_phases: 6
-  completed_phases: 1
-  total_plans: 13
-  completed_plans: 2
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 5
+  completed_plans: 1
 ---
 
 # Project State
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 1.1 of 6 (Ambiente-Effekte stilllegen)
-Plan: 0 of 3 in Phase 1.1
+Plan: 1 of 3 in Phase 1.1
 Status: Phase 1.1 geplant (3 Pläne, 3 Wellen, Plan-Prüfer bestanden) — bereit zur Ausführung; Phase 1.2 noch ungeplant
 Branch: claude/site-feedback-effects-docs-3f4edf
 Last activity: 2026-07-29 — Phase 1.1 recherchiert, gemappt, geplant und geprueft
 
-Progress: [█░░░░░░░░░] 17%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
@@ -55,6 +55,11 @@ Progress: [█░░░░░░░░░] 17%
 - Trend: —
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 01.1 P01 | 45min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -66,6 +71,8 @@ Recent decisions affecting current work:
 - Init: Meilenstein-Richtung ist UI-/Design-Feinschliff; Daten, Konto und Discord bleiben unangetastet
 - Init: Grobe Granularität — 4 Phasen, je 2 Pläne
 - Init: Projekt-Recherche übersprungen (Bestandsprojekt mit festem, dokumentiertem Stack; kein Web-Such-MCP verbunden). Recherche pro Phase bleibt aktiv.
+- [Phase ?]: 01.1-01: data-fx/vb.fx/vbfxchange/js-fx-toggle als endgueltiger FX-Vertrag festgelegt (reversibility: costly) — Plaene 02/03 bauen direkt darauf auf
+- [Phase ?]: 01.1-01: 11 vorbestehende, unabhaengige test:e2e-Fehlschlaege (item-finder-app.js Cache-Bust) in deferred-items.md dokumentiert, nicht behoben (Scope Boundary)
 
 ### Pending Todos
 
@@ -94,6 +101,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-28
-Stopped at: Projekt-Initialisierung abgeschlossen — ROADMAP.md und STATE.md geschrieben
+Last session: 2026-07-29T02:56:19.452Z
+Stopped at: Completed 01.1-01-PLAN.md
 Resume file: None

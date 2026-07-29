@@ -56,17 +56,18 @@
 > Wertes in einer Liste ab, tragen keine Information und kosten Rechenleistung,
 > die beim Spielen dem Spiel fehlt.
 
-- [ ] **FX-01**: Der Schein um den Mauszeiger ist ersatzlos entfernt — Element (`.cursorglow`), CSS-Regel und der `pointermove`-Listener, der `--mx`/`--my` auf `<html>` schreibt
-- [ ] **FX-02**: Beim Erstaufruf startet keine Partikel-Animation; für `#stars`, `#embers` und `#dust` läuft keine `requestAnimationFrame`-Schleife
+- [x] **FX-01**: Der Schein um den Mauszeiger ist ersatzlos entfernt — Element (`.cursorglow`), CSS-Regel und der `pointermove`-Listener, der `--mx`/`--my` auf `<html>` schreibt
+- [x] **FX-02**: Beim Erstaufruf startet keine Partikel-Animation; für `#stars`, `#embers` und `#dust` läuft keine `requestAnimationFrame`-Schleife
   > `#dust` kam erst bei der Planung ans Licht: `sc-4-9-0.astro` (EN+DE) trägt eine
   > dritte Partikel-Leinwand („Staub-Partikel: warme Motes, driften seitwärts"),
   > die bei der ersten Erhebung durch die Suche nach `stars|embers` fiel. Sie ist
   > wörtlich das, was die Rückmeldung „dust particles floating in the background"
   > nennt — und sitzt auf der Seite des aktuellen Patches.
-- [ ] **FX-03**: Eine gespeicherte Wahl schaltet die Partikel ein; sie gilt site-weit und überdauert Seitenwechsel und Sitzung
-- [ ] **FX-04**: Der Umschalter ist für alle Besucher erreichbar — anders als die Farbmodus-Wahl ist er nicht auf Admins beschränkt — und in DE und EN beschriftet
-- [ ] **FX-05**: Das Abschalten beendet eine laufende Schleife ohne Neuladen und hinterlässt kein eingefrorenes Standbild
-- [ ] **FX-06**: `prefers-reduced-motion: reduce` bleibt wirksam und schlägt die gespeicherte Wahl
+
+- [x] **FX-03**: Eine gespeicherte Wahl schaltet die Partikel ein; sie gilt site-weit und überdauert Seitenwechsel und Sitzung
+- [x] **FX-04**: Der Umschalter ist für alle Besucher erreichbar — anders als die Farbmodus-Wahl ist er nicht auf Admins beschränkt — und in DE und EN beschriftet
+- [x] **FX-05**: Das Abschalten beendet eine laufende Schleife ohne Neuladen und hinterlässt kein eingefrorenes Standbild
+- [x] **FX-06**: `prefers-reduced-motion: reduce` bleibt wirksam und schlägt die gespeicherte Wahl
 - [ ] **FX-07**: Parallaxe, Ken Burns, Scanlines/Vignette und Scroll-Reveal bleiben unverändert — sie waren nicht Teil der Rückmeldung
 - [ ] **FX-08**: Fremde `pointermove`-Nutzer bleiben unangetastet: Holo-Viewer-Orbit (`assets/holo-viewer.js`) und Bildzuschnitt im Konto (`src/scripts/account-dashboard.ts`)
 
@@ -123,12 +124,12 @@
 | MOTN-03 | Phase 1 | Complete |
 | MOTN-04 | Phase 1 | Complete |
 | THEME-01 | Phase 1 | Complete |
-| FX-01 | Phase 1.1 | Pending |
-| FX-02 | Phase 1.1 | Pending |
-| FX-03 | Phase 1.1 | Pending |
-| FX-04 | Phase 1.1 | Pending |
-| FX-05 | Phase 1.1 | Pending |
-| FX-06 | Phase 1.1 | Pending |
+| FX-01 | Phase 1.1 | Complete |
+| FX-02 | Phase 1.1 | Complete |
+| FX-03 | Phase 1.1 | Complete |
+| FX-04 | Phase 1.1 | Complete |
+| FX-05 | Phase 1.1 | Complete |
+| FX-06 | Phase 1.1 | Complete |
 | FX-07 | Phase 1.1 | Pending |
 | FX-08 | Phase 1.1 | Pending |
 | DOC-01 | Phase 1.2 | Pending |
@@ -148,6 +149,7 @@
 | THEME-02 | Phase 4 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 21 total
 - Mapped to phases: 21
 - Unmapped: 0 ✓
