@@ -48,6 +48,42 @@
 - [ ] **SYNC-01**: Jede Änderung an einer Startseiten- oder Layout-Datei trifft die EN- und die DE-Fassung im selben Arbeitsschritt
 - [ ] **SYNC-02**: Ein Prüfschritt belegt für die geänderten Seitenpaare, dass Struktur und Stil deckungsgleich sind — nicht nur die Absicht
 
+### Ambiente-Effekte
+
+> Quelle: Rückmeldung eines Besuchers am 29.07.2026. Er nutzt die Seite vor allem
+> für Waffen- und Modulwerte von Schiffen und für Crafting-Materiallisten. Der
+> Schein am Mauszeiger und die schwebenden Staubpartikel lenken beim Suchen eines
+> Wertes in einer Liste ab, tragen keine Information und kosten Rechenleistung,
+> die beim Spielen dem Spiel fehlt.
+
+- [ ] **FX-01**: Der Schein um den Mauszeiger ist ersatzlos entfernt — Element (`.cursorglow`), CSS-Regel und der `pointermove`-Listener, der `--mx`/`--my` auf `<html>` schreibt
+- [ ] **FX-02**: Beim Erstaufruf startet keine Partikel-Animation; für `#stars`, `#embers` und `#dust` läuft keine `requestAnimationFrame`-Schleife
+  > `#dust` kam erst bei der Planung ans Licht: `sc-4-9-0.astro` (EN+DE) trägt eine
+  > dritte Partikel-Leinwand („Staub-Partikel: warme Motes, driften seitwärts"),
+  > die bei der ersten Erhebung durch die Suche nach `stars|embers` fiel. Sie ist
+  > wörtlich das, was die Rückmeldung „dust particles floating in the background"
+  > nennt — und sitzt auf der Seite des aktuellen Patches.
+- [ ] **FX-03**: Eine gespeicherte Wahl schaltet die Partikel ein; sie gilt site-weit und überdauert Seitenwechsel und Sitzung
+- [ ] **FX-04**: Der Umschalter ist für alle Besucher erreichbar — anders als die Farbmodus-Wahl ist er nicht auf Admins beschränkt — und in DE und EN beschriftet
+- [ ] **FX-05**: Das Abschalten beendet eine laufende Schleife ohne Neuladen und hinterlässt kein eingefrorenes Standbild
+- [ ] **FX-06**: `prefers-reduced-motion: reduce` bleibt wirksam und schlägt die gespeicherte Wahl
+- [ ] **FX-07**: Parallaxe, Ken Burns, Scanlines/Vignette und Scroll-Reveal bleiben unverändert — sie waren nicht Teil der Rückmeldung
+- [ ] **FX-08**: Fremde `pointermove`-Nutzer bleiben unangetastet: Holo-Viewer-Orbit (`assets/holo-viewer.js`) und Bildzuschnitt im Konto (`src/scripts/account-dashboard.ts`)
+
+### Werkzeug-Dokumentation
+
+> Quelle: dieselbe Rückmeldung. „Diese Werkzeuge sind sehr mächtig, aber nur wenn
+> der Nutzer weiß, wofür sie da sind und wie man sie benutzt." Der Zweck steht vor
+> der Bedienung — wer nicht weiß, wofür ein Werkzeug gut ist, liest keine Anleitung.
+
+- [ ] **DOC-01**: Jedes Werkzeug trägt einen aufklappbaren Abschnitt, der zuerst den Zweck nennt und dann die Bedienung
+- [ ] **DOC-02**: Ein Hilfe-Schalter heftet auf der aktuellen Ansicht an jedes bedienbare Element eine Erklärung
+- [ ] **DOC-03**: Die Hilfe erreicht auch client-seitig gerendertes Markup (`assets/item-finder-app.js`, `assets/crafting-app.js`)
+- [ ] **DOC-04**: Alle Erklärungen liegen in DE und EN vollständig vor; keine Fassung fällt auf die andere Sprache zurück
+- [ ] **DOC-05**: Die Hilfe ist per Tastatur zu öffnen, zu durchlaufen und mit Esc zu verlassen
+- [ ] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
+- [ ] **DOC-07**: Abgedeckt sind Item Finder, Crafting, Mining, Schiffe, Missionen, Refinery, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
+
 ## v2 Requirements
 
 ### Sprachparität
@@ -87,6 +123,21 @@
 | MOTN-03 | Phase 1 | Complete |
 | MOTN-04 | Phase 1 | Complete |
 | THEME-01 | Phase 1 | Complete |
+| FX-01 | Phase 1.1 | Pending |
+| FX-02 | Phase 1.1 | Pending |
+| FX-03 | Phase 1.1 | Pending |
+| FX-04 | Phase 1.1 | Pending |
+| FX-05 | Phase 1.1 | Pending |
+| FX-06 | Phase 1.1 | Pending |
+| FX-07 | Phase 1.1 | Pending |
+| FX-08 | Phase 1.1 | Pending |
+| DOC-01 | Phase 1.2 | Pending |
+| DOC-02 | Phase 1.2 | Pending |
+| DOC-03 | Phase 1.2 | Pending |
+| DOC-04 | Phase 1.2 | Pending |
+| DOC-05 | Phase 1.2 | Pending |
+| DOC-06 | Phase 1.2 | Pending |
+| DOC-07 | Phase 1.2 | Pending |
 | TYPO-01 | Phase 2 | Pending |
 | TYPO-02 | Phase 2 | Pending |
 | TYPO-03 | Phase 2 | Pending |

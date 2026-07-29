@@ -1,12 +1,19 @@
 ---
-gsd_state_version: '1.0'
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+current_phase: 1.1
+current_phase_name: Ambiente-Effekte stilllegen
 status: in_progress
+stopped_at: Projekt-Initialisierung abgeschlossen — ROADMAP.md und STATE.md geschrieben
+last_updated: "2026-07-29T00:37:38.765Z"
+last_activity: 2026-07-29
+last_activity_desc: Phase 1.1 recherchiert, gemappt, geplant und geprueft
 progress:
-  total_phases: 4
+  total_phases: 6
   completed_phases: 1
-  total_plans: 8
+  total_plans: 13
   completed_plans: 2
-  percent: 25
 ---
 
 # Project State
@@ -16,21 +23,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 2 — Schrift- und Bewegungsskala
+**Current focus:** Phase 1.1 — Ambiente-Effekte stilllegen
 
 ## Current Position
 
-Phase: 1 of 4 abgeschlossen (Wortmarken-Wandlung)
-Plan: 2 of 2 in Phase 1
-Status: Phase complete — auf Staging zur Sichtprüfung
-Branch: feature/hero-wordmark-morph
-Last activity: 2026-07-28 — Phase 1 umgesetzt und gemessen (Commit 002e5a3), auf staging gebracht
+Phase: 1.1 of 6 (Ambiente-Effekte stilllegen)
+Plan: 0 of 3 in Phase 1.1
+Status: Phase 1.1 geplant (3 Pläne, 3 Wellen, Plan-Prüfer bestanden) — bereit zur Ausführung; Phase 1.2 noch ungeplant
+Branch: claude/site-feedback-effects-docs-3f4edf
+Last activity: 2026-07-29 — Phase 1.1 recherchiert, gemappt, geplant und geprueft
 
-Progress: [██░░░░░░░░] 25%
+Progress: [█░░░░░░░░░] 17%
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: —
 - Total execution time: —
@@ -42,6 +50,7 @@ Progress: [██░░░░░░░░] 25%
 | - | - | - | - |
 
 **Recent Trend:**
+
 - Last 5 plans: —
 - Trend: —
 
@@ -69,6 +78,11 @@ None yet.
 - GSD-Subagenten (`gsd-planner`, `gsd-executor`, …) liegen in `~/.claude/agents/`, waren in der Init-Sitzung aber noch nicht in der Agenten-Registry. Nach einem Neustart von Claude Code stehen sie zur Verfügung. Phase 1 lief deshalb inline.
 - Vorbestehend, nicht aus Phase 1: der Astro-Dev-Server bricht bei `src/layouts/Layout.astro` mit `Unexpected ")"` in einem Inline-Skript ab. Der Produktionsbuild ist nicht betroffen — die Sichtprüfung lief deshalb gegen das gebaute `dist/`.
 - Reduzierte Bewegung ist in Phase 1 aus dem Code abgeleitet, nicht im Browser gemessen: der Prüfbrowser meldet `prefers-reduced-motion: false` und bietet keine Emulation.
+
+### Roadmap Evolution
+
+- Phase 01.1 inserted after Phase 1: Ambiente-Effekte stilllegen — Mauszeiger-Schein raus, Partikel opt-in (Besucher-Rueckmeldung 29.07.2026) (URGENT)
+- Phase 01.2 inserted after Phase 1: Werkzeuge erklaeren — Zweck- und Bedienungshilfe je Werkzeug (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 
 ## Deferred Items
 
