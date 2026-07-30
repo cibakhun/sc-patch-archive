@@ -59,9 +59,12 @@ import Attribution from '../../components/Attribution.astro';
     <h2>Lokale Speicherung im Browser (localStorage)</h2>
     <p>
       Einzelne Werkzeuge der Seite (z. B. Crafting-Planer, „Im Besitz“-Markierungen,
-      Ansichts-Einstellungen) speichern ihre Einstellungen ausschließlich <strong>lokal in deinem
+      Ansichts-Einstellungen) speichern ihre Einstellungen <strong>lokal in deinem
       Browser</strong> (localStorage). Diese Daten verlassen dein Gerät nicht und können jederzeit
-      über die Browser-Einstellungen gelöscht werden.
+      über die Browser-Einstellungen gelöscht werden. Bist du angemeldet, werden die Inhalte
+      kontogebundener Werkzeuge (Crafting-Planer und „Im Besitz“-Markierungen, Refinery-Aufträge)
+      zusätzlich in deinem <a href="#accounts">Benutzerkonto</a> gespeichert, damit sie auf allen
+      Geräten verfügbar sind.
     </p>
 
     <h2>Extern eingebundene Bilder</h2>
@@ -131,6 +134,8 @@ import Attribution from '../../components/Attribution.astro';
         ausschließlich als kryptografischer Hash gespeichert, niemals im Klartext)</li>
       <li><strong>Profildaten</strong>, die du selbst angibst (Anzeigename, Handle — beides optional)</li>
       <li><strong>Favoriten</strong>, die du aktiv speicherst</li>
+      <li><strong>Werkzeug-Daten</strong>, die du aktiv anlegst (Crafting-Planer und
+        „Im Besitz“-Markierungen, Refinery-Aufträge)</li>
       <li>technisch bedingt Sitzungs- und Sicherheitsdaten des Anbieters (z. B. Zeitpunkt der
         Anmeldung, IP-Adresse in Sicherheits-Logs)</li>
     </ul>
@@ -139,14 +144,15 @@ import Attribution from '../../components/Attribution.astro';
       Wunsch). Die Anmeldung erfolgt ohne Cookies: das Sitzungs-Token wird ausschließlich lokal in
       deinem Browser gespeichert (localStorage). Du kannst dein Konto jederzeit selbst im
       <a href="/de/account.html">Konto-Dashboard</a> endgültig löschen — dabei werden alle
-      zugehörigen Daten (Profil, Favoriten, Anmeldedaten) unwiderruflich entfernt.
+      zugehörigen Daten (Profil, Favoriten, Werkzeug-Daten, Anmeldedaten) unwiderruflich entfernt.
     </p>
     <p class="muted">
       Auftragsverarbeiter: Supabase, Inc.; Datenhaltung in der EU (AWS eu-central-1, Frankfurt).
       Details zur Datenverarbeitung durch den Dienst:
       <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a>.
       Eine Verbindung zu Supabase wird nur hergestellt, wenn du Konto-Funktionen nutzt
-      (Registrierung, Anmeldung, Favoriten) — nicht beim bloßen Betrachten der Seiten.
+      (Registrierung, Anmeldung, Favoriten, kontogebundene Werkzeuge) — nicht beim bloßen
+      Betrachten der Seiten.
     </p>
 
     <h2>Schriftarten</h2>

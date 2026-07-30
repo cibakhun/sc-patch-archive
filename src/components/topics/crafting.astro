@@ -70,7 +70,7 @@ const patchHref = de ? `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html` : `/
 
   <div class="cr-sec-h reveal"><span class="num">01</span><h2>{de ? 'Blueprint-Datenbank' : 'Blueprint database'}</h2></div>
   <div class="cr-note reveal">
-    <span>Patch <b>{ver}</b>{de ? ', Stand ' : ', as of '}<b>{snap}</b> — <b>{de ? 'patch-volatil, ingame prüfen' : 'patch-volatile, verify in-game'}</b><Fragment set:html={de ? '. „Im Besitz"-Markierungen &amp; der Planer werden nur lokal im Browser gespeichert.' : '. “Owned” marks &amp; the planner are stored only locally in your browser.'} /></span>
+    <span>Patch <b>{ver}</b>{de ? ', Stand ' : ', as of '}<b>{snap}</b> — <b>{de ? 'patch-volatil, ingame prüfen' : 'patch-volatile, verify in-game'}</b><Fragment set:html={de ? '. „Im Besitz"-Markierungen &amp; der Planer werden im Konto gespeichert, wenn du angemeldet bist — sonst nur lokal in diesem Browser.' : '. “Owned” marks &amp; the planner are saved to your account when you’re signed in — otherwise only locally in this browser.'} /></span>
   </div>
 
   {/* Statischer Einstieg in dieselbe Datenschicht — der Planer selbst rendert

@@ -54,8 +54,11 @@ import Attribution from '../components/Attribution.astro';
     <h2>Local browser storage (localStorage)</h2>
     <p>
       Some tools on this site (e.g. the crafting planner, “owned” marks, view settings) store their
-      state exclusively <strong>locally in your browser</strong> (localStorage). This data never
-      leaves your device and can be deleted at any time via your browser settings.
+      state <strong>locally in your browser</strong> (localStorage). This data never
+      leaves your device and can be deleted at any time via your browser settings. When you are
+      signed in, the contents of account-bound tools (crafting planner and “owned” marks, refinery
+      jobs) are additionally stored in your <a href="#accounts">user account</a> so they are
+      available across devices.
     </p>
 
     <h2>Externally embedded images</h2>
@@ -121,6 +124,8 @@ import Attribution from '../components/Attribution.astro';
         exclusively as a cryptographic hash, never in plain text)</li>
       <li><strong>profile data</strong> you enter yourself (display name, handle — both optional)</li>
       <li><strong>favorites</strong> you actively save</li>
+      <li><strong>tool data</strong> you actively create (crafting planner and “owned” marks,
+        refinery jobs)</li>
       <li>technically, session and security data of the provider (e.g. sign-in timestamps,
         IP address in security logs)</li>
     </ul>
@@ -129,14 +134,14 @@ import Attribution from '../components/Attribution.astro';
       Sign-in works without cookies: the session token is stored exclusively locally in your browser
       (localStorage). You can permanently delete your account yourself at any time in the
       <a href="/account.html">account dashboard</a> — this irreversibly removes all associated
-      data (profile, favorites, credentials).
+      data (profile, favorites, tool data, credentials).
     </p>
     <p class="muted">
       Processor: Supabase, Inc.; data residency in the EU (AWS eu-central-1, Frankfurt). For details
       on how the service processes data, see
       <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a>.
       A connection to Supabase is only established when you use account features
-      (registration, sign-in, favorites) — not when merely browsing the site.
+      (registration, sign-in, favorites, account-bound tools) — not when merely browsing the site.
     </p>
 
     <h2>Fonts</h2>
