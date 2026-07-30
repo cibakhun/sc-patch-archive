@@ -1,0 +1,92 @@
+---
+// Partikel-Effekte-Umschalter (Sterne/Embers/Staub). Baulich wie
+// ThemeToggle.astro, aber ausdruecklich OHNE dessen Rollen-Gatter fuer den
+// Farbmodus (FX-04/D-06) — die Wahl steht ALLEN Besuchern offen.
+//
+// Der Anfangszustand steht NICHT im HTML — er entsteht erst zur Laufzeit
+// (gespeicherte Wahl, siehe Layout.astro). aria-pressed wird deshalb dort
+// gesetzt; hier steht nur ein Platzhalter. Anders als ThemeToggle startet
+// der Platzhalter auf "false": Partikel sind per Vorgabe AUS (FX-02/D-04).
+import { localeFromPath, useTranslations } from '../i18n/ui';
+
+const t = useTranslations(localeFromPath(Astro.url.pathname));
+---
+
+<button class="fxsw js-fx-toggle" type="button" aria-pressed="false" aria-label={t('nav.fx')}>
+  <span class="fxsw__track" aria-hidden="true">
+    <svg class="fxsw__ic fxsw__ic--off" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2.6 13.9 9.1 20.5 7 16.4 12l4.1 5-6.6-2.1L12 21.4 10.1 14.9 3.5 17l4.1-5-4.1-5 6.6 2.1z" />
+      <path d="M3.5 3.5 20.5 20.5" />
+    </svg>
+    <svg class="fxsw__ic fxsw__ic--on" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2.6 13.9 9.1 20.5 7 16.4 12l4.1 5-6.6-2.1L12 21.4 10.1 14.9 3.5 17l4.1-5-4.1-5 6.6 2.1z" />
+    </svg>
+    <span class="fxsw__knob"></span>
+  </span>
+</button>
+
+<style>
+  .fxsw {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.5rem;border:1px solid var(--line, var(--line-soft));
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    line-height: 0;
+  }
+  .fxsw:hover {
+    border-color: var(--accent, #2dd4ff);
+  }
+
+  /* Schiene mit zwei Symbolen und einem wandernden Knopf: der aktive Zustand
+     ist am Ort des Knopfes ablesbar, nicht nur an einer Farbe. */
+  .fxsw__track {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    padding: 0.05rem 0.1rem;
+  }
+  .fxsw__ic {
+    position: relative;
+    z-index: 1;
+    display: block;
+    color: var(--muted, #8a99b8);
+    transition: color 0.18s;
+  }
+  .fxsw__knob {
+    position: absolute;
+    z-index: 0;
+    top: 50%;
+    left: 0;
+    width: 19px;
+    height: 19px;
+    margin-top: -9.5px;
+    margin-left: -3px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 18%, transparent);
+    transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+
+  /* An = Funke aktiv (Knopf rechts), Aus = durchgestrichener Funke aktiv
+     (Knopf links). Haengt bewusst nur an [data-fx] — keine Rollen-Klasse. */
+  :global(html[data-fx='on']) .fxsw__knob {
+    transform: translateX(21px);
+  }
+  :global(html[data-fx='on']) .fxsw__ic--on,
+  :global(html:not([data-fx='on'])) .fxsw__ic--off {
+    color: var(--accent, #2dd4ff);
+  }
+
+  .fxsw:focus-visible {
+    outline: 2px solid var(--accent-2, var(--accent, #2dd4ff));
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fxsw__knob {
+      transition: none;
+    }
+  }
+</style>

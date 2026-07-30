@@ -1,14 +1,10 @@
 /* SC Patch-Archiv — shared detail-page behavior (assets/detail.js)
-   topbar scroll · cursor glow · scroll-reveal · click-to-load video ·
+   topbar scroll · scroll-reveal · click-to-load video ·
    lightbox (img / yt / info) · themed star canvas. Theme-agnostic:
    reads --accent/--accent-2 from the page for the starfield colors. */
 (function(){
   var tb=document.getElementById('topbar');
   if(tb) addEventListener('scroll',function(){tb.classList.toggle('scrolled',scrollY>40);},{passive:true});
-  addEventListener('pointermove',function(e){
-    document.documentElement.style.setProperty('--mx',e.clientX+'px');
-    document.documentElement.style.setProperty('--my',e.clientY+'px');
-  },{passive:true});
 
   var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
   document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
@@ -72,15 +68,26 @@
     });
   }
 
+  // FX-Gatter (Partikel-Ambiente): fxOn() liest die vorab in <head> gesetzte
+  // data-fx-Flagge (Layout.astro). Im aeusseren IIFE-Bereich definiert, damit
+  // sowohl die Sterne- als auch die Ember-Schleife dieselbe Funktion nutzen.
+  function fxOn(){return document.documentElement.getAttribute('data-fx')==='on';}
+
   var c=document.getElementById('stars');
   if(c){
     var x=c.getContext('2d'),w,h,st;
     var cs=getComputedStyle(document.documentElement);
     var A=(cs.getPropertyValue('--accent')||'#7fb2d9').trim(),A2=(cs.getPropertyValue('--accent-2')||'#d4af37').trim();
     var COL=[A,A2,'#ffffff','#9aa8c9'];
+    var running=false;
     function size(){w=c.width=innerWidth;h=c.height=Math.max(innerHeight,1);st=Array.from({length:Math.min(140,Math.floor(w/10))},function(){return {x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+.3,a:Math.random(),s:Math.random()*.014+.004,c:COL[Math.floor(Math.random()*COL.length)]};});}
-    function tick(){x.clearRect(0,0,w,h);for(var i=0;i<st.length;i++){var s=st[i];s.a+=s.s;var o=.25+Math.abs(Math.sin(s.a))*.7;x.globalAlpha=o;x.fillStyle=s.c;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}
-    size();addEventListener('resize',size);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)tick();
+    function tick(){if(!running)return;x.clearRect(0,0,w,h);for(var i=0;i<st.length;i++){var s=st[i];s.a+=s.s;var o=.25+Math.abs(Math.sin(s.a))*.7;x.globalAlpha=o;x.fillStyle=s.c;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}
+    document.addEventListener('vbfxchange',function(e){
+      if(e.detail.on&&!running){size();running=true;requestAnimationFrame(tick);}
+      else if(!e.detail.on){running=false;}
+    });
+    size();addEventListener('resize',size);
+    if(!matchMedia('(prefers-reduced-motion:reduce)').matches&&fxOn()){running=true;requestAnimationFrame(tick);}
   }
 
   var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -101,14 +108,23 @@
   }
 
   // ---- Ember / spark field (Pyro mood) — warm pages only ----
+  // Die Leinwand entsteht wie bisher, sobald die Seite warm-akzentuiert ist
+  // (D-07: bleibt im Bestand, wird nie geloescht/neu erzeugt) — nur der
+  // Schleifenstart ist zusaetzlich an fxOn() gegattert (FX-02/FX-05).
   if(!reduce && accentIsWarm()){
     var ec=document.createElement('canvas');ec.id='embers';document.body.appendChild(ec);
     var ex=ec.getContext('2d'),ew,eh,emb;
     var AC=(getComputedStyle(document.documentElement).getPropertyValue('--accent')||'#ff5a1f').trim();
+    var erunning=false;
     function mkE(){return {x:Math.random()*ew,y:eh+Math.random()*eh,r:Math.random()*2+.5,sp:Math.random()*.5+.18,dr:(Math.random()-.5)*.35,a:Math.random()*.55+.18,t:Math.random()*6.28};}
     function esize(){ew=ec.width=innerWidth;eh=ec.height=innerHeight;emb=Array.from({length:Math.min(70,Math.floor(ew/22))},mkE);}
-    function etick(){ex.clearRect(0,0,ew,eh);for(var i=0;i<emb.length;i++){var e=emb[i];e.y-=e.sp;e.t+=.02;e.x+=e.dr+Math.sin(e.t)*.2;if(e.y<-12){emb[i]=mkE();emb[i].y=eh+12;}ex.globalAlpha=e.a*(.5+Math.abs(Math.sin(e.t))*.5);ex.fillStyle=AC;ex.beginPath();ex.arc(e.x,e.y,e.r,0,7);ex.fill();}ex.globalAlpha=1;requestAnimationFrame(etick);}
-    esize();addEventListener('resize',esize);etick();
+    function etick(){if(!erunning)return;ex.clearRect(0,0,ew,eh);for(var i=0;i<emb.length;i++){var e=emb[i];e.y-=e.sp;e.t+=.02;e.x+=e.dr+Math.sin(e.t)*.2;if(e.y<-12){emb[i]=mkE();emb[i].y=eh+12;}ex.globalAlpha=e.a*(.5+Math.abs(Math.sin(e.t))*.5);ex.fillStyle=AC;ex.beginPath();ex.arc(e.x,e.y,e.r,0,7);ex.fill();}ex.globalAlpha=1;requestAnimationFrame(etick);}
+    document.addEventListener('vbfxchange',function(e){
+      if(e.detail.on&&!erunning){esize();erunning=true;requestAnimationFrame(etick);}
+      else if(!e.detail.on){erunning=false;}
+    });
+    esize();addEventListener('resize',esize);
+    if(fxOn()){erunning=true;requestAnimationFrame(etick);}
   }
 
   // ---- Parallax on tagged bg layers ----

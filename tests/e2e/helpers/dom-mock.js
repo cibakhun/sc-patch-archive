@@ -370,10 +370,16 @@ export async function setupMockDOM(opts = {}) {
   };
 
   const body = new MockElement('body');
+  // scroll-lock.js setzt beim Sperren einen Marker auf <html> (`is-locked`),
+  // damit Ebenen, die ueber den Overlays liegen duerfen, sich daran ausrichten
+  // koennen. Ohne documentElement stirbt die Sperre — und mit ihr jeder Test,
+  // der ein Modal oeffnet.
+  const documentElement = new MockElement('html');
 
   const document = {
     readyState: 'complete',
     body,
+    documentElement,
     getElementById(id) {
       return elements[id] || null;
     },

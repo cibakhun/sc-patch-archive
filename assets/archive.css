@@ -176,6 +176,7 @@ ol {
   height: 100%;
   display: block;
 }
+html:not([data-fx="on"]) .space__stars { display: none; }
 /* Two soft era-tinted clouds, blended to glow. color-mix reads --era every
    frame, so the nebula recolours smoothly along with the voyage. */
 .space__nebula {

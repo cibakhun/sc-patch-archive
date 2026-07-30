@@ -46,7 +46,6 @@ a{color:inherit;text-decoration:none}
    Tokens fast auf null gesetzt (assets/theme.css) — auf Papier wirkte
    das sonst wie Schmutz auf dem Bildschirm. */
 body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 42%,transparent 54%,var(--vignette) 100%),repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
-.cursorglow{position:fixed;inset:0;z-index:8800;pointer-events:none;background:radial-gradient(280px circle at var(--mx,50%) var(--my,28%),color-mix(in srgb,var(--accent) 13%,transparent),transparent 60%)}
 
 /* ---- Topbar ---- */
 .topbar{position:fixed;top:0;left:0;right:0;z-index:9100;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem clamp(1rem,4vw,2.5rem);background:linear-gradient(180deg,var(--chrome-top),transparent);backdrop-filter:blur(6px);transition:background .3s}
@@ -92,6 +91,11 @@ section{position:relative;padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem)
 .hero__photo--vid{animation:none}
 .hero__photo--vid .hero__vid{opacity:1}
 #stars{position:absolute;inset:0;z-index:1;opacity:.5}
+/* FX-Gatter (Partikel-Ambiente): ergaenzt das JS-Gatter in detail.js, ersetzt
+   es nicht (D-10) — ohne diese Regel bliebe beim Abschalten das zuletzt
+   gezeichnete Bild stehen. */
+html:not([data-fx="on"]) #stars,
+html:not([data-fx="on"]) #embers { display: none; }
 .hero__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
 /* padding statt enger Box: bei background-clip:text wird nur innerhalb der
    Paint-Fläche gemalt — Unterlängen (g, p, y) ragen bei line-height .86 sonst

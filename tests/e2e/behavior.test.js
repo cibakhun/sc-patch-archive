@@ -432,9 +432,13 @@ describe('Detail-Modal', () => {
   test('40. Öffnen sperrt Hintergrund-Scroll, Schließen gibt ihn frei', () => {
     openCard('alpha-rifle');
     assert.strictEqual(dom.body.style.position, 'fixed');
+    // Zweiter Teil der Sperre: der Marker auf <html>, an dem sich Ebenen
+    // ausrichten, die über den Overlays liegen dürfen.
+    assert.ok(dom.document.documentElement.classList.contains('is-locked'));
     dom.elements['uif-modal-close-btn'].click();
     assert.strictEqual(modal().style.display, 'none');
     assert.strictEqual(dom.body.style.position, '');
+    assert.ok(!dom.document.documentElement.classList.contains('is-locked'));
   });
 
   test('41. Klick auf Overlay schließt das Modal', () => {
