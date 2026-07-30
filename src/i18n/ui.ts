@@ -59,6 +59,11 @@ const UI = {
     'nav.langSwitch': 'Sprache wechseln',
     'nav.theme.dark': 'Dunkle Darstellung',
     'nav.fx': 'Partikel-Effekte',
+    // Erklärung im Tooltip: WAS der Schalter tut, nicht wie er heißt. Der
+    // Zustandssatz wechselt per CSS mit [data-fx] — kein JS nötig.
+    'nav.fx.what': 'Sternenfelder, Glut und Staub, die sich im Hintergrund bewegen.',
+    'nav.fx.state.on': 'Gerade an — Klick schaltet sie aus.',
+    'nav.fx.state.off': 'Gerade aus — Klick schaltet sie ein.',
     'nav.grp.tools': 'Werkzeuge',
     'nav.grp.archive': 'Archiv',
     'nav.downloads': 'Downloads',
@@ -432,6 +437,9 @@ const UI = {
     'nav.langSwitch': 'Switch language',
     'nav.theme.dark': 'Dark appearance',
     'nav.fx': 'Particle effects',
+    'nav.fx.what': 'Starfields, embers and dust drifting in the background.',
+    'nav.fx.state.on': 'Currently on — click to turn them off.',
+    'nav.fx.state.off': 'Currently off — click to turn them on.',
     'nav.grp.tools': 'Tools',
     'nav.grp.archive': 'Archive',
     'nav.downloads': 'Downloads',

@@ -280,7 +280,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     </a>
     <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
     <ThemeToggle />
-    <FxToggle />
+    <FxToggle place="bar" />
   </div>
   <div class="snav__center">
     <a class="snav__brand" href={L('/index.html')} aria-label={t('nav.home.aria')}>
@@ -413,7 +413,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 
     <footer class="snav-deck__foot">
       <ThemeToggle />
-      <FxToggle />
+      <FxToggle place="deck" />
       <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
       <div class="snav-deck__hints" aria-hidden="true">
         <span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> {t('nav.deck.hint.nav')}</span>

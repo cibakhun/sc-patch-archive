@@ -7,25 +7,66 @@
 // (gespeicherte Wahl, siehe Layout.astro). aria-pressed wird deshalb dort
 // gesetzt; hier steht nur ein Platzhalter. Anders als ThemeToggle startet
 // der Platzhalter auf "false": Partikel sind per Vorgabe AUS (FX-02/D-04).
+//
+// Zwei Dinge sagen, WAS der Schalter tut:
+//   1. Das Symbol. Ein einzelner Funke las sich wie „Favorit" — jetzt ein
+//      grosser Funke mit einem kleinen daneben, das gaengige Bild fuer
+//      „Effekte". Der Aus-Zustand traegt zusaetzlich den Schraegstrich.
+//   2. Ein Tooltip, der nach kurzem Verweilen aufklappt und in einem Satz
+//      erklaert, worum es geht — samt aktuellem Zustand. Er haengt an CSS,
+//      nicht an JS, und der Zustandssatz wechselt mit [data-fx] mit.
 import { localeFromPath, useTranslations } from '../i18n/ui';
 
+interface Props {
+  /**
+   * Wo der Schalter steht. Steuert zwei Dinge: die eindeutige id des Tooltips
+   * (die Leiste und der Menuefuss zeigen BEIDE einen Schalter — doppelte ids
+   * waeren ungueltig) und die Richtung, in die er aufklappt. Im Menuefuss nach
+   * oben, sonst waere er unten aus dem Bild.
+   */
+  place?: 'bar' | 'deck';
+}
+const { place = 'bar' } = Astro.props;
 const t = useTranslations(localeFromPath(Astro.url.pathname));
+const tipId = `fxsw-tip-${place}`;
 ---
 
-<button class="fxsw js-fx-toggle" type="button" aria-pressed="false" aria-label={t('nav.fx')}>
-  <span class="fxsw__track" aria-hidden="true">
-    <svg class="fxsw__ic fxsw__ic--off" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 2.6 13.9 9.1 20.5 7 16.4 12l4.1 5-6.6-2.1L12 21.4 10.1 14.9 3.5 17l4.1-5-4.1-5 6.6 2.1z" />
-      <path d="M3.5 3.5 20.5 20.5" />
-    </svg>
-    <svg class="fxsw__ic fxsw__ic--on" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 2.6 13.9 9.1 20.5 7 16.4 12l4.1 5-6.6-2.1L12 21.4 10.1 14.9 3.5 17l4.1-5-4.1-5 6.6 2.1z" />
-    </svg>
-    <span class="fxsw__knob"></span>
+<span class:list={['fxsw-wrap', `fxsw-wrap--${place}`]}>
+  <button
+    class="fxsw js-fx-toggle"
+    type="button"
+    aria-pressed="false"
+    aria-label={t('nav.fx')}
+    aria-describedby={tipId}
+  >
+    <span class="fxsw__track" aria-hidden="true">
+      <svg class="fxsw__ic fxsw__ic--off" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.6 5.4 11 10.2 15.8 11.6 11 13 9.6 17.8 8.2 13 3.4 11.6 8.2 10.2z" />
+        <path d="M17.6 14.4 18.2 16.4 20.2 17 18.2 17.6 17.6 19.6 17 17.6 15 17 17 16.4z" />
+        <path d="M3.6 3.6 20.4 20.4" />
+      </svg>
+      <svg class="fxsw__ic fxsw__ic--on" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.6 5.4 11 10.2 15.8 11.6 11 13 9.6 17.8 8.2 13 3.4 11.6 8.2 10.2z" />
+        <path d="M17.6 14.4 18.2 16.4 20.2 17 18.2 17.6 17.6 19.6 17 17.6 15 17 17 16.4z" />
+      </svg>
+      <span class="fxsw__knob"></span>
+    </span>
+  </button>
+
+  <span class="fxsw__tip" id={tipId} role="tooltip">
+    <b class="fxsw__tiph">{t('nav.fx')}</b>
+    <span>{t('nav.fx.what')}</span>
+    <span class="fxsw__tipstate fxsw__tipstate--on">{t('nav.fx.state.on')}</span>
+    <span class="fxsw__tipstate fxsw__tipstate--off">{t('nav.fx.state.off')}</span>
   </span>
-</button>
+</span>
 
 <style>
+  .fxsw-wrap {
+    position: relative;
+    display: inline-flex;
+  }
+
   .fxsw {
     display: inline-flex;
     align-items: center;
@@ -84,9 +125,94 @@ const t = useTranslations(localeFromPath(Astro.url.pathname));
     outline-offset: 3px;
   }
 
+  /* ---------- Tooltip ---------------------------------------------------- */
+  .fxsw__tip {
+    position: absolute;
+    z-index: 5;
+    top: calc(100% + 0.5rem);
+    /* Linksbuendig statt zentriert: der Schalter sitzt links in der Leiste und
+       links im Menuefuss: ein zentrierter Kasten haette dort nach links aus dem
+       Bild geragt. Die Breite ist zusaetzlich auf das Bild begrenzt. */
+    left: 0;
+    display: grid;
+    gap: 0.2rem;
+    width: max-content;
+    max-width: min(15rem, calc(100vw - 2rem));
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--line, var(--line-soft));
+    background: var(--surface, #14121c);
+    color: var(--text, #e8eefc);
+    font-family: var(--font-ui, system-ui, sans-serif);
+    font-size: 0.76rem;
+    font-weight: 500;
+    line-height: 1.45;
+    letter-spacing: 0.01em;
+    text-align: left;
+    text-transform: none;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
+    /* Nicht anfassbar: der Tooltip darf den Zeiger nicht vom Knopf nehmen. */
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0s linear 0.16s;
+  }
+  .fxsw__tiph {
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    color: var(--accent, #2dd4ff);
+  }
+  /* Der Zustandssatz wechselt mit dem Schalter — ohne JS. */
+  :global(html[data-fx='on']) .fxsw__tipstate--off,
+  :global(html:not([data-fx='on'])) .fxsw__tipstate--on {
+    display: none;
+  }
+  .fxsw__tipstate {
+    color: var(--muted, #8a99b8);
+  }
+
+  /* Mit der Maus: erst nach kurzem Verweilen — ein Tooltip, der beim
+     Vorbeifahren aufblitzt, ist Störung, keine Hilfe. */
+  .fxsw-wrap:hover .fxsw__tip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.16s ease 0.45s, transform 0.16s ease 0.45s, visibility 0s linear 0.45s;
+  }
+  /* Mit der Tastatur: sofort. Wer hierher tabbt, hat sich schon entschieden.
+     Steht NACH der Hover-Regel, damit sie bei beidem gewinnt. */
+  .fxsw:focus-visible + .fxsw__tip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.12s ease, transform 0.12s ease, visibility 0s;
+  }
+
+  /* Im Menuefuss nach OBEN aufklappen — unten waere er aus dem Bild. */
+  .fxsw-wrap--deck .fxsw__tip {
+    top: auto;
+    bottom: calc(100% + 0.5rem);
+  }
+
+  /* Auf schmalen Schirmen die Breite des Bildschirms nicht sprengen. */
+  @media (max-width: 420px) {
+    .fxsw__tip {
+      max-width: 11rem;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .fxsw__knob {
+    .fxsw__knob,
+    .fxsw__tip {
       transition: none;
+    }
+    .fxsw-wrap:hover .fxsw__tip,
+    .fxsw:focus-visible + .fxsw__tip {
+      transform: none;
+      /* Die Verzoegerung bleibt: sie ist kein Effekt, sondern Absicht. */
+      transition: visibility 0s linear 0.45s;
     }
   }
 </style>
