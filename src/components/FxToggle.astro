@@ -200,6 +200,20 @@ const tipId = `fxsw-tip-${place}`;
     bottom: calc(100% + 0.5rem);
   }
 
+  /* Die wandernde Hero-Wortmarke der Startseite liegt mit z-index 9601 UEBER
+     der Kopfleiste (9600) — sie muss dort landen koennen. Der Tooltip steckt
+     im Stapelkontext der Leiste (position:fixed + backdrop-filter) und kann
+     die Marke deshalb mit KEINEM z-index der Welt ueberholen: er lag hinter
+     dem "Ve" und war unlesbar.
+     Also hebt sich die Leiste selbst an — nur solange der Tooltip zu sehen
+     ist, also fuer den Moment des Verweilens. Die Marke ist dann kurz hinter
+     der (ohnehin halbtransparenten) Leiste; das faellt niemandem auf, ein
+     abgeschnittener Hilfetext schon. */
+  :global(.snav:has(.fxsw-wrap:hover)),
+  :global(.snav:has(.fxsw:focus-visible)) {
+    z-index: 9602;
+  }
+
   /* Auf schmalen Schirmen die Breite des Bildschirms nicht sprengen. */
   @media (max-width: 420px) {
     .fxsw__tip {
