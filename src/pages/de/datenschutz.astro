@@ -1,13 +1,13 @@
 ---
 // Datenschutzerklärung — beschreibt FAKTISCH, was diese statische Site tut
-// (keine Cookies, kein Tracking, localStorage nur lokal, externe Bild-CDNs,
+// (keine Cookies, cookiefreie Cloudflare-Reichweitenmessung, localStorage nur lokal, externe Bild-CDNs,
 // YouTube nur per Klick). [TODO]-Felder vor Publish füllen — audit:site
 // bleibt absichtlich rot, solange sie im Build stehen.
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 ---
-<Layout title={"Datenschutzerklärung | VerseBase"} description={"Datenschutzerklärung von VerseBase: statische Website ohne Cookies und Tracking — welche Daten beim Aufruf, bei externen Bildquellen und bei Klick auf YouTube-Videos verarbeitet werden."} themeColor="#05070d" translated={true}>
+<Layout title={"Datenschutzerklärung | VerseBase"} description={"Datenschutzerklärung von VerseBase: statische Website ohne Cookies — welche Daten beim Aufruf, bei der cookiefreien Reichweitenmessung, bei externen Bildquellen und bei Klick auf YouTube-Videos verarbeitet werden."} themeColor="#05070d" translated={true}>
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
@@ -38,9 +38,11 @@ import Attribution from '../../components/Attribution.astro';
     <h2>Grundsatz</h2>
     <p>
       Diese Website ist ein rein statisches, nicht-kommerzielles Fan-Projekt. Sie verwendet
-      <strong>keine Cookies</strong>, <strong>keine Analyse- oder Tracking-Dienste</strong>,
-      keine Werbung und keine Kommentarfunktionen. Beim bloßen Aufrufen der Seite werden keine
-      personenbezogenen Daten von dir an uns übermittelt. Ausnahmen sind ausschließlich das
+      <strong>keine Cookies</strong>, keine Werbung und keine Kommentarfunktionen und verfolgt
+      dich nicht über andere Websites hinweg. Zur reinen Reichweitenmessung läuft
+      <a href="#cloudflare">Cloudflare Web Analytics</a> — cookiefrei und ohne Fingerprinting;
+      dabei entstehen nur zusammengefasste Zahlen (Seitenaufrufe, Besuche, Ladezeiten), keine
+      Personenprofile. Darüber hinaus übermittelst du Daten nur über das
       <a href="#feedback">Feedback-Formular</a> und das optionale
       <a href="#accounts">Benutzerkonto</a> — beides freiwillig; die dabei verarbeiteten Daten
       sind unten gesondert beschrieben.
@@ -54,6 +56,24 @@ import Attribution from '../../components/Attribution.astro';
       Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der sicheren
       Bereitstellung). Auf diese Logs haben wir keinen inhaltlichen Zugriff über das für den
       Betrieb Erforderliche hinaus.
+    </p>
+
+    <h2 id="cloudflare">Auslieferung und Reichweitenmessung (Cloudflare)</h2>
+    <p>
+      Die Seite wird über Cloudflare (Cloudflare, Inc., 101 Townsend Street, San Francisco,
+      CA 94107, USA) ausgeliefert. Cloudflare sitzt als Proxy vor dem Hosting: Jeder Aufruf
+      läuft darüber, dabei werden Verbindungsdaten (IP-Adresse, Zeitpunkt, aufgerufene Ressource,
+      User-Agent) zur Auslieferung und zur Abwehr von Angriffen verarbeitet.
+    </p>
+    <p>
+      Zusätzlich fügt Cloudflare den Seiten <strong>Cloudflare Web Analytics</strong> hinzu, ein
+      Messskript, das Seitenaufrufe, Besuche und Ladezeiten erfasst. Es setzt
+      <strong>keine Cookies</strong>, nutzt kein Fingerprinting und verfolgt dich nicht über andere
+      Websites hinweg; uns liegen ausschließlich zusammengefasste Zahlen vor, keine Einzelprofile.
+      Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an sicherer, schneller
+      Auslieferung und an einfachen Reichweitenzahlen). Eine Verarbeitung auf Servern außerhalb der
+      EU ist dabei möglich; Details findest du in der Datenschutzerklärung des Anbieters:
+      <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">cloudflare.com/privacypolicy</a>.
     </p>
 
     <h2>Lokale Speicherung im Browser (localStorage)</h2>

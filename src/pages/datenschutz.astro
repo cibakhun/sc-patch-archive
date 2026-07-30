@@ -6,7 +6,7 @@ import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
 ---
-<Layout title={"Privacy Policy | VerseBase"} description={"Privacy policy of VerseBase: a static website without cookies or tracking — what data is processed when visiting, when external images load, and when YouTube videos are clicked."} themeColor="#05070d" translated={true}>
+<Layout title={"Privacy Policy | VerseBase"} description={"Privacy policy of VerseBase: a static website without cookies — what data is processed when visiting, by the cookieless reach measurement, when external images load, and when YouTube videos are clicked."} themeColor="#05070d" translated={true}>
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
@@ -37,8 +37,10 @@ import Attribution from '../components/Attribution.astro';
     <h2>Principle</h2>
     <p>
       This website is a purely static, non-commercial fan project. It uses <strong>no cookies</strong>,
-      <strong>no analytics or tracking services</strong>, no advertising and no comment functions.
-      Simply viewing the site transmits no personal data from you to us. The only exceptions are the
+      no advertising and no comment functions, and it does not follow you across other websites.
+      For plain reach measurement it runs <a href="#cloudflare">Cloudflare Web Analytics</a> —
+      cookieless and without fingerprinting; it produces aggregated figures only (page views,
+      visits, load times), never personal profiles. Beyond that you only transmit data via the
       <a href="#feedback">feedback form</a> and the optional <a href="#accounts">user account</a> —
       both voluntary; the data processed there is described separately below.
     </p>
@@ -49,6 +51,24 @@ import Attribution from '../components/Attribution.astro';
       Hetzner Online GmbH (Industriestr. 25, 91710 Gunzenhausen, Germany) technically
       processes connection data (IP address, timestamp, requested resource, user agent) in server
       logs. Legal basis: Art. 6 (1) (f) GDPR (legitimate interest in secure operation).
+    </p>
+
+    <h2 id="cloudflare">Delivery and reach measurement (Cloudflare)</h2>
+    <p>
+      The site is delivered via Cloudflare (Cloudflare, Inc., 101 Townsend Street, San Francisco,
+      CA 94107, USA). Cloudflare sits in front of the hosting as a proxy: every request passes
+      through it, and connection data (IP address, timestamp, requested resource, user agent) is
+      processed there for delivery and to fend off attacks.
+    </p>
+    <p>
+      Cloudflare additionally adds <strong>Cloudflare Web Analytics</strong> to the pages, a
+      measurement script that records page views, visits and load times. It sets
+      <strong>no cookies</strong>, uses no fingerprinting and does not follow you across other
+      websites; we only ever see aggregated figures, never individual profiles. Legal basis:
+      Art. 6 (1) (f) GDPR (legitimate interest in secure, fast delivery and in basic reach
+      figures). Processing on servers outside the EU is possible; for details see the provider's
+      privacy policy:
+      <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">cloudflare.com/privacypolicy</a>.
     </p>
 
     <h2>Local browser storage (localStorage)</h2>
