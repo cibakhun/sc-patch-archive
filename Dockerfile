@@ -5,6 +5,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+# Vorschau-Build (deploy-staging.yml setzt STAGING=1): macht die ganze Seite
+# unindexierbar und blendet die "VORSCHAU"-Marke ein. Siehe src/lib/seo.ts.
+# Leer beim normalen Live-Build — dort aendert sich dadurch nichts.
+ARG STAGING=""
+ENV STAGING=$STAGING
 RUN npm run build
 
 # Qualitaetstor VOR dem Auslieferungs-Image. Hier statt als eigener CI-Schritt,

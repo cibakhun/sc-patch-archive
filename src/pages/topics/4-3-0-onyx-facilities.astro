@@ -1,10 +1,11 @@
 ---
 // Hülle (EN). Körper: components/topics/4-3-0-onyx-facilities.astro — geteilt mit der
 // anderen Sprache, damit die beiden nicht auseinanderlaufen können.
+import { versioned } from '../../lib/assetVersion';
 import Layout from '../../layouts/Layout.astro';
 import Body from '../../components/topics/4-3-0-onyx-facilities.astro';
 ---
 <Layout title={"Onyx Facilities — Star Citizen 4.3.0 | VerseBase"} description={"Onyx Facilities: around 100 abandoned ASD research stations across Stanton — data salvage, audio logs and the dark truth behind the regen crisis. Introduced with Alpha 4.3.0 Dark Territory."} translated={true} themeColor="#0B0B0F" ogType="article" ogImage="/assets/t-onyx-1.jpg">
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <Body />
 </Layout>

@@ -1,10 +1,11 @@
 ---
-// Hülle (EN). Körper: components/topics/4-8-2-alien-week.astro — geteilt mit
-// der DE-Route, damit die beiden Sprachen nicht auseinanderlaufen können.
+// Hülle (EN). Körper: components/topics/4-8-2-alien-week.astro — geteilt mit der
+// anderen Sprache, damit die beiden nicht auseinanderlaufen können.
+import { versioned } from '../../lib/assetVersion';
 import Layout from '../../layouts/Layout.astro';
 import Body from '../../components/topics/4-8-2-alien-week.astro';
 ---
 <Layout title={"Alien Week — Star Citizen 4.8.2 | VerseBase"} description={"Alien Week: the annual celebration of non-human manufacturers around First Contact Day — headlined for 2956 by the Gatac ships Railen, Syulen and Tyilui."} translated={true} themeColor="#0c0a16" ogType="article" ogImage="/assets/t-alien-1.jpg">
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <Body />
 </Layout>

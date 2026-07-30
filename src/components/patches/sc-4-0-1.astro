@@ -9,6 +9,7 @@ import PatchDossier from '../../components/dossier/PatchDossier.astro';
 import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { mergePatchEn } from '../../i18n/patchText';
 import { getEntry } from 'astro:content';
+import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
 
 const lang = localeFromPath(Astro.url.pathname);
@@ -43,7 +44,7 @@ a{color:inherit;text-decoration:none}
 .skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:var(--ink);padding:.6rem 1rem;font-family:var(--font-ui);font-weight:700}.skip:focus{left:0}
 
 /* Effekt-Overlays */
-body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 42%,transparent 54%,var(--vignette) 100%),repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:.5}
+body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 42%,transparent 54%,var(--vignette) 100%),repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
 .cursorglow{position:fixed;inset:0;z-index:8800;pointer-events:none;background:radial-gradient(280px circle at var(--mx,50%) var(--my,28%),rgba(54,197,216,.13),transparent 60%)}
 
 
@@ -52,7 +53,7 @@ body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;b
 .hero__photo{position:absolute;inset:0;z-index:0;background:url('/assets/trailer-4-0-0.jpg') center/cover;animation:kb 30s ease-in-out infinite alternate}
 @keyframes kb{from{transform:scale(1.06)}to{transform:scale(1.18) translate(-1.5%,-1.5%)}}
 .hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--scrim-2),var(--scrim-4) 55%,var(--bg)),radial-gradient(120% 90% at 80% 20%,transparent,var(--bg) 85%)}
-#stars{position:absolute;inset:0;z-index:1;opacity:.55}
+#stars{position:absolute;inset:0;z-index:1;opacity:.55}html:not([data-fx="on"]) #stars{display:none}
 .hero__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
 .eyebrow{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:.8rem;color:var(--accent-2)}
 .hero h1{position:relative;font-family:var(--font-display);font-weight:900;line-height:.82;letter-spacing:-.02em;margin:.6rem 0 .1rem;font-size:clamp(4.5rem,22vw,18rem);background:linear-gradient(180deg,var(--title-hi),var(--accent) 75%,#1c5b78);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 36px rgba(54,197,216,.5));animation:flick 7s steps(1) infinite}
@@ -191,7 +192,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <!-- HERO -->
   <section class="hero">
     <div class="hero__photo" data-bgvid="/assets/loops/loop-hornet.mp4" aria-hidden="true"></div>
-    <script is:inline src="/assets/hero-video.js"></script>
+    <script is:inline src={versioned('assets/hero-video.js', '/assets/hero-video.js')}></script>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
       <div class="eyebrow">{de ? '28. Januar 2025 · Point-Release' : 'January 28, 2025 · Point Release'}</div>
@@ -297,11 +298,11 @@ document.querySelectorAll('[data-lb]').forEach(el=>el.addEventListener('click',(
 document.querySelectorAll('[data-info]').forEach(el=>el.addEventListener('click',()=>{const img=el.getAttribute('data-img'),ti=esc(el.getAttribute('data-title')),tx=esc(el.getAttribute('data-text'));show('<div class="lb__info">'+(img?'<img src="'+img+'" alt="">':'')+'<div class="lb__txt"><h3>'+ti+'</h3><p>'+tx+'</p></div></div>');}));
 lb.addEventListener('click',e=>{if(e.target===lb||e.target.closest('.lb__x'))close();});
 addEventListener('keydown',e=>{if(e.key==='Escape')close();});})();
-(function(){const c=document.getElementById('stars');if(!c)return;const x=c.getContext('2d');let w,h,st;const COL=['#36c5d8','#2e7fb5','#f0a32a','#e6f0fa'];
+(function(){const c=document.getElementById('stars');if(!c)return;const x=c.getContext('2d');let running=false;const fxOn=()=>document.documentElement.getAttribute('data-fx')==='on';let w,h,st;const COL=['#36c5d8','#2e7fb5','#f0a32a','#e6f0fa'];
 function size(){w=c.width=innerWidth;h=c.height=Math.max(innerHeight,1);st=Array.from({length:Math.min(140,Math.floor(w/10))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+.3,a:Math.random(),s:Math.random()*.014+.004,c:COL[Math.floor(Math.random()*COL.length)]}));}
-function tick(){x.clearRect(0,0,w,h);for(const s of st){s.a+=s.s;const o=.25+Math.abs(Math.sin(s.a))*.7;x.globalAlpha=o;x.fillStyle=s.c;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}
-size();addEventListener('resize',size);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)tick();})();
+function tick(){if(!running)return;x.clearRect(0,0,w,h);for(const s of st){s.a+=s.s;const o=.25+Math.abs(Math.sin(s.a))*.7;x.globalAlpha=o;x.fillStyle=s.c;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}
+size();addEventListener('resize',size);document.addEventListener('vbfxchange',(e)=>{if(e.detail.on&&!running){size();running=true;requestAnimationFrame(tick);}else if(!e.detail.on){running=false;}});if(!matchMedia('(prefers-reduced-motion:reduce)').matches&&fxOn()){running=true;tick();}})();
 
 </script>
-<link rel="stylesheet" href="/assets/a11y.css" />
-<script is:inline src="/assets/a11y.js"></script>
+<link rel="stylesheet" href={versioned('assets/a11y.css', '/assets/a11y.css')} />
+<script is:inline src={versioned('assets/a11y.js', '/assets/a11y.js')}></script>

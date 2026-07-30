@@ -10,6 +10,7 @@ import { getCollection } from 'astro:content';
 import { RENDERS, stripName } from '../../lib/shipRenders';
 import makerLogos from '../../data/manufacturer-logos.json';
 import { href } from '../../i18n/ui';
+import { versioned } from '../../lib/assetVersion';
 
 interface Props {
   lang?: 'de' | 'en';
@@ -102,7 +103,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   ogImage="/assets/og-default.jpg"
   translated={true}
 >
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0d1322;--surface-2:#131b30;--accent:#2dd4ff;--accent-2:#7ae2ff;--hot:#2dd4ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(45,212,255,.22);--line-soft:rgba(232,238,252,.10);--glow:0 0 46px rgba(45,212,255,.18);--ink:#04121a;--maxw:1180px;--accent-media:#2dd4ff;--accent-2-media:#7ae2ff;--font-mono:'Share Tech Mono',monospace;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
@@ -331,7 +332,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 
 <script type="application/json" id="ppCopyData" set:html={jsonSafe(COPY)}></script>
 <script type="application/json" id="ppShipData" set:html={jsonSafe(SHIPS)}></script>
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 
 <style is:global>
   /* ---------- Skeleton ---------- */

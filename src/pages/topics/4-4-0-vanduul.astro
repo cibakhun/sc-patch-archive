@@ -1,10 +1,11 @@
 ---
 // Hülle (EN). Körper: components/topics/4-4-0-vanduul.astro — geteilt mit der
 // anderen Sprache, damit die beiden nicht auseinanderlaufen können.
+import { versioned } from '../../lib/assetVersion';
 import Layout from '../../layouts/Layout.astro';
 import Body from '../../components/topics/4-4-0-vanduul.astro';
 ---
 <Layout title={"Vanduul — Star Citizen 4.4.0 | VerseBase"} description={"Vanduul: aggressive blade aliens that arrive with Alpha 4.4.0 as AI enemies in the persistent universe for the first time — Stinger, Glaive, Scythe and Blade patrol Nyx and attack without warning."} themeColor="#0c1020" ogType="article" ogImage="/assets/t-vanduul-3.jpg" translated={true}>
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <Body />
 </Layout>

@@ -1,0 +1,78 @@
+# Vorschau-Build. Gleiche Maschinerie wie deploy-image.yml (der Build braucht
+# viel RAM und laeuft deshalb hier statt auf dem Server), aber:
+#   - Zweig `staging` statt `main`
+#   - Image-Tag `:staging` statt `:latest`
+#   - STAGING=1 im Build -> ganze Seite noindex + robots Disallow + sichtbare
+#     Marke (siehe src/lib/seo.ts#IS_STAGING)
+#   - eigener Coolify-Webhook, damit die Live-App unberuehrt bleibt
+#
+# EINRICHTUNG (einmalig, ausserhalb dieses Repos):
+#   1. Coolify: zweite Anwendung anlegen, Quelle ghcr.io/cibakhun/sc-patch-archive:staging,
+#      eigene Domain (z. B. staging.verse-base.com).
+#   2. Deren Deploy-Webhook als Repo-Secret COOLIFY_STAGING_WEBHOOK hinterlegen.
+#      COOLIFY_API_TOKEN wird mit der Live-Pipeline geteilt.
+#   3. Zweig anlegen und pushen: git switch -c staging && git push -u origin staging
+#
+# ABLAUF danach: PR -> in `staging` mergen -> ansehen -> in `main` mergen.
+name: Build & Push Staging Image
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: staging-image-build
+  cancel-in-progress: true
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: STAGING=1
+          tags: |
+            ghcr.io/cibakhun/sc-patch-archive:staging
+            ghcr.io/cibakhun/sc-patch-archive:staging-${{ github.sha }}
+
+      # Gegenprobe im fertigen Image: eine versehentlich indexierbare Kopie der
+      # Seite waere Duplicate Content gegen die eigene Domain. Lieber hier hart
+      # scheitern als es in der Search Console entdecken.
+      - name: Verify the preview is not indexable
+        run: |
+          CID=$(docker create ghcr.io/cibakhun/sc-patch-archive:staging)
+          docker cp "$CID:/usr/share/nginx/html/robots.txt" ./robots.check
+          docker cp "$CID:/usr/share/nginx/html/index.html" ./index.check
+          docker rm "$CID" >/dev/null
+          echo "--- robots.txt ---"; cat ./robots.check
+          grep -q '^Disallow: /' ./robots.check || { echo "FEHLER: robots.txt sperrt nicht."; exit 1; }
+          grep -q 'name="robots" content="noindex"' ./index.check || { echo "FEHLER: index.html hat kein noindex."; exit 1; }
+          echo "OK — Vorschau ist gesperrt."
+
+      - name: Trigger Coolify redeploy (staging)
+        env:
+          HOOK: ${{ secrets.COOLIFY_STAGING_WEBHOOK }}
+          TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+        run: |
+          if [ -n "$HOOK" ] && [ -n "$TOKEN" ]; then
+            curl -fsSL "$HOOK" -H "Authorization: Bearer $TOKEN" && echo "Coolify staging redeploy triggered."
+          else
+            echo "COOLIFY_STAGING_WEBHOOK und/oder COOLIFY_API_TOKEN nicht gesetzt — redeploy manuell in Coolify."
+          fi

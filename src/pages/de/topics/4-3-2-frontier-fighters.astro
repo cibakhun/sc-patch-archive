@@ -1,10 +1,11 @@
 ---
 // Hülle (DE). Körper: components/topics/4-3-2-frontier-fighters.astro — geteilt mit der
 // anderen Sprache, damit die beiden nicht auseinanderlaufen können.
+import { versioned } from '../../../lib/assetVersion';
 import Layout from '../../../layouts/Layout.astro';
 import Body from '../../../components/topics/4-3-2-frontier-fighters.astro';
 ---
 <Layout title={"Frontier Fighters — Star Citizen 4.3.2 | VerseBase"} description={"Frontier Fighters: das grosse Finale von Alpha 4.3.2 'Fractured Frontiers'. Headhunters und Citizens for Prosperity jagen ueber drei Phasen Amelia Boyds Frontier Fighters durch Stanton und Pyro — bis zum servuerweiten Polaris-Takedown."} themeColor="#16181b" ogType="article" ogImage="/assets/t-front-1.jpg" translated={true}>
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <Body />
 </Layout>

@@ -1,10 +1,11 @@
 ---
 // Hülle (DE). Körper: components/topics/4-1-0-align-and-mine.astro — geteilt mit der
 // anderen Sprache, damit die beiden nicht auseinanderlaufen können.
+import { versioned } from '../../../lib/assetVersion';
 import Layout from '../../../layouts/Layout.astro';
 import Body from '../../../components/topics/4-1-0-align-and-mine.astro';
 ---
 <Layout title={"Align &amp; Mine — Star Citizen 4.1.0 | VerseBase"} description={"Align & Mine: kooperative Sandbox-Aktivität aus Alpha 4.1.0 Orbital Assault — richte die Hathor-Anlagen auf Aberdeen und Daymar aus und der Orbital-Laser sprengt eine neue, mineralienreiche Höhle frei."} themeColor="#10141a" ogType="article" ogImage="/assets/t-align-3.jpg" translated={true}>
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <Body />
 </Layout>

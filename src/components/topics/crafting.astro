@@ -10,8 +10,7 @@ import Attribution from '../../components/Attribution.astro';
 import CraftingApp from '../../components/CraftingApp.astro';
 import DB from '../../../assets/crafting-db.json';
 import TopicSeo from '../../components/dossier/TopicSeo.astro';
-// Patch label derived from the database version ("LIVE-4.9.0-12232306" -> "4.9")
-// so title/breadcrumbs follow every regeneration automatically.
+import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
 
 const lang = localeFromPath(Astro.url.pathname);
@@ -20,6 +19,8 @@ const total = DB.counts.blueprints;
 const nRes = DB.counts.resources;
 const snap = DB.snapshot_date;
 const ver = DB.version;
+// Patch label derived from the database version ("LIVE-4.9.0-12232306" -> "4.9")
+// so title/breadcrumbs follow every regeneration automatically.
 const patch = (ver.match(/(\d+\.\d+)/) ?? [])[1] ?? '4.9';
 const patchHref = de ? `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html` : `/patches/sc-${patch.replace(/\./g, '-')}-0.html`;
 ---
@@ -85,4 +86,4 @@ const patchHref = de ? `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html` : `/
 <RelatedTopics topicSlug="crafting" />
 <Attribution sources={["sc-craft.tools", "RSI"]} updated={snap} />
 
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>

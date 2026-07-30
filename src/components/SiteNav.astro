@@ -38,8 +38,17 @@ interface Props {
   hasEn?: boolean;
   /** Gegenstueck zu hasEn, gleiche Regel. */
   hasDe?: boolean;
+  /**
+   * Trägt DIESE Seite einen Hero, dessen Überschrift beim Scrollen zur
+   * Wortmarke wird? Nur dann hält die Leiste ihren Schriftzug am Seitenanfang
+   * zurück (`.snav--morph`). Vorgabe false — jede der ~100 anderen Seiten
+   * zeigt die Wortmarke unverändert ab dem ersten Bildpunkt.
+   */
+  heroMorph?: boolean;
 }
-const { crumbs = [], hasEn, hasDe } = Astro.props;
+// hasEn/hasDe bewusst OHNE Default: `false` als Default wuerde die
+// Aufrufstellen ohne Prop faelschlich auf die Startseite schicken.
+const { crumbs = [], hasEn, hasDe, heroMorph = false } = Astro.props;
 
 // Locale aus dem Pfad; t() + L() halten Chrome/Links in der aktiven Sprache.
 // Für DE liefern beide exakt die bisherigen Werte -> DE-Ausgabe unverändert.
@@ -251,7 +260,7 @@ try {
 } catch { /* dev-Fallback */ }
 const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 ---
-<nav class="snav" id="topbar" aria-label={t('nav.main')}>
+<nav class={heroMorph ? 'snav snav--morph' : 'snav'} id="topbar" aria-label={t('nav.main')}>
   <div class="snav__left">
     <a
       class="snav__acct js-nav-acct"
@@ -456,8 +465,10 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       color-mix(in srgb, var(--accent, #2dd4ff) 40%, transparent) 25%, 
       var(--accent, #2dd4ff) 80%, 
       #ffffff 100%);
-    box-shadow: 0 0 12px var(--accent, #2dd4ff);
-    transition: width 0.06s linear;
+    /* Kein farbiger Halo mehr; der Verlauf traegt den Balken selbst.
+       Auch keine width-Transition: der Fortschritt wird ohnehin bei jedem
+       Scroll-Ereignis neu gesetzt, die 0,06 s tweenten nur eine
+       Layout-Eigenschaft ohne sichtbaren Gewinn. */
   }
   .snav__progress-spark {
     position: absolute;
@@ -467,7 +478,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     height: 7px;
     border-radius: 50%;
     background: #ffffff;
-    box-shadow: 0 0 12px var(--accent, #2dd4ff), 0 0 4px #ffffff;
+    /* nur der enge, unbunte Schein bleibt — der 12px-Akzent-Halo war der Tell */
+    box-shadow: 0 0 4px #ffffff;
   }
   /* left = burger + search, center = brand (true visual center regardless of
      how wide the left/right groups are), right = lang + account */
@@ -495,6 +507,20 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav__brand svg {
     color: var(--accent, #2dd4ff);
     flex: none;
+  }
+  /* ---- Wortmarken-Wandlung (nur Seiten mit Hero, opt-in über heroMorph) ----
+     Am Seitenanfang trägt die Leiste keinen Schriftzug: die Hero-Überschrift
+     IST in diesem Moment die Wortmarke. --brand-in setzt der Scroll-Listener
+     weiter unten; der Schriftzug blendet erst auf, wenn die Überschrift bei
+     ihm angekommen ist. Nur opacity — keine Layout-Eigenschaft, also kein
+     Sprung und kein CLS.
+     Der Tastaturfokus hebt das Verbergen auf: ein unsichtbarer, aber
+     fokussierbarer Verweis wäre eine Falle für Tastaturnutzer. */
+  .snav--morph .snav__brand {
+    opacity: var(--brand-in, 0);
+  }
+  .snav--morph .snav__brand:focus-visible {
+    opacity: 1;
   }
   /* Glyphen wie eine technische Zeichnung: dünner Strich, gerade Enden,
      spitze Ecken. Die dicken runden Konturen davor lasen als Spiel-HUD von
@@ -644,7 +670,9 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav__menu-svg {
     position: absolute;
     inset: 0;
-    transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+    /* ease-out-quart statt Ueberschwinger: echte Massen bremsen sanft aus,
+       Bounce/Elastic wirkt aufgesetzt. */
+    transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
   }
   .snav__menu-svg--burger {
     opacity: 1;
@@ -682,7 +710,9 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     color: var(--accent, #2dd4ff);
     border-color: var(--accent, #2dd4ff);
     background: color-mix(in srgb, var(--accent, #2dd4ff) 14%, transparent);
-    box-shadow: 0 0 18px color-mix(in srgb, var(--accent, #2dd4ff) 28%, transparent);
+    /* Farbe und Rahmen zeigen den offenen Zustand bereits an — der
+       Akzent-Halo war doppelt gemoppelt und der auffaelligste Standard-Effekt. */
+    box-shadow: var(--shadow-1, 0 2px 10px rgba(0, 0, 0, 0.5));
   }
   .snav__menu-btn[aria-expanded='true'] .snav__menu-svg--burger {
     opacity: 0;
@@ -1224,10 +1254,14 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     left: 0;
     top: 50%;
     width: 2px;
-    height: 0;
+    /* Feste Hoehe, skaliert statt animierter height: eine Hoehenanimation
+       stoesst bei jedem Frame das Layout an, scaleY laeuft auf dem Compositor.
+       Die Bewegung sieht identisch aus. */
+    height: 62%;
     background: var(--accent, #2dd4ff);
-    transform: translateY(-50%);
-    transition: height 0.22s cubic-bezier(0.2, 0.7, 0.25, 1);
+    transform: translateY(-50%) scaleY(0);
+    transform-origin: center;
+    transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.25, 1);
   }
   .snav-deck__row:hover,
   .snav-deck__row:focus-visible,
@@ -1238,10 +1272,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav-deck__row:hover::before,
   .snav-deck__row:focus-visible::before,
   .snav-deck__row.is-active::before {
-    height: 62%;
+    transform: translateY(-50%) scaleY(1);
   }
   .snav-deck__row[aria-current]::before {
-    height: 62%;
+    /* Sichtbarkeit haengt jetzt an scaleY, nicht mehr an height — ohne diese
+       Zeile bliebe der Marker der aktuellen Seite auf scaleY(0) unsichtbar. */
+    transform: translateY(-50%) scaleY(1);
     background: color-mix(in srgb, var(--accent, #2dd4ff) 55%, transparent);
   }
   .snav-deck__icon {
@@ -1405,6 +1441,16 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     .snav-deck__pulse {
       animation: none;
     }
+    /* Ohne Bewegung gibt es keine Wanderung, in die der Schriftzug übergeben
+       werden könnte. Die Leiste holt ihn deshalb schlicht herein, sobald
+       überhaupt gescrollt wurde — --brand-in wird hier bewusst überstimmt. */
+    .snav--morph .snav__brand {
+      opacity: 0;
+      transition: opacity 0.2s linear;
+    }
+    .snav--morph.scrolled .snav__brand {
+      opacity: 1;
+    }
     .snav-deck__stagetext,
     .snav-deck__glyph,
     .snav-deck__text,
@@ -1420,6 +1466,72 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     window.__snavInit = true;
     var nav = document.getElementById('topbar');
     if (!nav) return;
+
+    // ---- Wortmarken-Wandlung ------------------------------------------
+    // Nur auf Seiten mit Hero — dort traegt die Leiste .snav--morph. Die
+    // Hero-Ueberschrift wandert scroll-verknuepft auf den Schriftzug der
+    // Leiste zu und uebergibt ihm am Ende.
+    //
+    // Ziel und Massstab werden GEMESSEN statt geraten: sonst haengt die
+    // Landung an Schriftgrad, Fensterbreite und geladener Schrift. Der
+    // Fortschritt geht als CSS-Variable an die Seite, das Aussehen bleibt
+    // im Stylesheet.
+    var noMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    var mark = null, markText = null, brandText = null, morph = null;
+
+    function measureMorph() {
+      morph = null;
+      if (!markText || !brandText) return;
+      // Ohne Bewegung wandert nichts, und unter 580px ist der Schriftzug
+      // display:none — dann gibt es kein Ziel. Beide Faelle regelt das CSS,
+      // die Messung waere nur ein erzwungener Reflow ohne Abnehmer.
+      if (noMotion.matches || !brandText.offsetWidth) return;
+      mark.style.setProperty('--p', '0'); // im Ruhezustand messen
+      var a = markText.getBoundingClientRect();
+      var b = brandText.getBoundingClientRect();
+      var fa = parseFloat(getComputedStyle(markText).fontSize);
+      var fb = parseFloat(getComputedStyle(brandText).fontSize);
+      if (!a.height || !fa || !fb) return;
+      // Mittelpunkt zu Mittelpunkt: halbe Zeilenabstaende verteilen sich
+      // symmetrisch, der Kastenmittelpunkt ist also auch bei
+      // unterschiedlicher Zeilenhoehe der richtige Bezug. Der Massstab kommt
+      // dagegen aus den SCHRIFTGRADEN — Kastenhoehen enthalten den
+      // Zeilenabstand und wuerden zu klein skalieren.
+      var dy = (b.top + b.height / 2) - (a.top + a.height / 2);
+      morph = {
+        // Weglaenge = der vertikale Abstand selbst. Die Ueberschrift kommt
+        // genau dann an, wenn man so weit gescrollt hat, wie sie zu wandern
+        // hatte — das liest sich als direkte Kopplung, nicht als Effekt.
+        t: Math.max(160, Math.abs(dy))
+      };
+      mark.style.setProperty('--dx', ((b.left + b.width / 2) - (a.left + a.width / 2)).toFixed(2) + 'px');
+      mark.style.setProperty('--dy', dy.toFixed(2) + 'px');
+      mark.style.setProperty('--s', (fb / fa).toFixed(4));
+    }
+
+    function paintMorph() {
+      if (!mark) return;
+      // Bei offenem Overlay steht die Seite auf position:fixed, scrollY ist
+      // dann 0 — ohne diese Sperre schnappte die Ueberschrift zurueck.
+      if (document.documentElement.classList.contains('is-locked')) return;
+      if (!morph) {
+        // Kein Wanderziel — Monogramm-Ansicht unter 580px. Die Ueberschrift
+        // bleibt im Hero (CSS), die Leiste holt ihre Marke beim Scrollen
+        // schlicht herein. Ohne diese Zeile bliebe --brand-in bei 0 und das
+        // Monogramm waere auf der Startseite dauerhaft unsichtbar.
+        mark.style.setProperty('--p', '0');
+        nav.style.setProperty('--brand-in', Math.min(1, Math.max(0, (scrollY - 40) / 80)).toFixed(4));
+        return;
+      }
+      var p = Math.min(1, Math.max(0, scrollY / morph.t));
+      mark.style.setProperty('--p', p.toFixed(4));
+      // Der Schriftzug blendet genau dort auf, wo die Ueberschrift verlischt
+      // (letztes Fuenftel) — beide stehen dann an derselben Stelle.
+      nav.style.setProperty('--brand-in', (p < 0.8 ? 0 : (p - 0.8) * 5).toFixed(4));
+    }
+
+    function remeasure() { measureMorph(); paintMorph(); }
+
     addEventListener('scroll', function () {
       var scrolled = scrollY > 40;
       nav.classList.toggle('scrolled', scrolled);
@@ -1429,7 +1541,32 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
         var pct = h > 0 ? Math.min(100, Math.max(0, (scrollY / h) * 100)) : 0;
         prog.style.width = pct + '%';
       }
+      paintMorph();
     }, { passive: true });
+
+    // Dieses Skript steht im DOM VOR dem Seiteninhalt — .hero__mark gibt es
+    // hier also noch nicht. Erst nachschlagen, wenn das Dokument steht,
+    // sonst bleibt die Wandlung still tot.
+    function initMorph() {
+      if (!nav.classList.contains('snav--morph')) return;
+      mark = document.querySelector('.hero__mark');
+      if (!mark) return;
+      markText = mark.querySelector('h1');
+      brandText = nav.querySelector('.snav__brand span');
+      if (!markText || !brandText) { mark = null; return; }
+      remeasure();
+      addEventListener('resize', remeasure, { passive: true });
+      // Die Wortmarke steht in Orbitron/Rajdhani — vor dem Schriftwechsel
+      // misst man die Ersatzschrift und die Landung sitzt daneben.
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
+      // Beim Zurueckkommen aus dem bfcache oder bei wiederhergestellter
+      // Scrollposition feuert kein scroll-Ereignis.
+      addEventListener('pageshow', remeasure);
+      if (noMotion.addEventListener) noMotion.addEventListener('change', remeasure);
+    }
+
+    if (document.readyState === 'loading') addEventListener('DOMContentLoaded', initMorph);
+    else initMorph();
 
     // ---- Menü-Overlay: Öffnen/Schließen, Fokus-Falle, Pfeiltasten-Navigation
     // (gleiches Grundmuster wie SearchOverlay: lastFocus merken/wiederher-

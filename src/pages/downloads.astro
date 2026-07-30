@@ -5,6 +5,7 @@ import Attribution from '../components/Attribution.astro';
 import { mediaLabel } from '../lib/downloadLabels';
 import fs from 'node:fs';
 import path from 'node:path';
+import { versioned } from '../lib/assetVersion';
 
 // Media library: every image in public/assets (top level), read at build time.
 // Videos/loops and fonts are intentionally excluded (images only). One-pagers
@@ -90,7 +91,7 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
   ogImage="/assets/t-hangar-1.jpg"
   translated={true}
 >
-  <link slot="head" rel="stylesheet" href="/assets/detail.css" />
+  <link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
   <style is:inline>
     :root {
       --bg: #0a1014;
@@ -366,7 +367,7 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
 
   <Attribution sources={['starcitizen.tools', 'RSI']} />
 
-  <script is:inline src="/assets/detail.js"></script>
+  <script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
   <script is:inline>
     (function () {
       var q = document.getElementById('dlq');

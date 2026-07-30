@@ -2,6 +2,7 @@
 // Hülle (DE). Körper: components/topics/crafting.astro — geteilt mit der
 // anderen Sprache, damit die beiden nicht auseinanderlaufen können.
 import DB from '../../../../assets/crafting-db.json';
+import { versioned } from '../../../lib/assetVersion';
 const total = DB.counts.blueprints;
 const ver = DB.version;
 const patch = (ver.match(/(\d+\.\d+)/) ?? [])[1] ?? '4.9';
@@ -9,6 +10,6 @@ import Layout from '../../../layouts/Layout.astro';
 import Body from '../../../components/topics/crafting.astro';
 ---
 <Layout title={`Crafting-Datenbank — Star Citizen ${patch} | VerseBase`} description={`Interaktive Crafting-Datenbank für Star Citizen ${patch}: ${total} Blueprints durchsuchen, nach Kategorie & Ressource filtern, Zutaten und Item-Werte ansehen, Materialqualität simulieren und im Fabricator-Planer eine Einkaufsliste aggregieren.`} themeColor="#16161a" ogType="article" ogImage="/assets/t-craft-1.jpg" translated={true}>
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <Body />
 </Layout>

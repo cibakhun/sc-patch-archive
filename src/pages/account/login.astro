@@ -5,6 +5,7 @@ import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 import AccountShell from '../../components/account/AccountShell.astro';
 import AuthLogin from '../../components/account/AuthLogin.astro';
+import { versioned } from '../../lib/assetVersion';
 ---
 <Layout
   title={'Sign in | VerseBase'}
@@ -13,8 +14,8 @@ import AuthLogin from '../../components/account/AuthLogin.astro';
   ogImage="/assets/og-default.jpg"
   translated={true}
 >
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
-<link slot="head" rel="stylesheet" href="/assets/account.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
+<link slot="head" rel="stylesheet" href={versioned('assets/account.css', '/assets/account.css')} />
 <style is:inline>
 /* Palette lebt jetzt in /assets/account.css (geteilt, entdoppelt). */
 
@@ -39,5 +40,5 @@ import AuthLogin from '../../components/account/AuthLogin.astro';
 
 <Attribution sources={[]} />
 
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>

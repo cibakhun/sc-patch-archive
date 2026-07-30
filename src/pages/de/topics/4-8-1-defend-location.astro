@@ -1,10 +1,11 @@
 ---
 // Hülle (DE). Körper: components/topics/4-8-1-defend-location.astro — geteilt mit der
 // anderen Sprache, damit die beiden nicht auseinanderlaufen können.
+import { versioned } from '../../../lib/assetVersion';
 import Layout from '../../../layouts/Layout.astro';
 import Body from '../../../components/topics/4-8-1-defend-location.astro';
 ---
 <Layout title={"Defend Location — Star Citizen 4.8.1 | VerseBase"} description={"Defend Location: der neue wellenbasierte Raumkampf-Missionstyp aus Alpha 4.8.1 — verteidige Asteroiden-Mining-Basen gegen Bomber-Anfluege ueber 385 Einsatzorte in Stanton und Pyro."} themeColor="#0b1014" ogType="article" ogImage="/assets/t-def-1.jpg" translated={true}>
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <Body />
 </Layout>

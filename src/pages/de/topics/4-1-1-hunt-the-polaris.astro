@@ -1,10 +1,11 @@
 ---
 // Hülle (DE). Körper: components/topics/4-1-1-hunt-the-polaris.astro — geteilt mit der
 // anderen Sprache, damit die beiden nicht auseinanderlaufen können.
+import { versioned } from '../../../lib/assetVersion';
 import Layout from '../../../layouts/Layout.astro';
 import Body from '../../../components/topics/4-1-1-hunt-the-polaris.astro';
 ---
 <Layout title={"Hunt The Polaris — Star Citizen 4.1.1 | VerseBase"} description={"Hunt The Polaris: Waehrend der Fleet Week 2955 stehlen die Frontier Fighters eine RSI Polaris — und der ganze Server jagt sie quer durch Stanton bis zum letzten Gefecht an einem fluechtigen Wurmloch."} themeColor="#0c1422" ogType="article" ogImage="/assets/img-polaris.jpg" translated={true}>
-<link slot="head" rel="stylesheet" href="/assets/detail.css" />
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <Body />
 </Layout>

@@ -1,16 +1,18 @@
 ---
-// Themenseite „4-0-2-supply-or-die" — EIN Körper für DE und EN.
+// „4-0-2-supply-or-die" — EIN Körper für DE und EN.
 // Muster und Begründung: siehe components/topics/4-5-0-engineering.astro.
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
-import SiteNav from '../SiteNav.astro';
-import TopicFacts from '../TopicFacts.astro';
-import RelatedTopics from '../RelatedTopics.astro';
-import Attribution from '../Attribution.astro';
-import TopicSeo from '../dossier/TopicSeo.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import TopicFacts from '../../components/TopicFacts.astro';
+import RelatedTopics from '../../components/RelatedTopics.astro';
+import Attribution from '../../components/Attribution.astro';
+import TopicSeo from '../../components/dossier/TopicSeo.astro';
+import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
 
-const de = localeFromPath(Astro.url.pathname) === 'de';
+const lang = localeFromPath(Astro.url.pathname);
+const de = lang === 'de';
 ---
 <TopicSeo slug="4-0-2-supply-or-die" image="/assets/t-supply-1.jpg" />
 <style is:inline>
@@ -174,4 +176,4 @@ const de = localeFromPath(Astro.url.pathname) === 'de';
 
 <div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label={de ? 'Schließen' : 'Close'}>✕</button><div class="lb__content"></div></div></div>
 
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>

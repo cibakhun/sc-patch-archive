@@ -1,20 +1,19 @@
 ---
-// Themenseite „Alien Week" (4.8.2) — EIN Körper für DE und EN.
+// „4-8-2-alien-week" — EIN Körper für DE und EN.
 // Muster und Begründung: siehe components/topics/4-5-0-engineering.astro.
-import SiteNav from '../SiteNav.astro';
-import TopicFacts from '../TopicFacts.astro';
-import RelatedTopics from '../RelatedTopics.astro';
-import Attribution from '../Attribution.astro';
-import TopicSeo from '../dossier/TopicSeo.astro';
-import { localeFromPath, href } from '../../i18n/ui';
+// Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
+// Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
+import SiteNav from '../../components/SiteNav.astro';
+import TopicFacts from '../../components/TopicFacts.astro';
+import RelatedTopics from '../../components/RelatedTopics.astro';
+import Attribution from '../../components/Attribution.astro';
+import TopicSeo from '../../components/dossier/TopicSeo.astro';
+import { versioned } from '../../lib/assetVersion';
+import { localeFromPath } from '../../i18n/ui';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
-const L = (p: string) => href(p, lang);
 ---
-{/* Zur `set:text`-Sprungmarke unten: siehe Hinweis in 4-5-0-engineering.astro —
-    ein Ausdruck als Kind eines Elements auf OBERSTER Ebene kostet in Astro 5.18
-    dessen schliessendes Tag. */}
 <TopicSeo slug="4-8-2-alien-week" image="/assets/t-alien-1.jpg" />
 <style is:inline>
 
@@ -30,7 +29,7 @@ const L = (p: string) => href(p, lang);
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 <div class="cursorglow" aria-hidden="true"></div>
 
-<SiteNav crumbs={[{ label: de ? 'Archiv' : 'Archive', href: L('/archiv.html') }, { label: 'Alpha 4.8.2', href: L('/patches/sc-4-8-2.html') }, { label: "Alien Week 2956" }]} />
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.8.2', href: '/de/patches/sc-4-8-2.html' }, { label: "Alien Week 2956" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.8.2', href: '/patches/sc-4-8-2.html' }, { label: "Alien Week 2956" }]} />
 
 
 <main id="main">
@@ -40,11 +39,9 @@ const L = (p: string) => href(p, lang);
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-alien-1.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="eyebrow"><a href={L('/patches/sc-4-8-2.html')}>Alpha 4.8.2 · Gatac &amp; Alien Week</a> &nbsp;·&nbsp; Event</div>
+      <div class="eyebrow"><a href={de ? '/de/patches/sc-4-8-2.html' : '/patches/sc-4-8-2.html'}>Alpha 4.8.2 · Gatac &amp; Alien Week</a> &nbsp;·&nbsp; Event</div>
       <h1><span class="thin">First Contact Day 2956</span>Alien Week</h1>
-      <p class="lead">{de
-        ? 'Die jährliche Feier der nicht-menschlichen Hersteller: rund um First Contact Day rückt Alien Week Xenotech ins Rampenlicht — mit den Gatac-Schiffen Railen, Syulen und Tyilui als Headliner.'
-        : 'The annual celebration of non-human manufacturers: around First Contact Day, Alien Week puts xenotech in the spotlight — headlined by the Gatac ships Railen, Syulen and Tyilui.'}</p>
+      <p class="lead">{de ? 'Die jährliche Feier der nicht-menschlichen Hersteller: rund um First Contact Day rückt Alien Week Xenotech ins Rampenlicht — mit den Gatac-Schiffen Railen, Syulen und Tyilui als Headliner.' : 'The annual celebration of non-human manufacturers: around First Contact Day, Alien Week puts xenotech in the spotlight — headlined by the Gatac ships Railen, Syulen and Tyilui.'}</p>
       <div class="tags"><span class="tag hot">Event</span><span class="tag">First Contact Day</span><span class="tag">Gatac</span><span class="tag">Aopoa</span><span class="tag">Xenotech</span></div>
       <div class="hero__play" data-lb="yt:Xh35kuWo0a4"><span class="pbtn">▶</span>{de ? 'Trailer ansehen' : 'Watch trailer'}</div>
     </div>
@@ -76,17 +73,13 @@ const L = (p: string) => href(p, lang);
     <div class="band__in reveal">
       <div class="kx">{de ? 'Rund um First Contact Day' : 'Around First Contact Day'}</div>
       <div class="big outline">ALIEN WEEK</div>
-      <p set:html={de
-        ? 'Einmal im Jahr feiert das Verse den ersten Kontakt — und stellt jene Hersteller in den Mittelpunkt, die nicht von Menschenhand stammen. Alien Week ist die Bühne für <b style="color:var(--accent-2)">Xenotech</b>.'
-        : 'Once a year the Verse celebrates first contact — and puts the spotlight on those manufacturers not made by human hands. Alien Week is the stage for <b style="color:var(--accent-2)">xenotech</b>.'} />
+      <p>{de ? 'Einmal im Jahr feiert das Verse den ersten Kontakt — und stellt jene Hersteller in den Mittelpunkt, die nicht von Menschenhand stammen. Alien Week ist die Bühne für ' : 'Once a year the Verse celebrates first contact — and puts the spotlight on those manufacturers not made by human hands. Alien Week is the stage for '}<b style="color:var(--accent-2)">{de ? 'Xenotech' : 'xenotech'}</b>.</p>
     </div>
   </section>
 
   <!-- MANIFESTO pull-quote -->
   <section class="manifesto reveal" style="padding-inline:clamp(1.25rem,5vw,4rem)">
-    <blockquote set:html={de
-      ? 'Eine Woche, in der <span class="hl">fremde Technik</span> die Hauptrolle spielt.'
-      : 'A week in which <span class="hl">alien technology</span> takes the lead role.'} />
+    <blockquote>{de ? 'Eine Woche, in der ' : 'A week in which '}<span class="hl">{de ? 'fremde Technik' : 'alien technology'}</span>{de ? ' die Hauptrolle spielt.' : ' takes the lead role.'}</blockquote>
     <cite>Alien Week · First Contact Day 2956</cite>
   </section>
 
@@ -95,14 +88,10 @@ const L = (p: string) => href(p, lang);
     <div class="split reveal">
       <div class="split__media"><div class="m" style="background-image:url('/assets/t-alien-3.jpg')"></div></div>
       <div class="split__text">
-        <div class="kx">{de ? '01 · Worum es geht' : "01 · What it's about"}</div>
+        <div class="kx">{de ? '01 · Worum es geht' : '01 · What it\'s about'}</div>
         <h3>{de ? 'Das Fest der nicht-menschlichen Hersteller' : 'The festival of non-human manufacturers'}</h3>
-        <p set:html={de
-          ? 'Alien Week ist das jährliche Event rund um <b>First Contact Day</b>, das die nicht-menschlichen bzw. Xenotech-Hersteller von Star Citizen in den Mittelpunkt stellt. Eine Woche lang dreht sich alles um Technik jenseits menschlicher Werften.'
-          : "Alien Week is the annual event around <b>First Contact Day</b> that puts Star Citizen's non-human, or xenotech, manufacturers front and center. For a whole week, everything revolves around technology beyond human shipyards."} />
-        <p set:html={de
-          ? 'Begleitet wird das Event von Community-Aktivitäten wie <b>Alien-Lore-Features</b> und <b>Xi\'an-Sprachlektionen</b> — Kontext und Kultur zu den fremden Konstrukteuren, deren Schiffe im Rampenlicht stehen.'
-          : "The event is accompanied by community activities such as <b>alien lore features</b> and <b>Xi'an language lessons</b> — context and culture for the alien builders whose ships are in the spotlight."} />
+        <p>{de ? 'Alien Week ist das jährliche Event rund um ' : 'Alien Week is the annual event around '}<b>First Contact Day</b>{de ? ', das die nicht-menschlichen bzw. Xenotech-Hersteller von Star Citizen in den Mittelpunkt stellt. Eine Woche lang dreht sich alles um Technik jenseits menschlicher Werften.' : ' that puts Star Citizen\'s non-human, or xenotech, manufacturers front and center. For a whole week, everything revolves around technology beyond human shipyards.'}</p>
+        <p>{de ? 'Begleitet wird das Event von Community-Aktivitäten wie ' : 'The event is accompanied by community activities such as '}<b>{de ? 'Alien-Lore-Features' : 'alien lore features'}</b>{de ? ' und ' : ' and '}<b>{de ? 'Xi\'an-Sprachlektionen' : 'Xi\'an language lessons'}</b>{de ? ' — Kontext und Kultur zu den fremden Konstrukteuren, deren Schiffe im Rampenlicht stehen.' : ' — context and culture for the alien builders whose ships are in the spotlight.'}</p>
       </div>
     </div>
   </section>
@@ -119,18 +108,10 @@ const L = (p: string) => href(p, lang);
       <div class="frame" style="background-image:url('/assets/t-alien-7.jpg')"></div>
     </div>
     <div class="scrolly__steps">
-      {(de
-        ? [['First Contact Day', 'Das Event startet rund um First Contact Day — den jährlichen Anlass, der den ersten Kontakt feiert und Xenotech ins Zentrum rückt.'],
-           ['Pledge-Store-Aktionen', 'Zeitlich begrenzte Aktionen im Pledge Store machen Schiffe von Alien-Herstellern wie Gatac Manufacture, Aopoa, Banu und Esperia verfügbar.'],
-           ['Limitierte Ausstattung', 'Dazu kommen limitierte Lackierungen und Ausrüstung — fremde Designsprache, die nur in diesem Zeitfenster zu haben ist.'],
-           ['Lore & Sprache', 'Alien-Lore-Features und Xi\'an-Sprachlektionen begleiten die Woche und liefern den kulturellen Hintergrund der Hersteller.']]
-        : [['First Contact Day', 'The event kicks off around First Contact Day — the annual occasion that celebrates first contact and puts xenotech at the center.'],
-           ['Pledge Store deals', 'Time-limited deals in the Pledge Store make ships from alien manufacturers like Gatac Manufacture, Aopoa, Banu and Esperia available.'],
-           ['Limited gear', 'On top of that come limited paints and gear — alien design language available only within this window.'],
-           ['Lore & language', 'Alien lore features and Xi\'an language lessons accompany the week and provide the cultural background of the manufacturers.']]
-      ).map(([h, p], i) => (
-        <div class="sstep"><div class="sn">{String(i + 1).padStart(2, '0')}</div><h3>{h}</h3><p>{p}</p></div>
-      ))}
+      <div class="sstep"><div class="sn">01</div><h3>First Contact Day</h3><p>{de ? 'Das Event startet rund um First Contact Day — den jährlichen Anlass, der den ersten Kontakt feiert und Xenotech ins Zentrum rückt.' : 'The event kicks off around First Contact Day — the annual occasion that celebrates first contact and puts xenotech at the center.'}</p></div>
+      <div class="sstep"><div class="sn">02</div><h3>{de ? 'Pledge-Store-Aktionen' : 'Pledge Store deals'}</h3><p>{de ? 'Zeitlich begrenzte Aktionen im Pledge Store machen Schiffe von Alien-Herstellern wie Gatac Manufacture, Aopoa, Banu und Esperia verfügbar.' : 'Time-limited deals in the Pledge Store make ships from alien manufacturers like Gatac Manufacture, Aopoa, Banu and Esperia available.'}</p></div>
+      <div class="sstep"><div class="sn">03</div><h3>{de ? 'Limitierte Ausstattung' : 'Limited gear'}</h3><p>{de ? 'Dazu kommen limitierte Lackierungen und Ausrüstung — fremde Designsprache, die nur in diesem Zeitfenster zu haben ist.' : 'On top of that come limited paints and gear — alien design language available only within this window.'}</p></div>
+      <div class="sstep"><div class="sn">04</div><h3><Fragment set:html={de ? 'Lore &amp; Sprache' : 'Lore &amp; language'} /></h3><p>{de ? 'Alien-Lore-Features und Xi\'an-Sprachlektionen begleiten die Woche und liefern den kulturellen Hintergrund der Hersteller.' : 'Alien lore features and Xi\'an language lessons accompany the week and provide the cultural background of the manufacturers.'}</p></div>
     </div>
   </div>
 
@@ -140,9 +121,7 @@ const L = (p: string) => href(p, lang);
     <div class="band__in reveal">
       <div class="kx">{de ? '03 · Headliner 2956' : '03 · Headliners 2956'}</div>
       <div class="big" style="font-size:clamp(2.6rem,9vw,6.5rem)">GATAC</div>
-      <p set:html={de
-        ? 'Für 2956 führen drei Gatac-Schiffe die Woche an: die flugfertige <b style="color:var(--accent-2)">Railen</b>, der <b style="color:var(--accent-2)">Syulen</b>-Starter und der neue <b style="color:var(--accent-2)">Tyilui</b>-Träger.'
-        : 'For 2956, three Gatac ships lead the week: the flight-ready <b style="color:var(--accent-2)">Railen</b>, the <b style="color:var(--accent-2)">Syulen</b> starter and the new <b style="color:var(--accent-2)">Tyilui</b> carrier.'} />
+      <p>{de ? 'Für 2956 führen drei Gatac-Schiffe die Woche an: die flugfertige ' : 'For 2956, three Gatac ships lead the week: the flight-ready '}<b style="color:var(--accent-2)">Railen</b>{de ? ', der ' : ', the '}<b style="color:var(--accent-2)">Syulen</b>{de ? '-Starter und der neue ' : ' starter and the new '}<b style="color:var(--accent-2)">Tyilui</b>{de ? '-Träger.' : ' carrier.'}</p>
     </div>
   </section>
 
@@ -151,18 +130,10 @@ const L = (p: string) => href(p, lang);
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">04</span><h2>{de ? 'Hersteller im Spotlight' : 'Manufacturers in the spotlight'}</h2><span class="rule"></span></div>
       <div class="flow reveal">
-        {(de
-          ? [['G', 'Gatac Manufacture', 'Headliner 2956: Railen, Syulen und der neue Tyilui-Träger.'],
-             ['A', 'Aopoa', 'Xi\'an-Bauweise — gezeigt mit Schiffen wie Khartu-al und Nox.'],
-             ['E', 'Esperia', 'Rekonstruierte Fremdtechnik — vertreten durch den Talon.'],
-             ['B', 'Banu', 'Die Banu-Reihe rundet das Aufgebot der Alien-Hersteller ab.']]
-          : [['G', 'Gatac Manufacture', '2956 headliners: Railen, Syulen and the new Tyilui carrier.'],
-             ['A', 'Aopoa', "Xi'an craftsmanship — shown with ships like the Khartu-al and Nox."],
-             ['E', 'Esperia', 'Reconstructed alien technology — represented by the Talon.'],
-             ['B', 'Banu', 'The Banu line rounds out the roster of alien manufacturers.']]
-        ).map(([dot, h, p]) => (
-          <div class="node"><div class="dot">{dot}</div><h3>{h}</h3><p>{p}</p></div>
-        ))}
+        <div class="node"><div class="dot">G</div><h3>Gatac Manufacture</h3><p>{de ? 'Headliner 2956: Railen, Syulen und der neue Tyilui-Träger.' : '2956 headliners: Railen, Syulen and the new Tyilui carrier.'}</p></div>
+        <div class="node"><div class="dot">A</div><h3>Aopoa</h3><p>{de ? 'Xi\'an-Bauweise — gezeigt mit Schiffen wie Khartu-al und Nox.' : 'Xi\'an craftsmanship — shown with ships like the Khartu-al and Nox.'}</p></div>
+        <div class="node"><div class="dot">E</div><h3>Esperia</h3><p>{de ? 'Rekonstruierte Fremdtechnik — vertreten durch den Talon.' : 'Reconstructed alien technology — represented by the Talon.'}</p></div>
+        <div class="node"><div class="dot">B</div><h3>Banu</h3><p>{de ? 'Die Banu-Reihe rundet das Aufgebot der Alien-Hersteller ab.' : 'The Banu line rounds out the roster of alien manufacturers.'}</p></div>
       </div>
     </div>
   </section>
@@ -171,11 +142,9 @@ const L = (p: string) => href(p, lang);
   <section class="band">
     <div class="bbg" data-par="0.13" style="background-image:url('/assets/img-tyilui.jpg')" aria-hidden="true"></div>
     <div class="band__in reveal">
-      <div class="kx">{de ? 'Technik, die nicht von uns stammt' : "Technology that doesn't come from us"}</div>
+      <div class="kx">{de ? 'Technik, die nicht von uns stammt' : 'Technology that doesn\'t come from us'}</div>
       <div class="big outline" style="font-size:clamp(2.4rem,8vw,6rem)">XENOTECH</div>
-      <p>{de
-        ? 'Von Aopoas Khartu-al und Nox über Esperias Talon bis zur Banu-Reihe — Alien Week bringt zeitlich begrenzte Store-Aktionen, limitierte Lackierungen und Ausrüstung der fremden Werften.'
-        : "From Aopoa's Khartu-al and Nox to Esperia's Talon and the Banu line — Alien Week brings time-limited store deals, limited paints and gear from the alien shipyards."}</p>
+      <p>{de ? 'Von Aopoas Khartu-al und Nox über Esperias Talon bis zur Banu-Reihe — Alien Week bringt zeitlich begrenzte Store-Aktionen, limitierte Lackierungen und Ausrüstung der fremden Werften.' : 'From Aopoa\'s Khartu-al and Nox to Esperia\'s Talon and the Banu line — Alien Week brings time-limited store deals, limited paints and gear from the alien shipyards.'}</p>
     </div>
   </section>
 
@@ -184,25 +153,14 @@ const L = (p: string) => href(p, lang);
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">05</span><h2>Media</h2><span class="rule"></span></div>
       <div class="gallery reveal">
-        {(de
-          ? [['t-alien-1', 'gtile full b2', 'Alien Week — Xenotech im Rampenlicht', 'Alien Week · Xenotech'],
-             ['img-railen', 'gtile w2', 'Gatac Railen', 'Gatac Railen'],
-             ['img-syulen', 'gtile', 'Gatac Syulen', 'Gatac Syulen'],
-             ['img-tyilui', 'gtile', 'Gatac Tyilui', 'Gatac Tyilui'],
-             ['t-alien-2', 'gtile w2', 'Gatac-Schiff mit Grav-Lev-Antrieb im Asteroidenfeld', 'Gatac · Grav-Lev']]
-          : [['t-alien-1', 'gtile full b2', 'Alien Week — xenotech in the spotlight', 'Alien Week · Xenotech'],
-             ['img-railen', 'gtile w2', 'Gatac Railen', 'Gatac Railen'],
-             ['img-syulen', 'gtile', 'Gatac Syulen', 'Gatac Syulen'],
-             ['img-tyilui', 'gtile', 'Gatac Tyilui', 'Gatac Tyilui'],
-             ['t-alien-2', 'gtile w2', 'Gatac ship with grav-lev drive in an asteroid field', 'Gatac · grav-lev']]
-        ).map(([img, cls, alt, cap]) => (
-          <figure class={cls} data-lb={`img:/assets/${img}.jpg`}><img src={`/assets/${img}.jpg`} alt={alt} loading="lazy" /><span class="zoomic">⤢</span><figcaption>{cap}</figcaption></figure>
-        ))}
+        <figure class="gtile full b2" data-lb="img:/assets/t-alien-1.jpg"><img src="/assets/t-alien-1.jpg" alt={de ? 'Alien Week — Xenotech im Rampenlicht' : 'Alien Week — xenotech in the spotlight'} loading="lazy"><span class="zoomic">⤢</span><figcaption>Alien Week · Xenotech</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/img-railen.jpg"><img src="/assets/img-railen.jpg" alt="Gatac Railen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Gatac Railen</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-syulen.jpg"><img src="/assets/img-syulen.jpg" alt="Gatac Syulen" loading="lazy"><span class="zoomic">⤢</span><figcaption>Gatac Syulen</figcaption></figure>
+        <figure class="gtile" data-lb="img:/assets/img-tyilui.jpg"><img src="/assets/img-tyilui.jpg" alt="Gatac Tyilui" loading="lazy"><span class="zoomic">⤢</span><figcaption>Gatac Tyilui</figcaption></figure>
+        <figure class="gtile w2" data-lb="img:/assets/t-alien-2.jpg"><img src="/assets/t-alien-2.jpg" alt={de ? 'Gatac-Schiff mit Grav-Lev-Antrieb im Asteroidenfeld' : 'Gatac ship with grav-lev drive in an asteroid field'} loading="lazy"><span class="zoomic">⤢</span><figcaption>{de ? 'Gatac · Grav-Lev' : 'Gatac · grav-lev'}</figcaption></figure>
       </div>
       <div class="video reveal" data-yt="Xh35kuWo0a4" style="background-image:url('/assets/vid-railen.jpg')"><span class="vlbl">Gatac &amp; Alien Week — Trailer</span><button class="play" aria-label={de ? 'Trailer abspielen' : 'Play trailer'}>▶</button></div>
-      <p class="src reveal" set:html={de
-        ? 'Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=Xh35kuWo0a4" target="_blank" rel="noopener">Auf YouTube ansehen ↗</a>'
-        : 'Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · <a href="https://www.youtube.com/watch?v=Xh35kuWo0a4" target="_blank" rel="noopener">Watch on YouTube ↗</a>'} />
+      <p class="src reveal"><Fragment set:html={de ? 'Quelle: offizieller Star-Citizen-YouTube-Kanal &amp; Star Citizen Wiki (© Cloud Imperium Games). · ' : 'Source: official Star Citizen YouTube channel &amp; Star Citizen Wiki (© Cloud Imperium Games). · '} /><a href="https://www.youtube.com/watch?v=Xh35kuWo0a4" target="_blank" rel="noopener">{de ? 'Auf YouTube ansehen ↗' : 'Watch on YouTube ↗'}</a></p>
     </div>
   </section>
 
@@ -214,4 +172,4 @@ const L = (p: string) => href(p, lang);
 
 <div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label={de ? 'Schließen' : 'Close'}>✕</button><div class="lb__content"></div></div></div>
 
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>

@@ -8,9 +8,11 @@ import TopicFacts from '../../components/TopicFacts.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
 import TopicSeo from '../../components/dossier/TopicSeo.astro';
+import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
 
-const de = localeFromPath(Astro.url.pathname) === 'de';
+const lang = localeFromPath(Astro.url.pathname);
+const de = lang === 'de';
 ---
 <TopicSeo slug="4-0-0-pyro-system" image="/assets/t-pyro-1.jpg" />
 <style is:inline>
@@ -191,4 +193,4 @@ const de = localeFromPath(Astro.url.pathname) === 'de';
 
 <div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label={de ? 'Schließen' : 'Close'}>✕</button><div class="lb__content"></div></div></div>
 
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>

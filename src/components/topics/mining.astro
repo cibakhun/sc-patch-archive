@@ -14,6 +14,7 @@ import RefineryFinder from '../../components/RefineryFinder.astro';
 import { buildMiningShips } from '../../lib/miningShips';
 import DB from '../../../assets/mining-db.json';
 import TopicSeo from '../../components/dossier/TopicSeo.astro';
+import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
 
 const lang = localeFromPath(Astro.url.pathname);
@@ -154,4 +155,4 @@ const ships = de ? buildMiningShips('de') : buildMiningShips('en');
 <RelatedTopics topicSlug="mining" />
 <Attribution sources={[]} updated={snap} />
 
-<script is:inline src="/assets/detail.js"></script>
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
