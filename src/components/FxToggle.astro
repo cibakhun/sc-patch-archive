@@ -1,5 +1,5 @@
 ---
-// Partikel-Effekte-Umschalter (Sterne/Embers/Staub). Baulich wie
+// Partikel-Effekte-Umschalter (Sterne/Embers/Staub). Baulich verwandt mit
 // ThemeToggle.astro, aber ausdruecklich OHNE dessen Rollen-Gatter fuer den
 // Farbmodus (FX-04/D-06) — die Wahl steht ALLEN Besuchern offen.
 //
@@ -8,13 +8,20 @@
 // gesetzt; hier steht nur ein Platzhalter. Anders als ThemeToggle startet
 // der Platzhalter auf "false": Partikel sind per Vorgabe AUS (FX-02/D-04).
 //
-// Zwei Dinge sagen, WAS der Schalter tut:
-//   1. Das Symbol. Ein einzelner Funke las sich wie „Favorit" — jetzt ein
-//      grosser Funke mit einem kleinen daneben, das gaengige Bild fuer
-//      „Effekte". Der Aus-Zustand traegt zusaetzlich den Schraegstrich.
-//   2. Ein Tooltip, der nach kurzem Verweilen aufklappt und in einem Satz
-//      erklaert, worum es geht — samt aktuellem Zustand. Er haengt an CSS,
-//      nicht an JS, und der Zustandssatz wechselt mit [data-fx] mit.
+// GESTALT (bewusst anders als ThemeToggle): ein Symbol und daneben ein echter
+// Kippschalter. Der Vorgaenger stellte ZWEI fast gleiche Funken nebeneinander,
+// deren Unterschied nur ein duenner Schraegstrich war — bei 13 px nicht
+// lesbar, und der weiche Kreis dahinter las sich als Fleck. Jetzt trennen sich
+// die beiden Fragen sauber:
+//   * WAS  — das Symbol (Funken = Effekte)
+//   * OB   — die Schaltwippe, deren Punkt sichtbar wandert
+// Die Form sagt damit schon „hier wird etwas ein- und ausgeschaltet", bevor
+// jemand das Symbol deutet. Das Symbol braucht deshalb keinen Schraegstrich
+// mehr; der Zustand steht in Position UND Farbe, nicht nur in Farbe.
+//
+// Was der Schalter tut, sagt zusaetzlich ein Tooltip: er klappt nach kurzem
+// Verweilen auf, nennt den aktuellen Zustand und was ein Klick bewirkt. Er
+// haengt an CSS, nicht an JS — der Zustandssatz wechselt mit [data-fx] mit.
 import { localeFromPath, useTranslations } from '../i18n/ui';
 
 interface Props {
@@ -22,7 +29,7 @@ interface Props {
    * Wo der Schalter steht. Steuert zwei Dinge: die eindeutige id des Tooltips
    * (die Leiste und der Menuefuss zeigen BEIDE einen Schalter — doppelte ids
    * waeren ungueltig) und die Richtung, in die er aufklappt. Im Menuefuss nach
-   * oben, sonst waere er unten aus dem Bild.
+   * oben, sonst stuende er unter dem Bildrand.
    */
   place?: 'bar' | 'deck';
 }
@@ -39,18 +46,11 @@ const tipId = `fxsw-tip-${place}`;
     aria-label={t('nav.fx')}
     aria-describedby={tipId}
   >
-    <span class="fxsw__track" aria-hidden="true">
-      <svg class="fxsw__ic fxsw__ic--off" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9.6 5.4 11 10.2 15.8 11.6 11 13 9.6 17.8 8.2 13 3.4 11.6 8.2 10.2z" />
-        <path d="M17.6 14.4 18.2 16.4 20.2 17 18.2 17.6 17.6 19.6 17 17.6 15 17 17 16.4z" />
-        <path d="M3.6 3.6 20.4 20.4" />
-      </svg>
-      <svg class="fxsw__ic fxsw__ic--on" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9.6 5.4 11 10.2 15.8 11.6 11 13 9.6 17.8 8.2 13 3.4 11.6 8.2 10.2z" />
-        <path d="M17.6 14.4 18.2 16.4 20.2 17 18.2 17.6 17.6 19.6 17 17.6 15 17 17 16.4z" />
-      </svg>
-      <span class="fxsw__knob"></span>
-    </span>
+    <svg class="fxsw__ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9.6 5.4 11 10.2 15.8 11.6 11 13 9.6 17.8 8.2 13 3.4 11.6 8.2 10.2z" />
+      <path d="M17.6 14.4 18.2 16.4 20.2 17 18.2 17.6 17.6 19.6 17 17.6 15 17 17 16.4z" />
+    </svg>
+    <span class="fxsw__sw" aria-hidden="true"><i class="fxsw__dot"></i></span>
   </button>
 
   <span class="fxsw__tip" id={tipId} role="tooltip">
@@ -70,7 +70,8 @@ const tipId = `fxsw-tip-${place}`;
   .fxsw {
     display: inline-flex;
     align-items: center;
-    padding: 0.35rem 0.5rem;border:1px solid var(--line, var(--line-soft));
+    gap: 0.45rem;
+    padding: 0.3rem 0.42rem 0.3rem 0.5rem;border:1px solid var(--line, var(--line-soft));
     background: none;
     color: inherit;
     cursor: pointer;
@@ -79,50 +80,53 @@ const tipId = `fxsw-tip-${place}`;
   .fxsw:hover {
     border-color: var(--accent, #2dd4ff);
   }
-
-  /* Schiene mit zwei Symbolen und einem wandernden Knopf: der aktive Zustand
-     ist am Ort des Knopfes ablesbar, nicht nur an einer Farbe. */
-  .fxsw__track {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.32rem;
-    padding: 0.05rem 0.1rem;
+  .fxsw:focus-visible {
+    outline: 2px solid var(--accent-2, var(--accent, #2dd4ff));
+    outline-offset: 3px;
   }
+
+  /* Das Symbol beantwortet WAS, nicht OB — es traegt deshalb keinen
+     Schraegstrich mehr, sondern wird im Aus-Zustand nur ruhig. */
   .fxsw__ic {
-    position: relative;
-    z-index: 1;
     display: block;
     color: var(--muted, #8a99b8);
     transition: color 0.18s;
   }
-  .fxsw__knob {
+
+  /* Die Wippe beantwortet OB. Position des Punktes ist das Hauptsignal, Farbe
+     nur die Verstaerkung — so bleibt der Zustand auch ohne Farbsehen ablesbar. */
+  .fxsw__sw {
+    position: relative;
+    flex: 0 0 auto;
+    width: 28px;
+    height: 15px;
+    border-radius: 99px;
+    background: var(--surface-2, #1b2230);
+    border: 1px solid var(--line, var(--line-soft));
+    transition: background 0.18s, border-color 0.18s;
+  }
+  .fxsw__dot {
     position: absolute;
-    z-index: 0;
-    top: 50%;
-    left: 0;
-    width: 19px;
-    height: 19px;
-    margin-top: -9.5px;
-    margin-left: -3px;
+    top: 2px;
+    left: 2px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--accent, #2dd4ff) 18%, transparent);
-    transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.3, 1);
+    background: var(--muted, #8a99b8);
+    transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.3, 1), background 0.18s;
   }
 
-  /* An = Funke aktiv (Knopf rechts), Aus = durchgestrichener Funke aktiv
-     (Knopf links). Haengt bewusst nur an [data-fx] — keine Rollen-Klasse. */
-  :global(html[data-fx='on']) .fxsw__knob {
-    transform: translateX(21px);
-  }
-  :global(html[data-fx='on']) .fxsw__ic--on,
-  :global(html:not([data-fx='on'])) .fxsw__ic--off {
+  /* Haengt bewusst nur an [data-fx] — keine Rollen-Klasse (FX-04/D-06). */
+  :global(html[data-fx='on']) .fxsw__ic {
     color: var(--accent, #2dd4ff);
   }
-
-  .fxsw:focus-visible {
-    outline: 2px solid var(--accent-2, var(--accent, #2dd4ff));
-    outline-offset: 3px;
+  :global(html[data-fx='on']) .fxsw__sw {
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 22%, transparent);
+    border-color: var(--accent, #2dd4ff);
+  }
+  :global(html[data-fx='on']) .fxsw__dot {
+    transform: translateX(13px);
+    background: var(--accent, #2dd4ff);
   }
 
   /* ---------- Tooltip ---------------------------------------------------- */
@@ -131,8 +135,8 @@ const tipId = `fxsw-tip-${place}`;
     z-index: 5;
     top: calc(100% + 0.5rem);
     /* Linksbuendig statt zentriert: der Schalter sitzt links in der Leiste und
-       links im Menuefuss: ein zentrierter Kasten haette dort nach links aus dem
-       Bild geragt. Die Breite ist zusaetzlich auf das Bild begrenzt. */
+       links im Menuefuss — ein zentrierter Kasten haette dort nach links aus
+       dem Bild geragt. Die Breite ist zusaetzlich auf das Bild begrenzt. */
     left: 0;
     display: grid;
     gap: 0.2rem;
@@ -204,7 +208,7 @@ const tipId = `fxsw-tip-${place}`;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .fxsw__knob,
+    .fxsw__dot,
     .fxsw__tip {
       transition: none;
     }
