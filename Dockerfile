@@ -41,8 +41,8 @@ COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 # nicht mehr (z. B. weil die Direktive umbenannt wurde), entsteht kein Image.
 ARG STAGING=""
 RUN if [ -n "$STAGING" ]; then \
-      sed -i 's| https://static\.cloudflareinsights\.com||; s| https://cloudflareinsights\.com||' /etc/nginx/conf.d/default.conf; \
-      ! grep -q 'Content-Security-Policy.*cloudflareinsights' /etc/nginx/conf.d/default.conf; \
+      sed -i 's|^\( *default *\)https://static\.cloudflareinsights\.com;|\1"";|; s|^\( *default *\)https://cloudflareinsights\.com;|\1"";|' /etc/nginx/conf.d/default.conf; \
+      ! grep -q 'default *https://.*cloudflareinsights' /etc/nginx/conf.d/default.conf; \
     fi
 
 # Fail the build (in CI) on an invalid config, instead of only finding out when

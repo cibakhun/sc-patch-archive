@@ -20,6 +20,11 @@ import Attribution from '../../components/Attribution.astro';
 .lg-wrap p, .lg-wrap li{color:var(--text);line-height:1.7;font-size:.98rem}
 .lg-wrap ul{padding-left:1.2rem}
 .lg-wrap .muted{color:var(--muted)}
+.lg-wrap .optout{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem;margin:1.1rem 0;scroll-margin-top:6rem}
+.lg-wrap .optout button{font:inherit;font-weight:700;cursor:pointer;color:var(--ink);background:var(--accent);border:0;border-radius:6px;padding:.5rem .95rem}
+.lg-wrap .optout button:hover{filter:brightness(1.08)}
+.lg-wrap .optout .note{flex:1 1 100%;margin:0;color:var(--muted);font-size:.86rem;line-height:1.55}
+.lg-wrap .optout code{font-size:.85em;color:var(--accent-2)}
 .lg-fill{display:inline-block;background:color-mix(in srgb,#ff5b5b 14%,transparent);border:1px dashed #ff5b5b;border-radius:4px;padding:0 .45rem;color:#ffb4b4;font-weight:700}
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"] .lg-fill{color:#893c40}
@@ -42,7 +47,9 @@ import Attribution from '../../components/Attribution.astro';
       dich nicht über andere Websites hinweg. Zur reinen Reichweitenmessung läuft
       <a href="#cloudflare">Cloudflare Web Analytics</a> — cookiefrei und ohne Fingerprinting;
       dabei entstehen nur zusammengefasste Zahlen (Seitenaufrufe, Besuche, Ladezeiten), keine
-      Personenprofile. Darüber hinaus übermittelst du Daten nur über das
+      Personenprofile. Der Messung kannst du mit einem Klick
+      <a href="#opt-out">widersprechen</a> — nur dann wird ein technischer Cookie gesetzt, der
+      sich genau diese Entscheidung merkt. Darüber hinaus übermittelst du Daten nur über das
       <a href="#feedback">Feedback-Formular</a> und das optionale
       <a href="#accounts">Benutzerkonto</a> — beides freiwillig; die dabei verarbeiteten Daten
       sind unten gesondert beschrieben.
@@ -75,6 +82,38 @@ import Attribution from '../../components/Attribution.astro';
       EU ist dabei möglich; Details findest du in der Datenschutzerklärung des Anbieters:
       <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">cloudflare.com/privacypolicy</a>.
     </p>
+    <div class="optout" id="opt-out">
+      <span id="rum-status">Wird geprüft …</span>
+      <button type="button" id="rum-toggle">Nicht mitzählen</button>
+      <p class="note">
+        Die Entscheidung merkt sich der technische Cookie <code>vb_noanalytics</code> in genau
+        diesem Browser; sein ganzer Inhalt ist eine 1. Sie wirkt ab dem nächsten Seitenaufruf:
+        der Server erlaubt das Messskript dann nicht mehr, es lädt also gar nicht erst. Löschst
+        du deine Cookies, musst du hier erneut widersprechen.
+      </p>
+    </div>
+    <script is:inline>
+      (() => {
+        const NAME = 'vb_noanalytics';
+        const off = () => document.cookie.split('; ').some((c) => c === NAME + '=1');
+        const status = document.getElementById('rum-status');
+        const btn = document.getElementById('rum-toggle');
+        if (!status || !btn) return;
+        const render = (hint) => {
+          status.textContent = (off()
+            ? 'Du wirst hier nicht mitgezählt.'
+            : 'Du wirst hier derzeit mitgezählt.') + (hint ? ' ' + hint : '');
+          btn.textContent = off() ? 'Wieder mitzählen' : 'Nicht mitzählen';
+        };
+        btn.addEventListener('click', () => {
+          document.cookie = off()
+            ? NAME + '=; Max-Age=0; Path=/; SameSite=Lax'
+            : NAME + '=1; Max-Age=63072000; Path=/; SameSite=Lax; Secure';
+          render('Gilt ab dem nächsten Seitenaufruf.');
+        });
+        render();
+      })();
+    </script>
 
     <h2>Lokale Speicherung im Browser (localStorage)</h2>
     <p>
