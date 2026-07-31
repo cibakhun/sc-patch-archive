@@ -42,14 +42,12 @@ import Attribution from '../../components/Attribution.astro';
 
     <h2>Alapelv</h2>
     <p>
-      Ez a webhely tisztán statikus, nem kereskedelmi rajongói projekt. <strong>Nem használ
-      sütiket</strong>, nincs rajta hirdetés és hozzászólás-funkció, és nem követ téged más
-      webhelyeken keresztül. Puszta látogatottságméréshez a
-      <a href="#cloudflare">Cloudflare Web Analytics</a> fut — sütik és ujjlenyomatképzés nélkül;
-      ebből csak összesített számok keletkeznek (oldalmegtekintések, látogatások, betöltési idők),
-      személyes profilok nem. A mérésből egyetlen kattintással
-      <a href="#opt-out">kimaradhatsz</a> — csak ekkor kerül be egy technikai süti, amely pontosan
-      ezt a döntést jegyzi meg. Ezen túl kizárólag a
+      Ez a webhely tisztán statikus, nem kereskedelmi rajongói projekt. Nem jelenít meg
+      hirdetést, és nincs hozzászólás-funkciója. A látogatottságot két szolgáltatás méri:
+      <a href="#cloudflare">Cloudflare Web Analytics</a> (sütimentesen, ujjlenyomatképzés nélkül)
+      és <a href="#ga4">Google Analytics</a>, a Cloudflare Zaraz beépítésével. Mindkettőből
+      egyetlen kattintással <a href="#opt-out">kimaradhatsz</a>; a döntést egy technikai süti
+      őrzi meg, és mindkét mérést leállítja. Ezen túl kizárólag a
       <a href="#feedback">visszajelzési űrlap</a> és az opcionális
       <a href="#accounts">felhasználói fiók</a> révén küldesz adatot — mindkettő önkéntes; az ezek
       során kezelt adatokat lentebb külön ismertetjük.
@@ -81,14 +79,30 @@ import Attribution from '../../components/Attribution.astro';
       szervereken is történhet; a részleteket a szolgáltató adatvédelmi tájékoztatója tartalmazza:
       <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">cloudflare.com/privacypolicy</a>.
     </p>
+    <h2 id="ga4">Google Analytics (Cloudflare Zaraz-on keresztül)</h2>
+    <p>
+      Emellett <strong>Google Analytics 4</strong> is fut, a Cloudflare Zaraz beépítésével: a
+      mérőszkriptet ez a domain szolgálja ki, az adatokat a Cloudflare kiszolgálóoldalon
+      továbbítja a Google-nek. Rögzítésre kerülnek az oldalmegtekintések, a hozzávetőleges
+      származási hely (ország), az eszköz és a böngésző, valamint egy véletlenszerű azonosító,
+      hogy a visszatérő megtekintések összetartozzanak. A szolgáltató a Google Ireland Ltd.,
+      Gordon House, Barrow Street, Dublin 4, Írország; az adatkezelés az EU-n kívüli, egyesült
+      államokbeli szervereken is megtörténhet. Részletek a szolgáltató adatvédelmi
+      tájékoztatójában:
+      <a href="https://policies.google.com/privacy" rel="noopener">policies.google.com/privacy</a>.
+      A jogalap a GDPR 6. cikk (1) bekezdés f) pontja (jogos érdek a látogatottsági számokhoz).
+      Az alábbi <a href="#opt-out">kimaradás</a> ezt a mérést is kikapcsolja.
+    </p>
+
     <div class="optout" id="opt-out">
       <span id="rum-status">Ellenőrzés …</span>
       <button type="button" id="rum-toggle">Kimaradok a mérésből</button>
       <p class="note">
         A döntést a <code>vb_noanalytics</code> technikai süti jegyzi meg ebben a böngészőben;
-        a teljes tartalma egyetlen 1-es. A következő oldalbetöltéstől érvényes: a kiszolgáló
-        ekkor már nem engedélyezi a mérőszkriptet, így az el sem indul. Ha törlöd a sütiket,
-        itt újra ki kell maradnod.
+        a teljes tartalma egyetlen 1-es vagy 0-s. A következő oldalbetöltéstől érvényes, és
+        <strong>mindkét</strong> fenti szolgáltatásra vonatkozik: a kiszolgáló ekkor már nem
+        engedélyezi a mérőszkripteket, így el sem indulnak. Ha törlöd a sütiket, itt újra ki
+        kell maradnod. Aki a webhelyet üzemelteti és be van jelentkezve, amúgy sem számít bele.
       </p>
     </div>
     <script is:inline>
@@ -105,9 +119,9 @@ import Attribution from '../../components/Attribution.astro';
           btn.textContent = off() ? 'Mégis beleszámolok' : 'Kimaradok a mérésből';
         };
         btn.addEventListener('click', () => {
-          document.cookie = off()
-            ? NAME + '=; Max-Age=0; Path=/; SameSite=Lax'
-            : NAME + '=1; Max-Age=63072000; Path=/; SameSite=Lax; Secure';
+          document.cookie = (off()
+            ? NAME + '=0'
+            : NAME + '=1') + '; Max-Age=34560000; Path=/; SameSite=Lax; Secure';
           render('A következő oldalbetöltéstől érvényes.');
         });
         render();
