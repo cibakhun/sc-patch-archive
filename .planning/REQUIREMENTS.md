@@ -85,6 +85,44 @@
 - [ ] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
 - [ ] **DOC-07**: Abgedeckt sind Item Finder, Crafting, Mining, Schiffe, Missionen, Refinery, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
 
+### Spenden-Unterstützung
+
+> Anlass: Der Entwicklungsrechner startet wegen eines defekten Netzteils zufällig
+> neu — Entwickeln wird dadurch mühsam (Nutzerentscheidung 31.07.2026). Das ist
+> das erklärte Spendenziel; es wird so benannt und nicht als abstrakte
+> „Serverkosten" verkleidet. Diese Sektion hebt für Phase 5 die „Out of Scope"-
+> Zeilen zu serverseitiger Logik und Konto-Funktionen ausdrücklich auf: ohne
+> Edge Function gibt es keinen sicheren Zahlungsweg.
+>
+> Zahlungswege laut Nutzerentscheidung: **Stripe Checkout** (Hauptweg) und
+> **Ko-fi** (Alternative). PayPal ausdrücklich nicht.
+
+**Spenden abgeben**
+
+- [ ] **DON-01**: Ein Besucher wählt einen Betrag (Vorschläge + freie Eingabe) und ob einmalig oder monatlich, und landet auf der von Stripe gehosteten Checkout-Seite
+- [ ] **DON-02**: Spenden funktioniert ohne Konto und ohne Anmeldung
+- [ ] **DON-03**: Ko-fi ist als zweiter, gleichwertig sichtbarer Weg verlinkt
+- [ ] **DON-04**: Nach der Zahlung landet der Spender auf einer Dankesseite, die den Erfolg bestätigt; ein Abbruch führt zurück auf die Spendenseite ohne Fehlermeldung
+
+**Sicherheit & Wahrheit der Zahlen**
+
+- [ ] **DON-05**: Die Checkout-Sitzung wird serverseitig in einer Supabase Edge Function angelegt; der geheime Stripe-Schlüssel taucht in keinem ausgelieferten Byte auf
+- [ ] **DON-06**: Der Betrag wird serverseitig gegen Ober- und Untergrenze geprüft — ein manipulierter Client kann keinen beliebigen Betrag erzwingen
+- [ ] **DON-07**: Spendenzeilen entstehen ausschließlich im Webhook nach geprüfter Stripe-Signatur; kein Client-Schreibrecht auf die Tabelle, Doppelzustellung erzeugt keine Dublette
+- [ ] **DON-08**: Öffentlich lesbar ist nur, was öffentlich sein soll (Anzeigename, Betrag, Datum, Nachricht) — nie E-Mail, Zahlungs-ID oder Kunden-ID
+- [ ] **DON-09**: Ohne hinterlegte Schlüssel läuft das Feature im sichtbaren Demo-Modus (Muster `FEEDBACK_DEMO`): es behauptet keine Zahlen und bricht nicht
+
+**Darstellung**
+
+- [ ] **DON-10**: Eine eigene Spendenseite in DE und EN erklärt, wofür das Geld ist, und zeigt Zielstand und Unterstützer-Wand aus echten Zahlungsdaten
+- [ ] **DON-11**: Ein Spenden-Zugang ist site-weit erreichbar (Navigation und Fuß), ohne die bestehende Kopfleiste zu überladen
+- [ ] **DON-12**: Genannt wird ein Unterstützer nur nach ausdrücklicher Zustimmung; Vorgabe ist anonym, und ein selbst gewählter Anzeigename wird vor der Anzeige entschärft
+
+**Pflichten des Bestands**
+
+- [ ] **DON-13**: Die CSP kennt Stripe (Skript, Frame, Verbindung), bevor die Seite live geht; `npm run audit:csp` bleibt grün
+- [ ] **DON-14**: Die Datenschutzerklärung nennt Stripe und Ko-fi als Empfänger mit Zweck; `npm run verify` und `npm run audit:site` bleiben grün, Seitenpaare DE/EN bleiben deckungsgleich
+
 ## v2 Requirements
 
 ### Sprachparität
@@ -147,13 +185,27 @@
 | SYNC-01 | Phase 4 | Pending |
 | SYNC-02 | Phase 4 | Pending |
 | THEME-02 | Phase 4 | Pending |
+| DON-01 | Phase 5 | Pending |
+| DON-02 | Phase 5 | Pending |
+| DON-03 | Phase 5 | Pending |
+| DON-04 | Phase 5 | Pending |
+| DON-05 | Phase 5 | Pending |
+| DON-06 | Phase 5 | Pending |
+| DON-07 | Phase 5 | Pending |
+| DON-08 | Phase 5 | Pending |
+| DON-09 | Phase 5 | Pending |
+| DON-10 | Phase 5 | Pending |
+| DON-11 | Phase 5 | Pending |
+| DON-12 | Phase 5 | Pending |
+| DON-13 | Phase 5 | Pending |
+| DON-14 | Phase 5 | Pending |
 
 **Coverage:**
 
-- v1 requirements: 21 total
-- Mapped to phases: 21
+- v1 requirements: 35 total
+- Mapped to phases: 35
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-28*
-*Last updated: 2026-07-28 after initial definition*
+*Last updated: 2026-07-31 — Spenden-Unterstützung (DON-01…DON-14) für Phase 5 ergänzt*

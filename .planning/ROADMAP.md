@@ -25,6 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Schrift- und Bewegungsskala** - Eine gemeinsame Skala für Schriftgrade und Übergänge statt seitenlokaler Einzelwerte
 - [ ] **Phase 3: Überlagerungen entstapeln** - Class-B-Befund abtragen, Textkontrast über Bildmotiven belegen
 - [ ] **Phase 4: Sprachparität absichern** - Deckungsgleichheit der Seitenpaare nachweisbar statt behauptet
+- [ ] **Phase 5: Spenden-Unterstützung** - Ein Spendenweg, der tatsächlich Geld annimmt: Stripe Checkout + Ko-fi, eigene Seite, Ziel und Unterstützer-Wand
 
 ## Phase Details
 
@@ -165,10 +166,40 @@ Plans:
 - [ ] 04-01: Prüfschritt für die Deckungsgleichheit der angefassten Seitenpaare bauen
 - [ ] 04-02: Prüfschritt in `npm run verify` bzw. `audit:site` einhängen und Hellmodus-Generierung bestätigen
 
+### Phase 5: Spenden-Unterstützung
+
+> **Erweitert den Meilenstein bewusst über die Oberfläche hinaus.** Die Roadmap
+> war auf UI-Feinschliff abgesteckt; diese Phase bringt eine Datenbanktabelle,
+> zwei Edge Functions und Zahlungsverkehr mit. Anlass ist kein Design-Wunsch,
+> sondern ein realer Engpass: der Entwicklungsrechner startet wegen eines
+> defekten Netzteils zufällig neu (Nutzerentscheidung 31.07.2026). Die
+> „Out of Scope"-Zeilen zu serverseitiger Logik und Konto-Funktionen in
+> REQUIREMENTS.md sind für diese Phase ausdrücklich aufgehoben.
+
+**Goal**: Ein Besucher, der die Seite nützlich findet, kann in unter einer Minute Geld geben — mit frei gewähltem Betrag, einmalig oder monatlich, ohne Konto, in DE und EN — und das Geld kommt tatsächlich an. Die Seite sagt ehrlich, wofür (Netzteil/Rechner-Reparatur), zeigt den erreichten Stand aus echten Zahlungsdaten statt aus einer gepflegten Zahl, und nennt jeden Unterstützer nur, wenn er das ausdrücklich will.
+**Mode:** mvp
+**Depends on**: Nichts aus diesem Meilenstein — die Phase fasst weder Startseite noch Kopfleisten-Wandlung an und kann vor Phase 2–4 laufen.
+**Requirements**: DON-01 … DON-14
+**Success Criteria** (what must be TRUE):
+
+  1. Eine echte Zahlung im Stripe-Testmodus läuft vollständig durch: Betrag wählen → Checkout → Rückkehr auf die Dankesseite → Zeile in der Datenbank, geschrieben ausschließlich vom Webhook
+  2. Der Webhook weist jede Anfrage ohne gültige Stripe-Signatur ab; die Datenbank ist für anonyme Clients nur lesbar, und auch das nur für die freigegebenen Felder
+  3. Ohne hinterlegte Schlüssel steht das Feature sichtbar im Demo-Modus (wie `FEEDBACK_DEMO`) und behauptet keine Zahlen — es bricht nicht und täuscht nichts vor
+  4. Der Spendenweg ist in DE und EN vollständig vorhanden, in beiden Farbmodi lesbar, bis 360 px bedienbar und per Tastatur vollständig bedienbar
+  5. `npm run verify`, `npm run audit:site` und `npm run audit:csp` laufen grün — die CSP kennt Stripe, bevor der erste Besucher darauf stößt
+  6. Die Datenschutzerklärung nennt Stripe und Ko-fi als Empfänger, bevor die Seite live geht
+
+**Plans**: wird von `/gsd-plan-phase 5` festgelegt
+
+Plans:
+
+- [ ] TBD (`/gsd-plan-phase 5` bricht die Phase in Pläne herunter)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
+(Phase 5 hängt an keiner Vorgängerphase und wird auf Wunsch vorgezogen.)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -178,3 +209,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
+| 5. Spenden-Unterstützung | 0/? | Planning | - |

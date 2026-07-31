@@ -2,15 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1.1
-current_phase_name: Ambiente-Effekte stilllegen
-status: in_progress
-stopped_at: Completed 01.1-02-PLAN.md
-last_updated: "2026-07-29T03:46:15.151Z"
-last_activity: 2026-07-29
-last_activity_desc: Phase 1.1 recherchiert, gemappt, geplant und geprueft
+current_phase: 5
+current_phase_name: Spenden-Unterstuetzung
+status: planning
+stopped_at: Phase 5 der Roadmap hinzugefuegt (DON-01…DON-14)
+last_updated: "2026-07-31T00:00:00.000Z"
+last_activity: 2026-07-31
+last_activity_desc: Phase 5 Spenden-Unterstuetzung angelegt; Phase 1.1 geparkt (Plan 3 offen)
+parked_phase: 1.1
+parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 0
   total_plans: 5
   completed_plans: 2
@@ -23,17 +25,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 1.1 — Ambiente-Effekte stilllegen
+**Current focus:** Phase 5 — Spenden-Unterstützung
 
 ## Current Position
 
-Phase: 1.1 of 6 (Ambiente-Effekte stilllegen)
-Plan: 2 of 3 in Phase 1.1
-Status: Phase 1.1 geplant (3 Pläne, 3 Wellen, Plan-Prüfer bestanden) — bereit zur Ausführung; Phase 1.2 noch ungeplant
-Branch: claude/site-feedback-effects-docs-3f4edf
-Last activity: 2026-07-29 — Phase 1.1 recherchiert, gemappt, geplant und geprueft
+Phase: 5 of 7 (Spenden-Unterstützung)
+Plan: noch keiner — Phase ist angelegt, nicht geplant
+Status: Roadmap-Eintrag, Ziel, Erfolgskriterien und DON-01…DON-14 stehen; als Nächstes `/gsd-plan-phase 5`
+Branch: claude/donation-button-feature-98ba38 (Worktree)
+Last activity: 2026-07-31 — Phase 5 angelegt
 
-Progress: [████░░░░░░] 40%
+**Geparkt:** Phase 1.1 „Ambiente-Effekte stilllegen" steht bei Plan 2 von 3
+(Plan-Prüfer bestanden, ausführbereit) auf Branch
+`claude/site-feedback-effects-docs-3f4edf`. Sie ist NICHT abgebrochen und wird
+nach Phase 5 fortgesetzt; Phase 5 fasst keine der dort geänderten Dateien an.
+
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -94,6 +101,7 @@ None yet.
 
 - Phase 01.1 inserted after Phase 1: Ambiente-Effekte stilllegen — Mauszeiger-Schein raus, Partikel opt-in (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 - Phase 01.2 inserted after Phase 1: Werkzeuge erklaeren — Zweck- und Bedienungshilfe je Werkzeug (Besucher-Rueckmeldung 29.07.2026) (URGENT)
+- Phase 5 added (31.07.2026): Spenden-Unterstuetzung — Stripe Checkout + Ko-fi, eigene Seite, Ziel und Unterstuetzer-Wand (DON-01…DON-14). ERWEITERT den Meilenstein bewusst ueber die Oberflaeche hinaus (DB-Tabelle, zwei Edge Functions, Zahlungsverkehr); die „Out of Scope"-Zeilen zu serverseitiger Logik und Konto-Funktionen sind fuer diese Phase aufgehoben. Anlass: defektes Netzteil im Entwicklungsrechner, zufaellige Neustarts. Haengt an keiner Vorgaengerphase — Phase 1.1 bleibt geplant liegen und wird NICHT abgebrochen.
 
 ## Deferred Items
 
