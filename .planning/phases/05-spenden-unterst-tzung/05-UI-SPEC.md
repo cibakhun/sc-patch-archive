@@ -200,7 +200,7 @@ Applicable state considerations resolved: **19 covered, 3 backstop, 0 unresolved
 | loading | supporter-wall (list-collection) | 🧪 backstop | initial fetch shows skeleton cards matching the final card shape (no count implied) before data resolves; requires a wired visual/held-out test at verify time |
 | error | supporter-wall (list-collection) | 🧪 backstop | fetch failure hides the wall silently rather than showing a broken grid or a fabricated count — matches CONVENTIONS.md § Error Handling ("Never fabricate data", non-fatal external degrade); requires a wired test |
 | zero-one-many | supporter-wall (list-collection) | ✅ covered | singular/plural copy switch ("1 Unterstützer/in" vs "12 Unterstützer/innen", see Copywriting Contract); grid reflows 1→N without a layout gap |
-| overflow | supporter-wall (list-collection) | ✅ covered | wall scrolls vertically inside a `max-height` box with `mask-image` edge-fade — see § Supporter Wall below (house rule 7) |
+| overflow | supporter-wall (list-collection) | ✅ covered | entweder Scrollbox mit senkrechtem Kanten-Verlauf nach dem Muster `assets/mobile-ux.css` §5c (NICHT `mask-image` — siehe § Supporter Wall), oder feste Eintragszahl plus „Alle anzeigen"; beide Wege erfüllen house rule 7, der Planer wählt |
 | long-text | supporter-wall (list-collection) | ✅ covered | display names are sanitised/length-capped server-side (D-20) plus a CSS `text-overflow: ellipsis` fallback on the card |
 | populated | supporter-wall (list-collection) | ✅ covered | standard card grid: name + date, linked-profile badge when applicable |
 | empty | progress-bar (static-content) | ✅ covered | demo mode renders **no bar at all** (D-15) — the "empty" state IS "absent", not a zero-filled placeholder; this is the resolution, not a gap |
@@ -299,7 +299,23 @@ Structure (`.spt-amounts`): one `role="radiogroup"` of 4 preset pills (3 €, 5 
 - **Linked-handle case:** name renders as the pilot handle, wrapped in an `<a href="/pilot/<handle>">`, badge chip reading "Unterstützer"/"Supporter" in `--support-gold`.
 - **Empty state:** "Empty wall" copy row, centered, same visual weight as `.fbx-done` panel (an empty wall is not a failure state, it's a normal early-life state — it should look intentional, not broken).
 - **360px:** grid becomes single-column; cards keep their internal `lg` (24px) padding.
-- **Scroll + edge-fade (house rule 7):** if the wall grows past a comfortable page length, it sits in a `max-height` scroll box (`.spt-wall__scroll`) rather than pushing the footer arbitrarily far down. Per house rule 7, this NEW scroll box needs an explicit edge-fade cue — **correction to the phase brief's file reference:** there is no standalone `assets/edge-fade.js`; the site's actual convention lives in `assets/mobile-ux.css` §5c ("Seitwärts scrollende Tabellen sichtbar machen"), which uses a `mask-image`/`linear-gradient` edge cue keyed to a **named CSS-selector list**, not a generic library. `.spt-wall__scroll` needs to be **added to that named list** (a new, VERTICAL variant of the same technique — `to bottom` instead of `to left`/`to right` — since §5c's existing entries are all horizontal-scroll tables). Do not build a new mechanism; extend the existing one and name the new selector in the same file, with the same honesty caveat already written there about `background-attachment: scroll` vs `local`.
+- **Scroll + Kantenhinweis (house rule 7):** if the wall grows past a comfortable page length, it sits in a `max-height` scroll box (`.spt-wall__scroll`) rather than pushing the footer arbitrarily far down. Because `assets/theme.css` hides EVERY scrollbar site-wide with `!important`, a new scroll box is invisible-by-default and needs an explicit cue.
+
+  **Zweifach korrigierte Dateireferenz — verifiziert am 31.07.2026 gegen diesen Worktree (`grep`), beide früheren Angaben waren falsch:**
+  - Der Auftrag an den Researcher nannte `assets/edge-fade.js`. **Diese Datei existiert hier nicht** (`ls assets/edge-fade.js` → nicht vorhanden). Sie stammt aus einem Zweig, der nicht in der Basis dieses Worktrees liegt.
+  - Die Korrektur des Researchers nannte `mask-image`. **Auch das ist falsch:** `grep -c "mask-image" assets/mobile-ux.css` → **0**. `mask-image` kommt in `assets/` ausschließlich in `account-dossier.css`, `account.css` und `archive.css` vor — nicht in der Touch-Schicht.
+
+  **Was §5c tatsächlich tut** (`assets/mobile-ux.css:435-510`, „5c) Seitwaerts scrollende Tabellen sichtbar machen"): eine **benannte Selektorliste** (`.do__tablewrap`, `.md__tblWrap`, `.pj-tblscroll`, `.evo__scroll`, `.uif-table-wrapper`, `.sd__paints`) bekommt **zwei** Signale, beide ohne JS:
+  1. die dünne Bildlaufleiste wird wieder eingeschaltet — `scrollbar-width: thin` + `scrollbar-color: color-mix(in srgb, var(--accent) 55%, transparent) transparent`, dazu `::-webkit-scrollbar { height: 4px }` mit gestyltem Thumb (das hebt die globale Ausblendung gezielt wieder auf);
+  2. ein Kanten-Verlauf über `background-image: linear-gradient(to left, color-mix(in srgb, var(--accent) 20%, transparent), transparent 34px)` mit `background-size: 34px 100%`, `background-position: right center`, `background-attachment: scroll`.
+
+  **Zwei Randbedingungen, die der bestehende Block mitbringt und die der Planer kennen muss:**
+  - Der ganze Block steht in `@media (max-width: 820px)` — **nur mobil**. Am Desktop gibt es dort eine echte Bildlaufleiste. Eine vertikale Wand-Scrollbox, die auch am Desktop scrollt, ist damit **nicht** abgedeckt und braucht eine bewusste Entscheidung: entweder den Hinweis auch über 820 px setzen oder am Desktop auf die native Leiste bauen (die `theme.css` global versteckt — also praktisch: Hinweis auch am Desktop setzen).
+  - Alle sechs Bestandseinträge sind **waagerechte** Scroller. Eine senkrechte Variante (`to top` statt `to left`, `background-size: 100% 34px`, `background-position: center bottom`) existiert noch nicht und wäre neu.
+
+  **Auftrag an den Planer:** den bestehenden Mechanismus erweitern, keinen zweiten daneben bauen — `.spt-wall__scroll` in dieselbe Datei aufnehmen, senkrechte Variante, und den dort bereits notierten Ehrlichkeits-Vorbehalt zu `background-attachment: scroll` vs. `local` sinngemäß übernehmen (der Verlauf hängt an der Kante des Kastens, nicht am Inhalt, steht also auch am Scroll-Ende noch da).
+
+  **Billigere Alternative, ausdrücklich erlaubt:** die Wand ohne Scrollbox bauen — eine feste Anzahl Einträge zeigen und mit „Alle anzeigen" auf die volle Liste verweisen. Dann entfällt der ganze Kantenhinweis-Aufwand samt neuer senkrechter Variante. Bei einem Ziel von 120 € und erwartet zweistelliger Unterstützerzahl ist das die wahrscheinlich angemessenere Lösung; der Planer entscheidet.
 
 ### 6. Site-wide surfaces (D-07, D-08)
 
@@ -341,7 +357,7 @@ New `src/i18n/ui.ts` keys: `nav.support` ("Unterstützen"/"Support"), `nav.deck.
 | Hero | unchanged from site-wide hero convention (monogram-only header ≤580px, already proven) |
 | Amount picker | 5 pills → 2×2 grid + full-width free-input row; frequency toggle stays 2-up |
 | Progress bar | full-width, label wraps to 2 lines if needed, no truncation of the € figures |
-| Supporter wall | card grid → single column; scroll box + vertical edge-fade if content exceeds `max-height` |
+| Supporter wall | card grid → single column; bei Überlänge Scrollbox mit senkrechtem Kanten-Verlauf (§5c-Muster, kein `mask-image`) ODER feste Eintragszahl + „Alle anzeigen" |
 | Footer line | inherits existing `.attr-nav` 44px tap-target + wrap behavior, no new work |
 | Menu entry | inside the always-visible overlay, unaffected by any bar-collapse breakpoint |
 | Tool-page strip | stacks heading + CTA to two lines |
