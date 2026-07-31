@@ -76,13 +76,16 @@ a{color:inherit;text-decoration:none}
     </dl>
   </header>
 
+  <div class="evo__matrix" data-evo-matrix>
   <div class="evo__legend">
     <span class="evo__lg" aria-hidden="true"><i class="t1"></i><i class="t2"></i><i class="t3"></i></span>
     <span>Intensität = Aktivität</span>
     <span class="evo__legdot" aria-hidden="true">·</span>
     <span>Zahl = Einträge · Klick = Details</span>
+    <span class="evo__legmore" data-evo-hint>Seitwärts scrollen für die neueren Patches →</span>
   </div>
 
+  <div class="evo__scrollwrap">
   <div class="evo__scroll" tabindex="0" aria-label="Evolutions-Matrix (horizontal scrollbar)">
     <table class="evo__table">
       <thead>
@@ -128,6 +131,8 @@ a{color:inherit;text-decoration:none}
       </tbody>
     </table>
   </div>
+  </div>
+  </div>
 
   <div class="evo__detail" id="evo-detail" hidden>
     {systems.map((sys, si) =>
@@ -167,7 +172,7 @@ a{color:inherit;text-decoration:none}
 </main>
 
 <style is:inline>
-.evo{max-width:var(--maxw);margin:0 auto;padding:8rem clamp(1.25rem,4vw,3rem) 5rem}
+.evo{--gut:clamp(1.25rem,4vw,3rem);max-width:var(--maxw);margin:0 auto;padding:8rem var(--gut) 5rem}
 .evo__head{margin-bottom:1.8rem}
 .evo__kicker{display:inline-flex;align-items:center;gap:.7rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:.74rem;color:var(--accent)}
 .evo__kicker::before{content:"";width:26px;height:1px;background:var(--accent)}
@@ -185,17 +190,50 @@ a{color:inherit;text-decoration:none}
 .evo__lg .t1{background:color-mix(in srgb,var(--accent) 13%,transparent)}
 .evo__lg .t2{background:color-mix(in srgb,var(--accent) 28%,transparent)}
 .evo__lg .t3{background:color-mix(in srgb,var(--accent) 46%,transparent)}
+/* Erscheint nur, wenn die Matrix wirklich breiter ist als das Fenster. */
+.evo__legmore{display:none}
+.evo__legmore.is-on{display:inline;margin-left:auto;color:var(--accent)}
+
+/* Die Matrix wächst mit jedem Patch um eine Spalte und ist längst breiter
+   als die 1400er-Lesespalte. Sie bricht deshalb auf die volle Fensterbreite
+   aus — ab ~1700 px passt sie damit ganz hinein. Was dann noch fehlt, muss
+   man scrollen, und DASS es scrollbar ist, muss man sehen: assets/theme.css
+   blendet global JEDE Bildlaufleiste mit !important aus, und der Ersatz-
+   Hinweis in assets/mobile-ux.css hängt an max-width:820px. Am Desktop
+   endete die Tabelle deshalb ohne jeden Hinweis mitten in einer Spalte.
+   Die Legende zieht mit — sie beschreibt die Matrix und soll auf deren
+   Kante sitzen, nicht auf der der Lesespalte. */
+.evo__matrix{margin-inline:calc(50% - 50vw);padding-inline:var(--gut)}
+.evo__scrollwrap{position:relative}
+.evo__scrollwrap::after{content:"";position:absolute;z-index:4;top:1px;bottom:1px;right:1px;
+  width:56px;border-radius:0 13px 13px 0;pointer-events:none;opacity:0;transition:opacity .18s ease;
+  background:linear-gradient(270deg,var(--bg-2) 16%,color-mix(in srgb,var(--bg-2) 55%,transparent) 62%,transparent)}
+.evo__matrix.is-more .evo__scrollwrap::after{opacity:1}
 
 .evo__scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--bg-2)}
+/* Bildlaufleiste zurückholen — nur für diese eine Tabelle. Das !important
+   ist kein Schmuck: die globale Ausblendung in assets/theme.css trägt
+   selbst eines und gewinnt sonst. */
+.evo__scroll{scrollbar-width:thin!important;scrollbar-color:color-mix(in srgb,var(--accent) 50%,transparent) transparent}
+.evo__scroll::-webkit-scrollbar{display:block!important;height:10px!important;background:transparent!important}
+.evo__scroll::-webkit-scrollbar-track{background:transparent}
+.evo__scroll::-webkit-scrollbar-thumb{background-color:color-mix(in srgb,var(--accent) 42%,transparent);
+  border:3px solid transparent;background-clip:padding-box;border-radius:999px}
+.evo__scroll::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--accent) 70%,transparent)}
 .evo__table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
 .evo__table th,.evo__table td{border-bottom:1px solid var(--line)}
 .evo__syshead{position:sticky;left:0;z-index:3;background:var(--bg-2);text-align:left;
   font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
   padding:.9rem 1rem;min-width:210px;border-right:1px solid var(--line-2)}
-.evo__col{padding:.7rem .4rem .55rem;min-width:76px;border-bottom:2px solid var(--c);vertical-align:bottom}
+/* Das obere Drittel der Kopfzeile ist das Ären-Band; die Höhe steht fest,
+   damit die Beschriftungen aus dem Fluss dürfen (siehe .evo__era). */
+.evo__col{position:relative;padding:2.05rem .4rem .55rem;min-width:70px;border-bottom:2px solid var(--c);vertical-align:bottom}
 .evo__col a{font-family:var(--font-display);font-weight:700;font-size:0.8rem;letter-spacing:.02em;color:var(--c);white-space:nowrap}
 .evo__col a:hover{text-decoration:underline}
-.evo__era{display:block;font-family:var(--font-ui);font-weight:700;font-size:0.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c);opacity:.7;margin-bottom:.3rem;white-space:nowrap;text-align:left;padding-left:.1rem}
+/* Ären-Namen sind bis zu 104 px breit und haben ihre Spalte auf 120 px
+   aufgebläht — fünfmal, zusammen 164 px, die rechts fehlten. Absolut
+   gesetzt beschriften sie die Naht, ohne die Spalte zu bestimmen. */
+.evo__era{position:absolute;top:.62rem;left:.34rem;font-family:var(--font-ui);font-weight:700;font-size:0.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c);opacity:.7;white-space:nowrap;text-align:left}
 .evo__erastart{border-left:1px solid var(--line-2)}
 .evo__tot{font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.1em;color:var(--muted);padding:.7rem .8rem;border-left:1px solid var(--line-2);vertical-align:bottom}
 .evo__totcell{font-family:var(--font-ui);font-weight:700;font-size:0.8rem;color:var(--muted);text-align:center;padding:.3rem .6rem;border-left:1px solid var(--line-2);font-variant-numeric:tabular-nums}
@@ -247,6 +285,10 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
 .edet__link:hover{text-decoration:underline}
 .edet__unv{color:var(--c);text-decoration:none;cursor:help;margin-left:.15rem}
 
+/* assets/mobile-ux.css legt unter 820 px einen pauschalen Verlauf auf jede
+   Bildlauf-Tabelle, der auch am rechten Ende noch „da kommt was" behauptet.
+   Hier weg: die Kante oben kennt den Scrollstand. */
+@media(max-width:820px){.evo__scroll{background-image:none}}
 @media(max-width:1024px){
   .evo__cell{width:1.85rem;height:1.85rem}
   .evo__cell[data-tier="1"]{font-size:0.8rem}
@@ -265,6 +307,26 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
 
 <script is:inline>
 (function () {
+  // Kante und Hinweis stehen nur da, solange rechts wirklich noch etwas
+  // kommt — am Ende angekommen verschwinden beide, sonst wäre der
+  // Farbverlauf eine Dauerlüge über einer vollständigen Tabelle.
+  var shell = document.querySelector('[data-evo-matrix]');
+  var scroller = shell && shell.querySelector('.evo__scroll');
+  if (scroller) {
+    var hint = document.querySelector('[data-evo-hint]');
+    var syncEdge = function () {
+      var more = scroller.scrollWidth - scroller.clientWidth - scroller.scrollLeft > 2;
+      shell.classList.toggle('is-more', more);
+      if (hint) hint.classList.toggle('is-on', more);
+    };
+    scroller.addEventListener('scroll', syncEdge, { passive: true });
+    window.addEventListener('resize', syncEdge);
+    if (window.ResizeObserver) new ResizeObserver(syncEdge).observe(scroller);
+    // Die Anzeigeschriften laden nach und ändern die Tabellenbreite.
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncEdge);
+    syncEdge();
+  }
+
   var detail = document.getElementById('evo-detail');
   if (!detail) return;
   var open = null;
