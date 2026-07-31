@@ -31,6 +31,20 @@ FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 # Custom server config: security headers (HSTS et al.) + real 404 page.
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+# Die Vorschau darf nicht in die Live-Statistik zaehlen. Cloudflare haengt den
+# Web-Analytics-Zaehler ZONENWEIT ins HTML, also auch auf staging.verse-base.com;
+# abschalten laesst er sich nur fuer die ganze Zone. Ohne die zwei Hosts blockt
+# die CSP ihn dort aber genau so, wie sie es vom 28. bis 31.07.2026 versehentlich
+# live tat — der Zaehler laedt nicht, die Vorschau taucht in keiner Zahl auf.
+# In der Konsole der Vorschau steht dann ein CSP-Verstoss fuer den Beacon: der
+# ist gewollt und kein Fehler. Das grep ist die Gegenprobe zum sed — greift es
+# nicht mehr (z. B. weil die Direktive umbenannt wurde), entsteht kein Image.
+ARG STAGING=""
+RUN if [ -n "$STAGING" ]; then \
+      sed -i 's| https://static\.cloudflareinsights\.com||; s| https://cloudflareinsights\.com||' /etc/nginx/conf.d/default.conf; \
+      ! grep -q 'Content-Security-Policy.*cloudflareinsights' /etc/nginx/conf.d/default.conf; \
+    fi
+
 # Fail the build (in CI) on an invalid config, instead of only finding out when
 # the container fails to start on the server.
 RUN nginx -t
