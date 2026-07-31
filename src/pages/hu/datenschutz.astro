@@ -1,13 +1,13 @@
 ---
 // Datenschutzerklärung — beschreibt FAKTISCH, was diese statische Site tut
-// (keine Cookies, kein Tracking, localStorage nur lokal, externe Bild-CDNs,
+// (keine Cookies, cookiefreie Cloudflare-Reichweitenmessung, localStorage nur lokal, externe Bild-CDNs,
 // YouTube nur per Klick). [TODO]-Felder vor Publish füllen — audit:site
 // bleibt absichtlich rot, solange sie im Build stehen.
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 ---
-<Layout title={"Adatvédelmi tájékoztató | VerseBase"} description={"A VerseBase adatvédelmi tájékoztatója: statikus webhely sütik és nyomkövetés nélkül — milyen adatok kezelése történik a megnyitáskor, a külső képforrásoknál és a YouTube-videókra kattintva."} themeColor="#05070d" translated={true}>
+<Layout title={"Adatvédelmi tájékoztató | VerseBase"} description={"A VerseBase adatvédelmi tájékoztatója: statikus webhely sütik nélkül — milyen adatok kezelése történik a megnyitáskor, a sütimentes látogatottságmérés során, a külső képforrásoknál és a YouTube-videókra kattintva."} themeColor="#05070d" translated={true}>
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
@@ -38,12 +38,14 @@ import Attribution from '../../components/Attribution.astro';
     <h2>Alapelv</h2>
     <p>
       Ez a webhely tisztán statikus, nem kereskedelmi rajongói projekt. <strong>Nem használ
-      sütiket</strong>, <strong>nem használ analitikai vagy nyomkövető szolgáltatást</strong>,
-      nincs rajta hirdetés és hozzászólás-funkció. A webhely puszta megnyitásakor semmilyen
-      személyes adat nem jut el hozzánk. Kivétel kizárólag a
+      sütiket</strong>, nincs rajta hirdetés és hozzászólás-funkció, és nem követ téged más
+      webhelyeken keresztül. Puszta látogatottságméréshez a
+      <a href="#cloudflare">Cloudflare Web Analytics</a> fut — sütik és ujjlenyomatképzés nélkül;
+      ebből csak összesített számok keletkeznek (oldalmegtekintések, látogatások, betöltési idők),
+      személyes profilok nem. Ezen túl kizárólag a
       <a href="#feedback">visszajelzési űrlap</a> és az opcionális
-      <a href="#accounts">felhasználói fiók</a> — mindkettő önkéntes; az ezek során kezelt adatokat
-      lentebb külön ismertetjük.
+      <a href="#accounts">felhasználói fiók</a> révén küldesz adatot — mindkettő önkéntes; az ezek
+      során kezelt adatokat lentebb külön ismertetjük.
     </p>
 
     <h2>Szerver-naplófájlok (tárhely)</h2>
@@ -53,6 +55,24 @@ import Attribution from '../../components/Attribution.astro';
       kapcsolati adatokat (IP-cím, időpont, lekért erőforrás, user agent) kezel a szervernaplókban.
       A jogalap a GDPR 6. cikk (1) bekezdés f) pontja (jogos érdek a biztonságos szolgáltatáshoz).
       Ezekhez a naplókhoz az üzemeltetéshez szükséges mértéken túl nincs tartalmi hozzáférésünk.
+    </p>
+
+    <h2 id="cloudflare">Kiszolgálás és látogatottságmérés (Cloudflare)</h2>
+    <p>
+      A webhelyet a Cloudflare (Cloudflare, Inc., 101 Townsend Street, San Francisco,
+      CA 94107, USA) szolgálja ki. A Cloudflare proxyként ül a tárhely előtt: minden lekérés
+      rajta halad át, eközben kapcsolati adatokat (IP-cím, időpont, lekért erőforrás, user agent)
+      kezel a kiszolgáláshoz és a támadások elhárításához.
+    </p>
+    <p>
+      Ezen felül a Cloudflare beilleszti az oldalakba a <strong>Cloudflare Web Analytics</strong>
+      mérőszkriptet, amely az oldalmegtekintéseket, a látogatásokat és a betöltési időket rögzíti.
+      <strong>Nem használ sütiket</strong>, nem alkalmaz ujjlenyomatképzést, és nem követ téged más
+      webhelyeken keresztül; hozzánk kizárólag összesített számok jutnak el, egyedi profilok nem.
+      A jogalap a GDPR 6. cikk (1) bekezdés f) pontja (jogos érdek a biztonságos, gyors
+      kiszolgáláshoz és az egyszerű látogatottsági számokhoz). Az adatkezelés az EU-n kívüli
+      szervereken is történhet; a részleteket a szolgáltató adatvédelmi tájékoztatója tartalmazza:
+      <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">cloudflare.com/privacypolicy</a>.
     </p>
 
     <h2>Helyi tárolás a böngészőben (localStorage)</h2>
