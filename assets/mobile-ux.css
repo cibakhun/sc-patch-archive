@@ -529,6 +529,30 @@ summary:active {
 }
 
 /* ------------------------------------------------------------
+   Schieben mit der Maus (assets/scroll-affordance.js)
+   ------------------------------------------------------------
+   Eine Bildlaufleiste sagt nur, DASS es weitergeht — treffen muss man
+   sie trotzdem, und am Desktop ist das ein 8-px-Streifen ganz unten.
+   Der Greifzeiger steht nur an Kaesten, bei denen es wirklich etwas
+   zu schieben gibt (`.can-drag` kommt aus dem Skript).
+
+   `cursor` erbt nicht: Schaltflaechen und Verweise im Kasten behalten
+   ihren eigenen Zeiger, gegriffen wird die Flaeche dazwischen.
+------------------------------------------------------------ */
+[data-dragscroll] {
+  scroll-behavior: auto; /* Schwung-Schleife darf nicht animiert werden */
+}
+[data-dragscroll].can-drag {
+  cursor: grab;
+}
+[data-dragscroll].is-dragging,
+[data-dragscroll].is-dragging * {
+  cursor: grabbing;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ------------------------------------------------------------
    6) Sprungmarken unter klebenden Leisten
    ------------------------------------------------------------
    Sowohl die Seiten-Leiste (.topbar / .snav, fix) als auch die
