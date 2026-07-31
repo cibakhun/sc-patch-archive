@@ -5,17 +5,17 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: planning
-stopped_at: Phase 5 der Roadmap hinzugefuegt (DON-01…DON-14)
-last_updated: "2026-07-31T00:00:00.000Z"
+stopped_at: Phase 5 context gathered
+last_updated: "2026-07-31T12:23:59.590Z"
 last_activity: 2026-07-31
-last_activity_desc: Phase 5 Spenden-Unterstuetzung angelegt; Phase 1.1 geparkt (Plan 3 offen)
-parked_phase: 1.1
-parked_phase_stopped_at: Completed 01.1-02-PLAN.md
+last_activity_desc: Phase 5 angelegt
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 5
   completed_plans: 2
+parked_phase: 1.1
+parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
 
 # Project State
@@ -113,6 +113,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-29T03:46:15.132Z
-Stopped at: Completed 01.1-02-PLAN.md
-Resume file: None
+Last session: 2026-07-31T12:23:59.575Z
+Stopped at: Phase 5 context gathered
+Resume file: .planning/phases/05-spenden-unterst-tzung/05-CONTEXT.md
