@@ -101,6 +101,8 @@ export const ITEM_UI = {
     hubLead: 'Alle {total} Items aus Star Citizen {patch} nach Kategorie — mit Kaufpreisen, Verkaufsstellen und Spielwerten.',
     hubItemsWithPage: '{n} mit Datenblatt',
     withDataSheet: 'Mit Datenblatt',
+    /* Kennzahl im Seitenkopf der Kategorie-Listen */
+    entries: 'Einträge',
     listingLead: '{n} Einträge in {cat}. Kaufpreise und Verkaufsstellen aus dem Snapshot vom {date}.',
     listingNoPage: 'Kein Datenblatt: für diesen Eintrag liegen weder Bezugsquellen noch Spielwerte vor.',
     thItem: 'Item', thSources: 'Bezugsquellen', thFrom: 'ab',
@@ -230,6 +232,7 @@ export const ITEM_UI = {
     hubLead: 'All {total} Star Citizen {patch} items by category — with buy prices, vendor locations and game stats.',
     hubItemsWithPage: '{n} with a data sheet',
     withDataSheet: 'With data sheet',
+    entries: 'Entries',
     listingLead: '{n} entries in {cat}. Buy prices and vendors from the {date} snapshot.',
     listingNoPage: 'No data sheet: this entry has neither a known source nor game stats.',
     thItem: 'Item', thSources: 'Sources', thFrom: 'from',

@@ -62,10 +62,10 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
   sources={['sc-craft.tools']}
   updated={craftDb.snapshot_date}
 >
-  <h1>{bp.name}</h1>
-  <p class="dp-lead">{seo.lead}</p>
+  <h1 slot="hero">{bp.name}</h1>
+  <p class="dp-lead" slot="hero">{seo.lead}</p>
 
-  <ul class="dp-keys">
+  <ul class="dp-keys" slot="hero">
     <li class="dp-key"><b>{t('craftTime')}</b><span>{craftTime(bp.craft_time_seconds, lang)}</span></li>
     <li class="dp-key"><b>{t('bpIngredients')}</b><span>{bp.ingredients.length}</span></li>
     {scu > 0 && <li class="dp-key"><b>{t('bpTotalScu')}</b><span>{num(scu, lang)} SCU</span></li>}

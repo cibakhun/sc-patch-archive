@@ -6,7 +6,7 @@ import { itemT, fill, categoryLabel } from '../i18n/itemText';
 import {
   craftCategoryPath, craftDb, craftHubPath, craftLeaf, craftPatch, craftRoots,
 } from '../lib/crafting';
-import { itemsHubPath, num } from '../lib/items';
+import { itemsHubPath, midCategory, num } from '../lib/items';
 
 interface Props { lang: Locale }
 const { lang } = Astro.props;
@@ -29,10 +29,10 @@ const lead = fill(t('bpHubLead'), { total: num(total, lang), patch: craftPatch }
   sources={['sc-craft.tools']}
   updated={craftDb.snapshot_date}
 >
-  <h1>{t('bpHubTitle')}</h1>
-  <p class="dp-lead">{lead}</p>
+  <h1 slot="hero">{t('bpHubTitle')}</h1>
+  <p class="dp-lead" slot="hero">{lead}</p>
 
-  <ul class="dp-keys">
+  <ul class="dp-keys" slot="hero">
     <li class="dp-key"><b>{t('breadcrumbCrafting')}</b><span>{num(total, lang)}</span></li>
     <li class="dp-key"><b>{t('craftMaterials')}</b><span>{num(craftDb.counts.resources, lang)}</span></li>
     <li class="dp-key"><b>{t('dataAsOf')}</b><span>{craftDb.snapshot_date}</span></li>
@@ -44,7 +44,10 @@ const lead = fill(t('bpHubLead'), { total: num(total, lang), patch: craftPatch }
       <ul class="dp-cards">
         {r.nodes.map((c) => (
           <li>
-            <a class="dp-card" href={href(craftCategoryPath(c), lang)}>
+            {/* Ohne den Zweig dazwischen stuenden hier fuenfmal „Heavy" und
+                viermal „Light" untereinander — siehe midCategory(). */}
+            <a class="dp-card dp-card--cat" href={href(craftCategoryPath(c), lang)}>
+              {midCategory(c.cat) && <span class="dp-card-path">{midCategory(c.cat)}</span>}
               <strong>{craftLeaf(c.cat)}</strong>
               <em>{num(c.blueprints.length, lang)}</em>
             </a>

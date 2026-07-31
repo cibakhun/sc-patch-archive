@@ -233,6 +233,21 @@ export function leafCategory(cat: string): string {
   return parts.length > 1 ? parts[parts.length - 1] : parts[0] || 'Other';
 }
 
+/**
+ * Die Zweige ZWISCHEN Wurzel und Blatt: "Armour / Combat / Heavy" -> "Combat".
+ *
+ * Ohne sie ist eine Kategorie-Karte nicht identifizierbar: das Blueprint-
+ * Verzeichnis zeigte unter "Armor" fuenfmal "Heavy" und viermal "Light"
+ * untereinander (Combat/Hunter/Engineer/Explorer/Radiation …), das
+ * Fahrzeug-Kapitel zweimal "Cannon" (Ballistic vs. Laser). Leer, wenn die
+ * Kategorie nur zwei Ebenen hat — dann sagt schon die Abschnitts-
+ * ueberschrift alles.
+ */
+export function midCategory(cat: string): string {
+  const parts = (cat || '').split('/').map((s) => s.trim()).filter(Boolean);
+  return parts.length > 2 ? parts.slice(1, -1).join(' · ') : '';
+}
+
 /** "Vehiclegear / Weapons / Guns" -> "vehiclegear-weapons-guns" */
 export function categorySlug(cat: string): string {
   return (cat || 'Other')

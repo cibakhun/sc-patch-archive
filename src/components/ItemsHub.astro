@@ -8,7 +8,7 @@ import DataShell from './DataShell.astro';
 import { href, type Locale } from '../i18n/ui';
 import { itemT, fill, categoryLabel } from '../i18n/itemText';
 import {
-  ITEM_PATCH, categoryPath, db, itemsHubPath, leafCategory, num, pageItems, roots,
+  ITEM_PATCH, categoryPath, db, itemsHubPath, leafCategory, midCategory, num, pageItems, roots,
 } from '../lib/items';
 import { craftHubPath } from '../lib/crafting';
 
@@ -30,10 +30,10 @@ const total = db.counts.items;
   sources={['UEX Corp']}
   updated={db.pricesAsOf}
 >
-  <h1>{t('hubTitle')}</h1>
-  <p class="dp-lead">{fill(t('hubLead'), { total: num(total, lang), patch: ITEM_PATCH })}</p>
+  <h1 slot="hero">{t('hubTitle')}</h1>
+  <p class="dp-lead" slot="hero">{fill(t('hubLead'), { total: num(total, lang), patch: ITEM_PATCH })}</p>
 
-  <ul class="dp-keys">
+  <ul class="dp-keys" slot="hero">
     <li class="dp-key"><b>Items</b><span>{num(total, lang)}</span></li>
     <li class="dp-key"><b>{t('withDataSheet')}</b><span>{num(pageItems.length, lang)}</span></li>
     <li class="dp-key"><b>{t('sectionCategory')}</b><span>{num(roots.reduce((n, r) => n + r.nodes.length, 0), lang)}</span></li>
@@ -46,7 +46,8 @@ const total = db.counts.items;
       <ul class="dp-cards">
         {r.nodes.map((c) => (
           <li>
-            <a class="dp-card" href={href(categoryPath(c), lang)}>
+            <a class="dp-card dp-card--cat" href={href(categoryPath(c), lang)}>
+              {midCategory(c.cat) && <span class="dp-card-path">{midCategory(c.cat)}</span>}
               <strong>{leafCategory(c.cat)}</strong>
               <em>{num(c.items.length, lang)}</em>
             </a>
