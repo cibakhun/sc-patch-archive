@@ -458,53 +458,74 @@ summary:active {
         Overlay-Leisten, die im Ruhezustand nichts zeigen — allen voran
         iOS Safari.
 
-   EHRLICH zur Einschraenkung: der Verlauf haengt an der Kante des
-   Kastens (`background-attachment: scroll`), nicht am Inhalt. Er steht
-   also auch dann noch da, wenn man schon ganz nach rechts gewischt hat.
-   Die saubere Variante braucht eine zweite, DECKENDE Verlaufsebene mit
-   `attachment: local` — und damit die Hintergrundfarbe des Kastens. Die
-   ist hier je nach Seite eine andere (die Kaesten sind durchsichtig),
-   ein fester Wert waere in einer der Paletten falsch. Ein Hinweis, der
-   einmal zu viel steht, ist besser als eine Tabelle, deren rechte
-   Haelfte niemand findet.
+   KORREKTUR 31.07.2026 — zwei Annahmen hier waren falsch:
 
-   NUR mobil: am Desktop gibt es eine echte Bildlaufleiste.
+   1. „NUR mobil: am Desktop gibt es eine echte Bildlaufleiste." Gibt es
+      nicht. assets/theme.css blendet mit `html, body, *{scrollbar-width:
+      none !important}` JEDE Bildlaufleiste der Seite aus. Der Block stand
+      hinter `max-width: 820px` und lief am Desktop nie — dort war die
+      Tabelle also voellig hinweislos abgeschnitten.
+   2. Das `scrollbar-width: thin` unten trug kein `!important` und verlor
+      damit auch mobil gegen dieselbe globale Regel. Der Ersatz war also
+      auf JEDER Breite tot; uebrig blieb allein der Verlauf.
+
+   Beides behoben: Block ungated, Leisten-Regeln mit `!important`.
+
+   Der zweite Einwand von damals — eine DECKENDE zweite Ebene braucht die
+   Hintergrundfarbe des Kastens, und die ist je nach Seite eine andere —
+   stimmt weiterhin. Deshalb loest das nicht der Hintergrund, sondern eine
+   `mask-image` auf dem Inhalt: die blendet aus, was darunter auch liegt.
+   Zustandsbewusst gemacht von assets/edge-fade.js, das den Kaesten
+   `data-edgefade` + `is-more` anhaengt. Ohne JS bleibt der alte, ehrlich
+   ungenaue Verlauf als Rueckfallebene stehen.
+
+   `.evo__scroll` steht bewusst NICHT mehr in dieser Liste: die Evolutions-
+   Matrix bringt ihre eigene, auf die klebende System-Spalte abgestimmte
+   Kante mit (src/pages/evolution.astro).
 ------------------------------------------------------------ */
-@media (max-width: 820px) {
-  .do__tablewrap,
-  .md__tblWrap,
-  .pj-tblscroll,
-  .evo__scroll,
-  .uif-table-wrapper,
-  .sd__paints {
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--accent) 55%, transparent) transparent;
-    background-image: linear-gradient(
-      to left,
-      color-mix(in srgb, var(--accent) 20%, transparent),
-      transparent 34px
-    );
-    background-repeat: no-repeat;
-    background-size: 34px 100%;
-    background-position: right center;
-    background-attachment: scroll;
-  }
-  .do__tablewrap::-webkit-scrollbar,
-  .md__tblWrap::-webkit-scrollbar,
-  .pj-tblscroll::-webkit-scrollbar,
-  .evo__scroll::-webkit-scrollbar,
-  .uif-table-wrapper::-webkit-scrollbar,
-  .sd__paints::-webkit-scrollbar {
-    height: 4px;
-  }
-  .do__tablewrap::-webkit-scrollbar-thumb,
-  .md__tblWrap::-webkit-scrollbar-thumb,
-  .pj-tblscroll::-webkit-scrollbar-thumb,
-  .evo__scroll::-webkit-scrollbar-thumb,
-  .uif-table-wrapper::-webkit-scrollbar-thumb,
-  .sd__paints::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--accent) 55%, transparent);
-  }
+.do__tablewrap,
+.md__tblWrap,
+.pj-tblscroll,
+.uif-table-wrapper,
+.sd__paints {
+  scrollbar-width: thin !important;
+  scrollbar-color: color-mix(in srgb, var(--accent) 55%, transparent) transparent;
+  background-image: linear-gradient(
+    to left,
+    color-mix(in srgb, var(--accent) 20%, transparent),
+    transparent 34px
+  );
+  background-repeat: no-repeat;
+  background-size: 34px 100%;
+  background-position: right center;
+  background-attachment: scroll;
+}
+.do__tablewrap::-webkit-scrollbar,
+.md__tblWrap::-webkit-scrollbar,
+.pj-tblscroll::-webkit-scrollbar,
+.uif-table-wrapper::-webkit-scrollbar,
+.sd__paints::-webkit-scrollbar {
+  display: block !important;
+  height: 8px !important;
+  background: transparent !important;
+}
+.do__tablewrap::-webkit-scrollbar-thumb,
+.md__tblWrap::-webkit-scrollbar-thumb,
+.pj-tblscroll::-webkit-scrollbar-thumb,
+.uif-table-wrapper::-webkit-scrollbar-thumb,
+.sd__paints::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 999px;
+}
+
+/* Mit JS uebernimmt die zustandsbewusste Kante. Der pauschale Verlauf
+   muss dann weg, sonst behauptet er am rechten Ende weiter „da kommt was". */
+[data-edgefade] {
+  background-image: none;
+}
+[data-edgefade].is-more {
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent);
 }
 
 /* ------------------------------------------------------------

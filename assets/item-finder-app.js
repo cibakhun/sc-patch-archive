@@ -856,6 +856,9 @@
     }
 
     content.innerHTML = html;
+    // Die Bezugsquellen-Tabelle entsteht erst hier — die weiche Kante an ihrem
+    // rechten Rand muss nachtraeglich angehaengt werden. Siehe assets/edge-fade.js.
+    if (window.VBEdgeFade) window.VBEdgeFade();
     // Doppeltes Sperren verhindern: openModal kann aus einem offenen Modal
     // heraus erneut laufen (Verweis auf ein anderes Item).
     var wasOpen = modal.style.display === 'flex';
