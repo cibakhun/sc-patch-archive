@@ -109,7 +109,13 @@
 - [ ] **DON-05**: Die Checkout-Sitzung wird serverseitig in einer Supabase Edge Function angelegt; der geheime Stripe-Schlüssel taucht in keinem ausgelieferten Byte auf
 - [ ] **DON-06**: Der Betrag wird serverseitig gegen Ober- und Untergrenze geprüft — ein manipulierter Client kann keinen beliebigen Betrag erzwingen
 - [ ] **DON-07**: Spendenzeilen entstehen ausschließlich im Webhook nach geprüfter Stripe-Signatur; kein Client-Schreibrecht auf die Tabelle, Doppelzustellung erzeugt keine Dublette
-- [ ] **DON-08**: Öffentlich lesbar ist nur, was öffentlich sein soll (Anzeigename, Betrag, Datum, Nachricht) — nie E-Mail, Zahlungs-ID oder Kunden-ID
+- [ ] **DON-08**: Öffentlich lesbar ist nur, was öffentlich sein soll: **Anzeigename, Datum und freigegebene Nachricht**. Nie E-Mail, Zahlungs-ID, Kunden-ID — und **nie ein Einzelbetrag**. Der Zielstand ist ausschließlich als Summe lesbar (Aggregat-View), nicht als Liste einzelner Zahlungen
+  > Korrigiert am 31.07.2026: die ursprüngliche Fassung zählte „Betrag" zu den
+  > öffentlichen Feldern. Das widerspricht D-16 („Name + Datum, kein Betrag —
+  > bewusst keine Rangliste"), der später im selben Gespräch getroffenen und
+  > engeren Entscheidung. Der Researcher hat den Widerspruch gemeldet; D-16 gilt.
+  > Konsequenz für die Umsetzung: die öffentliche Wand-View darf die Betragsspalte
+  > gar nicht erst auswählen — das Verbot sitzt in der View, nicht im CSS.
 - [ ] **DON-09**: Ohne hinterlegte Schlüssel läuft das Feature im sichtbaren Demo-Modus (Muster `FEEDBACK_DEMO`): es behauptet keine Zahlen und bricht nicht
 
 **Darstellung**
@@ -120,7 +126,17 @@
 
 **Pflichten des Bestands**
 
-- [ ] **DON-13**: Die CSP kennt Stripe (Skript, Frame, Verbindung), bevor die Seite live geht; `npm run audit:csp` bleibt grün
+- [ ] **DON-13**: Die Content-Security-Policy passt nachweislich zum gewählten Zahlungsweg, und `npm run audit:csp` bleibt grün
+  > Umformuliert am 31.07.2026: die ursprüngliche Fassung schrieb „die CSP kennt
+  > Stripe (Skript, Frame, Verbindung)" vor und nahm damit eine eingebettete
+  > Stripe.js-Lösung vorweg. Die Recherche zeigt: beim gewählten Weiterleitungs-
+  > Checkout (D-01, gehostete Stripe-Seite) ist **kein einziger neuer CSP-Eintrag
+  > nötig** — eine Weiterleitung per `location.href` unterliegt der CSP nicht, und
+  > der `fetch()` an die Edge Function fällt bereits unter den bestehenden
+  > Supabase-Eintrag in `connect-src`. Die Anforderung lautet deshalb jetzt
+  > „passend und grün", nicht „drei Einträge ergänzen". Würde später doch auf
+  > eingebettetes Stripe.js gewechselt, müsste die Liste vorher **gemessen**
+  > ergänzt werden (Hausregel im Kommentarblock über der CSP), nicht geraten.
 - [ ] **DON-14**: Die Datenschutzerklärung nennt Stripe und Ko-fi als Empfänger mit Zweck; `npm run verify` und `npm run audit:site` bleiben grün, Seitenpaare DE/EN bleiben deckungsgleich
 
 ## v2 Requirements
