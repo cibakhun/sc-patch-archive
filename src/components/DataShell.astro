@@ -142,7 +142,15 @@ const crumbLd = {
     </header>
 
     <main id="main" class="dp-main">
-      {eyebrow && <p class="dp-eyebrow">{eyebrow}</p>}
+      {/* Der Seitenkopf ist EIN Element: Kicker, Titel, Einleitung und die
+          Kennzahlen sitzen zusammen in der Hero-Konsole. Die Seiten liefern
+          ihre drei Teile ueber denselben benannten Slot (Astro erlaubt
+          mehrere Kinder mit gleichem slot-Namen); der Kicker kommt weiter
+          von hier, weil ihn alle sieben Seiten gleich aufbauen. */}
+      <header class="dp-hero">
+        {eyebrow && <p class="dp-eyebrow">{eyebrow}</p>}
+        <slot name="hero" />
+      </header>
       <slot />
     </main>
 

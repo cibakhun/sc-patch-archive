@@ -40,10 +40,10 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
   sources={['UEX Corp']}
   updated={db.pricesAsOf}
 >
-  <h1>{t('setsTitle')}</h1>
-  <p class="dp-lead">{fill(t('setsLead'), { sets: num(armorSets.length, lang), parts: num(totalParts, lang), patch: ITEM_PATCH })}</p>
+  <h1 slot="hero">{t('setsTitle')}</h1>
+  <p class="dp-lead" slot="hero">{fill(t('setsLead'), { sets: num(armorSets.length, lang), parts: num(totalParts, lang), patch: ITEM_PATCH })}</p>
 
-  <ul class="dp-keys">
+  <ul class="dp-keys" slot="hero">
     <li class="dp-key"><b>{t('setsCountLabel')}</b><span>{num(armorSets.length, lang)}</span></li>
     <li class="dp-key"><b>{t('setsPartsLabel')}</b><span>{num(totalParts, lang)}</span></li>
     <li class="dp-key"><b>{t('setsCompleteLabel')}</b><span>{num(complete, lang)}</span></li>
@@ -110,48 +110,118 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
 </DataShell>
 
 <style is:inline>
-  .as-intro { color: var(--muted); font-size: .94rem; line-height: 1.6; margin: 0 0 1.4rem; }
-  .as-jump { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 2rem; }
+  /* Set-eigene Schicht. Die Formsprache (Eckklammern, Akzentschienen,
+     Teko-Ziffern, Mono-Mikrolabels) kommt aus assets/data-page.css — hier
+     steht nur, was es dort nicht gibt: Herstellersprung, Set-Karte, Slots
+     und die Seltenheits-Marker.
+
+     Die Seltenheitsfarben sind KEINE Palettenfarben, sondern eine Leiter mit
+     eigener Bedeutung (die Spieldaten kennen Common..Legendary). Sie stehen
+     deshalb als eigene Tokens hier — und ein zweites Mal fuer den Hellmodus,
+     weil Neongruen auf Papier nicht lesbar ist. Bewusst NICHT in einem
+     :root{}-Block: scripts/build-light-palettes.mjs erzeugt genau aus solchen
+     Bloecken den hellen Zwilling und wuerde hier eine zweite Wahrheit anlegen. */
+  .dp {
+    --rar-uncommon: #4ec97a;
+    --rar-rare: #4aa3ff;
+    --rar-epic: #b07cff;
+    --rar-legendary: #f0a52e;
+    --rar-warn: #d7a13a;
+  }
+  :root[data-theme='light'] .dp {
+    --rar-uncommon: #1d7a44;
+    --rar-rare: #1b5fae;
+    --rar-epic: #6b39b8;
+    --rar-legendary: #8a5a02;
+    --rar-warn: #7d5504;
+  }
+
+  .as-intro { color: var(--muted); font-size: .94rem; line-height: 1.6; margin: 0 0 1.4rem; max-width: 72ch; }
+
+  /* Herstellersprung: 20+ Ziele — als Mono-Kacheln mit Zahl statt als
+     Pillenband, sonst verschwimmt die Reihe zu einem Grauwert. */
+  .as-jump { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0 0 2.2rem; }
   .as-jump a {
-    font-size: .8rem; padding: .25rem .6rem; border: 1px solid var(--line-soft);
-    border-radius: 999px; color: var(--muted); text-decoration: none;
+    display: inline-flex; align-items: baseline; gap: .4rem;
+    font-family: var(--font-ui); font-weight: 600; font-size: .9rem;
+    padding: .3rem .7rem; border: 1px solid var(--line-soft);
+    border-left: 2px solid var(--dp-rail); border-radius: 2px;
+    color: var(--muted); text-decoration: none;
+    transition: color .18s, border-color .18s, background-color .18s;
   }
-  .as-jump a:hover { color: var(--text); border-color: var(--accent); }
-  .as-jump span { opacity: .6; }
+  .as-jump a:hover { color: var(--text); border-color: var(--dp-hair); border-left-color: var(--tone-1); background: var(--dp-tint); }
+  .as-jump span { font-family: var(--font-num); font-weight: 600; font-size: 1.05rem; color: var(--tone-1); opacity: .85; }
 
-  .as-set { border-top: 1px solid var(--line-soft); padding: 1.1rem 0; }
-  .as-set-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: .6rem 1rem; }
-  .as-set-h h3 { margin: 0; font-size: 1.15rem; }
-  .as-set-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; font-size: .8rem; }
+  /* Set-Karte: dieselbe Konsole wie die Kategorie-Karten, eine Stufe ruhiger. */
+  .as-set {
+    position: relative;
+    border: 1px solid var(--line-soft);
+    border-left: 2px solid var(--dp-rail);
+    background: linear-gradient(180deg, var(--dp-fill), transparent 60%);
+    padding: .95rem 1.05rem 1.05rem;
+    margin: 0 0 .7rem;
+  }
+  .as-set::after {
+    content: ''; position: absolute; top: -1px; right: -1px; width: 12px; height: 12px;
+    border-top: 2px solid var(--dp-rail); border-right: 2px solid var(--dp-rail);
+  }
+  .as-set:target { border-left-color: var(--tone-1); background: linear-gradient(180deg, var(--dp-tint), transparent 60%); }
+
+  .as-set-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem .9rem; }
+  .as-set-h h3 {
+    margin: 0; font-family: var(--font-display); font-weight: 800;
+    font-size: 1.12rem; letter-spacing: .01em; color: var(--text);
+  }
+  .as-set-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; font-size: .82rem; }
+  .as-set-meta > .dp-muted { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; }
   .as-badge {
-    font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
-    padding: .1rem .45rem; border-radius: 3px; border: 1px solid var(--line); color: var(--muted);
+    font-family: var(--font-mono); font-size: .67rem; letter-spacing: .12em; text-transform: uppercase;
+    padding: .16rem .5rem; border: 1px solid var(--line); color: var(--muted);
   }
-  .as-badge--ok { color: #4ec97a; border-color: currentColor; }
-  .as-badge--part { color: #d7a13a; border-color: currentColor; }
-  .as-note { margin: .5rem 0 0; font-size: .84rem; color: var(--muted); font-style: italic; }
+  .as-badge--ok { color: var(--rar-uncommon); border-color: currentColor; }
+  .as-badge--part { color: var(--rar-warn); border-color: currentColor; }
+  .as-note { margin: .55rem 0 0; font-size: .84rem; color: var(--muted); font-style: italic; }
 
-  .as-slot { margin-top: .8rem; }
-  .as-slot h4 { margin: 0 0 .35rem; font-size: .82rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
-  .as-parts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .3rem .5rem; }
-  .as-parts li { font-size: .86rem; }
-  .as-parts a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--line); }
-  .as-parts a:hover { color: var(--accent); }
-  .as-rar {
-    font-size: .66rem; font-style: normal; margin-left: .25rem; padding: 0 .3rem;
-    border: 1px solid currentColor; border-radius: 2px;
+  .as-slot { margin-top: .95rem; }
+  .as-slot h4 {
+    display: flex; align-items: center; gap: .5rem;
+    margin: 0 0 .45rem; font-family: var(--font-mono); font-weight: 400;
+    font-size: .7rem; text-transform: uppercase; letter-spacing: .16em; color: var(--muted);
   }
-  .as-rar--uncommon { color: #4ec97a; }
-  .as-rar--rare { color: #4aa3ff; }
-  .as-rar--epic { color: #b07cff; }
-  .as-rar--legendary { color: #f0a52e; }
-  .as-rar--excl { color: #d7a13a; }
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .as-badge--ok{color:#026a35}
-:root[data-theme="light"] .as-badge--part{color:#735102}
-:root[data-theme="light"] .as-rar--uncommon{color:#026a35}
-:root[data-theme="light"] .as-rar--rare{color:#0159a0}
-:root[data-theme="light"] .as-rar--epic{color:#6b30b0}
-:root[data-theme="light"] .as-rar--legendary{color:#784e04}
-:root[data-theme="light"] .as-rar--excl{color:#735102}
+  .as-slot h4::after { content: ''; flex: 1; height: 1px; background: var(--line-soft); }
+
+  /* Teile als Kacheln statt als unterstrichene Linkwand: bei 30 Varianten je
+     Slot war die alte Reihe eine einzige unterstrichene Textflaeche. */
+  .as-parts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .3rem; }
+  .as-parts li {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .86rem; padding: .22rem .55rem;
+    background: var(--dp-fill-2); border: 1px solid var(--line-soft); border-radius: 2px;
+  }
+  .as-parts a { color: var(--text); text-decoration: none; }
+  .as-parts li:has(a):hover { border-color: var(--tone-1); background: var(--dp-tint); }
+  .as-parts a:hover { color: var(--tone-1); }
+  .as-parts li > span { color: var(--muted); }
+  /* Ohne Rahmen: in einem Slot mit 26 Varianten trug frueher fast jede Kachel
+     ein umrandetes „UNCOMMON" — 26 gruene Kaesten nebeneinander uebertoenten
+     die Teilenamen. Die Farbe allein reicht, der Kasten war das Geschrei. */
+  .as-rar {
+    display: inline-flex; align-items: center; gap: .25rem;
+    font-family: var(--font-mono); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase;
+    font-style: normal; color: currentColor; opacity: .95;
+  }
+  .as-rar::before {
+    content: ''; width: 5px; height: 5px; flex: none;
+    background: currentColor; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  }
+  .as-rar--uncommon { color: var(--rar-uncommon); }
+  .as-rar--rare { color: var(--rar-rare); }
+  .as-rar--epic { color: var(--rar-epic); }
+  .as-rar--legendary { color: var(--rar-legendary); }
+  .as-rar--excl { color: var(--rar-warn); }
+
+  @media (max-width: 820px) {
+    .as-jump a { min-height: 44px; }
+    .as-parts li { min-height: 34px; }
+  }
 </style>
