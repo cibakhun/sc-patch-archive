@@ -189,11 +189,26 @@ Plans:
   5. `npm run verify`, `npm run audit:site` und `npm run audit:csp` laufen grün — die CSP kennt Stripe, bevor der erste Besucher darauf stößt
   6. Die Datenschutzerklärung nennt Stripe und Ko-fi als Empfänger, bevor die Seite live geht
 
-**Plans**: wird von `/gsd-plan-phase 5` festgelegt
+**Plans**: 7 plans
 
 Plans:
 
-- [ ] TBD (`/gsd-plan-phase 5` bricht die Phase in Pläne herunter)
+- [ ] 05-01-PLAN.md — Tracer: die Vertrauensgrenze end-to-end (`config.toml`, Migration mit Tabelle/Wächter/RLS/zwei Views, beide Edge Functions, Gattertest)
+- [ ] 05-02-PLAN.md — Konfiguration, Gold-Token in beiden Farbmodi, drei Chrome-Strings DE+EN
+- [ ] 05-03-PLAN.md — Seitenkörper: Betragsauswahl, Einwilligung, Fortschritt und Wand aus echten Zahlungsdaten
+- [ ] 05-04-PLAN.md — Seitenpaar `/support.html` + `/de/support.html`, Dankesseite, Sichtprüfung
+- [ ] 05-05-PLAN.md — Site-weite Zugänge: Fuß-Zeile, Menü-Eintrag, Streifen auf 8 Einfügestellen
+- [ ] 05-06-PLAN.md — Moderationsoberfläche und Unterstützer-Abzeichen auf der Pilotenseite
+- [ ] 05-07-PLAN.md — Datenschutzerklärung DE+EN, gemessener CSP-Befund, Einrichtungsanleitung, Abnahme
+
+Hinweis zur Reihenfolge: die Pläne laufen streng nacheinander (Welle 1 bis 7). Das ist
+bewusst gegen Parallelität entschieden — der Entwicklungsrechner startet wegen des
+defekten Netzteils zufällig neu, und jeder Plan hinterlässt einen committeten,
+lauffähigen Zustand. Ein unerwarteter Neustart kostet damit einen Plan, nicht die Phase.
+
+**Erfolgskriterium 1 ist in dieser Phase nicht von Claude belegbar** (D-05: es gibt noch
+kein Stripe-Konto, und weder Supabase- noch Stripe-CLI sind installiert). Es ist als
+menschliche Abnahme in Plan 05-07 Task 3 geführt und bleibt bis dahin ungehakt.
 
 ## Progress
 
@@ -209,4 +224,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
-| 5. Spenden-Unterstützung | 0/? | Planning | - |
+| 5. Spenden-Unterstützung | 0/7 | Planned | - |
