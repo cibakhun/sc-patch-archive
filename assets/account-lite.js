@@ -236,10 +236,29 @@
   // versteckt + Redirect auf die Startseite); sie sind jetzt fuer alle offen —
   // sie standen ohnehin im Suchindex und in der Sitemap, echte Besucher wurden
   // also von genau den Seiten weggeleitet, die Google zu sehen bekam.
+  // ---- Betreiber zaehlt nicht mit ------------------------------------------
+  // Wer als Admin angemeldet ist, betreut die Seite und darf die eigene
+  // Statistik nicht auffuellen — bei ~30 echten Besuchen am Tag verzerrt schon
+  // ein Nachmittag Eigenarbeit jede Zahl. Frueher hing das an der IP; die ist
+  // dynamisch und faellt nach jedem Router-Neustart aus. Am Konto haengt es
+  // dauerhaft: einmal anmelden, auf jedem Geraet.
+  // Das Cookie kennt die CSP (map in nginx/default.conf) und die WAF-Regel an
+  // der Edge — damit bleiben BEIDE Zaehler still, auch der ueber Zaraz.
+  // `=0` ist die bewusste Rueckkehr ueber den Knopf auf der Datenschutzseite
+  // und wird hier nie ueberschrieben.
+  function keepAnalyticsOptOut(isAdmin) {
+    if (!isAdmin) return;
+    if (/(?:^|;\s*)vb_noanalytics=0/.test(document.cookie)) return;
+    try {
+      document.cookie = 'vb_noanalytics=1; Max-Age=34560000; Path=/; SameSite=Lax; Secure';
+    } catch (e) { /* noop */ }
+  }
+
   function applyRole(role) {
     var isAdmin = role === 'admin';
     var doc = document.documentElement;
     doc.classList.toggle('is-admin', isAdmin);
+    keepAnalyticsOptOut(isAdmin);
 
     // Theme-Wahl ist Admin-only. Jetzt steht die echte Rolle fest -> Theme
     // angleichen: Nicht-Admins zurueck auf Dunkel zwingen (falls der frueh im

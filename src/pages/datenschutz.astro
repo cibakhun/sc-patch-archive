@@ -6,7 +6,7 @@ import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
 ---
-<Layout title={"Privacy Policy | VerseBase"} description={"Privacy policy of VerseBase: a static website without cookies — what data is processed when visiting, by the cookieless reach measurement, when external images load, and when YouTube videos are clicked."} themeColor="#05070d" translated={true}>
+<Layout title={"Privacy Policy | VerseBase"} description={"Privacy policy of VerseBase: what data is processed when visiting, by the reach measurement (Cloudflare Web Analytics and Google Analytics), when external images load, and when YouTube videos are clicked — including a one-click opt-out."} themeColor="#05070d" translated={true}>
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
@@ -41,13 +41,13 @@ import Attribution from '../components/Attribution.astro';
 
     <h2>Principle</h2>
     <p>
-      This website is a purely static, non-commercial fan project. It uses <strong>no cookies</strong>,
-      no advertising and no comment functions, and it does not follow you across other websites.
-      For plain reach measurement it runs <a href="#cloudflare">Cloudflare Web Analytics</a> —
-      cookieless and without fingerprinting; it produces aggregated figures only (page views,
-      visits, load times), never personal profiles. You can <a href="#opt-out">opt out</a> of the
-      measurement with one click — only then is a technical cookie set, which remembers exactly
-      that choice. Beyond that you only transmit data via the
+      This website is a purely static, non-commercial fan project. It shows no advertising and
+      has no comment functions. Two services measure reach:
+      <a href="#cloudflare">Cloudflare Web Analytics</a> (cookieless, no fingerprinting) and
+      <a href="#ga4">Google Analytics</a>, embedded via Cloudflare Zaraz. You can
+      <a href="#opt-out">opt out</a> of both with one click; the opt-out records exactly that
+      choice in a technical cookie and stops both measurements. Beyond that you only transmit
+      data via the
       <a href="#feedback">feedback form</a> and the optional <a href="#accounts">user account</a> —
       both voluntary; the data processed there is described separately below.
     </p>
@@ -77,14 +77,28 @@ import Attribution from '../components/Attribution.astro';
       privacy policy:
       <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">cloudflare.com/privacypolicy</a>.
     </p>
+    <h2 id="ga4">Google Analytics (via Cloudflare Zaraz)</h2>
+    <p>
+      <strong>Google Analytics 4</strong> also runs on this site, embedded via Cloudflare Zaraz:
+      the measurement script is served from this domain, and Cloudflare forwards the data to
+      Google server-side. Recorded are page views, approximate origin (country), device and
+      browser, plus a random identifier so that repeat visits belong together. The provider is
+      Google Ireland Ltd., Gordon House, Barrow Street, Dublin 4, Ireland; processing on servers
+      in the USA is possible. For details see the provider's privacy policy:
+      <a href="https://policies.google.com/privacy" rel="noopener">policies.google.com/privacy</a>.
+      Legal basis: Art. 6 (1) (f) GDPR (legitimate interest in reach figures). The
+      <a href="#opt-out">opt-out</a> below switches this measurement off as well.
+    </p>
+
     <div class="optout" id="opt-out">
       <span id="rum-status">Checking …</span>
       <button type="button" id="rum-toggle">Don't count me</button>
       <p class="note">
         Your choice is remembered by the technical cookie <code>vb_noanalytics</code> in this
-        browser; its entire content is a 1. It takes effect from the next page load: the server
-        then no longer allows the measurement script, so it never loads at all. If you clear your
-        cookies, you have to opt out here again.
+        browser; its entire content is a 1 or a 0. It takes effect from the next page load and
+        covers <strong>both</strong> services above: the server then no longer allows the
+        measurement scripts, so they never load at all. If you clear your cookies, you have to
+        opt out here again. Whoever maintains the site is not counted while signed in anyway.
       </p>
     </div>
     <script is:inline>
@@ -101,9 +115,9 @@ import Attribution from '../components/Attribution.astro';
           btn.textContent = off() ? 'Count me again' : "Don't count me";
         };
         btn.addEventListener('click', () => {
-          document.cookie = off()
-            ? NAME + '=; Max-Age=0; Path=/; SameSite=Lax'
-            : NAME + '=1; Max-Age=63072000; Path=/; SameSite=Lax; Secure';
+          document.cookie = (off()
+            ? NAME + '=0'
+            : NAME + '=1') + '; Max-Age=34560000; Path=/; SameSite=Lax; Secure';
           render('Applies from the next page load.');
         });
         render();
