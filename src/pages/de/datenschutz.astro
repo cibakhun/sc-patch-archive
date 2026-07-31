@@ -1,6 +1,6 @@
 ---
 // Datenschutzerklärung — beschreibt FAKTISCH, was diese statische Site tut
-// (zwei Reichweitenzähler — Cloudflare Web Analytics + GA4 via Zaraz —, Widerspruch per Cookie,
+// (Reichweitenmessung cookiefrei via Cloudflare, Widerspruch per Cookie,
 // localStorage nur lokal, externe Bild-CDNs,
 // YouTube nur per Klick). [TODO]-Felder vor Publish füllen — audit:site
 // bleibt absichtlich rot, solange sie im Build stehen.
@@ -8,7 +8,7 @@ import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 ---
-<Layout title={"Datenschutzerklärung | VerseBase"} description={"Datenschutzerklärung von VerseBase: welche Daten beim Aufruf, bei der Reichweitenmessung (Cloudflare Web Analytics und Google Analytics), bei externen Bildquellen und bei Klick auf YouTube-Videos verarbeitet werden — samt Widerspruch mit einem Klick."} themeColor="#05070d" translated={true}>
+<Layout title={"Datenschutzerklärung | VerseBase"} description={"Datenschutzerklärung von VerseBase: welche Daten beim Aufruf, bei der cookiefreien Reichweitenmessung, bei externen Bildquellen und bei Klick auf YouTube-Videos verarbeitet werden — samt Widerspruch mit einem Klick."} themeColor="#05070d" translated={true}>
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
@@ -44,12 +44,12 @@ import Attribution from '../../components/Attribution.astro';
     <h2>Grundsatz</h2>
     <p>
       Diese Website ist ein rein statisches, nicht-kommerzielles Fan-Projekt. Sie zeigt keine
-      Werbung und hat keine Kommentarfunktionen. Zur Reichweitenmessung laufen zwei Dienste:
-      <a href="#cloudflare">Cloudflare Web Analytics</a> (cookiefrei, ohne Fingerprinting) und
-      <a href="#ga4">Google Analytics</a>, eingebunden über Cloudflare Zaraz. Beiden kannst du
-      mit einem Klick <a href="#opt-out">widersprechen</a>; der Widerspruch hält genau diese
-      Entscheidung in einem technischen Cookie fest und stoppt beide Messungen. Darüber hinaus
-      übermittelst du Daten nur über das
+      Werbung und hat keine Kommentarfunktionen. Zur Reichweitenmessung läuft
+      <a href="#cloudflare">Cloudflare Web Analytics</a> — cookiefrei, ohne Fingerprinting und
+      ohne Personenprofile; es entstehen nur zusammengefasste Zahlen (Seitenaufrufe, Besuche,
+      Ladezeiten). Der Messung kannst du mit einem Klick <a href="#opt-out">widersprechen</a>;
+      nur dann wird ein technischer Cookie gesetzt, der genau diese Entscheidung festhält.
+      Darüber hinaus übermittelst du Daten nur über das
       <a href="#feedback">Feedback-Formular</a> und das optionale
       <a href="#accounts">Benutzerkonto</a> — beides freiwillig; die dabei verarbeiteten Daten
       sind unten gesondert beschrieben.
@@ -82,29 +82,14 @@ import Attribution from '../../components/Attribution.astro';
       EU ist dabei möglich; Details findest du in der Datenschutzerklärung des Anbieters:
       <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">cloudflare.com/privacypolicy</a>.
     </p>
-    <h2 id="ga4">Google Analytics (über Cloudflare Zaraz)</h2>
-    <p>
-      Zusätzlich läuft <strong>Google Analytics 4</strong>, eingebunden über Cloudflare Zaraz:
-      Das Messskript wird von dieser Domain ausgeliefert, die Daten reicht Cloudflare
-      serverseitig an Google weiter. Erfasst werden Seitenaufrufe, ungefähre Herkunft (Land),
-      Gerät und Browser sowie eine zufällige Kennung, damit wiederkehrende Aufrufe
-      zusammengehören. Anbieter ist Google Ireland Ltd., Gordon House, Barrow Street, Dublin 4,
-      Irland; eine Verarbeitung auf Servern in den USA ist dabei möglich. Einzelheiten in der
-      Datenschutzerklärung des Anbieters:
-      <a href="https://policies.google.com/privacy" rel="noopener">policies.google.com/privacy</a>.
-      Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an
-      Reichweitenzahlen). Der <a href="#opt-out">Widerspruch</a> unten schaltet auch diese
-      Messung ab.
-    </p>
-
     <div class="optout" id="opt-out">
       <span id="rum-status">Wird geprüft …</span>
       <button type="button" id="rum-toggle">Nicht mitzählen</button>
       <p class="note">
         Die Entscheidung merkt sich der technische Cookie <code>vb_noanalytics</code> in genau
         diesem Browser; sein ganzer Inhalt ist eine 1 oder eine 0. Sie wirkt ab dem nächsten
-        Seitenaufruf und betrifft <strong>beide</strong> oben genannten Dienste: der Server
-        erlaubt die Messskripte dann nicht mehr, sie laden gar nicht erst. Löschst du deine
+        Seitenaufruf: der Server erlaubt das Messskript dann nicht mehr, es lädt gar nicht
+        erst. Löschst du deine
         Cookies, musst du hier erneut widersprechen. Wer die Seite betreut und angemeldet ist,
         wird ohnehin nicht mitgezählt.
       </p>
