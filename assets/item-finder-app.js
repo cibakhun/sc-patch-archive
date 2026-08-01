@@ -856,6 +856,9 @@
     }
 
     content.innerHTML = html;
+    // Die Bezugsquellen-Tabelle entsteht erst hier — Ziehen und die weiche
+    // Kante muessen nachtraeglich angehaengt werden. assets/scroll-affordance.js.
+    if (window.VBScrollAffordance) window.VBScrollAffordance();
     // Doppeltes Sperren verhindern: openModal kann aus einem offenen Modal
     // heraus erneut laufen (Verweis auf ein anderes Item).
     var wasOpen = modal.style.display === 'flex';

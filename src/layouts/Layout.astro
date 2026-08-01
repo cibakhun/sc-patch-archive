@@ -294,6 +294,11 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
       einer Funktion — laeuft beim Laden nichts an. */}
   <script is:inline defer src={versioned('assets/scroll-lock.js', '/assets/scroll-lock.js')}></script>
   <script is:inline defer src={versioned('assets/offcanvas.js', '/assets/offcanvas.js')}></script>
+  {/* Breite Bildlauf-Tabellen: mit der Maus schiebbar machen und die weiche
+      Kante rechts schalten, solange dort noch etwas steht. `defer`, weil ohne
+      JS die Leiste und der Verlauf aus mobile-ux.css stehen bleiben. Auf
+      Seiten ohne solchen Kasten kostet es ein querySelectorAll. */}
+  <script is:inline defer src={versioned('assets/scroll-affordance.js', '/assets/scroll-affordance.js')}></script>
   {/* Umschalt-Verhalten. Bewusst hier und nicht in ThemeToggle.astro: der
       Umschalter steht zweimal auf der Seite (Leiste + Menü), das Verhalten
       soll aber nur einmal existieren. Delegierter Klick -> beliebig viele
