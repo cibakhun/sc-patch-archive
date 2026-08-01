@@ -44,10 +44,11 @@ import Attribution from '../../components/Attribution.astro';
     <p>
       Ez a webhely tisztán statikus, nem kereskedelmi rajongói projekt. Nem jelenít meg
       hirdetést, és nincs hozzászólás-funkciója. A látogatottságot két szolgáltatás méri:
-      <a href="#cloudflare">Cloudflare Web Analytics</a> (sütimentesen, ujjlenyomatképzés nélkül)
-      és <a href="#ga4">Google Analytics</a>, a Cloudflare Zaraz beépítésével. Mindkettőből
-      egyetlen kattintással <a href="#opt-out">kimaradhatsz</a>; a döntést egy technikai süti
-      őrzi meg, és mindkét mérést leállítja. Ezen túl kizárólag a
+      <a href="#cloudflare">Cloudflare Web Analytics</a> és a saját kiszolgálón futó
+      <a href="#umami">Umami</a> — mindkettő sütimentesen, ujjlenyomatképzés nélkül, és a
+      készülékeden semmit nem tárolnak. Mindkettőből egyetlen kattintással
+      <a href="#opt-out">kimaradhatsz</a>; a döntést egy technikai süti őrzi meg, és mindkét
+      mérést leállítja. Ezen túl kizárólag a
       <a href="#feedback">visszajelzési űrlap</a> és az opcionális
       <a href="#accounts">felhasználói fiók</a> révén küldesz adatot — mindkettő önkéntes; az ezek
       során kezelt adatokat lentebb külön ismertetjük.
@@ -79,19 +80,17 @@ import Attribution from '../../components/Attribution.astro';
       szervereken is történhet; a részleteket a szolgáltató adatvédelmi tájékoztatója tartalmazza:
       <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">cloudflare.com/privacypolicy</a>.
     </p>
-    <h2 id="ga4">Google Analytics (Cloudflare Zaraz-on keresztül)</h2>
+    <h2 id="umami">Saját látogatottságmérés (Umami)</h2>
     <p>
-      Emellett <strong>Google Analytics 4</strong> is fut, a Cloudflare Zaraz beépítésével: a
-      mérőszkriptet ez a domain szolgálja ki, az adatokat a Cloudflare kiszolgálóoldalon
-      továbbítja a Google-nek. Rögzítésre kerülnek az oldalmegtekintések, a hozzávetőleges
-      származási hely (ország), az eszköz és a böngésző, valamint egy véletlenszerű azonosító,
-      hogy a visszatérő megtekintések összetartozzanak. A szolgáltató a Google Ireland Ltd.,
-      Gordon House, Barrow Street, Dublin 4, Írország; az adatkezelés az EU-n kívüli, egyesült
-      államokbeli szervereken is megtörténhet. Részletek a szolgáltató adatvédelmi
-      tájékoztatójában:
-      <a href="https://policies.google.com/privacy" rel="noopener">policies.google.com/privacy</a>.
-      A jogalap a GDPR 6. cikk (1) bekezdés f) pontja (jogos érdek a látogatottsági számokhoz).
-      Az alábbi <a href="#opt-out">kimaradás</a> ezt a mérést is kikapcsolja.
+      Emellett a stats.verse-base.com címen <strong>Umami</strong> fut — nyílt forráskódú
+      statisztika, amely a saját kiszolgálónkon dolgozik. Rögzítésre kerül a megnyitott oldal, a
+      hivatkozó forrás, az ország, az eszköztípus, a böngésző és az operációs rendszer, valamint
+      az oldalon töltött idő. <strong>Sütiket nem használ, és a készülékeden semmit nem
+      tárol</strong>; a látogatások megkülönböztetésére naponta cserélődő ellenőrzőösszeg
+      szolgál, amelyből senkire nem lehet visszakövetkeztetni. Az adatok nem hagyják el a
+      kiszolgálónkat — harmadik fél nem vesz részt benne. A jogalap a GDPR 6. cikk (1) bekezdés
+      f) pontja (jogos érdek a látogatottsági számokhoz). Az alábbi
+      <a href="#opt-out">kimaradás</a> ezt a mérést is kikapcsolja.
     </p>
 
     <div class="optout" id="opt-out">
