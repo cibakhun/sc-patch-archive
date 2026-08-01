@@ -533,6 +533,14 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav--morph .snav__brand:focus-visible {
     opacity: 1;
   }
+  /* Bei offenem Menü liegt das Deck über der Hero-Überschrift — die IST auf
+     diesen Seiten die Wortmarke. Ohne diese Regel steht dann gar keine da:
+     wer das Menü oben auf der Seite öffnet, findet keinen Weg zurück auf die
+     Startseite. Also blendet der Schriftzug auf, solange das Deck offen ist,
+     unabhängig davon, wie weit die Seite gescrollt war. */
+  :global(html.is-deck-open) .snav--morph .snav__brand {
+    opacity: 1;
+  }
   /* Glyphen wie eine technische Zeichnung: dünner Strich, gerade Enden,
      spitze Ecken. Die dicken runden Konturen davor lasen als Spiel-HUD von
      der Stange. Als CSS gesetzt, nicht als Attribut — so bleibt die
