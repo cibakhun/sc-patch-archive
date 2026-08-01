@@ -42,10 +42,11 @@ import Attribution from '../components/Attribution.astro';
     <h2>Principle</h2>
     <p>
       This website is a purely static, non-commercial fan project. It shows no advertising and
-      has no comment functions. Reach is measured with
-      <a href="#cloudflare">Cloudflare Web Analytics</a> — cookieless, without fingerprinting and
-      without personal profiles; it produces aggregated figures only (page views, visits, load
-      times). You can <a href="#opt-out">opt out</a> with one click; only then is a technical
+      has no comment functions. Reach is measured by two cookieless services:
+      <a href="#cloudflare">Cloudflare Web Analytics</a> and the self-hosted
+      <a href="#umami">Umami</a> — both without fingerprinting, without personal profiles and
+      without storing anything on your device. You can <a href="#opt-out">opt out</a> with one
+      click; only then is a technical
       cookie set, which records exactly that choice. Beyond that you only transmit
       data via the
       <a href="#feedback">feedback form</a> and the optional <a href="#accounts">user account</a> —
@@ -77,14 +78,25 @@ import Attribution from '../components/Attribution.astro';
       privacy policy:
       <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">cloudflare.com/privacypolicy</a>.
     </p>
+    <h2 id="umami">Self-hosted reach measurement (Umami)</h2>
+    <p>
+      <strong>Umami</strong> also runs at stats.verse-base.com — open-source analytics operating
+      on our own server. Recorded are the page visited, the referrer, country, device type,
+      browser and operating system, plus time on page. <strong>No cookies are set and nothing is
+      stored on your device</strong>; to tell visits apart, a checksum that changes daily is used,
+      which cannot be traced back to anyone. The data never leaves our server — no third party is
+      involved. Legal basis: Art. 6 (1) (f) GDPR (legitimate interest in reach figures). Your
+      <a href="#opt-out">opt-out</a> stops this measurement too.
+    </p>
+
     <div class="optout" id="opt-out">
       <span id="rum-status">Checking …</span>
       <button type="button" id="rum-toggle">Don't count me</button>
       <p class="note">
         Your choice is remembered by the technical cookie <code>vb_noanalytics</code> in this
-        browser; its entire content is a 1 or a 0. It takes effect from the next page load: the
-        server then no longer allows the measurement script, so it never loads at all. If you
-        clear your cookies, you have to
+        browser; its entire content is a 1 or a 0. It takes effect from the next page load and
+        covers both services: the server then no longer allows the measurement scripts, so they
+        never load at all. If you clear your cookies, you have to
         opt out here again. Whoever maintains the site is not counted while signed in anyway.
       </p>
     </div>

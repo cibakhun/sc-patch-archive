@@ -259,6 +259,16 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
     html:not(.is-admin) .js-theme-toggle {
       display: none !important;
     }</style>
+  {/* Reichweitenmessung: Umami, selbst gehostet auf stats.verse-base.com.
+      Cookiefrei und ohne Kennung auf dem Geraet — deshalb ohne Einwilligung
+      zulaessig, und die Zahlen bleiben auf dem eigenen Server statt bei Google
+      (das lief hier bis 31.07.2026 als GA4 ueber Zaraz).
+      Der Widerspruch haengt NICHT an diesem Tag, sondern an der CSP: traegt der
+      Browser `vb_noanalytics=1`, liefert nginx den Host nicht mehr in script-src
+      aus und das Skript laedt gar nicht erst (map in nginx/default.conf). Ein
+      Tag, der bei Widerspruch verschwinden muesste, waere in 17.000 statischen
+      Seiten nicht zu haben — die Kopfzeile kann das pro Aufruf. */}
+  <script is:inline defer src="https://stats.verse-base.com/script.js" data-website-id="7f863f38-b4d8-4de1-8a92-cbdd78667920"></script>
   <slot name="head" />
 </head>
 <body>
