@@ -28,6 +28,14 @@ const total = [...counts.values()].reduce((a, b) => a + b, 0);
 const eraCount = new Set(patches.map((p) => p.data.era)).size;
 // era zones: first column of each era gets a vertical seam + era label
 const eraStarts = patches.map((p, i) => i === 0 || p.data.era !== patches[i - 1].data.era);
+// Feinere Trennung nach Patch-Zyklus: 4.8.0–4.8.3 gehoeren zusammen, 4.9.0
+// faengt neu an. Eine Aera fasst bis zu vier Zyklen (Neue Horizonte = 4.4–4.7),
+// zwischen denen sonst gar keine Linie stuende. Jeder Aera-Anfang ist auch ein
+// Zyklus-Anfang, die Aera-Naht bleibt deshalb die kraeftigere von beiden.
+const cycleOf = (v: string) => v.split('.').slice(0, 2).join('.');
+const cycleStarts = patches.map(
+  (p, i) => i === 0 || cycleOf(p.data.version) !== cycleOf(patches[i - 1].data.version)
+);
 const rowTotal = (sys: string) => patches.reduce((n, p) => n + cell(sys, p).length, 0);
 const tierOf = (n: number) => (n <= 2 ? '1' : n <= 5 ? '2' : '3');
 ---
@@ -92,7 +100,7 @@ a{color:inherit;text-decoration:none}
         <tr>
           <th class="evo__syshead" scope="col">System</th>
           {patches.map((p, pi) => (
-            <th scope="col" class={`evo__col${eraStarts[pi] ? ' evo__erastart' : ''}`} style={`--c:${p.data.palette.accent}`}>
+            <th scope="col" class={`evo__col${cycleStarts[pi] ? ' evo__cyclestart' : ''}${eraStarts[pi] ? ' evo__erastart' : ''}`} style={`--c:${p.data.palette.accent}`}>
               {eraStarts[pi] && <span class="evo__era">{p.data.era}</span>}
               <a href={`/de/patches/sc-${p.id}.html`} title={`${p.data.codename} · ${p.data.dateDisplay}`}>
                 {p.data.version}
@@ -109,7 +117,7 @@ a{color:inherit;text-decoration:none}
             {patches.map((p, pi) => {
               const feats = cell(sys, p);
               return (
-                <td class={`evo__td${eraStarts[pi] ? ' evo__erastart' : ''}`}>
+                <td class={`evo__td${cycleStarts[pi] ? ' evo__cyclestart' : ''}${eraStarts[pi] ? ' evo__erastart' : ''}`}>
                   {feats.length > 0 ? (
                     <button
                       class="evo__cell"
@@ -254,6 +262,10 @@ a{color:inherit;text-decoration:none}
    aufgebläht — fünfmal, zusammen 164 px, die rechts fehlten. Absolut
    gesetzt beschriften sie die Naht, ohne die Spalte zu bestimmen. */
 .evo__era{position:absolute;top:.62rem;left:.34rem;font-family:var(--font-ui);font-weight:700;font-size:0.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c);opacity:.7;white-space:nowrap;text-align:left}
+/* Zwei Staerken: jeder Patch-Zyklus bekommt eine feine Naht, der Ären-Wechsel
+   die kraeftige. Reihenfolge zaehlt — beide Klassen sitzen an denselben
+   Zellen, die Aera muss gewinnen. */
+.evo__cyclestart{border-left:1px solid var(--line)}
 .evo__erastart{border-left:1px solid var(--line-2)}
 .evo__tot{position:sticky;top:0;z-index:3;background:var(--bg-2);
   font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.1em;color:var(--muted);padding:.7rem .8rem;border-left:1px solid var(--line-2);vertical-align:bottom}
