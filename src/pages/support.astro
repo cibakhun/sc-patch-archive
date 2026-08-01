@@ -1,0 +1,18 @@
+---
+// Support — thin EN wrapper (mirror of /de/support.html, same slug so the
+// language switcher pairs them). Body lives in <SupportBody>.
+import Layout from '../layouts/Layout.astro';
+import SiteNav from '../components/SiteNav.astro';
+import Attribution from '../components/Attribution.astro';
+import SupportBody from '../components/SupportBody.astro';
+---
+<Layout
+  title={'Support VerseBase | VerseBase'}
+  description={'VerseBase is free, ad-free and tracker-free. If the site is worth something to you, you can support it via PayPal — voluntary, nothing in return, nothing behind a paywall.'}
+  themeColor="#05070d"
+  translated={true}
+>
+<SiteNav crumbs={[{ label: 'Support' }]} hasEn={true} />
+<SupportBody lang="en" />
+<Attribution sources={[]} />
+</Layout>

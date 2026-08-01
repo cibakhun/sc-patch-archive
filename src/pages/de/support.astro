@@ -1,0 +1,18 @@
+---
+// Unterstützen — schlanke DE-Hülle (Gegenstück zu /support.html, gleicher Slug,
+// damit der Sprachumschalter die beiden paart). Körper in <SupportBody>.
+import Layout from '../../layouts/Layout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import Attribution from '../../components/Attribution.astro';
+import SupportBody from '../../components/SupportBody.astro';
+---
+<Layout
+  title={'VerseBase unterstützen | VerseBase'}
+  description={'VerseBase ist kostenlos, werbefrei und ohne Tracker. Wenn dir die Seite etwas wert ist, kannst du sie über PayPal unterstützen — freiwillig, ohne Gegenleistung, nichts hinter einer Bezahlschranke.'}
+  themeColor="#05070d"
+  translated={true}
+>
+<SiteNav crumbs={[{ label: 'Unterstützen' }]} hasEn={true} />
+<SupportBody lang="de" />
+<Attribution sources={[]} />
+</Layout>

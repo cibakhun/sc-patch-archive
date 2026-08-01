@@ -141,6 +141,7 @@ const UI = {
     'footer.imprint': 'Impressum',
     'footer.privacy': 'Datenschutz',
     'footer.feedback': 'Feedback',
+    'footer.support': 'Unterstützen',
     'footer.disclaimer':
       'Inoffizielles Fan-Projekt zu Dokumentationszwecken. Star Citizen® und alle zugehörigen Marken gehören der Cloud Imperium Rights LLC & Ltd. Keine Verbindung zu oder Förderung durch Cloud Imperium Games. Wiki-Inhalte von starcitizen.tools stehen unter CC-BY-SA 4.0; eingebettete Trailer und Standbilder © Cloud Imperium Games (Fan-Content-Nutzung).',
     // -- Schiff-Datenblatt (Template-Chrome; Daten-Row-Labels aus src/lib -> Stufe 2) --
@@ -517,6 +518,7 @@ const UI = {
     'footer.imprint': 'Legal Notice',
     'footer.privacy': 'Privacy',
     'footer.feedback': 'Feedback',
+    'footer.support': 'Support',
     'footer.disclaimer':
       'Unofficial fan project for documentation purposes. Star Citizen® and all related marks are property of Cloud Imperium Rights LLC & Ltd. Not affiliated with or endorsed by Cloud Imperium Games. Wiki content from starcitizen.tools is licensed under CC-BY-SA 4.0; embedded trailers and stills © Cloud Imperium Games (fan-content use).',
     // -- Ship data sheet (template chrome; data-row labels from src/lib -> Stufe 2) --
