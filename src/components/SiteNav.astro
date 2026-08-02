@@ -93,7 +93,18 @@ const backParent = isNestedPage && !isAccountArea
   ? [...crumbs].slice(0, -1).reverse().find((c) => c.href)
   : undefined;
 const backTarget = backParent ? { href: backParent.href as string, label: backParent.label } : null;
-const backLinkSrc = backTarget ? versioned('assets/back-link.js', '/assets/back-link.js') : null;
+// Das Element wird FAST UEBERALL angelegt, nicht nur wo es ein statisches Ziel
+// gibt: auf Naben (Item-Finder, /schiffe.html, Startseite …) steht es zunaechst
+// auf `hidden` und wird vom Leser unten sichtbar gemacht, sobald eine echte
+// Herkunft vorliegt. Sonst kaeme man von einer Nabe nie zurueck, obwohl man
+// irgendwoher kam. Ausgenommen bleibt allein der Konto-Bereich — ein
+// Auth-Fluss ist keine Inhaltsnavigation.
+const renderBack = !isAccountArea;
+// Ohne statisches Ziel startet es versteckt; der Leser fuellt href und Text.
+const backHidden = !backTarget;
+const backLinkSrc = renderBack || crumbs.length
+  ? versioned('assets/back-link.js', '/assets/back-link.js')
+  : null;
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
@@ -291,7 +302,13 @@ try {
 } catch { /* dev-Fallback */ }
 const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 ---
-<nav class={heroMorph ? 'snav snav--morph' : 'snav'} id="topbar" aria-label={t('nav.main')}>
+{/* data-back-self sitzt an der LEISTE, nicht am Zurueck-Link: sonst
+    hinterlassen Nabenseiten keine Herkunfts-Notiz (sie tragen keinen
+    Zurueck-Link), und jeder Weg ueber eine Nabe verliert den Kontext —
+    Item-Finder -> Crafting zeigte deshalb den statischen Elternteil
+    „← Alpha 4.9" statt „← Item Finder". Die Notiz kostet nichts und macht
+    auch Naben zu einer gueltigen Herkunft. */}
+<nav class={heroMorph ? 'snav snav--morph' : 'snav'} id="topbar" aria-label={t('nav.main')} data-back-self={crumbs.length ? crumbs[crumbs.length - 1]?.label : undefined}>
   <div class="snav__left">
     <a
       class="snav__acct js-nav-acct"
@@ -341,17 +358,17 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       <span class="snav__menu-txt snav__menu-txt--close"><kbd>Esc</kbd></span>
     </button>
   </div>
-  {backTarget && (
+  {renderBack && (
     <a
       class="snav__back"
-      href={backTarget.href}
-      data-backlink
-      data-back-path={backTarget.href.split(/[?#]/)[0]}
-      data-back-self={crumbs[crumbs.length - 1]?.label}
+      href={backTarget ? backTarget.href : undefined}
+      data-backlink={backTarget ? '' : undefined}
+      data-back-path={backTarget ? backTarget.href.split(/[?#]/)[0] : undefined}
       data-back-aria={t('nav.back.aria')}
-      aria-label={`${t('nav.back.aria')} ${backTarget.label}`}
+      aria-label={backTarget ? `${t('nav.back.aria')} ${backTarget.label}` : undefined}
+      hidden={backHidden}
     >
-      <span aria-hidden="true">←</span> <span data-back-label>{backTarget.label}</span>
+      <span aria-hidden="true">←</span> <span data-back-label>{backTarget ? backTarget.label : ''}</span>
     </a>
   )}
   <div class="snav__progress-bar" aria-hidden="true">
@@ -366,7 +383,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     assets/back-link.js aus (dort steht auch die Reihenfolge-Begründung) und
     schreibt bei Treffer href/Label/aria-label auf die tatsächliche Herkunft
     um. Jeder Fehler bedeutet stillschweigend: Eltern-Link bleibt stehen. */}
-{backTarget && (
+{renderBack && (
   <script is:inline>
     try {
       var a = document.querySelector('.snav__back');
@@ -377,6 +394,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
           if (note && note.p === ref.pathname && typeof note.u === 'string' && note.u.charAt(0) === '/' && note.u.charAt(1) !== '/') {
             a.setAttribute('href', note.u);
             a.setAttribute('data-back-path', note.p);
+            a.setAttribute('data-backlink', '');
             var lbl = a.querySelector('[data-back-label]');
             if (lbl) lbl.textContent = note.l;
             a.setAttribute('aria-label', a.getAttribute('data-back-aria') + ' ' + note.l);
@@ -384,6 +402,10 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
             // ist der Nutzer nachweislich von aussen hereingesprungen. Ohne das
             // waere ein Zurueck-Pfeil im Modal bloss ein zweites Schliessen-X.
             a.setAttribute('data-back-origin', '');
+            // Auf Naben startet das Element versteckt (kein statisches Ziel).
+            // Jetzt gibt es eines — sichtbar machen. Das passiert noch vor dem
+            // ersten Bild, es springt also nichts.
+            a.removeAttribute('hidden');
           }
         }
       }
@@ -499,7 +521,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 {crumbLd && <script type="application/ld+json" set:html={JSON.stringify(crumbLd)} />}
 {/* Nur auf Blattseiten mit Zurück-Element geladen — Naben und Startseite
     bekommen kein zusätzliches Skript. Gleiche Herkunft, CSP bleibt grün. */}
-{backTarget && <script is:inline src={backLinkSrc} defer></script>}
+{backLinkSrc && <script is:inline src={backLinkSrc} defer></script>}
 <SearchOverlay lang={lang} />
 {/* Konto-Status + Favoriten-Sterne (leichtgewichtig, ohne supabase-js).
     ?v=<contenthash> bricht den 1-Tag-CDN-Cache bei jeder Änderung. */}
@@ -830,11 +852,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      44-px-Fingerkuppe). `:has()` haelt das rein strukturell — keine Seite
      muss etwas uebergeben. */
   :global(:root) { --nav-h: 68px; }
-  :global(:root:has(.snav__back)) { --nav-h: 107px; }
+  :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 107px; }
   @media (max-width: 860px) {
-    :global(:root:has(.snav__back)) { --nav-h: 132px; }
+    :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 132px; }
   }
 
+  .snav__back[hidden] { display: none; }
   .snav__back {
     grid-column: 1 / -1;
     justify-self: start;

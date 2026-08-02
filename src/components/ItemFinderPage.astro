@@ -25,8 +25,6 @@ const snap = DB.generatedAt;
 :root[data-theme="light"]{--bg:#f7f6fe;--bg-2:#eeecf8;--surface:#fdfdff;--surface-2:#f3f1fb;--text:#1d1f22;--muted:#575668;--accent:#643bb5;--accent-2:#744c00;--hot:#5c31ab;--ink:#ffffff;--accent-media:#A78BFA;--accent-2-media:#FFB84D;--line:rgba(117,101,166,.3);--line-soft:rgba(44,46,49,.12);--glow:0 6px 22px rgba(118,98,176,.18)}
 
 
-
-
 .reveal{opacity:1 !important;transform:none !important}
 /* Hero title: bright gradient + strong scrim, readable over the loot photo */
 .hero h1{font-size:clamp(2.4rem,9vw,7rem);background:linear-gradient(180deg,var(--title-hi),#d6c6ff 58%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 3px 20px var(--on-media-shadow)) drop-shadow(0 0 30px rgba(167,139,250,.4))}
@@ -34,6 +32,11 @@ const snap = DB.generatedAt;
 .hero__in{max-width:var(--maxw)}
 .qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;color:var(--muted)}
 .qbar b{color:var(--accent-2)}
+/* „Patch 4.9" traegt jetzt den Verweis auf die Patchseite, den frueher der
+   Eyebrow im Kopf trug. Farbe erbt von .qbar b, damit die Leiste eine Zeile
+   bleibt und nicht ein Wert aus der Reihe faellt. */
+.qbar a{color:inherit;text-decoration:none;border-bottom:1px solid var(--line)}
+.qbar a:hover{border-color:var(--accent-2)}
 /* „Worum geht es hier" — steht UNTER der Trefferliste. Bewusst nicht
    display:none und nicht ausgeklappt-versteckt: Google indexiert mobil-zuerst,
    der Text soll gefunden werden. Er soll nur niemanden aufhalten, der sucht. */
@@ -50,20 +53,41 @@ const snap = DB.generatedAt;
    schmales Band. Gleiche Spezifität (0,1,1) wie ".hero h1" oben — es
    gewinnt hier ausschließlich die spätere Regel, deshalb steht dieser
    Block bewusst NACH der ".hero h1"-Regel. */
-.hero--tool{min-height:0;justify-content:flex-start;padding-top:6.2rem;padding-bottom:1rem;padding-left:clamp(1rem,4vw,2rem);padding-right:clamp(1rem,4vw,2rem)}
+.hero--tool{min-height:0;justify-content:flex-start;padding-top:6.4rem;padding-bottom:1.9rem;padding-left:clamp(1rem,4vw,2rem);padding-right:clamp(1rem,4vw,2rem)}
 .hero--tool h1{font-size:clamp(1.9rem,4.4vw,3.2rem)}
+/* Titel mittig. */
+.hero--tool .hero__in{text-align:center}
+/* Der Standard-Schleier (.hero__photo::after in detail.css) legt sein
+   Sichtfenster fest auf 78% x / 18% y — gebaut fuer den hohen Hero, in dem der
+   Titel unten LINKS stand und das Foto oben rechts durchblitzte. In einem
+   schmalen Band malt genau das links Schwarz und laesst das Foto wie einen
+   abgeschnittenen Streifen rechts aussehen. Hier deshalb ein gleichmaessiger
+   Schleier ueber die volle Breite, unten auslaufend nach var(--bg) —
+   funktioniert in beiden Modi, weil er aus --bg gemischt wird. */
+.hero--tool .hero__photo{background-position:center 45%}
+.hero--tool .hero__photo::after{background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 62%,transparent),color-mix(in srgb,var(--bg) 42%,transparent) 45%,var(--bg))}
 @media (max-width:700px){
   /* Auf schmalen Schirmen bleibt weniger Höhe übrig — Polsterung nochmal senken,
      damit das Suchfeld darunter bei 375x812 im ersten Bild steht. Die feste Nav
      ist 69 px hoch, 4.4rem (79 px) lässt ihr genug Luft. */
-  .hero--tool{padding-top:4.4rem;padding-bottom:.5rem}
+  /* Ohne die Eyebrow-Zeile schrumpfte das Band auf 146 px — das Foto war
+     wieder nur ein Streifen. Polsterung deshalb wieder rauf, damit das Motiv
+     traegt; die Suche bleibt trotzdem weit im ersten Bild. */
+  .hero--tool{padding-top:5rem;padding-bottom:2.6rem}
   .hero--tool h1{font-size:clamp(1.7rem,7.4vw,2.2rem);margin-top:.1rem}
+  /* Auf 375 px ist der Ausschnitt so eng, dass der Titel genau auf der hellen
+     Regalkante des Fotos landet — die duenne Zeile „Star Citizen" wird darauf
+     unlesbar. Schleier deutlich staerker und der Ausschnitt tiefer, wo das
+     Motiv dunkel ist. Nachgemessen, nicht geschaetzt. */
+  .hero--tool .hero__photo{background-position:center 62%}
+  .hero--tool .hero__photo::after{background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 80%,transparent),color-mix(in srgb,var(--bg) 68%,transparent) 45%,var(--bg))}
   .uf-about{margin-top:1.2rem;padding-top:1rem;gap:.6rem}
   .uf-about__lead{font-size:.9rem;line-height:1.45}
   .uf-about__note{font-size:.82rem;line-height:1.45}
   .uf-about__links{font-size:.86rem;gap:.3rem 1.1rem}
   .qbar{gap:.3rem 1rem;font-size:.68rem}
-}</style>
+}
+</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 <div class="cursorglow" aria-hidden="true"></div>
 
@@ -75,10 +99,12 @@ const snap = DB.generatedAt;
     <canvas id="stars" aria-hidden="true"></canvas>
     <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
-      {/* Im Kopf steht nur noch, wo man ist. Alles Erklaerende steht unter dem
-          Werkzeug (.uf-about) — der Besucher kommt zum Suchen, nicht zum Lesen.
-          Die Marke „Item-Datenbank" stand hier ein zweites Mal und ist raus. */}
-      <div class="eyebrow"><a href={de ? '/de/patches/sc-4-9-0.html' : '/patches/sc-4-9-0.html'}>Alpha 4.9</a></div>
+      {/* Im Kopf steht nur noch der Titel. „Alpha 4.9" ist nach unten in die
+          Kennzahlen gewandert — es war der einzige echte <a> von hier auf die
+          Patchseite (die Brotkrume rendert SiteNav nur noch als JSON-LD), der
+          Link darf also nicht verschwinden, wohl aber die Zeile im Kopf.
+          „Star Citizen" bleibt: es steht IM h1, der damit „Star Citizen Item
+          Finder" lautet — die Phrase, nach der gesucht wird. */}
       <h1><span class="thin">Star Citizen</span>Item Finder</h1>
     </div>
   </section>
@@ -93,7 +119,7 @@ const snap = DB.generatedAt;
       Phase 01.2 haengt hier spaeter die aufklappbare Bedienungshilfe an. */}
   <aside class="uf-about">
     <p class="uf-about__lead">{de ? 'Jedes Item in Star Citizen: Kaufpreise, Shop-Orte und Loot-Guides — ein universeller Finder.' : 'Every item in Star Citizen: buy prices, shop locations and loot guides — one universal finder.'}</p>
-    <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch <b>4.9</b></span><span>{de ? 'Stand' : 'As of'} <b>{snap}</b></span></div>
+    <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch <a href={de ? '/de/patches/sc-4-9-0.html' : '/patches/sc-4-9-0.html'}><b>4.9</b></a></span><span>{de ? 'Stand' : 'As of'} <b>{snap}</b></span></div>
     <p class="uf-about__note">{de ? 'Preise ' : 'Prices '}&amp;{de ? ' Fundorte sind ' : ' locations are '}<b>{de ? 'Patch-volatil — ingame prüfen' : 'patch-volatile — verify in game'}</b> {de ? `(Preisstand: ${DB.pricesAsOf}).` : `(prices as of ${DB.pricesAsOf}).`}</p>
     <p class="uf-about__links">
       {/* /armor-sets.html steht bewusst NICHT hier: die Sets sind jetzt eine
