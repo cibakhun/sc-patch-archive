@@ -197,11 +197,13 @@ Plans:
   5. `npm run verify`, `npm run audit:site`, `npm run audit:csp` und `npm run test:e2e` laufen grün — ohne neue CSP-Einträge, weil eine Weiterleitung der CSP nicht unterliegt
   6. Die Datenschutzerklärung nennt PayPal und Ko-fi als Empfänger, bevor die Seite live geht
 
-**Plans**: neu zu schneiden (die sieben Stripe-Pläne sind überholt)
+**Plans**: 3 plans (neu geschnitten 02.08.2026; die sieben Stripe-Pläne liegen in `superseded-stripe/`)
 
 Plans:
 
-- [ ] TBD — Neuplanung nach der PayPal-Umstellung
+- [ ] 05-01 (Welle 1) — Tracer: Betrag → PayPal durch alle Schichten. `SUPPORT`-Block mit zwei unabhängigen Schaltern, Gold-Token in beiden Farbmodi, Formular-Komponente, Seitenpaar, Tests
+- [ ] 05-02 (Welle 2) — Die „Instandsetzung"-Identität: Schaltbild als Last-Kennlinie, Befund-Text über den Arbeitsverlust, Ko-fi-Zeile. Ausdrücklich kein Balken, keine Wand, keine erfundenen Zahlen
+- [ ] 05-03 (Welle 3) — Site-weit erreichbar machen: Fuß-Zeile, Menüeintrag, Streifen auf acht Einfügestellen, Datenschutz DE+EN, Abnahme-Halt
 
 Hinweis zur Reihenfolge: die Pläne laufen streng nacheinander. Das ist bewusst gegen
 Parallelität entschieden — der Entwicklungsrechner geht wegen des defekten Netzteils
@@ -226,4 +228,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
-| 5. Spenden-Unterstützung | 0/? | Replanning (PayPal) | - |
+| 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |

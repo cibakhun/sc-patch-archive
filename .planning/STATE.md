@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: planning
-stopped_at: Phase 5 auf PayPal umgestellt — Neuplanung faellig
-last_updated: "2026-08-02T04:37:36.914Z"
+stopped_at: Phase 5 auf PayPal neu geplant — 3 Plaene, ausfuehrbereit
+last_updated: "2026-08-02T11:00:10.543Z"
 last_activity: 2026-07-31
 last_activity_desc: Phase 5 angelegt
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 5
+  total_plans: 8
   completed_plans: 2
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
@@ -113,6 +113,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-02T04:37:36.903Z
-Stopped at: Phase 5 auf PayPal umgestellt — Neuplanung faellig
-Resume file: .planning/phases/05-spenden-unterst-tzung/05-CONTEXT.md
+Last session: 2026-08-02T11:00:10.528Z
+Stopped at: Phase 5 auf PayPal neu geplant — 3 Plaene, ausfuehrbereit
+Resume file: .planning/phases/05-spenden-unterst-tzung/05-01-PLAN.md
