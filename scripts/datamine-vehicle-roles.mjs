@@ -1,6 +1,6 @@
 // datamine-vehicle-roles.mjs — CIGs eigene Fahrzeug-Taxonomie aus dem
 // DataCore (Game2.dcb), node-nativ über scripts/lib/datacore.mjs. Ausgabe:
-// src/data/vehicle-roles.json { generatedAt, source, count, unmatched, vehicles }.
+// src/data/vehicle-roles.json { generatedAt, source, count, unmatched, sources, vehicles }.
 //
 // WARUM: Die Übersichtsseite filtert heute über 8 Grobtypen aus der
 // FleetYards/Wiki-API (typeDe/typeEn). CIG selbst trägt an jedem Schiffs-
@@ -71,6 +71,100 @@ function normKey(raw) {
   return k || null;
 }
 
+// ---- D-04: Beruf (vehicleCareer) — kanonische Beschriftung je Berufsschlüssel ----
+// Berufswerte laut RESEARCH.md/05-CONTEXT.md, direkt aus dem normalisierten
+// @vehicle_focus_*-Rohwert. Gilt für ALLE Fahrzeuge (auch die 4 Altwert-Fälle
+// unten via CAREER_LEGACY) — so bleibt die Kartenbeschriftung unabhängig davon,
+// welcher Rohwert ursprünglich im Berufsfeld stand.
+const CAREER_LABEL = {
+  combat: { de: 'Kampf', en: 'Combat' },
+  transporter: { de: 'Transport', en: 'Transporter' },
+  exploration: { de: 'Erkundung', en: 'Exploration' },
+  competition: { de: 'Wettkampf', en: 'Competition' },
+  resources: { de: 'Industrie', en: 'Industrial' },
+  support: { de: 'Unterstützung', en: 'Support' },
+  multirole: { de: 'Mehrzweck', en: 'Multi-Role' },
+  ground: { de: 'Boden', en: 'Ground' },
+};
+
+// D-04/Plan-02-Interfaces „Altwerte im Berufsfeld — genau 4 Schiffe, namentlich":
+// diese 4 ids tragen im Berufsfeld einen Alt- oder Rollenwert statt eines
+// echten @vehicle_focus_*-Werts (Erhebungsstand 02.08.2026, per id, nicht per
+// Rohwert — der Rohwert allein wäre für andere Fahrzeuge nicht eindeutig).
+const CAREER_LEGACY = {
+  'crus-intrepid': 'transporter', // Rohwert @item_ShipFocus_Starter (Alt-Schema); eigene Rolle starterlightfreight
+  'aegs-javelin': 'combat', // Rohwert @vehicle_class_destroyer (Rollen- statt Berufswert); eigene Rolle destroyer
+  'anvl-paladin': 'combat', // Rohwert @item_ShipFocus_Gunship (Alt-Schema); eigene Rolle gunship (alt)
+  'drak-pitbull': 'combat', // Rohwert @vehicle_class_snubfighter (Rollen- statt Berufswert); eigene Rolle snubfighter
+};
+
+// ---- D-06: Verbundrollen → atomare Bestandteile ----
+// Erhebungsstand 02.08.2026 (05-02-PLAN.md <interfaces>). Die Kartenbeschriftung
+// (roleDe/roleEn) bleibt die WÖRTLICHE CIG-Fassung der Verbundrolle — nur die
+// Familienzugehörigkeit wird zerlegt.
+const ROLE_COMPOUND = {
+  starterlightfreight: ['starter', 'lightfreight'],
+  starterpathfinder: ['starter', 'pathfinder'],
+  starterlightfighter: ['starter', 'lightfighter'],
+  startermining: ['starter', 'lightmining'],
+  startersalvage: ['starter', 'lightsalvage'],
+  heavyfighterbomber: ['heavyfighter', 'bomber'],
+  lightfreight_mediumfighter: ['lightfreight', 'mediumfighter'],
+  mediumfreightgunshio: ['mediumfreight', 'gunship'], // CIG-Tippfehler im Rohschlüssel ("gunshio"), Bestandteile trotzdem gültig
+};
+
+// ---- D-05: atomarer Rollenschlüssel → Familien-Slug ----
+// Die 18 Familien, Erhebungsstand 02.08.2026 (05-02-PLAN.md <interfaces>).
+// `starter` ist kein DataCore-Rohschlüssel — er entsteht ausschließlich aus
+// der Zerlegung der fünf `starter*`-Verbundrollen oben.
+const ROLE_FAMILY = {
+  // jaeger (63)
+  lightfighter: 'jaeger', mediumfighter: 'jaeger', heavyfighter: 'jaeger',
+  stealthfighter: 'jaeger', snubfighter: 'jaeger', interceptor: 'jaeger',
+  // frachttransport (35)
+  lightfreight: 'frachttransport', mediumfreight: 'frachttransport', heavyfreight: 'frachttransport',
+  // erkundung (27)
+  pathfinder: 'erkundung', expedition: 'erkundung',
+  // passagiere (17)
+  passenger: 'passagiere', item_ShipFocus_LuxuryTouring: 'passagiere', item_ShipFocus_Touring: 'passagiere',
+  // rennen (17)
+  racing: 'rennen', item_ShipFocus_Racing: 'rennen',
+  // einsteiger (12)
+  starter: 'einsteiger',
+  // bodenkampf (11)
+  antiair: 'bodenkampf', lighttank: 'bodenkampf', heavytank: 'bodenkampf', antivehicle: 'bodenkampf',
+  // kanonenschiff (9)
+  gunship: 'kanonenschiff', item_ShipFocus_HeavyGunship: 'kanonenschiff', item_ShipFocus_Gunship: 'kanonenschiff',
+  // medizin (7)
+  medical: 'medizin', recovery: 'medizin',
+  // bomber (6)
+  bomber: 'bomber', heavybomber: 'bomber', stealthbomber: 'bomber',
+  // truppentransport (6)
+  dropship: 'truppentransport', heavydropship: 'truppentransport',
+  // bergung (6)
+  lightsalvage: 'bergung', mediumsalvage: 'bergung', heavysalvage: 'bergung',
+  // abriegelung (5)
+  interdiction: 'abriegelung',
+  // bergbau (5)
+  lightmining: 'bergbau', mediummining: 'bergbau',
+  // grosskampfschiff (5)
+  frigate: 'grosskampfschiff', destroyer: 'grosskampfschiff', corvette: 'grosskampfschiff', snubcarrier: 'grosskampfschiff',
+  // daten-wissenschaft (3)
+  mediumdata: 'daten-wissenschaft', lightscience: 'daten-wissenschaft', reporting: 'daten-wissenschaft',
+  // betankung (3)
+  heavyrefuelling: 'betankung', lightrefueling: 'betankung',
+  // mehrzweck (2)
+  generalist: 'mehrzweck', modular: 'mehrzweck',
+};
+
+// ---- Belegpflicht (ROADMAP-Erfolgskriterium 3) ----
+// Kopffeld, das je Achse den Bauteil-/Feldnamen nennt, aus dem der Wert stammt.
+// Erweitert in Task 2 um signature/feat.cargo/feat.ground.
+const SOURCES = {
+  career: 'VehicleComponentParams.vehicleCareer (Localization/<sprache>/global.ini); 4 Altwerte auf ihren kanonischen Berufsschlüssel gemappt (CAREER_LEGACY)',
+  role: 'VehicleComponentParams.vehicleRole (Localization/<sprache>/global.ini); 8 Verbundrollen in atomare Bestandteile zerlegt (ROLE_COMPOUND), Familien aus ROLE_FAMILY (D-05/D-06)',
+};
+
 // ---- Schiff-Records + ID-Join (identisch zu datamine-ship-loadouts.mjs) ----
 const vehiclesCatalog = JSON.parse(readFileSync(resolve(__dirname, '..', 'src', 'data', 'vehicles.json'), 'utf8'));
 const ourIds = vehiclesCatalog.vehicles.map((v) => v.id);
@@ -96,13 +190,24 @@ for (const id of idsToDo) {
   const careerRaw = comp.vehicleCareer;
   const roleRaw = comp.vehicleRole;
   matched.push(id);
+
+  let careerKey = CAREER_LEGACY[id] ?? normKey(careerRaw);
+  if (careerKey && /^procedural_text_null$/i.test(careerKey)) careerKey = null; // defensiv (D-04) — kommt im 223er-Ausschnitt nicht vor
+  const careerLabel = careerKey ? CAREER_LABEL[careerKey] : null;
+
+  const roleKey = normKey(roleRaw);
+  const roleKeys = roleKey ? (ROLE_COMPOUND[roleKey] ?? [roleKey]) : [];
+  const families = [...new Set(roleKeys.map((k) => ROLE_FAMILY[k]).filter(Boolean))];
+
   out[id] = {
-    careerKey: normKey(careerRaw),
-    careerDe: locDe(careerRaw),
-    careerEn: locEn(careerRaw),
-    roleKey: normKey(roleRaw),
+    careerKey,
+    careerDe: careerLabel?.de ?? null,
+    careerEn: careerLabel?.en ?? null,
+    roleKey,
     roleDe: locDe(roleRaw),
     roleEn: locEn(roleRaw),
+    roleKeys,
+    families,
   };
 }
 
@@ -119,7 +224,7 @@ for (const id of matched) {
   careerHisto[ck] = (careerHisto[ck] || 0) + 1;
   roleHisto[rk] = (roleHisto[rk] || 0) + 1;
 }
-console.log(`\n=== BERUF-VERTEILUNG (vehicleCareer, normalisiert) ===`);
+console.log(`\n=== BERUF-VERTEILUNG (vehicleCareer, normalisiert, CAREER_LEGACY angewandt) ===`);
 for (const [k, c] of Object.entries(careerHisto).sort((a, b) => b[1] - a[1]))
   console.log(`  ${String(c).padStart(4)}  ${k}`);
 console.log(`\n=== ROLLEN-VERTEILUNG (vehicleRole, normalisiert, Top 30) ===`);
@@ -127,8 +232,29 @@ for (const [k, c] of Object.entries(roleHisto).sort((a, b) => b[1] - a[1]).slice
   console.log(`  ${String(c).padStart(4)}  ${k}`);
 
 const rolesWithoutDe = [...new Set(matched.filter((id) => out[id].roleKey && !out[id].roleDe).map((id) => out[id].roleKey))].sort();
-console.log(`\n=== ROLLENSCHLÜSSEL OHNE DEUTSCHES LABEL (${rolesWithoutDe.length}, Lückenfüllung ist Plan 02) ===`);
+console.log(`\n=== ROLLENSCHLÜSSEL OHNE DEUTSCHES LABEL (${rolesWithoutDe.length}, Lückenfüllung über ROLE_DE_GAPFILL in vehicleText.ts, D-13) ===`);
 for (const k of rolesWithoutDe) console.log(`  ${k}`);
+
+// D-05: Stand je der 18 Familien.
+const FAMILY_ORDER = ['jaeger', 'frachttransport', 'erkundung', 'passagiere', 'rennen', 'einsteiger', 'bodenkampf', 'kanonenschiff', 'medizin', 'bomber', 'truppentransport', 'bergung', 'abriegelung', 'bergbau', 'grosskampfschiff', 'daten-wissenschaft', 'betankung', 'mehrzweck'];
+const familyHisto = {};
+for (const id of matched) for (const f of out[id].families) familyHisto[f] = (familyHisto[f] || 0) + 1;
+console.log(`\n=== FAMILIENSTAND (18 Familien, D-05) ===`);
+for (const f of FAMILY_ORDER) console.log(`  ${String(familyHisto[f] || 0).padStart(4)}  ${f}`);
+const unknownFamilies = Object.keys(familyHisto).filter((f) => !FAMILY_ORDER.includes(f));
+if (unknownFamilies.length) console.log(`  UNERWARTETE FAMILIEN: ${unknownFamilies.join(', ')}`);
+
+// Atomare Rollenschlüssel ohne ROLE_FAMILY-Eintrag — MUSS leer sein, sonst
+// fiele ein Schiff komplett aus allen Familien.
+const atomicRolesUsed = new Set();
+for (const id of matched) for (const k of out[id].roleKeys) atomicRolesUsed.add(k);
+const rolesWithoutFamily = [...atomicRolesUsed].filter((k) => !ROLE_FAMILY[k]).sort();
+console.log(`\n=== ATOMARE ROLLENSCHLÜSSEL OHNE FAMILIE (muss leer sein) ===`);
+if (rolesWithoutFamily.length) {
+  for (const k of rolesWithoutFamily) console.log(`  ${k}`);
+} else {
+  console.log(`  (keine — jeder atomare Rollenschlüssel trägt eine Familie)`);
+}
 
 if (!AUDIT && !ONLY) {
   writeFileSync(OUT, JSON.stringify({
@@ -136,6 +262,7 @@ if (!AUDIT && !ONLY) {
     source: 'DataCore Game2.dcb / VehicleComponentParams (vehicleCareer, vehicleRole)',
     count: matched.length,
     unmatched,
+    sources: SOURCES,
     vehicles: out,
   }, null, 0));
   console.log(`\n-> ${OUT} geschrieben (${matched.length} Fahrzeuge, ${unmatched.length} unmatched)`);

@@ -12,9 +12,10 @@
 import SiteNav from '../SiteNav.astro';
 import { getCollection } from 'astro:content';
 import vehiclesSnapshot from '../../data/vehicles.json';
+import vehicleRoles from '../../data/vehicle-roles.json';
 import { pickThumb } from '../../lib/shipRenders';
 import { priceInfo, pricesFetchedAt } from '../../lib/shipExtras';
-import { vType, vSize, vStatus, vRoleCig } from '../../i18n/vehicleText';
+import { vType, vSize, vStatus, vRoleCig, vCareer, vRoleFamilies } from '../../i18n/vehicleText';
 import { localeFromPath } from '../../i18n/ui';
 
 const lang = localeFromPath(Astro.url.pathname);
@@ -29,6 +30,33 @@ const types = [...new Set(vehicles.map((v) => vType(v.data, lang)).filter(Boolea
 const roles = ([...new Set(vehicles.map((v) => vRoleCig(v.id, v.data, lang)).filter(Boolean))] as string[]).sort(
   (a, b) => a.localeCompare(b, localeTag)
 );
+const roleSnapshot = (vehicleRoles as { vehicles: Record<string, { careerKey: string | null }> }).vehicles;
+
+// D-04: Beruf-Filter — distinkte Berufsschlüssel, Beschriftung aus vCareer(id, lang).
+const careerLabels = new Map<string, string>();
+for (const v of vehicles) {
+  const key = roleSnapshot[v.id]?.careerKey;
+  if (!key) continue;
+  const label = vCareer(v.id, lang);
+  if (label) careerLabels.set(key, label);
+}
+const careers = [...careerLabels.entries()]
+  .map(([key, label]) => ({ key, label }))
+  .sort((a, b) => a.label.localeCompare(b.label, localeTag));
+
+// D-05: Rollenfamilien-Filter — Stand je Familie, sortiert absteigend (Claude's Discretion aus 05-CONTEXT.md).
+const familyStand = new Map<string, { label: string; count: number }>();
+for (const v of vehicles) {
+  for (const fam of vRoleFamilies(v.id, lang)) {
+    const cur = familyStand.get(fam.slug);
+    if (cur) cur.count++;
+    else familyStand.set(fam.slug, { label: fam.label, count: 1 });
+  }
+}
+const roleFamilies = [...familyStand.entries()]
+  .map(([slug, { label, count }]) => ({ slug, label, count }))
+  .sort((a, b) => b.count - a.count);
+
 const flightReady = vehicles.filter((v) => v.data.statusEn === 'flight-ready').length;
 const inArchive = vehicles.filter((v) => v.data.patches.length > 0).length;
 
@@ -38,6 +66,10 @@ const cards = vehicles.map((v) => ({
   id: v.id,
   thumb: pickThumb(v.data),
   buy: priceInfo(v.id)?.buy[0]?.price ?? null,
+  career: roleSnapshot[v.id]?.careerKey ?? '',
+  roleFam: vRoleFamilies(v.id, lang)
+    .map((f) => f.slug)
+    .join(' '),
 }));
 const buyable = cards.filter((c) => c.buy != null).length;
 
@@ -251,6 +283,14 @@ a{color:inherit;text-decoration:none}
       <option value="">{de ? 'Alle Rollen' : 'All roles'}</option>
       {roles.map((r) => <option value={r}>{r}</option>)}
     </select>
+    <select id="sf-career" aria-label={de ? 'Beruf' : 'Career'}>
+      <option value="">{de ? 'Alle Berufe' : 'All careers'}</option>
+      {careers.map((c) => <option value={c.key}>{c.label}</option>)}
+    </select>
+    <select id="sf-rolefam" aria-label={de ? 'Rollenfamilie' : 'Role family'}>
+      <option value="">{de ? 'Alle Rollenfamilien' : 'All role families'}</option>
+      {roleFamilies.map((f) => <option value={f.slug}>{f.label} ({f.count})</option>)}
+    </select>
     <select id="sf-status" aria-label={de ? 'Status' : 'Status'}>
       <option value="">{de ? 'Jeder Status' : 'Any status'}</option>
       <option value="flight-ready">{de ? 'Flugbereit' : 'Flight Ready'}</option>
@@ -272,13 +312,15 @@ a{color:inherit;text-decoration:none}
   </div>
 
   <div class="sdb__fleet" id="sf-fleet">
-    {cards.map(({ d, id, thumb, buy }) => (
+    {cards.map(({ d, id, thumb, buy, career, roleFam }) => (
       <article
         class="fcard"
         data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
         data-maker={d.manufacturer ?? ''}
         data-type={vType(d, lang) ?? ''}
         data-role={vRoleCig(id, d, lang) ?? ''}
+        data-career={career}
+        data-rolefam={` ${roleFam} `}
         data-status={d.statusEn ?? ''}
         data-archive={d.patches.length ? '1' : ''}
         data-href={de ? `/de/schiffe/${id}.html` : `/schiffe/${id}.html`}
@@ -352,6 +394,8 @@ a{color:inherit;text-decoration:none}
   var selMaker = document.getElementById('sf-maker');
   var selType = document.getElementById('sf-type');
   var selRole = document.getElementById('sf-role');
+  var selCareer = document.getElementById('sf-career');
+  var selRolefam = document.getElementById('sf-rolefam');
   var selStatus = document.getElementById('sf-status');
   var selArchive = document.getElementById('sf-archive');
   var selSort = document.getElementById('sf-sort');
@@ -371,6 +415,7 @@ a{color:inherit;text-decoration:none}
   function apply() {
     var nq = norm(q.value).trim();
     var m = selMaker.value, t = selType.value, ro = selRole.value, st = selStatus.value, ar = selArchive.value;
+    var ca = selCareer.value, fa = selRolefam.value;
     var n = 0;
     cards.forEach(function (c) {
       var ok =
@@ -378,6 +423,8 @@ a{color:inherit;text-decoration:none}
         (!m || c.getAttribute('data-maker') === m) &&
         (!t || c.getAttribute('data-type') === t) &&
         (!ro || c.getAttribute('data-role') === ro) &&
+        (!ca || c.getAttribute('data-career') === ca) &&
+        (!fa || c.getAttribute('data-rolefam').indexOf(' ' + fa + ' ') >= 0) &&
         (!st || c.getAttribute('data-status') === st) &&
         (!ar || c.getAttribute('data-archive') === ar);
       c.style.display = ok ? '' : 'none';
@@ -399,7 +446,7 @@ a{color:inherit;text-decoration:none}
     ordered.forEach(function (c) { fleet.insertBefore(c, empty); });
   }
 
-  [q, selMaker, selType, selRole, selStatus, selArchive].forEach(function (el) {
+  [q, selMaker, selType, selRole, selCareer, selRolefam, selStatus, selArchive].forEach(function (el) {
     el.addEventListener('input', apply);
     el.addEventListener('change', apply);
   });

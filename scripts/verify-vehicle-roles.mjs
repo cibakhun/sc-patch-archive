@@ -64,6 +64,46 @@ need(!hasPath, `vehicle-roles.json enthält einen lokalen Dateipfad oder eine La
 need(typeof roles.source === 'string' && roles.source.length > 0, `source-Feld fehlt oder ist leer`);
 console.log(hasPath ? 'GEFUNDEN' : 'keine Pfadangaben gefunden');
 
+console.log(`\n=== F) 18 Rollenfamilien tragen genau den erhobenen Stand (D-05, Erhebung 02.08.2026) ===`);
+// Untergrenze/Sollwert je Familie. Bei Abweichung: hier nachziehen und im
+// SUMMARY dokumentieren (05-02-PLAN.md "Wenn eine nachgerechnete Zahl von der
+// Tabelle abweicht") — eine Familie darf dabei NIE stillschweigend wegfallen.
+const FAMILY_WANT = {
+  jaeger: 63, frachttransport: 35, erkundung: 27, passagiere: 17, rennen: 17,
+  einsteiger: 12, bodenkampf: 11, kanonenschiff: 9, medizin: 7, bomber: 6,
+  truppentransport: 6, bergung: 6, abriegelung: 5, bergbau: 5, grosskampfschiff: 5,
+  'daten-wissenschaft': 3, betankung: 3, mehrzweck: 2,
+};
+const familyCount = {};
+for (const v of Object.values(roles.vehicles)) for (const f of v.families || []) familyCount[f] = (familyCount[f] || 0) + 1;
+for (const [f, want] of Object.entries(FAMILY_WANT)) {
+  const got = familyCount[f] || 0;
+  console.log(`  ${String(got).padStart(4)}  ${f}${got !== want ? ` (Soll ${want})` : ''}`);
+  need(got === want, `Familie ${f}: ${got} statt ${want}`);
+}
+const unknownFamilies = Object.keys(familyCount).filter((f) => !(f in FAMILY_WANT));
+need(unknownFamilies.length === 0, `Familien-Slugs außerhalb der Tabelle: ${unknownFamilies.join(', ')}`);
+
+console.log(`\n=== G) Jedes Fahrzeug traegt mindestens eine Familie und einen Beruf ===`);
+const withoutFamily = roleIds.filter((id) => !(roles.vehicles[id].families || []).length);
+const withoutCareer = roleIds.filter((id) => !roles.vehicles[id].careerKey);
+console.log(`ohne Familie: ${withoutFamily.length}, ohne Beruf: ${withoutCareer.length}`);
+need(withoutFamily.length === 0, `${withoutFamily.length} Fahrzeuge ohne Familie: ${withoutFamily.join(', ')}`);
+need(withoutCareer.length === 0, `${withoutCareer.length} Fahrzeuge ohne Beruf: ${withoutCareer.join(', ')}`);
+
+console.log(`\n=== H) Verbundrollen (D-06) tauchen mit mindestens zwei Familien auf ===`);
+const ROLE_COMPOUND_KEYS = [
+  'starterlightfreight', 'starterpathfinder', 'starterlightfighter', 'startermining',
+  'startersalvage', 'heavyfighterbomber', 'lightfreight_mediumfighter', 'mediumfreightgunshio',
+];
+for (const rk of ROLE_COMPOUND_KEYS) {
+  const bearers = roleIds.filter((id) => roles.vehicles[id].roleKey === rk);
+  const ok = bearers.length > 0 && bearers.every((id) => (roles.vehicles[id].families || []).length >= 2);
+  console.log(`  ${rk}: ${bearers.length} Fahrzeug(e)${ok ? '' : ' — FEHLT/unzureichend zerlegt'}`);
+  need(bearers.length > 0, `Verbundrolle ${rk} kommt in der Momentaufnahme nicht vor`);
+  need(ok, `Verbundrolle ${rk} ist bei mindestens einem Fahrzeug nicht in >=2 Familien zerlegt`);
+}
+
 console.log(`\n--- Zusammenfassung: ${roleIds.length}/${veh.vehicles.length} gejointe Fahrzeuge geprüft, ${roles.unmatched.length} benannte Fehlstellen, ${fail.length} Fehlschläge ---`);
 if (fail.length) {
   console.log(`\nFEHLGESCHLAGEN:`);

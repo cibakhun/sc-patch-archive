@@ -11,9 +11,15 @@ import type { Locale } from './ui';
 type VehicleData = CollectionEntry<'vehicles'>['data'];
 
 const EN_DESC = (vehiclesEn as { descriptions: Record<string, string> }).descriptions;
-const ROLES = (vehicleRoles as {
-  vehicles: Record<string, { roleDe: string | null; roleEn: string | null }>;
-}).vehicles;
+type RoleEntry = {
+  careerDe: string | null;
+  careerEn: string | null;
+  roleKey: string | null;
+  roleDe: string | null;
+  roleEn: string | null;
+  families: string[];
+};
+const ROLES = (vehicleRoles as { vehicles: Record<string, RoleEntry> }).vehicles;
 
 // sizeDe (6 Werte) -> EN
 const SIZE_EN: Record<string, string> = {
@@ -120,6 +126,53 @@ const TURRET_EN: Record<string, string> = {
   'Punktverteidigung (PDC)': 'Point defense (PDC)',
 };
 
+// Rollenschlüssel ohne deutsche CIG-Fassung (D-13, ROLE-07). 17 Einträge,
+// Erhebungsstand 02.08.2026 (05-02-PLAN.md <interfaces>). Wortlaut folgt CIGs
+// eigener Wortwahl, wie sie in aufgelösten Labels sichtbar ist. Nur DE — die
+// englische Fassung liefert CIG in jedem der 17 Fälle bereits selbst.
+const ROLE_DE_GAPFILL: Record<string, string> = {
+  antiair: 'Flugabwehr',
+  item_ShipFocus_HeavyGunship: 'Schweres Kanonenschiff',
+  lighttank: 'Leichter Panzer',
+  heavyfighterbomber: 'Schwerer Jäger / Bomber',
+  starterlightfighter: 'Starter / Leichter Jäger',
+  generalist: 'Generalist',
+  lightfreight_mediumfighter: 'Leichter Frachter / Mittlerer Jäger',
+  antivehicle: 'Panzerabwehr',
+  startermining: 'Starter / Leichtes Bergbauschiff',
+  heavydropship: 'Schweres Truppenschiff',
+  lightrefueling: 'Leichtes Tankschiff',
+  mediumsalvage: 'Mittleres Bergungsschiff',
+  heavytank: 'Schwerer Panzer',
+  modular: 'Modular',
+  startersalvage: 'Starter / Leichtes Bergungsschiff',
+  recovery: 'Bergungs- und Rettungsschiff',
+  snubcarrier: 'Annexträger',
+};
+
+// Familien-Slug -> Beschriftung (D-05). 18 Einträge, Erhebungsstand
+// 02.08.2026 (05-02-PLAN.md <interfaces>).
+const FAMILY_LABELS: Record<string, { de: string; en: string }> = {
+  jaeger: { de: 'Jäger', en: 'Fighters' },
+  frachttransport: { de: 'Frachttransport', en: 'Cargo Hauling' },
+  erkundung: { de: 'Erkundung', en: 'Exploration' },
+  passagiere: { de: 'Passagiere', en: 'Passenger' },
+  rennen: { de: 'Rennen', en: 'Racing' },
+  einsteiger: { de: 'Einsteiger', en: 'Starter' },
+  bodenkampf: { de: 'Bodenkampf', en: 'Ground Combat' },
+  kanonenschiff: { de: 'Kanonenschiff', en: 'Gunship' },
+  medizin: { de: 'Medizin', en: 'Medical' },
+  bomber: { de: 'Bomber', en: 'Bomber' },
+  truppentransport: { de: 'Truppentransport', en: 'Troop Transport' },
+  bergung: { de: 'Bergung', en: 'Salvage' },
+  abriegelung: { de: 'Abriegelung', en: 'Interdiction' },
+  bergbau: { de: 'Bergbau', en: 'Mining' },
+  grosskampfschiff: { de: 'Großkampfschiff', en: 'Capital' },
+  'daten-wissenschaft': { de: 'Daten & Wissenschaft', en: 'Data & Science' },
+  betankung: { de: 'Betankung', en: 'Refueling' },
+  mehrzweck: { de: 'Mehrzweck', en: 'Multi-Role' },
+};
+
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 /** Typ-Anzeige (z. B. Holo-Chip / Datenblatt) */
@@ -170,11 +223,46 @@ export function vRole(d: VehicleData, lang: Locale): string | null {
  * Klassifikation ist einsprachig sauber, ohne Tippfehler/Dubletten. Fehlt das
  * Fahrzeug in der Momentaufnahme (die 4 ATLS-Einträge, D-03) oder ist das
  * Label in dieser Sprache leer, fällt die Funktion auf `vRole` zurück.
+ *
+ * Deutsch fehlt CIG-seitig für 17 Rollenschlüssel (D-13, ROLE-07) — dafür
+ * greift ZUERST `ROLE_DE_GAPFILL[roleKey]`, erst danach der `vRole`-Rückfall
+ * (der über `fociDe` läuft). Ohne diese Reihenfolge rutschte eine der 28
+ * betroffenen Schiffskarten englisch auf die deutsche Seite.
  */
 export function vRoleCig(id: string, d: VehicleData, lang: Locale): string | null {
   const r = ROLES[id];
-  const label = r ? (lang === 'de' ? r.roleDe : r.roleEn) : null;
-  return label || vRole(d, lang);
+  if (r) {
+    if (lang === 'de') {
+      if (r.roleDe) return r.roleDe;
+      if (r.roleKey && ROLE_DE_GAPFILL[r.roleKey]) return ROLE_DE_GAPFILL[r.roleKey];
+    } else if (r.roleEn) {
+      return r.roleEn;
+    }
+  }
+  return vRole(d, lang);
+}
+/**
+ * Beruf-Anzeige (D-04, `vehicleCareer`). Quelle ist dieselbe Momentaufnahme
+ * wie `vRoleCig`; keine eigene Übersetzungstabelle nötig, `careerDe`/`careerEn`
+ * stehen dort bereits kanonisch (`CAREER_LABEL` im Datamine-Skript).
+ */
+export function vCareer(id: string, lang: Locale): string | null {
+  const r = ROLES[id];
+  if (!r) return null;
+  return (lang === 'de' ? r.careerDe : r.careerEn) ?? null;
+}
+/**
+ * Rollenfamilien (D-05/D-06) — ein Fahrzeug kann mehrere Familien tragen
+ * (Verbundrollen, z. B. Starter-Frachter = `einsteiger` + `frachttransport`).
+ * Gibt `{ slug, label }` je Familie zurück, `label` aus `FAMILY_LABELS`.
+ */
+export function vRoleFamilies(id: string, lang: Locale): { slug: string; label: string }[] {
+  const r = ROLES[id];
+  if (!r || !r.families?.length) return [];
+  return r.families.map((slug) => ({
+    slug,
+    label: (lang === 'de' ? FAMILY_LABELS[slug]?.de : FAMILY_LABELS[slug]?.en) ?? slug,
+  }));
 }
 /** Freitext-Beschreibung (EN mit DE-Fallback, solange unübersetzt) */
 export function vDesc(d: VehicleData, lang: Locale): string | null {
