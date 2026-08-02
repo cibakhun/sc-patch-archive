@@ -163,7 +163,11 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 
 /* --- Auftragskopf --------------------------------------------------------- */
 .sup__head{border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--bg-2),var(--bg))}
-.sup__headtop{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:22px clamp(16px,4vw,40px) 12px;flex-wrap:wrap}
+/* Die Kopfleiste der Seite ist `position:fixed` und 62 px hoch. Ohne diesen
+   Abstand liegt der Titel 32 px DAHINTER — im Browser auf staging gemessen,
+   "Instandsetzung" war zur Haelfte verdeckt. Die Hero-Seiten der Site loesen
+   dasselbe mit padding-top: 6.2rem bzw. 4.4rem unter 700 px. */
+.sup__headtop{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:clamp(4.6rem,7vw,6rem) clamp(16px,4vw,40px) 12px;flex-wrap:wrap}
 .sup__ttl{font-family:var(--font-display,sans-serif);font-weight:700;font-size:clamp(1.5rem,4.6vw,2.3rem);line-height:1.05;letter-spacing:.01em;color:var(--text);margin:0}
 .sup__ttl em{font-style:normal;color:var(--accent)}
 /* minmax(0,1fr) statt 1fr: `1fr` ist `minmax(auto,1fr)`, die Zelle kann also
@@ -181,7 +185,9 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 
 /* --- Koerper: Zeichnung | Auftrag ----------------------------------------- */
 .sup__body{display:grid;grid-template-columns:minmax(300px,400px) 1fr;align-items:start}
-.sup__drawing{position:relative;padding:32px clamp(16px,3vw,32px) 40px;border-right:1px solid var(--line-soft);background:linear-gradient(90deg,var(--line-soft) 0 1px,transparent 1px 100%) 0 0/32px 32px,linear-gradient(0deg,var(--line-soft) 0 1px,transparent 1px 100%) 0 0/32px 32px,var(--bg)}
+/* Unten 22 statt 40 px: gemessen blieben 105 px Totraum unter der Zeichnung,
+   das Rasterpapier lief sichtbar ins Leere. */
+.sup__drawing{position:relative;padding:32px clamp(16px,3vw,32px) 22px;border-right:1px solid var(--line-soft);background:linear-gradient(90deg,var(--line-soft) 0 1px,transparent 1px 100%) 0 0/32px 32px,linear-gradient(0deg,var(--line-soft) 0 1px,transparent 1px 100%) 0 0/32px 32px,var(--bg)}
 /* Eckklammern wie auf einem Zeichnungsblatt */
 .sup__drawing::before{content:"";position:absolute;inset:14px;pointer-events:none;background:linear-gradient(var(--line) 0 0) 0 0/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 0 0/1px 18px no-repeat,linear-gradient(var(--line) 0 0) 100% 0/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 100% 0/1px 18px no-repeat,linear-gradient(var(--line) 0 0) 0 100%/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 0 100%/1px 18px no-repeat,linear-gradient(var(--line) 0 0) 100% 100%/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 100% 100%/1px 18px no-repeat}
 .sup__drawcap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:10px;border-top:1px solid var(--line-soft)}
@@ -212,10 +218,18 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 .sup__gauge{margin:24px 0 8px}
 .sup__ghead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
 .sup__gread{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:1.02rem;letter-spacing:.06em;color:var(--accent);font-variant-numeric:tabular-nums}
-.sup__gtrack{position:relative;height:26px;border:1px solid var(--line);background:var(--veil,var(--veil-hi));overflow:hidden}
-.sup__gfill{position:absolute;inset:0 auto 0 0;background:var(--accent);transition:width .6s cubic-bezier(.16,.84,.34,1)}
-.sup__gticks{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--muted) 45%,transparent) 0 1px,transparent 1px calc(100% / 12))}
-.sup__gticks::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--muted) 80%,transparent) 0 1px,transparent 1px calc(100% / 4))}
+/* Die Anzeige ist ein KOSTENRAHMEN mit Marke, kein Fortschrittsbalken. Der
+   Unterschied ist nicht kosmetisch: bei den vorgewaehlten 5 von 120 EUR sind
+   4 % gefuellt — als Fortschritt gelesen sieht das aus wie "fast nichts
+   erreicht", und im Browser sah es schlicht nach einem leeren, kaputten Balken
+   aus (auf staging angesehen). Als Skala mit Marke gelesen stimmt dasselbe
+   Bild: "dein Betrag steht hier". Deshalb gedaempfte Flaeche plus eine
+   deutliche Kante, die auch bei 3 EUR sichtbar bleibt.
+   Teilstriche nur an den vier beschrifteten Marken — zwoelf Striche liessen
+   den Balken segmentiert und defekt wirken. */
+.sup__gtrack{position:relative;height:26px;border:1px solid var(--line);background:var(--surface-2);overflow:hidden}
+.sup__gfill{position:absolute;inset:0 auto 0 0;min-width:3px;background:color-mix(in srgb,var(--accent) 26%,transparent);border-right:3px solid var(--accent);transition:width .6s cubic-bezier(.16,.84,.34,1)}
+.sup__gticks{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--muted) 34%,transparent) 0 1px,transparent 1px calc(100% / 4))}
 /* Teilungsbeschriftung ueber flex + space-between statt Null-Spalte mit
    transform: ein verschobenes Element verkleinert seinen Scroll-Kasten NICHT
    und riss die Skizze bei 360 px um 23 px auf. */
