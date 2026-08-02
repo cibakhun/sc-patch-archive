@@ -19,11 +19,6 @@ import { versioned } from '../../lib/assetVersion';
 const anchorCount = buildAnchorRecords().length;
 const bands = Object.values(AH_BAND_INFO);
 const bandCount = bands.length;
-
-// Ausdehnung des Rings, fuer den Fliesstext am Seitenfuss.
-const rMin = Math.min(...bands.map((b) => b.innerRadiusKm));
-const rMax = Math.max(...bands.map((b) => b.outerRadiusKm));
-const gm = (km: number) => (km / 1_000_000).toFixed(2);
 ---
 <Layout
   title={'Precision Jump — Aaron-Halo-Routenrechner · Star Citizen | VerseBase'}
@@ -59,14 +54,7 @@ const gm = (km: number) => (km / 1_000_000).toFixed(2);
   margin:.4rem 0 0;padding-bottom:.9rem;border-bottom:1px solid var(--line);max-width:74ch}
 
 /* Erklaerender Text steht am FUSS, nicht vor dem Werkzeug. */
-.alm__foot{max-width:var(--maxw);margin:2.6rem auto 0;padding:1.4rem clamp(1.25rem,5vw,3rem) 0;
-  border-top:1px solid var(--line-soft)}
-.alm__foot p{font-size:.94rem;line-height:1.66;color:var(--muted);margin:0 0 .9rem;max-width:68ch}
-.alm__foot p b{color:var(--text);font-weight:600}
-
-.alm__note{margin-top:1.3rem;padding-top:1rem;border-top:1px solid var(--line-soft);
-  font-size:.88rem;line-height:1.58;color:var(--muted);max-width:68ch}
-.alm__note b{color:var(--text);font-weight:600}</style>
+</style>
 <a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="cursorglow" aria-hidden="true"></div>
 
@@ -81,16 +69,6 @@ const gm = (km: number) => (km / 1_000_000).toFixed(2);
 
   <PrecisionJumpApp lang="de" />
 
-  <aside class="alm__foot">
-    <p>Der Quantenflug durchquert den Ring in Sekunden. Sein Abbau ist deshalb
-      weniger eine Frage des Hinfliegens als des Anhaltens — man verlässt den
-      Antrieb auf einer Linie, die man nicht sieht. Je zwei der {anchorCount} Anker
-      spannen diese Linie auf; {bandCount} Dichtebänder liegen zwischen
-      {gm(rMin)} und {gm(rMax)} Gm vom Stern entfernt.</p>
-    <p class="alm__note">Verfahren und Ursprungsdaten der Route stammen von
-      <b>Jordessey</b>; ein Ankerwert (MIC-L5) wurde bei der Prüfung gegen das Spiel
-      korrigiert. Vermessung der Dichtebänder von <b>cstone.space</b>.</p>
-  </aside>
 </main>
 
 <Attribution sources={["Jordessey (Werkzeug & Routendaten)", "cstone.space (Halo-Band-Vermessung)"]} credit="VerseBase · ein Star-Citizen-Fan-Projekt" />

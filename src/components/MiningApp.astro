@@ -3,10 +3,14 @@
 // Sprachneutrales Gerüst; UI-Chrome via `lang`, Game-Daten bleiben englisch.
 import DB from '../../assets/mining-db.json';
 import { blueprintsPerMineral, craftingPath, materialByMineral } from '../lib/miningLinks';
-import { href } from '../i18n/ui';
+import { href, useTranslations } from '../i18n/ui';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
+
+// Nur das aria-Praefix des Zurueck-Pfeils am Modal ("Zurueck zu"/"Back to").
+// Den Namen der Herkunft haengt assets/back-link.js zur Laufzeit an.
+const tBack = useTranslations(lang);
 
 // -- i18n (SSR-Chrome) --
 const S = {
@@ -193,6 +197,15 @@ const total = DB.counts.minerals;
   <!-- Detail modal -->
   <div class="mdb-modal" id="mdb-modal" hidden>
     <div class="mdb-modal__box" role="dialog" aria-modal="true">
+      {/* Zurueck-Pfeil oben LINKS, gegenueber dem Schliessen-X. Erscheint nur,
+          wenn man von einer anderen Seite hereingesprungen ist (Deep-Link
+          ?mineral= aus dem Crafting) — assets/back-link.js entscheidet das am
+          Merkmal data-back-origin der Leiste. Sonst waere er ein zweites X.
+          Beschriftung und Ziel kommen aus dem Leisten-Link, es gibt also nur
+          EINE Wahrheit ueber die Herkunft. */}
+      <button class="mdb-modal__back" data-modal-back data-back-aria={tBack("nav.back.aria")} hidden>
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
       <button class="mdb-modal__x" data-close aria-label={S.close}>✕</button>
       <div class="mdb-modal__body" id="mdb-modal-body"></div>
     </div>
@@ -220,7 +233,9 @@ const total = DB.counts.minerals;
   .mdb{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
   .mdb *{box-sizing:border-box}
   /* klebt UNTER der fixen Site-Nav (~68px), sonst verschwindet sie dahinter */
-  .mdb-bar{position:sticky;top:68px;z-index:20;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;padding:.7rem 0;background:linear-gradient(var(--bg,var(--veil-2)) 82%,color-mix(in srgb,var(--bg,var(--veil-2)) 88%,transparent));backdrop-filter:blur(6px)}
+  /* Hoehe kommt aus SiteNav (--nav-h) — mit Zurueck-Zeile ist die Leiste
+     hoeher, ein fester Wert liesse die Filterleiste dahinter verschwinden. */
+  .mdb-bar{position:sticky;top:var(--nav-h,68px);z-index:20;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;padding:.7rem 0;background:linear-gradient(var(--bg,var(--veil-2)) 82%,color-mix(in srgb,var(--bg,var(--veil-2)) 88%,transparent));backdrop-filter:blur(6px)}
   .mdb-search-wrap{flex:1 1 240px;min-width:0}
   .mdb-search{width:100%;background:var(--surface,#1e2427);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.6rem .9rem;border-radius:6px;font-size:1rem;font-family:var(--font-ui,inherit)}
   .mdb-search:focus{outline:2px solid var(--accent,#2FBFA4);outline-offset:1px}
@@ -277,10 +292,34 @@ const total = DB.counts.minerals;
   .mdb-empty{text-align:center;color:var(--muted,#8fa3a0);padding:2rem;font-size:.95rem}
   /* Modal */
   /* App-Overlays über der fixen Site-Nav (z 9100), unter der Suche (9600) */
-  .mdb-modal{position:fixed;inset:0;z-index:9300;background:var(--veil-2);display:flex;align-items:flex-start;justify-content:center;padding:clamp(.5rem,4vw,3rem) 1rem;overflow:auto}
+  /* 9650 statt 9300: die feste SiteNav liegt auf 9600 und ist mit der
+     Zurueck-Zeile 107 px hoch — sie deckte die obere Kante des Fensters samt
+     Schliessen-X und Zurueck-Pfeil zu. Ein Dialog mit aria-modal="true" gehoert
+     ohnehin ueber die Seiten-Chrome; das Item-Finder-Modal macht es mit 9650
+     seit jeher richtig, Mining und Crafting waren die Ausreisser. */
+  .mdb-modal{position:fixed;inset:0;z-index:9650;background:var(--veil-2);display:flex;align-items:flex-start;justify-content:center;padding:clamp(.5rem,4vw,3rem) 1rem;overflow:auto}
   .mdb-modal[hidden]{display:none}
   .mdb-modal__box{position:relative;max-width:660px;width:100%;background:var(--bg-2,var(--veil-2));border:1px solid var(--accent,#2FBFA4);border-radius:8px;padding:clamp(1.2rem,4vw,2rem)}
   .mdb-modal__x{position:absolute;top:.6rem;right:.6rem;background:var(--veil);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:1rem}
+  /* Zurueck: RUND, im Akzent der Seite — die runde Form sagt „woanders hin",
+     das eckige, farblose X sagt „hier zu". Zwei Bedeutungen, zwei Formen,
+     zwei Gewichte.
+     Der Knopf steht NEBEN der Karte, nicht darin: im Fenster draengte er
+     sich an die Ueberschrift. Moeglich ist das, weil .mdb-modal__box kein
+     overflow setzt — der Item-Finder-Container tut das und braucht deshalb
+     einen anderen Weg. Sichtbar nur, wenn back-link.js das hidden entfernt. */
+  .mdb-modal__back{position:absolute;top:0;left:-3.5rem;display:inline-flex;align-items:center;justify-content:center;
+    background:color-mix(in srgb,var(--accent,#2FBFA4) 14%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent,#2FBFA4) 55%,transparent);
+    color:var(--accent,#2FBFA4);
+    width:40px;height:40px;border-radius:50%;cursor:pointer;transition:color .15s,border-color .15s,background-color .15s}
+  .mdb-modal__back[hidden]{display:none}
+  .mdb-modal__back:hover,.mdb-modal__back:focus-visible{
+    background:color-mix(in srgb,var(--accent,#2FBFA4) 28%,transparent);border-color:var(--accent,#2FBFA4)}
+  /* Zu schmal fuer einen Platz daneben -> zurueck ins Fenster, oben links. */
+  @media (max-width:860px){
+    .mdb-modal__back{top:.6rem;left:.6rem;width:32px;height:32px}
+  }
   .mm__kind{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.62rem;color:var(--accent,#2FBFA4)}
   .mm__kind.hand{color:var(--accent-2,#E0A526)}
   .mm__name{font-family:var(--font-display,inherit);font-weight:800;font-size:clamp(1.4rem,4vw,2rem);color:var(--text);margin:.2rem 0 .5rem;line-height:1.1}
@@ -333,7 +372,7 @@ const total = DB.counts.minerals;
   .mm__cbox b{font-size:1.2rem;color:var(--accent-2,#E0A526);font-variant-numeric:tabular-nums}
   .mm__cbox.refined b{color:var(--accent,#2FBFA4)}
   /* Reverse-lookup drawer */
-  .mdb-drawer{position:fixed;top:0;right:0;z-index:9350;width:min(420px,100%);height:100%;background:var(--bg-2,var(--veil-2));border-left:1px solid var(--accent-2,#E0A526);transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;overflow:auto}
+  .mdb-drawer{position:fixed;top:0;right:0;z-index:9660;width:min(420px,100%);height:100%;background:var(--bg-2,var(--veil-2));border-left:1px solid var(--accent-2,#E0A526);transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;overflow:auto}
   .mdb-drawer.is-open{transform:translateX(0)}
   .mdb-drawer__hd{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--bg-2,var(--veil-2));border-bottom:1px solid var(--line,rgba(47,191,164,.22));font-family:var(--font-display,inherit);font-weight:800;font-size:1.05rem;color:var(--text);z-index:2}
   .mdb-drawer__body{padding:1rem}

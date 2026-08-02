@@ -15,6 +15,7 @@ import ThemeToggle from './ThemeToggle.astro';
 import FxToggle from './FxToggle.astro';
 import { SITE } from '../consts';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
+import { versioned } from '../lib/assetVersion';
 
 interface Crumb {
   label: string;
@@ -72,6 +73,38 @@ const crumbLd =
         })),
       }
     : null;
+
+// Zurück-Element: nur auf verschachtelten Blattseiten (Schiffe-/Missions-/
+// Patch-/Themen-Detail), aus dem ohnehin vorhandenen crumbs-Prop abgeleitet —
+// kein einziger der ~100 Aufrufer muss dafür angefasst werden. Der Pfad ist
+// der verlässlichere Diskriminator als der Crumb-Inhalt (siehe PLAN.md
+// „Survey"): Naben wie /schiffe.html tragen selbst zwei Crumbs, sind aber
+// nur EIN Pfadsegment tief.
+// Crumb-hrefs sind bereits lokalisiert (`L('/schiffe.html')`, `/de/…`) —
+// genau wie im crumbLd-Block oben werden sie hier roh verwendet, nicht noch
+// einmal durch href() geschickt.
+const pathNoLocale = Astro.url.pathname.startsWith('/de/')
+  ? Astro.url.pathname.slice(3)
+  : Astro.url.pathname;
+const pathSegments = pathNoLocale.split('/').filter(Boolean);
+const isNestedPage = pathSegments.length >= 2;
+const isAccountArea = pathSegments[0] === 'account'; // Auth-Fluss ist keine Inhaltsnavigation
+const backParent = isNestedPage && !isAccountArea
+  ? [...crumbs].slice(0, -1).reverse().find((c) => c.href)
+  : undefined;
+const backTarget = backParent ? { href: backParent.href as string, label: backParent.label } : null;
+// Das Element wird FAST UEBERALL angelegt, nicht nur wo es ein statisches Ziel
+// gibt: auf Naben (Item-Finder, /schiffe.html, Startseite …) steht es zunaechst
+// auf `hidden` und wird vom Leser unten sichtbar gemacht, sobald eine echte
+// Herkunft vorliegt. Sonst kaeme man von einer Nabe nie zurueck, obwohl man
+// irgendwoher kam. Ausgenommen bleibt allein der Konto-Bereich — ein
+// Auth-Fluss ist keine Inhaltsnavigation.
+const renderBack = !isAccountArea;
+// Ohne statisches Ziel startet es versteckt; der Leser fuellt href und Text.
+const backHidden = !backTarget;
+const backLinkSrc = renderBack || crumbs.length
+  ? versioned('assets/back-link.js', '/assets/back-link.js')
+  : null;
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
@@ -269,7 +302,13 @@ try {
 } catch { /* dev-Fallback */ }
 const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 ---
-<nav class={heroMorph ? 'snav snav--morph' : 'snav'} id="topbar" aria-label={t('nav.main')}>
+{/* data-back-self sitzt an der LEISTE, nicht am Zurueck-Link: sonst
+    hinterlassen Nabenseiten keine Herkunfts-Notiz (sie tragen keinen
+    Zurueck-Link), und jeder Weg ueber eine Nabe verliert den Kontext —
+    Item-Finder -> Crafting zeigte deshalb den statischen Elternteil
+    „← Alpha 4.9" statt „← Item Finder". Die Notiz kostet nichts und macht
+    auch Naben zu einer gueltigen Herkunft. */}
+<nav class={heroMorph ? 'snav snav--morph' : 'snav'} id="topbar" aria-label={t('nav.main')} data-back-self={crumbs.length ? crumbs[crumbs.length - 1]?.label : undefined}>
   <div class="snav__left">
     <a
       class="snav__acct js-nav-acct"
@@ -319,12 +358,60 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       <span class="snav__menu-txt snav__menu-txt--close"><kbd>Esc</kbd></span>
     </button>
   </div>
+  {renderBack && (
+    <a
+      class="snav__back"
+      href={backTarget ? backTarget.href : undefined}
+      data-backlink={backTarget ? '' : undefined}
+      data-back-path={backTarget ? backTarget.href.split(/[?#]/)[0] : undefined}
+      data-back-aria={t('nav.back.aria')}
+      aria-label={backTarget ? `${t('nav.back.aria')} ${backTarget.label}` : undefined}
+      hidden={backHidden}
+    >
+      <span aria-hidden="true">←</span> <span data-back-label>{backTarget ? backTarget.label : ''}</span>
+    </a>
+  )}
   <div class="snav__progress-bar" aria-hidden="true">
     <div class="snav__progress-fill">
       <span class="snav__progress-spark"></span>
     </div>
   </div>
 </nav>
+{/* Herkunfts-Leser: parser-blockierend (kein defer, kein type="module"),
+    unmittelbar hinter </nav> platziert -- läuft, bevor der Browser irgendetwas
+    unterhalb der Leiste parst, daher kein Aufflackern. Wertet die Notiz aus
+    assets/back-link.js aus (dort steht auch die Reihenfolge-Begründung) und
+    schreibt bei Treffer href/Label/aria-label auf die tatsächliche Herkunft
+    um. Jeder Fehler bedeutet stillschweigend: Eltern-Link bleibt stehen. */}
+{renderBack && (
+  <script is:inline>
+    try {
+      var a = document.querySelector('.snav__back');
+      if (a) {
+        var ref = new URL(document.referrer);
+        if (ref.origin === location.origin && ref.pathname !== location.pathname) {
+          var note = JSON.parse(sessionStorage.getItem('vb:from'));
+          if (note && note.p === ref.pathname && typeof note.u === 'string' && note.u.charAt(0) === '/' && note.u.charAt(1) !== '/') {
+            a.setAttribute('href', note.u);
+            a.setAttribute('data-back-path', note.p);
+            a.setAttribute('data-backlink', '');
+            var lbl = a.querySelector('[data-back-label]');
+            if (lbl) lbl.textContent = note.l;
+            a.setAttribute('aria-label', a.getAttribute('data-back-aria') + ' ' + note.l);
+            // Merkmal fuer die Modal-Pfeile: nur wenn HIER umgeschrieben wurde,
+            // ist der Nutzer nachweislich von aussen hereingesprungen. Ohne das
+            // waere ein Zurueck-Pfeil im Modal bloss ein zweites Schliessen-X.
+            a.setAttribute('data-back-origin', '');
+            // Auf Naben startet das Element versteckt (kein statisches Ziel).
+            // Jetzt gibt es eines — sichtbar machen. Das passiert noch vor dem
+            // ersten Bild, es springt also nichts.
+            a.removeAttribute('hidden');
+          }
+        }
+      }
+    } catch (e) {}
+  </script>
+)}
 
 <!-- Menü-Overlay: links die Bühne (spielt den anvisierten Eintrag groß aus),
      rechts die kompakte Liste. Ein Akzent, keine Farbe je Gruppe. Die Bühne
@@ -432,6 +519,9 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   </div>
 </div>
 {crumbLd && <script type="application/ld+json" set:html={JSON.stringify(crumbLd)} />}
+{/* Nur auf Blattseiten mit Zurück-Element geladen — Naben und Startseite
+    bekommen kein zusätzliches Skript. Gleiche Herkunft, CSP bleibt grün. */}
+{backLinkSrc && <script is:inline src={backLinkSrc} defer></script>}
 <SearchOverlay lang={lang} />
 {/* Konto-Status + Favoriten-Sterne (leichtgewichtig, ohne supabase-js).
     ?v=<contenthash> bricht den 1-Tag-CDN-Cache bei jeder Änderung. */}
@@ -531,6 +621,14 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     opacity: var(--brand-in, 0);
   }
   .snav--morph .snav__brand:focus-visible {
+    opacity: 1;
+  }
+  /* Bei offenem Menü liegt das Deck über der Hero-Überschrift — die IST auf
+     diesen Seiten die Wortmarke. Ohne diese Regel steht dann gar keine da:
+     wer das Menü oben auf der Seite öffnet, findet keinen Weg zurück auf die
+     Startseite. Also blendet der Schriftzug auf, solange das Deck offen ist,
+     unabhängig davon, wie weit die Seite gescrollt war. */
+  :global(html.is-deck-open) .snav--morph .snav__brand {
     opacity: 1;
   }
   /* Glyphen wie eine technische Zeichnung: dünner Strich, gerade Enden,
@@ -740,6 +838,58 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav__menu-btn[aria-expanded='true'] .snav__menu-txt--close {
     opacity: 1;
     transform: translateX(0);
+  }
+  /* Zurück-Element: eigenes Grid-Kind, spannt volle Breite -> zweite Zeile
+     der Leiste (siehe Frontmatter/Platzierungs-Begründung). Optik übernommen
+     von der ehemaligen MissionDetail .md__back, jetzt zentral für alle
+     Blattseiten. Bewusst NICHT unter .snav__left — die 640px-Regel, die
+     `.snav__left > *` ausblendet, soll dieses Element nicht treffen, auf dem
+     Telefon ist die Zurück-Geste am wertvollsten. */
+  /* Die Leiste veroeffentlicht ihre eigene Hoehe. Vorher rieten drei
+     Komponenten sie mit `top: 68px` (MiningApp, CraftingApp, MissionsApp) —
+     mit der Zurueck-Zeile waechst die Leiste auf 106 px, und deren klebende
+     Filterleisten verschwanden zu 38 px dahinter. Gemessen: 67 px ohne
+     Zurueck, 106 px mit, 131 px mit unterhalb 860 px (dort greift die
+     44-px-Fingerkuppe). `:has()` haelt das rein strukturell — keine Seite
+     muss etwas uebergeben. */
+  :global(:root) { --nav-h: 68px; }
+  :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 107px; }
+  @media (max-width: 860px) {
+    :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 132px; }
+  }
+
+  .snav__back[hidden] { display: none; }
+  .snav__back {
+    grid-column: 1 / -1;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    max-width: 100%;
+    font-family: var(--font-ui, sans-serif);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.7rem;
+    color: var(--muted, #8a99b8);
+    transition: color 0.15s;
+  }
+  .snav__back:hover,
+  .snav__back:focus-visible {
+    color: var(--accent, #2dd4ff);
+  }
+  /* Der Herkunftsname (im Gegensatz zum Elternnamen beliebig lang -- Missions-
+     und Schiffsnamen) darf weder umbrechen noch --nav-h sprengen. */
+  .snav__back [data-back-label] {
+    max-width: 40ch;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  @media (max-width: 860px) {
+    .snav__back {
+      min-height: 44px;
+      align-items: center;
+    }
   }
   @media (max-width: 860px) {
     .snav__search span,
