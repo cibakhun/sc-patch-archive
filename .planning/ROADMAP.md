@@ -25,7 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Schrift- und Bewegungsskala** - Eine gemeinsame Skala für Schriftgrade und Übergänge statt seitenlokaler Einzelwerte
 - [ ] **Phase 3: Überlagerungen entstapeln** - Class-B-Befund abtragen, Textkontrast über Bildmotiven belegen
 - [ ] **Phase 4: Sprachparität absichern** - Deckungsgleichheit der Seitenpaare nachweisbar statt behauptet
-- [ ] **Phase 5: Schiffe: Rollen- und Merkmalsfilter** - Granulare, spielgenaue Filter statt acht Grobtypen
+- [x] **Phase 5: Schiffe: Rollen- und Merkmalsfilter** - Granulare, spielgenaue Filter statt acht Grobtypen
 
 ## Phase Details
 
@@ -220,4 +220,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
-| 5. Schiffe: Rollen- und Merkmalsfilter | 3/3 | In Progress|  |
+| 5. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |
