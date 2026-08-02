@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 1.1
 current_phase_name: Ambiente-Effekte stilllegen
 status: in_progress
-stopped_at: Phase 5 context gathered
-last_updated: "2026-08-02T04:08:48.878Z"
+stopped_at: Phase 5 geplant — 3 Plaene, 3 Wellen, Plan-Pruefer bestanden
+last_updated: "2026-08-02T04:48:58.181Z"
 last_activity: 2026-08-02
 last_activity_desc: "Quick-Task 260802-5qd: Zurück folgt der Herkunft"
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 5
+  total_plans: 8
   completed_plans: 2
 ---
 
@@ -113,6 +113,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-02T04:08:48.862Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-schiffe-rollen-und-merkmalsfilter/05-CONTEXT.md
+Last session: 2026-08-02T04:48:58.166Z
+Stopped at: Phase 5 geplant — 3 Plaene, 3 Wellen, Plan-Pruefer bestanden
+Resume file: .planning/phases/05-schiffe-rollen-und-merkmalsfilter/05-01-PLAN.md
