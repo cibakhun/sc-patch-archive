@@ -1,0 +1,73 @@
+# Schreibt den UEX-Spielermarkt taeglich fort (scripts/track-marketplace.mjs).
+#
+# ZWECK: /marketplace_listings liefert nur ANGEBOTSpreise und nur ein rollendes
+# Fenster der neuesten 500 Anzeigen. Erst eine Zeitreihe zeigt den Uebergang
+# is_sold_out 0 -> 1 — also den einzigen Hinweis auf einen echten Abschluss.
+# Nach ein paar Wochen laesst sich beurteilen, ob daraus ein belastbarer
+# Item-Wert wird. Bis dahin liest die Seite diese Daten NICHT.
+#
+# WARUM EIN EIGENER ZWEIG: deploy-staging.yml und deploy-image.yml feuern bei
+# JEDEM push auf `staging` bzw. `main` und kennen kein paths-ignore. Ein
+# taeglicher Daten-Commit dorthin wuerde jeden Tag die komplette Seite neu bauen
+# und ausrollen. Der Bestand liegt deshalb auf `data/marketplace-log`, den kein
+# Deploy beobachtet.
+#
+# EINRICHTUNG (einmalig, sonst faellt der Lauf mit "Zweig fehlt" aus):
+#   git switch --orphan data/marketplace-log
+#   git commit --allow-empty -m "chore: Datenzweig fuer den Spielermarkt-Mitschrieb"
+#   git push -u origin data/marketplace-log
+#   git switch -
+#
+# Danach laeuft er von allein; manuell ueber Actions -> Track Marketplace -> Run workflow.
+name: Track Marketplace
+
+on:
+  schedule:
+    # taeglich 04:17 UTC — abseits der vollen Stunde, da ist der Actions-Andrang kleiner
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: track-marketplace
+  cancel-in-progress: false
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      # 1) Das Repo wegen des Skripts.
+      - uses: actions/checkout@v4
+
+      # 2) Der Datenzweig separat, damit Skript und Bestand sich nicht in die
+      #    Quere kommen. Faellt der Schritt aus, fehlt die einmalige Einrichtung
+      #    aus dem Kopfkommentar.
+      - uses: actions/checkout@v4
+        with:
+          ref: data/marketplace-log
+          path: .datastore
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Spielermarkt abrufen und fortschreiben
+        env:
+          MARKETPLACE_LOG: ${{ github.workspace }}/.datastore/marketplace-log.json
+        run: node scripts/track-marketplace.mjs
+
+      - name: Bestand zurueckschreiben
+        working-directory: .datastore
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add marketplace-log.json
+          # Ohne Aenderung kein Leer-Commit — an ruhigen Tagen bewegt sich nichts.
+          if git diff --cached --quiet; then
+            echo "Keine Aenderung — nichts zu committen."
+            exit 0
+          fi
+          git commit -m "chore(marketplace): Mitschrieb $(date -u +%Y-%m-%d)"
+          git push

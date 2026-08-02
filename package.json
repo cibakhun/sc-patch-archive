@@ -36,6 +36,7 @@
     "sync:item-prices": "node scripts/fetch-uex-item-prices.mjs && node scripts/build-universal-db.mjs",
     "verify:items": "node scripts/verify-item-prices.mjs",
     "sync:refinery": "node scripts/fetch-uex-commodities.mjs && node scripts/build-refinery-data.mjs",
+    "track:marketplace": "node scripts/track-marketplace.mjs",
     "build:refinery-data": "node scripts/build-refinery-data.mjs",
     "build:light-palettes": "node scripts/build-light-palettes.mjs",
     "sync:style-blocks": "node scripts/sync-style-blocks.mjs",
