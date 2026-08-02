@@ -362,3 +362,63 @@ New `src/i18n/ui.ts` keys: `nav.support` ("Unterstützen"/"Support"), `nav.deck.
 | Menu entry | inside the always-visible overlay, unaffected by any bar-collapse breakpoint |
 | Tool-page strip | stacks heading + CTA to two lines |
 | Moderation UI | admin-only, but still built mobile-first: cards stack, Approve/Reject buttons become full-width stacked (not side-by-side) below 480px |
+
+---
+
+## § Gestaltungsentscheidung (nachgetragen 02.08.2026 — VERBINDLICH)
+
+Diese Sektion entstand NACH der Freigabe durch `gsd-ui-checker` und **schlägt bei
+Widerspruch die Layout- und Copy-Angaben weiter oben.** Grundlage ist die Sichtung
+der drei gebauten Entwürfe in `.planning/sketches/001-support-page-identity/` und
+die Wahl des Betreibers.
+
+**Gewählt: Richtung A „Instandsetzung"** (D-23). Nicht gewählt: B „Übertragung",
+C „Besatzung".
+
+### Was die Seite erzählt (D-24) — die wichtigste Änderung
+
+Der Entwurf zeigte ein **defektes Bauteil**. Das ist die falsche Geschichte. Die
+richtige ist der **Arbeitsverlust**:
+
+1. Der Rechner geht ohne Vorwarnung aus.
+2. Passiert das beim Programmieren, ist die Arbeit seit dem letzten Speichern weg.
+3. Passiert es während eines Durchlaufs über die Spieldateien, beginnt der von vorn —
+   er läuft am Stück und lässt sich nicht in der Mitte anhalten.
+4. Entwickeln heißt damit: nie länger als ein paar Minuten am Stück denken.
+
+Ein Sachschaden ist ein schwaches Argument. Verlorene Arbeitszeit an einem Projekt,
+das jemand umsonst baut, ist ein starkes.
+
+### Verbindliche Kopie für den Befund-Abschnitt
+
+Ersetzt die entsprechenden Zeilen im Copywriting Contract weiter oben.
+
+| Rolle | DE | EN |
+|---|---|---|
+| Eyebrow | `BEFUND — SPANNUNGSVERSORGUNG` | `FAULT — POWER SUPPLY` |
+| H1 | `Der Rechner geht aus. Mitten in der Arbeit.` | `The machine cuts out. Mid-work.` |
+| Absatz 1 | `Das Netzteil des Rechners, auf dem VerseBase entsteht, hält keine Last mehr. Es kündigt sich nicht an — der Rechner ist von einem Moment auf den anderen weg.` | `The power supply in the machine VerseBase is built on no longer holds under load. There is no warning — the machine is simply gone from one moment to the next.` |
+| Absatz 2 | `Das Ärgerliche ist nicht das Gerät. Es ist, was mitgeht. Passiert es beim Programmieren, ist die Arbeit seit dem letzten Speichern verloren. Passiert es, während ein Durchlauf über die Spieldateien läuft, fängt der von vorn an — er läuft am Stück und lässt sich nicht in der Mitte anhalten.` | `The annoying part is not the hardware. It is what goes with it. If it happens while I am coding, the work since the last save is gone. If it happens during a run over the game files, that run starts from the beginning — it runs in one stretch and cannot be paused halfway.` |
+| Absatz 3 | `Entwickeln heißt damit: nie länger als ein paar Minuten am Stück denken.` | `Developing like this means never thinking further ahead than a few minutes.` |
+| Absatz 4 | `Ein Netzteil, das die Last trägt, kostet rund 120 €. Mehr wird hier nicht gesammelt.` | `A power supply that holds costs around €120. Nothing beyond that is collected here.` |
+
+### Schaltbild (D-25)
+
+Bleibt als tragendes Element, ändert aber seine Aussage: **nicht** „Bauteil C1–C3
+ist defekt", sondern die **Last-Kennlinie, die unter Volllast einbricht**. Es
+illustriert das Aussetzen, nicht den Austausch. Zeichnungssprache unverändert
+(Strichstärke 1.7, `butt`-Enden, `miter`-Ecken, `vector-effect: non-scaling-stroke`,
+Strichpunkt-Mittellinie). Gold markiert ausschließlich den Einbruch.
+
+### Verbot (D-26)
+
+**Keine erfundenen Kennzahlen.** Der Entwurf enthielt „elf abgebrochene Datenläufe
+in vierzehn Tagen" — frei erfunden, um die Textwirkung zu zeigen. Solche Zahlen
+gehen NICHT in die echte Seite. Die Kopie bleibt qualitativ. Hausregel „Never
+fabricate data", verankert in `tests/e2e/db.test.js`; die Glaubwürdigkeit dieser
+Seite ist das Einzige, was die Spende trägt.
+
+**Prüfbar:** In `src/**/support*` und der Spenden-Komponente kommt keine
+Zahlenangabe zu Ausfallhäufigkeit oder Zeitraum vor. Die einzigen Zahlen auf der
+Seite sind die Betragsstufen, der Zielbetrag und der erreichte Stand.
+

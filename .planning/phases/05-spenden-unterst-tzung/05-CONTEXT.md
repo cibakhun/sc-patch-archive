@@ -133,6 +133,35 @@ gibt es keinen sicheren Zahlungsweg. Siehe `.planning/ROADMAP.md` § Phase 5.
 - **D-22:** Die Datenschutzerklärung nennt Stripe und Ko-fi als Empfänger mit
   Zweck, bevor die Seite live geht — analog zum bestehenden Web3Forms-Abschnitt.
 
+### Gestaltungsrichtung (nachgetragen 02.08.2026 nach Sichtung der Entwürfe)
+
+- **D-23:** Gewählt ist Richtung **A „Instandsetzung"** aus
+  `.planning/sketches/001-support-page-identity/` — die Seite trägt die
+  Formensprache eines technischen Werkstattauftrags: Schaltbild in echter
+  Zeichnungssprache, Positionsliste, Fortschritt als geteilte Skala mit
+  numerischem Ablesewert. Nicht gewählt: B „Übertragung" (reine Prosa),
+  C „Besatzung" (Unterstützer-Wand führt).
+- **D-24:** **Der Kern der Aussage ist NICHT das defekte Bauteil, sondern der
+  Arbeitsverlust.** Ausdrückliche Nutzerkorrektur an Richtung A: „es aber so
+  darstellen dass es immer ausgehen kann, und wenn man codet führt es des
+  öfteren zum progressverlust und dies erschwert die entwicklung enorm."
+  Die Seite erzählt also: der Rechner geht ohne Vorwarnung aus → die Arbeit seit
+  dem letzten Speichern ist weg → ein laufender Durchlauf über die Spieldateien
+  beginnt von vorn → Entwickeln heißt, nie länger als ein paar Minuten am Stück
+  zu denken. Ein Sachschaden ist ein schwaches Argument; verlorene Arbeitszeit an
+  einem Projekt, das jemand umsonst baut, ist eines, das ankommt.
+- **D-25:** Das Schaltbild bleibt, ändert aber seine Aussage: **nicht** „dieses
+  Bauteil ist defekt", sondern die Last-Kennlinie, die unter Volllast einbricht.
+  Es illustriert das Aussetzen, nicht den Austausch.
+- **D-26:** **Keine erfundenen Kennzahlen.** Der Entwurf enthielt zur
+  Veranschaulichung „elf abgebrochene Datenläufe in vierzehn Tagen" — frei
+  erfunden. Solche Zahlen dürfen NICHT in die echte Seite, solange der Betreiber
+  keine echten nennt (Hausregel „Never fabricate data", per
+  `tests/e2e/db.test.js` verankert; die Seite lebt von ihrer Faktentreue). Die
+  Kopie bleibt qualitativ („ohne Vorwarnung", „von vorn") statt quantitativ.
+  Will der Betreiber später echte Zahlen nennen, ist dafür eine Stelle
+  vorgesehen — bis dahin steht dort nichts.
+
 ### Claude's Discretion
 
 - Tabellenschema, Spaltennamen, Namen der Edge Functions, Namen der Konstanten
