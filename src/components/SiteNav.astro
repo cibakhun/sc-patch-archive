@@ -783,6 +783,19 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      Blattseiten. Bewusst NICHT unter .snav__left — die 640px-Regel, die
      `.snav__left > *` ausblendet, soll dieses Element nicht treffen, auf dem
      Telefon ist die Zurück-Geste am wertvollsten. */
+  /* Die Leiste veroeffentlicht ihre eigene Hoehe. Vorher rieten drei
+     Komponenten sie mit `top: 68px` (MiningApp, CraftingApp, MissionsApp) —
+     mit der Zurueck-Zeile waechst die Leiste auf 106 px, und deren klebende
+     Filterleisten verschwanden zu 38 px dahinter. Gemessen: 67 px ohne
+     Zurueck, 106 px mit, 131 px mit unterhalb 860 px (dort greift die
+     44-px-Fingerkuppe). `:has()` haelt das rein strukturell — keine Seite
+     muss etwas uebergeben. */
+  :global(:root) { --nav-h: 68px; }
+  :global(:root:has(.snav__back)) { --nav-h: 107px; }
+  @media (max-width: 860px) {
+    :global(:root:has(.snav__back)) { --nav-h: 132px; }
+  }
+
   .snav__back {
     grid-column: 1 / -1;
     justify-self: start;
