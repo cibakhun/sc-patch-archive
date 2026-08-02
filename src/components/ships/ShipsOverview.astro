@@ -360,10 +360,6 @@ a{color:inherit;text-decoration:none}
       <option value="in-production">{de ? 'In Produktion' : 'In production'}</option>
       <option value="in-concept">{de ? 'Konzept' : 'Concept'}</option>
     </select>
-    <select id="sf-archive" aria-label={de ? 'Archiv' : 'Archive'}>
-      <option value="">{de ? 'Alle' : 'All'}</option>
-      <option value="1">{de ? 'Im Patch-Archiv' : 'In the patch archive'}</option>
-    </select>
     <select id="sf-sort" aria-label={de ? 'Sortierung' : 'Sort'}>
       <option value="name">Name A–Z</option>
       <option value="pledge">{de ? 'Pledge-Preis ↓' : 'Pledge price ↓'}</option>
@@ -387,7 +383,6 @@ a{color:inherit;text-decoration:none}
         data-sig={sig.min}
         data-feat={` ${feat} `}
         data-status={d.statusEn ?? ''}
-        data-archive={d.patches.length ? '1' : ''}
         data-href={de ? `/de/schiffe/${id}.html` : `/schiffe/${id}.html`}
         data-pledge={d.msrpUSD ?? -1}
         data-game={buy ?? -1}
@@ -475,7 +470,6 @@ a{color:inherit;text-decoration:none}
   var selSig = document.getElementById('sf-sig');
   var selFeat = document.getElementById('sf-feat');
   var selStatus = document.getElementById('sf-status');
-  var selArchive = document.getElementById('sf-archive');
   var selSort = document.getElementById('sf-sort');
   var count = document.getElementById('sf-count');
   var empty = document.getElementById('sf-empty');
@@ -491,7 +485,7 @@ a{color:inherit;text-decoration:none}
 
   function apply() {
     var nq = norm(q.value).trim();
-    var m = selMaker.value, st = selStatus.value, ar = selArchive.value;
+    var m = selMaker.value, st = selStatus.value;
     var ca = selCareer.value, fa = selRolefam.value, sz = selSize.value, si = selSig.value, fe = selFeat.value;
     var n = 0;
     cards.forEach(function (c) {
@@ -503,8 +497,7 @@ a{color:inherit;text-decoration:none}
         (!sz || c.getAttribute('data-size') === sz) &&
         (!si || numAttr(c, 'data-sig') < parseFloat(si)) &&
         (!fe || c.getAttribute('data-feat').indexOf(' ' + fe + ' ') >= 0) &&
-        (!st || c.getAttribute('data-status') === st) &&
-        (!ar || c.getAttribute('data-archive') === ar);
+        (!st || c.getAttribute('data-status') === st);
       c.style.display = ok ? '' : 'none';
       if (ok) n++;
     });
@@ -524,7 +517,7 @@ a{color:inherit;text-decoration:none}
     ordered.forEach(function (c) { fleet.insertBefore(c, empty); });
   }
 
-  [q, selMaker, selCareer, selRolefam, selSize, selSig, selFeat, selStatus, selArchive].forEach(function (el) {
+  [q, selMaker, selCareer, selRolefam, selSize, selSig, selFeat, selStatus].forEach(function (el) {
     el.addEventListener('input', apply);
     el.addEventListener('change', apply);
   });
