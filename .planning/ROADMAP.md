@@ -180,20 +180,24 @@ lassen sich kombinieren, sodass auch Nischen wie „Frachter mit abgesenkter Sig
 
   1. Jedes Schiff im Katalog trägt eine spielgenaue Rolle aus dem DataCore; die 4 nicht
      joinbaren Einträge (ATLS) sind benannt statt stillschweigend leer
+
   2. Die Filter finden die vom Nutzer genannten Beispielfälle: Tarnkappenbomber,
      Frachter mit abgesenkter Signatur, Bergung, Bergbau, Betankung
+
   3. Die Merkmale sind belegt, nicht behauptet — jedes Merkmal nennt seine Quelle im
      Spieldatensatz, und kein Merkmal wird aus Marketingtext abgeleitet
+
   4. DE und EN tragen dieselben Filter mit CIG-eigenen Übersetzungen; wo CIG keine
      deutsche Fassung liefert, ist die Lücke bewusst gefüllt statt englisch durchgereicht
+
   5. Die Seite bleibt ohne JavaScript lesbar und die Filterung läuft clientseitig ohne
      spürbare Verzögerung über alle 227 Karten
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 Plans:
 
-- [ ] 05-01-PLAN.md — (Welle 1) Tracer: „Bergung" von der Spieldatei bis auf die Karte — EIN Körper für DE und EN, Datamine, Momentaufnahme, erster Rollenfilter, plus Prüfschritt für die Join-Rate 223/227
+- [x] 05-01-PLAN.md — (Welle 1) Tracer: „Bergung" von der Spieldatei bis auf die Karte — EIN Körper für DE und EN, Datamine, Momentaufnahme, erster Rollenfilter, plus Prüfschritt für die Join-Rate 223/227
 - [ ] 05-02-PLAN.md — (Welle 2) Beruf und 18 Rollenfamilien mit zerlegten Verbundrollen und gefüllten deutschen Lücken; danach Signaturachse und Merkmalsleiste, die den Prowler Utility auffindbar machen
 - [ ] 05-03-PLAN.md — (Welle 3) Sieben Schnellzugriffe setzen Rolle und Signatur in einem Klick, der Wiki-Grobfilter weicht dem spielgenauen Beruf, Sichtprüfung der fünf Abnahmefälle
 
@@ -216,5 +220,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
-| 5. Schiffe: Rollen- und Merkmalsfilter | 0/3 | Not started | - |
-
+| 5. Schiffe: Rollen- und Merkmalsfilter | 1/3 | In Progress|  |

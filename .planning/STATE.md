@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1.1
 current_phase_name: Ambiente-Effekte stilllegen
 status: in_progress
-stopped_at: Phase 5 geplant — 3 Plaene, 3 Wellen, Plan-Pruefer bestanden
-last_updated: "2026-08-02T04:48:58.181Z"
+stopped_at: Phase 5 Plan 1 ausgeführt (05-01-PLAN.md) — Bergung von der Spieldatei bis auf die Karte, EIN Koerper, sf-role-Filter
+last_updated: "2026-08-02T11:17:56.681Z"
 last_activity: 2026-08-02
 last_activity_desc: "Quick-Task 260802-5qd: Zurück folgt der Herkunft"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 8
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -61,6 +61,7 @@ Progress: [████░░░░░░] 40%
 |------|----------|-------|-------|
 | Phase 01.1 P01 | 45min | 3 tasks | 8 files |
 | Phase 01.1 P02 | ~2h | 3 tasks | 39 files |
+| Phase 05 P01 | 45min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,8 @@ Recent decisions affecting current work:
 - [Phase ?]: archive.js: eine gemeinsame running-Variable traegt Tab-Sichtbarkeit UND FX-Wahl statt zweier konkurrierender Riegel
 - [Phase ?]: Codemod liest den Leinwandnamen aus getElementById statt ihn festzuverdrahten -- erkennt dadurch die abweichende dust-Leinwand von sc-4-9-0 korrekt
 - [Phase ?]: sc-4-2-0 Regen und Blitz bewusst aus dem Codemod ausgeschlossen und von Hand gegattert, inkl. Reset des Zeitgebers beim Wiedereinschalten
+- [Phase ?]: [Phase 5]: 05-01: vRoleCig() ersetzt fociDe als Kartenbeschriftung, Fallback auf vRole() fuer die 4 ATLS-Faelle; EIN Koerper (ShipsOverview.astro) fuer /schiffe.html + /de/schiffe.html
+- [Phase ?]: [Phase 5]: 05-01: npm run theme lief repo-weit und veraenderte 84 unbeteiligte Dateien (Alt-Drift) -- alle zurueckgesetzt, nur die 4 fuer diesen Plan vorgesehenen Dateien blieben veraendert
 
 ### Pending Todos
 
@@ -113,6 +116,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-02T04:48:58.166Z
-Stopped at: Phase 5 geplant — 3 Plaene, 3 Wellen, Plan-Pruefer bestanden
-Resume file: .planning/phases/05-schiffe-rollen-und-merkmalsfilter/05-01-PLAN.md
+Last session: 2026-08-02T11:17:56.665Z
+Stopped at: Phase 5 Plan 1 ausgeführt (05-01-PLAN.md) — Bergung von der Spieldatei bis auf die Karte, EIN Koerper, sf-role-Filter
+Resume file: .planning/phases/05-schiffe-rollen-und-merkmalsfilter/05-02-PLAN.md
