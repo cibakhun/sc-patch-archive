@@ -34,6 +34,33 @@
     if (e.persisted) noteOrigin(); // aus dem bfcache zurückgeholt -> Skript lief nicht erneut
   });
 
+  /* Zurück-Pfeil in den Datenblatt-Modalen (Mining, Crafting, Item-Finder).
+   *
+   * Der Leisten-Link steht ganz oben am Fensterrand; wer in einem Modal liest,
+   * schaut dorthin nicht. Der Pfeil sitzt deshalb am Modal selbst, oben links
+   * gegenüber dem Schließen-Kreuz.
+   *
+   * Er erscheint NUR, wenn der Leser in SiteNav.astro den Leisten-Link auf eine
+   * tatsächliche Herkunft umgeschrieben hat (Merkmal data-back-origin) — also
+   * wenn man von einer anderen Seite hereingesprungen ist. Sonst wäre er bloß
+   * ein zweites Schließen-Kreuz.
+   *
+   * Der Klick delegiert an genau diesen Leisten-Link, statt das Verhalten
+   * nachzubauen: dadurch gibt es EINE Wahrheit darüber, ob zurückgesprungen
+   * (history.back, Scroll und Filter zurück) oder normal navigiert wird. */
+  var navBack = document.querySelector('.snav__back[data-back-origin]');
+  if (navBack) {
+    var arrows = document.querySelectorAll('[data-modal-back]');
+    for (var a = 0; a < arrows.length; a++) {
+      (function (btn) {
+        btn.hidden = false;
+        var label = navBack.getAttribute('aria-label');
+        if (label) { btn.setAttribute('aria-label', label); btn.title = label; }
+        btn.addEventListener('click', function () { navBack.click(); });
+      })(arrows[a]);
+    }
+  }
+
   var links = document.querySelectorAll('a[data-backlink]');
   if (!links.length) return;
 
