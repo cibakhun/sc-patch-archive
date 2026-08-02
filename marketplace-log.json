@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-02",
-  "updates": 8,
-  "totalListings": 930,
-  "totalSold": 27,
-  "distinctItems": 450
+  "updates": 9,
+  "totalListings": 958,
+  "totalSold": 29,
+  "distinctItems": 453
  },
  "listings": {
   "156580": {
@@ -10422,9 +10422,9 @@
      "p": 250000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-02",
+   "soldOutPrice": 250000,
    "dateAdded": 1785632160,
    "dateExpiration": 1790816159
   },
@@ -11480,9 +11480,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-02",
+   "soldOutPrice": 1000000,
    "dateAdded": 1785643086,
    "dateExpiration": 1790827086
   },
@@ -13246,6 +13246,10 @@
     {
      "d": "2026-08-02",
      "p": 1500000
+    },
+    {
+     "d": "2026-08-02",
+     "p": 1200000
     }
    ],
    "soldOut": false,
@@ -19603,6 +19607,594 @@
    "soldOutPrice": null,
    "dateAdded": 1785699862,
    "dateExpiration": 1790883862
+  },
+  "157586": {
+   "idItem": 5669,
+   "idCategory": 1,
+   "title": "Testudo Arms Earthshake",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785699920,
+   "dateExpiration": 1790883920
+  },
+  "157587": {
+   "idItem": 6001,
+   "idCategory": 61,
+   "title": "UNE Gold Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785699971,
+   "dateExpiration": 1790883971
+  },
+  "157588": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785700000,
+   "dateExpiration": 1790884000
+  },
+  "157589": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "Gold",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785700137,
+   "dateExpiration": 1790884136
+  },
+  "157590": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "Sadaryx 971Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 971,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785700289,
+   "dateExpiration": 1790884289
+  },
+  "157591": {
+   "idItem": 5703,
+   "idCategory": 87,
+   "title": "Beradom",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 969,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785700345,
+   "dateExpiration": 1790884345
+  },
+  "157592": {
+   "idItem": 6014,
+   "idCategory": 7,
+   "title": "Geist Armor Snow Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785700669,
+   "dateExpiration": 1790884669
+  },
+  "157593": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785700689,
+   "dateExpiration": 1790884689
+  },
+  "157595": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "864 Quality Gold 4 Sale!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 864,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785700734,
+   "dateExpiration": 1790884734
+  },
+  "157597": {
+   "idItem": 5137,
+   "idCategory": 7,
+   "title": "Bokto Antium Armor full set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785700833,
+   "dateExpiration": 1790884832
+  },
+  "157598": {
+   "idItem": 2278,
+   "idCategory": 18,
+   "title": "P8-AR Assault Rifle (LOOTED)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785700948,
+   "dateExpiration": 1790884948
+  },
+  "157601": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785701234,
+   "dateExpiration": 1790885234
+  },
+  "157602": {
+   "idItem": 4610,
+   "idCategory": 111,
+   "title": "DCHS-06",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 21,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 300
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785701300,
+   "dateExpiration": 1790885300
+  },
+  "157603": {
+   "idItem": 182,
+   "idCategory": 32,
+   "title": "WTB 1xSalvation Distortion Scattergun Size 4",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785701658,
+   "dateExpiration": 1790885658
+  },
+  "157604": {
+   "idItem": 2229,
+   "idCategory": 17,
+   "title": "Touchstone (8x Monitor)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785701726,
+   "dateExpiration": 1790885726
+  },
+  "157605": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "Savrilium322Q: 0.3M/SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 322,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785701822,
+   "dateExpiration": 1790885822
+  },
+  "157606": {
+   "idItem": 6769,
+   "idCategory": 5,
+   "title": "ORC-mkX Core Justified // Ailgam's Collectibles",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785701913,
+   "dateExpiration": 1790885913
+  },
+  "157607": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium636Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 636,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785702003,
+   "dateExpiration": 1790886003
+  },
+  "157608": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium776Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 776,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 2200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785702138,
+   "dateExpiration": 1790886138
+  },
+  "157610": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium878Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 878,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 6150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785702253,
+   "dateExpiration": 1790886253
+  },
+  "157612": {
+   "idItem": 4919,
+   "idCategory": 38,
+   "title": "RCMBNT-XTL-1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785702399,
+   "dateExpiration": 1790886399
+  },
+  "157613": {
+   "idItem": 5116,
+   "idCategory": 36,
+   "title": "Irradiated Valakkar Pearl (AAA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785702421,
+   "dateExpiration": 1790886421
+  },
+  "157614": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Q855 Copper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 855,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785702425,
+   "dateExpiration": 1790886425
+  },
+  "157615": {
+   "idItem": 5013,
+   "idCategory": 38,
+   "title": "RCMBNT-PWL-2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785702476,
+   "dateExpiration": 1790886476
+  },
+  "157616": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Q742 Copper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785702537,
+   "dateExpiration": 1790886537
+  },
+  "157618": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Q516 Titanium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 516,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 6500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785702704,
+   "dateExpiration": 1790886704
+  },
+  "157619": {
+   "idItem": 8026,
+   "idCategory": 7,
+   "title": "Corbel Crush Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785702807,
+   "dateExpiration": 1790886807
+  },
+  "157622": {
+   "idItem": 5985,
+   "idCategory": 36,
+   "title": "Q537 Tin",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785702952,
+   "dateExpiration": 1790886952
   }
  }
 }
