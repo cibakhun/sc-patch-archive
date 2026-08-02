@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-02",
-  "updates": 6,
-  "totalListings": 844,
+  "updates": 7,
+  "totalListings": 873,
   "totalSold": 26,
-  "distinctItems": 425
+  "distinctItems": 437
  },
  "listings": {
   "156580": {
@@ -8863,6 +8863,10 @@
     {
      "d": "2026-08-02",
      "p": 10000000
+    },
+    {
+     "d": "2026-08-02",
+     "p": 0
     }
    ],
    "soldOut": false,
@@ -9346,6 +9350,10 @@
     {
      "d": "2026-08-02",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-02",
+     "p": 10000000
     }
    ],
    "soldOut": false,
@@ -17785,6 +17793,615 @@
    "soldOutPrice": null,
    "dateAdded": 1785692737,
    "dateExpiration": 1790876737
+  },
+  "157519": {
+   "idItem": 5023,
+   "idCategory": 61,
+   "title": "Yormandi Tongue 500k each",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785693158,
+   "dateExpiration": 1790873558
+  },
+  "157522": {
+   "idItem": 5334,
+   "idCategory": 17,
+   "title": "Vera Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 4900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785693487,
+   "dateExpiration": 1790877487
+  },
+  "157525": {
+   "idItem": 5506,
+   "idCategory": 3,
+   "title": "Strata Helmet Shooting Star",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 490000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785693601,
+   "dateExpiration": 1790877601
+  },
+  "157528": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "WTS 5x Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 4900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694115,
+   "dateExpiration": 1790878115
+  },
+  "157529": {
+   "idItem": 4236,
+   "idCategory": 3,
+   "title": "Strata Helmet Piston",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 390000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694159,
+   "dateExpiration": 1790878159
+  },
+  "157530": {
+   "idItem": 5160,
+   "idCategory": 18,
+   "title": "Pulverizer LMG - MAX STATS",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 17200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694183,
+   "dateExpiration": 1790878183
+  },
+  "157533": {
+   "idItem": 2343,
+   "idCategory": 3,
+   "title": "Sangar Helmet Grey/Black",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 390000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694267,
+   "dateExpiration": 1790878267
+  },
+  "157534": {
+   "idItem": 6654,
+   "idCategory": 3,
+   "title": "Paladin Helmet White/Black",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 390000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694499,
+   "dateExpiration": 1790878498
+  },
+  "157535": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 25000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694516,
+   "dateExpiration": 1790878516
+  },
+  "157536": {
+   "idItem": 2226,
+   "idCategory": 18,
+   "title": "A03 \"Canuto\" Sniper Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694558,
+   "dateExpiration": 1796066158
+  },
+  "157538": {
+   "idItem": 5657,
+   "idCategory": 3,
+   "title": "Deadhead Helmet Dust",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 390000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694609,
+   "dateExpiration": 1790878608
+  },
+  "157539": {
+   "idItem": 2374,
+   "idCategory": 18,
+   "title": "A03 \"Red Alert\" Sniper Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694621,
+   "dateExpiration": 1796066221
+  },
+  "157541": {
+   "idItem": 2801,
+   "idCategory": 18,
+   "title": "C54 \"Luckbringer\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694705,
+   "dateExpiration": 1796066304
+  },
+  "157542": {
+   "idItem": 1238,
+   "idCategory": 18,
+   "title": "Custodian \"Nightstalker\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694761,
+   "dateExpiration": 1796066361
+  },
+  "157543": {
+   "idItem": 5393,
+   "idCategory": 18,
+   "title": "Eyaja Knife",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694809,
+   "dateExpiration": 1796066409
+  },
+  "157544": {
+   "idItem": 7640,
+   "idCategory": 3,
+   "title": "Deadhead Helmet Shutdown",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 390000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785694914,
+   "dateExpiration": 1790878914
+  },
+  "157545": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785695005,
+   "dateExpiration": 1790879005
+  },
+  "157546": {
+   "idItem": 1487,
+   "idCategory": 3,
+   "title": "Defiance Helmet Desert",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1449000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785695067,
+   "dateExpiration": 1790879067
+  },
+  "157547": {
+   "idItem": 6907,
+   "idCategory": 3,
+   "title": "Morningstar Helmet Yellow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785695300,
+   "dateExpiration": 1790879300
+  },
+  "157548": {
+   "idItem": 1598,
+   "idCategory": 18,
+   "title": "WTS Custodian \"Midnight\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785695302,
+   "dateExpiration": 1790879302
+  },
+  "157549": {
+   "idItem": 7670,
+   "idCategory": 18,
+   "title": "WTS Custodian \"Scorched\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785695383,
+   "dateExpiration": 1790879383
+  },
+  "157551": {
+   "idItem": 5145,
+   "idCategory": 3,
+   "title": "Morozov-SH-C Helmet Brushdrift",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 2400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785695526,
+   "dateExpiration": 1790879526
+  },
+  "157552": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 344,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785695572,
+   "dateExpiration": 1790879572
+  },
+  "157553": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 370000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785695640,
+   "dateExpiration": 1790879640
+  },
+  "157554": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785696111,
+   "dateExpiration": 1790880111
+  },
+  "157555": {
+   "idItem": 7634,
+   "idCategory": 18,
+   "title": "WTS Demeco \"Purgatory Camo\" LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785696387,
+   "dateExpiration": 1790880387
+  },
+  "157558": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785696489,
+   "dateExpiration": 1790880489
+  },
+  "157559": {
+   "idItem": 5819,
+   "idCategory": 18,
+   "title": "Novian Crossbow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785696525,
+   "dateExpiration": 1796068125
+  },
+  "157560": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Full set Bokto and more",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785696868,
+   "dateExpiration": 1790880868
   }
  }
 }
