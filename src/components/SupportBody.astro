@@ -184,7 +184,14 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 .sup__fields dd.hi{color:var(--accent)}
 
 /* --- Koerper: Zeichnung | Auftrag ----------------------------------------- */
-.sup__body{display:grid;grid-template-columns:minmax(300px,400px) 1fr;align-items:start}
+/* align-items:stretch statt start: die Zeichnung ist 660 px hoch, die
+   Auftragsspalte 1322 — bei `start` klaffte darunter ein 662 px hohes dunkles
+   Loch, auf staging angesehen der auffaelligste Fehler der Seite. Gestreckt
+   laeuft das Rasterpapier samt Trennlinie durch, wie auf einem echten
+   Zeichnungsblatt. Die Zeichnung selbst bleibt per sticky stehen, solange man
+   den Auftrag daneben liest — sie gehoert zum Text, nicht davor. */
+.sup__body{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);align-items:stretch}
+.sup__sticky{position:sticky;top:5.2rem}
 /* Unten 22 statt 40 px: gemessen blieben 105 px Totraum unter der Zeichnung,
    das Rasterpapier lief sichtbar ins Leere. */
 .sup__drawing{position:relative;padding:32px clamp(16px,3vw,32px) 22px;border-right:1px solid var(--line-soft);background:linear-gradient(90deg,var(--line-soft) 0 1px,transparent 1px 100%) 0 0/32px 32px,linear-gradient(0deg,var(--line-soft) 0 1px,transparent 1px 100%) 0 0/32px 32px,var(--bg)}
@@ -284,6 +291,9 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 }
 @media (max-width:860px){
   .sup__body{grid-template-columns:minmax(0,1fr)}
+  /* Einspaltig gibt es nichts mehr, woran die Zeichnung kleben koennte —
+     sticky wuerde sie nur ueber den Text schieben. */
+  .sup__sticky{position:static}
   .sup__drawing{border-right:0;border-bottom:1px solid var(--line-soft)}
   .sup__fields{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sup__fields>div:nth-child(2){border-right:0}
@@ -328,6 +338,7 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
       {/* Senkrechte Explosionsdarstellung: Gehaeuse, Luefter, Platine mit der
           Kondensatorbank (das Fehlerteil, golden umgrenzt), Anschlussfeld. */}
       <div class="sup__drawing">
+        <div class="sup__sticky">
         <svg class="sup__sch" viewBox="0 0 400 640" role="img" aria-label={T.schAlt}>
           <g>
             <path class="c" d="M150 22 V 596"></path>
@@ -404,6 +415,7 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
         <div class="sup__drawcap">
           <span class="cap" set:text={T.schCap1}></span>
           <span class="cap" set:text={T.schCap2}></span>
+        </div>
         </div>
       </div>
 
