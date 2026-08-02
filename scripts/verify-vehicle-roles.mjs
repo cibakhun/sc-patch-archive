@@ -104,6 +104,47 @@ for (const rk of ROLE_COMPOUND_KEYS) {
   need(ok, `Verbundrolle ${rk} ist bei mindestens einem Fahrzeug nicht in >=2 Familien zerlegt`);
 }
 
+console.log(`\n=== I) Signatur (D-07): genau 16 Fahrzeuge, 11 davon unter 0,80 ===`);
+const withSig = roleIds.filter((id) => roles.vehicles[id].sig);
+const lowSig = withSig.filter((id) => {
+  const s = roles.vehicles[id].sig;
+  return Math.min(s.ir ?? 1, s.em ?? 1) < 0.8;
+});
+console.log(`  sig-Objekt: ${withSig.length}, davon unter 0,80: ${lowSig.length}`);
+need(withSig.length === 16, `Fahrzeuge mit sig-Objekt: ${withSig.length} statt 16`);
+need(lowSig.length === 11, `Fahrzeuge mit sig unter 0,80: ${lowSig.length} statt 11`);
+const zeroAsNumber = roleIds.filter((id) => {
+  const s = roles.vehicles[id].sig;
+  return s && [s.ir, s.em, s.cs].includes(0);
+});
+need(zeroAsNumber.length === 0, `${zeroAsNumber.length} Fahrzeuge tragen 0 statt null in sig (0 bedeutet "nicht angegeben"): ${zeroAsNumber.join(', ')}`);
+
+console.log(`\n=== J) Prowler Utility (Frachter mit abgesenkter Signatur) und Eclipse (Tarnkappenbomber) ===`);
+const prowlerUtility = roles.vehicles['espr-prowler-utility'];
+need(!!prowlerUtility, `espr-prowler-utility fehlt in der Momentaufnahme`);
+if (prowlerUtility) {
+  need(prowlerUtility.sig?.ir === 0.76, `espr-prowler-utility: sig.ir ist ${prowlerUtility.sig?.ir} statt 0.76`);
+  need((prowlerUtility.families || []).includes('frachttransport'), `espr-prowler-utility traegt nicht die Familie frachttransport`);
+}
+const eclipse = roles.vehicles['aegs-eclipse'];
+need(!!eclipse, `aegs-eclipse fehlt in der Momentaufnahme`);
+if (eclipse) need((eclipse.families || []).includes('bomber'), `aegs-eclipse traegt nicht die Familie bomber`);
+
+console.log(`\n=== K) Merkmalsleiste (D-09): genau cargo (102) und ground (37), keine weitere Kennung ===`);
+const cargoIds = roleIds.filter((id) => (roles.vehicles[id].feat || []).includes('cargo'));
+const groundIds = roleIds.filter((id) => (roles.vehicles[id].feat || []).includes('ground'));
+console.log(`  cargo: ${cargoIds.length}, ground: ${groundIds.length}`);
+need(cargoIds.length === 102, `feat=cargo: ${cargoIds.length} statt 102`);
+need(groundIds.length === 37, `feat=ground: ${groundIds.length} statt 37`);
+const badFeat = roleIds.filter((id) => (roles.vehicles[id].feat || []).some((f) => f !== 'cargo' && f !== 'ground'));
+need(badFeat.length === 0, `Fahrzeuge mit unerwarteter Merkmalskennung: ${badFeat.join(', ')}`);
+
+console.log(`\n=== L) Belegpflicht: sources nennt alle fünf Achsen ===`);
+const sourceKeys = ['career', 'role', 'signature', 'feat.cargo', 'feat.ground'];
+const missingSources = sourceKeys.filter((k) => !roles.sources || !roles.sources[k]);
+console.log(`  fehlend: ${missingSources.join(', ') || '(keine)'}`);
+need(missingSources.length === 0, `sources-Kopffeld fehlt fuer: ${missingSources.join(', ')}`);
+
 console.log(`\n--- Zusammenfassung: ${roleIds.length}/${veh.vehicles.length} gejointe Fahrzeuge geprüft, ${roles.unmatched.length} benannte Fehlstellen, ${fail.length} Fehlschläge ---`);
 if (fail.length) {
   console.log(`\nFEHLGESCHLAGEN:`);

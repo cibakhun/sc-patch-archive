@@ -15,7 +15,7 @@ import vehiclesSnapshot from '../../data/vehicles.json';
 import vehicleRoles from '../../data/vehicle-roles.json';
 import { pickThumb } from '../../lib/shipRenders';
 import { priceInfo, pricesFetchedAt } from '../../lib/shipExtras';
-import { vType, vSize, vStatus, vRoleCig, vCareer, vRoleFamilies } from '../../i18n/vehicleText';
+import { vType, vSize, vStatus, vRoleCig, vCareer, vRoleFamilies, vSignature, SIG_LABELS, SIG_STEPS, FEAT_LABELS } from '../../i18n/vehicleText';
 import { localeFromPath } from '../../i18n/ui';
 
 const lang = localeFromPath(Astro.url.pathname);
@@ -30,7 +30,7 @@ const types = [...new Set(vehicles.map((v) => vType(v.data, lang)).filter(Boolea
 const roles = ([...new Set(vehicles.map((v) => vRoleCig(v.id, v.data, lang)).filter(Boolean))] as string[]).sort(
   (a, b) => a.localeCompare(b, localeTag)
 );
-const roleSnapshot = (vehicleRoles as { vehicles: Record<string, { careerKey: string | null }> }).vehicles;
+const roleSnapshot = (vehicleRoles as { vehicles: Record<string, { careerKey: string | null; feat?: string[] }> }).vehicles;
 
 // D-04: Beruf-Filter — distinkte Berufsschlüssel, Beschriftung aus vCareer(id, lang).
 const careerLabels = new Map<string, string>();
@@ -70,6 +70,8 @@ const cards = vehicles.map((v) => ({
   roleFam: vRoleFamilies(v.id, lang)
     .map((f) => f.slug)
     .join(' '),
+  sig: vSignature(v.id),
+  feat: (roleSnapshot[v.id]?.feat ?? []).join(' '),
 }));
 const buyable = cards.filter((c) => c.buy != null).length;
 
@@ -80,6 +82,7 @@ const crewFmt = (v: (typeof vehicles)[number]['data']) =>
       : `${v.crewMin ?? v.crewMax}`
     : '—';
 const auecShort = (n: number) => n.toLocaleString(de ? 'de-DE' : 'en-US');
+const sigFmt = (n: number) => n.toLocaleString(de ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 ---
 <style is:inline>
 :root{
@@ -207,6 +210,12 @@ a{color:inherit;text-decoration:none}
 .fcard__chip{font-family:var(--font-ui);font-weight:600;font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;
   color:var(--accent-2);border:1px solid var(--line);background:rgba(110,168,255,.06);padding:.1rem .42rem;white-space:nowrap}
 
+/* Gemessene Signaturwerte (D-07) — nur bei den 16 Traegern des Bauteils.
+   Kein Chip (keine Behauptung "Faehigkeit"), sondern eine nuechterne Zeile
+   mit CIG-eigener HUD-Beschriftung, damit der Nutzer selbst urteilt. */
+.fcard__sig{font-family:var(--font-ui);font-weight:600;font-size:.66rem;letter-spacing:.04em;
+  color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
 .fcard__stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-top:auto;
   border-top:1px solid var(--line);padding-top:.6rem}
 .fcard__stat dt{font-family:var(--font-ui);font-weight:700;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
@@ -291,6 +300,15 @@ a{color:inherit;text-decoration:none}
       <option value="">{de ? 'Alle Rollenfamilien' : 'All role families'}</option>
       {roleFamilies.map((f) => <option value={f.slug}>{f.label} ({f.count})</option>)}
     </select>
+    <select id="sf-sig" aria-label={de ? 'Signatur' : 'Signature'}>
+      <option value="">{de ? 'Alle Signaturen' : 'All signatures'}</option>
+      {SIG_STEPS.map((s) => <option value={s.value}>{de ? s.de : s.en}</option>)}
+    </select>
+    <select id="sf-feat" aria-label={de ? 'Merkmal' : 'Feature'}>
+      <option value="">{de ? 'Alle Merkmale' : 'All features'}</option>
+      <option value="cargo">{de ? FEAT_LABELS.cargo.de : FEAT_LABELS.cargo.en}</option>
+      <option value="ground">{de ? FEAT_LABELS.ground.de : FEAT_LABELS.ground.en}</option>
+    </select>
     <select id="sf-status" aria-label={de ? 'Status' : 'Status'}>
       <option value="">{de ? 'Jeder Status' : 'Any status'}</option>
       <option value="flight-ready">{de ? 'Flugbereit' : 'Flight Ready'}</option>
@@ -312,7 +330,7 @@ a{color:inherit;text-decoration:none}
   </div>
 
   <div class="sdb__fleet" id="sf-fleet">
-    {cards.map(({ d, id, thumb, buy, career, roleFam }) => (
+    {cards.map(({ d, id, thumb, buy, career, roleFam, sig, feat }) => (
       <article
         class="fcard"
         data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
@@ -321,6 +339,8 @@ a{color:inherit;text-decoration:none}
         data-role={vRoleCig(id, d, lang) ?? ''}
         data-career={career}
         data-rolefam={` ${roleFam} `}
+        data-sig={sig.min}
+        data-feat={` ${feat} `}
         data-status={d.statusEn ?? ''}
         data-archive={d.patches.length ? '1' : ''}
         data-href={de ? `/de/schiffe/${id}.html` : `/schiffe/${id}.html`}
@@ -355,6 +375,17 @@ a{color:inherit;text-decoration:none}
             {vRoleCig(id, d, lang) && <span class="fcard__chip">{vRoleCig(id, d, lang)}</span>}
             {vSize(d, lang) && <span class="fcard__chip">{vSize(d, lang)}</span>}
           </div>
+          {sig.ir != null && (
+            <div class="fcard__sig">
+              {[
+                `${SIG_LABELS.ir[localeTag]} ${sigFmt(sig.ir)}`,
+                sig.em != null ? `${SIG_LABELS.em[localeTag]} ${sigFmt(sig.em)}` : null,
+                sig.cs != null ? `${SIG_LABELS.cs[localeTag]} ${sigFmt(sig.cs)}` : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </div>
+          )}
           <dl class="fcard__stats">
             <div class="fcard__stat"><dt>Crew</dt><dd>{crewFmt(d)}</dd></div>
             <div class="fcard__stat"><dt>{de ? 'Fracht' : 'Cargo'}</dt><dd>{d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—'}</dd></div>
@@ -396,6 +427,8 @@ a{color:inherit;text-decoration:none}
   var selRole = document.getElementById('sf-role');
   var selCareer = document.getElementById('sf-career');
   var selRolefam = document.getElementById('sf-rolefam');
+  var selSig = document.getElementById('sf-sig');
+  var selFeat = document.getElementById('sf-feat');
   var selStatus = document.getElementById('sf-status');
   var selArchive = document.getElementById('sf-archive');
   var selSort = document.getElementById('sf-sort');
@@ -415,7 +448,7 @@ a{color:inherit;text-decoration:none}
   function apply() {
     var nq = norm(q.value).trim();
     var m = selMaker.value, t = selType.value, ro = selRole.value, st = selStatus.value, ar = selArchive.value;
-    var ca = selCareer.value, fa = selRolefam.value;
+    var ca = selCareer.value, fa = selRolefam.value, si = selSig.value, fe = selFeat.value;
     var n = 0;
     cards.forEach(function (c) {
       var ok =
@@ -425,6 +458,8 @@ a{color:inherit;text-decoration:none}
         (!ro || c.getAttribute('data-role') === ro) &&
         (!ca || c.getAttribute('data-career') === ca) &&
         (!fa || c.getAttribute('data-rolefam').indexOf(' ' + fa + ' ') >= 0) &&
+        (!si || numAttr(c, 'data-sig') < parseFloat(si)) &&
+        (!fe || c.getAttribute('data-feat').indexOf(' ' + fe + ' ') >= 0) &&
         (!st || c.getAttribute('data-status') === st) &&
         (!ar || c.getAttribute('data-archive') === ar);
       c.style.display = ok ? '' : 'none';
@@ -446,7 +481,7 @@ a{color:inherit;text-decoration:none}
     ordered.forEach(function (c) { fleet.insertBefore(c, empty); });
   }
 
-  [q, selMaker, selType, selRole, selCareer, selRolefam, selStatus, selArchive].forEach(function (el) {
+  [q, selMaker, selType, selRole, selCareer, selRolefam, selSig, selFeat, selStatus, selArchive].forEach(function (el) {
     el.addEventListener('input', apply);
     el.addEventListener('change', apply);
   });

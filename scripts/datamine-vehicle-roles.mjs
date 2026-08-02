@@ -159,15 +159,22 @@ const ROLE_FAMILY = {
 
 // ---- Belegpflicht (ROADMAP-Erfolgskriterium 3) ----
 // Kopffeld, das je Achse den Bauteil-/Feldnamen nennt, aus dem der Wert stammt.
-// Erweitert in Task 2 um signature/feat.cargo/feat.ground.
 const SOURCES = {
   career: 'VehicleComponentParams.vehicleCareer (Localization/<sprache>/global.ini); 4 Altwerte auf ihren kanonischen Berufsschlüssel gemappt (CAREER_LEGACY)',
   role: 'VehicleComponentParams.vehicleRole (Localization/<sprache>/global.ini); 8 Verbundrollen in atomare Bestandteile zerlegt (ROLE_COMPOUND), Familien aus ROLE_FAMILY (D-05/D-06)',
+  signature: 'SSCSignatureSystemParams.radarProperties.baseSignatureParams.signatures[0..2] (IR/EM/RQ); 0 bedeutet "nicht angegeben" und wird als null abgelegt (D-07)',
+  'feat.cargo': 'src/data/vehicles.json cargoSCU > 0',
+  'feat.ground': "VehicleComponentParams.movementClass === 'ArcadeWheeled' ODER .isGravlevVehicle === true (D-09)",
 };
 
 // ---- Schiff-Records + ID-Join (identisch zu datamine-ship-loadouts.mjs) ----
 const vehiclesCatalog = JSON.parse(readFileSync(resolve(__dirname, '..', 'src', 'data', 'vehicles.json'), 'utf8'));
 const ourIds = vehiclesCatalog.vehicles.map((v) => v.id);
+const cargoById = new Map(vehiclesCatalog.vehicles.map((v) => [v.id, v.cargoSCU]));
+
+// Zahl auf 2 Nachkommastellen runden — die DataCore liefert Float32-Werte wie
+// 0.7599999904632568 statt 0.76 (D-07 verlangt "zwei Nachkommastellen").
+const round2 = (n) => Math.round(n * 100) / 100;
 const isVariantJunk = (f) => /_ai_|_pu_|_test|_template|_dummy|_unmanned|_hijacked|_turretless|_debug|_showdown_scramble|_swarm|_simpod|_modifiers/i.test(f);
 const shipRecs = db.records.filter((r) =>
   db.structs[r.structIndex]?.name === 'EntityClassDefinition' &&
@@ -181,6 +188,7 @@ for (const r of shipRecs) { const id = recId(r); if (!byId.has(id)) byId.set(id,
 const idsToDo = ONLY ? [ONLY] : ourIds;
 const out = {};
 const matched = [], unmatched = [];
+let dogfightEnabledCount = 0; // Report-Zaehler fuer D-09 — kein Merkmal, nur zur Nachpruefbarkeit
 for (const id of idsToDo) {
   const rec = byId.get(id);
   if (!rec) { unmatched.push(id); continue; }
@@ -199,6 +207,30 @@ for (const id of idsToDo) {
   const roleKeys = roleKey ? (ROLE_COMPOUND[roleKey] ?? [roleKey]) : [];
   const families = [...new Set(roleKeys.map((k) => ROLE_FAMILY[k]).filter(Boolean))];
 
+  // D-07: Signatur. Eine 0 heißt "nicht angegeben", nicht "abgesenkt" — als
+  // null ablegen. Fehlt das Bauteil ganz, entfällt `sig` (Normalwert 1 gilt
+  // dann im Filter-Akzessor, nicht hier in der Momentaufnahme).
+  const sigComp = findType(o, /SSCSignatureSystemParams/i);
+  const sigArr = sigComp?.radarProperties?.baseSignatureParams?.signatures;
+  let sig = null;
+  if (Array.isArray(sigArr) && sigArr.length >= 3) {
+    const [ir, em, cs] = sigArr;
+    sig = {
+      ir: ir ? round2(ir) : null,
+      em: em ? round2(em) : null,
+      cs: cs ? round2(cs) : null,
+    };
+  }
+
+  // D-09: Merkmalsleiste. "Bewaffnet" (dogfightEnabled) wird bewusst NICHT
+  // erzeugt — bei 220 von 223 Schiffen gesetzt, siebt damit praktisch nichts
+  // aus, was die Rolle nicht schon aussiebt (Report unten zählt den Stand
+  // trotzdem mit, damit die Entscheidung nachprüfbar bleibt).
+  const feat = [];
+  if ((cargoById.get(id) ?? 0) > 0) feat.push('cargo');
+  if (comp.movementClass === 'ArcadeWheeled' || comp.isGravlevVehicle === true) feat.push('ground');
+  if (comp.dogfightEnabled === true) dogfightEnabledCount++;
+
   out[id] = {
     careerKey,
     careerDe: careerLabel?.de ?? null,
@@ -208,6 +240,8 @@ for (const id of idsToDo) {
     roleEn: locEn(roleRaw),
     roleKeys,
     families,
+    ...(sig ? { sig } : {}),
+    ...(feat.length ? { feat } : {}),
   };
 }
 
@@ -255,6 +289,18 @@ if (rolesWithoutFamily.length) {
 } else {
   console.log(`  (keine — jeder atomare Rollenschlüssel trägt eine Familie)`);
 }
+
+// D-07/D-09: Signatur + Merkmalsleiste, drei Zählstände zur Nachprüfbarkeit
+// der D-09-Abbruchbedingung ("Bewaffnet" siebt praktisch nichts aus).
+const sigCount = matched.filter((id) => out[id].sig).length;
+const sigLow = matched.filter((id) => out[id].sig && Math.min(out[id].sig.ir ?? 1, out[id].sig.em ?? 1) < 0.8).length;
+const cargoCount = matched.filter((id) => (out[id].feat || []).includes('cargo')).length;
+const groundCount = matched.filter((id) => (out[id].feat || []).includes('ground')).length;
+console.log(`\n=== SIGNATUR + MERKMALSLEISTE (D-07/D-09) ===`);
+console.log(`  Signatur (sig-Objekt):        ${sigCount} (davon unter 0,80: ${sigLow})`);
+console.log(`  Bewaffnet (dogfightEnabled):   ${dogfightEnabledCount} — NICHT als Merkmal erzeugt (D-09: siebt fast nichts aus)`);
+console.log(`  Frachtraum (feat=cargo):       ${cargoCount}`);
+console.log(`  Bodenfahrzeug (feat=ground):   ${groundCount}`);
 
 if (!AUDIT && !ONLY) {
   writeFileSync(OUT, JSON.stringify({

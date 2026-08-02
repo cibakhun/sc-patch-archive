@@ -18,6 +18,8 @@ type RoleEntry = {
   roleDe: string | null;
   roleEn: string | null;
   families: string[];
+  sig?: { ir: number | null; em: number | null; cs: number | null };
+  feat?: string[];
 };
 const ROLES = (vehicleRoles as { vehicles: Record<string, RoleEntry> }).vehicles;
 
@@ -173,6 +175,33 @@ const FAMILY_LABELS: Record<string, { de: string; en: string }> = {
   mehrzweck: { de: 'Mehrzweck', en: 'Multi-Role' },
 };
 
+// D-07: CIG-eigene HUD-Begriffe für die drei Signaturpositionen (aus
+// global.ini: hud_scanning_info_ir_signature / _em_signature / _cs_signature).
+// D-08: das Wort "Tarnung"/"Stealth" taucht hier bewusst NICHT auf — die
+// CIG-Rolle (Tarnjäger, Tarnbomber) trägt dieses Wort bereits, die Zahlen
+// heißen nach dem, was gemessen ist.
+export const SIG_LABELS: Record<'ir' | 'em' | 'cs', { de: string; en: string }> = {
+  ir: { de: 'IR-Signatur', en: 'IR Signature' },
+  em: { de: 'EM-Signatur', en: 'EM Signature' },
+  cs: { de: 'RQ-Signatur', en: 'CS Signature' },
+};
+
+// D-07 Filterstufen (Claude's Discretion aus 05-CONTEXT.md: Stufen statt
+// Schieber, bei 16 Schiffen trägt ein Schieber nichts). D-08: benannt nach der
+// gemessenen Größe, nicht nach einer Fähigkeit.
+export const SIG_STEPS: { value: string; de: string; en: string }[] = [
+  { value: '1', de: 'Abgesenkte Signatur', en: 'Reduced signature' },
+  { value: '0.8', de: 'Stark abgesenkt', en: 'Strongly reduced' },
+];
+
+// D-09: Merkmalsleiste — nur die beiden Merkmale, die nachweislich etwas
+// aussieben, das die Rolle nicht schon aussiebt (Frachtraum 102, Bodenfahrzeug
+// 37). "Bewaffnet" ist keine Kennung hier (siehe datamine-vehicle-roles.mjs).
+export const FEAT_LABELS: Record<'cargo' | 'ground', { de: string; en: string }> = {
+  cargo: { de: 'Frachtraum', en: 'Cargo hold' },
+  ground: { de: 'Bodenfahrzeug', en: 'Ground vehicle' },
+};
+
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 /** Typ-Anzeige (z. B. Holo-Chip / Datenblatt) */
@@ -263,6 +292,17 @@ export function vRoleFamilies(id: string, lang: Locale): { slug: string; label: 
     slug,
     label: (lang === 'de' ? FAMILY_LABELS[slug]?.de : FAMILY_LABELS[slug]?.en) ?? slug,
   }));
+}
+/**
+ * Signatur (D-07). `min` ist das Minimum aus IR und EM (die beiden Positionen,
+ * die bei allen 16 Trägern gesetzt sind) — das ist zugleich der Filterwert
+ * `data-sig`. Fehlt das Bauteil, gilt der Normalwert `1` (keine Absenkung).
+ */
+export function vSignature(id: string): { ir: number | null; em: number | null; cs: number | null; min: number } {
+  const sig = ROLES[id]?.sig;
+  if (!sig) return { ir: null, em: null, cs: null, min: 1 };
+  const min = Math.min(sig.ir ?? 1, sig.em ?? 1);
+  return { ir: sig.ir ?? null, em: sig.em ?? null, cs: sig.cs ?? null, min };
 }
 /** Freitext-Beschreibung (EN mit DE-Fallback, solange unübersetzt) */
 export function vDesc(d: VehicleData, lang: Locale): string | null {
