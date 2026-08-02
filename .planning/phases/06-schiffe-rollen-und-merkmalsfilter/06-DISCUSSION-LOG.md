@@ -1,10 +1,10 @@
-# Phase 5: Schiffe — Rollen- und Merkmalsfilter - Discussion Log
+# Phase 6: Schiffe — Rollen- und Merkmalsfilter - Discussion Log
 
 > **Audit trail only.** Do not use as input to planning, research, or execution agents.
 > Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
 
 **Date:** 2026-08-02
-**Phase:** 05-schiffe-rollen-und-merkmalsfilter
+**Phase:** 06-schiffe-rollen-und-merkmalsfilter
 **Areas discussed:** Filtermodell, Rollen-Granularität, Schnellzugriff, Sprachfassungen,
 Signatur/Tarnung, Merkmalsumfang
 

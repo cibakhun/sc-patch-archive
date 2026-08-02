@@ -1,4 +1,4 @@
-# Phase 5: Schiffe — Rollen- und Merkmalsfilter - Pattern Map
+# Phase 6: Schiffe — Rollen- und Merkmalsfilter - Pattern Map
 
 **Mapped:** 2026-08-02
 **Files analyzed:** 7 (neu/geändert)

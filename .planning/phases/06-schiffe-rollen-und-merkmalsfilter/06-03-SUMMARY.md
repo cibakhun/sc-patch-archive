@@ -1,11 +1,11 @@
 ---
-phase: 05-schiffe-rollen-und-merkmalsfilter
+phase: 06-schiffe-rollen-und-merkmalsfilter
 plan: 03
 subsystem: ui
 tags: [astro, i18n, filter, ships]
 
 requires:
-  - phase: 05-schiffe-rollen-und-merkmalsfilter/05-02
+  - phase: 06-schiffe-rollen-und-merkmalsfilter/06-02
     provides: "sf-rolefam/data-rolefam (18 Familien), sf-sig/data-sig (Signatur), sf-feat/data-feat (Merkmale), sf-career/data-career (Beruf), vRoleFamilies(), vSignature(), vCareer(), FAMILY_LABELS, SIG_STEPS, FEAT_LABELS"
 provides:
   - "Schnellzugriffleiste (sdb__quick/sdb__qchip) über der Filterkonsole — 7 Chips, die ersten beiden setzen Rollenfamilie UND Signaturstufe gleichzeitig (D-10, ROLE-06)"
@@ -39,7 +39,7 @@ coverage:
     requirement: "ROLE-06"
     verification:
       - kind: unit
-        ref: "Node-Inline-Checks aus 05-03-PLAN.md gegen dist/schiffe.html + dist/de/schiffe.html (7 Chips ok, ROLE-06 ok, Chip-Ziele-Zaehlung 5/6/3/5/17/1/1)"
+        ref: "Node-Inline-Checks aus 06-03-PLAN.md gegen dist/schiffe.html + dist/de/schiffe.html (7 Chips ok, ROLE-06 ok, Chip-Ziele-Zaehlung 5/6/3/5/17/1/1)"
         status: pass
       - kind: automated_ui
         ref: "agent-browser: Klick auf 'Bergung' -> 6 Treffer (MISC Fortune, MOTH, Reclaimer, Reclaimer 2949 BIS, +2); Klick auf 'Frachter mit gesenkter Signatur' -> 1 Treffer (Esperia Prowler Utility, IR/EM/RQ 0,76/0,76/0,80 auf der Karte); zweiter Klick auf aktiven Chip -> Reset beider Achsen, aria-pressed=false auf allen 7"
@@ -90,7 +90,7 @@ completed: 2026-08-02
 status: complete
 ---
 
-# Phase 5 Plan 3: Schnellzugriffe und Rollenfilter-Bereinigung — Prowler Utility ist jetzt ein Klick entfernt Summary
+# Phase 6 Plan 3: Schnellzugriffe und Rollenfilter-Bereinigung — Prowler Utility ist jetzt ein Klick entfernt Summary
 
 **Sieben Schnellzugriff-Chips setzen Rollenfamilie+Signatur in einem Klick; der doppelte Rollenfilter (sf-role neben sf-rolefam), den die Sichtprüfung fand, ist auf EINEN Familienfilter zusammengezogen — Filterkonsole schrumpft von 10 auf 9 Bedienelemente.**
 
@@ -163,13 +163,13 @@ None - keine externe Dienstkonfiguration nötig.
 
 ## Next Phase Readiness
 
-- Phase 5 (Schiffe — Rollen- und Merkmalsfilter) ist mit diesem Plan inhaltlich abgeschlossen: alle 10 Requirements (ROLE-01 bis ROLE-10) sind erfüllt, alle fünf vom Nutzer wörtlich genannten Abnahmefälle sind über je einen Klick erreichbar.
+- Phase 6 (Schiffe — Rollen- und Merkmalsfilter) ist mit diesem Plan inhaltlich abgeschlossen: alle 10 Requirements (ROLE-01 bis ROLE-10) sind erfüllt, alle fünf vom Nutzer wörtlich genannten Abnahmefälle sind über je einen Klick erreichbar.
 - Die Filterkonsole trägt jetzt 9 Bedienelemente: Suche, Hersteller, Beruf, Rolle (Familienebene), Signatur, Merkmal, Status, Archiv, Sortierung — plus die 7 Schnellzugriff-Chips darüber.
 - Kein bekannter Blocker für weitere Phasen. `fociDe`/`vRole()` bleiben unverändert für `ShipDetail.astro` (außerhalb dieser Phase) bestehen.
-- Offen (aus 05-CONTEXT.md, bewusst nicht in dieser Phase): Schiffs-Datenblatt mit denselben Achsen anreichern, Suchindex um Rollenbegriffe erweitern, die übrigen 66 Sprachpaare auf EIN-Körper-Muster ziehen.
+- Offen (aus 06-CONTEXT.md, bewusst nicht in dieser Phase): Schiffs-Datenblatt mit denselben Achsen anreichern, Suchindex um Rollenbegriffe erweitern, die übrigen 66 Sprachpaare auf EIN-Körper-Muster ziehen.
 
 ---
-*Phase: 05-schiffe-rollen-und-merkmalsfilter*
+*Phase: 06-schiffe-rollen-und-merkmalsfilter*
 *Completed: 2026-08-02*
 
 ## Self-Check: PASSED

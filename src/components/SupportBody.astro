@@ -7,6 +7,27 @@
 // belastet — für eine Seite, die "keine Tracker" verspricht, der falsche Handel.
 // Ein Link tut dasselbe: die Verbindung zu PayPal entsteht erst nach dem Klick,
 // auf der eigenen Domain fliesst nichts.
+//
+// GESTALTUNG "Instandsetzung" — nachgebaut aus der Skizze
+// .planning/sketches/001-support-page-identity/ (Variante A, vom Betreiber
+// gewählt). Die Seite IST ein Werkstattauftrag: Auftragskopf mit Feldern,
+// senkrechte Explosionszeichnung des Netzteils, Positionen 01–03, Kostenrahmen
+// mit Teilung. Kalt, tabellarisch, masshaltig.
+//
+// Der Kern der Aussage ist NICHT das defekte Bauteil, sondern der ARBEITSVERLUST:
+// der Rechner geht ohne Vorwarnung aus und nimmt mit, was seit dem letzten
+// Speichern entstanden ist.
+//
+// DREI ABWEICHUNGEN VON DER SKIZZE, alle aus demselben Grund — die Skizze
+// enthielt Platzhalterdaten, die es in Wirklichkeit nicht gibt:
+//   1. "In den letzten vierzehn Tagen ist das elfmal passiert" und "30 bis 40
+//      Minuten" waren frei erfunden. Hier steht es qualitativ.
+//   2. Die Beschaffungsanzeige zeigte "035 / 120 EUR". Einen Ist-Stand gibt es
+//      nicht: ein PayPal-Link meldet nichts zurück. Die Anzeige zeigt deshalb
+//      den GEWÄHLTEN Betrag am Kostenrahmen und sagt ausdrücklich, dass der
+//      Stand nicht darstellbar ist.
+//   3. Die Beitragsliste mit zwölf Namen entfällt — dieselbe fehlende Quelle.
+// Hausregel "Never fabricate data", verankert in tests/e2e/db.test.js.
 import { href } from '../i18n/ui';
 
 interface Props {
@@ -14,19 +35,56 @@ interface Props {
 }
 const { lang } = Astro.props;
 
-/** Empfängeradresse. Einzige Stelle, die beim Wechsel des Kontos anzupassen ist. */
+/**
+ * Empfängeradresse. Einzige Stelle, die beim Wechsel des Kontos anzupassen ist.
+ * Der Betrag wird als Pfadsegment angehängt (paypal.me/NAME/5EUR) — das kann
+ * PayPal.me von Haus aus, die Auswahl unten steuert also wirklich etwas.
+ */
 const PAYPAL = 'https://paypal.me/mkrisz22';
+
+const STEPS = [3, 5, 10, 25];
+const PRESELECT = 5;
+const GOAL = 120;
+/** Grenzen der freien Eingabe. Greift, BEVOR eine URL entsteht. */
+const MIN = 1;
+const MAX = 500;
 
 const T = {
   de: {
-    h1: 'VerseBase unterstützen',
-    lead:
-      'VerseBase ist ein Fan-Projekt: kostenlos, ohne Werbung, ohne Tracker, ohne Anmeldezwang. Server, Domain und die Werkzeuge dahinter kosten trotzdem jeden Monat Geld — und die Arbeit an Daten, Karten und Rechnern passiert in der Freizeit.',
-    lead2:
-      'Wenn dir die Seite etwas wert ist, kannst du das hier zeigen. Freiwillig, ohne Gegenleistung, ohne Abo.',
-    btn: 'Über PayPal unterstützen',
-    note:
-      'Der Link führt zu PayPal. Erst dort entsteht eine Verbindung — auf dieser Seite läuft nichts von PayPal mit.',
+    kicker: 'VerseBase · Werkstatt',
+    ttl1: 'Instandsetzung',
+    ttl2: 'Netzteil',
+    fields: [
+      ['Gerät', 'Entwicklungsrechner', false],
+      ['Bauteil', 'Spannungsversorgung', false],
+      ['Zustand', 'Fällt unter Last aus', true],
+      ['Kostenrahmen', '120,00 EUR', false],
+    ] as [string, string, boolean][],
+    schAlt: 'Explosionszeichnung eines ATX-Netzteils. Von oben nach unten: Gehäuse mit Lüftergitter, Lüfter 80 Millimeter, Platine mit der Kondensatorbank C1 bis C3 — als Ausfall unter Last gekennzeichnet — und das Anschlussfeld mit IEC-C14-Buchse und Netzschalter.',
+    schCap1: 'Zeichnung — Netzteil, Aufbau',
+    schCap2: 'Nicht maßstäblich',
+    sch: { case: ['GEHÄUSE', 'ATX'], fan: ['LÜFTER', '80 MM'], cap: ['C1–C3', 'PRIMÄR-', 'KONDENSATOR', 'AUSFALL', 'UNTER LAST'], pcb: 'PLATINE', conn: ['ANSCHLUSS', 'IEC C14'], dim: '140 MM' },
+    pos: [
+      ['Pos 01', 'Befund',
+        '<b>Der Rechner, auf dem VerseBase entsteht, geht ohne Vorwarnung aus.</b>',
+        'Der Fehler tritt unter Last auf: sobald alle Kerne rechnen, fällt die Spannung weg. Es kündigt sich nicht an — der Rechner ist von einem Moment auf den anderen weg.'],
+      ['Pos 02', 'Auswirkung',
+        'Das Ärgerliche ist nicht das Gerät. Es ist, was mitgeht. Passiert es beim Programmieren, ist die Arbeit seit dem letzten Speichern verloren.',
+        'Betroffen sind vor allem die langen Läufe. Ein Durchgang durch die Spieldateien — die Grundlage für die Schiffs-, Item- und Crafting-Daten — läuft am Stück und lässt sich nicht in der Mitte anhalten. Bricht er ab, fängt er von vorn an. Entwickeln heißt damit: nie länger als ein paar Minuten am Stück denken.'],
+      ['Pos 03', 'Maßnahme',
+        'Netzteil ersetzen. Ein passendes Modell mit ausreichend Reserve kostet <b>rund 120 €</b>. Reparieren lohnt bei dem Bauteil nicht — die Kondensatoren sind vergossen.',
+        ''],
+    ] as [string, string, string, string][],
+    gaugeHead: 'Kostenrahmen',
+    gaugeCapPre: 'Dein Beitrag:',
+    gaugeCapPost: `von ${GOAL} €.`,
+    gaugeHonest: 'Wie viel bereits zusammengekommen ist, kann diese Seite nicht anzeigen — ein PayPal-Link meldet nichts zurück. Lieber keine Zahl als eine erfundene.',
+    amountLbl: 'Betrag',
+    amountFree: 'Anderer',
+    cta: 'Mit %s € unterstützen',
+    note: 'Der Link führt zu PayPal. Erst dort entsteht eine Verbindung — auf dieser Seite läuft nichts von PayPal mit.',
+    err: `Bitte einen Betrag zwischen ${MIN} € und ${MAX} € eingeben.`,
+    honest: '<b>Freiwillig, ohne Gegenleistung.</b> Keine Rechnung, kein Vertrag, keine Vorteile im Konto, nichts hinter einer Bezahlschranke. Eine Spendenbescheinigung kann ich nicht ausstellen — VerseBase ist ein privates Fan-Projekt, kein gemeinnütziger Verein.',
     h2help: 'Was genauso hilft',
     helps: [
       ['Fehler melden.', 'Ein falscher Wert, den du meldest, ist mehr wert als ein Kaffee.'],
@@ -34,19 +92,42 @@ const T = {
       ['Verlinken.', 'Wer VerseBase von der eigenen Seite verlinkt, hilft der Sichtbarkeit dauerhaft.'],
     ],
     feedback: 'Zum Feedback-Formular',
-    h2fine: 'Kein Kleingedrucktes',
-    fine:
-      'Unterstützung ist eine freiwillige Zuwendung ohne Gegenleistung: keine Rechnung, kein Vertrag, keine Vorteile im Benutzerkonto, keine Inhalte hinter einer Bezahlschranke. Alles auf VerseBase bleibt für alle offen — auch für die, die nichts geben.',
   },
   en: {
-    h1: 'Support VerseBase',
-    lead:
-      'VerseBase is a fan project: free, no advertising, no trackers, no forced sign-up. Server, domain and the tooling behind it still cost money every month — and the work on data, maps and calculators happens in spare time.',
-    lead2:
-      'If the site is worth something to you, this is where you can say so. Voluntary, nothing in return, no subscription.',
-    btn: 'Support via PayPal',
-    note:
-      'The link takes you to PayPal. The connection is made there, not here — nothing from PayPal runs on this page.',
+    kicker: 'VerseBase · Workshop',
+    ttl1: 'Repair order',
+    ttl2: 'Power supply',
+    fields: [
+      ['Machine', 'Development PC', false],
+      ['Part', 'Power supply', false],
+      ['Condition', 'Fails under load', true],
+      ['Budget', 'EUR 120.00', false],
+    ] as [string, string, boolean][],
+    schAlt: 'Exploded drawing of an ATX power supply. Top to bottom: housing with fan grille, 80 millimetre fan, board with the capacitor bank C1 to C3 — marked as failing under load — and the connector panel with IEC C14 socket and power switch.',
+    schCap1: 'Drawing — power supply, assembly',
+    schCap2: 'Not to scale',
+    sch: { case: ['HOUSING', 'ATX'], fan: ['FAN', '80 MM'], cap: ['C1–C3', 'PRIMARY', 'CAPACITOR', 'FAILS', 'UNDER LOAD'], pcb: 'BOARD', conn: ['CONNECTOR', 'IEC C14'], dim: '140 MM' },
+    pos: [
+      ['Item 01', 'Fault',
+        '<b>The machine VerseBase is built on cuts out without warning.</b>',
+        'The fault appears under load: once every core is working, the voltage drops away. There is no warning — the machine is simply gone from one moment to the next.'],
+      ['Item 02', 'Effect',
+        'The annoying part is not the hardware. It is what goes with it. If it happens while I am coding, the work since the last save is gone.',
+        'The long runs suffer most. A pass over the game files — the basis for the ship, item and crafting data — runs in one stretch and cannot be paused halfway. If it breaks off, it starts from the beginning. Developing like this means never thinking further ahead than a few minutes.'],
+      ['Item 03', 'Action',
+        'Replace the power supply. A suitable model with enough headroom costs <b>around €120</b>. Repair is not worth it on this part — the capacitors are potted.',
+        ''],
+    ] as [string, string, string, string][],
+    gaugeHead: 'Budget',
+    gaugeCapPre: 'Your contribution:',
+    gaugeCapPost: `of €${GOAL}.`,
+    gaugeHonest: 'How much has come in already is something this page cannot show — a PayPal link reports nothing back. Better no figure than an invented one.',
+    amountLbl: 'Amount',
+    amountFree: 'Other',
+    cta: 'Support with €%s',
+    note: 'The link takes you to PayPal. The connection is made there, not here — nothing from PayPal runs on this page.',
+    err: `Please enter an amount between €${MIN} and €${MAX}.`,
+    honest: '<b>Voluntary, nothing in return.</b> No invoice, no contract, no perks in your account, nothing behind a paywall. I cannot issue a donation receipt — VerseBase is a private fan project, not a registered charity.',
     h2help: 'What helps just as much',
     helps: [
       ['Report mistakes.', 'A wrong value you report is worth more than a coffee.'],
@@ -54,49 +135,390 @@ const T = {
       ['Link to it.', 'Linking VerseBase from your own site helps visibility for good.'],
     ],
     feedback: 'To the feedback form',
-    h2fine: 'No small print',
-    fine:
-      'Support is a voluntary gift with nothing in return: no invoice, no contract, no perks in your account, nothing behind a paywall. Everything on VerseBase stays open to everyone — including those who give nothing.',
   },
 }[lang];
+
+const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 ---
 <style is:inline>
-:root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
+/* Instandsetzung — warme Werkstatt-Palette. Gold ist die EINE Akzentfarbe; sie
+   markiert ausschliesslich den Befund (Zeichnung, Titel, Zustand) und die
+   Behebung (Anzeige, Knopf). Positionsnummern bleiben bewusst grau: sie sind
+   Gliederung, kein Hinweis. */
+:root{--bg:#0d0a06;--bg-2:#14100a;--surface:#191309;--surface-2:#221a0e;--accent:#e8a83c;--accent-2:#ffcf7a;--hot:#e8a83c;--text:#f2ece1;--muted:#ab9d88;--line:rgba(232,168,60,.22);--line-soft:rgba(242,236,225,.10);--ink:#1a1004;--maxw:1180px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#0850ad;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3);--line-soft:rgba(41,46,56,.12)}
+:root[data-theme="light"]{--bg:#fbf7f0;--bg-2:#f3ede4;--surface:#fffdfa;--surface-2:#f8f1e8;--text:#231f17;--muted:#635643;--accent:#795201;--accent-2:#6f4f02;--hot:#6f4a01;--ink:#ffffff;--accent-media:#e8a83c;--accent-2-media:#ffcf7a;--line:rgba(145,105,37,.3);--line-soft:rgba(49,45,37,.12)}
 
+/* box-sizing ist hier NICHT vorsorglich: die Seite setzt keinen globalen Reset,
+   und bei 360 px ragten dadurch die Auftragsfelder auf 422 px und der Knopf auf
+   369 px hinaus — `width:100%` plus Innenabstand ergibt mehr als die Spalte.
+   Sichtbar war davon NICHTS: theme.css versteckt jede Bildlaufleiste und
+   Layout.astro setzt `overflow-x:clip`, der Ueberlauf wird also stillschweigend
+   abgeschnitten. Im Browser bei 360 px gemessen. */
+.sup,.sup *{box-sizing:border-box}
+.sup{max-width:var(--maxw);margin:0 auto}
+.sup .cap{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.sup .cap--wide{letter-spacing:.38em}
+.sup .num{font-variant-numeric:tabular-nums;font-family:var(--font-mono,'Share Tech Mono',monospace)}
 
-.lg-wrap{max-width:var(--maxw);margin:0 auto;padding:3.2rem 1.25rem 4rem}
-.lg-wrap h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,6vw,3rem);color:var(--text);margin:0 0 1.6rem}
-.lg-wrap h2{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.95rem;color:var(--accent);margin:2.4rem 0 .6rem;border-bottom:1px solid var(--line);padding-bottom:.4rem}
-.lg-wrap p, .lg-wrap li{color:var(--text);line-height:1.7;font-size:.98rem}
-.lg-wrap ul{padding-left:1.2rem}
-.lg-wrap li{margin:.4rem 0}
-.lg-wrap .muted{color:var(--muted)}
-.give{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.6rem;margin:2rem 0}
-.give__btn{display:inline-block;font-family:var(--font-ui);font-weight:800;letter-spacing:.04em;color:var(--ink);background:var(--accent);border-radius:8px;padding:.85rem 1.4rem;text-decoration:none}
-.give__btn:hover{filter:brightness(1.08)}
-.give .note{margin:.9rem 0 0;color:var(--muted);font-size:.86rem;line-height:1.55}
-</style>
+/* --- Auftragskopf --------------------------------------------------------- */
+.sup__head{border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--bg-2),var(--bg))}
+.sup__headtop{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:22px clamp(16px,4vw,40px) 12px;flex-wrap:wrap}
+.sup__ttl{font-family:var(--font-display,sans-serif);font-weight:700;font-size:clamp(1.5rem,4.6vw,2.3rem);line-height:1.05;letter-spacing:.01em;color:var(--text);margin:0}
+.sup__ttl em{font-style:normal;color:var(--accent)}
+/* minmax(0,1fr) statt 1fr: `1fr` ist `minmax(auto,1fr)`, die Zelle kann also
+   nicht unter ihre Inhaltsbreite schrumpfen. Bei 360 px blieben die Zellen
+   deshalb 206 px breit — zusammen 413 px — und „Kostenrahmen 120,00 EUR" wurde
+   rechts abgeschnitten, unsichtbar, weil overflow-x:clip greift. Gemessen. */
+.sup__fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line-soft);margin:0}
+.sup__fields dt,.sup__fields dd{overflow-wrap:anywhere}
+.sup__fields>div{padding:12px clamp(16px,4vw,40px) 14px;border-right:1px solid var(--line-soft)}
+.sup__fields>div:last-child{border-right:0}
+.sup__fields>div:not(:first-child){padding-left:18px}
+.sup__fields dt{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.sup__fields dd{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.86rem;letter-spacing:.05em;color:var(--text);margin:4px 0 0;font-variant-numeric:tabular-nums}
+.sup__fields dd.hi{color:var(--accent)}
+
+/* --- Koerper: Zeichnung | Auftrag ----------------------------------------- */
+.sup__body{display:grid;grid-template-columns:minmax(300px,400px) 1fr;align-items:start}
+.sup__drawing{position:relative;padding:32px clamp(16px,3vw,32px) 40px;border-right:1px solid var(--line-soft);background:linear-gradient(90deg,var(--line-soft) 0 1px,transparent 1px 100%) 0 0/32px 32px,linear-gradient(0deg,var(--line-soft) 0 1px,transparent 1px 100%) 0 0/32px 32px,var(--bg)}
+/* Eckklammern wie auf einem Zeichnungsblatt */
+.sup__drawing::before{content:"";position:absolute;inset:14px;pointer-events:none;background:linear-gradient(var(--line) 0 0) 0 0/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 0 0/1px 18px no-repeat,linear-gradient(var(--line) 0 0) 100% 0/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 100% 0/1px 18px no-repeat,linear-gradient(var(--line) 0 0) 0 100%/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 0 100%/1px 18px no-repeat,linear-gradient(var(--line) 0 0) 100% 100%/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 100% 100%/1px 18px no-repeat}
+.sup__drawcap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:10px;border-top:1px solid var(--line-soft)}
+.sup__sch{display:block;width:100%;height:auto}
+.sup__sch .o{fill:none;stroke:var(--muted);stroke-width:1.7;vector-effect:non-scaling-stroke}
+.sup__sch .t{fill:none;stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke}
+.sup__sch .c{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:14 4 3 4;opacity:.45;vector-effect:non-scaling-stroke}
+.sup__sch .d{fill:none;stroke:var(--muted);stroke-width:1;opacity:.7;vector-effect:non-scaling-stroke}
+.sup__sch .ar{fill:var(--muted);opacity:.7;stroke:none}
+.sup__sch .hot{fill:none;stroke:var(--accent);stroke-width:1.7;stroke-dasharray:7 4;vector-effect:non-scaling-stroke}
+.sup__sch .ld{fill:none;stroke:var(--accent);stroke-width:1;vector-effect:non-scaling-stroke}
+.sup__sch .dot{fill:var(--line);stroke:none}
+.sup__sch text{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:10.5px;letter-spacing:.1em;fill:var(--muted)}
+.sup__sch text.hi{fill:var(--accent)}
+.sup__sch g{stroke-linecap:butt;stroke-linejoin:miter}
+
+/* --- Positionen ----------------------------------------------------------- */
+.sup__order{padding:32px clamp(16px,4vw,40px) 0}
+.sup__pos{border-top:1px solid var(--line-soft);padding:20px 0;display:grid;grid-template-columns:3.4rem 1fr;gap:0 16px}
+.sup__pos:first-of-type{border-top:0;padding-top:0}
+.sup__pos-n{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.74rem;letter-spacing:.12em;color:var(--muted);padding-top:4px;text-transform:uppercase}
+.sup__pos h2{font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text);margin:0 0 8px}
+.sup__pos p{color:var(--muted);font-size:.98rem;line-height:1.65;max-width:58ch;margin:0}
+.sup__pos p+p{margin-top:10px}
+.sup__pos p b,.sup__pos p strong{color:var(--text);font-weight:600}
+
+/* --- Kostenrahmen mit Teilung --------------------------------------------- */
+.sup__gauge{margin:24px 0 8px}
+.sup__ghead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.sup__gread{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:1.02rem;letter-spacing:.06em;color:var(--accent);font-variant-numeric:tabular-nums}
+.sup__gtrack{position:relative;height:26px;border:1px solid var(--line);background:var(--veil,var(--veil-hi));overflow:hidden}
+.sup__gfill{position:absolute;inset:0 auto 0 0;background:var(--accent);transition:width .6s cubic-bezier(.16,.84,.34,1)}
+.sup__gticks{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--muted) 45%,transparent) 0 1px,transparent 1px calc(100% / 12))}
+.sup__gticks::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--muted) 80%,transparent) 0 1px,transparent 1px calc(100% / 4))}
+/* Teilungsbeschriftung ueber flex + space-between statt Null-Spalte mit
+   transform: ein verschobenes Element verkleinert seinen Scroll-Kasten NICHT
+   und riss die Skizze bei 360 px um 23 px auf. */
+.sup__gscale{display:flex;justify-content:space-between;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.62rem;letter-spacing:.1em;color:var(--muted);margin-top:5px}
+.sup__gscale span{white-space:nowrap}
+.sup__gcap{font-size:.8rem;color:var(--muted);margin:10px 0 0;line-height:1.55}
+.sup__gcap b{color:var(--text);font-weight:600}
+.sup__ghonest{font-size:.78rem;color:var(--muted);margin:6px 0 0;line-height:1.55;opacity:.85}
+
+/* --- Waehler -------------------------------------------------------------- */
+.sup__card{border:1px solid var(--line);background:linear-gradient(180deg,var(--surface),var(--bg-2));padding:24px;margin-top:8px;display:grid;gap:16px;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px))}
+.sup__lbl{display:block;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:8px}
+.sup__row{display:flex;flex-wrap:wrap;gap:8px}
+.sup__pill{position:relative;cursor:pointer}
+.sup__pill input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.sup__pill span{display:block;min-width:4.4rem;min-height:44px;text-align:center;border:1px solid var(--line);background:var(--veil,var(--veil-hi));padding:11px 16px;transition:border-color .15s,background-color .15s,color .15s;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.95rem;color:var(--text)}
+.sup__pill:hover span{border-color:var(--accent)}
+.sup__pill input:checked+span{background:color-mix(in srgb,var(--accent) 14%,transparent);border-color:var(--accent);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.sup__pill input:focus-visible+span{outline:2px solid var(--accent-2);outline-offset:3px}
+.sup__freewrap{display:flex;align-items:stretch}
+.sup__freewrap span{display:flex;align-items:center;gap:6px;min-width:0;min-height:44px;border:1px solid var(--line);background:var(--veil,var(--veil-hi));padding:0 14px}
+.sup__freewrap input{width:4.6rem;background:none;border:0;outline:none;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.95rem;padding:11px 0;color:var(--text);font-variant-numeric:tabular-nums}
+.sup__freewrap .cur{font-family:var(--font-ui,sans-serif);font-weight:700;color:var(--muted)}
+.sup__freewrap:focus-within span{border-color:var(--accent)}
+/* Der Fokusring von detail.css setzt --accent-2; hier ausdruecklich gesetzt,
+   damit er nicht von der Seitenpalette abweicht. */
+.sup__freewrap input:focus-visible{outline:none}
+.sup__cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.92rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:var(--accent);border:1px solid var(--accent);padding:15px 28px;text-decoration:none;transition:filter .15s,opacity .15s;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.sup__cta:hover{filter:brightness(1.08)}
+.sup__cta:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px}
+.sup__cta[aria-disabled='true']{opacity:.5;pointer-events:none}
+.sup__err{color:var(--accent-2);font-size:.88rem;line-height:1.5;margin:4px 0 0}
+.sup__err[hidden]{display:none}
+.sup__note{font-size:.84rem;color:var(--muted);margin:0;line-height:1.55}
+.sup__honest{font-size:.82rem;line-height:1.6;color:var(--muted);border-left:2px solid var(--line);padding-left:14px;margin:0}
+.sup__honest b{color:var(--text);font-weight:600}
+
+/* --- Fuss: was genauso hilft ---------------------------------------------- */
+.sup__help{margin:44px clamp(16px,4vw,40px) 0;border-top:1px solid var(--line);padding:24px 0 56px}
+.sup__help h2{font-family:var(--font-ui,sans-serif);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.82rem;color:var(--accent);margin:0 0 14px}
+.sup__help ul{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+.sup__help li{color:var(--muted);font-size:.96rem;line-height:1.6;padding-left:16px;border-left:1px solid var(--line-soft)}
+.sup__help li b{color:var(--text);font-weight:600}
+.sup__help p{margin:18px 0 0;font-size:.92rem}
+.sup__help a{color:var(--accent)}
+
+/* Bewegung ist Verstaerkung: assets/detail.css gattert bei reduzierter Bewegung
+   nur `animation`, NICHT `transition` — die Uebergaenge oben brauchen deshalb
+   ihre eigene Klammer, sonst laufen sie trotz Systemeinstellung weiter. */
+@media (prefers-reduced-motion:reduce){
+  .sup__gfill,.sup__pill span,.sup__cta{transition:none}
+}
+@media (max-width:860px){
+  .sup__body{grid-template-columns:minmax(0,1fr)}
+  .sup__drawing{border-right:0;border-bottom:1px solid var(--line-soft)}
+  .sup__fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sup__fields>div:nth-child(2){border-right:0}
+}
+@media (max-width:480px){
+  /* Der Innenabstand der Zellen war bei 360 px der zweite Teil des Problems:
+     16 px links plus 18 px Zusatz je Folgezelle fressen ein Zehntel der
+     Bildbreite, bevor Text ueberhaupt anfaengt. */
+  .sup__fields>div{padding-left:14px;padding-right:14px}
+  .sup__fields>div:not(:first-child){padding-left:14px}
+}
+@media (max-width:560px){
+  .sup__row{display:grid;grid-template-columns:1fr 1fr}
+  .sup__pill span{min-width:0}
+  .sup__freewrap{grid-column:1/-1}
+  .sup__freewrap span{width:100%}
+  .sup__freewrap input{width:100%}
+  .sup__cta{width:100%}
+  .sup__pos{grid-template-columns:1fr;gap:6px}
+}</style>
 
 <main id="main">
-  <div class="lg-wrap">
-    <h1>{T.h1}</h1>
-    <p>{T.lead}</p>
-    <p>{T.lead2}</p>
+  <article class="sup">
 
-    <div class="give">
-      <a class="give__btn" href={PAYPAL} rel="noopener">{T.btn}</a>
-      <p class="note">{T.note}</p>
+    <header class="sup__head">
+      <div class="sup__headtop">
+        <h1 class="sup__ttl">{T.ttl1}<br /><em set:text={T.ttl2}></em></h1>
+        <span class="cap cap--wide" set:text={T.kicker}></span>
+      </div>
+      <dl class="sup__fields">
+        {T.fields.map(([k, v, hi]) => (
+          <div>
+            <dt set:text={k}></dt>
+            <dd class={hi ? 'hi' : undefined} set:text={v}></dd>
+          </div>
+        ))}
+      </dl>
+    </header>
+
+    <div class="sup__body">
+
+      {/* Senkrechte Explosionsdarstellung: Gehaeuse, Luefter, Platine mit der
+          Kondensatorbank (das Fehlerteil, golden umgrenzt), Anschlussfeld. */}
+      <div class="sup__drawing">
+        <svg class="sup__sch" viewBox="0 0 400 640" role="img" aria-label={T.schAlt}>
+          <g>
+            <path class="c" d="M150 22 V 596"></path>
+
+            <path class="d" d="M52 40 H 20 M52 570 H 20 M26 46 V 564"></path>
+            <path class="ar" d="M22 52 L26 40 L30 52 Z"></path>
+            <path class="ar" d="M22 558 L26 570 L30 558 Z"></path>
+            <text transform="translate(15,305) rotate(-90)" text-anchor="middle" set:text={T.sch.dim}></text>
+
+            <rect class="o" x="55" y="40" width="190" height="110"></rect>
+            <rect class="t" x="63" y="48" width="174" height="94"></rect>
+            <circle class="t" cx="150" cy="95" r="42"></circle>
+            <circle class="t" cx="150" cy="95" r="30"></circle>
+            <circle class="t" cx="150" cy="95" r="18"></circle>
+            <circle class="o" cx="150" cy="95" r="7"></circle>
+            <path class="t" d="M157 95 H192 M154.95 99.95 L179.7 124.7 M150 102 V137 M145.05 99.95 L120.3 124.7 M143 95 H108 M145.05 90.05 L120.3 65.3 M150 88 V53 M154.95 90.05 L179.7 65.3"></path>
+            <path class="ld" d="M245 95 H261"></path>
+            <text x="265" y="92" set:text={T.sch.case[0]}></text>
+            <text x="265" y="106" set:text={T.sch.case[1]}></text>
+
+            <rect class="t" x="108" y="188" width="84" height="84"></rect>
+            <circle class="o" cx="150" cy="230" r="40"></circle>
+            <circle class="o" cx="150" cy="230" r="11"></circle>
+            <path class="t" d="M161 230 H188 M156.9 238.6 L173.7 259.7 M147.6 240.7 L141.5 267 M140.1 234.8 L115.8 246.5 M140.1 225.2 L115.8 213.5 M147.6 219.3 L141.5 193 M156.9 221.4 L173.7 200.3"></path>
+            <path class="ld" d="M192 230 H261"></path>
+            <text x="265" y="227" set:text={T.sch.fan[0]}></text>
+            <text x="265" y="241" set:text={T.sch.fan[1]}></text>
+
+            <rect class="o" x="45" y="305" width="210" height="145"></rect>
+            <path class="t" d="M55 312 H245"></path>
+            <path class="t" d="M60 440 V428 H120 V436 M240 440 V425 H180"></path>
+            <g class="dot">
+              <circle cx="60" cy="443" r="1.6"></circle><circle cx="74" cy="443" r="1.6"></circle>
+              <circle cx="88" cy="443" r="1.6"></circle><circle cx="102" cy="443" r="1.6"></circle>
+              <circle cx="116" cy="443" r="1.6"></circle><circle cx="130" cy="443" r="1.6"></circle>
+              <circle cx="144" cy="443" r="1.6"></circle><circle cx="158" cy="443" r="1.6"></circle>
+              <circle cx="172" cy="443" r="1.6"></circle><circle cx="186" cy="443" r="1.6"></circle>
+              <circle cx="200" cy="443" r="1.6"></circle><circle cx="214" cy="443" r="1.6"></circle>
+              <circle cx="228" cy="443" r="1.6"></circle><circle cx="242" cy="443" r="1.6"></circle>
+            </g>
+            <ellipse class="o" cx="90" cy="330" rx="18" ry="6"></ellipse>
+            <path class="o" d="M72 330 V412 A18 6 0 0 0 108 412 V330"></path>
+            <path class="t" d="M81 330 H99 M90 324 V336 M72 352 H108"></path>
+            <ellipse class="o" cx="150" cy="330" rx="18" ry="6"></ellipse>
+            <path class="o" d="M132 330 V412 A18 6 0 0 0 168 412 V330"></path>
+            <path class="t" d="M141 330 H159 M150 324 V336 M132 352 H168"></path>
+            <ellipse class="o" cx="210" cy="330" rx="18" ry="6"></ellipse>
+            <path class="o" d="M192 330 V412 A18 6 0 0 0 228 412 V330"></path>
+            <path class="t" d="M201 330 H219 M210 324 V336 M192 352 H228"></path>
+            <rect class="hot" x="62" y="316" width="176" height="110"></rect>
+            <path class="ld" d="M238 352 H261"></path>
+            <text class="hi" x="265" y="342" set:text={T.sch.cap[0]}></text>
+            <text x="265" y="356" set:text={T.sch.cap[1]}></text>
+            <text x="265" y="370" set:text={T.sch.cap[2]}></text>
+            <text class="hi" x="265" y="390" set:text={T.sch.cap[3]}></text>
+            <text class="hi" x="265" y="404" set:text={T.sch.cap[4]}></text>
+            <path class="ld" d="M255 436 H261"></path>
+            <text x="265" y="440" set:text={T.sch.pcb}></text>
+
+            <rect class="o" x="70" y="490" width="160" height="80"></rect>
+            <path class="o" d="M92 548 V524 L100 516 H136 L144 524 V548 Z"></path>
+            <rect class="t" x="102" y="528" width="8" height="12"></rect>
+            <rect class="t" x="114" y="532" width="8" height="12"></rect>
+            <rect class="t" x="126" y="528" width="8" height="12"></rect>
+            <rect class="o" x="166" y="516" width="44" height="32"></rect>
+            <path class="t" d="M188 516 V548"></path>
+            <text x="172" y="540" font-size="11">I</text>
+            <text x="196" y="540" font-size="11">O</text>
+            <path class="ld" d="M230 530 H261"></path>
+            <text x="265" y="527" set:text={T.sch.conn[0]}></text>
+            <text x="265" y="541" set:text={T.sch.conn[1]}></text>
+          </g>
+        </svg>
+        <div class="sup__drawcap">
+          <span class="cap" set:text={T.schCap1}></span>
+          <span class="cap" set:text={T.schCap2}></span>
+        </div>
+      </div>
+
+      {/* Der Auftrag. Bewusst <div> statt <section>: assets/detail.css stylt
+          blankes `section` mit clamp(3rem,7vw,5.5rem) Innenabstand — dieselbe
+          Falle, die schon das Konto-Panel getroffen hat. */}
+      <div class="sup__order">
+        {T.pos.map(([n, h, p1, p2]) => (
+          <div class="sup__pos">
+            <span class="sup__pos-n" set:text={n}></span>
+            <div>
+              <h2 set:text={h}></h2>
+              <p set:html={p1}></p>
+              {p2 && <p set:html={p2}></p>}
+            </div>
+          </div>
+        ))}
+
+        {/* Kostenrahmen. Zeigt den GEWAEHLTEN Betrag, NICHT einen Ist-Stand —
+            den gibt es nicht, siehe Kopfkommentar. */}
+        <div class="sup__gauge">
+          <div class="sup__ghead">
+            <span class="cap" set:text={T.gaugeHead}></span>
+            <span class="sup__gread num" id="supRead">{String(PRESELECT).padStart(3, '0')} / {GOAL} EUR</span>
+          </div>
+          <div class="sup__gtrack">
+            <div class="sup__gfill" id="supFill" style={`width:${(PRESELECT / GOAL) * 100}%`}></div>
+            <div class="sup__gticks" aria-hidden="true"></div>
+          </div>
+          <div class="sup__gscale" aria-hidden="true">
+            <span>0</span><span>30</span><span>60</span><span>90</span><span>{GOAL}</span>
+          </div>
+          <p class="sup__gcap"><b><span id="supCapAmt">{PRESELECT} €</span></b> <span set:text={T.gaugeCapPost}></span></p>
+          <p class="sup__ghonest" set:text={T.gaugeHonest}></p>
+        </div>
+
+        <div class="sup__card">
+          <div>
+            <span class="sup__lbl" id="supAmtLbl" set:text={T.amountLbl}></span>
+            <div class="sup__row" role="radiogroup" aria-labelledby="supAmtLbl">
+              {STEPS.map((v) => (
+                <label class="sup__pill">
+                  <input type="radio" name="sup-amount" value={v} checked={v === PRESELECT} />
+                  <span>{v} €</span>
+                </label>
+              ))}
+              <label class="sup__freewrap">
+                <span>
+                  <input id="supFree" type="text" inputmode="decimal" autocomplete="off" placeholder={T.amountFree} aria-label={T.amountFree} aria-describedby="supErr" />
+                  <span class="cur">€</span>
+                </span>
+              </label>
+            </div>
+          </div>
+          <p class="sup__err" id="supErr" role="status" hidden set:text={T.err}></p>
+          <a class="sup__cta" id="supCta" href={`${PAYPAL}/${PRESELECT}EUR`} rel="noopener">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"></path></svg>
+            <span id="supCtaTxt" set:text={ctaInitial}></span>
+          </a>
+          <p class="sup__note" set:text={T.note}></p>
+          <p class="sup__honest" set:html={T.honest}></p>
+        </div>
+      </div>
     </div>
 
-    <h2>{T.h2help}</h2>
-    <ul>
-      {T.helps.map(([b, rest]) => <li><strong>{b}</strong> {rest}</li>)}
-    </ul>
-    <p><a href={href('/feedback.html', lang)}>{T.feedback}</a></p>
-
-    <h2>{T.h2fine}</h2>
-    <p class="muted">{T.fine}</p>
-  </div>
+    <div class="sup__help">
+      <h2 set:text={T.h2help}></h2>
+      <ul>
+        {T.helps.map(([b, rest]) => <li><b>{b}</b> {rest}</li>)}
+      </ul>
+      <p><a href={href('/feedback.html', lang)} set:text={T.feedback}></a></p>
+    </div>
+  </article>
 </main>
+
+{/* Betragswahl -> Ziel-URL + Anzeige. Bewusst eine Zuweisung an href und KEIN
+    Formular: ein POST an PayPal fiele unter die form-action-Direktive der CSP
+    und wuerde still blockiert. Der Empfaenger stammt AUSSCHLIESSLICH aus der
+    Konstante — aus der Eingabe kommt nur die Zahl, und die wird geklemmt. */}
+<script
+  is:inline
+  data-sup-base={PAYPAL}
+  data-sup-min={String(MIN)}
+  data-sup-max={String(MAX)}
+  data-sup-goal={String(GOAL)}
+  data-sup-pre={String(PRESELECT)}
+  data-sup-tpl={T.cta}
+  set:html={`(function(){
+var s=document.currentScript;
+var base=s.getAttribute('data-sup-base'),min=+s.getAttribute('data-sup-min'),
+    max=+s.getAttribute('data-sup-max'),goal=+s.getAttribute('data-sup-goal'),
+    pre=s.getAttribute('data-sup-pre'),tpl=s.getAttribute('data-sup-tpl');
+var cta=document.getElementById('supCta'),txt=document.getElementById('supCtaTxt'),
+    free=document.getElementById('supFree'),err=document.getElementById('supErr'),
+    read=document.getElementById('supRead'),fill=document.getElementById('supFill'),
+    capAmt=document.getElementById('supCapAmt'),
+    radios=document.querySelectorAll('input[name="sup-amount"]');
+if(!cta||!txt||!free||!err)return;
+/* Auf ganze Cent runden und schlicht ausgeben: PayPal.me nimmt 1, 5 oder 12.5 —
+   aber kein Komma und keine Exponentialschreibweise. */
+function fmt(n){return (Math.round(n*100)/100).toString()}
+function pad(n){var i=Math.floor(n);return (i<10?'00':i<100?'0':'')+fmt(n)}
+function apply(n,bad){
+  if(bad){err.hidden=false;cta.setAttribute('aria-disabled','true');return}
+  err.hidden=true;cta.removeAttribute('aria-disabled');
+  cta.href=base+'/'+fmt(n)+'EUR';
+  txt.textContent=tpl.replace('%s',fmt(n));
+  if(read)read.textContent=pad(n)+' / '+goal+' EUR';
+  if(fill)fill.style.width=Math.min(100,(n/goal)*100)+'%';
+  if(capAmt)capAmt.textContent=fmt(n)+' \\u20ac';
+}
+for(var i=0;i<radios.length;i++){
+  radios[i].addEventListener('change',function(e){free.value='';apply(+e.target.value,false)});
+}
+free.addEventListener('input',function(){
+  var raw=free.value.trim();
+  if(raw===''){
+    /* Leeren muss IMMER in einen gueltigen Zustand zurueckfuehren. Sonst bleibt
+       der Knopf nach einer ungueltigen Eingabe dauerhaft gesperrt — im Browser
+       gemessen: nach "abc" und anschliessendem Leeren blieb die Sperre stehen,
+       weil zu diesem Zeitpunkt KEINE Stufe mehr angehakt war. */
+    var c=document.querySelector('input[name="sup-amount"]:checked');
+    if(!c){c=document.querySelector('input[name="sup-amount"][value="'+pre+'"]');if(c)c.checked=true}
+    apply(c?+c.value:+pre,false);
+    return;
+  }
+  var n=parseFloat(raw.replace(',','.'));
+  if(!isFinite(n)||n<min||n>max){apply(0,true);return}
+  for(var j=0;j<radios.length;j++)radios[j].checked=false;
+  apply(n,false);
+});})()`}
+/>

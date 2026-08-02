@@ -1,5 +1,5 @@
 ---
-phase: 05-schiffe-rollen-und-merkmalsfilter
+phase: 06-schiffe-rollen-und-merkmalsfilter
 plan: 01
 subsystem: ui
 tags: [astro, datacore, i18n, filter, ships, datamine]
@@ -11,7 +11,7 @@ provides:
   - "vRoleCig(id, d, lang) in src/i18n/vehicleText.ts — exakte CIG-Rolle als Kartenbeschriftung, fällt auf vRole() zurück"
   - "src/components/ships/ShipsOverview.astro — EIN Körper für /schiffe.html und /de/schiffe.html"
   - "sf-role-Filter (clientseitig, data-role) auf der Schiffsübersicht"
-affects: [05-02, 05-03]
+affects: [06-02, 06-03]
 
 tech-stack:
   added: []
@@ -97,7 +97,7 @@ completed: 2026-08-02
 status: complete
 ---
 
-# Phase 5 Plan 1: Bergung von der Spieldatei bis auf die Karte — EIN Körper, beide Sprachen Summary
+# Phase 6 Plan 1: Bergung von der Spieldatei bis auf die Karte — EIN Körper, beide Sprachen Summary
 
 **CIG-eigene Fahrzeug-Taxonomie (`vehicleCareer`/`vehicleRole`) aus dem DataCore ersetzt die Wiki-Foci als Kartenrolle, gefiltert über einen neuen `sf-role`-Filter auf einem einzigen, DE+EN gemeinsamen Übersichts-Körper.**
 
@@ -161,7 +161,7 @@ _Beide Tasks wurden ohne Checkpoint-Unterbrechung durchlaufen (autonomous plan).
 - **Fix:** ROLE-04 in `REQUIREMENTS.md` (Checkbox + Traceability-Tabelle) auf „Pending"
   zurückgesetzt; `requirements-completed` im SUMMARY-Frontmatter um ROLE-04 bereinigt und die
   Begründung dort vermerkt.
-- **Files modified:** `.planning/REQUIREMENTS.md`, `.planning/phases/05-schiffe-rollen-und-merkmalsfilter/05-01-SUMMARY.md`
+- **Files modified:** `.planning/REQUIREMENTS.md`, `.planning/phases/06-schiffe-rollen-und-merkmalsfilter/06-01-SUMMARY.md`
 - **Verification:** `grep ROLE-04 .planning/REQUIREMENTS.md` zeigt `[ ]` und „Pending"; die 5
   tatsächlich erfüllten IDs (ROLE-01, ROLE-02, ROLE-08, ROLE-09, ROLE-10) bleiben „Complete"
 - **Committed in:** wird mit der Abschluss-Commit dieses Plans miterfasst (docs)
@@ -187,12 +187,12 @@ None - keine externe Dienstkonfiguration nötig.
 `mediumsalvage`, `modular`, `recovery`, `snubcarrier`, `starterlightfighter`, `startermining`,
 `startersalvage`.
 
-Das deckt sich mit der in `05-CONTEXT.md` (D-13) genannten Liste, mit einer Ergänzung
+Das deckt sich mit der in `06-CONTEXT.md` (D-13) genannten Liste, mit einer Ergänzung
 (`item_ShipFocus_HeavyGunship`, Altschlüssel — dort als `ALT:HeavyGunship` bezeichnet) und ohne
 `ALT:HeavyGunship`-Schreibweise (der tatsächliche Rohschlüssel behält sein `item_ShipFocus_`-Präfix,
 siehe Normalisierungsregel in `scripts/datamine-vehicle-roles.mjs`).
 
-**Berufs- und Rollen-Verteilung (223 gejointe Schiffe)** deckt sich mit den in `05-CONTEXT.md`
+**Berufs- und Rollen-Verteilung (223 gejointe Schiffe)** deckt sich mit den in `06-CONTEXT.md`
 genannten Zahlen (Kampf 102, Transport 36, Erkundung 31, Wettkampf 16, Industrie 13,
 Unterstützung 12, Mehrzweck 7, Boden 2, dazu 4 Altwerte) — keine Abweichung von den beim Planen
 erhobenen Werten.
@@ -214,7 +214,7 @@ erhobenen Werten.
   ROLE-04 NICHT auf „Complete" gesetzt (siehe Deviations unten); Plan 02 schließt es ab.
 
 ---
-*Phase: 05-schiffe-rollen-und-merkmalsfilter*
+*Phase: 06-schiffe-rollen-und-merkmalsfilter*
 *Completed: 2026-08-02*
 
 ## Self-Check: PASSED

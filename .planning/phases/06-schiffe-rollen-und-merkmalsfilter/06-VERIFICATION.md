@@ -1,5 +1,5 @@
 ---
-phase: 05-schiffe-rollen-und-merkmalsfilter
+phase: 06-schiffe-rollen-und-merkmalsfilter
 verified: 2026-08-02T00:00:00Z
 status: passed
 score: 10/10 must-haves verified
@@ -7,7 +7,7 @@ behavior_unverified: 0
 overrides_applied: 0
 ---
 
-# Phase 5: Schiffe — Rollen- und Merkmalsfilter Verification Report
+# Phase 6: Schiffe — Rollen- und Merkmalsfilter Verification Report
 
 **Phase Goal:** Wer auf der Schiffsübersicht ein Schiff für einen bestimmten Zweck sucht,
 findet es über Filter, die die Fachsprache des Spiels sprechen — nicht über acht Grobtypen.
@@ -77,16 +77,16 @@ Utility) auffindbar werden.
 
 | Requirement | Source Plan | Status | Evidence |
 |-------------|------------|--------|----------|
-| ROLE-01 | 05-01 | ✓ SATISFIED | ATLS benannt statt leer (s. o.) |
-| ROLE-02 | 05-01/02/03 | ✓ SATISFIED | alle Filterachsen aus DataCore; `data-type` (Wiki) tot |
-| ROLE-03 | 05-02 | ✓ SATISFIED | 8 Verbundrollen in ≥2 Familien |
-| ROLE-04 | 05-01 (offen gelassen) → 05-03 (abgeschlossen) | ✓ SATISFIED | genau EIN Rollenfilter auf Familienebene, exakte Rolle auf der Karte |
-| ROLE-05 | 05-02 | ✓ SATISFIED | 16/11 Signaturwerte, CIG-HUD-Beschriftung |
-| ROLE-06 | 05-03 | ✓ SATISFIED | 7 Chips, 5 Beispielfälle bestätigt |
-| ROLE-07 | 05-02 | ✓ SATISFIED (Grenzfälle dokumentiert) | 17/17 Gapfill-Begriffe vorhanden; 3 CIG-eigene DE=EN-Werte außerhalb des Gapfill-Scopes (s. Anti-Patterns) |
-| ROLE-08 | 05-01 | ✓ SATISFIED | EIN Körper, Hüllen 17 Zeilen |
-| ROLE-09 | 05-01/03 | ✓ SATISFIED | 227 Karten ohne JS sichtbar |
-| ROLE-10 | 05-01/02 | ✓ SATISFIED | Guard live gegen Manipulation getestet, Exit 1 |
+| ROLE-01 | 06-01 | ✓ SATISFIED | ATLS benannt statt leer (s. o.) |
+| ROLE-02 | 06-01/02/03 | ✓ SATISFIED | alle Filterachsen aus DataCore; `data-type` (Wiki) tot |
+| ROLE-03 | 06-02 | ✓ SATISFIED | 8 Verbundrollen in ≥2 Familien |
+| ROLE-04 | 06-01 (offen gelassen) → 06-03 (abgeschlossen) | ✓ SATISFIED | genau EIN Rollenfilter auf Familienebene, exakte Rolle auf der Karte |
+| ROLE-05 | 06-02 | ✓ SATISFIED | 16/11 Signaturwerte, CIG-HUD-Beschriftung |
+| ROLE-06 | 06-03 | ✓ SATISFIED | 7 Chips, 5 Beispielfälle bestätigt |
+| ROLE-07 | 06-02 | ✓ SATISFIED (Grenzfälle dokumentiert) | 17/17 Gapfill-Begriffe vorhanden; 3 CIG-eigene DE=EN-Werte außerhalb des Gapfill-Scopes (s. Anti-Patterns) |
+| ROLE-08 | 06-01 | ✓ SATISFIED | EIN Körper, Hüllen 17 Zeilen |
+| ROLE-09 | 06-01/03 | ✓ SATISFIED | 227 Karten ohne JS sichtbar |
+| ROLE-10 | 06-01/02 | ✓ SATISFIED | Guard live gegen Manipulation getestet, Exit 1 |
 
 REQUIREMENTS.md führt ROLE-01..10 korrekt als „Complete" (Checkbox `[x]` + Traceability-Tabelle); die dokumentierte Zwischenkorrektur (ROLE-04 in Plan 01 zunächst bewusst auf „Pending" belassen, weil nur die exakte Rollenebene lieferte, nicht die Familienebene) ist nachvollziehbar und wurde in Plan 02/03 tatsächlich geschlossen — keine Diskrepanz zwischen Buchführung und Realität.
 
@@ -95,7 +95,7 @@ REQUIREMENTS.md führt ROLE-01..10 korrekt als „Complete" (Checkbox `[x]` + Tr
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
 | `src/data/vehicle-roles.json` (Datenquelle) | — | 3 Fahrzeuge (`orig-85x` „Touring", plus je 1× „Bomber"/„Expedition"-Fälle) tragen `roleDe === roleEn`, weil **CIGs eigene** deutsche Lokalisierung das englische Wort unverändert übernimmt | ℹ️ Info | Betrifft NICHT den ROLE-07-Gapfill-Mechanismus (der greift nur, wenn `roleDe` fehlt — hier ist es vorhanden, nur identisch mit EN). Für einen deutschsprachigen Besucher liest sich der Chip „Touring" dennoch wie unübersetztes Englisch. Da die Daten wörtlich aus CIGs global.ini stammen (D-01-konform), ist dies kein Verstoß gegen die Buchstaben von ROLE-07 („wo CIG keine deutsche Fassung liefert…") — CIG liefert hier technisch eine, sie ist bloß ein Lehnwort. Kein Blocker, aber ein Kandidat für eine spätere, bewusste Übersetzungsentscheidung. |
-| `.planning/PROJECT.md` | 53 | „Neue Datenquellen oder Datamine-Ausbau" steht weiterhin unter *Out of Scope*, obwohl `05-CONTEXT.md` (canonical_refs) ausdrücklich vermerkt, dass diese Phase genau das auf Nutzerwunsch durchbricht und PROJECT.md „entsprechend nachzuziehen" sei | ℹ️ Info | Reine Projektbuchführung, keine der ROADMAP-Erfolgskriterien oder ROLE-01..10 hängt davon ab. Nicht Teil dieser Phase's must-haves, aber ein offener Nachtrag. |
+| `.planning/PROJECT.md` | 53 | „Neue Datenquellen oder Datamine-Ausbau" steht weiterhin unter *Out of Scope*, obwohl `06-CONTEXT.md` (canonical_refs) ausdrücklich vermerkt, dass diese Phase genau das auf Nutzerwunsch durchbricht und PROJECT.md „entsprechend nachzuziehen" sei | ℹ️ Info | Reine Projektbuchführung, keine der ROADMAP-Erfolgskriterien oder ROLE-01..10 hängt davon ab. Nicht Teil dieser Phase's must-haves, aber ein offener Nachtrag. |
 
 Keine `TBD`/`FIXME`/`XXX`/`TODO`/`HACK`-Marker in den durch diese Phase angefassten Dateien (`scripts/datamine-vehicle-roles.mjs`, `scripts/verify-vehicle-roles.mjs`, `src/components/ships/ShipsOverview.astro`, `src/i18n/vehicleText.ts`, beide `schiffe.astro`-Hüllen).
 

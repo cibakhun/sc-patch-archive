@@ -1,11 +1,11 @@
 ---
-phase: 05-schiffe-rollen-und-merkmalsfilter
+phase: 06-schiffe-rollen-und-merkmalsfilter
 plan: 02
 subsystem: ui
 tags: [astro, datacore, i18n, filter, ships, datamine]
 
 requires:
-  - phase: 05-schiffe-rollen-und-merkmalsfilter/05-01
+  - phase: 06-schiffe-rollen-und-merkmalsfilter/06-01
     provides: "datamine-vehicle-roles.mjs, vehicle-roles.json, vRoleCig(), ShipsOverview.astro (EIN Körper), sf-role-Filter"
 provides:
   - "CAREER_LEGACY/ROLE_COMPOUND/ROLE_FAMILY in datamine-vehicle-roles.mjs — Beruf-Normalisierung, Verbundrollen-Zerlegung, 18-Familien-Zuordnung"
@@ -14,7 +14,7 @@ provides:
   - "data-career/data-rolefam/data-sig/data-feat plus sf-career/sf-rolefam/sf-sig/sf-feat-Filter in ShipsOverview.astro"
   - "fcard__sig — CIG-HUD-beschriftete, locale-formatierte Signaturzeile auf der Karte"
   - "verify-vehicle-roles.mjs prüft Familienstand, Verbundrollen-Zerlegung, Signatur- und Merkmalszahlen, Belegpflicht"
-affects: [05-03]
+affects: [06-03]
 
 tech-stack:
   added: []
@@ -111,7 +111,7 @@ completed: 2026-08-02
 status: complete
 ---
 
-# Phase 5 Plan 2: Beruf, Rollenfamilien, Signatur und Merkmale — Prowler Utility wird auffindbar Summary
+# Phase 6 Plan 2: Beruf, Rollenfamilien, Signatur und Merkmale — Prowler Utility wird auffindbar Summary
 
 **18 Rollenfamilien plus Signatur- und Merkmalsachsen aus dem DataCore auf der Schiffsübersicht; „Bergung" findet alle Gewichtsklassen, der Prowler Utility ist über Frachttransport + Signatur auffindbar.**
 
@@ -124,7 +124,7 @@ status: complete
 
 ## Accomplishments
 
-- `scripts/datamine-vehicle-roles.mjs` erweitert um `CAREER_LEGACY` (4 Altwert-Ausnahmen), `ROLE_COMPOUND` (8 Verbundrollen → atomare Bestandteile) und `ROLE_FAMILY` (48 atomare Rollenschlüssel → 18 Familien-Slugs) — nachgerechnete Familienstände decken sich exakt mit der erhobenen Tabelle aus 05-02-PLAN.md `<interfaces>` (Jäger 63, Frachttransport 35, Erkundung 27, Passagiere 17, Rennen 17, Einsteiger 12, Bodenkampf 11, Kanonenschiff 9, Medizin 7, Bomber 6, Truppentransport 6, Bergung 6, Abriegelung 5, Bergbau 5, Großkampfschiff 5, Daten & Wissenschaft 3, Betankung 3, Mehrzweck 2 — **keine Abweichung**).
+- `scripts/datamine-vehicle-roles.mjs` erweitert um `CAREER_LEGACY` (4 Altwert-Ausnahmen), `ROLE_COMPOUND` (8 Verbundrollen → atomare Bestandteile) und `ROLE_FAMILY` (48 atomare Rollenschlüssel → 18 Familien-Slugs) — nachgerechnete Familienstände decken sich exakt mit der erhobenen Tabelle aus 06-02-PLAN.md `<interfaces>` (Jäger 63, Frachttransport 35, Erkundung 27, Passagiere 17, Rennen 17, Einsteiger 12, Bodenkampf 11, Kanonenschiff 9, Medizin 7, Bomber 6, Truppentransport 6, Bergung 6, Abriegelung 5, Bergbau 5, Großkampfschiff 5, Daten & Wissenschaft 3, Betankung 3, Mehrzweck 2 — **keine Abweichung**).
 - Berufswerte nach Normalisierung: combat 105, transporter 37, exploration 31, competition 16, resources 13, support 12, multirole 7, ground 2 (Summe 223) — ebenfalls deckungsgleich mit der erhobenen Tabelle.
 - `sig` (IR/EM/RQ, 0 als `null` abgelegt, gerundet auf 2 Nachkommastellen) und `feat` (`cargo`/`ground`) je Fahrzeug ergänzt: **genau 16** Fahrzeuge tragen ein `sig`-Objekt (11 davon unter 0,80), **102** tragen `cargo`, **37** tragen `ground` — alle drei Zahlen decken sich exakt mit der Erhebung. `dogfightEnabled` liegt bei 220/223 (Report zählt mit, wird aber bewusst NICHT als Merkmal erzeugt — D-09s eigene Abbruchbedingung).
 - `src/i18n/vehicleText.ts`: `ROLE_DE_GAPFILL` (17 Einträge), `FAMILY_LABELS` (18), `SIG_LABELS`/`SIG_STEPS`/`FEAT_LABELS` plus neue Akzessoren `vCareer()`, `vRoleFamilies()`, `vSignature()`. `vRoleCig()` erweitert: bei fehlendem `roleDe` greift jetzt zuerst `ROLE_DE_GAPFILL[roleKey]`, erst danach der `vRole()`/`fociDe`-Rückfall.
@@ -189,12 +189,12 @@ None - keine externe Dienstkonfiguration nötig.
 
 - Beide Achsen, die die Nutzer-Beispielfälle erreichbar machen, stehen: Bergung/Bergbau/Betankung über Rollenfamilien (D-05/D-06), der Prowler Utility über Frachttransport + Signatur (D-07).
 - Acht Filterachsen sind jetzt aktiv (Suche, Hersteller, Typ, Rolle, Beruf, Rollenfamilie, Signatur, Merkmal, Status, Archiv) — der bestehende `sf-type`-Grobfilter (8 Werte) bleibt laut Plan bewusst unangetastet; **Plan 03 entscheidet nach Sichtprüfung über seine Ablösung**.
-- **Offen für Plan 03 (aus 05-CONTEXT.md):** Schnellzugriff-Chips (D-10, ROLE-06) — Tarnkappenbomber, Frachter mit abgesenkter Signatur, Bergbau, Bergung, Betankung, Abriegelung, Rennen; Sichtprüfung der neuen Filterkonsole (jetzt 8 Achsen — trägt die Optik das noch, oder braucht es ein „mehr Filter"-Fold?); Entscheidung über `sf-type`-Ablösung.
+- **Offen für Plan 03 (aus 06-CONTEXT.md):** Schnellzugriff-Chips (D-10, ROLE-06) — Tarnkappenbomber, Frachter mit abgesenkter Signatur, Bergbau, Bergung, Betankung, Abriegelung, Rennen; Sichtprüfung der neuen Filterkonsole (jetzt 8 Achsen — trägt die Optik das noch, oder braucht es ein „mehr Filter"-Fold?); Entscheidung über `sf-type`-Ablösung.
 - Zwei Coverage-Items (D3/D4, ROLE-04/ROLE-05) verlangen eine visuelle Bedienprobe im Browser (Familienfilter-Klickverhalten, `fcard__sig`-Lesbarkeit auf schmalen Karten) — automatisiert ist nur Markup- und Datenkorrektheit geprüft, nicht das tatsächliche Bedienerlebnis.
 - Blocker: keine.
 
 ---
-*Phase: 05-schiffe-rollen-und-merkmalsfilter*
+*Phase: 06-schiffe-rollen-und-merkmalsfilter*
 *Completed: 2026-08-02*
 
 ## Self-Check: PASSED

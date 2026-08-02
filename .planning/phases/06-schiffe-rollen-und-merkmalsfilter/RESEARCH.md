@@ -1,4 +1,4 @@
-# Phase 5 — Forschung: Woher kommen granulare Schiffsdaten?
+# Phase 6 — Forschung: Woher kommen granulare Schiffsdaten?
 
 **Erhoben am:** 2026-08-02
 **Quelle:** eigene Extraktion aus `Data.p4k` → `Data/Game2.dcb` (DataCore), gelesen mit

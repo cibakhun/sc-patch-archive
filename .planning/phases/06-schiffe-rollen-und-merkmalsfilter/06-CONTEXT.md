@@ -1,4 +1,4 @@
-# Phase 5: Schiffe — Rollen- und Merkmalsfilter - Context
+# Phase 6: Schiffe — Rollen- und Merkmalsfilter - Context
 
 **Gathered:** 2026-08-02
 **Status:** Ready for planning
@@ -136,7 +136,7 @@ funktion, Konto-/Favoritenbindung.
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Diese Phase
-- `.planning/phases/05-schiffe-rollen-und-merkmalsfilter/RESEARCH.md` — vollständige
+- `.planning/phases/06-schiffe-rollen-und-merkmalsfilter/RESEARCH.md` — vollständige
   DataCore-Erhebung: Feldnamen, Wertelisten mit Zähler, Join-Rate, geprüfte **und verworfene**
   Spuren. §4 nennt namentlich die Fallstricke (Item-Ports als Sackgasse, `Controller_Salvage`
   am falschen Schiff, `Ground_Refueling_Port` ist Anschluss statt Fähigkeit).
@@ -225,5 +225,5 @@ funktion, Konto-/Favoritenbindung.
 
 ---
 
-*Phase: 05-schiffe-rollen-und-merkmalsfilter*
+*Phase: 06-schiffe-rollen-und-merkmalsfilter*
 *Context gathered: 2026-08-02*
