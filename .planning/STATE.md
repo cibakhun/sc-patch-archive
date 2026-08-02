@@ -7,8 +7,8 @@ current_phase_name: Ambiente-Effekte stilllegen
 status: in_progress
 stopped_at: Completed 01.1-02-PLAN.md
 last_updated: "2026-07-29T03:46:15.151Z"
-last_activity: 2026-07-29
-last_activity_desc: Phase 1.1 recherchiert, gemappt, geplant und geprueft
+last_activity: 2026-08-02
+last_activity_desc: Quick-Task 260802-3fw: Zurueck-Button site-weit
 progress:
   total_phases: 3
   completed_phases: 0
@@ -31,7 +31,7 @@ Phase: 1.1 of 6 (Ambiente-Effekte stilllegen)
 Plan: 2 of 3 in Phase 1.1
 Status: Phase 1.1 geplant (3 Pläne, 3 Wellen, Plan-Prüfer bestanden) — bereit zur Ausführung; Phase 1.2 noch ungeplant
 Branch: claude/site-feedback-effects-docs-3f4edf
-Last activity: 2026-07-29 — Phase 1.1 recherchiert, gemappt, geplant und geprueft
+Last activity: 2026-08-02 — Quick-Task 260802-3fw: Zurück-Button site-weit
 
 Progress: [████░░░░░░] 40%
 
@@ -89,6 +89,12 @@ None yet.
 - GSD-Subagenten (`gsd-planner`, `gsd-executor`, …) liegen in `~/.claude/agents/`, waren in der Init-Sitzung aber noch nicht in der Agenten-Registry. Nach einem Neustart von Claude Code stehen sie zur Verfügung. Phase 1 lief deshalb inline.
 - Vorbestehend, nicht aus Phase 1: der Astro-Dev-Server bricht bei `src/layouts/Layout.astro` mit `Unexpected ")"` in einem Inline-Skript ab. Der Produktionsbuild ist nicht betroffen — die Sichtprüfung lief deshalb gegen das gebaute `dist/`.
 - Reduzierte Bewegung ist in Phase 1 aus dem Code abgeleitet, nicht im Browser gemessen: der Prüfbrowser meldet `prefers-reduced-motion: false` und bietet keine Emulation.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260802-3fw | Zurück-Button site-weit (SiteNav leitet ihn aus `crumbs` ab; `--nav-h` löst die verdrahteten 68px in drei Filterleisten ab) | 2026-08-02 | b12a3b5, 03ead2d | [260802-3fw-zurueck-button-site-weit](./quick/260802-3fw-zurueck-button-site-weit/) |
 
 ### Roadmap Evolution
 

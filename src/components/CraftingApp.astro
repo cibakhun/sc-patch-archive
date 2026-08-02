@@ -482,7 +482,9 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .cdb{max-width:var(--maxw,1180px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
   .cdb *{box-sizing:border-box}
   /* Toolbar — klebt UNTER der fixen Site-Nav (~56px), sonst verschwindet sie dahinter */
-  .cdb-bar{position:sticky;top:68px;z-index:20;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;padding:.7rem 0;background:linear-gradient(var(--bg,var(--veil-2)) 82%,color-mix(in srgb,var(--bg,var(--veil-2)) 88%,transparent));backdrop-filter:blur(6px)}
+  /* Hoehe kommt aus SiteNav (--nav-h) — mit Zurueck-Zeile ist die Leiste
+     hoeher, ein fester Wert liesse die Filterleiste dahinter verschwinden. */
+  .cdb-bar{position:sticky;top:var(--nav-h,68px);z-index:20;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;padding:.7rem 0;background:linear-gradient(var(--bg,var(--veil-2)) 82%,color-mix(in srgb,var(--bg,var(--veil-2)) 88%,transparent));backdrop-filter:blur(6px)}
   .cdb-search-wrap{flex:1 1 240px;min-width:0}
   .cdb-search{width:100%;background:var(--surface,#232329);border:1px solid var(--line,rgba(255,94,26,.3));color:var(--text,#eef1f5);padding:.6rem .9rem;border-radius:6px;font-size:1rem;font-family:var(--font-ui,inherit)}
   .cdb-search:focus{outline:2px solid var(--accent,#FF5E1A);outline-offset:1px}

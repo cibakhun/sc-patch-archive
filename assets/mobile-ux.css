@@ -564,7 +564,11 @@ summary:active {
 ------------------------------------------------------------ */
 @media (max-width: 820px) {
   :where([id]) {
-    scroll-margin-top: 4.5rem;
+    /* Seit die SiteNav eine Zurueck-Zeile tragen kann, ist ihre Hoehe nicht
+       mehr konstant (mobil bis 131 px statt 69 px) — die festen 4.5rem
+       liessen den Anker dann unter der Leiste landen. --nav-h kommt aus
+       SiteNav; der Rueckfallwert deckt Seiten ohne SiteNav ab. */
+    scroll-margin-top: calc(var(--nav-h, 68px) + 0.8rem);
   }
 }
 
