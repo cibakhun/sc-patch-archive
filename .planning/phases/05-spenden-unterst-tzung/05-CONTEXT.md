@@ -27,6 +27,58 @@ gibt es keinen sicheren Zahlungsweg. Siehe `.planning/ROADMAP.md` § Phase 5.
 <decisions>
 ## Implementation Decisions
 
+> # ⚠ UMSTELLUNG AUF PAYPAL — 02.08.2026
+>
+> **Stripe ist raus. Der Betreiber kann die Identitätsprüfung nicht erbringen
+> (Ausweis nicht verfügbar).** Stripe zahlt ohne diese Prüfung kein Geld aus —
+> der Testmodus läuft zwar, echtes Geld käme nie an. Eine tadellos gebaute
+> Anbindung, die nie auszahlt, ist wertlos, also fällt sie ersatzlos weg.
+>
+> Gewählt: **PayPal als einfacher Link** (PayPal.me bzw. Spenden-Link), kein
+> Server, keine Datenbank, keine Edge Function. Ko-fi bleibt als zweiter Weg.
+>
+> **Das ist eine echte Verkleinerung, keine Umbenennung.** Ein PayPal-Link hat
+> keinen Webhook und damit KEINE Datenquelle. Ersatzlos gestrichen sind deshalb:
+> Fortschrittsbalken aus echten Zahlungen, Unterstützer-Wand, Zustimmungs-Logik,
+> Moderationsoberfläche, Profil-Abzeichen, monatliche Unterstützung, beide Edge
+> Functions, die Tabelle und der Webhook.
+>
+> **Aufgehobene Entscheidungen:** D-01, D-02 (teilweise), D-04, D-05, D-06,
+> D-12, D-13 (Ziel bleibt als Text), D-14, D-16, D-17, D-18, D-19, D-20.
+> Ebenfalls hinfällig: der gesamte `05-STRIPE-ADDENDUM.md` (S-01…S-07) und die
+> Pläne 05-01 bis 05-07, die neu geschnitten werden.
+>
+> **Weiter gültig:** D-07 bis D-11 (Platzierung, Pfad, Grund), D-15 (im Zweifel
+> nichts zeigen statt etwas Erfundenes), D-21 (Wortwahl „Unterstützen"), D-22
+> (Datenschutz — jetzt PayPal statt Stripe), D-23 bis D-26 (Gestaltungsrichtung
+> „Instandsetzung", Aussage Arbeitsverlust, keine erfundenen Kennzahlen).
+>
+> **Neue Entscheidungen aus dieser Umstellung:**
+>
+> - **D-27:** **Kein Fortschrittsbalken.** Ohne Zahlungsdaten bliebe nur eine
+>   handgepflegte Zahl. D-15 hält bereits fest: im Zweifel gar nichts zeigen.
+>   Eine Zahl, die zu aktualisieren vergessen wird, beschädigt genau das, was
+>   diese Seite trägt. Das Ziel steht stattdessen im Fließtext („rund 120 €").
+> - **D-28:** **Keine Unterstützer-Wand.** Gleiche Begründung. Eine
+>   handgepflegte Namensliste wäre vertretbar, ist aber nicht beauftragt — erst
+>   auf ausdrücklichen Wunsch.
+> - **D-29:** **Nur einmalige Unterstützung.** PayPal.me kann keine
+>   wiederkehrenden Zahlungen; PayPal-Abos bräuchten ein Geschäftskonto. Der
+>   Umschalter einmalig/monatlich entfällt ersatzlos statt eine Möglichkeit
+>   vorzutäuschen, die es nicht gibt.
+> - **D-30:** **Die Betragsstufen 3/5/10/25 € bleiben und bleiben funktional.**
+>   PayPal.me nimmt den Betrag im Pfad entgegen (`paypal.me/NAME/5EUR`), die
+>   Auswahl steuert also wirklich etwas. 5 € bleibt vorgewählt (D-03 gilt weiter).
+> - **D-31:** **Der Empfänger steht als GENAU EINE Konstante** in der
+>   Konfiguration. Solange dort der Platzhalter steht, läuft die Seite sichtbar
+>   im Demo-Modus (Muster `FEEDBACK_DEMO`) und der PayPal-Knopf zeigt nicht ins
+>   Leere.
+> - **D-32:** **Umkehrbar dokumentieren.** Balken und Wand kommen zurück, sobald
+>   ein PayPal-Geschäftskonto mit Webhook existiert. Die Recherche dazu liegt
+>   bereits vor (`05-RESEARCH.md`, Abschnitt Datenschicht ist anbieterneutral)
+>   und wird nicht gelöscht, sondern als Grundlage für eine spätere Phase
+>   vermerkt.
+
 ### Zahlungswege
 
 - **D-01:** Stripe Checkout ist der Hauptweg (gehostete Bezahlseite von Stripe,

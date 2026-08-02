@@ -25,7 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Schrift- und Bewegungsskala** - Eine gemeinsame Skala für Schriftgrade und Übergänge statt seitenlokaler Einzelwerte
 - [ ] **Phase 3: Überlagerungen entstapeln** - Class-B-Befund abtragen, Textkontrast über Bildmotiven belegen
 - [ ] **Phase 4: Sprachparität absichern** - Deckungsgleichheit der Seitenpaare nachweisbar statt behauptet
-- [ ] **Phase 5: Spenden-Unterstützung** - Ein Spendenweg, der tatsächlich Geld annimmt: Stripe Checkout + Ko-fi, eigene Seite, Ziel und Unterstützer-Wand
+- [ ] **Phase 5: Spenden-Unterstützung** - Ein Unterstützen-Weg, der tatsächlich Geld annimmt: PayPal-Link + Ko-fi, eigene Seite in der Richtung „Instandsetzung"
 
 ## Phase Details
 
@@ -168,47 +168,49 @@ Plans:
 
 ### Phase 5: Spenden-Unterstützung
 
-> **Erweitert den Meilenstein bewusst über die Oberfläche hinaus.** Die Roadmap
-> war auf UI-Feinschliff abgesteckt; diese Phase bringt eine Datenbanktabelle,
-> zwei Edge Functions und Zahlungsverkehr mit. Anlass ist kein Design-Wunsch,
-> sondern ein realer Engpass: der Entwicklungsrechner startet wegen eines
-> defekten Netzteils zufällig neu (Nutzerentscheidung 31.07.2026). Die
-> „Out of Scope"-Zeilen zu serverseitiger Logik und Konto-Funktionen in
-> REQUIREMENTS.md sind für diese Phase ausdrücklich aufgehoben.
+> **UMGESTELLT 02.08.2026 — Stripe raus, PayPal rein.** Der Betreiber kann Stripes
+> Identitätsprüfung nicht erbringen (Ausweis nicht verfügbar); ohne sie zahlt Stripe
+> kein Geld aus. Eine tadellos gebaute Anbindung, die nie auszahlt, ist wertlos.
+> Gewählt ist ein **einfacher PayPal-Link**.
+>
+> Damit fällt der gesamte Serverteil weg: keine Edge Functions, keine
+> Datenbanktabelle, kein Webhook. Die zuvor hier notierte Aufhebung der
+> „Out of Scope"-Zeilen zu serverseitiger Logik ist damit **gegenstandslos** —
+> die Phase bleibt innerhalb des UI-Meilensteins. Ersatzlos gestrichen:
+> Fortschrittsbalken, Unterstützer-Wand, Moderation, Profil-Abzeichen und
+> monatliche Unterstützung. Die sieben Stripe-Pläne sind überholt und werden
+> neu geschnitten.
+>
+> Anlass unverändert: der Entwicklungsrechner geht wegen eines defekten Netzteils
+> ohne Vorwarnung aus.
 
-**Goal**: Ein Besucher, der die Seite nützlich findet, kann in unter einer Minute Geld geben — mit frei gewähltem Betrag, einmalig oder monatlich, ohne Konto, in DE und EN — und das Geld kommt tatsächlich an. Die Seite sagt ehrlich, wofür (Netzteil/Rechner-Reparatur), zeigt den erreichten Stand aus echten Zahlungsdaten statt aus einer gepflegten Zahl, und nennt jeden Unterstützer nur, wenn er das ausdrücklich will.
+**Goal**: Ein Besucher, der die Seite nützlich findet, kann in unter einer Minute Geld geben — Betrag wählen, ein Klick zu PayPal, fertig; ohne Konto, in DE und EN — und das Geld kommt tatsächlich an. Die Seite sagt ehrlich, wofür: nicht „ein Teil ist kaputt", sondern dass der Rechner ohne Vorwarnung ausgeht und dabei die Arbeit mitnimmt. Sie behauptet keine Zahl, die sie nicht belegen kann.
 **Mode:** mvp
-**Depends on**: Nichts aus diesem Meilenstein — die Phase fasst weder Startseite noch Kopfleisten-Wandlung an und kann vor Phase 2–4 laufen.
-**Requirements**: DON-01 … DON-14
+**Depends on**: Nichts — die Phase fasst weder Startseite noch Kopfleisten-Wandlung an und kann vor Phase 2–4 laufen.
+**Requirements**: DON-01, DON-02, DON-03, DON-09, DON-10, DON-11, DON-13, DON-14, DON-26, DON-27, DON-28, DON-29, DON-31
 **Success Criteria** (what must be TRUE):
 
-  1. Eine echte Zahlung im Stripe-Testmodus läuft vollständig durch: Betrag wählen → Checkout → Rückkehr auf die Dankesseite → Zeile in der Datenbank, geschrieben ausschließlich vom Webhook
-  2. Der Webhook weist jede Anfrage ohne gültige Stripe-Signatur ab; die Datenbank ist für anonyme Clients nur lesbar, und auch das nur für die freigegebenen Felder
-  3. Ohne hinterlegte Schlüssel steht das Feature sichtbar im Demo-Modus (wie `FEEDBACK_DEMO`) und behauptet keine Zahlen — es bricht nicht und täuscht nichts vor
-  4. Der Spendenweg ist in DE und EN vollständig vorhanden, in beiden Farbmodi lesbar, bis 360 px bedienbar und per Tastatur vollständig bedienbar
-  5. `npm run verify`, `npm run audit:site` und `npm run audit:csp` laufen grün — die CSP kennt Stripe, bevor der erste Besucher darauf stößt
-  6. Die Datenschutzerklärung nennt Stripe und Ko-fi als Empfänger, bevor die Seite live geht
+  1. Ein Besucher wählt auf `/support.html` einen Betrag und landet bei PayPal mit **genau diesem Betrag** — die Auswahl steuert wirklich etwas, sie ist keine Zierde
+  2. Solange kein Empfänger hinterlegt ist, steht das Feature sichtbar im Demo-Modus: kein toter Knopf, keine behaupteten Zahlen
+  3. Die Seite trägt die Gestaltungsrichtung „Instandsetzung" und stellt den **Arbeitsverlust** in den Mittelpunkt, nicht den Sachschaden; keine erfundenen Kennzahlen
+  4. Der Unterstützen-Weg ist in DE und EN vollständig vorhanden, in beiden Farbmodi lesbar, bis 360 px bedienbar und per Tastatur vollständig bedienbar
+  5. `npm run verify`, `npm run audit:site`, `npm run audit:csp` und `npm run test:e2e` laufen grün — ohne neue CSP-Einträge, weil eine Weiterleitung der CSP nicht unterliegt
+  6. Die Datenschutzerklärung nennt PayPal und Ko-fi als Empfänger, bevor die Seite live geht
 
-**Plans**: 7 plans
+**Plans**: neu zu schneiden (die sieben Stripe-Pläne sind überholt)
 
 Plans:
 
-- [ ] 05-01-PLAN.md — Tracer: die Vertrauensgrenze end-to-end (`config.toml`, Migration mit Tabelle/Wächter/RLS/zwei Views, beide Edge Functions, Gattertest)
-- [ ] 05-02-PLAN.md — Konfiguration, Gold-Token in beiden Farbmodi, drei Chrome-Strings DE+EN
-- [ ] 05-03-PLAN.md — Seitenkörper: Betragsauswahl, Einwilligung, Fortschritt und Wand aus echten Zahlungsdaten
-- [ ] 05-04-PLAN.md — Seitenpaar `/support.html` + `/de/support.html`, Dankesseite, Sichtprüfung
-- [ ] 05-05-PLAN.md — Site-weite Zugänge: Fuß-Zeile, Menü-Eintrag, Streifen auf 8 Einfügestellen
-- [ ] 05-06-PLAN.md — Moderationsoberfläche und Unterstützer-Abzeichen auf der Pilotenseite
-- [ ] 05-07-PLAN.md — Datenschutzerklärung DE+EN, gemessener CSP-Befund, Einrichtungsanleitung, Abnahme
+- [ ] TBD — Neuplanung nach der PayPal-Umstellung
 
-Hinweis zur Reihenfolge: die Pläne laufen streng nacheinander (Welle 1 bis 7). Das ist
-bewusst gegen Parallelität entschieden — der Entwicklungsrechner startet wegen des
-defekten Netzteils zufällig neu, und jeder Plan hinterlässt einen committeten,
-lauffähigen Zustand. Ein unerwarteter Neustart kostet damit einen Plan, nicht die Phase.
+Hinweis zur Reihenfolge: die Pläne laufen streng nacheinander. Das ist bewusst gegen
+Parallelität entschieden — der Entwicklungsrechner geht wegen des defekten Netzteils
+ohne Vorwarnung aus, und jeder Plan hinterlässt einen committeten, lauffähigen
+Zustand. Ein unerwarteter Neustart kostet damit einen Plan, nicht die Phase.
 
-**Erfolgskriterium 1 ist in dieser Phase nicht von Claude belegbar** (D-05: es gibt noch
-kein Stripe-Konto, und weder Supabase- noch Stripe-CLI sind installiert). Es ist als
-menschliche Abnahme in Plan 05-07 Task 3 geführt und bleibt bis dahin ungehakt.
+Was in dieser Phase NICHT belegbar ist: dass tatsächlich Geld ankommt. Das hängt am
+PayPal-Namen des Betreibers und an einer echten Überweisung. Es ist als menschliche
+Abnahme geführt und bleibt bis dahin ungehakt.
 
 ## Progress
 
@@ -224,4 +226,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
-| 5. Spenden-Unterstützung | 0/7 | Planned | - |
+| 5. Spenden-Unterstützung | 0/? | Replanning (PayPal) | - |

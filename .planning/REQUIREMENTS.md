@@ -94,50 +94,56 @@
 > Zeilen zu serverseitiger Logik und Konto-Funktionen ausdrücklich auf: ohne
 > Edge Function gibt es keinen sicheren Zahlungsweg.
 >
-> Zahlungswege laut Nutzerentscheidung: **Stripe Checkout** (Hauptweg) und
-> **Ko-fi** (Alternative). PayPal ausdrücklich nicht.
+> **UMGESTELLT 02.08.2026 — Stripe ist raus, PayPal ist der Weg.** Der Betreiber
+> kann Stripes Identitätsprüfung nicht erbringen (Ausweis nicht verfügbar), und
+> ohne sie zahlt Stripe kein Geld aus. Gewählt: **PayPal als einfacher Link**
+> (kein Server, keine Datenbank, keine Edge Function), **Ko-fi** bleibt zweiter
+> Weg.
+>
+> Das ist eine echte Verkleinerung: ein PayPal-Link hat keinen Webhook und damit
+> keine Datenquelle. Fortschrittsbalken, Unterstützer-Wand, Moderation,
+> Profil-Abzeichen und monatliche Unterstützung entfallen ersatzlos. Die
+> gestrichenen Anforderungen sind unten als solche gekennzeichnet statt gelöscht
+> — sie sind die Vorlage für eine spätere Phase mit PayPal-Geschäftskonto.
 
-**Spenden abgeben**
+**Unterstützen (PayPal-Link)**
 
-- [ ] **DON-01**: Ein Besucher wählt einen Betrag (Vorschläge + freie Eingabe) und ob einmalig oder monatlich, und landet auf der von Stripe gehosteten Checkout-Seite
-- [ ] **DON-02**: Spenden funktioniert ohne Konto und ohne Anmeldung
-- [ ] **DON-03**: Ko-fi ist als zweiter, gleichwertig sichtbarer Weg verlinkt
-- [ ] **DON-04**: Nach der Zahlung landet der Spender auf einer Dankesseite, die den Erfolg bestätigt; ein Abbruch führt zurück auf die Spendenseite ohne Fehlermeldung
+- [ ] **DON-01**: Ein Besucher wählt einen Betrag (Vorschläge 3/5/10/25 €, 5 € vorgewählt, plus freie Eingabe) und landet mit genau diesem Betrag bei PayPal — PayPal.me nimmt ihn im Pfad entgegen, die Auswahl steuert also wirklich etwas
+- [ ] **DON-02**: Unterstützen funktioniert ohne Konto und ohne Anmeldung
+- [ ] **DON-03**: Ko-fi ist als zweiter, nachgeordneter Weg verlinkt — und ausgeblendet, solange kein Ko-fi-Name hinterlegt ist
+- [ ] **DON-31**: Der Empfänger steht als GENAU EINE Konstante in `src/consts.ts`. Solange dort der Platzhalter steht, läuft die Seite sichtbar im Demo-Modus (Muster `FEEDBACK_DEMO`) und kein Knopf zeigt ins Leere
 
-**Sicherheit & Wahrheit der Zahlen**
+**Wahrhaftigkeit**
 
-- [ ] **DON-05**: Die Checkout-Sitzung wird serverseitig in einer Supabase Edge Function angelegt; der geheime Stripe-Schlüssel taucht in keinem ausgelieferten Byte auf
-- [ ] **DON-06**: Der Betrag wird serverseitig gegen Ober- und Untergrenze geprüft — ein manipulierter Client kann keinen beliebigen Betrag erzwingen
-- [ ] **DON-07**: Spendenzeilen entstehen ausschließlich im Webhook nach geprüfter Stripe-Signatur; kein Client-Schreibrecht auf die Tabelle, Doppelzustellung erzeugt keine Dublette
-- [ ] **DON-08**: Öffentlich lesbar ist nur, was öffentlich sein soll: **Anzeigename, Datum und freigegebene Nachricht**. Nie E-Mail, Zahlungs-ID, Kunden-ID — und **nie ein Einzelbetrag**. Der Zielstand ist ausschließlich als Summe lesbar (Aggregat-View), nicht als Liste einzelner Zahlungen
-  > Korrigiert am 31.07.2026: die ursprüngliche Fassung zählte „Betrag" zu den
-  > öffentlichen Feldern. Das widerspricht D-16 („Name + Datum, kein Betrag —
-  > bewusst keine Rangliste"), der später im selben Gespräch getroffenen und
-  > engeren Entscheidung. Der Researcher hat den Widerspruch gemeldet; D-16 gilt.
-  > Konsequenz für die Umsetzung: die öffentliche Wand-View darf die Betragsspalte
-  > gar nicht erst auswählen — das Verbot sitzt in der View, nicht im CSS.
-- [ ] **DON-09**: Ohne hinterlegte Schlüssel läuft das Feature im sichtbaren Demo-Modus (Muster `FEEDBACK_DEMO`): es behauptet keine Zahlen und bricht nicht
+- [ ] **DON-09**: Ohne hinterlegten Empfänger steht das Feature sichtbar im Demo-Modus, behauptet keine Zahlen und bricht nicht
+- [ ] **DON-27**: **Kein Fortschrittsbalken.** Ein PayPal-Link liefert keine Zahlungsdaten; eine handgepflegte Zahl könnte veralten und würde genau die Glaubwürdigkeit beschädigen, die diese Seite trägt. Das Ziel steht stattdessen im Fließtext
+- [ ] **DON-28**: **Keine Unterstützer-Wand.** Gleiche Begründung — keine Datenquelle, keine erfundene Liste
+- [ ] **DON-26**: Keine erfundenen Kennzahlen zu Ausfallhäufigkeit oder Zeitraum. Die Kopie bleibt qualitativ. Die einzigen Zahlen auf der Seite sind die Betragsstufen und der Zielbetrag im Text
 
 **Darstellung**
 
-- [ ] **DON-10**: Eine eigene Spendenseite in DE und EN erklärt, wofür das Geld ist, und zeigt Zielstand und Unterstützer-Wand aus echten Zahlungsdaten
-- [ ] **DON-11**: Ein Spenden-Zugang ist site-weit erreichbar (Navigation und Fuß), ohne die bestehende Kopfleiste zu überladen
-- [ ] **DON-12**: Genannt wird ein Unterstützer nur nach ausdrücklicher Zustimmung; Vorgabe ist anonym, und ein selbst gewählter Anzeigename wird vor der Anzeige entschärft
+- [ ] **DON-10**: Eine eigene Unterstützen-Seite in DE und EN erklärt in der Gestaltungsrichtung „Instandsetzung", wofür das Geld ist — Kern der Aussage ist der Arbeitsverlust durch die unangekündigten Abstürze, nicht der Sachschaden
+- [ ] **DON-11**: Ein Unterstützen-Zugang ist site-weit erreichbar (Fuß und Menü) plus als Streifen am Ende der Werkzeugseiten, ohne die Kopfleiste anzufassen
+- [ ] **DON-29**: Nur einmalige Unterstützung. Der Umschalter einmalig/monatlich entfällt ersatzlos, statt eine Möglichkeit vorzutäuschen, die PayPal.me nicht hat
 
 **Pflichten des Bestands**
 
-- [ ] **DON-13**: Die Content-Security-Policy passt nachweislich zum gewählten Zahlungsweg, und `npm run audit:csp` bleibt grün
-  > Umformuliert am 31.07.2026: die ursprüngliche Fassung schrieb „die CSP kennt
-  > Stripe (Skript, Frame, Verbindung)" vor und nahm damit eine eingebettete
-  > Stripe.js-Lösung vorweg. Die Recherche zeigt: beim gewählten Weiterleitungs-
-  > Checkout (D-01, gehostete Stripe-Seite) ist **kein einziger neuer CSP-Eintrag
-  > nötig** — eine Weiterleitung per `location.href` unterliegt der CSP nicht, und
-  > der `fetch()` an die Edge Function fällt bereits unter den bestehenden
-  > Supabase-Eintrag in `connect-src`. Die Anforderung lautet deshalb jetzt
-  > „passend und grün", nicht „drei Einträge ergänzen". Würde später doch auf
-  > eingebettetes Stripe.js gewechselt, müsste die Liste vorher **gemessen**
-  > ergänzt werden (Hausregel im Kommentarblock über der CSP), nicht geraten.
-- [ ] **DON-14**: Die Datenschutzerklärung nennt Stripe und Ko-fi als Empfänger mit Zweck; `npm run verify` und `npm run audit:site` bleiben grün, Seitenpaare DE/EN bleiben deckungsgleich
+- [ ] **DON-13**: `npm run audit:csp` bleibt grün. Beim Weiterleitungs-Link zu PayPal ist wie bei Stripe **kein** neuer CSP-Eintrag nötig — eine Navigation unterliegt der CSP nicht. Die Weiterleitung erfolgt als normaler `<a href>` bzw. `location.href`, **nie** als Formular-POST (der fiele unter `form-action` und würde still blockiert)
+- [ ] **DON-14**: Die Datenschutzerklärung nennt PayPal und Ko-fi als Empfänger mit Zweck; `npm run verify` und `npm run audit:site` bleiben grün, die Seitenpaare DE/EN bleiben deckungsgleich
+
+**Gestrichen mit der PayPal-Umstellung (02.08.2026) — Vorlage für eine spätere Phase**
+
+Diese Anforderungen setzten einen signaturgeprüften Webhook voraus. Ein PayPal-Link
+hat keinen. Sie werden NICHT gelöscht: sobald ein PayPal-Geschäftskonto mit
+Webhook existiert, sind sie die fertige Grundlage. `05-RESEARCH.md` § Datenschicht
+ist anbieterneutral und bleibt gültig.
+
+- ~~**DON-04**~~: Dankesseite nach der Zahlung — PayPal kehrt nicht kontrolliert zurück
+- ~~**DON-05**~~: Checkout-Sitzung serverseitig anlegen — es gibt keinen Server mehr
+- ~~**DON-06**~~: Betragsprüfung serverseitig — der Betrag steht im Link, PayPal zeigt ihn vor der Zahlung an
+- ~~**DON-07**~~: Zeilen entstehen nur im Webhook nach Signaturprüfung — keine Tabelle
+- ~~**DON-08**~~: Öffentliche View mit ausgewählten Spalten — keine Tabelle
+- ~~**DON-12**~~: Nennung nur nach Zustimmung, Anzeigename entschärft — keine Wand
 
 ## v2 Requirements
 
@@ -204,24 +210,32 @@
 | DON-01 | Phase 5 | Pending |
 | DON-02 | Phase 5 | Pending |
 | DON-03 | Phase 5 | Pending |
-| DON-04 | Phase 5 | Pending |
-| DON-05 | Phase 5 | Pending |
-| DON-06 | Phase 5 | Pending |
-| DON-07 | Phase 5 | Pending |
-| DON-08 | Phase 5 | Pending |
 | DON-09 | Phase 5 | Pending |
 | DON-10 | Phase 5 | Pending |
 | DON-11 | Phase 5 | Pending |
-| DON-12 | Phase 5 | Pending |
 | DON-13 | Phase 5 | Pending |
 | DON-14 | Phase 5 | Pending |
+| DON-26 | Phase 5 | Pending |
+| DON-27 | Phase 5 | Pending |
+| DON-28 | Phase 5 | Pending |
+| DON-29 | Phase 5 | Pending |
+| DON-31 | Phase 5 | Pending |
+| DON-04 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-05 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-06 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-07 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-08 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-12 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
 
 **Coverage:**
 
-- v1 requirements: 35 total
-- Mapped to phases: 35
+- v1 requirements: 34 total (21 aus dem UI-Meilenstein + 13 aktive DON)
+- Mapped to phases: 34
 - Unmapped: 0 ✓
+- Gestrichen mit der PayPal-Umstellung: 6 (DON-04, -05, -06, -07, -08, -12) — nicht
+  gelöscht, sondern als Vorlage für eine spätere Phase mit PayPal-Geschäftskonto
+  aufbewahrt
 
 ---
 *Requirements defined: 2026-07-28*
-*Last updated: 2026-07-31 — Spenden-Unterstützung (DON-01…DON-14) für Phase 5 ergänzt*
+*Last updated: 2026-08-02 — Spenden-Unterstützung von Stripe auf PayPal umgestellt; 6 Anforderungen gestrichen, 5 neue (DON-26…DON-31)*
