@@ -4,8 +4,10 @@
 // in reinem JS (kein Framework). Jede Karte trägt beide Preise — Pledge (USD)
 // und den günstigsten Ingame-Kauf (UEX-aUEC-Momentaufnahme) — plus ein
 // Patch-Spine-Abzeichen zurück ins Archiv. Die exakte CIG-Rolle (vRoleCig,
-// D-11) ersetzt die Wiki-Foci als Kartenbeschriftung und ist zugleich
-// filterbar (sf-role/data-role).
+// D-11) ersetzt die Wiki-Foci als Kartenbeschriftung. Gefiltert wird NUR
+// auf Familienebene (sf-rolefam/data-rolefam, D-05) — ein eigener Filter
+// auf exakter Rollenebene (sf-role, 55 Optionen) stand kurzzeitig parallel
+// dazu und wurde nach Sichtprüfung als Dublette entfernt (Plan 03, Task 2).
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe
 // components/topics/crafting.astro).
@@ -26,9 +28,6 @@ const vehicles = (await getCollection('vehicles')).sort((a, b) =>
   a.data.name.localeCompare(b.data.name, localeTag)
 );
 const makers = [...new Set(vehicles.map((v) => v.data.manufacturer).filter(Boolean))].sort() as string[];
-const roles = ([...new Set(vehicles.map((v) => vRoleCig(v.id, v.data, lang)).filter(Boolean))] as string[]).sort(
-  (a, b) => a.localeCompare(b, localeTag)
-);
 const roleSnapshot = (vehicleRoles as { vehicles: Record<string, { careerKey: string | null; feat?: string[] }> }).vehicles;
 
 // D-04: Beruf-Filter — distinkte Berufsschlüssel, Beschriftung aus vCareer(id, lang).
@@ -43,7 +42,10 @@ const careers = [...careerLabels.entries()]
   .map(([key, label]) => ({ key, label }))
   .sort((a, b) => a.label.localeCompare(b.label, localeTag));
 
-// D-05: Rollenfamilien-Filter — Stand je Familie, sortiert absteigend (Claude's Discretion aus 05-CONTEXT.md).
+// D-05: Rollenfilter, gefiltert auf Familienebene, angezeigt auf exakter Ebene —
+// Stand je Familie, sortiert absteigend (Claude's Discretion aus 05-CONTEXT.md).
+// Die id bleibt sf-rolefam/data-rolefam (Interface-Vertrag mit den Schnellzugriff-
+// Chips aus Task 1); nur Beschriftung und aria-label heissen jetzt "Rolle".
 const familyStand = new Map<string, { label: string; count: number }>();
 for (const v of vehicles) {
   for (const fam of vRoleFamilies(v.id, lang)) {
@@ -313,12 +315,8 @@ a{color:inherit;text-decoration:none}
       <option value="">{de ? 'Alle Berufe' : 'All careers'}</option>
       {careers.map((c) => <option value={c.key}>{c.label}</option>)}
     </select>
-    <select id="sf-role" aria-label={de ? 'Rolle' : 'Role'}>
+    <select id="sf-rolefam" aria-label={de ? 'Rolle' : 'Role'}>
       <option value="">{de ? 'Alle Rollen' : 'All roles'}</option>
-      {roles.map((r) => <option value={r}>{r}</option>)}
-    </select>
-    <select id="sf-rolefam" aria-label={de ? 'Rollenfamilie' : 'Role family'}>
-      <option value="">{de ? 'Alle Rollenfamilien' : 'All role families'}</option>
       {roleFamilies.map((f) => <option value={f.slug}>{f.label} ({f.count})</option>)}
     </select>
     <select id="sf-sig" aria-label={de ? 'Signatur' : 'Signature'}>
@@ -357,7 +355,6 @@ a{color:inherit;text-decoration:none}
         data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
         data-maker={d.manufacturer ?? ''}
         data-type={vType(d, lang) ?? ''}
-        data-role={vRoleCig(id, d, lang) ?? ''}
         data-career={career}
         data-rolefam={` ${roleFam} `}
         data-sig={sig.min}
@@ -444,7 +441,6 @@ a{color:inherit;text-decoration:none}
   var RESULTS_LABEL = fleet.getAttribute('data-results-label') || 'results';
   var q = document.getElementById('sf-q');
   var selMaker = document.getElementById('sf-maker');
-  var selRole = document.getElementById('sf-role');
   var selCareer = document.getElementById('sf-career');
   var selRolefam = document.getElementById('sf-rolefam');
   var selSig = document.getElementById('sf-sig');
@@ -466,14 +462,13 @@ a{color:inherit;text-decoration:none}
 
   function apply() {
     var nq = norm(q.value).trim();
-    var m = selMaker.value, ro = selRole.value, st = selStatus.value, ar = selArchive.value;
+    var m = selMaker.value, st = selStatus.value, ar = selArchive.value;
     var ca = selCareer.value, fa = selRolefam.value, si = selSig.value, fe = selFeat.value;
     var n = 0;
     cards.forEach(function (c) {
       var ok =
         (!nq || norm(c.getAttribute('data-q')).indexOf(nq) >= 0) &&
         (!m || c.getAttribute('data-maker') === m) &&
-        (!ro || c.getAttribute('data-role') === ro) &&
         (!ca || c.getAttribute('data-career') === ca) &&
         (!fa || c.getAttribute('data-rolefam').indexOf(' ' + fa + ' ') >= 0) &&
         (!si || numAttr(c, 'data-sig') < parseFloat(si)) &&
@@ -499,7 +494,7 @@ a{color:inherit;text-decoration:none}
     ordered.forEach(function (c) { fleet.insertBefore(c, empty); });
   }
 
-  [q, selMaker, selRole, selCareer, selRolefam, selSig, selFeat, selStatus, selArchive].forEach(function (el) {
+  [q, selMaker, selCareer, selRolefam, selSig, selFeat, selStatus, selArchive].forEach(function (el) {
     el.addEventListener('input', apply);
     el.addEventListener('change', apply);
   });
