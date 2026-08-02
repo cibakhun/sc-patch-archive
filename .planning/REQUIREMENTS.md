@@ -145,6 +145,24 @@ ist anbieterneutral und bleibt gültig.
 - ~~**DON-08**~~: Öffentliche View mit ausgewählten Spalten — keine Tabelle
 - ~~**DON-12**~~: Nennung nur nach Zustimmung, Anzeigename entschärft — keine Wand
 
+### Schiffe: Rollen- und Merkmalsfilter
+
+> Quelle: Nutzerwunsch 02.08.2026 — die Schiffsübersicht filtert über acht Grobtypen aus
+> der Wiki-API; gesucht sind Archetypen in der Fachsprache des Spiels („Salvage", „mining",
+> „cargo hauling", „refueling") und kombinierbare Merkmale („stealth bomber",
+> „stealth cargo"). Erhebung und Belege: `.planning/phases/06-.../RESEARCH.md`.
+
+- [x] **ROLE-01**: Jedes Schiff des Katalogs trägt Beruf und Rolle aus dem DataCore; Einträge ohne Treffer sind namentlich benannt statt stillschweigend leer
+- [x] **ROLE-02**: Alle Filterwerte und ihre DE-/EN-Beschriftung stammen aus den Spieldateien (`Game2.dcb` + CIGs `global.ini`) — keine Ableitung aus Wiki-Foci oder Beschreibungstext
+- [x] **ROLE-03**: Verbundrollen zählen für jede enthaltene Rolle — „Starter / Leichter Frachter" erscheint unter *Frachttransport* **und** unter *Einsteiger*
+- [x] **ROLE-04**: Der Rollenfilter arbeitet auf Familienebene, die Karte nennt weiterhin die exakte CIG-Rolle
+- [x] **ROLE-05**: Der Signaturfilter findet die 16 Katalogschiffe mit abgesenkter Signatur (11 davon unter 0,80); der Wert steht mit CIG-eigener Beschriftung auf der Karte
+- [x] **ROLE-06**: Die Schnellzugriffe setzen Rolle und Signatur in einem Klick und finden die genannten Beispielfälle — Tarnkappenbomber, Frachter mit abgesenkter Signatur, Bergung, Bergbau, Betankung
+- [x] **ROLE-07**: Rollen ohne deutsche CIG-Fassung sind selbst übersetzt; keine Rolle erscheint auf der deutschen Seite englisch
+- [x] **ROLE-08**: Die Übersichtsseite hat EINEN Körper — DE und EN beziehen ihn, es gibt keinen zweiten Stil- oder Skriptblock
+- [x] **ROLE-09**: Die Seite bleibt ohne JavaScript lesbar; die Filterung läuft clientseitig ohne spürbare Verzögerung über alle Karten
+- [x] **ROLE-10**: Ein wiederholbarer Prüfschritt belegt die Join-Rate und schlägt fehl, wenn sie unter den erhobenen Stand fällt
+
 ## v2 Requirements
 
 ### Sprachparität
@@ -226,16 +244,32 @@ ist anbieterneutral und bleibt gültig.
 | DON-07 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
 | DON-08 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
 | DON-12 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| ROLE-01 | Phase 6 | Complete |
+| ROLE-02 | Phase 6 | Complete |
+| ROLE-03 | Phase 6 | Complete |
+| ROLE-04 | Phase 6 | Complete |
+| ROLE-05 | Phase 6 | Complete |
+| ROLE-06 | Phase 6 | Complete |
+| ROLE-07 | Phase 6 | Complete |
+| ROLE-08 | Phase 6 | Complete |
+| ROLE-09 | Phase 6 | Complete |
+| ROLE-10 | Phase 6 | Complete |
 
 **Coverage:**
 
-- v1 requirements: 34 total (21 aus dem UI-Meilenstein + 13 aktive DON)
-- Mapped to phases: 34
+- v1 requirements: 44 total (21 UI-Meilenstein + 13 aktive DON + 10 ROLE)
+- Mapped to phases: 44
 - Unmapped: 0 ✓
+
+> Phase-5-Kollision aufgeloest 02.08.2026: „Spenden-Unterstuetzung" (DON) und
+> „Schiffe: Rollen- und Merkmalsfilter" (ROLE) entstanden parallel in getrennten
+> Sitzungen und beanspruchten beide die Nummer 5. Spenden behaelt Phase 5 (war
+> zuerst auf staging), Schiffe wurde auf Phase 6 umnummeriert.
+
 - Gestrichen mit der PayPal-Umstellung: 6 (DON-04, -05, -06, -07, -08, -12) — nicht
   gelöscht, sondern als Vorlage für eine spätere Phase mit PayPal-Geschäftskonto
   aufbewahrt
 
 ---
 *Requirements defined: 2026-07-28*
-*Last updated: 2026-08-02 — Spenden-Unterstützung von Stripe auf PayPal umgestellt; 6 Anforderungen gestrichen, 5 neue (DON-26…DON-31)*
+*Last updated: 2026-08-02 — Spenden-Unterstützung von Stripe auf PayPal umgestellt (6 gestrichen, 5 neue DON-26…DON-31); Schiffe-Rollenfilter (ROLE-01…10) ergänzt und auf Phase 6 umnummeriert*

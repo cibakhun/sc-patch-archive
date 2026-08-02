@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: staging zusammengefuehrt — Unterstuetzen-Seite existiert bereits, Umbau auf "Instandsetzung" laeuft
-last_updated: "2026-08-02T11:00:10.543Z"
+stopped_at: staging zusammengefuehrt — Unterstuetzen-Seite existiert bereits, Umbau auf "Instandsetzung" laeuft; Phase 6 (Schiffe-Rollenfilter) abgeschlossen
+last_updated: "2026-08-02T14:47:16.911Z"
 last_activity: 2026-08-02
-last_activity_desc: Phase 5 als Umbau der bestehenden Support-Seite neu ausgerichtet
+last_activity_desc: Phase 6 abgeschlossen (Schiffe: Rollen- und Merkmalsfilter); Phase 5 auf PayPal neu ausgerichtet
 progress:
-  total_phases: 4
-  completed_phases: 0
-  total_plans: 8
-  completed_plans: 2
+  total_phases: 5
+  completed_phases: 1
+  total_plans: 11
+  completed_plans: 5
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -86,6 +86,9 @@ Progress: [███░░░░░░░] 33%
 |------|----------|-------|-------|
 | Phase 01.1 P01 | 45min | 3 tasks | 8 files |
 | Phase 01.1 P02 | ~2h | 3 tasks | 39 files |
+| Phase 05 P01 | 45min | 2 tasks | 8 files |
+| Phase 05 P02 | 55min | 2 tasks | 5 files |
+| Phase 5 P03 | ~2h55min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -102,6 +105,12 @@ Recent decisions affecting current work:
 - [Phase ?]: archive.js: eine gemeinsame running-Variable traegt Tab-Sichtbarkeit UND FX-Wahl statt zweier konkurrierender Riegel
 - [Phase ?]: Codemod liest den Leinwandnamen aus getElementById statt ihn festzuverdrahten -- erkennt dadurch die abweichende dust-Leinwand von sc-4-9-0 korrekt
 - [Phase ?]: sc-4-2-0 Regen und Blitz bewusst aus dem Codemod ausgeschlossen und von Hand gegattert, inkl. Reset des Zeitgebers beim Wiedereinschalten
+- [Phase ?]: [Phase 5]: 05-01: vRoleCig() ersetzt fociDe als Kartenbeschriftung, Fallback auf vRole() fuer die 4 ATLS-Faelle; EIN Koerper (ShipsOverview.astro) fuer /schiffe.html + /de/schiffe.html
+- [Phase ?]: [Phase 5]: 05-01: npm run theme lief repo-weit und veraenderte 84 unbeteiligte Dateien (Alt-Drift) -- alle zurueckgesetzt, nur die 4 fuer diesen Plan vorgesehenen Dateien blieben veraendert
+- [Phase ?]: [Phase 5]: 05-02: 18 Rollenfamilien (CAREER_LEGACY/ROLE_COMPOUND/ROLE_FAMILY) + Signatur (sig, 16 Schiffe) + Merkmalsleiste (feat: cargo 102, ground 37) aus dem DataCore; Bewaffnet (dogfightEnabled 220/223) bewusst nicht als Merkmal erzeugt (D-09)
+- [Phase ?]: [Phase 5]: 05-02: npm run theme beruehrte erneut dieselben 84 unbeteiligten Dateien aus Plan 01 (Alt-Drift) -- zurueckgesetzt, nur die 5 Plan-Dateien blieben veraendert
+- [Phase ?]: [Phase 5]: 05-03: 7 Schnellzugriff-Chips (sdb__quick/sdb__qchip) setzen Rollenfamilie+Signatur in einem Klick (D-10, ROLE-06); sf-type (Wiki-Grobfilter) abgeloest
+- [Phase ?]: [Phase 5]: 05-03: Sichtpruefung fand doppelten Rollenfilter (sf-role neben sf-rolefam) -- sf-role entfernt, sf-rolefam ist jetzt DER Rollenfilter (D-05); Konsole 9 statt 10 Bedienelemente
 
 ### Pending Todos
 
@@ -129,6 +138,7 @@ None yet.
 - Phase 01.1 inserted after Phase 1: Ambiente-Effekte stilllegen — Mauszeiger-Schein raus, Partikel opt-in (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 - Phase 01.2 inserted after Phase 1: Werkzeuge erklaeren — Zweck- und Bedienungshilfe je Werkzeug (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 - Phase 5 added (31.07.2026): Spenden-Unterstuetzung — Stripe Checkout + Ko-fi, eigene Seite, Ziel und Unterstuetzer-Wand (DON-01…DON-14). ERWEITERT den Meilenstein bewusst ueber die Oberflaeche hinaus (DB-Tabelle, zwei Edge Functions, Zahlungsverkehr); die „Out of Scope"-Zeilen zu serverseitiger Logik und Konto-Funktionen sind fuer diese Phase aufgehoben. Anlass: defektes Netzteil im Entwicklungsrechner, zufaellige Neustarts. Haengt an keiner Vorgaengerphase — Phase 1.1 bleibt geplant liegen und wird NICHT abgebrochen.
+- Phase 6 added (02.08.2026): Schiffe — Rollen- und Merkmalsfilter. Granulare, spielgenaue Filter statt acht Wiki-Grobtypen; Datengrundlage neu aus dem DataCore. Beanspruchte zunaechst Nummer 5 und wurde beim staging-Abgleich auf 6 umnummeriert, weil Spenden-Unterstuetzung zuerst auf staging war. ABGESCHLOSSEN, Verifikation 10/10.
 
 ## Deferred Items
 
@@ -140,6 +150,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-02T11:00:10.528Z
-Stopped at: Phase 5 auf PayPal neu geplant — 3 Plaene, ausfuehrbereit
-Resume file: .planning/phases/05-spenden-unterst-tzung/05-01-PLAN.md
+Last session: 2026-08-02T14:47:16.182Z
+Stopped at: Phase 6 abgeschlossen (06-03-PLAN.md) — Schnellzugriffe, doppelter Rollenfilter bereinigt, Verifikation 10/10
+Resume file: .planning/phases/05-spenden-unterst-tzung/05-01-PLAN.md  (Phase 5 Spenden — naechster offener Plan)

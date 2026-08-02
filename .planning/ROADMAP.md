@@ -26,6 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Überlagerungen entstapeln** - Class-B-Befund abtragen, Textkontrast über Bildmotiven belegen
 - [ ] **Phase 4: Sprachparität absichern** - Deckungsgleichheit der Seitenpaare nachweisbar statt behauptet
 - [ ] **Phase 5: Spenden-Unterstützung** - Ein Unterstützen-Weg, der tatsächlich Geld annimmt: PayPal-Link + Ko-fi, eigene Seite in der Richtung „Instandsetzung"
+- [x] **Phase 6: Schiffe: Rollen- und Merkmalsfilter** - Granulare, spielgenaue Filter statt acht Grobtypen
 
 ## Phase Details
 
@@ -214,11 +215,53 @@ Was in dieser Phase NICHT belegbar ist: dass tatsächlich Geld ankommt. Das hän
 PayPal-Namen des Betreibers und an einer echten Überweisung. Es ist als menschliche
 Abnahme geführt und bleibt bis dahin ungehakt.
 
+### Phase 6: Schiffe: Rollen- und Merkmalsfilter
+
+**Goal**: Wer auf der Schiffsübersicht ein Schiff für einen bestimmten Zweck sucht, findet es
+über Filter, die die Fachsprache des Spiels sprechen — nicht über acht Grobtypen. Die
+Filterwerte stammen aus den Spieldateien (DataCore), nicht aus geratenen Kategorien, und
+lassen sich kombinieren, sodass auch Nischen wie „Frachter mit abgesenkter Signatur"
+(Prowler Utility) auffindbar werden.
+**Mode:** mvp
+**Depends on**: — (unabhängig vom Design-Meilenstein; berührt nur die Schiffsseiten)
+**Requirements**: ROLE-01, ROLE-02, ROLE-03, ROLE-04, ROLE-05, ROLE-06, ROLE-07, ROLE-08, ROLE-09, ROLE-10
+**Success Criteria** (what must be TRUE):
+
+  1. Jedes Schiff im Katalog trägt eine spielgenaue Rolle aus dem DataCore; die 4 nicht
+     joinbaren Einträge (ATLS) sind benannt statt stillschweigend leer
+
+  2. Die Filter finden die vom Nutzer genannten Beispielfälle: Tarnkappenbomber,
+     Frachter mit abgesenkter Signatur, Bergung, Bergbau, Betankung
+
+  3. Die Merkmale sind belegt, nicht behauptet — jedes Merkmal nennt seine Quelle im
+     Spieldatensatz, und kein Merkmal wird aus Marketingtext abgeleitet
+
+  4. DE und EN tragen dieselben Filter mit CIG-eigenen Übersetzungen; wo CIG keine
+     deutsche Fassung liefert, ist die Lücke bewusst gefüllt statt englisch durchgereicht
+
+  5. Die Seite bleibt ohne JavaScript lesbar und die Filterung läuft clientseitig ohne
+     spürbare Verzögerung über alle 227 Karten
+
+**Plans**: 3/3 plans executed
+
+Plans:
+
+- [x] 06-01-PLAN.md — (Welle 1) Tracer: „Bergung" von der Spieldatei bis auf die Karte — EIN Körper für DE und EN, Datamine, Momentaufnahme, erster Rollenfilter, plus Prüfschritt für die Join-Rate 223/227
+- [x] 06-02-PLAN.md — (Welle 2) Beruf und 18 Rollenfamilien mit zerlegten Verbundrollen und gefüllten deutschen Lücken; danach Signaturachse und Merkmalsleiste, die den Prowler Utility auffindbar machen
+- [x] 06-03-PLAN.md — (Welle 3) Sieben Schnellzugriffe setzen Rolle und Signatur in einem Klick, der Wiki-Grobfilter weicht dem spielgenauen Beruf, Sichtprüfung der fünf Abnahmefälle
+
+Erhebung des Planers am 02.08.2026 gegen das echte Archiv — drei Korrekturen an RESEARCH.md,
+die in den Plänen stehen: die deutsche Lokalisierung liegt unter `german_(germany)`, nicht
+unter `german`; Signaturen tragen 16 Katalog-Schiffe, nicht 22 (RESEARCH zählt über 360
+DataCore-Records statt über die 223 gejointen); und `dogfightEnabled` trifft 220 von 223 —
+das Merkmal „Bewaffnet" aus D-09 entfällt damit nach D-09s eigener Abbruchbedingung.
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
-(Phase 5 hängt an keiner Vorgängerphase und wird auf Wunsch vorgezogen.)
+Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5 → 6
+(Phase 5 und Phase 6 hängen an keiner Vorgängerphase und werden auf Wunsch vorgezogen.
+Phase 6 lief am 02.08.2026 vorab durch, während 1.1 noch offen war.)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -229,3 +272,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
 | 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |
+| 6. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |
