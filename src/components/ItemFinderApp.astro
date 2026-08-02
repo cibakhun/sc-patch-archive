@@ -697,12 +697,15 @@ const JS_T = ITEM_UI[lang];
   /* Responsive */
   @media (max-width: 900px) {
     /* Die Nav ist auf schmalen Schirmen niedriger (~58 px) — Klebepunkt mit */
-    .uif-container { flex-direction: column; padding: 1rem; --uif-stick: 4rem; }
+    /* Enger als am Desktop: der 2rem-Spalt und die 1.5rem-Polsterung kosten auf
+       375 px zusammen rund 50 px, die unten der Trefferliste fehlen. */
+    .uif-container { flex-direction: column; padding: 1rem; gap: 1.1rem; --uif-stick: 4rem; }
 
     .uif-sidebar {
       width: 100%;
       position: static;
       box-shadow: none;
+      padding: 0.9rem;
     }
 
     #uif-category-list {
@@ -721,7 +724,7 @@ const JS_T = ITEM_UI[lang];
       display: flex;
       justify-content: space-between;
       width: 100%;
-      margin-top: 0.9rem;
+      margin-top: 0.7rem;
       padding: 0.6rem 0.85rem;
       border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
       border-radius: 6px;

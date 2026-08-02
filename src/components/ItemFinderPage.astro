@@ -45,8 +45,13 @@ const snap = DB.generatedAt;
 .uf-toolmeta__links a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--line)}
 .uf-toolmeta__links a:hover{color:var(--accent-2);border-color:var(--accent-2)}
 @media (max-width:700px){
-  /* Verweise bekommen eine eigene Zeile, statt hinter dem Hinweis zu kleben. */
-  .uf-toolmeta__links{flex-basis:100%}
+  /* Verweise bekommen eine eigene Zeile, statt hinter dem Hinweis zu kleben.
+     Enger gesetzt als am Desktop: auf 375 px kostet jede Zeile hier direkt
+     Platz, den unten das Werkzeug braucht. Kleiner gesetzt, nicht versteckt —
+     der Text bleibt sichtbar und indexierbar (Mobile-First-Indexierung). */
+  .uf-toolmeta{gap:.3rem .9rem;margin-bottom:.2rem}
+  .uf-toolmeta__links{flex-basis:100%;font-size:.82rem;gap:.25rem 1rem;line-height:1.4}
+  .uf-toolmeta__note{font-size:.8rem;line-height:1.4}
 }
 
 /* Werkzeug-Kopfband: die Suche muss bei 1280x800 und bei 375x812 ohne
@@ -60,8 +65,16 @@ const snap = DB.generatedAt;
 .hero--tool .qbar{margin-top:.9rem}
 @media (max-width:700px){
   /* Auf schmalen Schirmen bleibt weniger Höhe übrig — Polsterung nochmal senken,
-     damit das Suchfeld darunter bei 375x812 im ersten Bild steht. */
-  .hero--tool{padding-top:5rem;padding-bottom:1.2rem}
+     damit das Suchfeld darunter bei 375x812 im ersten Bild steht. Die feste Nav
+     ist 69 px hoch, 4.4rem (79 px) lässt ihr genug Luft.
+     Der Rest ist Dichte, keine Streichung: Lead, Kennzahlen und Titel werden
+     enger gesetzt, damit unter Suche und Filterknopf auch die Trefferzeile und
+     die erste Karte ins erste Bild rutschen. Ohne diesen Block stünde bei
+     375x812 nur Text — genau das, was hier abgeschafft werden soll. */
+  .hero--tool{padding-top:4.4rem;padding-bottom:.5rem}
+  .hero--tool h1{font-size:clamp(1.7rem,7.4vw,2.2rem);margin-top:.1rem}
+  .hero--tool .lead{font-size:.9rem;line-height:1.4;margin-top:.25rem}
+  .hero--tool .qbar{margin-top:.55rem;gap:.3rem 1rem;font-size:.68rem}
 }
 </style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
