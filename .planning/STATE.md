@@ -8,7 +8,7 @@ status: in_progress
 stopped_at: Completed 01.1-02-PLAN.md
 last_updated: "2026-07-29T03:46:15.151Z"
 last_activity: 2026-08-02
-last_activity_desc: Quick-Task 260802-3fw: Zurueck-Button site-weit
+last_activity_desc: Quick-Task 260802-5qd: Zurueck folgt der Herkunft
 progress:
   total_phases: 3
   completed_phases: 0
@@ -31,7 +31,7 @@ Phase: 1.1 of 6 (Ambiente-Effekte stilllegen)
 Plan: 2 of 3 in Phase 1.1
 Status: Phase 1.1 geplant (3 Pläne, 3 Wellen, Plan-Prüfer bestanden) — bereit zur Ausführung; Phase 1.2 noch ungeplant
 Branch: claude/site-feedback-effects-docs-3f4edf
-Last activity: 2026-08-02 — Quick-Task 260802-3fw: Zurück-Button site-weit
+Last activity: 2026-08-02 — Quick-Task 260802-5qd: Zurück folgt der Herkunft
 
 Progress: [████░░░░░░] 40%
 
@@ -95,6 +95,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260802-3fw | Zurück-Button site-weit (SiteNav leitet ihn aus `crumbs` ab; `--nav-h` löst die verdrahteten 68px in drei Filterleisten ab) | 2026-08-02 | b12a3b5, 03ead2d | [260802-3fw-zurueck-button-site-weit](./quick/260802-3fw-zurueck-button-site-weit/) |
+| 260802-5qd | Zurück folgt der tatsächlichen Herkunft (Herkunfts-Notiz + parser-blockierender Leser; crafting→Material→zurück behält Suche und Scroll) | 2026-08-02 | d66dbb6, 9e0133a | [260802-5qd-zurueck-folgt-der-herkunft](./quick/260802-5qd-zurueck-folgt-der-herkunft/) |
 
 ### Roadmap Evolution
 
