@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1.1
 current_phase_name: Ambiente-Effekte stilllegen
 status: in_progress
-stopped_at: Phase 5 Plan 1 ausgeführt (05-01-PLAN.md) — Bergung von der Spieldatei bis auf die Karte, EIN Koerper, sf-role-Filter
-last_updated: "2026-08-02T11:17:56.681Z"
+stopped_at: Phase 5 Plan 2 ausgefuehrt (05-02-PLAN.md) -- 18 Rollenfamilien, Signatur- und Merkmalsachsen, Prowler Utility auffindbar
+last_updated: "2026-08-02T11:45:25.850Z"
 last_activity: 2026-08-02
 last_activity_desc: "Quick-Task 260802-5qd: Zurück folgt der Herkunft"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 8
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -62,6 +62,7 @@ Progress: [████░░░░░░] 40%
 | Phase 01.1 P01 | 45min | 3 tasks | 8 files |
 | Phase 01.1 P02 | ~2h | 3 tasks | 39 files |
 | Phase 05 P01 | 45min | 2 tasks | 8 files |
+| Phase 05 P02 | 55min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting current work:
 - [Phase ?]: sc-4-2-0 Regen und Blitz bewusst aus dem Codemod ausgeschlossen und von Hand gegattert, inkl. Reset des Zeitgebers beim Wiedereinschalten
 - [Phase ?]: [Phase 5]: 05-01: vRoleCig() ersetzt fociDe als Kartenbeschriftung, Fallback auf vRole() fuer die 4 ATLS-Faelle; EIN Koerper (ShipsOverview.astro) fuer /schiffe.html + /de/schiffe.html
 - [Phase ?]: [Phase 5]: 05-01: npm run theme lief repo-weit und veraenderte 84 unbeteiligte Dateien (Alt-Drift) -- alle zurueckgesetzt, nur die 4 fuer diesen Plan vorgesehenen Dateien blieben veraendert
+- [Phase ?]: [Phase 5]: 05-02: 18 Rollenfamilien (CAREER_LEGACY/ROLE_COMPOUND/ROLE_FAMILY) + Signatur (sig, 16 Schiffe) + Merkmalsleiste (feat: cargo 102, ground 37) aus dem DataCore; Bewaffnet (dogfightEnabled 220/223) bewusst nicht als Merkmal erzeugt (D-09)
+- [Phase ?]: [Phase 5]: 05-02: npm run theme beruehrte erneut dieselben 84 unbeteiligten Dateien aus Plan 01 (Alt-Drift) -- zurueckgesetzt, nur die 5 Plan-Dateien blieben veraendert
 
 ### Pending Todos
 
@@ -116,6 +119,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-02T11:17:56.665Z
-Stopped at: Phase 5 Plan 1 ausgeführt (05-01-PLAN.md) — Bergung von der Spieldatei bis auf die Karte, EIN Koerper, sf-role-Filter
-Resume file: .planning/phases/05-schiffe-rollen-und-merkmalsfilter/05-02-PLAN.md
+Last session: 2026-08-02T11:45:25.833Z
+Stopped at: Phase 5 Plan 2 ausgefuehrt (05-02-PLAN.md) -- 18 Rollenfamilien, Signatur- und Merkmalsachsen, Prowler Utility auffindbar
+Resume file: .planning/phases/05-schiffe-rollen-und-merkmalsfilter/05-03-PLAN.md
