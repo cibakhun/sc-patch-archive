@@ -175,7 +175,7 @@ lassen sich kombinieren, sodass auch Nischen wie „Frachter mit abgesenkter Sig
 (Prowler Utility) auffindbar werden.
 **Mode:** mvp
 **Depends on**: — (unabhängig vom Design-Meilenstein; berührt nur die Schiffsseiten)
-**Requirements**: TBD (in Phase-Diskussion festzulegen)
+**Requirements**: ROLE-01, ROLE-02, ROLE-03, ROLE-04, ROLE-05, ROLE-06, ROLE-07, ROLE-08, ROLE-09, ROLE-10
 **Success Criteria** (what must be TRUE):
 
   1. Jedes Schiff im Katalog trägt eine spielgenaue Rolle aus dem DataCore; die 4 nicht

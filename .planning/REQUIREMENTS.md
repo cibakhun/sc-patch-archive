@@ -85,6 +85,24 @@
 - [ ] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
 - [ ] **DOC-07**: Abgedeckt sind Item Finder, Crafting, Mining, Schiffe, Missionen, Refinery, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
 
+### Schiffe: Rollen- und Merkmalsfilter
+
+> Quelle: Nutzerwunsch 02.08.2026 — die Schiffsübersicht filtert über acht Grobtypen aus
+> der Wiki-API; gesucht sind Archetypen in der Fachsprache des Spiels („Salvage", „mining",
+> „cargo hauling", „refueling") und kombinierbare Merkmale („stealth bomber",
+> „stealth cargo"). Erhebung und Belege: `.planning/phases/05-.../RESEARCH.md`.
+
+- [ ] **ROLE-01**: Jedes Schiff des Katalogs trägt Beruf und Rolle aus dem DataCore; Einträge ohne Treffer sind namentlich benannt statt stillschweigend leer
+- [ ] **ROLE-02**: Alle Filterwerte und ihre DE-/EN-Beschriftung stammen aus den Spieldateien (`Game2.dcb` + CIGs `global.ini`) — keine Ableitung aus Wiki-Foci oder Beschreibungstext
+- [ ] **ROLE-03**: Verbundrollen zählen für jede enthaltene Rolle — „Starter / Leichter Frachter" erscheint unter *Frachttransport* **und** unter *Einsteiger*
+- [ ] **ROLE-04**: Der Rollenfilter arbeitet auf Familienebene, die Karte nennt weiterhin die exakte CIG-Rolle
+- [ ] **ROLE-05**: Der Signaturfilter findet die Schiffe mit abgesenkter Signatur; der Wert steht mit CIG-eigener Beschriftung auf der Karte
+- [ ] **ROLE-06**: Die Schnellzugriffe setzen Rolle und Signatur in einem Klick und finden die genannten Beispielfälle — Tarnkappenbomber, Frachter mit abgesenkter Signatur, Bergung, Bergbau, Betankung
+- [ ] **ROLE-07**: Rollen ohne deutsche CIG-Fassung sind selbst übersetzt; keine Rolle erscheint auf der deutschen Seite englisch
+- [ ] **ROLE-08**: Die Übersichtsseite hat EINEN Körper — DE und EN beziehen ihn, es gibt keinen zweiten Stil- oder Skriptblock
+- [ ] **ROLE-09**: Die Seite bleibt ohne JavaScript lesbar; die Filterung läuft clientseitig ohne spürbare Verzögerung über alle Karten
+- [ ] **ROLE-10**: Ein wiederholbarer Prüfschritt belegt die Join-Rate und schlägt fehl, wenn sie unter den erhobenen Stand fällt
+
 ## v2 Requirements
 
 ### Sprachparität
@@ -147,11 +165,21 @@
 | SYNC-01 | Phase 4 | Pending |
 | SYNC-02 | Phase 4 | Pending |
 | THEME-02 | Phase 4 | Pending |
+| ROLE-01 | Phase 5 | Pending |
+| ROLE-02 | Phase 5 | Pending |
+| ROLE-03 | Phase 5 | Pending |
+| ROLE-04 | Phase 5 | Pending |
+| ROLE-05 | Phase 5 | Pending |
+| ROLE-06 | Phase 5 | Pending |
+| ROLE-07 | Phase 5 | Pending |
+| ROLE-08 | Phase 5 | Pending |
+| ROLE-09 | Phase 5 | Pending |
+| ROLE-10 | Phase 5 | Pending |
 
 **Coverage:**
 
-- v1 requirements: 21 total
-- Mapped to phases: 21
+- v1 requirements: 31 total
+- Mapped to phases: 31
 - Unmapped: 0 ✓
 
 ---
