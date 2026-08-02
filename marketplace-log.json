@@ -2,12 +2,12 @@
  "meta": {
   "source": "UEX Corp (uexcorp.space) /2.0/marketplace_listings — Spieler-Inserate, ANGEBOTSpreise.",
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
-  "firstRun": "2026-08-02",
-  "lastRun": "2026-08-02",
-  "runs": 5,
-  "totalListings": 665,
-  "totalSold": 22,
-  "distinctItems": 354
+  "firstSeen": "2026-08-02",
+  "lastChange": "2026-08-02",
+  "updates": 1,
+  "totalListings": 685,
+  "totalSold": 24,
+  "distinctItems": 357
  },
  "listings": {
   "156580": {
@@ -7502,6 +7502,27 @@
    "dateAdded": 1785612790,
    "dateExpiration": 1790796790
   },
+  "156989": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 861,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 100000
+    }
+   ],
+   "soldOut": true,
+   "soldOutAt": "2026-08-02",
+   "soldOutPrice": 100000,
+   "dateAdded": 1785612838,
+   "dateExpiration": 1790796838
+  },
   "156990": {
    "idItem": 2629,
    "idCategory": 38,
@@ -7690,6 +7711,27 @@
    "soldOutPrice": null,
    "dateAdded": 1785613245,
    "dateExpiration": 1790797245
+  },
+  "156999": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 867,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 150000
+    }
+   ],
+   "soldOut": true,
+   "soldOutAt": "2026-08-02",
+   "soldOutPrice": 150000,
+   "dateAdded": 1785613431,
+   "dateExpiration": 1790797431
   },
   "157000": {
    "idItem": 4886,
@@ -10060,6 +10102,10 @@
     {
      "d": "2026-08-02",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-02",
+     "p": 2300000
     }
    ],
    "soldOut": false,
@@ -13457,6 +13503,27 @@
    "dateAdded": 1785665898,
    "dateExpiration": 1790849898
   },
+  "157290": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl q860, q937 and q955",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785666089,
+   "dateExpiration": 1790850089
+  },
   "157291": {
    "idItem": 5927,
    "idCategory": 36,
@@ -13982,6 +14049,69 @@
    "dateAdded": 1785670397,
    "dateExpiration": 1790854397
   },
+  "157316": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785670676,
+   "dateExpiration": 1790854676
+  },
+  "157317": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 975000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785670792,
+   "dateExpiration": 1790854792
+  },
+  "157318": {
+   "idItem": null,
+   "idCategory": 3,
+   "title": "Oni Kiba Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 27500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785670811,
+   "dateExpiration": 1790854811
+  },
   "157319": {
    "idItem": 4838,
    "idCategory": 3,
@@ -14002,6 +14132,300 @@
    "soldOutPrice": null,
    "dateAdded": 1785671041,
    "dateExpiration": 1790855041
+  },
+  "157320": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 970q 1.38SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 38000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785671197,
+   "dateExpiration": 1790855197
+  },
+  "157321": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "Polaris bits",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785671353,
+   "dateExpiration": 1790855353
+  },
+  "157322": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "Sadaryx 1000q 2 Units",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 23000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785671546,
+   "dateExpiration": 1790855546
+  },
+  "157323": {
+   "idItem": 5320,
+   "idCategory": 17,
+   "title": "FocalWave-10 (1x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785671967,
+   "dateExpiration": 1790855967
+  },
+  "157324": {
+   "idItem": 5321,
+   "idCategory": 17,
+   "title": "FocalWave-20 (2x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785672067,
+   "dateExpiration": 1790856067
+  },
+  "157325": {
+   "idItem": 5322,
+   "idCategory": 17,
+   "title": "FocalWave-30 (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785672174,
+   "dateExpiration": 1790856174
+  },
+  "157326": {
+   "idItem": 2627,
+   "idCategory": 61,
+   "title": "WTS - Large Artifact Fragment (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 4,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785672206,
+   "dateExpiration": 1790856206
+  },
+  "157327": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785672696,
+   "dateExpiration": 1790856696
+  },
+  "157328": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 875,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785673359,
+   "dateExpiration": 1790857359
+  },
+  "157329": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Corbel Crush wikelo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 100,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785673503,
+   "dateExpiration": 1790857503
+  },
+  "157330": {
+   "idItem": 5095,
+   "idCategory": 18,
+   "title": "Animus \"Quite Useful\" Missile Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785673893,
+   "dateExpiration": 1796045493
+  },
+  "157331": {
+   "idItem": 5923,
+   "idCategory": 36,
+   "title": "Laranite 298 6,546 Scu pack 500k",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 298,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785674077,
+   "dateExpiration": 1790858077
+  },
+  "157332": {
+   "idItem": 4991,
+   "idCategory": 7,
+   "title": "Corbel Smolder Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785674111,
+   "dateExpiration": 1790858111
+  },
+  "157336": {
+   "idItem": 4441,
+   "idCategory": 3,
+   "title": "WTS Berserker Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785674698,
+   "dateExpiration": 1790858698
   }
  }
 }
