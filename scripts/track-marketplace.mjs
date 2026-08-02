@@ -71,10 +71,23 @@ let rows;
 try {
   rows = await getJson('/marketplace_listings');
 } catch (err) {
-  // „last-good snapshot": faellt die API aus, bleibt der Bestand unberuehrt.
+  // Zwei getrennte Zusagen, die nicht verwechselt werden duerfen:
+  //   1. Der Bestand bleibt unberuehrt („last-good snapshot") — deshalb kein
+  //      Schreibzugriff in diesem Zweig.
+  //   2. Der Lauf gilt trotzdem als FEHLGESCHLAGEN (exit 1). Frueher war das
+  //      exit 0, dadurch meldete ein Actions-Lauf gruen, obwohl er nichts
+  //      geholt hatte — ein stiller Ausfall, der monatelang unbemerkt bliebe.
   console.error('UEX nicht erreichbar:', err.message);
-  console.error('Bestand unveraendert gelassen.');
-  process.exit(0);
+  console.error('Bestand unveraendert gelassen — aber der Lauf zaehlt als Fehlschlag.');
+  if (/HTTP 403/.test(err.message)) {
+    console.error(
+      'HTTP 403 heisst hier fast immer: Cloudflare-Bot-Schutz vor UEX. Gemessen am ' +
+        '02.08.2026 antwortet die API JEDEM GitHub-Actions-Runner mit der Challenge-Seite ' +
+        '„Just a moment…", auch mit Browser-User-Agent. Dieses Skript gehoert daher auf ' +
+        'einen Rechner mit gewoehnlicher IP, nicht in eine Cloud-CI.'
+    );
+  }
+  process.exit(1);
 }
 
 const num = (v) => {
