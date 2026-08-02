@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-02",
-  "updates": 5,
-  "totalListings": 824,
-  "totalSold": 25,
-  "distinctItems": 418
+  "updates": 6,
+  "totalListings": 844,
+  "totalSold": 26,
+  "distinctItems": 425
  },
  "listings": {
   "156580": {
@@ -7731,9 +7731,9 @@
      "p": 2000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-02",
+   "soldOutPrice": 2000000,
    "dateAdded": 1785613245,
    "dateExpiration": 1790797245
   },
@@ -17365,6 +17365,426 @@
    "soldOutPrice": null,
    "dateAdded": 1785689060,
    "dateExpiration": 1790873060
+  },
+  "157478": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 874q - 150K/scu, 907q - 1M/scu, 970q - 5M/unit",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785689261,
+   "dateExpiration": 1790873261
+  },
+  "157479": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785689322,
+   "dateExpiration": 1790873322
+  },
+  "157488": {
+   "idItem": 7803,
+   "idCategory": 5,
+   "title": "Inquisitor Core Tan",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785689667,
+   "dateExpiration": 1790873667
+  },
+  "157493": {
+   "idItem": 7240,
+   "idCategory": 5,
+   "title": "Inquisitor Core Imperial",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785689809,
+   "dateExpiration": 1790873809
+  },
+  "157495": {
+   "idItem": 1481,
+   "idCategory": 5,
+   "title": "Defiance Core Desert",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785689912,
+   "dateExpiration": 1790873911
+  },
+  "157497": {
+   "idItem": 1069,
+   "idCategory": 5,
+   "title": "Defiance Core Firestarter",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 420000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785689992,
+   "dateExpiration": 1790873992
+  },
+  "157498": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite Dolivine Low quality 20k/ U",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 20000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785690040,
+   "dateExpiration": 1790874040
+  },
+  "157500": {
+   "idItem": 2440,
+   "idCategory": 5,
+   "title": "Defiance Core Hailstorm",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785690106,
+   "dateExpiration": 1790874106
+  },
+  "157502": {
+   "idItem": 3339,
+   "idCategory": 5,
+   "title": "Defiance Core Sunchaser",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785690196,
+   "dateExpiration": 1790874196
+  },
+  "157503": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "Taranite 853q - 500K/scu, 925q - 2M/scu, 957q - 5M/scu",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785690208,
+   "dateExpiration": 1790874207
+  },
+  "157505": {
+   "idItem": 7658,
+   "idCategory": 5,
+   "title": "DCP Armor Core Jungle Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785690374,
+   "dateExpiration": 1790874374
+  },
+  "157506": {
+   "idItem": 7300,
+   "idCategory": 5,
+   "title": "Inquisitor Core Green",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785690537,
+   "dateExpiration": 1790874537
+  },
+  "157507": {
+   "idItem": 5852,
+   "idCategory": 36,
+   "title": "Aluminum 896q - 300K/scu, 919q - 1M/scu, 953q - 4M/unit",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785690831,
+   "dateExpiration": 1790874831
+  },
+  "157508": {
+   "idItem": 4922,
+   "idCategory": 87,
+   "title": "Feynmaline",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 80000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785691023,
+   "dateExpiration": 1790875023
+  },
+  "157509": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite 875q - 500K/scu, 941q - 1.7M/scu, 959q - 2.5M/scu",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785691422,
+   "dateExpiration": 1790875422
+  },
+  "157511": {
+   "idItem": 5952,
+   "idCategory": 36,
+   "title": "Quartz 899q - 200K/scu, 914q - 500K/scu, 969q - 1M/scu",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785691708,
+   "dateExpiration": 1790875708
+  },
+  "157513": {
+   "idItem": 3216,
+   "idCategory": 3,
+   "title": "Zeus Exploration Suit Helmet Solar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785691993,
+   "dateExpiration": 1790875993
+  },
+  "157514": {
+   "idItem": 5848,
+   "idCategory": 36,
+   "title": "Agricium 852q - 150K/scu, 943q - 500K/scu, 971q - 1M/scu",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785692089,
+   "dateExpiration": 1790876089
+  },
+  "157515": {
+   "idItem": 3219,
+   "idCategory": 3,
+   "title": "Zeus Exploration Helmet Starscape",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 390000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785692123,
+   "dateExpiration": 1790876123
+  },
+  "157517": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Zeus Exploration Suit (Starscape) FULL SET",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 3900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785692737,
+   "dateExpiration": 1790876737
   }
  }
 }
