@@ -29,6 +29,14 @@ const total = [...counts.values()].reduce((a, b) => a + b, 0);
 const eraCount = new Set(patches.map((p) => p.data.era)).size;
 // era zones: first column of each era gets a vertical seam + era label
 const eraStarts = patches.map((p, i) => i === 0 || p.data.era !== patches[i - 1].data.era);
+// Feinere Trennung nach Patch-Zyklus: 4.8.0–4.8.3 gehoeren zusammen, 4.9.0
+// faengt neu an. Eine Aera fasst bis zu vier Zyklen (Neue Horizonte = 4.4–4.7),
+// zwischen denen sonst gar keine Linie stuende. Jeder Aera-Anfang ist auch ein
+// Zyklus-Anfang, die Aera-Naht bleibt deshalb die kraeftigere von beiden.
+const cycleOf = (v: string) => v.split('.').slice(0, 2).join('.');
+const cycleStarts = patches.map(
+  (p, i) => i === 0 || cycleOf(p.data.version) !== cycleOf(patches[i - 1].data.version)
+);
 const rowTotal = (sys: string) => patches.reduce((n, p) => n + cell(sys, p).length, 0);
 const tierOf = (n: number) => (n <= 2 ? '1' : n <= 5 ? '2' : '3');
 ---
@@ -93,7 +101,7 @@ a{color:inherit;text-decoration:none}
         <tr>
           <th class="evo__syshead" scope="col">System</th>
           {patches.map((p, pi) => (
-            <th scope="col" class={`evo__col${eraStarts[pi] ? ' evo__erastart' : ''}`} style={`--c:${p.data.palette.accent}`}>
+            <th scope="col" class={`evo__col${cycleStarts[pi] ? ' evo__cyclestart' : ''}${eraStarts[pi] ? ' evo__erastart' : ''}`} style={`--c:${p.data.palette.accent}`}>
               {/* era ist ein deutschsprachiges Enum und bleibt es auch nach
                   mergePatchEn — es ist ein Schluessel, keine Uebersetzung.
                   Fuer die Anzeige muss eraLabel darueber. */}
@@ -113,7 +121,7 @@ a{color:inherit;text-decoration:none}
             {patches.map((p, pi) => {
               const feats = cell(sys, p);
               return (
-                <td class={`evo__td${eraStarts[pi] ? ' evo__erastart' : ''}`}>
+                <td class={`evo__td${cycleStarts[pi] ? ' evo__cyclestart' : ''}${eraStarts[pi] ? ' evo__erastart' : ''}`}>
                   {feats.length > 0 ? (
                     <button
                       class="evo__cell"
@@ -214,7 +222,15 @@ a{color:inherit;text-decoration:none}
   background:linear-gradient(270deg,var(--bg-2) 16%,color-mix(in srgb,var(--bg-2) 55%,transparent) 62%,transparent)}
 .evo__matrix.is-more .evo__scrollwrap::after{opacity:1}
 
-.evo__scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--bg-2)}
+/* Eigene Hoehe, damit die Matrix senkrecht IN SICH scrollt. Nur so bleiben
+   die Patch-Nummern beim Lesen der unteren Zeilen stehen: `position:sticky`
+   richtet sich immer am naechsten Scrollbereich aus, und der ist hier durch
+   `overflow-x:auto` ohnehin dieser Kasten — an den Seiten-Scrollbereich kommt
+   ein Kopf darin nicht heran (mit `overflow-y:clip` geprueft: der Kopf klebt
+   dann bloss am oberen Rand des Kastens statt am Fenster).
+   9rem lassen Platz fuer die feste Leiste (65 px) und etwas Luft. */
+.evo__scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--bg-2);
+  max-height:calc(100vh - 9rem);max-height:calc(100dvh - 9rem)}
 /* Bildlaufleiste zurückholen — nur für diese eine Tabelle. Das !important
    ist kein Schmuck: die globale Ausblendung in assets/theme.css trägt
    selbst eines und gewinnt sonst. */
@@ -226,20 +242,37 @@ a{color:inherit;text-decoration:none}
 .evo__scroll::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--accent) 70%,transparent)}
 .evo__table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
 .evo__table th,.evo__table td{border-bottom:1px solid var(--line)}
-.evo__syshead{position:sticky;left:0;z-index:3;background:var(--bg-2);text-align:left;
+/* Die Ecke klebt in BEIDE Richtungen und muss ueber beiden Leisten liegen:
+   z 5 Ecke > 4 Kopfzeile > 2 System-Spalte. */
+.evo__syshead{position:sticky;left:0;top:0;z-index:5;background:var(--bg-2);text-align:left;
   font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
   padding:.9rem 1rem;min-width:210px;border-right:1px solid var(--line-2)}
 /* Das obere Drittel der Kopfzeile ist das Ären-Band; die Höhe steht fest,
    damit die Beschriftungen aus dem Fluss dürfen (siehe .evo__era). */
-.evo__col{position:relative;padding:2.05rem .4rem .55rem;min-width:70px;border-bottom:2px solid var(--c);vertical-align:bottom}
+/* `sticky` ist ein positionierter Wert — die absolut gesetzte Ären-Beschriftung
+   haengt weiterhin an dieser Zelle und faehrt mit. Der deckende Hintergrund ist
+   Pflicht, sonst scheinen die Zeilen beim Scrollen durch die Kopfzeile. */
+.evo__col{position:sticky;top:0;z-index:3;background:var(--bg-2);
+  padding:2.05rem .4rem .55rem;min-width:70px;border-bottom:2px solid var(--c);vertical-align:bottom}
+/* Die Ären-Beschriftung ragt ueber ihre Spalte hinaus (deshalb steht sie
+   absolut, siehe unten). Seit die Kopfzellen einen deckenden Hintergrund
+   brauchen, uebermalt die naechste Zelle diesen Ueberstand — die Naht-Zelle
+   muss deshalb VOR ihren Nachbarn liegen. Unter der Ecke (z 5) bleibt sie,
+   sonst schoebe sich die Beschriftung beim Scrollen ueber die System-Spalte. */
+.evo__col.evo__erastart{z-index:4}
 .evo__col a{font-family:var(--font-display);font-weight:700;font-size:0.8rem;letter-spacing:.02em;color:var(--c);white-space:nowrap}
 .evo__col a:hover{text-decoration:underline}
 /* Ären-Namen sind bis zu 104 px breit und haben ihre Spalte auf 120 px
    aufgebläht — fünfmal, zusammen 164 px, die rechts fehlten. Absolut
    gesetzt beschriften sie die Naht, ohne die Spalte zu bestimmen. */
 .evo__era{position:absolute;top:.62rem;left:.34rem;font-family:var(--font-ui);font-weight:700;font-size:0.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c);opacity:.7;white-space:nowrap;text-align:left}
+/* Zwei Staerken: jeder Patch-Zyklus bekommt eine feine Naht, der Ären-Wechsel
+   die kraeftige. Reihenfolge zaehlt — beide Klassen sitzen an denselben
+   Zellen, die Aera muss gewinnen. */
+.evo__cyclestart{border-left:1px solid var(--line)}
 .evo__erastart{border-left:1px solid var(--line-2)}
-.evo__tot{font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.1em;color:var(--muted);padding:.7rem .8rem;border-left:1px solid var(--line-2);vertical-align:bottom}
+.evo__tot{position:sticky;top:0;z-index:3;background:var(--bg-2);
+  font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.1em;color:var(--muted);padding:.7rem .8rem;border-left:1px solid var(--line-2);vertical-align:bottom}
 .evo__totcell{font-family:var(--font-ui);font-weight:700;font-size:0.8rem;color:var(--muted);text-align:center;padding:.3rem .6rem;border-left:1px solid var(--line-2);font-variant-numeric:tabular-nums}
 .evo__sys{position:sticky;left:0;z-index:2;background:var(--bg-2);text-align:left;
   font-family:var(--font-ui);font-weight:700;font-size:0.98rem;color:var(--text);

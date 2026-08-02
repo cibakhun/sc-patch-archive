@@ -1,9 +1,10 @@
 /* Breite Bildlauf-Kaesten bedienbar machen. Zwei Dinge:
  *
- * 1. ZIEHEN mit der Maus. Eine Bildlaufleiste sagt nur, DASS es weitergeht —
- *    treffen muss man sie trotzdem, und am Desktop ist das ein 8-px-Streifen
- *    am unteren Rand. Mit gedrueckter Maustaste laesst sich der Kasten jetzt
- *    direkt schieben, mit Schwung am Ende.
+ * 1. ZIEHEN mit der Maus, in beide Richtungen. Eine Bildlaufleiste sagt nur,
+ *    DASS es weitergeht — treffen muss man sie trotzdem, und am Desktop ist
+ *    das ein 8-px-Streifen am unteren Rand. Mit gedrueckter Maustaste laesst
+ *    sich der Kasten jetzt direkt schieben, mit Schwung am Ende. Waagerecht
+ *    scrollt der Kasten, senkrecht die Seite (siehe panY()).
  * 2. Die weiche KANTE rechts, solange dort noch etwas steht (siehe unten).
  *
  * Beruehrung bleibt unangetastet: dort scrollt der Browser selbst, samt
@@ -39,9 +40,13 @@
     syncAll();
     for (var i = 0; i < draggables.length; i++) markDraggable(draggables[i]);
   }
+  function scrollbarX(el) { return el.scrollWidth - el.clientWidth > 2; }
+  function scrollbarY(el) { return el.scrollHeight - el.clientHeight > 2; }
+  // Gilt fuer Greifzeiger UND Verhalten — beides muss dieselbe Antwort geben,
+  // sonst zieht ein Kasten ohne Greifzeiger trotzdem.
+  function istZiehbar(el) { return scrollbarX(el) || scrollbarY(el); }
   function markDraggable(el) {
-    var can = el.scrollWidth - el.clientWidth > 2 || el.scrollHeight - el.clientHeight > 2;
-    el.classList.toggle('can-drag', can);
+    el.classList.toggle('can-drag', istZiehbar(el));
   }
 
   // Obergrenze fuer die Wurfgeschwindigkeit in px/ms. Ohne sie schleudert ein
@@ -53,9 +58,23 @@
   }
 
   function enableDrag(el) {
-    var startX = 0, startY = 0, startL = 0, startT = 0;
-    var down = false, dragging = false, pid = null;
+    var startX = 0, startY = 0, startL = 0, startT = 0, startPageY = 0;
+    var down = false, dragging = false, pid = null, vertInside = false;
     var vx = 0, vy = 0, lastX = 0, lastY = 0, lastT = 0, lastMoveT = 0, raf = 0;
+
+    // Senkrecht scrollt meist nicht der Kasten, sondern die Seite: die Matrix
+    // ist breiter als das Fenster, aber ihre 19 Zeilen stehen im normalen
+    // Seitenfluss. Wer sie anfasst, will sie in BEIDE Richtungen bewegen —
+    // also geht der senkrechte Anteil an die Seite, sobald der Kasten selbst
+    // nichts zu scrollen hat (.md__tblWrap mit Deckelhoehe hat es).
+    function panY(zielOderDelta, absolut) {
+      if (vertInside) {
+        el.scrollTop = absolut ? zielOderDelta : el.scrollTop + zielOderDelta;
+      } else {
+        var y = absolut ? zielOderDelta : window.scrollY + zielOderDelta;
+        window.scrollTo({ top: y, behavior: 'auto' });
+      }
+    }
 
     function stopGlide() {
       if (raf) { cancelAnimationFrame(raf); raf = 0; }
@@ -74,7 +93,7 @@
         dx *= 0.92; dy *= 0.92;
         if (Math.abs(dx) < 0.4 && Math.abs(dy) < 0.4) { raf = 0; return; }
         el.scrollLeft -= dx;
-        el.scrollTop -= dy;
+        panY(-dy);
         raf = requestAnimationFrame(step);
       })();
     }
@@ -83,6 +102,9 @@
       if (e.pointerType === 'touch') return;          // Beruehrung: nativ ist besser
       if (e.button !== 0) return;                      // nur die linke Taste
       if (e.target.closest('input,textarea,select,[contenteditable]')) return;
+      // Gibt es nichts zu schieben, wird auch nicht gezogen — sonst kaperte
+      // das Ziehen die Textauswahl in Tabellen, die ohnehin ganz hineinpassen.
+      if (!istZiehbar(el)) return;
       stopGlide();
       // Jede Interaktion faengt sauber an. Ohne das ueberlebt die Klick-Sperre
       // ihren Zug: endet ein Zug ohne folgenden Klick — Zeiger ausserhalb
@@ -91,7 +113,8 @@
       el.removeAttribute('data-dragged');
       down = true; dragging = false; pid = e.pointerId;
       startX = lastX = e.clientX; startY = lastY = e.clientY;
-      startL = el.scrollLeft; startT = el.scrollTop;
+      startL = el.scrollLeft; startT = el.scrollTop; startPageY = window.scrollY;
+      vertInside = scrollbarY(el);
       lastT = lastMoveT = e.timeStamp; vx = vy = 0;
     });
 
@@ -107,7 +130,7 @@
         try { el.setPointerCapture(pid); } catch (err) {}
       }
       el.scrollLeft = startL - dx;
-      el.scrollTop = startT - dy;
+      panY((vertInside ? startT : startPageY) - dy, true);
       // Unter 1 ms ist der Quotient Rauschen — dann lieber den alten Messwert
       // behalten, als durch fast Null zu teilen.
       var dt = e.timeStamp - lastT;
@@ -132,6 +155,12 @@
         // Wer vor dem Loslassen kurz stehenbleibt, will genau dort halten —
         // nicht noch einen halben Bildschirm weiterrutschen.
         if (e && e.timeStamp - lastMoveT > 80) vx = vy = 0;
+        // Ein waagerechter Wisch hat fast immer ein bisschen Zittern nach
+        // oben oder unten. Ohne das hier zoege jeder Zug durch die Matrix
+        // auch die Seite ein Stueck mit. Nur die klar untergeordnete Achse
+        // faellt weg — echte Diagonalzuege bleiben diagonal.
+        if (Math.abs(vy) < Math.abs(vx) * 0.25) vy = 0;
+        if (Math.abs(vx) < Math.abs(vy) * 0.25) vx = 0;
         glide();
       }
       pid = null;

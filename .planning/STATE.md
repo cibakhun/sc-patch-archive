@@ -7,8 +7,8 @@ current_phase_name: Ambiente-Effekte stilllegen
 status: in_progress
 stopped_at: Completed 01.1-02-PLAN.md
 last_updated: "2026-07-29T03:46:15.151Z"
-last_activity: 2026-07-29
-last_activity_desc: Phase 1.1 recherchiert, gemappt, geplant und geprueft
+last_activity: 2026-08-02
+last_activity_desc: "Quick-Task 260802-7eb: UEX-Durchschnittspreis-Spalte fuer Items (DE+EN)"
 progress:
   total_phases: 3
   completed_phases: 0
@@ -92,9 +92,12 @@ None yet.
 
 ### Quick Tasks Completed
 
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260802-7f5 | Item-Finder als Werkzeug: Suche und Filter ohne Scrollen direkt unter dem Titel (DE+EN) | 2026-08-02 | 8001901 | [260802-7f5-item-finder-als-werkzeug-suche-und-filte](./quick/260802-7f5-item-finder-als-werkzeug-suche-und-filte/) |
+| # | Description | Date | Commit | Status | Directory |
+|---|-------------|------|--------|--------|-----------|
+| 260802-3fw | Zurück-Button site-weit (SiteNav leitet ihn aus `crumbs` ab; `--nav-h` löst die verdrahteten 68px in drei Filterleisten ab) | 2026-08-02 | b12a3b5, 03ead2d | | [260802-3fw-zurueck-button-site-weit](./quick/260802-3fw-zurueck-button-site-weit/) |
+| 260802-5qd | Zurück folgt der tatsächlichen Herkunft (Herkunfts-Notiz + parser-blockierender Leser; crafting→Material→zurück behält Suche und Scroll) | 2026-08-02 | d66dbb6, 9e0133a | | [260802-5qd-zurueck-folgt-der-herkunft](./quick/260802-5qd-zurueck-folgt-der-herkunft/) |
+| 260802-7eb | UEX-Durchschnittspreis-Spalte für Items (DE+EN) — vierte Ø-Spalte in Datenblatt, Kategorie-Liste und Finder-Modal; Mittelwert über alle Verkaufsorte aus `obtain[]`, ohne API-/Pipeline-Änderung | 2026-08-02 | aa391d8, bcc99b7 | Verified | [260802-7eb-uex-durchschnittspreis-spalte-fuer-items](./quick/260802-7eb-uex-durchschnittspreis-spalte-fuer-items/) |
+| 260802-7f5 | Item-Finder als Werkzeug: Suche und Filter ohne Scrollen direkt unter dem Titel (DE+EN) | 2026-08-02 | 8001901 | Verified | [260802-7f5-item-finder-als-werkzeug-suche-und-filte](./quick/260802-7f5-item-finder-als-werkzeug-suche-und-filte/) |
 
 ### Roadmap Evolution
 
