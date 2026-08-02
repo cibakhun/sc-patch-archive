@@ -71,16 +71,17 @@ const cssHref = versioned('assets/data-page.css', '/assets/data-page.css');
 const other: Locale = lang === 'de' ? 'en' : 'de';
 const otherHref = pathForLocale(Astro.url.pathname, other);
 
-// Die Brotkrume ist hier die EINZIGE Elternnavigation — die SiteNav-Seiten
-// bekommen dafuer ein eigenes Zurueck-Element, diese Huelle bewusst nicht
-// (zwei Angebote nebeneinander waeren eines zu viel). Die letzte Krume mit
-// href IST das Zurueck: von einem Datenblatt fuehrt sie in die Kategorieliste,
-// aus der man kam. Diese Listen sind bis zu 7 Bildschirme lang, und ein
-// normaler Klick landet wieder ganz oben. Mit data-backlink wird daraus ein
-// history.back(), sobald man nachweislich von dort kommt — Scrollposition
-// zurueck. Gemessen: 4200 px vorher, 4200 px nachher.
-const backCrumbIdx = crumbs.reduce((last, c, i) => (c.href ? i : last), -1);
-const backLinkSrc = backCrumbIdx >= 0 ? versioned('assets/back-link.js', '/assets/back-link.js') : null;
+// Die Brotkrumenspur ist hier die EINZIGE Elternnavigation — die SiteNav-
+// Seiten bekommen dafuer ein eigenes Zurueck-Element, diese Huelle bewusst
+// nicht (zwei Angebote nebeneinander waeren eines zu viel). JEDE Krume mit
+// href traegt data-backlink: back-link.js vergleicht pro Element den
+// Referrer-Pfad mit dessen eigenem data-back-path und macht daraus
+// automatisch genau die Krume zum history.back(), aus der der Nutzer
+// nachweislich kam — Scrollposition der jeweiligen Liste zurueck. Diese
+// Listen sind bis zu 7 Bildschirme lang, ein normaler Klick landet wieder
+// ganz oben. Beschriftungen werden dabei NIE umgeschrieben, nur breiter
+// markiert. Gemessen: 4200 px vorher, 4200 px nachher.
+const backLinkSrc = crumbs.some((c) => c.href) ? versioned('assets/back-link.js', '/assets/back-link.js') : null;
 
 // Breadcrumb-JSON-LD: gibt der Trefferzeile in Google den Pfad statt der nackten
 // URL — und macht die Kategorie-Ebene als eigenes Ziel sichtbar.
@@ -123,15 +124,15 @@ const crumbLd = {
   <div class="dp" data-tone={tone}>
     <header class="dp-bar">
       <a class="dp-home" href={href('/index.html', lang)} aria-label={t('nav.home.aria')}>VerseBase</a>
-      <nav class="dp-crumbs" aria-label={t('nav.path')}>
+      <nav class="dp-crumbs" aria-label={t('nav.path')} data-back-self={crumbs[crumbs.length - 1]?.label}>
         {crumbs.map((c, idx) => (
           <>
             {idx > 0 && <span class="dp-sep" aria-hidden="true">›</span>}
             {c.href ? (
               <a
                 href={href(c.href, lang)}
-                data-backlink={idx === backCrumbIdx ? '' : undefined}
-                data-back-path={idx === backCrumbIdx ? href(c.href, lang).split(/[?#]/)[0] : undefined}
+                data-backlink
+                data-back-path={href(c.href, lang).split(/[?#]/)[0]}
               >{c.label}</a>
             ) : <span aria-current="page">{c.label}</span>}
           </>

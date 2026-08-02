@@ -339,9 +339,11 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       href={backTarget.href}
       data-backlink
       data-back-path={backTarget.href.split(/[?#]/)[0]}
+      data-back-self={crumbs[crumbs.length - 1]?.label}
+      data-back-aria={t('nav.back.aria')}
       aria-label={`${t('nav.back.aria')} ${backTarget.label}`}
     >
-      <span aria-hidden="true">←</span> {backTarget.label}
+      <span aria-hidden="true">←</span> <span data-back-label>{backTarget.label}</span>
     </a>
   )}
   <div class="snav__progress-bar" aria-hidden="true">
@@ -350,6 +352,32 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     </div>
   </div>
 </nav>
+{/* Herkunfts-Leser: parser-blockierend (kein defer, kein type="module"),
+    unmittelbar hinter </nav> platziert -- läuft, bevor der Browser irgendetwas
+    unterhalb der Leiste parst, daher kein Aufflackern. Wertet die Notiz aus
+    assets/back-link.js aus (dort steht auch die Reihenfolge-Begründung) und
+    schreibt bei Treffer href/Label/aria-label auf die tatsächliche Herkunft
+    um. Jeder Fehler bedeutet stillschweigend: Eltern-Link bleibt stehen. */}
+{backTarget && (
+  <script is:inline>
+    try {
+      var a = document.querySelector('a[data-backlink]');
+      if (a) {
+        var ref = new URL(document.referrer);
+        if (ref.origin === location.origin && ref.pathname !== location.pathname) {
+          var note = JSON.parse(sessionStorage.getItem('vb:from'));
+          if (note && note.p === ref.pathname && typeof note.u === 'string' && note.u.charAt(0) === '/' && note.u.charAt(1) !== '/') {
+            a.setAttribute('href', note.u);
+            a.setAttribute('data-back-path', note.p);
+            var lbl = a.querySelector('[data-back-label]');
+            if (lbl) lbl.textContent = note.l;
+            a.setAttribute('aria-label', a.getAttribute('data-back-aria') + ' ' + note.l);
+          }
+        }
+      }
+    } catch (e) {}
+  </script>
+)}
 
 <!-- Menü-Overlay: links die Bühne (spielt den anvisierten Eintrag groß aus),
      rechts die kompakte Liste. Ein Akzent, keine Farbe je Gruppe. Die Bühne
@@ -802,6 +830,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+    max-width: 100%;
     font-family: var(--font-ui, sans-serif);
     text-transform: uppercase;
     letter-spacing: 0.12em;
@@ -812,6 +841,14 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav__back:hover,
   .snav__back:focus-visible {
     color: var(--accent, #2dd4ff);
+  }
+  /* Der Herkunftsname (im Gegensatz zum Elternnamen beliebig lang -- Missions-
+     und Schiffsnamen) darf weder umbrechen noch --nav-h sprengen. */
+  .snav__back [data-back-label] {
+    max-width: 40ch;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
   @media (max-width: 860px) {
     .snav__back {
