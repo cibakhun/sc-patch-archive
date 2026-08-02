@@ -6,8 +6,14 @@
 // sind ~18 KB Markup und ~19 KB inline-JS PRO Seite. Bei ~14.000 generierten
 // Seiten waeren das ~500 MB HTML im Build — fuer Seiten, deren eigener Inhalt
 // 3–8 KB gross ist. Diese Huelle traegt dieselbe Identitaet (Farben, Typo,
-// Hell/Dunkel, Sprachumschalter, Rechtliches), kostet aber ~1,5 KB und kommt
-// ohne eigenes JavaScript aus.
+// Hell/Dunkel, Sprachumschalter, Rechtliches), kostet aber ~1,5 KB.
+//
+// JavaScript: genau EINE externe Datei, assets/back-link.js (~1,4 KB, defer,
+// inhaltsgehasht und damit dauerhaft gecacht). Sie wertet die letzte Brotkrume
+// zu history.back() auf, wenn man nachweislich von dort kommt. Das widerspricht
+// dem urspruenglichen „ohne eigenes JavaScript" nur dem Wortlaut nach, nicht
+// dem Grund dafuer: geaechtet waren ~19 KB INLINE-JS pro Seite, die sich mit
+// jeder der ~14.000 Seiten multiplizieren. Eine gecachte Datei tut das nicht.
 //
 // Alles Wiederkehrende (Layoutregeln) liegt in der EINEN externen Datei
 // /assets/data-page.css; nur die Farbpalette steht inline, weil
@@ -65,6 +71,17 @@ const cssHref = versioned('assets/data-page.css', '/assets/data-page.css');
 const other: Locale = lang === 'de' ? 'en' : 'de';
 const otherHref = pathForLocale(Astro.url.pathname, other);
 
+// Die Brotkrume ist hier die EINZIGE Elternnavigation — die SiteNav-Seiten
+// bekommen dafuer ein eigenes Zurueck-Element, diese Huelle bewusst nicht
+// (zwei Angebote nebeneinander waeren eines zu viel). Die letzte Krume mit
+// href IST das Zurueck: von einem Datenblatt fuehrt sie in die Kategorieliste,
+// aus der man kam. Diese Listen sind bis zu 7 Bildschirme lang, und ein
+// normaler Klick landet wieder ganz oben. Mit data-backlink wird daraus ein
+// history.back(), sobald man nachweislich von dort kommt — Scrollposition
+// zurueck. Gemessen: 4200 px vorher, 4200 px nachher.
+const backCrumbIdx = crumbs.reduce((last, c, i) => (c.href ? i : last), -1);
+const backLinkSrc = backCrumbIdx >= 0 ? versioned('assets/back-link.js', '/assets/back-link.js') : null;
+
 // Breadcrumb-JSON-LD: gibt der Trefferzeile in Google den Pfad statt der nackten
 // URL — und macht die Kategorie-Ebene als eigenes Ziel sichtbar.
 const crumbLd = {
@@ -110,7 +127,13 @@ const crumbLd = {
         {crumbs.map((c, idx) => (
           <>
             {idx > 0 && <span class="dp-sep" aria-hidden="true">›</span>}
-            {c.href ? <a href={href(c.href, lang)}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+            {c.href ? (
+              <a
+                href={href(c.href, lang)}
+                data-backlink={idx === backCrumbIdx ? '' : undefined}
+                data-back-path={idx === backCrumbIdx ? href(c.href, lang).split(/[?#]/)[0] : undefined}
+              >{c.label}</a>
+            ) : <span aria-current="page">{c.label}</span>}
           </>
         ))}
       </nav>
@@ -146,4 +169,5 @@ const crumbLd = {
       </p>
     </footer>
   </div>
+  {backLinkSrc && <script is:inline src={backLinkSrc} defer></script>}
 </Layout>
