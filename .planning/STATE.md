@@ -101,6 +101,7 @@ None yet.
 
 - Phase 01.1 inserted after Phase 1: Ambiente-Effekte stilllegen — Mauszeiger-Schein raus, Partikel opt-in (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 - Phase 01.2 inserted after Phase 1: Werkzeuge erklaeren — Zweck- und Bedienungshilfe je Werkzeug (Besucher-Rueckmeldung 29.07.2026) (URGENT)
+- Phase 5 added: Schiffe — Rollen- und Merkmalsfilter. Granulare, spielgenaue Filter auf der Schiffsuebersicht statt acht Grobtypen; Datengrundlage neu aus dem DataCore (02.08.2026)
 
 ## Deferred Items
 

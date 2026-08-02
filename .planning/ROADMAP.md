@@ -25,6 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Schrift- und Bewegungsskala** - Eine gemeinsame Skala für Schriftgrade und Übergänge statt seitenlokaler Einzelwerte
 - [ ] **Phase 3: Überlagerungen entstapeln** - Class-B-Befund abtragen, Textkontrast über Bildmotiven belegen
 - [ ] **Phase 4: Sprachparität absichern** - Deckungsgleichheit der Seitenpaare nachweisbar statt behauptet
+- [ ] **Phase 5: Schiffe: Rollen- und Merkmalsfilter** - Granulare, spielgenaue Filter statt acht Grobtypen
 
 ## Phase Details
 
@@ -165,10 +166,39 @@ Plans:
 - [ ] 04-01: Prüfschritt für die Deckungsgleichheit der angefassten Seitenpaare bauen
 - [ ] 04-02: Prüfschritt in `npm run verify` bzw. `audit:site` einhängen und Hellmodus-Generierung bestätigen
 
+### Phase 5: Schiffe: Rollen- und Merkmalsfilter
+
+**Goal**: Wer auf der Schiffsübersicht ein Schiff für einen bestimmten Zweck sucht, findet es
+über Filter, die die Fachsprache des Spiels sprechen — nicht über acht Grobtypen. Die
+Filterwerte stammen aus den Spieldateien (DataCore), nicht aus geratenen Kategorien, und
+lassen sich kombinieren, sodass auch Nischen wie „Frachter mit abgesenkter Signatur"
+(Prowler Utility) auffindbar werden.
+**Mode:** mvp
+**Depends on**: — (unabhängig vom Design-Meilenstein; berührt nur die Schiffsseiten)
+**Requirements**: TBD (in Phase-Diskussion festzulegen)
+**Success Criteria** (what must be TRUE):
+
+  1. Jedes Schiff im Katalog trägt eine spielgenaue Rolle aus dem DataCore; die 4 nicht
+     joinbaren Einträge (ATLS) sind benannt statt stillschweigend leer
+  2. Die Filter finden die vom Nutzer genannten Beispielfälle: Tarnkappenbomber,
+     Frachter mit abgesenkter Signatur, Bergung, Bergbau, Betankung
+  3. Die Merkmale sind belegt, nicht behauptet — jedes Merkmal nennt seine Quelle im
+     Spieldatensatz, und kein Merkmal wird aus Marketingtext abgeleitet
+  4. DE und EN tragen dieselben Filter mit CIG-eigenen Übersetzungen; wo CIG keine
+     deutsche Fassung liefert, ist die Lücke bewusst gefüllt statt englisch durchgereicht
+  5. Die Seite bleibt ohne JavaScript lesbar und die Filterung läuft clientseitig ohne
+     spürbare Verzögerung über alle 227 Karten
+
+**Plans**: 0 plans (noch nicht geplant)
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 5 to break down)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -178,3 +208,5 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
+| 5. Schiffe: Rollen- und Merkmalsfilter | 0/0 | Not started | - |
+
