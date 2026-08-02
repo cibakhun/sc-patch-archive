@@ -139,11 +139,36 @@ need(groundIds.length === 37, `feat=ground: ${groundIds.length} statt 37`);
 const badFeat = roleIds.filter((id) => (roles.vehicles[id].feat || []).some((f) => f !== 'cargo' && f !== 'ground'));
 need(badFeat.length === 0, `Fahrzeuge mit unerwarteter Merkmalskennung: ${badFeat.join(', ')}`);
 
-console.log(`\n=== L) Belegpflicht: sources nennt alle fünf Achsen ===`);
-const sourceKeys = ['career', 'role', 'signature', 'feat.cargo', 'feat.ground'];
+console.log(`\n=== L) Belegpflicht: sources nennt alle sieben Achsen ===`);
+const sourceKeys = ['career', 'role', 'signature', 'feat.cargo', 'feat.ground', 'size', 'subType'];
 const missingSources = sourceKeys.filter((k) => !roles.sources || !roles.sources[k]);
 console.log(`  fehlend: ${missingSources.join(', ') || '(keine)'}`);
 need(missingSources.length === 0, `sources-Kopffeld fehlt fuer: ${missingSources.join(', ')}`);
+
+console.log(`\n=== M) Größenklasse (AttachDef.Size, Quick-Task 260802-ose): sechs Klassen tragen den erhobenen Stand ===`);
+// Erhebungsstand 02.08.2026 (PLAN.md der Quick-Task, gegen das echte Archiv
+// gemessen). Darf sich nur aendern, wenn ein spaeterer Datamine-Lauf die
+// Ursache klaert — nicht stillschweigend nachziehen.
+const SIZE_WANT = { 1: 48, 2: 82, 3: 38, 4: 22, 5: 26, 6: 7 };
+const sizeCount = {};
+for (const v of Object.values(roles.vehicles)) if (v.size != null) sizeCount[v.size] = (sizeCount[v.size] || 0) + 1;
+for (const [n, want] of Object.entries(SIZE_WANT)) {
+  const got = sizeCount[n] || 0;
+  console.log(`  ${String(got).padStart(4)}  Größe ${n}${got !== want ? ` (Soll ${want})` : ''}`);
+  need(got === want, `Größenklasse ${n}: ${got} statt ${want}`);
+}
+const withoutSize = roleIds.filter((id) => roles.vehicles[id].size == null);
+need(withoutSize.length === 0, `${withoutSize.length} Fahrzeuge ohne Größenklasse: ${withoutSize.join(', ')}`);
+
+console.log(`\n=== N) SubType (AttachDef.SubType, informativ, Quick-Task 260802-ose): Katalogstand 196/27 ===`);
+// SubType ist NICHT das Bodenfahrzeug-Merkmal (siehe feat.ground in Abschnitt
+// K) — geprueft und bewusst nicht umgestellt, siehe SUMMARY der Quick-Task
+// (Nox/Dragonfly/Pulse/X1/Hoverquad laufen bei CIG als Vehicle_Spaceship).
+const subTypeCount = {};
+for (const v of Object.values(roles.vehicles)) if (v.subType) subTypeCount[v.subType] = (subTypeCount[v.subType] || 0) + 1;
+console.log(`  Vehicle_Spaceship: ${subTypeCount.Vehicle_Spaceship || 0}, Vehicle_GroundVehicle: ${subTypeCount.Vehicle_GroundVehicle || 0}`);
+need((subTypeCount.Vehicle_Spaceship || 0) === 196, `SubType Vehicle_Spaceship: ${subTypeCount.Vehicle_Spaceship || 0} statt 196`);
+need((subTypeCount.Vehicle_GroundVehicle || 0) === 27, `SubType Vehicle_GroundVehicle: ${subTypeCount.Vehicle_GroundVehicle || 0} statt 27`);
 
 console.log(`\n--- Zusammenfassung: ${roleIds.length}/${veh.vehicles.length} gejointe Fahrzeuge geprüft, ${roles.unmatched.length} benannte Fehlstellen, ${fail.length} Fehlschläge ---`);
 if (fail.length) {
