@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-02",
-  "updates": 3,
-  "totalListings": 744,
+  "updates": 4,
+  "totalListings": 748,
   "totalSold": 24,
   "distinctItems": 389
  },
@@ -5134,6 +5134,10 @@
     {
      "d": "2026-08-02",
      "p": 31000000
+    },
+    {
+     "d": "2026-08-02",
+     "p": 29000000
     }
    ],
    "soldOut": false,
@@ -14444,6 +14448,10 @@
     {
      "d": "2026-08-02",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-02",
+     "p": 800000
     }
    ],
    "soldOut": false,
@@ -15669,6 +15677,90 @@
    "soldOutPrice": null,
    "dateAdded": 1785680999,
    "dateExpiration": 1790864999
+  },
+  "157418": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785683326,
+   "dateExpiration": 1796051326
+  },
+  "157421": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785684314,
+   "dateExpiration": 1790868314
+  },
+  "157426": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785685068,
+   "dateExpiration": 1790869068
+  },
+  "157427": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 2,
+   "firstSeen": "2026-08-02",
+   "lastSeen": "2026-08-02",
+   "prices": [
+    {
+     "d": "2026-08-02",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785685534,
+   "dateExpiration": 1790869534
   }
  }
 }
