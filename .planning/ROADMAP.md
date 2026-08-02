@@ -189,11 +189,19 @@ lassen sich kombinieren, sodass auch Nischen wie „Frachter mit abgesenkter Sig
   5. Die Seite bleibt ohne JavaScript lesbar und die Filterung läuft clientseitig ohne
      spürbare Verzögerung über alle 227 Karten
 
-**Plans**: 0 plans (noch nicht geplant)
+**Plans**: 3 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 5 to break down)
+- [ ] 05-01-PLAN.md — (Welle 1) Tracer: „Bergung" von der Spieldatei bis auf die Karte — EIN Körper für DE und EN, Datamine, Momentaufnahme, erster Rollenfilter, plus Prüfschritt für die Join-Rate 223/227
+- [ ] 05-02-PLAN.md — (Welle 2) Beruf und 18 Rollenfamilien mit zerlegten Verbundrollen und gefüllten deutschen Lücken; danach Signaturachse und Merkmalsleiste, die den Prowler Utility auffindbar machen
+- [ ] 05-03-PLAN.md — (Welle 3) Sieben Schnellzugriffe setzen Rolle und Signatur in einem Klick, der Wiki-Grobfilter weicht dem spielgenauen Beruf, Sichtprüfung der fünf Abnahmefälle
+
+Erhebung des Planers am 02.08.2026 gegen das echte Archiv — drei Korrekturen an RESEARCH.md,
+die in den Plänen stehen: die deutsche Lokalisierung liegt unter `german_(germany)`, nicht
+unter `german`; Signaturen tragen 16 Katalog-Schiffe, nicht 22 (RESEARCH zählt über 360
+DataCore-Records statt über die 223 gejointen); und `dogfightEnabled` trifft 220 von 223 —
+das Merkmal „Bewaffnet" aus D-09 entfällt damit nach D-09s eigener Abbruchbedingung.
 
 ## Progress
 
@@ -208,5 +216,5 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
-| 5. Schiffe: Rollen- und Merkmalsfilter | 0/0 | Not started | - |
+| 5. Schiffe: Rollen- und Merkmalsfilter | 0/3 | Not started | - |
 
