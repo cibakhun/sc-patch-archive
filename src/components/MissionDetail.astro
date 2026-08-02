@@ -23,7 +23,7 @@ const S = {
   de: {
     // titleKind nur im <title> (Suchanfrage ist „star citizen <mission>");
     // kind bleibt der sichtbare Eyebrow-Text auf der Seite.
-    back: 'Alle Missionen', kind: 'Mission', titleKind: 'Star-Citizen-Mission',
+    kind: 'Mission', titleKind: 'Star-Citizen-Mission',
     internal: 'Interner Name', internalT: 'Diese Mission trägt keinen festen Titel. Angezeigt wird ihr interner Name — im Spiel heißt sie anders.',
     mgHead: 'Auftragstext', mgCode: 'mobiGlas // Übertragung',
     mgEnd: 'Ende der Übertragung', mgAria: 'Auftragstext, wie ihn das mobiGlas anzeigt',
@@ -57,7 +57,7 @@ const S = {
     rec: 'Datensatz',
   },
   en: {
-    back: 'All missions', kind: 'Mission', titleKind: 'Star Citizen Mission',
+    kind: 'Mission', titleKind: 'Star Citizen Mission',
     internal: 'Internal name', internalT: 'This mission has no fixed title. Shown is its internal name — in game it is called something else.',
     mgHead: 'Contract briefing', mgCode: 'mobiGlas // transmission',
     mgEnd: 'End of transmission', mgAria: 'Contract briefing as the mobiGlas shows it',
@@ -169,8 +169,6 @@ const t = useTranslations(lang);
 
   <main id="main" class="md">
     <div class="md__wrap">
-      <a class="md__back" href={L('/missionen.html')}>← {S.back}</a>
-
       <header class="md__head">
         <p class="md__eyebrow">{m.typeNames.join(' · ') || S.kind}</p>
         <h1 class="md__h1">
@@ -398,11 +396,6 @@ const t = useTranslations(lang);
 <style>
   .md { padding: 5.5rem 0 4rem; }
   .md__wrap { width: min(var(--maxw), 100%); margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem); }
-  .md__back {
-    display: inline-block; font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .12em;
-    font-size: .7rem; color: var(--muted); margin-bottom: 1.4rem;
-  }
-  .md__back:hover { color: var(--accent); }
 
   .md__head { padding-bottom: 1.6rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }
   .md__eyebrow {
