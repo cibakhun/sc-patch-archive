@@ -5,11 +5,15 @@
 // überschreiben). Foci/Größe/Status/Typ sind Aufzählungen -> feste Maps.
 import type { CollectionEntry } from 'astro:content';
 import vehiclesEn from '../data/vehicles-en.json';
+import vehicleRoles from '../data/vehicle-roles.json';
 import type { Locale } from './ui';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
 
 const EN_DESC = (vehiclesEn as { descriptions: Record<string, string> }).descriptions;
+const ROLES = (vehicleRoles as {
+  vehicles: Record<string, { roleDe: string | null; roleEn: string | null }>;
+}).vehicles;
 
 // sizeDe (6 Werte) -> EN
 const SIZE_EN: Record<string, string> = {
@@ -158,6 +162,19 @@ export function vRole(d: VehicleData, lang: Locale): string | null {
   const foci = vFoci(d, lang);
   if (foci.length) return foci.join(' · ');
   return vType(d, lang);
+}
+/**
+ * Exakte CIG-Rolle (D-11) — ersetzt `vRole`/`fociDe` als Kartenbeschriftung.
+ * Quelle ist die committete Momentaufnahme aus `vehicle-roles.json`
+ * (`scripts/datamine-vehicle-roles.mjs`), nicht die Wiki-Foci: CIGs eigene
+ * Klassifikation ist einsprachig sauber, ohne Tippfehler/Dubletten. Fehlt das
+ * Fahrzeug in der Momentaufnahme (die 4 ATLS-Einträge, D-03) oder ist das
+ * Label in dieser Sprache leer, fällt die Funktion auf `vRole` zurück.
+ */
+export function vRoleCig(id: string, d: VehicleData, lang: Locale): string | null {
+  const r = ROLES[id];
+  const label = r ? (lang === 'de' ? r.roleDe : r.roleEn) : null;
+  return label || vRole(d, lang);
 }
 /** Freitext-Beschreibung (EN mit DE-Fallback, solange unübersetzt) */
 export function vDesc(d: VehicleData, lang: Locale): string | null {
