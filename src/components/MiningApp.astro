@@ -3,10 +3,14 @@
 // Sprachneutrales Gerüst; UI-Chrome via `lang`, Game-Daten bleiben englisch.
 import DB from '../../assets/mining-db.json';
 import { blueprintsPerMineral, craftingPath, materialByMineral } from '../lib/miningLinks';
-import { href } from '../i18n/ui';
+import { href, useTranslations } from '../i18n/ui';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
+
+// Nur das aria-Praefix des Zurueck-Pfeils am Modal ("Zurueck zu"/"Back to").
+// Den Namen der Herkunft haengt assets/back-link.js zur Laufzeit an.
+const tBack = useTranslations(lang);
 
 // -- i18n (SSR-Chrome) --
 const S = {
@@ -199,7 +203,7 @@ const total = DB.counts.minerals;
           Merkmal data-back-origin der Leiste. Sonst waere er ein zweites X.
           Beschriftung und Ziel kommen aus dem Leisten-Link, es gibt also nur
           EINE Wahrheit ueber die Herkunft. */}
-      <button class="mdb-modal__back" data-modal-back hidden>
+      <button class="mdb-modal__back" data-modal-back data-back-aria={tBack("nav.back.aria")} hidden>
         <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <button class="mdb-modal__x" data-close aria-label={S.close}>✕</button>
@@ -297,14 +301,25 @@ const total = DB.counts.minerals;
   .mdb-modal[hidden]{display:none}
   .mdb-modal__box{position:relative;max-width:660px;width:100%;background:var(--bg-2,var(--veil-2));border:1px solid var(--accent,#2FBFA4);border-radius:8px;padding:clamp(1.2rem,4vw,2rem)}
   .mdb-modal__x{position:absolute;top:.6rem;right:.6rem;background:var(--veil);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:1rem}
-  /* Zurueck: spiegelbildlich zum X, aber RUND — die runde Form sagt
-     „woanders hin", das eckige X sagt „hier zu". Zwei Bedeutungen, zwei
-     Formen. Sichtbar nur, wenn back-link.js das hidden entfernt. */
-  .mdb-modal__back{position:absolute;top:.6rem;left:.6rem;display:inline-flex;align-items:center;justify-content:center;
-    background:var(--veil);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);
-    width:32px;height:32px;border-radius:50%;cursor:pointer;transition:color .15s,border-color .15s,background-color .15s}
+  /* Zurueck: RUND, im Akzent der Seite — die runde Form sagt „woanders hin",
+     das eckige, farblose X sagt „hier zu". Zwei Bedeutungen, zwei Formen,
+     zwei Gewichte.
+     Der Knopf steht NEBEN der Karte, nicht darin: im Fenster draengte er
+     sich an die Ueberschrift. Moeglich ist das, weil .mdb-modal__box kein
+     overflow setzt — der Item-Finder-Container tut das und braucht deshalb
+     einen anderen Weg. Sichtbar nur, wenn back-link.js das hidden entfernt. */
+  .mdb-modal__back{position:absolute;top:0;left:-3.5rem;display:inline-flex;align-items:center;justify-content:center;
+    background:color-mix(in srgb,var(--accent,#2FBFA4) 14%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent,#2FBFA4) 55%,transparent);
+    color:var(--accent,#2FBFA4);
+    width:40px;height:40px;border-radius:50%;cursor:pointer;transition:color .15s,border-color .15s,background-color .15s}
   .mdb-modal__back[hidden]{display:none}
-  .mdb-modal__back:hover,.mdb-modal__back:focus-visible{color:var(--accent,#2FBFA4);border-color:var(--accent,#2FBFA4)}
+  .mdb-modal__back:hover,.mdb-modal__back:focus-visible{
+    background:color-mix(in srgb,var(--accent,#2FBFA4) 28%,transparent);border-color:var(--accent,#2FBFA4)}
+  /* Zu schmal fuer einen Platz daneben -> zurueck ins Fenster, oben links. */
+  @media (max-width:860px){
+    .mdb-modal__back{top:.6rem;left:.6rem;width:32px;height:32px}
+  }
   .mm__kind{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.62rem;color:var(--accent,#2FBFA4)}
   .mm__kind.hand{color:var(--accent-2,#E0A526)}
   .mm__name{font-family:var(--font-display,inherit);font-weight:800;font-size:clamp(1.4rem,4vw,2rem);color:var(--text);margin:.2rem 0 .5rem;line-height:1.1}
