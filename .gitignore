@@ -44,3 +44,8 @@ TEST_*.md
 
 # Holo-glTF-Downloadcache (calibrate-holo-markers.mjs, einmalig ~2 GB)
 .cache/
+
+# Spielermarkt-Mitschrieb: der Bestand gehoert auf den Zweig data/marketplace-log
+# (siehe .github/workflows/track-marketplace.yml), nicht auf staging/main — sonst
+# loest jeder Daten-Commit ein komplettes Deploy aus.
+/data/
