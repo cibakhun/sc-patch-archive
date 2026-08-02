@@ -143,8 +143,7 @@ const tipId = `fxsw-tip-${place}`;
     width: max-content;
     max-width: min(15rem, calc(100vw - 2rem));
     padding: 0.55rem 0.7rem;
-    border: 1px solid var(--line, var(--line-soft));
-    background: var(--surface, #14121c);
+    border: 1px solid var(--line, var(--line-soft));background:var(--surface, var(--veil-2));
     color: var(--text, #e8eefc);
     font-family: var(--font-ui, system-ui, sans-serif);
     font-size: 0.76rem;
@@ -152,8 +151,7 @@ const tipId = `fxsw-tip-${place}`;
     line-height: 1.45;
     letter-spacing: 0.01em;
     text-align: left;
-    text-transform: none;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
+    text-transform: none;box-shadow:0 10px 28px var(--shadow-color);
     /* Nicht anfassbar: der Tooltip darf den Zeiger nicht vom Knopf nehmen. */
     pointer-events: none;
     opacity: 0;
@@ -232,5 +230,4 @@ const tipId = `fxsw-tip-${place}`;
       /* Die Verzoegerung bleibt: sie ist kein Effekt, sondern Absicht. */
       transition: visibility 0s linear 0.45s;
     }
-  }
-</style>
+  }</style>

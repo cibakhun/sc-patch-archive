@@ -7,6 +7,19 @@
 // belastet — für eine Seite, die "keine Tracker" verspricht, der falsche Handel.
 // Ein Link tut dasselbe: die Verbindung zu PayPal entsteht erst nach dem Klick,
 // auf der eigenen Domain fliesst nichts.
+//
+// GESTALTUNG "Instandsetzung" (02.08.2026, .planning/sketches/001-support-page-identity/).
+// Die Seite liest sich als technischer Befund. Der Kern der Aussage ist NICHT das
+// defekte Bauteil, sondern der ARBEITSVERLUST — der Rechner geht ohne Vorwarnung
+// aus und nimmt mit, was seit dem letzten Speichern entstanden ist. Ein Sachschaden
+// ist ein schwaches Argument; verlorene Arbeitszeit an einem Projekt, das jemand
+// umsonst baut, ist ein starkes.
+//
+// KEINE erfundenen Kennzahlen (Hausregel "Never fabricate data", verankert in
+// tests/e2e/db.test.js). Die Seite nennt weder Ausfallhäufigkeit noch Zeitraum —
+// die einzigen Zahlen sind die Betragsstufen und das Ziel im Fliesstext. Aus
+// demselben Grund gibt es KEINEN Fortschrittsbalken: ein PayPal-Link liefert keine
+// Zahlungsdaten, und eine handgepflegte Zahl könnte veralten.
 import { href } from '../i18n/ui';
 
 interface Props {
@@ -14,19 +27,40 @@ interface Props {
 }
 const { lang } = Astro.props;
 
-/** Empfängeradresse. Einzige Stelle, die beim Wechsel des Kontos anzupassen ist. */
+/**
+ * Empfängeradresse. Einzige Stelle, die beim Wechsel des Kontos anzupassen ist.
+ * Der Betrag wird per JS als Pfadsegment angehängt (paypal.me/NAME/5EUR) — das
+ * kann PayPal.me von Haus aus, die Auswahl unten steuert also wirklich etwas.
+ */
 const PAYPAL = 'https://paypal.me/mkrisz22';
+
+/** Betragsstufen in Euro; 5 ist vorgewählt. Freie Eingabe zusätzlich. */
+const STEPS = [3, 5, 10, 25];
+const PRESELECT = 5;
+/** Grenzen der freien Eingabe. Alles ausserhalb wird abgefangen, BEVOR eine URL entsteht. */
+const MIN = 1;
+const MAX = 500;
 
 const T = {
   de: {
-    h1: 'VerseBase unterstützen',
-    lead:
-      'VerseBase ist ein Fan-Projekt: kostenlos, ohne Werbung, ohne Tracker, ohne Anmeldezwang. Server, Domain und die Werkzeuge dahinter kosten trotzdem jeden Monat Geld — und die Arbeit an Daten, Karten und Rechnern passiert in der Freizeit.',
-    lead2:
-      'Wenn dir die Seite etwas wert ist, kannst du das hier zeigen. Freiwillig, ohne Gegenleistung, ohne Abo.',
-    btn: 'Über PayPal unterstützen',
-    note:
-      'Der Link führt zu PayPal. Erst dort entsteht eine Verbindung — auf dieser Seite läuft nichts von PayPal mit.',
+    eyebrow: 'Befund — Spannungsversorgung',
+    h1: 'Der Rechner geht aus. Mitten in der Arbeit.',
+    p1: 'Das Netzteil des Rechners, auf dem VerseBase entsteht, hält keine Last mehr. Es kündigt sich nicht an — der Rechner ist von einem Moment auf den anderen weg.',
+    p2: 'Das Ärgerliche ist nicht das Gerät. Es ist, was mitgeht. Passiert es beim Programmieren, ist die Arbeit seit dem letzten Speichern verloren. Passiert es, während ein Durchlauf über die Spieldateien läuft, fängt der von vorn an — er läuft am Stück und lässt sich nicht in der Mitte anhalten.',
+    p3: 'Entwickeln heisst damit: nie länger als ein paar Minuten am Stück denken.',
+    p4: 'Ein Netzteil, das die Last trägt, kostet rund 120 €. Mehr wird hier nicht gesammelt.',
+    figCap: 'Abb. 1 — Spannung über Last. Unter Volllast bricht die Kennlinie ein.',
+    figLoad: 'Last',
+    figVolt: 'Spannung',
+    figNom: 'Sollwert',
+    figFail: 'Einbruch unter Last',
+    figAlt: 'Kennlinie: Die Spannung bleibt über den unteren Lastbereich stabil und bricht bei hoher Last steil ein.',
+    amountLbl: 'Betrag',
+    amountFree: 'Anderer Betrag',
+    amountUnit: '€',
+    btn: 'Mit %s € unterstützen',
+    note: 'Der Link führt zu PayPal. Erst dort entsteht eine Verbindung — auf dieser Seite läuft nichts von PayPal mit.',
+    errRange: `Bitte einen Betrag zwischen ${MIN} € und ${MAX} € eingeben.`,
     h2help: 'Was genauso hilft',
     helps: [
       ['Fehler melden.', 'Ein falscher Wert, den du meldest, ist mehr wert als ein Kaffee.'],
@@ -35,18 +69,27 @@ const T = {
     ],
     feedback: 'Zum Feedback-Formular',
     h2fine: 'Kein Kleingedrucktes',
-    fine:
-      'Unterstützung ist eine freiwillige Zuwendung ohne Gegenleistung: keine Rechnung, kein Vertrag, keine Vorteile im Benutzerkonto, keine Inhalte hinter einer Bezahlschranke. Alles auf VerseBase bleibt für alle offen — auch für die, die nichts geben.',
+    fine: 'Unterstützung ist eine freiwillige Zuwendung ohne Gegenleistung: keine Rechnung, kein Vertrag, keine Vorteile im Benutzerkonto, keine Inhalte hinter einer Bezahlschranke. Alles auf VerseBase bleibt für alle offen — auch für die, die nichts geben. Eine Spendenbescheinigung kann ich nicht ausstellen: VerseBase ist ein privates Fan-Projekt, kein gemeinnütziger Verein.',
   },
   en: {
-    h1: 'Support VerseBase',
-    lead:
-      'VerseBase is a fan project: free, no advertising, no trackers, no forced sign-up. Server, domain and the tooling behind it still cost money every month — and the work on data, maps and calculators happens in spare time.',
-    lead2:
-      'If the site is worth something to you, this is where you can say so. Voluntary, nothing in return, no subscription.',
-    btn: 'Support via PayPal',
-    note:
-      'The link takes you to PayPal. The connection is made there, not here — nothing from PayPal runs on this page.',
+    eyebrow: 'Fault — Power supply',
+    h1: 'The machine cuts out. Mid-work.',
+    p1: 'The power supply in the machine VerseBase is built on no longer holds under load. There is no warning — the machine is simply gone from one moment to the next.',
+    p2: 'The annoying part is not the hardware. It is what goes with it. If it happens while I am coding, the work since the last save is gone. If it happens during a run over the game files, that run starts from the beginning — it runs in one stretch and cannot be paused halfway.',
+    p3: 'Developing like this means never thinking further ahead than a few minutes.',
+    p4: 'A power supply that holds costs around €120. Nothing beyond that is collected here.',
+    figCap: 'Fig. 1 — Voltage against load. Under full load the curve collapses.',
+    figLoad: 'Load',
+    figVolt: 'Voltage',
+    figNom: 'Nominal',
+    figFail: 'Collapse under load',
+    figAlt: 'Curve: voltage stays stable across the lower load range and drops steeply at high load.',
+    amountLbl: 'Amount',
+    amountFree: 'Other amount',
+    amountUnit: '€',
+    btn: 'Support with €%s',
+    note: 'The link takes you to PayPal. The connection is made there, not here — nothing from PayPal runs on this page.',
+    errRange: `Please enter an amount between €${MIN} and €${MAX}.`,
     h2help: 'What helps just as much',
     helps: [
       ['Report mistakes.', 'A wrong value you report is worth more than a coffee.'],
@@ -55,48 +98,186 @@ const T = {
     ],
     feedback: 'To the feedback form',
     h2fine: 'No small print',
-    fine:
-      'Support is a voluntary gift with nothing in return: no invoice, no contract, no perks in your account, nothing behind a paywall. Everything on VerseBase stays open to everyone — including those who give nothing.',
+    fine: 'Support is a voluntary gift with nothing in return: no invoice, no contract, no perks in your account, nothing behind a paywall. Everything on VerseBase stays open to everyone — including those who give nothing. I cannot issue a donation receipt: VerseBase is a private fan project, not a registered charity.',
   },
 }[lang];
+
+/** Startbeschriftung des Knopfes — das Skript ersetzt sie bei jeder Auswahl. */
+const btnInitial = T.btn.replace('%s', String(PRESELECT));
 ---
 <style is:inline>
-:root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
+/* Instandsetzung — warme Werkstatt-Palette. Gold ist die EINE Akzentfarbe und
+   markiert ausschliesslich den Defekt und den Weg zurueck. */
+:root{--bg:#0d0a06;--bg-2:#14100a;--surface:#191309;--surface-2:#221a0e;--accent:#e8a83c;--accent-2:#ffcf7a;--hot:#e8a83c;--text:#f2ece1;--muted:#ab9d88;--line:rgba(232,168,60,.20);--line-soft:rgba(242,236,225,.10);--ink:#1a1004;--maxw:840px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#0850ad;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3);--line-soft:rgba(41,46,56,.12)}
+:root[data-theme="light"]{--bg:#fbf7f0;--bg-2:#f3ede4;--surface:#fffdfa;--surface-2:#f8f1e8;--text:#231f17;--muted:#635643;--accent:#795201;--accent-2:#6f4f02;--hot:#6f4a01;--ink:#ffffff;--accent-media:#e8a83c;--accent-2-media:#ffcf7a;--line:rgba(145,105,37,.3);--line-soft:rgba(49,45,37,.12)}
 
+.sup{max-width:var(--maxw);margin:0 auto;padding:3.2rem 1.25rem 4rem}
+.sup__eyebrow{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.74rem;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);margin:0 0 .9rem}
+.sup h1{font-family:var(--font-display,sans-serif);font-weight:900;font-size:clamp(1.9rem,5.4vw,3rem);line-height:1.04;letter-spacing:-.01em;color:var(--text);margin:0 0 1.6rem;text-wrap:balance}
+.sup h2{font-family:var(--font-ui,sans-serif);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.86rem;color:var(--accent);margin:2.8rem 0 .7rem;border-bottom:1px solid var(--line);padding-bottom:.45rem}
+.sup p,.sup li{color:var(--text);line-height:1.7;font-size:1rem}
+.sup ul{padding-left:1.2rem}
+.sup li{margin:.45rem 0}
+.sup .muted{color:var(--muted)}
+/* :not(.sup__btn) ist NICHT kosmetisch: `.sup a` hat Spezifitaet (0,1,1) und
+   schlaegt damit `.sup__btn` (0,1,0), obwohl die Knopfregel spaeter steht. Ohne
+   die Ausnahme stand die Beschriftung in --accent AUF --accent — goldene Schrift
+   auf goldenem Grund, im Browser gemessen unsichtbar. */
+.sup a:not(.sup__btn){color:var(--accent)}
 
-.lg-wrap{max-width:var(--maxw);margin:0 auto;padding:3.2rem 1.25rem 4rem}
-.lg-wrap h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,6vw,3rem);color:var(--text);margin:0 0 1.6rem}
-.lg-wrap h2{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.95rem;color:var(--accent);margin:2.4rem 0 .6rem;border-bottom:1px solid var(--line);padding-bottom:.4rem}
-.lg-wrap p, .lg-wrap li{color:var(--text);line-height:1.7;font-size:.98rem}
-.lg-wrap ul{padding-left:1.2rem}
-.lg-wrap li{margin:.4rem 0}
-.lg-wrap .muted{color:var(--muted)}
-.give{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.6rem;margin:2rem 0}
-.give__btn{display:inline-block;font-family:var(--font-ui);font-weight:800;letter-spacing:.04em;color:var(--ink);background:var(--accent);border-radius:8px;padding:.85rem 1.4rem;text-decoration:none}
-.give__btn:hover{filter:brightness(1.08)}
-.give .note{margin:.9rem 0 0;color:var(--muted);font-size:.86rem;line-height:1.55}
-</style>
+/* --- Abb. 1: Kennlinie ----------------------------------------------------
+   Zeichnungssprache des Hauses: duenner Strich, gerade Enden, spitze Ecken.
+   vector-effect haelt die Strichstaerke beim Skalieren konstant. */
+.sup__fig{margin:2.2rem 0 0;border:1px solid var(--line);background:var(--surface);padding:1.1rem 1.1rem .8rem}
+.sup__fig svg{display:block;width:100%;height:auto}
+.sup__fig svg *{vector-effect:non-scaling-stroke}
+.sup__figcap{margin:.7rem 0 0;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.74rem;letter-spacing:.06em;color:var(--muted);line-height:1.5}
+
+/* --- Betragswahl ---------------------------------------------------------- */
+.sup__give{background:var(--surface);border:1px solid var(--line);padding:1.5rem;margin:2.4rem 0 0;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.sup__lbl{display:block;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 .7rem}
+.sup__steps{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 .9rem}
+.sup__step{position:relative;display:inline-flex}
+.sup__step input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0}
+.sup__step span{display:inline-flex;align-items:center;justify-content:center;min-width:4.4rem;min-height:44px;padding:.5rem .9rem;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:1rem;color:var(--text);background:var(--surface-2);border:1px solid var(--line-soft);transition:border-color .15s,color .15s,background-color .15s}
+.sup__step input:checked+span{color:var(--ink);background:var(--accent);border-color:var(--accent)}
+.sup__step input:focus-visible+span{outline:2px solid var(--accent-2);outline-offset:2px}
+.sup__free{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:0 0 1.1rem}
+.sup__free input{min-width:0;width:7rem;min-height:44px;padding:.5rem .7rem;font-family:var(--font-ui,sans-serif);font-size:1rem;color:var(--text);background:var(--surface-2);border:1px solid var(--line-soft)}
+.sup__free input:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;border-color:var(--accent)}
+.sup__free label{font-size:.9rem;color:var(--muted)}
+.sup__err{margin:0 0 .9rem;color:var(--accent-2);font-size:.86rem;line-height:1.5}
+.sup__err[hidden]{display:none}
+.sup__btn{display:inline-flex;align-items:center;gap:.55rem;min-height:44px;font-family:var(--font-ui,sans-serif);font-weight:800;letter-spacing:.04em;font-size:1rem;color:var(--ink);background:var(--accent);padding:.85rem 1.4rem;text-decoration:none;transition:filter .15s}
+.sup__btn:hover{filter:brightness(1.08)}
+.sup__btn:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px}
+.sup__btn[aria-disabled='true']{opacity:.5;pointer-events:none}
+.sup__note{margin:.9rem 0 0;color:var(--muted);font-size:.86rem;line-height:1.55}
+
+/* Bewegung ist Verstaerkung: assets/detail.css gattert bei reduzierter Bewegung
+   nur `animation`, NICHT `transition` — die Uebergaenge oben brauchen deshalb
+   ihre eigene Klammer, sonst laufen sie trotz Systemeinstellung weiter. */
+@media (prefers-reduced-motion:reduce){
+  .sup__step span,.sup__btn{transition:none}
+}
+@media (max-width:420px){
+  .sup__step span{min-width:3.9rem;padding:.5rem .7rem}
+}</style>
 
 <main id="main">
-  <div class="lg-wrap">
-    <h1>{T.h1}</h1>
-    <p>{T.lead}</p>
-    <p>{T.lead2}</p>
+  <div class="sup">
+    <p class="sup__eyebrow" set:text={T.eyebrow}></p>
+    <h1 set:text={T.h1}></h1>
+    <p set:text={T.p1}></p>
+    <p set:text={T.p2}></p>
+    <p set:text={T.p3}></p>
+    <p set:text={T.p4}></p>
 
-    <div class="give">
-      <a class="give__btn" href={PAYPAL} rel="noopener">{T.btn}</a>
-      <p class="note">{T.note}</p>
+    {/* Kennlinie statt Explosionszeichnung eines Bauteils: die Aussage ist das
+        Aussetzen unter Last, nicht der Austausch eines Teils. */}
+    <figure class="sup__fig">
+      <svg viewBox="0 0 420 190" role="img" aria-label={T.figAlt} fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="butt" stroke-linejoin="miter">
+        <path d="M46 18 V152 H392" stroke="var(--line-soft)"></path>
+        <path d="M110 18 V152 M174 18 V152 M238 18 V152 M302 18 V152 M366 18 V152" stroke="var(--line-soft)" stroke-width="1" stroke-dasharray="2 5"></path>
+        <path d="M46 52 H392" stroke="var(--muted)" stroke-width="1" stroke-dasharray="9 4 2 4"></path>
+        <path d="M46 54 L150 54 L214 56 L258 60 L286 74 L306 102 L326 132 L352 146 L392 150" stroke="var(--accent)" stroke-width="2.2"></path>
+        <circle cx="286" cy="74" r="4.5" fill="var(--accent)" stroke="none"></circle>
+        <path d="M286 74 L340 34 H392" stroke="var(--accent)" stroke-width="1"></path>
+        <text x="392" y="28" text-anchor="end" fill="var(--accent)" stroke="none" font-size="11" letter-spacing="1.4" set:text={T.figFail.toUpperCase()}></text>
+        <text x="46" y="170" fill="var(--muted)" stroke="none" font-size="10" letter-spacing="1.6" set:text={T.figLoad.toUpperCase()}></text>
+        <text x="46" y="14" fill="var(--muted)" stroke="none" font-size="10" letter-spacing="1.6" set:text={T.figVolt.toUpperCase()}></text>
+        <text x="52" y="48" fill="var(--muted)" stroke="none" font-size="9" letter-spacing="1.2" set:text={T.figNom.toUpperCase()}></text>
+      </svg>
+      <figcaption class="sup__figcap" set:text={T.figCap}></figcaption>
+    </figure>
+
+    <div class="sup__give">
+      <span class="sup__lbl" id="supAmtLbl" set:text={T.amountLbl}></span>
+      <div class="sup__steps" role="radiogroup" aria-labelledby="supAmtLbl">
+        {STEPS.map((v) => (
+          <label class="sup__step">
+            <input type="radio" name="sup-amount" value={v} checked={v === PRESELECT} aria-label={`${v} ${T.amountUnit}`} />
+            <span>{v} {T.amountUnit}</span>
+          </label>
+        ))}
+      </div>
+      <div class="sup__free">
+        <label for="supFree" set:text={T.amountFree}></label>
+        {/* BEWUSST type="text" statt type="number": ein Zahlenfeld verwirft das
+            Komma still, mit dem in Deutschland jeder Dezimalbetrag geschrieben
+            wird — „7,50" kam als leerer Wert an, und die Eingabe lief ins Leere.
+            Ebenso wurde „abc" zu '' und loeste deshalb keine Fehlermeldung aus.
+            Beides im Browser gemessen. Geklemmt wird ohnehin im Skript. */}
+        <input id="supFree" type="text" inputmode="decimal" autocomplete="off" placeholder="…" aria-describedby="supErr" />
+        <span class="muted" set:text={T.amountUnit}></span>
+      </div>
+      <p class="sup__err" id="supErr" role="status" hidden set:text={T.errRange}></p>
+      <a class="sup__btn" id="supBtn" href={`${PAYPAL}/${PRESELECT}EUR`} rel="noopener">
+        <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"></path></svg>
+        <span id="supBtnTxt" set:text={btnInitial}></span>
+      </a>
+      <p class="sup__note" set:text={T.note}></p>
     </div>
 
-    <h2>{T.h2help}</h2>
+    <h2 set:text={T.h2help}></h2>
     <ul>
       {T.helps.map(([b, rest]) => <li><strong>{b}</strong> {rest}</li>)}
     </ul>
-    <p><a href={href('/feedback.html', lang)}>{T.feedback}</a></p>
+    <p><a href={href('/feedback.html', lang)} set:text={T.feedback}></a></p>
 
-    <h2>{T.h2fine}</h2>
-    <p class="muted">{T.fine}</p>
+    <h2 set:text={T.h2fine}></h2>
+    <p class="muted" set:text={T.fine}></p>
   </div>
 </main>
+
+{/* Betragswahl -> Ziel-URL. Bewusst eine Zuweisung an href und KEIN Formular:
+    ein POST an PayPal fiele unter die form-action-Direktive der CSP und wuerde
+    still blockiert. Der Empfaenger stammt AUSSCHLIESSLICH aus der Konstante —
+    aus der Eingabe kommt nur die Zahl, und die wird geklemmt. */}
+<script
+  is:inline
+  data-sup-base={PAYPAL}
+  data-sup-min={String(MIN)}
+  data-sup-max={String(MAX)}
+  data-sup-tpl={T.btn}
+  set:html={`(function(){
+var s=document.currentScript;
+var base=s.getAttribute('data-sup-base'),min=+s.getAttribute('data-sup-min'),
+    max=+s.getAttribute('data-sup-max'),tpl=s.getAttribute('data-sup-tpl');
+var btn=document.getElementById('supBtn'),txt=document.getElementById('supBtnTxt'),
+    free=document.getElementById('supFree'),err=document.getElementById('supErr'),
+    radios=document.querySelectorAll('input[name="sup-amount"]');
+if(!btn||!txt||!free||!err)return;
+/* Auf ganze Cent runden und als schlichte Zahl ausgeben: PayPal.me nimmt 1, 5
+   oder 12.5 — aber kein Komma und keine Exponentialschreibweise. */
+function fmt(n){return (Math.round(n*100)/100).toString()}
+function apply(n,bad){
+  if(bad){err.hidden=false;btn.setAttribute('aria-disabled','true');return}
+  err.hidden=true;btn.removeAttribute('aria-disabled');
+  btn.href=base+'/'+fmt(n)+'EUR';
+  txt.textContent=tpl.replace('%s',fmt(n));
+}
+for(var i=0;i<radios.length;i++){
+  radios[i].addEventListener('change',function(e){free.value='';apply(+e.target.value,false)});
+}
+free.addEventListener('input',function(){
+  var raw=free.value.trim();
+  if(raw===''){
+    /* Leeren muss IMMER in einen gueltigen Zustand zurueckfuehren. Wer eine
+       ungueltige Zahl eingibt und das Feld dann leert, hat sonst einen
+       dauerhaft gesperrten Knopf ohne Ausweg — im Browser gemessen: nach
+       „abc" und anschliessendem Leeren blieb die Sperre stehen, weil zu
+       diesem Zeitpunkt KEINE Stufe mehr angehakt war und die Funktion
+       ohne Aufraeumen zurueckkehrte. */
+    var c=document.querySelector('input[name="sup-amount"]:checked');
+    if(!c){c=document.querySelector('input[name="sup-amount"][value="${PRESELECT}"]');if(c)c.checked=true}
+    apply(c?+c.value:${PRESELECT},false);
+    return;
+  }
+  var n=parseFloat(raw.replace(',','.'));
+  if(!isFinite(n)||n<min||n>max){apply(0,true);return}
+  for(var j=0;j<radios.length;j++)radios[j].checked=false;
+  apply(n,false);
+});})()`}
+/>

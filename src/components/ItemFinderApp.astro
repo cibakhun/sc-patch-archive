@@ -308,9 +308,7 @@ const JS_T = ITEM_UI[lang];
     border-bottom: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     position: sticky;
     top: var(--uif-stick);
-    z-index: 20;
-    background: var(--bg, #0d0c14);
-    background: color-mix(in srgb, var(--bg, #0d0c14) 92%, transparent);
+    z-index: 20;background:var(--bg, var(--veil-2));background:color-mix(in srgb, var(--bg, var(--veil-2)) 92%, transparent);
     backdrop-filter: blur(8px);
   }
 
@@ -940,6 +938,14 @@ const JS_T = ITEM_UI[lang];
        375px wuerde der Ø-Zusatz den Ortsnamen wegdruecken. */
     .uif-card-avg { display: none; }
   }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .uif-rarity--common{color:#4f5969}
+:root[data-theme="light"] .uif-rarity--uncommon{color:#026a35}
+:root[data-theme="light"] .uif-rarity--rare{color:#0159a0}
+:root[data-theme="light"] .uif-rarity--epic{color:#6b30b0}
+:root[data-theme="light"] .uif-rarity--legendary{color:#784e04}
+:root[data-theme="light"] .uif-setbadge{color:#735102}
+:root[data-theme="light"] .uif-setbadge.is-ok{color:#026a35}
 </style>
 
 <script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl, craftUrl, itemBase: lang === 'de' ? '/de/items/' : '/items/', craftBase: lang === 'de' ? '/de/crafting/' : '/crafting/', setBase: lang === 'de' ? '/de/armor-sets.html' : '/armor-sets.html', icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />
