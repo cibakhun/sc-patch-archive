@@ -93,7 +93,9 @@ const backParent = isNestedPage && !isAccountArea
   ? [...crumbs].slice(0, -1).reverse().find((c) => c.href)
   : undefined;
 const backTarget = backParent ? { href: backParent.href as string, label: backParent.label } : null;
-const backLinkSrc = backTarget ? versioned('assets/back-link.js', '/assets/back-link.js') : null;
+// Auch ohne Zurueck-Link laden: Nabenseiten muessen ihre Herkunfts-Notiz
+// schreiben koennen, sonst verliert jeder Weg ueber sie den Kontext.
+const backLinkSrc = (backTarget || crumbs.length) ? versioned('assets/back-link.js', '/assets/back-link.js') : null;
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
@@ -291,7 +293,13 @@ try {
 } catch { /* dev-Fallback */ }
 const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 ---
-<nav class={heroMorph ? 'snav snav--morph' : 'snav'} id="topbar" aria-label={t('nav.main')}>
+{/* data-back-self sitzt an der LEISTE, nicht am Zurueck-Link: sonst
+    hinterlassen Nabenseiten keine Herkunfts-Notiz (sie tragen keinen
+    Zurueck-Link), und jeder Weg ueber eine Nabe verliert den Kontext —
+    Item-Finder -> Crafting zeigte deshalb den statischen Elternteil
+    „← Alpha 4.9" statt „← Item Finder". Die Notiz kostet nichts und macht
+    auch Naben zu einer gueltigen Herkunft. */}
+<nav class={heroMorph ? 'snav snav--morph' : 'snav'} id="topbar" aria-label={t('nav.main')} data-back-self={crumbs.length ? crumbs[crumbs.length - 1]?.label : undefined}>
   <div class="snav__left">
     <a
       class="snav__acct js-nav-acct"
@@ -347,7 +355,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       href={backTarget.href}
       data-backlink
       data-back-path={backTarget.href.split(/[?#]/)[0]}
-      data-back-self={crumbs[crumbs.length - 1]?.label}
       data-back-aria={t('nav.back.aria')}
       aria-label={`${t('nav.back.aria')} ${backTarget.label}`}
     >
@@ -499,7 +506,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 {crumbLd && <script type="application/ld+json" set:html={JSON.stringify(crumbLd)} />}
 {/* Nur auf Blattseiten mit Zurück-Element geladen — Naben und Startseite
     bekommen kein zusätzliches Skript. Gleiche Herkunft, CSP bleibt grün. */}
-{backTarget && <script is:inline src={backLinkSrc} defer></script>}
+{backLinkSrc && <script is:inline src={backLinkSrc} defer></script>}
 <SearchOverlay lang={lang} />
 {/* Konto-Status + Favoriten-Sterne (leichtgewichtig, ohne supabase-js).
     ?v=<contenthash> bricht den 1-Tag-CDN-Cache bei jeder Änderung. */}
