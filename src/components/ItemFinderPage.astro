@@ -1,0 +1,110 @@
+---
+// „Item Finder" — EIN Körper für DE und EN.
+// Muster und Begründung: siehe components/topics/4-0-0-pyro-system.astro.
+// Hüllen liegen in src/pages/item-finder.astro (EN) und
+// src/pages/de/item-finder.astro (DE) — sie reichen nur noch Layout-Props durch.
+// Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
+// Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe <a class="skip">).
+import SiteNav from './SiteNav.astro';
+import Attribution from './Attribution.astro';
+import ItemFinderApp from './ItemFinderApp.astro';
+import DB from '../../assets/universal-items.json';
+import { localeFromPath } from '../i18n/ui';
+import { versioned } from '../lib/assetVersion';
+
+const lang = localeFromPath(Astro.url.pathname);
+const de = lang === 'de';
+const total = DB.counts.items;
+const sourced = DB.counts.withObtain;
+const snap = DB.generatedAt;
+---
+<style is:inline>
+/* Item finder theme — violet & amber (quartermaster catalog) */
+:root{--bg:#0d0c14;--bg-2:#14121c;--surface:#17151f;--surface-2:#1e1b29;--accent:#A78BFA;--accent-2:#FFB84D;--hot:#A78BFA;--text:#eef1f5;--muted:#9d9cb0;--line:rgba(167,139,250,.22);--line-soft:rgba(238,241,245,.10);--glow:0 0 44px rgba(167,139,250,.28);--ink:#0d0c14;--maxw:1240px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f7f6fe;--bg-2:#eeecf8;--surface:#fdfdff;--surface-2:#f3f1fb;--text:#1d1f22;--muted:#575668;--accent:#643bb5;--accent-2:#744c00;--hot:#5c31ab;--ink:#ffffff;--accent-media:#A78BFA;--accent-2-media:#FFB84D;--line:rgba(117,101,166,.3);--line-soft:rgba(44,46,49,.12);--glow:0 6px 22px rgba(118,98,176,.18)}
+
+
+.reveal{opacity:1 !important;transform:none !important}
+/* Hero title: bright gradient + strong scrim, readable over the loot photo */
+.hero h1{font-size:clamp(2.4rem,9vw,7rem);background:linear-gradient(180deg,var(--title-hi),#d6c6ff 58%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 3px 20px var(--on-media-shadow)) drop-shadow(0 0 30px rgba(167,139,250,.4))}
+.hero{background:radial-gradient(120% 90% at 78% 12%,rgba(167,139,250,.16),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(255,184,77,.10),transparent 55%),var(--bg)}
+.hero__in{max-width:var(--maxw)}
+.qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;color:var(--muted)}
+.qbar b{color:var(--accent-2)}
+/* „Worum geht es hier" — steht UNTER der Trefferliste. Bewusst nicht
+   display:none und nicht ausgeklappt-versteckt: Google indexiert mobil-zuerst,
+   der Text soll gefunden werden. Er soll nur niemanden aufhalten, der sucht. */
+.uf-about{max-width:var(--maxw);margin:1.8rem auto 0;padding:1.3rem clamp(1rem,4vw,2rem) 0;border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:.8rem}
+.uf-about__lead{margin:0;max-width:74ch;color:var(--muted);font-size:.95rem;line-height:1.55}
+.uf-about__note{margin:0;padding-left:.7rem;border-left:2px solid var(--accent-2);color:var(--muted);font-size:.86rem;line-height:1.5}
+.uf-about__note b{color:var(--text)}
+.uf-about__links{margin:0;display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;font-weight:700;font-size:.92rem}
+.uf-about__links a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--line)}
+.uf-about__links a:hover{color:var(--accent-2);border-color:var(--accent-2)}
+
+/* Werkzeug-Kopfband: die Suche muss bei 1280x800 und bei 375x812 ohne
+   Scrollen sichtbar sein — dafür schrumpft das Hero-Band von 92svh auf ein
+   schmales Band. Gleiche Spezifität (0,1,1) wie ".hero h1" oben — es
+   gewinnt hier ausschließlich die spätere Regel, deshalb steht dieser
+   Block bewusst NACH der ".hero h1"-Regel. */
+.hero--tool{min-height:0;justify-content:flex-start;padding-top:6.2rem;padding-bottom:1rem;padding-left:clamp(1rem,4vw,2rem);padding-right:clamp(1rem,4vw,2rem)}
+.hero--tool h1{font-size:clamp(1.9rem,4.4vw,3.2rem)}
+@media (max-width:700px){
+  /* Auf schmalen Schirmen bleibt weniger Höhe übrig — Polsterung nochmal senken,
+     damit das Suchfeld darunter bei 375x812 im ersten Bild steht. Die feste Nav
+     ist 69 px hoch, 4.4rem (79 px) lässt ihr genug Luft. */
+  .hero--tool{padding-top:4.4rem;padding-bottom:.5rem}
+  .hero--tool h1{font-size:clamp(1.7rem,7.4vw,2.2rem);margin-top:.1rem}
+  .uf-about{margin-top:1.2rem;padding-top:1rem;gap:.6rem}
+  .uf-about__lead{font-size:.9rem;line-height:1.45}
+  .uf-about__note{font-size:.82rem;line-height:1.45}
+  .uf-about__links{font-size:.86rem;gap:.3rem 1.1rem}
+  .qbar{gap:.3rem 1rem;font-size:.68rem}
+}
+</style>
+<a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
+<div class="cursorglow" aria-hidden="true"></div>
+
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.9', href: '/de/patches/sc-4-9-0.html' }, { label: 'Item Finder' }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.9', href: '/patches/sc-4-9-0.html' }, { label: 'Item Finder' }]} hasEn={true} />
+
+<main id="main">
+  <section class="hero hero--tool">
+    <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/cz-loot.jpg')" aria-hidden="true"></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
+    <div class="hero__in">
+      {/* Im Kopf steht nur noch, wo man ist. Alles Erklaerende steht unter dem
+          Werkzeug (.uf-about) — der Besucher kommt zum Suchen, nicht zum Lesen.
+          Die Marke „Item-Datenbank" stand hier ein zweites Mal und ist raus. */}
+      <div class="eyebrow"><a href={de ? '/de/patches/sc-4-9-0.html' : '/patches/sc-4-9-0.html'}>Alpha 4.9</a></div>
+      <h1><span class="thin">Star Citizen</span>Item Finder</h1>
+    </div>
+  </section>
+
+  <ItemFinderApp lang={lang} />
+
+  {/* Unter dem Werkzeug, nicht davor: Lead, Kennzahlen, Volatilitaets-Hinweis
+      und die beiden Verzeichnis-Verweise. Nichts davon braucht man zum Bedienen,
+      aber alles bleibt sichtbarer Text bzw. echte <a href> im statischen HTML —
+      die Verweise sind der krabbelbare Weg zu ~17.000 Unterseiten, ihre Position
+      im Dokument ist dafuer egal, ihr Vorhandensein nicht.
+      Phase 01.2 haengt hier spaeter die aufklappbare Bedienungshilfe an. */}
+  <aside class="uf-about">
+    <p class="uf-about__lead">{de ? 'Jedes Item in Star Citizen: Kaufpreise, Shop-Orte und Loot-Guides — ein universeller Finder.' : 'Every item in Star Citizen: buy prices, shop locations and loot guides — one universal finder.'}</p>
+    <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch <b>4.9</b></span><span>{de ? 'Stand' : 'As of'} <b>{snap}</b></span></div>
+    <p class="uf-about__note">{de ? 'Preise ' : 'Prices '}&amp;{de ? ' Fundorte sind ' : ' locations are '}<b>{de ? 'Patch-volatil — ingame prüfen' : 'patch-volatile — verify in game'}</b> {de ? `(Preisstand: ${DB.pricesAsOf}).` : `(prices as of ${DB.pricesAsOf}).`}</p>
+    <p class="uf-about__links">
+      {/* /armor-sets.html steht bewusst NICHT hier: die Sets sind jetzt eine
+          Ansicht im Finder selbst. Die Seite bleibt indexierbar und ist Ziel
+          der Set-Links aus Modal und Datenblatt — sie braucht nur keinen
+          zweiten Einstieg neben dem Werkzeug, das dasselbe besser kann. */}
+      <a href={de ? '/de/items.html' : '/items.html'}>{de ? 'Alle Items nach Kategorie →' : 'Browse every item by category →'}</a>
+      <a href={de ? '/de/crafting.html' : '/crafting.html'}>{de ? 'Blueprint-Verzeichnis →' : 'Blueprint directory →'}</a>
+    </p>
+  </aside>
+</main>
+
+<Attribution sources={["UEX"]} updated={snap} />
+
+<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>

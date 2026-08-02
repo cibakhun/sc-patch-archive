@@ -1,0 +1,102 @@
+---
+// Unterstützen-Seite — EIN Körper für DE und EN (wie Patch- und Themenseiten).
+// Die Sprachseiten unter src/pages/ sind nur Hüllen.
+//
+// Bewusst KEIN eingebettetes Bezahl-Widget: PayPal-Buttons ziehen ein fremdes
+// Skript nach, das die CSP nicht kennt und das die Seite auf jedem Aufruf
+// belastet — für eine Seite, die "keine Tracker" verspricht, der falsche Handel.
+// Ein Link tut dasselbe: die Verbindung zu PayPal entsteht erst nach dem Klick,
+// auf der eigenen Domain fliesst nichts.
+import { href } from '../i18n/ui';
+
+interface Props {
+  lang: 'de' | 'en';
+}
+const { lang } = Astro.props;
+
+/** Empfängeradresse. Einzige Stelle, die beim Wechsel des Kontos anzupassen ist. */
+const PAYPAL = 'https://paypal.me/mkrisz22';
+
+const T = {
+  de: {
+    h1: 'VerseBase unterstützen',
+    lead:
+      'VerseBase ist ein Fan-Projekt: kostenlos, ohne Werbung, ohne Tracker, ohne Anmeldezwang. Server, Domain und die Werkzeuge dahinter kosten trotzdem jeden Monat Geld — und die Arbeit an Daten, Karten und Rechnern passiert in der Freizeit.',
+    lead2:
+      'Wenn dir die Seite etwas wert ist, kannst du das hier zeigen. Freiwillig, ohne Gegenleistung, ohne Abo.',
+    btn: 'Über PayPal unterstützen',
+    note:
+      'Der Link führt zu PayPal. Erst dort entsteht eine Verbindung — auf dieser Seite läuft nichts von PayPal mit.',
+    h2help: 'Was genauso hilft',
+    helps: [
+      ['Fehler melden.', 'Ein falscher Wert, den du meldest, ist mehr wert als ein Kaffee.'],
+      ['Weitersagen.', 'Ein Link im Discord oder auf Reddit bringt Leute her, die die Seite sonst nie finden.'],
+      ['Verlinken.', 'Wer VerseBase von der eigenen Seite verlinkt, hilft der Sichtbarkeit dauerhaft.'],
+    ],
+    feedback: 'Zum Feedback-Formular',
+    h2fine: 'Kein Kleingedrucktes',
+    fine:
+      'Unterstützung ist eine freiwillige Zuwendung ohne Gegenleistung: keine Rechnung, kein Vertrag, keine Vorteile im Benutzerkonto, keine Inhalte hinter einer Bezahlschranke. Alles auf VerseBase bleibt für alle offen — auch für die, die nichts geben.',
+  },
+  en: {
+    h1: 'Support VerseBase',
+    lead:
+      'VerseBase is a fan project: free, no advertising, no trackers, no forced sign-up. Server, domain and the tooling behind it still cost money every month — and the work on data, maps and calculators happens in spare time.',
+    lead2:
+      'If the site is worth something to you, this is where you can say so. Voluntary, nothing in return, no subscription.',
+    btn: 'Support via PayPal',
+    note:
+      'The link takes you to PayPal. The connection is made there, not here — nothing from PayPal runs on this page.',
+    h2help: 'What helps just as much',
+    helps: [
+      ['Report mistakes.', 'A wrong value you report is worth more than a coffee.'],
+      ['Spread the word.', 'A link on Discord or Reddit brings people here who would never find the site otherwise.'],
+      ['Link to it.', 'Linking VerseBase from your own site helps visibility for good.'],
+    ],
+    feedback: 'To the feedback form',
+    h2fine: 'No small print',
+    fine:
+      'Support is a voluntary gift with nothing in return: no invoice, no contract, no perks in your account, nothing behind a paywall. Everything on VerseBase stays open to everyone — including those who give nothing.',
+  },
+}[lang];
+---
+<style is:inline>
+:root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#0850ad;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3);--line-soft:rgba(41,46,56,.12)}
+
+
+.lg-wrap{max-width:var(--maxw);margin:0 auto;padding:3.2rem 1.25rem 4rem}
+.lg-wrap h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,6vw,3rem);color:var(--text);margin:0 0 1.6rem}
+.lg-wrap h2{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.95rem;color:var(--accent);margin:2.4rem 0 .6rem;border-bottom:1px solid var(--line);padding-bottom:.4rem}
+.lg-wrap p, .lg-wrap li{color:var(--text);line-height:1.7;font-size:.98rem}
+.lg-wrap ul{padding-left:1.2rem}
+.lg-wrap li{margin:.4rem 0}
+.lg-wrap .muted{color:var(--muted)}
+.give{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.6rem;margin:2rem 0}
+.give__btn{display:inline-block;font-family:var(--font-ui);font-weight:800;letter-spacing:.04em;color:var(--ink);background:var(--accent);border-radius:8px;padding:.85rem 1.4rem;text-decoration:none}
+.give__btn:hover{filter:brightness(1.08)}
+.give .note{margin:.9rem 0 0;color:var(--muted);font-size:.86rem;line-height:1.55}
+</style>
+
+<main id="main">
+  <div class="lg-wrap">
+    <h1>{T.h1}</h1>
+    <p>{T.lead}</p>
+    <p>{T.lead2}</p>
+
+    <div class="give">
+      <a class="give__btn" href={PAYPAL} rel="noopener">{T.btn}</a>
+      <p class="note">{T.note}</p>
+    </div>
+
+    <h2>{T.h2help}</h2>
+    <ul>
+      {T.helps.map(([b, rest]) => <li><strong>{b}</strong> {rest}</li>)}
+    </ul>
+    <p><a href={href('/feedback.html', lang)}>{T.feedback}</a></p>
+
+    <h2>{T.h2fine}</h2>
+    <p class="muted">{T.fine}</p>
+  </div>
+</main>

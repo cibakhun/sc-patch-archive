@@ -49,6 +49,7 @@ const UI = {
     'nav.path': 'Pfad',
     'nav.home': 'Startseite',
     'nav.home.aria': 'SC Archiv — Startseite',
+    'nav.back.aria': 'Zurück zu',
     'nav.allPatches': 'Alle Patches',
     'nav.allTopics': 'Alle Themen',
     'nav.archive': 'Patch-Archiv',
@@ -69,6 +70,7 @@ const UI = {
     'nav.downloads': 'Downloads',
     'nav.downloads.sub': 'Medien & Onepager',
     'nav.feedback': 'Feedback',
+    'nav.support': 'Unterstützen',
     'nav.account': 'Konto',
     'nav.account.login': 'Login',
     'nav.account.aria': 'Benutzerkonto',
@@ -90,6 +92,7 @@ const UI = {
     'nav.deck.sub.topics': 'Themen-Verzeichnis',
     'nav.deck.sub.evolution': 'Systeme × Patches',
     'nav.deck.sub.feedback': 'Ideen & Fehler melden',
+    'nav.deck.sub.support': 'Server & Domain mitfinanzieren',
     'nav.deck.sub.account': 'Favoriten & Profil',
     'nav.deck.hint.nav': 'Navigieren',
     'nav.deck.hint.open': 'Öffnen',
@@ -141,6 +144,7 @@ const UI = {
     'footer.imprint': 'Impressum',
     'footer.privacy': 'Datenschutz',
     'footer.feedback': 'Feedback',
+    'footer.support': 'Unterstützen',
     'footer.disclaimer':
       'Inoffizielles Fan-Projekt zu Dokumentationszwecken. Star Citizen® und alle zugehörigen Marken gehören der Cloud Imperium Rights LLC & Ltd. Keine Verbindung zu oder Förderung durch Cloud Imperium Games. Wiki-Inhalte von starcitizen.tools stehen unter CC-BY-SA 4.0; eingebettete Trailer und Standbilder © Cloud Imperium Games (Fan-Content-Nutzung).',
     // -- Schiff-Datenblatt (Template-Chrome; Daten-Row-Labels aus src/lib -> Stufe 2) --
@@ -427,6 +431,7 @@ const UI = {
     'nav.path': 'Path',
     'nav.home': 'Home',
     'nav.home.aria': 'SC Archive — Home',
+    'nav.back.aria': 'Back to',
     'nav.allPatches': 'All patches',
     'nav.allTopics': 'All topics',
     'nav.archive': 'Patch archive',
@@ -445,6 +450,7 @@ const UI = {
     'nav.downloads': 'Downloads',
     'nav.downloads.sub': 'Media & one-pagers',
     'nav.feedback': 'Feedback',
+    'nav.support': 'Support',
     'nav.account': 'Account',
     'nav.account.login': 'Sign in',
     'nav.account.aria': 'User account',
@@ -466,6 +472,7 @@ const UI = {
     'nav.deck.sub.topics': 'Topic directory',
     'nav.deck.sub.evolution': 'Systems × patches',
     'nav.deck.sub.feedback': 'Ideas & bug reports',
+    'nav.deck.sub.support': 'Help pay for server & domain',
     'nav.deck.sub.account': 'Favourites & profile',
     'nav.deck.hint.nav': 'Navigate',
     'nav.deck.hint.open': 'Open',
@@ -517,6 +524,7 @@ const UI = {
     'footer.imprint': 'Legal Notice',
     'footer.privacy': 'Privacy',
     'footer.feedback': 'Feedback',
+    'footer.support': 'Support',
     'footer.disclaimer':
       'Unofficial fan project for documentation purposes. Star Citizen® and all related marks are property of Cloud Imperium Rights LLC & Ltd. Not affiliated with or endorsed by Cloud Imperium Games. Wiki content from starcitizen.tools is licensed under CC-BY-SA 4.0; embedded trailers and stills © Cloud Imperium Games (fan-content use).',
     // -- Ship data sheet (template chrome; data-row labels from src/lib -> Stufe 2) --

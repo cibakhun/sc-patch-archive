@@ -1,13 +1,14 @@
 ---
 // Datenschutzerklärung — beschreibt FAKTISCH, was diese statische Site tut
-// (keine Cookies, cookiefreie Cloudflare-Reichweitenmessung, localStorage nur lokal, externe Bild-CDNs,
+// (Reichweitenmessung cookiefrei via Cloudflare, Widerspruch per Cookie,
+// localStorage nur lokal, externe Bild-CDNs,
 // YouTube nur per Klick). [TODO]-Felder vor Publish füllen — audit:site
 // bleibt absichtlich rot, solange sie im Build stehen.
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 ---
-<Layout title={"Datenschutzerklärung | VerseBase"} description={"Datenschutzerklärung von VerseBase: statische Website ohne Cookies — welche Daten beim Aufruf, bei der cookiefreien Reichweitenmessung, bei externen Bildquellen und bei Klick auf YouTube-Videos verarbeitet werden."} themeColor="#05070d" translated={true}>
+<Layout title={"Datenschutzerklärung | VerseBase"} description={"Datenschutzerklärung von VerseBase: welche Daten beim Aufruf, bei der cookiefreien Reichweitenmessung, bei externen Bildquellen und bei Klick auf YouTube-Videos verarbeitet werden — samt Widerspruch mit einem Klick."} themeColor="#05070d" translated={true}>
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
@@ -20,6 +21,11 @@ import Attribution from '../../components/Attribution.astro';
 .lg-wrap p, .lg-wrap li{color:var(--text);line-height:1.7;font-size:.98rem}
 .lg-wrap ul{padding-left:1.2rem}
 .lg-wrap .muted{color:var(--muted)}
+.lg-wrap .optout{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem;margin:1.1rem 0;scroll-margin-top:6rem}
+.lg-wrap .optout button{font:inherit;font-weight:700;cursor:pointer;color:var(--ink);background:var(--accent);border:0;border-radius:6px;padding:.5rem .95rem}
+.lg-wrap .optout button:hover{filter:brightness(1.08)}
+.lg-wrap .optout .note{flex:1 1 100%;margin:0;color:var(--muted);font-size:.86rem;line-height:1.55}
+.lg-wrap .optout code{font-size:.85em;color:var(--accent-2)}
 .lg-fill{display:inline-block;background:color-mix(in srgb,#ff5b5b 14%,transparent);border:1px dashed #ff5b5b;border-radius:4px;padding:0 .45rem;color:#ffb4b4;font-weight:700}
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"] .lg-fill{color:#893c40}
@@ -37,12 +43,14 @@ import Attribution from '../../components/Attribution.astro';
 
     <h2>Grundsatz</h2>
     <p>
-      Diese Website ist ein rein statisches, nicht-kommerzielles Fan-Projekt. Sie verwendet
-      <strong>keine Cookies</strong>, keine Werbung und keine Kommentarfunktionen und verfolgt
-      dich nicht über andere Websites hinweg. Zur reinen Reichweitenmessung läuft
-      <a href="#cloudflare">Cloudflare Web Analytics</a> — cookiefrei und ohne Fingerprinting;
-      dabei entstehen nur zusammengefasste Zahlen (Seitenaufrufe, Besuche, Ladezeiten), keine
-      Personenprofile. Darüber hinaus übermittelst du Daten nur über das
+      Diese Website ist ein rein statisches, nicht-kommerzielles Fan-Projekt. Sie zeigt keine
+      Werbung und hat keine Kommentarfunktionen. Die Reichweite messen zwei cookiefreie
+      Dienste: <a href="#cloudflare">Cloudflare Web Analytics</a> und das selbst betriebene
+      <a href="#umami">Umami</a> — beide ohne Fingerprinting, ohne Personenprofile und ohne
+      Speicherung auf deinem Gerät. Der Messung kannst du mit einem Klick
+      <a href="#opt-out">widersprechen</a>;
+      nur dann wird ein technischer Cookie gesetzt, der genau diese Entscheidung festhält.
+      Darüber hinaus übermittelst du Daten nur über das
       <a href="#feedback">Feedback-Formular</a> und das optionale
       <a href="#accounts">Benutzerkonto</a> — beides freiwillig; die dabei verarbeiteten Daten
       sind unten gesondert beschrieben.
@@ -75,6 +83,53 @@ import Attribution from '../../components/Attribution.astro';
       EU ist dabei möglich; Details findest du in der Datenschutzerklärung des Anbieters:
       <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">cloudflare.com/privacypolicy</a>.
     </p>
+    <h2 id="umami">Eigene Reichweitenmessung (Umami)</h2>
+    <p>
+      Zusätzlich läuft <strong>Umami</strong> unter stats.verse-base.com — eine quelloffene
+      Statistik, die auf unserem eigenen Server arbeitet. Erfasst werden die aufgerufene Seite,
+      die Verweisquelle, Land, Gerätetyp, Browser und Betriebssystem sowie die Verweildauer.
+      <strong>Es werden keine Cookies gesetzt und nichts auf deinem Gerät gespeichert</strong>;
+      um Besuche auseinanderzuhalten, dient eine täglich wechselnde Prüfsumme, aus der sich
+      niemand zurückrechnen lässt. Die Daten verlassen unseren Server nicht — es ist kein
+      Drittanbieter beteiligt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes
+      Interesse an Reichweitenzahlen). Auch diese Messung stoppt dein
+      <a href="#opt-out">Widerspruch</a>.
+    </p>
+
+    <div class="optout" id="opt-out">
+      <span id="rum-status">Wird geprüft …</span>
+      <button type="button" id="rum-toggle">Nicht mitzählen</button>
+      <p class="note">
+        Die Entscheidung merkt sich der technische Cookie <code>vb_noanalytics</code> in genau
+        diesem Browser; sein ganzer Inhalt ist eine 1 oder eine 0. Sie wirkt ab dem nächsten
+        Seitenaufruf und betrifft beide Dienste: der Server erlaubt die Messskripte dann nicht
+        mehr, sie laden gar nicht erst. Löschst du deine
+        Cookies, musst du hier erneut widersprechen. Wer die Seite betreut und angemeldet ist,
+        wird ohnehin nicht mitgezählt.
+      </p>
+    </div>
+    <script is:inline>
+      (() => {
+        const NAME = 'vb_noanalytics';
+        const off = () => document.cookie.split('; ').some((c) => c === NAME + '=1');
+        const status = document.getElementById('rum-status');
+        const btn = document.getElementById('rum-toggle');
+        if (!status || !btn) return;
+        const render = (hint) => {
+          status.textContent = (off()
+            ? 'Du wirst hier nicht mitgezählt.'
+            : 'Du wirst hier derzeit mitgezählt.') + (hint ? ' ' + hint : '');
+          btn.textContent = off() ? 'Wieder mitzählen' : 'Nicht mitzählen';
+        };
+        btn.addEventListener('click', () => {
+          document.cookie = (off()
+            ? NAME + '=0'
+            : NAME + '=1') + '; Max-Age=34560000; Path=/; SameSite=Lax; Secure';
+          render('Gilt ab dem nächsten Seitenaufruf.');
+        });
+        render();
+      })();
+    </script>
 
     <h2>Lokale Speicherung im Browser (localStorage)</h2>
     <p>

@@ -6,8 +6,14 @@
 // sind ~18 KB Markup und ~19 KB inline-JS PRO Seite. Bei ~14.000 generierten
 // Seiten waeren das ~500 MB HTML im Build — fuer Seiten, deren eigener Inhalt
 // 3–8 KB gross ist. Diese Huelle traegt dieselbe Identitaet (Farben, Typo,
-// Hell/Dunkel, Sprachumschalter, Rechtliches), kostet aber ~1,5 KB und kommt
-// ohne eigenes JavaScript aus.
+// Hell/Dunkel, Sprachumschalter, Rechtliches), kostet aber ~1,5 KB.
+//
+// JavaScript: genau EINE externe Datei, assets/back-link.js (~1,4 KB, defer,
+// inhaltsgehasht und damit dauerhaft gecacht). Sie wertet die letzte Brotkrume
+// zu history.back() auf, wenn man nachweislich von dort kommt. Das widerspricht
+// dem urspruenglichen „ohne eigenes JavaScript" nur dem Wortlaut nach, nicht
+// dem Grund dafuer: geaechtet waren ~19 KB INLINE-JS pro Seite, die sich mit
+// jeder der ~14.000 Seiten multiplizieren. Eine gecachte Datei tut das nicht.
 //
 // Alles Wiederkehrende (Layoutregeln) liegt in der EINEN externen Datei
 // /assets/data-page.css; nur die Farbpalette steht inline, weil
@@ -65,6 +71,18 @@ const cssHref = versioned('assets/data-page.css', '/assets/data-page.css');
 const other: Locale = lang === 'de' ? 'en' : 'de';
 const otherHref = pathForLocale(Astro.url.pathname, other);
 
+// Die Brotkrumenspur ist hier die EINZIGE Elternnavigation — die SiteNav-
+// Seiten bekommen dafuer ein eigenes Zurueck-Element, diese Huelle bewusst
+// nicht (zwei Angebote nebeneinander waeren eines zu viel). JEDE Krume mit
+// href traegt data-backlink: back-link.js vergleicht pro Element den
+// Referrer-Pfad mit dessen eigenem data-back-path und macht daraus
+// automatisch genau die Krume zum history.back(), aus der der Nutzer
+// nachweislich kam — Scrollposition der jeweiligen Liste zurueck. Diese
+// Listen sind bis zu 7 Bildschirme lang, ein normaler Klick landet wieder
+// ganz oben. Beschriftungen werden dabei NIE umgeschrieben, nur breiter
+// markiert. Gemessen: 4200 px vorher, 4200 px nachher.
+const backLinkSrc = crumbs.some((c) => c.href) ? versioned('assets/back-link.js', '/assets/back-link.js') : null;
+
 // Breadcrumb-JSON-LD: gibt der Trefferzeile in Google den Pfad statt der nackten
 // URL — und macht die Kategorie-Ebene als eigenes Ziel sichtbar.
 const crumbLd = {
@@ -106,11 +124,17 @@ const crumbLd = {
   <div class="dp" data-tone={tone}>
     <header class="dp-bar">
       <a class="dp-home" href={href('/index.html', lang)} aria-label={t('nav.home.aria')}>VerseBase</a>
-      <nav class="dp-crumbs" aria-label={t('nav.path')}>
+      <nav class="dp-crumbs" aria-label={t('nav.path')} data-back-self={crumbs[crumbs.length - 1]?.label}>
         {crumbs.map((c, idx) => (
           <>
             {idx > 0 && <span class="dp-sep" aria-hidden="true">›</span>}
-            {c.href ? <a href={href(c.href, lang)}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+            {c.href ? (
+              <a
+                href={href(c.href, lang)}
+                data-backlink
+                data-back-path={href(c.href, lang).split(/[?#]/)[0]}
+              >{c.label}</a>
+            ) : <span aria-current="page">{c.label}</span>}
           </>
         ))}
       </nav>
@@ -142,7 +166,9 @@ const crumbLd = {
         <a href={href('/impressum.html', lang)}>{t('footer.imprint')}</a>
         <a href={href('/datenschutz.html', lang)}>{t('footer.privacy')}</a>
         <a href={href('/feedback.html', lang)}>{t('footer.feedback')}</a>
+        <a href={href('/support.html', lang)}>{t('footer.support')}</a>
       </p>
     </footer>
   </div>
+  {backLinkSrc && <script is:inline src={backLinkSrc} defer></script>}
 </Layout>

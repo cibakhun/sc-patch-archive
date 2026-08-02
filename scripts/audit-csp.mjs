@@ -21,10 +21,24 @@ const conf = readFileSync(CONF, 'utf8');
 const m = /add_header\s+Content-Security-Policy\s+"([^"]+)"/.exec(conf);
 if (!m) { console.error(`Keine Content-Security-Policy in ${CONF} gefunden.`); process.exit(2); }
 
+// nginx-Variablen in der Kopfzeile aufloesen. Der Widerspruch gegen die
+// Reichweitenmessung haengt an zwei map-Bloecken ($vb_rum_script /
+// $vb_rum_connect): traegt der Browser das Opt-out-Cookie, liefern sie leer
+// aus, sonst die Analytics-Hosts. Fuer die Pruefung zaehlt der Normalfall, also
+// die `default`-Zeile des Blocks. Ohne das meldet die Pruefung die Hosts als
+// ungedeckt, obwohl die Richtlinie sie ausliefert — und der Build stirbt an
+// einer Meldung, die nicht stimmt.
+function mapDefault(varName) {
+  const block = new RegExp(`map\\s+\\$http_cookie\\s+\\$${varName}\\s*\\{([^}]*)\\}`).exec(conf);
+  const def = block && /default\s+([^;]+);/.exec(block[1]);
+  if (!def) return [];
+  return def[1].trim().replace(/^"|"$/g, '').split(/\s+/).filter(Boolean);
+}
+
 const policy = Object.fromEntries(
   m[1].split(';').map((d) => d.trim()).filter(Boolean).map((d) => {
     const [name, ...src] = d.split(/\s+/);
-    return [name, src];
+    return [name, src.flatMap((s) => (s.startsWith('$') ? mapDefault(s.slice(1)) : [s]))];
   }),
 );
 /** Quellenliste einer Direktive, mit dem Rückfall auf default-src. */
