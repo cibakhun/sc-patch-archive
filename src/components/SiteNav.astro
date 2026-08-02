@@ -361,7 +361,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 {backTarget && (
   <script is:inline>
     try {
-      var a = document.querySelector('a[data-backlink]');
+      var a = document.querySelector('.snav__back');
       if (a) {
         var ref = new URL(document.referrer);
         if (ref.origin === location.origin && ref.pathname !== location.pathname) {
