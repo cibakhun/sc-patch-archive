@@ -380,6 +380,10 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
             var lbl = a.querySelector('[data-back-label]');
             if (lbl) lbl.textContent = note.l;
             a.setAttribute('aria-label', a.getAttribute('data-back-aria') + ' ' + note.l);
+            // Merkmal fuer die Modal-Pfeile: nur wenn HIER umgeschrieben wurde,
+            // ist der Nutzer nachweislich von aussen hereingesprungen. Ohne das
+            // waere ein Zurueck-Pfeil im Modal bloss ein zweites Schliessen-X.
+            a.setAttribute('data-back-origin', '');
           }
         }
       }

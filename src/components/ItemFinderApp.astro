@@ -104,6 +104,9 @@ const JS_T = ITEM_UI[lang];
 
 <div class="uif-modal-overlay" id="uif-item-modal" style="display: none;" role="dialog" aria-modal="true">
   <div class="uif-modal-container">
+    <button class="uif-modal-back" data-modal-back hidden>
+      <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
     <button class="uif-modal-close" id="uif-modal-close-btn" aria-label={t.modalClose}>&times;</button>
     <div class="uif-modal-body" id="uif-modal-body-content"><!-- Details via JS --></div>
   </div>
@@ -490,6 +493,32 @@ const JS_T = ITEM_UI[lang];
   }
 
   .uif-modal-close:hover { color: var(--accent, #ff5e1a); }
+
+  /* Zurueck-Pfeil gegenueber dem Schliessen-Kreuz. Rund = „woanders hin",
+     das Kreuz = „hier zu". Sichtbar nur, wenn man von einer anderen Seite
+     hereingesprungen ist — assets/back-link.js nimmt dann das hidden weg. */
+  .uif-modal-back {
+    position: absolute;
+    top: 1rem;
+    left: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid var(--line, rgba(255, 94, 26, 0.3));
+    border-radius: 50%;
+    color: var(--muted, #9ba2ae);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .uif-modal-back[hidden] { display: none; }
+  .uif-modal-back:hover,
+  .uif-modal-back:focus-visible {
+    color: var(--accent, #ff5e1a);
+    border-color: var(--accent, #ff5e1a);
+  }
 
   .uif-modal-header {
     border-bottom: 1px solid var(--line, rgba(255, 94, 26, 0.22));
