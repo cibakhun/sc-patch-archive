@@ -7,10 +7,14 @@ import DB from '../../assets/crafting-db.json';
 import { ICON_BLUEPRINT, ICON_DISMANTLE } from '../lib/icons';
 import { blueprints, blueprintPath } from '../lib/crafting';
 import { mineralByMaterial, miningPath } from '../lib/miningLinks';
-import { href } from '../i18n/ui';
+import { href, useTranslations } from '../i18n/ui';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
+
+// Nur das aria-Praefix des Zurueck-Pfeils am Modal ("Zurueck zu"/"Back to").
+// Den Namen der Herkunft haengt assets/back-link.js zur Laufzeit an.
+const tBack = useTranslations(lang);
 
 // -- i18n (App-spezifische Chrome-Strings) --
 const S = {
@@ -416,7 +420,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
     <div class="cdb-modal__box" role="dialog" aria-modal="true">
       {/* Siehe MiningApp: Zurueck-Pfeil nur bei nachgewiesener Herkunft von
           aussen (Deep-Link ?bp= / ?res=), sonst waere er ein zweites X. */}
-      <button class="cdb-modal__back" data-modal-back hidden>
+      <button class="cdb-modal__back" data-modal-back data-back-aria={tBack("nav.back.aria")} hidden>
         <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <button class="cdb-modal__x" data-close aria-label={S.close}>✕</button>
@@ -601,12 +605,19 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .cdb-modal[hidden]{display:none}
   .cdb-modal__box{position:relative;max-width:640px;width:100%;background:var(--bg-2,var(--veil-2));border:1px solid var(--accent,#FF5E1A);border-radius:8px;padding:clamp(1.2rem,4vw,2rem)}
   .cdb-modal__x{position:absolute;top:.6rem;right:.6rem;background:var(--veil);border:1px solid var(--line,rgba(255,94,26,.3));color:var(--text,#eef1f5);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:1rem}
-  /* Rund = „woanders hin", eckiges X = „hier zu". Siehe MiningApp. */
-  .cdb-modal__back{position:absolute;top:.6rem;left:.6rem;display:inline-flex;align-items:center;justify-content:center;
-    background:var(--veil);border:1px solid var(--line,rgba(255,94,26,.3));color:var(--text,#eef1f5);
-    width:32px;height:32px;border-radius:50%;cursor:pointer;transition:color .15s,border-color .15s,background-color .15s}
+  /* Rund und im Akzent = „woanders hin", eckiges farbloses X = „hier zu".
+     Steht NEBEN der Karte. Siehe MiningApp fuer die Begruendung. */
+  .cdb-modal__back{position:absolute;top:0;left:-3.5rem;display:inline-flex;align-items:center;justify-content:center;
+    background:color-mix(in srgb,var(--accent,#FF5E1A) 14%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent,#FF5E1A) 55%,transparent);
+    color:var(--accent,#FF5E1A);
+    width:40px;height:40px;border-radius:50%;cursor:pointer;transition:color .15s,border-color .15s,background-color .15s}
   .cdb-modal__back[hidden]{display:none}
-  .cdb-modal__back:hover,.cdb-modal__back:focus-visible{color:var(--accent,#FF5E1A);border-color:var(--accent,#FF5E1A)}
+  .cdb-modal__back:hover,.cdb-modal__back:focus-visible{
+    background:color-mix(in srgb,var(--accent,#FF5E1A) 28%,transparent);border-color:var(--accent,#FF5E1A)}
+  @media (max-width:860px){
+    .cdb-modal__back{top:.6rem;left:.6rem;width:32px;height:32px}
+  }
   .cbm__cat{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.62rem;color:var(--accent,#FF5E1A)}
   .cbm__name{font-family:var(--font-display,inherit);font-weight:800;font-size:clamp(1.3rem,4vw,1.8rem);color:var(--text);margin:.2rem 0 .6rem;line-height:1.1}
   .cbm__meta{display:flex;flex-wrap:wrap;gap:.7rem 1.2rem;align-items:center;font-size:.86rem;color:var(--muted,#9ba2ae);margin-bottom:.4rem}
