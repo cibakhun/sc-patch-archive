@@ -29,6 +29,7 @@
 //   3. Die Beitragsliste mit zwölf Namen entfällt — dieselbe fehlende Quelle.
 // Hausregel "Never fabricate data", verankert in tests/e2e/db.test.js.
 import { href } from '../i18n/ui';
+import { SUPABASE } from '../consts';
 
 interface Props {
   lang: 'de' | 'en';
@@ -44,7 +45,14 @@ const PAYPAL = 'https://paypal.me/mkrisz22';
 
 const STEPS = [3, 5, 10, 25];
 const PRESELECT = 5;
+/**
+ * Zielbetrag NUR fuer den Fliesstext („kostet rund 120 €"). Der Wert, den die
+ * Anzeige benutzt, kommt aus der Datenbank (Tabelle support_progress) — sonst
+ * muesste man ihn an zwei Stellen aendern und eine davon wuerde vergessen.
+ */
 const GOAL = 120;
+/** Schluessel der Zeile in support_progress. Ein Ziel = eine Zeile. */
+const PROGRESS_SLUG = 'netzteil';
 /** Grenzen der freien Eingabe. Greift, BEVOR eine URL entsteht. */
 const MIN = 1;
 const MAX = 500;
@@ -75,10 +83,17 @@ const T = {
         'Netzteil ersetzen. Ein passendes Modell mit ausreichend Reserve kostet <b>rund 120 €</b>. Reparieren lohnt bei dem Bauteil nicht — die Kondensatoren sind vergossen.',
         ''],
     ] as [string, string, string, string][],
-    gaugeHead: 'Kostenrahmen',
-    gaugeCapPre: 'Dein Beitrag:',
-    gaugeCapPost: `von ${GOAL} €.`,
-    gaugeHonest: 'Wie viel bereits zusammengekommen ist, kann diese Seite nicht anzeigen — ein PayPal-Link meldet nichts zurück. Lieber keine Zahl als eine erfundene.',
+    gaugeHead: 'Stand',
+    gaugeOf: 'von',
+    gaugeAsOf: 'Stand:',
+    gaugeHonest: 'Von Hand gepflegt: ein PayPal-Link meldet nichts zurück, die Zahl wird also eingetragen, nicht gemessen. Das Datum daneben sagt dir, wie frisch sie ist.',
+    adminLbl: 'Neuer Stand eintragen',
+    adminSave: 'Speichern',
+    adminHint: 'Nur für dich sichtbar. Der Zeitstempel wird vom Server gesetzt, nicht vom Browser.',
+    adminOk: 'Gespeichert.',
+    adminErrRange: 'Bitte einen Betrag zwischen 0 € und dem Ziel eingeben.',
+    adminErrAuth: 'Nicht gespeichert — bist du noch angemeldet?',
+    adminErrNet: 'Nicht gespeichert — Netzwerkfehler.',
     amountLbl: 'Betrag',
     amountFree: 'Anderer',
     cta: 'Mit %s € unterstützen',
@@ -118,10 +133,17 @@ const T = {
         'Replace the power supply. A suitable model with enough headroom costs <b>around €120</b>. Repair is not worth it on this part — the capacitors are potted.',
         ''],
     ] as [string, string, string, string][],
-    gaugeHead: 'Budget',
-    gaugeCapPre: 'Your contribution:',
-    gaugeCapPost: `of €${GOAL}.`,
-    gaugeHonest: 'How much has come in already is something this page cannot show — a PayPal link reports nothing back. Better no figure than an invented one.',
+    gaugeHead: 'Raised',
+    gaugeOf: 'of',
+    gaugeAsOf: 'As of:',
+    gaugeHonest: 'Maintained by hand: a PayPal link reports nothing back, so this figure is entered, not measured. The date next to it tells you how fresh it is.',
+    adminLbl: 'Enter new total',
+    adminSave: 'Save',
+    adminHint: 'Only visible to you. The timestamp is set by the server, not the browser.',
+    adminOk: 'Saved.',
+    adminErrRange: 'Please enter an amount between €0 and the goal.',
+    adminErrAuth: 'Not saved — are you still signed in?',
+    adminErrNet: 'Not saved — network error.',
     amountLbl: 'Amount',
     amountFree: 'Other',
     cta: 'Support with €%s',
@@ -245,6 +267,25 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 .sup__gcap{font-size:.8rem;color:var(--muted);margin:10px 0 0;line-height:1.55}
 .sup__gcap b{color:var(--text);font-weight:600}
 .sup__ghonest{font-size:.78rem;color:var(--muted);margin:6px 0 0;line-height:1.55;opacity:.85}
+
+/* Admin-Feld: nur sichtbar, wenn <html> die is-admin-Klasse traegt. Das ist
+   eine ANZEIGE-Sperre. Die echte Sperre ist die RLS-Regel auf der Tabelle —
+   wer das Feld per Konsole einblendet, bekommt vom Server ein Nein. */
+.sup__admin{margin:16px 0 0;padding:14px 16px;border:1px dashed var(--line);background:var(--surface-2)}
+.sup__admin[hidden]{display:none}
+.sup__adminlbl{display:block;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.sup__adminrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sup__adminrow input{width:7rem;min-height:44px;padding:.5rem .7rem;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:1rem;color:var(--text);background:var(--bg-2);border:1px solid var(--line-soft);font-variant-numeric:tabular-nums}
+.sup__adminrow input:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;border-color:var(--accent)}
+.sup__adminrow .cur{font-family:var(--font-ui,sans-serif);font-weight:700;color:var(--muted)}
+.sup__adminrow button{min-height:44px;padding:.5rem 1.1rem;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);background:var(--accent);border:1px solid var(--accent);cursor:pointer;transition:filter .15s}
+.sup__adminrow button:hover{filter:brightness(1.08)}
+.sup__adminrow button:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px}
+.sup__adminrow button[disabled]{opacity:.5;cursor:default}
+.sup__adminmsg{margin:10px 0 0;font-size:.84rem;line-height:1.5;color:var(--accent)}
+.sup__adminmsg[hidden]{display:none}
+.sup__adminmsg.is-bad{color:var(--accent-2)}
+.sup__adminhint{margin:8px 0 0;font-size:.74rem;color:var(--muted);line-height:1.5;opacity:.8}
 
 /* --- Waehler -------------------------------------------------------------- */
 .sup__card{border:1px solid var(--line);background:linear-gradient(180deg,var(--surface),var(--bg-2));padding:24px;margin-top:8px;display:grid;gap:16px;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px))}
@@ -436,20 +477,38 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 
         {/* Kostenrahmen. Zeigt den GEWAEHLTEN Betrag, NICHT einen Ist-Stand —
             den gibt es nicht, siehe Kopfkommentar. */}
-        <div class="sup__gauge">
+        {/* Stand der Sammlung. Startet VERBORGEN und wird erst sichtbar, wenn
+            der Wert aus der Datenbank da ist. Faellt der Abruf aus, bleibt der
+            Abschnitt weg — lieber kein Balken als ein leerer, der einen Stand
+            von null behauptet (Hausregel „Never fabricate data"). */}
+        <div class="sup__gauge" id="supGauge" hidden>
           <div class="sup__ghead">
             <span class="cap" set:text={T.gaugeHead}></span>
-            <span class="sup__gread num" id="supRead">{String(PRESELECT).padStart(3, '0')} / {GOAL} EUR</span>
+            <span class="sup__gread num" id="supRead">— / — EUR</span>
           </div>
           <div class="sup__gtrack">
-            <div class="sup__gfill" id="supFill" style={`width:${(PRESELECT / GOAL) * 100}%`}></div>
+            <div class="sup__gfill" id="supFill" style="width:0%"></div>
             <div class="sup__gticks" aria-hidden="true"></div>
           </div>
-          <div class="sup__gscale" aria-hidden="true">
-            <span>0</span><span>30</span><span>60</span><span>90</span><span>{GOAL}</span>
-          </div>
-          <p class="sup__gcap"><b><span id="supCapAmt">{PRESELECT} €</span></b> <span set:text={T.gaugeCapPost}></span></p>
+          <div class="sup__gscale" id="supScale" aria-hidden="true"></div>
+          <p class="sup__gcap" id="supCap"></p>
           <p class="sup__ghonest" set:text={T.gaugeHonest}></p>
+
+          {/* Nur fuer Admins. Das Gatter ist die is-admin-Klasse auf <html>,
+              die Layout.astro aus dem Rollen-Cache setzt — dasselbe und
+              EINZIGE Admin-Gatter der Seite. Es ist nur eine Anzeige-Sperre;
+              die echte Sperre ist die RLS-Regel auf der Tabelle, die
+              Schreibzugriff auf Admins begrenzt. */}
+          <div class="sup__admin" id="supAdmin" hidden>
+            <label class="sup__adminlbl" for="supNew" set:text={T.adminLbl}></label>
+            <div class="sup__adminrow">
+              <input id="supNew" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00" />
+              <span class="cur">€</span>
+              <button type="button" id="supSave" set:text={T.adminSave}></button>
+            </div>
+            <p class="sup__adminmsg" id="supMsg" role="status" hidden></p>
+            <p class="sup__adminhint" set:text={T.adminHint}></p>
+          </div>
         </div>
 
         <div class="sup__card">
@@ -510,22 +569,16 @@ var base=s.getAttribute('data-sup-base'),min=+s.getAttribute('data-sup-min'),
     pre=s.getAttribute('data-sup-pre'),tpl=s.getAttribute('data-sup-tpl');
 var cta=document.getElementById('supCta'),txt=document.getElementById('supCtaTxt'),
     free=document.getElementById('supFree'),err=document.getElementById('supErr'),
-    read=document.getElementById('supRead'),fill=document.getElementById('supFill'),
-    capAmt=document.getElementById('supCapAmt'),
     radios=document.querySelectorAll('input[name="sup-amount"]');
 if(!cta||!txt||!free||!err)return;
 /* Auf ganze Cent runden und schlicht ausgeben: PayPal.me nimmt 1, 5 oder 12.5 —
    aber kein Komma und keine Exponentialschreibweise. */
 function fmt(n){return (Math.round(n*100)/100).toString()}
-function pad(n){var i=Math.floor(n);return (i<10?'00':i<100?'0':'')+fmt(n)}
 function apply(n,bad){
   if(bad){err.hidden=false;cta.setAttribute('aria-disabled','true');return}
   err.hidden=true;cta.removeAttribute('aria-disabled');
   cta.href=base+'/'+fmt(n)+'EUR';
   txt.textContent=tpl.replace('%s',fmt(n));
-  if(read)read.textContent=pad(n)+' / '+goal+' EUR';
-  if(fill)fill.style.width=Math.min(100,(n/goal)*100)+'%';
-  if(capAmt)capAmt.textContent=fmt(n)+' \\u20ac';
 }
 for(var i=0;i<radios.length;i++){
   radios[i].addEventListener('change',function(e){free.value='';apply(+e.target.value,false)});
@@ -547,4 +600,114 @@ free.addEventListener('input',function(){
   for(var j=0;j<radios.length;j++)radios[j].checked=false;
   apply(n,false);
 });})()`}
+/>
+
+{/* Stand der Sammlung: lesen (jeder) und setzen (nur Admins).
+    Bewusst OHNE supabase-js — die Bibliothek wiegt ~37 KB und wird nur auf den
+    /account/-Seiten gebundelt. Gelesen wird mit dem oeffentlichen Schluessel
+    per einfachem fetch, geschrieben ueber window.VBAccount aus
+    assets/account-lite.js, das SiteNav ohnehin auf jeder Seite laedt (dort
+    liegen Session-Refresh und Sperre bereits — zwei Wahrheiten waeren ein Bug).
+    Die is-admin-Klasse blendet das Feld nur EIN; verhindern tut den Schreib-
+    zugriff die RLS-Regel auf der Tabelle. */}
+<script
+  is:inline
+  data-sp-url={SUPABASE.url}
+  data-sp-key={SUPABASE.publishableKey}
+  data-sp-slug={PROGRESS_SLUG}
+  data-sp-loc={lang === 'de' ? 'de-DE' : 'en-GB'}
+  data-sp-of={T.gaugeOf}
+  data-sp-asof={T.gaugeAsOf}
+  data-sp-ok={T.adminOk}
+  data-sp-range={T.adminErrRange}
+  data-sp-auth={T.adminErrAuth}
+  data-sp-net={T.adminErrNet}
+  set:html={`(function(){
+var s=document.currentScript;
+var URL_=s.getAttribute('data-sp-url'),KEY=s.getAttribute('data-sp-key'),
+    SLUG=s.getAttribute('data-sp-slug'),LOC=s.getAttribute('data-sp-loc'),
+    OF=s.getAttribute('data-sp-of'),ASOF=s.getAttribute('data-sp-asof'),
+    M_OK=s.getAttribute('data-sp-ok'),M_RANGE=s.getAttribute('data-sp-range'),
+    M_AUTH=s.getAttribute('data-sp-auth'),M_NET=s.getAttribute('data-sp-net');
+var box=document.getElementById('supGauge'),read=document.getElementById('supRead'),
+    fill=document.getElementById('supFill'),scale=document.getElementById('supScale'),
+    cap=document.getElementById('supCap'),admin=document.getElementById('supAdmin'),
+    inp=document.getElementById('supNew'),btn=document.getElementById('supSave'),
+    msg=document.getElementById('supMsg');
+if(!box||!read||!fill)return;
+var REST=URL_+'/rest/v1/support_progress?slug=eq.'+encodeURIComponent(SLUG);
+var goalC=0;
+
+function eur(c){return (c/100).toLocaleString(LOC,{minimumFractionDigits:(c%100?2:0),maximumFractionDigits:2})+' \\u20ac'}
+function say(text,bad){if(!msg)return;msg.textContent=text;msg.hidden=false;
+  if(bad)msg.classList.add('is-bad');else msg.classList.remove('is-bad')}
+
+function paint(row){
+  goalC=row.goal_cents;
+  var r=row.raised_cents,pct=Math.max(0,Math.min(100,(r/row.goal_cents)*100));
+  read.textContent=eur(r)+' / '+eur(row.goal_cents);
+  fill.style.width=pct+'%';
+  /* Teilung in Vierteln, aus dem Ziel abgeleitet statt fest verdrahtet —
+     aendert sich das Ziel, stimmt die Beschriftung weiter. */
+  if(scale){scale.innerHTML='';
+    for(var i=0;i<=4;i++){var sp=document.createElement('span');
+      sp.textContent=Math.round(row.goal_cents/100*i/4);scale.appendChild(sp)}}
+  if(cap){var d=new Date(row.updated_at);
+    cap.innerHTML='';
+    var b=document.createElement('b');b.textContent=eur(r);
+    cap.appendChild(b);
+    cap.appendChild(document.createTextNode(' '+OF+' '+eur(row.goal_cents)+
+      ' \\u00b7 '+ASOF+' '+d.toLocaleDateString(LOC,{year:'numeric',month:'long',day:'numeric'})));}
+  box.hidden=false;
+  if(inp)inp.value=(r/100).toFixed(2).replace('.',',');
+}
+
+/* Lesen: oeffentlich, ohne Session. Schlaegt es fehl, bleibt der Abschnitt
+   verborgen — kein leerer Balken, der einen Stand von null behauptet. */
+fetch(REST+'&select=goal_cents,raised_cents,updated_at&limit=1',
+  {headers:{apikey:KEY,Authorization:'Bearer '+KEY}})
+  .then(function(r){return r.ok?r.json():null})
+  .then(function(rows){if(rows&&rows[0])paint(rows[0])})
+  .catch(function(){/* verborgen lassen */});
+
+/* Admin-Feld einblenden, sobald die Rolle feststeht. account-lite setzt die
+   Klasse ggf. erst nach dem Laden der echten Rolle, deshalb zusaetzlich am
+   Ereignis haengen statt nur einmal zu pruefen. */
+function maybeShowAdmin(){
+  if(admin&&document.documentElement.classList.contains('is-admin'))admin.hidden=false;
+}
+maybeShowAdmin();
+addEventListener('vb-account-ready',maybeShowAdmin);
+setTimeout(maybeShowAdmin,1500);
+
+if(btn&&inp){btn.addEventListener('click',function(){
+  var raw=inp.value.trim().replace(/\\s|\\u20ac/g,'').replace(',','.');
+  var v=parseFloat(raw);
+  if(!isFinite(v)||v<0||(goalC&&v*100>goalC*100)){say(M_RANGE,true);return}
+  var cents=Math.round(v*100);
+  if(!window.VBAccount){say(M_AUTH,true);return}
+  btn.disabled=true;
+  window.VBAccount.session().then(function(sess){
+    if(!sess){say(M_AUTH,true);btn.disabled=false;return}
+    return window.VBAccount.rest(sess,'PATCH',
+      'support_progress?slug=eq.'+encodeURIComponent(SLUG),
+      {raised_cents:cents},'return=representation')
+      .then(function(r){
+        btn.disabled=false;
+        if(!r.ok){say(r.status===401||r.status===403?M_AUTH:M_NET,true);return}
+        return r.json().then(function(rows){
+          /* NICHT auf r.ok vertrauen: filtert die Zugriffsregel den Schreib-
+             versuch auf null Zeilen, antwortet PostgREST mit 200 und einer
+             LEEREN Liste — der Aufruf ist formal gelungen, gespeichert wurde
+             nichts. Gemessen: ein anonymer PATCH auf diese Tabelle liefert
+             genau das. Ohne diese Pruefung meldete die Seite „Gespeichert.",
+             waehrend der Wert unveraendert blieb. */
+          if(!rows||!rows[0]){say(M_AUTH,true);return}
+          paint(rows[0]);
+          say(M_OK,false);
+        });
+      });
+  }).catch(function(){btn.disabled=false;say(M_NET,true)});
+});}
+})()`}
 />
