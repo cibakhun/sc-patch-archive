@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1.1
 current_phase_name: Ambiente-Effekte stilllegen
 status: in_progress
-stopped_at: Phase 5 Plan 2 ausgefuehrt (05-02-PLAN.md) -- 18 Rollenfamilien, Signatur- und Merkmalsachsen, Prowler Utility auffindbar
-last_updated: "2026-08-02T11:45:25.850Z"
+stopped_at: Phase 5 Plan 3 ausgefuehrt (05-03-PLAN.md) -- Schnellzugriffe + doppelten Rollenfilter bereinigt, Phase 5 abgeschlossen
+last_updated: "2026-08-02T14:47:16.911Z"
 last_activity: 2026-08-02
 last_activity_desc: "Quick-Task 260802-5qd: Zurück folgt der Herkunft"
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -33,7 +33,7 @@ Status: Phase 1.1 geplant (3 Pläne, 3 Wellen, Plan-Prüfer bestanden) — berei
 Branch: claude/site-feedback-effects-docs-3f4edf
 Last activity: 2026-08-02 — Quick-Task 260802-5qd: Zurück folgt der Herkunft
 
-Progress: [████░░░░░░] 40%
+Progress: [██████░░░░] 63%
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [████░░░░░░] 40%
 | Phase 01.1 P02 | ~2h | 3 tasks | 39 files |
 | Phase 05 P01 | 45min | 2 tasks | 8 files |
 | Phase 05 P02 | 55min | 2 tasks | 5 files |
+| Phase 5 P03 | ~2h55min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 5]: 05-01: npm run theme lief repo-weit und veraenderte 84 unbeteiligte Dateien (Alt-Drift) -- alle zurueckgesetzt, nur die 4 fuer diesen Plan vorgesehenen Dateien blieben veraendert
 - [Phase ?]: [Phase 5]: 05-02: 18 Rollenfamilien (CAREER_LEGACY/ROLE_COMPOUND/ROLE_FAMILY) + Signatur (sig, 16 Schiffe) + Merkmalsleiste (feat: cargo 102, ground 37) aus dem DataCore; Bewaffnet (dogfightEnabled 220/223) bewusst nicht als Merkmal erzeugt (D-09)
 - [Phase ?]: [Phase 5]: 05-02: npm run theme beruehrte erneut dieselben 84 unbeteiligten Dateien aus Plan 01 (Alt-Drift) -- zurueckgesetzt, nur die 5 Plan-Dateien blieben veraendert
+- [Phase ?]: [Phase 5]: 05-03: 7 Schnellzugriff-Chips (sdb__quick/sdb__qchip) setzen Rollenfamilie+Signatur in einem Klick (D-10, ROLE-06); sf-type (Wiki-Grobfilter) abgeloest
+- [Phase ?]: [Phase 5]: 05-03: Sichtpruefung fand doppelten Rollenfilter (sf-role neben sf-rolefam) -- sf-role entfernt, sf-rolefam ist jetzt DER Rollenfilter (D-05); Konsole 9 statt 10 Bedienelemente
 
 ### Pending Todos
 
@@ -119,6 +122,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-02T11:45:25.833Z
-Stopped at: Phase 5 Plan 2 ausgefuehrt (05-02-PLAN.md) -- 18 Rollenfamilien, Signatur- und Merkmalsachsen, Prowler Utility auffindbar
-Resume file: .planning/phases/05-schiffe-rollen-und-merkmalsfilter/05-03-PLAN.md
+Last session: 2026-08-02T14:47:16.182Z
+Stopped at: Phase 5 Plan 3 ausgefuehrt (05-03-PLAN.md) -- Schnellzugriffe + doppelten Rollenfilter bereinigt, Phase 5 abgeschlossen
+Resume file: None
