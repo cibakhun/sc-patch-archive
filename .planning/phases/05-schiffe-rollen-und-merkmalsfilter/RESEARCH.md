@@ -98,7 +98,17 @@ Zahlen-Array (Multiplikatoren, `< 1` = abgesenkt). Fehlt die Komponente, gilt
 Normalwert. Zusätzlich liegt eine manuelle Radarquerschnittsfläche
 (`crossSectionParams.crossSection` als x/y/z) vor.
 
-**22 Schiffe mit abgesenkter Signatur** (IR/EM/Querschnitt):
+> **Korrektur 02.08.2026 (beim Planen gegengemessen).** Die Zahl 22 zählt über **alle 360
+> DataCore-Records**. Unser Katalog führt davon nur **16** — sechs sind Varianten, die wir
+> nicht listen (Eclipse BIS2950, Sabre Firebird Collector, Sabre Peregrine Collector,
+> Nox Collector Mod, Dragonfly Pink, Prowler Utility Collector). **Maßgeblich für die Seite
+> sind 16**, davon 11 mit min(IR, EM) unter 0,80. Die Tabelle unten bleibt als
+> DataCore-Sicht stehen; die Klammerzahlen nennen den Katalogstand.
+>
+> Ebenfalls beim Planen gefunden: der deutsche Lokalisierungspfad lautet exakt
+> `Data/Localization/german_(germany)/global.ini` — nicht `.../german/...`.
+
+**22 Schiffe mit abgesenkter Signatur im DataCore, davon 16 im Katalog** (IR/EM/Querschnitt):
 
 | Schiff | Signatur | Rolle laut CIG |
 |---|---|---|

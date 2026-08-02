@@ -68,7 +68,10 @@ funktion, Konto-/Favoritenbindung.
 
 - **D-07:** Achse 3 **Signatur** als eigener Filter. Quelle:
   `SSCSignatureSystemParams.radarProperties.baseSignatureParams.signatures` — reine
-  CIG-Zahlen, 22 Schiffe unter 1,00. Beschriftet mit CIG-eigenen HUD-Begriffen
+  CIG-Zahlen, **16 Katalogschiffe** unter 1,00, davon 11 unter 0,80. (Die in RESEARCH.md
+  zuerst genannten 22 zählten über alle 360 DataCore-Records; sechs davon sind Varianten,
+  die unser Katalog nicht führt — beim Planen gegengemessen und dort korrigiert.)
+  Beschriftet mit CIG-eigenen HUD-Begriffen
   (`hud_scanning_info_ir_signature` → „IR-Signatur" / „IR Signature", ebenso EM und
   RQ/CS). Der Wert steht auf der Karte, damit der Nutzer selbst urteilt.
   **Begründung für die Aufnahme:** nur so ist der Prowler Utility auffindbar — CIG nennt ihn
@@ -80,10 +83,14 @@ funktion, Konto-/Favoritenbindung.
   die CIG-Rolle (Tarnjäger 6, Tarnbomber 1). Der Signaturfilter heißt nach dem, was gemessen ist.
 
 - **D-09:** Kleine Merkmalsleiste zusätzlich, aus vorhandenen CIG-Feldern:
-  **Bewaffnet** (`dogfightEnabled`), **Frachtraum** (`cargoSCU > 0`), **Bodenfahrzeug**
-  (`isGravlevVehicle` / `movementClass`). Vom Nutzer ausdrücklich gewünscht. Caveat für die
-  Planung: überschneidet sich teils mit der Rolle — wenn ein Merkmal in der Praxis nichts
-  aussiebt, was die Rolle nicht schon aussiebt, gehört es raus statt hinein.
+  ~~**Bewaffnet** (`dogfightEnabled`)~~, **Frachtraum** (`cargoSCU > 0`, 102 Schiffe),
+  **Bodenfahrzeug** (`isGravlevVehicle` / `movementClass`, 37 Schiffe). Vom Nutzer
+  ausdrücklich gewünscht. Caveat war: überschneidet sich teils mit der Rolle — wenn ein
+  Merkmal nichts aussiebt, was die Rolle nicht schon aussiebt, gehört es raus.
+  **Angewandt beim Planen:** „Bewaffnet" ist genau dieser Fall und fällt raus —
+  `dogfightEnabled` ist bei **220 von 223** Schiffen gesetzt und steht bei der
+  F8 Lightning obendrein fälschlich auf `false`. Frachtraum und Bodenfahrzeug bleiben,
+  beide messbar quer zur Rolle.
 
 ### Bedienung
 
