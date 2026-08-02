@@ -265,8 +265,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
   }
   .fm-badge--accent {
     background: var(--accent);
-    border-color: var(--accent);
-    color: var(--ink, #05070d);
+    border-color: var(--accent);color:var(--ink, var(--ink));
   }
 
   .fm-sec-head {
@@ -397,6 +396,10 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     .fm-pilot-card { align-items: flex-start; }
     .fm-user-status { max-width: 18ch; }
   }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .fm-nohandle{color:#705301}
+:root[data-theme="light"] .fm-verified{color:#046a34}
+:root[data-theme="light"] .fm-btn--danger:hover{border-color:#c84247;color:#a70323}
 </style>
 
 <script>

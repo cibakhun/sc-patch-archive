@@ -2,18 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1.1
-current_phase_name: Ambiente-Effekte stilllegen
+current_phase: 5
+current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: Completed 01.1-02-PLAN.md
-last_updated: "2026-07-29T03:46:15.151Z"
+stopped_at: staging zusammengefuehrt — Unterstuetzen-Seite existiert bereits, Umbau auf "Instandsetzung" laeuft
+last_updated: "2026-08-02T11:00:10.543Z"
 last_activity: 2026-08-02
-last_activity_desc: "Quick-Task 260802-7eb: UEX-Durchschnittspreis-Spalte fuer Items (DE+EN)"
+last_activity_desc: Phase 5 als Umbau der bestehenden Support-Seite neu ausgerichtet
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 0
-  total_plans: 5
+  total_plans: 8
   completed_plans: 2
+parked_phase: 1.1
+parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
 
 # Project State
@@ -23,17 +25,40 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 1.1 — Ambiente-Effekte stilllegen
+**Current focus:** Phase 5 — Spenden-Unterstützung
 
 ## Current Position
 
-Phase: 1.1 of 6 (Ambiente-Effekte stilllegen)
-Plan: 2 of 3 in Phase 1.1
-Status: Phase 1.1 geplant (3 Pläne, 3 Wellen, Plan-Prüfer bestanden) — bereit zur Ausführung; Phase 1.2 noch ungeplant
-Branch: claude/site-feedback-effects-docs-3f4edf
-Last activity: 2026-08-02 - Completed quick task 260802-7f5: Item-Finder als Werkzeug (Suche und Filter ohne Scrollen, DE+EN)
+Phase: 5 of 7 (Spenden-Unterstützung)
+Plan: 3 Pläne geschnitten, noch keiner ausgeführt
+Status: **Neu ausgerichtet am 02.08.2026.** Der Abgleich mit `origin/staging` hat
+gezeigt, dass `/support.html` bereits existiert und live ist (Commit `517a9a7`,
+`src/components/SupportBody.astro` als EIN Körper für DE+EN, Empfänger
+`paypal.me/mkrisz22`, Fuß und Menü verdrahtet). Dieser Worktree war von `a23a22a`
+abgezweigt und blind dafür. Phase 5 ist deshalb kein Neubau mehr, sondern der
+**Umbau der bestehenden Seite** auf die Gestaltungsrichtung „Instandsetzung".
+Branch: claude/donation-button-feature-98ba38 (Worktree)
+Last activity: 2026-08-02 — staging zusammengeführt, Phase 5 auf Umbau umgestellt
 
-Progress: [████░░░░░░] 40%
+**Was der bestehenden Seite fehlt** (gemessen, nicht vermutet):
+- Datenschutzerklärung nennt PayPal in KEINER der beiden Sprachfassungen (0 Treffer)
+  — der einzige Punkt mit rechtlicher Relevanz
+- Keine eigene Optik (Standard-Palette `--accent:#2dd4ff`), keine Betragswahl, kein Ko-fi
+- Als Grund steht die generische Serverkosten-Begründung statt des defekten Netzteils
+
+**Was bleibt und übernommen wird:** die Abschnitte „Was genauso hilft" und
+„Kein Kleingedrucktes" — inhaltlich stark, sie bekommen nur die neue Form.
+
+**Achtung Mehrfachsitzung:** Der Betreiber arbeitet parallel in einer zweiten
+Sitzung an Phase 5. `SupportBody.astro` darf nicht gleichzeitig aus zwei Sitzungen
+geändert werden.
+
+**Geparkt:** Phase 1.1 „Ambiente-Effekte stilllegen" steht bei Plan 2 von 3
+(Plan-Prüfer bestanden, ausführbereit) auf Branch
+`claude/site-feedback-effects-docs-3f4edf`. Sie ist NICHT abgebrochen und wird
+nach Phase 5 fortgesetzt; Phase 5 fasst keine der dort geänderten Dateien an.
+
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -103,6 +128,7 @@ None yet.
 
 - Phase 01.1 inserted after Phase 1: Ambiente-Effekte stilllegen — Mauszeiger-Schein raus, Partikel opt-in (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 - Phase 01.2 inserted after Phase 1: Werkzeuge erklaeren — Zweck- und Bedienungshilfe je Werkzeug (Besucher-Rueckmeldung 29.07.2026) (URGENT)
+- Phase 5 added (31.07.2026): Spenden-Unterstuetzung — Stripe Checkout + Ko-fi, eigene Seite, Ziel und Unterstuetzer-Wand (DON-01…DON-14). ERWEITERT den Meilenstein bewusst ueber die Oberflaeche hinaus (DB-Tabelle, zwei Edge Functions, Zahlungsverkehr); die „Out of Scope"-Zeilen zu serverseitiger Logik und Konto-Funktionen sind fuer diese Phase aufgehoben. Anlass: defektes Netzteil im Entwicklungsrechner, zufaellige Neustarts. Haengt an keiner Vorgaengerphase — Phase 1.1 bleibt geplant liegen und wird NICHT abgebrochen.
 
 ## Deferred Items
 
@@ -114,6 +140,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-29T03:46:15.132Z
-Stopped at: Completed 01.1-02-PLAN.md
-Resume file: None
+Last session: 2026-08-02T11:00:10.528Z
+Stopped at: Phase 5 auf PayPal neu geplant — 3 Plaene, ausfuehrbereit
+Resume file: .planning/phases/05-spenden-unterst-tzung/05-01-PLAN.md

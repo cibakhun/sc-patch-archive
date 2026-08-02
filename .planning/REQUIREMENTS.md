@@ -85,6 +85,66 @@
 - [ ] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
 - [ ] **DOC-07**: Abgedeckt sind Item Finder, Crafting, Mining, Schiffe, Missionen, Refinery, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
 
+### Spenden-Unterstützung
+
+> Anlass: Der Entwicklungsrechner startet wegen eines defekten Netzteils zufällig
+> neu — Entwickeln wird dadurch mühsam (Nutzerentscheidung 31.07.2026). Das ist
+> das erklärte Spendenziel; es wird so benannt und nicht als abstrakte
+> „Serverkosten" verkleidet. Diese Sektion hebt für Phase 5 die „Out of Scope"-
+> Zeilen zu serverseitiger Logik und Konto-Funktionen ausdrücklich auf: ohne
+> Edge Function gibt es keinen sicheren Zahlungsweg.
+>
+> **UMGESTELLT 02.08.2026 — Stripe ist raus, PayPal ist der Weg.** Der Betreiber
+> kann Stripes Identitätsprüfung nicht erbringen (Ausweis nicht verfügbar), und
+> ohne sie zahlt Stripe kein Geld aus. Gewählt: **PayPal als einfacher Link**
+> (kein Server, keine Datenbank, keine Edge Function), **Ko-fi** bleibt zweiter
+> Weg.
+>
+> Das ist eine echte Verkleinerung: ein PayPal-Link hat keinen Webhook und damit
+> keine Datenquelle. Fortschrittsbalken, Unterstützer-Wand, Moderation,
+> Profil-Abzeichen und monatliche Unterstützung entfallen ersatzlos. Die
+> gestrichenen Anforderungen sind unten als solche gekennzeichnet statt gelöscht
+> — sie sind die Vorlage für eine spätere Phase mit PayPal-Geschäftskonto.
+
+**Unterstützen (PayPal-Link)**
+
+- [ ] **DON-01**: Ein Besucher wählt einen Betrag (Vorschläge 3/5/10/25 €, 5 € vorgewählt, plus freie Eingabe) und landet mit genau diesem Betrag bei PayPal — PayPal.me nimmt ihn im Pfad entgegen, die Auswahl steuert also wirklich etwas
+- [ ] **DON-02**: Unterstützen funktioniert ohne Konto und ohne Anmeldung
+- [ ] **DON-03**: Ko-fi ist als zweiter, nachgeordneter Weg verlinkt — und ausgeblendet, solange kein Ko-fi-Name hinterlegt ist
+- [ ] **DON-31**: Der Empfänger steht als GENAU EINE Konstante in `src/consts.ts`. Solange dort der Platzhalter steht, läuft die Seite sichtbar im Demo-Modus (Muster `FEEDBACK_DEMO`) und kein Knopf zeigt ins Leere
+
+**Wahrhaftigkeit**
+
+- [ ] **DON-09**: Ohne hinterlegten Empfänger steht das Feature sichtbar im Demo-Modus, behauptet keine Zahlen und bricht nicht
+- [ ] **DON-27**: **Kein Fortschrittsbalken.** Ein PayPal-Link liefert keine Zahlungsdaten; eine handgepflegte Zahl könnte veralten und würde genau die Glaubwürdigkeit beschädigen, die diese Seite trägt. Das Ziel steht stattdessen im Fließtext
+- [ ] **DON-28**: **Keine Unterstützer-Wand.** Gleiche Begründung — keine Datenquelle, keine erfundene Liste
+- [ ] **DON-26**: Keine erfundenen Kennzahlen zu Ausfallhäufigkeit oder Zeitraum. Die Kopie bleibt qualitativ. Die einzigen Zahlen auf der Seite sind die Betragsstufen und der Zielbetrag im Text
+
+**Darstellung**
+
+- [ ] **DON-10**: Eine eigene Unterstützen-Seite in DE und EN erklärt in der Gestaltungsrichtung „Instandsetzung", wofür das Geld ist — Kern der Aussage ist der Arbeitsverlust durch die unangekündigten Abstürze, nicht der Sachschaden
+- [ ] **DON-11**: Ein Unterstützen-Zugang ist site-weit erreichbar (Fuß und Menü) plus als Streifen am Ende der Werkzeugseiten, ohne die Kopfleiste anzufassen
+- [ ] **DON-29**: Nur einmalige Unterstützung. Der Umschalter einmalig/monatlich entfällt ersatzlos, statt eine Möglichkeit vorzutäuschen, die PayPal.me nicht hat
+
+**Pflichten des Bestands**
+
+- [ ] **DON-13**: `npm run audit:csp` bleibt grün. Beim Weiterleitungs-Link zu PayPal ist wie bei Stripe **kein** neuer CSP-Eintrag nötig — eine Navigation unterliegt der CSP nicht. Die Weiterleitung erfolgt als normaler `<a href>` bzw. `location.href`, **nie** als Formular-POST (der fiele unter `form-action` und würde still blockiert)
+- [ ] **DON-14**: Die Datenschutzerklärung nennt PayPal und Ko-fi als Empfänger mit Zweck; `npm run verify` und `npm run audit:site` bleiben grün, die Seitenpaare DE/EN bleiben deckungsgleich
+
+**Gestrichen mit der PayPal-Umstellung (02.08.2026) — Vorlage für eine spätere Phase**
+
+Diese Anforderungen setzten einen signaturgeprüften Webhook voraus. Ein PayPal-Link
+hat keinen. Sie werden NICHT gelöscht: sobald ein PayPal-Geschäftskonto mit
+Webhook existiert, sind sie die fertige Grundlage. `05-RESEARCH.md` § Datenschicht
+ist anbieterneutral und bleibt gültig.
+
+- ~~**DON-04**~~: Dankesseite nach der Zahlung — PayPal kehrt nicht kontrolliert zurück
+- ~~**DON-05**~~: Checkout-Sitzung serverseitig anlegen — es gibt keinen Server mehr
+- ~~**DON-06**~~: Betragsprüfung serverseitig — der Betrag steht im Link, PayPal zeigt ihn vor der Zahlung an
+- ~~**DON-07**~~: Zeilen entstehen nur im Webhook nach Signaturprüfung — keine Tabelle
+- ~~**DON-08**~~: Öffentliche View mit ausgewählten Spalten — keine Tabelle
+- ~~**DON-12**~~: Nennung nur nach Zustimmung, Anzeigename entschärft — keine Wand
+
 ## v2 Requirements
 
 ### Sprachparität
@@ -147,13 +207,35 @@
 | SYNC-01 | Phase 4 | Pending |
 | SYNC-02 | Phase 4 | Pending |
 | THEME-02 | Phase 4 | Pending |
+| DON-01 | Phase 5 | Pending |
+| DON-02 | Phase 5 | Pending |
+| DON-03 | Phase 5 | Pending |
+| DON-09 | Phase 5 | Pending |
+| DON-10 | Phase 5 | Pending |
+| DON-11 | Phase 5 | Pending |
+| DON-13 | Phase 5 | Pending |
+| DON-14 | Phase 5 | Pending |
+| DON-26 | Phase 5 | Pending |
+| DON-27 | Phase 5 | Pending |
+| DON-28 | Phase 5 | Pending |
+| DON-29 | Phase 5 | Pending |
+| DON-31 | Phase 5 | Pending |
+| DON-04 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-05 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-06 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-07 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-08 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-12 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
 
 **Coverage:**
 
-- v1 requirements: 21 total
-- Mapped to phases: 21
+- v1 requirements: 34 total (21 aus dem UI-Meilenstein + 13 aktive DON)
+- Mapped to phases: 34
 - Unmapped: 0 ✓
+- Gestrichen mit der PayPal-Umstellung: 6 (DON-04, -05, -06, -07, -08, -12) — nicht
+  gelöscht, sondern als Vorlage für eine spätere Phase mit PayPal-Geschäftskonto
+  aufbewahrt
 
 ---
 *Requirements defined: 2026-07-28*
-*Last updated: 2026-07-28 after initial definition*
+*Last updated: 2026-08-02 — Spenden-Unterstützung von Stripe auf PayPal umgestellt; 6 Anforderungen gestrichen, 5 neue (DON-26…DON-31)*

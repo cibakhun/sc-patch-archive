@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 001 — Unterstützen-Seite: drei Identitäten</title>
+<style>
+/* ============================================================================
+   SKIZZE 001 — „Unterstützen" — drei Richtungen zum Vergleich
+   Wegwerf-Mockup. Kein Produktionscode. Keine externen Anfragen.
+   ----------------------------------------------------------------------------
+   SCHRIFTEN — hier stehen SYSTEM-Stapel als Platzhalter. Auf der echten
+   Seite lädt assets/fonts.css die tatsächlichen Schnitte:
+     --font-display   steht für  Orbitron        (Anzeige, 700/900)
+     --font-ui        steht für  Rajdhani        (Bedien-Beschriftungen)
+     --font-body      steht für  Barlow          (Fließtext)
+     --font-mono      steht für  Share Tech Mono (Mikro-Beschriftungen, Zahlen)
+   Der Platzhalter-Stapel ist auf Windows 11 optimiert (Bahnschrift/Segoe/
+   Consolas), weil die Skizze dort begutachtet wird.
+
+   FARBEN — Namen und Werte stammen aus assets/theme.css und 05-UI-SPEC.md.
+   --support-gold ist die eine Farbe, die NICHT aus der Seitenpalette kommt
+   (D-09): dunkel #e8a83c, hell #7a4e05.
+   Die helle Seitenpalette unten ist HANDGESCHRIEBEN — im echten Bau erzeugt
+   sie `npm run theme` aus der dunklen. Sie ist hier nur ein plausibler Stand-in.
+   ============================================================================ */
+
+/* ---------------------------------------------------------------- Reset ---- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 112.5%; }          /* 18px — wie Layout.astro:240 */
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; color: inherit; }
+
+/* ------------------------------------------------- Werkzeugleiste-Chrome ---- */
+/* Bewusst kühles Graphit — damit die Werkzeugleiste NIE als Teil des
+   warmen Seitenentwurfs gelesen wird. */
+.mk {
+  --mk-bg: #101318; --mk-bg2: #171b22; --mk-line: #2a313d;
+  --mk-txt: #e6eaf2; --mk-dim: #8b96a8; --mk-hi: #6ee7ff;
+}
+body {
+  background: var(--mk-bg);
+  color: var(--mk-txt);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+}
+.mk-bar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px;
+  padding: 10px clamp(12px, 3vw, 24px);
+  background: var(--mk-bg2);
+  border-bottom: 1px solid var(--mk-line);
+}
+.mk-brand {
+  font-family: 'Cascadia Mono', Consolas, ui-monospace, monospace;
+  font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--mk-dim); white-space: nowrap;
+}
+.mk-brand b { color: var(--mk-hi); font-weight: 400; }
+.mk-group { display: flex; align-items: center; gap: 6px; }
+.mk-group > .mk-lbl {
+  font-family: 'Cascadia Mono', Consolas, ui-monospace, monospace;
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--mk-dim); margin-right: 2px;
+}
+.mk-btn {
+  background: transparent; border: 1px solid var(--mk-line); color: var(--mk-dim);
+  font-family: 'Cascadia Mono', Consolas, ui-monospace, monospace;
+  font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  padding: 7px 11px; cursor: pointer; transition: .15s;
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+.mk-btn:hover { border-color: var(--mk-hi); color: var(--mk-txt); }
+.mk-btn[aria-pressed="true"], .mk-btn[aria-selected="true"] {
+  background: var(--mk-hi); border-color: var(--mk-hi); color: #06121a; font-weight: 700;
+}
+.mk-btn:focus-visible { outline: 2px solid var(--mk-hi); outline-offset: 2px; }
+.mk-spacer { flex: 1 1 40px; }
+
+/* ------------------------------------------------------------- Die Bühne ---- */
+/* container-type macht den Breiten-Umschalter ECHT: die Entwürfe reagieren
+   auf die Bühnenbreite, nicht auf die Fensterbreite. Darum unten überall
+   @container statt @media. */
+.mk-stagewrap { padding: clamp(12px, 3vw, 28px); }
+.mk-stage {
+  position: relative;
+  width: 100%; max-width: var(--vp, 100%);
+  margin: 0 auto;
+  container-type: inline-size; container-name: vp;
+  border: 1px solid var(--mk-line);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.7;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  /* KEIN transition auf max-width: bei container-type:inline-size friert der
+     Browser den berechneten Wert auf 100% ein und der Breiten-Umschalter
+     bleibt wirkungslos. Hart umschalten ist hier ohnehin das Richtige. */
+}
+.mk-stage.is-narrow { box-shadow: 0 0 0 1px var(--mk-line), 0 24px 60px rgba(0,0,0,.5); }
+/* Atmosphäre wie auf der echten Seite (detail.css body::after) — hier auf die
+   Bühne gelegt statt auf <body>, damit sie nur den Entwurf einfärbt. */
+.mk-stage::after {
+  content: ""; position: absolute; inset: 0; z-index: 40; pointer-events: none;
+  opacity: var(--ambient-opacity);
+  background:
+    radial-gradient(130% 115% at 50% 42%, transparent 54%, var(--vignette) 100%),
+    repeating-linear-gradient(0deg, var(--scanline) 0 1px, transparent 1px 3px);
+}
+.mk-note {
+  max-width: 100%; margin: 0 auto;
+  font-family: 'Cascadia Mono', Consolas, ui-monospace, monospace;
+  font-size: 11px; letter-spacing: .08em; color: var(--mk-dim);
+  padding: 10px clamp(12px, 3vw, 28px) 24px; text-align: center; line-height: 1.7;
+}
+
+/* ============================================================================
+   SEITENPALETTE — /support.html
+   Dunkel: wörtlich aus 05-UI-SPEC.md § „/support.html's own page palette".
+   ============================================================================ */
+.mk-stage {
+  --bg:#120b05; --bg-2:#1a1108; --surface:#1f1509; --surface-2:#291b0d;
+  --accent:#e8a83c; --accent-2:#ffcf7a; --hot:#e8a83c;
+  --text:#f5ecdc; --muted:#b9a88c;
+  --line:rgba(232,168,60,.20); --line-soft:rgba(245,236,220,.10);
+  --glow:0 0 46px rgba(232,168,60,.24);
+  --ink:#140d05; --maxw:1180px;
+
+  /* Effekt-Schicht (theme.css, dunkel) */
+  --veil:rgba(0,0,0,.4); --veil-2:rgba(0,0,0,.55); --veil-hi:rgba(255,255,255,.05);
+  --vignette:rgba(0,0,0,.62); --scanline:rgba(0,0,0,.14); --ambient-opacity:.5;
+  --shadow-1:0 2px 10px rgba(0,0,0,.5);
+  --shadow-2:0 10px 30px rgba(0,0,0,.55);
+  --shadow-color:rgba(0,0,0,.9);
+
+  /* Der feste Zugangs-Ton (D-09) */
+  --support-gold:#e8a83c;
+  --support-gold-ink:#1a1004;
+  --support-gold-soft:color-mix(in srgb, var(--support-gold) 14%, transparent);
+
+  /* Warnton für den Fehlerfall (bestehendes Rot der Seite) */
+  --bad:#ff7a7a;
+
+  /* Platzhalter-Schriftstapel — echte Schnitte siehe Kopfkommentar */
+  --font-display:'Bahnschrift','DIN Alternate','Segoe UI Semibold','Franklin Gothic Medium',system-ui,sans-serif;
+  --font-ui:'Segoe UI Semibold','Segoe UI','Rajdhani',system-ui,sans-serif;
+  --font-body:'Segoe UI','Barlow',system-ui,sans-serif;
+  --font-mono:'Cascadia Mono',Consolas,'SF Mono',ui-monospace,monospace;
+}
+/* Hell — im echten Bau von scripts/build-light-palettes.mjs erzeugt.
+   Hier von Hand als plausibler Stand-in. */
+:root[data-theme="light"] .mk-stage {
+  --bg:#faf5ec; --bg-2:#f2e9da; --surface:#fffdf8; --surface-2:#f6efe2;
+  --accent:#7a4e05; --accent-2:#5c3a04; --hot:#7a4e05;
+  --text:#241a0c; --muted:#5f5240;
+  --line:rgba(122,78,5,.28); --line-soft:rgba(36,26,12,.12);
+  --glow:0 6px 22px rgba(122,78,5,.16);
+  --ink:#ffffff;
+
+  --veil:rgba(20,26,38,.05); --veil-2:rgba(20,26,38,.09); --veil-hi:rgba(255,255,255,.8);
+  --vignette:rgba(20,26,38,.05); --scanline:rgba(20,26,38,.028); --ambient-opacity:.4;
+  --shadow-1:0 1px 2px rgba(20,26,38,.08),0 2px 8px rgba(20,26,38,.05);
+  --shadow-2:0 3px 8px rgba(20,26,38,.08),0 12px 28px rgba(20,26,38,.07);
+  --shadow-color:rgba(20,26,38,.26);
+
+  --support-gold:#7a4e05;
+  --support-gold-ink:#ffffff;
+  --support-gold-soft:color-mix(in srgb, var(--support-gold) 10%, transparent);
+  --bad:#c84248;
+}
+/* Die Werkzeugleiste kippt mit, damit der Hellmodus nicht in einem
+   schwarzen Rahmen sitzt. */
+:root[data-theme="light"] .mk { --mk-bg:#e7eaf0; --mk-bg2:#f4f6fa; --mk-line:#c8cfdb; --mk-txt:#1a1f29; --mk-dim:#5a6472; --mk-hi:#0b6b86; }
+
+/* =========================================================== gemeinsame Teile */
+.v { display: none; }
+.v.is-on { display: block; animation: vin .22s ease both; }
+@keyframes vin { from { opacity: 0; } to { opacity: 1; } }
+.v ::selection { background: var(--support-gold); color: var(--support-gold-ink); }
+.v :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* Mikro-Beschriftung — das Kleinteil-Alphabet der Seite */
+.cap {
+  font-family: var(--font-mono);
+  font-size: .7rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted);
+}
+.cap--wide { letter-spacing: .38em; }
+.num { font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
+
+/* Beträge-Wähler — EINE Bauweise, drei Kleidungen (per Variantenklasse) */
+.pk-block { display: grid; gap: 16px; }
+.pk-lbl {
+  display: block; font-family: var(--font-ui); font-weight: 700;
+  font-size: .82rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text); margin-bottom: 8px;
+}
+.pk-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.pk-pill { position: relative; cursor: pointer; }
+.pk-pill input {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+.pk-pill span {
+  display: block; min-width: 4.4rem; text-align: center;
+  border: 1px solid var(--line); background: var(--veil);
+  padding: 11px 16px; transition: .15s;
+  font-family: var(--font-ui); font-weight: 700; font-size: .95rem;
+  color: var(--text);
+}
+.pk-pill:hover span { border-color: var(--support-gold); }
+.pk-pill input:checked + span {
+  background: var(--support-gold-soft);
+  border-color: var(--support-gold);
+  color: var(--support-gold);
+  box-shadow: inset 0 0 0 1px var(--support-gold);
+}
+.pk-pill input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 3px; }
+.pk-free { display: flex; align-items: stretch; }
+.pk-free span {
+  display: flex; align-items: center; gap: 6px; min-width: 0;
+  border: 1px solid var(--line); background: var(--veil); padding: 0 14px;
+}
+.pk-free input[type=text] {
+  width: 4.2rem; background: none; border: 0; outline: none;
+  font-family: var(--font-mono); font-size: .95rem; padding: 11px 0;
+  color: var(--text); font-variant-numeric: tabular-nums;
+}
+.pk-free input[type=text]::placeholder { color: color-mix(in srgb, var(--muted) 80%, transparent); }
+.pk-free .cur { font-family: var(--font-ui); font-weight: 700; color: var(--muted); }
+.pk-free input[type=radio]:checked ~ span { border-color: var(--support-gold); background: var(--support-gold-soft); }
+.pk-free:has(input[type=text]:focus) span { border-color: var(--support-gold); }
+
+.pk-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--font-ui); font-weight: 700; font-size: .92rem;
+  letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
+  color: var(--support-gold-ink); background: var(--support-gold);
+  border: 1px solid var(--support-gold);
+  padding: 15px 28px; transition: filter .15s, opacity .15s;
+}
+.pk-cta:hover { filter: brightness(1.08); }
+.pk-cta[disabled] { opacity: .6; cursor: progress; }
+.pk-err {
+  color: var(--bad); font-size: .88rem; line-height: 1.5; margin-top: 4px;
+}
+.pk-err[hidden] { display: none; }
+.pk-kofi {
+  font-size: .84rem; color: var(--muted); border: 0; background: none;
+}
+.pk-kofi a { color: var(--muted); border-bottom: 1px solid var(--line); transition: .15s; }
+.pk-kofi a:hover { color: var(--support-gold); border-color: var(--support-gold); }
+.pk-honest {
+  font-size: .82rem; line-height: 1.6; color: var(--muted);
+  border-left: 2px solid var(--line); padding-left: 14px;
+}
+.pk-honest b { color: var(--text); font-weight: 600; }
+.pk-demo {
+  border: 1px solid var(--line-soft); border-left: 3px solid var(--accent-2);
+  background: color-mix(in srgb, var(--accent-2) 8%, transparent);
+  padding: 14px 18px; font-size: .88rem; color: var(--muted); line-height: 1.55;
+}
+.pk-demo b { color: var(--text); }
+.pk-demo[hidden] { display: none; }
+.pk-done {
+  border: 1px solid var(--support-gold); background: var(--support-gold-soft);
+  padding: 14px 18px; font-size: .9rem; color: var(--text);
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.pk-done[hidden] { display: none; }
+.pk-done svg { flex: none; margin-top: 3px; color: var(--support-gold); }
+
+/* Nur-Skizze-Anmerkung (klar KEIN Seiten-Chrome) */
+.anno {
+  margin: 0 0 16px; padding: 9px 14px;
+  border: 1px dashed color-mix(in srgb, var(--muted) 55%, transparent);
+  font-family: var(--font-mono); font-size: .68rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted); background: var(--veil);
+}
+
+@container vp (max-width: 560px) {
+  .pk-row { display: grid; grid-template-columns: 1fr 1fr; }
+  .pk-pill span { min-width: 0; }
+  .pk-free { grid-column: 1 / -1; }
+  .pk-free span { width: 100%; }
+  .pk-free input[type=text] { width: 100%; }
+  .pk-cta { width: 100%; }
+}
+
+/* ############################################################################
+   VARIANTE A — „INSTANDSETZUNG"
+   Führt mit dem defekten Teil. Werkstattauftrag: Kopfleiste mit Auftragsfeldern,
+   Explosionszeichnung des Netzteils, Positionen 01–03, Beschaffungs-Anzeige mit
+   Teilung und Zahlen-Ablesung. Kalt, tabellarisch, maßhaltig.
+   ############################################################################ */
+.a-doc { padding: 0 0 64px; }
+
+/* Kopfleiste = Auftragskopf */
+.a-head { border-bottom: 1px solid var(--line); background: linear-gradient(180deg, var(--bg-2), var(--bg)); }
+.a-head__top {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding: 20px clamp(16px, 4cqi, 40px) 12px; flex-wrap: wrap;
+}
+.a-head__ttl {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(1.5rem, 4.2cqi, 2.3rem); line-height: 1.05;
+  letter-spacing: .01em; color: var(--text);
+}
+.a-head__ttl em { font-style: normal; color: var(--support-gold); }
+.a-fields {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--line-soft);
+}
+.a-fields > div {
+  padding: 12px clamp(16px, 4cqi, 40px) 14px;
+  border-right: 1px solid var(--line-soft);
+}
+.a-fields > div:last-child { border-right: 0; }
+.a-fields > div:not(:first-child) { padding-left: 18px; }
+.a-fields dt { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+.a-fields dd {
+  font-family: var(--font-mono); font-size: .86rem; letter-spacing: .05em;
+  color: var(--text); margin-top: 4px; font-variant-numeric: tabular-nums;
+}
+.a-fields dd.hi { color: var(--support-gold); }
+
+/* Körper: Zeichnung | Auftrag */
+.a-body {
+  display: grid; grid-template-columns: minmax(300px, 400px) 1fr;
+  gap: 0; align-items: start;
+}
+.a-drawing {
+  padding: 32px clamp(16px, 3cqi, 32px) 40px;
+  border-right: 1px solid var(--line-soft);
+  background:
+    linear-gradient(90deg, var(--line-soft) 0 1px, transparent 1px 100%) 0 0 / 32px 32px,
+    linear-gradient(0deg, var(--line-soft) 0 1px, transparent 1px 100%) 0 0 / 32px 32px,
+    var(--bg);
+  background-blend-mode: normal;
+  position: relative;
+}
+.a-drawing::before {
+  /* Eckklammern wie auf einem Zeichnungsblatt */
+  content: ""; position: absolute; inset: 14px; pointer-events: none;
+  background:
+    linear-gradient(var(--line) 0 0) 0 0 / 18px 1px no-repeat,
+    linear-gradient(var(--line) 0 0) 0 0 / 1px 18px no-repeat,
+    linear-gradient(var(--line) 0 0) 100% 0 / 18px 1px no-repeat,
+    linear-gradient(var(--line) 0 0) 100% 0 / 1px 18px no-repeat,
+    linear-gradient(var(--line) 0 0) 0 100% / 18px 1px no-repeat,
+    linear-gradient(var(--line) 0 0) 0 100% / 1px 18px no-repeat,
+    linear-gradient(var(--line) 0 0) 100% 100% / 18px 1px no-repeat,
+    linear-gradient(var(--line) 0 0) 100% 100% / 1px 18px no-repeat;
+}
+.a-drawing__cap {
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line-soft);
+}
+.a-sch { display: block; width: 100%; height: auto; }
+.a-sch .o  { fill: none; stroke: var(--muted); stroke-width: 1.7; vector-effect: non-scaling-stroke; }
+.a-sch .t  { fill: none; stroke: var(--line);  stroke-width: 1;   vector-effect: non-scaling-stroke; }
+.a-sch .c  { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 14 4 3 4; opacity: .45; vector-effect: non-scaling-stroke; }
+.a-sch .d  { fill: none; stroke: var(--muted); stroke-width: 1; opacity: .7; vector-effect: non-scaling-stroke; }
+.a-sch .ar { fill: var(--muted); opacity: .7; stroke: none; }
+.a-sch .hot{ fill: none; stroke: var(--support-gold); stroke-width: 1.7; stroke-dasharray: 7 4; vector-effect: non-scaling-stroke; }
+.a-sch .ld { fill: none; stroke: var(--support-gold); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.a-sch .dot{ fill: var(--line); stroke: none; }
+.a-sch text {
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em;
+  fill: var(--muted);
+}
+.a-sch text.hi { fill: var(--support-gold); }
+.a-sch g { stroke-linecap: butt; stroke-linejoin: miter; }
+
+.a-order { padding: 32px clamp(16px, 4cqi, 40px) 0; }
+.a-pos { border-top: 1px solid var(--line-soft); padding: 20px 0; display: grid; grid-template-columns: 3.4rem 1fr; gap: 0 16px; }
+.a-pos:first-of-type { border-top: 0; padding-top: 0; }
+/* Positionsnummern bewusst NICHT in Gold: sie sind Gliederung, kein Hinweis.
+   Gold bleibt dem Befund (Zeichnung, Titel, Zustand) und der Behebung
+   (Anzeige, Knopf) vorbehalten. */
+.a-pos__n { font-family: var(--font-mono); font-size: .74rem; letter-spacing: .12em; color: var(--muted); padding-top: 4px; }
+.a-pos h2 {
+  font-family: var(--font-ui); font-weight: 700; font-size: .82rem;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--text); margin-bottom: 8px;
+}
+.a-pos p { color: var(--muted); font-size: .98rem; line-height: 1.65; max-width: 58ch; }
+.a-pos p + p { margin-top: 10px; }
+.a-pos p b, .a-pos p strong { color: var(--text); font-weight: 600; }
+
+/* Beschaffungs-Anzeige (Teilung + Ablesung) */
+.a-gauge { margin: 24px 0 8px; }
+.a-gauge__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.a-gauge__read {
+  font-family: var(--font-mono); font-size: 1.02rem; letter-spacing: .06em;
+  color: var(--support-gold); font-variant-numeric: tabular-nums;
+}
+.a-gauge__track {
+  position: relative; height: 26px; border: 1px solid var(--line);
+  background: var(--veil); overflow: hidden;
+}
+.a-gauge__fill {
+  position: absolute; inset: 0 auto 0 0; background: var(--support-gold);
+  transition: width .6s cubic-bezier(.16,.84,.34,1);
+}
+.a-gauge__ticks {
+  position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(90deg,
+    color-mix(in srgb, var(--muted) 45%, transparent) 0 1px,
+    transparent 1px calc(100% / 12));
+  mix-blend-mode: normal;
+}
+.a-gauge__ticks::after {
+  /* längere Teilstriche alle 30 € */
+  content: ""; position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg,
+    color-mix(in srgb, var(--muted) 80%, transparent) 0 1px,
+    transparent 1px calc(100% / 4));
+}
+/* Teilungsbeschriftung: flex + space-between statt einer Null-Spalte mit
+   transform — ein verschobenes Element verkleinert seinen Scroll-Kasten NICHT
+   und riss die Seite bei 360 px um 23 px auf. */
+.a-gauge__scale {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-mono); font-size: .62rem; letter-spacing: .1em;
+  color: var(--muted); margin-top: 5px;
+}
+.a-gauge__scale span { white-space: nowrap; }
+.a-gauge__cap { font-size: .8rem; color: var(--muted); margin-top: 10px; }
+.a-gauge__cap b { color: var(--text); font-weight: 600; }
+.a-prog[hidden] { display: none; }
+
+/* Wähler-Kleidung A: Karte mit gekappten HUD-Ecken */
+.v-a .pk-card {
+  border: 1px solid var(--line); background: linear-gradient(180deg, var(--surface), var(--bg-2));
+  padding: 24px; margin-top: 8px;
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+.v-a .pk-pill span { border-radius: 0; }
+.v-a .pk-cta { clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
+
+/* Beitragsliste als Protokoll */
+.a-log { margin: 0 clamp(16px, 4cqi, 40px); border-top: 1px solid var(--line); padding-top: 24px; }
+.a-log__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.a-log table { width: 100%; border-collapse: collapse; }
+.a-log th {
+  text-align: left; font-family: var(--font-mono); font-size: .62rem;
+  letter-spacing: .2em; text-transform: uppercase; color: var(--muted);
+  padding: 0 10px 8px 0; border-bottom: 1px solid var(--line-soft); font-weight: 400;
+}
+.a-log th:last-child, .a-log td:last-child { text-align: right; padding-right: 0; }
+.a-log td {
+  padding: 9px 10px 9px 0; border-bottom: 1px solid var(--line-soft);
+  font-size: .9rem; color: var(--text);
+}
+.a-log td.k { font-family: var(--font-mono); font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; width: 4.5rem; }
+.a-log td.dt { font-family: var(--font-mono); font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.a-log a { border-bottom: 1px solid var(--line); }
+.a-log a:hover { color: var(--support-gold); border-color: var(--support-gold); }
+.a-badge {
+  display: inline-block; margin-left: 8px; vertical-align: 1px;
+  font-family: var(--font-mono); font-size: .58rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--support-gold); border: 1px solid var(--support-gold);
+  padding: 1px 6px;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+}
+
+@container vp (max-width: 860px) {
+  .a-body { grid-template-columns: 1fr; }
+  .a-drawing { border-right: 0; border-bottom: 1px solid var(--line-soft); }
+  .a-fields { grid-template-columns: 1fr 1fr; }
+  .a-fields > div:nth-child(2) { border-right: 0; }
+  .a-fields > div:nth-child(-n+2) { border-bottom: 1px solid var(--line-soft); }
+}
+@container vp (max-width: 560px) {
+  .a-drawing { max-width: 420px; margin-inline: auto; width: 100%; }
+  .a-pos { grid-template-columns: 1fr; gap: 6px; }
+  .a-pos__n { padding-top: 0; }
+  .a-log td.dt, .a-log th:last-child { font-size: .72rem; }
+}
+
+/* ############################################################################
+   VARIANTE B — „ÜBERTRAGUNG"
+   Führt mit der Stimme. Comm-Link-Kopf, Datumszeile, echter Fließtext mit
+   Mono-Randnotizen im linken Steg. Gold genau zweimal: Fortschrittszahl + CTA.
+   Weißraum trägt die Seite.
+   ############################################################################ */
+.b-doc { padding: 0 0 72px; max-width: 62rem; margin: 0 auto; }
+.b-wrap { padding-inline: clamp(20px, 6cqi, 64px); }
+
+.b-mast { padding-top: clamp(40px, 8cqi, 88px); }
+.b-mast__rule { height: 1px; background: var(--line); }
+.b-mast__kick {
+  display: block; padding: 18px 0 clamp(28px, 6cqi, 52px);
+  font-family: var(--font-mono); font-size: .72rem;
+  letter-spacing: .5em; text-transform: uppercase; color: var(--muted);
+}
+.b-mast h1 {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(1.75rem, 5.6cqi, 3.1rem); line-height: 1.12;
+  letter-spacing: -.005em; color: var(--text); max-width: 20ch;
+}
+.b-dateline {
+  display: flex; flex-wrap: wrap; align-items: center;
+  margin-top: clamp(24px, 4cqi, 34px); padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+  font-family: var(--font-mono); font-size: .68rem;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+}
+.b-dateline span { padding-right: 14px; margin-right: 14px; border-right: 1px solid var(--line-soft); }
+.b-dateline span:last-child { border-right: 0; padding-right: 0; margin-right: 0; }
+.b-dateline b { color: var(--text); font-weight: 400; }
+
+/* Der Steg: Mono-Randnotizen neben dem Fließtext */
+.b-body {
+  display: grid; grid-template-columns: 8.6rem 1fr;
+  column-gap: 32px; row-gap: 0;
+  margin-top: clamp(36px, 7cqi, 64px);
+}
+.b-note {
+  font-family: var(--font-mono); font-size: .64rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--muted);
+  padding-top: .58rem; text-align: right;
+  border-right: 1px solid var(--line-soft); padding-right: 16px;
+  margin-right: -16px;
+  align-self: stretch;
+}
+.b-note i { font-style: normal; display: block; }
+.b-par { font-size: 1.02rem; line-height: 1.85; color: var(--text); padding-bottom: 26px; max-width: 62ch; }
+.b-par--dim { color: var(--muted); }
+.b-par b { color: var(--text); font-weight: 600; }
+.b-par:last-of-type { padding-bottom: 0; }
+
+/* Fortschritt als Satz mit Unterstreichung — kein Kasten, keine Teilung */
+.b-prog { margin-top: clamp(40px, 7cqi, 68px); }
+.b-prog__line { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.b-prog__n {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(2.1rem, 7cqi, 3.4rem); line-height: 1;
+  color: var(--support-gold); font-variant-numeric: tabular-nums;
+}
+.b-prog__of { font-size: 1.05rem; color: var(--muted); }
+.b-prog__rule { position: relative; height: 2px; background: var(--line-soft); margin-top: 16px; }
+.b-prog__rule i { position: absolute; inset: 0 auto 0 0; background: var(--support-gold); transition: width .6s cubic-bezier(.16,.84,.34,1); }
+.b-prog__cap { margin-top: 10px; font-size: .84rem; color: var(--muted); }
+.b-prog[hidden] { display: none; }
+
+/* Wähler-Kleidung B: kein Kasten, nur Haarlinien und Luft */
+.v-b .pk-card {
+  margin-top: clamp(40px, 7cqi, 68px);
+  border-top: 1px solid var(--line);
+  padding-top: clamp(28px, 5cqi, 40px);
+}
+.v-b .pk-pill span { background: none; border-color: var(--line-soft); }
+.v-b .pk-pill:hover span { border-color: var(--support-gold); }
+.v-b .pk-free span { background: none; border-color: var(--line-soft); }
+.v-b .pk-cta { padding: 16px 34px; }
+.v-b .pk-honest { border-left: 0; padding-left: 0; border-top: 1px solid var(--line-soft); padding-top: 14px; }
+
+/* Grußzeile / Absender */
+.b-sign { margin-top: clamp(40px, 7cqi, 64px); padding-top: 22px; border-top: 1px solid var(--line-soft); }
+.b-sign__name { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; color: var(--text); }
+.b-sign__role { font-size: .92rem; color: var(--muted); margin-top: 2px; }
+.b-sign__end {
+  margin-top: 22px; font-family: var(--font-mono); font-size: .62rem;
+  letter-spacing: .24em; text-transform: uppercase; color: var(--muted); opacity: .75;
+}
+
+/* Unterstützer als stille Aufzählung */
+.b-wall { margin-top: clamp(44px, 8cqi, 76px); padding-top: 26px; border-top: 1px solid var(--line-soft); }
+.b-wall h2 {
+  font-family: var(--font-mono); font-size: .68rem; letter-spacing: .28em;
+  text-transform: uppercase; color: var(--muted); font-weight: 400; margin-bottom: 20px;
+}
+.b-wall ul { list-style: none; columns: 2; column-gap: 40px; }
+.b-wall li { break-inside: avoid; padding: 7px 0; display: flex; align-items: baseline; gap: 10px; }
+.b-wall .nm { font-size: .98rem; color: var(--text); }
+.b-wall .nm a { border-bottom: 1px solid var(--line-soft); }
+.b-wall .nm a:hover { color: var(--support-gold); border-color: var(--support-gold); }
+.b-wall .dt { font-family: var(--font-mono); font-size: .68rem; color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+.b-wall .bd {
+  font-family: var(--font-mono); font-size: .56rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--support-gold);
+  border: 1px solid var(--support-gold); padding: 0 5px;
+}
+
+@container vp (max-width: 700px) {
+  .b-body { grid-template-columns: 1fr; }
+  .b-note {
+    text-align: left; border-right: 0; padding-right: 0; margin-right: 0;
+    padding-top: 0; padding-bottom: 8px;
+    border-left: 2px solid var(--line-soft); padding-left: 12px;
+  }
+  .b-wall ul { columns: 1; }
+}
+
+/* ############################################################################
+   VARIANTE C — „BESATZUNG"
+   Führt mit den Leuten. Besatzungsliste: Registriernummern, geführte Zeilen,
+   Standzeile. Der Beitrag kommt DANACH — Eintragen statt Formular ausfüllen.
+   Der Leerzustand ist dieselbe Liniatur, nur unbeschrieben.
+   ############################################################################ */
+.c-doc { padding: 0 0 64px; }
+.c-wrap { padding-inline: clamp(16px, 4.5cqi, 48px); }
+
+.c-mast { padding-top: clamp(32px, 6cqi, 60px); border-bottom: 1px solid var(--line); }
+.c-mast__kick { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.c-mast__kick .cap { white-space: nowrap; }
+.c-mast__kick .sep { width: 1px; height: 11px; background: var(--line); }
+.c-count { display: flex; align-items: flex-end; gap: 16px; margin-top: 18px; padding-bottom: 20px; flex-wrap: wrap; }
+.c-count__n {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(3.2rem, 12cqi, 6.2rem); line-height: .82;
+  color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+}
+.c-count__t { padding-bottom: .45rem; }
+.c-count__t h1 {
+  font-family: var(--font-ui); font-weight: 700; font-size: clamp(1rem, 2.6cqi, 1.25rem);
+  letter-spacing: .04em; color: var(--text);
+}
+.c-count__t p { font-size: .9rem; color: var(--muted); max-width: 40ch; margin-top: 2px; }
+
+/* Die Liste */
+.c-roster { margin-top: 0; }
+.c-roster__bar {
+  display: grid; grid-template-columns: 4.6rem 1fr auto;
+  gap: 16px; align-items: center;
+  padding: 11px 12px; border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono); font-size: .6rem; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--muted);
+}
+.c-roster__bar .rt { text-align: right; }
+.c-row {
+  display: grid; grid-template-columns: 4.6rem 1fr auto;
+  gap: 4px 16px; align-items: center;
+  padding: 13px 12px; border-bottom: 1px solid var(--line-soft);
+  border-left: 2px solid transparent; transition: border-color .15s, background .15s;
+}
+.c-row:hover { border-left-color: var(--support-gold); background: var(--veil); }
+.c-row__reg {
+  font-family: var(--font-mono); font-size: .74rem; letter-spacing: .06em;
+  color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.c-row__nm { font-family: var(--font-ui); font-weight: 700; font-size: 1rem; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.c-row__nm a { border-bottom: 1px solid var(--line); }
+.c-row__nm a:hover { color: var(--support-gold); border-color: var(--support-gold); }
+.c-row__nm .anon { color: var(--muted); font-weight: 400; font-style: italic; }
+.c-row__meta { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
+.c-row__dt { font-family: var(--font-mono); font-size: .74rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.c-bd {
+  font-family: var(--font-mono); font-size: .58rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--support-gold);
+  border: 1px solid var(--support-gold); padding: 2px 7px; white-space: nowrap;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+}
+
+/* Leerzustand: dieselbe Liniatur, Nummern vorgedruckt, Namensfeld leer */
+.c-row--blank { border-left-color: transparent; }
+.c-row--blank:hover { background: none; border-left-color: transparent; }
+.c-row--blank .c-row__reg { opacity: .4; }
+.c-row--blank .c-row__nm { border-bottom: 1px dashed var(--line); height: 1.15rem; }
+.c-row--next { border-left-color: var(--support-gold); }
+.c-row--next .c-row__reg { opacity: 1; color: var(--support-gold); }
+.c-row--next .c-row__nm { border-bottom: 1px dashed var(--support-gold); }
+.c-row--next .c-row__meta .cap { color: var(--support-gold); }
+.c-empty__say { padding: 22px 12px 6px; font-size: 1rem; color: var(--text); }
+
+/* Fortschritt als Streckenteilung: 24 Felder à 5 € */
+.c-prog { margin-top: clamp(30px, 5cqi, 44px); }
+.c-prog[hidden] { display: none; }
+.c-prog__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.c-prog__n { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; color: var(--support-gold); font-variant-numeric: tabular-nums; }
+.c-seg { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; }
+.c-seg i { display: block; height: 16px; background: var(--line-soft); transition: background .3s; }
+.c-seg i.on { background: var(--support-gold); }
+.c-prog__cap { margin-top: 10px; font-size: .82rem; color: var(--muted); }
+
+/* Der Aufnahme-Block */
+.c-join { margin-top: clamp(34px, 6cqi, 52px); }
+.c-join__hd { display: flex; align-items: baseline; gap: 14px; margin-bottom: 14px; }
+.c-join__hd h2 {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(1.25rem, 3.4cqi, 1.75rem); color: var(--text); line-height: 1.1;
+}
+.c-join__hd .rule { flex: 1; height: 1px; background: var(--line); }
+.c-join__why { color: var(--muted); font-size: .98rem; line-height: 1.7; max-width: 60ch; margin-bottom: 20px; }
+.c-join__why b { color: var(--text); font-weight: 600; }
+
+.v-c .pk-card {
+  border: 1px solid var(--line); background: var(--surface); padding: 24px;
+}
+.v-c .pk-pill span { background: var(--bg-2); }
+
+@container vp (max-width: 560px) {
+  .c-roster__bar { grid-template-columns: 3.4rem 1fr; }
+  .c-roster__bar .rt { display: none; }
+  .c-row {
+    grid-template-columns: 3.4rem 1fr;
+    grid-template-areas: "reg nm" ". meta";
+  }
+  .c-row__reg { grid-area: reg; }
+  .c-row__nm  { grid-area: nm; }
+  .c-row__meta{ grid-area: meta; justify-content: flex-start; }
+  .c-seg { gap: 2px; }
+  .c-seg i { height: 22px; }
+}
+
+/* --------------------------------------------------------- Bewegung aus ---- */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+
+<body class="mk">
+
+<div class="mk-bar">
+  <span class="mk-brand">Skizze&nbsp;001 · <b>Unterstützen — drei Identitäten</b></span>
+
+  <div class="mk-group" role="tablist" aria-label="Entwurf wählen">
+    <button class="mk-btn" role="tab" data-v="a" aria-selected="true">A — Instandsetzung</button>
+    <button class="mk-btn" role="tab" data-v="b" aria-selected="false">B — Übertragung</button>
+    <button class="mk-btn" role="tab" data-v="c" aria-selected="false">C — Besatzung</button>
+  </div>
+
+  <span class="mk-spacer"></span>
+
+  <div class="mk-group">
+    <span class="mk-lbl">Breite</span>
+    <button class="mk-btn" data-vp="360" aria-pressed="false">360</button>
+    <button class="mk-btn" data-vp="414" aria-pressed="false">414</button>
+    <button class="mk-btn" data-vp="768" aria-pressed="false">768</button>
+    <button class="mk-btn" data-vp="1024" aria-pressed="false">1024</button>
+    <button class="mk-btn" data-vp="0" aria-pressed="true">Voll</button>
+  </div>
+
+  <div class="mk-group">
+    <button class="mk-btn" id="mkTheme" aria-pressed="false">Hell</button>
+    <button class="mk-btn" id="mkDemo" aria-pressed="false">Demo-Modus</button>
+  </div>
+</div>
+
+<div class="mk-stagewrap">
+  <div class="mk-stage" id="stage">
+
+    <!-- ====================================================================
+         A — INSTANDSETZUNG
+         ==================================================================== -->
+    <main class="v v-a is-on" id="v-a">
+      <article class="a-doc">
+
+        <header class="a-head">
+          <div class="a-head__top">
+            <h1 class="a-head__ttl">Instandsetzung<br><em>Netzteil</em></h1>
+            <span class="cap cap--wide">VerseBase · Werkstatt</span>
+          </div>
+          <dl class="a-fields">
+            <div><dt>Auftrag</dt><dd>VB-0512</dd></div>
+            <div><dt>Eingang</dt><dd>2026-07-18</dd></div>
+            <div><dt>Zustand</dt><dd class="hi">Teil fehlt</dd></div>
+            <div><dt>Kostenrahmen</dt><dd>120,00 EUR</dd></div>
+          </dl>
+        </header>
+
+        <div class="a-body">
+
+          <!-- ---- Die Zeichnung: senkrechte Explosionsdarstellung ---- -->
+          <div class="a-drawing">
+            <svg class="a-sch" viewBox="0 0 400 640" role="img"
+                 aria-label="Explosionszeichnung eines ATX-Netzteils. Von oben nach unten: Gehäuse mit Lüftergitter, Lüfter 80 Millimeter, Platine mit der Kondensatorbank C1 bis C3 — als Ausfall unter Last gekennzeichnet — und das Anschlussfeld mit IEC-C14-Buchse und Netzschalter.">
+              <g>
+                <!-- Mittellinie / Montagepfad -->
+                <path class="c" d="M150 22 V 596"/>
+
+                <!-- Maßlinie links: Bautiefe -->
+                <path class="d" d="M52 40 H 20 M52 570 H 20 M26 46 V 564"/>
+                <path class="ar" d="M22 52 L26 40 L30 52 Z"/>
+                <path class="ar" d="M22 558 L26 570 L30 558 Z"/>
+                <text transform="translate(15,305) rotate(-90)" text-anchor="middle">140 MM</text>
+
+                <!-- 1 — Gehäuse -->
+                <rect class="o" x="55" y="40" width="190" height="110"/>
+                <rect class="t" x="63" y="48" width="174" height="94"/>
+                <circle class="t" cx="150" cy="95" r="42"/>
+                <circle class="t" cx="150" cy="95" r="30"/>
+                <circle class="t" cx="150" cy="95" r="18"/>
+                <circle class="o" cx="150" cy="95" r="7"/>
+                <path class="t" d="M157 95 H192 M154.95 99.95 L179.7 124.7 M150 102 V137 M145.05 99.95 L120.3 124.7 M143 95 H108 M145.05 90.05 L120.3 65.3 M150 88 V53 M154.95 90.05 L179.7 65.3"/>
+                <path class="ld" d="M245 95 H261"/>
+                <text x="265" y="92">GEHÄUSE</text>
+                <text x="265" y="106">ATX</text>
+
+                <!-- 2 — Lüfter -->
+                <rect class="t" x="108" y="188" width="84" height="84"/>
+                <circle class="o" cx="150" cy="230" r="40"/>
+                <circle class="o" cx="150" cy="230" r="11"/>
+                <path class="t" d="M161 230 H188 M156.9 238.6 L173.7 259.7 M147.6 240.7 L141.5 267 M140.1 234.8 L115.8 246.5 M140.1 225.2 L115.8 213.5 M147.6 219.3 L141.5 193 M156.9 221.4 L173.7 200.3"/>
+                <path class="ld" d="M192 230 H261"/>
+                <text x="265" y="227">LÜFTER</text>
+                <text x="265" y="241">80 MM</text>
+
+                <!-- 3 — Platine mit Kondensatorbank (das Fehlerteil) -->
+                <rect class="o" x="45" y="305" width="210" height="145"/>
+                <path class="t" d="M55 312 H245"/>
+                <path class="t" d="M60 440 V428 H120 V436 M240 440 V425 H180"/>
+                <g class="dot">
+                  <circle cx="60" cy="443" r="1.6"/><circle cx="74" cy="443" r="1.6"/>
+                  <circle cx="88" cy="443" r="1.6"/><circle cx="102" cy="443" r="1.6"/>
+                  <circle cx="116" cy="443" r="1.6"/><circle cx="130" cy="443" r="1.6"/>
+                  <circle cx="144" cy="443" r="1.6"/><circle cx="158" cy="443" r="1.6"/>
+                  <circle cx="172" cy="443" r="1.6"/><circle cx="186" cy="443" r="1.6"/>
+                  <circle cx="200" cy="443" r="1.6"/><circle cx="214" cy="443" r="1.6"/>
+                  <circle cx="228" cy="443" r="1.6"/><circle cx="242" cy="443" r="1.6"/>
+                </g>
+                <!-- C1 -->
+                <ellipse class="o" cx="90" cy="330" rx="18" ry="6"/>
+                <path class="o" d="M72 330 V412 A18 6 0 0 0 108 412 V330"/>
+                <path class="t" d="M81 330 H99 M90 324 V336 M72 352 H108"/>
+                <!-- C2 -->
+                <ellipse class="o" cx="150" cy="330" rx="18" ry="6"/>
+                <path class="o" d="M132 330 V412 A18 6 0 0 0 168 412 V330"/>
+                <path class="t" d="M141 330 H159 M150 324 V336 M132 352 H168"/>
+                <!-- C3 -->
+                <ellipse class="o" cx="210" cy="330" rx="18" ry="6"/>
+                <path class="o" d="M192 330 V412 A18 6 0 0 0 228 412 V330"/>
+                <path class="t" d="M201 330 H219 M210 324 V336 M192 352 H228"/>
+                <!-- Befund-Umgrenzung -->
+                <rect class="hot" x="62" y="316" width="176" height="110"/>
+                <path class="ld" d="M238 352 H261"/>
+                <text class="hi" x="265" y="342">C1–C3</text>
+                <text x="265" y="356">PRIMÄR-</text>
+                <text x="265" y="370">KONDENSATOR</text>
+                <text class="hi" x="265" y="390">AUSFALL</text>
+                <text class="hi" x="265" y="404">UNTER LAST</text>
+                <path class="ld" d="M255 436 H261"/>
+                <text x="265" y="440">PLATINE</text>
+
+                <!-- 4 — Anschlussfeld -->
+                <rect class="o" x="70" y="490" width="160" height="80"/>
+                <path class="o" d="M92 548 V524 L100 516 H136 L144 524 V548 Z"/>
+                <rect class="t" x="102" y="528" width="8" height="12"/>
+                <rect class="t" x="114" y="532" width="8" height="12"/>
+                <rect class="t" x="126" y="528" width="8" height="12"/>
+                <rect class="o" x="166" y="516" width="44" height="32"/>
+                <path class="t" d="M188 516 V548"/>
+                <text x="172" y="540" font-size="11">I</text>
+                <text x="196" y="540" font-size="11">O</text>
+                <path class="ld" d="M230 530 H261"/>
+                <text x="265" y="527">ANSCHLUSS</text>
+                <text x="265" y="541">IEC C14</text>
+              </g>
+            </svg>
+
+            <div class="a-drawing__cap">
+              <span class="cap">Zeichnung VB-0512-1</span>
+              <span class="cap">Nicht maßstäblich</span>
+            </div>
+          </div>
+
+          <!-- ---- Der Auftrag ---- -->
+          <div class="a-order">
+
+            <section class="a-pos">
+              <span class="a-pos__n">POS 01</span>
+              <div>
+                <h2>Befund</h2>
+                <p><b>Das Netzteil des Rechners, auf dem VerseBase entsteht, ist kaputt — er startet mitten in der Arbeit zufällig neu.</b></p>
+                <p>Der Fehler tritt unter Last auf: sobald alle Kerne rechnen, fällt die Spannung weg. Das Muster passt zur Kondensatorbank auf der Primärseite.</p>
+              </div>
+            </section>
+
+            <section class="a-pos">
+              <span class="a-pos__n">POS 02</span>
+              <div>
+                <h2>Auswirkung</h2>
+                <p>Betroffen sind vor allem die langen Läufe. Ein Durchgang durch die Spieldateien — die Grundlage für die Schiffs-, Item- und Crafting-Daten — braucht 30 bis 40 Minuten am Stück. Bricht er ab, fängt er von vorn an. In den letzten vierzehn Tagen ist das <b>elfmal</b> passiert.</p>
+              </div>
+            </section>
+
+            <section class="a-pos">
+              <span class="a-pos__n">POS 03</span>
+              <div>
+                <h2>Maßnahme</h2>
+                <p>Netzteil ersetzen. Ein passendes Modell mit ausreichend Reserve kostet <b>rund 120 €</b>. Reparieren lohnt bei dem Bauteil nicht — die Kondensatoren sind vergossen.</p>
+
+                <!-- Fortschritt: Beschaffungsanzeige -->
+                <div class="a-gauge a-prog" data-prog>
+                  <div class="a-gauge__head">
+                    <span class="cap">Beschaffung</span>
+                    <span class="a-gauge__read num">035 / 120 EUR</span>
+                  </div>
+                  <div class="a-gauge__track" role="progressbar"
+                       aria-valuemin="0" aria-valuemax="120" aria-valuenow="35"
+                       aria-valuetext="35 € von 120 €">
+                    <div class="a-gauge__fill" style="width:29.17%"></div>
+                    <div class="a-gauge__ticks" aria-hidden="true"></div>
+                  </div>
+                  <div class="a-gauge__scale" aria-hidden="true">
+                    <span>0</span><span>30</span><span>60</span><span>90</span><span>120</span>
+                  </div>
+                  <p class="a-gauge__cap"><b>35 € von 120 €</b> · Zusammengetragen aus echten Zahlungen.</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Wähler -->
+            <div class="pk-card" data-picker="a">
+              <div class="pk-block"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Beitragsliste als Protokoll -->
+        <section class="a-log">
+          <div class="a-log__head">
+            <span class="cap">Beitragsliste</span>
+            <span class="cap" data-wallcount>12 Unterstützer/innen</span>
+          </div>
+          <table>
+            <thead><tr><th>Nr.</th><th>Name</th><th>Datum</th></tr></thead>
+            <tbody data-log></tbody>
+          </table>
+        </section>
+      </article>
+    </main>
+
+    <!-- ====================================================================
+         B — ÜBERTRAGUNG
+         ==================================================================== -->
+    <main class="v v-b" id="v-b">
+      <article class="b-doc b-wrap">
+
+        <header class="b-mast">
+          <div class="b-mast__rule"></div>
+          <span class="b-mast__kick">Übertragung</span>
+          <h1>Warum ich gerade einmal um Hilfe bitte</h1>
+          <p class="b-dateline">
+            <span><b>Kris</b></span>
+            <span>Betreiber, VerseBase</span>
+            <span>2. August 2026</span>
+            <span>VB-COMM/0512</span>
+          </p>
+        </header>
+
+        <div class="b-body">
+          <p class="b-note"><i>Befund</i></p>
+          <p class="b-par">Ich schreibe das ungern, aber es hilft nichts: <b>Das Netzteil des Rechners, auf dem VerseBase entsteht, ist kaputt — er startet mitten in der Arbeit zufällig neu.</b></p>
+
+          <p class="b-note"><i>11 Abbrüche</i><i>in 14 Tagen</i></p>
+          <p class="b-par">Meistens trifft es die langen Läufe. Wenn ich die Spieldateien auswerte, damit die Schiffs-, Item- und Crafting-Daten stimmen, rechnet die Maschine eine gute halbe Stunde am Stück. Fällt sie dabei aus, war die halbe Stunde umsonst und ich fange von vorn an. In den letzten zwei Wochen ist das elfmal passiert.</p>
+
+          <p class="b-note"><i>Kostenrahmen</i><i>120 €</i></p>
+          <p class="b-par">VerseBase ist ein Fan-Projekt. Dahinter steht keine Firma, keine Werbung und kein Datenhandel — nur ein Rechner in einem Arbeitszimmer und ziemlich viele Abende. Ein neues Netzteil kostet rund 120 €. Mehr brauche ich nicht, und mehr frage ich auch nicht.</p>
+
+          <p class="b-note"><i>Ohne Beitrag</i></p>
+          <p class="b-par b-par--dim">Die Seite bleibt so, wie sie ist: vollständig, kostenlos, ohne Konto-Zwang. Wer nichts gibt, verliert nichts. Es dauert dann nur länger, bis das nächste Patch-Update steht.</p>
+        </div>
+
+        <!-- Fortschritt als Satz -->
+        <div class="b-prog" data-prog>
+          <p class="b-prog__line">
+            <span class="b-prog__n">35 €</span>
+            <span class="b-prog__of">von 120 €</span>
+          </p>
+          <div class="b-prog__rule" role="progressbar"
+               aria-valuemin="0" aria-valuemax="120" aria-valuenow="35"
+               aria-valuetext="35 € von 120 €">
+            <i style="width:29.17%"></i>
+          </div>
+          <p class="b-prog__cap">Zusammengetragen aus echten Zahlungen.</p>
+        </div>
+
+        <!-- Wähler -->
+        <div class="pk-card" data-picker="b">
+          <div class="pk-block"></div>
+        </div>
+
+        <div class="b-sign">
+          <p class="b-sign__name">Kris</p>
+          <p class="b-sign__role">Betreiber, VerseBase</p>
+          <p class="b-sign__end">Ende der Übertragung · VB-COMM/0512</p>
+        </div>
+
+        <section class="b-wall">
+          <h2><span data-wallcount>12 Unterstützer/innen</span></h2>
+          <ul data-blist></ul>
+        </section>
+      </article>
+    </main>
+
+    <!-- ====================================================================
+         C — BESATZUNG
+         ==================================================================== -->
+    <main class="v v-c" id="v-c">
+      <article class="c-doc c-wrap">
+
+        <header class="c-mast">
+          <div class="c-mast__kick">
+            <span class="cap">VerseBase</span><span class="sep"></span>
+            <span class="cap">Besatzungsliste</span><span class="sep"></span>
+            <span class="cap">Reg. VB-0512</span><span class="sep"></span>
+            <span class="cap">Stand 02.08.2026</span>
+          </div>
+          <div class="c-count">
+            <span class="c-count__n">12</span>
+            <span class="c-count__t">
+              <h1>an Bord</h1>
+              <p>Zwölf Leute halten VerseBase gerade am Laufen. Namen und Datum, sonst nichts.</p>
+            </span>
+          </div>
+        </header>
+
+        <section class="c-roster">
+          <div class="c-roster__bar">
+            <span>Reg.</span><span>Name</span><span class="rt">Eingetragen</span>
+          </div>
+          <div data-roster></div>
+        </section>
+
+        <!-- Fortschritt als Streckenteilung -->
+        <div class="c-prog" data-prog>
+          <div class="c-prog__head">
+            <span class="cap">Netzteil — Beschaffung</span>
+            <span class="c-prog__n">35 € von 120 €</span>
+          </div>
+          <div class="c-seg" role="progressbar" data-seg
+               aria-valuemin="0" aria-valuemax="120" aria-valuenow="35"
+               aria-valuetext="35 € von 120 €"></div>
+          <p class="c-prog__cap">Zusammengetragen aus echten Zahlungen. 24 Felder à 5 €.</p>
+        </div>
+
+        <section class="c-join">
+          <div class="c-join__hd">
+            <h2>Freier Platz</h2>
+            <span class="rule"></span>
+          </div>
+          <p class="c-join__why">
+            <b>Das Netzteil des Rechners, auf dem VerseBase entsteht, ist kaputt — er startet mitten in der Arbeit zufällig neu.</b>
+            Ersatz kostet rund 120 €. Wer sich einträgt, steht mit Namen und Datum auf dieser Liste — oder als „Anonymer Pilot", wenn dir das lieber ist.
+          </p>
+          <div class="pk-card" data-picker="c">
+            <div class="pk-block"></div>
+          </div>
+        </section>
+
+        <!-- ---- Zweiter Zustand: dieselbe Liste, unbeschrieben ---- -->
+        <section class="c-join" style="margin-top:clamp(44px,8cqi,72px)">
+          <p class="anno">Skizzen-Anmerkung · derselbe Bereich im Zustand „noch niemand eingetragen"</p>
+          <header class="c-mast" style="padding-top:0">
+            <div class="c-mast__kick">
+              <span class="cap">VerseBase</span><span class="sep"></span>
+              <span class="cap">Besatzungsliste</span><span class="sep"></span>
+              <span class="cap">Reg. VB-0512</span><span class="sep"></span>
+              <span class="cap">Stand 02.08.2026</span>
+            </div>
+            <div class="c-count">
+              <span class="c-count__n">0</span>
+              <span class="c-count__t">
+                <h1>an Bord</h1>
+                <p>Noch niemand auf der Wand — sei die oder der Erste.</p>
+              </span>
+            </div>
+          </header>
+          <div class="c-roster">
+            <div class="c-roster__bar">
+              <span>Reg.</span><span>Name</span><span class="rt">Eingetragen</span>
+            </div>
+            <div class="c-row c-row--blank c-row--next">
+              <span class="c-row__reg">#001</span>
+              <span class="c-row__nm"></span>
+              <span class="c-row__meta"><span class="cap">Nächster Eintrag</span></span>
+            </div>
+            <div class="c-row c-row--blank"><span class="c-row__reg">#002</span><span class="c-row__nm"></span><span class="c-row__meta"></span></div>
+            <div class="c-row c-row--blank"><span class="c-row__reg">#003</span><span class="c-row__nm"></span><span class="c-row__meta"></span></div>
+            <div class="c-row c-row--blank"><span class="c-row__reg">#004</span><span class="c-row__nm"></span><span class="c-row__meta"></span></div>
+            <div class="c-row c-row--blank"><span class="c-row__reg">#005</span><span class="c-row__nm"></span><span class="c-row__meta"></span></div>
+            <div class="c-row c-row--blank"><span class="c-row__reg">#006</span><span class="c-row__nm"></span><span class="c-row__meta"></span></div>
+          </div>
+        </section>
+      </article>
+    </main>
+
+  </div><!-- /.mk-stage -->
+</div>
+
+<p class="mk-note">
+  Wegwerf-Skizze. Schriften sind System-Platzhalter für Orbitron / Rajdhani / Barlow / Share&nbsp;Tech&nbsp;Mono.<br>
+  „Demo-Modus" entfernt die Fortschrittsanzeige aus dem DOM — nicht auf 0 % gesetzt, sondern gar nicht vorhanden (D-15).
+</p>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------------------------------------------------------------- Daten -- */
+  // Name + Datum. Niemals ein Betrag (D-16). `h` = verknüpftes Pilotenprofil.
+  var CREW = [
+    { n: 'Jordessey',      d: '2026-07-19', h: 'jordessey' },
+    { n: null,             d: '2026-07-21' },
+    { n: 'Kaltbrand',      d: '2026-07-22', h: 'kaltbrand' },
+    { n: 'Tarn Vollmer',   d: '2026-07-24' },
+    { n: null,             d: '2026-07-26' },
+    { n: 'HalNine',        d: '2026-07-27', h: 'halnine' },
+    { n: 'Sable Marrow',   d: '2026-07-29' },
+    { n: null,             d: '2026-07-30' },
+    { n: 'Quinn Aldebar',  d: '2026-07-31', h: 'quinnaldebar' },
+    { n: 'Nyx-Läufer',     d: '2026-08-01' },
+    { n: 'Hetzer',         d: '2026-08-01', h: 'hetzer' },
+    { n: null,             d: '2026-08-02' }
+  ];
+  var ANON = 'Anonymer Pilot';
+
+  function deDate(iso) { var p = iso.split('-'); return p[2] + '.' + p[1] + '.' + p[0]; }
+  function pad3(i) { return ('00' + i).slice(-3); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  /* ------------------------------------------------------- Beträge-Wähler -- */
+  // EIN Markup, drei CSS-Kleidungen. Copy wörtlich aus 05-UI-SPEC.md.
+  var PRESETS = [3, 5, 10, 25];
+
+  function pickerHTML(id) {
+    var pills = PRESETS.map(function (v) {
+      return '<label class="pk-pill">' +
+             '<input type="radio" name="amt-' + id + '" value="' + v + '"' + (v === 5 ? ' checked' : '') + '>' +
+             '<span>' + v + ' €</span></label>';
+    }).join('');
+
+    return '' +
+      '<p class="pk-demo" data-demo hidden><b>Demo-Modus.</b> Stripe ist noch nicht angebunden — diese Vorschau zeigt, wie die Seite aussehen wird, nimmt aber keine Zahlung entgegen.</p>' +
+
+      '<div>' +
+        '<span class="pk-lbl" id="lbl-amt-' + id + '">Betrag</span>' +
+        '<div class="pk-row" role="radiogroup" aria-labelledby="lbl-amt-' + id + '">' +
+          pills +
+          '<label class="pk-pill pk-free">' +
+            '<input type="radio" name="amt-' + id + '" value="custom" aria-label="Eigener Betrag">' +
+            '<span><input type="text" inputmode="decimal" maxlength="3" placeholder="frei" ' +
+              'aria-label="Eigener Betrag in Euro" data-free><em class="cur">€</em></span>' +
+          '</label>' +
+        '</div>' +
+      '</div>' +
+
+      '<div>' +
+        '<span class="pk-lbl" id="lbl-frq-' + id + '">Rhythmus</span>' +
+        '<div class="pk-row" role="radiogroup" aria-labelledby="lbl-frq-' + id + '">' +
+          '<label class="pk-pill"><input type="radio" name="frq-' + id + '" value="once" checked><span>Einmalig</span></label>' +
+          '<label class="pk-pill"><input type="radio" name="frq-' + id + '" value="month"><span>Monatlich</span></label>' +
+        '</div>' +
+      '</div>' +
+
+      '<p class="pk-err" role="alert" aria-live="assertive" data-err hidden>Bitte einen Betrag zwischen 1 € und 500 € eingeben.</p>' +
+
+      '<div>' +
+        '<button type="button" class="pk-cta" data-cta>' +
+          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M12 21s-6.7-4.35-9.3-8.6C.8 8.7 2 5 5.4 5c1.9 0 3.4 1.1 4.1 2.6C10.2 6.1 11.7 5 13.6 5 17 5 18.2 8.7 15.3 12.4 12.7 16.65 12 21 12 21z"/></svg>' +
+          '<span data-ctatxt>5 € unterstützen</span>' +
+        '</button>' +
+      '</div>' +
+
+      '<p class="pk-done" data-done hidden>' +
+        '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>' +
+        '<span>Skizze — hier übernähme Stripe Checkout.</span>' +
+      '</p>' +
+
+      '<p class="pk-honest"><b>Unterstützen, nicht Spenden:</b> Als Privatperson kann ich keine Zuwendungsbestätigung ausstellen — dein Beitrag ist steuerlich nicht absetzbar.</p>' +
+
+      '<p class="pk-kofi"><a href="#" data-kofi>Lieber über Ko-fi? →</a></p>';
+  }
+
+  function wirePicker(card) {
+    var id = card.getAttribute('data-picker');
+    var block = card.querySelector('.pk-block');
+    block.innerHTML = pickerHTML(id);
+
+    var amts   = block.querySelectorAll('input[name="amt-' + id + '"]');
+    var frqs   = block.querySelectorAll('input[name="frq-' + id + '"]');
+    var free   = block.querySelector('[data-free]');
+    var cta    = block.querySelector('[data-cta]');
+    var ctaTxt = block.querySelector('[data-ctatxt]');
+    var err    = block.querySelector('[data-err]');
+    var done   = block.querySelector('[data-done]');
+
+    function chosen() {
+      var r = block.querySelector('input[name="amt-' + id + '"]:checked');
+      if (!r) return { v: null, custom: false };
+      if (r.value === 'custom') return { v: parseInt(free.value, 10), custom: true };
+      return { v: parseInt(r.value, 10), custom: false };
+    }
+    function render() {
+      var c = chosen();
+      var m = block.querySelector('input[name="frq-' + id + '"]:checked').value === 'month';
+      var shown = (c.v && !isNaN(c.v)) ? c.v : (c.custom ? '—' : 5);
+      ctaTxt.textContent = shown + ' € ' + (m ? 'monatlich unterstützen' : 'unterstützen');
+      err.hidden = true;
+      done.hidden = true;
+    }
+
+    [].forEach.call(amts, function (r) { r.addEventListener('change', render); });
+    [].forEach.call(frqs, function (r) { r.addEventListener('change', render); });
+
+    // Freies Feld: Tippen wählt die 5. Pille, filtert auf Ziffern.
+    free.addEventListener('input', function () {
+      free.value = free.value.replace(/\D/g, '').slice(0, 3);
+      block.querySelector('input[value="custom"]').checked = true;
+      render();
+    });
+    free.addEventListener('focus', function () {
+      block.querySelector('input[value="custom"]').checked = true;
+      render();
+    });
+
+    cta.addEventListener('click', function () {
+      var c = chosen();
+      if (!c.v || isNaN(c.v) || c.v < 1 || c.v > 500) {
+        err.hidden = false; done.hidden = true;
+        if (c.custom) free.focus();
+        return;
+      }
+      err.hidden = true;
+      var keep = ctaTxt.textContent;
+      cta.disabled = true; ctaTxt.textContent = 'Wird weitergeleitet …';
+      setTimeout(function () {
+        cta.disabled = false; ctaTxt.textContent = keep; done.hidden = false;
+      }, 900);
+    });
+
+    block.querySelector('[data-kofi]').addEventListener('click', function (e) { e.preventDefault(); });
+    render();
+  }
+
+  [].forEach.call(document.querySelectorAll('[data-picker]'), wirePicker);
+
+  /* ---------------------------------------------- Unterstützer ausgeben --- */
+  // A — Protokolltabelle
+  var log = document.querySelector('[data-log]');
+  log.innerHTML = CREW.map(function (e, i) {
+    var nm = e.n
+      ? (e.h ? '<a href="#">' + esc(e.n) + '</a><span class="a-badge">Unterstützer</span>' : esc(e.n))
+      : '<span style="color:var(--muted)">' + ANON + '</span>';
+    return '<tr><td class="k">' + pad3(i + 1) + '</td><td>' + nm + '</td><td class="dt">' + e.d + '</td></tr>';
+  }).join('');
+
+  // B — stille Aufzählung
+  var blist = document.querySelector('[data-blist]');
+  blist.innerHTML = CREW.map(function (e) {
+    var nm = e.n
+      ? (e.h ? '<a href="#">' + esc(e.n) + '</a> <span class="bd">Unterstützer</span>' : esc(e.n))
+      : '<span style="color:var(--muted)">' + ANON + '</span>';
+    return '<li><span class="nm">' + nm + '</span><span class="dt">' + deDate(e.d) + '</span></li>';
+  }).join('');
+
+  // C — Besatzungsliste
+  var roster = document.querySelector('[data-roster]');
+  roster.innerHTML = CREW.map(function (e, i) {
+    var nm = e.n
+      ? (e.h ? '<a href="#">' + esc(e.n) + '</a>' : esc(e.n))
+      : '<span class="anon">' + ANON + '</span>';
+    var bd = e.h ? '<span class="c-bd">Unterstützer</span>' : '';
+    return '<div class="c-row">' +
+      '<span class="c-row__reg">#' + pad3(i + 1) + '</span>' +
+      '<span class="c-row__nm">' + nm + '</span>' +
+      '<span class="c-row__meta">' + bd + '<span class="c-row__dt">' + deDate(e.d) + '</span></span>' +
+      '</div>';
+  }).join('');
+
+  // C — Streckenteilung: 24 Felder à 5 €, 7 belegt (35 €)
+  var seg = document.querySelector('[data-seg]');
+  var html = '';
+  for (var s = 0; s < 24; s++) html += '<i' + (s < 7 ? ' class="on"' : '') + '></i>';
+  seg.innerHTML = html;
+
+  /* --------------------------------------------------- Werkzeugleiste ----- */
+  var stage = document.getElementById('stage');
+
+  // Entwurf umschalten
+  [].forEach.call(document.querySelectorAll('[data-v]'), function (b) {
+    b.addEventListener('click', function () {
+      [].forEach.call(document.querySelectorAll('[data-v]'), function (o) {
+        o.setAttribute('aria-selected', String(o === b));
+      });
+      [].forEach.call(document.querySelectorAll('.v'), function (v) {
+        v.classList.toggle('is-on', v.id === 'v-' + b.getAttribute('data-v'));
+      });
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    });
+  });
+
+  // Breite umschalten — greift über container-queries wirklich durch
+  [].forEach.call(document.querySelectorAll('[data-vp]'), function (b) {
+    b.addEventListener('click', function () {
+      var w = parseInt(b.getAttribute('data-vp'), 10);
+      [].forEach.call(document.querySelectorAll('[data-vp]'), function (o) {
+        o.setAttribute('aria-pressed', String(o === b));
+      });
+      stage.style.maxWidth = w ? w + 'px' : '100%';
+      stage.classList.toggle('is-narrow', !!w);
+    });
+  });
+
+  // Hell / Dunkel — genau wie auf der echten Seite: Attribut auf <html>
+  var tbtn = document.getElementById('mkTheme');
+  tbtn.addEventListener('click', function () {
+    var light = document.documentElement.getAttribute('data-theme') === 'light';
+    if (light) { document.documentElement.removeAttribute('data-theme'); tbtn.textContent = 'Hell'; }
+    else { document.documentElement.setAttribute('data-theme', 'light'); tbtn.textContent = 'Dunkel'; }
+    tbtn.setAttribute('aria-pressed', String(!light));
+  });
+
+  // Demo-Modus: Fortschritt WIRKLICH aus dem DOM nehmen (D-15), nicht nullen.
+  var progs = [].map.call(document.querySelectorAll('[data-prog]'), function (el) {
+    return { el: el, parent: el.parentNode, next: el.nextSibling };
+  });
+  var dbtn = document.getElementById('mkDemo');
+  var demoOn = false;
+  dbtn.addEventListener('click', function () {
+    demoOn = !demoOn;
+    dbtn.setAttribute('aria-pressed', String(demoOn));
+    progs.forEach(function (p) {
+      if (demoOn) { if (p.el.parentNode) p.el.parentNode.removeChild(p.el); }
+      else if (!p.el.parentNode) { p.parent.insertBefore(p.el, p.next); }
+    });
+    [].forEach.call(document.querySelectorAll('[data-demo]'), function (n) { n.hidden = !demoOn; });
+    // Ko-fi bleibt ausgeblendet, solange kein Name hinterlegt ist (D-05).
+    [].forEach.call(document.querySelectorAll('.pk-kofi'), function (n) { n.hidden = demoOn; });
+  });
+})();
+</script>
+</body>
+</html>
