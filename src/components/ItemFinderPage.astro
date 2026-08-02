@@ -55,8 +55,47 @@ const snap = DB.generatedAt;
    Block bewusst NACH der ".hero h1"-Regel. */
 .hero--tool{min-height:0;justify-content:flex-start;padding-top:6.4rem;padding-bottom:1.9rem;padding-left:clamp(1rem,4vw,2rem);padding-right:clamp(1rem,4vw,2rem)}
 .hero--tool h1{font-size:clamp(1.9rem,4.4vw,3.2rem)}
-/* Titel mittig. */
+/* ── Werkzeug-Kopfband „Scan" ────────────────────────────────────────────
+   Vorher: abgedunkelter Screenshot, Text drauf. Das Foto war dunkel,
+   beliebig und sagte nichts — es haette jeder Raum sein koennen.
+   Jetzt liest es sich als SENSORBILD: Duoton in der Systemfarbe, feine
+   Zeilen, harte Vignette. Das ist keine Deko, sondern die Sache selbst —
+   die Seite scannt einen Bestand von 9.788 Eintraegen.
+   Farbregel im Band, streng: Violett = Chrom und Beschriftung,
+   Bernstein = Kante und Wert. Genau so haelt es die Trefferliste darunter.
+   Keine neue Dauerbewegung: Phase 01.1 hat Ambiente-Effekte stillgelegt,
+   es bleibt bei der einmaligen heroIn-Einblendung aus detail.css. */
 .hero--tool .hero__in{text-align:center}
+/* Duoton in zwei Schichten. Die Tonwerte macht ein Filter auf dem Foto, die
+   Farbe eine eigene Ebene mit mix-blend-mode:color darueber.
+   FALLE: der Filter wirkt auf den GANZEN Teilbaum — eine Farbebene INNERHALB
+   von .hero__photo wuerde selbst entsaettigt und bliebe grau. Sie muss
+   deshalb ausserhalb liegen, als .hero--tool::before.
+   isolation:isolate haelt die Mischung im Band; ohne das mischt sie bis zum
+   naechsten Stapelkontext durch. */
+.hero--tool{isolation:isolate}
+.hero--tool .hero__photo{background-position:center 45%;filter:grayscale(1) contrast(1.24) brightness(.78)}
+.hero--tool::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;mix-blend-mode:color;background:linear-gradient(165deg,color-mix(in srgb,var(--accent) 88%,transparent),color-mix(in srgb,var(--accent-2) 42%,transparent))}
+/* Der Standard-Schleier setzt sein Sichtfenster fest auf 78% x / 18% y —
+   gebaut fuer den hohen Hero mit Titel unten LINKS. Im Band malt das links
+   Schwarz. Hier: gleichmaessig ueber die volle Breite, plus die Rasterzeilen. */
+.hero--tool .hero__photo::after{z-index:2;background:repeating-linear-gradient(180deg,transparent 0 2px,rgba(0,0,0,.22) 2px 3px),linear-gradient(180deg,color-mix(in srgb,var(--bg) 56%,transparent),color-mix(in srgb,var(--bg) 34%,transparent) 46%,var(--bg)),radial-gradient(125% 135% at 50% 42%,transparent 48%,var(--bg) 100%)}
+/* Signature: EINE Scan-Kante am Fuss des Bandes, mit violettem Schimmer
+   nach oben. Sie ist zugleich die Trennlinie zum Werkzeug — Band und
+   Trefferliste haengen dadurch zusammen, statt uebereinander zu liegen. */
+.hero--tool::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;z-index:3;background:linear-gradient(90deg,transparent,var(--accent-2) 16%,var(--accent-2) 84%,transparent);box-shadow:0 -16px 40px -12px color-mix(in srgb,var(--accent) 62%,transparent)}
+/* Zielmarke um den Titel: zwei gegenueberliegende Eckwinkel. Fuer einen
+   FINDER ist das Fadenkreuz das ehrliche Zeichen — nicht vier Winkel,
+   zwei genuegen und bleiben ruhig. */
+.uf-mark{position:relative;display:inline-block;padding:.85rem 1.25rem}
+.uf-mark::before,.uf-mark::after{content:"";position:absolute;width:18px;height:18px;border:1px solid color-mix(in srgb,var(--accent-2) 80%,transparent)}
+.uf-mark::before{top:0;left:0;border-right:0;border-bottom:0}
+.uf-mark::after{bottom:0;right:0;border-left:0;border-top:0}
+/* „Star Citizen" war eine duenne, verlorene Zeile. Jetzt eine gesperrte
+   Beschriftung in der UI-Schrift — das Register, zu dem der Katalog gehoert.
+   text-indent gleicht die Sperrung des letzten Zeichens aus, sonst sitzt die
+   Zeile beim Zentrieren sichtbar links daneben. */
+.hero--tool .uf-mark h1 .thin{font-family:var(--font-ui);font-size:.74rem;font-weight:700;letter-spacing:.44em;text-indent:.44em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);opacity:.92;margin-bottom:1em}
 /* Der Standard-Schleier (.hero__photo::after in detail.css) legt sein
    Sichtfenster fest auf 78% x / 18% y — gebaut fuer den hohen Hero, in dem der
    Titel unten LINKS stand und das Foto oben rechts durchblitzte. In einem
@@ -105,7 +144,7 @@ const snap = DB.generatedAt;
           Link darf also nicht verschwinden, wohl aber die Zeile im Kopf.
           „Star Citizen" bleibt: es steht IM h1, der damit „Star Citizen Item
           Finder" lautet — die Phrase, nach der gesucht wird. */}
-      <h1><span class="thin">Star Citizen</span>Item Finder</h1>
+      <div class="uf-mark"><h1><span class="thin">Star Citizen</span>Item Finder</h1></div>
     </div>
   </section>
 
