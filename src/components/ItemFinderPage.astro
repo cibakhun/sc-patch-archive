@@ -48,14 +48,31 @@ const snap = DB.generatedAt;
    schmales Band. Gleiche Spezifität (0,1,1) wie ".hero h1" oben — es
    gewinnt hier ausschließlich die spätere Regel, deshalb steht dieser
    Block bewusst NACH der ".hero h1"-Regel. */
-.hero--tool{min-height:0;justify-content:flex-start;padding-top:6.2rem;padding-bottom:1rem;padding-left:clamp(1rem,4vw,2rem);padding-right:clamp(1rem,4vw,2rem)}
+.hero--tool{min-height:0;justify-content:flex-start;padding-top:6.4rem;padding-bottom:1.9rem;padding-left:clamp(1rem,4vw,2rem);padding-right:clamp(1rem,4vw,2rem)}
 .hero--tool h1{font-size:clamp(1.9rem,4.4vw,3.2rem)}
+/* Titel mittig. */
+.hero--tool .hero__in{text-align:center}
+/* Der Standard-Schleier (.hero__photo::after in detail.css) legt sein
+   Sichtfenster fest auf 78% x / 18% y — gebaut fuer den hohen Hero, in dem der
+   Titel unten LINKS stand und das Foto oben rechts durchblitzte. In einem
+   schmalen Band malt genau das links Schwarz und laesst das Foto wie einen
+   abgeschnittenen Streifen rechts aussehen. Hier deshalb ein gleichmaessiger
+   Schleier ueber die volle Breite, unten auslaufend nach var(--bg) —
+   funktioniert in beiden Modi, weil er aus --bg gemischt wird. */
+.hero--tool .hero__photo{background-position:center 45%}
+.hero--tool .hero__photo::after{background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 62%,transparent),color-mix(in srgb,var(--bg) 42%,transparent) 45%,var(--bg))}
 @media (max-width:700px){
   /* Auf schmalen Schirmen bleibt weniger Höhe übrig — Polsterung nochmal senken,
      damit das Suchfeld darunter bei 375x812 im ersten Bild steht. Die feste Nav
      ist 69 px hoch, 4.4rem (79 px) lässt ihr genug Luft. */
-  .hero--tool{padding-top:4.4rem;padding-bottom:.5rem}
+  .hero--tool{padding-top:4.4rem;padding-bottom:.9rem}
   .hero--tool h1{font-size:clamp(1.7rem,7.4vw,2.2rem);margin-top:.1rem}
+  /* Auf 375 px ist der Ausschnitt so eng, dass der Titel genau auf der hellen
+     Regalkante des Fotos landet — die duenne Zeile „Star Citizen" wird darauf
+     unlesbar. Schleier deutlich staerker und der Ausschnitt tiefer, wo das
+     Motiv dunkel ist. Nachgemessen, nicht geschaetzt. */
+  .hero--tool .hero__photo{background-position:center 62%}
+  .hero--tool .hero__photo::after{background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 80%,transparent),color-mix(in srgb,var(--bg) 68%,transparent) 45%,var(--bg))}
   .uf-about{margin-top:1.2rem;padding-top:1rem;gap:.6rem}
   .uf-about__lead{font-size:.9rem;line-height:1.45}
   .uf-about__note{font-size:.82rem;line-height:1.45}
