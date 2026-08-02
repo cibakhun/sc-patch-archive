@@ -39,6 +39,7 @@ const t = {
     sortPriceAsc: 'Preis (aufsteigend)', sortPriceDesc: 'Preis (absteigend)',
     sortStat: 'Wert (hoch→niedrig)',
     modalClose: 'Schließen',
+    filtersLabel: 'Filter & Kategorien',
   },
   en: {
     searchPlaceholder: 'Search item, weapon, ship, location…',
@@ -49,6 +50,7 @@ const t = {
     sortPriceAsc: 'Price (low–high)', sortPriceDesc: 'Price (high–low)',
     sortStat: 'Value (high–low)',
     modalClose: 'Close',
+    filtersLabel: 'Filters & categories',
   },
 }[lang];
 
@@ -63,6 +65,14 @@ const JS_T = ITEM_UI[lang];
     <div class="uif-search">
       <input type="text" id="uif-search-input" placeholder={t.searchPlaceholder} autocomplete="off" />
     </div>
+
+    {/* Aufklapper fuer schmale Schirme — reines CSS (versteckte Checkbox +
+        Label + Geschwister-Selektor), kein neues Skript. Unter 901px ist die
+        Schublade beim Laden zu; am Desktop ist sie (per Media Query) immer
+        offen und weder Checkbox noch Label werden angezeigt. Geschwisterfolge
+        ist tragend: Checkbox -> Label -> .uif-filters. */}
+    <input type="checkbox" id="uif-filters-toggle" class="uif-filters-toggle" />
+    <label class="uif-filters-label" for="uif-filters-toggle">{t.filtersLabel}</label>
 
     <div class="uif-filters">
       <h3>{t.hAvailability}</h3>
@@ -150,6 +160,28 @@ const JS_T = ITEM_UI[lang];
     outline: none;
     border-color: var(--accent, #ff5e1a);
     box-shadow: 0 0 8px color-mix(in srgb, var(--accent, #ff5e1a) 40%, transparent);
+  }
+
+  /* Filterschublade (nur unter 901px, siehe @media unten): die Checkbox
+     steuert den Zustand rein per CSS, bleibt aber fokussierbar — aus dem
+     Blickfeld genommen statt display:none. */
+  .uif-filters-toggle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Label ist der sichtbare Aufklapper; standardmaessig verborgen, damit es
+     am Desktop (kein passendes @media unten) nie erscheint. */
+  .uif-filters-label { display: none; }
+
+  @media (min-width: 901px) {
+    /* Am Desktop gibt es weder Schaltflaeche noch zusaetzlichen Tabulator-
+       Halt — die Sidebar bleibt exakt wie vor der Schublade. */
+    .uif-filters-toggle,
+    .uif-filters-label { display: none; }
   }
 
   .uif-filters h3 {
@@ -680,6 +712,45 @@ const JS_T = ITEM_UI[lang];
     }
 
     .uif-category-btn { padding: 0.5rem; font-size: 0.85rem; }
+
+    /* Filterschublade: die fuenf Filtergruppen plus Kategorien-Raster
+       schoben die Ergebnisse bislang rund 700px nach unten. Standardmaessig
+       zu, mit einem Tipp offen — das Suchfeld direkt darueber bleibt immer
+       sichtbar. */
+    .uif-filters-label {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 0.9rem;
+      padding: 0.6rem 0.85rem;
+      border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
+      border-radius: 6px;
+      color: var(--text, #eef1f5);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .uif-filters-label::after {
+      content: '▾';
+      transition: transform 0.2s ease;
+    }
+
+    .uif-filters-toggle:checked ~ .uif-filters-label::after {
+      transform: rotate(180deg);
+    }
+
+    .uif-filters-toggle:focus-visible ~ .uif-filters-label {
+      outline: 2px solid var(--accent, #ff5e1a);
+      outline-offset: 2px;
+    }
+
+    /* Schublade zu, solange die Checkbox nicht angehakt ist — waechst im
+       normalen Seitenfluss, kein neuer scrollender Kasten. */
+    .uif-filters-toggle:not(:checked) ~ .uif-filters {
+      display: none;
+    }
 
     /* Mobil NICHT stapeln: als Spalte waere die klebende Leiste ~150 px hoch
        und fraesse den halben Bildschirm. Stattdessen umbrechende Zeile —
