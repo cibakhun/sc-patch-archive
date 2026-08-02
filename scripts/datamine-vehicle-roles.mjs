@@ -9,6 +9,17 @@
 // DE- UND EN-Text CIG selbst in Localization/<sprache>/global.ini liefert.
 // Das ist granularer und spielgenauer als die Wiki-Foci (siehe RESEARCH.md).
 //
+// Nachtrag 02.08.2026 (Quick-Task 260802-ose): zusätzlich SAttachableComponent-
+// Params.AttachDef.{Size,SubType} je Schiffs-Record. `Size` ist CIGs Hangar-/
+// Landeplatzklasse (1–6, KEIN Wiki-Größenwert — siehe PLAN.md der Quick-Task
+// für gemessene Abweichungen). `SubType` (Vehicle_Spaceship/Vehicle_Ground-
+// Vehicle) wird NUR informativ mitgeführt, NICHT als Bodenfahrzeug-Merkmal
+// verwendet — SubType liefert 27 statt der bestehenden 37 (isGravlevVehicle),
+// weil CIG Nox/Dragonfly/Pulse/X1/Hoverquad (Schweberäder) als
+// Vehicle_Spaceship führt. Geprüft und bewusst NICHT umgestellt, siehe
+// .planning/quick/260802-ose-groessenachse-boden-raum/SUMMARY.md.
+// `Type` bleibt bei allen Records `NOITEM_Vehicle` und wird nicht übernommen.
+//
 // Bewusst eine EIGENE Ausgabedatei statt Anreicherung von vehicles.json:
 // vehicles.json wird von `npm run sync:vehicles` aus der Wiki-API neu
 // erzeugt und würde inline eingetragene Felder überschreiben (D-02).
@@ -165,6 +176,8 @@ const SOURCES = {
   signature: 'SSCSignatureSystemParams.radarProperties.baseSignatureParams.signatures[0..2] (IR/EM/RQ); 0 bedeutet "nicht angegeben" und wird als null abgelegt (D-07)',
   'feat.cargo': 'src/data/vehicles.json cargoSCU > 0',
   'feat.ground': "VehicleComponentParams.movementClass === 'ArcadeWheeled' ODER .isGravlevVehicle === true (D-09)",
+  size: 'SAttachableComponentParams.AttachDef.Size (Hangar-/Landeplatzklasse 1–6; CIGs eigene Klasse, KEIN Wiki-Größenwert — Quick-Task 260802-ose)',
+  subType: 'SAttachableComponentParams.AttachDef.SubType (Vehicle_Spaceship/Vehicle_GroundVehicle); rein informativ, NICHT das Bodenfahrzeug-Merkmal (feat.ground) — geprüft und bewusst nicht umgestellt, siehe Quick-Task 260802-ose SUMMARY',
 };
 
 // ---- Schiff-Records + ID-Join (identisch zu datamine-ship-loadouts.mjs) ----
@@ -231,6 +244,14 @@ for (const id of idsToDo) {
   if (comp.movementClass === 'ArcadeWheeled' || comp.isGravlevVehicle === true) feat.push('ground');
   if (comp.dogfightEnabled === true) dogfightEnabledCount++;
 
+  // Quick-Task 260802-ose: SAttachableComponentParams.AttachDef.{Size,SubType}.
+  // `Type` ist bei allen Records "NOITEM_Vehicle" und wird bewusst NICHT
+  // übernommen (PLAN.md: "damit wertlos").
+  const attachComp = findType(o, /SAttachableComponentParams/i);
+  const attachDef = attachComp?.AttachDef;
+  const size = typeof attachDef?.Size === 'number' ? attachDef.Size : null;
+  const subType = attachDef?.SubType ?? null;
+
   out[id] = {
     careerKey,
     careerDe: careerLabel?.de ?? null,
@@ -242,6 +263,8 @@ for (const id of idsToDo) {
     families,
     ...(sig ? { sig } : {}),
     ...(feat.length ? { feat } : {}),
+    size,
+    subType,
   };
 }
 
@@ -301,6 +324,25 @@ console.log(`  Signatur (sig-Objekt):        ${sigCount} (davon unter 0,80: ${si
 console.log(`  Bewaffnet (dogfightEnabled):   ${dogfightEnabledCount} — NICHT als Merkmal erzeugt (D-09: siebt fast nichts aus)`);
 console.log(`  Frachtraum (feat=cargo):       ${cargoCount}`);
 console.log(`  Bodenfahrzeug (feat=ground):   ${groundCount}`);
+
+// Quick-Task 260802-ose: Größenklasse (48/82/38/22/26/7) + SubType-Stand,
+// letzterer NUR zur Nachprüfbarkeit der Abbruchbedingung (informativ, nicht
+// das Bodenfahrzeug-Merkmal).
+const sizeHisto = {}, subTypeHisto = {};
+for (const id of matched) {
+  const v = out[id];
+  if (v.size != null) sizeHisto[v.size] = (sizeHisto[v.size] || 0) + 1;
+  if (v.subType) subTypeHisto[v.subType] = (subTypeHisto[v.subType] || 0) + 1;
+}
+console.log(`\n=== GRÖSSENKLASSE (AttachDef.Size, 1–6) ===`);
+for (const n of [1, 2, 3, 4, 5, 6]) console.log(`  ${String(sizeHisto[n] || 0).padStart(4)}  Größe ${n}`);
+console.log(`\n=== SUBTYPE (AttachDef.SubType, informativ) ===`);
+for (const [k, c] of Object.entries(subTypeHisto).sort((a, b) => b[1] - a[1]))
+  console.log(`  ${String(c).padStart(4)}  ${k}`);
+const subTypeGroundOnly = matched.filter((id) => out[id].subType === 'Vehicle_GroundVehicle');
+const featGroundOnly = matched.filter((id) => (out[id].feat || []).includes('ground'));
+const diffNames = featGroundOnly.filter((id) => !subTypeGroundOnly.includes(id));
+console.log(`  Differenz feat=ground (${featGroundOnly.length}) vs. SubType=Vehicle_GroundVehicle (${subTypeGroundOnly.length}): ${diffNames.length} nur im heutigen Merkmal — ${diffNames.join(', ') || '(keine)'}`);
 
 if (!AUDIT && !ONLY) {
   writeFileSync(OUT, JSON.stringify({

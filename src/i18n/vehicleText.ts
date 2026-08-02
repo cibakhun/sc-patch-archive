@@ -20,6 +20,8 @@ type RoleEntry = {
   families: string[];
   sig?: { ir: number | null; em: number | null; cs: number | null };
   feat?: string[];
+  size?: number | null;
+  subType?: string | null;
 };
 const ROLES = (vehicleRoles as { vehicles: Record<string, RoleEntry> }).vehicles;
 
@@ -303,6 +305,24 @@ export function vSignature(id: string): { ir: number | null; em: number | null; 
   if (!sig) return { ir: null, em: null, cs: null, min: 1 };
   const min = Math.min(sig.ir ?? 1, sig.em ?? 1);
   return { ir: sig.ir ?? null, em: sig.em ?? null, cs: sig.cs ?? null, min };
+}
+/**
+ * CIG-Größenklasse (Quick-Task 260802-ose, `AttachDef.Size`, 1–6) — CIGs
+ * eigene Hangar-/Landeplatzklasse, NICHT die umgangssprachliche Größe aus
+ * `vSize`/`sizeDe` (die weicht gemessen ab, z. B. Reclaimer = Größe 6 trotz
+ * Wiki-Größe „Groß"). `null`, wenn das Fahrzeug in der Momentaufnahme fehlt
+ * (die 4 ATLS-Einträge, D-03) oder kein AttachDef trägt.
+ */
+export function vSizeClass(id: string): number | null {
+  return ROLES[id]?.size ?? null;
+}
+/**
+ * Beschriftung der Größenklasse. CIG liefert für die Zahlen 1–6 keine Namen
+ * (geprüft: global.ini kennt S/M/L nur für Hangars selbst) — deshalb bewusst
+ * die nackte Klasse, keine erfundene Kategorie ("S1 = Beiboot" wäre falsch).
+ */
+export function sizeClassLabel(n: number, lang: Locale): string {
+  return lang === 'de' ? `Größe ${n}` : `Size ${n}`;
 }
 /** Freitext-Beschreibung (EN mit DE-Fallback, solange unübersetzt) */
 export function vDesc(d: VehicleData, lang: Locale): string | null {

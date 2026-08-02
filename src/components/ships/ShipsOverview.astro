@@ -17,7 +17,7 @@ import vehiclesSnapshot from '../../data/vehicles.json';
 import vehicleRoles from '../../data/vehicle-roles.json';
 import { pickThumb } from '../../lib/shipRenders';
 import { priceInfo, pricesFetchedAt } from '../../lib/shipExtras';
-import { vType, vSize, vStatus, vRoleCig, vCareer, vRoleFamilies, vSignature, SIG_LABELS, SIG_STEPS, FEAT_LABELS } from '../../i18n/vehicleText';
+import { vType, vSize, vStatus, vRoleCig, vCareer, vRoleFamilies, vSignature, vSizeClass, sizeClassLabel, SIG_LABELS, SIG_STEPS, FEAT_LABELS } from '../../i18n/vehicleText';
 import { localeFromPath } from '../../i18n/ui';
 
 const lang = localeFromPath(Astro.url.pathname);
@@ -58,6 +58,18 @@ const roleFamilies = [...familyStand.entries()]
   .map(([slug, { label, count }]) => ({ slug, label, count }))
   .sort((a, b) => b.count - a.count);
 
+// Quick-Task 260802-ose: Größenklasse (AttachDef.Size, 1–6) als dritte Achse
+// neben Beruf/Rolle — CIGs Hangar-/Landeplatzklasse, keine Wiki-Größe.
+const sizeStand = new Map<number, number>();
+for (const v of vehicles) {
+  const n = vSizeClass(v.id);
+  if (n == null) continue;
+  sizeStand.set(n, (sizeStand.get(n) ?? 0) + 1);
+}
+const sizeClasses = [...sizeStand.entries()]
+  .sort((a, b) => a[0] - b[0])
+  .map(([n, count]) => ({ n, count, label: sizeClassLabel(n, lang) }));
+
 const flightReady = vehicles.filter((v) => v.data.statusEn === 'flight-ready').length;
 const inArchive = vehicles.filter((v) => v.data.patches.length > 0).length;
 
@@ -73,6 +85,7 @@ const cards = vehicles.map((v) => ({
     .join(' '),
   sig: vSignature(v.id),
   feat: (roleSnapshot[v.id]?.feat ?? []).join(' '),
+  size: vSizeClass(v.id),
 }));
 const buyable = cards.filter((c) => c.buy != null).length;
 
@@ -162,6 +175,10 @@ a{color:inherit;text-decoration:none}
 .sdb__qchip:hover{border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
 .sdb__qchip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);
   background:color-mix(in srgb,var(--accent) 18%,var(--veil))}
+
+/* Erklärzeile zur Größenklasse (Quick-Task 260802-ose) — dieselbe nüchterne
+   Konsolen-Zeile wie .sdb__src, direkt über der Filterkonsole. */
+.sdb__sizehint{max-width:70ch;margin:0 0 .8rem;font-size:.82rem;color:var(--muted)}
 
 /* ---------- Filter-Konsole ---------- */
 .sdb__filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin:0 0 1.4rem;padding:.9rem 1rem;
@@ -305,6 +322,11 @@ a{color:inherit;text-decoration:none}
     <button type="button" class="sdb__qchip" data-set-rolefam="abriegelung" aria-pressed="false">{de ? 'Abriegelung' : 'Interdiction'}</button>
     <button type="button" class="sdb__qchip" data-set-rolefam="rennen" aria-pressed="false">{de ? 'Rennen' : 'Racing'}</button>
   </div>
+  <p class="sdb__sizehint">
+    {de
+      ? 'Die Größenklasse (1–6) ist CIGs eigene Hangar-/Landeplatzklasse — sie bestimmt, auf welchen Landeplatz bzw. in welchen Hangar das Schiff passt, nicht die umgangssprachliche Größe.'
+      : "The size class (1–6) is CIG's own hangar/landing pad class — it determines which landing pad or hangar the ship fits, not the everyday size label."}
+  </p>
   <div class="sdb__filter">
     <input id="sf-q" type="search" placeholder={de ? 'Schiff oder Hersteller suchen…' : 'Search ship or manufacturer…'} aria-label={de ? 'Suche' : 'Search'} autocomplete="off" />
     <select id="sf-maker" aria-label={de ? 'Hersteller' : 'Manufacturer'}>
@@ -318,6 +340,10 @@ a{color:inherit;text-decoration:none}
     <select id="sf-rolefam" aria-label={de ? 'Rolle' : 'Role'}>
       <option value="">{de ? 'Alle Rollen' : 'All roles'}</option>
       {roleFamilies.map((f) => <option value={f.slug}>{f.label} ({f.count})</option>)}
+    </select>
+    <select id="sf-size" aria-label={de ? 'Größe' : 'Size'}>
+      <option value="">{de ? 'Alle Größen' : 'All sizes'}</option>
+      {sizeClasses.map((s) => <option value={s.n}>{s.label} ({s.count})</option>)}
     </select>
     <select id="sf-sig" aria-label={de ? 'Signatur' : 'Signature'}>
       <option value="">{de ? 'Alle Signaturen' : 'All signatures'}</option>
@@ -349,7 +375,7 @@ a{color:inherit;text-decoration:none}
   </div>
 
   <div class="sdb__fleet" id="sf-fleet" data-results-label={de ? 'Treffer' : 'results'}>
-    {cards.map(({ d, id, thumb, buy, career, roleFam, sig, feat }) => (
+    {cards.map(({ d, id, thumb, buy, career, roleFam, sig, feat, size }) => (
       <article
         class="fcard"
         data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
@@ -357,6 +383,7 @@ a{color:inherit;text-decoration:none}
         data-type={vType(d, lang) ?? ''}
         data-career={career}
         data-rolefam={` ${roleFam} `}
+        data-size={size ?? ''}
         data-sig={sig.min}
         data-feat={` ${feat} `}
         data-status={d.statusEn ?? ''}
@@ -392,6 +419,7 @@ a{color:inherit;text-decoration:none}
           <div class="fcard__chips">
             {vRoleCig(id, d, lang) && <span class="fcard__chip">{vRoleCig(id, d, lang)}</span>}
             {vSize(d, lang) && <span class="fcard__chip">{vSize(d, lang)}</span>}
+            {size != null && <span class="fcard__chip">{sizeClassLabel(size, lang)}</span>}
           </div>
           {sig.ir != null && (
             <div class="fcard__sig">
@@ -443,6 +471,7 @@ a{color:inherit;text-decoration:none}
   var selMaker = document.getElementById('sf-maker');
   var selCareer = document.getElementById('sf-career');
   var selRolefam = document.getElementById('sf-rolefam');
+  var selSize = document.getElementById('sf-size');
   var selSig = document.getElementById('sf-sig');
   var selFeat = document.getElementById('sf-feat');
   var selStatus = document.getElementById('sf-status');
@@ -463,7 +492,7 @@ a{color:inherit;text-decoration:none}
   function apply() {
     var nq = norm(q.value).trim();
     var m = selMaker.value, st = selStatus.value, ar = selArchive.value;
-    var ca = selCareer.value, fa = selRolefam.value, si = selSig.value, fe = selFeat.value;
+    var ca = selCareer.value, fa = selRolefam.value, sz = selSize.value, si = selSig.value, fe = selFeat.value;
     var n = 0;
     cards.forEach(function (c) {
       var ok =
@@ -471,6 +500,7 @@ a{color:inherit;text-decoration:none}
         (!m || c.getAttribute('data-maker') === m) &&
         (!ca || c.getAttribute('data-career') === ca) &&
         (!fa || c.getAttribute('data-rolefam').indexOf(' ' + fa + ' ') >= 0) &&
+        (!sz || c.getAttribute('data-size') === sz) &&
         (!si || numAttr(c, 'data-sig') < parseFloat(si)) &&
         (!fe || c.getAttribute('data-feat').indexOf(' ' + fe + ' ') >= 0) &&
         (!st || c.getAttribute('data-status') === st) &&
@@ -494,7 +524,7 @@ a{color:inherit;text-decoration:none}
     ordered.forEach(function (c) { fleet.insertBefore(c, empty); });
   }
 
-  [q, selMaker, selCareer, selRolefam, selSig, selFeat, selStatus, selArchive].forEach(function (el) {
+  [q, selMaker, selCareer, selRolefam, selSize, selSig, selFeat, selStatus, selArchive].forEach(function (el) {
     el.addEventListener('input', apply);
     el.addEventListener('change', apply);
   });
