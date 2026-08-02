@@ -30,51 +30,37 @@ const snap = DB.generatedAt;
 .hero h1{font-size:clamp(2.4rem,9vw,7rem);background:linear-gradient(180deg,var(--title-hi),#d6c6ff 58%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 3px 20px var(--on-media-shadow)) drop-shadow(0 0 30px rgba(167,139,250,.4))}
 .hero{background:radial-gradient(120% 90% at 78% 12%,rgba(167,139,250,.16),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(255,184,77,.10),transparent 55%),var(--bg)}
 .hero__in{max-width:var(--maxw)}
-.uf-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--accent-2)}
-.qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;color:var(--muted)}
+.qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;color:var(--muted)}
 .qbar b{color:var(--accent-2)}
-/* Verdichtete Meta-Zeile statt drei Bloecken (Abschnittsmarke, Hinweis,
-   Verweise) — der Inhalt bleibt vollstaendig erhalten, faltet sich nur in
-   EINE umbrechende Zeile. Nichts hier ist display:none: der Hinweis bleibt
-   sichtbarer Text, die Verweise bleiben echte <a href>. */
-.uf-toolmeta{max-width:var(--maxw);margin:0 auto .4rem;padding:0 clamp(1rem,4vw,2rem);display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem 1.4rem}
-.uf-toolmeta__h{margin:0;font-family:var(--font-ui);font-weight:800;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2)}
-.uf-toolmeta__note{margin:0;padding-left:.7rem;border-left:2px solid var(--accent-2);color:var(--muted);font-size:.86rem;line-height:1.5}
-.uf-toolmeta__note b{color:var(--text)}
-.uf-toolmeta__links{margin:0;display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;font-weight:700;font-size:.92rem}
-.uf-toolmeta__links a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--line)}
-.uf-toolmeta__links a:hover{color:var(--accent-2);border-color:var(--accent-2)}
-@media (max-width:700px){
-  /* Verweise bekommen eine eigene Zeile, statt hinter dem Hinweis zu kleben.
-     Enger gesetzt als am Desktop: auf 375 px kostet jede Zeile hier direkt
-     Platz, den unten das Werkzeug braucht. Kleiner gesetzt, nicht versteckt —
-     der Text bleibt sichtbar und indexierbar (Mobile-First-Indexierung). */
-  .uf-toolmeta{gap:.3rem .9rem;margin-bottom:.2rem}
-  .uf-toolmeta__links{flex-basis:100%;font-size:.82rem;gap:.25rem 1rem;line-height:1.4}
-  .uf-toolmeta__note{font-size:.8rem;line-height:1.4}
-}
+/* „Worum geht es hier" — steht UNTER der Trefferliste. Bewusst nicht
+   display:none und nicht ausgeklappt-versteckt: Google indexiert mobil-zuerst,
+   der Text soll gefunden werden. Er soll nur niemanden aufhalten, der sucht. */
+.uf-about{max-width:var(--maxw);margin:1.8rem auto 0;padding:1.3rem clamp(1rem,4vw,2rem) 0;border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:.8rem}
+.uf-about__lead{margin:0;max-width:74ch;color:var(--muted);font-size:.95rem;line-height:1.55}
+.uf-about__note{margin:0;padding-left:.7rem;border-left:2px solid var(--accent-2);color:var(--muted);font-size:.86rem;line-height:1.5}
+.uf-about__note b{color:var(--text)}
+.uf-about__links{margin:0;display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;font-weight:700;font-size:.92rem}
+.uf-about__links a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--line)}
+.uf-about__links a:hover{color:var(--accent-2);border-color:var(--accent-2)}
 
 /* Werkzeug-Kopfband: die Suche muss bei 1280x800 und bei 375x812 ohne
    Scrollen sichtbar sein — dafür schrumpft das Hero-Band von 92svh auf ein
    schmales Band. Gleiche Spezifität (0,1,1) wie ".hero h1" oben — es
    gewinnt hier ausschließlich die spätere Regel, deshalb steht dieser
    Block bewusst NACH der ".hero h1"-Regel. */
-.hero--tool{min-height:0;justify-content:flex-start;padding-top:6.2rem;padding-bottom:1.6rem;padding-left:clamp(1rem,4vw,2rem);padding-right:clamp(1rem,4vw,2rem)}
+.hero--tool{min-height:0;justify-content:flex-start;padding-top:6.2rem;padding-bottom:1rem;padding-left:clamp(1rem,4vw,2rem);padding-right:clamp(1rem,4vw,2rem)}
 .hero--tool h1{font-size:clamp(1.9rem,4.4vw,3.2rem)}
-.hero--tool .lead{font-size:clamp(.95rem,1.2vw,1.08rem);max-width:74ch;margin-top:.4rem}
-.hero--tool .qbar{margin-top:.9rem}
 @media (max-width:700px){
   /* Auf schmalen Schirmen bleibt weniger Höhe übrig — Polsterung nochmal senken,
      damit das Suchfeld darunter bei 375x812 im ersten Bild steht. Die feste Nav
-     ist 69 px hoch, 4.4rem (79 px) lässt ihr genug Luft.
-     Der Rest ist Dichte, keine Streichung: Lead, Kennzahlen und Titel werden
-     enger gesetzt, damit unter Suche und Filterknopf auch die Trefferzeile und
-     die erste Karte ins erste Bild rutschen. Ohne diesen Block stünde bei
-     375x812 nur Text — genau das, was hier abgeschafft werden soll. */
+     ist 69 px hoch, 4.4rem (79 px) lässt ihr genug Luft. */
   .hero--tool{padding-top:4.4rem;padding-bottom:.5rem}
   .hero--tool h1{font-size:clamp(1.7rem,7.4vw,2.2rem);margin-top:.1rem}
-  .hero--tool .lead{font-size:.9rem;line-height:1.4;margin-top:.25rem}
-  .hero--tool .qbar{margin-top:.55rem;gap:.3rem 1rem;font-size:.68rem}
+  .uf-about{margin-top:1.2rem;padding-top:1rem;gap:.6rem}
+  .uf-about__lead{font-size:.9rem;line-height:1.45}
+  .uf-about__note{font-size:.82rem;line-height:1.45}
+  .uf-about__links{font-size:.86rem;gap:.3rem 1.1rem}
+  .qbar{gap:.3rem 1rem;font-size:.68rem}
 }
 </style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
@@ -88,32 +74,35 @@ const snap = DB.generatedAt;
     <canvas id="stars" aria-hidden="true"></canvas>
     <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
-      <div class="eyebrow"><a href={de ? '/de/patches/sc-4-9-0.html' : '/patches/sc-4-9-0.html'}>Alpha 4.9</a> &nbsp;·&nbsp; <span class="uf-tag">{de ? 'Item-Datenbank' : 'Item database'}</span></div>
+      {/* Im Kopf steht nur noch, wo man ist. Alles Erklaerende steht unter dem
+          Werkzeug (.uf-about) — der Besucher kommt zum Suchen, nicht zum Lesen.
+          Die Marke „Item-Datenbank" stand hier ein zweites Mal und ist raus. */}
+      <div class="eyebrow"><a href={de ? '/de/patches/sc-4-9-0.html' : '/patches/sc-4-9-0.html'}>Alpha 4.9</a></div>
       <h1><span class="thin">Star Citizen</span>Item Finder</h1>
-      <p class="lead">{de ? 'Jedes Item in Star Citizen: Kaufpreise, Shop-Orte und Loot-Guides — ein universeller Finder.' : 'Every item in Star Citizen: buy prices, shop locations and loot guides — one universal finder.'}</p>
-      <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch <b>4.9</b></span><span>{de ? 'Stand' : 'As of'} <b>{snap}</b></span></div>
     </div>
   </section>
 
-  {/* Verdichtet, nicht entfernt — Phase 01.2 haengt hier spaeter die
-      aufklappbare Zweck- und Bedienungshilfe an. */}
-  <div class="uf-toolmeta reveal">
-    <h2 class="uf-toolmeta__h">{de ? 'Item-Datenbank' : 'Item database'}</h2>
-    <p class="uf-toolmeta__note">{de ? 'Preise ' : 'Prices '}&amp;{de ? ' Fundorte sind ' : ' locations are '}<b>{de ? 'Patch-volatil — ingame prüfen' : 'patch-volatile — verify in game'}</b> {de ? `(Preisstand: ${DB.pricesAsOf}).` : `(prices as of ${DB.pricesAsOf}).`}</p>
-    <p class="uf-toolmeta__links">
-      {/* Krabbelbarer Weg in die Datenschicht: der Finder selbst lädt seine
-          Items per JavaScript nach, die Verzeichnis-Seiten sind statisches
-          HTML. /armor-sets.html steht bewusst NICHT hier: die Sets sind
-          jetzt eine Ansicht im Finder selbst. Die Seite bleibt indexierbar
-          und ist Ziel der Set-Links aus Modal und Datenblatt — sie braucht
-          nur keinen zweiten Einstieg direkt neben dem Werkzeug, das
-          dasselbe besser kann. */}
+  <ItemFinderApp lang={lang} />
+
+  {/* Unter dem Werkzeug, nicht davor: Lead, Kennzahlen, Volatilitaets-Hinweis
+      und die beiden Verzeichnis-Verweise. Nichts davon braucht man zum Bedienen,
+      aber alles bleibt sichtbarer Text bzw. echte <a href> im statischen HTML —
+      die Verweise sind der krabbelbare Weg zu ~17.000 Unterseiten, ihre Position
+      im Dokument ist dafuer egal, ihr Vorhandensein nicht.
+      Phase 01.2 haengt hier spaeter die aufklappbare Bedienungshilfe an. */}
+  <aside class="uf-about">
+    <p class="uf-about__lead">{de ? 'Jedes Item in Star Citizen: Kaufpreise, Shop-Orte und Loot-Guides — ein universeller Finder.' : 'Every item in Star Citizen: buy prices, shop locations and loot guides — one universal finder.'}</p>
+    <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch <b>4.9</b></span><span>{de ? 'Stand' : 'As of'} <b>{snap}</b></span></div>
+    <p class="uf-about__note">{de ? 'Preise ' : 'Prices '}&amp;{de ? ' Fundorte sind ' : ' locations are '}<b>{de ? 'Patch-volatil — ingame prüfen' : 'patch-volatile — verify in game'}</b> {de ? `(Preisstand: ${DB.pricesAsOf}).` : `(prices as of ${DB.pricesAsOf}).`}</p>
+    <p class="uf-about__links">
+      {/* /armor-sets.html steht bewusst NICHT hier: die Sets sind jetzt eine
+          Ansicht im Finder selbst. Die Seite bleibt indexierbar und ist Ziel
+          der Set-Links aus Modal und Datenblatt — sie braucht nur keinen
+          zweiten Einstieg neben dem Werkzeug, das dasselbe besser kann. */}
       <a href={de ? '/de/items.html' : '/items.html'}>{de ? 'Alle Items nach Kategorie →' : 'Browse every item by category →'}</a>
       <a href={de ? '/de/crafting.html' : '/crafting.html'}>{de ? 'Blueprint-Verzeichnis →' : 'Blueprint directory →'}</a>
     </p>
-  </div>
-
-  <ItemFinderApp lang={lang} />
+  </aside>
 </main>
 
 <Attribution sources={["UEX"]} updated={snap} />
