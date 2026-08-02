@@ -150,13 +150,23 @@ for (const r of rows) {
   }
 }
 
+// Der Bestand aendert sich NUR, wenn sich Daten geaendert haben — kein
+// Lauf-Zaehler, kein „zuletzt gelaufen". Sonst schriebe jeder stuendliche Lauf
+// die Datei neu und erzeugte einen leeren Commit; 24 am Tag, die nichts sagen.
+// Wann gelaufen wurde, steht im Protokoll des Aufrufers, nicht in den Daten.
+const etwasGeaendert = neu > 0 || preisAenderungen > 0 || verkauftHeute.length > 0;
+if (!etwasGeaendert && existsSync(OUT)) {
+  console.log(`${TODAY} — ${rows.length} Inserate geprueft, nichts Neues. Bestand unveraendert.`);
+  process.exit(0);
+}
+
 const alle = Object.values(store.listings);
 store.meta = {
   source: 'UEX Corp (uexcorp.space) /2.0/marketplace_listings — Spieler-Inserate, ANGEBOTSpreise.',
   note: 'Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.',
-  firstRun: store.meta.firstRun || TODAY,
-  lastRun: TODAY,
-  runs: (store.meta.runs || 0) + 1,
+  firstSeen: store.meta.firstSeen || store.meta.firstRun || TODAY,
+  lastChange: TODAY,
+  updates: (store.meta.updates || 0) + 1,
   totalListings: alle.length,
   totalSold: alle.filter((l) => l.soldOut).length,
   distinctItems: new Set(alle.map((l) => l.idItem).filter(Boolean)).size,
@@ -172,7 +182,7 @@ store.listings = sortiert;
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(OUT, JSON.stringify(store, null, 1));
 
-console.log(`Lauf ${store.meta.runs} (${TODAY}) — ${rows.length} Inserate abgerufen`);
+console.log(`${TODAY} — ${rows.length} Inserate abgerufen (Aenderung Nr. ${store.meta.updates})`);
 console.log(`  neu:              ${neu}`);
 console.log(`  Preis geaendert:  ${preisAenderungen}`);
 console.log(`  neu als verkauft: ${verkauftHeute.length}`);
