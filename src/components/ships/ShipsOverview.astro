@@ -26,7 +26,6 @@ const vehicles = (await getCollection('vehicles')).sort((a, b) =>
   a.data.name.localeCompare(b.data.name, localeTag)
 );
 const makers = [...new Set(vehicles.map((v) => v.data.manufacturer).filter(Boolean))].sort() as string[];
-const types = [...new Set(vehicles.map((v) => vType(v.data, lang)).filter(Boolean))].sort() as string[];
 const roles = ([...new Set(vehicles.map((v) => vRoleCig(v.id, v.data, lang)).filter(Boolean))] as string[]).sort(
   (a, b) => a.localeCompare(b, localeTag)
 );
@@ -145,6 +144,22 @@ a{color:inherit;text-decoration:none}
 
 /* ---------- Inhalt (Filter + Grid) ---------- */
 .sdb__panel{max-width:var(--maxw);margin:0 auto;padding:2rem clamp(1rem,3vw,2.5rem) 4rem}
+
+/* ---------- Schnellzugriff-Leiste (D-10) ---------- */
+/* Macht die Kombinationsfaehigkeit der Filterkonsole sichtbar: ein Klick
+   setzt Rollenfamilie und, bei den ersten beiden Chips, zusaetzlich die
+   Signaturstufe (ROLE-06). Eigene Klassennamen, weil .fcard__chip bereits
+   fuer die Rollen-/Groessen-Pille auf der Karte vergeben ist (siehe
+   assets/mobile-ux.css Zeilen 409-433). */
+.sdb__quick{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:0 0 .8rem}
+.sdb__quicklabel{font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);margin-right:.2rem}
+.sdb__qchip{font-family:var(--font-ui);font-weight:600;font-size:.82rem;color:var(--text);
+  background:var(--veil);border:1px solid var(--line);padding:.4rem .8rem;min-height:32px;
+  cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease}
+.sdb__qchip:hover{border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
+.sdb__qchip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 18%,var(--veil))}
 
 /* ---------- Filter-Konsole ---------- */
 .sdb__filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin:0 0 1.4rem;padding:.9rem 1rem;
@@ -278,23 +293,29 @@ a{color:inherit;text-decoration:none}
   </section>
 
   <div class="sdb__panel">
+  <div class="sdb__quick">
+    <span class="sdb__quicklabel">{de ? 'Schnellzugriff' : 'Quick access'}</span>
+    <button type="button" class="sdb__qchip" data-set-rolefam="bomber" data-set-sig="1" aria-pressed="false">{de ? 'Tarnkappenbomber' : 'Stealth Bomber'}</button>
+    <button type="button" class="sdb__qchip" data-set-rolefam="frachttransport" data-set-sig="1" aria-pressed="false">{de ? 'Frachter mit gesenkter Signatur' : 'Cargo, reduced signature'}</button>
+    <button type="button" class="sdb__qchip" data-set-rolefam="bergbau" aria-pressed="false">{de ? 'Bergbau' : 'Mining'}</button>
+    <button type="button" class="sdb__qchip" data-set-rolefam="bergung" aria-pressed="false">{de ? 'Bergung' : 'Salvage'}</button>
+    <button type="button" class="sdb__qchip" data-set-rolefam="betankung" aria-pressed="false">{de ? 'Betankung' : 'Refueling'}</button>
+    <button type="button" class="sdb__qchip" data-set-rolefam="abriegelung" aria-pressed="false">{de ? 'Abriegelung' : 'Interdiction'}</button>
+    <button type="button" class="sdb__qchip" data-set-rolefam="rennen" aria-pressed="false">{de ? 'Rennen' : 'Racing'}</button>
+  </div>
   <div class="sdb__filter">
     <input id="sf-q" type="search" placeholder={de ? 'Schiff oder Hersteller suchen…' : 'Search ship or manufacturer…'} aria-label={de ? 'Suche' : 'Search'} autocomplete="off" />
     <select id="sf-maker" aria-label={de ? 'Hersteller' : 'Manufacturer'}>
       <option value="">{de ? 'Alle Hersteller' : 'All manufacturers'}</option>
       {makers.map((m) => <option value={m}>{m}</option>)}
     </select>
-    <select id="sf-type" aria-label={de ? 'Typ' : 'Type'}>
-      <option value="">{de ? 'Alle Typen' : 'All types'}</option>
-      {types.map((tp) => <option value={tp}>{tp}</option>)}
+    <select id="sf-career" aria-label={de ? 'Beruf' : 'Career'}>
+      <option value="">{de ? 'Alle Berufe' : 'All careers'}</option>
+      {careers.map((c) => <option value={c.key}>{c.label}</option>)}
     </select>
     <select id="sf-role" aria-label={de ? 'Rolle' : 'Role'}>
       <option value="">{de ? 'Alle Rollen' : 'All roles'}</option>
       {roles.map((r) => <option value={r}>{r}</option>)}
-    </select>
-    <select id="sf-career" aria-label={de ? 'Beruf' : 'Career'}>
-      <option value="">{de ? 'Alle Berufe' : 'All careers'}</option>
-      {careers.map((c) => <option value={c.key}>{c.label}</option>)}
     </select>
     <select id="sf-rolefam" aria-label={de ? 'Rollenfamilie' : 'Role family'}>
       <option value="">{de ? 'Alle Rollenfamilien' : 'All role families'}</option>
@@ -329,7 +350,7 @@ a{color:inherit;text-decoration:none}
     <span class="sdb__count" id="sf-count">{vehicles.length} {de ? 'Treffer' : 'results'}</span>
   </div>
 
-  <div class="sdb__fleet" id="sf-fleet">
+  <div class="sdb__fleet" id="sf-fleet" data-results-label={de ? 'Treffer' : 'results'}>
     {cards.map(({ d, id, thumb, buy, career, roleFam, sig, feat }) => (
       <article
         class="fcard"
@@ -417,13 +438,12 @@ a{color:inherit;text-decoration:none}
   </div>
 </main>
 
-<script is:inline set:html={`window.__SDB=${JSON.stringify({ resultsLabel: de ? 'Treffer' : 'results' })};`} />
 <script is:inline>
 (function () {
-  var RESULTS_LABEL = (window.__SDB && window.__SDB.resultsLabel) || 'results';
+  var fleet = document.getElementById('sf-fleet');
+  var RESULTS_LABEL = fleet.getAttribute('data-results-label') || 'results';
   var q = document.getElementById('sf-q');
   var selMaker = document.getElementById('sf-maker');
-  var selType = document.getElementById('sf-type');
   var selRole = document.getElementById('sf-role');
   var selCareer = document.getElementById('sf-career');
   var selRolefam = document.getElementById('sf-rolefam');
@@ -434,7 +454,6 @@ a{color:inherit;text-decoration:none}
   var selSort = document.getElementById('sf-sort');
   var count = document.getElementById('sf-count');
   var empty = document.getElementById('sf-empty');
-  var fleet = document.getElementById('sf-fleet');
   var cards = [].slice.call(fleet.querySelectorAll('.fcard'));
 
   var norm = function (s) {
@@ -447,14 +466,13 @@ a{color:inherit;text-decoration:none}
 
   function apply() {
     var nq = norm(q.value).trim();
-    var m = selMaker.value, t = selType.value, ro = selRole.value, st = selStatus.value, ar = selArchive.value;
+    var m = selMaker.value, ro = selRole.value, st = selStatus.value, ar = selArchive.value;
     var ca = selCareer.value, fa = selRolefam.value, si = selSig.value, fe = selFeat.value;
     var n = 0;
     cards.forEach(function (c) {
       var ok =
         (!nq || norm(c.getAttribute('data-q')).indexOf(nq) >= 0) &&
         (!m || c.getAttribute('data-maker') === m) &&
-        (!t || c.getAttribute('data-type') === t) &&
         (!ro || c.getAttribute('data-role') === ro) &&
         (!ca || c.getAttribute('data-career') === ca) &&
         (!fa || c.getAttribute('data-rolefam').indexOf(' ' + fa + ' ') >= 0) &&
@@ -481,11 +499,41 @@ a{color:inherit;text-decoration:none}
     ordered.forEach(function (c) { fleet.insertBefore(c, empty); });
   }
 
-  [q, selMaker, selType, selRole, selCareer, selRolefam, selSig, selFeat, selStatus, selArchive].forEach(function (el) {
+  [q, selMaker, selRole, selCareer, selRolefam, selSig, selFeat, selStatus, selArchive].forEach(function (el) {
     el.addEventListener('input', apply);
     el.addEventListener('change', apply);
   });
   selSort.addEventListener('change', sort);
+
+  // Schnellzugriff-Chips (D-10, ROLE-06): je ein Klick setzt Rollenfamilie
+  // und (bei den ersten beiden) zusaetzlich die Signaturstufe, danach apply().
+  // Ein zweiter Klick auf den aktiven Chip stellt beide Achsen zurueck.
+  // .value = ... loest kein change-Event aus -- der Reset-Listener unten
+  // (bei manueller Aenderung von sf-rolefam/sf-sig) greift hier also nicht.
+  var quickChips = [].slice.call(document.querySelectorAll('.sdb__qchip'));
+  function clearChipState() {
+    quickChips.forEach(function (c) { c.setAttribute('aria-pressed', 'false'); });
+  }
+  quickChips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      var wasActive = chip.getAttribute('aria-pressed') === 'true';
+      clearChipState();
+      if (wasActive) {
+        selRolefam.value = '';
+        selSig.value = '';
+      } else {
+        selRolefam.value = chip.getAttribute('data-set-rolefam') || '';
+        selSig.value = chip.getAttribute('data-set-sig') || '';
+        chip.setAttribute('aria-pressed', 'true');
+      }
+      apply();
+    });
+  });
+  // Handaenderung an Rollenfamilie/Signatur entwertet eine zuvor aktive
+  // Chip-Anzeige -- sonst behauptet die Leiste einen Zustand, der nicht mehr gilt.
+  [selRolefam, selSig].forEach(function (el) {
+    el.addEventListener('change', clearChipState);
+  });
 
   // ganze Karte klickbar (innere Links funktionieren weiter)
   cards.forEach(function (c) {
