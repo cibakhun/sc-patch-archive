@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-03",
-  "updates": 20,
-  "totalListings": 1496,
-  "totalSold": 48,
-  "distinctItems": 604
+  "updates": 21,
+  "totalListings": 1509,
+  "totalSold": 50,
+  "distinctItems": 605
  },
  "listings": {
   "156580": {
@@ -23548,6 +23548,10 @@
     {
      "d": "2026-08-03",
      "p": 7000000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 4000000
     }
    ],
    "soldOut": false,
@@ -24262,6 +24266,10 @@
     {
      "d": "2026-08-03",
      "p": 10000000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -24348,9 +24356,9 @@
      "p": 7000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 7000000,
    "dateAdded": 1785732469,
    "dateExpiration": 1790916469
   },
@@ -24493,6 +24501,10 @@
     {
      "d": "2026-08-03",
      "p": 40000000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 30000000
     }
    ],
    "soldOut": false,
@@ -25950,6 +25962,10 @@
     {
      "d": "2026-08-03",
      "p": 0
+    },
+    {
+     "d": "2026-08-03",
+     "p": 1500000
     }
    ],
    "soldOut": false,
@@ -26926,9 +26942,9 @@
      "p": 400000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 400000,
    "dateAdded": 1785756833,
    "dateExpiration": 1790940832
   },
@@ -29733,6 +29749,10 @@
     {
      "d": "2026-08-03",
      "p": 22000000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 20000000
     }
    ],
    "soldOut": false,
@@ -29796,6 +29816,10 @@
     {
      "d": "2026-08-03",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 18000000
     }
    ],
    "soldOut": false,
@@ -31568,6 +31592,27 @@
    "dateAdded": 1785786590,
    "dateExpiration": 1790970590
   },
+  "158181": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "WTS MG Scrip | FAST RESPONSE",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 2000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785786648,
+   "dateExpiration": 1790970648
+  },
   "158182": {
    "idItem": null,
    "idCategory": 38,
@@ -31609,6 +31654,258 @@
    "soldOutPrice": null,
    "dateAdded": 1785786781,
    "dateExpiration": 1790970781
+  },
+  "158184": {
+   "idItem": 5805,
+   "idCategory": 7,
+   "title": "Geist Armor ASD Edition Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785787305,
+   "dateExpiration": 1790971304
+  },
+  "158185": {
+   "idItem": 799,
+   "idCategory": 29,
+   "title": "Hofstede-S2 Mining Laser",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 23500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785787316,
+   "dateExpiration": 1790971316
+  },
+  "158186": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper (917 Quality, 0.935 SCU)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 917,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785787666,
+   "dateExpiration": 1790971665
+  },
+  "158187": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 7500
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785788102,
+   "dateExpiration": 1790972102
+  },
+  "158189": {
+   "idItem": 2167,
+   "idCategory": 17,
+   "title": "Black Prism (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785788643,
+   "dateExpiration": 1790972643
+  },
+  "158190": {
+   "idItem": 1673,
+   "idCategory": 18,
+   "title": "WTS Karna Rifle 900Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785788646,
+   "dateExpiration": 1790972646
+  },
+  "158191": {
+   "idItem": 221,
+   "idCategory": 17,
+   "title": "Gamma Duo (2x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785788712,
+   "dateExpiration": 1790972712
+  },
+  "158192": {
+   "idItem": 7592,
+   "idCategory": 17,
+   "title": "Escalate Stabilizer3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785788793,
+   "dateExpiration": 1790972793
+  },
+  "158193": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785788828,
+   "dateExpiration": 1790972828
+  },
+  "158194": {
+   "idItem": 63,
+   "idCategory": 17,
+   "title": "Tacit Suppressor2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785788897,
+   "dateExpiration": 1790972897
+  },
+  "158196": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785789351,
+   "dateExpiration": 1790973351
+  },
+  "158197": {
+   "idItem": 5330,
+   "idCategory": 17,
+   "title": "Quell Suppressor2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785789723,
+   "dateExpiration": 1790973723
   }
  }
 }
