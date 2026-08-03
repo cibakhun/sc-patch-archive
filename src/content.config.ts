@@ -242,7 +242,7 @@ const vehicles = defineCollection({
     pledgeUrl: z.string().nullable().default(null),
     /** patch-spine: versions in OUR archive that introduced/touched it —
      *  computed in scripts/datamine-vehicles.mjs since 01.4-05 (D-19; moved
-     *  out of the now-deleted scripts/sync-vehicles.mjs). */
+     *  out of the now-deleted Wiki vehicle-sync script). */
     patches: z.array(z.string()),
     gameVersion: z.string().nullable(),
     /** ship image — frozen from the Wiki media snapshot (src/data/vehicle-

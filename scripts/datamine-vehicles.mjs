@@ -1,9 +1,10 @@
 // datamine-vehicles.mjs — Fahrzeug-Katalog direkt aus den Spieldateien.
 //
-// ZWECK: löst sync-vehicles.mjs (Star-Citizen-Wiki-API) ab. Die Wiki ist selbst
-// nur ein Spiegel der Spieldaten — sie hinkt hinterher (nennt den Buccaneer
-// „Interdiction", das Spiel „Light Fighter") und verliert Präzision, wo sie über
-// Anzeigenamen joint (siehe enrich-weapon-sizes.mjs).
+// ZWECK: löst das frühere Wiki-Sync-Skript (Star-Citizen-Wiki-API, D-16
+// gelöscht) ab. Die Wiki ist selbst nur ein Spiegel der Spieldaten — sie
+// hinkt hinterher (nennt den Buccaneer „Interdiction", das Spiel „Light
+// Fighter") und verlor Präzision, wo sie über Anzeigenamen joint (das frühere
+// Anreicherungsskript für Waffengrößen, ebenfalls gelöscht).
 //
 // QUELLEN — drei Ebenen, alle in der Data.p4k:
 //   1. DataCore (Game2.dcb): Identität, Rolle/Fokus, Besatzung, Versicherung,
@@ -41,11 +42,11 @@
 // vergleicht künftig genau diese zwei: den frischen Lauf gegen den zuletzt
 // committeten Katalog — derselbe Zweck wie vorher (Feld-für-Feld-Vergleich vor
 // dem Übernehmen), nur ist der Bezugspunkt nicht mehr die Wiki, sondern der
-// eigene letzte Stand. sync-vehicles.mjs (Wiki-API) ist gelöscht (D-16).
+// eigene letzte Stand. Das frühere Wiki-Sync-Skript ist gelöscht (D-16).
 //
-// Patch-Rückgrat (patches[], D-19): diese Rechnung stand bis 01.4-05 in
-// sync-vehicles.mjs und ist mit dessen Löschung hierher umgezogen (samt
-// SPINE_ALIAS, unverändert) — s. Abschnitt PATCH-RÜCKGRAT unten.
+// Patch-Rückgrat (patches[], D-19): diese Rechnung stand bis 01.4-05 im
+// frueheren Wiki-Sync-Skript und ist mit dessen Löschung hierher umgezogen
+// (samt SPINE_ALIAS, unverändert) — s. Abschnitt PATCH-RÜCKGRAT unten.
 //
 // Aufruf: node scripts/datamine-vehicles.mjs [--p4k <Data.p4k>] [--ship <id>]
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
@@ -67,15 +68,15 @@ const norm = (s) => (s || '').replace(/\\/g, '/');
 const round = (n, d = 1) => (n == null ? null : Math.round(n * 10 ** d) / 10 ** d);
 
 /* ---------------------------------------------------------------- */
-/* PATCH-RÜCKGRAT (01.4-05, D-19): umgezogen aus sync-vehicles.mjs,      */
-/* UNVERÄNDERT (strip() + SPINE_ALIAS + Join-Regel). `patches[]` ist    */
-/* KEINE Spieldaten-Angabe — sie verknüpft einen Katalog-Eintrag mit     */
-/* jeder Patch-Seite, die ihn nennt (src/data/patches/*.json). Zieht    */
-/* dieser Block mit dem Skript, das ihn berechnet hatte (sync-vehicles  */
-/* .mjs, D-16), verlieren alle heute verknüpften Fahrzeuge ihre Archiv- */
-/* Verweise — ein leeres patches:[] ist syntaktisch gültig, KEIN Fehler,*/
-/* der beim Bauen auffiele. Deshalb: Rechnung zuerst umziehen, dann erst*/
-/* (Task 3) das alte Skript löschen.                                    */
+/* PATCH-RÜCKGRAT (01.4-05, D-19): umgezogen aus dem frueheren           */
+/* Wiki-Sync-Skript, UNVERÄNDERT (strip() + SPINE_ALIAS + Join-Regel).   */
+/* `patches[]` ist KEINE Spieldaten-Angabe — sie verknüpft einen         */
+/* Katalog-Eintrag mit jeder Patch-Seite, die ihn nennt                  */
+/* (src/data/patches/*.json). Zieht dieser Block mit dem Skript, das ihn */
+/* berechnet hatte (D-16, gelöscht), verlieren alle heute verknüpften    */
+/* Fahrzeuge ihre Archiv-Verweise — ein leeres patches:[] ist syntaktisch*/
+/* gültig, KEIN Fehler, der beim Bauen auffiele. Deshalb: Rechnung       */
+/* zuerst umziehen, dann erst (Task 3) das alte Skript löschen.          */
 /* ---------------------------------------------------------------- */
 const SPINE_MAKERS = ['rsi', 'drake', 'aegis', 'anvil', 'mirai', 'gatac', 'argo', 'misc', 'origin', 'crusader', 'esperia', 'kruger', 'banu', 'aopoa', 'vanduul'];
 function stripSpine(name) {
@@ -751,7 +752,7 @@ function buildVehicle(id) {
     cmLaunchers,
     components: comp,
     gameVersion: GAME_VERSION,
-    // Patch-Rückgrat (D-19): umgezogen aus sync-vehicles.mjs, s. o.
+    // Patch-Rückgrat (D-19): umgezogen aus dem frueheren Wiki-Sync-Skript, s. o.
     patches: spineFor(finalName),
   };
 }

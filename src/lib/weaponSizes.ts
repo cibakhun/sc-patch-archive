@@ -1,8 +1,8 @@
 // Waffengröße je Waffenname — global aus dem Fahrzeug-Snapshot gelöst.
 //
 // STAND 01.4-05 (der Tausch): der Spieldaten-Katalog trägt die Größe direkt an
-// jeder Waffe (`fixedWeapons[].size`/`turretWeapons[].size`) — die Wiki-Kette
-// (sync-vehicles.mjs + enrich-weapon-sizes.mjs), die Name<->Größe erst über ein
+// jeder Waffe (`fixedWeapons[].size`/`turretWeapons[].size`) — die frühere
+// Wiki-Kette (Sync- und Anreicherungs-Skript), die Name<->Größe erst über ein
 // Gleichungssystem zurückrechnen musste, ist gelöscht (D-16). Diese Datei baut
 // jetzt nur noch eine einfache Name->Größe-Tabelle aus den bereits vollständigen
 // Werten; die Fixpunkt-Iteration entfällt. Der exportierte Vertrag

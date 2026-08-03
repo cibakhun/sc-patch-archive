@@ -11,7 +11,6 @@
     "verify": "node scripts/_verify.mjs",
     "verify:vendor": "node scripts/verify-vendor-three.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",
-    "sync:vehicles": "node scripts/sync-vehicles.mjs",
     "sync:prices": "node scripts/sync-prices.mjs",
     "sync:mining": "node scripts/datamine-mining.mjs && node scripts/datamine-locations.mjs && node scripts/datamine-gear.mjs && node scripts/build-mining-model.mjs && node scripts/build-mining-db.mjs && node scripts/_sync-assets.mjs",
     "datamine:gear": "node scripts/datamine-gear.mjs",

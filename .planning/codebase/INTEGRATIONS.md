@@ -7,9 +7,15 @@ Architectural rule (`astro.config.mjs` header comment): **all game data is baked
 ## APIs & External Services
 
 **Build-time data sources (`scripts/`, run manually or via the Build workflow):**
-- Star Citizen Wiki API (`https://api.star-citizen.wiki`) - Vehicle catalog + weapon-size enrichment
-  - Clients: `scripts/sync-vehicles.mjs`, `scripts/enrich-weapon-sizes.mjs`, `scripts/verify-item-prices.mjs`
+- Star Citizen Wiki API (`https://api.star-citizen.wiki`) - residual client only
+  - Clients: `scripts/verify-item-prices.mjs`
   - Auth: none (public)
+  - **01.4-05:** the vehicle-catalog client (`scripts/sync-vehicles.mjs`) and the
+    weapon-size enrichment client (`scripts/enrich-weapon-sizes.mjs`) are both
+    deleted (D-16). `src/data/vehicles.json` now comes from the project's own
+    `Data.p4k` extraction (`scripts/datamine-vehicles.mjs`, local-only, cannot
+    run in CI); the Wiki API is no longer an integration for the vehicle
+    catalog.
 - FleetYards API (`https://api.fleetyards.net`) - Ship specs, 3D/paints/variants extras
   - Clients: `scripts/sync-ships.mjs`, `scripts/sync-fleetyards-extras.mjs`
   - Auth: none (public)
@@ -81,7 +87,7 @@ Architectural rule (`astro.config.mjs` header comment): **all game data is baked
 **CI Pipeline:**
 - `.github/workflows/deploy-image.yml` - on push to `main`: build+push `ghcr.io/cibakhun/sc-patch-archive:{latest,sha}`, then trigger the Coolify deploy webhook
 - `.github/workflows/deploy-bot-image.yml` - path-filtered (`discord/bot/**`, `src/data/**`, `assets/manufacturers/**`) build+push of the bot image, separate Coolify webhook
-- `.github/workflows/build.yml` - manual "Build button": runs `sync:vehicles`, `sync:ships`, `sync:prices`, `sync:extras` (each `continue-on-error: true` → last-good-snapshot principle), commits refreshed `src/data`, builds, runs `scripts/_verify.mjs`, uploads `dist` as an artifact
+- `.github/workflows/build.yml` - manual "Build button": runs `sync:ships`, `sync:prices`, `sync:extras` (each `continue-on-error: true` → last-good-snapshot principle; the vehicle catalog is NOT part of this workflow since 01.4-05 — it needs the local `Data.p4k`), commits refreshed `src/data`, builds, runs `scripts/_verify.mjs`, uploads `dist` as an artifact
 
 ## Environment Configuration
 
