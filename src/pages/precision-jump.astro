@@ -49,7 +49,11 @@ const bandCount = bands.length;
    die Kennzahlenreihe war die Schablone, die diese Kategorie immer baut. */
 /* ── Titelei ── volle Breite, darunter beginnt der zweispaltige Satzspiegel */
 /* Kompakt: der Kopf darf das Werkzeug nicht unter die Falz schieben. */
-.alm{max-width:var(--maxw);margin:0 auto;padding:clamp(1.2rem,3vw,2rem) clamp(1.25rem,5vw,3rem) 0}
+/* Der Titelkopf begann bei y=0 — die Reihenzeile („Mining ›") lag damit
+   vollstaendig hinter der festen Kopfleiste, und der Titel begann 9 px
+   darunter. --nav-h ist der von SiteNav veroeffentlichte Freiraum (Leiste
+   plus die frei haengende Zurueck-Marke, falls vorhanden). */
+.alm{max-width:var(--maxw);margin:0 auto;padding:calc(var(--nav-h, 68px) + clamp(1.2rem,3vw,2rem)) clamp(1.25rem,5vw,3rem) 0}
 .alm__series{font-family:var(--font-ui);font-size:.84rem;color:var(--muted);margin:0 0 .7rem}
 .alm__series a{color:var(--muted);border-bottom:1px solid var(--line)}
 .alm__series a:hover{color:var(--accent);border-bottom-color:var(--accent)}
