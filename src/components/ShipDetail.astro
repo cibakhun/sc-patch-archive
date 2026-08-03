@@ -651,6 +651,12 @@ a{color:inherit;text-decoration:none}
 .holo__hud b{color:var(--accent);font-weight:700}
 .holo__dims{position:absolute;top:26px;right:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:.78rem;
   letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:right}
+/* Die Buehne liegt bewusst randlos UNTER der Kopfleiste. Haengt dort die
+   freie Zurueck-Marke (SiteNav, ~101 px hinunter), laege sie genau auf
+   „HANGAR // <Hersteller>". Die HUD-Zeile rueckt dann als PAAR nach unten —
+   .holo__dims gegenueber muss auf gleicher Hoehe bleiben. */
+:root:has(.snav__back:not([hidden])) .holo__hud,
+:root:has(.snav__back:not([hidden])) .holo__dims{top:58px}
 .holo__toggle{position:absolute;right:26px;bottom:24px;z-index:6;display:flex;border:1px solid var(--line);background:var(--scrim-5);backdrop-filter:blur(4px)}
 .holo__toggle button{appearance:none;border:0;background:transparent;color:var(--muted);cursor:pointer;
   font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;padding:.5rem .95rem}
@@ -698,6 +704,8 @@ a{color:inherit;text-decoration:none}
   .holo__chips{gap:.35rem;margin-top:.4rem}
   .holo__chips span{font-size:.66rem;padding:.2rem .48rem}
   .holo__hud{left:16px;top:18px}.holo__dims{display:none}
+  /* mobil ist die Marke tiefer (44-px-Fingerkuppe, --nav-h 116px) */
+  :root:has(.snav__back:not([hidden])) .holo__hud{top:56px}
   /* Ebenen-Panel kompakter + einklappbar (Klasse hieß fälschlich .holo__filters) */
   .holo__layers{top:44px;left:12px;width:min(148px,42vw)}
   .holo__layers-h{font-size:.56rem;padding:.42rem .5rem .42rem;cursor:pointer}

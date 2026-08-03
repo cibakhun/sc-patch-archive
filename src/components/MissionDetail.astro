@@ -396,7 +396,11 @@ const t = useTranslations(lang);
 {/* KEIN is:inline: gebuendelt in den <head> statt hinter den Inhalt (FOUC).
     Die :root-Palette oben bleibt inline — die muss detail.css ueberschreiben. */}
 <style>
-  .md { padding: 5.5rem 0 4rem; }
+  /* Der obere Abstand war mit 5,5rem fest verdrahtet und meinte die
+     Kopfleiste. Seit die Zurueck-Marke frei unter der Leiste haengt (SiteNav),
+     ist der Freiraum nicht mehr konstant — --nav-h veroeffentlicht ihn. Ohne
+     das lag die Marke auf der Rubrikzeile (.md__eyebrow). */
+  .md { padding: calc(var(--nav-h, 68px) + 1.5rem) 0 4rem; }
   .md__wrap { width: min(var(--maxw), 100%); margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem); }
 
   .md__head { padding-bottom: 1.6rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }

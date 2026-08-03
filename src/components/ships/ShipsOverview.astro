@@ -354,12 +354,6 @@ a{color:inherit;text-decoration:none}
       <option value="cargo">{de ? FEAT_LABELS.cargo.de : FEAT_LABELS.cargo.en}</option>
       <option value="ground">{de ? FEAT_LABELS.ground.de : FEAT_LABELS.ground.en}</option>
     </select>
-    <select id="sf-status" aria-label={de ? 'Status' : 'Status'}>
-      <option value="">{de ? 'Jeder Status' : 'Any status'}</option>
-      <option value="flight-ready">{de ? 'Flugbereit' : 'Flight Ready'}</option>
-      <option value="in-production">{de ? 'In Produktion' : 'In production'}</option>
-      <option value="in-concept">{de ? 'Konzept' : 'Concept'}</option>
-    </select>
     <select id="sf-sort" aria-label={de ? 'Sortierung' : 'Sort'}>
       <option value="name">Name A–Z</option>
       <option value="pledge">{de ? 'Pledge-Preis ↓' : 'Pledge price ↓'}</option>
@@ -382,7 +376,6 @@ a{color:inherit;text-decoration:none}
         data-size={size ?? ''}
         data-sig={sig.min}
         data-feat={` ${feat} `}
-        data-status={d.statusEn ?? ''}
         data-href={de ? `/de/schiffe/${id}.html` : `/schiffe/${id}.html`}
         data-pledge={d.msrpUSD ?? -1}
         data-game={buy ?? -1}
@@ -413,8 +406,14 @@ a{color:inherit;text-decoration:none}
         <div class="fcard__body">
           <div class="fcard__chips">
             {vRoleCig(id, d, lang) && <span class="fcard__chip">{vRoleCig(id, d, lang)}</span>}
-            {vSize(d, lang) && <span class="fcard__chip">{vSize(d, lang)}</span>}
-            {size != null && <span class="fcard__chip">{sizeClassLabel(size, lang)}</span>}
+            {/* Nur EINE Groessenangabe. Die Wiki-Groesse (vSize: Klein/Mittel/Gross)
+                stand hier frueher daneben und widersprach der CIG-Klasse sichtbar —
+                die Eclipse trug "Mittel" neben "Groesse 2". Gefiltert wird nach der
+                CIG-Klasse, also steht auch nur die auf der Karte. vSize bleibt als
+                Rueckfall fuer die 4 ATLS ohne CIG-Klasse. */}
+            {size != null
+              ? <span class="fcard__chip">{sizeClassLabel(size, lang)}</span>
+              : vSize(d, lang) && <span class="fcard__chip">{vSize(d, lang)}</span>}
           </div>
           {sig.ir != null && (
             <div class="fcard__sig">
@@ -469,7 +468,6 @@ a{color:inherit;text-decoration:none}
   var selSize = document.getElementById('sf-size');
   var selSig = document.getElementById('sf-sig');
   var selFeat = document.getElementById('sf-feat');
-  var selStatus = document.getElementById('sf-status');
   var selSort = document.getElementById('sf-sort');
   var count = document.getElementById('sf-count');
   var empty = document.getElementById('sf-empty');
@@ -485,7 +483,7 @@ a{color:inherit;text-decoration:none}
 
   function apply() {
     var nq = norm(q.value).trim();
-    var m = selMaker.value, st = selStatus.value;
+    var m = selMaker.value;
     var ca = selCareer.value, fa = selRolefam.value, sz = selSize.value, si = selSig.value, fe = selFeat.value;
     var n = 0;
     cards.forEach(function (c) {
@@ -496,8 +494,7 @@ a{color:inherit;text-decoration:none}
         (!fa || c.getAttribute('data-rolefam').indexOf(' ' + fa + ' ') >= 0) &&
         (!sz || c.getAttribute('data-size') === sz) &&
         (!si || numAttr(c, 'data-sig') < parseFloat(si)) &&
-        (!fe || c.getAttribute('data-feat').indexOf(' ' + fe + ' ') >= 0) &&
-        (!st || c.getAttribute('data-status') === st);
+        (!fe || c.getAttribute('data-feat').indexOf(' ' + fe + ' ') >= 0);
       c.style.display = ok ? '' : 'none';
       if (ok) n++;
     });
@@ -517,7 +514,7 @@ a{color:inherit;text-decoration:none}
     ordered.forEach(function (c) { fleet.insertBefore(c, empty); });
   }
 
-  [q, selMaker, selCareer, selRolefam, selSize, selSig, selFeat, selStatus].forEach(function (el) {
+  [q, selMaker, selCareer, selRolefam, selSize, selSig, selFeat].forEach(function (el) {
     el.addEventListener('input', apply);
     el.addEventListener('change', apply);
   });

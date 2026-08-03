@@ -838,42 +838,77 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     opacity: 1;
     transform: translateX(0);
   }
-  /* Zurück-Element: eigenes Grid-Kind, spannt volle Breite -> zweite Zeile
-     der Leiste (siehe Frontmatter/Platzierungs-Begründung). Optik übernommen
-     von der ehemaligen MissionDetail .md__back, jetzt zentral für alle
-     Blattseiten. Bewusst NICHT unter .snav__left — die 640px-Regel, die
-     `.snav__left > *` ausblendet, soll dieses Element nicht treffen, auf dem
-     Telefon ist die Zurück-Geste am wertvollsten. */
-  /* Die Leiste veroeffentlicht ihre eigene Hoehe. Vorher rieten drei
-     Komponenten sie mit `top: 68px` (MiningApp, CraftingApp, MissionsApp) —
-     mit der Zurueck-Zeile waechst die Leiste auf 106 px, und deren klebende
-     Filterleisten verschwanden zu 38 px dahinter. Gemessen: 67 px ohne
-     Zurueck, 106 px mit, 131 px mit unterhalb 860 px (dort greift die
-     44-px-Fingerkuppe). `:has()` haelt das rein strukturell — keine Seite
-     muss etwas uebergeben. */
+  /* Zurück-Element: haengt als EIGENSTAENDIGE Marke unter der Leiste, statt
+     sie um eine zweite Zeile zu strecken. Vorher war es ein Grid-Kind ueber
+     die volle Breite — die Leiste wuchs damit von 68 auf 107 px (mobil 132),
+     also um die Haelfte, nur fuer einen Verweis von 75 px Breite. Der Kopf
+     wirkte dadurch auf jeder Blattseite aufgeblaeht.
+     `position: absolute` an der Leiste (die traegt `backdrop-filter` und ist
+     deshalb Bezugsrahmen fuer absolut positionierte Kinder) nimmt es aus dem
+     Fluss: die Leiste bleibt bei 68 px, egal ob eine Herkunft vorliegt.
+     Es bleibt im DOM ein Kind von <nav> — der parser-blockierende Leser oben,
+     assets/back-link.js und die Stapelordnung (z-index 9600) finden es
+     unveraendert.
+     Bewusst NICHT unter .snav__left — die 640px-Regel, die `.snav__left > *`
+     ausblendet, soll dieses Element nicht treffen, auf dem Telefon ist die
+     Zurueck-Geste am wertvollsten. */
+  /* --nav-h ist der FREIRAUM unter der oberen Kante, nicht die Leistenhoehe:
+     drei Komponenten haengen ihre klebenden Filterleisten daran auf
+     (MiningApp, CraftingApp, MissionsApp; davor rieten sie `top: 68px`). Die
+     schwebende Marke liegt fest im Fenster — ohne den Zuschlag verschwaende
+     die linke Haelfte einer angehefteten Filterleiste hinter ihr. Gemessen:
+     Leiste 65 px, Marke bis 101 px -> 104. Unterhalb 860 px reicht die
+     unsichtbare 44-px-Fingerkuppe bis 113 px (die wuerde sonst Klicks auf der
+     Filterleiste schlucken) -> 116. Trotzdem beide Male weniger als die
+     107/132 px der frueheren zweiten Leistenzeile.
+     `:has()` haelt das rein strukturell — keine Seite muss etwas uebergeben. */
   :global(:root) { --nav-h: 68px; }
-  :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 107px; }
+  :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 104px; }
   @media (max-width: 860px) {
-    :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 132px; }
+    :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 116px; }
   }
 
   .snav__back[hidden] { display: none; }
   .snav__back {
-    grid-column: 1 / -1;
-    justify-self: start;
+    position: absolute;
+    /* linksbuendig mit dem Inhalt der Leiste: der Bezugsrahmen ist deren
+       PADDING-Box, das Innenmass muss also hier wiederholt werden. */
+    top: calc(100% + 0.45rem);
+    left: clamp(1rem, 4vw, 2.5rem);
+    max-width: calc(100% - 2 * clamp(1rem, 4vw, 2.5rem));
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    max-width: 100%;
+    /* Eigenes Material: die Marke liegt jetzt auf dem Seiteninhalt (Hero-Bild,
+       Text), nicht mehr auf der Leiste. --chrome-solid ist derselbe Stoff, aus
+       dem die gescrollte Leiste besteht — sie liest damit als abgeloestes
+       Stueck Chrom, in beiden Themen deckend genug fuer den Text. Rahmen und
+       Flor wie bei Suche und Konto: dieselbe Sprache, nur eine Etage tiefer.
+       KEIN clip-path fuer gekappte Ecken (wie .totop): der wuerde auch die
+       unsichtbare 44-px-Fingerkuppe unten mitschneiden. */
+    padding: 0.36rem 0.7rem;
+    background: color-mix(in srgb, var(--chrome-solid, #05070d) 88%, transparent);
+    border: 1px solid var(--line, var(--line-soft));
+    backdrop-filter: blur(10px);
     font-family: var(--font-ui, sans-serif);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     font-size: 0.7rem;
+    /* Ohne das erbt die Marke die Fliesstext-Zeilenhoehe (~1,9) und wird
+       11 px hoeher als noetig — jeder dieser Pixel geht als Freiraum in
+       --nav-h und damit in drei klebende Filterleisten. */
+    line-height: 1;
     color: var(--muted, #8a99b8);
-    transition: color 0.15s;
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
   }
   .snav__back:hover,
   .snav__back:focus-visible {
+    color: var(--accent, #2dd4ff);
+    border-color: var(--accent, #2dd4ff);
+  }
+  .snav__back:active {
+    background: color-mix(in srgb, var(--accent, #2dd4ff) 18%, transparent);
+    border-color: var(--accent, #2dd4ff);
     color: var(--accent, #2dd4ff);
   }
   /* Der Herkunftsname (im Gegensatz zum Elternnamen beliebig lang -- Missions-
@@ -884,10 +919,27 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+  /* Bei offenem Menue liegt das Deck ueber der Seite, die Leiste (z-index
+     9600) darueber. Die freistehende Marke sonst mit — sie stuende dann als
+     einzelnes Ding im Nichts ueber dem Overlay. Nur opacity/pointer-events:
+     ein `hidden` wuerde `:has()` treffen und die klebenden Filterleisten
+     waehrend des Menues um 34 px springen lassen. */
+  :global(html.is-deck-open) .snav__back {
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* Fingerkuppe wie ueberall im Kopf: die Flaeche waechst, die Optik nicht
+     (vgl. .snav__brand::after weiter unten). Ein `min-height: 44px` haette
+     die Marke selbst auf Klotzgroesse gebracht. */
   @media (max-width: 860px) {
-    .snav__back {
-      min-height: 44px;
-      align-items: center;
+    .snav__back::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 44px;
+      transform: translateY(-50%);
     }
   }
   @media (max-width: 860px) {
