@@ -97,12 +97,12 @@
 > zurückdrehen können. Dazu ist der Datenstand zwei Client-Builds alt.
 
 - [ ] **DATA-01**: Keine Crafting-Oberfläche nennt `sc-craft.tools` als Quelle — die Crafting-Daten kommen seit dem 16.07.2026 aus den Spieldateien
-- [ ] **DATA-02**: Kein Werkzeug zeigt einen rohen Klassennamen; die beiden namenlosen S0-Mining-Laser erscheinen mit Anzeigenamen oder gar nicht
+- [x] **DATA-02**: Kein Werkzeug zeigt einen rohen Klassennamen; die beiden namenlosen S0-Mining-Laser erscheinen mit Anzeigenamen oder gar nicht
 - [ ] **DATA-03**: `src/data/holo-markers.json` und sein Fallback-Zweig in `ShipDetail.astro` sind entfernt — der Zweig greift bei 0 von 227 Schiffen
 - [ ] **DATA-04**: `src/data/crafting-blueprints.json` ist entfernt, samt Verweis in `.planning/codebase/STRUCTURE.md`
 - [ ] **DATA-05**: Kein Skript kann die game-sourced Crafting-DB durch einen Fremdquellen-Snapshot ersetzen (`scripts/fetch-craft.mjs`)
 - [ ] **DATA-06**: `build-universal-db.mjs` bricht ab, wenn die `global.ini` fehlt oder älter ist als der Datenstand, statt den Katalog still zurückzudrehen
-- [ ] **DATA-07**: Alle Datamine-Ausgaben tragen dieselbe Build-Kennung wie der installierte Client (aktuell `12326004`)
+- [x] **DATA-07**: Alle Datamine-Ausgaben tragen dieselbe Build-Kennung wie der installierte Client (aktuell `12326004`)
 - [ ] **DATA-08**: Die Fahrzeugpreise sind nicht älter als der jüngste Datamine-Lauf
 - [ ] **DATA-09**: `MINING-DATENQUELLE.md`, `FAKTEN-AUDIT.md` und `.planning/codebase/STRUCTURE.md` beschreiben den tatsächlichen Stand
 
@@ -179,12 +179,12 @@
 | DOC-06 | Phase 1.2 | Pending |
 | DOC-07 | Phase 1.2 | Pending |
 | DATA-01 | Phase 1.3 | Pending |
-| DATA-02 | Phase 1.3 | Pending |
+| DATA-02 | Phase 1.3 | Complete |
 | DATA-03 | Phase 1.3 | Pending |
 | DATA-04 | Phase 1.3 | Pending |
 | DATA-05 | Phase 1.3 | Pending |
 | DATA-06 | Phase 1.3 | Pending |
-| DATA-07 | Phase 1.3 | Pending |
+| DATA-07 | Phase 1.3 | Complete |
 | DATA-08 | Phase 1.3 | Pending |
 | DATA-09 | Phase 1.3 | Pending |
 | VEH-01 | Phase 1.4 | Pending |

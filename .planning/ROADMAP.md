@@ -129,12 +129,12 @@ Plans:
   9. `MINING-DATENQUELLE.md`, `FAKTEN-AUDIT.md` und `.planning/codebase/STRUCTURE.md` stimmen mit dem Bestand überein
   10. `npm run verify:mining`, `npm run audit:csp` und `npm run test:e2e` laufen nicht schlechter als vorher
 
-**Plans**: 3 plans
+**Plans**: 2/3 plans executed
 
 Plans:
 
-- [ ] 01.3-01-PLAN.md
-- [ ] 01.3-02-PLAN.md
+- [x] 01.3-01-PLAN.md
+- [x] 01.3-02-PLAN.md
 - [ ] 01.3-03-PLAN.md
 
 - [ ] 01.3-01 (Welle 1): Alles, was ohne die Spielinstallation zu reparieren ist — die vier falschen Quellenangaben samt bleibendem Nachweis im gebauten `dist/`, die 4.8-Marker-Datei mit Fallback-Zweig und Erzeuger raus (227/227 zeichenweise belegt), die verwaiste Blueprint-Datei raus, der konkurrierende Crafting-Schreiber geloescht und `sync:items` auf lauten Abbruch statt stillem Rueckfall

@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1.1
 current_phase_name: Ambiente-Effekte stilllegen
 status: in_progress
-stopped_at: Completed 01.1-02-PLAN.md
-last_updated: "2026-08-03T13:59:02.852Z"
+stopped_at: Completed 01.3-02-PLAN.md
+last_updated: "2026-08-03T16:00:10.901Z"
 last_activity: 2026-08-02
 last_activity_desc: "Quick-Task 260802-5qd: Zurück folgt der Herkunft"
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 5
-  completed_plans: 2
+  total_plans: 8
+  completed_plans: 4
 ---
 
 # Project State
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 1.1 of 5 (Ambiente-Effekte stilllegen)
-Plan: 2 of 3 in Phase 1.1
+Plan: 3 of 3 in Phase 1.1
 Status: Phase 1.1 geplant (3 Pläne, 3 Wellen, Plan-Prüfer bestanden) — bereit zur Ausführung; Phase 1.2 noch ungeplant
 Branch: claude/site-feedback-effects-docs-3f4edf
 Last activity: 2026-08-02 — Quick-Task 260802-5qd: Zurück folgt der Herkunft
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [████░░░░░░] 40%
 |------|----------|-------|-------|
 | Phase 01.1 P01 | 45min | 3 tasks | 8 files |
 | Phase 01.1 P02 | ~2h | 3 tasks | 39 files |
+| Phase 01.3 P02 | ~23min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,10 @@ Recent decisions affecting current work:
 - [Phase ?]: archive.js: eine gemeinsame running-Variable traegt Tab-Sichtbarkeit UND FX-Wahl statt zweier konkurrierender Riegel
 - [Phase ?]: Codemod liest den Leinwandnamen aus getElementById statt ihn festzuverdrahten -- erkennt dadurch die abweichende dust-Leinwand von sc-4-9-0 korrekt
 - [Phase ?]: sc-4-2-0 Regen und Blitz bewusst aus dem Codemod ausgeschlossen und von Hand gegattert, inkl. Reset des Zeitgebers beim Wiedereinschalten
+- [Phase ?]: 01.3-02: Checkpoint 'voll' vom Orchestrator im Voraus beantwortet; Task 2+3 in einem Zug
+- [Phase ?]: 01.3-02: Zwei namenlose S0-Laser fallen aus der Auswahl statt erfundenen Herstellernamen zu bekommen (kein fabrizierter Wert)
+- [Phase ?]: 01.3-02: datamine-items.mjs + datamine-missions.mjs hatten Patch-Kennungen ohne Changelist-Nummer (Rule 1 Bugfix vor dem Kennungsabgleich)
+- [Phase ?]: 01.3-02: extract:hardpoints:assembled zusaetzlich zu extract:hardpoints noetig (rsi-hermes teilt sich den Apollo-Rumpf) — sonst 226/227 statt 227/227
 
 ### Pending Todos
 
@@ -114,6 +119,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-29T03:46:15.132Z
-Stopped at: Completed 01.1-02-PLAN.md
+Last session: 2026-08-03T16:00:10.885Z
+Stopped at: Completed 01.3-02-PLAN.md
 Resume file: None
