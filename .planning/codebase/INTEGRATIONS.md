@@ -102,7 +102,25 @@ Architectural rule (`astro.config.mjs` header comment): **all game data is baked
 ## Webhooks & Callbacks
 
 **Incoming:**
-- None on the site (static nginx, no server-side endpoints). Supabase Edge Functions (`register`, `delete-account`, `verify-rsi`) are the only HTTP endpoints under project control; they require a valid session JWT via the Supabase gateway.
+- None on the site (static nginx, no server-side endpoints). Supabase Edge Functions are the only HTTP endpoints under project control.
+
+  **Korrigiert 03.08.2026** — die frühere Fassung behauptete pauschal, alle drei
+  Functions verlangten ein Session-JWT. Gegen die lebende Anlage geprüft
+  (`list_edge_functions`) stimmt das nicht, und der Irrtum wäre teuer geworden:
+
+  | Function | `verify_jwt` | warum |
+  |---|---|---|
+  | `register` | **false** | wer sich gerade anmeldet, hat noch keine Sitzung |
+  | `delete-account` | true | |
+  | `verify-rsi` | true | |
+  | `create-checkout-session` | false | Spenden ohne Konto (Phase 5) |
+  | `stripe-webhook` | false | Stripe authentifiziert sich per Signatur |
+
+  Seit Phase 5 gibt es `supabase/config.toml`. **Sobald diese Datei existiert,
+  bekommen dort NICHT aufgeführte Functions beim Deploy den Standard `true`.**
+  Deshalb steht `register` ausdrücklich darin — ohne den Eintrag würde ein
+  `supabase functions deploy register` die Kontoanmeldung stillschweigend
+  abschalten. `tests/e2e/support-trust.test.js` hält die Aufteilung fest.
 - Discord gateway connection (not a webhook) in `discord/bot/src/index.mjs`
 
 **Outgoing:**
