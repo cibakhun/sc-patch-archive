@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1.1
 current_phase_name: Ambiente-Effekte stilllegen
 status: in_progress
-stopped_at: Completed 01.3-02-PLAN.md
-last_updated: "2026-08-03T16:00:10.901Z"
+stopped_at: Completed 01.3-03-PLAN.md
+last_updated: "2026-08-03T16:30:34.896Z"
 last_activity: 2026-08-02
 last_activity_desc: "Quick-Task 260802-5qd: Zurück folgt der Herkunft"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -33,7 +33,7 @@ Status: Phase 1.1 geplant (3 Pläne, 3 Wellen, Plan-Prüfer bestanden) — berei
 Branch: claude/site-feedback-effects-docs-3f4edf
 Last activity: 2026-08-02 — Quick-Task 260802-5qd: Zurück folgt der Herkunft
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 63%
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [█████░░░░░] 50%
 | Phase 01.1 P01 | 45min | 3 tasks | 8 files |
 | Phase 01.1 P02 | ~2h | 3 tasks | 39 files |
 | Phase 01.3 P02 | ~23min | 2 tasks | 13 files |
+| Phase 01.3 P03 | ~25min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 01.3-02: Zwei namenlose S0-Laser fallen aus der Auswahl statt erfundenen Herstellernamen zu bekommen (kein fabrizierter Wert)
 - [Phase ?]: 01.3-02: datamine-items.mjs + datamine-missions.mjs hatten Patch-Kennungen ohne Changelist-Nummer (Rule 1 Bugfix vor dem Kennungsabgleich)
 - [Phase ?]: 01.3-02: extract:hardpoints:assembled zusaetzlich zu extract:hardpoints noetig (rsi-hermes teilt sich den Apollo-Rumpf) — sonst 226/227 statt 227/227
+- [Phase ?]: crafting-db.json.version-Feld war LIVE-Client faelschlich als NO_TAG etikettiert (Tag statt Config gelesen) -- Ableitung repariert + Feld gezielt korrigiert, keine Neuextraktion
+- [Phase ?]: DATA-01/03/04/05/06 Requirement-Haekchen nachtraeglich gesetzt -- jedes einzeln gegen die Platte verifiziert statt aus Wave-1-SUMMARY uebernommen
 
 ### Pending Todos
 
@@ -119,6 +122,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-03T16:00:10.885Z
-Stopped at: Completed 01.3-02-PLAN.md
+Last session: 2026-08-03T16:30:34.878Z
+Stopped at: Completed 01.3-03-PLAN.md
 Resume file: None
