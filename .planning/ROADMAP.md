@@ -163,7 +163,7 @@ diesem Lauf auf: der Fahrzeug-Katalog soll nicht gegen einen Stand gebaut werden
   7. `scripts/sync-vehicles.mjs` ist gelöscht und `.github/workflows/build.yml` ruft keinen Wiki-Sync mehr auf
   8. Ein Stichprobenvergleich am Datenblatt (Buccaneer, Carrack, Freelancer MAX, 315p) belegt die Werte gegen das Spiel
 
-**Plans**: 4 plans
+**Plans**: 5 plans
 
 Plans:
 
@@ -171,11 +171,13 @@ Plans:
 - [ ] 01.4-02-PLAN.md
 - [ ] 01.4-03-PLAN.md
 - [ ] 01.4-04-PLAN.md
+- [ ] 01.4-05-PLAN.md
 
-- [ ] 01.4-01 (Welle 1): Die Vorarbeit sichern und den Weg Data.p4k → Katalog → Vergleichstabelle in diesem Zweig einmal ganz durchlaufen — vier (in Wahrheit fünf) Skripte versioniert übernehmen, `verify:weapons` verdrahten und grün fahren, Zwischenstufe gitignoren, frischer Lauf gegen Changelist `12326004`. Danach die Feldmatrix: für jedes Feld, das die Seite aus dem Katalog liest, ein Urteil, woher es nach dem Tausch kommt — plus ein bleibender Deckungs-Wächter gegen stillen Feldverlust
-- [ ] 01.4-02 (Welle 2): Die Fremddaten einfrieren (`vehicle-external.json` per Skript aus dem heutigen Katalog), die vier ATLS-Varianten zurückholen (223 → 227) und die Identitätsfelder in Ordnung bringen, bis `verify:vehicles` bei Name, Hersteller und Herstellercode auf null steht — jede der 15 Marken-Abweichungen und der 40 Größenlabel-Abweichungen einzeln begründet
-- [ ] 01.4-03 (Welle 3): Die drei Urteile — `crew` als Entscheidungs-Checkpoint des Betreibers (CIGs `crewSize` deckt sich bei 223/223 mit dem bisherigen `crewMin`; die Frage ist, ob das Datenblatt die Spanne verliert), `cargoSCU` für die 31 fälschlich auf 0 stehenden Fahrzeuge, `shieldHp` gegen die gemessene Zählregel statt gegen die Veralterungs-Vermutung. `hullHp` als vierte Klasse mitbeurteilt
-- [ ] 01.4-04 (Welle 4): Der Tausch — beginnt mit einem Entscheidungs-Checkpoint. `vehicles.json` kommt aus der Extraktion, alle ~25 Leser ziehen nach (DE und EN im selben Schritt), das Patch-Rückgrat zieht in den Generator um, die Rückübersetzungsdatei fällt. Dann Wiki-Kette abschalten (`sync-vehicles.mjs` und der CI-Schritt) und am gerenderten Datenblatt beweisen: Buccaneer, Carrack, Freelancer MAX, 315p — je in beiden Sprachen
+- [ ] 01.4-01 (Welle 1): Die Vorarbeit sichern und den Weg Data.p4k → Katalog → Vergleichstabelle in diesem Zweig einmal ganz durchlaufen — vier (in Wahrheit fünf, D-21) Skripte versioniert übernehmen, `verify:weapons` verdrahten und grün fahren, Zwischenstufe gitignoren, frischer Lauf gegen Changelist `12326004`. Danach die Feldmatrix: für jedes Feld, das die Seite aus dem Katalog liest, eine Herkunfts-Marke — und für die quellenlosen je eine Abbruchgrenze für den Suchdurchgang in Plan 02. Plus ein bleibender Deckungs-Wächter gegen stillen Feldverlust
+- [ ] 01.4-02 (Welle 2): Der Suchdurchgang (D-18) — für jedes der 15 quellenlosen Felder erst in den Spieldateien nachsehen, statt es einzufrieren: Schaden und Raketenzahl aus dem Loadout, Quantum- und Behälterwerte aus dem DataCore, Produktionszustand aus der p4k, Rollen aus `vehicleRole`/`vehicleCareer`. Ergebnisoffen, aber je Feld mit Abbruchgrenze; „nicht gefunden" wird aufgeschrieben, nicht geraten. Kein Join über Anzeigenamen
+- [ ] 01.4-03 (Welle 3): Die Fremddaten einfrieren — aber nur den in Plan 02 belegten Rest, plus `crewMax` (D-17) und die Bild-URL. Dazu die vier ATLS-Varianten zurückholen (223 → 227) und die Identitätsfelder in Ordnung bringen, bis `verify:vehicles` bei Name, Hersteller und Herstellercode auf null steht — jede der 15 Marken-Abweichungen (D-22) und der 40 Größenlabel-Abweichungen einzeln begründet
+- [ ] 01.4-04 (Welle 4): Die drei Urteile — die Besatzungs-Spanne aus D-17 umsetzen und protokollieren, `cargoSCU` für die 31 fälschlich auf 0 stehenden Fahrzeuge, `shieldHp` gegen die gemessene Zählregel `Schildgeneratoren / 2` statt gegen die Veralterungs-Vermutung (D-20). `hullHp` als vierte Klasse mitbeurteilt
+- [ ] 01.4-05 (Welle 5): Der Tausch — beginnt mit einem Entscheidungs-Checkpoint. `vehicles.json` kommt aus der Extraktion, alle ~25 Leser ziehen nach (DE und EN im selben Schritt), das Patch-Rückgrat zieht in den Generator um (D-19), die Rückübersetzungsdatei fällt. Dann Wiki-Kette abschalten (`sync-vehicles.mjs` und der CI-Schritt) und am gerenderten Datenblatt beweisen: Buccaneer, Carrack, Freelancer MAX, 315p — je in beiden Sprachen
 
 Vorarbeit (unversioniert, Stand 02.08.2026, im Worktree `.claude/worktrees/buccaneer-waffen-daten-be6ac7`):
 `scripts/lib/cryxml.mjs`, `scripts/datamine-vehicles.mjs`, `scripts/verify-vehicles.mjs`,
