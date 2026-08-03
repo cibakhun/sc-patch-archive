@@ -406,8 +406,14 @@ a{color:inherit;text-decoration:none}
         <div class="fcard__body">
           <div class="fcard__chips">
             {vRoleCig(id, d, lang) && <span class="fcard__chip">{vRoleCig(id, d, lang)}</span>}
-            {vSize(d, lang) && <span class="fcard__chip">{vSize(d, lang)}</span>}
-            {size != null && <span class="fcard__chip">{sizeClassLabel(size, lang)}</span>}
+            {/* Nur EINE Groessenangabe. Die Wiki-Groesse (vSize: Klein/Mittel/Gross)
+                stand hier frueher daneben und widersprach der CIG-Klasse sichtbar —
+                die Eclipse trug "Mittel" neben "Groesse 2". Gefiltert wird nach der
+                CIG-Klasse, also steht auch nur die auf der Karte. vSize bleibt als
+                Rueckfall fuer die 4 ATLS ohne CIG-Klasse. */}
+            {size != null
+              ? <span class="fcard__chip">{sizeClassLabel(size, lang)}</span>
+              : vSize(d, lang) && <span class="fcard__chip">{vSize(d, lang)}</span>}
           </div>
           {sig.ir != null && (
             <div class="fcard__sig">
