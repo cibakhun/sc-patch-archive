@@ -115,7 +115,7 @@
 > inklusive DE- und EN-Beschreibungen aus CIGs eigener `global.ini`.
 
 - [x] **VEH-01**: Die vier Extraktor-Skripte (`lib/cryxml.mjs`, `datamine-vehicles.mjs`, `verify-vehicles.mjs`, `verify-weapon-sizes.mjs`) liegen versioniert im Repo
-- [x] **VEH-02**: `src/data/vehicle-external.json` trägt die fünf Felder, die in keiner Spieldatei stehen: `msrpUSD`, `pledgeUrl`, `lengthM`/`widthM`/`heightM`, Bild-URL
+- [x] **VEH-02**: `src/data/vehicle-external.json` trägt die zehn Felder, die in keiner Spieldatei stehen (D-18, CONTEXT.md — Betreiber wählte bewusst den aufwendigeren Weg: erst suchen, dann nur den belegt quellenlosen Rest einfrieren, statt vorab auf fünf zu begrenzen): `msrpUSD`, `pledgeUrl`, `lengthM`/`widthM`/`heightM`, `image`, `crewMax`, `statusEn`/`statusDe`, `fociDe`
 - [x] **VEH-03**: Name und Hersteller sind normalisiert (`C.O.`-Präfix, `&` gegen `and`, abschließender Zeilenumbruch) — die rein kosmetischen Abweichungen sind weg
 - [ ] **VEH-04**: Für `crew` ist entschieden und belegt, ob die Seite CIGs `crewSize` oder den bisherigen `crewMax` zeigt
 - [ ] **VEH-05**: `cargoSCU` steht für jedes Fahrzeug mit Frachtraum auf einem belegten Wert; kein Frachtschiff steht auf 0
