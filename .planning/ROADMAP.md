@@ -163,11 +163,19 @@ diesem Lauf auf: der Fahrzeug-Katalog soll nicht gegen einen Stand gebaut werden
   7. `scripts/sync-vehicles.mjs` ist gelöscht und `.github/workflows/build.yml` ruft keinen Wiki-Sync mehr auf
   8. Ein Stichprobenvergleich am Datenblatt (Buccaneer, Carrack, Freelancer MAX, 315p) belegt die Werte gegen das Spiel
 
-**Plans**: TBD (run /gsd-plan-phase 01.4)
+**Plans**: 4 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 01.4 to break down)
+- [ ] 01.4-01-PLAN.md
+- [ ] 01.4-02-PLAN.md
+- [ ] 01.4-03-PLAN.md
+- [ ] 01.4-04-PLAN.md
+
+- [ ] 01.4-01 (Welle 1): Die Vorarbeit sichern und den Weg Data.p4k → Katalog → Vergleichstabelle in diesem Zweig einmal ganz durchlaufen — vier (in Wahrheit fünf) Skripte versioniert übernehmen, `verify:weapons` verdrahten und grün fahren, Zwischenstufe gitignoren, frischer Lauf gegen Changelist `12326004`. Danach die Feldmatrix: für jedes Feld, das die Seite aus dem Katalog liest, ein Urteil, woher es nach dem Tausch kommt — plus ein bleibender Deckungs-Wächter gegen stillen Feldverlust
+- [ ] 01.4-02 (Welle 2): Die Fremddaten einfrieren (`vehicle-external.json` per Skript aus dem heutigen Katalog), die vier ATLS-Varianten zurückholen (223 → 227) und die Identitätsfelder in Ordnung bringen, bis `verify:vehicles` bei Name, Hersteller und Herstellercode auf null steht — jede der 15 Marken-Abweichungen und der 40 Größenlabel-Abweichungen einzeln begründet
+- [ ] 01.4-03 (Welle 3): Die drei Urteile — `crew` als Entscheidungs-Checkpoint des Betreibers (CIGs `crewSize` deckt sich bei 223/223 mit dem bisherigen `crewMin`; die Frage ist, ob das Datenblatt die Spanne verliert), `cargoSCU` für die 31 fälschlich auf 0 stehenden Fahrzeuge, `shieldHp` gegen die gemessene Zählregel statt gegen die Veralterungs-Vermutung. `hullHp` als vierte Klasse mitbeurteilt
+- [ ] 01.4-04 (Welle 4): Der Tausch — beginnt mit einem Entscheidungs-Checkpoint. `vehicles.json` kommt aus der Extraktion, alle ~25 Leser ziehen nach (DE und EN im selben Schritt), das Patch-Rückgrat zieht in den Generator um, die Rückübersetzungsdatei fällt. Dann Wiki-Kette abschalten (`sync-vehicles.mjs` und der CI-Schritt) und am gerenderten Datenblatt beweisen: Buccaneer, Carrack, Freelancer MAX, 315p — je in beiden Sprachen
 
 Vorarbeit (unversioniert, Stand 02.08.2026, im Worktree `.claude/worktrees/buccaneer-waffen-daten-be6ac7`):
 `scripts/lib/cryxml.mjs`, `scripts/datamine-vehicles.mjs`, `scripts/verify-vehicles.mjs`,
@@ -175,6 +183,13 @@ Vorarbeit (unversioniert, Stand 02.08.2026, im Worktree `.claude/worktrees/bucca
 Sackgassen stehen in der Projekt-Erinnerung `vehicles-wiki-to-gamefiles`. Das Sichern dieser
 Dateien ist der erste Schritt der Phase — `.claude/` ist gitignored, ein Aufräumen des
 Worktrees verliert sie.
+
+Bei der Planung am 03.08.2026 kam eine **fünfte** Vorarbeit ans Licht, die in CONTEXT.md
+D-01 fehlt: `scripts/datamine-ship-loadouts.mjs` ist in jenem Worktree geändert und liefert
+zusätzlich `carrier` (Turm- vs. Pilotwaffe), `cargo` (SCU je Schiff) und `ports`. Die hier
+liegende `src/data/ship-loadouts.json` hat diese Schlüssel nicht — ohne die Übernahme wäre
+`cargoSCU` bei allen 223 Fahrzeugen null und `turretWeapons` bei allen leer. Plan 01 holt
+sie mit.
 
 ### Phase 2: Schrift- und Bewegungsskala
 
