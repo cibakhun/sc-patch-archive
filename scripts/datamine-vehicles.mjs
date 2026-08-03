@@ -504,12 +504,38 @@ function buildVehicle(id) {
   }
 
   // --- Schild-HP + Quantum aus den verbauten Items ---
+  // Zaehlregel (01.4-04, D-20): mehr als zwei Schildgeneratoren desselben Typs
+  // erhoehen NICHT die Gesamt-Schildstaerke — sie sind Redundanz (Backup, das
+  // bei Ausfall des aktiven Generators einspringt), keine Kapazitaetsaddition.
+  // Belegt an allen 32 Abweichungen vom 03.08.2026 (17x Verhaeltnis 1,5 bei 3
+  // Generatoren, 13x 2,0 bei 4, 2x 3,0 bei 6 — Spielwert/Wiki-Wert ==
+  // Generatoren/2 in JEDEM Fall, 0 Ausnahmen; Schiffe mit 1 oder 2 Generatoren
+  // stimmen exakt). Gesucht, aber NICHT gefunden: ein expliziter Zahlenwert
+  // "2" im DataCore (weder in SCItemShieldGeneratorParams noch in
+  // SCItemShieldEmitterParams/ItemControllerComponentParams/
+  // ItemControlComponentParams des Controller_Shield-Items — Ports[] dort
+  // sogar leer, s. scratch/probe-shield-ports.mjs). Die Struktur STUETZT die
+  // Redundanz-Deutung aber: jeder Generator traegt eigene
+  // `ReservePool*Ratio`-Felder (Reserve-POOL, nicht addierte Kapazitaet) —
+  // dennoch bleibt die "2" selbst eine aus der Messung abgeleitete Regel, kein
+  // abgelesener Parameter (D-14, ehrlich benannt). Kein Schiff im Katalog
+  // mischt zwei verschiedene Generator-Typen (0/227) — die Kappung je Gruppe
+  // ist deshalb aequivalent zu einer Kappung je Schiff.
+  //
+  // AUSNAHME, gemessen statt vermutet: die Kappung gilt nur fuer Raumschiffe.
+  // `tmbl-nova` (Bodenfahrzeug, `movementClass` "ArcadeWheeled") ist das
+  // EINZIGE Fahrzeug im Katalog mit >2 Schildgeneratoren, das KEIN Raumschiff
+  // ist (0/227 andere Bodenfahrzeuge haben ueberhaupt >2 Generatoren) — und
+  // die Wiki fuehrt dort den vollen additiven Wert (2160 = 3x720), nicht den
+  // gekappten (1440). Ohne diese Ausnahme wuerde die Kappung die einzige
+  // bislang schon korrekte Bodenfahrzeug-Messung kaputt machen.
   let shieldHp = 0;
+  const isSpaceshipVeh = veh?.movementClass === 'Spaceship';
   for (const s of comp.shields) {
     const io = readItem(ports && Object.values(ports).flat().find((x) => x.cat === 'shield' && x.name === s.name)?.cls);
     const sp = io ? findType(io, 'SCItemShieldGeneratorParams') : null;
     const max = sp?.MaxShieldHealth ?? (io ? findKeyNum(io, 'MaxShieldHealth') : null);
-    if (max) shieldHp += max * s.count;
+    if (max) shieldHp += max * (isSpaceshipVeh ? Math.min(s.count, 2) : s.count);
   }
   if (shieldHp) stats.shield++;
   let qtSpeedMs = null, qtSpoolS = null, qtFuelReq = null;

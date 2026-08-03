@@ -61,6 +61,29 @@ for (const r of rows) {
   if (!ALL && !FIELD && r.diff.length > 8) console.log(`  … ${r.diff.length - 8} weitere (--all)`);
 }
 
+/* ------------------------------------------------------------------------ */
+/* Akzeptierte Abweichungsklassen (01.4-04, Task 3): Felder, bei denen der   */
+/* Spielwert bewusst vom Wiki-Wert abweicht — begruendet und benannt, nicht  */
+/* stumm toleriert (T-01.4-14). Die vollstaendige Abweichungsliste bleibt    */
+/* oben im normalen Feld-Bericht sichtbar — ein NEUES Fahrzeug mit derselben */
+/* Abweichung faellt dort weiterhin auf. Hier steht nur die Einordnung,      */
+/* warum die Zahl selbst kein offener Befund mehr ist.                      */
+/* ------------------------------------------------------------------------ */
+const ACCEPTED_DEVIATIONS = {
+  hullHp: 'Wiki-Huellenwerte sind veraltet (D-09/D-10) — die Abweichungen sind '
+    + 'unregelmaessig verteilt (kein gemeinsamer Faktor, anders als shieldHp), '
+    + 'mit Veralterung vereinbar. Spielwert = Summe der Bauteil-Trefferpunkte '
+    + 'ohne hardpoint_*-Teile — gegen den frischen Client (Changelist 12326004, '
+    + '01.4-04) erneut belegt: Buccaneer 7980 bestaetigt, Regel trifft 191/223 '
+    + 'Wiki-Werte gegen 182/223 fuer "alle Teile zaehlen" (scratch/probe-hullhp-rule.mjs).',
+};
+console.log(`\n=== Akzeptierte Abweichungsklassen (begruendet, nicht stumm toleriert) ===`);
+for (const [field, reason] of Object.entries(ACCEPTED_DEVIATIONS)) {
+  const r = rows.find((x) => x.field === field);
+  const n = r?.diff.length ?? 0;
+  console.log(`  ${field}: ${n} Fahrzeuge — ${reason}`);
+}
+
 // Bewaffnung: Waffenzahl je Schiff
 let armSame = 0; const armDiff = [];
 for (const g of game) {
