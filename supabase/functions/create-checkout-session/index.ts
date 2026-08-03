@@ -113,14 +113,40 @@ Deno.serve(async (req: Request) => {
         price_data: {
           currency: 'eur',
           unit_amount: cents,
+          // ACHTUNG: das hier LIEST DER UNTERSTUETZER auf Stripes Bezahlseite.
+          // Die Kommentare in dieser Datei sind aus Gewohnheit umlautfrei; diese
+          // zwei Zeichenketten duerfen es NICHT sein. Am 03.08.2026 stand hier
+          // "VerseBase unterstuetzen" — und genau so stand es dann auch gross
+          // ueber dem Betrag auf der Bezahlseite.
           product_data: {
-            name: lang === 'de' ? 'VerseBase unterstuetzen' : 'Support VerseBase',
+            name: lang === 'de' ? 'VerseBase unterstützen' : 'Support VerseBase',
             description: lang === 'de'
-              ? 'Freiwillige Unterstuetzung, ohne Gegenleistung.'
+              ? 'Freiwillige Unterstützung, ohne Gegenleistung.'
               : 'Voluntary support, nothing in return.',
           },
         },
       }],
+      // MANAGED PAYMENTS AUS. Nicht aus Bequemlichkeit — es ist die inhaltlich
+      // richtige Angabe.
+      //
+      // Stripe schaltet das auf neuen Konten von sich aus EIN. Es ist dafuer
+      // gedacht, dass Stripe beim Verkauf DIGITALER PRODUKTE als
+      // Vertragspartner auftritt und die Umsatzsteuer einzieht und abfuehrt.
+      // Dafuer verlangt es an jedem Posten einen Produkt-Steuercode aus Stripes
+      // Warensystematik (Software, Spiele, E-Books, Onlinekurse, Hosting …).
+      //
+      // Hier wird nichts verkauft: die Seite sagt ausdruecklich "freiwillig,
+      // ohne Gegenleistung, keine Rechnung, kein Vertrag, keine Vorteile im
+      // Konto". Es gibt kein Produkt, dem ein Steuercode zustuende — irgendeinen
+      // zu waehlen, damit der Aufruf durchgeht, wuerde den Vorgang als
+      // Produktverkauf ausweisen, der er nicht ist, und Stripe faelschlich zum
+      // Vertragspartner einer Lieferung machen, die niemand erbringt.
+      //
+      // Gefunden am 03.08.2026: OHNE diese Zeile scheitert JEDER Aufruf mit
+      // StripeInvalidRequestError "the product tax code is missing". Die Zeile
+      // ist also nicht optional, sie ist die Voraussetzung dafuer, dass der
+      // Knopf ueberhaupt etwas tut.
+      managed_payments: { enabled: false },
       integration_identifier: INTEGRATION_ID,
       success_url: `${base}${path}?danke=1`,
       cancel_url: `${base}${path}`,
@@ -132,8 +158,24 @@ Deno.serve(async (req: Request) => {
     }
     return json({ url: session.url }, 200, origin);
   } catch (err) {
-    // Fehlertext NICHT durchreichen: er kann Kontodetails enthalten.
-    console.error('checkout session failed:', err instanceof Error ? err.message : err);
-    return json({ error: 'stripe_error' }, 502, origin);
+    // Der Fehler-TEXT bleibt drin: er kann Kontodetails tragen ("your account
+    // cannot …", Betraege, Kontonamen). Die KENNUNGEN gehen raus.
+    //
+    // Warum das kein Leichtsinn, sondern das Ergebnis einer Sackgasse ist:
+    // Am 03.08.2026 antwortete diese Function auf jeden Aufruf mit 502, und es
+    // gab keinen Weg, herauszufinden warum — `console.error` landet in einem
+    // Log, das ueber die API nur mit Verzoegerung von Stunden zu lesen ist, und
+    // die Antwort verriet nichts. type/code/param sind generische Stripe-Bezeichner
+    // (etwa "StripeAuthenticationError" / "resource_missing" / "line_items"),
+    // keine Kontodaten — und sie sind der Unterschied zwischen "kaputt" und
+    // "weiss, welcher Parameter".
+    const e = err as { type?: string; code?: string; param?: string; message?: string };
+    console.error('checkout session failed:', e.message ?? err);
+    return json({
+      error: 'stripe_error',
+      type: e.type ?? null,
+      code: e.code ?? null,
+      param: e.param ?? null,
+    }, 502, origin);
   }
 });
