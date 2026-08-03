@@ -132,7 +132,12 @@ const COVERAGE_FLOOR = {
   qtSpeedMs: 176, qtSpoolS: 176,
   cargoSCU: 223,
   insClaimMin: 223, insExpediteMin: 223, insExpediteCost: 223,
-  fixedWeapons: 175, fixedWeaponMounts: 132, turretWeapons: 83, missileRacks: 148,
+  // fixedWeaponMounts (01.4-06, Gap 2): Untergrenze von 132 auf 160 angehoben
+  // — case-insensitiver maxSize-Fix in datamine-vehicles.mjs (56 WeaponGun-
+  // Ports trugen "maxsize" statt "maxSize") holte 28 Schiffe zurueck. Der
+  // Riegel haelt jetzt den NEUEN, hoeheren Ist-Stand fest statt der Luecke,
+  // die diese Lueckenschliessung gerade behoben hat.
+  fixedWeapons: 175, fixedWeaponMounts: 160, turretWeapons: 83, missileRacks: 148,
   cmLaunchers: 223, components: 223,
   // pilotDps/turretDps (01.4-06, Gap 1): bisher NICHT im Riegel — genau
   // deshalb fiel der "alle-oder-nichts"-Rueckschritt (192 -> 162 bei

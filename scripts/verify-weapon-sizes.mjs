@@ -61,6 +61,23 @@ const expand = (l) => { const o = []; for (const { size, count } of l ?? []) for
 const errors = [];
 const warnings = [];
 let checkedShips = 0, checkedGuns = 0, unresolved = 0;
+// Prüfung 3 (Waffe zu groß fürs Hardpoint, 01.4-06 Gap 2): fixedWeaponMounts
+// kam bis 01.4-05 aus der Wiki-API (168/227 Schiffe) und wird seit dem Tausch
+// aus der Implementierungs-XML gelesen (aktuell 160/227, Fund+Teilfix
+// 01.4-06: 56 WeaponGun-Ports trugen "maxsize" statt "maxSize" — die
+// Groß-/Kleinschreibung war nicht case-insensitiv gelesen). Der verbleibende
+// Rest ist zu einem Teil ECHT nicht vorhanden (Türme haben keine
+// Rumpf-Hardpoints, Prüfung 3 gilt nur für feste Bugwaffen) — aber Prüfung 3
+// selbst lief seit dem Tausch STILL LEER für jedes Schiff ohne Mount-Daten,
+// ohne das zu sagen. Ab hier zählt und druckt der Wächter das mit, UND bricht
+// ab, wenn die Lücke wächst — sonst wiederholt sich genau der stille
+// Deckungsverlust, den diese Prüfung eigentlich verhindern soll.
+let hardpointChecked = 0, hardpointSkipped = 0;
+// Baseline nach 01.4-06 (case-insensitiver maxSize-Fix): 94 geprüft / 81
+// übersprungen von 175 Schiffen mit festen Bugwaffen. Diese Schranke ist
+// bewusst der GEMESSENE Ist-Stand, nicht eine Wunschzahl — wächst sie, ist das
+// ein neuer, unbenannter Rückschritt wie der, den diese Lücke schließt.
+const MAX_HARDPOINT_SKIP = 81;
 
 for (const v of snapshot.vehicles) {
   const pilotGuns = v.fixedWeapons ?? [];
@@ -100,22 +117,42 @@ for (const v of snapshot.vehicles) {
     if (agg !== own) errors.push(`${v.name}: fixedWeaponSizes [${agg}] != Loadout-Wahrheit [${own}]`);
   }
 
-  // 3) Pilotwaffe größer als ihr Hardpoint
-  const hp = expand(v.fixedWeaponMounts).sort((a, b) => b - a);
-  const gs = pilotFlat.slice().sort((a, b) => b - a);
-  if (hp.length && hp.length === gs.length && gs.some((s, i) => s > hp[i]))
-    errors.push(`${v.name}: Waffen [${gs}] passen nicht in die Hardpoints [${hp}]`);
+  // 3) Pilotwaffe größer als ihr Hardpoint — nur für Schiffe mit festen
+  //    Bugwaffen relevant (Türme haben keine Rumpf-Hardpoints, s. o.)
+  if (pilotFlat.length) {
+    const hp = expand(v.fixedWeaponMounts).sort((a, b) => b - a);
+    const gs = pilotFlat.slice().sort((a, b) => b - a);
+    if (hp.length && hp.length === gs.length) {
+      hardpointChecked++;
+      if (gs.some((s, i) => s > hp[i]))
+        errors.push(`${v.name}: Waffen [${gs}] passen nicht in die Hardpoints [${hp}]`);
+    } else {
+      hardpointSkipped++;
+    }
+  }
 }
 
 if (!QUIET) {
   console.log(`geprüft: ${checkedShips} bewaffnete Schiffe · ${checkedGuns} Waffeneinträge`);
   if (unresolved) console.log(`ohne Größe (ehrlich leer): ${unresolved}`);
+  console.log(`Prüfung 3 (Waffe zu groß fürs Hardpoint): ${hardpointChecked} geprüft, ${hardpointSkipped} ohne Hardpoint-Daten übersprungen (von ${hardpointChecked + hardpointSkipped} Schiffen mit festen Bugwaffen)`);
   for (const w of warnings) console.log(`  Hinweis: ${w}`);
 }
 if (errors.length) {
   console.error(`\n✗ ${errors.length} Waffengrößen widersprechen den Spieldaten:`);
   for (const e of errors) console.error(`   ${e}`);
   console.error('\n  -> npm run datamine:loadouts && npm run datamine:vehicles');
+  process.exit(1);
+}
+// Wächter gegen den STILLEN Rückgang (01.4-06, Gap 2): Prüfung 3 selbst kann
+// nicht "falsch" werden, wenn ihr die Vergleichsdaten fehlen — sie wird nur
+// leiser. Wächst hardpointSkipped über die gemessene Baseline, ist das der
+// exakte Fehlermodus, den diese Phase beseitigen sollte (ein Wächter, der
+// weniger prüft, ohne es zu sagen) — hier bricht der Lauf deshalb ab, statt
+// grün zu melden.
+if (hardpointSkipped > MAX_HARDPOINT_SKIP) {
+  console.error(`\n✗ Prüfung 3 übersprang ${hardpointSkipped} Schiffe ohne Hardpoint-Daten — mehr als die bekannte Baseline (${MAX_HARDPOINT_SKIP}).`);
+  console.error('  Das ist ein stiller Deckungsverlust, kein grüner Zustand — bitte Ursache klären, bevor der Wert hier angehoben wird.');
   process.exit(1);
 }
 if (!QUIET) console.log('✓ alle Waffengrößen decken sich mit den Spieldaten');

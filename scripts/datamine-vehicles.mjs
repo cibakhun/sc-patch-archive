@@ -66,6 +66,18 @@ const argOf = (f) => { const i = argv.indexOf(f); return i >= 0 ? argv[i + 1] : 
 const ONLY = argOf('--ship');
 const norm = (s) => (s || '').replace(/\\/g, '/');
 const round = (n, d = 1) => (n == null ? null : Math.round(n * 10 ** d) / 10 ** d);
+// Attribut case-insensitiv lesen (01.4-06, Gap 2): dieselbe XML-Datei mischt
+// "maxSize" und "maxsize" fuer dasselbe Attribut je ItemPort (56 von 283
+// WeaponGun-Ports im Katalog tragen NUR die kleingeschriebene Variante,
+// gemessen ueber alle 142 Implementierungs-XMLs) — genau das Muster, das
+// applyModification() in lib/cryxml.mjs bereits fuer <Elem name="maxsize">
+// vs. Basis-"maxSize" behandelt (Kommentar dort: "Modifikation schreibt
+// 'maxsize', die Basis 'maxSize'"). Ein rein camelCase-Zugriff uebersieht
+// diese Ports lautlos — kein Fehler, nur ein leeres fixedWeaponMounts[].
+const attrCI = (attrs, key) => {
+  const k = Object.keys(attrs).find((x) => x.toLowerCase() === key.toLowerCase());
+  return k ? attrs[k] : undefined;
+};
 
 /* ---------------------------------------------------------------- */
 /* PATCH-RÜCKGRAT (01.4-05, D-19): umgezogen aus dem frueheren           */
@@ -535,7 +547,7 @@ function buildVehicle(id) {
       if (!ip) continue;
       const types = findAll(ip, 'Type').map((t) => t.attr.type || t.attr.name).filter(Boolean);
       if (!types.some((t) => /^WeaponGun$/i.test(t))) continue;
-      const max = Number(ip.attr.maxSize);
+      const max = Number(attrCI(ip.attr, 'maxSize'));
       if (!Number.isFinite(max) || max <= 0) continue;
       sizes.set(max, (sizes.get(max) ?? 0) + 1);
     }

@@ -2220,7 +2220,12 @@
           "dps": 817.9
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 4,
@@ -2363,7 +2368,12 @@
           "dps": 817.9
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 4,
@@ -3819,7 +3829,12 @@
           "dps": 328
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 4
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 2,
@@ -7752,7 +7767,16 @@
           "dps": 328
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 4
+        },
+        {
+          "size": 5,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 2,
@@ -8649,7 +8673,12 @@
           "dps": 328
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 2,
@@ -8769,7 +8798,12 @@
           "dps": 328
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 2,
@@ -8889,7 +8923,12 @@
           "dps": 328
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 2,
@@ -12274,7 +12313,12 @@
           "dps": 328
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 4
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 2,
@@ -13298,7 +13342,12 @@
           "dps": null
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 1,
@@ -13417,7 +13466,12 @@
           "dps": 218.7
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 1,
@@ -13565,7 +13619,12 @@
           "dps": 1536.3
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 5,
@@ -13686,7 +13745,12 @@
           "dps": 817.9
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 4
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 4,
@@ -13810,7 +13874,12 @@
           "dps": 1536.3
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 5,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 5,
@@ -15110,7 +15179,12 @@
           "dps": 817.9
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 1
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 4,
@@ -15901,7 +15975,12 @@
           "dps": 997.5
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 4,
@@ -16022,7 +16101,12 @@
           "dps": 1062.5
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 4,
@@ -16560,7 +16644,16 @@
           "dps": 817.9
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        },
+        {
+          "size": 5,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 4,
@@ -18074,7 +18167,12 @@
           "dps": 545.6
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 3,
@@ -19699,7 +19797,12 @@
           "dps": 328
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 2,
@@ -25828,7 +25931,12 @@
           "dps": 512.5
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 4
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 3,
@@ -27117,7 +27225,12 @@
           "dps": 545.6
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 3
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 3,
@@ -27719,7 +27832,12 @@
           "dps": null
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 10,
+          "count": 1
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 10,
@@ -29594,7 +29712,12 @@
           "dps": 218.7
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 1,
@@ -29707,7 +29830,12 @@
           "dps": 303.8
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 1
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 1,
@@ -29808,7 +29936,12 @@
           "dps": 218.7
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 1,
+          "count": 1
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 1,
@@ -30010,7 +30143,12 @@
           "dps": 545.6
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 3,
@@ -30169,7 +30307,12 @@
           "dps": 545.6
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 3,
@@ -30292,7 +30435,12 @@
           "dps": 817.9
         }
       ],
-      "fixedWeaponMounts": [],
+      "fixedWeaponMounts": [
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
       "fixedWeaponSizes": [
         {
           "size": 4,
