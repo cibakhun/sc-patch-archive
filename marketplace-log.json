@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-03",
-  "updates": 14,
-  "totalListings": 1299,
-  "totalSold": 32,
-  "distinctItems": 561
+  "updates": 15,
+  "totalListings": 1305,
+  "totalSold": 33,
+  "distinctItems": 562
  },
  "listings": {
   "156580": {
@@ -21726,6 +21726,10 @@
     {
      "d": "2026-08-03",
      "p": 29000000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 2700000
     }
    ],
    "soldOut": false,
@@ -26734,9 +26738,9 @@
      "p": 700000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 700000,
    "dateAdded": 1785756168,
    "dateExpiration": 1790940168
   },
@@ -27432,6 +27436,132 @@
    "soldOutPrice": null,
    "dateAdded": 1785759647,
    "dateExpiration": 1790943647
+  },
+  "157980": {
+   "idItem": 6727,
+   "idCategory": 4,
+   "title": "Palatino Legs Necropolis",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785761732,
+   "dateExpiration": 1790945732
+  },
+  "157981": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785761870,
+   "dateExpiration": 1790945870
+  },
+  "157983": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 13500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785762147,
+   "dateExpiration": 1790946147
+  },
+  "157984": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "NDB-30 Repeater 950quality",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785762258,
+   "dateExpiration": 1790946258
+  },
+  "157989": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "WTB 10x Wikelo Favor",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785764182,
+   "dateExpiration": 1790948182
+  },
+  "157990": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "Tungsten 902Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 902,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785764328,
+   "dateExpiration": 1790948328
   }
  }
 }
