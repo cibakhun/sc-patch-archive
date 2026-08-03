@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-03",
-  "updates": 21,
-  "totalListings": 1509,
-  "totalSold": 50,
-  "distinctItems": 605
+  "updates": 22,
+  "totalListings": 1516,
+  "totalSold": 52,
+  "distinctItems": 608
  },
  "listings": {
   "156580": {
@@ -22456,6 +22456,10 @@
     {
      "d": "2026-08-03",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 18000000
     }
    ],
    "soldOut": false,
@@ -26199,9 +26203,9 @@
      "p": 30000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 30000000,
    "dateAdded": 1785751446,
    "dateExpiration": 1790935446
   },
@@ -26241,9 +26245,9 @@
      "p": 30000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 30000000,
    "dateAdded": 1785751597,
    "dateExpiration": 1790935597
   },
@@ -31122,6 +31126,10 @@
     {
      "d": "2026-08-03",
      "p": 50000000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 45000000
     }
    ],
    "soldOut": false,
@@ -31906,6 +31914,153 @@
    "soldOutPrice": null,
    "dateAdded": 1785789723,
    "dateExpiration": 1790973723
+  },
+  "158198": {
+   "idItem": 2721,
+   "idCategory": 3,
+   "title": "Paladin Helmet Black/Silver",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785790362,
+   "dateExpiration": 1790974362
+  },
+  "158201": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium q866",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 866,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 2700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785790803,
+   "dateExpiration": 1796162403
+  },
+  "158205": {
+   "idItem": 5589,
+   "idCategory": 3,
+   "title": "G-2 Helmet Hurston Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785791181,
+   "dateExpiration": 1790975181
+  },
+  "158209": {
+   "idItem": 4813,
+   "idCategory": 3,
+   "title": "Geist Armor Helmet Whiteout",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785791964,
+   "dateExpiration": 1790975964
+  },
+  "158210": {
+   "idItem": 4742,
+   "idCategory": 87,
+   "title": "Saldynium",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785792555,
+   "dateExpiration": 1790976555
+  },
+  "158211": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785792962,
+   "dateExpiration": 1790976961
+  },
+  "158212": {
+   "idItem": 5586,
+   "idCategory": 61,
+   "title": "UNE Silver Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785793083,
+   "dateExpiration": 1790977083
   }
  }
 }
