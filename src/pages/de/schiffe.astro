@@ -10,6 +10,7 @@ import { getCollection } from 'astro:content';
 import vehiclesSnapshot from '../../data/vehicles.json';
 import { pickThumb } from '../../lib/shipRenders';
 import { priceInfo, pricesFetchedAt } from '../../lib/shipExtras';
+import { compAttr } from '../../lib/shipComponents';
 import { vRole } from '../../i18n/vehicleText';
 
 const vehicles = (await getCollection('vehicles')).sort((a, b) =>
@@ -247,6 +248,20 @@ a{color:inherit;text-decoration:none}
       <option value="">Alle</option>
       <option value="1">Im Patch-Archiv</option>
     </select>
+    <select id="sf-comp" aria-label="Bauteil">
+      <option value="">Alle Bauteile</option>
+      <option value="w">Waffe</option>
+      <option value="t">Turm</option>
+      <option value="m">Rakete</option>
+      <option value="s">Schild</option>
+      <option value="c">Kühler</option>
+      <option value="p">Kraftwerk</option>
+      <option value="q">Quantenantrieb</option>
+      <option value="r">Radar</option>
+    </select>
+    <select id="sf-size" aria-label="Mindestgröße" disabled>
+      <option value="">Beliebige Größe</option>
+    </select>
     <select id="sf-sort" aria-label="Sortierung">
       <option value="name">Name A–Z</option>
       <option value="pledge">Pledge-Preis ↓</option>
@@ -271,6 +286,7 @@ a{color:inherit;text-decoration:none}
         data-game={buy ?? -1}
         data-cargo={d.cargoSCU ?? -1}
         data-crew={d.crewMax ?? d.crewMin ?? -1}
+        data-comp={compAttr(id)}
       >
         <div class="fcard__media">
           {thumb ? (
@@ -336,6 +352,8 @@ a{color:inherit;text-decoration:none}
   var selType = document.getElementById('sf-type');
   var selStatus = document.getElementById('sf-status');
   var selArchive = document.getElementById('sf-archive');
+  var selComp = document.getElementById('sf-comp');
+  var selSize = document.getElementById('sf-size');
   var selSort = document.getElementById('sf-sort');
   var count = document.getElementById('sf-count');
   var empty = document.getElementById('sf-empty');
@@ -350,21 +368,93 @@ a{color:inherit;text-decoration:none}
     return isNaN(v) ? -1 : v;
   };
 
+  // Beispiel data-comp-Wert: w gefolgt von 3, dann m gefolgt von 2 usw. ->
+  // {w:3,m:2,...}. Sentinel (Bindestrich, D-08) UND ein fehlendes Attribut
+  // liefern beide das leere Objekt -- ein fehlendes Attribut ist wie der
+  // Sentinel zu behandeln, falls der Compiler ein leeres Attribut je
+  // weglassen sollte. (Hinweis: kein woertliches Beispiel im Kommentar, damit
+  // es nicht zufaellig wie ein echtes data-comp-Attribut aussieht.)
+  var CAT_RX = /([wtmscpqr])(\d|X)/g;
+  function parseComp(s) {
+    var out = {}, m;
+    if (!s || s === '-') return out;
+    CAT_RX.lastIndex = 0;
+    while ((m = CAT_RX.exec(s))) out[m[1]] = m[2] === 'X' ? 10 : parseInt(m[2], 10);
+    return out;
+  }
+
+  // Zusammenhaengende Groessenliste 1..Maximum fuer eine Kategorie. NICHT nur
+  // die tatsaechlich beobachteten Werte: gespeichert ist je Schiff nur das
+  // MAXIMUM je Kategorie, deshalb liefert JEDE Schwelle bis zum globalen
+  // Maximum garantiert mindestens einen Treffer -- genau das verlangt D-10
+  // ("nur Groessen anbieten, die mindestens einen Treffer liefern koennen").
+  function sizesFor(letter) {
+    var max = 0;
+    cards.forEach(function (c) {
+      var v = parseComp(c.getAttribute('data-comp'))[letter];
+      if (v != null && v > max) max = v;
+    });
+    var out = [];
+    for (var i = 1; i <= max; i++) out.push(i);
+    return out;
+  }
+
+  // Baut sf-size fuer die gewaehlte Bauteilart neu, setzt die Auswahl zurueck
+  // und schaltet sf-size frei/wieder ab (D-11: Bauteilart ohne Groesse
+  // filtert noch nicht -- sie ist nur Vorauswahl fuers Groessenfeld).
+  function rebuildSizeOptions() {
+    var letter = selComp.value;
+    while (selSize.options.length > 1) selSize.remove(1);
+    if (letter) {
+      sizesFor(letter).forEach(function (n) {
+        var opt = document.createElement('option');
+        opt.value = String(n);
+        opt.textContent = 'ab S' + n;
+        selSize.appendChild(opt);
+      });
+      selSize.disabled = false;
+    } else {
+      selSize.disabled = true;
+    }
+    selSize.value = '';
+  }
+
   function apply() {
     var nq = norm(q.value).trim();
     var m = selMaker.value, t = selType.value, st = selStatus.value, ar = selArchive.value;
-    var n = 0;
+    var compLetter = selComp.value;
+    var compSize = selSize.value ? parseInt(selSize.value, 10) : null;
+    // D-11: Bauteilart ohne Groesse filtert noch NICHT -- der Filter greift
+    // erst, wenn beide Felder gesetzt sind.
+    var compActive = !!(compLetter && compSize != null);
+    var n = 0, noData = 0;
     cards.forEach(function (c) {
-      var ok =
+      var baseOk =
         (!nq || norm(c.getAttribute('data-q')).indexOf(nq) >= 0) &&
         (!m || c.getAttribute('data-maker') === m) &&
         (!t || c.getAttribute('data-type') === t) &&
         (!st || c.getAttribute('data-status') === st) &&
         (!ar || c.getAttribute('data-archive') === ar);
-      c.style.display = ok ? '' : 'none';
-      if (ok) n++;
+      if (!baseOk) { c.style.display = 'none'; return; }
+      if (!compActive) { c.style.display = ''; n++; return; }
+      var raw = c.getAttribute('data-comp');
+      if (!raw || raw === '-') {
+        // D-08: Schiffe ohne Steckplatz-Daten fallen aus der Trefferliste,
+        // werden aber im Zaehler ausdruecklich benannt statt still verworfen.
+        noData++;
+        c.style.display = 'none';
+        return;
+      }
+      // D-04: "einer reicht" -- gespeichert ist bereits das Maximum je
+      // Kategorie, ein Vergleich >= genuegt.
+      var v = parseComp(raw)[compLetter];
+      var compOk = v != null && v >= compSize;
+      c.style.display = compOk ? '' : 'none';
+      if (compOk) n++;
     });
-    count.textContent = n + ' Treffer';
+    // D-12: der Zaehler bleibt korrekt, auch mit dem neuen Filter kombiniert;
+    // ohne aktiven Bauteilfilter bleibt der Text exakt wie zuvor.
+    count.textContent = compActive ? (n + ' Treffer · ' + noData + ' ohne Steckplatz-Daten') : (n + ' Treffer');
     empty.hidden = n !== 0;
   }
 
@@ -380,9 +470,15 @@ a{color:inherit;text-decoration:none}
     ordered.forEach(function (c) { fleet.insertBefore(c, empty); });
   }
 
-  [q, selMaker, selType, selStatus, selArchive].forEach(function (el) {
+  [q, selMaker, selType, selStatus, selArchive, selSize].forEach(function (el) {
     el.addEventListener('input', apply);
     el.addEventListener('change', apply);
+  });
+  // sf-comp bekommt einen eigenen Listener (statt im Feld oben): ein Wechsel
+  // der Bauteilart baut sf-size neu auf, BEVOR gefiltert wird.
+  selComp.addEventListener('change', function () {
+    rebuildSizeOptions();
+    apply();
   });
   selSort.addEventListener('change', sort);
 
