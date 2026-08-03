@@ -4347,7 +4347,7 @@
       "insClaimMin": 4.9,
       "insExpediteMin": 1.6,
       "insExpediteCost": 2724,
-      "pilotDps": null,
+      "pilotDps": 2359.4,
       "turretDps": null,
       "fixedWeapons": [
         {
@@ -6321,7 +6321,7 @@
       "insExpediteMin": 6.2,
       "insExpediteCost": 7730,
       "pilotDps": null,
-      "turretDps": null,
+      "turretDps": 3271.6,
       "fixedWeapons": [],
       "fixedWeaponMounts": [],
       "fixedWeaponSizes": [],
@@ -6477,7 +6477,7 @@
       "insExpediteMin": 6.2,
       "insExpediteCost": 7730,
       "pilotDps": null,
-      "turretDps": null,
+      "turretDps": 3271.6,
       "fixedWeapons": [],
       "fixedWeaponMounts": [],
       "fixedWeaponSizes": [],
@@ -7558,7 +7558,7 @@
       "insExpediteMin": 5.7,
       "insExpediteCost": 9531,
       "pilotDps": 4909.6,
-      "turretDps": null,
+      "turretDps": 1091.2,
       "fixedWeapons": [
         {
           "name": "CF-557 Galdereen Repeater",
@@ -7625,7 +7625,7 @@
             }
           ],
           "payloadTypes": [],
-          "dps": null
+          "dps": 1091.2
         }
       ],
       "missileCount": 24,
@@ -7986,7 +7986,7 @@
       "insExpediteMin": 3.3,
       "insExpediteCost": 6251,
       "pilotDps": 2104.6,
-      "turretDps": null,
+      "turretDps": 1091.2,
       "fixedWeapons": [
         {
           "name": "Mantis GT-220 Gatling",
@@ -13280,7 +13280,7 @@
       "insClaimMin": 3,
       "insExpediteMin": 0.8,
       "insExpediteCost": 1030,
-      "pilotDps": null,
+      "pilotDps": 437.4,
       "turretDps": null,
       "fixedWeapons": [
         {
@@ -14195,7 +14195,7 @@
       "insClaimMin": 6.8,
       "insExpediteMin": 2.3,
       "insExpediteCost": 3040,
-      "pilotDps": null,
+      "pilotDps": 1312,
       "turretDps": null,
       "fixedWeapons": [
         {
@@ -15219,7 +15219,7 @@
       "insExpediteMin": 6,
       "insExpediteCost": 9000,
       "pilotDps": null,
-      "turretDps": null,
+      "turretDps": 6002.4,
       "fixedWeapons": [],
       "fixedWeaponMounts": [],
       "fixedWeaponSizes": [],
@@ -15318,7 +15318,7 @@
             }
           ],
           "payloadTypes": [],
-          "dps": null
+          "dps": 2177.4
         }
       ],
       "missileCount": 10,
@@ -18064,7 +18064,7 @@
       "insExpediteMin": 2.8,
       "insExpediteCost": 8970,
       "pilotDps": 1091.2,
-      "turretDps": null,
+      "turretDps": 1091.2,
       "fixedWeapons": [
         {
           "name": "CF-337 Panther Repeater",
@@ -18126,7 +18126,7 @@
             }
           ],
           "payloadTypes": [],
-          "dps": null
+          "dps": 1091.2
         }
       ],
       "missileCount": 8,
@@ -18229,7 +18229,7 @@
       "insExpediteMin": 15,
       "insExpediteCost": 22500,
       "pilotDps": 1091.2,
-      "turretDps": null,
+      "turretDps": 2182.4,
       "fixedWeapons": [
         {
           "name": "CF-337 Panther Repeater",
@@ -18291,7 +18291,7 @@
             }
           ],
           "payloadTypes": [],
-          "dps": null
+          "dps": 2182.4
         }
       ],
       "missileCount": null,
@@ -18387,7 +18387,7 @@
       "insClaimMin": 9,
       "insExpediteMin": 3,
       "insExpediteCost": 3040,
-      "pilotDps": null,
+      "pilotDps": 437.4,
       "turretDps": null,
       "fixedWeapons": [
         {
@@ -18513,7 +18513,7 @@
       "insClaimMin": 0.7,
       "insExpediteMin": 0,
       "insExpediteCost": 340,
-      "pilotDps": null,
+      "pilotDps": 1312,
       "turretDps": null,
       "fixedWeapons": [
         {
@@ -21022,7 +21022,7 @@
       "insClaimMin": 4,
       "insExpediteMin": 1.3,
       "insExpediteCost": 1920,
-      "pilotDps": null,
+      "pilotDps": 1312,
       "turretDps": null,
       "fixedWeapons": [
         {
@@ -22710,7 +22710,7 @@
       "insExpediteMin": 19,
       "insExpediteCost": 44030,
       "pilotDps": null,
-      "turretDps": null,
+      "turretDps": 18771.4,
       "fixedWeapons": [],
       "fixedWeaponMounts": [],
       "fixedWeaponSizes": [],
@@ -22813,7 +22813,7 @@
             }
           ],
           "payloadTypes": [],
-          "dps": null
+          "dps": 2182.4
         },
         {
           "label": "Punktverteidigung (PDC)",
@@ -23498,7 +23498,7 @@
       "insExpediteMin": 2,
       "insExpediteCost": 2050,
       "pilotDps": null,
-      "turretDps": null,
+      "turretDps": 1367.2,
       "fixedWeapons": [],
       "fixedWeaponMounts": [
         {
@@ -23552,7 +23552,7 @@
             }
           ],
           "payloadTypes": [],
-          "dps": null
+          "dps": 1367.2
         }
       ],
       "missileCount": null,
@@ -23649,7 +23649,7 @@
       "insExpediteMin": 5,
       "insExpediteCost": 5500,
       "pilotDps": 3271.6,
-      "turretDps": null,
+      "turretDps": 3271.6,
       "fixedWeapons": [
         {
           "name": "CF-447 Rhino Repeater",
@@ -25565,7 +25565,7 @@
       "insClaimMin": 7.6,
       "insExpediteMin": 2.5,
       "insExpediteCost": 3934,
-      "pilotDps": null,
+      "pilotDps": 1093.4,
       "turretDps": null,
       "fixedWeapons": [
         {
@@ -26073,7 +26073,7 @@
       "insClaimMin": 7.6,
       "insExpediteMin": 2.5,
       "insExpediteCost": 3800,
-      "pilotDps": null,
+      "pilotDps": 2182.4,
       "turretDps": null,
       "fixedWeapons": [
         {
@@ -27889,7 +27889,7 @@
       "insExpediteMin": 5.7,
       "insExpediteCost": 6000,
       "pilotDps": 5454,
-      "turretDps": null,
+      "turretDps": 3271.6,
       "fixedWeapons": [
         {
           "name": "CF-447 Rhino Repeater",
@@ -29216,7 +29216,7 @@
       "insClaimMin": 18.2,
       "insExpediteMin": 6.1,
       "insExpediteCost": 9113,
-      "pilotDps": null,
+      "pilotDps": 875,
       "turretDps": 0,
       "fixedWeapons": [
         {
@@ -30282,7 +30282,7 @@
       "insExpediteMin": 2.8,
       "insExpediteCost": 8740,
       "pilotDps": 1635.8,
-      "turretDps": null,
+      "turretDps": 1635.8,
       "fixedWeapons": [
         {
           "name": "CF-447 Rhino Repeater",
@@ -30344,7 +30344,7 @@
             }
           ],
           "payloadTypes": [],
-          "dps": null
+          "dps": 1635.8
         }
       ],
       "missileCount": 16,

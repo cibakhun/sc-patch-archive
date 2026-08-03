@@ -134,6 +134,13 @@ const COVERAGE_FLOOR = {
   insClaimMin: 223, insExpediteMin: 223, insExpediteCost: 223,
   fixedWeapons: 175, fixedWeaponMounts: 132, turretWeapons: 83, missileRacks: 148,
   cmLaunchers: 223, components: 223,
+  // pilotDps/turretDps (01.4-06, Gap 1): bisher NICHT im Riegel — genau
+  // deshalb fiel der "alle-oder-nichts"-Rueckschritt (192 -> 162 bei
+  // pilotDps) durch keinen automatisierten Waechter auf, nur durch die
+  // manuelle Vorzustands-Pruefung des Phasen-Verifizierers. Untergrenzen sind
+  // der NACH dem Teilsummen-Fix gemessene Ist-Stand (171/72 von 227) — ein
+  // kuenftiger Rueckfall auf "alle-oder-nichts" wuerde sie sofort unterschreiten.
+  pilotDps: 171, turretDps: 72,
 };
 
 const nonEmpty = (x) =>

@@ -422,7 +422,14 @@ const SIZE_LABEL = {
 /* ---------------------------------------------------------------- */
 /* Ein Fahrzeug bauen                                                */
 /* ---------------------------------------------------------------- */
-const stats = { impl: 0, ifcs: 0, hull: 0, cargo: 0, shield: 0, qt: 0, qtFuel: 0, qtRange: 0, h2Fuel: 0, ore: 0, noRec: [], badMod: [], noIfcs: [] };
+const stats = {
+  impl: 0, ifcs: 0, hull: 0, cargo: 0, shield: 0, qt: 0, qtFuel: 0, qtRange: 0, h2Fuel: 0, ore: 0, noRec: [], badMod: [], noIfcs: [],
+  // Gap 1 (01.4-06): billige Mitzaehlung, wie oft die Teilsumme wirklich
+  // Waffen ohne bekannte DPS uebersprungen hat — sichtbar in der Konsole,
+  // damit ein kuenftiger stiller Rueckgang auffiele, nicht nur der Fund
+  // dieser Sitzung.
+  dpsPilot: 0, dpsTurret: 0, dpsPartialShips: 0, dpsSkippedWeapons: 0,
+};
 
 function buildVehicle(id) {
   const rec = byId.get(id);
@@ -658,9 +665,25 @@ function buildVehicle(id) {
   const withDps = (map) => [...map.values()].map((w) => ({ ...w, dps: weaponDps(w.cls) }));
   const pilotWithDps = withDps(pilot);
   const turretWithDps = withDps(turret);
-  const sumDps = (ws) => (ws.length && ws.every((w) => w.dps != null) ? round(ws.reduce((s, w) => s + w.dps * w.count, 0), 1) : null);
+  // sumDps (01.4-06, Gap 1 — vorher "alle-oder-nichts"): EIN Nicht-Waffen-Item
+  // ohne bekannte DPS (EMP-Geraet, Bergbau-Laser, Traktorstrahl, unlokalisierte
+  // `_TEMP`-Klasse) liess bisher die GESAMTE Summe auf null fallen, obwohl die
+  // uebrigen Waffen im selben Loadout einzeln bekannt waren (Avenger Warlock:
+  // 2359,6 DPS verschwand komplett). Jetzt: aufsummieren, was bekannt ist,
+  // unbekannte Waffen tragen ehrlich 0 zur Summe bei (KEIN erfundener Wert) —
+  // nur wenn KEINE einzige Waffe eine DPS traegt, bleibt das Feld null. Die
+  // Buccaneer-Falsifizierungsprobe (2760,4, alle Waffen bekannt) bleibt exakt
+  // gleich, weil hier ws.length === known.length gilt.
+  const sumDps = (ws) => {
+    const known = ws.filter((w) => w.dps != null);
+    return known.length ? round(known.reduce((s, w) => s + w.dps * w.count, 0), 1) : null;
+  };
   const pilotDps = sumDps(pilotWithDps);
   const turretDps = sumDps(turretWithDps);
+  if (pilotDps != null) stats.dpsPilot++;
+  if (turretDps != null) stats.dpsTurret++;
+  const dpsSkipped = [...pilotWithDps, ...turretWithDps].filter((w) => w.dps == null).length;
+  if (dpsSkipped) { stats.dpsPartialShips++; stats.dpsSkippedWeapons += dpsSkipped; }
   const missileCount = [...racks.values()].reduce((s, r) => s + r.count, 0) || null;
 
   // fixedWeaponSizes (01.4-02, Gruppe A, Schritt 4 — Urteilsfall, kein Suchfall):
@@ -817,6 +840,10 @@ console.log(`  Schild-HP:            ${stats.shield}   Quantum: ${stats.qt}   Fr
 console.log(`  QT-Treibstoff:        ${stats.qtFuel}   QT-Reichweite: ${stats.qtRange}   H2-Treibstoff: ${stats.h2Fuel}   Erz: ${stats.ore}`);
 if (stats.noRec.length) console.log(`  ohne DataCore-Record: ${stats.noRec.length} (${stats.noRec.join(', ')})`);
 if (overridesAdded) console.log(`  aus vehicle-external.json übernommen (ATLS): ${overridesAdded}`);
+// Gap 1 (01.4-06): DPS-Deckung + wie oft die Teilsumme Waffen ohne bekannte
+// DPS übersprungen hat — billige Sichtbarkeit, s. Kommentar bei sumDps().
+console.log(`  Waffen-DPS: pilotDps ${stats.dpsPilot}/${out.length}   turretDps ${stats.dpsTurret}/${out.length}`);
+if (stats.dpsPartialShips) console.log(`  davon Teilsumme (Waffe ohne bekannte DPS übersprungen): ${stats.dpsPartialShips} Fahrzeuge, ${stats.dpsSkippedWeapons} Waffeneinträge`);
 const patchLinked = out.filter((v) => Array.isArray(v.patches) && v.patches.length).length;
 console.log(`  Patch-Rückgrat (patches[]): ${patchLinked} Fahrzeuge verknüpft`);
 
