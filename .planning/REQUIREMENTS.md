@@ -114,7 +114,7 @@
 > Client auf `12326004`. Die eigene Extraktion liefert bereits 223 Fahrzeuge
 > inklusive DE- und EN-Beschreibungen aus CIGs eigener `global.ini`.
 
-- [ ] **VEH-01**: Die vier Extraktor-Skripte (`lib/cryxml.mjs`, `datamine-vehicles.mjs`, `verify-vehicles.mjs`, `verify-weapon-sizes.mjs`) liegen versioniert im Repo
+- [x] **VEH-01**: Die vier Extraktor-Skripte (`lib/cryxml.mjs`, `datamine-vehicles.mjs`, `verify-vehicles.mjs`, `verify-weapon-sizes.mjs`) liegen versioniert im Repo
 - [ ] **VEH-02**: `src/data/vehicle-external.json` trägt die fünf Felder, die in keiner Spieldatei stehen: `msrpUSD`, `pledgeUrl`, `lengthM`/`widthM`/`heightM`, Bild-URL
 - [ ] **VEH-03**: Name und Hersteller sind normalisiert (`C.O.`-Präfix, `&` gegen `and`, abschließender Zeilenumbruch) — die rein kosmetischen Abweichungen sind weg
 - [ ] **VEH-04**: Für `crew` ist entschieden und belegt, ob die Seite CIGs `crewSize` oder den bisherigen `crewMax` zeigt
@@ -265,7 +265,7 @@ ist anbieterneutral und bleibt gültig.
 | DATA-07 | Phase 1.3 | Complete |
 | DATA-08 | Phase 1.3 | Complete |
 | DATA-09 | Phase 1.3 | Complete |
-| VEH-01 | Phase 1.4 | Pending |
+| VEH-01 | Phase 1.4 | Complete |
 | VEH-02 | Phase 1.4 | Pending |
 | VEH-03 | Phase 1.4 | Pending |
 | VEH-04 | Phase 1.4 | Pending |

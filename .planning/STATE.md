@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: staging zusammengefuehrt — Unterstuetzen-Seite existiert bereits, Umbau auf "Instandsetzung" laeuft; Phase 6 (Schiffe-Rollenfilter) abgeschlossen
-last_updated: "2026-08-02T14:47:16.911Z"
+stopped_at: "staging zusammengefuehrt — Unterstuetzen-Seite existiert bereits, Umbau auf \\\\\\\\\\\\\\\"Instandsetzung\\\\\\\\\\\\\\\" laeuft; Phase 6 (Schiffe-Rollenfilter) abgeschlossen"
+last_updated: "2026-08-03T18:26:26.195Z"
 last_activity: 2026-08-02
-last_activity_desc: Phase 6 abgeschlossen (Schiffe: Rollen- und Merkmalsfilter); Phase 5 auf PayPal neu ausgerichtet
+last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
-  total_phases: 5
-  completed_phases: 1
-  total_plans: 11
-  completed_plans: 5
+  total_phases: 7
+  completed_phases: 2
+  total_plans: 19
+  completed_plans: 8
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -41,8 +41,10 @@ Branch: claude/donation-button-feature-98ba38 (Worktree)
 Last activity: 2026-08-02 — staging zusammengeführt, Phase 5 auf Umbau umgestellt
 
 **Was der bestehenden Seite fehlt** (gemessen, nicht vermutet):
+
 - Datenschutzerklärung nennt PayPal in KEINER der beiden Sprachfassungen (0 Treffer)
   — der einzige Punkt mit rechtlicher Relevanz
+
 - Keine eigene Optik (Standard-Palette `--accent:#2dd4ff`), keine Betragswahl, kein Ko-fi
 - Als Grund steht die generische Serverkosten-Begründung statt des defekten Netzteils
 
@@ -89,6 +91,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 05 P01 | 45min | 2 tasks | 8 files |
 | Phase 05 P02 | 55min | 2 tasks | 5 files |
 | Phase 5 P03 | ~2h55min | 2 tasks | 1 files |
+| Phase 01.4 P01 | ~35min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -111,6 +114,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 5]: 05-02: npm run theme beruehrte erneut dieselben 84 unbeteiligten Dateien aus Plan 01 (Alt-Drift) -- zurueckgesetzt, nur die 5 Plan-Dateien blieben veraendert
 - [Phase ?]: [Phase 5]: 05-03: 7 Schnellzugriff-Chips (sdb__quick/sdb__qchip) setzen Rollenfamilie+Signatur in einem Klick (D-10, ROLE-06); sf-type (Wiki-Grobfilter) abgeloest
 - [Phase ?]: [Phase 5]: 05-03: Sichtpruefung fand doppelten Rollenfilter (sf-role neben sf-rolefam) -- sf-role entfernt, sf-rolefam ist jetzt DER Rollenfilter (D-05); Konsole 9 statt 10 Bedienelemente
+- [Phase ?]: 01.4-01: fuenf Extraktor-Vorarbeiten (D-01/D-02/D-21) versioniert + erster Fahrzeug-Katalog-Lauf gegen Changelist 12326004 (223/227, 4 ATLS ohne DataCore-Record); Feldmatrix mit 18 kritischen Feldern (13 zu pruefen, Abbruchgrenzen fuer Plan 02) und Deckungs-Waechter in verify-vehicles.mjs
 
 ### Pending Todos
 
@@ -140,6 +144,8 @@ None yet.
 - Phase 01.2 inserted after Phase 1: Werkzeuge erklaeren — Zweck- und Bedienungshilfe je Werkzeug (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 - Phase 5 added (31.07.2026): Spenden-Unterstuetzung — Stripe Checkout + Ko-fi, eigene Seite, Ziel und Unterstuetzer-Wand (DON-01…DON-14). ERWEITERT den Meilenstein bewusst ueber die Oberflaeche hinaus (DB-Tabelle, zwei Edge Functions, Zahlungsverkehr); die „Out of Scope"-Zeilen zu serverseitiger Logik und Konto-Funktionen sind fuer diese Phase aufgehoben. Anlass: defektes Netzteil im Entwicklungsrechner, zufaellige Neustarts. Haengt an keiner Vorgaengerphase — Phase 1.1 bleibt geplant liegen und wird NICHT abgebrochen.
 - Phase 6 added (02.08.2026): Schiffe — Rollen- und Merkmalsfilter. Granulare, spielgenaue Filter statt acht Wiki-Grobtypen; Datengrundlage neu aus dem DataCore. Beanspruchte zunaechst Nummer 5 und wurde beim staging-Abgleich auf 6 umnummeriert, weil Spenden-Unterstuetzung zuerst auf staging war. ABGESCHLOSSEN, Verifikation 10/10.
+- Phase 01.3 inserted after Phase 1: Datenschicht aufraeumen — abgeschlossen und verifiziert 03.08.2026 (10/10 Kriterien) (URGENT)
+- Phase 01.4 inserted after Phase 1: Fahrzeug-Katalog auf Spieldaten — geplant 03.08.2026, 5 Plaene
 
 ## Deferred Items
 
