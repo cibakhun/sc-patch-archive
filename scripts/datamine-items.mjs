@@ -12,7 +12,7 @@
 //
 // Aufruf: node scripts/datamine-items.mjs [--p4k <Data.p4k>] [--debug]
 // Ausgabe: assets/items-gamefiles.json
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
@@ -36,7 +36,20 @@ for (const rx of [/Localization[\\/]german[\\/]global\.ini$/i, /Localization[\\/
   try { iniDe = p4k.read(rx).toString('utf8'); break; } catch { /* nächste Variante */ }
 }
 p4k.close();
-const patchLabel = 'sc-alpha-4.9.0'; // build_manifest.id liegt neben der p4k; hier statisch dokumentiert
+// Patch-Kennung aus build_manifest.id neben der p4k (best effort, wie
+// datamine-crafting.mjs/extract-hardpoints.mjs). Vorher stand hier ein
+// statischer Branch-String OHNE Changelist-Nummer — zwei Laeufe gegen
+// verschiedene Builds desselben Branches waeren ununterscheidbar gewesen (D-16).
+let patchLabel = 'sc-alpha-4.9.0'; // Fallback, falls build_manifest.id fehlt
+{
+  const bm = resolve(dirname(DEFAULT_P4K), 'build_manifest.id');
+  if (existsSync(bm)) {
+    try {
+      const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data;
+      if (d?.Branch && d?.RequestedP4ChangeNum) patchLabel = `${d.Branch}@${d.RequestedP4ChangeNum}`;
+    } catch { /* Fallback bleibt */ }
+  }
+}
 
 const mkMap = (ini) => { const m = new Map(); if (!ini) return m; for (const line of ini.split(/\r?\n/)) { const i = line.indexOf('='); if (i > 0) m.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase(), line.slice(i + 1)); } return m; };
 const EN = mkMap(iniEn), DE = mkMap(iniDe);

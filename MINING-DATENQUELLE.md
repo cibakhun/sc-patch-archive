@@ -9,8 +9,8 @@ volatil, nicht game-verifizierbar).
 
 ## Woher die Daten kommen
 
-Patch-Kennung aus dem Client-`build_manifest.id`: **`4.9.0-live.12232306`**
-(Branch `sc-alpha-4.9.0`).
+Patch-Kennung aus dem Client-`build_manifest.id`: **`4.9.0-live.12326004`**
+(Branch `sc-alpha-4.9.0`, Stand 2026-08-03).
 
 **Eigene Extraktion (node-nativ, `scripts/lib/p4k.mjs` + `scripts/lib/datacore.mjs`):**
 
@@ -18,7 +18,7 @@ Patch-Kennung aus dem Client-`build_manifest.id`: **`4.9.0-live.12232306`**
 |---|---|---|
 | `datamine-mining.mjs` | `mining-gamefiles.json` | Element-Physik, Kompositionen (die „bis X %"), Global-Params, **density** (aus `resourceType.densityType`), **rarity** (aus Kompositions-Namensschema `<rarity>shipmineables_*`), **scanSignature** (element-spezifische `mineablerock_*_<erz>`), groundScanSignature, **qualityBands** (`crafting/qualityquantization/quantization_<erz>`) — alle byte-genau zu scmdb |
 | `datamine-locations.mjs` | `mining-locations-gamefiles.json` | Fundorte je Erz + Abundance + Fund-Chance + Bodies (Reverse), Kette `providerpreset → harvestablepreset → mineablerock → composition → element` |
-| `datamine-gear.mjs` | `mining-gear-gamefiles.json` | 17 Laser (DPS = `FireBeam.damagePerSecond.DamageEnergy`), 26 Module, 6 Gadgets — Mods aus `MiningLaserModifier`, Namen/Hersteller aus `Localization/english/global.ini` |
+| `datamine-gear.mjs` | `mining-gear-gamefiles.json` | 17 Laser extrahiert (DPS = `FireBeam.damagePerSecond.DamageEnergy`), 26 Module, 6 Gadgets — Mods aus `MiningLaserModifier`, Namen/Hersteller aus `Localization/english/global.ini`. **14 Laser erreichen den Fracturing-Rechner:** 2 ohne Localization-Namen (`mining_laser_shin_hofstede_s0`, S0, Shubin Interstellar; `mining_laser_thcn_helix_s0`, S0, Thermyte Concern) werden bewusst ausgelassen statt mit erfundenem Namen ausgeliefert — sie stehen mit Klassenbezeichnung in `assets/mining-model.json.omitted[]`; ein drittes Geraet (Pitman, `builtIn`) ist Standardausruestung und taucht im Rechner nicht als waehlbare Option auf. |
 
 `build-mining-model.mjs` + `build-mining-db.mjs` assemblieren daraus die getrackten
 `assets/mining-model.json` + `assets/mining-db.json`. Kuratierte Attribute
@@ -39,7 +39,7 @@ kein fehlender Wert). density, scanSignature und qualityBands sind game-sourced 
 ## Der Beweis
 
 Jeder Extraktor hat einen `--verify`-Modus, der die eigene DataCore-Extraktion gegen
-LIVE-scmdb (gleicher Patch, 4.9.0-live.12232306) prüft — 0-Diff = byte-genau:
+LIVE-scmdb (gleicher Patch, 4.9.0-live.12326004) prüft — 0-Diff = byte-genau:
 
 - **Physik + Kompositionen:** 39/40 Elemente, 63 Kompositionen, **0 Abweichungen**.
 - **Fundorte:** 30/33 Elemente identisch (system+abundance-Multiset); die 3 Reste sind

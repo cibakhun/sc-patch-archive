@@ -1,13 +1,13 @@
 ---
-phase: 05-komponenten-filter-f-r-schiffe
+phase: 07-komponenten-filter-f-r-schiffe
 plan: 03
 subsystem: ui
 tags: [astro, filter-ui, i18n, node-test, node-vm, e2e]
 
 requires:
-  - phase: 05-komponenten-filter-f-r-schiffe (Plan 01)
+  - phase: 07-komponenten-filter-f-r-schiffe (Plan 01)
     provides: "compAttr(id), CAT_ORDER, sf-comp/sf-size-Auswahlfelder und die erweiterte Filterlogik auf der EN-Seite"
-  - phase: 05-komponenten-filter-f-r-schiffe (Plan 02)
+  - phase: 07-komponenten-filter-f-r-schiffe (Plan 02)
     provides: "Turm-Kategorie (D-06a, TurretBase ohne Container), 47 Schiffe mit t, achter sf-comp-Eintrag"
 provides:
   - "src/pages/de/schiffe.astro — identischer Komponenten-Filter wie die EN-Seite, nur Beschriftungen deutsch (sf-comp/sf-size, parseComp, sizesFor, rebuildSizeOptions, D-04/D-08/D-11/D-12-Logik)"
@@ -29,8 +29,8 @@ key-files:
     - src/pages/de/schiffe.astro
 
 key-decisions:
-  - "PLAN.md-eigene Ankererwartung korrigiert: 'aegs-hammerhead bei Turm und 6 sichtbar' ist mit den D-06a-Realdaten falsch (gespeicherter Max-Wert t=5, nicht 6 -- 05-02-SUMMARY.md hatte das bereits als bekannte Verwechslung Anzahl/Groesse dokumentiert). Test und manueller Nachweis pruefen stattdessen Turm+S5 (sichtbar) -- konsistent mit der echten JSON."
-  - "PLAN.md-eigene Zahl '59 Turmkarten' im Task-1-<verify>-Regex durch die seit D-06a gueltige Zahl 47 ersetzt (bereits in 05-02-SUMMARY.md als notwendige Korrektur fuer diesen Plan vermerkt)."
+  - "PLAN.md-eigene Ankererwartung korrigiert: 'aegs-hammerhead bei Turm und 6 sichtbar' ist mit den D-06a-Realdaten falsch (gespeicherter Max-Wert t=5, nicht 6 -- 07-02-SUMMARY.md hatte das bereits als bekannte Verwechslung Anzahl/Groesse dokumentiert). Test und manueller Nachweis pruefen stattdessen Turm+S5 (sichtbar) -- konsistent mit der echten JSON."
+  - "PLAN.md-eigene Zahl '59 Turmkarten' im Task-1-<verify>-Regex durch die seit D-06a gueltige Zahl 47 ersetzt (bereits in 07-02-SUMMARY.md als notwendige Korrektur fuer diesen Plan vermerkt)."
   - "ships-dom.js baut initial nur einen Leereintrag in sf-size und praegt sf-count je nach opts.lang mit dem server-gerenderten Ausgangstext vor -- ohne diese Vorpraegung würde jeder 'unveraenderter Zaehler'-Test fehlschlagen, weil das Inline-Skript beim Laden nichts schreibt."
 
 requirements-completed: [D-04, D-05, D-07, D-08, D-09, D-10, D-11, D-12]
@@ -158,13 +158,13 @@ status: complete
 
 - **PLAN.md-eigene Ankererwartung korrigiert:** der Plantext verlangte "`aegs-hammerhead` ist bei
   Turm und 6 sichtbar" — die tatsaechlich gespeicherte Turm-Groesse ist aber `t:5` (D-06a hat den
-  Wert bereits in 05-02 von 6 auf 5 richtiggestellt, siehe 05-02-SUMMARY.md "Korrigierte
+  Wert bereits in 05-02 von 6 auf 5 richtiggestellt, siehe 07-02-SUMMARY.md "Korrigierte
   Erwartungswerte": die "6" war die Turm-ANZAHL, nicht die Groesse). Test und manuelle Pruefung
   verwenden stattdessen Turm+S5 (sichtbar, da `t=5>=5`) -- konsistent mit den echten Daten statt
   mit dem stale Beispielwert.
 - **PLAN.md-eigene Zahl "59 Turmkarten" korrigiert:** der Task-1-`<verify>`-Regex im PLAN.md
   erwartet noch 59 Karten mit Turmwert (Stand vor D-06a). Seit D-06a sind es 47 -- bereits in
-  05-02-SUMMARY.md als noetige Korrektur fuer diesen Plan vermerkt. Der tatsaechlich ausgefuehrte
+  07-02-SUMMARY.md als noetige Korrektur fuer diesen Plan vermerkt. Der tatsaechlich ausgefuehrte
   Check verwendet 47 und bestaetigt das gegen `dist/schiffe.html` UND `dist/de/schiffe.html`.
 - **Zweite, unabhaengige data-comp-Kodierung im Testhelfer:** `ships-dom.js` baut den
   `data-comp`-Wert selbst aus `ship-components.json`, statt `compAttr()` zu importieren und
@@ -189,7 +189,7 @@ Zeit vor D-06a korrigiert**
   enthaelt zwei dadurch ueberholte Zahlen: (a) Task 1s `<verify>`-Regex erwartet 59 Karten mit
   Turmwert (jetzt 47), (b) Task 2s `<behavior>` verlangt "`aegs-hammerhead` ist bei Turm und 6
   sichtbar" (der gespeicherte Wert ist 5, nicht 6 -- "6" war schon in 05-02 als Turm-ANZAHL vs.
-  Turm-GROESSE-Verwechslung identifiziert). Beide Werte waren bereits in 05-02-SUMMARY.md als
+  Turm-GROESSE-Verwechslung identifiziert). Beide Werte waren bereits in 07-02-SUMMARY.md als
   fuer diesen Plan noetige Korrekturen vermerkt ("Next Phase Readiness").
 - **Fix:** Verify-Check auf 47 angepasst; Testfall prueft `aegs-hammerhead` bei Turm+S5 (sichtbar)
   statt Turm+S6.
@@ -230,7 +230,7 @@ None - no external service configuration required.
   Kategorien) fuer eine spaetere eigene Phase.
 
 ---
-*Phase: 05-komponenten-filter-f-r-schiffe*
+*Phase: 07-komponenten-filter-f-r-schiffe*
 *Completed: 2026-08-03*
 
 ## Self-Check: PASSED

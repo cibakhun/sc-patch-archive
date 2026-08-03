@@ -1,41 +1,47 @@
 // Automatisierter Verhaltensnachweis fuer den Komponenten-Filter der
-// Schiffsliste (Phase 5, Plan 03) -- deckt D-04, D-08, D-10, D-11 und D-12 ab
-// UND belegt die Sprachparitaet zwischen src/pages/schiffe.astro (EN) und
-// src/pages/de/schiffe.astro (DE).
+// Schiffsliste (Phase 7) -- deckt D-04, D-08, D-10, D-11 und D-12 ab.
 //
-// Warum ueberhaupt: die 67 EN/DE-Seitenpaare werden von Hand doppelt
-// gepflegt (Class-A-Befund, .planning/codebase/CONCERNS.md), und nichts im
-// Build vergleicht sie. Dieser Test zieht das ECHTE Inline-Skript aus BEIDEN
-// .astro-Quellen, fuehrt es gegen ein frisches Mock-DOM aus (node:vm, kein
-// Browser noetig) und prueft beide Sprachfassungen mit identischen
-// Erwartungen. Faellt eine Sprachfassung von der anderen ab, oder verletzt
-// eine der Filterentscheidungen D-04/D-08/D-10/D-11/D-12, schlaegt der Test
-// fehl -- in Sekunden, nicht in einer manuellen Browser-Sitzung.
+// Warum ueberhaupt: der Filter entscheidet ueber Zahlen, die niemand im
+// Browser nachzaehlt. Dieser Test zieht das ECHTE Inline-Skript aus
+// src/components/ships/ShipsOverview.astro, fuehrt es gegen ein frisches
+// Mock-DOM aus (node:vm, kein Browser noetig) und vergleicht die sichtbaren
+// Karten mit einer Sollmenge, die er selbst aus src/data/ship-components.json
+// ausrechnet. Verletzt eine der Filterentscheidungen ihre Zusage, schlaegt der
+// Test in Sekunden fehl statt in einer manuellen Sitzung.
+//
+// Sprachparitaet ist seit Phase 6 STRUKTURELL statt geprueft: /schiffe.html und
+// /de/schiffe.html teilen sich EINEN Koerper, die Seiten sind nur noch Huellen.
+// Der Test sichert genau diese Struktur ab (beide Huellen binden denselben
+// Koerper ein) und faehrt den Skriptrumpf zusaetzlich mit beiden
+// Sprachbeschriftungen, weil die Sprache am Flottencontainer haengt
+// (data-results-label/data-nodata-label/data-andup-label) und damit sehr wohl
+// eine Fehlerquelle im Zaehlertext bleibt.
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
-import { makeShipsDomContext } from './helpers/ships-dom.js';
+import { makeShipsDomContext, LABELS } from './helpers/ships-dom.js';
 
-const EN_PATH = path.resolve('src/pages/schiffe.astro');
-const DE_PATH = path.resolve('src/pages/de/schiffe.astro');
+const BODY_PATH = path.resolve('src/components/ships/ShipsOverview.astro');
+const EN_SHELL = path.resolve('src/pages/schiffe.astro');
+const DE_SHELL = path.resolve('src/pages/de/schiffe.astro');
 
-const enSource = fs.readFileSync(EN_PATH, 'utf8');
-const deSource = fs.readFileSync(DE_PATH, 'utf8');
+const bodySource = fs.readFileSync(BODY_PATH, 'utf8');
+const enShell = fs.readFileSync(EN_SHELL, 'utf8');
+const deShell = fs.readFileSync(DE_SHELL, 'utf8');
 
-// Zieht den Rumpf des <script is:inline> ... </script>-Blocks. Es ist je
-// Datei genau EIN solcher Block, und er wird unveraendert ausgeliefert
-// (Inline-Skripte werden von Astro nicht transformiert) -- die Quelle taugt
-// deshalb direkt als Pruefgegenstand.
-function extractInlineScript(source, label) {
+// Zieht den Rumpf des <script is:inline> ... </script>-Blocks. Es ist genau EIN
+// solcher Block, und er wird unveraendert ausgeliefert (Inline-Skripte
+// transformiert Astro nicht) -- die Quelle taugt deshalb direkt als
+// Pruefgegenstand.
+function extractInlineScript(source) {
   const m = source.match(/<script is:inline>([\s\S]*?)<\/script>/);
-  assert.ok(m, `[${label}] kein <script is:inline>-Block gefunden`);
+  assert.ok(m, 'kein <script is:inline>-Block in ShipsOverview.astro gefunden');
   return m[1];
 }
 
-const enScript = extractInlineScript(enSource, 'EN');
-const deScript = extractInlineScript(deSource, 'DE');
+const bodyScript = extractInlineScript(bodySource);
 
 // Laedt die tatsaechlichen Steckplatz-Daten, aus denen die Sollmengen zur
 // Laufzeit berechnet werden (nicht fest eingetragen) -- damit ueberlebt der
@@ -50,70 +56,106 @@ function idsWithAtLeast(letter, size) {
   );
 }
 
+// Groesster gespeicherter Wert je Kategorie -- daraus ergibt sich die Laenge
+// der Groessenliste (D-10), ohne eine Zahl fest einzutragen.
+function maxFor(letter) {
+  let max = 0;
+  for (const entry of Object.values(comp.ships)) {
+    const v = entry[letter];
+    if (v != null && v > max) max = v;
+  }
+  return max;
+}
+
 const hardpoints = JSON.parse(fs.readFileSync(path.resolve('src/data/ship-hardpoints.json'), 'utf8'));
 const idsWithoutData = new Set(Object.keys(hardpoints.ships).filter((id) => !(id in comp.ships)));
+const TOTAL = Object.keys(hardpoints.ships).length;
 
-// Fuehrt das echte Inline-Skript EINER Sprachfassung gegen einen frischen
-// Mock-DOM-Kontext aus. Ein Kontext pro Aufruf -- kein geteilter Zustand
-// zwischen Testfaellen.
-function run(script, lang) {
+// Fuehrt das echte Inline-Skript gegen einen frischen Mock-DOM-Kontext aus.
+// Ein Kontext pro Aufruf -- kein geteilter Zustand zwischen Testfaellen.
+function run(lang) {
   const ctx = makeShipsDomContext({ lang });
-  const context = vm.createContext(ctx);
-  vm.runInContext(script, context);
+  vm.runInContext(bodyScript, vm.createContext(ctx));
   return ctx;
 }
 
 // Sichtbare Karten-Ids nach dem aktuellen Filterstand (c.style.display !== 'none').
 function visibleIds(ctx) {
-  return new Set(
-    ctx.ids.filter((id) => ctx.cardsById[id].style.display !== 'none')
-  );
+  return new Set(ctx.ids.filter((id) => ctx.cardsById[id].style.display !== 'none'));
 }
 
 function selectComponent(ctx, letter) {
   ctx.elements['sf-comp'].value = letter;
+  ctx.elements['sf-comp'].dispatchEvent({ type: 'change' });
 }
 function selectSize(ctx, size) {
-  ctx.elements['sf-size'].value = size == null ? '' : String(size);
+  ctx.elements['sf-compsize'].value = size == null ? '' : String(size);
+  ctx.elements['sf-compsize'].dispatchEvent({ type: 'change' });
 }
 function selectMaker(ctx, maker) {
   ctx.elements['sf-maker'].value = maker;
+  ctx.elements['sf-maker'].dispatchEvent({ type: 'change' });
 }
 
 const LANGS = [
-  { label: 'EN', lang: 'en', script: enScript, countSuffix: (n) => `${n} results`, noDataSuffix: (n, noData) => `${n} results · ${noData} without slot data` },
-  { label: 'DE', lang: 'de', script: deScript, countSuffix: (n) => `${n} Treffer`, noDataSuffix: (n, noData) => `${n} Treffer · ${noData} ohne Steckplatz-Daten` },
+  { label: 'EN', lang: 'en' },
+  { label: 'DE', lang: 'de' },
 ];
 
-describe('Quellpruefungen (Sprachparitaet an der Naht zum Server)', () => {
-  for (const { label, source } of [
-    { label: 'EN', source: enSource },
-    { label: 'DE', source: deSource },
-  ]) {
-    test(`[${label}] ruft compAttr am Kartenelement auf`, () => {
-      assert.match(source, /data-comp=\{compAttr\(id\)\}/, `[${label}] data-comp={compAttr(id)} fehlt am fcard-Element`);
-    });
-    test(`[${label}] traegt die Ids sf-comp und sf-size`, () => {
-      assert.match(source, /id="sf-comp"/, `[${label}] id="sf-comp" fehlt`);
-      assert.match(source, /id="sf-size"/, `[${label}] id="sf-size" fehlt`);
-    });
-  }
+describe('Struktur: EIN Koerper fuer beide Sprachen (Phase 6)', () => {
+  test('beide Seitenhuellen binden denselben Koerper ein', () => {
+    assert.match(enShell, /components\/ships\/ShipsOverview\.astro/, 'EN-Huelle bindet ShipsOverview.astro nicht ein');
+    assert.match(deShell, /components\/ships\/ShipsOverview\.astro/, 'DE-Huelle bindet ShipsOverview.astro nicht ein');
+  });
+
+  test('keine Huelle traegt ein eigenes Inline-Skript (sonst liefe der Filter doppelt)', () => {
+    assert.doesNotMatch(enShell, /<script is:inline>/, 'EN-Huelle traegt ein eigenes Inline-Skript');
+    assert.doesNotMatch(deShell, /<script is:inline>/, 'DE-Huelle traegt ein eigenes Inline-Skript');
+  });
+
+  test('der Koerper ruft compAttr am Kartenelement auf', () => {
+    assert.match(bodySource, /data-comp=\{compAttr\(id\)\}/, 'data-comp={compAttr(id)} fehlt am fcard-Element');
+  });
+
+  test('der Koerper traegt die Ids sf-comp und sf-compsize', () => {
+    assert.match(bodySource, /id="sf-comp"/, 'id="sf-comp" fehlt');
+    assert.match(bodySource, /id="sf-compsize"/, 'id="sf-compsize" fehlt');
+  });
+
+  test('sf-size bleibt der Groessenklassen-Filter aus Phase 6, nicht die Bauteilgroesse', () => {
+    assert.match(bodySource, /id="sf-size"[\s\S]{0,200}sizeClasses\.map/, 'sf-size fuellt sich nicht mehr aus sizeClasses — Namenskollision mit dem Bauteilfilter?');
+  });
+
+  test('die Sprache haengt am Flottencontainer, nicht im Skript', () => {
+    for (const attr of ['data-results-label', 'data-nodata-label', 'data-andup-label']) {
+      assert.match(bodySource, new RegExp(attr), `${attr} fehlt am Flottencontainer`);
+    }
+  });
+
+  test('D-07: der Koerper zeigt nirgends eine Steckplatz-Groesse an', () => {
+    // Erlaubt ist data-comp als Attribut; verboten ist jede Ausgabe davon in
+    // sichtbarem Text (etwa ein Chip mit der Groesse).
+    assert.doesNotMatch(bodySource, /fcard__chip[^>]*>\s*\{?\s*compAttr/, 'eine Karte gibt die Steckplatz-Groesse sichtbar aus (verletzt D-07)');
+  });
 });
 
 for (const lang of LANGS) {
+  const L = LABELS[lang.lang];
+  const results = (n) => `${n} ${L.results}`;
+  const withNoData = (n, noData) => `${n} ${L.results} · ${noData} ${L.nodata}`;
+
   describe(`Komponenten-Filter [${lang.label}]`, () => {
     let ctx;
     beforeEach(() => {
-      ctx = run(lang.script, lang.lang);
+      ctx = run(lang.lang);
     });
 
     test(`[${lang.label}] D-04: Waffe + S5 zeigt genau die Schiffe mit gespeichertem w>=5`, () => {
       const expected = idsWithAtLeast('w', 5);
       selectComponent(ctx, 'w');
       selectSize(ctx, 5);
-      const visible = visibleIds(ctx);
       assert.deepStrictEqual(
-        visible,
+        visibleIds(ctx),
         expected,
         `[${lang.label}] sichtbare Ids bei w>=5 weichen von der aus ship-components.json berechneten Sollmenge ab`
       );
@@ -122,63 +164,46 @@ for (const lang of LANGS) {
     test(`[${lang.label}] Ankerschiff orig-100i ist bei Waffe+S5 NICHT sichtbar (gespeicherter Wert 3)`, () => {
       selectComponent(ctx, 'w');
       selectSize(ctx, 5);
-      assert.strictEqual(
-        ctx.cardsById['orig-100i'].style.display,
-        'none',
-        `[${lang.label}] orig-100i sollte bei Waffe+S5 ausgeblendet sein (w=3 < 5)`
-      );
+      assert.strictEqual(ctx.cardsById['orig-100i'].style.display, 'none', `[${lang.label}] orig-100i sollte bei Waffe+S5 ausgeblendet sein (w=3 < 5)`);
     });
 
     test(`[${lang.label}] Ankerschiff aegs-hammerhead ist bei Turm+S5 sichtbar (gespeicherter Wert 5)`, () => {
       selectComponent(ctx, 't');
       selectSize(ctx, 5);
-      assert.strictEqual(
-        ctx.cardsById['aegs-hammerhead'].style.display,
-        '',
-        `[${lang.label}] aegs-hammerhead sollte bei Turm+S5 sichtbar sein (t=5 >= 5)`
-      );
+      assert.strictEqual(ctx.cardsById['aegs-hammerhead'].style.display, '', `[${lang.label}] aegs-hammerhead sollte bei Turm+S5 sichtbar sein (t=5 >= 5)`);
     });
 
-    test(`[${lang.label}] D-11: Bauteilart ohne Groesse filtert noch nicht -- alle 227 Karten bleiben sichtbar`, () => {
+    test(`[${lang.label}] D-11: Bauteilart ohne Groesse filtert noch nicht -- alle Karten bleiben sichtbar`, () => {
       selectComponent(ctx, 'w');
-      const visible = visibleIds(ctx);
-      assert.strictEqual(
-        visible.size,
-        227,
-        `[${lang.label}] erwartet 227 sichtbare Karten ohne gesetzte Groesse, gemessen: ${visible.size}`
-      );
+      assert.strictEqual(visibleIds(ctx).size, TOTAL, `[${lang.label}] erwartet ${TOTAL} sichtbare Karten ohne gesetzte Groesse`);
     });
 
-    test(`[${lang.label}] D-11: sf-size ist deaktiviert, bis eine Bauteilart gewaehlt ist`, () => {
-      assert.strictEqual(ctx.elements['sf-size'].disabled, true, `[${lang.label}] sf-size sollte anfangs deaktiviert sein`);
+    test(`[${lang.label}] D-11: sf-compsize ist deaktiviert, bis eine Bauteilart gewaehlt ist`, () => {
+      assert.strictEqual(ctx.elements['sf-compsize'].disabled, true, `[${lang.label}] sf-compsize sollte anfangs deaktiviert sein`);
       selectComponent(ctx, 'w');
-      assert.strictEqual(ctx.elements['sf-size'].disabled, false, `[${lang.label}] sf-size sollte nach Wahl der Bauteilart freigeschaltet sein`);
+      assert.strictEqual(ctx.elements['sf-compsize'].disabled, false, `[${lang.label}] sf-compsize sollte nach Wahl der Bauteilart freigeschaltet sein`);
     });
 
-    test(`[${lang.label}] D-10: Groessenliste fuer Schild hat 4 Eintraege + Leereintrag`, () => {
+    test(`[${lang.label}] D-10: die Groessenliste reicht je Kategorie bis zum groessten gespeicherten Wert`, () => {
+      for (const letter of ['s', 'w', 't']) {
+        selectComponent(ctx, letter);
+        const expected = maxFor(letter) + 1; // + Leereintrag
+        assert.strictEqual(
+          ctx.elements['sf-compsize'].options.length,
+          expected,
+          `[${lang.label}] Kategorie "${letter}": erwartet ${expected} Eintraege (${maxFor(letter)} Groessen + Leereintrag)`
+        );
+      }
+    });
+
+    test(`[${lang.label}] D-10: die Groesseneintraege tragen die Beschriftung dieser Sprache`, () => {
       selectComponent(ctx, 's');
-      assert.strictEqual(
-        ctx.elements['sf-size'].options.length,
-        5,
-        `[${lang.label}] erwartet 5 Eintraege (4 Groessen + Leereintrag) fuer Schild, gemessen: ${ctx.elements['sf-size'].options.length}`
-      );
-    });
-
-    test(`[${lang.label}] D-10: Groessenliste fuer Waffe hat 10 Eintraege + Leereintrag`, () => {
-      selectComponent(ctx, 'w');
-      assert.strictEqual(
-        ctx.elements['sf-size'].options.length,
-        11,
-        `[${lang.label}] erwartet 11 Eintraege (10 Groessen + Leereintrag) fuer Waffe, gemessen: ${ctx.elements['sf-size'].options.length}`
-      );
+      const first = ctx.elements['sf-compsize'].options[1];
+      assert.strictEqual(first.textContent, L.andup.replace('{n}', '1'), `[${lang.label}] erster Groesseneintrag falsch beschriftet`);
     });
 
     test(`[${lang.label}] D-08: ohne aktiven Bauteilfilter bleibt der Zaehlertext unveraendert`, () => {
-      assert.strictEqual(
-        ctx.elements['sf-count'].textContent,
-        lang.countSuffix(227),
-        `[${lang.label}] Ausgangszaehler weicht ab`
-      );
+      assert.strictEqual(ctx.elements['sf-count'].textContent, results(TOTAL), `[${lang.label}] Ausgangszaehler weicht ab`);
     });
 
     test(`[${lang.label}] D-08: bei aktivem Bauteilfilter nennt der Zaehler die Schiffe ohne Steckplatz-Daten`, () => {
@@ -187,55 +212,32 @@ for (const lang of LANGS) {
       selectSize(ctx, 5);
       assert.strictEqual(
         ctx.elements['sf-count'].textContent,
-        lang.noDataSuffix(expected.size, idsWithoutData.size),
+        withNoData(expected.size, idsWithoutData.size),
         `[${lang.label}] Zaehlertext bei aktivem Bauteilfilter weicht ab`
       );
-      assert.strictEqual(idsWithoutData.size, 4, `[${lang.label}] Vorbedingung: erwartet 4 Schiffe ohne Steckplatz-Daten`);
+      assert.strictEqual(idsWithoutData.size, 4, 'Vorbedingung: erwartet 4 Schiffe ohne Steckplatz-Daten');
     });
 
     test(`[${lang.label}] D-12: Bauteilfilter + Herstellerfeld ergeben die Schnittmenge, Zaehler stimmt`, () => {
       const maker = 'orig';
-      const expected = new Set(
-        [...idsWithAtLeast('w', 3)].filter((id) => id.startsWith(maker + '-'))
-      );
+      const expected = new Set([...idsWithAtLeast('w', 3)].filter((id) => id.startsWith(maker + '-')));
       selectComponent(ctx, 'w');
       selectSize(ctx, 3);
       selectMaker(ctx, maker);
-      const visible = visibleIds(ctx);
-      assert.deepStrictEqual(
-        visible,
-        expected,
-        `[${lang.label}] Schnittmenge aus Bauteilfilter (w>=3) und Hersteller "${maker}" weicht ab`
-      );
+      assert.deepStrictEqual(visibleIds(ctx), expected, `[${lang.label}] Schnittmenge aus w>=3 und Hersteller "${maker}" weicht ab`);
       assert.strictEqual(
         ctx.elements['sf-count'].textContent,
-        lang.noDataSuffix(expected.size, 0),
+        withNoData(expected.size, 0),
         `[${lang.label}] Zaehler bei kombiniertem Filter weicht ab (0 ohne Steckplatz-Daten, weil kein orig-Schiff in der Fehlliste steht)`
       );
     });
+
+    test(`[${lang.label}] Wechsel der Bauteilart setzt die Groessenwahl zurueck`, () => {
+      selectComponent(ctx, 'w');
+      selectSize(ctx, 5);
+      selectComponent(ctx, 's');
+      assert.strictEqual(ctx.elements['sf-compsize'].value, '', `[${lang.label}] die Groessenwahl der vorigen Kategorie steht noch`);
+      assert.strictEqual(visibleIds(ctx).size, TOTAL, `[${lang.label}] nach dem Wechsel darf noch nicht gefiltert sein (D-11)`);
+    });
   });
 }
-
-describe('Sprachparitaet (identische sichtbare Karten-Ids bei identischen Eingaben)', () => {
-  test('Waffe + S5 liefert in EN und DE dieselbe Menge sichtbarer Ids', () => {
-    const enCtx = run(enScript);
-    const deCtx = run(deScript);
-    selectComponent(enCtx, 'w');
-    selectSize(enCtx, 5);
-    selectComponent(deCtx, 'w');
-    selectSize(deCtx, 5);
-    assert.deepStrictEqual(visibleIds(enCtx), visibleIds(deCtx), 'EN und DE liefern unterschiedliche sichtbare Ids bei Waffe+S5');
-  });
-
-  test('Turm + S5 kombiniert mit Hersteller "aegs" liefert in EN und DE dieselbe Menge sichtbarer Ids', () => {
-    const enCtx = run(enScript);
-    const deCtx = run(deScript);
-    selectComponent(enCtx, 't');
-    selectSize(enCtx, 5);
-    selectMaker(enCtx, 'aegs');
-    selectComponent(deCtx, 't');
-    selectSize(deCtx, 5);
-    selectMaker(deCtx, 'aegs');
-    assert.deepStrictEqual(visibleIds(enCtx), visibleIds(deCtx), 'EN und DE liefern unterschiedliche sichtbare Ids bei Turm+S5+aegs');
-  });
-});

@@ -1,5 +1,5 @@
 ---
-phase: 05-komponenten-filter-f-r-schiffe
+phase: 07-komponenten-filter-f-r-schiffe
 plan: 01
 subsystem: data
 tags: [cryxmlb, datacore, p4k, astro, filter-ui, datamine]
@@ -11,7 +11,7 @@ provides:
   - "src/data/ship-components.json — 223 Schiffe mit Max-Steckplatzgroesse je Kategorie, 4 ohne Daten"
   - "src/lib/shipComponents.ts — compAttr(id) Filter-Kodierung mit Sentinel/Platzhalter-Unterscheidung"
   - "src/pages/schiffe.astro (EN) — sf-comp/sf-size Auswahlfelder, D-04/D-08/D-09/D-11/D-12-Filterlogik"
-affects: [05-02-turm-kategorie, 05-03-de-page-und-e2e-tests]
+affects: [07-02-turm-kategorie, 07-03-de-page-und-e2e-tests]
 
 tech-stack:
   added: []
@@ -233,7 +233,7 @@ None - no external service configuration required.
   `npm run test:e2e` (98/98 bestanden).
 
 ---
-*Phase: 05-komponenten-filter-f-r-schiffe*
+*Phase: 07-komponenten-filter-f-r-schiffe*
 *Completed: 2026-08-03*
 
 ## Self-Check: PASSED

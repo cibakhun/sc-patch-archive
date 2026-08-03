@@ -1,18 +1,18 @@
 ---
-phase: 05-komponenten-filter-f-r-schiffe
+phase: 07-komponenten-filter-f-r-schiffe
 plan: 02
 subsystem: data
 tags: [cryxmlb, datacore, p4k, astro, filter-ui, datamine, turret-rule]
 
 requires:
-  - phase: 05-komponenten-filter-f-r-schiffe (Plan 01)
+  - phase: 07-komponenten-filter-f-r-schiffe (Plan 01)
     provides: "CryXmlB-Kette, catOf() mit sieben Kategorien, sf-comp/sf-size-Auswahlfelder, compAttr()-Kodierung"
 provides:
   - "isTurret(port) in scripts/datamine-ship-components.mjs — D-06a: NUR TurretBase (ohne Container), keine Namenserkennung"
   - "--audit-Modus mit 15-Stichproben-Vergleich + 3 Summenzeilen gegen src/data/vehicles.json (turrets[].stations)"
   - "src/data/ship-components.json neu erzeugt: 47 Schiffe tragen jetzt das Kuerzel t (unveraendert: 162 w, 145 m, 204 s, 218 c, 216 p, 172 q, 220 r)"
   - "src/pages/schiffe.astro (EN): achter Eintrag Turret in sf-comp, zwischen Weapon und Missile"
-affects: [05-03-de-page-und-e2e-tests]
+affects: [07-03-de-page-und-e2e-tests]
 
 tech-stack:
   added: []
@@ -242,5 +242,5 @@ None - no external service configuration required.
   `npm run test:e2e` (98/98 bestanden).
 
 ---
-*Phase: 05-komponenten-filter-f-r-schiffe*
+*Phase: 07-komponenten-filter-f-r-schiffe*
 *Completed: 2026-08-03*
