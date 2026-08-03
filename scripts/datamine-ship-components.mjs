@@ -100,9 +100,39 @@ function extractPorts(nodes) {
 // deren Trennung (TurretBase/remote-Portname vs. blosses Turret-Flag auf
 // festen Waffen) an Stichproben belegt werden muss (D-06). Der Platz fuer den
 // Turm-Check bleibt hier VOR dem Waffen-Check frei.
+//
+// m VOR w: MissileLauncher (21 Ports) und BombLauncher (8 Ports) kommen bei
+// manchen Schiffen ZUSAETZLICH mit WeaponGun getaggt vor (Kombi-Halterungen,
+// siehe RESEARCH.md "Multi-Type-Kombinationen") -- das sind Raketenhalterungen,
+// keine Waffen. Wuerde w zuerst greifen, landeten 29 solcher Ports faelschlich
+// bei den Waffen statt bei den Raketen.
+//
+// BombLauncher zaehlt bewusst zu Rakete (m), nicht als eigene Kategorie --
+// Praezedenzfall itemCat() in datamine-ship-loadouts.mjs fasst Bomben/Torpedos
+// bereits mit Raketen zusammen (D-05 sieht keine neunte Kategorie vor).
+//
+// AUSDRUECKLICH NICHT zugeordnet (verworfen, siehe RESEARCH.md
+// Types-Vokabular): die Controller-Types (ShieldController, CoolerController,
+// MissileController, EnergyController, WeaponController, ...) sind
+// Logik-Knoten, nicht der Bauteil-Slot selbst; die Tank-Types (FuelTank,
+// QuantumFuelTank) sind Treibstoff, nicht der Antrieb/das Kraftwerk selbst;
+// Battery, Ping, Scanner, Avionics, Armor, UtilityTurret sind eigene,
+// hier nicht angefragte Slot-Arten. WeaponDefensive (Gegenmassnahmen,
+// Chaff/Flare) fehlt bewusst -- D-05 schliesst Gegenmassnahmen ausdruecklich
+// als Kategorie aus. Der Einzelfall "Powerplant - Power" bei drak-mule
+// (1 Port, hardpoint_batteries) zaehlt bewusst NICHT als Kraftwerk -- er sieht
+// wie ein Batterie-Datenartefakt aus, kein echtes Kraftwerk (RESEARCH.md
+// Assumption A1); waere er als Alias behandelt worden, saehe es aus, als sei
+// der Fall "vergessen" worden.
 function catOf(types) {
   const has = (t) => types.indexOf(t) >= 0;
+  if (has('MissileLauncher') || has('BombLauncher')) return 'm';
   if (has('WeaponGun')) return 'w';
+  if (has('Shield')) return 's';
+  if (has('Cooler')) return 'c';
+  if (has('PowerPlant')) return 'p';
+  if (has('QuantumDrive')) return 'q';
+  if (has('Radar')) return 'r';
   return null;
 }
 
