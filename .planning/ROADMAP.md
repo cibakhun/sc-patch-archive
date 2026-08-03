@@ -171,7 +171,7 @@ Plans:
 **Goal**: Wer wissen will, welche Schiffe eine bestimmte Bauteilgröße aufnehmen können, findet sie in der Schiffsliste: ein Auswahlfeld benennt die Bauteilart, ein zweites die Mindestgröße — und die Liste zeigt nur noch die Schiffe, deren Steckplätze das hergeben. Gemessen wird, was reinpasst, nicht was ab Werk drinsteckt.
 **Mode:** mvp
 **Depends on**: Nothing — unabhängig von Phase 1–4, fasst nur die Schiffsliste an
-**Requirements**: TBD (in discuss-phase zu erheben)
+**Requirements**: keine REQ-IDs in REQUIREMENTS.md — bindend sind stattdessen die Entscheidungen D-01 bis D-12 aus `.planning/phases/05-komponenten-filter-f-r-schiffe/05-CONTEXT.md`
 **Success Criteria** (what must be TRUE):
 
   1. Auf `/schiffe.html` und `/de/schiffe.html` steht ein Feld „Komponente" (Waffe, Turm, Rakete, Schild, Kühler, Kraftwerk, Quantenantrieb, Radar — keine Gegenmaßnahmen) neben einem Feld für die Mindestgröße
@@ -181,11 +181,13 @@ Plans:
   5. Schiffe ohne Steckplatz-Daten verschwinden nicht stillschweigend, sondern sind als solche erkennbar
   6. Deutsche und englische Fassung verhalten sich identisch, bis hinunter auf 360 px Breite, in beiden Farbmodi
 
-**Plans**: 0 plans
+**Plans**: 3 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 5 to break down)
+- [ ] 05-01-PLAN.md (Welle 1): Die Kette von der Spieldatei bis zur gefilterten Liste an einer Bauteilart beweisen — CryXmlB-Leser, Datamine-Skript, eingechecktes JSON, zwei Auswahlfelder und Filterlogik auf der englischen Seite — dann auf sieben Bauteilarten verbreitern
+- [ ] 05-02-PLAN.md (Welle 2): Turm-Regel einbauen, gegen `vehicles.json` als Drittquelle nachweisen, an 15 Stichprobenschiffen von Hand bestaetigen und erst danach als achte Bauteilart freischalten
+- [ ] 05-03-PLAN.md (Welle 3): Deutsche Fassung auf denselben Stand bringen, automatischer Verhaltensnachweis gegen das Inline-Skript beider Sprachfassungen, Hausgates und Sichtpruefung
 
 ## Progress
 
@@ -201,4 +203,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
-| 5. Komponenten-Filter für Schiffe | 0/? | Not started | - |
+| 5. Komponenten-Filter für Schiffe | 0/3 | Not started | - |
