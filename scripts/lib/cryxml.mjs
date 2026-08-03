@@ -18,6 +18,31 @@ const SIG = 'CryXmlB\0';
 
 /** Ein Knoten: { tag, content, attr: {…}, children: [] } */
 export function parseCryXml(buf) {
+  return parseNodes(buf)[0];
+}
+
+/**
+ * Kompatibilitaetsform: das FLACHE Knotenfeld statt nur der Wurzel, und die
+ * Attribute zusaetzlich kleingeschrieben unter `attrs`.
+ *
+ * Hintergrund: dieselbe Lib entstand am 03.08.2026 zweimal parallel — einmal
+ * hier (Fahrzeug-Katalog, Phase 01.4) und einmal fuer
+ * scripts/datamine-ship-components.mjs. Beim Zusammenfuehren gewann diese
+ * Fassung, weil nur sie applyModification() traegt (ohne das erben 315p/325a/
+ * 350r die Werte der 300i). Damit der andere Verbraucher unveraendert weiter
+ * funktioniert, liefert diese Form genau seine Erwartung. Neue Verbraucher
+ * nehmen parseCryXml() + findAll().
+ */
+export function parseCryXmlNodes(buf) {
+  const nodes = parseNodes(buf);
+  for (const n of nodes) {
+    n.attrs = {};
+    for (const [k, v] of Object.entries(n.attr)) n.attrs[k.toLowerCase()] = v;
+  }
+  return nodes;
+}
+
+function parseNodes(buf) {
   if (buf.length < 8 + 36 || buf.subarray(0, 8).toString('latin1') !== SIG)
     throw new Error('cryxml: keine CryXmlB-Signatur');
 
@@ -79,7 +104,7 @@ export function parseCryXml(buf) {
     }
     delete n._ac; delete n._cc; delete n._fa; delete n._fc;
   }
-  return nodes[0];
+  return nodes;
 }
 
 /** Alle Knoten mit passendem Tag (case-insensitiv), Tiefensuche. */

@@ -99,20 +99,20 @@ const T = {
     fields: [
       ['Gerät', 'Entwicklungsrechner', false],
       ['Bauteil', 'Spannungsversorgung', false],
-      ['Zustand', 'Fällt unter Last aus', true],
+      ['Zustand', 'Fällt unangekündigt aus', true],
       ['Kostenrahmen', '120,00 EUR', false],
     ] as [string, string, boolean][],
-    schAlt: 'Explosionszeichnung eines ATX-Netzteils. Von oben nach unten: Gehäuse mit Lüftergitter, Lüfter 80 Millimeter, Platine mit der Kondensatorbank C1 bis C3 — als Ausfall unter Last gekennzeichnet — und das Anschlussfeld mit IEC-C14-Buchse und Netzschalter.',
+    schAlt: 'Explosionszeichnung eines ATX-Netzteils. Von oben nach unten: Gehäuse mit Lüftergitter, Lüfter 80 Millimeter, Platine mit der Kondensatorbank C1 bis C3 — als Ausfallstelle gekennzeichnet — und das Anschlussfeld mit IEC-C14-Buchse und Netzschalter.',
     schCap1: 'Zeichnung — Netzteil, Aufbau',
     schCap2: 'Nicht maßstäblich',
-    sch: { case: ['GEHÄUSE', 'ATX'], fan: ['LÜFTER', '80 MM'], cap: ['C1–C3', 'PRIMÄR-', 'KONDENSATOR', 'AUSFALL', 'UNTER LAST'], pcb: 'PLATINE', conn: ['ANSCHLUSS', 'IEC C14'], dim: '140 MM' },
+    sch: { case: ['GEHÄUSE', 'ATX'], fan: ['LÜFTER', '80 MM'], cap: ['C1–C3', 'PRIMÄR-', 'KONDENSATOR', 'AUSFALL', 'OHNE WARNUNG'], pcb: 'PLATINE', conn: ['ANSCHLUSS', 'IEC C14'], dim: '140 MM' },
     pos: [
       ['Pos 01', 'Befund',
         '<b>Der Rechner, auf dem VerseBase entsteht, geht ohne Vorwarnung aus.</b>',
-        'Der Fehler tritt unter Last auf: sobald alle Kerne rechnen, fällt die Spannung weg. Es kündigt sich nicht an — der Rechner ist von einem Moment auf den anderen weg.'],
+        'Die Spannung fällt weg, der Rechner ist von einem Moment auf den anderen aus. Kein Vorzeichen, kein Muster, auf das man sich einstellen könnte.'],
       ['Pos 02', 'Auswirkung',
         'Das Ärgerliche ist nicht das Gerät. Es ist, was mitgeht. Passiert es beim Programmieren, ist die Arbeit seit dem letzten Speichern verloren.',
-        'Betroffen sind vor allem die langen Läufe. Ein Durchgang durch die Spieldateien — die Grundlage für die Schiffs-, Item- und Crafting-Daten — läuft am Stück und lässt sich nicht in der Mitte anhalten. Bricht er ab, fängt er von vorn an. Entwickeln heißt damit: nie länger als ein paar Minuten am Stück denken.'],
+        'Betroffen sind vor allem die langen Läufe. Wird der Datenbestand hinter den Schiffs-, Item- und Crafting-Seiten neu aufgebaut, läuft das am Stück und lässt sich nicht in der Mitte anhalten. Bricht es ab, fängt es von vorn an. Entwickeln heißt damit: nie länger als ein paar Minuten am Stück denken.'],
       ['Pos 03', 'Maßnahme',
         'Netzteil ersetzen. Ein passendes Modell mit ausreichend Reserve kostet <b>rund 120 €</b>. Reparieren lohnt bei dem Bauteil nicht — die Kondensatoren sind vergossen.',
         ''],
@@ -151,20 +151,20 @@ const T = {
     fields: [
       ['Machine', 'Development PC', false],
       ['Part', 'Power supply', false],
-      ['Condition', 'Fails under load', true],
+      ['Condition', 'Fails without warning', true],
       ['Budget', 'EUR 120.00', false],
     ] as [string, string, boolean][],
-    schAlt: 'Exploded drawing of an ATX power supply. Top to bottom: housing with fan grille, 80 millimetre fan, board with the capacitor bank C1 to C3 — marked as failing under load — and the connector panel with IEC C14 socket and power switch.',
+    schAlt: 'Exploded drawing of an ATX power supply. Top to bottom: housing with fan grille, 80 millimetre fan, board with the capacitor bank C1 to C3 — marked as the point of failure — and the connector panel with IEC C14 socket and power switch.',
     schCap1: 'Drawing — power supply, assembly',
     schCap2: 'Not to scale',
-    sch: { case: ['HOUSING', 'ATX'], fan: ['FAN', '80 MM'], cap: ['C1–C3', 'PRIMARY', 'CAPACITOR', 'FAILS', 'UNDER LOAD'], pcb: 'BOARD', conn: ['CONNECTOR', 'IEC C14'], dim: '140 MM' },
+    sch: { case: ['HOUSING', 'ATX'], fan: ['FAN', '80 MM'], cap: ['C1–C3', 'PRIMARY', 'CAPACITOR', 'FAILS', 'NO WARNING'], pcb: 'BOARD', conn: ['CONNECTOR', 'IEC C14'], dim: '140 MM' },
     pos: [
       ['Item 01', 'Fault',
         '<b>The machine VerseBase is built on cuts out without warning.</b>',
-        'The fault appears under load: once every core is working, the voltage drops away. There is no warning — the machine is simply gone from one moment to the next.'],
+        'The voltage simply drops away and the machine is gone from one moment to the next. No sign beforehand, no pattern to plan around.'],
       ['Item 02', 'Effect',
         'The annoying part is not the hardware. It is what goes with it. If it happens while I am coding, the work since the last save is gone.',
-        'The long runs suffer most. A pass over the game files — the basis for the ship, item and crafting data — runs in one stretch and cannot be paused halfway. If it breaks off, it starts from the beginning. Developing like this means never thinking further ahead than a few minutes.'],
+        'The long runs suffer most. Rebuilding the data behind the ship, item and crafting pages happens in one stretch and cannot be paused halfway. If it breaks off, it starts from the beginning. Developing like this means never thinking further ahead than a few minutes.'],
       ['Item 03', 'Action',
         'Replace the power supply. A suitable model with enough headroom costs <b>around €120</b>. Repair is not worth it on this part — the capacitors are potted.',
         ''],
@@ -208,6 +208,26 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 :root{--bg:#0d0a06;--bg-2:#14100a;--surface:#191309;--surface-2:#221a0e;--accent:#e8a83c;--accent-2:#ffcf7a;--hot:#e8a83c;--text:#f2ece1;--muted:#ab9d88;--line:rgba(232,168,60,.22);--line-soft:rgba(242,236,225,.10);--ink:#1a1004;--maxw:1180px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"]{--bg:#fbf7f0;--bg-2:#f3ede4;--surface:#fffdfa;--surface-2:#f8f1e8;--text:#231f17;--muted:#635643;--accent:#795201;--accent-2:#6f4f02;--hot:#6f4a01;--ink:#ffffff;--accent-media:#e8a83c;--accent-2-media:#ffcf7a;--line:rgba(145,105,37,.3);--line-soft:rgba(49,45,37,.12)}
+
+/* SCHRIFTEN. Am 03.08.2026 im Browser gemessen und es war schlecht: diese Seite
+   lud als EINZIGE Signaturseite kein `assets/detail.css`, und dort stehen die
+   Schrift-Token der Site. Die Folge war nicht "leicht anders", sondern:
+     --font-ui  war NICHT GESETZT -> generisches sans statt Rajdhani
+     der Fliesstext hatte gar keine Angabe -> "Times New Roman"
+   Times auf fast schwarzem Grund ist duenn, kontrastreich im Strich und
+   flimmert — genau die Ermuedung, die gemeldet wurde. Zum Vergleich auf
+   /de/feedback.html gemessen: dort Barlow, hier Times.
+
+   Die Token stehen ABSICHTLICH hier und nicht via detail.css: jenes Blatt
+   bringt Hero-, Band- und Abschnittsregeln plus eine Rasterschicht ueber
+   `body::after` mit, die mit dem eigenstaendigen Werkstatt-Aufbau kollidieren.
+   Gebraucht werden nur die drei Zeilen. Sie sind woertlich aus detail.css
+   uebernommen — laufen sie auseinander, faellt diese Seite wieder aus der Reihe.
+
+   Bewusst auf .sup statt auf :root: die Farbtoken-Zeile darueber wird von
+   scripts/build-light-palettes.mjs erzeugt, dort haben Schriften nichts zu
+   suchen. Eigenschaften vererben sich ohnehin nach unten. */
+.sup{--font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;--font-mono:'Share Tech Mono',monospace;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
 
 /* box-sizing ist hier NICHT vorsorglich: die Seite setzt keinen globalen Reset,
    und bei 360 px ragten dadurch die Auftragsfelder auf 422 px und der Knopf auf
@@ -277,9 +297,17 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 .sup__pos:first-of-type{border-top:0;padding-top:0}
 .sup__pos-n{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.74rem;letter-spacing:.12em;color:var(--muted);padding-top:4px;text-transform:uppercase}
 .sup__pos h2{font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text);margin:0 0 8px}
-.sup__pos p{color:var(--muted);font-size:.98rem;line-height:1.65;max-width:58ch;margin:0}
+/* Der Fliesstext stand in var(--muted) — also in der Farbe, die auf dieser
+   Seite sonst BESCHRIFTUNGEN traegt (Feldnamen, Skala, Positionsnummern).
+   Gemessen: 7,44:1 gegen 12,8:1 fuer var(--text). Das besteht die Norm, aber es
+   ist die gedaempfte Stufe, und der laengste Lesetext der Seite stand darin.
+   Die Gliederung kommt weiterhin aus Fettung und Akzent, nicht aus Absenkung. */
+.sup__pos p{color:var(--text);font-size:.98rem;line-height:1.7;max-width:58ch;margin:0}
 .sup__pos p+p{margin-top:10px}
-.sup__pos p b,.sup__pos p strong{color:var(--text);font-weight:600}
+/* 700 statt 600, seit der Fliesstext dieselbe Farbe hat: die Hervorhebung trug
+   sich vorher zur Haelfte ueber die Helligkeit. Bleibt nur die Fettung, muss
+   die auch tragen. */
+.sup__pos p b,.sup__pos p strong{color:var(--text);font-weight:700}
 
 /* --- Kostenrahmen mit Teilung --------------------------------------------- */
 .sup__gauge{margin:24px 0 8px}
@@ -336,10 +364,29 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 .sup__pill input:checked+span{background:color-mix(in srgb,var(--accent) 14%,transparent);border-color:var(--accent);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .sup__pill input:focus-visible+span{outline:2px solid var(--accent-2);outline-offset:3px}
 .sup__freewrap{display:flex;align-items:stretch}
-.sup__freewrap span{display:flex;align-items:center;gap:6px;min-width:0;min-height:44px;border:1px solid var(--line);background:var(--veil,var(--veil-hi));padding:0 14px}
+/* DIREKTES Kind. Ohne den `>` traf diese Regel auch das <span class="cur"> mit
+   dem Eurozeichen, das INNERHALB liegt: das € bekam damit denselben Rahmen,
+   denselben Hintergrund, 14 px Polster und 44 px Mindesthoehe wie das Feld
+   selbst — eine Schachtel in der Schachtel. Im Browser am 03.08.2026 gesehen,
+   nachdem es gemeldet wurde. Der neue Fokus-Umriss weiter unten hat es dann
+   verdoppelt und damit endgueltig kaputt aussehen lassen. */
+.sup__freewrap > span{display:flex;align-items:center;gap:6px;min-width:0;min-height:44px;border:1px solid var(--line);background:var(--veil,var(--veil-hi));padding:0 14px}
 .sup__freewrap input{width:4.6rem;background:none;border:0;outline:none;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.95rem;padding:11px 0;color:var(--text);font-variant-numeric:tabular-nums}
 .sup__freewrap .cur{font-family:var(--font-ui,sans-serif);font-weight:700;color:var(--muted)}
-.sup__freewrap:focus-within span{border-color:var(--accent)}
+/* Der Platzhalter „Anderer" stand auf der VORGABE DES BROWSERS: rgb(117,117,117),
+   ein neutrales Grau in einer durchweg warmen Palette, gemessene 4,29:1 — der
+   schlechteste Wert der ganzen Seite, waehrend alles andere ueber 7:1 liegt.
+   `opacity:1` ist noetig, weil Firefox den Platzhalter zusaetzlich auf 0.54
+   herunterblendet und die Farbe allein dort nichts ausrichtet. */
+.sup__freewrap input::placeholder,.sup__adminrow input::placeholder{color:var(--muted);opacity:1}
+/* FOKUS. Vorher: `outline:none` am Feld, und sichtbar wurde nur ein 1-px-Rand,
+   der von rgba(232,168,60,.22) auf volles Gold wechselte. Die Betragsstufen
+   direkt daneben bekommen im Fokus einen 2-px-Umriss mit Abstand — dasselbe
+   Bedienelement, zwei verschiedene Antworten. Beim Anklicken sah das Feld
+   dadurch eher kaputt als aktiv aus.
+   Jetzt derselbe Umriss wie bei den Stufen, plus eine angehobene Flaeche:
+   der Rand allein traegt bei einem Feld nicht, das man gerade beschreibt. */
+.sup__freewrap:focus-within > span{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);outline:2px solid var(--accent-2);outline-offset:3px}
 /* Der Fokusring von detail.css setzt --accent-2; hier ausdruecklich gesetzt,
    damit er nicht von der Seitenpalette abweicht. */
 .sup__freewrap input:focus-visible{outline:none}
@@ -406,7 +453,9 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
   .sup__row{display:grid;grid-template-columns:1fr 1fr}
   .sup__pill span{min-width:0}
   .sup__freewrap{grid-column:1/-1}
-  .sup__freewrap span{width:100%}
+  /* Auch hier das direkte Kind: ohne `>` bekam das € ebenfalls width:100% und
+     drueckte im schmalen Raster gegen das Eingabefeld. */
+  .sup__freewrap > span{width:100%}
   .sup__freewrap input{width:100%}
   .sup__cta{width:100%}
   .sup__pos{grid-template-columns:1fr;gap:6px}
@@ -840,12 +889,23 @@ fetch(REST+'&select=goal_cents,raised_cents,stripe_cents,updated_at&limit=1',
 /* Admin-Feld einblenden, sobald die Rolle feststeht. account-lite setzt die
    Klasse ggf. erst nach dem Laden der echten Rolle, deshalb zusaetzlich am
    Ereignis haengen statt nur einmal zu pruefen. */
-function maybeShowAdmin(){
-  if(admin&&document.documentElement.classList.contains('is-admin'))admin.hidden=false;
+function syncAdmin(){
+  if(!admin)return;
+  /* SYMMETRISCH. Die fruehere Fassung konnte nur EINblenden, nie wieder aus.
+     Der Weg dahin: Layout.astro setzt is-admin schon im <head> aus dem
+     Rollen-ZWISCHENSPEICHER (sessionStorage vb_user_role), damit nichts
+     aufblitzt. Ist der Speicher veraltet — Rolle entzogen, fremdes Geraet,
+     abgelaufene Sitzung — steht die Klasse zunaechst faelschlich da, das Feld
+     erschien, und wenn account-lite.js kurz darauf die ECHTE Rolle holte und
+     die Klasse per classList.toggle wieder abraeumte, blieb das Feld stehen.
+     Geschrieben haette dieser Nutzer nichts (die RLS-Regel auf der Tabelle
+     laesst nur Admins durch, gegen die lebende Anlage geprueft) — aber sichtbar
+     war es, und genau das soll es nicht sein. */
+  admin.hidden=!document.documentElement.classList.contains('is-admin');
 }
-maybeShowAdmin();
-addEventListener('vb-account-ready',maybeShowAdmin);
-setTimeout(maybeShowAdmin,1500);
+syncAdmin();
+addEventListener('vb-account-ready',syncAdmin);
+setTimeout(syncAdmin,1500);
 
 if(btn&&inp){btn.addEventListener('click',function(){
   var raw=inp.value.trim().replace(/\\s|\\u20ac/g,'').replace(',','.');
