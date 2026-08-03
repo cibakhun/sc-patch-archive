@@ -18,16 +18,23 @@
 // der Rechner geht ohne Vorwarnung aus und nimmt mit, was seit dem letzten
 // Speichern entstanden ist.
 //
-// DREI ABWEICHUNGEN VON DER SKIZZE, alle aus demselben Grund — die Skizze
-// enthielt Platzhalterdaten, die es in Wirklichkeit nicht gibt:
+// ABWEICHUNGEN VON DER SKIZZE — sie enthielt Platzhalterdaten, die es in
+// Wirklichkeit nicht gibt (Hausregel "Never fabricate data", verankert in
+// tests/e2e/db.test.js):
 //   1. "In den letzten vierzehn Tagen ist das elfmal passiert" und "30 bis 40
 //      Minuten" waren frei erfunden. Hier steht es qualitativ.
-//   2. Die Beschaffungsanzeige zeigte "035 / 120 EUR". Einen Ist-Stand gibt es
-//      nicht: ein PayPal-Link meldet nichts zurück. Die Anzeige zeigt deshalb
-//      den GEWÄHLTEN Betrag am Kostenrahmen und sagt ausdrücklich, dass der
-//      Stand nicht darstellbar ist.
-//   3. Die Beitragsliste mit zwölf Namen entfällt — dieselbe fehlende Quelle.
-// Hausregel "Never fabricate data", verankert in tests/e2e/db.test.js.
+//   2. Die Beitragsliste mit zwölf Namen entfällt — für sie gibt es keine
+//      Datenquelle, ein PayPal-Link meldet nichts zurück.
+//
+// DER STAND kommt aus der Datenbank (Tabelle support_progress) und wird vom
+// Admin auf der Seite selbst gepflegt — ebenfalls, weil ein PayPal-Link nichts
+// zurückmeldet. Kein Wert, keine Anzeige: schlägt der Abruf fehl oder fehlt die
+// Zeile, bleibt der ganze Abschnitt verborgen statt einen Stand von null zu
+// behaupten.
+//
+// Der Zeitstempel ("Stand: …") stand hier zunächst mit unter der Anzeige und
+// wurde am 02.08.2026 auf Wunsch des Betreibers entfernt. Er wird weiterhin
+// serverseitig geschrieben (Trigger), nur nicht mehr angezeigt.
 import { href } from '../i18n/ui';
 import { SUPABASE } from '../consts';
 
@@ -84,9 +91,6 @@ const T = {
         ''],
     ] as [string, string, string, string][],
     gaugeHead: 'Stand',
-    gaugeOf: 'von',
-    gaugeAsOf: 'Stand:',
-    gaugeHonest: 'Von Hand gepflegt: ein PayPal-Link meldet nichts zurück, die Zahl wird also eingetragen, nicht gemessen. Das Datum daneben sagt dir, wie frisch sie ist.',
     adminLbl: 'Neuer Stand eintragen',
     adminSave: 'Speichern',
     adminHint: 'Nur für dich sichtbar. Der Zeitstempel wird vom Server gesetzt, nicht vom Browser.',
@@ -97,7 +101,6 @@ const T = {
     amountLbl: 'Betrag',
     amountFree: 'Anderer',
     cta: 'Mit %s € unterstützen',
-    note: 'Der Link führt zu PayPal. Erst dort entsteht eine Verbindung — auf dieser Seite läuft nichts von PayPal mit.',
     err: `Bitte einen Betrag zwischen ${MIN} € und ${MAX} € eingeben.`,
     honest: '<b>Freiwillig, ohne Gegenleistung.</b> Keine Rechnung, kein Vertrag, keine Vorteile im Konto, nichts hinter einer Bezahlschranke. Eine Spendenbescheinigung kann ich nicht ausstellen — VerseBase ist ein privates Fan-Projekt, kein gemeinnütziger Verein.',
     h2help: 'Was genauso hilft',
@@ -134,9 +137,6 @@ const T = {
         ''],
     ] as [string, string, string, string][],
     gaugeHead: 'Raised',
-    gaugeOf: 'of',
-    gaugeAsOf: 'As of:',
-    gaugeHonest: 'Maintained by hand: a PayPal link reports nothing back, so this figure is entered, not measured. The date next to it tells you how fresh it is.',
     adminLbl: 'Enter new total',
     adminSave: 'Save',
     adminHint: 'Only visible to you. The timestamp is set by the server, not the browser.',
@@ -147,7 +147,6 @@ const T = {
     amountLbl: 'Amount',
     amountFree: 'Other',
     cta: 'Support with €%s',
-    note: 'The link takes you to PayPal. The connection is made there, not here — nothing from PayPal runs on this page.',
     err: `Please enter an amount between €${MIN} and €${MAX}.`,
     honest: '<b>Voluntary, nothing in return.</b> No invoice, no contract, no perks in your account, nothing behind a paywall. I cannot issue a donation receipt — VerseBase is a private fan project, not a registered charity.',
     h2help: 'What helps just as much',
@@ -264,9 +263,6 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
    und riss die Skizze bei 360 px um 23 px auf. */
 .sup__gscale{display:flex;justify-content:space-between;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.62rem;letter-spacing:.1em;color:var(--muted);margin-top:5px}
 .sup__gscale span{white-space:nowrap}
-.sup__gcap{font-size:.8rem;color:var(--muted);margin:10px 0 0;line-height:1.55}
-.sup__gcap b{color:var(--text);font-weight:600}
-.sup__ghonest{font-size:.78rem;color:var(--muted);margin:6px 0 0;line-height:1.55;opacity:.85}
 
 /* Admin-Feld: nur sichtbar, wenn <html> die is-admin-Klasse traegt. Das ist
    eine ANZEIGE-Sperre. Die echte Sperre ist die RLS-Regel auf der Tabelle —
@@ -311,7 +307,6 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 .sup__cta[aria-disabled='true']{opacity:.5;pointer-events:none}
 .sup__err{color:var(--accent-2);font-size:.88rem;line-height:1.5;margin:4px 0 0}
 .sup__err[hidden]{display:none}
-.sup__note{font-size:.84rem;color:var(--muted);margin:0;line-height:1.55}
 .sup__honest{font-size:.82rem;line-height:1.6;color:var(--muted);border-left:2px solid var(--line);padding-left:14px;margin:0}
 .sup__honest b{color:var(--text);font-weight:600}
 
@@ -491,8 +486,6 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
             <div class="sup__gticks" aria-hidden="true"></div>
           </div>
           <div class="sup__gscale" id="supScale" aria-hidden="true"></div>
-          <p class="sup__gcap" id="supCap"></p>
-          <p class="sup__ghonest" set:text={T.gaugeHonest}></p>
 
           {/* Nur fuer Admins. Das Gatter ist die is-admin-Klasse auf <html>,
               die Layout.astro aus dem Rollen-Cache setzt — dasselbe und
@@ -534,7 +527,6 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
             <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"></path></svg>
             <span id="supCtaTxt" set:text={ctaInitial}></span>
           </a>
-          <p class="sup__note" set:text={T.note}></p>
           <p class="sup__honest" set:html={T.honest}></p>
         </div>
       </div>
@@ -616,8 +608,6 @@ free.addEventListener('input',function(){
   data-sp-key={SUPABASE.publishableKey}
   data-sp-slug={PROGRESS_SLUG}
   data-sp-loc={lang === 'de' ? 'de-DE' : 'en-GB'}
-  data-sp-of={T.gaugeOf}
-  data-sp-asof={T.gaugeAsOf}
   data-sp-ok={T.adminOk}
   data-sp-range={T.adminErrRange}
   data-sp-auth={T.adminErrAuth}
@@ -626,12 +616,11 @@ free.addEventListener('input',function(){
 var s=document.currentScript;
 var URL_=s.getAttribute('data-sp-url'),KEY=s.getAttribute('data-sp-key'),
     SLUG=s.getAttribute('data-sp-slug'),LOC=s.getAttribute('data-sp-loc'),
-    OF=s.getAttribute('data-sp-of'),ASOF=s.getAttribute('data-sp-asof'),
     M_OK=s.getAttribute('data-sp-ok'),M_RANGE=s.getAttribute('data-sp-range'),
     M_AUTH=s.getAttribute('data-sp-auth'),M_NET=s.getAttribute('data-sp-net');
 var box=document.getElementById('supGauge'),read=document.getElementById('supRead'),
     fill=document.getElementById('supFill'),scale=document.getElementById('supScale'),
-    cap=document.getElementById('supCap'),admin=document.getElementById('supAdmin'),
+    admin=document.getElementById('supAdmin'),
     inp=document.getElementById('supNew'),btn=document.getElementById('supSave'),
     msg=document.getElementById('supMsg');
 if(!box||!read||!fill)return;
@@ -652,12 +641,6 @@ function paint(row){
   if(scale){scale.innerHTML='';
     for(var i=0;i<=4;i++){var sp=document.createElement('span');
       sp.textContent=Math.round(row.goal_cents/100*i/4);scale.appendChild(sp)}}
-  if(cap){var d=new Date(row.updated_at);
-    cap.innerHTML='';
-    var b=document.createElement('b');b.textContent=eur(r);
-    cap.appendChild(b);
-    cap.appendChild(document.createTextNode(' '+OF+' '+eur(row.goal_cents)+
-      ' \\u00b7 '+ASOF+' '+d.toLocaleDateString(LOC,{year:'numeric',month:'long',day:'numeric'})));}
   box.hidden=false;
   if(inp)inp.value=(r/100).toFixed(2).replace('.',',');
 }
