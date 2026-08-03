@@ -1,34 +1,31 @@
 // Waffengröße je Waffenname — global aus dem Fahrzeug-Snapshot gelöst.
 //
-// WARUM DAS NÖTIG IST: sync/enrich-weapon-sizes.mjs löst die Größe jeder
-// montierten Waffe über den WeaponGun-Katalog auf (Name -> Größe) und
-// aggregiert sie dann zu `fixedWeaponSizes: [{size,count}]`. Dabei geht die
-// Zuordnung Name <-> Größe verloren: aus "2× Shredder, 1× M6A" + "S3×2, S4×1"
-// ist ohne Zusatzwissen nicht ablesbar, welche Waffe welche Größe hat. Genau
-// diese Zuordnung braucht das Datenblatt aber, um pro Waffe eine Zeile
-// ("[S4] ×1 M6A Cannon") statt eines Zahlenhaufens zu zeigen.
+// STAND 01.4-05 (der Tausch): der Spieldaten-Katalog trägt die Größe direkt an
+// jeder Waffe (`fixedWeapons[].size`/`turretWeapons[].size`) — die Wiki-Kette
+// (sync-vehicles.mjs + enrich-weapon-sizes.mjs), die Name<->Größe erst über ein
+// Gleichungssystem zurückrechnen musste, ist gelöscht (D-16). Diese Datei baut
+// jetzt nur noch eine einfache Name->Größe-Tabelle aus den bereits vollständigen
+// Werten; die Fixpunkt-Iteration entfällt. Der exportierte Vertrag
+// (`resolveGuns()` mit dem `exact`-Kennzeichen, `gunSize()`) bleibt UNVERÄNDERT,
+// damit ShipDetail.astro/shipFacts.ts unverändert weiterlaufen — nur die
+// Herkunft der Zuordnung wechselt.
 //
-// Statt eines zweiten Netzwerk-Syncs wird die Zuordnung hier aus dem Snapshot
-// selbst zurückgerechnet: jeder Waffenname hat GENAU EINE Größe, also bilden
-// alle Schiffe zusammen ein Gleichungssystem. Schiffe mit nur einer Waffenart
-// liefern die Größe direkt, der Rest folgt per Ausschluss (Fixpunkt-Iteration).
-// Türme liefern zusätzliche Gleichungen (sizes[] + weapons[] je Turm).
+// WARUM ÜBERHAUPT EINE NAME->GRÖSSE-TABELLE, wenn jede Waffe ihre Größe schon
+// selbst trägt? Weil `resolveGuns()` heute mit `{name,count}`-Paaren aufgerufen
+// wird (aus der Astro-Content-Collection, die `size` am Waffen-Eintrag NICHT
+// zwingend führt) — die Tabelle bleibt der stabile Vertrag zwischen Rohdaten
+// (dieser Datei, liest vehicles.json direkt ohne Schema) und Aufrufer.
 //
-// Die Tabelle wird EINMAL beim Modul-Load gebaut (wie holoItems.ts) und hält
-// sich nach künftigen Syncs selbst aktuell — kein gepflegtes Mapping im Repo.
-//
-// EHRLICHKEIT: Geraten wird nichts. Bleibt ein Name unauflösbar (echte
-// Mehrdeutigkeit) oder widerspricht das Ergebnis den Snapshot-Zahlen eines
-// Schiffs, meldet resolveGuns() das (`exact: false`) und die Anzeige fällt auf
-// die aggregierte Darstellung zurück.
+// EHRLICHKEIT: Geraten wird nichts. Derselbe Anzeigename kann auf
+// verschiedenen Schiffen unterschiedliche Größen tragen (vier Items heißen
+// „Revenant Gatling" in vier Größen — display-name-not-a-key) — ein Name, der
+// zwei widersprüchliche Größen liefert, gilt als nicht global auflösbar
+// (`AMBIGUOUS`) und die Anzeige fällt auf die aggregierte Darstellung zurück.
 import vehiclesSnapshot from '../data/vehicles.json';
 
 type SizeCount = { size: number; count: number };
 type NameCount = { name: string; count: number };
-type Group = { names: NameCount[]; sizes: SizeCount[] };
-
-const total = <T extends { count: number }>(l: readonly T[]): number =>
-  l.reduce((n, x) => n + x.count, 0);
+type WeaponEntry = { name: string; size?: number | null; count: number };
 
 /** Größen-Multiset einer [{size,count}]-Liste als Map size -> count */
 const pool = (sizes: readonly SizeCount[]): Map<number, number> => {
@@ -37,70 +34,23 @@ const pool = (sizes: readonly SizeCount[]): Map<number, number> => {
   return m;
 };
 
-// ---------- Gleichungen sammeln ----------
-// Nur Gruppen, bei denen Waffen- und Größenliste dieselbe Stückzahl haben —
-// sonst ist die Größenliste unvollständig (kommt bei Türmen vor) und die
-// Gleichung wäre falsch.
-const groups: Group[] = [];
-for (const v of (vehiclesSnapshot as { vehicles: any[] }).vehicles) {
-  const fw: NameCount[] = v.fixedWeapons ?? [];
-  const fs: SizeCount[] = v.fixedWeaponSizes ?? [];
-  if (fw.length && fs.length && total(fw) === total(fs)) groups.push({ names: fw, sizes: fs });
-  for (const tr of v.turrets ?? []) {
-    const tw: NameCount[] = tr.weapons ?? [];
-    const ts: SizeCount[] = tr.sizes ?? [];
-    if (tw.length && ts.length && total(tw) === total(ts)) groups.push({ names: tw, sizes: ts });
-  }
-}
-
-// ---------- Fixpunkt-Iteration ----------
+// ---------- Name -> Größe, direkt aus dem Katalog ----------
 const SIZE = new Map<string, number>();
-/** Namen, für die zwei Gleichungen unterschiedliche Größen fordern -> unbrauchbar */
+/** Namen, die auf verschiedenen Schiffen widersprüchliche Größen tragen -> unbrauchbar */
 const AMBIGUOUS = new Set<string>();
 
-const learn = (name: string, size: number): boolean => {
+const learn = (name: string, size: number): void => {
   const had = SIZE.get(name);
   if (had != null) {
     if (had !== size) AMBIGUOUS.add(name); // Widerspruch: Name fällt komplett raus
-    return false;
+    return;
   }
   SIZE.set(name, size);
-  return true;
 };
 
-for (let pass = 0; pass < 12; pass++) {
-  let changed = false;
-  for (const g of groups) {
-    // bekannte Namen aus dem Größen-Pool abziehen; übrig bleibt, was die
-    // noch unbekannten Namen unter sich aufteilen müssen
-    const rest = pool(g.sizes);
-    const unknown: NameCount[] = [];
-    let broken = false;
-    for (const w of g.names) {
-      const s = SIZE.get(w.name);
-      if (s == null) { unknown.push(w); continue; }
-      const have = rest.get(s) ?? 0;
-      if (have < w.count) { broken = true; break; } // Gleichung inkonsistent -> überspringen
-      rest.set(s, have - w.count);
-    }
-    if (broken || !unknown.length) continue;
-    const open = [...rest.entries()].filter(([, c]) => c > 0);
-    if (!open.length) continue;
-
-    // (a) nur noch EINE Größe übrig, die genau aufgeht -> alle Unbekannten haben sie
-    if (open.length === 1 && open[0][1] === total(unknown)) {
-      for (const u of unknown) if (learn(u.name, open[0][0])) changed = true;
-      continue;
-    }
-    // (b) eine Stückzahl, die auf genau EINE offene Größe und genau EINEN
-    //     unbekannten Namen passt -> eindeutig zuordenbar
-    for (const [size, c] of open) {
-      if (open.filter(([, c2]) => c2 === c).length !== 1) continue;
-      const fits = unknown.filter((u) => u.count === c);
-      if (fits.length === 1 && learn(fits[0].name, size)) changed = true;
-    }
-  }
-  if (!changed) break;
+for (const v of (vehiclesSnapshot as { vehicles: any[] }).vehicles) {
+  for (const w of (v.fixedWeapons ?? []) as WeaponEntry[]) if (w.name && w.size != null) learn(w.name, w.size);
+  for (const w of (v.turretWeapons ?? []) as WeaponEntry[]) if (w.name && w.size != null) learn(w.name, w.size);
 }
 for (const n of AMBIGUOUS) SIZE.delete(n);
 

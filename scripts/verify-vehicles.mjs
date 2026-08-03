@@ -1,9 +1,13 @@
-// Feld-für-Feld-Vergleich: Spieldaten-Katalog gegen den Wiki-Katalog.
+// Feld-für-Feld-Vergleich: frischer Extraktionslauf gegen den committeten Katalog.
 //
-// Der Katalog wird NICHT blind getauscht. Dieses Skript sagt je Feld, wie viele
-// Fahrzeuge identisch sind, wo Werte fehlen und wo sie abweichen — Abweichungen
-// mit Beispielen, damit jede einzelne beurteilt werden kann, bevor die Wiki
-// abgeschaltet wird.
+// STAND 01.4-05 (der Tausch): bis hierher verglich dieses Skript den
+// Spieldaten-Katalog gegen den WIKI-Katalog, bevor Letzterer abgeschaltet
+// wurde (D-16) — das war der Beweis, den D-14 forderte. Nach dem Tausch ist
+// `src/data/vehicles.json` selbst der Spieldaten-Katalog; der sinnvolle
+// Bezugspunkt für einen künftigen Patch-Tag-Lauf ist deshalb nicht mehr die
+// Wiki, sondern der zuletzt COMMITTETE Stand — dieselbe Bauform (Feld-für-
+// Feld, Abweichungen mit Beispielen, Deckungs-Wächter), nur der Vergleich
+// zeigt jetzt, was ein frischer Lauf gegenüber dem committeten Katalog ändert.
 //
 // Aufruf: node scripts/verify-vehicles.mjs [--field <name>] [--all]
 import { readFileSync } from 'node:fs';
@@ -16,7 +20,7 @@ const argv = process.argv.slice(2);
 const FIELD = argv.includes('--field') ? argv[argv.indexOf('--field') + 1] : null;
 const ALL = argv.includes('--all');
 
-const wiki = new Map(rd('vehicles.json').vehicles.map((v) => [v.id, v]));
+const committed = new Map(rd('vehicles.json').vehicles.map((v) => [v.id, v]));
 const game = rd('vehicles-gamefiles.json').vehicles;
 
 // Direkt vergleichbare Skalare. Links = Feld im Spiel-Katalog, rechts im Wiki-Katalog.
@@ -36,20 +40,20 @@ for (const [gk, wk] of SCALARS) {
   if (FIELD && gk !== FIELD) continue;
   let same = 0, diff = [], missingGame = 0, missingWiki = 0;
   for (const g of game) {
-    const w = wiki.get(g.id);
+    const w = committed.get(g.id);
     if (!w) continue;
     const a = g[gk], b = w[wk];
     if (a == null && b == null) continue;
     if (a == null) { missingGame++; continue; }
     if (b == null) { missingWiki++; continue; }
     if (a === b || near(a, b)) same++;
-    else diff.push(`${w.name}: Spiel ${JSON.stringify(a)} vs Wiki ${JSON.stringify(b)}`);
+    else diff.push(`${w.name}: frisch ${JSON.stringify(a)} vs committet ${JSON.stringify(b)}`);
   }
   rows.push({ field: gk, same, diff, missingGame, missingWiki });
 }
 
-console.log(`Fahrzeuge: Spiel ${game.length} · Wiki ${wiki.size}\n`);
-console.log('Feld                identisch  abweichend  fehlt(Spiel)  fehlt(Wiki)');
+console.log(`Fahrzeuge: frischer Lauf ${game.length} · committet ${committed.size}\n`);
+console.log('Feld                identisch  abweichend  fehlt(frisch) fehlt(committet)');
 console.log('-'.repeat(72));
 for (const r of rows)
   console.log(`${r.field.padEnd(20)}${String(r.same).padStart(9)}${String(r.diff.length).padStart(12)}${String(r.missingGame).padStart(14)}${String(r.missingWiki).padStart(13)}`);
@@ -87,11 +91,11 @@ for (const [field, reason] of Object.entries(ACCEPTED_DEVIATIONS)) {
 // Bewaffnung: Waffenzahl je Schiff
 let armSame = 0; const armDiff = [];
 for (const g of game) {
-  const w = wiki.get(g.id);
+  const w = committed.get(g.id);
   if (!w) continue;
   const gn = g.fixedWeapons.reduce((n, x) => n + x.count, 0);
   const wn = (w.fixedWeapons ?? []).reduce((n, x) => n + x.count, 0);
-  if (gn === wn) armSame++; else armDiff.push(`${w.name}: Spiel ${gn} vs Wiki ${wn} Pilotwaffen`);
+  if (gn === wn) armSame++; else armDiff.push(`${w.name}: frisch ${gn} vs committet ${wn} Pilotwaffen`);
 }
 console.log(`\n=== Pilotwaffen-Anzahl: ${armSame} identisch, ${armDiff.length} abweichend ===`);
 for (const d of (ALL ? armDiff : armDiff.slice(0, 10))) console.log('  ' + d);

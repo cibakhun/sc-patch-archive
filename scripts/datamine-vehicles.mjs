@@ -35,12 +35,20 @@
 // DataCore keine /spaceships/- oder /groundvehicles/-Fahrzeug-Entity, sondern
 // ein "Power Suit" (Character-Taxonomie) — s. Kommentar bei OVERRIDES unten.
 //
-// Schreibt bewusst NICHT direkt src/data/vehicles.json, sondern
-// src/data/vehicles-gamefiles.json. Der Tausch passiert erst, wenn
-// verify-vehicles.mjs den Feld-für-Feld-Vergleich sauber zeigt.
+// STAND 01.4-05 (der Tausch): schreibt jetzt ZWEI Dateien — die Zwischenstufe
+// src/data/vehicles-gamefiles.json (gitignored, frischer Lauf) UND das
+// ausgelieferte src/data/vehicles.json (committet). scripts/verify-vehicles.mjs
+// vergleicht künftig genau diese zwei: den frischen Lauf gegen den zuletzt
+// committeten Katalog — derselbe Zweck wie vorher (Feld-für-Feld-Vergleich vor
+// dem Übernehmen), nur ist der Bezugspunkt nicht mehr die Wiki, sondern der
+// eigene letzte Stand. sync-vehicles.mjs (Wiki-API) ist gelöscht (D-16).
+//
+// Patch-Rückgrat (patches[], D-19): diese Rechnung stand bis 01.4-05 in
+// sync-vehicles.mjs und ist mit dessen Löschung hierher umgezogen (samt
+// SPINE_ALIAS, unverändert) — s. Abschnitt PATCH-RÜCKGRAT unten.
 //
 // Aufruf: node scripts/datamine-vehicles.mjs [--p4k <Data.p4k>] [--ship <id>]
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
@@ -48,13 +56,59 @@ import { openDataCore } from './lib/datacore.mjs';
 import { parseCryXml, findAll, findAllLive, applyModification } from './lib/cryxml.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const OUT = resolve(__dirname, '..', 'src', 'data', 'vehicles-gamefiles.json');
+const OUT_GAMEFILES = resolve(__dirname, '..', 'src', 'data', 'vehicles-gamefiles.json');
+const OUT_FINAL = resolve(__dirname, '..', 'src', 'data', 'vehicles.json');
 const EXTERNAL = resolve(__dirname, '..', 'src', 'data', 'vehicle-external.json');
+const PATCHES_DIR = resolve(__dirname, '..', 'src', 'data', 'patches');
 const argv = process.argv.slice(2);
 const argOf = (f) => { const i = argv.indexOf(f); return i >= 0 ? argv[i + 1] : null; };
 const ONLY = argOf('--ship');
 const norm = (s) => (s || '').replace(/\\/g, '/');
 const round = (n, d = 1) => (n == null ? null : Math.round(n * 10 ** d) / 10 ** d);
+
+/* ---------------------------------------------------------------- */
+/* PATCH-RÜCKGRAT (01.4-05, D-19): umgezogen aus sync-vehicles.mjs,      */
+/* UNVERÄNDERT (strip() + SPINE_ALIAS + Join-Regel). `patches[]` ist    */
+/* KEINE Spieldaten-Angabe — sie verknüpft einen Katalog-Eintrag mit     */
+/* jeder Patch-Seite, die ihn nennt (src/data/patches/*.json). Zieht    */
+/* dieser Block mit dem Skript, das ihn berechnet hatte (sync-vehicles  */
+/* .mjs, D-16), verlieren alle heute verknüpften Fahrzeuge ihre Archiv- */
+/* Verweise — ein leeres patches:[] ist syntaktisch gültig, KEIN Fehler,*/
+/* der beim Bauen auffiele. Deshalb: Rechnung zuerst umziehen, dann erst*/
+/* (Task 3) das alte Skript löschen.                                    */
+/* ---------------------------------------------------------------- */
+const SPINE_MAKERS = ['rsi', 'drake', 'aegis', 'anvil', 'mirai', 'gatac', 'argo', 'misc', 'origin', 'crusader', 'esperia', 'kruger', 'banu', 'aopoa', 'vanduul'];
+function stripSpine(name) {
+  let n = (name || '').toLowerCase().replace(/["„“”‚‘’']/g, '').replace(/\s+/g, ' ').trim();
+  for (const m of SPINE_MAKERS) if (n.startsWith(m + ' ')) n = n.slice(m.length + 1);
+  return n;
+}
+const spine = new Map();
+if (existsSync(PATCHES_DIR)) {
+  for (const f of readdirSync(PATCHES_DIR).filter((x) => x.endsWith('.json'))) {
+    const j = JSON.parse(readFileSync(resolve(PATCHES_DIR, f), 'utf8'));
+    for (const s of j.ships ?? []) {
+      const k = stripSpine(s.name);
+      if (!spine.has(k)) spine.set(k, new Set());
+      spine.get(k).add(j.version);
+    }
+  }
+}
+// variant → base aliases: patch-data ships whose exact variant the catalog
+// drops as unclassified — the base entry carries the spine link instead.
+const SPINE_ALIAS = { 'atls ikti': 'atls' };
+for (const [from, to] of Object.entries(SPINE_ALIAS)) {
+  if (!spine.has(from)) continue;
+  if (!spine.has(to)) spine.set(to, new Set());
+  for (const p of spine.get(from)) spine.get(to).add(p);
+}
+/** Patch-Verknüpfung für ein gebautes Fahrzeug (Join-Schlüssel: der bereits
+ *  manufacturer-gestrippte Anzeigename, s. D-19 — der Spieldaten-Katalog
+ *  liefert denselben Namen wie der bisherige Wiki-Katalog). */
+const spineFor = (name) => {
+  const k = stripSpine(name);
+  return spine.has(k) ? [...spine.get(k)].sort() : [];
+};
 
 // gameVersion (01.4-02, Gruppe C, 0 Proben): build_manifest.id neben der p4k,
 // wie datamine-items.mjs/datamine-crafting.mjs/extract-hardpoints.mjs seit
@@ -114,6 +168,22 @@ const BAD = /^@|PLACEHOLDER|LOC_EMPTY|\[PH\]|TRANSLATION NOT FOUND/;
 const locFrom = (map, k) => { if (!k || typeof k !== 'string' || !k.startsWith('@')) return null; const v = map.get(k.slice(1).toLowerCase()); return v && !BAD.test(v) ? v : null; };
 const locEn = (k) => locFrom(EN, k);
 const locDe = (k) => locFrom(DE, k) ?? locEn(k);
+
+// Spieltexte (descriptionEn/descriptionDe, 01.4-05, Task 2) tragen eine
+// Metadaten-Kopfzeile ("Manufacturer: …\nFocus: …\n\n") und woertliche
+// "\n"-Zeichenfolgen (Backslash+n als zwei Textzeichen, KEIN echtes
+// Whitespace) statt echter Zeilenumbrueche. Die Kopfzeile ist im Datenblatt
+// Dopplung (Hersteller und Rolle stehen bereits daneben) und wird
+// abgeschnitten; die "\n"-Folgen werden zu echten Zeilenumbruechen gewandelt
+// (Anzeige: ShipDetail.astro .sd__desc, white-space:pre-line). Bereinigt wird
+// HIER, an der Quelle — nicht erst beim Anzeigen — weil die Abnahme den
+// committeten vehicles.json-Rohwert prueft, nicht nur das gerenderte HTML.
+const DESC_HEADER_RX = /^(?:Manufacturer|Hersteller)\s*:.*?\\n(?:Focus|Fokus)\s*:.*?(?:\\n)+/i;
+function cleanDesc(s) {
+  if (!s) return s;
+  const cleaned = s.replace(DESC_HEADER_RX, '').replace(/\\n/g, '\n').trim();
+  return cleaned || null;
+}
 
 const db = openDataCore(dcb);
 const ECD = db.records.filter((r) => db.structs[r.structIndex]?.name === 'EntityClassDefinition');
@@ -484,6 +554,14 @@ function buildVehicle(id) {
   };
   for (const items of Object.values(ports)) {
     for (const it of items) {
+      // Rule 1 (01.4-05): ein paar fest verbaute Kapitalschiff-Bauteile
+      // (Idris/Javelin/Polaris-Radar, ROC-DS-Laser) referenzieren im Spiel
+      // eine Item-Klasse ohne Shop-Lokalisierung (Klassenname traegt sogar
+      // "_TEMP") — `it.name` ist dann `null`. Die Anzeige braucht trotzdem
+      // einen Namen (Schema verlangt einen String); Rueckfall ist die rohe
+      // Item-Klasse statt eines leeren Feldes, das die Astro-Content-Prüfung
+      // ablehnt. Betrifft gemessen 9 Eintraege auf 227 Fahrzeugen.
+      if (it.name == null && it.cls) it.name = it.cls;
       if (it.cat === 'weapon') {
         if (it.carrier === 'turret') {
           add(turret, it);
@@ -618,9 +696,10 @@ function buildVehicle(id) {
     });
   }
 
+  const finalName = stripMfr(fullName);
   return {
     id,
-    name: stripMfr(fullName),
+    name: finalName,
     manufacturer: mfrName ?? null,
     makerCode,
     typeEn: locEn(veh?.vehicleCareer),
@@ -629,8 +708,8 @@ function buildVehicle(id) {
     roleDe: locDe(veh?.vehicleRole),
     sizeClass,
     sizeDe: veh?.movementClass === 'Spaceship' ? SIZE_LABEL[sizeClass] ?? null : 'Fahrzeug',
-    descriptionEn: locEn(veh?.vehicleDescription),
-    descriptionDe: locDe(veh?.vehicleDescription),
+    descriptionEn: cleanDesc(locEn(veh?.vehicleDescription)),
+    descriptionDe: cleanDesc(locDe(veh?.vehicleDescription)),
     // Besatzung (D-17, 01.4-04): die Spanne bleibt auf dem Datenblatt.
     // `crewMin` kommt aus dem Spiel (`crewSize`) — Betriebsbesatzung, deckt
     // sich auf 223/223 gemessenen Fahrzeugen exakt mit der bisherigen
@@ -657,16 +736,23 @@ function buildVehicle(id) {
     insExpediteMin: round(ins?.mandatoryWaitTimeMinutes),
     insExpediteCost: ins?.baseExpeditingFee ?? null,
     pilotDps, turretDps,
-    fixedWeapons: pilotWithDps.map(({ cls, ...w }) => w),
+    // cls BLEIBT an fixedWeapons/turretWeapons (01.4-05, D-19, zweite tragende
+    // Falle): scripts/verify-weapon-sizes.mjs joint künftig über die Klasse,
+    // nicht über den Anzeigenamen — vier Items heißen "Revenant Gatling" in
+    // vier Größen (display-name-not-a-key). Vorher wurde `cls` hier beim
+    // Ausgeben entfernt; das ist die Zeile, die diese Grenze aufhob.
+    fixedWeapons: pilotWithDps,
     fixedWeaponMounts: mounts,
     fixedWeaponSizes,
-    turretWeapons: turretWithDps.map(({ cls, ...w }) => w),
+    turretWeapons: turretWithDps,
     turrets,
     missileCount,
     missileRacks: [...racks.values()].map(({ cls, ...w }) => w),
     cmLaunchers,
     components: comp,
     gameVersion: GAME_VERSION,
+    // Patch-Rückgrat (D-19): umgezogen aus sync-vehicles.mjs, s. o.
+    patches: spineFor(finalName),
   };
 }
 
@@ -730,18 +816,31 @@ console.log(`  Schild-HP:            ${stats.shield}   Quantum: ${stats.qt}   Fr
 console.log(`  QT-Treibstoff:        ${stats.qtFuel}   QT-Reichweite: ${stats.qtRange}   H2-Treibstoff: ${stats.h2Fuel}   Erz: ${stats.ore}`);
 if (stats.noRec.length) console.log(`  ohne DataCore-Record: ${stats.noRec.length} (${stats.noRec.join(', ')})`);
 if (overridesAdded) console.log(`  aus vehicle-external.json übernommen (ATLS): ${overridesAdded}`);
+const patchLinked = out.filter((v) => Array.isArray(v.patches) && v.patches.length).length;
+console.log(`  Patch-Rückgrat (patches[]): ${patchLinked} Fahrzeuge verknüpft`);
 
 if (!ONLY) {
-  writeFileSync(OUT, JSON.stringify({
-    generatedAt: new Date().toISOString().slice(0, 10),
+  const snapshot = {
+    // fetchedAt/gameVersion: dieselben Feldnamen wie zuvor der Wiki-Snapshot
+    // (drei Anzeigestellen lesen sie unverändert, s. schiffe.astro/ShipDetail
+    // .astro) — nur der Inhalt wechselt: kein Wiki-Abrufdatum mehr, sondern der
+    // Tag dieses Extraktionslaufs gegen die lokale Data.p4k.
+    fetchedAt: new Date().toISOString().slice(0, 10),
     gameVersion: GAME_VERSION,
     source: 'Data.p4k — DataCore (Game2.dcb), Fahrzeug-Implementierungen (CryXmlB), InventoryContainer',
     external: 'src/data/vehicle-external.json (msrpUSD, pledgeUrl, Abmessungen, image, crewMax, statusEn/De,'
       + ' fociDe — nicht in den Spieldateien; plus vier komplett übernommene ATLS-Datensätze, D-13)',
     count: out.length,
     vehicles: out,
-  }, null, 2) + '\n', 'utf8');
-  console.log(`-> ${OUT} geschrieben`);
+  };
+  const payload = JSON.stringify(snapshot, null, 2) + '\n';
+  // Zwischenstufe (gitignored, immer frisch) — scripts/verify-vehicles.mjs
+  // vergleicht sie künftig gegen das ausgelieferte vehicles.json (s. Kopf).
+  writeFileSync(OUT_GAMEFILES, payload, 'utf8');
+  console.log(`-> ${OUT_GAMEFILES} geschrieben`);
+  // Ausgeliefert (committet) — der eigentliche Tausch (01.4-05).
+  writeFileSync(OUT_FINAL, payload, 'utf8');
+  console.log(`-> ${OUT_FINAL} geschrieben`);
 } else {
   console.log(JSON.stringify(out[0], null, 1));
 }

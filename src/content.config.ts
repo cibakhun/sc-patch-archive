@@ -119,13 +119,28 @@ const ships = defineCollection({
   }),
 });
 
-// Full vehicle catalog — snapshot written by `npm run sync:vehicles`
-// (scripts/sync-vehicles.mjs, Star Citizen Wiki API v2, German fields native).
+// Full vehicle catalog — game-sourced, written by `npm run datamine:vehicles`
+// (scripts/datamine-vehicles.mjs, Data.p4k extraction, 01.4-05). Ten fields
+// with no game-file source stay frozen in src/data/vehicle-external.json
+// (msrpUSD, pledgeUrl, dimensions, image, crewMax, statusEn/De, fociDe) and
+// are merged in at generation time — including the four ARGO-ATLS overrides
+// (D-13), which is why several fields below stay nullable/defaulted even
+// though buildVehicle() itself always fills them.
 /** an equipped item on a port: name + size class + how many are fitted */
 const fitted = z.object({
   name: z.string(),
   size: z.number().nullable(),
   count: z.number(),
+});
+/** a fitted weapon: name/size/count/dps as displayed, plus the game-internal
+ *  item class (`cls`) — the join key scripts/verify-weapon-sizes.mjs uses
+ *  instead of the (non-unique) display name (display-name-not-a-key). */
+const weaponFitted = z.object({
+  name: z.string(),
+  size: z.number().nullable().optional(),
+  count: z.number(),
+  dps: z.number().nullable(),
+  cls: z.string().optional(),
 });
 
 const vehicles = defineCollection({
@@ -139,16 +154,29 @@ const vehicles = defineCollection({
     makerCode: z.string().nullable(),
     typeDe: z.string().nullable(),
     typeEn: z.string().nullable(),
+    /** CIG's own, finer role taxonomy (`vehicleRole`) — both languages native,
+     *  replaces the old fociDe hand-translation table for role display. */
+    roleEn: z.string().nullable().default(null),
+    roleDe: z.string().nullable().default(null),
+    /** CIG's own hangar/landing-pad class (AttachDef.Size, 1–6) */
+    sizeClass: z.number().nullable().default(null),
     sizeDe: z.string().nullable(),
     statusDe: z.string().nullable(),
     statusEn: z.string().nullable(),
     fociDe: z.array(z.string()),
     descriptionDe: z.string().nullable(),
+    /** CIG's own English text (Data.p4k) — replaces the back-translation-
+     *  from-German layer removed in 01.4-05 (D-07). Carries
+     *  a "Manufacturer: …\nFocus: …\n\n" header and literal "\n" sequences;
+     *  vDesc()/rendering strips the header and renders the line breaks. */
+    descriptionEn: z.string().nullable().default(null),
     crewMin: z.number().nullable(),
-    crewMax: z.number().nullable(),
+    // .default(null): vehicle-external.json fuehrt den Schluessel je Fahrzeug
+    // nur, wenn ein Wert vorliegt — fehlender Schluessel != vorhandener null.
+    crewMax: z.number().nullable().default(null),
     cargoSCU: z.number().nullable(),
     oreSCU: z.number().nullable(),
-    msrpUSD: z.number().nullable(),
+    msrpUSD: z.number().nullable().default(null),
     lengthM: z.number().nullable(),
     widthM: z.number().nullable(),
     heightM: z.number().nullable(),
@@ -160,25 +188,19 @@ const vehicles = defineCollection({
     roll: z.number().nullable(),
     pilotDps: z.number().nullable(),
     turretDps: z.number().nullable(),
-    fixedWeapons: z.array(
-      z.object({ name: z.string(), count: z.number(), dps: z.number().nullable() })
-    ),
+    fixedWeapons: z.array(weaponFitted),
     /** pilot-weapon HARDPOINT max sizes (what is mountable), aggregated per size,
-     *  from the detail endpoint's `components[].weapons`. Paired with the
+     *  from the vehicle implementation XML's item ports. Paired with the
      *  equipped-weapon sizes below for display. */
     fixedWeaponMounts: z
       .array(z.object({ size: z.number(), count: z.number() }))
       .default([]),
-    /** size classes of the ACTUAL equipped pilot weapons, aggregated per size.
-     *  Resolved by enrich-weapon-sizes.mjs from the fitted weapon names via the
-     *  WeaponGun items catalog (NOT the hardpoint max size). Optional so the
-     *  schema still validates a snapshot synced before the enrich pass ran. */
+    /** size classes of the ACTUAL equipped pilot weapons, aggregated per size —
+     *  a straight rollup of fixedWeapons[].size (game-sourced, D-19), no
+     *  longer a name-based back-resolution. */
     fixedWeaponSizes: z
       .array(z.object({ size: z.number(), count: z.number() }))
       .default([]),
-    /** true when at least one fitted gun could not be resolved to a size, so the
-     *  size list is incomplete (rare; unused today but kept for honest display) */
-    fixedWeaponSizesPartial: z.boolean().optional(),
     /** weapon hardpoints aggregated per turret category: mount size classes
      *  plus the equipped weapon names (per-station data from the game files) */
     turrets: z.array(
@@ -191,6 +213,9 @@ const vehicles = defineCollection({
         dps: z.number().nullable(),
       })
     ),
+    /** flat turret-weapon list (mirrors fixedWeapons for turrets); carries
+     *  `cls` for the same reason as fixedWeapons, s. o. */
+    turretWeapons: z.array(weaponFitted).default([]),
     missileCount: z.number().nullable(),
     missileRacks: z.array(fitted),
     cmLaunchers: z.number(),
@@ -214,18 +239,26 @@ const vehicles = defineCollection({
     insExpediteCost: z.number().nullable(),
     isSpaceship: z.boolean().nullable(),
     isGravlev: z.boolean().nullable(),
-    pledgeUrl: z.string().nullable(),
-    /** patch-spine: versions in OUR archive that introduced/touched it */
+    pledgeUrl: z.string().nullable().default(null),
+    /** patch-spine: versions in OUR archive that introduced/touched it —
+     *  computed in scripts/datamine-vehicles.mjs since 01.4-05 (D-19; moved
+     *  out of the now-deleted scripts/sync-vehicles.mjs). */
     patches: z.array(z.string()),
     gameVersion: z.string().nullable(),
-    /** ship image from the API (starcitizen.tools media), width-graded */
+    /** ship image — frozen from the Wiki media snapshot (src/data/vehicle-
+     *  external.json), no in-game photographic material exists (01.4-02) */
+    // .default(null): einige der 216/227 mit Bild eingefrorenen Fahrzeuge
+    // führen den Schlüssel `image` in vehicle-external.json gar nicht erst
+    // (keine Wiki-Aufnahme vorhanden) — ein fehlender Schlüssel ist für zod
+    // etwas anderes als ein vorhandener null-Wert.
     image: z
       .object({
         hero: z.string().nullable(),
         thumb: z.string().nullable(),
         source: z.string().nullable(),
       })
-      .nullable(),
+      .nullable()
+      .default(null),
   }),
 });
 
