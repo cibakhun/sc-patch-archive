@@ -94,12 +94,57 @@ function extractPorts(nodes) {
   return ports;
 }
 
+// TURM-REGEL (D-06, RESEARCH.md "Turret- und Kategorie-Regeln", an 223
+// Schiffen validiert: 86,1% exakt, 94,6% binaer). Der rohe Type-Wert `Turret`
+// bedeutet NICHT "Turmposition" -- er markiert nur, dass ein Waffenport
+// gimbal-/turmartig ausgerichtet werden KANN, und das trifft genauso auf
+// feste Fluegelkanonen zu (hardpoint_gun_left_wing beim Gladius traegt
+// dieselbe Turret-Markierung wie ein bemannter Hammerhead-Turm). Ein echter
+// Turm braucht STATTDESSEN TurretBase (den Mount-Sockel selbst) oder einen
+// ferngesteuerten remote-Port. Alle Vergleiche von Types-Werten und
+// Portnamen laufen ohne Ruecksicht auf Gross-/Kleinschreibung, weil die
+// Rohdaten darin uneinheitlich sind (siehe RESEARCH.md Types-Vokabular:
+// z.B. Misc/MISC, Usable/Useable).
+function isTurret(port) {
+  const typesLower = port.types.map((t) => String(t).toLowerCase());
+  const has = (t) => typesLower.indexOf(t.toLowerCase()) >= 0;
+  const name = String(port.name || '');
+
+  // CONTAINER-AUSSCHLUSS: Bodenfahrzeug-Modulanbaupunkte (z.B. tmbl-cyclone
+  // "hardpoint_module_attach") tragen TurretBase ZUSAMMEN MIT Container --
+  // generische Anbauslots, keine Waffentuerme. Ohne diesen Ausschluss haetten
+  // alle vier Cyclone-Varianten faelschlich einen Turm bekommen; vehicles.json
+  // (die unabhaengige Drittquelle des Nachweismodus --audit) fuehrt fuer sie
+  // 0 Tuerme.
+  if (has('TurretBase') && !has('Container')) return true;
+
+  // REMOTE/TRACTOR-ZUSATZ: ferngesteuerte Tuerme (Carrack, Redeemer, Polaris)
+  // tragen KEIN TurretBase, sondern nur Turret -- fuehren aber im Portnamen
+  // durchgaengig "remote" (hardpoint_turret_remote_turret,
+  // hardpoint_turret_remote_front). Der tractor-Ausschluss verhindert, dass
+  // Tractor-Beam-Halterungen mit "remote" im Namen (z.B.
+  // hardpoint_remote_turret_interior_tractor beim Polaris) mitgezaehlt werden.
+  if (has('Turret') && !has('WeaponGun') && /remote/i.test(name) && !/tractor/i.test(name)) return true;
+
+  return false;
+}
+// BEKANNTER BLINDER FLECK -- Kapitalschiff-PDC-Batterien: die
+// Punktverteidigungs-Stationen (PDC) von Polaris, Idris, Javelin und
+// Reclaimer haben in der Implementierungs-XML UEBERHAUPT KEINEN eigenen
+// ItemPort -- keine Regel kann sie erfinden, deshalb wird hier bewusst KEIN
+// Ersatzweg gebaut (D-08-Philosophie: lieber ehrlich zu wenig zaehlen als
+// raten). Die betroffenen Schiffe behalten ihre uebrigen (bemannten/
+// ferngesteuerten) Tuerme, die binaere Frage "hat dieses Schiff eine
+// Turmposition ab Groesse X" bleibt deshalb richtig -- nur die GENAUE
+// Turmzahl liegt bei diesen Schiffen zu niedrig (siehe RESEARCH.md: Polaris
+// Drittquelle=14, Regel=7).
+
 // Types-Liste eines Ports -> Kategorie-Buchstabe (CAT_ORDER: wtmscpqr).
 // Die Auswertungsreihenfolge ist bindend: ein Port faellt in GENAU eine
-// Kategorie. Turm (t) fehlt hier bewusst -- Plan 05-02 fuegt die Regel hinzu,
-// deren Trennung (TurretBase/remote-Portname vs. blosses Turret-Flag auf
-// festen Waffen) an Stichproben belegt werden muss (D-06). Der Platz fuer den
-// Turm-Check bleibt hier VOR dem Waffen-Check frei.
+// Kategorie. Turm (t) laeuft als ERSTE Stufe, VOR Rakete und Waffe (D-06) --
+// eine feste Waffe mit zusaetzlichem Turret-Tag faellt NICHT hierher, weil
+// isTurret() WeaponGun ausschliesst und TurretBase bzw. remote verlangt; sie
+// faellt stattdessen regulaer weiter unten bei "w" durch.
 //
 // m VOR w: MissileLauncher (21 Ports) und BombLauncher (8 Ports) kommen bei
 // manchen Schiffen ZUSAETZLICH mit WeaponGun getaggt vor (Kombi-Halterungen,
@@ -124,8 +169,9 @@ function extractPorts(nodes) {
 // wie ein Batterie-Datenartefakt aus, kein echtes Kraftwerk (RESEARCH.md
 // Assumption A1); waere er als Alias behandelt worden, saehe es aus, als sei
 // der Fall "vergessen" worden.
-function catOf(types) {
-  const has = (t) => types.indexOf(t) >= 0;
+function catOf(port) {
+  const has = (t) => port.types.indexOf(t) >= 0;
+  if (isTurret(port)) return 't';
   if (has('MissileLauncher') || has('BombLauncher')) return 'm';
   if (has('WeaponGun')) return 'w';
   if (has('Shield')) return 's';
@@ -161,6 +207,11 @@ const idsToDo = ONLY ? [ONLY] : ourIds;
 const ships = {};
 const missing = [];
 const resolved = [];
+// Zaehlung der Turm-PORTS (nicht nur die gespeicherte Max-Groesse) je Schiff
+// -- nur fuer den Nachweismodus --audit gebraucht: das JSON speichert je
+// Kategorie nur das Maximum und kann die ANZAHL nicht mehr hergeben, aber der
+// Nachweis gegen vehicles.json (turrets[].stations) braucht die Anzahl.
+const turretCounts = {};
 for (const id of idsToDo) {
   const rec = byId.get(id);
   if (!rec) { missing.push(id); continue; }
@@ -175,13 +226,16 @@ for (const id of idsToDo) {
   // je Kategorie das Maximum ueber alle Ports -- D-04 ("einer reicht") braucht
   // nur diesen Wert, nicht die volle Portliste (siehe RESEARCH.md Q5).
   const agg = {};
+  let turretPorts = 0;
   for (const port of ports) {
-    const cat = catOf(port.types);
+    const cat = catOf(port);
     if (!cat) continue;
+    if (cat === 't') turretPorts++;
     if (agg[cat] == null || port.max > agg[cat]) agg[cat] = port.max;
   }
   ships[id] = agg; // Eintrag fuer JEDES aufgeloeste Schiff, auch leer (D-08:
                     // Anwesenheit in `ships` == "hat Steckplatz-Daten")
+  turretCounts[id] = turretPorts;
   resolved.push(id);
 }
 p4k.close();
@@ -196,6 +250,45 @@ for (const id of resolved) for (const k of Object.keys(ships[id])) catsSeen.add(
 for (const cat of [...catsSeen].sort()) {
   const n = resolved.filter((id) => ships[id][cat] != null).length;
   console.log(`  ${cat}: ${n}`);
+}
+
+// ---- TURM-NACHWEIS (D-06, nur --audit): die von der Regel gezaehlten
+// Tuerme je Schiff gegen die unabhaengige Drittquelle vehicles.json stellen
+// (turrets[].stations, ein Wiki-API-Schnappschuss, siehe scripts/sync-
+// vehicles.mjs) -- DIENT NUR DEM VERGLEICH, fliesst nicht in
+// ship-components.json ein (T-05-04). Reihenfolge und Auswahl der 15
+// Stichprobenschiffe folgt exakt RESEARCH.md "Validierung gegen
+// vehicles.json".
+if (AUDIT) {
+  const vehData = JSON.parse(readFileSync(resolve(__dirname, '..', 'src', 'data', 'vehicles.json'), 'utf8'));
+  const vehTurrets = new Map();
+  for (const v of vehData.vehicles) {
+    vehTurrets.set(v.id, (v.turrets || []).reduce((sum, t) => sum + (t.stations || 0), 0));
+  }
+  const sampleIds = [
+    'orig-100i', 'aegs-gladius', 'aegs-hammerhead', 'rsi-constellation-andromeda',
+    'drak-corsair', 'misc-freelancer', 'anvl-carrack', 'rsi-polaris', 'aegs-redeemer',
+    'drak-caterpillar', 'cnou-mustang-alpha', 'aegs-avenger-titan', 'misc-prospector',
+    'argo-mole', 'banu-defender',
+  ];
+  console.log(`\n=== TURM-NACHWEIS (D-06) — Regel vs. vehicles.json turrets[].stations ===`);
+  for (const id of sampleIds) {
+    const thirdParty = vehTurrets.get(id) ?? 0;
+    const rule = turretCounts[id] ?? 0;
+    const mark = thirdParty === rule ? '✅' : '❌';
+    console.log(`  ${id}: Drittquelle=${thirdParty} Regel=${rule} ${mark}`);
+  }
+  let exact = 0, binary = 0, withTurret = 0;
+  for (const id of resolved) {
+    const thirdParty = vehTurrets.get(id) ?? 0;
+    const rule = turretCounts[id] ?? 0;
+    if (thirdParty === rule) exact++;
+    if ((thirdParty > 0) === (rule > 0)) binary++;
+    if (rule > 0) withTurret++;
+  }
+  console.log(`\n  exakte Turmzahl:      ${exact}/${resolved.length}`);
+  console.log(`  binaer (hat Turm?):   ${binary}/${resolved.length}`);
+  console.log(`  Schiffe mit >=1 Turm: ${withTurret}`);
 }
 
 if (!AUDIT && !ONLY) {
