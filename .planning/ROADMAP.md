@@ -165,13 +165,13 @@ diesem Lauf auf: der Fahrzeug-Katalog soll nicht gegen einen Stand gebaut werden
   7. `scripts/sync-vehicles.mjs` ist gelöscht und `.github/workflows/build.yml` ruft keinen Wiki-Sync mehr auf
   8. Ein Stichprobenvergleich am Datenblatt (Buccaneer, Carrack, Freelancer MAX, 315p) belegt die Werte gegen das Spiel
 
-**Plans**: 2/5 plans executed
+**Plans**: 3/5 plans executed
 
 Plans:
 
 - [x] 01.4-01-PLAN.md
 - [x] 01.4-02-PLAN.md
-- [ ] 01.4-03-PLAN.md
+- [x] 01.4-03-PLAN.md
 - [ ] 01.4-04-PLAN.md
 - [ ] 01.4-05-PLAN.md
 
