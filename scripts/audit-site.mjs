@@ -412,6 +412,56 @@ if (!existsSync(sitemapPath)) {
   }
 }
 
+// --- Fremdquelle im Ausgelieferten (T-01.3-04, D-01..D-04) ------------------
+// Bis Commit bd3be22 (16.07.2026) kamen die Crafting-Daten von einer
+// Community-Seite; seither aus der lokalen Spieldatenbank. Vier
+// Aufrufstellen nannten die alte Quelle trotzdem weiter — eine Seite, die
+// eine Leistung zuschreibt, die niemand mehr erbringt. Die UEX-Attribution
+// bei Preisen ist von dieser Pruefung AUSDRUECKLICH NICHT betroffen, sie
+// bleibt bestehen. Die verbotene Nennung lebt als EINE Konstante (Hausregel
+// aus CONVENTIONS.md: eine Entscheidung, die an mehreren Stellen gelesen
+// wird, lebt an einer Stelle) und wird verkettet geschrieben, damit ein
+// Volltext-Grep ueber den Baum nicht am eigenen Audit-Code haengenbleibt.
+const FORBIDDEN_SOURCE = 'sc-craft' + '.tools';
+const foreignSourceHits = [];
+for (const f of allFiles) {
+  if (!/\.(html|js)$/i.test(f)) continue;
+  if (readFileSync(f, 'utf8').includes(FORBIDDEN_SOURCE)) {
+    foreignSourceHits.push(`${rel(f)}: Fremdquelle noch genannt`);
+  }
+}
+// JSON-Dateien unter dist/assets/ werden bewusst NICHT geprueft: die
+// Kopffelder source/game_version/snapshot_date jeder Datendatei sind das
+// etablierte Herkunftsmuster des Projekts (CONVENTIONS.md, PROJECT.md) und
+// sollen ihre Herkunft weiter ehrlich nennen — diese Einschraenkung nicht
+// "zur Vereinheitlichung" entfernen.
+//
+// Gegenprobe im selben Abschnitt: dieselben vier Flaechen muessen weiterhin
+// die Quellen-Zeile tragen und RSI nennen. Ohne sie waere der Befund oben
+// auch durch ersatzloses Loeschen der ganzen Fussnote erfuellbar.
+const stripTags = (s) => s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+const SOURCES_LABEL = { en: 'Sources', de: 'Quellen' };
+const craftCategoryFirst = htmlFiles.map(rel).filter((p) => /^\/crafting\/category\/.+\.html$/.test(p)).sort()[0];
+const craftBlueprintFirst = htmlFiles.map(rel)
+  .filter((p) => /^\/crafting\/[^/]+\.html$/.test(p) && p !== '/crafting/index.html')
+  .sort()[0];
+const craftProbePages = [
+  ['/crafting.html', 'en'], ['/de/crafting.html', 'de'],
+  ['/topics/crafting.html', 'en'], ['/de/topics/crafting.html', 'de'],
+  ...(craftCategoryFirst ? [[craftCategoryFirst, 'en'], ['/de' + craftCategoryFirst, 'de']] : []),
+  ...(craftBlueprintFirst ? [[craftBlueprintFirst, 'en'], ['/de' + craftBlueprintFirst, 'de']] : []),
+];
+let craftProbeChecked = 0;
+for (const [p, lang] of craftProbePages) {
+  const abs = join(DIST, p.slice(1));
+  if (!existsSync(abs)) { foreignSourceHits.push(`${p}: Gegenprobe — Seite fehlt im Build`); continue; }
+  craftProbeChecked++;
+  const text = stripTags(readFileSync(abs, 'utf8'));
+  const re = new RegExp(`${SOURCES_LABEL[lang]}:\\s*RSI`);
+  if (!re.test(text)) foreignSourceHits.push(`${p}: Quellen-Zeile mit RSI fehlt`);
+}
+console.log(`\nCrafting-Gegenprobe: ${craftProbeChecked}/${craftProbePages.length} Flaechen geprueft (Quellen-Zeile mit RSI erwartet)`);
+
 // --- Seitengewichte ---
 const heavy = [];
 for (const f of htmlFiles) {
@@ -450,6 +500,7 @@ if (basePrefixPages.size) {
 }
 section('FEHLER Sitemap widerspricht dem Build', sitemapIssues, errors, 20);
 section('FEHLER Platzhalter im HTML', placeholderHits, errors);
+section('FEHLER Fremdquelle im Ausgelieferten', foreignSourceHits, errors);
 section('FEHLER Mojibake/Encoding', mojibakeHits, errors);
 section('WARNUNG Media-Wiederholung (>2×/Seite)', mediaViolations, warns);
 

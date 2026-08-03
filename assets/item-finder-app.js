@@ -820,7 +820,7 @@
       '</div>';
     }
 
-    // Crafting-Rezept (aus crafting-db.json, sc-craft.tools-Snapshot)
+    // Crafting-Rezept (aus crafting-db.json, game-sourced, siehe scripts/datamine-crafting.mjs)
     var bp = CRAFTING_MAP[item.name.toLowerCase()];
     if (bp) {
       var timeSec = bp.craft_time_seconds || 0;
