@@ -6,11 +6,11 @@ current_phase: 1.1
 current_phase_name: Ambiente-Effekte stilllegen
 status: in_progress
 stopped_at: Completed 01.1-02-PLAN.md
-last_updated: "2026-07-29T03:46:15.151Z"
+last_updated: "2026-08-03T13:59:02.852Z"
 last_activity: 2026-08-02
-last_activity_desc: Quick-Task 260802-5qd: Zurueck folgt der Herkunft
+last_activity_desc: "Quick-Task 260802-5qd: Zurück folgt der Herkunft"
 progress:
-  total_phases: 3
+  total_phases: 5
   completed_phases: 0
   total_plans: 5
   completed_plans: 2
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 ## Current Position
 
-Phase: 1.1 of 6 (Ambiente-Effekte stilllegen)
+Phase: 1.1 of 5 (Ambiente-Effekte stilllegen)
 Plan: 2 of 3 in Phase 1.1
 Status: Phase 1.1 geplant (3 Pläne, 3 Wellen, Plan-Prüfer bestanden) — bereit zur Ausführung; Phase 1.2 noch ungeplant
 Branch: claude/site-feedback-effects-docs-3f4edf
@@ -101,6 +101,8 @@ None yet.
 
 - Phase 01.1 inserted after Phase 1: Ambiente-Effekte stilllegen — Mauszeiger-Schein raus, Partikel opt-in (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 - Phase 01.2 inserted after Phase 1: Werkzeuge erklaeren — Zweck- und Bedienungshilfe je Werkzeug (Besucher-Rueckmeldung 29.07.2026) (URGENT)
+- Phase 01.3 inserted after Phase 1: Datenschicht aufraeumen — Reste alter Datenlaeufe, falsche Quellenangabe, Datenstand auf Client-Build 12326004 (Datenquellen-Pruefung 03.08.2026) (URGENT)
+- Phase 01.4 inserted after Phase 1: Fahrzeug-Katalog auf Spieldaten — vehicles.json aus eigener Data.p4k-Extraktion statt Wiki-API (Datenquellen-Pruefung 03.08.2026)
 
 ## Deferred Items
 
