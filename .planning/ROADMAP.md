@@ -22,6 +22,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Wortmarken-Wandlung** - Hero-Überschrift oben mittig, scroll-verknüpfte Wandlung in die Kopfleiste
 - [ ] **Phase 1.1: Ambiente-Effekte stilllegen** (INSERTED) - Mauszeiger-Schein ersatzlos raus, Partikel nur noch auf ausdrücklichen Wunsch
 - [ ] **Phase 1.2: Werkzeuge erklären** (INSERTED) - Jedes Werkzeug sagt, wofür es da ist und wie man es bedient
+- [ ] **Phase 1.3: Datenschicht aufraeumen** (INSERTED) - Reste alter Datenläufe raus, falsche Quellenangabe weg, Datenstand auf den laufenden Client
+- [ ] **Phase 1.4: Fahrzeug-Katalog auf Spieldaten** (INSERTED) - Der Schiffskatalog kommt aus der eigenen Extraktion statt aus der Wiki-API
 - [ ] **Phase 2: Schrift- und Bewegungsskala** - Eine gemeinsame Skala für Schriftgrade und Übergänge statt seitenlokaler Einzelwerte
 - [ ] **Phase 3: Überlagerungen entstapeln** - Class-B-Befund abtragen, Textkontrast über Bildmotiven belegen
 - [ ] **Phase 4: Sprachparität absichern** - Deckungsgleichheit der Seitenpaare nachweisbar statt behauptet
@@ -109,6 +111,89 @@ Plans:
 
 - [ ] 01.2-01: Hilfe-Mechanik bauen — aufklappbarer Zweck-/Bedienungsabschnitt und der Schalter, der Erklärungen an die Elemente heftet
 - [ ] 01.2-02: Erklärtexte für alle zehn Werkzeuge schreiben und anheften, DE und EN
+
+### Phase 01.3: Datenschicht aufraeumen (INSERTED)
+
+**Goal**: Die Datenschicht sagt überall die Wahrheit über sich selbst und schleppt keine Reste alter Datenläufe mehr mit. Wer eine Crafting-Seite aufruft, liest die richtige Quelle; wer den Fracturing-Rechner öffnet, sieht Gerätenamen statt Klassennamen; und die Zahlen der Seite stammen aus demselben Client-Build, der gerade installiert ist.
+**Mode:** mvp
+**Depends on**: Nothing (unabhängig vom UI-Strang; berührt Datenschicht statt Oberfläche)
+**Requirements**: DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, DATA-06, DATA-07, DATA-08, DATA-09
+**Success Criteria** (what must be TRUE):
+
+  1. Keine ausgelieferte Seite nennt `sc-craft.tools` als Quelle — geprüft im gebauten `dist/`, nicht nur im Quelltext
+  2. Die Laser-Auswahl des Fracturing-Rechners zeigt ausschließlich lesbare Gerätenamen
+  3. `src/data/holo-markers.json` ist weg, `ShipDetail.astro` hat nur noch den Spielmesh-Pfad, und alle 227 Schiffe zeigen ihr Hologramm unverändert
+  4. `src/data/crafting-blueprints.json` ist weg; keine Datei verweist mehr darauf
+  5. Ein frischer Datamine-Lauf gegen den installierten Client (`12326004`) ist eingespielt; alle game-sourced Ausgaben tragen dieselbe Build-Kennung
+  6. `npm run sync:items` ohne frische `global.ini` bricht mit klarer Meldung ab, statt den Katalog zu verkleinern
+  7. `scripts/fetch-craft.mjs` kann `assets/crafting-db.json` nicht mehr überschreiben
+  8. Die Fahrzeugpreise sind neu von UEX gezogen
+  9. `MINING-DATENQUELLE.md`, `FAKTEN-AUDIT.md` und `.planning/codebase/STRUCTURE.md` stimmen mit dem Bestand überein
+  10. `npm run verify:mining`, `npm run audit:csp` und `npm run test:e2e` laufen nicht schlechter als vorher
+
+**Plans**: 3/3 plans executed
+
+Plans:
+
+- [x] 01.3-01-PLAN.md
+- [x] 01.3-02-PLAN.md
+- [x] 01.3-03-PLAN.md
+
+- [x] 01.3-01 (Welle 1): Alles, was ohne die Spielinstallation zu reparieren ist — die vier falschen Quellenangaben samt bleibendem Nachweis im gebauten `dist/`, die 4.8-Marker-Datei mit Fallback-Zweig und Erzeuger raus (227/227 zeichenweise belegt), die verwaiste Blueprint-Datei raus, der konkurrierende Crafting-Schreiber geloescht und `sync:items` auf lauten Abbruch statt stillem Rueckfall
+- [x] 01.3-02 (Welle 2): Erst die Extraktion, dann der Lauf — die beiden namenlosen S0-Laser fallen in `datamine-gear.mjs` aus der Auswahl statt erfunden benannt zu werden, ein Wachposten in `verify:mining` haelt Klassennamen kuenftig auf, danach der vollstaendige Datamine-Lauf gegen den installierten Client (`12326004`) mit Kennungs- und Schrumpfpruefung. Beginnt mit einem Entscheidungs-Checkpoint
+- [x] 01.3-03 (Welle 3): UEX-Fahrzeugpreise lokal nachziehen, `MINING-DATENQUELLE.md`, `FAKTEN-AUDIT.md` und `STRUCTURE.md` auf den Bestand bringen, und die Abschlussmessung aller sechs Tore gegen die in Welle 1 aufgenommene Messlatte plus Sichtpruefung in DE und EN
+
+Hinweis zur Reihenfolge: Der Datamine-Lauf (Kriterium 5) erneuert `assets/crafting-db.json`
+mit — die Quellenangabe (Kriterium 1) muss danach noch stimmen. Und Phase 1.4 setzt auf
+diesem Lauf auf: der Fahrzeug-Katalog soll nicht gegen einen Stand gebaut werden, den die
+übrige Seite nicht teilt.
+
+### Phase 01.4: Fahrzeug-Katalog auf Spieldaten (INSERTED)
+
+**Goal**: Der Schiffskatalog kommt aus der eigenen `Data.p4k`-Extraktion statt aus der Star-Citizen-Wiki-API. Extern bleiben nur die fünf Felder, die in keiner Spieldatei stehen: Pledge-Preis, RSI-Link, die drei Abmessungen und die Bild-URL. Damit ist die Seite am Patch-Tag aktuell, statt auf die Wiki zu warten — und die englischen Schiffsbeschreibungen sind CIGs Originaltext statt einer Rückübersetzung aus dem Deutschen.
+**Mode:** mvp
+**Depends on**: Phase 1.3 (baut auf demselben Datamine-Stand auf)
+**Requirements**: VEH-01, VEH-02, VEH-03, VEH-04, VEH-05, VEH-06, VEH-07, VEH-08
+**Success Criteria** (what must be TRUE):
+
+  1. Die vier Extraktor-Skripte liegen versioniert im Repo — nicht mehr unversioniert in einem Arbeitsverzeichnis
+  2. `src/data/vehicle-external.json` trägt Pledge-Preis, RSI-Link, Abmessungen und Bild-URL; sonst nichts
+  3. `node scripts/verify-vehicles.mjs` meldet für Name, Hersteller und Herstellercode 0 Abweichungen
+  4. Für `crew`, `cargoSCU` und `shieldHp` ist je Fahrzeug belegt, welcher Wert gilt und warum — keine Abweichung bleibt unbeurteilt
+  5. Der Spieldaten-Katalog führt 227 Fahrzeuge, inklusive der vier ATLS-Varianten
+  6. Das Schiffs-Datenblatt zeigt in DE und EN dieselben Werte wie vor dem Tausch oder einen belegt besseren; die Beschreibungen kommen aus den Spieldateien
+  7. `scripts/sync-vehicles.mjs` ist gelöscht und `.github/workflows/build.yml` ruft keinen Wiki-Sync mehr auf
+  8. Ein Stichprobenvergleich am Datenblatt (Buccaneer, Carrack, Freelancer MAX, 315p) belegt die Werte gegen das Spiel
+
+**Plans**: 5 plans
+
+Plans:
+
+- [ ] 01.4-01-PLAN.md
+- [ ] 01.4-02-PLAN.md
+- [ ] 01.4-03-PLAN.md
+- [ ] 01.4-04-PLAN.md
+- [ ] 01.4-05-PLAN.md
+
+- [ ] 01.4-01 (Welle 1): Die Vorarbeit sichern und den Weg Data.p4k → Katalog → Vergleichstabelle in diesem Zweig einmal ganz durchlaufen — vier (in Wahrheit fünf, D-21) Skripte versioniert übernehmen, `verify:weapons` verdrahten und grün fahren, Zwischenstufe gitignoren, frischer Lauf gegen Changelist `12326004`. Danach die Feldmatrix: für jedes Feld, das die Seite aus dem Katalog liest, eine Herkunfts-Marke — und für die quellenlosen je eine Abbruchgrenze für den Suchdurchgang in Plan 02. Plus ein bleibender Deckungs-Wächter gegen stillen Feldverlust
+- [ ] 01.4-02 (Welle 2): Der Suchdurchgang (D-18) — für jedes der 15 quellenlosen Felder erst in den Spieldateien nachsehen, statt es einzufrieren: Schaden und Raketenzahl aus dem Loadout, Quantum- und Behälterwerte aus dem DataCore, Produktionszustand aus der p4k, Rollen aus `vehicleRole`/`vehicleCareer`. Ergebnisoffen, aber je Feld mit Abbruchgrenze; „nicht gefunden" wird aufgeschrieben, nicht geraten. Kein Join über Anzeigenamen
+- [ ] 01.4-03 (Welle 3): Die Fremddaten einfrieren — aber nur den in Plan 02 belegten Rest, plus `crewMax` (D-17) und die Bild-URL. Dazu die vier ATLS-Varianten zurückholen (223 → 227) und die Identitätsfelder in Ordnung bringen, bis `verify:vehicles` bei Name, Hersteller und Herstellercode auf null steht — jede der 15 Marken-Abweichungen (D-22) und der 40 Größenlabel-Abweichungen einzeln begründet
+- [ ] 01.4-04 (Welle 4): Die drei Urteile — die Besatzungs-Spanne aus D-17 umsetzen und protokollieren, `cargoSCU` für die 31 fälschlich auf 0 stehenden Fahrzeuge, `shieldHp` gegen die gemessene Zählregel `Schildgeneratoren / 2` statt gegen die Veralterungs-Vermutung (D-20). `hullHp` als vierte Klasse mitbeurteilt
+- [ ] 01.4-05 (Welle 5): Der Tausch — beginnt mit einem Entscheidungs-Checkpoint. `vehicles.json` kommt aus der Extraktion, alle ~25 Leser ziehen nach (DE und EN im selben Schritt), das Patch-Rückgrat zieht in den Generator um (D-19), die Rückübersetzungsdatei fällt. Dann Wiki-Kette abschalten (`sync-vehicles.mjs` und der CI-Schritt) und am gerenderten Datenblatt beweisen: Buccaneer, Carrack, Freelancer MAX, 315p — je in beiden Sprachen
+
+Vorarbeit (unversioniert, Stand 02.08.2026, im Worktree `.claude/worktrees/buccaneer-waffen-daten-be6ac7`):
+`scripts/lib/cryxml.mjs`, `scripts/datamine-vehicles.mjs`, `scripts/verify-vehicles.mjs`,
+`scripts/verify-weapon-sizes.mjs`. Sie erzeugen bereits 223 Fahrzeuge. Belegte Formeln und
+Sackgassen stehen in der Projekt-Erinnerung `vehicles-wiki-to-gamefiles`. Das Sichern dieser
+Dateien ist der erste Schritt der Phase — `.claude/` ist gitignored, ein Aufräumen des
+Worktrees verliert sie.
+
+Bei der Planung am 03.08.2026 kam eine **fünfte** Vorarbeit ans Licht, die in CONTEXT.md
+D-01 fehlt: `scripts/datamine-ship-loadouts.mjs` ist in jenem Worktree geändert und liefert
+zusätzlich `carrier` (Turm- vs. Pilotwaffe), `cargo` (SCU je Schiff) und `ports`. Die hier
+liegende `src/data/ship-loadouts.json` hat diese Schlüssel nicht — ohne die Übernahme wäre
+`cargoSCU` bei allen 223 Fahrzeugen null und `turretWeapons` bei allen leer. Plan 01 holt
+sie mit.
 
 ### Phase 2: Schrift- und Bewegungsskala
 

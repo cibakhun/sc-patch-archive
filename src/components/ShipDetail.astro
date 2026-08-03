@@ -25,7 +25,6 @@ import {
 import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
 import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
-import holoMarkersSnapshot from '../data/holo-markers.json';
 import holoMeshesSnapshot from '../data/holo-meshes.json';
 import shipHardpointsSnapshot from '../data/ship-hardpoints.json';
 import shipLoadoutsSnapshot from '../data/ship-loadouts.json';
@@ -120,14 +119,11 @@ const stageStats: { label: string; value: string }[] = [
 ];
 
 // ---------- Interaktives Komponenten-Hologramm ----------
-// Zwei Positionsquellen, in Reihenfolge der Genauigkeit:
-//  1. Echtes Spielmesh (src/data/holo-meshes.json): das gerenderte Mesh und
-//     die Hardpoints (ship-hardpoints.json, COMPILED_BONES) teilen denselben
-//     Raum -> Marker EXAKT, nur feste Achsvertauschung cry->glTF (x, z, -y).
-//  2. FleetYards-Holo (holo-markers.json): auf ein fremdes Kunst-Mesh
-//     kalibriert -> nur ungefähr, Marker tragen "geschätzt".
-// Angezeigt werden bewusst NUR Komponenten (core) + Bewaffnung (arms) —
-// Triebwerke sind ausgeblendet (zu viele, kein Mehrwert).
+// Positionsquelle ist das echte Spielmesh (src/data/holo-meshes.json): das
+// gerenderte Mesh und die Hardpoints (ship-hardpoints.json, COMPILED_BONES)
+// teilen denselben Raum -> Marker EXAKT, nur feste Achsvertauschung
+// cry->glTF (x, z, -y). Angezeigt werden bewusst NUR Komponenten (core) +
+// Bewaffnung (arms) — Triebwerke sind ausgeblendet (zu viele, kein Mehrwert).
 type HoloPort = {
   k: string; g: string; p: number[];
   label: string | null; size: number | null;
@@ -151,10 +147,9 @@ const HOLO_GRP: Record<string, string> = {
 };
 const HOLO_GRP_ORDER = ['core', 'arms', 'prop', 'other'] as const;
 const HOLO_DEFAULT_ON = ['core', 'arms'];
-const holoShip = (holoMarkersSnapshot as any).ships?.[id] ?? null;
 const gameMesh = (holoMeshesSnapshot as any).meshes?.[id] ?? null;
 const gameHp = gameMesh ? ((shipHardpointsSnapshot as any).ships?.[id] ?? null) : null;
-const hasHolo = !!((gameMesh && gameHp) || (holoUrl && holoShip));
+const hasHolo = !!(gameMesh && gameHp);
 
 let holoData: {
   url: string | null; mesh: { c: number[]; s: number[] } | null; ax: number[] | null;
@@ -193,11 +188,9 @@ if (hasHolo) {
     mixedLabel[k] = names.length > 1 ? names.join(' / ') : null;
   }
 
-  // Positionsquelle wählen
+  // Positionsquelle: das Spielmesh, die einzige verbliebene Quelle.
   let meshUrl: string | null = null;
   let meshBox: { c: number[]; s: number[] } | null = null;
-  let axis: number[] | null = null;
-  let est = false;
   let srcPorts: { k: string; p: number[]; n?: string }[] = [];
   if (gameMesh && gameHp) {
     // ?v=<Content-Hash> aus dem Manifest: nginx cached /holo/ 1 Jahr — der
@@ -212,15 +205,6 @@ if (hasHolo) {
     srcPorts = (gameHp.hp as { k: string; p: number[]; n: string }[])
       .filter((h) => HOLO_GRP[h.k])
       .map((h) => ({ k: h.k, n: h.n, p: [h.p[0], h.p[2], -h.p[1]] }));
-  } else if (holoUrl && holoShip) {
-    meshUrl = holoUrl;
-    meshBox = holoShip.mesh;
-    axis = holoShip.ax ?? null;
-    est = holoShip.mode === 'mapped' && holoShip.conf !== 'high';
-    // conf 'low': Ausrichtung nicht belastbar -> keine kalibrierten Marker
-    if (holoShip.conf !== 'low') {
-      srcPorts = (holoShip.ports as { k: string; p: number[] }[]).filter((h) => HOLO_GRP[h.k]);
-    }
   }
 
   // Item-Finder-Anreicherung: Kategorie/Preis/Kauforte für einen Item-Namen
@@ -231,7 +215,8 @@ if (hasHolo) {
   };
   // Echtes Stock-Loadout aus dem DataCore: itemPortName -> verbautes Item.
   // itemPortName == Bone-Name -> exakter Join per Namen (keine Reihenfolge-
-  // Raterei). Nur der Spielmesh-Pfad; der FY-Fallback nutzt weiter die Pools.
+  // Raterei). Fehlt fuer ein Schiff der Stock-Loadout-Join, greift der
+  // Reihenfolge-Fallback ueber die Pools (siehe unten).
   type StockItem = { name: string | null; size: number | null; cat: string; cls: string; count: number };
   const stock: Record<string, StockItem[]> | null =
     (gameMesh && gameHp) ? ((shipLoadoutsSnapshot as any).ships?.[id] ?? null) : null;
@@ -264,7 +249,7 @@ if (hasHolo) {
         ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
       });
     } else {
-      // FY-Fallback (kein DataCore-Loadout): alte Reihenfolge-Zuordnung + est.
+      // Kein DataCore-Loadout fuer diesen Bone: alte Reihenfolge-Zuordnung als Fallback.
       const pool = pools[hp.k];
       const item = pool ? pool[(taken[hp.k] = (taken[hp.k] ?? 0) + 1) - 1] : undefined;
       const mixed = mixedLabel[hp.k];
@@ -275,7 +260,6 @@ if (hasHolo) {
         size: mixed ? null : item?.size ?? null,
         ...(!mixed ? enrich(item?.name) : {}),
         ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
-        ...(est ? { est: true, dim: true } : {}),
       });
     }
   }
@@ -328,7 +312,10 @@ if (hasHolo) {
     holoData = {
       url: meshUrl,
       mesh: meshBox,
-      ax: axis,
+      // ax: gehoert zum Vertrag mit assets/holo-viewer.js (Achsvertauschung
+      // fuer kalibrierte Fremdmeshes). Die einzige verbliebene Quelle ist das
+      // Spielmesh, das keine eigene Kalibrierung braucht -> immer null.
+      ax: null,
       ports: holoPorts,
       groups: HOLO_GRP_ORDER.filter((gr) => present.has(gr)),
       defaultOn: HOLO_DEFAULT_ON.filter((gr) => present.has(gr)),
@@ -345,7 +332,6 @@ if (hasHolo) {
 // Titel. Wenn KEIN Marker verortet ist (Schiffe ohne Hardpoints im Mesh bzw.
 // conf:low), darf dort nicht "Positionen aus den Spieldateien" stehen.
 const holoNp = holoData?.ports.filter((p) => p.np).length ?? 0;
-const holoEst = holoData?.ports.some((p) => p.est) ?? false;
 const holoAllNp = !!holoData && holoData.ports.length > 0 && holoNp === holoData.ports.length;
 
 const shipCode = d.manufacturer ?? d.makerCode ?? t('ship.code.ship');
@@ -1033,7 +1019,6 @@ span.sd__ref{color:var(--muted)}
           <div class="holo__src">
             <span class={holoAllNp ? 'holo__caveat' : undefined}>{holoAllNp ? t('holo.src.none' as any) : t('holo.src')}</span>
             {holoNp > 0 && !holoAllNp && <span class="holo__caveat">{t('holo.legend.np' as any)}</span>}
-            {holoEst && <span class="holo__caveat">{t('holo.legend.est' as any)}</span>}
           </div>
         )}
       </header>

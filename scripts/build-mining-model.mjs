@@ -60,15 +60,40 @@ const compositions = (game.compositions || []).map((c) => ({
 const params = { ship: { ...game.params, defaultVolume: game.params.defaultVolume ?? 5122.499 } };
 const stripFile = (a) => a.map(({ file, ...rest }) => rest);
 
+// Geraete ohne Anzeigenamen (Localization fehlt, D-06/D-07) fliegen NICHT
+// erfunden-benannt in die Auswahl — sie werden gezaehlt und mit Klassenbezeichnung
+// in einer eigenen Liste gefuehrt, statt still zu verschwinden.
+const splitByName = (arr) => {
+  const named = [], unnamed = [];
+  for (const x of arr || []) (x.name == null ? unnamed : named).push(x);
+  return { named, unnamed };
+};
+const lasersSplit = splitByName(gear.lasers);
+const modulesSplit = splitByName(gear.modules);
+const gadgetsSplit = splitByName(gear.gadgets);
+const omittedUnnamed = [
+  ...lasersSplit.unnamed.map((x) => ({ kind: 'laser', file: x.file, size: x.size ?? null })),
+  ...modulesSplit.unnamed.map((x) => ({ kind: 'module', file: x.file, size: x.size ?? null })),
+  ...gadgetsSplit.unnamed.map((x) => ({ kind: 'gadget', file: x.file, size: x.size ?? null })),
+];
+
+// snapshot_date muss den Tag DIESES Laufs nennen, nicht den Stand der
+// eingefrorenen Konstanten (die separat unter frozen_constants_date stehen bleiben).
+const snapshot_date = new Date().toISOString().slice(0, 10);
+
 const payload = {
   source: 'Star Citizen Data.p4k (Game2.dcb, DataCore v8) — eigene Extraktion; nur Refinery-Yields, scanSignature, qualityBands + Edelstein-rarity als gelabelte Konstanten (siehe mining-frozen.json)',
   source_note: 'Game-akkurates Mining-Physik-Modell aus den eigenen Spieldateien. Formeln am Community-Solver verifiziert. Patch-volatil — ingame prüfen.',
-  game_version, snapshot_date: frozen.snapshot_date,
+  game_version, snapshot_date, frozen_constants_date: frozen.snapshot_date,
   params, qualityBandBoundaries: game.qualityBandBoundaries ?? [0, 400, 600, 700, 800, 900, 950, 999],
-  counts: { elements: elements.length, compositions: compositions.length, lasers: (gear.lasers || []).length, modules: (gear.modules || []).length, gadgets: (gear.gadgets || []).length, refineries: (frozen.refineries || []).length },
+  counts: { elements: elements.length, compositions: compositions.length, lasers: lasersSplit.named.length, modules: modulesSplit.named.length, gadgets: gadgetsSplit.named.length, refineries: (frozen.refineries || []).length, omitted: omittedUnnamed.length },
   elements, compositions,
-  lasers: stripFile(gear.lasers || []), modules: stripFile(gear.modules || []), gadgets: stripFile(gear.gadgets || []),
+  lasers: stripFile(lasersSplit.named), modules: stripFile(modulesSplit.named), gadgets: stripFile(gadgetsSplit.named),
+  omitted: omittedUnnamed,
   refineries: frozen.refineries || [], refineryProfiles: frozen.refineryProfiles || {},
 };
 writeFileSync(resolve(A, 'mining-model.json'), JSON.stringify(payload) + '\n', 'utf8');
 console.log(`mining-model.json: v${game_version} — ${elements.length} Elemente, ${compositions.length} Komp., ${payload.counts.lasers} Laser, ${payload.counts.modules} Module, ${payload.counts.gadgets} Gadgets, ${payload.counts.refineries} Refineries`);
+if (omittedUnnamed.length) {
+  console.log(`  ausgelassen (kein Anzeigename, D-06): ${omittedUnnamed.length} — ${omittedUnnamed.map((o) => `${o.kind}:${o.file}`).join(', ')}`);
+}

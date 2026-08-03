@@ -30,7 +30,6 @@
     "sync:extras": "node scripts/sync-fleetyards-extras.mjs",
     "extract:hardpoints": "node scripts/extract-hardpoints.mjs",
     "extract:hardpoints:assembled": "node scripts/extract-hardpoints-assembled.mjs",
-    "calibrate:holo": "node scripts/calibrate-holo-markers.mjs",
     "build:holo-meshes": "node scripts/build-holo-meshes.mjs",
     "datamine:items": "node scripts/datamine-items.mjs",
     "sync:items": "node scripts/build-universal-db.mjs && node scripts/prune-short-name-stubs.mjs",

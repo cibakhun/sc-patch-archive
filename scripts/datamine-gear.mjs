@@ -65,7 +65,9 @@ for (const r of lRecs) {
   const modSlots = (cont.Ports || []).filter((p) => /MiningModifier/i.test(JSON.stringify(p.Types || '')) || /miningConsumable/i.test((p.RequiredPortTags || '') + ' ' + (p.PortTags || ''))).length;
   lasers.push({
     file: basename(f),
-    name: loc(att.Localization?.Name) || basename(f, '.xml'),
+    // KEIN Rueckfall auf den Dateinamen mehr (D-06/D-07): fehlt die Localization,
+    // bleibt name null. Die Klassenbezeichnung steht ohnehin in `file`.
+    name: loc(att.Localization?.Name) || null,
     size: att.Size, grade: att.Grade, maker: manName(att.Manufacturer),
     builtIn: /drak_golem|_arm|mpuv|atls|vehicle/i.test(f) || null,
     moduleSlots: modSlots,
@@ -80,7 +82,7 @@ const modules = [];
 for (const r of mRecs) {
   const f = norm(r.fileName); const o = db.readRecord(r, { maxDepth: 12, typed: true });
   const mm = findType(o, /ItemMiningModifierParams/i)[0];
-  modules.push({ file: basename(f), name: loc(findKey(o, 'displayName')) || basename(f, '.xml'), type: /_active_/i.test(f) ? 'active' : 'passive', miningMult: findKey(findKey(o, 'weaponStats') || {}, 'damageMultiplier') ?? null, mods: mapMods(mm?.MiningLaserModifier) });
+  modules.push({ file: basename(f), name: loc(findKey(o, 'displayName')) || null, type: /_active_/i.test(f) ? 'active' : 'passive', miningMult: findKey(findKey(o, 'weaponStats') || {}, 'damageMultiplier') ?? null, mods: mapMods(mm?.MiningLaserModifier) });
 }
 
 const gRecs = db.records.filter((r) => db.structs[r.structIndex]?.name === 'EntityClassDefinition' && /weapons\/devices\/mining_gadget_/i.test(norm(r.fileName)) && !isTest(norm(r.fileName)));
@@ -89,12 +91,22 @@ for (const r of gRecs) {
   const f = norm(r.fileName); const o = db.readRecord(r, { maxDepth: 12, typed: true });
   const gm = findType(o, /MineableRockModifier|AttachableModifierParams/i)[0];
   const mlm = gm?.MiningLaserModifier || (gm?.modifiers || [])[0]?.MiningLaserModifier;
-  gadgets.push({ file: basename(f), name: loc(findKey(o, 'Name')) || basename(f, '.xml'), mods: mapMods(mlm) });
+  gadgets.push({ file: basename(f), name: loc(findKey(o, 'Name')) || null, mods: mapMods(mlm) });
 }
 
-const payload = { source: 'Star Citizen Data.p4k -> Game2.dcb (DataCore v8, node-nativ) — eigene Extraktion, kein scmdb', counts: { lasers: lasers.length, modules: modules.length, gadgets: gadgets.length }, lasers, modules, gadgets };
+// Geraete ohne Anzeigenamen (fehlende Localization) je Gruppe zaehlen — sie werden
+// NICHT hier ausgefiltert (das macht build-mining-model.mjs, das die ausgelassene
+// Liste in den Payload schreibt), aber der Datamine-Lauf soll sie sofort nennen.
+const unnamedOf = (arr) => arr.filter((x) => x.name == null).map((x) => x.file);
+const unnamed = { lasers: unnamedOf(lasers), modules: unnamedOf(modules), gadgets: unnamedOf(gadgets) };
+const unnamedTotal = unnamed.lasers.length + unnamed.modules.length + unnamed.gadgets.length;
+
+const payload = { source: 'Star Citizen Data.p4k -> Game2.dcb (DataCore v8, node-nativ) — eigene Extraktion, kein scmdb', counts: { lasers: lasers.length, modules: modules.length, gadgets: gadgets.length, unnamed: unnamedTotal }, lasers, modules, gadgets };
 writeFileSync(OUT, JSON.stringify(payload, null, 1) + '\n');
 console.log(`Gear: ${lasers.length} Laser, ${modules.length} Module, ${gadgets.length} Gadgets -> ${OUT}`);
+if (unnamedTotal) {
+  console.log(`  ohne Anzeigenamen (Localization fehlt, D-06): Laser [${unnamed.lasers.join(', ') || '—'}] Module [${unnamed.modules.join(', ') || '—'}] Gadgets [${unnamed.gadgets.join(', ') || '—'}]`);
+}
 if (DEBUG) { console.log('\nERSTE 3 LASER:', JSON.stringify(lasers.slice(0, 3), null, 1)); console.log('ERSTES MODUL:', JSON.stringify(modules[0])); console.log('ERSTES GADGET:', JSON.stringify(gadgets[0])); }
 
 if (VERIFY) {
@@ -107,7 +119,7 @@ if (VERIFY) {
   // Laser per (Modell-Keyword + Größe) matchen: scmdb-Name enthält das Modell, size gleich
   const model = (f) => (f.match(/mining_laser_[a-z]+_([a-z]+)_s\d/i) || [])[1] || '';
   let lok = 0, lmatched = 0; const ldiff = [];
-  for (const l of lasers) { const m = model(l.file); const s = (eq.lasers || []).find((x) => m && new RegExp(m, 'i').test(x.name) && x.size === l.size); if (!s) continue; lmatched++; if (Math.abs((l.mining.dps || 0) - (s.miningBeam?.damagePerSecond || 0)) < 0.02) lok++; else ldiff.push(`${l.name}(S${l.size}): game=${l.mining.dps} scmdb=${s.miningBeam?.damagePerSecond}`); }
+  for (const l of lasers) { const m = model(l.file); const s = (eq.lasers || []).find((x) => m && new RegExp(m, 'i').test(x.name) && x.size === l.size); if (!s) continue; lmatched++; if (Math.abs((l.mining.dps || 0) - (s.miningBeam?.damagePerSecond || 0)) < 0.02) lok++; else ldiff.push(`${l.name || l.file}(S${l.size}): game=${l.mining.dps} scmdb=${s.miningBeam?.damagePerSecond}`); }
   console.log(`  Laser: ${lok}/${lmatched} DPS==scmdb (per Modell+Größe gematcht, von ${lasers.length})`);
   if (ldiff.length) console.log('   DPS-Abw. (game=live 4.9 maßgeblich):', ldiff.join(' | '));
   const modsClose = (a, b) => ['resistance', 'instability', 'optimalChargeWindowSize'].every((k) => Math.abs((a[k] || 0) - (b[k] || 0)) < 0.5);

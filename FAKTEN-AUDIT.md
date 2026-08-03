@@ -8,9 +8,12 @@ Extrahiert von 6 parallelen Claude-Sonnet-5-Agenten aus `src/data/patches/*.json
 - Die `⚠ Verdachtsfälle` pro Patch sind von den Agenten gefundene Widersprüche/Unbelegtes — kein Urteil, nur Hinweise.
 - Quellen-Kürzel: `(json)` = Datenschicht, `(patch-page)` = Patch-Seite, `(topic:slug)` = Deep-Dive-Seite.
 
+**Nachgepflegt am 2026-08-03 (Phase 01.3):** Punkt 2 unten ist erledigt — die 305 offenen
+Häkchen der Checkliste selbst sind unangetastet, nur die Kopfnotiz ist berichtigt.
+
 **Bekannte offene Punkte (außerhalb der Checkliste):**
 1. **XenoThreat @ 4.8.0** — laut dir vermutlich erst 4.8.3; alle betroffenen Claims unten mit `⚠XT` markiert. Du prüfst die Zuordnung.
-2. **4.8.3 ist live** — dem Archiv fehlt der Patch-Eintrag komplett (Daten benötigt: Datum, Codename, Features, Schiffe, Events, Wipe).
+2. ~~**4.8.3 ist live** — Patch-Eintrag fehlte komplett~~ — **Erledigt (2026-08-03):** `src/data/patches/4-8-3.json` (Datum, Codename, Features, Schiffe, Events, Wipe) existiert seit dem 16.07.2026.
 
 ---
 

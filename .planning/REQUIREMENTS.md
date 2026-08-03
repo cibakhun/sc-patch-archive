@@ -3,9 +3,11 @@
 **Defined:** 2026-07-28
 **Core Value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
 
-> Milestone-Kontext: Das Produkt ist gebaut und live. Dieser Meilenstein betrifft
-> ausschließlich die Oberfläche. Der Bestand ist in `.planning/PROJECT.md` unter
-> „Validated" verzeichnet und wird hier nicht wiederholt.
+> Milestone-Kontext: Das Produkt ist gebaut und live. Der Meilenstein begann als
+> reine Oberflächenarbeit; am 03.08.2026 kamen mit den Phasen 1.3 und 1.4 zwei
+> Datenphasen dazu (Entscheidung des Betreibers nach der Datenquellen-Prüfung).
+> Der Bestand ist in `.planning/PROJECT.md` unter „Validated" verzeichnet und
+> wird hier nicht wiederholt.
 
 ## v1 Requirements
 
@@ -84,6 +86,42 @@
 - [ ] **DOC-05**: Die Hilfe ist per Tastatur zu öffnen, zu durchlaufen und mit Esc zu verlassen
 - [ ] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
 - [ ] **DOC-07**: Abgedeckt sind Item Finder, Crafting, Mining, Schiffe, Missionen, Refinery, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
+
+### Datenschicht-Wahrhaftigkeit
+
+> Quelle: Datenquellen-Prüfung am 03.08.2026. Die Seite lebt vom Versprechen
+> spielgenauer Zahlen. Die Prüfung fand keine erfundenen Werte — aber Reste
+> früherer Datenläufe, die dem Versprechen widersprechen: eine falsche
+> Quellenangabe auf ~3.200 Seiten, rohe Klassennamen in einem Rechner, tote
+> Datenstände im Build und zwei Skripte, die einen frischen Stand still
+> zurückdrehen können. Dazu ist der Datenstand zwei Client-Builds alt.
+
+- [x] **DATA-01**: Keine Crafting-Oberfläche nennt `sc-craft.tools` als Quelle — die Crafting-Daten kommen seit dem 16.07.2026 aus den Spieldateien
+- [x] **DATA-02**: Kein Werkzeug zeigt einen rohen Klassennamen; die beiden namenlosen S0-Mining-Laser erscheinen mit Anzeigenamen oder gar nicht
+- [x] **DATA-03**: `src/data/holo-markers.json` und sein Fallback-Zweig in `ShipDetail.astro` sind entfernt — der Zweig greift bei 0 von 227 Schiffen
+- [x] **DATA-04**: `src/data/crafting-blueprints.json` ist entfernt, samt Verweis in `.planning/codebase/STRUCTURE.md`
+- [x] **DATA-05**: Kein Skript kann die game-sourced Crafting-DB durch einen Fremdquellen-Snapshot ersetzen (`scripts/fetch-craft.mjs`)
+- [x] **DATA-06**: `build-universal-db.mjs` bricht ab, wenn die `global.ini` fehlt oder älter ist als der Datenstand, statt den Katalog still zurückzudrehen
+- [x] **DATA-07**: Alle Datamine-Ausgaben tragen dieselbe Build-Kennung wie der installierte Client (aktuell `12326004`)
+- [x] **DATA-08**: Die Fahrzeugpreise sind nicht älter als der jüngste Datamine-Lauf
+- [x] **DATA-09**: `MINING-DATENQUELLE.md`, `FAKTEN-AUDIT.md` und `.planning/codebase/STRUCTURE.md` beschreiben den tatsächlichen Stand
+
+### Fahrzeug-Katalog aus Spieldaten
+
+> Quelle: dieselbe Prüfung. `src/data/vehicles.json` kommt aus der
+> Star-Citizen-Wiki-API. Die ist selbst nur ein Spiegel der Spieldaten und hinkt
+> strukturell hinterher — am 03.08.2026 stand sie auf Build `12232306`, der
+> Client auf `12326004`. Die eigene Extraktion liefert bereits 223 Fahrzeuge
+> inklusive DE- und EN-Beschreibungen aus CIGs eigener `global.ini`.
+
+- [ ] **VEH-01**: Die vier Extraktor-Skripte (`lib/cryxml.mjs`, `datamine-vehicles.mjs`, `verify-vehicles.mjs`, `verify-weapon-sizes.mjs`) liegen versioniert im Repo
+- [ ] **VEH-02**: `src/data/vehicle-external.json` trägt die fünf Felder, die in keiner Spieldatei stehen: `msrpUSD`, `pledgeUrl`, `lengthM`/`widthM`/`heightM`, Bild-URL
+- [ ] **VEH-03**: Name und Hersteller sind normalisiert (`C.O.`-Präfix, `&` gegen `and`, abschließender Zeilenumbruch) — die rein kosmetischen Abweichungen sind weg
+- [ ] **VEH-04**: Für `crew` ist entschieden und belegt, ob die Seite CIGs `crewSize` oder den bisherigen `crewMax` zeigt
+- [ ] **VEH-05**: `cargoSCU` steht für jedes Fahrzeug mit Frachtraum auf einem belegten Wert; kein Frachtschiff steht auf 0
+- [ ] **VEH-06**: Die 32 `shieldHp`-Abweichungen sind einzeln beurteilt — je Fahrzeug ist belegt, welche Quelle recht hat
+- [ ] **VEH-07**: Der Spieldaten-Katalog führt alle 227 Fahrzeuge, inklusive der vier ATLS-Varianten
+- [ ] **VEH-08**: `vehicles.json` entsteht aus der Extraktion; `sync-vehicles.mjs` ist gelöscht und der Wiki-Schritt aus `.github/workflows/build.yml` entfernt
 
 ### Spenden-Unterstützung
 
@@ -179,7 +217,8 @@ ist anbieterneutral und bleibt gültig.
 | Feature | Reason |
 |---------|--------|
 | Serverseitige Renderlogik | Statisches Astro-Build hinter nginx — geht nur als Supabase Edge Function |
-| Ausbau der Datamine-Pipeline | Dieser Meilenstein ist ausdrücklich Oberfläche, nicht Daten |
+| Neue Datenquellen oder neue Werkzeuge | Phase 1.3/1.4 richten den Bestand her und holen den Fahrzeug-Katalog heim; sie bauen nichts Neues |
+| Refinery-Ökonomie, Loot-Recherche, Spielermarkt-Oberfläche | Als offene Punkte der Prüfung vom 03.08.2026 erkannt, aber nicht Teil dieses Meilensteins |
 | Konto-, Community- und Discord-Funktionen | Bestand bleibt, wird in diesem Meilenstein aber nicht vorangetrieben |
 | CSS-Framework oder Bundler für `assets/` | Handgeschriebenes CSS/JS ist bewusste Entscheidung, nicht Altlast |
 | Redesign einzelner Patch-Seiten | Jede Patch-Seite hat absichtlich ihre eigene Design-Welt |
@@ -217,6 +256,23 @@ ist anbieterneutral und bleibt gültig.
 | DOC-05 | Phase 1.2 | Pending |
 | DOC-06 | Phase 1.2 | Pending |
 | DOC-07 | Phase 1.2 | Pending |
+| DATA-01 | Phase 1.3 | Complete |
+| DATA-02 | Phase 1.3 | Complete |
+| DATA-03 | Phase 1.3 | Complete |
+| DATA-04 | Phase 1.3 | Complete |
+| DATA-05 | Phase 1.3 | Complete |
+| DATA-06 | Phase 1.3 | Complete |
+| DATA-07 | Phase 1.3 | Complete |
+| DATA-08 | Phase 1.3 | Complete |
+| DATA-09 | Phase 1.3 | Complete |
+| VEH-01 | Phase 1.4 | Pending |
+| VEH-02 | Phase 1.4 | Pending |
+| VEH-03 | Phase 1.4 | Pending |
+| VEH-04 | Phase 1.4 | Pending |
+| VEH-05 | Phase 1.4 | Pending |
+| VEH-06 | Phase 1.4 | Pending |
+| VEH-07 | Phase 1.4 | Pending |
+| VEH-08 | Phase 1.4 | Pending |
 | TYPO-01 | Phase 2 | Pending |
 | TYPO-02 | Phase 2 | Pending |
 | TYPO-03 | Phase 2 | Pending |
@@ -257,8 +313,8 @@ ist anbieterneutral und bleibt gültig.
 
 **Coverage:**
 
-- v1 requirements: 44 total (21 UI-Meilenstein + 13 aktive DON + 10 ROLE)
-- Mapped to phases: 44
+- v1 requirements: 61 total (21 UI-Meilenstein + 13 aktive DON + 10 ROLE + 9 DATA + 8 VEH)
+- Mapped to phases: 61
 - Unmapped: 0 ✓
 
 > Phase-5-Kollision aufgeloest 02.08.2026: „Spenden-Unterstuetzung" (DON) und
@@ -272,4 +328,5 @@ ist anbieterneutral und bleibt gültig.
 
 ---
 *Requirements defined: 2026-07-28*
-*Last updated: 2026-08-02 — Spenden-Unterstützung von Stripe auf PayPal umgestellt (6 gestrichen, 5 neue DON-26…DON-31); Schiffe-Rollenfilter (ROLE-01…10) ergänzt und auf Phase 6 umnummeriert*
+*Last updated: 2026-08-03 — DATA-01…09 (Phase 1.3, alle erfüllt) und VEH-01…08 (Phase 1.4) aus der Datenquellen-Prüfung ergänzt*
+*Zuvor: 2026-08-02 — Spenden-Unterstützung von Stripe auf PayPal umgestellt (6 gestrichen, 5 neue DON-26…DON-31); Schiffe-Rollenfilter (ROLE-01…10) ergänzt und auf Phase 6 umnummeriert*

@@ -45,10 +45,16 @@ if (dcbArg) {
   dcbBuf = p4k.read(/^Data[\\/]Game2\.dcb$/i);
   iniEn = p4k.read(/Localization[\\/]english[\\/]global\.ini$/i).toString('utf8');
   try { iniDe = p4k.read(/Localization[\\/]german_\(germany\)[\\/]global\.ini$/i).toString('utf8'); } catch { iniDe = ''; }
-  // Patch-Kennung aus der Build-Manifest-Datei neben dem p4k (best effort)
+  // Patch-Kennung aus der Build-Manifest-Datei neben dem p4k (best effort).
+  // Branch allein (z.B. "sc-alpha-4.9.0") wiederholt sich ueber mehrere Builds
+  // hinweg — die Changelist-Nummer gehoert zwingend mit rein (D-16), sonst
+  // liesse sich ein veralteter gegen einen frischen Lauf nicht unterscheiden.
   const bm = resolve(dirname(p4k.path), 'build_manifest.id');
   if (existsSync(bm)) {
-    try { const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data; patchLabel = d?.Branch ?? d?.Version ?? null; } catch { /* egal */ }
+    try {
+      const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data;
+      patchLabel = d?.Branch && d?.RequestedP4ChangeNum ? `${d.Branch}@${d.RequestedP4ChangeNum}` : (d?.Branch ?? d?.Version ?? null);
+    } catch { /* egal */ }
   }
   p4k.close();
 }

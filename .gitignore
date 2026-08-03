@@ -50,7 +50,9 @@ TEST_*.md
 skills/
 skills-lock.json
 
-# Holo-glTF-Downloadcache (calibrate-holo-markers.mjs, einmalig ~2 GB)
+# Holo-glTF-Downloadcache (scripts/build-holo-meshes.mjs, einmalig ~2 GB)
+# Frueher von calibrate-holo-markers.mjs mitbenutzt — das Skript ist in
+# Phase 01.3 entfallen (toter 4.8-Marker-Stand, siehe 01.3-01-SUMMARY.md).
 .cache/
 
 # Spielermarkt-Mitschrieb: der Bestand gehoert auf den Zweig data/marketplace-log
