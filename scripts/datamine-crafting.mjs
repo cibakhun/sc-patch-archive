@@ -1,10 +1,10 @@
 // Crafting-Datenbank direkt aus dem Spiel extrahieren (statt sc-craft.tools).
 //
 // Quelle: Data.p4k -> Data/Game2.dcb (DataCore v8) + Localization/english/global.ini.
-// Ersetzt scripts/fetch-craft.mjs: sc-craft.tools extrahiert selbst nur aus der
-// Game2.dcb und hinkt am Patch-Day hinterher (16.07.2026: LIVE ist 4.9, die
-// Community-API kann nur PTU-4.9) — mit scripts/lib/{p4k,datacore}.mjs geht es
-// ohne Umweg. Ausgabeformat bleibt 1:1 kompatibel zur bestehenden App
+// Ersetzt den frueheren Fremdquellen-Zug: die Community-Quelle extrahierte selbst
+// nur aus der Game2.dcb und hinkte am Patch-Day hinterher (16.07.2026: LIVE ist
+// 4.9, die Community-API konnte nur PTU-4.9) — mit scripts/lib/{p4k,datacore}.mjs
+// geht es ohne Umweg. Ausgabeformat bleibt 1:1 kompatibel zur bestehenden App
 // (assets/crafting-app.js, CraftingApp.astro, item-finder-app.js).
 //
 // Aufruf:   node scripts/datamine-crafting.mjs
@@ -70,8 +70,16 @@ if (dcbArg) {
       const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data ?? {};
       // 4.9-Manifest: Branch "sc-alpha-4.9.0" + RequestedP4ChangeNum "12232306";
       // aeltere Builds fuehrten stattdessen RequestedP4kVersion.
+      // Label-Wort aus `Config`, NICHT aus `Tag`: ein echter LIVE-Client traegt
+      // "Tag": "no_tag" + "Config": "live" (gemessen an build_manifest.id,
+      // Changelist 12326004) — Tag ist der Perforce-Branch-Tag (oft leer/no_tag),
+      // Config ist der tatsaechliche Build-Kanal. `d.Tag==='public'` traf bei
+      // diesem Client nie, das Label fiel auf "NO_TAG" zurueck (Phase 01.3, D-19).
+      const kanal = d.Config === 'live'
+        ? 'LIVE'
+        : (d.Tag && d.Tag !== 'no_tag' ? String(d.Tag).toUpperCase() : String(d.Config ?? 'LIVE').toUpperCase());
       patchLabel = d.RequestedP4kVersion
-        ?? (d.Branch ? `${d.Tag === 'public' ? 'LIVE' : (d.Tag ?? 'LIVE').toUpperCase()}-${d.Branch.replace(/^sc-alpha-/, '')}-${d.RequestedP4ChangeNum ?? ''}`.replace(/-$/, '') : null);
+        ?? (d.Branch ? `${kanal}-${d.Branch.replace(/^sc-alpha-/, '')}-${d.RequestedP4ChangeNum ?? ''}`.replace(/-$/, '') : null);
     } catch { /* egal */ }
   }
   p4k.close();
