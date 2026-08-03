@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
+import { parseCryXml, findAll } from './lib/cryxml.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '..', 'src', 'data', 'ship-loadouts.json');
@@ -33,7 +34,18 @@ const norm = (s) => (s || '').replace(/\\/g, '/');
 const p4k = openP4k(argOf('--p4k') ?? DEFAULT_P4K);
 const dcb = p4k.read(/^Data[\\/]Game2\.dcb$/i);
 const iniEn = p4k.read(/Localization[\\/]english[\\/]global\.ini$/i).toString('utf8');
-p4k.close();
+// Loadout-XML-Dateien (01.4-04): manche Item-Sub-Loadouts (z.B. Cargo-Tueren)
+// zeigen NICHT auf einen DataCore-Eintrag mit `entries[]`, sondern auf eine
+// separate CryXmlB-Datei ausserhalb des DataCore
+// (`SItemPortLoadoutXMLParams.loadoutPath`, z.B.
+// "scripts/loadouts/objects/doors/doorexteriorloadoutaegshammerheadcargobay.xml"
+// -> Data\Scripts\Loadouts\...\DoorExteriorLoadoutAEGSHammerheadCargobay.xml,
+// belegt an Hammerhead/Nomad, scratch/probe-loadoutpath.mjs). Nur die
+// Eintraege INDIZIEREN (billig, liest keine Inhalte), extrahiert wird nur
+// das Handvoll, das gridScu() tatsaechlich anfordert — deshalb bleibt p4k bis
+// zum Skriptende offen statt sofort zu schliessen.
+const loadoutXmlIdx = new Map();
+for (const e of p4k.entries(/Data[\\/]Scripts[\\/]Loadouts[\\/].*\.xml$/i)) loadoutXmlIdx.set(norm(e.name).toLowerCase(), e);
 const db = openDataCore(dcb);
 
 const EN = new Map();
@@ -222,7 +234,66 @@ function extractLoadout(rec) {
  */
 const SCU_M3 = 1.25 ** 3;
 const containerCache = new Map();
-function gridScu(entry, acc = { scu: 0 }, depth = 0) {
+
+// Zweite Rekursionsebene (01.4-04, D-12 aufgeloest): bei mehreren Bauarten
+// (fest eingebauter Laderaum, Frachtaufbau als Modul) haengt das Cargogrid
+// NICHT direkt am Standard-Loadout des Schiffs, sondern an einem
+// ZWISCHEN-ITEM — belegt an der Constellation: der Port `hardpoint_cargo_bay`
+// referenziert eine Tuer-/Raumverbinder-Entity
+// (`Door_RN_RoomConnector_Breachable_..._CargoBay`), die selbst NOCHMAL eine
+// eigene `SEntityComponentDefaultLoadoutParams`-Komponente traegt (3 Eintraege,
+// einer davon `hardpoint_cargogrid` -> das eigentliche Cargogrid-Item,
+// 96 SCU = exakt der Wiki-Wert). `entry.loadout` (die BISHERIGE Rekursion,
+// s. `entriesOf`) bleibt dabei leer — dieses verschachtelte Sub-Loadout sitzt
+// an der KOMPONENTE des referenzierten Items selbst, nicht inline am Eintrag,
+// und ist deshalb nur ueber einen zweiten `readRecord()` des referenzierten
+// Items erreichbar (scratch/probe-cargo-andromeda2.mjs bis -4.mjs, drei
+// Sonden: Constellation Andromeda/fest eingebauter Laderaum, Moth/Frachtaufbau
+// als Modul liefert dieselbe Tuer-Struktur, Aurora GS-MR/Kabinenfracht ueber
+// einen einfacheren "Cargo_Rack"-Zweig — EINE Regel deckt alle drei Bauarten).
+// Zwei bereits gepruefte Sackgassen aus D-12 werden hier NICHT wiederholt: die
+// Suche filtert weder auf `/cargogrid/`-Pfade allein noch auf `cargo`-benannte
+// Portnamen (Fortune/CSV-SM/Cyclone/F7C-Mk2 haengen ihr Cargo-Item an Ports
+// OHNE "cargo" im Namen — `hardpoint_door_rear`, `hardpoint_modular_bed`,
+// `hardpoint_module_attach`, `hardpoint_weapon_center`) — die Rekursion prueft
+// deshalb JEDES referenzierte Item auf ein eigenes Sub-Loadout, unabhaengig
+// vom Portnamen. Tiefenbegrenzt (depth<6 fuer diesen Zweig) und mit `seen`
+// gegen Zyklen (ein Item, das auf sich selbst zurueckreferenziert) abgesichert.
+// Dritte Fundstelle (01.4-04, dieselbe Sonde wie oben, Hammerhead/Nomad): das
+// referenzierte Item traegt zwar eine SEntityComponentDefaultLoadoutParams-
+// Komponente, aber vom TYP `SItemPortLoadoutXMLParams` (kein `entries[]`,
+// nur ein `loadoutPath`-Verweis auf eine externe CryXmlB-Datei ausserhalb des
+// DataCore — Format `<Loadout><Item portName="…" itemName="…"/>…</Loadout>`,
+// belegt an DoorExteriorLoadoutAEGSHammerheadCargobay.xml: 1 Item,
+// portName="hardpoint_cargogrid", itemName="AEGS_Hammerhead_CargoGrid_Main").
+// Die Items dieser Datei werden in dieselbe Eintrags-Form uebersetzt
+// (itemPortName/entityClassName), damit sie unveraendert durch
+// resolveEntryRecord()/gridScu() laufen — dieselbe Regel wie fuer DataCore-
+// Eintraege, nur eine andere Quelle fuer die Liste.
+function loadoutXmlEntries(loadoutPath) {
+  const key = norm(loadoutPath || '').toLowerCase();
+  if (!key) return [];
+  const e = loadoutXmlIdx.get('data/' + key) ?? [...loadoutXmlIdx.values()].find((x) => norm(x.name).toLowerCase().endsWith(key.split('/').pop()));
+  if (!e) return [];
+  try {
+    const root = parseCryXml(p4k.extract(e));
+    return findAll(root, 'Item').map((n) => ({ itemPortName: n.attr.portName ?? null, entityClassName: n.attr.itemName ?? null, entityClassReference: null }));
+  } catch { return []; }
+}
+const itemLoadoutCache = new Map();
+function itemOwnLoadoutEntries(rec) {
+  if (!rec) return [];
+  if (itemLoadoutCache.has(rec.id)) return itemLoadoutCache.get(rec.id);
+  let out = [];
+  try {
+    const o = db.readRecord(rec, { maxDepth: 14, typed: true });
+    const comp = findType(o, /SEntityComponentDefaultLoadoutParams/i);
+    out = comp?.loadout?.entries ?? (comp?.loadout?.loadoutPath ? loadoutXmlEntries(comp.loadout.loadoutPath) : []);
+  } catch { /* Item ohne eigene ladbare Komponentenstruktur — kein Fehler, nur kein Fund */ }
+  itemLoadoutCache.set(rec.id, out);
+  return out;
+}
+function gridScu(entry, acc = { scu: 0 }, depth = 0, seen = new Set()) {
   if (!entry || typeof entry !== 'object' || depth > 12) return acc;
   const r = resolveEntryRecord(entry);
   if (r && /cargogrid/i.test(norm(r.fileName))) {
@@ -236,8 +307,11 @@ function gridScu(entry, acc = { scu: 0 }, depth = 0) {
       containerCache.set(r.id, scu);
     }
     acc.scu += scu;
+  } else if (r && depth < 6 && !seen.has(r.id)) {
+    seen.add(r.id);
+    for (const n of itemOwnLoadoutEntries(r)) gridScu(n, acc, depth + 1, seen);
   }
-  for (const n of entriesOf(entry)) gridScu(n, acc, depth + 1);
+  for (const n of entriesOf(entry)) gridScu(n, acc, depth + 1, seen);
   return acc;
 }
 
@@ -289,6 +363,9 @@ for (const id of idsToDo) {
     return true;
   });
 }
+// p4k bleibt bis hierhin offen (01.4-04, loadoutXmlEntries() extrahiert
+// bedarfsweise waehrend obiger Schleife) — jetzt sind alle Faelle bedient.
+p4k.close();
 
 // ---- Audit ----
 const GRP = { power: 1, shield: 1, cooler: 1, quantum: 1, radar: 1, turret: 1, missile: 1, weapon: 1 };
