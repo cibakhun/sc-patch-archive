@@ -72,3 +72,56 @@ for (const g of game) {
 }
 console.log(`\n=== Pilotwaffen-Anzahl: ${armSame} identisch, ${armDiff.length} abweichend ===`);
 for (const d of (ALL ? armDiff : armDiff.slice(0, 10))) console.log('  ' + d);
+
+/* ------------------------------------------------------------------------ */
+/* Deckungs-Waechter (01.4-01, Task 2, Schritt 5) — bleibender Riegel gegen  */
+/* die stille Verkleinerung. Bisher verglich dieses Skript nur WERTE; ab     */
+/* hier prueft es zusaetzlich die DECKUNG: fuer jedes Feld des Zielschemas   */
+/* die Zahl der Fahrzeuge mit nicht-leerem Wert, Exit 1 sobald ein Feld      */
+/* unter seine hinterlegte Untergrenze faellt.                              */
+/*                                                                          */
+/* Die Untergrenzen sind die am 03.08.2026 (01.4-01, Schritt 7) gemessene   */
+/* Feldbelegung des frischen Katalogs (223 Fahrzeuge, Changelist 12326004), */
+/* Feld fuer Feld gegen den Katalog vom 02.08.2026 abgeglichen — kein Feld  */
+/* war dabei geschrumpft. Dieselbe Bauform wie der Schrumpf-Riegel in       */
+/* build-universal-db.mjs (Phase 01.3).                                    */
+/* ------------------------------------------------------------------------ */
+const COVERAGE_FLOOR = {
+  id: 223, name: 223, manufacturer: 223, makerCode: 223,
+  typeEn: 223, typeDe: 223, roleEn: 223, roleDe: 223,
+  sizeClass: 223, sizeDe: 223,
+  descriptionEn: 219, descriptionDe: 219,
+  crew: 223, isGravlev: 223, isSpaceship: 223,
+  scmSpeed: 183, maxSpeed: 183, boostForward: 183,
+  pitch: 183, yaw: 183, roll: 183,
+  hullHp: 223, shieldHp: 208,
+  qtSpeedMs: 176, qtSpoolS: 176,
+  cargoSCU: 223,
+  insClaimMin: 223, insExpediteMin: 223, insExpediteCost: 223,
+  fixedWeapons: 175, fixedWeaponMounts: 132, turretWeapons: 83, missileRacks: 148,
+  cmLaunchers: 223, components: 223,
+};
+
+const nonEmpty = (x) =>
+  x != null &&
+  !(Array.isArray(x) && !x.length) &&
+  !(typeof x === 'object' && !Array.isArray(x) && !Object.keys(x).length);
+
+const coverage = {};
+for (const v of game)
+  for (const [k, x] of Object.entries(v))
+    if (nonEmpty(x)) coverage[k] = (coverage[k] ?? 0) + 1;
+
+console.log(`\n=== Deckungs-Waechter (Untergrenzen aus 01.4-01, Schritt 7) ===`);
+const shrunk = [];
+for (const [field, floor] of Object.entries(COVERAGE_FLOOR)) {
+  const have = coverage[field] ?? 0;
+  console.log(`  ${field.padEnd(18)}${String(have).padStart(4)} / ${String(floor).padStart(4)} erwartet`);
+  if (have < floor) shrunk.push(`${field}: ${have} < ${floor}`);
+}
+if (shrunk.length) {
+  console.error(`\n✗ ${shrunk.length} Feld(er) unter der Deckungs-Untergrenze — stille Verkleinerung:`);
+  for (const s of shrunk) console.error(`   ${s}`);
+  process.exit(1);
+}
+console.log('✓ keine Feld-Deckung unter der gemessenen Untergrenze');
