@@ -44,6 +44,20 @@ const ONLY = argOf('--ship');
 const norm = (s) => (s || '').replace(/\\/g, '/');
 const round = (n, d = 1) => (n == null ? null : Math.round(n * 10 ** d) / 10 ** d);
 
+// gameVersion (01.4-02, Gruppe C, 0 Proben): build_manifest.id neben der p4k,
+// wie datamine-items.mjs/datamine-crafting.mjs/extract-hardpoints.mjs seit
+// Phase 01.3. Ersetzt den Wiki-`v.version`-Wert (dort z. B. "4.9.0-LIVE.12232306").
+let GAME_VERSION = 'sc-alpha-4.9.0'; // Fallback, falls build_manifest.id fehlt
+{
+  const bm = resolve(dirname(argOf('--p4k') ?? DEFAULT_P4K), 'build_manifest.id');
+  if (existsSync(bm)) {
+    try {
+      const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data;
+      if (d?.Branch && d?.RequestedP4ChangeNum) GAME_VERSION = `${d.Branch}@${d.RequestedP4ChangeNum}`;
+    } catch { /* Fallback bleibt */ }
+  }
+}
+
 /* ---------------------------------------------------------------- */
 /* p4k / DataCore / Localization                                     */
 /* ---------------------------------------------------------------- */
@@ -122,13 +136,87 @@ const recByNameIdx = new Map();
 for (const r of db.records) { const n = r.name || ''; if (n && !recByNameIdx.has(n)) recByNameIdx.set(n, r); }
 const itemByCls = (cls) => (cls ? recByNameIdx.get(cls) ?? recByNameIdx.get('EntityClassDefinition.' + cls) : null);
 const itemCache = new Map();
+// maxDepth 14 (statt vormals 9): die Waffen-Schadenskette (SAmmoContainerComponentParams
+// -> ammoParamsRecord -> BulletProjectileParams.damage) und der Quantum-Treibstoffbedarf
+// (quantumFuelRequirement) liegen tiefer verschachtelt als die bisher gelesenen
+// Schild-/Antriebs-Werte. 01.4-02, Gruppe A/B.
 const readItem = (cls) => {
   if (itemCache.has(cls)) return itemCache.get(cls);
   const r = itemByCls(cls);
-  const o = r ? db.readRecord(r, { maxDepth: 9, typed: true }) : null;
+  const o = r ? db.readRecord(r, { maxDepth: 14, typed: true }) : null;
   itemCache.set(cls, o);
   return o;
 };
+
+/* ---------------------------------------------------------------- */
+/* Waffen-Schaden je Sekunde (01.4-02, Gruppe A, Schritt 1): Item ueber `cls`
+   aufloesen (readItem), Feuerrate + Munitionsschaden lesen. Belegt am
+   Buccaneer gegen den Wiki-Bestand (2760,4 gesamt; 1266 / 545,6 / 201,6 je
+   Waffentyp) — exakte Uebereinstimmung, nicht nur Groessenordnung. Dieselbe
+   Ableitung wie scripts/datamine-items.mjs (assets/items-gamefiles.json),
+   hier direkt gegen den bereits offenen DataCore statt gegen die Item-Finder-
+   Datei — die traegt nicht jede Waffen-Variante (z. B. APAR_BallisticGatling_S4
+   fehlt dort trotz vorhandenem DataCore-Record; Namens-Join haette hier auf
+   den falschen "Revenant Gatling"-Eintrag (ANVL, S3) gegriffen — genau die
+   Falle aus `display-name-not-a-key`, hier vermieden durch cls-Join). */
+const findRx = (o, rx, d = 0) => {
+  if (!o || typeof o !== 'object' || d > 14) return null;
+  if (Array.isArray(o)) { for (const x of o) { const r = findRx(x, rx, d + 1); if (r) return r; } return null; }
+  if (o.__type && rx.test(o.__type)) return o;
+  for (const [k, v] of Object.entries(o)) { if (k === '__type') continue; if (v && typeof v === 'object') { const r = findRx(v, rx, d + 1); if (r) return r; } }
+  return null;
+};
+const DMG_KEYS = { physical: 'DamagePhysical', energy: 'DamageEnergy', distortion: 'DamageDistortion', thermal: 'DamageThermal', biochemical: 'DamageBiochemical', stun: 'DamageStun' };
+function damageObj(di) {
+  if (!di || typeof di !== 'object') return null;
+  let sum = 0;
+  for (const k of Object.values(DMG_KEYS)) { const v = di[k]; if (typeof v === 'number' && v) sum += v; }
+  return sum > 0 ? sum : null;
+}
+const ammoDmgCache = new Map();
+function ammoDamagePerShot(ref) {
+  if (!ref) return null;
+  if (ammoDmgCache.has(ref)) return ammoDmgCache.get(ref);
+  const rec = db.recordById.get(ref);
+  let out = null;
+  if (rec) {
+    const ao = db.readRecord(rec, { maxDepth: 14, typed: true });
+    const bp = findRx(ao, /BulletProjectileParams|SProjectileParams/);
+    out = damageObj((bp && bp.damage) || findRx(ao, /DamageInfo/));
+  }
+  ammoDmgCache.set(ref, out);
+  return out;
+}
+const dpsCache = new Map();
+function weaponDps(cls) {
+  if (!cls) return null;
+  if (dpsCache.has(cls)) return dpsCache.get(cls);
+  const io = readItem(cls);
+  let dps = null;
+  if (io) {
+    const fa = findRx(io, /SWeaponActionFire(Single|Rapid|Burst|Charge)Params/) || findRx(io, /SWeaponActionFireParams/);
+    const wc = findRx(io, /SCItemWeaponComponentParams/);
+    const rof = findKeyNum(fa || wc || {}, 'fireRate');
+    const ac = findRx(io, /SAmmoContainerComponentParams/);
+    const perShot = ammoDamagePerShot(ac?.ammoParamsRecord?.__ref);
+    if (rof && perShot) dps = round(perShot * rof / 60, 1);
+  }
+  dpsCache.set(cls, dps);
+  return dps;
+}
+
+/* ---------------------------------------------------------------- */
+/* Treibstoff- und Erzbehaelter (01.4-02, Gruppe B): Kapazitaet aus dem
+   ResourceContainer des Behaelter-Items — dieselbe Fundstelle wie
+   `containerScu` fuer Frachtgitter, hier je Item ueber `cls` aufgeloest
+   (readItem), nicht ueber den Cargogrid-Record-Index. */
+function tankCapacityScu(cls) {
+  const io = readItem(cls);
+  if (!io) return null;
+  const rc = findRx(io, /ResourceContainer/);
+  const cap = rc?.capacity?.standardCargoUnits;
+  return typeof cap === 'number' ? cap : null;
+}
 
 /* ---------------------------------------------------------------- */
 /* Fracht: Innenmaße der Gitter -> SCU                               */
@@ -175,7 +263,7 @@ const SIZE_LABEL = {
 /* ---------------------------------------------------------------- */
 /* Ein Fahrzeug bauen                                                */
 /* ---------------------------------------------------------------- */
-const stats = { impl: 0, ifcs: 0, hull: 0, cargo: 0, shield: 0, qt: 0, noRec: [], badMod: [], noIfcs: [] };
+const stats = { impl: 0, ifcs: 0, hull: 0, cargo: 0, shield: 0, qt: 0, qtFuel: 0, qtRange: 0, h2Fuel: 0, ore: 0, noRec: [], badMod: [], noIfcs: [] };
 
 function buildVehicle(id) {
   const rec = byId.get(id);
@@ -260,10 +348,17 @@ function buildVehicle(id) {
   }
 
   // --- Loadout: Waffen / Türme / Werfer / Gegenmaßnahmen / Komponenten ---
-  const pilot = new Map(), turret = new Map(), racks = new Map();
+  const pilot = new Map(), racks = new Map();
+  // Turmwaffen getrennt je Gattung (01.4-02, Gruppe A/turrets[]): manned/remote/pdc,
+  // aus `turretKind` (D-21-Nachtrag in datamine-ship-loadouts.mjs, Turm-Item-Record-
+  // Struktur SCItemSeatParams/SCItemTurretRemoteParams). `turret` bleibt zusaetzlich
+  // als flache Gesamtliste bestehen (Bestandsfeld, verify-weapon-sizes.mjs liest es).
+  const turret = new Map();
+  const turretByKind = { manned: new Map(), remote: new Map(), pdc: new Map() };
   const comp = { powerPlants: [], shields: [], coolers: [], quantumDrives: [], radars: [] };
   const COMP_KEY = { power: 'powerPlants', shield: 'shields', cooler: 'coolers', quantum: 'quantumDrives', radar: 'radars' };
   let cmLaunchers = 0;
+  const qtFuelTanks = [], h2FuelTanks = [], orePods = [];
   const add = (map, it) => {
     const k = `${it.name}|${it.size ?? ''}`;
     const e = map.get(k) ?? { name: it.name, size: it.size ?? null, count: 0, cls: it.cls };
@@ -272,9 +367,17 @@ function buildVehicle(id) {
   };
   for (const items of Object.values(ports)) {
     for (const it of items) {
-      if (it.cat === 'weapon') add(it.carrier === 'turret' ? turret : pilot, it);
+      if (it.cat === 'weapon') {
+        if (it.carrier === 'turret') {
+          add(turret, it);
+          add(turretByKind[it.turretKind ?? 'manned'] ?? (turretByKind[it.turretKind ?? 'manned'] = new Map()), it);
+        } else add(pilot, it);
+      }
       else if (it.cat === 'missile') add(racks, it);
       else if (it.cat === 'countermeasure') cmLaunchers += it.count;
+      else if (it.cat === 'qtfueltank') qtFuelTanks.push(it);
+      else if (it.cat === 'h2fueltank') h2FuelTanks.push(it);
+      else if (it.cat === 'orepod') orePods.push(it);
       else if (COMP_KEY[it.cat]) {
         const list = comp[COMP_KEY[it.cat]];
         const hit = list.find((x) => x.name === it.name && x.size === it.size);
@@ -292,17 +395,85 @@ function buildVehicle(id) {
     if (max) shieldHp += max * s.count;
   }
   if (shieldHp) stats.shield++;
-  let qtSpeedMs = null, qtSpoolS = null;
+  let qtSpeedMs = null, qtSpoolS = null, qtFuelReq = null;
   const qdCls = Object.values(ports).flat().find((x) => x.cat === 'quantum')?.cls;
   if (qdCls) {
     const io = readItem(qdCls);
     const params = io ? findKeyObj(io, 'driveSpeed') : null;
     if (params) { qtSpeedMs = params.driveSpeed ?? null; qtSpoolS = params.spoolUpTime ?? null; stats.qt++; }
+    // quantumFuelRequirement sitzt am AEUSSEREN SCItemQuantumDriveParams-Objekt,
+    // NICHT im inneren `.params` (das `driveSpeed` traegt) — eigene Suche noetig.
+    qtFuelReq = io ? findKeyNum(io, 'quantumFuelRequirement') : null;
   }
 
   // --- Fracht: Gitter des Schiffs ---
   let cargoScu = LOAD.cargo?.[id] ?? null;
   if (cargoScu != null) stats.cargo++;
+
+  // --- Treibstoff: Quantum- und Wasserstofftank (01.4-02, Gruppe B, Schritt 1) ---
+  // Belegt am Buccaneer (qtnk 1,3 SCU, 2x htnk 3,75 SCU = 7,5) und an der Carrack
+  // (qtnk 10,6 SCU, 2x htnk 180 SCU = 360) exakt gegen den Wiki-Bestand.
+  let qtFuel = null;
+  for (const t of qtFuelTanks) { const cap = tankCapacityScu(t.cls); if (cap != null) qtFuel = (qtFuel ?? 0) + cap * t.count; }
+  if (qtFuel != null) { qtFuel = round(qtFuel, 2); stats.qtFuel++; }
+  let h2Fuel = null;
+  for (const t of h2FuelTanks) { const cap = tankCapacityScu(t.cls); if (cap != null) h2Fuel = (h2Fuel ?? 0) + cap * t.count; }
+  if (h2Fuel != null) { h2Fuel = round(h2Fuel, 2); stats.h2Fuel++; }
+  // qtRangeM: der Antriebs-Record selbst traegt keinen Reichweitenwert (`jumpRange`
+  // ist ein Float-Sentinel 3.4e38, keine echte Zahl) — die Reichweite ist eine
+  // Rechnung aus Tankgroesse / Verbrauch je Gm, wie im Spiel selbst (belegt am
+  // Buccaneer: 1,3 / 0,010682 * 1e9 = 121.700.057.909 m, Wiki 121.700.056.169 m,
+  // Abweichung < 0,000002 % — Rundung der Quelle, nicht falsche Formel).
+  let qtRangeM = null;
+  if (qtFuel != null && qtFuelReq) { qtRangeM = Math.round((qtFuel / qtFuelReq) * 1e9); stats.qtRange++; }
+
+  // --- Erz: Bergbau-Pods (01.4-02, Gruppe B, oreSCU — nur 5 Fahrzeuge) ---
+  let oreScu = null;
+  for (const p of orePods) { const cap = tankCapacityScu(p.cls); if (cap != null) oreScu = (oreScu ?? 0) + cap * p.count; }
+  if (oreScu != null) { oreScu = round(oreScu, 1); stats.ore++; }
+
+  // --- Waffen-DPS (01.4-02, Gruppe A, Schritt 1) ---
+  const withDps = (map) => [...map.values()].map((w) => ({ ...w, dps: weaponDps(w.cls) }));
+  const pilotWithDps = withDps(pilot);
+  const turretWithDps = withDps(turret);
+  const sumDps = (ws) => (ws.length && ws.every((w) => w.dps != null) ? round(ws.reduce((s, w) => s + w.dps * w.count, 0), 1) : null);
+  const pilotDps = sumDps(pilotWithDps);
+  const turretDps = sumDps(turretWithDps);
+  const missileCount = [...racks.values()].reduce((s, r) => s + r.count, 0) || null;
+
+  // fixedWeaponSizes (01.4-02, Gruppe A, Schritt 4 — Urteilsfall, kein Suchfall):
+  // Groesse steht bereits an jeder Pilotwaffe, die aggregierte Liste ist reine Rechnung.
+  const sizeAgg = (ws) => {
+    const m = new Map();
+    for (const w of ws) { if (w.size == null) continue; m.set(w.size, (m.get(w.size) ?? 0) + w.count); }
+    return [...m.entries()].sort((a, b) => a[0] - b[0]).map(([size, count]) => ({ size, count }));
+  };
+  const fixedWeaponSizes = sizeAgg(pilotWithDps);
+
+  // turrets[] (01.4-02, Gruppe A, Schritt 3): je Gattung Stationen (aus dem
+  // Turm-Item-Record selbst, LOAD.turretStations — auch OHNE Stock-Waffe
+  // gezaehlt) + Waffen + Groessen + DPS. payloadTypes bleibt leer: die
+  // Turm-eigenen Port-Definitionen liegen NICHT im Ship-Record, sondern im
+  // separaten Turm-Item — nicht mehr in der Abbruchgrenze dieses Plans
+  // aufgeloest (benannte Luecke, s. Feldurteile).
+  const TURRET_LABEL = { manned: 'Bemannte Türme', remote: 'Ferngesteuerte Türme', pdc: 'Punktverteidigung (PDC)' };
+  const stationsByKind = { manned: 0, remote: 0, pdc: 0 };
+  for (const s of LOAD.turretStations?.[id] ?? []) if (stationsByKind[s.turretKind] != null) stationsByKind[s.turretKind]++;
+  const turrets = [];
+  for (const kind of ['manned', 'remote', 'pdc']) {
+    const stations = stationsByKind[kind];
+    const wmap = turretByKind[kind];
+    const weapons = wmap ? withDps(wmap) : [];
+    if (!stations && !weapons.length) continue;
+    turrets.push({
+      label: TURRET_LABEL[kind],
+      stations,
+      sizes: sizeAgg(weapons),
+      weapons: weapons.map(({ cls, ...w }) => w),
+      payloadTypes: [],
+      dps: sumDps(weapons),
+    });
+  }
 
   return {
     id,
@@ -328,17 +499,23 @@ function buildVehicle(id) {
     pitch: round(ang?.x), yaw: round(ang?.z), roll: round(ang?.y),
     hullHp,
     shieldHp: shieldHp || null,
-    qtSpeedMs, qtSpoolS,
+    qtSpeedMs, qtSpoolS, qtRangeM, qtFuel, h2Fuel,
+    oreSCU: oreScu,
     cargoSCU: cargoScu != null ? Math.round(cargoScu) : null,
     insClaimMin: round(ins?.baseWaitTimeMinutes),
     insExpediteMin: round(ins?.mandatoryWaitTimeMinutes),
     insExpediteCost: ins?.baseExpeditingFee ?? null,
-    fixedWeapons: [...pilot.values()].map(({ cls, ...w }) => w),
+    pilotDps, turretDps,
+    fixedWeapons: pilotWithDps.map(({ cls, ...w }) => w),
     fixedWeaponMounts: mounts,
-    turretWeapons: [...turret.values()].map(({ cls, ...w }) => w),
+    fixedWeaponSizes,
+    turretWeapons: turretWithDps.map(({ cls, ...w }) => w),
+    turrets,
+    missileCount,
     missileRacks: [...racks.values()].map(({ cls, ...w }) => w),
     cmLaunchers,
     components: comp,
+    gameVersion: GAME_VERSION,
   };
 }
 
@@ -377,11 +554,13 @@ console.log(`Fahrzeuge gebaut: ${out.length}/${ids.length}`);
 console.log(`  Implementierungs-XML: ${stats.impl}   Hüllen-HP: ${stats.hull}`);
 console.log(`  Flugwerte (IFCS):     ${stats.ifcs}`);
 console.log(`  Schild-HP:            ${stats.shield}   Quantum: ${stats.qt}   Fracht: ${stats.cargo}`);
+console.log(`  QT-Treibstoff:        ${stats.qtFuel}   QT-Reichweite: ${stats.qtRange}   H2-Treibstoff: ${stats.h2Fuel}   Erz: ${stats.ore}`);
 if (stats.noRec.length) console.log(`  ohne DataCore-Record: ${stats.noRec.length} (${stats.noRec.join(', ')})`);
 
 if (!ONLY) {
   writeFileSync(OUT, JSON.stringify({
     generatedAt: new Date().toISOString().slice(0, 10),
+    gameVersion: GAME_VERSION,
     source: 'Data.p4k — DataCore (Game2.dcb), Fahrzeug-Implementierungen (CryXmlB), InventoryContainer',
     external: 'src/data/vehicle-external.json (msrpUSD, pledgeUrl, Abmessungen — nicht in den Spieldateien)',
     count: out.length,

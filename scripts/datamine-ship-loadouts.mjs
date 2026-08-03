@@ -64,6 +64,19 @@ function itemCat(file, cls) {
   if (/\/countermeasures?\//.test(f)) return 'countermeasure';
   if (/\/controller\//.test(f) || /^controller_/.test(c)) return 'controller';
   if (/\/thrusters?\//.test(f)) return 'thruster';
+  // Treibstoffbehaelter getrennt nach Typ (01.4-02, Gruppe B): Quantum- und
+  // Wasserstofftank tragen ihre Kapazitaet als ResourceContainer — Belegt am
+  // Buccaneer (qtnk 1,3 SCU == qtFuel 1,3; 2x htnk 3,75 SCU == h2Fuel 7,5) und
+  // an der Carrack (qtnk 10,6 SCU; 2x htnk 180 SCU == h2Fuel 360). Die
+  // Einlaesse (intk_*) tragen keine Kapazitaet und bleiben unter 'fuel' —
+  // NICHT als eigene Kategorie, sie sind kein Behaelter.
+  if (/\/fueltanks\/qtnk_/.test(f)) return 'qtfueltank';
+  if (/\/fueltanks\/htnk_/.test(f)) return 'h2fueltank';
+  // Erzbehaelter der Bergbau-Ausleger (01.4-02, Gruppe B, oreSCU): NUR die
+  // aktiven Pods (`cargo_shipmining_pod_*`), NICHT die eingeklappten
+  // Reserve-Pods (`..._collapsed`) — sonst zaehlt die Kapazitaet doppelt.
+  // Belegt: Prospector 4x8 SCU = 32 (Wiki: 32), Mole 8x12 SCU = 96 (Wiki: 96).
+  if (/\/miningpods\/cargo_shipmining_pod_(?!.*_collapsed)/.test(f)) return 'orepod';
   if (/\/fuel|\/qtnk|\/htnk|\/intk/.test(f)) return 'fuel';
   return 'other';
 }
@@ -94,6 +107,36 @@ function itemInfoFromRecord(r) {
   return info;
 }
 
+// Turm-Gattung (01.4-02, Gruppe A/turrets[]): der Turm-ITEM-Record selbst
+// (nicht die Waffe darin) traegt am DataCore einen strukturellen Unterschied,
+// den Portnamen/Dateipfade allein nicht zuverlaessig hergeben (Hammerhead und
+// Retaliator heissen z.B. beide nur nach Lage, "side_frontleft"/"upper" — kein
+// "manned"/"remote" im Pfad). Belegt an vier Proben (Hammerhead, Retaliator,
+// Idris, Javelin — eine mehr als die Grenze von 3 vorsah, weil Idris allein
+// bereits sowohl 'remote' als auch 'pdc' zeigt und Javelin die Wortprobe
+// "manned" im Dateinamen bestaetigt; siehe 01.4-feldurteile.md):
+//   - `SCItemSeatParams` vorhanden -> ein Crewmitglied sitzt darin: bemannt
+//     (Hammerhead UND Retaliator tragen beide einen Sitz — die im Plan
+//     erwartete Zuordnung "Retaliator = ferngesteuert" haelt der Messung
+//     nicht stand, das Spiel widerspricht der Annahme, nicht die Extraktion)
+//   - sonst `SCItemTurretRemoteParams` vorhanden -> kein Sitz, aber ein
+//     Fernsteuerungs-Parametersatz: ferngesteuert (Idris' "remote_camera_*"
+//     UND die unbenannten "ai_turret_*" tragen beide diesen Typ)
+//   - sonst (nur die Basis-Turmparameter, kein Sitz, keine Fernsteuerung):
+//     Punktverteidigung (Idris' 11 "turret_pdc_*"-Staende)
+const turretKindCache = new Map();
+function turretKind(r) {
+  if (!r) return null;
+  if (turretKindCache.has(r.id)) return turretKindCache.get(r.id);
+  const o = db.readRecord(r, { maxDepth: 12, typed: true });
+  let kind;
+  if (findType(o, /SCItemSeatParams/i)) kind = 'manned';
+  else if (findType(o, /SCItemTurretRemoteParams/i)) kind = 'remote';
+  else kind = 'pdc';
+  turretKindCache.set(r.id, kind);
+  return kind;
+}
+
 // Alle Items im Port-Teilbaum einsammeln (Self + verschachtelte Kinder). Der
 // REAL-Filter (Aufrufer) wirft Träger/Fixtures raus -> uebrig bleibt die echte
 // Komponente (Self) bzw. die Waffe/Rakete unter dem Mount.
@@ -102,16 +145,23 @@ function itemInfoFromRecord(r) {
 // Unterschied zwischen Piloten- und Turmwaffe — Portnamen taugen dafuer nicht
 // (78 Ports heissen weder "...turret" noch nach einem bekannten Pilotmuster).
 // Eine Kanone unter einem Turm-Traeger ist eine Turmwaffe, dieselbe Kanone
-// unter einem Gimbal ist eine Pilotenwaffe.
+// unter einem Gimbal ist eine Pilotenwaffe. `turretStationAcc` (modulweit,
+// je Schiff zurueckgesetzt) zaehlt die Turm-STAENDE selbst mit — auch wenn
+// ein Stand im Stock-Loadout keine Waffe traegt, bleibt er ein Stand.
+let turretStationAcc = [];
 const entriesOf = (x) => Array.isArray(x?.loadout?.entries) ? x.loadout.entries : [];
-const carrierKind = (info) =>
-  info && info.cat === 'mount' && /\/turrets?\//.test(info.file) ? 'turret' : null;
+const carrierKind = (info, r) =>
+  info && info.cat === 'mount' && /\/turrets?\//.test(info.file)
+    ? { kind: 'turret', turretKind: turretKind(r) }
+    : null;
 function subtreeItems(entry, acc = [], depth = 0, carrier = null) {
   if (!entry || typeof entry !== 'object' || depth > 12) return acc;
   const r = resolveEntryRecord(entry);
   const info = r ? itemInfoFromRecord(r) : null;
-  if (info) acc.push(carrier ? { ...info, carrier } : info);
-  const next = carrierKind(info) ?? carrier;
+  if (info) acc.push(carrier ? { ...info, carrier: carrier.kind, ...(carrier.turretKind ? { turretKind: carrier.turretKind } : {}) } : info);
+  const mount = carrierKind(info, r);
+  if (mount) turretStationAcc.push({ port: entry.itemPortName || null, turretKind: mount.turretKind });
+  const next = mount ?? carrier;
   for (const n of entriesOf(entry)) subtreeItems(n, acc, depth + 1, next);
   return acc;
 }
@@ -129,7 +179,11 @@ const byId = new Map();
 for (const r of shipRecs) { const id = recId(r); if (!byId.has(id)) byId.set(id, r); }
 
 // Loadout eines Ship-Records extrahieren: { port -> {name,size,cat,cls,count} }
-const REAL = new Set(['weapon', 'missile', 'power', 'shield', 'cooler', 'quantum', 'radar', 'countermeasure']);
+// qtfueltank/h2fueltank/orepod (01.4-02, Gruppe B): nur cat+cls+count werden
+// hier durchgereicht, die SCU-Kapazitaet je Item liest datamine-vehicles.mjs
+// selbst nach (readItem(cls) -> ResourceContainer), wie es das schon fuer
+// Schild/Quantum tut — keine Kapazitaetsrechnung an zwei Stellen.
+const REAL = new Set(['weapon', 'missile', 'power', 'shield', 'cooler', 'quantum', 'radar', 'countermeasure', 'qtfueltank', 'h2fueltank', 'orepod']);
 let lastCargoScu = 0;
 function extractLoadout(rec) {
   const o = db.readRecord(rec, { maxDepth: 20, typed: true });
@@ -137,20 +191,24 @@ function extractLoadout(rec) {
   const entries = entriesOf(comp);
   const ports = {};
   lastCargoScu = entries.reduce((s, e) => s + gridScu(e).scu, 0);
+  turretStationAcc = [];
   for (const e of entries) {
     const port = e.itemPortName || '';
     if (!port) continue;
     const leaves = subtreeItems(e).filter((it) => REAL.has(it.cat)); // nur echte Komponenten/Waffen
     if (!leaves.length) continue;
     // gleiche Items zusammenfassen (2× CF-227 …) — Pilot- und Turmwaffe gleichen
-    // Namens bleiben getrennt, sonst geht die Zuordnung wieder verloren
+    // Namens bleiben getrennt, sonst geht die Zuordnung wieder verloren.
+    // turretKind gehoert mit in den Schluessel: sonst wuerden gleichnamige
+    // Waffen unter verschiedenen Turmgattungen (selten, aber moeglich) verschmelzen.
     const by = {};
-    for (const it of leaves) { const k = `${it.name || it.cls}|${it.carrier ?? ''}`; (by[k] = by[k] || { ...it, count: 0 }).count++; }
+    for (const it of leaves) { const k = `${it.name || it.cls}|${it.carrier ?? ''}|${it.turretKind ?? ''}`; (by[k] = by[k] || { ...it, count: 0 }).count++; }
     // lowercase-Key: Bone-Namen (.cga) und Port-Namen (DataCore) weichen bei
     // manchen Schiffen in der Groß-/Kleinschreibung ab -> case-insensitiver Join.
     ports[port.toLowerCase()] = Object.values(by).map((it) => ({
       name: it.name, size: it.size, cat: it.cat, cls: it.cls, count: it.count,
       ...(it.carrier ? { carrier: it.carrier } : {}),
+      ...(it.turretKind ? { turretKind: it.turretKind } : {}),
     }));
   }
   return ports;
@@ -212,6 +270,7 @@ const idsToDo = ONLY ? [ONLY] : ourIds;
 const out = {};
 const portsOut = {};
 const cargoOut = {};
+const turretStationsOut = {};
 const matched = [], unmatched = [];
 for (const id of idsToDo) {
   const rec = byId.get(id);
@@ -220,6 +279,15 @@ for (const id of idsToDo) {
   out[id] = extractLoadout(rec);
   cargoOut[id] = Math.round(lastCargoScu);
   portsOut[id] = extractPorts(rec);
+  // Turm-Staende deduplizieren (ein Port kann in der Rekursion nur einmal als
+  // Turm-Mount vorkommen, aber sicherheitshalber ueber den Portnamen entdoppelt).
+  const seen = new Set();
+  turretStationsOut[id] = turretStationAcc.filter((s) => {
+    const k = (s.port || '') + '|' + s.turretKind;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
 }
 
 // ---- Audit ----
@@ -262,7 +330,7 @@ const zero = matched.filter((id) => {
 console.log(`\n=== Schiffe mit 0 benannten core+arms-Ports (${zero.length}) ===\n  ${zero.join(', ') || 'keine'}`);
 
 if (!AUDIT && !ONLY) {
-  writeFileSync(OUT, JSON.stringify({ generatedAt: new Date().toISOString().slice(0, 10), source: 'DataCore Game2.dcb / SEntityComponentDefaultLoadoutParams', count: matched.length, ships: out, ports: portsOut, cargo: cargoOut }, null, 0));
+  writeFileSync(OUT, JSON.stringify({ generatedAt: new Date().toISOString().slice(0, 10), source: 'DataCore Game2.dcb / SEntityComponentDefaultLoadoutParams', count: matched.length, ships: out, ports: portsOut, cargo: cargoOut, turretStations: turretStationsOut }, null, 0));
   console.log(`\n-> ${OUT} geschrieben (${matched.length} Schiffe)`);
 } else {
   console.log(`\n(Audit-Modus: keine Datei geschrieben)`);
