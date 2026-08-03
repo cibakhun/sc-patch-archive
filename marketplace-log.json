@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-03",
-  "updates": 18,
-  "totalListings": 1372,
-  "totalSold": 42,
-  "distinctItems": 574
+  "updates": 19,
+  "totalListings": 1409,
+  "totalSold": 43,
+  "distinctItems": 587
  },
  "listings": {
   "156580": {
@@ -20697,6 +20697,10 @@
     {
      "d": "2026-08-03",
      "p": 450000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 400000
     }
    ],
    "soldOut": false,
@@ -28640,9 +28644,9 @@
      "p": 5000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 5000000,
    "dateAdded": 1785777025,
    "dateExpiration": 1790961025
   },
@@ -28981,6 +28985,783 @@
    "soldOutPrice": null,
    "dateAdded": 1785779072,
    "dateExpiration": 1790963072
+  },
+  "158102": {
+   "idItem": 5413,
+   "idCategory": 18,
+   "title": "Ripper \"Sunblock\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785779918,
+   "dateExpiration": 1790963918
+  },
+  "158104": {
+   "idItem": 4902,
+   "idCategory": 18,
+   "title": "Fresnel \"Molten\" Energy LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785780202,
+   "dateExpiration": 1790964202
+  },
+  "158106": {
+   "idItem": null,
+   "idCategory": 111,
+   "title": "DCHS full set 1-7",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785780450,
+   "dateExpiration": 1790964450
+  },
+  "158107": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Bokto Armor Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785780582,
+   "dateExpiration": 1790964582
+  },
+  "158108": {
+   "idItem": null,
+   "idCategory": 111,
+   "title": "DCHS Compboard Set 1-7",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 5500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785780629,
+   "dateExpiration": 1790964629
+  },
+  "158111": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium 974Q 2.093 Scu!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 974,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 25000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785780957,
+   "dateExpiration": 1790964957
+  },
+  "158115": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785781108,
+   "dateExpiration": 1790965108
+  },
+  "158116": {
+   "idItem": 5409,
+   "idCategory": 1,
+   "title": "Strata Arms",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785781506,
+   "dateExpiration": 1790965506
+  },
+  "158118": {
+   "idItem": 2762,
+   "idCategory": 4,
+   "title": "Calico Legs (Modified)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785781568,
+   "dateExpiration": 1790965568
+  },
+  "158120": {
+   "idItem": 3240,
+   "idCategory": 1,
+   "title": "Overlord Arms Switchback",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785781710,
+   "dateExpiration": 1790965710
+  },
+  "158121": {
+   "idItem": 3415,
+   "idCategory": 5,
+   "title": "Aztalan Core",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785781773,
+   "dateExpiration": 1790965773
+  },
+  "158122": {
+   "idItem": 322,
+   "idCategory": 5,
+   "title": "ADP Core Yellow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785781848,
+   "dateExpiration": 1790965847
+  },
+  "158123": {
+   "idItem": 5805,
+   "idCategory": 7,
+   "title": "Geist Armor ASD Edition Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785781868,
+   "dateExpiration": 1790965868
+  },
+  "158125": {
+   "idItem": 1497,
+   "idCategory": 3,
+   "title": "Stoneskin Helmet Tactical",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785781968,
+   "dateExpiration": 1790965968
+  },
+  "158126": {
+   "idItem": 6708,
+   "idCategory": 5,
+   "title": "Palatino Core Daystar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785781977,
+   "dateExpiration": 1790965977
+  },
+  "158127": {
+   "idItem": 1767,
+   "idCategory": 19,
+   "title": "Blizzard",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785782015,
+   "dateExpiration": 1790966015
+  },
+  "158128": {
+   "idItem": 5713,
+   "idCategory": 4,
+   "title": "Morozov-SH-I Legs Pyrotechnic Horizon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785782154,
+   "dateExpiration": 1790966154
+  },
+  "158130": {
+   "idItem": 1387,
+   "idCategory": 5,
+   "title": "Venture Core Dark Green",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785782337,
+   "dateExpiration": 1790966337
+  },
+  "158131": {
+   "idItem": 1358,
+   "idCategory": 1,
+   "title": "ADP Arms Black",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785782407,
+   "dateExpiration": 1790966407
+  },
+  "158132": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Chiron Heartthrob (Full Set) (Bundle from the RSI store)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785782455,
+   "dateExpiration": 1790966455
+  },
+  "158133": {
+   "idItem": 264,
+   "idCategory": 1,
+   "title": "ORC-mkX Arms Desert",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785782545,
+   "dateExpiration": 1790966545
+  },
+  "158134": {
+   "idItem": 1365,
+   "idCategory": 1,
+   "title": "Venture Arms Grey",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785782611,
+   "dateExpiration": 1790966611
+  },
+  "158135": {
+   "idItem": 5848,
+   "idCategory": 36,
+   "title": "Agricium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 796,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785782724,
+   "dateExpiration": 1790966724
+  },
+  "158136": {
+   "idItem": 6125,
+   "idCategory": 5,
+   "title": "Strata Core Lodestar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785782799,
+   "dateExpiration": 1790966799
+  },
+  "158137": {
+   "idItem": 5848,
+   "idCategory": 36,
+   "title": "Agricium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 896,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785782911,
+   "dateExpiration": 1790966911
+  },
+  "158138": {
+   "idItem": 4464,
+   "idCategory": 3,
+   "title": "ADP-mk4 Helmet Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785782962,
+   "dateExpiration": 1790966962
+  },
+  "158139": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 2900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785783095,
+   "dateExpiration": 1790967095
+  },
+  "158140": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 875,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785783106,
+   "dateExpiration": 1790967106
+  },
+  "158142": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Citadel Icefall Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785783183,
+   "dateExpiration": 1790967183
+  },
+  "158143": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 909,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785783184,
+   "dateExpiration": 1790967184
+  },
+  "158144": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 756,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785783201,
+   "dateExpiration": 1790967201
+  },
+  "158145": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 855,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 855
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785783288,
+   "dateExpiration": 1790967288
+  },
+  "158146": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 742,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785783365,
+   "dateExpiration": 1790967365
+  },
+  "158147": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "Gold",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 644,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785783468,
+   "dateExpiration": 1790967468
+  },
+  "158148": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron 972Q 3,706SCU available",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 42000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785783510,
+   "dateExpiration": 1790967510
+  },
+  "158149": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 710,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785783550,
+   "dateExpiration": 1790967550
+  },
+  "158150": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron 947q 0,714 SCU available",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 35000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785783580,
+   "dateExpiration": 1790967580
   }
  }
 }
