@@ -101,6 +101,7 @@ None yet.
 
 - Phase 01.1 inserted after Phase 1: Ambiente-Effekte stilllegen — Mauszeiger-Schein raus, Partikel opt-in (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 - Phase 01.2 inserted after Phase 1: Werkzeuge erklaeren — Zweck- und Bedienungshilfe je Werkzeug (Besucher-Rueckmeldung 29.07.2026) (URGENT)
+- Phase 5 added (2026-08-03): Komponenten-Filter für Schiffe — Filter nach Steckplatz-Größe je Bauteilart. Hängt an keiner Vorgängerphase; eigener Zweig `claude/gsd-ship-component-filter-f81262`. Vorab-Spike hat die Datenquelle belegt: `Scripts/Entities/Vehicles/Implementations/Xml/<SCHIFF>.xml` (CryXmlB) trägt je Part einen `ItemPort` mit `minSize`/`maxSize`/`Types`; der DataCore-Schiffsrecord führt den Pfad dieser XML selbst als Dateiverweis, der Join braucht also kein Namensraten.
 
 ## Deferred Items
 

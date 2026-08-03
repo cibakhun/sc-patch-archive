@@ -25,6 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Schrift- und Bewegungsskala** - Eine gemeinsame Skala für Schriftgrade und Übergänge statt seitenlokaler Einzelwerte
 - [ ] **Phase 3: Überlagerungen entstapeln** - Class-B-Befund abtragen, Textkontrast über Bildmotiven belegen
 - [ ] **Phase 4: Sprachparität absichern** - Deckungsgleichheit der Seitenpaare nachweisbar statt behauptet
+- [ ] **Phase 5: Komponenten-Filter für Schiffe** - Schiffsliste filtert nach Steckplatz-Größe je Bauteilart
 
 ## Phase Details
 
@@ -165,10 +166,32 @@ Plans:
 - [ ] 04-01: Prüfschritt für die Deckungsgleichheit der angefassten Seitenpaare bauen
 - [ ] 04-02: Prüfschritt in `npm run verify` bzw. `audit:site` einhängen und Hellmodus-Generierung bestätigen
 
+### Phase 5: Komponenten-Filter für Schiffe
+
+**Goal**: Wer wissen will, welche Schiffe eine bestimmte Bauteilgröße aufnehmen können, findet sie in der Schiffsliste: ein Auswahlfeld benennt die Bauteilart, ein zweites die Mindestgröße — und die Liste zeigt nur noch die Schiffe, deren Steckplätze das hergeben. Gemessen wird, was reinpasst, nicht was ab Werk drinsteckt.
+**Mode:** mvp
+**Depends on**: Nothing — unabhängig von Phase 1–4, fasst nur die Schiffsliste an
+**Requirements**: TBD (in discuss-phase zu erheben)
+**Success Criteria** (what must be TRUE):
+
+  1. Auf `/schiffe.html` und `/de/schiffe.html` steht ein Feld „Komponente" (Waffe, Turm, Rakete, Schild, Kühler, Kraftwerk, Quantenantrieb, Radar — keine Gegenmaßnahmen) neben einem Feld für die Mindestgröße
+  2. Die Auswahl „Waffe / ab S5" lässt genau die Schiffe stehen, die mindestens einen Waffensteckplatz mit `maxSize >= 5` haben — stichprobenartig gegen die Spieldateien belegt
+  3. Die Größen stammen aus der Fahrzeug-Implementierungs-XML im p4k (`ItemPort` `maxSize`), nicht aus dem Stock-Loadout und nicht aus einer Fremdquelle
+  4. Der Filter greift mit den bestehenden Feldern (Suche, Hersteller, Typ, Status, Archiv) zusammen und der Ergebniszähler stimmt
+  5. Schiffe ohne Steckplatz-Daten verschwinden nicht stillschweigend, sondern sind als solche erkennbar
+  6. Deutsche und englische Fassung verhalten sich identisch, bis hinunter auf 360 px Breite, in beiden Farbmodi
+
+**Plans**: 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 5 to break down)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
+(Phase 5 hängt an keiner Vorgängerphase und kann vorgezogen werden.)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -178,3 +201,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
+| 5. Komponenten-Filter für Schiffe | 0/? | Not started | - |
