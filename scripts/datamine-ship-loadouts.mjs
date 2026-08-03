@@ -38,7 +38,9 @@ const db = openDataCore(dcb);
 
 const EN = new Map();
 for (const line of iniEn.split(/\r?\n/)) { const i = line.indexOf('='); if (i > 0) EN.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase(), line.slice(i + 1)); }
-const loc = (k) => { if (!k || typeof k !== 'string' || !k.startsWith('@')) return null; const v = EN.get(k.slice(1).toLowerCase()); return v && !/^@|PLACEHOLDER|LOC_EMPTY/.test(v) ? v : null; };
+// getrimmt: die global.ini liefert einzelne Namen mit Rand-Leerzeichen
+// ("MVSA Cannon "). Das ist unsichtbar, verhindert aber jeden Join per Namen.
+const loc = (k) => { if (!k || typeof k !== 'string' || !k.startsWith('@')) return null; const v = EN.get(k.slice(1).toLowerCase())?.trim(); return v && !/^@|PLACEHOLDER|LOC_EMPTY/.test(v) ? v : null; };
 const findType = (o, rx) => { let r; (function w(x){ if(r!==undefined||!x||typeof x!=='object')return; if(x.__type&&rx.test(x.__type)){r=x;return;} for(const [k,v] of Object.entries(x)){ if(k==='__type')continue; if(v&&typeof v==='object')w(v);} })(o); return r; };
 const findKey = (o, key) => { let r; (function w(x){ if(r!==undefined||!x||typeof x!=='object')return; if(x&&key in x){r=x[key];return;} for(const v of Object.values(x)) if(v&&typeof v==='object') w(v);})(o); return r; };
 
@@ -95,13 +97,22 @@ function itemInfoFromRecord(r) {
 // Alle Items im Port-Teilbaum einsammeln (Self + verschachtelte Kinder). Der
 // REAL-Filter (Aufrufer) wirft Träger/Fixtures raus -> uebrig bleibt die echte
 // Komponente (Self) bzw. die Waffe/Rakete unter dem Mount.
+//
+// `carrier`: worunter das Item haengt. Das ist der EINZIGE belastbare
+// Unterschied zwischen Piloten- und Turmwaffe — Portnamen taugen dafuer nicht
+// (78 Ports heissen weder "...turret" noch nach einem bekannten Pilotmuster).
+// Eine Kanone unter einem Turm-Traeger ist eine Turmwaffe, dieselbe Kanone
+// unter einem Gimbal ist eine Pilotenwaffe.
 const entriesOf = (x) => Array.isArray(x?.loadout?.entries) ? x.loadout.entries : [];
-function subtreeItems(entry, acc = [], depth = 0) {
+const carrierKind = (info) =>
+  info && info.cat === 'mount' && /\/turrets?\//.test(info.file) ? 'turret' : null;
+function subtreeItems(entry, acc = [], depth = 0, carrier = null) {
   if (!entry || typeof entry !== 'object' || depth > 12) return acc;
   const r = resolveEntryRecord(entry);
   const info = r ? itemInfoFromRecord(r) : null;
-  if (info) acc.push(info);
-  for (const n of entriesOf(entry)) subtreeItems(n, acc, depth + 1);
+  if (info) acc.push(carrier ? { ...info, carrier } : info);
+  const next = carrierKind(info) ?? carrier;
+  for (const n of entriesOf(entry)) subtreeItems(n, acc, depth + 1, next);
   return acc;
 }
 
@@ -119,35 +130,96 @@ for (const r of shipRecs) { const id = recId(r); if (!byId.has(id)) byId.set(id,
 
 // Loadout eines Ship-Records extrahieren: { port -> {name,size,cat,cls,count} }
 const REAL = new Set(['weapon', 'missile', 'power', 'shield', 'cooler', 'quantum', 'radar', 'countermeasure']);
+let lastCargoScu = 0;
 function extractLoadout(rec) {
   const o = db.readRecord(rec, { maxDepth: 20, typed: true });
   const comp = findType(o, /SEntityComponentDefaultLoadoutParams/i);
   const entries = entriesOf(comp);
   const ports = {};
+  lastCargoScu = entries.reduce((s, e) => s + gridScu(e).scu, 0);
   for (const e of entries) {
     const port = e.itemPortName || '';
     if (!port) continue;
     const leaves = subtreeItems(e).filter((it) => REAL.has(it.cat)); // nur echte Komponenten/Waffen
     if (!leaves.length) continue;
-    // gleiche Items zusammenfassen (2× CF-227 …)
+    // gleiche Items zusammenfassen (2× CF-227 …) — Pilot- und Turmwaffe gleichen
+    // Namens bleiben getrennt, sonst geht die Zuordnung wieder verloren
     const by = {};
-    for (const it of leaves) { const k = it.name || it.cls; (by[k] = by[k] || { ...it, count: 0 }).count++; }
+    for (const it of leaves) { const k = `${it.name || it.cls}|${it.carrier ?? ''}`; (by[k] = by[k] || { ...it, count: 0 }).count++; }
     // lowercase-Key: Bone-Namen (.cga) und Port-Namen (DataCore) weichen bei
     // manchen Schiffen in der Groß-/Kleinschreibung ab -> case-insensitiver Join.
-    ports[port.toLowerCase()] = Object.values(by).map((it) => ({ name: it.name, size: it.size, cat: it.cat, cls: it.cls, count: it.count }));
+    ports[port.toLowerCase()] = Object.values(by).map((it) => ({
+      name: it.name, size: it.size, cat: it.cat, cls: it.cls, count: it.count,
+      ...(it.carrier ? { carrier: it.carrier } : {}),
+    }));
   }
   return ports;
+}
+
+/**
+ * Fracht-Kapazität: Summe der Innenmaße aller verbauten Frachtgitter.
+ * 1 SCU ist ein Würfel mit 1,25 m Kante, also SCU = x·y·z / 1,953125.
+ * Die Gitter selbst fliegen oben als 'fixture' raus (sie sind keine Komponente,
+ * die man tauscht) — die Kapazität ist trotzdem eine Schiffsangabe.
+ */
+const SCU_M3 = 1.25 ** 3;
+const containerCache = new Map();
+function gridScu(entry, acc = { scu: 0 }, depth = 0) {
+  if (!entry || typeof entry !== 'object' || depth > 12) return acc;
+  const r = resolveEntryRecord(entry);
+  if (r && /cargogrid/i.test(norm(r.fileName))) {
+    let scu = containerCache.get(r.id);
+    if (scu === undefined) {
+      const o = db.readRecord(r, { maxDepth: 7, typed: true });
+      const ref = findKey(o, 'containerParams')?.__ref;
+      const cr = ref ? db.recordById.get(ref) : null;
+      const d = cr ? db.readRecord(cr, { maxDepth: 5, typed: true })?.interiorDimensions : null;
+      scu = d?.x != null ? (d.x * d.y * d.z) / SCU_M3 : 0;
+      containerCache.set(r.id, scu);
+    }
+    acc.scu += scu;
+  }
+  for (const n of entriesOf(entry)) gridScu(n, acc, depth + 1);
+  return acc;
+}
+
+/**
+ * Port-Definitionen des Schiffs: was PASST wohin (nicht was drin steckt).
+ * Ersetzt die Hardpoint-Größen, die bisher aus der Wiki kamen — und die dort
+ * teils veraltet waren (S2-Waffe in angeblich S1-Port auf M50/Mustang).
+ */
+function extractPorts(rec) {
+  const o = db.readRecord(rec, { maxDepth: 20, typed: true });
+  const out = {};
+  (function walk(x, depth) {
+    if (!x || typeof x !== 'object' || depth > 18) return;
+    if (Array.isArray(x)) { for (const v of x) walk(v, depth); return; }
+    if (x.__type === 'SItemPortContainerComponentParams' && Array.isArray(x.Ports)) {
+      for (const p of x.Ports) {
+        if (!p?.Name || typeof p.MaxSize !== 'number') continue;
+        const types = [];
+        for (const t of p.Types ?? []) { const v = t?.Type ?? t; if (typeof v === 'string') types.push(v); }
+        out[String(p.Name).toLowerCase()] = { min: p.MinSize ?? null, max: p.MaxSize, types };
+      }
+    }
+    for (const [k, v] of Object.entries(x)) if (k !== '__type' && v && typeof v === 'object') walk(v, depth + 1);
+  })(o, 0);
+  return out;
 }
 
 // ---- Lauf ----
 const idsToDo = ONLY ? [ONLY] : ourIds;
 const out = {};
+const portsOut = {};
+const cargoOut = {};
 const matched = [], unmatched = [];
 for (const id of idsToDo) {
   const rec = byId.get(id);
   if (!rec) { unmatched.push(id); continue; }
   matched.push(id);
   out[id] = extractLoadout(rec);
+  cargoOut[id] = Math.round(lastCargoScu);
+  portsOut[id] = extractPorts(rec);
 }
 
 // ---- Audit ----
@@ -190,7 +262,7 @@ const zero = matched.filter((id) => {
 console.log(`\n=== Schiffe mit 0 benannten core+arms-Ports (${zero.length}) ===\n  ${zero.join(', ') || 'keine'}`);
 
 if (!AUDIT && !ONLY) {
-  writeFileSync(OUT, JSON.stringify({ generatedAt: new Date().toISOString().slice(0, 10), source: 'DataCore Game2.dcb / SEntityComponentDefaultLoadoutParams', count: matched.length, ships: out }, null, 0));
+  writeFileSync(OUT, JSON.stringify({ generatedAt: new Date().toISOString().slice(0, 10), source: 'DataCore Game2.dcb / SEntityComponentDefaultLoadoutParams', count: matched.length, ships: out, ports: portsOut, cargo: cargoOut }, null, 0));
   console.log(`\n-> ${OUT} geschrieben (${matched.length} Schiffe)`);
 } else {
   console.log(`\n(Audit-Modus: keine Datei geschrieben)`);
