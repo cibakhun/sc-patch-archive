@@ -605,7 +605,15 @@ function buildVehicle(id) {
     sizeDe: veh?.movementClass === 'Spaceship' ? SIZE_LABEL[sizeClass] ?? null : 'Fahrzeug',
     descriptionEn: locEn(veh?.vehicleDescription),
     descriptionDe: locDe(veh?.vehicleDescription),
-    crew: veh?.crewSize ?? null,
+    // Besatzung (D-17, 01.4-04): die Spanne bleibt auf dem Datenblatt.
+    // `crewMin` kommt aus dem Spiel (`crewSize`) — Betriebsbesatzung, deckt
+    // sich auf 223/223 gemessenen Fahrzeugen exakt mit der bisherigen
+    // Wiki-`crewMin`. `crewMax` liefert NICHT dieses Skript, sondern die
+    // Einmisch-Schleife unten aus vehicle-external.json (01.4-03, einmalig aus
+    // dem Wiki-Snapshot eingefroren, 9 rückläufige Spannen bewusst ausgelassen
+    // — betroffene Fahrzeuge tragen dann nur `crewMin`, keine künstlich
+    // gleichgesetzte Spanne).
+    crewMin: veh?.crewSize ?? null,
     isGravlev: veh?.isGravlevVehicle ?? null,
     isSpaceship: veh?.movementClass === 'Spaceship',
     scmSpeed: ifcs?.scmSpeed ?? null,

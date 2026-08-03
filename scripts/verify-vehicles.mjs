@@ -22,7 +22,7 @@ const game = rd('vehicles-gamefiles.json').vehicles;
 // Direkt vergleichbare Skalare. Links = Feld im Spiel-Katalog, rechts im Wiki-Katalog.
 const SCALARS = [
   ['name', 'name'], ['manufacturer', 'manufacturer'], ['makerCode', 'makerCode'],
-  ['sizeDe', 'sizeDe'], ['crew', 'crewMax'], ['cargoSCU', 'cargoSCU'],
+  ['sizeDe', 'sizeDe'], ['crewMin', 'crewMin'], ['crewMax', 'crewMax'], ['cargoSCU', 'cargoSCU'],
   ['scmSpeed', 'scmSpeed'], ['maxSpeed', 'maxSpeed'], ['boostForward', 'boostForward'],
   ['pitch', 'pitch'], ['yaw', 'yaw'], ['roll', 'roll'],
   ['hullHp', 'hullHp'], ['shieldHp', 'shieldHp'], ['qtSpeedMs', 'qtSpeedMs'],
@@ -91,7 +91,14 @@ const COVERAGE_FLOOR = {
   typeEn: 223, typeDe: 223, roleEn: 223, roleDe: 223,
   sizeClass: 223, sizeDe: 223,
   descriptionEn: 219, descriptionDe: 219,
-  crew: 223, isGravlev: 223, isSpaceship: 223,
+  // crewMin/crewMax (01.4-04, D-17): crewMin loest das alte Feld `crew` ab (223
+  // gebaute Fahrzeuge + 4 ATLS-Uebernahmen = 227 moeglich, Floor bleibt bei der
+  // alten, gemessenen Untergrenze 223 stehen). crewMax ist eingefroren
+  // (vehicle-external.json, Plan 03) — 218 von 227 gemessen: 223 gebaute
+  // Fahrzeuge minus 9 bewusst ausgelassene ruecklaeufige Spannen (600i Touring,
+  // Idris-M/P, Ironclad, Starfarer, Starlancer TAC, MOLE, MOTH, ROC-DS) plus
+  // 4 ATLS-Uebernahmen.
+  crewMin: 223, crewMax: 218, isGravlev: 223, isSpaceship: 223,
   scmSpeed: 183, maxSpeed: 183, boostForward: 183,
   pitch: 183, yaw: 183, roll: 183,
   hullHp: 223, shieldHp: 208,
