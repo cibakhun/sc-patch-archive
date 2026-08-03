@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-03",
-  "updates": 15,
-  "totalListings": 1305,
-  "totalSold": 33,
-  "distinctItems": 562
+  "updates": 16,
+  "totalListings": 1313,
+  "totalSold": 35,
+  "distinctItems": 564
  },
  "listings": {
   "156580": {
@@ -17702,9 +17702,9 @@
      "p": 23000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 23000000,
    "dateAdded": 1785689781,
    "dateExpiration": 1790873781
   },
@@ -19834,9 +19834,9 @@
      "p": 2000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 2000000,
    "dateAdded": 1785700669,
    "dateExpiration": 1790884669
   },
@@ -27562,6 +27562,174 @@
    "soldOutPrice": null,
    "dateAdded": 1785764328,
    "dateExpiration": 1790948328
+  },
+  "157991": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 13500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785765362,
+   "dateExpiration": 1790949362
+  },
+  "157992": {
+   "idItem": 7116,
+   "idCategory": 14,
+   "title": "Mahoney Nurse Scrub Honeycomb set Patch 4.9 LIVE!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 100000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785765398,
+   "dateExpiration": 1790949398
+  },
+  "157993": {
+   "idItem": 159,
+   "idCategory": 23,
+   "title": "FullBlock",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785765428,
+   "dateExpiration": 1790949428
+  },
+  "157996": {
+   "idItem": 7512,
+   "idCategory": 14,
+   "title": "Auditor Shirt Crusader Edition (polo T-shirt) Patch 4.9 LIVE!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785766256,
+   "dateExpiration": 1790950256
+  },
+  "157997": {
+   "idItem": 1770,
+   "idCategory": 21,
+   "title": "JS-500",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785766284,
+   "dateExpiration": 1790950284
+  },
+  "157999": {
+   "idItem": 5022,
+   "idCategory": 61,
+   "title": "Yormandi Eye",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785766681,
+   "dateExpiration": 1790950681
+  },
+  "158003": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785767581,
+   "dateExpiration": 1790951581
+  },
+  "158004": {
+   "idItem": 4583,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785768088,
+   "dateExpiration": 1790952088
   }
  }
 }
