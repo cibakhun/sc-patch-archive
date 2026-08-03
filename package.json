@@ -28,6 +28,7 @@
     "datamine:loadouts": "node scripts/datamine-ship-loadouts.mjs",
     "datamine:vehicles": "node scripts/datamine-vehicles.mjs",
     "datamine:vehicle-roles": "node scripts/datamine-vehicle-roles.mjs",
+    "build:vehicle-external": "node scripts/build-vehicle-external.mjs",
     "sync:extras": "node scripts/sync-fleetyards-extras.mjs",
     "extract:hardpoints": "node scripts/extract-hardpoints.mjs",
     "extract:hardpoints:assembled": "node scripts/extract-hardpoints-assembled.mjs",

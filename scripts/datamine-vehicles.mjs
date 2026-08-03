@@ -18,10 +18,22 @@
 //   3. InventoryContainer-Records: Innenmaße der Frachtgitter. 1 SCU = 1,25 m
 //      Kantenlänge, also SCU = x·y·z / 1,953125.
 //
-// NICHT im Spiel und deshalb aus src/data/vehicle-external.json:
-//   msrpUSD, pledgeUrl (RSI-Store) und die publizierten Abmessungen. Alles
-//   andere kommt aus den Spieldateien. Die Datei ist der sichtbare Rest an
-//   Fremddaten — sie soll schrumpfen, nicht wachsen.
+// NICHT im Spiel und deshalb aus src/data/vehicle-external.json (01.4-03,
+// scripts/build-vehicle-external.mjs, einmalig aus dem Wiki-Snapshot vom
+// 18.07.2026 eingefroren, VOR dem Tausch, D-17): msrpUSD, pledgeUrl (RSI-Store),
+// lengthM/widthM/heightM (publizierte Abmessungen), image (fotografisches
+// Material, keine Engine-Textur), crewMax (D-11/D-17, beide Extraktionswege
+// Sackgassen), statusEn/statusDe (keine Ableitung unterscheidet die Javelin
+// strukturell) und fociDe (roleEn/roleDe ist eine andere, gröbere Taxonomie,
+// deckt nur 79/223 exakt). Alles andere kommt aus den Spieldateien. Die
+// Fremddatei ist der sichtbare Rest — sie soll schrumpfen, nicht wachsen. Die
+// Einmisch-Schleife unten übernimmt JEDES Feld, das die Fremddatei je Fahrzeug
+// führt, nicht eine feste Liste — bleibt also richtig, wenn die Liste schrumpft.
+//
+// Zusätzlich übernimmt vehicle-external.json (Block `overrides`) die vier
+// ARGO-ATLS-Varianten komplett aus dem Wiki-Snapshot (D-13): sie sind im
+// DataCore keine /spaceships/- oder /groundvehicles/-Fahrzeug-Entity, sondern
+// ein "Power Suit" (Character-Taxonomie) — s. Kommentar bei OVERRIDES unten.
 //
 // Schreibt bewusst NICHT direkt src/data/vehicles.json, sondern
 // src/data/vehicles-gamefiles.json. Der Tausch passiert erst, wenn
@@ -539,14 +551,36 @@ function findKeyObj(o, key, d = 0) {
 /* ---------------------------------------------------------------- */
 /* Lauf                                                              */
 /* ---------------------------------------------------------------- */
-const external = existsSync(EXTERNAL) ? JSON.parse(readFileSync(EXTERNAL, 'utf8')) : { vehicles: {} };
+const external = existsSync(EXTERNAL) ? JSON.parse(readFileSync(EXTERNAL, 'utf8')) : { vehicles: {}, overrides: {} };
 const ids = ONLY ? [ONLY] : ourIds;
 const out = [];
+const builtIds = new Set();
 for (const id of ids) {
   const v = buildVehicle(id);
   if (!v) continue;
+  // Einmisch-Schleife (01.4-03): übernimmt ALLES, was die Fremddatei je Fahrzeug
+  // führt, nicht eine feste Liste — bleibt so richtig, wenn die Liste aus Plan 02
+  // schrumpft. Die zehn möglichen Felder (Kopfkommentar) sind bereits beim
+  // Erzeugen von vehicle-external.json auf Nicht-Leere gefiltert; kein Feld hier
+  // kollidiert mit einem von buildVehicle() gelieferten Schlüssel.
   const ext = external.vehicles?.[id] ?? {};
-  out.push({ ...v, msrpUSD: ext.msrpUSD ?? null, pledgeUrl: ext.pledgeUrl ?? null, lengthM: ext.lengthM ?? null, widthM: ext.widthM ?? null, heightM: ext.heightM ?? null });
+  out.push({ ...v, ...ext });
+  builtIds.add(id);
+}
+
+// ATLS-Übernahmen (D-13, 01.4-03): vier Kennungen ohne DataCore-Record
+// (stats.noRec) — genau hier, an derselben Stelle, an der buildVehicle() sie
+// bisher stillschweigend übersprungen hat, kommen die aus dem Wiki-Snapshot
+// übernommenen Volldatensätze aus vehicle-external.json (Block `overrides`)
+// dazu. Ein `continue` ohne Ersatz war der Grund, warum der Katalog bislang
+// 223 statt 227 führte.
+let overridesAdded = 0;
+for (const id of ids) {
+  if (builtIds.has(id)) continue;
+  const ov = external.overrides?.[id];
+  if (!ov) continue;
+  out.push(ov);
+  overridesAdded++;
 }
 p4k.close();
 
@@ -556,13 +590,15 @@ console.log(`  Flugwerte (IFCS):     ${stats.ifcs}`);
 console.log(`  Schild-HP:            ${stats.shield}   Quantum: ${stats.qt}   Fracht: ${stats.cargo}`);
 console.log(`  QT-Treibstoff:        ${stats.qtFuel}   QT-Reichweite: ${stats.qtRange}   H2-Treibstoff: ${stats.h2Fuel}   Erz: ${stats.ore}`);
 if (stats.noRec.length) console.log(`  ohne DataCore-Record: ${stats.noRec.length} (${stats.noRec.join(', ')})`);
+if (overridesAdded) console.log(`  aus vehicle-external.json übernommen (ATLS): ${overridesAdded}`);
 
 if (!ONLY) {
   writeFileSync(OUT, JSON.stringify({
     generatedAt: new Date().toISOString().slice(0, 10),
     gameVersion: GAME_VERSION,
     source: 'Data.p4k — DataCore (Game2.dcb), Fahrzeug-Implementierungen (CryXmlB), InventoryContainer',
-    external: 'src/data/vehicle-external.json (msrpUSD, pledgeUrl, Abmessungen — nicht in den Spieldateien)',
+    external: 'src/data/vehicle-external.json (msrpUSD, pledgeUrl, Abmessungen, image, crewMax, statusEn/De,'
+      + ' fociDe — nicht in den Spieldateien; plus vier komplett übernommene ATLS-Datensätze, D-13)',
     count: out.length,
     vehicles: out,
   }, null, 2) + '\n', 'utf8');
