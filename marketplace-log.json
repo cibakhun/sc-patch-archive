@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-03",
-  "updates": 16,
-  "totalListings": 1313,
-  "totalSold": 35,
-  "distinctItems": 564
+  "updates": 17,
+  "totalListings": 1333,
+  "totalSold": 37,
+  "distinctItems": 566
  },
  "listings": {
   "156580": {
@@ -19020,9 +19020,9 @@
      "p": 950000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 950000,
    "dateAdded": 1785696111,
    "dateExpiration": 1790880111
   },
@@ -23328,9 +23328,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 1000000,
    "dateAdded": 1785723287,
    "dateExpiration": 1790907287
   },
@@ -27730,6 +27730,426 @@
    "soldOutPrice": null,
    "dateAdded": 1785768088,
    "dateExpiration": 1790952088
+  },
+  "158006": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 870,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785768669,
+   "dateExpiration": 1790952669
+  },
+  "158009": {
+   "idItem": 4586,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785768977,
+   "dateExpiration": 1790952977
+  },
+  "158017": {
+   "idItem": 5022,
+   "idCategory": 61,
+   "title": "WTS Yormandi Eye",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 550000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785770319,
+   "dateExpiration": 1790954319
+  },
+  "158020": {
+   "idItem": 5023,
+   "idCategory": 61,
+   "title": "WTS Yormandi Tongue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785770445,
+   "dateExpiration": 1790954445
+  },
+  "158023": {
+   "idItem": 4610,
+   "idCategory": 38,
+   "title": "DCHS-06 Communication Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785770674,
+   "dateExpiration": 1790954674
+  },
+  "158025": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "WTS DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785770697,
+   "dateExpiration": 1790954697
+  },
+  "158028": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "WTS MG Scrip",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 6000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785770859,
+   "dateExpiration": 1790954859
+  },
+  "158030": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "WTS Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785770985,
+   "dateExpiration": 1790954985
+  },
+  "158031": {
+   "idItem": 5943,
+   "idCategory": 36,
+   "title": "Ouratite Q912-965",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 960,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785771044,
+   "dateExpiration": 1790955044
+  },
+  "158033": {
+   "idItem": 5116,
+   "idCategory": 61,
+   "title": "WTS Irradiated Valakkar Pearl (AAA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785771150,
+   "dateExpiration": 1790955150
+  },
+  "158034": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "WTS UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785771259,
+   "dateExpiration": 1790955259
+  },
+  "158035": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "WTS Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785771345,
+   "dateExpiration": 1790955345
+  },
+  "158036": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 861,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785771349,
+   "dateExpiration": 1790955349
+  },
+  "158037": {
+   "idItem": 5703,
+   "idCategory": 87,
+   "title": "Beradom",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 723,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785771420,
+   "dateExpiration": 1790955420
+  },
+  "158039": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "WTS UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785771458,
+   "dateExpiration": 1790955458
+  },
+  "158040": {
+   "idItem": 3769,
+   "idCategory": 87,
+   "title": "Dolivine",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 621,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 15000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785771478,
+   "dateExpiration": 1790955478
+  },
+  "158041": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "WTS Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785771516,
+   "dateExpiration": 1790955516
+  },
+  "158042": {
+   "idItem": 6008,
+   "idCategory": 61,
+   "title": "WTS Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785771665,
+   "dateExpiration": 1790955665
+  },
+  "158043": {
+   "idItem": 4440,
+   "idCategory": 5,
+   "title": "Piecemeal Armor Core",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785771778,
+   "dateExpiration": 1790955778
+  },
+  "158044": {
+   "idItem": 4434,
+   "idCategory": 3,
+   "title": "Morozov-SH-I Helmet Pyrotechnic",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785771945,
+   "dateExpiration": 1790955945
   }
  }
 }
