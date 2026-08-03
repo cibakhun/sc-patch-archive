@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-03",
-  "updates": 22,
-  "totalListings": 1516,
-  "totalSold": 52,
-  "distinctItems": 608
+  "updates": 23,
+  "totalListings": 1525,
+  "totalSold": 55,
+  "distinctItems": 612
  },
  "listings": {
   "156580": {
@@ -23092,9 +23092,9 @@
      "p": 1200000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 1200000,
    "dateAdded": 1785718127,
    "dateExpiration": 1790902127
   },
@@ -31361,6 +31361,10 @@
     {
      "d": "2026-08-03",
      "p": 24500000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 26500000
     }
    ],
    "soldOut": false,
@@ -31552,9 +31556,9 @@
      "p": 1300000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 1300000,
    "dateAdded": 1785786468,
    "dateExpiration": 1790970468
   },
@@ -31594,9 +31598,9 @@
      "p": 300000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-03",
+   "soldOutPrice": 300000,
    "dateAdded": 1785786590,
    "dateExpiration": 1790970590
   },
@@ -31697,6 +31701,10 @@
     {
      "d": "2026-08-03",
      "p": 23500000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 25500000
     }
    ],
    "soldOut": false,
@@ -31844,6 +31852,10 @@
     {
      "d": "2026-08-03",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 2300000
     }
    ],
    "soldOut": false,
@@ -31907,6 +31919,10 @@
     {
      "d": "2026-08-03",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -31949,6 +31965,10 @@
     {
      "d": "2026-08-03",
      "p": 2700000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 2500000
     }
    ],
    "soldOut": false,
@@ -32061,6 +32081,195 @@
    "soldOutPrice": null,
    "dateAdded": 1785793083,
    "dateExpiration": 1790977083
+  },
+  "158213": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785793572,
+   "dateExpiration": 1790977571
+  },
+  "158215": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785794079,
+   "dateExpiration": 1790978079
+  },
+  "158216": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785794169,
+   "dateExpiration": 1790978169
+  },
+  "158220": {
+   "idItem": 5844,
+   "idCategory": 38,
+   "title": "Expired Quantanium Fuel Canister",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785795123,
+   "dateExpiration": 1796163123
+  },
+  "158223": {
+   "idItem": 8013,
+   "idCategory": 7,
+   "title": "Morozov-SH Crusader Edition Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785795879,
+   "dateExpiration": 1790979879
+  },
+  "158225": {
+   "idItem": 70,
+   "idCategory": 18,
+   "title": "LH86 Pistol (crafted) 913q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 913,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785796143,
+   "dateExpiration": 1790980143
+  },
+  "158226": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "L21 Wolf Stealth (Wikelo Kit)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785796363,
+   "dateExpiration": 1796164363
+  },
+  "158227": {
+   "idItem": 74,
+   "idCategory": 18,
+   "title": "S-38 Pistol (crafted) 913q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 913,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785796524,
+   "dateExpiration": 1790980523
+  },
+  "158229": {
+   "idItem": 5174,
+   "idCategory": 18,
+   "title": "Tripledown Pistol (crafted) 907q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 907,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 2400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785796907,
+   "dateExpiration": 1790980907
   }
  }
 }
