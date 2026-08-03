@@ -60,6 +60,20 @@ Sprachfassungen der Schiffsseite.
   — **Reversibility:** costly — die Regel bestimmt die Zuordnung im erzeugten JSON;
   eine Änderung erfordert Neuerzeugung und macht jede vorher geprüfte Stichprobe wertlos.
 
+- **D-06a (Revision am blockierenden Prüfpunkt, 03.08.2026):** Die ausgeführte Regel hatte zwei
+  Teile — den direkten Spieldaten-Typ `TurretBase` (ohne `Container`) und eine **geratene**
+  Zusatzregel, die Fernürme am Portnamen erkannte (`/remote/i`, aber nicht `/tractor/i`). Der
+  Nutzer hat die Namensregel am Prüfpunkt **gestrichen**: „Turm" wird ausschließlich über
+  `TurretBase` bestimmt — genauso direkt aus den Spieldaten gelesen wie `Shield` oder `Cooler`.
+  Damit steht **keine Heuristik** mehr im Auslieferungsstand.
+  **Preis, ausdrücklich in Kauf genommen:** Carrack, Redeemer und Polaris verlieren ihre
+  ferngesteuerten Türme — die tragen im Spiel nur `Turret`, nie `TurretBase`.
+  **Vorgeschichte:** Zuerst war „Turm-Kategorie ganz weglassen" gewählt. Dagegen sprach, dass die
+  Hammerhead **gar keine feste Waffe** trägt — ihre sechs S5-Geschütze sitzen sämtlich in Türmen,
+  ihr Eintrag hat kein `w`. Ersatzloses Streichen hätte sie und 58 weitere Turmschiffe über jeden
+  Waffenfilter unauffindbar gemacht. Daraufhin diese Fassung.
+  — **Reversibility:** costly — dieselbe Begründung wie D-06.
+
 - **D-07:** **Nur filtern, nicht anzeigen.** Weder Karte noch Datenblatt zeigen die
   Steckplatz-Größen. (Vom Nutzer gegen die Empfehlung entschieden; die Anzeige ist
   als Idee unter `<deferred>` festgehalten.)
