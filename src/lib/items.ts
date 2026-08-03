@@ -313,6 +313,24 @@ export function maxPrice(i: Item): number | null {
   return p === -Infinity ? null : p;
 }
 
+/**
+ * Mittelwert ueber ALLE bepreisten Bezugsquellen (dieselbe Filterregel wie
+ * minPrice/maxPrice: `price != null && price > 0`). `null` bei null Treffern —
+ * NICHT 0. Eine 0 waere eine erfundene Aussage (das Item hat schlicht keinen
+ * bekannten Kaufpreis, "0 aUEC" waere ein falscher Kaufpreis).
+ */
+export function avgPrice(i: Item): number | null {
+  let sum = 0;
+  let n = 0;
+  for (const o of i.obtain) {
+    if (o.price != null && o.price > 0) {
+      sum += o.price;
+      n++;
+    }
+  }
+  return n === 0 ? null : Math.round(sum / n);
+}
+
 /** Bezugsquellen fuer die Tabelle: guenstigste zuerst, Loot ans Ende. */
 export function sortedObtain(i: Item): Obtain[] {
   return [...i.obtain].sort((a, b) => {

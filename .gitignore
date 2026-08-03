@@ -42,6 +42,14 @@ build.log
 scratch/
 TEST_*.md
 
+# Von `npx skills add` installierte Fremd-Skills (Stripe-Doku u. a.).
+# Sie liegen als echte Dateien in skills/ und werden nach .agents/skills/
+# verlinkt — .agents/ steht schon oben, skills/ fehlte und wäre sonst
+# mit eingecheckt worden. Werkzeug, kein Projektinhalt: genauso behandelt
+# wie gsd-core und impeccable unter .claude/.
+skills/
+skills-lock.json
+
 # Holo-glTF-Downloadcache (calibrate-holo-markers.mjs, einmalig ~2 GB)
 .cache/
 
