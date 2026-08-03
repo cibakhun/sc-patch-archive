@@ -181,13 +181,13 @@ Plans:
   5. Schiffe ohne Steckplatz-Daten verschwinden nicht stillschweigend, sondern sind als solche erkennbar
   6. Deutsche und englische Fassung verhalten sich identisch, bis hinunter auf 360 px Breite, in beiden Farbmodi
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans executed
 
 Plans:
 
 - [x] 05-01-PLAN.md (Welle 1): Die Kette von der Spieldatei bis zur gefilterten Liste an einer Bauteilart beweisen — CryXmlB-Leser, Datamine-Skript, eingechecktes JSON, zwei Auswahlfelder und Filterlogik auf der englischen Seite — dann auf sieben Bauteilarten verbreitern
 - [x] 05-02-PLAN.md (Welle 2): Turm-Regel einbauen, gegen `vehicles.json` als Drittquelle nachweisen, an 15 Stichprobenschiffen von Hand bestaetigen und erst danach als achte Bauteilart freischalten
-- [ ] 05-03-PLAN.md (Welle 3): Deutsche Fassung auf denselben Stand bringen, automatischer Verhaltensnachweis gegen das Inline-Skript beider Sprachfassungen, Hausgates und Sichtpruefung
+- [x] 05-03-PLAN.md (Welle 3): Deutsche Fassung auf denselben Stand bringen, automatischer Verhaltensnachweis gegen das Inline-Skript beider Sprachfassungen, Hausgates und Sichtpruefung
 
 ## Progress
 
@@ -203,4 +203,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
-| 5. Komponenten-Filter für Schiffe | 2/3 | In Progress|  |
+| 5. Komponenten-Filter für Schiffe | 3/3 | In Progress|  |

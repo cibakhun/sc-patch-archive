@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1.1
 current_phase_name: Ambiente-Effekte stilllegen
 status: in_progress
-stopped_at: "Phase 5 Plan 2/3 ausgefuehrt (05-02: Turm-Regel D-06a + achte Bauteilart, Branch claude/gsd-ship-component-filter-f81262)"
-last_updated: "2026-08-03T20:54:42.850Z"
+stopped_at: "Phase 5 Plan 3/3 ausgefuehrt (05-03: DE-Spiegelung + automatischer Verhaltensnachweis, Branch claude/gsd-ship-component-filter-f81262) — Phase 5 abgeschlossen"
+last_updated: "2026-08-03T21:20:00.000Z"
 last_activity: 2026-08-02
 last_activity_desc: "Quick-Task 260802-5qd: Zurück folgt der Herkunft"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -33,7 +33,7 @@ Status: Phase 1.1 geplant (3 Pläne, 3 Wellen, Plan-Prüfer bestanden) — berei
 Branch: claude/site-feedback-effects-docs-3f4edf
 Last activity: 2026-08-02 — Quick-Task 260802-5qd: Zurück folgt der Herkunft
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [█████░░░░░] 50%
 | Phase 01.1 P02 | ~2h | 3 tasks | 39 files |
 | Phase 05 P01 | ~35min | 2 tasks | 6 files |
 | Phase 05 P02 | 55min | 3 tasks | 3 files |
+| Phase 05 P03 | ~45min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-01: compAttr liefert bei "Daten, aber keine Kategorie" den Platzhalter `_` statt der leeren Zeichenkette -- Astro rendert leere String-Attributwerte ohne `=`, was die automatisierte HTML-Zaehlung im Plan brach (siehe 05-01-SUMMARY.md Deviations)
 - [Phase 05]: 05-01: catOf() prueft `m` (MissileLauncher/BombLauncher) VOR `w` (WeaponGun), sonst landen Kombi-Halterungen faelschlich bei den Waffen; Turm-Platz bleibt bewusst frei fuer 05-02 (D-06)
 - [Phase 05]: 05-02: D-06 -> D-06a waehrend des blockierenden Checkpoints verschaerft -- die geratene Fernturm-Namenserkennung (`remote`/`tractor`) ist ersatzlos gestrichen, Turm zaehlt nur noch `TurretBase` ohne `Container` (reversibility: costly). Preis: Carrack/Redeemer/Polaris verlieren ihre ferngesteuerten Turm-Ports; 47 statt 59 Schiffe tragen jetzt `t`. `t` speichert wie alle Kategorien die maximale Steckplatzgroesse, NICHT die Turmanzahl (Verwechslungsgefahr, siehe 05-02-SUMMARY.md).
+- [Phase 05]: 05-03: deutsche Schiffsseite Zeichen-fuer-Zeichen auf denselben Filterstand gebracht (nur Beschriftungen deutsch); 26 automatisierte `node:vm`-Testfaelle (`tests/e2e/ship-component-filter.test.js`) fuehren das echte Inline-Skript BEIDER Sprachfassungen aus und decken D-04/D-08/D-10/D-11/D-12 sowie EN/DE-Sprachparitaet ab. Zwei stale Zahlen aus dem PLAN.md (59 statt 47 Turmkarten; Hammerhead-Anker bei Turm+6 statt +5) korrigiert -- beide waren bereits in 05-02-SUMMARY.md als noetige Korrekturen fuer diesen Plan vermerkt. Phase 5 damit abgeschlossen.
 
 ### Pending Todos
 
@@ -109,6 +111,7 @@ None yet.
 - Phase 5 added (2026-08-03): Komponenten-Filter für Schiffe — Filter nach Steckplatz-Größe je Bauteilart. Hängt an keiner Vorgängerphase; eigener Zweig `claude/gsd-ship-component-filter-f81262`. Vorab-Spike hat die Datenquelle belegt: `Scripts/Entities/Vehicles/Implementations/Xml/<SCHIFF>.xml` (CryXmlB) trägt je Part einen `ItemPort` mit `minSize`/`maxSize`/`Types`; der DataCore-Schiffsrecord führt den Pfad dieser XML selbst als Dateiverweis, der Join braucht also kein Namensraten.
 - Phase 5 Plan 1/3 ausgeführt (2026-08-03, Branch `claude/gsd-ship-component-filter-f81262`): CryXmlB-Leser + Datamine-Skript liefern 223/227 Schiffe über 7 von 8 Bauteilkategorien (Turm folgt in 05-02); englische Schiffsseite filtert per `sf-comp`/`sf-size`. Alle vier Hausgates (`build`/`verify`/`audit:site`/`test:e2e`) grün. Details: `.planning/phases/05-komponenten-filter-f-r-schiffe/05-01-SUMMARY.md`.
 - Phase 5 Plan 2/3 ausgeführt (2026-08-03, Branch `claude/gsd-ship-component-filter-f81262`): Turm-Regel (D-06a, vom Nutzer im Checkpoint auf reine `TurretBase`-Ablesung verschärft) + achte Bauteilart „Turret" auf der englischen Schiffsseite. 47/223 Schiffe tragen jetzt `t`. Alle vier Hausgates grün. Details: `.planning/phases/05-komponenten-filter-f-r-schiffe/05-02-SUMMARY.md`.
+- Phase 5 Plan 3/3 ausgeführt (2026-08-03, Branch `claude/gsd-ship-component-filter-f81262`): deutsche Schiffsseite auf denselben Filterstand gebracht (nur Beschriftungen deutsch) + 26 automatisierte `node:vm`-Testfälle gegen das echte Inline-Skript beider Sprachfassungen (D-04/D-08/D-10/D-11/D-12 + Sprachparität). Alle vier Hausgates grün, Sichtprüfung in beiden Sprachen/Farbmodi/360px per `agent-browser` bestätigt. **Phase 5 (Komponenten-Filter für Schiffe) damit abgeschlossen.** Details: `.planning/phases/05-komponenten-filter-f-r-schiffe/05-03-SUMMARY.md`.
 
 ## Deferred Items
 
@@ -120,6 +123,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-03T20:54:42.850Z
-Stopped at: "Phase 5 Plan 2/3 ausgefuehrt (05-02: Turm-Regel D-06a + achte Bauteilart, Branch claude/gsd-ship-component-filter-f81262)"
-Resume file: .planning/phases/05-komponenten-filter-f-r-schiffe/05-03-PLAN.md
+Last session: 2026-08-03T21:20:00.000Z
+Stopped at: "Phase 5 Plan 3/3 ausgefuehrt (05-03: DE-Spiegelung + automatischer Verhaltensnachweis, Branch claude/gsd-ship-component-filter-f81262) — Phase 5 abgeschlossen"
+Resume file: None
