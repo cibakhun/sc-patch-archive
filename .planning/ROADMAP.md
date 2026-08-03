@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 4: Sprachparität absichern** - Deckungsgleichheit der Seitenpaare nachweisbar statt behauptet
 - [ ] **Phase 5: Spenden-Unterstützung** - Ein Unterstützen-Weg, der tatsächlich Geld annimmt: PayPal-Link + Ko-fi, eigene Seite in der Richtung „Instandsetzung"
 - [x] **Phase 6: Schiffe: Rollen- und Merkmalsfilter** - Granulare, spielgenaue Filter statt acht Grobtypen
-- [ ] **Phase 7: Komponenten-Filter für Schiffe** - Schiffsliste filtert nach Steckplatz-Größe je Bauteilart
+- [x] **Phase 7: Komponenten-Filter für Schiffe** - Schiffsliste filtert nach Steckplatz-Größe je Bauteilart
 
 ## Phase Details
 
@@ -388,4 +388,4 @@ Phase 6 lief am 02.08.2026 vorab durch, während 1.1 noch offen war. Phase 7 set
 | 4. Sprachparität absichern | 0/2 | Not started | - |
 | 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |
 | 6. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |
-| 7. Komponenten-Filter für Schiffe | 3/3 | In Progress|  |
+| 7. Komponenten-Filter für Schiffe | 3/3 | Complete | 2026-08-03 |
