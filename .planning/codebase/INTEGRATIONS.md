@@ -18,8 +18,6 @@ Architectural rule (`astro.config.mjs` header comment): **all game data is baked
   - Auth: none (public); attribution to UEX is kept in the UI
 - scmdb (`https://scmdb.net`) - Residual reference for mining/gear/location cross-checks
   - Clients: `scripts/datamine-mining.mjs`, `scripts/datamine-gear.mjs`, `scripts/datamine-locations.mjs`, `scripts/freeze-mining-constants.mjs`
-- sc-craft.tools (`https://sc-craft.tools`) - Crafting reference snapshot
-  - Client: `scripts/fetch-craft.mjs`
 - RSI / Roberts Space Industries (`https://robertsspaceindustries.com`) - Comm-Link patch-notes URLs and citizen profile pages
   - Clients: `scripts/datamine-crafting.mjs`, and at runtime `supabase/functions/verify-rsi/index.ts`
 - Google Fonts (`https://fonts.googleapis.com`) - One-off download only; fonts are self-hosted afterwards in `assets/fonts/*.woff2` (`scripts/fetch-fonts.mjs`)
