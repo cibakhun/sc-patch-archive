@@ -185,6 +185,45 @@ gibt es keinen sicheren Zahlungsweg. Siehe `.planning/ROADMAP.md` § Phase 5.
 - **D-22:** Die Datenschutzerklärung nennt Stripe und Ko-fi als Empfänger mit
   Zweck, bevor die Seite live geht — analog zum bestehenden Web3Forms-Abschnitt.
 
+### Rückkehr zu Stripe (03.08.2026) — noch NICHT ausgeführt
+
+> **Anlass:** Der Geldbeutel des Betreibers ist wieder aufgetaucht, das
+> Stripe-Konto sollte damit durch die Identitätsprüfung sein. Genau diese
+> Prüfung war der Grund, warum Stripe am 02.08. rausflog (siehe den Block
+> „⚠ UMSTELLUNG AUF PAYPAL" oben).
+>
+> **Status: BLOCKIERT bis zur Bestätigung.** Der Betreiber hat ausdrücklich
+> „erst prüfen, dann bauen" gewählt. Zu prüfen sind zwei Dinge, die der
+> Assistent NICHT selbst sehen kann: ob das Konto ohne Aktivierungsbanner
+> dasteht, und ob unter /settings/payouts eine Bankverbindung hinterlegt ist.
+> **Ohne den zweiten Punkt ist die ganze Anbindung wertlos — das war der Fehler
+> vom 31.07., als Stripe empfohlen wurde, ohne die Auszahlbarkeit zu prüfen.**
+
+- **D-33:** Stripe wird wieder der **Hauptweg**, sobald die Freischaltung
+  bestätigt ist. **PayPal bleibt als nachgeordneter zweiter Weg** — der Link
+  steht bereits, kostet also nichts. Nicht gewählt: PayPal entfernen; nicht
+  gewählt: beide gleichrangig.
+- **D-34:** **Der Balken zählt Stripe automatisch (Webhook), PayPal trägt der
+  Betreiber von Hand nach.** Das löst den Widerspruch, den D-33 sonst erzeugt:
+  ein automatischer Balken, der einen von zwei Zahlungswegen systematisch
+  übersieht, wäre auf einer Seite mit diesem Faktentreue-Anspruch der
+  schlechteste Zustand. So bleibt er vollständig, ohne dass irgendwo geschätzt
+  wird.
+- **D-35:** Das am 02.08. gebaute **Admin-Feld bleibt bestehen** und wird NICHT
+  vom Stripe-Umbau ersetzt. Es wechselt die Rolle: vom alleinigen Weg, den Stand
+  zu pflegen, zum Nachtrag für den zweiten Zahlungsweg. Tabelle
+  `support_progress` und ihre Zugriffsregeln bleiben unverändert gültig.
+- **D-36:** Der geheime Stripe-Schlüssel ist nach S-02 ein **eingeschränkter**
+  Schlüssel (`rk_`), kein Secret Key, und wird ausschließlich vom Betreiber in
+  die Supabase-Function-Secrets eingetragen. Der Assistent bekommt ihn nicht zu
+  sehen. Der öffentliche `pk_test_` liegt in `superseded-stripe/05-STRIPE-ADDENDUM.md` § S-07.
+- **D-37:** Grundlage des Umbaus sind die sieben archivierten Pläne und der
+  Leitlinien-Abgleich S-01…S-07 unter `superseded-stripe/`. Sie wurden am 02.08.
+  bewusst nicht gelöscht, sondern mit genau dieser Begründung aufgehoben. Zu
+  streichen ist daraus, was inzwischen anders entschieden wurde: Unterstützer-
+  Wand, Moderationsoberfläche, Profil-Abzeichen (D-28), monatliche Zahlung
+  (D-29 — bei Stripe technisch wieder möglich, aber nicht neu beauftragt).
+
 ### Gestaltungsrichtung (nachgetragen 02.08.2026 nach Sichtung der Entwürfe)
 
 - **D-23:** Gewählt ist Richtung **A „Instandsetzung"** aus
