@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-03",
-  "updates": 11,
-  "totalListings": 1153,
+  "updates": 12,
+  "totalListings": 1163,
   "totalSold": 31,
-  "distinctItems": 523
+  "distinctItems": 525
  },
  "listings": {
   "156580": {
@@ -13649,6 +13649,10 @@
     {
      "d": "2026-08-02",
      "p": 27900000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 24900000
     }
    ],
    "soldOut": false,
@@ -13728,7 +13732,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-02",
-   "lastSeen": "2026-08-02",
+   "lastSeen": "2026-08-03",
    "prices": [
     {
      "d": "2026-08-02",
@@ -24342,6 +24346,216 @@
    "soldOutPrice": null,
    "dateAdded": 1785751221,
    "dateExpiration": 1790935221
+  },
+  "157916": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "WTS Iron, 907Q, 0,434SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 907,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785751338,
+   "dateExpiration": 1790935338
+  },
+  "157917": {
+   "idItem": 5910,
+   "idCategory": 36,
+   "title": "WTS Hephaestanite, 916Q, 1SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785751446,
+   "dateExpiration": 1790935446
+  },
+  "157918": {
+   "idItem": 5335,
+   "idCategory": 17,
+   "title": "Lux Flashlight",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785751591,
+   "dateExpiration": 1790935591
+  },
+  "157919": {
+   "idItem": 5910,
+   "idCategory": 36,
+   "title": "WTS Hephaestanite, 975Q, 0,655 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785751597,
+   "dateExpiration": 1790935597
+  },
+  "157923": {
+   "idItem": 6867,
+   "idCategory": 18,
+   "title": "Novian \"Wildshot\" Crossbow 860 Q CRAFTED !",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 860,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785752776,
+   "dateExpiration": 1790936776
+  },
+  "157924": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785753046,
+   "dateExpiration": 1790937046
+  },
+  "157925": {
+   "idItem": 4580,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Fang (Adult)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785753230,
+   "dateExpiration": 1790937230
+  },
+  "157927": {
+   "idItem": 5116,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AAA)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 999999
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785753411,
+   "dateExpiration": 1790937411
+  },
+  "157929": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Curated: Citadel SE-White Full Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785753575,
+   "dateExpiration": 1790937575
+  },
+  "157931": {
+   "idItem": 8026,
+   "idCategory": 7,
+   "title": "Corbel Crush Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785753636,
+   "dateExpiration": 1790937636
   }
  }
 }
