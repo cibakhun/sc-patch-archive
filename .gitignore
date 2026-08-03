@@ -42,7 +42,7 @@ build.log
 scratch/
 TEST_*.md
 
-# Holo-glTF-Downloadcache (calibrate-holo-markers.mjs, einmalig ~2 GB)
+# Holo-glTF-Downloadcache (scripts/build-holo-meshes.mjs, einmalig ~2 GB)
 .cache/
 
 # Spielermarkt-Mitschrieb: der Bestand gehoert auf den Zweig data/marketplace-log

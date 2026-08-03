@@ -2,9 +2,9 @@
 // Eingebettet in der Hangar-Bühne (kein Toggle-Popup mehr): lädt das
 // Draco-glTF von FleetYards, rendert es als Hologramm (Cyan-Emissive,
 // Scanlines, Projektions-Kegel, Materialisierungs-Sweep) und legt die
-// Komponenten-Marker aus src/data/holo-markers.json darüber — Positionen
-// stammen aus den Spieldateien (COMPILED_BONES), im Buildstep aufs Mesh
-// kalibriert. Keine Auto-Rotation: OrbitControls, Hover + Klick auf Marker.
+// Komponenten-Marker darüber — Positionen stammen aus den Spieldateien
+// (COMPILED_BONES), im Buildstep aufs Mesh kalibriert. Keine Auto-Rotation:
+// OrbitControls, Hover + Klick auf Marker.
 //
 // API:  initHolo(container, cfg) -> Promise<{ dispose, setFilter, select }>
 //   cfg = { url, ports:[{k,p:[x,y,z],g,dim}], mesh:{c,s}, ax:[len,lat],
