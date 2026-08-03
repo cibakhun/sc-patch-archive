@@ -102,7 +102,13 @@ const readImpl = (path, modification) => {
   return { root, modOk };
 };
 
-const mkMap = (ini) => { const m = new Map(); if (!ini) return m; for (const line of ini.split(/\r?\n/)) { const i = line.indexOf('='); if (i > 0) m.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase(), line.slice(i + 1).trim()); } return m; };
+// Ini-Format-Falle (01.4-03, D-08-Nachtrag, identisch zu datamine-crafting.mjs
+// Zeile 88-90): Keys können ein ",P"-Suffix tragen (Platzhalter-/Grammatik-Flag,
+// z. B. "vehicle_NameDRAK_Pitbull,P=Drake Pitbull") — beim Nachschlagen zählt der
+// Key OHNE Suffix, sonst bleibt der Pitbull (und potenziell weitere Fahrzeuge)
+// auf den rohen `id`-Fallback zurückfallen, weil @vehicle_NameDRAK_Pitbull ohne
+// Komma-Suffix nie im Ini-Index steht.
+const mkMap = (ini) => { const m = new Map(); if (!ini) return m; for (const line of ini.split(/\r?\n/)) { const i = line.indexOf('='); if (i > 0) m.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase().replace(/,p$/, ''), line.slice(i + 1).trim()); } return m; };
 const EN = mkMap(iniEn), DE = mkMap(iniDe);
 const BAD = /^@|PLACEHOLDER|LOC_EMPTY|\[PH\]|TRANSLATION NOT FOUND/;
 const locFrom = (map, k) => { if (!k || typeof k !== 'string' || !k.startsWith('@')) return null; const v = map.get(k.slice(1).toLowerCase()); return v && !BAD.test(v) ? v : null; };
@@ -262,6 +268,76 @@ function manufacturer(ref) {
 }
 
 /* ---------------------------------------------------------------- */
+/* Marken-Urteile (01.4-03, Task 2, Schritt 3 — D-22): manufacturer/makerCode  */
+/* ---------------------------------------------------------------- */
+// Drei Fälle, in denen das Spiel selbst zwei unterschiedliche Antworten gibt
+// (Klassenpräfix der Entity vs. der Manufacturer-Record, den das Schiff
+// referenziert) — KEIN Kürzel-Automatismus entscheidet das allein. Belegt
+// (scratch/probe-mfr-suffix.mjs): eine globale Regel "nimm das Kürzel aus dem
+// Lokalisierungsschlüssel des Manufacturer-Records" träfe 12 Fälle besser,
+// aber 20 SCHLECHTER (Origin ORIG -> "ORIGIN", Greycat GLSN -> "GREY") — also
+// keine Regel, sondern ein Urteil je Fall (Begründung: scratch/01.4-urteile-kosmetik.md).
+const MFR_OVERRIDE = {
+  // Esperia baut in der Spiel-Lore erbeutete/nachgebaute Vanduul-Schiffe.
+  // Blade/Glaive/Stinger referenzieren im Spiel BEREITS den Esperia-
+  // Manufacturer-Record (SCItemManufacturer.ESPR, Anzeigename "Esperia" —
+  // 0 Abweichung bei `manufacturer`) — nur das Klassenpräfix (VNCL_*) ist
+  // historisch die alte Vanduul-Kennung geblieben, `makerCode` folgt heute
+  // fälschlich dem Präfix statt dem referenzierten Hersteller.
+  'vncl-blade': { code: 'ESPR' },
+  'vncl-glaive': { code: 'ESPR' },
+  'vncl-stinger': { code: 'ESPR' },
+  // Scythe referenziert dagegen (allein unter den vier VNCL-Schiffen) direkt
+  // den älteren VNCL-Manufacturer-Record ("Vanduul"), nicht Esperia — für
+  // Konsistenz mit den drei Geschwistern, dem Wiki, dem bereits vorhandenen
+  // Logo-Datensatz (manufacturer-logos.json führt "Esperia", kein "Vanduul")
+  // und dem Filterschlüssel data-maker wird die gesamte Gruppe auf den
+  // Erbauer vereinheitlicht. Nebeneffekt: der volle Anzeigename lautet im
+  // Spiel bereits "Vanduul Scythe" — mit mfr.name "Esperia" greift stripMfr()
+  // (das "Vanduul "-Präfix passt nicht zu "Esperia") nicht mehr, der Name
+  // bleibt "Vanduul Scythe" wie im Wiki (löst den `name`-Diff mit).
+  'vncl-scythe': { name: 'Esperia', code: 'ESPR' },
+  // Mirai ist im Spiel eine eigenständig referenzierte Untermarke von MISC
+  // (SCItemManufacturer.MRAI, Anzeigename "Mirai" — 0 Abweichung bei
+  // `manufacturer`); nur das Klassenpräfix (MISC_Fury/MISC_Razor) ist von der
+  // Mutter geerbt. Der öffentliche RSI-Herstellercode folgt der Untermarke.
+  // (Manufacturer.Code selbst trägt hier "MIS" — kollidiert mit MISCs eigenem
+  // Code und ist damit kein brauchbarer Ersatz für "MRAI".)
+  'misc-fury': { code: 'MRAI' },
+  'misc-fury-lx': { code: 'MRAI' },
+  'misc-fury-miru': { code: 'MRAI' }, // Klassenname MISC_Fury_Miru = "Fury MX"
+  'misc-razor': { code: 'MRAI' },
+  'misc-razor-ex': { code: 'MRAI' },
+  'misc-razor-lx': { code: 'MRAI' },
+  // Xian ist der interne Record-Name; "Aopoa" (0 Abweichung bei
+  // `manufacturer`) ist die im Spiel wie im Wiki geführte Marke. Der
+  // Wiki-Herstellercode "XNAA" ist das öffentliche RSI-Kürzel — im DataCore
+  // NUR über den Lokalisierungsschlüssel des Manufacturer-Records
+  // (@manufacturer_NameXNAA) sichtbar, nicht über Manufacturer.Code (dort
+  // leer) oder den Klassennamen (XIAN_*).
+  'xian-scout': { code: 'XNAA' }, // Klassenname XIAN_Scout = "Khartu-al"
+  'xian-nox': { code: 'XNAA' },
+  'xian-nox-kue': { code: 'XNAA' },
+  // Banu Souli ist die im Wiki UND im bereits vorhandenen Logo-Datensatz
+  // (manufacturer-logos.json führt "Banu Souli", kein rohes "Banu") geführte
+  // Markenform für den Defender-Hersteller — spezifischer als der rohe
+  // Manufacturer-Name "Banu", den das Spiel liefert. makerCode stimmt bereits
+  // überein (BANU == BANU), nur der Anzeigename wird vereinheitlicht, damit
+  // Logo-Zuordnung und data-maker-Filter treffen statt ins Leere zu zeigen.
+  'banu-defender': { name: 'Banu Souli' },
+};
+// Kosmetik-Tabelle für `manufacturer` (Schreibweise, KEIN Marken-Urteil):
+// benannte Einzel-Ersetzung statt globalem "&"->"and"-Suchen-und-Ersetzen —
+// eine globale Regel würde einen künftigen Hersteller mit echtem "&" im Namen
+// still beschädigen. Ziel ist die "and"-Schreibweise: sie steht schon im Wiki
+// UND im bestehenden Logo-Datensatz (manufacturer-logos.json) — der
+// bestehenden Quelle folgen, sonst verliert die MISC-Flotte (18 Schiffe) ihr
+// Hersteller-Logo.
+const MFR_NAME_COSMETIC = {
+  'Musashi Industrial & Starflight Concern': 'Musashi Industrial and Starflight Concern',
+};
+
+/* ---------------------------------------------------------------- */
 /* Größenklassen-Label                                               */
 /* ---------------------------------------------------------------- */
 // Empirisch gegen den Altbestand abgeglichen (Spiel-Size -> gebräuchliches
@@ -285,18 +361,45 @@ function buildVehicle(id) {
   const veh = findType(o, 'VehicleComponentParams');
   const ins = findType(o, 'SEntityInsuranceProperties')?.shipInsuranceParams;
   const mfr = manufacturer(att.Manufacturer);
+  const mfrOverride = MFR_OVERRIDE[id];
+  // Anzeigename des Herstellers: erst das per-Schiff-Urteil (Marken-Fälle,
+  // s. o.), sonst der rohe Spielwert, danach die benannte Kosmetik-Ersetzung
+  // (MISC "&" -> "and"). Reihenfolge wichtig: die Kosmetik-Tabelle greift
+  // NUR auf den bereits aufgelösten Namen, nicht auf ein Override-Ergebnis.
+  const mfrNameRaw = mfrOverride?.name ?? mfr?.name ?? null;
+  const mfrName = MFR_NAME_COSMETIC[mfrNameRaw] ?? mfrNameRaw;
   const ports = LOAD.ships[id] ?? {};
 
   // --- Identität ---
-  const fullName = locEn(veh?.vehicleName) ?? locEn(att.Localization?.Name) ?? id;
+  // Trailing-Zeilenumbruch-Falle (01.4-03, D-08-Nachtrag): manche Ini-Werte
+  // tragen ein wörtliches "\n" (Backslash+n als zwei Textzeichen, KEIN echtes
+  // Whitespace — `.trim()` in mkMap() greift hier nicht) als Rest eines
+  // Mehrzeilen-Templates, z. B. "Argo CSV-SM\n". Bei Namen (anders als bei
+  // descriptionEn/De, wo \n-Folgen bewusst erhalten bleiben, D-07) ist das
+  // ein Datenrest, kein Gestaltungsmittel — wird entfernt.
+  const fullNameRaw = locEn(veh?.vehicleName) ?? locEn(att.Localization?.Name) ?? id;
+  const fullName = fullNameRaw ? fullNameRaw.replace(/\\n+\s*$/, '').replace(/^\s*\\n+/, '').trim() : fullNameRaw;
   // Anzeigename ohne Herstellerpräfix ("Drake Buccaneer" -> "Buccaneer"),
   // wie ihn die Seite bisher führt (der Hersteller steht daneben).
   // Der Herstellername steht im Datenblatt daneben — im Schiffsnamen ist er
-  // Dopplung. Abgeschnitten wird entweder das erste Wort des Herstellers
-  // ("Drake Buccaneer") oder sein Kürzel ("RSI Apollo Medivac").
+  // Dopplung. Abgeschnitten wird das erste Wort des Herstellers
+  // ("Drake Buccaneer"), sein Kürzel ("RSI Apollo Medivac") ODER ein aus den
+  // Anfangsbuchstaben gebildetes, punktiertes Kürzel ("Consolidated Outland"
+  // -> "C.O. HoverQuad", 01.4-03: das gebräuchliche Kürzel für Consolidated
+  // Outland ist "C.O." mit Punkten, trifft keine der beiden ursprünglichen
+  // Regeln).
+  const initials = mfrName ? mfrName.split(/\s+/).filter(Boolean).map((w) => w[0]).join('.') + '.' : null;
+  // WICHTIG: der Code-Kandidat ist das ROHE `mfr?.code` (Manufacturer.Code aus
+  // dem DataCore-Record, meist dreistellig gekappt, z. B. "MIS" für Mirai UND
+  // für die MISC-Mutter), NICHT das aufgelöste `makerCode` von unten. Der
+  // Unterschied ist beabsichtigt: die MISC-Mutter selbst führt im Spiel
+  // Manufacturer.Code="MIS" (drei Buchstaben, kein Leerzeichen-Treffer auf
+  // "MISC Fortune") — würde hier stattdessen das vierstellige, aufgelöste
+  // `makerCode` "MISC" verwendet, stripte das fälschlich das "MISC"-Präfix aus
+  // Namen wie "MISC Fortune" heraus, die der Wiki-Bestand UNGEKÜRZT führt.
   const stripMfr = (s) => {
     if (!s) return s;
-    const pre = [mfr?.name?.split(/\s+/)[0], mfr?.code].filter(Boolean);
+    const pre = [mfrName?.split(/\s+/)[0], mfr?.code, initials].filter(Boolean);
     for (const p of pre) {
       const rx = new RegExp(`^${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+`, 'i');
       if (rx.test(s)) return s.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
@@ -306,9 +409,11 @@ function buildVehicle(id) {
   const sizeClass = att.Size ?? null;
   // Herstellerkürzel: `Manufacturer.Code` ist im Spiel dreistellig gekappt
   // ("AEG", "MIS"), gebräuchlich und eindeutig ist das Präfix der Klasse
-  // (AEGS_Gladius -> AEGS, MRAI_Fury -> MRAI). Das Präfix gewinnt.
+  // (AEGS_Gladius -> AEGS, MRAI_Fury -> MRAI). Das Präfix gewinnt — AUSSER das
+  // per-Schiff-Urteil (MFR_OVERRIDE, s. o.) sagt etwas anderes (drei
+  // Marken-Fälle: Esperia/Vanduul, Mirai/MISC, Xian/Aopoa, D-22).
   const clsPrefix = (rec.name || '').replace(/^EntityClassDefinition\./, '').split('_')[0];
-  const makerCode = /^[A-Z]{2,5}$/.test(clsPrefix) ? clsPrefix : mfr?.code ?? null;
+  const makerCode = mfrOverride?.code ?? (/^[A-Z]{2,5}$/.test(clsPrefix) ? clsPrefix : mfr?.code ?? null);
 
   // --- Flugwerte: IFCS am Flugcontroller-Item ---
   // Erst das eigene controller_flight_<klasse>, sonst das des Basisschiffs.
@@ -490,7 +595,7 @@ function buildVehicle(id) {
   return {
     id,
     name: stripMfr(fullName),
-    manufacturer: mfr?.name ?? null,
+    manufacturer: mfrName ?? null,
     makerCode,
     typeEn: locEn(veh?.vehicleCareer),
     typeDe: locDe(veh?.vehicleCareer),
