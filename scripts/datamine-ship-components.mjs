@@ -94,56 +94,62 @@ function extractPorts(nodes) {
   return ports;
 }
 
-// TURM-REGEL (D-06, RESEARCH.md "Turret- und Kategorie-Regeln", an 223
-// Schiffen validiert: 86,1% exakt, 94,6% binaer). Der rohe Type-Wert `Turret`
-// bedeutet NICHT "Turmposition" -- er markiert nur, dass ein Waffenport
-// gimbal-/turmartig ausgerichtet werden KANN, und das trifft genauso auf
-// feste Fluegelkanonen zu (hardpoint_gun_left_wing beim Gladius traegt
-// dieselbe Turret-Markierung wie ein bemannter Hammerhead-Turm). Ein echter
-// Turm braucht STATTDESSEN TurretBase (den Mount-Sockel selbst) oder einen
-// ferngesteuerten remote-Port. Alle Vergleiche von Types-Werten und
-// Portnamen laufen ohne Ruecksicht auf Gross-/Kleinschreibung, weil die
-// Rohdaten darin uneinheitlich sind (siehe RESEARCH.md Types-Vokabular:
-// z.B. Misc/MISC, Usable/Useable).
+// TURM-REGEL (D-06a -- NACHTRAEGLICH VOM NUTZER VERSCHAERFT, ersetzt die
+// urspruengliche D-06-Regel aus RESEARCH.md/dem ersten Checkpoint dieses
+// Plans). Der rohe Type-Wert `Turret` bedeutet NICHT "Turmposition" -- er
+// markiert nur, dass ein Waffenport gimbal-/turmartig ausgerichtet werden
+// KANN, und das trifft genauso auf feste Fluegelkanonen zu
+// (hardpoint_gun_left_wing beim Gladius traegt dieselbe Turret-Markierung
+// wie ein bemannter Hammerhead-Turm). Ein echter Turm braucht STATTDESSEN
+// TurretBase -- den Mount-Sockel selbst, ein direkt aus den Spieldaten
+// gelesener Type-Wert wie `Shield` oder `Cooler`.
+//
+// ENTFERNT: der urspruengliche zweite Regelteil ("Turret ohne WeaponGun UND
+// Portname passt auf /remote/i UND NICHT auf /tractor/i") ist ERSATZLOS
+// GESTRICHEN. Er war eine GERATENE Namenserkennung, keine direkte Ablesung
+// aus den Spieldaten -- der Nutzer hat entschieden, dass geratene
+// Zuordnungen nicht im Auslieferungsstand stehen sollen, auch wenn sie in
+// der Stichprobe zutrafen. AUSDRUECKLICH IN KAUF GENOMMENER PREIS: Carrack,
+// Redeemer und Polaris verlieren dadurch ihre ferngesteuerten Tuerme in
+// dieser Kategorie, weil diese Ports im Spiel NUR `Turret` tragen, NIE
+// `TurretBase`. Das ist gewollt -- KEIN Ersatz, KEINE zweite Namensregel,
+// KEIN Sonderfall fuer diese drei Schiffe.
+//
+// Alle Vergleiche von Types-Werten laufen ohne Ruecksicht auf
+// Gross-/Kleinschreibung, weil die Rohdaten darin uneinheitlich sind (siehe
+// RESEARCH.md Types-Vokabular: z.B. Misc/MISC, Usable/Useable).
 function isTurret(port) {
   const typesLower = port.types.map((t) => String(t).toLowerCase());
   const has = (t) => typesLower.indexOf(t.toLowerCase()) >= 0;
-  const name = String(port.name || '');
 
-  // CONTAINER-AUSSCHLUSS: Bodenfahrzeug-Modulanbaupunkte (z.B. tmbl-cyclone
-  // "hardpoint_module_attach") tragen TurretBase ZUSAMMEN MIT Container --
-  // generische Anbauslots, keine Waffentuerme. Ohne diesen Ausschluss haetten
-  // alle vier Cyclone-Varianten faelschlich einen Turm bekommen; vehicles.json
-  // (die unabhaengige Drittquelle des Nachweismodus --audit) fuehrt fuer sie
-  // 0 Tuerme.
-  if (has('TurretBase') && !has('Container')) return true;
-
-  // REMOTE/TRACTOR-ZUSATZ: ferngesteuerte Tuerme (Carrack, Redeemer, Polaris)
-  // tragen KEIN TurretBase, sondern nur Turret -- fuehren aber im Portnamen
-  // durchgaengig "remote" (hardpoint_turret_remote_turret,
-  // hardpoint_turret_remote_front). Der tractor-Ausschluss verhindert, dass
-  // Tractor-Beam-Halterungen mit "remote" im Namen (z.B.
-  // hardpoint_remote_turret_interior_tractor beim Polaris) mitgezaehlt werden.
-  if (has('Turret') && !has('WeaponGun') && /remote/i.test(name) && !/tractor/i.test(name)) return true;
-
-  return false;
+  // CONTAINER-AUSSCHLUSS (bleibt unveraendert): Bodenfahrzeug-
+  // Modulanbaupunkte (z.B. tmbl-cyclone "hardpoint_module_attach") tragen
+  // TurretBase ZUSAMMEN MIT Container -- generische Anbauslots, keine
+  // Waffentuerme. Ohne diesen Ausschluss haetten alle vier Cyclone-Varianten
+  // faelschlich einen Turm bekommen; vehicles.json (die unabhaengige
+  // Drittquelle des Nachweismodus --audit) fuehrt fuer sie 0 Tuerme.
+  return has('TurretBase') && !has('Container');
 }
 // BEKANNTER BLINDER FLECK -- Kapitalschiff-PDC-Batterien: die
 // Punktverteidigungs-Stationen (PDC) von Polaris, Idris, Javelin und
 // Reclaimer haben in der Implementierungs-XML UEBERHAUPT KEINEN eigenen
 // ItemPort -- keine Regel kann sie erfinden, deshalb wird hier bewusst KEIN
 // Ersatzweg gebaut (D-08-Philosophie: lieber ehrlich zu wenig zaehlen als
-// raten). Die betroffenen Schiffe behalten ihre uebrigen (bemannten/
-// ferngesteuerten) Tuerme, die binaere Frage "hat dieses Schiff eine
-// Turmposition ab Groesse X" bleibt deshalb richtig -- nur die GENAUE
-// Turmzahl liegt bei diesen Schiffen zu niedrig (siehe RESEARCH.md: Polaris
-// Drittquelle=14, Regel=7).
+// raten). Diese Luecke gilt UNVERAENDERT weiter, unabhaengig von D-06a oben.
+// Seit D-06a kommt bei denselben Schiffen ein ZWEITER, bewusst in Kauf
+// genommener Abschlag hinzu: FERNGESTEUERTE Tuerme (Carrack, Redeemer,
+// Polaris) tragen im Spiel nur `Turret`, nie `TurretBase`, und zaehlen nach
+// dem Wegfall der Namensregel gar nicht mehr als Turm. Die betroffenen
+// Schiffe behalten nur noch ihre BEMANNTEN (TurretBase-getaggten) Tuerme;
+// bei Schiffen, deren Tuerme ausschliesslich ferngesteuert sind, faellt die
+// Kategorie Turm komplett weg (siehe RESEARCH.md: Polaris Drittquelle=14
+// Stationen, Regel zaehlt nur noch die bemannten davon).
 
 // Types-Liste eines Ports -> Kategorie-Buchstabe (CAT_ORDER: wtmscpqr).
 // Die Auswertungsreihenfolge ist bindend: ein Port faellt in GENAU eine
-// Kategorie. Turm (t) laeuft als ERSTE Stufe, VOR Rakete und Waffe (D-06) --
+// Kategorie. Turm (t) laeuft als ERSTE Stufe, VOR Rakete und Waffe (D-06a) --
 // eine feste Waffe mit zusaetzlichem Turret-Tag faellt NICHT hierher, weil
-// isTurret() WeaponGun ausschliesst und TurretBase bzw. remote verlangt; sie
+// isTurret() ausschliesslich TurretBase (ohne Container) verlangt; sie
 // faellt stattdessen regulaer weiter unten bei "w" durch.
 //
 // m VOR w: MissileLauncher (21 Ports) und BombLauncher (8 Ports) kommen bei
