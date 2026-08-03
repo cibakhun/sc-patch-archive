@@ -15,6 +15,8 @@ import Attribution from '../../components/Attribution.astro';
 :root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#0850ad;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3);--line-soft:rgba(41,46,56,.12)}
 
 
+
+
 .lg-wrap{max-width:var(--maxw);margin:0 auto;padding:3.2rem 1.25rem 4rem}
 .lg-wrap h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,6vw,3rem);color:var(--text);margin:0 0 1.6rem}
 .lg-wrap h2{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.95rem;color:var(--accent);margin:2.2rem 0 .6rem;border-bottom:1px solid var(--line);padding-bottom:.4rem}
@@ -228,6 +230,48 @@ import Attribution from '../../components/Attribution.astro';
       Eine Verbindung zu Supabase wird nur hergestellt, wenn du Konto-Funktionen nutzt
       (Registrierung, Anmeldung, Favoriten, kontogebundene Werkzeuge) — nicht beim bloßen
       Betrachten der Seiten.
+    </p>
+
+    <h2 id="support">Freiwillige Unterstützung (Stripe, PayPal)</h2>
+    <p>
+      Auf der Seite <a href="/de/support.html">Unterstützen</a> kannst du freiwillig etwas zu den
+      laufenden Kosten dieses Projekts beitragen. Nichts auf dieser Website steht hinter einer
+      Bezahlschranke, und ein Beitrag kauft weder Waren noch Leistungen noch Vorteile im Konto.
+    </p>
+    <p>
+      <strong>Stripe.</strong> Wenn du den Knopf drückst, lässt diese Website bei Stripe eine
+      Bezahlseite anlegen und schickt dich dorthin. Alles, was du eingibst — Zahlungsart,
+      Kartendaten, Rechnungsdaten, E-Mail-Adresse — gibst du <em>auf der Seite von Stripe</em> ein,
+      nicht auf dieser. Diese Website erhält, sieht und speichert deine Zahlungsdaten zu keinem
+      Zeitpunkt. Stripe verarbeitet die Zahlung in eigener Verantwortung als eigenständiger
+      Verantwortlicher nach seiner eigenen Datenschutzerklärung. Rechtsgrundlage für die
+      Übermittlung, die den Vorgang anstößt, ist Art. 6 Abs. 1 lit. b DSGVO (Durchführung der von
+      dir ausgelösten Zahlung).
+    </p>
+    <p>
+      Ist eine Zahlung bestätigt, meldet Stripe das an den Serverteil dieses Projekts. Was bei uns
+      gespeichert wird, ist bewusst auf das beschränkt, was eine laufende Summe braucht:
+      <strong>Betrag, Währung, Zeitpunkt und die technischen Vorgangsnummern von Stripe</strong>.
+      <strong>Kein Name, keine E-Mail-Adresse, keine Anschrift und keine Zahlungsdaten werden bei
+      uns gespeichert</strong>, und die gespeicherten Einträge sind nicht öffentlich lesbar.
+      Öffentlich sichtbar ist allein die Summe. Auch die Adresse, auf die du danach zurückkommst,
+      trägt keinen Betrag — sie sagt nur, dass du zurück bist.
+    </p>
+    <p class="muted">
+      Zahlungsdienstleister: Stripe Payments Europe, Ltd. (Irland), mit Weitergabe an Stripe, Inc.
+      (USA). Details zur Datenverarbeitung durch den Dienst:
+      <a href="https://stripe.com/de/privacy" rel="noopener">stripe.com/de/privacy</a>. Eine
+      Verbindung zu Stripe wird erst hergestellt, wenn du den Knopf drückst — nicht beim bloßen
+      Lesen der Seite.
+    </p>
+    <p>
+      <strong>PayPal.</strong> Als zweiter Weg steht auf der Seite ein gewöhnlicher Link zu
+      PayPal.me. Es ist ein Link und sonst nichts: auf dieser Website läuft kein PayPal-Skript, und
+      es werden keine Daten übertragen, solange du ihm nicht folgst. Ab dann gilt die
+      Datenschutzerklärung von PayPal
+      (<a href="https://www.paypal.com/de/webapps/mpp/ua/privacy-full" rel="noopener">paypal.com</a>).
+      Dieser Weg meldet uns nichts zurück; Zahlungen darüber werden deshalb nirgends auf dieser
+      Website automatisch erfasst.
     </p>
 
     <h2>Schriftarten</h2>

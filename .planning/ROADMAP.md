@@ -27,6 +27,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Schrift- und Bewegungsskala** - Eine gemeinsame Skala für Schriftgrade und Übergänge statt seitenlokaler Einzelwerte
 - [ ] **Phase 3: Überlagerungen entstapeln** - Class-B-Befund abtragen, Textkontrast über Bildmotiven belegen
 - [ ] **Phase 4: Sprachparität absichern** - Deckungsgleichheit der Seitenpaare nachweisbar statt behauptet
+- [ ] **Phase 5: Spenden-Unterstützung** - Ein Unterstützen-Weg, der tatsächlich Geld annimmt: PayPal-Link + Ko-fi, eigene Seite in der Richtung „Instandsetzung"
+- [x] **Phase 6: Schiffe: Rollen- und Merkmalsfilter** - Granulare, spielgenaue Filter statt acht Grobtypen
 
 ## Phase Details
 
@@ -250,10 +252,101 @@ Plans:
 - [ ] 04-01: Prüfschritt für die Deckungsgleichheit der angefassten Seitenpaare bauen
 - [ ] 04-02: Prüfschritt in `npm run verify` bzw. `audit:site` einhängen und Hellmodus-Generierung bestätigen
 
+### Phase 5: Spenden-Unterstützung
+
+> **UMGESTELLT 02.08.2026 — Stripe raus, PayPal rein.** Der Betreiber kann Stripes
+> Identitätsprüfung nicht erbringen (Ausweis nicht verfügbar); ohne sie zahlt Stripe
+> kein Geld aus. Eine tadellos gebaute Anbindung, die nie auszahlt, ist wertlos.
+> Gewählt ist ein **einfacher PayPal-Link**.
+>
+> Damit fällt der gesamte Serverteil weg: keine Edge Functions, keine
+> Datenbanktabelle, kein Webhook. Die zuvor hier notierte Aufhebung der
+> „Out of Scope"-Zeilen zu serverseitiger Logik ist damit **gegenstandslos** —
+> die Phase bleibt innerhalb des UI-Meilensteins. Ersatzlos gestrichen:
+> Fortschrittsbalken, Unterstützer-Wand, Moderation, Profil-Abzeichen und
+> monatliche Unterstützung. Die sieben Stripe-Pläne sind überholt und werden
+> neu geschnitten.
+>
+> Anlass unverändert: der Entwicklungsrechner geht wegen eines defekten Netzteils
+> ohne Vorwarnung aus.
+
+**Goal**: Ein Besucher, der die Seite nützlich findet, kann in unter einer Minute Geld geben — Betrag wählen, ein Klick zu PayPal, fertig; ohne Konto, in DE und EN — und das Geld kommt tatsächlich an. Die Seite sagt ehrlich, wofür: nicht „ein Teil ist kaputt", sondern dass der Rechner ohne Vorwarnung ausgeht und dabei die Arbeit mitnimmt. Sie behauptet keine Zahl, die sie nicht belegen kann.
+**Mode:** mvp
+**Depends on**: Nichts — die Phase fasst weder Startseite noch Kopfleisten-Wandlung an und kann vor Phase 2–4 laufen.
+**Requirements**: DON-01, DON-02, DON-03, DON-09, DON-10, DON-11, DON-13, DON-14, DON-26, DON-27, DON-28, DON-29, DON-31
+**Success Criteria** (what must be TRUE):
+
+  1. Ein Besucher wählt auf `/support.html` einen Betrag und landet bei PayPal mit **genau diesem Betrag** — die Auswahl steuert wirklich etwas, sie ist keine Zierde
+  2. Solange kein Empfänger hinterlegt ist, steht das Feature sichtbar im Demo-Modus: kein toter Knopf, keine behaupteten Zahlen
+  3. Die Seite trägt die Gestaltungsrichtung „Instandsetzung" und stellt den **Arbeitsverlust** in den Mittelpunkt, nicht den Sachschaden; keine erfundenen Kennzahlen
+  4. Der Unterstützen-Weg ist in DE und EN vollständig vorhanden, in beiden Farbmodi lesbar, bis 360 px bedienbar und per Tastatur vollständig bedienbar
+  5. `npm run verify`, `npm run audit:site`, `npm run audit:csp` und `npm run test:e2e` laufen grün — ohne neue CSP-Einträge, weil eine Weiterleitung der CSP nicht unterliegt
+  6. Die Datenschutzerklärung nennt PayPal und Ko-fi als Empfänger, bevor die Seite live geht
+
+**Plans**: 3 plans (neu geschnitten 02.08.2026; die sieben Stripe-Pläne liegen in `superseded-stripe/`)
+
+Plans:
+
+- [ ] 05-01 (Welle 1) — Tracer: Betrag → PayPal durch alle Schichten. `SUPPORT`-Block mit zwei unabhängigen Schaltern, Gold-Token in beiden Farbmodi, Formular-Komponente, Seitenpaar, Tests
+- [ ] 05-02 (Welle 2) — Die „Instandsetzung"-Identität: Schaltbild als Last-Kennlinie, Befund-Text über den Arbeitsverlust, Ko-fi-Zeile. Ausdrücklich kein Balken, keine Wand, keine erfundenen Zahlen
+- [ ] 05-03 (Welle 3) — Site-weit erreichbar machen: Fuß-Zeile, Menüeintrag, Streifen auf acht Einfügestellen, Datenschutz DE+EN, Abnahme-Halt
+
+Hinweis zur Reihenfolge: die Pläne laufen streng nacheinander. Das ist bewusst gegen
+Parallelität entschieden — der Entwicklungsrechner geht wegen des defekten Netzteils
+ohne Vorwarnung aus, und jeder Plan hinterlässt einen committeten, lauffähigen
+Zustand. Ein unerwarteter Neustart kostet damit einen Plan, nicht die Phase.
+
+Was in dieser Phase NICHT belegbar ist: dass tatsächlich Geld ankommt. Das hängt am
+PayPal-Namen des Betreibers und an einer echten Überweisung. Es ist als menschliche
+Abnahme geführt und bleibt bis dahin ungehakt.
+
+### Phase 6: Schiffe: Rollen- und Merkmalsfilter
+
+**Goal**: Wer auf der Schiffsübersicht ein Schiff für einen bestimmten Zweck sucht, findet es
+über Filter, die die Fachsprache des Spiels sprechen — nicht über acht Grobtypen. Die
+Filterwerte stammen aus den Spieldateien (DataCore), nicht aus geratenen Kategorien, und
+lassen sich kombinieren, sodass auch Nischen wie „Frachter mit abgesenkter Signatur"
+(Prowler Utility) auffindbar werden.
+**Mode:** mvp
+**Depends on**: — (unabhängig vom Design-Meilenstein; berührt nur die Schiffsseiten)
+**Requirements**: ROLE-01, ROLE-02, ROLE-03, ROLE-04, ROLE-05, ROLE-06, ROLE-07, ROLE-08, ROLE-09, ROLE-10
+**Success Criteria** (what must be TRUE):
+
+  1. Jedes Schiff im Katalog trägt eine spielgenaue Rolle aus dem DataCore; die 4 nicht
+     joinbaren Einträge (ATLS) sind benannt statt stillschweigend leer
+
+  2. Die Filter finden die vom Nutzer genannten Beispielfälle: Tarnkappenbomber,
+     Frachter mit abgesenkter Signatur, Bergung, Bergbau, Betankung
+
+  3. Die Merkmale sind belegt, nicht behauptet — jedes Merkmal nennt seine Quelle im
+     Spieldatensatz, und kein Merkmal wird aus Marketingtext abgeleitet
+
+  4. DE und EN tragen dieselben Filter mit CIG-eigenen Übersetzungen; wo CIG keine
+     deutsche Fassung liefert, ist die Lücke bewusst gefüllt statt englisch durchgereicht
+
+  5. Die Seite bleibt ohne JavaScript lesbar und die Filterung läuft clientseitig ohne
+     spürbare Verzögerung über alle 227 Karten
+
+**Plans**: 3/3 plans executed
+
+Plans:
+
+- [x] 06-01-PLAN.md — (Welle 1) Tracer: „Bergung" von der Spieldatei bis auf die Karte — EIN Körper für DE und EN, Datamine, Momentaufnahme, erster Rollenfilter, plus Prüfschritt für die Join-Rate 223/227
+- [x] 06-02-PLAN.md — (Welle 2) Beruf und 18 Rollenfamilien mit zerlegten Verbundrollen und gefüllten deutschen Lücken; danach Signaturachse und Merkmalsleiste, die den Prowler Utility auffindbar machen
+- [x] 06-03-PLAN.md — (Welle 3) Sieben Schnellzugriffe setzen Rolle und Signatur in einem Klick, der Wiki-Grobfilter weicht dem spielgenauen Beruf, Sichtprüfung der fünf Abnahmefälle
+
+Erhebung des Planers am 02.08.2026 gegen das echte Archiv — drei Korrekturen an RESEARCH.md,
+die in den Plänen stehen: die deutsche Lokalisierung liegt unter `german_(germany)`, nicht
+unter `german`; Signaturen tragen 16 Katalog-Schiffe, nicht 22 (RESEARCH zählt über 360
+DataCore-Records statt über die 223 gejointen); und `dogfightEnabled` trifft 220 von 223 —
+das Merkmal „Bewaffnet" aus D-09 entfällt damit nach D-09s eigener Abbruchbedingung.
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5 → 6
+(Phase 5 und Phase 6 hängen an keiner Vorgängerphase und werden auf Wunsch vorgezogen.
+Phase 6 lief am 02.08.2026 vorab durch, während 1.1 noch offen war.)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -263,3 +356,5 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
+| 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |
+| 6. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |

@@ -50,6 +50,17 @@
     }
     return p === Infinity ? null : p;
   }
+  // Zwilling von avgPrice() in src/lib/items.ts — exakt dieselbe Filterregel
+  // und dasselbe Runden. Laufen die beiden auseinander, widerspricht das
+  // Finder-Modal der Detailseite fuer dasselbe Item.
+  function avgPrice(item) {
+    var sum = 0, n = 0;
+    for (var i = 0; i < item.obtain.length; i++) {
+      var o = item.obtain[i];
+      if (o.price != null && o.price > 0) { sum += o.price; n++; }
+    }
+    return n === 0 ? null : Math.round(sum / n);
+  }
   // Hat das Item eine eigene Detailseite? Muss mit isIndexable() in
   // src/lib/items.ts uebereinstimmen — dort entscheidet dieselbe Regel, welche
   // /items/<id>.html gebaut wird. Weicht sie ab, verlinken Karten ins Leere.
@@ -443,6 +454,12 @@
       var priceHtml;
       if (p != null) {
         priceHtml = (item.obtain.length > 1 ? esc(tr('priceFrom', 'ab')) + ' ' : '') + fmtNum(p) + ' aUEC';
+        // Ø-Zusatz nur, wenn er sich vom "ab"-Preis unterscheidet — bei
+        // gleichem Wert (keine Preisstreuung) waere er reine Wiederholung.
+        var avgCard = avgPrice(item);
+        if (avgCard != null && avgCard !== p) {
+          priceHtml += '<span class="uif-card-avg">Ø ' + fmtNum(avgCard) + '</span>';
+        }
       } else if (item.obtain.length) {
         // Ein Item, das laut Spieldaten gar nicht droppen kann, ist nicht „nur
         // Loot" — es ist exklusiv. Sonst widerspraeche die Karte ihrer eigenen
@@ -788,6 +805,9 @@
 
     // Bezugsquellen — oder ehrlicher Katalog-Hinweis
     if (item.obtain.length) {
+      // Ein Mittelwert je Item, nicht je Zeile — er ist in jeder Zeile derselbe.
+      var avg = avgPrice(item);
+      var avgCell = avg != null ? fmtNum(avg) + ' aUEC' : '&mdash;';
       var rows = item.obtain.map(function (o) {
         // Exklusiv-Zeilen tragen keinen ORT, sondern eine Bezugsart — die wird
         // uebersetzt. Alle anderen `loc` sind Eigennamen und bleiben, wie sie sind.
@@ -796,12 +816,13 @@
           '<td>' + esc(locText) + '</td>' +
           '<td class="uif-td-kind">' + esc(kindLabel(o.kind)) + '</td>' +
           '<td class="uif-td-price">' + (o.price != null ? fmtNum(o.price) + ' aUEC' : '&mdash;') + '</td>' +
+          '<td class="uif-td-avg">' + avgCell + '</td>' +
         '</tr>';
       }).join('');
       html += '<div class="uif-modal-section">' +
         '<h4>' + esc(tr('sectionObtain', 'Bezugsquellen')) + '</h4>' +
         '<div class="uif-table-wrapper"><table class="uif-locations-table">' +
-        '<thead><tr><th>' + esc(tr('thLocation', 'Ort')) + '</th><th>' + esc(tr('thKind', 'Art')) + '</th><th>' + esc(tr('thPrice', 'Preis')) + '</th></tr></thead>' +
+        '<thead><tr><th>' + esc(tr('thLocation', 'Ort')) + '</th><th>' + esc(tr('thKind', 'Art')) + '</th><th>' + esc(tr('thPrice', 'Preis')) + '</th><th>' + esc(tr('thAvg', 'Ø UEX')) + '</th></tr></thead>' +
         '<tbody>' + rows + '</tbody></table></div>' +
         '<p class="uif-volatile-note">' + esc(tr('volatileNote', 'Preise und Fundorte sind Patch-volatil — ingame prüfen.')) + '</p>' +
       '</div>';

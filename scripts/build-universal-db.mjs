@@ -243,6 +243,21 @@ let catalogAdded = 0, catalogSkipped = 0;
     let key = line.slice(0, eq).trim();
     const comma = key.indexOf(',');
     if (comma >= 0) key = key.slice(0, comma);
+    // ACHTUNG `…_short`: Diese Schluessel tragen die Kurzform fuer enge
+    // UI-Stellen —
+    //     item_NameMXOX_NeutronRepeater_S1       = NDB-26 Repeater   <- das Item
+    //     item_NameMXOX_NeutronRepeater_S1_short = NDB-26            <- das Etikett
+    // — und erzeugen hier leere Doppel-Eintraege („NDB-26" neben „NDB-26
+    // Repeater", ohne Kategorie, Fundort oder Preis).
+    //
+    // Sie hier pauschal zu ueberspringen waere FALSCH und wurde geprueft:
+    // 363 der 695 Kurzform-Werte sind vollwertige Item-Namen (u. a. „A03
+    // Sniper Rifle" mit 11 Bezugsquellen, „Arclight BY Pistol", diverse
+    // Turrets). Ein Filter am Schluessel wirft die mit weg.
+    //
+    // Die Unterscheidung gelingt erst am fertigen Katalog, wo Kategorie und
+    // Bezugsquellen bekannt sind — das erledigt scripts/prune-short-name-stubs.mjs
+    // im Anschluss (haengt in `npm run sync:items` dahinter).
     const isItemName = /^item_name/i.test(key);
     const isCommodity = /^items_commodities_/i.test(key) && !/desc$|_des$/i.test(key);
     if (!isItemName && !isCommodity) continue;
