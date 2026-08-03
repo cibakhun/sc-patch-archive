@@ -359,7 +359,9 @@ function manufacturer(ref) {
 // (scratch/probe-mfr-suffix.mjs): eine globale Regel "nimm das Kürzel aus dem
 // Lokalisierungsschlüssel des Manufacturer-Records" träfe 12 Fälle besser,
 // aber 20 SCHLECHTER (Origin ORIG -> "ORIGIN", Greycat GLSN -> "GREY") — also
-// keine Regel, sondern ein Urteil je Fall (Begründung: scratch/01.4-urteile-kosmetik.md).
+// keine Regel, sondern ein Urteil je Fall (Begründung:
+// .planning/phases/01.4-fahrzeug-katalog-auf-spieldaten/01.4-urteile-kosmetik.md,
+// 01.4-06 aus dem gitignorten scratch/ ins Repo übernommen).
 const MFR_OVERRIDE = {
   // Esperia baut in der Spiel-Lore erbeutete/nachgebaute Vanduul-Schiffe.
   // Blade/Glaive/Stinger referenzieren im Spiel BEREITS den Esperia-

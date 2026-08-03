@@ -11,8 +11,11 @@
 //      Javelin strukturell), fociDe (Plan 02, Gruppe C.9 — roleEn/roleDe deckt nur
 //      79/223 Fahrzeuge exakt, andere Taxonomie, kein Ersatz).
 //      Diese Liste ist NICHT hier erfunden — sie kommt aus
-//      `scratch/01.4-feldurteile.md`, Abschnitt "Für Plan 03". Kommt Plan 02 künftig
-//      auf eine kürzere Liste, schrumpft diese Datei mit ihr.
+//      `.planning/phases/01.4-fahrzeug-katalog-auf-spieldaten/01.4-feldurteile.md`
+//      (01.4-06: aus dem gitignorten scratch/ ins Repo übernommen, damit die
+//      Begründung ein Aufräumen des Arbeitsverzeichnisses übersteht), Abschnitt
+//      "Für Plan 03". Kommt Plan 02 künftig auf eine kürzere Liste, schrumpft
+//      diese Datei mit ihr.
 //   2. Vier ganze Fahrzeug-Datensätze (ATLS-Varianten, D-13), die im DataCore KEIN
 //      /spaceships/- oder /groundvehicles/-Record besitzen (s. Kopfkommentar unten,
 //      Abschnitt ATLS) — komplett aus dem Wiki-Snapshot übernommen, mit
@@ -155,7 +158,8 @@ const out = {
     + ' dem Tausch (D-17, Plan 01.4-03)',
   reason: 'Nur was belegt in keiner Spieldatei zu finden ist (Block "vehicles") ODER strukturell keine'
     + ' Fahrzeug-Entity im DataCore ist (Block "overrides", ATLS). Diese Datei soll schrumpfen, nicht'
-    + ' wachsen — s. scratch/01.4-feldurteile.md, Abschnitt "Für Plan 03".',
+    + ' wachsen — s. .planning/phases/01.4-fahrzeug-katalog-auf-spieldaten/01.4-feldurteile.md,'
+    + ' Abschnitt "Für Plan 03".',
   generatedAt: OVERRIDDEN_AT,
   fields: FIELDS,
   count: Object.keys(vehicles).length,
