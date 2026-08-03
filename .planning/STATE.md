@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: "staging zusammengefuehrt — Unterstuetzen-Seite existiert bereits, Umbau auf \\\\\\\\\\\\\\\"Instandsetzung\\\\\\\\\\\\\\\" laeuft; Phase 6 (Schiffe-Rollenfilter) abgeschlossen"
-last_updated: "2026-08-03T18:26:26.195Z"
+stopped_at: "staging zusammengefuehrt — Unterstuetzen-Seite existiert bereits, Umbau auf \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"Instandsetzung\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" laeuft; Phase 6 (Schiffe-Rollenfilter) abgeschlossen"
+last_updated: "2026-08-03T23:00:36.090Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 19
-  completed_plans: 8
+  completed_plans: 13
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -60,7 +60,7 @@ geändert werden.
 `claude/site-feedback-effects-docs-3f4edf`. Sie ist NICHT abgebrochen und wird
 nach Phase 5 fortgesetzt; Phase 5 fasst keine der dort geänderten Dateien an.
 
-Progress: [███░░░░░░░] 33%
+Progress: [███████░░░] 68%
 
 ## Performance Metrics
 
@@ -92,6 +92,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 05 P02 | 55min | 2 tasks | 5 files |
 | Phase 5 P03 | ~2h55min | 2 tasks | 1 files |
 | Phase 01.4 P01 | ~35min | 2 tasks | 8 files |
+| Phase 01.4 P05 | ~3h | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 5]: 05-03: 7 Schnellzugriff-Chips (sdb__quick/sdb__qchip) setzen Rollenfamilie+Signatur in einem Klick (D-10, ROLE-06); sf-type (Wiki-Grobfilter) abgeloest
 - [Phase ?]: [Phase 5]: 05-03: Sichtpruefung fand doppelten Rollenfilter (sf-role neben sf-rolefam) -- sf-role entfernt, sf-rolefam ist jetzt DER Rollenfilter (D-05); Konsole 9 statt 10 Bedienelemente
 - [Phase ?]: 01.4-01: fuenf Extraktor-Vorarbeiten (D-01/D-02/D-21) versioniert + erster Fahrzeug-Katalog-Lauf gegen Changelist 12326004 (223/227, 4 ATLS ohne DataCore-Record); Feldmatrix mit 18 kritischen Feldern (13 zu pruefen, Abbruchgrenzen fuer Plan 02) und Deckungs-Waechter in verify-vehicles.mjs
+- [Phase ?]: [Phase 01.4]: 01.4-05: vehicles.json auf Spieldaten getauscht (VEH-08) — Patch-Rueckgrat und Waffengroessen-Waechter (cls-Join statt Anzeigename) umgestellt, Wiki-Sync-Kette (sync-vehicles.mjs, enrich-weapon-sizes.mjs) geloescht, Stichprobe an 4 Schiffen x 2 Sprachen belegt; alle 7 Tore auf/ueber der Messlatte
 
 ### Pending Todos
 

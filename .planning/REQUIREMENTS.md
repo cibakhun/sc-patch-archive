@@ -121,7 +121,7 @@
 - [ ] **VEH-05**: `cargoSCU` steht für jedes Fahrzeug mit Frachtraum auf einem belegten Wert; kein Frachtschiff steht auf 0
 - [ ] **VEH-06**: Die 32 `shieldHp`-Abweichungen sind einzeln beurteilt — je Fahrzeug ist belegt, welche Quelle recht hat
 - [x] **VEH-07**: Der Spieldaten-Katalog führt alle 227 Fahrzeuge, inklusive der vier ATLS-Varianten
-- [ ] **VEH-08**: `vehicles.json` entsteht aus der Extraktion; `sync-vehicles.mjs` ist gelöscht und der Wiki-Schritt aus `.github/workflows/build.yml` entfernt
+- [x] **VEH-08**: `vehicles.json` entsteht aus der Extraktion; `sync-vehicles.mjs` ist gelöscht und der Wiki-Schritt aus `.github/workflows/build.yml` entfernt
 
 ### Spenden-Unterstützung
 
@@ -272,7 +272,7 @@ ist anbieterneutral und bleibt gültig.
 | VEH-05 | Phase 1.4 | Pending |
 | VEH-06 | Phase 1.4 | Pending |
 | VEH-07 | Phase 1.4 | Complete |
-| VEH-08 | Phase 1.4 | Pending |
+| VEH-08 | Phase 1.4 | Complete |
 | TYPO-01 | Phase 2 | Pending |
 | TYPO-02 | Phase 2 | Pending |
 | TYPO-03 | Phase 2 | Pending |
