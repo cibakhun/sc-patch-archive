@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-03",
-  "updates": 13,
-  "totalListings": 1276,
+  "updates": 14,
+  "totalListings": 1299,
   "totalSold": 32,
-  "distinctItems": 552
+  "distinctItems": 561
  },
  "listings": {
   "156580": {
@@ -19509,6 +19509,10 @@
     {
      "d": "2026-08-02",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 500000
     }
    ],
    "soldOut": false,
@@ -25796,6 +25800,10 @@
     {
      "d": "2026-08-03",
      "p": 40000000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 60000000
     }
    ],
    "soldOut": false,
@@ -26720,6 +26728,10 @@
     {
      "d": "2026-08-03",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-03",
+     "p": 700000
     }
    ],
    "soldOut": false,
@@ -26769,6 +26781,27 @@
    "soldOutPrice": null,
    "dateAdded": 1785756366,
    "dateExpiration": 1790940366
+  },
+  "157949": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "WTS Polaris Bits 4.9 (Bulk Sales and Preorders)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785756421,
+   "dateExpiration": 1790940421
   },
   "157950": {
    "idItem": 4608,
@@ -26875,6 +26908,27 @@
    "dateAdded": 1785756833,
    "dateExpiration": 1790940832
   },
+  "157955": {
+   "idItem": 4924,
+   "idCategory": 87,
+   "title": "Glacosite 972Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 972,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785757193,
+   "dateExpiration": 1790941192
+  },
   "157956": {
    "idItem": 7999,
    "idCategory": 7,
@@ -26917,6 +26971,27 @@
    "dateAdded": 1785757439,
    "dateExpiration": 1790941439
   },
+  "157958": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 861,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785757475,
+   "dateExpiration": 1790941475
+  },
   "157959": {
    "idItem": 468,
    "idCategory": 2,
@@ -26937,6 +27012,426 @@
    "soldOutPrice": null,
    "dateAdded": 1785757499,
    "dateExpiration": 1790941498
+  },
+  "157960": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium 916Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785757591,
+   "dateExpiration": 1790941591
+  },
+  "157961": {
+   "idItem": 4924,
+   "idCategory": 87,
+   "title": "Glacosite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 857,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 80000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785757602,
+   "dateExpiration": 1790941602
+  },
+  "157962": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium 866Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 866,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785757797,
+   "dateExpiration": 1790941797
+  },
+  "157963": {
+   "idItem": 1493,
+   "idCategory": 3,
+   "title": "Morozov-SH Helmet Aftershock",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785757870,
+   "dateExpiration": 1790941870
+  },
+  "157964": {
+   "idItem": 2454,
+   "idCategory": 3,
+   "title": "Overlord Helmet Supernova",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785758010,
+   "dateExpiration": 1790942010
+  },
+  "157965": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite 867Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 867,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 70000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785758112,
+   "dateExpiration": 1790942112
+  },
+  "157966": {
+   "idItem": 6936,
+   "idCategory": 5,
+   "title": "Morozov-SH-I Core Pyrotechnic Horizon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785758201,
+   "dateExpiration": 1790942201
+  },
+  "157967": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "WTS 1SCU 874Q Stileron (4mln aUEC)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785758236,
+   "dateExpiration": 1790942236
+  },
+  "157968": {
+   "idItem": 3232,
+   "idCategory": 5,
+   "title": "Overlord Core Predator",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785758287,
+   "dateExpiration": 1790942287
+  },
+  "157969": {
+   "idItem": 5698,
+   "idCategory": 1,
+   "title": "Citadel Arms Roughshod",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785758385,
+   "dateExpiration": 1790942385
+  },
+  "157970": {
+   "idItem": 1051,
+   "idCategory": 1,
+   "title": "Defiance Arms Firestarter",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785758486,
+   "dateExpiration": 1790942486
+  },
+  "157971": {
+   "idItem": 2634,
+   "idCategory": 1,
+   "title": "Overlord Arms Riptide",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785758586,
+   "dateExpiration": 1790942586
+  },
+  "157972": {
+   "idItem": 3234,
+   "idCategory": 4,
+   "title": "Overlord Legs Predator",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785758686,
+   "dateExpiration": 1790942686
+  },
+  "157973": {
+   "idItem": 8014,
+   "idCategory": 7,
+   "title": "Dust Devil Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785758755,
+   "dateExpiration": 1790942755
+  },
+  "157974": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "Polaris Bit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785758863,
+   "dateExpiration": 1790942863
+  },
+  "157975": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium - 2 full single SCU boxes",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785759192,
+   "dateExpiration": 1790943192
+  },
+  "157976": {
+   "idItem": 5022,
+   "idCategory": 61,
+   "title": "Yormandi Eye",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785759292,
+   "dateExpiration": 1790943292
+  },
+  "157977": {
+   "idItem": 4613,
+   "idCategory": 111,
+   "title": "DCHS-05",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785759337,
+   "dateExpiration": 1790943337
+  },
+  "157978": {
+   "idItem": 5023,
+   "idCategory": 61,
+   "title": "Yormandi Tongue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785759576,
+   "dateExpiration": 1790943576
+  },
+  "157979": {
+   "idItem": 2584,
+   "idCategory": 3,
+   "title": "Neoni Yuki Onna Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-03",
+   "lastSeen": "2026-08-03",
+   "prices": [
+    {
+     "d": "2026-08-03",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785759647,
+   "dateExpiration": 1790943647
   }
  }
 }
