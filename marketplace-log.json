@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-04",
-  "updates": 30,
-  "totalListings": 1860,
-  "totalSold": 67,
-  "distinctItems": 707
+  "updates": 31,
+  "totalListings": 1867,
+  "totalSold": 68,
+  "distinctItems": 708
  },
  "listings": {
   "156580": {
@@ -34168,9 +34168,9 @@
      "p": 30000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 30000000,
    "dateAdded": 1785807005,
    "dateExpiration": 1796175005
   },
@@ -38555,6 +38555,10 @@
     {
      "d": "2026-08-04",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -39389,6 +39393,153 @@
    "soldOutPrice": null,
    "dateAdded": 1785847275,
    "dateExpiration": 1791031275
+  },
+  "158550": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "954q Lindinium 1.972",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 954,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 11500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785847942,
+   "dateExpiration": 1791031942
+  },
+  "158553": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785848390,
+   "dateExpiration": 1791032390
+  },
+  "158554": {
+   "idItem": 7994,
+   "idCategory": 7,
+   "title": "Overlord Polarity Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785848933,
+   "dateExpiration": 1791032933
+  },
+  "158555": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "I WTB - Carinite (Pure) x3 - 15 000 000 /U",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785848996,
+   "dateExpiration": 1791032996
+  },
+  "158556": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Artimex chairman club set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785849407,
+   "dateExpiration": 1791033407
+  },
+  "158561": {
+   "idItem": 3726,
+   "idCategory": 61,
+   "title": "Carrack Miniature '2952 Best In Show'",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1500000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785850924,
+   "dateExpiration": 1791034924
+  },
+  "158563": {
+   "idItem": 5051,
+   "idCategory": 17,
+   "title": "Gamma \"Black Op\" (1x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785851065,
+   "dateExpiration": 1791035065
   }
  }
 }
