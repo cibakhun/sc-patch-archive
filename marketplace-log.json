@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-04",
-  "updates": 39,
-  "totalListings": 2098,
-  "totalSold": 75,
+  "updates": 40,
+  "totalListings": 2103,
+  "totalSold": 77,
   "distinctItems": 737
  },
  "listings": {
@@ -38625,6 +38625,10 @@
     {
      "d": "2026-08-04",
      "p": 23000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 20000000
     }
    ],
    "soldOut": false,
@@ -41082,9 +41086,9 @@
      "p": 6200000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 6200000,
    "dateAdded": 1785855333,
    "dateExpiration": 1791039333
   },
@@ -42094,9 +42098,9 @@
      "p": 5000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 5000000,
    "dateAdded": 1785861099,
    "dateExpiration": 1791045099
   },
@@ -43108,6 +43112,10 @@
     {
      "d": "2026-08-04",
      "p": 14000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -44471,6 +44479,111 @@
    "soldOutPrice": null,
    "dateAdded": 1785879271,
    "dateExpiration": 1791063271
+  },
+  "158819": {
+   "idItem": 5436,
+   "idCategory": 3,
+   "title": "Morozov-SH-C Helmet Vesper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785880678,
+   "dateExpiration": 1791064678
+  },
+  "158821": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "C54 Ochelo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785881157,
+   "dateExpiration": 1791065157
+  },
+  "158822": {
+   "idItem": 115,
+   "idCategory": 29,
+   "title": "WTS 36.28% POWER Helix II Mining Laser",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 50000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785881202,
+   "dateExpiration": 1796249202
+  },
+  "158826": {
+   "idItem": 4433,
+   "idCategory": 18,
+   "title": "944Q Parallax \"Shock Trooper\" Energy Assault Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 944,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785882032,
+   "dateExpiration": 1791066032
+  },
+  "158832": {
+   "idItem": 4924,
+   "idCategory": 87,
+   "title": "Glacosite 972Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785882832,
+   "dateExpiration": 1791066832
   }
  }
 }
