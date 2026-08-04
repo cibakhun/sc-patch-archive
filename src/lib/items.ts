@@ -71,10 +71,24 @@ export interface ItemStats {
   [k: string]: unknown;
 }
 
+/** Eine von mehreren Ausführungen, die sich einen Anzeigenamen teilen. */
+export interface ItemVariant {
+  size: number;
+  grade: string | null;
+  manufacturer: string | null;
+  stats: ItemStats | null;
+}
+
 export interface ItemGame {
   gameType?: string;
   subType?: string;
   size?: number;
+  /** Größen ALLER Ausführungen dieses Namens — gesetzt statt `size`, wenn das
+   *  Spiel mehrere unterschiedlich große Items so nennt ("Revenant Gatling"
+   *  gibt es als S3, S4 und S6). Dann sind auch grade/manufacturer/stats leer
+   *  und stehen stattdessen je Ausführung in `variants`. */
+  sizes?: number[];
+  variants?: ItemVariant[];
   grade?: string;
   class?: string;
   manufacturer?: string;

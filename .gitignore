@@ -44,3 +44,6 @@ TEST_*.md
 
 # Holo-glTF-Downloadcache (calibrate-holo-markers.mjs, einmalig ~2 GB)
 .cache/
+
+# Zwischenstand des Spieldaten-Katalogs, solange die Seite noch vehicles.json liest
+/src/data/vehicles-gamefiles.json

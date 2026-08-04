@@ -12,7 +12,7 @@ import {
   pageItemIds, relatedItems, rootCategory, sortedObtain, type Item,
   armorSetById, setItemsBySlot,
 } from '../lib/items';
-import { specChips, statEntries, primaryStat } from '../lib/itemStats';
+import { specChips, statEntries, statRows, primaryStat, variantHead } from '../lib/itemStats';
 import { itemSeo } from '../lib/itemSeo';
 import { blueprintForItem, blueprintPath, craftTime, resourceNames } from '../lib/crafting';
 
@@ -26,6 +26,7 @@ const alt = altName(item, lang);
 const desc = description(item, lang);
 const chips = specChips(item, lang);
 const stats = statEntries(item, lang);
+const variants = item.game?.variants ?? [];
 const key = primaryStat(item, lang);
 const rows = sortedObtain(item);
 const lo = minPrice(item);
@@ -135,6 +136,27 @@ const crumbs = [
         </ul>
       )}
       {desc && <p class="dp-desc">{desc}</p>}
+    </section>
+  )}
+
+  {/* -- Varianten: mehrere Spiel-Items teilen sich diesen Anzeigenamen. Die
+         Werte stehen je Ausfuehrung statt einmal geraten weiter oben. -- */}
+  {variants.length > 0 && (
+    <section class="dp-sec">
+      <h2>{t('sectionVariants')}</h2>
+      <p class="dp-note">{t('variantsNote')}</p>
+      {variants.map((v) => (
+        <>
+          <h3 class="dp-variant-h" set:text={variantHead(v, lang)} />
+          {statRows(v.stats, lang).length > 0 && (
+            <ul class="dp-stats">
+              {statRows(v.stats, lang).map(([l, val]) => (
+                <li class="dp-stat"><b>{l}</b><span>{val}</span></li>
+              ))}
+            </ul>
+          )}
+        </>
+      ))}
     </section>
   )}
 

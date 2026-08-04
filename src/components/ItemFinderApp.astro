@@ -582,6 +582,13 @@ const JS_T = ITEM_UI[lang];
     display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 0.6rem; margin-bottom: 1rem;
   }
+  /* Varianten: mehrere Spiel-Items unter einem Anzeigenamen, je Größe ein Block */
+  .uif-variants-note { margin: -0.35rem 0 0.9rem; font-size: 0.85rem; color: var(--muted, #9ba2ae); line-height: 1.5; }
+  .uif-variant + .uif-variant { margin-top: 0.9rem; }
+  .uif-variant-h {
+    font-weight: 700; font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--accent-2, var(--accent, #ff5e1a)); margin-bottom: 0.5rem;
+  }
   .uif-stat {
     display: flex; flex-direction: column; gap: 0.2rem;
     background: var(--veil-hi, var(--surface-2));

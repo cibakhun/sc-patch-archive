@@ -136,7 +136,7 @@
     filteredItems = ALL_ITEMS.filter(function (item) {
       if (activeCategory && parentCategory(item.category) !== activeCategory) return false;
       if (!hasKind(item, activeKind)) return false;
-      if (activeSize != null && !(item.game && item.game.size === activeSize)) return false;
+      if (activeSize != null && itemSizes(item).indexOf(activeSize) < 0) return false;
       if (activeWeight && !(item.game && item.game.weight === activeWeight)) return false;
       if (activeRarity && !(item.game && item.game.rarity === activeRarity)) return false;
       if (activeSet && !(item.game && item.game.setId === activeSet)) return false;
@@ -301,7 +301,7 @@
     if (!wrap) return;
     var sizes = {};
     ALL_ITEMS.forEach(function (item) {
-      if (item.game && item.game.size != null && hasGradeSemantics(item)) sizes[item.game.size] = true;
+      if (hasGradeSemantics(item)) itemSizes(item).forEach(function (s) { sizes[s] = true; });
     });
     var list = Object.keys(sizes).map(Number).sort(function (a, b) { return a - b; });
     if (!list.length) { wrap.innerHTML = ''; return; }
@@ -476,7 +476,8 @@
         if (g.manufacturer) bits.push(g.manufacturer);
         if (g.weight) bits.push(weightLabel(g.weight));
         if (hasGradeSemantics(item)) {
-          if (g.size != null) bits.push('S' + g.size);
+          var sl = sizeLabel(item);
+          if (sl) bits.push(sl);
           if (g.grade) bits.push(g.grade);
         }
         if (bits.length) specLine = '<div class="uif-card-spec">' + esc(bits.join(' · ')) + '</div>';
@@ -709,6 +710,19 @@
   }
   // Größe/Grade nur bei Ausrüstung anzeigen (bei Kleidung/Nahrung ist Grade immer „A")
   function hasGradeSemantics(item) { return /Vehiclegear|Weapons|Armour|Attachment/.test(parentCategory(item.category)); }
+  // Größen eines Items. Meist genau eine — aber hinter manchen Anzeigenamen
+  // stecken mehrere Spiel-Items unterschiedlicher Größe ("Revenant Gatling"
+  // gibt es als S3, S4 und S6). Die tragen `sizes` statt `size`, und es wäre
+  // geraten, sich eine davon auszusuchen.
+  function itemSizes(item) {
+    var g = item.game; if (!g) return [];
+    if (g.sizes && g.sizes.length) return g.sizes;
+    return g.size != null ? [g.size] : [];
+  }
+  function sizeLabel(item) {
+    var s = itemSizes(item);
+    return s.length ? s.map(function (n) { return 'S' + n; }).join(' / ') : null;
+  }
   // Kopf-Chips: Hersteller / Größe / Grade / Klasse / Volumen
   function specChips(item) {
     var g = item.game; if (!g) return [];
@@ -716,8 +730,8 @@
     if (g.manufacturer) chips.push([tr('specMfr', 'Hersteller'), g.manufacturer]);
     if (g.weight) chips.push([tr('facetWeight', 'Panzerungsklasse'), weightLabel(g.weight)]);
     if (g.rarity) chips.push([tr('facetRarity', 'Seltenheit'), rarityLabel(g.rarity)]);
-    if (eq && g.size != null) chips.push([tr('specSize', 'Größe'), 'S' + g.size]);
-    if (eq && g.grade) chips.push([tr('specGrade', 'Grade'), g.grade]);
+    if (eq && sizeLabel(item)) chips.push([tr('specSize', 'Größe'), sizeLabel(item)]);
+    if (eq && g.grade && !g.variants) chips.push([tr('specGrade', 'Grade'), g.grade]);
     if (g.class) chips.push([tr('specClass', 'Klasse'), g.class]);
     if (g.volumeScu) chips.push([tr('specVolume', 'Volumen'), g.volumeScu + ' SCU']);
     return chips;
@@ -754,6 +768,27 @@
           return '<div class="uif-stat"><span class="uif-stat-l">' + esc(st[0]) + '</span><span class="uif-stat-v">' + esc(st[1]) + '</span></div>';
         }).join('') + '</div>' : '') +
         (descText ? '<p class="uif-item-desc">' + esc(descText) + '</p>' : '') +
+      '</div>';
+    }
+
+    // Varianten — wenn hinter dem Namen mehrere Spiel-Items stecken, stehen die
+    // Werte hier je Größe statt einmal geraten weiter oben.
+    var vars = item.game && item.game.variants;
+    if (vars && vars.length) {
+      html += '<div class="uif-modal-section uif-variants">' +
+        '<h4>' + esc(tr('sectionVariants', 'Varianten')) + '</h4>' +
+        '<p class="uif-variants-note">' + esc(tr('variantsNote', 'Unter diesem Namen führt das Spiel mehrere Gegenstände.')) + '</p>' +
+        vars.map(function (v) {
+          var head = ['S' + v.size, v.manufacturer, v.grade ? tr('specGrade', 'Grade') + ' ' + v.grade : null]
+            .filter(Boolean).join(' · ');
+          var rows = statEntries({ game: { stats: v.stats } });
+          return '<div class="uif-variant">' +
+            '<div class="uif-variant-h">' + esc(head) + '</div>' +
+            (rows.length ? '<div class="uif-stat-grid">' + rows.map(function (st) {
+              return '<div class="uif-stat"><span class="uif-stat-l">' + esc(st[0]) + '</span><span class="uif-stat-v">' + esc(st[1]) + '</span></div>';
+            }).join('') + '</div>' : '') +
+          '</div>';
+        }).join('') +
       '</div>';
     }
 

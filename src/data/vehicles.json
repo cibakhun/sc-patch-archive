@@ -39,7 +39,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -157,7 +158,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -280,7 +282,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -398,12 +401,14 @@
         {
           "name": "SW16BR3 “Shredder” Repeater",
           "count": 2,
-          "dps": 375
+          "dps": 375,
+          "size": 3
         },
         {
           "name": "M5A Cannon",
           "count": 1,
-          "dps": 683.6
+          "dps": 683.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -520,7 +525,8 @@
         {
           "name": "SW16BR3 “Shredder” Repeater",
           "count": 2,
-          "dps": 375
+          "dps": 375,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -638,12 +644,14 @@
         {
           "name": "SW16BR3 “Shredder” Repeater",
           "count": 2,
-          "dps": 375
+          "dps": 375,
+          "size": 3
         },
         {
           "name": "M6A Cannon",
           "count": 1,
-          "dps": 1025.5
+          "dps": 1025.5,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -773,12 +781,14 @@
         {
           "name": "M5A Cannon",
           "count": 1,
-          "dps": 683.6
+          "dps": 683.6,
+          "size": 3
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -895,7 +905,8 @@
         {
           "name": "CF-447 Rhino Repeater",
           "count": 2,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         }
       ],
       "turrets": [
@@ -1038,7 +1049,8 @@
         {
           "name": "M7A Cannon",
           "count": 3,
-          "dps": 1536.3
+          "dps": 1536.3,
+          "size": 5
         }
       ],
       "turrets": [
@@ -1176,7 +1188,8 @@
         {
           "name": "M7A Cannon",
           "count": 3,
-          "dps": 1536.3
+          "dps": 1536.3,
+          "size": 5
         }
       ],
       "turrets": [
@@ -1310,7 +1323,8 @@
         {
           "name": "M7A Cannon",
           "count": 3,
-          "dps": 1536.3
+          "dps": 1536.3,
+          "size": 5
         }
       ],
       "turrets": [
@@ -1448,12 +1462,14 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         },
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -1735,12 +1751,14 @@
         {
           "name": "M5A Cannon",
           "count": 4,
-          "dps": 683.6
+          "dps": 683.6,
+          "size": 3
         },
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -1866,7 +1884,8 @@
         {
           "name": "M7A Cannon",
           "count": 2,
-          "dps": 1536.3
+          "dps": 1536.3,
+          "size": 5
         }
       ],
       "turrets": [
@@ -2024,12 +2043,14 @@
         {
           "name": "Mantis GT-220 Gatling",
           "count": 2,
-          "dps": 506.7
+          "dps": 506.7,
+          "size": 3
         },
         {
           "name": "CF-447 Rhino Repeater",
           "count": 2,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -2146,12 +2167,14 @@
         {
           "name": "M5A Cannon",
           "count": 2,
-          "dps": 683.6
+          "dps": 683.6,
+          "size": 3
         },
         {
           "name": "CF-447 Rhino Repeater",
           "count": 2,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -2272,7 +2295,8 @@
         {
           "name": "SF7B Gatling",
           "count": 1,
-          "dps": 4320
+          "dps": 4320,
+          "size": 7
         }
       ],
       "turrets": [],
@@ -2394,7 +2418,8 @@
         {
           "name": "SF7E Cannon",
           "count": 1,
-          "dps": 4720.8
+          "dps": 4720.8,
+          "size": 7
         }
       ],
       "turrets": [],
@@ -2516,12 +2541,14 @@
         {
           "name": "YellowJacket GT-210 Gatling",
           "count": 2,
-          "dps": 201.6
+          "dps": 201.6,
+          "size": 1
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -2647,7 +2674,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 6,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [
@@ -3057,7 +3085,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -3175,7 +3204,8 @@
         {
           "name": "9-Series Longsword Cannon",
           "count": 2,
-          "dps": 202.5
+          "dps": 202.5,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -3292,7 +3322,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 4,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -3409,7 +3440,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -3526,7 +3558,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -3643,7 +3676,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 4,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -3760,7 +3794,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 4,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -3879,12 +3914,14 @@
         {
           "name": "Revenant Gatling",
           "count": 1,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         },
         {
           "name": "Omnisky IX Cannon",
           "count": 2,
-          "dps": 546.8
+          "dps": 546.8,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -3970,7 +4007,7 @@
           "count": 2
         },
         {
-          "size": 6,
+          "size": 4,
           "count": 1
         }
       ]
@@ -4009,12 +4046,14 @@
         {
           "name": "Revenant Gatling",
           "count": 1,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         },
         {
           "name": "Omnisky IX Cannon",
           "count": 2,
-          "dps": 546.8
+          "dps": 546.8,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -4100,7 +4139,7 @@
           "count": 2
         },
         {
-          "size": 6,
+          "size": 4,
           "count": 1
         }
       ]
@@ -4139,12 +4178,14 @@
         {
           "name": "11-Series Broadsword Cannon",
           "count": 1,
-          "dps": 455.3
+          "dps": 455.3,
+          "size": 3
         },
         {
           "name": "Omnisky IX Cannon",
           "count": 2,
-          "dps": 546.8
+          "dps": 546.8,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -4265,12 +4306,14 @@
         {
           "name": "Revenant Gatling",
           "count": 1,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         },
         {
           "name": "Omnisky IX Cannon",
           "count": 2,
-          "dps": 546.8
+          "dps": 546.8,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -4356,7 +4399,7 @@
           "count": 2
         },
         {
-          "size": 6,
+          "size": 4,
           "count": 1
         }
       ]
@@ -4752,12 +4795,14 @@
         {
           "name": "Deathroll S2 Gatling",
           "count": 2,
-          "dps": 373.3
+          "dps": 373.3,
+          "size": 2
         },
         {
           "name": "Snapper S2 Repeater",
           "count": 4,
-          "dps": 350
+          "dps": 350,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -4867,12 +4912,14 @@
         {
           "name": "'WARLORD' Cannon",
           "count": 2,
-          "dps": 877.5
+          "dps": 877.5,
+          "size": 3
         },
         {
           "name": "'WHIP' Cannon",
           "count": 2,
-          "dps": 455.2
+          "dps": 455.2,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -4997,17 +5044,20 @@
         {
           "name": "YellowJacket GT-210 Gatling",
           "count": 2,
-          "dps": 201.6
+          "dps": 201.6,
+          "size": 1
         },
         {
           "name": "Revenant Gatling",
           "count": 1,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -5101,7 +5151,7 @@
           "count": 2
         },
         {
-          "size": 6,
+          "size": 4,
           "count": 1
         }
       ]
@@ -5140,7 +5190,8 @@
         {
           "name": "M5A Cannon",
           "count": 4,
-          "dps": 683.6
+          "dps": 683.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -5257,7 +5308,8 @@
         {
           "name": "M7A Cannon",
           "count": 2,
-          "dps": 1536.3
+          "dps": 1536.3,
+          "size": 5
         }
       ],
       "turrets": [
@@ -5393,7 +5445,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -5510,7 +5563,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -5627,12 +5681,14 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         },
         {
           "name": "FL-11 Cannon",
           "count": 2,
-          "dps": 205.2
+          "dps": 205.2,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -6391,12 +6447,14 @@
         {
           "name": "Mantis GT-220 Gatling",
           "count": 2,
-          "dps": 506.7
+          "dps": 506.7,
+          "size": 3
         },
         {
           "name": "Omnisky IX Cannon",
           "count": 2,
-          "dps": 546.8
+          "dps": 546.8,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -6524,7 +6582,8 @@
         {
           "name": "CF-557 Galdereen Repeater",
           "count": 4,
-          "dps": 1227.4
+          "dps": 1227.4,
+          "size": 5
         }
       ],
       "turrets": [
@@ -6667,7 +6726,8 @@
         {
           "name": "M7A Cannon",
           "count": 4,
-          "dps": 1536.3
+          "dps": 1536.3,
+          "size": 5
         }
       ],
       "turrets": [
@@ -6805,7 +6865,8 @@
         {
           "name": "Omnisky XV Cannon",
           "count": 4,
-          "dps": 1230.4
+          "dps": 1230.4,
+          "size": 5
         }
       ],
       "turrets": [
@@ -6963,7 +7024,8 @@
         {
           "name": "Omnisky XV Cannon",
           "count": 4,
-          "dps": 1230.4
+          "dps": 1230.4,
+          "size": 5
         }
       ],
       "turrets": [
@@ -7121,7 +7183,8 @@
         {
           "name": "CF-557 Galdereen Repeater",
           "count": 4,
-          "dps": 1227.4
+          "dps": 1227.4,
+          "size": 5
         }
       ],
       "turrets": [
@@ -7264,17 +7327,20 @@
         {
           "name": "M6A Cannon",
           "count": 4,
-          "dps": 1025.5
+          "dps": 1025.5,
+          "size": 4
         },
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         },
         {
           "name": "M7A Cannon",
           "count": 2,
-          "dps": 1536.3
+          "dps": 1536.3,
+          "size": 5
         }
       ],
       "turrets": [
@@ -7507,12 +7573,14 @@
         {
           "name": "Mantis GT-220 Gatling",
           "count": 2,
-          "dps": 506.7
+          "dps": 506.7,
+          "size": 3
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [
@@ -7655,12 +7723,14 @@
         {
           "name": "DR Model-XJ3 Repeater",
           "count": 2,
-          "dps": 386
+          "dps": 386,
+          "size": 3
         },
         {
           "name": "Mantis GT-220 Gatling",
           "count": 2,
-          "dps": 506.7
+          "dps": 506.7,
+          "size": 3
         }
       ],
       "turrets": [
@@ -7798,12 +7868,14 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         },
         {
           "name": "Mantis GT-220 Gatling",
           "count": 2,
-          "dps": 506.7
+          "dps": 506.7,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -7914,12 +7986,14 @@
         {
           "name": "Mantis GT-220 Gatling",
           "count": 2,
-          "dps": 506.7
+          "dps": 506.7,
+          "size": 3
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [
@@ -8083,7 +8157,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -8201,7 +8276,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -8319,7 +8395,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -9018,7 +9095,8 @@
         {
           "name": "Singe Cannon (S3)",
           "count": 4,
-          "dps": 405
+          "dps": 405,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -9135,7 +9213,8 @@
         {
           "name": "Havoc Scattergun",
           "count": 2,
-          "dps": 374.4
+          "dps": 374.4,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -9234,7 +9313,8 @@
         {
           "name": "Havoc Scattergun",
           "count": 2,
-          "dps": 374.4
+          "dps": 374.4,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -9333,7 +9413,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -9450,17 +9531,20 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         },
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         },
         {
           "name": "AD4B Ballistic Gatling",
           "count": 2,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -9590,12 +9674,14 @@
         {
           "name": "Revenant Gatling",
           "count": 2,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         },
         {
           "name": "Omnisky IX Cannon",
           "count": 4,
-          "dps": 546.8
+          "dps": 546.8,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -9677,7 +9763,7 @@
           "count": 4
         },
         {
-          "size": 6,
+          "size": 4,
           "count": 2
         }
       ]
@@ -9716,7 +9802,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -9838,7 +9925,8 @@
         {
           "name": "Revenant Gatling",
           "count": 2,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -9916,7 +10004,7 @@
       ],
       "fixedWeaponSizes": [
         {
-          "size": 6,
+          "size": 4,
           "count": 2
         }
       ]
@@ -9955,12 +10043,14 @@
         {
           "name": "Revenant Gatling",
           "count": 1,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         },
         {
           "name": "Tarantula GT-870 Mark 3 Cannon",
           "count": 2,
-          "dps": 455.4
+          "dps": 455.4,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -10043,12 +10133,12 @@
       ],
       "fixedWeaponSizes": [
         {
-          "size": 6,
-          "count": 1
+          "size": 3,
+          "count": 2
         },
         {
-          "size": 8,
-          "count": 2
+          "size": 4,
+          "count": 1
         }
       ]
     },
@@ -10086,17 +10176,20 @@
         {
           "name": "Mantis GT-220 Gatling",
           "count": 2,
-          "dps": 506.7
+          "dps": 506.7,
+          "size": 3
         },
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         },
         {
           "name": "M6A Cannon",
           "count": 1,
-          "dps": 1025.5
+          "dps": 1025.5,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -10221,17 +10314,20 @@
         {
           "name": "Revenant Gatling",
           "count": 2,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         },
         {
           "name": "TMSB-5 Gatling",
           "count": 2,
-          "dps": 922.3
+          "dps": 922.3,
+          "size": null
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -10319,12 +10415,9 @@
         {
           "size": 4,
           "count": 2
-        },
-        {
-          "size": 6,
-          "count": 2
         }
-      ]
+      ],
+      "fixedWeaponSizesPartial": true
     },
     {
       "id": "anvl-hornet-f7cm",
@@ -10360,17 +10453,20 @@
         {
           "name": "Mantis GT-220 Gatling",
           "count": 2,
-          "dps": 506.7
+          "dps": 506.7,
+          "size": 3
         },
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         },
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -10495,12 +10591,14 @@
         {
           "name": "Revenant Gatling",
           "count": 2,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 4,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -10584,7 +10682,7 @@
           "count": 4
         },
         {
-          "size": 6,
+          "size": 4,
           "count": 2
         }
       ]
@@ -10623,7 +10721,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -10745,7 +10844,8 @@
         {
           "name": "Revenant Gatling",
           "count": 2,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -10823,7 +10923,7 @@
       ],
       "fixedWeaponSizes": [
         {
-          "size": 6,
+          "size": 4,
           "count": 2
         }
       ]
@@ -10862,7 +10962,8 @@
         {
           "name": "Omnisky IX Cannon",
           "count": 2,
-          "dps": 546.8
+          "dps": 546.8,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -10984,7 +11085,8 @@
         {
           "name": "Revenant Gatling",
           "count": 2,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -11062,7 +11164,7 @@
       ],
       "fixedWeaponSizes": [
         {
-          "size": 6,
+          "size": 4,
           "count": 2
         }
       ]
@@ -11101,17 +11203,20 @@
         {
           "name": "M5A Cannon",
           "count": 4,
-          "dps": 683.6
+          "dps": 683.6,
+          "size": 3
         },
         {
           "name": "M6A Cannon",
           "count": 2,
-          "dps": 1025.5
+          "dps": 1025.5,
+          "size": 4
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -11236,22 +11341,26 @@
         {
           "name": "Tarantula GT-870 Mark 2 Cannon",
           "count": 2,
-          "dps": 304.2
+          "dps": 304.2,
+          "size": 2
         },
         {
           "name": "Tarantula GT-870 Mark 3 Cannon",
           "count": 2,
-          "dps": 455.4
+          "dps": 455.4,
+          "size": 3
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         },
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -11338,11 +11447,7 @@
         },
         {
           "size": 3,
-          "count": 2
-        },
-        {
-          "size": 8,
-          "count": 2
+          "count": 4
         }
       ]
     },
@@ -11380,22 +11485,26 @@
         {
           "name": "Tarantula GT-870 Mark 2 Cannon",
           "count": 2,
-          "dps": 304.2
+          "dps": 304.2,
+          "size": 2
         },
         {
           "name": "Tarantula GT-870 Mark 3 Cannon",
           "count": 2,
-          "dps": 455.4
+          "dps": 455.4,
+          "size": 3
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         },
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -11482,11 +11591,7 @@
         },
         {
           "size": 3,
-          "count": 2
-        },
-        {
-          "size": 8,
-          "count": 2
+          "count": 4
         }
       ]
     },
@@ -11524,7 +11629,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 4,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -11829,7 +11935,8 @@
         {
           "name": "CF-447 Rhino Repeater",
           "count": 2,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         }
       ],
       "turrets": [
@@ -11977,12 +12084,14 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         },
         {
           "name": "Mantis GT-220 Gatling",
           "count": 1,
-          "dps": 506.7
+          "dps": 506.7,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -12104,12 +12213,14 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         },
         {
           "name": "Mantis GT-220 Gatling",
           "count": 1,
-          "dps": 506.7
+          "dps": 506.7,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -12231,12 +12342,14 @@
         {
           "name": "Omnisky IX Cannon",
           "count": 2,
-          "dps": 546.8
+          "dps": 546.8,
+          "size": 3
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 1,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -12358,12 +12471,14 @@
         {
           "name": "'WRATH' Cannon",
           "count": 2,
-          "dps": 808.3
+          "dps": 808.3,
+          "size": 5
         },
         {
           "name": "'WEAK' Repeater",
           "count": 2,
-          "dps": 291.7
+          "dps": 291.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -12493,7 +12608,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -12610,7 +12726,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -12727,7 +12844,8 @@
         {
           "name": "M7A Cannon",
           "count": 2,
-          "dps": 1536.3
+          "dps": 1536.3,
+          "size": 5
         }
       ],
       "turrets": [],
@@ -12846,7 +12964,8 @@
         {
           "name": "CF-447 Rhino Repeater",
           "count": 4,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -12968,7 +13087,8 @@
         {
           "name": "M7A Cannon",
           "count": 2,
-          "dps": 1536.3
+          "dps": 1536.3,
+          "size": 5
         }
       ],
       "turrets": [],
@@ -13327,12 +13447,14 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 4,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         },
         {
           "name": "Suckerpunch Cannon",
           "count": 2,
-          "dps": 135
+          "dps": 135,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -13451,12 +13573,14 @@
         {
           "name": "Mantis GT-220 Gatling",
           "count": 1,
-          "dps": 506.7
+          "dps": 506.7,
+          "size": 3
         },
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -13577,7 +13701,8 @@
         {
           "name": "CF-447 Rhino Repeater",
           "count": 4,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -13779,7 +13904,8 @@
         {
           "name": "CF-447 Rhino Repeater",
           "count": 2,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         }
       ],
       "turrets": [
@@ -13917,12 +14043,14 @@
         {
           "name": "Revenant Gatling",
           "count": 8,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         },
         {
           "name": "Destroyer Mass Driver Cannon",
           "count": 1,
-          "dps": 9610.7
+          "dps": 9610.7,
+          "size": 10
         }
       ],
       "turrets": [
@@ -14043,7 +14171,7 @@
       ],
       "fixedWeaponSizes": [
         {
-          "size": 6,
+          "size": 4,
           "count": 8
         },
         {
@@ -14086,7 +14214,8 @@
         {
           "name": "Revenant Gatling",
           "count": 8,
-          "dps": 1266
+          "dps": 1266,
+          "size": 4
         }
       ],
       "turrets": [
@@ -14192,7 +14321,7 @@
       "fixedWeaponMounts": [],
       "fixedWeaponSizes": [
         {
-          "size": 6,
+          "size": 4,
           "count": 8
         }
       ]
@@ -14231,7 +14360,8 @@
         {
           "name": "CF-447 Rhino Repeater",
           "count": 1,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -14668,7 +14798,8 @@
         {
           "name": "M9A Cannon",
           "count": 8,
-          "dps": 7784.1
+          "dps": 7784.1,
+          "size": 7
         }
       ],
       "turrets": [
@@ -14801,7 +14932,8 @@
         {
           "name": "CF-447 Rhino Repeater",
           "count": 2,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -14912,7 +15044,8 @@
         {
           "name": "Relentless L-21 Gatling",
           "count": 2,
-          "dps": 997.5
+          "dps": 997.5,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -15031,7 +15164,8 @@
         {
           "name": "Axiom L-22 Repeater",
           "count": 2,
-          "dps": 1062.5
+          "dps": 1062.5,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -15149,7 +15283,8 @@
         {
           "name": "M3A Cannon",
           "count": 2,
-          "dps": 303.8
+          "dps": 303.8,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -15249,7 +15384,8 @@
         {
           "name": "M7A Cannon",
           "count": 2,
-          "dps": 1536.3
+          "dps": 1536.3,
+          "size": 5
         }
       ],
       "turrets": [
@@ -15385,7 +15521,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -15455,12 +15592,7 @@
         "thumb": "https://cstone.space/uifimages/1b57cdac-693b-410b-8343-68fa194c94ae.png",
         "source": "cstone.space"
       },
-      "fixedWeaponMounts": [
-        {
-          "size": 1,
-          "count": 2
-        }
-      ],
+      "fixedWeaponMounts": [],
       "fixedWeaponSizes": [
         {
           "size": 2,
@@ -15502,12 +15634,14 @@
         {
           "name": "CF-447 Rhino Repeater",
           "count": 2,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         },
         {
           "name": "CF-557 Galdereen Repeater",
           "count": 2,
-          "dps": 1227.4
+          "dps": 1227.4,
+          "size": 5
         }
       ],
       "turrets": [],
@@ -15637,7 +15771,8 @@
         {
           "name": "FL-33 Cannon",
           "count": 2,
-          "dps": 461.7
+          "dps": 461.7,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -15754,7 +15889,8 @@
         {
           "name": "MRX \"Torrent\"",
           "count": 1,
-          "dps": 360
+          "dps": 360,
+          "size": null
         }
       ],
       "turrets": [
@@ -15829,12 +15965,7 @@
         "source": "starcitizen.tools"
       },
       "fixedWeaponMounts": [],
-      "fixedWeaponSizes": [
-        {
-          "size": 1,
-          "count": 1
-        }
-      ]
+      "fixedWeaponSizes": []
     },
     {
       "id": "crus-star-runner",
@@ -15871,7 +16002,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [
@@ -16014,12 +16146,14 @@
         {
           "name": "FL-33 Cannon",
           "count": 4,
-          "dps": 461.7
+          "dps": 461.7,
+          "size": 3
         },
         {
           "name": "Leonids Cannon",
           "count": 2,
-          "dps": 1333.3
+          "dps": 1333.3,
+          "size": 5
         }
       ],
       "turrets": [],
@@ -16151,7 +16285,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -16258,7 +16393,8 @@
         {
           "name": "M5A Cannon",
           "count": 4,
-          "dps": 683.6
+          "dps": 683.6,
+          "size": 3
         }
       ],
       "turrets": [
@@ -16401,7 +16537,8 @@
         {
           "name": "Attrition-3 Repeater",
           "count": 4,
-          "dps": 501.7
+          "dps": 501.7,
+          "size": 3
         }
       ],
       "turrets": [
@@ -16544,7 +16681,8 @@
         {
           "name": "Omnisky IX Cannon",
           "count": 4,
-          "dps": 546.8
+          "dps": 546.8,
+          "size": 3
         }
       ],
       "turrets": [
@@ -16687,7 +16825,8 @@
         {
           "name": "M5A Cannon",
           "count": 4,
-          "dps": 683.6
+          "dps": 683.6,
+          "size": 3
         }
       ],
       "turrets": [
@@ -16830,7 +16969,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -16941,7 +17081,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 4,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -17058,7 +17199,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 6,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -17153,7 +17295,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -17265,7 +17408,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 4,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -17387,7 +17531,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -17509,7 +17654,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -17631,12 +17777,14 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -17766,7 +17914,8 @@
         {
           "name": "M6A Cannon",
           "count": 4,
-          "dps": 1025.5
+          "dps": 1025.5,
+          "size": 4
         }
       ],
       "turrets": [
@@ -17911,7 +18060,8 @@
         {
           "name": "M6A Cannon",
           "count": 4,
-          "dps": 1025.5
+          "dps": 1025.5,
+          "size": 4
         }
       ],
       "turrets": [
@@ -18057,7 +18207,8 @@
         {
           "name": "M6A Cannon",
           "count": 4,
-          "dps": 1025.5
+          "dps": 1025.5,
+          "size": 4
         }
       ],
       "turrets": [
@@ -18195,7 +18346,8 @@
         {
           "name": "M6A Cannon",
           "count": 4,
-          "dps": 1025.5
+          "dps": 1025.5,
+          "size": 4
         }
       ],
       "turrets": [
@@ -18365,7 +18517,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 4,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -18479,7 +18632,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -18595,7 +18749,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -18991,7 +19146,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -19179,7 +19335,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -19243,12 +19400,7 @@
         "thumb": "https://media.starcitizen.tools/thumb/5/52/Mustang_Alpha_flying_over_Lorville.jpg/320px-Mustang_Alpha_flying_over_Lorville.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponMounts": [
-        {
-          "size": 1,
-          "count": 2
-        }
-      ],
+      "fixedWeaponMounts": [],
       "fixedWeaponSizes": [
         {
           "size": 2,
@@ -19290,7 +19442,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -19354,12 +19507,7 @@
         "thumb": "https://media.starcitizen.tools/thumb/e/ea/Mustang_Beta_-_Flying_past_distant_world.jpg/320px-Mustang_Beta_-_Flying_past_distant_world.jpg.webp",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponMounts": [
-        {
-          "size": 1,
-          "count": 2
-        }
-      ],
+      "fixedWeaponMounts": [],
       "fixedWeaponSizes": [
         {
           "size": 2,
@@ -19402,7 +19550,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -19504,12 +19653,14 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 4,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         },
         {
           "name": "Jericho XL",
           "count": 2,
-          "dps": 150
+          "dps": 150,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -19624,7 +19775,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -19735,7 +19887,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -19846,7 +19999,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 3,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [
@@ -19979,12 +20133,14 @@
         {
           "name": "Slayer Cannon",
           "count": 1,
-          "dps": 6400
+          "dps": 6400,
+          "size": 5
         },
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -20093,7 +20249,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -20280,12 +20437,14 @@
         {
           "name": "Tigerstrike T-19P",
           "count": 1,
-          "dps": 450
+          "dps": 450,
+          "size": 2
         },
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -20398,7 +20557,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 4,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -20503,7 +20663,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 4,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -20917,12 +21078,14 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         },
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 4,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -21225,12 +21388,14 @@
         {
           "name": "Lightstrike III Cannon",
           "count": 2,
-          "dps": 461.7
+          "dps": 461.7,
+          "size": 3
         },
         {
           "name": "Deadbolt V Cannon",
           "count": 2,
-          "dps": 1583.3
+          "dps": 1583.3,
+          "size": 5
         }
       ],
       "turrets": [],
@@ -21345,12 +21510,14 @@
         {
           "name": "Deadbolt III Cannon",
           "count": 2,
-          "dps": 375.7
+          "dps": 375.7,
+          "size": 3
         },
         {
           "name": "Lightstrike IV Cannon",
           "count": 2,
-          "dps": 692.6
+          "dps": 692.6,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -21544,7 +21711,8 @@
         {
           "name": "Thlilye Laser Gatling",
           "count": 1,
-          "dps": 313.5
+          "dps": 313.5,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -21847,7 +22015,8 @@
         {
           "name": "CF-447 Rhino Repeater",
           "count": 4,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         }
       ],
       "turrets": [
@@ -21992,7 +22161,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -22109,7 +22279,8 @@
         {
           "name": "Hellion Scattergun",
           "count": 2,
-          "dps": 560
+          "dps": 560,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -22226,7 +22397,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -22665,7 +22837,8 @@
         {
           "name": "C-788 Cannon",
           "count": 2,
-          "dps": 908.3
+          "dps": 908.3,
+          "size": 4
         }
       ],
       "turrets": [
@@ -23110,7 +23283,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 4,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -23227,12 +23401,14 @@
         {
           "name": "Omnisky IX Cannon",
           "count": 2,
-          "dps": 546.8
+          "dps": 546.8,
+          "size": 3
         },
         {
           "name": "PyroBurst Scattergun",
           "count": 2,
-          "dps": 462
+          "dps": 462,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -23349,7 +23525,8 @@
         {
           "name": "Mantis GT-220 Gatling",
           "count": 2,
-          "dps": 506.7
+          "dps": 506.7,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -23571,7 +23748,8 @@
         {
           "name": "Quarreler Cannon",
           "count": 2,
-          "dps": 546.8
+          "dps": 546.8,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -23687,7 +23865,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -23800,7 +23979,8 @@
         {
           "name": "Yeng’tu Repeater",
           "count": 4,
-          "dps": 512.5
+          "dps": 512.5,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -23917,7 +24097,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 4,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [
@@ -24055,7 +24236,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 4,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -24172,12 +24354,14 @@
         {
           "name": "Breakneck S4 Gatling",
           "count": 2,
-          "dps": 953.3
+          "dps": 953.3,
+          "size": 4
         },
         {
           "name": "Tormenter S3 Repeater",
           "count": 4,
-          "dps": 493.8
+          "dps": 493.8,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -24508,17 +24692,20 @@
         {
           "name": "'WRATH' Cannon",
           "count": 1,
-          "dps": 810
+          "dps": 810,
+          "size": 5
         },
         {
           "name": "Lightstrike II Cannon",
           "count": 2,
-          "dps": 308.5
+          "dps": 308.5,
+          "size": 2
         },
         {
           "name": "Lightstrike IV Cannon",
           "count": 4,
-          "dps": 692.6
+          "dps": 692.6,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -24666,7 +24853,8 @@
         {
           "name": "Reign-3 Repeater",
           "count": 1,
-          "dps": 2041.7
+          "dps": 2041.7,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -24938,7 +25126,8 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 3,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -25055,7 +25244,8 @@
         {
           "name": "Lightstrike IV Cannon",
           "count": 2,
-          "dps": 692.6
+          "dps": 692.6,
+          "size": 4
         }
       ],
       "turrets": [],
@@ -25177,7 +25367,8 @@
         {
           "name": "Lightstrike II Cannon",
           "count": 2,
-          "dps": 308.5
+          "dps": 308.5,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -25294,7 +25485,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -25400,7 +25592,8 @@
         {
           "name": "CF-227 Badger Repeater",
           "count": 2,
-          "dps": 328.1
+          "dps": 328.1,
+          "size": 2
         }
       ],
       "turrets": [],
@@ -25511,7 +25704,8 @@
         {
           "name": "C-07T Cannon",
           "count": 4,
-          "dps": 2683.3
+          "dps": 2683.3,
+          "size": 7
         }
       ],
       "turrets": [
@@ -25649,7 +25843,8 @@
         {
           "name": "CF-447 Rhino Repeater",
           "count": 4,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         }
       ],
       "turrets": [
@@ -25814,7 +26009,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -25914,7 +26110,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -26014,7 +26211,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -26197,12 +26395,14 @@
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         },
         {
           "name": "CF-447 Rhino Repeater",
           "count": 2,
-          "dps": 817.9
+          "dps": 817.9,
+          "size": 4
         }
       ],
       "turrets": [
@@ -26346,17 +26546,20 @@
         {
           "name": "'WAR' Cannon",
           "count": 1,
-          "dps": 1890
+          "dps": 1890,
+          "size": 5
         },
         {
           "name": "'WRATH' Cannon",
           "count": 1,
-          "dps": 808.3
+          "dps": 808.3,
+          "size": 5
         },
         {
           "name": "'WEAK' Repeater",
           "count": 2,
-          "dps": 291.7
+          "dps": 291.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -26484,12 +26687,14 @@
         {
           "name": "Deadbolt V Cannon",
           "count": 1,
-          "dps": 1583.3
+          "dps": 1583.3,
+          "size": 5
         },
         {
           "name": "CVSA Cannon",
           "count": 4,
-          "dps": 405
+          "dps": 405,
+          "size": 2
         }
       ],
       "turrets": [
@@ -26645,12 +26850,14 @@
         {
           "name": "Deadbolt V Cannon",
           "count": 1,
-          "dps": 1583.3
+          "dps": 1583.3,
+          "size": 5
         },
         {
           "name": "BRVS Repeater",
           "count": 4,
-          "dps": 450
+          "dps": 450,
+          "size": 2
         }
       ],
       "turrets": [
@@ -26796,12 +27003,14 @@
         {
           "name": "Attrition-5 Repeater",
           "count": 1,
-          "dps": 875
+          "dps": 875,
+          "size": 5
         },
         {
           "name": "ATVS Repeater",
           "count": 4,
-          "dps": 225
+          "dps": 225,
+          "size": 2
         }
       ],
       "turrets": [
@@ -26952,12 +27161,14 @@
         {
           "name": "Deadbolt V Cannon",
           "count": 1,
-          "dps": 1583.3
+          "dps": 1583.3,
+          "size": 5
         },
         {
           "name": "MVSA Cannon",
           "count": 4,
-          "dps": 455
+          "dps": 455,
+          "size": 2
         }
       ],
       "turrets": [
@@ -27108,7 +27319,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 2,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -27219,7 +27431,8 @@
         {
           "name": "M3A Cannon",
           "count": 1,
-          "dps": 303.8
+          "dps": 303.8,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -27318,7 +27531,8 @@
         {
           "name": "CF-117 Bulldog Repeater",
           "count": 1,
-          "dps": 218.7
+          "dps": 218.7,
+          "size": 1
         }
       ],
       "turrets": [],
@@ -27506,12 +27720,14 @@
         {
           "name": "Omnisky XII Cannon",
           "count": 2,
-          "dps": 819.7
+          "dps": 819.7,
+          "size": 4
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],
@@ -27632,12 +27848,14 @@
         {
           "name": "Omnisky XII Cannon",
           "count": 2,
-          "dps": 819.7
+          "dps": 819.7,
+          "size": 4
         },
         {
           "name": "CF-337 Panther Repeater",
           "count": 2,
-          "dps": 545.6
+          "dps": 545.6,
+          "size": 3
         }
       ],
       "turrets": [],

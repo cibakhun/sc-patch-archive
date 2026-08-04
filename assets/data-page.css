@@ -312,6 +312,17 @@ body {
   max-width: 72ch;
 }
 
+/* Varianten: mehrere Spiel-Items unter einem Anzeigenamen, je Größe ein Block */
+.dp-variant-h {
+  margin: 1.1rem 0 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+.dp-variant-h:first-of-type { margin-top: 0.9rem; }
+
 /* ---------- Hinweise ---------- */
 
 .dp-note {

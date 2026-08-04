@@ -161,7 +161,18 @@ const vehicles = defineCollection({
     pilotDps: z.number().nullable(),
     turretDps: z.number().nullable(),
     fixedWeapons: z.array(
-      z.object({ name: z.string(), count: z.number(), dps: z.number().nullable() })
+      z.object({
+        name: z.string(),
+        count: z.number(),
+        dps: z.number().nullable(),
+        /** size class of THIS weapon on THIS ship, resolved by
+         *  enrich-weapon-sizes.mjs aus dem Stock-Loadout der Spieldateien.
+         *  Bewusst an der Waffe statt nur aggregiert: Anzeigenamen sind im Spiel
+         *  nicht eindeutig (vier Items heißen "Revenant Gatling", S3/S4/S6), die
+         *  Zuordnung Name<->Größe darf also nicht zurückgerechnet werden.
+         *  null = im Loadout des Schiffs nicht eindeutig auflösbar. */
+        size: z.number().nullable().optional(),
+      })
     ),
     /** pilot-weapon HARDPOINT max sizes (what is mountable), aggregated per size,
      *  from the detail endpoint's `components[].weapons`. Paired with the
@@ -169,10 +180,9 @@ const vehicles = defineCollection({
     fixedWeaponMounts: z
       .array(z.object({ size: z.number(), count: z.number() }))
       .default([]),
-    /** size classes of the ACTUAL equipped pilot weapons, aggregated per size.
-     *  Resolved by enrich-weapon-sizes.mjs from the fitted weapon names via the
-     *  WeaponGun items catalog (NOT the hardpoint max size). Optional so the
-     *  schema still validates a snapshot synced before the enrich pass ran. */
+    /** size classes of the ACTUAL equipped pilot weapons, aggregated per size —
+     *  die Summe der `fixedWeapons[].size` oben. Optional, damit ein Snapshot
+     *  ohne gelaufenen Enrich-Pass weiter validiert. */
     fixedWeaponSizes: z
       .array(z.object({ size: z.number(), count: z.number() }))
       .default([]),

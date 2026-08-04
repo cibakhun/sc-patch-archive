@@ -105,7 +105,9 @@ if (existsSync(gameDbPath)) {
     const gm = {};
     // Tag-Facetten (weight/rarity/part/color/setId/lootable) reisen im selben Block
     // wie die Stats — die UI liest alles unter `item.game`.
-    for (const k of ['gameType', 'subType', 'size', 'grade', 'class', 'manufacturer', 'manufacturerCode', 'volumeScu', 'stats', 'nameDe', 'desc', 'descDe',
+    // `sizes`/`variants` stehen nur an Namen, hinter denen mehrere Spiel-Items
+    // stecken (z. B. "Revenant Gatling" als S3/S4/S6). Dort ist `size` leer.
+    for (const k of ['gameType', 'subType', 'size', 'sizes', 'variants', 'grade', 'class', 'manufacturer', 'manufacturerCode', 'volumeScu', 'stats', 'nameDe', 'desc', 'descDe',
       'weight', 'part', 'rarity', 'archetype', 'specialization', 'color', 'lootable', 'lootReason', 'setId']) {
       if (g[k] != null) gm[k] = g[k];
     }
