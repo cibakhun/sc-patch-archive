@@ -15,6 +15,7 @@ import { startVoiceSweep } from './voice.mjs';
 import { startPatchWatch } from './patch-watch.mjs';
 import * as commands from './commands.mjs';
 import { ensureEmoji } from './emoji.mjs';
+import { ensureAvatar } from './avatar.mjs';
 import { loadEnv } from './env.mjs';
 import { effectiveMultiplier, applyMultiplier, randomXp } from './leveling.mjs';
 import { isNoXpChannel } from './config.mjs';
@@ -40,6 +41,7 @@ const cooldowns = new Map(); // `${guildId}:${userId}` -> epoch ms
 
 client.once(Events.ClientReady, async (c) => {
   console.log(`✓ ${c.user.tag} online — ${c.guilds.cache.size} guild(s)`);
+  await ensureAvatar(c).catch(() => {});
   const cmdData = commands.buildCommandData();
   for (const guild of c.guilds.cache.values()) {
     try { await guild.commands.set(cmdData); console.log(`  · ${cmdData.length} slash commands registered in ${guild.name}`); }

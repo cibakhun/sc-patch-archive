@@ -234,6 +234,29 @@ try {
   else throw e;
 }
 
+// The boot-time avatar fallback — pure node builtins, so it always runs here.
+console.log('\n▸ Avatar (first-boot fallback)');
+{
+  const { ensureAvatar } = await import('./avatar.mjs');
+  const fakeClient = (avatar) => {
+    const calls = [];
+    return { calls, user: { avatar, setAvatar: async (buf) => { calls.push(buf); } } };
+  };
+  await (async () => {
+    const c = fakeClient('a1b2c3');
+    await ensureAvatar(c);
+    t('leaves an existing avatar alone (never burns the rate limit)', () => assert.equal(c.calls.length, 0));
+  })();
+  await (async () => {
+    const c = fakeClient(null);
+    await ensureAvatar(c);
+    t('sets a PNG when the bot has none', () => {
+      assert.equal(c.calls.length, 1, 'setAvatar called once');
+      assert.equal(c.calls[0].subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'sent a PNG');
+    });
+  })();
+}
+
 // Optional: validate the slash-command tree if discord.js is present.
 console.log('\n▸ Slash commands');
 try {

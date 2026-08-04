@@ -121,6 +121,12 @@ if (oauth.size !== 1) warn('bot', `bot is in ${oauth.size} guilds`, [...oauth.va
 else ok(`bot is in exactly 1 guild`);
 if (!me.permissions.has(PermissionFlagsBits.Administrator)) err('bot', 'bot lacks Administrator — builder + rank sync will fail');
 else ok('bot has Administrator');
+// The bot user avatar and the application icon are two separate images; Discord
+// shows the first in chat and the second in the profile popout and invite dialog.
+if (!client.user.avatar) warn('bot', 'bot has no avatar — it shows Discord\'s default in every message', 'npm run avatar && npm run avatar:apply');
+else ok('bot avatar set');
+if (!app.icon) warn('bot', 'application has no icon — the profile popout and invite dialog fall back to the default', 'npm run avatar:apply');
+else ok('application icon set');
 const botRole = botRoleId ? guild.roles.cache.get(botRoleId) : null;
 if (botRole) {
   const above = [...guild.roles.cache.values()].filter((r) => r.position > botRole.position && r.id !== everyoneId);
