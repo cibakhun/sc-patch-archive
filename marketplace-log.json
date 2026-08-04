@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-04",
-  "updates": 32,
-  "totalListings": 1883,
-  "totalSold": 71,
-  "distinctItems": 713
+  "updates": 33,
+  "totalListings": 1911,
+  "totalSold": 72,
+  "distinctItems": 714
  },
  "listings": {
   "156580": {
@@ -32167,6 +32167,10 @@
     {
      "d": "2026-08-03",
      "p": 2300000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 2100000
     }
    ],
    "soldOut": false,
@@ -34928,9 +34932,9 @@
      "p": 5000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 5000000,
    "dateAdded": 1785818858,
    "dateExpiration": 1791002858
   },
@@ -39768,6 +39772,10 @@
     {
      "d": "2026-08-04",
      "p": 4276986
+    },
+    {
+     "d": "2026-08-04",
+     "p": 1800000
     }
    ],
    "soldOut": false,
@@ -39789,6 +39797,10 @@
     {
      "d": "2026-08-04",
      "p": 10430839
+    },
+    {
+     "d": "2026-08-04",
+     "p": 4100000
     }
    ],
    "soldOut": false,
@@ -39810,6 +39822,10 @@
     {
      "d": "2026-08-04",
      "p": 2243946
+    },
+    {
+     "d": "2026-08-04",
+     "p": 1643945
     }
    ],
    "soldOut": false,
@@ -39831,6 +39847,10 @@
     {
      "d": "2026-08-04",
      "p": 2514427
+    },
+    {
+     "d": "2026-08-04",
+     "p": 2144270
     }
    ],
    "soldOut": false,
@@ -39852,6 +39872,10 @@
     {
      "d": "2026-08-04",
      "p": 5385191
+    },
+    {
+     "d": "2026-08-04",
+     "p": 4785190
     }
    ],
    "soldOut": false,
@@ -39873,6 +39897,10 @@
     {
      "d": "2026-08-04",
      "p": 3263158
+    },
+    {
+     "d": "2026-08-04",
+     "p": 2763157
     }
    ],
    "soldOut": false,
@@ -39880,6 +39908,594 @@
    "soldOutPrice": null,
    "dateAdded": 1785854694,
    "dateExpiration": 1791038694
+  },
+  "158613": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 11600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785854822,
+   "dateExpiration": 1791038822
+  },
+  "158617": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "Gold",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 6200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785855115,
+   "dateExpiration": 1791039115
+  },
+  "158620": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 954,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 3400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785855227,
+   "dateExpiration": 1791039226
+  },
+  "158621": {
+   "idItem": 5852,
+   "idCategory": 36,
+   "title": "Aluminum",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 953,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 6200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785855333,
+   "dateExpiration": 1791039333
+  },
+  "158623": {
+   "idItem": 2471,
+   "idCategory": 2,
+   "title": "CSP-68L Backpack Night Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785855626,
+   "dateExpiration": 1791039625
+  },
+  "158625": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 917,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 6500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785855742,
+   "dateExpiration": 1791039742
+  },
+  "158626": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 855,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785855888,
+   "dateExpiration": 1791039888
+  },
+  "158627": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium (2x 1 SCU / 0.194 SCU)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 954,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785855891,
+   "dateExpiration": 1791039891
+  },
+  "158629": {
+   "idItem": 3874,
+   "idCategory": 17,
+   "title": "Theta Pro LL (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785856145,
+   "dateExpiration": 1791040145
+  },
+  "158630": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785856341,
+   "dateExpiration": 1791040341
+  },
+  "158631": {
+   "idItem": 6725,
+   "idCategory": 5,
+   "title": "Palatino Core Necropolis",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 3800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785856413,
+   "dateExpiration": 1791040413
+  },
+  "158632": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure) for sale",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 16000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785856594,
+   "dateExpiration": 1791040594
+  },
+  "158634": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785856868,
+   "dateExpiration": 1791040868
+  },
+  "158635": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl 937 0.994scus",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 9100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857043,
+   "dateExpiration": 1791041043
+  },
+  "158636": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl\t937\t0.5scus",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857090,
+   "dateExpiration": 1791041090
+  },
+  "158637": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857140,
+   "dateExpiration": 1791041140
+  },
+  "158638": {
+   "idItem": 5948,
+   "idCategory": 36,
+   "title": "Ice\t922\t0.587scus",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 922,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 3600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857227,
+   "dateExpiration": 1791041227
+  },
+  "158639": {
+   "idItem": 5910,
+   "idCategory": 36,
+   "title": "Heph\t916\t0.24scus",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 6900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857268,
+   "dateExpiration": 1791041267
+  },
+  "158640": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "Gold\t916\t0.211scus",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 7800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857313,
+   "dateExpiration": 1791041313
+  },
+  "158642": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron\t907\t1.208scus",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 907,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 5600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857358,
+   "dateExpiration": 1791041358
+  },
+  "158643": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium\t905\t1.307scus",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 905,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 11400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857409,
+   "dateExpiration": 1791041409
+  },
+  "158644": {
+   "idItem": 4478,
+   "idCategory": 18,
+   "title": "Parallax \"Sanguine\" Energy Assault Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857432,
+   "dateExpiration": 1791041431
+  },
+  "158645": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "Borase\t903\t0.599scus",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 903,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857462,
+   "dateExpiration": 1791041462
+  },
+  "158646": {
+   "idItem": 5910,
+   "idCategory": 36,
+   "title": "Hephaestanite 896\t0.447scus",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 896,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857515,
+   "dateExpiration": 1791041515
+  },
+  "158648": {
+   "idItem": 5910,
+   "idCategory": 36,
+   "title": "Heph\t896\t0.475scus",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 896,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857578,
+   "dateExpiration": 1791041578
+  },
+  "158650": {
+   "idItem": 5910,
+   "idCategory": 36,
+   "title": "Heph\t896\t2scus",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 896,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 6200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785857632,
+   "dateExpiration": 1791041632
+  },
+  "158652": {
+   "idItem": 1909,
+   "idCategory": 22,
+   "title": "TS-2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785858066,
+   "dateExpiration": 1791042065
+  },
+  "158653": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785858180,
+   "dateExpiration": 1791042180
   }
  }
 }
