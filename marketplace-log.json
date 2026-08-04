@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-04",
-  "updates": 26,
-  "totalListings": 1586,
-  "totalSold": 63,
-  "distinctItems": 620
+  "updates": 27,
+  "totalListings": 1617,
+  "totalSold": 65,
+  "distinctItems": 625
  },
  "listings": {
   "156580": {
@@ -25289,6 +25289,10 @@
     {
      "d": "2026-08-03",
      "p": 42000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 38000000
     }
    ],
    "soldOut": false,
@@ -26456,6 +26460,10 @@
     {
      "d": "2026-08-03",
      "p": 8000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 7000000
     }
    ],
    "soldOut": false,
@@ -26708,6 +26716,10 @@
     {
      "d": "2026-08-03",
      "p": 8000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 7000000
     }
    ],
    "soldOut": false,
@@ -28036,9 +28048,9 @@
      "p": 250000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 250000,
    "dateAdded": 1785768088,
    "dateExpiration": 1790952088
   },
@@ -28244,6 +28256,10 @@
     {
      "d": "2026-08-03",
      "p": 4000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 5000000
     }
    ],
    "soldOut": false,
@@ -31233,6 +31249,10 @@
     {
      "d": "2026-08-03",
      "p": 15000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 17000000
     }
    ],
    "soldOut": false,
@@ -33460,9 +33480,9 @@
      "p": 4000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 4000000,
    "dateAdded": 1785818760,
    "dateExpiration": 1791002760
   },
@@ -33591,6 +33611,657 @@
    "soldOutPrice": null,
    "dateAdded": 1785819445,
    "dateExpiration": 1796191045
+  },
+  "158446": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785824049,
+   "dateExpiration": 1791008049
+  },
+  "158447": {
+   "idItem": 5599,
+   "idCategory": 83,
+   "title": "V880 940Q Radar For Idris",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 940,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 60000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785824219,
+   "dateExpiration": 1791008219
+  },
+  "158448": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron 874Q - 1.091 SCU (517, 681 qualities available )",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828115,
+   "dateExpiration": 1791012114
+  },
+  "158449": {
+   "idItem": 114,
+   "idCategory": 29,
+   "title": "Helix I Mining Laser 23,3%",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 23,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 8500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828210,
+   "dateExpiration": 1791012210
+  },
+  "158450": {
+   "idItem": 5948,
+   "idCategory": 36,
+   "title": "Pressurized Ice 873Q - 3.275 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 873,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828222,
+   "dateExpiration": 1791012222
+  },
+  "158451": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper 855Q - 2.644 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 855,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828318,
+   "dateExpiration": 1791012318
+  },
+  "158452": {
+   "idItem": 245,
+   "idCategory": 31,
+   "title": "Abrade Scraper Module",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 870,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828364,
+   "dateExpiration": 1791012364
+  },
+  "158453": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "ADP-mk4 Modified (XenoThreat) Heavy Armor set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828391,
+   "dateExpiration": 1791012391
+  },
+  "158454": {
+   "idItem": 5859,
+   "idCategory": 36,
+   "title": "Aslarite 963Q - 0.198 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 963,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828393,
+   "dateExpiration": 1791012393
+  },
+  "158455": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "WTB 2SCU 800q taranite",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828414,
+   "dateExpiration": 1791012414
+  },
+  "158456": {
+   "idItem": 4991,
+   "idCategory": 7,
+   "title": "Corbel Smolder Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828459,
+   "dateExpiration": 1791012459
+  },
+  "158457": {
+   "idItem": 5972,
+   "idCategory": 36,
+   "title": "Silicon 889Q - 0.933 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 889,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828477,
+   "dateExpiration": 1791012477
+  },
+  "158458": {
+   "idItem": 5852,
+   "idCategory": 36,
+   "title": "Aluminium 896Q - 0.428 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 896,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828565,
+   "dateExpiration": 1791012565
+  },
+  "158459": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium 930Q - 0.949 SCU / 853Q - 1.083 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 930,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828667,
+   "dateExpiration": 1791012667
+  },
+  "158461": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium 866Q - 1.824 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 866,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828742,
+   "dateExpiration": 1791012742
+  },
+  "158462": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 17500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828780,
+   "dateExpiration": 1791012780
+  },
+  "158463": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl 937Q - 0.454 SCU / 860Q - 2.139 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828815,
+   "dateExpiration": 1791012815
+  },
+  "158464": {
+   "idItem": 245,
+   "idCategory": 31,
+   "title": "Abrade Scraper Module",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 746,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 7500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828854,
+   "dateExpiration": 1791012854
+  },
+  "158465": {
+   "idItem": 5989,
+   "idCategory": 36,
+   "title": "Torite 873 -1.249 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 873,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785828897,
+   "dateExpiration": 1791012897
+  },
+  "158468": {
+   "idItem": 5910,
+   "idCategory": 36,
+   "title": "Hephaestanite 896q (various weight)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 896,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785829910,
+   "dateExpiration": 1791013910
+  },
+  "158481": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785831763,
+   "dateExpiration": 1791015763
+  },
+  "158490": {
+   "idItem": 4358,
+   "idCategory": 61,
+   "title": "PAF Maintenance Keycard",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 260000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785833914,
+   "dateExpiration": 1791017913
+  },
+  "158491": {
+   "idItem": 3349,
+   "idCategory": 18,
+   "title": "Scourge Railgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785834221,
+   "dateExpiration": 1791018221
+  },
+  "158493": {
+   "idItem": 5014,
+   "idCategory": 38,
+   "title": "RCMBNT-RGL-1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785834370,
+   "dateExpiration": 1791018370
+  },
+  "158495": {
+   "idItem": 8027,
+   "idCategory": 7,
+   "title": "Antium Storm Set with Icebox Fresnel (Full White)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785836015,
+   "dateExpiration": 1791020015
+  },
+  "158499": {
+   "idItem": 5333,
+   "idCategory": 17,
+   "title": "Stoic Suppressor 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785836707,
+   "dateExpiration": 1791020707
+  },
+  "158500": {
+   "idItem": 5331,
+   "idCategory": 17,
+   "title": "Torrent Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785837016,
+   "dateExpiration": 1791021016
+  },
+  "158501": {
+   "idItem": 6455,
+   "idCategory": 17,
+   "title": "Torrent Compensator 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785837142,
+   "dateExpiration": 1791021142
+  },
+  "158502": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785837385,
+   "dateExpiration": 1791021385
+  },
+  "158503": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785837473,
+   "dateExpiration": 1791021472
+  },
+  "158504": {
+   "idItem": 4610,
+   "idCategory": 38,
+   "title": "DCHS-06 Communication Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785838060,
+   "dateExpiration": 1791022060
   }
  }
 }
