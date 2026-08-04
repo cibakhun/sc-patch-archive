@@ -862,7 +862,10 @@ span.sd__ref{color:var(--muted)}
   .arm__gval{margin-left:0;flex-basis:100%}
 }
 
-.sd__desc{max-width:78ch;margin:0 0 1.6rem;font-size:1.05rem;line-height:1.65;color:var(--text);opacity:.92}
+/* white-space:pre-line: vDesc() wandelt die woertlichen "\n"-Folgen der
+   Spieltexte in echte Zeilenumbrueche (01.4-05, D-07) — ohne dieses Attribut
+   wuerden Browser sie zu Leerzeichen zusammenfalten. */
+.sd__desc{max-width:78ch;margin:0 0 1.6rem;font-size:1.05rem;line-height:1.65;color:var(--text);opacity:.92;white-space:pre-line}
 .sd__spine{margin-bottom:1.6rem;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--bg-2);padding:1rem 1.2rem}
 .sd__spine h2{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
 .sd__spine a{display:block;padding:.3rem 0;font-family:var(--font-ui);font-weight:700;font-size:1rem}
@@ -1593,9 +1596,8 @@ span.sd__ref{color:var(--muted)}
     </div>
 
     <p class="sd__src">
-      {t('ship.source')} <a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
-      ({t('ship.source.wikiNote')}) · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}
-      {d.gameVersion && ` · ${t('ship.source.gameData')} ${d.gameVersion.split('-')[0]}`}
+      {t('ship.source')} {t('ship.source.gameData')}{d.gameVersion && ` ${d.gameVersion.split('-')[0]}`}
+      · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}
       {hero?.api && ` · ${t('ship.source.image')}: ${d.image?.source ?? 'starcitizen.tools'}`}
       {' '}· {t('ship.source.ingame')}: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> · {t('ship.asof')} {pricesFetchedAt}
       {extras && ` · ${t('ship.source.extras')}: `}{extras && <a href="https://fleetyards.net" target="_blank" rel="noopener">FleetYards.net</a>}

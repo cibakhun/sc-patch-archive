@@ -1,10 +1,17 @@
 # Build-Button — manuell am Patch-Day auslösen (Actions → Build → Run workflow).
-# Zieht frische Daten-Snapshots (Wiki-API-Fahrzeugkatalog, FleetYards-Specs),
+# Zieht frische Daten-Snapshots (FleetYards-Specs, UEX-Preise, FleetYards-Extras),
 # committet sie zurück auf main, baut die Seite und prüft die Integrität.
 # Sync-Schritte sind non-fatal: fällt eine API aus, baut die Seite mit dem
 # letzten guten Snapshot weiter (Architektur-Grundsatz "last-good snapshot").
 # Der Deploy-Schritt folgt beim Live-Gang — Coolify (Hetzner) zieht dann
 # einfach den aktualisierten main.
+#
+# Der Fahrzeug-Katalog (src/data/vehicles.json) ist SEIT 01.4-05 (D-16) NICHT
+# mehr Teil dieses Arbeitsablaufs: er kommt aus der eigenen Data.p4k-
+# Extraktion (scripts/datamine-vehicles.mjs) und kann in CI nicht erneuert
+# werden — er braucht die lokale Data.p4k. Ein neuer Katalog entsteht nur
+# noch lokal (`npm run datamine:loadouts && npm run datamine:vehicles`) und
+# wird von Hand committet, wie die übrigen Datamine-Werkzeuge des Projekts.
 name: Build
 
 on:
@@ -29,10 +36,6 @@ jobs:
           cache: npm
 
       - run: npm ci
-
-      - name: Sync vehicle catalog (Star Citizen Wiki API)
-        run: npm run sync:vehicles
-        continue-on-error: true
 
       - name: Sync ship specs (FleetYards)
         run: npm run sync:ships

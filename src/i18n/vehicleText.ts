@@ -1,16 +1,14 @@
 // Vehicle text resolution DE/EN (Stufe 2).
 // Freitext-Daten (Beschreibung, Foci) + Enum-Felder (Größe/Status/Typ) pro
-// Locale. EN-Beschreibungen liegen sync-sicher in src/data/vehicles-en.json
-// (vehicles.json wird per API-Sync neu erzeugt und würde inline-Felder
-// überschreiben). Foci/Größe/Status/Typ sind Aufzählungen -> feste Maps.
+// Locale. EN-Beschreibungen kommen seit 01.4-05 direkt aus `descriptionEn`
+// (CIGs Originaltext, Data.p4k) — die frühere Rückübersetzungsdatei ist
+// entfernt (D-07).
 import type { CollectionEntry } from 'astro:content';
-import vehiclesEn from '../data/vehicles-en.json';
 import vehicleRoles from '../data/vehicle-roles.json';
 import type { Locale } from './ui';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
 
-const EN_DESC = (vehiclesEn as { descriptions: Record<string, string> }).descriptions;
 type RoleEntry = {
   careerDe: string | null;
   careerEn: string | null;
@@ -51,75 +49,6 @@ const TYPE_EN: Record<string, string> = {
   multi: 'Multi-Role',
   support: 'Support',
   transport: 'Transport',
-};
-
-// fociDe (65 distinct) -> EN. Manche Quellwerte sind schon englisch.
-const FOCI_EN: Record<string, string> = {
-  Abriegelung: 'Interdiction',
-  Abrieglung: 'Interdiction',
-  Ambulance: 'Ambulance',
-  Angriff: 'Attack',
-  'Anti-Air': 'Anti-Air',
-  'Aufklärung': 'Reconnaissance',
-  'Beiboot Jäger': 'Snub Fighter',
-  Bergbau: 'Mining',
-  Bergung: 'Salvage',
-  Berichterstattung: 'Reporting',
-  Bomber: 'Bomber',
-  'Cargo Loader': 'Cargo Loader',
-  'Einfache Bergung': 'Basic Salvage',
-  'Einfache Forschung': 'Basic Research',
-  Einsteiger: 'Starter',
-  Erkundung: 'Exploration',
-  Forschungsreisen: 'Expedition',
-  Fracht: 'Cargo',
-  Fregatte: 'Frigate',
-  Freight: 'Freight',
-  Gefecht: 'Combat',
-  Generalist: 'Multi-Role',
-  'Großbergung': 'Heavy Salvage',
-  'Heavy Dropship': 'Heavy Dropship',
-  'Heavy Refueling': 'Heavy Refueling',
-  Industrie: 'Industrial',
-  'Kampfunterstützung': 'Combat Support',
-  Kanonenboot: 'Gunboat',
-  Komfort: 'Comfort',
-  Korvette: 'Corvette',
-  Landungsschiff: 'Dropship',
-  'Leichter Frachter': 'Light Freighter',
-  'Leichter Jäger': 'Light Fighter',
-  'Light Refueler': 'Light Refueler',
-  Luftabwehr: 'Air Defense',
-  'Luxus-Reisen': 'Luxury Travel',
-  'Luxus-Transport': 'Luxury Transport',
-  'Medium Freighter': 'Medium Freighter',
-  'Medium Hauler': 'Medium Hauler',
-  'Medium Salvage': 'Medium Salvage',
-  Medizin: 'Medical',
-  'Militär': 'Military',
-  'Militärischer Transport': 'Military Transport',
-  'Mittlerer Datentransport': 'Medium Data Transport',
-  'Mittlerer Frachter': 'Medium Freighter',
-  'Mittlerer Frachttransport': 'Medium Cargo Transport',
-  'Mittlerer Jäger': 'Medium Fighter',
-  Passagier: 'Passenger',
-  Patrol: 'Patrol',
-  Pfadfinder: 'Pathfinder',
-  Prospektierung: 'Prospecting',
-  Reisen: 'Touring',
-  Rennsport: 'Racing',
-  Salvage: 'Salvage',
-  'Schwerer Bomber': 'Heavy Bomber',
-  'Schwerer Jäger': 'Heavy Fighter',
-  'Schweres Kanonenboot': 'Heavy Gunboat',
-  Schwertransport: 'Heavy Transport',
-  'Snub Carrier': 'Snub Carrier',
-  Tarnkappenbomber: 'Stealth Bomber',
-  'Tarnkappenjäger': 'Stealth Fighter',
-  Tarnung: 'Stealth',
-  Transport: 'Transport',
-  Transporter: 'Transporter',
-  'Zerstörer': 'Destroyer',
 };
 
 // turrets[].label (3 Werte) -> EN. Der Sync erzeugt die Labels deutsch, das
@@ -225,20 +154,29 @@ export function vStatus(d: VehicleData, lang: Locale): string | null {
 export function vTurret(label: string, lang: Locale): string {
   return lang === 'en' ? TURRET_EN[label] ?? label : label;
 }
-/** Fokus-Tags (Liste) */
+/**
+ * Fokus-Tags (Liste). Bis 01.4-05 aus `fociDe` (Wiki-Fremddatei) plus einer
+ * 65 Zeilen langen FOCI_EN-Handübersetzung gelesen — der Spieldaten-Katalog
+ * liefert `roleEn`/`roleDe` jetzt direkt aus CIGs eigener Localization, beide
+ * Sprachen nativ. Die Handtabelle entfällt damit (und mit ihr die Gefahr,
+ * dass eine neue Rolle unübersetzt durchrutscht) — der Rückfall bleibt
+ * `fociDe` (weiterhin eingefroren, D-18) nur für die vier ATLS-Einträge, bei
+ * denen `roleEn`/`roleDe` in der Fremddatei fehlt.
+ */
 export function vFoci(d: VehicleData, lang: Locale): string[] {
-  if (lang === 'en') return (d.fociDe ?? []).map((f) => FOCI_EN[f] ?? f);
-  return d.fociDe ?? [];
+  const role = lang === 'en' ? d.roleEn : d.roleDe;
+  if (role) return [role];
+  return lang === 'en' ? [] : d.fociDe ?? [];
 }
 /**
  * Spezifisches Rollen-Label (variantenunterscheidend).
  *
  * Der generische Typ (`typeDe`) kennt nur 8 Werte (Gefecht, Industrie …) und
  * ist damit für Varianten nicht unterscheidbar — Talon und Talon Shrike sind
- * beide „Gefecht“. Der `foci`-Fokus liegt dagegen für ALLE 226 Katalog-Schiffe
- * vor und ist spezifisch (Leichter Jäger, Schwerer Jäger, Bomber, Tarnkappen-
- * jäger …), 75 statt 8 distinkte Rollen. Deshalb ist der Fokus das primäre
- * Label; der Typ bleibt reiner Fallback. Bei den wenigen Varianten, deren Fokus
+ * beide „Gefecht“. `roleEn`/`roleDe` liegen dagegen für praktisch alle
+ * Katalog-Schiffe vor und sind spezifisch (Leichter Jäger, Schwerer Jäger,
+ * Bomber, Tarnkappenjäger …). Deshalb ist die Rolle das primäre Label; der
+ * Typ bleibt reiner Fallback. Bei den wenigen Varianten, deren Rolle
  * identisch bleibt (z. B. F7C Mk I / Mk II), trägt der Schiffsname die
  * Unterscheidung — er steht überall direkt daneben.
  */
@@ -324,8 +262,23 @@ export function vSizeClass(id: string): number | null {
 export function sizeClassLabel(n: number, lang: Locale): string {
   return lang === 'de' ? `Größe ${n}` : `Size ${n}`;
 }
-/** Freitext-Beschreibung (EN mit DE-Fallback, solange unübersetzt) */
+// Die Rohdaten (descriptionEn/descriptionDe) sind bereits an der Quelle
+// bereinigt (scripts/datamine-vehicles.mjs, dieselbe Regel) — Kopfzeile
+// ("Manufacturer: …\nFocus: …\n\n") abgeschnitten, wörtliche "\n"-Folgen zu
+// echten Zeilenumbrüchen gewandelt (Anzeige: ShipDetail.astro .sd__desc,
+// white-space:pre-line). Dieselbe Funktion läuft hier NOCH EINMAL als
+// Sicherheitsnetz (idempotent — ein bereits sauberer Text bleibt unverändert)
+// für Fälle wie die vier ATLS-Einträge, deren Text aus dem alten Wiki-
+// Snapshot eingefroren ist und nicht durch den Generator lief.
+const DESC_HEADER_RX = /^(?:Manufacturer|Hersteller)\s*:.*?\\n(?:Focus|Fokus)\s*:.*?(?:\\n)+/i;
+function cleanDesc(s: string | null | undefined): string | null {
+  if (!s) return null;
+  const cleaned = s.replace(DESC_HEADER_RX, '').replace(/\\n/g, '\n').trim();
+  return cleaned || null;
+}
+/** Freitext-Beschreibung: CIGs Originaltext (descriptionEn/descriptionDe,
+ *  D-07), mit Sprach-Rückfall falls die eine Fassung fehlt. */
 export function vDesc(d: VehicleData, lang: Locale): string | null {
-  if (lang === 'en') return EN_DESC[d.id] ?? d.descriptionDe ?? null;
-  return d.descriptionDe ?? null;
+  if (lang === 'en') return cleanDesc(d.descriptionEn) ?? cleanDesc(d.descriptionDe);
+  return cleanDesc(d.descriptionDe) ?? cleanDesc(d.descriptionEn);
 }

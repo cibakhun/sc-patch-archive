@@ -27,7 +27,12 @@ import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
-import { parseCryXml } from './lib/cryxml.mjs';
+// parseCryXmlNodes statt parseCryXml: beim Zusammenfuehren der zwei parallel
+// entstandenen cryxml-Fassungen (03.08.2026) gewann die des Fahrzeug-Katalogs,
+// weil nur sie applyModification() traegt. parseCryXml() gibt dort die Wurzel
+// zurueck; dieses Skript braucht das flache Knotenfeld mit kleingeschriebenen
+// Attributschluesseln — genau das liefert parseCryXmlNodes().
+import { parseCryXmlNodes as parseCryXml } from './lib/cryxml.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '..', 'src', 'data', 'ship-components.json');

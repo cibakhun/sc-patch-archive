@@ -466,9 +466,8 @@ a{color:inherit;text-decoration:none}
   </div>
 
   <p class="sdb__src">
-    {de ? 'Quelle: ' : 'Source: '}<a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
-    {de ? ' (Community-Projekt) · Stand ' : ' (community project) · as of '}{vehiclesSnapshot.fetchedAt}
-    {vehiclesSnapshot.gameVersion && (de ? ` · Spieldaten ${vehiclesSnapshot.gameVersion.split('-')[0]}` : ` · game data ${vehiclesSnapshot.gameVersion.split('-')[0]}`)}
+    {de ? 'Quelle: Spieldaten' : 'Source: game data'}{vehiclesSnapshot.gameVersion && ` ${vehiclesSnapshot.gameVersion.split('-')[0]}`}
+    {de ? ' · Stand ' : ' · as of '}{vehiclesSnapshot.fetchedAt}
     {de ? ' · Ingame-Preise: ' : ' · In-game prices: '}<a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> ({de ? 'Stand ' : 'as of '}{pricesFetchedAt})
     {de ? ' · Bilder: starcitizen.tools' : ' · Images: starcitizen.tools'}
   </p>

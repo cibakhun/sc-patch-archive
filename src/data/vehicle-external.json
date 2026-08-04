@@ -1,0 +1,4323 @@
+{
+  "source": "src/data/vehicles.json (Wiki-Snapshot, fetchedAt 2026-07-18) — einmalig eingefroren VOR dem Tausch (D-17, Plan 01.4-03)",
+  "reason": "Nur was belegt in keiner Spieldatei zu finden ist (Block \"vehicles\") ODER strukturell keine Fahrzeug-Entity im DataCore ist (Block \"overrides\", ATLS). Diese Datei soll schrumpfen, nicht wachsen — s. scratch/01.4-feldurteile.md, Abschnitt \"Für Plan 03\".",
+  "generatedAt": "2026-08-03",
+  "fields": [
+    "msrpUSD",
+    "pledgeUrl",
+    "lengthM",
+    "widthM",
+    "heightM",
+    "image",
+    "crewMax",
+    "statusEn",
+    "statusDe",
+    "fociDe"
+  ],
+  "count": 227,
+  "vehicles": {
+    "orig-100i": {
+      "msrpUSD": 50,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-100/100i",
+      "lengthM": 19,
+      "widthM": 12,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/87/100i_Microtech_-_cropped.png/1280px-100i_Microtech_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/87/100i_Microtech_-_cropped.png/320px-100i_Microtech_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einsteiger",
+        "Reisen"
+      ]
+    },
+    "orig-125a": {
+      "msrpUSD": 60,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-100/125a",
+      "lengthM": 19,
+      "widthM": 12,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/5/57/125a_Microtech_Firing_-_cropped.jpg/1280px-125a_Microtech_Firing_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/5/57/125a_Microtech_Firing_-_cropped.jpg/320px-125a_Microtech_Firing_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einsteiger",
+        "Leichter Jäger"
+      ]
+    },
+    "orig-135c": {
+      "msrpUSD": 65,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-100/135c",
+      "lengthM": 19,
+      "widthM": 12,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/2/2b/135c_with_100i_and_125a_flying_away_from_Port_Tressler_-_cropped.png/1280px-135c_with_100i_and_125a_flying_away_from_Port_Tressler_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/2/2b/135c_with_100i_and_125a_flying_away_from_Port_Tressler_-_cropped.png/320px-135c_with_100i_and_125a_flying_away_from_Port_Tressler_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einsteiger",
+        "Leichter Frachter"
+      ]
+    },
+    "orig-300i": {
+      "msrpUSD": 60,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-300/300i",
+      "lengthM": 27,
+      "widthM": 17,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/3/3f/300i_-_Flying_over_cloudtops_-_cropped.jpg/1280px-300i_-_Flying_over_cloudtops_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/3/3f/300i_-_Flying_over_cloudtops_-_cropped.jpg/320px-300i_-_Flying_over_cloudtops_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Reisen",
+        "Komfort"
+      ]
+    },
+    "orig-315p": {
+      "msrpUSD": 65,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-300/315p",
+      "lengthM": 27,
+      "widthM": 17,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/7c/315p_-_Flying_high_over_clouds_-_cropped.png/1280px-315p_-_Flying_high_over_clouds_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/7c/315p_-_Flying_high_over_clouds_-_cropped.png/320px-315p_-_Flying_high_over_clouds_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Pfadfinder"
+      ]
+    },
+    "orig-325a": {
+      "msrpUSD": 70,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-300/325a",
+      "lengthM": 27.5,
+      "widthM": 17,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/04/325a_flying_over_snowy_mountains_-_cropped.png/1280px-325a_flying_over_snowy_mountains_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/04/325a_flying_over_snowy_mountains_-_cropped.png/320px-325a_flying_over_snowy_mountains_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger",
+        "Abriegelung"
+      ]
+    },
+    "orig-350r": {
+      "msrpUSD": 125,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-300/350r",
+      "lengthM": 27,
+      "widthM": 17,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/65/350r_-_Flying_over_Daymar_x2_-_cropped.jpg/1280px-350r_-_Flying_over_Daymar_x2_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/65/350r_-_Flying_over_Daymar_x2_-_cropped.jpg/320px-350r_-_Flying_over_Daymar_x2_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "orig-400i": {
+      "msrpUSD": 250,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/400i/400i",
+      "lengthM": 56,
+      "widthM": 32,
+      "heightM": 12.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/78/400i_cruising_through_Area18_3.15.png/1280px-400i_cruising_through_Area18_3.15.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/78/400i_cruising_through_Area18_3.15.png/320px-400i_cruising_through_Area18_3.15.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 4,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Reisen"
+      ]
+    },
+    "orig-600i": {
+      "msrpUSD": 475,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/600i/600i-Explorer",
+      "lengthM": 91.5,
+      "widthM": 52,
+      "heightM": 17,
+      "image": {
+        "hero": "https://cstone.space/uifimages/f8ac4c26-8f4d-4cb3-9be2-7d867a95a877.png",
+        "thumb": "https://cstone.space/uifimages/f8ac4c26-8f4d-4cb3-9be2-7d867a95a877.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Forschungsreisen"
+      ]
+    },
+    "orig-600i-bis2951": {
+      "msrpUSD": 475,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/600i/600i-Explorer",
+      "lengthM": 91.5,
+      "widthM": 52,
+      "heightM": 17,
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Forschungsreisen"
+      ]
+    },
+    "orig-600i-touring": {
+      "msrpUSD": 435,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/600i/600i-Touring",
+      "lengthM": 91.5,
+      "widthM": 52,
+      "heightM": 17,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/80/600i_Landed_on_luxury_Island_-_Isometric.jpg/1280px-600i_Landed_on_luxury_Island_-_Isometric.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/80/600i_Landed_on_luxury_Island_-_Isometric.jpg/320px-600i_Landed_on_luxury_Island_-_Isometric.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Reisen"
+      ]
+    },
+    "orig-85x": {
+      "msrpUSD": 50,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/85x/85X",
+      "lengthM": 14,
+      "widthM": 13.5,
+      "heightM": 4,
+      "image": {
+        "hero": "https://cstone.space/uifimages/9dc9c257-c413-416a-ab9b-06fbadf18d1e.png",
+        "thumb": "https://cstone.space/uifimages/9dc9c257-c413-416a-ab9b-06fbadf18d1e.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Reisen"
+      ]
+    },
+    "orig-890jump": {
+      "msrpUSD": 950,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/890-jump/890-Jump",
+      "lengthM": 210,
+      "widthM": 80,
+      "heightM": 45,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/76/890_Jump_Leaving_Hurston_3.6.png/1280px-890_Jump_Leaving_Hurston_3.6.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/76/890_Jump_Leaving_Hurston_3.6.png/320px-890_Jump_Leaving_Hurston_3.6.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 8,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Luxus-Reisen"
+      ]
+    },
+    "crus-spirit-a1": {
+      "msrpUSD": 200,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/spirit/A1-Spirit",
+      "lengthM": 47.5,
+      "widthM": 44,
+      "heightM": 10,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/66/A1_x2_bombing_ground_vehicle_attackers_-_Cut.jpg/1280px-A1_x2_bombing_ground_vehicle_attackers_-_Cut.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/66/A1_x2_bombing_ground_vehicle_attackers_-_Cut.jpg/320px-A1_x2_bombing_ground_vehicle_attackers_-_Cut.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Bomber"
+      ]
+    },
+    "crus-starlifter-a2": {
+      "msrpUSD": 750,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/crusader-starlifter/A2-Hercules",
+      "lengthM": 94,
+      "widthM": 70,
+      "heightM": 23,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/9b/Hercules_A2_-_Flying_and_firing_over_bombed_Area_18.jpg/1280px-Hercules_A2_-_Flying_and_firing_over_bombed_Area_18.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/9b/Hercules_A2_-_Flying_and_firing_over_bombed_Area_18.jpg/320px-Hercules_A2_-_Flying_and_firing_over_bombed_Area_18.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 8,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Bomber"
+      ]
+    },
+    "rsi-apollo-medivac": {
+      "msrpUSD": 290,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-apollo/Apollo-Medivac",
+      "lengthM": 73,
+      "widthM": 54,
+      "heightM": 14,
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Medizin"
+      ]
+    },
+    "rsi-apollo-triage": {
+      "msrpUSD": 260,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-apollo/Apollo-Triage",
+      "lengthM": 73,
+      "widthM": 54,
+      "heightM": 14,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/82/Apollo_Triage_searching_in_debris_field_-_cropped.png/1280px-Apollo_Triage_searching_in_debris_field_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/82/Apollo_Triage_searching_in_debris_field_-_cropped.png/320px-Apollo_Triage_searching_in_debris_field_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Medizin"
+      ]
+    },
+    "crus-starfighter-inferno": {
+      "msrpUSD": 250,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/crusader-ares/Ares-Inferno",
+      "lengthM": 30,
+      "widthM": 27,
+      "heightM": 6,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/6d/Ares_Inferno_-_Flying_by_asteroids_firing_gun_-_cropped.jpg/1280px-Ares_Inferno_-_Flying_by_asteroids_firing_gun_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/6d/Ares_Inferno_-_Flying_by_asteroids_firing_gun_-_cropped.jpg/320px-Ares_Inferno_-_Flying_by_asteroids_firing_gun_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "crus-starfighter-ion": {
+      "msrpUSD": 250,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/crusader-ares/Ares-Ion",
+      "lengthM": 30,
+      "widthM": 27,
+      "heightM": 6,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/0c/Ares_Ion_-_Flying_by_asteroids_firing_gun_-_cropped.jpg/1280px-Ares_Ion_-_Flying_by_asteroids_firing_gun_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/0c/Ares_Ion_-_Flying_by_asteroids_firing_gun_-_cropped.jpg/320px-Ares_Ion_-_Flying_by_asteroids_firing_gun_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "anvl-arrow": {
+      "msrpUSD": 75,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-arrow/Arrow",
+      "lengthM": 17.25,
+      "widthM": 12.25,
+      "heightM": 4.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/03/Arrow_Concept_CloudFormation_-_cropped.png/1280px-Arrow_Concept_CloudFormation_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/03/Arrow_Concept_CloudFormation_-_cropped.png/320px-Arrow_Concept_CloudFormation_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "anvl-asgard": {
+      "msrpUSD": 350,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-asgard/Asgard",
+      "lengthM": 48,
+      "widthM": 38,
+      "heightM": 12,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/1/17/Asgard_flying_through_debris_shooting_back_at_ships_-_cropped.jpg/1280px-Asgard_flying_through_debris_shooting_back_at_ships_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/1/17/Asgard_flying_through_debris_shooting_back_at_ships_-_cropped.jpg/320px-Asgard_flying_through_debris_shooting_back_at_ships_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Landungsschiff"
+      ]
+    },
+    "argo-atls": {
+      "msrpUSD": 40,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
+      "lengthM": 3.2,
+      "widthM": 1.6,
+      "heightM": 1.6,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/2/2f/ATLS_in_cargo_elevator_-_cropped.jpg/1280px-ATLS_in_cargo_elevator_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/2/2f/ATLS_in_cargo_elevator_-_cropped.jpg/320px-ATLS_in_cargo_elevator_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Industrie"
+      ]
+    },
+    "argo-atls-geo-collector-grad03": {
+      "msrpUSD": 40,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
+      "lengthM": 3.2,
+      "widthM": 1.6,
+      "heightM": 1.6,
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Industrie"
+      ]
+    },
+    "argo-atls-geo": {
+      "msrpUSD": 45,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS-GEO",
+      "lengthM": 3.2,
+      "widthM": 1.6,
+      "heightM": 1.6,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/95/ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg/1280px-ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/95/ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg/320px-ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Industrie"
+      ]
+    },
+    "argo-atls-geo-collector-grad01": {
+      "msrpUSD": 40,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
+      "lengthM": 3.2,
+      "widthM": 1.6,
+      "heightM": 1.6,
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Industrie"
+      ]
+    },
+    "rsi-aurora-gs-cl": {
+      "msrpUSD": 45,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-aurora/Aurora-Mk-I-CL",
+      "lengthM": 19,
+      "widthM": 8.75,
+      "heightM": 4.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/3/37/Aurora_CL_flying_over_mountains_-_Crop.png/1280px-Aurora_CL_flying_over_mountains_-_Crop.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/3/37/Aurora_CL_flying_over_mountains_-_Crop.png/320px-Aurora_CL_flying_over_mountains_-_Crop.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Frachter"
+      ]
+    },
+    "rsi-aurora-gs-es": {
+      "msrpUSD": 20,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-aurora/Aurora-Mk-I-ES",
+      "lengthM": 19,
+      "widthM": 8.75,
+      "heightM": 4.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/6e/Aurora_ES_flying_over_clouds_-_Crop.jpg/1280px-Aurora_ES_flying_over_clouds_-_Crop.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/6e/Aurora_ES_flying_over_clouds_-_Crop.jpg/320px-Aurora_ES_flying_over_clouds_-_Crop.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einsteiger",
+        "Pfadfinder"
+      ]
+    },
+    "rsi-aurora-gs-ln": {
+      "msrpUSD": 40,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-aurora/Aurora-Mk-I-LN",
+      "lengthM": 19,
+      "widthM": 8.75,
+      "heightM": 4.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/da/Aurora_LN_-_Flying_over_world.jpg/1280px-Aurora_LN_-_Flying_over_world.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/da/Aurora_LN_-_Flying_over_world.jpg/320px-Aurora_LN_-_Flying_over_world.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "rsi-aurora-gs-lx": {
+      "msrpUSD": 35,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-aurora/Aurora-Mk-I-LX",
+      "lengthM": 19,
+      "widthM": 8.75,
+      "heightM": 4.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/5/51/Aurora_LX_flying_over_clouds_-_Crop.png/1280px-Aurora_LX_flying_over_clouds_-_Crop.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/5/51/Aurora_LX_flying_over_clouds_-_Crop.png/320px-Aurora_LX_flying_over_clouds_-_Crop.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Pfadfinder"
+      ]
+    },
+    "rsi-aurora-gs-mr": {
+      "msrpUSD": 30,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-aurora/Aurora-Mk-I-MR",
+      "lengthM": 19,
+      "widthM": 8.75,
+      "heightM": 4.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/d4/Aurora_MR_flying_above_world_-_Crop.png/1280px-Aurora_MR_flying_above_world_-_Crop.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/d4/Aurora_MR_flying_above_world_-_Crop.png/320px-Aurora_MR_flying_above_world_-_Crop.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "rsi-aurora-gs-se": {
+      "msrpUSD": 60,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-aurora/Aurora-Mk-I-SE",
+      "lengthM": 19,
+      "widthM": 8.75,
+      "heightM": 4.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/a/ac/Aurora_Mk_I_SE_flying_over_planetary_space_station_-_cropped.jpg/1280px-Aurora_Mk_I_SE_flying_over_planetary_space_station_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/a/ac/Aurora_Mk_I_SE_flying_over_planetary_space_station_-_cropped.jpg/320px-Aurora_Mk_I_SE_flying_over_planetary_space_station_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "rsi-aurora-mk2": {
+      "msrpUSD": 45,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aurora-mk-ii/Aurora-Mk-II",
+      "lengthM": 27.7,
+      "widthM": 27.4,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/1/1f/Aurora_Mk_II_x3_flying_close_to_mountains_-_cropped.jpg/1280px-Aurora_Mk_II_x3_flying_close_to_mountains_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/1/1f/Aurora_Mk_II_x3_flying_close_to_mountains_-_cropped.jpg/320px-Aurora_Mk_II_x3_flying_close_to_mountains_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "aegs-avenger-stalker": {
+      "msrpUSD": 60,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aegis-avenger/Avenger-Stalker",
+      "lengthM": 20,
+      "widthM": 15,
+      "heightM": 6.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/3/34/Avenger_Stalker_-_In_flight_promo_shot.jpg/1280px-Avenger_Stalker_-_In_flight_promo_shot.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/3/34/Avenger_Stalker_-_In_flight_promo_shot.jpg/320px-Avenger_Stalker_-_In_flight_promo_shot.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Abriegelung"
+      ]
+    },
+    "aegs-avenger-titan": {
+      "msrpUSD": 60,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aegis-avenger/Avenger-Titan",
+      "lengthM": 20,
+      "widthM": 15,
+      "heightM": 6.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/4b/Avenger_Titan_3.2_sale_Titan_01-Squashed.jpg/1280px-Avenger_Titan_3.2_sale_Titan_01-Squashed.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/4b/Avenger_Titan_3.2_sale_Titan_01-Squashed.jpg/320px-Avenger_Titan_3.2_sale_Titan_01-Squashed.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Frachter"
+      ]
+    },
+    "aegs-avenger-titan-renegade": {
+      "msrpUSD": 75,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aegis-avenger/Avenger-Titan-Renegade",
+      "lengthM": 20,
+      "widthM": 15,
+      "heightM": 6.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/5/50/Avenger_Titan_Renegade_3.2_sale_Renegade_01_-_cropped_and_adjusted.jpg/1280px-Avenger_Titan_Renegade_3.2_sale_Renegade_01_-_cropped_and_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/5/50/Avenger_Titan_Renegade_3.2_sale_Renegade_01_-_cropped_and_adjusted.jpg/320px-Avenger_Titan_Renegade_3.2_sale_Renegade_01_-_cropped_and_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Frachter"
+      ]
+    },
+    "aegs-avenger-warlock": {
+      "msrpUSD": 85,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aegis-avenger/Avenger-Warlock",
+      "lengthM": 20,
+      "widthM": 15,
+      "heightM": 6.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/44/Avenger_Warlock_3.2_sale_Warlock_10-Squashed.jpg/1280px-Avenger_Warlock_3.2_sale_Warlock_10-Squashed.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/44/Avenger_Warlock_3.2_sale_Warlock_10-Squashed.jpg/320px-Avenger_Warlock_3.2_sale_Warlock_10-Squashed.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Abriegelung"
+      ]
+    },
+    "anvl-ballista": {
+      "msrpUSD": 140,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-ballista/Ballista",
+      "lengthM": 17,
+      "widthM": 7,
+      "heightM": 5.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/cb/Ballista_on_glassland_firing_weapons_-_cropped.jpg/1280px-Ballista_on_glassland_firing_weapons_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/cb/Ballista_on_glassland_firing_weapons_-_cropped.jpg/320px-Ballista_on_glassland_firing_weapons_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Militär"
+      ]
+    },
+    "anvl-ballista-dunestalker": {
+      "msrpUSD": 140,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-ballista/Anvil-Ballista-Dunestalker",
+      "lengthM": 17,
+      "widthM": 7,
+      "heightM": 5.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/c/c6/Ballista_Dunestalker_on_Hurston_with_weapons_pointing_upwards.jpg",
+        "thumb": "https://media.starcitizen.tools/thumb/c/c6/Ballista_Dunestalker_on_Hurston_with_weapons_pointing_upwards.jpg/320px-Ballista_Dunestalker_on_Hurston_with_weapons_pointing_upwards.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Militär"
+      ]
+    },
+    "anvl-ballista-snowblind": {
+      "msrpUSD": 140,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-ballista/Anvil-Ballista-Snowblind",
+      "lengthM": 17,
+      "widthM": 7,
+      "heightM": 5.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/1/16/Ballista_Snowblind_firing_its_torpedo_-_Cropped_2.png",
+        "thumb": "https://media.starcitizen.tools/thumb/1/16/Ballista_Snowblind_firing_its_torpedo_-_Cropped_2.png/320px-Ballista_Snowblind_firing_its_torpedo_-_Cropped_2.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Militär"
+      ]
+    },
+    "glsn-basher": {
+      "lengthM": 13.7,
+      "widthM": 11.3,
+      "heightM": 4.5,
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "vncl-blade": {
+      "msrpUSD": 275,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/vanduul-blade/Blade",
+      "lengthM": 20.5,
+      "widthM": 16.5,
+      "heightM": 5.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/4c/Blade-top-isc-2020-06-18.jpg/1280px-Blade-top-isc-2020-06-18.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/4c/Blade-top-isc-2020-06-18.jpg/320px-Blade-top-isc-2020-06-18.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "drak-buccaneer": {
+      "msrpUSD": 110,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-buccaneer/Buccaneer",
+      "lengthM": 16.75,
+      "widthM": 15.25,
+      "heightM": 5.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/a/ac/Buccaneer_-_3.10_-_Flying_over_Microtech.jpg/1280px-Buccaneer_-_3.10_-_Flying_over_Microtech.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/a/ac/Buccaneer_-_3.10_-_Flying_over_Microtech.jpg/320px-Buccaneer_-_3.10_-_Flying_over_Microtech.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Abriegelung"
+      ]
+    },
+    "crus-spirit-c1": {
+      "msrpUSD": 125,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/spirit/C1-Spirit",
+      "lengthM": 47.5,
+      "widthM": 44,
+      "heightM": 10,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/95/Crusader_C1_Spirit_at_Winners_Circle.png/1280px-Crusader_C1_Spirit_at_Winners_Circle.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/95/Crusader_C1_Spirit_at_Winners_Circle.png/320px-Crusader_C1_Spirit_at_Winners_Circle.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Frachter"
+      ]
+    },
+    "crus-starlifter-c2": {
+      "msrpUSD": 400,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/crusader-starlifter/C2-Hercules",
+      "lengthM": 94,
+      "widthM": 70,
+      "heightM": 23,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/cc/C2_Feature_Style_clouds.jpg/1280px-C2_Feature_Style_clouds.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/cc/C2_Feature_Style_clouds.jpg/320px-C2_Feature_Style_clouds.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwertransport"
+      ]
+    },
+    "anvl-c8-pisces": {
+      "lengthM": 16,
+      "widthM": 12,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/45/Pisces_C8_flying_away_from_Carrack_through_debris_field_-_cropped.png/1280px-Pisces_C8_flying_away_from_Carrack_through_debris_field_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/45/Pisces_C8_flying_away_from_Carrack_through_debris_field_-_cropped.png/320px-Pisces_C8_flying_away_from_Carrack_through_debris_field_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Erkundung"
+      ]
+    },
+    "anvl-c8r-pisces": {
+      "msrpUSD": 65,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-pisces/C8R-Pisces",
+      "lengthM": 16,
+      "widthM": 12,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/d7/C8R_in_space_-_Isometric.jpg/1280px-C8R_in_space_-_Isometric.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/d7/C8R_in_space_-_Isometric.jpg/320px-C8R_in_space_-_Isometric.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Medizin"
+      ]
+    },
+    "anvl-c8x-pisces-expedition": {
+      "msrpUSD": 45,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-pisces/C8X-Pisces-Expedition",
+      "lengthM": 16,
+      "widthM": 12,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/ef/Pisces_C8X_flying_over_mountainous_volcanic_world_-_cropped_%26_adjusted.jpg/1280px-Pisces_C8X_flying_over_mountainous_volcanic_world_-_cropped_%26_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/ef/Pisces_C8X_flying_over_mountainous_volcanic_world_-_cropped_%26_adjusted.jpg/320px-Pisces_C8X_flying_over_mountainous_volcanic_world_-_cropped_%26_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Forschungsreisen"
+      ]
+    },
+    "anvl-carrack": {
+      "msrpUSD": 600,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/carrack/Carrack",
+      "lengthM": 126,
+      "widthM": 74,
+      "heightM": 30,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/92/Carrack_over_microTech_3.8.png/1280px-Carrack_over_microTech_3.8.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/92/Carrack_over_microTech_3.8.png/320px-Carrack_over_microTech_3.8.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 12,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Forschungsreisen"
+      ]
+    },
+    "anvl-carrack-expedition": {
+      "msrpUSD": 625,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/carrack/Carrack-Expedition",
+      "lengthM": 126,
+      "widthM": 74,
+      "heightM": 30,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/ca/Carrack_Expedition_in_space_-_Isometric.jpg/1280px-Carrack_Expedition_in_space_-_Isometric.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/ca/Carrack_Expedition_in_space_-_Isometric.jpg/320px-Carrack_Expedition_in_space_-_Isometric.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 12,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Forschungsreisen"
+      ]
+    },
+    "drak-caterpillar": {
+      "msrpUSD": 330,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-caterpillar/Caterpillar",
+      "lengthM": 111.5,
+      "widthM": 39.5,
+      "heightM": 13.4,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/e6/Caterpillar_flying_fast_through_space_-_Cropped.jpg/1280px-Caterpillar_flying_fast_through_space_-_Cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/e6/Caterpillar_flying_fast_through_space_-_Cropped.jpg/320px-Caterpillar_flying_fast_through_space_-_Cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 4,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwertransport"
+      ]
+    },
+    "drak-caterpillar-pirate": {
+      "msrpUSD": 330,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-caterpillar/Caterpillar-Pirate-Edition",
+      "lengthM": 111.5,
+      "widthM": 39.5,
+      "heightM": 13.4,
+      "image": {
+        "hero": "https://cstone.space/uifimages/565d8121-50a9-4920-af50-f176caef0431.png",
+        "thumb": "https://cstone.space/uifimages/565d8121-50a9-4920-af50-f176caef0431.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 4,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwertransport"
+      ]
+    },
+    "anvl-centurion": {
+      "msrpUSD": 110,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/centurion/Centurion",
+      "lengthM": 17,
+      "widthM": 7,
+      "heightM": 5.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/1/15/Centurion_in_hangar_-_In-game_cutout_-_Stripe_BG_SCT_logo_-Isometric.jpg/1280px-Centurion_in_hangar_-_In-game_cutout_-_Stripe_BG_SCT_logo_-Isometric.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/1/15/Centurion_in_hangar_-_In-game_cutout_-_Stripe_BG_SCT_logo_-Isometric.jpg/320px-Centurion_in_hangar_-_In-game_cutout_-_Stripe_BG_SCT_logo_-Isometric.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Gefecht"
+      ]
+    },
+    "drak-clipper": {
+      "msrpUSD": 150,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/clipper/Clipper",
+      "lengthM": 26.5,
+      "widthM": 21,
+      "heightM": 18,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/74/Clipper_attacking_ships_around_station_-_cropped.jpg/1280px-Clipper_attacking_ships_around_station_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/74/Clipper_attacking_ships_around_station_-_cropped.jpg/320px-Clipper_attacking_ships_around_station_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Generalist"
+      ]
+    },
+    "rsi-constellation-andromeda": {
+      "msrpUSD": 240,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Andromeda",
+      "lengthM": 63.5,
+      "widthM": 27.75,
+      "heightM": 15.25,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/d7/Andromeda_flying_from_Station_-_Front_Starboard.jpg/1280px-Andromeda_flying_from_Station_-_Front_Starboard.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/d7/Andromeda_flying_from_Station_-_Front_Starboard.jpg/320px-Andromeda_flying_from_Station_-_Front_Starboard.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Frachter",
+        "Kanonenboot"
+      ]
+    },
+    "rsi-constellation-aquila": {
+      "msrpUSD": 315,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Aquila",
+      "lengthM": 63.5,
+      "widthM": 27.75,
+      "heightM": 15.25,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/7e/Aquila_-_QT_-_Rear_Port.jpg/1280px-Aquila_-_QT_-_Rear_Port.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/7e/Aquila_-_QT_-_Rear_Port.jpg/320px-Aquila_-_QT_-_Rear_Port.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Forschungsreisen"
+      ]
+    },
+    "rsi-constellation-phoenix": {
+      "msrpUSD": 350,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Phoenix",
+      "lengthM": 63.5,
+      "widthM": 27.75,
+      "heightM": 15.25,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/0c/Constellation-phoenix-flyby-01_-_cropped_and_adjusted.jpg/1280px-Constellation-phoenix-flyby-01_-_cropped_and_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/0c/Constellation-phoenix-flyby-01_-_cropped_and_adjusted.jpg/320px-Constellation-phoenix-flyby-01_-_cropped_and_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Luxus-Reisen"
+      ]
+    },
+    "rsi-constellation-phoenix-emerald": {
+      "msrpUSD": 350,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Phoenix-Emerald",
+      "lengthM": 63.5,
+      "widthM": 27.75,
+      "heightM": 15.25,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/90/Constellation_Phoenix_Emerald_-_3.14_Update_-_cropped_and_adjusted.png/1280px-Constellation_Phoenix_Emerald_-_3.14_Update_-_cropped_and_adjusted.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/90/Constellation_Phoenix_Emerald_-_3.14_Update_-_cropped_and_adjusted.png/320px-Constellation_Phoenix_Emerald_-_3.14_Update_-_cropped_and_adjusted.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Reisen"
+      ]
+    },
+    "rsi-constellation-taurus": {
+      "msrpUSD": 200,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Taurus",
+      "lengthM": 70,
+      "widthM": 27.75,
+      "heightM": 15.25,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/3/3f/Taurus_in_Space_-_Isometric.jpg/1280px-Taurus_in_Space_-_Isometric.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/3/3f/Taurus_in_Space_-_Isometric.jpg/320px-Taurus_in_Space_-_Isometric.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Frachter"
+      ]
+    },
+    "drak-corsair": {
+      "msrpUSD": 250,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-corsair/Corsair",
+      "lengthM": 53,
+      "widthM": 30,
+      "heightM": 25,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/0e/SC-3.17_20221116_Corsair_Concept_Art_Recreation.png/1280px-SC-3.17_20221116_Corsair_Concept_Art_Recreation.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/0e/SC-3.17_20221116_Corsair_Concept_Art_Recreation.png/320px-SC-3.17_20221116_Corsair_Concept_Art_Recreation.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 4,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Forschungsreisen"
+      ]
+    },
+    "argo-csv-cargo": {
+      "msrpUSD": 45,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/csv/CSV-SM",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/89/CSV-SM_driving_through_snowy_outpost_-_cropped.png/1280px-CSV-SM_driving_through_snowy_outpost_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/89/CSV-SM_driving_through_snowy_outpost_-_cropped.png/320px-CSV-SM_driving_through_snowy_outpost_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Freight"
+      ]
+    },
+    "drak-cutlass-black": {
+      "msrpUSD": 110,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-cutlass/Cutlass-Black",
+      "lengthM": 37.5,
+      "widthM": 26.5,
+      "heightM": 11.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/87/CutlassBlack_TouchingDown.png/1280px-CutlassBlack_TouchingDown.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/87/CutlassBlack_TouchingDown.png/320px-CutlassBlack_TouchingDown.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Frachter"
+      ]
+    },
+    "drak-cutlass-blue": {
+      "msrpUSD": 175,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-cutlass/Cutlass-Blue",
+      "lengthM": 37.5,
+      "widthM": 26.5,
+      "heightM": 11.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/d4/SKU_Cutlass_Blue.jpg/1280px-SKU_Cutlass_Blue.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/d4/SKU_Cutlass_Blue.jpg/320px-SKU_Cutlass_Blue.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Abriegelung"
+      ]
+    },
+    "drak-cutlass-red": {
+      "msrpUSD": 135,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-cutlass/Cutlass-Red",
+      "lengthM": 37.5,
+      "widthM": 26.5,
+      "heightM": 11.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/ca/Cutlass_Red_in_Space_-_Isometirc.jpg/1280px-Cutlass_Red_in_Space_-_Isometirc.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/ca/Cutlass_Red_in_Space_-_Isometirc.jpg/320px-Cutlass_Red_in_Space_-_Isometirc.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Medizin"
+      ]
+    },
+    "drak-cutlass-steel": {
+      "msrpUSD": 235,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-cutlass/Cutlass-Steel",
+      "lengthM": 37.5,
+      "widthM": 26.5,
+      "heightM": 11.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/7d/Cutlass_Steel_in_space_-_Isometric.jpg/1280px-Cutlass_Steel_in_space_-_Isometric.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/7d/Cutlass_Steel_in_space_-_Isometric.jpg/320px-Cutlass_Steel_in_space_-_Isometric.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Landungsschiff"
+      ]
+    },
+    "drak-cutter": {
+      "msrpUSD": 45,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cutter/Cutter",
+      "lengthM": 20,
+      "widthM": 16,
+      "heightM": 6,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/4a/Cutter_flying_over_clouds_-_Cut.jpg/1280px-Cutter_flying_over_clouds_-_Cut.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/4a/Cutter_flying_over_clouds_-_Cut.jpg/320px-Cutter_flying_over_clouds_-_Cut.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einsteiger",
+        "Leichter Frachter"
+      ]
+    },
+    "drak-cutter-rambler": {
+      "msrpUSD": 50,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cutter/Cutter-Rambler",
+      "lengthM": 20,
+      "widthM": 16,
+      "heightM": 6,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/03/Cutter_Rambler_flying_over_valley_-_Cut.png/1280px-Cutter_Rambler_flying_over_valley_-_Cut.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/03/Cutter_Rambler_flying_over_valley_-_Cut.png/320px-Cutter_Rambler_flying_over_valley_-_Cut.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einsteiger",
+        "Forschungsreisen"
+      ]
+    },
+    "drak-cutter-scout": {
+      "msrpUSD": 50,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cutter/Cutter-Scout",
+      "lengthM": 20,
+      "widthM": 16,
+      "heightM": 6,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/a/a8/Cutter_Scout_flying_above_the_clouds_-_Cut.jpg/1280px-Cutter_Scout_flying_above_the_clouds_-_Cut.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/a/a8/Cutter_Scout_flying_above_the_clouds_-_Cut.jpg/320px-Cutter_Scout_flying_above_the_clouds_-_Cut.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Aufklärung",
+        "Aufklärung"
+      ]
+    },
+    "tmbl-cyclone": {
+      "msrpUSD": 55,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cyclone/Cyclone",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/2/28/Cyclone_driving_through_fire_over_V_rocky_world_-_cropped.jpg/1280px-Cyclone_driving_through_fire_over_V_rocky_world_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/2/28/Cyclone_driving_through_fire_over_V_rocky_world_-_cropped.jpg/320px-Cyclone_driving_through_fire_over_V_rocky_world_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Erkundung",
+        "Aufklärung"
+      ]
+    },
+    "tmbl-cyclone-aa": {
+      "msrpUSD": 80,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cyclone/Cyclone-AA",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/4b/Cyclone_AA_in_2948_Expo_-_Front.jpg/1280px-Cyclone_AA_in_2948_Expo_-_Front.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/4b/Cyclone_AA_in_2948_Expo_-_Front.jpg/320px-Cyclone_AA_in_2948_Expo_-_Front.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Luftabwehr"
+      ]
+    },
+    "tmbl-cyclone-mt": {
+      "msrpUSD": 75,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cyclone/Cyclone-MT",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/e8/Cyclone_MT_driving_through_mountainous_area_-_cropped_and_adjusted.jpg/1280px-Cyclone_MT_driving_through_mountainous_area_-_cropped_and_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/e8/Cyclone_MT_driving_through_mountainous_area_-_cropped_and_adjusted.jpg/320px-Cyclone_MT_driving_through_mountainous_area_-_cropped_and_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Angriff"
+      ]
+    },
+    "tmbl-cyclone-rc": {
+      "msrpUSD": 65,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cyclone/Cyclone-RC",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/86/Cyclone-RC_on_Hurston.png/1280px-Cyclone-RC_on_Hurston.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/86/Cyclone-RC_on_Hurston.png/320px-Cyclone-RC_on_Hurston.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "tmbl-cyclone-rn": {
+      "msrpUSD": 65,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cyclone/Cyclone-RN",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/43/Cyclone_RN_in_2948_Expo_-_Front_Starboard.jpg/1280px-Cyclone_RN_in_2948_Expo_-_Front_Starboard.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/43/Cyclone_RN_in_2948_Expo_-_Front_Starboard.jpg/320px-Cyclone_RN_in_2948_Expo_-_Front_Starboard.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Aufklärung"
+      ]
+    },
+    "tmbl-cyclone-tr": {
+      "msrpUSD": 65,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cyclone/Cyclone-TR",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/7d/Cyclone_TR_on_Aberdeen_-_Front_Starboard_1_-_Cut.png/1280px-Cyclone_TR_on_Aberdeen_-_Front_Starboard_1_-_Cut.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/7d/Cyclone_TR_on_Aberdeen_-_Front_Starboard_1_-_Cut.png/320px-Cyclone_TR_on_Aberdeen_-_Front_Starboard_1_-_Cut.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Gefecht"
+      ]
+    },
+    "banu-defender": {
+      "msrpUSD": 220,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/defender/Defender",
+      "lengthM": 24.5,
+      "widthM": 24.5,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/1/17/Defender_-_Firing_over_Delemar.jpg/1280px-Defender_-_Firing_over_Delemar.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/1/17/Defender_-_Firing_over_Delemar.jpg/320px-Defender_-_Firing_over_Delemar.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "drak-dragonfly": {
+      "msrpUSD": 40,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-dragonfly/Dragonfly-Black",
+      "lengthM": 7,
+      "widthM": 2.5,
+      "heightM": 2,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/c7/Dragonfly_x2_flying_away_from_explosion.jpg/1280px-Dragonfly_x2_flying_away_from_explosion.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/c7/Dragonfly_x2_flying_away_from_explosion.jpg/320px-Dragonfly_x2_flying_away_from_explosion.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "drak-dragonfly-yellow": {
+      "msrpUSD": 40,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-dragonfly/Dragonfly-Yellowjacket",
+      "lengthM": 7,
+      "widthM": 2.5,
+      "heightM": 2,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/46/Dragonfly_YJ_flying_over_ground_shooting_back.png/1280px-Dragonfly_YJ_flying_over_ground_shooting_back.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/46/Dragonfly_YJ_flying_over_ground_shooting_back.png/320px-Dragonfly_YJ_flying_over_ground_shooting_back.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "aegs-eclipse": {
+      "msrpUSD": 300,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/eclipse/Eclipse",
+      "lengthM": 24.5,
+      "widthM": 24.5,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/b/bd/Aegis_Eclipse_over_Magda.png/1280px-Aegis_Eclipse_over_Magda.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/b/bd/Aegis_Eclipse_over_Magda.png/320px-Aegis_Eclipse_over_Magda.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Tarnkappenbomber"
+      ]
+    },
+    "anvl-hornet-f7a-mk1": {
+      "lengthM": 28.25,
+      "widthM": 25.5,
+      "heightM": 7.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/e8/F7A_Hornet_Mk_I_x2_flying_low_over_battlefield_-_Cropped_and_colour_adjusted.png/1280px-F7A_Hornet_Mk_I_x2_flying_low_over_battlefield_-_Cropped_and_colour_adjusted.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/e8/F7A_Hornet_Mk_I_x2_flying_low_over_battlefield_-_Cropped_and_colour_adjusted.png/320px-F7A_Hornet_Mk_I_x2_flying_low_over_battlefield_-_Cropped_and_colour_adjusted.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "anvl-hornet-f7a-mk2": {
+      "lengthM": 22.5,
+      "widthM": 22,
+      "heightM": 6.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/e1/F7A_MkII_-_Flying_through_debris_field.jpg/1280px-F7A_MkII_-_Flying_through_debris_field.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/e1/F7A_MkII_-_Flying_through_debris_field.jpg/320px-F7A_MkII_-_Flying_through_debris_field.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "anvl-hornet-f7c": {
+      "msrpUSD": 125,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-Hornet-Mk-I",
+      "lengthM": 28.25,
+      "widthM": 25.5,
+      "heightM": 7.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/cf/F7C_MkI_landed_in_spacestation_hangar.jpg/1280px-F7C_MkI_landed_in_spacestation_hangar.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/cf/F7C_MkI_landed_in_spacestation_hangar.jpg/320px-F7C_MkI_landed_in_spacestation_hangar.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "anvl-hornet-f7c-mk2": {
+      "msrpUSD": 175,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet-mkii/F7C-Hornet-Mk-II",
+      "lengthM": 22.5,
+      "widthM": 22,
+      "heightM": 6.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/95/F7C_mkII_flying_over_outpost_firing_weapons_-_Colour_and_contrast_adjusted_-_Cropped.png/1280px-F7C_mkII_flying_over_outpost_firing_weapons_-_Colour_and_contrast_adjusted_-_Cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/95/F7C_mkII_flying_over_outpost_firing_weapons_-_Colour_and_contrast_adjusted_-_Cropped.png/320px-F7C_mkII_flying_over_outpost_firing_weapons_-_Colour_and_contrast_adjusted_-_Cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "anvl-hornet-f7c-wildfire": {
+      "msrpUSD": 175,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-Hornet-Wildfire-Mk-I",
+      "lengthM": 28.25,
+      "widthM": 25.5,
+      "heightM": 7.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/89/F7C_Wildfire_-_Flying_through_debris_field_firing_guns_-_cropped_and_adjusted.jpg/1280px-F7C_Wildfire_-_Flying_through_debris_field_firing_guns_-_cropped_and_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/89/F7C_Wildfire_-_Flying_through_debris_field_firing_guns_-_cropped_and_adjusted.jpg/320px-F7C_Wildfire_-_Flying_through_debris_field_firing_guns_-_cropped_and_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "anvl-hornet-f7cm-heartseeker": {
+      "msrpUSD": 200,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-M-Super-Hornet-Heartseeker-Mk-I",
+      "lengthM": 28.25,
+      "widthM": 25.5,
+      "heightM": 7.5,
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "anvl-hornet-f7cm-mk2-heartseeker": {
+      "msrpUSD": 200,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-M-Super-Hornet-Heartseeker-Mk-I",
+      "lengthM": 24,
+      "widthM": 24,
+      "heightM": 6.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/a/af/F7CM_MkII_Heartseeker_flying_above_the_cloud_firing_weapons_-_cropped.jpg/1280px-F7CM_MkII_Heartseeker_flying_above_the_cloud_firing_weapons_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/a/af/F7CM_MkII_Heartseeker_flying_above_the_cloud_firing_weapons_-_cropped.jpg/320px-F7CM_MkII_Heartseeker_flying_above_the_cloud_firing_weapons_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "anvl-hornet-f7cm": {
+      "msrpUSD": 180,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-M-Super-Hornet-Mk-I",
+      "lengthM": 28.25,
+      "widthM": 25.5,
+      "heightM": 7.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/d6/Super_Hornet_over_Cellin_3.9.1.png/1280px-Super_Hornet_over_Cellin_3.9.1.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/d6/Super_Hornet_over_Cellin_3.9.1.png/320px-Super_Hornet_over_Cellin_3.9.1.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "anvl-hornet-f7cm-mk2": {
+      "msrpUSD": 240,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet-mkii/F7C-M-Super-Hornet-Mk-II",
+      "lengthM": 24,
+      "widthM": 24,
+      "heightM": 6.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/e7/F7C-M_MkII_flying_over_mountains_-_cropped.png/1280px-F7C-M_MkII_flying_over_mountains_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/e7/F7C-M_MkII_flying_over_mountains_-_cropped.png/320px-F7C-M_MkII_flying_over_mountains_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "anvl-hornet-f7cr": {
+      "msrpUSD": 150,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-R-Hornet-Tracker-Mk-I",
+      "lengthM": 28.25,
+      "widthM": 25.5,
+      "heightM": 7.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/6b/F7C-R_Tracker_flying_over_mountains.jpg/1280px-F7C-R_Tracker_flying_over_mountains.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/6b/F7C-R_Tracker_flying_over_mountains.jpg/320px-F7C-R_Tracker_flying_over_mountains.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Pfadfinder"
+      ]
+    },
+    "anvl-hornet-f7cr-mk2": {
+      "msrpUSD": 185,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet-mkii/F7C-R-Hornet-Tracker-Mk-II",
+      "lengthM": 22.5,
+      "widthM": 22,
+      "heightM": 6.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/b/b2/F7C-R_Tracker_MkII_scanning_ground_vehicles_-_cropped_and_adjusted.jpg/1280px-F7C-R_Tracker_MkII_scanning_ground_vehicles_-_cropped_and_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/b/b2/F7C-R_Tracker_MkII_scanning_ground_vehicles_-_cropped_and_adjusted.jpg/320px-F7C-R_Tracker_MkII_scanning_ground_vehicles_-_cropped_and_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Pfadfinder"
+      ]
+    },
+    "anvl-hornet-f7cs": {
+      "msrpUSD": 140,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-S-Hornet-Ghost-Mk-I",
+      "lengthM": 28.25,
+      "widthM": 25.5,
+      "heightM": 7.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/3/36/F7C-S_Hornet_Ghost_in_debris_field_-_Front_Port_-_cropped_and_adjusted.png/1280px-F7C-S_Hornet_Ghost_in_debris_field_-_Front_Port_-_cropped_and_adjusted.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/3/36/F7C-S_Hornet_Ghost_in_debris_field_-_Front_Port_-_cropped_and_adjusted.png/320px-F7C-S_Hornet_Ghost_in_debris_field_-_Front_Port_-_cropped_and_adjusted.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Tarnkappenjäger"
+      ]
+    },
+    "anvl-hornet-f7cs-mk2": {
+      "msrpUSD": 185,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet-mkii/F7C-S-Hornet-Ghost-Mk-II",
+      "lengthM": 22.5,
+      "widthM": 22,
+      "heightM": 6.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/5/50/F7C-S_Ghost_MkII_shadowing_pirate_ships_-_cropped.jpg/1280px-F7C-S_Ghost_MkII_shadowing_pirate_ships_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/5/50/F7C-S_Ghost_MkII_shadowing_pirate_ships_-_cropped.jpg/320px-F7C-S_Ghost_MkII_shadowing_pirate_ships_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Tarnkappenjäger"
+      ]
+    },
+    "anvl-lightning-f8": {
+      "lengthM": 26,
+      "widthM": 25,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/48/Sq42_SneakPeekF8.png/1280px-Sq42_SneakPeekF8.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/48/Sq42_SneakPeekF8.png/320px-Sq42_SneakPeekF8.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "anvl-lightning-f8c": {
+      "lengthM": 26,
+      "widthM": 25,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/2/2f/F8C_flying_over_river_through_forest_-_Cropped.png/1280px-F8C_flying_over_river_through_forest_-_Cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/2/2f/F8C_flying_over_river_through_forest_-_Cropped.png/320px-F8C_flying_over_river_through_forest_-_Cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "anvl-lightning-f8c-exec": {
+      "lengthM": 26,
+      "widthM": 25,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/3/30/F8C_Executive_flying_above_clouds_-_cropped_and_adjusted.png/1280px-F8C_Executive_flying_above_clouds_-_cropped_and_adjusted.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/3/30/F8C_Executive_flying_above_clouds_-_cropped_and_adjusted.png/320px-F8C_Executive_flying_above_clouds_-_cropped_and_adjusted.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "misc-fury": {
+      "msrpUSD": 55,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/fury/Fury",
+      "lengthM": 7,
+      "widthM": 5.4,
+      "heightM": 3,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/b/b9/Mirai_Fury_flying_fast_above_water_blurred_-_cropped.png/1280px-Mirai_Fury_flying_fast_above_water_blurred_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/b/b9/Mirai_Fury_flying_fast_above_water_blurred_-_cropped.png/320px-Mirai_Fury_flying_fast_above_water_blurred_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Beiboot Jäger"
+      ]
+    },
+    "misc-fury-lx": {
+      "msrpUSD": 55,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/fury/Fury-LX",
+      "lengthM": 7,
+      "widthM": 5.4,
+      "heightM": 3,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/c2/Fury_LX_x2_flying_low_and_fast_by_a_crashed_M50_-_Cut.jpg/1280px-Fury_LX_x2_flying_low_and_fast_by_a_crashed_M50_-_Cut.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/c2/Fury_LX_x2_flying_low_and_fast_by_a_crashed_M50_-_Cut.jpg/320px-Fury_LX_x2_flying_low_and_fast_by_a_crashed_M50_-_Cut.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "misc-fury-miru": {
+      "msrpUSD": 55,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/fury/Fury-MX",
+      "lengthM": 7,
+      "widthM": 5.4,
+      "heightM": 3,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/86/Fury_Miru_Concept_Art.png/1280px-Fury_Miru_Concept_Art.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/86/Fury_Miru_Concept_Art.png/320px-Fury_Miru_Concept_Art.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Beiboot Jäger"
+      ]
+    },
+    "anvl-gladiator": {
+      "msrpUSD": 165,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-gladiator/Gladiator",
+      "lengthM": 22.75,
+      "widthM": 21,
+      "heightM": 6,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/f/f0/Gladator_flying_over_world.png/1280px-Gladator_flying_over_world.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/f/f0/Gladator_flying_over_world.png/320px-Gladator_flying_over_world.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Bomber"
+      ]
+    },
+    "aegs-gladius": {
+      "msrpUSD": 90,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/gladius/Gladius",
+      "lengthM": 21,
+      "widthM": 17.5,
+      "heightM": 5.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/0c/Gladius_-_Flying_away_from_world_through_debris.jpg/1280px-Gladius_-_Flying_away_from_world_through_debris.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/0c/Gladius_-_Flying_away_from_world_through_debris.jpg/320px-Gladius_-_Flying_away_from_world_through_debris.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "aegs-gladius-pir": {
+      "msrpUSD": 110,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/gladius/Gladius-Pirate-Edition",
+      "lengthM": 21,
+      "widthM": 17.5,
+      "heightM": 5.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/95/Gladius_Pirate_x5_-_Attacking_station_over_world_-_cropped.jpg/1280px-Gladius_Pirate_x5_-_Attacking_station_over_world_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/95/Gladius_Pirate_x5_-_Attacking_station_over_world_-_cropped.jpg/320px-Gladius_Pirate_x5_-_Attacking_station_over_world_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "aegs-gladius-valiant": {
+      "msrpUSD": 110,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/gladius/Gladius-Valiant",
+      "lengthM": 21,
+      "widthM": 17.5,
+      "heightM": 5.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/76/Gladius_Valiants_x2_flying_in_formation.jpg/1280px-Gladius_Valiants_x2_flying_in_formation.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/76/Gladius_Valiants_x2_flying_in_formation.jpg/320px-Gladius_Valiants_x2_flying_in_formation.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "vncl-glaive": {
+      "msrpUSD": 350,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/esperia-glaive/Glaive",
+      "lengthM": 33,
+      "widthM": 24,
+      "heightM": 9,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/3/39/Glaive-iso-isc-2020-06-18.jpg/1280px-Glaive-iso-isc-2020-06-18.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/3/39/Glaive-iso-isc-2020-06-18.jpg/320px-Glaive-iso-isc-2020-06-18.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "drak-golem": {
+      "msrpUSD": 60,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/golem/Golem",
+      "lengthM": 15.5,
+      "widthM": 7,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/2/2c/Golem_using_mining_laser_in_dense_debris_field_-_cropped.png/1280px-Golem_using_mining_laser_in_dense_debris_field_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/2/2c/Golem_using_mining_laser_in_dense_debris_field_-_cropped.png/320px-Golem_using_mining_laser_in_dense_debris_field_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Bergbau"
+      ]
+    },
+    "drak-golem-ox": {
+      "msrpUSD": 90,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/golem/Golem-OX",
+      "lengthM": 15.5,
+      "widthM": 7,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/78/Golem_OX_landing_at_outpost_-_cropped.jpg/1280px-Golem_OX_landing_at_outpost_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/78/Golem_OX_landing_at_outpost_-_cropped.jpg/320px-Golem_OX_landing_at_outpost_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Frachter"
+      ]
+    },
+    "mrai-guardian": {
+      "msrpUSD": 250,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/guardian/Guardian",
+      "lengthM": 24.3,
+      "widthM": 16.3,
+      "heightM": 9.1,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/02/Guardian_landed_in_ArcCorp_with_pilot_walking_towards_it_-_cropped_and_adjusted.jpg/1280px-Guardian_landed_in_ArcCorp_with_pilot_walking_towards_it_-_cropped_and_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/02/Guardian_landed_in_ArcCorp_with_pilot_walking_towards_it_-_cropped_and_adjusted.jpg/320px-Guardian_landed_in_ArcCorp_with_pilot_walking_towards_it_-_cropped_and_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "mrai-guardian-mx": {
+      "msrpUSD": 290,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/guardian/Guardian-MX",
+      "lengthM": 26,
+      "widthM": 17,
+      "heightM": 10,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/e5/Guardian_MX_x2_flying_low_and_fast_over_world_-_cropped.png/1280px-Guardian_MX_x2_flying_low_and_fast_over_world_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/e5/Guardian_MX_x2_flying_low_and_fast_over_world_-_cropped.png/320px-Guardian_MX_x2_flying_low_and_fast_over_world_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "mrai-guardian-qi": {
+      "msrpUSD": 260,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/guardian/Guardian-QI",
+      "lengthM": 24.3,
+      "widthM": 16.3,
+      "heightM": 9.1,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/2/22/Guardian_QI_over_world_firing_weapons_-_cropped_and_adjusted.jpg/1280px-Guardian_QI_over_world_firing_weapons_-_cropped_and_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/2/22/Guardian_QI_over_world_firing_weapons_-_cropped_and_adjusted.jpg/320px-Guardian_QI_over_world_firing_weapons_-_cropped_and_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "aegs-hammerhead": {
+      "msrpUSD": 725,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hammerhead/Hammerhead",
+      "lengthM": 120,
+      "widthM": 72,
+      "heightM": 16,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/c8/Ext_03_03-Min.png/1280px-Ext_03_03-Min.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/c8/Ext_03_03-Min.png/320px-Ext_03_03-Min.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 11,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schweres Kanonenboot"
+      ]
+    },
+    "aegs-hammerhead-showdown": {
+      "msrpUSD": 725,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hammerhead/Hammerhead-Best-In-Show-Edition-2949",
+      "lengthM": 120,
+      "widthM": 72,
+      "heightM": 16,
+      "crewMax": 11,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schweres Kanonenboot"
+      ]
+    },
+    "anvl-hawk": {
+      "msrpUSD": 100,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hawk/Hawk",
+      "lengthM": 23,
+      "widthM": 17,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/6a/Star_Citizen-_Low_Flying_Hawk.png/1280px-Star_Citizen-_Low_Flying_Hawk.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/6a/Star_Citizen-_Low_Flying_Hawk.png/320px-Star_Citizen-_Low_Flying_Hawk.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "drak-herald": {
+      "msrpUSD": 85,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/herald/Herald",
+      "lengthM": 24.75,
+      "widthM": 12.5,
+      "heightM": 9,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/3/3e/Herald_landed_on_microTech_3.9.png/1280px-Herald_landed_on_microTech_3.9.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/3/3e/Herald_landed_on_microTech_3.9.png/320px-Herald_landed_on_microTech_3.9.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Datentransport"
+      ]
+    },
+    "rsi-hermes": {
+      "msrpUSD": 220,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hermes/Hermes",
+      "lengthM": 73,
+      "widthM": 58,
+      "heightM": 14,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/e0/Hermes_flying_away_from_jump_point_-_cropped.jpg/1280px-Hermes_flying_away_from_jump_point_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/e0/Hermes_flying_away_from_jump_point_-_cropped.jpg/320px-Hermes_flying_away_from_jump_point_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Medium Freighter"
+      ]
+    },
+    "cnou-hoverquad": {
+      "msrpUSD": 30,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hoverquad/HoverQuad",
+      "lengthM": 5.15,
+      "widthM": 1.45,
+      "heightM": 1.32,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/7f/CNOU_HoverQuad_Luminalia_Reveal-02_-_cropped.jpg/1280px-CNOU_HoverQuad_Luminalia_Reveal-02_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/7f/CNOU_HoverQuad_Luminalia_Reveal-02_-_cropped.jpg/320px-CNOU_HoverQuad_Luminalia_Reveal-02_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "anvl-hurricane": {
+      "msrpUSD": 210,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hurricane/Hurricane",
+      "lengthM": 24,
+      "widthM": 18.5,
+      "heightM": 6.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/80/Hurricane_3.2_flyable_sale_Action_02-Squashed.jpg/1280px-Hurricane_3.2_flyable_sale_Action_02-Squashed.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/80/Hurricane_3.2_flyable_sale_Action_02-Squashed.jpg/320px-Hurricane_3.2_flyable_sale_Action_02-Squashed.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "aegs-idris-m": {
+      "msrpUSD": 1000,
+      "lengthM": 243,
+      "widthM": 127,
+      "heightM": 57.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/dd/Idris_M_flying_over_world_-_cropped.jpg/1280px-Idris_M_flying_over_world_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/dd/Idris_M_flying_over_world_-_cropped.jpg/320px-Idris_M_flying_over_world_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Fregatte"
+      ]
+    },
+    "aegs-idris-p": {
+      "msrpUSD": 1900,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aegis-idris/Idris-P",
+      "lengthM": 243,
+      "widthM": 127,
+      "heightM": 57.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/8d/Idris-P_fighting_group_of_Buccaneers_-_cropped.jpg/1280px-Idris-P_fighting_group_of_Buccaneers_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/8d/Idris-P_fighting_group_of_Buccaneers_-_cropped.jpg/320px-Idris-P_fighting_group_of_Buccaneers_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Fregatte"
+      ]
+    },
+    "crus-intrepid": {
+      "msrpUSD": 65,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/intrepid/Intrepid",
+      "lengthM": 23.07,
+      "widthM": 20.18,
+      "heightM": 6.13,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/9a/Intrepid_on_Crusader_landing_pad_-_cropped.jpg/1280px-Intrepid_on_Crusader_landing_pad_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/9a/Intrepid_on_Crusader_landing_pad_-_cropped.jpg/320px-Intrepid_on_Crusader_landing_pad_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Frachter"
+      ]
+    },
+    "drak-ironclad": {
+      "msrpUSD": 600,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/ironclad/Ironclad",
+      "lengthM": 117,
+      "widthM": 50,
+      "heightM": 25,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/69/Ironclad_flying_away_from_world_-_cropped.png/1280px-Ironclad_flying_away_from_world_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/69/Ironclad_flying_away_from_world_-_cropped.png/320px-Ironclad_flying_away_from_world_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwertransport"
+      ]
+    },
+    "drak-ironclad-assault": {
+      "msrpUSD": 650,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/ironclad/Ironclad-Assault",
+      "lengthM": 117,
+      "widthM": 50,
+      "heightM": 25,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/c8/Ironclad_Assault_flying_over_ground_attacking_ground_vehicles_-_cropped.jpg/1280px-Ironclad_Assault_flying_over_ground_attacking_ground_vehicles_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/c8/Ironclad_Assault_flying_over_ground_attacking_ground_vehicles_-_cropped.jpg/320px-Ironclad_Assault_flying_over_ground_attacking_ground_vehicles_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 8,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Heavy Dropship"
+      ]
+    },
+    "aegs-javelin": {
+      "msrpUSD": 3000,
+      "lengthM": 0,
+      "widthM": 0,
+      "heightM": 0,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/86/Javelin-fireworks-invictus-2950.jpg/1280px-Javelin-fireworks-invictus-2950.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/86/Javelin-fireworks-invictus-2950.jpg/320px-Javelin-fireworks-invictus-2950.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 15,
+      "statusEn": "in-concept",
+      "statusDe": "Im Konzept",
+      "fociDe": [
+        "Zerstörer"
+      ]
+    },
+    "xian-scout": {
+      "msrpUSD": 175,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/khartu/Khartu-Al",
+      "lengthM": 32,
+      "widthM": 13.5,
+      "heightM": 8.75,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/a/ad/Khartu-Al_x2_firing_weapons_flying_over_mountains.jpg/1280px-Khartu-Al_x2_firing_weapons_flying_over_mountains.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/a/ad/Khartu-Al_x2_firing_weapons_flying_over_mountains.jpg/320px-Khartu-Al_x2_firing_weapons_flying_over_mountains.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "krig-l21-wolf": {
+      "msrpUSD": 100,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/wolf/L-21-Wolf",
+      "lengthM": 21.5,
+      "widthM": 10.5,
+      "heightM": 4.2,
+      "image": {
+        "hero": "https://media.starcitizen.tools/0/03/L-21_Wolf_flying_above_clouds.png",
+        "thumb": "https://media.starcitizen.tools/thumb/0/03/L-21_Wolf_flying_above_clouds.png/320px-L-21_Wolf_flying_above_clouds.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "krig-l22-alphawolf": {
+      "msrpUSD": 120,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/wolf/L-22-Alpha-Wolf",
+      "lengthM": 21.5,
+      "widthM": 10.5,
+      "heightM": 4.2,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/4a/L-22_Alpha_Wolf_flying_above_clouds_-_cropped.jpg/1280px-L-22_Alpha_Wolf_flying_above_clouds_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/4a/L-22_Alpha_Wolf_flying_above_clouds_-_cropped.jpg/320px-L-22_Alpha_Wolf_flying_above_clouds_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "rsi-lynx": {
+      "msrpUSD": 60,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/ursa/Lynx",
+      "lengthM": 7.75,
+      "widthM": 5.7,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/1/17/Lynx_on_platform_in_nightime_Lorville_-_Cut.jpg/1280px-Lynx_on_platform_in_nightime_Lorville_-_Cut.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/1/17/Lynx_on_platform_in_nightime_Lorville_-_Cut.jpg/320px-Lynx_on_platform_in_nightime_Lorville_-_Cut.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Luxus-Transport",
+        "Erkundung"
+      ]
+    },
+    "crus-starlifter-m2": {
+      "msrpUSD": 520,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/crusader-starlifter/M2-Hercules",
+      "lengthM": 94,
+      "widthM": 70,
+      "heightM": 23,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/8e/M2_Gallery_Fly_Front.jpg/1280px-M2_Gallery_Fly_Front.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/8e/M2_Gallery_Fly_Front.jpg/320px-M2_Gallery_Fly_Front.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Militärischer Transport"
+      ]
+    },
+    "orig-m50": {
+      "msrpUSD": 100,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-m50/M50",
+      "lengthM": 11.5,
+      "widthM": 11,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://cstone.space/uifimages/1b57cdac-693b-410b-8343-68fa194c94ae.png",
+        "thumb": "https://cstone.space/uifimages/1b57cdac-693b-410b-8343-68fa194c94ae.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "orig-m80": {
+      "msrpUSD": 300,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/m80/M80",
+      "lengthM": 11.5,
+      "widthM": 11,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/4f/M80_flying_over_mountains_before_sun_rise_-_cropped.png/1280px-M80_flying_over_mountains_before_sun_rise_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/4f/M80_flying_over_mountains_before_sun_rise_-_cropped.png/320px-M80_flying_over_mountains_before_sun_rise_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "rsi-mantis": {
+      "msrpUSD": 150,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-mantis/Mantis",
+      "lengthM": 30,
+      "widthM": 17,
+      "heightM": 7.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/82/RSI_Mantis_Hasgaha_3.7_2019-11-06.png/1280px-RSI_Mantis_Hasgaha_3.7_2019-11-06.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/82/RSI_Mantis_Hasgaha_3.7_2019-11-06.png/320px-RSI_Mantis_Hasgaha_3.7_2019-11-06.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Abrieglung"
+      ]
+    },
+    "grin-mdc": {
+      "msrpUSD": 50,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mdc/MDC",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/91/MDC_in_forest_beside_shipreck_-_cropped.jpg/1280px-MDC_in_forest_beside_shipreck_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/91/MDC_in_forest_beside_shipreck_-_cropped.jpg/320px-MDC_in_forest_beside_shipreck_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Anti-Air"
+      ]
+    },
+    "crus-star-runner": {
+      "msrpUSD": 260,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/crusader-mercury-star-runner/Mercury",
+      "lengthM": 55,
+      "widthM": 51,
+      "heightM": 19,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/e7/Mercury_-_flying_over_clouds.jpg/1280px-Mercury_-_flying_over_clouds.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/e7/Mercury_-_flying_over_clouds.jpg/320px-Mercury_-_flying_over_clouds.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Datentransport",
+        "Mittlerer Frachttransport"
+      ]
+    },
+    "rsi-meteor": {
+      "msrpUSD": 260,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-meteor/Meteor",
+      "lengthM": 30,
+      "widthM": 17,
+      "heightM": 7.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/78/Meteor_reentry_burn_-_cropped_and_adjusted.jpg/1280px-Meteor_reentry_burn_-_cropped_and_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/78/Meteor_reentry_burn_-_cropped_and_adjusted.jpg/320px-Meteor_reentry_burn_-_cropped_and_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "misc-fortune": {
+      "msrpUSD": 175,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/fortune/Fortune",
+      "lengthM": 26.5,
+      "widthM": 16.5,
+      "heightM": 8,
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Salvage"
+      ]
+    },
+    "misc-freelancer": {
+      "msrpUSD": 110,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-freelancer/Freelancer",
+      "lengthM": 38,
+      "widthM": 23.5,
+      "heightM": 9.5,
+      "image": {
+        "hero": "https://cstone.space/uifimages/b4791030-9d64-4f98-85cb-ca106f868c5e.png",
+        "thumb": "https://cstone.space/uifimages/b4791030-9d64-4f98-85cb-ca106f868c5e.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 9,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Frachter"
+      ]
+    },
+    "misc-freelancer-dur": {
+      "msrpUSD": 135,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-freelancer/Freelancer-DUR",
+      "lengthM": 38,
+      "widthM": 23.5,
+      "heightM": 9.5,
+      "image": {
+        "hero": "https://cstone.space/uifimages/34821163-e32e-42bf-99df-8f42ba66ef34.png",
+        "thumb": "https://cstone.space/uifimages/34821163-e32e-42bf-99df-8f42ba66ef34.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 9,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Forschungsreisen"
+      ]
+    },
+    "misc-freelancer-max": {
+      "msrpUSD": 150,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-freelancer/Freelancer-MAX",
+      "lengthM": 38,
+      "widthM": 34,
+      "heightM": 9.5,
+      "image": {
+        "hero": "https://cstone.space/uifimages/6c6e9731-3d70-4f1b-84c2-9dbf3c1f97c7.png",
+        "thumb": "https://cstone.space/uifimages/6c6e9731-3d70-4f1b-84c2-9dbf3c1f97c7.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 9,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Frachter"
+      ]
+    },
+    "misc-freelancer-mis": {
+      "msrpUSD": 175,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-freelancer/Freelancer-MIS",
+      "lengthM": 38,
+      "widthM": 23.5,
+      "heightM": 9.5,
+      "image": {
+        "hero": "https://cstone.space/uifimages/4b6700e5-38bd-4d8d-9281-ef82996b135f.png",
+        "thumb": "https://cstone.space/uifimages/4b6700e5-38bd-4d8d-9281-ef82996b135f.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 9,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Kanonenboot"
+      ]
+    },
+    "misc-hull-a": {
+      "msrpUSD": 100,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hull/Hull-A",
+      "lengthM": 30,
+      "widthM": 12.5,
+      "heightM": 8,
+      "image": {
+        "hero": "https://cstone.space/uifimages/6ec72f64-2002-481c-b7c9-b132476ba6aa.png",
+        "thumb": "https://cstone.space/uifimages/6ec72f64-2002-481c-b7c9-b132476ba6aa.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Frachter"
+      ]
+    },
+    "misc-hull-b": {
+      "msrpUSD": 280,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hull/Hull-B",
+      "lengthM": 71,
+      "widthM": 16.7,
+      "heightM": 10.7,
+      "image": {
+        "hero": "https://cstone.space/uifimages/0d690d1a-9f57-4976-bff1-ec46bf039e75.png",
+        "thumb": "https://cstone.space/uifimages/0d690d1a-9f57-4976-bff1-ec46bf039e75.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Medium Hauler"
+      ]
+    },
+    "misc-hull-c": {
+      "msrpUSD": 500,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hull/Hull-C",
+      "lengthM": 91.17,
+      "widthM": 36.05,
+      "heightM": 26.28,
+      "image": {
+        "hero": "https://cstone.space/uifimages/c4ceff45-d851-44b1-921b-bfef93a6cd6a.png",
+        "thumb": "https://cstone.space/uifimages/c4ceff45-d851-44b1-921b-bfef93a6cd6a.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwertransport"
+      ]
+    },
+    "misc-prospector": {
+      "msrpUSD": 155,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-prospector/Prospector",
+      "lengthM": 26.5,
+      "widthM": 16.5,
+      "heightM": 8,
+      "image": {
+        "hero": "https://cstone.space/uifimages/f68ee841-88d1-46f3-a1e2-5dc71d9d5d97.png",
+        "thumb": "https://cstone.space/uifimages/f68ee841-88d1-46f3-a1e2-5dc71d9d5d97.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Bergbau",
+        "Prospektierung"
+      ]
+    },
+    "misc-reliant": {
+      "msrpUSD": 65,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/reliant/Reliant-Kore",
+      "lengthM": 28.5,
+      "widthM": 14.75,
+      "heightM": 4.5,
+      "image": {
+        "hero": "https://cstone.space/uifimages/3c9af040-d919-4afc-b768-45821a5b913c.png",
+        "thumb": "https://cstone.space/uifimages/3c9af040-d919-4afc-b768-45821a5b913c.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einsteiger",
+        "Leichter Frachter"
+      ]
+    },
+    "misc-reliant-mako": {
+      "msrpUSD": 95,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/reliant/Reliant-Mako",
+      "lengthM": 28.5,
+      "widthM": 14.75,
+      "heightM": 4.5,
+      "image": {
+        "hero": "https://cstone.space/uifimages/c6cfa4d9-e794-4bb6-8da9-54cb779ea109.png",
+        "thumb": "https://cstone.space/uifimages/c6cfa4d9-e794-4bb6-8da9-54cb779ea109.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Berichterstattung"
+      ]
+    },
+    "misc-reliant-sen": {
+      "msrpUSD": 85,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/reliant/Reliant-Sen",
+      "lengthM": 28.5,
+      "widthM": 14.75,
+      "heightM": 4.5,
+      "image": {
+        "hero": "https://cstone.space/uifimages/e32d125f-a3f8-4bc7-b0e6-cb7edf22b7ac.png",
+        "thumb": "https://cstone.space/uifimages/e32d125f-a3f8-4bc7-b0e6-cb7edf22b7ac.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einfache Forschung"
+      ]
+    },
+    "misc-reliant-tana": {
+      "msrpUSD": 75,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/reliant/Reliant-Tana",
+      "lengthM": 28.5,
+      "widthM": 14.75,
+      "heightM": 4.5,
+      "image": {
+        "hero": "https://cstone.space/uifimages/c2956880-b82a-42d0-962b-eb736dac1536.png",
+        "thumb": "https://cstone.space/uifimages/c2956880-b82a-42d0-962b-eb736dac1536.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 4,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "misc-starfarer": {
+      "msrpUSD": 300,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-starfarer/Starfarer",
+      "lengthM": 102,
+      "widthM": 48.5,
+      "heightM": 24.5,
+      "image": {
+        "hero": "https://cstone.space/uifimages/13a02a6d-7d67-4d22-8530-d4d2c8443f66.png",
+        "thumb": "https://cstone.space/uifimages/13a02a6d-7d67-4d22-8530-d4d2c8443f66.png",
+        "source": "cstone.space"
+      },
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Heavy Refueling"
+      ]
+    },
+    "misc-starfarer-gemini": {
+      "msrpUSD": 340,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-starfarer/Starfarer-Gemini",
+      "lengthM": 102,
+      "widthM": 48.5,
+      "heightM": 24.5,
+      "image": {
+        "hero": "https://cstone.space/uifimages/c989caf2-84a5-4c01-b99e-5fc9f8d0ce8e.png",
+        "thumb": "https://cstone.space/uifimages/c989caf2-84a5-4c01-b99e-5fc9f8d0ce8e.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 7,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Heavy Refueling"
+      ]
+    },
+    "misc-starlancer-max": {
+      "msrpUSD": 250,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/starlancer/Starlancer-MAX",
+      "lengthM": 90,
+      "widthM": 60,
+      "heightM": 20,
+      "image": {
+        "hero": "https://cstone.space/uifimages/ff873dda-2b79-4fa3-b3ce-535b8adff5e2.png",
+        "thumb": "https://cstone.space/uifimages/ff873dda-2b79-4fa3-b3ce-535b8adff5e2.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 4,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Frachter"
+      ]
+    },
+    "misc-starlancer-tac": {
+      "msrpUSD": 375,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/starlancer/Starlancer-TAC",
+      "lengthM": 90,
+      "widthM": 60,
+      "heightM": 20,
+      "image": {
+        "hero": "https://cstone.space/uifimages/14b8caeb-d5e1-4816-9537-86ef19afada8.png",
+        "thumb": "https://cstone.space/uifimages/14b8caeb-d5e1-4816-9537-86ef19afada8.png",
+        "source": "cstone.space"
+      },
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Patrol"
+      ]
+    },
+    "misc-starlite": {
+      "msrpUSD": 60,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/starlite/Starlite",
+      "lengthM": 32,
+      "widthM": 19.9,
+      "heightM": 9.07,
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Light Refueler"
+      ]
+    },
+    "argo-mole": {
+      "msrpUSD": 315,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/argo-mole/MOLE",
+      "lengthM": 45,
+      "widthM": 26,
+      "heightM": 15,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/f/f0/Mole_flying_through_space_-_Isometric.jpg/1280px-Mole_flying_through_space_-_Isometric.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/f/f0/Mole_flying_through_space_-_Isometric.jpg/320px-Mole_flying_through_space_-_Isometric.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Bergbau",
+        "Prospektierung"
+      ]
+    },
+    "argo-moth": {
+      "msrpUSD": 315,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/moth/MOTH",
+      "lengthM": 0,
+      "widthM": 0,
+      "heightM": 0,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/c2/MOTH_in_debris_field_with_arms_extended_-_cropped.jpg/1280px-MOTH_in_debris_field_with_arms_extended_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/c2/MOTH_in_debris_field_with_arms_extended_-_cropped.jpg/320px-MOTH_in_debris_field_with_arms_extended_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Medium Salvage"
+      ]
+    },
+    "argo-mpuv": {
+      "msrpUSD": 35,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/argo/MPUV-Cargo",
+      "lengthM": 10.5,
+      "widthM": 9,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/66/SC-3.22_20240405_MPUV-Cargo-over-water.png/1280px-SC-3.22_20240405_MPUV-Cargo-over-water.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/66/SC-3.22_20240405_MPUV-Cargo-over-water.png/320px-SC-3.22_20240405_MPUV-Cargo-over-water.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Frachter"
+      ]
+    },
+    "argo-mpuv-transport": {
+      "msrpUSD": 40,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/argo/MPUV-Personnel",
+      "lengthM": 10.5,
+      "widthM": 9,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/e0/Mpuv-1p-flight_-_cropped.png/1280px-Mpuv-1p-flight_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/e0/Mpuv-1p-flight_-_cropped.png/320px-Mpuv-1p-flight_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Passagier"
+      ]
+    },
+    "argo-mpuv-1t": {
+      "msrpUSD": 40,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/argo/MPUV-Tractor",
+      "lengthM": 10.5,
+      "widthM": 9,
+      "heightM": 5.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/2/21/MPUV-1T_flying_through_Orison_cargo_platform_-_Cropped.png/1280px-MPUV-1T_flying_through_Orison_cargo_platform_-_Cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/2/21/MPUV-1T_flying_through_Orison_cargo_platform_-_Cropped.png/320px-MPUV-1T_flying_through_Orison_cargo_platform_-_Cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Cargo Loader"
+      ]
+    },
+    "grin-mtc": {
+      "msrpUSD": 50,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mtc/MTC",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/a/a9/MTC_on_top_of_rocky_outcrop_-_cropped.png/1280px-MTC_on_top_of_rocky_outcrop_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/a/a9/MTC_on_top_of_rocky_outcrop_-_cropped.png/320px-MTC_on_top_of_rocky_outcrop_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Gefecht"
+      ]
+    },
+    "drak-mule": {
+      "msrpUSD": 45,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mule/Mule",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/b/b7/Mule_front_%27claw%27_holding_a_cargo_box_-_Cropped.jpg/1280px-Mule_front_%27claw%27_holding_a_cargo_box_-_Cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/b/b7/Mule_front_%27claw%27_holding_a_cargo_box_-_Cropped.jpg/320px-Mule_front_%27claw%27_holding_a_cargo_box_-_Cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Transport"
+      ]
+    },
+    "cnou-mustang-alpha": {
+      "msrpUSD": 30,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mustang/Mustang-Alpha",
+      "lengthM": 21.5,
+      "widthM": 18,
+      "heightM": 9,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/5/52/Mustang_Alpha_flying_over_Lorville.jpg/1280px-Mustang_Alpha_flying_over_Lorville.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/5/52/Mustang_Alpha_flying_over_Lorville.jpg/320px-Mustang_Alpha_flying_over_Lorville.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Fracht"
+      ]
+    },
+    "cnou-mustang-beta": {
+      "msrpUSD": 40,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mustang/Mustang-Beta",
+      "lengthM": 21.5,
+      "widthM": 18,
+      "heightM": 9,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/ea/Mustang_Beta_-_Flying_past_distant_world.jpg/1280px-Mustang_Beta_-_Flying_past_distant_world.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/ea/Mustang_Beta_-_Flying_past_distant_world.jpg/320px-Mustang_Beta_-_Flying_past_distant_world.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Pfadfinder"
+      ]
+    },
+    "cnou-mustang-alpha-citizencon2018": {
+      "msrpUSD": 30,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mustang/Mustang-Alpha-Vindicator",
+      "lengthM": 21.5,
+      "widthM": 18,
+      "heightM": 9,
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einsteiger",
+        "Leichter Frachter"
+      ]
+    },
+    "cnou-mustang-delta": {
+      "msrpUSD": 65,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mustang/Mustang-Delta",
+      "lengthM": 21.5,
+      "widthM": 18,
+      "heightM": 9,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/5/5b/Mustang_Delta_Invictus_2950_promo_shot_-_cropped_contrast_adjusted.png/1280px-Mustang_Delta_Invictus_2950_promo_shot_-_cropped_contrast_adjusted.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/5/5b/Mustang_Delta_Invictus_2950_promo_shot_-_cropped_contrast_adjusted.png/320px-Mustang_Delta_Invictus_2950_promo_shot_-_cropped_contrast_adjusted.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "cnou-mustang-gamma": {
+      "msrpUSD": 55,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mustang/Mustang-Gamma",
+      "lengthM": 21.5,
+      "widthM": 18,
+      "heightM": 9,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/96/Mustang_Gamma_flying_over_forest.jpg/1280px-Mustang_Gamma_flying_over_forest.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/96/Mustang_Gamma_flying_over_forest.jpg/320px-Mustang_Gamma_flying_over_forest.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "cnou-mustang-omega": {
+      "msrpUSD": 55,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mustang/Mustang-Omega",
+      "lengthM": 21.5,
+      "widthM": 18,
+      "heightM": 9,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/a/a7/Mustang_Omega_in_hangar.png/1280px-Mustang_Omega_in_hangar.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/a/a7/Mustang_Omega_in_hangar.png/320px-Mustang_Omega_in_hangar.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "cnou-nomad": {
+      "msrpUSD": 80,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/nomad/Nomad",
+      "lengthM": 27,
+      "widthM": 19,
+      "heightM": 10,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/1/1f/Nomad_flying_above_Crusader_clouds_-_Crop.jpg/1280px-Nomad_flying_above_Crusader_clouds_-_Crop.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/1/1f/Nomad_flying_above_Crusader_clouds_-_Crop.jpg/320px-Nomad_flying_above_Crusader_clouds_-_Crop.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einsteiger"
+      ]
+    },
+    "tmbl-nova": {
+      "msrpUSD": 120,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/nova-tank/Nova",
+      "lengthM": 20,
+      "widthM": 12,
+      "heightM": 11,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/79/Nova_x2_on_battlefield_-_Cropped.png/1280px-Nova_x2_on_battlefield_-_Cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/79/Nova_x2_on_battlefield_-_Cropped.png/320px-Nova_x2_on_battlefield_-_Cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Gefecht"
+      ]
+    },
+    "xian-nox": {
+      "msrpUSD": 45,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/nox/Nox",
+      "lengthM": 5.15,
+      "widthM": 1.45,
+      "heightM": 1.32,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/2/25/Nox_x2_flying_fast_close_to_Daymar_hills_-_cropped.png/1280px-Nox_x2_flying_fast_close_to_Daymar_hills_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/2/25/Nox_x2_flying_fast_close_to_Daymar_hills_-_cropped.png/320px-Nox_x2_flying_fast_close_to_Daymar_hills_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "xian-nox-kue": {
+      "msrpUSD": 45,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/nox/Nox-Kue",
+      "lengthM": 5.15,
+      "widthM": 1.45,
+      "heightM": 1.32,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/a/ad/Nox_Kue_in_RandY_-_Port.png/1280px-Nox_Kue_in_RandY_-_Port.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/a/ad/Nox_Kue_in_RandY_-_Port.png/320px-Nox_Kue_in_RandY_-_Port.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "krig-p52-merlin": {
+      "msrpUSD": 25,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/p52-merlin/P-52-Merlin",
+      "lengthM": 12,
+      "widthM": 7.75,
+      "heightM": 3.25,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/a/a6/P-52_-_Undocking_from_Constellation_over_world.jpg/1280px-P-52_-_Undocking_from_Constellation_over_world.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/a/a6/P-52_-_Undocking_from_Constellation_over_world.jpg/320px-P-52_-_Undocking_from_Constellation_over_world.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Beiboot Jäger"
+      ]
+    },
+    "krig-p72-archimedes": {
+      "msrpUSD": 35,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/p72-archimedes/P-72-Archimedes",
+      "lengthM": 12,
+      "widthM": 7.75,
+      "heightM": 3.25,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/48/Archimedes_and_Merlin_-_Flying_in_formation_-_Starboard_-_cropped.png/1280px-Archimedes_and_Merlin_-_Flying_in_formation_-_Starboard_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/48/Archimedes_and_Merlin_-_Flying_in_formation_-_Starboard_-_cropped.png/320px-Archimedes_and_Merlin_-_Flying_in_formation_-_Starboard_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "krig-p72-archimedes-emerald": {
+      "msrpUSD": 40,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/p72-archimedes/P-72-Archimedes-Emerald",
+      "lengthM": 12,
+      "widthM": 7.75,
+      "heightM": 3.25,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/49/P-72_Archimedes_Emerald_flying_fast_over_Microtech_mountains.png/1280px-P-72_Archimedes_Emerald_flying_fast_over_Microtech_mountains.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/49/P-72_Archimedes_Emerald_flying_fast_over_Microtech_mountains.png/320px-P-72_Archimedes_Emerald_flying_fast_over_Microtech_mountains.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "anvl-paladin": {
+      "msrpUSD": 350,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/paladin/Paladin",
+      "lengthM": 53.5,
+      "widthM": 38,
+      "heightM": 15.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/47/Paladin_firing_at_pirates_in_debris_field_-_cropped_%26_adjusted.png/1280px-Paladin_firing_at_pirates_in_debris_field_-_cropped_%26_adjusted.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/47/Paladin_firing_at_pirates_in_debris_field_-_cropped_%26_adjusted.png/320px-Paladin_firing_at_pirates_in_debris_field_-_cropped_%26_adjusted.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 4,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Kanonenboot"
+      ]
+    },
+    "rsi-perseus": {
+      "msrpUSD": 800,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/perseus/Perseus",
+      "lengthM": 100,
+      "widthM": 50,
+      "heightM": 25,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/6c/Perseus_angled_combat.jpg/1280px-Perseus_angled_combat.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/6c/Perseus_angled_combat.jpg/320px-Perseus_angled_combat.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 6,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schweres Kanonenboot"
+      ]
+    },
+    "drak-pitbull": {
+      "msrpUSD": 55,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/pitbull/Pitbull",
+      "lengthM": 6,
+      "widthM": 6,
+      "heightM": 3,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/3/32/Pitbull_swarm_flying_over_world_-_cropped.jpg/1280px-Pitbull_swarm_flying_over_world_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/3/32/Pitbull_swarm_flying_over_world_-_cropped.jpg/320px-Pitbull_swarm_flying_over_world_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Beiboot Jäger"
+      ]
+    },
+    "rsi-polaris": {
+      "msrpUSD": 975,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/polaris/Polaris",
+      "lengthM": 181,
+      "widthM": 87,
+      "heightM": 40,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/d2/Polaris_flying_through_asteroid_field_firing_torpedoes_and_missiles_-_cropped.png/1280px-Polaris_flying_through_asteroid_field_firing_torpedoes_and_missiles_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/d2/Polaris_flying_through_asteroid_field_firing_torpedoes_and_missiles_-_cropped.png/320px-Polaris_flying_through_asteroid_field_firing_torpedoes_and_missiles_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 12,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Korvette"
+      ]
+    },
+    "espr-prowler": {
+      "msrpUSD": 440,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/prowler/Prowler",
+      "lengthM": 34,
+      "widthM": 32,
+      "heightM": 15,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/a/a4/Prowler_-_Hovering_over_landscape.jpg/1280px-Prowler_-_Hovering_over_landscape.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/a/a4/Prowler_-_Hovering_over_landscape.jpg/320px-Prowler_-_Hovering_over_landscape.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Landungsschiff"
+      ]
+    },
+    "espr-prowler-utility": {
+      "msrpUSD": 300,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/prowler/Prowler-Utility",
+      "lengthM": 34,
+      "widthM": 32,
+      "heightM": 15,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/62/Prowler_Utility_on_outpost_landing_pad_-_cropped.png/1280px-Prowler_Utility_on_outpost_landing_pad_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/62/Prowler_Utility_on_outpost_landing_pad_-_cropped.png/320px-Prowler_Utility_on_outpost_landing_pad_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Fracht"
+      ]
+    },
+    "grin-ptv": {
+      "lengthM": 3.5,
+      "widthM": 2.5,
+      "heightM": 2.2,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/e0/PTV_-_Updated_3D_concept.png/1280px-PTV_-_Updated_3D_concept.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/e0/PTV_-_Updated_3D_concept.png/320px-PTV_-_Updated_3D_concept.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Reisen"
+      ]
+    },
+    "mrai-pulse": {
+      "msrpUSD": 30,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mirai-pulse/Pulse",
+      "lengthM": 3.5,
+      "widthM": 2.5,
+      "heightM": 1.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/de/Pulse_in_hangar_-_In-game_cutout_-_Stripe_BG_SCT_logo_-_Isometric.jpg/1280px-Pulse_in_hangar_-_In-game_cutout_-_Stripe_BG_SCT_logo_-_Isometric.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/de/Pulse_in_hangar_-_In-game_cutout_-_Stripe_BG_SCT_logo_-_Isometric.jpg/320px-Pulse_in_hangar_-_In-game_cutout_-_Stripe_BG_SCT_logo_-_Isometric.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Gefecht"
+      ]
+    },
+    "mrai-pulse-lx": {
+      "msrpUSD": 30,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mirai-pulse/Pulse-LX",
+      "lengthM": 3.5,
+      "widthM": 2.5,
+      "heightM": 1.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/6f/Pulse_LX_flying_through_city_cropped.png/1280px-Pulse_LX_flying_through_city_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/6f/Pulse_LX_flying_through_city_cropped.png/320px-Pulse_LX_flying_through_city_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "argo-raft": {
+      "msrpUSD": 190,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/raft/RAFT",
+      "lengthM": 39.5,
+      "widthM": 23,
+      "heightM": 12,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/b/bb/RAFT_-_Flying_over_Lorville_-_cropped_and_adjusted.jpg/1280px-RAFT_-_Flying_over_Lorville_-_cropped_and_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/b/bb/RAFT_-_Flying_over_Lorville_-_cropped_and_adjusted.jpg/320px-RAFT_-_Flying_over_Lorville_-_cropped_and_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 3,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Frachter"
+      ]
+    },
+    "gama-railen": {
+      "msrpUSD": 400,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/railen/Railen",
+      "lengthM": 67,
+      "widthM": 53,
+      "heightM": 52,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/45/Railen_flying_through_debris_field_%26_adjusted_H.jpg/1280px-Railen_flying_through_debris_field_%26_adjusted_H.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/45/Railen_flying_through_debris_field_%26_adjusted_H.jpg/320px-Railen_flying_through_debris_field_%26_adjusted_H.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 6,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Frachter"
+      ]
+    },
+    "misc-razor": {
+      "msrpUSD": 145,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/razor/Razor",
+      "lengthM": 12.5,
+      "widthM": 9,
+      "heightM": 3,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/64/Mirai_Razor_landed_in_hangar_-_cropped.png/1280px-Mirai_Razor_landed_in_hangar_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/64/Mirai_Razor_landed_in_hangar_-_cropped.png/320px-Mirai_Razor_landed_in_hangar_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "misc-razor-ex": {
+      "msrpUSD": 155,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/razor/Razor-EX",
+      "lengthM": 12.5,
+      "widthM": 9,
+      "heightM": 3,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/04/Razor_EX_-_Flying_low_over_grassland.jpg/1280px-Razor_EX_-_Flying_low_over_grassland.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/04/Razor_EX_-_Flying_low_over_grassland.jpg/320px-Razor_EX_-_Flying_low_over_grassland.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Tarnung"
+      ]
+    },
+    "misc-razor-lx": {
+      "msrpUSD": 150,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/razor/Razor-LX",
+      "lengthM": 12.5,
+      "widthM": 9,
+      "heightM": 3,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/1/19/Razor_LX_moving_fast_against_blurred_Microtech_background.png/1280px-Razor_LX_moving_fast_against_blurred_Microtech_background.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/1/19/Razor_LX_moving_fast_against_blurred_Microtech_background.png/320px-Razor_LX_moving_fast_against_blurred_Microtech_background.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Komfort"
+      ]
+    },
+    "aegs-reclaimer": {
+      "msrpUSD": 400,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/reclaimer/Reclaimer",
+      "lengthM": 160,
+      "widthM": 120,
+      "heightM": 55,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/cb/Reclaimer_-_Near_world_looking_at_wreckage_-_cropped.jpg/1280px-Reclaimer_-_Near_world_looking_at_wreckage_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/cb/Reclaimer_-_Near_world_looking_at_wreckage_-_cropped.jpg/320px-Reclaimer_-_Near_world_looking_at_wreckage_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 12,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Großbergung"
+      ]
+    },
+    "aegs-reclaimer-showdown": {
+      "msrpUSD": 400,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/reclaimer/Reclaimer-Best-In-Show-Edition-2949",
+      "lengthM": 160,
+      "widthM": 120,
+      "heightM": 55,
+      "image": {
+        "hero": "https://cstone.space/uifimages/94d31d2e-5fa8-460c-9fa4-2942b6f0ce33.png",
+        "thumb": "https://cstone.space/uifimages/94d31d2e-5fa8-460c-9fa4-2942b6f0ce33.png",
+        "source": "cstone.space"
+      },
+      "crewMax": 12,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Großbergung"
+      ]
+    },
+    "aegs-redeemer": {
+      "msrpUSD": 330,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/redeemer/Redeemer",
+      "lengthM": 51,
+      "widthM": 25,
+      "heightM": 14,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/5/5c/Redeemer_-_Flying_x2_though_canyon_attacking_Cutlass%27s_-_cropped_and_adjusted.jpg/1280px-Redeemer_-_Flying_x2_though_canyon_attacking_Cutlass%27s_-_cropped_and_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/5/5c/Redeemer_-_Flying_x2_though_canyon_attacking_Cutlass%27s_-_cropped_and_adjusted.jpg/320px-Redeemer_-_Flying_x2_though_canyon_attacking_Cutlass%27s_-_cropped_and_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 13,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Kanonenboot"
+      ]
+    },
+    "aegs-retaliator": {
+      "msrpUSD": 275,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aegis-retaliator/Retaliator-Bomber",
+      "lengthM": 70.5,
+      "widthM": 44,
+      "heightM": 13.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/4a/Retaliator_x2_flying_over_cloud_firing_torpedoes_-_cropped_and_adjusted.png/1280px-Retaliator_x2_flying_over_cloud_firing_torpedoes_-_cropped_and_adjusted.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/4a/Retaliator_x2_flying_over_cloud_firing_torpedoes_-_cropped_and_adjusted.png/320px-Retaliator_x2_flying_over_cloud_firing_torpedoes_-_cropped_and_adjusted.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 12,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Bomber"
+      ]
+    },
+    "grin-roc": {
+      "msrpUSD": 55,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/roc/ROC",
+      "lengthM": 6,
+      "widthM": 3.9,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/63/Grin_ROC_Gallery_Surface_CaveMining.jpg/1280px-Grin_ROC_Gallery_Surface_CaveMining.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/63/Grin_ROC_Gallery_Surface_CaveMining.jpg/320px-Grin_ROC_Gallery_Surface_CaveMining.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Bergbau"
+      ]
+    },
+    "grin-roc-ds": {
+      "msrpUSD": 75,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/roc/ROC-DS",
+      "lengthM": 6.6,
+      "widthM": 5,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/62/GRIN_ROC_DS_TopBanner_-_Crop.png/1280px-GRIN_ROC_DS_TopBanner_-_Crop.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/62/GRIN_ROC_DS_TopBanner_-_Crop.png/320px-GRIN_ROC_DS_TopBanner_-_Crop.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Bergbau"
+      ]
+    },
+    "aegs-sabre": {
+      "msrpUSD": 175,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/sabre/Sabre",
+      "lengthM": 24.5,
+      "widthM": 24.5,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/c7/Sabre_-_Flying_with_all_guns_firing.jpg/1280px-Sabre_-_Flying_with_all_guns_firing.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/c7/Sabre_-_Flying_with_all_guns_firing.jpg/320px-Sabre_-_Flying_with_all_guns_firing.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Tarnkappenjäger"
+      ]
+    },
+    "aegs-sabre-comet": {
+      "msrpUSD": 185,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/sabre/Sabre-Comet",
+      "lengthM": 24.5,
+      "widthM": 24.5,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/f/fd/Sabre_Comet_-_Flying_away_from_world_through_debris_field.jpg/1280px-Sabre_Comet_-_Flying_away_from_world_through_debris_field.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/f/fd/Sabre_Comet_-_Flying_away_from_world_through_debris_field.jpg/320px-Sabre_Comet_-_Flying_away_from_world_through_debris_field.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "aegs-sabre-firebird": {
+      "msrpUSD": 185,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/sabre/Sabre-Firebird",
+      "lengthM": 24.5,
+      "widthM": 24.5,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/6/61/Sabre_Firebird_flying_through_clouds_with_sun_behind_-_Cropped.jpg/1280px-Sabre_Firebird_flying_through_clouds_with_sun_behind_-_Cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/6/61/Sabre_Firebird_flying_through_clouds_with_sun_behind_-_Cropped.jpg/320px-Sabre_Firebird_flying_through_clouds_with_sun_behind_-_Cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "aegs-sabre-peregrine": {
+      "msrpUSD": 185,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/sabre/Sabre-Peregrine",
+      "lengthM": 24.5,
+      "widthM": 24.5,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/96/Sabre_Peregrine_in_space_-_Isometric.jpg/1280px-Sabre_Peregrine_in_space_-_Isometric.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/96/Sabre_Peregrine_in_space_-_Isometric.jpg/320px-Sabre_Peregrine_in_space_-_Isometric.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "aegs-sabre-raven": {
+      "lengthM": 24.5,
+      "widthM": 24.5,
+      "heightM": 5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/f/f3/Sabre_Raven_in_space_3.9.1.png/1280px-Sabre_Raven_in_space_3.9.1.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/f/f3/Sabre_Raven_in_space_3.9.1.png/320px-Sabre_Raven_in_space_3.9.1.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Abriegelung"
+      ]
+    },
+    "rsi-salvation": {
+      "msrpUSD": 60,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/salvation/Salvation",
+      "lengthM": 14.5,
+      "widthM": 8.5,
+      "heightM": 4,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/2/21/Salvation_flying_away_from_world_-_cropped.jpg/1280px-Salvation_flying_away_from_world_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/2/21/Salvation_flying_away_from_world_-_cropped.jpg/320px-Salvation_flying_away_from_world_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einfache Bergung"
+      ]
+    },
+    "xnaa-santokyai": {
+      "msrpUSD": 240,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aopoa-santokyai/Santoky-i",
+      "lengthM": 24,
+      "widthM": 23,
+      "heightM": 23,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/cb/San%27Tok.Yai_in_battle_over_world_firing_weapons_-_Cut.jpg/1280px-San%27Tok.Yai_in_battle_over_world_firing_weapons_-_Cut.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/cb/San%27Tok.Yai_in_battle_over_world_firing_weapons_-_Cut.jpg/320px-San%27Tok.Yai_in_battle_over_world_firing_weapons_-_Cut.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "rsi-scorpius": {
+      "msrpUSD": 240,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/scorpius/Scorpius",
+      "lengthM": 32,
+      "widthM": 24,
+      "heightM": 13,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/3/30/RSI_Scorpius_on_ArcCorp.png/1280px-RSI_Scorpius_on_ArcCorp.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/3/30/RSI_Scorpius_on_ArcCorp.png/320px-RSI_Scorpius_on_ArcCorp.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "rsi-scorpius-antares": {
+      "msrpUSD": 230,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/scorpius/Scorpius-Antares",
+      "lengthM": 32,
+      "widthM": 24,
+      "heightM": 13,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/5/57/Scorpius_Antares_Concept_Roadmap.png/1280px-Scorpius_Antares_Concept_Roadmap.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/5/57/Scorpius_Antares_Concept_Roadmap.png/320px-Scorpius_Antares_Concept_Roadmap.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "glsn-shiv": {
+      "msrpUSD": 150,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/shiv/Shiv",
+      "lengthM": 37.5,
+      "widthM": 26.5,
+      "heightM": 11.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/8/83/Shiv_flying_through_debris_field_firing_weapons_-_cropped_and_adjusted.jpg/1280px-Shiv_flying_through_debris_field_firing_weapons_-_cropped_and_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/8/83/Shiv_flying_through_debris_field_firing_weapons_-_cropped_and_adjusted.jpg/320px-Shiv_flying_through_debris_field_firing_weapons_-_cropped_and_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "anvl-spartan": {
+      "msrpUSD": 80,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/spartan/Spartan",
+      "lengthM": 17,
+      "widthM": 7,
+      "heightM": 5.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/f/ff/Spartan_Concept_Attack_-_cropped_and_adjusted.png/1280px-Spartan_Concept_Attack_-_cropped_and_adjusted.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/f/ff/Spartan_Concept_Attack_-_cropped_and_adjusted.png/320px-Spartan_Concept_Attack_-_cropped_and_adjusted.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Transport"
+      ]
+    },
+    "argo-srv": {
+      "msrpUSD": 165,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/argo-srv/SRV",
+      "lengthM": 31.5,
+      "widthM": 21.5,
+      "heightM": 9.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/5/5a/SRV_towing_cargo_container_into_hangar_-_Cut.png/1280px-SRV_towing_cargo_container_into_hangar_-_Cut.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/5/5a/SRV_towing_cargo_container_into_hangar_-_Cut.png/320px-SRV_towing_cargo_container_into_hangar_-_Cut.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Bergung"
+      ]
+    },
+    "vncl-stinger": {
+      "msrpUSD": 315,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/stinger/Stinger",
+      "lengthM": 36,
+      "widthM": 32,
+      "heightM": 11,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/9a/Stinger_-_Squadron_42_CitizenCon_2954_Live_Gameplay_Reveal.jpg/1280px-Stinger_-_Squadron_42_CitizenCon_2954_Live_Gameplay_Reveal.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/9a/Stinger_-_Squadron_42_CitizenCon_2954_Live_Gameplay_Reveal.jpg/320px-Stinger_-_Squadron_42_CitizenCon_2954_Live_Gameplay_Reveal.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "tmbl-storm": {
+      "msrpUSD": 90,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/storm/Storm",
+      "lengthM": 10.25,
+      "widthM": 7.65,
+      "heightM": 4,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/42/Storm_on_Calliope_-_Isometric_-_Cutout_SCT_Stripe_BG.jpg/1280px-Storm_on_Calliope_-_Isometric_-_Cutout_SCT_Stripe_BG.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/42/Storm_on_Calliope_-_Isometric_-_Cutout_SCT_Stripe_BG.jpg/320px-Storm_on_Calliope_-_Isometric_-_Cutout_SCT_Stripe_BG.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Kampfunterstützung"
+      ]
+    },
+    "tmbl-storm-aa": {
+      "msrpUSD": 100,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/storm/Storm-AA",
+      "lengthM": 10.25,
+      "widthM": 7.65,
+      "heightM": 4,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/01/Storm_AA_in_forest_firing_weapons_-_Cut_-_Contrast_change.jpg/1280px-Storm_AA_in_forest_firing_weapons_-_Cut_-_Contrast_change.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/01/Storm_AA_in_forest_firing_weapons_-_Cut_-_Contrast_change.jpg/320px-Storm_AA_in_forest_firing_weapons_-_Cut_-_Contrast_change.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Kampfunterstützung"
+      ]
+    },
+    "grin-stv": {
+      "msrpUSD": 40,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/stv/STV",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/0b/Greycat_stv_ship_wall_-_cropped_and_adjusted.jpg/1280px-Greycat_stv_ship_wall_-_cropped_and_adjusted.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/0b/Greycat_stv_ship_wall_-_cropped_and_adjusted.jpg/320px-Greycat_stv_ship_wall_-_cropped_and_adjusted.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Transport"
+      ]
+    },
+    "gama-syulen": {
+      "msrpUSD": 70,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/syulen/Syulen",
+      "lengthM": 28,
+      "widthM": 25,
+      "heightM": 16,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/01/Syulen_leaving_microTech.png/1280px-Syulen_leaving_microTech.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/01/Syulen_leaving_microTech.png/320px-Syulen_leaving_microTech.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einsteiger"
+      ]
+    },
+    "espr-talon": {
+      "msrpUSD": 115,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/talon/Talon",
+      "lengthM": 24,
+      "widthM": 15,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/f/f5/Talon_-_Diving_blurred_background.jpg",
+        "thumb": "https://media.starcitizen.tools/thumb/f/f5/Talon_-_Diving_blurred_background.jpg/320px-Talon_-_Diving_blurred_background.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "espr-talon-shrike": {
+      "msrpUSD": 115,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/talon/Talon-Shrike",
+      "lengthM": 24,
+      "widthM": 15,
+      "heightM": 8,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/74/Talon_Diving_Concept.jpg/1280px-Talon_Diving_Concept.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/74/Talon_Diving_Concept.jpg/320px-Talon_Diving_Concept.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Leichter Jäger"
+      ]
+    },
+    "anvl-terrapin": {
+      "msrpUSD": 220,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/terrapin/Terrapin",
+      "lengthM": 20,
+      "widthM": 16.5,
+      "heightM": 7.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/ed/Terrapin_-_x2_in_formation_over_worlds_-_cropped.jpg/1280px-Terrapin_-_x2_in_formation_over_worlds_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/ed/Terrapin_-_x2_in_formation_over_worlds_-_cropped.jpg/320px-Terrapin_-_x2_in_formation_over_worlds_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Pfadfinder"
+      ]
+    },
+    "anvl-terrapin-medic": {
+      "msrpUSD": 220,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/terrapin/Terrapin-Medic",
+      "lengthM": 20,
+      "widthM": 16.5,
+      "heightM": 7.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/4/48/SC-3.24_20241206_133812_Terrapin-Medic-over-Hurston.png/1280px-SC-3.24_20241206_133812_Terrapin-Medic-over-Hurston.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/4/48/SC-3.24_20241206_133812_Terrapin-Medic-over-Hurston.png/320px-SC-3.24_20241206_133812_Terrapin-Medic-over-Hurston.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Medizin"
+      ]
+    },
+    "aegs-tiburon": {
+      "msrpUSD": 775,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/tiburon/Tiburon",
+      "lengthM": 121,
+      "widthM": 68,
+      "heightM": 20,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/d1/Tiburon_flying_over_world_firing_weapons_-_cropped.jpg/1280px-Tiburon_flying_over_world_firing_weapons_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/d1/Tiburon_flying_over_world_firing_weapons_-_cropped.jpg/320px-Tiburon_flying_over_world_firing_weapons_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 7,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schweres Kanonenboot"
+      ]
+    },
+    "gama-tyilui": {
+      "msrpUSD": 425,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/tyilui/Tyilui",
+      "lengthM": 67.25,
+      "widthM": 58.75,
+      "heightM": 52,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/d7/Tyilui.webp/1280px-Tyilui.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/d7/Tyilui.webp/320px-Tyilui.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 6,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Snub Carrier"
+      ]
+    },
+    "rsi-ursa-rover": {
+      "msrpUSD": 50,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/ursa/Ursa",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/1/15/Ursa_3.1.4_01.png/1280px-Ursa_3.1.4_01.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/1/15/Ursa_3.1.4_01.png/320px-Ursa_3.1.4_01.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Erkundung"
+      ]
+    },
+    "rsi-ursa-rover-emerald": {
+      "msrpUSD": 55,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/ursa/Ursa-Fortuna",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/e/e6/Ursa_Fortuna_on_barren_world_-_Leftside_-_cropped.jpg/1280px-Ursa_Fortuna_on_barren_world_-_Leftside_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/e/e6/Ursa_Fortuna_on_barren_world_-_Leftside_-_cropped.jpg/320px-Ursa_Fortuna_on_barren_world_-_Leftside_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Erkundung"
+      ]
+    },
+    "rsi-ursa-medivac": {
+      "msrpUSD": 60,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/ursa/Ursa-Medivac",
+      "lengthM": 8.75,
+      "widthM": 6,
+      "heightM": 3.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/06/Ursa_Medivac_driving_by_Cutlass_crash_site_-_Cropped.jpg/1280px-Ursa_Medivac_driving_by_Cutlass_crash_site_-_Cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/06/Ursa_Medivac_driving_by_Cutlass_crash_site_-_Cropped.jpg/320px-Ursa_Medivac_driving_by_Cutlass_crash_site_-_Cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Ambulance"
+      ]
+    },
+    "grin-utv": {
+      "msrpUSD": 40,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/utv/UTV",
+      "lengthM": 4,
+      "widthM": 2.6,
+      "heightM": 2.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/2/20/UTV_on_sand_-_Cropped.webp/1280px-UTV_on_sand_-_Cropped.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/2/20/UTV_on_sand_-_Cropped.webp/320px-UTV_on_sand_-_Cropped.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Transporter"
+      ]
+    },
+    "anvl-valkyrie": {
+      "msrpUSD": 375,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-valkyrie/Valkyrie",
+      "lengthM": 48,
+      "widthM": 38,
+      "heightM": 12,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/0/07/Valkyrie_flying_through_debris_shooting_back_at_ships_-_cut.jpg/1280px-Valkyrie_flying_through_debris_shooting_back_at_ships_-_cut.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/0/07/Valkyrie_flying_through_debris_shooting_back_at_ships_-_cut.jpg/320px-Valkyrie_flying_through_debris_shooting_back_at_ships_-_cut.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Landungsschiff"
+      ]
+    },
+    "vncl-scythe": {
+      "msrpUSD": 300,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/scythe/Scythe",
+      "lengthM": 33,
+      "widthM": 24,
+      "heightM": 9,
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Jäger"
+      ]
+    },
+    "aegs-vanguard-harbinger": {
+      "msrpUSD": 290,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/vanguard/Vanguard-Harbinger",
+      "lengthM": 48,
+      "widthM": 40,
+      "heightM": 9.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/7/73/Harbinger_-_Main_gun_firing_close_-_Front.jpg/1280px-Harbinger_-_Main_gun_firing_close_-_Front.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/7/73/Harbinger_-_Main_gun_firing_close_-_Front.jpg/320px-Harbinger_-_Main_gun_firing_close_-_Front.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 4,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Bomber"
+      ]
+    },
+    "aegs-vanguard-hoplite": {
+      "msrpUSD": 240,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/vanguard/Vanguard-Hoplite",
+      "lengthM": 48,
+      "widthM": 40,
+      "heightM": 9.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/f/f4/HopLite_-_Flying_over_ArcCorp_-_Crop.jpg/1280px-HopLite_-_Flying_over_ArcCorp_-_Crop.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/f/f4/HopLite_-_Flying_over_ArcCorp_-_Crop.jpg/320px-HopLite_-_Flying_over_ArcCorp_-_Crop.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 2,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Landungsschiff"
+      ]
+    },
+    "aegs-vanguard-sentinel": {
+      "msrpUSD": 275,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/vanguard/Vanguard-Sentinel",
+      "lengthM": 48,
+      "widthM": 40,
+      "heightM": 9.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/c/cd/Sentinel_-_Flying_through_debris_field_firing_guns.jpg/1280px-Sentinel_-_Flying_through_debris_field_firing_guns.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/c/cd/Sentinel_-_Flying_through_debris_field_firing_guns.jpg/320px-Sentinel_-_Flying_through_debris_field_firing_guns.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Abriegelung"
+      ]
+    },
+    "aegs-vanguard": {
+      "msrpUSD": 260,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/vanguard/Vanguard-Warden",
+      "lengthM": 48,
+      "widthM": 40,
+      "heightM": 9.5,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/5/52/Vanguard_Warden_mk2_in_space_-_Isometric.jpg/1280px-Vanguard_Warden_mk2_in_space_-_Isometric.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/5/52/Vanguard_Warden_mk2_in_space_-_Isometric.jpg/320px-Vanguard_Warden_mk2_in_space_-_Isometric.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 5,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Schwerer Jäger"
+      ]
+    },
+    "drak-vulture": {
+      "msrpUSD": 175,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-vulture/Vulture",
+      "lengthM": 34,
+      "widthM": 16,
+      "heightM": 9,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/b/b8/Vulture_flying_through_debris_field.jpg/1280px-Vulture_flying_through_debris_field.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/b/b8/Vulture_flying_through_debris_field.jpg/320px-Vulture_flying_through_debris_field.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Einfache Bergung"
+      ]
+    },
+    "orig-x1": {
+      "msrpUSD": 45,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/x1/X1",
+      "lengthM": 5.19,
+      "widthM": 1.87,
+      "heightM": 1.55,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/9f/X1_firing_weapon_moving_fast_against_blurred_BG_-_Cut.png/1280px-X1_firing_weapon_moving_fast_against_blurred_BG_-_Cut.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/9f/X1_firing_weapon_moving_fast_against_blurred_BG_-_Cut.png/320px-X1_firing_weapon_moving_fast_against_blurred_BG_-_Cut.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Reisen"
+      ]
+    },
+    "orig-x1-force": {
+      "msrpUSD": 55,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/x1/X1-Force",
+      "lengthM": 5.19,
+      "widthM": 1.87,
+      "heightM": 1.55,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/f/fa/X1_Force_firing_weapon_moving_fast_against_blurred_BG_-_Cut.png/1280px-X1_Force_firing_weapon_moving_fast_against_blurred_BG_-_Cut.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/f/fa/X1_Force_firing_weapon_moving_fast_against_blurred_BG_-_Cut.png/320px-X1_Force_firing_weapon_moving_fast_against_blurred_BG_-_Cut.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Gefecht"
+      ]
+    },
+    "orig-x1-velocity": {
+      "msrpUSD": 50,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/x1/X1-Velocity",
+      "lengthM": 5.19,
+      "widthM": 1.87,
+      "heightM": 1.55,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/d7/X1_Velocity_profile_streak.png/1280px-X1_Velocity_profile_streak.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/d7/X1_Velocity_profile_streak.png/320px-X1_Velocity_profile_streak.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Rennsport"
+      ]
+    },
+    "rsi-zeus-cl": {
+      "msrpUSD": 175,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/zeus-mk-ii/Zeus-Mk-II-CL",
+      "lengthM": 46,
+      "widthM": 35,
+      "heightM": 9,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/d/d6/Zeus_mkII_CL_landed_loading_cargo_-_cropped.png/1280px-Zeus_mkII_CL_landed_loading_cargo_-_cropped.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/d/d6/Zeus_mkII_CL_landed_loading_cargo_-_cropped.png/320px-Zeus_mkII_CL_landed_loading_cargo_-_cropped.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 9,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Mittlerer Frachter"
+      ]
+    },
+    "rsi-zeus-es": {
+      "msrpUSD": 175,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/zeus-mk-ii/Zeus-Mk-II-ES",
+      "lengthM": 46,
+      "widthM": 35,
+      "heightM": 9,
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/9e/SC-3.24_20241025_204114_Zeus-ES-Good-Doctor_f.png/1280px-SC-3.24_20241025_204114_Zeus-ES-Good-Doctor_f.png.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/9e/SC-3.24_20241025_204114_Zeus-ES-Good-Doctor_f.png/320px-SC-3.24_20241025_204114_Zeus-ES-Good-Doctor_f.png.webp",
+        "source": "starcitizen.tools"
+      },
+      "crewMax": 9,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Forschungsreisen"
+      ]
+    }
+  },
+  "overrideSearch": "DataCore-Suche (scratch/probe-atls.mjs, scratch/probe-atls2.mjs, Changelist 12326004): ARGO ATLS ist im DataCore ein \"Power Suit\" (Character.Character_ARGO_ATLS[...] unter character/powersuits/, Grad01/Grad03 unter actor/actors/) — keine /spaceships/- oder /groundvehicles/-Entity mit VehicleComponentParams. Filtererweiterung wäre eine andere Extraktionsart, keine Filterkorrektur — belegbar nicht mit buildVehicle() extrahierbar.",
+  "overrideCount": 4,
+  "overrides": {
+    "argo-atls": {
+      "id": "argo-atls",
+      "name": "ATLS",
+      "manufacturer": "Argo Astronautics",
+      "makerCode": "ARGO",
+      "typeDe": "Gelände",
+      "typeEn": "ground",
+      "sizeDe": "Fahrzeug",
+      "statusDe": "Flugbereit",
+      "statusEn": "flight-ready",
+      "fociDe": [
+        "Industrie"
+      ],
+      "descriptionDe": "Single-handedly load and unload the biggest haulers with the power of Argo. The ATLS power suit’s unique exo-frame helps you work quickly, easily, and safely – whatever the task.",
+      "crewMin": 1,
+      "crewMax": 1,
+      "cargoSCU": 0,
+      "oreSCU": null,
+      "msrpUSD": 40,
+      "lengthM": 3.2,
+      "widthM": 1.6,
+      "heightM": 1.6,
+      "scmSpeed": null,
+      "maxSpeed": null,
+      "boostForward": null,
+      "pitch": null,
+      "yaw": null,
+      "roll": null,
+      "pilotDps": null,
+      "turretDps": null,
+      "fixedWeapons": [],
+      "turrets": [],
+      "missileCount": null,
+      "missileRacks": [],
+      "cmLaunchers": 0,
+      "components": {
+        "powerPlants": [],
+        "shields": [],
+        "coolers": [],
+        "quantumDrives": [],
+        "radars": []
+      },
+      "hullHp": 0,
+      "shieldHp": null,
+      "qtSpeedMs": null,
+      "qtRangeM": null,
+      "qtSpoolS": null,
+      "qtFuel": 0,
+      "h2Fuel": 0,
+      "insClaimMin": 2.5,
+      "insExpediteMin": 0.63,
+      "insExpediteCost": 850,
+      "isSpaceship": false,
+      "isGravlev": false,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
+      "patches": [
+        "4.2.0"
+      ],
+      "gameVersion": "4.9.0-LIVE.12232306",
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/2/2f/ATLS_in_cargo_elevator_-_cropped.jpg/1280px-ATLS_in_cargo_elevator_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/2/2f/ATLS_in_cargo_elevator_-_cropped.jpg/320px-ATLS_in_cargo_elevator_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "fixedWeaponMounts": [],
+      "fixedWeaponSizes": [],
+      "herkunft": "uebernommen aus Wiki-Snapshot 2026-07-18 (kein DataCore-Record in /spaceships/ oder /groundvehicles/ — DataCore-Suche (scratch/probe-atls.mjs, scratch/probe-atls2.mjs, Changelist 12326004): ARGO ATLS ist im DataCore ein \"Power Suit\" (Character.Character_ARGO_ATLS[...] unter character/powersuits/, Grad01/Grad03 unter actor/actors/) — keine /spaceships/- oder /groundvehicles/-Entity mit VehicleComponentParams. Filtererweiterung wäre eine andere Extraktionsart, keine Filterkorrektur — belegbar nicht mit buildVehicle() extrahierbar.)",
+      "overriddenAt": "2026-08-03"
+    },
+    "argo-atls-geo": {
+      "id": "argo-atls-geo",
+      "name": "ATLS GEO",
+      "manufacturer": "Argo Astronautics",
+      "makerCode": "ARGO",
+      "typeDe": "Gelände",
+      "typeEn": "ground",
+      "sizeDe": "Fahrzeug",
+      "statusDe": "Flugbereit",
+      "statusEn": "flight-ready",
+      "fociDe": [
+        "Industrie"
+      ],
+      "descriptionDe": "Built on the proven ATLS power suit chassis, the GEO is outfitted with bespoke mining components and a Jump Pack to open up the most inaccessible (and prosperous) corners of the galaxy.",
+      "crewMin": 1,
+      "crewMax": 1,
+      "cargoSCU": 0,
+      "oreSCU": null,
+      "msrpUSD": 45,
+      "lengthM": 3.2,
+      "widthM": 1.6,
+      "heightM": 1.6,
+      "scmSpeed": null,
+      "maxSpeed": null,
+      "boostForward": null,
+      "pitch": null,
+      "yaw": null,
+      "roll": null,
+      "pilotDps": null,
+      "turretDps": null,
+      "fixedWeapons": [],
+      "turrets": [],
+      "missileCount": null,
+      "missileRacks": [],
+      "cmLaunchers": 0,
+      "components": {
+        "powerPlants": [],
+        "shields": [],
+        "coolers": [],
+        "quantumDrives": [],
+        "radars": [
+          {
+            "name": "Surveyor-Go",
+            "size": 0,
+            "count": 1
+          }
+        ]
+      },
+      "hullHp": 0,
+      "shieldHp": null,
+      "qtSpeedMs": null,
+      "qtRangeM": null,
+      "qtSpoolS": null,
+      "qtFuel": 0,
+      "h2Fuel": 0,
+      "insClaimMin": 3,
+      "insExpediteMin": 1,
+      "insExpediteCost": 1020,
+      "isSpaceship": false,
+      "isGravlev": false,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS-GEO",
+      "patches": [],
+      "gameVersion": "4.9.0-LIVE.12232306",
+      "image": {
+        "hero": "https://media.starcitizen.tools/thumb/9/95/ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg/1280px-ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg.webp",
+        "thumb": "https://media.starcitizen.tools/thumb/9/95/ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg/320px-ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg.webp",
+        "source": "starcitizen.tools"
+      },
+      "fixedWeaponMounts": [],
+      "fixedWeaponSizes": [],
+      "herkunft": "uebernommen aus Wiki-Snapshot 2026-07-18 (kein DataCore-Record in /spaceships/ oder /groundvehicles/ — DataCore-Suche (scratch/probe-atls.mjs, scratch/probe-atls2.mjs, Changelist 12326004): ARGO ATLS ist im DataCore ein \"Power Suit\" (Character.Character_ARGO_ATLS[...] unter character/powersuits/, Grad01/Grad03 unter actor/actors/) — keine /spaceships/- oder /groundvehicles/-Entity mit VehicleComponentParams. Filtererweiterung wäre eine andere Extraktionsart, keine Filterkorrektur — belegbar nicht mit buildVehicle() extrahierbar.)",
+      "overriddenAt": "2026-08-03"
+    },
+    "argo-atls-geo-collector-grad01": {
+      "id": "argo-atls-geo-collector-grad01",
+      "name": "ATLS Snowland Color",
+      "manufacturer": "Argo Astronautics",
+      "makerCode": "ARGO",
+      "typeDe": "Gelände",
+      "typeEn": "ground",
+      "sizeDe": "Fahrzeug",
+      "statusDe": "Flugbereit",
+      "statusEn": "flight-ready",
+      "fociDe": [
+        "Industrie"
+      ],
+      "descriptionDe": "Single-handedly load and unload the biggest haulers with the power of Argo. The ATLS power suit’s unique exo-frame helps you work quickly, easily, and safely – whatever the task.",
+      "crewMin": 1,
+      "crewMax": 1,
+      "cargoSCU": 0,
+      "oreSCU": null,
+      "msrpUSD": 40,
+      "lengthM": 3.2,
+      "widthM": 1.6,
+      "heightM": 1.6,
+      "scmSpeed": null,
+      "maxSpeed": null,
+      "boostForward": null,
+      "pitch": null,
+      "yaw": null,
+      "roll": null,
+      "pilotDps": null,
+      "turretDps": null,
+      "fixedWeapons": [],
+      "turrets": [],
+      "missileCount": null,
+      "missileRacks": [],
+      "cmLaunchers": 0,
+      "components": {
+        "powerPlants": [],
+        "shields": [],
+        "coolers": [],
+        "quantumDrives": [],
+        "radars": [
+          {
+            "name": "Surveyor-Go",
+            "size": 0,
+            "count": 1
+          }
+        ]
+      },
+      "hullHp": 0,
+      "shieldHp": null,
+      "qtSpeedMs": null,
+      "qtRangeM": null,
+      "qtSpoolS": null,
+      "qtFuel": 0,
+      "h2Fuel": 0,
+      "insClaimMin": 3,
+      "insExpediteMin": 1,
+      "insExpediteCost": 1020,
+      "isSpaceship": false,
+      "isGravlev": false,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
+      "patches": [],
+      "gameVersion": "4.9.0-LIVE.12232306",
+      "image": null,
+      "fixedWeaponMounts": [],
+      "fixedWeaponSizes": [],
+      "herkunft": "uebernommen aus Wiki-Snapshot 2026-07-18 (kein DataCore-Record in /spaceships/ oder /groundvehicles/ — DataCore-Suche (scratch/probe-atls.mjs, scratch/probe-atls2.mjs, Changelist 12326004): ARGO ATLS ist im DataCore ein \"Power Suit\" (Character.Character_ARGO_ATLS[...] unter character/powersuits/, Grad01/Grad03 unter actor/actors/) — keine /spaceships/- oder /groundvehicles/-Entity mit VehicleComponentParams. Filtererweiterung wäre eine andere Extraktionsart, keine Filterkorrektur — belegbar nicht mit buildVehicle() extrahierbar.)",
+      "overriddenAt": "2026-08-03"
+    },
+    "argo-atls-geo-collector-grad03": {
+      "id": "argo-atls-geo-collector-grad03",
+      "name": "ATLS Cool Metal Color",
+      "manufacturer": "Argo Astronautics",
+      "makerCode": "ARGO",
+      "typeDe": "Gelände",
+      "typeEn": "ground",
+      "sizeDe": "Fahrzeug",
+      "statusDe": "Flugbereit",
+      "statusEn": "flight-ready",
+      "fociDe": [
+        "Industrie"
+      ],
+      "descriptionDe": "Single-handedly load and unload the biggest haulers with the power of Argo. The ATLS power suit’s unique exo-frame helps you work quickly, easily, and safely – whatever the task.",
+      "crewMin": 1,
+      "crewMax": 1,
+      "cargoSCU": 0,
+      "oreSCU": null,
+      "msrpUSD": 40,
+      "lengthM": 3.2,
+      "widthM": 1.6,
+      "heightM": 1.6,
+      "scmSpeed": null,
+      "maxSpeed": null,
+      "boostForward": null,
+      "pitch": null,
+      "yaw": null,
+      "roll": null,
+      "pilotDps": null,
+      "turretDps": null,
+      "fixedWeapons": [],
+      "turrets": [],
+      "missileCount": null,
+      "missileRacks": [],
+      "cmLaunchers": 0,
+      "components": {
+        "powerPlants": [],
+        "shields": [],
+        "coolers": [],
+        "quantumDrives": [],
+        "radars": [
+          {
+            "name": "Surveyor-Go",
+            "size": 0,
+            "count": 1
+          }
+        ]
+      },
+      "hullHp": 0,
+      "shieldHp": null,
+      "qtSpeedMs": null,
+      "qtRangeM": null,
+      "qtSpoolS": null,
+      "qtFuel": 0,
+      "h2Fuel": 0,
+      "insClaimMin": 3,
+      "insExpediteMin": 1,
+      "insExpediteCost": 1020,
+      "isSpaceship": false,
+      "isGravlev": false,
+      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
+      "patches": [],
+      "gameVersion": "4.9.0-LIVE.12232306",
+      "image": null,
+      "fixedWeaponMounts": [],
+      "fixedWeaponSizes": [],
+      "herkunft": "uebernommen aus Wiki-Snapshot 2026-07-18 (kein DataCore-Record in /spaceships/ oder /groundvehicles/ — DataCore-Suche (scratch/probe-atls.mjs, scratch/probe-atls2.mjs, Changelist 12326004): ARGO ATLS ist im DataCore ein \"Power Suit\" (Character.Character_ARGO_ATLS[...] unter character/powersuits/, Grad01/Grad03 unter actor/actors/) — keine /spaceships/- oder /groundvehicles/-Entity mit VehicleComponentParams. Filtererweiterung wäre eine andere Extraktionsart, keine Filterkorrektur — belegbar nicht mit buildVehicle() extrahierbar.)",
+      "overriddenAt": "2026-08-03"
+    }
+  }
+}

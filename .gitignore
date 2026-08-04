@@ -33,6 +33,11 @@ build.log
 /assets/mining-gear-gamefiles.json
 /assets/items-gamefiles.json
 
+# Fahrzeug-Katalog-Zwischenstufe (scripts/datamine-vehicles.mjs): Vergleichsgrundlage
+# fuer verify-vehicles.mjs, kein Liefergegenstand — der ist src/data/vehicles.json
+# selbst, nach dem Tausch (D-03).
+/src/data/vehicles-gamefiles.json
+
 # cloudflared tunnel logs
 .cf-*.log
 .cf-tunnel.log

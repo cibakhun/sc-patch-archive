@@ -114,14 +114,14 @@
 > Client auf `12326004`. Die eigene Extraktion liefert bereits 223 Fahrzeuge
 > inklusive DE- und EN-Beschreibungen aus CIGs eigener `global.ini`.
 
-- [ ] **VEH-01**: Die vier Extraktor-Skripte (`lib/cryxml.mjs`, `datamine-vehicles.mjs`, `verify-vehicles.mjs`, `verify-weapon-sizes.mjs`) liegen versioniert im Repo
-- [ ] **VEH-02**: `src/data/vehicle-external.json` trägt die fünf Felder, die in keiner Spieldatei stehen: `msrpUSD`, `pledgeUrl`, `lengthM`/`widthM`/`heightM`, Bild-URL
-- [ ] **VEH-03**: Name und Hersteller sind normalisiert (`C.O.`-Präfix, `&` gegen `and`, abschließender Zeilenumbruch) — die rein kosmetischen Abweichungen sind weg
+- [x] **VEH-01**: Die vier Extraktor-Skripte (`lib/cryxml.mjs`, `datamine-vehicles.mjs`, `verify-vehicles.mjs`, `verify-weapon-sizes.mjs`) liegen versioniert im Repo
+- [x] **VEH-02**: `src/data/vehicle-external.json` trägt die zehn Felder, die in keiner Spieldatei stehen (D-18, CONTEXT.md — Betreiber wählte bewusst den aufwendigeren Weg: erst suchen, dann nur den belegt quellenlosen Rest einfrieren, statt vorab auf fünf zu begrenzen): `msrpUSD`, `pledgeUrl`, `lengthM`/`widthM`/`heightM`, `image`, `crewMax`, `statusEn`/`statusDe`, `fociDe`
+- [x] **VEH-03**: Name und Hersteller sind normalisiert (`C.O.`-Präfix, `&` gegen `and`, abschließender Zeilenumbruch) — die rein kosmetischen Abweichungen sind weg
 - [ ] **VEH-04**: Für `crew` ist entschieden und belegt, ob die Seite CIGs `crewSize` oder den bisherigen `crewMax` zeigt
 - [ ] **VEH-05**: `cargoSCU` steht für jedes Fahrzeug mit Frachtraum auf einem belegten Wert; kein Frachtschiff steht auf 0
 - [ ] **VEH-06**: Die 32 `shieldHp`-Abweichungen sind einzeln beurteilt — je Fahrzeug ist belegt, welche Quelle recht hat
-- [ ] **VEH-07**: Der Spieldaten-Katalog führt alle 227 Fahrzeuge, inklusive der vier ATLS-Varianten
-- [ ] **VEH-08**: `vehicles.json` entsteht aus der Extraktion; `sync-vehicles.mjs` ist gelöscht und der Wiki-Schritt aus `.github/workflows/build.yml` entfernt
+- [x] **VEH-07**: Der Spieldaten-Katalog führt alle 227 Fahrzeuge, inklusive der vier ATLS-Varianten
+- [x] **VEH-08**: `vehicles.json` entsteht aus der Extraktion; `sync-vehicles.mjs` ist gelöscht und der Wiki-Schritt aus `.github/workflows/build.yml` entfernt
 
 ### Spenden-Unterstützung
 
@@ -265,14 +265,14 @@ ist anbieterneutral und bleibt gültig.
 | DATA-07 | Phase 1.3 | Complete |
 | DATA-08 | Phase 1.3 | Complete |
 | DATA-09 | Phase 1.3 | Complete |
-| VEH-01 | Phase 1.4 | Pending |
-| VEH-02 | Phase 1.4 | Pending |
-| VEH-03 | Phase 1.4 | Pending |
+| VEH-01 | Phase 1.4 | Complete |
+| VEH-02 | Phase 1.4 | Complete |
+| VEH-03 | Phase 1.4 | Complete |
 | VEH-04 | Phase 1.4 | Pending |
 | VEH-05 | Phase 1.4 | Pending |
 | VEH-06 | Phase 1.4 | Pending |
-| VEH-07 | Phase 1.4 | Pending |
-| VEH-08 | Phase 1.4 | Pending |
+| VEH-07 | Phase 1.4 | Complete |
+| VEH-08 | Phase 1.4 | Complete |
 | TYPO-01 | Phase 2 | Pending |
 | TYPO-02 | Phase 2 | Pending |
 | TYPO-03 | Phase 2 | Pending |
