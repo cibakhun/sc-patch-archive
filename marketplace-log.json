@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-04",
-  "updates": 29,
-  "totalListings": 1836,
-  "totalSold": 66,
-  "distinctItems": 702
+  "updates": 30,
+  "totalListings": 1860,
+  "totalSold": 67,
+  "distinctItems": 707
  },
  "listings": {
   "156580": {
@@ -32746,6 +32746,27 @@
    "dateAdded": 1785795398,
    "dateExpiration": 1790979398
   },
+  "158222": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 972,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785795740,
+   "dateExpiration": 1790979740
+  },
   "158223": {
    "idItem": 8013,
    "idCategory": 7,
@@ -37759,9 +37780,9 @@
      "p": 1750000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 1750000,
    "dateAdded": 1785829510,
    "dateExpiration": 1791013510
   },
@@ -38576,6 +38597,10 @@
     {
      "d": "2026-08-04",
      "p": 27000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 23000000
     }
    ],
    "soldOut": false,
@@ -38819,6 +38844,27 @@
    "dateAdded": 1785841353,
    "dateExpiration": 1791025353
   },
+  "158517": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785841786,
+   "dateExpiration": 1791025786
+  },
   "158518": {
    "idItem": 3769,
    "idCategory": 87,
@@ -38839,6 +38885,27 @@
    "soldOutPrice": null,
    "dateAdded": 1785842172,
    "dateExpiration": 1791026172
+  },
+  "158519": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785842285,
+   "dateExpiration": 1791026285
   },
   "158520": {
    "idItem": 5174,
@@ -38861,6 +38928,27 @@
    "dateAdded": 1785842727,
    "dateExpiration": 1791026727
   },
+  "158521": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium 930",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 930,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785842953,
+   "dateExpiration": 1791026953
+  },
   "158522": {
    "idItem": 2224,
    "idCategory": 18,
@@ -38881,6 +38969,426 @@
    "soldOutPrice": null,
    "dateAdded": 1785843066,
    "dateExpiration": 1791027066
+  },
+  "158523": {
+   "idItem": null,
+   "idCategory": 2,
+   "title": "Morozov-CH Backpack \"Gold Horizon\"",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785844115,
+   "dateExpiration": 1791028115
+  },
+  "158524": {
+   "idItem": 5586,
+   "idCategory": 61,
+   "title": "UNE Silver Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 490000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785844193,
+   "dateExpiration": 1791028193
+  },
+  "158525": {
+   "idItem": 5329,
+   "idCategory": 17,
+   "title": "TS-35 Basara (3.5x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785844271,
+   "dateExpiration": 1791028271
+  },
+  "158526": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "917Q Copper 1.0 SCU @8m/scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 917,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785844400,
+   "dateExpiration": 1791028400
+  },
+  "158527": {
+   "idItem": 5332,
+   "idCategory": 17,
+   "title": "Stark Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785844430,
+   "dateExpiration": 1791028430
+  },
+  "158528": {
+   "idItem": 3200,
+   "idCategory": 24,
+   "title": "WTS Xanthule Flight Suit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785844461,
+   "dateExpiration": 1791028461
+  },
+  "158529": {
+   "idItem": 2538,
+   "idCategory": 2,
+   "title": "WTS CSP-68L Backpack Cayman",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785844531,
+   "dateExpiration": 1791028530
+  },
+  "158530": {
+   "idItem": 5679,
+   "idCategory": 5,
+   "title": "WTS Overlord Core Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785844710,
+   "dateExpiration": 1791028710
+  },
+  "158531": {
+   "idItem": 6784,
+   "idCategory": 1,
+   "title": "WTS Overlord Arms Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785844786,
+   "dateExpiration": 1791028786
+  },
+  "158532": {
+   "idItem": 6685,
+   "idCategory": 18,
+   "title": "Parallax \"Fun Military Tooth\" Energy Assault Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785845036,
+   "dateExpiration": 1791029036
+  },
+  "158533": {
+   "idItem": 2230,
+   "idCategory": 17,
+   "title": "Omarof (16x Telescopic) - Gold",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785845334,
+   "dateExpiration": 1791029334
+  },
+  "158534": {
+   "idItem": 4892,
+   "idCategory": 111,
+   "title": "Disque securise ASD",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785845393,
+   "dateExpiration": 1791029393
+  },
+  "158535": {
+   "idItem": 2230,
+   "idCategory": 17,
+   "title": "Omarof (16x Telescopic) - Lime Green",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785845462,
+   "dateExpiration": 1791029462
+  },
+  "158536": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "Taranite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 853,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785845472,
+   "dateExpiration": 1791029472
+  },
+  "158537": {
+   "idItem": 2230,
+   "idCategory": 17,
+   "title": "Omarof (16x Telescopic) - Standard colour",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785845637,
+   "dateExpiration": 1791029637
+  },
+  "158538": {
+   "idItem": 6575,
+   "idCategory": 17,
+   "title": "PT3 \"Deadfall\" (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785845820,
+   "dateExpiration": 1791029820
+  },
+  "158539": {
+   "idItem": 3268,
+   "idCategory": 17,
+   "title": "OT4-RF (4x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785846007,
+   "dateExpiration": 1791030007
+  },
+  "158540": {
+   "idItem": null,
+   "idCategory": 111,
+   "title": "ASD Access Card: Excavation ( Yormandi Quick Accsess )",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785846035,
+   "dateExpiration": 1791030035
+  },
+  "158547": {
+   "idItem": 5321,
+   "idCategory": 17,
+   "title": "FocalWave-20 (2x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785846773,
+   "dateExpiration": 1791030773
+  },
+  "158548": {
+   "idItem": 10,
+   "idCategory": 32,
+   "title": "C-788 Cannon - looking for crafting service",
+   "operation": "trade",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785847275,
+   "dateExpiration": 1791031275
   }
  }
 }
