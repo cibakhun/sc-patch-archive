@@ -29,6 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 4: Sprachparität absichern** - Deckungsgleichheit der Seitenpaare nachweisbar statt behauptet
 - [ ] **Phase 5: Spenden-Unterstützung** - Ein Unterstützen-Weg, der tatsächlich Geld annimmt: PayPal-Link + Ko-fi, eigene Seite in der Richtung „Instandsetzung"
 - [x] **Phase 6: Schiffe: Rollen- und Merkmalsfilter** - Granulare, spielgenaue Filter statt acht Grobtypen
+- [x] **Phase 7: Komponenten-Filter für Schiffe** - Schiffsliste filtert nach Steckplatz-Größe je Bauteilart
 
 ## Phase Details
 
@@ -165,19 +166,19 @@ diesem Lauf auf: der Fahrzeug-Katalog soll nicht gegen einen Stand gebaut werden
   7. `scripts/sync-vehicles.mjs` ist gelöscht und `.github/workflows/build.yml` ruft keinen Wiki-Sync mehr auf
   8. Ein Stichprobenvergleich am Datenblatt (Buccaneer, Carrack, Freelancer MAX, 315p) belegt die Werte gegen das Spiel
 
-**Plans**: 5 plans
+**Plans**: 5/5 plans executed
 
 Plans:
 
-- [ ] 01.4-01-PLAN.md
-- [ ] 01.4-02-PLAN.md
-- [ ] 01.4-03-PLAN.md
-- [ ] 01.4-04-PLAN.md
-- [ ] 01.4-05-PLAN.md
+- [x] 01.4-01-PLAN.md
+- [x] 01.4-02-PLAN.md
+- [x] 01.4-03-PLAN.md
+- [x] 01.4-04-PLAN.md
+- [x] 01.4-05-PLAN.md
 
-- [ ] 01.4-01 (Welle 1): Die Vorarbeit sichern und den Weg Data.p4k → Katalog → Vergleichstabelle in diesem Zweig einmal ganz durchlaufen — vier (in Wahrheit fünf, D-21) Skripte versioniert übernehmen, `verify:weapons` verdrahten und grün fahren, Zwischenstufe gitignoren, frischer Lauf gegen Changelist `12326004`. Danach die Feldmatrix: für jedes Feld, das die Seite aus dem Katalog liest, eine Herkunfts-Marke — und für die quellenlosen je eine Abbruchgrenze für den Suchdurchgang in Plan 02. Plus ein bleibender Deckungs-Wächter gegen stillen Feldverlust
-- [ ] 01.4-02 (Welle 2): Der Suchdurchgang (D-18) — für jedes der 15 quellenlosen Felder erst in den Spieldateien nachsehen, statt es einzufrieren: Schaden und Raketenzahl aus dem Loadout, Quantum- und Behälterwerte aus dem DataCore, Produktionszustand aus der p4k, Rollen aus `vehicleRole`/`vehicleCareer`. Ergebnisoffen, aber je Feld mit Abbruchgrenze; „nicht gefunden" wird aufgeschrieben, nicht geraten. Kein Join über Anzeigenamen
-- [ ] 01.4-03 (Welle 3): Die Fremddaten einfrieren — aber nur den in Plan 02 belegten Rest, plus `crewMax` (D-17) und die Bild-URL. Dazu die vier ATLS-Varianten zurückholen (223 → 227) und die Identitätsfelder in Ordnung bringen, bis `verify:vehicles` bei Name, Hersteller und Herstellercode auf null steht — jede der 15 Marken-Abweichungen (D-22) und der 40 Größenlabel-Abweichungen einzeln begründet
+- [x] 01.4-01 (Welle 1): Die Vorarbeit sichern und den Weg Data.p4k → Katalog → Vergleichstabelle in diesem Zweig einmal ganz durchlaufen — vier (in Wahrheit fünf, D-21) Skripte versioniert übernehmen, `verify:weapons` verdrahten und grün fahren, Zwischenstufe gitignoren, frischer Lauf gegen Changelist `12326004`. Danach die Feldmatrix: für jedes Feld, das die Seite aus dem Katalog liest, eine Herkunfts-Marke — und für die quellenlosen je eine Abbruchgrenze für den Suchdurchgang in Plan 02. Plus ein bleibender Deckungs-Wächter gegen stillen Feldverlust
+- [x] 01.4-02 (Welle 2): Der Suchdurchgang (D-18) — für jedes der 15 quellenlosen Felder erst in den Spieldateien nachsehen, statt es einzufrieren: Schaden und Raketenzahl aus dem Loadout, Quantum- und Behälterwerte aus dem DataCore, Produktionszustand aus der p4k, Rollen aus `vehicleRole`/`vehicleCareer`. Ergebnisoffen, aber je Feld mit Abbruchgrenze; „nicht gefunden" wird aufgeschrieben, nicht geraten. Kein Join über Anzeigenamen
+- [x] 01.4-03 (Welle 3): Die Fremddaten einfrieren — aber nur den in Plan 02 belegten Rest, plus `crewMax` (D-17) und die Bild-URL. Dazu die vier ATLS-Varianten zurückholen (223 → 227) und die Identitätsfelder in Ordnung bringen, bis `verify:vehicles` bei Name, Hersteller und Herstellercode auf null steht — jede der 15 Marken-Abweichungen (D-22) und der 40 Größenlabel-Abweichungen einzeln begründet
 - [ ] 01.4-04 (Welle 4): Die drei Urteile — die Besatzungs-Spanne aus D-17 umsetzen und protokollieren, `cargoSCU` für die 31 fälschlich auf 0 stehenden Fahrzeuge, `shieldHp` gegen die gemessene Zählregel `Schildgeneratoren / 2` statt gegen die Veralterungs-Vermutung (D-20). `hullHp` als vierte Klasse mitbeurteilt
 - [ ] 01.4-05 (Welle 5): Der Tausch — beginnt mit einem Entscheidungs-Checkpoint. `vehicles.json` kommt aus der Extraktion, alle ~25 Leser ziehen nach (DE und EN im selben Schritt), das Patch-Rückgrat zieht in den Generator um (D-19), die Rückübersetzungsdatei fällt. Dann Wiki-Kette abschalten (`sync-vehicles.mjs` und der CI-Schritt) und am gerenderten Datenblatt beweisen: Buccaneer, Carrack, Freelancer MAX, 315p — je in beiden Sprachen
 
@@ -341,12 +342,41 @@ unter `german`; Signaturen tragen 16 Katalog-Schiffe, nicht 22 (RESEARCH zählt 
 DataCore-Records statt über die 223 gejointen); und `dogfightEnabled` trifft 220 von 223 —
 das Merkmal „Bewaffnet" aus D-09 entfällt damit nach D-09s eigener Abbruchbedingung.
 
+### Phase 7: Komponenten-Filter für Schiffe
+
+**Goal**: Wer wissen will, welche Schiffe eine bestimmte Bauteilgröße aufnehmen können, findet sie in der Schiffsliste: ein Auswahlfeld benennt die Bauteilart, ein zweites die Mindestgröße — und die Liste zeigt nur noch die Schiffe, deren Steckplätze das hergeben. Gemessen wird, was reinpasst, nicht was ab Werk drinsteckt.
+**Mode:** mvp
+**Depends on**: Phase 6 — baut auf dem dort eingeführten gemeinsamen Körper `components/ships/ShipsOverview.astro` auf
+**Requirements**: keine REQ-IDs in REQUIREMENTS.md — bindend sind stattdessen die Entscheidungen D-01 bis D-12 aus `.planning/phases/07-komponenten-filter-f-r-schiffe/07-CONTEXT.md`
+**Success Criteria** (what must be TRUE):
+
+  1. Auf `/schiffe.html` und `/de/schiffe.html` steht ein Feld „Bauteil" (Waffe, Turm, Rakete, Schild, Kühler, Kraftwerk, Quantenantrieb, Radar — keine Gegenmaßnahmen) neben einem Feld für die Mindestgröße
+  2. Die Auswahl „Waffe / ab S5" lässt genau die Schiffe stehen, die mindestens einen Waffensteckplatz mit `maxSize >= 5` haben — stichprobenartig gegen die Spieldateien belegt
+  3. Die Größen stammen aus der Fahrzeug-Implementierungs-XML im p4k (`ItemPort` `maxSize`), nicht aus dem Stock-Loadout und nicht aus einer Fremdquelle
+  4. Der Filter greift mit den bestehenden Feldern (Suche, Hersteller, Beruf, Rolle, Größe, Signatur, Merkmal) zusammen und der Ergebniszähler stimmt
+  5. Schiffe ohne Steckplatz-Daten verschwinden nicht stillschweigend, sondern sind als solche erkennbar
+  6. Deutsche und englische Fassung verhalten sich identisch, bis hinunter auf 360 px Breite, in beiden Farbmodi
+
+**Plans**: 3/3 plans executed
+
+Plans:
+
+- [x] 07-01-PLAN.md (Welle 1): Die Kette von der Spieldatei bis zur gefilterten Liste an einer Bauteilart beweisen — CryXmlB-Leser, Datamine-Skript, eingechecktes JSON, zwei Auswahlfelder und Filterlogik — dann auf sieben Bauteilarten verbreitern
+- [x] 07-02-PLAN.md (Welle 2): Turm-Regel einbauen, gegen `vehicles.json` als Drittquelle nachweisen, an 15 Stichprobenschiffen von Hand bestaetigen und erst danach als achte Bauteilart freischalten
+- [x] 07-03-PLAN.md (Welle 3): Zweisprachigkeit, automatischer Verhaltensnachweis, Hausgates und Sichtpruefung
+
+Hinweis zur Zusammenführung am 03.08.2026: Die Phase entstand parallel zu Phase 6 und ging
+ursprünglich von zwei handduplizierten Schiffsseiten aus. Phase 6 hat die beiden inzwischen zu
+EINEM Körper (`components/ships/ShipsOverview.astro`) zusammengelegt — der Filter sitzt deshalb
+dort, nicht zweimal in den Seiten. Das Größenfeld heißt `sf-compsize`, weil Phase 6 `sf-size`
+bereits für die Schiffs-Größenklasse belegt.
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5 → 6 → 7
 (Phase 5 und Phase 6 hängen an keiner Vorgängerphase und werden auf Wunsch vorgezogen.
-Phase 6 lief am 02.08.2026 vorab durch, während 1.1 noch offen war.)
+Phase 6 lief am 02.08.2026 vorab durch, während 1.1 noch offen war. Phase 7 setzt auf Phase 6 auf.)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -358,3 +388,4 @@ Phase 6 lief am 02.08.2026 vorab durch, während 1.1 noch offen war.)
 | 4. Sprachparität absichern | 0/2 | Not started | - |
 | 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |
 | 6. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |
+| 7. Komponenten-Filter für Schiffe | 3/3 | Complete | 2026-08-03 |

@@ -26,7 +26,7 @@ async function get(path) {
   return j.data ?? [];
 }
 
-// same maker-strip + normalize as sync-vehicles so both sides meet in the middle
+// same maker-strip + normalize as the vehicle catalog generator so both sides meet in the middle
 const MAKERS = ['rsi', 'drake', 'aegis', 'anvil', 'mirai', 'gatac', 'argo', 'misc', 'origin', 'crusader', 'esperia', 'kruger', 'banu', 'aopoa', 'vanduul', 'c.o.', 'greycat', 'tumbril', 'consolidated outland'];
 function norm(name) {
   let n = String(name).toLowerCase().replace(/["„“”‚‘’'`´]/g, '').replace(/[._]/g, ' ').replace(/\s+/g, ' ').trim();

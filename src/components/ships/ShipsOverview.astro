@@ -17,6 +17,7 @@ import vehiclesSnapshot from '../../data/vehicles.json';
 import vehicleRoles from '../../data/vehicle-roles.json';
 import { pickThumb } from '../../lib/shipRenders';
 import { priceInfo, pricesFetchedAt } from '../../lib/shipExtras';
+import { compAttr } from '../../lib/shipComponents';
 import { vType, vSize, vStatus, vRoleCig, vCareer, vRoleFamilies, vSignature, vSizeClass, sizeClassLabel, SIG_LABELS, SIG_STEPS, FEAT_LABELS } from '../../i18n/vehicleText';
 import { localeFromPath } from '../../i18n/ui';
 
@@ -354,6 +355,20 @@ a{color:inherit;text-decoration:none}
       <option value="cargo">{de ? FEAT_LABELS.cargo.de : FEAT_LABELS.cargo.en}</option>
       <option value="ground">{de ? FEAT_LABELS.ground.de : FEAT_LABELS.ground.en}</option>
     </select>
+    <select id="sf-comp" aria-label={de ? 'Bauteil' : 'Component'}>
+      <option value="">{de ? 'Alle Bauteile' : 'All components'}</option>
+      <option value="w">{de ? 'Waffe' : 'Weapon'}</option>
+      <option value="t">{de ? 'Turm' : 'Turret'}</option>
+      <option value="m">{de ? 'Rakete' : 'Missile'}</option>
+      <option value="s">{de ? 'Schild' : 'Shield'}</option>
+      <option value="c">{de ? 'Kühler' : 'Cooler'}</option>
+      <option value="p">{de ? 'Kraftwerk' : 'Power plant'}</option>
+      <option value="q">{de ? 'Quantenantrieb' : 'Quantum drive'}</option>
+      <option value="r">Radar</option>
+    </select>
+    <select id="sf-compsize" aria-label={de ? 'Mindestgröße des Bauteils' : 'Minimum component size'} disabled>
+      <option value="">{de ? 'Beliebige Größe' : 'Any size'}</option>
+    </select>
     <select id="sf-sort" aria-label={de ? 'Sortierung' : 'Sort'}>
       <option value="name">Name A–Z</option>
       <option value="pledge">{de ? 'Pledge-Preis ↓' : 'Pledge price ↓'}</option>
@@ -364,7 +379,9 @@ a{color:inherit;text-decoration:none}
     <span class="sdb__count" id="sf-count">{vehicles.length} {de ? 'Treffer' : 'results'}</span>
   </div>
 
-  <div class="sdb__fleet" id="sf-fleet" data-results-label={de ? 'Treffer' : 'results'}>
+  <div class="sdb__fleet" id="sf-fleet" data-results-label={de ? 'Treffer' : 'results'}
+    data-nodata-label={de ? 'ohne Steckplatz-Daten' : 'without slot data'}
+    data-andup-label={de ? 'ab S{n}' : 'S{n} and up'}>
     {cards.map(({ d, id, thumb, buy, career, roleFam, sig, feat, size }) => (
       <article
         class="fcard"
@@ -376,6 +393,7 @@ a{color:inherit;text-decoration:none}
         data-size={size ?? ''}
         data-sig={sig.min}
         data-feat={` ${feat} `}
+        data-comp={compAttr(id)}
         data-href={de ? `/de/schiffe/${id}.html` : `/schiffe/${id}.html`}
         data-pledge={d.msrpUSD ?? -1}
         data-game={buy ?? -1}
@@ -448,9 +466,8 @@ a{color:inherit;text-decoration:none}
   </div>
 
   <p class="sdb__src">
-    {de ? 'Quelle: ' : 'Source: '}<a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
-    {de ? ' (Community-Projekt) · Stand ' : ' (community project) · as of '}{vehiclesSnapshot.fetchedAt}
-    {vehiclesSnapshot.gameVersion && (de ? ` · Spieldaten ${vehiclesSnapshot.gameVersion.split('-')[0]}` : ` · game data ${vehiclesSnapshot.gameVersion.split('-')[0]}`)}
+    {de ? 'Quelle: Spieldaten' : 'Source: game data'}{vehiclesSnapshot.gameVersion && ` ${vehiclesSnapshot.gameVersion.split('-')[0]}`}
+    {de ? ' · Stand ' : ' · as of '}{vehiclesSnapshot.fetchedAt}
     {de ? ' · Ingame-Preise: ' : ' · In-game prices: '}<a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> ({de ? 'Stand ' : 'as of '}{pricesFetchedAt})
     {de ? ' · Bilder: starcitizen.tools' : ' · Images: starcitizen.tools'}
   </p>
@@ -461,6 +478,8 @@ a{color:inherit;text-decoration:none}
 (function () {
   var fleet = document.getElementById('sf-fleet');
   var RESULTS_LABEL = fleet.getAttribute('data-results-label') || 'results';
+  var NODATA_LABEL = fleet.getAttribute('data-nodata-label') || 'without slot data';
+  var ANDUP_LABEL = fleet.getAttribute('data-andup-label') || 'S{n} and up';
   var q = document.getElementById('sf-q');
   var selMaker = document.getElementById('sf-maker');
   var selCareer = document.getElementById('sf-career');
@@ -468,6 +487,8 @@ a{color:inherit;text-decoration:none}
   var selSize = document.getElementById('sf-size');
   var selSig = document.getElementById('sf-sig');
   var selFeat = document.getElementById('sf-feat');
+  var selComp = document.getElementById('sf-comp');
+  var selCompSize = document.getElementById('sf-compsize');
   var selSort = document.getElementById('sf-sort');
   var count = document.getElementById('sf-count');
   var empty = document.getElementById('sf-empty');
@@ -481,11 +502,67 @@ a{color:inherit;text-decoration:none}
     return isNaN(v) ? -1 : v;
   };
 
+  // ---- Bauteil-Steckplaetze (Phase 06) ----------------------------------
+  // data-comp kodiert je Karte die MAXIMALE Steckplatzgroesse pro Bauteilart
+  // als Buchstabe+Ziffer, Groesse 10 als "X" (im Datenbestand kommt nichts
+  // Groesseres vor). Der Sentinel "-" heisst "gar keine Steckplatz-Daten"
+  // (die vier ATLS-Varianten), "_" heisst "Daten vorhanden, aber keine
+  // Kategorie getroffen" -- die Unterscheidung traegt D-08, sonst zaehlte der
+  // Zaehler beides als fehlende Daten. Ein fehlendes Attribut wird wie "-"
+  // behandelt.
+  var CAT_RX = /([wtmscpqr])(\d|X)/g;
+  function parseComp(s) {
+    var out = {}, m;
+    if (!s || s === '-') return out;
+    CAT_RX.lastIndex = 0;
+    while ((m = CAT_RX.exec(s))) out[m[1]] = m[2] === 'X' ? 10 : parseInt(m[2], 10);
+    return out;
+  }
+
+  // Zusammenhaengende Groessenliste 1..Maximum fuer eine Bauteilart. NICHT nur
+  // die beobachteten Einzelwerte: gespeichert ist je Schiff nur das MAXIMUM je
+  // Kategorie, deshalb liefert jede Schwelle bis zum globalen Maximum garantiert
+  // mindestens einen Treffer -- genau das verlangt D-10.
+  function sizesFor(letter) {
+    var max = 0;
+    cards.forEach(function (c) {
+      var v = parseComp(c.getAttribute('data-comp'))[letter];
+      if (v != null && v > max) max = v;
+    });
+    var out = [];
+    for (var i = 1; i <= max; i++) out.push(i);
+    return out;
+  }
+
+  // Baut sf-compsize fuer die gewaehlte Bauteilart neu und schaltet das Feld
+  // frei bzw. wieder ab (D-11: die Bauteilart allein filtert noch nicht, sie
+  // ist nur Vorauswahl fuer das Groessenfeld).
+  function rebuildSizeOptions() {
+    var letter = selComp.value;
+    while (selCompSize.options.length > 1) selCompSize.remove(1);
+    if (letter) {
+      sizesFor(letter).forEach(function (n) {
+        var opt = document.createElement('option');
+        opt.value = String(n);
+        opt.textContent = ANDUP_LABEL.replace('{n}', String(n));
+        selCompSize.appendChild(opt);
+      });
+      selCompSize.disabled = false;
+    } else {
+      selCompSize.disabled = true;
+    }
+    selCompSize.value = '';
+  }
+
   function apply() {
     var nq = norm(q.value).trim();
     var m = selMaker.value;
     var ca = selCareer.value, fa = selRolefam.value, sz = selSize.value, si = selSig.value, fe = selFeat.value;
-    var n = 0;
+    var compLetter = selComp.value;
+    var compSize = selCompSize.value ? parseInt(selCompSize.value, 10) : null;
+    // D-11: Bauteilart ohne Groesse filtert noch NICHT.
+    var compActive = !!(compLetter && compSize != null);
+    var n = 0, noData = 0;
     cards.forEach(function (c) {
       var ok =
         (!nq || norm(c.getAttribute('data-q')).indexOf(nq) >= 0) &&
@@ -495,10 +572,27 @@ a{color:inherit;text-decoration:none}
         (!sz || c.getAttribute('data-size') === sz) &&
         (!si || numAttr(c, 'data-sig') < parseFloat(si)) &&
         (!fe || c.getAttribute('data-feat').indexOf(' ' + fe + ' ') >= 0);
-      c.style.display = ok ? '' : 'none';
-      if (ok) n++;
+      if (!ok) { c.style.display = 'none'; return; }
+      if (!compActive) { c.style.display = ''; n++; return; }
+      var raw = c.getAttribute('data-comp');
+      if (!raw || raw === '-') {
+        // D-08: Fahrzeuge ohne Steckplatz-Daten fallen aus der Trefferliste,
+        // werden aber im Zaehler benannt statt still verworfen.
+        noData++;
+        c.style.display = 'none';
+        return;
+      }
+      // D-04 "einer reicht": gespeichert ist bereits das Maximum je Kategorie,
+      // ein Vergleich >= genuegt.
+      var v = parseComp(raw)[compLetter];
+      var compOk = v != null && v >= compSize;
+      c.style.display = compOk ? '' : 'none';
+      if (compOk) n++;
     });
-    count.textContent = n + ' ' + RESULTS_LABEL;
+    // D-12: ohne aktiven Bauteilfilter bleibt der Zaehlertext exakt wie zuvor.
+    count.textContent = compActive
+      ? (n + ' ' + RESULTS_LABEL + ' · ' + noData + ' ' + NODATA_LABEL)
+      : (n + ' ' + RESULTS_LABEL);
     empty.hidden = n !== 0;
   }
 
@@ -514,10 +608,14 @@ a{color:inherit;text-decoration:none}
     ordered.forEach(function (c) { fleet.insertBefore(c, empty); });
   }
 
-  [q, selMaker, selCareer, selRolefam, selSize, selSig, selFeat].forEach(function (el) {
+  [q, selMaker, selCareer, selRolefam, selSize, selSig, selFeat, selCompSize].forEach(function (el) {
     el.addEventListener('input', apply);
     el.addEventListener('change', apply);
   });
+  // Die Bauteilart baut erst das Groessenfeld neu und filtert dann -- sonst
+  // stuende dort noch die Groessenliste der vorher gewaehlten Kategorie.
+  selComp.addEventListener('change', function () { rebuildSizeOptions(); apply(); });
+  rebuildSizeOptions();
   selSort.addEventListener('change', sort);
 
   // Schnellzugriff-Chips (D-10, ROLE-06): je ein Klick setzt Rollenfamilie
