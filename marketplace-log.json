@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-04",
-  "updates": 34,
-  "totalListings": 1919,
+  "updates": 35,
+  "totalListings": 1948,
   "totalSold": 73,
-  "distinctItems": 714
+  "distinctItems": 716
  },
  "listings": {
   "156580": {
@@ -31823,6 +31823,10 @@
     {
      "d": "2026-08-03",
      "p": 5000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 3000000
     }
    ],
    "soldOut": false,
@@ -39372,6 +39376,111 @@
    "dateAdded": 1785846035,
    "dateExpiration": 1791030035
   },
+  "158541": {
+   "idItem": 4345,
+   "idCategory": 17,
+   "title": "FieldLite \"Scorched\" Flashlight",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785846107,
+   "dateExpiration": 1791030107
+  },
+  "158543": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785846309,
+   "dateExpiration": 1791030309
+  },
+  "158544": {
+   "idItem": 6812,
+   "idCategory": 17,
+   "title": "OT4-RF \"Scorched\" (4x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785846455,
+   "dateExpiration": 1791030454
+  },
+  "158545": {
+   "idItem": 5943,
+   "idCategory": 36,
+   "title": "Ouratite q860 1 SCU LEFT!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 860,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785846511,
+   "dateExpiration": 1791030511
+  },
+  "158546": {
+   "idItem": 4471,
+   "idCategory": 17,
+   "title": "Emod \"Scorched\" Stabilizer1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785846660,
+   "dateExpiration": 1791030660
+  },
   "158547": {
    "idItem": 5321,
    "idCategory": 17,
@@ -39414,6 +39523,27 @@
    "dateAdded": 1785847275,
    "dateExpiration": 1791031275
   },
+  "158549": {
+   "idItem": 5819,
+   "idCategory": 18,
+   "title": "Novian Crossbow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785847661,
+   "dateExpiration": 1791031661
+  },
   "158550": {
    "idItem": 5927,
    "idCategory": 36,
@@ -39434,6 +39564,27 @@
    "soldOutPrice": null,
    "dateAdded": 1785847942,
    "dateExpiration": 1791031942
+  },
+  "158552": {
+   "idItem": 4892,
+   "idCategory": 38,
+   "title": "ASD Secure Drive",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 299999
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785848276,
+   "dateExpiration": 1791032276
   },
   "158553": {
    "idItem": 4613,
@@ -39519,6 +39670,90 @@
    "dateAdded": 1785849407,
    "dateExpiration": 1791033407
   },
+  "158557": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 967,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785850301,
+   "dateExpiration": 1791034301
+  },
+  "158558": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "WTS 1.1 SCU 947 STILERON",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 947,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 35000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785850306,
+   "dateExpiration": 1791034306
+  },
+  "158559": {
+   "idItem": 5989,
+   "idCategory": 36,
+   "title": "Torite 4,47 SCU Qua 873",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 873,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785850579,
+   "dateExpiration": 1791034579
+  },
+  "158560": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 7500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785850644,
+   "dateExpiration": 1791034644
+  },
   "158561": {
    "idItem": 3726,
    "idCategory": 61,
@@ -39539,6 +39774,27 @@
    "soldOutPrice": null,
    "dateAdded": 1785850924,
    "dateExpiration": 1791034924
+  },
+  "158562": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "WTS Morozov-SH Crusader Edition Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785850991,
+   "dateExpiration": 1791034991
   },
   "158563": {
    "idItem": 5051,
@@ -39603,6 +39859,27 @@
    "dateAdded": 1785851308,
    "dateExpiration": 1791035308
   },
+  "158569": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 325,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 175000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785851361,
+   "dateExpiration": 1791035361
+  },
   "158570": {
    "idItem": 2167,
    "idCategory": 17,
@@ -39645,6 +39922,69 @@
    "dateAdded": 1785851400,
    "dateExpiration": 1791035400
   },
+  "158572": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Selling Riccite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 525,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785851512,
+   "dateExpiration": 1791035511
+  },
+  "158574": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "DCHS FULL SET",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785851903,
+   "dateExpiration": 1791035903
+  },
+  "158575": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Selling Riccite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 743,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785851940,
+   "dateExpiration": 1791035940
+  },
   "158576": {
    "idItem": 2436,
    "idCategory": 17,
@@ -39666,6 +40006,27 @@
    "dateAdded": 1785851976,
    "dateExpiration": 1791035976
   },
+  "158577": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium - 852Q - 1.56 SCU - 5M",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 852,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785852140,
+   "dateExpiration": 1791036140
+  },
   "158578": {
    "idItem": 6356,
    "idCategory": 2,
@@ -39686,6 +40047,48 @@
    "soldOutPrice": null,
    "dateAdded": 1785852161,
    "dateExpiration": 1791036161
+  },
+  "158581": {
+   "idItem": 1766,
+   "idCategory": 19,
+   "title": "Polar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785852758,
+   "dateExpiration": 1791036758
+  },
+  "158582": {
+   "idItem": 954,
+   "idCategory": 19,
+   "title": "Glacier",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785853016,
+   "dateExpiration": 1791037015
   },
   "158584": {
    "idItem": 4741,
@@ -40676,6 +41079,216 @@
    "soldOutPrice": null,
    "dateAdded": 1785861099,
    "dateExpiration": 1791045099
+  },
+  "158675": {
+   "idItem": 6585,
+   "idCategory": 17,
+   "title": "Quell Suppressor3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785862128,
+   "dateExpiration": 1791046127
+  },
+  "158678": {
+   "idItem": 10,
+   "idCategory": 32,
+   "title": "Crafted C-788 Cannon 8% DMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 827,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785862371,
+   "dateExpiration": 1791046371
+  },
+  "158679": {
+   "idItem": 6033,
+   "idCategory": 17,
+   "title": "Torrent Compensator2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785862506,
+   "dateExpiration": 1791046506
+  },
+  "158683": {
+   "idItem": 1598,
+   "idCategory": 18,
+   "title": "Custodian \"Midnight\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785863728,
+   "dateExpiration": 1791047728
+  },
+  "158684": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785864897,
+   "dateExpiration": 1791048897
+  },
+  "158687": {
+   "idItem": 4744,
+   "idCategory": 87,
+   "title": "Janalite 898Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 898,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785865191,
+   "dateExpiration": 1791049191
+  },
+  "158688": {
+   "idItem": 5703,
+   "idCategory": 87,
+   "title": "Beradom 969Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 969,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785865285,
+   "dateExpiration": 1791049285
+  },
+  "158689": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite 975Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785865385,
+   "dateExpiration": 1791049385
+  },
+  "158690": {
+   "idItem": 3397,
+   "idCategory": 2,
+   "title": "Pembroke Backpack RSI Graphite Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785865484,
+   "dateExpiration": 1791049484
+  },
+  "158691": {
+   "idItem": 4441,
+   "idCategory": 3,
+   "title": "Berserker Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 850000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785865548,
+   "dateExpiration": 1791049548
   }
  }
 }
