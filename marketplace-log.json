@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-04",
-  "updates": 25,
-  "totalListings": 1555,
-  "totalSold": 59,
-  "distinctItems": 616
+  "updates": 26,
+  "totalListings": 1586,
+  "totalSold": 63,
+  "distinctItems": 620
  },
  "listings": {
   "156580": {
@@ -22523,6 +22523,10 @@
     {
      "d": "2026-08-03",
      "p": 250000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 250
     }
    ],
    "soldOut": false,
@@ -22754,6 +22758,10 @@
     {
      "d": "2026-08-03",
      "p": 250000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 250
     }
    ],
    "soldOut": false,
@@ -22775,6 +22783,10 @@
     {
      "d": "2026-08-03",
      "p": 250000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 250
     }
    ],
    "soldOut": false,
@@ -22838,6 +22850,10 @@
     {
      "d": "2026-08-03",
      "p": 250000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 250
     }
    ],
    "soldOut": false,
@@ -22901,6 +22917,10 @@
     {
      "d": "2026-08-03",
      "p": 250000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 250
     }
    ],
    "soldOut": false,
@@ -23579,9 +23599,9 @@
      "p": 50000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 50000000,
    "dateAdded": 1785726150,
    "dateExpiration": 1790910150
   },
@@ -23600,9 +23620,9 @@
      "p": 15000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 15000000,
    "dateAdded": 1785726651,
    "dateExpiration": 1790910651
   },
@@ -25181,6 +25201,10 @@
     {
      "d": "2026-08-03",
      "p": 17500000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 12500000
     }
    ],
    "soldOut": false,
@@ -27733,6 +27757,10 @@
     {
      "d": "2026-08-03",
      "p": 13500000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 15000000
     }
    ],
    "soldOut": false,
@@ -29564,6 +29592,10 @@
     {
      "d": "2026-08-03",
      "p": 2900000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 2500000
     }
    ],
    "soldOut": false,
@@ -29757,6 +29789,10 @@
     {
      "d": "2026-08-03",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 18000000
     }
    ],
    "soldOut": false,
@@ -29824,6 +29860,10 @@
     {
      "d": "2026-08-03",
      "p": 18000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 16000000
     }
    ],
    "soldOut": false,
@@ -30750,9 +30790,9 @@
      "p": 2900000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 2900000,
    "dateAdded": 1785783095,
    "dateExpiration": 1790967095
   },
@@ -32523,6 +32563,27 @@
    "dateAdded": 1785798297,
    "dateExpiration": 1790982297
   },
+  "158243": {
+   "idItem": 7990,
+   "idCategory": 7,
+   "title": "Palatino Set Shadow Guild",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785798394,
+   "dateExpiration": 1790982394
+  },
   "158244": {
    "idItem": null,
    "idCategory": 7,
@@ -32900,6 +32961,636 @@
    "soldOutPrice": null,
    "dateAdded": 1785804104,
    "dateExpiration": 1790988103
+  },
+  "158278": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "FOR SALE: Sadaryx Gems - The \"971\" Absolute Unit Collection!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 971,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785804435,
+   "dateExpiration": 1790988435
+  },
+  "158281": {
+   "idItem": 1347,
+   "idCategory": 22,
+   "title": "FOR SALE: VK-00 Drive - The \"Blink and You'll Miss It\" Express!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785805101,
+   "dateExpiration": 1790989101
+  },
+  "158283": {
+   "idItem": 5943,
+   "idCategory": 36,
+   "title": "Ouratite Q960, Q912, Q860",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 960,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785805253,
+   "dateExpiration": 1790989252
+  },
+  "158284": {
+   "idItem": 7215,
+   "idCategory": 18,
+   "title": "FOR SALE: Killshot Dominion Camo - The \"Ghost of the Battlefield\" Edition!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 840,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785805266,
+   "dateExpiration": 1790989266
+  },
+  "158285": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "Sadaryx Q971, Q940",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 971,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 3000000
+    }
+   ],
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 3000000,
+   "dateAdded": 1785805637,
+   "dateExpiration": 1790989637
+  },
+  "158290": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium Q967",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 967,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785806745,
+   "dateExpiration": 1790990745
+  },
+  "158292": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl Q937",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785806988,
+   "dateExpiration": 1790990988
+  },
+  "158293": {
+   "idItem": 115,
+   "idCategory": 29,
+   "title": "WTS 32.92% POWER Helix II Mining Laser",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785807005,
+   "dateExpiration": 1796175005
+  },
+  "158296": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper Q917, Q855",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 917,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785807223,
+   "dateExpiration": 1790991223
+  },
+  "158298": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785807495,
+   "dateExpiration": 1790991495
+  },
+  "158299": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785807533,
+   "dateExpiration": 1790991532
+  },
+  "158300": {
+   "idItem": 1770,
+   "idCategory": 21,
+   "title": "WTS 29 POWER PIP JS-500",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785807681,
+   "dateExpiration": 1796175681
+  },
+  "158301": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "Tungsten Q858",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 858,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785807954,
+   "dateExpiration": 1790991954
+  },
+  "158312": {
+   "idItem": 1774,
+   "idCategory": 21,
+   "title": "JS-300 3 Pips 950Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785813827,
+   "dateExpiration": 1790997827
+  },
+  "158315": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "Polaris Bit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785814438,
+   "dateExpiration": 1790998437
+  },
+  "158318": {
+   "idItem": 958,
+   "idCategory": 19,
+   "title": "Arctic",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 65000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785815326,
+   "dateExpiration": 1790999326
+  },
+  "158319": {
+   "idItem": 4992,
+   "idCategory": 7,
+   "title": "Corbel Mire Set with Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785815532,
+   "dateExpiration": 1790999532
+  },
+  "158320": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 647Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 647,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785815773,
+   "dateExpiration": 1790999773
+  },
+  "158321": {
+   "idItem": 5841,
+   "idCategory": 3,
+   "title": "Palatino Helmet Metropolis",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785816004,
+   "dateExpiration": 1791000004
+  },
+  "158322": {
+   "idItem": 6690,
+   "idCategory": 3,
+   "title": "Palatino Helmet Moonfall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785816298,
+   "dateExpiration": 1791000298
+  },
+  "158325": {
+   "idItem": 6727,
+   "idCategory": 4,
+   "title": "Palatino Legs Necropolis",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785816482,
+   "dateExpiration": 1791000481
+  },
+  "158327": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785817371,
+   "dateExpiration": 1791001371
+  },
+  "158328": {
+   "idItem": 2532,
+   "idCategory": 68,
+   "title": "Sarrab Glasses",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785818035,
+   "dateExpiration": 1791002034
+  },
+  "158329": {
+   "idItem": 5331,
+   "idCategory": 17,
+   "title": "Torrent Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785818760,
+   "dateExpiration": 1791002760
+  },
+  "158330": {
+   "idItem": 5333,
+   "idCategory": 17,
+   "title": "Stoic Suppressor 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785818858,
+   "dateExpiration": 1791002858
+  },
+  "158331": {
+   "idItem": 5338,
+   "idCategory": 17,
+   "title": "Stoic Suppressor 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785818936,
+   "dateExpiration": 1791002936
+  },
+  "158332": {
+   "idItem": 5481,
+   "idCategory": 17,
+   "title": "Stoic Suppressor 3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785819084,
+   "dateExpiration": 1791003084
+  },
+  "158333": {
+   "idItem": 6343,
+   "idCategory": 17,
+   "title": "Vera Compensator1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785819175,
+   "dateExpiration": 1791003175
+  },
+  "158334": {
+   "idItem": 6585,
+   "idCategory": 17,
+   "title": "Quell Suppressor3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785819296,
+   "dateExpiration": 1791003295
+  },
+  "158336": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron 1.1 SCU 972Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 972,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 45000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785819445,
+   "dateExpiration": 1796191045
   }
  }
 }
