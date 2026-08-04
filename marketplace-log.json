@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-04",
-  "updates": 31,
-  "totalListings": 1867,
-  "totalSold": 68,
-  "distinctItems": 708
+  "updates": 32,
+  "totalListings": 1883,
+  "totalSold": 71,
+  "distinctItems": 713
  },
  "listings": {
   "156580": {
@@ -31116,9 +31116,9 @@
      "p": 1100000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 1100000,
    "dateAdded": 1785783184,
    "dateExpiration": 1790967184
   },
@@ -31626,6 +31626,10 @@
     {
      "d": "2026-08-03",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 3000000
     }
    ],
    "soldOut": false,
@@ -34105,9 +34109,9 @@
      "p": 8000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 8000000,
    "dateAdded": 1785806745,
    "dateExpiration": 1790990745
   },
@@ -37696,9 +37700,9 @@
      "p": 17500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 17500000,
    "dateAdded": 1785828780,
    "dateExpiration": 1791012780
   },
@@ -39540,6 +39544,342 @@
    "soldOutPrice": null,
    "dateAdded": 1785851065,
    "dateExpiration": 1791035065
+  },
+  "158566": {
+   "idItem": 4981,
+   "idCategory": 3,
+   "title": "Corbel Helmet Patina",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785851200,
+   "dateExpiration": 1791035200
+  },
+  "158567": {
+   "idItem": 4985,
+   "idCategory": 3,
+   "title": "Corbel Helmet Halcyon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785851308,
+   "dateExpiration": 1791035308
+  },
+  "158570": {
+   "idItem": 2167,
+   "idCategory": 17,
+   "title": "Black Prism (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785851367,
+   "dateExpiration": 1791035367
+  },
+  "158571": {
+   "idItem": 4996,
+   "idCategory": 3,
+   "title": "Corbel Helmet Mire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785851400,
+   "dateExpiration": 1791035400
+  },
+  "158576": {
+   "idItem": 2436,
+   "idCategory": 17,
+   "title": "Tracer Laser Pointer Orange",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785851976,
+   "dateExpiration": 1791035976
+  },
+  "158578": {
+   "idItem": 6356,
+   "idCategory": 2,
+   "title": "Warden Backpack Purgatory Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 860,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785852161,
+   "dateExpiration": 1791036161
+  },
+  "158584": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite (Q959)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785853389,
+   "dateExpiration": 1791037389
+  },
+  "158587": {
+   "idItem": 10,
+   "idCategory": 32,
+   "title": "C-788 Cannon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 860,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785853759,
+   "dateExpiration": 1791037759
+  },
+  "158591": {
+   "idItem": 5095,
+   "idCategory": 18,
+   "title": "Animus \"Quite Useful\" Missile Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785854083,
+   "dateExpiration": 1791038082
+  },
+  "158596": {
+   "idItem": 2032,
+   "idCategory": 22,
+   "title": "Spicule 900ql min",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785854325,
+   "dateExpiration": 1791038324
+  },
+  "158601": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron Q874",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4276986
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785854566,
+   "dateExpiration": 1791038566
+  },
+  "158603": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "Gold Q864",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 864,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 10430839
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785854623,
+   "dateExpiration": 1791038623
+  },
+  "158604": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper Q855",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 855,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2243946
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785854651,
+   "dateExpiration": 1791038651
+  },
+  "158605": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "Borase Q892",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 892,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2514427
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785854668,
+   "dateExpiration": 1791038668
+  },
+  "158607": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite Q941",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 941,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 5385191
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785854682,
+   "dateExpiration": 1791038682
+  },
+  "158608": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite Q875",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 875,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 3263158
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785854694,
+   "dateExpiration": 1791038694
   }
  }
 }
