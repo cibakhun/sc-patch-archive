@@ -462,6 +462,49 @@ for (const [p, lang] of craftProbePages) {
 }
 console.log(`\nCrafting-Gegenprobe: ${craftProbeChecked}/${craftProbePages.length} Flaechen geprueft (Quellen-Zeile mit RSI erwartet)`);
 
+// --- Datenherkunft im sichtbaren Text ---------------------------------------
+// Hausregel: die Seite nennt NIRGENDS, woher die Spieldaten technisch stammen.
+// Sie beantwortet Fragen zum Spiel; wie die Zahlen entstehen, ist Innenleben.
+// Bis zum 03.08.2026 stand die Regel nur in der Projektdoku und wurde von Hand
+// eingehalten — sie ist dabei zweimal gerissen: einmal auf der Unterstuetzen-
+// Seite (Commit 9ccfb52), einmal in der Quellenzeile von Wikelo's Emporium.
+// Der zweite Fall ueberlebte Monate unbemerkt, weil nichts danach sah. Genau
+// deshalb steht die Pruefung jetzt hier statt in einer Konvention.
+//
+// AUSDRUECKLICH NICHT betroffen: die UEX-Attribution bei Preisen und die
+// Kopffelder source/game_version/snapshot_date der JSON-Datendateien unter
+// dist/assets/ — beide sollen ihre Herkunft weiter ehrlich nennen. Geprueft
+// wird nur SICHTBARER Text in HTML: Skript-, Stil- und Kopfbereich fallen
+// vorher raus, damit ein Bezeichner im ausgelieferten JS nicht anschlaegt.
+//
+// Die Begriffe stehen verkettet, damit ein Volltext-Grep ueber den Baum nicht
+// am Audit-Code selbst haengenbleibt (dasselbe Motiv wie FORBIDDEN_SOURCE).
+const PROVENANCE_TERMS = [
+  new RegExp('Data' + '\\.p4k', 'i'),
+  new RegExp('\\b' + 'p4k' + '\\b', 'i'),
+  new RegExp('\\b' + 'unp4k' + '\\b', 'i'),
+  new RegExp('\\b' + 'unforge' + '\\b', 'i'),   // Wortgrenze: "unforgettable" in Item-Texten darf bleiben
+  new RegExp('Data' + 'Core', 'i'),
+  new RegExp('Game2' + '\\.dcb', 'i'),
+  new RegExp('\\b' + 'scmdb' + '\\b', 'i'),
+  new RegExp('datamin' + '(ed|ing)?', 'i'),
+  new RegExp('Spieldatei' + 'en?', 'i'),
+];
+const provenanceHits = [];
+for (const f of htmlFiles) {
+  const visible = stripTags(
+    readFileSync(f, 'utf8')
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<head[\s\S]*?<\/head>/gi, ' ')
+  );
+  for (const rx of PROVENANCE_TERMS) {
+    const m = visible.match(rx);
+    if (m) provenanceHits.push(`${rel(f)}: Datenherkunft im sichtbaren Text — "${m[0]}"`);
+  }
+}
+console.log(`Datenherkunft: ${htmlFiles.length} Seiten geprueft, ${provenanceHits.length} Fund(e)`);
+
 // --- Seitengewichte ---
 const heavy = [];
 for (const f of htmlFiles) {
@@ -501,6 +544,7 @@ if (basePrefixPages.size) {
 section('FEHLER Sitemap widerspricht dem Build', sitemapIssues, errors, 20);
 section('FEHLER Platzhalter im HTML', placeholderHits, errors);
 section('FEHLER Fremdquelle im Ausgelieferten', foreignSourceHits, errors);
+section('FEHLER Datenherkunft im sichtbaren Text', provenanceHits, errors);
 section('FEHLER Mojibake/Encoding', mojibakeHits, errors);
 section('WARNUNG Media-Wiederholung (>2×/Seite)', mediaViolations, warns);
 
