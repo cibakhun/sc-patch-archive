@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-04",
-  "updates": 33,
-  "totalListings": 1911,
-  "totalSold": 72,
+  "updates": 34,
+  "totalListings": 1919,
+  "totalSold": 73,
   "distinctItems": 714
  },
  "listings": {
@@ -34363,6 +34363,10 @@
     {
      "d": "2026-08-04",
      "p": 10000000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 8000000
     }
    ],
    "soldOut": false,
@@ -39205,6 +39209,10 @@
     {
      "d": "2026-08-04",
      "p": 500000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 200000
     }
    ],
    "soldOut": false,
@@ -39247,6 +39255,10 @@
     {
      "d": "2026-08-04",
      "p": 600000
+    },
+    {
+     "d": "2026-08-04",
+     "p": 300000
     }
    ],
    "soldOut": false,
@@ -40449,9 +40461,9 @@
      "p": 6200000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-04",
+   "soldOutPrice": 6200000,
    "dateAdded": 1785857632,
    "dateExpiration": 1791041632
   },
@@ -40496,6 +40508,174 @@
    "soldOutPrice": null,
    "dateAdded": 1785858180,
    "dateExpiration": 1791042180
+  },
+  "158654": {
+   "idItem": 5481,
+   "idCategory": 17,
+   "title": "Stoic Suppressor 3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785859093,
+   "dateExpiration": 1791043093
+  },
+  "158657": {
+   "idItem": 1480,
+   "idCategory": 5,
+   "title": "Defiance Core Tactical",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785859550,
+   "dateExpiration": 1791043550
+  },
+  "158659": {
+   "idItem": 5948,
+   "idCategory": 36,
+   "title": "Pressurized Ice. 873q. 1.171scu. Payment up front.",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 873,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785859923,
+   "dateExpiration": 1791043923
+  },
+  "158661": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 874q 2.298scu. Payment up front.",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785860161,
+   "dateExpiration": 1791044161
+  },
+  "158664": {
+   "idItem": 7989,
+   "idCategory": 7,
+   "title": "crafted Palatino Set Moonfall 43% / -82C / 111C",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785860414,
+   "dateExpiration": 1791044414
+  },
+  "158665": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "Taranite 853q .47 scu. Payment up front.",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 853,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785860562,
+   "dateExpiration": 1791044562
+  },
+  "158666": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "Gold 864 4m/scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 864,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785860607,
+   "dateExpiration": 1791044607
+  },
+  "158669": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Morosov-SH-LifeForce armor full set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-04",
+   "lastSeen": "2026-08-04",
+   "prices": [
+    {
+     "d": "2026-08-04",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785861099,
+   "dateExpiration": 1791045099
   }
  }
 }
