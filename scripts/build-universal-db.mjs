@@ -85,7 +85,11 @@ if (explicitIni) {
     );
   }
   GLOBAL_INI_TEXT = readFileSync(explicitIni, 'utf8');
-  catalogSourceLabel = `--global-ini ${explicitIni}`;
+  // Nur die ART der Quelle, NIE ihr Pfad: das Feld wird in
+  // assets/universal-items.json (7 MB, oeffentlich) ausgeliefert, und ein
+  // absoluter Pfad verraet das Verzeichnislayout des Entwicklungsrechners.
+  // Der Pfad steht weiterhin im Lauf-Protokoll auf der Konsole.
+  catalogSourceLabel = 'uebergebener global.ini-Auszug (--global-ini)';
 } else {
   let p4k;
   try {
@@ -95,7 +99,7 @@ if (explicitIni) {
   }
   GLOBAL_INI_TEXT = p4k.read(/Localization[\\/]english[\\/]global\.ini$/i).toString('utf8');
   p4k.close();
-  catalogSourceLabel = `Data.p4k (${DEFAULT_P4K})`;
+  catalogSourceLabel = 'der lokalen Data.p4k';  // ohne Pfad — siehe Kommentar oben
 }
 
 // --- Platzhalter-Filter: Wortgrenzen, damit „Testudo“/„Contest“ NICHT rausfliegen;

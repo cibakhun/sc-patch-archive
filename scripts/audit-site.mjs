@@ -503,7 +503,49 @@ for (const f of htmlFiles) {
     if (m) provenanceHits.push(`${rel(f)}: Datenherkunft im sichtbaren Text — "${m[0]}"`);
   }
 }
-console.log(`Datenherkunft: ${htmlFiles.length} Seiten geprueft, ${provenanceHits.length} Fund(e)`);
+// Zweite Flaeche: die clientseitig gerenderten Oberflaechen (Item Finder,
+// Crafting, Wikelo-Bruecke) bauen ihre Texte erst im Browser zusammen — ihre
+// Zeichenketten liegen in dist/assets/*.js und tauchen im HTML oben NIE auf.
+// Genau dort schlief eine Fundstelle: item-finder-app.js hielt als Rueckfall
+// "Katalog-Eintrag aus den Spieldateien …" bereit. Der injizierte i18n-Katalog
+// gewann, also war nichts zu sehen — bis er einmal ausfaellt.
+//
+// KOMMENTARE sind ausgenommen: sie erklaeren im Quelltext das Warum und sind
+// kein Oberflaechentext. Geprueft werden nur die uebrigen Zeilen.
+// CRLF ZUERST normalisieren: `.` matcht in JS keinen Wagenruecklauf, deshalb
+// scheitert `//.*$` auf jeder Zeile einer CRLF-Datei still — der Filter lief
+// dann ins Leere und meldete jeden Quellkommentar als Fund. Das `[^:]` haelt
+// `https://` aus dem Muster heraus.
+const stripJsComments = (src) => src
+  .replace(/\r\n?/g, '\n')
+  .replace(/\/\*[\s\S]*?\*\//g, ' ')
+  .split('\n').map((l) => l.replace(/(^|[^:])\/\/.*$/, '$1')).join('\n');
+const jsAssets = allFiles.filter((f) => /[\\/]assets[\\/].*\.js$/i.test(f));
+for (const f of jsAssets) {
+  const code = stripJsComments(readFileSync(f, 'utf8'));
+  for (const rx of PROVENANCE_TERMS) {
+    const m = code.match(rx);
+    if (m) provenanceHits.push(`${rel(f)}: Datenherkunft in ausgeliefertem JS — "${m[0]}"`);
+  }
+}
+console.log(`Datenherkunft: ${htmlFiles.length} Seiten + ${jsAssets.length} JS-Dateien geprueft, ${provenanceHits.length} Fund(e)`);
+
+// --- Rechnerpfad im Ausgelieferten -----------------------------------------
+// Eigene Klasse, NICHT Teil der Datenherkunft-Pruefung oben: die JSON-Datei
+// assets/universal-items.json (7 MB, oeffentlich) trug im Feld sources.catalog
+// den absoluten Pfad der Data.p4k auf dem Entwicklungsrechner. Die
+// Herkunftsangabe selbst ist erwuenscht (Hausmuster source/source_note) — das
+// Verzeichnislayout des Rechners ist es nicht. Deshalb faengt diese Pruefung
+// den PFAD, nicht die Quellennennung: sie laeuft auch ueber die JSON-Kopffelder,
+// die von der Datenherkunft-Pruefung bewusst ausgenommen bleiben.
+const MACHINE_PATH_RE = /[A-Za-z]:[\\/](?:Users|Games|Projects|Program Files|Windows)[^"'\s,)]{0,80}|\/(?:Users|home)\/[A-Za-z0-9._-]+\/[^"'\s,)]{0,60}/;
+const machinePathHits = [];
+for (const f of allFiles) {
+  if (!/\.(js|json|css|svg|html)$/i.test(f)) continue;
+  const m = readFileSync(f, 'utf8').match(MACHINE_PATH_RE);
+  if (m) machinePathHits.push(`${rel(f)}: Rechnerpfad ausgeliefert — "${m[0]}"`);
+}
+console.log(`Rechnerpfade: ${machinePathHits.length} Fund(e)`);
 
 // --- Seitengewichte ---
 const heavy = [];
@@ -545,6 +587,7 @@ section('FEHLER Sitemap widerspricht dem Build', sitemapIssues, errors, 20);
 section('FEHLER Platzhalter im HTML', placeholderHits, errors);
 section('FEHLER Fremdquelle im Ausgelieferten', foreignSourceHits, errors);
 section('FEHLER Datenherkunft im sichtbaren Text', provenanceHits, errors);
+section('FEHLER Rechnerpfad im Ausgelieferten', machinePathHits, errors);
 section('FEHLER Mojibake/Encoding', mojibakeHits, errors);
 section('WARNUNG Media-Wiederholung (>2×/Seite)', mediaViolations, warns);
 

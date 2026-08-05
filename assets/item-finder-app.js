@@ -829,7 +829,7 @@
     } else {
       html += '<div class="uif-modal-section">' +
         '<h4>' + esc(tr('sectionObtain', 'Bezugsquellen')) + '</h4>' +
-        '<p class="uif-catalog-note">' + esc(tr('catalogNote', 'Katalog-Eintrag aus den Spieldateien: Für dieses Item liegen keine verifizierten Shop- oder Loot-Daten vor.')) + '</p>' +
+        '<p class="uif-catalog-note">' + esc(tr('catalogNote', 'Katalog-Eintrag: Für dieses Item liegen keine verifizierten Shop- oder Loot-Daten vor.')) + '</p>' +
       '</div>';
     }
 
@@ -965,7 +965,7 @@
 
       var sub = document.getElementById('uif-subline');
       if (sub && META) {
-        sub.textContent = tr('subline', '{total} Items aus den Spieldateien, {sourced} mit verifizierten Bezugsquellen')
+        sub.textContent = tr('subline', '{total} Items, {sourced} mit verifizierten Bezugsquellen')
           .replace('{total}', fmtNum(META.items))
           .replace('{sourced}', fmtNum(META.withObtain));
       }
