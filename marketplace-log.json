@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-05",
-  "updates": 51,
-  "totalListings": 2205,
-  "totalSold": 84,
-  "distinctItems": 751
+  "updates": 52,
+  "totalListings": 2218,
+  "totalSold": 88,
+  "distinctItems": 754
  },
  "listings": {
   "156580": {
@@ -39291,6 +39291,10 @@
     {
      "d": "2026-08-04",
      "p": 300000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 200000
     }
    ],
    "soldOut": false,
@@ -39482,9 +39486,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 1000000,
    "dateAdded": 1785846455,
    "dateExpiration": 1791030454
   },
@@ -46071,9 +46075,9 @@
      "p": 3500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 3500000,
    "dateAdded": 1785915147,
    "dateExpiration": 1791099147
   },
@@ -46159,9 +46163,9 @@
      "p": 2000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 2000000,
    "dateAdded": 1785915328,
    "dateExpiration": 1791099328
   },
@@ -46222,9 +46226,9 @@
      "p": 1200000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 1200000,
    "dateAdded": 1785915801,
    "dateExpiration": 1791099801
   },
@@ -46241,6 +46245,10 @@
     {
      "d": "2026-08-05",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 18000000
     }
    ],
    "soldOut": false,
@@ -46794,6 +46802,279 @@
    "soldOutPrice": null,
    "dateAdded": 1785923047,
    "dateExpiration": 1791107047
+  },
+  "158994": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "Polaris Bit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785923888,
+   "dateExpiration": 1791107888
+  },
+  "158997": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785924538,
+   "dateExpiration": 1791108538
+  },
+  "158999": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "WTS Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785925116,
+   "dateExpiration": 1791109116
+  },
+  "159000": {
+   "idItem": 5233,
+   "idCategory": 61,
+   "title": "WTS Vanduul Metal",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785925364,
+   "dateExpiration": 1791109363
+  },
+  "159001": {
+   "idItem": 3224,
+   "idCategory": 11,
+   "title": "Creese Jacket Skullsnap",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785925451,
+   "dateExpiration": 1791109451
+  },
+  "159002": {
+   "idItem": 5232,
+   "idCategory": 61,
+   "title": "WTS Vanduul Plating",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785925492,
+   "dateExpiration": 1791109492
+  },
+  "159003": {
+   "idItem": 3229,
+   "idCategory": 11,
+   "title": "Creese Jacket Copperhead",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785925514,
+   "dateExpiration": 1791109514
+  },
+  "159004": {
+   "idItem": 7739,
+   "idCategory": 1,
+   "title": "Citadel Arms Ignitor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785925663,
+   "dateExpiration": 1791109663
+  },
+  "159005": {
+   "idItem": 3412,
+   "idCategory": 1,
+   "title": "Aztalan Arms",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 850000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785925712,
+   "dateExpiration": 1791109712
+  },
+  "159006": {
+   "idItem": null,
+   "idCategory": 61,
+   "title": "WTS ASD ACCES CARD : EXCAVATION (YORMANDI)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785925756,
+   "dateExpiration": 1791109756
+  },
+  "159009": {
+   "idItem": 3241,
+   "idCategory": 4,
+   "title": "Overlord Legs Switchback",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785926036,
+   "dateExpiration": 1791110036
+  },
+  "159011": {
+   "idItem": 5621,
+   "idCategory": 3,
+   "title": "Morozov-SH-I Helmet Pyrotechnic Smokescreen",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785926621,
+   "dateExpiration": 1791110621
+  },
+  "159012": {
+   "idItem": 5708,
+   "idCategory": 5,
+   "title": "Overlord Core Tempered",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785926718,
+   "dateExpiration": 1791110718
   }
  }
 }
