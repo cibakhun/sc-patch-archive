@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-05",
-  "updates": 61,
-  "totalListings": 2450,
-  "totalSold": 96,
-  "distinctItems": 790
+  "updates": 62,
+  "totalListings": 2475,
+  "totalSold": 97,
+  "distinctItems": 794
  },
  "listings": {
   "156580": {
@@ -51741,9 +51741,9 @@
      "p": 2000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 2000000,
    "dateAdded": 1785955710,
    "dateExpiration": 1791139710
   },
@@ -52019,6 +52019,531 @@
    "soldOutPrice": null,
    "dateAdded": 1785958535,
    "dateExpiration": 1791142535
+  },
+  "159143": {
+   "idItem": 8054,
+   "idCategory": 38,
+   "title": "RCMBNT Single / Full Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785959194,
+   "dateExpiration": 1791143194
+  },
+  "159144": {
+   "idItem": 6001,
+   "idCategory": 61,
+   "title": "UNE Gold Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785959226,
+   "dateExpiration": 1791143226
+  },
+  "159145": {
+   "idItem": 7573,
+   "idCategory": 3,
+   "title": "Calva Helmet Daybreaker",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785959620,
+   "dateExpiration": 1791143620
+  },
+  "159146": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "WTS Government Cartography Agency Medal (Pristine) X 3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785959727,
+   "dateExpiration": 1791143727
+  },
+  "159147": {
+   "idItem": 2625,
+   "idCategory": 18,
+   "title": "P6-LR [Avg 957 / 925tara-970iron-975heph-959hada]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 957,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785959804,
+   "dateExpiration": 1791143804
+  },
+  "159148": {
+   "idItem": 6001,
+   "idCategory": 61,
+   "title": "WTS UNE Gold Ingot (Pristine) x 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785959855,
+   "dateExpiration": 1791143855
+  },
+  "159149": {
+   "idItem": 4577,
+   "idCategory": 61,
+   "title": "WTS Irradiated Kopion Horn , A LOT IN STOCK various quality",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 40000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785960131,
+   "dateExpiration": 1791144131
+  },
+  "159151": {
+   "idItem": 2337,
+   "idCategory": 3,
+   "title": "Fieldsbury Dark Bear Helmet Grape",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785960235,
+   "dateExpiration": 1791144235
+  },
+  "159152": {
+   "idItem": 2625,
+   "idCategory": 18,
+   "title": "P6-LR [Avg 979q / 957tara-1000iron-1000heph-959hada]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 979,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 25000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785960362,
+   "dateExpiration": 1791144362
+  },
+  "159153": {
+   "idItem": 2265,
+   "idCategory": 3,
+   "title": "Fieldsbury Dark Bear Helmet Guava",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785960428,
+   "dateExpiration": 1791144428
+  },
+  "159154": {
+   "idItem": 5852,
+   "idCategory": 36,
+   "title": "WTB Aluminum - 919",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 919,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785960445,
+   "dateExpiration": 1796328445
+  },
+  "159155": {
+   "idItem": null,
+   "idCategory": 3,
+   "title": "Kiba Mask Passion",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785960715,
+   "dateExpiration": 1791144715
+  },
+  "159156": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Full Set Of Modified Nine Tails Defiance Armor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785960859,
+   "dateExpiration": 1791144859
+  },
+  "159157": {
+   "idItem": 6717,
+   "idCategory": 2,
+   "title": "Palatino Backpack Moonfall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785960991,
+   "dateExpiration": 1791144991
+  },
+  "159158": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 95000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785961017,
+   "dateExpiration": 1791145017
+  },
+  "159159": {
+   "idItem": 6744,
+   "idCategory": 4,
+   "title": "Palatino Legs Moonfall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785961076,
+   "dateExpiration": 1791145076
+  },
+  "159160": {
+   "idItem": 6652,
+   "idCategory": 5,
+   "title": "Palatino Core Moonfall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785961265,
+   "dateExpiration": 1791145265
+  },
+  "159161": {
+   "idItem": 2583,
+   "idCategory": 3,
+   "title": "Neoni 'Jami' Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785961605,
+   "dateExpiration": 1791145605
+  },
+  "159162": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron 874 2.5 SCU available",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785961871,
+   "dateExpiration": 1791145871
+  },
+  "159163": {
+   "idItem": 6753,
+   "idCategory": 3,
+   "title": "Palatino Helmet Daystar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785962318,
+   "dateExpiration": 1791146318
+  },
+  "159164": {
+   "idItem": 5836,
+   "idCategory": 2,
+   "title": "Palatino Backpack Daystar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785962377,
+   "dateExpiration": 1791146377
+  },
+  "159165": {
+   "idItem": 6676,
+   "idCategory": 4,
+   "title": "Palatino Legs Daystar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785962469,
+   "dateExpiration": 1791146469
+  },
+  "159166": {
+   "idItem": 6708,
+   "idCategory": 5,
+   "title": "Palatino Core Daystar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785962531,
+   "dateExpiration": 1791146531
+  },
+  "159167": {
+   "idItem": 6704,
+   "idCategory": 3,
+   "title": "Palatino Helmet Sunstone",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785962615,
+   "dateExpiration": 1791146615
+  },
+  "159168": {
+   "idItem": 6712,
+   "idCategory": 2,
+   "title": "Palatino Backpack Sunstone",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785962713,
+   "dateExpiration": 1791146713
   }
  }
 }
