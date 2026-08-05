@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-05",
-  "updates": 44,
-  "totalListings": 2140,
-  "totalSold": 83,
+  "updates": 45,
+  "totalListings": 2146,
+  "totalSold": 84,
   "distinctItems": 742
  },
  "listings": {
@@ -40869,6 +40869,10 @@
     {
      "d": "2026-08-04",
      "p": 500000000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 300000000
     }
    ],
    "soldOut": false,
@@ -45393,6 +45397,132 @@
    "soldOutPrice": null,
    "dateAdded": 1785897727,
    "dateExpiration": 1791081727
+  },
+  "158887": {
+   "idItem": 1757,
+   "idCategory": 21,
+   "title": "QuadraCell/JS-300 MAX PIPS",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 8000000
+    }
+   ],
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 8000000,
+   "dateAdded": 1785898352,
+   "dateExpiration": 1791082352
+  },
+  "158891": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 686,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 15000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785899422,
+   "dateExpiration": 1791083422
+  },
+  "158893": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 523,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 10000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785899495,
+   "dateExpiration": 1791083495
+  },
+  "158894": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 762,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 40000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785899627,
+   "dateExpiration": 1791083627
+  },
+  "158895": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 861,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785899852,
+   "dateExpiration": 1791083852
+  },
+  "158896": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785899963,
+   "dateExpiration": 1791083963
   }
  }
 }
