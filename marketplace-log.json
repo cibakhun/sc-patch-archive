@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-05",
-  "updates": 57,
-  "totalListings": 2370,
-  "totalSold": 88,
+  "updates": 58,
+  "totalListings": 2375,
+  "totalSold": 90,
   "distinctItems": 782
  },
  "listings": {
@@ -41440,9 +41440,9 @@
      "p": 9100000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 9100000,
    "dateAdded": 1785857043,
    "dateExpiration": 1791041043
   },
@@ -41461,9 +41461,9 @@
      "p": 4300000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 4300000,
    "dateAdded": 1785857090,
    "dateExpiration": 1791041090
   },
@@ -41862,6 +41862,10 @@
     {
      "d": "2026-08-04",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -41887,6 +41891,10 @@
     {
      "d": "2026-08-05",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 1800000
     }
    ],
    "soldOut": false,
@@ -50303,6 +50311,111 @@
    "soldOutPrice": null,
    "dateAdded": 1785943539,
    "dateExpiration": 1791127539
+  },
+  "159078": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium 954q 6 SCU Price for 1 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 6400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785945308,
+   "dateExpiration": 1791129308
+  },
+  "159080": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "WTS - Lindinium Q729",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 729,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785946737,
+   "dateExpiration": 1791130737
+  },
+  "159082": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "WTS - Quantainium Q901",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 901,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785946946,
+   "dateExpiration": 1791130946
+  },
+  "159083": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "Tungsten Q964 ONLY",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 964,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785947074,
+   "dateExpiration": 1791131074
+  },
+  "159087": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 716,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785948279,
+   "dateExpiration": 1791132279
   }
  }
 }
