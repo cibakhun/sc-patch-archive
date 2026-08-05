@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-05",
-  "updates": 43,
-  "totalListings": 2131,
-  "totalSold": 82,
-  "distinctItems": 738
+  "updates": 44,
+  "totalListings": 2140,
+  "totalSold": 83,
+  "distinctItems": 742
  },
  "listings": {
   "156580": {
@@ -34738,9 +34738,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 1000000,
    "dateAdded": 1785815532,
    "dateExpiration": 1790999532
   },
@@ -45204,6 +45204,195 @@
    "soldOutPrice": null,
    "dateAdded": 1785893183,
    "dateExpiration": 1796264783
+  },
+  "158869": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "NDB-30 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785894808,
+   "dateExpiration": 1791078808
+  },
+  "158874": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1 buying 5 or more",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785896357,
+   "dateExpiration": 1791080357
+  },
+  "158875": {
+   "idItem": 7197,
+   "idCategory": 18,
+   "title": "LH86 \"Executive Edition\" Pistol",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 920000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785896819,
+   "dateExpiration": 1791080819
+  },
+  "158876": {
+   "idItem": 5594,
+   "idCategory": 18,
+   "title": "Quartz \"Black Op\" Energy SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 95000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785896820,
+   "dateExpiration": 1791080820
+  },
+  "158877": {
+   "idItem": 4502,
+   "idCategory": 18,
+   "title": "Quartz \"Deadfall\" Energy SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 95000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785896820,
+   "dateExpiration": 1791080820
+  },
+  "158878": {
+   "idItem": 4506,
+   "idCategory": 18,
+   "title": "Quartz \"Lumen\" Energy SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 95000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785896821,
+   "dateExpiration": 1791080821
+  },
+  "158879": {
+   "idItem": 5354,
+   "idCategory": 18,
+   "title": "Quartz \"Piconalia\" Energy SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785896822,
+   "dateExpiration": 1791080822
+  },
+  "158880": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "ADP mk4 (Modified)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785896826,
+   "dateExpiration": 1791080826
+  },
+  "158885": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785897727,
+   "dateExpiration": 1791081727
   }
  }
 }
