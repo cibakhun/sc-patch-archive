@@ -92,20 +92,14 @@ const MIN = 1;
 const MAX = 500;
 
 const T = {
-  de: {
-    kicker: 'VerseBase · Werkstatt',
-    ttl1: 'Instandsetzung',
+  de: {    ttl1: 'Instandsetzung',
     ttl2: 'Netzteil',
     fields: [
       ['Gerät', 'Entwicklungsrechner', false],
       ['Bauteil', 'Spannungsversorgung', false],
       ['Zustand', 'Fällt unangekündigt aus', true],
       ['Kostenrahmen', '120,00 EUR', false],
-    ] as [string, string, boolean][],
-    schAlt: 'Explosionszeichnung eines ATX-Netzteils. Von oben nach unten: Gehäuse mit Lüftergitter, Lüfter 80 Millimeter, Platine mit der Kondensatorbank C1 bis C3 — als Ausfallstelle gekennzeichnet — und das Anschlussfeld mit IEC-C14-Buchse und Netzschalter.',
-    schCap1: 'Zeichnung — Netzteil, Aufbau',
-    schCap2: 'Nicht maßstäblich',
-    sch: { case: ['GEHÄUSE', 'ATX'], fan: ['LÜFTER', '80 MM'], cap: ['C1–C3', 'PRIMÄR-', 'KONDENSATOR', 'AUSFALL', 'OHNE WARNUNG'], pcb: 'PLATINE', conn: ['ANSCHLUSS', 'IEC C14'], dim: '140 MM' },
+    ] as [string, string, boolean][],    sch: { case: ['GEHÄUSE', 'ATX'], fan: ['LÜFTER', '80 MM'], cap: ['C1–C3', 'PRIMÄR-', 'KONDENSATOR', 'AUSFALL', 'OHNE WARNUNG'], pcb: 'PLATINE', conn: ['ANSCHLUSS', 'IEC C14'], dim: '140 MM' },
     pos: [
       ['Pos 01', 'Befund',
         '<b>Der Rechner, auf dem VerseBase entsteht, geht ohne Vorwarnung aus.</b>',
@@ -144,20 +138,14 @@ const T = {
     ],
     feedback: 'Zum Feedback-Formular',
   },
-  en: {
-    kicker: 'VerseBase · Workshop',
-    ttl1: 'Repair order',
+  en: {    ttl1: 'Repair order',
     ttl2: 'Power supply',
     fields: [
       ['Machine', 'Development PC', false],
       ['Part', 'Power supply', false],
       ['Condition', 'Fails without warning', true],
       ['Budget', 'EUR 120.00', false],
-    ] as [string, string, boolean][],
-    schAlt: 'Exploded drawing of an ATX power supply. Top to bottom: housing with fan grille, 80 millimetre fan, board with the capacitor bank C1 to C3 — marked as the point of failure — and the connector panel with IEC C14 socket and power switch.',
-    schCap1: 'Drawing — power supply, assembly',
-    schCap2: 'Not to scale',
-    sch: { case: ['HOUSING', 'ATX'], fan: ['FAN', '80 MM'], cap: ['C1–C3', 'PRIMARY', 'CAPACITOR', 'FAILS', 'NO WARNING'], pcb: 'BOARD', conn: ['CONNECTOR', 'IEC C14'], dim: '140 MM' },
+    ] as [string, string, boolean][],    sch: { case: ['HOUSING', 'ATX'], fan: ['FAN', '80 MM'], cap: ['C1–C3', 'PRIMARY', 'CAPACITOR', 'FAILS', 'NO WARNING'], pcb: 'BOARD', conn: ['CONNECTOR', 'IEC C14'], dim: '140 MM' },
     pos: [
       ['Item 01', 'Fault',
         '<b>The machine VerseBase is built on cuts out without warning.</b>',
@@ -238,7 +226,6 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 .sup,.sup *{box-sizing:border-box}
 .sup{max-width:var(--maxw);margin:0 auto}
 .sup .cap{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
-.sup .cap--wide{letter-spacing:.38em}
 .sup .num{font-variant-numeric:tabular-nums;font-family:var(--font-mono,'Share Tech Mono',monospace)}
 
 /* --- Auftragskopf --------------------------------------------------------- */
@@ -263,22 +250,52 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 .sup__fields dd{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.86rem;letter-spacing:.05em;color:var(--text);margin:4px 0 0;font-variant-numeric:tabular-nums}
 .sup__fields dd.hi{color:var(--accent)}
 
-/* --- Koerper: Zeichnung | Auftrag ----------------------------------------- */
-/* align-items:stretch statt start: die Zeichnung ist 660 px hoch, die
-   Auftragsspalte 1322 — bei `start` klaffte darunter ein 662 px hohes dunkles
-   Loch, auf staging angesehen der auffaelligste Fehler der Seite. Gestreckt
-   laeuft das Rasterpapier samt Trennlinie durch, wie auf einem echten
-   Zeichnungsblatt. Die Zeichnung selbst bleibt per sticky stehen, solange man
-   den Auftrag daneben liest — sie gehoert zum Text, nicht davor. */
-.sup__body{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);align-items:stretch}
+/* --- Koerper: Zeichnung als Grund, Auftrag oben rechts -------------------- */
+/* Umbau 03.08.2026. Vorher standen Zeichnung und Text als zwei gleichberechtigte
+   Spalten nebeneinander, und der Auftrag lag ganz unten in der rechten Spalte —
+   man musste erst an drei Textbloecken vorbei, bevor ueberhaupt ein Knopf zu
+   sehen war. Jetzt:
+     * die Zeichnung liegt gross und blass HINTER allem (Wasserzeichen),
+     * der Auftrag steht oben rechts und bleibt beim Lesen stehen,
+     * der Text laeuft links daneben.
+
+   `isolation:isolate` statt blossem z-index: das haelt die Stapelung in diesem
+   Kasten. Ohne das kann ein spaeteres `position`-Element weiter unten auf der
+   Seite unter den Hintergrund rutschen. */
+.sup__body{position:relative;isolation:isolate;padding:0;background:linear-gradient(90deg,var(--line-soft) 0 1px,transparent 1px 100%) 0 0/32px 32px,linear-gradient(0deg,var(--line-soft) 0 1px,transparent 1px 100%) 0 0/32px 32px,var(--bg)}
+/* Eckklammern wie auf einem Zeichnungsblatt — jetzt um das ganze Blatt */
+.sup__body::before{content:"";position:absolute;inset:14px;pointer-events:none;z-index:1;background:linear-gradient(var(--line) 0 0) 0 0/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 0 0/1px 18px no-repeat,linear-gradient(var(--line) 0 0) 100% 0/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 100% 0/1px 18px no-repeat,linear-gradient(var(--line) 0 0) 0 100%/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 0 100%/1px 18px no-repeat,linear-gradient(var(--line) 0 0) 100% 100%/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 100% 100%/1px 18px no-repeat}
+
+/* DIE ZEICHNUNG ALS GRUND.
+   `height:100%;width:auto` statt beides auf 100%: das Seitenverhaeltnis muss
+   erhalten bleiben, sonst wird aus dem runden Luefter ein Ei. Sie sitzt links
+   und laeuft oben wie unten aus dem Kasten heraus — angeschnitten wirkt sie
+   gross, vollstaendig eingepasst wirkt sie nur klein und mittig.
+   Die Deckkraft ist der ganze Trick: bei .14 sind die Striche noch als Technik
+   lesbar, aber der Text darueber steht bei gemessenen 16,8:1 — die Zeichnung
+   nimmt ihm nichts. Ein Wasserzeichen mit mehr Deckkraft haette genau den
+   Vorwurf zurueckgeholt, den diese Seite gerade erst losgeworden ist. */
+.sup__bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;display:flex;justify-content:flex-start;align-items:center}
+.sup__bg .sup__sch{height:152%;width:auto;max-width:none;flex:none;margin-left:clamp(-190px,-9vw,-60px);opacity:.15}
+.sup__sch{display:block}
+/* DIE BESCHRIFTUNGEN DER ZEICHNUNG SIND IM GRUND AUS.
+   Im Browser angesehen, nachdem der Umbau stand: „GEHÄUSE", „LÜFTER 80 MM",
+   „OHNE WARNUNG" und „PLATINE" landeten mitten in den Absaetzen von Pos 01 und
+   Pos 02 — zwei Schriftsaetze uebereinander, von denen einer nicht gelesen
+   werden soll. Genau das war die Beanstandung.
+   Weggenommen wird nur die SCHRIFT. Die golden gestrichelte Umrandung der
+   Kondensatorbank bleibt: sie zeigt die Fehlerstelle als Geometrie, ohne ein
+   zweites Wort auf die Seite zu bringen. Und die Fuehrungslinien, die nun ins
+   Leere zeigten, gehen mit. */
+.sup__bg .sup__sch text,.sup__bg .sup__sch .ld{display:none}
+
+/* Raster: Text links, Auftrag rechts. Die Zuweisung steht ausdruecklich da,
+   weil der Auftrag im Quelltext ZUERST kommt (siehe Kommentar am Markup) — ohne
+   die Angabe landete er links. */
+.sup__grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,400px);gap:0 clamp(20px,3vw,48px);align-items:start;padding:36px clamp(16px,4vw,40px) 40px}
+.sup__order{grid-area:1/1}
+.sup__aside{grid-area:1/2}
 .sup__sticky{position:sticky;top:5.2rem}
-/* Unten 22 statt 40 px: gemessen blieben 105 px Totraum unter der Zeichnung,
-   das Rasterpapier lief sichtbar ins Leere. */
-.sup__drawing{position:relative;padding:32px clamp(16px,3vw,32px) 22px;border-right:1px solid var(--line-soft);background:linear-gradient(90deg,var(--line-soft) 0 1px,transparent 1px 100%) 0 0/32px 32px,linear-gradient(0deg,var(--line-soft) 0 1px,transparent 1px 100%) 0 0/32px 32px,var(--bg)}
-/* Eckklammern wie auf einem Zeichnungsblatt */
-.sup__drawing::before{content:"";position:absolute;inset:14px;pointer-events:none;background:linear-gradient(var(--line) 0 0) 0 0/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 0 0/1px 18px no-repeat,linear-gradient(var(--line) 0 0) 100% 0/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 100% 0/1px 18px no-repeat,linear-gradient(var(--line) 0 0) 0 100%/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 0 100%/1px 18px no-repeat,linear-gradient(var(--line) 0 0) 100% 100%/18px 1px no-repeat,linear-gradient(var(--line) 0 0) 100% 100%/1px 18px no-repeat}
-.sup__drawcap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:10px;border-top:1px solid var(--line-soft)}
-.sup__sch{display:block;width:100%;height:auto}
 .sup__sch .o{fill:none;stroke:var(--muted);stroke-width:1.7;vector-effect:non-scaling-stroke}
 .sup__sch .t{fill:none;stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke}
 .sup__sch .c{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:14 4 3 4;opacity:.45;vector-effect:non-scaling-stroke}
@@ -292,10 +309,20 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 .sup__sch g{stroke-linecap:butt;stroke-linejoin:miter}
 
 /* --- Positionen ----------------------------------------------------------- */
-.sup__order{padding:32px clamp(16px,4vw,40px) 0}
-.sup__pos{border-top:1px solid var(--line-soft);padding:20px 0;display:grid;grid-template-columns:3.4rem 1fr;gap:0 16px}
+/* Der Innenabstand sitzt jetzt am Raster, nicht mehr an dieser Spalte. */
+.sup__order{padding:0}
+/* „Verteilt" heisst hier: die drei Positionen stehen bewusst weit auseinander,
+   damit die Zeichnung im Grund zwischen ihnen durchkommt. Vorher waren es
+   20 px und die drei Bloecke lasen sich als ein einziger Textklumpen, der die
+   Zeichnung von oben bis unten zudeckte. */
+.sup__order{padding:0}
+/* Spaltenbreite aus dem Inhalt statt fester 3.4rem: „POS 01" passte, das
+   englische „ITEM 01" brach in zwei Zeilen um. Im Browser gesehen. `auto` misst
+   die laengste Marke der Seite, also je Sprache richtig. */
+.sup__pos{border-top:1px solid var(--line-soft);padding:clamp(26px,4.5vw,52px) 0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:0 18px}
 .sup__pos:first-of-type{border-top:0;padding-top:0}
-.sup__pos-n{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.74rem;letter-spacing:.12em;color:var(--muted);padding-top:4px;text-transform:uppercase}
+.sup__pos:last-of-type{padding-bottom:0}
+.sup__pos-n{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.74rem;letter-spacing:.12em;color:var(--muted);padding-top:4px;text-transform:uppercase;white-space:nowrap}
 .sup__pos h2{font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text);margin:0 0 8px}
 /* Der Fliesstext stand in var(--muted) — also in der Farbe, die auf dieser
    Seite sonst BESCHRIFTUNGEN traegt (Feldnamen, Skala, Positionsnummern).
@@ -434,11 +461,19 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
   .sup__gfill,.sup__pill span,.sup__cta{transition:none}
 }
 @media (max-width:860px){
-  .sup__body{grid-template-columns:minmax(0,1fr)}
-  /* Einspaltig gibt es nichts mehr, woran die Zeichnung kleben koennte —
-     sticky wuerde sie nur ueber den Text schieben. */
+  /* Einspaltig: der Auftrag steht oben, weil er im Quelltext zuerst kommt —
+     genau so soll es sein. Die Rasterzuweisung muss dafuer weichen, sonst
+     zwingt sie ihn weiter in eine zweite Spalte, die es nicht mehr gibt. */
+  .sup__grid{grid-template-columns:minmax(0,1fr);gap:clamp(26px,6vw,40px) 0}
+  .sup__order,.sup__aside{grid-area:auto}
+  /* Nichts mehr, woran der Auftrag kleben koennte — sticky wuerde ihn nur
+     ueber den Text schieben. */
   .sup__sticky{position:static}
-  .sup__drawing{border-right:0;border-bottom:1px solid var(--line-soft)}
+  /* Schmal wird die Zeichnung zur blossen Textur: sie steht dann zwangslaeufig
+     hinter JEDEM Absatz statt nur daneben. Weiter zurueckgenommen und mittig,
+     damit sie den Text nicht streift. */
+  .sup__bg{justify-content:center}
+  .sup__bg .sup__sch{height:100%;opacity:.09;margin-left:0}
   .sup__fields{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sup__fields>div:nth-child(2){border-right:0}
 }
@@ -465,9 +500,11 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
   <article class="sup">
 
     <header class="sup__head">
+      {/* Der Beisatz „VerseBase · Werkstatt" stand hier rechts neben dem Titel
+          und ist am 03.08.2026 auf Wunsch des Betreibers entfallen. Er sagte
+          nichts, was der Titel und die vier Auftragsfelder nicht schon sagen. */}
       <div class="sup__headtop">
         <h1 class="sup__ttl">{T.ttl1}<br /><em set:text={T.ttl2}></em></h1>
-        <span class="cap cap--wide" set:text={T.kicker}></span>
       </div>
       <dl class="sup__fields">
         {T.fields.map(([k, v, hi]) => (
@@ -482,10 +519,17 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
     <div class="sup__body">
 
       {/* Senkrechte Explosionsdarstellung: Gehaeuse, Luefter, Platine mit der
-          Kondensatorbank (das Fehlerteil, golden umgrenzt), Anschlussfeld. */}
-      <div class="sup__drawing">
-        <div class="sup__sticky">
-        <svg class="sup__sch" viewBox="0 0 400 640" role="img" aria-label={T.schAlt}>
+          Kondensatorbank (das Fehlerteil, golden umgrenzt), Anschlussfeld.
+
+          Seit dem 03.08.2026 ist sie HINTERGRUND, nicht mehr eigene Spalte.
+          Damit ist sie Schmuck — und deshalb `aria-hidden`, ohne role und ohne
+          Alternativtext. Das ist kein Verlust: ein Vorleseprogramm bekaeme sonst
+          eine ausfuehrliche Bauteilbeschreibung vorgelesen, waehrend derselbe
+          Inhalt gleich daneben in Pos 01 bis 03 als Fliesstext steht.
+          Die Bildunterschrift ist aus demselben Grund entfallen — eine
+          Beschriftung an einem Wasserzeichen beschriftet nichts. */}
+      <div class="sup__bg" aria-hidden="true">
+        <svg class="sup__sch" viewBox="0 0 400 640" focusable="false">
           <g>
             <path class="c" d="M150 22 V 596"></path>
 
@@ -558,30 +602,18 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
             <text x="265" y="541" set:text={T.sch.conn[1]}></text>
           </g>
         </svg>
-        <div class="sup__drawcap">
-          <span class="cap" set:text={T.schCap1}></span>
-          <span class="cap" set:text={T.schCap2}></span>
-        </div>
-        </div>
       </div>
 
-      {/* Der Auftrag. Bewusst <div> statt <section>: assets/detail.css stylt
-          blankes `section` mit clamp(3rem,7vw,5.5rem) Innenabstand — dieselbe
-          Falle, die schon das Konto-Panel getroffen hat. */}
-      <div class="sup__order">
-        {T.pos.map(([n, h, p1, p2]) => (
-          <div class="sup__pos">
-            <span class="sup__pos-n" set:text={n}></span>
-            <div>
-              <h2 set:text={h}></h2>
-              <p set:html={p1}></p>
-              {p2 && <p set:html={p2}></p>}
-            </div>
-          </div>
-        ))}
-
-        {/* Kostenrahmen. Zeigt den GEWAEHLTEN Betrag, NICHT einen Ist-Stand —
-            den gibt es nicht, siehe Kopfkommentar. */}
+      {/* ZUERST im Quelltext, nicht aus Versehen: der Auftrag soll sofort
+          sichtbar sein. Auf breiten Schirmen setzt ihn das Raster nach rechts
+          oben und laesst den Text links daneben laufen; auf schmalen faellt
+          alles untereinander — und dann steht er oben, ohne dass ein
+          `order`-Kniff die Reihenfolge fuer Tastatur und Vorleseprogramm von
+          der sichtbaren trennt. Der Auftragskopf darueber liefert den Anlass
+          (Zustand, Kostenrahmen), bevor hier nach Geld gefragt wird. */}
+      <div class="sup__grid">
+        <div class="sup__aside">
+          <div class="sup__sticky">
         {/* Stand der Sammlung. Startet VERBORGEN und wird erst sichtbar, wenn
             der Wert aus der Datenbank da ist. Faellt der Abruf aus, bleibt der
             Abschnitt weg — lieber kein Balken als ein leerer, der einen Stand
@@ -653,6 +685,24 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
             <a id="supPp" href={`${PAYPAL}/${PRESELECT}EUR`} rel="noopener" set:text={T.payAlt}></a>
           </p>
           <p class="sup__honest" set:html={T.honest}></p>
+        </div>
+          </div>
+        </div>
+
+        {/* Der Auftrag. Bewusst <div> statt <section>: assets/detail.css stylt
+            blankes `section` mit clamp(3rem,7vw,5.5rem) Innenabstand — dieselbe
+            Falle, die schon das Konto-Panel getroffen hat. */}
+        <div class="sup__order">
+          {T.pos.map(([n, h, p1, p2]) => (
+            <div class="sup__pos">
+              <span class="sup__pos-n" set:text={n}></span>
+              <div>
+                <h2 set:text={h}></h2>
+                <p set:html={p1}></p>
+                {p2 && <p set:html={p2}></p>}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

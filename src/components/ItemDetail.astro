@@ -67,11 +67,11 @@ const crumbs = [
   sources={['UEX Corp']}
   updated={db.pricesAsOf}
 >
-  <h1>{name}</h1>
-  {alt && <p class="dp-alt">{alt}</p>}
-  <p class="dp-lead">{seo.lead}</p>
+  <h1 slot="hero">{name}</h1>
+  {alt && <p class="dp-alt" slot="hero">{alt}</p>}
+  <p class="dp-lead" slot="hero">{seo.lead}</p>
 
-  <ul class="dp-keys">
+  <ul class="dp-keys" slot="hero">
     {lo != null && (
       <li class="dp-key"><b>{t('cheapest')}</b><span>{auec(lo, lang)}</span></li>
     )}

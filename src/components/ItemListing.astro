@@ -9,7 +9,7 @@ import { href, type Locale } from '../i18n/ui';
 import { itemT, fill, categoryLabel } from '../i18n/itemText';
 import {
   PER_PAGE, auec, avgPrice, categoryPath, db, displayName, itemPath, itemsHubPath,
-  leafCategory, minPrice, num, pageCount, pageItemIds, roots, type CategoryNode,
+  leafCategory, midCategory, minPrice, num, pageCount, pageItemIds, roots, type CategoryNode,
 } from '../lib/items';
 import { categorySeo } from '../lib/itemSeo';
 
@@ -21,6 +21,13 @@ const pages = pageCount(node);
 const seo = categorySeo(node.cat, node.items.length, page, pages, lang);
 const slice = node.items.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 const siblings = roots.find((r) => r.root === node.root)?.nodes ?? [];
+
+// Kennzahlen im Seitenkopf. „Wie viele davon kann ich ueberhaupt kaufen und
+// was ist das guenstigste" ist die Frage, mit der man auf einer Kategorie
+// landet — die Gesamtzahl allein beantwortet sie nicht.
+const prices = node.items.map(minPrice).filter((p): p is number => p != null);
+const buyable = prices.length;
+const cheapest = prices.length > 0 ? Math.min(...prices) : null;
 
 const crumbs = [
   { label: t('breadcrumbItems'), href: itemsHubPath },
@@ -36,15 +43,22 @@ const sourceLabel = (n: number, first?: string) =>
   title={seo.title}
   description={seo.description}
   crumbs={crumbs}
-  eyebrow={`${categoryLabel(node.root, lang)} · ${t('sectionCategory')}`}
+  eyebrow={[categoryLabel(node.root, lang), midCategory(node.cat), t('sectionCategory')].filter(Boolean).join(' · ')}
   modified={db.generatedAt}
   sources={['UEX Corp']}
   updated={db.pricesAsOf}
 >
-  <h1>{leafCategory(node.cat)}</h1>
-  <p class="dp-lead">
+  <h1 slot="hero">{leafCategory(node.cat)}</h1>
+  <p class="dp-lead" slot="hero">
     {fill(t('listingLead'), { n: num(node.items.length, lang), cat: node.cat, date: db.pricesAsOf })}
   </p>
+
+  <ul class="dp-keys" slot="hero">
+    <li class="dp-key"><b>{t('entries')}</b><span>{num(node.items.length, lang)}</span></li>
+    <li class="dp-key"><b>{t('kindBuy')}</b><span>{num(buyable, lang)}</span></li>
+    {cheapest != null && <li class="dp-key"><b>{t('cheapest')}</b><span>{auec(cheapest, lang)}</span></li>}
+    <li class="dp-key"><b>{t('dataAsOf')}</b><span>{db.pricesAsOf}</span></li>
+  </ul>
 
   <div class="dp-tablewrap">
     <table class="dp-table">
@@ -100,7 +114,8 @@ const sourceLabel = (n: number, first?: string) =>
       <ul class="dp-cards">
         {siblings.filter((s) => s.slug !== node.slug).map((s) => (
           <li>
-            <a class="dp-card" href={href(categoryPath(s), lang)}>
+            <a class="dp-card dp-card--cat" href={href(categoryPath(s), lang)}>
+              {midCategory(s.cat) && <span class="dp-card-path">{midCategory(s.cat)}</span>}
               <strong>{leafCategory(s.cat)}</strong>
               <em>{num(s.items.length, lang)}</em>
             </a>
