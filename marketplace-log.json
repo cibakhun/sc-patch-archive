@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-05",
-  "updates": 47,
-  "totalListings": 2159,
+  "updates": 48,
+  "totalListings": 2166,
   "totalSold": 84,
   "distinctItems": 747
  },
@@ -39925,6 +39925,10 @@
     {
      "d": "2026-08-04",
      "p": 450000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 350000
     }
    ],
    "soldOut": false,
@@ -45804,6 +45808,153 @@
    "soldOutPrice": null,
    "dateAdded": 1785908597,
    "dateExpiration": 1791092597
+  },
+  "158934": {
+   "idItem": 7984,
+   "idCategory": 7,
+   "title": "Monde Armor Set Purgatory Camo (crafted) -43% damage (crafted backpack optional for free)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 920,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785909095,
+   "dateExpiration": 1791093095
+  },
+  "158936": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785909412,
+   "dateExpiration": 1791093412
+  },
+  "158937": {
+   "idItem": 5116,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AAA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785909590,
+   "dateExpiration": 1791093590
+  },
+  "158938": {
+   "idItem": null,
+   "idCategory": 15,
+   "title": "Bellator Midas Full set (armored clothing)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785909806,
+   "dateExpiration": 1791093806
+  },
+  "158940": {
+   "idItem": 4583,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785910243,
+   "dateExpiration": 1791094243
+  },
+  "158941": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle - HQ Mats used!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785911418,
+   "dateExpiration": 1791095417
+  },
+  "158944": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 967,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 25000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785912155,
+   "dateExpiration": 1791096155
   }
  }
 }
