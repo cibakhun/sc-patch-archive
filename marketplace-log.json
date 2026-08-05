@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-05",
-  "updates": 60,
-  "totalListings": 2435,
+  "updates": 61,
+  "totalListings": 2450,
   "totalSold": 96,
-  "distinctItems": 787
+  "distinctItems": 790
  },
  "listings": {
   "156580": {
@@ -41962,6 +41962,10 @@
     {
      "d": "2026-08-04",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 1400000
     }
    ],
    "soldOut": false,
@@ -42004,6 +42008,10 @@
     {
      "d": "2026-08-04",
      "p": 4000000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 3600000
     }
    ],
    "soldOut": false,
@@ -46243,6 +46251,10 @@
     {
      "d": "2026-08-05",
      "p": 38000000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 26000000
     }
    ],
    "soldOut": false,
@@ -47860,6 +47872,10 @@
     {
      "d": "2026-08-05",
      "p": 500000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 300000
     }
    ],
    "soldOut": false,
@@ -51047,6 +51063,10 @@
     {
      "d": "2026-08-05",
      "p": 9000000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 9500000
     }
    ],
    "soldOut": false,
@@ -51684,6 +51704,321 @@
    "soldOutPrice": null,
    "dateAdded": 1785955405,
    "dateExpiration": 1791139405
+  },
+  "159127": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 25000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785955502,
+   "dateExpiration": 1791139502
+  },
+  "159128": {
+   "idItem": 5050,
+   "idCategory": 18,
+   "title": "Scourge \"Quite Useful\" Railgun // Ailgam's Collectibles",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785955710,
+   "dateExpiration": 1791139710
+  },
+  "159129": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785956104,
+   "dateExpiration": 1791140104
+  },
+  "159130": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "NDB-30 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 675000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785956204,
+   "dateExpiration": 1791140203
+  },
+  "159131": {
+   "idItem": 3215,
+   "idCategory": 24,
+   "title": "Zeus Exploration Suit Solar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785956398,
+   "dateExpiration": 1791140398
+  },
+  "159132": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "WTS 18 X Wikelo Favors",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785956647,
+   "dateExpiration": 1791140647
+  },
+  "159134": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "WTS Savrilium 878Q | 2.720 SCU in Stock",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 878,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785957046,
+   "dateExpiration": 1791141046
+  },
+  "159135": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785957227,
+   "dateExpiration": 1791141227
+  },
+  "159136": {
+   "idItem": 1810,
+   "idCategory": 32,
+   "title": "Absolution Distortion Scattergun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785957232,
+   "dateExpiration": 1796328832
+  },
+  "159137": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTS F8C Lightning [Military Spec] (Wikelo Kit)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 59999998
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785957371,
+   "dateExpiration": 1791141371
+  },
+  "159138": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 19999999
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785957662,
+   "dateExpiration": 1791141662
+  },
+  "159139": {
+   "idItem": 7408,
+   "idCategory": 5,
+   "title": "Carrion Core Maniac",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785958015,
+   "dateExpiration": 1791142015
+  },
+  "159140": {
+   "idItem": null,
+   "idCategory": 111,
+   "title": "DCHS Comp Board #5",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785958141,
+   "dateExpiration": 1791142141
+  },
+  "159141": {
+   "idItem": 7413,
+   "idCategory": 3,
+   "title": "Carrion Helmet Maniac",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785958311,
+   "dateExpiration": 1791142310
+  },
+  "159142": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium 916q .391scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785958535,
+   "dateExpiration": 1791142535
   }
  }
 }
