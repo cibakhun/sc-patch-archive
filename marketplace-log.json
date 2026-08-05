@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-05",
-  "updates": 58,
-  "totalListings": 2375,
-  "totalSold": 90,
-  "distinctItems": 782
+  "updates": 59,
+  "totalListings": 2382,
+  "totalSold": 94,
+  "distinctItems": 783
  },
  "listings": {
   "156580": {
@@ -42069,9 +42069,9 @@
      "p": 8000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 8000000,
    "dateAdded": 1785860414,
    "dateExpiration": 1791044414
   },
@@ -43881,9 +43881,9 @@
      "p": 1700000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 1700000,
    "dateAdded": 1785871514,
    "dateExpiration": 1791055514
   },
@@ -44534,6 +44534,10 @@
     {
      "d": "2026-08-05",
      "p": 120000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 1200000
     }
    ],
    "soldOut": false,
@@ -45103,9 +45107,9 @@
      "p": 750000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 750000,
    "dateAdded": 1785879271,
    "dateExpiration": 1791063271
   },
@@ -50416,6 +50420,153 @@
    "soldOutPrice": null,
    "dateAdded": 1785948279,
    "dateExpiration": 1791132279
+  },
+  "159088": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 880,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1200000
+    }
+   ],
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 1200000,
+   "dateAdded": 1785948382,
+   "dateExpiration": 1791132382
+  },
+  "159089": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 647,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785948516,
+   "dateExpiration": 1791132516
+  },
+  "159090": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 554,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 5100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785948695,
+   "dateExpiration": 1791132695
+  },
+  "159091": {
+   "idItem": 7988,
+   "idCategory": 7,
+   "title": "Palatino Set Metropolis 780Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 780,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785948828,
+   "dateExpiration": 1796320428
+  },
+  "159103": {
+   "idItem": 5819,
+   "idCategory": 18,
+   "title": "Novian Crossbow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785951121,
+   "dateExpiration": 1791135121
+  },
+  "159107": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl 937q ( 2 boxes - 1scu plus 0.97 scu )",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785951642,
+   "dateExpiration": 1791135642
+  },
+  "159109": {
+   "idItem": 6883,
+   "idCategory": 3,
+   "title": "OMNI-AFS-Sapphire Flight Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785951945,
+   "dateExpiration": 1791135945
   }
  }
 }
