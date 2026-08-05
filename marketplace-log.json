@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-05",
-  "updates": 42,
-  "totalListings": 2115,
-  "totalSold": 81,
-  "distinctItems": 737
+  "updates": 43,
+  "totalListings": 2131,
+  "totalSold": 82,
+  "distinctItems": 738
  },
  "listings": {
   "156580": {
@@ -41834,11 +41834,15 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-04",
-   "lastSeen": "2026-08-04",
+   "lastSeen": "2026-08-05",
    "prices": [
     {
      "d": "2026-08-04",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -42069,11 +42073,15 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-04",
-   "lastSeen": "2026-08-04",
+   "lastSeen": "2026-08-05",
    "prices": [
     {
      "d": "2026-08-04",
      "p": 0
+    },
+    {
+     "d": "2026-08-05",
+     "p": 650000
     }
    ],
    "soldOut": false,
@@ -43559,6 +43567,27 @@
    "dateAdded": 1785869628,
    "dateExpiration": 1791053628
   },
+  "158738": {
+   "idItem": 4744,
+   "idCategory": 87,
+   "title": "Janalite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 732,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 75000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785869805,
+   "dateExpiration": 1791053805
+  },
   "158739": {
    "idItem": null,
    "idCategory": 1,
@@ -43663,6 +43692,111 @@
    "soldOutPrice": null,
    "dateAdded": 1785870406,
    "dateExpiration": 1791054405
+  },
+  "158744": {
+   "idItem": 4744,
+   "idCategory": 87,
+   "title": "Janalite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 596,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 190000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785870602,
+   "dateExpiration": 1791054602
+  },
+  "158745": {
+   "idItem": 7471,
+   "idCategory": 3,
+   "title": "Azrael Racing Helmet Ruby",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785870845,
+   "dateExpiration": 1791054845
+  },
+  "158747": {
+   "idItem": 4744,
+   "idCategory": 87,
+   "title": "Janalite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 269,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 25000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785870968,
+   "dateExpiration": 1791054968
+  },
+  "158748": {
+   "idItem": 7522,
+   "idCategory": 3,
+   "title": "Azrael Racing Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785870976,
+   "dateExpiration": 1791054976
+  },
+  "158749": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 499,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785871514,
+   "dateExpiration": 1791055514
   },
   "158751": {
    "idItem": 4454,
@@ -44120,9 +44254,9 @@
      "p": 4000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-05",
+   "soldOutPrice": 4000000,
    "dateAdded": 1785874694,
    "dateExpiration": 1796242694
   },
@@ -44860,6 +44994,216 @@
    "soldOutPrice": null,
    "dateAdded": 1785890418,
    "dateExpiration": 1791074418
+  },
+  "158852": {
+   "idItem": 141,
+   "idCategory": 21,
+   "title": "WTS DynaFlux PowerPlant",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 45000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785890973,
+   "dateExpiration": 1791074973
+  },
+  "158854": {
+   "idItem": 1347,
+   "idCategory": 22,
+   "title": "WTS VK-00",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785891442,
+   "dateExpiration": 1791075442
+  },
+  "158855": {
+   "idItem": 1748,
+   "idCategory": 23,
+   "title": "FR-66",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785891490,
+   "dateExpiration": 1791075490
+  },
+  "158857": {
+   "idItem": 159,
+   "idCategory": 23,
+   "title": "WTS FullBlock Shield",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785891852,
+   "dateExpiration": 1791075852
+  },
+  "158858": {
+   "idItem": 155,
+   "idCategory": 23,
+   "title": "Umbra",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 440000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785891901,
+   "dateExpiration": 1791075901
+  },
+  "158859": {
+   "idItem": 5386,
+   "idCategory": 18,
+   "title": "Boomtube \"Ruby\" Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785892055,
+   "dateExpiration": 1791076055
+  },
+  "158861": {
+   "idItem": 1750,
+   "idCategory": 23,
+   "title": "WTS FR-76 Shield",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785892260,
+   "dateExpiration": 1791076260
+  },
+  "158863": {
+   "idItem": 5643,
+   "idCategory": 18,
+   "title": "Zenith Laser Sniper Rifle 950 or better",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785893073,
+   "dateExpiration": 1791077073
+  },
+  "158864": {
+   "idItem": null,
+   "idCategory": 3,
+   "title": "Kiba Helmet (Hornless Oni Kiba Helmet)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 19000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785893109,
+   "dateExpiration": 1791077109
+  },
+  "158865": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium Q967 1.35SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 967,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 40000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785893183,
+   "dateExpiration": 1796264783
   }
  }
 }
