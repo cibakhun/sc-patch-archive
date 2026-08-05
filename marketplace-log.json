@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-05",
-  "updates": 53,
-  "totalListings": 2339,
+  "updates": 54,
+  "totalListings": 2341,
   "totalSold": 88,
-  "distinctItems": 778
+  "distinctItems": 779
  },
  "listings": {
   "156580": {
@@ -38846,6 +38846,10 @@
     {
      "d": "2026-08-04",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 18000000
     }
    ],
    "soldOut": false,
@@ -49636,6 +49640,48 @@
    "soldOutPrice": null,
    "dateAdded": 1785929067,
    "dateExpiration": 1791113067
+  },
+  "159032": {
+   "idItem": 4466,
+   "idCategory": 1,
+   "title": "WTS ADP-mk4 Arms Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785930784,
+   "dateExpiration": 1791114784
+  },
+  "159033": {
+   "idItem": 10,
+   "idCategory": 32,
+   "title": "4x C-788 Cannon crafted 965Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 962,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785931215,
+   "dateExpiration": 1791115215
   }
  }
 }
