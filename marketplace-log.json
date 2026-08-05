@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-05",
-  "updates": 49,
-  "totalListings": 2180,
+  "updates": 50,
+  "totalListings": 2191,
   "totalSold": 84,
   "distinctItems": 750
  },
@@ -37768,6 +37768,10 @@
     {
      "d": "2026-08-04",
      "p": 7500000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 6000000
     }
    ],
    "soldOut": false,
@@ -39841,6 +39845,10 @@
     {
      "d": "2026-08-04",
      "p": 1500000000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 500000000
     }
    ],
    "soldOut": false,
@@ -46120,6 +46128,10 @@
     {
      "d": "2026-08-05",
      "p": 30000000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 40000000
     }
    ],
    "soldOut": false,
@@ -46253,6 +46265,237 @@
    "soldOutPrice": null,
    "dateAdded": 1785915919,
    "dateExpiration": 1791099919
+  },
+  "158965": {
+   "idItem": 5859,
+   "idCategory": 36,
+   "title": "WTS 1000Q ASLARITE .167 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 100000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785917186,
+   "dateExpiration": 1796285185
+  },
+  "158966": {
+   "idItem": 7968,
+   "idCategory": 7,
+   "title": "Ana Armor Endro Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785917407,
+   "dateExpiration": 1791101407
+  },
+  "158967": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785917611,
+   "dateExpiration": 1791101611
+  },
+  "158968": {
+   "idItem": 5137,
+   "idCategory": 7,
+   "title": "bokto wikelo armor full set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785917743,
+   "dateExpiration": 1791101743
+  },
+  "158969": {
+   "idItem": 8026,
+   "idCategory": 7,
+   "title": "Corbel Crush Set badpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785918106,
+   "dateExpiration": 1791102106
+  },
+  "158970": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "dcp camo cobalt full set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785918504,
+   "dateExpiration": 1791102504
+  },
+  "158971": {
+   "idItem": 1767,
+   "idCategory": 19,
+   "title": "Blizzard",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785918810,
+   "dateExpiration": 1791102810
+  },
+  "158972": {
+   "idItem": 8046,
+   "idCategory": 7,
+   "title": "dcp hunter camo set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785918814,
+   "dateExpiration": 1791102814
+  },
+  "158973": {
+   "idItem": 954,
+   "idCategory": 19,
+   "title": "Glacier",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 170000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785919039,
+   "dateExpiration": 1791103039
+  },
+  "158974": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "cdp jungle camo set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785919082,
+   "dateExpiration": 1791103082
+  },
+  "158976": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "testudo clanguard set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785919368,
+   "dateExpiration": 1791103368
   }
  }
 }
