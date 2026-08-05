@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-05",
-  "updates": 45,
-  "totalListings": 2146,
+  "updates": 46,
+  "totalListings": 2149,
   "totalSold": 84,
-  "distinctItems": 742
+  "distinctItems": 743
  },
  "listings": {
   "156580": {
@@ -39606,6 +39606,10 @@
     {
      "d": "2026-08-05",
      "p": 11000000
+    },
+    {
+     "d": "2026-08-05",
+     "p": 10000000
     }
    ],
    "soldOut": false,
@@ -45523,6 +45527,69 @@
    "soldOutPrice": null,
    "dateAdded": 1785899963,
    "dateExpiration": 1791083963
+  },
+  "158906": {
+   "idItem": 5160,
+   "idCategory": 18,
+   "title": "Pulverizer LMG (crafted) 925q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 925,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785902750,
+   "dateExpiration": 1791086750
+  },
+  "158908": {
+   "idItem": 6704,
+   "idCategory": 3,
+   "title": "Palatino Helmet Sunstone",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 240000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785903174,
+   "dateExpiration": 1791087174
+  },
+  "158909": {
+   "idItem": 5137,
+   "idCategory": 7,
+   "title": "Antium Armor full set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-05",
+   "lastSeen": "2026-08-05",
+   "prices": [
+    {
+     "d": "2026-08-05",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785903630,
+   "dateExpiration": 1791087630
   }
  }
 }
