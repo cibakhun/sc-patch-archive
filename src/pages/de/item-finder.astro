@@ -36,7 +36,6 @@ const snap = DB.generatedAt;
 .uf-browse a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--line)}
 .uf-browse a:hover{color:var(--accent-2);border-color:var(--accent-2)}</style>
 <a class="skip" href="#main">Zum Inhalt springen</a>
-<div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={[{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.9', href: '/de/patches/sc-4-9-0.html' }, { label: 'Item Finder' }]} hasEn={true} />
 
@@ -44,7 +43,6 @@ const snap = DB.generatedAt;
   <section class="hero">
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/cz-loot.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
-    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
       <div class="eyebrow"><a href="/de/patches/sc-4-9-0.html">Alpha 4.9</a> &nbsp;·&nbsp; <span class="uf-tag">Item-Datenbank</span></div>
       <h1><span class="thin">Star Citizen</span>Item Finder</h1>

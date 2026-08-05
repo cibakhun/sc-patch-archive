@@ -48,7 +48,6 @@ const patchHref = de ? `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html` : `/
 .cr-browse a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--line)}
 .cr-browse a:hover{color:var(--accent-2);border-color:var(--accent-2)}</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
-<div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: `Alpha ${patch}`, href: patchHref }, { label: "Crafting" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: `Alpha ${patch}`, href: patchHref }, { label: "Crafting" }]} />
 
@@ -56,7 +55,6 @@ const patchHref = de ? `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html` : `/
   <section class="hero">
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-craft-1.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
-    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
       <div class="eyebrow"><a href={patchHref}>Alpha {patch}</a> &nbsp;·&nbsp; <span class="cr-tag">{de ? 'Crafting-Datenbank' : 'Crafting database'}</span></div>
       <h1><span class="thin">{de ? 'Blueprint-Datenbank' : 'Blueprint database'}</span>Crafting</h1>

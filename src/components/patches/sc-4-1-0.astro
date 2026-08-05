@@ -45,7 +45,6 @@ a{color:inherit;text-decoration:none}
 
 /* Effekt-Overlays */
 body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 42%,transparent 54%,var(--vignette) 100%),repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
-.cursorglow{position:fixed;inset:0;z-index:8800;pointer-events:none;background:radial-gradient(280px circle at var(--mx,50%) var(--my,28%),rgba(61,165,217,.13),transparent 60%)}
 
 
 /* HERO */
@@ -182,7 +181,6 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 :root[data-theme="light"] .tile.word.hot b{color:#a7030f}
 </style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
-<div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.1.0' }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.1.0' }]} />
 
@@ -297,7 +295,6 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 
 const tb=document.getElementById('topbar');
 addEventListener('scroll',()=>tb.classList.toggle('scrolled',scrollY>40),{passive:true});
-addEventListener('pointermove',e=>{document.documentElement.style.setProperty('--mx',e.clientX+'px');document.documentElement.style.setProperty('--my',e.clientY+'px');},{passive:true});
 const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 document.querySelectorAll('.video[data-yt]').forEach(v=>{v.addEventListener('click',()=>{const id=v.getAttribute('data-yt');v.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&rel=0" title="Video" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>';},{once:true});});

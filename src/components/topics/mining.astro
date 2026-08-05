@@ -82,7 +82,6 @@ const ships = de ? buildMiningShips('de') : buildMiningShips('en');
 .mn-cta__go{flex:none;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.72rem;color:var(--accent);white-space:nowrap}
 @media(max-width:560px){.mn-cta{flex-wrap:wrap}.mn-cta__go{width:100%;text-align:right}}</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
-<div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: "Mining" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: "Mining" }]} />
 
@@ -90,7 +89,6 @@ const ships = de ? buildMiningShips('de') : buildMiningShips('en');
   <section class="hero">
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/img-mole.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
-    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
       <div class="eyebrow">Alpha {verShort}{de ? ' · Live-Daten' : ' · live data'}</div>
       <h1>Mining</h1>
