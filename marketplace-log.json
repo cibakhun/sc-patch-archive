@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 71,
-  "totalListings": 2593,
-  "totalSold": 111,
+  "updates": 72,
+  "totalListings": 2595,
+  "totalSold": 112,
   "distinctItems": 805
  },
  "listings": {
@@ -50861,6 +50861,10 @@
     {
      "d": "2026-08-05",
      "p": 120000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 110000
     }
    ],
    "soldOut": false,
@@ -53639,9 +53643,9 @@
      "p": 25000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 25000000,
    "dateAdded": 1785969932,
    "dateExpiration": 1796337932
   },
@@ -55030,6 +55034,48 @@
    "soldOutPrice": null,
    "dateAdded": 1785994881,
    "dateExpiration": 1791178881
+  },
+  "159331": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785997618,
+   "dateExpiration": 1791181618
+  },
+  "159333": {
+   "idItem": 6018,
+   "idCategory": 3,
+   "title": "Palatino Helmet Necropolis",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 2900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785998501,
+   "dateExpiration": 1791182501
   }
  }
 }
