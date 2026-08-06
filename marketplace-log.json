@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 68,
-  "totalListings": 2569,
+  "updates": 69,
+  "totalListings": 2571,
   "totalSold": 109,
-  "distinctItems": 802
+  "distinctItems": 803
  },
  "listings": {
   "156580": {
@@ -54522,6 +54522,48 @@
    "soldOutPrice": null,
    "dateAdded": 1785982062,
    "dateExpiration": 1791166062
+  },
+  "159279": {
+   "idItem": 5109,
+   "idCategory": 4,
+   "title": "Palatino Legs",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785985517,
+   "dateExpiration": 1791169517
+  },
+  "159280": {
+   "idItem": 4433,
+   "idCategory": 18,
+   "title": "Parallax \"Shock Trooper\" Energy Assault Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785985518,
+   "dateExpiration": 1791169518
   }
  }
 }
