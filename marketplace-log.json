@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 76,
-  "totalListings": 2606,
-  "totalSold": 114,
+  "updates": 77,
+  "totalListings": 2611,
+  "totalSold": 115,
   "distinctItems": 807
  },
  "listings": {
@@ -45008,6 +45008,10 @@
     {
      "d": "2026-08-05",
      "p": 13000000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 11000000
     }
    ],
    "soldOut": false,
@@ -50406,11 +50410,15 @@
     {
      "d": "2026-08-05",
      "p": 4000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 5000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 5000,
    "dateAdded": 1785939716,
    "dateExpiration": 1791123716
   },
@@ -54790,6 +54798,10 @@
     {
      "d": "2026-08-06",
      "p": 10000000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 8000000
     }
    ],
    "soldOut": false,
@@ -55351,6 +55363,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786010800,
    "dateExpiration": 1791194800
+  },
+  "159367": {
+   "idItem": 6800,
+   "idCategory": 5,
+   "title": "ORC-mkX Core Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786013163,
+   "dateExpiration": 1791197163
+  },
+  "159368": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786013291,
+   "dateExpiration": 1791197291
+  },
+  "159374": {
+   "idItem": 2625,
+   "idCategory": 18,
+   "title": "P6-LR Sniper Rifle (D-17.32% R-34.12%)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 930,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786015765,
+   "dateExpiration": 1791199765
+  },
+  "159375": {
+   "idItem": 1909,
+   "idCategory": 22,
+   "title": "(4.9) TS-2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786015842,
+   "dateExpiration": 1791199842
+  },
+  "159378": {
+   "idItem": 2278,
+   "idCategory": 18,
+   "title": "P8-AR Assault Rifle (D-7.05% R-35.52%)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786016257,
+   "dateExpiration": 1791200257
   }
  }
 }
