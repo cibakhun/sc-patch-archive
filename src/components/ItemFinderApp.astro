@@ -13,9 +13,14 @@ import { readFileSync } from 'node:fs';
 import { ICON_BLUEPRINT } from '../lib/icons';
 import { ITEM_UI } from '../i18n/itemText';
 import { useTranslations } from '../i18n/ui';
+import { useHelp } from '../i18n/help';
+import ToolHelp from './ToolHelp.astro';
 
 interface Props { lang?: 'de' | 'en' }
 const { lang = 'en' } = Astro.props;
+// Werkzeug-Hilfe (Phase 01.2) — Leitschuss der Phase, siehe
+// .planning/phases/01.2-werkzeuge-erklaeren/01.2-01-PLAN.md.
+const h = useHelp(lang);
 
 // Nur das aria-Praefix des Zurueck-Pfeils am Modal ("Zurueck zu"/"Back to").
 // Den Namen der Herkunft haengt assets/back-link.js zur Laufzeit an.
@@ -71,7 +76,7 @@ const JS_T = ITEM_UI[lang];
 
 <div class="uif-container" id="uif-app">
   <div class="uif-sidebar">
-    <div class="uif-search">
+    <div class="uif-search" data-help={h('itemfinder.ctl.search')}>
       <input type="text" id="uif-search-input" placeholder={t.searchPlaceholder} autocomplete="off" />
     </div>
 
@@ -84,8 +89,9 @@ const JS_T = ITEM_UI[lang];
     <label class="uif-filters-label" for="uif-filters-toggle">{t.filtersLabel}</label>
 
     <div class="uif-filters">
+      <ToolHelp tool="itemfinder" lang={lang} steps={4} />
       <h3>{t.hAvailability}</h3>
-      <div id="uif-kind-chips" class="uif-chips"><!-- Chips via JS --></div>
+      <div id="uif-kind-chips" class="uif-chips" data-help={h('itemfinder.ctl.kind')}><!-- Chips via JS --></div>
       <h3>{t.hSize}</h3>
       <div id="uif-size-chips" class="uif-chips"><!-- Größen via JS --></div>
       <h3>{t.hWeight}</h3>
