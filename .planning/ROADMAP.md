@@ -104,16 +104,17 @@ Zustand, den es nicht mehr gibt.
   4. Alle Erklärungen liegen in DE und EN vollständig vor — keine Fassung fällt auf die andere Sprache zurück
   5. Die Hilfe ist per Tastatur zu öffnen, zu durchlaufen und mit Esc zu verlassen
   6. Solange niemand die Hilfe öffnet, kostet sie nichts: kein Nachladen, keine Schleife, kein spürbares Gewicht auf der Seite
-  7. Abgedeckt sind Item Finder, Crafting, Mining, Schiffe, Missionen, Refinery, Precision Jump, Patch-Archiv, Wikelo's Emporium und Rüstungssets
+  7. Abgedeckt sind elf Werkzeuge: Item Finder, Crafting, Mining, **Refinery-Finder** (Abschnitt 04 der Mining-Themenseite, frei zugänglich), **Refinery-Tracker** (`/refinery.html`, kontogebundener Auftrags-Tracker), Schiffe, Missionen, Precision Jump, Patch-Archiv, Wikelo's Emporium und Rüstungssets. Die beiden Refinerys sind getrennte Werkzeuge und werden nie bloß „Refinery" genannt
 
-**Plans**: 4 plans
+**Plans**: 5 plans
 
 Plans:
 
 - [ ] 01.2-01-PLAN.md — Leitschuss: Hilfe-Mechanik end-to-end am Item Finder (Katalog ohne Sprachrückfall, ToolHelp-Bauteil, Stufe-2-Maschine, Prüfskript)
-- [ ] 01.2-02-PLAN.md — Crafting, Mining und Refinery anheften; zwei Hilfen auf einer Seite
+- [ ] 01.2-02-PLAN.md — Crafting, Mining und Refinery-Finder anheften; zwei Hilfen auf einer Seite
 - [ ] 01.2-03-PLAN.md — Patch-Archiv, Missionen, Rüstungssets und Wikelo anheften; Platzierung ohne Filterleiste
-- [ ] 01.2-04-PLAN.md — Schiffe (zwei handgepflegte Seitendateien) und Precision Jump anheften; Phasen-Tor
+- [ ] 01.2-04-PLAN.md — Schiffe (zwei handgepflegte Seitendateien) und Precision Jump anheften
+- [ ] 01.2-05-PLAN.md — Refinery-Tracker (kontogebunden) anheften; Phasen-Tor auf 11 von 11
 
 ### Phase 01.3: Datenschicht aufraeumen (INSERTED)
 

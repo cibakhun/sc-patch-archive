@@ -85,7 +85,7 @@
 - [ ] **DOC-04**: Alle Erklärungen liegen in DE und EN vollständig vor; keine Fassung fällt auf die andere Sprache zurück
 - [ ] **DOC-05**: Die Hilfe ist per Tastatur zu öffnen, zu durchlaufen und mit Esc zu verlassen
 - [ ] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
-- [ ] **DOC-07**: Abgedeckt sind Item Finder, Crafting, Mining, Schiffe, Missionen, Refinery, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
+- [ ] **DOC-07**: Abgedeckt sind elf Werkzeuge — Item Finder, Crafting, Mining, **Refinery-Finder** (Abschnitt der Mining-Themenseite), **Refinery-Tracker** (`/refinery.html`, kontogebunden), Schiffe, Missionen, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
 
 ### Datenschicht-Wahrhaftigkeit
 
