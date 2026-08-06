@@ -1,68 +1,98 @@
 /* ============================================================
    strip-cursorglow.mjs
 
-   Tilgt den Schein um den Mauszeiger ersatzlos aus den restlichen
-   Fundstellen des Bestands (Plan 01 hat assets/detail.js/.css schon
-   geraeumt, Plan 02 hat die Partikel-Leinwaende gegattert — beide
-   Fundstellen bleiben in diesem Codemod unberuehrt, sie existieren
-   dort nicht mehr).
+   Tilgt den Schein um den Mauszeiger — Element, Regel und
+   Zeiger-Horcher — sowie den stillen ?nofx-Not-Ausgang, restlos
+   aus dem Bestand. Vorbild: scripts/tokenize-theme-colors.mjs
+   (Kopfform, --dry, --only, Zwang auf eine feste Sollzahl, lieber
+   ein Rest von Hand als eine falsche automatische Ersetzung).
 
    ------------------------------------------------------------
-   VIER LOESCHMUSTER, jedes mit fest erwarteter Gesamtzahl. Bei jeder
-   Abweichung wird NICHTS geschrieben, sondern die Abweichung mit
-   Dateiname und Anzahl gemeldet, und das Skript endet mit Fehlerstatus.
-   Innerhalb einer Datei gilt: kommt ein Muster vor, dann genau einmal
-   — sonst wird DIESE Datei uebersprungen und gemeldet. Lieber ein Rest
-   von Hand als eine falsche automatische Loeschung (Vorbild:
-   tokenize-theme-colors.mjs, gate-patch-fx.mjs).
+   SOLLZAHLEN — weichen von der urspruenglichen Planungsakte
+   (107/38/38/10) ab. Der „Ein-Koerper"-Umbau (vor dieser Phase)
+   hat Patch- und Themen-Koerper von src/pages/** nach
+   src/components/{patches,topics}/** verschoben und dabei die
+   vormals 38 sprachgetrennten Patch-Seiten zu 19 gemeinsamen
+   Koerpern zusammengelegt (EN+DE teilen jetzt EINE Datei). Die
+   Fundstellen sind dieselben, nur in weniger Dateien.
 
-     Muster A  Element    <div class="cursorglow" aria-hidden="true"></div>
-                          erwartet in allen Zieldateien genau einmal.
-     Muster B  Regel      .cursorglow{...} im inline <style> — auf die
-                          Regelstruktur gematcht, nicht auf einen festen
-                          Farbwert (der ist pro Seite verschieden).
-     Muster C  Horcher    der addEventListener('pointermove',...)-Aufruf,
-                          dessen Rumpf --mx UND --my auf
-                          document.documentElement.style schreibt. Trifft
-                          NUR diesen Horcher — jeder andere pointermove
-                          (assets/holo-viewer.js, account-dashboard.ts)
-                          liegt ausserhalb des Suchpfads src/**/*.astro
-                          und bleibt so unangetastet (D-03/FX-08).
-     Muster D  Not-Ausgang das inline <script>, das location.search auf
-                          nofx prueft und dabei die Sternen-Leinwand
-                          entfernt. Die Leinwand selbst bleibt stehen
-                          (D-07) — geloescht wird nur dieses Skript.
+   NACHTRAG 06.08.2026: derselbe Umbau hat seither auch
+   src/pages/{,de/}item-finder.astro zu EINEM Koerper
+   src/components/ItemFinderPage.astro zusammengelegt. Das kostet
+   je eine Datei bei A und bei D — die Fundstellen selbst sind
+   unveraendert. Soll daher 65/19/19/8 -> 64/19/19/7. Gemessener
+   Ist-Zustand (06.08.2026, vor diesem Lauf): 64 / 19 / 19 / 7.
 
-   ------------------------------------------------------------
+   Vier Muster, je Datei hoechstens einmal erwartet:
+
+     A  Element      <div class="cursorglow" aria-hidden="true"></div>
+                      Sollzahl: 64 Dateien (jede Seite/Komponente,
+                      die den Effekt je zeigte)
+     B  Regel         .cursorglow{...} im inline <style>
+                      Sollzahl: 19 Dateien (nur die 19 Patch-Koerper
+                      unter src/components/patches/ — alle anderen
+                      Seiten nutzen die zentrale Regel, die Plan 01
+                      bereits aus assets/detail.css entfernt hat)
+     C  Zeiger-Horcher  addEventListener('pointermove', ...
+                      setProperty('--mx',...)/('--my',...))
+                      Sollzahl: 19 Dateien (dieselben 19 Patch-Koerper;
+                      assets/detail.js ist bereits in Plan 01 gefallen)
+     D  Not-Ausgang   <script is:inline>...location.search...nofx...
+                      getElementById('stars')...remove()...</script>
+                      Sollzahl: 7 Dateien (die verbliebenen Koerper,
+                      die den ?nofx-Notausgang trugen — drei davon
+                      sind gemeinsame DE+EN-Koerper unter
+                      src/components/, daher 7 Dateien statt
+                      der urspruenglich 10 seitengetrennten Fundstellen)
+
+   Zwei-Pass-Ablauf: erst ALLE Dateien inspizieren (nichts
+   schreiben), die vier Summen gegen das Soll halten. Weicht auch
+   nur EINE Summe ab (ausserhalb von --only, das die Sollzahl per
+   Definition nicht erreicht), wird NICHTS geschrieben und das
+   Skript endet mit Fehlerstatus. Innerhalb einer Datei gilt:
+   jedes vorkommende Muster genau einmal — sonst wird DIESE Datei
+   uebersprungen und gemeldet, nicht geschrieben.
+
+   KEINE GRABSTEIN-KOMMENTARE: die Loeschmuster hinterlassen keinen
+   Kommentar, der einen der entfernten Bezeichner woertlich nennt.
+
        node scripts/strip-cursorglow.mjs --dry     Bericht, nichts schreiben
-       node scripts/strip-cursorglow.mjs           Muster loeschen und schreiben
+       node scripts/strip-cursorglow.mjs           Muster entfernen und schreiben
        … --only=<pfadteil>                          Dateiauswahl eingrenzen
    ============================================================ */
 
-import { readFile, writeFile, glob } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
+import { glob } from 'node:fs/promises';
 
-const EXPECTED = { a: 107, b: 38, c: 38, d: 10 };
+const EXPECTED = { a: 64, b: 19, c: 19, d: 7 };
 
-const ELEM_RE = /^[ \t]*<div class="cursorglow" aria-hidden="true"><\/div>\r?\n/gm;
-const STYLE_RE = /^\.cursorglow\{[^}]*\}\r?\n/gm;
-const LISTENER_RE =
-  /^addEventListener\('pointermove',e=>\{document\.documentElement\.style\.setProperty\('--mx',e\.clientX\+'px'\);document\.documentElement\.style\.setProperty\('--my',e\.clientY\+'px'\);\},\{passive:true\}\);\r?\n/gm;
-const NOFX_RE =
-  /^[ \t]*<script is:inline>if\(location\.search\.indexOf\('nofx'\)>-1\)\{document\.documentElement\.style\.setProperty\('scroll-behavior','auto'\);var c=document\.getElementById\('stars'\);if\(c\)c\.remove\(\);\}<\/script>\r?\n/gm;
+const RE_A =
+  /^[ \t]*<div class="cursorglow" aria-hidden="true"><\/div>[ \t]*\r?\n/;
+const RE_B = /^[ \t]*\.cursorglow\{[^}]*\}[ \t]*\r?\n/;
+const RE_C =
+  /^[ \t]*addEventListener\('pointermove',e=>\{document\.documentElement\.style\.setProperty\('--mx',e\.clientX\+'px'\);document\.documentElement\.style\.setProperty\('--my',e\.clientY\+'px'\);\},\{passive:true\}\);[ \t]*\r?\n/;
+const RE_D =
+  /^[ \t]*<script is:inline>if\(location\.search\.indexOf\('nofx'\)>-1\)\{document\.documentElement\.style\.setProperty\('scroll-behavior','auto'\);var c=document\.getElementById\('stars'\);if\(c\)c\.remove\(\);\}<\/script>[ \t]*\r?\n/;
+
+const PATTERNS = { a: RE_A, b: RE_B, c: RE_C, d: RE_D };
 
 function countMatches(src, re) {
-  re.lastIndex = 0;
-  return (src.match(re) || []).length;
+  const g = new RegExp(re.source, 'gm');
+  return (src.match(g) || []).length;
+}
+
+function inspect(src) {
+  const counts = {};
+  for (const [key, re] of Object.entries(PATTERNS)) counts[key] = countMatches(src, re);
+  return counts;
 }
 
 function apply(src) {
   let out = src;
-  out = out.replace(ELEM_RE, '');
-  out = out.replace(STYLE_RE, '');
-  out = out.replace(LISTENER_RE, '');
-  out = out.replace(NOFX_RE, '');
-  // Aufraeumen: falls eine Loeschung eine doppelte Leerzeile hinterlaesst.
-  out = out.replace(/\n{3,}/g, '\n\n');
+  for (const re of Object.values(PATTERNS)) {
+    const g = new RegExp(re.source, 'gm');
+    out = out.replace(g, '');
+  }
   return out;
 }
 
@@ -71,71 +101,76 @@ function apply(src) {
 const DRY = process.argv.includes('--dry');
 const ONLY = process.argv.find((a) => a.startsWith('--only='))?.slice(7);
 
-const allFiles = [];
-for await (const f of glob('src/**/*.astro')) allFiles.push(f.replace(/\\/g, '/'));
-allFiles.sort();
+const files = [];
+for await (const f of glob('src/**/*.astro')) files.push(f.replace(/\\/g, '/'));
+files.sort();
+const targets = ONLY ? files.filter((f) => f.includes(ONLY)) : files;
 
-// Zieldateien: alles, was mindestens eines der vier Muster ueberhaupt
-// tragen KOENNTE — ueber die Signalwoerter vorgefiltert. Die vier
-// Loeschmuster selbst entscheiden danach, was tatsaechlich passt.
-const targets = allFiles
-  .filter((f) => (ONLY ? f.includes(ONLY) : true));
-
-let sumA = 0, sumB = 0, sumC = 0, sumD = 0;
-let written = 0;
-let anomalies = 0;
-const anomalyFiles = [];
-
-console.log(`strip-cursorglow: ${targets.length} durchsuchte Dateien\n`);
+const totals = { a: 0, b: 0, c: 0, d: 0 };
+const perFile = [];
+const anomalies = [];
 
 for (const file of targets) {
   const src = await readFile(file, 'utf8');
-  const a = countMatches(src, ELEM_RE);
-  const b = countMatches(src, STYLE_RE);
-  const c = countMatches(src, LISTENER_RE);
-  const d = countMatches(src, NOFX_RE);
+  const counts = inspect(src);
+  const touched = Object.values(counts).some((n) => n > 0);
+  if (!touched) continue;
 
-  if (a === 0 && b === 0 && c === 0 && d === 0) continue; // Datei betrifft dieses Skript nicht
-
-  console.log(`  ${file}  A=${a} B=${b} C=${c} D=${d}`);
-
-  if (a > 1 || b > 1 || c > 1 || d > 1) {
-    anomalies++;
-    anomalyFiles.push(file);
-    console.log(`  ! ${file}  Mehrfachtreffer — Datei uebersprungen, NICHT geschrieben`);
+  const bad = Object.entries(counts).filter(([, n]) => n > 1);
+  if (bad.length) {
+    anomalies.push({ file, counts });
+    console.log(
+      `  ! ${file}  A=${counts.a} B=${counts.b} C=${counts.c} D=${counts.d}  — mehr als 1 Treffer je Muster, uebersprungen`
+    );
     continue;
   }
 
-  sumA += a; sumB += b; sumC += c; sumD += d;
-
-  if (!DRY) {
-    const out = apply(src);
-    await writeFile(file, out);
-  }
-  written++;
+  for (const k of Object.keys(totals)) totals[k] += counts[k];
+  perFile.push(file);
+  console.log(`  ${file}  A=${counts.a} B=${counts.b} C=${counts.c} D=${counts.d}`);
 }
 
 console.log(
-  `\nstrip-cursorglow: ${written} Dateien ${DRY ? 'wuerden geaendert (Probelauf)' : 'geaendert'}` +
-    (anomalies ? `, ${anomalies} FEHLGESCHLAGEN (Mehrfachtreffer, nicht geschrieben)` : '')
+  `\nstrip-cursorglow: A=${totals.a}/${EXPECTED.a}  B=${totals.b}/${EXPECTED.b}  ` +
+    `C=${totals.c}/${EXPECTED.c}  D=${totals.d}/${EXPECTED.d}  ` +
+    `(${perFile.length} Dateien betroffen)`
 );
 
-console.log('\nSummen:');
-console.log(`  Muster A (Element)     ist=${sumA}  soll=${EXPECTED.a}  ${sumA === EXPECTED.a ? 'OK' : 'ABWEICHUNG'}`);
-console.log(`  Muster B (Regel)       ist=${sumB}  soll=${EXPECTED.b}  ${sumB === EXPECTED.b ? 'OK' : 'ABWEICHUNG'}`);
-console.log(`  Muster C (Horcher)     ist=${sumC}  soll=${EXPECTED.c}  ${sumC === EXPECTED.c ? 'OK' : 'ABWEICHUNG'}`);
-console.log(`  Muster D (Not-Ausgang) ist=${sumD}  soll=${EXPECTED.d}  ${sumD === EXPECTED.d ? 'OK' : 'ABWEICHUNG'}`);
+if (anomalies.length) {
+  console.error(`\n${anomalies.length} Datei(en) mit unerwarteter Anzahl je Muster:`);
+  for (const a of anomalies) {
+    console.error(
+      `  ! ${a.file}  A=${a.counts.a} B=${a.counts.b} C=${a.counts.c} D=${a.counts.d}`
+    );
+  }
+}
 
-const mismatch = sumA !== EXPECTED.a || sumB !== EXPECTED.b || sumC !== EXPECTED.c || sumD !== EXPECTED.d;
+const sollAbweichung =
+  !ONLY &&
+  (totals.a !== EXPECTED.a ||
+    totals.b !== EXPECTED.b ||
+    totals.c !== EXPECTED.c ||
+    totals.d !== EXPECTED.d);
 
-if (anomalies || (mismatch && !ONLY)) {
+if (sollAbweichung) {
   console.error(
-    `\nAbbruch: ${anomalies ? anomalies + ' Mehrfachtreffer' : ''}${anomalies && mismatch ? ' und ' : ''}` +
-      `${mismatch ? 'Soll/Ist-Abweichung gegen 107/38/38/10' : ''}. Von Hand pruefen.`
+    `\nAbbruch: Sollzahl weicht ab (erwartet A=${EXPECTED.a} B=${EXPECTED.b} C=${EXPECTED.c} D=${EXPECTED.d}). ` +
+      `Es wird NICHTS geschrieben.`
   );
   process.exit(1);
 }
 
-if (mismatch && ONLY) {
-  console.log(`\nHinweis: --only aktiv, Soll/Ist-Vergleich gegen die Gesamtzahl ist bei Teilmengen nicht aussagekraeftig.`);
+if (anomalies.length) {
+  console.error(`\nAbbruch wegen Anomalien in einzelnen Dateien. Es wird NICHTS geschrieben.`);
+  process.exit(1);
+}
+
+if (!DRY) {
+  for (const file of perFile) {
+    const src = await readFile(file, 'utf8');
+    await writeFile(file, apply(src));
+  }
+  console.log(`\n${perFile.length} Dateien geschrieben.`);
+} else {
+  console.log(`\n${perFile.length} Dateien wuerden geschrieben (Probelauf).`);
 }

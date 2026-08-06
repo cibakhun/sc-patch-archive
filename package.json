@@ -9,6 +9,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "verify": "node scripts/_verify.mjs",
+    "verify:fx": "node scripts/verify-fx.mjs",
     "verify:vendor": "node scripts/verify-vendor-three.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",
     "sync:prices": "node scripts/sync-prices.mjs",

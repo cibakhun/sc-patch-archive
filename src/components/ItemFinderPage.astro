@@ -123,7 +123,6 @@ const snap = DB.generatedAt;
 }
 </style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
-<div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.9', href: '/de/patches/sc-4-9-0.html' }, { label: 'Item Finder' }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.9', href: '/patches/sc-4-9-0.html' }, { label: 'Item Finder' }]} hasEn={true} />
 
@@ -131,7 +130,6 @@ const snap = DB.generatedAt;
   <section class="hero hero--tool">
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/cz-loot.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
-    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
       {/* Im Kopf steht nur noch der Titel. „Alpha 4.9" ist nach unten in die
           Kennzahlen gewandert — es war der einzige echte <a> von hier auf die
