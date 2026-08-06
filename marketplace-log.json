@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 75,
-  "totalListings": 2603,
-  "totalSold": 113,
-  "distinctItems": 806
+  "updates": 76,
+  "totalListings": 2606,
+  "totalSold": 114,
+  "distinctItems": 807
  },
  "listings": {
   "156580": {
@@ -54876,9 +54876,9 @@
      "p": 4800000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 4800000,
    "dateAdded": 1785992554,
    "dateExpiration": 1791176554
   },
@@ -55288,6 +55288,69 @@
    "soldOutPrice": null,
    "dateAdded": 1786004986,
    "dateExpiration": 1791188986
+  },
+  "159357": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "WTS - Copper - 2SCU - QUALITY 958 - LEVKY",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 958,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786009935,
+   "dateExpiration": 1791193934
+  },
+  "159359": {
+   "idItem": 5955,
+   "idCategory": 36,
+   "title": "Recycled Material Composite by RULAWI",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 6000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786010155,
+   "dateExpiration": 1791194155
+  },
+  "159361": {
+   "idItem": null,
+   "idCategory": 3,
+   "title": "WTS Assortment of Palatino armor pieces",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786010800,
+   "dateExpiration": 1791194800
   }
  }
 }
