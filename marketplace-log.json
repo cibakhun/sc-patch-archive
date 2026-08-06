@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 87,
-  "totalListings": 2925,
+  "updates": 88,
+  "totalListings": 2961,
   "totalSold": 119,
-  "distinctItems": 864
+  "distinctItems": 868
  },
  "listings": {
   "156580": {
@@ -61075,6 +61075,10 @@
     {
      "d": "2026-08-06",
      "p": 750000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 500000
     }
    ],
    "soldOut": false,
@@ -61124,6 +61128,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786047859,
    "dateExpiration": 1791231859
+  },
+  "159580": {
+   "idItem": 2638,
+   "idCategory": 38,
+   "title": "WTS UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786048136,
+   "dateExpiration": 1791232136
   },
   "159581": {
    "idItem": 3940,
@@ -61474,6 +61499,10 @@
     {
      "d": "2026-08-06",
      "p": 200000000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 2500000
     }
    ],
    "soldOut": false,
@@ -62174,6 +62203,741 @@
    "soldOutPrice": null,
    "dateAdded": 1786052187,
    "dateExpiration": 1791236187
+  },
+  "159632": {
+   "idItem": 4043,
+   "idCategory": 17,
+   "title": "Sion 'Tweaker' Compensator 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052191,
+   "dateExpiration": 1791236191
+  },
+  "159633": {
+   "idItem": 4044,
+   "idCategory": 17,
+   "title": "Sion \"Tweaker\" Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052265,
+   "dateExpiration": 1791236265
+  },
+  "159634": {
+   "idItem": 5332,
+   "idCategory": 17,
+   "title": "Stark Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052354,
+   "dateExpiration": 1791236354
+  },
+  "159635": {
+   "idItem": 5338,
+   "idCategory": 17,
+   "title": "Stoic Suppressor 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052407,
+   "dateExpiration": 1791236407
+  },
+  "159636": {
+   "idItem": 5329,
+   "idCategory": 17,
+   "title": "TS-35 Basara (3.5x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052474,
+   "dateExpiration": 1791236474
+  },
+  "159637": {
+   "idItem": 6455,
+   "idCategory": 17,
+   "title": "Torrent Compensator1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052544,
+   "dateExpiration": 1791236544
+  },
+  "159638": {
+   "idItem": 6232,
+   "idCategory": 17,
+   "title": "Torrent Compensator3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052583,
+   "dateExpiration": 1791236583
+  },
+  "159639": {
+   "idItem": 2229,
+   "idCategory": 17,
+   "title": "Touchstone (8x Monitor)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052628,
+   "dateExpiration": 1791236628
+  },
+  "159640": {
+   "idItem": 2543,
+   "idCategory": 17,
+   "title": "Tracer Laser Pointer Green",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052671,
+   "dateExpiration": 1791236671
+  },
+  "159641": {
+   "idItem": 2436,
+   "idCategory": 17,
+   "title": "Tracer Laser Pointer Orange",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052703,
+   "dateExpiration": 1791236703
+  },
+  "159643": {
+   "idItem": 2548,
+   "idCategory": 17,
+   "title": "FieldLite Flashlight Blue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052813,
+   "dateExpiration": 1791236813
+  },
+  "159644": {
+   "idItem": 2230,
+   "idCategory": 17,
+   "title": "Omarof (16x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052881,
+   "dateExpiration": 1791236881
+  },
+  "159645": {
+   "idItem": 7634,
+   "idCategory": 18,
+   "title": "MAX DMG Demeco \"Purgatory Camo\" LMG full attachments 1000-1000-971",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052885,
+   "dateExpiration": 1791236885
+  },
+  "159646": {
+   "idItem": 4874,
+   "idCategory": 3,
+   "title": "Geist Armor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 180000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052965,
+   "dateExpiration": 1791236965
+  },
+  "159647": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "WTS Riccite 942 Quality 1.22 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 942,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786052971,
+   "dateExpiration": 1791236971
+  },
+  "159648": {
+   "idItem": 3993,
+   "idCategory": 18,
+   "title": "MAX DMG Scalpel Sniper Rifle full attachments 1000-1000-957",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786053269,
+   "dateExpiration": 1791237269
+  },
+  "159650": {
+   "idItem": 5022,
+   "idCategory": 61,
+   "title": "Yormandi Eye",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786053414,
+   "dateExpiration": 1796421414
+  },
+  "159651": {
+   "idItem": 5023,
+   "idCategory": 61,
+   "title": "Yormandi Tongue",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786053509,
+   "dateExpiration": 1796421509
+  },
+  "159652": {
+   "idItem": 1748,
+   "idCategory": 23,
+   "title": "FR-66",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786053752,
+   "dateExpiration": 1791237752
+  },
+  "159653": {
+   "idItem": 1347,
+   "idCategory": 22,
+   "title": "VK-00",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786053870,
+   "dateExpiration": 1791237870
+  },
+  "159657": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786054406,
+   "dateExpiration": 1791238406
+  },
+  "159659": {
+   "idItem": 5841,
+   "idCategory": 3,
+   "title": "Palatino Helmet Metropolis",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786054871,
+   "dateExpiration": 1791238871
+  },
+  "159660": {
+   "idItem": 5025,
+   "idCategory": 5,
+   "title": "Palatino Core",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786054968,
+   "dateExpiration": 1791238967
+  },
+  "159661": {
+   "idItem": 5026,
+   "idCategory": 2,
+   "title": "Palatino Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 850000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786055073,
+   "dateExpiration": 1791239073
+  },
+  "159662": {
+   "idItem": 5109,
+   "idCategory": 4,
+   "title": "Palatino Legs",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786055177,
+   "dateExpiration": 1791239177
+  },
+  "159665": {
+   "idItem": 6744,
+   "idCategory": 4,
+   "title": "Palatino Legs Moonfall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786055332,
+   "dateExpiration": 1791239332
+  },
+  "159667": {
+   "idItem": 6030,
+   "idCategory": 4,
+   "title": "TruDef-Pro Legs Scorched",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786055564,
+   "dateExpiration": 1791239564
+  },
+  "159670": {
+   "idItem": 4471,
+   "idCategory": 17,
+   "title": "Emod \"Scorched\" Stabilizer1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786055954,
+   "dateExpiration": 1791239954
+  },
+  "159671": {
+   "idItem": 2723,
+   "idCategory": 18,
+   "title": "MAX DMG Arrowhead Sniper Rifle full attachments(emod tweeker) 1000-1000-957",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 24000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786055981,
+   "dateExpiration": 1791239981
+  },
+  "159672": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "WTS Savrilium 967",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 967,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786056051,
+   "dateExpiration": 1791240051
+  },
+  "159673": {
+   "idItem": 7598,
+   "idCategory": 17,
+   "title": "Emod \"Tweaker\" Stabilizer2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786056069,
+   "dateExpiration": 1791240069
+  },
+  "159674": {
+   "idItem": 4884,
+   "idCategory": 17,
+   "title": "FarSight \"Darkwave\" (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786056229,
+   "dateExpiration": 1791240229
+  },
+  "159675": {
+   "idItem": 4885,
+   "idCategory": 17,
+   "title": "FarSight \"Landslide\" (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786056379,
+   "dateExpiration": 1791240379
+  },
+  "159676": {
+   "idItem": 4810,
+   "idCategory": 17,
+   "title": "FarSight \"Thunderstrike\" (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786056469,
+   "dateExpiration": 1791240469
+  },
+  "159677": {
+   "idItem": 4431,
+   "idCategory": 17,
+   "title": "OT8-RF \"Scorched\" (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786056595,
+   "dateExpiration": 1791240595
   }
  }
 }
