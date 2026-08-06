@@ -81,10 +81,12 @@
   /* HELP:STAGE2:BEGIN */
   var styleEl = null;
   var bubbleEl = null;
+  var describedEl = null; // Element, das gerade aria-describedby traegt, oder null
 
   var STAGE2_CSS =
     'html[data-help-on] [data-help]{outline:2px dashed var(--accent, #ff5e1a);outline-offset:3px;border-radius:2px;}' +
     '#tool-help__bubble{position:fixed;z-index:9700;margin:0;max-width:min(18rem, calc(100vw - 2rem));' +
+    'pointer-events:none;' +
     'padding:.55rem .75rem;border:1px solid var(--line, var(--line-soft));background:var(--surface, #14121c);' +
     'color:var(--text, #e8eefc);font-family:var(--font-ui, system-ui, sans-serif);font-size:.8rem;' +
     'line-height:1.45;box-shadow:0 10px 28px rgba(0,0,0,.38);}' +
@@ -113,6 +115,8 @@
 
     document.addEventListener('focusin', onPoint);
     document.addEventListener('mouseover', onPoint);
+    document.addEventListener('mouseout', onLeave);
+    document.addEventListener('focusout', onLeave);
     document.addEventListener('keydown', onEscape);
   }
 
@@ -132,10 +136,34 @@
       bubbleEl.remove();
       bubbleEl = null;
     }
+    if (describedEl) {
+      describedEl.removeAttribute('aria-describedby');
+      describedEl = null;
+    }
 
     document.removeEventListener('focusin', onPoint);
     document.removeEventListener('mouseover', onPoint);
+    document.removeEventListener('mouseout', onLeave);
+    document.removeEventListener('focusout', onLeave);
     document.removeEventListener('keydown', onEscape);
+  }
+
+  // Setzt die Blase an den SICHTBAREN Teil des Ankers und klappt nach
+  // oben, wenn unterhalb kein Platz mehr ist (CR-01). Muss NACH
+  // showPopover() laufen: davor ist die Blase noch display:none und
+  // offsetWidth/offsetHeight waeren 0.
+  function place(el) {
+    var r = el.getBoundingClientRect();
+    var vw = document.documentElement.clientWidth;
+    var vh = document.documentElement.clientHeight;
+    var bw = bubbleEl.offsetWidth;
+    var bh = bubbleEl.offsetHeight;
+    var anchorTop = Math.max(8, r.top);
+    var anchorBottom = Math.min(vh - 8, r.bottom);
+    var top = anchorBottom + 8;
+    if (bh && top + bh > vh - 8) top = Math.max(8, anchorTop - bh - 8);
+    bubbleEl.style.top = (bh ? Math.min(top, vh - bh - 8) : top) + 'px';
+    bubbleEl.style.left = (bw ? Math.min(Math.max(8, r.left), vw - bw - 8) : Math.max(8, r.left)) + 'px';
   }
 
   function onPoint(e) {
@@ -143,15 +171,37 @@
     if (!el || !bubbleEl) return;
 
     bubbleEl.querySelector('.tool-help__bubble-text').textContent = el.getAttribute('data-help') || '';
-    el.setAttribute('aria-describedby', bubbleEl.id);
 
-    var rect = el.getBoundingClientRect();
-    bubbleEl.style.left = Math.max(8, rect.left) + 'px';
-    bubbleEl.style.top = rect.bottom + 8 + 'px';
+    // Beschreibung an den TATSAECHLICH fokussierten Knoten, nicht an die
+    // Huelle — sonst hoert eine Bildschirmleseausgabe nichts (CR-03).
+    var describe = (e.type === 'focusin' && e.target && e.target.nodeType === 1) ? e.target : el;
+    if (describedEl && describedEl !== describe) describedEl.removeAttribute('aria-describedby');
+    describe.setAttribute('aria-describedby', bubbleEl.id);
+    describedEl = describe;
 
     try {
       bubbleEl.showPopover();
     } catch (e) {}
+
+    place(el);
+  }
+
+  // Verlaesst Zeiger oder Fokus den aktuellen Anker in Richtung eines
+  // anderen Bereichs, wird die Blase sofort weggenommen — sonst bleibt
+  // sie ueber dem naechsten Bedienelement stehen und blockiert es (CR-02).
+  function onLeave(e) {
+    var from = e.target && e.target.closest ? e.target.closest('[data-help]') : null;
+    var to = e.relatedTarget && e.relatedTarget.closest ? e.relatedTarget.closest('[data-help]') : null;
+    if (!from || from === to) return;
+    if (describedEl) {
+      describedEl.removeAttribute('aria-describedby');
+      describedEl = null;
+    }
+    if (bubbleEl) {
+      try {
+        bubbleEl.hidePopover();
+      } catch (err) {}
+    }
   }
 
   function onEscape(e) {
