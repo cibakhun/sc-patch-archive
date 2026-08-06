@@ -1,0 +1,71 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sc-astro-dev",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npm", "run", "dev"],
+      "port": 4321
+    },
+    {
+      "name": "sc-astro-preview",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npm", "run", "preview"],
+      "port": 4321
+    },
+    {
+      "name": "sc-astro-dev-video",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npm", "run", "dev", "--", "--port", "4333"],
+      "port": 4333
+    },
+    {
+      "name": "sc-static-preview",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npx", "serve", "dist", "-l", "8123"],
+      "port": 8123
+    },
+    {
+      "name": "holo-preview",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npx", "serve", "G:\\Projects\\games\\Star Citizen\\sc-patch-archive\\dist", "-l", "8309"],
+      "port": 8309
+    },
+    {
+      "name": "wikelo-preview",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npx", "serve", "dist", "-l", "8199"],
+      "port": 8199
+    },
+    {
+      "name": "wikelo-trades-preview",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npx", "serve", "dist", "-l", "8231"],
+      "port": 8231
+    },
+    {
+      "name": "crafting-preview",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npx", "serve", "dist", "-l", "8247"],
+      "port": 8247
+    },
+    {
+      "name": "crafting-specs-preview",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npx", "serve", "G:\\Projects\\games\\Star Citizen\\sc-patch-archive\\.claude\\worktrees\\gsd-session-bfca7b\\dist", "-l", "8351"],
+      "port": 8351
+    },
+    {
+      "name": "mining-preview",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npx", "serve", "dist", "-l", "8261"],
+      "port": 8261
+    },
+    {
+      "name": "site-improvements-preview",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npx", "serve", "dist", "-l", "8277"],
+      "port": 8277
+    }
+  ]
+}
