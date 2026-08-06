@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: "Phase 7 Plan 3/3 ausgefuehrt (Komponenten-Filter, Branch claude/gsd-ship-component-filter-f81262) und auf den gemeinsamen Schiffskoerper aus Phase 6 umgebaut; Phase 5 (Unterstuetzen-Seite) weiter offen"
-last_updated: "2026-08-06T14:23:53.046Z"
+stopped_at: Phase 1.2 Plan 2/5 ausgefuehrt (Crafting, Mining, Refinery-Finder — Mehrfach-Instanz-Fall bewiesen); Phase 5 Spenden weiter offen
+last_updated: "2026-08-06T17:08:38.106Z"
 last_activity: 2026-08-06
-last_activity_desc: "Phase 1.2 Plan 1/5 ausgefuehrt (Leitschuss Werkzeug-Hilfe am Item Finder); zuvor Phase 7 abgeschlossen, Phase 5 weiter offen"
+last_activity_desc: "Phase 1.2 Plan 2/5 ausgefuehrt (Crafting, Mining, Refinery-Finder — Mehrfach-Instanz-Fall bewiesen); Phase 5 weiter offen"
 progress:
-  total_phases: 6
-  completed_phases: 2
-  total_plans: 19
-  completed_plans: 9
+  total_phases: 8
+  completed_phases: 4
+  total_plans: 27
+  completed_plans: 18
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -41,8 +41,10 @@ Branch: claude/donation-button-feature-98ba38 (Worktree)
 Last activity: 2026-08-02 — staging zusammengeführt, Phase 5 auf Umbau umgestellt
 
 **Was der bestehenden Seite fehlt** (gemessen, nicht vermutet):
+
 - Datenschutzerklärung nennt PayPal in KEINER der beiden Sprachfassungen (0 Treffer)
   — der einzige Punkt mit rechtlicher Relevanz
+
 - Keine eigene Optik (Standard-Palette `--accent:#2dd4ff`), keine Betragswahl, kein Ko-fi
 - Als Grund steht die generische Serverkosten-Begründung statt des defekten Netzteils
 
@@ -70,14 +72,19 @@ von elf Werkzeugen passt nicht in zwei Pläne). **Plan 01 von 5 ist ausgeführt*
 Hilfe-Mechanik steht end-to-end am Item Finder — Textkatalog `src/i18n/help.ts` ohne
 Sprachrückfall, Bauteil `src/components/ToolHelp.astro`, Stufe-2-Maschine
 `assets/tool-help.js` und das bleibende Prüftor `scripts/verify-help.mjs`
-(`npm run verify:help`, 5 Zusicherungen, aktuell 1 von 11 Werkzeugen).
-Die Pläne 02–05 hängen die restlichen zehn Werkzeuge an die fertige Mechanik.
+(`npm run verify:help`, 5 Zusicherungen). **Plan 02 von 5 ist ebenfalls ausgeführt**:
+Crafting, Mining und Refinery-Finder hängen jetzt an derselben Mechanik (38 neue
+DE/EN-Schlüssel, 20 erklärte Bedienelement-ARTen) — dabei ist der Mehrfach-Instanz-Fall
+bewiesen: Mining und Refinery-Finder sitzen auf derselben gebauten Seite
+(`src/components/topics/mining.astro`) mit zwei unabhängigen `ToolHelp`-Instanzen, ohne
+Kollision und mit nur einem wirksam geladenen `tool-help.js`. `verify-help.mjs` meldet
+aktuell 4 von 11 Werkzeugen. Die Pläne 03–05 hängen die restlichen sieben Werkzeuge an
+die fertige Mechanik.
 ⚠ Beim Einbringen wurden die Phase-01.1-03-Commits jener Sitzung **bewusst weggelassen** —
 der Mauszeiger-Schein ist auf `staging` bereits getilgt (0 Treffer für `cursorglow`/`--mx`),
 die Arbeit wäre ein Duplikat gewesen. Phase 1.1 bleibt hier bei 2/3.
 
-
-Progress: [████░░░░░░] 40%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -112,6 +119,7 @@ Progress: [████░░░░░░] 40%
 | Phase 07 P02 | 55min | 3 tasks | 3 files |
 | Phase 07 P03 | ~45min | 3 tasks | 3 files |
 | Phase 1.2 P01 | 35min | 2 tasks | 6 files |
+| Phase 1.2 P02 | ~40min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -143,6 +151,7 @@ Recent decisions affecting current work:
 - [Phase 1.2]: 01.2-01: Stufe-2-Markup/CSS/Blase entsteht ausschliesslich per JS in activate() — vor dem Klick existiert nichts davon (DOC-06/D-11)
 - [Phase 1.2]: 01.2-01: data-help auf stabilen Huellelementen statt auf ihren Kindern — ueberlebt jeden innerHTML-Neuaufbau der Item-Finder-Chips (DOC-03)
 - [Phase 1.2]: 01.2-01: tool-help.js haengt am Bauteil ToolHelp.astro, NICHT an Layout.astro — es liegt damit auf elf Werkzeugseiten statt auf ~26.000 gebauten Seiten (DOC-06 maschinell beweisbar)
+- [Phase 1.2]: 01.2-02: Mehrfach-Instanz-Fall bewiesen — zwei ToolHelp auf src/components/topics/mining.astro (mining + refineryfinder) kollidieren nicht, weil details.tool-help ohne name-Attribut keine native HTML-Exklusivitaet hat und getrennte data-tool-id getrennte vb.help.seen-Eintraege schreiben
 
 ### Pending Todos
 
@@ -189,6 +198,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-06T14:23:53.032Z
-Stopped at: Phase 1.2 Plan 1/5 ausgefuehrt (Leitschuss Werkzeug-Hilfe am Item Finder) und mit staging zusammengefuehrt; davor Phase 7 abgeschlossen
-Resume file: .planning/phases/01.2-werkzeuge-erklaeren/01.2-02-PLAN.md  (Phase 1.2 — naechster offener Plan; Phase 5 Spenden liegt weiter offen unter .planning/phases/05-spenden-unterst-tzung/05-01-PLAN.md)
+Last session: 2026-08-06T17:08:38.075Z
+Stopped at: Phase 1.2 Plan 2/5 ausgefuehrt (Crafting, Mining, Refinery-Finder — Mehrfach-Instanz-Fall bewiesen); Phase 5 Spenden weiter offen
+Resume file: .planning/phases/01.2-werkzeuge-erklaeren/01.2-03-PLAN.md
