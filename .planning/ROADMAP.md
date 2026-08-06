@@ -106,12 +106,14 @@ Zustand, den es nicht mehr gibt.
   6. Solange niemand die Hilfe öffnet, kostet sie nichts: kein Nachladen, keine Schleife, kein spürbares Gewicht auf der Seite
   7. Abgedeckt sind Item Finder, Crafting, Mining, Schiffe, Missionen, Refinery, Precision Jump, Patch-Archiv, Wikelo's Emporium und Rüstungssets
 
-**Plans**: 2 plans
+**Plans**: 4 plans
 
 Plans:
 
-- [ ] 01.2-01: Hilfe-Mechanik bauen — aufklappbarer Zweck-/Bedienungsabschnitt und der Schalter, der Erklärungen an die Elemente heftet
-- [ ] 01.2-02: Erklärtexte für alle zehn Werkzeuge schreiben und anheften, DE und EN
+- [ ] 01.2-01-PLAN.md — Leitschuss: Hilfe-Mechanik end-to-end am Item Finder (Katalog ohne Sprachrückfall, ToolHelp-Bauteil, Stufe-2-Maschine, Prüfskript)
+- [ ] 01.2-02-PLAN.md — Crafting, Mining und Refinery anheften; zwei Hilfen auf einer Seite
+- [ ] 01.2-03-PLAN.md — Patch-Archiv, Missionen, Rüstungssets und Wikelo anheften; Platzierung ohne Filterleiste
+- [ ] 01.2-04-PLAN.md — Schiffe (zwei handgepflegte Seitendateien) und Precision Jump anheften; Phasen-Tor
 
 ### Phase 01.3: Datenschicht aufraeumen (INSERTED)
 
