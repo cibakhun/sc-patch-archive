@@ -25,6 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Schrift- und Bewegungsskala** - Eine gemeinsame Skala für Schriftgrade und Übergänge statt seitenlokaler Einzelwerte
 - [ ] **Phase 3: Überlagerungen entstapeln** - Class-B-Befund abtragen, Textkontrast über Bildmotiven belegen
 - [ ] **Phase 4: Sprachparität absichern** - Deckungsgleichheit der Seitenpaare nachweisbar statt behauptet
+- [ ] **Phase 5: Bauteil-Kennwerte auf den Crafting-Karten** - Größe, Grade und Ton stehen auf der Karte, nicht erst in der Detailansicht
 
 ## Phase Details
 
@@ -170,7 +171,7 @@ Plans:
 **Goal**: Wer die Crafting-Datenbank durchblättert, erkennt auf der Karte selbst, womit er es zu tun hat — Größe, Grade und Ton stehen dort, statt erst nach einem Klick in der Detailansicht aufzutauchen. Was die Karte zeigt, stimmt mit dem Spiel überein; wo eine Angabe fehlt, bleibt die Stelle leer statt geraten.
 **Mode:** mvp
 **Depends on**: Nothing (unabhängig vom Gestaltungs-Meilenstein)
-**Requirements**: CRAFT-01, CRAFT-02, CRAFT-03
+**Requirements**: CRAFT-01, CRAFT-02, CRAFT-03, CRAFT-04
 **Success Criteria** (what must be TRUE):
 
   1. Auf jeder Blueprint-Karte, für die es die Angabe gibt, stehen Größe und Grade — bei Vehiclegear sind das rund 98 % der Karten
@@ -193,9 +194,10 @@ Plans:
 - [ ] 05-02 (Welle 2): Ausrollen auf alle 1594 Karten, Ton der 96 Schiffswaffen aus dem Kategorie-Pfad, Seitengewicht vorher/nachher gemessen
 - [ ] 05-03 (Welle 3): Filter nach Größe und Grade, Ton über die Freitextsuche, Sichtprüfung in DE und EN
 
-Hinweis: Der Filter (Erfolgskriterium 6) steht in `REQUIREMENTS.md` als **CRAFT-04**
-unter v2, wird hier aber von ROADMAP und Scope Fence dieser Phase zugewiesen — die
-Traceability-Tabelle ist beim Abschluss nachzuziehen.
+Hinweis: Die 5 der 15 gleichnamigen Blueprint-Gruppen, die nachweislich verschiedene
+Items sind (abweichende `item_stats`), bleiben nach Entscheidung 9 chiplos — die
+Sperre wird bei jedem Build aus den Daten abgeleitet. Deshalb tragen 1514 statt 1524
+Karten eine Chip-Reihe.
 
 ## Progress
 
