@@ -1,7 +1,9 @@
 // verify-crafting-specs.mjs — Datengatter fuer Groesse/Grade/Ton auf den
-// Crafting-Karten (Plan 05-01/CRAFT-03). Prueft die 15 gleichnamigen
-// Blueprint-Gruppen, die 57 SizeN-Quantumdrives als unabhaengige Gegenprobe
-// des Namens-Joins, die Wertebereiche und die Abdeckung je Vehiclegear-Typ.
+// Crafting-Karten (Plan 05-01+05-02 / CRAFT-01..03). Prueft die 15
+// gleichnamigen Blueprint-Gruppen, die 57 SizeN-Quantumdrives als
+// unabhaengige Gegenprobe des Namens-Joins, die Wertebereiche, die Abdeckung
+// je Vehiclegear-Typ, den Schiffswaffen-Ton aus dem Kategorie-Pfad (D-04)
+// und die Gesamtabdeckung nach der Sperre ueber alle 1594 Blueprints.
 //
 // Spiegel-Hinweis: dieses Skript importiert `blueprints` und
 // `blueprintSpecs` NICHT direkt aus src/lib/crafting.ts. Node's native
@@ -69,6 +71,17 @@ for (const [name, list] of byName) {
   if (sigs.size > 1) collidingNames.add(name);
 }
 
+/** Spiegel von toneFromWeaponCategoryPath() in crafting.ts (D-04): die 96
+ * Vehiclegear-Waffen fuehren game.class = null, ihr Ton steht aber im
+ * Kategorie-String des BLUEPRINTS selbst — drittes Segment nach
+ * Vehiclegear / Weapons, z. B. "Ballistic" aus
+ * "Vehiclegear / Weapons / Ballistic / Cannon". */
+function toneFromWeaponCategoryPath(category) {
+  const segs = (category || '').split('/').map((s) => s.trim()).filter(Boolean);
+  if (segs[0] === 'Vehiclegear' && segs[1] === 'Weapons' && segs[2]) return segs[2];
+  return null;
+}
+
 /** Spiegel von blueprintSpecs() in crafting.ts. */
 function blueprintSpecs(b) {
   if (collidingNames.has(b.name.toLowerCase())) return null;
@@ -78,7 +91,7 @@ function blueprintSpecs(b) {
   const eq = hasGradeSemantics(item);
   const size = eq && g?.size != null ? g.size : null;
   const grade = eq && g?.grade ? g.grade : null;
-  const tone = g?.class ?? null;
+  const tone = g?.class ?? toneFromWeaponCategoryPath(b.category);
   if (size == null && grade == null && tone == null) return null;
   return { size, grade, tone };
 }
@@ -232,6 +245,74 @@ for (const [type, exp] of Object.entries(COVERAGE_EXPECTED)) {
   need(grade === exp.grade, `${type}: Grade erwartet ${exp.grade}, gemessen ${grade}`);
   need(tone === exp.tone, `${type}: Ton erwartet ${exp.tone}, gemessen ${tone}`);
 }
+
+/* ---------- 7) Schiffswaffen-Ton aus dem Kategorie-Pfad (D-04, Plan 05-02) ---------- */
+console.log('7) Schiffswaffen-Ton aus dem Kategorie-Pfad …');
+const weaponBps = craftDb.blueprints.filter((b) => {
+  const segs = (b.category || '').split('/').map((s) => s.trim()).filter(Boolean);
+  return segs[0] === 'Vehiclegear' && segs[1] === 'Weapons';
+});
+let weaponChecked = 0, weaponBad = 0;
+for (const b of weaponBps) {
+  weaponChecked++;
+  const expectedTone = toneFromWeaponCategoryPath(b.category);
+  const sp = blueprintSpecs(b);
+  if (!sp || sp.tone !== expectedTone) {
+    weaponBad++;
+    fail.push(`Schiffswaffen-Ton: "${b.name}" (${b.category}) erwartet Ton "${expectedTone}", gemessen ${JSON.stringify(sp)}`);
+  }
+}
+console.log(`   Schiffswaffen geprueft: ${weaponChecked} | Abweichungen: ${weaponBad}`);
+need(weaponChecked === 96, `Schiffswaffen: erwartet 96 geprueft, gemessen ${weaponChecked}`);
+need(weaponBad === 0, `Schiffswaffen-Ton: ${weaponBad} Abweichungen`);
+
+/* ---------- 8) Gesamtabdeckung nach der Sperre (Plan 05-02) ---------- */
+console.log('8) Gesamtabdeckung nach der Sperre …');
+let totalWithSpec = 0, totalSize = 0, totalGrade = 0, totalTone = 0, totalNone = 0;
+let toneFromClass = 0, toneFromPath = 0;
+for (const b of craftDb.blueprints) {
+  const item = itemByName.get(b.name.toLowerCase());
+  const sp = blueprintSpecs(b);
+  if (!sp) { totalNone++; continue; }
+  totalWithSpec++;
+  if (sp.size != null) totalSize++;
+  if (sp.grade != null) totalGrade++;
+  if (sp.tone != null) {
+    totalTone++;
+    if (item?.game?.class) toneFromClass++; else toneFromPath++;
+  }
+}
+console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${totalSize} | Grade: ${totalGrade} | Ton: ${totalTone} (${toneFromClass} aus game.class, ${toneFromPath} aus dem Pfad) | ohne jede Angabe: ${totalNone}`);
+need(totalWithSpec === 1514, `Chip-Reihen: erwartet 1514, gemessen ${totalWithSpec}`);
+need(totalSize === 1513, `Groesse: erwartet 1513, gemessen ${totalSize}`);
+need(totalGrade === 1513, `Grade: erwartet 1513, gemessen ${totalGrade}`);
+need(totalTone === 496, `Ton: erwartet 496, gemessen ${totalTone}`);
+need(toneFromClass === 400, `Ton aus game.class: erwartet 400, gemessen ${toneFromClass}`);
+need(toneFromPath === 96, `Ton aus dem Pfad: erwartet 96, gemessen ${toneFromPath}`);
+need(totalNone === 80, `ohne jede Angabe: erwartet 80, gemessen ${totalNone}`);
+need(totalWithSpec + totalNone === craftDb.blueprints.length, `Selbstkonsistenz: ${totalWithSpec} + ${totalNone} != ${craftDb.blueprints.length}`);
+
+/* ---------- 9) Wertebereich Ton ---------- */
+console.log('9) Wertebereich Ton …');
+const VALID_TONES = new Set([
+  'Ballistic', 'Civilian', 'Military', 'Industrial', 'Laser',
+  'Stealth', 'Competition', 'Electron', 'Distortion',
+]);
+let toneRangeChecked = 0, toneRangeBad = 0;
+const toneDist = {};
+for (const b of craftDb.blueprints) {
+  const sp = blueprintSpecs(b);
+  if (!sp?.tone) continue;
+  toneRangeChecked++;
+  toneDist[sp.tone] = (toneDist[sp.tone] ?? 0) + 1;
+  if (!VALID_TONES.has(sp.tone)) {
+    toneRangeBad++;
+    fail.push(`Wertebereich Ton: "${b.name}" hat unbekannten Ton "${sp.tone}"`);
+  }
+}
+console.log(`   Ton geprueft: ${toneRangeChecked} | ausserhalb der bekannten 9 Werte: ${toneRangeBad}`);
+console.log(`   Verteilung: ${Object.entries(toneDist).sort().map(([k, v]) => `${k} ${v}`).join(', ')}`);
+need(toneRangeBad === 0, `${toneRangeBad} Toene ausserhalb der bekannten 9 Werte`);
 
 /* ---------- Verdikt ---------- */
 console.log('---');
