@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 67,
-  "totalListings": 2566,
-  "totalSold": 108,
+  "updates": 68,
+  "totalListings": 2569,
+  "totalSold": 109,
   "distinctItems": 802
  },
  "listings": {
@@ -54265,9 +54265,9 @@
      "p": 1500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 1500000,
    "dateAdded": 1785976847,
    "dateExpiration": 1791160847
   },
@@ -54459,6 +54459,69 @@
    "soldOutPrice": null,
    "dateAdded": 1785980678,
    "dateExpiration": 1791164678
+  },
+  "159267": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785981534,
+   "dateExpiration": 1791165533
+  },
+  "159268": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrips 4.5k per",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 4500
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785981874,
+   "dateExpiration": 1791165874
+  },
+  "159269": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "Polaris Bit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 13500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785982062,
+   "dateExpiration": 1791166062
   }
  }
 }
