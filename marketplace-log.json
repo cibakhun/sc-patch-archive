@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 85,
-  "totalListings": 2854,
+  "updates": 86,
+  "totalListings": 2880,
   "totalSold": 119,
-  "distinctItems": 847
+  "distinctItems": 859
  },
  "listings": {
   "156580": {
@@ -59686,6 +59686,10 @@
     {
      "d": "2026-08-06",
      "p": 1800000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 7500000
     }
    ],
    "soldOut": false,
@@ -60659,6 +60663,552 @@
    "soldOutPrice": null,
    "dateAdded": 1786045525,
    "dateExpiration": 1791229525
+  },
+  "159560": {
+   "idItem": 3484,
+   "idCategory": 1,
+   "title": "Venture Arms Pathfinder",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786045644,
+   "dateExpiration": 1791229644
+  },
+  "159561": {
+   "idItem": 1234,
+   "idCategory": 18,
+   "title": "WTS Coda Pistol 900Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786045709,
+   "dateExpiration": 1791229709
+  },
+  "159562": {
+   "idItem": 2724,
+   "idCategory": 1,
+   "title": "TrueDef-Pro Arms (Modified)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786045747,
+   "dateExpiration": 1791229747
+  },
+  "159563": {
+   "idItem": 74,
+   "idCategory": 18,
+   "title": "WTS S-38 Pistol 900Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786045845,
+   "dateExpiration": 1791229845
+  },
+  "159564": {
+   "idItem": 5746,
+   "idCategory": 1,
+   "title": "Outback Arms Sleet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786045938,
+   "dateExpiration": 1791229938
+  },
+  "159566": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "WTS CQ7 Rifle 900Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786046052,
+   "dateExpiration": 1791230051
+  },
+  "159567": {
+   "idItem": 7160,
+   "idCategory": 4,
+   "title": "Lynx Legs Bloodstorm",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786046071,
+   "dateExpiration": 1791230071
+  },
+  "159568": {
+   "idItem": 6491,
+   "idCategory": 18,
+   "title": "WTS S71 \"Purgatory Camo\" Rifle 900Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786046259,
+   "dateExpiration": 1791230259
+  },
+  "159569": {
+   "idItem": 2224,
+   "idCategory": 18,
+   "title": "WTS FS-9 LMG 900Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786046454,
+   "dateExpiration": 1791230454
+  },
+  "159570": {
+   "idItem": 2293,
+   "idCategory": 1,
+   "title": "Lynx Arms Draas",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786046553,
+   "dateExpiration": 1791230553
+  },
+  "159571": {
+   "idItem": 7302,
+   "idCategory": 1,
+   "title": "Inquisitor Arms Outcrop",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786046667,
+   "dateExpiration": 1791230667
+  },
+  "159572": {
+   "idItem": 7261,
+   "idCategory": 1,
+   "title": "Inquisitor Arms Icefall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786046801,
+   "dateExpiration": 1791230801
+  },
+  "159573": {
+   "idItem": 1232,
+   "idCategory": 18,
+   "title": "WTS P8-SC 900Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786046921,
+   "dateExpiration": 1791230921
+  },
+  "159574": {
+   "idItem": 7035,
+   "idCategory": 1,
+   "title": "ADP-mk4 Arms Justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 3450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786046961,
+   "dateExpiration": 1791230961
+  },
+  "159575": {
+   "idItem": 7296,
+   "idCategory": 1,
+   "title": "Inquisitor Arms Earthwork",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786047140,
+   "dateExpiration": 1791231140
+  },
+  "159576": {
+   "idItem": null,
+   "idCategory": 1,
+   "title": "Defiance Arms Ultimatum",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786047420,
+   "dateExpiration": 1791231420
+  },
+  "159577": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "NDB-30 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786047643,
+   "dateExpiration": 1796415643
+  },
+  "159578": {
+   "idItem": 5277,
+   "idCategory": 32,
+   "title": "Breakneck S4 Gatling",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786047775,
+   "dateExpiration": 1796415775
+  },
+  "159579": {
+   "idItem": 2327,
+   "idCategory": 1,
+   "title": "FBL-8a Arms (Modified)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786047859,
+   "dateExpiration": 1791231859
+  },
+  "159581": {
+   "idItem": 3940,
+   "idCategory": 17,
+   "title": "Tau Plus LL (4x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786048307,
+   "dateExpiration": 1791232307
+  },
+  "159582": {
+   "idItem": 3874,
+   "idCategory": 17,
+   "title": "Theta Pro LL (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786048434,
+   "dateExpiration": 1791232434
+  },
+  "159583": {
+   "idItem": 3944,
+   "idCategory": 18,
+   "title": "Custodian \"Brimstone\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 90000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786048619,
+   "dateExpiration": 1791232619
+  },
+  "159584": {
+   "idItem": 2456,
+   "idCategory": 1,
+   "title": "Arden-SL Arms Balefire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786048835,
+   "dateExpiration": 1791232835
+  },
+  "159586": {
+   "idItem": 3991,
+   "idCategory": 1,
+   "title": "DustUp Arms Firestarter",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786048953,
+   "dateExpiration": 1791232953
+  },
+  "159587": {
+   "idItem": 114,
+   "idCategory": 29,
+   "title": "Helix I Mining Laser",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786049070,
+   "dateExpiration": 1791233070
+  },
+  "159588": {
+   "idItem": 3240,
+   "idCategory": 1,
+   "title": "Overlord Arms Switchback",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786049093,
+   "dateExpiration": 1791233093
   }
  }
 }
