@@ -246,6 +246,22 @@ export interface BlueprintSpecs {
 }
 
 /**
+ * Ton der Schiffswaffen aus dem Kategorie-Pfad des BLUEPRINTS (D-04): die 96
+ * Vehiclegear-Waffen fuehren `game.class = null`, tragen ihren Ton aber im
+ * Kategorie-String selbst, z. B. `Vehiclegear / Weapons / Ballistic / Cannon`
+ * -> `Ballistic` (drittes Segment). Getrennt und getrimmt wie craftRoot/
+ * craftLeaf im selben Modul. Fehlt das dritte Segment, bleibt der Ton `null`
+ * (D-06, nichts raten). Greift ausdruecklich nur fuer Schiffswaffen — fuer
+ * Mininglaser/Tractorbeam/Salvage/Refuelling liefert keine Quelle einen Ton
+ * (vertagt als CRAFT-05 nach v2, ausserhalb des Umfangs dieser Phase).
+ */
+function toneFromWeaponCategoryPath(category: string): string | null {
+  const segs = (category || '').split('/').map((s) => s.trim()).filter(Boolean);
+  if (segs[0] === 'Vehiclegear' && segs[1] === 'Weapons' && segs[2]) return segs[2];
+  return null;
+}
+
+/**
  * Groesse, Grade und Ton fuer die Kartenanzeige — die einzige Quelle dafuer.
  * Gibt `null` zurueck, wenn der Blueprint-Name kollidiert (D-09, kein Chip
  * ist besser als ein fremder) oder wenn keine der drei Angaben vorliegt.
@@ -260,7 +276,7 @@ export function blueprintSpecs(b: Blueprint): BlueprintSpecs | null {
   const eq = hasGradeSemantics(item);
   const size = eq && g?.size != null ? g.size : null;
   const grade = eq && g?.grade ? g.grade : null;
-  const tone = g?.class ?? null;
+  const tone = g?.class ?? toneFromWeaponCategoryPath(b.category);
   if (size == null && grade == null && tone == null) return null;
   return { size, grade, tone };
 }

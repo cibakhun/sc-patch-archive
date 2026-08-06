@@ -176,10 +176,6 @@ function fmtT(sec: number | null) {
 // Reihenfolge und Index kommen aus lib/crafting (identisch mit DB.blueprints) —
 // von dort stammt auch der Slug, damit der Kartenname auf dieselbe URL zeigt
 // wie Sitemap und Blueprint-Seite.
-// Ausrollsperre fuer diesen Plan (05-01): nur die Quantumdrives tragen den
-// Groesse/Grade/Ton-Chip, damit der Pfad einmal vollstaendig bewiesen ist,
-// bevor Plan 05-02 ihn auf alle Blueprints ausrollt und diese Konstante entfernt.
-const SPEC_ROLLOUT = 'Vehiclegear / Quantumdrive';
 const cardsData = blueprints.map((b) => {
   const p = (b.category || '').split(' / ');
   const top = p[0] || '—';
@@ -187,7 +183,7 @@ const cardsData = blueprints.map((b) => {
   const resNames = [...new Set((b.ingredients || []).flatMap((ing) => (ing.options || []).map((o) => o.name)))];
   const nIng = (b.ingredients || []).length;
   const hasMis = !!(b.missions && b.missions.length);
-  const sp = b.category.startsWith(SPEC_ROLLOUT) ? blueprintSpecs(b) : null;
+  const sp = blueprintSpecs(b);
   return {
     i: b.index, name: b.name, top, sub, resNames, nIng, hasMis, sp,
     url: href(blueprintPath(b), lang),
@@ -338,11 +334,12 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
               <span title={S.ings}>◆ {c.nIng}</span>
               {c.hasMis && (<span class="cbp__mis" title={S.mission}>◈</span>)}
             </div>
-            {/* Groesse/Grade/Ton — nur die Quantumdrives in diesem Plan (05-01),
-                Plan 05-02 rollt auf alle Karten aus. Fehlt eine Angabe, fehlt
-                das <li> ersatzlos statt zu raten oder "—" zu zeigen (D-06).
-                Der Ton-Text kommt aus den Spieldaten und wird deshalb ueber
-                set:text gesetzt, nicht als rohes {ausdruck}-Kind. */}
+            {/* Groesse/Grade/Ton auf jeder Karte, fuer die es die Angabe gibt
+                (blueprintSpecs() liefert null bei Namenskollision D-09 oder
+                fehlender Angabe). Fehlt eine Angabe, fehlt das <li> ersatzlos
+                statt zu raten oder "—" zu zeigen (D-06). Der Ton-Text kommt
+                aus den Spieldaten und wird deshalb ueber set:text gesetzt,
+                nicht als rohes {ausdruck}-Kind. */}
             {c.sp && (c.sp.size != null || c.sp.grade || c.sp.tone) && (
               <ul class="cbp__spec">
                 {c.sp.size != null && (<li>S{c.sp.size}</li>)}
