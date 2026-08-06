@@ -169,6 +169,36 @@ for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
   });
 }
 
+describe('Filter Groesse und Grade in der Seitenleiste (05-03, DE+EN)', () => {
+  for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
+    test(`${label}: acht Ankreuzfelder cdb-size mit den Werten 0-7`, () => {
+      const values = [...html.matchAll(/<input[^>]*class="cdb-size"[^>]*value="(\d+)"/g)].map(([, v]) => v);
+      assert.strictEqual(values.length, 8, `${label}: erwartet 8 cdb-size-Ankreuzfelder, gefunden ${values.length}`);
+      assert.deepStrictEqual(values.map(Number).sort((a, b) => a - b), [0, 1, 2, 3, 4, 5, 6, 7]);
+    });
+
+    test(`${label}: vier Ankreuzfelder cdb-grade mit den Werten A-D`, () => {
+      const values = [...html.matchAll(/<input[^>]*class="cdb-grade"[^>]*value="([A-D])"/g)].map(([, v]) => v);
+      assert.strictEqual(values.length, 4, `${label}: erwartet 4 cdb-grade-Ankreuzfelder, gefunden ${values.length}`);
+      assert.deepStrictEqual(values.sort(), ['A', 'B', 'C', 'D']);
+    });
+  }
+
+  test('EN traegt die Filter-Ueberschrift "Size", DE "Größe"; beide tragen "Grade"', () => {
+    assert.ok(/<h4>Size<\/h4>/.test(enHtml), 'EN: Ueberschrift "Size" nicht gefunden');
+    assert.ok(/<h4>Größe<\/h4>/.test(deHtml), 'DE: Ueberschrift "Größe" nicht gefunden');
+    assert.ok(/<h4>Grade<\/h4>/.test(enHtml), 'EN: Ueberschrift "Grade" nicht gefunden');
+    assert.ok(/<h4>Grade<\/h4>/.test(deHtml), 'DE: Ueberschrift "Grade" nicht gefunden');
+  });
+
+  test('Skript-Tag fuer /assets/crafting-app.js traegt einen sha1-Cache-Bust (>= 6 Hex-Ziffern), DE+EN', () => {
+    for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
+      const m = /src="\/assets\/crafting-app\.js\?v=([0-9a-f]{6,})"/.exec(html);
+      assert.ok(m, `${label}: kein sha1-Cache-Bust am Skript-Tag gefunden`);
+    }
+  });
+});
+
 describe('DE/EN liefern identische Zaehlwerte (D-07, ein Koerper)', () => {
   test('Chip-Reihen, Ton-Chips und Armour/Ammo-Ton-Nullen stimmen zwischen DE und EN ueberein', () => {
     const specCountEn = (enHtml.match(/class="cbp__spec"/g) || []).length;

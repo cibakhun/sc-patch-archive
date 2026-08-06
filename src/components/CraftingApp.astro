@@ -8,6 +8,7 @@ import { ICON_BLUEPRINT, ICON_DISMANTLE } from '../lib/icons';
 import { blueprints, blueprintPath, blueprintSpecs } from '../lib/crafting';
 import { mineralByMaterial, miningPath } from '../lib/miningLinks';
 import { href, useTranslations } from '../i18n/ui';
+import { itemT } from '../i18n/itemText';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
@@ -15,6 +16,10 @@ const { lang } = Astro.props;
 // Nur das aria-Praefix des Zurueck-Pfeils am Modal ("Zurueck zu"/"Back to").
 // Den Namen der Herkunft haengt assets/back-link.js zur Laufzeit an.
 const tBack = useTranslations(lang);
+// Ueberschriften der Groesse/Grade-Filtergruppen: vorhandener Wortschatz aus
+// der Item-/Blueprint-Schicht (specSize/specGrade), keine neue Uebersetzung
+// noetig (D-07). `it` = "item text", Namenskuerzel um Kollision mit `tBack`/`S` zu vermeiden.
+const it = itemT(lang);
 
 // -- i18n (App-spezifische Chrome-Strings) --
 const S = {
@@ -191,6 +196,21 @@ const cardsData = blueprints.map((b) => {
   };
 });
 
+// -- Groesse/Grade fuer die Filtergruppen: aus cardsData abgeleitet, keine
+// feste Liste — damit ein kuenftiger Patch keine Groesse anbietet, die es
+// nicht mehr gibt (gleiches Verfahren wie renderSizeChips() im Item Finder,
+// assets/item-finder-app.js:298-322). Die Trefferzahl je Wert steht gleich
+// mit dabei, damit die Filterleiste dieselbe <em>-Zahl zeigt wie die
+// Kategorie-Gruppe.
+const sizeCounts: Record<number, number> = {};
+const gradeCounts: Record<string, number> = {};
+for (const c of cardsData) {
+  if (c.sp?.size != null) sizeCounts[c.sp.size] = (sizeCounts[c.sp.size] || 0) + 1;
+  if (c.sp?.grade) gradeCounts[c.sp.grade] = (gradeCounts[c.sp.grade] || 0) + 1;
+}
+const sizeList = Object.keys(sizeCounts).map(Number).sort((a, b) => a - b);
+const gradeList = Object.keys(gradeCounts).sort();
+
 const snapDate = DB.snapshot_date;
 const version = DB.version;
 const total = DB.counts.blueprints;
@@ -296,6 +316,26 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
             </label>
           ))}
         </div>
+      </div>
+
+      <div class="cdb-fgroup">
+        <h4>{it('specSize')}</h4>
+        {sizeList.map((sz) => (
+          <label class="cdb-check">
+            <input type="checkbox" class="cdb-size" value={sz} />
+            <span>S{sz} <em>{sizeCounts[sz]}</em></span>
+          </label>
+        ))}
+      </div>
+
+      <div class="cdb-fgroup">
+        <h4>{it('specGrade')}</h4>
+        {gradeList.map((gr) => (
+          <label class="cdb-check">
+            <input type="checkbox" class="cdb-grade" value={gr} />
+            <span>{gr} <em>{gradeCounts[gr]}</em></span>
+          </label>
+        ))}
       </div>
 
       <div class="cdb-fgroup">

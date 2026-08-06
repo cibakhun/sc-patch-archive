@@ -99,6 +99,19 @@
       li.appendChild(a);
     });
     d.res = res.join('|');
+    // Groesse/Grade/Ton-Chips (ul.cbp__spec, Markup-Vertrag aus Plan 05-01)
+    // ins dataset heben — HIER, vor dem DB-Fetch, damit Filter und Suche ab
+    // dem ersten Bild funktionieren (enrichCardsFromDb() laeuft erst nach dem
+    // Fetch und liest aus der DB, nicht aus dem Markup — der falsche Ort fuer
+    // Kennwerte, die nur im sichtbaren HTML stehen). Fehlt die Chip-Reihe oder
+    // ein einzelner Chip, bleibt das Feld leer statt eines Ersatzwerts (D-06).
+    $$('.cbp__spec li', card).forEach(function (li) {
+      var txt = li.textContent.trim();
+      if (li.classList.contains('tone')) { d.tone = txt.toLowerCase(); return; }
+      var szm = /^S(\d+)$/.exec(txt);
+      if (szm) { d.size = szm[1]; return; }
+      if (/^[A-D]$/.test(txt)) { d.grade = txt; }
+    });
     if (!$('.cbp__btns', card)) {
       var top = $('.cbp__top', card);
       if (top) {
@@ -493,7 +506,7 @@
   //  FILTER + SORT
   // =========================================================
   var state = {
-    q: '', cats: {}, subs: {}, res: {}, missionOnly: false, ownedOnly: false,
+    q: '', cats: {}, subs: {}, res: {}, sizes: {}, grades: {}, missionOnly: false, ownedOnly: false,
     sort: 'name', view: load('craft.view.v1', 'grid')
   };
 
@@ -501,8 +514,12 @@
     var d = card.dataset;
     if (state.q) {
       var q = state.q;
+      // d.tone deckt den Ton mit ab (SC2) — der Ton bekommt bewusst keine
+      // eigene Filtergruppe (Scope Fence nennt nur Groesse und Grade),
+      // bleibt aber ueber die Freitextsuche auffindbar.
       if (d.name.indexOf(q) < 0 && d.res.indexOf(q) < 0 && (d.leaf || '').indexOf(q) < 0 &&
-        (d.sub || '').toLowerCase().indexOf(q) < 0 && (d.cat || '').toLowerCase().indexOf(q) < 0) return false;
+        (d.sub || '').toLowerCase().indexOf(q) < 0 && (d.cat || '').toLowerCase().indexOf(q) < 0 &&
+        (d.tone || '').indexOf(q) < 0) return false;
     }
     var catKeys = Object.keys(state.cats).filter(function (k) { return state.cats[k]; });
     if (catKeys.length && !state.cats[d.cat]) return false;
@@ -516,6 +533,14 @@
       });
       if (!hasAll) return false;
     }
+    // Groesse/Grade: innerhalb der Gruppe ODER (mehrere angekreuzte Werte
+    // treffen), zwischen den Gruppen und gegenueber allen anderen Filtern UND.
+    // Eine Karte ohne den jeweiligen Chip (d.size/d.grade leer) faellt heraus,
+    // sobald mindestens ein Wert angekreuzt ist.
+    var sizeKeys = Object.keys(state.sizes).filter(function (k) { return state.sizes[k]; });
+    if (sizeKeys.length && sizeKeys.indexOf(d.size) < 0) return false;
+    var gradeKeys = Object.keys(state.grades).filter(function (k) { return state.grades[k]; });
+    if (gradeKeys.length && gradeKeys.indexOf(d.grade) < 0) return false;
     if (state.missionOnly && d.mis !== '1') return false;
     if (state.ownedOnly && !owned[d.slug]) return false;
     return true;
@@ -596,6 +621,13 @@
     });
   });
 
+  $$('.cdb-size').forEach(function (cb) {
+    cb.addEventListener('change', function () { state.sizes[cb.value] = cb.checked; apply(); });
+  });
+  $$('.cdb-grade').forEach(function (cb) {
+    cb.addEventListener('change', function () { state.grades[cb.value] = cb.checked; apply(); });
+  });
+
   // Rückweg aus der Mining-DB: ?res=<Material> setzt den Ressourcen-Filter,
   // zeigt also sofort alles, was sich aus dem gerade angesehenen Erz bauen
   // lässt. Der Wert der Checkbox ist der kleingeschriebene Materialname.
@@ -645,7 +677,8 @@
 
   var resetBtn = $('#cdb-reset');
   if (resetBtn) resetBtn.addEventListener('click', function () {
-    state.q = ''; state.cats = {}; state.subs = {}; state.res = {}; state.missionOnly = false; state.ownedOnly = false;
+    state.q = ''; state.cats = {}; state.subs = {}; state.res = {}; state.sizes = {}; state.grades = {};
+    state.missionOnly = false; state.ownedOnly = false;
     if (search) search.value = '';
     if (resSearch) {
       resSearch.value = '';
@@ -656,7 +689,7 @@
     }
     if (misTog) misTog.checked = false;
     if (ownTog) ownTog.checked = false;
-    $$('.cdb-cat,.cdb-sub,.cdb-res-cb').forEach(function (c) { c.checked = false; });
+    $$('.cdb-cat,.cdb-sub,.cdb-res-cb,.cdb-size,.cdb-grade').forEach(function (c) { c.checked = false; });
     sortResourcesList();
     apply();
   });
