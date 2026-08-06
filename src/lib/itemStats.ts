@@ -54,24 +54,57 @@ export function formatResist(r: DamageMap, lang: Locale): string | null {
   return keys.map((k) => `${dmgLabel(k, lang)} ${pct(k)}`).join(' · ');
 }
 
+/**
+ * Groessen eines Items. Meist genau eine — hinter manchen Anzeigenamen stecken
+ * aber mehrere Spiel-Items unterschiedlicher Groesse ("Revenant Gatling" gibt es
+ * als S3, S4 und S6). Die tragen `sizes`; sich eine davon auszusuchen waere
+ * geraten.
+ */
+export function itemSizes(i: Item): number[] {
+  const g = i.game;
+  if (!g) return [];
+  if (g.sizes?.length) return g.sizes;
+  return g.size != null ? [g.size] : [];
+}
+
+/** "S4" bzw. "S3 / S4 / S6" — oder null, wenn keine Groesse bekannt ist. */
+export function sizeLabel(i: Item): string | null {
+  const s = itemSizes(i);
+  return s.length ? s.map((n) => `S${n}`).join(' / ') : null;
+}
+
 /** Kopf-Chips: Hersteller / Groesse / Grade / Klasse / Volumen. */
 export function specChips(i: Item, lang: Locale): Row[] {
   const g = i.game;
   if (!g) return [];
   const t = itemT(lang);
   const eq = hasGradeSemantics(i);
+  const size = sizeLabel(i);
   const out: Row[] = [];
   if (g.manufacturer) out.push([t('specMfr'), g.manufacturer]);
-  if (eq && g.size != null) out.push([t('specSize'), `S${g.size}`]);
-  if (eq && g.grade) out.push([t('specGrade'), g.grade]);
+  if (eq && size) out.push([t('specSize'), size]);
+  // Grade gilt je Ausfuehrung — bei mehreren steht er in der Variantenliste
+  if (eq && g.grade && !g.variants) out.push([t('specGrade'), g.grade]);
   if (g.class) out.push([t('specClass'), g.class]);
   if (g.volumeScu) out.push([t('specVolume'), `${g.volumeScu} SCU`]);
   return out;
 }
 
+/** Kopfzeile einer Ausfuehrung: "S4 · Apocalypse Arms · Grade A" */
+export function variantHead(v: { size: number; manufacturer: string | null; grade: string | null }, lang: Locale): string {
+  const t = itemT(lang);
+  return [`S${v.size}`, v.manufacturer, v.grade ? `${t('specGrade')} ${v.grade}` : null]
+    .filter(Boolean)
+    .join(' · ');
+}
+
 /** Alle darstellbaren Werte des Items, in der Reihenfolge des Finder-Modals. */
 export function statEntries(i: Item, lang: Locale): Row[] {
-  const s: ItemStats | undefined = i.game?.stats;
+  return statRows(i.game?.stats, lang);
+}
+
+/** Wie statEntries, aber direkt auf einem Wertesatz — fuer die Varianten. */
+export function statRows(s: ItemStats | null | undefined, lang: Locale): Row[] {
   if (!s) return [];
   const t = itemT(lang);
   const n = (v: number) => num(v, lang);

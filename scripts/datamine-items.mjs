@@ -458,14 +458,56 @@ if (DEBUG) console.log(`Pass2: ${built.length} gebaut · ${Date.now() - t0}ms`);
 // =========================================================
 //  Dedup je Anzeigename (bester Repräsentant) + sortieren
 // =========================================================
-const score = (it) => (it.stats ? Object.keys(it.stats).length : 0) * 10 + (it.manufacturer ? 2 : 0) + (it.desc ? 1 : 0) - (/_pob_|_hologram|_generic/i.test(it.file) ? 5 : 0);
+// Der Anzeigename bleibt der Schlüssel — die Preise/Kauforte aus UEX kennen
+// auch nur ihn, ein Aufsplitten würde den Join zerreißen. Er ist aber KEINE
+// Identität: 29 Waffen-/Werfer-/Mount-Namen stehen im Spiel für mehrere,
+// unterschiedlich große Items ("Revenant Gatling" gibt es als S3, S4 und S6).
+// Für die trägt der beste Repräsentant nur noch die gemeinsamen Angaben; alles
+// Variantenabhängige — Größe, Grade, Hersteller, Kennzahlen — steht in
+// `variants`, und `size` bleibt leer statt eine der Größen zu behaupten.
+const JUNK_FILE = /_pob_|_hologram|_generic/i;
+const score = (it) => (it.stats ? Object.keys(it.stats).length : 0) * 10 + (it.manufacturer ? 2 : 0) + (it.desc ? 1 : 0) - (JUNK_FILE.test(it.file) ? 5 : 0);
 const byName = new Map();
 for (const it of built) {
   const k = it.name.toLowerCase().trim();
-  const prev = byName.get(k);
-  if (!prev || score(it) > score(prev)) byName.set(k, it);
+  const e = byName.get(k);
+  if (!e) { byName.set(k, { best: it, all: [it] }); continue; }
+  e.all.push(it);
+  if (score(it) > score(e.best)) e.best = it;
 }
-const items = [...byName.values()].sort((a, b) => a.name.localeCompare(b.name, 'en'));
+
+let variantNames = 0;
+for (const { best, all } of byName.values()) {
+  // Requisiten/Hologramme sind keine eigene Variante, sondern Deko mit
+  // geliehenem Namen — sie dürfen keine Größe in die Liste schmuggeln.
+  const real = all.filter((x) => !JUNK_FILE.test(x.file) && x.size != null);
+  const sizes = [...new Set(real.map((x) => x.size))].sort((a, b) => a - b);
+  if (sizes.length < 2) continue;
+  variantNames++;
+  // erst lesen, dann `best` entschärfen — `best` steckt selbst in `real`
+  const variants = sizes.map((size) => {
+    const v = real.filter((x) => x.size === size).sort((a, b) => score(b) - score(a))[0];
+    return {
+      size,
+      grade: v.grade ?? null,
+      manufacturer: v.manufacturer ?? null,
+      stats: v.stats ?? null,
+    };
+  });
+  // Variantenabhängig ist nicht nur die Größe: die S3-Revenant ist eine Anvil
+  // mit 1054 DPS, die S4 eine Apocalypse Arms mit 1266. Diese Felder oben stehen
+  // zu lassen hieße, die Werte EINER Variante als die des Items auszugeben.
+  best.sizes = sizes;
+  best.size = null;
+  best.grade = null;
+  best.manufacturer = null;
+  best.manufacturerCode = null;
+  best.stats = null;
+  best.variants = variants;
+}
+const items = [...byName.values()].map((e) => e.best).sort((a, b) => a.name.localeCompare(b.name, 'en'));
+if (variantNames)
+  console.log(`${variantNames} Anzeigenamen stehen für mehrere Items — Größe als Variantenliste statt Einzelwert`);
 
 // =========================================================
 //  Rüstungs-Sets (Dreier-Kette, siehe lib/armor-sets.mjs)

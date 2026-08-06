@@ -71,10 +71,24 @@ export interface ItemStats {
   [k: string]: unknown;
 }
 
+/** Eine von mehreren Ausführungen, die sich einen Anzeigenamen teilen. */
+export interface ItemVariant {
+  size: number;
+  grade: string | null;
+  manufacturer: string | null;
+  stats: ItemStats | null;
+}
+
 export interface ItemGame {
   gameType?: string;
   subType?: string;
   size?: number;
+  /** Größen ALLER Ausführungen dieses Namens — gesetzt statt `size`, wenn das
+   *  Spiel mehrere unterschiedlich große Items so nennt ("Revenant Gatling"
+   *  gibt es als S3, S4 und S6). Dann sind auch grade/manufacturer/stats leer
+   *  und stehen stattdessen je Ausführung in `variants`. */
+  sizes?: number[];
+  variants?: ItemVariant[];
   grade?: string;
   class?: string;
   manufacturer?: string;
@@ -210,6 +224,12 @@ export function isIndexable(i: Item): boolean {
   if (i.obtain.length > 0) return true;
   if (i.guide) return true;
   const g = i.game;
+  // Mehrdeutige Anzeigenamen ("Revenant Gatling" = S3/S4/S6) tragen ihre Werte
+  // NICHT oben, sondern je Ausfuehrung in `variants`. Sie beantworten "was kann
+  // das" damit sogar ausfuehrlicher als ein einzelner Wertesatz — ohne diese
+  // Zeile faelt genau die Gruppe durch die Schwelle, fuer die es die
+  // Varianten-Sektion ueberhaupt gibt.
+  if (g?.variants?.length) return true;
   return !!(g && g.stats && Object.keys(g.stats).length > 0);
 }
 
