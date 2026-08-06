@@ -4,7 +4,7 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 74,
+  "updates": 75,
   "totalListings": 2603,
   "totalSold": 113,
   "distinctItems": 806
@@ -48307,6 +48307,10 @@
     {
      "d": "2026-08-05",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 18000000
     }
    ],
    "soldOut": false,
@@ -48815,6 +48819,10 @@
     {
      "d": "2026-08-05",
      "p": 1250000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 1200000
     }
    ],
    "soldOut": false,
