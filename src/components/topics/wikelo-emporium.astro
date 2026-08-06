@@ -14,9 +14,17 @@ import { existsSync } from 'node:fs';
 import TopicSeo from '../../components/dossier/TopicSeo.astro';
 import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
+import { useHelp } from '../../i18n/help';
+import ToolHelp from '../ToolHelp.astro';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
+// Werkzeug-Hilfe (Phase 01.2) — siehe
+// .planning/phases/01.2-werkzeuge-erklaeren/01.2-03-PLAN.md. Die Hilfetexte
+// kommen ausschliesslich aus help.ts, NICHT als weiteres inline
+// `de ? '...' : '...'` — sonst gaebe es fuer diese Seite zwei Textquellen
+// und assertHelpParity() saehe nur eine davon (T-01.2-07).
+const h = useHelp(lang);
 // Only show trade photos whose image file actually exists (build-time check
 // against public/assets). If missing, the category-icon fallback kicks in —
 // so no dead /assets/wk-* references remain (publish gate).
@@ -287,13 +295,15 @@ const showImg = TRADES.map((t: { img?: string }) => {
     <div class="wrap"><div class="sec-head reveal"><span class="num">04</span><h2>{de ? 'Liefern → Bekommen' : 'Deliver → Receive'}</h2><span class="rule"></span></div>
       <p class="lead-p reveal">{de ? 'Links, was du ' : 'On the left what you '}<b>{de ? 'gibst' : 'give'}</b>{de ? ' — rechts, was du ' : ' — on the right what you '}<b>{de ? 'bekommst' : 'get'}</b>{de ? '. Unterstrichene Items zeigen ihre Bezugsquellen.' : '. Underlined items show where to get them.'}</p></div>
 
-    <div class="wk-filters reveal" role="group" aria-label={de ? 'Trades nach Kategorie filtern' : 'Filter trades by category'}>
+    <ToolHelp tool="wikelo" lang={lang} steps={4} />
+
+    <div class="wk-filters reveal" role="group" aria-label={de ? 'Trades nach Kategorie filtern' : 'Filter trades by category'} data-help={h('wikelo.ctl.filter')}>
       {TCATS.map((f, i) => (
         <button type="button" class="wk-pill" data-filter={f.key} aria-pressed={i === 0 ? 'true' : 'false'}>{f.label}</button>
       ))}
     </div>
 
-    <div class="wk-tc-grid reveal" id="wk-tc-grid">
+    <div class="wk-tc-grid reveal" id="wk-tc-grid" data-help={h('wikelo.ctl.grid')}>
       {TRADES.map((t, ti) => (
         <article class="wk-tc" data-cat={t.cat}>
           <header class="wk-tc__hd">

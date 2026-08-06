@@ -15,10 +15,15 @@ import { itemT, fill } from '../i18n/itemText';
 import {
   ITEM_PATCH, armorSets, db, itemPath, num, pageItemIds, setItemsBySlot, setsByManufacturer,
 } from '../lib/items';
+import { useHelp } from '../i18n/help';
+import ToolHelp from './ToolHelp.astro';
 
 interface Props { lang: Locale }
 const { lang } = Astro.props;
 const t = itemT(lang);
+// Werkzeug-Hilfe (Phase 01.2) — siehe
+// .planning/phases/01.2-werkzeuge-erklaeren/01.2-03-PLAN.md.
+const h = useHelp(lang);
 
 const totalParts = armorSets.reduce((n, s) => n + s.parts, 0);
 const complete = armorSets.filter((s) => s.coreSlots === 4).length;
@@ -43,7 +48,7 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
   <h1 slot="hero">{t('setsTitle')}</h1>
   <p class="dp-lead" slot="hero">{fill(t('setsLead'), { sets: num(armorSets.length, lang), parts: num(totalParts, lang), patch: ITEM_PATCH })}</p>
 
-  <ul class="dp-keys" slot="hero">
+  <ul class="dp-keys" slot="hero" data-help={h('armorsets.ctl.keys')}>
     <li class="dp-key"><b>{t('setsCountLabel')}</b><span>{num(armorSets.length, lang)}</span></li>
     <li class="dp-key"><b>{t('setsPartsLabel')}</b><span>{num(totalParts, lang)}</span></li>
     <li class="dp-key"><b>{t('setsCompleteLabel')}</b><span>{num(complete, lang)}</span></li>
@@ -52,8 +57,15 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
 
   <p class="as-intro">{t('setsIntro')}</p>
 
+  {/* Kein Werkzeugleiste auf dieser Seite (Annahme A2, siehe PLAN.md
+      <rules>) — der Einstieg sitzt hier, zwischen dem beschreibenden
+      Vorspann und der einzigen echten Bedienung der Seite. Diese Setzung
+      ist eine Annahme, keine Entscheidung des Betreibers, und steht zur
+      Bestaetigung in der Abschlusspruefung der Phase (Plan 04, Task 3). */}
+  <ToolHelp tool="armorsets" lang={lang} steps={4} />
+
   {/* Sprungmarken je Hersteller — bei 20+ Herstellern sonst endloses Scrollen */}
-  <nav class="as-jump" aria-label={t('setsBreadcrumb')}>
+  <nav class="as-jump" aria-label={t('setsBreadcrumb')} data-help={h('armorsets.ctl.jump')}>
     {setsByManufacturer.map((g) => (
       <a href={`#mfr-${g.mfr.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{g.mfr} <span>({g.sets.length})</span></a>
     ))}
