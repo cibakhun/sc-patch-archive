@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 05
 current_phase_name: bauteil-kennwerte-auf-den-crafting-karten
-status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-08-06T22:39:35.188Z"
+status: verifying
+stopped_at: Completed 05-03-PLAN.md (Phase 05 abgeschlossen)
+last_updated: "2026-08-06T23:03:31.614Z"
 last_activity: 2026-08-06
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 Phase: 05 (bauteil-kennwerte-auf-den-crafting-karten) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Branch: claude/site-feedback-effects-docs-3f4edf
 Last activity: 2026-08-06 — Phase 05 execution started
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 63%
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [█████░░░░░] 50%
 | Phase 01.1 P02 | ~2h | 3 tasks | 39 files |
 | Phase 05 P01 | 26min | 2 tasks | 5 files |
 | Phase 05 P02 | 16min | 2 tasks | 4 files |
+| Phase 05 P03 | ~35min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [Phase ?]: CSS-Tokens fuer die neuen Chips ohne Hex-Fallback geschrieben (var(--text) statt var(--text,#eef1f5)), um das woertliche Acceptance-Criterion gegen neue Farbliterale zu erfuellen
 - [Phase ?]: verify-crafting-specs.mjs spiegelt blueprintSpecs()/COLLIDING_NAMES statt sie zu importieren — Node's TS-Stripping loest extensionlose relative Importe in crafting.ts (./items) nicht auf, gemessen mit einem direkten import()-Versuch vor der Entscheidung
 - [Phase ?]: Ton-Ableitung fuer Schiffswaffen aus dem dritten Kategorie-Segment (toneFromWeaponCategoryPath), gespiegelt in verify-crafting-specs.mjs
+- [Phase ?]: 05-03: Ton bekommt bewusst KEINE eigene Filtergruppe — nur die Freitextsuche deckt d.tone ab (Scope Fence nennt nur Groesse/Grade als Filter)
+- [Phase ?]: 05-03: Filter-Ueberschriften aus vorhandenem Wortschatz itemT('specSize')/itemT('specGrade') statt neuer App-Strings — DE/EN automatisch synchron
+- [Phase ?]: 05-03: sizeCounts/gradeCounts direkt aus cardsData abgeleitet (nicht aus einer zweiten DB.blueprints-Iteration) — dieselbe Quelle, die die Karten rendert, kann nicht auseinanderlaufen
 
 ### Pending Todos
 
@@ -118,6 +122,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-06T22:39:35.172Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-08-06T23:03:31.598Z
+Stopped at: Completed 05-03-PLAN.md (Phase 05 abgeschlossen)
 Resume file: None

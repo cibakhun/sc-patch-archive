@@ -95,7 +95,7 @@
 - [x] **CRAFT-01**: Jede Blueprint-Karte zeigt Größe und Grade, sofern die Angabe für dieses Item existiert
 - [x] **CRAFT-02**: Jede Bauteil-Karte zeigt den Ton (Civilian, Military, Industrial, Stealth, Competition …); bei Schiffswaffen stammt er aus dem Kategorie-Pfad statt aus `game.class`
 - [x] **CRAFT-03**: Fehlt eine Angabe, bleibt die Stelle leer — kein geratener, kein leerer Chip; die 15 gleichnamigen Blueprints sind einzeln geprüft
-- [ ] **CRAFT-04**: Größe und Grade sind auf der Crafting-Seite filterbar, nicht nur sichtbar
+- [x] **CRAFT-04**: Größe und Grade sind auf der Crafting-Seite filterbar, nicht nur sichtbar
 
 ## v2 Requirements
 
@@ -166,7 +166,7 @@
 | CRAFT-01 | Phase 5 | Complete |
 | CRAFT-02 | Phase 5 | Complete |
 | CRAFT-03 | Phase 5 | Complete |
-| CRAFT-04 | Phase 5 | Pending |
+| CRAFT-04 | Phase 5 | Complete |
 
 **Coverage:**
 

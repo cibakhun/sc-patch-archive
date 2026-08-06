@@ -182,17 +182,17 @@ Plans:
   6. Größe und Grade sind nicht nur sichtbar, sondern filterbar
   7. Die Seite bleibt statisch ausgeliefert; die Ergänzung treibt das Seitengewicht nicht nennenswert nach oben
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans executed
 
 Plans:
 
 - [x] 05-01-PLAN.md
 - [x] 05-02-PLAN.md
-- [ ] 05-03-PLAN.md
+- [x] 05-03-PLAN.md
 
 - [x] 05-01 (Welle 1): Tracer — die 57 Quantumdrive-Karten tragen Größe, Grade und Ton durchgehend bis ins gebaute HTML, dazu das Dauergatter für die 15 gleichnamigen Blueprints
-- [ ] 05-02 (Welle 2): Ausrollen auf alle 1594 Karten, Ton der 96 Schiffswaffen aus dem Kategorie-Pfad, Seitengewicht vorher/nachher gemessen
-- [ ] 05-03 (Welle 3): Filter nach Größe und Grade, Ton über die Freitextsuche, Sichtprüfung in DE und EN
+- [x] 05-02 (Welle 2): Ausrollen auf alle 1594 Karten, Ton der 96 Schiffswaffen aus dem Kategorie-Pfad, Seitengewicht vorher/nachher gemessen
+- [x] 05-03 (Welle 3): Filter nach Größe und Grade, Ton über die Freitextsuche, Sichtprüfung in DE und EN
 
 Hinweis: Die 5 der 15 gleichnamigen Blueprint-Gruppen, die nachweislich verschiedene
 Items sind (abweichende `item_stats`), bleiben nach Entscheidung 9 chiplos — die
@@ -212,4 +212,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
-| 5. Bauteil-Kennwerte auf den Crafting-Karten | 2/3 | In Progress|  |
+| 5. Bauteil-Kennwerte auf den Crafting-Karten | 3/3 | Complete | 2026-08-07 |
