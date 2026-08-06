@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import DB from '../../assets/crafting-db.json';
 import { ICON_BLUEPRINT, ICON_DISMANTLE } from '../lib/icons';
-import { blueprints, blueprintPath } from '../lib/crafting';
+import { blueprints, blueprintPath, blueprintSpecs } from '../lib/crafting';
 import { mineralByMaterial, miningPath } from '../lib/miningLinks';
 import { href, useTranslations } from '../i18n/ui';
 
@@ -176,6 +176,10 @@ function fmtT(sec: number | null) {
 // Reihenfolge und Index kommen aus lib/crafting (identisch mit DB.blueprints) —
 // von dort stammt auch der Slug, damit der Kartenname auf dieselbe URL zeigt
 // wie Sitemap und Blueprint-Seite.
+// Ausrollsperre fuer diesen Plan (05-01): nur die Quantumdrives tragen den
+// Groesse/Grade/Ton-Chip, damit der Pfad einmal vollstaendig bewiesen ist,
+// bevor Plan 05-02 ihn auf alle Blueprints ausrollt und diese Konstante entfernt.
+const SPEC_ROLLOUT = 'Vehiclegear / Quantumdrive';
 const cardsData = blueprints.map((b) => {
   const p = (b.category || '').split(' / ');
   const top = p[0] || '—';
@@ -183,8 +187,9 @@ const cardsData = blueprints.map((b) => {
   const resNames = [...new Set((b.ingredients || []).flatMap((ing) => (ing.options || []).map((o) => o.name)))];
   const nIng = (b.ingredients || []).length;
   const hasMis = !!(b.missions && b.missions.length);
+  const sp = b.category.startsWith(SPEC_ROLLOUT) ? blueprintSpecs(b) : null;
   return {
-    i: b.index, name: b.name, top, sub, resNames, nIng, hasMis,
+    i: b.index, name: b.name, top, sub, resNames, nIng, hasMis, sp,
     url: href(blueprintPath(b), lang),
     time: b.craft_time_seconds || 0, timeLabel: fmtT(b.craft_time_seconds),
   };
@@ -333,6 +338,18 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
               <span title={S.ings}>◆ {c.nIng}</span>
               {c.hasMis && (<span class="cbp__mis" title={S.mission}>◈</span>)}
             </div>
+            {/* Groesse/Grade/Ton — nur die Quantumdrives in diesem Plan (05-01),
+                Plan 05-02 rollt auf alle Karten aus. Fehlt eine Angabe, fehlt
+                das <li> ersatzlos statt zu raten oder "—" zu zeigen (D-06).
+                Der Ton-Text kommt aus den Spieldaten und wird deshalb ueber
+                set:text gesetzt, nicht als rohes {ausdruck}-Kind. */}
+            {c.sp && (c.sp.size != null || c.sp.grade || c.sp.tone) && (
+              <ul class="cbp__spec">
+                {c.sp.size != null && (<li>S{c.sp.size}</li>)}
+                {c.sp.grade && (<li>{c.sp.grade}</li>)}
+                {c.sp.tone && (<li class="tone" set:text={c.sp.tone} />)}
+              </ul>
+            )}
             {/* Ressourcen-Chips werden von crafting-app.js zu Links auf das
                 Mineral-Datenblatt gemacht („wo baue ich das ab?"). Wie die
                 ★/＋-Buttons bewusst NICHT serverseitig: 4197 Chips × ~100
@@ -585,6 +602,12 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .cbp:hover .cbp__name a{color:var(--accent)}
   .cbp__meta{display:flex;gap:.8rem;font-size:.76rem;color:var(--muted,#9ba2ae);font-family:var(--font-ui,inherit)}
   .cbp__mis{color:var(--accent-2,#1FA2FF)}
+  /* Groesse/Grade/Ton-Chips — gleiche Optik wie .cbp__res, der Ton-Chip in
+     der Zweitfarbe abgesetzt (eigene Achse: Kategorie-Ton statt Fundort). */
+  .cbp__spec{list-style:none;margin:.1rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.25rem}
+  .cbp__spec li{font-size:.68rem;color:var(--text);background:var(--veil);border:1px solid var(--line-soft);padding:.1rem .4rem;border-radius:3px}
+  .cbp__spec li.tone{color:var(--accent-2);border-color:var(--accent-2)}
+  .cdb-grid.is-list .cbp__spec{flex:none}
   .cbp__res{list-style:none;margin:.1rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.25rem}
   .cbp__res li{font-size:.68rem;color:var(--text,#eef1f5);background:var(--veil);border:1px solid var(--line-soft,var(--line-soft));padding:.1rem .4rem;border-radius:3px}
   .cbp__res li.more{color:var(--muted,#9ba2ae)}

@@ -9,7 +9,7 @@
 
 import DB from '../../assets/crafting-db.json';
 import type { Locale } from '../i18n/ui';
-import { items, type Item } from './items';
+import { hasGradeSemantics, items, type Item } from './items';
 
 /* ---------- Typen (Spiegel von scripts/datamine-crafting.mjs) ---------- */
 
@@ -193,6 +193,76 @@ const itemByName = new Map(items.map((i) => [i.name.toLowerCase(), i]));
 /** Das gecraftete Item im Katalog (Join ueber den Namen, wie im Finder). */
 export function itemForBlueprint(b: Blueprint): Item | null {
   return itemByName.get(b.name.toLowerCase()) ?? null;
+}
+
+/**
+ * Schluesselsortierte, rekursive Serialisierung eines Werts — Grundlage des
+ * Kollisionsvergleichs unten. Objektschluessel werden sortiert, damit die
+ * Reihenfolge im JSON nicht mitentscheidet; Arrays behalten ihre Reihenfolge,
+ * weil sie fachlich bedeutsam ist (z. B. fire_modes).
+ */
+function stableStringify(v: unknown): string {
+  if (v === null || typeof v !== 'object') return JSON.stringify(v);
+  if (Array.isArray(v)) return `[${v.map(stableStringify).join(',')}]`;
+  const keys = Object.keys(v as Record<string, unknown>).sort();
+  return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify((v as Record<string, unknown>)[k])}`).join(',')}}`;
+}
+
+/**
+ * Kleingeschriebene Namen von Blueprint-Gruppen, deren Mitglieder trotz
+ * gleichem Namen UND gleicher Kategorie unterschiedliche `item_stats`
+ * fuehren — also nachweislich verschiedene Items sind (D-09). Weil
+ * `itemForBlueprint()` per Name joint, traefen alle Mitglieder einer solchen
+ * Gruppe denselben Item-Eintrag; mindestens eine Karte zeigte dann fremde
+ * Kennwerte. Die Menge wird bei jedem Build **aus den Daten abgeleitet**,
+ * nie von Hand gepflegt — eine kuenftige Kollision sperrt sich damit selbst,
+ * statt still durchzugehen. Verglichen wird das gesamte `item_stats`-Objekt
+ * (nicht nur `mass_kg`/`overheat_temperature`), weil bei drei der fuenf
+ * heute bekannten Gruppen `overheat_temperature` identisch ist und ein
+ * schmalerer Vergleich sie uebersaehe.
+ */
+export const COLLIDING_NAMES: Set<string> = (() => {
+  const byName = new Map<string, Blueprint[]>();
+  for (const b of blueprints) {
+    const key = b.name.toLowerCase();
+    const list = byName.get(key);
+    if (list) list.push(b);
+    else byName.set(key, [b]);
+  }
+  const colliding = new Set<string>();
+  for (const [name, list] of byName) {
+    if (list.length < 2) continue;
+    const signatures = new Set(list.map((b) => stableStringify(b.item_stats ?? null)));
+    if (signatures.size > 1) colliding.add(name);
+  }
+  return colliding;
+})();
+
+/** Groesse/Grade/Ton einer Blueprint-Karte — Ergebnis von blueprintSpecs(). */
+export interface BlueprintSpecs {
+  size: number | null;
+  grade: string | null;
+  tone: string | null;
+}
+
+/**
+ * Groesse, Grade und Ton fuer die Kartenanzeige — die einzige Quelle dafuer.
+ * Gibt `null` zurueck, wenn der Blueprint-Name kollidiert (D-09, kein Chip
+ * ist besser als ein fremder) oder wenn keine der drei Angaben vorliegt.
+ * Alle Werte kommen aus dem bereits vorhandenen Item-Katalog (D-01) — kein
+ * Data.p4k-Lauf, keine Neu-Extraktion.
+ */
+export function blueprintSpecs(b: Blueprint): BlueprintSpecs | null {
+  if (COLLIDING_NAMES.has(b.name.toLowerCase())) return null;
+  const item = itemForBlueprint(b);
+  if (!item) return null;
+  const g = item.game;
+  const eq = hasGradeSemantics(item);
+  const size = eq && g?.size != null ? g.size : null;
+  const grade = eq && g?.grade ? g.grade : null;
+  const tone = g?.class ?? null;
+  if (size == null && grade == null && tone == null) return null;
+  return { size, grade, tone };
 }
 
 /** Rezept zu einem Item — oder null. */
