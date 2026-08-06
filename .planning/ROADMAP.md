@@ -106,7 +106,7 @@ Zustand, den es nicht mehr gibt.
   6. Solange niemand die Hilfe öffnet, kostet sie nichts: kein Nachladen, keine Schleife, kein spürbares Gewicht auf der Seite
   7. Abgedeckt sind elf Werkzeuge: Item Finder, Crafting, Mining, **Refinery-Finder** (Abschnitt 04 der Mining-Themenseite, frei zugänglich), **Refinery-Tracker** (`/refinery.html`, kontogebundener Auftrags-Tracker), Schiffe, Missionen, Precision Jump, Patch-Archiv, Wikelo's Emporium und Rüstungssets. Die beiden Refinerys sind getrennte Werkzeuge und werden nie bloß „Refinery" genannt
 
-**Plans**: 4/5 plans executed
+**Plans**: 5/5 plans executed
 
 Plans:
 
@@ -114,7 +114,14 @@ Plans:
 - [x] 01.2-02-PLAN.md — Crafting, Mining und Refinery-Finder anheften; zwei Hilfen auf einer Seite
 - [x] 01.2-03-PLAN.md — Patch-Archiv, Missionen, Rüstungssets und Wikelo anheften; Platzierung ohne Filterleiste
 - [x] 01.2-04-PLAN.md — Schiffe (seit Phase 6/7 EIN gemeinsamer Körper statt zweier Seitendateien) und Precision Jump anheften
-- [ ] 01.2-05-PLAN.md — Refinery-Tracker (kontogebunden) anheften; Phasen-Tor auf 11 von 11
+- [x] 01.2-05-PLAN.md — Refinery-Tracker (kontogebunden) anheften; Phasen-Tor auf 11 von 11
+
+⚠ **5/5 Pläne ausgeführt, Phase deshalb noch NICHT als „Complete" markiert.** `npm run
+verify:help --complete` meldet 11 von 11 Werkzeugen und alle fünf Zusicherungen grün —
+das ist die maschinelle Seite von DOC-01..07. Die im Plan 05 verlangte Sichtrunde (12
+Punkte + Annahmen A2/A4, braucht ein angemeldetes Konto) ist an den Betreiber
+zurückgegeben, siehe `.planning/phases/01.2-werkzeuge-erklaeren/01.2-05-SUMMARY.md`
+und `.planning/WINDOWS.md` (Eintrag id 2).
 
 ### Phase 01.3: Datenschicht aufraeumen (INSERTED)
 
@@ -385,7 +392,7 @@ Phase 6 lief am 02.08.2026 vorab durch, während 1.1 noch offen war. Phase 7 set
 |-------|----------------|--------|-----------|
 | 1. Wortmarken-Wandlung | 2/2 | Complete | 2026-07-28 |
 | 1.1 Ambiente-Effekte stilllegen | 2/3 | In Progress|  |
-| 1.2 Werkzeuge erklären | 4/5 | In Progress|  |
+| 1.2 Werkzeuge erklären | 5/5 | In Progress|  |
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |

@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: Phase 1.2 Plan 4/5 ausgefuehrt (Schiffe, Precision Jump — 10/11 Werkzeuge); Phase 5 Spenden weiter offen
-last_updated: "2026-08-06T17:51:56.813Z"
+stopped_at: Phase 1.2 Plan 5/5 ausgefuehrt (Refinery-Tracker, Phasen-Tor 11/11 gruen); Sichtrunde an Betreiber zurueckgegeben; Phase 5 Spenden weiter offen
+last_updated: "2026-08-06T18:13:32.000Z"
 last_activity: 2026-08-06
-last_activity_desc: "Phase 1.2 Plan 4/5 ausgefuehrt (Schiffe, Precision Jump — 10/11 Werkzeuge); Phase 5 weiter offen"
+last_activity_desc: "Phase 1.2 Plan 5/5 ausgefuehrt (Refinery-Tracker, Phasen-Tor 11/11 gruen, Sichtrunde ausstehend); Phase 5 weiter offen"
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 27
-  completed_plans: 20
+  completed_plans: 21
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -93,13 +93,31 @@ handgepflegten Seitendateien mehr sind, sondern EINEN gemeinsamen Körper
 verdrahtet, nicht mehr in `src/pages/schiffe.astro` und `src/pages/de/schiffe.astro`
 wie ursprünglich geplant — der Class-A-Duplikationsbefund entfällt für dieses
 Werkzeug. Precision Jump bekam seinen Einstieg vor der Steuerkonsole, ebenfalls als
-**Annahme A2** markiert. `verify-help.mjs` meldet jetzt 10 von 11 Werkzeugen. Plan 05
-trägt den kontogebundenen Refinery-Tracker sowie das Phasen-Tor (11/11).
+**Annahme A2** markiert. `verify-help.mjs` meldet jetzt 10 von 11 Werkzeugen. **Plan 05
+von 5 ist ebenfalls ausgeführt**: der Refinery-Tracker (`/refinery.html`, kontogebunden)
+hängt jetzt an derselben Mechanik (14 neue DE/EN-Schlüssel, 163 gesamt) — `ToolHelp`
+sitzt INNERHALB des serverseitig `hidden`-Blocks `div#rfd`, unmittelbar nach
+`div.rfd-top` (Regel R-1: die Seite leitet abgemeldete Besucher sofort weg, es gibt
+außerhalb von `#rfd` nichts zu erklären), acht `data-help`-Anker auf acht
+Huellelementen, vier davon im gebauten HTML leer und client-seitig befüllt (Regel
+R-4). Anders als bei Plan 04 stimmten alle im Plan genannten Zeilennummern exakt mit
+dem tatsächlichen Code überein — keine Planabweichung dieser Art. `node
+scripts/verify-help.mjs --complete` meldet jetzt **„Abgedeckt: 11 von 11"**, alle fünf
+Zusicherungen erfüllt; ebenso grün: `npm run audit:site` (0 FEHLER), `npm run
+audit:csp` (10 externe Quellen, alle abgedeckt), `npm run verify:fx` (Phase 01.1
+unverändert), `npm run verify` (0 gebrochene Verweise). DOC-01 bis DOC-07 in
+`.planning/REQUIREMENTS.md` auf dieser maschinellen Grundlage abgehakt.
+**Die im Plan verlangte Sichtrunde (12 Punkte + Annahmen A2/A4, braucht ein
+angemeldetes Konto) wurde bewusst NICHT vom Executor durchgeführt** — sie ist als
+offener Punkt in `.planning/WINDOWS.md` (id 2, `unrun-verify`) und in
+`01.2-05-SUMMARY.md` an den Betreiber zurückgegeben. **Phase 1.2 ist damit
+technisch fertig (5/5 Pläne, 11/11 Werkzeuge maschinell belegt), aber NICHT als
+„Complete" markiert**, solange die Sichtrunde aussteht.
 ⚠ Beim Einbringen wurden die Phase-01.1-03-Commits jener Sitzung **bewusst weggelassen** —
 der Mauszeiger-Schein ist auf `staging` bereits getilgt (0 Treffer für `cursorglow`/`--mx`),
 die Arbeit wäre ein Duplikat gewesen. Phase 1.1 bleibt hier bei 2/3.
 
-Progress: [███████░░░] 74%
+Progress: [███████░░░] 78%
 
 ## Performance Metrics
 
@@ -137,6 +155,7 @@ Progress: [███████░░░] 74%
 | Phase 1.2 P02 | ~40min | 2 tasks | 4 files |
 | Phase 1.2 P03 | ~40min | 2 tasks | 5 files |
 | Phase 01.2 P04 | ~35min | 2 tasks | 3 files |
+| Phase 01.2 P05 | ~40min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -173,6 +192,8 @@ Recent decisions affecting current work:
 - [Phase 1.2]: 01.2-03: Ruestungssets-Platzierung (zwischen p.as-intro und nav.as-jump) im Code ausdruecklich als Annahme A2 kommentiert, nicht als Entscheidung — offen zur Bestaetigung in Plan 04 Task 3
 - [Phase 1.2]: 01.2-04: Schiffe seit Phase 6 EIN gemeinsamer Koerper (ShipsOverview.astro) statt zweier Seitendateien — Class-A-Sprachparitaets-Risiko fuer dieses Werkzeug entfaellt, Hilfe nur an EINER Stelle verdrahtet
 - [Phase 1.2]: 01.2-04: Precision-Jump-Platzierung (vor .pj-console, kein Filterleiste) im Code als Annahme A2 markiert, zur Bestaetigung im Phasen-Tor von Plan 05
+- [Phase 1.2]: 01.2-05: ToolHelp sitzt INNERHALB des serverseitig hidden-Blocks div#rfd (Regel R-1) — die Sprachparitaetspruefung greift trotzdem unveraendert, weil hidden ein Sichtbarkeits-Attribut ist, kein Ausschluss aus dem ausgelieferten HTML (ausdruecklich NICHT der Item-Finder-Fall)
+- [Phase 1.2]: 01.2-05: DOC-01 bis DOC-07 auf Grundlage von verify-help.mjs --complete (11/11) abgehakt; die im Plan verlangte Sichtrunde (12 Punkte + Annahmen A2/A4) wurde bewusst NICHT vom Executor durchgefuehrt (braucht angemeldetes Konto + menschliches Urteil) und ist als offener Punkt in WINDOWS.md (id 2) an den Betreiber zurueckgegeben — Phase 1.2 bleibt deshalb "In Progress", nicht "Complete"
 
 ### Pending Todos
 
@@ -219,6 +240,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-06T17:51:56.776Z
-Stopped at: Phase 1.2 Plan 4/5 ausgefuehrt (Schiffe, Precision Jump — 10/11 Werkzeuge); Phase 5 Spenden weiter offen
-Resume file: .planning/phases/01.2-werkzeuge-erklaeren/01.2-05-PLAN.md
+Last session: 2026-08-06T18:13:32.000Z
+Stopped at: Phase 1.2 Plan 5/5 ausgefuehrt (Refinery-Tracker, Phasen-Tor 11/11 gruen); Sichtrunde (12 Punkte + Annahmen A2/A4) an Betreiber zurueckgegeben, siehe WINDOWS.md id 2; Phase 5 Spenden weiter offen
+Resume file: .planning/phases/01.2-werkzeuge-erklaeren/01.2-05-SUMMARY.md (Sichtrunde-Checkliste), danach naechste Phase im Roadmap-Fluss

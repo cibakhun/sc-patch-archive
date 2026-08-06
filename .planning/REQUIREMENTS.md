@@ -79,21 +79,28 @@
 > der Nutzer weiß, wofür sie da sind und wie man sie benutzt." Der Zweck steht vor
 > der Bedienung — wer nicht weiß, wofür ein Werkzeug gut ist, liest keine Anleitung.
 
-> ⚠ **Stand 06.08.2026: 8 von 11 Werkzeugen abgedeckt** (Pläne 01–03 ausgeführt:
-> Item Finder, Crafting, Mining, Refinery-Finder, Missionen, Patch-Archiv, Wikelo,
-> Rüstungssets). Die Mechanik selbst ist fertig und maschinell belegt — DOC-03 bis
-> DOC-06 sind durch sie erfüllt, sobald ein Werkzeug angehängt ist. Abgehakt wird
-> hier trotzdem erst, wenn Plan 05 alle elf erreicht hat: DOC-07 verlangt wörtlich
-> elf, und ein vorzeitiges Häkchen wäre eine plausible Unwahrheit im eigenen
-> Nachweis. `npm run verify:help` ist die Instanz, die es entscheidet.
+> ✅ **Stand 06.08.2026: 11 von 11 Werkzeugen abgedeckt** (Plan 05 ausgeführt:
+> Refinery-Tracker als letztes und kontogebundenes Werkzeug angehängt).
+> `npm run verify:help --complete` meldet „Abgedeckt: 11 von 11" und alle fünf
+> Zusicherungen erfüllt — das ist die Instanz, die DOC-01 bis DOC-07 entscheidet,
+> und sie ist jetzt grün. Die Häkchen unten stehen auf dieser maschinellen
+> Grundlage.
+>
+> ⚠ **Offen bleibt die Sichtrunde** (Plan 05 Task 2b): die zwölf Punkte der
+> Sichtprüfung in DE und EN, die Bestätigung der beiden A2-Platzierungen
+> (Rüstungssets, Precision Jump) und die Antwort auf Annahme A4 (Zweck-Abschnitt
+> des Trackers für abgemeldete Besucher unsichtbar) sind an den Betreiber
+> zurückgegeben — siehe `.planning/phases/01.2-werkzeuge-erklaeren/01.2-05-SUMMARY.md`
+> und `.planning/WINDOWS.md`. Ein Fund dort wirkt auf die Häkchen zurück, ändert
+> aber nichts an der maschinell bewiesenen Vollzähligkeit.
 
-- [ ] **DOC-01**: Jedes Werkzeug trägt einen aufklappbaren Abschnitt, der zuerst den Zweck nennt und dann die Bedienung
-- [ ] **DOC-02**: Ein Hilfe-Schalter heftet auf der aktuellen Ansicht an jedes bedienbare Element eine Erklärung
-- [ ] **DOC-03**: Die Hilfe erreicht auch client-seitig gerendertes Markup (`assets/item-finder-app.js`, `assets/crafting-app.js`)
-- [ ] **DOC-04**: Alle Erklärungen liegen in DE und EN vollständig vor; keine Fassung fällt auf die andere Sprache zurück
-- [ ] **DOC-05**: Die Hilfe ist per Tastatur zu öffnen, zu durchlaufen und mit Esc zu verlassen
-- [ ] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
-- [ ] **DOC-07**: Abgedeckt sind elf Werkzeuge — Item Finder, Crafting, Mining, **Refinery-Finder** (Abschnitt der Mining-Themenseite), **Refinery-Tracker** (`/refinery.html`, kontogebunden), Schiffe, Missionen, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
+- [x] **DOC-01**: Jedes Werkzeug trägt einen aufklappbaren Abschnitt, der zuerst den Zweck nennt und dann die Bedienung
+- [x] **DOC-02**: Ein Hilfe-Schalter heftet auf der aktuellen Ansicht an jedes bedienbare Element eine Erklärung
+- [x] **DOC-03**: Die Hilfe erreicht auch client-seitig gerendertes Markup (`assets/item-finder-app.js`, `assets/crafting-app.js`)
+- [x] **DOC-04**: Alle Erklärungen liegen in DE und EN vollständig vor; keine Fassung fällt auf die andere Sprache zurück
+- [x] **DOC-05**: Die Hilfe ist per Tastatur zu öffnen, zu durchlaufen und mit Esc zu verlassen
+- [x] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
+- [x] **DOC-07**: Abgedeckt sind elf Werkzeuge — Item Finder, Crafting, Mining, **Refinery-Finder** (Abschnitt der Mining-Themenseite), **Refinery-Tracker** (`/refinery.html`, kontogebunden), Schiffe, Missionen, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
 
 ### Datenschicht-Wahrhaftigkeit
 
@@ -257,17 +264,18 @@ ist anbieterneutral und bleibt gültig.
 | FX-06 | Phase 1.1 | Complete |
 | FX-07 | Phase 1.1 | Complete |
 | FX-08 | Phase 1.1 | Pending |
-| DOC-01 | Phase 1.2 | Pending |
-| DOC-02 | Phase 1.2 | Pending |
-| DOC-03 | Phase 1.2 | Pending |
-| DOC-04 | Phase 1.2 | Pending |
-| DOC-05 | Phase 1.2 | Pending |
-| DOC-06 | Phase 1.2 | Pending |
-| DOC-07 | Phase 1.2 | Pending |
-<!-- Stand 06.08.2026: Phase 1.2 Plan 3 von 5 ausgefuehrt (Item Finder, Crafting,
-     Mining, Refinery-Finder, Patch-Archiv, Missionen, Ruestungssets, Wikelo —
-     8 von 11 Werkzeugen). DOC-01..07 bleiben deshalb bewusst Pending — die
-     Anforderungen sind erst mit Plan 05 vollstaendig erfuellt. -->
+| DOC-01 | Phase 1.2 | Complete |
+| DOC-02 | Phase 1.2 | Complete |
+| DOC-03 | Phase 1.2 | Complete |
+| DOC-04 | Phase 1.2 | Complete |
+| DOC-05 | Phase 1.2 | Complete |
+| DOC-06 | Phase 1.2 | Complete |
+| DOC-07 | Phase 1.2 | Complete |
+<!-- Stand 06.08.2026: Phase 1.2 Plan 5 von 5 ausgefuehrt — Refinery-Tracker als
+     elftes Werkzeug angehaengt, npm run verify:help --complete meldet 11 von 11.
+     DOC-01..07 oben auf dieser maschinellen Grundlage abgehakt. Die Sichtrunde
+     (12 Punkte + Annahmen A2/A4, Plan 05 Task 2b) ist an den Betreiber
+     zurueckgegeben und in 01.2-05-SUMMARY.md sowie WINDOWS.md nachvollziehbar. -->
 
 | DATA-01 | Phase 1.3 | Complete |
 | DATA-02 | Phase 1.3 | Complete |
