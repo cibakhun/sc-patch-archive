@@ -69,7 +69,7 @@
 - [x] **FX-05**: Das Abschalten beendet eine laufende Schleife ohne Neuladen und hinterlässt kein eingefrorenes Standbild
 - [x] **FX-06**: `prefers-reduced-motion: reduce` bleibt wirksam und schlägt die gespeicherte Wahl
 - [x] **FX-07**: Parallaxe, Ken Burns, Scanlines/Vignette und Scroll-Reveal bleiben unverändert — sie waren nicht Teil der Rückmeldung
-- [ ] **FX-08**: Fremde `pointermove`-Nutzer bleiben unangetastet: Holo-Viewer-Orbit (`assets/holo-viewer.js`) und Bildzuschnitt im Konto (`src/scripts/account-dashboard.ts`)
+- [x] **FX-08**: Fremde `pointermove`-Nutzer bleiben unangetastet: Holo-Viewer-Orbit (`assets/holo-viewer.js`) und Bildzuschnitt im Konto (`src/scripts/account-dashboard.ts`)
 
 ### Werkzeug-Dokumentation
 
@@ -131,7 +131,7 @@
 | FX-05 | Phase 1.1 | Complete |
 | FX-06 | Phase 1.1 | Complete |
 | FX-07 | Phase 1.1 | Complete |
-| FX-08 | Phase 1.1 | Pending |
+| FX-08 | Phase 1.1 | Complete |
 | DOC-01 | Phase 1.2 | Pending |
 | DOC-02 | Phase 1.2 | Pending |
 | DOC-03 | Phase 1.2 | Pending |

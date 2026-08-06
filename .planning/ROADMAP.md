@@ -68,17 +68,17 @@ hereinholt.
   5. `prefers-reduced-motion: reduce` schlägt weiterhin die gespeicherte Wahl
   6. Parallaxe, Ken Burns, Scanlines/Vignette und Scroll-Reveal sind unverändert; Holo-Viewer-Orbit und Konto-Bildzuschnitt (eigene `pointermove`-Nutzer) funktionieren wie zuvor
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans executed
 
 Plans:
 
 - [x] 01.1-01-PLAN.md
 - [x] 01.1-02-PLAN.md
-- [ ] 01.1-03-PLAN.md
+- [x] 01.1-03-PLAN.md
 
 - [x] 01.1-01 (Welle 1): Schaltstelle end-to-end auf EINER Seite beweisen — Kopf-Flagge, Umschalter für alle Besucher, `#stars`/`#embers` in `assets/detail.js` gattern, im Browser gemessen, dazu ein automatisierter Nachweis für reduzierte Bewegung
-- [ ] 01.1-02 (Welle 2): Die übrigen 40 Schleifen anhängen — Sternenfeld des Patch-Archivs plus 38 Patch-Seiten per überprüfbarem Codemod, Regen-und-Blitz-Ausnahme von Hand
-- [ ] 01.1-03 (Welle 3): Mauszeiger-Schein aus 107 Dateien tilgen — Element, Regel und Listener — plus bleibendes Prüfskript für DE/EN-Gleichstand und eine Sichtprüferrunde
+- [x] 01.1-02 (Welle 2): Die übrigen 40 Schleifen anhängen — Sternenfeld des Patch-Archivs plus 38 Patch-Seiten per überprüfbarem Codemod, Regen-und-Blitz-Ausnahme von Hand
+- [x] 01.1-03 (Welle 3): Mauszeiger-Schein aus 65 Dateien getilgt (Ist-Zustand nach dem Ein-Körper-Umbau, statt der ursprünglich angenommenen 107) — Element, Regel und Listener — plus bleibendes Prüfskript für DE/EN-Gleichstand und eine bestandene Sichtprüferrunde
 
 Hinweis: Die Tilgung des Scheins entfernt eine dekorative Deckkraftschicht, die
 site-weit über allem lag (`z-index: 8800`). Phase 3 zählt genau solche Schichten —
@@ -173,7 +173,7 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Wortmarken-Wandlung | 2/2 | Complete | 2026-07-28 |
-| 1.1 Ambiente-Effekte stilllegen | 2/3 | In Progress|  |
+| 1.1 Ambiente-Effekte stilllegen | 3/3 | In Progress|  |
 | 1.2 Werkzeuge erklären | 0/2 | Not started | - |
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
