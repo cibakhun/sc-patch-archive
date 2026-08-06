@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 66,
-  "totalListings": 2559,
-  "totalSold": 105,
-  "distinctItems": 801
+  "updates": 67,
+  "totalListings": 2566,
+  "totalSold": 108,
+  "distinctItems": 802
  },
  "listings": {
   "156580": {
@@ -51073,9 +51073,9 @@
      "p": 9500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 9500000,
    "dateAdded": 1785950219,
    "dateExpiration": 1791134218
   },
@@ -52270,9 +52270,9 @@
      "p": 10000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 10000000,
    "dateAdded": 1785960445,
    "dateExpiration": 1796328445
   },
@@ -53530,9 +53530,9 @@
      "p": 2000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 2000000,
    "dateAdded": 1785969621,
    "dateExpiration": 1791153621
   },
@@ -54312,6 +54312,153 @@
    "soldOutPrice": null,
    "dateAdded": 1785976949,
    "dateExpiration": 1791160949
+  },
+  "159255": {
+   "idItem": 7997,
+   "idCategory": 7,
+   "title": "Crafted Overlord Supernova HEAVY COMBAT ARMOR Set 6% MAX DMG MITIGATION w/ FREE WARDEN BACKPACK PURGATORY CAMO!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 960,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785979061,
+   "dateExpiration": 1791163061
+  },
+  "159261": {
+   "idItem": 4987,
+   "idCategory": 7,
+   "title": "Corbel Halcyon Set (crafted) -43% damage (backpack included)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 920,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785979797,
+   "dateExpiration": 1791163797
+  },
+  "159262": {
+   "idItem": 4992,
+   "idCategory": 7,
+   "title": "Corbel Mire Set (crafted) -43% damage (backpack included)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 920,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785979881,
+   "dateExpiration": 1791163881
+  },
+  "159263": {
+   "idItem": 4982,
+   "idCategory": 7,
+   "title": "Corbel Patina Set (crafted) -43% damage (backpack included)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 920,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785979963,
+   "dateExpiration": 1791163963
+  },
+  "159264": {
+   "idItem": 4991,
+   "idCategory": 7,
+   "title": "Corbel Smolder Set (crafted) -43% damage (backpack included)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 920,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785980053,
+   "dateExpiration": 1791164053
+  },
+  "159265": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785980664,
+   "dateExpiration": 1791164664
+  },
+  "159266": {
+   "idItem": null,
+   "idCategory": 111,
+   "title": "Orbital Laser Platform OLP Mining Activation Package",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785980678,
+   "dateExpiration": 1791164678
   }
  }
 }
