@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 80,
-  "totalListings": 2719,
-  "totalSold": 117,
-  "distinctItems": 817
+  "updates": 81,
+  "totalListings": 2753,
+  "totalSold": 118,
+  "distinctItems": 819
  },
  "listings": {
   "156580": {
@@ -47986,9 +47986,9 @@
      "p": 12500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 12500000,
    "dateAdded": 1785913258,
    "dateExpiration": 1791097258
   },
@@ -48377,7 +48377,7 @@
    "currency": "UEC",
    "quality": 1000,
    "firstSeen": "2026-08-05",
-   "lastSeen": "2026-08-05",
+   "lastSeen": "2026-08-06",
    "prices": [
     {
      "d": "2026-08-05",
@@ -51602,6 +51602,10 @@
     {
      "d": "2026-08-05",
      "p": 12500000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 11000000
     }
    ],
    "soldOut": false,
@@ -53534,6 +53538,10 @@
     {
      "d": "2026-08-06",
      "p": 5000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 4500
     }
    ],
    "soldOut": false,
@@ -57060,6 +57068,48 @@
    "dateAdded": 1786017770,
    "dateExpiration": 1791201769
   },
+  "159385": {
+   "idItem": 7988,
+   "idCategory": 7,
+   "title": "Palatino Set Metropolis W/Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786017942,
+   "dateExpiration": 1791201942
+  },
+  "159386": {
+   "idItem": 4987,
+   "idCategory": 7,
+   "title": "Corbel Halcyon Set with backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786018060,
+   "dateExpiration": 1791202060
+  },
   "159387": {
    "idItem": 3992,
    "idCategory": 87,
@@ -57080,6 +57130,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786018151,
    "dateExpiration": 1791202151
+  },
+  "159388": {
+   "idItem": 4982,
+   "idCategory": 7,
+   "title": "Corbel Patina Set with backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786018160,
+   "dateExpiration": 1791202160
   },
   "159389": {
    "idItem": 4385,
@@ -57102,6 +57173,27 @@
    "dateAdded": 1786018236,
    "dateExpiration": 1791202236
   },
+  "159390": {
+   "idItem": 4991,
+   "idCategory": 7,
+   "title": "Corbel Smolder Set with backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786018242,
+   "dateExpiration": 1791202242
+  },
   "159391": {
    "idItem": 5845,
    "idCategory": 36,
@@ -57122,6 +57214,195 @@
    "soldOutPrice": 12000000,
    "dateAdded": 1786018739,
    "dateExpiration": 1791202739
+  },
+  "159392": {
+   "idItem": 4892,
+   "idCategory": 38,
+   "title": "ASD Secure Drive",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786018989,
+   "dateExpiration": 1791202989
+  },
+  "159393": {
+   "idItem": 5233,
+   "idCategory": 61,
+   "title": "Vanduul Metal",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 125000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786019092,
+   "dateExpiration": 1791203091
+  },
+  "159395": {
+   "idItem": 5232,
+   "idCategory": 61,
+   "title": "Vanduul Plating",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 125000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786019170,
+   "dateExpiration": 1791203170
+  },
+  "159396": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Geist Armor set whith backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786019412,
+   "dateExpiration": 1791203412
+  },
+  "159397": {
+   "idItem": 7987,
+   "idCategory": 7,
+   "title": "Palatino Set Mark 1 w/backpack | Optional F55 Mark 1 Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786019416,
+   "dateExpiration": 1791203416
+  },
+  "159398": {
+   "idItem": 5595,
+   "idCategory": 4,
+   "title": "Overlord Legs Tempered",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786019445,
+   "dateExpiration": 1791203445
+  },
+  "159399": {
+   "idItem": 5890,
+   "idCategory": 36,
+   "title": "Vanduul CryoPods",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 130000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786019494,
+   "dateExpiration": 1791203494
+  },
+  "159400": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Geist Desert armor set with backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 850000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786019984,
+   "dateExpiration": 1791203984
+  },
+  "159401": {
+   "idItem": 8034,
+   "idCategory": 7,
+   "title": "Geist Armor Whiteout Set with backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 850000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786020091,
+   "dateExpiration": 1791204091
   },
   "159402": {
    "idItem": 1673,
@@ -57228,6 +57509,27 @@
    "dateAdded": 1786021461,
    "dateExpiration": 1791205461
   },
+  "159407": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium Q729, Q585, Q305",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 729,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786021488,
+   "dateExpiration": 1791205488
+  },
   "159408": {
    "idItem": 8046,
    "idCategory": 7,
@@ -57291,6 +57593,27 @@
    "dateAdded": 1786022302,
    "dateExpiration": 1791206302
   },
+  "159411": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium Q636, Q580, Q322",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 636,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786022353,
+   "dateExpiration": 1791206353
+  },
   "159413": {
    "idItem": 6726,
    "idCategory": 3,
@@ -57332,6 +57655,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786023637,
    "dateExpiration": 1791207637
+  },
+  "159415": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet 1.500000 uec",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786024198,
+   "dateExpiration": 1791208198
   },
   "159416": {
    "idItem": 7598,
@@ -57437,6 +57781,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786024935,
    "dateExpiration": 1791208935
+  },
+  "159421": {
+   "idItem": null,
+   "idCategory": 112,
+   "title": "DCHS - ALL SET",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786024945,
+   "dateExpiration": 1791208945
   },
   "159422": {
    "idItem": 5918,
@@ -57648,6 +58013,48 @@
    "dateAdded": 1786025919,
    "dateExpiration": 1791209919
   },
+  "159433": {
+   "idItem": 5943,
+   "idCategory": 36,
+   "title": "WTB 960/1000 Ouratite",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786026165,
+   "dateExpiration": 1791210165
+  },
+  "159434": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "WTS Riccite 965Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786026250,
+   "dateExpiration": 1791210250
+  },
   "159435": {
    "idItem": 2334,
    "idCategory": 18,
@@ -57669,6 +58076,27 @@
    "dateAdded": 1786026396,
    "dateExpiration": 1791210396
   },
+  "159436": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "WTB 1000Q Tungsten",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786026515,
+   "dateExpiration": 1791210515
+  },
   "159437": {
    "idItem": 4715,
    "idCategory": 1,
@@ -57689,6 +58117,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786026526,
    "dateExpiration": 1791210526
+  },
+  "159438": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "WTB 1000Q Taranite",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786026583,
+   "dateExpiration": 1791210583
   },
   "159439": {
    "idItem": 4463,
@@ -57752,6 +58201,279 @@
    "soldOutPrice": null,
    "dateAdded": 1786027236,
    "dateExpiration": 1791211236
+  },
+  "159442": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Wikelo Intrepid",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786027975,
+   "dateExpiration": 1791211975
+  },
+  "159443": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron972Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 972,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 42500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786028342,
+   "dateExpiration": 1791212342
+  },
+  "159444": {
+   "idItem": 6467,
+   "idCategory": 11,
+   "title": "SET Second Tevarin War Red Dress Jacket",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786028584,
+   "dateExpiration": 1791212583
+  },
+  "159445": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Scorpius Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 17000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786029048,
+   "dateExpiration": 1791213048
+  },
+  "159446": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "Polaris Bit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 11250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786029394,
+   "dateExpiration": 1791213394
+  },
+  "159447": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "870Q Beryl",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 860,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786029568,
+   "dateExpiration": 1791213568
+  },
+  "159448": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "C1 Spirit Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786029633,
+   "dateExpiration": 1791213633
+  },
+  "159449": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "Tungsten Q858",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 858,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786029806,
+   "dateExpiration": 1791213806
+  },
+  "159450": {
+   "idItem": 6266,
+   "idCategory": 11,
+   "title": "SET Second Tevarin War Service Jacket",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786030065,
+   "dateExpiration": 1791214065
+  },
+  "159451": {
+   "idItem": 5819,
+   "idCategory": 18,
+   "title": "WTS Novian Crossbow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 600,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786030067,
+   "dateExpiration": 1791214066
+  },
+  "159452": {
+   "idItem": 5852,
+   "idCategory": 36,
+   "title": "Aluminum 511Q 1,873 scu 650k",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 511,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786030158,
+   "dateExpiration": 1791214158
+  },
+  "159453": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786030376,
+   "dateExpiration": 1791214376
+  },
+  "159454": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Zeus Mk II ES Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786030581,
+   "dateExpiration": 1791214580
   }
  }
 }
