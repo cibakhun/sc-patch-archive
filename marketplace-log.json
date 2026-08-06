@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 83,
-  "totalListings": 2771,
+  "updates": 84,
+  "totalListings": 2807,
   "totalSold": 118,
-  "distinctItems": 820
+  "distinctItems": 835
  },
  "listings": {
   "156580": {
@@ -58734,6 +58734,10 @@
     {
      "d": "2026-08-06",
      "p": 500000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 45000
     }
    ],
    "soldOut": false,
@@ -58888,6 +58892,762 @@
    "soldOutPrice": null,
    "dateAdded": 1786036480,
    "dateExpiration": 1791220480
+  },
+  "159487": {
+   "idItem": 3222,
+   "idCategory": 3,
+   "title": "Zeus Exploration Suit Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786038586,
+   "dateExpiration": 1791222586
+  },
+  "159488": {
+   "idItem": 2721,
+   "idCategory": 3,
+   "title": "Paladin Helmet Black/Silver",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786038838,
+   "dateExpiration": 1791222838
+  },
+  "159489": {
+   "idItem": 5910,
+   "idCategory": 36,
+   "title": "Hephaestanite 4.9 896q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 896,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786038841,
+   "dateExpiration": 1791222841
+  },
+  "159490": {
+   "idItem": 4928,
+   "idCategory": 3,
+   "title": "Paladin Helmet Black/Gold/Red",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786038909,
+   "dateExpiration": 1791222909
+  },
+  "159492": {
+   "idItem": 5943,
+   "idCategory": 36,
+   "title": "Ouratite 4.9 912Q .758scu 12m",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 912,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786039150,
+   "dateExpiration": 1791223150
+  },
+  "159493": {
+   "idItem": 3906,
+   "idCategory": 3,
+   "title": "Arden-SL Helmet PH (mirror chrome)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786039307,
+   "dateExpiration": 1791223307
+  },
+  "159494": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Omni sapphire flight suit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786039329,
+   "dateExpiration": 1791223329
+  },
+  "159496": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "NDB-30 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786039428,
+   "dateExpiration": 1791223428
+  },
+  "159497": {
+   "idItem": 5596,
+   "idCategory": 3,
+   "title": "Overlord Helmet Tempered",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786039495,
+   "dateExpiration": 1791223495
+  },
+  "159498": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 710 2,542 scu 1 mill",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 710,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786039596,
+   "dateExpiration": 1791223595
+  },
+  "159499": {
+   "idItem": 2863,
+   "idCategory": 3,
+   "title": "Oracle Helmet Draas",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786039605,
+   "dateExpiration": 1791223605
+  },
+  "159500": {
+   "idItem": 6019,
+   "idCategory": 3,
+   "title": "ORC-mkX Helmet Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786039688,
+   "dateExpiration": 1791223688
+  },
+  "159501": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 874Q 0,531 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786039732,
+   "dateExpiration": 1791223732
+  },
+  "159502": {
+   "idItem": 6787,
+   "idCategory": 3,
+   "title": "Oracle Helmet Abyss",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786039757,
+   "dateExpiration": 1791223757
+  },
+  "159503": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 970 2 scu 10 mill",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786039887,
+   "dateExpiration": 1791223887
+  },
+  "159504": {
+   "idItem": 2711,
+   "idCategory": 3,
+   "title": "Morningstar Helmet Sienna",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786040015,
+   "dateExpiration": 1791224015
+  },
+  "159506": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 970 0,335 scu 1,5 mill",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786040028,
+   "dateExpiration": 1791224028
+  },
+  "159507": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite 870 1,646 scu 3 mill",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 870,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786040176,
+   "dateExpiration": 1791224176
+  },
+  "159508": {
+   "idItem": 5589,
+   "idCategory": 3,
+   "title": "G-2 Helmet Hurston Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786040204,
+   "dateExpiration": 1791224203
+  },
+  "159510": {
+   "idItem": 2200,
+   "idCategory": 3,
+   "title": "FBL-8a Helmet (Modified)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786040367,
+   "dateExpiration": 1791224367
+  },
+  "159511": {
+   "idItem": 5754,
+   "idCategory": 3,
+   "title": "DCP Armor Helmet Cobalt Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786040436,
+   "dateExpiration": 1791224436
+  },
+  "159512": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron 947Q 0,889 scu 7 mill",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 947,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786040459,
+   "dateExpiration": 1791224459
+  },
+  "159513": {
+   "idItem": 2768,
+   "idCategory": 3,
+   "title": "Caudillo Helmet (Modified)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786040510,
+   "dateExpiration": 1791224509
+  },
+  "159514": {
+   "idItem": 7769,
+   "idCategory": 3,
+   "title": "CBH-3 Helmet Covalex Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786040638,
+   "dateExpiration": 1791224638
+  },
+  "159515": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 880 q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 880,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786040716,
+   "dateExpiration": 1791224716
+  },
+  "159517": {
+   "idItem": 5653,
+   "idCategory": 3,
+   "title": "Balor HCH Helmet Platinum",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786040780,
+   "dateExpiration": 1791224780
+  },
+  "159518": {
+   "idItem": 5100,
+   "idCategory": 3,
+   "title": "Badami Helmet Graphite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786040900,
+   "dateExpiration": 1791224900
+  },
+  "159519": {
+   "idItem": 6005,
+   "idCategory": 3,
+   "title": "FBL-8a Helmet Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786041068,
+   "dateExpiration": 1791225068
+  },
+  "159520": {
+   "idItem": 4464,
+   "idCategory": 3,
+   "title": "ADP-mk4 Helmet Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786041164,
+   "dateExpiration": 1791225164
+  },
+  "159521": {
+   "idItem": 7462,
+   "idCategory": 18,
+   "title": "Atzkav \"Mirage\" Sniper Rifle 900 Quality",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786041187,
+   "dateExpiration": 1791225187
+  },
+  "159522": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786041317,
+   "dateExpiration": 1791225317
+  },
+  "159523": {
+   "idItem": 5059,
+   "idCategory": 3,
+   "title": "Wrecker Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 3750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786041369,
+   "dateExpiration": 1791225369
+  },
+  "159524": {
+   "idItem": 2446,
+   "idCategory": 3,
+   "title": "Arden-SL Helmet Balefire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786041532,
+   "dateExpiration": 1791225531
+  },
+  "159526": {
+   "idItem": 7397,
+   "idCategory": 3,
+   "title": "CBH-3 Helmet Sakura Sun Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786041645,
+   "dateExpiration": 1791225645
+  },
+  "159527": {
+   "idItem": 4928,
+   "idCategory": 3,
+   "title": "Paladin Helmet Black/Gold/Red",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786041731,
+   "dateExpiration": 1791225731
+  },
+  "159528": {
+   "idItem": 7838,
+   "idCategory": 3,
+   "title": "Horizon Helmet \"Rust Society\"",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786041830,
+   "dateExpiration": 1791225830
   }
  }
 }
