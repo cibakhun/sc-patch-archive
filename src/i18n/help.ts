@@ -174,6 +174,23 @@ export const HELP = {
     'precisionjump.ctl.band': 'Wählt das Aaron-Halo-Band, das die Route treffen soll.',
     'precisionjump.ctl.reset': 'Setzt die Route auf die Standardwerte zurück.',
     'precisionjump.ctl.table': 'Klappt eine Tabelle mit weiteren Werten auf.',
+
+    // -- Refinery-Tracker --
+    'refinerytracker.title': 'Wie funktioniert der Refinery-Tracker?',
+    'refinerytracker.purpose':
+      'Verfolgt laufende Refinery-Aufträge bis zur Abholung — anders als der Refinery-Finder vergleicht er nicht vorab, sondern begleitet Aufträge, die schon laufen.',
+    'refinerytracker.step1': 'Raffinerie, Methode und Erze eines laufenden Auftrags eintragen.',
+    'refinerytracker.step2': 'Bearbeitungszeit und Kosten aus dem Ingame-Terminal übernehmen.',
+    'refinerytracker.step3': 'Den Countdown verfolgen und den Auftrag bei Fertigstellung abholen.',
+    'refinerytracker.step4': 'Abgeholte Aufträge in der Historie mit dem echten Verkaufserlös abschließen.',
+    'refinerytracker.ctl.stats': 'Zeigt Kennzahlen zu laufenden und abgeschlossenen Aufträgen.',
+    'refinerytracker.ctl.active': 'Die laufenden Aufträge mit Countdown bis zur Fertigstellung.',
+    'refinerytracker.ctl.station': 'Wählt die Raffinerie-Station des Auftrags.',
+    'refinerytracker.ctl.method': 'Wählt die Refining-Methode des Auftrags.',
+    'refinerytracker.ctl.ores': 'Trägt die Erze des Auftrags mit Roh- und Ausbeute-SCU ein.',
+    'refinerytracker.ctl.duration': 'Legt die Bearbeitungszeit des Auftrags aus dem Terminal fest.',
+    'refinerytracker.ctl.preview': 'Zeigt Ausbeute, geschätzten Wert und Fertigstellungszeit vorab.',
+    'refinerytracker.ctl.history': 'Abgeschlossene Aufträge mit Gewinn und eintragbarem Verkaufserlös.',
   },
   en: {
     // -- Shared control copy (all eleven tools) --
@@ -319,6 +336,23 @@ export const HELP = {
     'precisionjump.ctl.band': 'Picks the Aaron Halo band the route should hit.',
     'precisionjump.ctl.reset': 'Resets the route to its default values.',
     'precisionjump.ctl.table': 'Expands a table with further values.',
+
+    // -- Refinery Tracker --
+    'refinerytracker.title': 'How does the Refinery Tracker work?',
+    'refinerytracker.purpose':
+      'Tracks refinery work orders through to collection — unlike the Refinery Finder, it does not compare stations upfront, it follows orders already underway.',
+    'refinerytracker.step1': 'Log a running order’s refinery, method and ores.',
+    'refinerytracker.step2': 'Copy the processing time and cost from the in-game terminal.',
+    'refinerytracker.step3': 'Watch the countdown and collect the order once it is ready.',
+    'refinerytracker.step4': 'Close out collected orders in the history with the real sale proceeds.',
+    'refinerytracker.ctl.stats': 'Shows key figures for active and completed orders.',
+    'refinerytracker.ctl.active': 'The active orders with a countdown to completion.',
+    'refinerytracker.ctl.station': 'Picks the refinery station for the order.',
+    'refinerytracker.ctl.method': 'Picks the refining method for the order.',
+    'refinerytracker.ctl.ores': 'Logs the order’s ores with raw and yield SCU.',
+    'refinerytracker.ctl.duration': 'Sets the order’s processing time from the terminal.',
+    'refinerytracker.ctl.preview': 'Previews yield, estimated value and completion time.',
+    'refinerytracker.ctl.history': 'Completed orders with profit and a place to record the sale value.',
   },
 } as const;
 

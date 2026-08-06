@@ -6,12 +6,15 @@
 // Auth-Guard wie AccountDashboard: ohne Session -> Login mit ?next=.
 // Dynamisch erzeugte Zeilen nutzen is:global-Styles.
 import { href } from '../../i18n/ui';
+import { useHelp } from '../../i18n/help';
+import ToolHelp from '../ToolHelp.astro';
 import { REFINERY, stationsBySystem } from '../../lib/refinery';
 
 interface Props {
   lang: 'de' | 'en';
 }
 const { lang } = Astro.props;
+const h = useHelp(lang);
 
 const stationGroups = stationsBySystem();
 const methods = REFINERY.methods;
@@ -122,12 +125,14 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
     <a class="rfd-back" href={miningHref}>{COPY.backToMining}</a>
   </div>
 
+  <ToolHelp tool="refinerytracker" lang={lang} steps={4} />
+
   <!-- Übersicht / Statistik -->
-  <div class="rfd-stats reveal" id="rfd-stats"></div>
+  <div class="rfd-stats reveal" id="rfd-stats" data-help={h('refinerytracker.ctl.stats')}></div>
 
   <!-- 01 Aktive Aufträge -->
   <div class="sec-head reveal"><span class="num">01</span><h2>{COPY.activeTitle}</h2><span class="rule"></span></div>
-  <div id="rfd-active" class="rfd-jobs"></div>
+  <div id="rfd-active" class="rfd-jobs" data-help={h('refinerytracker.ctl.active')}></div>
   <div id="rfd-active-empty" class="acx-card rfd-empty" hidden>{COPY.activeEmpty}</div>
 
   <!-- 02 Neuer Auftrag -->
@@ -138,7 +143,7 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
       <div class="rfd-grid2">
         <div class="acx-field">
           <label class="acx-label" for="rfd-station">{COPY.fStation}</label>
-          <select class="acx-input" id="rfd-station" name="station" required>
+          <select class="acx-input" id="rfd-station" name="station" required data-help={h('refinerytracker.ctl.station')}>
             <option value="" selected disabled>{COPY.pickStation}</option>
             {stationGroups.map((g) => (
               <optgroup label={g.system}>
@@ -149,7 +154,7 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
         </div>
         <div class="acx-field">
           <label class="acx-label" for="rfd-method">{COPY.fMethod}</label>
-          <select class="acx-input" id="rfd-method" name="method" required>
+          <select class="acx-input" id="rfd-method" name="method" required data-help={h('refinerytracker.ctl.method')}>
             <option value="" selected disabled>{COPY.pickMethod}</option>
             {methods.map((m) => (<option value={m.name} data-key={m.key}>{m.name}</option>))}
           </select>
@@ -159,14 +164,14 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
 
       <div class="acx-field">
         <label class="acx-label">{COPY.fOres}</label>
-        <div id="rfd-ores" class="rfd-ores"></div>
+        <div id="rfd-ores" class="rfd-ores" data-help={h('refinerytracker.ctl.ores')}></div>
         <button type="button" class="rfd-addore" id="rfd-addore">{COPY.addOre}</button>
       </div>
 
       <div class="rfd-grid3">
         <div class="acx-field">
           <label class="acx-label" for="rfd-hours">{COPY.fDuration}</label>
-          <div class="rfd-dur">
+          <div class="rfd-dur" data-help={h('refinerytracker.ctl.duration')}>
             <input class="acx-input rfd-num" id="rfd-hours" name="hours" type="number" min="0" max="240" step="1" inputmode="numeric" placeholder="0" />
             <span class="rfd-durlbl">{COPY.hLbl}</span>
             <input class="acx-input rfd-num" id="rfd-mins" name="mins" type="number" min="0" max="59" step="1" inputmode="numeric" placeholder="0" />
@@ -183,7 +188,7 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
         </div>
       </div>
 
-      <div class="rfd-preview" id="rfd-preview" aria-live="polite">
+      <div class="rfd-preview" id="rfd-preview" aria-live="polite" data-help={h('refinerytracker.ctl.preview')}>
         <div class="rfd-pv"><span class="rfd-pv__k">{COPY.pvYield}</span><b class="rfd-pv__v" id="rfd-pv-yield">— {COPY.scu}</b></div>
         <div class="rfd-pv"><span class="rfd-pv__k">{COPY.pvValue}</span><b class="rfd-pv__v rfd-pv__v--auec" id="rfd-pv-value">—</b></div>
         <div class="rfd-pv"><span class="rfd-pv__k">{COPY.pvReady}</span><b class="rfd-pv__v" id="rfd-pv-ready">—</b></div>
@@ -200,7 +205,7 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
 
   <!-- 03 Historie -->
   <div class="sec-head reveal"><span class="num">03</span><h2>{COPY.histTitle}</h2><span class="rule"></span></div>
-  <div id="rfd-history" class="rfd-hist"></div>
+  <div id="rfd-history" class="rfd-hist" data-help={h('refinerytracker.ctl.history')}></div>
   <div id="rfd-history-empty" class="acx-card rfd-empty" hidden>{COPY.histEmpty}</div>
 </div>
 
