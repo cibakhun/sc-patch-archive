@@ -256,8 +256,9 @@ ist anbieterneutral und bleibt gültig.
 | DOC-05 | Phase 1.2 | Pending |
 | DOC-06 | Phase 1.2 | Pending |
 | DOC-07 | Phase 1.2 | Pending |
-<!-- Stand 06.08.2026: Phase 1.2 Plan 1 von 5 ausgefuehrt (Leitschuss Item Finder,
-     1 von 11 Werkzeugen). DOC-01..07 bleiben deshalb bewusst Pending — die
+<!-- Stand 06.08.2026: Phase 1.2 Plan 3 von 5 ausgefuehrt (Item Finder, Crafting,
+     Mining, Refinery-Finder, Patch-Archiv, Missionen, Ruestungssets, Wikelo —
+     8 von 11 Werkzeugen). DOC-01..07 bleiben deshalb bewusst Pending — die
      Anforderungen sind erst mit Plan 05 vollstaendig erfuellt. -->
 
 | DATA-01 | Phase 1.3 | Complete |

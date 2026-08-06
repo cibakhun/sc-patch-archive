@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: Phase 1.2 Plan 2/5 ausgefuehrt (Crafting, Mining, Refinery-Finder — Mehrfach-Instanz-Fall bewiesen); Phase 5 Spenden weiter offen
-last_updated: "2026-08-06T17:08:38.106Z"
+stopped_at: Phase 1.2 Plan 3/5 ausgefuehrt (Patch-Archiv, Missionen, Ruestungssets, Wikelo — beide Sonderfaelle geloest); Phase 5 Spenden weiter offen
+last_updated: "2026-08-06T17:31:49.000Z"
 last_activity: 2026-08-06
-last_activity_desc: "Phase 1.2 Plan 2/5 ausgefuehrt (Crafting, Mining, Refinery-Finder — Mehrfach-Instanz-Fall bewiesen); Phase 5 weiter offen"
+last_activity_desc: "Phase 1.2 Plan 3/5 ausgefuehrt (Patch-Archiv, Missionen, Ruestungssets, Wikelo — 8/11 Werkzeuge); Phase 5 weiter offen"
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 27
-  completed_plans: 18
+  completed_plans: 19
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -77,14 +77,22 @@ Crafting, Mining und Refinery-Finder hängen jetzt an derselben Mechanik (38 neu
 DE/EN-Schlüssel, 20 erklärte Bedienelement-ARTen) — dabei ist der Mehrfach-Instanz-Fall
 bewiesen: Mining und Refinery-Finder sitzen auf derselben gebauten Seite
 (`src/components/topics/mining.astro`) mit zwei unabhängigen `ToolHelp`-Instanzen, ohne
-Kollision und mit nur einem wirksam geladenen `tool-help.js`. `verify-help.mjs` meldet
-aktuell 4 von 11 Werkzeugen. Die Pläne 03–05 hängen die restlichen sieben Werkzeuge an
-die fertige Mechanik.
+Kollision und mit nur einem wirksam geladenen `tool-help.js`. **Plan 03 von 5 ist
+ebenfalls ausgeführt**: Patch-Archiv, Missionen, Rüstungssets und Wikelo's Emporium
+hängen jetzt an derselben Mechanik (37 neue DE/EN-Schlüssel) — dabei sind die beiden
+im Plan benannten Sonderfälle gelöst: die fünf strukturgleichen Auswahllisten der
+Missionsleiste teilen sich einen Erklärtext und werden trotzdem alle fünf umrandet
+(ein `data-help`-Wert auf mehreren Ankern), und Rüstungssets (keine Werkzeugleiste)
+bekam seinen Einstieg zwischen Einleitungstext und Sprungmarken-Leiste — im Code
+ausdrücklich als **Annahme A2, keine Entscheidung des Betreibers** markiert, zur
+Bestätigung in Plan 04 Task 3. `verify-help.mjs` meldet aktuell 8 von 11 Werkzeugen.
+Plan 04 hängt Schiffe und Precision Jump an (danach 10/11); Plan 05 trägt den
+kontogebundenen Refinery-Tracker sowie das Phasen-Tor.
 ⚠ Beim Einbringen wurden die Phase-01.1-03-Commits jener Sitzung **bewusst weggelassen** —
 der Mauszeiger-Schein ist auf `staging` bereits getilgt (0 Treffer für `cursorglow`/`--mx`),
 die Arbeit wäre ein Duplikat gewesen. Phase 1.1 bleibt hier bei 2/3.
 
-Progress: [███████░░░] 67%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -120,6 +128,7 @@ Progress: [███████░░░] 67%
 | Phase 07 P03 | ~45min | 3 tasks | 3 files |
 | Phase 1.2 P01 | 35min | 2 tasks | 6 files |
 | Phase 1.2 P02 | ~40min | 2 tasks | 4 files |
+| Phase 1.2 P03 | ~40min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -152,6 +161,8 @@ Recent decisions affecting current work:
 - [Phase 1.2]: 01.2-01: data-help auf stabilen Huellelementen statt auf ihren Kindern — ueberlebt jeden innerHTML-Neuaufbau der Item-Finder-Chips (DOC-03)
 - [Phase 1.2]: 01.2-01: tool-help.js haengt am Bauteil ToolHelp.astro, NICHT an Layout.astro — es liegt damit auf elf Werkzeugseiten statt auf ~26.000 gebauten Seiten (DOC-06 maschinell beweisbar)
 - [Phase 1.2]: 01.2-02: Mehrfach-Instanz-Fall bewiesen — zwei ToolHelp auf src/components/topics/mining.astro (mining + refineryfinder) kollidieren nicht, weil details.tool-help ohne name-Attribut keine native HTML-Exklusivitaet hat und getrennte data-tool-id getrennte vb.help.seen-Eintraege schreiben
+- [Phase 1.2]: 01.2-03: Ein data-help-Wert auf mehreren gleichartigen Elementen (missions.ctl.select fuenfmal auf der Missionsleiste) erfuellt D-01 (alle umrandet) und D-03 (einmal je ART erklaert) gleichzeitig, ohne Aenderung an tool-help.js
+- [Phase 1.2]: 01.2-03: Ruestungssets-Platzierung (zwischen p.as-intro und nav.as-jump) im Code ausdruecklich als Annahme A2 kommentiert, nicht als Entscheidung — offen zur Bestaetigung in Plan 04 Task 3
 
 ### Pending Todos
 
@@ -198,6 +209,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-06T17:08:38.075Z
-Stopped at: Phase 1.2 Plan 2/5 ausgefuehrt (Crafting, Mining, Refinery-Finder — Mehrfach-Instanz-Fall bewiesen); Phase 5 Spenden weiter offen
-Resume file: .planning/phases/01.2-werkzeuge-erklaeren/01.2-03-PLAN.md
+Last session: 2026-08-06T17:31:49.000Z
+Stopped at: Phase 1.2 Plan 3/5 ausgefuehrt (Patch-Archiv, Missionen, Ruestungssets, Wikelo — 8/11 Werkzeuge, beide Sonderfaelle geloest); Phase 5 Spenden weiter offen
+Resume file: .planning/phases/01.2-werkzeuge-erklaeren/01.2-04-PLAN.md
