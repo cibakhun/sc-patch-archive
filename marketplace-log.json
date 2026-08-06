@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 79,
-  "totalListings": 2698,
-  "totalSold": 115,
-  "distinctItems": 815
+  "updates": 80,
+  "totalListings": 2719,
+  "totalSold": 117,
+  "distinctItems": 817
  },
  "listings": {
   "156580": {
@@ -49824,9 +49824,9 @@
      "p": 20000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 20000000,
    "dateAdded": 1785931215,
    "dateExpiration": 1791115215
   },
@@ -56468,6 +56468,27 @@
    "dateAdded": 1786008544,
    "dateExpiration": 1791192544
   },
+  "159355": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 939,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786008983,
+   "dateExpiration": 1791192983
+  },
   "159356": {
    "idItem": 47,
    "idCategory": 32,
@@ -56901,6 +56922,10 @@
     {
      "d": "2026-08-06",
      "p": 7000000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 6000000
     }
    ],
    "soldOut": false,
@@ -57092,9 +57117,9 @@
      "p": 12000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 12000000,
    "dateAdded": 1786018739,
    "dateExpiration": 1791202739
   },
@@ -57307,6 +57332,426 @@
    "soldOutPrice": null,
    "dateAdded": 1786023637,
    "dateExpiration": 1791207637
+  },
+  "159416": {
+   "idItem": 7598,
+   "idCategory": 17,
+   "title": "Emod \"Tweaker\" Stabilizer2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786024412,
+   "dateExpiration": 1791208412
+  },
+  "159417": {
+   "idItem": 6812,
+   "idCategory": 17,
+   "title": "OT4-RF \"Scorched\" (4x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786024725,
+   "dateExpiration": 1791208725
+  },
+  "159418": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper 855 2,19 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 855,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786024808,
+   "dateExpiration": 1791208808
+  },
+  "159419": {
+   "idItem": 5335,
+   "idCategory": 17,
+   "title": "Lux Flashlight",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786024831,
+   "dateExpiration": 1791208831
+  },
+  "159420": {
+   "idItem": 4044,
+   "idCategory": 17,
+   "title": "Sion \"Tweaker\" Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786024935,
+   "dateExpiration": 1791208935
+  },
+  "159422": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 5,43 scu--874 SCU--9 mil for all",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786025026,
+   "dateExpiration": 1791209026
+  },
+  "159423": {
+   "idItem": 3873,
+   "idCategory": 17,
+   "title": "Gamma LL (1x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786025086,
+   "dateExpiration": 1791209086
+  },
+  "159424": {
+   "idItem": 2543,
+   "idCategory": 17,
+   "title": "Tracer Laser Pointer Green",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786025176,
+   "dateExpiration": 1791209176
+  },
+  "159425": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 0,63 SCU--907ql-- 3mil",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 907,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786025209,
+   "dateExpiration": 1791209209
+  },
+  "159426": {
+   "idItem": 5322,
+   "idCategory": 17,
+   "title": "FocalWave-30 (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786025260,
+   "dateExpiration": 1791209260
+  },
+  "159427": {
+   "idItem": 5323,
+   "idCategory": 17,
+   "title": "Gamma Plus \"Lumen\" (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786025348,
+   "dateExpiration": 1791209347
+  },
+  "159428": {
+   "idItem": 2056,
+   "idCategory": 12,
+   "title": "Ambrus Suit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786025594,
+   "dateExpiration": 1791209594
+  },
+  "159429": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Morozov-SH-I Lifeforce set incl Backpack and Undersuit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786025739,
+   "dateExpiration": 1791209739
+  },
+  "159430": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle - \"Blacklist-Edition\"",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786025767,
+   "dateExpiration": 1791209767
+  },
+  "159431": {
+   "idItem": 5722,
+   "idCategory": 18,
+   "title": "Quartz \"Hunter Camo\" Energy SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786025919,
+   "dateExpiration": 1791209919
+  },
+  "159435": {
+   "idItem": 2334,
+   "idCategory": 18,
+   "title": "Njakte Knife",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786026396,
+   "dateExpiration": 1791210396
+  },
+  "159437": {
+   "idItem": 4715,
+   "idCategory": 1,
+   "title": "ORC-mkX Arms Scorched",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786026526,
+   "dateExpiration": 1791210526
+  },
+  "159439": {
+   "idItem": 4463,
+   "idCategory": 3,
+   "title": "Morozov-SH Helmet Scorched-X",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786026630,
+   "dateExpiration": 1791210630
+  },
+  "159440": {
+   "idItem": 2759,
+   "idCategory": 18,
+   "title": "Sawtooth Combat Knife",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786026759,
+   "dateExpiration": 1791210759
+  },
+  "159441": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786027236,
+   "dateExpiration": 1791211236
   }
  }
 }
