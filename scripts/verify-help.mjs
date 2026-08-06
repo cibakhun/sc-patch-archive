@@ -6,7 +6,7 @@
    als eigenstaendiges Werkzeug im Repository (`npm run verify:help`),
    absichtlich NICHT in `npm run build` eingehaengt.
 
-   Fuenf Zusicherungen, jede mit Soll/Ist-Zeile:
+   Sechs Zusicherungen, jede mit Soll/Ist-Zeile:
 
      1  Kostenfreiheit vor dem Oeffnen (DOC-06, D-11). Liest
         dist/assets/tool-help.js, findet die Marken
@@ -36,6 +36,13 @@
         --complete nur Stand melden; mit --complete alle elf verlangen.
      5  Ladeort (DOC-06): jede Seite, die tool-help.js laedt, traegt
         mindestens ein data-tool-id.
+     6  Element-Hilfe vorhanden (WR-05): jede Seite mit data-tool-id
+        traegt mindestens einen data-help-Anker, und kein data-help-
+        Wert ist leer. Ohne diese Zusicherung meldete Zusicherung 4
+        weiterhin "abgedeckt", selbst wenn einem Werkzeug alle
+        data-help-Anker geloescht wurden — Zusicherung 3 sieht das
+        ebenfalls nicht, weil sie nur EN gegen DE zaehlt (0 === 0
+        besteht dort klaglos).
 
        node scripts/verify-help.mjs [--complete]
    ============================================================ */
@@ -217,6 +224,37 @@ console.log('\n[5] Ladeort: nur Seiten mit data-tool-id laden tool-help.js (DOC-
   }
   console.log(`    Seiten, die das Skript ohne data-tool-id laden — Soll: 0   Ist: ${bad.length}`);
   if (bad.length) fail(`Skript geladen ohne data-tool-id: ${bad.slice(0, 10).join(', ')}`);
+}
+
+/* ---- Zusicherung 6: jede Werkzeug-Seite hat echte data-help-Anker (WR-05) ----
+   Zusicherung 4 sieht nur data-tool-id — ein Werkzeug, dem alle
+   data-help-Anker geloescht wurden, meldete dort weiterhin "abgedeckt".
+   Diese Zusicherung verlangt fuer JEDE Seite mit data-tool-id mindestens
+   einen data-help-Wert und verbietet leere Werte. */
+console.log('\n[6] Element-Hilfe vorhanden (WR-05): data-tool-id verlangt >=1 nicht-leeren data-help-Anker');
+{
+  const helpRe = /data-help="([^"]*)"/g;
+  let checked = 0;
+  let withoutAnchor = 0;
+  let withEmptyValue = 0;
+  for (const f of htmlFiles) {
+    const html = htmlCache.get(f);
+    if (!html.includes('data-tool-id=')) continue;
+    checked++;
+    const vals = [...html.matchAll(helpRe)].map((m) => m[1]);
+    if (!vals.length) {
+      withoutAnchor++;
+      fail(`${f}: data-tool-id vorhanden, aber KEIN data-help-Anker`);
+      continue;
+    }
+    if (vals.some((v) => !v.trim())) {
+      withEmptyValue++;
+      fail(`${f}: leerer data-help-Wert (${vals.filter((v) => !v.trim()).length}x)`);
+    }
+  }
+  console.log(
+    `    Geprueft: ${checked}   ohne Anker: ${withoutAnchor}   mit leerem Wert: ${withEmptyValue}   Soll: 0 / 0`
+  );
 }
 
 console.log(`\nverify-help: ${ok ? 'ALLE ZUSICHERUNGEN ERFUELLT ✓' : 'FEHLGESCHLAGEN ✗'}`);
