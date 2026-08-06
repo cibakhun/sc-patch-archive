@@ -2,18 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 05
-current_phase_name: bauteil-kennwerte-auf-den-crafting-karten
-status: verifying
-stopped_at: Completed 05-03-PLAN.md (Phase 05 abgeschlossen)
-last_updated: "2026-08-06T23:03:31.614Z"
+current_phase: 5
+current_phase_name: Spenden-Unterstuetzung
+status: in_progress
+stopped_at: Phase 1.2 Plan 5/5 ausgefuehrt (Refinery-Tracker, Phasen-Tor 11/11 gruen); Sichtrunde an Betreiber zurueckgegeben; Phase 5 Spenden weiter offen
+last_updated: "2026-08-06T18:13:32.000Z"
 last_activity: 2026-08-06
-last_activity_desc: Phase 05 execution started
+last_activity_desc: "Phase 1.2 Plan 5/5 ausgefuehrt (Refinery-Tracker, Phasen-Tor 11/11 gruen, Sichtrunde ausstehend); Phase 5 weiter offen"
 progress:
-  total_phases: 4
-  completed_phases: 1
-  total_plans: 8
-  completed_plans: 5
+  total_phases: 8
+  completed_phases: 4
+  total_plans: 27
+  completed_plans: 21
+parked_phase: 1.1
+parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
 
 # Project State
@@ -23,17 +25,99 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 05 — bauteil-kennwerte-auf-den-crafting-karten
+**Current focus:** Phase 5 — Spenden-Unterstützung
 
 ## Current Position
 
-Phase: 05 (bauteil-kennwerte-auf-den-crafting-karten) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Branch: claude/site-feedback-effects-docs-3f4edf
-Last activity: 2026-08-06 — Phase 05 execution started
+Phase: 5 of 7 (Spenden-Unterstützung)
+Plan: 3 Pläne geschnitten, noch keiner ausgeführt
+Status: **Neu ausgerichtet am 02.08.2026.** Der Abgleich mit `origin/staging` hat
+gezeigt, dass `/support.html` bereits existiert und live ist (Commit `517a9a7`,
+`src/components/SupportBody.astro` als EIN Körper für DE+EN, Empfänger
+`paypal.me/mkrisz22`, Fuß und Menü verdrahtet). Dieser Worktree war von `a23a22a`
+abgezweigt und blind dafür. Phase 5 ist deshalb kein Neubau mehr, sondern der
+**Umbau der bestehenden Seite** auf die Gestaltungsrichtung „Instandsetzung".
+Branch: claude/donation-button-feature-98ba38 (Worktree)
+Last activity: 2026-08-02 — staging zusammengeführt, Phase 5 auf Umbau umgestellt
 
-Progress: [██████░░░░] 63%
+**Was der bestehenden Seite fehlt** (gemessen, nicht vermutet):
+
+- Datenschutzerklärung nennt PayPal in KEINER der beiden Sprachfassungen (0 Treffer)
+  — der einzige Punkt mit rechtlicher Relevanz
+
+- Keine eigene Optik (Standard-Palette `--accent:#2dd4ff`), keine Betragswahl, kein Ko-fi
+- Als Grund steht die generische Serverkosten-Begründung statt des defekten Netzteils
+
+**Was bleibt und übernommen wird:** die Abschnitte „Was genauso hilft" und
+„Kein Kleingedrucktes" — inhaltlich stark, sie bekommen nur die neue Form.
+
+**Achtung Mehrfachsitzung:** Der Betreiber arbeitet parallel in einer zweiten
+Sitzung an Phase 5. `SupportBody.astro` darf nicht gleichzeitig aus zwei Sitzungen
+geändert werden.
+
+**Geparkt:** Phase 1.1 „Ambiente-Effekte stilllegen" steht bei Plan 2 von 3
+(Plan-Prüfer bestanden, ausführbereit) auf Branch
+`claude/site-feedback-effects-docs-3f4edf`. Sie ist NICHT abgebrochen und wird
+nach Phase 5 fortgesetzt; Phase 5 fasst keine der dort geänderten Dateien an.
+
+**Ebenfalls fertig, aus einer dritten Sitzung:** Phase 7 „Komponenten-Filter für Schiffe"
+(Branch `claude/gsd-ship-component-filter-f81262`) ist ausgeführt und am 03.08.2026 mit
+`staging` zusammengeführt. Sie lief parallel zu Phase 6 und ging noch von zwei
+handduplizierten Schiffsseiten aus; beim Zusammenführen wanderte der Filter in den von
+Phase 6 eingeführten gemeinsamen Körper `components/ships/ShipsOverview.astro`.
+
+**Ebenfalls neu, aus einer vierten Sitzung (06.08.2026):** Phase 1.2 „Werkzeuge erklären"
+ist besprochen, recherchiert und in **fünf** Plänen geschnitten (nicht zwei — der Textumfang
+von elf Werkzeugen passt nicht in zwei Pläne). **Plan 01 von 5 ist ausgeführt**: die
+Hilfe-Mechanik steht end-to-end am Item Finder — Textkatalog `src/i18n/help.ts` ohne
+Sprachrückfall, Bauteil `src/components/ToolHelp.astro`, Stufe-2-Maschine
+`assets/tool-help.js` und das bleibende Prüftor `scripts/verify-help.mjs`
+(`npm run verify:help`, 5 Zusicherungen). **Plan 02 von 5 ist ebenfalls ausgeführt**:
+Crafting, Mining und Refinery-Finder hängen jetzt an derselben Mechanik (38 neue
+DE/EN-Schlüssel, 20 erklärte Bedienelement-ARTen) — dabei ist der Mehrfach-Instanz-Fall
+bewiesen: Mining und Refinery-Finder sitzen auf derselben gebauten Seite
+(`src/components/topics/mining.astro`) mit zwei unabhängigen `ToolHelp`-Instanzen, ohne
+Kollision und mit nur einem wirksam geladenen `tool-help.js`. **Plan 03 von 5 ist
+ebenfalls ausgeführt**: Patch-Archiv, Missionen, Rüstungssets und Wikelo's Emporium
+hängen jetzt an derselben Mechanik (37 neue DE/EN-Schlüssel) — dabei sind die beiden
+im Plan benannten Sonderfälle gelöst: die fünf strukturgleichen Auswahllisten der
+Missionsleiste teilen sich einen Erklärtext und werden trotzdem alle fünf umrandet
+(ein `data-help`-Wert auf mehreren Ankern), und Rüstungssets (keine Werkzeugleiste)
+bekam seinen Einstieg zwischen Einleitungstext und Sprungmarken-Leiste — im Code
+ausdrücklich als **Annahme A2, keine Entscheidung des Betreibers** markiert, zur
+Bestätigung in Plan 04 Task 3. **Plan 04 von 5 ist ebenfalls ausgeführt**: Schiffe und
+Precision Jump hängen jetzt an derselben Mechanik (20 neue DE/EN-Schlüssel) — dabei
+stellte sich heraus, dass Schiffe seit der Phase-6/7-Zusammenführung keine zwei
+handgepflegten Seitendateien mehr sind, sondern EINEN gemeinsamen Körper
+(`src/components/ships/ShipsOverview.astro`) hat; die Hilfe wurde deshalb nur dort
+verdrahtet, nicht mehr in `src/pages/schiffe.astro` und `src/pages/de/schiffe.astro`
+wie ursprünglich geplant — der Class-A-Duplikationsbefund entfällt für dieses
+Werkzeug. Precision Jump bekam seinen Einstieg vor der Steuerkonsole, ebenfalls als
+**Annahme A2** markiert. `verify-help.mjs` meldet jetzt 10 von 11 Werkzeugen. **Plan 05
+von 5 ist ebenfalls ausgeführt**: der Refinery-Tracker (`/refinery.html`, kontogebunden)
+hängt jetzt an derselben Mechanik (14 neue DE/EN-Schlüssel, 163 gesamt) — `ToolHelp`
+sitzt INNERHALB des serverseitig `hidden`-Blocks `div#rfd`, unmittelbar nach
+`div.rfd-top` (Regel R-1: die Seite leitet abgemeldete Besucher sofort weg, es gibt
+außerhalb von `#rfd` nichts zu erklären), acht `data-help`-Anker auf acht
+Huellelementen, vier davon im gebauten HTML leer und client-seitig befüllt (Regel
+R-4). Anders als bei Plan 04 stimmten alle im Plan genannten Zeilennummern exakt mit
+dem tatsächlichen Code überein — keine Planabweichung dieser Art. `node
+scripts/verify-help.mjs --complete` meldet jetzt **„Abgedeckt: 11 von 11"**, alle fünf
+Zusicherungen erfüllt; ebenso grün: `npm run audit:site` (0 FEHLER), `npm run
+audit:csp` (10 externe Quellen, alle abgedeckt), `npm run verify:fx` (Phase 01.1
+unverändert), `npm run verify` (0 gebrochene Verweise). DOC-01 bis DOC-07 in
+`.planning/REQUIREMENTS.md` auf dieser maschinellen Grundlage abgehakt.
+**Die im Plan verlangte Sichtrunde (12 Punkte + Annahmen A2/A4, braucht ein
+angemeldetes Konto) wurde bewusst NICHT vom Executor durchgeführt** — sie ist als
+offener Punkt in `.planning/WINDOWS.md` (id 2, `unrun-verify`) und in
+`01.2-05-SUMMARY.md` an den Betreiber zurückgegeben. **Phase 1.2 ist damit
+technisch fertig (5/5 Pläne, 11/11 Werkzeuge maschinell belegt), aber NICHT als
+„Complete" markiert**, solange die Sichtrunde aussteht.
+⚠ Beim Einbringen wurden die Phase-01.1-03-Commits jener Sitzung **bewusst weggelassen** —
+der Mauszeiger-Schein ist auf `staging` bereits getilgt (0 Treffer für `cursorglow`/`--mx`),
+die Arbeit wäre ein Duplikat gewesen. Phase 1.1 bleibt hier bei 2/3.
+
+Progress: [███████░░░] 78%
 
 ## Performance Metrics
 
@@ -61,9 +145,17 @@ Progress: [██████░░░░] 63%
 |------|----------|-------|-------|
 | Phase 01.1 P01 | 45min | 3 tasks | 8 files |
 | Phase 01.1 P02 | ~2h | 3 tasks | 39 files |
-| Phase 05 P01 | 26min | 2 tasks | 5 files |
-| Phase 05 P02 | 16min | 2 tasks | 4 files |
-| Phase 05 P03 | ~35min | 1 tasks | 3 files |
+| Phase 06 P01 | 45min | 2 tasks | 8 files |
+| Phase 06 P02 | 55min | 2 tasks | 5 files |
+| Phase 06 P03 | ~2h55min | 2 tasks | 1 files |
+| Phase 07 P01 | ~35min | 2 tasks | 6 files |
+| Phase 07 P02 | 55min | 3 tasks | 3 files |
+| Phase 07 P03 | ~45min | 3 tasks | 3 files |
+| Phase 1.2 P01 | 35min | 2 tasks | 6 files |
+| Phase 1.2 P02 | ~40min | 2 tasks | 4 files |
+| Phase 1.2 P03 | ~40min | 2 tasks | 5 files |
+| Phase 01.2 P04 | ~35min | 2 tasks | 3 files |
+| Phase 01.2 P05 | ~40min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -80,13 +172,28 @@ Recent decisions affecting current work:
 - [Phase ?]: archive.js: eine gemeinsame running-Variable traegt Tab-Sichtbarkeit UND FX-Wahl statt zweier konkurrierender Riegel
 - [Phase ?]: Codemod liest den Leinwandnamen aus getElementById statt ihn festzuverdrahten -- erkennt dadurch die abweichende dust-Leinwand von sc-4-9-0 korrekt
 - [Phase ?]: sc-4-2-0 Regen und Blitz bewusst aus dem Codemod ausgeschlossen und von Hand gegattert, inkl. Reset des Zeitgebers beim Wiedereinschalten
-- [Phase ?]: Kollisionssperre vergleicht das gesamte item_stats-Objekt (schluesselsortiert serialisiert), nicht nur mass_kg/overheat_temperature — 3 von 5 Kollisionen teilen identisches overheat_temperature
-- [Phase ?]: CSS-Tokens fuer die neuen Chips ohne Hex-Fallback geschrieben (var(--text) statt var(--text,#eef1f5)), um das woertliche Acceptance-Criterion gegen neue Farbliterale zu erfuellen
-- [Phase ?]: verify-crafting-specs.mjs spiegelt blueprintSpecs()/COLLIDING_NAMES statt sie zu importieren — Node's TS-Stripping loest extensionlose relative Importe in crafting.ts (./items) nicht auf, gemessen mit einem direkten import()-Versuch vor der Entscheidung
-- [Phase ?]: Ton-Ableitung fuer Schiffswaffen aus dem dritten Kategorie-Segment (toneFromWeaponCategoryPath), gespiegelt in verify-crafting-specs.mjs
-- [Phase ?]: 05-03: Ton bekommt bewusst KEINE eigene Filtergruppe — nur die Freitextsuche deckt d.tone ab (Scope Fence nennt nur Groesse/Grade als Filter)
-- [Phase ?]: 05-03: Filter-Ueberschriften aus vorhandenem Wortschatz itemT('specSize')/itemT('specGrade') statt neuer App-Strings — DE/EN automatisch synchron
-- [Phase ?]: 05-03: sizeCounts/gradeCounts direkt aus cardsData abgeleitet (nicht aus einer zweiten DB.blueprints-Iteration) — dieselbe Quelle, die die Karten rendert, kann nicht auseinanderlaufen
+- [Phase 6]: 06-01: vRoleCig() ersetzt fociDe als Kartenbeschriftung, Fallback auf vRole() fuer die 4 ATLS-Faelle; EIN Koerper (ShipsOverview.astro) fuer /schiffe.html + /de/schiffe.html
+- [Phase 6]: 06-01: npm run theme lief repo-weit und veraenderte 84 unbeteiligte Dateien (Alt-Drift) -- alle zurueckgesetzt, nur die 4 fuer diesen Plan vorgesehenen Dateien blieben veraendert
+- [Phase 6]: 06-02: 18 Rollenfamilien (CAREER_LEGACY/ROLE_COMPOUND/ROLE_FAMILY) + Signatur (sig, 16 Schiffe) + Merkmalsleiste (feat: cargo 102, ground 37) aus dem DataCore; Bewaffnet (dogfightEnabled 220/223) bewusst nicht als Merkmal erzeugt (D-09)
+- [Phase 6]: 06-02: npm run theme beruehrte erneut dieselben 84 unbeteiligten Dateien aus Plan 01 (Alt-Drift) -- zurueckgesetzt, nur die 5 Plan-Dateien blieben veraendert
+- [Phase 6]: 06-03: 7 Schnellzugriff-Chips (sdb__quick/sdb__qchip) setzen Rollenfamilie+Signatur in einem Klick (D-10, ROLE-06); sf-type (Wiki-Grobfilter) abgeloest
+- [Phase 6]: 06-03: Sichtpruefung fand doppelten Rollenfilter (sf-role neben sf-rolefam) -- sf-role entfernt, sf-rolefam ist jetzt DER Rollenfilter (D-05); Konsole 9 statt 10 Bedienelemente
+- [Phase 7]: 07-01: compAttr liefert bei "Daten, aber keine Kategorie" den Platzhalter `_` statt der leeren Zeichenkette -- Astro rendert leere String-Attributwerte ohne `=`, was die automatisierte HTML-Zaehlung im Plan brach (siehe 07-01-SUMMARY.md Deviations)
+- [Phase 7]: 07-01: catOf() prueft `m` (MissileLauncher/BombLauncher) VOR `w` (WeaponGun), sonst landen Kombi-Halterungen faelschlich bei den Waffen; Turm-Platz bleibt bewusst frei fuer 07-02 (D-06)
+- [Phase 7]: 07-02: D-06 -> D-06a waehrend des blockierenden Checkpoints verschaerft -- die geratene Fernturm-Namenserkennung (`remote`/`tractor`) ist ersatzlos gestrichen, Turm zaehlt nur noch `TurretBase` ohne `Container` (reversibility: costly). Preis: Carrack/Redeemer/Polaris verlieren ihre ferngesteuerten Turm-Ports; 47 statt 59 Schiffe tragen jetzt `t`. `t` speichert wie alle Kategorien die maximale Steckplatzgroesse, NICHT die Turmanzahl (Verwechslungsgefahr, siehe 07-02-SUMMARY.md).
+- [Phase 7]: 07-03: 26 automatisierte `node:vm`-Testfaelle (`tests/e2e/ship-component-filter.test.js`) fuehren das echte Inline-Skript aus und decken D-04/D-08/D-10/D-11/D-12 ab.
+- [Phase 7]: Zusammenfuehrung 03.08.2026: Phase 7 lief parallel zu Phase 6 und ging von zwei handduplizierten Schiffsseiten aus. Phase 6 hat die beiden zu EINEM Koerper zusammengelegt -- der Filter sitzt seither in `components/ships/ShipsOverview.astro`, nicht mehr zweimal in den Seiten. Das Groessenfeld heisst `sf-compsize`, weil Phase 6 `sf-size` bereits fuer die Schiffs-Groessenklasse belegt.
+- [Phase 1.2]: 01.2-01: useHelp()/assertHelpParity() statt useTranslations() — Hilfetexte duerfen nie auf Englisch zurueckfallen (DOC-04). Der eingebaute EN-Rueckfall in src/i18n/ui.ts ist fuer Hilfetexte das Gegenteil des Erfolgskriteriums.
+- [Phase 1.2]: 01.2-01: Stufe-2-Markup/CSS/Blase entsteht ausschliesslich per JS in activate() — vor dem Klick existiert nichts davon (DOC-06/D-11)
+- [Phase 1.2]: 01.2-01: data-help auf stabilen Huellelementen statt auf ihren Kindern — ueberlebt jeden innerHTML-Neuaufbau der Item-Finder-Chips (DOC-03)
+- [Phase 1.2]: 01.2-01: tool-help.js haengt am Bauteil ToolHelp.astro, NICHT an Layout.astro — es liegt damit auf elf Werkzeugseiten statt auf ~26.000 gebauten Seiten (DOC-06 maschinell beweisbar)
+- [Phase 1.2]: 01.2-02: Mehrfach-Instanz-Fall bewiesen — zwei ToolHelp auf src/components/topics/mining.astro (mining + refineryfinder) kollidieren nicht, weil details.tool-help ohne name-Attribut keine native HTML-Exklusivitaet hat und getrennte data-tool-id getrennte vb.help.seen-Eintraege schreiben
+- [Phase 1.2]: 01.2-03: Ein data-help-Wert auf mehreren gleichartigen Elementen (missions.ctl.select fuenfmal auf der Missionsleiste) erfuellt D-01 (alle umrandet) und D-03 (einmal je ART erklaert) gleichzeitig, ohne Aenderung an tool-help.js
+- [Phase 1.2]: 01.2-03: Ruestungssets-Platzierung (zwischen p.as-intro und nav.as-jump) im Code ausdruecklich als Annahme A2 kommentiert, nicht als Entscheidung — offen zur Bestaetigung in Plan 04 Task 3
+- [Phase 1.2]: 01.2-04: Schiffe seit Phase 6 EIN gemeinsamer Koerper (ShipsOverview.astro) statt zweier Seitendateien — Class-A-Sprachparitaets-Risiko fuer dieses Werkzeug entfaellt, Hilfe nur an EINER Stelle verdrahtet
+- [Phase 1.2]: 01.2-04: Precision-Jump-Platzierung (vor .pj-console, kein Filterleiste) im Code als Annahme A2 markiert, zur Bestaetigung im Phasen-Tor von Plan 05
+- [Phase 1.2]: 01.2-05: ToolHelp sitzt INNERHALB des serverseitig hidden-Blocks div#rfd (Regel R-1) — die Sprachparitaetspruefung greift trotzdem unveraendert, weil hidden ein Sichtbarkeits-Attribut ist, kein Ausschluss aus dem ausgelieferten HTML (ausdruecklich NICHT der Item-Finder-Fall)
+- [Phase 1.2]: 01.2-05: DOC-01 bis DOC-07 auf Grundlage von verify-help.mjs --complete (11/11) abgehakt; die im Plan verlangte Sichtrunde (12 Punkte + Annahmen A2/A4) wurde bewusst NICHT vom Executor durchgefuehrt (braucht angemeldetes Konto + menschliches Urteil) und ist als offener Punkt in WINDOWS.md (id 2) an den Betreiber zurueckgegeben — Phase 1.2 bleibt deshalb "In Progress", nicht "Complete"
 
 ### Pending Todos
 
@@ -102,15 +209,26 @@ None yet.
 
 ### Quick Tasks Completed
 
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260802-3fw | Zurück-Button site-weit (SiteNav leitet ihn aus `crumbs` ab; `--nav-h` löst die verdrahteten 68px in drei Filterleisten ab) | 2026-08-02 | b12a3b5, 03ead2d | [260802-3fw-zurueck-button-site-weit](./quick/260802-3fw-zurueck-button-site-weit/) |
-| 260802-5qd | Zurück folgt der tatsächlichen Herkunft (Herkunfts-Notiz + parser-blockierender Leser; crafting→Material→zurück behält Suche und Scroll) | 2026-08-02 | d66dbb6, 9e0133a | [260802-5qd-zurueck-folgt-der-herkunft](./quick/260802-5qd-zurueck-folgt-der-herkunft/) |
+| # | Description | Date | Commit | Status | Directory |
+|---|-------------|------|--------|--------|-----------|
+| 260802-3fw | Zurück-Button site-weit (SiteNav leitet ihn aus `crumbs` ab; `--nav-h` löst die verdrahteten 68px in drei Filterleisten ab) | 2026-08-02 | b12a3b5, 03ead2d | | [260802-3fw-zurueck-button-site-weit](./quick/260802-3fw-zurueck-button-site-weit/) |
+| 260802-5qd | Zurück folgt der tatsächlichen Herkunft (Herkunfts-Notiz + parser-blockierender Leser; crafting→Material→zurück behält Suche und Scroll) | 2026-08-02 | d66dbb6, 9e0133a | | [260802-5qd-zurueck-folgt-der-herkunft](./quick/260802-5qd-zurueck-folgt-der-herkunft/) |
+| 260802-7eb | UEX-Durchschnittspreis-Spalte für Items (DE+EN) — vierte Ø-Spalte in Datenblatt, Kategorie-Liste und Finder-Modal; Mittelwert über alle Verkaufsorte aus `obtain[]`, ohne API-/Pipeline-Änderung | 2026-08-02 | aa391d8, bcc99b7 | Verified | [260802-7eb-uex-durchschnittspreis-spalte-fuer-items](./quick/260802-7eb-uex-durchschnittspreis-spalte-fuer-items/) |
+| 260802-7f5 | Item-Finder als Werkzeug: Suche und Filter ohne Scrollen direkt unter dem Titel (DE+EN) | 2026-08-02 | 8001901 | Verified | [260802-7f5-item-finder-als-werkzeug-suche-und-filte](./quick/260802-7f5-item-finder-als-werkzeug-suche-und-filte/) |
+| 260802-ose | Größenachse (CIG-Hangarklasse 1-6, `AttachDef.Size`) als dritte Filterachse neben Beruf/Rolle; Boden/Raum-Merkmal bewusst NICHT auf `AttachDef.SubType` umgestellt (verliert 10 Schweberäder gegenüber dem bestehenden Merkmal) | 2026-08-02 | 3ecddb4, bf05687, 330c29a, 85ebd90 | | [260802-ose-groessenachse-boden-raum](./quick/260802-ose-groessenachse-boden-raum/) |
 
 ### Roadmap Evolution
 
 - Phase 01.1 inserted after Phase 1: Ambiente-Effekte stilllegen — Mauszeiger-Schein raus, Partikel opt-in (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 - Phase 01.2 inserted after Phase 1: Werkzeuge erklaeren — Zweck- und Bedienungshilfe je Werkzeug (Besucher-Rueckmeldung 29.07.2026) (URGENT)
+- Phase 5 added (31.07.2026): Spenden-Unterstuetzung — Stripe Checkout + Ko-fi, eigene Seite, Ziel und Unterstuetzer-Wand (DON-01…DON-14). ERWEITERT den Meilenstein bewusst ueber die Oberflaeche hinaus (DB-Tabelle, zwei Edge Functions, Zahlungsverkehr); die „Out of Scope"-Zeilen zu serverseitiger Logik und Konto-Funktionen sind fuer diese Phase aufgehoben. Anlass: defektes Netzteil im Entwicklungsrechner, zufaellige Neustarts. Haengt an keiner Vorgaengerphase — Phase 1.1 bleibt geplant liegen und wird NICHT abgebrochen.
+- Phase 6 added (02.08.2026): Schiffe — Rollen- und Merkmalsfilter. Granulare, spielgenaue Filter statt acht Wiki-Grobtypen; Datengrundlage neu aus dem DataCore. Beanspruchte zunaechst Nummer 5 und wurde beim staging-Abgleich auf 6 umnummeriert, weil Spenden-Unterstuetzung zuerst auf staging war. ABGESCHLOSSEN, Verifikation 10/10.
+- Phase 7 added (03.08.2026): Komponenten-Filter fuer Schiffe — Filter nach Steckplatz-Groesse je Bauteilart, eigener Zweig `claude/gsd-ship-component-filter-f81262`. Beanspruchte zunaechst Nummer 5 und wurde beim staging-Abgleich auf 7 umnummeriert (5 = Spenden, 6 = Rollenfilter waren zuerst da). Vorab-Spike hat die Datenquelle belegt: `Scripts/Entities/Vehicles/Implementations/Xml/<SCHIFF>.xml` (CryXmlB) traegt je Part einen `ItemPort` mit `minSize`/`maxSize`/`Types`; der DataCore-Schiffsrecord fuehrt den Pfad dieser XML selbst als Dateiverweis, der Join braucht also kein Namensraten.
+- Phase 7 Plan 1/3 ausgefuehrt (03.08.2026): CryXmlB-Leser + Datamine-Skript liefern 223/227 Schiffe ueber 7 von 8 Bauteilkategorien (Turm folgt in 07-02). Alle vier Hausgates gruen. Details: `.planning/phases/07-komponenten-filter-f-r-schiffe/07-01-SUMMARY.md`.
+- Phase 7 Plan 2/3 ausgefuehrt (03.08.2026): Turm-Regel (D-06a, vom Nutzer im blockierenden Checkpoint auf reine `TurretBase`-Ablesung verschaerft) + achte Bauteilart. 47/223 Schiffe tragen `t`. Alle vier Hausgates gruen. Details: `07-02-SUMMARY.md`.
+- Phase 7 Plan 3/3 ausgefuehrt (03.08.2026): Zweisprachigkeit + 26 automatisierte `node:vm`-Testfaelle (D-04/D-08/D-10/D-11/D-12). Alle vier Hausgates gruen, Sichtpruefung in beiden Sprachen/Farbmodi/360 px bestaetigt. Details: `07-03-SUMMARY.md`.
+- Phase 7 auf staging ausgeliefert und dort abgenommen (03.08.2026, `bfae647`): auf https://staging.verse-base.com/schiffe.html und /de/schiffe.html im Browser bedient. Gemessen: "Waffe ab S5" = 36 Treffer · 4 ohne Steckplatz-Daten (deckt sich mit `ship-components.json`), "Turm ab S5" = 42 (Verteilung 4:5 5:12 6:25 7:2 8:1 10:2 — Haeufung bei S6 ist die uebliche bemannte Turmgroesse), zusammen mit dem Rollenfilter aus Phase 6 = 14. Alle vier Hausgates gruen auf dem committeten Stand (17351 Seiten, 816573 Verweise, 0 FEHLER, 151/151 Tests).
+- Phase 7 mit staging zusammengefuehrt (03.08.2026): Phase 6 hatte die beiden Schiffsseiten inzwischen zu EINEM Koerper zusammengelegt. Der Filter wanderte deshalb aus den zwei Seiten in `components/ships/ShipsOverview.astro`; `sf-size` war dort bereits fuer die Schiffs-Groessenklasse vergeben, das Bauteil-Groessenfeld heisst darum `sf-compsize`. **Phase 7 damit abgeschlossen.**
 
 ## Deferred Items
 
@@ -122,6 +240,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-06T23:03:31.598Z
-Stopped at: Completed 05-03-PLAN.md (Phase 05 abgeschlossen)
-Resume file: None
+Last session: 2026-08-06T18:13:32.000Z
+Stopped at: Phase 1.2 Plan 5/5 ausgefuehrt (Refinery-Tracker, Phasen-Tor 11/11 gruen); Sichtrunde (12 Punkte + Annahmen A2/A4) an Betreiber zurueckgegeben, siehe WINDOWS.md id 2; Phase 5 Spenden weiter offen
+Resume file: .planning/phases/01.2-werkzeuge-erklaeren/01.2-05-SUMMARY.md (Sichtrunde-Checkliste), danach naechste Phase im Roadmap-Fluss

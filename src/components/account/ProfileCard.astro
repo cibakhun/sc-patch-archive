@@ -234,8 +234,7 @@ const t = {
     position: relative;
     background: var(--surface);
     border: 1px solid var(--line);
-    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-    filter: drop-shadow(0 16px 34px rgba(0, 0, 0, 0.45));
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);filter:drop-shadow(0 16px 34px var(--shadow-color));
     margin-bottom: 2rem;
     will-change: transform;
   }
@@ -290,8 +289,7 @@ const t = {
   /* ---------- 2 · Banner ---------- */
   .vp-banner {
     position: relative;
-    height: 190px;
-    background: var(--media-void, #05070d);
+    height: 190px;background:var(--media-void, var(--veil-2));
     overflow: hidden;
   }
 
@@ -322,11 +320,10 @@ const t = {
 
   .vp-banner__scrim {
     position: absolute;
-    inset: 0;
-    background: linear-gradient(
+    inset: 0;background:linear-gradient(
       to bottom,
-      rgba(5, 7, 13, 0.15) 0%,
-      rgba(5, 7, 13, 0.35) 55%,
+      var(--veil) 0%,
+      var(--veil) 55%,
       color-mix(in srgb, var(--surface) 70%, transparent) 82%,
       var(--surface) 100%
     );
@@ -441,9 +438,7 @@ const t = {
     position: absolute;
     inset: 0;
     display: grid;
-    place-items: center;
-    background: rgba(5, 7, 13, 0.58);
-    color: #fff;
+    place-items: center;background:var(--veil-2);color:var(--text);
     opacity: 0;
     transition: opacity 0.18s ease;
     z-index: 4;
@@ -464,8 +459,7 @@ const t = {
     align-items: center;
     gap: 0.4rem;
     padding: 0.4rem 0.7rem;
-    border-radius: 8px;
-    background: rgba(5, 7, 13, 0.6);
+    border-radius: 8px;background:var(--veil-2);
     border: 1px solid var(--line);
     color: var(--text);
     font-family: var(--font-ui, sans-serif);
@@ -479,8 +473,7 @@ const t = {
   }
   .vp-banner-edit:hover {
     border-color: var(--accent);
-    color: var(--accent);
-    background: rgba(5, 7, 13, 0.78);
+    color: var(--accent);background:var(--veil-2);
   }
   .vp-banner-edit:focus-visible {
     outline: 2px solid var(--accent);
@@ -855,4 +848,8 @@ const t = {
     .vp-banner__sweep { display: none; }
     .vp-stat-bar span { transition: none; }
   }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .rsi-verified-badge{color:#046a34;--rsi-line:rgba(0,107,45,.63)}
+:root[data-theme="light"] .vp-copy__done{color:#046a34}
+:root[data-theme="light"] .vp-copy.copied{border-color:rgba(2,144,63,.68)}
 </style>

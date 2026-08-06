@@ -221,9 +221,14 @@ need(armourWithTone === 0, `${armourWithTone} Armour-Blueprints mit Ton`);
 
 /* ---------- 6) Abdeckung ---------- */
 console.log('6) Abdeckung je Vehiclegear-Typ …');
+// Erwartungswerte nachgezogen am 07.08.2026 beim Zusammenfuehren mit staging.
+// Cooler faellt von 71/71/70 auf 70/70/69, weil "Nightfall" aus
+// assets/universal-items.json verschwunden ist (staging baut den Katalog mit
+// 9167 statt 9788 Eintraegen). Der Blueprint existiert weiter und bleibt
+// auffindbar — er zeigt nur keine Kennwerte mehr, was nach D-06 richtig ist.
 const COVERAGE_EXPECTED = {
   Powerplant: { n: 75, gated: 4, size: 71, grade: 71, tone: 71 },
-  Cooler: { n: 75, gated: 2, size: 71, grade: 71, tone: 70 },
+  Cooler: { n: 75, gated: 2, size: 70, grade: 70, tone: 69 },
   Shield: { n: 62, gated: 0, size: 62, grade: 62, tone: 61 },
   Radar: { n: 60, gated: 2, size: 55, grade: 55, tone: 55 },
   Quantumdrive: { n: 57, gated: 0, size: 57, grade: 57, tone: 56 },
@@ -283,13 +288,24 @@ for (const b of craftDb.blueprints) {
   }
 }
 console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${totalSize} | Grade: ${totalGrade} | Ton: ${totalTone} (${toneFromClass} aus game.class, ${toneFromPath} aus dem Pfad) | ohne jede Angabe: ${totalNone}`);
-need(totalWithSpec === 1514, `Chip-Reihen: erwartet 1514, gemessen ${totalWithSpec}`);
-need(totalSize === 1513, `Groesse: erwartet 1513, gemessen ${totalSize}`);
-need(totalGrade === 1513, `Grade: erwartet 1513, gemessen ${totalGrade}`);
-need(totalTone === 496, `Ton: erwartet 496, gemessen ${totalTone}`);
-need(toneFromClass === 400, `Ton aus game.class: erwartet 400, gemessen ${toneFromClass}`);
+// Erwartungswerte nachgezogen am 07.08.2026 beim Zusammenfuehren mit staging.
+// Fuenf Blueprints haben ihre Einzelgroesse verloren, alle aus gutem Grund:
+//   broadspec, gvsr repeater, revenant gatling, tarantula gt-870 mark 3 cannon
+//     — staging fuehrt fuer mehrdeutige Anzeigenamen seit dem 06.08. `sizes[]`
+//       + `variants[]` statt einer erfundenen Einzelgroesse. Genau die Fehler-
+//       klasse, gegen die auch die Kollisionssperre hier gebaut ist; zwei
+//       unabhaengige Wege, dasselbe Problem zu erkennen.
+//   nightfall — aus dem Item-Katalog verschwunden (9788 -> 9167 Eintraege).
+// Alle fuenf zeigen jetzt nichts an statt eines geratenen Wertes (D-06).
+// Offen als Folgearbeit: die vier Varianten-Items koennten ihre Groessen als
+// "S3 / S4 / S6" zeigen, so wie es die Item-Seite bereits tut.
+need(totalWithSpec === 1513, `Chip-Reihen: erwartet 1513, gemessen ${totalWithSpec}`);
+need(totalSize === 1509, `Groesse: erwartet 1509, gemessen ${totalSize}`);
+need(totalGrade === 1509, `Grade: erwartet 1509, gemessen ${totalGrade}`);
+need(totalTone === 495, `Ton: erwartet 495, gemessen ${totalTone}`);
+need(toneFromClass === 399, `Ton aus game.class: erwartet 399, gemessen ${toneFromClass}`);
 need(toneFromPath === 96, `Ton aus dem Pfad: erwartet 96, gemessen ${toneFromPath}`);
-need(totalNone === 80, `ohne jede Angabe: erwartet 80, gemessen ${totalNone}`);
+need(totalNone === 81, `ohne jede Angabe: erwartet 81, gemessen ${totalNone}`);
 need(totalWithSpec + totalNone === craftDb.blueprints.length, `Selbstkonsistenz: ${totalWithSpec} + ${totalNone} != ${craftDb.blueprints.length}`);
 
 /* ---------- 9) Wertebereich Ton ---------- */

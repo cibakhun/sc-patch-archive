@@ -9,6 +9,8 @@ import { blueprints, blueprintPath, blueprintSpecs } from '../lib/crafting';
 import { mineralByMaterial, miningPath } from '../lib/miningLinks';
 import { href, useTranslations } from '../i18n/ui';
 import { itemT } from '../i18n/itemText';
+import { useHelp } from '../i18n/help';
+import ToolHelp from './ToolHelp.astro';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
@@ -20,6 +22,9 @@ const tBack = useTranslations(lang);
 // der Item-/Blueprint-Schicht (specSize/specGrade), keine neue Uebersetzung
 // noetig (D-07). `it` = "item text", Namenskuerzel um Kollision mit `tBack`/`S` zu vermeiden.
 const it = itemT(lang);
+// Werkzeug-Hilfe (Phase 01.2) — siehe
+// .planning/phases/01.2-werkzeuge-erklaeren/01.2-02-PLAN.md.
+const h = useHelp(lang);
 
 // -- i18n (App-spezifische Chrome-Strings) --
 const S = {
@@ -237,13 +242,14 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   </div>
 
   <div id="cdb-tab-db-content">
+  <ToolHelp tool="crafting" lang={lang} steps={4} />
   <!-- Toolbar -->
   <div class="cdb-bar">
-    <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar">☰ {S.filterBtn}</button>
-    <div class="cdb-search-wrap">
+    <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar" data-help={h('crafting.ctl.filter')}>☰ {S.filterBtn}</button>
+    <div class="cdb-search-wrap" data-help={h('crafting.ctl.search')}>
       <input type="search" id="cdb-search" class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
     </div>
-    <label class="cdb-sort">
+    <label class="cdb-sort" data-help={h('crafting.ctl.sort')}>
       <span class="cdb-sr">{S.sort}</span>
       <select id="cdb-sort">
         <option value="name">{S.sortName}</option>
@@ -253,11 +259,11 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         <option value="ings-desc">{S.sortIngs}</option>
       </select>
     </label>
-    <div class="cdb-viewtog" role="group" aria-label={S.view}>
+    <div class="cdb-viewtog" role="group" aria-label={S.view} data-help={h('crafting.ctl.view')}>
       <button class="cdb-view" data-view="grid" aria-pressed="true" title={S.grid}>▦</button>
       <button class="cdb-view" data-view="list" aria-pressed="false" title={S.list}>≡</button>
     </div>
-    <button class="cdb-planner-open" id="cdb-planner-open" title={S.plannerTitle}>
+    <button class="cdb-planner-open" id="cdb-planner-open" title={S.plannerTitle} data-help={h('crafting.ctl.planner')}>
       ⚙ {S.planner}<span class="cdb-badge" id="cdb-planner-badge" hidden>0</span>
     </button>
     {/* Speicher-Status für Besitz + Planer. Ohne Konto: „Nur auf diesem Gerät"
@@ -281,7 +287,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         <button id="cdb-filter-close" class="cdb-x" aria-label={S.close}>✕</button>
       </div>
 
-      <div class="cdb-fgroup">
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.category')}>
         <h4>{S.category}</h4>
         {catList.map((c) => (
           <details class="cdb-cat-details">
@@ -303,7 +309,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup">
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')}>
         <h4>{S.resource}</h4>
         <div class="cdb-res-search-wrap">
           <input type="text" id="cdb-res-search" class="cdb-res-search" placeholder="Ressource suchen..." autocomplete="off" />
@@ -318,7 +324,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         </div>
       </div>
 
-      <div class="cdb-fgroup">
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.size')}>
         <h4>{it('specSize')}</h4>
         {sizeList.map((sz) => (
           <label class="cdb-check">
@@ -328,7 +334,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup">
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.grade')}>
         <h4>{it('specGrade')}</h4>
         {gradeList.map((gr) => (
           <label class="cdb-check">
@@ -338,7 +344,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup">
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.flags')}>
         <label class="cdb-check"><input type="checkbox" id="cdb-mission" /><span>{S.missionOnly}</span></label>
         <label class="cdb-check"><input type="checkbox" id="cdb-owned" /><span>{S.ownedOnly}</span></label>
       </div>

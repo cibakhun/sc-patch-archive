@@ -50,6 +50,17 @@
     }
     return p === Infinity ? null : p;
   }
+  // Zwilling von avgPrice() in src/lib/items.ts — exakt dieselbe Filterregel
+  // und dasselbe Runden. Laufen die beiden auseinander, widerspricht das
+  // Finder-Modal der Detailseite fuer dasselbe Item.
+  function avgPrice(item) {
+    var sum = 0, n = 0;
+    for (var i = 0; i < item.obtain.length; i++) {
+      var o = item.obtain[i];
+      if (o.price != null && o.price > 0) { sum += o.price; n++; }
+    }
+    return n === 0 ? null : Math.round(sum / n);
+  }
   // Hat das Item eine eigene Detailseite? Muss mit isIndexable() in
   // src/lib/items.ts uebereinstimmen — dort entscheidet dieselbe Regel, welche
   // /items/<id>.html gebaut wird. Weicht sie ab, verlinken Karten ins Leere.
@@ -136,7 +147,7 @@
     filteredItems = ALL_ITEMS.filter(function (item) {
       if (activeCategory && parentCategory(item.category) !== activeCategory) return false;
       if (!hasKind(item, activeKind)) return false;
-      if (activeSize != null && !(item.game && item.game.size === activeSize)) return false;
+      if (activeSize != null && itemSizes(item).indexOf(activeSize) < 0) return false;
       if (activeWeight && !(item.game && item.game.weight === activeWeight)) return false;
       if (activeRarity && !(item.game && item.game.rarity === activeRarity)) return false;
       if (activeSet && !(item.game && item.game.setId === activeSet)) return false;
@@ -301,7 +312,7 @@
     if (!wrap) return;
     var sizes = {};
     ALL_ITEMS.forEach(function (item) {
-      if (item.game && item.game.size != null && hasGradeSemantics(item)) sizes[item.game.size] = true;
+      if (hasGradeSemantics(item)) itemSizes(item).forEach(function (s) { sizes[s] = true; });
     });
     var list = Object.keys(sizes).map(Number).sort(function (a, b) { return a - b; });
     if (!list.length) { wrap.innerHTML = ''; return; }
@@ -443,6 +454,12 @@
       var priceHtml;
       if (p != null) {
         priceHtml = (item.obtain.length > 1 ? esc(tr('priceFrom', 'ab')) + ' ' : '') + fmtNum(p) + ' aUEC';
+        // Ø-Zusatz nur, wenn er sich vom "ab"-Preis unterscheidet — bei
+        // gleichem Wert (keine Preisstreuung) waere er reine Wiederholung.
+        var avgCard = avgPrice(item);
+        if (avgCard != null && avgCard !== p) {
+          priceHtml += '<span class="uif-card-avg">Ø ' + fmtNum(avgCard) + '</span>';
+        }
       } else if (item.obtain.length) {
         // Ein Item, das laut Spieldaten gar nicht droppen kann, ist nicht „nur
         // Loot" — es ist exklusiv. Sonst widerspraeche die Karte ihrer eigenen
@@ -476,7 +493,8 @@
         if (g.manufacturer) bits.push(g.manufacturer);
         if (g.weight) bits.push(weightLabel(g.weight));
         if (hasGradeSemantics(item)) {
-          if (g.size != null) bits.push('S' + g.size);
+          var sl = sizeLabel(item);
+          if (sl) bits.push(sl);
           if (g.grade) bits.push(g.grade);
         }
         if (bits.length) specLine = '<div class="uif-card-spec">' + esc(bits.join(' · ')) + '</div>';
@@ -709,6 +727,19 @@
   }
   // Größe/Grade nur bei Ausrüstung anzeigen (bei Kleidung/Nahrung ist Grade immer „A")
   function hasGradeSemantics(item) { return /Vehiclegear|Weapons|Armour|Attachment/.test(parentCategory(item.category)); }
+  // Größen eines Items. Meist genau eine — aber hinter manchen Anzeigenamen
+  // stecken mehrere Spiel-Items unterschiedlicher Größe ("Revenant Gatling"
+  // gibt es als S3, S4 und S6). Die tragen `sizes` statt `size`, und es wäre
+  // geraten, sich eine davon auszusuchen.
+  function itemSizes(item) {
+    var g = item.game; if (!g) return [];
+    if (g.sizes && g.sizes.length) return g.sizes;
+    return g.size != null ? [g.size] : [];
+  }
+  function sizeLabel(item) {
+    var s = itemSizes(item);
+    return s.length ? s.map(function (n) { return 'S' + n; }).join(' / ') : null;
+  }
   // Kopf-Chips: Hersteller / Größe / Grade / Klasse / Volumen
   function specChips(item) {
     var g = item.game; if (!g) return [];
@@ -716,8 +747,8 @@
     if (g.manufacturer) chips.push([tr('specMfr', 'Hersteller'), g.manufacturer]);
     if (g.weight) chips.push([tr('facetWeight', 'Panzerungsklasse'), weightLabel(g.weight)]);
     if (g.rarity) chips.push([tr('facetRarity', 'Seltenheit'), rarityLabel(g.rarity)]);
-    if (eq && g.size != null) chips.push([tr('specSize', 'Größe'), 'S' + g.size]);
-    if (eq && g.grade) chips.push([tr('specGrade', 'Grade'), g.grade]);
+    if (eq && sizeLabel(item)) chips.push([tr('specSize', 'Größe'), sizeLabel(item)]);
+    if (eq && g.grade && !g.variants) chips.push([tr('specGrade', 'Grade'), g.grade]);
     if (g.class) chips.push([tr('specClass', 'Klasse'), g.class]);
     if (g.volumeScu) chips.push([tr('specVolume', 'Volumen'), g.volumeScu + ' SCU']);
     return chips;
@@ -757,6 +788,27 @@
       '</div>';
     }
 
+    // Varianten — wenn hinter dem Namen mehrere Spiel-Items stecken, stehen die
+    // Werte hier je Größe statt einmal geraten weiter oben.
+    var vars = item.game && item.game.variants;
+    if (vars && vars.length) {
+      html += '<div class="uif-modal-section uif-variants">' +
+        '<h4>' + esc(tr('sectionVariants', 'Varianten')) + '</h4>' +
+        '<p class="uif-variants-note">' + esc(tr('variantsNote', 'Unter diesem Namen führt das Spiel mehrere Gegenstände.')) + '</p>' +
+        vars.map(function (v) {
+          var head = ['S' + v.size, v.manufacturer, v.grade ? tr('specGrade', 'Grade') + ' ' + v.grade : null]
+            .filter(Boolean).join(' · ');
+          var rows = statEntries({ game: { stats: v.stats } });
+          return '<div class="uif-variant">' +
+            '<div class="uif-variant-h">' + esc(head) + '</div>' +
+            (rows.length ? '<div class="uif-stat-grid">' + rows.map(function (st) {
+              return '<div class="uif-stat"><span class="uif-stat-l">' + esc(st[0]) + '</span><span class="uif-stat-v">' + esc(st[1]) + '</span></div>';
+            }).join('') + '</div>' : '') +
+          '</div>';
+        }).join('') +
+      '</div>';
+    }
+
     // Set-Zugehörigkeit — Teile desselben Sets sind direkt anklickbar
     var st = setOf(item);
     if (st) {
@@ -788,6 +840,9 @@
 
     // Bezugsquellen — oder ehrlicher Katalog-Hinweis
     if (item.obtain.length) {
+      // Ein Mittelwert je Item, nicht je Zeile — er ist in jeder Zeile derselbe.
+      var avg = avgPrice(item);
+      var avgCell = avg != null ? fmtNum(avg) + ' aUEC' : '&mdash;';
       var rows = item.obtain.map(function (o) {
         // Exklusiv-Zeilen tragen keinen ORT, sondern eine Bezugsart — die wird
         // uebersetzt. Alle anderen `loc` sind Eigennamen und bleiben, wie sie sind.
@@ -796,19 +851,20 @@
           '<td>' + esc(locText) + '</td>' +
           '<td class="uif-td-kind">' + esc(kindLabel(o.kind)) + '</td>' +
           '<td class="uif-td-price">' + (o.price != null ? fmtNum(o.price) + ' aUEC' : '&mdash;') + '</td>' +
+          '<td class="uif-td-avg">' + avgCell + '</td>' +
         '</tr>';
       }).join('');
       html += '<div class="uif-modal-section">' +
         '<h4>' + esc(tr('sectionObtain', 'Bezugsquellen')) + '</h4>' +
         '<div class="uif-table-wrapper"><table class="uif-locations-table">' +
-        '<thead><tr><th>' + esc(tr('thLocation', 'Ort')) + '</th><th>' + esc(tr('thKind', 'Art')) + '</th><th>' + esc(tr('thPrice', 'Preis')) + '</th></tr></thead>' +
+        '<thead><tr><th>' + esc(tr('thLocation', 'Ort')) + '</th><th>' + esc(tr('thKind', 'Art')) + '</th><th>' + esc(tr('thPrice', 'Preis')) + '</th><th>' + esc(tr('thAvg', 'Ø UEX')) + '</th></tr></thead>' +
         '<tbody>' + rows + '</tbody></table></div>' +
         '<p class="uif-volatile-note">' + esc(tr('volatileNote', 'Preise und Fundorte sind Patch-volatil — ingame prüfen.')) + '</p>' +
       '</div>';
     } else {
       html += '<div class="uif-modal-section">' +
         '<h4>' + esc(tr('sectionObtain', 'Bezugsquellen')) + '</h4>' +
-        '<p class="uif-catalog-note">' + esc(tr('catalogNote', 'Katalog-Eintrag aus den Spieldateien: Für dieses Item liegen keine verifizierten Shop- oder Loot-Daten vor.')) + '</p>' +
+        '<p class="uif-catalog-note">' + esc(tr('catalogNote', 'Katalog-Eintrag: Für dieses Item liegen keine verifizierten Shop- oder Loot-Daten vor.')) + '</p>' +
       '</div>';
     }
 
@@ -820,7 +876,7 @@
       '</div>';
     }
 
-    // Crafting-Rezept (aus crafting-db.json, sc-craft.tools-Snapshot)
+    // Crafting-Rezept (aus crafting-db.json, game-sourced, siehe scripts/datamine-crafting.mjs)
     var bp = CRAFTING_MAP[item.name.toLowerCase()];
     if (bp) {
       var timeSec = bp.craft_time_seconds || 0;
@@ -944,7 +1000,7 @@
 
       var sub = document.getElementById('uif-subline');
       if (sub && META) {
-        sub.textContent = tr('subline', '{total} Items aus den Spieldateien, {sourced} mit verifizierten Bezugsquellen')
+        sub.textContent = tr('subline', '{total} Items, {sourced} mit verifizierten Bezugsquellen')
           .replace('{total}', fmtNum(META.items))
           .replace('{sourced}', fmtNum(META.withObtain));
       }

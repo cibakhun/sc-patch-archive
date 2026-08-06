@@ -13,9 +13,14 @@ import { readFileSync } from 'node:fs';
 import { ICON_BLUEPRINT } from '../lib/icons';
 import { ITEM_UI } from '../i18n/itemText';
 import { useTranslations } from '../i18n/ui';
+import { useHelp } from '../i18n/help';
+import ToolHelp from './ToolHelp.astro';
 
 interface Props { lang?: 'de' | 'en' }
 const { lang = 'en' } = Astro.props;
+// Werkzeug-Hilfe (Phase 01.2) — Leitschuss der Phase, siehe
+// .planning/phases/01.2-werkzeuge-erklaeren/01.2-01-PLAN.md.
+const h = useHelp(lang);
 
 // Nur das aria-Praefix des Zurueck-Pfeils am Modal ("Zurueck zu"/"Back to").
 // Den Namen der Herkunft haengt assets/back-link.js zur Laufzeit an.
@@ -48,6 +53,7 @@ const t = {
     sortPriceAsc: 'Preis (aufsteigend)', sortPriceDesc: 'Preis (absteigend)',
     sortStat: 'Wert (hoch→niedrig)',
     modalClose: 'Schließen',
+    filtersLabel: 'Filter & Kategorien',
   },
   en: {
     searchPlaceholder: 'Search item, weapon, ship, location…',
@@ -58,6 +64,7 @@ const t = {
     sortPriceAsc: 'Price (low–high)', sortPriceDesc: 'Price (high–low)',
     sortStat: 'Value (high–low)',
     modalClose: 'Close',
+    filtersLabel: 'Filters & categories',
   },
 }[lang];
 
@@ -69,21 +76,30 @@ const JS_T = ITEM_UI[lang];
 
 <div class="uif-container" id="uif-app">
   <div class="uif-sidebar">
-    <div class="uif-search">
+    <div class="uif-search" data-help={h('itemfinder.ctl.search')}>
       <input type="text" id="uif-search-input" placeholder={t.searchPlaceholder} autocomplete="off" />
     </div>
 
+    {/* Aufklapper fuer schmale Schirme — reines CSS (versteckte Checkbox +
+        Label + Geschwister-Selektor), kein neues Skript. Unter 901px ist die
+        Schublade beim Laden zu; am Desktop ist sie (per Media Query) immer
+        offen und weder Checkbox noch Label werden angezeigt. Geschwisterfolge
+        ist tragend: Checkbox -> Label -> .uif-filters. */}
+    <input type="checkbox" id="uif-filters-toggle" class="uif-filters-toggle" />
+    <label class="uif-filters-label" for="uif-filters-toggle">{t.filtersLabel}</label>
+
     <div class="uif-filters">
+      <ToolHelp tool="itemfinder" lang={lang} steps={4} />
       <h3>{t.hAvailability}</h3>
-      <div id="uif-kind-chips" class="uif-chips"><!-- Chips via JS --></div>
+      <div id="uif-kind-chips" class="uif-chips" data-help={h('itemfinder.ctl.kind')}><!-- Chips via JS --></div>
       <h3>{t.hSize}</h3>
-      <div id="uif-size-chips" class="uif-chips"><!-- Größen via JS --></div>
+      <div id="uif-size-chips" class="uif-chips" data-help={h('itemfinder.ctl.size')}><!-- Größen via JS --></div>
       <h3>{t.hWeight}</h3>
-      <div id="uif-weight-chips" class="uif-chips"><!-- Panzerungsklassen via JS --></div>
+      <div id="uif-weight-chips" class="uif-chips" data-help={h('itemfinder.ctl.weight')}><!-- Panzerungsklassen via JS --></div>
       <h3>{t.hRarity}</h3>
-      <div id="uif-rarity-chips" class="uif-chips"><!-- Seltenheiten via JS --></div>
+      <div id="uif-rarity-chips" class="uif-chips" data-help={h('itemfinder.ctl.rarity')}><!-- Seltenheiten via JS --></div>
       <h3>{t.hCategories}</h3>
-      <div id="uif-category-list"><!-- Kategorien via JS --></div>
+      <div id="uif-category-list" data-help={h('itemfinder.ctl.category')}><!-- Kategorien via JS --></div>
     </div>
   </div>
 
@@ -93,8 +109,8 @@ const JS_T = ITEM_UI[lang];
       {/* Einzelteile <-> Sets. Nur die Ruestungs-Daten kennen Sets, deshalb
           blendet das JS den Schalter aus, sobald die aktuellen Filter kein
           einziges Set uebrig lassen. */}
-      <div class="uif-view" id="uif-view-toggle" role="group" aria-label="Ansicht"><!-- via JS --></div>
-      <div class="uif-sort">
+      <div class="uif-view" id="uif-view-toggle" role="group" aria-label="Ansicht" data-help={h('itemfinder.ctl.view')}><!-- via JS --></div>
+      <div class="uif-sort" data-help={h('itemfinder.ctl.sort')}>
         <select id="uif-sort-select" aria-label="Sort">
           <option value="name_asc">{t.sortNameAsc}</option>
           <option value="name_desc">{t.sortNameDesc}</option>
@@ -166,6 +182,28 @@ const JS_T = ITEM_UI[lang];
     outline: none;
     border-color: var(--accent, #ff5e1a);
     box-shadow: 0 0 8px color-mix(in srgb, var(--accent, #ff5e1a) 40%, transparent);
+  }
+
+  /* Filterschublade (nur unter 901px, siehe @media unten): die Checkbox
+     steuert den Zustand rein per CSS, bleibt aber fokussierbar — aus dem
+     Blickfeld genommen statt display:none. */
+  .uif-filters-toggle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Label ist der sichtbare Aufklapper; standardmaessig verborgen, damit es
+     am Desktop (kein passendes @media unten) nie erscheint. */
+  .uif-filters-label { display: none; }
+
+  @media (min-width: 901px) {
+    /* Am Desktop gibt es weder Schaltflaeche noch zusaetzlichen Tabulator-
+       Halt — die Sidebar bleibt exakt wie vor der Schublade. */
+    .uif-filters-toggle,
+    .uif-filters-label { display: none; }
   }
 
   .uif-filters h3 {
@@ -276,9 +314,7 @@ const JS_T = ITEM_UI[lang];
     border-bottom: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     position: sticky;
     top: var(--uif-stick);
-    z-index: 20;
-    background: var(--bg, #0d0c14);
-    background: color-mix(in srgb, var(--bg, #0d0c14) 92%, transparent);
+    z-index: 20;background:var(--bg, var(--veil-2));background:color-mix(in srgb, var(--bg, var(--veil-2)) 92%, transparent);
     backdrop-filter: blur(8px);
   }
 
@@ -379,6 +415,13 @@ const JS_T = ITEM_UI[lang];
     font-weight: 700;
     font-size: 0.95rem;
     white-space: nowrap;
+  }
+
+  .uif-card-avg {
+    color: var(--muted, #9ba2ae);
+    font-weight: 400;
+    font-size: 0.78rem;
+    margin-left: 0.4rem;
   }
 
   /* Fundort-Zeile: der Name darf kuerzen, die Zahl der weiteren Fundorte
@@ -605,6 +648,7 @@ const JS_T = ITEM_UI[lang];
 
   .uif-td-kind { white-space: nowrap; }
   .uif-td-price { white-space: nowrap; font-weight: 700; color: var(--accent, #ff5e1a); }
+  .uif-td-avg { white-space: nowrap; color: var(--muted, #9ba2ae); }
 
   .uif-volatile-note,
   .uif-catalog-note {
@@ -636,6 +680,13 @@ const JS_T = ITEM_UI[lang];
   .uif-stat-grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 0.6rem; margin-bottom: 1rem;
+  }
+  /* Varianten: mehrere Spiel-Items unter einem Anzeigenamen, je Größe ein Block */
+  .uif-variants-note { margin: -0.35rem 0 0.9rem; font-size: 0.85rem; color: var(--muted, #9ba2ae); line-height: 1.5; }
+  .uif-variant + .uif-variant { margin-top: 0.9rem; }
+  .uif-variant-h {
+    font-weight: 700; font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--accent-2, var(--accent, #ff5e1a)); margin-bottom: 0.5rem;
   }
   .uif-stat {
     display: flex; flex-direction: column; gap: 0.2rem;
@@ -720,12 +771,15 @@ const JS_T = ITEM_UI[lang];
   /* Responsive */
   @media (max-width: 900px) {
     /* Die Nav ist auf schmalen Schirmen niedriger (~58 px) — Klebepunkt mit */
-    .uif-container { flex-direction: column; padding: 1rem; --uif-stick: 4rem; }
+    /* Enger als am Desktop: der 2rem-Spalt und die 1.5rem-Polsterung kosten auf
+       375 px zusammen rund 50 px, die unten der Trefferliste fehlen. */
+    .uif-container { flex-direction: column; padding: 1rem; gap: 1.1rem; --uif-stick: 4rem; }
 
     .uif-sidebar {
       width: 100%;
       position: static;
       box-shadow: none;
+      padding: 0.9rem;
     }
 
     #uif-category-list {
@@ -735,6 +789,45 @@ const JS_T = ITEM_UI[lang];
     }
 
     .uif-category-btn { padding: 0.5rem; font-size: 0.85rem; }
+
+    /* Filterschublade: die fuenf Filtergruppen plus Kategorien-Raster
+       schoben die Ergebnisse bislang rund 700px nach unten. Standardmaessig
+       zu, mit einem Tipp offen — das Suchfeld direkt darueber bleibt immer
+       sichtbar. */
+    .uif-filters-label {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 0.7rem;
+      padding: 0.6rem 0.85rem;
+      border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
+      border-radius: 6px;
+      color: var(--text, #eef1f5);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .uif-filters-label::after {
+      content: '▾';
+      transition: transform 0.2s ease;
+    }
+
+    .uif-filters-toggle:checked ~ .uif-filters-label::after {
+      transform: rotate(180deg);
+    }
+
+    .uif-filters-toggle:focus-visible ~ .uif-filters-label {
+      outline: 2px solid var(--accent, #ff5e1a);
+      outline-offset: 2px;
+    }
+
+    /* Schublade zu, solange die Checkbox nicht angehakt ist — waechst im
+       normalen Seitenfluss, kein neuer scrollender Kasten. */
+    .uif-filters-toggle:not(:checked) ~ .uif-filters {
+      display: none;
+    }
 
     /* Mobil NICHT stapeln: als Spalte waere die klebende Leiste ~150 px hoch
        und fraesse den halben Bildschirm. Stattdessen umbrechende Zeile —
@@ -853,7 +946,19 @@ const JS_T = ITEM_UI[lang];
        Null-Untergrenze duerfen die Spuren schrumpfen. */
     #uif-category-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .uif-modal-title { font-size: 1.3rem; }
+    /* .uif-card-price ist white-space:nowrap und sitzt in einem Flex-Fuss
+       neben dem Fundortnamen (siehe Kommentar bei .uif-card-location) — bei
+       375px wuerde der Ø-Zusatz den Ortsnamen wegdruecken. */
+    .uif-card-avg { display: none; }
   }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .uif-rarity--common{color:#4f5969}
+:root[data-theme="light"] .uif-rarity--uncommon{color:#026a35}
+:root[data-theme="light"] .uif-rarity--rare{color:#0159a0}
+:root[data-theme="light"] .uif-rarity--epic{color:#6b30b0}
+:root[data-theme="light"] .uif-rarity--legendary{color:#784e04}
+:root[data-theme="light"] .uif-setbadge{color:#735102}
+:root[data-theme="light"] .uif-setbadge.is-ok{color:#026a35}
 </style>
 
 <script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl, craftUrl, itemBase: lang === 'de' ? '/de/items/' : '/items/', craftBase: lang === 'de' ? '/de/crafting/' : '/crafting/', setBase: lang === 'de' ? '/de/armor-sets.html' : '/armor-sets.html', icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />

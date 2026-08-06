@@ -71,10 +71,24 @@ export interface ItemStats {
   [k: string]: unknown;
 }
 
+/** Eine von mehreren Ausführungen, die sich einen Anzeigenamen teilen. */
+export interface ItemVariant {
+  size: number;
+  grade: string | null;
+  manufacturer: string | null;
+  stats: ItemStats | null;
+}
+
 export interface ItemGame {
   gameType?: string;
   subType?: string;
   size?: number;
+  /** Größen ALLER Ausführungen dieses Namens — gesetzt statt `size`, wenn das
+   *  Spiel mehrere unterschiedlich große Items so nennt ("Revenant Gatling"
+   *  gibt es als S3, S4 und S6). Dann sind auch grade/manufacturer/stats leer
+   *  und stehen stattdessen je Ausführung in `variants`. */
+  sizes?: number[];
+  variants?: ItemVariant[];
   grade?: string;
   class?: string;
   manufacturer?: string;
@@ -210,6 +224,12 @@ export function isIndexable(i: Item): boolean {
   if (i.obtain.length > 0) return true;
   if (i.guide) return true;
   const g = i.game;
+  // Mehrdeutige Anzeigenamen ("Revenant Gatling" = S3/S4/S6) tragen ihre Werte
+  // NICHT oben, sondern je Ausfuehrung in `variants`. Sie beantworten "was kann
+  // das" damit sogar ausfuehrlicher als ein einzelner Wertesatz — ohne diese
+  // Zeile faelt genau die Gruppe durch die Schwelle, fuer die es die
+  // Varianten-Sektion ueberhaupt gibt.
+  if (g?.variants?.length) return true;
   return !!(g && g.stats && Object.keys(g.stats).length > 0);
 }
 
@@ -231,6 +251,21 @@ export function rootCategory(cat: string): string {
 export function leafCategory(cat: string): string {
   const parts = (cat || 'Other').split('/').map((s) => s.trim()).filter(Boolean);
   return parts.length > 1 ? parts[parts.length - 1] : parts[0] || 'Other';
+}
+
+/**
+ * Die Zweige ZWISCHEN Wurzel und Blatt: "Armour / Combat / Heavy" -> "Combat".
+ *
+ * Ohne sie ist eine Kategorie-Karte nicht identifizierbar: das Blueprint-
+ * Verzeichnis zeigte unter "Armor" fuenfmal "Heavy" und viermal "Light"
+ * untereinander (Combat/Hunter/Engineer/Explorer/Radiation …), das
+ * Fahrzeug-Kapitel zweimal "Cannon" (Ballistic vs. Laser). Leer, wenn die
+ * Kategorie nur zwei Ebenen hat — dann sagt schon die Abschnitts-
+ * ueberschrift alles.
+ */
+export function midCategory(cat: string): string {
+  const parts = (cat || '').split('/').map((s) => s.trim()).filter(Boolean);
+  return parts.length > 2 ? parts.slice(1, -1).join(' · ') : '';
 }
 
 /** "Vehiclegear / Weapons / Guns" -> "vehiclegear-weapons-guns" */
@@ -311,6 +346,24 @@ export function maxPrice(i: Item): number | null {
   let p = -Infinity;
   for (const o of i.obtain) if (o.price != null && o.price > 0 && o.price > p) p = o.price;
   return p === -Infinity ? null : p;
+}
+
+/**
+ * Mittelwert ueber ALLE bepreisten Bezugsquellen (dieselbe Filterregel wie
+ * minPrice/maxPrice: `price != null && price > 0`). `null` bei null Treffern —
+ * NICHT 0. Eine 0 waere eine erfundene Aussage (das Item hat schlicht keinen
+ * bekannten Kaufpreis, "0 aUEC" waere ein falscher Kaufpreis).
+ */
+export function avgPrice(i: Item): number | null {
+  let sum = 0;
+  let n = 0;
+  for (const o of i.obtain) {
+    if (o.price != null && o.price > 0) {
+      sum += o.price;
+      n++;
+    }
+  }
+  return n === 0 ? null : Math.round(sum / n);
 }
 
 /** Bezugsquellen fuer die Tabelle: guenstigste zuerst, Loot ans Ende. */

@@ -117,7 +117,7 @@ const crumbLd = {
 :root{--bg:#0d0c14;--bg-2:#14121c;--surface:#17151f;--surface-2:#1e1b29;--accent:#A78BFA;--accent-2:#FFB84D;--hot:#A78BFA;--text:#eef1f5;--muted:#9d9cb0;--line:rgba(167,139,250,.22);--line-soft:rgba(238,241,245,.10);--glow:0 0 44px rgba(167,139,250,.28);--ink:#0d0c14;--maxw:1080px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"]{--bg:#f7f6fe;--bg-2:#eeecf8;--surface:#fdfdff;--surface-2:#f3f1fb;--text:#1d1f22;--muted:#575668;--accent:#643bb5;--accent-2:#744c00;--hot:#5c31ab;--ink:#ffffff;--accent-media:#A78BFA;--accent-2-media:#FFB84D;--line:rgba(117,101,166,.3);--line-soft:rgba(44,46,49,.12);--glow:0 6px 22px rgba(118,98,176,.18)}
-  </style>
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */</style>
 
   <a class="dp-skip" href="#main">{t('skip.toContent')}</a>
 
@@ -142,7 +142,15 @@ const crumbLd = {
     </header>
 
     <main id="main" class="dp-main">
-      {eyebrow && <p class="dp-eyebrow">{eyebrow}</p>}
+      {/* Der Seitenkopf ist EIN Element: Kicker, Titel, Einleitung und die
+          Kennzahlen sitzen zusammen in der Hero-Konsole. Die Seiten liefern
+          ihre drei Teile ueber denselben benannten Slot (Astro erlaubt
+          mehrere Kinder mit gleichem slot-Namen); der Kicker kommt weiter
+          von hier, weil ihn alle sieben Seiten gleich aufbauen. */}
+      <header class="dp-hero">
+        {eyebrow && <p class="dp-eyebrow">{eyebrow}</p>}
+        <slot name="hero" />
+      </header>
       <slot />
     </main>
 

@@ -13,8 +13,15 @@ import path from 'node:path';
 const enHtml = fs.readFileSync(path.resolve('dist/topics/crafting.html'), 'utf8');
 const deHtml = fs.readFileSync(path.resolve('dist/de/topics/crafting.html'), 'utf8');
 
-const TOTAL_SPEC_ROWS = 1514;
-const TOTAL_TONE_CHIPS = 496;
+// Nachgezogen am 07.08.2026 beim Zusammenfuehren mit staging: fuenf Blueprints
+// haben ihre Einzelgroesse verloren — vier davon (broadspec, gvsr repeater,
+// revenant gatling, tarantula gt-870 mark 3 cannon), weil staging fuer
+// mehrdeutige Anzeigenamen jetzt `sizes[]`/`variants[]` fuehrt statt einer
+// erfundenen Einzelgroesse, und `nightfall`, das aus dem Item-Katalog
+// verschwunden ist. Alle fuenf zeigen nun nichts statt eines geratenen Wertes.
+// Begruendung ausfuehrlich in scripts/verify-crafting-specs.mjs.
+const TOTAL_SPEC_ROWS = 1513;
+const TOTAL_TONE_CHIPS = 495;
 
 /** Schneidet das <article class="cbp" …>…</article> heraus, das den Karten-
  * Namen <name> als Linktext im h3.cbp__name traegt. Wirft, wenn keine
@@ -171,10 +178,14 @@ for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
 
 describe('Filter Groesse und Grade in der Seitenleiste (05-03, DE+EN)', () => {
   for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
-    test(`${label}: acht Ankreuzfelder cdb-size mit den Werten 0-7`, () => {
+    // Sieben statt acht seit dem 07.08.2026: S7 hatte genau einen Vertreter
+    // (tarantula gt-870 mark 3 cannon), und der fuehrt auf staging jetzt
+    // `sizes[]` statt einer Einzelgroesse. Ein Ankreuzfeld ohne einen einzigen
+    // Treffer soll es nicht geben — die Liste wird aus den Daten gebildet.
+    test(`${label}: sieben Ankreuzfelder cdb-size mit den Werten 0-6`, () => {
       const values = [...html.matchAll(/<input[^>]*class="cdb-size"[^>]*value="(\d+)"/g)].map(([, v]) => v);
-      assert.strictEqual(values.length, 8, `${label}: erwartet 8 cdb-size-Ankreuzfelder, gefunden ${values.length}`);
-      assert.deepStrictEqual(values.map(Number).sort((a, b) => a - b), [0, 1, 2, 3, 4, 5, 6, 7]);
+      assert.strictEqual(values.length, 7, `${label}: erwartet 7 cdb-size-Ankreuzfelder, gefunden ${values.length}`);
+      assert.deepStrictEqual(values.map(Number).sort((a, b) => a - b), [0, 1, 2, 3, 4, 5, 6]);
     });
 
     test(`${label}: vier Ankreuzfelder cdb-grade mit den Werten A-D`, () => {

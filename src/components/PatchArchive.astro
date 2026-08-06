@@ -22,9 +22,14 @@ import { createHash } from 'node:crypto';
 import SiteNav from './SiteNav.astro';
 import { buildArchive } from '../lib/archive';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
+import { useHelp } from '../i18n/help';
+import ToolHelp from './ToolHelp.astro';
 
 const lang = localeFromPath(Astro.url.pathname);
 const t = useTranslations(lang);
+// Werkzeug-Hilfe (Phase 01.2) — siehe
+// .planning/phases/01.2-werkzeuge-erklaeren/01.2-03-PLAN.md.
+const h = useHelp(lang);
 const L = (p: string) => href(p, lang);
 const a = buildArchive(await getCollection('patches'), lang);
 
@@ -153,16 +158,18 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
     </nav>
   </header>
 
+  <ToolHelp tool="archive" lang={lang} steps={4} />
+
   <!-- ── Control bar — nav computer ─────────────────────────────────────── -->
   <div class="cbar">
     <div class="cbar__in">
-      <p class="cbar__era">
+      <p class="cbar__era" data-help={h('archive.ctl.era')}>
         <span class="cbar__dot" aria-hidden="true"></span>
         <span class="sr">{t('arch.here')}:</span>
         <span id="eraNow" class="cbar__eratxt">{a.eras[0]?.label}</span>
       </p>
 
-      <div class="cbar__search">
+      <div class="cbar__search" data-help={h('archive.ctl.search')}>
         <svg viewBox="0 0 24 24" aria-hidden="true"
           ><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg
         >
@@ -171,7 +178,7 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
         <button id="qx" class="cbar__x" type="button" hidden aria-label={t('arch.filter.clear')}>×</button>
       </div>
 
-      <div class="cbar__chips" role="group" aria-label={t('arch.filter.label')}>
+      <div class="cbar__chips" role="group" aria-label={t('arch.filter.label')} data-help={h('archive.ctl.chips')}>
         <button class="chipbtn" type="button" data-type="all" aria-pressed="true">{t('arch.filter.all')}</button>
         <button class="chipbtn" type="button" data-type="major" aria-pressed="false">{t('arch.filter.major')}</button>
         <button class="chipbtn" type="button" data-type="point" aria-pressed="false">{t('arch.filter.point')}</button>
@@ -181,6 +188,7 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
         id="count"
         class="cbar__count"
         data-tpl={t('arch.filter.count')}
+        data-help={h('archive.ctl.count')}
         aria-live="polite"
         set:text={tf('arch.filter.count', { n: a.stats.patches, t: a.stats.patches })}
       />

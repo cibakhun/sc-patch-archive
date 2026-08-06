@@ -32,6 +32,8 @@ const ships = de ? buildMiningShips('de') : buildMiningShips('en');
 :root[data-theme="light"]{--bg:#f3f8fb;--bg-2:#e8eff2;--surface:#fcfefe;--surface-2:#ebf4f9;--text:#1b2120;--muted:#4a5c5a;--accent:#036a5a;--accent-2:#704f00;--hot:#046151;--ink:#ffffff;--accent-media:#2FBFA4;--accent-2-media:#E0A526;--line:rgba(43,130,113,.3);--line-soft:rgba(41,47,46,.12);--glow:0 6px 22px rgba(43,130,113,.18)}
 
 
+
+
 .reveal{opacity:1 !important;transform:none !important}
 /* Hero title: lighter gradient (no dark letter bottoms) + strong scrim so
    "Mining" stays fully legible over the photo and isn't lost behind it. */
@@ -82,7 +84,6 @@ const ships = de ? buildMiningShips('de') : buildMiningShips('en');
 .mn-cta__go{flex:none;font-family:var(--font-ui);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.72rem;color:var(--accent);white-space:nowrap}
 @media(max-width:560px){.mn-cta{flex-wrap:wrap}.mn-cta__go{width:100%;text-align:right}}</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
-<div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: "Mining" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: "Mining" }]} />
 
@@ -90,7 +91,6 @@ const ships = de ? buildMiningShips('de') : buildMiningShips('en');
   <section class="hero">
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/img-mole.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
-    <script is:inline>if(location.search.indexOf('nofx')>-1){document.documentElement.style.setProperty('scroll-behavior','auto');var c=document.getElementById('stars');if(c)c.remove();}</script>
     <div class="hero__in">
       <div class="eyebrow">Alpha {verShort}{de ? ' · Live-Daten' : ' · live data'}</div>
       <h1>Mining</h1>

@@ -1,0 +1,669 @@
+---
+// SCHIFFE — EIN Körper für DE und EN (D-12). Holo-card Flotten-Grid: voller
+// Katalog aus der Wiki-API-Momentaufnahme, clientseitiger Filter + Sortierung
+// in reinem JS (kein Framework). Jede Karte trägt beide Preise — Pledge (USD)
+// und den günstigsten Ingame-Kauf (UEX-aUEC-Momentaufnahme) — plus ein
+// Patch-Spine-Abzeichen zurück ins Archiv. Die exakte CIG-Rolle (vRoleCig,
+// D-11) ersetzt die Wiki-Foci als Kartenbeschriftung. Gefiltert wird NUR
+// auf Familienebene (sf-rolefam/data-rolefam, D-05) — ein eigener Filter
+// auf exakter Rollenebene (sf-role, 55 Optionen) stand kurzzeitig parallel
+// dazu und wurde nach Sichtprüfung als Dublette entfernt (Plan 03, Task 2).
+// Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
+// Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe
+// components/topics/crafting.astro).
+import SiteNav from '../SiteNav.astro';
+import { getCollection } from 'astro:content';
+import vehiclesSnapshot from '../../data/vehicles.json';
+import vehicleRoles from '../../data/vehicle-roles.json';
+import { pickThumb } from '../../lib/shipRenders';
+import { priceInfo, pricesFetchedAt } from '../../lib/shipExtras';
+import { compAttr } from '../../lib/shipComponents';
+import { vType, vSize, vStatus, vRoleCig, vCareer, vRoleFamilies, vSignature, vSizeClass, sizeClassLabel, SIG_LABELS, SIG_STEPS, FEAT_LABELS } from '../../i18n/vehicleText';
+import { localeFromPath } from '../../i18n/ui';
+import { useHelp } from '../../i18n/help';
+import ToolHelp from '../ToolHelp.astro';
+
+const lang = localeFromPath(Astro.url.pathname);
+const de = lang === 'de';
+const localeTag = de ? 'de' : 'en';
+// Werkzeug-Hilfe (Phase 01.2, Plan 04) — EIN Koerper fuer DE+EN (D-12), also
+// keine Sprachparitaets-Falle wie bei den beiden ehemals getrennten
+// Seitendateien: siehe .planning/phases/01.2-werkzeuge-erklaeren/01.2-04-PLAN.md.
+const h = useHelp(lang);
+
+const vehicles = (await getCollection('vehicles')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name, localeTag)
+);
+const makers = [...new Set(vehicles.map((v) => v.data.manufacturer).filter(Boolean))].sort() as string[];
+const roleSnapshot = (vehicleRoles as { vehicles: Record<string, { careerKey: string | null; feat?: string[] }> }).vehicles;
+
+// D-04: Beruf-Filter — distinkte Berufsschlüssel, Beschriftung aus vCareer(id, lang).
+const careerLabels = new Map<string, string>();
+for (const v of vehicles) {
+  const key = roleSnapshot[v.id]?.careerKey;
+  if (!key) continue;
+  const label = vCareer(v.id, lang);
+  if (label) careerLabels.set(key, label);
+}
+const careers = [...careerLabels.entries()]
+  .map(([key, label]) => ({ key, label }))
+  .sort((a, b) => a.label.localeCompare(b.label, localeTag));
+
+// D-05: Rollenfilter, gefiltert auf Familienebene, angezeigt auf exakter Ebene —
+// Stand je Familie, sortiert absteigend (Claude's Discretion aus 05-CONTEXT.md).
+// Die id bleibt sf-rolefam/data-rolefam (Interface-Vertrag mit den Schnellzugriff-
+// Chips aus Task 1); nur Beschriftung und aria-label heissen jetzt "Rolle".
+const familyStand = new Map<string, { label: string; count: number }>();
+for (const v of vehicles) {
+  for (const fam of vRoleFamilies(v.id, lang)) {
+    const cur = familyStand.get(fam.slug);
+    if (cur) cur.count++;
+    else familyStand.set(fam.slug, { label: fam.label, count: 1 });
+  }
+}
+const roleFamilies = [...familyStand.entries()]
+  .map(([slug, { label, count }]) => ({ slug, label, count }))
+  .sort((a, b) => b.count - a.count);
+
+// Quick-Task 260802-ose: Größenklasse (AttachDef.Size, 1–6) als dritte Achse
+// neben Beruf/Rolle — CIGs Hangar-/Landeplatzklasse, keine Wiki-Größe.
+const sizeStand = new Map<number, number>();
+for (const v of vehicles) {
+  const n = vSizeClass(v.id);
+  if (n == null) continue;
+  sizeStand.set(n, (sizeStand.get(n) ?? 0) + 1);
+}
+const sizeClasses = [...sizeStand.entries()]
+  .sort((a, b) => a[0] - b[0])
+  .map(([n, count]) => ({ n, count, label: sizeClassLabel(n, lang) }));
+
+const flightReady = vehicles.filter((v) => v.data.statusEn === 'flight-ready').length;
+const inArchive = vehicles.filter((v) => v.data.patches.length > 0).length;
+
+// Karten-Modell: Preise vorab joinen, damit das JSX schlank bleibt.
+const cards = vehicles.map((v) => ({
+  d: v.data,
+  id: v.id,
+  thumb: pickThumb(v.data),
+  buy: priceInfo(v.id)?.buy[0]?.price ?? null,
+  career: roleSnapshot[v.id]?.careerKey ?? '',
+  roleFam: vRoleFamilies(v.id, lang)
+    .map((f) => f.slug)
+    .join(' '),
+  sig: vSignature(v.id),
+  feat: (roleSnapshot[v.id]?.feat ?? []).join(' '),
+  size: vSizeClass(v.id),
+}));
+const buyable = cards.filter((c) => c.buy != null).length;
+
+const crewFmt = (v: (typeof vehicles)[number]['data']) =>
+  v.crewMin != null || v.crewMax != null
+    ? v.crewMin != null && v.crewMax != null && v.crewMax !== v.crewMin
+      ? `${v.crewMin}–${v.crewMax}`
+      : `${v.crewMin ?? v.crewMax}`
+    : '—';
+const auecShort = (n: number) => n.toLocaleString(de ? 'de-DE' : 'en-US');
+const sigFmt = (n: number) => n.toLocaleString(de ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+---
+<style is:inline>
+:root{
+  --bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;
+  --accent:#2dd4ff;--accent-2:#6ea8ff;--gold:#d4af37;
+  --text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
+  --maxw:1440px;
+}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#0850ad;--gold:#685301;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3)}
+
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.sdb{position:relative}
+/* weicher Seiten-Backdrop unterhalb des Hero, damit die Fläche nicht tot-schwarz wirkt */
+.sdb::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(70% 45% at 82% 4%,rgba(45,212,255,.05),transparent 60%)}
+
+/* ---------- Hero ---------- */
+.sdb__hero{position:relative;min-height:clamp(440px,60vh,700px);display:flex;flex-direction:column;justify-content:flex-end;
+  padding:7rem clamp(1rem,4vw,3rem) 2.2rem;overflow:hidden;border-bottom:1px solid var(--line)}
+.sdb__hero::before{content:"";position:absolute;inset:0;z-index:0;
+  background:url('/assets/img-polaris.jpg') center right/cover no-repeat;animation:heroKb 36s ease-in-out infinite alternate}
+.sdb__hero::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,var(--veil-2) 0%,var(--veil-2) 40%,var(--veil) 100%),
+  linear-gradient(180deg,var(--veil-2),transparent 26%,var(--veil) 60%,var(--bg) 99%)}
+@keyframes heroKb{from{transform:scale(1)}to{transform:scale(1.08)}}
+@media(prefers-reduced-motion:reduce){.sdb__hero::before{animation:none}}
+/* feines HUD-Raster über dem Scrim */
+.sdb__grid{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.6;
+  background-image:linear-gradient(rgba(110,168,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(110,168,255,.06) 1px,transparent 1px);
+  background-size:52px 52px;-webkit-mask-image:linear-gradient(180deg,transparent,#000 45%,transparent);mask-image:linear-gradient(180deg,transparent,#000 45%,transparent)}
+.sdb__heroin{position:relative;z-index:3;max-width:var(--maxw);margin:0 auto;width:100%}
+.sdb__eyebrow{font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--accent);display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;text-shadow:0 2px 10px var(--shadow-color)}
+.sdb__eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--accent),transparent)}
+.sdb__hero h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2.4rem,7vw,4.6rem);line-height:1;background:linear-gradient(180deg,var(--title-hi),var(--accent-2) 66%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 24px var(--shadow-color))}
+.sdb__sub{max-width:56ch;color:#dbe6ff;margin-top:.8rem;font-size:clamp(1rem,1.4vw,1.15rem);text-shadow:0 2px 12px var(--shadow-color)}
+
+/* Kennzahlen als Glas-HUD-Band unten im Hero */
+.sdb__metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;margin:1.9rem 0 0;max-width:900px;
+  border:1px solid var(--line);background:var(--line);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sdb__metrics div{position:relative;background:var(--veil-2);padding:.8rem 1rem;overflow:hidden}
+.sdb__metrics div::before{content:"";position:absolute;top:0;left:0;width:14px;height:2px;background:var(--accent)}
+.sdb__metrics dt{font-family:var(--font-ui);font-weight:700;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sdb__metrics dd{margin:.2rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:1.7rem;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1}
+@media(max-width:640px){
+  .sdb__metrics{grid-template-columns:repeat(2,1fr)}
+  .sdb__metrics div{padding:.55rem .7rem}.sdb__metrics dd{font-size:1.25rem}.sdb__metrics dt{font-size:.64rem}
+  /* Hero hugt den Inhalt (statt fast bildschirmhoher Leere), Filter kompakt als 2er-Raster */
+  .sdb__hero{min-height:auto;padding:5.5rem 1rem 1.5rem}
+  .sdb__sub{font-size:.98rem;max-width:none}
+  .sdb__panel{padding:1.6rem 1rem 3rem}
+}
+
+/* ---------- Inhalt (Filter + Grid) ---------- */
+.sdb__panel{max-width:var(--maxw);margin:0 auto;padding:2rem clamp(1rem,3vw,2.5rem) 4rem}
+
+/* ---------- Schnellzugriff-Leiste (D-10) ---------- */
+/* Macht die Kombinationsfaehigkeit der Filterkonsole sichtbar: ein Klick
+   setzt Rollenfamilie und, bei den ersten beiden Chips, zusaetzlich die
+   Signaturstufe (ROLE-06). Eigene Klassennamen, weil .fcard__chip bereits
+   fuer die Rollen-/Groessen-Pille auf der Karte vergeben ist (siehe
+   assets/mobile-ux.css Zeilen 409-433). */
+.sdb__quick{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:0 0 .8rem}
+.sdb__quicklabel{font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);margin-right:.2rem}
+.sdb__qchip{font-family:var(--font-ui);font-weight:600;font-size:.82rem;color:var(--text);
+  background:var(--veil);border:1px solid var(--line);padding:.4rem .8rem;min-height:32px;
+  cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease}
+.sdb__qchip:hover{border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
+.sdb__qchip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 18%,var(--veil))}
+
+/* Erklärzeile zur Größenklasse (Quick-Task 260802-ose) — dieselbe nüchterne
+   Konsolen-Zeile wie .sdb__src, direkt über der Filterkonsole. */
+.sdb__sizehint{max-width:70ch;margin:0 0 .8rem;font-size:.82rem;color:var(--muted)}
+
+/* ---------- Filter-Konsole ---------- */
+.sdb__filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin:0 0 1.4rem;padding:.9rem 1rem;
+  border:1px solid var(--line);background:linear-gradient(160deg,var(--surface),var(--bg-2));position:relative}
+.sdb__filter::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;
+  border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
+.sdb__filter::after{content:"";position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;
+  border-bottom:2px solid var(--accent);border-right:2px solid var(--accent)}
+.sdb__filter input,.sdb__filter select{background:var(--veil);border:1px solid var(--line);color:var(--text);
+  font-family:var(--font-ui);font-weight:600;font-size:.95rem;padding:.5rem .7rem;min-width:150px}
+.sdb__filter input{flex:1;min-width:220px}
+.sdb__filter input::placeholder{color:var(--muted);opacity:.7}
+.sdb__filter select:focus,.sdb__filter input:focus{border-color:var(--accent);outline:none}
+.sdb__count{margin-left:auto;font-family:var(--font-ui);font-weight:700;font-size:.82rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);white-space:nowrap}
+
+/* ---------- Flotten-Grid ---------- */
+.sdb__fleet{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:1.1rem}
+.sdb__empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--muted);
+  font-family:var(--font-ui);font-weight:600;letter-spacing:.06em}
+
+.fcard{position:relative;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);
+  cursor:pointer;overflow:hidden;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+.fcard:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--accent) 55%,transparent);
+  box-shadow:0 12px 34px color-mix(in srgb,var(--accent) 16%,transparent)}
+/* HUD-Klammern (nur beim Hover/Fokus sichtbar) */
+.fcard::before,.fcard::after{content:"";position:absolute;width:16px;height:16px;z-index:3;pointer-events:none;
+  opacity:0;transition:opacity .22s ease}
+.fcard::before{top:6px;left:6px;border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
+.fcard::after{bottom:6px;right:6px;border-bottom:2px solid var(--accent);border-right:2px solid var(--accent)}
+.fcard:hover::before,.fcard:hover::after,.fcard:focus-within::before,.fcard:focus-within::after{opacity:.9}
+
+.fcard__media{position:relative;aspect-ratio:16/10;background:radial-gradient(120% 120% at 70% 0,rgba(45,212,255,.1),transparent 60%),linear-gradient(135deg,var(--veil-2),#141c30);overflow:hidden}
+.fcard__media img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.fcard:hover .fcard__media img{transform:scale(1.06)}
+.fcard__noimg{display:grid;place-items:center;width:100%;height:100%;color:var(--muted);opacity:.5;
+  font-family:var(--font-ui);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
+.fcard__scrim{position:absolute;inset:0;background:linear-gradient(180deg,var(--veil) 30%,var(--veil-2) 62%,var(--veil-2))}
+.fcard__id{position:absolute;left:.8rem;right:.8rem;bottom:.55rem;z-index:2}
+.fcard__maker{font-family:var(--font-ui);font-weight:700;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2)}
+.fcard__name{font-family:var(--font-ui);font-weight:700;font-size:1.18rem;line-height:1.12;color:var(--text);text-shadow:0 2px 12px var(--shadow-color);margin-top:.05rem}
+.fcard__name a::after{content:"";position:absolute;inset:0;z-index:1}
+
+/* Ecken-Marker über dem Bild */
+.fcard__status{position:absolute;top:.55rem;left:.6rem;z-index:2;display:inline-flex;align-items:center;gap:.34rem;
+  font-family:var(--font-ui);font-weight:700;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--veil-2);border:1px solid var(--line);padding:.14rem .42rem;backdrop-filter:blur(3px)}
+.fcard__dot{width:6px;height:6px;border-radius:50%;background:var(--muted);box-shadow:0 0 6px currentColor}
+.fcard__status.fr{color:#5ad19a}
+.fcard__status.fr .fcard__dot{background:#5ad19a}
+.fcard__patch{position:absolute;top:.55rem;right:.6rem;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:.66rem;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--gold);background:var(--veil-2);
+  border:1px solid color-mix(in srgb,var(--gold) 50%,transparent);padding:.14rem .44rem;backdrop-filter:blur(3px)}
+.fcard__patch:hover{background:color-mix(in srgb,var(--gold) 18%,var(--veil-2))}
+
+.fcard__body{display:flex;flex-direction:column;gap:.6rem;padding:.75rem .85rem .85rem;flex:1}
+.fcard__chips{display:flex;flex-wrap:wrap;gap:.32rem;min-height:1.4rem}
+/* Die Mobil-Kürzung dieser Pille lag früher in assets/mobile-ux.css, weil
+   src/pages/de/schiffe.astro eine eigene Kopie dieses Stilblocks war — eine
+   Änderung hier griff nur auf der englischen Seite. Mit der Zusammenführung
+   auf EINEN Körper (D-12) entfällt dieser Grund; die Selektoren in
+   assets/mobile-ux.css gelten unverändert weiter, weil die Klassennamen
+   gleich bleiben. */
+.fcard__chip{font-family:var(--font-ui);font-weight:600;font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--accent-2);border:1px solid var(--line);background:rgba(110,168,255,.06);padding:.1rem .42rem;white-space:nowrap}
+
+/* Gemessene Signaturwerte (D-07) — nur bei den 16 Traegern des Bauteils.
+   Kein Chip (keine Behauptung "Faehigkeit"), sondern eine nuechterne Zeile
+   mit CIG-eigener HUD-Beschriftung, damit der Nutzer selbst urteilt. */
+.fcard__sig{font-family:var(--font-ui);font-weight:600;font-size:.66rem;letter-spacing:.04em;
+  color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.fcard__stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-top:auto;
+  border-top:1px solid var(--line);padding-top:.6rem}
+.fcard__stat dt{font-family:var(--font-ui);font-weight:700;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.fcard__stat dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:.95rem;color:var(--text);
+  font-variant-numeric:tabular-nums;line-height:1.1}
+
+.fcard__prices{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;border-top:1px solid var(--line);padding-top:.55rem}
+.fprice{display:flex;flex-direction:column;gap:.06rem;min-width:0}
+.fprice dt{font-family:var(--font-ui);font-weight:700;font-size:.58rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.fprice .v{font-family:var(--font-ui);font-weight:700;font-size:1rem;font-variant-numeric:tabular-nums;line-height:1.1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fprice__u{font-size:.62rem;font-weight:600;color:var(--muted);letter-spacing:.04em;margin-left:.15rem}
+.fprice--pledge .v{color:var(--gold)}
+.fprice--game{border-left:1px solid var(--line);padding-left:.5rem}
+.fprice--game .v{color:var(--accent)}
+.fprice .v.none{color:var(--muted);opacity:.6}
+
+@media(max-width:520px){
+  .sdb__fleet{grid-template-columns:1fr 1fr;gap:.7rem}
+  .fcard__name{font-size:1rem}
+  .fcard__body{padding:.6rem .6rem .7rem;gap:.5rem}
+  .fcard__stats{grid-template-columns:1fr 1fr}
+  .fcard__stat:nth-child(3){display:none}
+  /* Preise untereinander, damit lange aUEC-Werte nicht abgeschnitten werden */
+  .fcard__prices{grid-template-columns:1fr;gap:.25rem}
+  .fprice--game{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:.25rem}
+}
+
+.sdb__src{margin-top:1.5rem;font-size:.85rem;color:var(--muted)}
+.sdb__src a{text-decoration:underline}
+.sdb__src a:hover{color:var(--accent)}
+/* Mobil-Filter: NACH den Basis-Regeln, damit display:grid (gleiche Spezifität) greift */
+@media(max-width:640px){
+  .sdb__filter{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+  .sdb__filter input{grid-column:1/-1;min-width:0}
+  .sdb__filter select{min-width:0}
+  .sdb__count{grid-column:1/-1;margin-left:0;justify-self:start}
+}
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .sdb__sub{color:#4d5871}
+:root[data-theme="light"] .fcard__status.fr{color:#046945}
+</style>
+
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Schiffe' }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Ships' }]} hasEn={true} />
+
+<main class="sdb">
+  <section class="sdb__hero">
+    <div class="sdb__grid" aria-hidden="true"></div>
+    <div class="sdb__heroin">
+      <div class="sdb__eyebrow">{de ? 'Registratur // Flottenkatalog' : 'Registry // Fleet Catalog'}</div>
+      <h1>{de ? 'Schiffe & Fahrzeuge' : 'Ships & Vehicles'}</h1>
+      <dl class="sdb__metrics">
+        <div><dt>{de ? 'Einträge' : 'Entries'}</dt><dd>{vehicles.length}</dd></div>
+        <div><dt>{de ? 'Hersteller' : 'Manufacturers'}</dt><dd>{makers.length}</dd></div>
+        <div><dt>{de ? 'Flugbereit' : 'Flight Ready'}</dt><dd>{flightReady}</dd></div>
+        <div><dt>{de ? 'Ingame kaufbar' : 'Buyable in-game'}</dt><dd>{buyable}</dd></div>
+        <div><dt>{de ? 'Im Archiv' : 'In archive'}</dt><dd>{inArchive}</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <div class="sdb__panel">
+  <div class="sdb__quick">
+    <span class="sdb__quicklabel">{de ? 'Schnellzugriff' : 'Quick access'}</span>
+    <button type="button" class="sdb__qchip" data-set-rolefam="bomber" data-set-sig="1" aria-pressed="false">{de ? 'Tarnkappenbomber' : 'Stealth Bomber'}</button>
+    <button type="button" class="sdb__qchip" data-set-rolefam="frachttransport" data-set-sig="1" aria-pressed="false">{de ? 'Frachter mit gesenkter Signatur' : 'Cargo, reduced signature'}</button>
+    <button type="button" class="sdb__qchip" data-set-rolefam="bergbau" aria-pressed="false">{de ? 'Bergbau' : 'Mining'}</button>
+    <button type="button" class="sdb__qchip" data-set-rolefam="bergung" aria-pressed="false">{de ? 'Bergung' : 'Salvage'}</button>
+    <button type="button" class="sdb__qchip" data-set-rolefam="betankung" aria-pressed="false">{de ? 'Betankung' : 'Refueling'}</button>
+    <button type="button" class="sdb__qchip" data-set-rolefam="abriegelung" aria-pressed="false">{de ? 'Abriegelung' : 'Interdiction'}</button>
+    <button type="button" class="sdb__qchip" data-set-rolefam="rennen" aria-pressed="false">{de ? 'Rennen' : 'Racing'}</button>
+  </div>
+  <p class="sdb__sizehint">
+    {de
+      ? 'Die Größenklasse (1–6) ist CIGs eigene Hangar-/Landeplatzklasse — sie bestimmt, auf welchen Landeplatz bzw. in welchen Hangar das Schiff passt, nicht die umgangssprachliche Größe.'
+      : "The size class (1–6) is CIG's own hangar/landing pad class — it determines which landing pad or hangar the ship fits, not the everyday size label."}
+  </p>
+  {/* Werkzeug-Hilfe (Phase 01.2, Plan 04) — unmittelbar vor der Filterkonsole
+      (D-08). Ein Schluessel (ships.ctl.select) erklaert ALLE Auswahllisten
+      als EINE ART (D-03), analog zum Missions-Muster aus Plan 03. */}
+  <ToolHelp tool="ships" lang={lang} steps={4} />
+  <div class="sdb__filter">
+    <input id="sf-q" type="search" placeholder={de ? 'Schiff oder Hersteller suchen…' : 'Search ship or manufacturer…'} aria-label={de ? 'Suche' : 'Search'} autocomplete="off" data-help={h('ships.ctl.search')} />
+    <select id="sf-maker" aria-label={de ? 'Hersteller' : 'Manufacturer'} data-help={h('ships.ctl.select')}>
+      <option value="">{de ? 'Alle Hersteller' : 'All manufacturers'}</option>
+      {makers.map((m) => <option value={m}>{m}</option>)}
+    </select>
+    <select id="sf-career" aria-label={de ? 'Beruf' : 'Career'} data-help={h('ships.ctl.select')}>
+      <option value="">{de ? 'Alle Berufe' : 'All careers'}</option>
+      {careers.map((c) => <option value={c.key}>{c.label}</option>)}
+    </select>
+    <select id="sf-rolefam" aria-label={de ? 'Rolle' : 'Role'} data-help={h('ships.ctl.select')}>
+      <option value="">{de ? 'Alle Rollen' : 'All roles'}</option>
+      {roleFamilies.map((f) => <option value={f.slug}>{f.label} ({f.count})</option>)}
+    </select>
+    <select id="sf-size" aria-label={de ? 'Größe' : 'Size'} data-help={h('ships.ctl.select')}>
+      <option value="">{de ? 'Alle Größen' : 'All sizes'}</option>
+      {sizeClasses.map((s) => <option value={s.n}>{s.label} ({s.count})</option>)}
+    </select>
+    <select id="sf-sig" aria-label={de ? 'Signatur' : 'Signature'} data-help={h('ships.ctl.select')}>
+      <option value="">{de ? 'Alle Signaturen' : 'All signatures'}</option>
+      {SIG_STEPS.map((s) => <option value={s.value}>{de ? s.de : s.en}</option>)}
+    </select>
+    <select id="sf-feat" aria-label={de ? 'Merkmal' : 'Feature'} data-help={h('ships.ctl.select')}>
+      <option value="">{de ? 'Alle Merkmale' : 'All features'}</option>
+      <option value="cargo">{de ? FEAT_LABELS.cargo.de : FEAT_LABELS.cargo.en}</option>
+      <option value="ground">{de ? FEAT_LABELS.ground.de : FEAT_LABELS.ground.en}</option>
+    </select>
+    <select id="sf-comp" aria-label={de ? 'Bauteil' : 'Component'} data-help={h('ships.ctl.select')}>
+      <option value="">{de ? 'Alle Bauteile' : 'All components'}</option>
+      <option value="w">{de ? 'Waffe' : 'Weapon'}</option>
+      <option value="t">{de ? 'Turm' : 'Turret'}</option>
+      <option value="m">{de ? 'Rakete' : 'Missile'}</option>
+      <option value="s">{de ? 'Schild' : 'Shield'}</option>
+      <option value="c">{de ? 'Kühler' : 'Cooler'}</option>
+      <option value="p">{de ? 'Kraftwerk' : 'Power plant'}</option>
+      <option value="q">{de ? 'Quantenantrieb' : 'Quantum drive'}</option>
+      <option value="r">Radar</option>
+    </select>
+    <select id="sf-compsize" aria-label={de ? 'Mindestgröße des Bauteils' : 'Minimum component size'} disabled data-help={h('ships.ctl.select')}>
+      <option value="">{de ? 'Beliebige Größe' : 'Any size'}</option>
+    </select>
+    <select id="sf-sort" aria-label={de ? 'Sortierung' : 'Sort'} data-help={h('ships.ctl.sort')}>
+      <option value="name">Name A–Z</option>
+      <option value="pledge">{de ? 'Pledge-Preis ↓' : 'Pledge price ↓'}</option>
+      <option value="game">{de ? 'Ingame-Preis ↓' : 'In-game price ↓'}</option>
+      <option value="cargo">{de ? 'Fracht ↓' : 'Cargo ↓'}</option>
+      <option value="crew">Crew ↓</option>
+    </select>
+    <span class="sdb__count" id="sf-count">{vehicles.length} {de ? 'Treffer' : 'results'}</span>
+  </div>
+
+  <div class="sdb__fleet" id="sf-fleet" data-results-label={de ? 'Treffer' : 'results'}
+    data-nodata-label={de ? 'ohne Steckplatz-Daten' : 'without slot data'}
+    data-andup-label={de ? 'ab S{n}' : 'S{n} and up'}>
+    {cards.map(({ d, id, thumb, buy, career, roleFam, sig, feat, size }) => (
+      <article
+        class="fcard"
+        data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
+        data-maker={d.manufacturer ?? ''}
+        data-type={vType(d, lang) ?? ''}
+        data-career={career}
+        data-rolefam={` ${roleFam} `}
+        data-size={size ?? ''}
+        data-sig={sig.min}
+        data-feat={` ${feat} `}
+        data-comp={compAttr(id)}
+        data-href={de ? `/de/schiffe/${id}.html` : `/schiffe/${id}.html`}
+        data-pledge={d.msrpUSD ?? -1}
+        data-game={buy ?? -1}
+        data-cargo={d.cargoSCU ?? -1}
+        data-crew={d.crewMax ?? d.crewMin ?? -1}
+      >
+        <div class="fcard__media">
+          {thumb ? (
+            <img src={thumb.src} alt="" loading="lazy" referrerpolicy="no-referrer"
+              onerror="this.style.display='none'" />
+          ) : (
+            <span class="fcard__noimg" aria-hidden="true">{de ? 'Kein Bild' : 'No image'}</span>
+          )}
+          <span class="fcard__scrim" aria-hidden="true"></span>
+          <span class={`fcard__status${d.statusEn === 'flight-ready' ? ' fr' : ''}`}>
+            <span class="fcard__dot"></span>{vStatus(d, lang) ?? '—'}
+          </span>
+          {d.patches.length > 0 && (
+            <a class="fcard__patch" href={de ? `/de/patches/sc-${d.patches[0].replaceAll('.', '-')}.html` : `/patches/sc-${d.patches[0].replaceAll('.', '-')}.html`}>
+              {d.patches[0]}
+            </a>
+          )}
+          <div class="fcard__id">
+            <div class="fcard__maker">{d.manufacturer ?? '—'}</div>
+            <div class="fcard__name"><a href={de ? `/de/schiffe/${id}.html` : `/schiffe/${id}.html`}>{d.name}</a></div>
+          </div>
+        </div>
+        <div class="fcard__body">
+          <div class="fcard__chips">
+            {vRoleCig(id, d, lang) && <span class="fcard__chip">{vRoleCig(id, d, lang)}</span>}
+            {/* Nur EINE Groessenangabe. Die Wiki-Groesse (vSize: Klein/Mittel/Gross)
+                stand hier frueher daneben und widersprach der CIG-Klasse sichtbar —
+                die Eclipse trug "Mittel" neben "Groesse 2". Gefiltert wird nach der
+                CIG-Klasse, also steht auch nur die auf der Karte. vSize bleibt als
+                Rueckfall fuer die 4 ATLS ohne CIG-Klasse. */}
+            {size != null
+              ? <span class="fcard__chip">{sizeClassLabel(size, lang)}</span>
+              : vSize(d, lang) && <span class="fcard__chip">{vSize(d, lang)}</span>}
+          </div>
+          {sig.ir != null && (
+            <div class="fcard__sig">
+              {[
+                `${SIG_LABELS.ir[localeTag]} ${sigFmt(sig.ir)}`,
+                sig.em != null ? `${SIG_LABELS.em[localeTag]} ${sigFmt(sig.em)}` : null,
+                sig.cs != null ? `${SIG_LABELS.cs[localeTag]} ${sigFmt(sig.cs)}` : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </div>
+          )}
+          <dl class="fcard__stats">
+            <div class="fcard__stat"><dt>Crew</dt><dd>{crewFmt(d)}</dd></div>
+            <div class="fcard__stat"><dt>{de ? 'Fracht' : 'Cargo'}</dt><dd>{d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—'}</dd></div>
+            <div class="fcard__stat"><dt>{de ? 'Länge' : 'Length'}</dt><dd>{d.lengthM != null ? `${d.lengthM} m` : '—'}</dd></div>
+          </dl>
+          <dl class="fcard__prices">
+            <div class="fprice fprice--pledge">
+              <dt>Pledge</dt>
+              <dd class={`v${d.msrpUSD == null ? ' none' : ''}`}>{d.msrpUSD != null ? `$${d.msrpUSD.toLocaleString('en-US')}` : '—'}</dd>
+            </div>
+            <div class="fprice fprice--game">
+              <dt>{de ? 'Ingame' : 'In-game'}</dt>
+              <dd class={`v${buy == null ? ' none' : ''}`}>{buy != null ? <>{auecShort(buy)}<span class="fprice__u">aUEC</span></> : '—'}</dd>
+            </div>
+          </dl>
+        </div>
+      </article>
+    ))}
+    <p class="sdb__empty" id="sf-empty" hidden>{de ? 'Keine Treffer — Filter zurücksetzen.' : 'No matches — reset the filters.'}</p>
+  </div>
+
+  <p class="sdb__src">
+    {de ? 'Quelle: Spieldaten' : 'Source: game data'}{vehiclesSnapshot.gameVersion && ` ${vehiclesSnapshot.gameVersion.split('-')[0]}`}
+    {de ? ' · Stand ' : ' · as of '}{vehiclesSnapshot.fetchedAt}
+    {de ? ' · Ingame-Preise: ' : ' · In-game prices: '}<a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> ({de ? 'Stand ' : 'as of '}{pricesFetchedAt})
+    {de ? ' · Bilder: starcitizen.tools' : ' · Images: starcitizen.tools'}
+  </p>
+  </div>
+</main>
+
+<script is:inline>
+(function () {
+  var fleet = document.getElementById('sf-fleet');
+  var RESULTS_LABEL = fleet.getAttribute('data-results-label') || 'results';
+  var NODATA_LABEL = fleet.getAttribute('data-nodata-label') || 'without slot data';
+  var ANDUP_LABEL = fleet.getAttribute('data-andup-label') || 'S{n} and up';
+  var q = document.getElementById('sf-q');
+  var selMaker = document.getElementById('sf-maker');
+  var selCareer = document.getElementById('sf-career');
+  var selRolefam = document.getElementById('sf-rolefam');
+  var selSize = document.getElementById('sf-size');
+  var selSig = document.getElementById('sf-sig');
+  var selFeat = document.getElementById('sf-feat');
+  var selComp = document.getElementById('sf-comp');
+  var selCompSize = document.getElementById('sf-compsize');
+  var selSort = document.getElementById('sf-sort');
+  var count = document.getElementById('sf-count');
+  var empty = document.getElementById('sf-empty');
+  var cards = [].slice.call(fleet.querySelectorAll('.fcard'));
+
+  var norm = function (s) {
+    return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  };
+  var numAttr = function (el, name) {
+    var v = parseFloat(el.getAttribute(name));
+    return isNaN(v) ? -1 : v;
+  };
+
+  // ---- Bauteil-Steckplaetze (Phase 06) ----------------------------------
+  // data-comp kodiert je Karte die MAXIMALE Steckplatzgroesse pro Bauteilart
+  // als Buchstabe+Ziffer, Groesse 10 als "X" (im Datenbestand kommt nichts
+  // Groesseres vor). Der Sentinel "-" heisst "gar keine Steckplatz-Daten"
+  // (die vier ATLS-Varianten), "_" heisst "Daten vorhanden, aber keine
+  // Kategorie getroffen" -- die Unterscheidung traegt D-08, sonst zaehlte der
+  // Zaehler beides als fehlende Daten. Ein fehlendes Attribut wird wie "-"
+  // behandelt.
+  var CAT_RX = /([wtmscpqr])(\d|X)/g;
+  function parseComp(s) {
+    var out = {}, m;
+    if (!s || s === '-') return out;
+    CAT_RX.lastIndex = 0;
+    while ((m = CAT_RX.exec(s))) out[m[1]] = m[2] === 'X' ? 10 : parseInt(m[2], 10);
+    return out;
+  }
+
+  // Zusammenhaengende Groessenliste 1..Maximum fuer eine Bauteilart. NICHT nur
+  // die beobachteten Einzelwerte: gespeichert ist je Schiff nur das MAXIMUM je
+  // Kategorie, deshalb liefert jede Schwelle bis zum globalen Maximum garantiert
+  // mindestens einen Treffer -- genau das verlangt D-10.
+  function sizesFor(letter) {
+    var max = 0;
+    cards.forEach(function (c) {
+      var v = parseComp(c.getAttribute('data-comp'))[letter];
+      if (v != null && v > max) max = v;
+    });
+    var out = [];
+    for (var i = 1; i <= max; i++) out.push(i);
+    return out;
+  }
+
+  // Baut sf-compsize fuer die gewaehlte Bauteilart neu und schaltet das Feld
+  // frei bzw. wieder ab (D-11: die Bauteilart allein filtert noch nicht, sie
+  // ist nur Vorauswahl fuer das Groessenfeld).
+  function rebuildSizeOptions() {
+    var letter = selComp.value;
+    while (selCompSize.options.length > 1) selCompSize.remove(1);
+    if (letter) {
+      sizesFor(letter).forEach(function (n) {
+        var opt = document.createElement('option');
+        opt.value = String(n);
+        opt.textContent = ANDUP_LABEL.replace('{n}', String(n));
+        selCompSize.appendChild(opt);
+      });
+      selCompSize.disabled = false;
+    } else {
+      selCompSize.disabled = true;
+    }
+    selCompSize.value = '';
+  }
+
+  function apply() {
+    var nq = norm(q.value).trim();
+    var m = selMaker.value;
+    var ca = selCareer.value, fa = selRolefam.value, sz = selSize.value, si = selSig.value, fe = selFeat.value;
+    var compLetter = selComp.value;
+    var compSize = selCompSize.value ? parseInt(selCompSize.value, 10) : null;
+    // D-11: Bauteilart ohne Groesse filtert noch NICHT.
+    var compActive = !!(compLetter && compSize != null);
+    var n = 0, noData = 0;
+    cards.forEach(function (c) {
+      var ok =
+        (!nq || norm(c.getAttribute('data-q')).indexOf(nq) >= 0) &&
+        (!m || c.getAttribute('data-maker') === m) &&
+        (!ca || c.getAttribute('data-career') === ca) &&
+        (!fa || c.getAttribute('data-rolefam').indexOf(' ' + fa + ' ') >= 0) &&
+        (!sz || c.getAttribute('data-size') === sz) &&
+        (!si || numAttr(c, 'data-sig') < parseFloat(si)) &&
+        (!fe || c.getAttribute('data-feat').indexOf(' ' + fe + ' ') >= 0);
+      if (!ok) { c.style.display = 'none'; return; }
+      if (!compActive) { c.style.display = ''; n++; return; }
+      var raw = c.getAttribute('data-comp');
+      if (!raw || raw === '-') {
+        // D-08: Fahrzeuge ohne Steckplatz-Daten fallen aus der Trefferliste,
+        // werden aber im Zaehler benannt statt still verworfen.
+        noData++;
+        c.style.display = 'none';
+        return;
+      }
+      // D-04 "einer reicht": gespeichert ist bereits das Maximum je Kategorie,
+      // ein Vergleich >= genuegt.
+      var v = parseComp(raw)[compLetter];
+      var compOk = v != null && v >= compSize;
+      c.style.display = compOk ? '' : 'none';
+      if (compOk) n++;
+    });
+    // D-12: ohne aktiven Bauteilfilter bleibt der Zaehlertext exakt wie zuvor.
+    count.textContent = compActive
+      ? (n + ' ' + RESULTS_LABEL + ' · ' + noData + ' ' + NODATA_LABEL)
+      : (n + ' ' + RESULTS_LABEL);
+    empty.hidden = n !== 0;
+  }
+
+  function sort() {
+    var key = selSort.value;
+    var ordered;
+    if (key === 'name') {
+      ordered = cards; // serverseitig bereits alphabetisch
+    } else {
+      var attr = { pledge: 'data-pledge', game: 'data-game', cargo: 'data-cargo', crew: 'data-crew' }[key];
+      ordered = cards.slice().sort(function (a, b) { return numAttr(b, attr) - numAttr(a, attr); });
+    }
+    ordered.forEach(function (c) { fleet.insertBefore(c, empty); });
+  }
+
+  [q, selMaker, selCareer, selRolefam, selSize, selSig, selFeat, selCompSize].forEach(function (el) {
+    el.addEventListener('input', apply);
+    el.addEventListener('change', apply);
+  });
+  // Die Bauteilart baut erst das Groessenfeld neu und filtert dann -- sonst
+  // stuende dort noch die Groessenliste der vorher gewaehlten Kategorie.
+  selComp.addEventListener('change', function () { rebuildSizeOptions(); apply(); });
+  rebuildSizeOptions();
+  selSort.addEventListener('change', sort);
+
+  // Schnellzugriff-Chips (D-10, ROLE-06): je ein Klick setzt Rollenfamilie
+  // und (bei den ersten beiden) zusaetzlich die Signaturstufe, danach apply().
+  // Ein zweiter Klick auf den aktiven Chip stellt beide Achsen zurueck.
+  // .value = ... loest kein change-Event aus -- der Reset-Listener unten
+  // (bei manueller Aenderung von sf-rolefam/sf-sig) greift hier also nicht.
+  var quickChips = [].slice.call(document.querySelectorAll('.sdb__qchip'));
+  function clearChipState() {
+    quickChips.forEach(function (c) { c.setAttribute('aria-pressed', 'false'); });
+  }
+  quickChips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      var wasActive = chip.getAttribute('aria-pressed') === 'true';
+      clearChipState();
+      if (wasActive) {
+        selRolefam.value = '';
+        selSig.value = '';
+      } else {
+        selRolefam.value = chip.getAttribute('data-set-rolefam') || '';
+        selSig.value = chip.getAttribute('data-set-sig') || '';
+        chip.setAttribute('aria-pressed', 'true');
+      }
+      apply();
+    });
+  });
+  // Handaenderung an Rollenfamilie/Signatur entwertet eine zuvor aktive
+  // Chip-Anzeige -- sonst behauptet die Leiste einen Zustand, der nicht mehr gilt.
+  [selRolefam, selSig].forEach(function (el) {
+    el.addEventListener('change', clearChipState);
+  });
+
+  // ganze Karte klickbar (innere Links funktionieren weiter)
+  cards.forEach(function (c) {
+    c.addEventListener('click', function (e) {
+      if (e.target.closest('a')) return;
+      location.href = c.getAttribute('data-href');
+    });
+  });
+})();
+</script>

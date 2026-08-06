@@ -1,16 +1,48 @@
 /* ============================================================
    data-page.css — EINE Datei fuer alle generierten Datenseiten
-   (Item-Datenblaetter, Blueprint-Seiten, Kategorie-Listen).
+   (Item-Datenblaetter, Blueprint-Seiten, Kategorie-Listen,
+   Ruestungs-Sets).
 
-   Sie wird von ~14.000 Seiten geladen und liegt deshalb bewusst
+   Sie wird von ~17.000 Seiten geladen und liegt deshalb bewusst
    AUSSERHALB des HTML: einmal geladen, einmal gecacht.
 
+   FORMSPRACHE („Registry-HUD"): dieselbe Sci-Fi-Sprache wie der
+   Rest der Seite (Item Finder, Patch-Archiv) — nur ohne deren
+   Mittel. Bilder, Video und JavaScript scheiden aus (siehe
+   Kommentar in DataShell.astro), also traegt die Optik hier
+   allein CSS:
+     · Eckklammern statt Kaesten          (Hero, Karten)
+     · Akzent-Schienen links/oben         (Kennzahlen, Chips, Zeilen)
+     · Teko-Ziffern + Share-Tech-Mono-Mikrolabels
+     · ein Verlaufs-Titel wie im Item Finder
+     · eine Ambient-Ebene aus reinen Verlaeufen (0 Requests)
+   Alles davon kostet KEIN zusaetzliches Byte im HTML.
+
    FARBEN: ausschliesslich Tokens (--bg, --surface, --text,
-   --muted, --accent, --line, --veil …). Die Palette selbst steht
-   inline in DataShell.astro, damit scripts/build-light-palettes
-   .mjs den Hellmodus daraus erzeugen kann. Hier darf KEIN
-   Hex-Wert stehen — sonst bricht der Hellmodus.
+   --muted, --accent, --line, --veil …) bzw. daraus abgeleitete
+   color-mix()-Werte. Die Palette selbst steht inline in
+   DataShell.astro, damit scripts/build-light-palettes.mjs den
+   Hellmodus daraus erzeugen kann. Hier darf KEIN Hex-Wert stehen
+   — sonst bricht der Hellmodus.
    ============================================================ */
+
+/* ---------- Schriftschichten ----------
+
+   theme.css definiert die --font-*-Tokens NICHT (jede Seite bringt
+   ihren eigenen Stapel mit), die Regeln unten liefen deshalb alle
+   in ihren Rueckfallwert — unter anderem in „Barlow Condensed",
+   das gar nicht ausgeliefert wird. Hier steht derselbe Stapel wie
+   in archive.css, damit die Verzeichnisse dieselben Schriften
+   sprechen wie der Rest der Seite. Alle sechs Familien sind
+   selbst gehostet (assets/fonts.css). */
+
+:root {
+  --font-display: 'Orbitron', 'Rajdhani', system-ui, sans-serif;
+  --font-ui: 'Rajdhani', 'Barlow', system-ui, sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-mono: 'Share Tech Mono', ui-monospace, monospace;
+  --font-num: 'Teko', 'Rajdhani', sans-serif;
+}
 
 /* ---------- Grundgeruest ---------- */
 
@@ -18,10 +50,14 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-body, 'Barlow', system-ui, sans-serif);
+  font-family: var(--font-body);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* Die Sprungmarke steht als Geschwister VOR .dp — dort gibt es --tone-1
+   noch nicht. Sie liest deshalb direkt die Palette; einen Zweigton braucht
+   sie ohnehin nicht. */
 .dp-skip {
   position: absolute;
   left: -9999px;
@@ -40,17 +76,94 @@ body {
      Wert benutzen, sonst bricht die Flucht der Inhaltsspalte (siehe
      .dp-main / .dp-foot). */
   --dp-gut: clamp(0.9rem, 4vw, 2rem);
+
+  /* Die beiden Tonfarben der Seite. ALLE Regeln unten lesen --tone-1 /
+     --tone-2, nie --accent direkt — siehe die Begruendung am Ton-Tausch
+     weiter unten. */
+  --tone-1: var(--accent);
+  --tone-2: var(--accent-2);
+
+  /* Abgeleitete Flaechen/Linien. Bewusst als color-mix aus den vorhandenen
+     Tokens statt als neue Paletteneintraege: so gilt jede davon in Hell UND
+     Dunkel automatisch, und build-light-palettes.mjs muss nichts lernen. */
+  --dp-rail: color-mix(in srgb, var(--tone-1) 38%, transparent);
+  --dp-rail-2: color-mix(in srgb, var(--tone-2) 52%, transparent);
+  --dp-hair: color-mix(in srgb, var(--tone-1) 26%, transparent);
+  --dp-fill: color-mix(in srgb, var(--surface) 72%, transparent);
+  --dp-fill-2: color-mix(in srgb, var(--surface-2) 82%, transparent);
+  --dp-tint: color-mix(in srgb, var(--tone-1) 9%, transparent);
+  --dp-zebra: color-mix(in srgb, var(--text) 3%, transparent);
+  --dp-lift: 0 14px 34px -20px color-mix(in srgb, var(--tone-1) 70%, transparent);
+  --dp-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* Crafting-Zweig: bernsteiner Akzent. Beide Tokens sind in Hell UND
-   Dunkel definiert — der Tausch funktioniert deshalb in beiden Modi. */
+/* Crafting-Zweig: bernsteiner Leitton, violett als Zweitfarbe. Beide
+   Paletteneintraege gibt es in Hell UND Dunkel — der Tausch funktioniert
+   deshalb in beiden Modi.
+
+   ACHTUNG, hier lag ein stiller Fehler. Frueher tauschte diese Regel auf
+   DIESELBEN Namen zurueck:
+       --accent-swap: var(--accent);
+       --accent:      var(--accent-2);
+       --accent-2:    var(--accent-swap);
+   Das ist ein Zirkelbezug (swap → accent → accent-2 → swap), und Custom
+   Properties in einem Zyklus sind laut Spezifikation „garantiert
+   ungueltig". Auf ALLEN Crafting-Seiten war --accent damit wertlos und
+   jede Regel, die es benutzte, fiel ersatzlos aus — die Kennzahlen
+   standen dort seit jeher ohne ihre Akzentschiene, der Zweig war
+   farblos. Auffliegen konnte es erst, als die Ueberschrift eine
+   Verlaufsfuellung bekam: die wurde ungueltig, waehrend
+   -webkit-text-fill-color: transparent blieb — der Titel verschwand.
+
+   Deshalb laufen jetzt alle Regeln ueber --tone-1 / --tone-2 und der
+   Tausch schreibt nur diese beiden. Kein Zyklus. */
 .dp[data-tone='craft'] {
-  --accent-swap: var(--accent);
-  --accent: var(--accent-2);
-  --accent-2: var(--accent-swap);
+  --tone-1: var(--accent-2);
+  --tone-2: var(--accent);
+}
+
+/* ---------- Ambient: die Atmosphaere, die sonst ein Hero-Bild traegt ----------
+
+   Zwei Lichtkegel in den beiden Tontoenen plus ein feines HUD-Raster,
+   nach unten ausgeblendet. Reine Verlaeufe: keine Datei, kein Request,
+   kein Byte im HTML. `fixed` statt `absolute`, damit das Licht beim
+   Scrollen einer 600-Zeilen-Tabelle nicht mitwandert. */
+.dp::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 58% at 50% -14%, color-mix(in srgb, var(--tone-1) 17%, transparent), transparent 62%),
+    radial-gradient(70% 42% at 96% 2%, color-mix(in srgb, var(--tone-2) 10%, transparent), transparent 64%),
+    repeating-linear-gradient(0deg, transparent 0 63px, color-mix(in srgb, var(--tone-1) 5%, transparent) 63px 64px),
+    repeating-linear-gradient(90deg, transparent 0 63px, color-mix(in srgb, var(--tone-1) 5%, transparent) 63px 64px);
+  -webkit-mask-image: linear-gradient(180deg, rgb(0 0 0) 0%, rgb(0 0 0 / 0.35) 46%, rgb(0 0 0 / 0) 76%);
+  mask-image: linear-gradient(180deg, rgb(0 0 0) 0%, rgb(0 0 0 / 0.35) 46%, rgb(0 0 0 / 0) 76%);
+}
+
+/* Auf Papier ist Leuchten Schmutz (dieselbe Begruendung wie in theme.css:
+   Vignette und Scanlines sind Dunkelmodus-Mittel). Das Raster bleibt als
+   dezente Struktur, das Licht geht fast aus. */
+:root[data-theme='light'] .dp::before { opacity: 0.4; }
+
+.dp-bar,
+.dp-main,
+.dp-foot { position: relative; z-index: 1; }
+
+.dp ::selection { background: var(--tone-1); color: var(--ink); }
+
+.dp a:focus-visible,
+.dp-skip:focus-visible {
+  outline: 2px solid var(--tone-1);
+  outline-offset: 2px;
+  border-radius: 1px;
 }
 
 /* ---------- Kopfleiste ---------- */
@@ -63,21 +176,38 @@ body {
   align-items: center;
   gap: 0.9rem;
   padding: 0.7rem clamp(0.8rem, 4vw, 2rem);
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
+  /* Statt einer zweiten Linie: ein Hauch Akzentlicht unter der Kante —
+     dieselbe Geste wie die Fortschrittsleiste der grossen Navigation. */
+  box-shadow: 0 1px 0 var(--dp-hair), 0 14px 30px -26px var(--shadow-color, transparent);
 }
 
 .dp-home {
-  font-family: var(--font-display, 'Orbitron', sans-serif);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
   font-weight: 900;
-  letter-spacing: 0.06em;
-  font-size: 0.92rem;
+  letter-spacing: 0.07em;
+  font-size: 0.9rem;
   color: var(--text);
   text-decoration: none;
   white-space: nowrap;
 }
-.dp-home:hover { color: var(--accent); }
+/* Tonraute: violett im Item-Zweig, bernstein im Crafting-Zweig. Sagt beim
+   ersten Blick, in welchem der beiden Verzeichnisse man steht. */
+.dp-home::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  flex: none;
+  background: var(--tone-1);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  box-shadow: 0 0 10px var(--dp-rail);
+}
+.dp-home:hover { color: var(--tone-1); }
 
 .dp-crumbs {
   flex: 1;
@@ -85,32 +215,34 @@ body {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.35rem;
-  font-size: 0.8rem;
+  gap: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
   color: var(--muted);
 }
 .dp-crumbs a { color: var(--muted); text-decoration: none; }
-.dp-crumbs a:hover { color: var(--accent); text-decoration: underline; }
+.dp-crumbs a:hover { color: var(--tone-1); }
 .dp-crumbs [aria-current='page'] {
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 28ch;
+  max-width: 30ch;
 }
-.dp-sep { opacity: 0.5; }
+.dp-sep { color: var(--tone-1); opacity: 0.55; }
 
 .dp-lang {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
   color: var(--muted);
   border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 0.2rem 0.5rem;
+  border-radius: 2px;
+  padding: 0.22rem 0.55rem;
   text-decoration: none;
 }
-.dp-lang:hover { color: var(--accent); border-color: var(--accent); }
+.dp-lang:hover { color: var(--tone-1); border-color: var(--tone-1); background: var(--dp-tint); }
 
 /* ---------- Rumpf ---------- */
 
@@ -129,97 +261,194 @@ body {
      um 2 Rinnen und die Flucht mit dem Fuss braeche. */
   max-width: calc(var(--dp-w) + 2 * var(--dp-gut));
   margin: 0 auto;
-  padding: clamp(1.4rem, 4vw, 2.6rem) var(--dp-gut) 3rem;
+  padding: clamp(1.4rem, 4vw, 2.6rem) var(--dp-gut) 3.4rem;
+}
+
+/* ---------- Hero ----------
+
+   Der Kopf jeder Seite als ein Stueck: Kicker, Titel, Einleitung und die
+   Kennzahlen sitzen in EINER Konsole mit Eckklammern statt in vier lose
+   gestapelten Bloecken. Fehlt der Wrapper (aeltere Seite), greifen alle
+   Regeln darunter trotzdem — sie haengen an den Kindklassen, nicht am
+   Container. */
+.dp-hero {
+  position: relative;
+  margin: 0 0 2.4rem;
+  padding: clamp(1.1rem, 3vw, 1.7rem) clamp(1rem, 3vw, 1.6rem) clamp(1.1rem, 3vw, 1.5rem);
+  border: 1px solid var(--line-soft);
+  border-left: 2px solid var(--tone-1);
+  background:
+    linear-gradient(180deg, var(--dp-fill), transparent 70%),
+    radial-gradient(90% 120% at 0% 0%, var(--dp-tint), transparent 58%);
+}
+/* Eckklammern: das Erkennungszeichen der Formsprache. Zwei Pseudoelemente,
+   kein zusaetzliches Markup. */
+.dp-hero::before,
+.dp-hero::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+}
+.dp-hero::before {
+  top: -1px;
+  right: -1px;
+  border-top: 2px solid var(--tone-1);
+  border-right: 2px solid var(--tone-1);
+}
+.dp-hero::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid var(--dp-rail-2);
+  border-right: 2px solid var(--dp-rail-2);
 }
 
 .dp-eyebrow {
-  margin: 0 0 0.5rem;
-  font-family: var(--font-ui, 'Barlow Condensed', sans-serif);
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.55rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  font-size: 0.72rem;
-  color: var(--accent-2);
+  font-size: 0.71rem;
+  color: var(--tone-2);
+}
+.dp-eyebrow::before {
+  content: '';
+  width: 1.5rem;
+  height: 1px;
+  flex: none;
+  background: currentColor;
+  opacity: 0.75;
 }
 
 .dp-main h1 {
-  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(1.6rem, 5vw, 2.7rem);
-  line-height: 1.15;
+  font-size: clamp(1.65rem, 5vw, 2.75rem);
+  line-height: 1.14;
   margin: 0 0 0.4rem;
   overflow-wrap: break-word;
+  /* Verlaufs-Wortmarke wie auf dem Item Finder: der Titel ist das einzige
+     Element der Seite, das leuchten darf. */
+  color: var(--text);
+  background: linear-gradient(176deg, var(--text) 18%, color-mix(in srgb, var(--tone-1) 72%, var(--text)) 104%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .dp-alt {
-  margin: 0 0 0.8rem;
+  margin: 0 0 0.7rem;
+  font-family: var(--font-mono);
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 0.84rem;
+  letter-spacing: 0.05em;
 }
 
 .dp-lead {
-  margin: 0 0 1.4rem;
-  font-size: 1.05rem;
+  margin: 0 0 1.5rem;
+  font-size: 1.04rem;
   color: var(--text);
   max-width: 68ch;
 }
+.dp-hero .dp-lead:last-child { margin-bottom: 0; }
 
-/* Kennzahlen direkt unter der Einleitung (Preis ab / Verkaufsstellen / …) */
+/* Kennzahlen-Readouts (Preis ab / Verkaufsstellen / Datenstand …).
+   Zahl in Teko, Label in Share Tech Mono — genau die Rollenteilung, die
+   das Patch-Archiv und das Konto-Deck benutzen. */
 .dp-keys {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin: 0 0 1.8rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+  gap: 0.5rem;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 .dp-key {
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--accent);
-  border-radius: 5px;
-  background: var(--surface);
-  padding: 0.5rem 0.9rem;
-  min-width: 8rem;
+  position: relative;
+  border: 1px solid var(--line-soft);
+  border-top: 2px solid var(--dp-rail);
+  background: linear-gradient(180deg, var(--dp-fill-2), transparent);
+  padding: 0.5rem 0.8rem 0.55rem;
 }
 .dp-key b {
   display: block;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.09em;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .dp-key span {
-  font-family: var(--font-display, 'Orbitron', sans-serif);
-  font-weight: 700;
-  font-size: 1.05rem;
+  display: block;
+  font-family: var(--font-num);
+  font-weight: 600;
+  font-size: 1.72rem;
+  line-height: 1.1;
   color: var(--text);
+  font-variant-numeric: tabular-nums;
 }
+
+/* Kennzahlen ausserhalb des Hero (kommt nicht vor, waere aber sonst
+   randlos) bekommen denselben Abstand wie frueher. */
+.dp-main > .dp-keys { margin-bottom: 1.9rem; }
 
 /* ---------- Abschnitte ---------- */
 
-.dp-sec { margin: 0 0 2.2rem; }
+.dp-sec { margin: 0 0 2.4rem; }
 .dp-sec > h2 {
-  font-family: var(--font-display, 'Orbitron', sans-serif);
-  font-size: clamp(1.05rem, 2.6vw, 1.35rem);
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.02rem, 2.5vw, 1.3rem);
   font-weight: 800;
-  margin: 0 0 0.8rem;
-  padding-bottom: 0.4rem;
-  border-bottom: 1px solid var(--line);
+  margin: 0 0 0.9rem;
+  padding: 0 0 0.5rem;
   color: var(--text);
+  /* Kein durchgehender Strich mehr: erst ein kurzes Akzentstueck, dann die
+     Haarlinie. Gibt der Ueberschrift eine Leserichtung. */
+  background:
+    linear-gradient(90deg, var(--tone-1) 0 2.6rem, var(--line-soft) 2.6rem 100%)
+    bottom left / 100% 1px no-repeat;
+}
+.dp-sec > h2::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex: none;
+  align-self: center;
+  background: var(--tone-1);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.dp-sec > h2 .dp-muted {
+  font-family: var(--font-num);
+  font-weight: 600;
+  font-size: 1.15em;
+  letter-spacing: 0.02em;
 }
 .dp-sec > h3 {
-  font-size: 1rem;
-  margin: 1.2rem 0 0.5rem;
-  color: var(--accent-2);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: 0.03em;
+  margin: 1.4rem 0 0.5rem;
+  color: var(--tone-2);
 }
 
 /* ---------- Tabellen ---------- */
 
 .dp-tablewrap {
   overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  border: 1px solid var(--line-soft);
+  background: color-mix(in srgb, var(--surface) 45%, transparent);
 }
 .dp-table {
   width: 100%;
@@ -230,31 +459,53 @@ body {
 .dp-table th,
 .dp-table td { padding: 0.6rem 0.9rem; }
 .dp-table th {
-  background: var(--surface-2);
-  color: var(--text);
-  font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
+  background: linear-gradient(180deg, var(--surface-2), color-mix(in srgb, var(--surface-2) 45%, transparent));
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--dp-hair);
   white-space: nowrap;
 }
 .dp-table td {
   color: var(--muted);
   border-bottom: 1px solid var(--line-soft);
 }
+/* Zebra aus der Textfarbe gemischt: kippt mit dem Modus von „minimal
+   heller" auf „minimal dunkler" und braucht kein eigenes Token. */
+.dp-table tbody tr:nth-child(even) td { background: var(--dp-zebra); }
 .dp-table tr:last-child td { border-bottom: none; }
-.dp-table tbody tr:hover td { background: var(--veil-hi); color: var(--text); }
+/* Die Schiene links markiert die Zeile, ohne sie zu verschieben: sie ist
+   immer da, nur transparent (border-collapse reserviert den Platz). */
+.dp-table tbody td:first-child { border-left: 2px solid transparent; }
+.dp-table tbody tr:hover td {
+  background: var(--dp-tint);
+  color: var(--text);
+}
+.dp-table tbody tr:hover td:first-child { border-left-color: var(--tone-1); }
 .dp-table a { color: var(--text); text-decoration: none; }
-.dp-table a:hover { color: var(--accent); text-decoration: underline; }
+.dp-table a:hover { color: var(--tone-1); text-decoration: underline; }
 .dp-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.dp-price { font-weight: 700; color: var(--accent); }
-.dp-best td { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.dp-price {
+  font-family: var(--font-num);
+  font-weight: 600;
+  font-size: 1.12rem;
+  letter-spacing: 0.02em;
+  color: var(--tone-1);
+}
+/* Guenstigste Zeile: getoent PLUS eigene Schiene — der Stern allein war auf
+   einem Handy kaum zu sehen. */
+.dp-best td { background: color-mix(in srgb, var(--tone-1) 13%, transparent); }
+.dp-best td:first-child { border-left-color: var(--tone-1); }
 .dp-best .dp-price::after {
   content: '★';
   margin-left: 0.35rem;
-  font-size: 0.75em;
-  color: var(--accent-2);
+  font-family: var(--font-body);
+  font-size: 0.6em;
+  vertical-align: 0.25em;
+  color: var(--tone-2);
 }
 .dp-muted { color: var(--muted); }
 
@@ -264,127 +515,231 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
-  margin: 0 0 1rem;
+  margin: 0 0 1.1rem;
   padding: 0;
   list-style: none;
 }
+/* Label und Wert hatten frueher die Gewichtung verkehrt herum: „Hersteller"
+   stand hell und gross, der Herstellername grau. Jetzt traegt der WERT die
+   Aufmerksamkeit, das Label ist ein Mikro-Etikett. */
 .dp-chip {
-  font-size: 0.82rem;
-  color: var(--muted);
-  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text);
+  background: var(--dp-fill-2);
   border: 1px solid var(--line-soft);
-  border-radius: 999px;
-  padding: 0.25rem 0.75rem;
+  border-left: 2px solid var(--dp-rail-2);
+  border-radius: 2px;
+  padding: 0.28rem 0.7rem 0.28rem 0.6rem;
   white-space: nowrap;
 }
-.dp-chip b { color: var(--text); font-weight: 600; margin-right: 0.3rem; }
+.dp-chip b {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.65rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 0.45rem;
+}
 
 .dp-stats {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
-  gap: 0.55rem;
+  gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .dp-stat {
-  background: var(--surface);
+  background: linear-gradient(180deg, var(--dp-fill), transparent);
   border: 1px solid var(--line-soft);
-  border-left: 3px solid var(--accent-2);
-  border-radius: 5px;
-  padding: 0.5rem 0.7rem;
+  border-top: 2px solid var(--dp-rail-2);
+  padding: 0.5rem 0.7rem 0.55rem;
 }
 .dp-stat b {
   display: block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.65rem;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--muted);
 }
-.dp-stat span { font-weight: 700; color: var(--text); }
+.dp-stat span {
+  display: block;
+  font-family: var(--font-num);
+  font-weight: 600;
+  font-size: clamp(1.05rem, 2.4vw, 1.34rem);
+  line-height: 1.2;
+  color: var(--text);
+}
 
 .dp-desc {
-  margin: 1rem 0 0;
+  margin: 1.1rem 0 0;
   color: var(--muted);
   font-size: 0.95rem;
   white-space: pre-line;
   max-width: 72ch;
 }
+.dp-desc a { color: var(--text); }
+.dp-desc a:hover { color: var(--tone-1); }
+
+/* Varianten: mehrere Spiel-Items unter einem Anzeigenamen, je Größe ein Block */
+.dp-variant-h {
+  margin: 1.1rem 0 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+.dp-variant-h:first-of-type { margin-top: 0.9rem; }
 
 /* ---------- Hinweise ---------- */
 
 .dp-note {
-  margin: 0.8rem 0 0;
-  font-size: 0.85rem;
+  margin: 0.85rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.05em;
   color: var(--muted);
 }
 .dp-callout {
   margin: 0;
-  background: var(--veil-hi);
+  background: linear-gradient(90deg, var(--dp-tint), transparent 62%);
   border: 1px solid var(--line-soft);
-  border-left: 3px solid var(--accent);
-  border-radius: 5px;
+  border-left: 2px solid var(--tone-1);
   padding: 0.85rem 1rem;
   color: var(--text);
   max-width: 72ch;
 }
 
-/* ---------- Karten (verwandte Items, Kategorien) ---------- */
+/* ---------- Karten (Kategorien, verwandte Items) ---------- */
 
 .dp-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
-  gap: 0.7rem;
+  gap: 0.6rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .dp-card {
-  display: block;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 0.75rem 0.85rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-height: 4.4rem;
+  background: linear-gradient(180deg, var(--dp-fill), transparent);
+  border: 1px solid var(--line-soft);
+  border-left: 2px solid var(--dp-rail);
+  padding: 0.7rem 0.85rem 0.65rem;
   text-decoration: none;
   color: var(--text);
-  transition: border-color 0.2s, transform 0.2s;
+  transition:
+    border-color 0.22s var(--dp-ease),
+    background-color 0.22s var(--dp-ease),
+    transform 0.22s var(--dp-ease),
+    box-shadow 0.22s var(--dp-ease);
 }
-.dp-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-.dp-card strong { display: block; font-size: 0.95rem; line-height: 1.35; }
+/* Eckklammer oben rechts — waechst und leuchtet beim Zeigen. Die einzige
+   Bewegung auf diesen Seiten und deshalb bewusst klein gehalten. */
+.dp-card::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid var(--dp-rail);
+  border-right: 2px solid var(--dp-rail);
+  transition: width 0.22s var(--dp-ease), height 0.22s var(--dp-ease), border-color 0.22s var(--dp-ease);
+}
+a.dp-card:hover {
+  border-color: var(--dp-hair);
+  border-left-color: var(--tone-1);
+  background-color: var(--dp-tint);
+  transform: translateY(-2px);
+  box-shadow: var(--dp-lift);
+}
+a.dp-card:hover::after { width: 20px; height: 20px; border-color: var(--tone-1); }
+/* Nicht verlinkte Karten (Item ohne eigene Seite) sind sichtbar passiv. */
+span.dp-card { opacity: 0.72; }
+
+.dp-card strong {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 1.04rem;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+/* Zwischenpfad: „Armour / Combat / Heavy" hiess auf der Karte nur „Heavy" —
+   fuenfmal untereinander, nicht unterscheidbar. Diese Zeile traegt den
+   Zweig dazwischen. */
+.dp-card-path {
+  font-family: var(--font-mono);
+  font-size: 0.63rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--tone-2);
+  order: -1;
+}
 .dp-card em {
   display: block;
   font-style: normal;
   font-size: 0.78rem;
+  line-height: 1.35;
   color: var(--muted);
-  margin-top: 0.25rem;
+  margin-top: auto;
+  padding-top: 0.25rem;
 }
-.dp-card .dp-card-price { color: var(--accent); font-weight: 700; }
+.dp-card .dp-card-price {
+  font-family: var(--font-num);
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--tone-1);
+}
+/* Kategorie-Karten: die Zahl IST die Aussage („wie viel steckt da drin"). */
+.dp-card--cat em {
+  font-family: var(--font-num);
+  font-weight: 600;
+  font-size: 1.45rem;
+  line-height: 1;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.22s var(--dp-ease);
+}
+a.dp-card--cat:hover em { color: var(--tone-1); }
 
-/* ---------- Bloetterung ---------- */
+/* ---------- Blaetterung ---------- */
 
 .dp-pager {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem;
-  margin: 1.6rem 0 0;
+  gap: 0.35rem;
+  margin: 1.8rem 0 0;
 }
 .dp-pager a,
 .dp-pager span {
-  border: 1px solid var(--line);
-  border-radius: 5px;
+  font-family: var(--font-mono);
+  border: 1px solid var(--line-soft);
+  border-radius: 2px;
   padding: 0.35rem 0.7rem;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
   text-decoration: none;
   color: var(--muted);
+  transition: color 0.16s, border-color 0.16s, background-color 0.16s;
 }
-.dp-pager a:hover { color: var(--accent); border-color: var(--accent); }
+.dp-pager a:hover { color: var(--tone-1); border-color: var(--tone-1); background: var(--dp-tint); }
 .dp-pager [aria-current='page'] {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--tone-1);
+  border-color: var(--tone-1);
   color: var(--ink);
-  font-weight: 700;
+  box-shadow: 0 0 16px -4px var(--dp-rail);
 }
 
 /* ---------- Aktionen ---------- */
@@ -393,23 +748,36 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin: 1.2rem 0 0;
+  margin: 1.6rem 0 0;
 }
 .dp-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  border: 1px solid var(--accent);
-  border-radius: 5px;
-  padding: 0.45rem 0.9rem;
-  font-size: 0.88rem;
+  gap: 0.4rem;
+  font-family: var(--font-ui);
   font-weight: 700;
-  color: var(--accent);
+  font-size: 0.94rem;
+  letter-spacing: 0.03em;
+  border: 1px solid color-mix(in srgb, var(--tone-1) 55%, transparent);
+  border-radius: 2px;
+  padding: 0.5rem 1rem;
+  color: var(--tone-1);
+  background: var(--dp-tint);
   text-decoration: none;
+  transition: background-color 0.18s, border-color 0.18s, box-shadow 0.18s, color 0.18s;
 }
-.dp-btn:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
-.dp-btn--ghost { border-color: var(--line); color: var(--muted); }
-.dp-btn--ghost:hover { border-color: var(--accent-2); color: var(--accent-2); background: none; }
+.dp-btn:hover {
+  background: color-mix(in srgb, var(--tone-1) 20%, transparent);
+  border-color: var(--tone-1);
+  box-shadow: 0 0 22px -8px var(--dp-rail);
+}
+.dp-btn--ghost { border-color: var(--line-soft); color: var(--muted); background: none; }
+.dp-btn--ghost:hover {
+  border-color: var(--tone-2);
+  color: var(--tone-2);
+  background: color-mix(in srgb, var(--tone-2) 10%, transparent);
+  box-shadow: none;
+}
 
 /* ---------- Fuss ---------- */
 
@@ -417,8 +785,10 @@ body {
   border-top: 1px solid var(--line);
   /* gleiche Rinne wie .dp-main — daher dieselbe Variable, nicht derselbe
      Wert zweimal (identischer Rechenwert wie vorher). */
-  padding: 1.4rem var(--dp-gut) 2.4rem;
-  background: var(--bg-2);
+  padding: 1.6rem var(--dp-gut) 2.6rem;
+  background:
+    linear-gradient(90deg, var(--tone-1), transparent 26%) top left / 100% 2px no-repeat,
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-2) 70%, transparent), var(--bg-2));
   font-size: 0.82rem;
   color: var(--muted);
 }
@@ -430,21 +800,44 @@ body {
 .dp-foot-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 1.1rem;
-  margin: 0 auto 0.8rem;
+  gap: 0.4rem 1.2rem;
+  margin: 0 auto 0.9rem;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.94rem;
+  letter-spacing: 0.02em;
 }
 .dp-foot-nav a { color: var(--muted); text-decoration: none; }
-.dp-foot-nav a:hover { color: var(--accent); text-decoration: underline; }
-.dp-src { margin: 0 auto 0.6rem; }
-.dp-legal { margin: 0 auto 0.8rem; font-size: 0.76rem; line-height: 1.5; opacity: 0.85; }
-.dp-foot-legal { margin-bottom: 0; }
+.dp-foot-nav a:hover { color: var(--tone-1); }
+.dp-src {
+  margin: 0 auto 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.9;
+}
+.dp-legal { margin: 0 auto 0.8rem; font-size: 0.76rem; line-height: 1.5; opacity: 0.8; }
+.dp-foot-legal { margin-bottom: 0; font-size: 0.86rem; }
 
 /* ---------- Schmale Viewports ---------- */
 
 @media (max-width: 640px) {
-  .dp-crumbs { font-size: 0.74rem; }
-  .dp-crumbs [aria-current='page'] { max-width: 16ch; }
-  .dp-key { min-width: 6.5rem; flex: 1 1 40%; }
+  .dp-crumbs { font-size: 0.72rem; }
+  .dp-crumbs [aria-current='page'] { max-width: 15ch; }
+  .dp-keys { grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr)); }
+  .dp-key span { font-size: 1.5rem; }
+  /* Der Hero-Rahmen frisst auf 375 px zu viel Rinne: er behaelt die Schiene
+     und die Klammern, verliert aber Kasten und Innenabstand. */
+  .dp-hero {
+    padding: 0.9rem 0 1rem 0.85rem;
+    border-right: none;
+    border-top: none;
+    border-bottom: none;
+  }
+  .dp-hero::before,
+  .dp-hero::after { display: none; }
 }
 
 /* ---------- Touch-Ergonomie (nur schmale Viewports) ----------
@@ -490,7 +883,7 @@ body {
      den ~17.000 Item- und Blueprint-Seiten, also der groessten
      Seitengruppe ueberhaupt. Die vier Pixel kosten nichts — die Zeile
      umfliesst ohnehin (flex-wrap) — und ersparen die Sonderregel. */
-  .dp-foot-nav { gap: 0.1rem 1.1rem; }
+  .dp-foot-nav { gap: 0.1rem 1.2rem; }
   .dp-foot-nav a,
   .dp-crumbs a {
     display: inline-flex;
@@ -507,17 +900,40 @@ body {
 
   /* Chips klebten bei 0,45 rem zu einem durchgehenden Band zusammen. */
   .dp-chips { gap: 0.55rem; }
-  .dp-chip { padding: 0.4rem 0.8rem; }
+  .dp-chip { padding: 0.42rem 0.8rem 0.42rem 0.7rem; }
 }
 
 /* Druckzustand — Touch kennt kein :hover, ohne ihn bleibt jeder Tipp bis
    zum Seitenwechsel ohne Antwort. Gilt auch mit Maus, das ist dort
    ebenfalls richtig. */
-.dp-card:active { border-color: var(--accent); transform: translateY(0); }
-.dp-btn:active { background: color-mix(in srgb, var(--accent) 22%, transparent); }
-.dp-pager a:active { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+a.dp-card:active { border-left-color: var(--tone-1); transform: translateY(0); }
+.dp-btn:active { background: color-mix(in srgb, var(--tone-1) 26%, transparent); }
+.dp-pager a:active { background: color-mix(in srgb, var(--tone-1) 20%, transparent); color: var(--tone-1); }
 .dp-home:active,
 .dp-lang:active,
 .dp-foot-nav a:active,
 .dp-crumbs a:active,
-.dp-table a:active { color: var(--accent); }
+.dp-table a:active { color: var(--tone-1); }
+
+/* ---------- Rueckzugsstufen ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .dp-card,
+  .dp-card::after,
+  .dp-btn,
+  .dp-pager a,
+  .dp-card--cat em { transition: none; }
+  a.dp-card:hover { transform: none; }
+}
+
+/* Im Kontrastmodus des Systems gilt dessen Palette. Der Verlaufs-Titel
+   waere dort unsichtbar (transparente Fuellung ueber einem Hintergrund,
+   den das System ersetzt). */
+@media (forced-colors: active) {
+  .dp-main h1 {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    color: CanvasText;
+  }
+  .dp::before { display: none; }
+}

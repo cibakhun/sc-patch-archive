@@ -3,9 +3,11 @@
 **Defined:** 2026-07-28
 **Core Value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
 
-> Milestone-Kontext: Das Produkt ist gebaut und live. Dieser Meilenstein betrifft
-> ausschließlich die Oberfläche. Der Bestand ist in `.planning/PROJECT.md` unter
-> „Validated" verzeichnet und wird hier nicht wiederholt.
+> Milestone-Kontext: Das Produkt ist gebaut und live. Der Meilenstein begann als
+> reine Oberflächenarbeit; am 03.08.2026 kamen mit den Phasen 1.3 und 1.4 zwei
+> Datenphasen dazu (Entscheidung des Betreibers nach der Datenquellen-Prüfung).
+> Der Bestand ist in `.planning/PROJECT.md` unter „Validated" verzeichnet und
+> wird hier nicht wiederholt.
 
 ## v1 Requirements
 
@@ -77,13 +79,142 @@
 > der Nutzer weiß, wofür sie da sind und wie man sie benutzt." Der Zweck steht vor
 > der Bedienung — wer nicht weiß, wofür ein Werkzeug gut ist, liest keine Anleitung.
 
-- [ ] **DOC-01**: Jedes Werkzeug trägt einen aufklappbaren Abschnitt, der zuerst den Zweck nennt und dann die Bedienung
-- [ ] **DOC-02**: Ein Hilfe-Schalter heftet auf der aktuellen Ansicht an jedes bedienbare Element eine Erklärung
-- [ ] **DOC-03**: Die Hilfe erreicht auch client-seitig gerendertes Markup (`assets/item-finder-app.js`, `assets/crafting-app.js`)
-- [ ] **DOC-04**: Alle Erklärungen liegen in DE und EN vollständig vor; keine Fassung fällt auf die andere Sprache zurück
-- [ ] **DOC-05**: Die Hilfe ist per Tastatur zu öffnen, zu durchlaufen und mit Esc zu verlassen
-- [ ] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
-- [ ] **DOC-07**: Abgedeckt sind Item Finder, Crafting, Mining, Schiffe, Missionen, Refinery, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
+> ✅ **Stand 06.08.2026: 11 von 11 Werkzeugen abgedeckt** (Plan 05 ausgeführt:
+> Refinery-Tracker als letztes und kontogebundenes Werkzeug angehängt).
+> `npm run verify:help --complete` meldet „Abgedeckt: 11 von 11" und alle fünf
+> Zusicherungen erfüllt — das ist die Instanz, die DOC-01 bis DOC-07 entscheidet,
+> und sie ist jetzt grün. Die Häkchen unten stehen auf dieser maschinellen
+> Grundlage.
+>
+> ⚠ **Offen bleibt die Sichtrunde** (Plan 05 Task 2b): die zwölf Punkte der
+> Sichtprüfung in DE und EN, die Bestätigung der beiden A2-Platzierungen
+> (Rüstungssets, Precision Jump) und die Antwort auf Annahme A4 (Zweck-Abschnitt
+> des Trackers für abgemeldete Besucher unsichtbar) sind an den Betreiber
+> zurückgegeben — siehe `.planning/phases/01.2-werkzeuge-erklaeren/01.2-05-SUMMARY.md`
+> und `.planning/WINDOWS.md`. Ein Fund dort wirkt auf die Häkchen zurück, ändert
+> aber nichts an der maschinell bewiesenen Vollzähligkeit.
+
+- [x] **DOC-01**: Jedes Werkzeug trägt einen aufklappbaren Abschnitt, der zuerst den Zweck nennt und dann die Bedienung
+- [x] **DOC-02**: Ein Hilfe-Schalter heftet auf der aktuellen Ansicht an jedes bedienbare Element eine Erklärung
+- [x] **DOC-03**: Die Hilfe erreicht auch client-seitig gerendertes Markup (`assets/item-finder-app.js`, `assets/crafting-app.js`)
+- [x] **DOC-04**: Alle Erklärungen liegen in DE und EN vollständig vor; keine Fassung fällt auf die andere Sprache zurück
+- [x] **DOC-05**: Die Hilfe ist per Tastatur zu öffnen, zu durchlaufen und mit Esc zu verlassen
+- [x] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
+- [x] **DOC-07**: Abgedeckt sind elf Werkzeuge — Item Finder, Crafting, Mining, **Refinery-Finder** (Abschnitt der Mining-Themenseite), **Refinery-Tracker** (`/refinery.html`, kontogebunden), Schiffe, Missionen, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
+
+### Datenschicht-Wahrhaftigkeit
+
+> Quelle: Datenquellen-Prüfung am 03.08.2026. Die Seite lebt vom Versprechen
+> spielgenauer Zahlen. Die Prüfung fand keine erfundenen Werte — aber Reste
+> früherer Datenläufe, die dem Versprechen widersprechen: eine falsche
+> Quellenangabe auf ~3.200 Seiten, rohe Klassennamen in einem Rechner, tote
+> Datenstände im Build und zwei Skripte, die einen frischen Stand still
+> zurückdrehen können. Dazu ist der Datenstand zwei Client-Builds alt.
+
+- [x] **DATA-01**: Keine Crafting-Oberfläche nennt `sc-craft.tools` als Quelle — die Crafting-Daten kommen seit dem 16.07.2026 aus den Spieldateien
+- [x] **DATA-02**: Kein Werkzeug zeigt einen rohen Klassennamen; die beiden namenlosen S0-Mining-Laser erscheinen mit Anzeigenamen oder gar nicht
+- [x] **DATA-03**: `src/data/holo-markers.json` und sein Fallback-Zweig in `ShipDetail.astro` sind entfernt — der Zweig greift bei 0 von 227 Schiffen
+- [x] **DATA-04**: `src/data/crafting-blueprints.json` ist entfernt, samt Verweis in `.planning/codebase/STRUCTURE.md`
+- [x] **DATA-05**: Kein Skript kann die game-sourced Crafting-DB durch einen Fremdquellen-Snapshot ersetzen (`scripts/fetch-craft.mjs`)
+- [x] **DATA-06**: `build-universal-db.mjs` bricht ab, wenn die `global.ini` fehlt oder älter ist als der Datenstand, statt den Katalog still zurückzudrehen
+- [x] **DATA-07**: Alle Datamine-Ausgaben tragen dieselbe Build-Kennung wie der installierte Client (aktuell `12326004`)
+- [x] **DATA-08**: Die Fahrzeugpreise sind nicht älter als der jüngste Datamine-Lauf
+- [x] **DATA-09**: `MINING-DATENQUELLE.md`, `FAKTEN-AUDIT.md` und `.planning/codebase/STRUCTURE.md` beschreiben den tatsächlichen Stand
+
+### Fahrzeug-Katalog aus Spieldaten
+
+> Quelle: dieselbe Prüfung. `src/data/vehicles.json` kommt aus der
+> Star-Citizen-Wiki-API. Die ist selbst nur ein Spiegel der Spieldaten und hinkt
+> strukturell hinterher — am 03.08.2026 stand sie auf Build `12232306`, der
+> Client auf `12326004`. Die eigene Extraktion liefert bereits 223 Fahrzeuge
+> inklusive DE- und EN-Beschreibungen aus CIGs eigener `global.ini`.
+
+- [x] **VEH-01**: Die vier Extraktor-Skripte (`lib/cryxml.mjs`, `datamine-vehicles.mjs`, `verify-vehicles.mjs`, `verify-weapon-sizes.mjs`) liegen versioniert im Repo
+- [x] **VEH-02**: `src/data/vehicle-external.json` trägt die zehn Felder, die in keiner Spieldatei stehen (D-18, CONTEXT.md — Betreiber wählte bewusst den aufwendigeren Weg: erst suchen, dann nur den belegt quellenlosen Rest einfrieren, statt vorab auf fünf zu begrenzen): `msrpUSD`, `pledgeUrl`, `lengthM`/`widthM`/`heightM`, `image`, `crewMax`, `statusEn`/`statusDe`, `fociDe`
+- [x] **VEH-03**: Name und Hersteller sind normalisiert (`C.O.`-Präfix, `&` gegen `and`, abschließender Zeilenumbruch) — die rein kosmetischen Abweichungen sind weg
+- [ ] **VEH-04**: Für `crew` ist entschieden und belegt, ob die Seite CIGs `crewSize` oder den bisherigen `crewMax` zeigt
+- [ ] **VEH-05**: `cargoSCU` steht für jedes Fahrzeug mit Frachtraum auf einem belegten Wert; kein Frachtschiff steht auf 0
+- [ ] **VEH-06**: Die 32 `shieldHp`-Abweichungen sind einzeln beurteilt — je Fahrzeug ist belegt, welche Quelle recht hat
+- [x] **VEH-07**: Der Spieldaten-Katalog führt alle 227 Fahrzeuge, inklusive der vier ATLS-Varianten
+- [x] **VEH-08**: `vehicles.json` entsteht aus der Extraktion; `sync-vehicles.mjs` ist gelöscht und der Wiki-Schritt aus `.github/workflows/build.yml` entfernt
+
+### Spenden-Unterstützung
+
+> Anlass: Der Entwicklungsrechner startet wegen eines defekten Netzteils zufällig
+> neu — Entwickeln wird dadurch mühsam (Nutzerentscheidung 31.07.2026). Das ist
+> das erklärte Spendenziel; es wird so benannt und nicht als abstrakte
+> „Serverkosten" verkleidet. Diese Sektion hebt für Phase 5 die „Out of Scope"-
+> Zeilen zu serverseitiger Logik und Konto-Funktionen ausdrücklich auf: ohne
+> Edge Function gibt es keinen sicheren Zahlungsweg.
+>
+> **UMGESTELLT 02.08.2026 — Stripe ist raus, PayPal ist der Weg.** Der Betreiber
+> kann Stripes Identitätsprüfung nicht erbringen (Ausweis nicht verfügbar), und
+> ohne sie zahlt Stripe kein Geld aus. Gewählt: **PayPal als einfacher Link**
+> (kein Server, keine Datenbank, keine Edge Function), **Ko-fi** bleibt zweiter
+> Weg.
+>
+> Das ist eine echte Verkleinerung: ein PayPal-Link hat keinen Webhook und damit
+> keine Datenquelle. Fortschrittsbalken, Unterstützer-Wand, Moderation,
+> Profil-Abzeichen und monatliche Unterstützung entfallen ersatzlos. Die
+> gestrichenen Anforderungen sind unten als solche gekennzeichnet statt gelöscht
+> — sie sind die Vorlage für eine spätere Phase mit PayPal-Geschäftskonto.
+
+**Unterstützen (PayPal-Link)**
+
+- [ ] **DON-01**: Ein Besucher wählt einen Betrag (Vorschläge 3/5/10/25 €, 5 € vorgewählt, plus freie Eingabe) und landet mit genau diesem Betrag bei PayPal — PayPal.me nimmt ihn im Pfad entgegen, die Auswahl steuert also wirklich etwas
+- [ ] **DON-02**: Unterstützen funktioniert ohne Konto und ohne Anmeldung
+- [ ] **DON-03**: Ko-fi ist als zweiter, nachgeordneter Weg verlinkt — und ausgeblendet, solange kein Ko-fi-Name hinterlegt ist
+- [ ] **DON-31**: Der Empfänger steht als GENAU EINE Konstante in `src/consts.ts`. Solange dort der Platzhalter steht, läuft die Seite sichtbar im Demo-Modus (Muster `FEEDBACK_DEMO`) und kein Knopf zeigt ins Leere
+
+**Wahrhaftigkeit**
+
+- [ ] **DON-09**: Ohne hinterlegten Empfänger steht das Feature sichtbar im Demo-Modus, behauptet keine Zahlen und bricht nicht
+- [ ] **DON-27**: **Kein Fortschrittsbalken.** Ein PayPal-Link liefert keine Zahlungsdaten; eine handgepflegte Zahl könnte veralten und würde genau die Glaubwürdigkeit beschädigen, die diese Seite trägt. Das Ziel steht stattdessen im Fließtext
+- [ ] **DON-28**: **Keine Unterstützer-Wand.** Gleiche Begründung — keine Datenquelle, keine erfundene Liste
+- [ ] **DON-26**: Keine erfundenen Kennzahlen zu Ausfallhäufigkeit oder Zeitraum. Die Kopie bleibt qualitativ. Die einzigen Zahlen auf der Seite sind die Betragsstufen und der Zielbetrag im Text
+
+**Darstellung**
+
+- [ ] **DON-10**: Eine eigene Unterstützen-Seite in DE und EN erklärt in der Gestaltungsrichtung „Instandsetzung", wofür das Geld ist — Kern der Aussage ist der Arbeitsverlust durch die unangekündigten Abstürze, nicht der Sachschaden
+- [ ] **DON-11**: Ein Unterstützen-Zugang ist site-weit erreichbar (Fuß und Menü) plus als Streifen am Ende der Werkzeugseiten, ohne die Kopfleiste anzufassen
+- [ ] **DON-29**: Nur einmalige Unterstützung. Der Umschalter einmalig/monatlich entfällt ersatzlos, statt eine Möglichkeit vorzutäuschen, die PayPal.me nicht hat
+
+**Pflichten des Bestands**
+
+- [ ] **DON-13**: `npm run audit:csp` bleibt grün. Beim Weiterleitungs-Link zu PayPal ist wie bei Stripe **kein** neuer CSP-Eintrag nötig — eine Navigation unterliegt der CSP nicht. Die Weiterleitung erfolgt als normaler `<a href>` bzw. `location.href`, **nie** als Formular-POST (der fiele unter `form-action` und würde still blockiert)
+- [ ] **DON-14**: Die Datenschutzerklärung nennt PayPal und Ko-fi als Empfänger mit Zweck; `npm run verify` und `npm run audit:site` bleiben grün, die Seitenpaare DE/EN bleiben deckungsgleich
+
+**Gestrichen mit der PayPal-Umstellung (02.08.2026) — Vorlage für eine spätere Phase**
+
+Diese Anforderungen setzten einen signaturgeprüften Webhook voraus. Ein PayPal-Link
+hat keinen. Sie werden NICHT gelöscht: sobald ein PayPal-Geschäftskonto mit
+Webhook existiert, sind sie die fertige Grundlage. `05-RESEARCH.md` § Datenschicht
+ist anbieterneutral und bleibt gültig.
+
+- ~~**DON-04**~~: Dankesseite nach der Zahlung — PayPal kehrt nicht kontrolliert zurück
+- ~~**DON-05**~~: Checkout-Sitzung serverseitig anlegen — es gibt keinen Server mehr
+- ~~**DON-06**~~: Betragsprüfung serverseitig — der Betrag steht im Link, PayPal zeigt ihn vor der Zahlung an
+- ~~**DON-07**~~: Zeilen entstehen nur im Webhook nach Signaturprüfung — keine Tabelle
+- ~~**DON-08**~~: Öffentliche View mit ausgewählten Spalten — keine Tabelle
+- ~~**DON-12**~~: Nennung nur nach Zustimmung, Anzeigename entschärft — keine Wand
+
+### Schiffe: Rollen- und Merkmalsfilter
+
+> Quelle: Nutzerwunsch 02.08.2026 — die Schiffsübersicht filtert über acht Grobtypen aus
+> der Wiki-API; gesucht sind Archetypen in der Fachsprache des Spiels („Salvage", „mining",
+> „cargo hauling", „refueling") und kombinierbare Merkmale („stealth bomber",
+> „stealth cargo"). Erhebung und Belege: `.planning/phases/06-.../RESEARCH.md`.
+
+- [x] **ROLE-01**: Jedes Schiff des Katalogs trägt Beruf und Rolle aus dem DataCore; Einträge ohne Treffer sind namentlich benannt statt stillschweigend leer
+- [x] **ROLE-02**: Alle Filterwerte und ihre DE-/EN-Beschriftung stammen aus den Spieldateien (`Game2.dcb` + CIGs `global.ini`) — keine Ableitung aus Wiki-Foci oder Beschreibungstext
+- [x] **ROLE-03**: Verbundrollen zählen für jede enthaltene Rolle — „Starter / Leichter Frachter" erscheint unter *Frachttransport* **und** unter *Einsteiger*
+- [x] **ROLE-04**: Der Rollenfilter arbeitet auf Familienebene, die Karte nennt weiterhin die exakte CIG-Rolle
+- [x] **ROLE-05**: Der Signaturfilter findet die 16 Katalogschiffe mit abgesenkter Signatur (11 davon unter 0,80); der Wert steht mit CIG-eigener Beschriftung auf der Karte
+- [x] **ROLE-06**: Die Schnellzugriffe setzen Rolle und Signatur in einem Klick und finden die genannten Beispielfälle — Tarnkappenbomber, Frachter mit abgesenkter Signatur, Bergung, Bergbau, Betankung
+- [x] **ROLE-07**: Rollen ohne deutsche CIG-Fassung sind selbst übersetzt; keine Rolle erscheint auf der deutschen Seite englisch
+- [x] **ROLE-08**: Die Übersichtsseite hat EINEN Körper — DE und EN beziehen ihn, es gibt keinen zweiten Stil- oder Skriptblock
+- [x] **ROLE-09**: Die Seite bleibt ohne JavaScript lesbar; die Filterung läuft clientseitig ohne spürbare Verzögerung über alle Karten
+- [x] **ROLE-10**: Ein wiederholbarer Prüfschritt belegt die Join-Rate und schlägt fehl, wenn sie unter den erhobenen Stand fällt
 
 ### Crafting-Karten: Bauteil-Kennwerte
 
@@ -94,7 +225,7 @@
 
 - [x] **CRAFT-01**: Jede Blueprint-Karte zeigt Größe und Grade, sofern die Angabe für dieses Item existiert
 - [x] **CRAFT-02**: Jede Bauteil-Karte zeigt den Ton (Civilian, Military, Industrial, Stealth, Competition …); bei Schiffswaffen stammt er aus dem Kategorie-Pfad statt aus `game.class`
-- [x] **CRAFT-03**: Fehlt eine Angabe, bleibt die Stelle leer — kein geratener, kein leerer Chip; die 15 gleichnamigen Blueprints sind einzeln geprüft
+- [x] **CRAFT-03**: Fehlt eine Angabe, bleibt die Stelle leer — kein geratener, kein leerer Chip; die 15 gleichnamigen Blueprints sind einzeln geprüft, die 5 echten Kollisionen bleiben chiplos
 - [x] **CRAFT-04**: Größe und Grade sind auf der Crafting-Seite filterbar, nicht nur sichtbar
 
 ## v2 Requirements
@@ -117,7 +248,8 @@
 | Feature | Reason |
 |---------|--------|
 | Serverseitige Renderlogik | Statisches Astro-Build hinter nginx — geht nur als Supabase Edge Function |
-| Ausbau der Datamine-Pipeline | Dieser Meilenstein ist ausdrücklich Oberfläche, nicht Daten |
+| Neue Datenquellen oder neue Werkzeuge | Phase 1.3/1.4 richten den Bestand her und holen den Fahrzeug-Katalog heim; sie bauen nichts Neues |
+| Refinery-Ökonomie, Loot-Recherche, Spielermarkt-Oberfläche | Als offene Punkte der Prüfung vom 03.08.2026 erkannt, aber nicht Teil dieses Meilensteins |
 | Konto-, Community- und Discord-Funktionen | Bestand bleibt, wird in diesem Meilenstein aber nicht vorangetrieben |
 | CSS-Framework oder Bundler für `assets/` | Handgeschriebenes CSS/JS ist bewusste Entscheidung, nicht Altlast |
 | Redesign einzelner Patch-Seiten | Jede Patch-Seite hat absichtlich ihre eigene Design-Welt |
@@ -148,13 +280,36 @@
 | FX-06 | Phase 1.1 | Complete |
 | FX-07 | Phase 1.1 | Complete |
 | FX-08 | Phase 1.1 | Pending |
-| DOC-01 | Phase 1.2 | Pending |
-| DOC-02 | Phase 1.2 | Pending |
-| DOC-03 | Phase 1.2 | Pending |
-| DOC-04 | Phase 1.2 | Pending |
-| DOC-05 | Phase 1.2 | Pending |
-| DOC-06 | Phase 1.2 | Pending |
-| DOC-07 | Phase 1.2 | Pending |
+| DOC-01 | Phase 1.2 | Complete |
+| DOC-02 | Phase 1.2 | Complete |
+| DOC-03 | Phase 1.2 | Complete |
+| DOC-04 | Phase 1.2 | Complete |
+| DOC-05 | Phase 1.2 | Complete |
+| DOC-06 | Phase 1.2 | Complete |
+| DOC-07 | Phase 1.2 | Complete |
+<!-- Stand 06.08.2026: Phase 1.2 Plan 5 von 5 ausgefuehrt — Refinery-Tracker als
+     elftes Werkzeug angehaengt, npm run verify:help --complete meldet 11 von 11.
+     DOC-01..07 oben auf dieser maschinellen Grundlage abgehakt. Die Sichtrunde
+     (12 Punkte + Annahmen A2/A4, Plan 05 Task 2b) ist an den Betreiber
+     zurueckgegeben und in 01.2-05-SUMMARY.md sowie WINDOWS.md nachvollziehbar. -->
+
+| DATA-01 | Phase 1.3 | Complete |
+| DATA-02 | Phase 1.3 | Complete |
+| DATA-03 | Phase 1.3 | Complete |
+| DATA-04 | Phase 1.3 | Complete |
+| DATA-05 | Phase 1.3 | Complete |
+| DATA-06 | Phase 1.3 | Complete |
+| DATA-07 | Phase 1.3 | Complete |
+| DATA-08 | Phase 1.3 | Complete |
+| DATA-09 | Phase 1.3 | Complete |
+| VEH-01 | Phase 1.4 | Complete |
+| VEH-02 | Phase 1.4 | Complete |
+| VEH-03 | Phase 1.4 | Complete |
+| VEH-04 | Phase 1.4 | Pending |
+| VEH-05 | Phase 1.4 | Pending |
+| VEH-06 | Phase 1.4 | Pending |
+| VEH-07 | Phase 1.4 | Complete |
+| VEH-08 | Phase 1.4 | Complete |
 | TYPO-01 | Phase 2 | Pending |
 | TYPO-02 | Phase 2 | Pending |
 | TYPO-03 | Phase 2 | Pending |
@@ -163,17 +318,56 @@
 | SYNC-01 | Phase 4 | Pending |
 | SYNC-02 | Phase 4 | Pending |
 | THEME-02 | Phase 4 | Pending |
-| CRAFT-01 | Phase 5 | Complete |
-| CRAFT-02 | Phase 5 | Complete |
-| CRAFT-03 | Phase 5 | Complete |
-| CRAFT-04 | Phase 5 | Complete |
+| DON-01 | Phase 5 | Pending |
+| DON-02 | Phase 5 | Pending |
+| DON-03 | Phase 5 | Pending |
+| DON-09 | Phase 5 | Pending |
+| DON-10 | Phase 5 | Pending |
+| DON-11 | Phase 5 | Pending |
+| DON-13 | Phase 5 | Pending |
+| DON-14 | Phase 5 | Pending |
+| DON-26 | Phase 5 | Pending |
+| DON-27 | Phase 5 | Pending |
+| DON-28 | Phase 5 | Pending |
+| DON-29 | Phase 5 | Pending |
+| DON-31 | Phase 5 | Pending |
+| DON-04 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-05 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-06 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-07 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-08 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| DON-12 | — | Gestrichen 02.08.2026 (PayPal ohne Webhook) |
+| ROLE-01 | Phase 6 | Complete |
+| ROLE-02 | Phase 6 | Complete |
+| ROLE-03 | Phase 6 | Complete |
+| ROLE-04 | Phase 6 | Complete |
+| ROLE-05 | Phase 6 | Complete |
+| ROLE-06 | Phase 6 | Complete |
+| ROLE-07 | Phase 6 | Complete |
+| ROLE-08 | Phase 6 | Complete |
+| ROLE-09 | Phase 6 | Complete |
+| ROLE-10 | Phase 6 | Complete |
+| CRAFT-01 | Phase 8 | Complete |
+| CRAFT-02 | Phase 8 | Complete |
+| CRAFT-03 | Phase 8 | Complete |
+| CRAFT-04 | Phase 8 | Complete |
 
 **Coverage:**
 
-- v1 requirements: 25 total
-- Mapped to phases: 25
+- v1 requirements: 65 total (21 UI-Meilenstein + 13 aktive DON + 10 ROLE + 9 DATA + 8 VEH + 4 CRAFT)
+- Mapped to phases: 65
 - Unmapped: 0 ✓
+
+> Phase-5-Kollision aufgeloest 02.08.2026: „Spenden-Unterstuetzung" (DON) und
+> „Schiffe: Rollen- und Merkmalsfilter" (ROLE) entstanden parallel in getrennten
+> Sitzungen und beanspruchten beide die Nummer 5. Spenden behaelt Phase 5 (war
+> zuerst auf staging), Schiffe wurde auf Phase 6 umnummeriert.
+
+- Gestrichen mit der PayPal-Umstellung: 6 (DON-04, -05, -06, -07, -08, -12) — nicht
+  gelöscht, sondern als Vorlage für eine spätere Phase mit PayPal-Geschäftskonto
+  aufbewahrt
 
 ---
 *Requirements defined: 2026-07-28*
-*Last updated: 2026-07-28 after initial definition*
+*Last updated: 2026-08-03 — DATA-01…09 (Phase 1.3, alle erfüllt) und VEH-01…08 (Phase 1.4) aus der Datenquellen-Prüfung ergänzt*
+*Zuvor: 2026-08-02 — Spenden-Unterstützung von Stripe auf PayPal umgestellt (6 gestrichen, 5 neue DON-26…DON-31); Schiffe-Rollenfilter (ROLE-01…10) ergänzt und auf Phase 6 umnummeriert*

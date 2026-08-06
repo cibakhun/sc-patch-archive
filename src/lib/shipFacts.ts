@@ -245,12 +245,14 @@ export function buildArmStats(d: VehicleData, lang: Locale = DEFAULT_LOCALE): Ar
   const stats: ArmStat[] = [];
   // Gezählt werden die Aufhängungen selbst (Pilot + Turm), nicht die Waffen:
   // bei einzelnen Türmen listen die Quelldaten weniger Waffen als Mounts.
-  const gunSizes = [
-    ...expandSizes(d.fixedWeaponSizes),
-    ...d.turrets.flatMap((tr) => expandSizes(tr.sizes)),
-  ];
-  if (gunSizes.length)
-    stats.push({ n: gunSizes.length, label: t('arm.stat.guns'), range: sizeRange(gunSizes) });
+  // Pilotseitig zählt dagegen die Waffenliste, nicht die Größenliste — für die
+  // paar Waffen ohne auflösbare Größe fehlt dort ein Eintrag, das Schiff hat
+  // sie aber trotzdem. Die Spanne bildet sich nur aus den bekannten Größen.
+  const turretSizes = d.turrets.flatMap((tr) => expandSizes(tr.sizes));
+  const gunSizes = [...expandSizes(d.fixedWeaponSizes), ...turretSizes];
+  const gunCount = countOf(d.fixedWeapons) + turretSizes.length;
+  if (gunCount)
+    stats.push({ n: gunCount, label: t('arm.stat.guns'), range: sizeRange(gunSizes) });
   const rackCount = countOf(d.missileRacks);
   if (rackCount)
     stats.push({

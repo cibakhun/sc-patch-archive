@@ -152,10 +152,11 @@ const t = useTranslations(lang);
     /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
     :root[data-theme="light"]{--bg:#faf7f1;--bg-2:#f3ede5;--surface:#fffdfa;--surface-2:#f8f1e8;--text:#231e16;--muted:#635642;--accent:#7d5001;--accent-2:#714d02;--hot:#8c3001;--ink:#ffffff;--accent-media:#f5a524;--accent-2-media:#ffd79a;--line:rgba(149,103,37,.3);--line-soft:rgba(50,45,37,.12);--glow:0 6px 22px rgba(149,103,37,.18)}
 
+
+
     /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */</style>
 
   <a class="skip" href="#main">{lang === 'de' ? 'Zum Inhalt' : 'Skip to content'}</a>
-  <div class="cursorglow" aria-hidden="true"></div>
   {/* crumbs -> BreadcrumbList-JSON-LD (wie Schiffe/Topics); hasEn, damit der
       Sprachumschalter zur Mission wechselt statt zur EN-Startseite. */}
   <SiteNav
@@ -394,7 +395,11 @@ const t = useTranslations(lang);
 {/* KEIN is:inline: gebuendelt in den <head> statt hinter den Inhalt (FOUC).
     Die :root-Palette oben bleibt inline — die muss detail.css ueberschreiben. */}
 <style>
-  .md { padding: 5.5rem 0 4rem; }
+  /* Der obere Abstand war mit 5,5rem fest verdrahtet und meinte die
+     Kopfleiste. Seit die Zurueck-Marke frei unter der Leiste haengt (SiteNav),
+     ist der Freiraum nicht mehr konstant — --nav-h veroeffentlicht ihn. Ohne
+     das lag die Marke auf der Rubrikzeile (.md__eyebrow). */
+  .md { padding: calc(var(--nav-h, 68px) + 1.5rem) 0 4rem; }
   .md__wrap { width: min(var(--maxw), 100%); margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem); }
 
   .md__head { padding-bottom: 1.6rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }

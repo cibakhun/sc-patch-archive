@@ -4,3 +4,8 @@
 # Local install + logs
 node_modules/
 *.log
+
+# Avatar variants + the comparison sheet — regenerate any time with
+# `npm run avatar -- --all`. Only the one actually in use is committed
+# (assets/verse-bot-avatar.png), like assets/verse-base-icon.png.
+assets/verse-bot-avatar-*.png

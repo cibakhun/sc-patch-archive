@@ -7,12 +7,12 @@ import DataShell from './DataShell.astro';
 import { href, type Locale } from '../i18n/ui';
 import { itemT, categoryLabel } from '../i18n/itemText';
 import {
-  ITEM_PATCH, altName, auec, categoryPath, categorySlug, db, description,
+  ITEM_PATCH, altName, auec, avgPrice, categoryPath, categorySlug, db, description,
   displayName, itemPath, itemsHubPath, leafCategory, maxPrice, minPrice, num,
   pageItemIds, relatedItems, rootCategory, sortedObtain, type Item,
   armorSetById, setItemsBySlot,
 } from '../lib/items';
-import { specChips, statEntries, primaryStat } from '../lib/itemStats';
+import { specChips, statEntries, statRows, primaryStat, variantHead } from '../lib/itemStats';
 import { itemSeo } from '../lib/itemSeo';
 import { blueprintForItem, blueprintPath, craftTime, resourceNames } from '../lib/crafting';
 
@@ -26,10 +26,12 @@ const alt = altName(item, lang);
 const desc = description(item, lang);
 const chips = specChips(item, lang);
 const stats = statEntries(item, lang);
+const variants = item.game?.variants ?? [];
 const key = primaryStat(item, lang);
 const rows = sortedObtain(item);
 const lo = minPrice(item);
 const hi = maxPrice(item);
+const avg = avgPrice(item);
 const vendors = item.obtain.filter((o) => o.kind === 'shop' || o.kind === 'vehicle').length;
 const loot = item.obtain.filter((o) => o.kind === 'loot').length;
 const bp = blueprintForItem(item);
@@ -66,11 +68,11 @@ const crumbs = [
   sources={['UEX Corp']}
   updated={db.pricesAsOf}
 >
-  <h1>{name}</h1>
-  {alt && <p class="dp-alt">{alt}</p>}
-  <p class="dp-lead">{seo.lead}</p>
+  <h1 slot="hero">{name}</h1>
+  {alt && <p class="dp-alt" slot="hero">{alt}</p>}
+  <p class="dp-lead" slot="hero">{seo.lead}</p>
 
-  <ul class="dp-keys">
+  <ul class="dp-keys" slot="hero">
     {lo != null && (
       <li class="dp-key"><b>{t('cheapest')}</b><span>{auec(lo, lang)}</span></li>
     )}
@@ -98,6 +100,7 @@ const crumbs = [
                 <th>{t('thLocation')}</th>
                 <th>{t('thKind')}</th>
                 <th class="dp-num">{t('thPrice')}</th>
+                <th class="dp-num">{t('thAvg')}</th>
               </tr>
             </thead>
             <tbody>
@@ -108,12 +111,15 @@ const crumbs = [
                   <td class="dp-num">
                     {o.price != null ? <span class="dp-price">{auec(o.price, lang)}</span> : <span class="dp-muted">—</span>}
                   </td>
+                  <td class="dp-num">
+                    <span class="dp-muted">{avg != null ? auec(avg, lang) : '—'}</span>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p class="dp-note">{t('volatileNote')} · {t('pricesAsOf')} {db.pricesAsOf}</p>
+        <p class="dp-note">{t('volatileNote')} · {t('pricesAsOf')} {db.pricesAsOf}{avg != null && <> · {t('avgNote')}</>}</p>
       </>
     ) : (
       <p class="dp-callout">{t('catalogNote')}</p>
@@ -135,6 +141,27 @@ const crumbs = [
         </ul>
       )}
       {desc && <p class="dp-desc">{desc}</p>}
+    </section>
+  )}
+
+  {/* -- Varianten: mehrere Spiel-Items teilen sich diesen Anzeigenamen. Die
+         Werte stehen je Ausfuehrung statt einmal geraten weiter oben. -- */}
+  {variants.length > 0 && (
+    <section class="dp-sec">
+      <h2>{t('sectionVariants')}</h2>
+      <p class="dp-note">{t('variantsNote')}</p>
+      {variants.map((v) => (
+        <>
+          <h3 class="dp-variant-h" set:text={variantHead(v, lang)} />
+          {statRows(v.stats, lang).length > 0 && (
+            <ul class="dp-stats">
+              {statRows(v.stats, lang).map(([l, val]) => (
+                <li class="dp-stat"><b>{l}</b><span>{val}</span></li>
+              ))}
+            </ul>
+          )}
+        </>
+      ))}
     </section>
   )}
 

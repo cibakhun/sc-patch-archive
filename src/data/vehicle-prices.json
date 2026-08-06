@@ -1,8 +1,8 @@
 {
- "fetchedAt": "2026-07-03",
+ "fetchedAt": "2026-08-03",
  "source": "UEX Corp (uexcorp.space)",
- "matched": 178,
- "buyable": 178,
+ "matched": 179,
+ "buyable": 179,
  "prices": {
   "anvl-hawk": {
    "buy": [
@@ -440,7 +440,7 @@
    ],
    "rent": [
     {
-     "price": 1796,
+     "price": 1795,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
@@ -1037,45 +1037,9 @@
      "system": "Stanton"
     },
     {
-     "price": 212093,
-     "shop": "Vantage Pyro Gateway (Stanton)",
-     "where": "Pyro Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 212094,
-     "shop": "Vantage Lorville",
-     "where": "Lorville",
-     "system": "Stanton"
-    },
-    {
-     "price": 212094,
-     "shop": "Traveler Everus",
-     "where": "Everus Harbor",
-     "system": "Stanton"
-    },
-    {
-     "price": 223256,
-     "shop": "Vantage HUR-L1",
-     "where": "HUR-L1 Green Glade Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 223256,
-     "shop": "Vantage HUR-L2",
-     "where": "HUR-L2 Faithful Dream Station",
-     "system": "Stanton"
-    },
-    {
      "price": 223256,
      "shop": "Traveler Seraphim",
      "where": "Seraphim Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 223256,
-     "shop": "Vantage ARC-L4",
-     "where": "ARC-L4 Faint Glen Station",
      "system": "Stanton"
     },
     {
@@ -1086,8 +1050,8 @@
     },
     {
      "price": 223256,
-     "shop": "Vantage CRU-L1",
-     "where": "CRU-L1 Ambitious Dream Station",
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
      "system": "Stanton"
     },
     {
@@ -1104,14 +1068,20 @@
     },
     {
      "price": 223256,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
      "shop": "Vantage MIC-L2",
      "where": "MIC-L2 Long Forest Station",
      "system": "Stanton"
     },
     {
      "price": 223256,
-     "shop": "Vantage ARC-L1",
-     "where": "ARC-L1 Wide Forest Station",
+     "shop": "Traveler Everus",
+     "where": "Everus Harbor",
      "system": "Stanton"
     },
     {
@@ -1128,12 +1098,6 @@
     },
     {
      "price": 223256,
-     "shop": "Vantage ARC-L2",
-     "where": "ARC-L2 Lively Pathway Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 223256,
      "shop": "Traveler Stanton Gateway (Nyx)",
      "where": "Stanton Gateway",
      "system": "Nyx"
@@ -1143,6 +1107,18 @@
      "shop": "Vantage Stanton Gateway (Nyx)",
      "where": "Stanton Gateway",
      "system": "Nyx"
+    },
+    {
+     "price": 223256,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
     },
     {
      "price": 223257,
@@ -1158,9 +1134,39 @@
     },
     {
      "price": 223257,
+     "shop": "Vantage HUR-L1",
+     "where": "HUR-L1 Green Glade Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage HUR-L2",
+     "where": "HUR-L2 Faithful Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage ARC-L4",
+     "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage CRU-L1",
+     "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
      "shop": "Vantage Stanton Gateway (Pyro)",
      "where": "Stanton Gateway",
      "system": "Pyro"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
     },
     {
      "price": 223257,
@@ -1176,6 +1182,12 @@
     },
     {
      "price": 223257,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
      "shop": "Traveler Pyro Gateway (Nyx)",
      "where": "Pyro Gateway",
      "system": "Nyx"
@@ -1185,18 +1197,6 @@
      "shop": "Vantage Pyro Gateway (Nyx)",
      "where": "Pyro Gateway",
      "system": "Nyx"
-    },
-    {
-     "price": 223257,
-     "shop": "Traveler Nyx Gateway (Pyro)",
-     "where": "Nyx Gateway",
-     "system": "Pyro"
-    },
-    {
-     "price": 223257,
-     "shop": "Vantage Nyx Gateway (Pyro)",
-     "where": "Nyx Gateway",
-     "system": "Pyro"
     },
     {
      "price": 234419,
@@ -1245,7 +1245,7 @@
    ],
    "rent": [
     {
-     "price": 67332,
+     "price": 67331,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
@@ -1280,7 +1280,7 @@
    ],
    "rent": [
     {
-     "price": 9158,
+     "price": 9157,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
@@ -1662,7 +1662,7 @@
    ],
    "rent": [
     {
-     "price": 67870,
+     "price": 67869,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
@@ -1698,7 +1698,7 @@
    ],
    "rent": [
     {
-     "price": 8140,
+     "price": 8139,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
@@ -1779,7 +1779,7 @@
      "system": "Stanton"
     },
     {
-     "price": 9050,
+     "price": 9049,
      "shop": "Traveler Everus",
      "where": "Everus Harbor",
      "system": "Stanton"
@@ -1857,7 +1857,7 @@
      "system": "Pyro"
     },
     {
-     "price": 15083,
+     "price": 15082,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
@@ -1905,27 +1905,9 @@
      "system": "Stanton"
     },
     {
-     "price": 2469,
+     "price": 2468,
      "shop": "Vantage Lorville",
      "where": "Lorville",
-     "system": "Stanton"
-    },
-    {
-     "price": 2598,
-     "shop": "Vantage ARC-L1",
-     "where": "ARC-L1 Wide Forest Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 2598,
-     "shop": "Vantage ARC-L2",
-     "where": "ARC-L2 Lively Pathway Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 2598,
-     "shop": "Vantage ARC-L4",
-     "where": "ARC-L4 Faint Glen Station",
      "system": "Stanton"
     },
     {
@@ -1948,26 +1930,8 @@
     },
     {
      "price": 2598,
-     "shop": "Vantage HUR-L1",
-     "where": "HUR-L1 Green Glade Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 2598,
-     "shop": "Vantage HUR-L2",
-     "where": "HUR-L2 Faithful Dream Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 2598,
      "shop": "Vantage MIC-L1",
      "where": "MIC-L1 Shallow Frontier Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 2598,
-     "shop": "Vantage CRU-L1",
-     "where": "CRU-L1 Ambitious Dream Station",
      "system": "Stanton"
     },
     {
@@ -1981,6 +1945,48 @@
      "shop": "Vantage Stanton Gateway (Nyx)",
      "where": "Stanton Gateway",
      "system": "Nyx"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage ARC-L4",
+     "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage HUR-L1",
+     "where": "HUR-L1 Green Glade Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage HUR-L2",
+     "where": "HUR-L2 Faithful Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage CRU-L1",
+     "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
     },
     {
      "price": 2599,
@@ -1999,12 +2005,6 @@
      "shop": "Vantage Pyro Gateway (Nyx)",
      "where": "Pyro Gateway",
      "system": "Nyx"
-    },
-    {
-     "price": 2599,
-     "shop": "Vantage Nyx Gateway (Pyro)",
-     "where": "Nyx Gateway",
-     "system": "Pyro"
     }
    ]
   },
@@ -2088,13 +2088,13 @@
      "system": "Stanton"
     },
     {
-     "price": 80798,
+     "price": 80797,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
     },
     {
-     "price": 80798,
+     "price": 80797,
      "shop": "Traveler Everus",
      "where": "Everus Harbor",
      "system": "Stanton"
@@ -2183,7 +2183,7 @@
    ],
    "rent": [
     {
-     "price": 40848,
+     "price": 40847,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
@@ -2259,33 +2259,15 @@
      "system": "Stanton"
     },
     {
-     "price": 69576,
+     "price": 69575,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
     },
     {
-     "price": 69576,
+     "price": 69575,
      "shop": "Traveler Everus",
      "where": "Everus Harbor",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
-     "shop": "Vantage ARC-L1",
-     "where": "ARC-L1 Wide Forest Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
-     "shop": "Vantage ARC-L2",
-     "where": "ARC-L2 Lively Pathway Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
-     "shop": "Vantage ARC-L4",
-     "where": "ARC-L4 Faint Glen Station",
      "system": "Stanton"
     },
     {
@@ -2308,26 +2290,8 @@
     },
     {
      "price": 73237,
-     "shop": "Vantage HUR-L1",
-     "where": "HUR-L1 Green Glade Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
-     "shop": "Vantage HUR-L2",
-     "where": "HUR-L2 Faithful Dream Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
      "shop": "Vantage MIC-L1",
      "where": "MIC-L1 Shallow Frontier Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
-     "shop": "Vantage CRU-L1",
-     "where": "CRU-L1 Ambitious Dream Station",
      "system": "Stanton"
     },
     {
@@ -2359,6 +2323,54 @@
      "shop": "Vantage Stanton Gateway (Nyx)",
      "where": "Stanton Gateway",
      "system": "Nyx"
+    },
+    {
+     "price": 73237,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage ARC-L4",
+     "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage HUR-L1",
+     "where": "HUR-L1 Green Glade Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage HUR-L2",
+     "where": "HUR-L2 Faithful Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage CRU-L1",
+     "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
     },
     {
      "price": 73238,
@@ -2401,18 +2413,6 @@
      "shop": "Vantage Pyro Gateway (Nyx)",
      "where": "Pyro Gateway",
      "system": "Nyx"
-    },
-    {
-     "price": 73238,
-     "shop": "Traveler Nyx Gateway (Pyro)",
-     "where": "Nyx Gateway",
-     "system": "Pyro"
-    },
-    {
-     "price": 73238,
-     "shop": "Vantage Nyx Gateway (Pyro)",
-     "where": "Nyx Gateway",
-     "system": "Pyro"
     }
    ]
   },
@@ -2660,7 +2660,7 @@
      "system": "Stanton"
     },
     {
-     "price": 10055,
+     "price": 10054,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
@@ -2678,7 +2678,7 @@
    ],
    "rent": [
     {
-     "price": 16160,
+     "price": 16159,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
@@ -2795,7 +2795,7 @@
    ],
    "rent": [
     {
-     "price": 19392,
+     "price": 19391,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
@@ -2930,7 +2930,7 @@
    ],
    "rent": [
     {
-     "price": 2469,
+     "price": 2468,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
@@ -3318,13 +3318,13 @@
      "system": "Stanton"
     },
     {
-     "price": 9876,
+     "price": 9875,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
     },
     {
-     "price": 9876,
+     "price": 9875,
      "shop": "Traveler Everus",
      "where": "Everus Harbor",
      "system": "Stanton"
@@ -3788,14 +3788,14 @@
    "rent": [
     {
      "price": 15082,
-     "shop": "Vantage Pyro Gateway (Stanton)",
-     "where": "Pyro Gateway",
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
      "system": "Stanton"
     },
     {
-     "price": 15083,
-     "shop": "Vantage Lorville",
-     "where": "Lorville",
+     "price": 15082,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
      "system": "Stanton"
     },
     {
@@ -3958,7 +3958,7 @@
    ],
    "rent": [
     {
-     "price": 59252,
+     "price": 59251,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
@@ -4211,7 +4211,7 @@
   "rsi-perseus": {
    "buy": [
     {
-     "price": 39680000,
+     "price": 39690000,
      "shop": "Astro Armada",
      "where": "Area 18",
      "system": "Stanton"
@@ -4255,14 +4255,14 @@
    "rent": [
     {
      "price": 90493,
-     "shop": "Vantage Pyro Gateway (Stanton)",
-     "where": "Pyro Gateway",
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
      "system": "Stanton"
     },
     {
-     "price": 90494,
-     "shop": "Vantage Lorville",
-     "where": "Lorville",
+     "price": 90493,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
      "system": "Stanton"
     },
     {
@@ -4637,6 +4637,102 @@
     }
    ],
    "rent": []
+  },
+  "argo-moth": {
+   "buy": [
+    {
+     "price": 8483740,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 8930250,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": [
+    {
+     "price": 223256,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage HUR-L2",
+     "where": "HUR-L2 Faithful Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage HUR-L1",
+     "where": "HUR-L1 Green Glade Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage CRU-L1",
+     "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage ARC-L4",
+     "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage MIC-L5",
+     "where": "MIC-L5 Modern Icarus Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    },
+    {
+     "price": 233257,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
+     "system": "Stanton"
+    }
+   ]
   }
  }
 }

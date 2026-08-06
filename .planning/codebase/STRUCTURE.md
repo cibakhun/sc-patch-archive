@@ -63,7 +63,7 @@ sc-patch-archive/
 
 **`src/data/`:**
 - Purpose: small committed snapshots consumed at build time
-- Contains: `ships.json`, `vehicles.json`, `missions.json`, `crafting-blueprints.json`, `holo-*.json`, `ship-*.json`, `patches/4-x-y.json` (one per version), `precision-jump.ts`
+- Contains: `ships.json`, `vehicles.json`, `missions.json`, `holo-*.json`, `ship-*.json`, `patches/4-x-y.json` (one per version), `precision-jump.ts`
 
 **`assets/`:**
 - Purpose: the canonical, committed media + runtime layer

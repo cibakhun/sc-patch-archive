@@ -1,0 +1,47 @@
+# Supabase-Konfiguration. ERSTE Datei dieser Art im Repo — bis zum 03.08.2026
+# gab es sie nicht, und alle Functions liefen auf dem Standard.
+#
+# WOZU SIE DA IST: Zwei neue Functions muessen OHNE Session-JWT erreichbar sein.
+#   * create-checkout-session — ein Besucher soll ohne Konto spenden koennen
+#   * stripe-webhook          — Stripe kann kein Supabase-JWT schicken; es
+#                               authentifiziert sich ausschliesslich ueber den
+#                               Stripe-Signature-Kopf, geprueft IN der Function
+#
+# WARUM HIER UND NICHT ALS CLI-FLAG: `supabase functions deploy --no-verify-jwt`
+# taete dasselbe, aber nur fuer genau diesen einen Aufruf. Der naechste normale
+# Deploy — aus CI, von einem anderen Rechner, oder schlicht, weil jemand das
+# Flag vergisst — setzt die Function still auf "JWT erforderlich" zurueck, und
+# der Webhook waere ab dann tot, ohne dass irgendetwas rot wird. Dokumentierter
+# CLI-Fehler supabase/cli#4059. Diese Datei ist der dauerhafte Ort.
+#
+# WARUM register HIER STEHT, obwohl es nicht zu dieser Phase gehoert:
+# Am 03.08.2026 gegen die LEBENDE Anlage geprueft (list_edge_functions) statt
+# der Doku zu glauben — und die Doku lag falsch. `.planning/codebase/
+# INTEGRATIONS.md` behauptet, alle drei bestehenden Functions verlangten ein
+# Session-JWT. Tatsaechlich laeuft `register` seit jeher mit verify_jwt = FALSE,
+# und das MUSS so sein: wer sich gerade erst anmeldet, hat noch keine Sitzung.
+#
+# Sobald diese Datei existiert, bekommen NICHT aufgefuehrte Functions beim
+# Deploy den Standard `true`. Fuer register waere das genau falsch — ein
+# `supabase functions deploy register` wuerde die Kontoanmeldung stillschweigend
+# abschalten. Deshalb steht es hier ausdruecklich drin.
+#
+# delete-account und verify-rsi stehen bewusst NICHT hier: beide laufen live
+# mit verify_jwt = true, und das ist der Standard fuer Unaufgefuehrte. Ein
+# Eintrag waere ueberfluessig, ein FALSCHER Eintrag waere ein Loch.
+#
+# tests/e2e/support-trust.test.js haelt genau diese Aufteilung fest.
+#
+# project_id ist der lokale CLI-Name (Docker-Container), NICHT die
+# Projektreferenz trgjhmbnodoarnfmlcqx — die kommt beim Deploy ueber
+# `supabase link` bzw. --project-ref.
+project_id = "verse-base"
+
+[functions.register]
+verify_jwt = false
+
+[functions.create-checkout-session]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false

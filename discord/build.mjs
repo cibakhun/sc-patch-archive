@@ -354,6 +354,9 @@ async function build() {
   step('Channels');
   await guild.channels.fetch();
   const channelId = {};
+  // Channels already matched this run — stops two blueprint keys from adopting
+  // the same stray channel.
+  const claimed = new Set();
   const pendingAnnouncement = [];
   const pendingStage = [];
   for (const cat of bp.categories) {
@@ -384,6 +387,24 @@ async function build() {
       if (ch.tags && ch.type === 'forum') edit.availableTags = ch.tags.map((name) => ({ name, moderated: false }));
 
       let channel = guild.channels.cache.find((c) => c.parentId === category.id && c.name === wantName);
+      // Not in this category? Adopt a same-named channel from anywhere in the
+      // guild and move it here — `edit.parent` above performs the move. Without
+      // this, a channel dragged into another category in the Discord UI gets
+      // DUPLICATED on the next build: a pristine empty copy appears in the right
+      // place while the original quietly keeps all the message history.
+      if (!channel) {
+        const strays = [...guild.channels.cache.values()]
+          .filter((c) => c.type !== ChannelType.GuildCategory && c.name === wantName && !claimed.has(c.id))
+          // Oldest first — if an earlier run already made a duplicate, the
+          // original (the one carrying the history) has the smaller snowflake.
+          .sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+        if (strays.length) {
+          channel = strays[0];
+          warn(`#${wantName} sat in ${channel.parent ? `"${channel.parent.name}"` : 'no category'} — moved back into "${cat.name}"`);
+          if (strays.length > 1) warn(`  ${strays.length - 1} further channel(s) named #${wantName} exist — review and delete the extras`);
+        }
+      }
+      if (channel) claimed.add(channel.id);
       try {
         if (channel) {
           // Reuse existing tag ids (matched by name) so already-tagged posts keep them.

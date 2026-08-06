@@ -12,11 +12,16 @@ import {
   getBandMetrics,
   type AnchorRecord,
 } from '../data/precision-jump';
+import { useHelp } from '../i18n/help';
+import ToolHelp from './ToolHelp.astro';
 
 interface Props {
   lang: 'de' | 'en';
 }
 const { lang } = Astro.props;
+// Werkzeug-Hilfe (Phase 01.2, Plan 04). Achtung: dieses Bauteil benutzt `S`
+// fuer seinen eigenen Stringsatz — der Hilfe-Zugriff heisst bewusst `h`.
+const h = useHelp(lang);
 
 // -- i18n: server-gerenderte Chrome-Strings --
 const S = {
@@ -252,16 +257,27 @@ const CLIENT = {
 
 <section class="pj" id="pjump">
   <div class="pj-wrap">
+    {/* Werkzeug-Hilfe (Phase 01.2, Plan 04) — Precision Jump hat keine
+        einzelne Werkzeugleiste (RESEARCH Annahme A2). Der Einstieg sitzt
+        deshalb hier, als erstes Kind von .pj-wrap, unmittelbar VOR der
+        Steuerkonsole: die Steuerung ist das Produkt dieser Seite (siehe
+        Kommentar direkt darunter) und steht zuoberst — der Einstieg sitzt
+        ueber dem, was er erklaert. Ausdruecklich NICHT in eines der
+        details.pj-tbl weiter unten, dort waere er hinter einem zugeklappten
+        Abschnitt versteckt. Diese Setzung ist eine ANNAHME, keine
+        Entscheidung des Betreibers — siehe
+        .planning/phases/01.2-werkzeuge-erklaeren/01.2-RESEARCH.md Annahme A2. */}
+    <ToolHelp tool="precisionjump" lang={lang} steps={4} />
     <!-- ==== Steuerung ====
          Das Werkzeug ist das Produkt dieser Seite, nicht ein Anhang zum Text:
          Steuerung und Karte stehen zuoberst, alles Erklaerende folgt. -->
     <div class="pj-console">
       <div class="pj-console__head">
         <span class="pj-console__title">{S.solver}</span>
-        <button type="button" class="pj-reset" id="pj-reset">{S.reset}</button>
+        <button type="button" class="pj-reset" id="pj-reset" data-help={h('precisionjump.ctl.reset')}>{S.reset}</button>
       </div>
 
-      <div class="pj-route">
+      <div class="pj-route" data-help={h('precisionjump.ctl.route')}>
         <div class="pj-field">
           <label class="pj-label" for="pj-start">{S.start}</label>
           <select id="pj-start" class="pj-select">
@@ -277,7 +293,7 @@ const CLIENT = {
           </select>
         </div>
 
-        <button type="button" class="pj-swap" id="pj-swap" title={S.swap} aria-label={S.swap}>⇄</button>
+        <button type="button" class="pj-swap" id="pj-swap" title={S.swap} aria-label={S.swap} data-help={h('precisionjump.ctl.swap')}>⇄</button>
 
         <div class="pj-field">
           <label class="pj-label" for="pj-end">{S.dest}</label>
@@ -295,7 +311,7 @@ const CLIENT = {
         </div>
       </div>
 
-      <div class="pj-band">
+      <div class="pj-band" data-help={h('precisionjump.ctl.band')}>
         <div class="pj-field">
           <label class="pj-label" for="pj-bandsel">{S.band}</label>
           <select id="pj-bandsel" class="pj-select">
@@ -373,7 +389,7 @@ const CLIENT = {
 
     <p class="pj-honesty" set:html={S.honesty} />
 
-    <details class="pj-tbl" open>
+    <details class="pj-tbl" open data-help={h('precisionjump.ctl.table')}>
       <summary>
         <span class="pj-tbl__ttl">{S.bandIdx}</span>
         <i class="pj-tbl__sub">{S.bandIdxSub}</i>
@@ -405,7 +421,7 @@ const CLIENT = {
       </div>
     </details>
 
-    <details class="pj-tbl">
+    <details class="pj-tbl" data-help={h('precisionjump.ctl.table')}>
       <summary>
         <span class="pj-tbl__ttl">{S.anchorIdx}</span>
         <i class="pj-tbl__sub">{S.anchorIdxSub}</i>

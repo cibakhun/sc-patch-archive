@@ -1,0 +1,159 @@
+---
+// ToolHelp — Stufe 1 (Zweck + Bedienung) des Werkzeug-Hilfe-Vertrags aus
+// .planning/phases/01.2-werkzeuge-erklaeren/01.2-01-PLAN.md. Wird EINMAL je
+// Werkzeug in dessen Filterleiste eingesetzt (D-08).
+//
+// Serverseitig steht der Abschnitt IMMER zu (kein `open`) — ob er beim
+// aktuellen Besuch offen startet, entscheidet erst assets/tool-help.js im
+// Browser anhand von localStorage (D-09). Astro kennt den Besucher zur
+// Bauzeit nicht.
+//
+// Der Skriptverweis steht ABSICHTLICH hier im Bauteil, nicht in
+// Layout.astro: dadurch laedt assets/tool-help.js NUR auf Seiten, die
+// mindestens ein ToolHelp tragen — den restlichen ~26.000 gebauten Seiten
+// kostet die Hilfe nichts (DOC-06). Kann mehrfach auf einer Seite stehen
+// (z. B. Mining + Refinery-Finder); das Skript selbst riegelt den zweiten
+// Lauf ab (siehe Kopfkommentar dort).
+//
+// Stufe 2 (Umrandung, Blase, Horcher) existiert hier NICHT — weder als
+// Markup noch als CSS. Sie entsteht erst in assets/tool-help.js, und zwar
+// erst nach dem Klick auf den Knopf unten (D-11/DOC-06).
+import { useHelp, type HelpKey } from '../i18n/help';
+import type { Locale } from '../i18n/ui';
+import { versioned } from '../lib/assetVersion';
+
+interface Props {
+  /** Werkzeug-Kennung aus dem Schnittstellenvertrag, z. B. "itemfinder". */
+  tool: string;
+  lang: Locale;
+  /** Zahl der Bedienschritte (<werkzeug>.step1 .. .step{steps}). */
+  steps: 3 | 4 | 5;
+}
+
+const { tool, lang, steps } = Astro.props;
+const h = useHelp(lang);
+
+const stepKeys: HelpKey[] = Array.from({ length: steps }, (_, i) => `${tool}.step${i + 1}` as HelpKey);
+---
+
+<details class="tool-help" data-tool-id={tool}>
+  <summary class="tool-help__summary">{h(`${tool}.title` as HelpKey)}</summary>
+  <div class="tool-help__body">
+    <p class="tool-help__purpose">{h(`${tool}.purpose` as HelpKey)}</p>
+    <ol class="tool-help__steps">
+      {stepKeys.map((key) => (
+        <li>{h(key)}</li>
+      ))}
+    </ol>
+    <button
+      type="button"
+      class="tool-help__elbtn js-tool-help"
+      data-tool-id={tool}
+      aria-pressed="false"
+      data-label-off={h('ui.elements')}
+      data-label-on={h('ui.elementsOff')}
+      data-bubble-label={h('ui.bubbleLabel')}
+    >
+      {h('ui.elements')}
+    </button>
+  </div>
+</details>
+
+<script is:inline defer src={versioned('assets/tool-help.js', '/assets/tool-help.js')}></script>
+
+<style>
+  .tool-help {
+    margin: 0 0 1.25rem;
+    border: 1px solid var(--line, var(--line-soft));
+    border-radius: 8px;
+    background: var(--surface, var(--veil-2));
+    overflow: hidden;
+  }
+
+  .tool-help__summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 0.75rem 1rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text, #eef1f5);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .tool-help__summary::-webkit-details-marker { display: none; }
+
+  /* Eigenes Aufklapp-Zeichen statt des Browser-Dreiecks — dreht sich mit
+     dem offen/zu-Zustand, ganz ohne JS. */
+  .tool-help__summary::before {
+    content: '▸';
+    color: var(--accent, #ff5e1a);
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .tool-help[open] .tool-help__summary::before {
+    transform: rotate(90deg);
+  }
+
+  .tool-help__summary:focus-visible {
+    outline: 2px solid var(--accent-2, var(--accent, #ff5e1a));
+    outline-offset: -2px;
+  }
+
+  .tool-help__body {
+    padding: 0 1rem 1rem;
+    border-top: 1px solid var(--line-soft, var(--line-soft));
+  }
+
+  .tool-help__purpose {
+    margin: 0.85rem 0 0.6rem;
+    color: var(--muted, #9ba2ae);
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .tool-help__steps {
+    margin: 0 0 0.9rem;
+    padding-left: 1.2rem;
+    color: var(--muted, #9ba2ae);
+    font-size: 0.86rem;
+    line-height: 1.6;
+  }
+
+  .tool-help__elbtn {
+    background: transparent;
+    border: 1px solid var(--line, var(--line-soft));
+    color: var(--text, #eef1f5);
+    padding: 0.5rem 0.9rem;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.18s, color 0.18s;
+  }
+
+  .tool-help__elbtn:hover {
+    border-color: var(--accent, #ff5e1a);
+    color: var(--accent, #ff5e1a);
+  }
+
+  .tool-help__elbtn:focus-visible {
+    outline: 2px solid var(--accent-2, var(--accent, #ff5e1a));
+    outline-offset: 2px;
+  }
+
+  /* Solange die Element-Hilfe an ist, macht der Knopf selbst das sichtbar —
+     dieselbe Fuellung wie ein aktiver Filter-Chip andernorts auf der Seite. */
+  .tool-help__elbtn[aria-pressed='true'] {
+    background: var(--accent, #ff5e1a);
+    border-color: var(--accent, #ff5e1a);
+    color: var(--ink, #14121c);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tool-help__summary::before { transition: none; }
+  }
+</style>

@@ -17,7 +17,10 @@ discord/
 ├─ order-roles.mjs ← sorts the role hierarchy (npm run order)
 ├─ audit.mjs       ← read-only health check of the live server (npm run audit)
 ├─ make-icon.mjs   ← generates the server icon (zero deps)
-├─ assets/         ← verse-base-icon.png (generated)
+├─ make-avatar.mjs ← generates the bot's profile picture (zero deps, 3 variants)
+├─ set-avatar.mjs  ← puts it on the bot + application (npm run avatar:apply)
+├─ lib/            ← the shared PNG writer + SDF rasteriser both generators use
+├─ assets/         ← verse-base-icon.png, verse-bot-avatar.png (generated)
 ├─ .env            ← your bot token (git-ignored; you create this)
 └─ .env.example    ← template
 ```
@@ -94,9 +97,11 @@ From this `discord/` folder:
 ```bash
 npm install         # once
 npm run icon        # generate assets/verse-base-icon.png (optional; already committed)
+npm run avatar      # generate assets/verse-bot-avatar.png (optional; already committed)
 npm run validate    # offline sanity check of the blueprint
 npm run build       # log in and build the server
 npm run order       # sort the role hierarchy (after the bot has created rank roles)
+npm run avatar:apply # put the avatar on the bot + application (once per application)
 npm run audit       # read-only: diff the live server against the blueprint
 ```
 
@@ -116,6 +121,40 @@ anyone can @mention, and stage channels where the audience can put itself on sta
 
 Findings are `✗ ERROR` (broken), `! WARN` (drifted) or `· INFO`. Add `--json <file>` to dump
 them for tooling. Run it after every build, and before opening the server to new members.
+
+---
+
+## The bot's profile picture
+
+Generated in code like the server icon, not uploaded by hand. `make-avatar.mjs` renders the
+site's hexagon plus **amber** — the rank ladder's own accent (Ace, `#f5a524`) — so Verse-Bot
+reads as part of VerseBase without being mistaken for the server icon itself. Three variants:
+
+| variant | mark | notes |
+| --- | --- | --- |
+| **`ladder`** *(default)* | three rising rank chevrons in the hexagon | clearest at 32 px, the size the member list uses |
+| `xp-ring` | the hexagon inside an amber XP ring at 82 % | strongest at 128 px+; at 32 px the hexagon inside it fades |
+| `reticle` | flight-computer targeting reticle | most character; the reticle muddles at 32 px |
+
+```bash
+npm run avatar -- --all      # all three + assets/verse-bot-avatar-preview.png,
+                             # each circle-cropped at 256/128/64/32 px like Discord does
+npm run avatar               # write the default (ladder) to assets/verse-bot-avatar.png
+npm run avatar -- xp-ring    # …or another variant, same filename
+npm run avatar:apply         # send it to Discord
+```
+
+**Discord keeps two images and both matter:** the bot *user* avatar (messages, member list)
+and the *application* icon (profile popout, invite dialog, App Directory). `avatar:apply`
+always sets both — setting only the first leaves the old icon showing wherever Discord
+reaches for the application instead of the user. Add `--dry-run` to see what it would send,
+`--file <path>` to apply a variant without regenerating, `--avatar-only` / `--icon-only` to
+split them.
+
+Avatar changes are rate-limited per bot (the script reports the retry window), so
+`bot/src/avatar.mjs` only sets it **on boot when the bot has no avatar at all** — a fresh
+application gets a face by itself, and a restart loop can't burn the limit. Deliberate
+changes are `npm run avatar:apply`. `npm run audit` warns if either image is missing.
 
 ---
 
@@ -198,10 +237,10 @@ every channel survive, because none of them belong to the application.
 **You do these (Claude can't sign in for you):**
 
 1. <https://discord.com/developers/applications> → **New Application** → name it `VerseBase`.
-2. **General Information** → set the description and upload `assets/verse-base-icon.png` as
-   the app icon. Copy the **Application ID**.
-3. **Bot** tab → set **Username** to `Verse-Bot`, upload the same image as the avatar,
-   **untick Public Bot**, leave every privileged intent **off** → **Reset Token** → copy it.
+2. **General Information** → set the description. Copy the **Application ID**.
+3. **Bot** tab → set **Username** to `Verse-Bot`, **untick Public Bot**, leave every
+   privileged intent **off** → **Reset Token** → copy it. Skip the avatar and the app icon —
+   `npm run avatar:apply` sets both (and the bot sets its own on first boot if you forget).
 4. Paste that token into **both** `discord/.env` and `discord/bot/.env` (keep `GUILD_ID`).
 5. Invite it — the old bot stays for now, so the server is never without an admin bot:
    ```
@@ -214,9 +253,10 @@ every channel survive, because none of them belong to the application.
 **Then re-run these — in this order:**
 
 ```bash
-npm run build    # re-points every bot-role overwrite at the NEW managed role
-npm run order    # rebuilds the hierarchy under the new bot role
-npm run audit    # lists whatever the swap left behind
+npm run build        # re-points every bot-role overwrite at the NEW managed role
+npm run order        # rebuilds the hierarchy under the new bot role
+npm run avatar:apply # gives the new application its avatar + icon
+npm run audit        # lists whatever the swap left behind
 ```
 
 Step 8 deletes the old bot's managed role, and Discord drops the channel overwrites that
