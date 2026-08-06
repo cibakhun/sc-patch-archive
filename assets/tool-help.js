@@ -8,8 +8,8 @@
       vermerkten Zweck-Abschnitt und schreibt den Eintrag danach EIN
       Mal zurueck. Kein Horcher, keine Wiederholung, kein Nachladen.
 
-   2. Element-Hilfe (zwischen den Marken HELP:STAGE2:BEGIN und
-      HELP:STAGE2:END): existiert erst ab dem Klick auf den Knopf
+   2. Element-Hilfe (weiter unten zwischen den beiden Marken
+      eingerahmt): existiert erst ab dem Klick auf den Knopf
       ".js-tool-help". Umrandet die erklaerten Bedienelemente der
       aktuellen Ansicht ueber eine einzelne eingefuegte Formatregel
       und zeigt beim Verweilen darauf jeweils eine einzelne

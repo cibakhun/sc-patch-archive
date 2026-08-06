@@ -93,13 +93,13 @@ const JS_T = ITEM_UI[lang];
       <h3>{t.hAvailability}</h3>
       <div id="uif-kind-chips" class="uif-chips" data-help={h('itemfinder.ctl.kind')}><!-- Chips via JS --></div>
       <h3>{t.hSize}</h3>
-      <div id="uif-size-chips" class="uif-chips"><!-- Größen via JS --></div>
+      <div id="uif-size-chips" class="uif-chips" data-help={h('itemfinder.ctl.size')}><!-- Größen via JS --></div>
       <h3>{t.hWeight}</h3>
-      <div id="uif-weight-chips" class="uif-chips"><!-- Panzerungsklassen via JS --></div>
+      <div id="uif-weight-chips" class="uif-chips" data-help={h('itemfinder.ctl.weight')}><!-- Panzerungsklassen via JS --></div>
       <h3>{t.hRarity}</h3>
-      <div id="uif-rarity-chips" class="uif-chips"><!-- Seltenheiten via JS --></div>
+      <div id="uif-rarity-chips" class="uif-chips" data-help={h('itemfinder.ctl.rarity')}><!-- Seltenheiten via JS --></div>
       <h3>{t.hCategories}</h3>
-      <div id="uif-category-list"><!-- Kategorien via JS --></div>
+      <div id="uif-category-list" data-help={h('itemfinder.ctl.category')}><!-- Kategorien via JS --></div>
     </div>
   </div>
 
@@ -109,8 +109,8 @@ const JS_T = ITEM_UI[lang];
       {/* Einzelteile <-> Sets. Nur die Ruestungs-Daten kennen Sets, deshalb
           blendet das JS den Schalter aus, sobald die aktuellen Filter kein
           einziges Set uebrig lassen. */}
-      <div class="uif-view" id="uif-view-toggle" role="group" aria-label="Ansicht"><!-- via JS --></div>
-      <div class="uif-sort">
+      <div class="uif-view" id="uif-view-toggle" role="group" aria-label="Ansicht" data-help={h('itemfinder.ctl.view')}><!-- via JS --></div>
+      <div class="uif-sort" data-help={h('itemfinder.ctl.sort')}>
         <select id="uif-sort-select" aria-label="Sort">
           <option value="name_asc">{t.sortNameAsc}</option>
           <option value="name_desc">{t.sortNameDesc}</option>
