@@ -99,6 +99,55 @@ export const HELP = {
     'refineryfinder.ctl.search': 'Freitextsuche über Erz-Namen.',
     'refineryfinder.ctl.view': 'Wechselt zwischen Liste und voller Matrix.',
     'refineryfinder.ctl.system': 'Schränkt die Stationen auf ein System ein.',
+
+    // -- Patch-Archiv --
+    'archive.title': 'Wie funktioniert das Patch-Archiv?',
+    'archive.purpose':
+      'Verzeichnet alle Alpha-Versionen als Zeitleiste, gegliedert in Ären, mit Suche über Namen und Themen.',
+    'archive.step1': 'Suchbegriff eingeben oder eine Ära in der Leiste anklicken.',
+    'archive.step2': 'Nach Major- oder Point-Releases filtern.',
+    'archive.step3': 'Auf der Zeitleiste zu einem Patch scrollen oder springen.',
+    'archive.step4': 'Auf eine Karte klicken für die volle Patch-Seite mit allen Themen.',
+    'archive.ctl.era': 'Zeigt, welche Ära gerade im Sichtfeld ist.',
+    'archive.ctl.search': 'Freitextsuche über Versionsnummer, Codename und Themen.',
+    'archive.ctl.chips': 'Schränkt die Zeitleiste auf Major- oder Point-Releases ein.',
+    'archive.ctl.count': 'Zählt, wie viele Patches die aktuelle Auswahl zeigt.',
+
+    // -- Missionen --
+    'missions.title': 'Wie funktioniert die Missionsdatenbank?',
+    'missions.purpose':
+      'Zeigt alle Missionsangebote mit Belohnung, Reputation, Auftraggeber und Ort — gebündelt zu Missionen.',
+    'missions.step1': 'Suchbegriff eingeben oder nach Typ, Auftraggeber, Fraktion, Gilde oder Ort filtern.',
+    'missions.step2': 'Nur Missionen mit Blueprints oder nach Rechtslage einschränken.',
+    'missions.step3': 'Ergebnisse sortieren nach Name, Belohnung oder Anzahl der Angebote.',
+    'missions.step4': 'Auf eine Karte klicken für Details, Belohnung und Reputation.',
+    'missions.ctl.search': 'Freitextsuche über Titel, Auftraggeber, Fraktion und Ort.',
+    'missions.ctl.select': 'Schränkt die Liste auf einen Wert dieser Auswahlliste ein.',
+    'missions.ctl.blueprint': 'Zeigt nur Missionen, die Blueprints abwerfen können.',
+    'missions.ctl.legal': 'Schränkt auf legale oder illegale Missionen ein.',
+    'missions.ctl.sort': 'Legt die Sortierung der Ergebnisse fest.',
+
+    // -- Rüstungssets --
+    'armorsets.title': 'Wie funktioniert die Rüstungs-Sets-Seite?',
+    'armorsets.purpose':
+      'Zeigt zu jedem Rüstungs-Set alle Teile nach Hersteller, mit Kennzahlen zu Sets und Vollständigkeit.',
+    'armorsets.step1': 'Zu einem Hersteller springen oder die Seite durchscrollen.',
+    'armorsets.step2': 'Jedes Set zeigt seine Teile nach Körperzone gegliedert.',
+    'armorsets.step3': 'Ein unterstrichener Teilname führt zum Item-Datenblatt.',
+    'armorsets.step4': 'Die Kennzahlen oben zeigen Gesamtzahl, Teile und vollständige Sets.',
+    'armorsets.ctl.keys': 'Zählt Sets, Teile, vollständige Sets und den Datenstand.',
+    'armorsets.ctl.jump': 'Springt direkt zu den Sets eines Herstellers.',
+
+    // -- Wikelo's Emporium --
+    'wikelo.title': "Wie funktioniert Wikelo's Emporium?",
+    'wikelo.purpose':
+      'Zeigt alle Tauschgeschäfte des Banu-Händlers: was zu liefern ist und was es dafür gibt.',
+    'wikelo.step1': 'Nach Kategorie filtern — Schiffe, Waffen, Rüstung oder Sonstiges.',
+    'wikelo.step2': 'Jede Karte zeigt links, was verlangt wird, rechts, was es gibt.',
+    'wikelo.step3': 'Unterstrichene Gegenstände zeigen ihre Bezugsquellen beim Anklicken.',
+    'wikelo.step4': 'Weiter unten stehen die drei Stationen und der Patch-Verlauf.',
+    'wikelo.ctl.filter': 'Schränkt die Handelskarten auf eine Kategorie ein.',
+    'wikelo.ctl.grid': 'Das Raster aller Handelsgeschäfte des aktuellen Filters.',
   },
   en: {
     // -- Shared control copy (all eleven tools) --
@@ -169,6 +218,55 @@ export const HELP = {
     'refineryfinder.ctl.search': 'Free-text search across ore names.',
     'refineryfinder.ctl.view': 'Switches between list and full matrix.',
     'refineryfinder.ctl.system': 'Narrows the stations down to a system.',
+
+    // -- Patch Archive --
+    'archive.title': 'How does the patch archive work?',
+    'archive.purpose':
+      'Lists every alpha release as a timeline, grouped into eras, with search across names and topics.',
+    'archive.step1': 'Type a search term or click an era in the bar.',
+    'archive.step2': 'Filter down to major or point releases.',
+    'archive.step3': 'Scroll or jump to a patch on the timeline.',
+    'archive.step4': 'Click a card for the full patch page with all its topics.',
+    'archive.ctl.era': 'Shows which era is currently in view.',
+    'archive.ctl.search': 'Free-text search across version number, codename and topics.',
+    'archive.ctl.chips': 'Narrows the timeline down to major or point releases.',
+    'archive.ctl.count': 'Counts how many patches the current selection shows.',
+
+    // -- Missions --
+    'missions.title': 'How does the mission database work?',
+    'missions.purpose':
+      'Shows every mission offer with reward, reputation, contractor and location — grouped into missions.',
+    'missions.step1': 'Type a search term or filter by type, contractor, faction, guild or location.',
+    'missions.step2': 'Narrow down to missions with blueprints or by legality.',
+    'missions.step3': 'Sort the results by name, reward or number of offers.',
+    'missions.step4': 'Click a card for details, reward and reputation.',
+    'missions.ctl.search': 'Free-text search across title, contractor, faction and location.',
+    'missions.ctl.select': 'Narrows the list down to a value from this dropdown.',
+    'missions.ctl.blueprint': 'Shows only missions that can drop blueprints.',
+    'missions.ctl.legal': 'Narrows down to lawful or unlawful missions.',
+    'missions.ctl.sort': 'Sets the sort order of the results.',
+
+    // -- Armor Sets --
+    'armorsets.title': 'How does the armor sets page work?',
+    'armorsets.purpose':
+      'Shows every armor set’s parts grouped by manufacturer, with key figures on sets and completeness.',
+    'armorsets.step1': 'Jump to a manufacturer or scroll through the page.',
+    'armorsets.step2': 'Each set shows its parts grouped by body slot.',
+    'armorsets.step3': 'An underlined part name links to its item page.',
+    'armorsets.step4': 'The figures at the top show total count, parts and complete sets.',
+    'armorsets.ctl.keys': 'Counts sets, parts, complete sets and the data date.',
+    'armorsets.ctl.jump': 'Jumps straight to a manufacturer’s sets.',
+
+    // -- Wikelo's Emporium --
+    'wikelo.title': "How does Wikelo's Emporium work?",
+    'wikelo.purpose':
+      'Shows every trade the Banu merchant offers: what to deliver and what it pays out.',
+    'wikelo.step1': 'Filter by category — ships, weapons, armor or misc.',
+    'wikelo.step2': 'Each card shows what is requested on the left, what it pays on the right.',
+    'wikelo.step3': 'Click an underlined item to see where to get it.',
+    'wikelo.step4': 'Further down are the three stations and the patch history.',
+    'wikelo.ctl.filter': 'Narrows the trade cards down to a category.',
+    'wikelo.ctl.grid': 'The grid of all trades in the current filter.',
   },
 } as const;
 
