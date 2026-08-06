@@ -242,7 +242,20 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
    deshalb 206 px breit — zusammen 413 px — und „Kostenrahmen 120,00 EUR" wurde
    rechts abgeschnitten, unsichtbar, weil overflow-x:clip greift. Gemessen. */
 .sup__fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line-soft);margin:0}
-.sup__fields dt,.sup__fields dd{overflow-wrap:anywhere}
+/* `overflow-wrap:anywhere` ist die NOTBREMSE gegen waagerechten Ueberlauf und
+   bleibt. Allein war sie aber zu grob: sie trennt an beliebiger Stelle, und am
+   03.08.2026 stand auf staging bei 958 px Fensterbreite „Entwicklungsrechn /
+   er" im Feld GERAET — ein Bruch mitten in der Silbe, der wie ein Defekt
+   aussieht.
+   Gemessen: das Wort braucht 159 px, seine Zelle bot 158. Es fehlte EIN Pixel.
+   Und ausgerechnet die erste Zelle ist die engste, weil sie den grossen
+   Aussenabstand der Seite traegt (bis 40 px) statt der 18 px der Folgezellen —
+   das laesst sich nicht wegnehmen, ohne den Anschluss an den Titel zu
+   verlieren.
+   `hyphens:auto` loest das an der richtigen Stelle: der Browser trennt nach den
+   Regeln der Seitensprache (`lang` steht am <html>), also „Entwicklungs-“ /
+   „rechner“. Die Notbremse greift erst, wenn auch das nicht mehr reicht. */
+.sup__fields dt,.sup__fields dd{overflow-wrap:anywhere;hyphens:auto}
 .sup__fields>div{padding:12px clamp(16px,4vw,40px) 14px;border-right:1px solid var(--line-soft)}
 .sup__fields>div:last-child{border-right:0}
 .sup__fields>div:not(:first-child){padding-left:18px}
