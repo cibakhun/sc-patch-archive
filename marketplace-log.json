@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 69,
-  "totalListings": 2571,
-  "totalSold": 109,
+  "updates": 70,
+  "totalListings": 2578,
+  "totalSold": 111,
   "distinctItems": 803
  },
  "listings": {
@@ -48751,9 +48751,9 @@
      "p": 4500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 4500000,
    "dateAdded": 1785921690,
    "dateExpiration": 1791105690
   },
@@ -54223,9 +54223,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 1000000,
    "dateAdded": 1785976341,
    "dateExpiration": 1791160341
   },
@@ -54333,6 +54333,27 @@
    "soldOutPrice": null,
    "dateAdded": 1785979061,
    "dateExpiration": 1791163061
+  },
+  "159257": {
+   "idItem": 7365,
+   "idCategory": 3,
+   "title": "Antium Core Jet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785979210,
+   "dateExpiration": 1791163210
   },
   "159261": {
    "idItem": 4987,
@@ -54564,6 +54585,132 @@
    "soldOutPrice": null,
    "dateAdded": 1785985518,
    "dateExpiration": 1791169518
+  },
+  "159294": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl Q860",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 860,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785989264,
+   "dateExpiration": 1791173264
+  },
+  "159297": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium Q954, Q930, Q853",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 954,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785989602,
+   "dateExpiration": 1791173602
+  },
+  "159298": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite Q875",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 875,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785989755,
+   "dateExpiration": 1791173755
+  },
+  "159300": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "Borase Q892",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 892,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785989906,
+   "dateExpiration": 1791173906
+  },
+  "159301": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper Q855",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 855,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785990200,
+   "dateExpiration": 1791174200
+  },
+  "159303": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron Q907, Q874",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 907,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1785990423,
+   "dateExpiration": 1791174422
   }
  }
 }
