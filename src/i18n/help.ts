@@ -148,6 +148,32 @@ export const HELP = {
     'wikelo.step4': 'Weiter unten stehen die drei Stationen und der Patch-Verlauf.',
     'wikelo.ctl.filter': 'Schränkt die Handelskarten auf eine Kategorie ein.',
     'wikelo.ctl.grid': 'Das Raster aller Handelsgeschäfte des aktuellen Filters.',
+
+    // -- Schiffe --
+    'ships.title': 'Wie funktioniert der Schiffskatalog?',
+    'ships.purpose':
+      'Zeigt alle Schiffe und Fahrzeuge mit Werten, Bauteilen und beiden Preisen — Pledge und Ingame.',
+    'ships.step1': 'Suchbegriff eingeben oder einen Schnellzugriff-Chip anklicken.',
+    'ships.step2': 'Nach Hersteller, Beruf, Rolle, Größe, Signatur, Merkmal oder Bauteil filtern.',
+    'ships.step3': 'Ergebnisse nach Name, Preis, Fracht oder Crew sortieren.',
+    'ships.step4': 'Auf eine Karte klicken für das volle Datenblatt.',
+    'ships.ctl.search': 'Freitextsuche über Schiffs- und Herstellernamen.',
+    'ships.ctl.select': 'Schränkt die Flotte auf einen Wert dieser Auswahlliste ein.',
+    'ships.ctl.sort': 'Legt die Sortierung der Ergebnisse fest.',
+
+    // -- Precision Jump --
+    'precisionjump.title': 'Wie funktioniert der Precision-Jump-Rechner?',
+    'precisionjump.purpose':
+      'Berechnet, wo der Quantenflug zwischen zwei Ankern zu unterbrechen ist, um im gewünschten Aaron-Halo-Band anzukommen.',
+    'precisionjump.step1': 'Startort wählen.',
+    'precisionjump.step2': 'Ziel-QT-Marker wählen.',
+    'precisionjump.step3': 'Das gewünschte Halo-Band wählen.',
+    'precisionjump.step4': 'Den angezeigten Auslösewert im Spiel ablesen und dort abbrechen.',
+    'precisionjump.ctl.route': 'Legt Startort und Ziel-QT-Marker der Route fest.',
+    'precisionjump.ctl.swap': 'Tauscht Startort und Ziel.',
+    'precisionjump.ctl.band': 'Wählt das Aaron-Halo-Band, das die Route treffen soll.',
+    'precisionjump.ctl.reset': 'Setzt die Route auf die Standardwerte zurück.',
+    'precisionjump.ctl.table': 'Klappt eine Tabelle mit weiteren Werten auf.',
   },
   en: {
     // -- Shared control copy (all eleven tools) --
@@ -267,6 +293,32 @@ export const HELP = {
     'wikelo.step4': 'Further down are the three stations and the patch history.',
     'wikelo.ctl.filter': 'Narrows the trade cards down to a category.',
     'wikelo.ctl.grid': 'The grid of all trades in the current filter.',
+
+    // -- Ships --
+    'ships.title': 'How does the ship catalog work?',
+    'ships.purpose':
+      'Shows every ship and vehicle with stats, components and both prices — pledge and in-game.',
+    'ships.step1': 'Type a search term or click a quick-access chip.',
+    'ships.step2': 'Filter by manufacturer, career, role, size, signature, feature or component.',
+    'ships.step3': 'Sort the results by name, price, cargo or crew.',
+    'ships.step4': 'Click a card for the full data sheet.',
+    'ships.ctl.search': 'Free-text search across ship and manufacturer names.',
+    'ships.ctl.select': 'Narrows the fleet down to a value from this dropdown.',
+    'ships.ctl.sort': 'Sets the sort order of the results.',
+
+    // -- Precision Jump --
+    'precisionjump.title': 'How does the Precision Jump calculator work?',
+    'precisionjump.purpose':
+      'Works out where to cut quantum travel between two anchors to land in the Aaron Halo band you want.',
+    'precisionjump.step1': 'Pick a departure point.',
+    'precisionjump.step2': 'Pick a destination QT marker.',
+    'precisionjump.step3': 'Pick the Halo band you want to hit.',
+    'precisionjump.step4': 'Read the displayed trigger value in game and cut the drive there.',
+    'precisionjump.ctl.route': 'Sets the departure point and destination QT marker for the route.',
+    'precisionjump.ctl.swap': 'Swaps departure point and destination.',
+    'precisionjump.ctl.band': 'Picks the Aaron Halo band the route should hit.',
+    'precisionjump.ctl.reset': 'Resets the route to its default values.',
+    'precisionjump.ctl.table': 'Expands a table with further values.',
   },
 } as const;
 

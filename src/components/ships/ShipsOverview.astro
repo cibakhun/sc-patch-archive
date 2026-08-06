@@ -20,10 +20,16 @@ import { priceInfo, pricesFetchedAt } from '../../lib/shipExtras';
 import { compAttr } from '../../lib/shipComponents';
 import { vType, vSize, vStatus, vRoleCig, vCareer, vRoleFamilies, vSignature, vSizeClass, sizeClassLabel, SIG_LABELS, SIG_STEPS, FEAT_LABELS } from '../../i18n/vehicleText';
 import { localeFromPath } from '../../i18n/ui';
+import { useHelp } from '../../i18n/help';
+import ToolHelp from '../ToolHelp.astro';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
 const localeTag = de ? 'de' : 'en';
+// Werkzeug-Hilfe (Phase 01.2, Plan 04) — EIN Koerper fuer DE+EN (D-12), also
+// keine Sprachparitaets-Falle wie bei den beiden ehemals getrennten
+// Seitendateien: siehe .planning/phases/01.2-werkzeuge-erklaeren/01.2-04-PLAN.md.
+const h = useHelp(lang);
 
 const vehicles = (await getCollection('vehicles')).sort((a, b) =>
   a.data.name.localeCompare(b.data.name, localeTag)
@@ -328,34 +334,38 @@ a{color:inherit;text-decoration:none}
       ? 'Die Größenklasse (1–6) ist CIGs eigene Hangar-/Landeplatzklasse — sie bestimmt, auf welchen Landeplatz bzw. in welchen Hangar das Schiff passt, nicht die umgangssprachliche Größe.'
       : "The size class (1–6) is CIG's own hangar/landing pad class — it determines which landing pad or hangar the ship fits, not the everyday size label."}
   </p>
+  {/* Werkzeug-Hilfe (Phase 01.2, Plan 04) — unmittelbar vor der Filterkonsole
+      (D-08). Ein Schluessel (ships.ctl.select) erklaert ALLE Auswahllisten
+      als EINE ART (D-03), analog zum Missions-Muster aus Plan 03. */}
+  <ToolHelp tool="ships" lang={lang} steps={4} />
   <div class="sdb__filter">
-    <input id="sf-q" type="search" placeholder={de ? 'Schiff oder Hersteller suchen…' : 'Search ship or manufacturer…'} aria-label={de ? 'Suche' : 'Search'} autocomplete="off" />
-    <select id="sf-maker" aria-label={de ? 'Hersteller' : 'Manufacturer'}>
+    <input id="sf-q" type="search" placeholder={de ? 'Schiff oder Hersteller suchen…' : 'Search ship or manufacturer…'} aria-label={de ? 'Suche' : 'Search'} autocomplete="off" data-help={h('ships.ctl.search')} />
+    <select id="sf-maker" aria-label={de ? 'Hersteller' : 'Manufacturer'} data-help={h('ships.ctl.select')}>
       <option value="">{de ? 'Alle Hersteller' : 'All manufacturers'}</option>
       {makers.map((m) => <option value={m}>{m}</option>)}
     </select>
-    <select id="sf-career" aria-label={de ? 'Beruf' : 'Career'}>
+    <select id="sf-career" aria-label={de ? 'Beruf' : 'Career'} data-help={h('ships.ctl.select')}>
       <option value="">{de ? 'Alle Berufe' : 'All careers'}</option>
       {careers.map((c) => <option value={c.key}>{c.label}</option>)}
     </select>
-    <select id="sf-rolefam" aria-label={de ? 'Rolle' : 'Role'}>
+    <select id="sf-rolefam" aria-label={de ? 'Rolle' : 'Role'} data-help={h('ships.ctl.select')}>
       <option value="">{de ? 'Alle Rollen' : 'All roles'}</option>
       {roleFamilies.map((f) => <option value={f.slug}>{f.label} ({f.count})</option>)}
     </select>
-    <select id="sf-size" aria-label={de ? 'Größe' : 'Size'}>
+    <select id="sf-size" aria-label={de ? 'Größe' : 'Size'} data-help={h('ships.ctl.select')}>
       <option value="">{de ? 'Alle Größen' : 'All sizes'}</option>
       {sizeClasses.map((s) => <option value={s.n}>{s.label} ({s.count})</option>)}
     </select>
-    <select id="sf-sig" aria-label={de ? 'Signatur' : 'Signature'}>
+    <select id="sf-sig" aria-label={de ? 'Signatur' : 'Signature'} data-help={h('ships.ctl.select')}>
       <option value="">{de ? 'Alle Signaturen' : 'All signatures'}</option>
       {SIG_STEPS.map((s) => <option value={s.value}>{de ? s.de : s.en}</option>)}
     </select>
-    <select id="sf-feat" aria-label={de ? 'Merkmal' : 'Feature'}>
+    <select id="sf-feat" aria-label={de ? 'Merkmal' : 'Feature'} data-help={h('ships.ctl.select')}>
       <option value="">{de ? 'Alle Merkmale' : 'All features'}</option>
       <option value="cargo">{de ? FEAT_LABELS.cargo.de : FEAT_LABELS.cargo.en}</option>
       <option value="ground">{de ? FEAT_LABELS.ground.de : FEAT_LABELS.ground.en}</option>
     </select>
-    <select id="sf-comp" aria-label={de ? 'Bauteil' : 'Component'}>
+    <select id="sf-comp" aria-label={de ? 'Bauteil' : 'Component'} data-help={h('ships.ctl.select')}>
       <option value="">{de ? 'Alle Bauteile' : 'All components'}</option>
       <option value="w">{de ? 'Waffe' : 'Weapon'}</option>
       <option value="t">{de ? 'Turm' : 'Turret'}</option>
@@ -366,10 +376,10 @@ a{color:inherit;text-decoration:none}
       <option value="q">{de ? 'Quantenantrieb' : 'Quantum drive'}</option>
       <option value="r">Radar</option>
     </select>
-    <select id="sf-compsize" aria-label={de ? 'Mindestgröße des Bauteils' : 'Minimum component size'} disabled>
+    <select id="sf-compsize" aria-label={de ? 'Mindestgröße des Bauteils' : 'Minimum component size'} disabled data-help={h('ships.ctl.select')}>
       <option value="">{de ? 'Beliebige Größe' : 'Any size'}</option>
     </select>
-    <select id="sf-sort" aria-label={de ? 'Sortierung' : 'Sort'}>
+    <select id="sf-sort" aria-label={de ? 'Sortierung' : 'Sort'} data-help={h('ships.ctl.sort')}>
       <option value="name">Name A–Z</option>
       <option value="pledge">{de ? 'Pledge-Preis ↓' : 'Pledge price ↓'}</option>
       <option value="game">{de ? 'Ingame-Preis ↓' : 'In-game price ↓'}</option>
