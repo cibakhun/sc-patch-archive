@@ -85,7 +85,23 @@
 - [ ] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
 - [ ] **DOC-07**: Abgedeckt sind Item Finder, Crafting, Mining, Schiffe, Missionen, Refinery, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
 
+### Crafting-Karten: Bauteil-Kennwerte
+
+> Quelle: Discord-Rückmeldung von [SYN] Froggy — „awesome to actually see the
+> different sizes on what components are and what grade they are like A B C.
+> Aswell if they a mill industrial and so forth." Belege und Messung:
+> `.planning/notes/crafting-karten-groesse-grade-ton.md`.
+
+- [ ] **CRAFT-01**: Jede Blueprint-Karte zeigt Größe und Grade, sofern die Angabe für dieses Item existiert
+- [ ] **CRAFT-02**: Jede Bauteil-Karte zeigt den Ton (Civilian, Military, Industrial, Stealth, Competition …); bei Schiffswaffen stammt er aus dem Kategorie-Pfad statt aus `game.class`
+- [ ] **CRAFT-03**: Fehlt eine Angabe, bleibt die Stelle leer — kein geratener, kein leerer Chip; die 15 gleichnamigen Blueprints sind einzeln geprüft
+- [ ] **CRAFT-04**: Größe und Grade sind auf der Crafting-Seite filterbar, nicht nur sichtbar
+
 ## v2 Requirements
+
+### Crafting-Karten
+
+- **CRAFT-05**: Der Ton für Mininglaser, Tractorbeam, Salvage und Refuelling ist erschlossen (heute in keiner Quelle vorhanden)
 
 ### Sprachparität
 
@@ -147,11 +163,15 @@
 | SYNC-01 | Phase 4 | Pending |
 | SYNC-02 | Phase 4 | Pending |
 | THEME-02 | Phase 4 | Pending |
+| CRAFT-01 | Phase 5 | Pending |
+| CRAFT-02 | Phase 5 | Pending |
+| CRAFT-03 | Phase 5 | Pending |
+| CRAFT-04 | Phase 5 | Pending |
 
 **Coverage:**
 
-- v1 requirements: 21 total
-- Mapped to phases: 21
+- v1 requirements: 25 total
+- Mapped to phases: 25
 - Unmapped: 0 ✓
 
 ---
