@@ -165,10 +165,42 @@ Plans:
 - [ ] 04-01: Prüfschritt für die Deckungsgleichheit der angefassten Seitenpaare bauen
 - [ ] 04-02: Prüfschritt in `npm run verify` bzw. `audit:site` einhängen und Hellmodus-Generierung bestätigen
 
+### Phase 5: Bauteil-Kennwerte auf den Crafting-Karten
+
+**Goal**: Wer die Crafting-Datenbank durchblättert, erkennt auf der Karte selbst, womit er es zu tun hat — Größe, Grade und Ton stehen dort, statt erst nach einem Klick in der Detailansicht aufzutauchen. Was die Karte zeigt, stimmt mit dem Spiel überein; wo eine Angabe fehlt, bleibt die Stelle leer statt geraten.
+**Mode:** mvp
+**Depends on**: Nothing (unabhängig vom Gestaltungs-Meilenstein)
+**Requirements**: CRAFT-01, CRAFT-02, CRAFT-03
+**Success Criteria** (what must be TRUE):
+
+  1. Auf jeder Blueprint-Karte, für die es die Angabe gibt, stehen Größe und Grade — bei Vehiclegear sind das rund 98 % der Karten
+  2. Der Ton (Civilian, Military, Industrial, Stealth, Competition …) steht auf allen Bauteil-Karten, die ihn führen; bei Schiffswaffen wird er aus dem Kategorie-Pfad gewonnen statt aus `game.class`
+  3. Wo eine Angabe fehlt, erscheint kein leerer oder geratener Chip — insbesondere bei Rüstung und Munition
+  4. Die 15 gleichnamigen Blueprints sind einzeln geprüft; keiner zeigt die Kennwerte eines anderen Items
+  5. Die Karten tragen die Kennwerte in DE und EN gleichermaßen — ein Körper, keine zweite Fassung
+  6. Größe und Grade sind nicht nur sichtbar, sondern filterbar
+  7. Die Seite bleibt statisch ausgeliefert; die Ergänzung treibt das Seitengewicht nicht nennenswert nach oben
+
+**Plans**: 3 plans
+
+Plans:
+
+- [ ] 05-01-PLAN.md
+- [ ] 05-02-PLAN.md
+- [ ] 05-03-PLAN.md
+
+- [ ] 05-01 (Welle 1): Tracer — die 57 Quantumdrive-Karten tragen Größe, Grade und Ton durchgehend bis ins gebaute HTML, dazu das Dauergatter für die 15 gleichnamigen Blueprints
+- [ ] 05-02 (Welle 2): Ausrollen auf alle 1594 Karten, Ton der 96 Schiffswaffen aus dem Kategorie-Pfad, Seitengewicht vorher/nachher gemessen
+- [ ] 05-03 (Welle 3): Filter nach Größe und Grade, Ton über die Freitextsuche, Sichtprüfung in DE und EN
+
+Hinweis: Der Filter (Erfolgskriterium 6) steht in `REQUIREMENTS.md` als **CRAFT-04**
+unter v2, wird hier aber von ROADMAP und Scope Fence dieser Phase zugewiesen — die
+Traceability-Tabelle ist beim Abschluss nachzuziehen.
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -178,3 +210,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
+| 5. Bauteil-Kennwerte auf den Crafting-Karten | 0/3 | Planned | - |
