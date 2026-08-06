@@ -182,11 +182,11 @@ Plans:
   6. Größe und Grade sind nicht nur sichtbar, sondern filterbar
   7. Die Seite bleibt statisch ausgeliefert; die Ergänzung treibt das Seitengewicht nicht nennenswert nach oben
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 Plans:
 
-- [ ] 05-01-PLAN.md
+- [x] 05-01-PLAN.md
 - [ ] 05-02-PLAN.md
 - [ ] 05-03-PLAN.md
 
@@ -212,4 +212,4 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 2 → 3 → 4 → 5
 | 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
-| 5. Bauteil-Kennwerte auf den Crafting-Karten | 0/3 | Planned | - |
+| 5. Bauteil-Kennwerte auf den Crafting-Karten | 1/3 | In Progress|  |

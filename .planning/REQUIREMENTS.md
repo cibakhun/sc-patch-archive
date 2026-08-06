@@ -92,9 +92,9 @@
 > Aswell if they a mill industrial and so forth." Belege und Messung:
 > `.planning/notes/crafting-karten-groesse-grade-ton.md`.
 
-- [ ] **CRAFT-01**: Jede Blueprint-Karte zeigt Größe und Grade, sofern die Angabe für dieses Item existiert
-- [ ] **CRAFT-02**: Jede Bauteil-Karte zeigt den Ton (Civilian, Military, Industrial, Stealth, Competition …); bei Schiffswaffen stammt er aus dem Kategorie-Pfad statt aus `game.class`
-- [ ] **CRAFT-03**: Fehlt eine Angabe, bleibt die Stelle leer — kein geratener, kein leerer Chip; die 15 gleichnamigen Blueprints sind einzeln geprüft
+- [x] **CRAFT-01**: Jede Blueprint-Karte zeigt Größe und Grade, sofern die Angabe für dieses Item existiert
+- [x] **CRAFT-02**: Jede Bauteil-Karte zeigt den Ton (Civilian, Military, Industrial, Stealth, Competition …); bei Schiffswaffen stammt er aus dem Kategorie-Pfad statt aus `game.class`
+- [x] **CRAFT-03**: Fehlt eine Angabe, bleibt die Stelle leer — kein geratener, kein leerer Chip; die 15 gleichnamigen Blueprints sind einzeln geprüft
 - [ ] **CRAFT-04**: Größe und Grade sind auf der Crafting-Seite filterbar, nicht nur sichtbar
 
 ## v2 Requirements
@@ -163,9 +163,9 @@
 | SYNC-01 | Phase 4 | Pending |
 | SYNC-02 | Phase 4 | Pending |
 | THEME-02 | Phase 4 | Pending |
-| CRAFT-01 | Phase 5 | Pending |
-| CRAFT-02 | Phase 5 | Pending |
-| CRAFT-03 | Phase 5 | Pending |
+| CRAFT-01 | Phase 5 | Complete |
+| CRAFT-02 | Phase 5 | Complete |
+| CRAFT-03 | Phase 5 | Complete |
 | CRAFT-04 | Phase 5 | Pending |
 
 **Coverage:**

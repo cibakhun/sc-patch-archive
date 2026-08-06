@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1.1
-current_phase_name: Ambiente-Effekte stilllegen
-status: in_progress
-stopped_at: Completed 01.1-02-PLAN.md
-last_updated: "2026-07-29T03:46:15.151Z"
-last_activity: 2026-08-02
-last_activity_desc: Quick-Task 260802-5qd: Zurueck folgt der Herkunft
+current_phase: 05
+current_phase_name: bauteil-kennwerte-auf-den-crafting-karten
+status: executing
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-08-06T22:21:21.809Z"
+last_activity: 2026-08-06
+last_activity_desc: Phase 05 execution started
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 0
-  total_plans: 5
-  completed_plans: 2
+  total_plans: 8
+  completed_plans: 3
 ---
 
 # Project State
@@ -23,17 +23,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 1.1 — Ambiente-Effekte stilllegen
+**Current focus:** Phase 05 — bauteil-kennwerte-auf-den-crafting-karten
 
 ## Current Position
 
-Phase: 1.1 of 6 (Ambiente-Effekte stilllegen)
-Plan: 2 of 3 in Phase 1.1
-Status: Phase 1.1 geplant (3 Pläne, 3 Wellen, Plan-Prüfer bestanden) — bereit zur Ausführung; Phase 1.2 noch ungeplant
+Phase: 05 (bauteil-kennwerte-auf-den-crafting-karten) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Branch: claude/site-feedback-effects-docs-3f4edf
-Last activity: 2026-08-02 — Quick-Task 260802-5qd: Zurück folgt der Herkunft
+Last activity: 2026-08-06 — Phase 05 execution started
 
-Progress: [████░░░░░░] 40%
+Progress: [████░░░░░░] 38%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [████░░░░░░] 40%
 |------|----------|-------|-------|
 | Phase 01.1 P01 | 45min | 3 tasks | 8 files |
 | Phase 01.1 P02 | ~2h | 3 tasks | 39 files |
+| Phase 05 P01 | 26min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,9 @@ Recent decisions affecting current work:
 - [Phase ?]: archive.js: eine gemeinsame running-Variable traegt Tab-Sichtbarkeit UND FX-Wahl statt zweier konkurrierender Riegel
 - [Phase ?]: Codemod liest den Leinwandnamen aus getElementById statt ihn festzuverdrahten -- erkennt dadurch die abweichende dust-Leinwand von sc-4-9-0 korrekt
 - [Phase ?]: sc-4-2-0 Regen und Blitz bewusst aus dem Codemod ausgeschlossen und von Hand gegattert, inkl. Reset des Zeitgebers beim Wiedereinschalten
+- [Phase ?]: Kollisionssperre vergleicht das gesamte item_stats-Objekt (schluesselsortiert serialisiert), nicht nur mass_kg/overheat_temperature — 3 von 5 Kollisionen teilen identisches overheat_temperature
+- [Phase ?]: CSS-Tokens fuer die neuen Chips ohne Hex-Fallback geschrieben (var(--text) statt var(--text,#eef1f5)), um das woertliche Acceptance-Criterion gegen neue Farbliterale zu erfuellen
+- [Phase ?]: verify-crafting-specs.mjs spiegelt blueprintSpecs()/COLLIDING_NAMES statt sie zu importieren — Node's TS-Stripping loest extensionlose relative Importe in crafting.ts (./items) nicht auf, gemessen mit einem direkten import()-Versuch vor der Entscheidung
 
 ### Pending Todos
 
@@ -112,6 +116,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-29T03:46:15.132Z
-Stopped at: Completed 01.1-02-PLAN.md
+Last session: 2026-08-06T22:21:21.795Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
