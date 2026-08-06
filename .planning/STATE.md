@@ -6,14 +6,14 @@ current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
 stopped_at: "Phase 7 Plan 3/3 ausgefuehrt (Komponenten-Filter, Branch claude/gsd-ship-component-filter-f81262) und auf den gemeinsamen Schiffskoerper aus Phase 6 umgebaut; Phase 5 (Unterstuetzen-Seite) weiter offen"
-last_updated: "2026-08-03T21:40:00.000Z"
-last_activity: 2026-08-03
-last_activity_desc: Phase 7 abgeschlossen (Komponenten-Filter fuer Schiffe); zuvor Phase 6 abgeschlossen, Phase 5 auf PayPal neu ausgerichtet
+last_updated: "2026-08-06T14:23:53.046Z"
+last_activity: 2026-08-06
+last_activity_desc: "Phase 1.2 Plan 1/5 ausgefuehrt (Leitschuss Werkzeug-Hilfe am Item Finder); zuvor Phase 7 abgeschlossen, Phase 5 weiter offen"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 14
-  completed_plans: 8
+  total_plans: 19
+  completed_plans: 9
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -64,6 +64,19 @@ nach Phase 5 fortgesetzt; Phase 5 fasst keine der dort geänderten Dateien an.
 handduplizierten Schiffsseiten aus; beim Zusammenführen wanderte der Filter in den von
 Phase 6 eingeführten gemeinsamen Körper `components/ships/ShipsOverview.astro`.
 
+**Ebenfalls neu, aus einer vierten Sitzung (06.08.2026):** Phase 1.2 „Werkzeuge erklären"
+ist besprochen, recherchiert und in **fünf** Plänen geschnitten (nicht zwei — der Textumfang
+von elf Werkzeugen passt nicht in zwei Pläne). **Plan 01 von 5 ist ausgeführt**: die
+Hilfe-Mechanik steht end-to-end am Item Finder — Textkatalog `src/i18n/help.ts` ohne
+Sprachrückfall, Bauteil `src/components/ToolHelp.astro`, Stufe-2-Maschine
+`assets/tool-help.js` und das bleibende Prüftor `scripts/verify-help.mjs`
+(`npm run verify:help`, 5 Zusicherungen, aktuell 1 von 11 Werkzeugen).
+Die Pläne 02–05 hängen die restlichen zehn Werkzeuge an die fertige Mechanik.
+⚠ Beim Einbringen wurden die Phase-01.1-03-Commits jener Sitzung **bewusst weggelassen** —
+der Mauszeiger-Schein ist auf `staging` bereits getilgt (0 Treffer für `cursorglow`/`--mx`),
+die Arbeit wäre ein Duplikat gewesen. Phase 1.1 bleibt hier bei 2/3.
+
+
 Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
@@ -98,6 +111,7 @@ Progress: [████░░░░░░] 40%
 | Phase 07 P01 | ~35min | 2 tasks | 6 files |
 | Phase 07 P02 | 55min | 3 tasks | 3 files |
 | Phase 07 P03 | ~45min | 3 tasks | 3 files |
+| Phase 1.2 P01 | 35min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -125,6 +139,10 @@ Recent decisions affecting current work:
 - [Phase 7]: 07-02: D-06 -> D-06a waehrend des blockierenden Checkpoints verschaerft -- die geratene Fernturm-Namenserkennung (`remote`/`tractor`) ist ersatzlos gestrichen, Turm zaehlt nur noch `TurretBase` ohne `Container` (reversibility: costly). Preis: Carrack/Redeemer/Polaris verlieren ihre ferngesteuerten Turm-Ports; 47 statt 59 Schiffe tragen jetzt `t`. `t` speichert wie alle Kategorien die maximale Steckplatzgroesse, NICHT die Turmanzahl (Verwechslungsgefahr, siehe 07-02-SUMMARY.md).
 - [Phase 7]: 07-03: 26 automatisierte `node:vm`-Testfaelle (`tests/e2e/ship-component-filter.test.js`) fuehren das echte Inline-Skript aus und decken D-04/D-08/D-10/D-11/D-12 ab.
 - [Phase 7]: Zusammenfuehrung 03.08.2026: Phase 7 lief parallel zu Phase 6 und ging von zwei handduplizierten Schiffsseiten aus. Phase 6 hat die beiden zu EINEM Koerper zusammengelegt -- der Filter sitzt seither in `components/ships/ShipsOverview.astro`, nicht mehr zweimal in den Seiten. Das Groessenfeld heisst `sf-compsize`, weil Phase 6 `sf-size` bereits fuer die Schiffs-Groessenklasse belegt.
+- [Phase 1.2]: 01.2-01: useHelp()/assertHelpParity() statt useTranslations() — Hilfetexte duerfen nie auf Englisch zurueckfallen (DOC-04). Der eingebaute EN-Rueckfall in src/i18n/ui.ts ist fuer Hilfetexte das Gegenteil des Erfolgskriteriums.
+- [Phase 1.2]: 01.2-01: Stufe-2-Markup/CSS/Blase entsteht ausschliesslich per JS in activate() — vor dem Klick existiert nichts davon (DOC-06/D-11)
+- [Phase 1.2]: 01.2-01: data-help auf stabilen Huellelementen statt auf ihren Kindern — ueberlebt jeden innerHTML-Neuaufbau der Item-Finder-Chips (DOC-03)
+- [Phase 1.2]: 01.2-01: tool-help.js haengt am Bauteil ToolHelp.astro, NICHT an Layout.astro — es liegt damit auf elf Werkzeugseiten statt auf ~26.000 gebauten Seiten (DOC-06 maschinell beweisbar)
 
 ### Pending Todos
 
@@ -171,6 +189,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-03T21:40:00.000Z
-Stopped at: Phase 7 abgeschlossen (Komponenten-Filter fuer Schiffe) und mit staging zusammengefuehrt — Filter sitzt jetzt im gemeinsamen Koerper ShipsOverview.astro
-Resume file: .planning/phases/05-spenden-unterst-tzung/05-01-PLAN.md  (Phase 5 Spenden — naechster offener Plan)
+Last session: 2026-08-06T14:23:53.032Z
+Stopped at: Phase 1.2 Plan 1/5 ausgefuehrt (Leitschuss Werkzeug-Hilfe am Item Finder) und mit staging zusammengefuehrt; davor Phase 7 abgeschlossen
+Resume file: .planning/phases/01.2-werkzeuge-erklaeren/01.2-02-PLAN.md  (Phase 1.2 — naechster offener Plan; Phase 5 Spenden liegt weiter offen unter .planning/phases/05-spenden-unterst-tzung/05-01-PLAN.md)

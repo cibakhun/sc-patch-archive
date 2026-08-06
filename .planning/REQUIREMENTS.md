@@ -79,13 +79,13 @@
 > der Nutzer weiß, wofür sie da sind und wie man sie benutzt." Der Zweck steht vor
 > der Bedienung — wer nicht weiß, wofür ein Werkzeug gut ist, liest keine Anleitung.
 
-- [ ] **DOC-01**: Jedes Werkzeug trägt einen aufklappbaren Abschnitt, der zuerst den Zweck nennt und dann die Bedienung
-- [ ] **DOC-02**: Ein Hilfe-Schalter heftet auf der aktuellen Ansicht an jedes bedienbare Element eine Erklärung
-- [ ] **DOC-03**: Die Hilfe erreicht auch client-seitig gerendertes Markup (`assets/item-finder-app.js`, `assets/crafting-app.js`)
-- [ ] **DOC-04**: Alle Erklärungen liegen in DE und EN vollständig vor; keine Fassung fällt auf die andere Sprache zurück
-- [ ] **DOC-05**: Die Hilfe ist per Tastatur zu öffnen, zu durchlaufen und mit Esc zu verlassen
-- [ ] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
-- [ ] **DOC-07**: Abgedeckt sind elf Werkzeuge — Item Finder, Crafting, Mining, **Refinery-Finder** (Abschnitt der Mining-Themenseite), **Refinery-Tracker** (`/refinery.html`, kontogebunden), Schiffe, Missionen, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
+- [x] **DOC-01**: Jedes Werkzeug trägt einen aufklappbaren Abschnitt, der zuerst den Zweck nennt und dann die Bedienung
+- [x] **DOC-02**: Ein Hilfe-Schalter heftet auf der aktuellen Ansicht an jedes bedienbare Element eine Erklärung
+- [x] **DOC-03**: Die Hilfe erreicht auch client-seitig gerendertes Markup (`assets/item-finder-app.js`, `assets/crafting-app.js`)
+- [x] **DOC-04**: Alle Erklärungen liegen in DE und EN vollständig vor; keine Fassung fällt auf die andere Sprache zurück
+- [x] **DOC-05**: Die Hilfe ist per Tastatur zu öffnen, zu durchlaufen und mit Esc zu verlassen
+- [x] **DOC-06**: Ungeöffnet kostet die Hilfe nichts — kein Nachladen, keine Schleife, kein spürbares Seitengewicht
+- [x] **DOC-07**: Abgedeckt sind elf Werkzeuge — Item Finder, Crafting, Mining, **Refinery-Finder** (Abschnitt der Mining-Themenseite), **Refinery-Tracker** (`/refinery.html`, kontogebunden), Schiffe, Missionen, Precision Jump, Patch-Archiv, Wikelo's Emporium, Rüstungssets
 
 ### Datenschicht-Wahrhaftigkeit
 
@@ -256,6 +256,10 @@ ist anbieterneutral und bleibt gültig.
 | DOC-05 | Phase 1.2 | Pending |
 | DOC-06 | Phase 1.2 | Pending |
 | DOC-07 | Phase 1.2 | Pending |
+<!-- Stand 06.08.2026: Phase 1.2 Plan 1 von 5 ausgefuehrt (Leitschuss Item Finder,
+     1 von 11 Werkzeugen). DOC-01..07 bleiben deshalb bewusst Pending — die
+     Anforderungen sind erst mit Plan 05 vollstaendig erfuellt. -->
+
 | DATA-01 | Phase 1.3 | Complete |
 | DATA-02 | Phase 1.3 | Complete |
 | DATA-03 | Phase 1.3 | Complete |
