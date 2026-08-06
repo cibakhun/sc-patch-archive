@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-06",
-  "updates": 73,
-  "totalListings": 2600,
-  "totalSold": 112,
-  "distinctItems": 805
+  "updates": 74,
+  "totalListings": 2603,
+  "totalSold": 113,
+  "distinctItems": 806
  },
  "listings": {
   "156580": {
@@ -45365,6 +45365,10 @@
     {
      "d": "2026-08-05",
      "p": 15000000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 10000000
     }
    ],
    "soldOut": false,
@@ -45470,6 +45474,10 @@
     {
      "d": "2026-08-05",
      "p": 15000000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 10000000
     }
    ],
    "soldOut": false,
@@ -45512,6 +45520,10 @@
     {
      "d": "2026-08-05",
      "p": 10000000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 8000000
     }
    ],
    "soldOut": false,
@@ -45554,6 +45566,10 @@
     {
      "d": "2026-08-05",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -52051,9 +52067,9 @@
      "p": 4000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-06",
+   "soldOutPrice": 4000000,
    "dateAdded": 1785958535,
    "dateExpiration": 1791142535
   },
@@ -55081,6 +55097,10 @@
     {
      "d": "2026-08-06",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-06",
+     "p": 19000000
     }
    ],
    "soldOut": false,
@@ -55197,6 +55217,69 @@
    "soldOutPrice": null,
    "dateAdded": 1786001709,
    "dateExpiration": 1791185709
+  },
+  "159340": {
+   "idItem": 8062,
+   "idCategory": 18,
+   "title": "XDL \"Tactical\" Monocular Rangefinder",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786004565,
+   "dateExpiration": 1791188565
+  },
+  "159341": {
+   "idItem": 6575,
+   "idCategory": 17,
+   "title": "PT3 \"Deadfall\" (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 230000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786004703,
+   "dateExpiration": 1791188703
+  },
+  "159345": {
+   "idItem": 4892,
+   "idCategory": 38,
+   "title": "ASD Secure Drive",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-06",
+   "lastSeen": "2026-08-06",
+   "prices": [
+    {
+     "d": "2026-08-06",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786004986,
+   "dateExpiration": 1791188986
   }
  }
 }
