@@ -23,9 +23,15 @@ RUN npm run build
 #                    alles ab, was der Build wirklich laedt. Muss HIER laufen:
 #                    eine zu enge CSP bricht nicht beim Deploy, sondern still
 #                    im Browser des Besuchers.
+#   verify:crafting — die Bauteil-Kennwerte auf den Crafting-Karten stimmen mit
+#                    den Spieldaten ueberein, und gleichnamige Blueprints, die
+#                    in Wahrheit verschiedene Items sind, bleiben gesperrt. Muss
+#                    HIER laufen: eine neue Namenskollision nach einem Datenlauf
+#                    bricht nichts sichtbar — sie zeigt still die Groesse eines
+#                    fremden Items.
 # Schlaegt eins davon fehl, entsteht kein Image und Coolify zieht weiter den
 # letzten guten Stand.
-RUN npm run test:e2e && node scripts/_verify.mjs && npm run verify:vendor && npm run audit:csp
+RUN npm run test:e2e && node scripts/_verify.mjs && npm run verify:vendor && npm run audit:csp && npm run verify:crafting
 
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
