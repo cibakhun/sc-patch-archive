@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-07",
-  "updates": 96,
-  "totalListings": 3022,
+  "updates": 97,
+  "totalListings": 3024,
   "totalSold": 121,
-  "distinctItems": 870
+  "distinctItems": 871
  },
  "listings": {
   "156580": {
@@ -56411,6 +56411,10 @@
     {
      "d": "2026-08-06",
      "p": 3000
+    },
+    {
+     "d": "2026-08-07",
+     "p": 5000
     }
    ],
    "soldOut": false,
@@ -64239,6 +64243,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786088281,
    "dateExpiration": 1791272281
+  },
+  "159773": {
+   "idItem": 6793,
+   "idCategory": 3,
+   "title": "ORC-mkX Helmet Justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 2300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786091208,
+   "dateExpiration": 1791275208
+  },
+  "159774": {
+   "idItem": 4922,
+   "idCategory": 87,
+   "title": "965 Feynmaline",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 109000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786091345,
+   "dateExpiration": 1791275345
   }
  }
 }
