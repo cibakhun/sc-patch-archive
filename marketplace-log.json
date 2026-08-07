@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-07",
-  "updates": 92,
-  "totalListings": 3011,
-  "totalSold": 120,
+  "updates": 93,
+  "totalListings": 3012,
+  "totalSold": 121,
   "distinctItems": 869
  },
  "listings": {
@@ -56912,9 +56912,9 @@
      "p": 6000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-07",
+   "soldOutPrice": 6000000,
    "dateAdded": 1786015765,
    "dateExpiration": 1791199765
   },
@@ -64000,6 +64000,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786070355,
    "dateExpiration": 1791254355
+  },
+  "159731": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTS Wikelo Starlancer TAC",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 170000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786071511,
+   "dateExpiration": 1796439511
   }
  }
 }
