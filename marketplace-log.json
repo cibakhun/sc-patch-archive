@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-07",
-  "updates": 91,
-  "totalListings": 3010,
+  "updates": 92,
+  "totalListings": 3011,
   "totalSold": 120,
   "distinctItems": 869
  },
@@ -63979,6 +63979,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786066891,
    "dateExpiration": 1791250891
+  },
+  "159727": {
+   "idItem": 5330,
+   "idCategory": 17,
+   "title": "Quell Suppressor2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786070355,
+   "dateExpiration": 1791254355
   }
  }
 }
