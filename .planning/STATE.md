@@ -96,6 +96,7 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260802-3fw | Zurück-Button site-weit (SiteNav leitet ihn aus `crumbs` ab; `--nav-h` löst die verdrahteten 68px in drei Filterleisten ab) | 2026-08-02 | b12a3b5, 03ead2d | [260802-3fw-zurueck-button-site-weit](./quick/260802-3fw-zurueck-button-site-weit/) |
 | 260802-5qd | Zurück folgt der tatsächlichen Herkunft (Herkunfts-Notiz + parser-blockierender Leser; crafting→Material→zurück behält Suche und Scroll) | 2026-08-02 | d66dbb6, 9e0133a | [260802-5qd-zurueck-folgt-der-herkunft](./quick/260802-5qd-zurueck-folgt-der-herkunft/) |
+| 260807-sso | Ergebnislisten mit eigenem Bildlauf (`.vb-scrollbox`): Rad über der Liste bewegt die Liste, daneben die Seite; Filterspalte des Item Finders erstmals bis zur letzten Kategorie erreichbar; 5 seit jeher unsichtbare Bildlaufleisten mitbehoben | 2026-08-07 | a05176a, 7a6824e, 3b28e29, e8fd093, 9ce50d3, 145a9b6, ffd8eea | [20260807-tabellen-eigener-bildlauf](./quick/20260807-tabellen-eigener-bildlauf/) |
 
 ### Roadmap Evolution
 
