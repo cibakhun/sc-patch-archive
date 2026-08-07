@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-07",
-  "updates": 97,
-  "totalListings": 3024,
+  "updates": 98,
+  "totalListings": 3030,
   "totalSold": 121,
   "distinctItems": 871
  },
@@ -58723,6 +58723,10 @@
     {
      "d": "2026-08-07",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-07",
+     "p": 10000000
     }
    ],
    "soldOut": false,
@@ -64285,6 +64289,132 @@
    "soldOutPrice": null,
    "dateAdded": 1786091345,
    "dateExpiration": 1791275345
+  },
+  "159776": {
+   "idItem": 5161,
+   "idCategory": 18,
+   "title": "Killshot Rifle (crafted) 975q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 6800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786092340,
+   "dateExpiration": 1791276340
+  },
+  "159781": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite 965Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786094265,
+   "dateExpiration": 1791278265
+  },
+  "159782": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "NDB-30 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786094407,
+   "dateExpiration": 1791278407
+  },
+  "159783": {
+   "idItem": 4477,
+   "idCategory": 18,
+   "title": "Parallax \"Sunstone\" Energy Assault Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 180000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786094856,
+   "dateExpiration": 1791278855
+  },
+  "159785": {
+   "idItem": 5948,
+   "idCategory": 36,
+   "title": "Pressurized Ice",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 870,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786095811,
+   "dateExpiration": 1791279811
+  },
+  "159786": {
+   "idItem": null,
+   "idCategory": 61,
+   "title": "Custom trades",
+   "operation": "trade",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786095927,
+   "dateExpiration": 1791279927
   }
  }
 }
