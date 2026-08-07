@@ -232,7 +232,14 @@ ist anbieterneutral und bleibt gültig.
 
 ### Crafting-Karten
 
-- **CRAFT-05**: Der Ton für Mininglaser, Tractorbeam, Salvage und Refuelling ist erschlossen (heute in keiner Quelle vorhanden)
+- ~~**CRAFT-05**: Der Ton für Mininglaser, Tractorbeam, Salvage und Refuelling ist erschlossen~~
+  — **gestrichen 07.08.2026.** Nachgemessen: dort gibt es nichts zu erschließen.
+  Die Spieldaten führen für diese Bauteile keine Klasse, weil das Konzept nicht
+  greift — Mining-Laser unterscheiden sich über Hersteller und Leistung, nicht
+  über civilian/military. Ein Ersatz über den Hersteller wurde erwogen und
+  verworfen: bei Tractorbeam (12), Salvage (5) und Refuelling (1) stammt alles
+  von Greycat, ein Chip dort unterscheidet nichts und wäre derselbe Fehler wie
+  das frühere „Grade A" auf jeder Waffe.
 
 ### Sprachparität
 
