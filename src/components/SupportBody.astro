@@ -374,10 +374,38 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
      worden, weil sie als Grund HINTER den Absaetzen landeten — zwei
      Schriftsaetze uebereinander. Neben dem Text stellt sich die Frage nicht
      mehr, und ohne sie ist es keine technische Zeichnung, sondern Dekor. */
+  /* Die Zeichnung bekommt eine EIGENE SPALTE statt eines Randplatzes.
+     Vorher stand sie im Aussenrand neben dem 1180-px-Kasten: 314 px breit, und
+     der Auftragstext lag dadurch bei 1920 px Fensterbreite mit seiner Mitte auf
+     736 px — 224 px links der Bildschirmmitte. Die Seite sah aus, als waere sie
+     nach links gerutscht, und rechts stand 370 px leerer Rand.
+
+     Jetzt ist das Blatt selbst breiter (bis 1720 px) und traegt drei Spalten:
+     Zeichnung | Text | Auftrag. Die beiden AUSSEREN sind absichtlich exakt
+     gleich breit (minmax(320px,400px)) — dadurch liegt die Mittelspalte
+     rechnerisch genau auf der Fenstermitte, ohne dass irgendwo ein fester
+     Versatz eingetragen werden muesste. Bei 1920 px: Text 588–1332, Mitte 960.
+
+     Die Zeichnung darf mit der Spalte auf 400 px wachsen (+27 %); ihre
+     Beschriftungen wachsen mit, was der eigentliche Punkt ist — bei 314 px
+     waren sie an der Lesbarkeitsgrenze. */
+  .sup{--maxw:min(1720px,calc(100vw - 160px))}
+  /* Ueberall eine Stufe hoeher ueber den Elternknoten: die Grundregeln fuer
+     Raster und Spaltenzuweisung stehen WEITER UNTEN in der Datei und gewaennen
+     bei gleicher Spezifitaet — Medienabfragen erhoehen sie nicht. Derselbe
+     Stolperstein wie bei den Beschriftungen ein paar Zeilen tiefer. Ohne den
+     Vorsatz blieb die Mittelspalte 0 px breit und der Auftrag lief in eine
+     stillschweigend erzeugte vierte Spalte. */
+  .sup .sup__grid{grid-template-columns:minmax(320px,400px) minmax(0,1fr) minmax(320px,400px)}
+  .sup .sup__order{grid-area:1/2}
+  .sup .sup__aside{grid-area:1/3}
   .sup__bg{display:block}
+  /* Sie bleibt absolut im 100vw-Grund liegen (sonst muesste das Markup eine
+     leere Spalte tragen) und wird ueber die Blattkante auf die reservierte
+     Spalte gerechnet: linke Blattkante + Innenabstand des Rasters. */
   .sup__bg .sup__sch{position:absolute;top:50%;transform:translateY(-50%);
-    left:clamp(24px,calc((100vw - 1180px)/4 - 150px),96px);
-    width:clamp(240px,calc((100vw - 1180px)/2 - 56px),320px);height:auto;margin:0;opacity:.62}
+    left:calc((100vw - var(--maxw))/2 + clamp(16px,4vw,40px));
+    width:clamp(300px,21vw,400px);height:auto;margin:0;opacity:.62}
   /* `.sup__bg .sup__sch text{display:none}` steht weiter unten in der Datei und
      haette bei gleicher Spezifitaet gewonnen — Medienabfragen erhoehen sie
      nicht. Deshalb hier eine Stufe hoeher ueber den Elternknoten. */
