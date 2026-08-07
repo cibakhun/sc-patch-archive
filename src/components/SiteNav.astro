@@ -279,7 +279,10 @@ const deckGroups: DeckGroup[] = [
       {
         href: L('/support.html'),
         label: t('nav.support'),
-        media: THUMB('t-def-2'),
+        // BEWUSST ohne `media`: Support ist kein Ort im Spiel, für den es ein
+        // ehrliches Motiv gäbe — jedes Bild wäre geliehen (vorher t-def-2 =
+        // Bomberanflug auf Infrastruktur). Das Herz-Glyph trägt die Bühne,
+        // wie bei Precision Jump, Alle Themen und Konto.
         sub: t('nav.deck.sub.support'),
         current: current === L('/support.html'),
         icon: '<path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8l1.1 1L12 21l7.7-7.7 1.1-1a5.5 5.5 0 000-7.7z"/>',
