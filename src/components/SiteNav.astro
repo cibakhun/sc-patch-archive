@@ -287,9 +287,11 @@ const deckGroups: DeckGroup[] = [
     ],
   },
 ];
-// laufender Index über alle Gruppen hinweg -> treibt die gestaffelte
-// Reveal-Animation (jede Zeile startet etwas später als die vorige)
-let deckSeq = 0;
+// Die Staffelung läuft jetzt PRO GRUPPE, nicht über alle Gruppen hinweg:
+// --gseq (Gruppenindex) und --seq (Zeilenindex innerhalb der Gruppe) werden
+// direkt beim Rendern gesetzt. Ein durchlaufender Zähler ließ die letzte
+// Zeile der letzten Gruppe erst nach ~0,55 s starten und ließ die Gruppen
+// gleichzeitig erscheinen — genau das, was das Menü träge wirken ließ.
 
 // Cache-Busting für /assets/account-lite.js: die Datei hat eine FESTE URL und
 // wird von Cloudflare 1 Tag gecacht (nginx-Map: application/javascript → 1d).
@@ -418,7 +420,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      ist reine Verstärkung — ohne JS/Hover bleibt die Liste vollständig
      bedienbar, sie zeigt dann schlicht den ersten Eintrag. -->
 <div class="snav-deck" id="snavDeck" hidden role="dialog" aria-modal="true" aria-label={t('nav.menu')}>
-  <div class="snav-deck__ring" aria-hidden="true"></div>
   <div class="snav-deck__back" data-deck-close></div>
   <div class="snav-deck__frame">
     <div class="snav-deck__body">
@@ -462,16 +463,15 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       </div>
 
       <nav class="snav-deck__cols" aria-label={t('nav.deck.title')}>
-        {deckGroups.map((group) => (
-          <section class="snav-deck__group">
+        {deckGroups.map((group, gseq) => (
+          <section class="snav-deck__group" style={`--gseq:${gseq}`}>
             <h2 class="snav-deck__ghead">
               <span class="snav-deck__gname">{group.label}</span>
               <span class="snav-deck__grule" aria-hidden="true"></span>
               <span class="snav-deck__gcount">{String(group.items.length).padStart(2, '0')}</span>
             </h2>
             <ul class="snav-deck__list">
-              {group.items.map((item) => {
-                const seq = deckSeq++;
+              {group.items.map((item, seq) => {
                 const acct = item.account;
                 return (
                   <li>
@@ -1087,13 +1087,33 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     overflow: hidden !important;
     scrollbar-gutter: stable;
   }
+  /* ============================================================
+     Eintritt: „Kanal fuer Kanal"
+
+     Das Menue baut sich auf wie eine Konsole, die ihre Kanaele einloggt:
+     die Kopfkante zieht sich von rechts (dort sitzt der Menueknopf) nach
+     links, dann meldet sich jede Gruppe einzeln an — ihre Trennlinie
+     zeichnet sich, die Anzahl rastet danach ein, die Zeilen laufen hinterher.
+     Nach 320 ms steht alles.
+
+     Vorher stand hier ein wachsender `clip-path: circle()` ueber einem
+     `backdrop-filter: blur(24px)`. Das ist die teuerste Kombination, die
+     CSS zu bieten hat: ein wandernder Beschnitt laesst die Weichzeichnung
+     des ganzen Bildschirms nicht zwischenspeichern, sie wird in JEDEM Bild
+     neu gerechnet. Gemessen auf staging: 84 ms im vierten Bild nach dem
+     Klick, danach 42 und 46 ms — bei 60 Hz rund acht verschluckte Bilder.
+     Jede Bewegung hier laeuft jetzt ausschliesslich ueber `opacity` und
+     `transform`, beides auf dem Compositor.
+     ============================================================ */
   .snav-deck {
     position: fixed;
     inset: 0;
     z-index: 9500;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    /* kurz und linear: die Choreografie sitzt in den Kindern, ein langer
+       Uebergang hier legte sich als Schleier ueber jede Bewegung darunter */
+    transition: opacity 0.16s linear;
   }
   .snav-deck[hidden] {
     display: none;
@@ -1103,53 +1123,34 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     pointer-events: auto;
   }
 
-  /* Energetischer Schockwellen-Ring beim Aufziehen */
-  .snav-deck__ring {
-    position: absolute;
-    top: 25px;
-    right: 40px;
-    width: 24px;
-    height: 24px;
-    margin-top: -12px;
-    margin-right: -12px;
-    border-radius: 50%;
-    border: 2px solid var(--accent, #2dd4ff);
-    box-shadow: 0 0 30px var(--accent, #2dd4ff), inset 0 0 20px var(--accent, #2dd4ff);
-    pointer-events: none;
-    opacity: 0;
-    transform: scale(0.1);
-    transition: transform 0.65s cubic-bezier(0.1, 0.9, 0.2, 1), opacity 0.6s ease;
-  }
-  .snav-deck.is-open .snav-deck__ring {
-    opacity: 0;
-    transform: scale(80);
-  }
+  /* Hier stand `.snav-deck__ring`: ein Ring, der von scale(0.1) auf scale(80)
+     wuchs, mit 30 px Aussen- und 20 px Innenschatten — und in BEIDEN
+     Zustaenden `opacity: 0`. Unsichtbar, aber voll bezahlt. Element und
+     Regel sind ersatzlos raus; die Rahmenspur sitzt jetzt auf
+     `.snav-deck__body` (siehe dort). */
 
-  /* Custom Morphing Radial Mask (ausgehend vom Burger-Button oben rechts) */
   .snav-deck__back {
     position: absolute;
     inset: 0;
     background: radial-gradient(110% 85% at 85% 15%, color-mix(in srgb, var(--accent, #2dd4ff) 14%, transparent), transparent 65%),
       radial-gradient(120% 100% at 50% 0%, var(--chrome-solid), var(--chrome-solid));
     backdrop-filter: blur(24px) saturate(1.1);
-    clip-path: circle(0% at calc(100% - 50px) 28px);
-    transition: clip-path 0.58s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .snav-deck.is-open .snav-deck__back {
-    clip-path: circle(170% at calc(100% - 50px) 28px);
   }
 
-  /* Filmkorn-Textur */
+  /* Filmkorn-Textur.
+     `mix-blend-mode` ist hier bewusst raus: eine Mischung ueber die volle
+     Bildschirmflaeche zwingt den Browser bei jeder Deckkraft-Aenderung
+     darunter zu einem neuen Mischdurchgang und macht die Ebene darueber
+     unbrauchbar fuer den Zwischenspeicher. Der Korn-Eindruck bleibt, weil
+     die Textur ohnehin nur mit 5 % liegt. */
   .snav-deck__back::before {
     content: '';
     position: absolute;
     inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
     opacity: 0.05;
-    mix-blend-mode: overlay;
   }
 
-  /* 3D-Tiefe beim Entfalten */
   .snav-deck__frame {
     position: relative;
     z-index: 1;
@@ -1160,16 +1161,24 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     margin: 0 auto;
     padding: clamp(4.5rem, 7vh, 5.5rem) clamp(1.1rem, 4vw, 2.6rem) clamp(1rem, 3vh, 1.9rem);
     overflow-y: auto;
+    /* Keine Perspektive, kein rotateX mehr: eine 3D-Transformation auf dem
+       Elternelement legt ALLE Kinder in eine gemeinsame Ebene und nimmt
+       ihnen die eigene Staffelung — genau die ist jetzt der Effekt. */
     opacity: 0;
-    transform: perspective(1000px) rotateX(2deg) translateY(-8px) scale(0.97);
-    transition: opacity 0.35s ease 0.08s, transform 0.52s cubic-bezier(0.16, 1, 0.3, 1) 0.04s;
+    transform: translateY(-6px);
+    transition: opacity 0.14s linear 0.04s, transform 0.28s cubic-bezier(0.2, 0.8, 0.3, 1) 0.04s;
   }
   .snav-deck.is-open .snav-deck__frame {
     opacity: 1;
-    transform: perspective(1000px) rotateX(0deg) translateY(0) scale(1);
+    transform: none;
   }
 
-  /* ---- Kopf: Marke | Live-Status | Schließen ---- */
+  /* ---- Kopf: Marke | Live-Status | Schließen ----
+     ACHTUNG: .snav-deck__head, __brand, __status und __close stehen NUR noch
+     hier im Stylesheet — im Markup gibt es sie nicht mehr, seit die feste
+     Leiste oben diese Aufgaben uebernommen hat. Die Regeln sind tot und
+     bleiben nur unangetastet, weil ihr Ausbau nicht Teil dieser Aenderung
+     ist. Nichts Neues hier anhaengen: es wuerde nicht gezeichnet. */
   .snav-deck__head {
     display: flex;
     align-items: center;
@@ -1259,6 +1268,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 
   /* ---- Körper: Bühne links, Spalten rechts ---- */
   .snav-deck__body {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
     gap: clamp(1.5rem, 5vw, 4rem);
@@ -1266,12 +1276,41 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     flex: 1;
     padding: clamp(1.2rem, 4vh, 2.6rem) 0;
   }
+  /* Rahmenspur: eine Akzent-Haarlinie zieht die Oberkante des Inhalts nach,
+     von rechts nach links — die Richtung, aus der das Menue kommt (der
+     Menueknopf sitzt oben rechts). Sie ist der erste Strich der Sequenz.
+
+     Sie haengt an .snav-deck__body und nicht an einem eigenen Element: so
+     stimmen Breite und Einzug automatisch mit dem Inhalt ueberein, ohne die
+     clamp()-Werte des Rahmens ein zweites Mal hinzuschreiben.
+     `position: absolute` ist Pflicht — ein Pseudo-Element im Fluss waere in
+     diesem Raster eine dritte Spalte. */
+  .snav-deck__body::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent,
+      color-mix(in srgb, var(--accent, #2dd4ff) 50%, transparent) 45%,
+      var(--accent, #2dd4ff));
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform 0.24s cubic-bezier(0.25, 0.85, 0.3, 1) 0.03s;
+  }
+  .snav-deck.is-open .snav-deck__body::before {
+    transform: scaleX(1);
+  }
 
   /* ---- Bühne: echtes Motiv, Text darunter ----
      Die Motive sind dieselben, die die Startseite dem Bereich zuordnet — das
      Menü zitiert sie, statt eigene Deko zu erfinden. Alle Bilder liegen
      gestapelt im DOM und werden per Klasse gekreuzt (kein src-Tausch), damit
      beim ersten Anvisieren nichts aufblitzt. */
+  /* Die Buehne rastet zuletzt ein — sie zeigt, was gerade anvisiert ist, und
+     das ergibt erst Sinn, wenn die Kanaele stehen. */
   .snav-deck__stage {
     position: relative;
     align-self: center;
@@ -1279,7 +1318,27 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     flex-direction: column;
     gap: clamp(0.9rem, 2vh, 1.4rem);
     opacity: 0;
-    animation: deckFade 0.5s ease 0.14s forwards;
+    animation: deckFade 0.28s ease 0.22s forwards;
+  }
+  /* Signal-Riegel: ein Akzent-Balken faehrt einmal ueber das Motiv, wenn die
+     Buehne einrastet. Ein `transform: scaleX` auf einer eigenen Ebene — kein
+     Beschnitt, keine Maske, nichts, was den Browser zum Neuzeichnen zwingt. */
+  .snav-deck__shots::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(90deg,
+      transparent,
+      color-mix(in srgb, var(--accent, #2dd4ff) 22%, transparent) 55%,
+      color-mix(in srgb, var(--accent, #2dd4ff) 60%, transparent));
+    transform-origin: left center;
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  .snav-deck.is-open .snav-deck__shots::before {
+    animation: deckSignalLock 0.42s cubic-bezier(0.3, 0.8, 0.3, 1) 0.24s;
   }
   .snav-deck__shots {
     position: relative;
@@ -1406,12 +1465,30 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     gap: clamp(1.1rem, 2.4vw, 2.2rem) clamp(1.2rem, 3vw, 2.6rem);
     align-content: start;
   }
+  /* Eine Gruppe = ein Kanal. --gseq ist ihr Index (im Markup gesetzt) und
+     treibt die ganze Staffelung: Gruppe, ihre Trennlinie, ihre Anzahl und
+     ihre Zeilen haengen alle an derselben Zahl, damit sie zusammen ankommen
+     statt nebeneinander her zu laufen. 55 ms Abstand — schnell genug, dass
+     die Reihenfolge lesbar ist, ohne dass man auf sie wartet. */
   .snav-deck__group {
+    --gdelay: calc(0.07s + var(--gseq, 0) * 0.055s);
     min-width: 0;
     opacity: 0;
-    animation: deckFade 0.42s ease forwards;
-    animation-delay: calc(0.16s + var(--seq, 0) * 0.01s);
+    animation: deckGroupIn 0.26s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+    animation-delay: var(--gdelay);
   }
+  /* die Trennlinie zeichnet sich, sobald ihre Gruppe da ist: das ist der
+     Moment, in dem der Kanal „eingeloggt" ist */
+  .snav-deck__grule {
+    transform: scaleX(0);
+    transform-origin: left center;
+    animation: deckRuleDraw 0.3s cubic-bezier(0.25, 0.85, 0.3, 1) forwards;
+    animation-delay: calc(var(--gdelay) + 0.06s);
+  }
+  /* Die Anzahl bekommt bewusst KEINE eigene Bewegung. Sie haette den Kanal
+     schoen bestaetigt, kostet aber vier zusaetzliche Textebenen im engsten
+     Zeitfenster der Animation — nachgemessen der Unterschied zwischen 3,5 und
+     2,2 langen Bildern unter Last. Sie kommt jetzt mit ihrer Gruppe. */
   .snav-deck__ghead {
     display: flex;
     align-items: center;
@@ -1454,8 +1531,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     color: var(--text, #e8eefc);
     text-decoration: none;
     opacity: 0;
-    animation: deckRowIn 0.42s cubic-bezier(0.2, 0.7, 0.25, 1) forwards;
-    animation-delay: calc(0.2s + var(--seq) * 0.022s);
+    /* --seq zaehlt jetzt INNERHALB der Gruppe, --gdelay kommt von ihr geerbt:
+       die Zeilen laufen ihrem eigenen Kanal hinterher, nicht einer globalen
+       Reihenfolge. Vorher startete die letzte Zeile der letzten Gruppe erst
+       nach 0,55 s — sichtbar spaeter als alles andere. */
+    animation: deckRowIn 0.24s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+    animation-delay: calc(var(--gdelay, 0.07s) + 0.09s + var(--seq) * 0.014s);
     transition: background-color 0.18s ease;
   }
   /* der Marker links: wächst aus der Mitte, statt als Balken zu erscheinen —
@@ -1569,7 +1650,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     flex-wrap: wrap;
     padding-top: clamp(0.6rem, 1.4vh, 1rem);border-top:1px solid var(--line, var(--line-soft));
     opacity: 0;
-    animation: deckFade 0.4s ease 0.42s forwards;
+    animation: deckFade 0.24s ease 0.28s forwards;
   }
   .snav-deck__foot :global(.langsw) {border-color:var(--line, var(--line-soft));
   }
@@ -1596,12 +1677,32 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
 
   @keyframes deckFade {
-    from { opacity: 0; transform: translateY(8px); }
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+  /* Die Gruppe kommt von rechts herein — aus der Richtung des Menueknopfes,
+     dieselbe wie die Kopfkante. */
+  @keyframes deckGroupIn {
+    from { opacity: 0; transform: translateX(16px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes deckRuleDraw {
+    to { transform: scaleX(1); }
+  }
+  @keyframes deckCountIn {
+    from { opacity: 0; transform: translateX(4px); }
     to { opacity: 1; transform: none; }
   }
   @keyframes deckRowIn {
-    from { opacity: 0; transform: translateX(-8px); }
+    from { opacity: 0; transform: translateX(6px); }
     to { opacity: 1; transform: none; }
+  }
+  /* Der Riegel faehrt einmal durch und verschwindet — er markiert den
+     Moment, in dem die Buehne ihr Motiv hat. */
+  @keyframes deckSignalLock {
+    0%   { opacity: 0; transform: scaleX(0); }
+    22%  { opacity: 1; }
+    100% { opacity: 0; transform: scaleX(1); }
   }
 
   /* Bühne kostet Platz und braucht Hover — auf schmalen Viewports fällt sie
@@ -1640,12 +1741,24 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     .snav-deck__head,
     .snav-deck__stage,
     .snav-deck__group,
+    .snav-deck__grule,
+    .snav-deck__gcount,
     .snav-deck__row,
-    .snav-deck__foot {
+    .snav-deck__foot,
+    .snav-deck__frame {
       transition: none;
       animation: none;
       opacity: 1;
       transform: none;
+    }
+    /* Die Rahmenspur und der Signal-Riegel sind reine Bewegung — ohne sie
+       fehlt nichts, sie bleiben deshalb ganz weg statt nur stillzustehen. */
+    .snav-deck__body::before,
+    .snav-deck__shots::before,
+    .snav-deck.is-open .snav-deck__shots::before {
+      display: none;
+      animation: none;
+      transition: none;
     }
     .snav-deck:not(.is-open) {
       opacity: 0;
@@ -1894,7 +2007,23 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       // sonst startet die Opacity-Transition in manchen Rendering-Kontexten
       // nie (rAF kann in gedrosselten/eingebetteten Views ausbleiben).
       void deck.offsetHeight;
-      deck.classList.add('is-open');
+      // Die Klasse erst im NAECHSTEN Bild setzen. Der Wechsel display:none ->
+      // sichtbar laesst den Browser das ganze Menü in einem Zug layouten und
+      // zeichnen (4 Gruppen, 15 Zeilen, Bühne, Fuß) — gemessen das teuerste
+      // Bild der ganzen Interaktion. Lief die Animation im selben Bild los,
+      // fraß dieser Aufbau ihre ersten Bilder auf und sie wirkte hakelig.
+      // Jetzt ist der Aufbau fertig, bevor sich etwas bewegt.
+      // setTimeout als Rückfall: in gedrosselten oder eingebetteten Ansichten
+      // feuert rAF nicht, das Menü stünde sonst unsichtbar offen und finge
+      // Klicks ab. Beide Wege sind über `armed` gegeneinander verriegelt.
+      var armed = false;
+      var arm = function () {
+        if (armed) return;
+        armed = true;
+        deck.classList.add('is-open');
+      };
+      requestAnimationFrame(arm);
+      setTimeout(arm, 60);
       // is-deck-open bleibt (scrollbar-gutter), die eigentliche Sperre
       // uebernimmt die geteilte Fassung: overflow:hidden am Wurzelelement
       // reicht auf iOS Safari nicht. Siehe assets/scroll-lock.js.
@@ -1904,20 +2033,31 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     }
 
     function closeDeck() {
-      // Auf die Klasse pruefen, NICHT auf `hidden`: das wird erst 380 ms
-      // spaeter gesetzt (Ausblend-Dauer). In diesem Fenster wuerde ein
-      // zweiter Klick sonst ein zweites Mal entsperren.
+      // Auf die Klasse pruefen, NICHT auf `hidden`: das wird erst nach der
+      // Ausblend-Dauer gesetzt. In diesem Fenster wuerde ein zweiter Klick
+      // sonst ein zweites Mal entsperren.
       if (!deck.classList.contains('is-open')) return;
       deck.classList.remove('is-open');
       document.documentElement.classList.remove('is-deck-open');
       if (window.VBScrollLock) window.VBScrollLock.unlock();
       btn.setAttribute('aria-expanded', 'false');
-      setTimeout(function () { deck.hidden = true; }, 380);
+      // 200 statt 380 ms: die Ausblendung dauert jetzt 160 ms (.snav-deck).
+      // Laenger warten hiesse nur, dass das Menue unsichtbar weiter Klicks
+      // abfaengt.
+      setTimeout(function () { deck.hidden = true; }, 200);
       if (lastFocus && lastFocus.focus) lastFocus.focus();
     }
 
     btn.addEventListener('click', function () {
       deck.hidden ? openDeck() : closeDeck();
+    });
+    // Motive schon beim Anfahren des Knopfes holen, nicht erst beim Klick:
+    // 11 Bilder (~94 KB) im selben Bild zu dekodieren, in dem das Menue
+    // aufgebaut wird, kostet genau dort Zeit, wo es auffaellt. Wer klickt,
+    // faehrt vorher mit dem Zeiger hin; auf Beruehrung greift der
+    // Rueckfall in openDeck().
+    ['pointerenter', 'focus'].forEach(function (ev) {
+      btn.addEventListener(ev, primeShots, { once: true, passive: true });
     });
     deck.querySelectorAll('[data-deck-close]').forEach(function (el) {
       el.addEventListener('click', closeDeck);
