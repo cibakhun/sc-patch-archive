@@ -310,7 +310,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       <div class="cdb-count-row">
         <span><b id="cdb-count">{total}</b> / {total} {S.results}</span>
       </div>
-      <div class="cdb-grid" id="cdb-grid">
+      <div class="cdb-grid vb-scrollbox" id="cdb-grid">
         {/* HTML-Diät (SEO/Ladegewicht): 1534 Karten × ~340 Zeichen tote Fracht
             waren ~0,5 MB pro Sprachseite. Filter-Metadaten (name/cat/sub/res/
             mis/ings) stehen sichtbar in der Karte bzw. in der DB — crafting-app.js
@@ -408,7 +408,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
             dann kann der Rechner Seltenheit nicht garantieren. Normal hidden. */}
         <p id="calc-datanote" role="alert" hidden style="margin:0 0 1rem;padding:.7rem .9rem;border:1px solid #ff5b5b;border-left-width:3px;border-radius:6px;background:rgba(255,91,91,.09);color:var(--text,#eef1f5);font-size:.85rem;line-height:1.45;">{S.calcDataIncomplete}</p>
 
-        <div id="calc-results" class="calc-grid">
+        <div id="calc-results" class="calc-grid vb-scrollbox">
           <!-- Results rendered dynamically via JS -->
         </div>
       </div>
@@ -524,8 +524,14 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .cdb-toast{position:fixed;left:50%;bottom:1.4rem;transform:translateX(-50%);z-index:120;max-width:min(92vw,420px);padding:.7rem 1rem;border:1px solid var(--accent-2,#1FA2FF);border-radius:8px;background:var(--surface,#232329);color:var(--text,#eef1f5);font-size:.85rem;line-height:1.4;box-shadow:0 8px 28px var(--shadow-color)}
   .cdb-toast[hidden]{display:none}
   /* Layout */
-  .cdb-layout{display:grid;grid-template-columns:250px 1fr;gap:1.4rem;align-items:start}
-  .cdb-sidebar{position:sticky;top:146px;align-self:start;max-height:calc(100vh - 162px);overflow:auto;border:1px solid var(--line,rgba(255,94,26,.22));background:var(--surface,#232329);border-radius:8px;padding:1rem}
+  /* --vb-top: 4.4rem sind .cdb-bar (Innenabstand 2 × .7rem plus ~2rem
+     Bedienelemente) als Startwert, wird spaeter nachgemessen. --nav-h kommt
+     aus SiteNav und traegt die Zurueck-Zeile bereits mit. */
+  .cdb-layout{display:grid;grid-template-columns:250px 1fr;gap:1.4rem;align-items:start;--vb-top:calc(var(--nav-h,68px) + 4.4rem)}
+  /* Die alten 146px/162px waren 68px Nav plus Filterleiste fest verdrahtet —
+     sobald die Nav ihre Zurueck-Zeile traegt (107/132px), verschwand die
+     Filterspalte zu 39 bzw. 64px dahinter. --vb-top behebt das. */
+  .cdb-sidebar{position:sticky;top:var(--vb-top);align-self:start;max-height:calc(100dvh - var(--vb-top) - 1rem);overflow:auto;overscroll-behavior:contain;border:1px solid var(--line,rgba(255,94,26,.22));background:var(--surface,#232329);border-radius:8px;padding:1rem}
   .cdb-side-hd{display:none;justify-content:space-between;align-items:center;margin-bottom:.6rem;font-weight:800}
   .cdb-fgroup{margin-bottom:1.1rem;border-bottom:1px solid var(--line-soft,var(--line-soft));padding-bottom:1rem}
   .cdb-fgroup:last-of-type{border-bottom:0}
@@ -730,8 +736,10 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .cdb-tab-btn.active{color:var(--accent,#FF5E1A);border-color:var(--accent,#FF5E1A)}
   
   /* Dismantling Calculator layout */
-  .calc-layout{display:grid;grid-template-columns:250px 1fr;gap:1.4rem;align-items:start}
-  .calc-sidebar{background:var(--surface,#232329);border:1px solid var(--line,rgba(255,94,26,.22));border-radius:8px;padding:1rem;position:sticky;top:146px;align-self:start;max-height:calc(100vh - 162px);overflow:auto}
+  /* Gleiche Zahl wie .cdb-layout: beide sitzen unter derselben klebenden
+     .cdb-bar. */
+  .calc-layout{display:grid;grid-template-columns:250px 1fr;gap:1.4rem;align-items:start;--vb-top:calc(var(--nav-h,68px) + 4.4rem)}
+  .calc-sidebar{background:var(--surface,#232329);border:1px solid var(--line,rgba(255,94,26,.22));border-radius:8px;padding:1rem;position:sticky;top:var(--vb-top);align-self:start;max-height:calc(100dvh - var(--vb-top) - 1rem);overflow:auto;overscroll-behavior:contain}
   .calc-sidebar h4{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.66rem;color:var(--accent,#FF5E1A);margin:0 0 .6rem}
   .calc-fgroup{margin-bottom:1.1rem;border-bottom:1px solid var(--line-soft,var(--line-soft));padding-bottom:1rem}
   .calc-fgroup:last-of-type{border-bottom:0;padding-bottom:0;margin-bottom:0}
