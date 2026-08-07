@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-07",
-  "updates": 109,
-  "totalListings": 3235,
-  "totalSold": 131,
-  "distinctItems": 892
+  "updates": 110,
+  "totalListings": 3263,
+  "totalSold": 136,
+  "distinctItems": 894
  },
  "listings": {
   "156580": {
@@ -64535,6 +64535,10 @@
     {
      "d": "2026-08-07",
      "p": 7000000
+    },
+    {
+     "d": "2026-08-07",
+     "p": 5750000
     }
    ],
    "soldOut": false,
@@ -66395,6 +66399,10 @@
     {
      "d": "2026-08-07",
      "p": 300000
+    },
+    {
+     "d": "2026-08-07",
+     "p": 650000
     }
    ],
    "soldOut": false,
@@ -67770,9 +67778,9 @@
      "p": 500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-07",
+   "soldOutPrice": 500000,
    "dateAdded": 1786120848,
    "dateExpiration": 1791304848
   },
@@ -67791,9 +67799,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-07",
+   "soldOutPrice": 1000000,
    "dateAdded": 1786121013,
    "dateExpiration": 1791305013
   },
@@ -67812,9 +67820,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-07",
+   "soldOutPrice": 1000000,
    "dateAdded": 1786121124,
    "dateExpiration": 1791305124
   },
@@ -67896,9 +67904,9 @@
      "p": 350000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-07",
+   "soldOutPrice": 350000,
    "dateAdded": 1786121402,
    "dateExpiration": 1791305402
   },
@@ -68148,9 +68156,9 @@
      "p": 250000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-07",
+   "soldOutPrice": 250000,
    "dateAdded": 1786123081,
    "dateExpiration": 1791307081
   },
@@ -68322,6 +68330,48 @@
    "dateAdded": 1786125189,
    "dateExpiration": 1791309189
   },
+  "159921": {
+   "idItem": 5023,
+   "idCategory": 61,
+   "title": "Yormandi Tongue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786125750,
+   "dateExpiration": 1791309750
+  },
+  "159922": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 959Q x2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786125798,
+   "dateExpiration": 1791309798
+  },
   "159925": {
    "idItem": null,
    "idCategory": 3,
@@ -68363,6 +68413,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786126857,
    "dateExpiration": 1791310857
+  },
+  "159927": {
+   "idItem": 4744,
+   "idCategory": 87,
+   "title": "Janalite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 898,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786127169,
+   "dateExpiration": 1791311169
+  },
+  "159928": {
+   "idItem": null,
+   "idCategory": 65,
+   "title": "WTB 2 Expired Quantanium Fuel Canister's 2m aUEC total",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786127186,
+   "dateExpiration": 1791311186
   },
   "159929": {
    "idItem": 6008,
@@ -68447,6 +68539,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786128829,
    "dateExpiration": 1791312829
+  },
+  "159933": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 972,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786129007,
+   "dateExpiration": 1791313007
   },
   "159934": {
    "idItem": 5870,
@@ -68637,6 +68750,27 @@
    "dateAdded": 1786132540,
    "dateExpiration": 1791316540
   },
+  "159943": {
+   "idItem": null,
+   "idCategory": 3,
+   "title": "Kiba Helmet (No Horns)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786132612,
+   "dateExpiration": 1791316612
+  },
   "159944": {
    "idItem": 5320,
    "idCategory": 17,
@@ -68657,6 +68791,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786133714,
    "dateExpiration": 1791317714
+  },
+  "159945": {
+   "idItem": null,
+   "idCategory": 87,
+   "title": "UEE 6th Platoon Medal (Pristine) 30 pieces",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786133980,
+   "dateExpiration": 1791317980
   },
   "159946": {
    "idItem": 3940,
@@ -68721,6 +68876,69 @@
    "dateAdded": 1786134332,
    "dateExpiration": 1791318332
   },
+  "159949": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786134434,
+   "dateExpiration": 1791318434
+  },
+  "159950": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 2,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786134651,
+   "dateExpiration": 1791318651
+  },
+  "159951": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786134860,
+   "dateExpiration": 1791318860
+  },
   "159952": {
    "idItem": 115,
    "idCategory": 29,
@@ -68741,6 +68959,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786134888,
    "dateExpiration": 1791318888
+  },
+  "159953": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Stirling Exploration Set ASD Edition / Backpack included",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786134928,
+   "dateExpiration": 1791318927
+  },
+  "159954": {
+   "idItem": 6001,
+   "idCategory": 61,
+   "title": "UNE Gold Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786135003,
+   "dateExpiration": 1791319003
   },
   "159955": {
    "idItem": 5845,
@@ -68784,6 +69044,27 @@
    "dateAdded": 1786135068,
    "dateExpiration": 1796506668
   },
+  "159957": {
+   "idItem": 5502,
+   "idCategory": 17,
+   "title": "Delta \"Scorched\" (1x Reflex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786135318,
+   "dateExpiration": 1791319318
+  },
   "159958": {
    "idItem": 5870,
    "idCategory": 36,
@@ -68804,6 +69085,321 @@
    "soldOutPrice": null,
    "dateAdded": 1786135487,
    "dateExpiration": 1791319487
+  },
+  "159959": {
+   "idItem": 4044,
+   "idCategory": 17,
+   "title": "Sion \"Tweaker\" Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786135540,
+   "dateExpiration": 1791319540
+  },
+  "159960": {
+   "idItem": 5321,
+   "idCategory": 17,
+   "title": "FocalWave-20 (2x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786135823,
+   "dateExpiration": 1791319823
+  },
+  "159961": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium 974Q 2.093 SCU!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 974,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786135863,
+   "dateExpiration": 1791319863
+  },
+  "159962": {
+   "idItem": null,
+   "idCategory": 61,
+   "title": "454 MG SCRIP",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 2270000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786135989,
+   "dateExpiration": 1791319989
+  },
+  "159963": {
+   "idItem": 4043,
+   "idCategory": 17,
+   "title": "Sion 'Tweaker' Compensator 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786136108,
+   "dateExpiration": 1791320108
+  },
+  "159964": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "Taranite 925Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 925,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786136208,
+   "dateExpiration": 1791320208
+  },
+  "159965": {
+   "idItem": 5320,
+   "idCategory": 17,
+   "title": "FocalWave-10 (1x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786136370,
+   "dateExpiration": 1791320370
+  },
+  "159966": {
+   "idItem": 4042,
+   "idCategory": 17,
+   "title": "Emod 'Tweaker' Stabilizer 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786136647,
+   "dateExpiration": 1791320647
+  },
+  "159967": {
+   "idItem": 4391,
+   "idCategory": 18,
+   "title": "C54 \"Scorched\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786136728,
+   "dateExpiration": 1791320728
+  },
+  "159968": {
+   "idItem": 6587,
+   "idCategory": 18,
+   "title": "Ravager-212 \"Scorched\" Twin Shotgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786136870,
+   "dateExpiration": 1791320870
+  },
+  "159969": {
+   "idItem": 2554,
+   "idCategory": 18,
+   "title": "Yubarev \"Igniter\" Pistol",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786137002,
+   "dateExpiration": 1791321002
+  },
+  "159970": {
+   "idItem": 6223,
+   "idCategory": 5,
+   "title": "Stirling Exploration Suit Olympian Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786137320,
+   "dateExpiration": 1791321319
+  },
+  "159971": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 930,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786137366,
+   "dateExpiration": 1791321366
+  },
+  "159972": {
+   "idItem": null,
+   "idCategory": 15,
+   "title": "Surgical Scrubs -- UNOBTAINABLE IN GAME",
+   "operation": "trade",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786138062,
+   "dateExpiration": 1791322062
+  },
+  "159973": {
+   "idItem": 182,
+   "idCategory": 32,
+   "title": "Salvation Distortion Scattergun // Ailgam's Collectibles",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786138639,
+   "dateExpiration": 1791322639
   }
  }
 }
