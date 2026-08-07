@@ -270,7 +270,13 @@ function readEntity(ref) {
     if (massKg != null) stats.mass_kg = r6(massKg);
     if (overheat != null) stats.overheat_temperature = r6(overheat);
   }
-  const out = { name, stats, itemType, className };
+  // `guid` = Record-Id der EntityClassDefinition. Derselbe Id-Raum, aus dem
+  // datamine-items.mjs `item.game.guid` zieht — damit laesst sich ein Blueprint
+  // eindeutig auf sein Item beziehen, statt ueber den Anzeigenamen zu raten.
+  // Anzeigenamen sind KEIN Schluessel: fuenf Blueprint-Gruppen tragen denselben
+  // Namen und sind nachweislich verschiedene Items (Main Powerplant 60 t gegen
+  // 7,6 t). Siehe COLLIDING_NAMES in src/lib/crafting.ts.
+  const out = { guid: ref.__ref, name, stats, itemType, className };
   entityCache.set(ref.__ref, out);
   return out;
 }
@@ -367,7 +373,7 @@ for (const r of db.records) {
   const bp = d?.blueprint;
   const ecRef = bp?.processSpecificData?.entityClass;
   if (!ecRef?.__ref) { skippedNoEntity++; continue; }
-  const ent = readEntity(ecRef) ?? { name: null, stats: null, itemType: null, className: ecRef.name?.replace('EntityClassDefinition.', '') ?? r.name.replace(/^CraftingBlueprintRecord\.BP_CRAFT_/, '') };
+  const ent = readEntity(ecRef) ?? { guid: ecRef.__ref, name: null, stats: null, itemType: null, className: ecRef.name?.replace('EntityClassDefinition.', '') ?? r.name.replace(/^CraftingBlueprintRecord\.BP_CRAFT_/, '') };
   if (!ent.name) {
     if (isTemplate) { skippedTemplate++; continue; }
     ent.name = humanize(ent.className);
@@ -431,6 +437,10 @@ for (const r of db.records) {
 
   const entry = {
     name: ent.name,
+    // Eindeutiger Schluessel des gecrafteten Items (EntityClassDefinition-Id).
+    // Deckt sich mit `item.game.guid` aus datamine-items.mjs. Der Anzeigename
+    // taugt nicht dafuer — siehe Kommentar in readEntity().
+    entity_guid: ent.guid ?? null,
     category: categoryOf(r.fileName) ?? '—',
     craft_time_seconds: craftSeconds,
     tiers: tiers.length,

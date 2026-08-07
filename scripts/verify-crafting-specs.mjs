@@ -65,7 +65,7 @@ try {
   process.exit(1);
 }
 
-const { blueprintSpecs, COLLIDING_NAMES, toneFromWeaponCategoryPath } = src.craft;
+const { blueprintSpecs, COLLIDING_NAMES, toneFromWeaponCategoryPath, resolvedByGuid } = src.craft;
 const { GRADE_BEARING_TYPES, hasGradeSemantics, rootCategory } = src.itemlib;
 const itemByName = new Map(items.map((i) => [i.name.toLowerCase(), i]));
 const collidingNames = COLLIDING_NAMES;
@@ -142,6 +142,7 @@ const EXPECTED_COLLIDING = ['antium core jet', 'broadspec', 'main powerplant', '
 const dupGroups = [...byName.entries()].filter(([, list]) => list.length > 1);
 let groupsCollidingMeasured = 0, groupsCollidingCards = 0, groupsUnauffaellig = 0;
 let overheatOnlyDiffering = 0;
+let guidResolvedCards = 0, nameOnlyCards = 0;
 const collisionFindings = [];
 
 for (const [name, list] of dupGroups) {
@@ -154,9 +155,19 @@ for (const [name, list] of dupGroups) {
   if (isColliding) {
     groupsCollidingMeasured++;
     groupsCollidingCards += list.length;
+    // Seit dem guid-Join gilt fuer eine kollidierende Gruppe: wer seine
+    // entity_guid im Katalog trifft, ist zweifelsfrei bestimmt und DARF seine
+    // Kennwerte zeigen. Wer nur ueber den Namen gefunden wuerde, MUSS leer
+    // bleiben — dort waere es geraten.
     for (const b of list) {
       const sp = blueprintSpecs(b);
-      if (sp !== null) collisionFindings.push(`GESPERRTE GRUPPE ZEIGT CHIPS: "${b.name}" (Kategorie ${b.category}) liefert ${JSON.stringify(sp)} statt null`);
+      if (resolvedByGuid(b)) {
+        guidResolvedCards++;
+        if (sp === null) collisionFindings.push(`EINDEUTIGE KARTE OHNE KENNWERTE: "${b.name}" (${b.category}) trifft seine guid, liefert aber null`);
+      } else {
+        nameOnlyCards++;
+        if (sp !== null) collisionFindings.push(`GERATEN: "${b.name}" (${b.category}) wurde nur ueber den Namen gefunden, liefert aber ${JSON.stringify(sp)} statt null`);
+      }
     }
   } else {
     groupsUnauffaellig++;
@@ -222,25 +233,29 @@ console.log('6) Abdeckung je Vehiclegear-Typ …');
 // loeschte den Kuehler mit. Eintrag wiederhergestellt, Regel um einen Schutz
 // fuer Eintraege mit Spieldaten ergaenzt -> wieder 71/71/70.
 const COVERAGE_EXPECTED = {
-  Powerplant: { n: 75, gated: 4, size: 71, grade: 71, tone: 71 },
-  Cooler: { n: 75, gated: 2, size: 71, grade: 71, tone: 70 },
-  Shield: { n: 62, gated: 0, size: 62, grade: 62, tone: 61 },
-  Radar: { n: 60, gated: 2, size: 55, grade: 55, tone: 55 },
-  Quantumdrive: { n: 57, gated: 0, size: 57, grade: 57, tone: 56 },
+  Powerplant: { n: 75, leer: 2, size: 73, grade: 73, tone: 72 },
+  Cooler: { n: 75, leer: 3, size: 72, grade: 72, tone: 71 },
+  Shield: { n: 62, leer: 0, size: 62, grade: 62, tone: 61 },
+  Radar: { n: 60, leer: 4, size: 56, grade: 55, tone: 56 },
+  Quantumdrive: { n: 57, leer: 0, size: 57, grade: 57, tone: 56 },
 };
 for (const [type, exp] of Object.entries(COVERAGE_EXPECTED)) {
   const bps = craftDb.blueprints.filter((b) => b.category.includes('Vehiclegear') && b.category.includes(`/ ${type}`));
-  let gated = 0, size = 0, grade = 0, tone = 0;
+  // "leer" = die Karte zeigt keine Kennwerte, gefragt wird die ECHTE Funktion.
+  // Frueher zaehlte dieser Block stattdessen die Namensliste und uebersprang
+  // diese Karten — er waere blind dafuer gewesen, dass der guid-Join die
+  // Haelfte der Kollisionen jetzt eindeutig aufloest.
+  let leer = 0, size = 0, grade = 0, tone = 0;
   for (const b of bps) {
-    if (collidingNames.has(b.name.toLowerCase())) { gated++; continue; }
     const sp = blueprintSpecs(b);
-    if (sp?.sizes?.length) size++;
-    if (sp?.grade != null) grade++;
-    if (sp?.tone != null) tone++;
+    if (!sp) { leer++; continue; }
+    if (sp.sizes.length) size++;
+    if (sp.grade != null) grade++;
+    if (sp.tone != null) tone++;
   }
-  console.log(`   ${type}: n=${bps.length} gesperrt=${gated} Groesse=${size} Grade=${grade} Ton=${tone}`);
+  console.log(`   ${type}: n=${bps.length} ohne Kennwerte=${leer} Groesse=${size} Grade=${grade} Ton=${tone}`);
   need(bps.length === exp.n, `${type}: n erwartet ${exp.n}, gemessen ${bps.length}`);
-  need(gated === exp.gated, `${type}: gesperrt erwartet ${exp.gated}, gemessen ${gated}`);
+  need(leer === exp.leer, `${type}: ohne Kennwerte erwartet ${exp.leer}, gemessen ${leer}`);
   need(size === exp.size, `${type}: Groesse erwartet ${exp.size}, gemessen ${size}`);
   need(grade === exp.grade, `${type}: Grade erwartet ${exp.grade}, gemessen ${grade}`);
   need(tone === exp.tone, `${type}: Ton erwartet ${exp.tone}, gemessen ${tone}`);
@@ -294,20 +309,20 @@ console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${tota
 // Alle fuenf zeigen jetzt nichts an statt eines geratenen Wertes (D-06).
 // Offen als Folgearbeit: die vier Varianten-Items koennten ihre Groessen als
 // "S3 / S4 / S6" zeigen, so wie es die Item-Seite bereits tut.
-need(totalWithSpec === 1514, `Chip-Reihen: erwartet 1514, gemessen ${totalWithSpec}`);
+need(totalWithSpec === 1527, `Chip-Reihen: erwartet 1527, gemessen ${totalWithSpec}`);
 // 1513 statt 1510 seit dem 07.08.2026: die Crafting-Schicht leitet die Groesse
 // nicht mehr selbst aus `g.size` ab, sondern nimmt `itemSizes()` aus items.ts.
 // Damit tragen auch die mehrdeutigen Anzeigenamen ihre Groessen — GVSR
 // Repeater "S2 / S10", Revenant Gatling "S3 / S4 / S6", Tarantula GT-870
 // "S3 / S7 / S8". Die beiden BroadSpec-Karten bleiben gesperrt (Kollision),
 // deshalb +3 und nicht +5.
-need(totalSize === 1513, `Groesse: erwartet 1513, gemessen ${totalSize}`);
+need(totalSize === 1527, `Groesse: erwartet 1527, gemessen ${totalSize}`);
 // 315 statt 1509 seit dem 07.08.2026: der Grade erscheint nur noch bei den
 // fuenf Bauteilarten, bei denen er im Spiel etwas unterscheidet (Kraftwerk 71,
 // Kuehler 70, Schild 62, Radar 55, Quantenantrieb 57 = 315). Zuvor trugen 1194
 // Karten ein "Grade A", das nur der Vorgabewert aus AttachDef.Grade war —
 // aufgefallen an einer Dominance-1 Scattergun. Siehe GRADE_BEARING_TYPES.
-need(totalGrade === 316, `Grade: erwartet 316, gemessen ${totalGrade}`);
+need(totalGrade === 319, `Grade: erwartet 319, gemessen ${totalGrade}`);
 need(
   ['PowerPlant', 'Cooler', 'Shield', 'Radar', 'QuantumDrive'].every((t) => gradeBearingTypes.has(t)),
   `gradeBearingTypes deckt die fuenf Bauteilarten nicht ab: [${[...gradeBearingTypes].sort().join(', ')}]`,
@@ -316,10 +331,10 @@ need(
   !['WeaponGun', 'WeaponPersonal', 'Char_Armor_Helmet', 'Paints'].some((t) => gradeBearingTypes.has(t)),
   `gradeBearingTypes laesst eine Art mit konstantem Grade durch: [${[...gradeBearingTypes].sort().join(', ')}]`,
 );
-need(totalTone === 496, `Ton: erwartet 496, gemessen ${totalTone}`);
-need(toneFromClass === 400, `Ton aus game.class: erwartet 400, gemessen ${toneFromClass}`);
-need(toneFromPath === 96, `Ton aus dem Pfad: erwartet 96, gemessen ${toneFromPath}`);
-need(totalNone === 80, `ohne jede Angabe: erwartet 80, gemessen ${totalNone}`);
+need(totalTone === 503, `Ton: erwartet 503, gemessen ${totalTone}`);
+need(toneFromClass === 403, `Ton aus game.class: erwartet 403, gemessen ${toneFromClass}`);
+need(toneFromPath === 100, `Ton aus dem Pfad: erwartet 100, gemessen ${toneFromPath}`);
+need(totalNone === 67, `ohne jede Angabe: erwartet 67, gemessen ${totalNone}`);
 need(totalWithSpec + totalNone === craftDb.blueprints.length, `Selbstkonsistenz: ${totalWithSpec} + ${totalNone} != ${craftDb.blueprints.length}`);
 
 /* ---------- 9) Wertebereich Ton ---------- */

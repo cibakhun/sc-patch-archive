@@ -68,6 +68,13 @@ export interface BlueprintMission {
 
 export interface Blueprint {
   name: string;
+  /**
+   * Record-Id der EntityClassDefinition des gecrafteten Items — derselbe
+   * Id-Raum wie `item.game.guid`. Ein echter Schluessel, im Gegensatz zum
+   * Anzeigenamen. Seit dem 07.08.2026 von datamine-crafting.mjs geschrieben;
+   * aeltere Snapshots haben ihn nicht, deshalb optional.
+   */
+  entity_guid?: string | null;
   category: string;
   craft_time_seconds: number;
   tiers: number;
@@ -189,9 +196,36 @@ export const craftPageCount = (c: CraftCategory) =>
 /* ---------- Join Blueprint <-> Item ---------- */
 
 const itemByName = new Map(items.map((i) => [i.name.toLowerCase(), i]));
+const itemByGuid = new Map(
+  items.flatMap((i) => (i.game?.guid ? [[i.game.guid, i] as const] : [])),
+);
 
-/** Das gecraftete Item im Katalog (Join ueber den Namen, wie im Finder). */
+/**
+ * Wurde das Item ueber den echten Schluessel gefunden?
+ *
+ * `entity_guid` ist die Record-Id der EntityClassDefinition und damit
+ * eindeutig — trifft sie, ist zweifelsfrei das richtige Item gefunden, auch
+ * wenn mehrere Blueprints denselben Anzeigenamen tragen. Gemessen 07.08.2026:
+ * 1527 der 1594 Blueprints treffen so, 56 weitere nur noch ueber den Namen
+ * (ihr Katalogeintrag fuehrt keine guid), 11 gar nicht.
+ */
+export function resolvedByGuid(b: Blueprint): boolean {
+  return !!(b.entity_guid && itemByGuid.has(b.entity_guid));
+}
+
+/**
+ * Das gecraftete Item im Katalog. **Zuerst ueber `entity_guid`** — ein echter
+ * Schluessel —, und nur wenn der nichts findet, ueber den Anzeigenamen.
+ *
+ * Der Namensweg bleibt noetig, weil `assets/universal-items.json` seine
+ * Eintraege selbst nach Namen zusammenfasst und dabei bei gleichnamigen Items
+ * nur einen behaelt: von zwei gleichnamigen Blueprints trifft deshalb genau
+ * einer seine guid. Er ist aber nur noch der Rueckfallweg, und wo er greift,
+ * schuetzt die Sperre COLLIDING_NAMES.
+ */
 export function itemForBlueprint(b: Blueprint): Item | null {
+  const byId = b.entity_guid ? itemByGuid.get(b.entity_guid) : undefined;
+  if (byId) return byId;
   return itemByName.get(b.name.toLowerCase()) ?? null;
 }
 
@@ -276,7 +310,10 @@ export function toneFromWeaponCategoryPath(category: string): string | null {
  * Data.p4k-Lauf, keine Neu-Extraktion.
  */
 export function blueprintSpecs(b: Blueprint): BlueprintSpecs | null {
-  if (COLLIDING_NAMES.has(b.name.toLowerCase())) return null;
+  // Die Sperre greift nur noch dort, wo ueber den Anzeigenamen gejoint werden
+  // musste. Trifft die `entity_guid`, ist das Item zweifelsfrei bestimmt — dann
+  // ist die Namensgleichheit belanglos und die Karte darf ihre Kennwerte zeigen.
+  if (!resolvedByGuid(b) && COLLIDING_NAMES.has(b.name.toLowerCase())) return null;
   const item = itemForBlueprint(b);
   if (!item) return null;
   const g = item.game;

@@ -18,13 +18,16 @@ const deHtml = fs.readFileSync(path.resolve('dist/de/topics/crafting.html'), 'ut
 // haben ihre Einzelgroesse verloren, weil staging fuer mehrdeutige
 // Anzeigenamen `sizes[]`/`variants[]` fuehrt statt einer erfundenen
 // Einzelgroesse — sie zeigen nun nichts statt eines geratenen Wertes.
+// Seit dem guid-Join (07.08.2026) steigen die Zahlen wieder: `entity_guid`
+// aus datamine-crafting.mjs bestimmt 1527 der 1594 Blueprints eindeutig, und
+// je gleichnamiger Gruppe loest sich damit eine der beiden Karten auf.
 // `NightFall` war kurzzeitig ein fuenfter Fall, aber aus einem anderen Grund:
 // die Kurznamen-Bereinigung hatte den Kuehler faelschlich geloescht (Regel B
 // vergleicht Namen; "NightFall" ist zugleich die Kurzform des *Nightfall
 // Repeater*). Eintrag wiederhergestellt, Regel abgesichert.
 // Begruendung ausfuehrlich in scripts/verify-crafting-specs.mjs.
-const TOTAL_SPEC_ROWS = 1514;
-const TOTAL_TONE_CHIPS = 496;
+const TOTAL_SPEC_ROWS = 1527;
+const TOTAL_TONE_CHIPS = 503;
 
 /** Schneidet das <article class="cbp" …>…</article> heraus, das den Karten-
  * Namen <name> als Linktext im h3.cbp__name traegt. Wirft, wenn keine
@@ -160,12 +163,20 @@ for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
     });
 
     for (const name of LOCKED_GROUPS) {
-      test(`beide Karten "${name}" (gesperrte Namensgruppe, D-09) bleiben chiplos`, () => {
+      // Seit dem guid-Join (07.08.2026) gilt fuer eine gleichnamige Gruppe:
+      // GENAU EINE Karte trifft ihre entity_guid im Item-Katalog und ist damit
+      // zweifelsfrei bestimmt — die zeigt ihre Kennwerte. Die andere waere nur
+      // ueber den Namen auffindbar und bleibt leer, statt zu raten.
+      // (Der Katalog fasst seine Eintraege selbst nach Namen zusammen und
+      // behaelt je Name einen — deshalb trifft immer nur eine der beiden.)
+      test(`"${name}": genau eine der beiden Karten zeigt Kennwerte`, () => {
         const cards = findAllCards(html, name);
         assert.strictEqual(cards.length, 2, `${name}: erwartet 2 Karten, gefunden ${cards.length}`);
-        for (const [i, card] of cards.entries()) {
-          assert.strictEqual(specChips(card), null, `${name} Karte ${i + 1}: darf keine ul.cbp__spec tragen`);
-        }
+        const mitChips = cards.filter((c) => specChips(c) !== null);
+        assert.strictEqual(
+          mitChips.length, 1,
+          `${name}: erwartet genau 1 Karte mit Kennwerten, gefunden ${mitChips.length} — bei 2 wird geraten, bei 0 geht eine gesicherte Angabe verloren`,
+        );
       });
     }
 
