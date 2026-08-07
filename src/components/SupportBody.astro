@@ -320,8 +320,40 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
    lesbar, aber der Text darueber steht bei gemessenen 16,8:1 — die Zeichnung
    nimmt ihm nichts. Ein Wasserzeichen mit mehr Deckkraft haette genau den
    Vorwurf zurueckgeholt, den diese Seite gerade erst losgeworden ist. */
-.sup__bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;display:flex;justify-content:flex-start;align-items:center}
+/* Der Grund laeuft ueber die volle FENSTERbreite, nicht nur im Kasten.
+   Bis zum 07.08.2026 stand hier `inset:0` — der Grund war damit auf die
+   1180-px-Spalte begrenzt und konnte den Bereich daneben gar nicht erreichen.
+   Zusammen mit der Deckkraft .15 blieb links schlicht nichts: die Zeichnung,
+   die vor dem Umbau eine sichtbare eigene Spalte war, verschwand im Kasten,
+   und um den Kasten herum war leere Flaeche. Genau das ist als "kaputt"
+   aufgefallen.
+   Jetzt ankert sie am linken FENSTERrand (justify-content:flex-start bei
+   100vw) und traegt den Rand mit, so wie es der Umbau vorhatte. */
+.sup__bg{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:100vw;overflow:hidden;pointer-events:none;z-index:0;display:flex;justify-content:flex-start;align-items:center}
+/* Grundfall (bis 1400 px): unveraendert Wasserzeichen HINTER dem Inhalt —
+   dort gibt es keinen freien Rand, und ein kraeftigerer Grund wuerde nur den
+   Text stoeren. */
 .sup__bg .sup__sch{height:152%;width:auto;max-width:none;flex:none;margin-left:clamp(-190px,-9vw,-60px);opacity:.15}
+
+/* Ab 1400 px liegt neben dem 1180-px-Kasten ein Rand von mindestens 110 px
+   frei — und genau der war das Problem: die Zeichnung stand bis zum
+   07.08.2026 mit `inset:0` INNERHALB des Kastens und konnte ihn gar nicht
+   erreichen. Die Seite war ein Viereck in der Mitte, drumherum nichts.
+
+   Hier ruecht sie deshalb ganz in den Rand: `right: calc(50% + 560px)` setzt
+   ihre rechte Kante 30 px unter die linke Kastenkante (der Kasten ist
+   1180 px breit, seine linke Kante liegt also 590 px links der Mitte).
+   Damit steht sie neben dem Text statt darunter — und darf kraeftiger sein.
+
+   Deckkraft: .15 sind gemessen 1,22:1 gegen den Seitengrund, fuer
+   1-bis-1,7-px-Linien schlicht unsichtbar. Das war der eigentliche Fehler des
+   Umbaus vom 04.08.: gewollt war ein Wasserzeichen, entstanden ist eine leere
+   Flaeche. .3 liegt bei 1,66:1 (Linien) bzw. 1,82:1 (die goldene
+   Fehlerstelle) — als Struktur erkennbar, ohne Anspruch auf Lesbarkeit. */
+@media (min-width:1400px){
+  .sup__bg{display:block}
+  .sup__bg .sup__sch{position:absolute;top:50%;transform:translateY(-50%);right:calc(50% + 560px);margin-left:0;opacity:.3}
+}
 .sup__sch{display:block}
 /* DIE BESCHRIFTUNGEN DER ZEICHNUNG SIND IM GRUND AUS.
    Im Browser angesehen, nachdem der Umbau stand: „GEHÄUSE", „LÜFTER 80 MM",
