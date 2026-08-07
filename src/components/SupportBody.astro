@@ -350,9 +350,38 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
    Umbaus vom 04.08.: gewollt war ein Wasserzeichen, entstanden ist eine leere
    Flaeche. .3 liegt bei 1,66:1 (Linien) bzw. 1,82:1 (die goldene
    Fehlerstelle) — als Struktur erkennbar, ohne Anspruch auf Lesbarkeit. */
-@media (min-width:1400px){
+@media (min-width:1800px){
+  /* Ab hier ist der Rand neben dem 1180-px-Kasten mindestens 310 px breit —
+     genug fuer die GANZE Zeichnung in lesbarer Groesse.
+
+     Die Schwelle lag zuerst bei 1600 px. Nachgemessen und verworfen: dort ist
+     der Rand 210 px, die Zeichnung waere auf 170 px geschrumpft und ihre
+     Beschriftungen auf gut 4 px — das ist keine Zeichnung mehr, sondern
+     Grieß. Lieber erst dann, wenn Platz dafuer da ist; darunter bleibt das
+     alte Wasserzeichen. Sie wird dort wieder das, was sie vor dem
+     Umbau vom 04.08. war: eine lesbare Werkstattskizze neben dem Auftrag.
+
+     Der erste Versuch (07.08.) hat sie nur nach links geschoben und am
+     Fensterrand abgeschnitten. Im Browser angesehen und verworfen: sichtbar
+     waren ein Rechteck, ein Bogen und ein halber Zylinder — Bruchstuecke, die
+     wie Schutt aussehen, nicht wie eine Zeichnung. Sichtbarkeit allein
+     genuegt nicht, die Figur muss ganz sein.
+
+     `width` statt `height`: die Breite ist hier die knappe Groesse (der Rand),
+     die Hoehe ist reichlich. 400:640 aus der viewBox liefert die Hoehe.
+
+     Die Beschriftungen kommen mit zurueck. Sie waren am 04.08. abgeschaltet
+     worden, weil sie als Grund HINTER den Absaetzen landeten — zwei
+     Schriftsaetze uebereinander. Neben dem Text stellt sich die Frage nicht
+     mehr, und ohne sie ist es keine technische Zeichnung, sondern Dekor. */
   .sup__bg{display:block}
-  .sup__bg .sup__sch{position:absolute;top:50%;transform:translateY(-50%);right:calc(50% + 560px);margin-left:0;opacity:.3}
+  .sup__bg .sup__sch{position:absolute;top:50%;transform:translateY(-50%);
+    left:clamp(24px,calc((100vw - 1180px)/4 - 150px),96px);
+    width:clamp(240px,calc((100vw - 1180px)/2 - 56px),320px);height:auto;margin:0;opacity:.62}
+  /* `.sup__bg .sup__sch text{display:none}` steht weiter unten in der Datei und
+     haette bei gleicher Spezifitaet gewonnen — Medienabfragen erhoehen sie
+     nicht. Deshalb hier eine Stufe hoeher ueber den Elternknoten. */
+  .sup__body .sup__bg .sup__sch text,.sup__body .sup__bg .sup__sch .ld{display:initial}
 }
 .sup__sch{display:block}
 /* DIE BESCHRIFTUNGEN DER ZEICHNUNG SIND IM GRUND AUS.
