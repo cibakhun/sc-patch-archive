@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-07",
-  "updates": 103,
-  "totalListings": 3137,
-  "totalSold": 125,
-  "distinctItems": 888
+  "updates": 104,
+  "totalListings": 3144,
+  "totalSold": 126,
+  "distinctItems": 889
  },
  "listings": {
   "156580": {
@@ -61094,6 +61094,10 @@
     {
      "d": "2026-08-06",
      "p": 5000000
+    },
+    {
+     "d": "2026-08-07",
+     "p": 4500000
     }
    ],
    "soldOut": false,
@@ -64446,9 +64450,9 @@
      "p": 10000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-07",
+   "soldOutPrice": 10000000,
    "dateAdded": 1786072438,
    "dateExpiration": 1791256438
   },
@@ -64549,6 +64553,10 @@
     {
      "d": "2026-08-07",
      "p": 17600000
+    },
+    {
+     "d": "2026-08-07",
+     "p": 14300000
     }
    ],
    "soldOut": false,
@@ -66702,6 +66710,153 @@
    "soldOutPrice": null,
    "dateAdded": 1786113395,
    "dateExpiration": 1791297395
+  },
+  "159869": {
+   "idItem": 4616,
+   "idCategory": 38,
+   "title": "Crypt Keycard",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 125000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786115451,
+   "dateExpiration": 1791299451
+  },
+  "159871": {
+   "idItem": 4000,
+   "idCategory": 111,
+   "title": "PYAM Supervisor keycard",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786115651,
+   "dateExpiration": 1791299651
+  },
+  "159872": {
+   "idItem": 158,
+   "idCategory": 23,
+   "title": "FR-86 crafted 681Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 681,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786115691,
+   "dateExpiration": 1791299691
+  },
+  "159873": {
+   "idItem": 158,
+   "idCategory": 23,
+   "title": "FR-86 Crafted 747/743Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 747,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786115951,
+   "dateExpiration": 1791299951
+  },
+  "159877": {
+   "idItem": 1770,
+   "idCategory": 21,
+   "title": "JS-500",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786116782,
+   "dateExpiration": 1791300782
+  },
+  "159880": {
+   "idItem": 8031,
+   "idCategory": 7,
+   "title": "Antium Moss Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 750,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786117377,
+   "dateExpiration": 1791301377
+  },
+  "159881": {
+   "idItem": 8028,
+   "idCategory": 7,
+   "title": "Antium Jet Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 750,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786117513,
+   "dateExpiration": 1791301513
   }
  }
 }
