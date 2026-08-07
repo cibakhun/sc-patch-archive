@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-07",
-  "updates": 95,
-  "totalListings": 3017,
+  "updates": 96,
+  "totalListings": 3022,
   "totalSold": 121,
-  "distinctItems": 869
+  "distinctItems": 870
  },
  "listings": {
   "156580": {
@@ -59189,6 +59189,10 @@
     {
      "d": "2026-08-06",
      "p": 55000000
+    },
+    {
+     "d": "2026-08-07",
+     "p": 45000000
     }
    ],
    "soldOut": false,
@@ -64130,6 +64134,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786083635,
    "dateExpiration": 1791267635
+  },
+  "159764": {
+   "idItem": 8023,
+   "idCategory": 7,
+   "title": "WTS Artimex full Set Q952",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 952,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786085461,
+   "dateExpiration": 1791269461
+  },
+  "159765": {
+   "idItem": null,
+   "idCategory": 4,
+   "title": "ADP-mk4 Legs Justified // Ailgams Collectibles",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 6500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786085985,
+   "dateExpiration": 1791269985
+  },
+  "159766": {
+   "idItem": 4436,
+   "idCategory": 1,
+   "title": "Morozov-SH-I Arms Pyrotechnic // Ailgam's Collectibles",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786086285,
+   "dateExpiration": 1791270285
+  },
+  "159767": {
+   "idItem": 6007,
+   "idCategory": 1,
+   "title": "FBL-8a Arms Justified // Ailgam's Collectibles",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786086925,
+   "dateExpiration": 1791270925
+  },
+  "159769": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "Yormandi Tongue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786088281,
+   "dateExpiration": 1791272281
   }
  }
 }
