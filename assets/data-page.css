@@ -116,6 +116,15 @@ body {
 
 .dp-main {
   flex: 1;
+  /* --vb-top/--vb-air fuer .vb-scrollbox (assets/mobile-ux.css, Abschnitt 5d):
+     diese Seiten laufen NICHT in SiteNav, sondern in der schlanken DataShell —
+     es gibt hier keine feste Nav, nur die klebende .dp-bar bei top:0. --nav-h
+     ist auf diesen ~17.000 Seiten gar nicht definiert und faellt in der
+     geteilten Formel auf 68px zurueck, was hier zu viel waere. Die Zahl wird
+     deshalb ausdruecklich gesetzt statt geerbt: 4rem sind die klebende .dp-bar
+     (2 x .7rem Innenabstand plus Inhalt), Startwert fuer die Nachmessung. */
+  --vb-top: 4rem;
+  --vb-air: 5rem;
   /* Gezielt border-box (KEIN globaler *-Reset — der wuerde alle bestehenden
      Layouts verschieben): ohne ihn addiert sich das Seiten-Padding auf die
      100 % Breite. Auf einem 375-px-Viewport waere die Box 407 px breit; der
@@ -216,6 +225,13 @@ body {
 
 /* ---------- Tabellen ---------- */
 
+/* .dp-tablewrap traegt zusaetzlich .vb-scrollbox (ItemListing.astro,
+   CraftingListing.astro): die Klasse gibt die senkrechte Hoehe/Leiste, hier
+   bleibt overflow-x:auto unveraendert stehen. Der Kasten scrollt damit BEIDE
+   Achsen und bleibt deshalb bewusst ausserhalb der waagerechten Kanten-Liste
+   in mobile-ux.css Abschnitt 5c: eine Maske je Achse liesse sich nicht
+   ueberlagern (mask-composite waere noetig). Die senkrechte Kante aus 5d/
+   Task 7 gilt hier trotzdem, weil sie eine eigene Liste (SEL_VFADE) fuehrt. */
 .dp-tablewrap {
   overflow-x: auto;
   border: 1px solid var(--line);

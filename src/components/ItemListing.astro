@@ -46,7 +46,7 @@ const sourceLabel = (n: number, first?: string) =>
     {fill(t('listingLead'), { n: num(node.items.length, lang), cat: node.cat, date: db.pricesAsOf })}
   </p>
 
-  <div class="dp-tablewrap">
+  <div class="dp-tablewrap vb-scrollbox" tabindex="0" role="region" aria-label={t('tableRegion')}>
     <table class="dp-table">
       <thead>
         <tr>

@@ -111,13 +111,33 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
 
 <style is:inline>
   .as-intro { color: var(--muted); font-size: .94rem; line-height: 1.6; margin: 0 0 1.4rem; }
-  .as-jump { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 2rem; }
+  /* Kein Kasten fuer diese Seite (Dokument mit Sprungmarken, kein Ergebnisraster,
+     Begruendung im PLAN) — stattdessen bekommt die Hersteller-Sprungleiste einen
+     eigenen klebenden Platz, damit sie von jeder Stelle der Seite aus erreichbar
+     ist, ohne 20 Abschnitte durchzuscrollen. Deckender Hintergrund + blur wie
+     .dp-bar (assets/data-page.css), Haarlinie als untere Kante. z-index 15,
+     ausdruecklich UNTER der Brotkrumenleiste .dp-bar (20), sonst laege die
+     Sprungleiste beim Scrollen darueber. */
+  .as-jump {
+    display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 2rem;
+    position: sticky; top: 0; z-index: 15;
+    padding: .8rem 0; background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line-soft);
+  }
   .as-jump a {
     font-size: .8rem; padding: .25rem .6rem; border: 1px solid var(--line-soft);
     border-radius: 999px; color: var(--muted); text-decoration: none;
   }
   .as-jump a:hover { color: var(--text); border-color: var(--accent); }
   .as-jump span { opacity: .6; }
+
+  /* mobile-ux.css (Abschnitt 6) setzt scroll-margin-top fuer [id] nur hinter
+     @media (max-width:820px) — dort reicht die feste Brotkrumenleiste .dp-bar
+     allein. Mit der nun am DESKTOP klebenden .as-jump wuerde ein Sprungziel
+     sonst unter BEIDEN Leisten landen. Diese Regel gehoert hierher statt in
+     mobile-ux.css, weil sie genau diese eine Seite und genau diese eine neue
+     Leiste betrifft (.dp-bar 4rem + .as-jump ca. 3rem = 7rem). */
+  .dp-sec[id] { scroll-margin-top: 7rem; }
 
   .as-set { border-top: 1px solid var(--line-soft); padding: 1.1rem 0; }
   .as-set-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: .6rem 1rem; }

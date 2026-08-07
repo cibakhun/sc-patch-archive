@@ -47,7 +47,7 @@ const crumbs = [
     {fill(t('bpListingLead'), { n: num(node.blueprints.length, lang), cat: node.cat, date: craftDb.snapshot_date })}
   </p>
 
-  <div class="dp-tablewrap">
+  <div class="dp-tablewrap vb-scrollbox" tabindex="0" role="region" aria-label={t('tableRegion')}>
     <table class="dp-table">
       <thead>
         <tr>
