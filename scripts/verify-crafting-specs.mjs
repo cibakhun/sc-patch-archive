@@ -82,6 +82,30 @@ function toneFromWeaponCategoryPath(category) {
   return null;
 }
 
+/** Spiegel von GRADE_BEARING_TYPES in crafting.ts: eine Bauteilart traegt nur
+ * dann einen aussagekraeftigen Grade, wenn mindestens zwei Grades vorkommen und
+ * der seltenste mindestens ein Zehntel der Art ausmacht. Sonst ist "A" der
+ * Vorgabewert aus AttachDef.Grade und behauptet eine Einstufung, die es im
+ * Spiel nicht gibt (152 Schiffswaffen ausnahmslos A, 381 Handwaffen ebenso). */
+const gradeBearingTypes = (() => {
+  const byType = new Map();
+  for (const it of items) {
+    const t = it.game?.gameType;
+    const gr = it.game?.grade;
+    if (!t || !gr) continue;
+    let m = byType.get(t);
+    if (!m) byType.set(t, (m = new Map()));
+    m.set(gr, (m.get(gr) ?? 0) + 1);
+  }
+  const bearing = new Set();
+  for (const [type, counts] of byType) {
+    if (counts.size < 2) continue;
+    const total = [...counts.values()].reduce((a, b) => a + b, 0);
+    if (Math.min(...counts.values()) / total >= 0.1) bearing.add(type);
+  }
+  return bearing;
+})();
+
 /** Spiegel von blueprintSpecs() in crafting.ts. */
 function blueprintSpecs(b) {
   if (collidingNames.has(b.name.toLowerCase())) return null;
@@ -90,7 +114,7 @@ function blueprintSpecs(b) {
   const g = item.game;
   const eq = hasGradeSemantics(item);
   const size = eq && g?.size != null ? g.size : null;
-  const grade = eq && g?.grade ? g.grade : null;
+  const grade = eq && g?.grade && g.gameType && gradeBearingTypes.has(g.gameType) ? g.grade : null;
   const tone = g?.class ?? toneFromWeaponCategoryPath(b.category);
   if (size == null && grade == null && tone == null) return null;
   return { size, grade, tone };
@@ -301,7 +325,20 @@ console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${tota
 // "S3 / S4 / S6" zeigen, so wie es die Item-Seite bereits tut.
 need(totalWithSpec === 1513, `Chip-Reihen: erwartet 1513, gemessen ${totalWithSpec}`);
 need(totalSize === 1509, `Groesse: erwartet 1509, gemessen ${totalSize}`);
-need(totalGrade === 1509, `Grade: erwartet 1509, gemessen ${totalGrade}`);
+// 315 statt 1509 seit dem 07.08.2026: der Grade erscheint nur noch bei den
+// fuenf Bauteilarten, bei denen er im Spiel etwas unterscheidet (Kraftwerk 71,
+// Kuehler 70, Schild 62, Radar 55, Quantenantrieb 57 = 315). Zuvor trugen 1194
+// Karten ein "Grade A", das nur der Vorgabewert aus AttachDef.Grade war —
+// aufgefallen an einer Dominance-1 Scattergun. Siehe GRADE_BEARING_TYPES.
+need(totalGrade === 315, `Grade: erwartet 315, gemessen ${totalGrade}`);
+need(
+  ['PowerPlant', 'Cooler', 'Shield', 'Radar', 'QuantumDrive'].every((t) => gradeBearingTypes.has(t)),
+  `gradeBearingTypes deckt die fuenf Bauteilarten nicht ab: [${[...gradeBearingTypes].sort().join(', ')}]`,
+);
+need(
+  !['WeaponGun', 'WeaponPersonal', 'Char_Armor_Helmet', 'Paints'].some((t) => gradeBearingTypes.has(t)),
+  `gradeBearingTypes laesst eine Art mit konstantem Grade durch: [${[...gradeBearingTypes].sort().join(', ')}]`,
+);
 need(totalTone === 495, `Ton: erwartet 495, gemessen ${totalTone}`);
 need(toneFromClass === 399, `Ton aus game.class: erwartet 399, gemessen ${toneFromClass}`);
 need(toneFromPath === 96, `Ton aus dem Pfad: erwartet 96, gemessen ${toneFromPath}`);

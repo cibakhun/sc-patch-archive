@@ -84,6 +84,13 @@ function specChips(card) {
 // beiden Schiffswaffen, deren Ton NICHT aus game.class kommt, sondern aus dem
 // Kategorie-Pfad (D-04) — sowie Agure als Beleg, dass Groesse 0 ein echter
 // Wert ist, keine fehlende Angabe.
+// Grade `null` heisst: diese Karte darf KEINEN Grade-Chip tragen. Seit dem
+// 07.08.2026 erscheint der Grade nur bei den fuenf Bauteilarten, bei denen er
+// im Spiel etwas unterscheidet (Kraftwerk, Kuehler, Schild, Radar,
+// Quantenantrieb). Schiffswaffen fuehren in AttachDef.Grade ausnahmslos den
+// Vorgabewert 1 -> "A"; ein Chip "Grade A" auf einer Dominance-1 Scattergun
+// behauptet eine Einstufung, die es nicht gibt. Siehe GRADE_BEARING_TYPES in
+// src/lib/crafting.ts.
 const REFERENCE_CARDS = [
   ['Allegro', 'S4', 'A', 'Civilian'],
   ['Atlas', 'S1', 'A', 'Civilian'],
@@ -93,9 +100,11 @@ const REFERENCE_CARDS = [
   ['Lotus', 'S2', 'A', 'Civilian'],
   ['Cassandra', 'S2', 'A', 'Stealth'],
   ['Cirrus', 'S2', 'C', 'Stealth'],
-  ['AD4B Ballistic Gatling', 'S4', 'A', 'Ballistic'],
-  ['9-Series Longsword Cannon', 'S1', 'A', 'Ballistic'],
   ['Agure', 'S0', 'D', 'Military'],
+  // Schiffswaffen: Groesse und Ton ja, Grade nein.
+  ['AD4B Ballistic Gatling', 'S4', null, 'Ballistic'],
+  ['9-Series Longsword Cannon', 'S1', null, 'Ballistic'],
+  ['Dominance-2 Scattergun', 'S2', null, 'Laser'],
 ];
 
 // Die 10 Karten der 5 gesperrten Namensgruppen (D-09) — bleiben nach dem
@@ -107,15 +116,25 @@ const LOCKED_GROUPS = ['BroadSpec', 'Main Powerplant'];
 for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
   describe(`Crafting-Karten Groesse/Grade/Ton (${label})`, () => {
     for (const [name, size, grade, tone] of REFERENCE_CARDS) {
-      test(`${name} traegt Groesse ${size}, Grade ${grade}, Ton ${tone}`, () => {
+      const gradeLabel = grade === null ? 'keinen Grade' : `Grade ${grade}`;
+      test(`${name} traegt Groesse ${size}, ${gradeLabel}, Ton ${tone}`, () => {
         const card = findCard(html, name);
         const chips = specChips(card);
         assert.ok(chips, `${name}: keine ul.cbp__spec auf der Karte`);
-        assert.strictEqual(chips.length, 3, `${name}: erwartet 3 Chips, gefunden ${chips.length}`);
+        const expected = grade === null ? 2 : 3;
+        assert.strictEqual(chips.length, expected, `${name}: erwartet ${expected} Chips, gefunden ${chips.length} (${chips.map((c) => c.text).join('/')})`);
         assert.strictEqual(chips[0].text, size);
-        assert.strictEqual(chips[1].text, grade);
-        assert.strictEqual(chips[2].text, tone);
-        assert.strictEqual(chips[2].tone, true, `${name}: Ton-Chip ohne class="tone"`);
+        if (grade === null) {
+          assert.ok(
+            !chips.some((c) => !c.tone && /^[A-D]$/.test(c.text)),
+            `${name}: traegt einen Grade-Chip, obwohl diese Bauteilart keinen aussagekraeftigen Grade hat`,
+          );
+        } else {
+          assert.strictEqual(chips[1].text, grade);
+        }
+        const last = chips[chips.length - 1];
+        assert.strictEqual(last.text, tone);
+        assert.strictEqual(last.tone, true, `${name}: Ton-Chip ohne class="tone"`);
       });
     }
 
