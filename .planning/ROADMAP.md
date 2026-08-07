@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Wortmarken-Wandlung** - Hero-Überschrift oben mittig, scroll-verknüpfte Wandlung in die Kopfleiste
 - [ ] **Phase 1.1: Ambiente-Effekte stilllegen** (INSERTED) - Mauszeiger-Schein ersatzlos raus, Partikel nur noch auf ausdrücklichen Wunsch
-- [ ] **Phase 1.2: Werkzeuge erklären** (INSERTED) - Jedes Werkzeug sagt, wofür es da ist und wie man es bedient
+- [x] **Phase 1.2: Werkzeuge erklären** (INSERTED) - Jedes Werkzeug sagt, wofür es da ist und wie man es bedient
 - [ ] **Phase 1.3: Datenschicht aufraeumen** (INSERTED) - Reste alter Datenläufe raus, falsche Quellenangabe weg, Datenstand auf den laufenden Client
 - [ ] **Phase 1.4: Fahrzeug-Katalog auf Spieldaten** (INSERTED) - Der Schiffskatalog kommt aus der eigenen Extraktion statt aus der Wiki-API
 - [ ] **Phase 2: Schrift- und Bewegungsskala** - Eine gemeinsame Skala für Schriftgrade und Übergänge statt seitenlokaler Einzelwerte
