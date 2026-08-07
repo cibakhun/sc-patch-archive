@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-07",
-  "updates": 102,
-  "totalListings": 3128,
-  "totalSold": 124,
-  "distinctItems": 886
+  "updates": 103,
+  "totalListings": 3137,
+  "totalSold": 125,
+  "distinctItems": 888
  },
  "listings": {
   "156580": {
@@ -65437,9 +65437,9 @@
      "p": 2000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-07",
+   "soldOutPrice": 2000000,
    "dateAdded": 1786094963,
    "dateExpiration": 1791278963
   },
@@ -66513,6 +66513,195 @@
    "soldOutPrice": null,
    "dateAdded": 1786110002,
    "dateExpiration": 1791294002
+  },
+  "159855": {
+   "idItem": 2589,
+   "idCategory": 3,
+   "title": "Snarling Vanduul Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786110341,
+   "dateExpiration": 1791294341
+  },
+  "159856": {
+   "idItem": 8024,
+   "idCategory": 7,
+   "title": "Artimex Elysium Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786110700,
+   "dateExpiration": 1791294700
+  },
+  "159857": {
+   "idItem": 7992,
+   "idCategory": 7,
+   "title": "Overlord Gilded Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786111144,
+   "dateExpiration": 1791295144
+  },
+  "159858": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "ORC-mkX (XenoThreat) Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786112079,
+   "dateExpiration": 1791296079
+  },
+  "159859": {
+   "idItem": 8021,
+   "idCategory": 7,
+   "title": "Wrecker Payback Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786112153,
+   "dateExpiration": 1791296153
+  },
+  "159860": {
+   "idItem": 8016,
+   "idCategory": 7,
+   "title": "Carrion Payback Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786112227,
+   "dateExpiration": 1791296227
+  },
+  "159861": {
+   "idItem": 6009,
+   "idCategory": 7,
+   "title": "Sol-III full set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786112545,
+   "dateExpiration": 1791296545
+  },
+  "159863": {
+   "idItem": 4922,
+   "idCategory": 87,
+   "title": "20x Feynmaline 1000 quality",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 25000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786112760,
+   "dateExpiration": 1791296760
+  },
+  "159867": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "874Q, 2.307scu for 10m",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786113395,
+   "dateExpiration": 1791297395
   }
  }
 }
