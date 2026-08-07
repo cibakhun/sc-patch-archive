@@ -74,6 +74,12 @@ export interface ItemStats {
 /** Eine von mehreren Ausführungen, die sich einen Anzeigenamen teilen. */
 export interface ItemVariant {
   size: number;
+  /**
+   * Record-Id dieser Ausfuehrung. Erst damit kann ein Aufrufer, der ein
+   * bestimmtes Spiel-Item meint, sagen WELCHE der Groessen seine ist — statt
+   * nur "S3 / S4 / S6" zu sehen. Aeltere Snapshots fuehren sie nicht.
+   */
+  guid?: string | null;
   grade: string | null;
   manufacturer: string | null;
   stats: ItemStats | null;
@@ -99,6 +105,14 @@ export interface ItemGame {
   descDe?: string;
   nameDe?: string;
   guid?: string;
+  /**
+   * Record-Ids gleichnamiger Geschwister, die `datamine-items.mjs` beim Dedupe
+   * zusammengezogen hat — mitgefuehrt NUR, wo sie in Groesse, Grade und Klasse
+   * mit diesem Eintrag uebereinstimmen (gemessen 07.08.2026: 265 Faelle, 501
+   * Geschwister, davon 0 abweichend). Wer ueber eine dieser Ids sucht, meint
+   * dieses Item; ohne sie ginge er leer aus.
+   */
+  guidAliases?: string[];
   /* -- Tag-Facetten aus der spiel-eigenen Tag-Datenbank (scripts/lib/tags.mjs) -- */
   /** Panzerungsklasse: Undersuit | Light | Medium | Heavy | SuperHeavy | Flightsuit | FullSuit.* */
   weight?: string;

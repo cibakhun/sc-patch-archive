@@ -19,15 +19,17 @@ const deHtml = fs.readFileSync(path.resolve('dist/de/topics/crafting.html'), 'ut
 // Anzeigenamen `sizes[]`/`variants[]` fuehrt statt einer erfundenen
 // Einzelgroesse — sie zeigen nun nichts statt eines geratenen Wertes.
 // Seit dem guid-Join (07.08.2026) steigen die Zahlen wieder: `entity_guid`
-// aus datamine-crafting.mjs bestimmt 1527 der 1594 Blueprints eindeutig, und
-// je gleichnamiger Gruppe loest sich damit eine der beiden Karten auf.
+// aus datamine-crafting.mjs bestimmt die Blueprints eindeutig. Mit den
+// `guidAliases` und den Varianten-Ids aus datamine-items.mjs loesen sich ALLE
+// zehn Karten der gleichnamigen Gruppen auf — und zwar je auf ihre eigene
+// Ausfuehrung, nicht auf eine Aufzaehlung.
 // `NightFall` war kurzzeitig ein fuenfter Fall, aber aus einem anderen Grund:
 // die Kurznamen-Bereinigung hatte den Kuehler faelschlich geloescht (Regel B
 // vergleicht Namen; "NightFall" ist zugleich die Kurzform des *Nightfall
 // Repeater*). Eintrag wiederhergestellt, Regel abgesichert.
 // Begruendung ausfuehrlich in scripts/verify-crafting-specs.mjs.
-const TOTAL_SPEC_ROWS = 1527;
-const TOTAL_TONE_CHIPS = 503;
+const TOTAL_SPEC_ROWS = 1532;
+const TOTAL_TONE_CHIPS = 506;
 
 /** Schneidet das <article class="cbp" …>…</article> heraus, das den Karten-
  * Namen <name> als Linktext im h3.cbp__name traegt. Wirft, wenn keine
@@ -163,19 +165,23 @@ for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
     });
 
     for (const name of LOCKED_GROUPS) {
-      // Seit dem guid-Join (07.08.2026) gilt fuer eine gleichnamige Gruppe:
-      // GENAU EINE Karte trifft ihre entity_guid im Item-Katalog und ist damit
-      // zweifelsfrei bestimmt — die zeigt ihre Kennwerte. Die andere waere nur
-      // ueber den Namen auffindbar und bleibt leer, statt zu raten.
-      // (Der Katalog fasst seine Eintraege selbst nach Namen zusammen und
-      // behaelt je Name einen — deshalb trifft immer nur eine der beiden.)
-      test(`"${name}": genau eine der beiden Karten zeigt Kennwerte`, () => {
+      // Der Weg dieser Gruppen in drei Stufen: erst blieben BEIDE Karten leer
+      // (Namens-Join, Sperre gegen Raten), dann eine (nur eine traf ihre
+      // entity_guid, weil der Katalog gleichnamige Eintraege zusammenzieht),
+      // jetzt beide — seit `guidAliases` und die Varianten-Ids aus
+      // datamine-items.mjs die weggefallenen Record-Ids mitfuehren.
+      //
+      // Beide zu zeigen ist NICHT dasselbe wie zu raten: jede Karte wurde
+      // ueber ihre eigene Record-Id aufgeloest. Wo die Geschwister sich in
+      // Groesse/Grade/Klasse unterscheiden wuerden, kaeme die Id gar nicht
+      // erst als Alias mit.
+      test(`"${name}": beide Karten sind ueber ihre eigene Id bestimmt`, () => {
         const cards = findAllCards(html, name);
         assert.strictEqual(cards.length, 2, `${name}: erwartet 2 Karten, gefunden ${cards.length}`);
-        const mitChips = cards.filter((c) => specChips(c) !== null);
+        const ohneChips = cards.filter((c) => specChips(c) === null);
         assert.strictEqual(
-          mitChips.length, 1,
-          `${name}: erwartet genau 1 Karte mit Kennwerten, gefunden ${mitChips.length} — bei 2 wird geraten, bei 0 geht eine gesicherte Angabe verloren`,
+          ohneChips.length, 0,
+          `${name}: ${ohneChips.length} Karte(n) ohne Kennwerte — eine Record-Id ist verloren gegangen (guidAliases oder Varianten-Id fehlt)`,
         );
       });
     }
@@ -212,33 +218,42 @@ for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
 describe('Filter Groesse und Grade in der Seitenleiste (05-03, DE+EN)', () => {
   for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
     // Die Liste wird aus den Daten gebildet, nicht festgeschrieben — ein
-    // Ankreuzfeld ohne einen einzigen Treffer soll es nicht geben. Deshalb ist
-    // sie auch nicht lueckenlos: S9 kommt in keinem Blueprint vor. S7, S8 und
-    // S10 haengen an den mehrdeutigen Anzeigenamen (Tarantula GT-870 "S3/S7/S8",
-    // GVSR Repeater "S2/S10") — sie waren weg, solange die Crafting-Schicht nur
-    // `g.size` las, und sind mit `itemSizes()` zurueck.
-    const ERWARTETE_GROESSEN = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10];
+    // Ankreuzfeld ohne einen einzigen Treffer soll es nicht geben. S7, S8 und
+    // S10 tauchten kurzzeitig auf, solange mehrdeutige Anzeigenamen ALLE ihre
+    // Groessen zeigten ("S3 / S7 / S8"). Seit die Karte ueber ihre
+    // `entity_guid` die EINE gebaute Ausfuehrung kennt, sind sie wieder weg —
+    // und das ist richtig: kein Blueprint baut ein Bauteil ueber S6.
+    const ERWARTETE_GROESSEN = [0, 1, 2, 3, 4, 5, 6];
     test(`${label}: ${ERWARTETE_GROESSEN.length} Ankreuzfelder cdb-size`, () => {
       const values = [...html.matchAll(/<input[^>]*class="cdb-size"[^>]*value="(\d+)"/g)].map(([, v]) => v);
       assert.strictEqual(values.length, ERWARTETE_GROESSEN.length, `${label}: erwartet ${ERWARTETE_GROESSEN.length} cdb-size-Ankreuzfelder, gefunden ${values.length}`);
       assert.deepStrictEqual(values.map(Number).sort((a, b) => a - b), ERWARTETE_GROESSEN);
     });
 
-    // Die drei mehrdeutigen Anzeigenamen zeigen ALLE ihre Groessen statt gar
-    // nichts — genau die Luecke, die entstand, weil die Crafting-Schicht eine
-    // eigene, schmalere Fassung von itemSizes() hatte.
-    for (const [name, label2] of [
-      ['Revenant Gatling', 'S3 / S4 / S6'],
-      ['Tarantula GT-870 Mark 3 Cannon', 'S3 / S7 / S8'],
-      ['GVSR Repeater', 'S2 / S10'],
+    // Die mehrdeutigen Anzeigenamen zeigen die Ausfuehrung, die IHR Rezept
+    // baut — nicht die Aufzaehlung aller gleichnamigen. Der Weg dahin ging
+    // ueber drei Stufen: erst gar nichts (die Schicht las nur `g.size`), dann
+    // "S3 / S4 / S6" (itemSizes()), jetzt der genaue Wert (Varianten-guid).
+    for (const [name, groesse] of [
+      ['Revenant Gatling', 'S4'],
+      ['Tarantula GT-870 Mark 3 Cannon', 'S3'],
+      ['GVSR Repeater', 'S2'],
     ]) {
-      test(`${label}: ${name} zeigt "${label2}"`, () => {
+      test(`${label}: ${name} zeigt genau "${groesse}" — die gebaute Ausfuehrung`, () => {
         const card = findCard(html, name);
         const chips = specChips(card);
         assert.ok(chips, `${name}: keine ul.cbp__spec auf der Karte`);
-        assert.strictEqual(chips[0].text, label2);
+        assert.strictEqual(chips[0].text, groesse);
       });
     }
+
+    // Gegenprobe zur Stufe davor: keine Karte zaehlt mehr mehrere Groessen
+    // auf. Taucht wieder eine auf, konnte ein Rezept seine Ausfuehrung nicht
+    // bestimmen — dann fehlt eine guid, und das gehoert nachgesehen.
+    test(`${label}: keine Karte zaehlt mehrere Groessen auf`, () => {
+      const mehr = [...html.matchAll(/<li>(S\d+(?: \/ S\d+)+)<\/li>/g)];
+      assert.strictEqual(mehr.length, 0, `erwartet 0 Karten mit Mehrfachgroesse, gefunden ${mehr.length}${mehr[0] ? ` (z. B. ${mehr[0][1]})` : ''}`);
+    });
 
     test(`${label}: vier Ankreuzfelder cdb-grade mit den Werten A-D`, () => {
       const values = [...html.matchAll(/<input[^>]*class="cdb-grade"[^>]*value="([A-D])"/g)].map(([, v]) => v);

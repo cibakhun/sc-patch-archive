@@ -489,6 +489,11 @@ for (const { best, all } of byName.values()) {
     const v = real.filter((x) => x.size === size).sort((a, b) => score(b) - score(a))[0];
     return {
       size,
+      // Record-Id der Ausfuehrung — MUSS hier gelesen werden, solange `best`
+      // noch seine Groesse hat. Weiter unten wird sie auf null gesetzt; ein
+      // spaeterer Filter ueber `x.size` faende `best` dann nicht mehr und
+      // liesse ausgerechnet die Ausfuehrung ohne Id, die im Katalog steht.
+      guid: v.id ?? null,
       grade: v.grade ?? null,
       manufacturer: v.manufacturer ?? null,
       stats: v.stats ?? null,
@@ -518,14 +523,35 @@ for (const { best, all } of byName.values()) {
 // (Besitz/Planer) — ein eigenes Vorhaben. Bis dahin gilt: NICHT still
 // verwerfen. Die Faelle stehen im Lauf-Protokoll und ihre Zahl in der Ausgabe,
 // damit ein Zuwachs auffaellt statt unbemerkt zu bleiben.
+// Je Fall wird festgehalten, WORIN sich die Geschwister unterscheiden. Das
+// entscheidet, ob der Verlust weh tut: tragen alle dieselbe Groesse, denselben
+// Grade und dieselbe Klasse, ist der ueberlebende Eintrag fuer sie alle
+// zutreffend — dann duerfen ihre Record-Ids als `guidAliases` mitreisen, und
+// ein guid-Join findet sie wieder, ohne etwas zu raten. Weichen sie ab, ist
+// echte Identitaet noetig und die Ids duerfen NICHT umgehaengt werden.
+const kennwerte = (x) => `${x.size ?? '-'}|${x.grade ?? '-'}|${x.class ?? '-'}`;
 const collapsed = [];
 for (const { best, all } of byName.values()) {
   if (all.length < 2 || best.variants) continue;
+  const dropped = all.filter((x) => x !== best);
+  const gleich = dropped.every((x) => kennwerte(x) === kennwerte(best));
   collapsed.push({
     name: best.name,
     kept: best.id,
-    dropped: all.filter((x) => x.id !== best.id).map((x) => x.id),
+    keptSpecs: kennwerte(best),
+    dropped: dropped.map((x) => x.id),
+    droppedSpecs: [...new Set(dropped.map(kennwerte))],
+    // true = der ueberlebende Eintrag beschreibt die Geschwister korrekt mit
+    sameSpecs: gleich,
   });
+  // Die Record-Ids der Geschwister reisen mit — aber NUR, wenn sie in
+  // Groesse/Grade/Klasse uebereinstimmen. Dann ist der ueberlebende Eintrag
+  // fuer sie zutreffend, und wer ueber eine dieser Ids sucht (Crafting-Karten
+  // mit eigener `entity_guid`), findet ihn wieder, statt leer auszugehen.
+  // Weichen sie ab, bleibt die Id draussen: lieber keine Angabe als eine
+  // fremde. Gemessen 07.08.2026: 265 Faelle, 501 Geschwister, davon 0
+  // abweichend — es sind Mehrfacheintraege desselben Gegenstands.
+  if (gleich) best.guidAliases = dropped.map((x) => x.id);
 }
 
 const items = [...byName.values()].map((e) => e.best).sort((a, b) => a.name.localeCompare(b.name, 'en'));
@@ -591,8 +617,15 @@ const payload = {
     variantNames,
     collapsedNames: collapsed.length,
     collapsedEntries: collapsed.reduce((n, c) => n + c.dropped.length, 0),
+    // Die Teilmenge, bei der die Geschwister sich in Groesse/Grade/Klasse
+    // UNTERSCHEIDEN — nur dort geht wirklich eine Aussage verloren.
+    collapsedDiffering: collapsed.filter((c) => !c.sameSpecs).length,
     sets: setStats,
   },
+  // Vollstaendige Liste, damit downstream (build-universal-db.mjs) die
+  // Record-Ids der weggefallenen Geschwister als `guidAliases` anhaengen kann —
+  // aber nur die mit `sameSpecs`.
+  collapsed,
   sets,
   items,
 };

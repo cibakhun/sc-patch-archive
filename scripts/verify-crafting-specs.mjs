@@ -179,7 +179,13 @@ for (const [name, list] of dupGroups) {
 
 console.log(`   Namensgruppen: ${dupGroups.length} | kollidierend: ${groupsCollidingMeasured} (${groupsCollidingCards} Karten) | unauffaellig: ${groupsUnauffaellig}`);
 console.log(`   kollidierende Namen: ${[...collidingNames].sort().join(', ')}`);
+console.log(`   per entity_guid eindeutig bestimmt: ${guidResolvedCards} Karten (zeigen Kennwerte) | nur per Name auffindbar: ${nameOnlyCards} (bleiben leer)`);
 console.log(`   Selbstprobe: ein Vergleich nur ueber overheat_temperature faende ${overheatOnlyDiffering} von ${groupsCollidingMeasured} Gruppen — Hinweis, damit der Vergleich nie auf dieses eine Feld verschlankt wird.`);
+// Alle 10 Karten der Kollisionsgruppen sind seit den guidAliases/Varianten-Ids
+// eindeutig bestimmt. Faellt das je zurueck, ist ein Schluessel verloren
+// gegangen — dann zeigt die Seite wieder weniger, als sie belegen koennte.
+need(guidResolvedCards === 10, `per guid bestimmte Kollisionskarten: erwartet 10, gemessen ${guidResolvedCards}`);
+need(nameOnlyCards === 0, `nur per Name auffindbare Kollisionskarten: erwartet 0, gemessen ${nameOnlyCards}`);
 
 need(dupGroups.length === 15, `Namensgruppen: erwartet 15, gemessen ${dupGroups.length}`);
 need(groupsCollidingMeasured === 5, `kollidierende Gruppen: erwartet 5, gemessen ${groupsCollidingMeasured}`);
@@ -233,10 +239,10 @@ console.log('6) Abdeckung je Vehiclegear-Typ …');
 // loeschte den Kuehler mit. Eintrag wiederhergestellt, Regel um einen Schutz
 // fuer Eintraege mit Spieldaten ergaenzt -> wieder 71/71/70.
 const COVERAGE_EXPECTED = {
-  Powerplant: { n: 75, leer: 2, size: 73, grade: 73, tone: 72 },
-  Cooler: { n: 75, leer: 3, size: 72, grade: 72, tone: 71 },
+  Powerplant: { n: 75, leer: 0, size: 75, grade: 75, tone: 73 },
+  Cooler: { n: 75, leer: 2, size: 73, grade: 73, tone: 72 },
   Shield: { n: 62, leer: 0, size: 62, grade: 62, tone: 61 },
-  Radar: { n: 60, leer: 4, size: 56, grade: 55, tone: 56 },
+  Radar: { n: 60, leer: 3, size: 57, grade: 57, tone: 57 },
   Quantumdrive: { n: 57, leer: 0, size: 57, grade: 57, tone: 56 },
 };
 for (const [type, exp] of Object.entries(COVERAGE_EXPECTED)) {
@@ -309,20 +315,20 @@ console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${tota
 // Alle fuenf zeigen jetzt nichts an statt eines geratenen Wertes (D-06).
 // Offen als Folgearbeit: die vier Varianten-Items koennten ihre Groessen als
 // "S3 / S4 / S6" zeigen, so wie es die Item-Seite bereits tut.
-need(totalWithSpec === 1527, `Chip-Reihen: erwartet 1527, gemessen ${totalWithSpec}`);
+need(totalWithSpec === 1532, `Chip-Reihen: erwartet 1532, gemessen ${totalWithSpec}`);
 // 1513 statt 1510 seit dem 07.08.2026: die Crafting-Schicht leitet die Groesse
 // nicht mehr selbst aus `g.size` ab, sondern nimmt `itemSizes()` aus items.ts.
 // Damit tragen auch die mehrdeutigen Anzeigenamen ihre Groessen — GVSR
 // Repeater "S2 / S10", Revenant Gatling "S3 / S4 / S6", Tarantula GT-870
 // "S3 / S7 / S8". Die beiden BroadSpec-Karten bleiben gesperrt (Kollision),
 // deshalb +3 und nicht +5.
-need(totalSize === 1527, `Groesse: erwartet 1527, gemessen ${totalSize}`);
+need(totalSize === 1532, `Groesse: erwartet 1532, gemessen ${totalSize}`);
 // 315 statt 1509 seit dem 07.08.2026: der Grade erscheint nur noch bei den
 // fuenf Bauteilarten, bei denen er im Spiel etwas unterscheidet (Kraftwerk 71,
 // Kuehler 70, Schild 62, Radar 55, Quantenantrieb 57 = 315). Zuvor trugen 1194
 // Karten ein "Grade A", das nur der Vorgabewert aus AttachDef.Grade war —
 // aufgefallen an einer Dominance-1 Scattergun. Siehe GRADE_BEARING_TYPES.
-need(totalGrade === 319, `Grade: erwartet 319, gemessen ${totalGrade}`);
+need(totalGrade === 324, `Grade: erwartet 324, gemessen ${totalGrade}`);
 need(
   ['PowerPlant', 'Cooler', 'Shield', 'Radar', 'QuantumDrive'].every((t) => gradeBearingTypes.has(t)),
   `gradeBearingTypes deckt die fuenf Bauteilarten nicht ab: [${[...gradeBearingTypes].sort().join(', ')}]`,
@@ -331,10 +337,10 @@ need(
   !['WeaponGun', 'WeaponPersonal', 'Char_Armor_Helmet', 'Paints'].some((t) => gradeBearingTypes.has(t)),
   `gradeBearingTypes laesst eine Art mit konstantem Grade durch: [${[...gradeBearingTypes].sort().join(', ')}]`,
 );
-need(totalTone === 503, `Ton: erwartet 503, gemessen ${totalTone}`);
-need(toneFromClass === 403, `Ton aus game.class: erwartet 403, gemessen ${toneFromClass}`);
+need(totalTone === 506, `Ton: erwartet 506, gemessen ${totalTone}`);
+need(toneFromClass === 406, `Ton aus game.class: erwartet 406, gemessen ${toneFromClass}`);
 need(toneFromPath === 100, `Ton aus dem Pfad: erwartet 100, gemessen ${toneFromPath}`);
-need(totalNone === 67, `ohne jede Angabe: erwartet 67, gemessen ${totalNone}`);
+need(totalNone === 62, `ohne jede Angabe: erwartet 62, gemessen ${totalNone}`);
 need(totalWithSpec + totalNone === craftDb.blueprints.length, `Selbstkonsistenz: ${totalWithSpec} + ${totalNone} != ${craftDb.blueprints.length}`);
 
 /* ---------- 9) Wertebereich Ton ---------- */

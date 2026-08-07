@@ -9,7 +9,7 @@
 
 import DB from '../../assets/crafting-db.json';
 import type { Locale } from '../i18n/ui';
-import { hasGradeSemantics, hasMeaningfulGrade, itemSizes, items, type Item } from './items';
+import { hasGradeSemantics, hasMeaningfulGrade, itemSizes, items, type Item, type ItemVariant } from './items';
 
 /* ---------- Typen (Spiegel von scripts/datamine-crafting.mjs) ---------- */
 
@@ -196,9 +196,34 @@ export const craftPageCount = (c: CraftCategory) =>
 /* ---------- Join Blueprint <-> Item ---------- */
 
 const itemByName = new Map(items.map((i) => [i.name.toLowerCase(), i]));
-const itemByGuid = new Map(
-  items.flatMap((i) => (i.game?.guid ? [[i.game.guid, i] as const] : [])),
-);
+/**
+ * Record-Id -> Item, und wo bekannt die konkrete Ausfuehrung.
+ *
+ * Drei Wege fuehren auf denselben Katalogeintrag, und alle drei sind noetig,
+ * weil `datamine-items.mjs` gleichnamige Spiel-Items zusammenzieht:
+ *  1. `game.guid` — der Eintrag selbst.
+ *  2. `game.guidAliases` — Geschwister, die beim Dedupe wegfielen. Sie tragen
+ *     nachweislich dieselbe Groesse, denselben Grade und dieselbe Klasse,
+ *     sonst waeren sie nicht aufgenommen worden.
+ *  3. `game.variants[].guid` — bei mehrdeutigen Anzeigenamen die einzelne
+ *     Ausfuehrung. Hier zaehlt der Treffer MEHR als der Eintrag: er sagt, dass
+ *     dieses Rezept die S3 meint und nicht "S3 / S4 / S6".
+ */
+interface GuidTreffer { item: Item; variant?: ItemVariant }
+const itemByGuid = new Map<string, GuidTreffer>();
+for (const i of items) {
+  const g = i.game;
+  if (!g) continue;
+  if (g.guid && !itemByGuid.has(g.guid)) itemByGuid.set(g.guid, { item: i });
+  for (const a of g.guidAliases ?? []) if (!itemByGuid.has(a)) itemByGuid.set(a, { item: i });
+}
+// Ausfuehrungen ZULETZT und ueberschreibend: die guid des Katalogeintrags ist
+// zugleich die einer seiner Ausfuehrungen (der beste Vertreter IST eine davon).
+// Wuerde der Eintrags-Treffer gewinnen, saehe ausgerechnet diese Karte
+// "S2 / S3" statt ihres eigenen "S2" — der unpraezisere Wert.
+for (const i of items) {
+  for (const v of i.game?.variants ?? []) if (v.guid) itemByGuid.set(v.guid, { item: i, variant: v });
+}
 
 /**
  * Wurde das Item ueber den echten Schluessel gefunden?
@@ -225,7 +250,7 @@ export function resolvedByGuid(b: Blueprint): boolean {
  */
 export function itemForBlueprint(b: Blueprint): Item | null {
   const byId = b.entity_guid ? itemByGuid.get(b.entity_guid) : undefined;
-  if (byId) return byId;
+  if (byId) return byId.item;
   return itemByName.get(b.name.toLowerCase()) ?? null;
 }
 
@@ -317,11 +342,16 @@ export function blueprintSpecs(b: Blueprint): BlueprintSpecs | null {
   const item = itemForBlueprint(b);
   if (!item) return null;
   const g = item.game;
-  // Groessen aus items.ts, nicht selbst aus g.size abgeleitet — sonst faellt
-  // diese Schicht wieder hinter das Datenblatt zurueck (mehrdeutige Namen).
-  const sizes = hasGradeSemantics(item) ? itemSizes(item) : [];
+  // Trifft die guid GENAU EINE Ausfuehrung, ist das die praezisere Antwort:
+  // dieses Rezept baut die S3, nicht "S3 / S4 / S6". Sonst alle Groessen aus
+  // items.ts — nicht selbst aus g.size abgeleitet, sonst faellt diese Schicht
+  // wieder hinter das Datenblatt zurueck.
+  const treffer = b.entity_guid ? itemByGuid.get(b.entity_guid) : undefined;
+  const v = treffer?.variant;
+  const sizes = !hasGradeSemantics(item) ? [] : v ? [v.size] : itemSizes(item);
   // Grade nur, wo er im Spiel etwas unterscheidet — siehe hasMeaningfulGrade().
-  const grade = g?.grade && hasMeaningfulGrade(item) ? g.grade : null;
+  const rohGrade = v ? v.grade : g?.grade;
+  const grade = rohGrade && hasMeaningfulGrade(item) ? rohGrade : null;
   const tone = g?.class ?? toneFromWeaponCategoryPath(b.category);
   if (!sizes.length && grade == null && tone == null) return null;
   return { sizes, grade, tone };

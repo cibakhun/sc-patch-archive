@@ -187,7 +187,11 @@ let gameRows = 0, gameStats = 0, gameSets = [];
     // wie die Stats — die UI liest alles unter `item.game`.
     // `sizes`/`variants` stehen nur an Namen, hinter denen mehrere Spiel-Items
     // stecken (z. B. "Revenant Gatling" als S3/S4/S6). Dort ist `size` leer.
-    for (const k of ['gameType', 'subType', 'size', 'sizes', 'variants', 'grade', 'class', 'manufacturer', 'manufacturerCode', 'volumeScu', 'stats', 'nameDe', 'desc', 'descDe',
+    // `guidAliases` sind die Record-Ids gleichnamiger Geschwister, die der
+    // Dedupe in datamine-items.mjs zusammengezogen hat — mitgefuehrt NUR, wo
+    // sie in Groesse/Grade/Klasse uebereinstimmen. Wer ueber eine dieser Ids
+    // sucht, meint dieses Item; ohne sie ginge er leer aus.
+    for (const k of ['gameType', 'subType', 'size', 'sizes', 'variants', 'guidAliases', 'grade', 'class', 'manufacturer', 'manufacturerCode', 'volumeScu', 'stats', 'nameDe', 'desc', 'descDe',
       'weight', 'part', 'rarity', 'archetype', 'specialization', 'color', 'lootable', 'lootReason', 'setId']) {
       if (g[k] != null) gm[k] = g[k];
     }
