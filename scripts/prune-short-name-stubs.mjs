@@ -93,6 +93,23 @@ for (const it of items) {
     continue;
   }
 
+  // Ebenso wenig anfassen, was echte Spieldaten traegt. Beide Regeln
+  // entscheiden allein am NAMEN, und der ist kein Schluessel: "NightFall" ist
+  // in der global.ini die Kurzform des *Nightfall Repeater* — gleichzeitig
+  // heisst aber ein eigenstaendiger Kuehler so (Vehiclegear / Cooler,
+  // S2/A/Stealth, eigenes Crafting-Rezept). Regel B hielt ihn fuer das
+  // Kurzetikett der Waffe und loeschte ihn (gemessen 07.08.2026: der Kuehler
+  // verschwand still aus dem Katalog, seine Crafting-Karte stand danach ohne
+  // Kennwerte da). Ein Eintrag, den der DataCore mit einer eigenen
+  // Bauteilart fuehrt, ist keine reine Anzeige-Kurzform.
+  // Gemessen: von 290 Regel-B-Entfernungen traegt genau EINE einen gameType —
+  // dieser Schutz kostet also keinen einzigen echten Stumpf.
+  if (it.game && it.game.gameType) {
+    geschuetzt.push(`${name} (${it.category}) — traegt Spieldaten (${it.game.gameType})`);
+    behalten.push(it);
+    continue;
+  }
+
   // Regel A: Serien-/Kurznamen-Stumpf ohne jede Einordnung.
   if (it.category === 'Other') { entferntStumpf.push(name); continue; }
 

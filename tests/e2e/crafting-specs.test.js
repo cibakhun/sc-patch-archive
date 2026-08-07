@@ -13,15 +13,18 @@ import path from 'node:path';
 const enHtml = fs.readFileSync(path.resolve('dist/topics/crafting.html'), 'utf8');
 const deHtml = fs.readFileSync(path.resolve('dist/de/topics/crafting.html'), 'utf8');
 
-// Nachgezogen am 07.08.2026 beim Zusammenfuehren mit staging: fuenf Blueprints
-// haben ihre Einzelgroesse verloren — vier davon (broadspec, gvsr repeater,
-// revenant gatling, tarantula gt-870 mark 3 cannon), weil staging fuer
-// mehrdeutige Anzeigenamen jetzt `sizes[]`/`variants[]` fuehrt statt einer
-// erfundenen Einzelgroesse, und `nightfall`, das aus dem Item-Katalog
-// verschwunden ist. Alle fuenf zeigen nun nichts statt eines geratenen Wertes.
+// Nachgezogen am 07.08.2026 beim Zusammenfuehren mit staging: vier Blueprints
+// (broadspec, gvsr repeater, revenant gatling, tarantula gt-870 mark 3 cannon)
+// haben ihre Einzelgroesse verloren, weil staging fuer mehrdeutige
+// Anzeigenamen `sizes[]`/`variants[]` fuehrt statt einer erfundenen
+// Einzelgroesse — sie zeigen nun nichts statt eines geratenen Wertes.
+// `NightFall` war kurzzeitig ein fuenfter Fall, aber aus einem anderen Grund:
+// die Kurznamen-Bereinigung hatte den Kuehler faelschlich geloescht (Regel B
+// vergleicht Namen; "NightFall" ist zugleich die Kurzform des *Nightfall
+// Repeater*). Eintrag wiederhergestellt, Regel abgesichert.
 // Begruendung ausfuehrlich in scripts/verify-crafting-specs.mjs.
-const TOTAL_SPEC_ROWS = 1513;
-const TOTAL_TONE_CHIPS = 495;
+const TOTAL_SPEC_ROWS = 1514;
+const TOTAL_TONE_CHIPS = 496;
 
 /** Schneidet das <article class="cbp" …>…</article> heraus, das den Karten-
  * Namen <name> als Linktext im h3.cbp__name traegt. Wirft, wenn keine
