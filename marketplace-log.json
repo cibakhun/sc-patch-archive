@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-07",
-  "updates": 98,
-  "totalListings": 3030,
-  "totalSold": 121,
-  "distinctItems": 871
+  "updates": 99,
+  "totalListings": 3051,
+  "totalSold": 122,
+  "distinctItems": 882
  },
  "listings": {
   "156580": {
@@ -59730,6 +59730,10 @@
     {
      "d": "2026-08-06",
      "p": 7500000
+    },
+    {
+     "d": "2026-08-07",
+     "p": 750000
     }
    ],
    "soldOut": false,
@@ -60490,6 +60494,10 @@
     {
      "d": "2026-08-06",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-07",
+     "p": 2300000
     }
    ],
    "soldOut": false,
@@ -60639,9 +60647,9 @@
      "p": 2000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-07",
+   "soldOutPrice": 2000000,
    "dateAdded": 1786044816,
    "dateExpiration": 1791228816
   },
@@ -64093,6 +64101,10 @@
     {
      "d": "2026-08-07",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-07",
+     "p": 18000000
     }
    ],
    "soldOut": false,
@@ -64415,6 +64427,447 @@
    "soldOutPrice": null,
    "dateAdded": 1786095927,
    "dateExpiration": 1791279927
+  },
+  "159787": {
+   "idItem": 3349,
+   "idCategory": 36,
+   "title": "Scourge Railgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786096199,
+   "dateExpiration": 1791280199
+  },
+  "159788": {
+   "idItem": 2722,
+   "idCategory": 36,
+   "title": "Animus Missile Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786096229,
+   "dateExpiration": 1791280229
+  },
+  "159789": {
+   "idItem": 4600,
+   "idCategory": 36,
+   "title": "Stirling Exploration Backpack ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786096248,
+   "dateExpiration": 1791280248
+  },
+  "159790": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "Zeus Exploration Suit (no backpack)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786096268,
+   "dateExpiration": 1791280267
+  },
+  "159792": {
+   "idItem": 7864,
+   "idCategory": 36,
+   "title": "Haruspec Goggles (Modified)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786096865,
+   "dateExpiration": 1791280865
+  },
+  "159793": {
+   "idItem": null,
+   "idCategory": 5,
+   "title": "Calico Core Ultimatum",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786096915,
+   "dateExpiration": 1791280915
+  },
+  "159794": {
+   "idItem": 5751,
+   "idCategory": 5,
+   "title": "Inquisitor Core Earthwork",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786097046,
+   "dateExpiration": 1791281046
+  },
+  "159796": {
+   "idItem": 3259,
+   "idCategory": 5,
+   "title": "Lynx Core Draas",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786097135,
+   "dateExpiration": 1791281134
+  },
+  "159797": {
+   "idItem": 6681,
+   "idCategory": 5,
+   "title": "PAB-1 Core Greycat Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786097247,
+   "dateExpiration": 1791281247
+  },
+  "159798": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786097476,
+   "dateExpiration": 1791281476
+  },
+  "159799": {
+   "idItem": 1655,
+   "idCategory": 3,
+   "title": "Horizon Helmet Twilight",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786097483,
+   "dateExpiration": 1791281483
+  },
+  "159800": {
+   "idItem": null,
+   "idCategory": 3,
+   "title": "DustUp Helmet Ultimatum",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786097664,
+   "dateExpiration": 1791281664
+  },
+  "159801": {
+   "idItem": 5664,
+   "idCategory": 3,
+   "title": "Morozov-SH-S Helmet Vesper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786097750,
+   "dateExpiration": 1791281750
+  },
+  "159802": {
+   "idItem": 5620,
+   "idCategory": 3,
+   "title": "Outback Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786097810,
+   "dateExpiration": 1791281810
+  },
+  "159803": {
+   "idItem": 7262,
+   "idCategory": 1,
+   "title": "Inquisitor Arms Brimstone",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786097948,
+   "dateExpiration": 1791281948
+  },
+  "159804": {
+   "idItem": 5630,
+   "idCategory": 1,
+   "title": "Inquisitor Arms Ignitor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786098026,
+   "dateExpiration": 1791282026
+  },
+  "159805": {
+   "idItem": 6365,
+   "idCategory": 1,
+   "title": "Venture Arms \"Rust Society\"",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786098112,
+   "dateExpiration": 1791282111
+  },
+  "159806": {
+   "idItem": 3483,
+   "idCategory": 24,
+   "title": "Venture Undersuit Rust Society",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786098215,
+   "dateExpiration": 1791282215
+  },
+  "159807": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "Rusty Special",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786098363,
+   "dateExpiration": 1791282363
+  },
+  "159808": {
+   "idItem": 2590,
+   "idCategory": 36,
+   "title": "Star Kitten Damon Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786098619,
+   "dateExpiration": 1791282619
+  },
+  "159810": {
+   "idItem": 4155,
+   "idCategory": 36,
+   "title": "Deadhead Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786098920,
+   "dateExpiration": 1791282920
   }
  }
 }
