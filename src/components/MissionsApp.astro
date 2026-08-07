@@ -166,7 +166,7 @@ const cards = missions.map((m: Mission) => {
     </form>
 
     <!-- Karten -->
-    <div class="mx__grid" id="mx-grid">
+    <div class="mx__grid vb-scrollbox" id="mx-grid">
       {/* HTML-Diät: data-search (~500 unsichtbare Zeichen je Karte — Blueprint-
           Namen, Orte, Titel-Varianten) liegt jetzt als 1-Tag-cachebarer Index
           unter /missions-search.json (siehe pages/missions-search.json.ts);
@@ -293,7 +293,10 @@ const cards = missions.map((m: Mission) => {
     font-family: var(--font-ui); text-transform: uppercase; letter-spacing: .16em; font-size: .66rem; color: var(--muted);
   }
 
-  .mx__wrap { width: min(var(--maxw), 100%); margin: 0 auto; padding: 2.2rem clamp(1rem, 4vw, 3rem) 4rem; }
+  /* --vb-top hoeher als bei Crafting/Mining: .mx__bar ist zweizeilig gebaut
+     (Beschriftung ueber Feld) und traegt zusaetzlich margin-bottom: 1.6rem.
+     Startwert, wird spaeter nachgemessen. */
+  .mx__wrap { width: min(var(--maxw), 100%); margin: 0 auto; padding: 2.2rem clamp(1rem, 4vw, 3rem) 4rem; --vb-top: calc(var(--nav-h, 68px) + 7.5rem); }
 
   /* ---------- Filterleiste ---------- */
   /* Hoehe der fixen SiteNav (z-index 9100). Bei top:0 klebt die Leiste hinter
