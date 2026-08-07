@@ -121,7 +121,7 @@ const JS_T = ITEM_UI[lang];
       </div>
     </div>
 
-    <div class="uif-results" id="uif-results-grid"><!-- Items via JS --></div>
+    <div class="uif-results vb-scrollbox" id="uif-results-grid"><!-- Items via JS --></div>
 
     <div class="uif-pagination" id="uif-pagination-container"><!-- Pagination via JS --></div>
   </div>
@@ -156,6 +156,12 @@ const JS_T = ITEM_UI[lang];
        hinter der Nav. Genau das passierte der Sidebar bisher: sie klebte bei
        2rem (36 px) und schob sich unter die Nav. Eine Zahl fuer beide. */
     --uif-stick: 4.6rem;
+    /* --uif-stick ist bereits der Abstand unter der festen Nav (Nav-Hoehe
+       eingerechnet) — --nav-h darf hier deshalb NICHT noch einmal addiert
+       werden. Die 3.8rem sind die Hoehe der klebenden .uif-header
+       (Trefferzahl, Ansichtsumschalter, Sortierung) als Startwert, wird in
+       einem spaeteren Durchgang nachgemessen. */
+    --vb-top: calc(var(--uif-stick) + 3.8rem);
   }
 
   .uif-sidebar {
@@ -166,6 +172,15 @@ const JS_T = ITEM_UI[lang];
     padding: 1.5rem;
     position: sticky;
     top: var(--uif-stick);box-shadow:0 4px 12px var(--shadow-color);
+    /* Kern des gemeldeten Fehlers, keine Kosmetik: eine klebende Spalte, die
+       hoeher ist als das Fenster, nagelt ihre Oberkante fest — der untere
+       Teil (hier: die gesamte Kategorienliste) war mit keiner Geste
+       erreichbar, ausser man scrollte die ganze Seite an der Ergebnisliste
+       vorbei. 1rem statt --vb-air: die Filterspalte braucht Hoehe, keinen
+       Ausblick auf das, was darunter steht. */
+    max-height: calc(100dvh - var(--uif-stick) - 1rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .uif-search input {
@@ -780,6 +795,16 @@ const JS_T = ITEM_UI[lang];
       position: static;
       box-shadow: none;
       padding: 0.9rem;
+      /* Die geteilte Kasten-Regel schaltet erst bei 821 px ab, der Item
+         Finder stapelt aber schon bei 900 px — zwischen beiden Zahlen
+         stuende sonst ein Kasten in einem gestapelten Layout. */
+      max-height: none;
+      overflow-y: visible;
+    }
+
+    .uif-results {
+      max-height: none;
+      overflow-y: visible;
     }
 
     #uif-category-list {

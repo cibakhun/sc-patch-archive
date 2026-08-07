@@ -216,6 +216,7 @@ None yet.
 | 260802-7eb | UEX-Durchschnittspreis-Spalte für Items (DE+EN) — vierte Ø-Spalte in Datenblatt, Kategorie-Liste und Finder-Modal; Mittelwert über alle Verkaufsorte aus `obtain[]`, ohne API-/Pipeline-Änderung | 2026-08-02 | aa391d8, bcc99b7 | Verified | [260802-7eb-uex-durchschnittspreis-spalte-fuer-items](./quick/260802-7eb-uex-durchschnittspreis-spalte-fuer-items/) |
 | 260802-7f5 | Item-Finder als Werkzeug: Suche und Filter ohne Scrollen direkt unter dem Titel (DE+EN) | 2026-08-02 | 8001901 | Verified | [260802-7f5-item-finder-als-werkzeug-suche-und-filte](./quick/260802-7f5-item-finder-als-werkzeug-suche-und-filte/) |
 | 260802-ose | Größenachse (CIG-Hangarklasse 1-6, `AttachDef.Size`) als dritte Filterachse neben Beruf/Rolle; Boden/Raum-Merkmal bewusst NICHT auf `AttachDef.SubType` umgestellt (verliert 10 Schweberäder gegenüber dem bestehenden Merkmal) | 2026-08-02 | 3ecddb4, bf05687, 330c29a, 85ebd90 | | [260802-ose-groessenachse-boden-raum](./quick/260802-ose-groessenachse-boden-raum/) |
+| 260807-sso | Ergebnislisten mit eigenem Bildlauf (`.vb-scrollbox`): Rad über der Liste bewegt die Liste, daneben die Seite; Filterspalte des Item Finders erstmals bis zur letzten Kategorie erreichbar; 5 seit jeher unsichtbare Bildlaufleisten mitbehoben | 2026-08-07 | a05176a, 7a6824e, 3b28e29, e8fd093, 9ce50d3, 145a9b6, ffd8eea | Verified | [20260807-tabellen-eigener-bildlauf](./quick/20260807-tabellen-eigener-bildlauf/) |
 
 ### Roadmap Evolution
 
