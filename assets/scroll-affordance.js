@@ -1,4 +1,4 @@
-/* Breite Bildlauf-Kaesten bedienbar machen. Zwei Dinge:
+/* Breite Bildlauf-Kaesten bedienbar machen. Drei Dinge:
  *
  * 1. ZIEHEN mit der Maus, in beide Richtungen. Eine Bildlaufleiste sagt nur,
  *    DASS es weitergeht — treffen muss man sie trotzdem, und am Desktop ist
@@ -6,6 +6,13 @@
  *    sich der Kasten jetzt direkt schieben, mit Schwung am Ende. Waagerecht
  *    scrollt der Kasten, senkrecht die Seite (siehe panY()).
  * 2. Die weiche KANTE rechts, solange dort noch etwas steht (siehe unten).
+ * 3. Die weiche KANTE unten, fuer die Bildlauf-Kaesten aus assets/mobile-ux.css
+ *    Abschnitt 5d (.vb-scrollbox). Die bestehende Kante unter Punkt 2 ist
+ *    WAAGERECHT (Klasse `is-more`, Maske `90deg`), diese ist SENKRECHT
+ *    (Klasse `is-more-y`, Maske `180deg`, eigene Liste SEL_VFADE). Ein Kasten
+ *    steht hoechstens in EINER der beiden Listen — zwei Masken auf demselben
+ *    Element liessen sich nur ueber mask-composite ueberlagern, und genau
+ *    darum steht .dp-tablewrap (beide Achsen) in keiner waagerechten Liste.
  *
  * Beruehrung bleibt unangetastet: dort scrollt der Browser selbst, samt
  * Schwung. Angefasst wird nur Maus und Stift.
@@ -21,14 +28,22 @@
     '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.evo__scroll';
   var SEL_FADE =
     '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints';
+  // Senkrechte Kante fuer die Bildlauf-Kaesten aus Task 6/mobile-ux.css 5d.
+  var SEL_VFADE = '.vb-scrollbox';
 
   var faders = [];
+  var vfaders = [];
 
   function syncFade(el) {
     el.classList.toggle('is-more', el.scrollWidth - el.clientWidth - el.scrollLeft > 2);
   }
+  // Spiegelbild von syncFade: senkrecht statt waagerecht.
+  function syncVFade(el) {
+    el.classList.toggle('is-more-y', el.scrollHeight - el.clientHeight - el.scrollTop > 2);
+  }
   function syncAll() {
     for (var i = 0; i < faders.length; i++) syncFade(faders[i]);
+    for (var k = 0; k < vfaders.length; k++) syncVFade(vfaders[k]);
   }
 
   // Weder Maske noch Zeiger-Klasse aendern eine Groesse -> der Beobachter kann
@@ -207,6 +222,19 @@
       f.addEventListener('scroll', (function (n) {
         return function () { syncFade(n); };
       })(f), { passive: true });
+    }
+    // Senkrechte Kante, eigener Riegel (data-edgefade-y) gegen Doppellade —
+    // ein Kasten kann in SEL_FADE UND SEL_VFADE stehen wuerde es sie geben,
+    // hier steht bewusst keiner in beiden Listen (s. Kopfkommentar).
+    var vfade = document.querySelectorAll(SEL_VFADE);
+    for (var m = 0; m < vfade.length; m++) {
+      var v = vfade[m];
+      if (v.hasAttribute('data-edgefade-y')) continue;
+      v.setAttribute('data-edgefade-y', '');
+      vfaders.push(v);
+      v.addEventListener('scroll', (function (n) {
+        return function () { syncVFade(n); };
+      })(v), { passive: true });
     }
     syncAll();
   }

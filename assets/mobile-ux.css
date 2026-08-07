@@ -563,6 +563,20 @@ summary:active {
 .vb-scrollbox {
   overscroll-behavior: contain;
 }
+
+/* Weiche Unterkante, zustandsbewusst wie der waagerechte Verlauf in 5c, nur
+   SENKRECHT: `is-more-y` kommt aus assets/scroll-affordance.js (SEL_VFADE),
+   `data-edgefade-y` ist der Doppellade-Riegel des Skripts. Ohne `is-more-y`
+   keine Maske — am Listenende behauptet nichts mehr, dass es weitergeht. Das
+   Hauptsignal bleibt die sichtbare Bildlaufleiste oben; diese Kante schliesst
+   nur die Luecke bei Safaris Overlay-Leisten, die im Ruhezustand nichts
+   zeigen. Anders als 5c gibt es hier KEINEN pauschalen Rueckfall ohne JS: die
+   Bildlaufleiste bleibt dann als alleiniges Signal stehen. */
+[data-edgefade-y].is-more-y {
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 40px), transparent);
+}
+
 @media (min-width: 821px) {
   .vb-scrollbox {
     /* Doppel-Deklaration: 100vh als Rueckfall, 100dvh danach — dvh misst
