@@ -82,7 +82,7 @@ function toneFromWeaponCategoryPath(category) {
   return null;
 }
 
-/** Spiegel von GRADE_BEARING_TYPES in crafting.ts: eine Bauteilart traegt nur
+/** Spiegel von GRADE_BEARING_TYPES in src/lib/items.ts: eine Bauteilart traegt nur
  * dann einen aussagekraeftigen Grade, wenn mindestens zwei Grades vorkommen und
  * der seltenste mindestens ein Zehntel der Art ausmacht. Sonst ist "A" der
  * Vorgabewert aus AttachDef.Grade und behauptet eine Einstufung, die es im

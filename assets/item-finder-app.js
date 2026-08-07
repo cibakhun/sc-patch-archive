@@ -495,7 +495,7 @@
         if (hasGradeSemantics(item)) {
           var sl = sizeLabel(item);
           if (sl) bits.push(sl);
-          if (g.grade) bits.push(g.grade);
+          if (g.grade && hasMeaningfulGrade(item)) bits.push(g.grade);
         }
         if (bits.length) specLine = '<div class="uif-card-spec">' + esc(bits.join(' · ')) + '</div>';
       }
@@ -727,6 +727,35 @@
   }
   // Größe/Grade nur bei Ausrüstung anzeigen (bei Kleidung/Nahrung ist Grade immer „A")
   function hasGradeSemantics(item) { return /Vehiclegear|Weapons|Armour|Attachment/.test(parentCategory(item.category)); }
+  // Spiegel von GRADE_BEARING_TYPES in src/lib/items.ts: hasGradeSemantics()
+  // allein genügt nicht — es urteilt über die Grobkategorie und lässt Waffen
+  // und Rüstung durch, wo AttachDef.Grade den Vorgabewert 1 trägt (152
+  // Schiffswaffen ausnahmslos „A", 381 Handwaffen ebenso). Eine Bauteilart
+  // gilt als gradetragend, wenn mindestens zwei Grades vorkommen UND der
+  // seltenste mindestens ein Zehntel ausmacht. Wird einmal aus dem geladenen
+  // Katalog berechnet; ändert sich die Regel in items.ts, muss sie hier mit.
+  var GRADE_BEARING = null;
+  function gradeBearingTypes() {
+    if (GRADE_BEARING) return GRADE_BEARING;
+    var byType = {};
+    ALL_ITEMS.forEach(function (it) {
+      var g = it.game; if (!g || !g.gameType || !g.grade) return;
+      var m = byType[g.gameType] || (byType[g.gameType] = {});
+      m[g.grade] = (m[g.grade] || 0) + 1;
+    });
+    GRADE_BEARING = {};
+    Object.keys(byType).forEach(function (t) {
+      var counts = Object.keys(byType[t]).map(function (k) { return byType[t][k]; });
+      if (counts.length < 2) return;
+      var total = counts.reduce(function (a, b) { return a + b; }, 0);
+      if (Math.min.apply(null, counts) / total >= 0.1) GRADE_BEARING[t] = true;
+    });
+    return GRADE_BEARING;
+  }
+  function hasMeaningfulGrade(item) {
+    var t = item.game && item.game.gameType;
+    return !!t && hasGradeSemantics(item) && !!gradeBearingTypes()[t];
+  }
   // Größen eines Items. Meist genau eine — aber hinter manchen Anzeigenamen
   // stecken mehrere Spiel-Items unterschiedlicher Größe ("Revenant Gatling"
   // gibt es als S3, S4 und S6). Die tragen `sizes` statt `size`, und es wäre
@@ -748,7 +777,7 @@
     if (g.weight) chips.push([tr('facetWeight', 'Panzerungsklasse'), weightLabel(g.weight)]);
     if (g.rarity) chips.push([tr('facetRarity', 'Seltenheit'), rarityLabel(g.rarity)]);
     if (eq && sizeLabel(item)) chips.push([tr('specSize', 'Größe'), sizeLabel(item)]);
-    if (eq && g.grade && !g.variants) chips.push([tr('specGrade', 'Grade'), g.grade]);
+    if (g.grade && !g.variants && hasMeaningfulGrade(item)) chips.push([tr('specGrade', 'Grade'), g.grade]);
     if (g.class) chips.push([tr('specClass', 'Klasse'), g.class]);
     if (g.volumeScu) chips.push([tr('specVolume', 'Volumen'), g.volumeScu + ' SCU']);
     return chips;
@@ -796,7 +825,8 @@
         '<h4>' + esc(tr('sectionVariants', 'Varianten')) + '</h4>' +
         '<p class="uif-variants-note">' + esc(tr('variantsNote', 'Unter diesem Namen führt das Spiel mehrere Gegenstände.')) + '</p>' +
         vars.map(function (v) {
-          var head = ['S' + v.size, v.manufacturer, v.grade ? tr('specGrade', 'Grade') + ' ' + v.grade : null]
+          var vg = v.grade && hasMeaningfulGrade(item) ? v.grade : null;
+          var head = ['S' + v.size, v.manufacturer, vg ? tr('specGrade', 'Grade') + ' ' + vg : null]
             .filter(Boolean).join(' · ');
           var rows = statEntries({ game: { stats: v.stats } });
           return '<div class="uif-variant">' +

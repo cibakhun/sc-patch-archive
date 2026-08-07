@@ -9,7 +9,7 @@
 
 import DB from '../../assets/crafting-db.json';
 import type { Locale } from '../i18n/ui';
-import { hasGradeSemantics, items, type Item } from './items';
+import { hasGradeSemantics, hasMeaningfulGrade, items, type Item } from './items';
 
 /* ---------- Typen (Spiegel von scripts/datamine-crafting.mjs) ---------- */
 
@@ -238,50 +238,6 @@ export const COLLIDING_NAMES: Set<string> = (() => {
   return colliding;
 })();
 
-/**
- * Bauteilarten, bei denen der Grade tatsaechlich etwas unterscheidet.
- *
- * Der Grade steht im Spiel nur bei den Bauteilen des Energie-Dreiecks fuer eine
- * echte Guete — Kraftwerk, Kuehler, Schild, Radar, Quantenantrieb streuen sauber
- * ueber A/B/C/D. Ueberall sonst traegt `AttachDef.Grade` den Vorgabewert 1, den
- * `datamine-items.mjs` zu "A" macht: 152 Schiffswaffen ausnahmslos A, 381
- * Handwaffen ausnahmslos A, Munition, Mininglaser, Traktorstrahl, Bergung
- * ebenso. Ein Chip "Grade A" auf einer Dominance-1 Scattergun behauptet eine
- * Einstufung, die es im Spiel nicht gibt.
- *
- * Abgeleitet wird das aus den Daten, nicht aus einer Handliste — sonst faellt
- * eine kuenftige Aenderung durch. Eine Bauteilart zaehlt als gradetragend, wenn
- * mindestens zwei Grades vorkommen UND der seltenste davon mindestens ein
- * Zehntel der Art ausmacht. Der zweite Teil trennt echte Streuung von
- * Datenmarotten: gemessen 07.08.2026 liegt der seltenste Grade bei den fuenf
- * Bauteilarten zwischen 17,6 % und 25 %, bei den Ausreissern (947 Lackierungen
- * mit 6× B, 613 Helme mit 13× B — allesamt "Aves") bei 0,6 bis 2,1 %. Zwischen
- * beiden Gruppen klafft der Faktor acht; jede Schwelle zwischen 5 und 15 %
- * liefert dasselbe Ergebnis.
- *
- * Ruestung faellt damit heraus. Sie hat ihre Abstufung, aber es ist eine andere
- * Achse — Light/Medium/Heavy, und die steht bereits im Kategorie-Pfad
- * ("Armour / Combat / Medium").
- */
-export const GRADE_BEARING_TYPES: Set<string> = (() => {
-  const byType = new Map<string, Map<string, number>>();
-  for (const it of items) {
-    const t = it.game?.gameType;
-    const gr = it.game?.grade;
-    if (!t || !gr) continue;
-    let m = byType.get(t);
-    if (!m) byType.set(t, (m = new Map()));
-    m.set(gr, (m.get(gr) ?? 0) + 1);
-  }
-  const bearing = new Set<string>();
-  for (const [type, counts] of byType) {
-    if (counts.size < 2) continue;
-    const total = [...counts.values()].reduce((a, b) => a + b, 0);
-    const rarest = Math.min(...counts.values());
-    if (rarest / total >= 0.1) bearing.add(type);
-  }
-  return bearing;
-})();
 
 /** Groesse/Grade/Ton einer Blueprint-Karte — Ergebnis von blueprintSpecs(). */
 export interface BlueprintSpecs {
@@ -320,8 +276,8 @@ export function blueprintSpecs(b: Blueprint): BlueprintSpecs | null {
   const g = item.game;
   const eq = hasGradeSemantics(item);
   const size = eq && g?.size != null ? g.size : null;
-  // Grade nur, wo er im Spiel etwas unterscheidet — siehe GRADE_BEARING_TYPES.
-  const grade = eq && g?.grade && g.gameType && GRADE_BEARING_TYPES.has(g.gameType) ? g.grade : null;
+  // Grade nur, wo er im Spiel etwas unterscheidet — siehe hasMeaningfulGrade().
+  const grade = g?.grade && hasMeaningfulGrade(item) ? g.grade : null;
   const tone = g?.class ?? toneFromWeaponCategoryPath(b.category);
   if (size == null && grade == null && tone == null) return null;
   return { size, grade, tone };

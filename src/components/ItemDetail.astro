@@ -152,7 +152,7 @@ const crumbs = [
       <p class="dp-note">{t('variantsNote')}</p>
       {variants.map((v) => (
         <>
-          <h3 class="dp-variant-h" set:text={variantHead(v, lang)} />
+          <h3 class="dp-variant-h" set:text={variantHead(item, v, lang)} />
           {statRows(v.stats, lang).length > 0 && (
             <ul class="dp-stats">
               {statRows(v.stats, lang).map(([l, val]) => (
