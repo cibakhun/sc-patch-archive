@@ -22,6 +22,37 @@ const ALIASES: Record<string, string> = {
   'saldynium (ore)': 'Saldynium',
 };
 
+// Dieser Join laeuft ueber den Namen — anders als bei Items ist das hier
+// zulaessig, aber nur solange Mineral- und Ressourcennamen eindeutig sind.
+// Gemessen 07.08.2026: 37 Minerale und 207 Crafting-Ressourcen, null Dubletten
+// auf beiden Seiten. Rohstoffnamen sind im Spiel echte Bezeichner ("Titanium",
+// "Lindinium"), keine Anzeigetexte, hinter denen mehrere Dinge stecken.
+//
+// Die Annahme wird hier GEPRUEFT statt vorausgesetzt: taucht je ein doppelter
+// Name auf, bricht der Build laut ab, statt still den falschen Fundort zu
+// verlinken. Das ist die Lehre aus den Item-Namen — siehe COLLIDING_NAMES in
+// crafting.ts und `entity_guid`. Waere die Pruefung hier verletzt, ist der
+// richtige Weg NICHT ein Alias, sondern ein Schluessel: `datamine-mining.mjs`
+// kennt die Record-Id jedes Minerals (`elemByGuid`) und `datamine-crafting.mjs`
+// die jeder Ressource — beide schreiben sie nur nicht heraus.
+function assertEindeutig(namen: string[], quelle: string): void {
+  const gesehen = new Set<string>();
+  const doppelt = new Set<string>();
+  for (const n of namen) {
+    const k = n.toLowerCase();
+    if (gesehen.has(k)) doppelt.add(k);
+    gesehen.add(k);
+  }
+  if (doppelt.size) {
+    throw new Error(
+      `miningLinks: ${quelle} fuehrt ${doppelt.size} doppelte Namen — der Join ueber den Namen raet dort still. ` +
+      `Betroffen: ${[...doppelt].join(', ')}. Fix ist ein Schluessel (Record-Id), kein Alias.`,
+    );
+  }
+}
+assertEindeutig(MINE.minerals.map((m) => m.name), 'assets/mining-db.json (minerals)');
+assertEindeutig(CRAFT.resources.map((r) => r.name), 'assets/crafting-db.json (resources)');
+
 const mineralNames = new Map<string, string>();
 for (const m of MINE.minerals) mineralNames.set(m.name.toLowerCase(), m.name);
 

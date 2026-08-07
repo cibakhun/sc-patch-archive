@@ -8,7 +8,7 @@ import {
   craftHubPath, craftLeaf, craftPageCount, craftPatch, craftRoots, craftTime,
   resourceNames,
 } from '../lib/crafting';
-import { num } from '../lib/items';
+import { midCategory, num } from '../lib/items';
 
 interface Props { node: CraftCategory; page: number; lang: Locale }
 const { node, page, lang } = Astro.props;
@@ -17,6 +17,15 @@ const t = itemT(lang);
 const pages = craftPageCount(node);
 const slice = node.blueprints.slice((page - 1) * CRAFT_PER_PAGE, page * CRAFT_PER_PAGE);
 const siblings = craftRoots.find((r) => r.root === node.root)?.nodes ?? [];
+
+/** Verschiedene Rohstoffe in dieser Kategorie — sagt, wie breit man einkaufen muss. */
+const materialCount = new Set(node.blueprints.flatMap((b) => resourceNames(b))).size;
+
+// Der Zweig gehoert in den Kicker: die Ueberschrift heisst nur "Heavy", und die
+// gibt es unter Armour fuenfmal (Combat/Engineer/Explorer/Hunter/Radiation).
+const eyebrow = [categoryLabel(node.root, lang), midCategory(node.cat), t('breadcrumbCrafting')]
+  .filter(Boolean)
+  .join(' · ');
 
 const pageSuffix = page > 1 ? (lang === 'de' ? ` — Seite ${page}/${pages}` : ` — page ${page}/${pages}`) : '';
 const countPart = page > 1 ? '' : lang === 'de' ? ` — alle ${node.blueprints.length} Blueprints` : ` — all ${node.blueprints.length} blueprints`;
@@ -35,17 +44,23 @@ const crumbs = [
     n: num(node.blueprints.length, lang), cat: node.cat, date: craftDb.snapshot_date,
   })}
   crumbs={crumbs}
-  eyebrow={`${categoryLabel(node.root, lang)} · ${t('breadcrumbCrafting')}`}
+  eyebrow={eyebrow}
   tone="craft"
   ogImage="/assets/t-craft-1.jpg"
   modified={craftDb.snapshot_date}
-  sources={['sc-craft.tools']}
+  sources={['RSI']}
   updated={craftDb.snapshot_date}
 >
-  <h1>{craftLeaf(node.cat)}</h1>
-  <p class="dp-lead">
+  <h1 slot="hero">{craftLeaf(node.cat)}</h1>
+  <p class="dp-lead" slot="hero">
     {fill(t('bpListingLead'), { n: num(node.blueprints.length, lang), cat: node.cat, date: craftDb.snapshot_date })}
   </p>
+
+  <ul class="dp-keys" slot="hero">
+    <li class="dp-key"><b>{t('breadcrumbCrafting')}</b><span>{num(node.blueprints.length, lang)}</span></li>
+    <li class="dp-key"><b>{t('craftMaterials')}</b><span>{num(materialCount, lang)}</span></li>
+    <li class="dp-key"><b>{t('dataAsOf')}</b><span>{craftDb.snapshot_date}</span></li>
+  </ul>
 
   <div class="dp-tablewrap vb-scrollbox" tabindex="0" role="region" aria-label={t('tableRegion')}>
     <table class="dp-table">
@@ -86,7 +101,8 @@ const crumbs = [
       <ul class="dp-cards">
         {siblings.filter((s) => s.slug !== node.slug).map((s) => (
           <li>
-            <a class="dp-card" href={href(craftCategoryPath(s), lang)}>
+            <a class="dp-card dp-card--cat" href={href(craftCategoryPath(s), lang)}>
+              {midCategory(s.cat) && <span class="dp-card-path">{midCategory(s.cat)}</span>}
               <strong>{craftLeaf(s.cat)}</strong>
               <em>{num(s.blueprints.length, lang)}</em>
             </a>

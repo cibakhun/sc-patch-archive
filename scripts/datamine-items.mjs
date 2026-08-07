@@ -12,7 +12,7 @@
 //
 // Aufruf: node scripts/datamine-items.mjs [--p4k <Data.p4k>] [--debug]
 // Ausgabe: assets/items-gamefiles.json
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
@@ -36,7 +36,20 @@ for (const rx of [/Localization[\\/]german[\\/]global\.ini$/i, /Localization[\\/
   try { iniDe = p4k.read(rx).toString('utf8'); break; } catch { /* nächste Variante */ }
 }
 p4k.close();
-const patchLabel = 'sc-alpha-4.9.0'; // build_manifest.id liegt neben der p4k; hier statisch dokumentiert
+// Patch-Kennung aus build_manifest.id neben der p4k (best effort, wie
+// datamine-crafting.mjs/extract-hardpoints.mjs). Vorher stand hier ein
+// statischer Branch-String OHNE Changelist-Nummer — zwei Laeufe gegen
+// verschiedene Builds desselben Branches waeren ununterscheidbar gewesen (D-16).
+let patchLabel = 'sc-alpha-4.9.0'; // Fallback, falls build_manifest.id fehlt
+{
+  const bm = resolve(dirname(DEFAULT_P4K), 'build_manifest.id');
+  if (existsSync(bm)) {
+    try {
+      const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data;
+      if (d?.Branch && d?.RequestedP4ChangeNum) patchLabel = `${d.Branch}@${d.RequestedP4ChangeNum}`;
+    } catch { /* Fallback bleibt */ }
+  }
+}
 
 const mkMap = (ini) => { const m = new Map(); if (!ini) return m; for (const line of ini.split(/\r?\n/)) { const i = line.indexOf('='); if (i > 0) m.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase(), line.slice(i + 1)); } return m; };
 const EN = mkMap(iniEn), DE = mkMap(iniDe);
@@ -445,14 +458,113 @@ if (DEBUG) console.log(`Pass2: ${built.length} gebaut · ${Date.now() - t0}ms`);
 // =========================================================
 //  Dedup je Anzeigename (bester Repräsentant) + sortieren
 // =========================================================
-const score = (it) => (it.stats ? Object.keys(it.stats).length : 0) * 10 + (it.manufacturer ? 2 : 0) + (it.desc ? 1 : 0) - (/_pob_|_hologram|_generic/i.test(it.file) ? 5 : 0);
+// Der Anzeigename bleibt der Schlüssel — die Preise/Kauforte aus UEX kennen
+// auch nur ihn, ein Aufsplitten würde den Join zerreißen. Er ist aber KEINE
+// Identität: 29 Waffen-/Werfer-/Mount-Namen stehen im Spiel für mehrere,
+// unterschiedlich große Items ("Revenant Gatling" gibt es als S3, S4 und S6).
+// Für die trägt der beste Repräsentant nur noch die gemeinsamen Angaben; alles
+// Variantenabhängige — Größe, Grade, Hersteller, Kennzahlen — steht in
+// `variants`, und `size` bleibt leer statt eine der Größen zu behaupten.
+const JUNK_FILE = /_pob_|_hologram|_generic/i;
+const score = (it) => (it.stats ? Object.keys(it.stats).length : 0) * 10 + (it.manufacturer ? 2 : 0) + (it.desc ? 1 : 0) - (JUNK_FILE.test(it.file) ? 5 : 0);
 const byName = new Map();
 for (const it of built) {
   const k = it.name.toLowerCase().trim();
-  const prev = byName.get(k);
-  if (!prev || score(it) > score(prev)) byName.set(k, it);
+  const e = byName.get(k);
+  if (!e) { byName.set(k, { best: it, all: [it] }); continue; }
+  e.all.push(it);
+  if (score(it) > score(e.best)) e.best = it;
 }
-const items = [...byName.values()].sort((a, b) => a.name.localeCompare(b.name, 'en'));
+
+let variantNames = 0;
+for (const { best, all } of byName.values()) {
+  // Requisiten/Hologramme sind keine eigene Variante, sondern Deko mit
+  // geliehenem Namen — sie dürfen keine Größe in die Liste schmuggeln.
+  const real = all.filter((x) => !JUNK_FILE.test(x.file) && x.size != null);
+  const sizes = [...new Set(real.map((x) => x.size))].sort((a, b) => a - b);
+  if (sizes.length < 2) continue;
+  variantNames++;
+  // erst lesen, dann `best` entschärfen — `best` steckt selbst in `real`
+  const variants = sizes.map((size) => {
+    const v = real.filter((x) => x.size === size).sort((a, b) => score(b) - score(a))[0];
+    return {
+      size,
+      // Record-Id der Ausfuehrung — MUSS hier gelesen werden, solange `best`
+      // noch seine Groesse hat. Weiter unten wird sie auf null gesetzt; ein
+      // spaeterer Filter ueber `x.size` faende `best` dann nicht mehr und
+      // liesse ausgerechnet die Ausfuehrung ohne Id, die im Katalog steht.
+      guid: v.id ?? null,
+      grade: v.grade ?? null,
+      manufacturer: v.manufacturer ?? null,
+      stats: v.stats ?? null,
+    };
+  });
+  // Variantenabhängig ist nicht nur die Größe: die S3-Revenant ist eine Anvil
+  // mit 1054 DPS, die S4 eine Apocalypse Arms mit 1266. Diese Felder oben stehen
+  // zu lassen hieße, die Werte EINER Variante als die des Items auszugeben.
+  best.sizes = sizes;
+  best.size = null;
+  best.grade = null;
+  best.manufacturer = null;
+  best.manufacturerCode = null;
+  best.stats = null;
+  best.variants = variants;
+}
+// Was der Dedupe STILL wegwirft: Geschwister mit demselben Namen, die keine
+// Variantenliste ausgeloest haben (weil sie sich nicht in der Groesse
+// unterscheiden oder gar keine fuehren). Von denen ueberlebt nur `best` — die
+// anderen verschwinden aus dem Katalog, samt ihrer Record-Id.
+//
+// Das ist keine Kosmetik: genau so verlor der Katalog den Kuehler "NightFall",
+// und genau deshalb bleiben fuenf Crafting-Karten leer, obwohl ihr Blueprint
+// eine eigene `entity_guid` hat — die zugehoerige Id ist hier weggefallen.
+// Der saubere Weg waere ein guid-scharfer Katalog; der aendert aber die
+// Item-Identitaet und damit Slugs, URLs und die slug-basierten Konto-Daten
+// (Besitz/Planer) — ein eigenes Vorhaben. Bis dahin gilt: NICHT still
+// verwerfen. Die Faelle stehen im Lauf-Protokoll und ihre Zahl in der Ausgabe,
+// damit ein Zuwachs auffaellt statt unbemerkt zu bleiben.
+// Je Fall wird festgehalten, WORIN sich die Geschwister unterscheiden. Das
+// entscheidet, ob der Verlust weh tut: tragen alle dieselbe Groesse, denselben
+// Grade und dieselbe Klasse, ist der ueberlebende Eintrag fuer sie alle
+// zutreffend — dann duerfen ihre Record-Ids als `guidAliases` mitreisen, und
+// ein guid-Join findet sie wieder, ohne etwas zu raten. Weichen sie ab, ist
+// echte Identitaet noetig und die Ids duerfen NICHT umgehaengt werden.
+const kennwerte = (x) => `${x.size ?? '-'}|${x.grade ?? '-'}|${x.class ?? '-'}`;
+const collapsed = [];
+for (const { best, all } of byName.values()) {
+  if (all.length < 2 || best.variants) continue;
+  const dropped = all.filter((x) => x !== best);
+  const gleich = dropped.every((x) => kennwerte(x) === kennwerte(best));
+  collapsed.push({
+    name: best.name,
+    kept: best.id,
+    keptSpecs: kennwerte(best),
+    dropped: dropped.map((x) => x.id),
+    droppedSpecs: [...new Set(dropped.map(kennwerte))],
+    // true = der ueberlebende Eintrag beschreibt die Geschwister korrekt mit
+    sameSpecs: gleich,
+  });
+  // Die Record-Ids der Geschwister reisen mit — aber NUR, wenn sie in
+  // Groesse/Grade/Klasse uebereinstimmen. Dann ist der ueberlebende Eintrag
+  // fuer sie zutreffend, und wer ueber eine dieser Ids sucht (Crafting-Karten
+  // mit eigener `entity_guid`), findet ihn wieder, statt leer auszugehen.
+  // Weichen sie ab, bleibt die Id draussen: lieber keine Angabe als eine
+  // fremde. Gemessen 07.08.2026: 265 Faelle, 501 Geschwister, davon 0
+  // abweichend — es sind Mehrfacheintraege desselben Gegenstands.
+  if (gleich) best.guidAliases = dropped.map((x) => x.id);
+}
+
+const items = [...byName.values()].map((e) => e.best).sort((a, b) => a.name.localeCompare(b.name, 'en'));
+if (variantNames)
+  console.log(`${variantNames} Anzeigenamen stehen für mehrere Items — Größe als Variantenliste statt Einzelwert`);
+if (collapsed.length) {
+  const total = collapsed.reduce((n, c) => n + c.dropped.length, 0);
+  console.log(`⚠ ${collapsed.length} Anzeigenamen stehen fuer mehrere Items OHNE Groessenunterschied — ${total} Eintraege fallen weg, nur der beste bleibt.`);
+  console.log('  Ihre Record-Ids sind damit aus dem Katalog verschwunden; Joins ueber die guid finden sie nicht mehr.');
+  for (const c of (DEBUG ? collapsed : collapsed.slice(0, 12)))
+    console.log(`   ${c.name} — behalten ${c.kept}, weg: ${c.dropped.join(', ')}`);
+  if (!DEBUG && collapsed.length > 12) console.log(`   … und ${collapsed.length - 12} weitere (DEBUG=1 zeigt alle)`);
+}
 
 // =========================================================
 //  Rüstungs-Sets (Dreier-Kette, siehe lib/armor-sets.mjs)
@@ -497,8 +609,23 @@ const payload = {
     withArchetype: facetCount('archetype'), lootableKnown: items.filter((i) => i.lootable != null).length,
     notLootable: items.filter((i) => i.lootable === false).length,
     inSet: items.filter((i) => i.setId).length,
+    // Gleichnamige Items, die der Dedupe zusammenzieht. `variantNames` sind die
+    // ehrlichen Faelle (Groessen stehen in `variants`), `collapsedNames` die
+    // verlustbehafteten: dort faellt je Name mindestens eine Record-Id weg.
+    // Steigt die zweite Zahl nach einem Patch, sind neue Items unsichtbar
+    // geworden — siehe den Kommentar am Dedupe.
+    variantNames,
+    collapsedNames: collapsed.length,
+    collapsedEntries: collapsed.reduce((n, c) => n + c.dropped.length, 0),
+    // Die Teilmenge, bei der die Geschwister sich in Groesse/Grade/Klasse
+    // UNTERSCHEIDEN — nur dort geht wirklich eine Aussage verloren.
+    collapsedDiffering: collapsed.filter((c) => !c.sameSpecs).length,
     sets: setStats,
   },
+  // Vollstaendige Liste, damit downstream (build-universal-db.mjs) die
+  // Record-Ids der weggefallenen Geschwister als `guidAliases` anhaengen kann —
+  // aber nur die mit `sameSpecs`.
+  collapsed,
   sets,
   items,
 };

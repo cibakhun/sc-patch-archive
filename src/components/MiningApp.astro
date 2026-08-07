@@ -4,6 +4,8 @@
 import DB from '../../assets/mining-db.json';
 import { blueprintsPerMineral, craftingPath, materialByMineral } from '../lib/miningLinks';
 import { href, useTranslations } from '../i18n/ui';
+import { useHelp } from '../i18n/help';
+import ToolHelp from './ToolHelp.astro';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
@@ -11,6 +13,10 @@ const { lang } = Astro.props;
 // Nur das aria-Praefix des Zurueck-Pfeils am Modal ("Zurueck zu"/"Back to").
 // Den Namen der Herkunft haengt assets/back-link.js zur Laufzeit an.
 const tBack = useTranslations(lang);
+// Werkzeug-Hilfe (Phase 01.2) — siehe
+// .planning/phases/01.2-werkzeuge-erklaeren/01.2-02-PLAN.md. Zweite Instanz
+// auf dieser Seite: RefineryFinder unten traegt tool="refineryfinder".
+const h = useHelp(lang);
 
 // -- i18n (SSR-Chrome) --
 const S = {
@@ -99,12 +105,13 @@ const total = DB.counts.minerals;
 ---
 
 <section class="mdb" id="mdb">
+  <ToolHelp tool="mining" lang={lang} steps={4} />
   <div class="mdb-bar">
-    <button class="mdb-filter-toggle" id="mdb-filter-toggle" aria-expanded="false" aria-controls="mdb-sidebar" data-offcanvas-toggle="mdb-sidebar">☰ {S.filterBtn}</button>
-    <div class="mdb-search-wrap">
+    <button class="mdb-filter-toggle" id="mdb-filter-toggle" aria-expanded="false" aria-controls="mdb-sidebar" data-offcanvas-toggle="mdb-sidebar" data-help={h('mining.ctl.filter')}>☰ {S.filterBtn}</button>
+    <div class="mdb-search-wrap" data-help={h('mining.ctl.search')}>
       <input type="search" id="mdb-search" class="mdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
     </div>
-    <label class="mdb-sort">
+    <label class="mdb-sort" data-help={h('mining.ctl.sort')}>
       <span class="mdb-sr">{S.sort}</span>
       <select id="mdb-sort">
         <option value="rarity">{S.sortRarity}</option>
@@ -113,11 +120,11 @@ const total = DB.counts.minerals;
         <option value="name-desc">{S.sortNameDesc}</option>
       </select>
     </label>
-    <div class="mdb-viewtog" role="group" aria-label={S.view}>
+    <div class="mdb-viewtog" role="group" aria-label={S.view} data-help={h('mining.ctl.view')}>
       <button class="mdb-view" data-view="grid" aria-pressed="true" title={S.grid}>▦</button>
       <button class="mdb-view" data-view="list" aria-pressed="false" title={S.list}>≡</button>
     </div>
-    <button class="mdb-loc-open" id="mdb-loc-open" title={S.locBtn}>◎ {S.locBtn}</button>
+    <button class="mdb-loc-open" id="mdb-loc-open" title={S.locBtn} data-help={h('mining.ctl.loc')}>◎ {S.locBtn}</button>
   </div>
 
   <div class="mdb-layout">
@@ -126,21 +133,21 @@ const total = DB.counts.minerals;
     <aside class="mdb-sidebar" id="mdb-sidebar" aria-label={S.filters} data-offcanvas>
       <div class="mdb-side-hd"><span>{S.filters}</span><button id="mdb-filter-close" class="mdb-x" aria-label={S.close}>✕</button></div>
 
-      <div class="mdb-fgroup">
+      <div class="mdb-fgroup" data-help={h('mining.ctl.system')}>
         <h4>{S.system}</h4>
         {systemsAll.map((s) => (
           <label class="mdb-check"><input type="checkbox" class="mdb-sys" value={s.toLowerCase()} /><span>{s}</span></label>
         ))}
       </div>
 
-      <div class="mdb-fgroup">
+      <div class="mdb-fgroup" data-help={h('mining.ctl.method')}>
         <h4>{S.method}</h4>
         <label class="mdb-check"><input type="checkbox" class="mdb-meth" value="ship" /><span>{S.methShip}</span></label>
         <label class="mdb-check"><input type="checkbox" class="mdb-meth" value="hand" /><span>{JS_T.methHand}</span></label>
         <label class="mdb-check"><input type="checkbox" class="mdb-meth" value="roc" /><span>{JS_T.methRoc}</span></label>
       </div>
 
-      <div class="mdb-fgroup">
+      <div class="mdb-fgroup" data-help={h('mining.ctl.type')}>
         <h4>{S.type}</h4>
         <select id="mdb-kind" class="mdb-kind">
           <option value="">{S.anyType}</option>
@@ -148,7 +155,7 @@ const total = DB.counts.minerals;
         </select>
       </div>
 
-      <div class="mdb-fgroup">
+      <div class="mdb-fgroup" data-help={h('mining.ctl.flags')}>
         <label class="mdb-check"><input type="checkbox" id="mdb-refine" /><span>{S.refineOnly}</span></label>
         <label class="mdb-check"><input type="checkbox" id="mdb-gem" /><span>{S.gemOnly}</span></label>
       </div>

@@ -1,10 +1,10 @@
 // Crafting-Datenbank direkt aus dem Spiel extrahieren (statt sc-craft.tools).
 //
 // Quelle: Data.p4k -> Data/Game2.dcb (DataCore v8) + Localization/english/global.ini.
-// Ersetzt scripts/fetch-craft.mjs: sc-craft.tools extrahiert selbst nur aus der
-// Game2.dcb und hinkt am Patch-Day hinterher (16.07.2026: LIVE ist 4.9, die
-// Community-API kann nur PTU-4.9) — mit scripts/lib/{p4k,datacore}.mjs geht es
-// ohne Umweg. Ausgabeformat bleibt 1:1 kompatibel zur bestehenden App
+// Ersetzt den frueheren Fremdquellen-Zug: die Community-Quelle extrahierte selbst
+// nur aus der Game2.dcb und hinkte am Patch-Day hinterher (16.07.2026: LIVE ist
+// 4.9, die Community-API konnte nur PTU-4.9) — mit scripts/lib/{p4k,datacore}.mjs
+// geht es ohne Umweg. Ausgabeformat bleibt 1:1 kompatibel zur bestehenden App
 // (assets/crafting-app.js, CraftingApp.astro, item-finder-app.js).
 //
 // Aufruf:   node scripts/datamine-crafting.mjs
@@ -70,8 +70,16 @@ if (dcbArg) {
       const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data ?? {};
       // 4.9-Manifest: Branch "sc-alpha-4.9.0" + RequestedP4ChangeNum "12232306";
       // aeltere Builds fuehrten stattdessen RequestedP4kVersion.
+      // Label-Wort aus `Config`, NICHT aus `Tag`: ein echter LIVE-Client traegt
+      // "Tag": "no_tag" + "Config": "live" (gemessen an build_manifest.id,
+      // Changelist 12326004) — Tag ist der Perforce-Branch-Tag (oft leer/no_tag),
+      // Config ist der tatsaechliche Build-Kanal. `d.Tag==='public'` traf bei
+      // diesem Client nie, das Label fiel auf "NO_TAG" zurueck (Phase 01.3, D-19).
+      const kanal = d.Config === 'live'
+        ? 'LIVE'
+        : (d.Tag && d.Tag !== 'no_tag' ? String(d.Tag).toUpperCase() : String(d.Config ?? 'LIVE').toUpperCase());
       patchLabel = d.RequestedP4kVersion
-        ?? (d.Branch ? `${d.Tag === 'public' ? 'LIVE' : (d.Tag ?? 'LIVE').toUpperCase()}-${d.Branch.replace(/^sc-alpha-/, '')}-${d.RequestedP4ChangeNum ?? ''}`.replace(/-$/, '') : null);
+        ?? (d.Branch ? `${kanal}-${d.Branch.replace(/^sc-alpha-/, '')}-${d.RequestedP4ChangeNum ?? ''}`.replace(/-$/, '') : null);
     } catch { /* egal */ }
   }
   p4k.close();
@@ -262,7 +270,13 @@ function readEntity(ref) {
     if (massKg != null) stats.mass_kg = r6(massKg);
     if (overheat != null) stats.overheat_temperature = r6(overheat);
   }
-  const out = { name, stats, itemType, className };
+  // `guid` = Record-Id der EntityClassDefinition. Derselbe Id-Raum, aus dem
+  // datamine-items.mjs `item.game.guid` zieht — damit laesst sich ein Blueprint
+  // eindeutig auf sein Item beziehen, statt ueber den Anzeigenamen zu raten.
+  // Anzeigenamen sind KEIN Schluessel: fuenf Blueprint-Gruppen tragen denselben
+  // Namen und sind nachweislich verschiedene Items (Main Powerplant 60 t gegen
+  // 7,6 t). Siehe COLLIDING_NAMES in src/lib/crafting.ts.
+  const out = { guid: ref.__ref, name, stats, itemType, className };
   entityCache.set(ref.__ref, out);
   return out;
 }
@@ -359,7 +373,7 @@ for (const r of db.records) {
   const bp = d?.blueprint;
   const ecRef = bp?.processSpecificData?.entityClass;
   if (!ecRef?.__ref) { skippedNoEntity++; continue; }
-  const ent = readEntity(ecRef) ?? { name: null, stats: null, itemType: null, className: ecRef.name?.replace('EntityClassDefinition.', '') ?? r.name.replace(/^CraftingBlueprintRecord\.BP_CRAFT_/, '') };
+  const ent = readEntity(ecRef) ?? { guid: ecRef.__ref, name: null, stats: null, itemType: null, className: ecRef.name?.replace('EntityClassDefinition.', '') ?? r.name.replace(/^CraftingBlueprintRecord\.BP_CRAFT_/, '') };
   if (!ent.name) {
     if (isTemplate) { skippedTemplate++; continue; }
     ent.name = humanize(ent.className);
@@ -423,6 +437,10 @@ for (const r of db.records) {
 
   const entry = {
     name: ent.name,
+    // Eindeutiger Schluessel des gecrafteten Items (EntityClassDefinition-Id).
+    // Deckt sich mit `item.game.guid` aus datamine-items.mjs. Der Anzeigename
+    // taugt nicht dafuer — siehe Kommentar in readEntity().
+    entity_guid: ent.guid ?? null,
     category: categoryOf(r.fileName) ?? '—',
     craft_time_seconds: craftSeconds,
     tiers: tiers.length,

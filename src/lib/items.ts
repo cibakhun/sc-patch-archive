@@ -71,10 +71,30 @@ export interface ItemStats {
   [k: string]: unknown;
 }
 
+/** Eine von mehreren Ausführungen, die sich einen Anzeigenamen teilen. */
+export interface ItemVariant {
+  size: number;
+  /**
+   * Record-Id dieser Ausfuehrung. Erst damit kann ein Aufrufer, der ein
+   * bestimmtes Spiel-Item meint, sagen WELCHE der Groessen seine ist — statt
+   * nur "S3 / S4 / S6" zu sehen. Aeltere Snapshots fuehren sie nicht.
+   */
+  guid?: string | null;
+  grade: string | null;
+  manufacturer: string | null;
+  stats: ItemStats | null;
+}
+
 export interface ItemGame {
   gameType?: string;
   subType?: string;
   size?: number;
+  /** Größen ALLER Ausführungen dieses Namens — gesetzt statt `size`, wenn das
+   *  Spiel mehrere unterschiedlich große Items so nennt ("Revenant Gatling"
+   *  gibt es als S3, S4 und S6). Dann sind auch grade/manufacturer/stats leer
+   *  und stehen stattdessen je Ausführung in `variants`. */
+  sizes?: number[];
+  variants?: ItemVariant[];
   grade?: string;
   class?: string;
   manufacturer?: string;
@@ -85,6 +105,14 @@ export interface ItemGame {
   descDe?: string;
   nameDe?: string;
   guid?: string;
+  /**
+   * Record-Ids gleichnamiger Geschwister, die `datamine-items.mjs` beim Dedupe
+   * zusammengezogen hat — mitgefuehrt NUR, wo sie in Groesse, Grade und Klasse
+   * mit diesem Eintrag uebereinstimmen (gemessen 07.08.2026: 265 Faelle, 501
+   * Geschwister, davon 0 abweichend). Wer ueber eine dieser Ids sucht, meint
+   * dieses Item; ohne sie ginge er leer aus.
+   */
+  guidAliases?: string[];
   /* -- Tag-Facetten aus der spiel-eigenen Tag-Datenbank (scripts/lib/tags.mjs) -- */
   /** Panzerungsklasse: Undersuit | Light | Medium | Heavy | SuperHeavy | Flightsuit | FullSuit.* */
   weight?: string;
@@ -210,6 +238,12 @@ export function isIndexable(i: Item): boolean {
   if (i.obtain.length > 0) return true;
   if (i.guide) return true;
   const g = i.game;
+  // Mehrdeutige Anzeigenamen ("Revenant Gatling" = S3/S4/S6) tragen ihre Werte
+  // NICHT oben, sondern je Ausfuehrung in `variants`. Sie beantworten "was kann
+  // das" damit sogar ausfuehrlicher als ein einzelner Wertesatz — ohne diese
+  // Zeile faelt genau die Gruppe durch die Schwelle, fuer die es die
+  // Varianten-Sektion ueberhaupt gibt.
+  if (g?.variants?.length) return true;
   return !!(g && g.stats && Object.keys(g.stats).length > 0);
 }
 
@@ -231,6 +265,21 @@ export function rootCategory(cat: string): string {
 export function leafCategory(cat: string): string {
   const parts = (cat || 'Other').split('/').map((s) => s.trim()).filter(Boolean);
   return parts.length > 1 ? parts[parts.length - 1] : parts[0] || 'Other';
+}
+
+/**
+ * Die Zweige ZWISCHEN Wurzel und Blatt: "Armour / Combat / Heavy" -> "Combat".
+ *
+ * Ohne sie ist eine Kategorie-Karte nicht identifizierbar: das Blueprint-
+ * Verzeichnis zeigte unter "Armor" fuenfmal "Heavy" und viermal "Light"
+ * untereinander (Combat/Hunter/Engineer/Explorer/Radiation …), das
+ * Fahrzeug-Kapitel zweimal "Cannon" (Ballistic vs. Laser). Leer, wenn die
+ * Kategorie nur zwei Ebenen hat — dann sagt schon die Abschnitts-
+ * ueberschrift alles.
+ */
+export function midCategory(cat: string): string {
+  const parts = (cat || '').split('/').map((s) => s.trim()).filter(Boolean);
+  return parts.length > 2 ? parts.slice(1, -1).join(' · ') : '';
 }
 
 /** "Vehiclegear / Weapons / Guns" -> "vehiclegear-weapons-guns" */
@@ -313,6 +362,24 @@ export function maxPrice(i: Item): number | null {
   return p === -Infinity ? null : p;
 }
 
+/**
+ * Mittelwert ueber ALLE bepreisten Bezugsquellen (dieselbe Filterregel wie
+ * minPrice/maxPrice: `price != null && price > 0`). `null` bei null Treffern —
+ * NICHT 0. Eine 0 waere eine erfundene Aussage (das Item hat schlicht keinen
+ * bekannten Kaufpreis, "0 aUEC" waere ein falscher Kaufpreis).
+ */
+export function avgPrice(i: Item): number | null {
+  let sum = 0;
+  let n = 0;
+  for (const o of i.obtain) {
+    if (o.price != null && o.price > 0) {
+      sum += o.price;
+      n++;
+    }
+  }
+  return n === 0 ? null : Math.round(sum / n);
+}
+
 /** Bezugsquellen fuer die Tabelle: guenstigste zuerst, Loot ans Ende. */
 export function sortedObtain(i: Item): Obtain[] {
   return [...i.obtain].sort((a, b) => {
@@ -362,6 +429,92 @@ export function description(i: Item, lang: Locale): string | null {
  */
 export function hasGradeSemantics(i: Item): boolean {
   return /Vehiclegear|Weapons|Armour|Attachment/.test(rootCategory(i.category));
+}
+
+/**
+ * Bauteilarten, bei denen der Grade tatsaechlich etwas unterscheidet.
+ *
+ * `hasGradeSemantics()` allein genuegt nicht: es urteilt ueber die Grob-
+ * kategorie und laesst Waffen und Ruestung durch, wo `AttachDef.Grade` den
+ * Vorgabewert 1 traegt, den `datamine-items.mjs` zu "A" macht. Gemessen am
+ * Katalog (07.08.2026): `WeaponGun` 152x A, `WeaponPersonal` 381x A, Munition,
+ * Mininglaser, Traktorstrahl und Bergung ebenso ausnahmslos A; Ruestung 886x A
+ * gegen 3x B — und die drei sind alle "Aves"-Helme, eine Produktfamilie.
+ * Einen Grade-Chip auf eine Dominance-1 Scattergun zu setzen behauptet eine
+ * Einstufung, die es im Spiel nicht gibt.
+ *
+ * Echte Streuung gibt es nur bei den Bauteilen des Energie-Dreiecks:
+ * Kraftwerk, Kuehler, Schild, Radar, Quantenantrieb verteilen sich sauber ueber
+ * A/B/C/D.
+ *
+ * Abgeleitet wird das aus den Daten, nicht aus einer Handliste — sonst faellt
+ * eine kuenftige Aenderung still durch. Eine Bauteilart zaehlt als
+ * gradetragend, wenn mindestens zwei Grades vorkommen UND der seltenste davon
+ * mindestens ein Zehntel der Art ausmacht. Der zweite Teil trennt echte
+ * Streuung von Datenmarotten: die fuenf liegen bei 17,6 bis 25 %, die
+ * Ausreisser (947 Lackierungen mit 6x B, 613 Helme mit 13x B) bei 0,6 bis
+ * 2,1 %. Dazwischen klafft der Faktor acht; jede Schwelle zwischen 5 und 15 %
+ * liefert dasselbe Ergebnis.
+ *
+ * Ruestung faellt damit heraus. Sie hat sehr wohl eine Abstufung, aber eine
+ * andere Achse — Light/Medium/Heavy, und die steht bereits in `game.weight`
+ * bzw. im Kategorie-Pfad.
+ *
+ * ⚠ Gespiegelt in `assets/item-finder-app.js` (clientseitiges Rendern) und in
+ * `scripts/verify-crafting-specs.mjs` (Datengatter). Aendert sich die Regel
+ * hier, muessen beide nachgezogen werden.
+ */
+export const GRADE_BEARING_TYPES: Set<string> = (() => {
+  const byType = new Map<string, Map<string, number>>();
+  for (const it of items) {
+    const t = it.game?.gameType;
+    const gr = it.game?.grade;
+    if (!t || !gr) continue;
+    let m = byType.get(t);
+    if (!m) byType.set(t, (m = new Map()));
+    m.set(gr, (m.get(gr) ?? 0) + 1);
+  }
+  const bearing = new Set<string>();
+  for (const [type, counts] of byType) {
+    if (counts.size < 2) continue;
+    const total = [...counts.values()].reduce((a, b) => a + b, 0);
+    if (Math.min(...counts.values()) / total >= 0.1) bearing.add(type);
+  }
+  return bearing;
+})();
+
+/**
+ * Traegt dieses Item einen Grade, der etwas aussagt? Verbindet die Grob-
+ * kategorie-Regel mit der gemessenen Streuung je Bauteilart.
+ */
+export function hasMeaningfulGrade(i: Item): boolean {
+  const t = i.game?.gameType;
+  return hasGradeSemantics(i) && !!t && GRADE_BEARING_TYPES.has(t);
+}
+
+/**
+ * Groessen eines Items. Meist genau eine — hinter manchen Anzeigenamen stecken
+ * aber mehrere Spiel-Items unterschiedlicher Groesse ("Revenant Gatling" gibt
+ * es als S3, S4 und S6). Die tragen `sizes`; sich eine davon auszusuchen waere
+ * geraten.
+ *
+ * Wohnt hier und nicht in itemStats.ts, weil mehrere Flaechen dieselbe Frage
+ * stellen — Item-Datenblatt, Item Finder, Crafting-Karten. Vorher hatte jede
+ * ihre eigene Fassung, und die schmaleren lasen nur `size`: die Crafting-Karte
+ * zeigte deshalb bei den fuenf mehrdeutigen Items GAR NICHTS, obwohl das
+ * Datenblatt "S3 / S4 / S6" konnte. Nicht neu implementieren — importieren.
+ */
+export function itemSizes(i: Item): number[] {
+  const g = i.game;
+  if (!g) return [];
+  if (g.sizes?.length) return g.sizes;
+  return g.size != null ? [g.size] : [];
+}
+
+/** "S4" bzw. "S3 / S4 / S6" — oder null, wenn keine Groesse bekannt ist. */
+export function sizeLabel(i: Item): string | null {
+  const s = itemSizes(i);
+  return s.length ? s.map((n) => `S${n}`).join(' / ') : null;
 }
 
 /* ---------- Verwandte Items (interne Verlinkung) ---------- */

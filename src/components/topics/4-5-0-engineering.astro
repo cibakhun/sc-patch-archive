@@ -23,11 +23,12 @@ const de = lang === 'de';
 :root[data-theme="light"]{--bg:#f2f8fd;--bg-2:#e8eff5;--surface:#fcfeff;--surface-2:#ecf4fa;--text:#1c2021;--muted:#4f5a5f;--accent:#7a5201;--accent-2:#056262;--hot:#9d0223;--ink:#ffffff;--accent-media:#FFB000;--accent-2-media:#2BC4C4;--line:rgba(146,105,37,.3);--line-soft:rgba(42,47,48,.12);--glow:0 6px 22px rgba(146,105,37,.18)}
 
 
+
+
 /* page-local accents */
 .hero h1{font-size:clamp(3.2rem,13vw,10rem)}
 .kx-hot{color:var(--hot)!important}</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
-<div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.5.0', href: '/de/patches/sc-4-5-0.html' }, { label: "Engineering" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.5.0', href: '/patches/sc-4-5-0.html' }, { label: "Engineering" }]} />
 

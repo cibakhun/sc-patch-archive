@@ -108,11 +108,11 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0d1322;--surface-2:#131b30;--accent:#2dd4ff;--accent-2:#7ae2ff;--hot:#2dd4ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(45,212,255,.22);--line-soft:rgba(232,238,252,.10);--glow:0 0 46px rgba(45,212,255,.18);--ink:#04121a;--maxw:1180px;--accent-media:#2dd4ff;--accent-2-media:#7ae2ff;--font-mono:'Share Tech Mono',monospace;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#025f73;--hot:#065c71;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#7ae2ff;--line:rgba(43,125,148,.3);--line-soft:rgba(41,46,56,.12);--glow:0 6px 22px rgba(43,125,148,.18)}
-.reveal{opacity:1 !important;transform:none !important}
-</style>
+
+
+.reveal{opacity:1 !important;transform:none !important}</style>
 
 <a class="skip" href="#main">Skip to content</a>
-<div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={[{ label: 'Pilot' }]} hasEn={true} />
 
@@ -388,8 +388,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   /* ---------- Identity-Hero ---------- */
   .pp-hero {
     position: relative; min-height: 420px;
-    display: flex; flex-direction: column;
-    background: #05070d;
+    display: flex; flex-direction: column;background:var(--veil-2);
     border-bottom: 1px solid var(--line);
     overflow: hidden;
   }
@@ -424,10 +423,9 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     100% { transform: translateX(360%) skewX(-8deg); }
   }
   .pp-hero__scrim {
-    position: absolute; inset: 0;
-    background: linear-gradient(to bottom,
-      rgba(5, 7, 13, 0.35) 0%,
-      rgba(5, 7, 13, 0.45) 45%,
+    position: absolute; inset: 0;background:linear-gradient(to bottom,
+      var(--veil) 0%,
+      var(--veil) 45%,
       color-mix(in srgb, var(--bg) 78%, transparent) 82%,
       var(--bg) 100%);
   }
@@ -442,10 +440,8 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     display: flex; align-items: center; justify-content: space-between; gap: 1rem;
     padding: 0.45rem clamp(1.25rem, 5vw, 4rem);
     border-top: 2px solid var(--accent-media);
-    border-bottom: 1px solid rgba(232, 238, 252, 0.14);
-    background:
-      repeating-linear-gradient(-45deg, rgba(45, 212, 255, 0.07) 0 6px, transparent 6px 12px),
-      rgba(5, 7, 13, 0.55);
+    border-bottom: 1px solid rgba(232, 238, 252, 0.14);background:repeating-linear-gradient(-45deg, rgba(45, 212, 255, 0.07) 0 6px, transparent 6px 12px),
+      var(--veil-2);
     backdrop-filter: blur(6px);
     font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.16em;
     text-transform: uppercase; color: #8a99b8;
@@ -475,8 +471,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   @keyframes ppSpin    { to { transform: rotate(360deg); } }
   @keyframes ppSpinRev { to { transform: rotate(-360deg); } }
   .pp-avatar-box {
-    width: 108px; height: 108px; border-radius: 50%;
-    background: #0a0e18; border: 3px solid currentColor;
+    width: 108px; height: 108px; border-radius: 50%;background:var(--veil-2); border: 3px solid currentColor;
     box-shadow: 0 0 30px color-mix(in srgb, currentColor 35%, transparent);
     display: grid; place-items: center;
     font-size: 2.8rem; overflow: hidden; position: relative;
@@ -490,7 +485,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   .pp-status-dot {
     position: absolute; bottom: 14px; right: 14px; z-index: 2;
     width: 18px; height: 18px; border-radius: 50%;
-    background: #64748b; border: 3px solid #05070d;
+    background: #64748b;border:3px solid var(--line-soft);
     box-shadow: 0 0 12px currentColor;
   }
   .pp-status-dot.pulse { animation: ppStatusPulse 2s infinite; }
@@ -505,8 +500,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   .pp-name {
     margin: 0; font-family: var(--font-display); font-weight: 900;
     font-size: clamp(1.7rem, 4.6vw, 2.6rem); line-height: 1.02; letter-spacing: -0.01em;
-    overflow-wrap: break-word;
-    background: linear-gradient(180deg, #ffffff, var(--accent-media) 78%, color-mix(in srgb, var(--accent-media) 45%, #05070d));
+    overflow-wrap: break-word;background:linear-gradient(180deg, var(--title-hi), var(--accent-media) 78%, color-mix(in srgb, var(--accent-media) 45%, var(--title-lo)));
     -webkit-background-clip: text; background-clip: text; color: transparent;
     filter: drop-shadow(0 0 26px color-mix(in srgb, var(--accent-media) 42%, transparent));
   }
@@ -628,18 +622,15 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   }
   .pp-ship:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .pp-ship__media {
-    position: relative; aspect-ratio: 16 / 9; overflow: hidden;
-    background: #05070d;
+    position: relative; aspect-ratio: 16 / 9; overflow: hidden;background:var(--veil-2);
     display: grid; place-items: center;
   }
   .pp-ship__media img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
   .pp-ship:hover .pp-ship__media img { transform: scale(1.05); }
   .pp-ship__media--logo img { width: 46%; height: 46%; object-fit: contain; opacity: 0.85; filter: grayscale(0.2); }
-  .pp-ship__media--void {
-    background:
-      linear-gradient(rgba(45, 212, 255, 0.06) 1px, transparent 1px),
+  .pp-ship__media--void {background:linear-gradient(rgba(45, 212, 255, 0.06) 1px, transparent 1px),
       linear-gradient(90deg, rgba(45, 212, 255, 0.06) 1px, transparent 1px),
-      #05070d;
+      var(--veil-2);
     background-size: 18px 18px;
   }
   .pp-ship__voidname {
@@ -753,6 +744,15 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     }
     .pp-hero__sweep { display: none; }
   }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .pp-chrome{color:#485879}
+:root[data-theme="light"] .pp-verified{color:#046a34}
+:root[data-theme="light"] .pp-transmission{color:#485879}
+:root[data-theme="light"] .pp-bio{color:#4c586f}
+:root[data-theme="light"] .pp-since{color:#485879}
+:root[data-theme="light"] .pp-badge--verified{border-color:rgba(2,144,63,.68);color:#046a34}
+:root[data-theme="light"] .pp-badge--verified svg{color:#046a34}
+:root[data-theme="light"] .pp-ship__voidname{color:rgba(2,98,121,.73)}
 </style>
 
 <script>

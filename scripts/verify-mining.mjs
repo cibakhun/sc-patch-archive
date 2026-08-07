@@ -4,9 +4,10 @@
 // Für den game-genauen 0-Diff-Cross-Check gegen scmdb: `node scripts/datamine-*.mjs --verify`.
 //
 //   node scripts/verify-mining.mjs
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { DEFAULT_P4K } from './lib/p4k.mjs';
 
 const A = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'assets');
 const rd = (n) => JSON.parse(readFileSync(resolve(A, n), 'utf8'));
@@ -39,6 +40,37 @@ for (const b of db.bodies) for (const m of b.minerals || []) if (!minNames.has(m
 need(model.game_version && db.game_version, 'game_version fehlt');
 need(model.game_version === db.game_version, `game_version model(${model.game_version}) != db(${db.game_version})`);
 need(!/4\.8/.test(model.game_version), `game_version ist noch 4.8: ${model.game_version}`);
+
+// 8) Wachposten gegen interne Klassennamen (D-07): kein ausgelieferter Anzeigename
+// darf dem Muster "nur Kleinbuchstaben, Ziffern, Unterstriche, mind. ein Unterstrich"
+// folgen — genau die Form von z. B. mining_laser_shin_hofstede_s0.
+const CLASS_NAME_RX = /^[a-z0-9]+(_[a-z0-9]+)+$/;
+const NAME_GROUPS = [
+  ['laser', model.lasers], ['module', model.modules], ['gadget', model.gadgets],
+  ['element', model.elements], ['mineral', db.minerals],
+];
+for (const [kind, arr] of NAME_GROUPS) {
+  for (const x of arr || []) {
+    if (typeof x.name === 'string' && CLASS_NAME_RX.test(x.name)) {
+      fail.push(`${kind} "${x.name}": interner Klassenname statt Anzeigename ausgeliefert (D-07)`);
+    }
+  }
+}
+
+// 9) game_version gegen den installierten Client (best effort — verify:mining
+// soll ausdruecklich ohne p4k/Netz funktionieren, siehe Kopfkommentar).
+const bmPath = resolve(dirname(DEFAULT_P4K), 'build_manifest.id');
+if (existsSync(bmPath)) {
+  try {
+    const d = JSON.parse(readFileSync(bmPath, 'utf8'))?.Data ?? {};
+    const clientVersion = `${(d.Branch || '').replace(/^sc-alpha-/, '')}-live.${d.RequestedP4ChangeNum}`;
+    need(model.game_version === clientVersion, `game_version (${model.game_version}) stimmt nicht mit dem installierten Client ueberein (${clientVersion})`);
+  } catch {
+    console.log('  (game_version-Abgleich uebersprungen: build_manifest.id nicht lesbar)');
+  }
+} else {
+  console.log('  (game_version-Abgleich uebersprungen: keine lokale Spielinstallation gefunden)');
+}
 
 if (fail.length) { console.error(`FAIL (${fail.length}):\n` + fail.slice(0, 40).join('\n')); process.exit(1); }
 console.log(`OK — Mining-Daten konsistent: ${model.elements.length} Elemente, ${model.compositions.length} Komp., ${usableLasers.length} Laser, ${db.minerals.length} Minerale, ${db.bodies.length} Bodies · ${db.game_version}`);

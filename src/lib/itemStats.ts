@@ -11,7 +11,7 @@
 
 import type { Locale } from '../i18n/ui';
 import { itemT } from '../i18n/itemText';
-import { hasGradeSemantics, num, type DamageMap, type Item, type ItemStats } from './items';
+import { hasGradeSemantics, hasMeaningfulGrade, num, sizeLabel, type DamageMap, type Item, type ItemStats } from './items';
 
 export type Row = [label: string, value: string];
 
@@ -54,24 +54,55 @@ export function formatResist(r: DamageMap, lang: Locale): string | null {
   return keys.map((k) => `${dmgLabel(k, lang)} ${pct(k)}`).join(' · ');
 }
 
+// itemSizes()/sizeLabel() wohnen jetzt in items.ts — dort, wo auch
+// hasGradeSemantics() und GRADE_BEARING_TYPES liegen, damit alle Flaechen
+// dieselbe Fassung benutzen. Hier nur weitergereicht, damit bestehende
+// Importe aus itemStats weiterlaufen.
+export { itemSizes, sizeLabel } from './items';
+
 /** Kopf-Chips: Hersteller / Groesse / Grade / Klasse / Volumen. */
 export function specChips(i: Item, lang: Locale): Row[] {
   const g = i.game;
   if (!g) return [];
   const t = itemT(lang);
   const eq = hasGradeSemantics(i);
+  const size = sizeLabel(i);
   const out: Row[] = [];
   if (g.manufacturer) out.push([t('specMfr'), g.manufacturer]);
-  if (eq && g.size != null) out.push([t('specSize'), `S${g.size}`]);
-  if (eq && g.grade) out.push([t('specGrade'), g.grade]);
+  if (eq && size) out.push([t('specSize'), size]);
+  // Grade gilt je Ausfuehrung — bei mehreren steht er in der Variantenliste.
+  // Und nur dort, wo er im Spiel etwas unterscheidet: bei Waffen, Ruestung,
+  // Munition und Werkzeugen traegt AttachDef.Grade den Vorgabewert 1 -> "A".
+  if (g.grade && !g.variants && hasMeaningfulGrade(i)) out.push([t('specGrade'), g.grade]);
   if (g.class) out.push([t('specClass'), g.class]);
   if (g.volumeScu) out.push([t('specVolume'), `${g.volumeScu} SCU`]);
   return out;
 }
 
+/**
+ * Kopfzeile einer Ausfuehrung: "S4 · Apocalypse Arms · Grade A".
+ *
+ * Das Item wird mitgegeben, weil der Grade nur bei den Bauteilarten etwas
+ * aussagt, bei denen er im Spiel streut (siehe `hasMeaningfulGrade`). Bei
+ * Waffen — und das sind fast alle Items mit mehreren Ausfuehrungen — steht dort
+ * ausnahmslos "A"; als Unterscheidungsmerkmal zwischen den Ausfuehrungen taugt
+ * er dann gerade nicht.
+ */
+export function variantHead(i: Item, v: { size: number; manufacturer: string | null; grade: string | null }, lang: Locale): string {
+  const t = itemT(lang);
+  const grade = v.grade && hasMeaningfulGrade(i) ? v.grade : null;
+  return [`S${v.size}`, v.manufacturer, grade ? `${t('specGrade')} ${grade}` : null]
+    .filter(Boolean)
+    .join(' · ');
+}
+
 /** Alle darstellbaren Werte des Items, in der Reihenfolge des Finder-Modals. */
 export function statEntries(i: Item, lang: Locale): Row[] {
-  const s: ItemStats | undefined = i.game?.stats;
+  return statRows(i.game?.stats, lang);
+}
+
+/** Wie statEntries, aber direkt auf einem Wertesatz — fuer die Varianten. */
+export function statRows(s: ItemStats | null | undefined, lang: Locale): Row[] {
   if (!s) return [];
   const t = itemT(lang);
   const n = (v: number) => num(v, lang);

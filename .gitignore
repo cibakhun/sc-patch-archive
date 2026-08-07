@@ -33,6 +33,11 @@ build.log
 /assets/mining-gear-gamefiles.json
 /assets/items-gamefiles.json
 
+# Fahrzeug-Katalog-Zwischenstufe (scripts/datamine-vehicles.mjs): Vergleichsgrundlage
+# fuer verify-vehicles.mjs, kein Liefergegenstand — der ist src/data/vehicles.json
+# selbst, nach dem Tausch (D-03).
+/src/data/vehicles-gamefiles.json
+
 # cloudflared tunnel logs
 .cf-*.log
 .cf-tunnel.log
@@ -42,7 +47,17 @@ build.log
 scratch/
 TEST_*.md
 
-# Holo-glTF-Downloadcache (calibrate-holo-markers.mjs, einmalig ~2 GB)
+# Von `npx skills add` installierte Fremd-Skills (Stripe-Doku u. a.).
+# Sie liegen als echte Dateien in skills/ und werden nach .agents/skills/
+# verlinkt — .agents/ steht schon oben, skills/ fehlte und wäre sonst
+# mit eingecheckt worden. Werkzeug, kein Projektinhalt: genauso behandelt
+# wie gsd-core und impeccable unter .claude/.
+skills/
+skills-lock.json
+
+# Holo-glTF-Downloadcache (scripts/build-holo-meshes.mjs, einmalig ~2 GB)
+# Frueher von calibrate-holo-markers.mjs mitbenutzt — das Skript ist in
+# Phase 01.3 entfallen (toter 4.8-Marker-Stand, siehe 01.3-01-SUMMARY.md).
 .cache/
 
 # Spielermarkt-Mitschrieb: der Bestand gehoert auf den Zweig data/marketplace-log

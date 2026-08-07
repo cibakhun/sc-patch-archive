@@ -5,9 +5,12 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import DB from '../../assets/crafting-db.json';
 import { ICON_BLUEPRINT, ICON_DISMANTLE } from '../lib/icons';
-import { blueprints, blueprintPath } from '../lib/crafting';
+import { blueprints, blueprintPath, blueprintSpecs } from '../lib/crafting';
 import { mineralByMaterial, miningPath } from '../lib/miningLinks';
 import { href, useTranslations } from '../i18n/ui';
+import { itemT } from '../i18n/itemText';
+import { useHelp } from '../i18n/help';
+import ToolHelp from './ToolHelp.astro';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
@@ -15,6 +18,13 @@ const { lang } = Astro.props;
 // Nur das aria-Praefix des Zurueck-Pfeils am Modal ("Zurueck zu"/"Back to").
 // Den Namen der Herkunft haengt assets/back-link.js zur Laufzeit an.
 const tBack = useTranslations(lang);
+// Ueberschriften der Groesse/Grade-Filtergruppen: vorhandener Wortschatz aus
+// der Item-/Blueprint-Schicht (specSize/specGrade), keine neue Uebersetzung
+// noetig (D-07). `it` = "item text", Namenskuerzel um Kollision mit `tBack`/`S` zu vermeiden.
+const it = itemT(lang);
+// Werkzeug-Hilfe (Phase 01.2) — siehe
+// .planning/phases/01.2-werkzeuge-erklaeren/01.2-02-PLAN.md.
+const h = useHelp(lang);
 
 // -- i18n (App-spezifische Chrome-Strings) --
 const S = {
@@ -183,12 +193,30 @@ const cardsData = blueprints.map((b) => {
   const resNames = [...new Set((b.ingredients || []).flatMap((ing) => (ing.options || []).map((o) => o.name)))];
   const nIng = (b.ingredients || []).length;
   const hasMis = !!(b.missions && b.missions.length);
+  const sp = blueprintSpecs(b);
   return {
-    i: b.index, name: b.name, top, sub, resNames, nIng, hasMis,
+    i: b.index, name: b.name, top, sub, resNames, nIng, hasMis, sp,
     url: href(blueprintPath(b), lang),
     time: b.craft_time_seconds || 0, timeLabel: fmtT(b.craft_time_seconds),
   };
 });
+
+// -- Groesse/Grade fuer die Filtergruppen: aus cardsData abgeleitet, keine
+// feste Liste — damit ein kuenftiger Patch keine Groesse anbietet, die es
+// nicht mehr gibt (gleiches Verfahren wie renderSizeChips() im Item Finder,
+// assets/item-finder-app.js:298-322). Die Trefferzahl je Wert steht gleich
+// mit dabei, damit die Filterleiste dieselbe <em>-Zahl zeigt wie die
+// Kategorie-Gruppe.
+const sizeCounts: Record<number, number> = {};
+const gradeCounts: Record<string, number> = {};
+for (const c of cardsData) {
+  // Ein Item mit mehreren Groessen zaehlt fuer JEDE davon — es ist unter S3
+  // genauso zu finden wie unter S6.
+  for (const s of c.sp?.sizes ?? []) sizeCounts[s] = (sizeCounts[s] || 0) + 1;
+  if (c.sp?.grade) gradeCounts[c.sp.grade] = (gradeCounts[c.sp.grade] || 0) + 1;
+}
+const sizeList = Object.keys(sizeCounts).map(Number).sort((a, b) => a - b);
+const gradeList = Object.keys(gradeCounts).sort();
 
 const snapDate = DB.snapshot_date;
 const version = DB.version;
@@ -216,13 +244,14 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   </div>
 
   <div id="cdb-tab-db-content">
+  <ToolHelp tool="crafting" lang={lang} steps={4} />
   <!-- Toolbar -->
   <div class="cdb-bar">
-    <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar">☰ {S.filterBtn}</button>
-    <div class="cdb-search-wrap">
+    <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar" data-help={h('crafting.ctl.filter')}>☰ {S.filterBtn}</button>
+    <div class="cdb-search-wrap" data-help={h('crafting.ctl.search')}>
       <input type="search" id="cdb-search" class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
     </div>
-    <label class="cdb-sort">
+    <label class="cdb-sort" data-help={h('crafting.ctl.sort')}>
       <span class="cdb-sr">{S.sort}</span>
       <select id="cdb-sort">
         <option value="name">{S.sortName}</option>
@@ -232,11 +261,11 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         <option value="ings-desc">{S.sortIngs}</option>
       </select>
     </label>
-    <div class="cdb-viewtog" role="group" aria-label={S.view}>
+    <div class="cdb-viewtog" role="group" aria-label={S.view} data-help={h('crafting.ctl.view')}>
       <button class="cdb-view" data-view="grid" aria-pressed="true" title={S.grid}>▦</button>
       <button class="cdb-view" data-view="list" aria-pressed="false" title={S.list}>≡</button>
     </div>
-    <button class="cdb-planner-open" id="cdb-planner-open" title={S.plannerTitle}>
+    <button class="cdb-planner-open" id="cdb-planner-open" title={S.plannerTitle} data-help={h('crafting.ctl.planner')}>
       ⚙ {S.planner}<span class="cdb-badge" id="cdb-planner-badge" hidden>0</span>
     </button>
     {/* Speicher-Status für Besitz + Planer. Ohne Konto: „Nur auf diesem Gerät"
@@ -260,7 +289,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         <button id="cdb-filter-close" class="cdb-x" aria-label={S.close}>✕</button>
       </div>
 
-      <div class="cdb-fgroup">
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.category')}>
         <h4>{S.category}</h4>
         {catList.map((c) => (
           <details class="cdb-cat-details">
@@ -282,7 +311,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup">
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')}>
         <h4>{S.resource}</h4>
         <div class="cdb-res-search-wrap">
           <input type="text" id="cdb-res-search" class="cdb-res-search" placeholder="Ressource suchen..." autocomplete="off" />
@@ -297,7 +326,27 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         </div>
       </div>
 
-      <div class="cdb-fgroup">
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.size')}>
+        <h4>{it('specSize')}</h4>
+        {sizeList.map((sz) => (
+          <label class="cdb-check">
+            <input type="checkbox" class="cdb-size" value={sz} />
+            <span>S{sz} <em>{sizeCounts[sz]}</em></span>
+          </label>
+        ))}
+      </div>
+
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.grade')}>
+        <h4>{it('specGrade')}</h4>
+        {gradeList.map((gr) => (
+          <label class="cdb-check">
+            <input type="checkbox" class="cdb-grade" value={gr} />
+            <span>{gr} <em>{gradeCounts[gr]}</em></span>
+          </label>
+        ))}
+      </div>
+
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.flags')}>
         <label class="cdb-check"><input type="checkbox" id="cdb-mission" /><span>{S.missionOnly}</span></label>
         <label class="cdb-check"><input type="checkbox" id="cdb-owned" /><span>{S.ownedOnly}</span></label>
       </div>
@@ -333,6 +382,21 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
               <span title={S.ings}>◆ {c.nIng}</span>
               {c.hasMis && (<span class="cbp__mis" title={S.mission}>◈</span>)}
             </div>
+            {/* Groesse/Grade/Ton auf jeder Karte, fuer die es die Angabe gibt
+                (blueprintSpecs() liefert null bei Namenskollision D-09 oder
+                fehlender Angabe). Fehlt eine Angabe, fehlt das <li> ersatzlos
+                statt zu raten oder "—" zu zeigen (D-06). Der Ton-Text kommt
+                aus den Spieldaten und wird deshalb ueber set:text gesetzt,
+                nicht als rohes {ausdruck}-Kind. */}
+            {c.sp && (c.sp.sizes.length > 0 || c.sp.grade || c.sp.tone) && (
+              <ul class="cbp__spec">
+                {c.sp.sizes.length > 0 && (
+                  <li set:text={c.sp.sizes.map((n) => `S${n}`).join(' / ')} />
+                )}
+                {c.sp.grade && (<li>{c.sp.grade}</li>)}
+                {c.sp.tone && (<li class="tone" set:text={c.sp.tone} />)}
+              </ul>
+            )}
             {/* Ressourcen-Chips werden von crafting-app.js zu Links auf das
                 Mineral-Datenblatt gemacht („wo baue ich das ab?"). Wie die
                 ★/＋-Buttons bewusst NICHT serverseitig: 4197 Chips × ~100
@@ -591,6 +655,12 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .cbp:hover .cbp__name a{color:var(--accent)}
   .cbp__meta{display:flex;gap:.8rem;font-size:.76rem;color:var(--muted,#9ba2ae);font-family:var(--font-ui,inherit)}
   .cbp__mis{color:var(--accent-2,#1FA2FF)}
+  /* Groesse/Grade/Ton-Chips — gleiche Optik wie .cbp__res, der Ton-Chip in
+     der Zweitfarbe abgesetzt (eigene Achse: Kategorie-Ton statt Fundort). */
+  .cbp__spec{list-style:none;margin:.1rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.25rem}
+  .cbp__spec li{font-size:.68rem;color:var(--text);background:var(--veil);border:1px solid var(--line-soft);padding:.1rem .4rem;border-radius:3px}
+  .cbp__spec li.tone{color:var(--accent-2);border-color:var(--accent-2)}
+  .cdb-grid.is-list .cbp__spec{flex:none}
   .cbp__res{list-style:none;margin:.1rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.25rem}
   .cbp__res li{font-size:.68rem;color:var(--text,#eef1f5);background:var(--veil);border:1px solid var(--line-soft,var(--line-soft));padding:.1rem .4rem;border-radius:3px}
   .cbp__res li.more{color:var(--muted,#9ba2ae)}

@@ -6,9 +6,12 @@
   "description": "One-shot, re-runnable Discord server builder for the VerseBase community. Defines the whole server (roles, channels, permissions, Community features, onboarding, welcome screen, branding and seed content) in code and applies it idempotently via the Discord API.",
   "scripts": {
     "icon": "node make-icon.mjs",
+    "avatar": "node make-avatar.mjs",
+    "avatar:apply": "node set-avatar.mjs",
     "validate": "node build.mjs --validate",
     "build": "node build.mjs",
     "order": "node order-roles.mjs",
+    "announce": "node announce-milestone.mjs",
     "audit": "node audit.mjs"
   },
   "engines": {

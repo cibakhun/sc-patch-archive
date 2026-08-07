@@ -10,10 +10,15 @@ import { db, missions, rewardLabel, repSummary, uec, cmpSign, bpCount, clip } fr
 import type { Mission } from '../lib/missions';
 import { href } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
+import { useHelp } from '../i18n/help';
+import ToolHelp from './ToolHelp.astro';
 
 interface Props { lang: Locale }
 const { lang } = Astro.props;
 const L = (p: string) => href(p, lang);
+// Werkzeug-Hilfe (Phase 01.2) — siehe
+// .planning/phases/01.2-werkzeuge-erklaeren/01.2-03-PLAN.md.
+const h = useHelp(lang);
 
 const S = {
   de: {
@@ -112,40 +117,42 @@ const cards = missions.map((m: Mission) => {
   </header>
 
   <div class="mx__wrap">
+    <ToolHelp tool="missions" lang={lang} steps={4} />
+
     <!-- Filter -->
     <form class="mx__bar" id="mx-bar" role="search" onsubmit="return false">
-      <div class="mx__f mx__f--grow">
+      <div class="mx__f mx__f--grow" data-help={h('missions.ctl.search')}>
         <label for="mx-q">{S.search}</label>
         <input type="search" id="mx-q" placeholder={S.searchPh} autocomplete="off" />
       </div>
-      <div class="mx__f">
+      <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-type">{S.fType}</label>
         <select id="mx-type"><option value="">{S.all}</option>{db.types.map((t) => <option value={t.id}>{t.name}</option>)}</select>
       </div>
-      <div class="mx__f">
+      <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-giver">{S.fGiver}</label>
         <select id="mx-giver"><option value="">{S.all}</option>{db.givers.map((g) => <option value={g.id}>{g.name}</option>)}</select>
       </div>
-      <div class="mx__f">
+      <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-faction">{S.fFaction}</label>
         <select id="mx-faction"><option value="">{S.all}</option>{db.factions.map((f) => <option value={f.id}>{f.name}</option>)}</select>
       </div>
-      <div class="mx__f">
+      <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-guild">{S.fGuild}</label>
         <select id="mx-guild"><option value="">{S.all}</option>{db.guilds.map((g) => <option value={g.id}>{g.name}</option>)}</select>
       </div>
-      <div class="mx__f">
+      <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-loc">{S.fLoc}</label>
         <select id="mx-loc"><option value="">{S.all}</option>{db.localities.map((l) => <option value={l.id}>{l.name}</option>)}</select>
       </div>
-      <div class="mx__f">
+      <div class="mx__f" data-help={h('missions.ctl.blueprint')}>
         <label for="mx-bp">{S.fBp}</label>
         <select id="mx-bp">
           <option value="">{S.all}</option>
           <option value="1">{S.bpOnly}</option>
         </select>
       </div>
-      <div class="mx__f">
+      <div class="mx__f" data-help={h('missions.ctl.legal')}>
         <label for="mx-legal">{S.fLegal}</label>
         <select id="mx-legal">
           <option value="">{S.all}</option>
@@ -153,7 +160,7 @@ const cards = missions.map((m: Mission) => {
           <option value="unlawful">{S.unlawful}</option>
         </select>
       </div>
-      <div class="mx__f">
+      <div class="mx__f" data-help={h('missions.ctl.sort')}>
         <label for="mx-sort">{S.sort}</label>
         <select id="mx-sort">
           <option value="count">{S.sCount}</option>

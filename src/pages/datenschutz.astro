@@ -13,6 +13,8 @@ import Attribution from '../components/Attribution.astro';
 :root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#0850ad;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3);--line-soft:rgba(41,46,56,.12)}
 
 
+
+
 .lg-wrap{max-width:var(--maxw);margin:0 auto;padding:3.2rem 1.25rem 4rem}
 .lg-wrap h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,6vw,3rem);color:var(--text);margin:0 0 1.6rem}
 .lg-wrap h2{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.95rem;color:var(--accent);margin:2.2rem 0 .6rem;border-bottom:1px solid var(--line);padding-bottom:.4rem}
@@ -214,6 +216,45 @@ import Attribution from '../components/Attribution.astro';
       <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a>.
       A connection to Supabase is only established when you use account features
       (registration, sign-in, favorites, account-bound tools) — not when merely browsing the site.
+    </p>
+
+    <h2 id="support">Voluntary support (Stripe, PayPal)</h2>
+    <p>
+      On the <a href="/support.html">Support</a> page you can voluntarily contribute towards the
+      running costs of this project. Nothing on this site is behind a paywall, and a contribution
+      buys no goods, services or account privileges.
+    </p>
+    <p>
+      <strong>Stripe.</strong> When you press the button, this website asks Stripe to create a
+      payment page and then sends you there. Everything you enter — payment method, card details,
+      billing data, e-mail address — you enter <em>on Stripe’s page</em>, not on this one. This
+      website never receives, sees or stores your payment details. Stripe processes the payment on
+      its own responsibility as an independent controller under its own privacy policy.
+      The legal basis for the transfer that starts the process is Art. 6 (1) (b) GDPR (carrying out
+      the payment you initiated).
+    </p>
+    <p>
+      Once a payment has been confirmed, Stripe notifies this project’s server component. What is
+      stored on our side is deliberately reduced to what a running total needs: <strong>the amount,
+      the currency, the time, and Stripe’s technical reference numbers for the transaction</strong>.
+      <strong>No name, no e-mail address, no address and no payment details are stored by us</strong>,
+      and the stored records are not publicly readable. The figure shown publicly on the Support page
+      is the sum alone. The address you are returned to afterwards carries no amount either — it
+      only says that you came back.
+    </p>
+    <p class="muted">
+      Payment service provider: Stripe Payments Europe, Ltd. (Ireland), with onward transfer to
+      Stripe, Inc. (USA). For details on how the service processes data, see
+      <a href="https://stripe.com/privacy" rel="noopener">stripe.com/privacy</a>. A connection to
+      Stripe is only established when you press the button — not when merely reading the page.
+    </p>
+    <p>
+      <strong>PayPal.</strong> As a second route the Support page carries an ordinary link to
+      PayPal.me. It is a link and nothing more: no PayPal script runs on this site, and no data is
+      transmitted until you follow it. From that point PayPal’s own privacy policy applies
+      (<a href="https://www.paypal.com/webapps/mpp/ua/privacy-full" rel="noopener">paypal.com</a>).
+      This route reports nothing back to us, so payments made through it are not recorded
+      automatically anywhere on this site.
     </p>
 
     <h2>Fonts</h2>

@@ -412,6 +412,141 @@ if (!existsSync(sitemapPath)) {
   }
 }
 
+// --- Fremdquelle im Ausgelieferten (T-01.3-04, D-01..D-04) ------------------
+// Bis Commit bd3be22 (16.07.2026) kamen die Crafting-Daten von einer
+// Community-Seite; seither aus der lokalen Spieldatenbank. Vier
+// Aufrufstellen nannten die alte Quelle trotzdem weiter — eine Seite, die
+// eine Leistung zuschreibt, die niemand mehr erbringt. Die UEX-Attribution
+// bei Preisen ist von dieser Pruefung AUSDRUECKLICH NICHT betroffen, sie
+// bleibt bestehen. Die verbotene Nennung lebt als EINE Konstante (Hausregel
+// aus CONVENTIONS.md: eine Entscheidung, die an mehreren Stellen gelesen
+// wird, lebt an einer Stelle) und wird verkettet geschrieben, damit ein
+// Volltext-Grep ueber den Baum nicht am eigenen Audit-Code haengenbleibt.
+const FORBIDDEN_SOURCE = 'sc-craft' + '.tools';
+const foreignSourceHits = [];
+for (const f of allFiles) {
+  if (!/\.(html|js)$/i.test(f)) continue;
+  if (readFileSync(f, 'utf8').includes(FORBIDDEN_SOURCE)) {
+    foreignSourceHits.push(`${rel(f)}: Fremdquelle noch genannt`);
+  }
+}
+// JSON-Dateien unter dist/assets/ werden bewusst NICHT geprueft: die
+// Kopffelder source/game_version/snapshot_date jeder Datendatei sind das
+// etablierte Herkunftsmuster des Projekts (CONVENTIONS.md, PROJECT.md) und
+// sollen ihre Herkunft weiter ehrlich nennen — diese Einschraenkung nicht
+// "zur Vereinheitlichung" entfernen.
+//
+// Gegenprobe im selben Abschnitt: dieselben vier Flaechen muessen weiterhin
+// die Quellen-Zeile tragen und RSI nennen. Ohne sie waere der Befund oben
+// auch durch ersatzloses Loeschen der ganzen Fussnote erfuellbar.
+const stripTags = (s) => s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+const SOURCES_LABEL = { en: 'Sources', de: 'Quellen' };
+const craftCategoryFirst = htmlFiles.map(rel).filter((p) => /^\/crafting\/category\/.+\.html$/.test(p)).sort()[0];
+const craftBlueprintFirst = htmlFiles.map(rel)
+  .filter((p) => /^\/crafting\/[^/]+\.html$/.test(p) && p !== '/crafting/index.html')
+  .sort()[0];
+const craftProbePages = [
+  ['/crafting.html', 'en'], ['/de/crafting.html', 'de'],
+  ['/topics/crafting.html', 'en'], ['/de/topics/crafting.html', 'de'],
+  ...(craftCategoryFirst ? [[craftCategoryFirst, 'en'], ['/de' + craftCategoryFirst, 'de']] : []),
+  ...(craftBlueprintFirst ? [[craftBlueprintFirst, 'en'], ['/de' + craftBlueprintFirst, 'de']] : []),
+];
+let craftProbeChecked = 0;
+for (const [p, lang] of craftProbePages) {
+  const abs = join(DIST, p.slice(1));
+  if (!existsSync(abs)) { foreignSourceHits.push(`${p}: Gegenprobe — Seite fehlt im Build`); continue; }
+  craftProbeChecked++;
+  const text = stripTags(readFileSync(abs, 'utf8'));
+  const re = new RegExp(`${SOURCES_LABEL[lang]}:\\s*RSI`);
+  if (!re.test(text)) foreignSourceHits.push(`${p}: Quellen-Zeile mit RSI fehlt`);
+}
+console.log(`\nCrafting-Gegenprobe: ${craftProbeChecked}/${craftProbePages.length} Flaechen geprueft (Quellen-Zeile mit RSI erwartet)`);
+
+// --- Datenherkunft im sichtbaren Text ---------------------------------------
+// Hausregel: die Seite nennt NIRGENDS, woher die Spieldaten technisch stammen.
+// Sie beantwortet Fragen zum Spiel; wie die Zahlen entstehen, ist Innenleben.
+// Bis zum 03.08.2026 stand die Regel nur in der Projektdoku und wurde von Hand
+// eingehalten — sie ist dabei zweimal gerissen: einmal auf der Unterstuetzen-
+// Seite (Commit 9ccfb52), einmal in der Quellenzeile von Wikelo's Emporium.
+// Der zweite Fall ueberlebte Monate unbemerkt, weil nichts danach sah. Genau
+// deshalb steht die Pruefung jetzt hier statt in einer Konvention.
+//
+// AUSDRUECKLICH NICHT betroffen: die UEX-Attribution bei Preisen und die
+// Kopffelder source/game_version/snapshot_date der JSON-Datendateien unter
+// dist/assets/ — beide sollen ihre Herkunft weiter ehrlich nennen. Geprueft
+// wird nur SICHTBARER Text in HTML: Skript-, Stil- und Kopfbereich fallen
+// vorher raus, damit ein Bezeichner im ausgelieferten JS nicht anschlaegt.
+//
+// Die Begriffe stehen verkettet, damit ein Volltext-Grep ueber den Baum nicht
+// am Audit-Code selbst haengenbleibt (dasselbe Motiv wie FORBIDDEN_SOURCE).
+const PROVENANCE_TERMS = [
+  new RegExp('Data' + '\\.p4k', 'i'),
+  new RegExp('\\b' + 'p4k' + '\\b', 'i'),
+  new RegExp('\\b' + 'unp4k' + '\\b', 'i'),
+  new RegExp('\\b' + 'unforge' + '\\b', 'i'),   // Wortgrenze: "unforgettable" in Item-Texten darf bleiben
+  new RegExp('Data' + 'Core', 'i'),
+  new RegExp('Game2' + '\\.dcb', 'i'),
+  new RegExp('\\b' + 'scmdb' + '\\b', 'i'),
+  new RegExp('datamin' + '(ed|ing)?', 'i'),
+  new RegExp('Spieldatei' + 'en?', 'i'),
+];
+const provenanceHits = [];
+for (const f of htmlFiles) {
+  const visible = stripTags(
+    readFileSync(f, 'utf8')
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<head[\s\S]*?<\/head>/gi, ' ')
+  );
+  for (const rx of PROVENANCE_TERMS) {
+    const m = visible.match(rx);
+    if (m) provenanceHits.push(`${rel(f)}: Datenherkunft im sichtbaren Text — "${m[0]}"`);
+  }
+}
+// Zweite Flaeche: die clientseitig gerenderten Oberflaechen (Item Finder,
+// Crafting, Wikelo-Bruecke) bauen ihre Texte erst im Browser zusammen — ihre
+// Zeichenketten liegen in dist/assets/*.js und tauchen im HTML oben NIE auf.
+// Genau dort schlief eine Fundstelle: item-finder-app.js hielt als Rueckfall
+// "Katalog-Eintrag aus den Spieldateien …" bereit. Der injizierte i18n-Katalog
+// gewann, also war nichts zu sehen — bis er einmal ausfaellt.
+//
+// KOMMENTARE sind ausgenommen: sie erklaeren im Quelltext das Warum und sind
+// kein Oberflaechentext. Geprueft werden nur die uebrigen Zeilen.
+// CRLF ZUERST normalisieren: `.` matcht in JS keinen Wagenruecklauf, deshalb
+// scheitert `//.*$` auf jeder Zeile einer CRLF-Datei still — der Filter lief
+// dann ins Leere und meldete jeden Quellkommentar als Fund. Das `[^:]` haelt
+// `https://` aus dem Muster heraus.
+const stripJsComments = (src) => src
+  .replace(/\r\n?/g, '\n')
+  .replace(/\/\*[\s\S]*?\*\//g, ' ')
+  .split('\n').map((l) => l.replace(/(^|[^:])\/\/.*$/, '$1')).join('\n');
+const jsAssets = allFiles.filter((f) => /[\\/]assets[\\/].*\.js$/i.test(f));
+for (const f of jsAssets) {
+  const code = stripJsComments(readFileSync(f, 'utf8'));
+  for (const rx of PROVENANCE_TERMS) {
+    const m = code.match(rx);
+    if (m) provenanceHits.push(`${rel(f)}: Datenherkunft in ausgeliefertem JS — "${m[0]}"`);
+  }
+}
+console.log(`Datenherkunft: ${htmlFiles.length} Seiten + ${jsAssets.length} JS-Dateien geprueft, ${provenanceHits.length} Fund(e)`);
+
+// --- Rechnerpfad im Ausgelieferten -----------------------------------------
+// Eigene Klasse, NICHT Teil der Datenherkunft-Pruefung oben: die JSON-Datei
+// assets/universal-items.json (7 MB, oeffentlich) trug im Feld sources.catalog
+// den absoluten Pfad der Data.p4k auf dem Entwicklungsrechner. Die
+// Herkunftsangabe selbst ist erwuenscht (Hausmuster source/source_note) — das
+// Verzeichnislayout des Rechners ist es nicht. Deshalb faengt diese Pruefung
+// den PFAD, nicht die Quellennennung: sie laeuft auch ueber die JSON-Kopffelder,
+// die von der Datenherkunft-Pruefung bewusst ausgenommen bleiben.
+const MACHINE_PATH_RE = /[A-Za-z]:[\\/](?:Users|Games|Projects|Program Files|Windows)[^"'\s,)]{0,80}|\/(?:Users|home)\/[A-Za-z0-9._-]+\/[^"'\s,)]{0,60}/;
+const machinePathHits = [];
+for (const f of allFiles) {
+  if (!/\.(js|json|css|svg|html)$/i.test(f)) continue;
+  const m = readFileSync(f, 'utf8').match(MACHINE_PATH_RE);
+  if (m) machinePathHits.push(`${rel(f)}: Rechnerpfad ausgeliefert — "${m[0]}"`);
+}
+console.log(`Rechnerpfade: ${machinePathHits.length} Fund(e)`);
+
 // --- Seitengewichte ---
 const heavy = [];
 for (const f of htmlFiles) {
@@ -450,6 +585,9 @@ if (basePrefixPages.size) {
 }
 section('FEHLER Sitemap widerspricht dem Build', sitemapIssues, errors, 20);
 section('FEHLER Platzhalter im HTML', placeholderHits, errors);
+section('FEHLER Fremdquelle im Ausgelieferten', foreignSourceHits, errors);
+section('FEHLER Datenherkunft im sichtbaren Text', provenanceHits, errors);
+section('FEHLER Rechnerpfad im Ausgelieferten', machinePathHits, errors);
 section('FEHLER Mojibake/Encoding', mojibakeHits, errors);
 section('WARNUNG Media-Wiederholung (>2×/Seite)', mediaViolations, warns);
 

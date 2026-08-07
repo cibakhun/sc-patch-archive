@@ -14,9 +14,17 @@ import { existsSync } from 'node:fs';
 import TopicSeo from '../../components/dossier/TopicSeo.astro';
 import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
+import { useHelp } from '../../i18n/help';
+import ToolHelp from '../ToolHelp.astro';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
+// Werkzeug-Hilfe (Phase 01.2) — siehe
+// .planning/phases/01.2-werkzeuge-erklaeren/01.2-03-PLAN.md. Die Hilfetexte
+// kommen ausschliesslich aus help.ts, NICHT als weiteres inline
+// `de ? '...' : '...'` — sonst gaebe es fuer diese Seite zwei Textquellen
+// und assertHelpParity() saehe nur eine davon (T-01.2-07).
+const h = useHelp(lang);
 // Only show trade photos whose image file actually exists (build-time check
 // against public/assets). If missing, the category-icon fallback kicks in —
 // so no dead /assets/wk-* references remain (publish gate).
@@ -76,6 +84,8 @@ const showImg = TRADES.map((t: { img?: string }) => {
 :root{--bg:#0d1513;--bg-2:#111d1a;--surface:#152420;--surface-2:#1c302b;--accent:#1FB8A6;--accent-2:#E8A33D;--hot:#C0392B;--text:#eef4f2;--muted:#93a7a1;--line:rgba(31,184,166,.22);--line-soft:rgba(238,244,242,.10);--glow:0 0 44px rgba(31,184,166,.28);--ink:#0d1513;--maxw:1180px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"]{--bg:#effaf7;--bg-2:#e3f2ed;--surface:#f9fffd;--surface-2:#e9f6f2;--text:#1c201f;--muted:#4a5d57;--accent:#046a5f;--accent-2:#754b02;--hot:#9e0500;--ink:#ffffff;--accent-media:#1FB8A6;--accent-2-media:#E8A33D;--line:rgba(43,129,118,.3);--line-soft:rgba(43,47,46,.12);--glow:0 6px 22px rgba(43,129,118,.18)}
+
+
 
 
 /* Neutralize the reveal gate: content is ALWAYS visible.
@@ -184,7 +194,6 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-tbody h3{font-family:var(--font-display);font-weight:800;font-size:1.15rem;color:var(--text);margin:0 0 .25rem}
 .wk-tbody p{color:var(--muted);font-size:.98rem;line-height:1.55;margin:0;max-width:64ch}</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
-<div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.1.0', href: '/de/patches/sc-4-1-0.html' }, { label: "Wikelo" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.1.0', href: '/patches/sc-4-1-0.html' }, { label: "Wikelo" }]} />
 
@@ -286,13 +295,15 @@ const showImg = TRADES.map((t: { img?: string }) => {
     <div class="wrap"><div class="sec-head reveal"><span class="num">04</span><h2>{de ? 'Liefern → Bekommen' : 'Deliver → Receive'}</h2><span class="rule"></span></div>
       <p class="lead-p reveal">{de ? 'Links, was du ' : 'On the left what you '}<b>{de ? 'gibst' : 'give'}</b>{de ? ' — rechts, was du ' : ' — on the right what you '}<b>{de ? 'bekommst' : 'get'}</b>{de ? '. Unterstrichene Items zeigen ihre Bezugsquellen.' : '. Underlined items show where to get them.'}</p></div>
 
-    <div class="wk-filters reveal" role="group" aria-label={de ? 'Trades nach Kategorie filtern' : 'Filter trades by category'}>
+    <ToolHelp tool="wikelo" lang={lang} steps={4} />
+
+    <div class="wk-filters reveal" role="group" aria-label={de ? 'Trades nach Kategorie filtern' : 'Filter trades by category'} data-help={h('wikelo.ctl.filter')}>
       {TCATS.map((f, i) => (
         <button type="button" class="wk-pill" data-filter={f.key} aria-pressed={i === 0 ? 'true' : 'false'}>{f.label}</button>
       ))}
     </div>
 
-    <div class="wk-tc-grid reveal" id="wk-tc-grid">
+    <div class="wk-tc-grid reveal" id="wk-tc-grid" data-help={h('wikelo.ctl.grid')}>
       {TRADES.map((t, ti) => (
         <article class="wk-tc" data-cat={t.cat}>
           <header class="wk-tc__hd">
@@ -400,7 +411,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
   <!-- SOURCES -->
   <section>
     <div class="wrap">
-      <p class="src reveal">{de ? 'Quellen: Star Citizen Wiki — ' : 'Sources: Star Citizen Wiki — '}<a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Wikelo</a>, <a href="https://starcitizen.tools/Wikelo_Emporium" target="_blank" rel="noopener">Wikelo Emporium</a>, <a href="https://starcitizen.tools/Wikelo_Favor" target="_blank" rel="noopener">Wikelo Favor</a>{de ? ' (CC-BY-SA 4.0) · Trade-Daten: Live-Tracker ' : ' (CC-BY-SA 4.0) · trade data: live tracker '}<a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com</a>{de ? ' (Patch 4.8.1, 04.06.2026) · Schiff-Loadouts: ' : ' (patch 4.8.1, 2026-06-04) · ship loadouts: '}<a href="https://docs.google.com/spreadsheets/d/1ji0q_pp6iW35RG1YyFEsv-lsmZOaCStJXGdIEdLLwhM/edit?gid=481073732" target="_blank" rel="noopener">{de ? 'ChrisGBG\'s Wikelo-Sheet' : 'ChrisGBG\'s Wikelo Sheet'}</a>{de ? ' (Datamining WayfinderDrax, 4.7). Handels-Details ändern sich mit jedem Patch.' : ' (datamining WayfinderDrax, 4.7). Trade details change with every patch.'}</p>
+      <p class="src reveal">{de ? 'Quellen: Star Citizen Wiki — ' : 'Sources: Star Citizen Wiki — '}<a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Wikelo</a>, <a href="https://starcitizen.tools/Wikelo_Emporium" target="_blank" rel="noopener">Wikelo Emporium</a>, <a href="https://starcitizen.tools/Wikelo_Favor" target="_blank" rel="noopener">Wikelo Favor</a>{de ? ' (CC-BY-SA 4.0) · Trade-Daten: Live-Tracker ' : ' (CC-BY-SA 4.0) · trade data: live tracker '}<a href="https://wikelotrades.com/" target="_blank" rel="noopener">wikelotrades.com</a>{de ? ' (Patch 4.8.1, 04.06.2026) · Schiff-Loadouts: ' : ' (patch 4.8.1, 2026-06-04) · ship loadouts: '}<a href="https://docs.google.com/spreadsheets/d/1ji0q_pp6iW35RG1YyFEsv-lsmZOaCStJXGdIEdLLwhM/edit?gid=481073732" target="_blank" rel="noopener">{de ? 'ChrisGBG\'s Wikelo-Sheet' : 'ChrisGBG\'s Wikelo Sheet'}</a>{de ? ' (4.7). Handels-Details ändern sich mit jedem Patch.' : ' (4.7). Trade details change with every patch.'}</p>
       <p class="src reveal">{de ? 'Bilder (Emporium, Wikelo, Belohnungs-Schiffe): ' : 'Images (Emporium, Wikelo, reward ships): '}<a href="https://starcitizen.tools/Wikelo" target="_blank" rel="noopener">Star Citizen Wiki</a>{de ? ' (starcitizen.tools, CC-BY-SA 4.0) — nicht-kommerzielle Fan-Nutzung. Star Citizen® ist eine Marke der Cloud Imperium Rights LLC.' : ' (starcitizen.tools, CC-BY-SA 4.0) — non-commercial fan use. Star Citizen® is a trademark of Cloud Imperium Rights LLC.'}</p>
     </div>
   </section>

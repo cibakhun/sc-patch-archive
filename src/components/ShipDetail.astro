@@ -25,7 +25,6 @@ import {
 import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
 import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
-import holoMarkersSnapshot from '../data/holo-markers.json';
 import holoMeshesSnapshot from '../data/holo-meshes.json';
 import shipHardpointsSnapshot from '../data/ship-hardpoints.json';
 import shipLoadoutsSnapshot from '../data/ship-loadouts.json';
@@ -120,14 +119,11 @@ const stageStats: { label: string; value: string }[] = [
 ];
 
 // ---------- Interaktives Komponenten-Hologramm ----------
-// Zwei Positionsquellen, in Reihenfolge der Genauigkeit:
-//  1. Echtes Spielmesh (src/data/holo-meshes.json): das gerenderte Mesh und
-//     die Hardpoints (ship-hardpoints.json, COMPILED_BONES) teilen denselben
-//     Raum -> Marker EXAKT, nur feste Achsvertauschung cry->glTF (x, z, -y).
-//  2. FleetYards-Holo (holo-markers.json): auf ein fremdes Kunst-Mesh
-//     kalibriert -> nur ungefähr, Marker tragen "geschätzt".
-// Angezeigt werden bewusst NUR Komponenten (core) + Bewaffnung (arms) —
-// Triebwerke sind ausgeblendet (zu viele, kein Mehrwert).
+// Positionsquelle ist das echte Spielmesh (src/data/holo-meshes.json): das
+// gerenderte Mesh und die Hardpoints (ship-hardpoints.json, COMPILED_BONES)
+// teilen denselben Raum -> Marker EXAKT, nur feste Achsvertauschung
+// cry->glTF (x, z, -y). Angezeigt werden bewusst NUR Komponenten (core) +
+// Bewaffnung (arms) — Triebwerke sind ausgeblendet (zu viele, kein Mehrwert).
 type HoloPort = {
   k: string; g: string; p: number[];
   label: string | null; size: number | null;
@@ -151,10 +147,9 @@ const HOLO_GRP: Record<string, string> = {
 };
 const HOLO_GRP_ORDER = ['core', 'arms', 'prop', 'other'] as const;
 const HOLO_DEFAULT_ON = ['core', 'arms'];
-const holoShip = (holoMarkersSnapshot as any).ships?.[id] ?? null;
 const gameMesh = (holoMeshesSnapshot as any).meshes?.[id] ?? null;
 const gameHp = gameMesh ? ((shipHardpointsSnapshot as any).ships?.[id] ?? null) : null;
-const hasHolo = !!((gameMesh && gameHp) || (holoUrl && holoShip));
+const hasHolo = !!(gameMesh && gameHp);
 
 let holoData: {
   url: string | null; mesh: { c: number[]; s: number[] } | null; ax: number[] | null;
@@ -193,11 +188,9 @@ if (hasHolo) {
     mixedLabel[k] = names.length > 1 ? names.join(' / ') : null;
   }
 
-  // Positionsquelle wählen
+  // Positionsquelle: das Spielmesh, die einzige verbliebene Quelle.
   let meshUrl: string | null = null;
   let meshBox: { c: number[]; s: number[] } | null = null;
-  let axis: number[] | null = null;
-  let est = false;
   let srcPorts: { k: string; p: number[]; n?: string }[] = [];
   if (gameMesh && gameHp) {
     // ?v=<Content-Hash> aus dem Manifest: nginx cached /holo/ 1 Jahr — der
@@ -212,15 +205,6 @@ if (hasHolo) {
     srcPorts = (gameHp.hp as { k: string; p: number[]; n: string }[])
       .filter((h) => HOLO_GRP[h.k])
       .map((h) => ({ k: h.k, n: h.n, p: [h.p[0], h.p[2], -h.p[1]] }));
-  } else if (holoUrl && holoShip) {
-    meshUrl = holoUrl;
-    meshBox = holoShip.mesh;
-    axis = holoShip.ax ?? null;
-    est = holoShip.mode === 'mapped' && holoShip.conf !== 'high';
-    // conf 'low': Ausrichtung nicht belastbar -> keine kalibrierten Marker
-    if (holoShip.conf !== 'low') {
-      srcPorts = (holoShip.ports as { k: string; p: number[] }[]).filter((h) => HOLO_GRP[h.k]);
-    }
   }
 
   // Item-Finder-Anreicherung: Kategorie/Preis/Kauforte für einen Item-Namen
@@ -231,7 +215,8 @@ if (hasHolo) {
   };
   // Echtes Stock-Loadout aus dem DataCore: itemPortName -> verbautes Item.
   // itemPortName == Bone-Name -> exakter Join per Namen (keine Reihenfolge-
-  // Raterei). Nur der Spielmesh-Pfad; der FY-Fallback nutzt weiter die Pools.
+  // Raterei). Fehlt fuer ein Schiff der Stock-Loadout-Join, greift der
+  // Reihenfolge-Fallback ueber die Pools (siehe unten).
   type StockItem = { name: string | null; size: number | null; cat: string; cls: string; count: number };
   const stock: Record<string, StockItem[]> | null =
     (gameMesh && gameHp) ? ((shipLoadoutsSnapshot as any).ships?.[id] ?? null) : null;
@@ -264,7 +249,7 @@ if (hasHolo) {
         ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
       });
     } else {
-      // FY-Fallback (kein DataCore-Loadout): alte Reihenfolge-Zuordnung + est.
+      // Kein DataCore-Loadout fuer diesen Bone: alte Reihenfolge-Zuordnung als Fallback.
       const pool = pools[hp.k];
       const item = pool ? pool[(taken[hp.k] = (taken[hp.k] ?? 0) + 1) - 1] : undefined;
       const mixed = mixedLabel[hp.k];
@@ -275,7 +260,6 @@ if (hasHolo) {
         size: mixed ? null : item?.size ?? null,
         ...(!mixed ? enrich(item?.name) : {}),
         ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
-        ...(est ? { est: true, dim: true } : {}),
       });
     }
   }
@@ -328,7 +312,10 @@ if (hasHolo) {
     holoData = {
       url: meshUrl,
       mesh: meshBox,
-      ax: axis,
+      // ax: gehoert zum Vertrag mit assets/holo-viewer.js (Achsvertauschung
+      // fuer kalibrierte Fremdmeshes). Die einzige verbliebene Quelle ist das
+      // Spielmesh, das keine eigene Kalibrierung braucht -> immer null.
+      ax: null,
       ports: holoPorts,
       groups: HOLO_GRP_ORDER.filter((gr) => present.has(gr)),
       defaultOn: HOLO_DEFAULT_ON.filter((gr) => present.has(gr)),
@@ -345,7 +332,6 @@ if (hasHolo) {
 // Titel. Wenn KEIN Marker verortet ist (Schiffe ohne Hardpoints im Mesh bzw.
 // conf:low), darf dort nicht "Positionen aus den Spieldateien" stehen.
 const holoNp = holoData?.ports.filter((p) => p.np).length ?? 0;
-const holoEst = holoData?.ports.some((p) => p.est) ?? false;
 const holoAllNp = !!holoData && holoData.ports.length > 0 && holoNp === holoData.ports.length;
 
 const shipCode = d.manufacturer ?? d.makerCode ?? t('ship.code.ship');
@@ -400,6 +386,8 @@ const IC: Record<string, string> = {
 }
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#0850ad;--gold:#685301;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3)}
+
+
 
 
 
@@ -649,6 +637,12 @@ a{color:inherit;text-decoration:none}
 .holo__hud b{color:var(--accent);font-weight:700}
 .holo__dims{position:absolute;top:26px;right:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:.78rem;
   letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:right}
+/* Die Buehne liegt bewusst randlos UNTER der Kopfleiste. Haengt dort die
+   freie Zurueck-Marke (SiteNav, ~101 px hinunter), laege sie genau auf
+   „HANGAR // <Hersteller>". Die HUD-Zeile rueckt dann als PAAR nach unten —
+   .holo__dims gegenueber muss auf gleicher Hoehe bleiben. */
+:root:has(.snav__back:not([hidden])) .holo__hud,
+:root:has(.snav__back:not([hidden])) .holo__dims{top:58px}
 .holo__toggle{position:absolute;right:26px;bottom:24px;z-index:6;display:flex;border:1px solid var(--line);background:var(--scrim-5);backdrop-filter:blur(4px)}
 .holo__toggle button{appearance:none;border:0;background:transparent;color:var(--muted);cursor:pointer;
   font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;padding:.5rem .95rem}
@@ -696,6 +690,8 @@ a{color:inherit;text-decoration:none}
   .holo__chips{gap:.35rem;margin-top:.4rem}
   .holo__chips span{font-size:.66rem;padding:.2rem .48rem}
   .holo__hud{left:16px;top:18px}.holo__dims{display:none}
+  /* mobil ist die Marke tiefer (44-px-Fingerkuppe, --nav-h 116px) */
+  :root:has(.snav__back:not([hidden])) .holo__hud{top:56px}
   /* Ebenen-Panel kompakter + einklappbar (Klasse hieß fälschlich .holo__filters) */
   .holo__layers{top:44px;left:12px;width:min(148px,42vw)}
   .holo__layers-h{font-size:.56rem;padding:.42rem .5rem .42rem;cursor:pointer}
@@ -866,7 +862,10 @@ span.sd__ref{color:var(--muted)}
   .arm__gval{margin-left:0;flex-basis:100%}
 }
 
-.sd__desc{max-width:78ch;margin:0 0 1.6rem;font-size:1.05rem;line-height:1.65;color:var(--text);opacity:.92}
+/* white-space:pre-line: vDesc() wandelt die woertlichen "\n"-Folgen der
+   Spieltexte in echte Zeilenumbrueche (01.4-05, D-07) — ohne dieses Attribut
+   wuerden Browser sie zu Leerzeichen zusammenfalten. */
+.sd__desc{max-width:78ch;margin:0 0 1.6rem;font-size:1.05rem;line-height:1.65;color:var(--text);opacity:.92;white-space:pre-line}
 .sd__spine{margin-bottom:1.6rem;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--bg-2);padding:1rem 1.2rem}
 .sd__spine h2{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
 .sd__spine a{display:block;padding:.3rem 0;font-family:var(--font-ui);font-weight:700;font-size:1rem}
@@ -1023,7 +1022,6 @@ span.sd__ref{color:var(--muted)}
           <div class="holo__src">
             <span class={holoAllNp ? 'holo__caveat' : undefined}>{holoAllNp ? t('holo.src.none' as any) : t('holo.src')}</span>
             {holoNp > 0 && !holoAllNp && <span class="holo__caveat">{t('holo.legend.np' as any)}</span>}
-            {holoEst && <span class="holo__caveat">{t('holo.legend.est' as any)}</span>}
           </div>
         )}
       </header>
@@ -1598,9 +1596,8 @@ span.sd__ref{color:var(--muted)}
     </div>
 
     <p class="sd__src">
-      {t('ship.source')} <a href="https://api.star-citizen.wiki" target="_blank" rel="noopener">Star Citizen Wiki API</a>
-      ({t('ship.source.wikiNote')}) · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}
-      {d.gameVersion && ` · ${t('ship.source.gameData')} ${d.gameVersion.split('-')[0]}`}
+      {t('ship.source')} {t('ship.source.gameData')}{d.gameVersion && ` ${d.gameVersion.split('-')[0]}`}
+      · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}
       {hero?.api && ` · ${t('ship.source.image')}: ${d.image?.source ?? 'starcitizen.tools'}`}
       {' '}· {t('ship.source.ingame')}: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> · {t('ship.asof')} {pricesFetchedAt}
       {extras && ` · ${t('ship.source.extras')}: `}{extras && <a href="https://fleetyards.net" target="_blank" rel="noopener">FleetYards.net</a>}

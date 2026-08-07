@@ -6,9 +6,15 @@
 // Zusätzlich eine Methoden-Referenz (qualitativ, Stand 4.8.0) — exakte
 // Methoden-Yields sind nicht öffentlich dokumentiert.
 import MODEL from '../../assets/mining-model.json';
+import { useHelp } from '../i18n/help';
+import ToolHelp from './ToolHelp.astro';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
+// Werkzeug-Hilfe (Phase 01.2) — siehe
+// .planning/phases/01.2-werkzeuge-erklaeren/01.2-02-PLAN.md. Zweite Instanz
+// auf src/components/topics/mining.astro, neben MiningApp (tool="mining").
+const h = useHelp(lang);
 
 const refineries = MODEL.refineries || [];
 const profilesRaw: any = MODEL.refineryProfiles || {};
@@ -94,13 +100,14 @@ const cellCls = (v: number | null, best: number | null) =>
 <section class="rff" id="rff">
   <p class="rff__intro">{S.intro}</p>
 
+  <ToolHelp tool="refineryfinder" lang={lang} steps={4} />
   <div class="rff__bar">
-    <input type="search" id="rff-search" class="rff__search" placeholder={S.search} autocomplete="off" />
-    <div class="rff__seg" role="group" aria-label={S.view}>
+    <input type="search" id="rff-search" class="rff__search" placeholder={S.search} autocomplete="off" data-help={h('refineryfinder.ctl.search')} />
+    <div class="rff__seg" role="group" aria-label={S.view} data-help={h('refineryfinder.ctl.view')}>
       <button type="button" class="rff__vbtn" data-view="list" aria-pressed="true">{S.list}</button>
       <button type="button" class="rff__vbtn" data-view="matrix" aria-pressed="false">{S.matrix}</button>
     </div>
-    <div class="rff__sysf">
+    <div class="rff__sysf" data-help={h('refineryfinder.ctl.system')}>
       <span class="rff__syslabel">{S.system}</span>
       <button type="button" class="rff__sys" data-sys="" aria-pressed="true">{S.all}</button>
       {systems.map((sy) => (<button type="button" class="rff__sys" data-sys={sy} aria-pressed="false">{sy}</button>))}

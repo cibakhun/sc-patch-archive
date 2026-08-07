@@ -22,10 +22,11 @@ const de = lang === 'de';
 :root[data-theme="light"]{--bg:#f4f8fc;--bg-2:#e9eef5;--surface:#fcfdff;--surface-2:#eef3f8;--text:#231f16;--muted:#53595e;--accent:#ac0507;--accent-2:#853f02;--hot:#9e0004;--ink:#ffffff;--accent-media:#c0271f;--accent-2-media:#e8771a;--line:rgba(164,89,79,.3);--line-soft:rgba(50,45,36,.12);--glow:0 6px 22px rgba(173,83,72,.18)}
 
 
+
+
 /* page-local accents */
 .hero h1{font-size:clamp(3.2rem,13vw,10rem)}</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
-<div class="cursorglow" aria-hidden="true"></div>
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.0.2', href: '/de/patches/sc-4-0-2.html' }, { label: "Supply or Die" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.0.2', href: '/patches/sc-4-0-2.html' }, { label: "Supply or Die" }]} />
 

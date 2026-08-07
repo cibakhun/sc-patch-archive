@@ -9,7 +9,7 @@
 
 import DB from '../../assets/crafting-db.json';
 import type { Locale } from '../i18n/ui';
-import { items, type Item } from './items';
+import { hasGradeSemantics, hasMeaningfulGrade, itemSizes, items, type Item, type ItemVariant } from './items';
 
 /* ---------- Typen (Spiegel von scripts/datamine-crafting.mjs) ---------- */
 
@@ -68,6 +68,13 @@ export interface BlueprintMission {
 
 export interface Blueprint {
   name: string;
+  /**
+   * Record-Id der EntityClassDefinition des gecrafteten Items — derselbe
+   * Id-Raum wie `item.game.guid`. Ein echter Schluessel, im Gegensatz zum
+   * Anzeigenamen. Seit dem 07.08.2026 von datamine-crafting.mjs geschrieben;
+   * aeltere Snapshots haben ihn nicht, deshalb optional.
+   */
+  entity_guid?: string | null;
   category: string;
   craft_time_seconds: number;
   tiers: number;
@@ -189,10 +196,165 @@ export const craftPageCount = (c: CraftCategory) =>
 /* ---------- Join Blueprint <-> Item ---------- */
 
 const itemByName = new Map(items.map((i) => [i.name.toLowerCase(), i]));
+/**
+ * Record-Id -> Item, und wo bekannt die konkrete Ausfuehrung.
+ *
+ * Drei Wege fuehren auf denselben Katalogeintrag, und alle drei sind noetig,
+ * weil `datamine-items.mjs` gleichnamige Spiel-Items zusammenzieht:
+ *  1. `game.guid` — der Eintrag selbst.
+ *  2. `game.guidAliases` — Geschwister, die beim Dedupe wegfielen. Sie tragen
+ *     nachweislich dieselbe Groesse, denselben Grade und dieselbe Klasse,
+ *     sonst waeren sie nicht aufgenommen worden.
+ *  3. `game.variants[].guid` — bei mehrdeutigen Anzeigenamen die einzelne
+ *     Ausfuehrung. Hier zaehlt der Treffer MEHR als der Eintrag: er sagt, dass
+ *     dieses Rezept die S3 meint und nicht "S3 / S4 / S6".
+ */
+interface GuidTreffer { item: Item; variant?: ItemVariant }
+const itemByGuid = new Map<string, GuidTreffer>();
+for (const i of items) {
+  const g = i.game;
+  if (!g) continue;
+  if (g.guid && !itemByGuid.has(g.guid)) itemByGuid.set(g.guid, { item: i });
+  for (const a of g.guidAliases ?? []) if (!itemByGuid.has(a)) itemByGuid.set(a, { item: i });
+}
+// Ausfuehrungen ZULETZT und ueberschreibend: die guid des Katalogeintrags ist
+// zugleich die einer seiner Ausfuehrungen (der beste Vertreter IST eine davon).
+// Wuerde der Eintrags-Treffer gewinnen, saehe ausgerechnet diese Karte
+// "S2 / S3" statt ihres eigenen "S2" — der unpraezisere Wert.
+for (const i of items) {
+  for (const v of i.game?.variants ?? []) if (v.guid) itemByGuid.set(v.guid, { item: i, variant: v });
+}
 
-/** Das gecraftete Item im Katalog (Join ueber den Namen, wie im Finder). */
+/**
+ * Wurde das Item ueber den echten Schluessel gefunden?
+ *
+ * `entity_guid` ist die Record-Id der EntityClassDefinition und damit
+ * eindeutig — trifft sie, ist zweifelsfrei das richtige Item gefunden, auch
+ * wenn mehrere Blueprints denselben Anzeigenamen tragen. Gemessen 07.08.2026:
+ * 1527 der 1594 Blueprints treffen so, 56 weitere nur noch ueber den Namen
+ * (ihr Katalogeintrag fuehrt keine guid), 11 gar nicht.
+ */
+export function resolvedByGuid(b: Blueprint): boolean {
+  return !!(b.entity_guid && itemByGuid.has(b.entity_guid));
+}
+
+/**
+ * Das gecraftete Item im Katalog. **Zuerst ueber `entity_guid`** — ein echter
+ * Schluessel —, und nur wenn der nichts findet, ueber den Anzeigenamen.
+ *
+ * Der Namensweg bleibt noetig, weil `assets/universal-items.json` seine
+ * Eintraege selbst nach Namen zusammenfasst und dabei bei gleichnamigen Items
+ * nur einen behaelt: von zwei gleichnamigen Blueprints trifft deshalb genau
+ * einer seine guid. Er ist aber nur noch der Rueckfallweg, und wo er greift,
+ * schuetzt die Sperre COLLIDING_NAMES.
+ */
 export function itemForBlueprint(b: Blueprint): Item | null {
+  const byId = b.entity_guid ? itemByGuid.get(b.entity_guid) : undefined;
+  if (byId) return byId.item;
   return itemByName.get(b.name.toLowerCase()) ?? null;
+}
+
+/**
+ * Schluesselsortierte, rekursive Serialisierung eines Werts — Grundlage des
+ * Kollisionsvergleichs unten. Objektschluessel werden sortiert, damit die
+ * Reihenfolge im JSON nicht mitentscheidet; Arrays behalten ihre Reihenfolge,
+ * weil sie fachlich bedeutsam ist (z. B. fire_modes).
+ */
+function stableStringify(v: unknown): string {
+  if (v === null || typeof v !== 'object') return JSON.stringify(v);
+  if (Array.isArray(v)) return `[${v.map(stableStringify).join(',')}]`;
+  const keys = Object.keys(v as Record<string, unknown>).sort();
+  return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify((v as Record<string, unknown>)[k])}`).join(',')}}`;
+}
+
+/**
+ * Kleingeschriebene Namen von Blueprint-Gruppen, deren Mitglieder trotz
+ * gleichem Namen UND gleicher Kategorie unterschiedliche `item_stats`
+ * fuehren — also nachweislich verschiedene Items sind (D-09). Weil
+ * `itemForBlueprint()` per Name joint, traefen alle Mitglieder einer solchen
+ * Gruppe denselben Item-Eintrag; mindestens eine Karte zeigte dann fremde
+ * Kennwerte. Die Menge wird bei jedem Build **aus den Daten abgeleitet**,
+ * nie von Hand gepflegt — eine kuenftige Kollision sperrt sich damit selbst,
+ * statt still durchzugehen. Verglichen wird das gesamte `item_stats`-Objekt
+ * (nicht nur `mass_kg`/`overheat_temperature`), weil bei drei der fuenf
+ * heute bekannten Gruppen `overheat_temperature` identisch ist und ein
+ * schmalerer Vergleich sie uebersaehe.
+ */
+export const COLLIDING_NAMES: Set<string> = (() => {
+  const byName = new Map<string, Blueprint[]>();
+  for (const b of blueprints) {
+    const key = b.name.toLowerCase();
+    const list = byName.get(key);
+    if (list) list.push(b);
+    else byName.set(key, [b]);
+  }
+  const colliding = new Set<string>();
+  for (const [name, list] of byName) {
+    if (list.length < 2) continue;
+    const signatures = new Set(list.map((b) => stableStringify(b.item_stats ?? null)));
+    if (signatures.size > 1) colliding.add(name);
+  }
+  return colliding;
+})();
+
+
+/** Groesse/Grade/Ton einer Blueprint-Karte — Ergebnis von blueprintSpecs(). */
+export interface BlueprintSpecs {
+  /**
+   * Alle Groessen des Items — meist genau eine, bei mehrdeutigen Anzeigenamen
+   * mehrere ("Revenant Gatling" ist S3, S4 und S6). Leer = unbekannt.
+   * Kommt aus `itemSizes()` in items.ts; diese Schicht leitet nichts eigenes
+   * ab, damit sie nicht wieder hinter dem Item-Datenblatt zurueckfaellt.
+   */
+  sizes: number[];
+  grade: string | null;
+  tone: string | null;
+}
+
+/**
+ * Ton der Schiffswaffen aus dem Kategorie-Pfad des BLUEPRINTS (D-04): die 96
+ * Vehiclegear-Waffen fuehren `game.class = null`, tragen ihren Ton aber im
+ * Kategorie-String selbst, z. B. `Vehiclegear / Weapons / Ballistic / Cannon`
+ * -> `Ballistic` (drittes Segment). Getrennt und getrimmt wie craftRoot/
+ * craftLeaf im selben Modul. Fehlt das dritte Segment, bleibt der Ton `null`
+ * (D-06, nichts raten). Greift ausdruecklich nur fuer Schiffswaffen — fuer
+ * Mininglaser/Tractorbeam/Salvage/Refuelling liefert keine Quelle einen Ton
+ * (vertagt als CRAFT-05 nach v2, ausserhalb des Umfangs dieser Phase).
+ */
+export function toneFromWeaponCategoryPath(category: string): string | null {
+  const segs = (category || '').split('/').map((s) => s.trim()).filter(Boolean);
+  if (segs[0] === 'Vehiclegear' && segs[1] === 'Weapons' && segs[2]) return segs[2];
+  return null;
+}
+
+/**
+ * Groesse, Grade und Ton fuer die Kartenanzeige — die einzige Quelle dafuer.
+ * Gibt `null` zurueck, wenn der Blueprint-Name kollidiert (D-09, kein Chip
+ * ist besser als ein fremder) oder wenn keine der drei Angaben vorliegt.
+ * Alle Werte kommen aus dem bereits vorhandenen Item-Katalog (D-01) — kein
+ * Data.p4k-Lauf, keine Neu-Extraktion.
+ */
+export function blueprintSpecs(b: Blueprint): BlueprintSpecs | null {
+  // Die Sperre greift nur noch dort, wo ueber den Anzeigenamen gejoint werden
+  // musste. Trifft die `entity_guid`, ist das Item zweifelsfrei bestimmt — dann
+  // ist die Namensgleichheit belanglos und die Karte darf ihre Kennwerte zeigen.
+  if (!resolvedByGuid(b) && COLLIDING_NAMES.has(b.name.toLowerCase())) return null;
+  const item = itemForBlueprint(b);
+  if (!item) return null;
+  const g = item.game;
+  // Trifft die guid GENAU EINE Ausfuehrung, ist das die praezisere Antwort:
+  // dieses Rezept baut die S3, nicht "S3 / S4 / S6". Sonst alle Groessen aus
+  // items.ts — nicht selbst aus g.size abgeleitet, sonst faellt diese Schicht
+  // wieder hinter das Datenblatt zurueck.
+  const treffer = b.entity_guid ? itemByGuid.get(b.entity_guid) : undefined;
+  const v = treffer?.variant;
+  const sizes = !hasGradeSemantics(item) ? [] : v ? [v.size] : itemSizes(item);
+  // Grade nur, wo er im Spiel etwas unterscheidet — siehe hasMeaningfulGrade().
+  const rohGrade = v ? v.grade : g?.grade;
+  const grade = rohGrade && hasMeaningfulGrade(item) ? rohGrade : null;
+  const tone = g?.class ?? toneFromWeaponCategoryPath(b.category);
+  if (!sizes.length && grade == null && tone == null) return null;
+  return { sizes, grade, tone };
 }
 
 /** Rezept zu einem Item — oder null. */

@@ -50,7 +50,7 @@ wenn die Zahlen nicht stimmen, ist die Seite wertlos.
 ### Out of Scope
 
 - Serverseitige Renderlogik — die Seite ist ein statisches Astro-Build hinter nginx; Serverlogik geht nur als Supabase Edge Function
-- Neue Datenquellen oder Datamine-Ausbau in dieser Richtung — der aktuelle Fokus ist ausdrücklich Oberfläche, nicht Daten
+- ~~Neue Datenquellen oder Datamine-Ausbau in dieser Richtung~~ — galt für die Phasen 1–4 (reiner Oberflächen-Feinschliff). **Aufgehoben am 02.08.2026 für Phase 5** (Schiffe: Rollen- und Merkmalsfilter) auf ausdrücklichen Nutzerwunsch: die Schiffsübersicht filterte über acht Wiki-Grobtypen, die spielgenauen Rollen liegen im DataCore. Die Phase hat `scripts/datamine-vehicle-roles.mjs` und `src/data/vehicle-roles.json` hinzugefügt. Für weitere Datamine-Vorhaben gilt die Grenze unverändert — sie sind einzeln zu begründen, nicht pauschal geöffnet.
 - Konto-, Community- und Discord-Ausbau — bleibt bestehen, wird in dieser Roadmap aber nicht vorangetrieben
 - Umstellung auf ein CSS-Framework oder einen Bundler für `assets/` — handgeschriebenes CSS/JS ist bewusste Entscheidung
 - Redesign einzelner Patch-Seiten — jede Patch-Seite hat absichtlich ihre eigene Design-Welt
