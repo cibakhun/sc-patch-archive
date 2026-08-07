@@ -529,6 +529,132 @@ summary:active {
 }
 
 /* ------------------------------------------------------------
+   5d) Eigener Bildlaufbereich fuer Ergebnislisten
+   ------------------------------------------------------------
+   Auf allen Daten- und Durchsuchungsseiten war die Ergebnisliste bisher
+   Teil des normalen Seitenflusses: erst musste man sie komplett
+   durchscrollen, ehe die Seite weiterging und Filter oder Blaetterung
+   sichtbar wurden. Diese Klasse gibt der Ergebnisliste einen eigenen
+   Bildlaufbereich mit begrenzter Hoehe und entkoppelt sie so von Filtern,
+   Kopfleisten und allem, was darunter steht.
+
+   Eine Zahl je Seite traegt die Rechnung: `--vb-top` ist alles, was UEBER
+   dem Kasten dauerhaft am Fenster klebt (feste Site-Nav plus die klebende
+   Filter- oder Kopfleiste der jeweiligen Seite). `--vb-air` ist die Luft
+   UNTER dem Kasten (Rueckfall 5rem) — eine Unterkante buendig mit dem
+   Fensterrand liest sich als Seitenende, die Luft laesst Blaetterung bzw.
+   naechsten Abschnitt angeschnitten stehen.
+
+   Die Grenze liegt bei 821 px, nicht grosszuegiger: (1) das gemeldete
+   Problem existiert unterhalb nicht, dort sind Filterspalten ausfahrende
+   Panels; (2) die Rechnung geht nicht auf — auf einem 667-px-Fenster
+   blieben nach Nav und Leiste nur zwei Karten, das ist kein Kasten,
+   sondern ein Schlitz; (3) ein zusaetzlicher Bildlaufbereich kollidiert
+   auf Touch mit scroll-lock.js und dem Wisch-schliesst-Panel aus
+   offcanvas.js; (4) 821 px ist bereits die Zahl des Hauses (Regel 1
+   dieser Datei, isDrawerMode() in offcanvas.js).
+
+   PFLICHT: jeder neue Kasten MUSS in die Leisten-Gruppe direkt darunter
+   eingetragen werden. Ohne Eintrag ist er unsichtbar scrollbar — siehe
+   Kopfkommentar 5c: assets/theme.css blendet mit
+   `html, body, *{scrollbar-width:none!important}` JEDE Leiste aus, die
+   nicht ausdruecklich mit !important dagegenhaelt.
+------------------------------------------------------------ */
+.vb-scrollbox {
+  overscroll-behavior: contain;
+}
+@media (min-width: 821px) {
+  .vb-scrollbox {
+    /* Doppel-Deklaration: 100vh als Rueckfall, 100dvh danach — dvh misst
+       den tatsaechlich sichtbaren Bereich, aeltere Browser nehmen die
+       erste Zeile, neuere die zweite. */
+    max-height: calc(100vh - var(--vb-top, 12rem) - var(--vb-air, 5rem));
+    max-height: calc(100dvh - var(--vb-top, 12rem) - var(--vb-air, 5rem));
+    overflow-y: auto;
+    /* Die Rinne wird dauerhaft reserviert, sonst springt das Raster um
+       8 px zur Seite, sobald ein Filter die Liste unter die Kastenhoehe
+       drueckt. */
+    scrollbar-gutter: stable;
+    /* Faengt den Hover-Hub der Karten (translateY(-2px) plus Schatten)
+       ab, der an Ober- und Unterkante sonst abgeschnitten wird. */
+    padding-block: 3px;
+  }
+}
+
+/* Pflichteintrag, senkrechte Ausfuehrung. Eigene Gruppe, NICHT die aus 5c
+   erweitert: dort steht height:8px fuer die waagerechte Leiste und ein
+   Verlauf an der rechten Kante — beides waere hier falsch.
+   !important ist Pflicht: assets/theme.css setzt
+   *{scrollbar-width:none!important} und *::-webkit-scrollbar{display:none
+   !important}. Ohne !important verliert jede Regel hier — das ist am
+   31.07. schon einmal passiert und in 5c dokumentiert. */
+.vb-scrollbox,
+.uif-sidebar,
+.cdb-sidebar,
+.mdb-sidebar,
+.calc-sidebar {
+  scrollbar-width: thin !important;
+  /* --tone-1 zuerst: die Verzeichnisseiten fuehren dort ihren Leitton, im
+     Crafting-Zweig waere --accent die falsche Farbe. Ausserhalb von .dp
+     ist --tone-1 nicht gesetzt, der Rueckfall greift. */
+  scrollbar-color: color-mix(in srgb, var(--tone-1, var(--accent)) 55%, transparent) transparent;
+}
+.vb-scrollbox::-webkit-scrollbar,
+.uif-sidebar::-webkit-scrollbar,
+.cdb-sidebar::-webkit-scrollbar,
+.mdb-sidebar::-webkit-scrollbar,
+.calc-sidebar::-webkit-scrollbar {
+  display: block !important;
+  /* width UND height: .dp-tablewrap scrollt beide Achsen und traegt
+     ebenfalls .vb-scrollbox. */
+  width: 8px !important;
+  height: 8px !important;
+  background: transparent !important;
+}
+.vb-scrollbox::-webkit-scrollbar-thumb,
+.uif-sidebar::-webkit-scrollbar-thumb,
+.cdb-sidebar::-webkit-scrollbar-thumb,
+.mdb-sidebar::-webkit-scrollbar-thumb,
+.calc-sidebar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--tone-1, var(--accent)) 55%, transparent);
+  border-radius: 999px;
+}
+
+/* Kleine Kaesten in den Filterspalten: overscroll-behavior gilt auf jeder
+   Breite (auch mobil scrollen diese kurzen Listen), die Leisten-Gruppe ist
+   dieselbe wie oben, nur schmaler. Diese Listen bringen in
+   CraftingApp.astro eigene ::-webkit-scrollbar-Regeln mit, aber ohne
+   !important — sie sind seit jeher wirkungslos, die Gruppe hier ersetzt
+   sie. Die alten Regeln in der Komponente bleiben unangetastet, um den
+   Diff klein zu halten. */
+.cdb-res-list,
+.calc-mat-list,
+.cbm__mis,
+.mm__terms,
+.cdb-plan-shop {
+  overscroll-behavior: contain;
+  scrollbar-width: thin !important;
+  scrollbar-color: color-mix(in srgb, var(--tone-1, var(--accent)) 55%, transparent) transparent;
+}
+.cdb-res-list::-webkit-scrollbar,
+.calc-mat-list::-webkit-scrollbar,
+.cbm__mis::-webkit-scrollbar,
+.mm__terms::-webkit-scrollbar,
+.cdb-plan-shop::-webkit-scrollbar {
+  display: block !important;
+  width: 6px !important;
+  background: transparent !important;
+}
+.cdb-res-list::-webkit-scrollbar-thumb,
+.calc-mat-list::-webkit-scrollbar-thumb,
+.cbm__mis::-webkit-scrollbar-thumb,
+.mm__terms::-webkit-scrollbar-thumb,
+.cdb-plan-shop::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--tone-1, var(--accent)) 55%, transparent);
+  border-radius: 999px;
+}
+
+/* ------------------------------------------------------------
    Schieben mit der Maus (assets/scroll-affordance.js)
    ------------------------------------------------------------
    Eine Bildlaufleiste sagt nur, DASS es weitergeht — treffen muss man
