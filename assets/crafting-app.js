@@ -108,8 +108,14 @@
     $$('.cbp__spec li', card).forEach(function (li) {
       var txt = li.textContent.trim();
       if (li.classList.contains('tone')) { d.tone = txt.toLowerCase(); return; }
-      var szm = /^S(\d+)$/.exec(txt);
-      if (szm) { d.size = szm[1]; return; }
+      // Der Groessen-Chip traegt EINE oder MEHRERE Groessen ("S4" bzw.
+      // "S3 / S4 / S6") — hinter manchen Anzeigenamen stecken mehrere
+      // Spiel-Items verschiedener Groesse. Alle ins dataset, damit die Karte
+      // unter jeder davon gefunden wird.
+      if (/^S\d+( \/ S\d+)*$/.test(txt)) {
+        d.sizes = txt.split('/').map(function (s) { return s.trim().slice(1); }).join('|');
+        return;
+      }
       if (/^[A-D]$/.test(txt)) { d.grade = txt; }
     });
     if (!$('.cbp__btns', card)) {
@@ -535,10 +541,15 @@
     }
     // Groesse/Grade: innerhalb der Gruppe ODER (mehrere angekreuzte Werte
     // treffen), zwischen den Gruppen und gegenueber allen anderen Filtern UND.
-    // Eine Karte ohne den jeweiligen Chip (d.size/d.grade leer) faellt heraus,
-    // sobald mindestens ein Wert angekreuzt ist.
+    // Eine Karte ohne den jeweiligen Chip (d.sizes/d.grade leer) faellt heraus,
+    // sobald mindestens ein Wert angekreuzt ist. Eine Karte mit MEHREREN
+    // Groessen trifft, sobald eine davon angekreuzt ist.
     var sizeKeys = Object.keys(state.sizes).filter(function (k) { return state.sizes[k]; });
-    if (sizeKeys.length && sizeKeys.indexOf(d.size) < 0) return false;
+    if (sizeKeys.length) {
+      var eigene = (d.sizes || '').split('|').filter(Boolean);
+      var treffer = eigene.some(function (s) { return sizeKeys.indexOf(s) >= 0; });
+      if (!treffer) return false;
+    }
     var gradeKeys = Object.keys(state.grades).filter(function (k) { return state.grades[k]; });
     if (gradeKeys.length && gradeKeys.indexOf(d.grade) < 0) return false;
     if (state.missionOnly && d.mis !== '1') return false;

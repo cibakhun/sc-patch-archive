@@ -11,7 +11,7 @@
 
 import type { Locale } from '../i18n/ui';
 import { itemT } from '../i18n/itemText';
-import { hasGradeSemantics, hasMeaningfulGrade, num, type DamageMap, type Item, type ItemStats } from './items';
+import { hasGradeSemantics, hasMeaningfulGrade, num, sizeLabel, type DamageMap, type Item, type ItemStats } from './items';
 
 export type Row = [label: string, value: string];
 
@@ -54,24 +54,11 @@ export function formatResist(r: DamageMap, lang: Locale): string | null {
   return keys.map((k) => `${dmgLabel(k, lang)} ${pct(k)}`).join(' · ');
 }
 
-/**
- * Groessen eines Items. Meist genau eine — hinter manchen Anzeigenamen stecken
- * aber mehrere Spiel-Items unterschiedlicher Groesse ("Revenant Gatling" gibt es
- * als S3, S4 und S6). Die tragen `sizes`; sich eine davon auszusuchen waere
- * geraten.
- */
-export function itemSizes(i: Item): number[] {
-  const g = i.game;
-  if (!g) return [];
-  if (g.sizes?.length) return g.sizes;
-  return g.size != null ? [g.size] : [];
-}
-
-/** "S4" bzw. "S3 / S4 / S6" — oder null, wenn keine Groesse bekannt ist. */
-export function sizeLabel(i: Item): string | null {
-  const s = itemSizes(i);
-  return s.length ? s.map((n) => `S${n}`).join(' / ') : null;
-}
+// itemSizes()/sizeLabel() wohnen jetzt in items.ts — dort, wo auch
+// hasGradeSemantics() und GRADE_BEARING_TYPES liegen, damit alle Flaechen
+// dieselbe Fassung benutzen. Hier nur weitergereicht, damit bestehende
+// Importe aus itemStats weiterlaufen.
+export { itemSizes, sizeLabel } from './items';
 
 /** Kopf-Chips: Hersteller / Groesse / Grade / Klasse / Volumen. */
 export function specChips(i: Item, lang: Locale): Row[] {

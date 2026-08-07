@@ -478,6 +478,31 @@ export function hasMeaningfulGrade(i: Item): boolean {
   return hasGradeSemantics(i) && !!t && GRADE_BEARING_TYPES.has(t);
 }
 
+/**
+ * Groessen eines Items. Meist genau eine — hinter manchen Anzeigenamen stecken
+ * aber mehrere Spiel-Items unterschiedlicher Groesse ("Revenant Gatling" gibt
+ * es als S3, S4 und S6). Die tragen `sizes`; sich eine davon auszusuchen waere
+ * geraten.
+ *
+ * Wohnt hier und nicht in itemStats.ts, weil mehrere Flaechen dieselbe Frage
+ * stellen — Item-Datenblatt, Item Finder, Crafting-Karten. Vorher hatte jede
+ * ihre eigene Fassung, und die schmaleren lasen nur `size`: die Crafting-Karte
+ * zeigte deshalb bei den fuenf mehrdeutigen Items GAR NICHTS, obwohl das
+ * Datenblatt "S3 / S4 / S6" konnte. Nicht neu implementieren — importieren.
+ */
+export function itemSizes(i: Item): number[] {
+  const g = i.game;
+  if (!g) return [];
+  if (g.sizes?.length) return g.sizes;
+  return g.size != null ? [g.size] : [];
+}
+
+/** "S4" bzw. "S3 / S4 / S6" — oder null, wenn keine Groesse bekannt ist. */
+export function sizeLabel(i: Item): string | null {
+  const s = itemSizes(i);
+  return s.length ? s.map((n) => `S${n}`).join(' / ') : null;
+}
+
 /* ---------- Verwandte Items (interne Verlinkung) ---------- */
 
 /**

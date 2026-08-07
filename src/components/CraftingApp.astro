@@ -210,7 +210,9 @@ const cardsData = blueprints.map((b) => {
 const sizeCounts: Record<number, number> = {};
 const gradeCounts: Record<string, number> = {};
 for (const c of cardsData) {
-  if (c.sp?.size != null) sizeCounts[c.sp.size] = (sizeCounts[c.sp.size] || 0) + 1;
+  // Ein Item mit mehreren Groessen zaehlt fuer JEDE davon — es ist unter S3
+  // genauso zu finden wie unter S6.
+  for (const s of c.sp?.sizes ?? []) sizeCounts[s] = (sizeCounts[s] || 0) + 1;
   if (c.sp?.grade) gradeCounts[c.sp.grade] = (gradeCounts[c.sp.grade] || 0) + 1;
 }
 const sizeList = Object.keys(sizeCounts).map(Number).sort((a, b) => a - b);
@@ -386,9 +388,11 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
                 statt zu raten oder "—" zu zeigen (D-06). Der Ton-Text kommt
                 aus den Spieldaten und wird deshalb ueber set:text gesetzt,
                 nicht als rohes {ausdruck}-Kind. */}
-            {c.sp && (c.sp.size != null || c.sp.grade || c.sp.tone) && (
+            {c.sp && (c.sp.sizes.length > 0 || c.sp.grade || c.sp.tone) && (
               <ul class="cbp__spec">
-                {c.sp.size != null && (<li>S{c.sp.size}</li>)}
+                {c.sp.sizes.length > 0 && (
+                  <li set:text={c.sp.sizes.map((n) => `S${n}`).join(' / ')} />
+                )}
                 {c.sp.grade && (<li>{c.sp.grade}</li>)}
                 {c.sp.tone && (<li class="tone" set:text={c.sp.tone} />)}
               </ul>

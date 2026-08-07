@@ -9,7 +9,7 @@
 
 import DB from '../../assets/crafting-db.json';
 import type { Locale } from '../i18n/ui';
-import { hasGradeSemantics, hasMeaningfulGrade, items, type Item } from './items';
+import { hasGradeSemantics, hasMeaningfulGrade, itemSizes, items, type Item } from './items';
 
 /* ---------- Typen (Spiegel von scripts/datamine-crafting.mjs) ---------- */
 
@@ -241,7 +241,13 @@ export const COLLIDING_NAMES: Set<string> = (() => {
 
 /** Groesse/Grade/Ton einer Blueprint-Karte — Ergebnis von blueprintSpecs(). */
 export interface BlueprintSpecs {
-  size: number | null;
+  /**
+   * Alle Groessen des Items — meist genau eine, bei mehrdeutigen Anzeigenamen
+   * mehrere ("Revenant Gatling" ist S3, S4 und S6). Leer = unbekannt.
+   * Kommt aus `itemSizes()` in items.ts; diese Schicht leitet nichts eigenes
+   * ab, damit sie nicht wieder hinter dem Item-Datenblatt zurueckfaellt.
+   */
+  sizes: number[];
   grade: string | null;
   tone: string | null;
 }
@@ -256,7 +262,7 @@ export interface BlueprintSpecs {
  * Mininglaser/Tractorbeam/Salvage/Refuelling liefert keine Quelle einen Ton
  * (vertagt als CRAFT-05 nach v2, ausserhalb des Umfangs dieser Phase).
  */
-function toneFromWeaponCategoryPath(category: string): string | null {
+export function toneFromWeaponCategoryPath(category: string): string | null {
   const segs = (category || '').split('/').map((s) => s.trim()).filter(Boolean);
   if (segs[0] === 'Vehiclegear' && segs[1] === 'Weapons' && segs[2]) return segs[2];
   return null;
@@ -274,13 +280,14 @@ export function blueprintSpecs(b: Blueprint): BlueprintSpecs | null {
   const item = itemForBlueprint(b);
   if (!item) return null;
   const g = item.game;
-  const eq = hasGradeSemantics(item);
-  const size = eq && g?.size != null ? g.size : null;
+  // Groessen aus items.ts, nicht selbst aus g.size abgeleitet — sonst faellt
+  // diese Schicht wieder hinter das Datenblatt zurueck (mehrdeutige Namen).
+  const sizes = hasGradeSemantics(item) ? itemSizes(item) : [];
   // Grade nur, wo er im Spiel etwas unterscheidet — siehe hasMeaningfulGrade().
   const grade = g?.grade && hasMeaningfulGrade(item) ? g.grade : null;
   const tone = g?.class ?? toneFromWeaponCategoryPath(b.category);
-  if (size == null && grade == null && tone == null) return null;
-  return { size, grade, tone };
+  if (!sizes.length && grade == null && tone == null) return null;
+  return { sizes, grade, tone };
 }
 
 /** Rezept zu einem Item — oder null. */

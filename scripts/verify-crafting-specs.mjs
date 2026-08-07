@@ -1,30 +1,31 @@
 // verify-crafting-specs.mjs — Datengatter fuer Groesse/Grade/Ton auf den
-// Crafting-Karten (Plan 05-01+05-02 / CRAFT-01..03). Prueft die 15
-// gleichnamigen Blueprint-Gruppen, die 57 SizeN-Quantumdrives als
-// unabhaengige Gegenprobe des Namens-Joins, die Wertebereiche, die Abdeckung
-// je Vehiclegear-Typ, den Schiffswaffen-Ton aus dem Kategorie-Pfad (D-04)
-// und die Gesamtabdeckung nach der Sperre ueber alle 1594 Blueprints.
+// Crafting-Karten (Phase 08 / CRAFT-01..04). Prueft die 15 gleichnamigen
+// Blueprint-Gruppen, die 57 SizeN-Quantumdrives als unabhaengige Gegenprobe
+// des Namens-Joins, die Wertebereiche, die Abdeckung je Vehiclegear-Typ, den
+// Schiffswaffen-Ton aus dem Kategorie-Pfad und die Gesamtabdeckung nach der
+// Sperre ueber alle 1594 Blueprints.
 //
-// Spiegel-Hinweis: dieses Skript importiert `blueprints` und
-// `blueprintSpecs` NICHT direkt aus src/lib/crafting.ts. Node's native
-// TypeScript-Unterstuetzung entfernt die Typen aus der angefragten Datei
-// selbst, loest aber deren extensionlose relative Importe (`from './items'`,
-// `from '../i18n/ui'`) nicht auf — ein blosser `import()` von crafting.ts
-// scheitert deshalb mit "Cannot find module './items'" (gemessen). Ohne
-// Bundler/Loader (den dieses Projekt fuer Node-Skripte nicht einsetzt) bleibt
-// nur die Spiegelung: die Funktionen unten sind Zeile fuer Zeile dieselbe
-// Logik wie `COLLIDING_NAMES`/`blueprintSpecs`/`hasGradeSemantics` in
-// src/lib/crafting.ts und src/lib/items.ts. Aendert sich die Logik dort,
-// muss sie hier nachgezogen werden — Pruefblock 3 (die 15 Namensgruppen)
-// vergleicht deshalb bewusst NICHT gegen das Ergebnis der echten Funktion
-// (das waere zirkulaer), sondern gegen die vom Skript selbst neu berechnete
-// Diskriminante (item_stats-Signatur), siehe dort.
+// KEINE SPIEGELUNG MEHR (07.08.2026): dieses Skript prueft die ECHTEN
+// Funktionen aus src/lib/crafting.ts und src/lib/items.ts. Frueher stand hier
+// eine handgepflegte Kopie von blueprintSpecs()/COLLIDING_NAMES/
+// hasGradeSemantics — Node's TypeScript-Unterstuetzung loest die
+// extensionlosen relativen Importe (`from './items'`) nicht auf, ein blosser
+// import() scheitert mit "Cannot find module './items'". Die Kopie musste
+// deshalb bei jeder Aenderung von Hand nachgezogen werden, und genau das ging
+// an einem Tag zweimal beinahe schief. Loesung: die Quelle wird mit esbuild
+// gebuendelt und importiert. Aendert sich die Logik, prueft das Gatter sie
+// automatisch mit.
+//
+// Pruefblock 3 (die 15 Namensgruppen) vergleicht weiterhin bewusst NICHT
+// gegen das Ergebnis der echten Funktion — das waere zirkulaer —, sondern
+// gegen eine hier neu berechnete Diskriminante (item_stats-Signatur).
 //
 // Aufruf: node scripts/verify-crafting-specs.mjs   (npm run verify:crafting)
 // Exit 0 = alle Pruefungen unauffaellig, Exit 1 = mindestens ein Befund.
-import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { resolve, dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { tmpdir } from 'node:os';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const craftDb = JSON.parse(readFileSync(resolve(ROOT, 'assets', 'crafting-db.json'), 'utf8'));
@@ -34,20 +35,45 @@ const items = itemsDb.items;
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };
 
-/* ---------- Spiegel von src/lib/crafting.ts + src/lib/items.ts ---------- */
+/* ---------- Die echte Quelle laden (kein Nachbau) ---------- */
 
+const tmp = mkdtempSync(join(tmpdir(), 'verify-crafting-'));
+let src;
+try {
+  const esbuild = await import('esbuild');
+  await esbuild.build({
+    stdin: {
+      contents:
+        "export * as craft from './src/lib/crafting.ts';\n" +
+        "export * as itemlib from './src/lib/items.ts';\n",
+      resolveDir: ROOT,
+      sourcefile: 'verify-entry.ts',
+      loader: 'ts',
+    },
+    bundle: true,
+    format: 'esm',
+    platform: 'node',
+    outfile: join(tmp, 'src.mjs'),
+    loader: { '.json': 'json' },
+    logLevel: 'silent',
+  });
+  src = await import(pathToFileURL(join(tmp, 'src.mjs')).href);
+} catch (err) {
+  console.error('FEHLER: src/lib/crafting.ts liess sich nicht buendeln — das Gatter kann die echte Logik nicht pruefen.');
+  console.error(String(err && err.message ? err.message : err));
+  rmSync(tmp, { recursive: true, force: true });
+  process.exit(1);
+}
+
+const { blueprintSpecs, COLLIDING_NAMES, toneFromWeaponCategoryPath } = src.craft;
+const { GRADE_BEARING_TYPES, hasGradeSemantics, rootCategory } = src.itemlib;
 const itemByName = new Map(items.map((i) => [i.name.toLowerCase(), i]));
+const collidingNames = COLLIDING_NAMES;
+const gradeBearingTypes = GRADE_BEARING_TYPES;
 
-function rootCategory(cat) {
-  return (cat || 'Other').split('/')[0].trim() || 'Other';
-}
-
-/** Spiegel von hasGradeSemantics() in src/lib/items.ts. */
-function hasGradeSemantics(item) {
-  return /Vehiclegear|Weapons|Armour|Attachment/.test(rootCategory(item.category));
-}
-
-/** Spiegel der stabilen, schluesselsortierten Serialisierung in crafting.ts. */
+/** Schluesselsortierte Serialisierung — die UNABHAENGIGE Diskriminante fuer
+ *  Pruefblock 3. Bewusst hier neu geschrieben und nicht importiert: sie soll
+ *  das Ergebnis der echten Sperre pruefen, nicht daraus folgen. */
 function stableStringify(v) {
   if (v === null || typeof v !== 'object') return JSON.stringify(v);
   if (Array.isArray(v)) return `[${v.map(stableStringify).join(',')}]`;
@@ -61,63 +87,6 @@ for (const b of craftDb.blueprints) {
   const list = byName.get(key);
   if (list) list.push(b);
   else byName.set(key, [b]);
-}
-
-/** Spiegel von COLLIDING_NAMES in crafting.ts. */
-const collidingNames = new Set();
-for (const [name, list] of byName) {
-  if (list.length < 2) continue;
-  const sigs = new Set(list.map((b) => stableStringify(b.item_stats ?? null)));
-  if (sigs.size > 1) collidingNames.add(name);
-}
-
-/** Spiegel von toneFromWeaponCategoryPath() in crafting.ts (D-04): die 96
- * Vehiclegear-Waffen fuehren game.class = null, ihr Ton steht aber im
- * Kategorie-String des BLUEPRINTS selbst — drittes Segment nach
- * Vehiclegear / Weapons, z. B. "Ballistic" aus
- * "Vehiclegear / Weapons / Ballistic / Cannon". */
-function toneFromWeaponCategoryPath(category) {
-  const segs = (category || '').split('/').map((s) => s.trim()).filter(Boolean);
-  if (segs[0] === 'Vehiclegear' && segs[1] === 'Weapons' && segs[2]) return segs[2];
-  return null;
-}
-
-/** Spiegel von GRADE_BEARING_TYPES in src/lib/items.ts: eine Bauteilart traegt nur
- * dann einen aussagekraeftigen Grade, wenn mindestens zwei Grades vorkommen und
- * der seltenste mindestens ein Zehntel der Art ausmacht. Sonst ist "A" der
- * Vorgabewert aus AttachDef.Grade und behauptet eine Einstufung, die es im
- * Spiel nicht gibt (152 Schiffswaffen ausnahmslos A, 381 Handwaffen ebenso). */
-const gradeBearingTypes = (() => {
-  const byType = new Map();
-  for (const it of items) {
-    const t = it.game?.gameType;
-    const gr = it.game?.grade;
-    if (!t || !gr) continue;
-    let m = byType.get(t);
-    if (!m) byType.set(t, (m = new Map()));
-    m.set(gr, (m.get(gr) ?? 0) + 1);
-  }
-  const bearing = new Set();
-  for (const [type, counts] of byType) {
-    if (counts.size < 2) continue;
-    const total = [...counts.values()].reduce((a, b) => a + b, 0);
-    if (Math.min(...counts.values()) / total >= 0.1) bearing.add(type);
-  }
-  return bearing;
-})();
-
-/** Spiegel von blueprintSpecs() in crafting.ts. */
-function blueprintSpecs(b) {
-  if (collidingNames.has(b.name.toLowerCase())) return null;
-  const item = itemByName.get(b.name.toLowerCase());
-  if (!item) return null;
-  const g = item.game;
-  const eq = hasGradeSemantics(item);
-  const size = eq && g?.size != null ? g.size : null;
-  const grade = eq && g?.grade && g.gameType && gradeBearingTypes.has(g.gameType) ? g.grade : null;
-  const tone = g?.class ?? toneFromWeaponCategoryPath(b.category);
-  if (size == null && grade == null && tone == null) return null;
-  return { size, grade, tone };
 }
 
 const byBpName = (name) => byName.get(name.toLowerCase())?.[0] ?? null;
@@ -140,7 +109,7 @@ for (const [name, size, grade, tone] of REFERENCE) {
   if (!bp) { refBad++; console.log(`   FEHLT: ${name} nicht in crafting-db.json`); continue; }
   refChecked++;
   const sp = blueprintSpecs(bp);
-  if (!sp || sp.size !== size || sp.grade !== grade || sp.tone !== tone) {
+  if (!sp || sp.sizes.length !== 1 || sp.sizes[0] !== size || sp.grade !== grade || sp.tone !== tone) {
     refBad++;
     console.log(`   ABWEICHUNG: ${name} erwartet {size:${size},grade:${grade},tone:${tone}} gemessen ${JSON.stringify(sp)}`);
   }
@@ -157,9 +126,9 @@ for (const b of craftDb.blueprints) {
   sizeNChecked++;
   const expected = Number(m[1]);
   const sp = blueprintSpecs(b);
-  if (!sp || sp.size !== expected) {
+  if (!sp || !sp.sizes.includes(expected)) {
     sizeNBad++;
-    console.log(`   ABWEICHUNG: ${b.name} Kategorie-Groesse ${expected} != gejointe Groesse ${sp?.size ?? 'null'}`);
+    console.log(`   ABWEICHUNG: ${b.name} Kategorie-Groesse ${expected} != gejointe Groessen [${sp?.sizes?.join(', ') ?? '-'}]`);
   }
 }
 console.log(`   geprueft: ${sizeNChecked} | abweichend: ${sizeNBad}`);
@@ -223,13 +192,13 @@ for (const b of craftDb.blueprints) {
     gradeChecked++;
     if (!VALID_GRADES.has(sp.grade)) { gradeBad++; fail.push(`Wertebereich Grade: "${b.name}" hat "${sp.grade}"`); }
   }
-  if (sp.size != null) {
+  for (const sz of sp.sizes) {
     sizeChecked++;
-    if (!(Number.isInteger(sp.size) && sp.size >= 0 && sp.size <= 7)) { sizeBad++; fail.push(`Wertebereich Groesse: "${b.name}" hat ${sp.size}`); }
+    if (!(Number.isInteger(sz) && sz >= 0 && sz <= 12)) { sizeBad++; fail.push(`Wertebereich Groesse: "${b.name}" hat ${sz}`); }
   }
 }
 console.log(`   Grade geprueft: ${gradeChecked} | ausserhalb A-D: ${gradeBad}`);
-console.log(`   Groesse geprueft: ${sizeChecked} | ausserhalb 0-7: ${sizeBad}`);
+console.log(`   Groesse geprueft: ${sizeChecked} | ausserhalb 0-12: ${sizeBad}`);
 
 /* ---------- 5) Ruestung ohne Ton ---------- */
 console.log('5) Ruestung ohne Ton …');
@@ -265,7 +234,7 @@ for (const [type, exp] of Object.entries(COVERAGE_EXPECTED)) {
   for (const b of bps) {
     if (collidingNames.has(b.name.toLowerCase())) { gated++; continue; }
     const sp = blueprintSpecs(b);
-    if (sp?.size != null) size++;
+    if (sp?.sizes?.length) size++;
     if (sp?.grade != null) grade++;
     if (sp?.tone != null) tone++;
   }
@@ -306,7 +275,7 @@ for (const b of craftDb.blueprints) {
   const sp = blueprintSpecs(b);
   if (!sp) { totalNone++; continue; }
   totalWithSpec++;
-  if (sp.size != null) totalSize++;
+  if (sp.sizes.length) totalSize++;
   if (sp.grade != null) totalGrade++;
   if (sp.tone != null) {
     totalTone++;
@@ -326,7 +295,13 @@ console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${tota
 // Offen als Folgearbeit: die vier Varianten-Items koennten ihre Groessen als
 // "S3 / S4 / S6" zeigen, so wie es die Item-Seite bereits tut.
 need(totalWithSpec === 1514, `Chip-Reihen: erwartet 1514, gemessen ${totalWithSpec}`);
-need(totalSize === 1510, `Groesse: erwartet 1510, gemessen ${totalSize}`);
+// 1513 statt 1510 seit dem 07.08.2026: die Crafting-Schicht leitet die Groesse
+// nicht mehr selbst aus `g.size` ab, sondern nimmt `itemSizes()` aus items.ts.
+// Damit tragen auch die mehrdeutigen Anzeigenamen ihre Groessen — GVSR
+// Repeater "S2 / S10", Revenant Gatling "S3 / S4 / S6", Tarantula GT-870
+// "S3 / S7 / S8". Die beiden BroadSpec-Karten bleiben gesperrt (Kollision),
+// deshalb +3 und nicht +5.
+need(totalSize === 1513, `Groesse: erwartet 1513, gemessen ${totalSize}`);
 // 315 statt 1509 seit dem 07.08.2026: der Grade erscheint nur noch bei den
 // fuenf Bauteilarten, bei denen er im Spiel etwas unterscheidet (Kraftwerk 71,
 // Kuehler 70, Schild 62, Radar 55, Quantenantrieb 57 = 315). Zuvor trugen 1194
@@ -370,6 +345,7 @@ console.log(`   Verteilung: ${Object.entries(toneDist).sort().map(([k, v]) => `$
 need(toneRangeBad === 0, `${toneRangeBad} Toene ausserhalb der bekannten 9 Werte`);
 
 /* ---------- Verdikt ---------- */
+rmSync(tmp, { recursive: true, force: true });
 console.log('---');
 if (refBad > 0) fail.push(`Referenzwerte: ${refBad} von ${refChecked} abweichend`);
 if (fail.length === 0) {

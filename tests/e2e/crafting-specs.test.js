@@ -200,15 +200,34 @@ for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
 
 describe('Filter Groesse und Grade in der Seitenleiste (05-03, DE+EN)', () => {
   for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
-    // Sieben statt acht seit dem 07.08.2026: S7 hatte genau einen Vertreter
-    // (tarantula gt-870 mark 3 cannon), und der fuehrt auf staging jetzt
-    // `sizes[]` statt einer Einzelgroesse. Ein Ankreuzfeld ohne einen einzigen
-    // Treffer soll es nicht geben — die Liste wird aus den Daten gebildet.
-    test(`${label}: sieben Ankreuzfelder cdb-size mit den Werten 0-6`, () => {
+    // Die Liste wird aus den Daten gebildet, nicht festgeschrieben — ein
+    // Ankreuzfeld ohne einen einzigen Treffer soll es nicht geben. Deshalb ist
+    // sie auch nicht lueckenlos: S9 kommt in keinem Blueprint vor. S7, S8 und
+    // S10 haengen an den mehrdeutigen Anzeigenamen (Tarantula GT-870 "S3/S7/S8",
+    // GVSR Repeater "S2/S10") — sie waren weg, solange die Crafting-Schicht nur
+    // `g.size` las, und sind mit `itemSizes()` zurueck.
+    const ERWARTETE_GROESSEN = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10];
+    test(`${label}: ${ERWARTETE_GROESSEN.length} Ankreuzfelder cdb-size`, () => {
       const values = [...html.matchAll(/<input[^>]*class="cdb-size"[^>]*value="(\d+)"/g)].map(([, v]) => v);
-      assert.strictEqual(values.length, 7, `${label}: erwartet 7 cdb-size-Ankreuzfelder, gefunden ${values.length}`);
-      assert.deepStrictEqual(values.map(Number).sort((a, b) => a - b), [0, 1, 2, 3, 4, 5, 6]);
+      assert.strictEqual(values.length, ERWARTETE_GROESSEN.length, `${label}: erwartet ${ERWARTETE_GROESSEN.length} cdb-size-Ankreuzfelder, gefunden ${values.length}`);
+      assert.deepStrictEqual(values.map(Number).sort((a, b) => a - b), ERWARTETE_GROESSEN);
     });
+
+    // Die drei mehrdeutigen Anzeigenamen zeigen ALLE ihre Groessen statt gar
+    // nichts — genau die Luecke, die entstand, weil die Crafting-Schicht eine
+    // eigene, schmalere Fassung von itemSizes() hatte.
+    for (const [name, label2] of [
+      ['Revenant Gatling', 'S3 / S4 / S6'],
+      ['Tarantula GT-870 Mark 3 Cannon', 'S3 / S7 / S8'],
+      ['GVSR Repeater', 'S2 / S10'],
+    ]) {
+      test(`${label}: ${name} zeigt "${label2}"`, () => {
+        const card = findCard(html, name);
+        const chips = specChips(card);
+        assert.ok(chips, `${name}: keine ul.cbp__spec auf der Karte`);
+        assert.strictEqual(chips[0].text, label2);
+      });
+    }
 
     test(`${label}: vier Ankreuzfelder cdb-grade mit den Werten A-D`, () => {
       const values = [...html.matchAll(/<input[^>]*class="cdb-grade"[^>]*value="([A-D])"/g)].map(([, v]) => v);
