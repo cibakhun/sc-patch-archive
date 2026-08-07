@@ -11,9 +11,34 @@
 // (wikeloCandidates) — beide zusammen ändern.
 import DB from '../../assets/universal-items.json';
 
+// Warum hier KEIN Schluessel-Join moeglich ist (Stand 07.08.2026):
+// die Quelle wikelotrades.com fuehrt ausschliesslich von Hand getippte
+// Anzeigenamen — es gibt auf ihrer Seite keine Id, an der man festmachen
+// koennte. Der Namensabgleich ist deshalb nicht Bequemlichkeit, sondern das
+// Einzige, was diese Quelle hergibt.
+//
+// Tragfaehig ist er nur, solange der Item-Katalog je Name genau einen Eintrag
+// hat. Das ist heute so (gemessen: 9168 Items, 0 doppelte Namen) — allerdings
+// nicht, weil es keine gleichnamigen Items gaebe, sondern weil
+// `datamine-items.mjs` sie vorher zusammenfasst. Die Mehrdeutigkeit ist also
+// nur unsichtbar, nicht weg. Ein Treffer hier heisst darum: "so heisst genau
+// ein Katalogeintrag" — nicht "so heisst genau ein Item im Spiel".
+//
+// Die Pruefung unten haelt das fest. Schlaegt sie an, ist der Katalog
+// mehrdeutig geworden, und dann darf hier NICHT der erste Treffer gewinnen.
 const CANON = new Map<string, string>();
+const mehrdeutig: string[] = [];
 for (const it of (DB as { items: { name: string }[] }).items) {
-  CANON.set(it.name.toLowerCase(), it.name);
+  const k = it.name.toLowerCase();
+  if (CANON.has(k)) mehrdeutig.push(it.name);
+  CANON.set(k, it.name);
+}
+if (mehrdeutig.length) {
+  throw new Error(
+    `wikeloItemMatch: der Item-Katalog fuehrt ${mehrdeutig.length} doppelte Namen — ein Namenstreffer waere geraten. ` +
+    `Betroffen: ${mehrdeutig.slice(0, 10).join(', ')}${mehrdeutig.length > 10 ? ' …' : ''}. ` +
+    `Wikelo liefert keine Ids; der Abgleich muss dann mehrdeutige Namen unverlinkt lassen statt zu waehlen.`,
+  );
 }
 const ALL_NAMES: string[] = [...CANON.values()];
 

@@ -135,6 +135,20 @@ function slugId(name) {
 // =========================================================
 //  Quellen einlesen und per Name (case-insensitiv) mergen
 // =========================================================
+// Warum hier der Name und kein Schluessel (Stand 07.08.2026):
+// dieser Merge fuehrt VERSCHIEDENE Quellen auf denselben Eintrag zusammen —
+// Spieldaten, UEX-Preise, Loot-Listen, Fahrzeugdaten, global.ini-Katalog. Nur
+// die Spieldaten haben eine Record-Id; UEX und die Loot-Quellen kennen
+// ausschliesslich Anzeigenamen (serverseitig, nicht in der p4k). Ein
+// guid-Join waere hier also gar nicht durchfuehrbar.
+//
+// ⚠ Wer nach dem Ort sucht, an dem gleichnamige Items zusammenfallen: der ist
+// NICHT hier, sondern eine Stufe frueher in `scripts/datamine-items.mjs`
+// (Dedupe ueber `byName` -> `best` + `variants`). Dort faellt je Name
+// hoechstens ein Eintrag samt Record-Id weg; die Zahl steht seit dem
+// 07.08.2026 als `counts.collapsedNames`/`collapsedEntries` in der Ausgabe.
+// Diese Datei sieht nur noch das Ergebnis und kann es nicht rueckgaengig
+// machen.
 const byName = new Map(); // key: name.toLowerCase()
 function entry(name) {
   const k = name.toLowerCase().trim();

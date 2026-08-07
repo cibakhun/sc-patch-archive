@@ -329,8 +329,12 @@ const containerScu = (rec) => {
   if (!d || d.x == null) return 0;
   return (d.x * d.y * d.z) / SCU_M3;
 };
-const containerByName = new Map();
-for (const r of db.records) if (/inventorycontainers\//i.test(norm(r.fileName))) containerByName.set((r.name || '').toLowerCase(), r);
+// `containerByName` (Record-Lookup ueber den kleingeschriebenen Namen) stand
+// hier bis 07.08.2026 — angelegt, nie gelesen. Schon 01.4-04-PLAN.md hatte es
+// als "zweiter, im Lauf ungenutzter Weg zur selben Zahl" vermerkt. Entfernt:
+// ein toter Namens-Lookup ist kein harmloser Rest, sondern eine Einladung, ihn
+// beim naechsten Mal zu benutzen. Behaelter werden ueber `cls` aufgeloest
+// (tankCapacityScu) bzw. ueber den Cargogrid-Record-Index, beides Schluessel.
 
 /* ---------------------------------------------------------------- */
 /* Hersteller                                                        */

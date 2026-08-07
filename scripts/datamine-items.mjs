@@ -505,9 +505,40 @@ for (const { best, all } of byName.values()) {
   best.stats = null;
   best.variants = variants;
 }
+// Was der Dedupe STILL wegwirft: Geschwister mit demselben Namen, die keine
+// Variantenliste ausgeloest haben (weil sie sich nicht in der Groesse
+// unterscheiden oder gar keine fuehren). Von denen ueberlebt nur `best` — die
+// anderen verschwinden aus dem Katalog, samt ihrer Record-Id.
+//
+// Das ist keine Kosmetik: genau so verlor der Katalog den Kuehler "NightFall",
+// und genau deshalb bleiben fuenf Crafting-Karten leer, obwohl ihr Blueprint
+// eine eigene `entity_guid` hat — die zugehoerige Id ist hier weggefallen.
+// Der saubere Weg waere ein guid-scharfer Katalog; der aendert aber die
+// Item-Identitaet und damit Slugs, URLs und die slug-basierten Konto-Daten
+// (Besitz/Planer) — ein eigenes Vorhaben. Bis dahin gilt: NICHT still
+// verwerfen. Die Faelle stehen im Lauf-Protokoll und ihre Zahl in der Ausgabe,
+// damit ein Zuwachs auffaellt statt unbemerkt zu bleiben.
+const collapsed = [];
+for (const { best, all } of byName.values()) {
+  if (all.length < 2 || best.variants) continue;
+  collapsed.push({
+    name: best.name,
+    kept: best.id,
+    dropped: all.filter((x) => x.id !== best.id).map((x) => x.id),
+  });
+}
+
 const items = [...byName.values()].map((e) => e.best).sort((a, b) => a.name.localeCompare(b.name, 'en'));
 if (variantNames)
   console.log(`${variantNames} Anzeigenamen stehen für mehrere Items — Größe als Variantenliste statt Einzelwert`);
+if (collapsed.length) {
+  const total = collapsed.reduce((n, c) => n + c.dropped.length, 0);
+  console.log(`⚠ ${collapsed.length} Anzeigenamen stehen fuer mehrere Items OHNE Groessenunterschied — ${total} Eintraege fallen weg, nur der beste bleibt.`);
+  console.log('  Ihre Record-Ids sind damit aus dem Katalog verschwunden; Joins ueber die guid finden sie nicht mehr.');
+  for (const c of (DEBUG ? collapsed : collapsed.slice(0, 12)))
+    console.log(`   ${c.name} — behalten ${c.kept}, weg: ${c.dropped.join(', ')}`);
+  if (!DEBUG && collapsed.length > 12) console.log(`   … und ${collapsed.length - 12} weitere (DEBUG=1 zeigt alle)`);
+}
 
 // =========================================================
 //  Rüstungs-Sets (Dreier-Kette, siehe lib/armor-sets.mjs)
@@ -552,6 +583,14 @@ const payload = {
     withArchetype: facetCount('archetype'), lootableKnown: items.filter((i) => i.lootable != null).length,
     notLootable: items.filter((i) => i.lootable === false).length,
     inSet: items.filter((i) => i.setId).length,
+    // Gleichnamige Items, die der Dedupe zusammenzieht. `variantNames` sind die
+    // ehrlichen Faelle (Groessen stehen in `variants`), `collapsedNames` die
+    // verlustbehafteten: dort faellt je Name mindestens eine Record-Id weg.
+    // Steigt die zweite Zahl nach einem Patch, sind neue Items unsichtbar
+    // geworden — siehe den Kommentar am Dedupe.
+    variantNames,
+    collapsedNames: collapsed.length,
+    collapsedEntries: collapsed.reduce((n, c) => n + c.dropped.length, 0),
     sets: setStats,
   },
   sets,
