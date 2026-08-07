@@ -158,7 +158,7 @@ const total = DB.counts.minerals;
 
     <div class="mdb-main">
       <div class="mdb-count-row"><span><b id="mdb-count">{total}</b> / {total} {S.results}</span></div>
-      <div class="mdb-grid" id="mdb-grid">
+      <div class="mdb-grid vb-scrollbox" id="mdb-grid">
         {cards.map((c) => (
           <article
             class="mcd"
@@ -247,8 +247,12 @@ const total = DB.counts.minerals;
   .mdb-view[aria-pressed="true"]{background:var(--accent,#2FBFA4);color:var(--ink,var(--ink))}
   .mdb-filter-toggle{display:none;background:var(--surface,#1e2427);border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.5rem .8rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700}
   .mdb-loc-open{background:var(--surface,#1e2427);border:1px solid var(--accent-2,#E0A526);color:var(--accent-2,#E0A526);padding:.5rem .9rem;border-radius:6px;cursor:pointer;font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.04em}
-  .mdb-layout{display:grid;grid-template-columns:250px 1fr;gap:1.4rem;align-items:start}
-  .mdb-sidebar{position:sticky;top:146px;align-self:start;max-height:calc(100vh - 162px);overflow:auto;border:1px solid var(--line,rgba(47,191,164,.22));background:var(--surface,#1e2427);border-radius:8px;padding:1rem}
+  /* --vb-top: wortgleich zu CraftingApp.astro, das Layout ist eine Kopie
+     davon. 4.4rem sind die klebende Filterleiste als Startwert. --vb-top
+     behebt nebenbei, dass die alten 146px/162px verschwanden, sobald die
+     Nav ihre Zurueck-Zeile trug. */
+  .mdb-layout{display:grid;grid-template-columns:250px 1fr;gap:1.4rem;align-items:start;--vb-top:calc(var(--nav-h,68px) + 4.4rem)}
+  .mdb-sidebar{position:sticky;top:var(--vb-top);align-self:start;max-height:calc(100dvh - var(--vb-top) - 1rem);overflow:auto;overscroll-behavior:contain;border:1px solid var(--line,rgba(47,191,164,.22));background:var(--surface,#1e2427);border-radius:8px;padding:1rem}
   .mdb-side-hd{display:none;justify-content:space-between;align-items:center;margin-bottom:.6rem;font-weight:800}
   .mdb-fgroup{margin-bottom:1.1rem;border-bottom:1px solid var(--line-soft,var(--line-soft));padding-bottom:1rem}
   .mdb-fgroup:last-of-type{border-bottom:0}

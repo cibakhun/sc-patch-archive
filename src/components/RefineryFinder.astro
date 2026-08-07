@@ -71,6 +71,8 @@ const S = {
     methodsNote: 'Qualitative Trade-offs (Stand 4.8.0) — höhere Ausbeute kostet Zeit oder Geld. Exakte Yield-Prozente pro Methode sind nicht öffentlich dokumentiert; wähle die Methode nach Ziel (Menge vs. Tempo vs. Kosten).',
     lvl: { vlow: 'sehr niedrig', low: 'niedrig', mid: 'mittel', high: 'hoch' },
     note: 'Yield-Boni je Raffinerie-Profil. Mehrere Stationen teilen ein Profil (identische Boni; alle im Tooltip der Spalte). Patch-volatil.',
+    oreListRegion: 'Erz-Liste, scrollbar',
+    yieldMatrixRegion: 'Yield-Matrix, scrollbar',
   },
   en: {
     intro: 'Each refinery gives its own yield bonus per ore (in %) — real yield values. Search your ore and see the best station instantly, or switch to the full matrix.',
@@ -80,6 +82,8 @@ const S = {
     methodsNote: 'Qualitative trade-offs (as of 4.8.0) — higher yield costs time or money. Exact per-method yield percentages are not publicly documented; pick the method by goal (volume vs. speed vs. cost).',
     lvl: { vlow: 'very low', low: 'low', mid: 'mid', high: 'high' },
     note: 'Yield bonuses per refinery profile. Several stations share a profile (identical bonuses; all in the column tooltip). Patch-volatile.',
+    oreListRegion: 'Ore list, scrollable',
+    yieldMatrixRegion: 'Yield matrix, scrollable',
   },
 }[lang];
 
@@ -104,7 +108,7 @@ const cellCls = (v: number | null, best: number | null) =>
   </div>
 
   <!-- LISTE: beste Raffinerie pro Erz -->
-  <div class="rff__list" id="rff-list">
+  <div class="rff__list vb-scrollbox" id="rff-list" tabindex="0" role="region" aria-label={S.oreListRegion}>
     {ores.map((o) => (
       <article class="rff__ore" data-name={o.name.toLowerCase()} data-best-sys={o.best ? o.best.systems.join('|') : ''}>
         <div class="rff__oname">{o.name}</div>
@@ -125,7 +129,7 @@ const cellCls = (v: number | null, best: number | null) =>
   </div>
 
   <!-- MATRIX -->
-  <div class="rff__scroll" id="rff-matrix" hidden>
+  <div class="rff__scroll vb-scrollbox" id="rff-matrix" hidden tabindex="0" role="region" aria-label={S.yieldMatrixRegion}>
     <table class="rff__tbl">
       <thead>
         <tr>
@@ -226,7 +230,11 @@ const cellCls = (v: number | null, best: number | null) =>
   </script>
 
   <style is:inline>
-    .rff{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
+    /* --vb-top: .rff__bar klebt nicht, der Abschnitt sitzt mitten auf der
+       Mining-Seite. 6rem laesst den Kasten rund drei Viertel der
+       Fensterhoehe einnehmen, damit er ab dem Moment vollstaendig
+       sichtbar ist, in dem man den Abschnitt anfaehrt. Startwert. */
+    .rff{max-width:var(--maxw,1240px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem);--vb-top:calc(var(--nav-h,68px) + 6rem)}
     .rff__intro{font-size:.92rem;color:var(--muted,#8fa3a0);line-height:1.55;max-width:80ch;margin:0 0 1rem}
     .rff__bar{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem 1rem;margin-bottom:1rem}
     .rff__search{flex:1 1 220px;min-width:0;background:var(--bg-2,var(--veil-2));border:1px solid var(--line,rgba(47,191,164,.3));color:var(--text,#eaf2f1);padding:.55rem .8rem;border-radius:6px;font-size:.95rem;font-family:var(--font-ui,inherit)}
@@ -259,9 +267,14 @@ const cellCls = (v: number | null, best: number | null) =>
     .rff__tbl{border-collapse:collapse;font-size:.82rem;width:100%;min-width:640px}
     .rff__tbl th,.rff__tbl td{padding:.4rem .55rem;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     .rff__corner,.rff__rore{position:sticky;left:0;z-index:2;text-align:left;background:var(--bg-2,var(--veil-2));font-family:var(--font-ui,inherit)}
-    .rff__corner{z-index:3;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.58rem;color:var(--accent,#2FBFA4);border-bottom:1px solid var(--line,rgba(47,191,164,.3))}
+    /* Die Matrix bekommt einen eigenen senkrechten Kasten dazu. Ohne klebende
+       Kopfzeile waeren die Spaltenkoepfe nach drei Zeilen weg und die Zahlen
+       ohne Bedeutung. z-index der Ecke (klebt auf BEIDEN Achsen) muss ueber
+       dem der Spaltenkoepfe liegen, sonst verschwindet sie hinter ihnen beim
+       gemeinsamen Scrollen. */
+    .rff__corner{position:sticky;top:0;z-index:4;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.58rem;color:var(--accent,#2FBFA4);border-bottom:1px solid var(--line,rgba(47,191,164,.3))}
     .rff__rore{font-weight:700;color:var(--text);font-size:.84rem;border-right:1px solid var(--line-soft,var(--line-soft))}
-    .rff__col{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.04em;font-size:.62rem;color:var(--accent,#2FBFA4);border-bottom:1px solid var(--line,rgba(47,191,164,.3));cursor:help}
+    .rff__col{position:sticky;top:0;z-index:2;background:var(--bg-2,var(--veil-2));font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:.04em;font-size:.62rem;color:var(--accent,#2FBFA4);border-bottom:1px solid var(--line,rgba(47,191,164,.3));cursor:help}
     .rff__col[hidden],.rff__cell[hidden]{display:none}
     .rff__row[hidden]{display:none}
     .rff__row:nth-child(even) .rff__rore,.rff__row:nth-child(even) .rff__cell{background:var(--veil-hi)}
