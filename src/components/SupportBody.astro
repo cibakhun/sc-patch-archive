@@ -144,11 +144,18 @@ const T = {
       ['Machine', 'Development PC', false],
       ['Part', 'Power supply', false],
       ['Condition', 'Fails without warning', true],
-      ['Budget', 'EUR 120.00', false],
+      /* "EUR 120.00" stand hier neben Knoepfen mit "3 €" und einem CTA mit
+         "€5" — drei Schreibweisen auf einem Bildschirm. Englisch steht das
+         Zeichen vorn. */
+      ['Budget', '€120.00', false],
     ] as [string, string, boolean][],    sch: { case: ['HOUSING', 'ATX'], fan: ['FAN', '80 MM'], cap: ['C1–C3', 'PRIMARY', 'CAPACITOR', 'FAILS', 'NO WARNING'], pcb: 'BOARD', conn: ['CONNECTOR', 'IEC C14'], dim: '140 MM' },
     pos: [
       ['Item 01', 'Fault',
-        '<b>The machine VerseBase is built on cuts out without warning.</b>',
+        /* "The machine VerseBase is built on cuts out without warning" stand
+           hier bis zum 07.08.2026 — ohne `that` liest man "VerseBase is built
+           on cuts out" und stolpert. Die deutsche Fassung macht es mit Kommas
+           richtig ("Der Rechner, auf dem VerseBase entsteht, …"). */
+        '<b>The PC that VerseBase is built on cuts out without warning.</b>',
         'The voltage simply drops away and the machine is gone from one moment to the next. No sign beforehand, no pattern to plan around.'],
       ['Item 02', 'Effect',
         'The annoying part is not the hardware. It is what goes with it. If it happens while I am coding, the work since the last save is gone.',
@@ -187,6 +194,15 @@ const T = {
 }[lang];
 
 const ctaInitial = T.cta.replace('%s', String(PRESELECT));
+
+/**
+ * Geldbetrag in der Schreibweise der jeweiligen Sprache: im Deutschen steht das
+ * Eurozeichen hinter der Zahl, im Englischen davor. Die Betragsknoepfe hatten
+ * bis zum 07.08.2026 fest `{v} €` — auf der englischen Seite standen deshalb
+ * "3 €", "5 €" neben einem Knopf, der "Support with €5" sagte. Dieselbe Regel
+ * gilt in `eur()` im Seitenskript weiter unten.
+ */
+const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
 ---
 <style is:inline>
 /* Instandsetzung — warme Werkstatt-Palette. Gold ist die EINE Akzentfarbe; sie
@@ -229,7 +245,23 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
 .sup .num{font-variant-numeric:tabular-nums;font-family:var(--font-mono,'Share Tech Mono',monospace)}
 
 /* --- Auftragskopf --------------------------------------------------------- */
-.sup__head{border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--bg-2),var(--bg))}
+/* Randloses Band wie auf jeder anderen Seite der Site.
+   Vorher lag der Auftragskopf samt Hintergrund IN der 1180-px-Spalte. Auf
+   einem breiten Bildschirm stand die Seite damit als Kasten im Schwarzen,
+   waehrend jede andere Seite mit einem Element ueber die volle Fensterbreite
+   oeffnet (`.hero`/`.band` in assets/detail.css, Inhalt innen auf --maxw).
+   Gemessen auf 1912 px: kein einziges randloses Element auf dieser Seite.
+
+   Umgesetzt ueber ein Pseudoelement statt ueber Aufbrechen des Markups: nur
+   der HINTERGRUND wandert nach aussen, Titel und Auftragsfelder bleiben, wo
+   sie sind. Damit aendert sich keine Zeile Layout und kein Umbruch.
+   `left:50%` + `translateX(-50%)` + `100vw` ist die Site-uebliche Loesung;
+   Bildlaufleisten sind site-weit ausgeblendet, 100vw entspricht hier also der
+   Fensterbreite (nachgemessen: scrollWidth == innerWidth, kein Ueberlauf). */
+.sup__head{position:relative}
+.sup__head::before{content:'';position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:100vw;
+  background:linear-gradient(180deg,var(--bg-2),var(--bg));border-bottom:1px solid var(--line);z-index:0}
+.sup__head > *{position:relative;z-index:1}
 /* Die Kopfleiste der Seite ist `position:fixed` und 62 px hoch. Ohne diesen
    Abstand liegt der Titel 32 px DAHINTER — im Browser auf staging gemessen,
    "Instandsetzung" war zur Haelfte verdeckt. Die Hero-Seiten der Site loesen
@@ -671,7 +703,7 @@ const ctaInitial = T.cta.replace('%s', String(PRESELECT));
               {STEPS.map((v) => (
                 <label class="sup__pill">
                   <input type="radio" name="sup-amount" value={v} checked={v === PRESELECT} />
-                  <span>{v} €</span>
+                  <span set:text={money(v)}></span>
                 </label>
               ))}
               <label class="sup__freewrap">
@@ -909,7 +941,12 @@ if(!box||!read||!fill)return;
 var REST=URL_+'/rest/v1/support_progress?slug=eq.'+encodeURIComponent(SLUG);
 var goalC=0;
 
-function eur(c){return (c/100).toLocaleString(LOC,{minimumFractionDigits:(c%100?2:0),maximumFractionDigits:2})+' \\u20ac'}
+/* Das Eurozeichen steht im Deutschen HINTER der Zahl ("120 €"), im Englischen
+   DAVOR ("€120"). Vorher hing hier fest ' €' dran — auf der englischen Seite
+   stand deshalb "0 € / 120 €" im Balken, waehrend der Knopf daneben korrekt
+   "Support with €5" sagte. Drei Schreibweisen auf einem Bildschirm. */
+function eur(c){var n=(c/100).toLocaleString(LOC,{minimumFractionDigits:(c%100?2:0),maximumFractionDigits:2});
+  return LOC.slice(0,2)==='de' ? n+' \\u20ac' : '\\u20ac'+n}
 function say(text,bad){if(!msg)return;msg.textContent=text;msg.hidden=false;
   if(bad)msg.classList.add('is-bad');else msg.classList.remove('is-bad')}
 
