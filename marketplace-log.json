@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-07",
-  "updates": 93,
-  "totalListings": 3012,
+  "updates": 94,
+  "totalListings": 3015,
   "totalSold": 121,
   "distinctItems": 869
  },
@@ -56751,6 +56751,10 @@
     {
      "d": "2026-08-06",
      "p": 6000000
+    },
+    {
+     "d": "2026-08-07",
+     "p": 5000000
     }
    ],
    "soldOut": false,
@@ -64021,6 +64025,69 @@
    "soldOutPrice": null,
    "dateAdded": 1786071511,
    "dateExpiration": 1796439511
+  },
+  "159739": {
+   "idItem": 5852,
+   "idCategory": 36,
+   "title": "Aluminum",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 919,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 17600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786075945,
+   "dateExpiration": 1791259945
+  },
+  "159743": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 1700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786076346,
+   "dateExpiration": 1791260346
+  },
+  "159744": {
+   "idItem": null,
+   "idCategory": 3,
+   "title": "Oni Kibe Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-07",
+   "lastSeen": "2026-08-07",
+   "prices": [
+    {
+     "d": "2026-08-07",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786076379,
+   "dateExpiration": 1791260379
   }
  }
 }
