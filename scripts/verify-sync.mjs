@@ -16,7 +16,7 @@
    Abweichungen nicht. Die einfachste Fassung gewinnt, weil jede
    Raffinesse mehr Code ohne Signalgewinn waere.
 
-   Vier Zusicherungen, jede mit einer Soll-/Ist-Zeile:
+   Fuenf Zusicherungen, jede mit einer Soll-/Ist-Zeile:
 
      1  Paarung: findPagePairs() aus scripts/lib/page-pairs.mjs ueber alle
         HTML-Dateien unter dist/ (rekursiv) — dieselbe Paarung wie
@@ -27,14 +27,24 @@
         der 8.000 Seiten verliert).
      2  Fingerabdruck: tokenize() je Datei, dann elementweiser Vergleich
         der geordneten Folgen (nach Ausnahme aus Zusicherung 3).
-     3  Sprachumschalter (X-langsw-order aus scripts/lib/sync-exclusions.mjs):
-        splitLangsw() zieht die Kinder JEDER .langsw-Instanz aus der Folge
-        und vergleicht sie als MENGE ({cur:1, opt:1, sep:1}); der Behaelter
-        div.langsw selbst bleibt in der Folge. Das ist eng, kein
-        Seitenausschluss — ein fehlendes Kind faellt weiterhin auf.
+     3  Ausnahmen aus scripts/lib/sync-exclusions.mjs, ZWEI Modi:
+          - X-langsw-order (multiset-children): splitLangsw() zieht die
+            Kinder JEDER .langsw-Instanz aus der Folge und vergleicht sie
+            als MENGE ({cur:1, opt:1, sep:1}); der Behaelter div.langsw
+            selbst bleibt in der Folge. Eng, kein Seitenausschluss — ein
+            fehlendes Kind faellt weiterhin auf.
+          - X-onepager-de-only, X-impressum-mstv (cut-region): cutRegion()
+            schneidet VOR dem Tokenisieren eine per Quellstelle verankerte
+            Region aus EINER Seite des Paars (Plan 02, Task 2).
      4  Vollstaendigkeit: jede Abweichung, die keine benannte Ausnahme
-        erklaert, ist ein FEHLER. In diesem Plan gibt es genau eine
-        Ausnahme (X-langsw-order) — alles andere faellt durch.
+        erklaert, ist ein FEHLER.
+     5  Zombie-Waechter: jede Ausnahme aus EXCLUSIONS muss in DIESEM
+        Durchgang mindestens einmal gegriffen haben (mindestens ein Paar
+        erklaert bzw. mindestens eine Region tatsaechlich ausgeschnitten).
+        Eine Ausnahme, deren Anlass verschwunden ist, deckt sonst spaeter
+        echte Drift zu, statt zu verschwinden — Gegenrichtung zu
+        Zusicherung 4 (die haelt UNBENANNTE Abweichungen auf, diese haelt
+        Ausnahmen auf, deren Anlass entfallen ist).
 
    Performance (siehe 04-01-PLAN.md <performance>): Ausnahmen zuerst
    anwenden, danach ein LINEARER Gleichheitstest der beiden Token-Felder.
@@ -150,9 +160,13 @@ export function splitLangsw(tokens, { container = 'langsw', childPrefix = 'langs
 /* ---------- cutRegion(html, openTagPattern, tagName): benannte Regionen herausschneiden ----------
    Schneidet ab dem Treffer von openTagPattern bis zum ZUGEHOERIGEN
    schliessenden Tag heraus (zaehlt gleichnamige Tags dazwischen mit, damit
-   Verschachtelung nicht zu frueh schliesst). Wird in DIESEM Plan von
-   keiner Ausnahme benutzt (Plan 02 braucht es fuer Onepager/Impressum),
-   gehoert aber hierher, weil dieses Skript seine einzige Heimat ist. */
+   Verschachtelung nicht zu frueh schliesst). Seit Plan 02 von zwei
+   cut-region-Ausnahmen benutzt (X-onepager-de-only, X-impressum-mstv, siehe
+   scripts/lib/sync-exclusions.mjs und applyCutRegionExclusions() unten) —
+   fuer X-impressum-mstv absichtlich mit tagName 'p' UND einem openTagPattern,
+   das schon am <h2> startet: cutRegion() depth-trackt dann NUR <p>-Tags ab
+   diesem Index und schneidet dadurch <h2>…</h2> UND den unmittelbar
+   folgenden <p>…</p> in einem Aufruf — kein zweiter Ausschneide-Code. */
 export function cutRegion(html, openTagPattern, tagName) {
   const startMatch = openTagPattern.exec(html);
   if (!startMatch) return html;
@@ -211,14 +225,42 @@ function compareInstances(enInstances, deInstances) {
   return null;
 }
 
-function comparePair(enPath, dePath, langswParams) {
-  const enHtml = readFileSync(enPath, 'utf8');
-  const deHtml = readFileSync(dePath, 'utf8');
+/* ---------- cut-region-Ausnahmen anwenden (VOR dem Tokenisieren) ----------
+   Fuer jede EXCLUSIONS-Eintrag mit mode:'cut-region', dessen match(enPath)
+   zutrifft: cutRegion() auf die per `side` benannte Fassung anwenden. Ein
+   tatsaechlicher Schnitt (Ergebnis != Eingabe) zaehlt in `usage` fuer den
+   Zombie-Waechter (Zusicherung 5) — unabhaengig davon, ob das Paar am Ende
+   vollstaendig uebereinstimmt oder anderswo noch abweicht. */
+function applyCutRegionExclusions(enPath, enHtml, deHtml, cutEntries, usage) {
+  let en = enHtml;
+  let de = deHtml;
+  for (const ex of cutEntries) {
+    if (!ex.match(enPath)) continue;
+    if (ex.side === 'en' || ex.side === 'both') {
+      const cut = cutRegion(en, ex.openTagPattern(), ex.tagName);
+      if (cut !== en) usage.set(ex.id, (usage.get(ex.id) || 0) + 1);
+      en = cut;
+    }
+    if (ex.side === 'de' || ex.side === 'both') {
+      const cut = cutRegion(de, ex.openTagPattern(), ex.tagName);
+      if (cut !== de) usage.set(ex.id, (usage.get(ex.id) || 0) + 1);
+      de = cut;
+    }
+  }
+  return { en, de };
+}
+
+function comparePair(enPath, dePath, langswParams, cutEntries, cutUsage) {
+  const enHtmlRaw = readFileSync(enPath, 'utf8');
+  const deHtmlRaw = readFileSync(dePath, 'utf8');
+  const { en: enHtml, de: deHtml } = applyCutRegionExclusions(enPath, enHtmlRaw, deHtmlRaw, cutEntries, cutUsage);
+  const cutApplied = enHtml !== enHtmlRaw || deHtml !== deHtmlRaw;
+
   const enTokens = tokenize(enHtml);
   const deTokens = tokenize(deHtml);
 
   if (arraysEqualFrom(enTokens, deTokens, 0)) {
-    return { status: 'identical', enPath, dePath };
+    return { status: cutApplied ? 'cut-region-explained' : 'identical', enPath, dePath };
   }
 
   const enSplit = splitLangsw(enTokens, langswParams);
@@ -297,28 +339,33 @@ function main() {
     fail(`Paarzahl unter der Plausibilitaets-Untergrenze (${pairs.length} < 5000) — Build unvollstaendig?`);
   }
 
-  /* ---- Zusicherungen 2-4: Fingerabdruck, langsw-Sonderfall, Vollstaendigkeit ---- */
-  console.log('\n[2-4] Struktur-Fingerabdruck je Paar (D-01), Sprachumschalter-Ausnahme, Vollstaendigkeit');
+  /* ---- Zusicherungen 2-4: Fingerabdruck, Ausnahmen, Vollstaendigkeit ---- */
+  console.log('\n[2-4] Struktur-Fingerabdruck je Paar (D-01), benannte Ausnahmen, Vollstaendigkeit');
   const langswEntry = EXCLUSIONS.find((e) => e.id === 'X-langsw-order');
   if (!langswEntry) fail('scripts/lib/sync-exclusions.mjs: X-langsw-order fehlt in EXCLUSIONS');
   const langswParams = langswEntry
     ? { container: langswEntry.container, childPrefix: langswEntry.childPrefix }
     : undefined;
+  const cutEntries = EXCLUSIONS.filter((e) => e.mode === 'cut-region');
+  const cutUsage = new Map();
 
   let identicalCount = 0;
   let langswExplainedCount = 0;
+  let cutRegionExplainedCount = 0;
   const unexplained = [];
 
   for (const [enPath, dePath] of pairs) {
-    const result = comparePair(enPath, dePath, langswParams);
+    const result = comparePair(enPath, dePath, langswParams, cutEntries, cutUsage);
     if (result.status === 'identical') identicalCount++;
     else if (result.status === 'langsw-explained') langswExplainedCount++;
+    else if (result.status === 'cut-region-explained') cutRegionExplainedCount++;
     else unexplained.push(result);
   }
 
   console.log(`    Verglichene Paare: ${pairs.length}`);
   console.log(`    Zeichengleich: ${identicalCount}`);
   console.log(`    Allein durch ${langswEntry ? langswEntry.id : '?'} erklaert: ${langswExplainedCount}`);
+  console.log(`    Allein durch eine cut-region-Ausnahme erklaert: ${cutRegionExplainedCount}`);
   console.log(`    Unerklaerter Rest (Soll 0): ${unexplained.length}`);
 
   if (REPORT_MODE) {
@@ -338,6 +385,23 @@ function main() {
   } else if (unexplained.length) {
     fail(`${unexplained.length} Paar(e) mit unerklaerter Strukturabweichung:`);
     for (const u of unexplained.slice(0, 10)) printDiagnostic(u);
+  }
+
+  /* ---- Zusicherung 5: Zombie-Waechter ----
+     Jede Ausnahme aus EXCLUSIONS muss in DIESEM Durchgang mindestens einmal
+     gegriffen haben. X-langsw-order "greift" bei jedem Paar mit Status
+     'langsw-explained' (langswExplainedCount); jede cut-region-Ausnahme
+     "greift", wenn cutRegion() bei mindestens einem Paar tatsaechlich etwas
+     entfernt hat (cutUsage, siehe applyCutRegionExclusions). Eine Ausnahme
+     ohne jeden Treffer deckt keine echte Abweichung mehr — ihr Anlass ist
+     entfallen und der Eintrag gehoert entfernt, nicht stehen gelassen. */
+  console.log('\n[5] Zombie-Waechter: jede Ausnahme muss mindestens ein Paar erklaert haben');
+  for (const ex of EXCLUSIONS) {
+    const usedCount = ex.mode === 'multiset-children' ? langswExplainedCount : cutUsage.get(ex.id) || 0;
+    console.log(`    ${ex.id}: ${usedCount} erklaerte(s)/geschnittene(s) Paar(e)`);
+    if (usedCount === 0) {
+      fail(`Ausnahme ${ex.id} trifft auf kein Paar mehr zu — Anlass entfallen, Eintrag entfernen`);
+    }
   }
 
   const elapsedMs = Date.now() - t0;
