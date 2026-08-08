@@ -6,14 +6,14 @@ current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
 stopped_at: Completed 02-06-PLAN.md (fuenf Seitenpaare, 22 Themen-Koerper, 5 Konto-Ansichten, PilotPage, ShipsOverview auf die Skala umgestellt)
-last_updated: "2026-08-08T18:46:42.920Z"
+last_updated: "2026-08-08T21:11:00.000Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
   total_phases: 11
   completed_phases: 7
   total_plans: 42
-  completed_plans: 34
+  completed_plans: 35
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -181,6 +181,7 @@ Progress: [████████░░] 76%
 | Phase 03-ueberlagerungen-entstapeln P01 | 40min | 3 tasks | 6 files |
 | Phase 03-ueberlagerungen-entstapeln P02 | 41min | 2 tasks | 2 files |
 | Phase 03-ueberlagerungen-entstapeln P03 | ~30min | 2 tasks | 23 files |
+| Phase 03-ueberlagerungen-entstapeln P04 | ~25min | 2 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -249,6 +250,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 3]: 03-02: alle acht Medien-Archetypen des geteilten Systems tragen jetzt ihr Zeilenraster (::before, z-index:1); .gtile figcaption/.zoomic brauchten z-index:2 (Rule 1, sonst waere Raster ueber der Bildunterschrift gelandet); .sstep undurchsichtig ohne JS (D-02), Betriebsmarke data-sstep-live ausschliesslich von detail.js gesetzt, prefers-reduced-motion fuehrt jetzt auch .sstep/.sstep .sn
 - [Phase ?]: [Phase 3]: 03-03: assets/archive.js revealIO/nodeIO auf threshold:0 (D-05, wie assets/detail.js nach Plan 01) -- archive.css unangetastet, beide genannten Fundstellen bereits korrekt
 - [Phase ?]: [Phase 3]: 03-03: 21 defensive .reveal-Notregeln entfernt (D-03), 21 -> 0 belegt, 8/8 DE/EN-Paare symmetrisch; zwei Rule-1-Bugs durch eigene Aenderung gefunden+behoben (verify-layers.mjs revealIO-Beobachtungswert, PilotPage.astro </style> nach vorbestehendem eingebettetem \r wiederhergestellt)
+- [Phase ?]: [Phase 3]: 03-04: alle 19 Patch-Koerper per migrate-layers.mjs (Volltext-Ersatz statt zeilenweise, Lehre aus 03-03) auf den Stand des geteilten Systems gehoben -- 19 body::after maskiert, 87 Rasterregeln (hero=19,shot=19,tile.img=19,video=17,ship=13), 19 Beobachter geheilt; alle Soll-Zahlen trafen exakt ein (0 Abbrueche), animation:133/transition:160 unveraendert; verify-layers.mjs Zusicherung 1+3 fuer Patch-Kopien von Beobachtungswert auf scharf umgestellt, neuer --patches-Vorablauf; LAYER-01 komplett abgetragen
 
 ### Pending Todos
 
