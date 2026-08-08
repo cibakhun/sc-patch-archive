@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-08",
-  "updates": 115,
-  "totalListings": 3415,
-  "totalSold": 145,
+  "updates": 116,
+  "totalListings": 3422,
+  "totalSold": 147,
   "distinctItems": 916
  },
  "listings": {
@@ -67772,9 +67772,9 @@
      "p": 650005
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-08",
+   "soldOutPrice": 650005,
    "dateAdded": 1786120706,
    "dateExpiration": 1791304705
   },
@@ -72505,9 +72505,9 @@
      "p": 10000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-08",
+   "soldOutPrice": 10000000,
    "dateAdded": 1786182994,
    "dateExpiration": 1791366994
   },
@@ -72636,6 +72636,153 @@
    "soldOutPrice": null,
    "dateAdded": 1786185143,
    "dateExpiration": 1791369143
+  },
+  "160183": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786186006,
+   "dateExpiration": 1791370006
+  },
+  "160185": {
+   "idItem": 5116,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AAA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786186567,
+   "dateExpiration": 1791370567
+  },
+  "160186": {
+   "idItem": 4586,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786186666,
+   "dateExpiration": 1791370666
+  },
+  "160187": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "sabre peregrine wikelo mod",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786187040,
+   "dateExpiration": 1791371040
+  },
+  "160191": {
+   "idItem": 5016,
+   "idCategory": 38,
+   "title": "RCMBNT full set",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786187883,
+   "dateExpiration": 1791371883
+  },
+  "160192": {
+   "idItem": 5051,
+   "idCategory": 17,
+   "title": "Gamma \"Black Op\" (1x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786188159,
+   "dateExpiration": 1791372159
+  },
+  "160195": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Zeus Mk II ES Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786189194,
+   "dateExpiration": 1791373194
   }
  }
 }
