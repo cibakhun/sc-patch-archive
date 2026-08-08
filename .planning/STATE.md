@@ -6,7 +6,7 @@ current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
 stopped_at: Completed 02-06-PLAN.md (fuenf Seitenpaare, 22 Themen-Koerper, 5 Konto-Ansichten, PilotPage, ShipsOverview auf die Skala umgestellt)
-last_updated: "2026-08-08T14:53:09.931Z"
+last_updated: "2026-08-08T15:14:22.195Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
@@ -117,6 +117,22 @@ technisch fertig (5/5 Pläne, 11/11 Werkzeuge maschinell belegt), aber NICHT als
 der Mauszeiger-Schein ist auf `staging` bereits getilgt (0 Treffer für `cursorglow`/`--mx`),
 die Arbeit wäre ein Duplikat gewesen. Phase 1.1 bleibt hier bei 2/3.
 
+**Aus einer fünften, parallelen Sitzung (08.08.2026): Phase 2 „Schrift- und
+Bewegungsskala" ist mit Plan 07 von 7 fertig ausgeführt.** Die Sperrklinke in
+`scripts/verify-typo-motion.mjs` (Zusicherung 2) ist von 183 (Tracer-Stand nach
+Plan 01) auf 235.775 (site-weiter Ist-Stand) angehoben, eine sechste Zusicherung
+zählt den skalenpflichtigen Rest über den GESAMTEN Quellbestand (0 über 96
+Dateien) als Dauerwächter, und `npm run verify:typo` läuft jetzt im
+Dockerfile-Tor nach dem Build — eine gerissene Skala kann kein Auslieferungsimage
+mehr erzeugen. Negativkontrolle durchgeführt und bestanden (siehe
+`02-07-SUMMARY.md`). `TYPO-01`/`TYPO-02` sind in `REQUIREMENTS.md` auf dieser
+Grundlage abgehakt; `TYPO-03` bleibt offen, weil die BREITERE Schluss-Sichtrunde
+über die ~92 site-weit umgestellten Dateien (die engere Kopfleiste+Startseite-Runde
+ist bereits abgenommen) noch aussteht — als offener Punkt `.planning/WINDOWS.md`
+id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Pläne),
+aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
+Umgang wie bei Phase 1.2 oben.
+
 Progress: [████████░░] 81%
 
 ## Performance Metrics
@@ -161,6 +177,7 @@ Progress: [████████░░] 81%
 | Phase 02 P03 | ~90min | 2 tasks | 9 files |
 | Phase 02 P05 | ~45min | 2 tasks | 20 files |
 | Phase 02 P06 | ~50min | 2 tasks | 40 files |
+| Phase 02 P07 | ~40min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -218,6 +235,11 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 2]: 02-05: animation-Sollzahl aus dem Plan (160) war eine Verwechslung mit der transition-Deklarationszahl (ebenfalls 160) -- tatsaechliche, vor/nach dem Lauf identische Zahl ist 133; REQUIREMENTS.md korrigiert
 - [Phase ?]: [Phase 2]: 02-06: fuenf handgepflegte DE/EN-Seitenpaare + 404 sowie 22 Themen-Koerper/5 Konto-Ansichten/PilotPage/ShipsOverview umgestellt (530 Ersetzungen, 5 Verweigerungen -- 2 .85em elternrelativ, 3 von Hand nach D-05 eingerastet); alle Paare EN=DE identisch (0 Abweichungen), 29 ship-component-filter-Testfaelle weiterhin gruen
 - [Phase ?]: [Phase 2]: 02-06: die im Plan genannten Ausgangszahlen/Ausreisser waren Prosa-Schaetzungen -- tatsaechlich nur 3 Ausreisser (PilotPage 2.8rem/2rem, mining.astro .sh-icon 2.4rem), nicht 4; PilotPage 2.2rem liegt exakt auf --fs-17 (kein Ausreisser), RefineryDashboard/FriendsManager 1.5rem liegen bei 3.45% (unter der Schwelle)
+- [Phase ?]: [Phase 2]: 02-07: MIN_TOKEN_USAGES (Sperrklinke, verify-typo-motion.mjs Zusicherung 2) von 183 (Plan-01-Tracer-Stand) auf 235775 (site-weiter Ist-Stand nach 02-06) angehoben -- gemessen mit dem Skript selbst, nicht geschaetzt
+- [Phase ?]: [Phase 2]: 02-07: sechste Zusicherung ergaenzt (skalenpflichtiger Rest ueber den GESAMTEN Quellbestand ist 0), ruft ausschliesslich scripts/lib/typo-motion.mjs auf -- kein drittes Muster; Negativkontrolle durchgefuehrt (LangSwitcher.astro testweise auf font-size:0.8rem zurueckgesetzt, Zusicherung 6 schlug fehl, zurueckgesetzt)
+- [Phase ?]: [Phase 2]: 02-07: npm run verify:typo ans Dockerfile-Tor gehaengt (Zeile 34, nach dem Build) -- ab jetzt build-blockierend fuer das Auslieferungsimage, nicht mehr nur von Hand aufrufbar
+- [Phase ?]: [Phase 2]: 02-07: REQUIREMENTS.md Traceability-Tabelle hatte eine HTML-Kommentarzeile MITTEN in der Tabelle (zwischen DOC-07/DATA-01), die jede zeilenweise Tabellensuche ab dort abbrach (gsd-tools requirements mark-complete meldete faelschlich table_unmatched fuer TYPO-01/02 und alle folgenden Zeilen) -- Kommentar unveraendert ans Tabellenende verschoben (Rule 3)
+- [Phase ?]: [Phase 2]: 02-07: TYPO-01/TYPO-02 in REQUIREMENTS.md auf Complete gesetzt (0 Rest site-weit, 96 Dateien); TYPO-03 bleibt Pending -- die breitere Schluss-Sichtrunde (WINDOWS.md id 5) steht noch aus, die engere bereits abgenommene Pruefung (WINDOWS.md id 3) bleibt unangetastet. Phase 2 technisch fertig (7/7 Plaene), NICHT "Complete" markiert, solange die Sichtrunde aussteht
 
 ### Pending Todos
 
@@ -265,6 +287,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-08T14:53:09.896Z
-Stopped at: Completed 02-06-PLAN.md (fuenf Seitenpaare, 22 Themen-Koerper, 5 Konto-Ansichten, PilotPage, ShipsOverview auf die Skala umgestellt)
+Last session: 2026-08-08T15:14:22.195Z
+Stopped at: Completed 02-07-PLAN.md (Sperrklinke angehoben, sechste Zusicherung, Dockerfile-Tor, Schluss-Sichtrunde an den Betreiber uebergeben -- Phase 2 technisch fertig, 7/7 Plaene, NICHT "Complete" solange die Sichtrunde aussteht)
 Resume file: None
