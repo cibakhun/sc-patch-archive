@@ -35,9 +35,18 @@ RUN npm run build
 #                    eine gerissene Skala bricht nichts sichtbar — die Seite
 #                    baut, laedt und funktioniert, sie sieht nur wieder aus wie
 #                    vorher. Derselbe Ausfallmodus wie bei verify:crafting oben.
+#   verify:layers  — WCAG-AA-Kontrast an jeder Stelle, an der eine dekorative
+#                    Schicht (Scrim/Zeilenraster) am Hintergrund von Text
+#                    beteiligt ist (Phase 3, LAYER-01/02); der Vollstaendig-
+#                    keitswaechter (Zusicherung 5) schlaegt zusaetzlich fehl,
+#                    wenn ein neuer Medien-Archetyp ohne Registry-Eintrag im
+#                    gebauten Stand auftaucht. Muss HIER laufen: ein Kontrast-
+#                    Rueckfall bricht nichts Sichtbares — die Seite baut,
+#                    laedt und funktioniert, sie ist nur wieder schlechter
+#                    lesbar. Derselbe Ausfallmodus wie bei verify:typo oben.
 # Schlaegt eins davon fehl, entsteht kein Image und Coolify zieht weiter den
 # letzten guten Stand.
-RUN npm run test:e2e && node scripts/_verify.mjs && npm run verify:vendor && npm run audit:csp && npm run verify:crafting && npm run verify:typo
+RUN npm run test:e2e && node scripts/_verify.mjs && npm run verify:vendor && npm run audit:csp && npm run verify:crafting && npm run verify:typo && npm run verify:layers
 
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html

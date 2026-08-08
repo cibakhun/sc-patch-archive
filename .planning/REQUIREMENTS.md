@@ -61,7 +61,7 @@
 ### Überlagerungen
 
 - [x] **LAYER-01**: Die in `CONCERNS.md` als Class B verzeichneten dekorativen Überlagerungen über Text sind abgetragen (Plan 03-01: Hero-Archetyp bewiesen; Plan 02: die restlichen sieben Archetypen + `.sstep`; Plan 03: `/archiv` + 21 Notregeln; Plan 04: die 19 Patch-Körper — `verify:layers` prüft alle drei Bestände jetzt scharf, nicht mehr beobachtend)
-- [ ] **LAYER-02**: Text über Bildmotiven erreicht in beiden Farbmodi einen belegten Kontrastwert (Plan 03-01: Messverfahren + erster Registry-Eintrag bewiesen; Plan 05 schließt die Aufzählung und zieht die WCAG-AA-Zielmarke scharf)
+- [x] **LAYER-02**: Text über Bildmotiven erreicht in beiden Farbmodi einen belegten Kontrastwert (Plan 03-01: Messverfahren + erster Registry-Eintrag bewiesen; Plan 05: vollständige, maschinell geschlossene Aufzählung — 25 Registry-Einträge, 344 Einzelmessungen, WCAG-AA-Zielmarke scharf, alle Stellen erreichen sie)
 
 ### Sprachparität
 
@@ -333,7 +333,7 @@ ist anbieterneutral und bleibt gültig.
 | TYPO-02 | Phase 2 | Complete |
 | TYPO-03 | Phase 2 | Pending |
 | LAYER-01 | Phase 3 | Complete (Plan 4 of 5: alle 19 Patch-Koerper per ueberpruefbarem Massendurchlauf angehoben -- 19 body::after maskiert, 87 Rasterregeln, 19 Beobachter geheilt; verify:layers prueft geteiltes System, /archiv-Umfeld und Patch-Koerper jetzt scharf) |
-| LAYER-02 | Phase 3 | In Progress (Plan 1 of 5: Messverfahren bewiesen) |
+| LAYER-02 | Phase 3 | Complete (Plan 5 of 5: 25 Registry-Eintraege, 344 Einzelmessungen, 0 unter der WCAG-AA-Marke; Zusicherung 5 schliesst die Aufzaehlung maschinell gegen den gebauten Stand) |
 | SYNC-01 | Phase 4 | Pending |
 | SYNC-02 | Phase 4 | Pending |
 | THEME-02 | Phase 4 | Pending |
@@ -379,8 +379,9 @@ ist anbieterneutral und bleibt gültig.
      ⚠ 02-07: dieser Kommentar stand vorher MITTEN in der Traceability-Tabelle
      (zwischen DOC-07 und DATA-01) und brach dort jede Zeilen-fuer-Zeile-Suche
      eines Werkzeugs, das die Tabelle liest (z. B. `gsd-tools requirements
-     mark-complete`) -- die Suche stoppt an der ersten Zeile, die nicht mit `|`
-     beginnt. Hierher verschoben (Rule 3, blockierender Werkzeugfehler), Inhalt
+     mark-complete`) -- die Suche stoppt an der ersten Zeile, die nicht mit
+     einem Pipe-Zeichen beginnt. Hierher verschoben (Rule 3, blockierender
+     Werkzeugfehler), Inhalt
      unveraendert. -->
 
 **Coverage:**
