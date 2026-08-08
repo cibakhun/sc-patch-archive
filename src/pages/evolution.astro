@@ -188,16 +188,16 @@ a{color:inherit;text-decoration:none}
 <style is:inline>
 .evo{--gut:clamp(1.25rem,4vw,3rem);max-width:var(--maxw);margin:0 auto;padding:8rem var(--gut) 5rem}
 .evo__head{margin-bottom:1.8rem}
-.evo__kicker{display:inline-flex;align-items:center;gap:.7rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:.74rem;color:var(--accent)}
+.evo__kicker{display:inline-flex;align-items:center;gap:.7rem;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-19);text-transform:uppercase;font-size:var(--fs-5);color:var(--accent)}
 .evo__kicker::before{content:"";width:26px;height:1px;background:var(--accent)}
-.evo__head h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2.4rem,6vw,4rem);line-height:.95;margin:.7rem 0 0;letter-spacing:-.02em;background:linear-gradient(180deg,var(--title-hi) 55%,#c4dae6);-webkit-background-clip:text;background-clip:text;color:transparent}
-.evo__sub{max-width:64ch;color:var(--muted);margin-top:.8rem;font-size:1.05rem}
+.evo__head h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2.4rem,6vw,4rem);line-height:.95;margin:.7rem 0 0;letter-spacing:var(--ls-1);background:linear-gradient(180deg,var(--title-hi) 55%,#c4dae6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.evo__sub{max-width:64ch;color:var(--muted);margin-top:.8rem;font-size:var(--fs-11)}
 .evo__metrics{display:flex;flex-wrap:wrap;gap:.5rem 2.6rem;margin:1.6rem 0 0;padding-top:1.4rem;border-top:1px solid var(--line)}
 .evo__metrics div{display:flex;flex-direction:column;line-height:1.1}
-.evo__metrics dt{order:2;font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:.2rem}
+.evo__metrics dt{order:2;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted);margin-top:.2rem}
 .evo__metrics dd{order:1;font-family:var(--font-display);font-weight:800;font-size:clamp(1.4rem,2.5vw,1.9rem);color:var(--text);font-variant-numeric:tabular-nums}
 .evo__legend{display:flex;align-items:center;gap:.7rem 1rem;flex-wrap:wrap;padding:.7rem 1.1rem;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);margin-bottom:1rem;
-  font-family:var(--font-ui);font-weight:600;font-size:0.78rem;letter-spacing:.06em;color:var(--muted)}
+  font-family:var(--font-ui);font-weight:600;font-size:var(--fs-6);letter-spacing:var(--ls-9);color:var(--muted)}
 .evo__legdot{opacity:.45}
 .evo__lg{display:inline-flex;gap:.25rem}
 .evo__lg i{width:1rem;height:1rem;border-radius:3px;border:1px solid color-mix(in srgb,var(--accent) 45%,transparent)}
@@ -220,7 +220,7 @@ a{color:inherit;text-decoration:none}
 .evo__matrix{margin-inline:calc(50% - 50vw);padding-inline:var(--gut)}
 .evo__scrollwrap{position:relative}
 .evo__scrollwrap::after{content:"";position:absolute;z-index:4;top:1px;bottom:1px;right:1px;
-  width:56px;border-radius:0 13px 13px 0;pointer-events:none;opacity:0;transition:opacity .18s ease;
+  width:56px;border-radius:0 13px 13px 0;pointer-events:none;opacity:0;transition:opacity var(--dur-base) var(--ease-ui);
   background:linear-gradient(270deg,var(--bg-2) 16%,color-mix(in srgb,var(--bg-2) 55%,transparent) 62%,transparent)}
 .evo__matrix.is-more .evo__scrollwrap::after{opacity:1}
 
@@ -247,7 +247,7 @@ a{color:inherit;text-decoration:none}
 /* Die Ecke klebt in BEIDE Richtungen und muss ueber beiden Leisten liegen:
    z 5 Ecke > 4 Kopfzeile > 2 System-Spalte. */
 .evo__syshead{position:sticky;left:0;top:0;z-index:5;background:var(--bg-2);text-align:left;
-  font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted);
   padding:.9rem 1rem;min-width:210px;border-right:1px solid var(--line-2)}
 /* Das obere Drittel der Kopfzeile ist das Ären-Band; die Höhe steht fest,
    damit die Beschriftungen aus dem Fluss dürfen (siehe .evo__era). */
@@ -262,32 +262,32 @@ a{color:inherit;text-decoration:none}
    muss deshalb VOR ihren Nachbarn liegen. Unter der Ecke (z 5) bleibt sie,
    sonst schoebe sich die Beschriftung beim Scrollen ueber die System-Spalte. */
 .evo__col.evo__erastart{z-index:4}
-.evo__col a{font-family:var(--font-display);font-weight:700;font-size:0.8rem;letter-spacing:.02em;color:var(--c);white-space:nowrap}
+.evo__col a{font-family:var(--font-display);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-5);color:var(--c);white-space:nowrap}
 .evo__col a:hover{text-decoration:underline}
 /* Ären-Namen sind bis zu 104 px breit und haben ihre Spalte auf 120 px
    aufgebläht — fünfmal, zusammen 164 px, die rechts fehlten. Absolut
    gesetzt beschriften sie die Naht, ohne die Spalte zu bestimmen. */
-.evo__era{position:absolute;top:.62rem;left:.34rem;font-family:var(--font-ui);font-weight:700;font-size:0.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c);opacity:.7;white-space:nowrap;text-align:left}
+.evo__era{position:absolute;top:.62rem;left:.34rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-3);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--c);opacity:.7;white-space:nowrap;text-align:left}
 /* Zwei Staerken: jeder Patch-Zyklus bekommt eine feine Naht, der Ären-Wechsel
    die kraeftige. Reihenfolge zaehlt — beide Klassen sitzen an denselben
    Zellen, die Aera muss gewinnen. */
 .evo__cyclestart{border-left:1px solid var(--line)}
 .evo__erastart{border-left:1px solid var(--line-2)}
 .evo__tot{position:sticky;top:0;z-index:3;background:var(--bg-2);
-  font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.1em;color:var(--muted);padding:.7rem .8rem;border-left:1px solid var(--line-2);vertical-align:bottom}
-.evo__totcell{font-family:var(--font-ui);font-weight:700;font-size:0.8rem;color:var(--muted);text-align:center;padding:.3rem .6rem;border-left:1px solid var(--line-2);font-variant-numeric:tabular-nums}
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-11);color:var(--muted);padding:.7rem .8rem;border-left:1px solid var(--line-2);vertical-align:bottom}
+.evo__totcell{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);color:var(--muted);text-align:center;padding:.3rem .6rem;border-left:1px solid var(--line-2);font-variant-numeric:tabular-nums}
 .evo__sys{position:sticky;left:0;z-index:2;background:var(--bg-2);text-align:left;
-  font-family:var(--font-ui);font-weight:700;font-size:0.98rem;color:var(--text);
-  padding:.5rem 1rem;border-right:1px solid var(--line-2);white-space:nowrap;transition:background-color .12s,color .12s}
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);color:var(--text);
+  padding:.5rem 1rem;border-right:1px solid var(--line-2);white-space:nowrap;transition:background-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
 tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
 .evo__td{text-align:center;padding:.32rem .28rem}
 .evo__cell{font-family:var(--font-ui);font-weight:700;
   width:2.15rem;height:2.15rem;cursor:pointer;color:var(--c);
   border:1px solid color-mix(in srgb,var(--c) 45%,transparent);border-radius:6px;
-  transition:background-color .15s,border-color .15s,transform .12s}
-.evo__cell[data-tier="1"]{background:color-mix(in srgb,var(--c) 13%,transparent);font-size:0.86rem}
-.evo__cell[data-tier="2"]{background:color-mix(in srgb,var(--c) 26%,transparent);font-size:0.95rem}
-.evo__cell[data-tier="3"]{background:color-mix(in srgb,var(--c) 42%,transparent);font-size:1rem}
+  transition:background-color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui)}
+.evo__cell[data-tier="1"]{background:color-mix(in srgb,var(--c) 13%,transparent);font-size:var(--fs-7)}
+.evo__cell[data-tier="2"]{background:color-mix(in srgb,var(--c) 26%,transparent);font-size:var(--fs-9)}
+.evo__cell[data-tier="3"]{background:color-mix(in srgb,var(--c) 42%,transparent);font-size:var(--fs-10)}
 .evo__cell:hover{background:color-mix(in srgb,var(--c) 55%,transparent);border-color:var(--c);transform:translateY(-1px)}
 .evo__cell.sel{background:var(--c);color:var(--ink);border-color:var(--c)}
 .evo__dot{color:var(--muted);opacity:.22}
@@ -304,34 +304,34 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
 .edet{border:1px solid var(--line);border-top:2px solid var(--c);border-radius:12px;background:var(--surface);padding:1.4rem 1.6rem 1.5rem}
 .edet__head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.6rem 1.2rem;
   border-bottom:1px solid var(--line);padding-bottom:.6rem;margin-bottom:1rem}
-.edet__sys{font-family:var(--font-display);font-weight:800;font-size:1.05rem;letter-spacing:.02em;color:var(--text)}
+.edet__sys{font-family:var(--font-display);font-weight:800;font-size:var(--fs-11);letter-spacing:var(--ls-5);color:var(--text)}
 .edet__meta{display:inline-flex;align-items:baseline;gap:1rem}
-.edet__patch{font-family:var(--font-ui);font-weight:700;font-size:0.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);transition:color .15s}
+.edet__patch{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);transition:color var(--dur-fast) var(--ease-ui)}
 .edet__patch:hover{color:var(--c)}
 .edet__x{background:var(--veil);border:1px solid var(--line);border-radius:1px;color:var(--muted);
-  font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.08em;text-transform:uppercase;
-  padding:.14rem .45rem;cursor:pointer;transition:color .15s,border-color .15s}
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-10);text-transform:uppercase;
+  padding:.14rem .45rem;cursor:pointer;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
 .edet__x:hover{color:var(--c);border-color:color-mix(in srgb,var(--c) 55%,transparent)}
 .edet__feat{padding:.85rem 0;border-top:1px solid var(--line)}
 .edet__feat:first-of-type{border-top:0}
-.edet__feat h3{font-family:var(--font-ui);font-weight:700;font-size:1.05rem}
-.edet__feat p{font-size:1rem;color:var(--text);opacity:.85;max-width:88ch}
+.edet__feat h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11)}
+.edet__feat p{font-size:var(--fs-10);color:var(--text);opacity:.85;max-width:88ch}
 .edet__facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.5rem 1.2rem;margin:.6rem 0 0}
 .edet__facts div{border-left:2px solid var(--line);padding-left:.6rem}
-.edet__facts dt{font-family:var(--font-ui);font-weight:700;font-size:0.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
-.edet__facts dd{margin:.05rem 0 0;font-size:0.95rem}
-.edet__link{display:inline-block;margin-top:.55rem;font-family:var(--font-ui);font-weight:700;font-size:0.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+.edet__facts dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
+.edet__facts dd{margin:.05rem 0 0;font-size:var(--fs-9)}
+.edet__link{display:inline-block;margin-top:.55rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--c)}
 .edet__link:hover{text-decoration:underline}
 .edet__unv{color:var(--c);text-decoration:none;cursor:help;margin-left:.15rem}
 
 @media(max-width:1024px){
   .evo__cell{width:1.85rem;height:1.85rem}
-  .evo__cell[data-tier="1"]{font-size:0.8rem}
-  .evo__cell[data-tier="2"]{font-size:0.85rem}
-  .evo__cell[data-tier="3"]{font-size:0.88rem}
+  .evo__cell[data-tier="1"]{font-size:var(--fs-6)}
+  .evo__cell[data-tier="2"]{font-size:var(--fs-7)}
+  .evo__cell[data-tier="3"]{font-size:var(--fs-8)}
   .evo__col{min-width:64px}
-  .evo__col a{font-size:.68rem}
-  .evo__sys{font-size:0.92rem}
+  .evo__col a{font-size:var(--fs-4)}
+  .evo__sys{font-size:var(--fs-8)}
   .evo__syshead{min-width:150px}
 }
 @media(max-width:560px){

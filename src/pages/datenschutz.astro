@@ -17,14 +17,14 @@ import Attribution from '../components/Attribution.astro';
 
 .lg-wrap{max-width:var(--maxw);margin:0 auto;padding:3.2rem 1.25rem 4rem}
 .lg-wrap h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,6vw,3rem);color:var(--text);margin:0 0 1.6rem}
-.lg-wrap h2{font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.95rem;color:var(--accent);margin:2.2rem 0 .6rem;border-bottom:1px solid var(--line);padding-bottom:.4rem}
-.lg-wrap p, .lg-wrap li{color:var(--text);line-height:1.7;font-size:.98rem}
+.lg-wrap h2{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-9);color:var(--accent);margin:2.2rem 0 .6rem;border-bottom:1px solid var(--line);padding-bottom:.4rem}
+.lg-wrap p, .lg-wrap li{color:var(--text);line-height:1.7;font-size:var(--fs-10)}
 .lg-wrap ul{padding-left:1.2rem}
 .lg-wrap .muted{color:var(--muted)}
 .lg-wrap .optout{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem;margin:1.1rem 0;scroll-margin-top:6rem}
 .lg-wrap .optout button{font:inherit;font-weight:700;cursor:pointer;color:var(--ink);background:var(--accent);border:0;border-radius:6px;padding:.5rem .95rem}
 .lg-wrap .optout button:hover{filter:brightness(1.08)}
-.lg-wrap .optout .note{flex:1 1 100%;margin:0;color:var(--muted);font-size:.86rem;line-height:1.55}
+.lg-wrap .optout .note{flex:1 1 100%;margin:0;color:var(--muted);font-size:var(--fs-7);line-height:1.55}
 .lg-wrap .optout code{font-size:.85em;color:var(--accent-2)}
 .lg-fill{display:inline-block;background:color-mix(in srgb,#ff5b5b 14%,transparent);border:1px dashed #ff5b5b;border-radius:4px;padding:0 .45rem;color:#ffb4b4;font-weight:700}
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
