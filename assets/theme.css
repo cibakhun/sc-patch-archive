@@ -38,7 +38,18 @@
    also die dunkle, ohne dass ein einziger dunkler Wert angefasst
    werden muss. Seiteneigene helle Paletten stehen im inline-
    <style> und gewinnen über die Quellreihenfolge gegen diese
-   Datei. Erzeugt von scripts/build-light-palettes.mjs.
+   Datei.
+
+   HANDGEPFLEGT: der :root[data-theme="light"]-Block dieser Datei
+   (weiter unten, Schicht 1+2 HELL) ist von Hand abgeleitet — nach
+   denselben Regeln (LIGHT_RULES in scripts/lib/theme-color.mjs), aber
+   NICHT automatisch erzeugt. Die drei `npm run theme`-Generatoren
+   fassen ausschliesslich Dateien unter `src/**` an (jede *.astro-
+   Datei) — diese Datei liegt ausserhalb ihres Suchbereichs. Wer hier
+   einen Hellwert ändert, muss ihn selbst nachziehen; `npm run theme`
+   tut es nicht. Deshalb erfasst `npm run verify:theme`
+   (scripts/verify-theme-gen.mjs) diesen Block auch nicht — sein
+   Abdeckungs-Kommentar nennt diese Datei ausdrücklich als Lücke.
    ============================================================ */
 
 /* Native Bedienelemente (Scrollbalken, Auswahlfelder, Datumsfelder)
