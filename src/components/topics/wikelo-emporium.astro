@@ -85,14 +85,6 @@ const showImg = TRADES.map((t: { img?: string }) => {
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"]{--bg:#effaf7;--bg-2:#e3f2ed;--surface:#f9fffd;--surface-2:#e9f6f2;--text:#1c201f;--muted:#4a5d57;--accent:#046a5f;--accent-2:#754b02;--hot:#9e0500;--ink:#ffffff;--accent-media:#1FB8A6;--accent-2-media:#E8A33D;--line:rgba(43,129,118,.3);--line-soft:rgba(43,47,46,.12);--glow:0 6px 22px rgba(43,129,118,.18)}
 
-
-
-
-/* Neutralize the reveal gate: content is ALWAYS visible.
-   Reason: the very tall trade-card column (19 cards) never meets the
-   IntersectionObserver's 12% visibility threshold on mobile → it would stay
-   opacity:0 forever. Visibility takes priority over the fade-in animation. */
-.reveal{opacity:1 !important;transform:none !important}
 /* page-local accents */
 .hero h1{font-size:clamp(2.8rem,12vw,9rem)}
 .hero{background:radial-gradient(120% 90% at 78% 12%,rgba(31,184,166,.18),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(232,163,61,.12),transparent 55%),var(--bg)}
