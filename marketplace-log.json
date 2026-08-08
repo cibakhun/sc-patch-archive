@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-08",
-  "updates": 126,
-  "totalListings": 3706,
-  "totalSold": 154,
-  "distinctItems": 950
+  "updates": 127,
+  "totalListings": 3731,
+  "totalSold": 155,
+  "distinctItems": 954
  },
  "listings": {
   "156580": {
@@ -78077,9 +78077,9 @@
      "p": 6500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-08",
+   "soldOutPrice": 6500000,
    "dateAdded": 1786217098,
    "dateExpiration": 1791401097
   },
@@ -78859,6 +78859,531 @@
    "soldOutPrice": null,
    "dateAdded": 1786225378,
    "dateExpiration": 1791409378
+  },
+  "160435": {
+   "idItem": 7640,
+   "idCategory": 3,
+   "title": "Deadhead Helmet Shutdown",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 195000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786225866,
+   "dateExpiration": 1791409866
+  },
+  "160437": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "MAX DMG CQ7 Rifle (1000-1000-953) full attachments",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786226034,
+   "dateExpiration": 1791410033
+  },
+  "160439": {
+   "idItem": 5504,
+   "idCategory": 3,
+   "title": "Deadhead Helmet Bruiser",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 145000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786226084,
+   "dateExpiration": 1791410084
+  },
+  "160441": {
+   "idItem": 4838,
+   "idCategory": 3,
+   "title": "Geist Armor Helmet ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786226187,
+   "dateExpiration": 1791410187
+  },
+  "160443": {
+   "idItem": 2451,
+   "idCategory": 3,
+   "title": "Lost Plague Helmet Biohazard Blue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 145000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786226454,
+   "dateExpiration": 1791410454
+  },
+  "160444": {
+   "idItem": 3247,
+   "idCategory": 3,
+   "title": "Lost Plague Helmet Explosive Orange",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 95000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786226456,
+   "dateExpiration": 1791410455
+  },
+  "160446": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "WTS 0.309SCU of Q916 Gold",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786226597,
+   "dateExpiration": 1791410597
+  },
+  "160447": {
+   "idItem": 5326,
+   "idCategory": 17,
+   "title": "HG-3 Jaeger (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786226934,
+   "dateExpiration": 1791410934
+  },
+  "160448": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "WTS Tungsten 1.384 scu 858q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 858,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 5500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786226944,
+   "dateExpiration": 1791410944
+  },
+  "160450": {
+   "idItem": 5209,
+   "idCategory": 3,
+   "title": "Antium Armor Helmet Jet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 490000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786227343,
+   "dateExpiration": 1791411343
+  },
+  "160451": {
+   "idItem": 7920,
+   "idCategory": 3,
+   "title": "Fortifier Helmet Brimstone",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 85000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786227344,
+   "dateExpiration": 1791411344
+  },
+  "160452": {
+   "idItem": 4874,
+   "idCategory": 3,
+   "title": "Geist Armor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 175000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786227347,
+   "dateExpiration": 1791411347
+  },
+  "160453": {
+   "idItem": 4838,
+   "idCategory": 3,
+   "title": "Geist Armor Helmet ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 195000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786227349,
+   "dateExpiration": 1791411349
+  },
+  "160454": {
+   "idItem": 4879,
+   "idCategory": 3,
+   "title": "Geist Armor Helmet Desert",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 130000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786227350,
+   "dateExpiration": 1791411350
+  },
+  "160455": {
+   "idItem": 4806,
+   "idCategory": 3,
+   "title": "Geist Armor Helmet Rogue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 195000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786227351,
+   "dateExpiration": 1791411351
+  },
+  "160458": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786227602,
+   "dateExpiration": 1791411602
+  },
+  "160459": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786227840,
+   "dateExpiration": 1791411840
+  },
+  "160460": {
+   "idItem": 7992,
+   "idCategory": 7,
+   "title": "WTS Overlord Gilded Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786228046,
+   "dateExpiration": 1791412046
+  },
+  "160461": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Crusader C1 Spirit Wikelo Special ready for pick up",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 5500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786228087,
+   "dateExpiration": 1791412086
+  },
+  "160462": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 866,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786228144,
+   "dateExpiration": 1791412144
+  },
+  "160463": {
+   "idItem": 5948,
+   "idCategory": 36,
+   "title": "Pressurized Ice",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 873,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786228319,
+   "dateExpiration": 1791412319
+  },
+  "160464": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 5500
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786228474,
+   "dateExpiration": 1791412474
+  },
+  "160465": {
+   "idItem": 6793,
+   "idCategory": 3,
+   "title": "ORC-mkX Helmet Justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786228652,
+   "dateExpiration": 1791412652
+  },
+  "160466": {
+   "idItem": 2325,
+   "idCategory": 5,
+   "title": "FBL-8a Core (Modified)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786228824,
+   "dateExpiration": 1791412824
+  },
+  "160467": {
+   "idItem": 6022,
+   "idCategory": 3,
+   "title": "Aril Helmet Scorched",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786228827,
+   "dateExpiration": 1791412827
   }
  }
 }
