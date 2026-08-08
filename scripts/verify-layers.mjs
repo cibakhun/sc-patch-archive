@@ -18,17 +18,23 @@
    Vier Zusicherungen:
      1  Die Schicht ist begrenzt — body::after im geteilten System
         (dist/assets/detail.css) traegt kein Zeilenraster mehr und fuehrt
-        BEIDE Maskenschreibweisen. Die 19 Patch-Kopien (dist/patches/sc-*.html)
-        sind in DIESEM Plan noch nicht angehoben (Plan 04) und werden nur als
-        Beobachtungswert gemeldet, nicht blockierend.
+        BEIDE Maskenschreibweisen. SCHARF seit Plan 04: auch alle 19
+        Patch-Kopien (dist/patches/sc-*.html) muessen maskiert+rasterfrei
+        sein — kein Beobachtungswert mehr. Andere Fundstellen ausserhalb
+        des Datei-Anfassbestands dieser Phase (z. B. das Downloads-
+        Onepager) bleiben Beobachtungswert.
      2  Keine Schicht ueber Text — im geteilten CSS gibt es keine Regel, die
         ein bildschirmfuellendes Pseudo-Element (position:fixed;inset:0) mit
         z-index >= 9000 UND einem Farbverlauf erzeugt, ausser der einen
         maskierten Vignette.
      3  Der Beobachter hat keinen Hoehendeckel — dist/assets/detail.js traegt
-        fuer .reveal keinen Sichtbarkeitsanteil groesser 0. archive.js und die
-        Patch-Koerper werden als Beobachtungswert gemeldet (Plan 03/04 heben
-        sie an).
+        fuer .reveal keinen Sichtbarkeitsanteil groesser 0. SCHARF seit
+        Plan 04: auch alle 19 Patch-Koerper (die je genau einen eigenen
+        .reveal-Beobachter tragen) muessen threshold<=0 sein — kein
+        Beobachtungswert mehr. assets/archive.js bleibt Beobachtungswert
+        (eigenstaendiges Design-System, siehe 03-03-SUMMARY.md — dort
+        bereits threshold:0, aber ausserhalb des REGISTRY-Bestands dieser
+        Tor-Datei).
      4  Der Kontrast ist zusammengerechnet — je Registry-Eintrag x Hell/Dunkel
         wird ein echter Bildpunkt (sharp) durch Scrim + Zeilenraster
         geschickt (compositeOver/flattenStack aus theme-color.mjs) und gegen
@@ -46,14 +52,71 @@
    Eintruemen beider Seiten erhaelt das WCAG-Verhaeltnis NICHT — deshalb
    muessen Vordergrund UND Hintergrund je fuer sich durch den Stapel).
 
+   --patches: schneller, dist-unabhaengiger Vorablauf (Plan 04). Prueft die
+   19 Quelldateien in src/components/patches/ direkt (kein Build noetig) auf
+   genau die zwei Dinge, die dieser Plan an ihnen aendert: body::after
+   maskiert+rasterfrei, .reveal-Beobachter ohne Hoehendeckel. Ersetzt NICHT
+   den vollen Lauf gegen dist/ (Zusicherung 2/4 brauchen den gebauten Stand)
+   — ist die schnelle Rueckmeldung UNMITTELBAR nach migrate-layers.mjs
+   --apply, bevor der teure Produktionsbuild laeuft.
+
      node scripts/verify-layers.mjs
      node scripts/verify-layers.mjs --vorher
+     node scripts/verify-layers.mjs --patches
    ============================================================ */
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import { compositeOver, flattenStack, contrast, parseColor } from './lib/theme-color.mjs';
+
+/* ---------- --patches: dist-unabhaengiger Vorablauf gegen die Quelle ---------- */
+if (process.argv.includes('--patches')) {
+  const PATCH_DIR = 'src/components/patches';
+  const files = readdirSync(PATCH_DIR)
+    .filter((f) => /^sc-4-[\d-]+\.astro$/.test(f))
+    .sort();
+  let patchesOk = true;
+  const patchFail = (msg) => {
+    patchesOk = false;
+    console.error(`  FEHLER: ${msg}`);
+  };
+  console.log(`verify-layers --patches: ${files.length} Quelldatei(en) in ${PATCH_DIR}/\n`);
+  for (const f of files) {
+    const p = join(PATCH_DIR, f).replace(/\\/g, '/');
+    const raw = readFileSync(p, 'utf8');
+    const bodyAfterMatches = raw.match(/body::after\{[^}]*\}/g) || [];
+    if (bodyAfterMatches.length !== 1) {
+      patchFail(`${p}: erwartet genau 1 body::after-Regel, gefunden ${bodyAfterMatches.length}`);
+    } else {
+      const b = bodyAfterMatches[0];
+      const hasScanline = /repeating-linear-gradient/.test(b);
+      const hasWebkitMask = /-webkit-mask-image/.test(b);
+      const hasMask = /[^-]mask-image/.test(b);
+      if (hasScanline) patchFail(`${p}: body::after traegt noch das Zeilenraster`);
+      if (!hasWebkitMask) patchFail(`${p}: body::after ohne -webkit-mask-image`);
+      if (!hasMask) patchFail(`${p}: body::after ohne mask-image`);
+    }
+    // Woertlicher Abgleich statt Regex-Erfassung ueber die ganze Anweisung --
+    // der Callback-Body traegt selbst ein ";" (io.unobserve), eine
+    // klammerzaehlende Regex waere fehleranfaelliger als der bekannte,
+    // exakte Wortlaut (dieselben zwei Formen wie migrate-layers.mjs).
+    const OLD_IO =
+      "new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});";
+    const NEW_IO =
+      "new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -10% 0px',threshold:0});";
+    const hasOld = raw.includes(OLD_IO);
+    const hasNew = raw.includes(NEW_IO);
+    if (!hasOld && !hasNew) {
+      patchFail(`${p}: .reveal-IntersectionObserver nicht im erwarteten Wortlaut gefunden`);
+    } else if (hasOld) {
+      patchFail(`${p}: .reveal-Beobachter traegt noch die alte Form (threshold:.1, Hoehendeckel)`);
+    }
+    console.log(`  ${p}: geprueft`);
+  }
+  console.log(`\nverify-layers --patches: ${patchesOk ? 'ALLE 19 QUELLDATEIEN OK ✓' : 'FEHLGESCHLAGEN ✗'}`);
+  process.exit(patchesOk ? 0 : 1);
+}
 
 if (!existsSync('dist')) {
   console.error(
@@ -158,19 +221,31 @@ console.log('\n[1] body::after im geteilten System (dist/assets/detail.css) trae
     if (!hasMask) fail('dist/assets/detail.css: body::after ohne mask-image');
   }
 
-  // Beobachtungswert (NICHT blockierend in diesem Plan — Plan 04 hebt an):
-  // die 19 Patch-Kopien tragen noch die alte, unmaskierte Regel mit Raster.
-  let patchHits = 0, otherHits = 0;
-  const patchFiles = [], otherFiles = [];
+  // SCHARF seit Plan 04: die 19 Patch-Kopien (dist/patches/sc-*.html)
+  // muessen JETZT ebenfalls maskiert+rasterfrei sein -- kein
+  // Beobachtungswert mehr. "otherFiles" (z. B. das Downloads-Onepager,
+  // ausserhalb des Datei-Anfassbestands dieser Phase) bleibt Beobachtungswert.
+  let patchOkCount = 0;
+  const patchFailFiles = [];
+  const otherFiles = [];
   for (const [path, html] of htmlCache) {
     const m = html.match(/body::after\{[^}]*\}/g) || [];
     if (!m.length) continue;
     const bucket = classifyHtmlPath(path);
-    if (bucket === 'patch') { patchHits += m.length; patchFiles.push(path); }
-    else { otherHits += m.length; otherFiles.push(path); }
+    if (bucket === 'patch') {
+      const bodyAfterOk = m.every((b) => !/repeating-linear-gradient/.test(b) && /-webkit-mask-image/.test(b) && /[^-]mask-image/.test(b));
+      if (bodyAfterOk) patchOkCount++;
+      else patchFailFiles.push(path);
+    } else {
+      otherFiles.push(path);
+    }
   }
-  console.log(`    Beobachtungswert (nicht blockierend): body::after-Kopien in Patch-Seiten — Ist ${patchHits} ueber ${patchFiles.length} Datei(en) (Plan 04 hebt an)`);
-  if (otherHits) {
+  const patchTotal = patchOkCount + patchFailFiles.length;
+  console.log(`    Patch-Kopien maskiert+rasterfrei: Soll ${patchTotal}   Ist ${patchOkCount} (von ${patchTotal} Patch-Seiten mit eigenem body::after)`);
+  if (patchFailFiles.length) {
+    fail(`${patchFailFiles.length} Patch-Kopie(n) tragen noch die alte, unmaskierte body::after-Regel mit Zeilenraster: ${patchFailFiles.slice(0, 5).join(', ')}${patchFailFiles.length > 5 ? ', …' : ''}`);
+  }
+  if (otherFiles.length) {
     console.log(`    Beobachtungswert: body::after ausserhalb des Registry-Bestands dieser Phase in ${otherFiles.length} Datei(en) (${otherFiles.slice(0, 5).join(', ')}${otherFiles.length > 5 ? ', …' : ''}) — ausserhalb des Datei-Anfassbestands, nicht Teil dieses Plans`);
   }
 }
@@ -230,14 +305,26 @@ console.log('\n[3] .reveal-Beobachter in dist/assets/detail.js traegt keinen Sic
   }
   console.log(`    Beobachtungswert: assets/archive.js .reveal-threshold (revealIO) — Ist ${archiveThreshold}`);
 
-  let patchThresholdHits = 0;
-  const patchThresholdFiles = new Set();
+  // SCHARF seit Plan 04: jeder Patch-Beobachter im ausgelieferten Stand darf
+  // keinen Sichtbarkeitsanteil > 0 mehr tragen -- kein Beobachtungswert mehr.
+  // Jede Patch-Seite traegt genau EINEN IntersectionObserver (den .reveal-
+  // Beobachter, siehe 03-04-SUMMARY.md) -- jede threshold-Fundstelle in einer
+  // Patch-Seite gehoert deshalb zu ihm.
+  let patchCheckedFiles = 0;
+  const patchThresholdOverFiles = new Set();
   for (const [path, html] of htmlCache) {
     if (classifyHtmlPath(path) !== 'patch') continue;
+    patchCheckedFiles++;
     const hits = html.match(/threshold:\s*\.?\d[\d.]*/g) || [];
-    if (hits.length) { patchThresholdHits += hits.length; patchThresholdFiles.add(path); }
+    for (const h of hits) {
+      const v = parseFloat(h.split(':')[1]);
+      if (v > 0) { patchThresholdOverFiles.add(path); break; }
+    }
   }
-  console.log(`    Beobachtungswert: Patch-Seiten mit eigenem threshold>0 — Ist ${patchThresholdFiles.size} Datei(en), ${patchThresholdHits} Fundstelle(n) (Plan 04 hebt an)`);
+  console.log(`    Patch-Beobachter ohne Hoehendeckel: Soll ${patchCheckedFiles}   Ist ${patchCheckedFiles - patchThresholdOverFiles.size} (von ${patchCheckedFiles} Patch-Seiten)`);
+  if (patchThresholdOverFiles.size) {
+    fail(`${patchThresholdOverFiles.size} Patch-Seite(n) tragen noch einen .reveal-Beobachter mit threshold > 0: ${[...patchThresholdOverFiles].slice(0, 5).join(', ')}${patchThresholdOverFiles.size > 5 ? ', …' : ''}`);
+  }
 
   const importantHits = (() => {
     let n = 0;

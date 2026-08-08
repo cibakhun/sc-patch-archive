@@ -60,7 +60,7 @@
 
 ### Überlagerungen
 
-- [ ] **LAYER-01**: Die in `CONCERNS.md` als Class B verzeichneten dekorativen Überlagerungen über Text sind abgetragen (Plan 03-01: Hero-Archetyp bewiesen; Plan 02/03/04 tragen die restlichen Archetypen, `/archiv` und die 19 Patch-Körper ab)
+- [x] **LAYER-01**: Die in `CONCERNS.md` als Class B verzeichneten dekorativen Überlagerungen über Text sind abgetragen (Plan 03-01: Hero-Archetyp bewiesen; Plan 02: die restlichen sieben Archetypen + `.sstep`; Plan 03: `/archiv` + 21 Notregeln; Plan 04: die 19 Patch-Körper — `verify:layers` prüft alle drei Bestände jetzt scharf, nicht mehr beobachtend)
 - [ ] **LAYER-02**: Text über Bildmotiven erreicht in beiden Farbmodi einen belegten Kontrastwert (Plan 03-01: Messverfahren + erster Registry-Eintrag bewiesen; Plan 05 schließt die Aufzählung und zieht die WCAG-AA-Zielmarke scharf)
 
 ### Sprachparität
@@ -277,7 +277,7 @@ ist anbieterneutral und bleibt gültig.
 | Refinery-Ökonomie, Loot-Recherche, Spielermarkt-Oberfläche | Als offene Punkte der Prüfung vom 03.08.2026 erkannt, aber nicht Teil dieses Meilensteins |
 | Konto-, Community- und Discord-Funktionen | Bestand bleibt, wird in diesem Meilenstein aber nicht vorangetrieben |
 | CSS-Framework oder Bundler für `assets/` | Handgeschriebenes CSS/JS ist bewusste Entscheidung, nicht Altlast |
-| Redesign einzelner Patch-Seiten | Jede Patch-Seite hat absichtlich ihre eigene Design-Welt. **⚠ Ausnahme, vom Betreiber am 08.08.2026 ausdrücklich freigegeben:** Phase 2 fasst die 19 Patch-Körper an, aber NUR Werte hinter `font-size`, `letter-spacing` und `transition`. Palette, Motiv, Ambiente und Layout bleiben unberührt — das ist kein Redesign. Mechanisch abgesichert in `02-05-PLAN.md`: eine Diff-Zusicherung verlangt, dass jede geänderte Zeile eine dieser drei Eigenschaften trägt, und die Zahl der `animation`-Angaben muss unverändert bleiben (Ausführung 08.08.2026, siehe `02-05-SUMMARY.md`: gemessene Ist-Zahl 133, nicht die im Plan genannte 160 — der Plan hatte sie mit der `transition:`-Deklarationszahl verwechselt, die tatsächlich 160 ist; die Invariante selbst — unverändert vor/nach dem Lauf — ist erfüllt). Grund für die Ausnahme: ein grosser Teil der site-weit 1.968 Schriftgrade liegt in den Patch-Körpern; ohne sie wäre „site-weit" (D-01) eine halbe Sache |
+| Redesign einzelner Patch-Seiten | Jede Patch-Seite hat absichtlich ihre eigene Design-Welt. **⚠ Ausnahme, vom Betreiber am 08.08.2026 ausdrücklich freigegeben:** Phase 2 fasst die 19 Patch-Körper an, aber NUR Werte hinter `font-size`, `letter-spacing` und `transition`. Palette, Motiv, Ambiente und Layout bleiben unberührt — das ist kein Redesign. Mechanisch abgesichert in `02-05-PLAN.md`: eine Diff-Zusicherung verlangt, dass jede geänderte Zeile eine dieser drei Eigenschaften trägt, und die Zahl der `animation`-Angaben muss unverändert bleiben (Ausführung 08.08.2026, siehe `02-05-SUMMARY.md`: gemessene Ist-Zahl 133, nicht die im Plan genannte 160 — der Plan hatte sie mit der `transition:`-Deklarationszahl verwechselt, die tatsächlich 160 ist; die Invariante selbst — unverändert vor/nach dem Lauf — ist erfüllt). Grund für die Ausnahme: ein grosser Teil der site-weit 1.968 Schriftgrade liegt in den Patch-Körpern; ohne sie wäre „site-weit" (D-01) eine halbe Sache. **⚠ Zweite Ausnahme, vom Betreiber im Zuschnitt von Phase 3 ausdrücklich vorweggenommen (03-CONTEXT.md § "Wichtiger Fund der Recherche"):** Plan 03-04 fasst dieselben 19 Patch-Körper ein zweites Mal an, diesmal begrenzt auf die `body::after`-Maske, neue Rasterschichten (`::before` an `.hero`/`.shot`/`.tile.img`/`.video`/`.ship`) und den Beobachter-Sichtbarkeitsanteil — sonst nichts. Mechanisch abgesichert in `scripts/migrate-layers.mjs` (Erlaubnisliste der Eigenschaften in geänderten Zeilen, Soll-/Ist-Zahlen 19/87/19, Abbruch bei Abweichung) und durch fünf Invarianten nach dem Lauf, siehe `03-04-SUMMARY.md`: `animation:` (133) und `transition:` (160) unverändert, Bildmotiv-Menge unverändert, jede geänderte Zeile trägt nur erlaubte Eigenschaften, `sc-4-9-0` (Staub) und `sc-4-2-0` (Regen/Blitz) von Hand im Diff gelesen — beide Ambiente-Blöcke liegen ausserhalb jedes geänderten Hunks |
 | Vollständige Zusammenführung aller 67 Seitenpaare | Zu groß für diesen Meilenstein — als SYNC-04 nach v2 verschoben |
 
 ## Traceability
@@ -332,7 +332,7 @@ ist anbieterneutral und bleibt gültig.
 | TYPO-01 | Phase 2 | Complete |
 | TYPO-02 | Phase 2 | Complete |
 | TYPO-03 | Phase 2 | Pending |
-| LAYER-01 | Phase 3 | In Progress (Plan 3 of 5: /archiv-Beobachter geheilt (D-05) + 21 defensive Notregeln entfernt (D-03) abgetragen; die 19 Patch-Koerper stehen noch aus, Plan 04) |
+| LAYER-01 | Phase 3 | Complete (Plan 4 of 5: alle 19 Patch-Koerper per ueberpruefbarem Massendurchlauf angehoben -- 19 body::after maskiert, 87 Rasterregeln, 19 Beobachter geheilt; verify:layers prueft geteiltes System, /archiv-Umfeld und Patch-Koerper jetzt scharf) |
 | LAYER-02 | Phase 3 | In Progress (Plan 1 of 5: Messverfahren bewiesen) |
 | SYNC-01 | Phase 4 | Pending |
 | SYNC-02 | Phase 4 | Pending |

@@ -47,13 +47,14 @@ a{color:inherit;text-decoration:none}
 .skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:var(--ink);padding:.6rem 1rem;font-family:var(--font-ui);font-weight:700}.skip:focus{left:0}
 
 /* Effekt-Overlays: warme Vignette + feine Scanlines */
-body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 42%,transparent 54%,var(--vignette) 100%),repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
+body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 42%,transparent 54%,var(--vignette) 100%);opacity:var(--ambient-opacity);-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - var(--maxw)/2 - 80px),transparent calc(50% - var(--maxw)/2),transparent calc(50% + var(--maxw)/2),#000 calc(50% + var(--maxw)/2 + 80px),#000 100%);mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - var(--maxw)/2 - 80px),transparent calc(50% - var(--maxw)/2),transparent calc(50% + var(--maxw)/2),#000 calc(50% + var(--maxw)/2 + 80px),#000 100%)}
 
 /* HERO */
 .hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;padding:7rem clamp(1.25rem,5vw,4.5rem) 4rem;overflow:hidden}
 .hero__photo{position:absolute;inset:0;z-index:0;background:url('/assets/trailer-4-9-0.jpg') center/cover;animation:kb 30s ease-in-out infinite alternate}
 @keyframes kb{from{transform:scale(1.06)}to{transform:scale(1.18) translate(-1.5%,-1.5%)}}
 .hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--scrim-2),var(--scrim-4) 55%,var(--bg)),radial-gradient(120% 90% at 80% 20%,transparent,var(--bg) 88%)}
+.hero::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
 #dust{position:absolute;inset:0;z-index:1;opacity:.5}html:not([data-fx="on"]) #dust{display:none}
 .hero__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
 .eyebrow{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-19);text-transform:uppercase;font-size:var(--fs-6);color:var(--accent-2)}
@@ -90,6 +91,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .tile{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:1.2rem}
 .tile .tbg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;transition:transform .9s ease}
 .tile:hover .tbg{transform:scale(1.09)}
+.tile.img::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
 .tile.img::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(0deg,var(--scrim-6),var(--scrim-0) 65%)}
 .tile>*{position:relative;z-index:2}
 .tile .lbl{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-7);font-size:var(--fs-10);text-shadow:0 1px 8px var(--on-media-shadow)}
@@ -108,6 +110,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .shot{position:relative;min-height:90vh;display:flex;align-items:flex-end;padding:clamp(2.5rem,7vw,7rem) clamp(1.25rem,5vw,4.5rem);overflow:hidden}
 .shot .sbg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;animation:kb2 26s ease-in-out infinite alternate}
 @keyframes kb2{from{transform:scale(1.08)}to{transform:scale(1.24) translate(-3%,-2%)}}
+.shot::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
 .shot::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,var(--scrim-0),var(--scrim-3) 60%,var(--bg)),linear-gradient(90deg,var(--scrim-4),transparent 55%)}
 .shot__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
 .shot .kx{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-20);text-transform:uppercase;color:var(--accent-2);font-size:var(--fs-6)}
@@ -168,6 +171,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 /* Video wall */
 .vwall{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:1rem}
 .video{position:relative;aspect-ratio:16/9;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--media-void) center/cover no-repeat;cursor:pointer}
+.video::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
 .video::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,var(--scrim-4),transparent 55%);pointer-events:none}
 .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:3}
 .video .play{position:absolute;inset:0;margin:auto;width:74px;height:74px;z-index:2;border:0;border-radius:50%;background:var(--scrim-4);color:var(--on-media);font-size:var(--fs-14);cursor:pointer;display:grid;place-items:center;transition:transform var(--dur-base) var(--ease-ui),background var(--dur-base) var(--ease-ui);backdrop-filter:blur(2px)}
@@ -391,7 +395,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 
 const tb=document.getElementById('topbar');
 addEventListener('scroll',()=>tb.classList.toggle('scrolled',scrollY>40),{passive:true});
-const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});
+const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -10% 0px',threshold:0});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 document.querySelectorAll('.video[data-yt],.bvid[data-yt]').forEach(v=>{v.addEventListener('click',()=>{const id=v.getAttribute('data-yt');v.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&rel=0" title="Video" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>';},{once:true});});
 /* Lightbox: Karten/Bilder klickbar */
