@@ -264,12 +264,12 @@ FX-07-Präzedenzfall Ambiente und wird nicht angefasst.
   2. Für jede betroffene Stelle liegt ein gemessener Kontrastwert für Hell- und Dunkelmodus vor
   3. Die Bildmotive tragen die Seite optisch weiterhin — die Entstapelung hat sie nicht flachgeschleift
 
-**Plans**: 1/5 plans executed
+**Plans**: 2/5 plans executed
 
 Plans:
 
 - [x] 03-01-PLAN.md (Welle 1) — Leitschuss: die ganze Kette an EINEM Archetyp beweisen — `body::after` räumlich begrenzen (Maske an `var(--maxw)`), das Zeilenraster als `.hero::before` UNTER den Text legen, den `.reveal`-Beobachter von seinem Höhendeckel befreien, dazu die fehlende Rechenstufe (`compositeOver`/`flattenStack`) und das Tor `verify:layers` mit Vorher-/Nachher-Zahl
-- [ ] 03-02-PLAN.md (Welle 2) — Das geteilte System zu Ende: die sieben übrigen Medien-Archetypen bekommen ihr Raster; `.sstep` wird ohne JavaScript und bei reduzierter Bewegung voll lesbar (D-02)
+- [x] 03-02-PLAN.md (Welle 2) — Das geteilte System zu Ende: die sieben übrigen Medien-Archetypen bekommen ihr Raster; `.sstep` wird ohne JavaScript und bei reduzierter Bewegung voll lesbar (D-02)
 - [ ] 03-03-PLAN.md (Welle 2) — `/archiv` heilen (D-05, zweite unabhängige Umsetzung desselben Rechenfehlers) und die 21 defensiven `!important`-Overrides ersatzlos abtragen — belegbar 21 → 0
 - [ ] 03-04-PLAN.md (Welle 3) — Die 19 Patch-Körper per überprüfbarem Massendurchlauf: 19 `body::after`-Kopien, 87 neue Rasterregeln, 19 eigene Beobachter; Design-Welten maschinell belegt unverändert
 - [ ] 03-05-PLAN.md (Welle 4) — Vollständige, maschinell geschlossene Aufzählung der Messstellen, WCAG-AA in beiden Farbmodi erreichen und scharf stellen, `verify:layers` ans Dockerfile-Tor, Sichtrunde an den Betreiber
@@ -498,7 +498,7 @@ Phase 8 hängt ebenfalls an keiner Vorgängerphase und lief am 07.08.2026 durch.
 | 1.1 Ambiente-Effekte stilllegen | 2/3 | In Progress|  |
 | 1.2 Werkzeuge erklären | 5/5 | In Progress|  |
 | 2. Schrift- und Bewegungsskala | 7/7 | In Progress|  |
-| 3. Überlagerungen entstapeln | 1/5 | In Progress|  |
+| 3. Überlagerungen entstapeln | 2/5 | In Progress|  |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
 | 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |
 | 6. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |

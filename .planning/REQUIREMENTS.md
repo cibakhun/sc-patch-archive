@@ -332,7 +332,7 @@ ist anbieterneutral und bleibt gültig.
 | TYPO-01 | Phase 2 | Complete |
 | TYPO-02 | Phase 2 | Complete |
 | TYPO-03 | Phase 2 | Pending |
-| LAYER-01 | Phase 3 | In Progress (Plan 1 of 5: Tracer bewiesen) |
+| LAYER-01 | Phase 3 | In Progress (Plan 2 of 5: alle acht Medien-Archetypen des geteilten Systems + .sstep abgetragen; /archiv und die 19 Patch-Koerper stehen noch aus, Plan 03/04) |
 | LAYER-02 | Phase 3 | In Progress (Plan 1 of 5: Messverfahren bewiesen) |
 | SYNC-01 | Phase 4 | Pending |
 | SYNC-02 | Phase 4 | Pending |
