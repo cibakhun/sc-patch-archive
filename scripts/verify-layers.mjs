@@ -213,13 +213,22 @@ console.log('\n[3] .reveal-Beobachter in dist/assets/detail.js traegt keinen Sic
   }
   if (!ioCall || !thresholdOk) fail('dist/assets/detail.js: .reveal-IntersectionObserver traegt noch einen Sichtbarkeitsanteil > 0');
 
-  // Beobachtungswerte (NICHT blockierend in diesem Plan — Plan 03/04 heben an).
-  // Zielgenau auf den revealIO-Konstruktor in archive.js, NICHT auf die
-  // erste "threshold:"-Fundstelle irgendwo danach — die Datei traegt
-  // mehrere unabhaengige Beobachter (eraIO, Counters, revealIO) mit
-  // unterschiedlichen Schwellen.
-  const archiveMatch = /revealIO\s*=\s*new IntersectionObserver\([^]*?\{\s*threshold:\s*([\d.]+)\s*\}/.exec(archiveJs);
-  console.log(`    Beobachtungswert: assets/archive.js .reveal-threshold (revealIO) — Ist ${archiveMatch ? archiveMatch[1] : 'nicht gefunden'} (Plan 03 hebt an)`);
+  // Beobachtungswerte (NICHT blockierend in diesem Plan — Plan 04 hebt die
+  // Patch-Koerper an). Zielgenau auf das EIGENE Optionen-Objekt des
+  // revealIO-Konstruktors in archive.js (der Callback-Body plus das direkt
+  // folgende {...}), NICHT auf die erste "threshold:"-Fundstelle irgendwo
+  // danach — die Datei traegt mehrere unabhaengige Beobachter (eraIO,
+  // nodeIO, Counters, revealIO) mit unterschiedlichen Schwellen, und
+  // revealIOs eigenes Optionen-Objekt kann threshold an beliebiger Stelle
+  // tragen (seit Plan 03: {rootMargin:'...', threshold:0}, threshold steht
+  // NICHT mehr zwingend als erstes Feld direkt hinter der `{`).
+  const archiveIoMatch = /revealIO\s*=\s*new IntersectionObserver\(\s*function[^]*?\},\s*(\{[^}]*\})\s*\)/.exec(archiveJs);
+  let archiveThreshold = 'nicht gefunden';
+  if (archiveIoMatch) {
+    const tm = /threshold:\s*([\d.]+)/.exec(archiveIoMatch[1]);
+    archiveThreshold = tm ? tm[1] : 'kein threshold-Feld (Standard 0)';
+  }
+  console.log(`    Beobachtungswert: assets/archive.js .reveal-threshold (revealIO) — Ist ${archiveThreshold}`);
 
   let patchThresholdHits = 0;
   const patchThresholdFiles = new Set();
