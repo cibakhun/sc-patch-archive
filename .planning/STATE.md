@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: Phase 2 Plan 04/07 ausgefuehrt (27 Werkzeug-/Bauteil-Koerper + Layout.astro auf die Skala umgestellt, 889 automatische Ersetzungen + 13 von Hand entschiedene Ausreisser, verify:fx/verify:help unveraendert gruen); Plaene 05-07 fuehren sie in den Patch-Koerpern und den restlichen Verzeichnissen fort
-last_updated: "2026-08-08T16:15:00.000Z"
+stopped_at: Completed 02-05-PLAN.md (19 Patch-Koerper auf die Skala umgestellt)
+last_updated: "2026-08-08T14:36:11.234Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
   total_phases: 10
   completed_phases: 6
   total_plans: 37
-  completed_plans: 28
+  completed_plans: 29
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -117,7 +117,7 @@ technisch fertig (5/5 Pläne, 11/11 Werkzeuge maschinell belegt), aber NICHT als
 der Mauszeiger-Schein ist auf `staging` bereits getilgt (0 Treffer für `cursorglow`/`--mx`),
 die Arbeit wäre ein Duplikat gewesen. Phase 1.1 bleibt hier bei 2/3.
 
-Progress: [████████░░] 76%
+Progress: [████████░░] 78%
 
 ## Performance Metrics
 
@@ -159,6 +159,7 @@ Progress: [████████░░] 76%
 | Phase 02 P01 | ~55min | 3 tasks | 5 files |
 | Phase 02 P02 | ~40min | 2 tasks | 2 files |
 | Phase 02 P03 | ~90min | 2 tasks | 9 files |
+| Phase 02 P05 | ~45min | 2 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -212,6 +213,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 2]: 02-04: ItemFinderPage.astro letter-spacing 0.44em (27% Abweichung, zweitgroesster Ausreisser der Phase) auf var(--ls-20) gerastet; das gekoppelte text-indent (laut Quellkommentar exakte Kompensation der Sperrung) im selben Schritt mitgezogen
 - [Phase ?]: [Phase 2]: 02-04: assets/hero-video.js transition:opacity 1.4s ease bewusst NICHT migriert (Ambient-Loop laut eigenem Kommentar, 1400ms weit ueber der 350ms-Bedienuebergang-Schwelle) -- Praezedenz aus 02-03 (archive.css Aeren-Uebergaenge) fortgefuehrt
 - [Phase ?]: [Phase 2]: 02-04: REQUIREMENTS.md TYPO-01/02/03 weiterhin NICHT auf "Complete" gesetzt -- site-weite Abdeckung ist erst nach Plan 07 vollstaendig (Plaene 05-07 stehen noch aus)
+- [Phase ?]: [Phase 2]: 02-05: alle 19 Patch-Koerper (956 Ersetzungen, 0 Verweigerungen) auf die Skala umgestellt -- groesster Einzelblock der Phase; sc-4-2-0 (Regen/Blitz) und sc-4-9-0 (#dust) per Diff-Zeilenbereich geprueft, Ambiente-JS ausserhalb aller Hunks
+- [Phase ?]: [Phase 2]: 02-05: animation-Sollzahl aus dem Plan (160) war eine Verwechslung mit der transition-Deklarationszahl (ebenfalls 160) -- tatsaechliche, vor/nach dem Lauf identische Zahl ist 133; REQUIREMENTS.md korrigiert
 
 ### Pending Todos
 
@@ -259,6 +262,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-08T16:15:00.000Z
-Stopped at: Phase 2 Plan 04/07 ausgefuehrt (27 Werkzeug-/Bauteil-Koerper + Layout.astro auf die Skala umgestellt, 889 automatische Ersetzungen + 13 von Hand entschiedene Ausreisser, verify:fx/verify:help unveraendert gruen); Plaene 05-07 fuehren die Skala in den Patch-Koerpern und den restlichen Verzeichnissen fort
+Last session: 2026-08-08T14:36:11.201Z
+Stopped at: Completed 02-05-PLAN.md (19 Patch-Koerper auf die Skala umgestellt)
 Resume file: None
