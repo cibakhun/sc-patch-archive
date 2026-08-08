@@ -140,8 +140,8 @@ const tools = [
      Ansichten nichts ueber den Rand laeuft; `auto` an den Seiten zentriert. */
   .hero__search{display:flex;align-items:center;gap:1rem;width:100%;max-width:720px;margin:0 auto;
     padding:1.25rem 1.6rem;background:var(--scrim-5);border:1px solid var(--on-media-line);border-radius:11px;
-    color:var(--on-media-dim);font-family:var(--font-ui);font-size:1.15rem;cursor:pointer;text-align:left;
-    backdrop-filter:blur(8px);transition:border-color .2s,box-shadow .2s,background-color .2s}
+    color:var(--on-media-dim);font-family:var(--font-ui);font-size:var(--fs-11);cursor:pointer;text-align:left;
+    backdrop-filter:blur(8px);transition:border-color var(--dur-base) var(--ease-ui),box-shadow var(--dur-base) var(--ease-ui),background-color var(--dur-base) var(--ease-ui)}
   /* Höhenschatten statt Akzent-Halo: ein Glow ohne Versatz ist der
      auffälligste Standard-Effekt generierter Oberflächen. */
   .hero__search:hover,.hero__search:focus-visible{border-color:var(--accent-media);background:var(--scrim-6);
@@ -151,7 +151,7 @@ const tools = [
   .hero__search .k{display:flex;gap:.3rem;flex:none}
   /* Tastenkappen auf undurchsichtigem Grund: der aufhellende Schleier ließ
      "Ctrl"/"K" über hellen Stellen des Hero-Fotos auf 1,3:1 fallen. */
-  .hero__search kbd{font-family:var(--font-ui);font-size:.82rem;font-weight:700;letter-spacing:.06em;color:var(--on-media);
+  .hero__search kbd{font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-9);color:var(--on-media);
     border:1px solid var(--on-media-line);border-bottom-width:2px;border-radius:5px;padding:.18rem .55rem;background:var(--scrim-6)}
   /* Sprungmarke nach unten: das „V" der Wortmarke zeigt selbst nach unten.
      Dreimal ineinandergesetzt wird aus dem Markenbuchstaben eine Abstiegs-
@@ -172,7 +172,7 @@ const tools = [
     width:100%;max-width:var(--maxw);pointer-events:none;
     display:flex;align-items:flex-start;justify-content:space-between;
     padding:.4rem clamp(1.25rem,5vw,3.5rem);color:var(--accent);
-    transition:transform .25s cubic-bezier(.2,.7,.3,1)}
+    transition:transform var(--dur-slow) var(--ease-ui)}
   /* Fuenf Stapel nebeneinander, jeder vier Stufen tief — ungerade Zahl,
      damit einer genau auf der Mitte sitzt. Die Welle läuft nicht
      nur abwärts, sondern auch nach rechts (0,09 s je Spalte) — der Puls
@@ -193,7 +193,7 @@ const tools = [
      Einzelkombinationen; --col erbt vom <svg> auf die Pfade. */
   .hero__cue path{fill:none;stroke:currentColor;stroke-width:4.5;stroke-linejoin:miter;
     opacity:var(--o);--row:0s;animation:vdrop 2.4s ease-out infinite;
-    animation-delay:calc(var(--row) + var(--col));transition:opacity .25s}
+    animation-delay:calc(var(--row) + var(--col));transition:opacity var(--dur-slow) var(--ease-ui)}
   .hero__cue path:nth-child(1){--o:1}
   .hero__cue path:nth-child(2){--o:.74;--row:.13s}
   .hero__cue path:nth-child(3){--o:.52;--row:.26s}
@@ -225,18 +225,18 @@ const tools = [
   main{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 clamp(1.25rem,5vw,3.5rem)}
   .sec{margin:clamp(3.5rem,7vw,6rem) 0 0}
   .sec__head{display:flex;align-items:center;gap:1.1rem;margin-bottom:1.5rem}
-  .sec__head h2{font-family:var(--font-display);font-weight:800;font-size:clamp(1.15rem,2.6vw,1.6rem);letter-spacing:.02em;white-space:nowrap}
+  .sec__head h2{font-family:var(--font-display);font-weight:800;font-size:clamp(1.15rem,2.6vw,1.6rem);letter-spacing:var(--ls-5);white-space:nowrap}
   .sec__head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line-2),transparent)}
 
   /* ========== Tools — bento of image tiles ========== */
   .tools{display:grid;gap:.85rem;grid-template-columns:1fr}
-  .tools__more{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.3rem;font-family:var(--font-ui);font-weight:700;font-size:.9rem;align-items:baseline}
-  .tools__more>span{color:var(--muted);text-transform:uppercase;letter-spacing:.14em;font-size:.74rem}
-  .tools__more a{color:var(--accent);border-bottom:1px solid var(--line-2);padding-bottom:1px;transition:color .2s,border-color .2s}
+  .tools__more{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.3rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-8);align-items:baseline}
+  .tools__more>span{color:var(--muted);text-transform:uppercase;letter-spacing:var(--ls-13);font-size:var(--fs-5)}
+  .tools__more a{color:var(--accent);border-bottom:1px solid var(--line-2);padding-bottom:1px;transition:color var(--dur-base) var(--ease-ui),border-color var(--dur-base) var(--ease-ui)}
   .tools__more a:hover,.tools__more a:focus-visible{color:var(--text);border-color:var(--accent);outline:none}
   .tool{position:relative;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate;
     min-height:210px;padding:1.4rem 1.5rem;border-radius:14px;overflow:hidden;border:1px solid var(--line);
-    background:var(--media-void);color:var(--on-media);transition:border-color .3s,box-shadow .3s,transform .3s cubic-bezier(.2,.7,.3,1)}
+    background:var(--media-void);color:var(--on-media);transition:border-color var(--dur-slow) var(--ease-ui),box-shadow var(--dur-slow) var(--ease-ui),transform var(--dur-slow) var(--ease-ui)}
   .tool::before{content:"";position:absolute;inset:0;z-index:-2;background:var(--img) center/cover no-repeat;
     filter:saturate(.8) brightness(.66);transform:scale(1.03);transition:transform .7s ease,filter .7s ease}
   .tool::after{content:"";position:absolute;inset:0;z-index:-1;
@@ -244,16 +244,16 @@ const tools = [
   .tool:hover,.tool:focus-visible{transform:translateY(-4px);border-color:var(--accent);
     box-shadow:0 22px 50px -24px var(--shadow-color);outline:none}
   .tool:hover::before,.tool:focus-visible::before{transform:scale(1.09);filter:saturate(1.02) brightness(.82)}
-  .tool__name{font-family:var(--font-display);font-weight:800;font-size:1.45rem;line-height:1.04;letter-spacing:.01em;
+  .tool__name{font-family:var(--font-display);font-weight:800;font-size:var(--fs-14);line-height:1.04;letter-spacing:var(--ls-4);
     text-shadow:0 2px 18px var(--on-media-shadow)}
-  .tool__sub{margin-top:.3rem;font-family:var(--font-ui);font-weight:600;letter-spacing:.04em;color:var(--on-media-dim);font-size:.9rem}
+  .tool__sub{margin-top:.3rem;font-family:var(--font-ui);font-weight:600;letter-spacing:var(--ls-7);color:var(--on-media-dim);font-size:var(--fs-8)}
   .tool__arrow{position:absolute;top:1.15rem;right:1.25rem;width:38px;height:38px;display:grid;place-items:center;
-    border:1px solid var(--on-media-line);border-radius:50%;font-size:1.05rem;color:var(--on-media);line-height:1;
-    background:var(--scrim-1);backdrop-filter:blur(4px);opacity:.85;transition:.25s}
+    border:1px solid var(--on-media-line);border-radius:50%;font-size:var(--fs-10);color:var(--on-media);line-height:1;
+    background:var(--scrim-1);backdrop-filter:blur(4px);opacity:.85;transition:var(--dur-slow) var(--ease-ui)}
   .tool:hover .tool__arrow,.tool:focus-visible .tool__arrow{background:var(--accent-media);color:var(--ink-media);
     border-color:var(--accent-media);opacity:1;transform:translate(2px,-2px)}
   .tool--xl .tool__name{font-size:clamp(1.9rem,4vw,2.7rem)}
-  .tool--xl .tool__sub{font-size:1rem}
+  .tool--xl .tool__sub{font-size:var(--fs-10)}
   @media(min-width:600px){
     .tools{grid-template-columns:1fr 1fr}
     .tool--xl{grid-column:1 / -1}
@@ -270,13 +270,13 @@ const tools = [
     border-radius:14px;overflow:hidden;background:var(--surface)}
   .fresh__body{padding:clamp(1.5rem,3vw,2.4rem);display:flex;flex-direction:column;gap:.5rem;min-width:0}
   .fresh__ey{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--font-ui);font-weight:800;
-    letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--accent)}
+    letter-spacing:var(--ls-14);text-transform:uppercase;font-size:var(--fs-4);color:var(--accent)}
   .fresh__dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);flex:none}
   .fresh__ver{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,5vw,3.1rem);line-height:1;margin-top:.2rem}
-  .fresh__name{font-family:var(--font-ui);font-weight:700;font-size:1.2rem;color:var(--text)}
-  .fresh__go{align-self:flex-start;margin-top:.8rem;font-family:var(--font-ui);font-weight:700;letter-spacing:.08em;
-    text-transform:uppercase;font-size:.78rem;color:var(--ink);background:var(--accent);padding:.6rem 1.15rem;border-radius:7px;
-    display:inline-flex;gap:.5rem;align-items:center;transition:filter .18s,transform .18s}
+  .fresh__name{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-12);color:var(--text)}
+  .fresh__go{align-self:flex-start;margin-top:.8rem;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);
+    text-transform:uppercase;font-size:var(--fs-6);color:var(--ink);background:var(--accent);padding:.6rem 1.15rem;border-radius:7px;
+    display:inline-flex;gap:.5rem;align-items:center;transition:filter var(--dur-base) var(--ease-ui),transform var(--dur-base) var(--ease-ui)}
   .fresh__go:hover{filter:brightness(1.08);transform:translateX(2px)}
   .fresh__media{position:relative;background:var(--media-void) center/cover no-repeat;min-height:180px}
   .fresh__media::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--surface),transparent 42%)}

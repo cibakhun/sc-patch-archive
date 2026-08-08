@@ -99,6 +99,15 @@ const EXPECTED = { fontSize: 1961, files: 96, letterSpacing: 863, uiTransitionPa
 
 const AMBIENT_SELECTOR_RE = /\.reveal\b|\.node\.lit\b|\.era[\w-]*/;
 
+/* Die Hero-Ueberschrift (§ "Die Hero-Ueberschrift ist eine benannte
+   Ausnahme") ist eine Entscheidung, keine mechanische Ausnahme wie
+   clamp()/em/dynamisch — deshalb per Selektor erkannt, nicht per Wert.
+   `.hero__mark h1` traegt ihren Schriftgrad (auch als clamp()) UND ihre
+   Laufweite -.02em wortwoertlich weiter; das gilt auch fuer ihr
+   Gegenstueck bei 360px (`@media(max-width:360px){.hero__mark h1{...}}`),
+   dessen Selektor beim Rueckwaertssuchen ebenfalls `.hero__mark h1` ist. */
+const HERO_EXCEPTION_SELECTOR_RE = /\.hero__mark\s+h1\b/;
+
 /* ---------------------------------------------------------- */
 /* Dateisuche */
 
@@ -180,11 +189,12 @@ function nearestLs(em) {
   return { step: best, deviationEm: bestDiff };
 }
 
-function classifyFontSizeValue(rawIn) {
+function classifyFontSizeValue(rawIn, isHeroException) {
   const raw = rawIn.trim();
   if (raw.includes('var(--fs-')) return { cat: 'token', raw };
   if (raw.includes('clamp(')) return { cat: 'clamp', raw };
   if (isDynamic(raw)) return { cat: 'dynamic', raw };
+  if (isHeroException) return { cat: 'hero-exception', raw };
   const cleaned = raw.replace(/!important/i, '').trim();
   const m = cleaned.match(/^(-?[\d.]+)(rem|em|px)$/);
   if (!m) return { cat: 'other', raw };
@@ -196,10 +206,11 @@ function classifyFontSizeValue(rawIn) {
   return { cat: 'skalenpflichtig', raw, unit, num, px, nearest };
 }
 
-function classifyLetterSpacingValue(rawIn) {
+function classifyLetterSpacingValue(rawIn, isHeroException) {
   const raw = rawIn.trim();
   if (raw.includes('var(--ls-')) return { cat: 'token', raw };
   if (isDynamic(raw)) return { cat: 'dynamic', raw };
+  if (isHeroException) return { cat: 'hero-exception', raw };
   const cleaned = raw.replace(/!important/i, '').trim();
   if (cleaned === 'normal') return { cat: 'keyword', raw }; // Browser-Vorgabe, keine Laenge
   if (/^0$/.test(cleaned)) {
@@ -360,7 +371,8 @@ for (const file of targetFiles) {
     while ((m = re.exec(src))) {
       touched = true;
       stats.fontSize.total++;
-      const c = classifyFontSizeValue(m[1]);
+      const isHero = HERO_EXCEPTION_SELECTOR_RE.test(nearestSelector(src, m.index));
+      const c = classifyFontSizeValue(m[1], isHero);
       bump(stats.fontSize.cats, c.cat);
       if (c.cat === 'skalenpflichtig') fileRemaining++;
     }
@@ -373,7 +385,8 @@ for (const file of targetFiles) {
     while ((m = re.exec(src))) {
       touched = true;
       stats.letterSpacing.total++;
-      const c = classifyLetterSpacingValue(m[1]);
+      const isHero = HERO_EXCEPTION_SELECTOR_RE.test(nearestSelector(src, m.index));
+      const c = classifyLetterSpacingValue(m[1], isHero);
       bump(stats.letterSpacing.cats, c.cat);
       if (c.cat === 'skalenpflichtig') fileRemaining++;
     }
