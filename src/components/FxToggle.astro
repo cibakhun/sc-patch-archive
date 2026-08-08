@@ -90,7 +90,7 @@ const tipId = `fxsw-tip-${place}`;
   .fxsw__ic {
     display: block;
     color: var(--muted, #8a99b8);
-    transition: color 0.18s;
+    transition: color var(--dur-base) var(--ease-ui);
   }
 
   /* Die Wippe beantwortet OB. Position des Punktes ist das Hauptsignal, Farbe
@@ -103,7 +103,7 @@ const tipId = `fxsw-tip-${place}`;
     border-radius: 99px;
     background: var(--surface-2, #1b2230);
     border: 1px solid var(--line, var(--line-soft));
-    transition: background 0.18s, border-color 0.18s;
+    transition: background var(--dur-base) var(--ease-ui), border-color var(--dur-base) var(--ease-ui);
   }
   .fxsw__dot {
     position: absolute;
@@ -113,7 +113,7 @@ const tipId = `fxsw-tip-${place}`;
     height: 9px;
     border-radius: 50%;
     background: var(--muted, #8a99b8);
-    transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.3, 1), background 0.18s;
+    transition: transform var(--dur-base) var(--ease-ui), background var(--dur-base) var(--ease-ui);
   }
 
   /* Haengt bewusst nur an [data-fx] — keine Rollen-Klasse (FX-04/D-06). */
@@ -146,10 +146,10 @@ const tipId = `fxsw-tip-${place}`;
     border: 1px solid var(--line, var(--line-soft));background:var(--surface, var(--veil-2));
     color: var(--text, #e8eefc);
     font-family: var(--font-ui, system-ui, sans-serif);
-    font-size: 0.76rem;
+    font-size: var(--fs-5);
     font-weight: 500;
     line-height: 1.45;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--ls-4);
     text-align: left;
     text-transform: none;box-shadow:0 10px 28px var(--shadow-color);
     /* Nicht anfassbar: der Tooltip darf den Zeiger nicht vom Knopf nehmen. */
@@ -157,13 +157,13 @@ const tipId = `fxsw-tip-${place}`;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-4px);
-    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0s linear 0.16s;
+    transition: opacity var(--dur-fast) var(--ease-ui), transform var(--dur-fast) var(--ease-ui), visibility var(--dur-fast) linear 0.16s;
   }
   .fxsw__tiph {
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--ls-10);
     text-transform: uppercase;
-    font-size: 0.68rem;
+    font-size: var(--fs-4);
     color: var(--accent, #2dd4ff);
   }
   /* Der Zustandssatz wechselt mit dem Schalter — ohne JS. */
@@ -181,7 +181,7 @@ const tipId = `fxsw-tip-${place}`;
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
-    transition: opacity 0.16s ease 0.45s, transform 0.16s ease 0.45s, visibility 0s linear 0.45s;
+    transition: opacity var(--dur-fast) var(--ease-ui) 0.45s, transform var(--dur-fast) var(--ease-ui) 0.45s, visibility var(--dur-fast) linear 0.45s;
   }
   /* Mit der Tastatur: sofort. Wer hierher tabbt, hat sich schon entschieden.
      Steht NACH der Hover-Regel, damit sie bei beidem gewinnt. */
@@ -189,7 +189,7 @@ const tipId = `fxsw-tip-${place}`;
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
-    transition: opacity 0.12s ease, transform 0.12s ease, visibility 0s;
+    transition: opacity var(--dur-fast) var(--ease-ui), transform var(--dur-fast) var(--ease-ui), visibility var(--dur-fast);
   }
 
   /* Im Menuefuss nach OBEN aufklappen — unten waere er aus dem Bild. */
@@ -228,6 +228,6 @@ const tipId = `fxsw-tip-${place}`;
     .fxsw:focus-visible + .fxsw__tip {
       transform: none;
       /* Die Verzoegerung bleibt: sie ist kein Effekt, sondern Absicht. */
-      transition: visibility 0s linear 0.45s;
+      transition: visibility var(--dur-fast) linear 0.45s;
     }
   }</style>

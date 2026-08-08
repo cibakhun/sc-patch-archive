@@ -39,7 +39,7 @@ const {
     gap: 1.1rem;
     padding: 1.15rem 1.4rem;border:1px solid var(--line, var(--line-soft));background:color-mix(in srgb, var(--accent, #2dd4ff) 6%, var(--surface, var(--veil)));
     box-shadow: var(--glow, none);
-    transition: transform 0.18s, border-color 0.18s, background-color 0.18s;
+    transition: transform var(--dur-base) var(--ease-ui), border-color var(--dur-base) var(--ease-ui), background-color var(--dur-base) var(--ease-ui);
   }
   .opl:hover {
     transform: translateY(-2px);
@@ -62,27 +62,27 @@ const {
   .opl__kx {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.28em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-19);
     text-transform: uppercase;
     color: var(--accent-2, var(--accent, #2dd4ff));
   }
   .opl__title {
     font-family: var(--font-display, sans-serif);
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: var(--fs-12);
     color: var(--text, #f3e9df);
   }
   .opl__note {
-    font-size: 0.9rem;
+    font-size: var(--fs-8);
     color: var(--muted, #b6a596);
   }
   .opl__arrow {
     margin-left: auto;
     flex: none;
-    font-size: 1.5rem;
+    font-size: var(--fs-14);
     color: var(--accent, #2dd4ff);
-    transition: transform 0.18s;
+    transition: transform var(--dur-base) var(--ease-ui);
   }
   .opl:hover .opl__arrow {
     transform: translate(3px, -3px);

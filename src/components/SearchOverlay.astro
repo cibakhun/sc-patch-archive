@@ -88,14 +88,14 @@ const indexUrl = href('/search-index.json', lang);
   .scs__prompt {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 1.05rem;
+    font-size: var(--fs-11);
     color: var(--accent, #2dd4ff);
   }
   .scs__sys {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-13);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     white-space: nowrap;
@@ -112,8 +112,8 @@ const indexUrl = href('/search-index.json', lang);
     caret-color: var(--accent, #2dd4ff);
     font-family: var(--font-ui, sans-serif);
     font-weight: 600;
-    font-size: 1.05rem;
-    letter-spacing: 0.02em;
+    font-size: var(--fs-11);
+    letter-spacing: var(--ls-5);
   }
   .scs__bar input::placeholder {
     color: var(--muted, #8a99b8);
@@ -124,12 +124,12 @@ const indexUrl = href('/search-index.json', lang);
     color: var(--muted, #8a99b8);
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-10);
     text-transform: uppercase;
     padding: 0.14rem 0.45rem;
     cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
+    transition: color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui);
   }
   .scs__x:hover,
   .scs__x:active {
@@ -185,7 +185,7 @@ const indexUrl = href('/search-index.json', lang);
     border-radius: 3px;background:color-mix(in srgb, var(--surface, var(--veil-2)) 55%, transparent);
     cursor: pointer;
     scroll-margin: 0.5rem;
-    transition: background-color 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
+    transition: background-color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui), transform var(--dur-fast) var(--ease-ui);
   }
   /* hover AND keyboard selection share one unmistakable highlighted state —
      kept as two self-contained rules (not a shared selector list) so the
@@ -213,8 +213,8 @@ const indexUrl = href('/search-index.json', lang);
     align-self: center;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.68rem;
-    letter-spacing: 0.14em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-13);
     text-transform: uppercase;
     color: var(--c);
     border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
@@ -237,7 +237,7 @@ const indexUrl = href('/search-index.json', lang);
     grid-row: 1;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 1.02rem;
+    font-size: var(--fs-10);
     line-height: 1.25;
     color: var(--text, #e8eefc);
     white-space: nowrap;
@@ -247,7 +247,7 @@ const indexUrl = href('/search-index.json', lang);
   .scs__s {
     grid-column: 2;
     grid-row: 2;
-    font-size: 0.85rem;
+    font-size: var(--fs-7);
     line-height: 1.35;
     color: var(--muted, #8a99b8);
     white-space: nowrap;
@@ -262,8 +262,8 @@ const indexUrl = href('/search-index.json', lang);
     gap: 0.5rem;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.74rem;
-    letter-spacing: 0.06em;
+    font-size: var(--fs-5);
+    letter-spacing: var(--ls-9);
     color: var(--muted, #8a99b8);
     white-space: nowrap;
   }
@@ -271,7 +271,7 @@ const indexUrl = href('/search-index.json', lang);
     color: var(--c);
     opacity: 0;
     transform: translateX(-4px);
-    transition: opacity 0.14s ease, transform 0.14s ease;
+    transition: opacity var(--dur-fast) var(--ease-ui), transform var(--dur-fast) var(--ease-ui);
   }
   .scs__hit:hover .scs__go {
     opacity: 1;
@@ -290,14 +290,14 @@ const indexUrl = href('/search-index.json', lang);
   .scs__empty {
     padding: 1.2rem 1.4rem;
     color: var(--muted, #8a99b8);
-    font-size: 0.95rem;
+    font-size: var(--fs-9);
   }
   .scs__empty b {
     display: block;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.8rem;
-    letter-spacing: 0.16em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-14);
     text-transform: uppercase;
     color: var(--text, #e8eefc);
     margin-bottom: 0.3rem;
@@ -313,16 +313,16 @@ const indexUrl = href('/search-index.json', lang);
     padding: 0.55rem 1.1rem;border-top:1px solid var(--line, var(--line-soft));background:var(--veil);
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.16em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-14);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
   }
   .scs__foot kbd {
     font-family: inherit;
     font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-10);
     color: var(--muted, #8a99b8);border:1px solid var(--line, var(--line-soft));background:var(--veil);
     padding: 0.08rem 0.4rem;
     border-radius: 1px;
@@ -333,8 +333,8 @@ const indexUrl = href('/search-index.json', lang);
     }
     .scs__badge {
       min-width: 3.9rem;
-      font-size: 0.64rem;
-      letter-spacing: 0.1em;
+      font-size: var(--fs-3);
+      letter-spacing: var(--ls-11);
     }
     /* drop the right-hand version meta on narrow screens — the badge + title
        carry the identity, and the arrow alone signals the active row */

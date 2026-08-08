@@ -1123,7 +1123,7 @@
   function matName(mid) { return MAT_NAMES[mid] || String(mid).replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
   function matLabelHtml(mid) {
     return esc(matName(mid)) + (matIsRare(mid)
-      ? ' <em style="color:#ff5b5b; font-size:0.75rem; font-style:normal;">' + tr('calcRareLabel', '(selten)') + '</em>'
+      ? ' <em style="color:#ff5b5b; font-size:var(--fs-5); font-style:normal;">' + tr('calcRareLabel', '(selten)') + '</em>'
       : '');
   }
 

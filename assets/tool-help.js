@@ -88,10 +88,10 @@
     '#tool-help__bubble{position:fixed;z-index:9700;margin:0;max-width:min(18rem, calc(100vw - 2rem));' +
     'pointer-events:none;' +
     'padding:.55rem .75rem;border:1px solid var(--line, var(--line-soft));background:var(--surface, #14121c);' +
-    'color:var(--text, #e8eefc);font-family:var(--font-ui, system-ui, sans-serif);font-size:.8rem;' +
+    'color:var(--text, #e8eefc);font-family:var(--font-ui, system-ui, sans-serif);font-size:var(--fs-6);' +
     'line-height:1.45;box-shadow:0 10px 28px rgba(0,0,0,.38);}' +
-    '#tool-help__bubble .tool-help__bubble-eyebrow{display:block;font-size:.68rem;font-weight:700;' +
-    'letter-spacing:.08em;text-transform:uppercase;color:var(--accent, #ff5e1a);margin-bottom:.2rem;}';
+    '#tool-help__bubble .tool-help__bubble-eyebrow{display:block;font-size:var(--fs-4);font-weight:700;' +
+    'letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--accent, #ff5e1a);margin-bottom:.2rem;}';
 
   function activate() {
     document.documentElement.setAttribute('data-help-on', '');

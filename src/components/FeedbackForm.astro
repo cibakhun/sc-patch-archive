@@ -144,7 +144,7 @@ const stars = [1, 2, 3, 4, 5];
   .fbx-demo {
     margin: 0 0 1.4rem; border: 1px solid var(--line-soft); border-left: 3px solid var(--accent-2);
     background: color-mix(in srgb, var(--accent-2) 8%, transparent); padding: 0.85rem 1.05rem;
-    font-size: 0.88rem; color: var(--muted); line-height: 1.55;
+    font-size: var(--fs-8); color: var(--muted); line-height: 1.55;
   }
   .fbx-demo b { color: var(--text); }
 
@@ -153,25 +153,25 @@ const stars = [1, 2, 3, 4, 5];
   .fbx-lhead { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
   .fbx-label {
     display: block; font-family: var(--font-ui, sans-serif); font-weight: 700;
-    font-size: 0.82rem; letter-spacing: 0.1em; text-transform: uppercase;
+    font-size: var(--fs-6); letter-spacing: var(--ls-11); text-transform: uppercase;
     color: var(--text); margin-bottom: 0.55rem;
   }
-  .fbx-label .opt { color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: none; }
+  .fbx-label .opt { color: var(--muted); font-weight: 600; letter-spacing: var(--ls-7); text-transform: none; }
   .fbx-label .reqm { color: var(--accent); }
-  .fbx-hint { font-size: 0.85rem; color: var(--muted); margin: 0.45rem 0 0; line-height: 1.5; }
+  .fbx-hint { font-size: var(--fs-7); color: var(--muted); margin: 0.45rem 0 0; line-height: 1.5; }
 
   .fbx-clear {
     background: none; border: none; cursor: pointer; color: var(--muted);
-    font-family: var(--font-ui, sans-serif); font-size: 0.74rem; font-weight: 700;
-    letter-spacing: 0.08em; text-transform: uppercase; padding: 0; transition: color 0.15s;
+    font-family: var(--font-ui, sans-serif); font-size: var(--fs-5); font-weight: 700;
+    letter-spacing: var(--ls-10); text-transform: uppercase; padding: 0; transition: color var(--dur-fast) var(--ease-ui);
   }
   .fbx-clear:hover { color: var(--accent); }
 
   .fbx-input, .fbx-textarea {
     width: 100%; box-sizing: border-box;background:var(--veil); color: var(--text);
     border: 1px solid var(--line); padding: 0.72rem 0.9rem;
-    font-family: var(--font-ui, sans-serif); font-size: 1rem; line-height: 1.5;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    font-family: var(--font-ui, sans-serif); font-size: var(--fs-10); line-height: 1.5;
+    transition: border-color var(--dur-fast) var(--ease-ui), box-shadow var(--dur-fast) var(--ease-ui);
   }
   .fbx-input::placeholder, .fbx-textarea::placeholder { color: color-mix(in srgb, var(--muted) 82%, transparent); }
   .fbx-textarea { resize: vertical; min-height: 8.5rem; }
@@ -187,27 +187,27 @@ const stars = [1, 2, 3, 4, 5];
   .fbx-star input {
     position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
   }
-  .fbx-star svg { fill: color-mix(in srgb, var(--text) 16%, transparent); transition: fill 0.12s, transform 0.12s; }
+  .fbx-star svg { fill: color-mix(in srgb, var(--text) 16%, transparent); transition: fill var(--dur-fast) var(--ease-ui), transform var(--dur-fast) var(--ease-ui); }
   .fbx-star:hover svg { transform: scale(1.12); }
   .fbx-star.on svg { fill: var(--accent-2); }
   .fbx-star input:focus-visible + svg { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .fbx-rateout { font-size: 0.85rem; color: var(--muted); margin-left: 0.7rem; }
+  .fbx-rateout { font-size: var(--fs-7); color: var(--muted); margin-left: 0.7rem; }
 
   .fbx-hp { position: absolute; left: -9999px; opacity: 0; height: 0; overflow: hidden; }
 
   .fbx-actions { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; margin-top: 1.9rem; }
   .fbx-submit {
     display: inline-flex; align-items: center; gap: 0.55rem;
-    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.9rem;
-    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;color:var(--ink, var(--ink)); background: var(--accent); border: 1px solid var(--accent);
-    padding: 0.82rem 1.6rem; transition: filter 0.15s, opacity 0.15s;
+    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-8);
+    letter-spacing: var(--ls-10); text-transform: uppercase; cursor: pointer;color:var(--ink, var(--ink)); background: var(--accent); border: 1px solid var(--accent);
+    padding: 0.82rem 1.6rem; transition: filter var(--dur-fast) var(--ease-ui), opacity var(--dur-fast) var(--ease-ui);
   }
   .fbx-submit:hover { filter: brightness(1.08); }
   .fbx-submit[disabled] { opacity: 0.6; cursor: progress; }
-  .fbx-privacy { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+  .fbx-privacy { font-size: var(--fs-6); color: var(--muted); line-height: 1.5; }
   .fbx-privacy a { color: var(--accent); border-bottom: 1px solid var(--line); }
 
-  .fbx-status { margin-top: 1.1rem; font-size: 0.92rem; line-height: 1.5; color: #ff8a8a; }
+  .fbx-status { margin-top: 1.1rem; font-size: var(--fs-8); line-height: 1.5; color: #ff8a8a; }
 
   /* ---- Erfolgs-Panel ---- */
   .fbx-done { text-align: center; padding: 1.8rem 0.5rem; }
@@ -220,12 +220,12 @@ const stars = [1, 2, 3, 4, 5];
     font-family: var(--font-display, sans-serif); font-weight: 900; color: var(--text);
     font-size: clamp(1.5rem, 4vw, 2rem); margin: 0 0 0.55rem; outline: none;
   }
-  .fbx-done p { color: var(--muted); font-size: 1rem; line-height: 1.6; margin: 0 auto; max-width: 44ch; }
+  .fbx-done p { color: var(--muted); font-size: var(--fs-10); line-height: 1.6; margin: 0 auto; max-width: 44ch; }
   .fbx-done__again {
     margin-top: 1.4rem; display: inline-flex; font-family: var(--font-ui, sans-serif); font-weight: 700;
-    font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent);
+    font-size: var(--fs-7); letter-spacing: var(--ls-9); text-transform: uppercase; color: var(--accent);
     border: 1px solid var(--line); padding: 0.62rem 1.15rem; cursor: pointer; background: none;
-    transition: border-color 0.15s, background-color 0.15s;
+    transition: border-color var(--dur-fast) var(--ease-ui), background-color var(--dur-fast) var(--ease-ui);
   }
   .fbx-done__again:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */

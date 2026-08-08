@@ -103,8 +103,8 @@ const items = [
     display: block;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.28em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-19);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     margin-bottom: 1rem;
@@ -126,7 +126,7 @@ const items = [
     padding: 1.15rem 0.6rem 1rem;background:color-mix(in srgb, var(--surface, var(--veil-2)) 82%, transparent);
     border: 1px solid var(--line, rgba(110, 168, 255, 0.16));
     border-radius: 6px;
-    transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+    transition: transform var(--dur-base) var(--ease-ui), border-color var(--dur-base) var(--ease-ui), background-color var(--dur-base) var(--ease-ui), box-shadow var(--dur-base) var(--ease-ui);
   }
   .lp__tile:hover {
     transform: translateY(-4px);
@@ -142,7 +142,7 @@ const items = [
     color: var(--accent, #2dd4ff);
     border: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 40%, transparent);
     background: color-mix(in srgb, var(--accent, #2dd4ff) 7%, transparent);
-    transition: border-color 0.18s ease, background-color 0.18s ease;
+    transition: border-color var(--dur-base) var(--ease-ui), background-color var(--dur-base) var(--ease-ui);
   }
   .lp__tile:hover .lp__ic {
     border-color: var(--accent, #2dd4ff);
@@ -165,16 +165,16 @@ const items = [
   .lp__txt b {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.98rem;
-    letter-spacing: 0.06em;
+    font-size: var(--fs-10);
+    letter-spacing: var(--ls-9);
     color: var(--text, #e8eefc);
   }
   .lp__txt i {
     font-style: normal;
     font-family: var(--font-ui, sans-serif);
     font-weight: 600;
-    font-size: 0.72rem;
-    letter-spacing: 0.1em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-11);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
   }

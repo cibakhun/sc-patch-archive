@@ -65,8 +65,8 @@ function targetFor(l: Locale): string {
     gap: 0.35rem;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-11);
     text-transform: uppercase;
     padding: 0.35rem 0.55rem;border:1px solid var(--line, var(--line-soft));
   }
@@ -78,7 +78,7 @@ function targetFor(l: Locale): string {
   }
   .langsw__opt {
     color: var(--muted, #8a99b8);
-    transition: color 0.15s;
+    transition: color var(--dur-fast) var(--ease-ui);
   }
   .langsw__opt:hover,
   .langsw__opt:active {

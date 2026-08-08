@@ -236,7 +236,12 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
     /* Lesbarkeits-Grundlage: 18px-Wurzel statt Browser-Default 16px. Die
        gesamte Typo-Skala der Seite ist rem-basiert und wächst proportional —
        Fließtext 18px, Datentabellen ~17px, Micro-Caps-Labels ≥14px effektiv.
-       Kleine Condensed-Caps rendern damit auch deutlich weicher (ClearType). */
+       Kleine Condensed-Caps rendern damit auch deutlich weicher (ClearType).
+       ⚠ NICHT auf ein var(--fs-*)-Token legen (02-04-PLAN.md § Sonderfall 1):
+       dieser Wert IST die Wurzel, aus der 1rem = 18px ueberhaupt erst folgt.
+       Die ganze Schrift-/Bewegungsskala (assets/theme.css § 4) rechnet in
+       rem relativ zu genau diesem Wert — ein Token, das selbst in rem
+       rechnet, waere hier ein Zirkelbezug. */
     html { font-size: 112.5%; }
     /* Parallax-/Deko-Bleeds (data-par, Ken-Burns) dürfen das Dokument nie
        seitlich aufweiten — clip statt hidden: erzeugt keinen Scroll-Container. */
@@ -279,7 +284,7 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
       auf einer Vorschau sehen will. */}
   {IS_STAGING && (
     <div
-      style="position:fixed;top:0;left:0;z-index:2147483647;background:#b4342a;color:#fff;font:700 11px/1 system-ui,sans-serif;letter-spacing:.08em;padding:5px 9px;border-bottom-right-radius:4px;pointer-events:none"
+      style="position:fixed;top:0;left:0;z-index:2147483647;background:#b4342a;color:#fff;font:700 11px/1 system-ui,sans-serif;letter-spacing:var(--ls-10);padding:5px 9px;border-bottom-right-radius:4px;pointer-events:none"
     >VORSCHAU — NICHT LIVE</div>
   )}
   <slot />

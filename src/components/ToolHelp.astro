@@ -74,7 +74,7 @@ const stepKeys: HelpKey[] = Array.from({ length: steps }, (_, i) => `${tool}.ste
     cursor: pointer;
     list-style: none;
     padding: 0.75rem 1rem;
-    font-size: 0.92rem;
+    font-size: var(--fs-8);
     font-weight: 700;
     color: var(--text, #eef1f5);
     display: flex;
@@ -89,7 +89,7 @@ const stepKeys: HelpKey[] = Array.from({ length: steps }, (_, i) => `${tool}.ste
   .tool-help__summary::before {
     content: '▸';
     color: var(--accent, #ff5e1a);
-    transition: transform 0.15s ease;
+    transition: transform var(--dur-fast) var(--ease-ui);
     flex-shrink: 0;
   }
 
@@ -110,7 +110,7 @@ const stepKeys: HelpKey[] = Array.from({ length: steps }, (_, i) => `${tool}.ste
   .tool-help__purpose {
     margin: 0.85rem 0 0.6rem;
     color: var(--muted, #9ba2ae);
-    font-size: 0.88rem;
+    font-size: var(--fs-8);
     line-height: 1.55;
   }
 
@@ -118,7 +118,7 @@ const stepKeys: HelpKey[] = Array.from({ length: steps }, (_, i) => `${tool}.ste
     margin: 0 0 0.9rem;
     padding-left: 1.2rem;
     color: var(--muted, #9ba2ae);
-    font-size: 0.86rem;
+    font-size: var(--fs-7);
     line-height: 1.6;
   }
 
@@ -129,10 +129,10 @@ const stepKeys: HelpKey[] = Array.from({ length: steps }, (_, i) => `${tool}.ste
     padding: 0.5rem 0.9rem;
     border-radius: 6px;
     font-family: inherit;
-    font-size: 0.85rem;
+    font-size: var(--fs-7);
     font-weight: 600;
     cursor: pointer;
-    transition: border-color 0.18s, color 0.18s;
+    transition: border-color var(--dur-base) var(--ease-ui), color var(--dur-base) var(--ease-ui);
   }
 
   .tool-help__elbtn:hover {

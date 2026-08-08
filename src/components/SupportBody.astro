@@ -241,7 +241,7 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
    abgeschnitten. Im Browser bei 360 px gemessen. */
 .sup,.sup *{box-sizing:border-box}
 .sup{max-width:var(--maxw);margin:0 auto}
-.sup .cap{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.sup .cap{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:var(--fs-3);letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--muted)}
 .sup .num{font-variant-numeric:tabular-nums;font-family:var(--font-mono,'Share Tech Mono',monospace)}
 
 /* --- Auftragskopf --------------------------------------------------------- */
@@ -267,7 +267,7 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
    "Instandsetzung" war zur Haelfte verdeckt. Die Hero-Seiten der Site loesen
    dasselbe mit padding-top: 6.2rem bzw. 4.4rem unter 700 px. */
 .sup__headtop{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:clamp(4.6rem,7vw,6rem) clamp(16px,4vw,40px) 12px;flex-wrap:wrap}
-.sup__ttl{font-family:var(--font-display,sans-serif);font-weight:700;font-size:clamp(1.5rem,4.6vw,2.3rem);line-height:1.05;letter-spacing:.01em;color:var(--text);margin:0}
+.sup__ttl{font-family:var(--font-display,sans-serif);font-weight:700;font-size:clamp(1.5rem,4.6vw,2.3rem);line-height:1.05;letter-spacing:var(--ls-4);color:var(--text);margin:0}
 .sup__ttl em{font-style:normal;color:var(--accent)}
 /* minmax(0,1fr) statt 1fr: `1fr` ist `minmax(auto,1fr)`, die Zelle kann also
    nicht unter ihre Inhaltsbreite schrumpfen. Bei 360 px blieben die Zellen
@@ -291,8 +291,8 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
 .sup__fields>div{padding:12px clamp(16px,4vw,40px) 14px;border-right:1px solid var(--line-soft)}
 .sup__fields>div:last-child{border-right:0}
 .sup__fields>div:not(:first-child){padding-left:18px}
-.sup__fields dt{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
-.sup__fields dd{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.86rem;letter-spacing:.05em;color:var(--text);margin:4px 0 0;font-variant-numeric:tabular-nums}
+.sup__fields dt{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:var(--fs-2);letter-spacing:var(--ls-16);text-transform:uppercase;color:var(--muted)}
+.sup__fields dd{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:var(--fs-7);letter-spacing:var(--ls-8);color:var(--text);margin:4px 0 0;font-variant-numeric:tabular-nums}
 .sup__fields dd.hi{color:var(--accent)}
 
 /* --- Koerper: Zeichnung als Grund, Auftrag oben rechts -------------------- */
@@ -438,7 +438,7 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
 .sup__sch .hot{fill:none;stroke:var(--accent);stroke-width:1.7;stroke-dasharray:7 4;vector-effect:non-scaling-stroke}
 .sup__sch .ld{fill:none;stroke:var(--accent);stroke-width:1;vector-effect:non-scaling-stroke}
 .sup__sch .dot{fill:var(--line);stroke:none}
-.sup__sch text{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:10.5px;letter-spacing:.1em;fill:var(--muted)}
+.sup__sch text{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:var(--fs-2);letter-spacing:var(--ls-11);fill:var(--muted)}
 .sup__sch text.hi{fill:var(--accent)}
 .sup__sch g{stroke-linecap:butt;stroke-linejoin:miter}
 
@@ -456,14 +456,14 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
 .sup__pos{border-top:1px solid var(--line-soft);padding:clamp(26px,4.5vw,52px) 0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:0 18px}
 .sup__pos:first-of-type{border-top:0;padding-top:0}
 .sup__pos:last-of-type{padding-bottom:0}
-.sup__pos-n{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.74rem;letter-spacing:.12em;color:var(--muted);padding-top:4px;text-transform:uppercase;white-space:nowrap}
-.sup__pos h2{font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text);margin:0 0 8px}
+.sup__pos-n{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:var(--fs-5);letter-spacing:var(--ls-12);color:var(--muted);padding-top:4px;text-transform:uppercase;white-space:nowrap}
+.sup__pos h2{font-family:var(--font-ui,sans-serif);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--text);margin:0 0 8px}
 /* Der Fliesstext stand in var(--muted) — also in der Farbe, die auf dieser
    Seite sonst BESCHRIFTUNGEN traegt (Feldnamen, Skala, Positionsnummern).
    Gemessen: 7,44:1 gegen 12,8:1 fuer var(--text). Das besteht die Norm, aber es
    ist die gedaempfte Stufe, und der laengste Lesetext der Seite stand darin.
    Die Gliederung kommt weiterhin aus Fettung und Akzent, nicht aus Absenkung. */
-.sup__pos p{color:var(--text);font-size:.98rem;line-height:1.7;max-width:58ch;margin:0}
+.sup__pos p{color:var(--text);font-size:var(--fs-10);line-height:1.7;max-width:58ch;margin:0}
 .sup__pos p+p{margin-top:10px}
 /* 700 statt 600, seit der Fliesstext dieselbe Farbe hat: die Hervorhebung trug
    sich vorher zur Haelfte ueber die Helligkeit. Bleibt nur die Fettung, muss
@@ -473,7 +473,7 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
 /* --- Kostenrahmen mit Teilung --------------------------------------------- */
 .sup__gauge{margin:24px 0 8px}
 .sup__ghead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
-.sup__gread{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:1.02rem;letter-spacing:.06em;color:var(--accent);font-variant-numeric:tabular-nums}
+.sup__gread{font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:var(--fs-10);letter-spacing:var(--ls-9);color:var(--accent);font-variant-numeric:tabular-nums}
 /* Die Anzeige ist ein KOSTENRAHMEN mit Marke, kein Fortschrittsbalken. Der
    Unterschied ist nicht kosmetisch: bei den vorgewaehlten 5 von 120 EUR sind
    4 % gefuellt — als Fortschritt gelesen sieht das aus wie "fast nichts
@@ -489,7 +489,7 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
 /* Teilungsbeschriftung ueber flex + space-between statt Null-Spalte mit
    transform: ein verschobenes Element verkleinert seinen Scroll-Kasten NICHT
    und riss die Skizze bei 360 px um 23 px auf. */
-.sup__gscale{display:flex;justify-content:space-between;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.62rem;letter-spacing:.1em;color:var(--muted);margin-top:5px}
+.sup__gscale{display:flex;justify-content:space-between;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:var(--fs-2);letter-spacing:var(--ls-11);color:var(--muted);margin-top:5px}
 .sup__gscale span{white-space:nowrap}
 
 /* Admin-Feld: nur sichtbar, wenn <html> die is-admin-Klasse traegt. Das ist
@@ -497,30 +497,30 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
    wer das Feld per Konsole einblendet, bekommt vom Server ein Nein. */
 .sup__admin{margin:16px 0 0;padding:14px 16px;border:1px dashed var(--line);background:var(--surface-2)}
 .sup__admin[hidden]{display:none}
-.sup__adminlbl{display:block;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.sup__adminlbl{display:block;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:var(--fs-3);letter-spacing:var(--ls-16);text-transform:uppercase;color:var(--muted);margin:0 0 8px}
 .sup__adminrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.sup__adminrow input{width:7rem;min-height:44px;padding:.5rem .7rem;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:1rem;color:var(--text);background:var(--bg-2);border:1px solid var(--line-soft);font-variant-numeric:tabular-nums}
+.sup__adminrow input{width:7rem;min-height:44px;padding:.5rem .7rem;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:var(--fs-10);color:var(--text);background:var(--bg-2);border:1px solid var(--line-soft);font-variant-numeric:tabular-nums}
 .sup__adminrow input:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;border-color:var(--accent)}
 .sup__adminrow .cur{font-family:var(--font-ui,sans-serif);font-weight:700;color:var(--muted)}
-.sup__adminrow button{min-height:44px;padding:.5rem 1.1rem;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);background:var(--accent);border:1px solid var(--accent);cursor:pointer;transition:filter .15s}
+.sup__adminrow button{min-height:44px;padding:.5rem 1.1rem;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--ink);background:var(--accent);border:1px solid var(--accent);cursor:pointer;transition:filter var(--dur-fast) var(--ease-ui)}
 .sup__adminrow button:hover{filter:brightness(1.08)}
 .sup__adminrow button:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px}
 .sup__adminrow button[disabled]{opacity:.5;cursor:default}
-.sup__adminmsg{margin:10px 0 0;font-size:.84rem;line-height:1.5;color:var(--accent)}
+.sup__adminmsg{margin:10px 0 0;font-size:var(--fs-7);line-height:1.5;color:var(--accent)}
 .sup__adminmsg[hidden]{display:none}
 .sup__adminmsg.is-bad{color:var(--accent-2)}
-.sup__adminhint{margin:8px 0 0;font-size:.74rem;color:var(--muted);line-height:1.5;opacity:.8}
+.sup__adminhint{margin:8px 0 0;font-size:var(--fs-5);color:var(--muted);line-height:1.5;opacity:.8}
 /* Die Aufteilung gezaehlt/eingetragen. Nur hier — nach aussen steht EINE Zahl. */
-.sup__adminsplit{margin:10px 0 0;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.74rem;letter-spacing:.06em;color:var(--muted);font-variant-numeric:tabular-nums}
+.sup__adminsplit{margin:10px 0 0;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:var(--fs-5);letter-spacing:var(--ls-9);color:var(--muted);font-variant-numeric:tabular-nums}
 .sup__adminsplit[hidden]{display:none}
 
 /* --- Waehler -------------------------------------------------------------- */
 .sup__card{border:1px solid var(--line);background:linear-gradient(180deg,var(--surface),var(--bg-2));padding:24px;margin-top:8px;display:grid;gap:16px;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px))}
-.sup__lbl{display:block;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:8px}
+.sup__lbl{display:block;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--text);margin-bottom:8px}
 .sup__row{display:flex;flex-wrap:wrap;gap:8px}
 .sup__pill{position:relative;cursor:pointer}
 .sup__pill input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.sup__pill span{display:block;min-width:4.4rem;min-height:44px;text-align:center;border:1px solid var(--line);background:var(--veil,var(--veil-hi));padding:11px 16px;transition:border-color .15s,background-color .15s,color .15s;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.95rem;color:var(--text)}
+.sup__pill span{display:block;min-width:4.4rem;min-height:44px;text-align:center;border:1px solid var(--line);background:var(--veil,var(--veil-hi));padding:11px 16px;transition:border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui);font-family:var(--font-ui,sans-serif);font-weight:700;font-size:var(--fs-9);color:var(--text)}
 .sup__pill:hover span{border-color:var(--accent)}
 .sup__pill input:checked+span{background:color-mix(in srgb,var(--accent) 14%,transparent);border-color:var(--accent);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .sup__pill input:focus-visible+span{outline:2px solid var(--accent-2);outline-offset:3px}
@@ -532,7 +532,7 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
    nachdem es gemeldet wurde. Der neue Fokus-Umriss weiter unten hat es dann
    verdoppelt und damit endgueltig kaputt aussehen lassen. */
 .sup__freewrap > span{display:flex;align-items:center;gap:6px;min-width:0;min-height:44px;border:1px solid var(--line);background:var(--veil,var(--veil-hi));padding:0 14px}
-.sup__freewrap input{width:4.6rem;background:none;border:0;outline:none;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:.95rem;padding:11px 0;color:var(--text);font-variant-numeric:tabular-nums}
+.sup__freewrap input{width:4.6rem;background:none;border:0;outline:none;font-family:var(--font-mono,'Share Tech Mono',monospace);font-size:var(--fs-9);padding:11px 0;color:var(--text);font-variant-numeric:tabular-nums}
 .sup__freewrap .cur{font-family:var(--font-ui,sans-serif);font-weight:700;color:var(--muted)}
 /* Der Platzhalter „Anderer" stand auf der VORGABE DES BROWSERS: rgb(117,117,117),
    ein neutrales Grau in einer durchweg warmen Palette, gemessene 4,29:1 — der
@@ -551,7 +551,7 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
 /* Der Fokusring von detail.css setzt --accent-2; hier ausdruecklich gesetzt,
    damit er nicht von der Seitenpalette abweicht. */
 .sup__freewrap input:focus-visible{outline:none}
-.sup__cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:.92rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:var(--accent);border:1px solid var(--accent);padding:15px 28px;text-decoration:none;transition:filter .15s,opacity .15s;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.sup__cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;font-family:var(--font-ui,sans-serif);font-weight:700;font-size:var(--fs-8);letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--ink);background:var(--accent);border:1px solid var(--accent);padding:15px 28px;text-decoration:none;transition:filter var(--dur-fast) var(--ease-ui),opacity var(--dur-fast) var(--ease-ui);clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
 .sup__cta:hover{filter:brightness(1.08)}
 .sup__cta:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px}
 .sup__cta[aria-disabled='true']{opacity:.5;pointer-events:none}
@@ -565,27 +565,27 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
 .sup__cta[data-busy]{opacity:.6;pointer-events:none}
 /* Nebenweg. Bewusst leise — eine Zeile, keine zweite Schaltflaeche: zwei
    gleich laute Knoepfe machen aus einer Entscheidung zwei. */
-.sup__alt{margin:-4px 0 0;font-size:.84rem;line-height:1.5;color:var(--muted)}
+.sup__alt{margin:-4px 0 0;font-size:var(--fs-7);line-height:1.5;color:var(--muted)}
 .sup__alt a{text-underline-offset:3px}
-.sup__payhint{margin:-6px 0 0;font-size:.78rem;line-height:1.55;color:var(--muted);opacity:.85}
+.sup__payhint{margin:-6px 0 0;font-size:var(--fs-6);line-height:1.55;color:var(--muted);opacity:.85}
 /* Rueckkehr von Stripe (?danke=1). Startet verborgen; das Skript unten blendet
    es ein. Kein Betrag darin — der stuende sonst in der Adresszeile und damit
    im Verlauf, im Verweis-Kopf und in jedem Log (D-16). */
-.sup__thanks{margin:0;padding:14px 16px;border-left:2px solid var(--accent);background:var(--surface-2);font-size:.9rem;line-height:1.6;color:var(--text)}
+.sup__thanks{margin:0;padding:14px 16px;border-left:2px solid var(--accent);background:var(--surface-2);font-size:var(--fs-8);line-height:1.6;color:var(--text)}
 .sup__thanks[hidden]{display:none}
 .sup__thanks b{color:var(--accent)}
-.sup__err{color:var(--accent-2);font-size:.88rem;line-height:1.5;margin:4px 0 0}
+.sup__err{color:var(--accent-2);font-size:var(--fs-8);line-height:1.5;margin:4px 0 0}
 .sup__err[hidden]{display:none}
-.sup__honest{font-size:.82rem;line-height:1.6;color:var(--muted);border-left:2px solid var(--line);padding-left:14px;margin:0}
+.sup__honest{font-size:var(--fs-6);line-height:1.6;color:var(--muted);border-left:2px solid var(--line);padding-left:14px;margin:0}
 .sup__honest b{color:var(--text);font-weight:600}
 
 /* --- Fuss: was genauso hilft ---------------------------------------------- */
 .sup__help{margin:44px clamp(16px,4vw,40px) 0;border-top:1px solid var(--line);padding:24px 0 56px}
-.sup__help h2{font-family:var(--font-ui,sans-serif);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.82rem;color:var(--accent);margin:0 0 14px}
+.sup__help h2{font-family:var(--font-ui,sans-serif);font-weight:700;letter-spacing:var(--ls-14);text-transform:uppercase;font-size:var(--fs-6);color:var(--accent);margin:0 0 14px}
 .sup__help ul{list-style:none;padding:0;margin:0;display:grid;gap:12px}
-.sup__help li{color:var(--muted);font-size:.96rem;line-height:1.6;padding-left:16px;border-left:1px solid var(--line-soft)}
+.sup__help li{color:var(--muted);font-size:var(--fs-9);line-height:1.6;padding-left:16px;border-left:1px solid var(--line-soft)}
 .sup__help li b{color:var(--text);font-weight:600}
-.sup__help p{margin:18px 0 0;font-size:.92rem}
+.sup__help p{margin:18px 0 0;font-size:var(--fs-8)}
 .sup__help a{color:var(--accent)}
 
 /* Bewegung ist Verstaerkung: assets/detail.css gattert bei reduzierter Bewegung

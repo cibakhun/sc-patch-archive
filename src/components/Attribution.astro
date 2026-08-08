@@ -51,8 +51,8 @@ const creditText = credit ?? t('footer.credit');
     margin-bottom: 1.1rem;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.12em;
+    font-size: var(--fs-7);
+    letter-spacing: var(--ls-12);
     text-transform: uppercase;
   }
   .site-attr .attr-nav a {
@@ -92,8 +92,8 @@ const creditText = credit ?? t('footer.credit');
      Marken vorbehalten, nicht ganzen Zeilen. */
   .site-attr .credit {
     font-family: var(--font-ui, sans-serif);
-    letter-spacing: 0.02em;
-    font-size: 0.85rem;
+    letter-spacing: var(--ls-5);
+    font-size: var(--fs-7);
     color: var(--muted, #8a99b8);
     margin-bottom: 1rem;
   }
@@ -102,20 +102,20 @@ const creditText = credit ?? t('footer.credit');
      Zeilen auf 2,8:1 bzw. 2,6:1 — unter WCAG AA. Wer sie schwächer will,
      ändert --muted, nicht die Deckkraft an der Verwendungsstelle. */
   .site-attr .srcs {
-    font-size: 0.85rem;
+    font-size: var(--fs-7);
     color: var(--muted, #8a99b8);
     margin-bottom: 0.8rem;
   }
   .site-attr .disclaimer {
     max-width: 70ch;
     margin: 0 auto;
-    font-size: 0.85rem;
+    font-size: var(--fs-7);
     color: var(--muted, #8a99b8);
   }
   .site-attr .asof {
     margin-top: 0.8rem;
-    font-size: 0.8rem;
+    font-size: var(--fs-6);
     color: var(--accent, #2dd4ff);
-    letter-spacing: 0.08em;
+    letter-spacing: var(--ls-10);
     text-transform: uppercase;
   }</style>

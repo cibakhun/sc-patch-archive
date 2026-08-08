@@ -148,7 +148,7 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
     --rar-warn: #7d5504;
   }
 
-  .as-intro { color: var(--muted); font-size: .94rem; line-height: 1.6; margin: 0 0 1.4rem; max-width: 72ch; }
+  .as-intro { color: var(--muted); font-size: var(--fs-9); line-height: 1.6; margin: 0 0 1.4rem; max-width: 72ch; }
 
   /* Herstellersprung: 20+ Ziele — als Mono-Kacheln mit Zahl statt als
      Pillenband, sonst verschwimmt die Reihe zu einem Grauwert.
@@ -168,14 +168,14 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
   }
   .as-jump a {
     display: inline-flex; align-items: baseline; gap: .4rem;
-    font-family: var(--font-ui); font-weight: 600; font-size: .9rem;
+    font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-8);
     padding: .3rem .7rem; border: 1px solid var(--line-soft);
     border-left: 2px solid var(--dp-rail); border-radius: 2px;
     color: var(--muted); text-decoration: none;
-    transition: color .18s, border-color .18s, background-color .18s;
+    transition: color var(--dur-base) var(--ease-ui), border-color var(--dur-base) var(--ease-ui), background-color var(--dur-base) var(--ease-ui);
   }
   .as-jump a:hover { color: var(--text); border-color: var(--dp-hair); border-left-color: var(--tone-1); background: var(--dp-tint); }
-  .as-jump span { font-family: var(--font-num); font-weight: 600; font-size: 1.05rem; color: var(--tone-1); opacity: .85; }
+  .as-jump span { font-family: var(--font-num); font-weight: 600; font-size: var(--fs-11); color: var(--tone-1); opacity: .85; }
 
   /* mobile-ux.css (Abschnitt 6) setzt scroll-margin-top fuer [id] nur hinter
      @media (max-width:820px) — dort reicht die feste Brotkrumenleiste .dp-bar
@@ -203,23 +203,23 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
   .as-set-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem .9rem; }
   .as-set-h h3 {
     margin: 0; font-family: var(--font-display); font-weight: 800;
-    font-size: 1.12rem; letter-spacing: .01em; color: var(--text);
+    font-size: var(--fs-11); letter-spacing: var(--ls-4); color: var(--text);
   }
-  .as-set-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; font-size: .82rem; }
-  .as-set-meta > .dp-muted { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; }
+  .as-set-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; font-size: var(--fs-6); }
+  .as-set-meta > .dp-muted { font-family: var(--font-mono); font-size: var(--fs-4); letter-spacing: var(--ls-11); text-transform: uppercase; }
   .as-badge {
-    font-family: var(--font-mono); font-size: .67rem; letter-spacing: .12em; text-transform: uppercase;
+    font-family: var(--font-mono); font-size: var(--fs-3); letter-spacing: var(--ls-12); text-transform: uppercase;
     padding: .16rem .5rem; border: 1px solid var(--line); color: var(--muted);
   }
   .as-badge--ok { color: var(--rar-uncommon); border-color: currentColor; }
   .as-badge--part { color: var(--rar-warn); border-color: currentColor; }
-  .as-note { margin: .55rem 0 0; font-size: .84rem; color: var(--muted); font-style: italic; }
+  .as-note { margin: .55rem 0 0; font-size: var(--fs-7); color: var(--muted); font-style: italic; }
 
   .as-slot { margin-top: .95rem; }
   .as-slot h4 {
     display: flex; align-items: center; gap: .5rem;
     margin: 0 0 .45rem; font-family: var(--font-mono); font-weight: 400;
-    font-size: .7rem; text-transform: uppercase; letter-spacing: .16em; color: var(--muted);
+    font-size: var(--fs-4); text-transform: uppercase; letter-spacing: var(--ls-14); color: var(--muted);
   }
   .as-slot h4::after { content: ''; flex: 1; height: 1px; background: var(--line-soft); }
 
@@ -228,7 +228,7 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
   .as-parts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .3rem; }
   .as-parts li {
     display: inline-flex; align-items: center; gap: .3rem;
-    font-size: .86rem; padding: .22rem .55rem;
+    font-size: var(--fs-7); padding: .22rem .55rem;
     background: var(--dp-fill-2); border: 1px solid var(--line-soft); border-radius: 2px;
   }
   .as-parts a { color: var(--text); text-decoration: none; }
@@ -240,7 +240,7 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
      die Teilenamen. Die Farbe allein reicht, der Kasten war das Geschrei. */
   .as-rar {
     display: inline-flex; align-items: center; gap: .25rem;
-    font-family: var(--font-mono); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase;
+    font-family: var(--font-mono); font-size: var(--fs-2); letter-spacing: var(--ls-11); text-transform: uppercase;
     font-style: normal; color: currentColor; opacity: .95;
   }
   .as-rar::before {

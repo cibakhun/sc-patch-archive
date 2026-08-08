@@ -176,23 +176,23 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
   .do__num {
     font-family: var(--font-display, sans-serif);
     font-weight: 900;
-    font-size: 0.95rem;
+    font-size: var(--fs-9);
     color: var(--accent, #2dd4ff);
     opacity: 0.8;
   }
   .do__head h2 {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.95rem;
-    letter-spacing: 0.22em;
+    font-size: var(--fs-9);
+    letter-spacing: var(--ls-17);
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
   }
   .do__code {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-13);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     white-space: nowrap;
@@ -201,7 +201,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
   }
   .do__summary {
     max-width: 78ch;
-    font-size: 1.05rem;
+    font-size: var(--fs-11);
     line-height: 1.6;
     color: var(--text, #e8eefc);
     opacity: 0.88;
@@ -216,13 +216,13 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     margin: -1rem 0 1.8rem;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
+    font-size: var(--fs-7);
+    letter-spacing: var(--ls-11);
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
     border: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 35%, transparent);
     padding: 0.4rem 0.75rem;
-    transition: background-color 0.15s, border-color 0.15s;
+    transition: background-color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui);
   }
   .do__notesrsi:hover {
     border-color: var(--accent, #2dd4ff);
@@ -234,8 +234,8 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
   .do__sub {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.16em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-14);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     margin: 2rem 0 0.85rem;
@@ -253,7 +253,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
   .do__feat {background:var(--bg-2, var(--veil));border:1px solid var(--line, var(--line-soft));
     border-top: 2px solid color-mix(in srgb, var(--accent, #2dd4ff) 30%, transparent);
     padding: 0.9rem 1.1rem 0.85rem;
-    transition: border-color 0.15s, background-color 0.15s;
+    transition: border-color var(--dur-fast) var(--ease-ui), background-color var(--dur-fast) var(--ease-ui);
   }
   .do__feat:hover {
     border-color: color-mix(in srgb, var(--accent, #2dd4ff) 55%, transparent);background:color-mix(in srgb, var(--accent, #2dd4ff) 4%, var(--bg-2, var(--veil)));
@@ -269,15 +269,15 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
   .do__feat h4 {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 1.15rem;
-    letter-spacing: 0.05em;
+    font-size: var(--fs-11);
+    letter-spacing: var(--ls-8);
     color: var(--text, #e8eefc);
   }
   .do__chip {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-13);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     border: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 35%, transparent);
@@ -285,7 +285,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     white-space: nowrap;
   }
   .do__desc {
-    font-size: 1rem;
+    font-size: var(--fs-10);
     line-height: 1.55;
     color: var(--text, #e8eefc);
     opacity: 0.88;
@@ -302,8 +302,8 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
   .do__fact dt {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.75rem;
-    letter-spacing: 0.13em;
+    font-size: var(--fs-5);
+    letter-spacing: var(--ls-12);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
   }
@@ -311,7 +311,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     margin: 0.1rem 0 0;
     font-family: var(--font-body, system-ui, sans-serif);
     font-weight: 500;
-    font-size: 1rem;
+    font-size: var(--fs-10);
     line-height: 1.35;
     font-variant-numeric: tabular-nums;
     color: var(--text, #e8eefc);
@@ -321,11 +321,11 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     margin-top: 0.8rem;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
+    font-size: var(--fs-7);
+    letter-spacing: var(--ls-11);
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
-    transition: color 0.15s;
+    transition: color var(--dur-fast) var(--ease-ui);
   }
   .do__link:hover {
     text-decoration: underline;
@@ -336,7 +336,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
   .do__table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 1rem;
+    font-size: var(--fs-10);
   }
   .do__table th.num,
   .do__table td.num {
@@ -350,11 +350,11 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
   }
   .do__ext {
     color: var(--muted, #8a99b8);
-    font-size: 0.85rem;
+    font-size: var(--fs-7);
   }
   .do__specsrc {
     margin-top: 0.6rem;
-    font-size: 0.85rem;
+    font-size: var(--fs-7);
     color: var(--muted, #8a99b8);
   }
   .do__specsrc a {
@@ -366,8 +366,8 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
   .do__table th {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.16em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-14);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     text-align: left;
@@ -379,7 +379,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     color: var(--text, #e8eefc);
   }
   .do__table tbody tr {
-    transition: background-color 0.15s;
+    transition: background-color var(--dur-fast) var(--ease-ui);
   }
   .do__table tbody tr:hover {
     background: color-mix(in srgb, var(--accent, #2dd4ff) 5%, transparent);
@@ -390,7 +390,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
   }
   .do__shipnote {
     color: var(--muted, #8a99b8);
-    font-size: 0.92rem;
+    font-size: var(--fs-8);
   }
   .do__events {
     list-style: none;
@@ -400,7 +400,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     gap: 0.55rem;
   }
   .do__events li {
-    font-size: 1rem;
+    font-size: var(--fs-10);
     line-height: 1.55;
     color: var(--text, #e8eefc);
     opacity: 0.9;border-left:2px solid var(--line, var(--line-soft));
@@ -421,7 +421,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     padding: 0.8rem 1rem;border:1px solid var(--line, var(--line-soft));background:var(--bg-2, var(--veil));
     font-family: var(--font-ui, sans-serif);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: var(--fs-9);
     color: var(--text, #e8eefc);
   }
   .do__wipe {
@@ -429,7 +429,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
   }
   .do__note {
     margin-top: 1.2rem;
-    font-size: 0.8rem;
+    font-size: var(--fs-6);
     color: var(--muted, #8a99b8);
     opacity: 0.8;
   }
@@ -438,7 +438,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     text-decoration: none;
     cursor: help;
     margin-left: 0.15rem;
-    font-size: 1rem;
+    font-size: var(--fs-10);
   }
   @media (max-width: 560px) {
     .do__head {

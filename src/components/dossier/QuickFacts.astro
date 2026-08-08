@@ -60,16 +60,16 @@ const heading = title ?? t('qf.title');
   .reg-divider__l {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.16em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-14);
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
   }
   .reg-divider__r {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-13);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     white-space: nowrap;
@@ -99,16 +99,16 @@ const heading = title ?? t('qf.title');
   .qf__head h2 {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.95rem;
-    letter-spacing: 0.22em;
+    font-size: var(--fs-9);
+    letter-spacing: var(--ls-17);
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
   }
   .qf__code {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-13);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     white-space: nowrap;
@@ -125,8 +125,8 @@ const heading = title ?? t('qf.title');
   .qf__item dt {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.16em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-14);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
   }
@@ -134,9 +134,9 @@ const heading = title ?? t('qf.title');
     margin: 0.15rem 0 0;
     font-family: var(--font-body, system-ui, sans-serif);
     font-weight: 500;
-    font-size: 1.15rem;
+    font-size: var(--fs-11);
     line-height: 1.35;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--ls-4);
     font-variant-numeric: tabular-nums;
     color: var(--text, #e8eefc);
   }
@@ -145,7 +145,7 @@ const heading = title ?? t('qf.title');
     text-decoration: none;
     cursor: help;
     margin-left: 0.15rem;
-    font-size: 1rem;
+    font-size: var(--fs-10);
   }
   @media (max-width: 560px) {
     .qf__head {

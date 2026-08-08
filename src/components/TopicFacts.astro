@@ -93,16 +93,16 @@ const dispVersion = dataVersion ?? parent?.data.version;
   .reg-divider__l {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.16em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-14);
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
   }
   .reg-divider__r {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-13);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     white-space: nowrap;
@@ -131,16 +131,16 @@ const dispVersion = dataVersion ?? parent?.data.version;
   .tf__head h2 {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.95rem;
-    letter-spacing: 0.22em;
+    font-size: var(--fs-9);
+    letter-spacing: var(--ls-17);
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
   }
   .tf__code {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-13);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     white-space: nowrap;
@@ -159,8 +159,8 @@ const dispVersion = dataVersion ?? parent?.data.version;
   .tf__item dt {
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.16em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-14);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
   }
@@ -168,14 +168,14 @@ const dispVersion = dataVersion ?? parent?.data.version;
     margin: 0.15rem 0 0;
     font-family: var(--font-body, system-ui, sans-serif);
     font-weight: 500;
-    font-size: 1.15rem;
+    font-size: var(--fs-11);
     line-height: 1.35;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--ls-4);
     font-variant-numeric: tabular-nums;
     color: var(--text, #e8eefc);
   }
   .tf__desc {
-    font-size: 1.02rem;
+    font-size: var(--fs-10);
     line-height: 1.55;
     color: var(--text, #e8eefc);
     opacity: 0.88;
@@ -187,11 +187,11 @@ const dispVersion = dataVersion ?? parent?.data.version;
     padding-top: 0.8rem;border-top:1px solid var(--line, var(--line-soft));
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
+    font-size: var(--fs-7);
+    letter-spacing: var(--ls-11);
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
-    transition: color 0.15s;
+    transition: color var(--dur-fast) var(--ease-ui);
   }
   .tf__prov:hover {
     text-decoration: underline;
@@ -201,7 +201,7 @@ const dispVersion = dataVersion ?? parent?.data.version;
     text-decoration: none;
     cursor: help;
     margin-left: 0.15rem;
-    font-size: 1rem;
+    font-size: var(--fs-10);
   }
   @media (max-width: 560px) {
     .tf__head {
