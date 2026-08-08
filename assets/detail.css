@@ -89,8 +89,16 @@ section{position:relative;padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem)
 @keyframes kb{from{transform:scale(1.06)}to{transform:scale(1.18) translate(-1.5%,-1.5%)}}
 /* Der Verlauf endet auf var(--bg) — dadurch geht das Foto in beiden Modi
    von selbst sauber in die Seitenfläche über. Nur der Schleier über dem
-   Motiv bleibt dunkel, weil das Motiv dunkel ist. */
-.hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--scrim-2),var(--scrim-4) 55%,var(--bg)),radial-gradient(120% 90% at 78% 18%,transparent,var(--bg) 86%)}
+   Motiv bleibt dunkel, weil das Motiv dunkel ist.
+   Plan 03-05 (D-04, Task 2): der Stopp "var(--scrim-4) 55%" lag zu nah an
+   .hero .lead (Ankerpunkt yFrac 0.85) -- im Hellmodus zog das Interpolieren
+   Richtung var(--bg) (hell) den Fliesstext-Kontrast auf 2,93:1. Fix ist ein
+   VERSCHOBENER Verlauf-Stopp (nicht --ambient-opacity, nicht die Palette):
+   die Stufe --scrim-4 haelt jetzt bis 90% durch, bevor sie in vier
+   verbleibenden Prozentpunkten auf --bg ausblendet -- der Ankerpunkt liegt
+   damit vollstaendig auf der Plateau-Stufe. 18,34:1 in beiden Modi danach
+   (verify-layers.mjs, Registry A1-hero/B-hero). */
+.hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--scrim-2),var(--scrim-4) 55%,var(--scrim-4) 90%,var(--bg)),radial-gradient(120% 90% at 78% 18%,transparent,var(--bg) 86%)}
 /* D-01: Zeilenraster lebt jetzt hier statt in body::after — z-index:1 setzt
    es ueber .hero__photo (0) und UNTER .hero__in (2), also nicht mehr ueber
    dem Text. Deckkraft und Scrim bleiben getrennte Regler (eigene

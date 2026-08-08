@@ -53,7 +53,7 @@ body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;b
 .hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;padding:7rem clamp(1.25rem,5vw,4.5rem) 4rem;overflow:hidden}
 .hero__photo{position:absolute;inset:0;z-index:0;background:url('/assets/img-railen.jpg') center/cover;animation:kb 30s ease-in-out infinite alternate}
 @keyframes kb{from{transform:scale(1.06)}to{transform:scale(1.18) translate(-1.5%,-1.5%)}}
-.hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--scrim-2),var(--scrim-4) 55%,var(--bg)),radial-gradient(120% 90% at 80% 20%,transparent,var(--bg) 85%)}
+.hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--scrim-2),var(--scrim-4) 55%,var(--scrim-4) 90%,var(--bg)),radial-gradient(120% 90% at 80% 20%,transparent,var(--bg) 85%)}
 .hero::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
 #stars{position:absolute;inset:0;z-index:1;opacity:.55}html:not([data-fx="on"]) #stars{display:none}
 .hero__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
@@ -111,7 +111,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .shot .sbg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;animation:kb2 26s ease-in-out infinite alternate}
 @keyframes kb2{from{transform:scale(1.08)}to{transform:scale(1.24) translate(-3%,-2%)}}
 .shot::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
-.shot::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,var(--scrim-0),var(--scrim-3) 60%,var(--bg)),linear-gradient(90deg,var(--scrim-4),transparent 55%)}
+.shot::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,var(--scrim-0),var(--scrim-3) 60%,var(--scrim-3) 90%,var(--bg)),linear-gradient(90deg,var(--scrim-4),transparent 55%)}
 .shot__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
 .shot .kx{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-20);text-transform:uppercase;color:var(--accent-2);font-size:var(--fs-6)}
 .shot .big{font-family:var(--font-display);font-weight:900;font-size:clamp(3rem,20vw,14.6rem);line-height:.8;color:var(--on-media);text-shadow:0 6px 70px var(--on-media-shadow),0 0 50px rgba(31,184,166,.28);overflow-wrap:normal;text-wrap:balance}

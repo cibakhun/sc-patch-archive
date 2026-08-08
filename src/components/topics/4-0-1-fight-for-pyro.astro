@@ -32,11 +32,19 @@ const de = lang === 'de';
 .fcard{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:10px;min-height:340px;display:flex;flex-direction:column;justify-content:flex-end;padding:1.5rem 1.4rem;isolation:isolate}
 .fcard .fbg{position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center;transition:transform .8s;filter:saturate(.9)}
 .fcard:hover .fbg{transform:scale(1.07)}
-.fcard::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,var(--veil-2),var(--veil-2) 45%,var(--veil))}
-.fcard .fk{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-17);text-transform:uppercase;font-size:var(--fs-4);color:var(--accent-2)}
-.fcard h3{font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,2.2vw,1.6rem);line-height:1.05;color:var(--text);margin:.35rem 0 .5rem}
-.fcard p{color:var(--text);font-size:var(--fs-9);opacity:.92}
-.fcard .ftag{margin-top:.8rem;display:inline-flex;align-self:flex-start;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-11);text-transform:uppercase;font-size:var(--fs-3);padding:.3rem .7rem;border:1px solid var(--line);border-radius:50px;color:var(--accent)}
+/* Rule 1 (Plan 03-05): --veil und --veil-2 sind Flaechen-Schleier (im
+   Hellmodus absichtlich fast durchsichtig, siehe theme.css "leichte
+   Eintruebung statt Abdunklung") -- ueber einem FOTO (.fbg) ist das der
+   falsche Tokensatz, im Hellmodus blieb das Foto darunter fast unveraendert
+   hell waehrend die Textfarbe dunkel wird (Kontrast brach ein). Auf die
+   Scrim-Skala und die on-media-Textrollen umgestellt, denselben Tokensatz
+   wie ueberall sonst in diesem Bestand fuer Text auf Foto (vgl. .tool::after
+   in src/pages/index.astro). */
+.fcard::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,var(--scrim-6),var(--scrim-6) 45%,var(--scrim-1))}
+.fcard .fk{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-17);text-transform:uppercase;font-size:var(--fs-4);color:var(--accent-2-media)}
+.fcard h3{font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,2.2vw,1.6rem);line-height:1.05;color:var(--on-media);margin:.35rem 0 .5rem}
+.fcard p{color:var(--on-media-dim);font-size:var(--fs-9);opacity:.92}
+.fcard .ftag{margin-top:.8rem;display:inline-flex;align-self:flex-start;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-11);text-transform:uppercase;font-size:var(--fs-3);padding:.3rem .7rem;border:1px solid var(--on-media-line);border-radius:50px;color:var(--accent-media)}
 .reward{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.1rem}
 .reward .chip{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-6);color:var(--text);padding:.45rem .85rem;border:1px solid var(--line);border-radius:6px;background:var(--veil)}
 .reward .chip b{color:var(--accent-2)}</style>

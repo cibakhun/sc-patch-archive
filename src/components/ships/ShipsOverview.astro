@@ -156,7 +156,14 @@ a{color:inherit;text-decoration:none}
 .sdb__eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--accent),transparent)}
 /* Titelgrad auf Werkzeug-Mass: 4,6rem war ein Plakat, nicht eine Kopfzeile. */
 .sdb__hero h1{font-family:var(--font-display);font-weight:900;font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.05;background:linear-gradient(180deg,var(--title-hi),var(--accent-2) 66%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 24px var(--shadow-color))}
-.sdb__sub{max-width:56ch;color:#dbe6ff;margin-top:.8rem;font-size:clamp(1rem,1.4vw,1.15rem);text-shadow:0 2px 12px var(--shadow-color)}
+/* Rule 1 (Plan 03-05): color war eine fixe Farbe (#dbe6ff), fuer die
+   scripts/build-light-overrides.mjs eine dunkle Hellmodus-Entsprechung
+   generiert hatte (#4d5871) -- .sdb__hero ist aber ein Foto-Hero (.sdb__hero
+   ::before), kein Flaechentext: die generierte dunkle Farbe drueckte den
+   Kontrast im Hellmodus auf 4.25:1. var(--on-media-dim) ist absichtlich in
+   beiden Modi hell (Medien-Tokens sind theme-invariant) -- der generierte
+   Hellmodus-Override unten entfaellt dadurch ersatzlos. */
+.sdb__sub{max-width:56ch;color:var(--on-media-dim);margin-top:.8rem;font-size:clamp(1rem,1.4vw,1.15rem);text-shadow:0 2px 12px var(--shadow-color)}
 
 @media(max-width:640px){
   .sdb__hero{padding:4.8rem 1rem 1rem}
@@ -276,8 +283,9 @@ a{color:inherit;text-decoration:none}
   .sdb__filter select{min-width:0}
   .sdb__count{grid-column:1/-1;margin-left:0;justify-self:start}
 }
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .sdb__sub{color:#4d5871}
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern.
+   .sdb__sub-Override (Plan 03-05, Rule 1) entfaellt: die Basisregel benutzt jetzt
+   var(--on-media-dim), ein theme-invariantes Medien-Token ohne Hellmodus-Gegenstueck. */
 :root[data-theme="light"] .fcard__status.fr{color:#046945}
 </style>
 
