@@ -66,7 +66,7 @@
 ### Sprachparität
 
 - [ ] **SYNC-01**: Jede Änderung an einer Startseiten- oder Layout-Datei trifft die EN- und die DE-Fassung im selben Arbeitsschritt
-- [ ] **SYNC-02**: Ein Prüfschritt belegt für die geänderten Seitenpaare, dass Struktur und Stil deckungsgleich sind — nicht nur die Absicht
+- [x] **SYNC-02**: Ein Prüfschritt belegt für die geänderten Seitenpaare, dass Struktur und Stil deckungsgleich sind — nicht nur die Absicht
 
 ### Ambiente-Effekte
 
@@ -335,7 +335,7 @@ ist anbieterneutral und bleibt gültig.
 | LAYER-01 | Phase 3 | Complete (Plan 4 of 5: alle 19 Patch-Koerper per ueberpruefbarem Massendurchlauf angehoben -- 19 body::after maskiert, 87 Rasterregeln, 19 Beobachter geheilt; verify:layers prueft geteiltes System, /archiv-Umfeld und Patch-Koerper jetzt scharf) |
 | LAYER-02 | Phase 3 | Complete (Plan 5 of 5: 25 Registry-Eintraege, 344 Einzelmessungen, 0 unter der WCAG-AA-Marke; Zusicherung 5 schliesst die Aufzaehlung maschinell gegen den gebauten Stand) |
 | SYNC-01 | Phase 4 | Pending |
-| SYNC-02 | Phase 4 | Pending |
+| SYNC-02 | Phase 4 | Complete |
 | THEME-02 | Phase 4 | Pending |
 | DON-01 | Phase 5 | Pending |
 | DON-02 | Phase 5 | Pending |
