@@ -77,9 +77,6 @@ const sizeClasses = [...sizeStand.entries()]
   .sort((a, b) => a[0] - b[0])
   .map(([n, count]) => ({ n, count, label: sizeClassLabel(n, lang) }));
 
-const flightReady = vehicles.filter((v) => v.data.statusEn === 'flight-ready').length;
-const inArchive = vehicles.filter((v) => v.data.patches.length > 0).length;
-
 // Karten-Modell: Preise vorab joinen, damit das JSX schlank bleibt.
 const cards = vehicles.map((v) => ({
   d: v.data,
@@ -94,7 +91,6 @@ const cards = vehicles.map((v) => ({
   feat: (roleSnapshot[v.id]?.feat ?? []).join(' '),
   size: vSizeClass(v.id),
 }));
-const buyable = cards.filter((c) => c.buy != null).length;
 
 const crewFmt = (v: (typeof vehicles)[number]['data']) =>
   v.crewMin != null || v.crewMax != null
@@ -115,6 +111,7 @@ const sigFmt = (n: number) => n.toLocaleString(de ? 'de-DE' : 'en-US', { minimum
 }
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#0850ad;--gold:#685301;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3)}
+
 
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -148,16 +145,7 @@ a{color:inherit;text-decoration:none}
 .sdb__hero h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2.4rem,7vw,4.6rem);line-height:1;background:linear-gradient(180deg,var(--title-hi),var(--accent-2) 66%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 24px var(--shadow-color))}
 .sdb__sub{max-width:56ch;color:#dbe6ff;margin-top:.8rem;font-size:clamp(1rem,1.4vw,1.15rem);text-shadow:0 2px 12px var(--shadow-color)}
 
-/* Kennzahlen als Glas-HUD-Band unten im Hero */
-.sdb__metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;margin:1.9rem 0 0;max-width:900px;
-  border:1px solid var(--line);background:var(--line);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.sdb__metrics div{position:relative;background:var(--veil-2);padding:.8rem 1rem;overflow:hidden}
-.sdb__metrics div::before{content:"";position:absolute;top:0;left:0;width:14px;height:2px;background:var(--accent)}
-.sdb__metrics dt{font-family:var(--font-ui);font-weight:700;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.sdb__metrics dd{margin:.2rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:1.7rem;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1}
 @media(max-width:640px){
-  .sdb__metrics{grid-template-columns:repeat(2,1fr)}
-  .sdb__metrics div{padding:.55rem .7rem}.sdb__metrics dd{font-size:1.25rem}.sdb__metrics dt{font-size:.64rem}
   /* Hero hugt den Inhalt (statt fast bildschirmhoher Leere), Filter kompakt als 2er-Raster */
   .sdb__hero{min-height:auto;padding:5.5rem 1rem 1.5rem}
   .sdb__sub{font-size:.98rem;max-width:none}
@@ -166,22 +154,6 @@ a{color:inherit;text-decoration:none}
 
 /* ---------- Inhalt (Filter + Grid) ---------- */
 .sdb__panel{max-width:var(--maxw);margin:0 auto;padding:2rem clamp(1rem,3vw,2.5rem) 4rem}
-
-/* ---------- Schnellzugriff-Leiste (D-10) ---------- */
-/* Macht die Kombinationsfaehigkeit der Filterkonsole sichtbar: ein Klick
-   setzt Rollenfamilie und, bei den ersten beiden Chips, zusaetzlich die
-   Signaturstufe (ROLE-06). Eigene Klassennamen, weil .fcard__chip bereits
-   fuer die Rollen-/Groessen-Pille auf der Karte vergeben ist (siehe
-   assets/mobile-ux.css Zeilen 409-433). */
-.sdb__quick{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:0 0 .8rem}
-.sdb__quicklabel{font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--muted);margin-right:.2rem}
-.sdb__qchip{font-family:var(--font-ui);font-weight:600;font-size:.82rem;color:var(--text);
-  background:var(--veil);border:1px solid var(--line);padding:.4rem .8rem;min-height:32px;
-  cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease}
-.sdb__qchip:hover{border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
-.sdb__qchip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);
-  background:color-mix(in srgb,var(--accent) 18%,var(--veil))}
 
 /* Erklärzeile zur Größenklasse (Quick-Task 260802-ose) — dieselbe nüchterne
    Konsolen-Zeile wie .sdb__src, direkt über der Filterkonsole. */
@@ -308,27 +280,10 @@ a{color:inherit;text-decoration:none}
     <div class="sdb__heroin">
       <div class="sdb__eyebrow">{de ? 'Registratur // Flottenkatalog' : 'Registry // Fleet Catalog'}</div>
       <h1>{de ? 'Schiffe & Fahrzeuge' : 'Ships & Vehicles'}</h1>
-      <dl class="sdb__metrics">
-        <div><dt>{de ? 'Einträge' : 'Entries'}</dt><dd>{vehicles.length}</dd></div>
-        <div><dt>{de ? 'Hersteller' : 'Manufacturers'}</dt><dd>{makers.length}</dd></div>
-        <div><dt>{de ? 'Flugbereit' : 'Flight Ready'}</dt><dd>{flightReady}</dd></div>
-        <div><dt>{de ? 'Ingame kaufbar' : 'Buyable in-game'}</dt><dd>{buyable}</dd></div>
-        <div><dt>{de ? 'Im Archiv' : 'In archive'}</dt><dd>{inArchive}</dd></div>
-      </dl>
     </div>
   </section>
 
   <div class="sdb__panel">
-  <div class="sdb__quick">
-    <span class="sdb__quicklabel">{de ? 'Schnellzugriff' : 'Quick access'}</span>
-    <button type="button" class="sdb__qchip" data-set-rolefam="bomber" data-set-sig="1" aria-pressed="false">{de ? 'Tarnkappenbomber' : 'Stealth Bomber'}</button>
-    <button type="button" class="sdb__qchip" data-set-rolefam="frachttransport" data-set-sig="1" aria-pressed="false">{de ? 'Frachter mit gesenkter Signatur' : 'Cargo, reduced signature'}</button>
-    <button type="button" class="sdb__qchip" data-set-rolefam="bergbau" aria-pressed="false">{de ? 'Bergbau' : 'Mining'}</button>
-    <button type="button" class="sdb__qchip" data-set-rolefam="bergung" aria-pressed="false">{de ? 'Bergung' : 'Salvage'}</button>
-    <button type="button" class="sdb__qchip" data-set-rolefam="betankung" aria-pressed="false">{de ? 'Betankung' : 'Refueling'}</button>
-    <button type="button" class="sdb__qchip" data-set-rolefam="abriegelung" aria-pressed="false">{de ? 'Abriegelung' : 'Interdiction'}</button>
-    <button type="button" class="sdb__qchip" data-set-rolefam="rennen" aria-pressed="false">{de ? 'Rennen' : 'Racing'}</button>
-  </div>
   <p class="sdb__sizehint">
     {de
       ? 'Die Größenklasse (1–6) ist CIGs eigene Hangar-/Landeplatzklasse — sie bestimmt, auf welchen Landeplatz bzw. in welchen Hangar das Schiff passt, nicht die umgangssprachliche Größe.'
@@ -627,36 +582,6 @@ a{color:inherit;text-decoration:none}
   selComp.addEventListener('change', function () { rebuildSizeOptions(); apply(); });
   rebuildSizeOptions();
   selSort.addEventListener('change', sort);
-
-  // Schnellzugriff-Chips (D-10, ROLE-06): je ein Klick setzt Rollenfamilie
-  // und (bei den ersten beiden) zusaetzlich die Signaturstufe, danach apply().
-  // Ein zweiter Klick auf den aktiven Chip stellt beide Achsen zurueck.
-  // .value = ... loest kein change-Event aus -- der Reset-Listener unten
-  // (bei manueller Aenderung von sf-rolefam/sf-sig) greift hier also nicht.
-  var quickChips = [].slice.call(document.querySelectorAll('.sdb__qchip'));
-  function clearChipState() {
-    quickChips.forEach(function (c) { c.setAttribute('aria-pressed', 'false'); });
-  }
-  quickChips.forEach(function (chip) {
-    chip.addEventListener('click', function () {
-      var wasActive = chip.getAttribute('aria-pressed') === 'true';
-      clearChipState();
-      if (wasActive) {
-        selRolefam.value = '';
-        selSig.value = '';
-      } else {
-        selRolefam.value = chip.getAttribute('data-set-rolefam') || '';
-        selSig.value = chip.getAttribute('data-set-sig') || '';
-        chip.setAttribute('aria-pressed', 'true');
-      }
-      apply();
-    });
-  });
-  // Handaenderung an Rollenfamilie/Signatur entwertet eine zuvor aktive
-  // Chip-Anzeige -- sonst behauptet die Leiste einen Zustand, der nicht mehr gilt.
-  [selRolefam, selSig].forEach(function (el) {
-    el.addEventListener('change', clearChipState);
-  });
 
   // ganze Karte klickbar (innere Links funktionieren weiter)
   cards.forEach(function (c) {
