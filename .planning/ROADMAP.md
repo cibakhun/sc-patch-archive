@@ -270,7 +270,7 @@ Plans:
 
 - [x] 03-01-PLAN.md (Welle 1) — Leitschuss: die ganze Kette an EINEM Archetyp beweisen — `body::after` räumlich begrenzen (Maske an `var(--maxw)`), das Zeilenraster als `.hero::before` UNTER den Text legen, den `.reveal`-Beobachter von seinem Höhendeckel befreien, dazu die fehlende Rechenstufe (`compositeOver`/`flattenStack`) und das Tor `verify:layers` mit Vorher-/Nachher-Zahl
 - [x] 03-02-PLAN.md (Welle 2) — Das geteilte System zu Ende: die sieben übrigen Medien-Archetypen bekommen ihr Raster; `.sstep` wird ohne JavaScript und bei reduzierter Bewegung voll lesbar (D-02)
-- [ ] 03-03-PLAN.md (Welle 2) — `/archiv` heilen (D-05, zweite unabhängige Umsetzung desselben Rechenfehlers) und die 21 defensiven `!important`-Overrides ersatzlos abtragen — belegbar 21 → 0
+- [x] 03-03-PLAN.md (Welle 2) — `/archiv` heilen (D-05, zweite unabhängige Umsetzung desselben Rechenfehlers) und die 21 defensiven `!important`-Overrides ersatzlos abtragen — belegbar 21 → 0
 - [ ] 03-04-PLAN.md (Welle 3) — Die 19 Patch-Körper per überprüfbarem Massendurchlauf: 19 `body::after`-Kopien, 87 neue Rasterregeln, 19 eigene Beobachter; Design-Welten maschinell belegt unverändert
 - [ ] 03-05-PLAN.md (Welle 4) — Vollständige, maschinell geschlossene Aufzählung der Messstellen, WCAG-AA in beiden Farbmodi erreichen und scharf stellen, `verify:layers` ans Dockerfile-Tor, Sichtrunde an den Betreiber
 
