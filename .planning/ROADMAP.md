@@ -264,12 +264,50 @@ FX-07-Präzedenzfall Ambiente und wird nicht angefasst.
   2. Für jede betroffene Stelle liegt ein gemessener Kontrastwert für Hell- und Dunkelmodus vor
   3. Die Bildmotive tragen die Seite optisch weiterhin — die Entstapelung hat sie nicht flachgeschleift
 
-**Plans**: 2 plans
+**Plans**: 5 plans
 
 Plans:
 
-- [ ] 03-01: Betroffene Stellen aus CONCERNS.md Class B erheben und Kontrast messen
-- [ ] 03-02: Überlagerungen zusammenführen und Werte erneut messen
+- [ ] 03-01-PLAN.md (Welle 1) — Leitschuss: die ganze Kette an EINEM Archetyp beweisen — `body::after` räumlich begrenzen (Maske an `var(--maxw)`), das Zeilenraster als `.hero::before` UNTER den Text legen, den `.reveal`-Beobachter von seinem Höhendeckel befreien, dazu die fehlende Rechenstufe (`compositeOver`/`flattenStack`) und das Tor `verify:layers` mit Vorher-/Nachher-Zahl
+- [ ] 03-02-PLAN.md (Welle 2) — Das geteilte System zu Ende: die sieben übrigen Medien-Archetypen bekommen ihr Raster; `.sstep` wird ohne JavaScript und bei reduzierter Bewegung voll lesbar (D-02)
+- [ ] 03-03-PLAN.md (Welle 2) — `/archiv` heilen (D-05, zweite unabhängige Umsetzung desselben Rechenfehlers) und die 21 defensiven `!important`-Overrides ersatzlos abtragen — belegbar 21 → 0
+- [ ] 03-04-PLAN.md (Welle 3) — Die 19 Patch-Körper per überprüfbarem Massendurchlauf: 19 `body::after`-Kopien, 87 neue Rasterregeln, 19 eigene Beobachter; Design-Welten maschinell belegt unverändert
+- [ ] 03-05-PLAN.md (Welle 4) — Vollständige, maschinell geschlossene Aufzählung der Messstellen, WCAG-AA in beiden Farbmodi erreichen und scharf stellen, `verify:layers` ans Dockerfile-Tor, Sichtrunde an den Betreiber
+
+⚠ **Fünf statt zwei Pläne.** Die Zahl „2" stammt aus der Init-Granularität. Beim Zuschnitt am
+08.08.2026 hat der Planer gegen den Bestand nachgemessen — mit demselben Ergebnis wie in
+Phase 2 (dort: 7 statt 2): **die `body::after`-Regel existiert 20-mal, nicht einmal.** Die 19
+Patch-Körper verlinken `assets/detail.css` überhaupt nicht (0 von 19) und tragen je eine eigene
+Inline-Kopie. D-01 muss deshalb 20-mal umgesetzt werden.
+
+Zwei Funde des Zuschnitts, die in keinem Vorbereitungsdokument stehen:
+
+1. **`.reveal` hat DREI unabhängige Umsetzungen, nicht zwei.** Neben `assets/detail.js`
+   (Anteil 0,12) und `assets/archive.js` (0,12) tragen alle 19 Patch-Körper einen eigenen
+   Inline-Beobachter mit Anteil 0,1. `03-RESEARCH.md` kennt nur die ersten beiden und nennt D-03
+   deshalb „eine Lösung an einer Stelle". Es sind drei.
+2. **Die Schichtung ist mechanisch entscheidbar.** `body::after` (`z-index:9000`) ist die
+   **einzige** Regel im Bestand, die über den Glyphen liegt; alle Scrims malen unter dem Text
+   (`.hero__in`/`.band__in`/`.scrolly__steps` sitzen auf `z-index:2`, ihre Scrims auf 0 bzw. 1),
+   und die Kopfleiste liegt mit 9100 bereits darüber. CONCERNS' Annahme, Navigation und
+   Brotkrumen säßen dort, wo die Vignette am dunkelsten ist, ist damit nachweislich falsch.
+   Daraus folgt der Zuschnitt von D-01 zwingend: das Zeilenraster wandert auf `z-index:1` an die
+   Medien-Container (sichtbar über dem Bild, unter dem Text), die Vignette bleibt und wird über
+   der Textspalte ausmaskiert. `--ambient-opacity` bleibt bei 0,5/0,4 — begrenzt, nicht gedämpft.
+
+Erhobene Grundlage (08.08.2026, gegen den Arbeitsbaum, nicht aus CONCERNS): 20
+`body::after`-Regeln · 21 zeichengleiche `!important`-Overrides in 21 Dateien · `.sstep`-Markup
+in 17 Themen-Körpern, aber die CSS-Regel nur in `assets/detail.css` · 87 anzulegende
+Rasterregeln in den Patches · 170 Bildmotive, alle 170 lokal unter `public/assets/` und damit
+mit `sharp` messbar · `--maxw` einheitlich 1280px in allen 19 Patches.
+
+`/archiv` ist nach D-05 mit im Umfang; B-4 (Blend-Modus über Text) ist nach D-06 zurückgestellt
+und steht als begründeter Ausschluss in der Messstellen-Registry, damit eine spätere Prüfung ihn
+nicht als neuen Fund wiederentdeckt.
+
+Erfolgskriterium 3 („die Bildmotive tragen die Seite optisch weiterhin") ist ein Sichturteil und
+geht wie in Phase 1.2 und Phase 2 als benannter Punkt nach `.planning/WINDOWS.md` an den
+Betreiber — kein Skript entscheidet es.
 
 ### Phase 4: Sprachparität absichern
 
@@ -459,7 +497,7 @@ Phase 8 hängt ebenfalls an keiner Vorgängerphase und lief am 07.08.2026 durch.
 | 1.1 Ambiente-Effekte stilllegen | 2/3 | In Progress|  |
 | 1.2 Werkzeuge erklären | 5/5 | In Progress|  |
 | 2. Schrift- und Bewegungsskala | 7/7 | In Progress|  |
-| 3. Überlagerungen entstapeln | 0/2 | Not started | - |
+| 3. Überlagerungen entstapeln | 0/5 | Planned | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
 | 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |
 | 6. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |
