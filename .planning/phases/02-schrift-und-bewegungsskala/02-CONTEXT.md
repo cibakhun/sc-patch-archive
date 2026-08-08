@@ -59,6 +59,24 @@ inline-`<style>` in `.astro` ist hier nicht mitgezählt und macht den Löwenante
   Jeder heutige Wert wandert auf die nächste Stufe; einzelne Texte werden 1–2 px größer oder
   kleiner. Eine Skala mit 139 Stufen wäre keine Skala, sondern dieselbe Streuung mit Namen.
 
+### Nachträglich entschieden (08.08.2026, nach der Planung)
+
+Der Planer hat zwei Dinge über die Vorgabe hinaus entschieden und sie selbst zur Überprüfung
+vorgelegt. Beide sind vom Betreiber ausdrücklich freigegeben:
+
+- **D-06: Die 19 Patch-Körper sind im Umfang**, obwohl `REQUIREMENTS.md` § Out of Scope
+  „Redesign einzelner Patch-Seiten" listet. Freigegeben, weil ein grosser Teil der site-weit
+  1.968 Schriftgrade dort liegt und „site-weit" (D-01) sonst eine halbe Sache bliebe. Die Grenze
+  ist mechanisch, nicht nur behauptet: NUR Werte hinter `font-size`, `letter-spacing` und
+  `transition`; eine Diff-Zusicherung verlangt, dass jede geänderte Zeile eine der drei
+  Eigenschaften trägt, und die Zahl der `animation`-Angaben muss bei 160 bleiben. Palette, Motiv,
+  Ambiente und Layout bleiben unberührt. Die Ausnahme ist auch in `REQUIREMENTS.md` an der
+  Out-of-Scope-Zeile vermerkt. — **Reversibility:** costly — betrifft 19 Körper in beiden Sprachen.
+- **D-07: Die 191 blanken `ease`-Angaben wandern ebenfalls auf `--ease-ui`.** D-04 nannte nur die
+  drei fast identischen `cubic-bezier`. Freigegeben, weil Erfolgskriterium 2 geteilte Dauer **und**
+  Kurve verlangt — blieben 191 blanke `ease` stehen, wäre das Kriterium formal erfüllt und
+  praktisch nicht: zwei Bewegungssprachen nebeneinander. Die Sichtprüfung schaut ausdrücklich darauf.
+
 ### Claude's Discretion
 - Anzahl und Verhältnis der Stufen (aus der gemessenen Verteilung ableiten, nicht erfinden)
 - Benennung der Token

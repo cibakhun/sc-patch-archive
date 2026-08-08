@@ -259,7 +259,7 @@ ist anbieterneutral und bleibt gültig.
 | Refinery-Ökonomie, Loot-Recherche, Spielermarkt-Oberfläche | Als offene Punkte der Prüfung vom 03.08.2026 erkannt, aber nicht Teil dieses Meilensteins |
 | Konto-, Community- und Discord-Funktionen | Bestand bleibt, wird in diesem Meilenstein aber nicht vorangetrieben |
 | CSS-Framework oder Bundler für `assets/` | Handgeschriebenes CSS/JS ist bewusste Entscheidung, nicht Altlast |
-| Redesign einzelner Patch-Seiten | Jede Patch-Seite hat absichtlich ihre eigene Design-Welt |
+| Redesign einzelner Patch-Seiten | Jede Patch-Seite hat absichtlich ihre eigene Design-Welt. **⚠ Ausnahme, vom Betreiber am 08.08.2026 ausdrücklich freigegeben:** Phase 2 fasst die 19 Patch-Körper an, aber NUR Werte hinter `font-size`, `letter-spacing` und `transition`. Palette, Motiv, Ambiente und Layout bleiben unberührt — das ist kein Redesign. Mechanisch abgesichert in `02-05-PLAN.md`: eine Diff-Zusicherung verlangt, dass jede geänderte Zeile eine dieser drei Eigenschaften trägt, und die Zahl der `animation`-Angaben muss bei 160 bleiben. Grund für die Ausnahme: ein grosser Teil der site-weit 1.968 Schriftgrade liegt in den Patch-Körpern; ohne sie wäre „site-weit" (D-01) eine halbe Sache |
 | Vollständige Zusammenführung aller 67 Seitenpaare | Zu groß für diesen Meilenstein — als SYNC-04 nach v2 verschoben |
 
 ## Traceability
