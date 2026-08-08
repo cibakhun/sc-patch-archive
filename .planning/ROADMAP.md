@@ -219,12 +219,38 @@ sie mit.
   2. Übergänge auf der Startseite teilen sich Dauer und Beschleunigungskurve, statt jeder für sich zu laufen
   3. Ein Scrollen über die ganze Startseite zeigt keinen Bruch im Bewegungsverhalten zwischen Kopfleiste und Seiteninhalt
 
-**Plans**: 2 plans
+**Plans**: 7 plans (statt 2 — siehe Hinweis unten)
 
 Plans:
 
-- [ ] 02-01: Schriftskala erheben und als Tokens zusammenführen
-- [ ] 02-02: Übergangsdauern und Kurven vereinheitlichen
+- [ ] 02-01-PLAN.md (Welle 1) — Leitschuss: die Skala aus der gemessenen Verteilung ableiten, als vierte Schicht in `assets/theme.css` legen und die ganze Kette an Kopfleiste und beiden Startseiten beweisen, bis ins gehashte `dist/_astro`-Bündel; dazu das bleibende Tor `verify:typo`
+- [ ] 02-02-PLAN.md (Welle 2) — Die Wandlung aus Phase 1 nachmessen, bevor die Breite anfängt: Regressionstest auf die beiden Messeingänge, Sichtrunde benannt an den Betreiber
+- [ ] 02-03-PLAN.md (Welle 3) — Der überprüfbare Massendurchlauf, erprobt an den sechs Stilblättern unter `assets/`; dabei die Entscheidung zu den Ären-Kurven des Patch-Archivs
+- [ ] 02-04-PLAN.md (Welle 4) — Werkzeug- und Bauteil-Körper (30 Dateien), inklusive der vier zur Laufzeit gesetzten Werte in `assets/*.js`
+- [ ] 02-05-PLAN.md (Welle 4) — Die 19 Patch-Körper; Design-Welten und Ambiente maschinell belegt unverändert
+- [ ] 02-06-PLAN.md (Welle 4) — Seitenpaare, Themen-Körper, Konto-Ansichten und Schiffsübersicht (40 Dateien); jedes DE/EN-Paar in einem Schritt
+- [ ] 02-07-PLAN.md (Welle 5) — Sperrklinke anziehen, `verify:typo` ans Dockerfile-Tor hängen, Schluss-Sichtrunde und Phasenbilanz
+
+⚠ **Sieben statt zwei Pläne.** Die Zahl „2" stammt aus der Init-Granularität und wurde beim
+Zuschnitt am 08.08.2026 gegen den gemessenen Umfang geprüft. Die Erhebung des Planers über
+alle 95 betroffenen Dateien ergab **1968 `font-size`, 865 `letter-spacing` und 458
+`transition`-Deklarationen** — rund das Fünffache dessen, was der Scout in `02-CONTEXT.md`
+gezählt hatte (414 in 12 Dateien), weil der Löwenanteil in gescopten `<style>`-Blöcken von
+`.astro`-Komponenten sitzt. `02-RESEARCH.md` § Open Questions 1 hatte genau diese Gegenprüfung
+verlangt. Die Welle 4 läuft dreifach parallel (disjunkte Dateimengen).
+
+Die Skala selbst ist aus der gemessenen Verteilung abgeleitet, nicht aus einem
+Lehrbuch-Verhältnis: 19 Schriftgrad-Stufen (679 der 1634 statischen Werte treffen eine Stufe
+exakt, nur 7 verschieben sich um mehr als 6 %), 20 Laufweiten-Stufen auf 0,02-em-Raster
+(795 von 855 exakt), drei Dauern (150/200/300 ms, decken 659 der 663 Bedienübergang-Teile)
+und eine Kurve. ⚠ `Layout.astro` setzt `html { font-size: 112.5% }` — **1rem sind hier 18 px**,
+jede px→rem-Umrechnung teilt durch 18.
+
+Entschieden beim Zuschnitt (offene Fragen aus `02-RESEARCH.md`): die fluide `clamp()` der
+Hero-Überschrift bleibt eine benannte Ausnahme (sie ist der Nenner des Wandlungs-Maßstabs aus
+Phase 1); `assets/archive.css` gibt nur seine kurzen Bedienübergänge an den globalen Token ab
+und behält seine eigenen Kurven für die langen Ären-Übergänge; Scroll-Reveal bleibt nach dem
+FX-07-Präzedenzfall Ambiente und wird nicht angefasst.
 
 ### Phase 3: Überlagerungen entstapeln
 
@@ -432,7 +458,7 @@ Phase 8 hängt ebenfalls an keiner Vorgängerphase und lief am 07.08.2026 durch.
 | 1. Wortmarken-Wandlung | 2/2 | Complete | 2026-07-28 |
 | 1.1 Ambiente-Effekte stilllegen | 2/3 | In Progress|  |
 | 1.2 Werkzeuge erklären | 5/5 | In Progress|  |
-| 2. Schrift- und Bewegungsskala | 0/2 | Not started | - |
+| 2. Schrift- und Bewegungsskala | 0/7 | Planned | - |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
 | 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |
