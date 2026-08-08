@@ -48,7 +48,11 @@
 
 - [x] **TYPO-01**: Schriftgrade und Laufweiten der Kopfleiste und der Startseite folgen einer gemeinsamen Skala statt seitenlokaler Einzelwerte
 - [x] **TYPO-02**: Übergangsdauern und Beschleunigungskurven sind über die Startseite hinweg vereinheitlicht
-- [ ] **TYPO-03**: Kopfleiste und Startseite lesen sich als ein zusammenhängendes Bewegungsbild, nicht als zwei unabhängige Zustände
+- [x] **TYPO-03**: Kopfleiste und Startseite lesen sich als ein zusammenhängendes Bewegungsbild, nicht als zwei unabhängige Zustände
+  > Vom Betreiber am 08.08.2026 am ausgelieferten Stand auf staging.verse-base.com abgenommen
+  > (DE und EN): Wandlung stetig ohne Sprung, Tempo unverändert gegenüber vorher, Kopfleiste und
+  > Seiteninhalt als eine Bewegungssprache — und die Gegenprobe hält: Scroll-Reveal fühlt sich
+  > unverändert an, der Durchlauf hat die Ambiente nicht erwischt.
 
 ### Überlagerungen
 
