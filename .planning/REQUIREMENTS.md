@@ -36,15 +36,19 @@
 
 ### Typografie & Bewegungsbild
 
-> Stand 08.08.2026, Phase 2 Plan **1 von 7** ausgeführt (Leitschuss: Token-Schicht,
-> Kopfleiste, beide Startseiten-Körper, Prüftor `npm run verify:typo`).
-> TYPO-01 und TYPO-02 sind nach ihrem Wortlaut („Kopfleiste und Startseite") damit
-> erfüllt und maschinell belegt. **Der Betreiber hat den Umfang mit D-01 aber auf
-> site-weit erweitert** — die Pläne 02–07 tragen die Skala in 95 Dateien mit 1.961
-> Schriftgraden. Bis dahin gilt die Skala nicht überall.
-> TYPO-03 bleibt offen: es ist ein Sichturteil („lesen sich als ein
-> zusammenhängendes Bewegungsbild"), und die Sichtrunde steht aus — sie ist in
-> Plan 02 als menschlicher Prüfpunkt eingeplant.
+> Stand 08.08.2026, Phase 2 Plan **7 von 7** ausgeführt (Ratchet angehoben,
+> `verify:typo` sechs Zusicherungen, ins Dockerfile-Tor eingehaengt).
+> TYPO-01 und TYPO-02 gelten jetzt SITE-WEIT als erfüllt und maschinell belegt:
+> `node scripts/audit-typo-motion.mjs` meldet 0 skalenpflichtigen Rest über alle
+> 96 site-weiten Dateien (1.961 `font-size` + 863 `letter-spacing` + 660
+> Bedienübergang-Teile, siehe `.planning/WINDOWS.md` § Phase 2 Bilanz), und
+> `verify:typo` Zusicherung 6 hält diesen Stand als Dauerwächter fest.
+> TYPO-03 bleibt in der Traceability-Tabelle offen: die enge Sichtrunde
+> (Kopfleiste + Startseite, Plan 02) hat der Betreiber am 08.08.2026 bereits
+> abgenommen (siehe Häkchen unten und `WINDOWS.md` id 3, fixed) — die BREITERE
+> Schluss-Sichtrunde über die restlichen ~92 site-weit umgestellten Dateien
+> steht noch aus und ist als offener Punkt in `WINDOWS.md` id 5 an den
+> Betreiber übergeben.
 
 - [x] **TYPO-01**: Schriftgrade und Laufweiten der Kopfleiste und der Startseite folgen einer gemeinsamen Skala statt seitenlokaler Einzelwerte
 - [x] **TYPO-02**: Übergangsdauern und Beschleunigungskurven sind über die Startseite hinweg vereinheitlicht
@@ -308,12 +312,6 @@ ist anbieterneutral und bleibt gültig.
 | DOC-05 | Phase 1.2 | Complete |
 | DOC-06 | Phase 1.2 | Complete |
 | DOC-07 | Phase 1.2 | Complete |
-<!-- Stand 06.08.2026: Phase 1.2 Plan 5 von 5 ausgefuehrt — Refinery-Tracker als
-     elftes Werkzeug angehaengt, npm run verify:help --complete meldet 11 von 11.
-     DOC-01..07 oben auf dieser maschinellen Grundlage abgehakt. Die Sichtrunde
-     (12 Punkte + Annahmen A2/A4, Plan 05 Task 2b) ist an den Betreiber
-     zurueckgegeben und in 01.2-05-SUMMARY.md sowie WINDOWS.md nachvollziehbar. -->
-
 | DATA-01 | Phase 1.3 | Complete |
 | DATA-02 | Phase 1.3 | Complete |
 | DATA-03 | Phase 1.3 | Complete |
@@ -331,8 +329,8 @@ ist anbieterneutral und bleibt gültig.
 | VEH-06 | Phase 1.4 | Pending |
 | VEH-07 | Phase 1.4 | Complete |
 | VEH-08 | Phase 1.4 | Complete |
-| TYPO-01 | Phase 2 | Pending |
-| TYPO-02 | Phase 2 | Pending |
+| TYPO-01 | Phase 2 | Complete |
+| TYPO-02 | Phase 2 | Complete |
 | TYPO-03 | Phase 2 | Pending |
 | LAYER-01 | Phase 3 | Pending |
 | LAYER-02 | Phase 3 | Pending |
@@ -372,6 +370,18 @@ ist anbieterneutral und bleibt gültig.
 | CRAFT-02 | Phase 8 | Complete |
 | CRAFT-03 | Phase 8 | Complete |
 | CRAFT-04 | Phase 8 | Complete |
+
+<!-- Stand 06.08.2026: Phase 1.2 Plan 5 von 5 ausgefuehrt — Refinery-Tracker als
+     elftes Werkzeug angehaengt, npm run verify:help --complete meldet 11 von 11.
+     DOC-01..07 oben auf dieser maschinellen Grundlage abgehakt. Die Sichtrunde
+     (12 Punkte + Annahmen A2/A4, Plan 05 Task 2b) ist an den Betreiber
+     zurueckgegeben und in 01.2-05-SUMMARY.md sowie WINDOWS.md nachvollziehbar.
+     ⚠ 02-07: dieser Kommentar stand vorher MITTEN in der Traceability-Tabelle
+     (zwischen DOC-07 und DATA-01) und brach dort jede Zeilen-fuer-Zeile-Suche
+     eines Werkzeugs, das die Tabelle liest (z. B. `gsd-tools requirements
+     mark-complete`) -- die Suche stoppt an der ersten Zeile, die nicht mit `|`
+     beginnt. Hierher verschoben (Rule 3, blockierender Werkzeugfehler), Inhalt
+     unveraendert. -->
 
 **Coverage:**
 
