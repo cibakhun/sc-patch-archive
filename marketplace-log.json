@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-08",
-  "updates": 118,
-  "totalListings": 3514,
+  "updates": 119,
+  "totalListings": 3529,
   "totalSold": 147,
   "distinctItems": 923
  },
@@ -71372,6 +71372,10 @@
     {
      "d": "2026-08-08",
      "p": 1700000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 1600000
     }
    ],
    "soldOut": false,
@@ -74739,6 +74743,321 @@
    "soldOutPrice": null,
    "dateAdded": 1786196567,
    "dateExpiration": 1791380567
+  },
+  "160263": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "Taranite853,Corundum904,Riccite942,Iron874, saleout",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786197011,
+   "dateExpiration": 1791381011
+  },
+  "160264": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium 916Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786197160,
+   "dateExpiration": 1791381160
+  },
+  "160266": {
+   "idItem": 5859,
+   "idCategory": 36,
+   "title": "WTS Q854 Aslarite 0.09 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 854,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786197377,
+   "dateExpiration": 1791381377
+  },
+  "160267": {
+   "idItem": 5703,
+   "idCategory": 87,
+   "title": "Beradom 969Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 969,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 190000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786197701,
+   "dateExpiration": 1791381701
+  },
+  "160268": {
+   "idItem": 5703,
+   "idCategory": 87,
+   "title": "WTS Q937 Beradom",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786197891,
+   "dateExpiration": 1791381891
+  },
+  "160269": {
+   "idItem": 5160,
+   "idCategory": 18,
+   "title": "Pulverizer LMG and other weapons, P4,P6,Killshot camo,Gallant,Fs9 -970 iron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 888,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786198087,
+   "dateExpiration": 1791382087
+  },
+  "160270": {
+   "idItem": 3769,
+   "idCategory": 87,
+   "title": "WTS Q901 Dolivine",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 901,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786198384,
+   "dateExpiration": 1791382384
+  },
+  "160271": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Looking to buy 30 low quality Caranite for 3 Mil.",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 30,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786198395,
+   "dateExpiration": 1796566395
+  },
+  "160274": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 959 Quality",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786198934,
+   "dateExpiration": 1791382934
+  },
+  "160276": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "WTS WIKELO FAVORS FELLA PRICE",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 550000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786199203,
+   "dateExpiration": 1791383203
+  },
+  "160278": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "WTS 0.979SCU of Q874 Iron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786199313,
+   "dateExpiration": 1791383312
+  },
+  "160279": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "WTS - RCMBNT Full Set (9 containers)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786199398,
+   "dateExpiration": 1791383398
+  },
+  "160280": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "WTB VAALAKAR FANGS. QUICK RESPONSE GARANTEE WITHIN 8H",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786199545,
+   "dateExpiration": 1791383545
+  },
+  "160281": {
+   "idItem": 4992,
+   "idCategory": 7,
+   "title": "Corbel Mire Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786199568,
+   "dateExpiration": 1791383568
+  },
+  "160282": {
+   "idItem": 5923,
+   "idCategory": 36,
+   "title": "WTS 0.3 SCU of Q858 Laranite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 858,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786199647,
+   "dateExpiration": 1791383647
   }
  }
 }
