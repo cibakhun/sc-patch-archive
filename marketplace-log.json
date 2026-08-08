@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-08",
-  "updates": 121,
-  "totalListings": 3604,
+  "updates": 122,
+  "totalListings": 3609,
   "totalSold": 148,
   "distinctItems": 939
  },
@@ -66972,6 +66972,10 @@
     {
      "d": "2026-08-08",
      "p": 1400000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 1300000
     }
    ],
    "soldOut": false,
@@ -76661,6 +76665,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786206324,
    "dateExpiration": 1791390324
+  },
+  "160338": {
+   "idItem": 8046,
+   "idCategory": 7,
+   "title": "DCP Hunter Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786208878,
+   "dateExpiration": 1791392877
+  },
+  "160339": {
+   "idItem": 8045,
+   "idCategory": 7,
+   "title": "DCP Cobalt Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786209208,
+   "dateExpiration": 1791393208
+  },
+  "160340": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "Gold Q916",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786209245,
+   "dateExpiration": 1791393245
+  },
+  "160342": {
+   "idItem": 8047,
+   "idCategory": 7,
+   "title": "DCP Jungle Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786209379,
+   "dateExpiration": 1791393379
+  },
+  "160345": {
+   "idItem": 5323,
+   "idCategory": 17,
+   "title": "Gamma Plus \"Lumen\" (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786210084,
+   "dateExpiration": 1791394084
   }
  }
 }
