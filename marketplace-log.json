@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-08",
-  "updates": 122,
-  "totalListings": 3609,
-  "totalSold": 148,
-  "distinctItems": 939
+  "updates": 123,
+  "totalListings": 3631,
+  "totalSold": 150,
+  "distinctItems": 943
  },
  "listings": {
   "156580": {
@@ -66792,6 +66792,10 @@
     {
      "d": "2026-08-08",
      "p": 1250000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 1200000
     }
    ],
    "soldOut": true,
@@ -68436,6 +68440,48 @@
    "dateAdded": 1786125798,
    "dateExpiration": 1791309798
   },
+  "159923": {
+   "idItem": 7573,
+   "idCategory": 3,
+   "title": "Calva Helmet Daybreaker",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786125866,
+   "dateExpiration": 1791237600
+  },
+  "159924": {
+   "idItem": 6008,
+   "idCategory": 61,
+   "title": "Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786126191,
+   "dateExpiration": 1791237600
+  },
   "159925": {
    "idItem": null,
    "idCategory": 3,
@@ -69217,6 +69263,10 @@
     {
      "d": "2026-08-07",
      "p": 18000000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 16500000
     }
    ],
    "soldOut": false,
@@ -70334,6 +70384,10 @@
     {
      "d": "2026-08-08",
      "p": 350000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 150000
     }
    ],
    "soldOut": false,
@@ -71883,6 +71937,10 @@
     {
      "d": "2026-08-08",
      "p": 0
+    },
+    {
+     "d": "2026-08-08",
+     "p": 5000000
     }
    ],
    "soldOut": false,
@@ -72261,6 +72319,10 @@
     {
      "d": "2026-08-08",
      "p": 1200000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 1100000
     }
    ],
    "soldOut": false,
@@ -72303,6 +72365,10 @@
     {
      "d": "2026-08-08",
      "p": 400000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 350000
     }
    ],
    "soldOut": false,
@@ -73489,9 +73555,9 @@
      "p": 15000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-08",
+   "soldOutPrice": 15000000,
    "dateAdded": 1786182578,
    "dateExpiration": 1791366578
   },
@@ -76666,6 +76732,27 @@
    "dateAdded": 1786206324,
    "dateExpiration": 1791390324
   },
+  "160329": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786206623,
+   "dateExpiration": 1791390623
+  },
   "160338": {
    "idItem": 8046,
    "idCategory": 7,
@@ -76770,6 +76857,405 @@
    "soldOutPrice": null,
    "dateAdded": 1786210084,
    "dateExpiration": 1791394084
+  },
+  "160348": {
+   "idItem": 4583,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786211159,
+   "dateExpiration": 1791395158
+  },
+  "160349": {
+   "idItem": 5859,
+   "idCategory": 36,
+   "title": "Aslarite 927Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 927,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786211277,
+   "dateExpiration": 1791395277
+  },
+  "160350": {
+   "idItem": 6652,
+   "idCategory": 5,
+   "title": "Palatino Core Moonfall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 370000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786211532,
+   "dateExpiration": 1791395532
+  },
+  "160351": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite / 1000Q - 2M aUEC (8) / 975Q - 1M aUEC (24) / 916Q - 500K aUEC (8)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786211548,
+   "dateExpiration": 1791395548
+  },
+  "160354": {
+   "idItem": 6001,
+   "idCategory": 61,
+   "title": "UNE Gold Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786212126,
+   "dateExpiration": 1791396125
+  },
+  "160355": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite 870q .644 SCU. Payment up front.",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 870,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786212129,
+   "dateExpiration": 1791396129
+  },
+  "160356": {
+   "idItem": 4612,
+   "idCategory": 38,
+   "title": "DCHS-04 Power Processing Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 550000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786212137,
+   "dateExpiration": 1791396137
+  },
+  "160357": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786212207,
+   "dateExpiration": 1791396207
+  },
+  "160358": {
+   "idItem": 4614,
+   "idCategory": 38,
+   "title": "DCHS-07 Engineering Maintenance Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 550000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786212238,
+   "dateExpiration": 1791396238
+  },
+  "160364": {
+   "idItem": 4608,
+   "idCategory": 38,
+   "title": "DCHS-01 Executive Access Protocols Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 550000
+    }
+   ],
+   "soldOut": true,
+   "soldOutAt": "2026-08-08",
+   "soldOutPrice": 550000,
+   "dateAdded": 1786212634,
+   "dateExpiration": 1791396634
+  },
+  "160365": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure) for 15m",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786212641,
+   "dateExpiration": 1791396641
+  },
+  "160367": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite box of 20",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786212827,
+   "dateExpiration": 1791396827
+  },
+  "160369": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite 861",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 861,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786212986,
+   "dateExpiration": 1791396986
+  },
+  "160370": {
+   "idItem": 2283,
+   "idCategory": 3,
+   "title": "WTS Death's Head Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786213311,
+   "dateExpiration": 1791397311
+  },
+  "160372": {
+   "idItem": 2627,
+   "idCategory": 61,
+   "title": "Large Artifact Fragment (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786213518,
+   "dateExpiration": 1791397518
+  },
+  "160373": {
+   "idItem": 2456,
+   "idCategory": 1,
+   "title": "WTS Arden-SL Arms Balefire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786213704,
+   "dateExpiration": 1791397704
+  },
+  "160374": {
+   "idItem": 8026,
+   "idCategory": 7,
+   "title": "Corbel Crush Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786213947,
+   "dateExpiration": 1791397947
+  },
+  "160375": {
+   "idItem": 4441,
+   "idCategory": 3,
+   "title": "WTS Berserker Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786214011,
+   "dateExpiration": 1791398011
+  },
+  "160376": {
+   "idItem": 5685,
+   "idCategory": 18,
+   "title": "VCK-1 Blade",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786214462,
+   "dateExpiration": 1796582462
   }
  }
 }
