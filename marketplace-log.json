@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-08",
-  "updates": 113,
-  "totalListings": 3322,
-  "totalSold": 139,
-  "distinctItems": 909
+  "updates": 114,
+  "totalListings": 3326,
+  "totalSold": 141,
+  "distinctItems": 910
  },
  "listings": {
   "156580": {
@@ -66119,9 +66119,9 @@
      "p": 22000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-08",
+   "soldOutPrice": 22000000,
    "dateAdded": 1786099831,
    "dateExpiration": 1791283831
   },
@@ -68151,9 +68151,9 @@
      "p": 27000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-08",
+   "soldOutPrice": 27000000,
    "dateAdded": 1786123017,
    "dateExpiration": 1791307017
   },
@@ -70659,6 +70659,90 @@
    "soldOutPrice": null,
    "dateAdded": 1786147886,
    "dateExpiration": 1791331886
+  },
+  "160056": {
+   "idItem": 1748,
+   "idCategory": 23,
+   "title": "FR-66",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786152020,
+   "dateExpiration": 1791336020
+  },
+  "160059": {
+   "idItem": 937,
+   "idCategory": 21,
+   "title": "Slipstream",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 60000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786152359,
+   "dateExpiration": 1791336359
+  },
+  "160060": {
+   "idItem": 2037,
+   "idCategory": 21,
+   "title": "Maelstrom",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 60000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786152420,
+   "dateExpiration": 1791336420
+  },
+  "160061": {
+   "idItem": 2233,
+   "idCategory": 61,
+   "title": "PYAM Compboard FULL SET (1-7)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786154102,
+   "dateExpiration": 1791338102
   }
  }
 }
