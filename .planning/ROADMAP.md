@@ -219,14 +219,14 @@ sie mit.
   2. Übergänge auf der Startseite teilen sich Dauer und Beschleunigungskurve, statt jeder für sich zu laufen
   3. Ein Scrollen über die ganze Startseite zeigt keinen Bruch im Bewegungsverhalten zwischen Kopfleiste und Seiteninhalt
 
-**Plans**: 3/7 plans executed
+**Plans**: 4/7 plans executed
 
 Plans:
 
 - [x] 02-01-PLAN.md (Welle 1) — Leitschuss: die Skala aus der gemessenen Verteilung ableiten, als vierte Schicht in `assets/theme.css` legen und die ganze Kette an Kopfleiste und beiden Startseiten beweisen, bis ins gehashte `dist/_astro`-Bündel; dazu das bleibende Tor `verify:typo`
 - [x] 02-02-PLAN.md (Welle 2) — Die Wandlung aus Phase 1 nachmessen, bevor die Breite anfängt: Regressionstest auf die beiden Messeingänge, Sichtrunde benannt an den Betreiber
 - [x] 02-03-PLAN.md (Welle 3) — Der überprüfbare Massendurchlauf, erprobt an den sechs Stilblättern unter `assets/`; dabei die Entscheidung zu den Ären-Kurven des Patch-Archivs
-- [ ] 02-04-PLAN.md (Welle 4) — Werkzeug- und Bauteil-Körper (30 Dateien), inklusive der vier zur Laufzeit gesetzten Werte in `assets/*.js`
+- [x] 02-04-PLAN.md (Welle 4) — Werkzeug- und Bauteil-Körper (30 Dateien), inklusive der vier zur Laufzeit gesetzten Werte in `assets/*.js`
 - [ ] 02-05-PLAN.md (Welle 4) — Die 19 Patch-Körper; Design-Welten und Ambiente maschinell belegt unverändert
 - [ ] 02-06-PLAN.md (Welle 4) — Seitenpaare, Themen-Körper, Konto-Ansichten und Schiffsübersicht (40 Dateien); jedes DE/EN-Paar in einem Schritt
 - [ ] 02-07-PLAN.md (Welle 5) — Sperrklinke anziehen, `verify:typo` ans Dockerfile-Tor hängen, Schluss-Sichtrunde und Phasenbilanz
@@ -458,7 +458,7 @@ Phase 8 hängt ebenfalls an keiner Vorgängerphase und lief am 07.08.2026 durch.
 | 1. Wortmarken-Wandlung | 2/2 | Complete | 2026-07-28 |
 | 1.1 Ambiente-Effekte stilllegen | 2/3 | In Progress|  |
 | 1.2 Werkzeuge erklären | 5/5 | In Progress|  |
-| 2. Schrift- und Bewegungsskala | 3/7 | In Progress|  |
+| 2. Schrift- und Bewegungsskala | 4/7 | In Progress|  |
 | 3. Überlagerungen entstapeln | 0/2 | Not started | - |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
 | 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |

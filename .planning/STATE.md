@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: "Phase 2 Plan 03/07 ausgefuehrt (ueberpruefbarer Massendurchlauf scripts/migrate-typo-motion.mjs, sechs assets/*.css-Stilblaetter site-weit auf die Skala umgestellt); Plaene 04-07 fuehren sie in den restlichen ~89 Dateien fort"
-last_updated: "2026-08-08T15:35:00.000Z"
+stopped_at: Phase 2 Plan 04/07 ausgefuehrt (27 Werkzeug-/Bauteil-Koerper + Layout.astro auf die Skala umgestellt, 889 automatische Ersetzungen + 13 von Hand entschiedene Ausreisser, verify:fx/verify:help unveraendert gruen); Plaene 05-07 fuehren sie in den Patch-Koerpern und den restlichen Verzeichnissen fort
+last_updated: "2026-08-08T16:15:00.000Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
   total_phases: 10
   completed_phases: 6
   total_plans: 37
-  completed_plans: 27
+  completed_plans: 28
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -117,7 +117,7 @@ technisch fertig (5/5 Pläne, 11/11 Werkzeuge maschinell belegt), aber NICHT als
 der Mauszeiger-Schein ist auf `staging` bereits getilgt (0 Treffer für `cursorglow`/`--mx`),
 die Arbeit wäre ein Duplikat gewesen. Phase 1.1 bleibt hier bei 2/3.
 
-Progress: [███████░░░] 73%
+Progress: [████████░░] 76%
 
 ## Performance Metrics
 
@@ -206,6 +206,12 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 2]: 02-03: lokale Kurven-Aliase (archive.css --ease/--ease-out, data-page.css --dp-ease) werden generisch erkannt (eigene Definition zeigt auf ease-Keyword/cubic-bezier), nicht dateispezifisch festverdrahtet -- data-page.css war im Plan nicht namentlich genannt, --dp-ease nach vollstaendiger Migration seiner 6 Fundstellen als totes Token entfernt
 - [Phase ?]: [Phase 2]: 02-03: archive.css letter-spacing 0.5em (56% Abweichung) und drei weitere font-size-Ausreisser (9px x2, 1.7rem) waren vom Plan NICHT namentlich benannt, wurden aber vom Codemod mechanisch gefunden und nach D-05-Praezedenz von Hand auf die naechste Stufe gesetzt, siehe 02-03-SUMMARY.md
 - [Phase ?]: [Phase 2]: 02-03: REQUIREMENTS.md TYPO-01/02/03 bewusst NICHT auf "Complete" in der Traceability-Tabelle gesetzt -- site-weite Abdeckung ist erst nach Plan 07 vollstaendig (Plaene 04-07 stehen noch aus), Praezedenzfall aus 02-02-SUMMARY.md fortgefuehrt
+- [Phase ?]: [Phase 2]: 02-04: scripts/audit-typo-motion.mjs --only unterstuetzte nur EINEN Wert (indexOf statt Sammeln); auf collectFlagValues() umgestellt wie migrate-typo-motion.mjs -- ohne die Aenderung haetten die im Plan selbst vorgegebenen Mehrfach-`--only`-Verify-Befehle (auch in 02-05/06) still nur die erste Datei geprueft
+- [Phase ?]: [Phase 2]: 02-04: die plan-vorgegebene Verify-Formel "--only src/components/ --only src/layouts/" als exakte Dateiliste dieses Plans (28 Einzelpfade) interpretiert statt als Verzeichnis-Praefix -- woertlich ausgefuehrt haette sie faelschlich die noch nicht umgestellten Verzeichnisse patches/topics/account/ships (Eigentum von 02-05/06) erfasst
+- [Phase ?]: [Phase 2]: 02-04: FxToggle.astro vier "visibility 0s [linear] Xs"-Uebergaenge (0ms-Sichtbarkeits-Synchronisation, durch keine bestehende Ausnahmekategorie gedeckt) von Hand auf var(--dur-fast) gesetzt; Verzoegerungswerte bleiben immer woertlich -- neues Referenzmuster fuer 02-05/06, falls dort aehnliche Faelle auftauchen
+- [Phase ?]: [Phase 2]: 02-04: ItemFinderPage.astro letter-spacing 0.44em (27% Abweichung, zweitgroesster Ausreisser der Phase) auf var(--ls-20) gerastet; das gekoppelte text-indent (laut Quellkommentar exakte Kompensation der Sperrung) im selben Schritt mitgezogen
+- [Phase ?]: [Phase 2]: 02-04: assets/hero-video.js transition:opacity 1.4s ease bewusst NICHT migriert (Ambient-Loop laut eigenem Kommentar, 1400ms weit ueber der 350ms-Bedienuebergang-Schwelle) -- Praezedenz aus 02-03 (archive.css Aeren-Uebergaenge) fortgefuehrt
+- [Phase ?]: [Phase 2]: 02-04: REQUIREMENTS.md TYPO-01/02/03 weiterhin NICHT auf "Complete" gesetzt -- site-weite Abdeckung ist erst nach Plan 07 vollstaendig (Plaene 05-07 stehen noch aus)
 
 ### Pending Todos
 
@@ -253,6 +259,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-08T15:35:00.000Z
-Stopped at: Phase 2 Plan 03/07 ausgefuehrt (scripts/migrate-typo-motion.mjs gebaut und an sechs assets/*.css-Stilblaettern erprobt, 615 Ersetzungen + 9 von Hand entschiedene Ausreisser); Plaene 04-07 fuehren die Skala in den restlichen ~89 Dateien fort
+Last session: 2026-08-08T16:15:00.000Z
+Stopped at: Phase 2 Plan 04/07 ausgefuehrt (27 Werkzeug-/Bauteil-Koerper + Layout.astro auf die Skala umgestellt, 889 automatische Ersetzungen + 13 von Hand entschiedene Ausreisser, verify:fx/verify:help unveraendert gruen); Plaene 05-07 fuehren die Skala in den Patch-Koerpern und den restlichen Verzeichnissen fort
 Resume file: None
