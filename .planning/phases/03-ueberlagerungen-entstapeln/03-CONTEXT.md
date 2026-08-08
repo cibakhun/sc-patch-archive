@@ -63,6 +63,37 @@ Phase 1.1. Der Planer muss die eigene Erhebung ansetzen, nicht CONCERNS zitieren
   Farbmodi**. Nicht nur messen und dokumentieren: der Wert ist eine Zielmarke, die erreicht
   werden muss.
 
+### Nachträglich entschieden (08.08.2026, nach der Recherche)
+
+Die Recherche hat zwei Punkte aufgeworfen, die dieser Kontext beim Neu-Erheben nicht behandelt
+hatte. Beide sind vom Betreiber entschieden:
+
+- **D-05: `/archiv` kommt mit dazu.** Die Recherche fand denselben `.reveal`-Fehler ein zweites
+  Mal im eigenen Design-System der Archivseite (`assets/archive.js` / `assets/archive.css`) —
+  weder in CONCERNS noch in diesem Kontext erwähnt. Dieselbe Ursache, dieselbe Lösung, zwei
+  Zeilen. Ihn stehen zu lassen hieße, einen bekannten Defekt auf einer der sichtbarsten Seiten
+  wissentlich zu übergehen.
+- **D-06: B-4 (Blend-Modus über Text) wird zurückgestellt.** `#embers` mit
+  `mix-blend-mode:screen` steht in der Class-B-Tabelle, läuft aber seit Phase 1.1 nur noch, wenn
+  ein Besucher die Effekte ausdrücklich einschaltet — der Standard ist AUS. Damit ist die Wirkung
+  über Text ein Sonderfall und kein Regelfall; die Phase bleibt auf das gerichtet, was jeden
+  Besucher trifft. Steht in „Deferred Ideas" unten.
+
+### Vom Orchestrator entschieden (Ermessensspielraum aus diesem Kontext)
+
+- **Das Kontrast-Tor wird ein bleibendes `npm run verify:*`-Skript** und geht ins Dockerfile-Tor,
+  wie `verify:fx`, `verify:help` und `verify:typo` vor ihm. Eine einmalige Erhebung würde beim
+  ersten Umbau still veralten.
+- **Die „betroffenen Stellen" für LAYER-02 werden vollständig aufgezählt, nicht stichprobenhaft.**
+  Die Aufzählung und ihre Begründung gehören in den Plan.
+
+### Wichtiger Fund der Recherche, der den Zuschnitt ändert
+
+⚠ **Die 19 Patch-Körper tragen jeweils eine EIGENE Inline-Kopie von `body::after`** und verlinken
+`assets/detail.css` überhaupt nicht. Eine Änderung an der geteilten Datei erreicht sie also
+nicht — D-01 muss 19-mal repliziert werden. Der Planer muss das einkalkulieren, sonst sieht die
+Phase nach einer Datei aus und ist in Wahrheit zwanzig.
+
 ### Claude's Discretion
 - Wie „Bild-/Hero-Bereich" und „Textspalte" technisch abgegrenzt werden (eigene Klassen,
   Container-Query, `:has()`, eigene Pseudo-Elemente je Bereich)
@@ -139,9 +170,11 @@ gegen Hintergrundfarbe im CSS vergleicht, übersieht genau das, worum es in dies
 <deferred>
 ## Deferred Ideas
 
-- `#embers` (`mix-blend-mode:screen`) und `#stars` grundsätzlich überarbeiten — sie stehen in der
-  Class-B-Tabelle, laufen aber seit Phase 1.1 nur noch auf ausdrücklichen Wunsch. Ihre Wirkung
-  über Text ist damit ein Sonderfall, kein Regelfall.
+- **B-4 — Blend-Modus über Text** (`#embers`, `mix-blend-mode:screen`) und `#stars`
+  grundsätzlich überarbeiten. Ausdrücklich zurückgestellt (D-06): beide laufen seit Phase 1.1 nur
+  noch auf ausdrücklichen Wunsch, der Standard ist AUS. Ihre Wirkung über Text ist damit ein
+  Sonderfall, kein Regelfall. Falls die Effekte später einmal zum Standard würden, gehört B-4
+  wieder auf den Tisch.
 - Die Scrim-Werte (`--scrim-1` bis `--scrim-4`) als eigene Skala vereinheitlichen — wäre die
   logische Fortsetzung von Phase 2, ist hier aber nicht verlangt.
 
