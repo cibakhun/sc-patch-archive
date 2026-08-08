@@ -182,6 +182,7 @@ Progress: [████████░░] 76%
 | Phase 03-ueberlagerungen-entstapeln P02 | 41min | 2 tasks | 2 files |
 | Phase 03-ueberlagerungen-entstapeln P03 | ~30min | 2 tasks | 23 files |
 | Phase 03-ueberlagerungen-entstapeln P04 | ~25min | 2 tasks | 22 files |
+| Phase 03-ueberlagerungen-entstapeln P05 | ~2h | 3 tasks | 25 files |
 
 ## Accumulated Context
 
@@ -251,6 +252,9 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 3]: 03-03: assets/archive.js revealIO/nodeIO auf threshold:0 (D-05, wie assets/detail.js nach Plan 01) -- archive.css unangetastet, beide genannten Fundstellen bereits korrekt
 - [Phase ?]: [Phase 3]: 03-03: 21 defensive .reveal-Notregeln entfernt (D-03), 21 -> 0 belegt, 8/8 DE/EN-Paare symmetrisch; zwei Rule-1-Bugs durch eigene Aenderung gefunden+behoben (verify-layers.mjs revealIO-Beobachtungswert, PilotPage.astro </style> nach vorbestehendem eingebettetem \r wiederhergestellt)
 - [Phase ?]: [Phase 3]: 03-04: alle 19 Patch-Koerper per migrate-layers.mjs (Volltext-Ersatz statt zeilenweise, Lehre aus 03-03) auf den Stand des geteilten Systems gehoben -- 19 body::after maskiert, 87 Rasterregeln (hero=19,shot=19,tile.img=19,video=17,ship=13), 19 Beobachter geheilt; alle Soll-Zahlen trafen exakt ein (0 Abbrueche), animation:133/transition:160 unveraendert; verify-layers.mjs Zusicherung 1+3 fuer Patch-Kopien von Beobachtungswert auf scharf umgestellt, neuer --patches-Vorablauf; LAYER-01 komplett abgetragen
+- [Phase ?]: [Phase 3]: 03-05: scripts/lib/layer-registry.mjs (neu) fuehrt 25 Registry-Eintraege (A1-A10, B1-B6 ueber alle 19 Patch-Koerper, C1-C3, D1-D5) vollstaendig auf; verify-layers.mjs Zusicherung 5 (Vollstaendigkeitswaechter gegen den gebauten Stand) fand beim ersten Lauf 18 vorher unbekannte Selektor-Familien site-weit, 5 davon echte Text-auf-Foto-Stellen (Item Finder, Ships Overview, Startseite, eine Themenseite, ein Patch-eigenes Video) -- als D1-D5 aufgenommen statt uebergangen
+- [Phase ?]: [Phase 3]: 03-05: Leitbefund aus 03-01 behoben -- Hero-Fliesstext hell 2,93:1 -> 18,34:1 durch verschobenen Verlauf-Stopp (Plateau 55%-90% statt sofortiger Interpolation Richtung --bg), --ambient-opacity unveraendert 0.5/0.4, Palette unangetastet; woertlich derselbe Fix in allen 19 Patch-Koerpern (.hero__photo::after + .shot::after)
+- [Phase ?]: [Phase 3]: 03-05: zwei eigenstaendige Rule-1-Kontrastbugs gefunden+behoben (.fcard auf Themenseite 4-0-1 nutzte Flaechen- statt Medien-Tokens; ShipsOverview.astro .sdb__sub trug eine fixe Farbe mit falschem generiertem Hellmodus-Override); 344 Einzelmessungen insgesamt, 0 unter der WCAG-AA-Marke; verify:layers haengt jetzt im Dockerfile-Tor nach verify:typo; LAYER-01/LAYER-02 komplett; Sichtrunde als WINDOWS.md id 6 an den Betreiber uebergeben, Phase 3 technisch fertig (5/5 Plaene), NICHT "Complete" solange id 6 offen ist
 
 ### Pending Todos
 

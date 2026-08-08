@@ -264,7 +264,7 @@ FX-07-Präzedenzfall Ambiente und wird nicht angefasst.
   2. Für jede betroffene Stelle liegt ein gemessener Kontrastwert für Hell- und Dunkelmodus vor
   3. Die Bildmotive tragen die Seite optisch weiterhin — die Entstapelung hat sie nicht flachgeschleift
 
-**Plans**: 2/5 plans executed
+**Plans**: 5/5 plans executed
 
 Plans:
 
@@ -272,7 +272,7 @@ Plans:
 - [x] 03-02-PLAN.md (Welle 2) — Das geteilte System zu Ende: die sieben übrigen Medien-Archetypen bekommen ihr Raster; `.sstep` wird ohne JavaScript und bei reduzierter Bewegung voll lesbar (D-02)
 - [x] 03-03-PLAN.md (Welle 2) — `/archiv` heilen (D-05, zweite unabhängige Umsetzung desselben Rechenfehlers) und die 21 defensiven `!important`-Overrides ersatzlos abtragen — belegbar 21 → 0
 - [x] 03-04-PLAN.md (Welle 3) — Die 19 Patch-Körper per überprüfbarem Massendurchlauf: 19 `body::after`-Kopien, 87 neue Rasterregeln, 19 eigene Beobachter; Design-Welten maschinell belegt unverändert
-- [ ] 03-05-PLAN.md (Welle 4) — Vollständige, maschinell geschlossene Aufzählung der Messstellen, WCAG-AA in beiden Farbmodi erreichen und scharf stellen, `verify:layers` ans Dockerfile-Tor, Sichtrunde an den Betreiber
+- [x] 03-05-PLAN.md (Welle 4) — Vollständige, maschinell geschlossene Aufzählung der Messstellen (25 Registry-Einträge, 344 Messungen), WCAG-AA in beiden Farbmodi erreicht (Hero-Leitbefund 2,93:1 → 18,34:1), `verify:layers` ans Dockerfile-Tor gehängt, Sichtrunde als WINDOWS.md id 6 an den Betreiber übergeben — Phase technisch fertig, nicht als "Complete" markiert
 
 ⚠ **Fünf statt zwei Pläne.** Die Zahl „2" stammt aus der Init-Granularität. Beim Zuschnitt am
 08.08.2026 hat der Planer gegen den Bestand nachgemessen — mit demselben Ergebnis wie in
