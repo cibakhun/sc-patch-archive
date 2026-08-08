@@ -44,8 +44,15 @@ a{color:inherit;text-decoration:none}
 /* ---- Ambient overlays (match patch pages) ----
    Vignette + Scanlines sind Dunkelmodus-Mittel. Im Hellmodus sind die
    Tokens fast auf null gesetzt (assets/theme.css) — auf Papier wirkte
-   das sonst wie Schmutz auf dem Bildschirm. */
-body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 42%,transparent 54%,var(--vignette) 100%),repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
+   das sonst wie Schmutz auf dem Bildschirm.
+   D-01 (Phase 3, Plan 1): das Zeilenraster ist HIER RAUS — es zog nach
+   .hero::before (unter den Text). Die Vignette bleibt global, wird aber
+   ueber der Textspalte ausmaskiert: die Maske liest dieselbe --maxw-
+   Breite, die .wrap/.hero__in als Spalte benutzen, mit 80px Weichzeichnung
+   AUSSERHALB der Spalte (nicht innerhalb — sonst friesse die Feder
+   Schutzbreite von der Spalte weg). Beide Maskenschreibweisen Pflicht,
+   Reihenfolge wie bei -webkit-background-clip/background-clip (Z. 104). */
+body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 42%,transparent 54%,var(--vignette) 100%);opacity:var(--ambient-opacity);-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - var(--maxw)/2 - 80px),transparent calc(50% - var(--maxw)/2),transparent calc(50% + var(--maxw)/2),#000 calc(50% + var(--maxw)/2 + 80px),#000 100%);mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - var(--maxw)/2 - 80px),transparent calc(50% - var(--maxw)/2),transparent calc(50% + var(--maxw)/2),#000 calc(50% + var(--maxw)/2 + 80px),#000 100%)}
 
 /* ---- Topbar ---- */
 .topbar{position:fixed;top:0;left:0;right:0;z-index:9100;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem clamp(1rem,4vw,2.5rem);background:linear-gradient(180deg,var(--chrome-top),transparent);backdrop-filter:blur(6px);transition:background var(--dur-slow) var(--ease-ui)}
@@ -84,6 +91,13 @@ section{position:relative;padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem)
    von selbst sauber in die Seitenfläche über. Nur der Schleier über dem
    Motiv bleibt dunkel, weil das Motiv dunkel ist. */
 .hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--scrim-2),var(--scrim-4) 55%,var(--bg)),radial-gradient(120% 90% at 78% 18%,transparent,var(--bg) 86%)}
+/* D-01: Zeilenraster lebt jetzt hier statt in body::after — z-index:1 setzt
+   es ueber .hero__photo (0) und UNTER .hero__in (2), also nicht mehr ueber
+   dem Text. Deckkraft und Scrim bleiben getrennte Regler (eigene
+   background-Deklaration statt gemeinsamer Liste mit .hero__photo::after),
+   sonst wuerde --ambient-opacity auch den Scrim mitskalieren. .hero traegt
+   bereits position:relative + overflow:hidden (Z. 80). */
+.hero::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
 /* Hero-Ambient-Loop (detail.js): Video liegt über dem Standbild, der
    ::after-Gradient bleibt darüber (Text-Lesbarkeit). Ken-Burns stoppt,
    sobald das Video sichtbar ist. */

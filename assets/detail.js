@@ -6,7 +6,7 @@
   var tb=document.getElementById('topbar');
   if(tb) addEventListener('scroll',function(){tb.classList.toggle('scrolled',scrollY>40);},{passive:true});
 
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{rootMargin:'0px 0px -10% 0px',threshold:0});
   document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
 
   // Click-to-load video — the inner .play <button> is the keyboard-accessible trigger
