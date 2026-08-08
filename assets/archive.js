@@ -114,7 +114,7 @@
             nodeIO.unobserve(e.target);
           });
         },
-        { rootMargin: '0px 0px -12% 0px', threshold: 0.05 }
+        { rootMargin: '0px 0px -12% 0px', threshold: 0 }
       );
       nodes.forEach(function (el) {
         nodeIO.observe(el);
@@ -130,7 +130,7 @@
         revealIO.unobserve(e.target);
       });
     },
-    { threshold: 0.12 }
+    { rootMargin: '0px 0px -10% 0px', threshold: 0 }
   );
   $$('.reveal').forEach(function (el) {
     revealIO.observe(el);
