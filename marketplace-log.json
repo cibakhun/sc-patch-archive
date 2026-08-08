@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-08",
-  "updates": 112,
-  "totalListings": 3311,
-  "totalSold": 137,
-  "distinctItems": 907
+  "updates": 113,
+  "totalListings": 3322,
+  "totalSold": 139,
+  "distinctItems": 909
  },
  "listings": {
   "156580": {
@@ -64006,6 +64006,10 @@
     {
      "d": "2026-08-07",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 2200000
     }
    ],
    "soldOut": false,
@@ -65260,11 +65264,15 @@
    "currency": "UEC",
    "quality": 965,
    "firstSeen": "2026-08-07",
-   "lastSeen": "2026-08-07",
+   "lastSeen": "2026-08-08",
    "prices": [
     {
      "d": "2026-08-07",
      "p": 109000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 1400000
     }
    ],
    "soldOut": false,
@@ -65496,6 +65504,10 @@
     {
      "d": "2026-08-07",
      "p": 900000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -67162,7 +67174,7 @@
    "currency": "UEC",
    "quality": 747,
    "firstSeen": "2026-08-07",
-   "lastSeen": "2026-08-07",
+   "lastSeen": "2026-08-08",
    "prices": [
     {
      "d": "2026-08-07",
@@ -67232,9 +67244,9 @@
      "p": 10000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-08",
+   "soldOutPrice": 10000000,
    "dateAdded": 1786115112,
    "dateExpiration": 1791299112
   },
@@ -68013,9 +68025,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-08",
+   "soldOutPrice": 1000000,
    "dateAdded": 1786122010,
    "dateExpiration": 1791306010
   },
@@ -68410,6 +68422,10 @@
     {
      "d": "2026-08-07",
      "p": 10000000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 19000000
     }
    ],
    "soldOut": false,
@@ -69405,6 +69421,27 @@
    "dateAdded": 1786138639,
    "dateExpiration": 1791322639
   },
+  "159974": {
+   "idItem": null,
+   "idCategory": 3,
+   "title": "WTT Ace Interceptor Helmet",
+   "operation": "trade",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786138689,
+   "dateExpiration": 1791322689
+  },
   "159975": {
    "idItem": 3933,
    "idCategory": 24,
@@ -69509,6 +69546,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786139922,
    "dateExpiration": 1791323922
+  },
+  "159981": {
+   "idItem": 1757,
+   "idCategory": 21,
+   "title": "QuadraCell / JS-300 (plus 3 power pipes)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 6500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786139974,
+   "dateExpiration": 1791323974
   },
   "159984": {
    "idItem": 4453,
@@ -70412,6 +70470,195 @@
    "soldOutPrice": 17000000,
    "dateAdded": 1786146312,
    "dateExpiration": 1791330312
+  },
+  "160041": {
+   "idItem": 8039,
+   "idCategory": 7,
+   "title": "Defiance Sunchaser (Full set) (Looted)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786146769,
+   "dateExpiration": 1791330769
+  },
+  "160044": {
+   "idItem": 8040,
+   "idCategory": 7,
+   "title": "Defiance Firestarter (Full Set) (Looted)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786147196,
+   "dateExpiration": 1791331196
+  },
+  "160045": {
+   "idItem": 4982,
+   "idCategory": 7,
+   "title": "Corbel Patina Set (crafted) -44% damage (backpack included)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786147486,
+   "dateExpiration": 1791331486
+  },
+  "160046": {
+   "idItem": 4987,
+   "idCategory": 7,
+   "title": "Corbel Halcyon Set (crafted) -44% damage (backpack included)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786147549,
+   "dateExpiration": 1791331549
+  },
+  "160047": {
+   "idItem": 4992,
+   "idCategory": 7,
+   "title": "Corbel Mire Set (crafted) -44% damage (backpack included)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786147624,
+   "dateExpiration": 1791331624
+  },
+  "160048": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Orc-mkV Covalex Edition (Full set) (Looted)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786147637,
+   "dateExpiration": 1791331637
+  },
+  "160049": {
+   "idItem": 4991,
+   "idCategory": 7,
+   "title": "Corbel Smolder Set (crafted) -44% damage (backpack included)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786147680,
+   "dateExpiration": 1791331679
+  },
+  "160050": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Orc-mkV Cry-Astro Edition (Full set) (Looted)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786147855,
+   "dateExpiration": 1791331855
+  },
+  "160051": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron - 970 qual (4.9)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786147886,
+   "dateExpiration": 1791331886
   }
  }
 }
