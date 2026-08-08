@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: "Phase 2 Plan 02/07 ausgefuehrt (Regressionstor fuer die Hero<->Leiste-Wandlung + Sichtrunde in WINDOWS.md hinterlegt); Plaene 03-07 fuehren die Skala site-weit fort"
-last_updated: "2026-08-08T14:45:00.000Z"
+stopped_at: "Phase 2 Plan 03/07 ausgefuehrt (ueberpruefbarer Massendurchlauf scripts/migrate-typo-motion.mjs, sechs assets/*.css-Stilblaetter site-weit auf die Skala umgestellt); Plaene 04-07 fuehren sie in den restlichen ~89 Dateien fort"
+last_updated: "2026-08-08T15:35:00.000Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
   total_phases: 10
   completed_phases: 6
   total_plans: 37
-  completed_plans: 26
+  completed_plans: 27
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -117,7 +117,7 @@ technisch fertig (5/5 Pläne, 11/11 Werkzeuge maschinell belegt), aber NICHT als
 der Mauszeiger-Schein ist auf `staging` bereits getilgt (0 Treffer für `cursorglow`/`--mx`),
 die Arbeit wäre ein Duplikat gewesen. Phase 1.1 bleibt hier bei 2/3.
 
-Progress: [███████░░░] 70%
+Progress: [███████░░░] 73%
 
 ## Performance Metrics
 
@@ -158,6 +158,7 @@ Progress: [███████░░░] 70%
 | Phase 01.2 P05 | ~40min | 2 tasks | 4 files |
 | Phase 02 P01 | ~55min | 3 tasks | 5 files |
 | Phase 02 P02 | ~40min | 2 tasks | 2 files |
+| Phase 02 P03 | ~90min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -200,6 +201,11 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 2]: 02-01: Audit-Skript zaehlt Bedienuebergaenge als ui+token statt nur ui, damit spaetere Plaene (03-06) den erreichten Ist-Stand nicht als Regression melden
 - [Phase ?]: [Phase 2]: 02-02: tests/e2e/typo-motion-morph.test.js pinnt die beiden Messeingaenge von measureMorph() (--fs-10=1rem, --ls-15=0.18em) gegen dist/ als bleibendes Regressionstor vor der site-weiten Breite (Plaene 03-07); Negativkontrolle durchgefuehrt (--fs-10 testweise auf 0.95rem, Test schlug fehl, zurueckgesetzt)
 - [Phase ?]: [Phase 2]: 02-02: die menschliche Sichtrunde (Erfolgskriterium 3) bewusst NICHT vom Executor durchgefuehrt (human_verify_mode: end-of-phase) -- als offener Eintrag id 3 in WINDOWS.md hinterlegt, wird in Plan 07 mit der Schluss-Sichtrunde zusammengefuehrt; dabei die seit Phase 1.2 nicht mehr nachgerechnete Ledger-Kopfzeile (fixed_count/total_count) korrigiert
+- [Phase ?]: [Phase 2]: 02-03: Zuordnungslogik aus audit-typo-motion.mjs nach scripts/lib/typo-motion.mjs herausgezogen -- Erhebung UND Massendurchlauf teilen sich jetzt EIN Modul, koennen nicht mehr auseinanderdriften
+- [Phase ?]: [Phase 2]: 02-03: migrate-typo-motion.mjs nutzt zwei VERSCHIEDENE, je nach Eigenschaft etablierte Ausreisser-Schwellen (font-size: >6% relativ, letter-spacing: >0.02em absolut, aus 02-01-PLAN.md uebernommen, nicht neu erfunden) -- eine einheitliche 6%-Schwelle haette bei Laufweiten-Werten praktisch jeden zweiten Wert als Ausreisser gemeldet
+- [Phase ?]: [Phase 2]: 02-03: lokale Kurven-Aliase (archive.css --ease/--ease-out, data-page.css --dp-ease) werden generisch erkannt (eigene Definition zeigt auf ease-Keyword/cubic-bezier), nicht dateispezifisch festverdrahtet -- data-page.css war im Plan nicht namentlich genannt, --dp-ease nach vollstaendiger Migration seiner 6 Fundstellen als totes Token entfernt
+- [Phase ?]: [Phase 2]: 02-03: archive.css letter-spacing 0.5em (56% Abweichung) und drei weitere font-size-Ausreisser (9px x2, 1.7rem) waren vom Plan NICHT namentlich benannt, wurden aber vom Codemod mechanisch gefunden und nach D-05-Praezedenz von Hand auf die naechste Stufe gesetzt, siehe 02-03-SUMMARY.md
+- [Phase ?]: [Phase 2]: 02-03: REQUIREMENTS.md TYPO-01/02/03 bewusst NICHT auf "Complete" in der Traceability-Tabelle gesetzt -- site-weite Abdeckung ist erst nach Plan 07 vollstaendig (Plaene 04-07 stehen noch aus), Praezedenzfall aus 02-02-SUMMARY.md fortgefuehrt
 
 ### Pending Todos
 
@@ -247,6 +253,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-08T14:45:00.000Z
-Stopped at: Phase 2 Plan 02/07 ausgefuehrt (Regressionstor tests/e2e/typo-motion-morph.test.js + Sichtrunde Phase 2 als offener Eintrag id 3 in WINDOWS.md); Plaene 03-07 fuehren die Skala site-weit fort
+Last session: 2026-08-08T15:35:00.000Z
+Stopped at: Phase 2 Plan 03/07 ausgefuehrt (scripts/migrate-typo-motion.mjs gebaut und an sechs assets/*.css-Stilblaettern erprobt, 615 Ersetzungen + 9 von Hand entschiedene Ausreisser); Plaene 04-07 fuehren die Skala in den restlichen ~89 Dateien fort
 Resume file: None
