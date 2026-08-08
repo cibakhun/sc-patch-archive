@@ -355,8 +355,16 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 .scrolly__media::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
 .scrolly__media::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,var(--scrim-5),var(--scrim-1) 50%,transparent),linear-gradient(0deg,var(--bg),var(--scrim-1) 10%,transparent 32%)}
 .scrolly__steps{position:relative;z-index:2;margin-top:-100vh;max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(1.25rem,5vw,4rem)}
-.sstep{min-height:74vh;display:flex;flex-direction:column;justify-content:center;gap:.7rem;opacity:.5;transition:opacity .5s}
-.sstep.active{opacity:1}
+/* D-02 (Phase 3, Plan 2): .sstep ist jetzt ohne JavaScript UND vor dem ersten
+   IntersectionObserver-Durchlauf undurchsichtig -- die Abdunklung inaktiver
+   Schritte greift NUR, wenn detail.js das Attribut data-sstep-live gesetzt hat
+   (unmittelbar nach dem ersten setActive(0), siehe detail.js). Ohne dieses
+   Attribut existiert die Abdunklungsregel schlicht nicht: kein Kurzschluss
+   ueber :not(.active), der vor dem ersten JS-Tick faelschlich JEDEN Schritt
+   trifft (der Fehler, den D-02 ausdruecklich ausschliesst). Die Bewegung
+   blendet dadurch von voller Deckkraft WEG statt zu ihr HIN. */
+.sstep{min-height:74vh;display:flex;flex-direction:column;justify-content:center;gap:.7rem;opacity:1;transition:opacity .5s}
+.scrolly[data-sstep-live] .sstep:not(.active){opacity:.5}
 .sstep .sn{font-family:var(--font-display);font-weight:900;font-size:clamp(3.5rem,8vw,7rem);line-height:.85;color:transparent;-webkit-text-stroke:2px var(--accent-media);transition:color .5s,text-shadow .5s}
 .sstep.active .sn{color:var(--accent-media);text-shadow:0 0 42px color-mix(in srgb,var(--accent-media) 50%,transparent)}
 .sstep h3{font-family:var(--font-display);font-weight:800;font-size:clamp(1.7rem,3.4vw,2.7rem);color:var(--on-media);text-shadow:0 2px 16px var(--on-media-shadow)}
@@ -373,4 +381,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   .versus .vs{display:none}
   .editorial__card{margin-top:-14%;width:92%}
 }
-@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
+/* D-02 (b): der bestehende Allquantor unten (*{animation:none!important})
+   schaltet nur animation ab -- .sstep und .sstep .sn ueberblenden per
+   transition, einem anderen Mechanismus, der davon unberuehrt bleibt. Beide
+   bekommen hier ausdruecklich transition:none; die Abdunklung inaktiver
+   Schritte (an data-sstep-live gebunden) entfaellt in diesem Modus ebenfalls. */
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}.sstep{opacity:1;transition:none}.sstep .sn{transition:none}.scrolly[data-sstep-live] .sstep:not(.active){opacity:1}*{animation:none!important}}

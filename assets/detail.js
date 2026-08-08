@@ -150,6 +150,11 @@
     var frames=[].slice.call(sc.querySelectorAll('.scrolly__media .frame'));
     function setActive(i){steps.forEach(function(s,k){s.classList.toggle('active',k===i);});frames.forEach(function(f,k){f.classList.toggle('active',k===i);});}
     setActive(0);
+    // D-02 (Phase 3, Plan 2): Betriebsmarke fuer die CSS-Abdunklung inaktiver
+    // .sstep — existiert NUR nach diesem Punkt, ausschliesslich durch JS
+    // gesetzt. Ohne sie bleiben alle Schritte auf voller Deckkraft
+    // (detail.css .sstep-Standardregel), auch wenn kein JS je laeuft.
+    sc.setAttribute('data-sstep-live', '');
     var sio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){var i=steps.indexOf(e.target);if(i>=0)setActive(i);}});},{rootMargin:'-45% 0px -45% 0px',threshold:0});
     steps.forEach(function(s){sio.observe(s);});
   });
