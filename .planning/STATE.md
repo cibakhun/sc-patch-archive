@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: Phase 1.2 Plan 5/5 ausgefuehrt (Refinery-Tracker, Phasen-Tor 11/11 gruen); Sichtrunde an Betreiber zurueckgegeben; Phase 5 Spenden weiter offen
-last_updated: "2026-08-06T18:13:32.000Z"
-last_activity: 2026-08-06
-last_activity_desc: "Phase 1.2 Plan 5/5 ausgefuehrt (Refinery-Tracker, Phasen-Tor 11/11 gruen, Sichtrunde ausstehend); Phase 5 weiter offen"
+stopped_at: "Phase 2 Plan 01/07 ausgefuehrt (Tracer: Token-Schicht, SiteNav, beide index.astro, verify:typo); Plaene 02-07 fuehren die Skala site-weit fort"
+last_updated: "2026-08-08T12:31:43.407Z"
+last_activity: 2026-08-02
+last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
-  total_phases: 8
-  completed_phases: 4
-  total_plans: 27
-  completed_plans: 21
+  total_phases: 10
+  completed_phases: 6
+  total_plans: 37
+  completed_plans: 25
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -117,7 +117,7 @@ technisch fertig (5/5 Pläne, 11/11 Werkzeuge maschinell belegt), aber NICHT als
 der Mauszeiger-Schein ist auf `staging` bereits getilgt (0 Treffer für `cursorglow`/`--mx`),
 die Arbeit wäre ein Duplikat gewesen. Phase 1.1 bleibt hier bei 2/3.
 
-Progress: [███████░░░] 78%
+Progress: [███████░░░] 68%
 
 ## Performance Metrics
 
@@ -156,6 +156,7 @@ Progress: [███████░░░] 78%
 | Phase 1.2 P03 | ~40min | 2 tasks | 5 files |
 | Phase 01.2 P04 | ~35min | 2 tasks | 3 files |
 | Phase 01.2 P05 | ~40min | 2 tasks | 4 files |
+| Phase 02 P01 | ~55min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -194,6 +195,8 @@ Recent decisions affecting current work:
 - [Phase 1.2]: 01.2-04: Precision-Jump-Platzierung (vor .pj-console, kein Filterleiste) im Code als Annahme A2 markiert, zur Bestaetigung im Phasen-Tor von Plan 05
 - [Phase 1.2]: 01.2-05: ToolHelp sitzt INNERHALB des serverseitig hidden-Blocks div#rfd (Regel R-1) — die Sprachparitaetspruefung greift trotzdem unveraendert, weil hidden ein Sichtbarkeits-Attribut ist, kein Ausschluss aus dem ausgelieferten HTML (ausdruecklich NICHT der Item-Finder-Fall)
 - [Phase 1.2]: 01.2-05: DOC-01 bis DOC-07 auf Grundlage von verify-help.mjs --complete (11/11) abgehakt; die im Plan verlangte Sichtrunde (12 Punkte + Annahmen A2/A4) wurde bewusst NICHT vom Executor durchgefuehrt (braucht angemeldetes Konto + menschliches Urteil) und ist als offener Punkt in WINDOWS.md (id 2) an den Betreiber zurueckgegeben — Phase 1.2 bleibt deshalb "In Progress", nicht "Complete"
+- [Phase ?]: [Phase 2]: 02-01: Ausgangszahlen aus PLAN.md (1968/95/865/663) durch rigorosen Nachvollzug ersetzt (1961/96/863/660) -- Differenzen einzeln erklaert in 02-01-SUMMARY.md
+- [Phase ?]: [Phase 2]: 02-01: Audit-Skript zaehlt Bedienuebergaenge als ui+token statt nur ui, damit spaetere Plaene (03-06) den erreichten Ist-Stand nicht als Regression melden
 
 ### Pending Todos
 
@@ -241,6 +244,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-06T18:13:32.000Z
-Stopped at: Phase 1.2 Plan 5/5 ausgefuehrt (Refinery-Tracker, Phasen-Tor 11/11 gruen); Sichtrunde (12 Punkte + Annahmen A2/A4) an Betreiber zurueckgegeben, siehe WINDOWS.md id 2; Phase 5 Spenden weiter offen
-Resume file: .planning/phases/01.2-werkzeuge-erklaeren/01.2-05-SUMMARY.md (Sichtrunde-Checkliste), danach naechste Phase im Roadmap-Fluss
+Last session: 2026-08-08T12:31:43.357Z
+Stopped at: Phase 2 Plan 01/07 ausgefuehrt (Tracer: Token-Schicht, SiteNav, beide index.astro, verify:typo); Plaene 02-07 fuehren die Skala site-weit fort
+Resume file: None
