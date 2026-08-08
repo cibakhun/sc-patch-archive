@@ -369,13 +369,13 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     display: block; margin-bottom: 0.9rem;
   }
   .pp-error__title {
-    font-family: var(--font-display); font-weight: 800; letter-spacing: 0.06em;
+    font-family: var(--font-display); font-weight: 800; letter-spacing: var(--ls-9);
     font-size: clamp(1.2rem, 3.4vw, 1.7rem); color: var(--text); margin: 0 0 0.8rem;
   }
-  .pp-error__body { color: var(--muted); max-width: 46ch; margin: 0 auto 1.6rem; font-size: 0.95rem; }
+  .pp-error__body { color: var(--muted); max-width: 46ch; margin: 0 auto 1.6rem; font-size: var(--fs-9); }
   .pp-error__home {
-    font-family: var(--font-ui); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-    font-size: 0.82rem; color: var(--accent); border-bottom: 1px solid var(--line);
+    font-family: var(--font-ui); font-weight: 700; letter-spacing: var(--ls-11); text-transform: uppercase;
+    font-size: var(--fs-6); color: var(--accent); border-bottom: 1px solid var(--line);
   }
   .pp-error__home:hover { border-color: var(--accent); }
 
@@ -443,12 +443,12 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     border-bottom: 1px solid rgba(232, 238, 252, 0.14);background:repeating-linear-gradient(-45deg, rgba(45, 212, 255, 0.07) 0 6px, transparent 6px 12px),
       var(--veil-2);
     backdrop-filter: blur(6px);
-    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.16em;
+    font-family: var(--font-mono); font-size: var(--fs-3); letter-spacing: var(--ls-14);
     text-transform: uppercase; color: #8a99b8;
   }
   .pp-chrome__left { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pp-chrome__right { flex: none; white-space: nowrap; }
-  .pp-chrome__right b { color: var(--accent-media); font-weight: 400; letter-spacing: 0.1em; }
+  .pp-chrome__right b { color: var(--accent-media); font-weight: 400; letter-spacing: var(--ls-11); }
 
   .pp-hero__body {
     position: relative; z-index: 4;
@@ -474,7 +474,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     width: 108px; height: 108px; border-radius: 50%;background:var(--veil-2); border: 3px solid currentColor;
     box-shadow: 0 0 30px color-mix(in srgb, currentColor 35%, transparent);
     display: grid; place-items: center;
-    font-size: 2.8rem; overflow: hidden; position: relative;
+    font-size: var(--fs-18); overflow: hidden; position: relative;
   }
   .pp-avatar-box img { width: 100%; height: 100%; object-fit: cover; }
   .pp-avatar-scan {
@@ -499,7 +499,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   .pp-name-row { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
   .pp-name {
     margin: 0; font-family: var(--font-display); font-weight: 900;
-    font-size: clamp(1.7rem, 4.6vw, 2.6rem); line-height: 1.02; letter-spacing: -0.01em;
+    font-size: clamp(1.7rem, 4.6vw, 2.6rem); line-height: 1.02; letter-spacing: var(--ls-2);
     overflow-wrap: break-word;background:linear-gradient(180deg, var(--title-hi), var(--accent-media) 78%, color-mix(in srgb, var(--accent-media) 45%, var(--title-lo)));
     -webkit-background-clip: text; background-clip: text; color: transparent;
     filter: drop-shadow(0 0 26px color-mix(in srgb, var(--accent-media) 42%, transparent));
@@ -511,11 +511,11 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     /* gerundet statt clip-path-Abschraegung: ein normaler border wird vom
        clip-path an den Diagonalen abgeschnitten (Kontur "bricht an der Schraege ab") */
     border-radius: 7px;
-    font-family: var(--font-ui); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em;
+    font-family: var(--font-ui); font-size: var(--fs-4); font-weight: 800; letter-spacing: var(--ls-10);
   }
   .pp-verified[hidden] { display: none !important; }
   .pp-handle {
-    font-family: var(--font-mono); font-size: 1rem; letter-spacing: 0.04em;
+    font-family: var(--font-mono); font-size: var(--fs-10); letter-spacing: var(--ls-7);
     color: var(--accent-2-media);
   }
   .pp-meta { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
@@ -524,29 +524,29 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     background: rgba(45, 212, 255, 0.14); border: 1px solid rgba(45, 212, 255, 0.3);
     color: var(--accent-media); padding: 0.24rem 0.75rem;
     clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
-    font-family: var(--font-ui); font-size: 0.82rem; font-weight: 700;
+    font-family: var(--font-ui); font-size: var(--fs-6); font-weight: 700;
   }
   .pp-role[hidden] { display: none !important; }
   .pp-transmission {
     display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
-    font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.08em;
+    font-family: var(--font-mono); font-size: var(--fs-6); letter-spacing: var(--ls-10);
     text-transform: uppercase; color: #8a99b8; hyphens: none;
   }
   .pp-transmission__tag {
     color: var(--accent-media); border: 1px solid rgba(45, 212, 255, 0.3);
-    padding: 0.02rem 0.4rem; font-size: 0.6rem; letter-spacing: 0.18em;
+    padding: 0.02rem 0.4rem; font-size: var(--fs-2); letter-spacing: var(--ls-15);
   }
   .pp-transmission__state { color: var(--accent-2-media); font-weight: 700; }
-  .pp-transmission__text { font-style: italic; text-transform: none; letter-spacing: 0.02em; }
+  .pp-transmission__text { font-style: italic; text-transform: none; letter-spacing: var(--ls-5); }
   .pp-bio {
     margin: 0.3rem 0 0; max-width: 68ch;
-    color: #c6d2e8; font-size: 0.95rem; line-height: 1.6;
+    color: #c6d2e8; font-size: var(--fs-9); line-height: 1.6;
     white-space: pre-wrap;
     border-left: 2px solid var(--accent-media); padding-left: 0.9rem;
   }
   .pp-bio[hidden] { display: none !important; }
   .pp-since {
-    font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em;
+    font-family: var(--font-mono); font-size: var(--fs-4); letter-spacing: var(--ls-13);
     text-transform: uppercase; color: #8a99b8;
   }
 
@@ -561,8 +561,8 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     background: var(--surface); border: 1px solid var(--line);
     padding: 0.4rem 0.85rem;
     clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-    font-family: var(--font-ui); font-size: 0.76rem; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text);
+    font-family: var(--font-ui); font-size: var(--fs-5); font-weight: 700;
+    letter-spacing: var(--ls-11); text-transform: uppercase; color: var(--text);
   }
   .pp-badge svg { color: var(--accent); flex: none; }
   .pp-badge--verified { border-color: rgba(34, 197, 94, 0.5); color: #4ade80; }
@@ -584,13 +584,13 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   }
   .pp-stat dt {
     display: flex; align-items: center; gap: 0.5rem;
-    font-family: var(--font-ui); font-size: 0.64rem; font-weight: 700;
-    letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+    font-family: var(--font-ui); font-size: var(--fs-3); font-weight: 700;
+    letter-spacing: var(--ls-14); text-transform: uppercase; color: var(--muted);
   }
   .pp-stat dt svg { color: var(--accent); flex: none; }
   .pp-stat dd {
     margin: 0.35rem 0 0;
-    font-family: var(--font-mono); font-size: 1.5rem; line-height: 1;
+    font-family: var(--font-mono); font-size: var(--fs-14); line-height: 1;
     color: var(--accent);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
@@ -613,7 +613,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     background: var(--surface); border: 1px solid var(--line-soft);
     clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
     text-decoration: none;
-    transition: border-color 0.2s ease, transform 0.2s ease, filter 0.2s ease;
+    transition: border-color var(--dur-base) var(--ease-ui), transform var(--dur-base) var(--ease-ui), filter var(--dur-base) var(--ease-ui);
   }
   .pp-ship:hover {
     border-color: var(--accent);
@@ -625,7 +625,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     position: relative; aspect-ratio: 16 / 9; overflow: hidden;background:var(--veil-2);
     display: grid; place-items: center;
   }
-  .pp-ship__media img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
+  .pp-ship__media img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--dur-slow) var(--ease-ui); }
   .pp-ship:hover .pp-ship__media img { transform: scale(1.05); }
   .pp-ship__media--logo img { width: 46%; height: 46%; object-fit: contain; opacity: 0.85; filter: grayscale(0.2); }
   .pp-ship__media--void {background:linear-gradient(rgba(45, 212, 255, 0.06) 1px, transparent 1px),
@@ -634,25 +634,25 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     background-size: 18px 18px;
   }
   .pp-ship__voidname {
-    font-family: 'Teko', sans-serif; font-weight: 500; font-size: 2rem;
-    letter-spacing: 0.06em; text-transform: uppercase;
+    font-family: 'Teko', sans-serif; font-weight: 500; font-size: var(--fs-16);
+    letter-spacing: var(--ls-9); text-transform: uppercase;
     color: rgba(45, 212, 255, 0.55);
     padding: 0 0.8rem; text-align: center; line-height: 1;
   }
   .pp-ship__name {
     display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
     padding: 0.6rem 0.85rem;
-    font-family: var(--font-ui); font-weight: 700; font-size: 0.9rem;
-    letter-spacing: 0.04em; color: var(--text);
+    font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-8);
+    letter-spacing: var(--ls-7); color: var(--text);
     border-top: 1px solid var(--line-soft);
   }
-  .pp-ship__go { color: var(--accent); font-size: 0.8rem; flex: none; }
+  .pp-ship__go { color: var(--accent); font-size: var(--fs-6); flex: none; }
 
   /* ---------- Weitere Favoriten ---------- */
   .pp-favgroups { display: flex; flex-direction: column; gap: 1.3rem; }
   .pp-favgroup__title {
-    font-family: var(--font-ui); font-weight: 700; font-size: 0.74rem;
-    letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-2);
+    font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-5);
+    letter-spacing: var(--ls-16); text-transform: uppercase; color: var(--accent-2);
     margin: 0 0 0.55rem;
   }
   .pp-favchips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
@@ -661,8 +661,8 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     background: var(--surface-2); border: 1px solid var(--line-soft);
     padding: 0.34rem 0.75rem;
     clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-    font-size: 0.84rem; color: var(--text); text-decoration: none;
-    transition: border-color 0.2s ease, background 0.2s ease, filter 0.2s ease;
+    font-size: var(--fs-7); color: var(--text); text-decoration: none;
+    transition: border-color var(--dur-base) var(--ease-ui), background var(--dur-base) var(--ease-ui), filter var(--dur-base) var(--ease-ui);
   }
   .pp-favchip:hover {
     border-color: var(--accent);
@@ -678,9 +678,9 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     background: var(--surface-2); border: 1px solid var(--line-soft);
     padding: 0.42rem 0.85rem;
     clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-    font-family: var(--font-ui); font-size: 0.88rem; font-weight: 600; color: var(--text);
+    font-family: var(--font-ui); font-size: var(--fs-8); font-weight: 600; color: var(--text);
     text-decoration: none;
-    transition: border-color 0.2s ease, background 0.2s ease, filter 0.2s ease;
+    transition: border-color var(--dur-base) var(--ease-ui), background var(--dur-base) var(--ease-ui), filter var(--dur-base) var(--ease-ui);
   }
   .pp-chip svg { color: var(--accent); flex: none; }
   .pp-chip[hidden] { display: none !important; }
@@ -692,7 +692,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   a.pp-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .pp-chip__dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; flex: none; }
   .pp-chip__dot[hidden] { display: none !important; }
-  .pp-chip__go { color: var(--accent); font-size: 0.8rem; }
+  .pp-chip__go { color: var(--accent); font-size: var(--fs-6); }
 
   /* ---------- CTA-Strip ---------- */
   .pp-cta {
@@ -703,10 +703,10 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     background: color-mix(in srgb, var(--accent) 6%, var(--surface));
     clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   }
-  .pp-cta__text { color: var(--muted); font-size: 0.9rem; }
+  .pp-cta__text { color: var(--muted); font-size: var(--fs-8); }
   .pp-cta__btn {
-    font-family: var(--font-ui); font-weight: 700; font-size: 0.8rem;
-    letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+    font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6);
+    letter-spacing: var(--ls-11); text-transform: uppercase; color: var(--accent);
     white-space: nowrap; border-bottom: 1px solid var(--line);
   }
   .pp-cta__btn:hover { border-color: var(--accent); }
@@ -729,10 +729,10 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     .pp-hero { min-height: 0; }
     .pp-hero__body { flex-direction: column; align-items: flex-start; gap: 1.1rem; padding-top: 5.2rem; }
     .pp-avatar-module { width: 122px; height: 122px; }
-    .pp-avatar-box { width: 88px; height: 88px; font-size: 2.2rem; }
+    .pp-avatar-box { width: 88px; height: 88px; font-size: var(--fs-17); }
     .pp-stats { grid-template-columns: repeat(2, 1fr); }
     .pp-skel__cells { grid-template-columns: repeat(2, 1fr); }
-    .pp-chrome { font-size: 0.58rem; letter-spacing: 0.1em; }
+    .pp-chrome { font-size: var(--fs-2); letter-spacing: var(--ls-11); }
   }
 
   /* ---------- Reduced Motion ---------- */

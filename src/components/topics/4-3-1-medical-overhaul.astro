@@ -27,7 +27,7 @@ const de = lang === 'de';
 
 /* page-local accents */
 .hero h1{font-size:clamp(3.2rem,13vw,10rem)}
-.vitals{font-family:var(--font-ui);font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--accent-2);font-size:.74rem}</style>
+.vitals{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--accent-2);font-size:var(--fs-5)}</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.3.1', href: '/de/patches/sc-4-3-1.html' }, { label: "Medical Overhaul" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.3.1', href: '/patches/sc-4-3-1.html' }, { label: "Medical Overhaul" }]} />

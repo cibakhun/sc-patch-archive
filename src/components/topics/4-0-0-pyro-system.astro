@@ -28,7 +28,7 @@ const de = lang === 'de';
 /* page-local accents */
 .hero h1{font-size:clamp(3.2rem,13vw,10.5rem)}
 .moons{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.3rem}
-.moons .moon{font-family:var(--font-ui);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.74rem;padding:.4rem .85rem;border:1px solid var(--line);border-radius:50px;background:var(--veil);color:var(--text)}
+.moons .moon{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-11);text-transform:uppercase;font-size:var(--fs-5);padding:.4rem .85rem;border:1px solid var(--line);border-radius:50px;background:var(--veil);color:var(--text)}
 .moons .moon b{color:var(--accent-2);font-weight:700}
 .band .big.flare{color:transparent;background:linear-gradient(180deg,var(--title-hi),var(--accent) 72%,var(--hot));-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 36px color-mix(in srgb,var(--accent) 50%,transparent))}</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />

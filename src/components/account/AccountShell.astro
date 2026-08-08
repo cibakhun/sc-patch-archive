@@ -59,18 +59,18 @@ const { eyebrow, titleThin, title, lead, wide = false, bare = false } = Astro.pr
   .acx-field:last-of-type { margin-bottom: 0; }
   .acx-label {
     display: block; font-family: var(--font-ui, sans-serif); font-weight: 700;
-    font-size: 0.84rem; letter-spacing: 0.12em; text-transform: uppercase;
+    font-size: var(--fs-7); letter-spacing: var(--ls-12); text-transform: uppercase;
     color: var(--text); margin-bottom: 0.55rem;
   }
-  .acx-label .opt { color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: none; }
+  .acx-label .opt { color: var(--muted); font-weight: 600; letter-spacing: var(--ls-7); text-transform: none; }
   .acx-label .reqm { color: var(--accent); }
-  .acx-hint { font-size: 0.86rem; color: var(--muted); margin: 0.45rem 0 0; line-height: 1.55; }
+  .acx-hint { font-size: var(--fs-7); color: var(--muted); margin: 0.45rem 0 0; line-height: 1.55; }
 
   .acx-input {
     width: 100%; box-sizing: border-box; background: var(--surface-2); color: var(--text);
     border: 1px solid var(--line-soft); border-radius: 6px; padding: 0.75rem 0.95rem;
-    font-family: var(--font-ui, sans-serif); font-size: 0.98rem; line-height: 1.5;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    font-family: var(--font-ui, sans-serif); font-size: var(--fs-10); line-height: 1.5;
+    transition: border-color var(--dur-base) var(--ease-ui), box-shadow var(--dur-base) var(--ease-ui), background var(--dur-base) var(--ease-ui);
   }
   .acx-input::placeholder { color: color-mix(in srgb, var(--muted) 75%, transparent); }
   .acx-input:focus {
@@ -82,9 +82,9 @@ const { eyebrow, titleThin, title, lead, wide = false, bare = false } = Astro.pr
   .acx-actions { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; margin-top: 1.7rem; }
   .acx-submit {
     display: inline-flex; align-items: center; gap: 0.55rem;
-    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.88rem;
-    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;color:var(--ink, var(--ink)); background: var(--accent); border: 1px solid var(--accent);
-    padding: 0.78rem 1.6rem; border-radius: 6px; transition: all 0.2s ease;
+    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-8);
+    letter-spacing: var(--ls-10); text-transform: uppercase; cursor: pointer;color:var(--ink, var(--ink)); background: var(--accent); border: 1px solid var(--accent);
+    padding: 0.78rem 1.6rem; border-radius: 6px; transition: all var(--dur-base) var(--ease-ui);
     box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 25%, transparent);
   }
   .acx-submit:hover { filter: brightness(1.12); transform: translateY(-1px); box-shadow: 0 0 28px color-mix(in srgb, var(--accent) 40%, transparent); }
@@ -100,17 +100,17 @@ const { eyebrow, titleThin, title, lead, wide = false, bare = false } = Astro.pr
   }
   .acx-submit--danger:hover { background: rgba(255, 122, 122, 0.15); border-color: #ff7a7a; }
 
-  .acx-status { margin-top: 1.1rem; font-size: 0.92rem; line-height: 1.5; color: #ff8a8a; }
+  .acx-status { margin-top: 1.1rem; font-size: var(--fs-8); line-height: 1.5; color: #ff8a8a; }
   .acx-status--ok { color: #9be8a8; }
 
-  .acx-links { margin-top: 1.4rem; display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; font-size: 0.9rem; }
+  .acx-links { margin-top: 1.4rem; display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; font-size: var(--fs-8); }
   .acx-links a { color: var(--accent); border-bottom: 1px solid var(--line); }
   .acx-links a:hover { border-color: var(--accent); }
 
   .acx-note {
     margin: 0 0 1.4rem; border: 1px solid var(--line-soft); border-left: 3px solid var(--accent-2);
     background: color-mix(in srgb, var(--accent-2) 8%, transparent); padding: 0.85rem 1.05rem;
-    font-size: 0.88rem; color: var(--muted); line-height: 1.55; border-radius: 6px;
+    font-size: var(--fs-8); color: var(--muted); line-height: 1.55; border-radius: 6px;
   }
   .acx-note b { color: var(--text); }
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */

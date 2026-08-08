@@ -230,9 +230,9 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
 <style is:global>
   /* ---- Layout ---- */
   .rfd-top { margin-bottom: 1.4rem; }
-  .rfd-back { color: var(--muted); font-size: 0.9rem; border-bottom: 1px solid transparent; }
+  .rfd-back { color: var(--muted); font-size: var(--fs-8); border-bottom: 1px solid transparent; }
   .rfd-back:hover { color: var(--accent); border-color: var(--line); }
-  .rfd-empty { color: var(--muted); text-align: center; font-size: 0.95rem; }
+  .rfd-empty { color: var(--muted); text-align: center; font-size: var(--fs-9); }
 
   /* ---- Statistik-Kacheln ---- */
   .rfd-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.9rem; margin-bottom: 0.6rem; }
@@ -241,13 +241,13 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
     padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.2rem;
   }
   .rfd-tile--hot { border-color: color-mix(in srgb, var(--accent) 55%, transparent); box-shadow: var(--glow); }
-  .rfd-tile__k { font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .rfd-tile__k { font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-2); letter-spacing: var(--ls-13); text-transform: uppercase; color: var(--muted); }
   .rfd-tile--hot .rfd-tile__k { color: var(--accent); }
-  .rfd-tile__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1.5rem; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.1; }
-  .rfd-tile__v small { font-size: 0.7rem; color: var(--muted); font-weight: 600; margin-left: 0.15rem; }
+  .rfd-tile__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: var(--fs-14); color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .rfd-tile__v small { font-size: var(--fs-4); color: var(--muted); font-weight: 600; margin-left: 0.15rem; }
   .rfd-tile__v.pos { color: #9be8a8; } .rfd-tile__v.neg { color: #ff8a8a; }
-  .rfd-tile__sub { font-size: 0.72rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .rfd-statgroup { grid-column: 1 / -1; font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin: 0.6rem 0 -0.2rem; }
+  .rfd-tile__sub { font-size: var(--fs-4); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rfd-statgroup { grid-column: 1 / -1; font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-2); letter-spacing: var(--ls-14); text-transform: uppercase; color: var(--accent); margin: 0.6rem 0 -0.2rem; }
 
   /* ---- Job-Karten ---- */
   .rfd-jobs { display: flex; flex-direction: column; gap: 1rem; }
@@ -258,21 +258,21 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
   .rfd-job.is-ready { border-color: color-mix(in srgb, var(--accent) 60%, transparent); box-shadow: var(--glow); }
   .rfd-job__head { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
   .rfd-mtag, .rfd-job__method {
-    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.66rem; letter-spacing: 0.1em;
+    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-3); letter-spacing: var(--ls-11);
     text-transform: uppercase; color: var(--accent); border: 1px solid var(--line);
     padding: 0.2rem 0.55rem; background: color-mix(in srgb, var(--accent) 8%, transparent); white-space: nowrap;
   }
-  .rfd-job__station { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1.05rem; color: var(--text); }
-  .rfd-job__sys { font-size: 0.72rem; color: var(--muted); }
+  .rfd-job__station { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: var(--fs-11); color: var(--text); }
+  .rfd-job__sys { font-size: var(--fs-4); color: var(--muted); }
   .rfd-job__spacer { flex: 1; }
   .rfd-badge {
-    font-family: var(--font-ui, sans-serif); font-weight: 800; font-size: 0.66rem; letter-spacing: 0.1em;
+    font-family: var(--font-ui, sans-serif); font-weight: 800; font-size: var(--fs-3); letter-spacing: var(--ls-11);
     text-transform: uppercase; color: var(--ink); background: var(--accent); padding: 0.24rem 0.6rem;
     box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 40%, transparent);
   }
   .rfd-job__ores { display: flex; flex-wrap: wrap; gap: 0.35rem 0.5rem; margin-bottom: 0.8rem; }
   .rfd-orepill {
-    font-size: 0.82rem; color: var(--text);background:var(--veil);
+    font-size: var(--fs-6); color: var(--text);background:var(--veil);
     border: 1px solid var(--line-soft); padding: 0.2rem 0.55rem; font-variant-numeric: tabular-nums;
   }
   .rfd-orepill b { color: var(--accent); font-weight: 700; }
@@ -282,12 +282,12 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
   .rfd-prog__bar { height: 100%; width: 0%; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 55%, transparent), var(--accent)); transition: width 0.9s linear; }
   .rfd-job.is-ready .rfd-prog__bar { background: var(--accent); }
   .rfd-job__meta { display: flex; align-items: baseline; justify-content: space-between; gap: 0.8rem 1.4rem; flex-wrap: wrap; }
-  .rfd-cd { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1.15rem; color: var(--accent); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+  .rfd-cd { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: var(--fs-11); color: var(--accent); font-variant-numeric: tabular-nums; letter-spacing: var(--ls-5); }
   .rfd-job.is-ready .rfd-cd { color: #9be8a8; }
-  .rfd-cd__sub { font-size: 0.76rem; color: var(--muted); font-weight: 400; font-family: var(--font-ui, sans-serif); letter-spacing: 0; margin-left: 0.5rem; }
+  .rfd-cd__sub { font-size: var(--fs-5); color: var(--muted); font-weight: 400; font-family: var(--font-ui, sans-serif); letter-spacing: var(--ls-3); margin-left: 0.5rem; }
   .rfd-job__figs { display: flex; gap: 1.2rem; text-align: right; }
-  .rfd-fig__k { display: block; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; }
-  .rfd-fig__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1rem; color: var(--text); font-variant-numeric: tabular-nums; }
+  .rfd-fig__k { display: block; font-size: var(--fs-2); letter-spacing: var(--ls-12); text-transform: uppercase; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; }
+  .rfd-fig__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: var(--fs-10); color: var(--text); font-variant-numeric: tabular-nums; }
   .rfd-job__act { display: flex; gap: 0.7rem; margin-top: 1rem; flex-wrap: wrap; }
 
   /* ---- Neuer-Auftrag-Formular ---- */
@@ -295,27 +295,27 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
   .rfd-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.35rem; margin-top: 0.2rem; }
   @media (max-width: 640px) { .rfd-grid2, .rfd-grid3 { grid-template-columns: 1fr; } }
   .rfd-mtags { display: flex; gap: 0.4rem; margin-top: 0.6rem; flex-wrap: wrap; }
-  .rfd-mtags span { font-size: 0.7rem; color: var(--muted); font-family: var(--font-ui, sans-serif); }
-  .rfd-mtags b { color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .rfd-mtags span { font-size: var(--fs-4); color: var(--muted); font-family: var(--font-ui, sans-serif); }
+  .rfd-mtags b { color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: var(--ls-7); }
   .rfd-ores { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.7rem; }
   .rfd-ore__main { display: grid; grid-template-columns: minmax(0, 1.6fr) 1fr 1fr auto; gap: 0.5rem; align-items: center; }
   @media (max-width: 560px) { .rfd-ore__main { grid-template-columns: 1fr 1fr auto; } .rfd-ore__sel { grid-column: 1 / -1; } }
   .rfd-num { text-align: right; font-variant-numeric: tabular-nums; }
-  .rfd-ore__rm { flex: none; background: none; border: 1px solid var(--line-soft); color: var(--muted); font-size: 1.1rem; line-height: 1; width: 2.2rem; height: 2.2rem; cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+  .rfd-ore__rm { flex: none; background: none; border: 1px solid var(--line-soft); color: var(--muted); font-size: var(--fs-11); line-height: 1; width: 2.2rem; height: 2.2rem; cursor: pointer; transition: color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui); }
   .rfd-ore__rm:hover { color: #ff8a8a; border-color: rgba(255,122,122,0.45); }
-  .rfd-ore__hint { font-size: 0.76rem; color: var(--muted); margin: 0.35rem 0 0; }
+  .rfd-ore__hint { font-size: var(--fs-5); color: var(--muted); margin: 0.35rem 0 0; }
   .rfd-ore__hint b { color: var(--accent); }
-  .rfd-addore { background: none; border: 1px dashed var(--line); color: var(--accent); font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.5rem 0.9rem; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
+  .rfd-addore { background: none; border: 1px dashed var(--line); color: var(--accent); font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-6); letter-spacing: var(--ls-9); text-transform: uppercase; padding: 0.5rem 0.9rem; cursor: pointer; transition: background-color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui); }
   .rfd-addore:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); border-color: var(--accent); }
   .rfd-dur { display: flex; align-items: center; gap: 0.5rem; }
   .rfd-dur .rfd-num { max-width: 5rem; }
-  .rfd-durlbl { font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .rfd-durlbl { font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-6); color: var(--muted); text-transform: uppercase; letter-spacing: var(--ls-9); }
   .rfd-preview { display: flex; flex-wrap: wrap; gap: 0.8rem 2rem; margin-top: 1.6rem; padding: 1rem 1.1rem; border: 1px solid var(--line-soft);background:var(--veil); }
   .rfd-pv { display: flex; flex-direction: column; gap: 0.15rem; }
-  .rfd-pv__k { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; }
-  .rfd-pv__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1.2rem; color: var(--text); font-variant-numeric: tabular-nums; }
+  .rfd-pv__k { font-size: var(--fs-2); letter-spacing: var(--ls-12); text-transform: uppercase; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; }
+  .rfd-pv__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: var(--fs-12); color: var(--text); font-variant-numeric: tabular-nums; }
   .rfd-pv__v--auec { color: var(--accent); }
-  .rfd-src { font-size: 0.76rem; color: var(--muted); font-style: italic; line-height: 1.5; margin: 0.9rem 0 0; }
+  .rfd-src { font-size: var(--fs-5); color: var(--muted); font-style: italic; line-height: 1.5; margin: 0.9rem 0 0; }
 
   /* ---- Historie ---- */
   .rfd-hist { display: flex; flex-direction: column; gap: 0.6rem; }
@@ -325,13 +325,13 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
   }
   .rfd-hrow__main { min-width: 0; }
   .rfd-hrow__top { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-  .rfd-hrow__station { font-family: var(--font-display, sans-serif); font-weight: 800; color: var(--text); font-size: 0.98rem; }
-  .rfd-hrow__date { font-size: 0.74rem; color: var(--muted); }
-  .rfd-hrow__ores { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; overflow: hidden; text-overflow: ellipsis; }
+  .rfd-hrow__station { font-family: var(--font-display, sans-serif); font-weight: 800; color: var(--text); font-size: var(--fs-10); }
+  .rfd-hrow__date { font-size: var(--fs-5); color: var(--muted); }
+  .rfd-hrow__ores { font-size: var(--fs-6); color: var(--muted); margin-top: 0.2rem; overflow: hidden; text-overflow: ellipsis; }
   .rfd-hrow__figs { display: flex; gap: 1.1rem; align-items: baseline; text-align: right; }
   .rfd-hrow__right { display: flex; flex-direction: column; gap: 0.55rem; align-items: flex-end; }
   .rfd-hrow__act { display: flex; gap: 0.5rem; align-items: center; }
-  .rfd-mini { background: none; border: 1px solid transparent; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; padding: 0.3rem 0.5rem; transition: color 0.15s, border-color 0.15s; }
+  .rfd-mini { background: none; border: 1px solid transparent; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-4); letter-spacing: var(--ls-9); text-transform: uppercase; cursor: pointer; padding: 0.3rem 0.5rem; transition: color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui); }
   .rfd-mini:hover { color: var(--accent); border-color: var(--line); }
   .rfd-mini--rm:hover { color: #ff8a8a; border-color: rgba(255,122,122,0.45); }
   .rfd-sold { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.4rem; }

@@ -265,8 +265,8 @@ const t = {
       repeating-linear-gradient(-45deg, color-mix(in srgb, var(--accent) 6%, transparent) 0 6px, transparent 6px 12px),
       color-mix(in srgb, var(--accent) 4%, transparent);
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.66rem;
-    letter-spacing: 0.16em;
+    font-size: var(--fs-3);
+    letter-spacing: var(--ls-14);
     text-transform: uppercase;
     color: var(--muted);
   }
@@ -283,7 +283,7 @@ const t = {
   .vp-chrome__right b {
     color: var(--accent);
     font-weight: 400;
-    letter-spacing: 0.1em;
+    letter-spacing: var(--ls-11);
   }
 
   /* ---------- 2 · Banner ---------- */
@@ -414,11 +414,11 @@ const t = {
     box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 35%, transparent);
     display: grid;
     place-items: center;
-    font-size: 2.5rem;
+    font-size: var(--fs-18);
     color: var(--accent);
     overflow: hidden;
     position: relative;
-    transition: box-shadow 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    transition: box-shadow var(--dur-slow) var(--ease-ui), border-color var(--dur-slow) var(--ease-ui), color var(--dur-slow) var(--ease-ui);
   }
   .vp-avatar-box img {
     width: 100%;
@@ -440,7 +440,7 @@ const t = {
     display: grid;
     place-items: center;background:var(--veil-2);color:var(--text);
     opacity: 0;
-    transition: opacity 0.18s ease;
+    transition: opacity var(--dur-base) var(--ease-ui);
     z-index: 4;
   }
   .vp-avatar-box--editable:hover .vp-avatar-edit,
@@ -463,13 +463,13 @@ const t = {
     border: 1px solid var(--line);
     color: var(--text);
     font-family: var(--font-ui, sans-serif);
-    font-size: 0.72rem;
+    font-size: var(--fs-4);
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--ls-7);
     cursor: pointer;
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
-    transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+    transition: border-color var(--dur-base) var(--ease-ui), background var(--dur-base) var(--ease-ui), color var(--dur-base) var(--ease-ui);
   }
   .vp-banner-edit:hover {
     border-color: var(--accent);
@@ -490,7 +490,7 @@ const t = {
     background: #38bdf8;
     border: 3px solid var(--surface);
     box-shadow: 0 0 12px #38bdf8;
-    transition: background 0.3s ease, box-shadow 0.3s ease;
+    transition: background var(--dur-slow) var(--ease-ui), box-shadow var(--dur-slow) var(--ease-ui);
     z-index: 2;
   }
   .vp-status-dot.pulse { animation: statusPulse 2s infinite; }
@@ -511,16 +511,16 @@ const t = {
     gap: 0.5rem;
     padding: 0.5rem 1rem;
     font-family: var(--font-ui, sans-serif);
-    font-size: 0.78rem;
+    font-size: var(--fs-6);
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--ls-10);
     text-transform: uppercase;
     color: var(--accent);
     background: color-mix(in srgb, var(--accent) 10%, transparent);
     border: 1px solid var(--line);
     clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
     cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, filter 0.2s ease;
+    transition: background var(--dur-base) var(--ease-ui), border-color var(--dur-base) var(--ease-ui), filter var(--dur-base) var(--ease-ui);
   }
   .vp-btn-ghost:hover {
     border-color: var(--accent);
@@ -554,7 +554,7 @@ const t = {
     font-weight: 700;
     color: var(--text);
     margin: 0;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--ls-5);
     line-height: 1.1;
   }
 
@@ -567,9 +567,9 @@ const t = {
     color: #4ade80;
     padding: 0.18rem 0.6rem;
     clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
-    font-size: 0.7rem;
+    font-size: var(--fs-4);
     font-weight: 800;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--ls-10);
     --rsi-line: rgba(34, 197, 94, 0.45);
   }
   /* Rahmen als 1px-Ring, der der abgeschrägten Kante folgt.
@@ -598,9 +598,9 @@ const t = {
   }
   .vp-handle {
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.95rem;
+    font-size: var(--fs-9);
     color: var(--muted);
-    letter-spacing: 0.04em;
+    letter-spacing: var(--ls-7);
   }
   .vp-copy {
     position: relative;
@@ -611,10 +611,10 @@ const t = {
     background: transparent;
     border: 1px solid var(--line-soft);
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: var(--fs-7);
     line-height: 1;
     cursor: pointer;
-    transition: color 0.2s ease, border-color 0.2s ease;
+    transition: color var(--dur-base) var(--ease-ui), border-color var(--dur-base) var(--ease-ui);
   }
   /* unsichtbare Hit-Area-Erweiterung (~44px Touch-Target) */
   .vp-copy::before {
@@ -644,7 +644,7 @@ const t = {
     border: 1px solid var(--line);
     padding: 0.22rem 0.7rem;
     clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
-    font-size: 0.8rem;
+    font-size: var(--fs-6);
     font-weight: 700;
     color: var(--accent);
   }
@@ -655,8 +655,8 @@ const t = {
     align-items: center;
     gap: 0.5rem;
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.78rem;
-    letter-spacing: 0.08em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-10);
     text-transform: uppercase;
     color: var(--muted);
     hyphens: none;
@@ -666,12 +666,12 @@ const t = {
     color: var(--accent);
     border: 1px solid var(--line);
     padding: 0.02rem 0.4rem;
-    font-size: 0.6rem;
-    letter-spacing: 0.18em;
+    font-size: var(--fs-2);
+    letter-spacing: var(--ls-15);
   }
   .vp-transmission__state { color: var(--accent-2); font-weight: 700; }
   .vp-transmission__sep { color: var(--muted); }
-  .vp-transmission__text { color: var(--muted); font-style: italic; text-transform: none; letter-spacing: 0.02em; }
+  .vp-transmission__text { color: var(--muted); font-style: italic; text-transform: none; letter-spacing: var(--ls-5); }
 
   /* ---------- 6 · Stats-Readout ---------- */
   .vp-stats {
@@ -688,9 +688,9 @@ const t = {
     align-items: center;
     gap: 0.45rem;
     font-family: var(--font-ui, sans-serif);
-    font-size: 0.62rem;
+    font-size: var(--fs-2);
     font-weight: 700;
-    letter-spacing: 0.16em;
+    letter-spacing: var(--ls-14);
     text-transform: uppercase;
     color: var(--muted);
   }
@@ -701,7 +701,7 @@ const t = {
   .vp-stat dd {
     margin: 0.2rem 0 0;
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 1.05rem;
+    font-size: var(--fs-11);
     color: var(--accent);
     white-space: nowrap;
     overflow: hidden;
@@ -724,7 +724,7 @@ const t = {
 
   /* ---------- 7 · Bio ---------- */
   .vp-bio {
-    font-size: 0.94rem;
+    font-size: var(--fs-9);
     color: var(--text);
     line-height: 1.55;
     margin: 0.25rem 0 0.35rem;
@@ -735,7 +735,7 @@ const t = {
   /* :global, weil das Script das <em> bei leerer Bio per innerHTML neu injiziert */
   .vp-bio :global(.bio-empty) {
     color: var(--muted);
-    font-size: 0.88rem;
+    font-size: var(--fs-8);
   }
 
   /* ---------- 8 · Data-Chips ---------- */
@@ -753,10 +753,10 @@ const t = {
     border: 1px solid var(--line-soft);
     padding: 0.35rem 0.7rem;
     clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-    font-size: 0.82rem;
+    font-size: var(--fs-6);
     color: var(--text);
     text-decoration: none;
-    transition: border-color 0.2s ease, background 0.2s ease, filter 0.2s ease;
+    transition: border-color var(--dur-base) var(--ease-ui), background var(--dur-base) var(--ease-ui), filter var(--dur-base) var(--ease-ui);
   }
   .vp-chip[hidden] { display: none !important; }
   .vp-chip__icon { display: inline-flex; color: var(--accent); }
@@ -779,7 +779,7 @@ const t = {
     color: var(--accent);
     font-weight: 700;
     margin-left: 0.2rem;
-    font-size: 0.75rem;
+    font-size: var(--fs-5);
   }
 
   /* ---------- Light-Theme: Status-Grün kontraststark machen ---------- */
@@ -819,14 +819,14 @@ const t = {
 
   /* ---------- Responsive ---------- */
   @media (max-width: 560px) {
-    .vp-chrome { font-size: 0.58rem; letter-spacing: 0.1em; }
+    .vp-chrome { font-size: var(--fs-2); letter-spacing: var(--ls-11); }
     .vp-banner { height: 150px; }
     .vp-avatar-row {
       margin-top: -54px;
     }
     .vp-avatar-module { width: 116px; height: 116px; }
-    .vp-avatar-box { width: 84px; height: 84px; font-size: 2.1rem; }
-    .vp-name { font-size: 1.4rem; }
+    .vp-avatar-box { width: 84px; height: 84px; font-size: var(--fs-17); }
+    .vp-name { font-size: var(--fs-14); }
     /* Meta-Zeile gestapelt: Rolle über Transmission, kein Wortbruch.
        Beim Umbruch der Transmission hängt der „·“ sonst sinnlos am
        Zeilenende — mobil ausblenden, der Custom-Text steht allein. */

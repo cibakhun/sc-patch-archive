@@ -151,7 +151,7 @@ a{color:inherit;text-decoration:none}
   background-image:linear-gradient(rgba(110,168,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(110,168,255,.06) 1px,transparent 1px);
   background-size:52px 52px;-webkit-mask-image:linear-gradient(180deg,transparent,#000 45%,transparent);mask-image:linear-gradient(180deg,transparent,#000 45%,transparent)}
 .sdb__heroin{position:relative;z-index:3;max-width:var(--maxw);margin:0 auto;width:100%}
-.sdb__eyebrow{font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:.28em;text-transform:uppercase;
+.sdb__eyebrow{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-19);text-transform:uppercase;
   color:var(--accent);display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;text-shadow:0 2px 10px var(--shadow-color)}
 .sdb__eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--accent),transparent)}
 /* Titelgrad auf Werkzeug-Mass: 4,6rem war ein Plakat, nicht eine Kopfzeile. */
@@ -160,7 +160,7 @@ a{color:inherit;text-decoration:none}
 
 @media(max-width:640px){
   .sdb__hero{padding:4.8rem 1rem 1rem}
-  .sdb__sub{font-size:.98rem;max-width:none}
+  .sdb__sub{font-size:var(--fs-10);max-width:none}
   .sdb__panel{padding:1rem 1rem 3rem}
 }
 
@@ -176,25 +176,25 @@ a{color:inherit;text-decoration:none}
 .sdb__filter::after{content:"";position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;
   border-bottom:2px solid var(--accent);border-right:2px solid var(--accent)}
 .sdb__filter input,.sdb__filter select{background:var(--veil);border:1px solid var(--line);color:var(--text);
-  font-family:var(--font-ui);font-weight:600;font-size:.95rem;padding:.5rem .7rem;min-width:150px}
+  font-family:var(--font-ui);font-weight:600;font-size:var(--fs-9);padding:.5rem .7rem;min-width:150px}
 .sdb__filter input{flex:1;min-width:220px}
 .sdb__filter input::placeholder{color:var(--muted);opacity:.7}
 .sdb__filter select:focus,.sdb__filter input:focus{border-color:var(--accent);outline:none}
-.sdb__count{margin-left:auto;font-family:var(--font-ui);font-weight:700;font-size:.82rem;letter-spacing:.12em;
+.sdb__count{margin-left:auto;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);
   text-transform:uppercase;color:var(--accent);white-space:nowrap}
 
 /* ---------- Flotten-Grid ---------- */
 .sdb__fleet{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:1.1rem}
 .sdb__empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--muted);
-  font-family:var(--font-ui);font-weight:600;letter-spacing:.06em}
+  font-family:var(--font-ui);font-weight:600;letter-spacing:var(--ls-9)}
 
 .fcard{position:relative;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);
-  cursor:pointer;overflow:hidden;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+  cursor:pointer;overflow:hidden;transition:transform var(--dur-base) var(--ease-ui),border-color var(--dur-base) var(--ease-ui),box-shadow var(--dur-base) var(--ease-ui)}
 .fcard:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--accent) 55%,transparent);
   box-shadow:0 12px 34px color-mix(in srgb,var(--accent) 16%,transparent)}
 /* HUD-Klammern (nur beim Hover/Fokus sichtbar) */
 .fcard::before,.fcard::after{content:"";position:absolute;width:16px;height:16px;z-index:3;pointer-events:none;
-  opacity:0;transition:opacity .22s ease}
+  opacity:0;transition:opacity var(--dur-base) var(--ease-ui)}
 .fcard::before{top:6px;left:6px;border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
 .fcard::after{bottom:6px;right:6px;border-bottom:2px solid var(--accent);border-right:2px solid var(--accent)}
 .fcard:hover::before,.fcard:hover::after,.fcard:focus-within::before,.fcard:focus-within::after{opacity:.9}
@@ -203,21 +203,21 @@ a{color:inherit;text-decoration:none}
 .fcard__media img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
 .fcard:hover .fcard__media img{transform:scale(1.06)}
 .fcard__noimg{display:grid;place-items:center;width:100%;height:100%;color:var(--muted);opacity:.5;
-  font-family:var(--font-ui);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
+  font-family:var(--font-ui);font-size:var(--fs-4);letter-spacing:var(--ls-14);text-transform:uppercase}
 .fcard__scrim{position:absolute;inset:0;background:linear-gradient(180deg,var(--veil) 30%,var(--veil-2) 62%,var(--veil-2))}
 .fcard__id{position:absolute;left:.8rem;right:.8rem;bottom:.55rem;z-index:2}
-.fcard__maker{font-family:var(--font-ui);font-weight:700;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2)}
-.fcard__name{font-family:var(--font-ui);font-weight:700;font-size:1.18rem;line-height:1.12;color:var(--text);text-shadow:0 2px 12px var(--shadow-color);margin-top:.05rem}
+.fcard__maker{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--accent-2)}
+.fcard__name{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-12);line-height:1.12;color:var(--text);text-shadow:0 2px 12px var(--shadow-color);margin-top:.05rem}
 .fcard__name a::after{content:"";position:absolute;inset:0;z-index:1}
 
 /* Ecken-Marker über dem Bild */
 .fcard__status{position:absolute;top:.55rem;left:.6rem;z-index:2;display:inline-flex;align-items:center;gap:.34rem;
-  font-family:var(--font-ui);font-weight:700;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--veil-2);border:1px solid var(--line);padding:.14rem .42rem;backdrop-filter:blur(3px)}
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-3);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--muted);background:var(--veil-2);border:1px solid var(--line);padding:.14rem .42rem;backdrop-filter:blur(3px)}
 .fcard__dot{width:6px;height:6px;border-radius:50%;background:var(--muted);box-shadow:0 0 6px currentColor}
 .fcard__status.fr{color:#5ad19a}
 .fcard__status.fr .fcard__dot{background:#5ad19a}
-.fcard__patch{position:absolute;top:.55rem;right:.6rem;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:.66rem;
-  letter-spacing:.08em;text-transform:uppercase;color:var(--gold);background:var(--veil-2);
+.fcard__patch{position:absolute;top:.55rem;right:.6rem;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-3);
+  letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--gold);background:var(--veil-2);
   border:1px solid color-mix(in srgb,var(--gold) 50%,transparent);padding:.14rem .44rem;backdrop-filter:blur(3px)}
 .fcard__patch:hover{background:color-mix(in srgb,var(--gold) 18%,var(--veil-2))}
 
@@ -229,27 +229,27 @@ a{color:inherit;text-decoration:none}
    auf EINEN Körper (D-12) entfällt dieser Grund; die Selektoren in
    assets/mobile-ux.css gelten unverändert weiter, weil die Klassennamen
    gleich bleiben. */
-.fcard__chip{font-family:var(--font-ui);font-weight:600;font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;
+.fcard__chip{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-4);letter-spacing:var(--ls-8);text-transform:uppercase;
   color:var(--accent-2);border:1px solid var(--line);background:rgba(110,168,255,.06);padding:.1rem .42rem;white-space:nowrap}
 
 /* Gemessene Signaturwerte (D-07) — nur bei den 16 Traegern des Bauteils.
    Kein Chip (keine Behauptung "Faehigkeit"), sondern eine nuechterne Zeile
    mit CIG-eigener HUD-Beschriftung, damit der Nutzer selbst urteilt. */
-.fcard__sig{font-family:var(--font-ui);font-weight:600;font-size:.66rem;letter-spacing:.04em;
+.fcard__sig{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-3);letter-spacing:var(--ls-7);
   color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .fcard__stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-top:auto;
   border-top:1px solid var(--line);padding-top:.6rem}
-.fcard__stat dt{font-family:var(--font-ui);font-weight:700;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.fcard__stat dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:.95rem;color:var(--text);
+.fcard__stat dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-2);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
+.fcard__stat dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-9);color:var(--text);
   font-variant-numeric:tabular-nums;line-height:1.1}
 
 .fcard__prices{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;border-top:1px solid var(--line);padding-top:.55rem}
 .fprice{display:flex;flex-direction:column;gap:.06rem;min-width:0}
-.fprice dt{font-family:var(--font-ui);font-weight:700;font-size:.58rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
-.fprice .v{font-family:var(--font-ui);font-weight:700;font-size:1rem;font-variant-numeric:tabular-nums;line-height:1.1;
+.fprice dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-2);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
+.fprice .v{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);font-variant-numeric:tabular-nums;line-height:1.1;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fprice__u{font-size:.62rem;font-weight:600;color:var(--muted);letter-spacing:.04em;margin-left:.15rem}
+.fprice__u{font-size:var(--fs-2);font-weight:600;color:var(--muted);letter-spacing:var(--ls-7);margin-left:.15rem}
 .fprice--pledge .v{color:var(--gold)}
 .fprice--game{border-left:1px solid var(--line);padding-left:.5rem}
 .fprice--game .v{color:var(--accent)}
@@ -257,7 +257,7 @@ a{color:inherit;text-decoration:none}
 
 @media(max-width:520px){
   .sdb__fleet{grid-template-columns:1fr 1fr;gap:.7rem}
-  .fcard__name{font-size:1rem}
+  .fcard__name{font-size:var(--fs-10)}
   .fcard__body{padding:.6rem .6rem .7rem;gap:.5rem}
   .fcard__stats{grid-template-columns:1fr 1fr}
   .fcard__stat:nth-child(3){display:none}
@@ -266,7 +266,7 @@ a{color:inherit;text-decoration:none}
   .fprice--game{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:.25rem}
 }
 
-.sdb__src{margin-top:1.5rem;font-size:.85rem;color:var(--muted)}
+.sdb__src{margin-top:1.5rem;font-size:var(--fs-7);color:var(--muted)}
 .sdb__src a{text-decoration:underline}
 .sdb__src a:hover{color:var(--accent)}
 /* Mobil-Filter: NACH den Basis-Regeln, damit display:grid (gleiche Spezifität) greift */
