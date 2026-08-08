@@ -1,9 +1,9 @@
 /* ============================================================
    theme.css — Hell/Dunkel-Fundament für die gesamte Seite.
    Wird von Layout.astro auf JEDER Seite geladen, vor allem
-   Seiten-CSS. Enthält keine Layout-Regeln, nur Farbwerte.
+   Seiten-CSS.
    ------------------------------------------------------------
-   AUFBAU (drei Schichten, absichtlich in dieser Reihenfolge):
+   AUFBAU (vier Schichten, absichtlich in dieser Reihenfolge):
 
    1. GRUND-TOKENS  (--bg, --surface, --text, --accent …)
       Die setzt jede Seite weiterhin selbst in ihrem inline
@@ -23,6 +23,15 @@
       das Bild aus und macht den Text schlechter lesbar, nicht
       besser. Die Verläufe enden ohnehin auf var(--bg) und gehen
       damit von selbst sauber in die helle Seite über.
+
+   4. SCHRIFT- UND BEWEGUNGSSKALA (--fs-*, --ls-*, --dur-*, --ease-ui)
+      Neu (Phase 2). Keine Farben — eine gemessene Skala für
+      Schriftgrad, Laufweite und die Dauer/Kurve von
+      Bedienübergängen. Steht bewusst auf blankem :root{} wie
+      Schicht 1+2, aus demselben Grund: die Werte muessen auch ohne
+      das Umschalt-Script gueltig sein. Fuer die drei
+      `npm run theme`-Generatoren unsichtbar (sie parsen nur Werte,
+      die als CSS-Farbe durchgehen) — siehe Kommentar dort unten.
    ------------------------------------------------------------
    SPEZIFITÄT: :root[data-theme="light"] (0,2,0) schlägt das
    :root{} (0,1,0) der Seiten — die helle Palette überschreibt
@@ -262,3 +271,85 @@ body::-webkit-scrollbar,
    Einzelne Elemente behalten ihre eigenen Übergänge (Hover usw.) —
    die sind lokal und unkritisch.
    ============================================================ */
+
+/* ============================================================
+   4 — SCHRIFT- UND BEWEGUNGSSKALA (Phase 2)
+
+   Aus der gemessenen Verteilung site-weit abgeleitet (siehe
+   .planning/phases/02-schrift-und-bewegungsskala/02-01-PLAN.md
+   § "Die Skala — gemessen, nicht erfunden"), NICHT aus einem
+   Lehrbuch-Verhältnis.
+
+   ⚠⚠ 1rem ist HIER 18px, nicht 16px: src/layouts/Layout.astro setzt
+   die Wurzelschriftgröße auf 112,5 Prozent (statt 100). Jeder
+   Kommentar unten nennt den effektiven Pixelwert auf dieser
+   Grundlage — die Wurzelvorgabe selbst wird NICHT tokenisiert (sie
+   ist die Basis, kein Skalenwert).
+
+   19 Schriftgrad-Stufen (--fs-1..--fs-19), 0,05rem-Raster im
+   dichten Band, weiter werdend nach oben.
+   20 Laufweiten-Stufen (--ls-1..--ls-20), 0,02em-Raster.
+   Drei Bewegungsstufen (--dur-fast/base/slow) NUR fuer
+   Bedienübergänge (D-03) — Ambiente (Ken Burns, Scroll-Reveal,
+   Parallaxe) bleibt unangetastet und referenziert diese Tokens
+   nicht.
+   --ease-ui fasst die drei nahezu identischen Kurven
+   (cubic-bezier(0.16,1,0.3,1) / (.2,.7,.3,1) / (0.2,0.7,0.25,1))
+   sowie blanke `ease`-Angaben zu EINER Bewegungssprache zusammen
+   (D-04/D-07). Bewusst NICHT `--ease` genannt: `assets/archive.css`
+   definiert bereits lokal `--ease`/`--ease-out` und laedt NACH
+   dieser Datei — ein gleichnamiger globaler Token wuerde dort
+   lautlos ueberschrieben (Forschung Pattern 2).
+
+   Auf blankem :root{}, wie Schicht 1+2 — siehe Kopfkommentar.
+   ============================================================ */
+:root {
+  /* --- Schriftgrad (Basis: 1rem = 18px) --- */
+  --fs-1: 0.55rem; /* 9.90px */
+  --fs-2: 0.6rem; /* 10.80px */
+  --fs-3: 0.65rem; /* 11.70px */
+  --fs-4: 0.7rem; /* 12.60px */
+  --fs-5: 0.75rem; /* 13.50px */
+  --fs-6: 0.8rem; /* 14.40px */
+  --fs-7: 0.85rem; /* 15.30px */
+  --fs-8: 0.9rem; /* 16.20px */
+  --fs-9: 0.95rem; /* 17.10px */
+  --fs-10: 1rem; /* 18.00px — Basis */
+  --fs-11: 1.1rem; /* 19.80px */
+  --fs-12: 1.2rem; /* 21.60px */
+  --fs-13: 1.3rem; /* 23.40px */
+  --fs-14: 1.45rem; /* 26.10px */
+  --fs-15: 1.6rem; /* 28.80px */
+  --fs-16: 1.8rem; /* 32.40px */
+  --fs-17: 2.2rem; /* 39.60px */
+  --fs-18: 2.6rem; /* 46.80px */
+  --fs-19: 3.2rem; /* 57.60px */
+
+  /* --- Laufweite --- */
+  --ls-1: -0.02em;
+  --ls-2: -0.01em;
+  --ls-3: 0em;
+  --ls-4: 0.01em;
+  --ls-5: 0.02em;
+  --ls-6: 0.03em;
+  --ls-7: 0.04em;
+  --ls-8: 0.05em;
+  --ls-9: 0.06em;
+  --ls-10: 0.08em;
+  --ls-11: 0.1em;
+  --ls-12: 0.12em;
+  --ls-13: 0.14em;
+  --ls-14: 0.16em;
+  --ls-15: 0.18em;
+  --ls-16: 0.2em;
+  --ls-17: 0.22em;
+  --ls-18: 0.24em;
+  --ls-19: 0.28em;
+  --ls-20: 0.32em;
+
+  /* --- Bewegung: NUR Bedienübergänge (D-03) --- */
+  --dur-fast: 150ms; /* fängt 100–170ms ein */
+  --dur-base: 200ms; /* fängt 180–220ms ein */
+  --dur-slow: 300ms; /* fängt 240–350ms ein */
+  --ease-ui: cubic-bezier(0.2, 0.7, 0.3, 1); /* Fusion der drei Fast-Duplikate, D-04/D-07 */
+}

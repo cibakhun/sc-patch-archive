@@ -543,7 +543,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     gap: 1rem;
     padding: 0.7rem clamp(1rem, 4vw, 2.5rem);background:linear-gradient(180deg, var(--chrome-solid), transparent);
     backdrop-filter: blur(6px);
-    transition: background 0.3s;
+    transition: background var(--dur-slow) var(--ease-ui);
   }
   .snav.scrolled {background:var(--chrome-solid);border-bottom:1px solid var(--line, var(--line-soft));
   }
@@ -602,8 +602,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     color: var(--text, #e8eefc);
     font-family: var(--font-display, sans-serif);
     font-weight: 700;
-    font-size: 1rem;
-    letter-spacing: 0.18em;
+    font-size: var(--fs-10);
+    letter-spacing: var(--ls-15);
     text-transform: uppercase;
     white-space: nowrap;
   }
@@ -663,12 +663,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     color: var(--muted, #8a99b8);
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-11);
     text-transform: uppercase;
     padding: 0.42rem 0.75rem;
     cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+    transition: background-color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui), color var(--dur-fast) var(--ease-ui);
   }
   /* Suchlabel + Lupe sind dauerhaft blau (Akzent); nur der Tastenkürzel-
      Hinweis (kbd) bleibt grau. */
@@ -687,8 +687,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav__search kbd {
     font-family: inherit;
     font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-10);
     color: var(--muted, #8a99b8);border:1px solid var(--line, var(--line-soft));background:var(--veil);
     padding: 0.08rem 0.4rem;
     border-radius: 1px;
@@ -702,12 +702,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     color: var(--muted, #8a99b8);
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
+    font-size: var(--fs-6);
+    letter-spacing: var(--ls-11);
     text-transform: uppercase;
     padding: 0.42rem 0.75rem;
     cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+    transition: background-color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui), color var(--dur-fast) var(--ease-ui);
   }
   .snav__acct:hover {
     color: var(--accent, #2dd4ff);
@@ -756,14 +756,14 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     cursor: pointer;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.12em;
+    font-size: var(--fs-7);
+    letter-spacing: var(--ls-12);
     text-transform: uppercase;
     color: var(--text, #e8eefc);
     padding: 0.42rem 0.75rem;
     border: 1px solid var(--line, var(--line-soft));
     background: var(--veil);
-    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.25s ease;
+    transition: color var(--dur-base) var(--ease-ui), border-color var(--dur-base) var(--ease-ui), background-color var(--dur-base) var(--ease-ui), box-shadow var(--dur-slow) var(--ease-ui);
   }
   .snav__menu-btn:hover {
     color: var(--accent, #2dd4ff);
@@ -783,7 +783,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     inset: 0;
     /* ease-out-quart statt Ueberschwinger: echte Massen bremsen sanft aus,
        Bounce/Elastic wirkt aufgesetzt. */
-    transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+    transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity var(--dur-slow) var(--ease-ui);
   }
   .snav__menu-svg--burger {
     opacity: 1;
@@ -795,7 +795,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
   .snav__menu-txt {
     display: inline-block;
-    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
+    transition: transform var(--dur-slow) var(--ease-ui), opacity var(--dur-base) var(--ease-ui);
   }
   .snav__menu-txt--close {
     position: absolute;
@@ -807,8 +807,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav__menu-txt--close kbd {
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
     font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-10);
     color: var(--accent, #2dd4ff);
     border: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 50%, transparent);
     background: color-mix(in srgb, var(--accent, #2dd4ff) 14%, transparent);
@@ -895,14 +895,14 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     backdrop-filter: blur(10px);
     font-family: var(--font-ui, sans-serif);
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 0.7rem;
+    letter-spacing: var(--ls-12);
+    font-size: var(--fs-4);
     /* Ohne das erbt die Marke die Fliesstext-Zeilenhoehe (~1,9) und wird
        11 px hoeher als noetig — jeder dieser Pixel geht als Freiraum in
        --nav-h und damit in drei klebende Filterleisten. */
     line-height: 1;
     color: var(--muted, #8a99b8);
-    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+    transition: color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui), background-color var(--dur-fast) var(--ease-ui);
   }
   .snav__back:hover,
   .snav__back:focus-visible {
@@ -1116,7 +1116,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     pointer-events: none;
     /* kurz und linear: die Choreografie sitzt in den Kindern, ein langer
        Uebergang hier legte sich als Schleier ueber jede Bewegung darunter */
-    transition: opacity 0.16s linear;
+    transition: opacity var(--dur-fast) linear;
   }
   .snav-deck[hidden] {
     display: none;
@@ -1169,7 +1169,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
        ihnen die eigene Staffelung — genau die ist jetzt der Effekt. */
     opacity: 0;
     transform: translateY(-6px);
-    transition: opacity 0.14s linear 0.04s, transform 0.28s cubic-bezier(0.2, 0.8, 0.3, 1) 0.04s;
+    transition: opacity var(--dur-fast) linear 0.04s, transform var(--dur-slow) var(--ease-ui) 0.04s;
   }
   .snav-deck.is-open .snav-deck__frame {
     opacity: 1;
@@ -1204,8 +1204,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav-deck__wordmark {
     font-family: var(--font-display, sans-serif);
     font-weight: 700;
-    font-size: 0.95rem;
-    letter-spacing: 0.2em;
+    font-size: var(--fs-9);
+    letter-spacing: var(--ls-16);
     text-transform: uppercase;
   }
   /* echte Statuszeile (jüngster Patch aus der Collection), kein Deko-Text */
@@ -1217,8 +1217,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     margin-right: auto;
     padding-left: clamp(0.9rem, 3vw, 2rem);border-left:1px solid var(--line, var(--line-soft));
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.76rem;
-    letter-spacing: 0.12em;
+    font-size: var(--fs-5);
+    letter-spacing: var(--ls-12);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     white-space: nowrap;
@@ -1255,7 +1255,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     background: transparent;border:1px solid var(--line, var(--line-soft));
     color: var(--muted, #8a99b8);
     cursor: pointer;
-    transition: color 0.16s, border-color 0.16s;
+    transition: color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui);
   }
   .snav-deck__close:hover,
   .snav-deck__close:focus-visible {
@@ -1265,8 +1265,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
   .snav-deck__close kbd {
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.7rem;
-    letter-spacing: 0.06em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-9);
   }
 
   /* ---- Körper: Bühne links, Spalten rechts ---- */
@@ -1301,7 +1301,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       var(--accent, #2dd4ff));
     transform: scaleX(0);
     transform-origin: right center;
-    transition: transform 0.24s cubic-bezier(0.25, 0.85, 0.3, 1) 0.03s;
+    transition: transform var(--dur-slow) var(--ease-ui) 0.03s;
   }
   .snav-deck.is-open .snav-deck__body::before {
     transform: scaleX(1);
@@ -1396,7 +1396,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     justify-content: center;
     color: var(--accent, #2dd4ff);
     opacity: 0;
-    transition: opacity 0.35s ease;
+    transition: opacity var(--dur-slow) var(--ease-ui);
     pointer-events: none;
   }
   .snav-deck__stage.is-glyph .snav-deck__glyph {
@@ -1416,8 +1416,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
   .snav-deck__stagegrp {
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.72rem;
-    letter-spacing: 0.28em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-19);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
   }
@@ -1426,7 +1426,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     font-weight: 700;
     font-size: clamp(1.5rem, 2.9vw, 2.35rem);
     line-height: 1.05;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--ls-2);
     color: var(--text, #e8eefc);
     text-wrap: balance;
   }
@@ -1444,8 +1444,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     padding-bottom: 0.25rem;
     font-family: var(--font-ui, sans-serif);
     font-weight: 700;
-    font-size: 0.74rem;
-    letter-spacing: 0.2em;
+    font-size: var(--fs-5);
+    letter-spacing: var(--ls-16);
     text-transform: uppercase;
     color: var(--accent, #2dd4ff);
     border-bottom: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 40%, transparent);
@@ -1453,7 +1453,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   /* Wechsel: nur der Text versetzt sich kurz — das Bild kreuzt eigenständig,
      sonst wirken zwei gleichzeitige Bewegungen unruhig */
   .snav-deck__stagetext {
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity var(--dur-base) var(--ease-ui), transform var(--dur-base) var(--ease-ui);
   }
   .snav-deck__stage.is-swapping .snav-deck__stagetext {
     opacity: 0;
@@ -1502,8 +1502,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      Akte, nicht als bunte Kategorie-Pille */
   .snav-deck__gname {
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.7rem;
-    letter-spacing: 0.24em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-18);
     text-transform: uppercase;
     color: var(--muted, #8a99b8);
     white-space: nowrap;
@@ -1515,8 +1515,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
   .snav-deck__gcount {
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-11);
     color: color-mix(in srgb, var(--muted, #8a99b8) 65%, transparent);
     font-variant-numeric: tabular-nums;
   }
@@ -1540,7 +1540,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
        nach 0,55 s — sichtbar spaeter als alles andere. */
     animation: deckRowIn 0.24s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
     animation-delay: calc(var(--gdelay, 0.07s) + 0.09s + var(--seq) * 0.014s);
-    transition: background-color 0.18s ease;
+    transition: background-color var(--dur-base) var(--ease-ui);
   }
   /* der Marker links: wächst aus der Mitte, statt als Balken zu erscheinen —
      die eine Bewegung, die das Anvisieren fühlbar macht */
@@ -1557,7 +1557,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     background: var(--accent, #2dd4ff);
     transform: translateY(-50%) scaleY(0);
     transform-origin: center;
-    transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.25, 1);
+    transition: transform var(--dur-base) var(--ease-ui);
   }
   .snav-deck__row:hover,
   .snav-deck__row:focus-visible,
@@ -1585,7 +1585,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     height: 30px;
     flex: none;
     color: var(--muted, #8a99b8);
-    transition: color 0.18s ease, transform 0.18s ease;
+    transition: color var(--dur-base) var(--ease-ui), transform var(--dur-base) var(--ease-ui);
   }
   .snav-deck__icon svg {
     width: 17px;
@@ -1614,7 +1614,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     gap: 1px;
     min-width: 0;
     flex: 1;
-    transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.25, 1);
+    transition: transform var(--dur-base) var(--ease-ui);
   }
   .snav-deck__row:hover .snav-deck__text,
   .snav-deck__row:focus-visible .snav-deck__text,
@@ -1624,7 +1624,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .snav-deck__label {
     font-family: var(--font-ui, sans-serif);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: var(--fs-9);
     line-height: 1.2;
     color: var(--text, #e8eefc);
     overflow: hidden;
@@ -1632,7 +1632,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     white-space: nowrap;
   }
   .snav-deck__sub {
-    font-size: 0.74rem;
+    font-size: var(--fs-5);
     line-height: 1.25;
     color: color-mix(in srgb, var(--muted, #8a99b8) 82%, transparent);
     overflow: hidden;
@@ -1662,8 +1662,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     gap: 1.2rem;
     flex-wrap: wrap;
     font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: 0.7rem;
-    letter-spacing: 0.14em;
+    font-size: var(--fs-4);
+    letter-spacing: var(--ls-13);
     text-transform: uppercase;
     color: color-mix(in srgb, var(--muted, #8a99b8) 75%, transparent);
   }
@@ -1674,7 +1674,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
   .snav-deck__hints kbd {
     font-family: inherit;
-    font-size: 0.68rem;
+    font-size: var(--fs-4);
     color: inherit;border:1px solid var(--line, var(--line-soft));
     padding: 0.02rem 0.3rem;
   }
@@ -1774,7 +1774,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
        überhaupt gescrollt wurde — --brand-in wird hier bewusst überstimmt. */
     .snav--morph .snav__brand {
       opacity: 0;
-      transition: opacity 0.2s linear;
+      transition: opacity var(--dur-base) linear;
     }
     .snav--morph.scrolled .snav__brand {
       opacity: 1;
