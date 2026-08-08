@@ -36,9 +36,19 @@
 
 ### Typografie & Bewegungsbild
 
+> Stand 08.08.2026, Phase 2 Plan **1 von 7** ausgeführt (Leitschuss: Token-Schicht,
+> Kopfleiste, beide Startseiten-Körper, Prüftor `npm run verify:typo`).
+> TYPO-01 und TYPO-02 sind nach ihrem Wortlaut („Kopfleiste und Startseite") damit
+> erfüllt und maschinell belegt. **Der Betreiber hat den Umfang mit D-01 aber auf
+> site-weit erweitert** — die Pläne 02–07 tragen die Skala in 95 Dateien mit 1.961
+> Schriftgraden. Bis dahin gilt die Skala nicht überall.
+> TYPO-03 bleibt offen: es ist ein Sichturteil („lesen sich als ein
+> zusammenhängendes Bewegungsbild"), und die Sichtrunde steht aus — sie ist in
+> Plan 02 als menschlicher Prüfpunkt eingeplant.
+
 - [x] **TYPO-01**: Schriftgrade und Laufweiten der Kopfleiste und der Startseite folgen einer gemeinsamen Skala statt seitenlokaler Einzelwerte
 - [x] **TYPO-02**: Übergangsdauern und Beschleunigungskurven sind über die Startseite hinweg vereinheitlicht
-- [x] **TYPO-03**: Kopfleiste und Startseite lesen sich als ein zusammenhängendes Bewegungsbild, nicht als zwei unabhängige Zustände
+- [ ] **TYPO-03**: Kopfleiste und Startseite lesen sich als ein zusammenhängendes Bewegungsbild, nicht als zwei unabhängige Zustände
 
 ### Überlagerungen
 
