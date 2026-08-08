@@ -44,9 +44,26 @@ RUN npm run build
 #                    Rueckfall bricht nichts Sichtbares — die Seite baut,
 #                    laedt und funktioniert, sie ist nur wieder schlechter
 #                    lesbar. Derselbe Ausfallmodus wie bei verify:typo oben.
+#   verify:sync    — EN und DE tragen dieselbe Geruestform: Abfolge von
+#                    Element-Typ und Klassen ohne Textinhalte, ueber alle
+#                    gebauten Seitenpaare (Phase 4, SYNC-01/02). Muss HIER
+#                    laufen: eine auseinandergelaufene Sprachfassung bricht
+#                    nichts — die Seite baut, laedt und funktioniert, sie ist
+#                    nur in einer Sprache unvollstaendig. Derselbe Ausfall-
+#                    modus wie bei verify:typo und verify:layers oben. Die
+#                    benannten Ausnahmen stehen in scripts/lib/sync-
+#                    exclusions.mjs; der dortige Zombie-Waechter schlaegt
+#                    fehl, sobald eine Ausnahme ihren Anlass verliert.
+#   verify:theme   — kein erzeugter Hellmodus-Block ist von Hand veraendert
+#                    (Phase 4, THEME-02). Muss HIER laufen: eine Handaenderung
+#                    ueberlebt bis zum naechsten npm run theme und wird dann
+#                    stillschweigend verworfen — das faellt erst auf, wenn die
+#                    Farbe zurueckspringt. Der Waechter laesst die drei echten
+#                    Generatoren gegen eine Ablagekopie unter os.tmpdir()
+#                    laufen und veraendert den Checkout dabei nicht.
 # Schlaegt eins davon fehl, entsteht kein Image und Coolify zieht weiter den
 # letzten guten Stand.
-RUN npm run test:e2e && node scripts/_verify.mjs && npm run verify:vendor && npm run audit:csp && npm run verify:crafting && npm run verify:typo && npm run verify:layers
+RUN npm run test:e2e && node scripts/_verify.mjs && npm run verify:vendor && npm run audit:csp && npm run verify:crafting && npm run verify:typo && npm run verify:layers && npm run verify:sync && npm run verify:theme
 
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html

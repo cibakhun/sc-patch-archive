@@ -32,7 +32,7 @@
 ### Farbmodi
 
 - [x] **THEME-01**: Die Wandlung ist in Hell- und Dunkelmodus gleichwertig lesbar — sowohl über dem Hero-Foto als auch über der Seitenfläche
-- [ ] **THEME-02**: Kein generierter `:root[data-theme="light"]`-Block wird von Hand verändert; Hellwerte entstehen über `npm run theme`
+- [x] **THEME-02**: Kein generierter `:root[data-theme="light"]`-Block wird von Hand verändert; Hellwerte entstehen über `npm run theme`
 
 ### Typografie & Bewegungsbild
 
@@ -65,7 +65,7 @@
 
 ### Sprachparität
 
-- [ ] **SYNC-01**: Jede Änderung an einer Startseiten- oder Layout-Datei trifft die EN- und die DE-Fassung im selben Arbeitsschritt
+- [x] **SYNC-01**: Jede Änderung an einer Startseiten- oder Layout-Datei trifft die EN- und die DE-Fassung im selben Arbeitsschritt
 - [x] **SYNC-02**: Ein Prüfschritt belegt für die geänderten Seitenpaare, dass Struktur und Stil deckungsgleich sind — nicht nur die Absicht
 
 ### Ambiente-Effekte
@@ -334,9 +334,9 @@ ist anbieterneutral und bleibt gültig.
 | TYPO-03 | Phase 2 | Pending |
 | LAYER-01 | Phase 3 | Complete (Plan 4 of 5: alle 19 Patch-Koerper per ueberpruefbarem Massendurchlauf angehoben -- 19 body::after maskiert, 87 Rasterregeln, 19 Beobachter geheilt; verify:layers prueft geteiltes System, /archiv-Umfeld und Patch-Koerper jetzt scharf) |
 | LAYER-02 | Phase 3 | Complete (Plan 5 of 5: 25 Registry-Eintraege, 344 Einzelmessungen, 0 unter der WCAG-AA-Marke; Zusicherung 5 schliesst die Aufzaehlung maschinell gegen den gebauten Stand) |
-| SYNC-01 | Phase 4 | Pending |
-| SYNC-02 | Phase 4 | Complete |
-| THEME-02 | Phase 4 | Pending |
+| SYNC-01 | Phase 4 | Complete (Arbeitsdisziplin, maschinell nicht direkt pruefbar; ihr Nachweis ist der blockierende Rueckhalt `npm run verify:sync` im Dockerfile-Tor — ein Verstoss erzeugt ab jetzt kein Auslieferungsimage mehr) |
+| SYNC-02 | Phase 4 | Complete (`npm run verify:sync` — 8678 gebaute Paare, 0 unerklaerter Rest, ab Plan 03 blockierend im Dockerfile) |
+| THEME-02 | Phase 4 | Complete (`npm run verify:theme` — 80 Dateien mit erzeugten Bloecken, 0 unerklaerte Abweichungen, ab Plan 03 blockierend im Dockerfile) |
 | DON-01 | Phase 5 | Pending |
 | DON-02 | Phase 5 | Pending |
 | DON-03 | Phase 5 | Pending |

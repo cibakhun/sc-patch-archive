@@ -322,13 +322,13 @@ Betreiber — kein Skript entscheidet es.
   2. Der Prüfschritt schlägt fehl, wenn eine Sprachfassung nachträglich auseinanderläuft
   3. Kein generierter Hellmodus-Block wurde von Hand verändert; die Hellwerte entstehen weiterhin über `npm run theme`
 
-**Plans**: 3 plans
+**Plans**: 2/3 plans executed
 
 Plans:
 
 - [x] 04-01-PLAN.md (Welle 1) — Leitschuss: die ganze Kette von der Paarung bis zum Exit-Code, mit dem Struktur-Fingerabdruck aus D-01 über ALLE gebauten Paare (D-02), dem engen `langsw`-Ausschluss statt eines Seitenausschlusses, dem bezifferten Erstbefund — und der ausgeführten Negativkontrolle (Erfolgskriterium 2)
 - [x] 04-02-PLAN.md (Welle 2) — Den Rest schließen: D-05 (die Beschreibung hängt an der englischen Quelle, beide Sprachen lassen sie sonst weg), jede verbleibende Abweichung einzeln beurteilt (bewusste Quellstelle = benannte Ausnahme, sonst beheben), Zombie-Wächter gegen Ausnahmen ohne Anlass, und die dreifach kopierte Paarungslogik auf ein Modul umgehängt
-- [ ] 04-03-PLAN.md (Welle 3) — THEME-02-Wächter (D-04) gegen eine Ablagekopie statt gegen den Arbeitsbaum, die falsche Herkunftsangabe in `assets/theme.css` richtiggestellt, beide Tore blockierend ans Dockerfile (D-03 „dann scharf"), Phasenbilanz
+- [x] 04-03-PLAN.md (Welle 3) — THEME-02-Wächter (D-04) gegen eine Ablagekopie statt gegen den Arbeitsbaum, die falsche Herkunftsangabe in `assets/theme.css` richtiggestellt, beide Tore blockierend ans Dockerfile (D-03 „dann scharf"), Phasenbilanz
 
 ⚠ **Drei statt zwei Pläne — und die Phase ist trotzdem klein.** Anders als in den Phasen 2 (7
 statt 2) und 3 (5 statt 2) hat hier die Recherche die Messung selbst gefahren, gegen einen echten
@@ -523,7 +523,7 @@ Phase 8 hängt ebenfalls an keiner Vorgängerphase und lief am 07.08.2026 durch.
 | 1.2 Werkzeuge erklären | 5/5 | In Progress|  |
 | 2. Schrift- und Bewegungsskala | 7/7 | In Progress|  |
 | 3. Überlagerungen entstapeln | 2/5 | In Progress|  |
-| 4. Sprachparität absichern | 0/3 | Planned | - |
+| 4. Sprachparität absichern | 2/3 | In Progress|  |
 | 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |
 | 6. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |
 | 7. Komponenten-Filter für Schiffe | 3/3 | Complete | 2026-08-03 |
