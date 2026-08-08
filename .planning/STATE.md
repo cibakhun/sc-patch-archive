@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: Completed 02-05-PLAN.md (19 Patch-Koerper auf die Skala umgestellt)
-last_updated: "2026-08-08T14:36:11.234Z"
+stopped_at: Completed 02-06-PLAN.md (fuenf Seitenpaare, 22 Themen-Koerper, 5 Konto-Ansichten, PilotPage, ShipsOverview auf die Skala umgestellt)
+last_updated: "2026-08-08T14:53:09.931Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
   total_phases: 10
   completed_phases: 6
   total_plans: 37
-  completed_plans: 29
+  completed_plans: 30
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -117,7 +117,7 @@ technisch fertig (5/5 Pläne, 11/11 Werkzeuge maschinell belegt), aber NICHT als
 der Mauszeiger-Schein ist auf `staging` bereits getilgt (0 Treffer für `cursorglow`/`--mx`),
 die Arbeit wäre ein Duplikat gewesen. Phase 1.1 bleibt hier bei 2/3.
 
-Progress: [████████░░] 78%
+Progress: [████████░░] 81%
 
 ## Performance Metrics
 
@@ -160,6 +160,7 @@ Progress: [████████░░] 78%
 | Phase 02 P02 | ~40min | 2 tasks | 2 files |
 | Phase 02 P03 | ~90min | 2 tasks | 9 files |
 | Phase 02 P05 | ~45min | 2 tasks | 20 files |
+| Phase 02 P06 | ~50min | 2 tasks | 40 files |
 
 ## Accumulated Context
 
@@ -215,6 +216,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 2]: 02-04: REQUIREMENTS.md TYPO-01/02/03 weiterhin NICHT auf "Complete" gesetzt -- site-weite Abdeckung ist erst nach Plan 07 vollstaendig (Plaene 05-07 stehen noch aus)
 - [Phase ?]: [Phase 2]: 02-05: alle 19 Patch-Koerper (956 Ersetzungen, 0 Verweigerungen) auf die Skala umgestellt -- groesster Einzelblock der Phase; sc-4-2-0 (Regen/Blitz) und sc-4-9-0 (#dust) per Diff-Zeilenbereich geprueft, Ambiente-JS ausserhalb aller Hunks
 - [Phase ?]: [Phase 2]: 02-05: animation-Sollzahl aus dem Plan (160) war eine Verwechslung mit der transition-Deklarationszahl (ebenfalls 160) -- tatsaechliche, vor/nach dem Lauf identische Zahl ist 133; REQUIREMENTS.md korrigiert
+- [Phase ?]: [Phase 2]: 02-06: fuenf handgepflegte DE/EN-Seitenpaare + 404 sowie 22 Themen-Koerper/5 Konto-Ansichten/PilotPage/ShipsOverview umgestellt (530 Ersetzungen, 5 Verweigerungen -- 2 .85em elternrelativ, 3 von Hand nach D-05 eingerastet); alle Paare EN=DE identisch (0 Abweichungen), 29 ship-component-filter-Testfaelle weiterhin gruen
+- [Phase ?]: [Phase 2]: 02-06: die im Plan genannten Ausgangszahlen/Ausreisser waren Prosa-Schaetzungen -- tatsaechlich nur 3 Ausreisser (PilotPage 2.8rem/2rem, mining.astro .sh-icon 2.4rem), nicht 4; PilotPage 2.2rem liegt exakt auf --fs-17 (kein Ausreisser), RefineryDashboard/FriendsManager 1.5rem liegen bei 3.45% (unter der Schwelle)
 
 ### Pending Todos
 
@@ -262,6 +265,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-08T14:36:11.201Z
-Stopped at: Completed 02-05-PLAN.md (19 Patch-Koerper auf die Skala umgestellt)
+Last session: 2026-08-08T14:53:09.896Z
+Stopped at: Completed 02-06-PLAN.md (fuenf Seitenpaare, 22 Themen-Koerper, 5 Konto-Ansichten, PilotPage, ShipsOverview auf die Skala umgestellt)
 Resume file: None
