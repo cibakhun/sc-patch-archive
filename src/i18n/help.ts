@@ -155,7 +155,7 @@ export const HELP = {
     'ships.title': 'Wie funktioniert der Schiffskatalog?',
     'ships.purpose':
       'Zeigt alle Schiffe und Fahrzeuge mit Werten, Bauteilen und beiden Preisen — Pledge und Ingame.',
-    'ships.step1': 'Suchbegriff eingeben oder einen Schnellzugriff-Chip anklicken.',
+    'ships.step1': 'Schiffs- oder Herstellernamen ins Suchfeld eingeben.',
     'ships.step2': 'Nach Hersteller, Beruf, Rolle, Größe, Signatur, Merkmal oder Bauteil filtern.',
     'ships.step3': 'Ergebnisse nach Name, Preis, Fracht oder Crew sortieren.',
     'ships.step4': 'Auf eine Karte klicken für das volle Datenblatt.',
@@ -319,7 +319,7 @@ export const HELP = {
     'ships.title': 'How does the ship catalog work?',
     'ships.purpose':
       'Shows every ship and vehicle with stats, components and both prices — pledge and in-game.',
-    'ships.step1': 'Type a search term or click a quick-access chip.',
+    'ships.step1': 'Type a ship or manufacturer name into the search field.',
     'ships.step2': 'Filter by manufacturer, career, role, size, signature, feature or component.',
     'ships.step3': 'Sort the results by name, price, cargo or crew.',
     'ships.step4': 'Click a card for the full data sheet.',
