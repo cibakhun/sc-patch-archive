@@ -112,6 +112,46 @@ export function contrast(a, b) {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
+/* ---------- Schichten zusammenlegen (Phase 3, Plan 1 — D-04/LAYER-02) ----------
+   WCAG rechnet (L1+.05)/(L2+.05). Dieses Verhaeltnis bleibt NICHT erhalten,
+   wenn man beide Seiten gleichmaessig Richtung einer dritten Farbe mischt —
+   Vordergrund und Hintergrund muessen deshalb JEDER FUER SICH durch den
+   ganzen Schichtstapel geschickt und erst danach ins Verhaeltnis gesetzt
+   werden. compositeOver()/flattenStack() sind der fehlende Baustein dafuer;
+   contrast()/luminance() oben bleiben unangetastet — es gibt weiterhin genau
+   eine WCAG-Formel im Bestand. */
+const toColorObj = (c) => (typeof c === 'string' ? parseColor(c) : c);
+
+/** Standard-Auflegeoperator ("source-over"): legt `top` (mit seinem eigenen
+ * Alpha) auf `bottom` (als deckend behandelt). Beide Argumente nehmen
+ * dieselbe Form wie parseColor() zurueckgibt (Kanaele 0..1) oder einen
+ * CSS-Farbstring, der ueber parseColor() geschickt wird. Rueckgabe ist immer
+ * deckend (alpha:1) — das Ergebnis ist selbst wieder eine gueltige "Basis"
+ * fuer die naechste Schicht. */
+export function compositeOver(top, bottom) {
+  const t = toColorObj(top);
+  const b = toColorObj(bottom);
+  const a = t.alpha ?? 1;
+  if (a >= 1) return { r: t.r, g: t.g, b: t.b, alpha: 1 };
+  if (a <= 0) return { r: b.r, g: b.g, b: b.b, alpha: 1 };
+  return {
+    r: t.r * a + b.r * (1 - a),
+    g: t.g * a + b.g * (1 - a),
+    b: t.b * a + b.b * (1 - a),
+    alpha: 1,
+  };
+}
+
+/** Faltet `layers` (Index 0 zuunterst, die letzte Schicht liegt oben) in
+ * Malreihenfolge ueber die deckende `base` und gibt eine deckende Farbe
+ * zurueck. `compositeOver` ist ihr Baustein; dies ist die Funktion, die die
+ * Pruefskripte (z. B. scripts/verify-layers.mjs) benutzen. */
+export function flattenStack(base, layers) {
+  let acc = { ...toColorObj(base), alpha: 1 };
+  for (const layer of layers) acc = compositeOver(layer, acc);
+  return acc;
+}
+
 /**
  * Dunkelt eine Farbe so weit ab (bei gleichem Farbton), bis sie das
  * geforderte Kontrastverhältnis gegen `bg` erreicht. Rettungsanker für
