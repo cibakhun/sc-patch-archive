@@ -414,10 +414,23 @@ export function displayName(i: Item, lang: Locale): string {
   return lang === 'de' && de ? de : i.name;
 }
 
-/** Spielbeschreibung in der Sprache der Seite. */
+/**
+ * Spielbeschreibung in der Sprache der Seite (D-05, 04-CONTEXT.md).
+ *
+ * Fehlt `g.desc` (die englische Quelle), liefert diese Funktion `null` — IN
+ * BEIDEN SPRACHEN, unabhaengig von `lang`. Grund: fuer 79 Items fehlt der
+ * LOCID-Schluessel in CIGs eigener `Localization/english/global.ini`
+ * VOLLSTAENDIG (nicht leer, nicht vorhanden); einen englischen Text zu
+ * erzeugen waere eine Erfindung und ist durch die erste Regel in
+ * scripts/datamine-items.mjs ausgeschlossen ("KEINE erfundenen Werte").
+ * `descDe` gilt deshalb als UEBERSETZUNG eines vorhandenen `desc`, nicht als
+ * eigenstaendige Quelle. Die Rueckfallrichtung bleibt unveraendert: existiert
+ * `g.desc`, aber kein `g.descDe`, zeigt die DE-Seite weiterhin den
+ * englischen Text (4.992 Items, harmlos, D-05 dreht das nicht um).
+ */
 export function description(i: Item, lang: Locale): string | null {
   const g = i.game;
-  if (!g) return null;
+  if (!g || !g.desc) return null;
   const s = (lang === 'de' && g.descDe ? g.descDe : g.desc) ?? null;
   return s ? s.trim() : null;
 }
