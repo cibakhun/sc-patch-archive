@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1.2: Werkzeuge erklären** (INSERTED) - Jedes Werkzeug sagt, wofür es da ist und wie man es bedient
 - [ ] **Phase 1.3: Datenschicht aufraeumen** (INSERTED) - Reste alter Datenläufe raus, falsche Quellenangabe weg, Datenstand auf den laufenden Client
 - [ ] **Phase 1.4: Fahrzeug-Katalog auf Spieldaten** (INSERTED) - Der Schiffskatalog kommt aus der eigenen Extraktion statt aus der Wiki-API
-- [ ] **Phase 2: Schrift- und Bewegungsskala** - Eine gemeinsame Skala für Schriftgrade und Übergänge statt seitenlokaler Einzelwerte
+- [x] **Phase 2: Schrift- und Bewegungsskala** - Eine gemeinsame Skala für Schriftgrade und Übergänge statt seitenlokaler Einzelwerte
 - [ ] **Phase 3: Überlagerungen entstapeln** - Class-B-Befund abtragen, Textkontrast über Bildmotiven belegen
 - [ ] **Phase 4: Sprachparität absichern** - Deckungsgleichheit der Seitenpaare nachweisbar statt behauptet
 - [x] **Phase 5: Spenden-Unterstützung** - Ein Unterstützen-Weg, der tatsächlich Geld annimmt: PayPal-Link, eigene Seite in der Richtung „Instandsetzung" (Ko-fi bei der Umstellung am 02.08. ersatzlos gestrichen)
