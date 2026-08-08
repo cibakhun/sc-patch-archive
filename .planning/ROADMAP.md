@@ -322,12 +322,36 @@ Betreiber — kein Skript entscheidet es.
   2. Der Prüfschritt schlägt fehl, wenn eine Sprachfassung nachträglich auseinanderläuft
   3. Kein generierter Hellmodus-Block wurde von Hand verändert; die Hellwerte entstehen weiterhin über `npm run theme`
 
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
 
-- [ ] 04-01: Prüfschritt für die Deckungsgleichheit der angefassten Seitenpaare bauen
-- [ ] 04-02: Prüfschritt in `npm run verify` bzw. `audit:site` einhängen und Hellmodus-Generierung bestätigen
+- [ ] 04-01-PLAN.md (Welle 1) — Leitschuss: die ganze Kette von der Paarung bis zum Exit-Code, mit dem Struktur-Fingerabdruck aus D-01 über ALLE gebauten Paare (D-02), dem engen `langsw`-Ausschluss statt eines Seitenausschlusses, dem bezifferten Erstbefund — und der ausgeführten Negativkontrolle (Erfolgskriterium 2)
+- [ ] 04-02-PLAN.md (Welle 2) — Den Rest schließen: D-05 (die Beschreibung hängt an der englischen Quelle, beide Sprachen lassen sie sonst weg), jede verbleibende Abweichung einzeln beurteilt (bewusste Quellstelle = benannte Ausnahme, sonst beheben), Zombie-Wächter gegen Ausnahmen ohne Anlass, und die dreifach kopierte Paarungslogik auf ein Modul umgehängt
+- [ ] 04-03-PLAN.md (Welle 3) — THEME-02-Wächter (D-04) gegen eine Ablagekopie statt gegen den Arbeitsbaum, die falsche Herkunftsangabe in `assets/theme.css` richtiggestellt, beide Tore blockierend ans Dockerfile (D-03 „dann scharf"), Phasenbilanz
+
+⚠ **Drei statt zwei Pläne — und die Phase ist trotzdem klein.** Anders als in den Phasen 2 (7
+statt 2) und 3 (5 statt 2) hat hier die Recherche die Messung selbst gefahren, gegen einen echten
+Build: **8.678 gebaute EN/DE-Paare** (nicht 69 — die 69 sind Quellpaare, mehrere davon dynamische
+Routen), davon **80,3 % bereits zeichengleich**, und **95 % aller Abweichungen aus EINER
+mechanischen Ursache**: `LangSwitcher.astro` rendert die Sprach-Steckplätze in fester Reihenfolge,
+weshalb Abzeichen und Verweis zwischen EN und DE die DOM-Position tauschen. Nach dieser einen
+Ausnahme bleiben **~85 Paare (~1 %)**. Der dritte Plan entsteht nicht aus Umfang, sondern weil
+THEME-02 ein zweiter, andersartiger Wächter ist und das Scharfschalten beider Tore einen eigenen
+Nachweislauf braucht.
+
+Korrektur am ursprünglichen Zuschnitt: die frühere Formulierung „in `npm run verify` bzw.
+`audit:site` einhängen" wird NICHT umgesetzt. `_verify.mjs` prüft Verweis-Integrität,
+`audit-site.mjs` SEO/A11y; alle vier bestehenden Struktur-Tore (`verify:fx`, `verify:help`,
+`verify:typo`, `verify:layers`) sind eigenständige npm-Skripte in der Dockerfile-Kette. Die
+beiden neuen folgen diesem Präzedenzfall.
+
+Zwei Funde, die den Zuschnitt mitbestimmen: **79 Items tragen eine deutsche, aber keine englische
+Beschreibung, weil die LOCID-Schlüssel in CIGs eigener `english/global.ini` fehlen** — deshalb
+D-05, das die Anzeige an die Existenz der englischen Quelle knüpft, statt Text zu erfinden. Und
+**keiner der drei `npm run theme`-Generatoren fasst `assets/theme.css` an**, obwohl dessen
+Kopfkommentar das behauptet; der Wächter deckt die Datei deshalb ausdrücklich nicht ab, und die
+Angabe wird richtiggestellt statt weitergeschleppt.
 
 ### Phase 5: Spenden-Unterstützung
 
@@ -499,7 +523,7 @@ Phase 8 hängt ebenfalls an keiner Vorgängerphase und lief am 07.08.2026 durch.
 | 1.2 Werkzeuge erklären | 5/5 | In Progress|  |
 | 2. Schrift- und Bewegungsskala | 7/7 | In Progress|  |
 | 3. Überlagerungen entstapeln | 2/5 | In Progress|  |
-| 4. Sprachparität absichern | 0/2 | Not started | - |
+| 4. Sprachparität absichern | 0/3 | Planned | - |
 | 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |
 | 6. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |
 | 7. Komponenten-Filter für Schiffe | 3/3 | Complete | 2026-08-03 |
