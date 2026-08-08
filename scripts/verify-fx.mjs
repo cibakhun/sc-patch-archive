@@ -41,6 +41,7 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { findPagePairs, assertMinimumPairs } from './lib/page-pairs.mjs';
 
 if (!(() => { try { readdirSync('dist'); return true; } catch { return false; } })()) {
   console.error(
@@ -146,14 +147,10 @@ console.log('\n[5] data-fx-Kopf-Schnipsel steht vor dem ersten <script src=...> 
 /* ---- Zusicherung 6: Sprachparitaet ---- */
 console.log('\n[6] Sprachparitaet EN<->DE (Umschalter-Klasse, data-fx, Ereignisname)');
 {
-  const set = new Set(htmlFiles);
-  const enFiles = htmlFiles.filter((f) => !f.startsWith('dist/de/') && f !== 'dist/de.html');
+  const { pairs: pairList } = findPagePairs(htmlFiles);
   let pairs = 0;
   const mismatches = [];
-  for (const f of enFiles) {
-    const rel = f.slice('dist/'.length);
-    const dePath = rel === 'index.html' ? 'dist/de.html' : 'dist/de/' + rel;
-    if (!set.has(dePath)) continue;
+  for (const [f, dePath] of pairList) {
     pairs++;
     const enHtml = htmlCache.get(f);
     const deHtml = htmlCache.get(dePath);
@@ -164,7 +161,7 @@ console.log('\n[6] Sprachparitaet EN<->DE (Umschalter-Klasse, data-fx, Ereignisn
     }
   }
   console.log(`    Verglichene Seitenpaare: ${pairs}   Soll: 0 Abweichungen   Ist: ${mismatches.length}`);
-  if (pairs < 60) fail(`Zu wenige Seitenpaare gefunden (${pairs} < 60) — Paarungslogik pruefen`);
+  assertMinimumPairs(pairList, fail, 60);
   if (mismatches.length) {
     fail(`Sprachparitaet gerissen bei ${mismatches.length} Paar(en):`);
     for (const m of mismatches.slice(0, 10)) {

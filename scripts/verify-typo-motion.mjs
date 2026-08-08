@@ -74,6 +74,7 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { findPagePairs, assertMinimumPairs } from './lib/page-pairs.mjs';
 import {
   HERO_EXCEPTION_SELECTOR_RE,
   AMBIENT_SELECTOR_RE,
@@ -219,15 +220,11 @@ console.log('\n[4] Hero-Wandlung unberuehrt: clamp(2.9rem,12vw,8.5rem) + 360px-R
 /* ---- Zusicherung 5: Sprachparitaet (SYNC-01) ---- */
 console.log('\n[5] Sprachparitaet EN<->DE (var(--fs-/--ls-/--dur-/--ease-ui) paarweise gleich)');
 {
-  const set = new Set(htmlFiles);
-  const enFiles = htmlFiles.filter((f) => !f.startsWith('dist/de/') && f !== 'dist/de.html');
+  const { pairs: pairList } = findPagePairs(htmlFiles);
   const needles = ['var(--fs-', 'var(--ls-', 'var(--dur-', 'var(--ease-ui)'];
   let pairs = 0;
   const mismatches = [];
-  for (const f of enFiles) {
-    const rel = f.slice('dist/'.length);
-    const dePath = rel === 'index.html' ? 'dist/de.html' : 'dist/de/' + rel;
-    if (!set.has(dePath)) continue;
+  for (const [f, dePath] of pairList) {
     pairs++;
     const enHtml = htmlCache.get(f);
     const deHtml = htmlCache.get(dePath);
@@ -237,7 +234,7 @@ console.log('\n[5] Sprachparitaet EN<->DE (var(--fs-/--ls-/--dur-/--ease-ui) paa
     if (diff) mismatches.push({ en: f, de: dePath, enC, deC });
   }
   console.log(`    Verglichene Seitenpaare: ${pairs}   Soll: 0 Abweichungen   Ist: ${mismatches.length}`);
-  if (pairs < 60) fail(`Zu wenige Seitenpaare gefunden (${pairs} < 60) — Paarungslogik pruefen`);
+  assertMinimumPairs(pairList, fail, 60);
   if (mismatches.length) {
     fail(`Sprachparitaet gerissen bei ${mismatches.length} Paar(en):`);
     for (const m of mismatches.slice(0, 10)) {

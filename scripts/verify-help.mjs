@@ -49,6 +49,7 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { findPagePairs, assertMinimumPairs } from './lib/page-pairs.mjs';
 
 if (!(() => { try { readdirSync('dist'); return true; } catch { return false; } })()) {
   console.error(
@@ -161,15 +162,11 @@ console.log('\n[2] Kein markup-setzender Zuweisungspfad (T-01.2-02) — dist/ass
 console.log('\n[3] Sprachparitaet EN<->DE (data-tool-id=, data-help=, class="tool-help")');
 {
   const MARKERS = ['data-tool-id=', 'data-help=', 'class="tool-help"'];
-  const set = new Set(htmlFiles);
-  const enFiles = htmlFiles.filter((f) => !f.startsWith('dist/de/') && f !== 'dist/de.html');
+  const { pairs: pairList } = findPagePairs(htmlFiles);
   let pairs = 0;
   let pairsWithHelp = 0;
   const mismatches = [];
-  for (const f of enFiles) {
-    const rel = f.slice('dist/'.length);
-    const dePath = rel === 'index.html' ? 'dist/de.html' : 'dist/de/' + rel;
-    if (!set.has(dePath)) continue;
+  for (const [f, dePath] of pairList) {
     pairs++;
     const enHtml = htmlCache.get(f);
     const deHtml = htmlCache.get(dePath);
@@ -181,6 +178,10 @@ console.log('\n[3] Sprachparitaet EN<->DE (data-tool-id=, data-help=, class="too
   console.log(
     `    Verglichene Seitenpaare: ${pairs}   Davon mit Werkzeug-Hilfe: ${pairsWithHelp}   Soll: 0 Abweichungen   Ist: ${mismatches.length}`
   );
+  // Vor Plan 02 fehlte diese Untergrenze in verify-help.mjs — die einzige der
+  // drei Kopien ohne sie (Befund aus dem Vorher-Vergleich, 04-02-SUMMARY.md).
+  // Vereinheitlichung macht die Zusicherung staerker, nicht schwaecher (D-02).
+  assertMinimumPairs(pairList, fail, 60);
   if (mismatches.length) {
     fail(`Sprachparitaet gerissen bei ${mismatches.length} Paar(en):`);
     for (const m of mismatches.slice(0, 10)) {
