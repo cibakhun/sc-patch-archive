@@ -13,6 +13,7 @@
     "verify:help": "node scripts/verify-help.mjs",
     "verify:typo": "node scripts/verify-typo-motion.mjs",
   "verify:layers": "node scripts/verify-layers.mjs",
+    "verify:sync": "node scripts/verify-sync.mjs",
     "verify:vendor": "node scripts/verify-vendor-three.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",
     "sync:prices": "node scripts/sync-prices.mjs",
