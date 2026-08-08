@@ -29,9 +29,15 @@ RUN npm run build
 #                    HIER laufen: eine neue Namenskollision nach einem Datenlauf
 #                    bricht nichts sichtbar — sie zeigt still die Groesse eines
 #                    fremden Items.
+#   verify:typo    — Schriftgrad/Laufweite/Uebergangsdauer kommen site-weit aus
+#                    der Skala in assets/theme.css statt aus seitenlokalen
+#                    Einzelwerten (Phase 2, TYPO-01/02). Muss HIER laufen:
+#                    eine gerissene Skala bricht nichts sichtbar — die Seite
+#                    baut, laedt und funktioniert, sie sieht nur wieder aus wie
+#                    vorher. Derselbe Ausfallmodus wie bei verify:crafting oben.
 # Schlaegt eins davon fehl, entsteht kein Image und Coolify zieht weiter den
 # letzten guten Stand.
-RUN npm run test:e2e && node scripts/_verify.mjs && npm run verify:vendor && npm run audit:csp && npm run verify:crafting
+RUN npm run test:e2e && node scripts/_verify.mjs && npm run verify:vendor && npm run audit:csp && npm run verify:crafting && npm run verify:typo
 
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html

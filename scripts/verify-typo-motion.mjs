@@ -1,15 +1,21 @@
 /* ============================================================
    verify-typo-motion.mjs
 
-   Pruefverfahren gegen den GEBAUTEN Stand (dist/), nicht die Quelle —
-   Vorbild scripts/verify-fx.mjs Zeile fuer Zeile (Abbruch mit klarer
-   Meldung wenn dist/ fehlt, je Zusicherung eine Soll/Ist-Zeile,
+   Pruefverfahren ueberwiegend gegen den GEBAUTEN Stand (dist/), nicht die
+   Quelle — Vorbild scripts/verify-fx.mjs Zeile fuer Zeile (Abbruch mit
+   klarer Meldung wenn dist/ fehlt, je Zusicherung eine Soll/Ist-Zeile,
    Sammelurteil am Ende, Rueckgabecode 1 bei Fehlschlag). Bleibt als
    eigenstaendiges Werkzeug (`npm run verify:typo`), absichtlich NICHT
-   in `npm run build` eingehaengt — dieselbe Begruendung wie im Kopf
-   von verify-fx.mjs: der Build ist bereits eine lange Kette, ein Tor,
-   das ihn blockiert, wird beim ersten Fehlalarm herausgenommen. Das
-   Einhaengen ins Dockerfile-Tor macht Plan 07.
+   in `npm run build` selbst eingehaengt — dieselbe Begruendung wie im
+   Kopf von verify-fx.mjs: der Build ist bereits eine lange Kette, ein
+   Tor, das IHN blockiert, wird beim ersten Fehlalarm herausgenommen.
+
+   ⭐ Seit Plan 07 haengt `npm run verify:typo` stattdessen NACH dem Build
+   im Dockerfile-Tor (Zeile 34) — dort blockiert ein Fehlschlag nicht den
+   Build selbst, sondern nur das Auslieferungsimage. Eine gerissene Skala
+   bricht nichts Sichtbares (die Seite baut, laedt, funktioniert), sie
+   sieht nur wieder aus wie vorher — genau der Ausfallmodus, den auch
+   verify:crafting dort begruendet.
 
    ⚠⚠ Durchsucht DREI Orte — eine Pruefung mit nur einem Durchlauf ueber
    .html sieht von dieser Phase praktisch nichts:
@@ -19,7 +25,7 @@
                                  <style>-Bloecke dorthin aus)
      - alle .html-Dateien unterhalb von dist/ (is:inline-Stile und rohe style="…")
 
-   Fuenf Zusicherungen:
+   Sechs Zusicherungen:
 
      1  Token-Schicht ausgeliefert: dist/assets/theme.css definiert
         alle 19 --fs-*, 20 --ls-*, drei --dur-*, --ease-ui. Soll 43
@@ -27,8 +33,14 @@
      2  Tokens werden benutzt: var(--fs-, var(--ls-, var(--dur-,
         var(--ease-ui) kommen in dist/_astro/*.css + allen .html-Dateien unter dist/
         ZUSAMMEN mindestens so oft vor wie die hinterlegte Untergrenze.
-        Die Untergrenze ist eine Sperrklinke auf dem nach Plan 02
-        erreichten Stand — Plaene 03-06 duerfen sie NICHT anfassen.
+        Die Untergrenze ist eine Sperrklinke: sie stand bis Plan 07 auf
+        dem nach Plan 02-01 erreichten Stand (183, nur der Tracer-Umfang
+        SiteNav+beide index.astro) und ist jetzt auf den nach Plaenen
+        03-06 site-weit erreichten Stand angehoben (235775, gemessen
+        mit `npm.cmd run verify:typo` gegen den Stand nach 02-06 auf
+        diesem gebauten dist/ — siehe MIN_TOKEN_USAGES unten). Nur
+        Plan 07 darf diese Zahl anheben, kuenftige Aenderungen duerfen
+        sie NICHT absenken.
      3  Ambiente unberuehrt: Scroll-Reveal traegt im gebauten Stand
         weiterhin seine urspruengliche Dauer (Vorkommen auf .reveal-
         Regeln, Soll > 0), Ken-Burns-Schleifen (kb, kb2, kenburns,
@@ -44,6 +56,15 @@
         var(--dur-, var(--ease-ui) paarweise uebereinstimmen.
         Paarungslogik wortwoertlich aus verify-fx.mjs Zusicherung 6,
         samt der Sperre "< 60 Paare = Paarungslogik pruefen".
+     6  Skalenpflichtiger Rest ueber den GESAMTEN Quellbestand (alle
+        src/-.astro-Dateien + assets/-.css, NICHT dist/) ist 0. Ruft dazu dieselbe
+        Zuordnungslogik aus scripts/lib/typo-motion.mjs auf, die auch
+        scripts/audit-typo-motion.mjs und scripts/migrate-typo-motion.mjs
+        nutzen — kein drittes Muster. Das ist der eigentliche Dauerwaechter:
+        Zusicherung 2 zaehlt Token-BENUTZUNG (kann durch mehr Dateien
+        unterwandert werden), Zusicherung 6 zaehlt uebrig gebliebene
+        EINZELWERTE — nur sie merkt, wenn jemand eine neue Datei mit alten
+        Gewohnheiten anlegt, noch bevor ein Build laeuft.
 
    ⚠ Windows: Select-String findet auf sehr langen minifizierten Zeilen
    nicht alle Treffer. Deshalb readFileSync + split, kein Shell-Werkzeug.
@@ -53,19 +74,36 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import {
+  HERO_EXCEPTION_SELECTOR_RE,
+  AMBIENT_SELECTOR_RE,
+  FS_RE,
+  LS_RE,
+  TR_RE,
+  allTargetFiles,
+  classifyFontSizeValue,
+  classifyLetterSpacingValue,
+  classifyTransitionPart,
+  getStyleText,
+  nearestSelector,
+  splitTopLevel,
+} from './lib/typo-motion.mjs';
 
 if (!(() => { try { readdirSync('dist'); return true; } catch { return false; } })()) {
   console.error(
     'verify-typo-motion: dist/ fehlt. Erst `npm.cmd run build`, dann `npm run verify:typo` — ' +
-      'dieses Skript prueft den GEBAUTEN Stand, nicht die Quelle.'
+      'Zusicherungen 1-5 pruefen den GEBAUTEN Stand, nicht die Quelle.'
   );
   process.exit(1);
 }
 
-/* Sperrklinke: Stand nach Plan 02-01 (Tracer: SiteNav + beide index.astro).
-   Plaene 03-06 duerfen diese Zahl NICHT anfassen — nur Plan 07 hebt sie an,
-   wenn alle Sweeps durch sind. */
-const MIN_TOKEN_USAGES = 183;
+/* Sperrklinke: Stand nach Plan 02-01 war 183 (Tracer: SiteNav + beide
+   index.astro). Plaene 03-06 haben sie NICHT angefasst. Plan 07 hebt sie
+   jetzt auf den site-weiten Ist-Stand an — gemessen mit genau diesem
+   Skript (Zusicherung 2) gegen den frisch gebauten dist/ nach 02-06,
+   nicht geschaetzt. Kuenftige Aenderungen duerfen diese Zahl nur noch
+   anheben, nie absenken. */
+const MIN_TOKEN_USAGES = 235775;
 
 function walk(dir, ext) {
   let out = [];
@@ -205,6 +243,67 @@ console.log('\n[5] Sprachparitaet EN<->DE (var(--fs-/--ls-/--dur-/--ease-ui) paa
     for (const m of mismatches.slice(0, 10)) {
       console.error(`      ${m.en} <-> ${m.de}: ${JSON.stringify(m.enC)} vs ${JSON.stringify(m.deC)}`);
     }
+  }
+}
+
+/* ---- Zusicherung 6: skalenpflichtiger Rest ueber den GESAMTEN Quellbestand ist 0 ---- */
+console.log('\n[6] Skalenpflichtiger Rest ueber den GESAMTEN Quellbestand (src/**/*.astro + assets/*.css) ist 0');
+{
+  /* Dieselben exportierten Primitiven wie scripts/audit-typo-motion.mjs und
+     scripts/migrate-typo-motion.mjs — der Dauerwaechter zaehlt UEBRIG
+     GEBLIEBENE Einzelwerte in der QUELLE, nicht Token-Benutzung im
+     gebauten Stand (das ist Zusicherung 2). Nur so faellt eine neue Datei
+     mit einem rohen font-size/letter-spacing/transition-Wert auf, noch
+     bevor ein Build ueberhaupt laeuft. */
+  const files = allTargetFiles();
+  let remaining = 0;
+  const perFile = [];
+  for (const file of files) {
+    const src = readFileSync(file, 'utf8');
+    let fileRemaining = 0;
+
+    {
+      const re = new RegExp(FS_RE.source, 'g');
+      let m;
+      while ((m = re.exec(src))) {
+        const isHero = HERO_EXCEPTION_SELECTOR_RE.test(nearestSelector(src, m.index));
+        if (classifyFontSizeValue(m[1], isHero).cat === 'skalenpflichtig') fileRemaining++;
+      }
+    }
+    {
+      const re = new RegExp(LS_RE.source, 'g');
+      let m;
+      while ((m = re.exec(src))) {
+        const isHero = HERO_EXCEPTION_SELECTOR_RE.test(nearestSelector(src, m.index));
+        if (classifyLetterSpacingValue(m[1], isHero).cat === 'skalenpflichtig') fileRemaining++;
+      }
+    }
+    {
+      for (const block of getStyleText(src, file)) {
+        const re = new RegExp(TR_RE.source, 'g');
+        let m;
+        while ((m = re.exec(block.text))) {
+          const selector = nearestSelector(block.text, m.index);
+          const ambientSelector = AMBIENT_SELECTOR_RE.test(selector);
+          for (const part of splitTopLevel(m[1])) {
+            if (classifyTransitionPart(part, ambientSelector).cat === 'ui') fileRemaining++;
+          }
+        }
+      }
+    }
+
+    if (fileRemaining > 0) {
+      remaining += fileRemaining;
+      perFile.push({ file, remaining: fileRemaining });
+    }
+  }
+  console.log(`    Durchsuchte Dateien: ${files.length}   Soll Restwerte: 0   Ist: ${remaining}`);
+  if (remaining > 0) {
+    fail(`Skalenpflichtiger Rest im Quellbestand: ${remaining} ueber ${perFile.length} Datei(en)`);
+    for (const { file, remaining: r } of perFile.slice(0, 20)) {
+      console.error(`      ! ${file}: ${r}`);
+    }
+    if (perFile.length > 20) console.error(`      ... und ${perFile.length - 20} weitere Dateien`);
   }
 }
 
