@@ -189,8 +189,8 @@ const JS_T = ITEM_UI[lang];
     padding: 0.75rem 1rem;
     border-radius: 6px;
     font-family: inherit;
-    font-size: 1rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    font-size: var(--fs-10);
+    transition: border-color var(--dur-base) var(--ease-ui), box-shadow var(--dur-base) var(--ease-ui);
   }
 
   .uif-search input:focus {
@@ -223,9 +223,9 @@ const JS_T = ITEM_UI[lang];
 
   .uif-filters h3 {
     margin: 1.5rem 0 0.75rem;
-    font-size: 0.85rem;
+    font-size: var(--fs-7);
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: var(--ls-11);
     color: var(--accent, #ff5e1a);
     border-bottom: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     padding-bottom: 0.5rem;
@@ -243,9 +243,9 @@ const JS_T = ITEM_UI[lang];
     padding: 0.35rem 0.7rem;
     border-radius: 999px;
     font-family: inherit;
-    font-size: 0.82rem;
+    font-size: var(--fs-6);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--dur-base) var(--ease-ui);
   }
 
   .uif-chip:hover {color:var(--text, var(--text)); border-color: var(--accent, #ff5e1a); }
@@ -275,9 +275,9 @@ const JS_T = ITEM_UI[lang];
     border-radius: 6px;
     text-align: left;
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: var(--fs-9);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--dur-base) var(--ease-ui);
   }
 
   .uif-category-btn:hover {background:var(--veil-hi);color:var(--text, var(--text));
@@ -302,7 +302,7 @@ const JS_T = ITEM_UI[lang];
   }
 
   .uif-category-count {
-    font-size: 0.8rem;background:var(--veil-hi);
+    font-size: var(--fs-6);background:var(--veil-hi);
     padding: 0.15rem 0.5rem;
     border-radius: 12px;
     color: var(--muted, #9ba2ae);
@@ -333,7 +333,7 @@ const JS_T = ITEM_UI[lang];
     backdrop-filter: blur(8px);
   }
 
-  .uif-stats { color: var(--muted, #9ba2ae); font-size: 0.95rem; }
+  .uif-stats { color: var(--muted, #9ba2ae); font-size: var(--fs-9); }
 
   .uif-sort select {background:var(--surface, var(--veil-2));color:var(--text, var(--text));
     border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
@@ -341,7 +341,7 @@ const JS_T = ITEM_UI[lang];
     border-radius: 6px;
     font-family: inherit;
     cursor: pointer;
-    transition: border-color 0.2s;
+    transition: border-color var(--dur-base) var(--ease-ui);
   }
 
   .uif-sort select:focus { outline: none; border-color: var(--accent, #ff5e1a); }
@@ -367,7 +367,7 @@ const JS_T = ITEM_UI[lang];
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s, box-shadow 0.25s;
+    transition: transform var(--dur-slow) var(--ease-ui), border-color var(--dur-slow) var(--ease-ui), box-shadow var(--dur-slow) var(--ease-ui);
     cursor: pointer;box-shadow:0 4px 6px var(--shadow-color);
     position: relative;
     overflow: hidden;
@@ -396,10 +396,10 @@ const JS_T = ITEM_UI[lang];
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    font-size: 0.8rem;
+    font-size: var(--fs-6);
     color: var(--muted, #9ba2ae);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: var(--ls-6);
     min-width: 0;
   }
 
@@ -411,7 +411,7 @@ const JS_T = ITEM_UI[lang];
 
   .uif-card-title {
     margin: 0.5rem 0 1rem;color:var(--text, var(--text));
-    font-size: 1.1rem;
+    font-size: var(--fs-11);
     line-height: 1.4;
     font-weight: 600;
   }
@@ -428,14 +428,14 @@ const JS_T = ITEM_UI[lang];
   .uif-card-price {
     color: var(--accent, #ff5e1a);
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: var(--fs-9);
     white-space: nowrap;
   }
 
   .uif-card-avg {
     color: var(--muted, #9ba2ae);
     font-weight: 400;
-    font-size: 0.78rem;
+    font-size: var(--fs-6);
     margin-left: 0.4rem;
   }
 
@@ -444,7 +444,7 @@ const JS_T = ITEM_UI[lang];
      `+N` ab, das hinten steht (gemessen bei 375 px: x=409, also ausserhalb
      des Bildes). Jetzt traegt der Name die Kuerzung allein. */
   .uif-card-location {
-    font-size: 0.8rem;
+    font-size: var(--fs-6);
     color: var(--muted, #9ba2ae);
     min-width: 0;
     display: flex;
@@ -488,8 +488,8 @@ const JS_T = ITEM_UI[lang];
     border-radius: 6px;
     font-family: inherit;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
+    font-size: var(--fs-8);
+    transition: all var(--dur-base) var(--ease-ui);
     user-select: none;
   }
 
@@ -501,7 +501,7 @@ const JS_T = ITEM_UI[lang];
 
   .uif-page-info {
     color: var(--muted, #9ba2ae);
-    font-size: 0.9rem;
+    font-size: var(--fs-8);
     margin: 0 0.5rem;
     user-select: none;
   }
@@ -550,9 +550,9 @@ const JS_T = ITEM_UI[lang];
     background: transparent;
     border: none;
     color: var(--muted, #9ba2ae);
-    font-size: 1.75rem;
+    font-size: var(--fs-16);
     cursor: pointer;
-    transition: color 0.2s;
+    transition: color var(--dur-base) var(--ease-ui);
     line-height: 1;
   }
 
@@ -579,7 +579,7 @@ const JS_T = ITEM_UI[lang];
     border-radius: 50%;
     color: var(--accent, #ff5e1a);
     cursor: pointer;
-    transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+    transition: color var(--dur-base) var(--ease-ui), border-color var(--dur-base) var(--ease-ui), background-color var(--dur-base) var(--ease-ui);
   }
   .uif-modal-back[hidden] { display: none; }
   .uif-modal-back:hover,
@@ -605,7 +605,7 @@ const JS_T = ITEM_UI[lang];
 
   .uif-modal-title {
     margin: 0.25rem 0 0.5rem;color:var(--text, var(--text));
-    font-size: 1.6rem;
+    font-size: var(--fs-15);
     font-weight: 700;
   }
 
@@ -613,7 +613,7 @@ const JS_T = ITEM_UI[lang];
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    font-size: 0.85rem;
+    font-size: var(--fs-7);
     color: var(--muted, #9ba2ae);
     align-items: center;
   }
@@ -624,10 +624,10 @@ const JS_T = ITEM_UI[lang];
 
   .uif-modal-section h4 {
     color: var(--accent, #ff5e1a);
-    font-size: 1.1rem;
+    font-size: var(--fs-11);
     margin: 0 0 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 1px;border-bottom:1px solid var(--line-soft, var(--line-soft));
+    letter-spacing: var(--ls-8);border-bottom:1px solid var(--line-soft, var(--line-soft));
     padding-bottom: 0.4rem;
   }
 
@@ -641,7 +641,7 @@ const JS_T = ITEM_UI[lang];
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    font-size: 0.9rem;
+    font-size: var(--fs-8);
   }
 
   .uif-locations-table th,
@@ -668,7 +668,7 @@ const JS_T = ITEM_UI[lang];
   .uif-volatile-note,
   .uif-catalog-note {
     margin: 0.75rem 0 0;
-    font-size: 0.85rem;
+    font-size: var(--fs-7);
     color: var(--muted, #9ba2ae);
     line-height: 1.5;
   }
@@ -676,7 +676,7 @@ const JS_T = ITEM_UI[lang];
   .uif-guide-text {
     margin: 0;
     color: var(--text, #eef1f5);
-    font-size: 0.95rem;
+    font-size: var(--fs-9);
     line-height: 1.65;background:var(--veil-hi);border:1px solid var(--line-soft, var(--line-soft));
     border-left: 3px solid var(--accent, #ff5e1a);
     border-radius: 6px;
@@ -686,7 +686,7 @@ const JS_T = ITEM_UI[lang];
   /* Technische Daten (Spieldaten aus dem DataCore) */
   .uif-spec-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
   .uif-spec-chip {
-    font-size: 0.82rem; color: var(--muted, #9ba2ae);
+    font-size: var(--fs-6); color: var(--muted, #9ba2ae);
     background: var(--surface-2, var(--veil-2));
     border: 1px solid var(--line-soft, var(--line-soft));
     border-radius: 999px; padding: 0.3rem 0.75rem; white-space: nowrap;
@@ -697,10 +697,10 @@ const JS_T = ITEM_UI[lang];
     gap: 0.6rem; margin-bottom: 1rem;
   }
   /* Varianten: mehrere Spiel-Items unter einem Anzeigenamen, je Größe ein Block */
-  .uif-variants-note { margin: -0.35rem 0 0.9rem; font-size: 0.85rem; color: var(--muted, #9ba2ae); line-height: 1.5; }
+  .uif-variants-note { margin: -0.35rem 0 0.9rem; font-size: var(--fs-7); color: var(--muted, #9ba2ae); line-height: 1.5; }
   .uif-variant + .uif-variant { margin-top: 0.9rem; }
   .uif-variant-h {
-    font-weight: 700; font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase;
+    font-weight: 700; font-size: var(--fs-6); letter-spacing: var(--ls-8); text-transform: uppercase;
     color: var(--accent-2, var(--accent, #ff5e1a)); margin-bottom: 0.5rem;
   }
   .uif-stat {
@@ -710,15 +710,15 @@ const JS_T = ITEM_UI[lang];
     border-left: 3px solid var(--accent-2, var(--accent, #ff5e1a));
     border-radius: 6px; padding: 0.55rem 0.75rem;
   }
-  .uif-stat-l { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted, #9ba2ae); }
-  .uif-stat-v { font-size: 1.05rem; font-weight: 700; color: var(--text, #eef1f5); }
-  .uif-item-desc { margin: 0; color: var(--muted, #9ba2ae); font-size: 0.92rem; line-height: 1.6; white-space: pre-line; }
+  .uif-stat-l { font-size: var(--fs-4); text-transform: uppercase; letter-spacing: var(--ls-8); color: var(--muted, #9ba2ae); }
+  .uif-stat-v { font-size: var(--fs-11); font-weight: 700; color: var(--text, #eef1f5); }
+  .uif-item-desc { margin: 0; color: var(--muted, #9ba2ae); font-size: var(--fs-8); line-height: 1.6; white-space: pre-line; }
   .uif-card-spec {
-    font-size: 0.78rem; color: var(--muted, #9ba2ae); margin: -0.35rem 0 0.6rem;
+    font-size: var(--fs-6); color: var(--muted, #9ba2ae); margin: -0.35rem 0 0.6rem;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .uif-card-stat {
-    font-weight: 700; font-size: 0.8rem; white-space: nowrap; flex-shrink: 0; margin-left: 0.5rem;
+    font-weight: 700; font-size: var(--fs-6); white-space: nowrap; flex-shrink: 0; margin-left: 0.5rem;
     color: var(--accent-2, var(--accent, #ff5e1a));
     background: color-mix(in srgb, var(--accent-2, var(--accent, #ff5e1a)) 12%, transparent);
     border: 1px solid color-mix(in srgb, var(--accent-2, var(--accent, #ff5e1a)) 35%, transparent);
@@ -733,14 +733,14 @@ const JS_T = ITEM_UI[lang];
     border-radius: 6px;
     border: 1px solid var(--line, rgba(255, 94, 26, 0.22));
     margin-bottom: 1rem;
-    font-size: 0.95rem;
+    font-size: var(--fs-9);
   }
 
   .uif-crafting-ingredients h5 {
-    font-size: 0.9rem;color:var(--text, var(--text));
+    font-size: var(--fs-8);color:var(--text, var(--text));
     margin: 0 0 0.5rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: var(--ls-6);
   }
 
   .uif-crafting-ingredients ul {
@@ -755,7 +755,7 @@ const JS_T = ITEM_UI[lang];
   .uif-crafting-ingredients li {background:var(--veil-hi);border:1px solid var(--line-soft, var(--line-soft));
     padding: 0.6rem 1rem;
     border-radius: 6px;
-    font-size: 0.9rem;
+    font-size: var(--fs-8);
     color: var(--muted, #9ba2ae);
   }
 
@@ -769,12 +769,12 @@ const JS_T = ITEM_UI[lang];
     margin-top: 0.9rem;
     text-decoration: none;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: var(--fs-7);
     color: var(--accent, #2dd4ff);
     border: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 45%, transparent);
     padding: 0.45rem 0.85rem;
     border-radius: 6px;
-    transition: background-color 0.15s, border-color 0.15s;
+    transition: background-color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui);
   }
   .uif-xlink:hover {
     background: color-mix(in srgb, var(--accent, #2dd4ff) 12%, transparent);
@@ -813,7 +813,7 @@ const JS_T = ITEM_UI[lang];
       gap: 0.5rem;
     }
 
-    .uif-category-btn { padding: 0.5rem; font-size: 0.85rem; }
+    .uif-category-btn { padding: 0.5rem; font-size: var(--fs-7); }
 
     /* Filterschublade: die fuenf Filtergruppen plus Kategorien-Raster
        schoben die Ergebnisse bislang rund 700px nach unten. Standardmaessig
@@ -829,14 +829,14 @@ const JS_T = ITEM_UI[lang];
       border-radius: 6px;
       color: var(--text, #eef1f5);
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      font-size: 0.85rem;
+      letter-spacing: var(--ls-11);
+      font-size: var(--fs-7);
       cursor: pointer;
     }
 
     .uif-filters-label::after {
       content: '▾';
-      transition: transform 0.2s ease;
+      transition: transform var(--dur-base) var(--ease-ui);
     }
 
     .uif-filters-toggle:checked ~ .uif-filters-label::after {
@@ -868,7 +868,7 @@ const JS_T = ITEM_UI[lang];
        sich die zweite. Der Umschalter behaelt seine natuerliche Breite
        (flex:0 0 auto), die Sortierung nimmt den Rest — sonst waere jedes
        Element 100 % breit und die Leiste dreizeilig. */
-    .uif-stats { flex: 1 1 100%; font-size: 0.86rem; }
+    .uif-stats { flex: 1 1 100%; font-size: var(--fs-7); }
     .uif-view { flex: 0 0 auto; }
     /* flex-basis MUSS 0 sein, nicht auto: mit `auto` fordert die Sortierung die
        intrinsische Breite ihres <select> (nach der laengsten Option „Preis
@@ -876,7 +876,7 @@ const JS_T = ITEM_UI[lang];
        Leiste bleibt dreizeilig. Mit Basis 0 nimmt sie schlicht den Rest. */
     .uif-sort { flex: 1 1 0; min-width: 0; }
     .uif-sort select { width: 100%; min-width: 0; padding: 0.4rem 0.7rem; }
-    .uif-viewbtn { padding: 0.4rem 0.65rem; font-size: 0.76rem; }
+    .uif-viewbtn { padding: 0.4rem 0.65rem; font-size: var(--fs-5); }
 
     .uif-modal-container { padding: 1.25rem; }
   }
@@ -889,7 +889,7 @@ const JS_T = ITEM_UI[lang];
   .uif-chip-n { opacity: .6; font-size: .74em; margin-left: .15rem; }
   .uif-card-tags { display: flex; gap: .35rem; margin: -0.2rem 0 .45rem; }
   .uif-rarity {
-    font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    font-size: var(--fs-4); font-weight: 700; letter-spacing: var(--ls-9); text-transform: uppercase;
     padding: .1rem .45rem; border-radius: 3px; border: 1px solid currentColor;
     background: color-mix(in srgb, currentColor 12%, transparent);
   }
@@ -903,7 +903,7 @@ const JS_T = ITEM_UI[lang];
   .uif-view { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
   .uif-viewbtn {
     background: transparent; border: 0; color: var(--muted, #9ba2ae);
-    font-family: inherit; font-size: 0.82rem; padding: 0.45rem 0.9rem; cursor: pointer;
+    font-family: inherit; font-size: var(--fs-6); padding: 0.45rem 0.9rem; cursor: pointer;
   }
   .uif-viewbtn:hover { color: var(--text); }
   .uif-viewbtn.active { background: var(--accent, #ff5e1a); color: var(--ink); font-weight: 700; }
@@ -916,7 +916,7 @@ const JS_T = ITEM_UI[lang];
   .uif-setcard-weight { flex: 0 0 auto; }
   .uif-setcard-weight::before { content: '·'; margin-right: .35rem; opacity: .55; }
   .uif-setbadge {
-    font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    font-size: var(--fs-4); font-weight: 700; letter-spacing: var(--ls-8); text-transform: uppercase;
     padding: .1rem .45rem; border-radius: 3px; border: 1px solid currentColor;
     color: #d7a13a; white-space: nowrap; flex-shrink: 0;
   }
@@ -933,7 +933,7 @@ const JS_T = ITEM_UI[lang];
   .uif-card-tags { position: relative; z-index: 2; }
 
   .uif-setchip {
-    font-family: inherit; font-size: .68rem; font-weight: 700; letter-spacing: .04em;
+    font-family: inherit; font-size: var(--fs-4); font-weight: 700; letter-spacing: var(--ls-7);
     padding: .1rem .45rem; border-radius: 3px; cursor: pointer;
     border: 1px solid var(--line); background: transparent; color: var(--accent, #ff5e1a);
   }
@@ -943,20 +943,20 @@ const JS_T = ITEM_UI[lang];
     display: inline-flex; align-items: center; gap: .3rem; margin-left: .5rem;
     padding: .1rem .2rem .1rem .5rem; border-radius: 999px;
     border: 1px solid var(--accent, #ff5e1a); color: var(--accent, #ff5e1a);
-    font-size: .8rem; font-weight: 700;
+    font-size: var(--fs-6); font-weight: 700;
   }
   .uif-activeset button {
     background: transparent; border: 0; color: inherit; cursor: pointer;
-    font-size: 1rem; line-height: 1; padding: 0 .35rem;
+    font-size: var(--fs-10); line-height: 1; padding: 0 .35rem;
   }
   .uif-activeset button:hover { color: var(--text); }
 
   .uif-setbox h4 a { color: var(--accent, #ff5e1a); text-decoration: none; border-bottom: 1px solid var(--line); }
   .uif-setbox h4 a:hover { color: var(--accent-2, var(--accent)); border-color: currentColor; }
-  .uif-set-meta { margin: 0 0 .6rem; font-size: .84rem; color: var(--muted, #9ba2ae); }
+  .uif-set-meta { margin: 0 0 .6rem; font-size: var(--fs-7); color: var(--muted, #9ba2ae); }
   .uif-set-links { display: flex; flex-wrap: wrap; gap: .35rem; }
   .uif-set-link {
-    font-size: .78rem; padding: .2rem .5rem; border-radius: 3px;
+    font-size: var(--fs-6); padding: .2rem .5rem; border-radius: 3px;
     border: 1px solid var(--line-soft); color: var(--muted, #9ba2ae); text-decoration: none;
   }
   a.uif-set-link:hover { color: var(--text); border-color: var(--accent, #ff5e1a); }
@@ -970,7 +970,7 @@ const JS_T = ITEM_UI[lang];
        und wurde von html{overflow-x:clip} einfach abgeschnitten. Mit der
        Null-Untergrenze duerfen die Spuren schrumpfen. */
     #uif-category-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .uif-modal-title { font-size: 1.3rem; }
+    .uif-modal-title { font-size: var(--fs-13); }
     /* .uif-card-price ist white-space:nowrap und sitzt in einem Flex-Fuss
        neben dem Fundortnamen (siehe Kommentar bei .uif-card-location) — bei
        375px wuerde der Ø-Zusatz den Ortsnamen wegdruecken. */

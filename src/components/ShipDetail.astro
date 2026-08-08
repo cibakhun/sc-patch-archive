@@ -429,17 +429,17 @@ a{color:inherit;text-decoration:none}
 .holo__stage.is-3d .holo__ship img{opacity:0}
 .holo__stage.is-3d .holo__3d{opacity:1;pointer-events:auto}
 .holo__status{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);z-index:5;white-space:nowrap;
-  font-family:var(--font-ui);font-weight:700;font-size:.9rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-8);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--accent)}
 /* Status (Lade-%/Fehler) nur zeigen, solange geladen wird oder 3D aktiv ist —
    ein stiller Auto-Start-Fehlschlag darf das Foto nicht dauerhaft überlagern */
 .holo__stage:not(.is-3d):not(.is-loading) .holo__status{display:none}
 .holo__activate{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;cursor:pointer;
   appearance:none;border:1px solid color-mix(in srgb,var(--accent) 55%,transparent);background:var(--scrim-5);color:var(--accent);
-  font-family:var(--font-ui);font-weight:700;font-size:.85rem;letter-spacing:.18em;text-transform:uppercase;padding:.7rem 1.2rem;
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);letter-spacing:var(--ls-15);text-transform:uppercase;padding:.7rem 1.2rem;
   backdrop-filter:blur(4px)}
 .holo__activate:hover{background:color-mix(in srgb,var(--accent) 16%,var(--scrim-5))}
 .holo__hintline{position:absolute;left:50%;bottom:2%;transform:translateX(-50%);z-index:4;pointer-events:none;white-space:nowrap;
-  font-family:var(--font-ui);font-weight:600;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);opacity:0;transition:opacity .6s}
+  font-family:var(--font-ui);font-weight:600;font-size:var(--fs-4);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);opacity:0;transition:opacity .6s}
 .holo__stage.is-3d .holo__hintline{opacity:.75}
 /* ===== Bilder-Slideshow: alle Slides liegen im selben Grid-Feld, langsames Crossfade ===== */
 .holo__ship img{opacity:0;transition:opacity 1.2s ease}
@@ -454,7 +454,7 @@ a{color:inherit;text-decoration:none}
 /* dezente Slide-Zähler-Punkte unten */
 .holo__dots{position:absolute;left:50%;bottom:2.4%;transform:translateX(-50%);z-index:5;display:flex;gap:.4rem;pointer-events:none;opacity:0;transition:opacity .4s}
 .holo__stage:not(.is-video):not(.is-3d) .holo__dots{opacity:.9}
-.holo__dots i{width:6px;height:6px;border-radius:50%;background:var(--muted);opacity:.4;transition:opacity .3s,background .3s}
+.holo__dots i{width:6px;height:6px;border-radius:50%;background:var(--muted);opacity:.4;transition:opacity var(--dur-slow) var(--ease-ui),background var(--dur-slow) var(--ease-ui)}
 .holo__dots i.on{background:var(--accent);opacity:1}
 /* ===== Selbst-gehostetes Loop-Video (Basher) ===== */
 /* Randloses <video> (cover) mit eigenem poster (Schiffsbild) — kein Player-
@@ -496,21 +496,21 @@ a{color:inherit;text-decoration:none}
 .holo__stage:not(.is-3d) .holo__layers{display:none}
 .holo__layers-h{display:flex;align-items:center;justify-content:space-between;gap:.5rem;width:100%;
   appearance:none;background:transparent;border:0;border-bottom:1px solid var(--on-media-line);cursor:default;text-align:left;
-  font:700 .62rem/1 var(--font-ui);letter-spacing:.24em;text-transform:uppercase;color:var(--muted);
+  font:700 .62rem/1 var(--font-ui);letter-spacing:var(--ls-18);text-transform:uppercase;color:var(--muted);
   padding:.5rem .55rem .5rem;margin-bottom:.15rem}
-.holo__layers-chev{width:13px;height:13px;flex:none;color:var(--muted);display:none;transition:transform .2s}
+.holo__layers-chev{width:13px;height:13px;flex:none;color:var(--muted);display:none;transition:transform var(--dur-base) var(--ease-ui)}
 .holo__layer{--gc:var(--accent);display:flex;align-items:center;gap:.55rem;width:100%;cursor:pointer;appearance:none;border:0;
   background:transparent;padding:.44rem .55rem;border-radius:3px;
-  font:700 .74rem/1 var(--font-ui);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
-  transition:color .13s,background .13s,opacity .13s}
+  font:700 .74rem/1 var(--font-ui);letter-spacing:var(--ls-8);text-transform:uppercase;color:var(--muted);
+  transition:color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui),opacity var(--dur-fast) var(--ease-ui)}
 .holo__layer[data-g="arms"]{--gc:var(--gold)}
 .holo__layer[data-g="prop"]{--gc:var(--accent-2)}
 .holo__layer[data-g="other"]{--gc:#a78bfa}
 .holo__layer:hover{background:var(--on-media-veil);color:var(--text)}
 .holo__layer-ic{width:17px;height:17px;flex:none;stroke:var(--gc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
-  transition:filter .13s}
+  transition:filter var(--dur-fast) var(--ease-ui)}
 .holo__layer-lb{flex:1;text-align:left;white-space:nowrap}
-.holo__layer-ct{flex:none;font-size:.68rem;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--gc) 80%,var(--on-media));
+.holo__layer-ct{flex:none;font-size:var(--fs-4);font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--gc) 80%,var(--on-media));
   background:color-mix(in srgb,var(--gc) 16%,transparent);
   clip-path:polygon(3px 0,100% 0,100% calc(100% - 3px),calc(100% - 3px) 100%,0 100%,0 3px);padding:.08rem .4rem;min-width:1.5rem;text-align:center}
 .holo__layer[aria-pressed="true"]{color:var(--on-media)}
@@ -529,24 +529,24 @@ a{color:inherit;text-decoration:none}
 /* Leader müssen auf dem HELLEN Hologramm UND im dunklen Raum lesbar sein ->
    heller Strich mit dunklem Halo (Kontrast überall) + Cyan-Glow. */
 .holo-leaders line{stroke:var(--accent);stroke-width:1.5;filter:drop-shadow(0 0 1.5px var(--on-media-shadow)) drop-shadow(0 0 4px color-mix(in srgb,var(--accent) 60%,transparent));
-  transition:stroke .16s,stroke-width .16s}
+  transition:stroke var(--dur-fast) var(--ease-ui),stroke-width var(--dur-fast) var(--ease-ui)}
 .holo-leaders line.is-active{stroke:var(--on-media);stroke-width:2.2}
 /* Knoten = exakter Bauteil-Punkt. Muss auf dem hellen, leuchtenden Hologramm
    ablesbar bleiben -> weißer Kern + kräftiger dunkler Ring (Kontrast) + WEISSER
    Glow (Cyan-Glow ginge im Cyan-Holo unter) + harte Dunkelkante. Liegt über den
    Chips -> immer sichtbar. */
-.holo-nodes circle{fill:var(--on-media);stroke:var(--media-void);stroke-width:2.2;paint-order:stroke;filter:drop-shadow(0 0 1.5px var(--on-media-shadow)) drop-shadow(0 0 5px rgba(216,246,255,.95));transition:r .16s}
+.holo-nodes circle{fill:var(--on-media);stroke:var(--media-void);stroke-width:2.2;paint-order:stroke;filter:drop-shadow(0 0 1.5px var(--on-media-shadow)) drop-shadow(0 0 5px rgba(216,246,255,.95));transition:r var(--dur-fast) var(--ease-ui)}
 /* Der aktive Hardpoint-Marker liegt auf der dunklen Holo-Ansicht: dunkler
    Saum zur Abgrenzung, heller Schein darüber — in beiden Modi gleich. */
 .holo-nodes circle.is-active{stroke:var(--accent-media);
   filter:drop-shadow(0 0 2px var(--on-media-shadow)) drop-shadow(0 0 8px var(--on-media))}
 .holo-lbl{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;
-  font-family:var(--font-ui);font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--on-media-dim);
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--on-media-dim);
   padding:.22rem .5rem .22rem .62rem;background:linear-gradient(180deg,var(--scrim-6),var(--scrim-6));
   border:1px solid color-mix(in srgb,var(--accent) 34%,transparent);border-left:2px solid var(--accent);box-shadow:0 4px 16px var(--on-media-shadow),inset 0 0 14px color-mix(in srgb,var(--accent) 9%,transparent);
   backdrop-filter:blur(4px);text-shadow:0 1px 4px var(--on-media-shadow);
   clip-path:polygon(0 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%);
-  transition:border-color .16s,box-shadow .16s,color .16s;will-change:left,top}
+  transition:border-color var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui);will-change:left,top}
 .holo-lbl.is-active{border-color:var(--accent);color:var(--on-media);box-shadow:0 4px 18px var(--on-media-shadow),0 0 16px color-mix(in srgb,var(--accent) 42%,transparent),inset 0 0 14px color-mix(in srgb,var(--accent) 14%,transparent)}
 
 /* --- Vorbehalt am Callout selbst ---------------------------------------------
@@ -565,7 +565,7 @@ a{color:inherit;text-decoration:none}
 .holo-lbl.is-np.is-active{border-color:var(--gold);color:var(--on-media-dim);box-shadow:0 4px 18px var(--on-media-shadow),0 0 16px color-mix(in srgb,var(--gold) 40%,transparent),inset 0 0 14px color-mix(in srgb,var(--gold) 13%,transparent)}
 .holo-lbl.is-est{border-style:dashed;border-left:2px dashed color-mix(in srgb,var(--accent) 75%,transparent)}
 .holo-lbl__b{display:inline-block;margin-left:.2rem;padding:0 .3rem;font-style:normal;font-size:.86em;
-  font-weight:800;letter-spacing:.06em;color:var(--ink-media);background:var(--gold);border-radius:2px;vertical-align:baseline}
+  font-weight:800;letter-spacing:var(--ls-9);color:var(--ink-media);background:var(--gold);border-radius:2px;vertical-align:baseline}
 /* Leader/Knoten tragen denselben Vorbehalt: gestrichelte Linie (keine feste
    Zuordnung) und ein HOHLER Knoten — der gefüllte Punkt bleibt der exakten
    Position vorbehalten. */
@@ -585,15 +585,15 @@ a{color:inherit;text-decoration:none}
 .holo__panel[data-g="other"]{--gc:#a78bfa}
 .holo__panel .hp__head{position:relative;padding:.62rem .8rem .6rem;border-top:2px solid var(--gc);
   background:linear-gradient(180deg,color-mix(in srgb,var(--gc) 16%,transparent),transparent)}
-.holo__panel .hp__eyebrow{font:700 .6rem/1 var(--font-ui);letter-spacing:.2em;text-transform:uppercase;
+.holo__panel .hp__eyebrow{font:700 .6rem/1 var(--font-ui);letter-spacing:var(--ls-16);text-transform:uppercase;
   color:color-mix(in srgb,var(--gc) 78%,var(--muted))}
 .holo__panel .hp__eyebrow:empty{display:none}
-.holo__panel .hp__x{position:absolute;top:.4rem;right:.45rem;appearance:none;border:0;background:transparent;color:color-mix(in srgb,var(--gc) 75%,var(--on-media));cursor:pointer;font-size:1.2rem;line-height:1;padding:0 .2rem}
+.holo__panel .hp__x{position:absolute;top:.4rem;right:.45rem;appearance:none;border:0;background:transparent;color:color-mix(in srgb,var(--gc) 75%,var(--on-media));cursor:pointer;font-size:var(--fs-12);line-height:1;padding:0 .2rem}
 .holo__panel .hp__x:hover{color:var(--on-media)}
 .holo__panel .hp__title{display:flex;align-items:center;gap:.55rem;margin:.2rem 1.2rem .05rem 0}
 .holo__panel .hp__icon{width:27px;height:27px;flex:none;stroke:var(--gc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
   filter:drop-shadow(0 0 7px color-mix(in srgb,var(--gc) 45%,transparent))}
-.holo__panel .hp__kind{font:800 1.15rem/1.1 var(--font-ui);letter-spacing:.03em;text-transform:uppercase;color:var(--on-media);
+.holo__panel .hp__kind{font:800 1.15rem/1.1 var(--font-ui);letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--on-media);
   text-shadow:0 0 18px color-mix(in srgb,var(--gc) 40%,transparent)}
 .holo__panel .hp__name{font:600 .9rem/1.25 var(--font-body);color:color-mix(in srgb,var(--gc) 82%,var(--on-media))}
 .holo__panel .hp__name:empty{display:none}
@@ -601,22 +601,22 @@ a{color:inherit;text-decoration:none}
 .holo__panel dl>div{display:flex;align-items:center;justify-content:space-between;gap:1rem;
   padding:.4rem 0;border-bottom:1px solid var(--on-media-line)}
 .holo__panel dl>div:last-child{border-bottom:0}
-.holo__panel dt{font:600 .72rem/1 var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.holo__panel dt{font:600 .72rem/1 var(--font-ui);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
 .holo__panel dd{margin:0;font:700 .9rem/1 var(--font-ui);color:var(--text);font-variant-numeric:tabular-nums;text-align:right}
 .holo__panel .hp__price{color:var(--gold)}
 .holo__panel .hp__link{display:flex;align-items:center;gap:.4rem;margin:.55rem .8rem .7rem;padding:.5rem .65rem;
-  font:700 .72rem/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--gc);
+  font:700 .72rem/1 var(--font-ui);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--gc);
   border:1px solid color-mix(in srgb,var(--gc) 40%,transparent);background:color-mix(in srgb,var(--gc) 9%,transparent);
-  transition:background .13s,color .13s}
+  transition:background var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
 .holo__panel .hp__link:hover{background:color-mix(in srgb,var(--gc) 20%,transparent);color:var(--on-media)}
 /* Vorbehalt in der Detailkarte: getönter Block statt Fußnote — er schränkt die
    Kernaussage der Karte ein ("Bauteil sitzt hier") und darf nicht überlesen
    werden. Gold + gestrichelt = dieselbe Sprache wie Marker und Callout. */
-.holo__panel .hp__note{margin:0;padding:.5rem .8rem .6rem 2rem;font-size:.76rem;line-height:1.45;color:#f6e7c4;
+.holo__panel .hp__note{margin:0;padding:.5rem .8rem .6rem 2rem;font-size:var(--fs-5);line-height:1.45;color:#f6e7c4;
   background:color-mix(in srgb,var(--gold) 12%,transparent);
-  border-top:1px dashed color-mix(in srgb,var(--gold) 45%,transparent);text-transform:none;letter-spacing:0}
+  border-top:1px dashed color-mix(in srgb,var(--gold) 45%,transparent);text-transform:none;letter-spacing:var(--ls-3)}
 .holo__panel .hp__note::before{content:"!";position:absolute;margin-left:-1.35rem;margin-top:.02rem;
-  width:.95rem;height:.95rem;line-height:.95rem;text-align:center;font-weight:900;font-size:.7rem;color:var(--ink-media);background:var(--gold);border-radius:50%}
+  width:.95rem;height:.95rem;line-height:.95rem;text-align:center;font-weight:900;font-size:var(--fs-4);color:var(--ink-media);background:var(--gold);border-radius:50%}
 /* Diegetische HUD-Details: Eck-Klammer + MFD-Scanlines */
 .holo__layers::before,.holo__panel::before{content:"";position:absolute;top:5px;left:5px;width:12px;height:12px;
   border-top:2px solid var(--accent);border-left:2px solid var(--accent);pointer-events:none}
@@ -632,11 +632,11 @@ a{color:inherit;text-decoration:none}
   opacity:.6}
 /* HUD/Dims: z-index ueber .holo__wrap (z2) -> auch ueber Video und Bildern
    sichtbar (User-Wunsch: Titel-Chrome auch im Video-Modus) */
-.holo__hud{position:absolute;top:26px;left:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:.78rem;
-  letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.holo__hud{position:absolute;top:26px;left:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
+  letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--muted)}
 .holo__hud b{color:var(--accent);font-weight:700}
-.holo__dims{position:absolute;top:26px;right:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:.78rem;
-  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:right}
+.holo__dims{position:absolute;top:26px;right:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
+  letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);text-align:right}
 /* Die Buehne liegt bewusst randlos UNTER der Kopfleiste. Haengt dort die
    freie Zurueck-Marke (SiteNav, ~101 px hinunter), laege sie genau auf
    „HANGAR // <Hersteller>". Die HUD-Zeile rueckt dann als PAAR nach unten —
@@ -645,7 +645,7 @@ a{color:inherit;text-decoration:none}
 :root:has(.snav__back:not([hidden])) .holo__dims{top:58px}
 .holo__toggle{position:absolute;right:26px;bottom:24px;z-index:6;display:flex;border:1px solid var(--line);background:var(--scrim-5);backdrop-filter:blur(4px)}
 .holo__toggle button{appearance:none;border:0;background:transparent;color:var(--muted);cursor:pointer;
-  font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;padding:.5rem .95rem}
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-14);text-transform:uppercase;padding:.5rem .95rem}
 .holo__toggle button[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
 /* z6: ueber der Video-Ebene (z5) — Schiffsname/Logo/Chips/Save bleiben in
    ALLEN Modi lesbar (User-Wunsch). pointer-events:none laesst Drag/Hover fuers
@@ -655,15 +655,15 @@ a{color:inherit;text-decoration:none}
 .holo__title .sd__maker{margin-bottom:.15rem}
 .holo__title h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,4.5vw,3.2rem);line-height:1.02;color:var(--on-media);text-shadow:0 2px 26px var(--on-media-shadow),0 0 44px rgba(45,212,255,.22)}
 .holo__chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.7rem}
-.holo__chips span{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;
+.holo__chips span{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;
   color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);background:var(--scrim-4);padding:.28rem .6rem}
 .holo__src{margin-top:.7rem;display:flex;flex-direction:column;gap:.28rem;
-  font-family:var(--font-ui);font-weight:600;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);opacity:.8}
+  font-family:var(--font-ui);font-weight:600;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted);opacity:.8}
 /* Vorbehalt zur Herkunft: gold wie die betroffenen Marker/Chips, damit die Zeile
    und die Callouts im Modell als dieselbe Aussage lesbar sind. */
-.holo__caveat{color:var(--gold);opacity:.95;letter-spacing:.08em;text-transform:none;font-size:.74rem;
+.holo__caveat{color:var(--gold);opacity:.95;letter-spacing:var(--ls-10);text-transform:none;font-size:var(--fs-5);
   padding-left:.5rem;border-left:2px dashed color-mix(in srgb,var(--gold) 55%,transparent)}
-.holo__none{font-family:var(--font-ui);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);opacity:.6}
+.holo__none{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-19);text-transform:uppercase;color:var(--muted);opacity:.6}
 /* Hinweis nur auf der leeren Bilder-Bühne — nie über Video oder 3D-Holo */
 .holo__stage.is-video .holo__none,.holo__stage.is-3d .holo__none{display:none}
 @media(max-width:900px){
@@ -686,15 +686,15 @@ a{color:inherit;text-decoration:none}
      (steht bereits im HUD oben) */
   .holo__title{left:14px;right:14px;max-width:none;bottom:64px}
   .holo__title .sd__maker,.holo__title .sd__makerlogo{display:none}
-  .holo__title h1{font-size:1.7rem}
+  .holo__title h1{font-size:var(--fs-15)}
   .holo__chips{gap:.35rem;margin-top:.4rem}
-  .holo__chips span{font-size:.66rem;padding:.2rem .48rem}
+  .holo__chips span{font-size:var(--fs-3);padding:.2rem .48rem}
   .holo__hud{left:16px;top:18px}.holo__dims{display:none}
   /* mobil ist die Marke tiefer (44-px-Fingerkuppe, --nav-h 116px) */
   :root:has(.snav__back:not([hidden])) .holo__hud{top:56px}
   /* Ebenen-Panel kompakter + einklappbar (Klasse hieß fälschlich .holo__filters) */
   .holo__layers{top:44px;left:12px;width:min(148px,42vw)}
-  .holo__layers-h{font-size:.56rem;padding:.42rem .5rem .42rem;cursor:pointer}
+  .holo__layers-h{font-size:var(--fs-1);padding:.42rem .5rem .42rem;cursor:pointer}
   .holo__layers-chev{display:block}
   .holo__layer{padding:.34rem .5rem;font:700 .66rem/1 var(--font-ui);gap:.4rem}
   .holo__layer-ic{width:15px;height:15px}
@@ -711,15 +711,15 @@ a{color:inherit;text-decoration:none}
   gap:0;padding:0 clamp(1rem,3vw,2.5rem)}
 .holo__bar .kv{padding:.85rem 1rem .9rem;border-left:1px solid var(--line)}
 .holo__bar .kv:first-child{border-left:0}
-.holo__bar dt{font-family:var(--font-ui);font-weight:700;font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
-.holo__bar dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:1.18rem;font-variant-numeric:tabular-nums;color:var(--text)}
+.holo__bar dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--muted)}
+.holo__bar dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-12);font-variant-numeric:tabular-nums;color:var(--text)}
 .holo__bar .kv--price dd{color:var(--gold)}
 @media(max-width:760px){.holo__bar dl{grid-template-columns:repeat(2,1fr)}.holo__bar .kv{border-left:0;border-top:1px solid var(--line)}}
 /* sehr schmal: kompaktere Kennwerte, damit lange aUEC-Werte einzeilig passen */
-@media(max-width:560px){.holo__bar .kv{padding:.6rem .7rem .65rem}.holo__bar dd{font-size:1rem}.holo__bar dt{font-size:.68rem;letter-spacing:.12em}}
+@media(max-width:560px){.holo__bar .kv{padding:.6rem .7rem .65rem}.holo__bar dd{font-size:var(--fs-10)}.holo__bar dt{font-size:var(--fs-4);letter-spacing:var(--ls-12)}}
 
 .sd{max-width:var(--maxw);margin:0 auto;padding:1.8rem clamp(1rem,3vw,2.5rem) 4rem}
-.sd__maker{font-family:var(--font-ui);font-weight:700;font-size:.85rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+.sd__maker{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--accent)}
 /* Echtes Hersteller-Logo (weiß-auf-transparent -> sichtbar auf
    dunklem Grund). Höhe fix, Breite proportional; leichter Glow für Trennung. */
 /* Höhe treibt die Größe (einheitliche Zeile), Breite proportional; max-width
@@ -731,41 +731,41 @@ a{color:inherit;text-decoration:none}
   padding:1.25rem 1.5rem 1.4rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
   margin-bottom:1.6rem}
 .sd__phead{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--line);padding-bottom:.55rem;margin-bottom:1rem}
-.sd__phead h2{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:.95rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
-.sd__code{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd__phead h2{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-9);letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--accent)}
+.sd__code{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Mobil: Aktencode-Zeile (…//…) umbrechen statt clippen — voller Text sichtbar */
 @media(max-width:640px){.sd__phead{flex-direction:column;align-items:stretch;gap:.35rem}.sd__code{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;min-width:0}}
 
 /* Handel */
 .sd__pricehero{display:flex;flex-wrap:wrap;align-items:baseline;gap:.6rem 1rem;margin-bottom:1rem}
 .sd__pricehero .val{font-family:var(--font-ui);font-weight:700;font-size:clamp(1.7rem,4vw,2.4rem);color:var(--gold);font-variant-numeric:tabular-nums}
-.sd__pricehero .at{font-size:1rem;color:var(--muted)}
+.sd__pricehero .at{font-size:var(--fs-10);color:var(--muted)}
 .sd__shoprows{display:flex;flex-direction:column}
 .sd__shoprow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:.3rem 1.2rem;align-items:baseline;
   padding:.5rem 0;border-bottom:1px solid var(--line-soft)}
 .sd__shoprow:last-child{border-bottom:0}
-.sd__shopname{font-family:var(--font-ui);font-weight:700;font-size:.95rem;letter-spacing:.06em;color:var(--text)}
-.sd__shopwhere{color:var(--muted);font-size:.95rem}
-.sd__shopprice{font-family:var(--font-ui);font-weight:700;font-size:1.05rem;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--text)}
+.sd__shopname{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-9);letter-spacing:var(--ls-9);color:var(--text)}
+.sd__shopwhere{color:var(--muted);font-size:var(--fs-9)}
+.sd__shopprice{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--text)}
 .sd__more{margin-top:.6rem}
-.sd__more summary{cursor:pointer;font-family:var(--font-ui);font-weight:700;font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-.sd__nobuy{color:var(--muted);font-size:1.02rem;margin-bottom:.6rem}
+.sd__more summary{cursor:pointer;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--accent)}
+.sd__nobuy{color:var(--muted);font-size:var(--fs-10);margin-bottom:.6rem}
 .sd__pledgerow{margin-top:.9rem;padding-top:.8rem;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:.5rem 1.2rem;align-items:baseline}
-.sd__pledgerow .p{font-family:var(--font-ui);font-weight:700;font-size:1.05rem;color:var(--text)}
+.sd__pledgerow .p{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--text)}
 .sd__pledgerow a{color:var(--accent);text-decoration:underline}
 .sd__pledgerow a:hover{color:var(--text)}
-.sd__hint{margin-top:.9rem;font-size:.85rem;color:var(--muted)}
+.sd__hint{margin-top:.9rem;font-size:var(--fs-7);color:var(--muted)}
 @media(max-width:640px){.sd__shoprow{grid-template-columns:1fr auto}.sd__shopwhere{grid-column:1 / -1;margin-top:-.2rem}}
 
 /* Leistungsprofil */
 .sd__prof{display:flex;flex-direction:column;gap:.65rem}
 .sd__profrow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:.9rem;align-items:center}
-.sd__proflabel{font-family:var(--font-ui);font-weight:700;font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sd__proflabel{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted)}
 .sd__proftrack{position:relative;height:10px;background:var(--veil-hi);border:1px solid var(--line);overflow:hidden}
 .sd__proftrack::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--veil-hi)}
 .sd__proffill{height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,transparent),var(--accent))}
-.sd__profval{font-family:var(--font-ui);font-weight:700;font-size:.98rem;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
-.sd__profval i{font-style:normal;color:var(--muted);font-size:.8rem;margin-left:.45rem}
+.sd__profval{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
+.sd__profval i{font-style:normal;color:var(--muted);font-size:var(--fs-6);margin-left:.45rem}
 /* Mobil: Label + Wert in eine Zeile (Label links, Wert rechts), der Balken
    darunter über die volle Breite — so überlappt der Text NIE den Balken und
    längere EN-Labels haben Platz (keine feste, auf DE getunte Label-Spalte). */
@@ -782,14 +782,14 @@ a{color:inherit;text-decoration:none}
 .sd__paint{border:1px solid var(--line);background:var(--bg-2)}
 .sd__paint .im{aspect-ratio:16/10;overflow:hidden;background:var(--veil-2)}
 .sd__paint img{width:100%;height:100%;object-fit:cover}
-.sd__paint .nm{padding:.45rem .6rem;font-family:var(--font-ui);font-weight:700;font-size:.85rem;color:var(--text);
+.sd__paint .nm{padding:.45rem .6rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);color:var(--text);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* Varianten & Loaner */
 .sd__reflist{display:flex;flex-wrap:wrap;gap:.55rem}
 .sd__ref{display:inline-flex;align-items:center;gap:.4rem;border:1px solid var(--line);background:var(--bg-2);
-  padding:.42rem .75rem;font-family:var(--font-ui);font-weight:700;font-size:.9rem}
-a.sd__ref{transition:border-color .15s,color .15s}
+  padding:.42rem .75rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-8)}
+a.sd__ref{transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
 a.sd__ref:hover{border-color:var(--accent);color:var(--accent)}
 a.sd__ref::after{content:"→";color:var(--muted)}
 a.sd__ref:hover::after{color:var(--accent)}
@@ -797,9 +797,9 @@ span.sd__ref{color:var(--muted)}
 
 .sd__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem 1.4rem;margin:0}
 .sd__item{border-left:1px solid var(--line);padding-left:.8rem}
-.sd__item dt{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.sd__item dd{margin:.15rem 0 0;font-weight:500;font-size:1.15rem;line-height:1.35;font-variant-numeric:tabular-nums;color:var(--text)}
-.sd__sub{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+.sd__item dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted)}
+.sd__item dd{margin:.15rem 0 0;font-weight:500;font-size:var(--fs-11);line-height:1.35;font-variant-numeric:tabular-nums;color:var(--text)}
+.sd__sub{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted);
   margin:1.6rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--line)}
 /* ---------------- Bewaffnung: Hardpoint-Ledger ----------------
    Eine Zeile je Waffenart statt einer Reihe nackter Zahlen. Jede Zeile ist
@@ -809,12 +809,12 @@ span.sd__ref{color:var(--muted)}
 .arm__sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
   background:var(--line);border:1px solid var(--line);margin-bottom:1.2rem}
 .arm__scell{background:var(--bg-2);padding:.6rem .8rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:.05rem .45rem}
-.arm__scell b{font-family:var(--font-ui);font-weight:700;font-size:1.5rem;line-height:1.1;color:var(--accent);
+.arm__scell b{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-14);line-height:1.1;color:var(--accent);
   font-variant-numeric:tabular-nums}
-.arm__scell span{font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.12em;
+.arm__scell span{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);
   text-transform:uppercase;color:var(--muted)}
-.arm__scell i{flex-basis:100%;font-style:normal;font-family:var(--font-ui);font-weight:700;font-size:.76rem;
-  letter-spacing:.06em;color:var(--text);opacity:.75;font-variant-numeric:tabular-nums}
+.arm__scell i{flex-basis:100%;font-style:normal;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);
+  letter-spacing:var(--ls-9);color:var(--text);opacity:.75;font-variant-numeric:tabular-nums}
 .arm__scell--g b{color:var(--gold)}
 
 .arm__list{display:flex;flex-direction:column;gap:1.1rem}
@@ -822,39 +822,39 @@ span.sd__ref{color:var(--muted)}
 .arm__grp--g{border-left-color:color-mix(in srgb,var(--gold) 60%,transparent)}
 .arm__ghead{display:flex;flex-wrap:wrap;align-items:baseline;gap:.3rem .7rem;
   padding-bottom:.45rem;border-bottom:1px solid var(--line-soft);margin-bottom:.5rem}
-.arm__glabel{font-family:var(--font-ui);font-weight:700;font-size:.84rem;letter-spacing:.14em;
+.arm__glabel{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);letter-spacing:var(--ls-13);
   text-transform:uppercase;color:var(--text)}
-.arm__gmeta{font-family:var(--font-ui);font-weight:600;font-size:.76rem;letter-spacing:.06em;color:var(--muted)}
-.arm__gval{margin-left:auto;font-family:var(--font-ui);font-weight:700;font-size:1rem;color:var(--text);
+.arm__gmeta{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-5);letter-spacing:var(--ls-9);color:var(--muted)}
+.arm__gval{margin-left:auto;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);color:var(--text);
   font-variant-numeric:tabular-nums;white-space:nowrap}
 .arm__grp--g .arm__gval{color:var(--gold)}
 
 .arm__lines{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.3rem}
 .arm__line{display:grid;grid-template-columns:2.6rem 54px minmax(0,1fr) auto;align-items:center;gap:.7rem}
-.arm__n{font-family:var(--font-ui);font-weight:700;font-size:1rem;color:var(--text);
+.arm__n{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);color:var(--text);
   font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-.arm__n i{font-style:normal;font-size:.78rem;color:var(--muted);margin-left:.06rem}
+.arm__n i{font-style:normal;font-size:var(--fs-6);color:var(--muted);margin-left:.06rem}
 /* Größen-Chip: fixe Breite (Spalte bleibt bündig), Füllbalken = Klasse
    maßstäblich (S1 fast leer … S10+ voll) — dieselbe Sprache wie die Gauges */
 .arm__size{position:relative;display:grid;place-items:center;height:26px;overflow:hidden;
   border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);background:var(--veil-hi)}
 .arm__size::before{content:"";position:absolute;left:0;top:0;bottom:0;width:calc(100% * min(var(--s,1) / 10, 1));
   background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 22%,transparent),color-mix(in srgb,var(--accent) 48%,transparent))}
-.arm__size em{position:relative;font-style:normal;font-family:var(--font-ui);font-weight:700;font-size:.84rem;
+.arm__size em{position:relative;font-style:normal;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);
   line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
 .arm__size--n{border-style:dashed;border-color:var(--line)}
 .arm__size--n em{color:var(--muted)}
 .arm__grp--g .arm__size{border-color:color-mix(in srgb,var(--gold) 50%,transparent)}
 .arm__grp--g .arm__size::before{background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 20%,transparent),color-mix(in srgb,var(--gold) 45%,transparent))}
 .arm__grp--g .arm__size em{color:var(--gold)}
-.arm__name{min-width:0;font-size:1rem;color:var(--text)}
+.arm__name{min-width:0;font-size:var(--fs-10);color:var(--text)}
 .arm__anon{color:var(--muted)}
-.arm__bdg{font-family:var(--font-ui);font-weight:700;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+.arm__bdg{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-10);text-transform:uppercase;
   color:var(--muted);white-space:nowrap}
 .arm__bdg--up{color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);
   background:color-mix(in srgb,var(--accent) 8%,transparent);padding:.14rem .4rem}
-.arm__note{margin:.5rem 0 0;font-size:.9rem;color:var(--muted);line-height:1.5}
-.arm__note span{font-family:var(--font-ui);font-weight:700;font-size:.68rem;letter-spacing:.1em;
+.arm__note{margin:.5rem 0 0;font-size:var(--fs-8);color:var(--muted);line-height:1.5}
+.arm__note span{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-11);
   text-transform:uppercase;margin-right:.4rem}
 @media(max-width:640px){
   .arm__line{grid-template-columns:2.2rem 48px minmax(0,1fr);row-gap:.15rem}
@@ -865,39 +865,39 @@ span.sd__ref{color:var(--muted)}
 /* white-space:pre-line: vDesc() wandelt die woertlichen "\n"-Folgen der
    Spieltexte in echte Zeilenumbrueche (01.4-05, D-07) — ohne dieses Attribut
    wuerden Browser sie zu Leerzeichen zusammenfalten. */
-.sd__desc{max-width:78ch;margin:0 0 1.6rem;font-size:1.05rem;line-height:1.65;color:var(--text);opacity:.92;white-space:pre-line}
+.sd__desc{max-width:78ch;margin:0 0 1.6rem;font-size:var(--fs-11);line-height:1.65;color:var(--text);opacity:.92;white-space:pre-line}
 .sd__spine{margin-bottom:1.6rem;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--bg-2);padding:1rem 1.2rem}
-.sd__spine h2{font-family:var(--font-ui);font-weight:700;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
-.sd__spine a{display:block;padding:.3rem 0;font-family:var(--font-ui);font-weight:700;font-size:1rem}
+.sd__spine h2{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
+.sd__spine a{display:block;padding:.3rem 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10)}
 .sd__spine a:hover{color:var(--gold);text-decoration:underline}
 .sd__spine span{color:var(--muted);font-weight:600}
 
 .sd__simgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem}
-.sd__sim{border:1px solid var(--line);background:var(--surface);transition:border-color .15s,background .15s;display:flex;flex-direction:column}
+.sd__sim{border:1px solid var(--line);background:var(--surface);transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui);display:flex;flex-direction:column}
 .sd__sim:hover{border-color:color-mix(in srgb,var(--accent) 55%,transparent);background:var(--surface-2)}
 .sd__sim .im{aspect-ratio:16/9;background:var(--veil-2);display:grid;place-items:center;overflow:hidden}
 .sd__sim .im img{width:100%;height:100%;object-fit:cover}
-.sd__sim .im span{font-family:var(--font-ui);font-weight:700;letter-spacing:.2em;color:var(--muted);font-size:.72rem}
+.sd__sim .im span{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-16);color:var(--muted);font-size:var(--fs-4)}
 .sd__sim .tx{padding:.6rem .8rem .7rem}
-.sd__sim .nm{font-family:var(--font-ui);font-weight:700;font-size:1rem;color:var(--text)}
-.sd__sim .mt{font-size:.85rem;color:var(--muted)}
+.sd__sim .nm{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);color:var(--text)}
+.sd__sim .mt{font-size:var(--fs-7);color:var(--muted)}
 
 .sd__links{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.6rem}
-.sd__links a{font-family:var(--font-ui);font-weight:700;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;
-  border:1px solid var(--line);padding:.45rem .9rem;transition:border-color .15s,color .15s}
+.sd__links a{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);letter-spacing:var(--ls-11);text-transform:uppercase;
+  border:1px solid var(--line);padding:.45rem .9rem;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
 .sd__links a:hover{border-color:var(--accent);color:var(--accent)}
-.sd__src{margin-top:1.4rem;font-size:.85rem;color:var(--muted)}
+.sd__src{margin-top:1.4rem;font-size:var(--fs-7);color:var(--muted)}
 .sd__src a{text-decoration:underline}
 .sd__src a:hover{color:var(--accent)}
 
 /* Gauges (generisch, katalog-relativ) */
 .sd__g{display:flex;flex-direction:column;gap:.55rem}
 .sd__grow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:.9rem;align-items:center}
-.sd__glabel{font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sd__glabel{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted)}
 .sd__gtrack{position:relative;height:9px;background:var(--veil-hi);border:1px solid var(--line);overflow:hidden}
 .sd__gtrack::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--veil-hi)}
 .sd__gfill{height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,transparent),var(--accent))}
-.sd__gval{font-family:var(--font-ui);font-weight:700;font-size:.95rem;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
+.sd__gval{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-9);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
 @media(max-width:640px){
   .sd__grow{grid-template-columns:1fr auto;column-gap:.8rem;row-gap:.3rem;align-items:baseline}
   .sd__glabel{grid-column:1;grid-row:1}
@@ -911,23 +911,23 @@ span.sd__ref{color:var(--muted)}
 .sd__footbox{border:1px dashed color-mix(in srgb,var(--accent) 55%,transparent);background:color-mix(in srgb,var(--accent) 6%,transparent);
   min-width:56px;max-width:100%;margin:.5rem 0 .45rem;position:relative}
 .sd__footbox::after{content:"";position:absolute;left:12%;right:12%;top:50%;height:1px;background:color-mix(in srgb,var(--accent) 35%,transparent)}
-.sd__footcap{font-size:.85rem;color:var(--muted)}
-.sd__cargonum{font-family:var(--font-ui);font-weight:700;font-size:1.7rem;color:var(--gold);font-variant-numeric:tabular-nums}
+.sd__footcap{font-size:var(--fs-7);color:var(--muted)}
+.sd__cargonum{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-15);color:var(--gold);font-variant-numeric:tabular-nums}
 .sd__cubes{display:flex;flex-wrap:wrap;gap:4px;margin:.55rem 0 .35rem}
 .sd__cube{width:15px;height:15px;background:color-mix(in srgb,var(--gold) 30%,transparent);border:1px solid color-mix(in srgb,var(--gold) 75%,transparent)}
 
 /* Hardpoint-Slots (Komponenten-Abschnitt) */
 .sd__hp{display:inline-grid;place-items:center;height:24px;min-width:calc(15px + var(--hs,1)*4px);padding:0 .3rem;
   border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent);
-  font-family:var(--font-ui);font-weight:700;font-size:.78rem;line-height:1}
-.sd__hpmore{font-family:var(--font-ui);font-weight:700;font-size:.8rem;color:var(--muted);align-self:center}
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);line-height:1}
+.sd__hpmore{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);color:var(--muted);align-self:center}
 .sd__hprow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 
 /* Komponenten-Slots */
 .sd__slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem}
 .sd__slot{border:1px solid var(--line);background:var(--bg-2);padding:.6rem .8rem}
-.sd__slot .t{font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.sd__slot .n{font-family:var(--font-ui);font-weight:700;font-size:1.02rem;color:var(--text);margin:.15rem 0 .3rem}
+.sd__slot .t{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted)}
+.sd__slot .n{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);color:var(--text);margin:.15rem 0 .3rem}
 
 /* Quantum-Chips */
 .sd__qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem 1.4rem}
@@ -935,12 +935,12 @@ span.sd__ref{color:var(--muted)}
 /* Versicherung */
 .sd__inscards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem}
 .sd__ins{border:1px solid var(--line);background:var(--bg-2);padding:.7rem .9rem}
-.sd__ins .t{font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.sd__ins .v{font-family:var(--font-ui);font-weight:700;font-size:1.35rem;font-variant-numeric:tabular-nums;color:var(--text);margin-top:.15rem}
+.sd__ins .t{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted)}
+.sd__ins .v{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-13);font-variant-numeric:tabular-nums;color:var(--text);margin-top:.15rem}
 .sd__ins--gold .v{color:var(--gold)}
 
 /* System-Chips (Kauforte) */
-.sd__sys{display:inline-block;font-family:var(--font-ui);font-weight:700;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+.sd__sys{display:inline-block;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;
   border:1px solid rgba(110,168,255,.4);color:var(--accent-2);padding:.1rem .4rem;margin-left:.5rem;vertical-align:1px}
 .sd__sys.sys-pyro{border-color:rgba(255,138,80,.45);color:#ff8a50}
 .sd__sys.sys-nyx{border-color:rgba(192,154,255,.45);color:#c09aff}
@@ -950,8 +950,8 @@ span.sd__ref{color:var(--muted)}
    kaeme kein Klick am Button an. */
 .holo__fav{margin-top:.7rem;pointer-events:auto}
 .favbtn{display:inline-flex;align-items:center;gap:.45rem;background:var(--veil);border:1px solid var(--line);color:var(--muted);
-  font-family:var(--font-ui);font-weight:700;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;padding:.42rem .85rem;cursor:pointer;
-  transition:color .15s,border-color .15s,background-color .15s}
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-11);text-transform:uppercase;padding:.42rem .85rem;cursor:pointer;
+  transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
 .favbtn:hover{color:var(--accent);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
 .favbtn.is-fav{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 60%,transparent);background:color-mix(in srgb,var(--accent-2) 10%,transparent)}
 .favbtn.is-fav .favbtn__star path{fill:currentColor}

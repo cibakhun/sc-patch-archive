@@ -89,17 +89,27 @@ import {
    nachgemessene, verifizierte Grundgesamtheit. */
 const EXPECTED = { fontSize: 1961, files: 96, letterSpacing: 863, uiTransitionParts: 660 };
 
-const ONLY = (() => {
-  const i = process.argv.indexOf('--only');
-  return i !== -1 ? process.argv[i + 1] : null;
-})();
+/* --only ist mehrfach angebbar (wie in migrate-typo-motion.mjs) -- die
+   <verify>-Befehle der Plaene 04-06 rufen dieses Skript wiederholt mit
+   mehreren --only-Praefixen in EINEM Aufruf auf, um mehrere Dateien/
+   Verzeichnisse in einem Bericht zu pruefen. Eine einzelwertige Fassung
+   wuerde dort stillschweigend nur das ERSTE Praefix beachten. */
+function collectFlagValues(flag) {
+  const vals = [];
+  for (let i = 0; i < process.argv.length; i++) {
+    if (process.argv[i] === flag) vals.push(process.argv[i + 1]);
+  }
+  return vals;
+}
+
+const ONLY = collectFlagValues('--only').filter(Boolean);
 const EXPECT_REMAINING = (() => {
   const i = process.argv.indexOf('--expect-remaining');
   return i !== -1 ? Number(process.argv[i + 1]) : null;
 })();
 
 const allFiles = allTargetFiles();
-const targetFiles = ONLY ? allFiles.filter((f) => f.includes(ONLY)) : allFiles;
+const targetFiles = ONLY.length ? allFiles.filter((f) => ONLY.some((prefix) => f.includes(prefix))) : allFiles;
 
 /* ---------------------------------------------------------- */
 /* Hauptdurchlauf */
@@ -189,23 +199,23 @@ for (const file of targetFiles) {
 /* ---------------------------------------------------------- */
 /* Bericht */
 
-console.log(`audit-typo-motion: ${targetFiles.length} Datei(en) durchsucht${ONLY ? ` (--only ${ONLY})` : ''}\n`);
+console.log(`audit-typo-motion: ${targetFiles.length} Datei(en) durchsucht${ONLY.length ? ` (--only ${ONLY.join(', ')})` : ''}\n`);
 
 console.log(`Dateien mit mind. einem Treffer (font-size/letter-spacing/transition): ${stats.filesTouched.size}` +
-  (ONLY ? '' : `   Soll: ${EXPECTED.files}`));
+  (ONLY.length ? '' : `   Soll: ${EXPECTED.files}`));
 
-console.log(`\nfont-size gesamt: ${stats.fontSize.total}` + (ONLY ? '' : `   Soll: ${EXPECTED.fontSize}`));
+console.log(`\nfont-size gesamt: ${stats.fontSize.total}` + (ONLY.length ? '' : `   Soll: ${EXPECTED.fontSize}`));
 for (const [cat, n] of Object.entries(stats.fontSize.cats).sort()) {
   console.log(`  - ${cat}: ${n}`);
 }
 
-console.log(`\nletter-spacing gesamt: ${stats.letterSpacing.total}` + (ONLY ? '' : `   Soll: ${EXPECTED.letterSpacing}`));
+console.log(`\nletter-spacing gesamt: ${stats.letterSpacing.total}` + (ONLY.length ? '' : `   Soll: ${EXPECTED.letterSpacing}`));
 for (const [cat, n] of Object.entries(stats.letterSpacing.cats).sort()) {
   console.log(`  - ${cat}: ${n}`);
 }
 
 console.log(`\ntransition-Teile gesamt: ${stats.transitionParts.total}`);
-console.log(`  - Bedienuebergang (ui): ${stats.transitionParts.ui}` + (ONLY ? '' : `   Soll: ${EXPECTED.uiTransitionParts}`));
+console.log(`  - Bedienuebergang (ui): ${stats.transitionParts.ui}` + (ONLY.length ? '' : `   Soll: ${EXPECTED.uiTransitionParts}`));
 console.log(`  - Ambiente: ${stats.transitionParts.ambient || 0}`);
 console.log(`  - none: ${stats.transitionParts.none || 0}`);
 console.log(`  - bereits Token: ${stats.transitionParts.token || 0}`);
@@ -215,7 +225,7 @@ console.log(`  - sonstige: ${stats.transitionParts.other || 0}`);
 console.log(`\ndynamische style={\`…\`}-Zuweisungen ausserhalb von <style> (Pitfall 5, ausgenommen): ${stats.dynamicStyleAttrs}`);
 
 console.log(`\nRestwerte (skalenpflichtig, noch kein var(--fs-*)/var(--ls-*)/var(--dur-*)): ${stats.remaining}`);
-if (stats.perFile.length && (ONLY || stats.perFile.length <= 20)) {
+if (stats.perFile.length && (ONLY.length || stats.perFile.length <= 20)) {
   for (const { file, remaining } of stats.perFile.slice(0, 20)) {
     console.log(`  ! ${file}: ${remaining}`);
   }
@@ -224,7 +234,7 @@ if (stats.perFile.length && (ONLY || stats.perFile.length <= 20)) {
 
 let ok = true;
 
-if (!ONLY) {
+if (!ONLY.length) {
   if (stats.filesTouched.size !== EXPECTED.files) {
     console.error(`\nFEHLER: Dateizahl weicht ab (Soll ${EXPECTED.files}, Ist ${stats.filesTouched.size})`);
     ok = false;
