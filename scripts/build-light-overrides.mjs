@@ -45,6 +45,17 @@ const BLOCK = /\n?[ \t]*\/\* Hell-Entsprechungen[\s\S]*$/;
  * immer ganz oben. Ein zusammenhängender Schwanz aus :root-Zeilen am
  * Ende ist deshalb sicher als Rückstand erkennbar und wird entfernt.
  * Danach erzeugt dieser Lauf den Abschnitt sauber neu.
+ *
+ * Ausnahme (gefunden 08.08.2026 an src/components/pilot/PilotPage.astro,
+ * siehe 04-03-SUMMARY.md): besteht ein <style>-Block NUR aus der dunklen
+ * Palette plus dem generierten hellen Zwilling (kein weiterer Selektor
+ * danach — ein reiner Paletten-Block, getrennt vom Rest des Seiten-CSS),
+ * dann IST der helle Zwilling selbst die letzte Zeile — und die
+ * Selbstheilung hätte ihn als vermeintlichen Rückstand mitgelöscht, ohne
+ * ihn neu zu erzeugen (kein :root{}-Block mehr vorhanden, aus dem
+ * build-light-palettes.mjs schöpfen könnte). Eine Zeile, die UNMITTELBAR
+ * der aktuellen Hellmodus-Marke folgt, ist per Definition kein Rückstand
+ * eines früheren, kaputten Laufs, sondern die JETZIGE, gültige Palette.
  */
 function stripTrailingRootRules(css) {
   const lines = css.split('\n');
@@ -52,7 +63,12 @@ function stripTrailingRootRules(css) {
   while (end > 0) {
     const t = lines[end - 1].trim();
     if (t === '') { end--; continue; }
-    if (/^:root[\s[{]/.test(t)) { end--; continue; }
+    if (/^:root[\s[{]/.test(t)) {
+      const prev = (lines[end - 2] || '').trim();
+      if (prev.includes('erzeugt von scripts/build-light-palettes.mjs')) break;
+      end--;
+      continue;
+    }
     break;
   }
   return lines.slice(0, end).join('\n');
@@ -102,11 +118,29 @@ function paperVersion(c, prop) {
   return target;
 }
 
-/* ---- CSS tiefenbewusst durchlaufen: nur Regeln auf oberster Ebene ---- */
+/* ---- CSS tiefenbewusst durchlaufen: nur Regeln auf oberster Ebene ----
+   Kommentare werden als UNDURCHSICHTIGE Spannen uebersprungen, bevor ihre
+   Zeichen die Klammertiefe beeinflussen koennen. Ohne das zaehlt ein
+   Kommentar, der ueber CSS-Syntax REDET (z. B. "... in einem :root{}-
+   Block: ..." als Prosa), seine eigenen Klammern mit — gefunden
+   08.08.2026 an src/components/ArmorSets.astro (04-03-SUMMARY.md): ein
+   Kommentar erwaehnte woertlich ":root{}"-Block", das Klammernpaar darin
+   schloss die Tiefenzaehlung vorzeitig und riss die naechste echte Regel
+   (.dp {...}) mitten entzwei — die "Selektor"-Zeile der Folgeregel bestand
+   danach aus Kommentarresten statt aus ".dp". */
 function topLevelRules(css) {
   const rules = [];
   let depth = 0, i = 0, selStart = 0, atRule = false;
+  const skipComment = () => {
+    if (css[i] === '/' && css[i + 1] === '*') {
+      const end = css.indexOf('*/', i + 2);
+      i = end === -1 ? css.length : end + 2;
+      return true;
+    }
+    return false;
+  };
   while (i < css.length) {
+    if (skipComment()) continue;
     const ch = css[i];
     if (ch === '{') {
       if (depth === 0) {
@@ -115,7 +149,15 @@ function topLevelRules(css) {
         if (!atRule) {
           const bodyStart = i + 1;
           let d = 1, j = bodyStart;
-          while (j < css.length && d > 0) { if (css[j] === '{') d++; else if (css[j] === '}') d--; j++; }
+          while (j < css.length && d > 0) {
+            if (css[j] === '/' && css[j + 1] === '*') {
+              const end = css.indexOf('*/', j + 2);
+              j = end === -1 ? css.length : end + 2;
+              continue;
+            }
+            if (css[j] === '{') d++; else if (css[j] === '}') d--;
+            j++;
+          }
           rules.push({ sel, body: css.slice(bodyStart, j - 1) });
           i = j; selStart = i; depth = 0; continue;
         }
@@ -152,12 +194,26 @@ for (const file of targets) {
     const css = stripTrailingRootRules(cssRaw.replace(BLOCK, '\n'));
     const lines = [];
 
+    // Selektoren, die BEREITS eine von Hand geschriebene
+    // ":root[data-theme='light'] <sel>"-Regel im selben <style>-Block tragen
+    // (ausserhalb des generierten Abschnitts, der oben schon entfernt wurde).
+    // Gefunden 08.08.2026 an src/components/ArmorSets.astro (04-03-SUMMARY.md):
+    // ".dp" haelt seine Seltenheitsfarben bewusst als eigene --rar-*-Variablen
+    // MIT handgeschriebenem hellen Gegenstueck (Kommentar: "Bewusst NICHT in
+    // einem :root{}-Block ... wuerde hier eine zweite Wahrheit anlegen"). Ohne
+    // diese Sperre wuerde das Skript trotzdem eine ZWEITE, automatisch aus
+    // paperVersion() abgeleitete ":root[data-theme='light'] .dp{...}"-Regel
+    // anhaengen, die die kuratierten Werte durch Quellreihenfolge ueberschreibt.
+    const existingLightSelectors = new Set(
+      [...css.matchAll(/:root\[data-theme=["']light["']\]\s*([^{]+)\{/g)].map((mm) => mm[1].trim())
+    );
+
     for (const { sel: selRaw, body } of topLevelRules(css)) {
       // Kommentare gehören beim Selektor-Fang mit dazu ("/* … */\n:root{…}").
       // Ohne sie hier zu entfernen greift die :root-Sperre nicht — und das
       // Skript dunkelt die ERZEUGTE HELLE PALETTE ab (--bg wird grau).
       const sel = selRaw.replace(/\/\*[\s\S]*?\*\//g, '').trim();
-      if (!sel || sel.includes(':root') || MEDIA.some((re) => re.test(sel))) continue;
+      if (!sel || sel.includes(':root') || MEDIA.some((re) => re.test(sel)) || existingLightSelectors.has(sel)) continue;
 
       const decls = [];
       for (const d of body.split(';')) {
