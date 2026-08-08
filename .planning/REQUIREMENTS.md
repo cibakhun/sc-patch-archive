@@ -60,8 +60,8 @@
 
 ### Überlagerungen
 
-- [ ] **LAYER-01**: Die in `CONCERNS.md` als Class B verzeichneten dekorativen Überlagerungen über Text sind abgetragen
-- [ ] **LAYER-02**: Text über Bildmotiven erreicht in beiden Farbmodi einen belegten Kontrastwert
+- [ ] **LAYER-01**: Die in `CONCERNS.md` als Class B verzeichneten dekorativen Überlagerungen über Text sind abgetragen (Plan 03-01: Hero-Archetyp bewiesen; Plan 02/03/04 tragen die restlichen Archetypen, `/archiv` und die 19 Patch-Körper ab)
+- [ ] **LAYER-02**: Text über Bildmotiven erreicht in beiden Farbmodi einen belegten Kontrastwert (Plan 03-01: Messverfahren + erster Registry-Eintrag bewiesen; Plan 05 schließt die Aufzählung und zieht die WCAG-AA-Zielmarke scharf)
 
 ### Sprachparität
 
@@ -332,8 +332,8 @@ ist anbieterneutral und bleibt gültig.
 | TYPO-01 | Phase 2 | Complete |
 | TYPO-02 | Phase 2 | Complete |
 | TYPO-03 | Phase 2 | Pending |
-| LAYER-01 | Phase 3 | Pending |
-| LAYER-02 | Phase 3 | Pending |
+| LAYER-01 | Phase 3 | In Progress (Plan 1 of 5: Tracer bewiesen) |
+| LAYER-02 | Phase 3 | In Progress (Plan 1 of 5: Messverfahren bewiesen) |
 | SYNC-01 | Phase 4 | Pending |
 | SYNC-02 | Phase 4 | Pending |
 | THEME-02 | Phase 4 | Pending |

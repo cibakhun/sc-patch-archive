@@ -264,11 +264,11 @@ FX-07-Präzedenzfall Ambiente und wird nicht angefasst.
   2. Für jede betroffene Stelle liegt ein gemessener Kontrastwert für Hell- und Dunkelmodus vor
   3. Die Bildmotive tragen die Seite optisch weiterhin — die Entstapelung hat sie nicht flachgeschleift
 
-**Plans**: 5 plans
+**Plans**: 1/5 plans executed
 
 Plans:
 
-- [ ] 03-01-PLAN.md (Welle 1) — Leitschuss: die ganze Kette an EINEM Archetyp beweisen — `body::after` räumlich begrenzen (Maske an `var(--maxw)`), das Zeilenraster als `.hero::before` UNTER den Text legen, den `.reveal`-Beobachter von seinem Höhendeckel befreien, dazu die fehlende Rechenstufe (`compositeOver`/`flattenStack`) und das Tor `verify:layers` mit Vorher-/Nachher-Zahl
+- [x] 03-01-PLAN.md (Welle 1) — Leitschuss: die ganze Kette an EINEM Archetyp beweisen — `body::after` räumlich begrenzen (Maske an `var(--maxw)`), das Zeilenraster als `.hero::before` UNTER den Text legen, den `.reveal`-Beobachter von seinem Höhendeckel befreien, dazu die fehlende Rechenstufe (`compositeOver`/`flattenStack`) und das Tor `verify:layers` mit Vorher-/Nachher-Zahl
 - [ ] 03-02-PLAN.md (Welle 2) — Das geteilte System zu Ende: die sieben übrigen Medien-Archetypen bekommen ihr Raster; `.sstep` wird ohne JavaScript und bei reduzierter Bewegung voll lesbar (D-02)
 - [ ] 03-03-PLAN.md (Welle 2) — `/archiv` heilen (D-05, zweite unabhängige Umsetzung desselben Rechenfehlers) und die 21 defensiven `!important`-Overrides ersatzlos abtragen — belegbar 21 → 0
 - [ ] 03-04-PLAN.md (Welle 3) — Die 19 Patch-Körper per überprüfbarem Massendurchlauf: 19 `body::after`-Kopien, 87 neue Rasterregeln, 19 eigene Beobachter; Design-Welten maschinell belegt unverändert
@@ -286,6 +286,7 @@ Zwei Funde des Zuschnitts, die in keinem Vorbereitungsdokument stehen:
    (Anteil 0,12) und `assets/archive.js` (0,12) tragen alle 19 Patch-Körper einen eigenen
    Inline-Beobachter mit Anteil 0,1. `03-RESEARCH.md` kennt nur die ersten beiden und nennt D-03
    deshalb „eine Lösung an einer Stelle". Es sind drei.
+
 2. **Die Schichtung ist mechanisch entscheidbar.** `body::after` (`z-index:9000`) ist die
    **einzige** Regel im Bestand, die über den Glyphen liegt; alle Scrims malen unter dem Text
    (`.hero__in`/`.band__in`/`.scrolly__steps` sitzen auf `z-index:2`, ihre Scrims auf 0 bzw. 1),
@@ -497,7 +498,7 @@ Phase 8 hängt ebenfalls an keiner Vorgängerphase und lief am 07.08.2026 durch.
 | 1.1 Ambiente-Effekte stilllegen | 2/3 | In Progress|  |
 | 1.2 Werkzeuge erklären | 5/5 | In Progress|  |
 | 2. Schrift- und Bewegungsskala | 7/7 | In Progress|  |
-| 3. Überlagerungen entstapeln | 0/5 | Planned | - |
+| 3. Überlagerungen entstapeln | 1/5 | In Progress|  |
 | 4. Sprachparität absichern | 0/2 | Not started | - |
 | 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |
 | 6. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |

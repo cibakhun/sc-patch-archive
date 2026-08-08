@@ -6,14 +6,14 @@ current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
 stopped_at: Completed 02-06-PLAN.md (fuenf Seitenpaare, 22 Themen-Koerper, 5 Konto-Ansichten, PilotPage, ShipsOverview auf die Skala umgestellt)
-last_updated: "2026-08-08T15:14:22.195Z"
+last_updated: "2026-08-08T17:32:18.204Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
-  total_phases: 10
-  completed_phases: 6
-  total_plans: 37
-  completed_plans: 30
+  total_phases: 11
+  completed_phases: 7
+  total_plans: 42
+  completed_plans: 32
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -133,7 +133,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [████████░░] 81%
+Progress: [████████░░] 76%
 
 ## Performance Metrics
 
@@ -178,6 +178,7 @@ Progress: [████████░░] 81%
 | Phase 02 P05 | ~45min | 2 tasks | 20 files |
 | Phase 02 P06 | ~50min | 2 tasks | 40 files |
 | Phase 02 P07 | ~40min | 2 tasks | 4 files |
+| Phase 03-ueberlagerungen-entstapeln P01 | 40min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -240,6 +241,9 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 2]: 02-07: npm run verify:typo ans Dockerfile-Tor gehaengt (Zeile 34, nach dem Build) -- ab jetzt build-blockierend fuer das Auslieferungsimage, nicht mehr nur von Hand aufrufbar
 - [Phase ?]: [Phase 2]: 02-07: REQUIREMENTS.md Traceability-Tabelle hatte eine HTML-Kommentarzeile MITTEN in der Tabelle (zwischen DOC-07/DATA-01), die jede zeilenweise Tabellensuche ab dort abbrach (gsd-tools requirements mark-complete meldete faelschlich table_unmatched fuer TYPO-01/02 und alle folgenden Zeilen) -- Kommentar unveraendert ans Tabellenende verschoben (Rule 3)
 - [Phase ?]: [Phase 2]: 02-07: TYPO-01/TYPO-02 in REQUIREMENTS.md auf Complete gesetzt (0 Rest site-weit, 96 Dateien); TYPO-03 bleibt Pending -- die breitere Schluss-Sichtrunde (WINDOWS.md id 5) steht noch aus, die engere bereits abgenommene Pruefung (WINDOWS.md id 3) bleibt unangetastet. Phase 2 technisch fertig (7/7 Plaene), NICHT "Complete" markiert, solange die Sichtrunde aussteht
+- [Phase ?]: [Phase 3]: 03-01: body::after maskiert (linear-gradient an --maxw, Feder AUSSERHALB der Spalte) statt gedimmt -- --ambient-opacity bleibt 0.5/0.4 (D-01 begrenzt, daempft nicht)
+- [Phase ?]: [Phase 3]: 03-01: .reveal-IntersectionObserver auf threshold:0 (D-03) -- 21 defensive !important-Overrides bleiben bewusst stehen, Plan 03 traegt sie ab
+- [Phase ?]: [Phase 3]: 03-01: verify-layers.mjs rechnet Kontrast aus echtem Bildpunkt (sharp) + Scrim + Zeilenraster (compositeOver/flattenStack) statt zwei CSS-Tokens zu vergleichen -- Dunkelmodus 7.50:1 vorher -> 18.22:1 nachher am Hero-Fliesstext, negativkontrolliert (Tor faellt nachweislich bei gestoerter Maske)
 
 ### Pending Todos
 
