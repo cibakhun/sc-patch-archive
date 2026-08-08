@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-08",
-  "updates": 125,
-  "totalListings": 3696,
+  "updates": 126,
+  "totalListings": 3706,
   "totalSold": 154,
-  "distinctItems": 949
+  "distinctItems": 950
  },
  "listings": {
   "156580": {
@@ -77395,6 +77395,10 @@
     {
      "d": "2026-08-08",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 2800000
     }
    ],
    "soldOut": false,
@@ -78289,6 +78293,27 @@
    "dateAdded": 1786220026,
    "dateExpiration": 1791404026
   },
+  "160396": {
+   "idItem": 2138,
+   "idCategory": 2,
+   "title": "Aril Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786220471,
+   "dateExpiration": 1791404471
+  },
   "160397": {
    "idItem": 8013,
    "idCategory": 7,
@@ -78645,6 +78670,195 @@
    "soldOutPrice": null,
    "dateAdded": 1786221892,
    "dateExpiration": 1791405892
+  },
+  "160419": {
+   "idItem": 4741,
+   "idCategory": 69,
+   "title": "selling 909 quality carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 909,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221898,
+   "dateExpiration": 1791405898
+  },
+  "160420": {
+   "idItem": 4469,
+   "idCategory": 18,
+   "title": "MAX DMG Quartz Energy SMG (1000-1000-964) full attachments",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 16000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221964,
+   "dateExpiration": 1791405964
+  },
+  "160422": {
+   "idItem": 5600,
+   "idCategory": 83,
+   "title": "V801-11",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786222194,
+   "dateExpiration": 1791406194
+  },
+  "160425": {
+   "idItem": 8031,
+   "idCategory": 7,
+   "title": "MAX DMG mitigation (44) Antium Moss Camo Set plus backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786222656,
+   "dateExpiration": 1791406656
+  },
+  "160429": {
+   "idItem": 6356,
+   "idCategory": 2,
+   "title": "Warden Backpack Purgatory Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786223889,
+   "dateExpiration": 1791407889
+  },
+  "160431": {
+   "idItem": 5887,
+   "idCategory": 36,
+   "title": "[WTS] Corundum in all Qualities",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786224592,
+   "dateExpiration": 1791408592
+  },
+  "160432": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "MAX DMG Karna Rifle (1000-1000-953) full attachments",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786224639,
+   "dateExpiration": 1791408639
+  },
+  "160433": {
+   "idItem": 3200,
+   "idCategory": 24,
+   "title": "SET Xanthule Flight Suit PLUS Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786225019,
+   "dateExpiration": 1791409019
+  },
+  "160434": {
+   "idItem": 3203,
+   "idCategory": 3,
+   "title": "SET Xanthule Tahn Flight Helmet PLUS Flight Suit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786225378,
+   "dateExpiration": 1791409378
   }
  }
 }
