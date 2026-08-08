@@ -322,7 +322,7 @@ Betreiber — kein Skript entscheidet es.
   2. Der Prüfschritt schlägt fehl, wenn eine Sprachfassung nachträglich auseinanderläuft
   3. Kein generierter Hellmodus-Block wurde von Hand verändert; die Hellwerte entstehen weiterhin über `npm run theme`
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans executed
 
 Plans:
 
@@ -523,7 +523,7 @@ Phase 8 hängt ebenfalls an keiner Vorgängerphase und lief am 07.08.2026 durch.
 | 1.2 Werkzeuge erklären | 5/5 | In Progress|  |
 | 2. Schrift- und Bewegungsskala | 7/7 | In Progress|  |
 | 3. Überlagerungen entstapeln | 2/5 | In Progress|  |
-| 4. Sprachparität absichern | 2/3 | In Progress|  |
+| 4. Sprachparität absichern | 3/3 | In Progress|  |
 | 5. Spenden-Unterstützung | 0/3 | Planned (PayPal) | - |
 | 6. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |
 | 7. Komponenten-Filter für Schiffe | 3/3 | Complete | 2026-08-03 |

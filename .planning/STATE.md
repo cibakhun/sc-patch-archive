@@ -6,14 +6,14 @@ current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
 stopped_at: Completed 02-06-PLAN.md (fuenf Seitenpaare, 22 Themen-Koerper, 5 Konto-Ansichten, PilotPage, ShipsOverview auf die Skala umgestellt)
-last_updated: "2026-08-08T23:01:46.190Z"
+last_updated: "2026-08-08T23:49:29.323Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
   total_phases: 12
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 45
-  completed_plans: 38
+  completed_plans: 39
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -133,7 +133,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [████████░░] 84%
+Progress: [█████████░] 87%
 
 ## Performance Metrics
 
@@ -185,6 +185,7 @@ Progress: [████████░░] 84%
 | Phase 03-ueberlagerungen-entstapeln P05 | ~2h | 3 tasks | 25 files |
 | Phase 04-sprachparitaet-absichern P01 | 40min | 2 tasks | 5 files |
 | Phase 04-sprachparitaet-absichern P02 | 30min | 3 tasks | 7 files |
+| Phase 04 P03 | 65min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -261,6 +262,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 4]: 04-01: Erstbefund 81 unerklaerter Rest (78 Item-Beschreibung, 2 Onepager, 1 Impressum-MStV) exakt wie von 04-RESEARCH.md vorhergesagt; die vier diff=4-Verdachtspaare bestaetigt ein Messartefakt der Recherche-Sonde, kein fuenftes Muster. verify:sync bewusst noch NICHT im Dockerfile (D-03: erst beheben in Plan 02, dann scharf in Plan 03)
 - [Phase ?]: [Phase 4]: 04-01: REQUIREMENTS.md SYNC-01/SYNC-02/THEME-02 bewusst NICHT auf Complete gesetzt -- verify:sync existiert und misst, aber der Erstbefund ist noch offen (81 Paare) und das Tor haengt noch nicht scharf im Dockerfile (D-03); Praezedenz aus Phase 2 (TYPO-01/02 erst im letzten Plan abgehakt)
 - [Phase ?]: [Phase 4]: 04-02: D-05 vollzogen -- description() in src/lib/items.ts liefert null unabhaengig von lang, wenn g.desc fehlt (79 Items ohne englische Quelle, 78 mit eigener Detailseite); descDe gilt als Uebersetzung eines vorhandenen desc, nicht als eigene Quelle. Zwei benannte cut-region-Ausnahmen (X-onepager-de-only, X-impressum-mstv) fuer die verbleibenden quellbelegten Abweichungen, neue Zusicherung 5 (Zombie-Waechter) in verify-sync.mjs. node scripts/verify-sync.mjs meldet jetzt 0 unerklaerte Abweichungen ueber alle 8678 Paare, Exit 0 -- Handover-Bedingung fuer Plan 03 (D-03 "erst beheben, dann scharf" vollzogen) erfuellt. Unbelegte Drift (p.muted nur auf der EN-Impressum-Seite) behoben statt ausgenommen (Gegenstueck in src/pages/de/impressum.astro ergaenzt). verify-fx/help/typo-motion.mjs beziehen die Paarung jetzt aus scripts/lib/page-pairs.mjs; dabei fehlende "< 60"-Untergrenze in verify-help.mjs nachgezogen (echter Befund beim vorgeschriebenen Vorher-Vergleich, macht die Zusicherung staerker). SYNC-02 in REQUIREMENTS.md auf Complete gesetzt.
+- [Phase ?]: [Phase 4]: 04-03: verify:theme-gen.mjs (npm run verify:theme) — die echten Generatoren gegen eine Ablagekopie unter os.tmpdir(), nie gegen den Arbeitsbaum. Der vorgeschriebene echte Lauf deckte zwei vorbestehende Bugs in build-light-overrides.mjs auf (stripTrailingRootRules loeschte einen gueltigen generierten Block, topLevelRules zerbrach an einem Kommentar mit literalen Klammern) -- beide behoben, plus ein Schutz gegen doppelte Wahrheiten (keine automatische Hell-Entsprechung fuer Selektoren mit bereits handgeschriebenem Gegenstueck). PilotPage.astro/ProfileCard.astro von den dadurch entstandenen Duplikaten bereinigt. ShipsOverview.astro's vorbestehende, echte Luecke (.fcard__status.fr) als benannte EXCLUSIONS-Ausnahme gehalten, nicht nachgezogen -- WINDOWS.md id 7. assets/theme.css Kopfangabe richtiggestellt (Marke HANDGEPFLEGT). Beide Tore (verify:sync, verify:theme) jetzt blockierend im Dockerfile; alle neun Tore auf dem committeten Stand gruen. SYNC-01/SYNC-02/THEME-02 auf Complete. Sichtprobe an WINDOWS.md id 8 uebergeben -- Phase 4 bleibt 'In Progress'.
 
 ### Pending Todos
 
