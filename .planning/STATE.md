@@ -6,14 +6,14 @@ current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
 stopped_at: Completed 02-06-PLAN.md (fuenf Seitenpaare, 22 Themen-Koerper, 5 Konto-Ansichten, PilotPage, ShipsOverview auf die Skala umgestellt)
-last_updated: "2026-08-08T21:11:00.000Z"
+last_updated: "2026-08-08T22:18:32.419Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
-  total_phases: 11
-  completed_phases: 7
-  total_plans: 42
-  completed_plans: 35
+  total_phases: 12
+  completed_phases: 8
+  total_plans: 45
+  completed_plans: 37
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -133,7 +133,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [████████░░] 76%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -183,6 +183,7 @@ Progress: [████████░░] 76%
 | Phase 03-ueberlagerungen-entstapeln P03 | ~30min | 2 tasks | 23 files |
 | Phase 03-ueberlagerungen-entstapeln P04 | ~25min | 2 tasks | 22 files |
 | Phase 03-ueberlagerungen-entstapeln P05 | ~2h | 3 tasks | 25 files |
+| Phase 04-sprachparitaet-absichern P01 | 40min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -255,6 +256,9 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 3]: 03-05: scripts/lib/layer-registry.mjs (neu) fuehrt 25 Registry-Eintraege (A1-A10, B1-B6 ueber alle 19 Patch-Koerper, C1-C3, D1-D5) vollstaendig auf; verify-layers.mjs Zusicherung 5 (Vollstaendigkeitswaechter gegen den gebauten Stand) fand beim ersten Lauf 18 vorher unbekannte Selektor-Familien site-weit, 5 davon echte Text-auf-Foto-Stellen (Item Finder, Ships Overview, Startseite, eine Themenseite, ein Patch-eigenes Video) -- als D1-D5 aufgenommen statt uebergangen
 - [Phase ?]: [Phase 3]: 03-05: Leitbefund aus 03-01 behoben -- Hero-Fliesstext hell 2,93:1 -> 18,34:1 durch verschobenen Verlauf-Stopp (Plateau 55%-90% statt sofortiger Interpolation Richtung --bg), --ambient-opacity unveraendert 0.5/0.4, Palette unangetastet; woertlich derselbe Fix in allen 19 Patch-Koerpern (.hero__photo::after + .shot::after)
 - [Phase ?]: [Phase 3]: 03-05: zwei eigenstaendige Rule-1-Kontrastbugs gefunden+behoben (.fcard auf Themenseite 4-0-1 nutzte Flaechen- statt Medien-Tokens; ShipsOverview.astro .sdb__sub trug eine fixe Farbe mit falschem generiertem Hellmodus-Override); 344 Einzelmessungen insgesamt, 0 unter der WCAG-AA-Marke; verify:layers haengt jetzt im Dockerfile-Tor nach verify:typo; LAYER-01/LAYER-02 komplett; Sichtrunde als WINDOWS.md id 6 an den Betreiber uebergeben, Phase 3 technisch fertig (5/5 Plaene), NICHT "Complete" solange id 6 offen ist
+- [Phase ?]: [Phase 4]: 04-01: verify:sync — Struktur-Fingerabdruck (tag.class, Autorenreihenfolge, ohne Sortieren/Tiefe) ueber alle 8.678 gebauten EN/DE-Paare; X-langsw-order als per-Instanz-Mengenvergleich statt Seitenausschluss (Bruch C der Negativkontrolle belegt die Enge)
+- [Phase ?]: [Phase 4]: 04-01: Erstbefund 81 unerklaerter Rest (78 Item-Beschreibung, 2 Onepager, 1 Impressum-MStV) exakt wie von 04-RESEARCH.md vorhergesagt; die vier diff=4-Verdachtspaare bestaetigt ein Messartefakt der Recherche-Sonde, kein fuenftes Muster. verify:sync bewusst noch NICHT im Dockerfile (D-03: erst beheben in Plan 02, dann scharf in Plan 03)
+- [Phase ?]: [Phase 4]: 04-01: REQUIREMENTS.md SYNC-01/SYNC-02/THEME-02 bewusst NICHT auf Complete gesetzt -- verify:sync existiert und misst, aber der Erstbefund ist noch offen (81 Paare) und das Tor haengt noch nicht scharf im Dockerfile (D-03); Praezedenz aus Phase 2 (TYPO-01/02 erst im letzten Plan abgehakt)
 
 ### Pending Todos
 

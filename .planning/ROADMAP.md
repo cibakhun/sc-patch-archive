@@ -326,7 +326,7 @@ Betreiber — kein Skript entscheidet es.
 
 Plans:
 
-- [ ] 04-01-PLAN.md (Welle 1) — Leitschuss: die ganze Kette von der Paarung bis zum Exit-Code, mit dem Struktur-Fingerabdruck aus D-01 über ALLE gebauten Paare (D-02), dem engen `langsw`-Ausschluss statt eines Seitenausschlusses, dem bezifferten Erstbefund — und der ausgeführten Negativkontrolle (Erfolgskriterium 2)
+- [x] 04-01-PLAN.md (Welle 1) — Leitschuss: die ganze Kette von der Paarung bis zum Exit-Code, mit dem Struktur-Fingerabdruck aus D-01 über ALLE gebauten Paare (D-02), dem engen `langsw`-Ausschluss statt eines Seitenausschlusses, dem bezifferten Erstbefund — und der ausgeführten Negativkontrolle (Erfolgskriterium 2)
 - [ ] 04-02-PLAN.md (Welle 2) — Den Rest schließen: D-05 (die Beschreibung hängt an der englischen Quelle, beide Sprachen lassen sie sonst weg), jede verbleibende Abweichung einzeln beurteilt (bewusste Quellstelle = benannte Ausnahme, sonst beheben), Zombie-Wächter gegen Ausnahmen ohne Anlass, und die dreifach kopierte Paarungslogik auf ein Modul umgehängt
 - [ ] 04-03-PLAN.md (Welle 3) — THEME-02-Wächter (D-04) gegen eine Ablagekopie statt gegen den Arbeitsbaum, die falsche Herkunftsangabe in `assets/theme.css` richtiggestellt, beide Tore blockierend ans Dockerfile (D-03 „dann scharf"), Phasenbilanz
 
