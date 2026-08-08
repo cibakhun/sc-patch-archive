@@ -79,6 +79,53 @@ Vier Spezialisten, kein Allgemeiner. Genau diese Lücke schließt die Phase.
   der Seitenvergleich, gehört aber zu dieser Phase. Der Wächter muss erkennen, ob der Block noch
   dem entspricht, was `npm run theme` erzeugen würde.
 
+### Nachträglich entschieden (08.08.2026, nach der Recherche)
+
+Die Messung fand ~85 echte Abweichungen, davon **78 Item-Seitenpaare** mit derselben Ursache.
+Der Betreiber entschied zunächst „in dieser Phase beheben"; die Nachprüfung an der Quelle hat die
+Richtung der Behebung dann umgedreht.
+
+**Der Befund, direkt in der `Data.p4k` belegt (nicht nur im gebauten Katalog):**
+
+79 Items tragen `game.descDe`, aber kein `game.desc`. Die LOCID-Schlüssel **fehlen vollständig** in
+`Localization/english/global.ini` — nicht leer, nicht platzhaltend, schlicht nicht vorhanden. Die
+deutsche Datei trägt Werte. Drei geprüfte Beispiele:
+
+| Item | EN in global.ini | DE in global.ini |
+|---|---|---|
+| Hardy Boots | **Schlüssel fehlt** | „Dieser robuste Geländestiefel aus der Hardy-Linie von DMC …" |
+| 300i Ship Armor | **Schlüssel fehlt** | „Origin Jumpworks 300i: Schiffspanzerung" |
+| Avenger Köderwerfer | **Schlüssel fehlt** | „Aegis Avenger: Köderwerfer" |
+
+Das Muster ist eindeutig: 78 der 79 sind Schiffs-/Fahrzeugbauteile — Panzerung (35), Köderwerfer
+(20), Türme (9), Raketengestelle (8), Tanks (3). Kein Lore-Text, sondern knappe Kennzeichnungen im
+Schema „Hersteller Modell: Bauteilart". Nur die Hardy Boots fallen heraus.
+
+Nebenbefund, der die Richtung einordnet: **4.992 Items haben umgekehrt `desc` (EN) ohne `descDe`**
+— das ist die erwartete, harmlose Richtung. `src/lib/items.ts:421` fällt dort automatisch auf den
+englischen Text zurück, beide Sprachfassungen zeigen dieselbe `<p class="dp-desc">`, die Struktur
+läuft **nicht** auseinander. Nur die 79er-Gruppe erzeugt die Lücke, weil es für EN keinen
+Rückfalltext gibt.
+
+- **D-05: Fehlt die englische Quelle, lassen BEIDE Sprachfassungen die Beschreibung weg.** Die
+  Anzeige wird an die Existenz von `g.desc` geknüpft statt an das Ergebnis der Sprachauswahl —
+  `descDe` gilt damit als Übersetzung eines vorhandenen `desc`, nicht als eigenständige Quelle.
+  Wirkung: bei allen 79 Items verschwindet `<p class="dp-desc">` auf beiden Seiten, die Struktur
+  ist wieder deckungsgleich, und es wird nichts erfunden. Preis: die kurze deutsche
+  Bauteil-Kennzeichnung entfällt ersatzlos.
+
+  **Warum nicht „nachziehen":** Das hieße, englische Texte zu erfinden, die es im Spiel nicht
+  gibt. `scripts/datamine-items.mjs:5` verbietet das in seiner eigenen ersten Regel — „KEINE
+  erfundenen Werte. Ein Feld, das ein Item nicht hat, bleibt weg." Auch die Zwischenlösung, die
+  deutsche Zeile ins Englische zu übersetzen, wurde verworfen: die Seite würde englischen Text als
+  Spieldaten zeigen, den CIG nie geschrieben hat.
+
+  **Warum nicht ausnehmen:** Eine Ausnahmeliste hätte 78 Paare dauerhaft aus der Bewachung
+  genommen und die Ungleichheit zementiert.
+
+  Betroffene Stellen: `src/lib/items.ts:421`, `src/components/ItemDetail.astro:143`.
+  — **Reversibility:** reversible — eine Bedingung an einer Stelle.
+
 ### Claude's Discretion
 - Wie der Fingerabdruck genau gebildet wird (Element-Typen, Klassen, Verschachtelungstiefe,
   Reihenfolge) und wie er normalisiert wird
