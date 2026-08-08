@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-08",
-  "updates": 124,
-  "totalListings": 3671,
-  "totalSold": 152,
-  "distinctItems": 946
+  "updates": 125,
+  "totalListings": 3696,
+  "totalSold": 154,
+  "distinctItems": 949
  },
  "listings": {
   "156580": {
@@ -72239,6 +72239,10 @@
     {
      "d": "2026-08-08",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 1500000
     }
    ],
    "soldOut": false,
@@ -76190,6 +76194,10 @@
     {
      "d": "2026-08-08",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 200000
     }
    ],
    "soldOut": false,
@@ -77618,6 +77626,10 @@
     {
      "d": "2026-08-08",
      "p": 550000
+    },
+    {
+     "d": "2026-08-08",
+     "p": 650000
     }
    ],
    "soldOut": true,
@@ -77751,6 +77763,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786213311,
    "dateExpiration": 1791397311
+  },
+  "160371": {
+   "idItem": 4266,
+   "idCategory": 5,
+   "title": "FBL-8a Core Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786213499,
+   "dateExpiration": 1791397499
   },
   "160372": {
    "idItem": 2627,
@@ -77893,9 +77926,9 @@
      "p": 200000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-08",
+   "soldOutPrice": 200000,
    "dateAdded": 1786215828,
    "dateExpiration": 1791399828
   },
@@ -77914,9 +77947,9 @@
      "p": 150000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-08",
+   "soldOutPrice": 150000,
    "dateAdded": 1786216458,
    "dateExpiration": 1791400458
   },
@@ -78108,6 +78141,510 @@
    "soldOutPrice": null,
    "dateAdded": 1786217943,
    "dateExpiration": 1791401943
+  },
+  "160389": {
+   "idItem": 6784,
+   "idCategory": 1,
+   "title": "Overlord Arms Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786217988,
+   "dateExpiration": 1791401988
+  },
+  "160390": {
+   "idItem": 6891,
+   "idCategory": 3,
+   "title": "OMNI-AFS-Sapphire Flight Helmet Jungle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786218560,
+   "dateExpiration": 1791402560
+  },
+  "160391": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "NDB-30 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786218859,
+   "dateExpiration": 1791402859
+  },
+  "160392": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite Q959",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 12500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786219347,
+   "dateExpiration": 1791403347
+  },
+  "160393": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron 500-700q",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786219765,
+   "dateExpiration": 1791403765
+  },
+  "160394": {
+   "idItem": 1232,
+   "idCategory": 18,
+   "title": "MAX STATS P8-SC SMG (1000-1000-1000) full attachments",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786219963,
+   "dateExpiration": 1791403963
+  },
+  "160395": {
+   "idItem": 158,
+   "idCategory": 23,
+   "title": "WTS Crafted 785q avg FR-86",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 785,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786220026,
+   "dateExpiration": 1791404026
+  },
+  "160397": {
+   "idItem": 8013,
+   "idCategory": 7,
+   "title": "MAX DMG mitigation (44) Morozov Morozov-SH plus necropolis backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 980,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786220685,
+   "dateExpiration": 1791404684
+  },
+  "160398": {
+   "idItem": 1748,
+   "idCategory": 23,
+   "title": "Fr-66",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 968,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786220731,
+   "dateExpiration": 1791404731
+  },
+  "160399": {
+   "idItem": 1750,
+   "idCategory": 23,
+   "title": "FR-76",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786220797,
+   "dateExpiration": 1791404797
+  },
+  "160401": {
+   "idItem": 4613,
+   "idCategory": 61,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221052,
+   "dateExpiration": 1791405052
+  },
+  "160402": {
+   "idItem": 1775,
+   "idCategory": 21,
+   "title": "JS-400",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221102,
+   "dateExpiration": 1791405102
+  },
+  "160403": {
+   "idItem": 1673,
+   "idCategory": 18,
+   "title": "MAX STATS Karna Rifle (1000-1000-1000) full attachments",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 16000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221296,
+   "dateExpiration": 1791405296
+  },
+  "160405": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "Quantanium 852q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 852,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221519,
+   "dateExpiration": 1791405519
+  },
+  "160406": {
+   "idItem": 5601,
+   "idCategory": 83,
+   "title": "V801-12",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221578,
+   "dateExpiration": 1791405578
+  },
+  "160410": {
+   "idItem": 2544,
+   "idCategory": 17,
+   "title": "Brightspot Flashlight Purple",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 190000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221882,
+   "dateExpiration": 1791405882
+  },
+  "160411": {
+   "idItem": 2436,
+   "idCategory": 17,
+   "title": "Tracer Laser Pointer Orange",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 590000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221883,
+   "dateExpiration": 1791405883
+  },
+  "160412": {
+   "idItem": 2543,
+   "idCategory": 17,
+   "title": "Tracer Laser Pointer Green",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 195000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221885,
+   "dateExpiration": 1791405885
+  },
+  "160413": {
+   "idItem": 2548,
+   "idCategory": 17,
+   "title": "FieldLite Flashlight Blue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 1470000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221886,
+   "dateExpiration": 1791405886
+  },
+  "160414": {
+   "idItem": 2547,
+   "idCategory": 17,
+   "title": "FieldLite Flashlight Yellow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 990000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221887,
+   "dateExpiration": 1791405887
+  },
+  "160415": {
+   "idItem": 3268,
+   "idCategory": 17,
+   "title": "OT4-RF (4x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 95000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221888,
+   "dateExpiration": 1791405888
+  },
+  "160416": {
+   "idItem": 3767,
+   "idCategory": 17,
+   "title": "OT8-RF (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 145000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221889,
+   "dateExpiration": 1791405889
+  },
+  "160417": {
+   "idItem": 2229,
+   "idCategory": 17,
+   "title": "Touchstone (8x Monitor)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 145000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221891,
+   "dateExpiration": 1791405891
+  },
+  "160418": {
+   "idItem": 3766,
+   "idCategory": 17,
+   "title": "EE08 (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-08",
+   "lastSeen": "2026-08-08",
+   "prices": [
+    {
+     "d": "2026-08-08",
+     "p": 145000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221892,
+   "dateExpiration": 1791405892
   }
  }
 }
