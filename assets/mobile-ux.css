@@ -43,7 +43,7 @@
   input:not([type='range']):not([type='checkbox']):not([type='radio']):not([type='submit']):not([type='button']),
   select,
   textarea {
-    font-size: 16px;
+    font-size: var(--fs-8);
   }
 }
 
@@ -389,7 +389,7 @@ summary:active {
   background: color-mix(in srgb, var(--bg) 72%, transparent);
   backdrop-filter: blur(2px);
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity var(--dur-slow) var(--ease-ui);
   /* PFLICHT, nicht Kosmetik: der Verdunkler wird seit der Umstellung
      einmal beim Start erzeugt und liegt damit dauerhaft im DOM
      (Begruendung in offcanvas.js). Ohne pointer-events:none faenge
