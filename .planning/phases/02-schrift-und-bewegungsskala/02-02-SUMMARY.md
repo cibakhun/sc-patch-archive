@@ -124,3 +124,11 @@ Das Regressionstor steht: jede der ~90 verbleibenden Dateien in Plänen 03–06 
 ---
 *Phase: 02-schrift-und-bewegungsskala*
 *Completed: 2026-08-08*
+
+## Self-Check: PASSED
+
+- FOUND: `tests/e2e/typo-motion-morph.test.js`
+- FOUND: `.planning/phases/02-schrift-und-bewegungsskala/02-02-SUMMARY.md`
+- FOUND: commit `207d781` (Task 1)
+- FOUND: commit `e2aebfb` (Task 2)
+- FOUND: commit `6ba9b35` (plan-metadata commit)

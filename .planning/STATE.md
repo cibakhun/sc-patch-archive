@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
-stopped_at: "Phase 2 Plan 01/07 ausgefuehrt (Tracer: Token-Schicht, SiteNav, beide index.astro, verify:typo); Plaene 02-07 fuehren die Skala site-weit fort"
-last_updated: "2026-08-08T12:31:43.407Z"
+stopped_at: "Phase 2 Plan 02/07 ausgefuehrt (Regressionstor fuer die Hero<->Leiste-Wandlung + Sichtrunde in WINDOWS.md hinterlegt); Plaene 03-07 fuehren die Skala site-weit fort"
+last_updated: "2026-08-08T14:45:00.000Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
   total_phases: 10
   completed_phases: 6
   total_plans: 37
-  completed_plans: 25
+  completed_plans: 26
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -117,7 +117,7 @@ technisch fertig (5/5 Pläne, 11/11 Werkzeuge maschinell belegt), aber NICHT als
 der Mauszeiger-Schein ist auf `staging` bereits getilgt (0 Treffer für `cursorglow`/`--mx`),
 die Arbeit wäre ein Duplikat gewesen. Phase 1.1 bleibt hier bei 2/3.
 
-Progress: [███████░░░] 68%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -157,6 +157,7 @@ Progress: [███████░░░] 68%
 | Phase 01.2 P04 | ~35min | 2 tasks | 3 files |
 | Phase 01.2 P05 | ~40min | 2 tasks | 4 files |
 | Phase 02 P01 | ~55min | 3 tasks | 5 files |
+| Phase 02 P02 | ~40min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -197,6 +198,8 @@ Recent decisions affecting current work:
 - [Phase 1.2]: 01.2-05: DOC-01 bis DOC-07 auf Grundlage von verify-help.mjs --complete (11/11) abgehakt; die im Plan verlangte Sichtrunde (12 Punkte + Annahmen A2/A4) wurde bewusst NICHT vom Executor durchgefuehrt (braucht angemeldetes Konto + menschliches Urteil) und ist als offener Punkt in WINDOWS.md (id 2) an den Betreiber zurueckgegeben — Phase 1.2 bleibt deshalb "In Progress", nicht "Complete"
 - [Phase ?]: [Phase 2]: 02-01: Ausgangszahlen aus PLAN.md (1968/95/865/663) durch rigorosen Nachvollzug ersetzt (1961/96/863/660) -- Differenzen einzeln erklaert in 02-01-SUMMARY.md
 - [Phase ?]: [Phase 2]: 02-01: Audit-Skript zaehlt Bedienuebergaenge als ui+token statt nur ui, damit spaetere Plaene (03-06) den erreichten Ist-Stand nicht als Regression melden
+- [Phase ?]: [Phase 2]: 02-02: tests/e2e/typo-motion-morph.test.js pinnt die beiden Messeingaenge von measureMorph() (--fs-10=1rem, --ls-15=0.18em) gegen dist/ als bleibendes Regressionstor vor der site-weiten Breite (Plaene 03-07); Negativkontrolle durchgefuehrt (--fs-10 testweise auf 0.95rem, Test schlug fehl, zurueckgesetzt)
+- [Phase ?]: [Phase 2]: 02-02: die menschliche Sichtrunde (Erfolgskriterium 3) bewusst NICHT vom Executor durchgefuehrt (human_verify_mode: end-of-phase) -- als offener Eintrag id 3 in WINDOWS.md hinterlegt, wird in Plan 07 mit der Schluss-Sichtrunde zusammengefuehrt; dabei die seit Phase 1.2 nicht mehr nachgerechnete Ledger-Kopfzeile (fixed_count/total_count) korrigiert
 
 ### Pending Todos
 
@@ -244,6 +247,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-08T12:31:43.357Z
-Stopped at: Phase 2 Plan 01/07 ausgefuehrt (Tracer: Token-Schicht, SiteNav, beide index.astro, verify:typo); Plaene 02-07 fuehren die Skala site-weit fort
+Last session: 2026-08-08T14:45:00.000Z
+Stopped at: Phase 2 Plan 02/07 ausgefuehrt (Regressionstor tests/e2e/typo-motion-morph.test.js + Sichtrunde Phase 2 als offener Eintrag id 3 in WINDOWS.md); Plaene 03-07 fuehren die Skala site-weit fort
 Resume file: None
