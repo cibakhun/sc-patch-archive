@@ -109,6 +109,8 @@ Ausgeführt in genau dieser Reihenfolge. **Endstand: `audit` meldet 0 Fehler.** 
 
 **Bewusste Ausnahme, jetzt maschinell sichtbar:** In `#bug-reports` ist die Newcomer-Sperre aufgehoben. Der Audit meldete das zuerst als Fehler; er liest die Ausnahme jetzt aus dem Overwrite **des Blueprints selbst** (keine fest verdrahtete Kanalliste, die verrotten kann) und gibt sie als Notiz aus: „gate deliberately lifted in #🐞・bug-reports".
 
+⚠⚠ **`--archive` versteckt nur vor Mitgliedern, nicht vor dir.** Administrator übergeht das `ViewChannel`-Verbot — der Betreiber sieht `🗄 ARCHIVE` samt aller 27 Kanäle weiter in der Seitenleiste. Für den Einzigen, der täglich draufschaut, ist der Server damit **kein bisschen kürzer geworden**. Das war der eigentliche Sinn der Übung, also ist Archivieren nur der Zwischenschritt: neuer Schalter `--drop-archive` räumt das Archiv endgültig ab, nachdem der Trockenlauf gezeigt hat, dass nichts drin ist.
+
 **Noch offen:** Die **8 Spielstil-Rollen leben noch.** Der Löschbefehl wurde vom Auto-Mode-Klassifikator blockiert. Sie stehen ganz unten in der Hierarchie, werden nirgends mehr angeboten und tun nichts — aber sauber ist es erst mit:
 
 ```

@@ -12,8 +12,14 @@
 //    node prune.mjs                 # dry run: what would go, and how alive it is
 //    node prune.mjs --archive       # hide orphaned channels, keep every message
 //    node prune.mjs --delete        # actually remove them (irreversible)
+//    node prune.mjs --drop-archive  # also list/remove what's IN the archive
 //    node prune.mjs --channels      # limit the run to channels
 //    node prune.mjs --roles         # limit the run to roles
+//
+//  --archive hides channels from MEMBERS, but an admin keeps seeing them:
+//  Administrator overrides the ViewChannel deny, so the sidebar stays exactly as
+//  long for the owner. Once the dry run has shown the archive holds nothing,
+//  `--drop-archive --delete` is what actually makes the server look short.
 //
 //  --archive is the reversible option and usually the right first move: the
 //  channel is moved into a private "🗄 ARCHIVE" category that @everyone can't
@@ -49,6 +55,11 @@ if (!process.env.DISCORD_TOKEN || !process.env.GUILD_ID) {
 
 const argv = new Set(process.argv.slice(2));
 const MODE = argv.has('--delete') ? 'delete' : argv.has('--archive') ? 'archive' : 'dry';
+// --archive hides channels from members, but an admin still sees the archive
+// category (Administrator overrides the ViewChannel deny), so the sidebar stays
+// just as long for the one person looking at it most. --drop-archive is the
+// second step: empty the archive for good, once you've seen it holds nothing.
+const DROP_ARCHIVE = argv.has('--drop-archive');
 const doChannels = !argv.has('--roles');
 const doRoles = !argv.has('--channels');
 const ARCHIVE_CAT = '🗄 ARCHIVE';
@@ -189,8 +200,32 @@ if (doRoles) {
   }
 }
 
+// ── The archive itself ─────────────────────────────────────────────────────
+const archived = [];
+if (DROP_ARCHIVE) {
+  const cat = guild.channels.cache.find((x) => x.type === ChannelType.GuildCategory && x.name === ARCHIVE_CAT);
+  const kids = cat ? [...guild.channels.cache.values()].filter((x) => x.parentId === cat.id && !x.isThread?.()) : [];
+  if (cat) archived.push(...kids, cat);
+
+  head(`Archive contents — would be deleted for good (${archived.length})`);
+  if (!cat) say(`${c.dim}  no "${ARCHIVE_CAT}" category on this server.${c.off}`);
+  for (const ch of kids) {
+    let note = 'empty';
+    if (ch.type === ChannelType.GuildVoice || ch.type === ChannelType.GuildStageVoice) note = 'voice';
+    else if (ch.type === ChannelType.GuildForum) {
+      try { const a = await ch.threads.fetchActive(); const b = await ch.threads.fetchArchived().catch(() => ({ threads: new Map() }));
+        const n = a.threads.size + b.threads.size; note = n ? `${c.red}${n} thread(s) — CONTENT${c.off}` : 'no threads'; } catch { note = 'threads unreadable'; }
+    } else if (ch.isTextBased?.()) {
+      try { const last = await ch.messages.fetch({ limit: 1 }); const m = last.first();
+        note = m ? `${c.red}last post ${date(m.createdTimestamp)} — CONTENT${c.off}` : 'empty'; } catch { note = 'unreadable'; }
+    }
+    say(`  ${c.yellow}#${ch.name}${c.off} ${c.dim}(${note})${c.off}`);
+  }
+  if (cat) say(`  ${c.yellow}${ARCHIVE_CAT}${c.off} ${c.dim}(the category itself)${c.off}`);
+}
+
 // ── Act, or don't ──────────────────────────────────────────────────────────
-const total = orphanChannels.length + orphanCategories.length + orphanRoles.length;
+const total = orphanChannels.length + orphanCategories.length + orphanRoles.length + archived.length;
 if (MODE === 'dry') {
   head('Nothing was changed');
   say(`  ${total} item(s) would be affected.`);
@@ -240,6 +275,9 @@ if (MODE === 'archive') {
 
 if (MODE === 'delete') {
   head('Deleting');
+  // Channels first, then the category that held them — Discord refuses to delete
+  // a category while it still has children.
+  for (const ch of archived) await attempt(`${ch.type === ChannelType.GuildCategory ? 'category ' : '#'}${ch.name}`, () => ch.delete('VerseBase prune — archive dropped'));
   for (const ch of orphanChannels) await attempt(`#${ch.name}`, () => ch.delete('VerseBase prune'));
   for (const cat of orphanCategories) {
     const left = [...guild.channels.cache.values()].filter((x) => x.parentId === cat.id && !orphanChannels.some((o) => o.id === x.id));
