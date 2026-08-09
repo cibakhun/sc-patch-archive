@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 143,
-  "totalListings": 4119,
+  "updates": 144,
+  "totalListings": 4150,
   "totalSold": 172,
-  "distinctItems": 993
+  "distinctItems": 994
  },
  "listings": {
   "156580": {
@@ -85029,6 +85029,10 @@
     {
      "d": "2026-08-09",
      "p": 4000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 3750000
     }
    ],
    "soldOut": false,
@@ -86738,6 +86742,10 @@
     {
      "d": "2026-08-09",
      "p": 12500000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 13500000
     }
    ],
    "soldOut": false,
@@ -87355,6 +87363,27 @@
    "dateAdded": 1786304440,
    "dateExpiration": 1791488440
   },
+  "160829": {
+   "idItem": 973,
+   "idCategory": 22,
+   "title": "Beacon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 20000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786304604,
+   "dateExpiration": 1791488601
+  },
   "160830": {
    "idItem": 5910,
    "idCategory": 36,
@@ -87439,6 +87468,27 @@
    "dateAdded": 1786304686,
    "dateExpiration": 1791488686
   },
+  "160834": {
+   "idItem": 1771,
+   "idCategory": 21,
+   "title": "Fierell Cascade",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786304758,
+   "dateExpiration": 1791488758
+  },
   "160835": {
    "idItem": 4454,
    "idCategory": 61,
@@ -87459,6 +87509,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786304796,
    "dateExpiration": 1791488796
+  },
+  "160836": {
+   "idItem": 928,
+   "idCategory": 19,
+   "title": "Bracer",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 40000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786304832,
+   "dateExpiration": 1791488832
+  },
+  "160837": {
+   "idItem": 943,
+   "idCategory": 21,
+   "title": "SonicLite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 40000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786304901,
+   "dateExpiration": 1791488901
+  },
+  "160838": {
+   "idItem": 927,
+   "idCategory": 19,
+   "title": "SnowBlind",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786304967,
+   "dateExpiration": 1791488967
+  },
+  "160839": {
+   "idItem": 2034,
+   "idCategory": 23,
+   "title": "Mirage",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786305022,
+   "dateExpiration": 1791489022
+  },
+  "160840": {
+   "idItem": 1766,
+   "idCategory": 19,
+   "title": "Polar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 75000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786305121,
+   "dateExpiration": 1791489121
   },
   "160841": {
    "idItem": 5334,
@@ -87481,6 +87636,48 @@
    "dateAdded": 1786305130,
    "dateExpiration": 1791489130
   },
+  "160842": {
+   "idItem": 954,
+   "idCategory": 19,
+   "title": "Glacier",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786305182,
+   "dateExpiration": 1791489182
+  },
+  "160843": {
+   "idItem": 2113,
+   "idCategory": 22,
+   "title": "Spectre",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786305254,
+   "dateExpiration": 1791489254
+  },
   "160844": {
    "idItem": 5910,
    "idCategory": 36,
@@ -87494,6 +87691,10 @@
     {
      "d": "2026-08-09",
      "p": 10000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 9500000
     }
    ],
    "soldOut": false,
@@ -87501,6 +87702,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786305275,
    "dateExpiration": 1791489274
+  },
+  "160845": {
+   "idItem": 2114,
+   "idCategory": 23,
+   "title": "Veil",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 60000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786305330,
+   "dateExpiration": 1791489330
+  },
+  "160846": {
+   "idItem": 2115,
+   "idCategory": 23,
+   "title": "ForceWall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 60000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786305405,
+   "dateExpiration": 1791489405
   },
   "160847": {
    "idItem": null,
@@ -87586,6 +87829,27 @@
    "dateAdded": 1786306242,
    "dateExpiration": 1791490242
   },
+  "160851": {
+   "idItem": 1508,
+   "idCategory": 17,
+   "title": "Veil Flash Hider3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786306243,
+   "dateExpiration": 1791490243
+  },
   "160853": {
    "idItem": 1915,
    "idCategory": 32,
@@ -87606,6 +87870,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786306406,
    "dateExpiration": 1791490406
+  },
+  "160854": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786306491,
+   "dateExpiration": 1791490491
+  },
+  "160855": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786306601,
+   "dateExpiration": 1791490601
   },
   "160856": {
    "idItem": 4613,
@@ -87628,6 +87934,27 @@
    "dateAdded": 1786306633,
    "dateExpiration": 1791490633
   },
+  "160858": {
+   "idItem": 6266,
+   "idCategory": 11,
+   "title": "Second Tevarin War Service Jacket",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786306805,
+   "dateExpiration": 1791490805
+  },
   "160859": {
    "idItem": null,
    "idCategory": 7,
@@ -87648,6 +87975,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786306965,
    "dateExpiration": 1791490965
+  },
+  "160860": {
+   "idItem": 5587,
+   "idCategory": 61,
+   "title": "Council Scrip",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786307026,
+   "dateExpiration": 1791491026
   },
   "160861": {
    "idItem": 2471,
@@ -87732,6 +88080,321 @@
    "soldOutPrice": null,
    "dateAdded": 1786307706,
    "dateExpiration": 1791491706
+  },
+  "160865": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Q874 Iron 1.0 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786308136,
+   "dateExpiration": 1791492136
+  },
+  "160866": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786308635,
+   "dateExpiration": 1791492634
+  },
+  "160867": {
+   "idItem": null,
+   "idCategory": 61,
+   "title": "I have favors, I need Carinite (Pure) 10:1",
+   "operation": "trade",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786308639,
+   "dateExpiration": 1791492639
+  },
+  "160868": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786308712,
+   "dateExpiration": 1791492712
+  },
+  "160869": {
+   "idItem": 6008,
+   "idCategory": 61,
+   "title": "Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786308849,
+   "dateExpiration": 1791492849
+  },
+  "160870": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786308868,
+   "dateExpiration": 1791492868
+  },
+  "160871": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786309089,
+   "dateExpiration": 1791493089
+  },
+  "160872": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786309986,
+   "dateExpiration": 1791493986
+  },
+  "160873": {
+   "idItem": 8033,
+   "idCategory": 7,
+   "title": "Geist Armor Rogue Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786310130,
+   "dateExpiration": 1791494130
+  },
+  "160874": {
+   "idItem": 1472,
+   "idCategory": 1,
+   "title": "Defiance Arms Tactical",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786310277,
+   "dateExpiration": 1791494277
+  },
+  "160875": {
+   "idItem": 6805,
+   "idCategory": 5,
+   "title": "Overlord Core Flashback",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786310482,
+   "dateExpiration": 1791494482
+  },
+  "160876": {
+   "idItem": 5116,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AAA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 4,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786310508,
+   "dateExpiration": 1791494508
+  },
+  "160877": {
+   "idItem": 2448,
+   "idCategory": 3,
+   "title": "Parasite V: Dark Birth Replica Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786311439,
+   "dateExpiration": 1791495439
+  },
+  "160879": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786311519,
+   "dateExpiration": 1791495519
+  },
+  "160880": {
+   "idItem": 5160,
+   "idCategory": 18,
+   "title": "Pulverizer LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 7500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786311767,
+   "dateExpiration": 1791495766
   }
  }
 }
