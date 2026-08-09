@@ -145,8 +145,12 @@ const AUSNAHMEN = [
 const benutzteAusnahmen = new Set();
 const erklaert = [];
 
+// Der selbst gehostete Zaehler (Umami). Auf dem Vorschau-Build absichtlich
+// aus der CSP genommen, auf dem Live-Build absichtlich erlaubt — siehe [3].
+const ZAEHLER_HOST = /stats\.verse-base\.com/;
+
 const fehler = [];
-let aufrufe = 0, geprueftePunkte = 0;
+let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0;
 
 /* ---------- Hellmodus erzwingen ----------
    Drei Stolpersteine, alle drei sind bei den Sichtpruefungen passiert:
@@ -246,10 +250,27 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     if (schlechteAntworten.length)
       melde('http', `${schlechteAntworten.length} eigene Ressource(n) >= 400: ${schlechteAntworten.slice(0, 3).join(', ')}`);
 
-    // [3] kein CSP-Verstoss
+    // [3] CSP — und zwar artefakt-abhaengig, in BEIDE Richtungen.
+    //
+    // Der Vorschau-Build nimmt den Zaehl-Host absichtlich aus der CSP
+    // (Dockerfile: der sed auf die $vb_rum_-Map), damit die Vorschau nicht
+    // in die Live-Statistik zaehlt. Der daraus folgende CSP-Verstoss ist
+    // dort GEWOLLT und im Dockerfile so beschrieben — ihn als Fehler zu
+    // melden waere ein Dauer-Fehlalarm auf 47 von 47 Aufrufen (genau das
+    // ist beim ersten CI-Lauf am 09.08.2026 passiert).
+    //
+    // Auf dem LIVE-Build kehrt sich die Erwartung um: dort MUSS der Zaehler
+    // laden duerfen. Ein Verstoss waere dann eine abgeschaltete Statistik —
+    // dieselbe Sorte stiller Schaden, gegen die audit:csp gebaut ist.
     geprueftePunkte++;
-    const csp = await page.evaluate(() => window.__cspVerstoesse ?? []);
-    if (csp.length) melde('csp', `CSP-Verstoss: ${[...new Set(csp)].slice(0, 3).join(', ')}`);
+    const csp = [...new Set(await page.evaluate(() => window.__cspVerstoesse ?? []))];
+    const erwartet = csp.filter((v) => ZAEHLER_HOST.test(v));
+    const unerwartet = csp.filter((v) => !ZAEHLER_HOST.test(v));
+    if (unerwartet.length) melde('csp', `CSP-Verstoss: ${unerwartet.slice(0, 3).join(', ')}`);
+    if (erwartet.length) {
+      if (IST_VORSCHAU) erwarteteCsp++;
+      else melde('csp', `der Zaehl-Host ist auf dem LIVE-Build blockiert: ${erwartet[0]} — die Besucherstatistik laedt nicht`);
+    }
 
     // [4] Leitelement wirklich sichtbar
     geprueftePunkte++;
@@ -309,8 +330,24 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
   }
 }
 
+/* ---------- Welches Artefakt liegt da? ----------
+   Am ARTEFAKT erkannt (gesperrte robots.txt), nicht an einer Umgebungs-
+   variablen — dasselbe Signal, das deploy-staging.yml am fertigen Image
+   prueft und das audit:site seit dem 09.08.2026 nutzt. Der Unterschied ist
+   nicht kosmetisch: Vorschau- und Live-Build erwarten beim Zaehl-Host das
+   GEGENTEIL voneinander. */
+let IST_VORSCHAU = false;
+try {
+  const r = await fetch(`${BASE}/robots.txt`);
+  IST_VORSCHAU = /^Disallow:\s*\/\s*$/m.test(await r.text());
+} catch (e) {
+  console.error(`\n${BASE}/robots.txt ist nicht erreichbar (${e.message}) — laeuft der Server?\n`);
+  process.exit(2);
+}
+
 /* ---------- Lauf ---------- */
 console.log(`\n=== Browser-Rauchtest gegen ${BASE} ===`);
+console.log(`Artefakt: ${IST_VORSCHAU ? 'Vorschau-Build (site-weit noindex)' : 'Live-Build'}`);
 console.log(`Browser: ${BROWSER}\n`);
 
 const browser = await chromium.launch({ executablePath: BROWSER, headless: !KOPF });
@@ -362,6 +399,8 @@ await browser.close();
 console.log(`\n=== Bilanz ===`);
 console.log(`  Seitenaufrufe: ${aufrufe}   Untergrenze: ${MIN_AUFRUFE}`);
 console.log(`  gepruefte Einzelpunkte: ${geprueftePunkte}`);
+if (IST_VORSCHAU)
+  console.log(`  erwartete CSP-Verstoesse (Zaehl-Host, im Vorschau-Build gewollt): ${erwarteteCsp}`);
 if (aufrufe < MIN_AUFRUFE && !NUR)
   fehler.push(`nur ${aufrufe} Seitenaufrufe, Untergrenze ist ${MIN_AUFRUFE} — Ursache klaeren, nicht die Untergrenze senken`);
 
