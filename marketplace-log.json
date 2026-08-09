@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 129,
-  "totalListings": 3776,
+  "updates": 130,
+  "totalListings": 3787,
   "totalSold": 157,
-  "distinctItems": 962
+  "distinctItems": 963
  },
  "listings": {
   "156580": {
@@ -77679,6 +77679,10 @@
     {
      "d": "2026-08-08",
      "p": 15000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 16000000
     }
    ],
    "soldOut": false,
@@ -80365,6 +80369,237 @@
    "soldOutPrice": null,
    "dateAdded": 1786236197,
    "dateExpiration": 1791420197
+  },
+  "160504": {
+   "idItem": 5481,
+   "idCategory": 17,
+   "title": "Stoic Suppressor 3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 850000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786236366,
+   "dateExpiration": 1791420366
+  },
+  "160505": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 880Q super cheap",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 880,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786236482,
+   "dateExpiration": 1791420482
+  },
+  "160506": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 716Q super cheap",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 716,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786236596,
+   "dateExpiration": 1791420596
+  },
+  "160507": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board 1m per",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786236755,
+   "dateExpiration": 1791420755
+  },
+  "160508": {
+   "idItem": 6764,
+   "idCategory": 4,
+   "title": "WTS Overlord Legs Mirador",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786236767,
+   "dateExpiration": 1791420767
+  },
+  "160509": {
+   "idItem": 2431,
+   "idCategory": 4,
+   "title": "WTS MacFlex Rust Society Leg Armor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786237598,
+   "dateExpiration": 1791421598
+  },
+  "160510": {
+   "idItem": 3483,
+   "idCategory": 24,
+   "title": "WTS Venture Undersuit \"Rust Society\"",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786238014,
+   "dateExpiration": 1791422014
+  },
+  "160511": {
+   "idItem": 1232,
+   "idCategory": 18,
+   "title": "P8-SC(905Sav,916Heph,970Iron)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 930,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786239392,
+   "dateExpiration": 1791423392
+  },
+  "160512": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "WTB Taranite 863 Quality",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786239763,
+   "dateExpiration": 1791423763
+  },
+  "160513": {
+   "idItem": 4043,
+   "idCategory": 17,
+   "title": "Sion 'Tweaker' Compensator 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786239780,
+   "dateExpiration": 1791423780
+  },
+  "160515": {
+   "idItem": 4044,
+   "idCategory": 17,
+   "title": "Sion \"Tweaker\" Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786239906,
+   "dateExpiration": 1791423905
   }
  }
 }
