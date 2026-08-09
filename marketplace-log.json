@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 128,
-  "totalListings": 3747,
-  "totalSold": 155,
+  "updates": 129,
+  "totalListings": 3776,
+  "totalSold": 157,
   "distinctItems": 962
  },
  "listings": {
@@ -72343,6 +72343,10 @@
     {
      "d": "2026-08-09",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 800000
     }
    ],
    "soldOut": false,
@@ -72366,9 +72370,9 @@
      "p": 300000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-09",
+   "soldOutPrice": 300000,
    "dateAdded": 1786169528,
    "dateExpiration": 1791353528
   },
@@ -75622,6 +75626,10 @@
     {
      "d": "2026-08-08",
      "p": 4000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 3000000
     }
    ],
    "soldOut": false,
@@ -75855,9 +75863,9 @@
      "p": 4500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-09",
+   "soldOutPrice": 4500000,
    "dateAdded": 1786198934,
    "dateExpiration": 1791382934
   },
@@ -78456,6 +78464,27 @@
    "dateAdded": 1786221296,
    "dateExpiration": 1791405296
   },
+  "160404": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "WTS Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 100,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221459,
+   "dateExpiration": 1791405459
+  },
   "160405": {
    "idItem": null,
    "idCategory": 38,
@@ -78497,6 +78526,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786221578,
    "dateExpiration": 1791405578
+  },
+  "160407": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "WTS Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 100,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 850000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221610,
+   "dateExpiration": 1791405610
+  },
+  "160409": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "WTS UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 100,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 550000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786221769,
+   "dateExpiration": 1791405769
   },
   "160410": {
    "idItem": 2544,
@@ -78733,6 +78804,27 @@
    "dateAdded": 1786221964,
    "dateExpiration": 1791405964
   },
+  "160421": {
+   "idItem": 6001,
+   "idCategory": 61,
+   "title": "WTS UNE Gold Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 100,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786222106,
+   "dateExpiration": 1791406106
+  },
   "160422": {
    "idItem": 5600,
    "idCategory": 83,
@@ -78753,6 +78845,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786222194,
    "dateExpiration": 1791406194
+  },
+  "160423": {
+   "idItem": 5586,
+   "idCategory": 61,
+   "title": "WTS UNE Silver Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 100,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786222352,
+   "dateExpiration": 1791406352
+  },
+  "160424": {
+   "idItem": 2627,
+   "idCategory": 61,
+   "title": "WTS Large Artifact Fragment (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 100,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786222486,
+   "dateExpiration": 1791406485
   },
   "160425": {
    "idItem": 8031,
@@ -78775,6 +78909,48 @@
    "dateAdded": 1786222656,
    "dateExpiration": 1791406656
   },
+  "160427": {
+   "idItem": 4586,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786222953,
+   "dateExpiration": 1791406953
+  },
+  "160428": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 860,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786223788,
+   "dateExpiration": 1791407787
+  },
   "160429": {
    "idItem": 6356,
    "idCategory": 2,
@@ -78795,6 +78971,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786223889,
    "dateExpiration": 1791407889
+  },
+  "160430": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 866,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786224142,
+   "dateExpiration": 1791408142
   },
   "160431": {
    "idItem": 5887,
@@ -78922,6 +79119,27 @@
    "dateAdded": 1786226034,
    "dateExpiration": 1791410033
   },
+  "160438": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786226042,
+   "dateExpiration": 1791410042
+  },
   "160439": {
    "idItem": 5504,
    "idCategory": 3,
@@ -78968,6 +79186,27 @@
    "dateAdded": 1786226187,
    "dateExpiration": 1791410187
   },
+  "160442": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786226218,
+   "dateExpiration": 1791410218
+  },
   "160443": {
    "idItem": 2451,
    "idCategory": 3,
@@ -79013,6 +79252,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786226456,
    "dateExpiration": 1791410455
+  },
+  "160445": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786226467,
+   "dateExpiration": 1791410467
   },
   "160446": {
    "idItem": 5907,
@@ -79202,6 +79462,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786227351,
    "dateExpiration": 1791411351
+  },
+  "160457": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786227564,
+   "dateExpiration": 1791411564
   },
   "160458": {
    "idItem": 4394,
@@ -79413,6 +79694,48 @@
    "dateAdded": 1786228827,
    "dateExpiration": 1791412827
   },
+  "160468": {
+   "idItem": 7992,
+   "idCategory": 7,
+   "title": "Overlord Gilded Set (Helm, Core, Arms, Legs)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786228893,
+   "dateExpiration": 1791412893
+  },
+  "160469": {
+   "idItem": 5589,
+   "idCategory": 3,
+   "title": "G-2 Helmet Hurston Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786229091,
+   "dateExpiration": 1791413090
+  },
   "160470": {
    "idItem": 7457,
    "idCategory": 3,
@@ -79433,6 +79756,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786229359,
    "dateExpiration": 1791413359
+  },
+  "160471": {
+   "idItem": 6658,
+   "idCategory": 18,
+   "title": "P8-SC \"Executive Edition\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786229521,
+   "dateExpiration": 1791413521
   },
   "160472": {
    "idItem": 6757,
@@ -79475,6 +79819,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786229784,
    "dateExpiration": 1791413784
+  },
+  "160474": {
+   "idItem": 2489,
+   "idCategory": 18,
+   "title": "Arclight \"Executive Edition\" Pistol",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786229790,
+   "dateExpiration": 1791413790
   },
   "160475": {
    "idItem": 3339,
@@ -79748,6 +80113,258 @@
    "soldOutPrice": null,
    "dateAdded": 1786232419,
    "dateExpiration": 1791416419
+  },
+  "160489": {
+   "idItem": 115,
+   "idCategory": 29,
+   "title": "Helix II Mining Laser 30%",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 25000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786233279,
+   "dateExpiration": 1791417279
+  },
+  "160490": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "WTB - 958 Copper",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 958,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786233553,
+   "dateExpiration": 1791417553
+  },
+  "160491": {
+   "idItem": 3874,
+   "idCategory": 17,
+   "title": "Theta Pro LL (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786233876,
+   "dateExpiration": 1791417876
+  },
+  "160492": {
+   "idItem": 5327,
+   "idCategory": 17,
+   "title": "RD-1 Jaeger (1x Red Dot)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786234607,
+   "dateExpiration": 1791418607
+  },
+  "160493": {
+   "idItem": 1748,
+   "idCategory": 23,
+   "title": "FR-66",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786234623,
+   "dateExpiration": 1791418623
+  },
+  "160494": {
+   "idItem": 182,
+   "idCategory": 32,
+   "title": "Salvation Distortion Scattergun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786234704,
+   "dateExpiration": 1791418704
+  },
+  "160496": {
+   "idItem": 4433,
+   "idCategory": 18,
+   "title": "WTS Parallax \"Shock Trooper\" Energy Assault Rifle 960Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 960,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786234828,
+   "dateExpiration": 1791418828
+  },
+  "160497": {
+   "idItem": 6685,
+   "idCategory": 18,
+   "title": "Parallax \"Fun Military Tooth\" Energy Assault Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786234990,
+   "dateExpiration": 1791418990
+  },
+  "160499": {
+   "idItem": 5328,
+   "idCategory": 17,
+   "title": "TS-25 Basara (2.5x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786235575,
+   "dateExpiration": 1791419575
+  },
+  "160500": {
+   "idItem": 7984,
+   "idCategory": 7,
+   "title": "DoomSlayer Monde Set Purgatory Camo Crafted 912Q W/Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 912,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786235646,
+   "dateExpiration": 1791419646
+  },
+  "160501": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium 974Q 2.093 SCU!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 974,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786235864,
+   "dateExpiration": 1791419864
+  },
+  "160503": {
+   "idItem": 5116,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AAA) for 1.8m Per!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786236197,
+   "dateExpiration": 1791420197
   }
  }
 }
