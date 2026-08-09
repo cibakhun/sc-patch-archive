@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 137,
-  "totalListings": 3976,
-  "totalSold": 166,
+  "updates": 138,
+  "totalListings": 3981,
+  "totalSold": 167,
   "distinctItems": 987
  },
  "listings": {
@@ -79326,6 +79326,10 @@
     {
      "d": "2026-08-08",
      "p": 5000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -80850,6 +80854,10 @@
     {
      "d": "2026-08-09",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 200000
     }
    ],
    "soldOut": false,
@@ -83359,9 +83367,9 @@
      "p": 300000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-09",
+   "soldOutPrice": 300000,
    "dateAdded": 1786269457,
    "dateExpiration": 1791453457
   },
@@ -84470,6 +84478,10 @@
     {
      "d": "2026-08-09",
      "p": 15000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 150000
     }
    ],
    "soldOut": false,
@@ -84512,6 +84524,10 @@
     {
      "d": "2026-08-09",
      "p": 15000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 150000
     }
    ],
    "soldOut": false,
@@ -84554,6 +84570,10 @@
     {
      "d": "2026-08-09",
      "p": 10000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -84645,6 +84665,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786286697,
    "dateExpiration": 1791470697
+  },
+  "160720": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTR Aegis Retaliator - Renting a Retaliator for 24h",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786286974,
+   "dateExpiration": 1791470974
+  },
+  "160726": {
+   "idItem": 5805,
+   "idCategory": 7,
+   "title": "MAX DMG mitigation (22) Geist Armor ASD Edition Set plus backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786288382,
+   "dateExpiration": 1791472381
+  },
+  "160728": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Ares Inferno Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786288517,
+   "dateExpiration": 1791472517
+  },
+  "160732": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTR RSI Constallation Andromeda - Renting an Andromeda for 24h",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786288940,
+   "dateExpiration": 1791472940
+  },
+  "160734": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTR RSI Persus - Renting a Persus for 24h",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786289710,
+   "dateExpiration": 1791473710
   }
  }
 }
