@@ -222,7 +222,14 @@ a{color:inherit;text-decoration:none}
   font-family:var(--font-ui);font-weight:700;font-size:var(--fs-3);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--muted);background:var(--veil-2);border:1px solid var(--line);padding:.14rem .42rem;backdrop-filter:blur(3px)}
 .fcard__dot{width:6px;height:6px;border-radius:50%;background:var(--muted);box-shadow:0 0 6px currentColor}
 .fcard__status.fr{color:#5ad19a}
-.fcard__status.fr .fcard__dot{background:#5ad19a}
+/* currentColor statt der Farbe ein zweites Mal hinzuschreiben: der Punkt erbt
+   sein color von .fcard__status.fr und folgt damit automatisch beiden Modi.
+   Im Dunkelmodus ist das derselbe Wert wie vorher (#5ad19a), im Hellmodus
+   nimmt er die erzeugte Hell-Entsprechung (#046945) mit, die der Generator nur
+   fuer color erzeugt, nicht fuer background — daher stand der Punkt bis
+   09.08.2026 mintgruen neben dunkelgruenem Text. Die Regel darunter benutzt
+   currentColor bereits seit jeher fuer ihren Schein. */
+.fcard__status.fr .fcard__dot{background:currentColor}
 .fcard__patch{position:absolute;top:.55rem;right:.6rem;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-3);
   letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--gold);background:var(--veil-2);
   border:1px solid color-mix(in srgb,var(--gold) 50%,transparent);padding:.14rem .44rem;backdrop-filter:blur(3px)}
