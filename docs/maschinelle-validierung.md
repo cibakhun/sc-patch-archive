@@ -471,7 +471,7 @@ die Lieferung auf `staging` liegt.
 > | S1d Kennzahlen-Sperrklinke `verify:metrics` | ✅ **gebaut** 09.08.2026 — 19 Kennzahlen, 0,3 s |
 > | S1c `gate:data` | 🟡 **teilweise** — Schiene existiert und läuft; `verify:hardpoints` und die Patch-Tag-Reihenfolge stehen aus |
 > | S2 Browser-Rauchtest | ✅ **gebaut** 09.08.2026 — 47 Aufrufe, 239 Punkte, ~28 s |
-> | S3 Build-Stempel + `CLAUDE.md` | offen |
+> | S3 Build-Stempel + `check:staging` + `CLAUDE.md` | ✅ **gebaut** 09.08.2026 |
 >
 > **Gemessen nach S1a/S1b** (`npm run gate`, frischer Build, 09.08.2026):
 > 16 von 16 Schritten grün in **156,9 s** — die Vorhersage lag bei ~165 s.
@@ -526,17 +526,27 @@ die Lieferung auf `staging` liegt.
 > gepusht**. Grund: die CSP ist ein nginx-*Header* und existiert nur im
 > laufenden Container; `dist/` als Dateibaum kann sie nicht zeigen.
 >
-> **Erster echter Fund:** Die **deutsche** Patch-Seite läuft bei 360 px
-> Fensterbreite **31 px über** — die englische nicht (`body.scrollWidth` 391
-> gegen 356). Ursache sind drei ~368 px breite Kästen (`.panel` ×2, `.bvid`),
-> die darunter nicht mitschrumpfen; der längere deutsche Text löst es aus.
-> Sichtbare Folge: der rechte Rand ist auf schmalen Geräten abgeschnitten.
-> Das ist genau die Klasse, die kein bestehendes Tor sehen konnte —
-> `verify:sync` vergleicht die Gerüst*struktur* der Sprachpaare, nicht ihre
-> gerenderte Breite. Der Befund liegt als **benannte Ausnahme mit
-> Zombie-Wächter** (`X-de-patch-360-ueberlauf`) im Skript, wird bei jedem Lauf
-> als offene Schuld gedruckt und verschwindet automatisch mit dem Fix — die
-> Entscheidung darüber gehört dem Betreiber, nicht dem Test.
+> **Erster echter Fund — gefunden und behoben:** Die **deutsche** Patch-Seite
+> lief bei 360 px Fensterbreite **31 px über**, die englische nicht
+> (`body.scrollWidth` 391 gegen 356). Genau die Klasse, die kein bestehendes
+> Tor sehen konnte — `verify:sync` vergleicht die Gerüst*struktur* der
+> Sprachpaare, nicht ihre gerenderte Breite.
+>
+> Die Ursache wurde **gemessen, nicht geraten** (Abschnitte einzeln
+> ausgeblendet, bis die Breite fiel): Die Manifest-Zeile ist ein Flex-Streifen
+> aus Marke, Bauteilname und Beschreibung. Ohne Umbruch quetscht Flex das
+> `<small>` auf 75 px; „Maschendrahtzaun" braucht als Wort 129 px und lief aus
+> dem Kasten. Weil das Elternraster `min-width: auto` hat, wuchs der ganze
+> Kasten auf die Mindestinhaltsbreite (368 px) und ragte über den Bildschirm.
+>
+> Behoben mit **einer Zeile** — `@media(max-width:600px){.manifest li{flex-wrap:wrap}}`:
+> 391 → 360 px, und die Zeile wird dabei sogar *kürzer* (133 → 98 px), weil
+> die Beschreibung eine eigene volle Zeile bekommt statt gequetscht zu werden.
+> Bewusst nur bis 600 px: ab 400 px passt es ohnehin, und bei 1280 px läuft
+> kein Text aus seinem Kasten — dort wäre der Umbruch eine Änderung ohne
+> Anlass (nachgemessen). In DE und EN am gerenderten Bild geprüft. Die
+> Ausnahme `X-de-patch-360-ueberlauf` ist damit entfallen; die Ausnahmeliste
+> des Rauchtests ist wieder **leer**.
 >
 > **Zwei weitere hohle Zusicherungen fielen beim Vorführen auf** — beide hätte
 > man ohne Grundsatz 1 nie bemerkt:
@@ -580,6 +590,41 @@ die Lieferung auf `staging` liegt.
 >    gefahren**. Die Maschine hat die Regel durchgesetzt, an die sich der
 >    Mensch nicht gehalten hat — besser kann ein Wächter seinen Zweck nicht
 >    belegen.
+>
+> ### Stufe 3 gebaut — „ausgeliefert" ist jetzt eine Messung
+>
+> Bis hierher ließ sich bei Werkzeug-, Tor- oder Datenänderungen **von außen
+> nicht feststellen**, ob die Seite den neuen Stand zeigt: Sie sieht identisch
+> aus, und „CI grün" ist keine Antwort (siehe `cf58c76` — vier Stunden
+> Vortagsstand bei grün wirkender Lage, und der 20-Minuten-Stau bei Coolify).
+>
+> - `scripts/_write-build-stamp.mjs` hängt am Ende von `npm run build` und
+>   schreibt `dist/build.json` mit Commit-Kennung, Vorschau-Flagge und
+>   Bauzeit. ⚠ Die Kennung kommt als **Docker-`ARG GIT_SHA`** herein, nicht
+>   aus git: Im Build-Container gibt es weder das Programm noch ein
+>   Repository — genau daran ist `cf58c76` gestorben. Lokal steht `dev`.
+> - `scripts/check-deployed.mjs` (`npm run check:staging` / `check:live`)
+>   holt `<base>/build.json`, vergleicht gegen `origin/staging` bzw.
+>   `origin/main` und prüft zusätzlich, dass **Vorschau und Live nicht
+>   vertauscht** sind. Gegen den heutigen Stand ausgeführt meldet es sauber:
+>   „HTTP 404 … die ausgelieferte Fassung ist älter als der Build-Stempel" —
+>   richtig, denn die läuft noch ohne ihn.
+> - Beide Workflows warten nach dem Coolify-Trigger bis zu 10 Minuten, bis
+>   die Domain die neue Kennung ausliefert. Ein hängender Deploy wird damit
+>   zum **sichtbaren Ereignis** statt zum stillen Zustand.
+> - `CLAUDE.md` (neu, im Wurzelverzeichnis) trägt die Lieferregeln, damit sie
+>   jede Sitzung erreichen statt nur diese.
+>
+> **Dabei fiel ein Konstruktionsfehler im bestehenden `verify:theme` auf:**
+> Seine dritte Zusicherung verlangte einen **komplett sauberen** Arbeitsbaum
+> unter `src/` und `assets/` — sie schlug also bei jeder nicht committeten
+> Änderung an. Damit wäre die frisch beschlossene Regel „vor jedem Push
+> `npm run gate`" praktisch unbrauchbar gewesen: Wer gerade etwas geändert
+> hat — also immer, wenn man pushen will — bekam ein rotes Tor ohne Anlass.
+> Ein Fehlalarm, der genau dann zuschlägt, wenn man das Tor braucht, wird
+> binnen einer Woche übergangen. Die Zusicherung vergleicht jetzt den Baum
+> **vor** und **nach** dem Lauf und meldet nur, was der Wächter selbst
+> verändert hat — das war ihre eigentliche Absicht.
 >
 > **Schiene B ist damit ebenfalls fahrbar** (`npm run gate:data`, gemessen
 > 09.08.2026): `verify:items` grün in 15,8 s — die 128 Wiki-Lücken sind von

@@ -135,12 +135,10 @@ const VARIANTEN = [
    ⚠ Ausnahmen sind SCHULDEN, keine Dauerzustaende. Sie erscheinen bei jedem
    Lauf in der Bilanz. */
 const AUSNAHMEN = [
-  {
-    id: 'X-de-patch-360-ueberlauf',
-    seite: 'patch', sprache: 'de', variante: 'dunkel-360', punkt: 'ueberlauf',
-    grund:
-      'OFFENER BEFUND, gefunden von genau diesem Test am 09.08.2026: die DEUTSCHE Patch-Seite laeuft bei 360px 31px ueber, die englische nicht (body.scrollWidth 391 gegen 356, in einem isolierten Rahmen nachgemessen). Ursache sind drei ~368px breite Kaesten (.panel x2, .bvid), die unter 368px nicht mitschrumpfen; der laengere deutsche Text loest es aus. Sichtbare Folge: der rechte Rand dieser Kaesten ist auf schmalen Geraeten abgeschnitten. KEIN Fehlalarm — die Ausnahme haelt das Tor nur so lange gruen, bis der Betreiber ueber den Fix entschieden hat. Danach ersatzlos loeschen.',
-  },
+  // Leer — und das ist der Normalzustand. Der einzige Eintrag, den es je
+  // gab (X-de-patch-360-ueberlauf), ist am 09.08.2026 durch den Fix in
+  // src/components/patches/sc-4-9-0.astro entfallen; der Zombie-Waechter
+  // unten haette ihn sonst selbst eingefordert.
 ];
 const benutzteAusnahmen = new Set();
 const erklaert = [];

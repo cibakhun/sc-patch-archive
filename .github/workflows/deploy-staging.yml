@@ -51,7 +51,9 @@ jobs:
         with:
           context: .
           load: true
-          build-args: STAGING=1
+          build-args: |
+            STAGING=1
+            GIT_SHA=${{ github.sha }}
           tags: |
             ghcr.io/cibakhun/sc-patch-archive:staging
             ghcr.io/cibakhun/sc-patch-archive:staging-${{ github.sha }}
@@ -125,3 +127,17 @@ jobs:
           else
             echo "COOLIFY_STAGING_WEBHOOK und/oder COOLIFY_API_TOKEN nicht gesetzt — redeploy manuell in Coolify."
           fi
+
+      # Warten, bis die Vorschau den frisch gebauten Stand WIRKLICH ausliefert.
+      # "Image gepusht" und "Coolify angestossen" sind keine Antwort darauf:
+      # am 08.08.2026 lieferte staging knapp vier Stunden den Vortagsstand aus,
+      # und an anderem Tag hing Coolify 20 Minuten in der Warteschlange. Ohne
+      # diesen Schritt endet der Workflow gruen, waehrend die Seite alt bleibt.
+      # Die Kennung kommt aus dem Build-Stempel dist/build.json.
+      - name: Warten, bis die Vorschau den neuen Stand zeigt
+        run: |
+          node scripts/check-deployed.mjs \
+            --base https://staging.verse-base.com \
+            --sha ${{ github.sha }} \
+            --vorschau \
+            --warte 600

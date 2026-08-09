@@ -41,6 +41,8 @@ jobs:
         with:
           context: .
           load: true
+          build-args: |
+            GIT_SHA=${{ github.sha }}
           tags: |
             ghcr.io/cibakhun/sc-patch-archive:latest
             ghcr.io/cibakhun/sc-patch-archive:${{ github.sha }}
@@ -146,3 +148,14 @@ jobs:
           else
             echo "COOLIFY_DEPLOY_WEBHOOK und/oder COOLIFY_API_TOKEN nicht gesetzt — redeploy manuell in Coolify."
           fi
+
+      # Wie in deploy-staging.yml: warten, bis die LIVE-Seite den frisch
+      # gebauten Stand wirklich ausliefert. "CI gruen" ist keine Antwort
+      # darauf — siehe die Begruendung dort.
+      - name: Warten, bis die Live-Seite den neuen Stand zeigt
+        run: |
+          node scripts/check-deployed.mjs \
+            --base https://verse-base.com \
+            --sha ${{ github.sha }} \
+            --live \
+            --warte 600

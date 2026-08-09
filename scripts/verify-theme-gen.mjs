@@ -249,6 +249,19 @@ async function main() {
   const tmpDir = mkdtempSync(join(tmpdir(), 'verify-theme-gen-'));
   const usedExclusions = new Set();
 
+  // Zustand des Arbeitsbaums VOR dem Lauf festhalten. Zusicherung 3 will
+  // wissen, ob DIESER Waechter den Baum veraendert hat — nicht, ob er
+  // ueberhaupt schmutzig ist.
+  //
+  // ⚠ Vorher verglich sie gegen "leer" und schlug damit bei JEDER nicht
+  // committeten Aenderung unter src/ oder assets/ an. Das machte die
+  // Hausregel "vor jedem Push `npm run gate`" praktisch unbrauchbar: wer
+  // gerade etwas geaendert hat — also immer, wenn man pushen will — bekam
+  // ein rotes Tor ohne Anlass. Ein Fehlalarm, der genau dann zuschlaegt,
+  // wenn man das Tor braucht, wird binnen einer Woche uebergangen (siehe
+  // den Kommentar in audit-site.mjs). Gemessen und behoben am 09.08.2026.
+  const baumVorher = workTreeStatus();
+
   function printResult() {
     const elapsedMs = Date.now() - t0;
     console.log(`\nLaufzeit: ${elapsedMs} ms`);
@@ -358,7 +371,7 @@ async function main() {
       console.log(`    Durch EXCLUSIONS erklaert (nicht in obiger Zahl enthalten): ${[...usedExclusions].join(', ')}`);
     }
 
-    console.log('\n[3] Arbeitsbaum unveraendert (git status --porcelain src assets)');
+    console.log('\n[3] Der Waechter hat den Arbeitsbaum nicht veraendert (git status --porcelain src assets)');
     const status = workTreeStatus();
     if (status === null) {
       // Im Build-Container gibt es weder git noch einen Arbeitsbaum: der Quelltext
@@ -371,8 +384,17 @@ async function main() {
       console.log('      die Zusicherungen 1/2/4 laufen unveraendert und tragen das Tor.');
       skipped('3 (Arbeitsbaum) — kein git-Arbeitsbaum vorhanden');
     } else {
-      console.log(`    Soll: leer   Ist: ${status ? status.split('\n').length + ' Zeile(n)' : 'leer'}`);
-      if (status) fail(`Der Waechter hat den Arbeitsbaum veraendert:\n${status}`);
+      // Verglichen wird VORHER gegen NACHHER, nicht gegen "leer" — siehe
+      // die Begruendung bei `baumVorher` oben.
+      const zeilen = (s) => (s ? s.split('\n').length : 0);
+      console.log(`    vor dem Lauf: ${zeilen(baumVorher)} Zeile(n)   danach: ${zeilen(status)} Zeile(n)   Soll: unveraendert`);
+      if (status !== baumVorher) {
+        const vorherSet = new Set((baumVorher || '').split('\n').filter(Boolean));
+        const neu = status.split('\n').filter((z) => z && !vorherSet.has(z));
+        fail(`Der Waechter hat den Arbeitsbaum veraendert:\n${neu.join('\n') || status}`);
+      } else if (status) {
+        console.log('    (der Baum war schon vorher schmutzig — nicht committete Aenderungen, das ist hier kein Befund)');
+      }
     }
 
     console.log('\n[4] Zombie-Waechter: jede EXCLUSIONS-Ausnahme muss in diesem Durchgang gegriffen haben');

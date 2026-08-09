@@ -10,6 +10,14 @@ COPY . .
 # Leer beim normalen Live-Build — dort aendert sich dadurch nichts.
 ARG STAGING=""
 ENV STAGING=$STAGING
+# Die Commit-Kennung kommt als ARG herein und landet ueber
+# scripts/_write-build-stamp.mjs in dist/build.json. NICHT aus git: hier gibt
+# es weder das Programm noch ein Repository (der Quelltext ist eine COPY) —
+# genau daran ist cf58c76 gestorben. Ohne Argument steht "dev" im Stempel.
+# Damit beantwortet `npm run check:staging` spaeter die Frage, ob die
+# ausgelieferte Seite wirklich diesen Stand zeigt.
+ARG GIT_SHA=""
+ENV GIT_SHA=$GIT_SHA
 RUN npm run build
 
 # Qualitaetstor VOR dem Auslieferungs-Image. Hier statt als eigener CI-Schritt,

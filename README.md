@@ -124,6 +124,21 @@ In CI läuft er in `deploy-staging.yml` gegen den **fertigen Container**, und
 zwar vor dem Push — die CSP ist ein nginx-Header und existiert nur dort. Für
 eine schon ausgelieferte Seite: `npm run smoke -- --base https://staging.verse-base.com`.
 
+### Liefert die Seite wirklich den neuen Stand? (Schiene C)
+
+```bash
+npm run check:staging     # gegen staging.verse-base.com
+npm run check:live        # gegen verse-base.com
+```
+
+Jeder Build schreibt `dist/build.json` mit der Commit-Kennung. `check:*` holt
+sie von der ausgelieferten Seite und vergleicht sie mit `origin/staging` bzw.
+`origin/main` — und prüft nebenbei, dass Vorschau und Live nicht vertauscht
+sind. **Das ist die einzige belastbare Antwort auf „ist es draußen?"**: „CI
+grün" ist keine — staging hat schon vier Stunden den Vortagsstand
+ausgeliefert, während alle Commits an Ort und Stelle lagen. Beide Workflows
+warten nach dem Deploy von sich aus, bis die Kennung umspringt.
+
 Einzeln aufrufbar bleibt weiterhin alles:
 
 ```bash

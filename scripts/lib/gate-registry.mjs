@@ -216,6 +216,17 @@ export const CHECKS = [
       'Netz: laedt die Seiten ueber http gegen das Ziel aus --base/SMOKE_BASE und holt vorab dessen robots.txt per fetch(), um Vorschau- von Live-Build zu unterscheiden. Braucht ausserdem einen laufenden Server UND einen installierten Browser — beides gibt es im Build-Container (node:22-alpine) nicht, deshalb Schiene C statt A. Laeuft im Workflow gegen den frisch gebauten Container (vor dem Push), lokal gegen astro preview oder eine URL. FREMDE Hosts werden abgebrochen und nicht gewertet: CI hat keinen verlaesslichen Weg ins Netz, und der Ausfall eines Dritten ist kein Fehler dieser Seite.',
   },
 
+  {
+    id: 'check:staging',
+    npm: 'check:staging',
+    script: 'scripts/check-deployed.mjs',
+    rail: 'C',
+    checks:
+      'die Vorschau-Domain liefert wirklich den zuletzt gebauten Stand aus (dist/build.json gegen origin/staging) und traegt einen Vorschau-Build, keinen Live-Build',
+    env:
+      'Netz: fetch() gegen <base>/build.json. Kindprozess + git: execFileSync("git", ["rev-parse", …]) ermittelt die Soll-Kennung — das laeuft auf dem Entwicklungsrechner, NICHT im Build-Container (dort gibt es weder git noch ein Repository, siehe cf58c76). Faellt der Aufruf aus, wird nur berichtet statt geurteilt.',
+  },
+
   // ---------------------------------------------------------------
   // Werkzeuge — keine Pruefer, brauchen `why`.
   // ---------------------------------------------------------------

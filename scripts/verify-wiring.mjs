@@ -50,8 +50,8 @@ const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 // Untergrenze der Skriptzahl. Darf nur nach OBEN wandern (neues Tor) —
 // nach unten nur mit geklaerter Ursache, sichtbar im Commit-Diff.
 // Stand 09.08.2026: 20 Dateien (17 aus dem Messlauf, dazu verify-wiring,
-// verify-metrics und browser-smoke).
-const MIN_SCRIPTS = 20;
+// verify-metrics, browser-smoke und check-deployed).
+const MIN_SCRIPTS = 21;
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };
@@ -62,8 +62,9 @@ const rel = (p) => p.replaceAll('\\', '/');
 // namentlich genannte Ausreisser. `browser-smoke.mjs` heisst so, weil es
 // keine Datei prueft, sondern eine laufende Seite — es gehoert trotzdem
 // unter dieselbe Bijektionspflicht.
+const PRUEFER_AUSSER_DER_REIHE = ['browser-smoke.mjs', 'check-deployed.mjs'];
 const DATEIEN = readdirSync(resolve(ROOT, 'scripts'))
-  .filter((n) => /^(verify|audit)-.*\.mjs$/.test(n) || n === 'browser-smoke.mjs')
+  .filter((n) => /^(verify|audit)-.*\.mjs$/.test(n) || PRUEFER_AUSSER_DER_REIHE.includes(n))
   .map((n) => `scripts/${n}`)
   .sort();
 
