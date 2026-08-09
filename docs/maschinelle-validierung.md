@@ -612,6 +612,32 @@ die Lieferung auf `staging` liegt.
 > - Beide Workflows warten nach dem Coolify-Trigger bis zu 10 Minuten, bis
 >   die Domain die neue Kennung ausliefert. Ein hängender Deploy wird damit
 >   zum **sichtbaren Ereignis** statt zum stillen Zustand.
+>
+> **Belegt am echten Deploy:** `staging` lieferte nach dem Push
+> `{"sha":"984b79a…","staging":true}` aus, `npm run check:staging` meldete
+> „die Seite liefert den erwarteten Stand aus ✓". Zum ersten Mal ist
+> „ausgeliefert" damit eine Messung.
+>
+> **Drei eigene Fehler bei diesem Schritt, alle beim Vorführen gefunden:**
+>
+> 1. **Der Wartelauf in CI hing.** `fetch()` ohne Zeitlimit läuft nicht in
+>    einen Fehler, wenn die Gegenstelle die Verbindung offen hält — der
+>    Schritt stand noch, als der Deploy längst durch war. Jetzt mit
+>    `AbortSignal.timeout(15000)`. Ein Tor, das hängt, ist schlimmer als
+>    eines, das rot wird.
+> 2. **Der Stempel wurde einen Tag lang gecacht.** Die nginx-Regel nach
+>    Inhaltstyp gibt `application/json` eine Tages-Cache-Zeit — ausgerechnet
+>    der Datei, die „ist es draußen?" beantworten soll. Ein Deploy-Check
+>    hätte bis zu 24 Stunden den Vorgängerstand bestätigen können. Jetzt
+>    `location = /build.json { expires -1; }`. ⚠ Bewusst **ohne**
+>    `add_header`: das verwirft in einer `location` die Security-Header des
+>    Server-Blocks — genau davor warnt der Kopf der nginx-Datei.
+> 3. **„Nicht erreichbar" und „falscher Stand" waren derselbe Fehler.** In
+>    CI ist Ersteres nichts, woran jemand etwas ändern kann (Cloudflare steht
+>    mit Bot-Schutz davor). Der Workflow läuft deshalb mit `--weich`:
+>    unerreichbar ⇒ Warnung und die ehrliche Schlusszeile „NICHT geprüft",
+>    falsche Kennung ⇒ weiterhin FEHLER. Lokal bleibt die Prüfung streng.
+>    Beide Betriebsarten in beide Richtungen gemessen.
 > - `CLAUDE.md` (neu, im Wurzelverzeichnis) trägt die Lieferregeln, damit sie
 >   jede Sitzung erreichen statt nur diese.
 >

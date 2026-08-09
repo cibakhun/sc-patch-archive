@@ -140,4 +140,5 @@ jobs:
             --base https://staging.verse-base.com \
             --sha ${{ github.sha }} \
             --vorschau \
+            --weich \
             --warte 600

@@ -158,4 +158,5 @@ jobs:
             --base https://verse-base.com \
             --sha ${{ github.sha }} \
             --live \
+            --weich \
             --warte 600

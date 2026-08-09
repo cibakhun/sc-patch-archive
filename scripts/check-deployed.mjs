@@ -35,6 +35,17 @@ const BASE = (flag('--base', 'https://staging.verse-base.com')).replace(/\/$/, '
 const WARTE = Number(flag('--warte', '0'));           // Sekunden pollen
 const ERWARTET_VORSCHAU = argv.includes('--vorschau');
 const ERWARTET_LIVE = argv.includes('--live');
+// --weich: „gar nicht erreichbar" wird WARNUNG statt FEHLER; eine falsche
+// Kennung bleibt in jedem Fall ein FEHLER.
+//
+// WARUM diese Unterscheidung (Grundsatz 3): „die Seite liefert den falschen
+// Stand" ist ein Befund, gegen den jemand etwas tun kann. „CI kommt an die
+// Domain nicht heran" ist keiner — Cloudflare steht mit Bot-Schutz davor,
+// und UEX zeigt schon, dass Rechenzentrums-IPs hier geblockt werden. Ein
+// Schritt, der nach einem tadellosen Deploy rot wird, weil der Runner nicht
+// hinkommt, ist genau der Fehlalarm, der binnen einer Woche uebergangen
+// wird. Lokal (`npm run check:staging`) laeuft die Pruefung deshalb streng.
+const WEICH = argv.includes('--weich');
 
 /** Soll-Kennung: Argument, sonst der Zweig-Kopf aus git. */
 function sollSha() {
@@ -51,8 +62,18 @@ function sollSha() {
 const SOLL = sollSha();
 const kurz = (s) => (s ? s.slice(0, 7) : '—');
 
+// ⚠ MIT Zeitlimit. Ohne das haengt der Aufruf, wenn die Gegenstelle die
+// Verbindung offen haelt statt zu antworten — und ein Wartelauf in CI, der
+// „bis zu 10 Minuten" pollen soll, laeuft dann bis zum Job-Timeout weiter.
+// Genau so passiert am 09.08.2026 im ersten scharfen Lauf: der Schritt stand
+// noch, als der Deploy laengst durch war. Ein Tor, das haengt, ist schlimmer
+// als eins, das rot wird.
 async function hole() {
-  const r = await fetch(`${BASE}/build.json`, { cache: 'no-store' });
+  const r = await fetch(`${BASE}/build.json`, {
+    cache: 'no-store',
+    signal: AbortSignal.timeout(15000),
+    headers: { 'cache-control': 'no-cache' },
+  });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
@@ -83,10 +104,17 @@ const fail = [];
 console.log('[1] build.json erreichbar');
 if (!stempel) {
   console.log(`    Ist: nein (${letzterFehler})`);
-  fail.push(
+  const satz =
     `${BASE}/build.json ist nicht abrufbar (${letzterFehler}). Entweder laeuft der Deploy noch, ` +
-      `oder die ausgelieferte Fassung ist aelter als der Build-Stempel — dann ist sie in jedem Fall nicht der aktuelle Stand.`,
-  );
+    `oder die ausgelieferte Fassung ist aelter als der Build-Stempel — dann ist sie in jedem Fall nicht der aktuelle Stand.`;
+  if (WEICH) {
+    console.log(`    WARNUNG (--weich): ${satz}`);
+    console.log('    Blockiert nicht — von hier aus laesst sich nicht unterscheiden, ob die Seite');
+    console.log('    alt ist oder ob dieser Rechner sie nur nicht erreicht. Lokal nachsehen:');
+    console.log('      npm run check:staging');
+  } else {
+    fail.push(satz);
+  }
 } else {
   console.log(`    Ist: ja   Kennung ${stempel.kurz}   gebaut ${stempel.gebautAm}`);
 }
@@ -121,5 +149,12 @@ if (fail.length) {
   for (const f of fail) console.error(`  · ${f}`);
   console.error('');
   process.exit(1);
+}
+// Nicht „bestanden" behaupten, wenn gar nichts geprueft werden konnte — das
+// waere dieselbe hohle Gruen-Meldung, gegen die das ganze Verfahren gebaut
+// ist (siehe die leere Schiene in run-gate.mjs).
+if (!stempel) {
+  console.log('\ncheck-deployed: NICHT geprueft — der Stempel war nicht erreichbar (--weich)\n');
+  process.exit(0);
 }
 console.log('\ncheck-deployed: die Seite liefert den erwarteten Stand aus ✓\n');
