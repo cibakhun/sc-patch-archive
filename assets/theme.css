@@ -268,6 +268,58 @@ body::-webkit-scrollbar,
   color: color-mix(in srgb, var(--hot) 40%, var(--on-media));
 }
 
+/* Dieselbe Sache, zwei Stockwerke höher: die Augenbrauen-Zeile (.eyebrow)
+   und der dünne Kicker im Titel (.hero h1 .thin). Beide holen ihre Farbe aus
+   den SEITEN-Tokens — .eyebrow aus --accent-2, .thin aus --text. Im Hellmodus
+   werden die absichtlich dunkel (für Papier), liegen hier aber auf einem
+   dunklen Foto. Gemessen am 09.08.2026 über acht Themen- und Patch-Heroes:
+   1,26:1 bis 1,80:1. Der Fließtext (.hero .lead) war davon nicht betroffen,
+   er hängt schon an --on-media-dim — deshalb ist es beim Entstapeln in
+   Phase 3 nicht aufgefallen (WINDOWS.md id 9).
+
+   Warum der Akzent nicht PUR genommen wird: der Hellmodus-Scrim ist heller
+   als der dunkle, gemessener Untergrund 0,06–0,15 relative Leuchtdichte. Ein
+   mittelheller Akzent (Bernstein, 0,43) kommt darauf rechnerisch nicht auf
+   4,5:1 — pur gemessen 2,27:1 im schlechtesten Fall. 40 % Akzent in
+   --on-media hält den Farbton und hebt die Leuchtdichte; die Mischung folgt
+   .tag.hot zwei Regeln weiter oben.
+
+   Der doppelte Schatten ist kein Zierrat: er trägt den engen Kern, den die
+   übrigen Hero-Texte längst haben (.lead, .sstep p, .band .big). Ohne ihn
+   bleibt sc-4-9-0 bei 4,47:1, mit ihm bei 4,76:1 — schlechtester Wert über
+   alle acht geprüften Seiten, DE wie EN.
+
+   Nur Hellmodus: im Dunkelmodus sind beide Farben richtig und bleiben
+   unangetastet (gegengeprüft, .eyebrow rgb(217,209,42) unverändert).
+   ------------------------------------------------------------ */
+:root[data-theme='light'] :is(.hero, .shot, .band, .tile.img) .eyebrow {
+  color: color-mix(in srgb, var(--accent-2-media) 40%, var(--on-media));
+  text-shadow:
+    0 1px 3px var(--on-media-shadow),
+    0 2px 14px var(--on-media-shadow);
+}
+:root[data-theme='light'] .hero h1 .thin {
+  /* h1 füllt seinen Text über einen Verlauf; .thin muss deshalb BEIDE
+     Eigenschaften setzen, sonst gewinnt die durchsichtige Füllung. */
+  color: var(--on-media);
+  -webkit-text-fill-color: var(--on-media);
+}
+/* Dritte Stelle derselben Sorte, gefunden von der nachgeschärften
+   Aufzählung (Zusicherung 7), nicht von Hand: die Trailer-Beschriftung
+   hängt ebenfalls an --text und stand im Hellmodus dunkel neben ihrem
+   Abspielknopf auf dem Hero-Foto. */
+:root[data-theme='light'] .hero .hero__play {
+  color: var(--on-media);
+  text-shadow: 0 1px 3px var(--on-media-shadow);
+}
+/* Vierte Stelle, ebenfalls von der Aufzählung gefunden: der Scroll-Hinweis
+   am unteren Hero-Rand hängt an --muted. Zweite Ebene wie .lead, also
+   --on-media-dim statt --on-media. */
+:root[data-theme='light'] .hero .scrollcue {
+  color: var(--on-media-dim);
+  text-shadow: 0 1px 3px var(--on-media-shadow);
+}
+
 /* ============================================================
    Kein Farbübergang beim Umschalten — bewusst.
 

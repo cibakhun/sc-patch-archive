@@ -60,7 +60,14 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import { compositeOver, flattenStack, contrast, parseColor } from './lib/theme-color.mjs';
-import { buildRegistry, gradientLayerColorAt, isControlCase, EXCLUSIONS } from './lib/layer-registry.mjs';
+import {
+  buildRegistry,
+  gradientLayerColorAt,
+  isControlCase,
+  EXCLUSIONS,
+  SHARED_TEXT_CLAIMS,
+  TEXT_CLAIM_EXCLUSIONS,
+} from './lib/layer-registry.mjs';
 
 const JSON_MODE = process.argv.includes('--json');
 const REPORT_MODE = process.argv.includes('--report') || JSON_MODE;
@@ -315,6 +322,41 @@ function extractRuleBlocks(css, out = []) {
     i = j;
   }
   return out;
+}
+
+/* ---------- Element-Ausschnitt fuer Zusicherung 7 ----------
+   Gibt GENAU den Inhalt des ersten Elements mit dieser Klasse zurueck,
+   ueber eine Tag-Tiefenzaehlung. Ein Ausschnitt "bis zum naechsten
+   <section>" waere zu grob: er nimmt Geschwister mit, und dann meldet
+   die Aufzaehlung Klassen als "auf dem Motiv", die in Wahrheit weiter
+   unten auf normalem Grund liegen. Lieber eine Stelle zu wenig
+   behaupten als eine zu viel -- ein falscher Fund kostet Vertrauen in
+   das ganze Tor. */
+const LEERE_TAGS = new Set(['img', 'br', 'hr', 'input', 'source', 'meta', 'link', 'path', 'circle', 'use', 'rect', 'line']);
+function elementScheibe(html, klasse) {
+  const start = new RegExp(`<([a-z][a-z0-9]*)\\b[^>]*class="[^"]*\\b${klasse}\\b[^"]*"[^>]*>`, 'i');
+  const m = html.match(start);
+  if (!m) return null;
+  if (/\/>\s*$/.test(m[0])) return '';
+  const tag = m[1].toLowerCase();
+  let i = m.index + m[0].length;
+  const anfang = i;
+  let tiefe = 1;
+  const tagRe = /<(\/?)([a-z][a-z0-9]*)\b([^>]*)>/gi;
+  tagRe.lastIndex = i;
+  let t;
+  while ((t = tagRe.exec(html))) {
+    const [roh, schraeg, name, rest] = t;
+    if (name.toLowerCase() !== tag) continue;
+    if (schraeg) {
+      tiefe--;
+      if (tiefe === 0) return html.slice(anfang, t.index);
+    } else if (!LEERE_TAGS.has(name.toLowerCase()) && !/\/\s*$/.test(rest)) {
+      tiefe++;
+    }
+    void roh;
+  }
+  return html.slice(anfang); // unbalanciert -- lieber alles als nichts
 }
 
 /* ---------- [5] Vollstaendigkeitswaechter ---------- */
@@ -717,6 +759,126 @@ if (unmeasured.length) {
 const withoutRationale = entryReports.filter((e) => !e.rationale);
 if (withoutRationale.length) {
   fail(`${withoutRationale.length} Registry-Eintrag/Eintraege ohne Begruendungsfeld: ${withoutRationale.map((e) => e.id).join(', ')}`);
+}
+
+/* ============================================================
+   [7] Textstellen — Behauptung UND Aufzaehlung
+
+   Zusicherung 5 zaehlt SCRIM-Selektorfamilien: die Bauart der Schicht.
+   Sie kann nicht sehen, welcher TEXT darauf liegt. Genau dort ist am
+   08.08.2026 id 9 durchgerutscht: A1-hero fuehrte ".hero h1 / .thin"
+   als --on-media, waehrend `.thin` im CSS an var(--text) hing, und
+   `.eyebrow` stand in keiner Aufzaehlung. Der Bericht meldete 19,65:1,
+   gerendert waren es 2,14:1 bzw. 1,26-1,80:1.
+
+   Zwei Richtungen, beide noetig:
+     (a) BEHAUPTUNG — jede in SHARED_TEXT_CLAIMS genannte Stelle faerbt
+         sich im GEBAUTEN CSS wirklich aus der genannten Quelle. Eine
+         Registry-Zeile, die etwas anderes behauptet als das CSS tut,
+         faellt durch.
+     (b) AUFZAEHLUNG — jede Klasse, die im Container ueberhaupt eine
+         Textfarbe setzt, ist beansprucht oder benannt ausgenommen.
+         Sonst verschwindet die naechste `.eyebrow` genauso lautlos.
+
+   Umfang ausdruecklich: das GETEILTE System (assets/detail.css) auf der
+   Leitseite. Die 19 Patch-Koerper tragen ihr CSS inline je Datei; sie
+   benutzen dieselben Klassennamen und werden von den Regeln in
+   assets/theme.css miterfasst, aber ihre Aufzaehlung waere eine eigene
+   Zusicherung.
+   ============================================================ */
+log('\n[7] Textstellen im geteilten System — Registry-Behauptung gegen das gebaute CSS, plus Aufzaehlung');
+{
+  const detailBlocks = extractRuleBlocks(stripComments(detailCss));
+  const themeBlocks = extractRuleBlocks(stripComments(themeCssClean));
+
+  // Letzte gewinnende color-Deklaration eines Blocks -> Herkunft.
+  const farbQuelle = (body) => {
+    const m = [...body.matchAll(/(?:^|;)\s*color\s*:\s*([^;}]+)/g)];
+    if (!m.length) return null;
+    const wert = m[m.length - 1][1].trim();
+    if (/^color-mix\(/i.test(wert)) return 'color-mix';
+    const tok = wert.match(/var\(\s*(--[a-z0-9-]+)/i);
+    return tok ? tok[1] : wert;
+  };
+  const normSel = (s) => s.replace(/\s+/g, ' ').trim();
+  const quelleFuer = (bloecke, sel) => {
+    let treffer = null;
+    for (const b of bloecke) {
+      for (const teil of b.selector.split(',')) {
+        if (normSel(teil) !== sel) continue;
+        const q = farbQuelle(b.body);
+        if (q) treffer = q; // spaeter im Bestand gewinnt
+      }
+    }
+    return treffer;
+  };
+
+  let geprueft = 0, beansprucht = 0;
+  const benutzteAusnahmen = new Set();
+
+  for (const gruppe of SHARED_TEXT_CLAIMS) {
+    const seitenPfad = join('dist', gruppe.seite);
+    const html = existsSync(seitenPfad) ? readFileSync(seitenPfad, 'utf8') : null;
+    if (!html) {
+      fail(`[7] Leitseite fehlt: ${seitenPfad} — ohne sie ist die Aufzaehlung blind`);
+      continue;
+    }
+
+    /* (a) Behauptung */
+    for (const stelle of gruppe.stellen) {
+      geprueft++;
+      const ist = quelleFuer(detailBlocks, stelle.sel);
+      if (ist === null) {
+        fail(`[7] ${stelle.sel}: keine Textfarbe im gebauten detail.css gefunden — die Registry-Zeile beschreibt eine Stelle, die es so nicht gibt`);
+        continue;
+      }
+      if (ist !== stelle.quelle) {
+        fail(`[7] ${stelle.sel} (${stelle.rolle}): Registry sagt "${stelle.quelle}", das gebaute CSS nimmt "${ist}"`);
+      }
+      // Modusabhaengige Stelle: die Hellmodus-Regel muss es wirklich geben.
+      if (stelle.hell) {
+        const hellBloecke = themeBlocks.filter((b) => /\[data-theme=['"]?light/.test(b.selector));
+        const trefferHell = hellBloecke.some((b) =>
+          b.selector.split(',').some((t) => normSel(t).endsWith(stelle.sel.replace(/^.*\s/, '')) || normSel(t).endsWith(stelle.sel))
+        );
+        if (!trefferHell) {
+          fail(`[7] ${stelle.sel}: Registry fuehrt eine Hellmodus-Herkunft ("${stelle.hell}"), aber assets/theme.css hat keine passende [data-theme=light]-Regel`);
+        }
+      }
+    }
+
+    /* (b) Aufzaehlung: welche faerbenden Klassen stecken im Container? */
+    const containerKlasse = gruppe.container.replace(/^\./, '');
+    const scheibe = elementScheibe(html, containerKlasse);
+    if (scheibe === null) {
+      fail(`[7] ${gruppe.container}: kein Element mit dieser Klasse in ${gruppe.seite} — die Aufzaehlung haette ins Leere gegriffen`);
+      continue;
+    }
+    const klassen = new Set();
+    for (const m of scheibe.matchAll(/class="([^"]+)"/g)) {
+      for (const k of m[1].split(/\s+/)) if (k) klassen.add(k);
+    }
+
+    for (const k of klassen) {
+      const sel = `.${k}`;
+      const setztFarbe = detailBlocks.some((b) => b.selector.split(',').some((t) => normSel(t) === sel) && farbQuelle(b.body));
+      if (!setztFarbe) continue;
+      const inClaims = SHARED_TEXT_CLAIMS.some((g) => g.stellen.some((s) => s.sel === sel || s.sel.endsWith(` ${sel}`)));
+      const ausnahme = TEXT_CLAIM_EXCLUSIONS.find((x) => x.sel === sel || x.sel.endsWith(` ${sel}`));
+      if (inClaims) { beansprucht++; continue; }
+      if (ausnahme) { benutzteAusnahmen.add(ausnahme.id); continue; }
+      fail(`[7] ${gruppe.container}: "${sel}" setzt eine Textfarbe im geteilten CSS, steht aber in keiner Aufzaehlung und in keiner Ausnahme (genau die Luecke, durch die .eyebrow fiel)`);
+    }
+  }
+
+  log(`    Behauptungen geprueft: ${geprueft}   im Container beansprucht: ${beansprucht}   Ausnahmen getroffen: ${benutzteAusnahmen.size}/${TEXT_CLAIM_EXCLUSIONS.length}`);
+  // Zombie-Waechter, gleiche Regel wie in verify-theme-gen: eine Ausnahme,
+  // deren Anlass entfallen ist, muss auffallen statt still stehenzubleiben.
+  for (const x of TEXT_CLAIM_EXCLUSIONS) {
+    if (!benutzteAusnahmen.has(x.id)) {
+      log(`    Hinweis: Ausnahme ${x.id} (${x.sel}) hat in diesem Durchgang nicht gegriffen`);
+    }
+  }
 }
 
 log(`\nverify-layers: ${ok ? 'ALLE ZUSICHERUNGEN ERFUELLT ✓' : 'FEHLGESCHLAGEN ✗'}`);

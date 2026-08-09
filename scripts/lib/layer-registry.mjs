@@ -735,6 +735,75 @@ export const EXCLUSIONS = [
   },
 ];
 
+/* ============================================================
+   TEXTSTELLEN im geteilten System — Grundlage von Zusicherung 7.
+
+   WARUM ES DIESE TABELLE GIBT (WINDOWS.md id 9, 09.08.2026):
+   Die `text`-Rollen oben behaupten einen Token, aber nichts hat je
+   nachgesehen, ob das CSS an dieser Stelle wirklich daran haengt.
+   A1-hero fuehrte "grosse Schrift (.hero h1 / .thin)" als --on-media --
+   `.thin` hing im CSS jedoch an var(--text). Im Hellmodus ist --text
+   dunkel: gemessen 2,14:1 auf einem dunklen Foto, waehrend der Bericht
+   19,65:1 meldete. `.eyebrow` stand ueberhaupt nicht in der Aufzaehlung
+   und lag bei 1,26:1 bis 1,80:1 ueber acht Seiten.
+
+   Der Vollstaendigkeitswaechter (Zusicherung 5) konnte das nicht sehen:
+   er zaehlt SCRIM-Selektorfamilien, also die Bauart der Schicht -- nicht
+   die Textelemente, die darauf liegen. Die Luecke lag in der
+   Aufzaehlung, nicht in der Messung.
+
+   `quelle` ist der Token bzw. die Funktion, aus der die Farbe im
+   GEBAUTEN CSS kommen MUSS. Fuer Stellen mit modusabhaengiger Herkunft
+   stehen beide da: `quelle` (Grundregel) und `hell` (die Regel in
+   assets/theme.css, die im Hellmodus gewinnt).
+   ============================================================ */
+export const SHARED_TEXT_CLAIMS = [
+  {
+    container: '.hero',
+    seite: 'topics/4-0-0-contested-zones.html',
+    stellen: [
+      { sel: '.hero .lead', quelle: '--on-media-dim', rolle: 'Fliesstext' },
+      { sel: '.hero h1 .thin', quelle: '--text', hell: '--on-media', rolle: 'Kicker im Titel' },
+      { sel: '.eyebrow', quelle: '--accent-2', hell: 'color-mix', rolle: 'Augenbrauen-Zeile' },
+      { sel: '.hero__play', quelle: '--text', hell: '--on-media', rolle: 'Trailer-Beschriftung' },
+      { sel: '.scrollcue', quelle: '--muted', hell: '--on-media-dim', rolle: 'Scroll-Hinweis' },
+    ],
+  },
+  {
+    container: '.band',
+    seite: 'topics/4-0-0-contested-zones.html',
+    stellen: [
+      { sel: '.band .big', quelle: '--on-media', rolle: 'grosse Schrift' },
+      { sel: '.band p', quelle: '--on-media-dim', rolle: 'Fliesstext' },
+    ],
+  },
+  {
+    container: '.gtile',
+    seite: 'topics/4-0-0-contested-zones.html',
+    stellen: [{ sel: '.gtile figcaption', quelle: '--on-media', rolle: 'Bildunterschrift' }],
+  },
+  {
+    container: '.scrolly',
+    seite: 'topics/4-0-0-contested-zones.html',
+    stellen: [
+      { sel: '.sstep h3', quelle: '--on-media', rolle: 'Schritt-Ueberschrift' },
+      { sel: '.sstep p', quelle: '--on-media-dim', rolle: 'Schritt-Fliesstext' },
+    ],
+  },
+];
+
+/* Klassen, die im Container zwar eine Textfarbe setzen, aber KEINE
+   Textstelle auf dem Motiv sind. Jede braucht einen Grund -- eine
+   unbegruendete Ausnahme waere dasselbe wie ein blindes Tor. */
+export const TEXT_CLAIM_EXCLUSIONS = [
+  {
+    id: 'X-text-tag',
+    sel: '.tag',
+    reason:
+      'Die Marken-Pillen bringen ihre eigene deckende Flaeche mit (background:var(--scrim-4) + Rahmen). Ihr Kontrast haengt an dieser Flaeche, nicht am Motiv darunter; assets/theme.css faerbt sie im Hellmodus ausdruecklich auf --on-media um (Abschnitt "Nachzuegler im Hero").',
+  },
+];
+
 /* ---------- Zusammenfuehren ---------- */
 export function buildRegistry() {
   return [...SHARED_REGISTRY, ...OWN_BUILD_REGISTRY, ...DISCOVERED_REGISTRY, ...buildPatchRegistry()];
