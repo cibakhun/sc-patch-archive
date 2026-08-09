@@ -204,6 +204,31 @@ function findExclusion(file, art) {
   return EXCLUSIONS.find((e) => e.file === norm && e.art === art);
 }
 
+/**
+ * `git status --porcelain src assets` — oder `null`, wenn es hier gar keinen
+ * Arbeitsbaum zu pruefen gibt.
+ *
+ * Der Build-Container hat weder das git-Programm noch ein Repository: das
+ * Dockerfile kopiert den Quelltext hinein. Ein `execFileSync('git', ...)`
+ * stirbt dort an ENOENT und riss bis zum 09.08.2026 das ganze neunte Tor
+ * mit — sichtbar als "verify:theme fehlgeschlagen", obwohl die Zusicherungen
+ * 1/2 sauber durchgelaufen waren. Unterschieden wird deshalb ausdruecklich
+ * zwischen "Baum ist sauber" (leere Zeichenkette) und "es gibt keinen Baum"
+ * (null) — ein schmutziger Baum faellt weiterhin durch.
+ */
+function workTreeStatus() {
+  try {
+    const inside = execFileSync('git', ['rev-parse', '--is-inside-work-tree'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    if (inside !== 'true') return null;
+  } catch {
+    return null; // kein git-Programm oder kein Repository
+  }
+  return execFileSync('git', ['status', '--porcelain', 'src', 'assets'], { encoding: 'utf8' }).trim();
+}
+
 async function main() {
   const t0 = Date.now();
   let ok = true;
@@ -211,6 +236,11 @@ async function main() {
     ok = false;
     console.error(`  FEHLER: ${msg}`);
   };
+
+  // Uebersprungene Zusicherungen bleiben im Schlussurteil sichtbar — ein Tor,
+  // das stumm weniger prueft als es behauptet, ist schlimmer als kein Tor.
+  const skips = [];
+  const skipped = (was) => skips.push(was);
 
   const files = [];
   for await (const f of glob('src/**/*.astro')) files.push(f);
@@ -222,7 +252,9 @@ async function main() {
   function printResult() {
     const elapsedMs = Date.now() - t0;
     console.log(`\nLaufzeit: ${elapsedMs} ms`);
-    console.log(`\nverify-theme-gen: ${ok ? 'ALLE ZUSICHERUNGEN ERFUELLT ✓' : 'FEHLGESCHLAGEN ✗'}`);
+    for (const s of skips) console.log(`Uebersprungen: Zusicherung ${s}`);
+    const suffix = skips.length ? ` (${skips.length} uebersprungen, siehe oben)` : '';
+    console.log(`\nverify-theme-gen: ${ok ? 'ALLE PRUEFBAREN ZUSICHERUNGEN ERFUELLT ✓' + suffix : 'FEHLGESCHLAGEN ✗'}`);
     if (!ok) process.exitCode = 1;
   }
 
@@ -327,9 +359,21 @@ async function main() {
     }
 
     console.log('\n[3] Arbeitsbaum unveraendert (git status --porcelain src assets)');
-    const status = execFileSync('git', ['status', '--porcelain', 'src', 'assets'], { encoding: 'utf8' }).trim();
-    console.log(`    Soll: leer   Ist: ${status ? status.split('\n').length + ' Zeile(n)' : 'leer'}`);
-    if (status) fail(`Der Waechter hat den Arbeitsbaum veraendert:\n${status}`);
+    const status = workTreeStatus();
+    if (status === null) {
+      // Im Build-Container gibt es weder git noch einen Arbeitsbaum: der Quelltext
+      // ist eine COPY, kein Bestand, den ein Generator schmutzig machen koennte.
+      // Ohne diesen Zweig stirbt der Waechter dort an `spawnSync git ENOENT` — das
+      // neunte Dockerfile-Tor konnte nie gruen werden (staging blieb am 08.08.2026
+      // knapp 4 Stunden auf dem letzten guten Stand stehen).
+      console.log('    uebersprungen: kein git-Arbeitsbaum (Build-Container)');
+      console.log('    — hier gibt es keinen Bestand, den die Generatoren veraendern koennten;');
+      console.log('      die Zusicherungen 1/2/4 laufen unveraendert und tragen das Tor.');
+      skipped('3 (Arbeitsbaum) — kein git-Arbeitsbaum vorhanden');
+    } else {
+      console.log(`    Soll: leer   Ist: ${status ? status.split('\n').length + ' Zeile(n)' : 'leer'}`);
+      if (status) fail(`Der Waechter hat den Arbeitsbaum veraendert:\n${status}`);
+    }
 
     console.log('\n[4] Zombie-Waechter: jede EXCLUSIONS-Ausnahme muss in diesem Durchgang gegriffen haben');
     for (const ex of EXCLUSIONS) {
