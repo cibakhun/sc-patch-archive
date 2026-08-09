@@ -633,11 +633,25 @@ die Lieferung auf `staging` liegt.
 >    `add_header`: das verwirft in einer `location` die Security-Header des
 >    Server-Blocks — genau davor warnt der Kopf der nginx-Datei.
 > 3. **„Nicht erreichbar" und „falscher Stand" waren derselbe Fehler.** In
->    CI ist Ersteres nichts, woran jemand etwas ändern kann (Cloudflare steht
->    mit Bot-Schutz davor). Der Workflow läuft deshalb mit `--weich`:
->    unerreichbar ⇒ Warnung und die ehrliche Schlusszeile „NICHT geprüft",
->    falsche Kennung ⇒ weiterhin FEHLER. Lokal bleibt die Prüfung streng.
->    Beide Betriebsarten in beide Richtungen gemessen.
+>    CI ist Ersteres nichts, woran jemand etwas ändern kann. Der Workflow
+>    läuft deshalb mit `--weich`: unerreichbar ⇒ Warnung und die ehrliche
+>    Schlusszeile „NICHT geprüft", falsche Kennung ⇒ weiterhin FEHLER. Lokal
+>    bleibt die Prüfung streng. Beide Betriebsarten gemessen.
+>
+> **⚠ Und damit ist eine offene Frage des Konzepts beantwortet — negativ:**
+> **Cloudflare weist den GitHub-Runner mit HTTP 403 ab.** Der Warteschritt
+> pollte zehn Minuten lang gegen eine Wand, während der Deploy längst durch
+> war (lokal belegt: `check:staging` grün auf denselben Commit). Es ist
+> dieselbe Sperre gegen Rechenzentren, an der schon jeder UEX-Abruf aus CI
+> scheitert. Konsequenz im Code: **403/401/429 brechen die Warteschleife
+> sofort ab** (0,1 s statt 600 s, gegen einen lokalen 403-Prüfstand
+> gemessen) und melden „Bot-Schutz, keine Aussage über den Deploy". Der
+> Schritt bleibt trotzdem im Workflow — er kostet jetzt eine Sekunde,
+> protokolliert den Zustand, und misst wieder wirklich, falls die Sperre je
+> fällt. **Die belastbare Antwort auf „ist es draußen?" gibt `npm run
+> check:staging` vom Entwicklungsrechner aus.** Das ist keine Einschränkung
+> des Verfahrens, sondern seine ehrliche Reichweite: Schiene C ist eine
+> Betreiber-Schiene, keine CI-Schiene.
 > - `CLAUDE.md` (neu, im Wurzelverzeichnis) trägt die Lieferregeln, damit sie
 >   jede Sitzung erreichen statt nur diese.
 >

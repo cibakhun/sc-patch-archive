@@ -136,8 +136,13 @@ sie von der ausgelieferten Seite und vergleicht sie mit `origin/staging` bzw.
 `origin/main` — und prüft nebenbei, dass Vorschau und Live nicht vertauscht
 sind. **Das ist die einzige belastbare Antwort auf „ist es draußen?"**: „CI
 grün" ist keine — staging hat schon vier Stunden den Vortagsstand
-ausgeliefert, während alle Commits an Ort und Stelle lagen. Beide Workflows
-warten nach dem Deploy von sich aus, bis die Kennung umspringt.
+ausgeliefert, während alle Commits an Ort und Stelle lagen.
+
+⚠ Und zwar **vom Entwicklungsrechner aus**: Cloudflare weist den
+GitHub-Runner mit `403` ab (dieselbe Sperre gegen Rechenzentren wie bei UEX,
+am 09.08.2026 gemessen). Der Schritt in den Workflows bleibt bestehen, bricht
+bei `403` aber sofort ab und meldet ehrlich „NICHT geprüft" statt grün zu
+tun.
 
 Einzeln aufrufbar bleibt weiterhin alles:
 

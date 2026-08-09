@@ -82,7 +82,7 @@ console.log(`\n=== Ausgelieferter Stand von ${BASE} ===`);
 console.log(`Soll-Kennung: ${kurz(SOLL)}${SOLL ? '' : ' (kein git — es wird nur berichtet)'}\n`);
 
 const bis = Date.now() + WARTE * 1000;
-let stempel = null, letzterFehler = null;
+let stempel = null, letzterFehler = null, gesperrt = false;
 for (;;) {
   try {
     stempel = await hole();
@@ -92,12 +92,22 @@ for (;;) {
     letzterFehler = e.message;
     // build.json fehlt: entweder laeuft der Deploy noch, oder der Stand ist
     // aelter als dieses Verfahren (dann ist genau das die Antwort).
+    //
+    // 403/401/429 ist etwas ANDERES: das ist der Bot-Schutz vor der Domain,
+    // keine Aussage ueber den Deploy. Weiterzupollen bringt dann nichts —
+    // gemessen am 09.08.2026: der GitHub-Runner bekommt von Cloudflare
+    // durchgehend 403, der Schritt lief zehn Minuten fuer nichts. Dieselbe
+    // Sperre wie bei UEX. Also sofort abbrechen statt das Fenster
+    // auszusitzen.
+    if (/HTTP (401|403|429)/.test(e.message)) { gesperrt = true; break; }
   }
   if (Date.now() >= bis) break;
   process.stdout.write('.');
   await new Promise((r) => setTimeout(r, 10000));
 }
 if (WARTE) console.log('');
+if (gesperrt)
+  console.log(`Abgebrochen: die Domain weist diesen Rechner ab (${letzterFehler}) — Bot-Schutz, keine Aussage ueber den Deploy.\n`);
 
 const fail = [];
 
@@ -109,8 +119,13 @@ if (!stempel) {
     `oder die ausgelieferte Fassung ist aelter als der Build-Stempel — dann ist sie in jedem Fall nicht der aktuelle Stand.`;
   if (WEICH) {
     console.log(`    WARNUNG (--weich): ${satz}`);
-    console.log('    Blockiert nicht — von hier aus laesst sich nicht unterscheiden, ob die Seite');
-    console.log('    alt ist oder ob dieser Rechner sie nur nicht erreicht. Lokal nachsehen:');
+    if (gesperrt) {
+      console.log('    Grund ist der Bot-Schutz vor der Domain, nicht der Deploy — von hier aus');
+      console.log('    ist die Frage nicht beantwortbar. Auf dem Entwicklungsrechner geht es:');
+    } else {
+      console.log('    Blockiert nicht — von hier aus laesst sich nicht unterscheiden, ob die Seite');
+      console.log('    alt ist oder ob dieser Rechner sie nur nicht erreicht. Lokal nachsehen:');
+    }
     console.log('      npm run check:staging');
   } else {
     fail.push(satz);
