@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 130,
-  "totalListings": 3787,
+  "updates": 131,
+  "totalListings": 3793,
   "totalSold": 157,
   "distinctItems": 963
  },
@@ -76768,6 +76768,10 @@
     {
      "d": "2026-08-08",
      "p": 10000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 15000000
     }
    ],
    "soldOut": false,
@@ -80600,6 +80604,132 @@
    "soldOutPrice": null,
    "dateAdded": 1786239906,
    "dateExpiration": 1791423905
+  },
+  "160517": {
+   "idItem": 6455,
+   "idCategory": 17,
+   "title": "Torrent Compensator1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786240256,
+   "dateExpiration": 1791424256
+  },
+  "160523": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Looted: Zeus Exploration Suit Solar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786241244,
+   "dateExpiration": 1791425244
+  },
+  "160524": {
+   "idItem": 5320,
+   "idCategory": 17,
+   "title": "FocalWave-10 (1x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 420000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786241447,
+   "dateExpiration": 1791425446
+  },
+  "160525": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Crafted: Full Bellator Suit 22% DR",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 821,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786241970,
+   "dateExpiration": 1791425970
+  },
+  "160527": {
+   "idItem": 5752,
+   "idCategory": 18,
+   "title": "P6-LR \"Blacklist\" Sniper Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786242588,
+   "dateExpiration": 1791426588
+  },
+  "160529": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Looted: Morzov-SH Spite Armor Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786242895,
+   "dateExpiration": 1791426895
   }
  }
 }
