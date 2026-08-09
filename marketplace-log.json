@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 142,
-  "totalListings": 4102,
+  "updates": 143,
+  "totalListings": 4119,
   "totalSold": 172,
   "distinctItems": 993
  },
@@ -85071,6 +85071,10 @@
     {
      "d": "2026-08-09",
      "p": 0
+    },
+    {
+     "d": "2026-08-09",
+     "p": 1500000
     }
    ],
    "soldOut": false,
@@ -85974,6 +85978,10 @@
     {
      "d": "2026-08-09",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 3000000
     }
    ],
    "soldOut": false,
@@ -87347,6 +87355,48 @@
    "dateAdded": 1786304440,
    "dateExpiration": 1791488440
   },
+  "160830": {
+   "idItem": 5910,
+   "idCategory": 36,
+   "title": "Hephaestanite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 540000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786304627,
+   "dateExpiration": 1791488627
+  },
+  "160831": {
+   "idItem": null,
+   "idCategory": 60,
+   "title": "Perseus",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786304627,
+   "dateExpiration": 1791488627
+  },
   "160832": {
    "idItem": 5564,
    "idCategory": 7,
@@ -87367,6 +87417,321 @@
    "soldOutPrice": null,
    "dateAdded": 1786304665,
    "dateExpiration": 1791488665
+  },
+  "160833": {
+   "idItem": 4902,
+   "idCategory": 18,
+   "title": "Fresnel \"Molten\" Energy LMG 960 Avg",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 960,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786304686,
+   "dateExpiration": 1791488686
+  },
+  "160835": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 10000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786304796,
+   "dateExpiration": 1791488796
+  },
+  "160841": {
+   "idItem": 5334,
+   "idCategory": 17,
+   "title": "WTB Vera 2",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786305130,
+   "dateExpiration": 1791489130
+  },
+  "160844": {
+   "idItem": 5910,
+   "idCategory": 36,
+   "title": "Hephaestanite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 896,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786305275,
+   "dateExpiration": 1791489274
+  },
+  "160847": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Terrapin Medic Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786305684,
+   "dateExpiration": 1791489684
+  },
+  "160848": {
+   "idItem": 4586,
+   "idCategory": 38,
+   "title": "Irradiated Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786306025,
+   "dateExpiration": 1791490025
+  },
+  "160849": {
+   "idItem": 5022,
+   "idCategory": 61,
+   "title": "WTB Yormandi Eye",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786306167,
+   "dateExpiration": 1796674167
+  },
+  "160850": {
+   "idItem": 5116,
+   "idCategory": 38,
+   "title": "Irradiated Valakkar Pearl (AAA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786306242,
+   "dateExpiration": 1791490242
+  },
+  "160853": {
+   "idItem": 1915,
+   "idCategory": 32,
+   "title": "WTB-4xNDB-28 Repeater",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786306406,
+   "dateExpiration": 1791490406
+  },
+  "160856": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786306633,
+   "dateExpiration": 1791490633
+  },
+  "160859": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "WTS SOL III Full Flightsuit -5M",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786306965,
+   "dateExpiration": 1791490965
+  },
+  "160861": {
+   "idItem": 2471,
+   "idCategory": 2,
+   "title": "CSP-68L Backpack Night Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786307039,
+   "dateExpiration": 1791491039
+  },
+  "160862": {
+   "idItem": 3227,
+   "idCategory": 11,
+   "title": "Creese Jacket Toxic Fog",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786307075,
+   "dateExpiration": 1791491075
+  },
+  "160863": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper Q917 2SCU container Patch 4.9",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 917,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 7500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786307336,
+   "dateExpiration": 1791491336
+  },
+  "160864": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Golem Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786307706,
+   "dateExpiration": 1791491706
   }
  }
 }
