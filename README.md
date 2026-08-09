@@ -60,6 +60,34 @@ npm run preview        # den Build lokal ausliefern
 
 ## Prüfen
 
+**Ein Befehl, und es ist derselbe wie im Dockerfile:**
+
+```bash
+npm run gate
+```
+
+Das ist das Auslieferungs-Tor (Schiene A). Läuft nach einem Build und prüft
+alles, was auch der CI-Build prüft, bevor ein Image entsteht — schlägt eine
+Strecke fehl, entsteht dort kein Image und Coolify liefert weiter den letzten
+guten Stand. **Vor jedem Push auf `staging` einmal grün gesehen haben.**
+
+```bash
+npm run gate -- --list            # nur zeigen, was liefe
+npm run gate -- --only verify:fx  # eine einzelne Strecke, zur Diagnose
+npm run gate -- --continue        # nicht beim ersten Fehler abbrechen
+npm run gate:data                 # Schiene B: nach jedem Datamine-/Sync-Lauf
+```
+
+Welche Strecken zu welcher Schiene gehören, steht in
+[`scripts/lib/gate-registry.mjs`](scripts/lib/gate-registry.mjs) — und nur
+dort. `verify:wiring` (erste Strecke im Tor) schlägt fehl, sobald ein
+Prüfskript ohne Eintrag im Bestand liegt, ein Eintrag ins Leere zeigt oder
+eine Strecke git/Netz/Kindprozess anfasst, ohne es zu erklären. Schiene B
+läuft nur lokal: sie braucht die `Data.p4k`, den installierten Client oder
+freien UEX-Zugang — aus GitHub Actions ist UEX gesperrt.
+
+Einzeln aufrufbar bleibt weiterhin alles:
+
 ```bash
 npm run test:e2e       # node:test — braucht einen Build (sagt es sonst)
 npm run verify         # jede lokale href/src/url() in dist/ zeigt auf eine Datei

@@ -456,9 +456,41 @@ Schritt gilt erst als fertig, wenn die sieben Grundsätze aus § 4 belegt sind
 (insbesondere: Negativkontrolle vorgeführt, Selbstauskunft vorhanden) und
 die Lieferung auf `staging` liegt.
 
+> ## Stand der Umsetzung
+>
+> | Schritt | Stand |
+> |---|---|
+> | S1a Registry + `npm run gate` + `verify:wiring` | ✅ **gebaut** 09.08.2026 |
+> | S1b Streuner ans Tor | ✅ **gebaut** 09.08.2026 — fünf von sechs |
+> | S1c `gate:data` + Patch-Tag-Reihenfolge | offen |
+> | S1d Kennzahlen-Sperrklinke | offen |
+> | S2 Browser-Rauchtest | offen |
+> | S3 Build-Stempel + `CLAUDE.md` | offen |
+>
+> **Gemessen nach S1a/S1b** (`npm run gate`, frischer Build, 09.08.2026):
+> 16 von 16 Schritten grün in **156,9 s** — die Vorhersage lag bei ~165 s.
+> Das Tor umfasst jetzt 15 scharfe Strecken statt neun; `verify:mining` ist
+> die sechzehnte und steht als **Schuldenposten** im Verzeichnis, weil der
+> Patch-Verzug es lokal rot zieht (nie ein rotes Tor scharfschalten). Der
+> Posten wird bei jedem Lauf gedruckt und kann nicht in Vergessenheit geraten.
+>
+> **Vier Negativkontrollen vorgeführt** (Grundsatz 1), jede mit Exit 1 und
+> anschließend grünem Rückbau:
+>
+> | Probe | Bruch | Meldung |
+> |---|---|---|
+> | NK-1 (Z1) | `scripts/verify-probe.mjs` angelegt | „hat keinen Eintrag in scripts/lib/gate-registry.mjs" |
+> | NK-2 (Z2) | `verify:fx` in package.json umbenannt | „nennt npm-Skript `verify:fx` — package.json kennt es nicht" |
+> | NK-3 (Z4) | `node:child_process` in `verify-fx.mjs` importiert | „berührt Kindprozess, aber der Verzeichnis-Eintrag erklärt es nicht" |
+> | NK-4 (Z4) | `env: 'git: …'` an einem Eintrag ohne git-Aufruf | „die Umgebungsmarke nennt git, im Skript kommt es nicht mehr vor — Zombie-Marke" |
+>
+> Nachgezogen: `README.md` und `docs/astro-7-migration.md` führten je eine
+> eigene, mit dem Dockerfile **nicht** deckungsgleiche Prüfkette — beide
+> zeigen jetzt auf `npm run gate`.
+
 ## Stufe 1 — Verkabeln (≈ 1,5–2 Tage): B3 + B4 + B5
 
-**S1a — Registry + `npm run gate` + `verify:wiring`** (B3, ~0,5 T)
+**S1a — Registry + `npm run gate` + `verify:wiring`** (B3, ~0,5 T) — ✅ gebaut
 
 `package.json` erhält `gate` als kanonische Kette; das Dockerfile ruft nur
 noch `RUN npm run gate`. Registry-Skizze:
@@ -481,7 +513,7 @@ in `gate`, jedes B-Skript in `gate:data`; Selbstauskunft „N Skripte, A/B/C/
 Ausnahmen". Negativkontrolle: Probe-Skript anlegen → rot; A-Skript aus der
 Kette nehmen → rot.
 
-**S1b — Die sechs torfähigen Streuner in die Kette** (B1→B2, ~0,5–1 T)
+**S1b — Die sechs torfähigen Streuner in die Kette** (B1→B2, ~0,5–1 T) — ✅ gebaut (fünf scharf, `verify:mining` als Schuldenposten)
 
 | Prüfer | heute (gemessen) | Vorarbeit |
 |---|---|---|
