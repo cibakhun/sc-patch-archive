@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 144,
-  "totalListings": 4150,
+  "updates": 145,
+  "totalListings": 4158,
   "totalSold": 172,
-  "distinctItems": 994
+  "distinctItems": 995
  },
  "listings": {
   "156580": {
@@ -83665,6 +83665,10 @@
     {
      "d": "2026-08-09",
      "p": 500000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 300000
     }
    ],
    "soldOut": false,
@@ -88395,6 +88399,174 @@
    "soldOutPrice": null,
    "dateAdded": 1786311767,
    "dateExpiration": 1791495766
+  },
+  "160882": {
+   "idItem": 5859,
+   "idCategory": 36,
+   "title": "Aslarite 854q 0.733 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 854,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 3200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786311952,
+   "dateExpiration": 1791495952
+  },
+  "160883": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 880,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786311958,
+   "dateExpiration": 1791495958
+  },
+  "160884": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl 860Q 1.544 SCU Total",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 860,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786312193,
+   "dateExpiration": 1791496193
+  },
+  "160885": {
+   "idItem": 4743,
+   "idCategory": 87,
+   "title": "Jaclium 864q x8",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 864,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786312502,
+   "dateExpiration": 1791496502
+  },
+  "160891": {
+   "idItem": 6001,
+   "idCategory": 61,
+   "title": "UNE Gold Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786314223,
+   "dateExpiration": 1791498223
+  },
+  "160893": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786314416,
+   "dateExpiration": 1791498416
+  },
+  "160894": {
+   "idItem": 7437,
+   "idCategory": 4,
+   "title": "Bokto Legs",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786314483,
+   "dateExpiration": 1791498482
+  },
+  "160895": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786314516,
+   "dateExpiration": 1791498516
   }
  }
 }
