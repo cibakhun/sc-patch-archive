@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 138,
-  "totalListings": 3981,
-  "totalSold": 167,
-  "distinctItems": 987
+  "updates": 139,
+  "totalListings": 3988,
+  "totalSold": 168,
+  "distinctItems": 988
  },
  "listings": {
   "156580": {
@@ -73903,6 +73903,10 @@
     {
      "d": "2026-08-08",
      "p": 800000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 500000
     }
    ],
    "soldOut": false,
@@ -79487,9 +79491,9 @@
      "p": 4500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-09",
+   "soldOutPrice": 4500000,
    "dateAdded": 1786226944,
    "dateExpiration": 1791410944
   },
@@ -84770,6 +84774,153 @@
    "soldOutPrice": null,
    "dateAdded": 1786289710,
    "dateExpiration": 1791473710
+  },
+  "160739": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "BIG CLEARANCE SALE! Huge Resource Bundle Super Cheap TODAY ONLY!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 50000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786291012,
+   "dateExpiration": 1791475012
+  },
+  "160744": {
+   "idItem": 6018,
+   "idCategory": 3,
+   "title": "Palatino Helmet Necropolis",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786292117,
+   "dateExpiration": 1791476117
+  },
+  "160747": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTR Argo Mole - Renting a Mole for 24h",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786292292,
+   "dateExpiration": 1791476292
+  },
+  "160751": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "F7C Super Hornet - NO FAVORS - Wikelo Kit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 16000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786293211,
+   "dateExpiration": 1791477211
+  },
+  "160752": {
+   "idItem": 7985,
+   "idCategory": 7,
+   "title": "Palatino Set Daystar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786293237,
+   "dateExpiration": 1791477237
+  },
+  "160753": {
+   "idItem": 6336,
+   "idCategory": 2,
+   "title": "Warden Backpack Hiro",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786293457,
+   "dateExpiration": 1791477457
+  },
+  "160755": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "RSI Meteor - NO FAVORS - Wikelo Kit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 21000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786293609,
+   "dateExpiration": 1791477609
   }
  }
 }
