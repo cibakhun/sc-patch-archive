@@ -161,6 +161,42 @@ function validate() {
   }
   for (const k of Object.keys(bp.seed)) need('channel', chanKeys, k, 'seed');
 
+  // Seed shape, imagery and link buttons. Discord rejects any of these at post
+  // time against the LIVE server, which is the worst place to find out.
+  for (const [k, entry] of Object.entries(bp.seed)) {
+    const embeds = Array.isArray(entry) ? entry : entry?.embeds;
+    if (!Array.isArray(embeds) || !embeds.length) { errors.push(`seed "${k}": needs an embed list (array, or { embeds, buttons })`); continue; }
+    for (const e of embeds) {
+      for (const [field, v] of [['image', e.image], ['thumbnail', e.thumbnail]]) {
+        if (v && v !== 'guild-icon' && !/^https?:\/\//.test(v)) errors.push(`seed "${k}": ${field} must be an http(s) URL or "guild-icon"`);
+      }
+    }
+    const buttons = Array.isArray(entry) ? [] : entry?.buttons ?? [];
+    if (buttons.length > 25) errors.push(`seed "${k}": ${buttons.length} buttons — Discord allows 25 (5 rows × 5)`);
+    for (const b of buttons) {
+      if (!b?.label || !b?.url) errors.push(`seed "${k}": every button needs a label and a url`);
+      else {
+        if (b.label.length > 80) errors.push(`seed "${k}": button label "${b.label.slice(0, 20)}…" is ${b.label.length} chars (Discord allows 80)`);
+        if (!/^https?:\/\//.test(b.url)) errors.push(`seed "${k}": button "${b.label}" needs an http(s) url, got "${b.url}"`);
+      }
+    }
+  }
+  // Forum extras
+  for (const cat of bp.categories) for (const ch of cat.channels) {
+    if (ch.type !== 'forum') {
+      if (ch.tags || ch.layout || ch.sort) errors.push(`Channel ${ch.key}: tags/layout/sort only apply to a forum`);
+      continue;
+    }
+    if (ch.layout && !['gallery', 'list'].includes(ch.layout)) errors.push(`Channel ${ch.key}: layout must be "gallery" or "list"`);
+    if (ch.sort && !['activity', 'creation'].includes(ch.sort)) errors.push(`Channel ${ch.key}: sort must be "activity" or "creation"`);
+    if (ch.tags && ch.tags.length > 20) errors.push(`Channel ${ch.key}: ${ch.tags.length} forum tags — Discord allows 20`);
+    for (const t of ch.tags ?? []) {
+      const name = typeof t === 'string' ? t : t?.name;
+      if (!name) errors.push(`Channel ${ch.key}: a forum tag has no name`);
+      else if (name.length > 20) errors.push(`Channel ${ch.key}: forum tag "${name}" is ${name.length} chars (Discord allows 20)`);
+    }
+  }
+
   // AutoMod
   const AUTOMOD_TRIGGERS = new Set(['Spam', 'MentionSpam', 'Keyword', 'KeywordPreset']);
   const AUTOMOD_PRESETS = new Set(['Profanity', 'SexualContent', 'Slurs']);
@@ -209,6 +245,7 @@ async function build() {
     Client, GatewayIntentBits, PermissionsBitField, PermissionFlagsBits, ChannelType,
     GuildVerificationLevel, GuildExplicitContentFilter, GuildDefaultMessageNotifications,
     EmbedBuilder, Routes, OverwriteType, resolveColor, MessageType, ChannelFlags,
+    ActionRowBuilder, ButtonBuilder, ButtonStyle, ForumLayoutType, SortOrderType,
     AutoModerationRuleTriggerType, AutoModerationRuleEventType,
     AutoModerationActionType, AutoModerationRuleKeywordPresetType,
   } = DJS;
@@ -273,6 +310,34 @@ async function build() {
   // channels so patch posts, announcements and seed posts work even if the bot
   // is ever re-invited without Administrator.
   const botRoleId = me.roles.botRole?.id ?? null;
+
+  // ── Renames ──────────────────────────────────────────────────────────────
+  // Everything below matches live objects BY NAME. So a rename in the blueprint
+  // is invisible to the matcher: it would build a pristine empty channel next to
+  // the old one and leave the original — with all its history — orphaned. This
+  // step closes that gap first. Idempotent: once renamed, the old name is gone
+  // and every later run is a no-op.
+  if (bp.renames) {
+    step('Renames');
+    await guild.roles.fetch();
+    await guild.channels.fetch();
+    let renamed = 0, skipped = 0;
+    const doRename = async (kind, from, to, find) => {
+      if (from === to) return;
+      const target = find(to);
+      const source = find(from);
+      if (target) { if (source && source.id !== target.id) warn(`${kind} "${from}" AND "${to}" both exist — leaving both, resolve by hand`); skipped++; return; }
+      if (!source) { skipped++; return; }
+      try { await source.edit({ name: to, reason: 'VerseBase rename' }); renamed++; chg(`${kind} "${from}" → "${to}"`); }
+      catch (e) { warn(`${kind} "${from}" → "${to}" failed: ${e.message}`); }
+    };
+    const findRole = (n) => guild.roles.cache.find((r) => r.name === n && !r.managed);
+    const findChan = (n) => guild.channels.cache.find((ch) => ch.name === n && !ch.isThread?.());
+    for (const [from, to] of Object.entries(bp.renames.categories ?? {})) await doRename('category', from, to, findChan);
+    for (const [from, to] of Object.entries(bp.renames.channels ?? {})) await doRename('channel', from, to, findChan);
+    for (const [from, to] of Object.entries(bp.renames.roles ?? {})) await doRename('role', from, to, findRole);
+    if (!renamed) ok(`nothing to rename (${skipped} already current)`);
+  }
 
   // ── Roles ────────────────────────────────────────────────────────────────
   step('Roles');
@@ -385,7 +450,21 @@ async function build() {
       if (ch.nsfw) edit.nsfw = true;
       // Forum post tags. Existing tags keep their id (matched by name) so posts
       // already filed under them don't lose their tag on a re-run.
-      if (ch.tags && ch.type === 'forum') edit.availableTags = ch.tags.map((name) => ({ name, moderated: false }));
+      if (ch.type === 'forum') {
+        // Tags accept a bare string or { name, emoji }. A filter row is scanned,
+        // not read — this is the one place an emoji earns its keep.
+        if (ch.tags) edit.availableTags = ch.tags.map((t) => {
+          const tag = { name: typeof t === 'string' ? t : t.name, moderated: false };
+          const emoji = typeof t === 'string' ? null : t.emoji;
+          if (emoji) tag.emoji = { id: null, name: emoji };
+          return tag;
+        });
+        // Gallery layout puts the first attachment on the card — for a channel
+        // that runs on screenshots that is the difference between a wall of
+        // titles and something you can actually scan.
+        if (ch.layout) edit.defaultForumLayout = ch.layout === 'gallery' ? ForumLayoutType.GalleryView : ForumLayoutType.ListView;
+        if (ch.sort) edit.defaultSortOrder = ch.sort === 'creation' ? SortOrderType.CreationDate : SortOrderType.LatestActivity;
+      }
 
       let channel = guild.channels.cache.find((c) => c.parentId === category.id && c.name === wantName);
       // Not in this category? Adopt a same-named channel from anywhere in the
@@ -681,7 +760,28 @@ async function build() {
     if (e.fields) b.addFields(e.fields.map((f) => ({ name: f.name, value: subst(f.value), inline: !!f.inline })));
     if (e.footer) b.setFooter({ text: e.footer });
     if (e.url) b.setURL(e.url);
+    // Imagery. `guild-icon` resolves to the server's own icon on Discord's CDN,
+    // so the brand mark needs no separate hosting and never goes stale.
+    if (e.image) b.setImage(e.image);
+    if (e.thumbnail) b.setThumbnail(e.thumbnail === 'guild-icon' ? guild.iconURL({ size: 256, extension: 'png' }) : e.thumbnail);
     return b;
+  };
+  // Link buttons: pure navigation, no interaction handler and no listener needed,
+  // so they work even while the always-on bot is down. Discord allows 5 per row
+  // and 5 rows — chunk a flat list rather than making the blueprint count.
+  const buildButtons = (list) => {
+    if (!list?.length) return [];
+    const rows = [];
+    for (let i = 0; i < list.length && rows.length < 5; i += 5) {
+      rows.push(new ActionRowBuilder().addComponents(
+        list.slice(i, i + 5).map((b) => {
+          const btn = new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel(b.label).setURL(b.url);
+          if (b.emoji) btn.setEmoji(b.emoji);
+          return btn;
+        }),
+      ));
+    }
+    return rows;
   };
   const nameOf = (key) => expectedName(bp.categories.flatMap((c) => c.channels).find((c) => c.key === key)?.name ?? key, 'text');
   // Pinning leaves a "… pinned a message to this channel" system line sitting
@@ -698,9 +798,13 @@ async function build() {
 
   let sweptTotal = 0;
   const staleSeedPins = [];
-  for (const [key, embeds] of Object.entries(bp.seed)) {
+  for (const [key, entry] of Object.entries(bp.seed)) {
     const ch = guild.channels.cache.get(channelId[key]);
     if (!ch) { warn(`Seed: channel "${key}" not found`); continue; }
+    // A seed entry is either a bare embed list (the old form) or
+    // { embeds, buttons } — both stay valid so nothing has to be rewritten.
+    const embeds = Array.isArray(entry) ? entry : entry.embeds ?? [];
+    const components = buildButtons(Array.isArray(entry) ? null : entry.buttons);
     const built = embeds.map(buildEmbed);
 
     // Forum channels have NO .send() — a "post" is a thread whose starter message
@@ -712,19 +816,28 @@ async function build() {
       try {
         const active = await ch.threads.fetchActive();
         const archived = await ch.threads.fetchArchived().catch(() => ({ threads: new Map() }));
-        post = [...active.threads.values(), ...archived.threads.values()]
-          .find((t) => t.ownerId === client.user.id && t.name === title);
+        // Match on OWNERSHIP, not on the title. Matching by title meant that
+        // editing the title in the blueprint made the builder miss its own post
+        // and publish a second one beside it — the same rename trap the channel
+        // matcher has, one level down. Members' threads carry their own ownerId,
+        // so "the bot's thread" is already precise; oldest wins.
+        const mine = [...active.threads.values(), ...archived.threads.values()]
+          .filter((t) => t.ownerId === client.user.id)
+          .sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+        post = mine[0] ?? null;
+        if (mine.length > 1) warn(`#${nameOf(key)}: ${mine.length} bot-owned forum posts — updating the oldest, delete the rest by hand`);
       } catch { /* ignore */ }
       if (post) {
         try {
+          if (post.name !== title) await post.setName(title).catch(() => {});
           const starter = await post.fetchStarterMessage();
-          await starter.edit({ embeds: built });
+          await starter.edit({ embeds: built, components });
           chg(`#${nameOf(key)} (forum seed updated in place)`);
         } catch (e) { warn(`forum seed edit failed for ${key}: ${e.message}`); }
         continue;
       }
       try {
-        const created = await ch.threads.create({ name: title, message: { embeds: built } });
+        const created = await ch.threads.create({ name: title, message: { embeds: built, components } });
         // Pinning a forum post is a channel FLAG, not message.pin(). Best-effort,
         // and it needs its own try/catch: a missing method throws synchronously,
         // so a trailing .catch() would not catch it and would lose the whole seed.
@@ -754,7 +867,7 @@ async function build() {
     // Fast path: one pinned seed post ↔ one embed → update it in place (no delete).
     if (mine.length === 1 && built.length === 1) {
       try {
-        await mine[0].edit({ embeds: built });
+        await mine[0].edit({ embeds: built, components });
         sweptTotal += await sweepPinNotices(ch);
         chg(`#${nameOf(key)} (seed updated in place)`); continue;
       } catch (e) { warn(`seed edit failed for ${key}: ${e.message}`); }
@@ -764,7 +877,7 @@ async function build() {
     if (mine.length) chg(`#${nameOf(key)} (removed ${mine.length} old seed post${mine.length > 1 ? 's' : ''})`);
     let first = true;
     for (const e of built) {
-      const msg = await ch.send({ embeds: [e] });
+      const msg = await ch.send({ embeds: [e], components: first ? components : [] });
       if (first) { await msg.pin().catch(() => {}); first = false; }
     }
     sweptTotal += await sweepPinNotices(ch);

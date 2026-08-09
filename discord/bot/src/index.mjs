@@ -5,7 +5,7 @@
 //  Intents: Guilds, GuildMessages, GuildVoiceStates — all NON-privileged.
 //  (We never read message content, only that a message happened.)
 // ═══════════════════════════════════════════════════════════════════════════
-import { Client, GatewayIntentBits, Events } from 'discord.js';
+import { Client, GatewayIntentBits, Events, ActivityType } from 'discord.js';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openDb } from './db.mjs';
@@ -42,6 +42,11 @@ const cooldowns = new Map(); // `${guildId}:${userId}` -> epoch ms
 client.once(Events.ClientReady, async (c) => {
   console.log(`✓ ${c.user.tag} online — ${c.guilds.cache.size} guild(s)`);
   await ensureAvatar(c).catch(() => {});
+  // The line under the bot's name in the member list — permanently visible and,
+  // until now, permanently blank. Points at the thing the whole server is for.
+  try {
+    c.user.setPresence({ status: 'online', activities: [{ name: 'verse-base.com', type: ActivityType.Watching }] });
+  } catch (e) { console.warn(`  ! presence: ${e.message}`); }
   const cmdData = commands.buildCommandData();
   for (const guild of c.guilds.cache.values()) {
     try { await guild.commands.set(cmdData); console.log(`  · ${cmdData.length} slash commands registered in ${guild.name}`); }

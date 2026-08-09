@@ -97,14 +97,26 @@ export const everyonePermissions = [
 // Playstyle/interest roles (Miner, Trader, Combat Pilot, …) were removed with
 // the channels they coloured: they gated nothing, and picking a playstyle is a
 // thing you do on a community server, not on a feedback server.
+//
+// ── ON EMOJI ───────────────────────────────────────────────────────────────
+// Names carry no emoji. Discord already draws a glyph for every channel type
+// (#, speaker, forum, lock) and paints every role in its own colour — an emoji
+// on top of that repeats what the interface just said. When every line is
+// decorated, decoration stops being a signal and becomes texture.
+//
+// Two exceptions, both functional: the language roles keep their flags (a
+// language picker is scanned, not read) and the #bug-reports forum tags keep
+// theirs (a filter row is scanned too). Everything else earns attention through
+// position, colour and wording.
+// ───────────────────────────────────────────────────────────────────────────
 export const roles = [
   {
-    key: 'fleet-command', name: '⭐ Fleet Command', color: C.cyan,
+    key: 'fleet-command', name: 'Fleet Command', color: C.cyan,
     hoist: true, mentionable: false, permissions: ['Administrator'],
     reason: 'Server administrators',
   },
   {
-    key: 'navigators', name: '🛰 Navigators', color: C.blue,
+    key: 'navigators', name: 'Navigators', color: C.blue,
     hoist: true, mentionable: true,
     permissions: [
       'KickMembers', 'BanMembers', 'ModerateMembers', 'ManageMessages',
@@ -116,7 +128,7 @@ export const roles = [
     reason: 'Moderators',
   },
   {
-    key: 'flight-computer', name: '🤖 Flight Computer', color: C.gold,
+    key: 'flight-computer', name: 'Flight Computer', color: C.gold,
     hoist: true, mentionable: false, permissions: [],
     reason: 'Display role for bots / integrations',
   },
@@ -124,11 +136,11 @@ export const roles = [
   // Notification opt-ins. Deliberately NOT mentionable: these reach everyone who
   // opted in, so a single member shouldn't be able to broadcast to all of them.
   // Staff (MentionEveryone) and the bot's patch auto-post can still ping them.
-  { key: 'patch-watch', name: '🔔 Patch Pings', color: C.pingCyan, hoist: false, mentionable: false, permissions: [] },
-  { key: 'announce-ping', name: '📢 Announcement Pings', color: C.pingBlue, hoist: false, mentionable: false, permissions: [] },
+  { key: 'patch-watch', name: 'Patch Pings', color: C.pingCyan, hoist: false, mentionable: false, permissions: [] },
+  { key: 'announce-ping', name: 'Announcement Pings', color: C.pingBlue, hoist: false, mentionable: false, permissions: [] },
   // 🧪 Testers get pinged when something needs trying before it ships. This is
   // the one interest role that survives, because it's about the site's work.
-  { key: 'tester', name: '🧪 Test Pilots', color: C.craftOrange, hoist: false, mentionable: false, permissions: [] },
+  { key: 'tester', name: 'Test Pilots', color: C.craftOrange, hoist: false, mentionable: false, permissions: [] },
 
   // Language
   { key: 'lang-en', name: '🇬🇧 English', color: null, hoist: false, mentionable: false, permissions: [] },
@@ -163,63 +175,137 @@ const STAFF_VIEW = {
 // Topics are bilingual (EN · DE); voice/stage topics are ignored by Discord.
 export const categories = [
   {
-    key: 'cat-start', name: '⁘ START HERE',
+    key: 'cat-start', name: 'START HERE',
     channels: [
-      { key: 'welcome', name: '📜・welcome', type: 'announcement', readonly: true, topic: 'What this server is for, and what it deliberately isn’t · Wofür dieser Server da ist — und wofür bewusst nicht' },
-      { key: 'rules', name: '📏・rules', type: 'text', readonly: true, topic: 'The house rules. Read once, fly right · Die Serverregeln. Einmal lesen, sauber fliegen' },
-      { key: 'start-here', name: '🧭・start-here', type: 'text', readonly: true, topic: 'Server map, every verse-base.com tool, and how to pick your roles · Server-Karte, alle Tools und wie du deine Rollen wählst' },
+      { key: 'welcome', name: 'welcome', type: 'announcement', readonly: true, topic: 'What this server is for, and what it deliberately isn’t · Wofür dieser Server da ist — und wofür bewusst nicht' },
+      { key: 'rules', name: 'rules', type: 'text', readonly: true, topic: 'The house rules. Read once, fly right · Die Serverregeln. Einmal lesen, sauber fliegen' },
+      { key: 'start-here', name: 'start-here', type: 'text', readonly: true, topic: 'Server map, every verse-base.com tool, and how to pick your roles · Server-Karte, alle Tools und wie du deine Rollen wählst' },
     ],
   },
   {
-    key: 'cat-releases', name: '📡 RELEASES',
+    key: 'cat-releases', name: 'RELEASES',
     channels: [
-      { key: 'announcements', name: '📣・announcements', type: 'announcement', readonly: true, topic: 'What shipped on verse-base.com · opt into 📢 Announcement Pings · Was auf verse-base.com live ging · 📢-Pings aktivieren' },
+      { key: 'announcements', name: 'announcements', type: 'announcement', readonly: true, topic: 'What shipped on verse-base.com · Was auf verse-base.com live ging' },
       // The patch feed stays: it isn't news-aggregation, it's the site's own
       // patch archive posting its output. It's a tool doing its job in public.
-      { key: 'patch-notes', name: '🩹・patch-notes', type: 'announcement', readonly: true, topic: 'Every patch, mirrored from the archive · opt into 🔔 Patch Pings · Jeder Patch, aus dem Archiv gespiegelt · 🔔 Patch-Pings' },
+      { key: 'patch-notes', name: 'patch-notes', type: 'announcement', readonly: true, topic: 'Every patch, mirrored from the archive · Jeder Patch, aus dem Archiv gespiegelt' },
     ],
   },
   {
-    key: 'cat-build', name: '🔧 BUILD & FEEDBACK',
+    key: 'cat-build', name: 'BUILD & FEEDBACK',
     channels: [
       {
-        key: 'bug-reports', name: '🐞・bug-reports', type: 'forum',
-        topic: 'Something wrong on the site? One thread per bug — say the page, what you did, what you expected · Etwas kaputt? Ein Thread pro Fehler — Seite, was du getan hast, was du erwartet hast',
+        key: 'bug-reports', name: 'bug-reports', type: 'forum',
+        topic: 'Something wrong on the site? One thread per bug — the page, what you did, what you expected · Etwas kaputt? Ein Thread pro Fehler — Seite, Vorgehen, Erwartung',
         // A forum, not a text channel: each bug gets its own thread with a
         // status tag, so nothing scrolls away unanswered. Tags are matched by
         // name on re-runs, so already-tagged threads keep theirs.
-        tags: ['Item Finder', 'Ships', 'Crafting', 'Mining', 'Patch archive', 'Account', 'Discord bot', 'Mobile', 'Data error', 'Fixed'],
+        //
+        // Tags DO carry emoji — a filter row is scanned, not read, and a shape
+        // is faster to find than a word. This is the exception that proves the
+        // rule at the top of this file.
+        tags: [
+          { name: 'Item Finder', emoji: '🔎' }, { name: 'Ships', emoji: '🚀' },
+          { name: 'Crafting', emoji: '🔧' }, { name: 'Mining', emoji: '⛏' },
+          { name: 'Patch archive', emoji: '🩹' }, { name: 'Account', emoji: '👤' },
+          { name: 'Discord bot', emoji: '🤖' }, { name: 'Mobile', emoji: '📱' },
+          { name: 'Data error', emoji: '📊' }, { name: 'Fixed', emoji: '✅' },
+        ],
+        layout: 'gallery',   // screenshots on the card beat a wall of titles
+        sort: 'activity',
         // The newcomer gate is lifted HERE only: a bug report needs a screenshot,
         // and the person most likely to file one is brand new.
         overwrites: {
           everyone: { allow: ['EmbedLinks', 'AttachFiles'] },
         },
       },
-      { key: 'suggestions', name: '💡・suggestions', type: 'text', topic: 'Ideas for verse-base.com — one per post, react to vote · Ideen für verse-base.com — eine pro Post, mit Reaktion abstimmen', slowmode: 30 },
-      { key: 'support', name: '🛟・support', type: 'text', topic: `Stuck on a tool or the bot? Ask here · Hängst du an einem Tool oder dem Bot? Frag hier → ${SITE}` },
+      { key: 'suggestions', name: 'suggestions', type: 'text', topic: 'Ideas for verse-base.com — one per post, react to vote · Ideen für verse-base.com — eine pro Post, mit Reaktion abstimmen', slowmode: 30 },
+      { key: 'support', name: 'support', type: 'text', topic: 'Stuck on a tool or the bot? Ask here · Hängst du an einem Tool oder dem Bot? Frag hier' },
       // One channel replaces the eight per-tool channels. With a server this
       // size, eight rooms meant eight quiet rooms; the per-tool split now lives
       // in the #bug-reports forum tags, where it actually earns its keep.
-      { key: 'tools', name: '🧰・tools', type: 'text', topic: `Using the tools — item finder, ships, mining, crafting, jump calc · Die Tools nutzen → ${SITE}` },
-      { key: 'bot-commands', name: '🤖・bot-commands', type: 'text', topic: 'Home for /rank, /ship, /price & friends — earns no XP, so spam freely · Zuhause für /rank, /ship, /price & Co. — bringt kein XP, also leg los', slowmode: 3, noXp: true },
+      { key: 'tools', name: 'tools', type: 'text', topic: 'Using the tools — item finder, ships, mining, crafting, jump calc · Die Tools nutzen' },
+      { key: 'bot-commands', name: 'bot-commands', type: 'text', topic: 'Home for /rank, /ship, /price & friends — earns no XP, so spam freely · Zuhause für /rank, /ship, /price & Co. — bringt kein XP, also leg los', slowmode: 3, noXp: true },
     ],
   },
   {
-    key: 'cat-hangar', name: '💬 HANGAR',
+    key: 'cat-hangar', name: 'HANGAR',
     channels: [
-      { key: 'general', name: '💬・general', type: 'text', topic: 'Everything else — say hi, talk shop, share a find · Alles andere — Hallo sagen, fachsimpeln, Fundstücke teilen' },
-      { key: 'v-landing', name: '🛬 Landing Zone', type: 'voice' },
+      { key: 'general', name: 'general', type: 'text', topic: 'Everything else — say hi, talk shop, share a find · Alles andere — Hallo sagen, fachsimpeln, Fundstücke teilen' },
+      { key: 'v-landing', name: 'Landing Zone', type: 'voice' },
     ],
   },
   {
-    key: 'cat-staff', name: '🛡 FLIGHT DECK', private: true, overwrites: STAFF_VIEW,
+    key: 'cat-staff', name: 'FLIGHT DECK', private: true, overwrites: STAFF_VIEW,
     channels: [
-      { key: 'staff-chat', name: '🗝・staff-chat', type: 'text', topic: 'Crew coordination · Crew-Koordination' },
-      { key: 'mod-log', name: '🧾・mod-log', type: 'text', topic: 'Moderation trail · Moderations-Protokoll' },
-      { key: 'bot-config', name: '⚙・bot-config', type: 'text', topic: 'Bot commands & configuration · Bot-Befehle & Konfiguration' },
-      { key: 'staff-updates', name: '📥・community-updates', type: 'text', topic: 'Discord’s admin & Community notices land here · Discord-Admin- & Community-Hinweise landen hier' },
+      { key: 'staff-chat', name: 'staff-chat', type: 'text', topic: 'Crew coordination · Crew-Koordination' },
+      { key: 'mod-log', name: 'mod-log', type: 'text', topic: 'Moderation trail · Moderations-Protokoll' },
+      { key: 'bot-config', name: 'bot-config', type: 'text', topic: 'Bot commands & configuration · Bot-Befehle & Konfiguration' },
+      { key: 'staff-updates', name: 'community-updates', type: 'text', topic: 'Discord’s admin & Community notices land here · Discord-Admin- & Community-Hinweise landen hier' },
     ],
   },
+];
+
+// ── Renames (old live name → new blueprint name) ───────────────────────────
+// EVERYTHING in the builder matches live objects BY NAME, so a rename here is
+// not cosmetic: without this table the builder would fail to recognise the old
+// channel, create an empty new one beside it and orphan the original with all
+// its history. The rename step runs first and is idempotent — once applied, the
+// old names no longer exist and every later run skips straight past.
+// Safe to delete this block once the live server has been rebuilt.
+export const renames = {
+  categories: {
+    '⁘ START HERE': 'START HERE',
+    '📡 RELEASES': 'RELEASES',
+    '🔧 BUILD & FEEDBACK': 'BUILD & FEEDBACK',
+    '💬 HANGAR': 'HANGAR',
+    '🛡 FLIGHT DECK': 'FLIGHT DECK',
+  },
+  channels: {
+    '📜・welcome': 'welcome',
+    '📏・rules': 'rules',
+    '🧭・start-here': 'start-here',
+    '📣・announcements': 'announcements',
+    '🩹・patch-notes': 'patch-notes',
+    '🐞・bug-reports': 'bug-reports',
+    '💡・suggestions': 'suggestions',
+    '🛟・support': 'support',
+    '🧰・tools': 'tools',
+    '🤖・bot-commands': 'bot-commands',
+    '💬・general': 'general',
+    '🛬 Landing Zone': 'Landing Zone',
+    '🗝・staff-chat': 'staff-chat',
+    '🧾・mod-log': 'mod-log',
+    '⚙・bot-config': 'bot-config',
+    '📥・community-updates': 'community-updates',
+  },
+  roles: {
+    '⭐ Fleet Command': 'Fleet Command',
+    '🛰 Navigators': 'Navigators',
+    '🤖 Flight Computer': 'Flight Computer',
+    '🔔 Patch Pings': 'Patch Pings',
+    '📢 Announcement Pings': 'Announcement Pings',
+    '🧪 Test Pilots': 'Test Pilots',
+  },
+};
+
+// ── Link buttons ───────────────────────────────────────────────────────────
+// Attached to seed posts as real Discord components. Link buttons need no
+// interaction handler and no listener, so they keep working while the always-on
+// bot is down. Five per row; the builder chunks a flat list.
+const TOOL_BUTTONS = [
+  { label: 'Item Finder', url: `${SITE}/item-finder.html` },
+  { label: 'Schiffe · Ships', url: `${SITE}/schiffe.html` },
+  { label: 'Mining', url: `${SITE}/topics/mining.html` },
+  { label: 'Crafting', url: `${SITE}/topics/crafting.html` },
+  { label: 'Jump Calc', url: `${SITE}/precision-jump.html` },
+];
+const REFERENCE_BUTTONS = [
+  { label: 'Patch-Archiv', url: `${SITE}/archiv.html` },
+  { label: 'Evolution', url: `${SITE}/evolution.html` },
+  { label: 'Missionen', url: `${SITE}/missionen.html` },
+  { label: 'Wikelo', url: `${SITE}/topics/wikelo-emporium.html` },
+  { label: 'Downloads', url: `${SITE}/downloads.html` },
 ];
 
 // ── Community configuration ────────────────────────────────────────────────
@@ -317,12 +403,37 @@ export const onboarding = {
 // ── Seed content (posted + pinned once; re-runs update it in place) ────────
 // Each entry is a list of embeds. Default colour is the brand cyan. Content is
 // bilingual: an English block, a divider, then the German block.
+//
+// ── ON COLOUR ──────────────────────────────────────────────────────────────
+// One accent, not a palette. Every card the site posts is cyan; gold belongs to
+// the patch stream alone, so the one channel that carries outside news reads
+// differently at a glance. The earlier version gave each channel its own colour
+// — nine cards, six colours, no meaning. Restraint is what makes an accent an
+// accent.
+//
+// ── ON IMAGERY ─────────────────────────────────────────────────────────────
+// Embeds are the only surface in Discord where you control pixels, and the same
+// discipline applies: #welcome carries the full hero because it is the front
+// door, #start-here carries only the mark. Everywhere else the words do the
+// work. An image in every card is the emoji mistake in a bigger format.
+// ───────────────────────────────────────────────────────────────────────────
 const DIV = '\n─────────────\n';
 export const seed = {
-  welcome: [
+  welcome: {
+    buttons: [
+      { label: 'verse-base.com', url: SITE },
+      { label: 'Patch-Archiv', url: `${SITE}/archiv.html` },
+      { label: 'Feedback', url: `${SITE}/feedback.html` },
+    ],
+    embeds: [
     {
       title: '⬡ Welcome to VerseBase · Willkommen bei VerseBase',
       color: C.cyan,
+      // The site's own social card: wide, cinematic, and the engine glow lands
+      // on the brand cyan. `guild-icon` resolves to the server icon on
+      // Discord's CDN — the mark needs no second home.
+      image: `${SITE}/assets/og-default.jpg`,
+      thumbnail: 'guild-icon',
       description: [
         `This is the workshop behind **[verse-base.com](${SITE})** — the unofficial Star Citizen compendium.`,
         '',
@@ -352,11 +463,12 @@ export const seed = {
       ].join('\n'),
       footer: 'VerseBase • verse-base.com',
     },
-  ],
+    ],
+  },
   rules: [
     {
-      title: '📏 The House Rules · Die Serverregeln',
-      color: C.blue,
+      title: 'The House Rules · Die Serverregeln',
+      color: C.cyan,
       description: 'Short version: be decent, keep it about the site, fly right.\nKurzfassung: sei anständig, bleib bei der Seite, flieg sauber.',
       fields: [
         { name: '1 · Respect the crew · Respektiere die Crew', value: 'No harassment, hate, slurs or personal attacks. Treat people the way you’d want on your own ship.\nKeine Belästigung, kein Hass, keine Beleidigungen oder persönlichen Angriffe. Behandle andere so, wie du es auf deinem eigenen Schiff wollen würdest.' },
@@ -370,27 +482,34 @@ export const seed = {
       footer: 'Breaking these can mean a mute, kick or ban · Verstöße können Mute, Kick oder Bann bedeuten',
     },
   ],
-  'start-here': [
+  'start-here': {
+    // The nine tool links used to be one dense markdown field. As two rows of
+    // real buttons they stop being a paragraph and become an interface.
+    buttons: [...TOOL_BUTTONS, ...REFERENCE_BUTTONS],
+    embeds: [
     {
-      title: '🧭 Start Here — the VerseBase map · Der VerseBase-Wegweiser',
+      title: 'Start here — the VerseBase map · Der VerseBase-Wegweiser',
       color: C.cyan,
+      thumbnail: 'guild-icon',
       description: 'A small server on purpose. Here’s every room and what it’s for.\nBewusst ein kleiner Server. Hier ist jeder Raum und wofür er da ist.',
       fields: [
-        { name: '🔧 Build & feedback · Bauen & Feedback', value: '🐞 <#bug-reports> — something broken? one thread per bug · etwas kaputt? ein Thread pro Fehler\n💡 <#suggestions> — ideas, one per post, react to vote · Ideen, eine pro Post, per Reaktion abstimmen\n🛟 <#support> — stuck on a tool or the bot · hängst du an einem Tool oder dem Bot\n🧰 <#tools> — using the tools, and the data behind them · die Tools nutzen und die Daten dahinter\n🤖 <#bot-commands> — bot spam welcome, earns no XP · Bot-Spam erwünscht, bringt kein XP' },
-        { name: '📡 Releases · Releases', value: '📣 <#announcements> — what shipped on the site · was auf der Seite live ging\n🩹 <#patch-notes> — every Star Citizen patch, mirrored from the archive · jeder Patch, aus dem Archiv gespiegelt' },
-        { name: '🛠 The tools themselves · Die Tools selbst', value: `[Item finder](${SITE}/item-finder.html) · [Ships & holo viewer](${SITE}/schiffe.html) · [Mining](${SITE}/topics/mining.html) · [Crafting](${SITE}/topics/crafting.html) · [Missions](${SITE}/missionen.html) · [Wikelo’s Emporium](${SITE}/topics/wikelo-emporium.html) · [Jump calculator](${SITE}/precision-jump.html) · [Patch archive](${SITE}/archiv.html) · [Evolution](${SITE}/evolution.html)` },
-        { name: '🏅 Ranks · Ränge', value: 'Chatting earns XP — climb from 🌑 Drifter upward. Check your card with **/rank**, **/leaderboard** & **/ranks** in <#bot-commands>. The Flight Computer also answers **/ship**, **/price**, **/item** and **/patch** in your language.\nMit Chatten sammelst du XP — steig von 🌑 Drifter auf. Deine Karte mit **/rank**, **/leaderboard** & **/ranks** in <#bot-commands>. Der Flight Computer beantwortet auch **/ship**, **/price**, **/item** und **/patch** in deiner Sprache.' },
-        { name: '🎭 Your roles · Deine Rollen', value: 'Open **Channels & Roles** at the top of the channel list any time. Pings (site updates · patch drops · 🧪 test pilot), your **language** — which sets the bot’s reply language — and pronouns.\nÖffne **Kanäle & Rollen** oben in der Kanalliste. Pings (Seiten-Updates · Patch-Releases · 🧪 Testpilot), deine **Sprache** — sie bestimmt die Antwortsprache des Bots — und Pronomen.' },
-        { name: '🌍 Looking for more Star Citizen? · Mehr Star Citizen?', value: 'This server stays narrow on purpose. For news, orgs, LFG or CCU trading there are excellent dedicated servers — ask in <#general> and someone will name a good one.\nDieser Server bleibt bewusst eng. Für News, Orgs, LFG oder CCU-Handel gibt es hervorragende eigene Server — frag in <#general>, jemand nennt dir einen guten.' },
-        { name: '🙏 Credits · Danksagung', value: `The Aaron Halo / Precision Jump calculator was contributed by **Jordessey** — with thanks. · Der Aaron-Halo-/Precision-Jump-Rechner stammt mit Dank von **Jordessey**. → [precision-jump](${SITE}/precision-jump.html)` },
+        // Channel mentions already render with Discord's own channel glyph —
+        // prefixing them with an emoji says the same thing twice.
+        { name: 'Build & feedback · Bauen & Feedback', value: '<#bug-reports> — something broken? one thread per bug · etwas kaputt? ein Thread pro Fehler\n<#suggestions> — ideas, one per post, react to vote · Ideen, eine pro Post, per Reaktion abstimmen\n<#support> — stuck on a tool or the bot · hängst du an einem Tool oder dem Bot\n<#tools> — using the tools, and the data behind them · die Tools nutzen und die Daten dahinter\n<#bot-commands> — bot spam welcome, earns no XP · Bot-Spam erwünscht, bringt kein XP' },
+        { name: 'Releases', value: '<#announcements> — what shipped on the site · was auf der Seite live ging\n<#patch-notes> — every Star Citizen patch, mirrored from the archive · jeder Patch, aus dem Archiv gespiegelt' },
+        { name: 'Ranks · Ränge', value: 'Chatting earns XP — climb from Drifter upward. Check your card with **/rank**, **/leaderboard** & **/ranks** in <#bot-commands>. The Flight Computer also answers **/ship**, **/price**, **/item** and **/patch** in your language.\nMit Chatten sammelst du XP — steig von Drifter auf. Deine Karte mit **/rank**, **/leaderboard** & **/ranks** in <#bot-commands>. Der Flight Computer beantwortet auch **/ship**, **/price**, **/item** und **/patch** in deiner Sprache.' },
+        { name: 'Your roles · Deine Rollen', value: 'Open **Channels & Roles** at the top of the channel list any time. Pings (site updates · patch drops · test pilot), your **language** — which sets the bot’s reply language — and pronouns.\nÖffne **Kanäle & Rollen** oben in der Kanalliste. Pings (Seiten-Updates · Patch-Releases · Testpilot), deine **Sprache** — sie bestimmt die Antwortsprache des Bots — und Pronomen.' },
+        { name: 'Looking for more Star Citizen? · Mehr Star Citizen?', value: 'This server stays narrow on purpose. For news, orgs, LFG or CCU trading there are excellent dedicated servers — ask in <#general> and someone will name a good one.\nDieser Server bleibt bewusst eng. Für News, Orgs, LFG oder CCU-Handel gibt es hervorragende eigene Server — frag in <#general>, jemand nennt dir einen guten.' },
+        { name: 'Credits · Danksagung', value: 'The Aaron Halo / Precision Jump calculator was contributed by **Jordessey** — with thanks.\nDer Aaron-Halo-/Precision-Jump-Rechner stammt mit Dank von **Jordessey**.' },
       ],
       footer: 'VerseBase • verse-base.com',
     },
-  ],
+    ],
+  },
   'bug-reports': [
     {
-      title: '🐞 How to file a bug · So meldest du einen Fehler',
-      color: C.combatRed,
+      title: 'How to file a bug · So meldest du einen Fehler',
+      color: C.cyan,
       description: [
         'One thread per bug, and tag it so it stays findable. Screenshots work here even if you’re brand new — the level gate is lifted in this channel.',
         '',
@@ -421,8 +540,8 @@ export const seed = {
   ],
   suggestions: [
     {
-      title: '💡 Suggestions · Vorschläge',
-      color: C.blue,
+      title: 'Suggestions · Vorschläge',
+      color: C.cyan,
       description: [
         'Ideas for **verse-base.com** go here. One idea per post so others can react to vote — 👍 for yes, 👎 for no.',
         '',
@@ -439,10 +558,12 @@ export const seed = {
       footer: 'VerseBase • verse-base.com',
     },
   ],
-  support: [
+  support: {
+    buttons: [{ label: 'Feedback-Formular', url: `${SITE}/feedback.html` }],
+    embeds: [
     {
-      title: '🛟 Support · Hilfe',
-      color: C.miningTeal,
+      title: 'Support · Hilfe',
+      color: C.cyan,
       description: [
         'Stuck on a tool or the Discord bot? Ask here — say what you tried, and add a screenshot if you can.',
         '',
@@ -458,15 +579,18 @@ export const seed = {
         '• **Dein Konto** — Anmeldung, Profil, Favoriten, der Planer',
         '• **Der Bot** — Ränge, Befehle, Rollen die nicht auftauchen',
         '',
-        `Lieber über die Website? Das [Feedback-Formular](${SITE}/feedback.html) landet im selben Postfach.`,
+        'Lieber über die Website? Das Formular unten landet im selben Postfach.',
       ].join('\n'),
       footer: 'VerseBase • verse-base.com',
     },
-  ],
-  tools: [
+    ],
+  },
+  tools: {
+    buttons: TOOL_BUTTONS,
+    embeds: [
     {
-      title: '🧰 The tools · Die Tools',
-      color: C.exploreBlue,
+      title: 'The tools · Die Tools',
+      color: C.cyan,
       description: [
         'One room for all of them — asking how something works, comparing numbers, or showing what you got out of it.',
         '',
@@ -480,14 +604,20 @@ export const seed = {
         '',
         'Der Bot beantwortet **/ship**, **/price**, **/item** und **/patch** direkt hier, in deiner Sprache.',
         '',
-        'Schnapp dir **🧪 Test Pilots** im Onboarding, wenn du den Ping willst, sobald etwas vor dem Release getestet werden soll.',
+        'Schnapp dir **Test Pilots** im Onboarding, wenn du den Ping willst, sobald etwas vor dem Release getestet werden soll.',
       ].join('\n'),
       footer: 'VerseBase • verse-base.com',
     },
-  ],
-  'patch-notes': [
+    ],
+  },
+  'patch-notes': {
+    buttons: [
+      { label: 'Patch-Archiv', url: `${SITE}/archiv.html` },
+      { label: 'Evolution', url: `${SITE}/evolution.html` },
+    ],
+    embeds: [
     {
-      title: '🩹 Patch feed is live · Der Patch-Feed ist aktiv',
+      title: 'Patch feed is live · Der Patch-Feed ist aktiv',
       color: C.gold,
       description: [
         'Every Star Citizen patch gets mirrored here from the archive, so you never miss a drop. New patches post in **both English and German**.',
@@ -500,15 +630,16 @@ export const seed = {
         '',
         `Durchstöbere die ganze Historie — die komplette Alpha-4-Ära — im **[Patch-Archiv](${SITE}/archiv.html)**, oder verfolge die Entwicklung jedes Systems in der **[Evolution](${SITE}/evolution.html)**.`,
         '',
-        'Willst du den Ping, wenn ein Patch landet? Schnapp dir **🔔 Patch Pings** im Onboarding.',
+        'Willst du den Ping, wenn ein Patch landet? Schnapp dir **Patch Pings** im Onboarding.',
       ].join('\n'),
       footer: 'VerseBase • verse-base.com',
     },
-  ],
+    ],
+  },
   'bot-commands': [
     {
-      title: '🤖 Bot commands · Bot-Befehle',
-      color: C.gold,
+      title: 'Bot commands · Bot-Befehle',
+      color: C.cyan,
       description: [
         'The home for bot spam — **this channel earns no XP**, so run commands as much as you like. The Flight Computer answers in your language (set it in onboarding).',
         '',

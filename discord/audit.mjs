@@ -346,8 +346,14 @@ for (const cat of bp.categories) {
     if (ch.topic && TEXTLIKE.has(ch.type) && live.topic !== ch.topic) issues.push('topic differs');
     if (ch.slowmode && live.rateLimitPerUser !== ch.slowmode) issues.push(`slowmode ${live.rateLimitPerUser}s ≠ ${ch.slowmode}s`);
     if (ch.tags) {
-      const liveTags = (live.availableTags ?? []).map((t) => t.name);
-      if (liveTags.join('|') !== ch.tags.join('|')) issues.push(`forum tags [${liveTags.join(', ') || '—'}] ≠ [${ch.tags.join(', ')}]`);
+      // Blueprint tags are a bare string or { name, emoji } — compare name AND
+      // emoji, so a dropped emoji is a visible drift and not a silent one.
+      const fmt = (name, emoji) => `${emoji ?? ''}${name}`;
+      const liveTags = (live.availableTags ?? []).map((t) => fmt(t.name, t.emoji?.name));
+      const wantTags = ch.tags.map((t) => (typeof t === 'string' ? fmt(t, null) : fmt(t.name, t.emoji)));
+      if (liveTags.join('|') !== wantTags.join('|')) issues.push(`forum tags [${liveTags.join(', ') || '—'}] ≠ [${wantTags.join(', ')}]`);
+      const layoutWant = ch.layout === 'gallery' ? 2 : ch.layout === 'list' ? 1 : null;
+      if (layoutWant !== null && live.defaultForumLayout !== layoutWant) issues.push(`forum layout ${live.defaultForumLayout} ≠ ${ch.layout}`);
     }
     if (!ch.slowmode && live.rateLimitPerUser) issues.push(`unexpected slowmode ${live.rateLimitPerUser}s`);
 
@@ -607,7 +613,10 @@ for (const key of Object.keys(bp.seed)) {
   // A forum has no .messages — its seed is a THREAD whose starter message holds
   // the embed. Check for that thread instead of for a pinned message.
   if (ch.type === ChannelType.GuildForum) {
-    const wantTitle = bp.seed[key][0]?.title;
+    // A seed entry is a bare embed list or { embeds, buttons } — normalise, or
+    // every title check compares against "undefined".
+    const wantEmbeds = Array.isArray(bp.seed[key]) ? bp.seed[key] : bp.seed[key]?.embeds ?? [];
+    const wantTitle = wantEmbeds[0]?.title;
     try {
       const active = await ch.threads.fetchActive();
       const archived = await ch.threads.fetchArchived().catch(() => ({ threads: new Map() }));
@@ -627,7 +636,10 @@ for (const key of Object.keys(bp.seed)) {
     // author), so they sit next to the real seed post until swept.
     const orphaned = [...pinned.values()].filter((m) => m.author.bot && m.author.id !== client.user.id);
     if (orphaned.length) err('seed', `#${ch.name}: ${orphaned.length} pinned post(s) from a removed bot`, 'run `node clean-orphaned-messages.mjs` (dry run) to review');
-    const wantTitle = bp.seed[key][0]?.title;
+    // A seed entry is a bare embed list or { embeds, buttons } — normalise, or
+    // every title check compares against "undefined".
+    const wantEmbeds = Array.isArray(bp.seed[key]) ? bp.seed[key] : bp.seed[key]?.embeds ?? [];
+    const wantTitle = wantEmbeds[0]?.title;
     if (!mine.length) err('seed', `#${ch.name}: no pinned seed post`);
     else if (mine.length > 1) warn('seed', `#${ch.name}: ${mine.length} pinned bot posts (duplicates)`);
     else {
