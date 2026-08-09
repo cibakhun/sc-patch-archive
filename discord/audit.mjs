@@ -379,7 +379,10 @@ for (const cat of bp.categories) {
     else console.log(clr('90', `    ✓ ${wantN}`));
   }
 }
-const stray = [...guild.channels.cache.values()].filter((c) => !seen.has(c.id));
+// Threads sit in the channel cache but are CONTENT inside a channel, never
+// stray channels — a forum's own seed post would otherwise be reported as
+// server drift forever. Same trap that bit prune.mjs.
+const stray = [...guild.channels.cache.values()].filter((c) => !seen.has(c.id) && !c.isThread?.());
 if (stray.length) warn('channels', `${stray.length} channel(s) on the server aren't in the blueprint`, stray.map((c) => `${c.name} [${ChannelType[c.type]}]`).join(', '));
 else ok('no stray channels');
 
