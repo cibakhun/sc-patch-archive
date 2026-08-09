@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 140,
-  "totalListings": 4038,
+  "updates": 141,
+  "totalListings": 4046,
   "totalSold": 171,
   "distinctItems": 992
  },
@@ -78570,6 +78570,10 @@
     {
      "d": "2026-08-09",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 950000
     }
    ],
    "soldOut": false,
@@ -78633,6 +78637,10 @@
     {
      "d": "2026-08-09",
      "p": 850000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 800000
     }
    ],
    "soldOut": false,
@@ -78675,6 +78683,10 @@
     {
      "d": "2026-08-09",
      "p": 550000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 500000
     }
    ],
    "soldOut": false,
@@ -78931,6 +78943,10 @@
     {
      "d": "2026-08-09",
      "p": 500000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 400000
     }
    ],
    "soldOut": false,
@@ -78973,6 +78989,10 @@
     {
      "d": "2026-08-09",
      "p": 500000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 350000
     }
    ],
    "soldOut": false,
@@ -78994,6 +79014,10 @@
     {
      "d": "2026-08-09",
      "p": 1200000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -85979,6 +86003,174 @@
    "soldOutPrice": null,
    "dateAdded": 1786297326,
    "dateExpiration": 1791481326
+  },
+  "160784": {
+   "idItem": 4586,
+   "idCategory": 36,
+   "title": "Irradiated Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786297863,
+   "dateExpiration": 1791481863
+  },
+  "160789": {
+   "idItem": 5317,
+   "idCategory": 18,
+   "title": "Gallant \"Executive Edition\" Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786298432,
+   "dateExpiration": 1791482432
+  },
+  "160795": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "sabre peregrine wikelo mod",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786299798,
+   "dateExpiration": 1791483798
+  },
+  "160797": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "Pyro RYT Multi-Tool BLOODLINE, BLACKCHERRY, GHOST, QUICKSILVER, MIRAGE, HARVESTER",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786299892,
+   "dateExpiration": 1791483892
+  },
+  "160798": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "Polaris Bit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 12500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786300048,
+   "dateExpiration": 1791484048
+  },
+  "160799": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Zeus Mk II ES Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786300526,
+   "dateExpiration": 1791484526
+  },
+  "160800": {
+   "idItem": 6784,
+   "idCategory": 1,
+   "title": "Overlord Arms Gilded // Ailgam's Collectibles",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786300656,
+   "dateExpiration": 1791484656
+  },
+  "160802": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "WTB 36 Quantainium - Full amount only no partial",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786301100,
+   "dateExpiration": 1791485100
   }
  }
 }
