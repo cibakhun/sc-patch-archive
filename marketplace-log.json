@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 134,
-  "totalListings": 3931,
-  "totalSold": 162,
-  "distinctItems": 984
+  "updates": 135,
+  "totalListings": 3951,
+  "totalSold": 165,
+  "distinctItems": 987
  },
  "listings": {
   "156580": {
@@ -75939,6 +75939,10 @@
     {
      "d": "2026-08-08",
      "p": 550000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 450000
     }
    ],
    "soldOut": false,
@@ -78598,9 +78602,9 @@
      "p": 13000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-09",
+   "soldOutPrice": 13000000,
    "dateAdded": 1786221578,
    "dateExpiration": 1791405578
   },
@@ -82946,6 +82950,27 @@
    "dateAdded": 1786265789,
    "dateExpiration": 1791449789
   },
+  "160618": {
+   "idItem": 320,
+   "idCategory": 7,
+   "title": "WTS ADP mk-4 Woodland",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786265870,
+   "dateExpiration": 1791449870
+  },
   "160619": {
    "idItem": 3235,
    "idCategory": 4,
@@ -83009,6 +83034,27 @@
    "dateAdded": 1786266272,
    "dateExpiration": 1791446672
   },
+  "160622": {
+   "idItem": 8027,
+   "idCategory": 7,
+   "title": "WTS Antium Storm Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786266273,
+   "dateExpiration": 1791450273
+  },
   "160623": {
    "idItem": 6455,
    "idCategory": 17,
@@ -83051,6 +83097,27 @@
    "dateAdded": 1786266893,
    "dateExpiration": 1791450893
   },
+  "160625": {
+   "idItem": 4892,
+   "idCategory": 38,
+   "title": "ASD Secure Drive x15. 250k each or 3m for the lot",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 250000
+    }
+   ],
+   "soldOut": true,
+   "soldOutAt": "2026-08-09",
+   "soldOutPrice": 250000,
+   "dateAdded": 1786266935,
+   "dateExpiration": 1791450935
+  },
   "160626": {
    "idItem": null,
    "idCategory": 7,
@@ -83087,9 +83154,9 @@
      "p": 3500
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-09",
+   "soldOutPrice": 3500,
    "dateAdded": 1786267124,
    "dateExpiration": 1791451124
   },
@@ -83240,6 +83307,27 @@
    "dateAdded": 1786268868,
    "dateExpiration": 1791452868
   },
+  "160636": {
+   "idItem": 5381,
+   "idCategory": 7,
+   "title": "MOROZOV-SH spite armor full set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786269236,
+   "dateExpiration": 1791453236
+  },
   "160637": {
    "idItem": null,
    "idCategory": 32,
@@ -83324,6 +83412,27 @@
    "dateAdded": 1786269606,
    "dateExpiration": 1791453606
   },
+  "160641": {
+   "idItem": 810,
+   "idCategory": 7,
+   "title": "MOROZOV-SH SNOWDRIFT full armor set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786269631,
+   "dateExpiration": 1791453631
+  },
   "160642": {
    "idItem": 6763,
    "idCategory": 4,
@@ -83365,6 +83474,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786269977,
    "dateExpiration": 1791453977
+  },
+  "160644": {
+   "idItem": 8040,
+   "idCategory": 7,
+   "title": "DEFIANCE FIRESTARTER full armor set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786270119,
+   "dateExpiration": 1791454119
   },
   "160645": {
    "idItem": 4706,
@@ -83471,6 +83601,27 @@
    "dateAdded": 1786270632,
    "dateExpiration": 1791454632
   },
+  "160650": {
+   "idItem": 5848,
+   "idCategory": 36,
+   "title": "Agricium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 943,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786270848,
+   "dateExpiration": 1791454848
+  },
   "160651": {
    "idItem": 8045,
    "idCategory": 7,
@@ -83491,6 +83642,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786270885,
    "dateExpiration": 1791454885
+  },
+  "160652": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786272269,
+   "dateExpiration": 1791456269
   },
   "160653": {
    "idItem": 3768,
@@ -83513,6 +83685,27 @@
    "dateAdded": 1786272416,
    "dateExpiration": 1791456416
   },
+  "160654": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "WTS beryl",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786272620,
+   "dateExpiration": 1791456620
+  },
   "160655": {
    "idItem": 5980,
    "idCategory": 36,
@@ -83533,6 +83726,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786272646,
    "dateExpiration": 1791456646
+  },
+  "160656": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786273042,
+   "dateExpiration": 1791457042
   },
   "160657": {
    "idItem": 4735,
@@ -83555,6 +83769,90 @@
    "dateAdded": 1786273215,
    "dateExpiration": 1791457215
   },
+  "160658": {
+   "idItem": 3729,
+   "idCategory": 18,
+   "title": "Custodian \"Executive Edition\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786273304,
+   "dateExpiration": 1791457304
+  },
+  "160659": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786273370,
+   "dateExpiration": 1791457370
+  },
+  "160660": {
+   "idItem": 6880,
+   "idCategory": 18,
+   "title": "Novian \"Ghostmaker\" Crossbow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786273589,
+   "dateExpiration": 1791457589
+  },
+  "160661": {
+   "idItem": 6867,
+   "idCategory": 18,
+   "title": "Novian \"Wildshot\" Crossbow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786273740,
+   "dateExpiration": 1791457740
+  },
   "160662": {
    "idItem": null,
    "idCategory": 7,
@@ -83575,6 +83873,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786274354,
    "dateExpiration": 1791458354
+  },
+  "160663": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "Sadaryx 1000q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786274539,
+   "dateExpiration": 1791458539
   },
   "160664": {
    "idItem": 4453,
@@ -83680,6 +83999,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786274930,
    "dateExpiration": 1791458930
+  },
+  "160670": {
+   "idItem": 8013,
+   "idCategory": 7,
+   "title": "Morozov-SH Crusader Edition Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 11000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786276243,
+   "dateExpiration": 1791460243
+  },
+  "160671": {
+   "idItem": 5713,
+   "idCategory": 4,
+   "title": "Morozov-SH-I Legs Pyrotechnic Horizon // Ailgam's Collectibles",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786277654,
+   "dateExpiration": 1791461654
+  },
+  "160672": {
+   "idItem": 6927,
+   "idCategory": 1,
+   "title": "Morozov-SH-I Arms Pyrotechnic Horizon // Ailgam's Collectibles",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786278020,
+   "dateExpiration": 1791462020
+  },
+  "160673": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "Gold - 959Q - 0.518 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786278076,
+   "dateExpiration": 1791462076
+  },
+  "160674": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "Gold - 864Q - 0.396 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 864,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786278253,
+   "dateExpiration": 1791462253
   }
  }
 }
