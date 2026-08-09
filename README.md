@@ -103,6 +103,27 @@ nur zum Wegsehen. Jeder Lauf druckt diese Schuldenposten am Ende, damit sie
 niemand vergisst; `npm run gate -- --only <name>` ruft eine ausgesetzte Strecke
 gezielt auf, um sie abzutragen.
 
+### Browser-Rauchtest (Schiene C)
+
+Das einzige Verfahren, das eine Seite in einem **echten Browser** lädt — gegen
+die Klasse „HTML korrekt, Browser macht trotzdem etwas anderes":
+
+```bash
+npm run preview                                      # Terminal 1
+npm run smoke -- --base http://localhost:4321        # Terminal 2
+```
+
+15 Leitseiten je EN und DE in drei Varianten (dunkel 1280, dunkel 360, hell
+1280): keine JS-Ausnahme, keine eigene Ressource ≥ 400, kein CSP-Verstoß,
+Leitelement wirklich sichtbar, kein waagerechter Überlauf — dazu
+Interaktionsproben (filtert der Item Finder wirklich? zählt der Schiffsfilter
+runter?). Braucht `playwright-core` (schon als devDependency) und einen
+installierten Chrome oder Edge; ein anderer Pfad geht über `CHROME_PATH`.
+
+In CI läuft er in `deploy-staging.yml` gegen den **fertigen Container**, und
+zwar vor dem Push — die CSP ist ein nginx-Header und existiert nur dort. Für
+eine schon ausgelieferte Seite: `npm run smoke -- --base https://staging.verse-base.com`.
+
 Einzeln aufrufbar bleibt weiterhin alles:
 
 ```bash

@@ -49,17 +49,21 @@ const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 
 // Untergrenze der Skriptzahl. Darf nur nach OBEN wandern (neues Tor) —
 // nach unten nur mit geklaerter Ursache, sichtbar im Commit-Diff.
-// Stand 09.08.2026: 19 Dateien (17 aus dem Messlauf, dazu verify-wiring
-// und verify-metrics).
-const MIN_SCRIPTS = 19;
+// Stand 09.08.2026: 20 Dateien (17 aus dem Messlauf, dazu verify-wiring,
+// verify-metrics und browser-smoke).
+const MIN_SCRIPTS = 20;
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };
 const rel = (p) => p.replaceAll('\\', '/');
 
 /* ---------- Bestand einlesen ---------- */
+// Was als Pruefskript gilt: die beiden gewachsenen Namensfamilien plus
+// namentlich genannte Ausreisser. `browser-smoke.mjs` heisst so, weil es
+// keine Datei prueft, sondern eine laufende Seite — es gehoert trotzdem
+// unter dieselbe Bijektionspflicht.
 const DATEIEN = readdirSync(resolve(ROOT, 'scripts'))
-  .filter((n) => /^(verify|audit)-.*\.mjs$/.test(n))
+  .filter((n) => /^(verify|audit)-.*\.mjs$/.test(n) || n === 'browser-smoke.mjs')
   .map((n) => `scripts/${n}`)
   .sort();
 

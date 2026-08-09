@@ -32,11 +32,15 @@ jobs:
       # NICHT als eigener Schritt hier: dort existiert dist/ bereits, ein
       # Schritt an dieser Stelle muesste die Seite ein zweites Mal bauen.
       # Schlaegt es fehl, bricht dieser Build ab und es wird nichts gepusht.
-      - name: Build and push
+      # Erst BAUEN, nicht pushen — zwischen Build und Push liegen zwei
+      # Pruefungen am fertigen Image (Indexierbarkeit + Browser-Rauchtest).
+      # Gleiche Reihenfolge wie in deploy-staging.yml; was nicht besteht,
+      # wird nie veroeffentlicht.
+      - name: Build (noch nicht pushen)
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          load: true
           tags: |
             ghcr.io/cibakhun/sc-patch-archive:latest
             ghcr.io/cibakhun/sc-patch-archive:${{ github.sha }}
@@ -73,6 +77,45 @@ jobs:
           fi
           grep -q '<loc>' ./sitemap.check || { echo "FEHLER: der Sitemap-Index bewirbt nichts."; exit 1; }
           echo "OK — die Live-Seite ist indexierbar."
+
+      # ---- Browser-Rauchtest gegen den LAUFENDEN Container ----------------
+      # Dieselbe Begruendung wie in deploy-staging.yml: node:22-alpine hat
+      # keinen Browser, und die CSP ist ein nginx-Header, den es nur im
+      # laufenden Container gibt.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Browser bereitstellen
+        run: |
+          for c in google-chrome google-chrome-stable chromium chromium-browser; do
+            if command -v "$c" >/dev/null 2>&1; then
+              echo "CHROME_PATH=$(command -v $c)" >> "$GITHUB_ENV"
+              echo "gefunden: $(command -v $c)"; exit 0
+            fi
+          done
+          echo "kein Browser vorinstalliert — chromium wird nachinstalliert"
+          sudo apt-get update -qq && sudo apt-get install -y -qq chromium-browser
+          echo "CHROME_PATH=$(command -v chromium-browser)" >> "$GITHUB_ENV"
+
+      - name: Rauchtest gegen das fertige Image
+        run: |
+          docker run -d --rm -p 8080:80 --name smoke ghcr.io/cibakhun/sc-patch-archive:latest
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:8080/ >/dev/null 2>&1 && break
+            sleep 1
+          done
+          code=0
+          node scripts/browser-smoke.mjs --base http://localhost:8080 || code=$?
+          docker stop smoke >/dev/null || true
+          exit $code
+
+      - name: Push (erst nach bestandenen Pruefungen)
+        run: |
+          docker push ghcr.io/cibakhun/sc-patch-archive:latest
+          docker push ghcr.io/cibakhun/sc-patch-archive:${{ github.sha }}
 
       # Aufbewahrung begrenzen: jeder Push auf main legt eine neue Paketversion
       # an, und jede haelt ihre Layer (~700 MB unkomprimiert) fest. Ohne

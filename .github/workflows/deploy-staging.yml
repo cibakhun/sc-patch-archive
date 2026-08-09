@@ -42,11 +42,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      # Erst BAUEN, nicht pushen: zwischen Build und Push liegen zwei
+      # Pruefungen am fertigen Image. Was nicht besteht, wird nie
+      # veroeffentlicht — dieselbe Logik wie beim Tor im Dockerfile, eine
+      # Stufe spaeter.
+      - name: Build (noch nicht pushen)
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          load: true
           build-args: STAGING=1
           tags: |
             ghcr.io/cibakhun/sc-patch-archive:staging
@@ -65,6 +69,51 @@ jobs:
           grep -q '^Disallow: /' ./robots.check || { echo "FEHLER: robots.txt sperrt nicht."; exit 1; }
           grep -q 'name="robots" content="noindex"' ./index.check || { echo "FEHLER: index.html hat kein noindex."; exit 1; }
           echo "OK — Vorschau ist gesperrt."
+
+      # ---- Browser-Rauchtest gegen den LAUFENDEN Container ----------------
+      # Warum hier und nicht im Dockerfile-Tor: node:22-alpine hat keinen
+      # Browser, und die Content-Security-Policy ist ein nginx-HEADER — sie
+      # existiert erst, wenn der Container laeuft. dist/ als Dateibaum kann
+      # sie nicht zeigen. Geprueft wird damit genau das Artefakt, das gleich
+      # ausgeliefert wird.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Browser bereitstellen
+        run: |
+          for c in google-chrome google-chrome-stable chromium chromium-browser; do
+            if command -v "$c" >/dev/null 2>&1; then
+              echo "CHROME_PATH=$(command -v $c)" >> "$GITHUB_ENV"
+              echo "gefunden: $(command -v $c)"; exit 0
+            fi
+          done
+          echo "kein Browser vorinstalliert — chromium wird nachinstalliert"
+          sudo apt-get update -qq && sudo apt-get install -y -qq chromium-browser
+          echo "CHROME_PATH=$(command -v chromium-browser)" >> "$GITHUB_ENV"
+
+      - name: Rauchtest gegen das fertige Image
+        run: |
+          docker run -d --rm -p 8080:80 --name smoke ghcr.io/cibakhun/sc-patch-archive:staging
+          # auf nginx warten, statt blind zu schlafen
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:8080/ >/dev/null 2>&1 && break
+            sleep 1
+          done
+          # `|| code=$?`, damit der Container auch nach einem Fehlschlag
+          # gestoppt wird — unter `bash -e` bricht der Schritt sonst sofort ab
+          # und laesst ihn stehen. Der Exit-Code bleibt der des Rauchtests.
+          code=0
+          node scripts/browser-smoke.mjs --base http://localhost:8080 || code=$?
+          docker stop smoke >/dev/null || true
+          exit $code
+
+      - name: Push (erst nach bestandenen Pruefungen)
+        run: |
+          docker push ghcr.io/cibakhun/sc-patch-archive:staging
+          docker push ghcr.io/cibakhun/sc-patch-archive:staging-${{ github.sha }}
 
       - name: Trigger Coolify redeploy (staging)
         env:

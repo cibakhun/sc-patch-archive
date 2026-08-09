@@ -470,7 +470,7 @@ die Lieferung auf `staging` liegt.
 > | S1b Streuner ans Tor | ✅ **gebaut** 09.08.2026 — fünf von sechs |
 > | S1d Kennzahlen-Sperrklinke `verify:metrics` | ✅ **gebaut** 09.08.2026 — 19 Kennzahlen, 0,3 s |
 > | S1c `gate:data` | 🟡 **teilweise** — Schiene existiert und läuft; `verify:hardpoints` und die Patch-Tag-Reihenfolge stehen aus |
-> | S2 Browser-Rauchtest | offen |
+> | S2 Browser-Rauchtest | ✅ **gebaut** 09.08.2026 — 47 Aufrufe, 239 Punkte, ~28 s |
 > | S3 Build-Stempel + `CLAUDE.md` | offen |
 >
 > **Gemessen nach S1a/S1b** (`npm run gate`, frischer Build, 09.08.2026):
@@ -515,6 +515,50 @@ die Lieferung auf `staging` liegt.
 > Nachgezogen: `README.md` und `docs/astro-7-migration.md` führten je eine
 > eigene, mit dem Dockerfile **nicht** deckungsgleiche Prüfkette — beide
 > zeigen jetzt auf `npm run gate`.
+>
+> ### Stufe 2 gebaut — und sie hat sofort einen Fehler gefunden
+>
+> `scripts/browser-smoke.mjs` (playwright-core + installierter Chrome, **kein**
+> Browser-Download) lädt 15 Leitseiten je EN und DE in drei Varianten:
+> **47 Aufrufe, 239 Einzelpunkte, ~28 s.** Verdrahtet in `deploy-staging.yml`
+> als eigene Schiene C — gebaut wird jetzt mit `load: true`, dann läuft der
+> Container, dann der Rauchtest, und **erst nach bestandener Prüfung wird
+> gepusht**. Grund: die CSP ist ein nginx-*Header* und existiert nur im
+> laufenden Container; `dist/` als Dateibaum kann sie nicht zeigen.
+>
+> **Erster echter Fund:** Die **deutsche** Patch-Seite läuft bei 360 px
+> Fensterbreite **31 px über** — die englische nicht (`body.scrollWidth` 391
+> gegen 356). Ursache sind drei ~368 px breite Kästen (`.panel` ×2, `.bvid`),
+> die darunter nicht mitschrumpfen; der längere deutsche Text löst es aus.
+> Sichtbare Folge: der rechte Rand ist auf schmalen Geräten abgeschnitten.
+> Das ist genau die Klasse, die kein bestehendes Tor sehen konnte —
+> `verify:sync` vergleicht die Gerüst*struktur* der Sprachpaare, nicht ihre
+> gerenderte Breite. Der Befund liegt als **benannte Ausnahme mit
+> Zombie-Wächter** (`X-de-patch-360-ueberlauf`) im Skript, wird bei jedem Lauf
+> als offene Schuld gedruckt und verschwindet automatisch mit dem Fix — die
+> Entscheidung darüber gehört dem Betreiber, nicht dem Test.
+>
+> **Zwei weitere hohle Zusicherungen fielen beim Vorführen auf** — beide hätte
+> man ohne Grundsatz 1 nie bemerkt:
+>
+> 1. `documentElement.scrollWidth` kann **niemals** überlaufen, weil die Seite
+>    `overflow-x: clip` auf `html` UND `body` setzt. Ein eingeschobenes
+>    3000-px-Element blieb unbemerkt. → gemessen wird `body.scrollWidth`.
+> 2. Der Ersatzversuch „rechte Kante des breitesten Elements" war zu scharf:
+>    er ignoriert beschneidende Elternelemente und meldete das absichtlich
+>    übergroße Hero-Motiv (`.hero__photo`, 1510 px) als 115-px-Überlauf — ein
+>    Dauer-Fehlalarm auf jeder Seite mit Hero.
+>
+> Fünf Negativkontrollen vorgeführt: geworfene JS-Ausnahme (Z1), toter
+> `/assets/…`-Verweis → 404 (Z2), verstecktes Leitelement (Z4), echtes
+> 3000-px-Element (Z5), Ausnahme ohne Anlass (Zombie-Wächter). ⚠ Die
+> Z5-Probe schlug beim ersten Anlauf **nicht** an, weil `body::after` auf
+> dieser Seite bereits die fixierte Vignette ist — eine Probe über ein
+> Pseudo-Element misst dort nichts.
+>
+> Nebenbefund, nicht behoben: die 404-Seite hat keine `main`-Landmarke (nur
+> `h1`). Kleine A11y-Lücke, gehört zu `audit:site` — der Rauchtest prüft sie
+> ausdrücklich nicht heimlich mit.
 >
 > **Schiene B ist damit ebenfalls fahrbar** (`npm run gate:data`, gemessen
 > 09.08.2026): `verify:items` grün in 15,8 s — die 128 Wiki-Lücken sind von

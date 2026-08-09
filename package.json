@@ -10,6 +10,7 @@
     "astro": "astro",
     "gate": "node scripts/run-gate.mjs",
     "gate:data": "node scripts/run-gate.mjs --rail B",
+    "smoke": "node scripts/browser-smoke.mjs",
     "verify": "node scripts/_verify.mjs",
     "verify:wiring": "node scripts/verify-wiring.mjs",
     "verify:metrics": "node scripts/verify-metrics.mjs",
@@ -74,6 +75,7 @@
     "@gltf-transform/functions": "^4.4.1",
     "draco3d": "^1.5.7",
     "meshoptimizer": "^1.2.0",
+    "playwright-core": "^1.62.1",
     "three": "^0.185.1"
   }
 }
