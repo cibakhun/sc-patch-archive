@@ -41,6 +41,39 @@ jobs:
             ghcr.io/cibakhun/sc-patch-archive:latest
             ghcr.io/cibakhun/sc-patch-archive:${{ github.sha }}
 
+      # Gegenprobe im fertigen Image — das SPIEGELBILD der Pruefung in
+      # deploy-staging.yml. Dort wird belegt, dass die Vorschau gesperrt ist;
+      # hier, dass die Live-Seite es NICHT ist. Anlass (09.08.2026): ein
+      # Live-Build, der versehentlich mit STAGING=1 entsteht, traegt eine
+      # sperrende robots.txt und site-weites noindex — er wuerde tadellos
+      # deployen und die ganze Domain aus dem Index nehmen, ohne dass etwas
+      # bricht. Genau der Ausfallmodus, den kein Test faengt: die Seite baut,
+      # laedt und funktioniert, sie ist nur unsichtbar.
+      - name: Verify the live image IS indexable
+        run: |
+          CID=$(docker create ghcr.io/cibakhun/sc-patch-archive:latest)
+          docker cp "$CID:/usr/share/nginx/html/robots.txt" ./robots.check
+          docker cp "$CID:/usr/share/nginx/html/index.html" ./index.check
+          docker cp "$CID:/usr/share/nginx/html/sitemap.xml" ./sitemap.check
+          docker rm "$CID" >/dev/null
+          echo "--- robots.txt ---"; cat ./robots.check
+          # ⚠ Verneinende Pruefungen als `if`, NICHT als `grep -q … && exit 1`.
+          # Nachgemessen: unter `bash -e` ist eine solche UND-Liste MITTEN im
+          # Skript harmlos (das fehlgeschlagene grep ist von errexit
+          # ausgenommen) — steht sie aber als LETZTE Zeile, wird ihr Status 1
+          # zum Status des Schritts, und der Deploy reisst genau dann, wenn
+          # alles in Ordnung ist. Eine Zeile, die je nach ihrer POSITION das
+          # Gegenteil bedeutet, gehoert nicht in ein Tor. Im `if`-Kopf gilt
+          # errexit ohnehin nicht.
+          if grep -qE '^Disallow: /$' ./robots.check; then
+            echo "FEHLER: robots.txt sperrt die LIVE-Seite (versehentlich ein STAGING-Build?)"; exit 1
+          fi
+          if grep -q 'name="robots" content="noindex"' ./index.check; then
+            echo "FEHLER: die Startseite traegt noindex."; exit 1
+          fi
+          grep -q '<loc>' ./sitemap.check || { echo "FEHLER: der Sitemap-Index bewirbt nichts."; exit 1; }
+          echo "OK — die Live-Seite ist indexierbar."
+
       # Aufbewahrung begrenzen: jeder Push auf main legt eine neue Paketversion
       # an, und jede haelt ihre Layer (~700 MB unkomprimiert) fest. Ohne
       # Aufraeumen waechst das Paket unbegrenzt. Die 10 neuesten bleiben — das

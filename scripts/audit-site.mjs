@@ -360,8 +360,25 @@ for (const f of htmlFiles) {
 // sitemap.xml ist ein Sitemap-INDEX: seine <loc> zeigen auf fünf Teil-Sitemaps
 // (Seiten/Schiffe/Missionen/Items/Crafting). Erst den Index auflösen, dann die
 // echten Seiten-URLs aus den Teilen einsammeln.
+//
+// VORSCHAU-BUILD (STAGING=1): dort sind Index UND Teile absichtlich leer
+// (src/lib/sitemap.ts) — eine zweite indexierbare Kopie der Site wäre
+// Duplicate Content gegen die eigene Domain. Für diesen Build kehrt sich die
+// Regel deshalb UM: leer ist richtig, und beworbene URLs wären der Fehler.
+//
+// Erkannt wird die Vorschau am ARTEFAKT, nicht an process.env.STAGING: die
+// gesperrte robots.txt ist das, was der Build tatsächlich ausliefert, und
+// genau dieses Signal prüft deploy-staging.yml schon heute am fertigen Image.
+// Damit greift der Check auch, wenn jemand die Umgebungsvariable vergisst.
+//
+// ⚠ Diese Unterscheidung fehlte bis zum 09.08.2026 und riss den ersten
+// staging-Build nach dem Umbau auf `npm run gate` — audit:site lief bis dahin
+// nie gegen einen Vorschau-Build, weil es an keinem Tor hing.
 const sitemapIssues = [];
 const sitemapPath = join(DIST, 'sitemap.xml');
+const robotsPath = join(DIST, 'robots.txt');
+const IS_PREVIEW =
+  existsSync(robotsPath) && /^Disallow:\s*\/\s*$/m.test(readFileSync(robotsPath, 'utf8'));
 const locsOf = (xml) => [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 const toPath = (loc) => loc.replace(/^https?:\/\/[^/]+/, '') || '/';
 if (!existsSync(sitemapPath)) {
@@ -381,7 +398,29 @@ if (!existsSync(sitemapPath)) {
     }
     pageLocs.push(...locsOf(readFileSync(partFile, 'utf8')));
   }
-  if (!pageLocs.length) sitemapIssues.push('Sitemap enthält keine Seiten-<loc>-Einträge');
+  if (IS_PREVIEW) {
+    // Umgekehrte Erwartung: der Vorschau-Build darf NICHTS bewerben.
+    //
+    // ⚠ Und zwar geprüft über ALLE sitemap*.xml direkt, nicht über den Index:
+    // im Vorschau-Build ist der Index selbst leer (sitemapIndexXml setzt
+    // parts=[]), also führt `partPaths` nirgendwohin und `pageLocs` bliebe
+    // zwangsläufig leer — die Zusicherung wäre unfälschbar grün. Genau das
+    // hat die Negativkontrolle am 09.08.2026 aufgedeckt: eine eingeschleuste
+    // URL in sitemap-pages.xml blieb unbemerkt.
+    const alleSitemaps = readdirSync(DIST).filter((n) => /^sitemap.*\.xml$/.test(n));
+    const beworben = alleSitemaps.flatMap((n) =>
+      locsOf(readFileSync(join(DIST, n), 'utf8')).map((l) => `${n} -> ${toPath(l)}`),
+    );
+    if (beworben.length)
+      sitemapIssues.push(
+        `Vorschau-Build (robots.txt sperrt alles) bewirbt trotzdem ${beworben.length} URL(s): ` +
+          beworben.slice(0, 5).join(', ') +
+          (beworben.length > 5 ? ` … (+${beworben.length - 5})` : '') +
+          ' — das wäre eine indexierbare Zweitkopie der Site',
+      );
+  } else if (!pageLocs.length) {
+    sitemapIssues.push('Sitemap enthält keine Seiten-<loc>-Einträge');
+  }
 
   const seen = new Set();
   for (const loc of pageLocs) {

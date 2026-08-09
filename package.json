@@ -12,6 +12,7 @@
     "gate:data": "node scripts/run-gate.mjs --rail B",
     "verify": "node scripts/_verify.mjs",
     "verify:wiring": "node scripts/verify-wiring.mjs",
+    "verify:metrics": "node scripts/verify-metrics.mjs",
     "verify:fx": "node scripts/verify-fx.mjs",
     "verify:help": "node scripts/verify-help.mjs --complete",
     "verify:typo": "node scripts/verify-typo-motion.mjs",

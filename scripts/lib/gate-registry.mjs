@@ -62,6 +62,14 @@ export const CHECKS = [
     checks: 'Verzeichnis, Dateibestand und package.json sind deckungsgleich; kein Pruefskript liegt lose herum',
   },
   {
+    id: 'verify:metrics',
+    npm: 'verify:metrics',
+    script: 'scripts/verify-metrics.mjs',
+    rail: 'A',
+    checks:
+      'die Bestandszahlen (Items, Fahrzeuge, Blueprints, gebaute Seiten je Bereich, Sitemaps) liegen ueber ihren Klinken — ein Datenlauf darf den Bestand nicht still verkleinern',
+  },
+  {
     id: 'test:e2e',
     npm: 'test:e2e',
     script: 'tests/e2e/',

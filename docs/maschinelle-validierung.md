@@ -462,8 +462,8 @@ die Lieferung auf `staging` liegt.
 > |---|---|
 > | S1a Registry + `npm run gate` + `verify:wiring` | ✅ **gebaut** 09.08.2026 |
 > | S1b Streuner ans Tor | ✅ **gebaut** 09.08.2026 — fünf von sechs |
+> | S1d Kennzahlen-Sperrklinke `verify:metrics` | ✅ **gebaut** 09.08.2026 — 19 Kennzahlen, 0,3 s |
 > | S1c `gate:data` + Patch-Tag-Reihenfolge | offen |
-> | S1d Kennzahlen-Sperrklinke | offen |
 > | S2 Browser-Rauchtest | offen |
 > | S3 Build-Stempel + `CLAUDE.md` | offen |
 >
@@ -483,10 +483,86 @@ die Lieferung auf `staging` liegt.
 > | NK-2 (Z2) | `verify:fx` in package.json umbenannt | „nennt npm-Skript `verify:fx` — package.json kennt es nicht" |
 > | NK-3 (Z4) | `node:child_process` in `verify-fx.mjs` importiert | „berührt Kindprozess, aber der Verzeichnis-Eintrag erklärt es nicht" |
 > | NK-4 (Z4) | `env: 'git: …'` an einem Eintrag ohne git-Aufruf | „die Umgebungsmarke nennt git, im Skript kommt es nicht mehr vor — Zombie-Marke" |
+> | NK-5 (Z3) | `gate` auf `--rail C` umgebogen | „package.json#gate fährt eine fremde Schiene — das Auslieferungs-Tor ist Schiene A" |
+> | NK-M1 | Baseline `fahrzeuge: 228` | „227 statt genau 228 — Änderung nur per bewusstem Baseline-Commit" |
+> | NK-M2 | Baseline-Zeile `minerale` gelöscht | „wird gelesen, hat aber keine Baseline-Zeile — ungeprüft ist schlimmer als ungemessen" |
+> | NK-M3 | Ableser auf eine nicht existierende Datei gezeigt | „Quelle nicht lesbar … das ist keine Schrumpfung, sondern ein kaputter Ableser" |
+>
+> **Zwei eigene Fehler, die dabei auffielen und behoben wurden** — beide von
+> derselben Sorte, gegen die das Verfahren gebaut ist (etwas meldet grün,
+> ohne etwas zu prüfen):
+>
+> 1. `run-gate.mjs` meldete für eine **leere Schiene** „Tor GRÜN —
+>    vollständig bestanden", weil 0 von 0 Schritten fehlschlugen. Schiene C
+>    ist heute leer; eine versehentlich leergeräumte Registry hätte dasselbe
+>    bewirkt. Jetzt: Abbruch mit „es wurde NICHTS geprüft. Das ist kein
+>    bestandenes Tor."
+> 2. `verify-wiring` prüfte zwar, dass `gate` über die Registry fährt, aber
+>    nicht, **welche Schiene** — `gate` ließ sich unbemerkt auf eine andere
+>    umbiegen, und das Dockerfile hätte still etwas anderes geprüft.
 >
 > Nachgezogen: `README.md` und `docs/astro-7-migration.md` führten je eine
 > eigene, mit dem Dockerfile **nicht** deckungsgleiche Prüfkette — beide
 > zeigen jetzt auf `npm run gate`.
+>
+> ### Der erste scharfe CI-Lauf riss — und belegte die These des Konzepts
+>
+> Der erste staging-Build nach dem Umbau schlug fehl: `audit:site` meldete
+> dort **1 FEHLER** („Sitemap enthält keine Seiten-`<loc>`-Einträge"), lokal
+> war dieselbe Kette Minuten zuvor mit **0 FEHLERN** grün.
+>
+> **Ursache:** CI baut mit `STAGING=1`. Dieser Vorschau-Build ist site-weit
+> `noindex`, seine `robots.txt` sperrt alles, und `src/lib/sitemap.ts` leert
+> Index und Teil-Sitemaps *absichtlich* — eine indexierbare Zweitkopie wäre
+> Duplicate Content gegen die eigene Domain. `audit:site` kannte diesen Fall
+> nicht. Es kannte ihn nicht, **weil es an keinem Tor hing und deshalb in
+> seiner ganzen Lebenszeit nie gegen einen Vorschau-Build gelaufen war** —
+> Lücke L1/K1, vorgeführt am eigenen Werkzeug.
+>
+> **Behoben** in `audit-site.mjs`, ohne die Prüfung aufzuweichen: Der
+> Vorschau-Build wird am **Artefakt** erkannt (gesperrte `robots.txt` — genau
+> das Signal, das `deploy-staging.yml` schon am fertigen Image prüft), nicht
+> an `process.env`. Für ihn kehrt sich die Regel **um**: leere Sitemaps sind
+> richtig, und beworbene URLs wären der Fehler. Der Prüfer ist damit strenger
+> als vorher, nicht nachsichtiger.
+>
+> **Die erste Fassung dieses Fixes war hohl — und die Negativkontrolle hat es
+> aufgedeckt.** Sie prüfte die beworbenen URLs weiterhin über den
+> Sitemap-*Index*; im Vorschau-Build ist aber auch der Index leer, also führte
+> `partPaths` nirgendwohin, und die neue Zusicherung konnte **gar nicht** rot
+> werden. Eine testweise in `sitemap-pages.xml` eingeschleuste URL blieb
+> unbemerkt. Die zweite Fassung liest im Vorschau-Fall **alle** `sitemap*.xml`
+> direkt. Ohne Grundsatz 1 wäre eine unfälschbar grüne Zusicherung ins Tor
+> gewandert — dieselbe Sorte Dekoration wie das `verify-help`, das grün
+> meldete, nachdem jedes `data-help` gelöscht war.
+>
+> **Zweite Lehre, allgemeiner:** „Tor lokal grün" hieß nicht „Tor in CI grün",
+> weil beide gegen *verschiedene Artefakte* liefen. `npm run gate` nennt
+> deshalb ab jetzt in seiner Kopfzeile, woran es geprüft hat (`Artefakt:
+> Live-Build` bzw. `Vorschau-Build (STAGING=1)`), und `README.md` zeigt den
+> Befehl, um den staging-Build lokal nachzustellen. Das ist derselbe
+> Grundsatz 7, der Stufe 2 gegen das fertige Image prüfen lässt statt gegen
+> `dist/`.
+>
+> **Dritter Fund, beim Beheben aufgefallen:** Der Live-Workflow hatte kein
+> Gegenstück zur Vorschau-Gegenprobe. `deploy-staging.yml` belegt am fertigen
+> Image, dass die Vorschau gesperrt ist — für `main` prüfte **niemand das
+> Umgekehrte**. Ein Live-Build, der versehentlich mit `STAGING=1` entsteht,
+> trüge eine sperrende `robots.txt` und site-weites `noindex`; er würde
+> tadellos deployen und die ganze Domain aus dem Index nehmen, ohne dass
+> etwas bricht. `deploy-image.yml` hat jetzt das Spiegelbild (robots nicht
+> gesperrt, Startseite nicht `noindex`, Sitemap-Index nicht leer).
+>
+> ⚠ Beim Schreiben dieses Schritts wäre beinahe eine Shell-Falle
+> hineingeraten: `grep -q … && exit 1` ist unter `bash -e` **mitten** im
+> Skript harmlos, als **letzte Zeile** aber liefert es den Status 1 im guten
+> Fall und reißt den Deploy. Nachgemessen und auf die `if`-Form umgestellt —
+> eine Zeile, die je nach ihrer Position das Gegenteil bedeutet, gehört nicht
+> in ein Tor.
+>
+> **Und das Tor hat funktioniert:** Es entstand kein Image, staging lieferte
+> unverändert den letzten guten Stand weiter (HTTP 200 geprüft). Genau der
+> Ausfallmodus, für den die Kette im Dockerfile sitzt.
 
 ## Stufe 1 — Verkabeln (≈ 1,5–2 Tage): B3 + B4 + B5
 
@@ -552,19 +628,36 @@ statt still grün zu sein. Die Reihenfolge als Kopfkommentar:
 
 **S1d — Kennzahlen-Sperrklinke** (B4, ~0,5 T)
 
-`scripts/verify-metrics.mjs` + `data/metrics-baseline.json` mit den
-Ist-Werten aus § 3/B4 als Startbaseline. Format bewusst schlicht:
+`scripts/verify-metrics.mjs` + `scripts/lib/metrics-baseline.mjs` mit den
+Ist-Werten aus § 3/B4 als Startbaseline.
 
-```json
-{ "vehicles": { "wert": 227, "regel": "exakt",
-    "anlass": "01.4-03: 223 + 4 ATLS; Aenderung nur mit neuem Datamine-Beleg" },
-  "items":    { "wert": 9168, "regel": "min", "toleranzProzent": 1,
-    "anlass": "Messlauf 09.08.2026; Lehre aus dem -834-Vorfall 07/2026" } }
-```
+> **Abweichung vom ursprünglichen Zuschnitt:** Die Baseline liegt als
+> **`.mjs`-Modul neben der Registry**, nicht als `data/metrics-baseline.json`.
+> Grund: Das Projekt hat für genau diese Sorte Tor-Konfiguration bereits ein
+> Muster — `scripts/lib/sync-exclusions.mjs` —, und nur im Modul kann jede
+> Zeile ihren **Anlass** als Fließtext mitführen. Eine nackte Zahl in einer
+> JSON ist nach einem Jahr unantastbar: niemand weiß mehr, warum sie so hoch
+> ist, also senkt sie auch niemand mit gutem Gewissen.
+
+19 Kennzahlen, gemessen am 09.08.2026: Item-Katalog (`items` 9.168,
+`itemsMitBezugsquelle` 4.574, `itemsMitSpieldaten` 6.642, `uexPreiszeilen`
+23.705, `ruestungsSets` 136), Fahrzeuge (227 exakt, 223 mit Bauteilen, 223 mit
+Rolle, 227 mit Hardpoints), Crafting/Bergbau (1.594 Blueprints, 37 Minerale)
+und der gebaute Stand (17.361 Seiten gesamt, davon 5.386 Items · 1.347
+Missionen · 1.655 Crafting · 227 Schiffe · 19 Patches · 22 Themen; 6 Sitemaps
+exakt). Laufzeit **0,3 s** — das Tor kann damit ganz vorn stehen und einen
+ausgehöhlten Datenbestand melden, bevor 150 s Prüfzeit verbrannt sind.
+
+Zwei Eigenschaften, die es von einer bloßen Zahlenliste unterscheiden:
+`null` (Quelle unlesbar) wird als **kaputter Ableser** gemeldet, nicht als
+Schrumpfung — ein Ableser, der bei fehlender Datei still 0 liefert, risse
+jede Klinke und wäre binnen einer Woche abgeschaltet. Und Ableser und
+Baseline müssen **bijektiv** sein: eine gelesene Kennzahl ohne Regel ist
+ebenso ein Fehler wie eine Regel ohne Ableser, sonst erodiert die Baseline
+still.
 
 Negativkontrolle: Baseline testweise auf 228 Fahrzeuge → rot; Kennzahl aus
-der Baseline löschen → rot („Kennzahl ohne Regel"), damit die Baseline
-selbst nicht erodiert.
+der Baseline löschen → rot („Kennzahl ohne Regel").
 
 ## Stufe 2 — Sehen (≈ 1–1,5 Tage): B6
 

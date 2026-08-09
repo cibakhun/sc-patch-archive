@@ -26,7 +26,7 @@
 
        node scripts/run-gate.mjs [--rail B] [--only verify:fx] [--list]
    ============================================================ */
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -76,12 +76,26 @@ for (const c of strecken) {
   schritte.push({ label: c.id, cmd });
 }
 
+// NICHTS GEPRUEFT IST NICHT GRUEN. Ohne diese Sperre meldete eine leere
+// Schiene (heute: C, oder eine versehentlich leergeraeumte Registry) am Ende
+// "Tor GRUEN — vollstaendig bestanden", weil 0 von 0 Schritten fehlschlugen.
+// Genau die hohle Gruen-Meldung, gegen die dieses ganze Verfahren gebaut ist.
+if (!schritte.length) {
+  console.error(
+    `\nSchiene ${RAIL} hat keine ausfuehrbare Strecke — es wurde NICHTS geprueft.\n` +
+      `Das ist kein bestandenes Tor. Entweder ist die Schiene noch leer (dann hier\n` +
+      `nichts aufrufen) oder scripts/lib/gate-registry.mjs ist beschaedigt.\n`,
+  );
+  process.exit(2);
+}
+
 /* ---------- Kopf ---------- */
 const titel = ONLY.length
   ? `npm run gate — nur ${ONLY.join(', ')}`
   : `npm run gate — Schiene ${RAIL} (${RAIL_NAME[RAIL] ?? '?'})`;
 console.log(`\n=== ${titel} ===`);
-console.log(`${strecken.length} Strecke(n), ${schritte.length} Schritt(e)\n`);
+console.log(`${strecken.length} Strecke(n), ${schritte.length} Schritt(e)`);
+console.log(`Artefakt: ${artefakt()}\n`);
 
 if (LIST) {
   for (const [i, s] of schritte.entries())
@@ -137,6 +151,28 @@ if (ergebnisse.length !== schritte.length) {
   process.exit(1);
 }
 console.log(`\n✓ Tor GRUEN — Schiene ${RAIL} vollstaendig bestanden.\n`);
+
+/**
+ * WORAN war das Tor gruen? Der Live-Build und der Vorschau-Build (STAGING=1)
+ * unterscheiden sich in ihrer SEO-Oberflaeche: Letzterer traegt eine gesperrte
+ * robots.txt, site-weites noindex und absichtlich LEERE Sitemaps.
+ *
+ * Am 09.08.2026 hat genau dieser Unterschied den ersten CI-Lauf dieser Kette
+ * gerissen, waehrend sie lokal gruen war — audit:site kannte den Vorschau-Fall
+ * nicht, weil es bis dahin an keinem Tor hing und nie gegen einen solchen Build
+ * gelaufen war. Seither steht in jedem Lauf, welches Artefakt geprueft wurde.
+ * Wer den staging-Build lokal nachstellen will: `STAGING=1` setzen, neu bauen,
+ * dann `npm run gate`.
+ */
+function artefakt() {
+  const dist = resolve(ROOT, 'dist');
+  if (!existsSync(dist)) return 'kein dist/ vorhanden — die meisten Strecken werden scheitern';
+  const robots = resolve(dist, 'robots.txt');
+  if (!existsSync(robots)) return 'dist/ ohne robots.txt (unvollstaendiger Build?)';
+  return /^Disallow:\s*\/\s*$/m.test(readFileSync(robots, 'utf8'))
+    ? 'Vorschau-Build (STAGING=1) — site-weit noindex, Sitemaps absichtlich leer'
+    : 'Live-Build';
+}
 
 /** Ausgesetzte Strecken bei JEDEM Lauf melden — ein stillgelegtes Tor,
  *  an das sich niemand erinnert, ist schlimmer als gar keins. */

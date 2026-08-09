@@ -78,6 +78,17 @@ npm run gate -- --continue        # nicht beim ersten Fehler abbrechen
 npm run gate:data                 # Schiene B: nach jedem Datamine-/Sync-Lauf
 ```
 
+Jeder Lauf sagt in der Kopfzeile, **woran** er grün war: gegen den Live-Build
+oder gegen den Vorschau-Build. Die beiden unterscheiden sich in der
+SEO-Oberfläche (`STAGING=1` → site-weit `noindex`, gesperrte `robots.txt`,
+absichtlich leere Sitemaps), und das reicht, damit dieselbe Kette lokal grün
+und in CI rot sein kann — genau so passiert am 09.08.2026. Den staging-Build
+lokal nachstellen:
+
+```bash
+$env:STAGING = '1'; npm run build; npm run gate   # PowerShell
+```
+
 Welche Strecken zu welcher Schiene gehören, steht in
 [`scripts/lib/gate-registry.mjs`](scripts/lib/gate-registry.mjs) — und nur
 dort. `verify:wiring` (erste Strecke im Tor) schlägt fehl, sobald ein

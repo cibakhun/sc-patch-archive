@@ -49,8 +49,9 @@ const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 
 // Untergrenze der Skriptzahl. Darf nur nach OBEN wandern (neues Tor) —
 // nach unten nur mit geklaerter Ursache, sichtbar im Commit-Diff.
-// Stand 09.08.2026: 18 Dateien (17 aus dem Messlauf + verify-wiring selbst).
-const MIN_SCRIPTS = 18;
+// Stand 09.08.2026: 19 Dateien (17 aus dem Messlauf, dazu verify-wiring
+// und verify-metrics).
+const MIN_SCRIPTS = 19;
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };
@@ -96,6 +97,10 @@ console.log(`    Schiene B: ${B.length} Strecken   Schiene C: ${C.length}   Werk
 const gateCmd = pkg.scripts?.gate ?? '';
 const gateDataCmd = pkg.scripts?.['gate:data'] ?? '';
 need(/run-gate\.mjs/.test(gateCmd), `package.json#gate faehrt nicht ueber scripts/run-gate.mjs (steht: "${gateCmd}") — eine handgepflegte Kette waere eine zweite Wahrheit neben dem Verzeichnis`);
+// `gate` MUSS Schiene A sein. Ohne diese Zeile liesse sich das
+// Auslieferungs-Tor unbemerkt auf eine andere (womoeglich duenne) Schiene
+// umbiegen, und das Dockerfile pruefte still etwas anderes als gedacht.
+need(!/--rail\s+(?!A\b)\w+/.test(gateCmd), `package.json#gate faehrt eine fremde Schiene (steht: "${gateCmd}") — das Auslieferungs-Tor ist Schiene A`);
 need(/run-gate\.mjs/.test(gateDataCmd) && /--rail\s+B/.test(gateDataCmd), `package.json#gate:data faehrt nicht ueber run-gate.mjs --rail B (steht: "${gateDataCmd}")`);
 // Jede scharfe A-Strecke muss ausfuehrbar sein (npm-Feld vorhanden).
 for (const c of laeuftA) need(c.npm, `Schiene-A-Strecke "${c.id}" hat kein npm-Skript und kann im Tor nicht laufen`);
