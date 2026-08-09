@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 133,
-  "totalListings": 3916,
+  "updates": 134,
+  "totalListings": 3931,
   "totalSold": 162,
   "distinctItems": 984
  },
@@ -72754,6 +72754,10 @@
     {
      "d": "2026-08-08",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 1800000
     }
    ],
    "soldOut": false,
@@ -73182,6 +73186,10 @@
     {
      "d": "2026-08-08",
      "p": 1300000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 1200000
     }
    ],
    "soldOut": false,
@@ -77031,6 +77039,10 @@
     {
      "d": "2026-08-08",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 2500000
     }
    ],
    "soldOut": false,
@@ -77332,6 +77344,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786210084,
    "dateExpiration": 1791394084
+  },
+  "160346": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 5000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786210200,
+   "dateExpiration": 1791394200
   },
   "160347": {
    "idItem": 1811,
@@ -80389,6 +80422,27 @@
    "dateAdded": 1786234704,
    "dateExpiration": 1791418704
   },
+  "160495": {
+   "idItem": 3940,
+   "idCategory": 17,
+   "title": "Tau Plus LL (4x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786234706,
+   "dateExpiration": 1791418706
+  },
   "160496": {
    "idItem": 4433,
    "idCategory": 18,
@@ -80812,6 +80866,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786239906,
    "dateExpiration": 1791423905
+  },
+  "160516": {
+   "idItem": 5333,
+   "idCategory": 17,
+   "title": "WTB WTT Stoic Suppressor 2",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786240112,
+   "dateExpiration": 1791424112
   },
   "160517": {
    "idItem": 6455,
@@ -82304,6 +82379,27 @@
    "dateAdded": 1786260382,
    "dateExpiration": 1791444382
   },
+  "160591": {
+   "idItem": 1811,
+   "idCategory": 32,
+   "title": "Condemnation Distortion Scattergun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786260383,
+   "dateExpiration": 1791444383
+  },
   "160592": {
    "idItem": 47,
    "idCategory": 32,
@@ -82324,6 +82420,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786260872,
    "dateExpiration": 1791444872
+  },
+  "160593": {
+   "idItem": 1810,
+   "idCategory": 32,
+   "title": "Absolution Distortion Scattergun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786260892,
+   "dateExpiration": 1791444892
+  },
+  "160594": {
+   "idItem": 182,
+   "idCategory": 32,
+   "title": "Salvation Distortion Scattergun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786261291,
+   "dateExpiration": 1791445291
   },
   "160595": {
    "idItem": 7522,
@@ -83353,6 +83491,195 @@
    "soldOutPrice": null,
    "dateAdded": 1786270885,
    "dateExpiration": 1791454885
+  },
+  "160653": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite 861Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 861,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 45000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786272416,
+   "dateExpiration": 1791456416
+  },
+  "160655": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "Taranite Q957",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 957,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786272646,
+   "dateExpiration": 1791456646
+  },
+  "160657": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "Polaris Bit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786273215,
+   "dateExpiration": 1791457215
+  },
+  "160662": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "JUSTIFIED ADP MK4 FULL SET",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 40000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786274354,
+   "dateExpiration": 1791458354
+  },
+  "160664": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786274664,
+   "dateExpiration": 1791458664
+  },
+  "160665": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite 1M",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786274671,
+   "dateExpiration": 1791458671
+  },
+  "160666": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite 200k",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 867,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786274745,
+   "dateExpiration": 1791458745
+  },
+  "160667": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "RIGHTEOUS ADP MK4 FULL SET",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 40000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786274809,
+   "dateExpiration": 1791458809
+  },
+  "160668": {
+   "idItem": 6685,
+   "idCategory": 18,
+   "title": "Parallax \"Fun Military Tooth\" Energy Assault Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786274930,
+   "dateExpiration": 1791458930
   }
  }
 }
