@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 136,
-  "totalListings": 3955,
-  "totalSold": 165,
+  "updates": 137,
+  "totalListings": 3976,
+  "totalSold": 166,
   "distinctItems": 987
  },
  "listings": {
@@ -75966,9 +75966,9 @@
      "p": 5000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-09",
+   "soldOutPrice": 5000000,
    "dateAdded": 1786199240,
    "dateExpiration": 1791383240
   },
@@ -77823,6 +77823,10 @@
     {
      "d": "2026-08-08",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 1500000
     }
    ],
    "soldOut": false,
@@ -79473,6 +79477,10 @@
     {
      "d": "2026-08-08",
      "p": 5500000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 4500000
     }
    ],
    "soldOut": false,
@@ -82963,6 +82971,10 @@
     {
      "d": "2026-08-09",
      "p": 4000000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 15000000
     }
    ],
    "soldOut": false,
@@ -83236,6 +83248,10 @@
     {
      "d": "2026-08-09",
      "p": 1500000
+    },
+    {
+     "d": "2026-08-09",
+     "p": 1300000
     }
    ],
    "soldOut": false,
@@ -84188,6 +84204,447 @@
    "soldOutPrice": null,
    "dateAdded": 1786280568,
    "dateExpiration": 1791464568
+  },
+  "160694": {
+   "idItem": 6867,
+   "idCategory": 18,
+   "title": "Novian \"Wildshot\" Crossbow(639Sav,779Our)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 707,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786284287,
+   "dateExpiration": 1791468287
+  },
+  "160695": {
+   "idItem": 5755,
+   "idCategory": 1,
+   "title": "DCP Armor Arms Cobalt Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786284447,
+   "dateExpiration": 1791468447
+  },
+  "160696": {
+   "idItem": null,
+   "idCategory": 3,
+   "title": "XenoThreat Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786284603,
+   "dateExpiration": 1791468603
+  },
+  "160697": {
+   "idItem": 6750,
+   "idCategory": 4,
+   "title": "Overlord Legs Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786284877,
+   "dateExpiration": 1791468877
+  },
+  "160699": {
+   "idItem": 6784,
+   "idCategory": 1,
+   "title": "Overlord Arms Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786284932,
+   "dateExpiration": 1791468932
+  },
+  "160700": {
+   "idItem": 3215,
+   "idCategory": 24,
+   "title": "WTS Zeus Exploration Suit Solar Set - helmet and backpack included",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786284989,
+   "dateExpiration": 1791468989
+  },
+  "160703": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTR MISC Starfare - Renting a Starfarer for 24h",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786285387,
+   "dateExpiration": 1791469387
+  },
+  "160704": {
+   "idItem": 7670,
+   "idCategory": 18,
+   "title": "Custodian \"Scorched\" SMG(971Cor,917Cop,916Aph)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 935,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786285440,
+   "dateExpiration": 1791469440
+  },
+  "160706": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTR Crusader C2 Hercules Starlifter - Renting a C2 for 24h",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786285598,
+   "dateExpiration": 1791469598
+  },
+  "160707": {
+   "idItem": 5570,
+   "idCategory": 18,
+   "title": "FS-9 \"Blacklist\" LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786285632,
+   "dateExpiration": 1791469632
+  },
+  "160708": {
+   "idItem": 7670,
+   "idCategory": 18,
+   "title": "Custodian \"Scorched\" SMG(971Cor,853Cop,861Aph)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 895,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786285697,
+   "dateExpiration": 1791469697
+  },
+  "160709": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTR MISC Starlancer TAC - Renting a TAC for 24h",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786285732,
+   "dateExpiration": 1791469732
+  },
+  "160710": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTR RSI Apollo Medivac - Renting an Apollo Medivac for 24h",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 15000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786285893,
+   "dateExpiration": 1791469893
+  },
+  "160712": {
+   "idItem": 4478,
+   "idCategory": 18,
+   "title": "Parallax \"Sanguine\" Energy Assault Rifle Q959",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786286005,
+   "dateExpiration": 1791470005
+  },
+  "160713": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTR RSI Mantis - Renting a Mantis for 24h",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 15000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786286035,
+   "dateExpiration": 1791470035
+  },
+  "160714": {
+   "idItem": 4433,
+   "idCategory": 18,
+   "title": "Parallax \"Shock Trooper\" Energy Assault Rifle Q959",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786286158,
+   "dateExpiration": 1791470158
+  },
+  "160715": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTR MISC Starfare - Renting a Starfarer for 24h",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 10000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786286224,
+   "dateExpiration": 1791470224
+  },
+  "160716": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTR Aegis Vanguard Sentinel - Renting a Vanguard Sentinel for 24h",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786286357,
+   "dateExpiration": 1791470357
+  },
+  "160717": {
+   "idItem": 5160,
+   "idCategory": 18,
+   "title": "Pulverizer LMG(970Iron,853Lind,896Heph)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 893,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786286610,
+   "dateExpiration": 1791470610
+  },
+  "160718": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTR Aegis Eclipse - Renting an Eclipse for 24h",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786286626,
+   "dateExpiration": 1791470626
+  },
+  "160719": {
+   "idItem": 4920,
+   "idCategory": 38,
+   "title": "RCMBNT-XTL-2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786286697,
+   "dateExpiration": 1791470697
   }
  }
 }
