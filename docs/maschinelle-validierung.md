@@ -560,6 +560,27 @@ die Lieferung auf `staging` liegt.
 > `h1`). Kleine A11y-Lücke, gehört zu `audit:site` — der Rauchtest prüft sie
 > ausdrücklich nicht heimlich mit.
 >
+> **Zwei CI-Läufe brauchte es, und beide waren lehrreich:**
+>
+> 1. **Erster Lauf: 47 von 47 Aufrufen rot** — „CSP-Verstoß:
+>    `script-src-elem https://stats.verse-base.com/script.js`". Kein Defekt:
+>    Der Vorschau-Build leert die nginx-Map `$vb_rum_*`, damit die Vorschau
+>    nicht in die Live-Statistik zählt; der Verstoß ist dort *gewollt* und im
+>    Dockerfile so beschrieben. Der Rauchtest erkennt jetzt das Artefakt an
+>    der gesperrten `robots.txt` und **dreht die Erwartung um**: auf der
+>    Vorschau erwartet, auf Live ein FEHLER („die Besucherstatistik lädt
+>    nicht"). Beide Zweige mit echten CSP-Headern belegt — Docker lief lokal
+>    nicht, also über einen Prüfstand, der `nginx/default.conf` im Wortlaut
+>    nachbildet und die `$vb_rum_*`-Platzhalter leer lässt wie das Dockerfile.
+> 2. **Zweiter Lauf: `verify:wiring` fing den eigenen Erbauer.** Der CSP-Fix
+>    hatte dem Rauchtest ein `fetch()` beigebracht (er holt `robots.txt`),
+>    ohne dass der Registry-Eintrag diesen Netzzugriff nannte — Zusicherung 4
+>    riss, mit genau der Meldung, für die sie gebaut wurde. Ursache dahinter:
+>    Nach dem CSP-Fix wurde **`npm run gate` vor dem Push nicht erneut
+>    gefahren**. Die Maschine hat die Regel durchgesetzt, an die sich der
+>    Mensch nicht gehalten hat — besser kann ein Wächter seinen Zweck nicht
+>    belegen.
+>
 > **Schiene B ist damit ebenfalls fahrbar** (`npm run gate:data`, gemessen
 > 09.08.2026): `verify:items` grün in 15,8 s — die 128 Wiki-Lücken sind von
 > FEHLER auf **WARNUNG** herabgestuft (Grundsatz 3: Fremdquellen-Verzug ist

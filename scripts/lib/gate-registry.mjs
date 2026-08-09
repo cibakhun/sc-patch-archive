@@ -213,7 +213,7 @@ export const CHECKS = [
     checks:
       'die Leitseiten in einem echten Browser: keine JS-Ausnahme, keine eigene Ressource >= 400, kein CSP-Verstoss, Leitelement wirklich sichtbar, kein waagerechter Ueberlauf, und die Werkzeuge filtern wirklich',
     env:
-      'braucht einen laufenden Server UND einen installierten Browser — beides gibt es im Build-Container (node:22-alpine) nicht. Laeuft deshalb im Workflow gegen den frisch gebauten Container (vor dem Push) und lokal gegen astro preview oder eine URL; Ziel ueber --base bzw. SMOKE_BASE. Fremde Hosts werden abgebrochen und nicht gewertet.',
+      'Netz: laedt die Seiten ueber http gegen das Ziel aus --base/SMOKE_BASE und holt vorab dessen robots.txt per fetch(), um Vorschau- von Live-Build zu unterscheiden. Braucht ausserdem einen laufenden Server UND einen installierten Browser — beides gibt es im Build-Container (node:22-alpine) nicht, deshalb Schiene C statt A. Laeuft im Workflow gegen den frisch gebauten Container (vor dem Push), lokal gegen astro preview oder eine URL. FREMDE Hosts werden abgebrochen und nicht gewertet: CI hat keinen verlaesslichen Weg ins Netz, und der Ausfall eines Dritten ist kein Fehler dieser Seite.',
   },
 
   // ---------------------------------------------------------------
