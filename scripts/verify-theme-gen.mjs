@@ -53,17 +53,15 @@
    jedem Lauf frisch gemessen und unten ausgegeben, nie als Schwelle
    eingefroren (D-03).
 
-   EINE benannte Ausnahme (EXCLUSIONS unten, Vorbild scripts/lib/sync-
-   exclusions.mjs): src/components/ships/ShipsOverview.astro traegt
-   `.fcard__status.fr{color:#5ad19a}` ("Flight Ready"-Marke) OHNE
-   jemals durch build-light-overrides.mjs gelaufen zu sein — eine ECHTE,
-   aber VORBESTEHENDE Luecke aus Phase 6/7, keine Handaenderung AN einem
-   bestehenden generierten Block. THEME-02 prueft "wird ein erzeugter
-   Block von Hand veraendert", nicht "ist jede moegliche Stelle bereits
-   erzeugt" — eine neue Hellmodus-Farbe ist eine sichtbare Aenderung und
-   verdient eine eigene Sichtpruefung statt einer stillschweigenden
-   Autokorrektur in diesem Waechter-Plan. Als offener Punkt an
-   .planning/WINDOWS.md uebergeben (siehe 04-03-SUMMARY.md).
+   KEINE Ausnahme mehr (Stand 09.08.2026). Die einzige, die es je gab —
+   X-shipsoverview-fcard-status-fr — beschrieb eine "fehlende
+   Hell-Entsprechung" fuer `.fcard__status.fr`. Nachgesehen: die Zeile
+   stand laengst im Bestand und war ausgeliefert; die tatsaechliche
+   Abweichung waren drei Zeilen handgeschriebener Kommentar IM erzeugten
+   Block. Der Merkposten steht jetzt ueber dem Blockanfang, der Block ist
+   zeichengleich zur Generator-Ausgabe, die Ausnahme ist entfallen.
+   Begruendung ausfuehrlich an ihrer alten Stelle unten. Bleibt die Liste
+   leer, prueft Zusicherung 2 ohne jeden Abzug — der schaerfste Zustand.
    ------------------------------------------------------------
 
    Waehrend der Planausfuehrung wurden zwei echte, vorbestehende Bugs in
@@ -124,28 +122,30 @@ const GEN_OVERRIDES = join(SCRIPTS_DIR, 'build-light-overrides.mjs');
    durch den Zombie-Waechter (Zusicherung 4) abgesichert.
    ------------------------------------------------------------ */
 const EXCLUSIONS = [
-  {
-    id: 'X-shipsoverview-fcard-status-fr',
-    file: 'src/components/ships/ShipsOverview.astro',
-    art: 'B',
-    /* Die echten Generatoren wuerden HEUTE einen Block B erzeugen, den
-       der Bestand noch nicht traegt — Richtung ist "fehlt im Bestand",
-       nicht "im Bestand von Hand veraendert". */
-    kind: 'missing-in-bestand',
-    reason:
-      'src/components/ships/ShipsOverview.astro definiert .fcard__status.fr{color:#5ad19a} ' +
-      '("Flight Ready"-Marke, aus Phase 6/7) OHNE dass npm run theme seither erneut gelaufen waere ' +
-      '— es fehlt der Hell-Entsprechungen-Eintrag, den build-light-overrides.mjs dafuer heute ' +
-      'erzeugen wuerde. Das ist eine ECHTE, aber VORBESTEHENDE Luecke (Kontrast-Abdeckung, nicht ' +
-      'Sprachparitaet) aus einer frueheren Phase — keine Handaenderung AN einem bestehenden Block. ' +
-      'THEME-02 prueft "wird ein erzeugter Block von Hand veraendert", nicht "ist jede moegliche ' +
-      'Stelle bereits erzeugt". Eine neue Hellmodus-Farbe ist eine sichtbare Aenderung und verdient ' +
-      'eine eigene Sichtpruefung (Vorbild: die Sichtrunden aus Phase 1.2/2/3) statt einer ' +
-      'stillschweigenden Autokorrektur in diesem Waechter-Plan. Als offener Punkt an ' +
-      '.planning/WINDOWS.md uebergeben (04-03-SUMMARY.md); `node scripts/build-light-overrides.mjs ' +
-      '--only=ships/ShipsOverview` traegt die fehlende Zeile nach, sobald die Sichtpruefung erfolgt ist.',
-  },
+
 ];
+
+/* ------------------------------------------------------------
+   ENTFALLEN am 09.08.2026: X-shipsoverview-fcard-status-fr.
+
+   Die Ausnahme beschrieb eine "fehlende Hell-Entsprechung" fuer
+   .fcard__status.fr. Nachgesehen: die Zeile
+   `:root[data-theme="light"] .fcard__status.fr{color:#046945}` stand
+   laengst im Bestand UND war auf staging ausgeliefert — die
+   Flight-Ready-Marke sah im Hellmodus bereits richtig aus. Ein
+   Kontrollauf von build-light-overrides.mjs --only=ships/ShipsOverview
+   hat exakt dieselbe Zeile erzeugt.
+
+   Die echte Abweichung waren drei Zeilen handgeschriebener Kommentar IM
+   erzeugten Block (Merkposten zum entfallenen .sdb__sub-Override) — also
+   genau die Handaenderung, die THEME-02 verbietet. Der Merkposten steht
+   jetzt UEBER dem Blockanfang, wo die Generatoren ihn nicht sehen; der
+   Block ist damit zeichengleich zu ihrer Ausgabe und braucht keine
+   Ausnahme mehr.
+
+   Es wurde dabei KEINE neue sichtbare Farbe eingefuehrt (das war die
+   Bedingung an WINDOWS.md id 7): #046945 war schon da.
+   ------------------------------------------------------------ */
 
 /* Literale Marken der Generatoren — dupliziert, nicht importiert: die
    drei Skripte exportieren nichts, und dieser Waechter aendert ihr
