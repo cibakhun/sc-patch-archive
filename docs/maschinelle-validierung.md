@@ -415,9 +415,15 @@ wird:
    Fundstelle; verliert sie den Anlass, reißt das Tor (Muster
    `sync-exclusions.mjs`; `EXCLUSIONS` in verify-theme ist seit 09.08. leer —
    Ausnahmen sind Schulden).
-7. **Gegen das Artefakt prüfen, so spät wie möglich.** `dist/` statt Quelle;
-   das laufende Image statt `dist/`, wo es um Header/Rewrites geht (B6); die
-   ausgelieferte Seite statt des Images, wo es um Deploy geht (B11).
+7. **Gegen das Artefakt prüfen, so spät wie möglich — und wissen, welches.**
+   `dist/` statt Quelle; das laufende Image statt `dist/`, wo es um
+   Header/Rewrites geht (B6); die ausgelieferte Seite statt des Images, wo es
+   um Deploy geht (B11). Dazu, seit dem 09.08.2026 teuer gelernt: **es gibt
+   zwei Artefakte.** Der Live-Build und der Vorschau-Build (`STAGING=1`)
+   unterscheiden sich in der SEO-Oberfläche, und das reicht, damit dieselbe
+   Kette lokal grün und in CI rot ist. Ein Tor muss deshalb sagen, woran es
+   grün war (`npm run gate` nennt es in der Kopfzeile), und wer Tore oder SEO
+   anfasst, baut vor dem Push einmal mit `STAGING=1`.
 
 ## 5) Zielarchitektur: drei Schienen, ein Register
 
@@ -463,7 +469,7 @@ die Lieferung auf `staging` liegt.
 > | S1a Registry + `npm run gate` + `verify:wiring` | ✅ **gebaut** 09.08.2026 |
 > | S1b Streuner ans Tor | ✅ **gebaut** 09.08.2026 — fünf von sechs |
 > | S1d Kennzahlen-Sperrklinke `verify:metrics` | ✅ **gebaut** 09.08.2026 — 19 Kennzahlen, 0,3 s |
-> | S1c `gate:data` + Patch-Tag-Reihenfolge | offen |
+> | S1c `gate:data` | 🟡 **teilweise** — Schiene existiert und läuft; `verify:hardpoints` und die Patch-Tag-Reihenfolge stehen aus |
 > | S2 Browser-Rauchtest | offen |
 > | S3 Build-Stempel + `CLAUDE.md` | offen |
 >
@@ -474,7 +480,7 @@ die Lieferung auf `staging` liegt.
 > Patch-Verzug es lokal rot zieht (nie ein rotes Tor scharfschalten). Der
 > Posten wird bei jedem Lauf gedruckt und kann nicht in Vergessenheit geraten.
 >
-> **Vier Negativkontrollen vorgeführt** (Grundsatz 1), jede mit Exit 1 und
+> **Acht Negativkontrollen vorgeführt** (Grundsatz 1), jede mit Exit 1 und
 > anschließend grünem Rückbau:
 >
 > | Probe | Bruch | Meldung |
@@ -487,6 +493,11 @@ die Lieferung auf `staging` liegt.
 > | NK-M1 | Baseline `fahrzeuge: 228` | „227 statt genau 228 — Änderung nur per bewusstem Baseline-Commit" |
 > | NK-M2 | Baseline-Zeile `minerale` gelöscht | „wird gelesen, hat aber keine Baseline-Zeile — ungeprüft ist schlimmer als ungemessen" |
 > | NK-M3 | Ableser auf eine nicht existierende Datei gezeigt | „Quelle nicht lesbar … das ist keine Schrumpfung, sondern ein kaputter Ableser" |
+>
+> Eine neunte ergab sich **ungeplant und ist der beste Beleg von allen**:
+> `verify:wiring` meldete das frisch angelegte `verify-metrics.mjs` von selbst,
+> bevor es einen Registry-Eintrag hatte — der Wächter fing den eigenen
+> Bauvorgang. Genau das ist der Zustand, den es künftig verhindern soll.
 >
 > **Zwei eigene Fehler, die dabei auffielen und behoben wurden** — beide von
 > derselben Sorte, gegen die das Verfahren gebaut ist (etwas meldet grün,
@@ -504,6 +515,17 @@ die Lieferung auf `staging` liegt.
 > Nachgezogen: `README.md` und `docs/astro-7-migration.md` führten je eine
 > eigene, mit dem Dockerfile **nicht** deckungsgleiche Prüfkette — beide
 > zeigen jetzt auf `npm run gate`.
+>
+> **Schiene B ist damit ebenfalls fahrbar** (`npm run gate:data`, gemessen
+> 09.08.2026): `verify:items` grün in 15,8 s — die 128 Wiki-Lücken sind von
+> FEHLER auf **WARNUNG** herabgestuft (Grundsatz 3: Fremdquellen-Verzug ist
+> kein Befund über unsere Daten), während die harten Teile scharf bleiben
+> (Negativkontrolle: erweitertes Tote-Location-Muster → Exit 1 mit 1.057
+> Treffern). `verify:vehicles` hält jetzt mit einer handlungsfähigen Ansage
+> („`npm run datamine:loadouts && npm run datamine:vehicles`") statt mit einem
+> nackten `ENOENT` — die Zwischenstufe ist unversioniert und fehlt in jedem
+> frischen Checkout, was vorher wie ein kaputtes Skript aussah statt wie ein
+> noch nicht ausgeführter Arbeitsschritt.
 >
 > ### Der erste scharfe CI-Lauf riss — und belegte die These des Konzepts
 >
@@ -535,6 +557,16 @@ die Lieferung auf `staging` liegt.
 > direkt. Ohne Grundsatz 1 wäre eine unfälschbar grüne Zusicherung ins Tor
 > gewandert — dieselbe Sorte Dekoration wie das `verify-help`, das grün
 > meldete, nachdem jedes `data-help` gelöscht war.
+>
+> Belegt gegen **beide echten Artefakte**, in beide Richtungen:
+>
+> | Fall | Erwartet | Gemessen |
+> |---|---|---|
+> | Live-Build, unverändert | grün | Exit 0, 0 FEHLER · 30 INFOS |
+> | Live-Sitemaps + Vorschau-Signal (`robots.txt` gesperrt) | **rot** | Exit 1 — „bewirbt trotzdem 17.351 URL(s)" |
+> | …nach Rückbau der `robots.txt` | grün | Exit 0 |
+> | Echter Vorschau-Build (`STAGING=1`), unverändert | grün | Exit 0, 0 FEHLER · **29 INFOS** — exakt der CI-Zustand |
+> | Echter Vorschau-Build mit einer eingeschleusten URL | **rot** | Exit 1 — „bewirbt trotzdem 1 URL(s): sitemap-pages.xml → /probe.html" |
 >
 > **Zweite Lehre, allgemeiner:** „Tor lokal grün" hieß nicht „Tor in CI grün",
 > weil beide gegen *verschiedene Artefakte* liefen. `npm run gate` nennt
@@ -777,8 +809,11 @@ Nicht lauffähig ohne frischen Extraktionslauf: `verify:vehicles`
 (`vehicles-gamefiles.json` ist unversioniert). Erhebungswerkzeug ohne
 Prüf-Charakter: `audit-typo-motion.mjs`.
 
-Prüfcode-Bestand: 17 verify-/audit-Skripte = 4.438 Zeilen; e2e-Suite samt
-Helfern, `_verify.mjs` und `_test-prereqs.mjs` = 2.847 Zeilen.
+Prüfcode-Bestand **zum Zeitpunkt der Messung**: 17 verify-/audit-Skripte =
+4.438 Zeilen; e2e-Suite samt Helfern, `_verify.mjs` und `_test-prereqs.mjs` =
+2.847 Zeilen. (Noch am selben Tag kamen `verify-wiring.mjs` und
+`verify-metrics.mjs` dazu — 19; die Klinke `MIN_SCRIPTS` in verify-wiring
+führt diese Zahl fort.)
 
 Reproduktion: `npm ci && npm run build`, dann die Befehle der Tabelle.
 `verify:items` braucht freien UEX-Zugang (nicht aus GitHub Actions),

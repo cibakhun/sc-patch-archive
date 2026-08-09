@@ -97,6 +97,12 @@ eine Strecke git/Netz/Kindprozess anfasst, ohne es zu erklären. Schiene B
 läuft nur lokal: sie braucht die `Data.p4k`, den installierten Client oder
 freien UEX-Zugang — aus GitHub Actions ist UEX gesperrt.
 
+Eine Strecke kann im Verzeichnis **ausgesetzt** sein (`disabled`), wenn sie aus
+einem benannten Grund gerade rot ist — ein rotes Tor scharfzuschalten erzieht
+nur zum Wegsehen. Jeder Lauf druckt diese Schuldenposten am Ende, damit sie
+niemand vergisst; `npm run gate -- --only <name>` ruft eine ausgesetzte Strecke
+gezielt auf, um sie abzutragen.
+
 Einzeln aufrufbar bleibt weiterhin alles:
 
 ```bash
