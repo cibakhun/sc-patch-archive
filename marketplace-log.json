@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 135,
-  "totalListings": 3951,
+  "updates": 136,
+  "totalListings": 3955,
   "totalSold": 165,
   "distinctItems": 987
  },
@@ -84104,6 +84104,90 @@
    "soldOutPrice": null,
    "dateAdded": 1786278253,
    "dateExpiration": 1791462253
+  },
+  "160680": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "20x Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786279621,
+   "dateExpiration": 1791463621
+  },
+  "160683": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite 916Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 140000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786280303,
+   "dateExpiration": 1791464303
+  },
+  "160684": {
+   "idItem": 4744,
+   "idCategory": 87,
+   "title": "Janalite 596Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 596,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 120000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786280390,
+   "dateExpiration": 1791464390
+  },
+  "160686": {
+   "idItem": 4744,
+   "idCategory": 87,
+   "title": "Janalite 632Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 632,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 160000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786280568,
+   "dateExpiration": 1791464568
   }
  }
 }
