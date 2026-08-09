@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-09",
-  "updates": 131,
-  "totalListings": 3793,
-  "totalSold": 157,
-  "distinctItems": 963
+  "updates": 132,
+  "totalListings": 3796,
+  "totalSold": 158,
+  "distinctItems": 964
  },
  "listings": {
   "156580": {
@@ -73751,9 +73751,9 @@
      "p": 600000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-09",
+   "soldOutPrice": 600000,
    "dateAdded": 1786183097,
    "dateExpiration": 1791367097
   },
@@ -80730,6 +80730,69 @@
    "soldOutPrice": null,
    "dateAdded": 1786242895,
    "dateExpiration": 1791426895
+  },
+  "160531": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Curated: Deadhead Bruiser Xeno Firestarter Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786244568,
+   "dateExpiration": 1791428568
+  },
+  "160534": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 866,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786246256,
+   "dateExpiration": 1791430256
+  },
+  "160536": {
+   "idItem": 12,
+   "idCategory": 32,
+   "title": "AD4B Ballistic Gatling Craft",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-09",
+   "lastSeen": "2026-08-09",
+   "prices": [
+    {
+     "d": "2026-08-09",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786247855,
+   "dateExpiration": 1791431855
   }
  }
 }
