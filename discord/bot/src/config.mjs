@@ -38,7 +38,8 @@ export const DEFAULT_CONFIG = {
   // the server blueprint (channels marked `noXp: true`) without any manual setup.
   // A channel counts if its name CONTAINS any of these — "🤖・bot-commands"
   // matches "bot-commands". Threads inherit their parent's status.
-  noXpChannelNames: ['bot-commands', 'memes', 'off-topic'],
+  // (#memes and #off-topic were removed when the server narrowed to build+feedback.)
+  noXpChannelNames: ['bot-commands'],
 
   // ── Level-up announcements ─────────────────────────────────────────────
   announce: {

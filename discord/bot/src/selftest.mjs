@@ -129,7 +129,7 @@ t('isNoXpChannel matches id, name, and thread parent', () => {
   assert.equal(isNoXpChannel({ id: 'id-123', name: '💬・general' }, cfg), true);   // by admin id
   assert.equal(isNoXpChannel({ id: 'x', name: '🤖・bot-commands' }, cfg), true);   // by blueprint name
   assert.equal(isNoXpChannel({ id: 'x', name: '💬・general' }, cfg), false);        // neither
-  assert.equal(isNoXpChannel({ id: 't', name: 'a thread', parent: { id: 'p', name: '😂・memes' } }, cfg), true); // thread → parent
+  assert.equal(isNoXpChannel({ id: 't', name: 'a thread', parent: { id: 'p', name: '🤖・bot-commands' } }, cfg), true); // thread → parent
   assert.equal(isNoXpChannel({ id: 't', name: 'a thread', parentId: 'id-123' }, cfg), true);
   assert.equal(isNoXpChannel(null, cfg), false);
 });

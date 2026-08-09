@@ -157,8 +157,12 @@ const pairs = [
   ['rules channel', guild.rulesChannelId, wantChan(bp.community.rulesChannel)],
   ['public updates channel', guild.publicUpdatesChannelId, wantChan(bp.community.updatesChannel)],
   ['system channel', guild.systemChannelId, wantChan(bp.guild.systemChannel)],
-  ['AFK channel', guild.afkChannelId, wantChan(bp.guild.afkChannel)],
 ];
+// A null afkChannel means the server deliberately has no AFK room — only check
+// it when the blueprint actually names one.
+if (bp.guild.afkChannel) pairs.push(['AFK channel', guild.afkChannelId, wantChan(bp.guild.afkChannel)]);
+else if (guild.afkChannelId) warn('guild', 'server still has an AFK channel set, blueprint wants none');
+else ok('AFK channel: none, as intended');
 for (const [label, liveId, wantCh] of pairs) {
   if (!wantCh) { err('guild', `${label}: blueprint target channel does not exist on the server`); continue; }
   if (liveId === wantCh.id) ok(`${label}: #${wantCh.name}`);
@@ -427,7 +431,14 @@ for (const cat of bp.categories) for (const ch of cat.channels) {
   const open = !cat.private && !ch.minRank && !ch.readonly;
   if (open) {
     if (!can(nw, 'SendMessages')) gateChecks.push(`ERR: newcomers cannot post in #${name}`);
-    if (can(nw, 'EmbedLinks') || can(nw, 'AttachFiles')) gateChecks.push(`ERR: newcomer gate leaks in #${name} (media allowed at level 0)`);
+    // The gate can be lifted per channel ON PURPOSE (#bug-reports: a report
+    // without a screenshot is half a report). Read the exception out of the
+    // blueprint's own overwrite rather than a hardcoded name list, so it can
+    // never drift from what is actually deployed — and still say it out loud.
+    const declared = new Set(ch.overwrites?.everyone?.allow ?? []);
+    const leaks = ['EmbedLinks', 'AttachFiles'].filter((p) => can(nw, p) && !declared.has(p));
+    if (leaks.length) gateChecks.push(`ERR: newcomer gate leaks in #${name} (${leaks.join(' + ')} at level 0)`);
+    else if (declared.size) gateChecks.push(`NOTE: gate deliberately lifted in #${name} (${[...declared].join(' + ')}) — blueprint says so`);
     if (!can(pr, 'EmbedLinks') || !can(pr, 'AttachFiles')) gateChecks.push(`ERR: Prospect still cannot post media in #${name} — the gate never lifts`);
   }
   if (ch.readonly && can(nw, 'SendMessages')) gateChecks.push(`ERR: #${name} is meant to be read-only but @everyone can post`);
@@ -460,7 +471,11 @@ for (const cat of bp.categories) for (const ch of cat.channels) {
 }
 
 console.log('');
-if (gateChecks.length) gateChecks.forEach((g) => err('perms', g));
+// NOTE: entries are declared exceptions, not failures — surface them, don't fail on them.
+const gateNotes = gateChecks.filter((g) => g.startsWith('NOTE:'));
+const gateFails = gateChecks.filter((g) => !g.startsWith('NOTE:'));
+gateNotes.forEach((g) => info('perms', g.replace(/^NOTE: /, '')));
+if (gateFails.length) gateFails.forEach((g) => err('perms', g));
 else ok('newcomer gate, read-only channels, staff privacy, the rank gate and the stage rules all resolve correctly');
 
 // ═══ 6. AUTOMOD ════════════════════════════════════════════════════════════
@@ -589,6 +604,21 @@ section('9 · Pinned seed posts & patch feed');
 for (const key of Object.keys(bp.seed)) {
   const ch = guild.channels.cache.get(chanIdByKey[key]);
   if (!ch) { err('seed', `channel for seed "${key}" not found`); continue; }
+  // A forum has no .messages — its seed is a THREAD whose starter message holds
+  // the embed. Check for that thread instead of for a pinned message.
+  if (ch.type === ChannelType.GuildForum) {
+    const wantTitle = bp.seed[key][0]?.title;
+    try {
+      const active = await ch.threads.fetchActive();
+      const archived = await ch.threads.fetchArchived().catch(() => ({ threads: new Map() }));
+      const posts = [...active.threads.values(), ...archived.threads.values()]
+        .filter((t) => t.ownerId === client.user.id && t.name === wantTitle);
+      if (!posts.length) err('seed', `#${ch.name}: no seed post (expected a thread "${wantTitle}")`);
+      else if (posts.length > 1) warn('seed', `#${ch.name}: ${posts.length} seed threads (duplicates)`);
+      else ok(`#${ch.name} seeded as forum post (created ${snowflakeDate(posts[0].id)})`);
+    } catch (e) { warn('seed', `#${ch.name}: cannot read threads — ${e.message}`); }
+    continue;
+  }
   try {
     const pinned = await ch.messages.fetchPinned();
     const mine = [...pinned.values()].filter((m) => m.author.id === client.user.id);
@@ -612,7 +642,7 @@ for (const key of Object.keys(bp.seed)) {
 const pinNotices = [];
 for (const key of Object.keys(bp.seed)) {
   const ch = guild.channels.cache.get(chanIdByKey[key]);
-  if (!ch) continue;
+  if (!ch || !ch.messages) continue;   // forums have no message list
   const msgs = await ch.messages.fetch({ limit: 20 }).catch(() => null);
   const n = msgs ? [...msgs.values()].filter((m) => m.type === MessageType.ChannelPinnedMessage).length : 0;
   if (n) pinNotices.push(`#${ch.name}${n > 1 ? ` ×${n}` : ''}`);

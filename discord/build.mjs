@@ -144,7 +144,8 @@ function validate() {
 
   const need = (kind, set, key, ctx) => { if (!set.has(key)) errors.push(`${ctx} → unknown ${kind} "${key}"`); };
   need('channel', chanKeys, bp.guild.systemChannel, 'guild.systemChannel');
-  need('channel', chanKeys, bp.guild.afkChannel, 'guild.afkChannel');
+  // null/absent = the server has no AFK channel (nothing to park people in).
+  if (bp.guild.afkChannel) need('channel', chanKeys, bp.guild.afkChannel, 'guild.afkChannel');
   if (bp.guild.inviteChannel) need('channel', chanKeys, bp.guild.inviteChannel, 'guild.inviteChannel');
   if (bp.guild.description && bp.guild.description.length > 300) errors.push(`guild.description is ${bp.guild.description.length} chars (Discord allows 300)`);
   for (const [who, keys] of Object.entries(bp.roleAssignments ?? {})) {
@@ -207,7 +208,7 @@ async function build() {
   const {
     Client, GatewayIntentBits, PermissionsBitField, PermissionFlagsBits, ChannelType,
     GuildVerificationLevel, GuildExplicitContentFilter, GuildDefaultMessageNotifications,
-    EmbedBuilder, Routes, OverwriteType, resolveColor, MessageType,
+    EmbedBuilder, Routes, OverwriteType, resolveColor, MessageType, ChannelFlags,
     AutoModerationRuleTriggerType, AutoModerationRuleEventType,
     AutoModerationActionType, AutoModerationRuleKeywordPresetType,
   } = DJS;
@@ -453,7 +454,7 @@ async function build() {
     explicitContentFilter: GuildExplicitContentFilter[bp.community.contentFilter],
     defaultMessageNotifications: GuildDefaultMessageNotifications[bp.community.notifications],
     systemChannel: channelId[bp.guild.systemChannel],
-    afkChannel: channelId[bp.guild.afkChannel],
+    afkChannel: bp.guild.afkChannel ? channelId[bp.guild.afkChannel] ?? null : null,
     afkTimeout: bp.guild.afkTimeout,
     reason: 'VerseBase Community setup',
   };
@@ -471,7 +472,7 @@ async function build() {
           public_updates_channel_id: channelId[bp.community.updatesChannel],
           verification_level: 2, explicit_content_filter: 2, default_message_notifications: 1,
           system_channel_id: channelId[bp.guild.systemChannel],
-          afk_channel_id: channelId[bp.guild.afkChannel], afk_timeout: bp.guild.afkTimeout,
+          afk_channel_id: bp.guild.afkChannel ? channelId[bp.guild.afkChannel] ?? null : null, afk_timeout: bp.guild.afkTimeout,
         },
       });
       communityEnabled = true;
@@ -701,6 +702,37 @@ async function build() {
     const ch = guild.channels.cache.get(channelId[key]);
     if (!ch) { warn(`Seed: channel "${key}" not found`); continue; }
     const built = embeds.map(buildEmbed);
+
+    // Forum channels have NO .send() — a "post" is a thread whose starter message
+    // carries the content. The seed is the bot's own thread, matched by title so
+    // re-runs update it in place instead of piling up duplicate posts.
+    if (ch.type === ChannelType.GuildForum) {
+      const title = String(embeds[0]?.title ?? nameOf(key)).slice(0, 100);
+      let post = null;
+      try {
+        const active = await ch.threads.fetchActive();
+        const archived = await ch.threads.fetchArchived().catch(() => ({ threads: new Map() }));
+        post = [...active.threads.values(), ...archived.threads.values()]
+          .find((t) => t.ownerId === client.user.id && t.name === title);
+      } catch { /* ignore */ }
+      if (post) {
+        try {
+          const starter = await post.fetchStarterMessage();
+          await starter.edit({ embeds: built });
+          chg(`#${nameOf(key)} (forum seed updated in place)`);
+        } catch (e) { warn(`forum seed edit failed for ${key}: ${e.message}`); }
+        continue;
+      }
+      try {
+        const created = await ch.threads.create({ name: title, message: { embeds: built } });
+        // Pinning a forum post is a channel FLAG, not message.pin(). Best-effort,
+        // and it needs its own try/catch: a missing method throws synchronously,
+        // so a trailing .catch() would not catch it and would lose the whole seed.
+        try { await created.edit({ flags: ChannelFlags.Pinned }); } catch { /* unpinned is fine */ }
+        add(`seeded #${nameOf(key)} (forum post)`);
+      } catch (e) { warn(`forum seed failed for ${key}: ${e.message}`); }
+      continue;
+    }
 
     // The seed post is the bot's PINNED message in the channel. Any other bot
     // messages here (e.g. the rank bot's patch auto-posts in #patch-notes — same

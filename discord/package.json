@@ -12,7 +12,8 @@
     "build": "node build.mjs",
     "order": "node order-roles.mjs",
     "announce": "node announce-milestone.mjs",
-    "audit": "node audit.mjs"
+    "audit": "node audit.mjs",
+    "prune": "node prune.mjs"
   },
   "engines": {
     "node": ">=20.6"
