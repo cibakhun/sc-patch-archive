@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 147,
-  "totalListings": 4209,
-  "totalSold": 173,
+  "updates": 148,
+  "totalListings": 4216,
+  "totalSold": 174,
   "distinctItems": 1005
  },
  "listings": {
@@ -86227,9 +86227,9 @@
      "p": 2500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 2500000,
    "dateAdded": 1786296139,
    "dateExpiration": 1791480138
   },
@@ -89588,6 +89588,111 @@
    "dateAdded": 1786318527,
    "dateExpiration": 1791502527
   },
+  "160937": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "866Q Titanium 2.24 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 866,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318849,
+   "dateExpiration": 1791502849
+  },
+  "160938": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786319955,
+   "dateExpiration": 1791503955
+  },
+  "160939": {
+   "idItem": 1774,
+   "idCategory": 21,
+   "title": "JS-300 900Q 2 PIPS",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786320083,
+   "dateExpiration": 1791504083
+  },
+  "160940": {
+   "idItem": 5943,
+   "idCategory": 36,
+   "title": "Ouratite - Buying 912-1000 OQ",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786320333,
+   "dateExpiration": 1791504333
+  },
+  "160941": {
+   "idItem": 4892,
+   "idCategory": 38,
+   "title": "WTB ASD Secure Drive",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786320531,
+   "dateExpiration": 1791504530
+  },
   "160942": {
    "idItem": null,
    "idCategory": 36,
@@ -89650,6 +89755,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786322669,
    "dateExpiration": 1791506669
+  },
+  "160948": {
+   "idItem": 5329,
+   "idCategory": 17,
+   "title": "TS-35 Basara (3.5x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786324225,
+   "dateExpiration": 1791508225
+  },
+  "160952": {
+   "idItem": 3397,
+   "idCategory": 2,
+   "title": "Pembroke Backpack RSI Graphite Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786326032,
+   "dateExpiration": 1791510032
   }
  }
 }
