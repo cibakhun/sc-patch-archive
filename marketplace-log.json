@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 153,
-  "totalListings": 4300,
+  "updates": 154,
+  "totalListings": 4309,
   "totalSold": 179,
-  "distinctItems": 1023
+  "distinctItems": 1024
  },
  "listings": {
   "156580": {
@@ -84856,6 +84856,10 @@
     {
      "d": "2026-08-10",
      "p": 3500000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 4000000
     }
    ],
    "soldOut": false,
@@ -91279,6 +91283,10 @@
     {
      "d": "2026-08-10",
      "p": 4500000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 5000000
     }
    ],
    "soldOut": false,
@@ -91601,6 +91609,195 @@
    "soldOutPrice": null,
    "dateAdded": 1786343980,
    "dateExpiration": 1791527980
+  },
+  "161053": {
+   "idItem": 2224,
+   "idCategory": 18,
+   "title": "FS-9 LMG (crafted) 882q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 882,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786344307,
+   "dateExpiration": 1791528307
+  },
+  "161054": {
+   "idItem": 2224,
+   "idCategory": 18,
+   "title": "FS-9 LMG (crafted) 975q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 4800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786344414,
+   "dateExpiration": 1791528414
+  },
+  "161058": {
+   "idItem": 4899,
+   "idCategory": 18,
+   "title": "Fresnel \"Icebox\" \"Molten\" \"Rockfall\" Energy LMG (crafted) 890q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 890,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786345210,
+   "dateExpiration": 1791529210
+  },
+  "161059": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786345215,
+   "dateExpiration": 1791529215
+  },
+  "161060": {
+   "idItem": 2817,
+   "idCategory": 18,
+   "title": "Lumin V \"Valor\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786345378,
+   "dateExpiration": 1791529378
+  },
+  "161061": {
+   "idItem": 4922,
+   "idCategory": 87,
+   "title": "Feynmaline",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786346280,
+   "dateExpiration": 1791530280
+  },
+  "161062": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "WTB Stileron",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786346344,
+   "dateExpiration": 1791530344
+  },
+  "161063": {
+   "idItem": 5569,
+   "idCategory": 18,
+   "title": "F55 \"Mark 1\" LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786346586,
+   "dateExpiration": 1791530586
+  },
+  "161064": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite / 916Q - 500K (5) / 867Q - 250k (10)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786347172,
+   "dateExpiration": 1791531172
   }
  }
 }
