@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 155,
-  "totalListings": 4335,
+  "updates": 156,
+  "totalListings": 4345,
   "totalSold": 181,
-  "distinctItems": 1024
+  "distinctItems": 1028
  },
  "listings": {
   "156580": {
@@ -92356,6 +92356,216 @@
    "soldOutPrice": null,
    "dateAdded": 1786351353,
    "dateExpiration": 1791535353
+  },
+  "161078": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle(896Alum,896Heph,970Iron)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 921,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786351541,
+   "dateExpiration": 1791535541
+  },
+  "161079": {
+   "idItem": 5807,
+   "idCategory": 24,
+   "title": "Sol-III Flight Suit Bombardier",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786351550,
+   "dateExpiration": 1791535550
+  },
+  "161081": {
+   "idItem": 7776,
+   "idCategory": 2,
+   "title": "Crafted: Chiron Backpack Purgatory Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786351927,
+   "dateExpiration": 1791535927
+  },
+  "161082": {
+   "idItem": 6066,
+   "idCategory": 2,
+   "title": "Crafted: Testudo Backpack Purgatory Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786351996,
+   "dateExpiration": 1791535996
+  },
+  "161083": {
+   "idItem": 6079,
+   "idCategory": 2,
+   "title": "Crafted: Testudo Backpack Combustion",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786352168,
+   "dateExpiration": 1791536168
+  },
+  "161084": {
+   "idItem": 4840,
+   "idCategory": 4,
+   "title": "Geist Armor Legs ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786352173,
+   "dateExpiration": 1791536173
+  },
+  "161085": {
+   "idItem": null,
+   "idCategory": 2,
+   "title": "Crafted: Strata Backpack Levski Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786352740,
+   "dateExpiration": 1791536740
+  },
+  "161086": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "6SCU Tungsten 787Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 787,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786353878,
+   "dateExpiration": 1791537878
+  },
+  "161087": {
+   "idItem": 1673,
+   "idCategory": 18,
+   "title": "Karna Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 892,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786354116,
+   "dateExpiration": 1791538116
+  },
+  "161088": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786354128,
+   "dateExpiration": 1791538128
   }
  }
 }
