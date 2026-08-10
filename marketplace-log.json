@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 167,
-  "totalListings": 4502,
+  "updates": 168,
+  "totalListings": 4512,
   "totalSold": 186,
   "distinctItems": 1037
  },
@@ -89403,6 +89403,10 @@
     {
      "d": "2026-08-10",
      "p": 14900000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 12900000
     }
    ],
    "soldOut": false,
@@ -95947,6 +95951,216 @@
    "soldOutPrice": null,
    "dateAdded": 1786394269,
    "dateExpiration": 1791578269
+  },
+  "161240": {
+   "idItem": 2494,
+   "idCategory": 18,
+   "title": "Arrowhead \"Executive\" Sniper Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786395043,
+   "dateExpiration": 1791579043
+  },
+  "161241": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "F7 Super Hornet MKII Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786395077,
+   "dateExpiration": 1791579077
+  },
+  "161243": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium Q916 0.970 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786395374,
+   "dateExpiration": 1791579374
+  },
+  "161244": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron Q874 0.956 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786395546,
+   "dateExpiration": 1791579546
+  },
+  "161245": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "Parallax Shock Trooper Rifle (crafted) 912q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 912,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786395548,
+   "dateExpiration": 1791579548
+  },
+  "161247": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Terrapin Medic Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786395796,
+   "dateExpiration": 1791579796
+  },
+  "161248": {
+   "idItem": null,
+   "idCategory": 4,
+   "title": "ADP-mk4Legs Justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786396095,
+   "dateExpiration": 1791580095
+  },
+  "161250": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786396280,
+   "dateExpiration": 1791580280
+  },
+  "161252": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 947,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786396580,
+   "dateExpiration": 1791580579
+  },
+  "161256": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl 937 (1.0 SCU)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786398331,
+   "dateExpiration": 1791582331
   }
  }
 }
