@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 148,
-  "totalListings": 4216,
-  "totalSold": 174,
+  "updates": 149,
+  "totalListings": 4224,
+  "totalSold": 175,
   "distinctItems": 1005
  },
  "listings": {
@@ -80304,9 +80304,9 @@
      "p": 12000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 12000000,
    "dateAdded": 1786231942,
    "dateExpiration": 1791415941
   },
@@ -89756,6 +89756,69 @@
    "dateAdded": 1786322669,
    "dateExpiration": 1791506669
   },
+  "160945": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium - 916Q - 1.169 SCU Available - 7M",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786323142,
+   "dateExpiration": 1791507142
+  },
+  "160946": {
+   "idItem": 2629,
+   "idCategory": 38,
+   "title": "Tevarin War Service Marker (pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786323969,
+   "dateExpiration": 1791507969
+  },
+  "160947": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron 972 40m",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 972,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 40000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786324178,
+   "dateExpiration": 1791508178
+  },
   "160948": {
    "idItem": 5329,
    "idCategory": 17,
@@ -89777,6 +89840,69 @@
    "dateAdded": 1786324225,
    "dateExpiration": 1791508225
   },
+  "160949": {
+   "idItem": 2638,
+   "idCategory": 38,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786324268,
+   "dateExpiration": 1791508268
+  },
+  "160950": {
+   "idItem": 4860,
+   "idCategory": 38,
+   "title": "government cartography agency medal (pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786324528,
+   "dateExpiration": 1791508527
+  },
+  "160951": {
+   "idItem": 4394,
+   "idCategory": 38,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786324836,
+   "dateExpiration": 1791508836
+  },
   "160952": {
    "idItem": 3397,
    "idCategory": 2,
@@ -89797,6 +89923,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786326032,
    "dateExpiration": 1791510032
+  },
+  "160953": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron | 947q | 2.75 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 947,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786328301,
+   "dateExpiration": 1791512301
+  },
+  "160955": {
+   "idItem": 7634,
+   "idCategory": 18,
+   "title": "WTS Demeco \"Purgatory Camo\" LMG 900Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786329745,
+   "dateExpiration": 1791513745
   }
  }
 }
