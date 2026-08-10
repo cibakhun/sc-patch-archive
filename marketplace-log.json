@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 159,
-  "totalListings": 4385,
+  "updates": 160,
+  "totalListings": 4399,
   "totalSold": 182,
-  "distinctItems": 1030
+  "distinctItems": 1032
  },
  "listings": {
   "156580": {
@@ -82014,6 +82014,10 @@
     {
      "d": "2026-08-10",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -88271,6 +88275,10 @@
     {
      "d": "2026-08-09",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 1800000
     }
    ],
    "soldOut": false,
@@ -91823,6 +91831,10 @@
     {
      "d": "2026-08-10",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -91865,6 +91877,10 @@
     {
      "d": "2026-08-10",
      "p": 5000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 4000000
     }
    ],
    "soldOut": false,
@@ -91907,6 +91923,10 @@
     {
      "d": "2026-08-10",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -91928,6 +91948,10 @@
     {
      "d": "2026-08-10",
      "p": 4000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 3000000
     }
    ],
    "soldOut": false,
@@ -92348,6 +92372,10 @@
     {
      "d": "2026-08-10",
      "p": 900000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 450000
     }
    ],
    "soldOut": false,
@@ -92663,6 +92691,10 @@
     {
      "d": "2026-08-10",
      "p": 5000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 3000000
     }
    ],
    "soldOut": false,
@@ -92873,6 +92905,10 @@
     {
      "d": "2026-08-10",
      "p": 1300000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -93426,6 +93462,300 @@
    "soldOutPrice": null,
    "dateAdded": 1786365676,
    "dateExpiration": 1791549676
+  },
+  "161115": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786365999,
+   "dateExpiration": 1791549999
+  },
+  "161116": {
+   "idItem": 6919,
+   "idCategory": 3,
+   "title": "Morozov-SH-S Helmet Spitfire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786366004,
+   "dateExpiration": 1791550004
+  },
+  "161117": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786366251,
+   "dateExpiration": 1791550251
+  },
+  "161118": {
+   "idItem": null,
+   "idCategory": 2,
+   "title": "Morozov-CH Backpack Stronghold",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786366370,
+   "dateExpiration": 1791550370
+  },
+  "161119": {
+   "idItem": 3398,
+   "idCategory": 2,
+   "title": "Pembroke Backpack RSI Ivory Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786366506,
+   "dateExpiration": 1791550506
+  },
+  "161120": {
+   "idItem": 6921,
+   "idCategory": 5,
+   "title": "Morozov-SH Core Smokescreen",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786366789,
+   "dateExpiration": 1791550789
+  },
+  "161121": {
+   "idItem": 74,
+   "idCategory": 18,
+   "title": "S-38 Pistol(970Iron,896Alum,896Heph)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 920,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786366928,
+   "dateExpiration": 1791550928
+  },
+  "161122": {
+   "idItem": null,
+   "idCategory": 10,
+   "title": "Kiba Mask Avarice",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786367264,
+   "dateExpiration": 1791551264
+  },
+  "161126": {
+   "idItem": 4477,
+   "idCategory": 18,
+   "title": "Parallax \"Sunstone\" Energy Assault Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786368864,
+   "dateExpiration": 1791552864
+  },
+  "161127": {
+   "idItem": 4578,
+   "idCategory": 18,
+   "title": "Prism \"Bonedust\" Laser Shotgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786368987,
+   "dateExpiration": 1791552987
+  },
+  "161128": {
+   "idItem": 4469,
+   "idCategory": 18,
+   "title": "Quartz Energy SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786369079,
+   "dateExpiration": 1791553079
+  },
+  "161129": {
+   "idItem": 4433,
+   "idCategory": 18,
+   "title": "Parallax \"Shock Trooper\" Energy Assault Rifle Crafted Q960",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 960,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786369227,
+   "dateExpiration": 1791553227
+  },
+  "161130": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium 930Q 954Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 954,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 544000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786369349,
+   "dateExpiration": 1791553349
+  },
+  "161131": {
+   "idItem": 2592,
+   "idCategory": 3,
+   "title": "Star Kitten Sally Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786369445,
+   "dateExpiration": 1791553445
   }
  }
 }
