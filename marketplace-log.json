@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 163,
-  "totalListings": 4452,
-  "totalSold": 183,
-  "distinctItems": 1034
+  "updates": 164,
+  "totalListings": 4467,
+  "totalSold": 184,
+  "distinctItems": 1035
  },
  "listings": {
   "156580": {
@@ -93910,9 +93910,9 @@
      "p": 85000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 85000,
    "dateAdded": 1786369745,
    "dateExpiration": 1791553745
   },
@@ -93950,6 +93950,10 @@
     {
      "d": "2026-08-10",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -94861,6 +94865,27 @@
    "dateAdded": 1786379648,
    "dateExpiration": 1791563648
   },
+  "161182": {
+   "idItem": 5833,
+   "idCategory": 4,
+   "title": "PAB-1 Legs Executive",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786380194,
+   "dateExpiration": 1791564194
+  },
   "161183": {
    "idItem": 1594,
    "idCategory": 18,
@@ -94881,6 +94906,300 @@
    "soldOutPrice": null,
    "dateAdded": 1786380240,
    "dateExpiration": 1791564239
+  },
+  "161184": {
+   "idItem": 4838,
+   "idCategory": 3,
+   "title": "Geist Armor Helmet ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786380508,
+   "dateExpiration": 1791564508
+  },
+  "161185": {
+   "idItem": null,
+   "idCategory": 111,
+   "title": "BUYING PYAM Supervisor Keycard",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 260000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786380569,
+   "dateExpiration": 1791564569
+  },
+  "161186": {
+   "idItem": 1750,
+   "idCategory": 23,
+   "title": "FR-76",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 750,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786381012,
+   "dateExpiration": 1791565012
+  },
+  "161187": {
+   "idItem": 4841,
+   "idCategory": 1,
+   "title": "Geist Armor Arms ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786381016,
+   "dateExpiration": 1791565016
+  },
+  "161188": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet x2 - 900k each or 1.5m for both",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786381067,
+   "dateExpiration": 1791565067
+  },
+  "161189": {
+   "idItem": 4840,
+   "idCategory": 4,
+   "title": "Geist Armor Legs ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786381258,
+   "dateExpiration": 1791565258
+  },
+  "161190": {
+   "idItem": 4842,
+   "idCategory": 2,
+   "title": "Geist Backpack ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786381329,
+   "dateExpiration": 1791565329
+  },
+  "161192": {
+   "idItem": 2590,
+   "idCategory": 3,
+   "title": "Star Kitten Damon Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786381583,
+   "dateExpiration": 1791565583
+  },
+  "161193": {
+   "idItem": 5837,
+   "idCategory": 2,
+   "title": "Palatino Backpack Necropolis",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786381704,
+   "dateExpiration": 1791565704
+  },
+  "161195": {
+   "idItem": 5834,
+   "idCategory": 3,
+   "title": "Morozov-SH-S Helmet Iceflow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786381717,
+   "dateExpiration": 1791565717
+  },
+  "161196": {
+   "idItem": 6960,
+   "idCategory": 3,
+   "title": "Morozov-SH-I Helmet Pyrotechnic Spitfire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786381855,
+   "dateExpiration": 1791565855
+  },
+  "161197": {
+   "idItem": 2113,
+   "idCategory": 22,
+   "title": "Spectre Crafted Q826 AVG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 826,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786381858,
+   "dateExpiration": 1791565857
+  },
+  "161198": {
+   "idItem": 6769,
+   "idCategory": 5,
+   "title": "ORC-mkX Core Justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786382298,
+   "dateExpiration": 1791566298
+  },
+  "161199": {
+   "idItem": 4438,
+   "idCategory": 3,
+   "title": "FBL-8a Helmet Justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786382441,
+   "dateExpiration": 1791566441
   }
  }
 }
