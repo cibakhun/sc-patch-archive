@@ -3,11 +3,11 @@
   "source": "UEX Corp (uexcorp.space) /2.0/marketplace_listings — Spieler-Inserate, ANGEBOTSpreise.",
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
-  "lastChange": "2026-08-09",
-  "updates": 145,
-  "totalListings": 4158,
-  "totalSold": 172,
-  "distinctItems": 995
+  "lastChange": "2026-08-10",
+  "updates": 146,
+  "totalListings": 4206,
+  "totalSold": 173,
+  "distinctItems": 1005
  },
  "listings": {
   "156580": {
@@ -78048,7 +78048,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78069,7 +78069,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78090,7 +78090,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78111,7 +78111,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78132,7 +78132,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78153,7 +78153,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78174,7 +78174,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78195,7 +78195,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78216,7 +78216,7 @@
    "currency": "UEC",
    "quality": 941,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78237,7 +78237,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78258,7 +78258,7 @@
    "currency": "UEC",
    "quality": 941,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78279,7 +78279,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78321,7 +78321,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78342,7 +78342,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78363,7 +78363,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78384,7 +78384,7 @@
    "currency": "UEC",
    "quality": 1000,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78405,7 +78405,7 @@
    "currency": "UEC",
    "quality": 785,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78426,7 +78426,7 @@
    "currency": "UEC",
    "quality": 1,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78447,7 +78447,7 @@
    "currency": "UEC",
    "quality": 980,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78468,7 +78468,7 @@
    "currency": "UEC",
    "quality": 968,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78489,7 +78489,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78510,7 +78510,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78531,7 +78531,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78552,7 +78552,7 @@
    "currency": "UEC",
    "quality": 1000,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78573,7 +78573,7 @@
    "currency": "UEC",
    "quality": 100,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -78598,7 +78598,7 @@
    "currency": "UEC",
    "quality": 852,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78619,7 +78619,7 @@
    "currency": "UEC",
    "quality": 965,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78640,7 +78640,7 @@
    "currency": "UEC",
    "quality": 100,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -78665,7 +78665,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -78686,7 +78686,7 @@
    "currency": "UEC",
    "quality": 100,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -78711,7 +78711,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78732,7 +78732,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78757,7 +78757,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78778,7 +78778,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78799,7 +78799,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78820,7 +78820,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78841,7 +78841,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78862,7 +78862,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78883,7 +78883,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78904,7 +78904,7 @@
    "currency": "UEC",
    "quality": 909,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78925,7 +78925,7 @@
    "currency": "UEC",
    "quality": 1000,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78946,7 +78946,7 @@
    "currency": "UEC",
    "quality": 100,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -78971,7 +78971,7 @@
    "currency": "UEC",
    "quality": 965,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -78992,7 +78992,7 @@
    "currency": "UEC",
    "quality": 100,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79017,7 +79017,7 @@
    "currency": "UEC",
    "quality": 100,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79042,7 +79042,7 @@
    "currency": "UEC",
    "quality": 970,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79063,7 +79063,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79084,7 +79084,7 @@
    "currency": "UEC",
    "quality": 860,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79105,7 +79105,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79126,7 +79126,7 @@
    "currency": "UEC",
    "quality": 866,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79147,7 +79147,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79168,7 +79168,7 @@
    "currency": "UEC",
    "quality": 1000,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79189,7 +79189,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79210,7 +79210,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79231,7 +79231,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79252,7 +79252,7 @@
    "currency": "UEC",
    "quality": 717,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79273,7 +79273,7 @@
    "currency": "UEC",
    "quality": 1000,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79294,7 +79294,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79315,7 +79315,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79340,7 +79340,7 @@
    "currency": "UEC",
    "quality": 743,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79361,7 +79361,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79386,7 +79386,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79407,7 +79407,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79428,7 +79428,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79453,7 +79453,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79474,7 +79474,7 @@
    "currency": "UEC",
    "quality": 916,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79495,7 +79495,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79516,7 +79516,7 @@
    "currency": "UEC",
    "quality": 858,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79541,7 +79541,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79562,7 +79562,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79583,7 +79583,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79604,7 +79604,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79625,7 +79625,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79646,7 +79646,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79667,7 +79667,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79709,7 +79709,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79730,7 +79730,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79751,7 +79751,7 @@
    "currency": "UEC",
    "quality": 959,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79772,7 +79772,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79793,7 +79793,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79835,7 +79835,7 @@
    "currency": "UEC",
    "quality": 873,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79877,7 +79877,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79898,7 +79898,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79919,7 +79919,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-08",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-08",
@@ -79940,7 +79940,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79961,7 +79961,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -79982,7 +79982,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80003,7 +80003,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80024,7 +80024,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80045,7 +80045,7 @@
    "currency": "UEC",
    "quality": 874,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80066,7 +80066,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80087,7 +80087,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80108,7 +80108,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80171,7 +80171,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80192,7 +80192,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80213,7 +80213,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80234,7 +80234,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80255,7 +80255,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80276,7 +80276,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80297,7 +80297,7 @@
    "currency": "UEC",
    "quality": 908,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80318,7 +80318,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80339,7 +80339,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80360,7 +80360,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80402,7 +80402,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80423,7 +80423,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80444,7 +80444,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80465,7 +80465,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80486,7 +80486,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80507,7 +80507,7 @@
    "currency": "UEC",
    "quality": 960,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80528,7 +80528,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80549,7 +80549,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80570,7 +80570,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80591,7 +80591,7 @@
    "currency": "UEC",
    "quality": 912,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80612,7 +80612,7 @@
    "currency": "UEC",
    "quality": 974,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80633,7 +80633,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80679,7 +80679,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80700,7 +80700,7 @@
    "currency": "UEC",
    "quality": 880,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80721,7 +80721,7 @@
    "currency": "UEC",
    "quality": 716,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80763,7 +80763,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80784,7 +80784,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80805,7 +80805,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80826,7 +80826,7 @@
    "currency": "UEC",
    "quality": 930,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80847,7 +80847,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80868,7 +80868,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80889,7 +80889,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80914,7 +80914,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80935,7 +80935,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80956,7 +80956,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80977,7 +80977,7 @@
    "currency": "UEC",
    "quality": 954,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -80998,7 +80998,7 @@
    "currency": "UEC",
    "quality": 916,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81019,7 +81019,7 @@
    "currency": "UEC",
    "quality": 930,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81040,7 +81040,7 @@
    "currency": "UEC",
    "quality": 830,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81061,7 +81061,7 @@
    "currency": "UEC",
    "quality": 881,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81082,7 +81082,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81103,7 +81103,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81124,7 +81124,7 @@
    "currency": "UEC",
    "quality": 821,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81145,7 +81145,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81166,7 +81166,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81187,7 +81187,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81208,7 +81208,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81229,7 +81229,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81250,7 +81250,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81271,7 +81271,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81292,7 +81292,7 @@
    "currency": "UEC",
    "quality": 866,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81313,7 +81313,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81334,7 +81334,7 @@
    "currency": "UEC",
    "quality": 900,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81355,7 +81355,7 @@
    "currency": "UEC",
    "quality": 900,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81376,7 +81376,7 @@
    "currency": "UEC",
    "quality": 900,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81397,7 +81397,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81418,7 +81418,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81460,7 +81460,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81502,7 +81502,7 @@
    "currency": "UEC",
    "quality": 900,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81523,7 +81523,7 @@
    "currency": "UEC",
    "quality": 900,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81544,7 +81544,7 @@
    "currency": "UEC",
    "quality": 1000,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81565,7 +81565,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81586,7 +81586,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81607,7 +81607,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81628,7 +81628,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81649,7 +81649,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81670,7 +81670,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81691,7 +81691,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81712,7 +81712,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81733,7 +81733,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81754,7 +81754,7 @@
    "currency": "UEC",
    "quality": 874,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81796,7 +81796,7 @@
    "currency": "UEC",
    "quality": 784,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81817,7 +81817,7 @@
    "currency": "UEC",
    "quality": 883,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81838,7 +81838,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81859,7 +81859,7 @@
    "currency": "UEC",
    "quality": 943,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81880,7 +81880,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81901,7 +81901,7 @@
    "currency": "UEC",
    "quality": 920,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81922,7 +81922,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81964,7 +81964,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -81985,7 +81985,7 @@
    "currency": "UEC",
    "quality": 862,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82006,7 +82006,7 @@
    "currency": "UEC",
    "quality": 939,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82132,7 +82132,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82174,7 +82174,7 @@
    "currency": "UEC",
    "quality": 850,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82216,7 +82216,7 @@
    "currency": "UEC",
    "quality": 857,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82258,7 +82258,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82384,7 +82384,7 @@
    "currency": "UEC",
    "quality": 912,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82426,7 +82426,7 @@
    "currency": "UEC",
    "quality": 743,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82447,7 +82447,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82468,7 +82468,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82489,7 +82489,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82510,7 +82510,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82531,7 +82531,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82552,7 +82552,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82573,7 +82573,7 @@
    "currency": "UEC",
    "quality": 4,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82594,7 +82594,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82636,7 +82636,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82741,7 +82741,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82762,7 +82762,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82783,7 +82783,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82804,7 +82804,7 @@
    "currency": "UEC",
    "quality": 896,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82846,7 +82846,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82867,7 +82867,7 @@
    "currency": "UEC",
    "quality": 866,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82888,7 +82888,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82909,7 +82909,7 @@
    "currency": "UEC",
    "quality": 896,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82930,7 +82930,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82972,7 +82972,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -82993,7 +82993,7 @@
    "currency": "UEC",
    "quality": 874,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83014,7 +83014,7 @@
    "currency": "UEC",
    "quality": 900,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83043,7 +83043,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83064,7 +83064,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83085,7 +83085,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83106,7 +83106,7 @@
    "currency": "UEC",
    "quality": 900,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83131,7 +83131,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83152,7 +83152,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83173,7 +83173,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83194,7 +83194,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83215,7 +83215,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83236,7 +83236,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83257,7 +83257,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83278,7 +83278,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83299,7 +83299,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83324,7 +83324,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83345,7 +83345,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83366,7 +83366,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83387,7 +83387,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83408,7 +83408,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83429,7 +83429,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83450,7 +83450,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83471,7 +83471,7 @@
    "currency": "UEC",
    "quality": 900,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83492,7 +83492,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83513,7 +83513,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83534,7 +83534,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83555,7 +83555,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83576,7 +83576,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83597,7 +83597,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83618,7 +83618,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83639,7 +83639,7 @@
    "currency": "UEC",
    "quality": 762,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83660,7 +83660,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83685,7 +83685,7 @@
    "currency": "UEC",
    "quality": 943,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83706,7 +83706,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83727,7 +83727,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83748,7 +83748,7 @@
    "currency": "UEC",
    "quality": 861,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83769,7 +83769,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83790,7 +83790,7 @@
    "currency": "UEC",
    "quality": 957,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83811,7 +83811,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83832,7 +83832,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83853,7 +83853,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83874,7 +83874,7 @@
    "currency": "UEC",
    "quality": 1000,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83895,7 +83895,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83916,7 +83916,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83937,7 +83937,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83958,7 +83958,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -83979,7 +83979,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84000,7 +84000,7 @@
    "currency": "UEC",
    "quality": 959,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84021,7 +84021,7 @@
    "currency": "UEC",
    "quality": 867,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84042,7 +84042,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84063,7 +84063,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84084,7 +84084,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84109,7 +84109,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84130,7 +84130,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84172,7 +84172,7 @@
    "currency": "UEC",
    "quality": 864,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84193,7 +84193,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84214,7 +84214,7 @@
    "currency": "UEC",
    "quality": 1000,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84225,9 +84225,9 @@
      "p": 10000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 10000000,
    "dateAdded": 1786279188,
    "dateExpiration": 1791463188
   },
@@ -84239,7 +84239,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84260,7 +84260,7 @@
    "currency": "UEC",
    "quality": 976,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84302,7 +84302,7 @@
    "currency": "UEC",
    "quality": 1,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84323,7 +84323,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84344,7 +84344,7 @@
    "currency": "UEC",
    "quality": 596,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84365,7 +84365,7 @@
    "currency": "UEC",
    "quality": 1,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84386,7 +84386,7 @@
    "currency": "UEC",
    "quality": 632,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84407,7 +84407,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84428,7 +84428,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84449,7 +84449,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84470,7 +84470,7 @@
    "currency": "UEC",
    "quality": 971,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84491,7 +84491,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84512,7 +84512,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84533,7 +84533,7 @@
    "currency": "UEC",
    "quality": 707,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84554,7 +84554,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84575,7 +84575,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84617,7 +84617,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84638,7 +84638,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84659,7 +84659,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84680,7 +84680,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84701,7 +84701,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84722,7 +84722,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84743,7 +84743,7 @@
    "currency": "UEC",
    "quality": 935,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84764,7 +84764,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84785,7 +84785,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84806,7 +84806,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84827,7 +84827,7 @@
    "currency": "UEC",
    "quality": 895,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84848,7 +84848,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84869,7 +84869,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84894,7 +84894,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84915,7 +84915,7 @@
    "currency": "UEC",
    "quality": 959,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84936,7 +84936,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84961,7 +84961,7 @@
    "currency": "UEC",
    "quality": 959,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -84982,7 +84982,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85007,7 +85007,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85028,7 +85028,7 @@
    "currency": "UEC",
    "quality": 893,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85053,7 +85053,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85074,7 +85074,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85099,7 +85099,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85120,7 +85120,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85141,7 +85141,7 @@
    "currency": "UEC",
    "quality": 975,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85162,7 +85162,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85183,7 +85183,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85204,7 +85204,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85225,7 +85225,7 @@
    "currency": "UEC",
    "quality": 970,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85246,7 +85246,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85267,7 +85267,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85288,7 +85288,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85309,7 +85309,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85330,7 +85330,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85351,7 +85351,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85372,7 +85372,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85393,7 +85393,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85414,7 +85414,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85435,7 +85435,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85456,7 +85456,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85477,7 +85477,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85498,7 +85498,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85519,7 +85519,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85540,7 +85540,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85561,7 +85561,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85582,7 +85582,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85603,7 +85603,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85624,7 +85624,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85645,11 +85645,15 @@
    "currency": "UEC",
    "quality": 912,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
      "p": 2600000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 3000000
     }
    ],
    "soldOut": false,
@@ -85666,7 +85670,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85687,7 +85691,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85708,7 +85712,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85729,7 +85733,7 @@
    "currency": "UEC",
    "quality": 972,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85750,7 +85754,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85771,7 +85775,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85792,7 +85796,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85813,7 +85817,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85834,7 +85838,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85855,7 +85859,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85876,7 +85880,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85897,7 +85901,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85918,7 +85922,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85939,7 +85943,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85960,7 +85964,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -85981,7 +85985,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86006,7 +86010,7 @@
    "currency": "UEC",
    "quality": 900,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86027,7 +86031,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86048,7 +86052,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86069,7 +86073,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86132,7 +86136,7 @@
    "currency": "UEC",
    "quality": 874,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86153,7 +86157,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86174,7 +86178,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86195,7 +86199,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86216,7 +86220,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86237,7 +86241,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86258,7 +86262,7 @@
    "currency": "UEC",
    "quality": 937,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86279,7 +86283,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86300,7 +86304,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86321,7 +86325,7 @@
    "currency": "UEC",
    "quality": 912,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86342,7 +86346,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86363,7 +86367,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86384,7 +86388,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86405,7 +86409,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86426,7 +86430,7 @@
    "currency": "UEC",
    "quality": 958,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86447,7 +86451,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86468,7 +86472,7 @@
    "currency": "UEC",
    "quality": 870,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86510,7 +86514,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86531,7 +86535,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86552,7 +86556,7 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86573,7 +86577,7 @@
    "currency": "UEC",
    "quality": 870,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86594,7 +86598,7 @@
    "currency": "UEC",
    "quality": 965,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86615,7 +86619,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86636,7 +86640,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86657,7 +86661,7 @@
    "currency": "UEC",
    "quality": 916,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86678,7 +86682,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86699,7 +86703,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86720,7 +86724,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86741,7 +86745,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86766,7 +86770,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86787,7 +86791,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86808,7 +86812,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86829,7 +86833,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86850,7 +86854,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86871,7 +86875,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86892,7 +86896,7 @@
    "currency": "UEC",
    "quality": 909,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86913,7 +86917,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86955,7 +86959,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -86976,11 +86980,15 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
      "p": 19000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 17000000
     }
    ],
    "soldOut": false,
@@ -86997,7 +87005,7 @@
    "currency": "UEC",
    "quality": 866,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87018,7 +87026,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87039,7 +87047,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87060,7 +87068,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87102,7 +87110,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87123,7 +87131,7 @@
    "currency": "UEC",
    "quality": 867,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87144,7 +87152,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87165,7 +87173,7 @@
    "currency": "UEC",
    "quality": 959,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87186,7 +87194,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87207,7 +87215,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87228,7 +87236,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87249,7 +87257,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87270,7 +87278,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87291,7 +87299,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87312,7 +87320,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87333,7 +87341,7 @@
    "currency": "UEC",
    "quality": 970,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87375,7 +87383,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87396,7 +87404,7 @@
    "currency": "UEC",
    "quality": 975,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87417,7 +87425,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87438,7 +87446,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87459,7 +87467,7 @@
    "currency": "UEC",
    "quality": 960,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87480,7 +87488,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87501,7 +87509,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87522,7 +87530,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87543,7 +87551,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87564,7 +87572,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87585,7 +87593,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87606,7 +87614,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87627,7 +87635,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87648,7 +87656,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87669,7 +87677,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87690,7 +87698,7 @@
    "currency": "UEC",
    "quality": 896,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87715,7 +87723,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87736,7 +87744,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87757,7 +87765,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87778,7 +87786,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87799,7 +87807,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87820,7 +87828,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87841,7 +87849,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87883,7 +87891,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87904,7 +87912,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87925,7 +87933,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87946,7 +87954,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87967,7 +87975,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -87988,7 +87996,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88009,7 +88017,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88030,7 +88038,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88051,7 +88059,7 @@
    "currency": "UEC",
    "quality": 917,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88072,7 +88080,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88093,7 +88101,7 @@
    "currency": "UEC",
    "quality": 874,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88114,7 +88122,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88135,7 +88143,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88156,7 +88164,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88177,7 +88185,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88198,7 +88206,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88219,7 +88227,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88240,7 +88248,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88261,7 +88269,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88282,7 +88290,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88303,7 +88311,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88324,7 +88332,7 @@
    "currency": "UEC",
    "quality": 4,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88345,7 +88353,7 @@
    "currency": "UEC",
    "quality": 1000,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88358,6 +88366,27 @@
    "dateAdded": 1786311439,
    "dateExpiration": 1791495439
   },
+  "160878": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip for 3.500 the unit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3500
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786311512,
+   "dateExpiration": 1791495512
+  },
   "160879": {
    "idItem": 4394,
    "idCategory": 61,
@@ -88366,7 +88395,7 @@
    "currency": "UEC",
    "quality": 1000,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88387,7 +88416,7 @@
    "currency": "UEC",
    "quality": 970,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88400,6 +88429,27 @@
    "dateAdded": 1786311767,
    "dateExpiration": 1791495766
   },
+  "160881": {
+   "idItem": 7994,
+   "idCategory": 7,
+   "title": "Overlord Polarity Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786311864,
+   "dateExpiration": 1791495864
+  },
   "160882": {
    "idItem": 5859,
    "idCategory": 36,
@@ -88408,7 +88458,7 @@
    "currency": "UEC",
    "quality": 854,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88429,7 +88479,7 @@
    "currency": "UEC",
    "quality": 880,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88450,7 +88500,7 @@
    "currency": "UEC",
    "quality": 860,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88471,7 +88521,7 @@
    "currency": "UEC",
    "quality": 864,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88484,6 +88534,111 @@
    "dateAdded": 1786312502,
    "dateExpiration": 1791496502
   },
+  "160886": {
+   "idItem": 1775,
+   "idCategory": 21,
+   "title": "JS-400 4pips X2 bundle for 16m",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 905,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 16000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786313218,
+   "dateExpiration": 1791497218
+  },
+  "160887": {
+   "idItem": 5985,
+   "idCategory": 36,
+   "title": "Tin Q940",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 940,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786313367,
+   "dateExpiration": 1791497367
+  },
+  "160888": {
+   "idItem": 320,
+   "idCategory": 5,
+   "title": "ADP-mk4 Core Woodland",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786313418,
+   "dateExpiration": 1791497418
+  },
+  "160889": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium 300-901",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786313864,
+   "dateExpiration": 1791497864
+  },
+  "160890": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "955Q Beryl 0.44 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 955,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786313995,
+   "dateExpiration": 1791497995
+  },
   "160891": {
    "idItem": 6001,
    "idCategory": 61,
@@ -88492,7 +88647,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88505,6 +88660,27 @@
    "dateAdded": 1786314223,
    "dateExpiration": 1791498223
   },
+  "160892": {
+   "idItem": 5844,
+   "idCategory": 38,
+   "title": "WTB Expired Quantanium Fuel Canister",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786314316,
+   "dateExpiration": 1791498316
+  },
   "160893": {
    "idItem": 2629,
    "idCategory": 61,
@@ -88513,7 +88689,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88534,7 +88710,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88555,7 +88731,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-09",
-   "lastSeen": "2026-08-09",
+   "lastSeen": "2026-08-10",
    "prices": [
     {
      "d": "2026-08-09",
@@ -88567,6 +88743,846 @@
    "soldOutPrice": null,
    "dateAdded": 1786314516,
    "dateExpiration": 1791498516
+  },
+  "160897": {
+   "idItem": 2456,
+   "idCategory": 1,
+   "title": "Arden-SL Arms Balefire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315037,
+   "dateExpiration": 1791499037
+  },
+  "160898": {
+   "idItem": 7958,
+   "idCategory": 5,
+   "title": "Inquisitor Core Purple",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315156,
+   "dateExpiration": 1791499156
+  },
+  "160899": {
+   "idItem": 5345,
+   "idCategory": 5,
+   "title": "Testudo Core Nightveil",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315236,
+   "dateExpiration": 1791499236
+  },
+  "160900": {
+   "idItem": 5661,
+   "idCategory": 1,
+   "title": "Testudo Arms Nightveil",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315275,
+   "dateExpiration": 1791499275
+  },
+  "160901": {
+   "idItem": 5508,
+   "idCategory": 3,
+   "title": "Testudo Helmet Combustion",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315310,
+   "dateExpiration": 1791499310
+  },
+  "160902": {
+   "idItem": 4184,
+   "idCategory": 32,
+   "title": "Ardor-3 Salvaged Repeater",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315369,
+   "dateExpiration": 1791499369
+  },
+  "160903": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "903Q Borase 2.88 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 903,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315375,
+   "dateExpiration": 1791499375
+  },
+  "160904": {
+   "idItem": 5662,
+   "idCategory": 1,
+   "title": "Testudo Arms Combustion",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315381,
+   "dateExpiration": 1791499381
+  },
+  "160905": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315708,
+   "dateExpiration": 1791499708
+  },
+  "160906": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "892Q Borase 7.15 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 892,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315776,
+   "dateExpiration": 1791499776
+  },
+  "160907": {
+   "idItem": 67,
+   "idCategory": 18,
+   "title": "P8-sc midnight smg",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315792,
+   "dateExpiration": 1791499792
+  },
+  "160908": {
+   "idItem": 2545,
+   "idCategory": 18,
+   "title": "Coda nighthawk pistol",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315794,
+   "dateExpiration": 1791499794
+  },
+  "160909": {
+   "idItem": 6658,
+   "idCategory": 18,
+   "title": "P8-sc executive edition smg",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315796,
+   "dateExpiration": 1791499796
+  },
+  "160910": {
+   "idItem": 2817,
+   "idCategory": 18,
+   "title": "Lumin V Valor smg",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315798,
+   "dateExpiration": 1791499798
+  },
+  "160911": {
+   "idItem": 63,
+   "idCategory": 17,
+   "title": "Tacit suppressor2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315799,
+   "dateExpiration": 1791499799
+  },
+  "160912": {
+   "idItem": 5481,
+   "idCategory": 17,
+   "title": "Stoic suppressor3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315801,
+   "dateExpiration": 1791499801
+  },
+  "160913": {
+   "idItem": 4269,
+   "idCategory": 17,
+   "title": "Sion scorched compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315802,
+   "dateExpiration": 1791499802
+  },
+  "160914": {
+   "idItem": 4922,
+   "idCategory": 87,
+   "title": "Feynmaline 880q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786315804,
+   "dateExpiration": 1791499804
+  },
+  "160915": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "964Q Tungsten 1.62 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 964,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 50000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786316391,
+   "dateExpiration": 1791500391
+  },
+  "160916": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTS Wikelo Hornet Kit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 21000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786316577,
+   "dateExpiration": 1791500577
+  },
+  "160917": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "858Q Tungsten 0.41 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 858,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786316698,
+   "dateExpiration": 1791500698
+  },
+  "160918": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "959Q Bexalite 0.79 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786317017,
+   "dateExpiration": 1791501017
+  },
+  "160919": {
+   "idItem": 7967,
+   "idCategory": 7,
+   "title": "Palatino Set Necropolis",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786317102,
+   "dateExpiration": 1791501102
+  },
+  "160920": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "941Q Bexalite 0.6 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 941,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786317135,
+   "dateExpiration": 1791501135
+  },
+  "160921": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "875Q Bexalite 3.99 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 875,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786317450,
+   "dateExpiration": 1791501450
+  },
+  "160922": {
+   "idItem": 6009,
+   "idCategory": 7,
+   "title": "Sol-III full set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 25000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786317681,
+   "dateExpiration": 1791501681
+  },
+  "160923": {
+   "idItem": 5948,
+   "idCategory": 36,
+   "title": "922Q Pressurized Ice 4 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 922,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318073,
+   "dateExpiration": 1791502073
+  },
+  "160924": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "Tungsten 964q 0.528 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 964,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 175000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318111,
+   "dateExpiration": 1791502111
+  },
+  "160925": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "Taranite 853Q 1.371 SCU Total",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 853,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318232,
+   "dateExpiration": 1791502232
+  },
+  "160926": {
+   "idItem": 5948,
+   "idCategory": 36,
+   "title": "873Q Pressurized Ice 3.91SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 873,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318434,
+   "dateExpiration": 1791502434
+  },
+  "160927": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "Tungsten 858q 2 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 858,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 6500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318459,
+   "dateExpiration": 1791502459
+  },
+  "160928": {
+   "idItem": 465,
+   "idCategory": 2,
+   "title": "CSP-68H Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318511,
+   "dateExpiration": 1791502511
+  },
+  "160929": {
+   "idItem": 6932,
+   "idCategory": 3,
+   "title": "Morozov-SH-S Helmet Scorched",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318513,
+   "dateExpiration": 1791502513
+  },
+  "160930": {
+   "idItem": 4408,
+   "idCategory": 2,
+   "title": "Warden backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318514,
+   "dateExpiration": 1791502514
+  },
+  "160931": {
+   "idItem": 3217,
+   "idCategory": 2,
+   "title": "Zeus exploration suit backpack solar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318517,
+   "dateExpiration": 1791502517
+  },
+  "160932": {
+   "idItem": 6280,
+   "idCategory": 2,
+   "title": "Zeus exploration backpack starscape",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318519,
+   "dateExpiration": 1791502519
+  },
+  "160933": {
+   "idItem": 6967,
+   "idCategory": 5,
+   "title": "Morozov-SH core terrene",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318521,
+   "dateExpiration": 1791502521
+  },
+  "160934": {
+   "idItem": 4458,
+   "idCategory": 5,
+   "title": "Inquisitor core olive",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318523,
+   "dateExpiration": 1791502523
+  },
+  "160935": {
+   "idItem": 329,
+   "idCategory": 5,
+   "title": "Adp core dark red",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 180000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318525,
+   "dateExpiration": 1791502525
+  },
+  "160936": {
+   "idItem": 434,
+   "idCategory": 3,
+   "title": "Balor-hch helmet olive",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786318527,
+   "dateExpiration": 1791502527
   }
  }
 }
