@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 154,
-  "totalListings": 4309,
-  "totalSold": 179,
+  "updates": 155,
+  "totalListings": 4335,
+  "totalSold": 181,
   "distinctItems": 1024
  },
  "listings": {
@@ -80839,6 +80839,10 @@
     {
      "d": "2026-08-10",
      "p": 9000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 7000000
     }
    ],
    "soldOut": false,
@@ -83047,6 +83051,10 @@
     {
      "d": "2026-08-09",
      "p": 8000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 6000000
     }
    ],
    "soldOut": false,
@@ -83351,9 +83359,9 @@
      "p": 13000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 13000000,
    "dateAdded": 1786268735,
    "dateExpiration": 1791452734
   },
@@ -85065,6 +85073,10 @@
     {
      "d": "2026-08-09",
      "p": 3750000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 4000000
     }
    ],
    "soldOut": false,
@@ -89989,6 +90001,27 @@
    "dateAdded": 1786328301,
    "dateExpiration": 1791512301
   },
+  "160954": {
+   "idItem": 8026,
+   "idCategory": 7,
+   "title": "Corbel Crush Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786329679,
+   "dateExpiration": 1791513679
+  },
   "160955": {
    "idItem": 7634,
    "idCategory": 18,
@@ -90030,6 +90063,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786330036,
    "dateExpiration": 1791514035
+  },
+  "160957": {
+   "idItem": 7987,
+   "idCategory": 7,
+   "title": "Palatino Set Mark 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786330267,
+   "dateExpiration": 1791514267
   },
   "160958": {
    "idItem": 5333,
@@ -90094,6 +90148,27 @@
    "dateAdded": 1786330999,
    "dateExpiration": 1791514999
   },
+  "160961": {
+   "idItem": 5289,
+   "idCategory": 32,
+   "title": "Destroyer Mass Driver Cannon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 24000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786331128,
+   "dateExpiration": 1791515128
+  },
   "160962": {
    "idItem": 4583,
    "idCategory": 61,
@@ -90114,6 +90189,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786331165,
    "dateExpiration": 1791515165
+  },
+  "160963": {
+   "idItem": 1909,
+   "idCategory": 22,
+   "title": "TS-2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786331450,
+   "dateExpiration": 1791515450
   },
   "160964": {
    "idItem": 1767,
@@ -90199,6 +90295,48 @@
    "dateAdded": 1786331633,
    "dateExpiration": 1791515633
   },
+  "160968": {
+   "idItem": 1770,
+   "idCategory": 21,
+   "title": "JS-500",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786331651,
+   "dateExpiration": 1791515651
+  },
+  "160969": {
+   "idItem": 1775,
+   "idCategory": 21,
+   "title": "JS-400",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786331861,
+   "dateExpiration": 1791515861
+  },
   "160970": {
    "idItem": null,
    "idCategory": 15,
@@ -90241,6 +90379,48 @@
    "dateAdded": 1786332083,
    "dateExpiration": 1791516083
   },
+  "160972": {
+   "idItem": 2032,
+   "idCategory": 22,
+   "title": "Spicule",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786332195,
+   "dateExpiration": 1791516195
+  },
+  "160973": {
+   "idItem": 155,
+   "idCategory": 23,
+   "title": "Umbra",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786332357,
+   "dateExpiration": 1791516357
+  },
   "160974": {
    "idItem": 4155,
    "idCategory": 3,
@@ -90261,6 +90441,69 @@
    "soldOutPrice": null,
    "dateAdded": 1786332468,
    "dateExpiration": 1791516468
+  },
+  "160975": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786332603,
+   "dateExpiration": 1791516603
+  },
+  "160976": {
+   "idItem": 1748,
+   "idCategory": 23,
+   "title": "FR-66",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786332723,
+   "dateExpiration": 1791516722
+  },
+  "160977": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "1.15 SCU 1000q Gold",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786332748,
+   "dateExpiration": 1791516748
   },
   "160978": {
    "idItem": 7628,
@@ -90283,6 +90526,27 @@
    "dateAdded": 1786332765,
    "dateExpiration": 1791516765
   },
+  "160979": {
+   "idItem": 954,
+   "idCategory": 19,
+   "title": "Glacier",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786332803,
+   "dateExpiration": 1791516803
+  },
   "160980": {
    "idItem": 7640,
    "idCategory": 3,
@@ -90303,6 +90567,69 @@
    "soldOutPrice": null,
    "dateAdded": 1786332939,
    "dateExpiration": 1791516939
+  },
+  "160981": {
+   "idItem": 3349,
+   "idCategory": 18,
+   "title": "Scourge Railgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 550000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786333072,
+   "dateExpiration": 1791517072
+  },
+  "160982": {
+   "idItem": 1347,
+   "idCategory": 22,
+   "title": "VK-00",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786333225,
+   "dateExpiration": 1791517225
+  },
+  "160983": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "wts/Carinite (Pure)/a large amount/best price",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786333614,
+   "dateExpiration": 1791517614
   },
   "160984": {
    "idItem": null,
@@ -90346,6 +90673,48 @@
    "dateAdded": 1786333739,
    "dateExpiration": 1791517739
   },
+  "160986": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786333779,
+   "dateExpiration": 1791517778
+  },
+  "160987": {
+   "idItem": 4610,
+   "idCategory": 38,
+   "title": "DCHS-06 Communication Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786333823,
+   "dateExpiration": 1791517823
+  },
   "160988": {
    "idItem": 3182,
    "idCategory": 11,
@@ -90366,6 +90735,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786334025,
    "dateExpiration": 1791518025
+  },
+  "160989": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 275000
+    }
+   ],
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 275000,
+   "dateAdded": 1786334355,
+   "dateExpiration": 1791518355
   },
   "160990": {
    "idItem": null,
@@ -90996,6 +91386,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786336499,
    "dateExpiration": 1791520499
+  },
+  "161021": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 681,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 301500
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786336511,
+   "dateExpiration": 1791520511
   },
   "161022": {
    "idItem": 3222,
@@ -91652,6 +92063,48 @@
    "dateAdded": 1786344414,
    "dateExpiration": 1791528414
   },
+  "161055": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 930,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786344450,
+   "dateExpiration": 1791528449
+  },
+  "161056": {
+   "idItem": 5384,
+   "idCategory": 18,
+   "title": "Pulverizer \"Mustard\" LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786344481,
+   "dateExpiration": 1791528481
+  },
   "161058": {
    "idItem": 4899,
    "idCategory": 18,
@@ -91798,6 +92251,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786347172,
    "dateExpiration": 1791531172
+  },
+  "161066": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786348446,
+   "dateExpiration": 1791532446
+  },
+  "161073": {
+   "idItem": 6356,
+   "idCategory": 2,
+   "title": "Warden Backpack Purgatory Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786350707,
+   "dateExpiration": 1791534707
+  },
+  "161075": {
+   "idItem": 4584,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Fang (Juvenile)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 30000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786351100,
+   "dateExpiration": 1791535100
+  },
+  "161076": {
+   "idItem": null,
+   "idCategory": 61,
+   "title": "Vent Slug",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786351126,
+   "dateExpiration": 1791535126
+  },
+  "161077": {
+   "idItem": 5808,
+   "idCategory": 5,
+   "title": "Sol-III Core Bombardier",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786351353,
+   "dateExpiration": 1791535353
   }
  }
 }
