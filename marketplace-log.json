@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 161,
-  "totalListings": 4418,
-  "totalSold": 182,
+  "updates": 162,
+  "totalListings": 4432,
+  "totalSold": 183,
   "distinctItems": 1032
  },
  "listings": {
@@ -92995,9 +92995,9 @@
      "p": 1500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 1500000,
    "dateAdded": 1786357377,
    "dateExpiration": 1791541377
   },
@@ -94155,6 +94155,300 @@
    "soldOutPrice": null,
    "dateAdded": 1786372833,
    "dateExpiration": 1791556833
+  },
+  "161151": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "APHORITE 975Q 1M/UN",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786372908,
+   "dateExpiration": 1791556908
+  },
+  "161153": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786373134,
+   "dateExpiration": 1791557134
+  },
+  "161154": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Morozov-SH Vesper Set, No Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786373291,
+   "dateExpiration": 1791557291
+  },
+  "161156": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786373585,
+   "dateExpiration": 1791557585
+  },
+  "161157": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786373716,
+   "dateExpiration": 1791557716
+  },
+  "161158": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786373907,
+   "dateExpiration": 1791557907
+  },
+  "161159": {
+   "idItem": 6001,
+   "idCategory": 61,
+   "title": "UNE Gold Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786374063,
+   "dateExpiration": 1791558063
+  },
+  "161160": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786374259,
+   "dateExpiration": 1791558259
+  },
+  "161164": {
+   "idItem": 1775,
+   "idCategory": 21,
+   "title": "JS-400",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786375399,
+   "dateExpiration": 1791559399
+  },
+  "161166": {
+   "idItem": 3769,
+   "idCategory": 87,
+   "title": "Dolivine / 975Q - 150K (8) / 901Q - 75K (8) / 886Q - 25K (64)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786375483,
+   "dateExpiration": 1791559483
+  },
+  "161167": {
+   "idItem": 1770,
+   "idCategory": 21,
+   "title": "JS-500",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786375489,
+   "dateExpiration": 1791559488
+  },
+  "161168": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium 1000q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 80000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786376217,
+   "dateExpiration": 1791560216
+  },
+  "161169": {
+   "idItem": 2294,
+   "idCategory": 18,
+   "title": "Pyro RYT \"Black Cherry\" Multi-Tool",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786376388,
+   "dateExpiration": 1791560388
+  },
+  "161170": {
+   "idItem": 2280,
+   "idCategory": 18,
+   "title": "Pyro RYT \"Quicksilver\" Multi-Tool",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 240000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786376489,
+   "dateExpiration": 1791560489
   }
  }
 }
