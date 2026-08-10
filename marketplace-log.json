@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 151,
-  "totalListings": 4281,
-  "totalSold": 175,
+  "updates": 152,
+  "totalListings": 4290,
+  "totalSold": 178,
   "distinctItems": 1023
  },
  "listings": {
@@ -80365,6 +80365,10 @@
     {
      "d": "2026-08-09",
      "p": 25000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 20000000
     }
    ],
    "soldOut": false,
@@ -80831,6 +80835,10 @@
     {
      "d": "2026-08-09",
      "p": 10000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 9000000
     }
    ],
    "soldOut": false,
@@ -81864,6 +81872,10 @@
     {
      "d": "2026-08-09",
      "p": 6000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 5000000
     }
    ],
    "soldOut": false,
@@ -81990,6 +82002,10 @@
     {
      "d": "2026-08-09",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 2750000
     }
    ],
    "soldOut": false,
@@ -82011,6 +82027,10 @@
     {
      "d": "2026-08-09",
      "p": 9000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 8000000
     }
    ],
    "soldOut": false,
@@ -83201,9 +83221,9 @@
      "p": 28000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 28000000,
    "dateAdded": 1786267015,
    "dateExpiration": 1791451015
   },
@@ -84750,9 +84770,9 @@
      "p": 5000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 5000000,
    "dateAdded": 1786285440,
    "dateExpiration": 1791469440
   },
@@ -84832,6 +84852,10 @@
     {
      "d": "2026-08-09",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 3500000
     }
    ],
    "soldOut": false,
@@ -89943,9 +89967,9 @@
      "p": 10000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 10000000,
    "dateAdded": 1786328301,
    "dateExpiration": 1791512301
   },
@@ -91166,6 +91190,195 @@
    "soldOutPrice": null,
    "dateAdded": 1786337042,
    "dateExpiration": 1791521042
+  },
+  "161032": {
+   "idItem": 413,
+   "idCategory": 18,
+   "title": "Q966 Lumin V SMG 965-958-975",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 966,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786339529,
+   "dateExpiration": 1791519929
+  },
+  "161033": {
+   "idItem": 1232,
+   "idCategory": 18,
+   "title": "P8-SC (crafted) 886q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 886,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786339696,
+   "dateExpiration": 1791523696
+  },
+  "161034": {
+   "idItem": 1232,
+   "idCategory": 18,
+   "title": "P8-SC (crafted) 975q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786339890,
+   "dateExpiration": 1791523890
+  },
+  "161035": {
+   "idItem": 2625,
+   "idCategory": 18,
+   "title": "P6-LR Sniper Rifle(853Tar,916Heph,970Iron,867Had)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 902,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786339947,
+   "dateExpiration": 1791523947
+  },
+  "161036": {
+   "idItem": 4394,
+   "idCategory": 36,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786340044,
+   "dateExpiration": 1791524044
+  },
+  "161037": {
+   "idItem": 1594,
+   "idCategory": 18,
+   "title": "Gallant Rifle (crafted) 886q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 886,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786340715,
+   "dateExpiration": 1791524715
+  },
+  "161038": {
+   "idItem": 1673,
+   "idCategory": 18,
+   "title": "Karna Rifle(870Ric,860Ber,881Bera)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 870,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786340741,
+   "dateExpiration": 1791524741
+  },
+  "161039": {
+   "idItem": 1594,
+   "idCategory": 18,
+   "title": "Gallant Rifle (crafted) 971q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 971,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786340980,
+   "dateExpiration": 1791524979
+  },
+  "161040": {
+   "idItem": 1594,
+   "idCategory": 18,
+   "title": "Gallant Rifle(971Cor,917Cop,901Dol)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 929,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786341300,
+   "dateExpiration": 1791525300
   }
  }
 }
