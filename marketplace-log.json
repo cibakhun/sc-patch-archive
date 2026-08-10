@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 146,
-  "totalListings": 4206,
+  "updates": 147,
+  "totalListings": 4209,
   "totalSold": 173,
   "distinctItems": 1005
  },
@@ -89282,6 +89282,10 @@
     {
      "d": "2026-08-10",
      "p": 25000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 17000000
     }
    ],
    "soldOut": false,
@@ -89583,6 +89587,69 @@
    "soldOutPrice": null,
    "dateAdded": 1786318527,
    "dateExpiration": 1791502527
+  },
+  "160942": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "Pressurized ice",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 873,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786322484,
+   "dateExpiration": 1791506484
+  },
+  "160943": {
+   "idItem": 158,
+   "idCategory": 23,
+   "title": "FR-86",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 670,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786322603,
+   "dateExpiration": 1791506603
+  },
+  "160944": {
+   "idItem": 1767,
+   "idCategory": 19,
+   "title": "Blizzard",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 550,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786322669,
+   "dateExpiration": 1791506669
   }
  }
 }
