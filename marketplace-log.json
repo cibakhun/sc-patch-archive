@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 157,
-  "totalListings": 4347,
+  "updates": 158,
+  "totalListings": 4373,
   "totalSold": 181,
-  "distinctItems": 1028
+  "distinctItems": 1029
  },
  "listings": {
   "156580": {
@@ -84444,6 +84444,10 @@
     {
      "d": "2026-08-09",
      "p": 500000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 400000
     }
    ],
    "soldOut": false,
@@ -90274,6 +90278,10 @@
     {
      "d": "2026-08-10",
      "p": 1500000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -91185,6 +91193,27 @@
    "dateAdded": 1786336215,
    "dateExpiration": 1791520215
   },
+  "161010": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "Gold",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 786,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786336245,
+   "dateExpiration": 1791520245
+  },
   "161011": {
    "idItem": 3240,
    "idCategory": 1,
@@ -91987,6 +92016,27 @@
    "dateAdded": 1786343187,
    "dateExpiration": 1791527187
   },
+  "161049": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Xanthule Sehya Flight Suit & Helmet Collector / Rare",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786343218,
+   "dateExpiration": 1791527218
+  },
   "161050": {
    "idItem": null,
    "idCategory": 7,
@@ -92028,6 +92078,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786343980,
    "dateExpiration": 1791527980
+  },
+  "161052": {
+   "idItem": 1810,
+   "idCategory": 32,
+   "title": "I'll buy 2 Absolution Distortion Scattergun",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786344175,
+   "dateExpiration": 1791528175
   },
   "161053": {
    "idItem": 2224,
@@ -92112,6 +92183,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786344481,
    "dateExpiration": 1791528481
+  },
+  "161057": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Xanthule Flight Suit Gold and Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786344749,
+   "dateExpiration": 1791528749
   },
   "161058": {
    "idItem": 4899,
@@ -92260,6 +92352,27 @@
    "dateAdded": 1786347172,
    "dateExpiration": 1791531172
   },
+  "161065": {
+   "idItem": 5805,
+   "idCategory": 7,
+   "title": "Geist Armor ASD Edition Set",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786348097,
+   "dateExpiration": 1791532097
+  },
   "161066": {
    "idItem": 4453,
    "idCategory": 3,
@@ -92281,6 +92394,132 @@
    "dateAdded": 1786348446,
    "dateExpiration": 1791532446
   },
+  "161067": {
+   "idItem": 5233,
+   "idCategory": 61,
+   "title": "Vanduul Metal",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786349478,
+   "dateExpiration": 1791533477
+  },
+  "161068": {
+   "idItem": 5232,
+   "idCategory": 61,
+   "title": "Vanduul Plating",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 125000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786349542,
+   "dateExpiration": 1791533542
+  },
+  "161069": {
+   "idItem": 2627,
+   "idCategory": 61,
+   "title": "Large Artifact Fragment (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786349592,
+   "dateExpiration": 1791533592
+  },
+  "161070": {
+   "idItem": 7634,
+   "idCategory": 18,
+   "title": "Demeco [971 - 958 - 916]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786349836,
+   "dateExpiration": 1791533836
+  },
+  "161071": {
+   "idItem": 1774,
+   "idCategory": 21,
+   "title": "JS-300 [930 Qual]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 930,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786350008,
+   "dateExpiration": 1791534008
+  },
+  "161072": {
+   "idItem": 933,
+   "idCategory": 19,
+   "title": "NightFall [881 Qual]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 881,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786350430,
+   "dateExpiration": 1791534430
+  },
   "161073": {
    "idItem": 6356,
    "idCategory": 2,
@@ -92301,6 +92540,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786350707,
    "dateExpiration": 1791534707
+  },
+  "161074": {
+   "idItem": 5564,
+   "idCategory": 7,
+   "title": "Palatino Mark 1 Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786350820,
+   "dateExpiration": 1791534820
   },
   "161075": {
    "idItem": 4584,
@@ -92406,6 +92666,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786351550,
    "dateExpiration": 1791535550
+  },
+  "161080": {
+   "idItem": 879,
+   "idCategory": 67,
+   "title": "Maxlift Tractor beam",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786351561,
+   "dateExpiration": 1791535561
   },
   "161081": {
    "idItem": 7776,
@@ -92575,6 +92856,27 @@
    "dateAdded": 1786354128,
    "dateExpiration": 1791538128
   },
+  "161089": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "WTS 2 SCU 972Q Stileron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786354680,
+   "dateExpiration": 1791538680
+  },
   "161090": {
    "idItem": 976,
    "idCategory": 22,
@@ -92596,6 +92898,27 @@
    "dateAdded": 1786355367,
    "dateExpiration": 1791539367
   },
+  "161091": {
+   "idItem": 1237,
+   "idCategory": 18,
+   "title": "Custodian [975 - 971 - 958]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 11000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786355678,
+   "dateExpiration": 1791539678
+  },
   "161092": {
    "idItem": 4744,
    "idCategory": 87,
@@ -92616,6 +92939,237 @@
    "soldOutPrice": null,
    "dateAdded": 1786357377,
    "dateExpiration": 1791541377
+  },
+  "161093": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786357483,
+   "dateExpiration": 1791541483
+  },
+  "161094": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786357534,
+   "dateExpiration": 1791541534
+  },
+  "161095": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786357578,
+   "dateExpiration": 1791541578
+  },
+  "161096": {
+   "idItem": 5658,
+   "idCategory": 3,
+   "title": "Overlord Helmet Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786357633,
+   "dateExpiration": 1791541632
+  },
+  "161097": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron - 4SCU @ 747Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 747,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786358645,
+   "dateExpiration": 1791542645
+  },
+  "161098": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Perseus - Paints (Deadfire , Resilient , Flintlock , Repute)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786358721,
+   "dateExpiration": 1791542721
+  },
+  "161099": {
+   "idItem": 8026,
+   "idCategory": 7,
+   "title": "Corbel Crush Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786358887,
+   "dateExpiration": 1791542887
+  },
+  "161100": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786359049,
+   "dateExpiration": 1791543049
+  },
+  "161101": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite 965Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 8100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786359331,
+   "dateExpiration": 1791543331
+  },
+  "161103": {
+   "idItem": null,
+   "idCategory": 87,
+   "title": "Aphorite - 975q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786360288,
+   "dateExpiration": 1791544288
+  },
+  "161105": {
+   "idItem": 7462,
+   "idCategory": 18,
+   "title": "Atzkav \"Mirage\" Sniper Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786361791,
+   "dateExpiration": 1791545791
   }
  }
 }
