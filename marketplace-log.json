@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 158,
-  "totalListings": 4373,
-  "totalSold": 181,
-  "distinctItems": 1029
+  "updates": 159,
+  "totalListings": 4385,
+  "totalSold": 182,
+  "distinctItems": 1030
  },
  "listings": {
   "156580": {
@@ -84347,6 +84347,27 @@
    "dateAdded": 1786280168,
    "dateExpiration": 1791464168
   },
+  "160682": {
+   "idItem": 6482,
+   "idCategory": 18,
+   "title": "S71 \"Scorched\" Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786280269,
+   "dateExpiration": 1791464269
+  },
   "160683": {
    "idItem": 3768,
    "idCategory": 87,
@@ -85964,9 +85985,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 1000000,
    "dateAdded": 1786293877,
    "dateExpiration": 1791477877
   },
@@ -89199,6 +89220,10 @@
     {
      "d": "2026-08-10",
      "p": 50000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 45000000
     }
    ],
    "soldOut": false,
@@ -93129,6 +93154,27 @@
    "dateAdded": 1786359331,
    "dateExpiration": 1791543331
   },
+  "161102": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786359525,
+   "dateExpiration": 1791543525
+  },
   "161103": {
    "idItem": null,
    "idCategory": 87,
@@ -93150,6 +93196,27 @@
    "dateAdded": 1786360288,
    "dateExpiration": 1791544288
   },
+  "161104": {
+   "idItem": 5805,
+   "idCategory": 7,
+   "title": "Geist Armor ASD Edition Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786360617,
+   "dateExpiration": 1791544617
+  },
   "161105": {
    "idItem": 7462,
    "idCategory": 18,
@@ -93170,6 +93237,195 @@
    "soldOutPrice": null,
    "dateAdded": 1786361791,
    "dateExpiration": 1791545791
+  },
+  "161106": {
+   "idItem": 7634,
+   "idCategory": 18,
+   "title": "Demeco \"Purgatory Camo\" LMG(971Cor,742Cop,762Had)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 820,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786362382,
+   "dateExpiration": 1791546382
+  },
+  "161107": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786363728,
+   "dateExpiration": 1791547728
+  },
+  "161108": {
+   "idItem": 4838,
+   "idCategory": 3,
+   "title": "ASD EDITION HELMET!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786364109,
+   "dateExpiration": 1791548109
+  },
+  "161109": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786364523,
+   "dateExpiration": 1791548523
+  },
+  "161110": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "2 scu lindinium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 585,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786364978,
+   "dateExpiration": 1791548978
+  },
+  "161111": {
+   "idItem": 6014,
+   "idCategory": 7,
+   "title": "Geist Armor Snow Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786365243,
+   "dateExpiration": 1791549243
+  },
+  "161112": {
+   "idItem": 4425,
+   "idCategory": 3,
+   "title": "Manticore Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786365321,
+   "dateExpiration": 1791549321
+  },
+  "161113": {
+   "idItem": 2631,
+   "idCategory": 3,
+   "title": "Caudillo Helmet Cobalt",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786365455,
+   "dateExpiration": 1791549455
+  },
+  "161114": {
+   "idItem": 7457,
+   "idCategory": 3,
+   "title": "Balor HCH Helmet Executive",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786365676,
+   "dateExpiration": 1791549676
   }
  }
 }
