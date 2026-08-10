@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 164,
-  "totalListings": 4467,
-  "totalSold": 184,
+  "updates": 165,
+  "totalListings": 4473,
+  "totalSold": 186,
   "distinctItems": 1035
  },
  "listings": {
@@ -86608,6 +86608,10 @@
     {
      "d": "2026-08-09",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 14000000
     }
    ],
    "soldOut": false,
@@ -89391,6 +89395,10 @@
     {
      "d": "2026-08-10",
      "p": 17000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 14900000
     }
    ],
    "soldOut": false,
@@ -93868,9 +93876,9 @@
      "p": 1500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 1500000,
    "dateAdded": 1786369651,
    "dateExpiration": 1791553651
   },
@@ -94544,9 +94552,9 @@
      "p": 150000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 150000,
    "dateAdded": 1786375456,
    "dateExpiration": 1791559456
   },
@@ -95200,6 +95208,132 @@
    "soldOutPrice": null,
    "dateAdded": 1786382441,
    "dateExpiration": 1791566441
+  },
+  "161200": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "ASD Edition Stirling Exploration Suit - FULL SET -",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786384652,
+   "dateExpiration": 1791568652
+  },
+  "161201": {
+   "idItem": 7634,
+   "idCategory": 18,
+   "title": "Demeco \"Purgatory Camo\" LMG - 935Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 935,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786384673,
+   "dateExpiration": 1791568673
+  },
+  "161203": {
+   "idItem": 937,
+   "idCategory": 21,
+   "title": "Slipstream",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786385518,
+   "dateExpiration": 1791569518
+  },
+  "161204": {
+   "idItem": 2722,
+   "idCategory": 18,
+   "title": "Animus Missile Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786385631,
+   "dateExpiration": 1791569631
+  },
+  "161206": {
+   "idItem": 3874,
+   "idCategory": 17,
+   "title": "Theta Pro LL (8x Telescopic) // Ailgam's Collectibles",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786387088,
+   "dateExpiration": 1791571088
+  },
+  "161207": {
+   "idItem": 4842,
+   "idCategory": 2,
+   "title": "WTS Geist Backpack ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786387343,
+   "dateExpiration": 1791571342
   }
  }
 }
