@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-10",
-  "updates": 152,
-  "totalListings": 4290,
-  "totalSold": 178,
+  "updates": 153,
+  "totalListings": 4300,
+  "totalSold": 179,
   "distinctItems": 1023
  },
  "listings": {
@@ -85909,6 +85909,10 @@
     {
      "d": "2026-08-09",
      "p": 1500000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 750000
     }
    ],
    "soldOut": false,
@@ -85930,6 +85934,10 @@
     {
      "d": "2026-08-09",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -85972,6 +85980,10 @@
     {
      "d": "2026-08-09",
      "p": 750000
+    },
+    {
+     "d": "2026-08-10",
+     "p": 250000
     }
    ],
    "soldOut": false,
@@ -91379,6 +91391,216 @@
    "soldOutPrice": null,
    "dateAdded": 1786341300,
    "dateExpiration": 1791525300
+  },
+  "161041": {
+   "idItem": 214,
+   "idCategory": 18,
+   "title": "C54 SMG(896Alum,896Heph,970Iron)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 888,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3000000
+    }
+   ],
+   "soldOut": true,
+   "soldOutAt": "2026-08-10",
+   "soldOutPrice": 3000000,
+   "dateAdded": 1786341734,
+   "dateExpiration": 1791525734
+  },
+  "161042": {
+   "idItem": 214,
+   "idCategory": 18,
+   "title": "C54 SMG(896Alum,896Heph,874Iron)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 888,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786342207,
+   "dateExpiration": 1791526207
+  },
+  "161043": {
+   "idItem": 214,
+   "idCategory": 18,
+   "title": "C54 SMG(896Alum,896Heph,970Iron)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 921,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786342424,
+   "dateExpiration": 1791526424
+  },
+  "161044": {
+   "idItem": 4991,
+   "idCategory": 7,
+   "title": "Corbel Smolder Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786342967,
+   "dateExpiration": 1791526967
+  },
+  "161045": {
+   "idItem": 3348,
+   "idCategory": 18,
+   "title": "F55 LMG(853Lind,896Heph,970Iron)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 906,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786343036,
+   "dateExpiration": 1791527036
+  },
+  "161046": {
+   "idItem": 4992,
+   "idCategory": 7,
+   "title": "Corbel Mire Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786343065,
+   "dateExpiration": 1791527065
+  },
+  "161047": {
+   "idItem": 4987,
+   "idCategory": 7,
+   "title": "Corbel Halcyon Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786343125,
+   "dateExpiration": 1791527125
+  },
+  "161048": {
+   "idItem": 4982,
+   "idCategory": 7,
+   "title": "Corbel Patina Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786343187,
+   "dateExpiration": 1791527187
+  },
+  "161050": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "ADP-mk4 Modified (XenoThreat) Heavy Armor set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786343319,
+   "dateExpiration": 1791527319
+  },
+  "161051": {
+   "idItem": 245,
+   "idCategory": 31,
+   "title": "Abrade Scraper Module",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-10",
+   "lastSeen": "2026-08-10",
+   "prices": [
+    {
+     "d": "2026-08-10",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786343980,
+   "dateExpiration": 1791527980
   }
  }
 }
