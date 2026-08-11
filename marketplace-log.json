@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-11",
-  "updates": 183,
-  "totalListings": 4764,
-  "totalSold": 198,
+  "updates": 184,
+  "totalListings": 4765,
+  "totalSold": 199,
   "distinctItems": 1060
  },
  "listings": {
@@ -92366,6 +92366,10 @@
     {
      "d": "2026-08-10",
      "p": 150000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 30000
     }
    ],
    "soldOut": false,
@@ -97628,6 +97632,10 @@
     {
      "d": "2026-08-11",
      "p": 8500000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 8000000
     }
    ],
    "soldOut": false,
@@ -99228,6 +99236,10 @@
     {
      "d": "2026-08-11",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 500000
     }
    ],
    "soldOut": false,
@@ -101481,9 +101493,9 @@
      "p": 125000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-11",
+   "soldOutPrice": 125000000,
    "dateAdded": 1786449933,
    "dateExpiration": 1791633933
   },
@@ -101549,6 +101561,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786451412,
    "dateExpiration": 1791635412
+  },
+  "161506": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "RCMBNT - FULL SET",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786452937,
+   "dateExpiration": 1791636937
   }
  }
 }
