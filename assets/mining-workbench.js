@@ -1,20 +1,18 @@
 /* ============================================================================
-   mining-workbench.js — Client-Teil der Drei-Spalten-Mining-Werkbank.
+   mining-workbench.js — Client-Teil der Mining-Werkbank (zweite Fassung).
 
    Zustand: Auswahl, angeheftete Signaturen, Rig (Laser/Module/Gadget/
-   Felsmasse/Refinery). Gast -> localStorage; die Kontobindung ist ein eigener
-   Schuldenposten (.planning/todos/pending/signatur-liste-kontogebunden.md) und
-   folgt dem Muster aus assets/crafting-app.js:212 (VB.session()).
+   Felsmasse/Station). Gast -> localStorage; Kontobindung ist ein eigener
+   Schuldenposten (.planning/todos/pending/signatur-liste-kontogebunden.md).
 
-   DIE BRECH-RECHNUNG IST NICHT NEU ERFUNDEN. Sie ist zeichengleich mit
+   DIE BRECH-RECHNUNG IST NICHT NEU ERFUNDEN. Zeichengleich mit
    src/components/FracturingCalc.astro:200-219:
        Reff         = max(0,R) * (1 + resMod/100)
        chargeFactor = max(0.05, 1 - Reff)
        effDps       = laserDps * dpsMult * chargeFactor
        decay        = decayPerMass * Felsmasse
        ratio        = effDps / decay      <=1 unmoeglich | <1.3 grenzwertig
-   Wer sie hier aendert, muss sie dort mitaendern — sonst widersprechen sich
-   zwei Stellen derselben Seite.
+   Wer sie hier aendert, muss sie dort mitaendern.
    ========================================================================== */
 (function () {
   'use strict';
@@ -30,18 +28,9 @@
   var byName = {};
   for (var i = 0; i < D.minerals.length; i++) byName[D.minerals[i].name] = D.minerals[i];
 
-  /* --------------------------------------------------------- Zustand --- */
   var S = {
-    sel: D.minerals[0].name,
-    pins: [],
-    laser: 0,
-    mods: [-1, -1, -1],
-    gadget: -1,
-    mass: D.defaultMass,
-    ref: 0,
-    q: '',
-    sys: null,
-    onlyBreak: false
+    sel: D.minerals[0].name, pins: [], laser: 0, mods: [-1, -1, -1],
+    gadget: -1, mass: D.defaultMass, ref: 0, q: '', sys: null, onlyBreak: false
   };
   try {
     var saved = JSON.parse(localStorage.getItem(LS) || 'null');
@@ -55,14 +44,13 @@
       if (typeof saved.ref === 'number' && D.refineries[saved.ref]) S.ref = saved.ref;
     }
   } catch (e) { /* kaputter Speicher ist kein Grund, das Werkzeug zu verweigern */ }
-
   function save() {
     try {
       localStorage.setItem(LS, JSON.stringify({
         sel: S.sel, pins: S.pins, laser: S.laser, mods: S.mods,
         gadget: S.gadget, mass: S.mass, ref: S.ref
       }));
-    } catch (e) { /* privater Modus: Zustand bleibt fluechtig, sonst nichts */ }
+    } catch (e) { /* privater Modus */ }
   }
 
   var $ = function (id) { return document.getElementById(id); };
@@ -73,9 +61,8 @@
   }
   var NF = new Intl.NumberFormat(D.lang === 'de' ? 'de-DE' : 'en-GB');
   function n0(v) { return NF.format(Math.round(v)); }
-  function n2(v) { return (D.lang === 'de' ? v.toFixed(2).replace('.', ',') : v.toFixed(2)); }
+  function n2(v) { return D.lang === 'de' ? v.toFixed(2).replace('.', ',') : v.toFixed(2); }
 
-  /* ------------------------------------------------------- Bestueckung --- */
   function loadout() {
     var L = D.lasers[S.laser] || D.lasers[0];
     var resMod = (L.mods && L.mods.resistance) || 0;
@@ -91,10 +78,8 @@
     if (g) resMod += (g.mods && g.mods.resistance) || 0;
     return { L: L, dps: L.dps, dpsMult: dpsMult, resMod: resMod };
   }
-
-  /* Zeichengleich mit FracturingCalc.astro:200-219 — siehe Kopfkommentar. */
   function verdict(res) {
-    if (res === null || res === undefined) return { cls: 'na', ratio: null, req: null, avail: null };
+    if (res === null || res === undefined) return { cls: 'na', ratio: null };
     var lo = loadout();
     var R = Math.max(0, res);
     var Reff = R * (1 + lo.resMod / 100);
@@ -107,57 +92,91 @@
       ratio: ratio, avail: effDps, req: decay, Reff: Reff
     };
   }
-  function vLabel(cls) {
-    return cls === 'ok' ? T.breakable : cls === 'warn' ? T.marginal : cls === 'bad' ? T.impossible : T.noPhys;
-  }
+  function vLabel(c) { return c === 'ok' ? T.breakable : c === 'warn' ? T.marginal : c === 'bad' ? T.impossible : T.noPhys; }
 
-  /* Ertrags-Mod der gewaehlten Station fuer DIESES Material. Die Profile sind
-     nach Materialnamen mit Suffix gekeyt ("Taranite (Raw)"), der Katalog fuehrt
-     den sauberen Namen — deshalb vier Versuche statt eines. */
-  function yieldMod(name) {
-    var r = D.refineries[S.ref];
-    if (!r) return null;
-    var prof = D.profiles[r.p];
+  /* Ertragsprofile sind nach Materialnamen MIT Suffix gekeyt
+     ("Taranite (Raw)"), der Katalog fuehrt den sauberen Namen. */
+  function yieldFor(profId, name) {
+    var prof = D.profiles[profId];
     if (!prof) return null;
     var keys = [name, name + ' (Ore)', name + ' (Raw)', name + ' (Pure)'];
     for (var i = 0; i < keys.length; i++) if (typeof prof[keys[i]] === 'number') return prof[keys[i]];
     return null;
   }
+  /* Alle 20 Stationen fuer DIESES Erz durchrechnen und sortieren — die
+     Antwort auf „wo bringe ich das hin?", die es vorher nirgends gab. */
+  function rankRefineries(name) {
+    var out = [];
+    for (var i = 0; i < D.refineries.length; i++) {
+      var y = yieldFor(D.refineries[i].p, name);
+      if (y === null) continue;
+      out.push({ i: i, n: D.refineries[i].n, s: D.refineries[i].s, y: y });
+    }
+    out.sort(function (a, b) { return b.y - a.y; });
+    return out;
+  }
 
   var MAXCLUSTER = { common: 6, uncommon: 5, rare: 4, epic: 3, legendary: 2 };
-
-  /* ---------------------------------------------------- Linke Spalte --- */
   var listEl = $('wb-list');
+
   function renderList() {
-    var q = S.q.trim().toLowerCase();
-    var shown = 0;
-    var rows = listEl.querySelectorAll('.wb__row');
-    for (var i = 0; i < rows.length; i++) {
-      var row = rows[i];
-      var m = byName[row.getAttribute('data-min')];
+    var q = S.q.trim().toLowerCase(), shown = 0;
+    var tiles = listEl.querySelectorAll('.wb__tile');
+    for (var i = 0; i < tiles.length; i++) {
+      var el = tiles[i], m = byName[el.getAttribute('data-min')];
       if (!m) continue;
       var v = verdict(m.res);
-      var dot = row.querySelector('.wb__dot');
+      var dot = el.querySelector('.wb__dot');
       dot.className = 'wb__dot is-' + v.cls;
-      dot.setAttribute('title', vLabel(v.cls) + (v.ratio !== null ? ' · ×' + n2(v.ratio) : ''));
-
+      el.title = m.name + ' · ' + vLabel(v.cls) + (v.ratio !== null ? ' ×' + n2(v.ratio) : '');
       var hit = !q || m.name.toLowerCase().indexOf(q) >= 0 ||
         m.locs.some(function (l) { return (l.p || '').toLowerCase().indexOf(q) >= 0; });
       if (hit && S.sys) hit = m.systems.indexOf(S.sys) >= 0;
       if (hit && S.onlyBreak) hit = v.cls === 'ok';
-      row.classList.toggle('is-hidden', !hit);
-      row.classList.toggle('is-sel', m.name === S.sel);
-      var pin = row.querySelector('.wb__pin');
-      var on = S.pins.indexOf(m.name) >= 0;
+      el.style.display = hit ? '' : 'none';
+      el.classList.toggle('is-sel', m.name === S.sel);
+      var pin = el.querySelector('.wb__pin'), on = S.pins.indexOf(m.name) >= 0;
       pin.classList.toggle('is-on', on);
       pin.textContent = on ? '★' : '☆';
       pin.setAttribute('aria-label', (on ? T.unpin : T.pin) + ': ' + m.name);
       if (hit) shown++;
     }
-    $('wb-count').textContent = shown === D.minerals.length ? String(shown) : shown + ' / ' + D.minerals.length;
+    $('wb-count').textContent = shown === D.minerals.length ? String(shown) : shown + '/' + D.minerals.length;
   }
 
-  /* --------------------------------------------------- Mittelspalte --- */
+  /* Messgeraet: Skala 0…2,0 mit Teilung, markiertem Grenz- und Gutbereich
+     und Zeiger. Anleihe ist das Ladefenster beim Fracturing im Spiel. */
+  function renderGauge(v) {
+    var g = $('wb-gauge');
+    g.className = 'wb__gauge is-' + v.cls;
+    $('wb-vddot').className = 'wb__dot is-' + v.cls;
+    $('wb-vdlbl').textContent = vLabel(v.cls);
+    $('wb-vdsub').textContent = v.ratio === null ? ''
+      : n0(v.avail) + ' ' + T.avail + ' · ' + n0(v.req) + ' ' + T.needed;
+    $('wb-vdratio').textContent = v.ratio === null ? T.none : '×' + n2(v.ratio);
+    var MAX = 2, pct = function (r) { return Math.min(100, Math.max(0, r / MAX * 100)); };
+    var h = '<i class="zone w" style="left:' + pct(1) + '%;width:' + (pct(1.3) - pct(1)) + '%"></i>' +
+      '<i class="zone g" style="left:' + pct(1.3) + '%;right:0"></i>';
+    for (var k = 0; k <= 20; k++) h += '<i class="tick' + (k % 5 === 0 ? ' maj' : '') + '" style="left:' + (k / 20 * 100) + '%"></i>';
+    if (v.ratio !== null) {
+      h += '<i class="fill" style="width:' + pct(v.ratio) + '%"></i>' +
+        '<i class="mark" style="left:calc(' + pct(v.ratio) + '% - 1px)"></i>';
+    }
+    $('wb-scale').innerHTML = h;
+  }
+
+  function stat(label, val, cls) {
+    return '<div class="wb__stat ' + (cls || '') + '"><span class="wb__lbl">' + esc(label) +
+      '</span><b class="num">' + esc(val) + '</b></div>';
+  }
+  function row2(main, sub, barPct, right, amber) {
+    return '<div class="wb__row2"><span><span class="p">' + esc(main) + '</span>' +
+      (sub ? '<span class="s">' + esc(sub) + '</span>' : '') + '</span>' +
+      '<span class="r">' + (barPct === null ? '' :
+        '<span class="wb__bar' + (amber ? ' amber' : '') + '"><i style="width:' + barPct + '%"></i></span>') +
+      '<em>' + esc(right) + '</em></span></div>';
+  }
+
   function renderDetail() {
     var m = byName[S.sel];
     if (!m) return;
@@ -171,21 +190,14 @@
       '<span class="wb__tag">' + esc(m.method === 'ship' ? T.ship : T.hand) + '</span>' +
       (m.refine ? '<span class="wb__tag">' + esc(T.refinable) + '</span>' : '');
 
-    var vd = $('wb-vd');
-    vd.className = 'wb__vd is-' + v.cls;
-    $('wb-vddot').className = 'wb__dot is-' + v.cls;
-    $('wb-vdlbl').textContent = vLabel(v.cls);
-    $('wb-vdsub').textContent = v.ratio === null ? ''
-      : n0(v.avail) + ' ' + String(T.ofNeeded).replace('{req}', n0(v.req));
-    $('wb-vdratio').textContent = v.ratio === null ? T.none : '×' + n2(v.ratio);
+    renderGauge(v);
 
     var st = '';
-    if (m.res !== null) {
-      st += stat(T.resistance, n2(m.res));
-      st += stat(T.effective, n2(v.Reff), 'is-hot');
-    }
+    if (m.res !== null) { st += stat(T.resistance, n2(m.res)); st += stat(T.effective, n2(v.Reff), 'is-hot'); }
     if (m.inst !== null) st += stat(T.instability, NF.format(m.inst));
     if (m.dens !== null) st += stat(T.density, n2(m.dens));
+    if (m.win !== null) st += stat(T.window, n2(m.win));
+    if (m.scu) st += stat('SCU', n2(m.scu));
     $('wb-stats').innerHTML = st || '<p class="wb__empty">' + esc(T.noPhys) + '</p>';
 
     var bands = m.bands || [];
@@ -197,36 +209,54 @@
         }).join('')
       : '<p class="wb__empty">' + esc(T.none) + '</p>';
 
-    var r = D.refineries[S.ref];
-    var ym = yieldMod(m.name);
-    $('wb-refh').textContent = T.refinery + (r ? ' · ' + r.n : '');
-    $('wb-refn').innerHTML = ym === null
-      ? '<p class="wb__empty">' + esc(D.lang === 'de'
-          ? 'Für dieses Material führt die Station kein Ertragsprofil.'
-          : 'This station carries no yield profile for this material.') + '</p>'
-      : stat(T.yield, (ym > 0 ? '+' : '') + ym + ' %', ym > 0 ? 'is-ok' : ym < 0 ? 'is-bad' : '') +
-        stat(T.station, r.s);
+    /* Welche Steine fuehren dieses Erz — aus den 211 Kompositionen. */
+    $('wb-rockh').textContent = T.rocks + (m.rockCount ? ' · ' + m.rocks.length + ' ' + T.ofRocks + ' ' + m.rockCount : '');
+    $('wb-rocks').innerHTML = m.rocks.length
+      ? m.rocks.map(function (r) {
+          return row2(r.rock, r.prob + ' % ' + T.chance, r.max, r.min + '–' + r.max + ' %', true);
+        }).join('')
+      : '<p class="wb__empty">' + esc(T.none) + '</p>';
 
     var locs = m.locs.slice().sort(function (a, b) { return (b.ch || 0) - (a.ch || 0); });
-    $('wb-loccount').textContent = locs.length ? String(locs.length) : T.none;
+    $('wb-loch').textContent = T.locations + (locs.length ? ' · ' + locs.length : '');
     $('wb-locs').innerHTML = locs.length
-      ? locs.map(function (l) {
-          return '<div class="wb__loc"><span><span class="p">' + esc(l.p) + '</span>' +
-            '<span class="s">' + esc(l.s) + '</span></span>' +
-            '<span class="wb__loca"><span class="wb__bar"><i style="width:' + (l.ab || 0) + '%"></i></span>' +
-            '<em>' + (l.ch != null ? n2(l.ch) + ' %' : '—') + '</em></span></div>';
-        }).join('')
+      ? locs.map(function (l) { return row2(l.p, l.s, l.ab || 0, (l.ch != null ? n2(l.ch) + ' %' : '—'), false); }).join('')
       : '<p class="wb__empty">' + esc(T.noLocs) + '</p>';
-  }
-  function stat(label, val, cls) {
-    return '<div class="wb__stat ' + (cls || '') + '"><span class="wb__lbl">' + esc(label) +
-      '</span><b class="wb__num">' + esc(val) + '</b></div>';
+
+    /* Stations-Rangliste fuer dieses Erz. */
+    var ranked = rankRefineries(m.name);
+    if (!ranked.length) {
+      $('wb-refs').innerHTML = '<p class="wb__empty">' + esc(T.none) + '</p>';
+    } else {
+      var best = ranked.slice(0, 4), worst = ranked[ranked.length - 1];
+      var maxAbs = Math.max(Math.abs(ranked[0].y), Math.abs(worst.y), 1);
+      var html = best.map(function (r) {
+        return row2(r.n, r.s + ' · ' + T.yieldMod, Math.abs(r.y) / maxAbs * 100,
+          (r.y > 0 ? '+' : '') + r.y + ' %', r.y >= 0);
+      }).join('');
+      if (ranked.length > 4) {
+        html += row2(worst.n, worst.s + ' · ' + T.worst, Math.abs(worst.y) / maxAbs * 100,
+          (worst.y > 0 ? '+' : '') + worst.y + ' %', false);
+      }
+      $('wb-refs').innerHTML = html;
+    }
+
+    /* Bezuege nach draussen: Crafting und Schiffe — in der ersten Fassung
+       ersatzlos weggefallen, hier wieder angebunden. */
+    var links = '';
+    if (m.bp) {
+      links += '<a class="wb__link" href="' + esc(D.craftingPath) + '">' + esc(T.usedIn) +
+        ' <b>' + m.bp + '</b></a>';
+    }
+    (D.ships || []).slice(0, 3).forEach(function (s) {
+      links += '<a class="wb__link" href="' + esc(s.h) + '">' + esc(s.n) +
+        (s.ore ? ' <b>' + esc(s.ore) + '</b>' : '') + '</a>';
+    });
+    $('wb-links').innerHTML = links;
   }
 
-  /* ---------------------------------------------------- Rechte Spalte --- */
   function renderPins() {
     var scan = parseInt(($('wb-scan').value || '').replace(/[^0-9]/g, ''), 10);
-    $('wb-pincount').textContent = String(S.pins.length);
     if (!S.pins.length) {
       $('wb-pins').innerHTML = '<p class="wb__empty">' + esc(T.pinHint) + '</p>';
       return;
@@ -234,11 +264,9 @@
     $('wb-pins').innerHTML = S.pins.map(function (name) {
       var m = byName[name];
       if (!m || !m.sig) return '';
-      var max = MAXCLUSTER[m.rarity] || 4;
-      var mult = '';
+      var max = MAXCLUSTER[m.rarity] || 4, mult = '';
       for (var k = 1; k <= max; k++) {
-        var val = k * m.sig;
-        var hit = scan && Math.abs(val - scan) / scan <= 0.10;
+        var val = k * m.sig, hit = scan && Math.abs(val - scan) / scan <= 0.10;
         mult += '<i class="' + (hit ? 'is-hit' : '') + '" title="×' + k + '">' + NF.format(val) + '</i>';
       }
       return '<div class="wb__pin-item"><div class="wb__pin-top">' +
@@ -249,14 +277,10 @@
     }).join('');
   }
 
-  /* ------------------------------------------------------ Rig-Leiste --- */
   function renderRig() {
-    var lo = loadout();
-    var L = lo.L;
-    var html = '';
+    var lo = loadout(), L = lo.L, html = '';
     for (var i = 0; i < 3; i++) {
-      var usable = i < (L.slots || 0);
-      var m = D.modules[S.mods[i]];
+      var usable = i < (L.slots || 0), m = D.modules[S.mods[i]];
       html += '<button type="button" class="wb__slot' + (usable && m ? ' is-full' : '') + '" data-slot="' + i + '"' +
         (usable ? '' : ' disabled') + ' title="' +
         esc(usable ? (m ? m.n : T.modules) : (D.lang === 'de'
@@ -275,10 +299,6 @@
 
   function renderAll() { renderList(); renderDetail(); renderPins(); renderRig(); save(); }
 
-  /* ------------------------------------------- Segment-Umschalter (mobil) --
-     Wird NUR vom Skript eingehaengt; die zugehoerige CSS-Regel haengt an
-     `.has-seg`. Faellt das Skript aus, bleiben alle drei Spalten gestapelt
-     sichtbar statt unsichtbar. */
   var grid = document.querySelector('.wb__grid');
   function mountSeg() {
     if (!grid || document.querySelector('.wb__seg')) return;
@@ -295,52 +315,40 @@
   }
   mountSeg();
 
-  /* -------------------------------------------------------- Ereignisse --- */
-  /* Die Handler haengen am document und sehen JEDEN Klick der Seite — auch die
-     im Refinery-Finder darunter und in der Navigation. Ohne diesen Riegel
-     koennte `closest` dort werfen (Textknoten haben es nicht) oder ein
-     gleichnamiges data-Attribut fremder Bauteile treffen. */
+  /* Die Handler haengen am document und sehen JEDEN Klick der Seite — auch
+     die im Refinery-Finder darunter. Ohne diesen Riegel koennte `closest`
+     dort werfen oder ein gleichnamiges data-Attribut treffen. */
   function inWb(t) { return t && typeof t.closest === 'function' && !!t.closest('.wb'); }
 
   document.addEventListener('click', function (e) {
     var t = e.target;
     if (!inWb(t)) return;
-
     var pin = t.closest('[data-pin]');
     if (pin) {
-      var pn = pin.getAttribute('data-pin');
-      var at = S.pins.indexOf(pn);
+      var pn = pin.getAttribute('data-pin'), at = S.pins.indexOf(pn);
       if (at >= 0) S.pins.splice(at, 1); else S.pins.push(pn);
-      renderAll();
-      return;
+      renderAll(); return;
     }
-    var row = t.closest('.wb__row');
-    if (row) { S.sel = row.getAttribute('data-min'); renderAll(); return; }
-
+    var tile = t.closest('.wb__tile');
+    if (tile) { S.sel = tile.getAttribute('data-min'); renderAll(); return; }
     var slot = t.closest('[data-slot]');
     if (slot && !slot.disabled) {
       var si = +slot.getAttribute('data-slot');
       S.mods[si] = S.mods[si] + 1 >= D.modules.length ? -1 : S.mods[si] + 1;
-      renderAll();
-      return;
+      renderAll(); return;
     }
     var mass = t.closest('[data-mass]');
     if (mass) { S.mass = +mass.getAttribute('data-mass'); renderAll(); return; }
-
     var sys = t.closest('[data-sys]');
     if (sys) {
       var sv = sys.getAttribute('data-sys');
       S.sys = S.sys === sv ? null : sv;
       var all = document.querySelectorAll('[data-sys]');
-      for (var i2 = 0; i2 < all.length; i2++) {
-        all[i2].classList.toggle('is-on', all[i2].getAttribute('data-sys') === S.sys);
-      }
-      renderList();
-      return;
+      for (var i2 = 0; i2 < all.length; i2++) all[i2].classList.toggle('is-on', all[i2].getAttribute('data-sys') === S.sys);
+      renderList(); return;
     }
     var only = t.closest('[data-only]');
     if (only) { S.onlyBreak = !S.onlyBreak; only.classList.toggle('is-on', S.onlyBreak); renderList(); return; }
-
     var seg = t.closest('[data-seg]');
     if (seg && grid) {
       var k = seg.getAttribute('data-seg');
@@ -358,10 +366,10 @@
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     if (!inWb(e.target)) return;
-    var row = e.target.closest('.wb__row');
-    if (!row) return;
+    var tile = e.target.closest('.wb__tile');
+    if (!tile) return;
     e.preventDefault();
-    S.sel = row.getAttribute('data-min');
+    S.sel = tile.getAttribute('data-min');
     renderAll();
   });
 
@@ -370,7 +378,7 @@
     if (t.id === 'wb-laser') {
       S.laser = +t.value;
       var slots = (D.lasers[S.laser] || {}).slots || 0;
-      for (var i = slots; i < 3; i++) S.mods[i] = -1;   // Module ueber der Platzzahl fallen weg
+      for (var i = slots; i < 3; i++) S.mods[i] = -1;
       renderAll();
     } else if (t.id === 'wb-gadget') { S.gadget = +t.value; renderAll(); }
     else if (t.id === 'wb-ref') { S.ref = +t.value; renderDetail(); save(); }
@@ -381,51 +389,36 @@
     else if (e.target.id === 'wb-scan') { renderPins(); }
   });
 
-  /* ---- Tieflink ?mineral=<Name> ----------------------------------------
-     Sprung aus der Crafting-Datenbank („wo baue ich Titanium ab?").
-     src/lib/miningLinks.ts:129 erzeugt diese Verweise; im gebauten Bestand
-     sind es ueber 8000. Der Name stammt aus denselben Spieldaten, verglichen
-     wird trotzdem case-insensitiv.
-
-     VORRANG vor dem gespeicherten Zustand: wer aus dem Crafting kommt, will
-     DIESES Erz sehen, nicht das zuletzt betrachtete. Deshalb steht der Block
-     NACH dem Laden aus localStorage und VOR dem ersten Rendern. */
+  /* Tieflink ?mineral=<Name> aus der Crafting-Datenbank (miningLinks.ts:129,
+     ueber 8000 Verweise). VORRANG vor dem gespeicherten Zustand: wer von dort
+     kommt, will DIESES Erz sehen. */
   var deepLinked = false;
   (function fromQuery() {
     var want;
     try { want = new URLSearchParams(location.search).get('mineral'); } catch (e) { return; }
     if (!want) return;
     var key = want.trim().toLowerCase();
-    for (var n in byName) {
-      if (n.toLowerCase() === key) { S.sel = n; deepLinked = true; return; }
-    }
+    for (var n in byName) if (n.toLowerCase() === key) { S.sel = n; deepLinked = true; return; }
   })();
 
-  /* Zustand aus dem Speicher in die SSR-Bedienelemente zuruecktragen. */
   if ($('wb-laser')) $('wb-laser').value = String(S.laser);
   if ($('wb-gadget')) $('wb-gadget').value = String(S.gadget);
   if ($('wb-ref')) $('wb-ref').value = String(S.ref);
   renderAll();
 
-  /* Die angesprungene Zeile ins Bild holen. Gescrollt wird NUR der
-     Listenkasten, nicht die Seite — die Werkbank soll stehen bleiben.
-
-     Zwei Fallen, beide am gebauten Stand nachgemessen:
-     1. NICHT ueber offsetTop rechnen: das misst gegen das naechste
-        positionierte Elternelement, nicht gegen den Scrollkasten.
-     2. EIN requestAnimationFrame reicht nicht. Die Rasterhoehe kommt aus
-        clamp(…100vh…) und die Schriften laden noch — im ersten Bild ist
-        scrollHeight == clientHeight, die Zuweisung wird auf 0 geklemmt und
-        die Zeile blieb ausserhalb des Sichtfelds. Deshalb wird gewartet,
-        bis der Kasten tatsaechlich scrollbar ist (max. 20 Bilder). */
+  /* Angesprungene Kachel ins Bild holen. Zwei Fallen: nicht ueber offsetTop
+     rechnen (misst gegen das naechste positionierte Elternelement), und EIN
+     rAF reicht nicht — die Rasterhoehe kommt aus clamp(…100vh…), im ersten
+     Bild ist scrollHeight == clientHeight und die Zuweisung wird auf 0
+     geklemmt. Deshalb warten, bis der Kasten scrollbar ist. */
   if (deepLinked) {
     var tries = 0;
     (function center() {
-      var row = listEl.querySelector('.wb__row.is-sel');
-      var box = row && row.closest('.wb__scroll');
+      var tile = listEl.querySelector('.wb__tile.is-sel');
+      var box = tile && tile.closest('.wb__scroll');
       if (box && box.scrollHeight > box.clientHeight + 4) {
-        var rowR = row.getBoundingClientRect(), boxR = box.getBoundingClientRect();
-        box.scrollTop += (rowR.top - boxR.top) - (boxR.height / 2 - rowR.height / 2);
+        var r = tile.getBoundingClientRect(), b = box.getBoundingClientRect();
+        box.scrollTop += (r.top - b.top) - (b.height / 2 - r.height / 2);
         return;
       }
       if (tries++ < 20) requestAnimationFrame(center);
