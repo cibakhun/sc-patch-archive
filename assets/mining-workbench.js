@@ -195,6 +195,19 @@
 
     $('wb-name').textContent = m.name;
     $('wb-sig').textContent = m.sig ? NF.format(m.sig) : T.none;
+
+    /* Der grosse Anheft-Knopf am gewaehlten Erz. `data-pin` wird hier gesetzt,
+       damit ihn der delegierte Klick-Handler ohne Sonderfall erkennt — er
+       behandelt jedes [data-pin] gleich. */
+    var big = $('wb-pinsel');
+    if (big) {
+      var isPinned = S.pins.indexOf(m.name) >= 0;
+      big.setAttribute('data-pin', m.name);
+      big.classList.toggle('is-on', isPinned);
+      big.setAttribute('aria-pressed', String(isPinned));
+      $('wb-pinsel-ico').textContent = isPinned ? '★' : '☆';
+      $('wb-pinsel-txt').textContent = isPinned ? T.unpin : T.pin;
+    }
     $('wb-tags').innerHTML =
       '<span class="wb__tag is-rar">' + esc(D.rar[m.rarity] || (D.lang === 'de' ? 'ohne Stufe' : 'no tier')) + '</span>' +
       '<span class="wb__tag">' + esc(m.kind) + '</span>' +
@@ -315,10 +328,12 @@
     var lo = loadout(), L = lo.L, html = '';
     for (var i = 0; i < 3; i++) {
       var usable = i < (L.slots || 0), m = D.modules[S.mods[i]];
+      /* „ XTR Module" -> „XTR": das Wort steht schon als Beschriftung ueber der
+         Auswahl und kostet in einem 124 px breiten Feld nur Lesbarkeit. */
       var opts = '<option value="-1">' + esc(T.none) + '</option>';
       for (var k = 0; k < D.modules.length; k++) {
         opts += '<option value="' + k + '"' + (S.mods[i] === k ? ' selected' : '') + '>' +
-          esc(D.modules[k].n) + '</option>';
+          esc(D.modules[k].n.replace(/\s+Module$/, '')) + '</option>';
       }
       html += '<select class="wb__slot' + (usable && m ? ' is-full' : '') + '" data-slot="' + i + '"' +
         (usable ? '' : ' disabled') +

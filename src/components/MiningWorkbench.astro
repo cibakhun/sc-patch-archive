@@ -226,7 +226,7 @@ for (const [meth, ids] of Object.entries(VEHICLE_FOR)) {
 const S = de ? {
   minerals: 'Minerale', view: 'Ansicht', signatures: 'Signaturen', locations: 'Fundorte',
   search: 'Mineral suchen', onlyBreakable: 'nur brechbar',
-  scanPlaceholder: 'Scanwert', pinHint: 'Stern auf einer Kachel heftet ein Erz hierher — dann zeigt diese Spalte seine Signatur mal Clustergröße.',
+  scanPlaceholder: 'Scanwert', pinHint: 'Erz anklicken und oben auf „Anheften" tippen — oder den Stern auf der Kachel. Diese Spalte zeigt dann seine Signatur mal Clustergröße.',
   physics: 'Physik', resistance: 'Widerstand', effective: 'effektiv', instability: 'Instabilität',
   density: 'Dichte', window: 'Fenster', bands: 'Qualitätsstufen', signature: 'Signatur',
   breakable: 'Brechbar', marginal: 'Grenzwertig', impossible: 'Nicht brechbar', noPhys: 'keine Physikdaten',
@@ -241,7 +241,7 @@ const S = de ? {
 } : {
   minerals: 'Minerals', view: 'View', signatures: 'Signatures', locations: 'Locations',
   search: 'Search mineral', onlyBreakable: 'breakable only',
-  scanPlaceholder: 'Scan value', pinHint: 'Star a tile to pin an ore here — this column then shows its signature times cluster size.',
+  scanPlaceholder: 'Scan value', pinHint: 'Pick an ore and hit “Pin” above — or the star on its tile. This column then shows its signature times cluster size.',
   physics: 'Physics', resistance: 'Resistance', effective: 'effective', instability: 'Instability',
   density: 'Density', window: 'Window', bands: 'Quality tiers', signature: 'Signature',
   breakable: 'Breakable', marginal: 'Marginal', impossible: 'Not breakable', noPhys: 'no physics data',
@@ -319,6 +319,15 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
               <span class="wb__lbl" set:text={S.signature} />
               <b class="num" id="wb-sig" set:text={sel.sig ? String(sel.sig) : S.none} />
             </div>
+            {/* Der Stern auf der Kachel ist 16 px gross — als einziger Weg in die
+                Signaturenliste war er zu fummelig (Rueckmeldung des Nutzers).
+                Hier der zweite, grosse Weg am gerade gewaehlten Erz. Traegt
+                `data-pin` erst zur Laufzeit; der delegierte Klick-Handler
+                erkennt ihn dadurch ohne Sonderfall. */}
+            <button type="button" class="wb__pinbig" id="wb-pinsel" aria-pressed="false" data-help={hlp('pinbtn')}>
+              <span class="wb__pinbig__ico" id="wb-pinsel-ico" aria-hidden="true">☆</span>
+              <span id="wb-pinsel-txt" set:text={S.pin} />
+            </button>
           </div>
         </div>
         {/* Messgeraet statt Balkenpaar — aus Skizze 004 C, dort verworfen und
@@ -480,7 +489,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   box-shadow:inset 0 0 0 1px var(--accent-2)}
 .wb__tn{grid-column:2;font-size:var(--fs-4);font-weight:500;color:var(--text);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wb__ts{grid-column:2;font-size:var(--fs-2);color:var(--accent);padding-right:14px}
+.wb__ts{grid-column:2;font-size:var(--fs-2);color:var(--accent);padding-right:26px}
 .wb__dot{grid-row:1/3;align-self:center;width:7px;height:7px;border-radius:999px;background:currentColor;
   color:color-mix(in srgb,var(--surface-2) 84%,var(--text))}
 .wb__dot.is-ok{color:#6FBE7A}
@@ -492,10 +501,18 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    er ein fokussierbarer, aber unsichtbarer Halt (WCAG 2.4.7). Er steht jetzt
    dauerhaft an, nur zurueckgenommen — und unten rechts statt oben rechts, wo
    er sonst unter dem Mineralnamen laege. */
-.wb__pin{position:absolute;bottom:1px;right:2px;width:16px;height:16px;display:grid;place-items:center;
+.wb__pin{position:absolute;bottom:1px;right:3px;width:22px;height:22px;display:grid;place-items:center;
   border:0;background:transparent;color:color-mix(in srgb,var(--muted) 55%,transparent);
-  cursor:pointer;border-radius:4px;font-size:var(--fs-3);line-height:1;opacity:.5;
+  cursor:pointer;border-radius:5px;font-size:var(--fs-6);line-height:1;opacity:.55;
   transition:opacity var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+/* Das Tippziel war 16x16 — zu klein, vom Nutzer als „zu schwer" gemeldet.
+   Sichtbar bleibt der Stern zurueckgenommen (37 Kacheln vertragen keine
+   Knopfleiste), greifbar wird er ueber ein unsichtbares Pseudo-Element, ohne
+   dass sich am Raster etwas verschiebt. Nach INNEN kann es frei wachsen; nach
+   aussen begrenzt die Kachelkante, weil dort die Nachbarkachel obenauf liegt —
+   deshalb sitzt der Stern 3 px von der Kante statt buendig. Der bequeme Weg
+   ist ohnehin der grosse Knopf am gewaehlten Erz (.wb__pinbig). */
+.wb__pin::before{content:'';position:absolute;inset:-6px}
 .wb__tile:hover .wb__pin,.wb__pin:focus-visible,.wb__pin.is-on{opacity:1}
 .wb__pin.is-on{color:var(--accent-2)}
 
@@ -509,6 +526,17 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__tag.is-rar{background:color-mix(in srgb,var(--accent-2) 18%,transparent);color:var(--accent-2)}
 .wb__sigbox{margin-left:auto;text-align:right}
 .wb__sigbox b{display:block;font-size:var(--fs-11);color:var(--accent);font-weight:600;line-height:1.1;margin-top:1px}
+/* Grosser Anheft-Knopf am gewaehlten Erz — der bequeme Weg in die
+   Signaturenliste. Deckender Grund ueber Variablen (Hellmodus, s. o.). */
+.wb__pinbig{display:inline-flex;align-items:center;gap:7px;align-self:center;white-space:nowrap;
+  padding:8px 13px;border:0;border-radius:9px;cursor:pointer;font-family:inherit;
+  font-size:var(--fs-5);font-weight:600;color:var(--text);
+  background:color-mix(in srgb,var(--ink) 34%,var(--surface));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--text) 12%,transparent);
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__pinbig:hover{background:color-mix(in srgb,var(--accent-2) 24%,var(--surface))}
+.wb__pinbig.is-on{background:var(--accent-2);color:var(--ink);box-shadow:none}
+.wb__pinbig__ico{font-size:var(--fs-9);line-height:1}
 
 /* Messgeraet */
 .wb__gauge{margin:0 14px 11px;padding:9px 11px 8px;border-radius:9px;position:relative;
@@ -601,16 +629,23 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__rig::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;
   background:repeating-linear-gradient(90deg,var(--accent-2) 0 5px,transparent 5px 10px);opacity:.5}
 .wb__rgrp{display:flex;flex-direction:column;gap:3px}
-.wb__sel{background:color-mix(in srgb,var(--ink) 34%,transparent);border:0;color:var(--text);
+/* ⚠ Der Grund MUSS deckend sein. Mit `…,transparent)` steht das Feld auf
+   Alpha 0,34 — und Chrome vererbt den Grund an die aufgeklappte Liste, die
+   dadurch durchscheinend ueber dem Seiteninhalt liegt (gemeldet als „beim
+   ersten Oeffnen optisch verbuggt"). Die `<option>` selbst hatten gar keinen
+   Grund (rgba(0,0,0,0)). Beides ueber Variablen gemischt, nicht fest
+   verdrahtet: build-light-overrides.mjs deckt `background` nicht ab. */
+.wb__sel{background:color-mix(in srgb,var(--ink) 34%,var(--surface));border:0;color:var(--text);
   font-size:var(--fs-5);padding:6px 9px;cursor:pointer;max-width:190px;border-radius:7px;font-family:inherit}
+.wb__sel option,.wb__slot option{background:var(--surface);color:var(--text)}
 .wb__slots{display:flex;gap:4px}
 /* Frueher drei 28-px-Knoepfe, die je Klick EIN Modul weiterschalteten — bei
    26 Modulen bis zu 26 Klicks fuer den letzten. Jetzt je Steckplatz eine
    Auswahl. Der Klassenname bleibt, damit die erzeugte Hell-Entsprechung
    unten und die Fokusregel weiter greifen. */
-.wb__slot{height:26px;border:0;padding:0 4px;font-size:var(--fs-3);max-width:112px;
-  color:var(--muted);cursor:pointer;border-radius:6px;font-family:inherit;
-  background:color-mix(in srgb,var(--ink) 34%,transparent)}
+.wb__slot{height:26px;border:0;padding:0 5px;font-size:var(--fs-3);max-width:124px;
+  color:var(--text);cursor:pointer;border-radius:6px;font-family:inherit;
+  background:color-mix(in srgb,var(--ink) 34%,var(--surface))}
 .wb__slot.is-full{color:#6FBE7A;background:color-mix(in srgb,currentColor 18%,transparent)}
 .wb__slot:disabled{opacity:.3;cursor:not-allowed}
 .wb__rstat{margin-left:auto;display:flex;align-items:center;gap:18px}
@@ -618,8 +653,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__kv b{display:block;font-size:var(--fs-8);font-weight:600;margin-top:1px;color:var(--accent-2)}
 
 .wb__search:focus-visible,.wb__scan:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
-.wb__slot:focus-visible,.wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible{
-  outline:2px solid var(--accent-2);outline-offset:2px}
+.wb__slot:focus-visible,.wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible,
+.wb__pinbig:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 
 .wb__seg{display:none}
 /* Die Mittelspalte teilt sich erst, wenn dafuer Platz ist. Bei 1280 blieben
