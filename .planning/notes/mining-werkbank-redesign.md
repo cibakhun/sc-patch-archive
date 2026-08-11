@@ -111,10 +111,32 @@ Nicht „sieht kompakter aus", sondern Zahlen — wie bei der Schiffsseite:
 - DE **und** EN — „fertig" gilt erst für beide.
 - Erst das gerenderte Bild ansehen, dann melden.
 
+## Durch die Skizzen entschieden (11.08.2026)
+
+Drei Skizzen, alle Zahlen am gerenderten Mockup gemessen. Belege in
+`.planning/sketches/00{2,3,4}-*/`.
+
+| # | Frage | Ergebnis |
+|---|---|---|
+| 002 | Wo sitzt die Rig-Leiste? | **Unten, verschmolzen mit dem Sockel.** Beide waren Boden-Chrom; zusammen kosten sie *eine* Leiste. Erste Mineralzeile bei **162 px**, **12 von 19** Zeilen über der Falz bei 1280×720 |
+| 003 | Wie dicht darf die Mittelspalte werden? | **Zweispaltig innerhalb der Spalte.** Die befürchtete Überfüllung war ein Ein-Spalten-Problem: bei 768 px Breite passen alle 10 Fundorte *und* die Refinery ohne Scrollen und ohne Klick — mit 298 px Luft |
+| 004 | Wie hochwertig verarbeitet? | **Zurückgenommen.** Verarbeitung wäre gratis gewesen (0 px Überlauf in allen drei Stufen), gewählt wurde trotzdem der schlichteste Weg. „Hochwertig" heißt hier Präzision, nicht Detail |
+
+**Wichtigster Einzelbefund:** Der Titelstreifen kostet **42 px**. `hero--tool`
+(`ItemFinderPage.astro:54`) wurde im Projekt mit 273 px gemessen. **Der Hero war
+nie das Problem dieser Seite — die fünf gestapelten Abschnitte waren es.**
+
+**Zusatz zur Fallenliste:** In der gewählten Kombination gibt es **fünf** innen
+scrollende Kästen (3 Spalten + 2 Teilspalten in der Mitte), nicht drei. Alle
+fünf müssen in `assets/mobile-ux.css:503-516`.
+
 ## Offen
 
-- Wie dicht wird die Mittelspalte mit Identität + Fundorten + Physik + Fracturing
-  + Refinery? → `/gsd-sketch` soll genau das herausfinden.
+- Findet ein Erstbesucher die Rig-Einstellung, wenn sie unten sitzt? Nur an
+  echten Augen prüfbar, nicht am Mockup.
 - Tabelle + RLS für die angehefteten Signaturen → eigener Todo.
 - Was passiert mit `RefineryFinder.astro` als Komponente — ganz auflösen oder als
   Block in der Mittelspalte weiterverwenden?
+- Die 298 px Luft in der rechten Teilspalte sind ein Angebot, kein Rest. Was
+  dort hineinkommt, muss beim Aussieben helfen — sonst wird die Seite wieder
+  Leinwand.

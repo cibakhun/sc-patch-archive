@@ -31,19 +31,33 @@ Keine externen Vorbilder — die Referenz ist die eigene Seite. Konkret herangez
 |---|------|----------------|--------|------|
 | 001 | support-page-identity | Was führt die Unterstützen-Seite an — das defekte Teil, die Stimme des Betreibers oder die Leute, die schon tragen? | **A — Instandsetzung** (02.08.2026), mit Verschiebung auf den Arbeitsverlust statt auf den Sachschaden | support, identity, payments |
 | 002 | mining-werkbank-raster | Passen drei Spalten plus eingefaltetes Fracturing und Refinery bei 1280×720 — und wo kostet die Rig-Leiste am wenigsten? | **D — Leiste unten, mit dem Sockel verschmolzen** (11.08.2026). Vom Nutzer eingebracht, schlägt alle drei Vorlagen gleichzeitig: erste Mineralzeile 162 px, 12 Zeilen über der Falz | layout, mining, werkbank, hoehenbudget |
+| 003 | mittelspalte-dichte | Passen Identität, Fundorte, Physik, Urteil und Refinery in EINE Spalte — und wenn nein, was gibt nach? | **C — zweispaltig innerhalb der Spalte** (11.08.2026, nur strukturell). Die befürchtete Überfüllung war ein Ein-Spalten-Problem: bei 768 px Breite passen alle 10 Fundorte plus Refinery ohne Scrollen und ohne Klick, mit 298 px Luft | layout, mining, werkbank, dichte |
+| 004 | verarbeitungsgrad | Wie hochwertig muss die Werkbank verarbeitet sein, um neben einem Panel aus dem Spiel zu bestehen — ohne generisch zu werden? | **A — Zurückgenommen** (11.08.2026). Verarbeitung wäre budgetär gratis gewesen (0 px Überlauf in allen drei Stufen) — gewählt wurde trotzdem der schlichteste Weg: „hochwertig" heißt hier Präzision, nicht Detail | design, mining, werkbank, verarbeitung |
 
 ## Zweite Design-Welt: „Werkbank" (ab 002)
 
-Die Mining-Werkbank ist die erste **Werkzeugoberfläche** unter den Design-Welten
-und spricht deshalb eine eigene Sprache: **Argo-Industrie × altes Regolith** —
-ein Maschinenpult, das zufällig eine Webseite ist. Matte Flächen, gekantete
-Blechkanten (1 px Lichtkante oben statt Leuchten), Schablonen-Mikrolabels,
-Zahlen in Mono, Warnstreifen nur dort, wo etwas *eingestellt* wird.
+Die Mining-Werkbank ist die erste **Werkzeugoberfläche** unter den Design-Welten.
+Ausgangsvorgabe des Nutzers: **Argo-Industrie × altes Regolith**, „so hochwertig
+wie ingame panels, nur nicht so generisch" — ein Maschinenpult, das zufällig eine
+Webseite ist.
 
-**Bewusst NICHT benutzt** (obwohl im Bestand vorhanden): `--glow` (`0 0 44px`)
-aus `mining.astro:30`, `-webkit-text-stroke` an Abschnittsnummern, Verlaufstext,
-Scanlines, Neon-Lämpchen. Die Zustandslämpchen sind mattes Oliv `#8FB339` /
-Bernstein `#E0A526` / Rost `#B4543A` — Maschinenpult, nicht Ampel.
+**Aufgelöst wurde das am ZURÜCKGENOMMENEN Ende** (Skizze 004, Variante A). Die
+Skizze hat drei Verarbeitungsgrade gegeneinander gestellt und gemessen, dass
+Verarbeitung budgetär gratis wäre — gewählt wurde trotzdem der schlichteste Weg.
+**„Hochwertig" heißt hier Präzision, nicht Detail:**
+
+- **Es trägt:** weit gesperrte 8,5-px-Mikrolabels (`letter-spacing:.2em`),
+  große Mono-Zahlen ohne Fettung, eine Haarlinie unter jedem Blockkopf, ruhige
+  Flächen ohne Verlauf, großzügige Überschrift.
+- **Geprüft und verworfen** (Belege in `004-verarbeitungsgrad/`): angeschrägte
+  Ecken via `clip-path`, versenkte Wannen, erhabene Platten, segmentierte
+  Balken, Eckwinkel, Passkreuz, Materialkorn, Urteil als Messgerät. Alles
+  hübsch, alles Dekor auf einem Werkzeug.
+- **Nie infrage gekommen:** `--glow` (`0 0 44px`) aus `mining.astro:30`,
+  `-webkit-text-stroke`, Verlaufstext, Scanlines, Sechsecke, Neon.
+
+Die Zustandslämpchen sind mattes Oliv `#8FB339` / Bernstein `#E0A526` / Rost
+`#B4543A` — Maschinenpult, nicht Ampel.
 
 **Palette unverändert übernommen** aus `mining.astro:30`; geändert hat sich nur
 der Umgang: `--accent-2` (`#E0A526`, faktisch Argo-Bernstein) ist die

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 004 — Verarbeitungsgrad: so hochwertig wie ein Panel im Spiel</title>
+<style>
+/* ============================================================================
+   SKIZZE 004 — „Verarbeitungsgrad"
+   Wegwerf-Mockup. Kein Produktionscode. Keine externen Anfragen.
+   ----------------------------------------------------------------------------
+   DIE FRAGE: Skizze 003 hat das Raster entschieden (C, zweispaltig). Der
+   Einwand danach war nicht das Raster, sondern die Ausfuehrung — woertlich:
+   „vom design her sollte es so hochwertig sein wie ingame panels. nur nicht
+   so generisch."
+
+   Alle drei Varianten zeigen DENSELBEN Inhalt im DEMSELBEN Raster (Taranite,
+   alle 10 Fundorte, Budget 768x597 aus Skizze 002). Unterschiedlich ist nur
+   der Verarbeitungsgrad. Wer sich hier vertut, merkt es an den Messwerten
+   oben: Verarbeitung kostet Pixel, und das Budget bleibt dasselbe.
+
+   WAS „HOCHWERTIG WIE IM SPIEL" HIER KONKRET HEISST — und was es NICHT heisst:
+     JA  angeschraegte Ecken (clip-path) — steht schon als Formensprache im
+         MANIFEST, wird hier nur konsequent angewandt, nicht neu erfunden
+     JA  versenkte Wannen fuer Messwerte (inset shadow), erhabene Platten
+         fuer Traeger — Licht kommt IMMER von oben, nie von unten
+     JA  segmentierte Balken statt durchgezogener Fuellungen
+     JA  Eckwinkel, Teilstriche, Passkreuze, Index „01/04"
+     JA  Materialkorn (feine Schraffur, 2 %) statt toter Flaechen
+     JA  Typo-Disziplin: 9-px-Mikrolabels weit gesperrt gegen grosse Mono-Zahlen
+     NEIN Sechsecke, Neongitter, Zielkreuze, Scanlines, „SYSTEM ONLINE"
+     NEIN --glow (0 0 44px) aus mining.astro:30
+     NEIN Ecken an allen vier Seiten anschraegen (das ist der generische Griff)
+
+   ZAHLEN: echt aus assets/mining-model.json (4.9.0-live.12326004).
+   Rig fest: Helix II + Rieger. Brech-Rechnung = Platzhalter wie in 002/003.
+   ============================================================================ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+button,input{font:inherit;color:inherit}
+
+:root{--mk-bg:#0c0f12;--mk-bg2:#151a1f;--mk-line:#293139;--mk-txt:#e6eaf2;--mk-dim:#8b96a8;--mk-hi:#6ee7ff}
+body{background:var(--mk-bg);color:var(--mk-txt);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+.mk-bar{position:sticky;top:0;z-index:80;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:9px clamp(10px,2vw,20px);background:var(--mk-bg2);border-bottom:1px solid var(--mk-line)}
+.mk-bar b{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mk-dim);font-weight:700}
+.mk-tabs{display:flex;gap:4px}
+.mk-tab{padding:6px 12px;border:1px solid var(--mk-line);background:#0f1317;color:var(--mk-dim);font-size:12px;border-radius:3px;cursor:pointer;transition:all .15s ease;white-space:nowrap}
+.mk-tab:hover{border-color:#3d4956;color:var(--mk-txt)}
+.mk-tab.on{background:#1d2731;border-color:var(--mk-hi);color:var(--mk-txt)}
+.mk-vp{display:flex;gap:4px}
+.mk-vp button{padding:6px 10px;border:1px solid var(--mk-line);background:#0f1317;color:var(--mk-dim);font-size:11px;border-radius:3px;cursor:pointer;font-family:ui-monospace,Consolas,monospace}
+.mk-vp button.on{background:#1d2731;border-color:var(--mk-hi);color:var(--mk-txt)}
+#mk-read{font-family:ui-monospace,Consolas,monospace;font-size:11px;line-height:1.5;color:var(--mk-dim);margin-left:auto;text-align:right;white-space:pre}
+#mk-read .pass{color:#8FB339;font-weight:700}
+#mk-read .fail{color:#ff7a5c;font-weight:700}
+
+#stage{padding:20px clamp(10px,2vw,20px) 40px;display:flex;flex-direction:column;align-items:center}
+.holder{position:relative}
+.holder::before{content:attr(data-cap);position:absolute;top:-15px;left:0;font-family:ui-monospace,Consolas,monospace;font-size:10px;letter-spacing:.1em;color:var(--mk-dim)}
+.frame{background:#14181a;border:1px solid #000;box-shadow:0 0 0 1px #2a3238,0 18px 50px rgba(0,0,0,.6);overflow:hidden;position:relative}
+.frame.b1280{width:768px;height:597px}
+.frame.b1366{width:854px;height:645px}
+.variant{display:none}.variant.on{display:block}
+
+/* ==========================================================================
+   GEMEINSAME GRUNDLAGE — Palette aus mining.astro:30, unveraendert
+   ========================================================================== */
+.wb{
+  --bg:#14181a;--bg-2:#181d1f;--surface:#1e2427;--surface-2:#252c30;
+  --accent:#2FBFA4;--amber:#E0A526;--amber-dk:#9c7413;
+  --text:#eaf2f1;--muted:#8fa3a0;--dim:#6b7d7a;--line:#2b3438;--line-hi:#39454a;
+  --ok:#8FB339;--warn:#E0A526;--bad:#B4543A;
+  --f-disp:'Bahnschrift Condensed','Segoe UI Semibold',system-ui,sans-serif;
+  --f-ui:'Bahnschrift SemiLight','Segoe UI',system-ui,sans-serif;
+  --f-body:'Segoe UI',system-ui,sans-serif;
+  --f-mono:'Cascadia Mono',Consolas,ui-monospace,monospace;
+  background:var(--bg);color:var(--text);font-family:var(--f-body);font-size:14px;
+  height:100%;display:flex;flex-direction:column;overflow:hidden;position:relative;
+}
+.lbl{font-family:var(--f-mono);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.hd{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--bg-2);border-bottom:1px solid var(--line)}
+.hd .ix{margin-left:auto;font-family:var(--f-mono);font-size:9px;color:var(--dim);letter-spacing:.14em}
+.split{display:grid;grid-template-columns:1fr 1fr;flex:1;min-height:0}
+.split > .col{min-height:0;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.colscroll{overflow-y:auto;flex:1;min-height:0;scrollbar-width:thin;scrollbar-color:#3a4549 transparent}
+.colscroll::-webkit-scrollbar{width:8px}
+.colscroll::-webkit-scrollbar-thumb{background:#3a4549}
+.colscroll::-webkit-scrollbar-track{background:#171c1e}
+
+.idh{padding:9px 12px 8px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:10px}
+.idh h2{font-family:var(--f-disp);font-size:22px;font-weight:700;letter-spacing:.02em;line-height:1.05}
+.idh .tags{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.tag{font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 5px;border:1px solid var(--line-hi);color:var(--muted)}
+.tag.rar{border-color:var(--amber-dk);color:var(--amber)}
+.idh .sig{margin-left:auto;text-align:right}
+.idh .sig b{display:block;font-family:var(--f-mono);font-size:19px;color:var(--accent);font-weight:700;line-height:1}
+
+.blkh{display:flex;align-items:center;gap:7px;padding:6px 12px 4px}
+.blkh .n{font-family:var(--f-mono);font-size:9px;color:var(--amber-dk);font-weight:700;letter-spacing:.1em}
+.blkb{padding:0 12px 9px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:1px;background:var(--line)}
+.stat{background:var(--surface);padding:5px 8px}
+.stat b{display:block;font-family:var(--f-mono);font-size:14px;margin-top:1px}
+.stat.hot b{color:var(--amber)}
+.locs{display:flex;flex-direction:column;gap:1px;background:var(--line)}
+.loc{display:grid;grid-template-columns:1fr 54px 66px;align-items:center;gap:7px;background:var(--surface);padding:4px 8px;font-size:12.5px}
+.loc .p{font-family:var(--f-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loc .s{font-family:var(--f-mono);font-size:9.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.loc .a{display:flex;align-items:center;gap:5px}
+.loc .a .t{flex:1;height:5px;background:#0d1113;overflow:hidden}
+.loc .a .t i{display:block;height:100%;background:var(--accent);opacity:.7}
+.loc .a em{font-family:var(--f-mono);font-size:9.5px;color:var(--muted);font-style:normal;width:24px;text-align:right}
+.refn{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line)}
+.refn div{background:var(--surface);padding:5px 8px}
+.refn b{display:block;font-family:var(--f-mono);font-size:13px;margin-top:1px}
+.refn .net b{color:var(--ok)}
+.bands{display:flex;gap:2px;align-items:flex-end;height:28px}
+.bands i{flex:1;background:#232b2e;border-top:2px solid var(--line-hi)}
+.bands i.hi{background:#2e2a1b;border-top-color:var(--amber)}
+.lamp{width:9px;height:9px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.05)}
+.lamp.ok{background:var(--ok)}.lamp.warn{background:var(--warn)}.lamp.bad{background:var(--bad)}
+
+/* Urteilsband — Grundform, von den Varianten verschieden behandelt */
+.vd{display:flex;align-items:center;gap:11px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--surface)}
+.vd .big{display:flex;align-items:center;gap:8px}
+.vd .big .lamp{width:13px;height:13px}
+.vd .big span{font-family:var(--f-disp);font-size:15px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.vd.ok .big span{color:var(--ok)}.vd.warn .big span{color:var(--warn)}.vd.bad .big span{color:var(--bad)}
+.vd .bars{flex:1;display:flex;flex-direction:column;gap:4px}
+.vbar{display:grid;grid-template-columns:52px 1fr 44px;align-items:center;gap:6px}
+.vbar .t{height:7px;background:#0d1113;overflow:hidden}
+.vbar .t i{display:block;height:100%;background:var(--muted)}
+.vbar .t i.amber{background:var(--amber)}
+.vd .ratio{text-align:right}
+.vd .ratio b{font-family:var(--f-mono);font-size:21px;font-weight:700;line-height:1}
+.vd.ok .ratio b{color:var(--ok)}.vd.warn .ratio b{color:var(--warn)}.vd.bad .ratio b{color:var(--bad)}
+
+
+/* ==========================================================================
+   VARIANTE A — ZURUeCKGENOMMEN
+   Handwerk NUR ueber Typografie, Abstand und Haarlinien. Keine Kante, keine
+   Wanne, kein Winkel. Das „alte Regolith"-Ende der Spanne. Die Behauptung:
+   Praezision allein reicht, alles Weitere ist Dekor.
+   ========================================================================== */
+.craft-a .split{gap:1px;background:var(--line)}
+.craft-a .split > .col{background:var(--bg)}
+.craft-a .stat,.craft-a .loc,.craft-a .refn div{background:var(--bg-2)}
+.craft-a .blkh{border-bottom:1px solid var(--line);margin-bottom:7px;padding-bottom:5px}
+.craft-a .idh h2{font-size:24px;letter-spacing:.01em}
+.craft-a .lbl{letter-spacing:.2em;font-size:8.5px}
+.craft-a .stat b,.craft-a .refn b{font-size:15px;font-weight:400}
+.craft-a .vd{background:var(--bg)}
+
+
+/* ==========================================================================
+   VARIANTE B — VERARBEITET
+   Der eigentliche Vorschlag. Blechbau: erhabene Traeger, versenkte Wannen,
+   angeschraegte Ecken an ZWEI Seiten, segmentierte Balken, Eckwinkel,
+   Teilstriche, Passkreuze, feines Korn.
+   ========================================================================== */
+/* Materialkorn — 2 % feine Schraffur ueber allem, damit keine Flaeche tot ist */
+.craft-b::after,.craft-c::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:30;
+  background:repeating-linear-gradient(45deg,rgba(255,255,255,.028) 0 1px,transparent 1px 3px);
+}
+/* Erhabene Platte: Licht von OBEN. Nie umgekehrt. */
+.craft-b .split > .col{
+  background:linear-gradient(180deg,#191f22 0%,#15191b 100%);
+}
+.craft-b .split > .col + .col{border-left:1px solid #0c0f10;box-shadow:inset 1px 0 0 rgba(255,255,255,.045)}
+/* Kopf mit Ueberstand + Kerbe — der Balken laeuft ueber die Plattenkante hinaus */
+.craft-b .hd,.craft-b .idh{
+  background:linear-gradient(180deg,#222a2d,#1b2124);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 1px 0 rgba(0,0,0,.55);
+  border-bottom:1px solid #0e1214;position:relative;
+}
+.craft-b .idh{clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,0 100%)}
+/* Teilstrich-Leiste unter jedem Blockkopf */
+.craft-b .blkh{position:relative;padding-bottom:7px}
+.craft-b .blkh::after{
+  content:'';position:absolute;left:12px;right:12px;bottom:2px;height:3px;
+  background:repeating-linear-gradient(90deg,var(--line-hi) 0 1px,transparent 1px 7px);
+}
+/* Versenkte Wanne fuer JEDEN Messwert */
+.craft-b .stat,.craft-b .refn div{
+  background:linear-gradient(180deg,#0e1315,#121719);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.7),inset 0 -1px 0 rgba(255,255,255,.05);
+}
+.craft-b .stat b,.craft-b .refn b{font-size:16px;font-weight:700;letter-spacing:.01em}
+.craft-b .loc{
+  background:linear-gradient(180deg,#1d2326,#191e21);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+.craft-b .loc:nth-child(2n){background:linear-gradient(180deg,#1a2023,#161b1d)}
+/* Segmentierte Balken — gefraeste Spur mit Zaehnung, keine glatte Fuellung */
+.craft-b .vbar .t,.craft-b .loc .a .t{
+  background:#0b0e10;box-shadow:inset 0 1px 2px rgba(0,0,0,.8),inset 0 -1px 0 rgba(255,255,255,.04);
+}
+.craft-b .vbar .t i{background:repeating-linear-gradient(90deg,var(--muted) 0 4px,rgba(0,0,0,.5) 4px 6px)}
+.craft-b .vbar .t i.amber{background:repeating-linear-gradient(90deg,var(--amber) 0 4px,rgba(0,0,0,.5) 4px 6px)}
+.craft-b .loc .a .t i{background:repeating-linear-gradient(90deg,var(--accent) 0 3px,rgba(0,0,0,.55) 3px 5px);opacity:.85}
+/* Urteil als eigene Platte mit Eckwinkeln */
+.craft-b .vd{
+  background:linear-gradient(180deg,#212829,#1a2022);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 0 rgba(0,0,0,.5);
+  position:relative;border-bottom:1px solid #0e1214;
+}
+.craft-b .vd::before,.craft-b .vd::after{
+  content:'';position:absolute;width:9px;height:9px;pointer-events:none;
+  border-color:currentColor;opacity:.55;
+}
+.craft-b .vd::before{left:4px;top:4px;border-left:1px solid;border-top:1px solid}
+.craft-b .vd::after{right:4px;bottom:4px;border-right:1px solid;border-bottom:1px solid}
+.craft-b .vd.ok::before,.craft-b .vd.ok::after{color:var(--ok)}
+.craft-b .vd.warn::before,.craft-b .vd.warn::after{color:var(--warn)}
+.craft-b .vd.bad::before,.craft-b .vd.bad::after{color:var(--bad)}
+.craft-b .vd .ratio b{font-size:24px}
+/* Laempchen versenkt statt aufgeklebt */
+.craft-b .lamp{box-shadow:inset 0 0 0 1px rgba(0,0,0,.7),inset 0 1px 2px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.06)}
+/* Passkreuz an der Plattenecke — Drucker-/Ingenieurdetail, kein Sci-Fi */
+.craft-b .col:last-child::before{
+  content:'';position:absolute;right:6px;top:6px;width:7px;height:7px;z-index:20;
+  background:linear-gradient(90deg,transparent 3px,var(--line-hi) 3px 4px,transparent 4px),
+             linear-gradient(180deg,transparent 3px,var(--line-hi) 3px 4px,transparent 4px);
+}
+.craft-b .tag{background:rgba(0,0,0,.25)}
+.craft-b .bands i{box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+
+
+/* ==========================================================================
+   VARIANTE C — INSTRUMENT
+   Wie B, plus: das Urteil wird ein echtes Messgeraet. Statt zweier Balken
+   eine Skala mit Teilung, markiertem Gutbereich und Zeiger — die Anleihe ist
+   das Ladefenster beim Fracturing im Spiel. Alles andere identisch zu B.
+   ========================================================================== */
+.craft-c .split > .col{background:linear-gradient(180deg,#191f22,#15191b)}
+.craft-c .split > .col + .col{border-left:1px solid #0c0f10;box-shadow:inset 1px 0 0 rgba(255,255,255,.045)}
+.craft-c .hd,.craft-c .idh{background:linear-gradient(180deg,#222a2d,#1b2124);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 1px 0 rgba(0,0,0,.55);border-bottom:1px solid #0e1214}
+.craft-c .idh{clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,0 100%)}
+.craft-c .blkh{position:relative;padding-bottom:7px}
+.craft-c .blkh::after{content:'';position:absolute;left:12px;right:12px;bottom:2px;height:3px;background:repeating-linear-gradient(90deg,var(--line-hi) 0 1px,transparent 1px 7px)}
+.craft-c .stat,.craft-c .refn div{background:linear-gradient(180deg,#0e1315,#121719);box-shadow:inset 0 1px 3px rgba(0,0,0,.7),inset 0 -1px 0 rgba(255,255,255,.05)}
+.craft-c .stat b,.craft-c .refn b{font-size:16px;font-weight:700}
+.craft-c .loc{background:linear-gradient(180deg,#1d2326,#191e21);box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
+.craft-c .loc:nth-child(2n){background:linear-gradient(180deg,#1a2023,#161b1d)}
+.craft-c .loc .a .t{background:#0b0e10;box-shadow:inset 0 1px 2px rgba(0,0,0,.8)}
+.craft-c .loc .a .t i{background:repeating-linear-gradient(90deg,var(--accent) 0 3px,rgba(0,0,0,.55) 3px 5px);opacity:.85}
+.craft-c .lamp{box-shadow:inset 0 0 0 1px rgba(0,0,0,.7),inset 0 1px 2px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.06)}
+.craft-c .tag{background:rgba(0,0,0,.25)}
+
+/* Das Messgeraet */
+.gauge{
+  padding:9px 12px 10px;border-bottom:1px solid #0e1214;position:relative;
+  background:linear-gradient(180deg,#212829,#191f21);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 0 rgba(0,0,0,.5);
+}
+.gauge .top{display:flex;align-items:baseline;gap:9px;margin-bottom:7px}
+.gauge .top .st{display:flex;align-items:center;gap:7px}
+.gauge .top .st span{font-family:var(--f-disp);font-size:15px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.gauge.ok .top .st span{color:var(--ok)}.gauge.warn .top .st span{color:var(--warn)}.gauge.bad .top .st span{color:var(--bad)}
+.gauge .top .rr{margin-left:auto;font-family:var(--f-mono);font-size:23px;font-weight:700;line-height:1}
+.gauge.ok .top .rr{color:var(--ok)}.gauge.warn .top .rr{color:var(--warn)}.gauge.bad .top .rr{color:var(--bad)}
+/* Skala: versenkte Spur, Teilung, markierter Gutbereich, Zeiger */
+.scale{position:relative;height:22px;background:#0a0d0e;box-shadow:inset 0 2px 4px rgba(0,0,0,.85),inset 0 -1px 0 rgba(255,255,255,.05)}
+.scale .tick{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.09)}
+.scale .tick.maj{background:rgba(255,255,255,.2)}
+/* Gutbereich = ab Verhaeltnis 1.15; Grenzbereich 0.9-1.15 */
+.scale .zone{position:absolute;top:0;bottom:0}
+.scale .zone.warn{background:repeating-linear-gradient(45deg,rgba(224,165,38,.16) 0 4px,transparent 4px 8px)}
+.scale .zone.ok{background:repeating-linear-gradient(45deg,rgba(143,179,57,.18) 0 4px,transparent 4px 8px)}
+.scale .fill{position:absolute;left:0;top:3px;bottom:3px;background:repeating-linear-gradient(90deg,var(--amber) 0 4px,rgba(0,0,0,.55) 4px 6px)}
+.scale .mark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text);box-shadow:0 0 0 1px rgba(0,0,0,.6)}
+.scale .mark::before{content:'';position:absolute;left:-3px;top:-4px;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--text)}
+.gauge .foot{display:flex;margin-top:5px}
+.gauge .foot span{font-family:var(--f-mono);font-size:9px;color:var(--dim);letter-spacing:.1em}
+.gauge .foot span:nth-child(2){margin-left:auto}
+.gauge::before{content:'';position:absolute;left:4px;top:4px;width:9px;height:9px;border-left:1px solid var(--line-hi);border-top:1px solid var(--line-hi);opacity:.7}
+
+.vnote{max-width:900px;margin:14px auto 0;padding:10px 14px;background:#12171b;border:1px solid #232c33;border-left:3px solid var(--mk-hi);border-radius:2px;font-size:13px;line-height:1.65;color:#b8c4d2}
+.vnote b{color:var(--mk-txt)}
+.vnote code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#0c1013;padding:1px 5px;border-radius:2px;color:#9fd8c9}
+</style>
+</head>
+<body>
+
+<div class="mk-bar">
+  <b>Skizze 004</b>
+  <div class="mk-tabs">
+    <button class="mk-tab on" data-v="a">A — Zurückgenommen ★ gewählt</button>
+    <button class="mk-tab" data-v="b">B — Verarbeitet</button>
+    <button class="mk-tab" data-v="c">C — Instrument</button>
+  </div>
+  <div class="mk-vp">
+    <button class="on" data-sz="b1280">768×597 (@1280)</button>
+    <button data-sz="b1366">854×645 (@1366)</button>
+  </div>
+  <div id="mk-read">messe…</div>
+</div>
+
+<div id="stage">
+  <div class="variant on" id="variant-a">
+    <div class="holder" data-cap="GLEICHER INHALT · GLEICHES RASTER · NUR DIE VERARBEITUNG UNTERSCHEIDET SICH">
+      <div class="frame b1280" data-frame><div class="wb craft-a" data-wb data-mode="bars"></div></div>
+    </div>
+    <div class="vnote">
+      <b>A — Zurückgenommen.</b> Handwerk allein über Typografie, Abstand und
+      Haarlinien: größere Überschrift, weiter gesperrte Mikrolabels, eine
+      Trennlinie unter jedem Blockkopf. Keine Kante, keine Wanne, kein Winkel,
+      kein Korn. Die Behauptung: Präzision reicht, alles Weitere ist Dekor.
+      <em>Das ist ausdrücklich das „alte Regolith"-Ende der Spanne</em> — die
+      Gegenprobe, ob B zu viel tut.
+    </div>
+  </div>
+
+  <div class="variant on" id="variant-b">
+    <div class="holder" data-cap="GLEICHER INHALT · GLEICHES RASTER · NUR DIE VERARBEITUNG UNTERSCHEIDET SICH">
+      <div class="frame b1280" data-frame><div class="wb craft-b" data-wb data-mode="bars"></div></div>
+    </div>
+    <div class="vnote">
+      <b>B — Verarbeitet.</b> Blechbau. Erhabene Träger, <em>versenkte Wannen</em>
+      für jeden Messwert, Licht immer von oben. Angeschrägte Ecke nur oben
+      rechts (nicht an allen vier — das wäre der generische Griff).
+      Segmentierte, gefräste Balken statt glatter Füllungen. Eckwinkel am
+      Urteil, Teilstriche unter jedem Blockkopf, Passkreuz an der Plattenecke,
+      2 % Materialkorn. <em>Nah heranzoomen</em> — der Unterschied lebt in den
+      Kanten, nicht in der Silhouette.
+    </div>
+  </div>
+
+  <div class="variant" id="variant-c">
+    <div class="holder" data-cap="GLEICHER INHALT · GLEICHES RASTER · NUR DIE VERARBEITUNG UNTERSCHEIDET SICH">
+      <div class="frame b1280" data-frame><div class="wb craft-c" data-wb data-mode="gauge"></div></div>
+    </div>
+    <div class="vnote">
+      <b>C — Instrument.</b> Alles aus B, plus: das Urteil ist kein Balkenpaar
+      mehr, sondern ein <em>Messgerät</em> — versenkte Skala mit Teilung,
+      schraffiert markiertem Grenz- und Gutbereich und Zeiger. Die Anleihe ist
+      das Ladefenster beim Fracturing im Spiel, nicht ein generisches
+      Dashboard-Widget. <em>Laser umschalten</em> und dem Zeiger zusehen, wie er
+      durch die Bereiche wandert.
+    </div>
+  </div>
+
+  <div style="max-width:900px;margin:16px auto 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <span style="font-family:ui-monospace,Consolas,monospace;font-size:10px;letter-spacing:.14em;color:#8b96a8;text-transform:uppercase">Laser wechseln</span>
+    <div id="laserpick" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+  </div>
+</div>
+
+<script>
+/* Taranite — echt aus assets/mining-model.json (4.9.0-live.12326004). */
+const M = {n:'Taranite',res:0.50,inst:700,d:10.2,sig:3555,w:0.6};
+const LOCS = [
+  {p:'Lagrange E',s:'Stanton',ab:78,ch:18},{p:'Aaron Halo',s:'Stanton',ab:78,ch:18},
+  {p:'Pyro Belt (Cool 1)',s:'Pyro',ab:78,ch:18},{p:'Pyro V-f (Vuur)',s:'Pyro',ab:78,ch:18},
+  {p:'Glaciem Ring',s:'Nyx',ab:78,ch:18},{p:'Lagrange A',s:'Stanton',ab:74,ch:15},
+  {p:'Lagrange C',s:'Stanton',ab:74,ch:15},{p:'Pyro IV',s:'Pyro',ab:74,ch:15},
+  {p:'Pyro Belt (Cool 2)',s:'Pyro',ab:70,ch:12},{p:'Yela',s:'Stanton',ab:70,ch:12},
+];
+const BANDS = [346,588,667,796,842,901,955,1000];
+/* Echte Laser-Werte aus dem Modell. */
+const LASERS = [
+  {n:'Helix II',   dps:4930,res:-30},
+  {n:'Klein-S2',   dps:4350,res:-45},
+  {n:'Impact II',  dps:4060,res:10},
+  {n:'Arbor MH2',  dps:2900,res:25},
+  {n:'Hofstede-S1',dps:2600,res:-30},
+];
+let LI = 0;                       /* gewaehlter Laser */
+const RIEGER = 1.15;              /* Rieger Module, miningMult aus dem Modell */
+
+function calc(){
+  const L = LASERS[LI];
+  const avail = Math.round(L.dps*RIEGER);
+  const effRes = M.res*(1+L.res/100);
+  const req = Math.round(3600*(1+effRes));
+  const ratio = avail/req;
+  return {L,avail,req,ratio,effRes,
+    cls: ratio>=1.15?'ok':ratio>=0.9?'warn':'bad',
+    lab: ratio>=1.15?'Brechbar':ratio>=0.9?'Grenzwertig':'Nicht brechbar'};
+}
+
+const statsHTML = V => `<div class="stats">
+  <div class="stat"><span class="lbl">Resistenz</span><b class="num">${M.res.toFixed(2)}</b></div>
+  <div class="stat hot"><span class="lbl">eff. Res.</span><b class="num">${V.effRes.toFixed(2)}</b></div>
+  <div class="stat"><span class="lbl">Instabil.</span><b class="num">${M.inst}</b></div>
+  <div class="stat"><span class="lbl">Dichte</span><b class="num">${M.d}</b></div>
+</div>`;
+const locsHTML = () => `<div class="locs">${LOCS.map(l=>`<div class="loc">
+  <span class="p">${l.p}</span><span class="s">${l.s}</span>
+  <span class="a"><span class="t"><i style="width:${l.ab}%"></i></span><em class="num">${l.ch}%</em></span>
+</div>`).join('')}</div>`;
+const bandsHTML = () => `<div class="bands">${BANDS.map((b,i)=>`<i class="${i>4?'hi':''}" style="height:${20+i*10}%" title="Stufe ${i+1}: ${b}"></i>`).join('')}</div>`;
+const refnHTML = () => `<div class="refn">
+  <div><span class="lbl">Ertrag</span><b class="num">88 %</b></div>
+  <div><span class="lbl">Dauer/100 SCU</span><b class="num">25 m</b></div>
+  <div><span class="lbl">Kosten</span><b class="num">14 k</b></div>
+  <div class="net"><span class="lbl">Netto</span><b class="num">341 k</b></div>
+</div>`;
+
+/* Urteil als Balkenpaar (A, B) */
+function barsHTML(V){
+  const mx = Math.max(V.req,V.avail);
+  return `<div class="vd ${V.cls}">
+    <div class="big"><span class="lamp ${V.cls}"></span><span>${V.lab}</span></div>
+    <div class="bars">
+      <div class="vbar"><span class="lbl">Benötigt</span><span class="t"><i style="width:${V.req/mx*100}%"></i></span><span class="num" style="font-size:11px;text-align:right">${V.req}</span></div>
+      <div class="vbar"><span class="lbl">Verfügbar</span><span class="t"><i class="amber" style="width:${V.avail/mx*100}%"></i></span><span class="num" style="font-size:11px;text-align:right">${V.avail}</span></div>
+    </div>
+    <div class="ratio"><span class="lbl">Verh.</span><b class="num">×${V.ratio.toFixed(2)}</b></div>
+  </div>`;
+}
+/* Urteil als Messgeraet (C). Skala 0 … 2,0 im Verhaeltnis. */
+function gaugeHTML(V){
+  const MAXR = 2.0;
+  const pct = r => Math.min(100, r/MAXR*100);
+  const ticks = Array.from({length:21},(_,i)=>{
+    const maj = i%5===0;
+    return `<span class="tick ${maj?'maj':''}" style="left:${i/20*100}%"></span>`;
+  }).join('');
+  return `<div class="gauge ${V.cls}">
+    <div class="top">
+      <span class="st"><span class="lamp ${V.cls}"></span><span>${V.lab}</span></span>
+      <span class="lbl">${V.avail} von ${V.req} benötigt</span>
+      <span class="rr num">×${V.ratio.toFixed(2)}</span>
+    </div>
+    <div class="scale">
+      <span class="zone warn" style="left:${pct(0.9)}%;width:${pct(1.15)-pct(0.9)}%"></span>
+      <span class="zone ok" style="left:${pct(1.15)}%;right:0"></span>
+      ${ticks}
+      <span class="fill" style="width:${pct(V.ratio)}%"></span>
+      <span class="mark" style="left:calc(${pct(V.ratio)}% - 1px)"></span>
+    </div>
+    <div class="foot">
+      <span>0,0</span><span>GRENZ 0,90</span><span style="margin-left:auto">GUT 1,15</span><span style="margin-left:14px">2,0</span>
+    </div>
+  </div>`;
+}
+
+function render(){
+  const V = calc();
+  document.querySelectorAll('[data-wb]').forEach(wb=>{
+    const head = wb.dataset.mode==='gauge' ? gaugeHTML(V) : barsHTML(V);
+    wb.innerHTML = `
+      <div class="hd"><span class="lbl">Ansicht</span><span class="ix">01 / 04 · ${V.L.n.toUpperCase()}</span></div>
+      <div class="split">
+        <div class="col">
+          <div class="idh">
+            <div><h2>${M.n}</h2>
+              <div class="tags"><span class="tag rar">selten</span><span class="tag">Erz</span><span class="tag">Schiff</span></div>
+            </div>
+            <div class="sig"><span class="lbl">Signatur</span><b class="num">${M.sig}</b></div>
+          </div>
+          ${head}
+          <div class="colscroll">
+            <div class="blkh"><span class="n">01</span><span class="lbl">Physik</span></div>
+            <div class="blkb">${statsHTML(V)}</div>
+            <div class="blkh"><span class="n">02</span><span class="lbl">Qualitätsstufen</span></div>
+            <div class="blkb">${bandsHTML()}</div>
+            <div class="blkh"><span class="n">03</span><span class="lbl">Refinery</span><span class="lbl" style="margin-left:auto;color:var(--muted)">ARC-L1 · DINYX</span></div>
+            <div class="blkb">${refnHTML()}</div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="blkh" style="padding-top:9px"><span class="n">04</span><span class="lbl">Fundorte</span><span class="lbl" style="margin-left:auto">ALLE 10</span></div>
+          <div class="colscroll"><div class="blkb" style="padding-top:0">${locsHTML()}</div></div>
+        </div>
+      </div>`;
+  });
+  document.getElementById('laserpick').innerHTML = LASERS.map((l,i)=>
+    `<button class="mk-tab ${i===LI?'on':''}" data-laser="${i}">${l.n} · ${l.dps}</button>`).join('');
+  measure();
+}
+
+document.addEventListener('click', e=>{
+  const tab = e.target.closest('.mk-tab[data-v]');
+  if(tab){
+    document.querySelectorAll('.mk-tab[data-v]').forEach(x=>x.classList.remove('on'));
+    tab.classList.add('on');
+    document.querySelectorAll('.variant').forEach(v=>v.classList.remove('on'));
+    document.getElementById('variant-'+tab.dataset.v).classList.add('on');
+    measure(); return;
+  }
+  const vp = e.target.closest('.mk-vp button');
+  if(vp){
+    document.querySelectorAll('.mk-vp button').forEach(x=>x.classList.remove('on'));
+    vp.classList.add('on');
+    document.querySelectorAll('[data-frame]').forEach(f=>{f.className='frame '+vp.dataset.sz});
+    measure(); return;
+  }
+  const lz = e.target.closest('[data-laser]');
+  if(lz){ LI = +lz.dataset.laser; render(); return; }
+});
+
+/* Verarbeitung kostet Pixel — hier wird nachgehalten, ob das Budget haelt. */
+function measure(){
+  const v = document.querySelector('.variant.on');
+  const out = document.getElementById('mk-read');
+  if(!v) return;
+  const cols = [...v.querySelectorAll('.colscroll')];
+  const over = cols.reduce((a,c)=>a+Math.max(0,c.scrollHeight-c.clientHeight),0);
+  const body = v.querySelector('[data-wb]');
+  const br = body.getBoundingClientRect();
+  const locs = [...v.querySelectorAll('.loc')];
+  const vis = locs.filter(l=>{const r=l.getBoundingClientRect();return r.top>=br.top-1&&r.bottom<=br.bottom+1}).length;
+  const ok = over===0;
+  out.innerHTML =
+    `Rahmen ${Math.round(br.width)}×${Math.round(br.height)} px  ·  ${over?'Überlauf '+over+' px':'kein Überlauf'}\n` +
+    `<span class="${ok?'pass':'fail'}">${ok?'BUDGET HÄLT':'BUDGET GERISSEN'}</span>` +
+    `   Fundorte ohne Scrollen: <b>${vis}</b>/10`;
+}
+addEventListener('resize', measure);
+render();
+</script>
+</body>
+</html>
