@@ -10,13 +10,29 @@
 // zeigt jetzt, was ein frischer Lauf gegenüber dem committeten Katalog ändert.
 //
 // Aufruf: node scripts/verify-vehicles.mjs [--field <name>] [--all]
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rd = (p) => JSON.parse(readFileSync(resolve(__dirname, '..', 'src', 'data', p), 'utf8'));
 const argv = process.argv.slice(2);
+
+// Vorbedingung statt nacktem ENOENT: `vehicles-gamefiles.json` ist die
+// UNVERSIONIERTE Zwischenstufe des Extraktionslaufs — in einem frischen
+// Checkout gibt es sie nicht, und dieser Waechter starb dort mit einem
+// Dateifehler, der wie ein kaputtes Skript aussah statt wie ein fehlender
+// Arbeitsschritt. Gleiche Bauform wie scripts/_test-prereqs.mjs.
+const GAMEFILES = resolve(__dirname, '..', 'src', 'data', 'vehicles-gamefiles.json');
+if (!existsSync(GAMEFILES)) {
+  console.error('\nsrc/data/vehicles-gamefiles.json fehlt — das ist die Zwischenstufe des');
+  console.error('Extraktionslaufs und liegt absichtlich nicht im Bestand.\n');
+  console.error('  npm run datamine:loadouts && npm run datamine:vehicles\n');
+  console.error('Danach vergleicht dieser Waechter den frischen Lauf gegen den committeten');
+  console.error('Katalog. Ohne ihn gibt es nichts zu vergleichen — das ist kein Fehler,');
+  console.error('sondern ein noch nicht ausgefuehrter Schritt (Schiene B, npm run gate:data).\n');
+  process.exit(2);
+}
 const FIELD = argv.includes('--field') ? argv[argv.indexOf('--field') + 1] : null;
 const ALL = argv.includes('--all');
 

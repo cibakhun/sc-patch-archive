@@ -32,14 +32,92 @@ jobs:
       # NICHT als eigener Schritt hier: dort existiert dist/ bereits, ein
       # Schritt an dieser Stelle muesste die Seite ein zweites Mal bauen.
       # Schlaegt es fehl, bricht dieser Build ab und es wird nichts gepusht.
-      - name: Build and push
+      # Erst BAUEN, nicht pushen — zwischen Build und Push liegen zwei
+      # Pruefungen am fertigen Image (Indexierbarkeit + Browser-Rauchtest).
+      # Gleiche Reihenfolge wie in deploy-staging.yml; was nicht besteht,
+      # wird nie veroeffentlicht.
+      - name: Build (noch nicht pushen)
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          load: true
+          build-args: |
+            GIT_SHA=${{ github.sha }}
           tags: |
             ghcr.io/cibakhun/sc-patch-archive:latest
             ghcr.io/cibakhun/sc-patch-archive:${{ github.sha }}
+
+      # Gegenprobe im fertigen Image — das SPIEGELBILD der Pruefung in
+      # deploy-staging.yml. Dort wird belegt, dass die Vorschau gesperrt ist;
+      # hier, dass die Live-Seite es NICHT ist. Anlass (09.08.2026): ein
+      # Live-Build, der versehentlich mit STAGING=1 entsteht, traegt eine
+      # sperrende robots.txt und site-weites noindex — er wuerde tadellos
+      # deployen und die ganze Domain aus dem Index nehmen, ohne dass etwas
+      # bricht. Genau der Ausfallmodus, den kein Test faengt: die Seite baut,
+      # laedt und funktioniert, sie ist nur unsichtbar.
+      - name: Verify the live image IS indexable
+        run: |
+          CID=$(docker create ghcr.io/cibakhun/sc-patch-archive:latest)
+          docker cp "$CID:/usr/share/nginx/html/robots.txt" ./robots.check
+          docker cp "$CID:/usr/share/nginx/html/index.html" ./index.check
+          docker cp "$CID:/usr/share/nginx/html/sitemap.xml" ./sitemap.check
+          docker rm "$CID" >/dev/null
+          echo "--- robots.txt ---"; cat ./robots.check
+          # ⚠ Verneinende Pruefungen als `if`, NICHT als `grep -q … && exit 1`.
+          # Nachgemessen: unter `bash -e` ist eine solche UND-Liste MITTEN im
+          # Skript harmlos (das fehlgeschlagene grep ist von errexit
+          # ausgenommen) — steht sie aber als LETZTE Zeile, wird ihr Status 1
+          # zum Status des Schritts, und der Deploy reisst genau dann, wenn
+          # alles in Ordnung ist. Eine Zeile, die je nach ihrer POSITION das
+          # Gegenteil bedeutet, gehoert nicht in ein Tor. Im `if`-Kopf gilt
+          # errexit ohnehin nicht.
+          if grep -qE '^Disallow: /$' ./robots.check; then
+            echo "FEHLER: robots.txt sperrt die LIVE-Seite (versehentlich ein STAGING-Build?)"; exit 1
+          fi
+          if grep -q 'name="robots" content="noindex"' ./index.check; then
+            echo "FEHLER: die Startseite traegt noindex."; exit 1
+          fi
+          grep -q '<loc>' ./sitemap.check || { echo "FEHLER: der Sitemap-Index bewirbt nichts."; exit 1; }
+          echo "OK — die Live-Seite ist indexierbar."
+
+      # ---- Browser-Rauchtest gegen den LAUFENDEN Container ----------------
+      # Dieselbe Begruendung wie in deploy-staging.yml: node:22-alpine hat
+      # keinen Browser, und die CSP ist ein nginx-Header, den es nur im
+      # laufenden Container gibt.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Browser bereitstellen
+        run: |
+          for c in google-chrome google-chrome-stable chromium chromium-browser; do
+            if command -v "$c" >/dev/null 2>&1; then
+              echo "CHROME_PATH=$(command -v $c)" >> "$GITHUB_ENV"
+              echo "gefunden: $(command -v $c)"; exit 0
+            fi
+          done
+          echo "kein Browser vorinstalliert — chromium wird nachinstalliert"
+          sudo apt-get update -qq && sudo apt-get install -y -qq chromium-browser
+          echo "CHROME_PATH=$(command -v chromium-browser)" >> "$GITHUB_ENV"
+
+      - name: Rauchtest gegen das fertige Image
+        run: |
+          docker run -d --rm -p 8080:80 --name smoke ghcr.io/cibakhun/sc-patch-archive:latest
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:8080/ >/dev/null 2>&1 && break
+            sleep 1
+          done
+          code=0
+          node scripts/browser-smoke.mjs --base http://localhost:8080 || code=$?
+          docker stop smoke >/dev/null || true
+          exit $code
+
+      - name: Push (erst nach bestandenen Pruefungen)
+        run: |
+          docker push ghcr.io/cibakhun/sc-patch-archive:latest
+          docker push ghcr.io/cibakhun/sc-patch-archive:${{ github.sha }}
 
       # Aufbewahrung begrenzen: jeder Push auf main legt eine neue Paketversion
       # an, und jede haelt ihre Layer (~700 MB unkomprimiert) fest. Ohne
@@ -70,3 +148,15 @@ jobs:
           else
             echo "COOLIFY_DEPLOY_WEBHOOK und/oder COOLIFY_API_TOKEN nicht gesetzt — redeploy manuell in Coolify."
           fi
+
+      # Wie in deploy-staging.yml: warten, bis die LIVE-Seite den frisch
+      # gebauten Stand wirklich ausliefert. "CI gruen" ist keine Antwort
+      # darauf — siehe die Begruendung dort.
+      - name: Warten, bis die Live-Seite den neuen Stand zeigt
+        run: |
+          node scripts/check-deployed.mjs \
+            --base https://verse-base.com \
+            --sha ${{ github.sha }} \
+            --live \
+            --weich \
+            --warte 600
