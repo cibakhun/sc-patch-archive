@@ -33,36 +33,58 @@ Keine externen Vorbilder — die Referenz ist die eigene Seite. Konkret herangez
 | 002 | mining-werkbank-raster | Passen drei Spalten plus eingefaltetes Fracturing und Refinery bei 1280×720 — und wo kostet die Rig-Leiste am wenigsten? | **D — Leiste unten, mit dem Sockel verschmolzen** (11.08.2026). Vom Nutzer eingebracht, schlägt alle drei Vorlagen gleichzeitig: erste Mineralzeile 162 px, 12 Zeilen über der Falz | layout, mining, werkbank, hoehenbudget |
 | 003 | mittelspalte-dichte | Passen Identität, Fundorte, Physik, Urteil und Refinery in EINE Spalte — und wenn nein, was gibt nach? | **C — zweispaltig innerhalb der Spalte** (11.08.2026, nur strukturell). Die befürchtete Überfüllung war ein Ein-Spalten-Problem: bei 768 px Breite passen alle 10 Fundorte plus Refinery ohne Scrollen und ohne Klick, mit 298 px Luft | layout, mining, werkbank, dichte |
 | 004 | verarbeitungsgrad | Wie hochwertig muss die Werkbank verarbeitet sein, um neben einem Panel aus dem Spiel zu bestehen — ohne generisch zu werden? | **A — Zurückgenommen** (11.08.2026). Verarbeitung wäre budgetär gratis gewesen (0 px Überlauf in allen drei Stufen) — gewählt wurde trotzdem der schlichteste Weg: „hochwertig" heißt hier Präzision, nicht Detail | design, mining, werkbank, verarbeitung |
+| 005 | paneel-sprache | Wie viel Glas trägt die Werkbank, wenn der Foto-Hintergrund gestrichen ist, der das Glas in den Mockups erst lesbar macht? | **D — Glas nur tragend + reicherer Grund** (11.08.2026) — ⚠ **überholt durch 006**. Bleibende Befunde: Schräge geht ganz ohne `clip-path` (840-ms-Falle baulich ausgeschlossen); Flächenfarben müssen Variablen sein, sonst kein Hellmodus | design, mining, werkbank, glas, ueberholt |
+| 006 | baujahr-2026 | Wie sieht die Werkbank aus, wenn sie aussehen soll, als wäre sie 2026 entworfen worden — industriell, modern, nicht futuristisch? | **A — Ruhig** (11.08.2026). **Endstand der Gestaltungssprache.** Radius 12/8/6, Sans-Labels in Satzschreibung, Mono nur für Zahlen, Flächenabstufungen statt Ränder, Farbe nur für Zustand. Kostet 52 px und 3 Mineralzeilen gegen die HUD-Sprache — bewusst bezahlt | design, mining, werkbank, modernitaet |
 
-## Zweite Design-Welt: „Werkbank" (ab 002)
+## Zweite Design-Welt: „Werkbank" (ab 002) — ENDSTAND aus Skizze 006 A
 
 Die Mining-Werkbank ist die erste **Werkzeugoberfläche** unter den Design-Welten.
-Ausgangsvorgabe des Nutzers: **Argo-Industrie × altes Regolith**, „so hochwertig
-wie ingame panels, nur nicht so generisch" — ein Maschinenpult, das zufällig eine
-Webseite ist.
+Der Weg dahin ging über drei Vorgaben des Nutzers, die einander präzisierten:
 
-**Aufgelöst wurde das am ZURÜCKGENOMMENEN Ende** (Skizze 004, Variante A). Die
-Skizze hat drei Verarbeitungsgrade gegeneinander gestellt und gemessen, dass
-Verarbeitung budgetär gratis wäre — gewählt wurde trotzdem der schlichteste Weg.
-**„Hochwertig" heißt hier Präzision, nicht Detail:**
+1. *„Argo-Industrie × altes Regolith, so hochwertig wie ingame panels, nur nicht
+   so generisch"* → Skizze 004
+2. Zwei KI-Mockups mit Glas, Schräge, Segmentbalken → Skizze 005
+3. **maßgeblich:** *„industrial, modern but not futuristic design that looks like
+   something that got designed in 2026"* → **Skizze 006, Variante A = Endstand**
 
-- **Es trägt:** weit gesperrte 8,5-px-Mikrolabels (`letter-spacing:.2em`),
-  große Mono-Zahlen ohne Fettung, eine Haarlinie unter jedem Blockkopf, ruhige
-  Flächen ohne Verlauf, großzügige Überschrift.
-- **Geprüft und verworfen** (Belege in `004-verarbeitungsgrad/`): angeschrägte
-  Ecken via `clip-path`, versenkte Wannen, erhabene Platten, segmentierte
-  Balken, Eckwinkel, Passkreuz, Materialkorn, Urteil als Messgerät. Alles
-  hübsch, alles Dekor auf einem Werkzeug.
-- **Nie infrage gekommen:** `--glow` (`0 0 44px`) aus `mining.astro:30`,
-  `-webkit-text-stroke`, Verlaufstext, Scanlines, Sechsecke, Neon.
+**Die Sprache der Werkbank:**
 
-Die Zustandslämpchen sind mattes Oliv `#8FB339` / Bernstein `#E0A526` / Rost
-`#B4543A` — Maschinenpult, nicht Ampel.
+- **Radius 12 / 8 / 6.** Nicht darunter — unter 8 px kippt es ins
+  Retro-Technische. Der Radius ist der stärkste Jahreszahl-Verräter überhaupt.
+- **Labels in Sans, Satzschreibung, normale Laufweite.** „Widerstand", nicht
+  „WIDERSTAND". Zweitgrößter Jahreszahl-Unterschied nach dem Radius.
+- **Mono ausschließlich für Zahlen**, tabellarisch, leicht negativ gesperrt.
+- **Flächenabstufungen `--s0…--s3` statt Rändern**, dazu weiche, große, flache
+  Schatten. Fast keine Haarlinien.
+- **Fast monochrom. Farbe nur als Bedeutungsträger:** Bernstein `#E0A526` =
+  Auswahl/Handlung, Teal `#2FBFA4` = Signaturwert, Grün/Gelb/Rot = Brechbarkeit.
+- **Polsterung 12–18 px.** Zustandsanzeige = runder matter Punkt, 8 px, ohne
+  Rahmen und ohne Schein.
+- **Ausnahme, die bleibt:** Qualitätsstufen sind segmentiert — dort *sind* die
+  acht Segmente die Daten.
 
-**Palette unverändert übernommen** aus `mining.astro:30`; geändert hat sich nur
-der Umgang: `--accent-2` (`#E0A526`, faktisch Argo-Bernstein) ist die
-**Arbeitsfarbe**, `--accent` (`#2FBFA4` Teal) sinkt auf reine Information ab
-(Signaturwerte, Häufigkeitsbalken).
+**Geprüft und verworfen** (Belege liegen in den Skizzenordnern, damit die Fragen
+nicht neu aufgemacht werden): angeschrägte Ecken (004/005), versenkte Wannen,
+erhabene Platten, Eckwinkel, Passkreuz, Materialkorn, Urteil als Messgerät
+(004); Glas mit `backdrop-filter`, gezähnte Balken, Warnstreifen, Versal-Mono-
+Mikrolabels (005); Foto-Hintergrund, schwebender 3D-Brocken, Sparklines an jeder
+Kennzahl, Radialanzeigen (aus den Mockups, nie gebaut). Nie infrage gekommen:
+`--glow` (`0 0 44px`) aus `mining.astro:30`, `-webkit-text-stroke`,
+Verlaufstext, Scanlines, Sechsecke, Neon.
+
+**⚠ Zwei Bauregeln, die aus den Skizzen stammen und nicht verhandelbar sind:**
+
+- **Flächenfarben MÜSSEN CSS-Variablen sein.** `build-light-overrides.mjs:85`
+  kennt nur `color`/`border-*-color`/`outline-color`/`fill`/`stroke` — kein
+  `background`, kein `box-shadow`. Nur Variablen (`:228`) erzeugen überhaupt
+  eine Hell-Entsprechung. Fest verdrahtete Flächen haben still keinen Hellmodus.
+- **Kein `clip-path` auf Paneelen, solange `backdrop-filter` im Spiel ist** —
+  genau diese Paarung drückte den Menü-Eintritt auf 840 ms (nachher 320 ms). Im
+  Endstand ist beides ohnehin nicht mehr vorhanden.
+
+**Preis der Moderne, offen benannt:** 52 px und 3 Mineralzeilen gegen die
+HUD-Sprache aus 005 — 9 statt 12 Zeilen über der Falz bei 1280×720. Bewusst
+bezahlt.
 
 ## Übernommene Befunde aus dem Bestands-CSS
 

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 006 — Baujahr 2026: industriell, modern, nicht futuristisch</title>
+<style>
+/* ============================================================================
+   SKIZZE 006 — „Baujahr 2026"
+   Wegwerf-Mockup. Kein Produktionscode. Keine externen Anfragen.
+   ----------------------------------------------------------------------------
+   VORGABE des Nutzers, woertlich: „industrial, modern but not futuristic
+   design that looks like something that got designed in 2026".
+
+   DAS KORRIGIERT DIE SKIZZEN 004 UND 005. Was dort gebaut wurde, ist zu
+   grossen Teilen SPIEL-UI-Vokabular, nicht Industriedesign. Es datiert:
+
+     RAUS                                  DAFUER
+     Eckradius 0-2 px                      8-12 px (staerkster Jahreszahl-
+                                           Verraeter ueberhaupt)
+     Versal-Mono-Labels .18em gesperrt     Sans, normale Laufweite,
+                                           Satzschreibung. Mono NUR fuer Zahlen
+     Raender an allem                      Flaechenabstufungen + weiche,
+                                           grosse, flache Schatten
+     Angeschraegte Ecke (clip-path/Trick)  ersatzlos
+     Warnstreifen, gezaehnte Balken        ersatzlos (Ausnahme: Qualitaetsstufen
+                                           — dort SIND die Segmente die Daten)
+     Polsterung 8 px                       12-16 px
+     4 Akzentfarben                        fast monochrom; Farbe = Zustand
+
+   WAS „INDUSTRIELL" HIER HEISST — nicht Blech und Nieten, sondern der Ernst
+   professioneller Werkzeuge: dichte, praezise Zahlen; Hierarchie ueber
+   Schriftgewicht statt ueber Rahmen; Farbe streng als Bedeutungstraeger;
+   keine Dekoration, die nicht misst.
+
+   DIE SPANNUNG, DIE DIE SKIZZE MISST: grosszuegige Abstaende kosten Hoehe.
+   Die Falz-Regel (Filterkonsole UND erste Ergebniszeile ueber der Falz bei
+   1280x720) bleibt. Die Messleiste oben beziffert das laufend.
+
+   ZAHLEN: echt aus assets/mining-model.json (4.9.0-live.12326004).
+   ============================================================================ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+button,input,select{font:inherit;color:inherit}
+
+:root{--mk-bg:#0c0f12;--mk-bg2:#151a1f;--mk-line:#293139;--mk-txt:#e6eaf2;--mk-dim:#8b96a8;--mk-hi:#6ee7ff}
+body{background:var(--mk-bg);color:var(--mk-txt);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+.mk-bar{position:sticky;top:0;z-index:80;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:9px clamp(10px,2vw,20px);background:var(--mk-bg2);border-bottom:1px solid var(--mk-line)}
+.mk-bar b{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mk-dim);font-weight:700}
+.mk-tabs{display:flex;gap:4px}
+.mk-tab{padding:6px 12px;border:1px solid var(--mk-line);background:#0f1317;color:var(--mk-dim);font-size:12px;border-radius:6px;cursor:pointer;transition:all .15s ease;white-space:nowrap}
+.mk-tab:hover{border-color:#3d4956;color:var(--mk-txt)}
+.mk-tab.on{background:#1d2731;border-color:var(--mk-hi);color:var(--mk-txt)}
+.mk-vp{display:flex;gap:4px}
+.mk-vp button{padding:6px 10px;border:1px solid var(--mk-line);background:#0f1317;color:var(--mk-dim);font-size:11px;border-radius:6px;cursor:pointer;font-family:ui-monospace,Consolas,monospace}
+.mk-vp button.on{background:#1d2731;border-color:var(--mk-hi);color:var(--mk-txt)}
+#mk-read{font-family:ui-monospace,Consolas,monospace;font-size:11px;line-height:1.5;color:var(--mk-dim);margin-left:auto;text-align:right;white-space:pre}
+#mk-read .pass{color:#7ec87e;font-weight:700}
+#mk-read .fail{color:#ff7a5c;font-weight:700}
+
+#stage{padding:20px clamp(10px,2vw,20px) 40px;display:flex;flex-direction:column;align-items:center}
+.holder{position:relative}
+.holder::before{content:attr(data-cap);position:absolute;top:-15px;left:0;font-family:ui-monospace,Consolas,monospace;font-size:10px;letter-spacing:.1em;color:var(--mk-dim)}
+.frame{border-radius:10px;box-shadow:0 0 0 1px #2a3238,0 24px 60px rgba(0,0,0,.55);overflow:hidden;position:relative}
+.frame.b1280{width:1280px;height:720px}
+.frame.b1366{width:1366px;height:768px}
+.variant{display:none}.variant.on{display:block}
+
+/* ==========================================================================
+   GEMEINSAME GRUNDLAGE — „Baujahr 2026"
+   ========================================================================== */
+.wb{
+  /* Fast monochrome Basis. Die Mining-Palette bleibt erhalten, aber Teal und
+     Bernstein sind ab hier AUSSCHLIESSLICH Bedeutungstraeger. */
+  --s0:#0f1214;   /* Grund            */
+  --s1:#161a1d;   /* Flaeche 1        */
+  --s2:#1c2124;   /* Flaeche 2        */
+  --s3:#232a2d;   /* Flaeche 3, hover */
+  --hair:rgba(255,255,255,.07);
+  --hair-2:rgba(255,255,255,.045);
+
+  --tx:#e7edec;   /* Text            */
+  --tx-2:#a7b5b3; /* Sekundaer       */
+  --tx-3:#74817f; /* Tertiaer/Label  */
+
+  --acc:#E0A526;  /* Bernstein = Handlung/Auswahl */
+  --info:#2FBFA4; /* Teal = Messwert Signatur     */
+  --ok:#6FBE7A;   /* Zustand gut     */
+  --warn:#E0A526; /* Zustand grenz.  */
+  --bad:#D2705A;  /* Zustand schlecht*/
+
+  --r-lg:12px;    /* Paneele */
+  --r-md:8px;     /* Karten  */
+  --r-sm:6px;     /* Bedienelemente */
+
+  /* Weiche, grosse, flache Schatten statt Raender — Elevation statt Linien */
+  --el-1:0 1px 2px rgba(0,0,0,.35);
+  --el-2:0 2px 10px rgba(0,0,0,.32), 0 1px 2px rgba(0,0,0,.3);
+
+  --f-ui:'Segoe UI Variable Text','Segoe UI',system-ui,-apple-system,sans-serif;
+  --f-num:'Cascadia Mono',Consolas,ui-monospace,monospace;
+
+  background:var(--s0);color:var(--tx);font-family:var(--f-ui);font-size:14px;
+  height:100%;display:flex;flex-direction:column;overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* LABEL — der wichtigste Einzelunterschied zu 004/005.
+   Sans statt Mono, Satzschreibung statt VERSAL, .01em statt .18em. */
+.lbl{font-size:11.5px;font-weight:500;letter-spacing:.01em;color:var(--tx-3)}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+.card{background:var(--s1);border-radius:var(--r-lg);box-shadow:var(--el-2)}
+
+/* -------------------------------------------------------- Titelstreifen --- */
+.title{flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:12px 18px}
+.title h1{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.title .sub{font-size:12px;color:var(--tx-3)}
+.title .sp{margin-left:auto}
+.title .pill{font-size:11.5px;color:var(--tx-2);background:var(--s2);padding:4px 10px;border-radius:999px}
+
+/* -------------------------------------------------------------- Raster --- */
+.grid{flex:1;display:grid;grid-template-columns:272px 1fr 248px;gap:12px;padding:0 12px 12px;min-height:0}
+.pane{display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
+.pane-hd{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:13px 16px 11px}
+.pane-hd h3{font-size:13px;font-weight:600;letter-spacing:-.005em}
+.pane-hd .c{margin-left:auto;font-size:11.5px;color:var(--tx-3)}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;scrollbar-width:thin;scrollbar-color:#39433f transparent}
+.scroll::-webkit-scrollbar{width:10px}
+.scroll::-webkit-scrollbar-thumb{background:#39433f;border-radius:999px;border:3px solid var(--s1)}
+.scroll::-webkit-scrollbar-track{background:transparent}
+
+/* ------------------------------------------------------- Linke Spalte --- */
+.filters{flex:0 0 auto;padding:0 12px 11px;display:flex;flex-direction:column;gap:9px}
+.f-search{width:100%;background:var(--s2);border:0;color:var(--tx);padding:9px 12px;font-size:13.5px;border-radius:var(--r-sm);outline:0}
+.f-search::placeholder{color:var(--tx-3)}
+.f-search:focus-visible{box-shadow:0 0 0 2px var(--acc)}
+.f-row{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;font-weight:500;padding:5px 11px;background:var(--s2);border:0;color:var(--tx-2);border-radius:999px;cursor:pointer;transition:background .14s ease,color .14s ease}
+.chip:hover{background:var(--s3);color:var(--tx)}
+.chip.on{background:var(--acc);color:#20180a;font-weight:600}
+.mrow{display:grid;grid-template-columns:8px 1fr auto;align-items:center;gap:11px;padding:9px 12px;margin:0 6px;border-radius:var(--r-md);cursor:pointer;transition:background .12s ease}
+.mrow:hover{background:var(--s2)}
+.mrow.sel{background:var(--s3)}
+.mrow .nm{font-size:13.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow .meta{display:flex;gap:9px;align-items:baseline;margin-top:2px}
+.mrow .rar{font-size:11.5px;color:var(--tx-3)}
+.mrow .sig{font-size:11.5px;color:var(--info);font-family:var(--f-num)}
+.mrow .pin{width:24px;height:24px;display:grid;place-items:center;border:0;background:transparent;color:var(--tx-3);cursor:pointer;border-radius:var(--r-sm);font-size:13px;line-height:1;transition:all .14s ease}
+.mrow .pin:hover{background:var(--s3);color:var(--tx-2)}
+.mrow .pin.on{color:var(--acc)}
+/* Zustandspunkt: rund, matt, klein. Kein „Laempchen", kein Rahmen, kein Schein. */
+.dot{width:8px;height:8px;border-radius:999px}
+.dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}.dot.bad{background:var(--bad)}
+
+/* -------------------------------------------------- Mittelspalte (C) --- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:0}
+.split > .col{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.idh{padding:15px 18px 13px}
+.idh .rowtop{display:flex;align-items:flex-start;gap:12px}
+.idh h2{font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.05}
+.tags{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.tag{font-size:11.5px;padding:3px 9px;background:var(--s2);color:var(--tx-2);border-radius:999px}
+.tag.rar{background:rgba(224,165,38,.14);color:var(--acc)}
+.idh .sig{margin-left:auto;text-align:right}
+.idh .sig b{display:block;font-family:var(--f-num);font-size:21px;color:var(--info);font-weight:600;line-height:1.1;margin-top:2px}
+
+/* Urteil: eine Aussage, eine Zahl, ein Punkt. Keine Balken, kein Messgeraet. */
+.vd{margin:0 18px 15px;padding:13px 15px;background:var(--s2);border-radius:var(--r-md);display:flex;align-items:center;gap:13px}
+.vd .st{display:flex;align-items:center;gap:9px}
+.vd .st span{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.vd.ok .st span{color:var(--ok)}.vd.warn .st span{color:var(--warn)}.vd.bad .st span{color:var(--bad)}
+.vd .det{margin-left:auto;text-align:right}
+.vd .det b{font-family:var(--f-num);font-size:19px;font-weight:600;line-height:1.1;display:block}
+.vd.ok .det b{color:var(--ok)}.vd.warn .det b{color:var(--warn)}.vd.bad .det b{color:var(--bad)}
+
+/* 15px unten waeren stimmiger, ergaben aber bei 1280x720 exakt 8 px Ueberlauf
+   in der Mittelspalte (gemessen). 12 px holen ueber drei Abschnitte 9 px
+   zurueck — die Spalte passt damit ohne Scrollen, und die Ruhe bleibt. */
+.sec{padding:0 18px 12px}
+.sec h4{font-size:11.5px;font-weight:600;color:var(--tx-3);margin-bottom:9px;letter-spacing:.01em}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.stat{background:var(--s2);border-radius:var(--r-md);padding:10px 12px}
+.stat b{display:block;font-family:var(--f-num);font-size:17px;font-weight:600;margin-top:3px;letter-spacing:-.02em}
+.stat.hot b{color:var(--acc)}
+.locs{display:flex;flex-direction:column;gap:2px}
+.loc{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:8px 12px;border-radius:var(--r-md);transition:background .12s ease}
+.loc:hover{background:var(--s2)}
+.loc .p{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loc .s{font-size:11.5px;color:var(--tx-3);margin-top:1px}
+.loc .a{display:flex;align-items:center;gap:10px}
+/* Balken: duenn, durchgezogen, abgerundet. Keine Zaehnung. */
+.bar{width:52px;height:4px;background:var(--s3);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--info);border-radius:999px}
+.loc .a em{font-family:var(--f-num);font-size:12.5px;color:var(--tx-2);font-style:normal;width:32px;text-align:right}
+.refn{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.refn div{background:var(--s2);border-radius:var(--r-md);padding:10px 12px}
+.refn b{display:block;font-family:var(--f-num);font-size:17px;font-weight:600;margin-top:3px;letter-spacing:-.02em}
+.refn .net b{color:var(--ok)}
+/* Qualitaetsstufen: HIER bleiben Segmente — sie SIND die Daten (8 Stufen). */
+.bands{display:flex;gap:3px;align-items:flex-end;height:36px}
+.bands i{flex:1;background:var(--s3);border-radius:3px 3px 0 0}
+.bands i.hi{background:var(--acc);opacity:.8}
+
+/* -------------------------------------------------------- Rechte Spalte --- */
+.scan{padding:0 12px 11px}
+.scan input{width:100%;background:var(--s2);border:0;color:var(--info);padding:10px 12px;font-family:var(--f-num);font-size:17px;text-align:center;border-radius:var(--r-sm);outline:0;letter-spacing:-.01em}
+.scan input::placeholder{color:var(--tx-3);font-family:var(--f-ui);font-size:13px;letter-spacing:0}
+.scan input:focus-visible{box-shadow:0 0 0 2px var(--acc)}
+.sig-item{padding:10px 12px;margin:0 6px 2px;border-radius:var(--r-md)}
+.sig-item:hover{background:var(--s2)}
+.sig-item .top{display:flex;align-items:center;gap:9px}
+.sig-item .top .nm{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sig-mult{display:flex;gap:4px;margin-top:7px}
+.sig-mult i{flex:1;font-family:var(--f-num);font-size:11.5px;font-style:normal;text-align:center;padding:4px 0;background:var(--s2);color:var(--tx-2);border-radius:var(--r-sm)}
+.sig-item:hover .sig-mult i{background:var(--s3)}
+.sig-mult i.hit{background:var(--acc);color:#20180a;font-weight:600}
+
+/* ---------------------------------------------------------- Rig unten --- */
+.rig{flex:0 0 auto;display:flex;align-items:center;gap:20px;margin:0 12px 12px;padding:11px 16px}
+.rig-grp{display:flex;flex-direction:column;gap:4px}
+.rig-sel{background:var(--s2);border:0;color:var(--tx);font-size:13px;padding:7px 10px;cursor:pointer;max-width:190px;border-radius:var(--r-sm);outline:0}
+.rig-sel:hover{background:var(--s3)}
+.rig-sel:focus-visible{box-shadow:0 0 0 2px var(--acc)}
+.rig-slots{display:flex;gap:5px}
+.rig-slot{width:30px;height:30px;border:0;background:var(--s2);display:grid;place-items:center;font-size:12px;color:var(--tx-3);cursor:pointer;border-radius:var(--r-sm);transition:all .14s ease}
+.rig-slot:hover:not(:disabled){background:var(--s3);color:var(--tx-2)}
+.rig-slot.full{background:rgba(111,190,122,.16);color:var(--ok)}
+.rig-stat{margin-left:auto;display:flex;align-items:center;gap:22px}
+.rig-stat .kv{text-align:right}
+.rig-stat .kv b{display:block;font-family:var(--f-num);font-size:16px;font-weight:600;margin-top:2px;letter-spacing:-.02em}
+.rig-foot{text-align:right;line-height:1.5}
+
+/* ==========================================================================
+   A — RUHIG (Werkzeugsoftware-Register). Basis, wie oben.
+   B — DICHT (Profi-Werkzeug): engere Zeilen, mehr Zahl pro Flaeche, kleinere
+       Radien. Blender/Resolve-Register statt Linear-Register.
+   C — MATERIELL: gleiche Moderne, aber die Flaechen bekommen einen leisen
+       warmen Materialton (anodisiert) statt neutralem Graphit.
+   ========================================================================== */
+.v-b{--r-lg:10px;--r-md:6px;--r-sm:5px}
+.v-b .pane-hd{padding:10px 14px 8px}
+.v-b .filters{padding:0 10px 9px;gap:7px}
+.v-b .mrow{padding:6px 10px;gap:9px}
+.v-b .idh{padding:12px 14px 10px}
+.v-b .idh h2{font-size:23px}
+.v-b .vd{margin:0 14px 11px;padding:10px 12px}
+.v-b .sec{padding:0 14px 11px}
+.v-b .stats,.v-b .refn{gap:6px}
+.v-b .stat,.v-b .refn div{padding:8px 10px}
+.v-b .loc{padding:6px 10px}
+.v-b .rig{padding:9px 14px;gap:16px}
+.v-b .sig-item{padding:8px 10px}
+
+.v-c{
+  --s0:#121211;--s1:#1a1917;--s2:#211f1d;--s3:#2a2724;
+  --tx:#eeeae4;--tx-2:#b5aea5;--tx-3:#807a72;
+  --hair:rgba(255,246,232,.07);
+}
+
+.vnote{max-width:1280px;margin:14px auto 0;padding:11px 15px;background:#12171b;border:1px solid #232c33;border-left:3px solid var(--mk-hi);border-radius:8px;font-size:13px;line-height:1.65;color:#b8c4d2}
+.vnote b{color:var(--mk-txt)}
+.vnote code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#0c1013;padding:1px 5px;border-radius:4px;color:#9fd8c9}
+</style>
+</head>
+<body>
+
+<div class="mk-bar">
+  <b>Skizze 006</b>
+  <div class="mk-tabs">
+    <button class="mk-tab on" data-v="a">A — Ruhig ★ gewählt</button>
+    <button class="mk-tab" data-v="b">B — Dicht</button>
+    <button class="mk-tab" data-v="c">C — Materiell</button>
+  </div>
+  <div class="mk-vp">
+    <button class="on" data-sz="b1280">1280×720</button>
+    <button data-sz="b1366">1366×768</button>
+  </div>
+  <div id="mk-read">messe…</div>
+</div>
+
+<div id="stage">
+  <div class="variant on" id="variant-a">
+    <div class="holder" data-cap="RASTER D (002) + MITTELSPALTE C (003) · SPRACHE: BAUJAHR 2026">
+      <div class="frame b1280" data-frame><div class="wb v-a" data-wb></div></div>
+    </div>
+    <div class="vnote">
+      <b>A — Ruhig.</b> Das Register heutiger Werkzeugsoftware: Radius 12/8/6,
+      Flächenabstufungen statt Ränder, weiche flache Schatten, Labels in Sans mit
+      normaler Laufweite, Mono ausschließlich für Zahlen, Polsterung 12–18 px.
+      Farbe nur, wo sie etwas bedeutet. <em>Kein einziger Effekt aus 004/005 ist
+      übrig</em> — keine Schräge, kein Warnstreifen, keine Zähnung, kein Glas.
+    </div>
+  </div>
+  <div class="variant" id="variant-b">
+    <div class="holder" data-cap="RASTER D (002) + MITTELSPALTE C (003) · SPRACHE: BAUJAHR 2026">
+      <div class="frame b1280" data-frame><div class="wb v-b" data-wb></div></div>
+    </div>
+    <div class="vnote">
+      <b>B — Dicht.</b> Dieselbe Moderne, aber im Register professioneller
+      Werkzeuge statt aufgeräumter Produktseiten: engere Zeilen, kleinere Radien
+      (10/6/5), mehr Zahl pro Fläche. <em>Der eigentliche Vergleich zu A</em> —
+      wie viele Mineralzeilen stehen über der Falz, und fühlt es sich dabei
+      gehetzt an oder kompetent?
+    </div>
+  </div>
+  <div class="variant" id="variant-c">
+    <div class="holder" data-cap="RASTER D (002) + MITTELSPALTE C (003) · SPRACHE: BAUJAHR 2026">
+      <div class="frame b1280" data-frame><div class="wb v-c" data-wb></div></div>
+    </div>
+    <div class="vnote">
+      <b>C — Materiell.</b> Wie A, aber die Flächen tragen einen leisen warmen
+      Ton statt neutralem Graphit — anodisiertes Aluminium statt Serverschrank.
+      <em>Das ist die einzige Stelle, an der „industriell" hier als Material
+      auftritt</em> und nicht als Ernsthaftigkeit. Zu warm? Zu nah am Sepia?
+    </div>
+  </div>
+</div>
+
+<script>
+const MIN=[
+ {n:'Quantainium',r:'legendär',res:.95,inst:1000,d:20.5,sig:3170},
+ {n:'Stileron',r:'legendär',res:.60,inst:870,d:4.8,sig:3185},
+ {n:'Riccite',r:'episch',res:.95,inst:850,d:1.6,sig:3385},
+ {n:'Beryl',r:'selten',res:.65,inst:350,d:2.8,sig:3540},
+ {n:'Taranite',r:'selten',res:.50,inst:700,d:10.2,sig:3555},
+ {n:'Borase',r:'selten',res:.30,inst:40,d:4.5,sig:3570},
+ {n:'Gold',r:'selten',res:.50,inst:550,d:19.3,sig:3585},
+ {n:'Bexalite',r:'selten',res:.60,inst:600,d:6.9,sig:3600},
+ {n:'Laranite',r:'ungewöhnlich',res:.50,inst:400,d:11.5,sig:3825},
+ {n:'Aslarite',r:'ungewöhnlich',res:.50,inst:700,d:2.3,sig:3840},
+ {n:'Titanium',r:'ungewöhnlich',res:.10,inst:0,d:4.5,sig:3855},
+ {n:'Tungsten',r:'ungewöhnlich',res:-.40,inst:0,d:19.3,sig:3870},
+ {n:'Agricium',r:'ungewöhnlich',res:.50,inst:350,d:7.2,sig:3885},
+ {n:'Hephaestanite',r:'häufig',res:-.30,inst:400,d:3.2,sig:4180},
+ {n:'Quartz',r:'häufig',res:-.70,inst:50,d:2.7,sig:4210},
+ {n:'Corundum',r:'häufig',res:.10,inst:50,d:4.0,sig:4225},
+ {n:'Copper',r:'häufig',res:-.70,inst:50,d:9.0,sig:4240},
+ {n:'Iron',r:'häufig',res:-.40,inst:50,d:7.9,sig:4270},
+ {n:'Aluminum',r:'häufig',res:-.40,inst:0,d:2.7,sig:4285},
+];
+const LOCS=[
+ {p:'Lagrange E',s:'Stanton',ab:78,ch:18},{p:'Aaron Halo',s:'Stanton',ab:78,ch:18},
+ {p:'Pyro Belt (Cool 1)',s:'Pyro',ab:78,ch:18},{p:'Pyro V-f (Vuur)',s:'Pyro',ab:78,ch:18},
+ {p:'Glaciem Ring',s:'Nyx',ab:78,ch:18},{p:'Lagrange A',s:'Stanton',ab:74,ch:15},
+ {p:'Lagrange C',s:'Stanton',ab:74,ch:15},{p:'Pyro IV',s:'Pyro',ab:74,ch:15},
+ {p:'Pyro Belt (Cool 2)',s:'Pyro',ab:70,ch:12},{p:'Yela',s:'Stanton',ab:70,ch:12},
+];
+const LASERS=[{n:'Helix II',sl:2,dps:4930,res:-30},{n:'Klein-S2',sl:2,dps:4350,res:-45},
+ {n:'Lancet MH2',sl:3,dps:4350,res:0},{n:'Impact II',sl:2,dps:4060,res:10},
+ {n:'Arbor MH2',sl:2,dps:2900,res:25},{n:'Hofstede-S1',sl:1,dps:2600,res:-30}];
+const MAXC={'häufig':6,'ungewöhnlich':5,'selten':4,'episch':3,'legendär':2};
+const S={sel:'Taranite',pins:['Taranite','Quantainium','Gold','Bexalite'],laser:0,mods:[1,0],scan:''};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function vd(m){const L=LASERS[S.laser],avail=Math.round(L.dps*(S.mods.filter(Boolean).length?1.15:1));
+  const eff=m.res*(1+L.res/100),req=Math.round(3600*(1+eff)),r=avail/req;
+  return{cls:r>=1.15?'ok':r>=.9?'warn':'bad',lab:r>=1.15?'Brechbar':r>=.9?'Grenzwertig':'Nicht brechbar',req,avail,r,eff}}
+
+function shell(){
+  const m=MIN.find(x=>x.n===S.sel)||MIN[0],V=vd(m),L=LASERS[S.laser],scan=parseInt(S.scan,10);
+  const rows=MIN.map(x=>{const v=vd(x),p=S.pins.includes(x.n);return `<div class="mrow ${x.n===S.sel?'sel':''}" data-min="${esc(x.n)}">
+    <span class="dot ${v.cls}" title="${v.lab} ×${v.r.toFixed(2)}"></span>
+    <span><span class="nm">${esc(x.n)}</span><span class="meta"><span class="rar">${x.r}</span><span class="sig">${x.sig}</span></span></span>
+    <button class="pin ${p?'on':''}" data-pin="${esc(x.n)}">${p?'★':'☆'}</button></div>`}).join('');
+  const pins=S.pins.map(n=>{const x=MIN.find(y=>y.n===n);if(!x)return'';const mc=MAXC[x.r]||4;
+    return `<div class="sig-item"><div class="top"><span class="dot ${vd(x).cls}"></span><span class="nm">${esc(x.n)}</span></div>
+    <div class="sig-mult">${Array.from({length:mc},(_,i)=>{const v=(i+1)*x.sig;const h=scan&&Math.abs(v-scan)/scan<=.10;
+      return `<i class="${h?'hit':''}">${v}</i>`}).join('')}</div></div>`}).join('');
+  return `
+  <div class="title">
+    <h1>Mining</h1><span class="sub">Alpha 4.9.0 · Live-Daten</span>
+    <span class="sp"></span><span class="pill">38 Minerale</span><span class="pill">20 Refineries</span>
+  </div>
+  <div class="grid">
+    <div class="pane card">
+      <div class="pane-hd"><h3>Minerale</h3><span class="c">${MIN.length}</span></div>
+      <div class="filters">
+        <input class="f-search" placeholder="Mineral suchen">
+        <div class="f-row"><button class="chip">Stanton</button><button class="chip">Pyro</button><button class="chip">Nyx</button><button class="chip on">nur brechbar</button></div>
+      </div>
+      <div class="scroll">${rows}</div>
+    </div>
+
+    <div class="pane" style="background:none;box-shadow:none">
+      <div class="split">
+        <div class="col card">
+          <div class="idh">
+            <div class="rowtop">
+              <div><h2>${esc(m.n)}</h2><div class="tags"><span class="tag rar">${m.r}</span><span class="tag">Erz</span><span class="tag">Schiffsabbau</span></div></div>
+              <div class="sig"><span class="lbl">Scan-Signatur</span><b>${m.sig}</b></div>
+            </div>
+          </div>
+          <div class="vd ${V.cls}">
+            <div class="st"><span class="dot ${V.cls}"></span><span>${V.lab}</span></div>
+            <div class="det"><span class="lbl">${V.avail} von ${V.req} nötig</span><b>×${V.r.toFixed(2)}</b></div>
+          </div>
+          <div class="scroll">
+            <div class="sec"><h4>Physik</h4><div class="stats">
+              <div class="stat"><span class="lbl">Widerstand</span><b>${m.res.toFixed(2)}</b></div>
+              <div class="stat hot"><span class="lbl">effektiv</span><b>${V.eff.toFixed(2)}</b></div>
+              <div class="stat"><span class="lbl">Instabilität</span><b>${m.inst}</b></div>
+              <div class="stat"><span class="lbl">Dichte</span><b>${m.d}</b></div>
+            </div></div>
+            <div class="sec"><h4>Qualitätsstufen</h4><div class="bands">
+              ${[346,588,667,796,842,901,955,1000].map((b,i)=>`<i class="${i>4?'hi':''}" style="height:${22+i*9.7}%" title="Stufe ${i+1}: ${b}"></i>`).join('')}
+            </div></div>
+            <div class="sec"><h4>Refinery · ARC-L1, Dinyx</h4><div class="refn">
+              <div><span class="lbl">Ertrag</span><b>88 %</b></div>
+              <div><span class="lbl">Dauer/100 SCU</span><b>25 m</b></div>
+              <div><span class="lbl">Kosten</span><b>14 k</b></div>
+              <div class="net"><span class="lbl">Netto</span><b>341 k</b></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="col card">
+          <div class="pane-hd"><h3>Fundorte</h3><span class="c">alle 10</span></div>
+          <div class="scroll"><div class="sec" style="padding-top:0"><div class="locs">
+            ${LOCS.map(l=>`<div class="loc"><span><span class="p">${esc(l.p)}</span><span class="s">${esc(l.s)}</span></span>
+              <span class="a"><span class="bar"><i style="width:${l.ab}%"></i></span><em>${l.ch} %</em></span></div>`).join('')}
+          </div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane card">
+      <div class="pane-hd"><h3>Signaturen</h3><span class="c">${S.pins.length} angeheftet</span></div>
+      <div class="scan"><input data-scan placeholder="Scanwert eingeben" value="${esc(S.scan)}" inputmode="numeric"></div>
+      <div class="scroll">${pins}</div>
+    </div>
+  </div>
+
+  <div class="rig card">
+    <div class="rig-grp"><span class="lbl">Laser</span>
+      <select class="rig-sel" data-laser>${LASERS.map((l,i)=>`<option value="${i}" ${i===S.laser?'selected':''}>${esc(l.n)}</option>`).join('')}</select></div>
+    <div class="rig-grp"><span class="lbl">Module</span>
+      <div class="rig-slots">${Array.from({length:3},(_,i)=>`<button class="rig-slot ${i<L.sl&&S.mods[i]?'full':''}" data-slot="${i}" ${i>=L.sl?'disabled style="opacity:.3"':''}>${i>=L.sl?'—':(S.mods[i]?'M'+(i+1):'+')}</button>`).join('')}</div></div>
+    <div class="rig-grp"><span class="lbl">Refinery</span>
+      <select class="rig-sel"><option>ARC-L1 Wide Forest</option><option>CRU-L1 Ambitious Dream</option></select></div>
+    <div class="rig-grp"><span class="lbl">Methode</span>
+      <select class="rig-sel"><option>Dinyx Solventation</option><option>Cormack Method</option></select></div>
+    <div class="rig-stat">
+      <div class="kv"><span class="lbl">Verfügbar</span><b>${V.avail}</b></div>
+      <div class="kv"><span class="lbl">Widerstands-Mod</span><b>${L.res>0?'+':''}${L.res} %</b></div>
+      <div class="rig-foot"><span class="lbl">Datenstand 4.9.0-live.12326004</span><br><span class="lbl">Quellen · Methodik</span></div>
+    </div>
+  </div>`;
+}
+function build(){document.querySelectorAll('[data-wb]').forEach(w=>w.innerHTML=shell());measure()}
+document.addEventListener('click',e=>{
+  const t=e.target,tab=t.closest('.mk-tab[data-v]');
+  if(tab){document.querySelectorAll('.mk-tab[data-v]').forEach(x=>x.classList.remove('on'));tab.classList.add('on');
+    document.querySelectorAll('.variant').forEach(v=>v.classList.remove('on'));
+    document.getElementById('variant-'+tab.dataset.v).classList.add('on');measure();return}
+  const vp=t.closest('.mk-vp button[data-sz]');
+  if(vp){document.querySelectorAll('.mk-vp button[data-sz]').forEach(x=>x.classList.remove('on'));vp.classList.add('on');
+    document.querySelectorAll('[data-frame]').forEach(f=>f.className='frame '+vp.dataset.sz);measure();return}
+  const pin=t.closest('[data-pin]');if(pin){S.pins=S.pins.includes(pin.dataset.pin)?S.pins.filter(x=>x!==pin.dataset.pin):[...S.pins,pin.dataset.pin];build();return}
+  const row=t.closest('.mrow');if(row){S.sel=row.dataset.min;build();return}
+  const sl=t.closest('[data-slot]');if(sl&&!sl.disabled){S.mods[+sl.dataset.slot]=S.mods[+sl.dataset.slot]?0:1;build();return}
+  const ch=t.closest('.chip');if(ch){ch.classList.toggle('on');return}
+});
+document.addEventListener('change',e=>{if(e.target.matches('[data-laser]')){S.laser=+e.target.value;build()}});
+document.addEventListener('input',e=>{if(e.target.matches('[data-scan]')){S.scan=e.target.value.replace(/[^0-9]/g,'');build();
+  const ni=document.querySelector('.variant.on [data-scan]');if(ni){ni.focus();ni.setSelectionRange(ni.value.length,ni.value.length)}}});
+
+/* Die Spannung dieser Skizze: grosszuegige Abstaende gegen die Falz-Regel. */
+function measure(){
+  const v=document.querySelector('.variant.on'),out=document.getElementById('mk-read');
+  if(!v)return;
+  v.querySelectorAll('.scroll').forEach(s=>s.scrollTop=0);
+  const fr=v.querySelector('[data-frame]').getBoundingClientRect(),H=fr.height;
+  const rows=[...v.querySelectorAll('.mrow')],filt=v.querySelector('.filters');
+  const first=Math.round(rows[0].getBoundingClientRect().top-fr.top);
+  const above=rows.filter(r=>r.getBoundingClientRect().bottom-fr.top<=H).length;
+  const fOK=filt.getBoundingClientRect().bottom-fr.top<=H;
+  const ok=fOK&&rows[0].getBoundingClientRect().bottom-fr.top<=H;
+  const detOver=[...v.querySelectorAll('.col .scroll')].reduce((a,c)=>a+Math.max(0,c.scrollHeight-c.clientHeight),0);
+  out.innerHTML=`1. Mineralzeile ${first} px  ·  Fenster ${Math.round(H)} px  ·  Mittelspalten-Überlauf ${detOver} px\n`+
+    `<span class="${ok?'pass':'fail'}">${ok?'FALZ HÄLT':'FALZ GERISSEN'}</span>   Mineralzeilen über der Falz: <b>${above}</b>/${rows.length}`;
+}
+addEventListener('resize',measure);
+build();
+</script>
+</body>
+</html>

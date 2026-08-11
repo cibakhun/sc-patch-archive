@@ -120,7 +120,9 @@ Drei Skizzen, alle Zahlen am gerenderten Mockup gemessen. Belege in
 |---|---|---|
 | 002 | Wo sitzt die Rig-Leiste? | **Unten, verschmolzen mit dem Sockel.** Beide waren Boden-Chrom; zusammen kosten sie *eine* Leiste. Erste Mineralzeile bei **162 px**, **12 von 19** Zeilen über der Falz bei 1280×720 |
 | 003 | Wie dicht darf die Mittelspalte werden? | **Zweispaltig innerhalb der Spalte.** Die befürchtete Überfüllung war ein Ein-Spalten-Problem: bei 768 px Breite passen alle 10 Fundorte *und* die Refinery ohne Scrollen und ohne Klick — mit 298 px Luft |
-| 004 | Wie hochwertig verarbeitet? | **Zurückgenommen.** Verarbeitung wäre gratis gewesen (0 px Überlauf in allen drei Stufen), gewählt wurde trotzdem der schlichteste Weg. „Hochwertig" heißt hier Präzision, nicht Detail |
+| 004 | Wie hochwertig verarbeitet? | **Zurückgenommen.** Verarbeitung wäre gratis gewesen (0 px Überlauf in allen drei Stufen), gewählt wurde trotzdem der schlichteste Weg |
+| 005 | Wie viel Glas? | **Überholt durch 006.** Bleibt gültig: Schräge geht ohne `clip-path`; Flächenfarben müssen Variablen sein |
+| 006 | Welche Gestaltungssprache? | **„Baujahr 2026", Variante A — Endstand.** Radius 12/8/6, Sans-Labels in Satzschreibung, Mono nur für Zahlen, Flächenabstufungen statt Ränder, Farbe nur für Zustand. Kein Ornament: keine Schräge, kein Glas, keine Zähnung, kein Foto, kein 3D |
 
 **Wichtigster Einzelbefund:** Der Titelstreifen kostet **42 px**. `hero--tool`
 (`ItemFinderPage.astro:54`) wurde im Projekt mit 273 px gemessen. **Der Hero war
@@ -129,6 +131,17 @@ nie das Problem dieser Seite — die fünf gestapelten Abschnitte waren es.**
 **Zusatz zur Fallenliste:** In der gewählten Kombination gibt es **fünf** innen
 scrollende Kästen (3 Spalten + 2 Teilspalten in der Mitte), nicht drei. Alle
 fünf müssen in `assets/mobile-ux.css:503-516`.
+
+**⚠ Zweite Bauregel, aus 005 geerbt:** Flächenfarben **müssen CSS-Variablen
+sein**. `build-light-overrides.mjs:85` kennt nur `color`/`border-*-color`/
+`outline-color`/`fill`/`stroke` — kein `background`, kein `box-shadow`. Fest
+verdrahtete Flächen bekommen still **keinen Hellmodus**. Der Endstand benutzt
+deshalb `--s0…--s3`.
+
+**Höhenbudget im Endstand** (006 A, nach der 9-px-Korrektur an `.sec`):
+erste Mineralzeile **202 px**, **9 von 19** Zeilen über der Falz bei 1280×720,
+**0 px** Mittelspalten-Überlauf, alle 10 Fundorte sichtbar. Die moderne Sprache
+kostet 52 px und 3 Zeilen gegen die HUD-Sprache — bewusst bezahlt.
 
 ## Offen
 
