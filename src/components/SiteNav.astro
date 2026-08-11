@@ -552,7 +552,13 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 3px;background:color-mix(in srgb, var(--chrome-solid, var(--chrome-solid)) 90%, transparent);
+    /* Rueckfall war `var(--chrome-solid, var(--chrome-solid))` — eine
+       Selbstreferenz und damit wertlos. Sie stammt von einem frueheren Lauf
+       von tokenize-theme-colors.mjs, das den Rueckfallwert #05070d fuer eine
+       gewoehnliche Farbe hielt und durch genau das Token ersetzte, dessen
+       Rueckfall er war. Der Generator ist am 11.08.2026 dagegen abgesichert;
+       hier steht wieder derselbe Literalwert wie in der Zeile darueber. */
+    height: 3px;background:color-mix(in srgb, var(--chrome-solid, #05070d) 90%, transparent);
     border-top: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 15%, transparent);
     pointer-events: none;
     overflow: visible;

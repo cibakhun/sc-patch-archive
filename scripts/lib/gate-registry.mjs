@@ -175,10 +175,17 @@ export const CHECKS = [
     rail: 'A',
     checks: 'die Mining-Daten sind in sich stimmig, kein interner Klassenname wird ausgeliefert, und der Datenstand passt zum installierten Client',
     env: 'Data.p4k nur als Pfadableitung: der Client-Abgleich haengt hinter existsSync(build_manifest.id) und wird ohne lokale Spielinstallation still uebersprungen — das Skript oeffnet das Archiv selbst nie',
-    disabled:
-      'Patch-Verzug offen (Messlauf 09.08.2026): installierter Client 4.9.0-live.12344265, alle game-sourced Daten tragen 12326004. ' +
-      'Der Pruefer ist damit LOKAL rot — und ein rotes Tor darf man nicht scharfschalten, sonst gewoehnt man sich das Wegsehen an. ' +
-      'Scharf schalten, sobald der naechste Datenlauf (npm run gate:data, Patch-Tag-Reihenfolge) den Verzug abgetragen hat.',
+    // SCHARF seit 11.08.2026. Der Schuldenposten vom 09.08. ist abgetragen:
+    // `npm run sync:mining` gegen die installierte Data.p4k hat die Daten von
+    // 4.9.0-live.12326004 auf 12344265 gehoben, der Pruefer laeuft gruen
+    // (38 Elemente, 211 Komp., 14 Laser, 37 Minerale, 45 Bodies).
+    // Bemerkenswert und fuer den naechsten Patch-Tag wissenswert: zwischen den
+    // beiden Changelists hat sich an den Mining-Daten NICHTS geaendert —
+    // Resistenz, Instabilitaet, Dichte, Signaturen, Seltenheit, Laser-DPS,
+    // Fundortzahl (273) und Koerper (45) sind byte-gleich. Es war ein
+    // Etikettenverzug, kein Datenverzug. Der Pruefer hat trotzdem recht
+    // gehabt, ihn zu melden: ob die Werte gleich bleiben, weiss man erst
+    // NACH dem Lauf.
   },
 
   // ---------------------------------------------------------------
