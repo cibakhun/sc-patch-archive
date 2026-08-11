@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-11",
-  "updates": 188,
-  "totalListings": 4841,
-  "totalSold": 203,
-  "distinctItems": 1067
+  "updates": 189,
+  "totalListings": 4873,
+  "totalSold": 205,
+  "distinctItems": 1072
  },
  "listings": {
   "156580": {
@@ -92907,6 +92907,10 @@
     {
      "d": "2026-08-11",
      "p": 3750000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 3500000
     }
    ],
    "soldOut": false,
@@ -93150,6 +93154,10 @@
     {
      "d": "2026-08-11",
      "p": 7500000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 7000000
     }
    ],
    "soldOut": false,
@@ -94840,6 +94848,10 @@
     {
      "d": "2026-08-10",
      "p": 30000000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 3180000
     }
    ],
    "soldOut": false,
@@ -95557,9 +95569,9 @@
      "p": 400000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-11",
+   "soldOutPrice": 400000,
    "dateAdded": 1786387343,
    "dateExpiration": 1791571342
   },
@@ -101050,6 +101062,10 @@
     {
      "d": "2026-08-11",
      "p": 4000000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 3400000
     }
    ],
    "soldOut": false,
@@ -102723,9 +102739,9 @@
      "p": 5000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-11",
+   "soldOutPrice": 5000,
    "dateAdded": 1786464153,
    "dateExpiration": 1791648153
   },
@@ -103212,6 +103228,48 @@
    "dateAdded": 1786469320,
    "dateExpiration": 1791653320
   },
+  "161579": {
+   "idItem": 2600,
+   "idCategory": 3,
+   "title": "Fortifier Helmet Dark Green",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786469576,
+   "dateExpiration": 1791653576
+  },
+  "161580": {
+   "idItem": 1770,
+   "idCategory": 21,
+   "title": "JS-500 WTS",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786469682,
+   "dateExpiration": 1791653682
+  },
   "161581": {
    "idItem": 7967,
    "idCategory": 7,
@@ -103232,6 +103290,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786469781,
    "dateExpiration": 1791653781
+  },
+  "161582": {
+   "idItem": 2207,
+   "idCategory": 3,
+   "title": "Argus Helmet Aqua/Black",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786469798,
+   "dateExpiration": 1791653798
   },
   "161583": {
    "idItem": null,
@@ -103254,10 +103333,119 @@
    "dateAdded": 1786469876,
    "dateExpiration": 1791653876
   },
+  "161584": {
+   "idItem": 5657,
+   "idCategory": 3,
+   "title": "Deadhead Helmet Dust",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786469931,
+   "dateExpiration": 1791653931
+  },
   "161585": {
    "idItem": 6842,
    "idCategory": 18,
    "title": "Novian \"Nighthunter\" Crossbow [15.12% buff][Crafted]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 0
+    },
+    {
+     "d": "2026-08-11",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786469937,
+   "dateExpiration": 1791653937
+  },
+  "161586": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "Borase",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 892,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786470411,
+   "dateExpiration": 1791654411
+  },
+  "161587": {
+   "idItem": 3453,
+   "idCategory": 68,
+   "title": "Ectio Glasses",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786471029,
+   "dateExpiration": 1791655029
+  },
+  "161588": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786471057,
+   "dateExpiration": 1791655057
+  },
+  "161589": {
+   "idItem": 7837,
+   "idCategory": 68,
+   "title": "Haruspec Goggles",
    "operation": "sell",
    "currency": "UEC",
    "quality": 0,
@@ -103272,8 +103460,512 @@
    "soldOut": false,
    "soldOutAt": null,
    "soldOutPrice": null,
-   "dateAdded": 1786469937,
-   "dateExpiration": 1791653937
+   "dateAdded": 1786471113,
+   "dateExpiration": 1791655113
+  },
+  "161590": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "My stock in minerals / Quantanium / Borase / Titanium / Tin / Copper, and more...",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786471157,
+   "dateExpiration": 1791655157
+  },
+  "161591": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786471973,
+   "dateExpiration": 1791655973
+  },
+  "161592": {
+   "idItem": 3351,
+   "idCategory": 18,
+   "title": "ParaMed \"Oxide\" Medical Device",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786472227,
+   "dateExpiration": 1791656227
+  },
+  "161594": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "Sadaryx - Q688",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 688,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786472777,
+   "dateExpiration": 1791656777
+  },
+  "161595": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "Sadaryx - Q510",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 510,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 40000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786472855,
+   "dateExpiration": 1791656855
+  },
+  "161596": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "Sadaryx - Q258",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 258,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 20000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786472941,
+   "dateExpiration": 1791656941
+  },
+  "161598": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473177,
+   "dateExpiration": 1791657177
+  },
+  "161599": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 5000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473503,
+   "dateExpiration": 1791657502
+  },
+  "161600": {
+   "idItem": 3872,
+   "idCategory": 17,
+   "title": "PT1 (1x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473657,
+   "dateExpiration": 1791657657
+  },
+  "161601": {
+   "idItem": 2306,
+   "idCategory": 17,
+   "title": "PT2 (2x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473658,
+   "dateExpiration": 1791657658
+  },
+  "161602": {
+   "idItem": 2307,
+   "idCategory": 17,
+   "title": "Tau Plus (4x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 440000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473659,
+   "dateExpiration": 1791657659
+  },
+  "161603": {
+   "idItem": 540,
+   "idCategory": 17,
+   "title": "Tacit Suppressor1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 480000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473659,
+   "dateExpiration": 1791657659
+  },
+  "161604": {
+   "idItem": 2228,
+   "idCategory": 17,
+   "title": "PT3 (3X Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 290000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473661,
+   "dateExpiration": 1791657661
+  },
+  "161605": {
+   "idItem": 64,
+   "idCategory": 17,
+   "title": "Tacit Suppressor3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473662,
+   "dateExpiration": 1791657662
+  },
+  "161606": {
+   "idItem": 5051,
+   "idCategory": 17,
+   "title": "Gamma \"Black Op\" (1x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 245000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473662,
+   "dateExpiration": 1791657662
+  },
+  "161607": {
+   "idItem": 220,
+   "idCategory": 17,
+   "title": "Gamma (1x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 230000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473663,
+   "dateExpiration": 1791657663
+  },
+  "161608": {
+   "idItem": 1508,
+   "idCategory": 17,
+   "title": "Veil Flash Hider3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 190000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473663,
+   "dateExpiration": 1791657663
+  },
+  "161609": {
+   "idItem": 537,
+   "idCategory": 17,
+   "title": "Veil Flash Hider1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 480000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473664,
+   "dateExpiration": 1791657664
+  },
+  "161610": {
+   "idItem": 62,
+   "idCategory": 17,
+   "title": "Emod Stabilizer 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 480000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473665,
+   "dateExpiration": 1791657665
+  },
+  "161611": {
+   "idItem": 536,
+   "idCategory": 17,
+   "title": "Sion Compensator3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473665,
+   "dateExpiration": 1791657665
+  },
+  "161612": {
+   "idItem": 5323,
+   "idCategory": 17,
+   "title": "Gamma Plus \"Lumen\" (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 145000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473667,
+   "dateExpiration": 1791657667
+  },
+  "161613": {
+   "idItem": 539,
+   "idCategory": 17,
+   "title": "Emod Stabilizer 3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 480000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473667,
+   "dateExpiration": 1791657667
+  },
+  "161614": {
+   "idItem": 2625,
+   "idCategory": 18,
+   "title": "P6-LR Sniper Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 95000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473668,
+   "dateExpiration": 1791657668
+  },
+  "161615": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 3000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786473877,
+   "dateExpiration": 1791657877
   }
  }
 }
