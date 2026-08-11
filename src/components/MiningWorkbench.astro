@@ -1,0 +1,510 @@
+---
+// MiningWorkbench.astro — Drei-Spalten-Werkbank für das Mining-Thema.
+//
+// ERSETZT die vormals gestapelten Abschnitte 01 (Mineral-Datenbank),
+// 02 (Signatur-Identifier) und 03 (Fracturing-Rechner). Der Refinery-Finder
+// bleibt als eigener Abschnitt UNTER der Werkbank bestehen — er beantwortet
+// eine andere Frage (welche der 20 Refineries?) als die Mittelspalte hier
+// (was bringt DIESES Erz bei MEINER Refinery), und `verify:help --complete`
+// verlangt die Werkzeug-Kennung `refineryfinder` auf einer gebauten Seite.
+//
+// Aufbau und Messwerte stammen aus .planning/sketches/002…006:
+//   002  Rig-Leiste UNTEN, mit dem Sockel verschmolzen (erste Mineralzeile
+//        162 px statt 217 — Rig und Sockel waren beide Boden-Chrom)
+//   003  Mittelspalte ZWEISPALTIG (bei 768 px Breite passen alle 10 Fundorte
+//        plus Refinery ohne Scrollen; einspaltig lief es 50 px über)
+//   006A Gestaltungssprache „Baujahr 2026": Radius 12/8/6, Labels in Sans mit
+//        Satzschreibung, Mono NUR für Zahlen, Flächenabstufungen statt
+//        Rändern, Farbe ausschliesslich als Zustandsträger.
+//
+// FALLEN, die hier bewusst umgangen sind:
+//  · Astro 5.18 verschluckt das schliessende Tag, wenn ein Element auf
+//    OBERSTER Template-Ebene einen {ausdruck} als Kind hat -> set:text.
+//  · `:global()` ist in `<style is:inline>` kein CSS und wird still verworfen.
+//  · HELLMODUS. Erster Anlauf legte eigene --wb-*-Token an — die blieben im
+//    Hellmodus WIRKUNGSLOS: build-light-palettes.mjs kennt nur eine feste
+//    Namensliste (--bg/--surface/--surface-2/--text/--muted/--accent/…,
+//    scripts/lib/theme-color.mjs:194ff), beliebige Namen ignoriert es still.
+//    Deshalb steht hier KEIN eigenes Token: alle Flächen kommen aus den
+//    bestehenden Token, Zwischenstufen über color-mix darauf.
+//    Zustandsfarben (brechbar/nicht) laufen über `currentColor` + `color`,
+//    weil build-light-overrides.mjs:85 zwar `color` abdeckt, aber NICHT
+//    `background` — eine feste Flächenfarbe hätte still keine Hell-Fassung.
+//  · Die vier innen scrollenden Kästen müssen in die Selektorliste in
+//    assets/mobile-ux.css, sonst blendet theme.css ihre Leisten mit
+//    `!important` aus und sie sind unsichtbar scrollbar.
+import DB from '../../assets/mining-db.json';
+import MODEL from '../../assets/mining-model.json';
+import ToolHelp from './ToolHelp.astro';
+import { versioned } from '../lib/assetVersion';
+
+interface Props { lang: 'de' | 'en'; }
+const { lang } = Astro.props;
+const de = lang === 'de';
+
+/* ---------------------------------------------------------------- Daten ---
+   Katalog (mining-db.json) liefert Name/Art/Fundorte/Seltenheit, das Modell
+   (mining-model.json) die Physik. Beide führen denselben SAUBEREN Namen —
+   das ist die dokumentierte Join-Bedingung aus dem Cutover. */
+const elemByName: Record<string, any> = {};
+for (const e of (MODEL.elements as any[])) elemByName[e.name] = e;
+
+const RAR_ORDER = ['legendary', 'epic', 'rare', 'uncommon', 'common'];
+const rarIdx = (r: string | null) => {
+  const i = RAR_ORDER.indexOf(r || '');
+  return i < 0 ? RAR_ORDER.length : i;
+};
+
+const minerals = (DB.minerals as any[])
+  .map((m) => {
+    const e = elemByName[m.name] || {};
+    return {
+      name: m.name,
+      code: m.code,
+      kind: m.kind,
+      rarity: m.rarity || null,
+      method: m.method,
+      methods: m.methods || [],
+      refine: !!m.needs_refine,
+      systems: m.systems || [],
+      scu: m.weight_scu,
+      locs: (m.locations || []).map((l: any) => ({
+        p: l.location, s: l.system, t: l.type, mi: l.mining,
+        ab: l.abundance, ch: l.chance,
+      })),
+      res: typeof e.resistance === 'number' ? e.resistance : null,
+      inst: typeof e.instability === 'number' ? e.instability : null,
+      dens: typeof e.density === 'number' ? e.density : null,
+      sig: e.scanSignature || null,
+      gsig: e.groundScanSignature || null,
+      win: typeof e.optimalWindowThinness === 'number' ? e.optimalWindowThinness : null,
+      bands: e.qualityBands || null,
+    };
+  })
+  .sort((a, b) => rarIdx(a.rarity) - rarIdx(b.rarity) || a.name.localeCompare(b.name));
+
+/* Laser/Module/Gadgets — nur was der Fracturing-Rechner auch benutzt:
+   eingebaute Laser (Golem/MPUV/ATLS) haben keine wählbare Bestückung. */
+const lasers = (MODEL.lasers as any[])
+  .filter((l) => !l.builtIn && l.mining && l.mining.dps)
+  .map((l) => ({ n: l.name, size: l.size, slots: l.slots || 0, dps: Math.round(l.mining.dps), mods: l.mods || {} }))
+  .sort((a, b) => b.dps - a.dps);
+const modules = (MODEL.modules as any[])
+  .map((m) => ({ n: m.name, type: m.type, mult: m.miningMult || 1, mods: m.mods || {} }))
+  .sort((a, b) => a.n.localeCompare(b.n));
+const gadgets = (MODEL.gadgets as any[]).map((g) => ({ n: g.name, mods: g.mods || {} }));
+
+/* Refineries + Ertragsprofile. Das Profil gibt je Material einen Prozent-
+   Aufschlag/-Abschlag — das ist die ehrlichste per-Mineral-Aussage, die die
+   Spieldaten hergeben: „lohnt sich DIESES Erz an DIESER Station?". */
+const refineries = (MODEL.refineries as any[]).map((r) => ({ n: r.name, s: r.system, p: r.profileId }));
+const profiles = MODEL.refineryProfiles as Record<string, Record<string, number>>;
+
+const P: any = (MODEL.params as any).ship || {};
+const MASS_PRESETS = [
+  { m: 2000, de: 'klein', en: 'small' },
+  { m: 8000, de: 'mittel', en: 'medium' },
+  { m: 22000, de: 'gross', en: 'large' },
+  { m: 45000, de: 'riesig', en: 'huge' },
+];
+const DEFAULT_MASS = 8000; // = Vorwahl des Fracturing-Rechners
+
+/* Urteil — DIESELBE Rechnung wie FracturingCalc.astro:200-219, nicht neu
+   erfunden: Reff = R·(1+resMod/100); chargeFactor = max(0.05, 1-Reff);
+   effDps = dps·dpsMult·chargeFactor; decay = decayPerMass·Masse;
+   ratio = effDps/decay; <=1 unmoeglich, <1.3 grenzwertig, sonst brechbar. */
+function verdict(res: number | null, dps: number, dpsMult: number, resMod: number, mass: number) {
+  if (res === null) return { cls: 'na', ratio: null };
+  const R = Math.max(0, res);
+  const Reff = R * (1 + resMod / 100);
+  const chargeFactor = Math.max(0.05, 1 - Reff);
+  const effDps = dps * dpsMult * chargeFactor;
+  const decay = (P.decayPerMass || 0.2) * mass;
+  const ratio = decay > 0 ? effDps / decay : 99;
+  return { cls: ratio <= 1 ? 'bad' : ratio < 1.3 ? 'warn' : 'ok', ratio };
+}
+const L0 = lasers[0];
+const ssrVerdict = (m: any) => verdict(m.res, L0.dps, 1, L0.mods.resistance || 0, DEFAULT_MASS);
+
+const sel = minerals[0];
+const RAR_LBL: Record<string, { de: string; en: string }> = {
+  legendary: { de: 'legendär', en: 'legendary' },
+  epic: { de: 'episch', en: 'epic' },
+  rare: { de: 'selten', en: 'rare' },
+  uncommon: { de: 'ungewöhnlich', en: 'uncommon' },
+  common: { de: 'häufig', en: 'common' },
+};
+const rarLbl = (r: string | null) => (r && RAR_LBL[r] ? RAR_LBL[r][lang] : de ? 'ohne Stufe' : 'no tier');
+
+const S = de ? {
+  minerals: 'Minerale', view: 'Ansicht', signatures: 'Signaturen', locations: 'Fundorte',
+  search: 'Mineral suchen', onlyBreakable: 'nur brechbar', reset: 'Zurücksetzen',
+  scanPlaceholder: 'Scanwert eingeben', pinHint: 'Sterne in der Mineralliste heften Erze an diese Liste.',
+  physics: 'Physik', resistance: 'Widerstand', effective: 'effektiv', instability: 'Instabilität',
+  density: 'Dichte', bands: 'Qualitätsstufen', refinery: 'Refinery', signature: 'Scan-Signatur',
+  breakable: 'Brechbar', marginal: 'Grenzwertig', impossible: 'Nicht brechbar', noPhys: 'Keine Physikdaten',
+  ofNeeded: 'von {req} nötig', laser: 'Laser', modules: 'Module', gadget: 'Gadget', rock: 'Felsmasse',
+  available: 'Verfügbar', resMod: 'Widerstands-Mod', yield: 'Ertrags-Mod', station: 'Station',
+  none: '—', all: 'alle', pin: 'Anheften', unpin: 'Lösen', noLocs: 'Keine Fundorte in den Spieldaten.',
+  ore: 'Erz', gem: 'Edelstein', ship: 'Schiffsabbau', hand: 'Handabbau', refinable: 'raffinierbar',
+} : {
+  minerals: 'Minerals', view: 'View', signatures: 'Signatures', locations: 'Locations',
+  search: 'Search mineral', onlyBreakable: 'breakable only', reset: 'Reset',
+  scanPlaceholder: 'Enter scan value', pinHint: 'Stars in the mineral list pin ores to this list.',
+  physics: 'Physics', resistance: 'Resistance', effective: 'effective', instability: 'Instability',
+  density: 'Density', bands: 'Quality tiers', refinery: 'Refinery', signature: 'Scan signature',
+  breakable: 'Breakable', marginal: 'Marginal', impossible: 'Not breakable', noPhys: 'No physics data',
+  ofNeeded: 'of {req} needed', laser: 'Laser', modules: 'Modules', gadget: 'Gadget', rock: 'Rock mass',
+  available: 'Available', resMod: 'Resistance mod', yield: 'Yield mod', station: 'Station',
+  none: '—', all: 'all', pin: 'Pin', unpin: 'Unpin', noLocs: 'No locations in the game data.',
+  ore: 'Ore', gem: 'Gem', ship: 'Ship mining', hand: 'Hand mining', refinable: 'refinable',
+};
+
+const payload = {
+  lang, minerals, lasers, modules, gadgets, refineries, profiles,
+  params: { decayPerMass: P.decayPerMass || 0.2 },
+  massPresets: MASS_PRESETS.map((p) => ({ m: p.m, l: p[lang] })),
+  defaultMass: DEFAULT_MASS,
+  t: S,
+  rar: Object.fromEntries(Object.entries(RAR_LBL).map(([k, v]) => [k, v[lang]])),
+};
+const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
+---
+
+{/* id="db" ist PFLICHT, kein Schmuck: src/lib/miningLinks.ts:129 erzeugt aus
+    der Crafting-Datenbank Tieflinks der Form
+    `/topics/mining.html?mineral=<Name>#db` — beim Umbau waren das 8394
+    Verweise, die audit:site prompt als tote Anker gemeldet hat. Der Parameter
+    `?mineral=` wird in assets/mining-workbench.js ausgewertet. */}
+<section class="wb" id="db" data-wb>
+  <div class="wb__grid">
+
+    <!-- ============================================ Spalte 1: Minerale -->
+    <div class="wb__pane">
+      {/* KEIN eigener Spaltenkopf. Am gebauten Stand gemessen kostete er 52 px
+          fuer eine Auskunft, die die Spalte selbst gibt — bei 720 px Fensterhoehe
+          sind das zwei Mineralzeilen. Die Zahl steht jetzt in der Filterzeile. */}
+      <div class="wb__filters">
+        <ToolHelp tool="mining" lang={lang} steps={4} />
+        <input class="wb__search" id="wb-q" type="search" placeholder={S.search} aria-label={S.search} />
+        <div class="wb__chips">
+          {systems.map((s) => (<button type="button" class="wb__chip" data-sys={s} set:text={s} />))}
+          <button type="button" class="wb__chip" data-only="break" set:text={S.onlyBreakable} />
+          <span class="wb__c wb__c--inline" id="wb-count">{minerals.length}</span>
+        </div>
+      </div>
+      <div class="wb__scroll" id="wb-list">
+        {minerals.map((m) => {
+          const v = ssrVerdict(m);
+          return (
+            <div class={`wb__row${m.name === sel.name ? ' is-sel' : ''}`} data-min={m.name} role="button" tabindex="0">
+              <span class={`wb__dot is-${v.cls}`} aria-hidden="true"></span>
+              <span class="wb__rowb">
+                <span class="wb__nm" set:text={m.name} />
+                <span class="wb__meta">
+                  <span class="wb__rar" set:text={rarLbl(m.rarity)} />
+                  {m.sig ? (<span class="wb__sig" set:text={String(m.sig)} />) : null}
+                </span>
+              </span>
+              <button type="button" class="wb__pin" data-pin={m.name} aria-label={`${S.pin}: ${m.name}`}>☆</button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+
+    <!-- ============================================= Spalte 2: Ansicht -->
+    <div class="wb__mid">
+      <div class="wb__pane wb__pane--a">
+        <div class="wb__id">
+          <div class="wb__idrow">
+            <div>
+              <h2 id="wb-name" set:text={sel.name} />
+              <div class="wb__tags" id="wb-tags">
+                <span class="wb__tag is-rar" set:text={rarLbl(sel.rarity)} />
+                <span class="wb__tag" set:text={sel.kind} />
+                <span class="wb__tag" set:text={sel.method === 'ship' ? S.ship : S.hand} />
+              </div>
+            </div>
+            <div class="wb__sigbox">
+              <span class="wb__lbl" set:text={S.signature} />
+              <b class="wb__num" id="wb-sig" set:text={sel.sig ? String(sel.sig) : S.none} />
+            </div>
+          </div>
+        </div>
+        <div class="wb__vd" id="wb-vd">
+          <span class="wb__vdst"><span class="wb__dot" id="wb-vddot" aria-hidden="true"></span><span id="wb-vdlbl"></span></span>
+          <span class="wb__vddet"><span class="wb__lbl" id="wb-vdsub"></span><b class="wb__num" id="wb-vdratio"></b></span>
+        </div>
+        <div class="wb__scroll">
+          <div class="wb__sec">
+            <h4 set:text={S.physics} />
+            <div class="wb__stats" id="wb-stats"></div>
+          </div>
+          <div class="wb__sec">
+            <h4 set:text={S.bands} />
+            <div class="wb__bands" id="wb-bands"></div>
+          </div>
+          <div class="wb__sec">
+            <h4 id="wb-refh" set:text={S.refinery} />
+            <div class="wb__refn" id="wb-refn"></div>
+          </div>
+        </div>
+      </div>
+      <div class="wb__pane wb__pane--b">
+        <div class="wb__hd"><h3 set:text={S.locations} /><span class="wb__c" id="wb-loccount"></span></div>
+        <div class="wb__scroll"><div class="wb__sec wb__sec--flush"><div class="wb__locs" id="wb-locs"></div></div></div>
+      </div>
+    </div>
+
+    <!-- =========================================== Spalte 3: Signaturen -->
+    <div class="wb__pane">
+      <div class="wb__hd"><h3 set:text={S.signatures} /><span class="wb__c" id="wb-pincount">0</span></div>
+      <div class="wb__scanbox">
+        <input class="wb__scan wb__num" id="wb-scan" type="text" inputmode="numeric" placeholder={S.scanPlaceholder} aria-label={S.scanPlaceholder} />
+      </div>
+      <div class="wb__scroll" id="wb-pins"><p class="wb__empty" set:text={S.pinHint} /></div>
+    </div>
+  </div>
+
+  <!-- ================================================= Rig-Leiste unten -->
+  <div class="wb__rig">
+    <label class="wb__rgrp"><span class="wb__lbl" set:text={S.laser} />
+      <select class="wb__sel" id="wb-laser">{lasers.map((l, i) => (<option value={String(i)} set:text={`${l.n.replace(' Mining Laser', '')} · S${l.size}`} />))}</select>
+    </label>
+    <div class="wb__rgrp"><span class="wb__lbl" set:text={S.modules} />
+      <div class="wb__slots" id="wb-slots"></div>
+    </div>
+    <label class="wb__rgrp"><span class="wb__lbl" set:text={S.gadget} />
+      <select class="wb__sel" id="wb-gadget"><option value="-1" set:text={S.none} />{gadgets.map((g, i) => (<option value={String(i)} set:text={g.n} />))}</select>
+    </label>
+    <div class="wb__rgrp"><span class="wb__lbl" set:text={S.rock} />
+      <div class="wb__chips" id="wb-mass">{MASS_PRESETS.map((p) => (<button type="button" class={`wb__chip${p.m === DEFAULT_MASS ? ' is-on' : ''}`} data-mass={String(p.m)} set:text={p[lang]} />))}</div>
+    </div>
+    <label class="wb__rgrp"><span class="wb__lbl" set:text={S.station} />
+      <select class="wb__sel" id="wb-ref">{refineries.map((r, i) => (<option value={String(i)} set:text={r.n} />))}</select>
+    </label>
+    <div class="wb__rstat">
+      <span class="wb__kv"><span class="wb__lbl" set:text={S.available} /><b class="wb__num" id="wb-avail">—</b></span>
+      <span class="wb__kv"><span class="wb__lbl" set:text={S.resMod} /><b class="wb__num" id="wb-resmod">—</b></span>
+    </div>
+  </div>
+</section>
+
+<script type="application/json" id="wb-data" set:html={JSON.stringify(payload)}></script>
+<script is:inline src={versioned('assets/mining-workbench.js', '/assets/mining-workbench.js')}></script>
+
+<style is:inline>
+/* Werkbank — Sprache „Baujahr 2026" (Skizze 006 A).
+   Alle Flaechen aus den BESTEHENDEN Theme-Token (--surface/--surface-2/
+   --text/--muted/--accent-2), Zwischenstufen per color-mix darauf. Eigene
+   Token waeren im Hellmodus wirkungslos — siehe Kopfkommentar. */
+/* 1560 statt --maxw (1240): die Werkbank ist eine Werkzeugflaeche, keine
+   Lesespalte. Bei 1240 blieb die Mittelspalte 612 px breit — Skizze 003 hat
+   ihre Zweispaltigkeit gegen 768 px gemessen. Bei 1560 sind es rund 990 px. */
+.wb{max-width:1560px;margin:0 auto;padding:0 clamp(1rem,4vw,2rem) 1.4rem;
+  display:flex;flex-direction:column;gap:12px;
+  font-family:var(--font-ui,system-ui);
+  /* ZEILENHOEHE. body steht auf 30,6 px (1,7 x 18 px) — richtig fuer
+     Fliesstext, falsch fuer eine dichte Datenflaeche. Am gebauten Stand
+     gemessen wurde die Mineralzeile dadurch 69 px hoch, die Fundortzeile
+     65 px, obwohl beide nur zwei kurze Textzeilen tragen. Mit 1,3 fallen
+     sie auf rund 48 bzw. 44 px, ohne dass eine Schriftgroesse angefasst
+     wird — das sind bei 720 px Fensterhoehe drei zusaetzliche Mineralzeilen
+     ueber der Falz. */
+  line-height:1.3}
+/* Ausgenommen: die Werkzeug-Hilfe ist Fliesstext und behaelt ihren Fluss. */
+.wb .tool-help__body{line-height:1.6}
+.wb__grid{display:grid;grid-template-columns:272px 1fr 248px;gap:12px;min-height:0;
+  height:clamp(430px,calc(100vh - 232px),900px)}
+.wb__mid{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0;min-width:0}
+.wb__pane{background:var(--surface);border-radius:12px;box-shadow:0 2px 10px var(--shadow-color),0 1px 2px var(--shadow-color);
+  display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
+.wb__hd{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:13px 16px 11px}
+.wb__hd h3{font-size:var(--fs-8);font-weight:600;margin:0;color:var(--text)}
+.wb__c{margin-left:auto;font-size:var(--fs-5);color:color-mix(in srgb,var(--muted) 84%,transparent)}
+.wb__lbl{font-size:var(--fs-5);font-weight:500;color:color-mix(in srgb,var(--muted) 84%,transparent)}
+.wb__num{font-family:var(--font-mono,ui-monospace);font-variant-numeric:tabular-nums}
+.wb__scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
+
+/* --- Spalte 1 --- */
+.wb__filters{flex:0 0 auto;padding:11px 12px;display:flex;flex-direction:column;gap:9px;position:relative}
+/* Engere Chips, damit die vier Filter in EINE Zeile passen (248 px nutzbare
+   Spaltenbreite; mit 11 px Polsterung brachen sie auf zwei Zeilen = 31 px). */
+.wb__chips .wb__chip{padding:5px 9px}
+.wb__c--inline{margin-left:auto;align-self:center}
+
+/* WERKZEUG-HILFE ALS UEBERLAGERUNG, nicht als Schieber.
+   assets/tool-help.js:43 (openOnFirstVisit) klappt den Abschnitt beim ERSTEN
+   Besuch von selbst auf — das ist so gewollt (D-09). Am gebauten Stand
+   gemessen: 480 px hoch. In einer Werkbank mit fester Hoehe schiebt das die
+   Mineralliste komplett unter die Falz — gemessen 0 von 37 Zeilen sichtbar,
+   also genau der Zustand, den „Werkzeug, keine Leinwand" verbietet.
+   Loesung: nur der KOERPER wird absolut gestellt und legt sich ueber die
+   Liste. Der Besucher bekommt die Erklaerung unveraendert und an derselben
+   Stelle, die Liste behaelt ihren Platz. Markup, Skript und die von
+   verify:help geprueften Anker bleiben unberuehrt. */
+/* Der Aufklapp-Titel stand auf 82 px (13,5 px Polsterung + zweizeiliger Umbruch
+   bei 27,5 px Zeilenhoehe) — in einer 272-px-Spalte bricht die Zeile immer.
+   Hier enger gefasst; die geteilte Regel bleibt fuer alle anderen Werkzeuge. */
+.wb__filters .tool-help__summary{padding:8px 12px;font-size:var(--fs-6);line-height:1.35}
+.wb__filters .tool-help[open] .tool-help__body{
+  position:absolute;top:calc(100% - 4px);left:0;right:0;z-index:14;
+  background:var(--surface);border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.55);
+  max-height:min(58vh,400px);overflow-y:auto;padding:12px 14px 14px}
+.wb__search{width:100%;background:var(--surface-2);border:0;color:var(--text);padding:9px 12px;
+  font-size:var(--fs-7);border-radius:6px;font-family:inherit}
+.wb__search::placeholder{color:color-mix(in srgb,var(--muted) 84%,transparent)}
+.wb__chips{display:flex;gap:6px;flex-wrap:wrap}
+.wb__chip{font-size:var(--fs-5);font-weight:500;padding:5px 11px;background:var(--surface-2);border:0;
+  color:var(--muted);border-radius:999px;cursor:pointer;font-family:inherit;
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__chip:hover{background:color-mix(in srgb,var(--surface-2) 86%,var(--text));color:var(--text)}
+.wb__chip.is-on{background:var(--accent-2);color:var(--ink);font-weight:600}
+.wb__row{display:grid;grid-template-columns:8px 1fr auto;align-items:center;gap:11px;
+  padding:9px 12px;margin:0 6px;border-radius:8px;cursor:pointer;
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__row:hover{background:var(--surface-2)}
+.wb__row.is-sel{background:color-mix(in srgb,var(--surface-2) 86%,var(--text))}
+.wb__row.is-hidden{display:none}
+.wb__nm{font-size:var(--fs-7);font-weight:500;color:var(--text);display:block;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__meta{display:flex;gap:9px;align-items:baseline;margin-top:2px}
+.wb__rar{font-size:var(--fs-5);color:color-mix(in srgb,var(--muted) 84%,transparent)}
+.wb__sig{font-size:var(--fs-5);color:var(--accent);font-family:var(--font-mono,ui-monospace)}
+.wb__pin{width:24px;height:24px;display:grid;place-items:center;border:0;background:transparent;
+  color:color-mix(in srgb,var(--muted) 84%,transparent);cursor:pointer;border-radius:6px;font-size:var(--fs-7);line-height:1}
+.wb__pin:hover{background:color-mix(in srgb,var(--surface-2) 86%,var(--text));color:var(--muted)}
+.wb__pin.is-on{color:var(--accent-2)}
+/* ZUSTANDSFARBEN — der Punkt faerbt sich ueber `currentColor`, NICHT ueber
+   eine feste Flaeche. Grund: build-light-overrides.mjs deckt `color` ab, aber
+   NICHT `background` (PROPS-Liste in scripts/build-light-overrides.mjs:85).
+   Eine feste `background`-Farbe haette im Hellmodus still keine Entsprechung —
+   dieselbe Falle, die in .planning/notes/mining-werkbank-redesign.md steht.
+   Ueber `color` erzeugt der Generator die hellen Gegenstuecke automatisch. */
+.wb__dot{width:8px;height:8px;border-radius:999px;background:currentColor;
+  color:color-mix(in srgb,var(--surface-2) 86%,var(--text))}
+.wb__dot.is-ok{color:#6FBE7A}
+.wb__dot.is-warn{color:var(--accent-2)}
+.wb__dot.is-bad{color:#D2705A}
+
+/* --- Spalte 2 --- */
+.wb__id{padding:15px 18px 13px}
+.wb__idrow{display:flex;align-items:flex-start;gap:12px}
+.wb__id h2{font-size:var(--fs-14);font-weight:600;line-height:1.05;margin:0;color:var(--text)}
+.wb__tags{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.wb__tag{font-size:var(--fs-5);padding:3px 9px;background:var(--surface-2);color:var(--muted);border-radius:999px}
+.wb__tag.is-rar{background:color-mix(in srgb,var(--accent-2) 16%,transparent);color:var(--accent-2)}
+.wb__sigbox{margin-left:auto;text-align:right}
+.wb__sigbox b{display:block;font-size:var(--fs-11);color:var(--accent);font-weight:600;line-height:1.1;margin-top:2px}
+.wb__vd{margin:0 18px 15px;padding:13px 15px;background:var(--surface-2);border-radius:8px;
+  display:flex;align-items:center;gap:13px}
+.wb__vdst{display:flex;align-items:center;gap:9px;font-size:var(--fs-9);font-weight:600}
+.wb__vdst .wb__dot{width:10px;height:10px}
+.wb__vddet{margin-left:auto;text-align:right}
+.wb__vddet b{display:block;font-size:var(--fs-11);font-weight:600;line-height:1.1}
+.wb__vd.is-ok .wb__vdst,.wb__vd.is-ok .wb__vddet b{color:#6FBE7A}
+.wb__vd.is-warn .wb__vdst,.wb__vd.is-warn .wb__vddet b{color:var(--accent-2)}
+.wb__vd.is-bad .wb__vdst,.wb__vd.is-bad .wb__vddet b{color:#D2705A}
+.wb__sec{padding:0 18px 12px}
+.wb__sec--flush{padding-top:0}
+.wb__sec h4{font-size:var(--fs-5);font-weight:600;color:color-mix(in srgb,var(--muted) 84%,transparent);margin:0 0 9px}
+.wb__stats,.wb__refn{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.wb__stat{background:var(--surface-2);border-radius:8px;padding:10px 12px}
+.wb__stat b{display:block;font-size:var(--fs-10);font-weight:600;margin-top:3px;color:var(--text)}
+.wb__stat.is-hot b{color:var(--accent-2)}
+.wb__stat.is-ok b{color:#6FBE7A}
+.wb__stat.is-bad b{color:#D2705A}
+.wb__bands{display:flex;gap:3px;align-items:flex-end;height:36px}
+.wb__bands i{flex:1;background:color-mix(in srgb,var(--surface-2) 86%,var(--text));border-radius:3px 3px 0 0}
+.wb__bands i.is-hi{background:var(--accent-2);opacity:.8}
+.wb__locs{display:flex;flex-direction:column;gap:2px}
+.wb__loc{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;
+  padding:8px 12px;border-radius:8px}
+.wb__loc:hover{background:var(--surface-2)}
+.wb__loc .p{font-size:var(--fs-6);font-weight:500;color:var(--text);display:block;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__loc .s{font-size:var(--fs-5);color:color-mix(in srgb,var(--muted) 84%,transparent);display:block;margin-top:1px}
+.wb__loca{display:flex;align-items:center;gap:10px}
+.wb__bar{width:52px;height:4px;background:color-mix(in srgb,var(--surface-2) 86%,var(--text));border-radius:999px;overflow:hidden}
+.wb__bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.wb__loca em{font-size:var(--fs-6);color:var(--muted);font-style:normal;width:36px;text-align:right;
+  font-family:var(--font-mono,ui-monospace)}
+
+/* --- Spalte 3 --- */
+.wb__scanbox{padding:0 12px 11px}
+.wb__scan{width:100%;background:var(--surface-2);border:0;color:var(--accent);padding:10px 12px;
+  font-size:var(--fs-10);text-align:center;border-radius:6px}
+.wb__scan::placeholder{color:color-mix(in srgb,var(--muted) 84%,transparent);font-family:var(--font-ui,inherit);font-size:var(--fs-6)}
+.wb__pin-item{padding:10px 12px;margin:0 6px 2px;border-radius:8px}
+.wb__pin-item:hover{background:var(--surface-2)}
+.wb__pin-top{display:flex;align-items:center;gap:9px}
+.wb__pin-top .nm{font-size:var(--fs-6);font-weight:500;color:var(--text);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.wb__pin-top button{margin-left:auto;background:0;border:0;color:color-mix(in srgb,var(--muted) 84%,transparent);cursor:pointer;
+  font-size:var(--fs-7);line-height:1;padding:0 2px}
+.wb__pin-top button:hover{color:#D2705A}
+.wb__mult{display:flex;gap:4px;margin-top:7px}
+.wb__mult i{flex:1;font-family:var(--font-mono,ui-monospace);font-size:var(--fs-5);font-style:normal;
+  text-align:center;padding:4px 0;background:var(--surface-2);color:var(--muted);border-radius:6px}
+.wb__mult i.is-hit{background:var(--accent-2);color:var(--ink);font-weight:600}
+.wb__empty{padding:18px 14px;text-align:center;color:color-mix(in srgb,var(--muted) 84%,transparent);font-size:var(--fs-6);line-height:1.6;margin:0}
+
+/* --- Rig-Leiste --- */
+.wb__rig{display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+  background:var(--surface);border-radius:12px;box-shadow:0 2px 10px var(--shadow-color),0 1px 2px var(--shadow-color);padding:11px 16px}
+.wb__rgrp{display:flex;flex-direction:column;gap:4px}
+.wb__sel{background:var(--surface-2);border:0;color:var(--text);font-size:var(--fs-6);padding:7px 10px;
+  cursor:pointer;max-width:200px;border-radius:6px;font-family:inherit}
+.wb__sel:hover{background:color-mix(in srgb,var(--surface-2) 86%,var(--text))}
+.wb__slots{display:flex;gap:5px}
+.wb__slot{width:30px;height:30px;border:0;background:var(--surface-2);display:grid;place-items:center;
+  font-size:var(--fs-5);color:color-mix(in srgb,var(--muted) 84%,transparent);cursor:pointer;border-radius:6px;font-family:inherit}
+.wb__slot:hover:not(:disabled){background:color-mix(in srgb,var(--surface-2) 86%,var(--text));color:var(--muted)}
+.wb__slot.is-full{color:#6FBE7A;background:color-mix(in srgb,currentColor 18%,transparent)}
+.wb__slot:disabled{opacity:.32;cursor:not-allowed}
+.wb__rstat{margin-left:auto;display:flex;align-items:center;gap:22px}
+.wb__kv{text-align:right}
+.wb__kv b{display:block;font-size:var(--fs-9);font-weight:600;margin-top:2px;color:var(--accent-2)}
+
+/* Sichtbarer Fokus — die geteilte Regel in detail.css setzt --accent-2; hier
+   ausdruecklich wiederholt, damit Bedienelemente in der Werkbank ihn tragen. */
+.wb__search:focus-visible,.wb__scan:focus-visible,.wb__sel:focus-visible,
+.wb__chip:focus-visible,.wb__slot:focus-visible,.wb__pin:focus-visible,
+.wb__row:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+
+/* Schmale Fenster: eine Spalte + Segment-Umschalter (Entscheidung 4).
+   Gleiches DOM, reine CSS-Umschaltung — kein zweites Markup. */
+.wb__seg{display:none}
+@media(max-width:1100px){
+  .wb__grid{grid-template-columns:1fr;height:auto}
+  .wb__mid{grid-template-columns:1fr}
+  .wb__pane{height:min(62vh,560px)}
+}
+@media(max-width:760px){
+  /* WICHTIG: das Verstecken haengt an `.has-seg`, die NUR das Skript setzt.
+     Ohne JS bleiben alle drei Spalten gestapelt sichtbar — sonst waere die
+     Seite auf dem Handy leer, wenn das Skript nicht laedt. */
+  .wb__seg{display:flex;gap:6px;flex-wrap:wrap;padding:0 0 2px}
+  .wb__pane{height:auto;max-height:none}
+  .wb__scroll{max-height:70vh}
+  .wb__grid{grid-template-columns:1fr;height:auto}
+  .wb__grid.has-seg{display:block}
+  .wb__grid.has-seg > .wb__pane,.wb__grid.has-seg > .wb__mid{display:none}
+  .wb__grid.has-seg.seg-list > .wb__pane:first-of-type{display:flex}
+  .wb__grid.has-seg.seg-sig > .wb__pane:last-of-type{display:flex}
+  .wb__grid.has-seg.seg-view > .wb__mid{display:grid;grid-template-columns:1fr;gap:12px}
+  .wb__rig{gap:12px}
+  .wb__rstat{margin-left:0;width:100%}
+}
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .wb__dot.is-ok{color:#036b26}
+:root[data-theme="light"] .wb__dot.is-bad{color:#9b2a10}
+:root[data-theme="light"] .wb__vd.is-ok .wb__vdst,.wb__vd.is-ok .wb__vddet b{color:#036b26}
+:root[data-theme="light"] .wb__vd.is-bad .wb__vdst,.wb__vd.is-bad .wb__vddet b{color:#9b2a10}
+:root[data-theme="light"] .wb__stat.is-ok b{color:#036b26}
+:root[data-theme="light"] .wb__stat.is-bad b{color:#9b2a10}
+:root[data-theme="light"] .wb__pin-top button:hover{color:#9b2a10}
+:root[data-theme="light"] .wb__slot.is-full{color:#036b26}
+</style>

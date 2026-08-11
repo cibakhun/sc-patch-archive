@@ -606,7 +606,13 @@ summary:active {
 .uif-sidebar,
 .cdb-sidebar,
 .mdb-sidebar,
-.calc-sidebar {
+.calc-sidebar,
+/* Mining-Werkbank: VIER senkrechte Kaesten auf einer Seite (Mineralliste,
+   Ansicht, Fundorte, Signaturen). Bewusst .wb__scroll statt .vb-scrollbox —
+   dessen max-height:calc(100vh…) wuerde mit der Flex-Hoehe der Spalten
+   kollidieren, die das Raster selbst setzt. */
+.wb__scroll,
+.wb__filters .tool-help__body {
   scrollbar-width: thin !important;
   /* --tone-1 zuerst: die Verzeichnisseiten fuehren dort ihren Leitton, im
      Crafting-Zweig waere --accent die falsche Farbe. Ausserhalb von .dp
@@ -617,7 +623,9 @@ summary:active {
 .uif-sidebar::-webkit-scrollbar,
 .cdb-sidebar::-webkit-scrollbar,
 .mdb-sidebar::-webkit-scrollbar,
-.calc-sidebar::-webkit-scrollbar {
+.calc-sidebar::-webkit-scrollbar,
+.wb__scroll::-webkit-scrollbar,
+.wb__filters .tool-help__body::-webkit-scrollbar {
   display: block !important;
   /* width UND height: .dp-tablewrap scrollt beide Achsen und traegt
      ebenfalls .vb-scrollbox. */
@@ -629,7 +637,9 @@ summary:active {
 .uif-sidebar::-webkit-scrollbar-thumb,
 .cdb-sidebar::-webkit-scrollbar-thumb,
 .mdb-sidebar::-webkit-scrollbar-thumb,
-.calc-sidebar::-webkit-scrollbar-thumb {
+.calc-sidebar::-webkit-scrollbar-thumb,
+.wb__scroll::-webkit-scrollbar-thumb,
+.wb__filters .tool-help__body::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--tone-1, var(--accent)) 55%, transparent);
   border-radius: 999px;
 }
