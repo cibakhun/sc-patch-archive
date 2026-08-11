@@ -30,6 +30,25 @@ Keine externen Vorbilder — die Referenz ist die eigene Seite. Konkret herangez
 | # | Name | Design Question | Winner | Tags |
 |---|------|----------------|--------|------|
 | 001 | support-page-identity | Was führt die Unterstützen-Seite an — das defekte Teil, die Stimme des Betreibers oder die Leute, die schon tragen? | **A — Instandsetzung** (02.08.2026), mit Verschiebung auf den Arbeitsverlust statt auf den Sachschaden | support, identity, payments |
+| 002 | mining-werkbank-raster | Passen drei Spalten plus eingefaltetes Fracturing und Refinery bei 1280×720 — und wo kostet die Rig-Leiste am wenigsten? | **D — Leiste unten, mit dem Sockel verschmolzen** (11.08.2026). Vom Nutzer eingebracht, schlägt alle drei Vorlagen gleichzeitig: erste Mineralzeile 162 px, 12 Zeilen über der Falz | layout, mining, werkbank, hoehenbudget |
+
+## Zweite Design-Welt: „Werkbank" (ab 002)
+
+Die Mining-Werkbank ist die erste **Werkzeugoberfläche** unter den Design-Welten
+und spricht deshalb eine eigene Sprache: **Argo-Industrie × altes Regolith** —
+ein Maschinenpult, das zufällig eine Webseite ist. Matte Flächen, gekantete
+Blechkanten (1 px Lichtkante oben statt Leuchten), Schablonen-Mikrolabels,
+Zahlen in Mono, Warnstreifen nur dort, wo etwas *eingestellt* wird.
+
+**Bewusst NICHT benutzt** (obwohl im Bestand vorhanden): `--glow` (`0 0 44px`)
+aus `mining.astro:30`, `-webkit-text-stroke` an Abschnittsnummern, Verlaufstext,
+Scanlines, Neon-Lämpchen. Die Zustandslämpchen sind mattes Oliv `#8FB339` /
+Bernstein `#E0A526` / Rost `#B4543A` — Maschinenpult, nicht Ampel.
+
+**Palette unverändert übernommen** aus `mining.astro:30`; geändert hat sich nur
+der Umgang: `--accent-2` (`#E0A526`, faktisch Argo-Bernstein) ist die
+**Arbeitsfarbe**, `--accent` (`#2FBFA4` Teal) sinkt auf reine Information ab
+(Signaturwerte, Häufigkeitsbalken).
 
 ## Übernommene Befunde aus dem Bestands-CSS
 
