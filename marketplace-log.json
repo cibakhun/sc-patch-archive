@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-11",
-  "updates": 173,
-  "totalListings": 4598,
+  "updates": 174,
+  "totalListings": 4608,
   "totalSold": 190,
-  "distinctItems": 1040
+  "distinctItems": 1042
  },
  "listings": {
   "156580": {
@@ -95930,6 +95930,10 @@
     {
      "d": "2026-08-10",
      "p": 320000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 275000
     }
    ],
    "soldOut": false,
@@ -98007,6 +98011,216 @@
    "soldOutPrice": null,
    "dateAdded": 1786412755,
    "dateExpiration": 1791596755
+  },
+  "161351": {
+   "idItem": 2454,
+   "idCategory": 3,
+   "title": "Overlord Helmet Supernova",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 382500
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786417333,
+   "dateExpiration": 1791601333
+  },
+  "161352": {
+   "idItem": 6784,
+   "idCategory": 1,
+   "title": "Overlord Arms Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 752125
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786417335,
+   "dateExpiration": 1791601335
+  },
+  "161353": {
+   "idItem": 6750,
+   "idCategory": 4,
+   "title": "Overlord Legs Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1461750
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786417338,
+   "dateExpiration": 1791601338
+  },
+  "161357": {
+   "idItem": 8004,
+   "idCategory": 7,
+   "title": "Overlord Riptide Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 499999
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786417798,
+   "dateExpiration": 1791601798
+  },
+  "161359": {
+   "idItem": 8002,
+   "idCategory": 7,
+   "title": "Overlord Dust Storm Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786417981,
+   "dateExpiration": 1791601981
+  },
+  "161360": {
+   "idItem": 5330,
+   "idCategory": 17,
+   "title": "Quell Suppressor2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786418586,
+   "dateExpiration": 1791602586
+  },
+  "161361": {
+   "idItem": 2622,
+   "idCategory": 2,
+   "title": "Pembroke Backpack RSI Edition (Modified)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786419539,
+   "dateExpiration": 1791603539
+  },
+  "161362": {
+   "idItem": 413,
+   "idCategory": 18,
+   "title": "WTS Lumin V SMG 975Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786419685,
+   "dateExpiration": 1791603685
+  },
+  "161363": {
+   "idItem": null,
+   "idCategory": 32,
+   "title": "WTS - NDB 30 - 890Q - 8% IMPACT",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786419780,
+   "dateExpiration": 1791603780
+  },
+  "161364": {
+   "idItem": 6033,
+   "idCategory": 17,
+   "title": "Torrent Compensator2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786419787,
+   "dateExpiration": 1791603787
   }
  }
 }
