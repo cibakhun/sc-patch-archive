@@ -94,6 +94,17 @@
   }
   function vLabel(c) { return c === 'ok' ? T.breakable : c === 'warn' ? T.marginal : c === 'bad' ? T.impossible : T.noPhys; }
 
+  /* Die Daten kennen VIER Abbaumethoden (ship 26, roc 4, fps 4, hand 3). Die
+     zweite Fassung warf alles ausser `ship` in denselben Topf „Hand" — die
+     vier ROC-Erze standen damit falsch da. `fps` und `hand` bleiben bewusst
+     zusammengefasst: beides ist Handabbau, und eine belastbare Unterscheidung
+     geben die Daten nicht her. */
+  function methodLabel(meth) {
+    if (meth === 'ship') return T.ship;
+    if (meth === 'roc') return T.roc;
+    return T.hand;
+  }
+
   /* Ertragsprofile sind nach Materialnamen MIT Suffix gekeyt
      ("Taranite (Raw)"), der Katalog fuehrt den sauberen Namen. */
   function yieldFor(profId, name) {
@@ -169,8 +180,8 @@
     return '<div class="wb__stat ' + (cls || '') + '"><span class="wb__lbl">' + esc(label) +
       '</span><b class="num">' + esc(val) + '</b></div>';
   }
-  function row2(main, sub, barPct, right, amber) {
-    return '<div class="wb__row2"><span><span class="p">' + esc(main) + '</span>' +
+  function row2(main, sub, barPct, right, amber, mark) {
+    return '<div class="wb__row2' + (mark ? ' is-pick' : '') + '"><span><span class="p">' + esc(main) + '</span>' +
       (sub ? '<span class="s">' + esc(sub) + '</span>' : '') + '</span>' +
       '<span class="r">' + (barPct === null ? '' :
         '<span class="wb__bar' + (amber ? ' amber' : '') + '"><i style="width:' + barPct + '%"></i></span>') +
@@ -187,7 +198,7 @@
     $('wb-tags').innerHTML =
       '<span class="wb__tag is-rar">' + esc(D.rar[m.rarity] || (D.lang === 'de' ? 'ohne Stufe' : 'no tier')) + '</span>' +
       '<span class="wb__tag">' + esc(m.kind) + '</span>' +
-      '<span class="wb__tag">' + esc(m.method === 'ship' ? T.ship : T.hand) + '</span>' +
+      '<span class="wb__tag">' + esc(methodLabel(m.method)) + '</span>' +
       (m.refine ? '<span class="wb__tag">' + esc(T.refinable) + '</span>' : '');
 
     renderGauge(v);
@@ -223,18 +234,33 @@
       ? locs.map(function (l) { return row2(l.p, l.s, l.ab || 0, (l.ch != null ? n2(l.ch) + ' %' : '—'), false); }).join('')
       : '<p class="wb__empty">' + esc(T.noLocs) + '</p>';
 
-    /* Stations-Rangliste fuer dieses Erz. */
+    /* Stations-Rangliste fuer dieses Erz — und die GEWAEHLTE Station darin.
+       ⚠ Die Stationswahl der Rig-Leiste war wirkungslos: S.ref wurde
+       gespeichert und beim Aendern wurde neu gezeichnet, aber gelesen hat es
+       niemand. Sie ist jetzt markiert, und faellt sie aus den besten vier,
+       bekommt sie eine eigene Zeile. Kennt das Ertragsprofil das Erz gar
+       nicht, sagt die Zeile das ausdruecklich statt zu verschwinden. */
     var ranked = rankRefineries(m.name);
+    var chosen = D.refineries[S.ref];
     if (!ranked.length) {
       $('wb-refs').innerHTML = '<p class="wb__empty">' + esc(T.none) + '</p>';
     } else {
       var best = ranked.slice(0, 4), worst = ranked[ranked.length - 1];
       var maxAbs = Math.max(Math.abs(ranked[0].y), Math.abs(worst.y), 1);
+      var picked = null;
+      for (var pi = 0; pi < ranked.length; pi++) if (ranked[pi].i === S.ref) picked = ranked[pi];
       var html = best.map(function (r) {
-        return row2(r.n, r.s + ' · ' + T.yieldMod, Math.abs(r.y) / maxAbs * 100,
-          (r.y > 0 ? '+' : '') + r.y + ' %', r.y >= 0);
+        var mine = r.i === S.ref;
+        return row2(r.n, r.s + ' · ' + (mine ? T.yourPick : T.yieldMod),
+          Math.abs(r.y) / maxAbs * 100, (r.y > 0 ? '+' : '') + r.y + ' %', r.y >= 0, mine);
       }).join('');
-      if (ranked.length > 4) {
+      if (picked && best.indexOf(picked) < 0) {
+        html += row2(picked.n, picked.s + ' · ' + T.yourPick, Math.abs(picked.y) / maxAbs * 100,
+          (picked.y > 0 ? '+' : '') + picked.y + ' %', picked.y >= 0, true);
+      } else if (!picked && chosen) {
+        html += row2(chosen.n, chosen.s + ' · ' + T.yourPick, null, T.none, false, true);
+      }
+      if (ranked.length > 4 && worst.i !== S.ref) {
         html += row2(worst.n, worst.s + ' · ' + T.worst, Math.abs(worst.y) / maxAbs * 100,
           (worst.y > 0 ? '+' : '') + worst.y + ' %', false);
       }
@@ -248,7 +274,11 @@
       links += '<a class="wb__link" href="' + esc(D.craftingPath) + '">' + esc(T.usedIn) +
         ' <b>' + m.bp + '</b></a>';
     }
-    (D.ships || []).slice(0, 3).forEach(function (s) {
+    /* ⚠ Frueher `D.ships.slice(0,3)` — dieselben drei Schiffe unter JEDEM Erz,
+       auch unter den elf, die sich gar nicht per Schiff abbauen lassen. Jetzt
+       nur die Fahrzeuge, die die Methode dieses Erzes auch bedienen; Hand-Erze
+       bekommen keinen Verweis. */
+    ((D.shipsByMethod || {})[m.method] || []).forEach(function (s) {
       links += '<a class="wb__link" href="' + esc(s.h) + '">' + esc(s.n) +
         (s.ore ? ' <b>' + esc(s.ore) + '</b>' : '') + '</a>';
     });
@@ -277,16 +307,26 @@
     }).join('');
   }
 
+  /* Frueher drei Knoepfe, die je Klick EIN Modul weiterschalteten — bei 26
+     Modulen bis zu 26 Klicks fuer den letzten, und der gewaehlte Name stand
+     nur im title. Jetzt je Steckplatz eine Auswahl. (Dass ueberhaupt nie ein
+     Steckplatz nutzbar war, lag am Feldnamen: siehe MiningWorkbench.astro.) */
   function renderRig() {
     var lo = loadout(), L = lo.L, html = '';
     for (var i = 0; i < 3; i++) {
       var usable = i < (L.slots || 0), m = D.modules[S.mods[i]];
-      html += '<button type="button" class="wb__slot' + (usable && m ? ' is-full' : '') + '" data-slot="' + i + '"' +
-        (usable ? '' : ' disabled') + ' title="' +
-        esc(usable ? (m ? m.n : T.modules) : (D.lang === 'de'
+      var opts = '<option value="-1">' + esc(T.none) + '</option>';
+      for (var k = 0; k < D.modules.length; k++) {
+        opts += '<option value="' + k + '"' + (S.mods[i] === k ? ' selected' : '') + '>' +
+          esc(D.modules[k].n) + '</option>';
+      }
+      html += '<select class="wb__slot' + (usable && m ? ' is-full' : '') + '" data-slot="' + i + '"' +
+        (usable ? '' : ' disabled') +
+        ' aria-label="' + esc(T.modules + ' ' + (i + 1)) + '" title="' +
+        esc(usable ? T.modules + ' ' + (i + 1) : (D.lang === 'de'
           ? 'Dieser Laser hat nur ' + (L.slots || 0) + ' Modulplätze'
           : 'This laser has only ' + (L.slots || 0) + ' module slots')) + '">' +
-        (usable ? (m ? 'M' + (i + 1) : '+') : '—') + '</button>';
+        opts + '</select>';
     }
     $('wb-slots').innerHTML = html;
     $('wb-avail').textContent = n0(lo.dps * lo.dpsMult);
@@ -331,12 +371,6 @@
     }
     var tile = t.closest('.wb__tile');
     if (tile) { S.sel = tile.getAttribute('data-min'); renderAll(); return; }
-    var slot = t.closest('[data-slot]');
-    if (slot && !slot.disabled) {
-      var si = +slot.getAttribute('data-slot');
-      S.mods[si] = S.mods[si] + 1 >= D.modules.length ? -1 : S.mods[si] + 1;
-      renderAll(); return;
-    }
     var mass = t.closest('[data-mass]');
     if (mass) { S.mass = +mass.getAttribute('data-mass'); renderAll(); return; }
     var sys = t.closest('[data-sys]');
@@ -382,6 +416,10 @@
       renderAll();
     } else if (t.id === 'wb-gadget') { S.gadget = +t.value; renderAll(); }
     else if (t.id === 'wb-ref') { S.ref = +t.value; renderDetail(); save(); }
+    else if (t.classList && t.classList.contains('wb__slot')) {
+      S.mods[+t.getAttribute('data-slot')] = +t.value;
+      renderAll();
+    }
   });
 
   document.addEventListener('input', function (e) {
