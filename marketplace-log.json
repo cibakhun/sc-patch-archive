@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-11",
-  "updates": 185,
-  "totalListings": 4772,
-  "totalSold": 200,
-  "distinctItems": 1061
+  "updates": 186,
+  "totalListings": 4789,
+  "totalSold": 203,
+  "distinctItems": 1062
  },
  "listings": {
   "156580": {
@@ -93469,6 +93469,10 @@
     {
      "d": "2026-08-10",
      "p": 300000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -93490,6 +93494,10 @@
     {
      "d": "2026-08-10",
      "p": 700000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -93511,6 +93519,10 @@
     {
      "d": "2026-08-10",
      "p": 300000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -93553,6 +93565,10 @@
     {
      "d": "2026-08-10",
      "p": 800000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -93616,6 +93632,10 @@
     {
      "d": "2026-08-10",
      "p": 500000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -93637,6 +93657,10 @@
     {
      "d": "2026-08-10",
      "p": 700000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -95000,6 +95024,10 @@
     {
      "d": "2026-08-10",
      "p": 400000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -95046,6 +95074,10 @@
     {
      "d": "2026-08-11",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 1500000
     }
    ],
    "soldOut": false,
@@ -95067,6 +95099,10 @@
     {
      "d": "2026-08-10",
      "p": 400000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -95109,6 +95145,10 @@
     {
      "d": "2026-08-10",
      "p": 400000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -95172,6 +95212,10 @@
     {
      "d": "2026-08-10",
      "p": 300000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -95197,6 +95241,10 @@
     {
      "d": "2026-08-11",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 3500000
     }
    ],
    "soldOut": false,
@@ -95239,6 +95287,10 @@
     {
      "d": "2026-08-10",
      "p": 400000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -95260,6 +95312,10 @@
     {
      "d": "2026-08-10",
      "p": 500000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -95896,9 +95952,9 @@
      "p": 1400000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-11",
+   "soldOutPrice": 1400000,
    "dateAdded": 1786392427,
    "dateExpiration": 1791576427
   },
@@ -98540,9 +98596,9 @@
      "p": 5000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-11",
+   "soldOutPrice": 5000000,
    "dateAdded": 1786417575,
    "dateExpiration": 1791601575
   },
@@ -101639,9 +101695,9 @@
      "p": 10000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-11",
+   "soldOutPrice": 10000000,
    "dateAdded": 1786457231,
    "dateExpiration": 1791641231
   },
@@ -101749,6 +101805,363 @@
    "soldOutPrice": null,
    "dateAdded": 1786459353,
    "dateExpiration": 1791643353
+  },
+  "161532": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Speed Demon: 45% Heavy 22% Light Armor DR Mix",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786459575,
+   "dateExpiration": 1791643575
+  },
+  "161533": {
+   "idItem": 954,
+   "idCategory": 19,
+   "title": "Glacier",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786459696,
+   "dateExpiration": 1791643696
+  },
+  "161534": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Crafted: ADP mk-4 Woodland Armor Set 44% DR",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786460020,
+   "dateExpiration": 1791644020
+  },
+  "161535": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "Crafted Lumin V SMG 820Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 820,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786460292,
+   "dateExpiration": 1791644292
+  },
+  "161536": {
+   "idItem": 4922,
+   "idCategory": 87,
+   "title": "Feynmaline Q880-Q965",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 968,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 40000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786460515,
+   "dateExpiration": 1791644515
+  },
+  "161537": {
+   "idItem": 3765,
+   "idCategory": 17,
+   "title": "EE04 (4x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 240000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786460775,
+   "dateExpiration": 1791644775
+  },
+  "161538": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "wts asgard wikelo kit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 800000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786460879,
+   "dateExpiration": 1791644879
+  },
+  "161539": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "Pyro RYT MultiTool Quick Sliver",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786461002,
+   "dateExpiration": 1791645002
+  },
+  "161541": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "Pyro RYT Multi-Tool GHOST",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786461122,
+   "dateExpiration": 1791645122
+  },
+  "161542": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "Pyro RYT Multi-Tool Bloodline",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786461225,
+   "dateExpiration": 1791645225
+  },
+  "161543": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium 905q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 905,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786461520,
+   "dateExpiration": 1791645520
+  },
+  "161544": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "Pyro RYT Multi-Tool black cherry",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786461615,
+   "dateExpiration": 1791645615
+  },
+  "161545": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium 322q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786461634,
+   "dateExpiration": 1791645634
+  },
+  "161546": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "Pyro RYT Multi-Tool Mirage",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786461766,
+   "dateExpiration": 1791645766
+  },
+  "161547": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "Pyro RYT Multi-Tool Harvester",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786461893,
+   "dateExpiration": 1791645893
+  },
+  "161548": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "Sadaryx",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 971,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786461989,
+   "dateExpiration": 1791645989
+  },
+  "161550": {
+   "idItem": 4744,
+   "idCategory": 87,
+   "title": "Janalite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 898,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786462787,
+   "dateExpiration": 1791646787
   }
  }
 }
