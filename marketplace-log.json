@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-11",
-  "updates": 170,
-  "totalListings": 4572,
+  "updates": 171,
+  "totalListings": 4587,
   "totalSold": 189,
   "distinctItems": 1040
  },
@@ -95129,6 +95129,10 @@
     {
      "d": "2026-08-10",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 3000000
     }
    ],
    "soldOut": false,
@@ -97333,6 +97337,27 @@
    "dateAdded": 1786404728,
    "dateExpiration": 1791588728
   },
+  "161302": {
+   "idItem": 7968,
+   "idCategory": 7,
+   "title": "Ana Armor Endro Set (no backpack)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786404775,
+   "dateExpiration": 1791588775
+  },
   "161303": {
    "idItem": 5870,
    "idCategory": 36,
@@ -97437,6 +97462,300 @@
    "soldOutPrice": null,
    "dateAdded": 1786405173,
    "dateExpiration": 1791589173
+  },
+  "161310": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium (2.02 scu 905q)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 905,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 8500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786405665,
+   "dateExpiration": 1791589665
+  },
+  "161311": {
+   "idItem": 8016,
+   "idCategory": 7,
+   "title": "Carrion Payback Set (matching guns Available)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786405878,
+   "dateExpiration": 1791589878
+  },
+  "161312": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "937Q Beryl 2.777 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 8500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786405988,
+   "dateExpiration": 1791589988
+  },
+  "161313": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "907q IRON 1.589 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 907,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786406249,
+   "dateExpiration": 1791590249
+  },
+  "161315": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "866 quality titanium 5.044 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 866,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786406813,
+   "dateExpiration": 1791590813
+  },
+  "161317": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl 955q .55 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 953,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 7500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786407051,
+   "dateExpiration": 1791591051
+  },
+  "161318": {
+   "idItem": 6732,
+   "idCategory": 18,
+   "title": "ParaMed \"AA Support\" Medical Device",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786407510,
+   "dateExpiration": 1791591510
+  },
+  "161319": {
+   "idItem": 3349,
+   "idCategory": 18,
+   "title": "Scourge Railgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786407800,
+   "dateExpiration": 1791591800
+  },
+  "161320": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "PERFECT MOROZOV-SH ARMOR SET (BLACK ARMOR) CRAFTED WITH 1000 ASLARITE AND 964 TUNGSTEN",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 40000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786407876,
+   "dateExpiration": 1796775876
+  },
+  "161321": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 17000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786407985,
+   "dateExpiration": 1791591985
+  },
+  "161325": {
+   "idItem": 4824,
+   "idCategory": 18,
+   "title": "ParaMed \"Amalgam\" Medical Device",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786408590,
+   "dateExpiration": 1791592590
+  },
+  "161326": {
+   "idItem": 5338,
+   "idCategory": 17,
+   "title": "Stoic Suppressor 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786408705,
+   "dateExpiration": 1791592705
+  },
+  "161327": {
+   "idItem": 8043,
+   "idCategory": 7,
+   "title": "ADP-mk4 Woodland Armor Set (crafted) -46% damage (crafted backpack optional for free)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 11000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786408707,
+   "dateExpiration": 1791592707
+  },
+  "161330": {
+   "idItem": 3351,
+   "idCategory": 18,
+   "title": "ParaMed \"Oxide\" Medical Device",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786408837,
+   "dateExpiration": 1791592837
   }
  }
 }
