@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-11",
-  "updates": 175,
-  "totalListings": 4624,
+  "updates": 176,
+  "totalListings": 4629,
   "totalSold": 190,
   "distinctItems": 1043
  },
@@ -98557,6 +98557,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786423288,
    "dateExpiration": 1791607288
+  },
+  "161385": {
+   "idItem": null,
+   "idCategory": 61,
+   "title": "WTB Antium Downburst armor and Palatino Shadow Guild (Read description)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786424942,
+   "dateExpiration": 1791608942
+  },
+  "161386": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "wtb guardian qi wikelo kit",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 45000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786424959,
+   "dateExpiration": 1791608959
+  },
+  "161389": {
+   "idItem": 6750,
+   "idCategory": 4,
+   "title": "Overlord Legs Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1461750
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786426120,
+   "dateExpiration": 1791610120
+  },
+  "161390": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Ixonia Armor Desert Camo looted",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786426676,
+   "dateExpiration": 1791610675
+  },
+  "161391": {
+   "idItem": null,
+   "idCategory": 3,
+   "title": "deadhead helmet bruiser",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786427028,
+   "dateExpiration": 1791611028
   }
  }
 }
