@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-11",
-  "updates": 172,
-  "totalListings": 4597,
-  "totalSold": 189,
+  "updates": 173,
+  "totalListings": 4598,
+  "totalSold": 190,
   "distinctItems": 1040
  },
  "listings": {
@@ -92708,9 +92708,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-11",
+   "soldOutPrice": 1000000,
    "dateAdded": 1786351353,
    "dateExpiration": 1791535353
   },
@@ -94986,6 +94986,10 @@
     {
      "d": "2026-08-10",
      "p": 0
+    },
+    {
+     "d": "2026-08-11",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -97982,6 +97986,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786412109,
    "dateExpiration": 1791596109
+  },
+  "161347": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron (1 SCU / 0.302 SCU)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 972,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786412755,
+   "dateExpiration": 1791596755
   }
  }
 }
