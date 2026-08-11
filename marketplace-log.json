@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-11",
-  "updates": 176,
-  "totalListings": 4629,
-  "totalSold": 190,
-  "distinctItems": 1043
+  "updates": 177,
+  "totalListings": 4643,
+  "totalSold": 191,
+  "distinctItems": 1044
  },
  "listings": {
   "156580": {
@@ -92435,9 +92435,9 @@
      "p": 500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-11",
+   "soldOutPrice": 500000,
    "dateAdded": 1786347172,
    "dateExpiration": 1791531172
   },
@@ -98558,6 +98558,27 @@
    "dateAdded": 1786423288,
    "dateExpiration": 1791607288
   },
+  "161384": {
+   "idItem": 7522,
+   "idCategory": 3,
+   "title": "Azrael Racing Helmet (Base ,Ruby ,Sapphire)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786424935,
+   "dateExpiration": 1791608935
+  },
   "161385": {
    "idItem": null,
    "idCategory": 61,
@@ -98662,6 +98683,279 @@
    "soldOutPrice": null,
    "dateAdded": 1786427028,
    "dateExpiration": 1791611028
+  },
+  "161392": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Geist Armor Snow Camo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786427268,
+   "dateExpiration": 1791611268
+  },
+  "161393": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Novikov Ascension Set Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786427451,
+   "dateExpiration": 1791611451
+  },
+  "161394": {
+   "idItem": 5657,
+   "idCategory": 3,
+   "title": "Deadhead Helmet Dust",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 384100
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786427564,
+   "dateExpiration": 1791611564
+  },
+  "161395": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Strata Heatwave Full Set Including Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 3000001
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786427651,
+   "dateExpiration": 1791611651
+  },
+  "161398": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Ana Armor Endro Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786427826,
+   "dateExpiration": 1791611826
+  },
+  "161401": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Bokto Armor Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786428202,
+   "dateExpiration": 1791612202
+  },
+  "161402": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Corbel Crush Set Complete Kit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 5500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786428380,
+   "dateExpiration": 1791612380
+  },
+  "161404": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786428545,
+   "dateExpiration": 1791612545
+  },
+  "161405": {
+   "idItem": 23,
+   "idCategory": 32,
+   "title": "M5A Cannon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 40000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786428617,
+   "dateExpiration": 1791612617
+  },
+  "161406": {
+   "idItem": 4610,
+   "idCategory": 38,
+   "title": "DCHS-06 Communication Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786428640,
+   "dateExpiration": 1791612640
+  },
+  "161407": {
+   "idItem": 5721,
+   "idCategory": 7,
+   "title": "testudo clanguard set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786428669,
+   "dateExpiration": 1791612669
+  },
+  "161408": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786429026,
+   "dateExpiration": 1791613026
+  },
+  "161413": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl 955q - 0.312scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 955,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786430482,
+   "dateExpiration": 1791614482
   }
  }
 }
