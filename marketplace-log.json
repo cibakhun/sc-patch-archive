@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-11",
-  "updates": 180,
-  "totalListings": 4703,
-  "totalSold": 196,
-  "distinctItems": 1054
+  "updates": 181,
+  "totalListings": 4710,
+  "totalSold": 197,
+  "distinctItems": 1056
  },
  "listings": {
   "156580": {
@@ -99661,11 +99661,15 @@
     {
      "d": "2026-08-11",
      "p": 3500000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 6500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-11",
+   "soldOutPrice": 6500000,
    "dateAdded": 1786433745,
    "dateExpiration": 1791617745
   },
@@ -100256,6 +100260,153 @@
    "soldOutPrice": null,
    "dateAdded": 1786440606,
    "dateExpiration": 1791624606
+  },
+  "161463": {
+   "idItem": 7984,
+   "idCategory": 7,
+   "title": "Full Monde Set Purgatory Camo PLUS Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 2250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786442017,
+   "dateExpiration": 1791626017
+  },
+  "161464": {
+   "idItem": null,
+   "idCategory": 23,
+   "title": "FR-86 Crafted HP 111800",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786442554,
+   "dateExpiration": 1791626554
+  },
+  "161465": {
+   "idItem": 8006,
+   "idCategory": 7,
+   "title": "Testudo Deathblow Set(No Backpack)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786442613,
+   "dateExpiration": 1791626613
+  },
+  "161467": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786442815,
+   "dateExpiration": 1791626815
+  },
+  "161470": {
+   "idItem": 1909,
+   "idCategory": 22,
+   "title": "TS-2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786443519,
+   "dateExpiration": 1791627519
+  },
+  "161471": {
+   "idItem": null,
+   "idCategory": 111,
+   "title": "DCHS Comp-Boards Full set for Executive Hangar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786443576,
+   "dateExpiration": 1791627576
+  },
+  "161478": {
+   "idItem": 6477,
+   "idCategory": 18,
+   "title": "S-38 \"Scorched\" Pistol",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786444342,
+   "dateExpiration": 1791628342
   }
  }
 }
