@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-11",
-  "updates": 178,
-  "totalListings": 4655,
+  "updates": 179,
+  "totalListings": 4662,
   "totalSold": 196,
-  "distinctItems": 1046
+  "distinctItems": 1049
  },
  "listings": {
   "156580": {
@@ -93965,6 +93965,10 @@
     {
      "d": "2026-08-11",
      "p": 30000000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 40000000
     }
    ],
    "soldOut": false,
@@ -99228,6 +99232,153 @@
    "soldOutPrice": null,
    "dateAdded": 1786435094,
    "dateExpiration": 1791619094
+  },
+  "161436": {
+   "idItem": 6919,
+   "idCategory": 3,
+   "title": "Morozov-SH-S Helmet Spitfire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 850000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786435271,
+   "dateExpiration": 1791619271
+  },
+  "161437": {
+   "idItem": 6728,
+   "idCategory": 5,
+   "title": "PAB-1 Core Cry-Astro Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786435467,
+   "dateExpiration": 1791619467
+  },
+  "161438": {
+   "idItem": 4269,
+   "idCategory": 17,
+   "title": "Sion \"Scorched\" Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 475000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786435524,
+   "dateExpiration": 1791619524
+  },
+  "161439": {
+   "idItem": 7359,
+   "idCategory": 5,
+   "title": "Antium Core Storm",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786435604,
+   "dateExpiration": 1791619604
+  },
+  "161440": {
+   "idItem": null,
+   "idCategory": 5,
+   "title": "Morozov-SH Core Vesper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786435846,
+   "dateExpiration": 1791619846
+  },
+  "161441": {
+   "idItem": null,
+   "idCategory": 111,
+   "title": "DCHS Compboard Full set for exec hangars 1-7",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786436007,
+   "dateExpiration": 1791620007
+  },
+  "161442": {
+   "idItem": 2330,
+   "idCategory": 1,
+   "title": "ORC-mkX Arms (Modified)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786436154,
+   "dateExpiration": 1791620154
   }
  }
 }
