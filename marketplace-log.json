@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-11",
-  "updates": 171,
-  "totalListings": 4587,
+  "updates": 172,
+  "totalListings": 4597,
   "totalSold": 189,
   "distinctItems": 1040
  },
@@ -89248,6 +89248,10 @@
     {
      "d": "2026-08-10",
      "p": 45000000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 40000000
     }
    ],
    "soldOut": false,
@@ -95876,6 +95880,10 @@
     {
      "d": "2026-08-11",
      "p": 1200000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 750000
     }
    ],
    "soldOut": false,
@@ -95985,6 +95993,10 @@
     {
      "d": "2026-08-11",
      "p": 1870000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 900000
     }
    ],
    "soldOut": false,
@@ -96069,6 +96081,10 @@
     {
      "d": "2026-08-10",
      "p": 120000
+    },
+    {
+     "d": "2026-08-11",
+     "p": 90000
     }
    ],
    "soldOut": false,
@@ -97756,6 +97772,216 @@
    "soldOutPrice": null,
    "dateAdded": 1786408837,
    "dateExpiration": 1791592837
+  },
+  "161331": {
+   "idItem": 693,
+   "idCategory": 18,
+   "title": "ParaMed \"Cyanosis\" Medical Device",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786409159,
+   "dateExpiration": 1791593159
+  },
+  "161332": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle CRAFTED 950-970 Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 5500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786409449,
+   "dateExpiration": 1791593449
+  },
+  "161333": {
+   "idItem": 6280,
+   "idCategory": 2,
+   "title": "Zeus Exploration Backpack Starscape",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786409515,
+   "dateExpiration": 1791593515
+  },
+  "161334": {
+   "idItem": 2625,
+   "idCategory": 18,
+   "title": "P6-LR Sniper Rifle Crafted 959 Hadanite and 970 IRON !",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786409733,
+   "dateExpiration": 1791593733
+  },
+  "161337": {
+   "idItem": 2224,
+   "idCategory": 18,
+   "title": "FS-9 LMG 970 QUALITY IRON !",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786410069,
+   "dateExpiration": 1791594069
+  },
+  "161339": {
+   "idItem": 5807,
+   "idCategory": 24,
+   "title": "Sol-III Flight Suit Bombardier",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786410386,
+   "dateExpiration": 1791594386
+  },
+  "161341": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron - 972 .8 scu 30,000,000",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 972,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786410980,
+   "dateExpiration": 1791594980
+  },
+  "161342": {
+   "idItem": 2278,
+   "idCategory": 18,
+   "title": "P8-AR Assault Rifle Crafted 970 Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 6500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786411137,
+   "dateExpiration": 1791595137
+  },
+  "161345": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite 870q 3.871 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 870,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 6500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786412105,
+   "dateExpiration": 1791596105
+  },
+  "161346": {
+   "idItem": null,
+   "idCategory": 55,
+   "title": "SPECIAL FORCES OPERATER // BEHIND ENEMY LINES",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-11",
+   "lastSeen": "2026-08-11",
+   "prices": [
+    {
+     "d": "2026-08-11",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786412109,
+   "dateExpiration": 1791596109
   }
  }
 }
