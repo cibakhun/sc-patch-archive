@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-12",
-  "updates": 195,
-  "totalListings": 5024,
+  "updates": 196,
+  "totalListings": 5028,
   "totalSold": 212,
   "distinctItems": 1087
  },
@@ -107245,6 +107245,90 @@
    "soldOutPrice": null,
    "dateAdded": 1786513307,
    "dateExpiration": 1791697307
+  },
+  "161782": {
+   "idItem": 8026,
+   "idCategory": 7,
+   "title": "Corbel Crush Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786514731,
+   "dateExpiration": 1791698731
+  },
+  "161783": {
+   "idItem": 6014,
+   "idCategory": 7,
+   "title": "Geist Armor Snow Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 7500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786514906,
+   "dateExpiration": 1791698906
+  },
+  "161784": {
+   "idItem": 5387,
+   "idCategory": 18,
+   "title": "Boomtube \"Mean Green\" Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786515543,
+   "dateExpiration": 1791699543
+  },
+  "161785": {
+   "idItem": 8046,
+   "idCategory": 7,
+   "title": "DCP Hunter Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786515812,
+   "dateExpiration": 1791699812
   }
  }
 }
