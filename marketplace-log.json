@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-12",
-  "updates": 193,
-  "totalListings": 5007,
+  "updates": 194,
+  "totalListings": 5011,
   "totalSold": 212,
   "distinctItems": 1085
  },
@@ -96145,6 +96145,10 @@
     {
      "d": "2026-08-11",
      "p": 900000
+    },
+    {
+     "d": "2026-08-12",
+     "p": 750000
     }
    ],
    "soldOut": false,
@@ -98989,6 +98993,10 @@
     {
      "d": "2026-08-11",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-12",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -106876,6 +106884,90 @@
    "soldOutPrice": null,
    "dateAdded": 1786505833,
    "dateExpiration": 1791689833
+  },
+  "161756": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 16000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786506553,
+   "dateExpiration": 1791690553
+  },
+  "161758": {
+   "idItem": 7670,
+   "idCategory": 18,
+   "title": "WTS Custodian \"Scorched\" SMG 975Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786507962,
+   "dateExpiration": 1791691962
+  },
+  "161760": {
+   "idItem": 7993,
+   "idCategory": 7,
+   "title": "Overlord Cardinal Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786509162,
+   "dateExpiration": 1791693162
+  },
+  "161761": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle (crafted) 938q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 938,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 2300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786509430,
+   "dateExpiration": 1791693430
   }
  }
 }
