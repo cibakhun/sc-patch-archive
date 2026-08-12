@@ -81,7 +81,7 @@ export const HELP = {
     'mining.purpose':
       'Ein Erz anklicken — Fundorte, Physik, Brechbarkeit mit deiner Ausrüstung und der Refinery-Ertrag stehen sofort daneben.',
     'mining.step1': 'Links ein Erz anklicken. Der Punkt auf der Kachel sagt, ob es mit deiner Ausrüstung brechbar ist.',
-    'mining.step2': 'Unten die Ausrüstung setzen — Laser, Module, Gadget, Felsmasse und Station. Alle Erze werden daraufhin neu bewertet.',
+    'mining.step2': 'Unten die Ausrüstung setzen — Laser, Module, Gadget, Felsmasse und Station. Das Messgerät rechts daneben sagt sofort, ob der Brocken bricht; alle Erze werden neu bewertet.',
     'mining.step3': 'In der Mitte Physik, Qualitätsstufen, Steine, Fundorte und die Stationen nach Ertrag ablesen.',
     'mining.step4': 'Mit dem Stern ein Erz nach rechts heften und den Scanwert eintippen, um eine Signatur zuzuordnen.',
     'mining.ctl.search': 'Freitextsuche über Mineralnamen und Fundorte.',
@@ -249,7 +249,7 @@ export const HELP = {
     'mining.purpose':
       'Pick an ore — locations, physics, breakability with your gear and refinery yield stand right beside it.',
     'mining.step1': 'Click an ore on the left. The dot on the tile tells you whether your gear can break it.',
-    'mining.step2': 'Set your gear along the bottom — laser, modules, gadget, rock mass and station. Every ore is re-judged for it.',
+    'mining.step2': 'Set your gear along the bottom — laser, modules, gadget, rock mass and station. The gauge right beside it tells you at once whether the rock breaks; every ore is re-judged.',
     'mining.step3': 'Read physics, quality tiers, rocks, locations and the stations ranked by yield in the middle.',
     'mining.step4': 'Star an ore to pin it on the right, then type a scan value to identify a signature.',
     'mining.ctl.search': 'Free-text search across mineral names and locations.',
