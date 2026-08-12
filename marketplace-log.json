@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-12",
-  "updates": 202,
-  "totalListings": 5076,
-  "totalSold": 214,
+  "updates": 203,
+  "totalListings": 5081,
+  "totalSold": 217,
   "distinctItems": 1090
  },
  "listings": {
@@ -98188,6 +98188,10 @@
     {
      "d": "2026-08-12",
      "p": 5500000
+    },
+    {
+     "d": "2026-08-12",
+     "p": 4500000
     }
    ],
    "soldOut": false,
@@ -98305,6 +98309,10 @@
     {
      "d": "2026-08-12",
      "p": 4000000
+    },
+    {
+     "d": "2026-08-12",
+     "p": 3500000
     }
    ],
    "soldOut": false,
@@ -98422,6 +98430,10 @@
     {
      "d": "2026-08-12",
      "p": 4500000
+    },
+    {
+     "d": "2026-08-12",
+     "p": 3500000
     }
    ],
    "soldOut": false,
@@ -98596,9 +98608,9 @@
      "p": 2900000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-12",
+   "soldOutPrice": 2900000,
    "dateAdded": 1786417293,
    "dateExpiration": 1791601293
   },
@@ -98701,9 +98713,9 @@
      "p": 5000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-12",
+   "soldOutPrice": 5000000,
    "dateAdded": 1786417694,
    "dateExpiration": 1791601694
   },
@@ -102751,9 +102763,9 @@
      "p": 7000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-12",
+   "soldOutPrice": 7000000,
    "dateAdded": 1786461989,
    "dateExpiration": 1791645989
   },
@@ -106846,6 +106858,10 @@
     {
      "d": "2026-08-12",
      "p": 4000000
+    },
+    {
+     "d": "2026-08-12",
+     "p": 3000000
     }
    ],
    "soldOut": false,
@@ -108365,6 +108381,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786538693,
    "dateExpiration": 1791722693
+  },
+  "161850": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786539780,
+   "dateExpiration": 1791723780
+  },
+  "161851": {
+   "idItem": 4467,
+   "idCategory": 4,
+   "title": "ADP-mk4 Legs Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786539788,
+   "dateExpiration": 1791723788
+  },
+  "161854": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "WTB Pure Carinite. FAST RESPONSE WITHIN 8H",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 12500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786540524,
+   "dateExpiration": 1791724524
+  },
+  "161861": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "WTS - NDB-30 Repeater 300k per unit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786541887,
+   "dateExpiration": 1791725887
+  },
+  "161862": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "WTS - Full set of 4x NDB-30 Repeaters",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786542014,
+   "dateExpiration": 1791726014
   }
  }
 }
