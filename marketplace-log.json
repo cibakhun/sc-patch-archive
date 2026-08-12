@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-12",
-  "updates": 192,
-  "totalListings": 5004,
+  "updates": 193,
+  "totalListings": 5007,
   "totalSold": 212,
-  "distinctItems": 1083
+  "distinctItems": 1085
  },
  "listings": {
   "156580": {
@@ -106813,6 +106813,69 @@
    "soldOutPrice": null,
    "dateAdded": 1786501534,
    "dateExpiration": 1791685534
+  },
+  "161747": {
+   "idItem": null,
+   "idCategory": 41,
+   "title": "Professional Mining Services - For Hire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786504036,
+   "dateExpiration": 1796872036
+  },
+  "161749": {
+   "idItem": 8092,
+   "idCategory": 3,
+   "title": "Oni Kiba Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786504801,
+   "dateExpiration": 1791688801
+  },
+  "161754": {
+   "idItem": 5747,
+   "idCategory": 4,
+   "title": "Citadel Legs Icefall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786505833,
+   "dateExpiration": 1791689833
   }
  }
 }
