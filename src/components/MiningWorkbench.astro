@@ -230,7 +230,13 @@ const S = de ? {
   physics: 'Physik', resistance: 'Widerstand', effective: 'effektiv', instability: 'Instabilität',
   density: 'Dichte', window: 'Fenster', bands: 'Qualitätsstufen', signature: 'Signatur',
   breakable: 'Brechbar', marginal: 'Grenzwertig', impossible: 'Nicht brechbar', noPhys: 'keine Physikdaten',
-  needed: 'benötigt', avail: 'verfügbar', ratio: 'Verhältnis',
+  /* ⚠ `avail` und `laserDps` sind ZWEI verschiedene Zahlen: `avail` steht im
+     Messgeraet und ist der Schaden NACH dem Widerstand des Erzes (effDps),
+     `laserDps` daneben in der Rig-Ablesung ist die rohe Ausgabe des Lasers
+     mal Modulfaktor. Seit beide in derselben Leiste stehen, darf die zweite
+     nicht mehr „verfügbar" heissen — 4.683 und 1.569 unter demselben Wort
+     nebeneinander liest sich als Widerspruch. */
+  needed: 'benötigt', avail: 'verfügbar', laserDps: 'Laser-DPS', ratio: 'Verhältnis',
   laser: 'Laser', modules: 'Module', gadget: 'Gadget', rock: 'Felsmasse', station: 'Station',
   none: '—', pin: 'Anheften', unpin: 'Lösen', noLocs: 'Keine Fundorte in den Spieldaten.',
   ship: 'Schiff', hand: 'Hand', roc: 'ROC', refinable: 'raffinierbar',
@@ -245,7 +251,7 @@ const S = de ? {
   physics: 'Physics', resistance: 'Resistance', effective: 'effective', instability: 'Instability',
   density: 'Density', window: 'Window', bands: 'Quality tiers', signature: 'Signature',
   breakable: 'Breakable', marginal: 'Marginal', impossible: 'Not breakable', noPhys: 'no physics data',
-  needed: 'needed', avail: 'available', ratio: 'Ratio',
+  needed: 'needed', avail: 'available', laserDps: 'Laser DPS', ratio: 'Ratio',
   laser: 'Laser', modules: 'Modules', gadget: 'Gadget', rock: 'Rock mass', station: 'Station',
   none: '—', pin: 'Pin', unpin: 'Unpin', noLocs: 'No locations in the game data.',
   ship: 'Ship', hand: 'Hand', roc: 'ROC', refinable: 'refinable',
@@ -330,23 +336,6 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
             </button>
           </div>
         </div>
-        {/* Messgeraet statt Balkenpaar — aus Skizze 004 C, dort verworfen und
-            jetzt nachgeholt: das Urteil ist die einzige Ablesung mit einer
-            echten Spanne (schlecht / grenzwertig / gut). */}
-        <div class="wb__gauge" id="wb-gauge" data-help={hlp('verdict')}>
-          <div class="wb__gtop">
-            <span class="wb__gst"><span class="wb__dot" id="wb-vddot"></span><span id="wb-vdlbl"></span></span>
-            <span class="wb__lbl" id="wb-vdsub"></span>
-            <b class="num" id="wb-vdratio"></b>
-          </div>
-          <div class="wb__scale" id="wb-scale"></div>
-          <div class="wb__gfoot">
-            <span class="wb__lbl">0</span>
-            <span class="wb__lbl" set:text={S.grenzZone} />
-            <span class="wb__lbl" set:text={S.guteZone} />
-            <span class="wb__lbl">2,0</span>
-          </div>
-        </div>
         <div class="wb__scroll">
           <div class="wb__sec"><h4 set:text={S.physics} /><div class="wb__stats" id="wb-stats"></div></div>
           <div class="wb__sec"><h4 set:text={S.bands} /><div class="wb__bands" id="wb-bands"></div></div>
@@ -387,8 +376,38 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       <select class="wb__sel" id="wb-ref" data-help={hlp('station')}>{refineries.map((r, i) => (<option value={String(i)} set:text={r.n} />))}</select>
     </label>
     <div class="wb__rstat">
-      <span class="wb__kv"><span class="wb__lbl" set:text={S.avail} /><b class="num" id="wb-avail">—</b></span>
+      <span class="wb__kv"><span class="wb__lbl" set:text={S.laserDps} /><b class="num" id="wb-avail">—</b></span>
       <span class="wb__kv"><span class="wb__lbl">Res-Mod</span><b class="num" id="wb-resmod">—</b></span>
+    </div>
+    {/* Messgeraet statt Balkenpaar — aus Skizze 004 C, dort verworfen und
+        jetzt nachgeholt: das Urteil ist die einzige Ablesung mit einer
+        echten Spanne (schlecht / grenzwertig / gut).
+
+        Es stand bis 12.08. oben in der Mittelspalte und steht jetzt hier:
+        gerechnet wird es aus Laser, Modulen, Gadget und Felsmasse — also aus
+        genau den fuenf Reglern links daneben. Ursache und Wirkung liegen
+        damit in EINER Leiste, und Spalte 2 gewinnt die Hoehe fuer Physik,
+        Qualitaetsstufen und Steine.
+        ⚠ Die Leiste darf dabei NICHT wachsen: `.wb__grid` rechnet ihre Hoehe
+        als `100vh - var(--wb-chrome)`, und bei 1280x720 haengt daran, ob alle
+        37 Kacheln ohne Scrollen ins Bild passen. Deshalb waagerecht, flach und
+        mit der grossen Kennzahl als zweite Rasterspalte statt als dritte
+        Zeile — nachgemessen in .planning/notes/mining-werkbank-rigbalken.md. */}
+    <div class="wb__gauge" id="wb-gauge" data-help={hlp('verdict')}>
+      <div class="wb__gcol">
+        <div class="wb__gtop">
+          <span class="wb__gst"><span class="wb__dot" id="wb-vddot"></span><span id="wb-vdlbl"></span></span>
+          <span class="wb__lbl" id="wb-vdsub"></span>
+        </div>
+        <div class="wb__scale" id="wb-scale"></div>
+        <div class="wb__gfoot">
+          <span class="wb__lbl">0</span>
+          <span class="wb__lbl" set:text={S.grenzZone} />
+          <span class="wb__lbl" set:text={S.guteZone} />
+          <span class="wb__lbl" set:text={de ? '2,0' : '2.0'} />
+        </div>
+      </div>
+      <b class="num" id="wb-vdratio"></b>
     </div>
   </div>
 </section>
@@ -399,7 +418,11 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 <style is:inline>
 .wb{max-width:1560px;margin:0 auto;padding:0 clamp(1rem,4vw,2rem) 1.4rem;
   display:flex;flex-direction:column;gap:10px;font-family:var(--font-ui,system-ui);
-  line-height:1.3;position:relative;isolation:isolate}
+  line-height:1.3;position:relative;isolation:isolate;
+  /* Alles, was oberhalb und unterhalb des Rasters Hoehe kostet: Titelstreifen,
+     Rig-Leiste, Abstaende. Steht als Variable, weil die Rig-Leiste je nach
+     Breite umbricht und dann mehr braucht — s. die Medienabfragen unten. */
+  --wb-chrome:236px}
 /* Grund: kein Foto, aber auch keine tote Flaeche — zwei Rastermassstaebe,
    zwei Lichtabfaelle, Vignette. Gibt dem Weichzeichner der Paneele etwas zu
    tun und nimmt der Seite das Prototyp-Grau. */
@@ -437,7 +460,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
      1920x1080 acht Pixel ueber die Fensterunterkante. Die Konstante deckt
      Titelstreifen, Rig-Leiste und Abstaende ab; bei 1280x720 bleiben damit
      rund 25 px Luft, bei 1080 rund 2. */
-  height:clamp(430px,calc(100vh - 236px),980px)}
+  height:clamp(430px,calc(100vh - var(--wb-chrome)),980px)}
 .wb__mid{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-height:0;min-width:0}
 .wb__scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
 
@@ -538,29 +561,6 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__pinbig.is-on{background:var(--accent-2);color:var(--ink);box-shadow:none}
 .wb__pinbig__ico{font-size:var(--fs-9);line-height:1}
 
-/* Messgeraet */
-.wb__gauge{margin:0 14px 11px;padding:9px 11px 8px;border-radius:9px;position:relative;
-  background:color-mix(in srgb,var(--ink) 30%,transparent);
-  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 6%,transparent)}
-.wb__gauge::before{content:'';position:absolute;left:4px;top:4px;width:9px;height:9px;
-  border-left:1px solid currentColor;border-top:1px solid currentColor;opacity:.5}
-.wb__gauge.is-ok{color:#6FBE7A}.wb__gauge.is-warn{color:var(--accent-2)}.wb__gauge.is-bad{color:#D2705A}
-.wb__gtop{display:flex;align-items:baseline;gap:9px;margin-bottom:7px}
-.wb__gst{display:flex;align-items:center;gap:7px;font-size:var(--fs-8);font-weight:600;color:currentColor}
-.wb__gtop b{margin-left:auto;font-size:var(--fs-11);font-weight:600;line-height:1;color:currentColor}
-.wb__scale{position:relative;height:20px;border-radius:4px;overflow:hidden;
-  background:color-mix(in srgb,var(--ink) 62%,transparent);
-  box-shadow:inset 0 2px 4px color-mix(in srgb,var(--ink) 70%,transparent)}
-.wb__scale i.tick{position:absolute;top:0;bottom:0;width:1px;background:color-mix(in srgb,var(--text) 9%,transparent)}
-.wb__scale i.tick.maj{background:color-mix(in srgb,var(--text) 20%,transparent)}
-.wb__scale i.zone{position:absolute;top:0;bottom:0}
-.wb__scale i.zone.w{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--accent-2) 18%,transparent) 0 4px,transparent 4px 8px)}
-.wb__scale i.zone.g{background:repeating-linear-gradient(45deg,color-mix(in srgb,#6FBE7A 20%,transparent) 0 4px,transparent 4px 8px)}
-.wb__scale i.fill{position:absolute;left:0;top:3px;bottom:3px;border-radius:2px;
-  background:repeating-linear-gradient(90deg,currentColor 0 4px,transparent 4px 6px)}
-.wb__scale i.mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--text)}
-.wb__gfoot{display:flex;justify-content:space-between;margin-top:4px;gap:6px}
-
 .wb__sec{padding:0 14px 11px}
 .wb__sec h4{font-size:var(--fs-4);font-weight:600;color:color-mix(in srgb,var(--muted) 88%,transparent);
   margin:0 0 7px;padding-bottom:5px;position:relative}
@@ -626,6 +626,11 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 
 /* ---------------- Rig ---------------- */
 .wb__rig{flex:0 0 auto;flex-direction:row;align-items:center;gap:16px;flex-wrap:wrap;padding:9px 14px}
+/* ⚠ Ein Umbruch dieser Zeile kostet 68 px Hoehe — nachgemessen. Die duerfen
+   nirgends anfallen, siehe --wb-chrome. Deshalb geben die Bediengruppen
+   NICHTS ab (sonst wandern die Felsmasse-Chips in eine zweite Zeile und die
+   Leiste waechst genauso); schmaler wird ausschliesslich das Messgeraet. */
+.wb__rgrp,.wb__rstat{flex:0 0 auto}
 .wb__rig::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;
   background:repeating-linear-gradient(90deg,var(--accent-2) 0 5px,transparent 5px 10px);opacity:.5}
 .wb__rgrp{display:flex;flex-direction:column;gap:3px}
@@ -652,11 +657,72 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__kv{text-align:right}
 .wb__kv b{display:block;font-size:var(--fs-8);font-weight:600;margin-top:1px;color:var(--accent-2)}
 
+/* Messgeraet — seit 12.08. das letzte Glied der Rig-Leiste (s. Markup).
+   Zwei Rasterspalten statt drei Zeilen: der Ablesewert steht NEBEN dem
+   Balken, nicht darueber. Das ist der Unterschied zwischen 53 px (drei
+   Zeilen) und einer Bauhoehe, die unter der Bedienspalte daneben bleibt —
+   und damit zwischen einer wachsenden Leiste und `--wb-chrome` unveraendert. */
+.wb__gauge{flex:1 1 330px;min-width:190px;max-width:620px;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:11px;
+  padding:3px 11px;border-radius:8px;position:relative;
+  background:color-mix(in srgb,var(--ink) 30%,transparent);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 6%,transparent)}
+.wb__gauge.is-ok{color:#6FBE7A}.wb__gauge.is-warn{color:var(--accent-2)}.wb__gauge.is-bad{color:#D2705A}
+.wb__gcol{min-width:0}
+.wb__gtop{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.wb__gst{display:flex;align-items:center;gap:6px;font-size:var(--fs-4);font-weight:600;
+  color:currentColor;white-space:nowrap;flex:0 0 auto}
+/* Die Auslesung „x verfuegbar · y benoetigt" ist das Erste, was gehen darf,
+   wenn die Leiste eng wird — Worturteil, Balken und Kennzahl tragen die
+   Aussage auch ohne sie. */
+.wb__gtop .wb__lbl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__gauge > b{font-size:var(--fs-11);font-weight:600;line-height:1;color:currentColor;
+  font-variant-numeric:tabular-nums}
+.wb__scale{position:relative;height:13px;border-radius:3px;overflow:hidden;
+  background:color-mix(in srgb,var(--ink) 62%,transparent);
+  box-shadow:inset 0 2px 4px color-mix(in srgb,var(--ink) 70%,transparent)}
+.wb__scale i.tick{position:absolute;top:0;bottom:0;width:1px;background:color-mix(in srgb,var(--text) 9%,transparent)}
+.wb__scale i.tick.maj{background:color-mix(in srgb,var(--text) 20%,transparent)}
+.wb__scale i.zone{position:absolute;top:0;bottom:0}
+.wb__scale i.zone.w{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--accent-2) 18%,transparent) 0 4px,transparent 4px 8px)}
+.wb__scale i.zone.g{background:repeating-linear-gradient(45deg,color-mix(in srgb,#6FBE7A 20%,transparent) 0 4px,transparent 4px 8px)}
+.wb__scale i.fill{position:absolute;left:0;top:2px;bottom:2px;border-radius:2px;
+  background:repeating-linear-gradient(90deg,currentColor 0 4px,transparent 4px 6px)}
+.wb__scale i.mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--text)}
+.wb__gfoot{display:flex;justify-content:space-between;gap:6px}
+.wb__gfoot .wb__lbl{font-size:var(--fs-1);white-space:nowrap}
+
 .wb__search:focus-visible,.wb__scan:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
 .wb__slot:focus-visible,.wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible,
 .wb__pinbig:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 
 .wb__seg{display:none}
+/* Bis rund 1465 px ist die Rig-Zeile voll: mit der Vorgabebreite des
+   Messgeraets bricht sie um, und der Umbruch kostet 68 px — bei 1280x720
+   genau die, die das Kachelraster ins Scrollen kippen und die Werkbank
+   68 px unter die Falz schieben (beides nachgemessen, vorher/nachher in
+   .planning/notes/mining-werkbank-rigbalken.md). Hier wird deshalb
+   zusammengerueckt statt umgebrochen.
+
+   Was dabei weichen muss, ist die Auslesung „x verfuegbar · y benoetigt":
+   sie braucht rund 170 px, im Messgeraet stehen bei 1280 aber nur 182 fuer
+   die ganze Textspalte — mit ihr drin bricht sie mitten im Wort ab, und
+   abgeschnittener Text liest sich als Defekt. Die Zonenbeschriftung bleibt
+   dagegen (rund 162 px bei --fs-1, gemessen ohne Abschnitt) — sie erklaert
+   den Balken, und der Balken ist hier der Zweck der Uebung. Die Zahlen der
+   Auslesung stehen weiter im Messgeraet, sobald Platz ist, und die
+   Schwellen zusaetzlich in der Hilfeblase.
+   1500 statt der gemessenen Umbruchkante 1465, damit Schriftrundungen
+   nicht doch hineinlaufen. */
+@media(max-width:1500px){
+  .wb__rig{gap:9px;padding:9px 12px}
+  .wb__rig .wb__sel{max-width:150px}
+  .wb__rig .wb__slot{max-width:104px}
+  .wb__rig .wb__chip{padding:4px 7px}
+  .wb__rstat{gap:12px}
+  .wb__gauge{flex:1 1 210px;min-width:170px;gap:9px;padding:4px 9px}
+  .wb__gtop .wb__lbl{display:none}
+}
 /* Die Mittelspalte teilt sich erst, wenn dafuer Platz ist. Bei 1280 blieben
    sonst zwei Teilspalten zu je 263 px — dort passt kein Fundortname mehr.
    Einspaltig hat sie dann die vollen ~576 px und scrollt innen. */
@@ -678,11 +744,20 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .wb__grid.has-seg.seg-sig > .wb__pane:last-of-type{display:flex}
   .wb__grid.has-seg.seg-view > .wb__mid{display:grid;grid-template-columns:1fr;gap:10px}
   .wb__rig{gap:10px}.wb__rstat{margin-left:0;width:100%}
+  /* Auf dem Handy steht das Messgeraet ohnehin in einer eigenen Zeile ueber
+     die volle Breite — die Enge von oben gilt hier nicht, die Auslesung
+     bekommt ihren Platz zurueck. */
+  .wb__gauge{flex:1 1 100%;max-width:none;padding:5px 11px}
+  /* Umbrechen statt abschneiden: senkrecht ist hier Platz, waagerecht nicht
+     — „1.652 verfügbar · 1.600 benötigt" passt in der langen deutschen
+     Fassung sonst nicht neben das Worturteil. */
+  .wb__gtop{flex-wrap:wrap}
+  .wb__gtop .wb__lbl{display:block}
 }
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"] .wb__dot.is-ok{color:#036b26}
 :root[data-theme="light"] .wb__dot.is-bad{color:#9b2a10}
+:root[data-theme="light"] .wb__slot.is-full{color:#036b26}
 :root[data-theme="light"] .wb__gauge.is-ok{color:#036b26}
 :root[data-theme="light"] .wb__gauge.is-bad{color:#9b2a10}
-:root[data-theme="light"] .wb__slot.is-full{color:#036b26}
 </style>
