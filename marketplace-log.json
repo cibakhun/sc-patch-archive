@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-12",
-  "updates": 196,
-  "totalListings": 5028,
+  "updates": 197,
+  "totalListings": 5040,
   "totalSold": 212,
-  "distinctItems": 1087
+  "distinctItems": 1088
  },
  "listings": {
   "156580": {
@@ -102246,6 +102246,10 @@
     {
      "d": "2026-08-11",
      "p": 450000
+    },
+    {
+     "d": "2026-08-12",
+     "p": 400000
     }
    ],
    "soldOut": false,
@@ -102313,6 +102317,10 @@
     {
      "d": "2026-08-11",
      "p": 400000
+    },
+    {
+     "d": "2026-08-12",
+     "p": 200000
     }
    ],
    "soldOut": false,
@@ -102355,6 +102363,10 @@
     {
      "d": "2026-08-11",
      "p": 800000
+    },
+    {
+     "d": "2026-08-12",
+     "p": 350000
     }
    ],
    "soldOut": false,
@@ -102888,6 +102900,10 @@
     {
      "d": "2026-08-11",
      "p": 500000
+    },
+    {
+     "d": "2026-08-12",
+     "p": 250000
     }
    ],
    "soldOut": false,
@@ -102930,6 +102946,10 @@
     {
      "d": "2026-08-11",
      "p": 700000
+    },
+    {
+     "d": "2026-08-12",
+     "p": 350000
     }
    ],
    "soldOut": false,
@@ -102993,6 +103013,10 @@
     {
      "d": "2026-08-11",
      "p": 800000
+    },
+    {
+     "d": "2026-08-12",
+     "p": 400000
     }
    ],
    "soldOut": false,
@@ -106847,6 +106871,27 @@
    "dateAdded": 1786504036,
    "dateExpiration": 1796872036
   },
+  "161748": {
+   "idItem": null,
+   "idCategory": 61,
+   "title": "WTS UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786504689,
+   "dateExpiration": 1791688689
+  },
   "161749": {
    "idItem": 8092,
    "idCategory": 3,
@@ -106868,6 +106913,90 @@
    "dateAdded": 1786504801,
    "dateExpiration": 1791688801
   },
+  "161750": {
+   "idItem": null,
+   "idCategory": 61,
+   "title": "WTS Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786504956,
+   "dateExpiration": 1791688956
+  },
+  "161751": {
+   "idItem": null,
+   "idCategory": 61,
+   "title": "WTS ASD Secure Drive",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786505123,
+   "dateExpiration": 1791689123
+  },
+  "161752": {
+   "idItem": 2722,
+   "idCategory": 18,
+   "title": "Animus Missile Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 320000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786505402,
+   "dateExpiration": 1791689402
+  },
+  "161753": {
+   "idItem": 5142,
+   "idCategory": 18,
+   "title": "Boomtube Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786505605,
+   "dateExpiration": 1791689605
+  },
   "161754": {
    "idItem": 5747,
    "idCategory": 4,
@@ -106888,6 +107017,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786505833,
    "dateExpiration": 1791689833
+  },
+  "161755": {
+   "idItem": 3463,
+   "idCategory": 18,
+   "title": "Demon Fang Combat Knife",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786506105,
+   "dateExpiration": 1791690105
   },
   "161756": {
    "idItem": 5011,
@@ -106930,6 +107080,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786507962,
    "dateExpiration": 1791691962
+  },
+  "161759": {
+   "idItem": 3349,
+   "idCategory": 18,
+   "title": "Scourge Railgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786508670,
+   "dateExpiration": 1791692670
   },
   "161760": {
    "idItem": 7993,
@@ -107141,6 +107312,69 @@
    "dateAdded": 1786511354,
    "dateExpiration": 1791695354
   },
+  "161770": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786511582,
+   "dateExpiration": 1791695582
+  },
+  "161771": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 1700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786511690,
+   "dateExpiration": 1791695690
+  },
+  "161772": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786511819,
+   "dateExpiration": 1791695819
+  },
   "161773": {
    "idItem": 3992,
    "idCategory": 87,
@@ -107246,6 +107480,27 @@
    "dateAdded": 1786513307,
    "dateExpiration": 1791697307
   },
+  "161780": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "NDB-30 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786513403,
+   "dateExpiration": 1791697403
+  },
   "161782": {
    "idItem": 8026,
    "idCategory": 7,
@@ -107329,6 +107584,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786515812,
    "dateExpiration": 1791699812
+  },
+  "161787": {
+   "idItem": 6008,
+   "idCategory": 61,
+   "title": "Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786520747,
+   "dateExpiration": 1791704747
   }
  }
 }
