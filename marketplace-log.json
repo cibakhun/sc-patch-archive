@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-12",
-  "updates": 197,
-  "totalListings": 5040,
+  "updates": 198,
+  "totalListings": 5041,
   "totalSold": 212,
   "distinctItems": 1088
  },
@@ -107605,6 +107605,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786520747,
    "dateExpiration": 1791704747
+  },
+  "161789": {
+   "idItem": 3349,
+   "idCategory": 18,
+   "title": "Scourge Railgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786521946,
+   "dateExpiration": 1791705946
   }
  }
 }
