@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-12",
-  "updates": 201,
-  "totalListings": 5059,
-  "totalSold": 212,
+  "updates": 202,
+  "totalListings": 5076,
+  "totalSold": 214,
   "distinctItems": 1090
  },
  "listings": {
@@ -107058,9 +107058,9 @@
      "p": 16000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-12",
+   "soldOutPrice": 16000000,
    "dateAdded": 1786506553,
    "dateExpiration": 1791690553
   },
@@ -107940,9 +107940,9 @@
      "p": 700000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-12",
+   "soldOutPrice": 700000,
    "dateAdded": 1786534147,
    "dateExpiration": 1791718147
   },
@@ -108008,6 +108008,363 @@
    "soldOutPrice": null,
    "dateAdded": 1786534894,
    "dateExpiration": 1791718894
+  },
+  "161820": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite 632Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 632,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786535152,
+   "dateExpiration": 1791719152
+  },
+  "161821": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite 597Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 597,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786535411,
+   "dateExpiration": 1791719411
+  },
+  "161822": {
+   "idItem": 5848,
+   "idCategory": 36,
+   "title": "Agricium 796Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 796,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786535611,
+   "dateExpiration": 1791719611
+  },
+  "161823": {
+   "idItem": 5848,
+   "idCategory": 36,
+   "title": "Agricium 588Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 588,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 180000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786535768,
+   "dateExpiration": 1791719768
+  },
+  "161824": {
+   "idItem": 5887,
+   "idCategory": 36,
+   "title": "Corundum 971Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 971,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786536074,
+   "dateExpiration": 1791720074
+  },
+  "161825": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 1 SCU 970 (4.9)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786536136,
+   "dateExpiration": 1791720136
+  },
+  "161826": {
+   "idItem": 5887,
+   "idCategory": 36,
+   "title": "Corundum 904Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 904,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786536309,
+   "dateExpiration": 1791720309
+  },
+  "161827": {
+   "idItem": 5887,
+   "idCategory": 36,
+   "title": "Corundum 665Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 665,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786536452,
+   "dateExpiration": 1791720452
+  },
+  "161828": {
+   "idItem": 5887,
+   "idCategory": 36,
+   "title": "Corundum 504Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 504,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786536601,
+   "dateExpiration": 1791720601
+  },
+  "161829": {
+   "idItem": 5859,
+   "idCategory": 36,
+   "title": "Aslarite 741Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 741,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786536844,
+   "dateExpiration": 1791720844
+  },
+  "161830": {
+   "idItem": 5859,
+   "idCategory": 36,
+   "title": "Aslarite 575Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 575,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786537027,
+   "dateExpiration": 1791721027
+  },
+  "161832": {
+   "idItem": 5923,
+   "idCategory": 36,
+   "title": "Laranite 707Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 707,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786537213,
+   "dateExpiration": 1791721213
+  },
+  "161833": {
+   "idItem": 5923,
+   "idCategory": 36,
+   "title": "Laranite 698Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 698,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786537355,
+   "dateExpiration": 1791721355
+  },
+  "161837": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite Q959 / Q867",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786538016,
+   "dateExpiration": 1791722016
+  },
+  "161838": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle 970q Iron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786538145,
+   "dateExpiration": 1791722145
+  },
+  "161839": {
+   "idItem": 4744,
+   "idCategory": 87,
+   "title": "Janalite Q926 10 in stock",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 926,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786538391,
+   "dateExpiration": 1791722391
+  },
+  "161843": {
+   "idItem": 5161,
+   "idCategory": 18,
+   "title": "Killshot Rifle 970q Iron avg 950q recoil",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786538693,
+   "dateExpiration": 1791722693
   }
  }
 }
