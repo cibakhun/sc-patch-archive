@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-12",
-  "updates": 198,
-  "totalListings": 5041,
+  "updates": 199,
+  "totalListings": 5042,
   "totalSold": 212,
   "distinctItems": 1088
  },
@@ -107626,6 +107626,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786521946,
    "dateExpiration": 1791705946
+  },
+  "161799": {
+   "idItem": 8039,
+   "idCategory": 7,
+   "title": "Defiance Sunchaser Set w/Backpack & Extras",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-12",
+   "lastSeen": "2026-08-12",
+   "prices": [
+    {
+     "d": "2026-08-12",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786528709,
+   "dateExpiration": 1791712709
   }
  }
 }
