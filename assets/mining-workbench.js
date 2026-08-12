@@ -101,9 +101,12 @@
       if (hit && S.sys) hit = m.systems.indexOf(S.sys) >= 0;
       el.style.display = hit ? '' : 'none';
       el.classList.toggle('is-sel', m.name === S.sel);
+      /* Der Zustand steckt in der Klasse, nicht im Zeichen: das Symbol bleibt
+         stehen, nur die Flaeche faerbt sich (wie bei .wb__chip.is-on). Fuer
+         Screenreader traegt ihn aria-pressed — ein Umschalter, kein Link. */
       var pin = el.querySelector('.wb__pin'), on = S.pins.indexOf(m.name) >= 0;
       pin.classList.toggle('is-on', on);
-      pin.textContent = on ? '★' : '☆';
+      pin.setAttribute('aria-pressed', String(on));
       pin.setAttribute('aria-label', (on ? T.unpin : T.pin) + ': ' + m.name);
       if (hit) shown++;
     }
@@ -138,7 +141,6 @@
       big.setAttribute('data-pin', m.name);
       big.classList.toggle('is-on', isPinned);
       big.setAttribute('aria-pressed', String(isPinned));
-      $('wb-pinsel-ico').textContent = isPinned ? '★' : '☆';
       $('wb-pinsel-txt').textContent = isPinned ? T.unpin : T.pin;
     }
     $('wb-tags').innerHTML =
@@ -263,6 +265,131 @@
   }
 
   function renderAll() { renderList(); renderDetail(); renderPins(); save(); }
+
+  /* ==========================================================
+     PRESETS — benannte Zusammenstellungen der Signaturenliste
+     ==========================================================
+     KONTOGEBUNDEN, im Gegensatz zur angehefteten Liste selbst: die bleibt im
+     localStorage, weil sie der Arbeitsstand ist und ohne Konto funktionieren
+     muss. Ans Konto geht nur, was man benennt und wiederholt aufruft.
+
+     Kein supabase-js auf dieser Seite (DOC-06: die Themenseiten laden nur
+     account-lite.js). Der PostgREST-Aufruf und die Session kommen aus
+     window.VBAccount — Session-Format und Refresh-Sperre ein zweites Mal zu
+     bauen waere eine zweite Wahrheit.
+
+     ⚠ Schluessel der Eintraege ist der MINERALNAME, nicht der Index in
+     mining-db.json: der verschiebt sich mit jedem Datamine-Lauf. Genau dieser
+     Fehler ist bei Crafting einmal bezahlt worden. Beim Laden wird gegen
+     `byName` gefiltert — ein Erz, das ein Patch entfernt, faellt still raus
+     statt die Liste zu vergiften. */
+  var TBL = 'mining_sig_presets';
+  var preSel = $('wb-preset'), prePick = $('wb-pre-pick'), preEdit = $('wb-pre-edit');
+  var preMsg = $('wb-pre-msg'), preGuest = $('wb-pre-guest'), preName = $('wb-pre-name');
+  var preDel = $('wb-pre-del'), preLogin = $('wb-pre-login');
+  var presets = [];   // [{name, minerals}]
+  var preSess = null; // gueltige Session oder null (= Gast)
+
+  function preSay(text, ms) {
+    if (!preMsg) return;
+    preMsg.textContent = text || '';
+    preMsg.hidden = !text;
+    if (text && ms !== 0) setTimeout(function () { if (preMsg.textContent === text) preMsg.hidden = true; }, ms || 2600);
+  }
+  function preFill(selected) {
+    if (!preSel) return;
+    var html = '<option value="">' + esc(T.presetNone) + '</option>';
+    for (var i = 0; i < presets.length; i++) {
+      html += '<option value="' + esc(presets[i].name) + '"' +
+        (presets[i].name === selected ? ' selected' : '') + '>' + esc(presets[i].name) + '</option>';
+    }
+    preSel.innerHTML = html;
+    preDel.disabled = !preSel.value;
+  }
+  function preLoad() {
+    return window.VBAccount.rest(preSess, 'GET', TBL + '?select=name,minerals&order=name.asc')
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (rows) {
+        presets = (rows || []).map(function (r) {
+          return { name: r.name, minerals: (r.minerals || []).filter(function (n) { return !!byName[n]; }) };
+        });
+        preFill(preSel ? preSel.value : '');
+      })
+      .catch(function () { /* offline: die Auswahl bleibt leer, das Werkzeug laeuft weiter */ });
+  }
+  function preSave(name) {
+    if (!S.pins.length) { preSay(T.presetEmpty); return; }
+    var body = [{ name: name, minerals: S.pins.slice() }];
+    /* Upsert auf (user_id, name): derselbe Name ueberschreibt, statt an einem
+       Unique-Konflikt zu scheitern. user_id setzt die Spalten-Vorgabe
+       (default auth.uid()), der Client schickt sie nicht mit. */
+    return window.VBAccount.rest(preSess, 'POST', TBL + '?on_conflict=user_id,name', body,
+      'resolution=merge-duplicates,return=minimal')
+      .then(function (r) {
+        if (!r.ok) { preSay(T.presetFail, 4000); return; }
+        preSay(T.presetSaved);
+        return preLoad().then(function () { preFill(name); });
+      })
+      .catch(function () { preSay(T.presetFail, 4000); });
+  }
+  function preDrop(name) {
+    return window.VBAccount.rest(preSess, 'DELETE', TBL + '?name=eq.' + encodeURIComponent(name))
+      .then(function (r) {
+        if (!r.ok) { preSay(T.presetFail, 4000); return; }
+        preSay(T.presetDeleted);
+        return preLoad().then(function () { preFill(''); });
+      })
+      .catch(function () { preSay(T.presetFail, 4000); });
+  }
+  function preApply(name) {
+    for (var i = 0; i < presets.length; i++) {
+      if (presets[i].name !== name) continue;
+      S.pins = presets[i].minerals.slice();
+      renderAll();
+      return;
+    }
+  }
+  function preMode(editing) {
+    if (!prePick) return;
+    prePick.hidden = editing;
+    preEdit.hidden = !editing;
+    if (editing) { preName.value = preSel.value || ''; preName.focus(); preName.select(); }
+  }
+  function preBoot() {
+    if (!prePick || !window.VBAccount) return;
+    if (preLogin) preLogin.href = window.VBAccount.loginHref();
+    window.VBAccount.session().then(function (s) {
+      preSess = s;
+      var on = !!s;
+      prePick.hidden = !on;
+      preGuest.hidden = on;
+      if (on) preLoad();
+    }).catch(function () { /* Gast-Ansicht bleibt stehen */ });
+  }
+  if (window.VBAccount) preBoot();
+  else addEventListener('vb-account-ready', preBoot, { once: true });
+
+  if (prePick) {
+    preSel.addEventListener('change', function () {
+      preDel.disabled = !preSel.value;
+      if (preSel.value) preApply(preSel.value);
+    });
+    $('wb-pre-new').addEventListener('click', function () { preMode(true); });
+    $('wb-pre-cancel').addEventListener('click', function () { preMode(false); });
+    preDel.addEventListener('click', function () {
+      if (preSel.value) preDrop(preSel.value);
+    });
+    $('wb-pre-ok').addEventListener('click', function () {
+      var n = (preName.value || '').trim();
+      if (!n) { preName.focus(); return; }
+      preMode(false);
+      preSave(n);
+    });
+    preName.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); $('wb-pre-ok').click(); }
+      else if (e.key === 'Escape') { e.preventDefault(); preMode(false); }
+    });
+  }
 
   var grid = document.querySelector('.wb__grid');
   function mountSeg() {

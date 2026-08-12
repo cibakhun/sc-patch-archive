@@ -200,7 +200,12 @@ const fracturingPath = href('/fracturing.html', lang);
 const S = de ? {
   minerals: 'Minerale', view: 'Ansicht', signatures: 'Signaturen', locations: 'Fundorte',
   search: 'Mineral suchen',
-  scanPlaceholder: 'Scanwert', pinHint: 'Erz anklicken und oben auf „Anheften" tippen — oder den Stern auf der Kachel. Diese Spalte zeigt dann seine Signatur mal Clustergröße.',
+  scanPlaceholder: 'Scanwert', pinHint: 'Auf einer Erz-Kachel links den Anheft-Knopf drücken — oder oben am gewählten Erz „Anheften". Diese Spalte zeigt dann seine Signatur mal Clustergröße.',
+  presets: 'Presets', presetNone: '— kein Preset —', presetSave: 'Speichern',
+  presetDel: 'Löschen', presetName: 'Name des Presets', presetCancel: 'Abbrechen',
+  presetGuest: 'Zusammenstellungen speichern:', presetLogin: 'anmelden',
+  presetSaved: 'Gespeichert.', presetDeleted: 'Gelöscht.',
+  presetEmpty: 'Erst Erze anheften, dann speichern.', presetFail: 'Speichern fehlgeschlagen.',
   physics: 'Physik', resistance: 'Widerstand', instability: 'Instabilität',
   density: 'Dichte', window: 'Fenster', bands: 'Qualitätsstufen', signature: 'Signatur',
   noPhys: 'keine Physikdaten',
@@ -213,7 +218,12 @@ const S = de ? {
 } : {
   minerals: 'Minerals', view: 'View', signatures: 'Signatures', locations: 'Locations',
   search: 'Search mineral',
-  scanPlaceholder: 'Scan value', pinHint: 'Pick an ore and hit “Pin” above — or the star on its tile. This column then shows its signature times cluster size.',
+  scanPlaceholder: 'Scan value', pinHint: 'Hit the pin button on an ore tile at the left — or “Pin” above the selected ore. This column then shows its signature times cluster size.',
+  presets: 'Presets', presetNone: '— no preset —', presetSave: 'Save',
+  presetDel: 'Delete', presetName: 'Preset name', presetCancel: 'Cancel',
+  presetGuest: 'Save your sets:', presetLogin: 'sign in',
+  presetSaved: 'Saved.', presetDeleted: 'Deleted.',
+  presetEmpty: 'Pin some ores first, then save.', presetFail: 'Saving failed.',
   physics: 'Physics', resistance: 'Resistance', instability: 'Instability',
   density: 'Density', window: 'Window', bands: 'Quality tiers', signature: 'Signature',
   noPhys: 'no physics data',
@@ -236,6 +246,20 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 ---
 
 <section class="wb" id="db" data-wb>
+  {/* EIN Symbol fuer 38 Knoepfe (37 Kacheln + der grosse am gewaehlten Erz).
+      Als <use>-Verweis statt 38-mal dasselbe Pfad-d im HTML — und als Symbol
+      statt Schriftzeichen, weil „☆/★" in jeder Schrift anders aussieht, nicht
+      zur Strichstaerke der uebrigen Symbole passt und sich nicht faerben
+      laesst wie ein Icon. Der Zustand kommt NICHT aus einem zweiten Symbol,
+      sondern aus `.is-on` am Knopf: das Skript tauscht damit kein Markup mehr
+      aus. Reissbrettnadel, nicht Stern — die Handlung heisst „Anheften". */}
+  <svg class="wb__sprite" aria-hidden="true" focusable="false" width="0" height="0">
+    <symbol id="wb-i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9.5 3h5M11 3v6.2L7.4 13h9.2L13 9.2V3M12 13v8" />
+    </symbol>
+  </svg>
+
   <div class="wb__grid">
 
     <!-- ========================================= Spalte 1: alle 37 Erze -->
@@ -253,15 +277,26 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
           {systems.map((s) => (<button type="button" class="wb__chip" data-sys={s} set:text={s} />))}
         </div>
       </div>
-      {/* Kachelraster statt Liste: alle 37 ohne Scrollen — das war die
-          urspruengliche Vorgabe und der erste Kritikpunkt der Abnahme. */}
+      {/* Kachelraster, seit 12.08.2026 in GROSS. Vorher: 79x41 px, Name auf
+          rund 54 px beschnitten, Anheft-Ziel 28 px in der Ecke ueber der
+          Signatur. Der Nutzer hat das zweimal als zu klein gemeldet — beim
+          zweiten Mal ausdruecklich mit „wir haben da genug platz".
+          Jetzt vier statt fuenf Spalten in einer breiteren Saeule: der Name
+          bekommt die volle Kachelbreite (rund 94 px), Signatur und
+          Anheft-Knopf teilen sich die zweite Zeile.
+          ⚠ Das kostet die alte Zusage „alle 37 ohne Scrollen bei 1280x720":
+          bei 1920x1080 stehen weiterhin alle 37 im Bild, bei 1280x720 scrollt
+          die Liste. Gemessen und begruendet in
+          .planning/notes/signaturliste-anheften.md. */}
       <div class="wb__scroll" id="wb-list">
         <div class="wb__tiles" data-help={hlp('tiles')}>
           {minerals.map((m) => (
             <div class={`wb__tile${m.name === sel.name ? ' is-sel' : ''}`} data-min={m.name} role="button" tabindex="0" title={m.name}>
               <span class="wb__tn" set:text={m.name} />
               <span class="wb__ts num" set:text={m.sig ? String(m.sig) : '—'} />
-              <button type="button" class="wb__pin" data-pin={m.name} aria-label={`${S.pin}: ${m.name}`}>☆</button>
+              <button type="button" class="wb__pin" data-pin={m.name} aria-pressed="false" aria-label={`${S.pin}: ${m.name}`}>
+                <svg class="wb__pin__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg>
+              </button>
             </div>
           ))}
         </div>
@@ -281,13 +316,11 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
               <span class="wb__lbl" set:text={S.signature} />
               <b class="num" id="wb-sig" set:text={sel.sig ? String(sel.sig) : S.none} />
             </div>
-            {/* Der Stern auf der Kachel ist 16 px gross — als einziger Weg in die
-                Signaturenliste war er zu fummelig (Rueckmeldung des Nutzers).
-                Hier der zweite, grosse Weg am gerade gewaehlten Erz. Traegt
+            {/* Der zweite, grosse Weg am gerade gewaehlten Erz. Traegt
                 `data-pin` erst zur Laufzeit; der delegierte Klick-Handler
                 erkennt ihn dadurch ohne Sonderfall. */}
             <button type="button" class="wb__pinbig" id="wb-pinsel" aria-pressed="false" data-help={hlp('pinbtn')}>
-              <span class="wb__pinbig__ico" id="wb-pinsel-ico" aria-hidden="true">☆</span>
+              <svg class="wb__pinbig__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg>
               <span id="wb-pinsel-txt" set:text={S.pin} />
             </button>
           </div>
@@ -313,6 +346,37 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       <div class="wb__scanbox">
         <input class="wb__scan num" id="wb-scan" type="text" inputmode="numeric" placeholder={S.scanPlaceholder} aria-label={S.scanPlaceholder} data-help={hlp('scan')} />
       </div>
+
+      {/* Presets — benannte Zusammenstellungen der Liste, kontogebunden
+          (Tabelle mining_sig_presets, RLS wie crafting_entries).
+          ⚠ Die ANGEHEFTETE Liste selbst bleibt im localStorage: sie ist der
+          Arbeitsstand und muss ohne Konto funktionieren. Ans Konto geht nur,
+          was man benennt und wieder aufruft. Zwei getrennte Dinge; sie in
+          einen Topf zu werfen hiesse, Gaesten das Anheften wegzunehmen.
+          Serverseitig steht hier der Gast-Zustand — welcher Fall gilt, weiss
+          erst der Browser (VBAccount.session()). */}
+      <div class="wb__pre" id="wb-pre" data-help={hlp('presets')}>
+        <div class="wb__pre__row" id="wb-pre-pick" hidden>
+          <select class="wb__pre__sel" id="wb-preset" aria-label={S.presets}>
+            <option value="" set:text={S.presetNone} />
+          </select>
+          <button type="button" class="wb__pre__b" id="wb-pre-new" title={S.presetSave} aria-label={S.presetSave}>+</button>
+          <button type="button" class="wb__pre__b" id="wb-pre-del" title={S.presetDel} aria-label={S.presetDel} disabled>×</button>
+        </div>
+        {/* Eigene Zeile statt window.prompt(): der Dialog ist in vielen
+            Browsern unterdrueckt, sieht ueberall anders aus und laesst sich
+            nicht beschriften. */}
+        <div class="wb__pre__row" id="wb-pre-edit" hidden>
+          <input class="wb__pre__in" id="wb-pre-name" type="text" maxlength="60" placeholder={S.presetName} aria-label={S.presetName} />
+          <button type="button" class="wb__pre__b is-go" id="wb-pre-ok" title={S.presetSave} aria-label={S.presetSave}>✓</button>
+          <button type="button" class="wb__pre__b" id="wb-pre-cancel" title={S.presetCancel} aria-label={S.presetCancel}>×</button>
+        </div>
+        <p class="wb__pre__msg" id="wb-pre-msg" hidden></p>
+        <p class="wb__pre__guest" id="wb-pre-guest">
+          <span set:text={S.presetGuest} /> <a id="wb-pre-login" href="#" set:text={S.presetLogin} />
+        </p>
+      </div>
+
       <div class="wb__scroll" id="wb-pins" data-help={hlp('pins')}></div>
     </div>
   </div>
@@ -379,7 +443,11 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     color-mix(in srgb,var(--accent) 40%,transparent) calc(50% - .5px) calc(50% + .5px),
     var(--bg) calc(50% + .5px) 100%)}
 
-.wb__grid{display:grid;grid-template-columns:420px 1fr 232px;gap:10px;min-height:0;
+/* 470/262 statt 420/232 (12.08.2026): die Erzliste braucht die Breite fuer
+   groessere Kacheln, die Signaturenspalte fuer die Preset-Zeile. Die 80 px
+   kommen aus der Mittelspalte, die seit dem Auszug des Fracturing-Rechners
+   Luft hat. */
+.wb__grid{display:grid;grid-template-columns:470px 1fr 262px;gap:10px;min-height:0;
   /* 236 statt 226: am gebauten Stand nachgemessen lief die Werkbank bei
      1920x1080 acht Pixel ueber die Fensterunterkante. Die Konstante deckt
      Titelstreifen, Rig-Leiste und Abstaende ab; bei 1280x720 bleiben damit
@@ -421,43 +489,46 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
 .wb__chip:hover{background:color-mix(in srgb,var(--surface-2) 90%,var(--text));color:var(--text)}
 .wb__chip.is-on{background:var(--accent-2);color:var(--ink);font-weight:600}
-/* Gemessen am gebauten Stand: mit 41 px Kachelhoehe endete die letzte Kachel
-   bei 722 px — zwei Pixel unter der Falz bei 1280x720, also doch mit
-   Scrollen. 3 px Polsterung statt 5 bringt ueber zehn Reihen 20 px und
-   damit alle 37 sicher ins Bild. */
-.wb__tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:3px;padding:0 8px 8px}
-/* Eine Rasterspalte, nicht mehr zwei: die erste trug den Brechbarkeits-Punkt,
-   den es hier seit 12.08. nicht mehr gibt. */
-.wb__tile{position:relative;display:grid;grid-template-columns:1fr;grid-template-rows:auto auto;
-  gap:0;align-content:center;padding:3px 8px;border-radius:6px;cursor:pointer;
+/* Vier Spalten statt fuenf, in einer 470 statt 420 px breiten Saeule: 110 px
+   je Kachel statt 79. Das ist der Platz, aus dem der Name seine volle Breite
+   und der Anheft-Knopf sein eigenes Feld bekommt. */
+.wb__tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:5px;padding:0 8px 8px}
+/* Zwei Zeilen: oben der Name ueber die GANZE Breite (vorher teilte er sie mit
+   nichts, war aber auf 54 px gedrueckt, weil der Stern rechts darueber lag),
+   unten Signatur und Anheft-Knopf nebeneinander. */
+.wb__tile{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:auto auto;gap:1px 6px;align-content:center;
+  padding:5px 6px 5px 9px;border-radius:8px;cursor:pointer;
   background:color-mix(in srgb,var(--ink) 26%,transparent);
   box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 5%,transparent);
   transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
 .wb__tile:hover{background:color-mix(in srgb,var(--surface-2) 88%,var(--text))}
 .wb__tile.is-sel{background:color-mix(in srgb,var(--accent-2) 20%,transparent);
   box-shadow:inset 0 0 0 1px var(--accent-2)}
-.wb__tn{font-size:var(--fs-4);font-weight:500;color:var(--text);
+.wb__tn{grid-column:1/-1;font-size:var(--fs-5);font-weight:500;color:var(--text);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wb__ts{font-size:var(--fs-2);color:var(--accent);padding-right:26px}
-/* ⚠ Der Stern stand auf opacity:0 und wurde nur bei :hover sichtbar. Auf
-   Touch gibt es kein Hover — die Signaturen-Spalte blieb dort dauerhaft leer,
-   obwohl ihr eigener Hinweis auf genau diesen Stern verweist; mit Tastatur war
-   er ein fokussierbarer, aber unsichtbarer Halt (WCAG 2.4.7). Er steht jetzt
-   dauerhaft an, nur zurueckgenommen — und unten rechts statt oben rechts, wo
-   er sonst unter dem Mineralnamen laege. */
-.wb__pin{position:absolute;bottom:1px;right:3px;width:22px;height:22px;display:grid;place-items:center;
-  border:0;background:transparent;color:color-mix(in srgb,var(--muted) 55%,transparent);
-  cursor:pointer;border-radius:5px;font-size:var(--fs-6);line-height:1;opacity:.55;
-  transition:opacity var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
-/* Das Tippziel war 16x16 — zu klein, vom Nutzer als „zu schwer" gemeldet.
-   Sichtbar bleibt der Stern zurueckgenommen (37 Kacheln vertragen keine
-   Knopfleiste), greifbar wird er ueber ein unsichtbares Pseudo-Element, ohne
-   dass sich am Raster etwas verschiebt. Nach INNEN kann es frei wachsen; nach
-   aussen begrenzt die Kachelkante, weil dort die Nachbarkachel obenauf liegt —
-   deshalb sitzt der Stern 3 px von der Kante statt buendig. Der bequeme Weg
-   ist ohnehin der grosse Knopf am gewaehlten Erz (.wb__pinbig). */
-.wb__pin::before{content:'';position:absolute;inset:-6px}
-.wb__tile:hover .wb__pin,.wb__pin:focus-visible,.wb__pin.is-on{opacity:1}
+.wb__ts{align-self:center;font-size:var(--fs-3);color:var(--accent)}
+/* ⚠ Zwei Fehlschlaege stecken in diesem Knopf, beide vom Nutzer gemeldet:
+   erst war er unsichtbar (opacity:0 + :hover — auf Touch existiert er dann
+   gar nicht), dann mit 28 px Tippziel „zu schwer". Er ist jetzt ein eigenes
+   Feld in der Kachel statt ein Aufkleber in der Ecke: 28x28 sichtbar, ueber
+   das Pseudo-Element 40x36 greifbar, und er verschiebt nichts mehr, weil das
+   Raster ihm seine Spalte gibt. Dauerhaft sichtbar, nur zurueckgenommen. */
+.wb__pin{grid-column:2;align-self:center;width:28px;height:28px;display:grid;place-items:center;
+  border:0;background:color-mix(in srgb,var(--ink) 34%,transparent);
+  color:color-mix(in srgb,var(--muted) 78%,transparent);
+  cursor:pointer;border-radius:7px;line-height:0;
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__pin__i{width:15px;height:15px;pointer-events:none}
+/* Tippziel ueber die sichtbare Flaeche hinaus. Nach aussen begrenzt die
+   Kachelkante, weil dort die Nachbarkachel obenauf liegt — deshalb 6 px
+   Polsterung rechts statt buendig. */
+.wb__pin::before{content:'';position:absolute;inset:auto -6px -5px auto;width:40px;height:36px}
+.wb__tile:hover .wb__pin{background:color-mix(in srgb,var(--ink) 55%,transparent);color:var(--text)}
+/* Angeheftet ist ein Zustand, kein Zeichenwechsel: dieselbe Sprache wie
+   .wb__chip.is-on und .wb__pinbig.is-on — gefuellte Flaeche in --accent-2. */
+.wb__pin.is-on{background:var(--accent-2);color:var(--ink)}
+.wb__tile:hover .wb__pin.is-on{background:var(--accent-2);color:var(--ink)}
 .wb__pin.is-on{color:var(--accent-2)}
 
 /* ---------------- Spalte 2 ---------------- */
@@ -480,7 +551,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
 .wb__pinbig:hover{background:color-mix(in srgb,var(--accent-2) 24%,var(--surface))}
 .wb__pinbig.is-on{background:var(--accent-2);color:var(--ink);box-shadow:none}
-.wb__pinbig__ico{font-size:var(--fs-9);line-height:1}
+.wb__pinbig__i{width:17px;height:17px;flex:0 0 auto}
 
 .wb__sec{padding:0 14px 11px}
 .wb__sec h4{font-size:var(--fs-4);font-weight:600;color:color-mix(in srgb,var(--muted) 88%,transparent);
@@ -531,6 +602,32 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   padding:8px 10px;font-size:var(--fs-9);text-align:center;border-radius:7px;
   box-shadow:inset 0 1px 3px color-mix(in srgb,var(--ink) 60%,transparent)}
 .wb__scan::placeholder{color:color-mix(in srgb,var(--muted) 80%,transparent);font-family:var(--font-ui,inherit);font-size:var(--fs-5)}
+/* Preset-Zeile. Zwei Zustaende teilen sich denselben Platz (Auswahl bzw.
+   Namenseingabe) — beide sind eine Zeile hoch, damit die Spalte nicht
+   springt, wenn man auf „+" drueckt. */
+.wb__pre{flex:0 0 auto;padding:0 9px 8px}
+.wb__pre__row{display:flex;gap:5px;align-items:center}
+.wb__pre__row[hidden]{display:none}
+.wb__pre__sel,.wb__pre__in{flex:1;min-width:0;border:0;border-radius:7px;font-family:inherit;
+  font-size:var(--fs-4);padding:6px 8px;color:var(--text);
+  /* Deckend mischen — ein halbtransparenter Grund vererbt sich in Chrome an
+     die aufgeklappte Liste und rechnet sie ueber Weiss unleserlich. */
+  background:color-mix(in srgb,var(--ink) 34%,var(--surface))}
+.wb__pre__sel option{background:var(--surface);color:var(--text)}
+.wb__pre__b{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;border:0;
+  border-radius:7px;cursor:pointer;font-family:inherit;font-size:var(--fs-6);line-height:1;
+  background:color-mix(in srgb,var(--ink) 34%,transparent);color:var(--muted);
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__pre__b:hover:not(:disabled){background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text)}
+.wb__pre__b.is-go{background:color-mix(in srgb,var(--accent-2) 22%,transparent);color:var(--accent-2)}
+.wb__pre__b:disabled{opacity:.32;cursor:not-allowed}
+.wb__pre__msg{margin:5px 0 0;font-size:var(--fs-3);color:var(--accent-2)}
+.wb__pre__msg[hidden]{display:none}
+.wb__pre__guest{margin:0;font-size:var(--fs-3);line-height:1.4;
+  color:color-mix(in srgb,var(--muted) 88%,transparent)}
+.wb__pre__guest[hidden]{display:none}
+.wb__pre__guest a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+
 .wb__pin-item{padding:7px 9px;margin:0 6px 3px;border-radius:8px;
   background:color-mix(in srgb,var(--ink) 22%,transparent)}
 .wb__pin-top{display:flex;align-items:center;gap:7px}
@@ -583,7 +680,10 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 
 .wb__search:focus-visible,.wb__scan:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
 .wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible,
+.wb__pre__sel:focus-visible,.wb__pre__in:focus-visible,.wb__pre__b:focus-visible,
 .wb__frac:focus-visible,.wb__pinbig:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+/* Das Sprite traegt nur <symbol> und darf keinen Platz belegen. */
+.wb__sprite{position:absolute;width:0;height:0;overflow:hidden}
 
 .wb__seg{display:none}
 /* Die Mittelspalte teilt sich erst, wenn dafuer Platz ist. Bei 1280 blieben
