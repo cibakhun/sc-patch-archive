@@ -19,8 +19,16 @@
 //   · Substanz: die erste Fassung ERSETZTE Funktionen durch Zusammenfassungen.
 //     Neu und aus denselben Spieldaten: welche Steine dieses Erz fuehren
 //     (211 Kompositionen), welche der 20 Stationen am meisten dafuer zahlt,
-//     die volle Fracturing-Auslesung statt nur eines Urteils, Blueprint- und
-//     Schiffsbezug.
+//     Blueprint- und Schiffsbezug.
+//
+// ⚠ 12.08.2026 — KEIN FRACTURING MEHR HIER. Laser, Module, Gadget,
+// Felsmasse, das Messgeraet, die Brechbarkeits-Punkte auf den Kacheln, der
+// Filter „nur brechbar" und der Physikwert „effektiv" sind auf eine eigene
+// Seite gezogen: components/FracturingCalc.astro auf /fracturing.html. Das
+// war eine ausdrueckliche Entscheidung, keine Auslassung — diese Werkbank
+// beantwortet „welches Erz, wo, was ist es wert?", der Rechner „krieg ich
+// es auf?". Wer hier wieder ein Urteil einbaut, dreht das zurueck.
+// Verbunden sind die beiden nur ueber ?mineral=<Name>, in beide Richtungen.
 //
 // FALLEN, die hier bewusst umgangen sind:
 //  · Astro 5.18 verschluckt das schliessende Tag, wenn ein Element auf
@@ -161,42 +169,6 @@ const minerals = (DB.minerals as any[])
   })
   .sort((a, b) => rarIdx(a.rarity) - rarIdx(b.rarity) || a.name.localeCompare(b.name));
 
-/* ⚠ Das Feld heisst `moduleSlots`. Die zweite Fassung las `l.slots` — das gibt
-   es nicht, `|| 0` fing den Fehlgriff still auf, und ALLE 14 Laser kamen mit
-   null Modulplaetzen heraus. Folge: die drei Modulknoepfe dauerhaft gesperrt,
-   die 26 Module unerreichbar, `dpsMult` immer 1 — die Brech-Rechnung ignorierte
-   Module vollstaendig. Am gebauten Payload nachgewiesen: Summe aller slots war
-   0. Gleiche Bauart wie der `maxSize`-Fehlgriff bei den Schiffen. */
-const lasers = (MODEL.lasers as any[])
-  .filter((l) => !l.builtIn && l.mining && l.mining.dps)
-  .map((l) => ({ n: l.name, size: l.size, slots: l.moduleSlots || 0, dps: Math.round(l.mining.dps), mods: l.mods || {} }))
-  .sort((a, b) => b.dps - a.dps);
-const modules = (MODEL.modules as any[])
-  .map((m) => ({ n: m.name, type: m.type, mult: m.miningMult || 1, mods: m.mods || {} }))
-  .sort((a, b) => a.n.localeCompare(b.n));
-const gadgets = (MODEL.gadgets as any[]).map((g) => ({ n: g.name, mods: g.mods || {} }));
-
-const P: any = (MODEL.params as any).ship || {};
-const MASS_PRESETS = [
-  { m: 2000, de: 'klein', en: 'small' }, { m: 8000, de: 'mittel', en: 'medium' },
-  { m: 22000, de: 'gross', en: 'large' }, { m: 45000, de: 'riesig', en: 'huge' },
-];
-const DEFAULT_MASS = 8000;
-
-/* Zeichengleich mit FracturingCalc.astro:200-219. */
-function verdict(res: number | null, dps: number, dpsMult: number, resMod: number, mass: number) {
-  if (res === null) return { cls: 'na', ratio: null };
-  const R = Math.max(0, res);
-  const Reff = R * (1 + resMod / 100);
-  const chargeFactor = Math.max(0.05, 1 - Reff);
-  const effDps = dps * dpsMult * chargeFactor;
-  const decay = (P.decayPerMass || 0.2) * mass;
-  const ratio = decay > 0 ? effDps / decay : 99;
-  return { cls: ratio <= 1 ? 'bad' : ratio < 1.3 ? 'warn' : 'ok', ratio };
-}
-const L0 = lasers[0];
-const ssrVerdict = (m: any) => verdict(m.res, L0.dps, 1, L0.mods.resistance || 0, DEFAULT_MASS);
-
 const sel = minerals[0];
 const RAR_LBL: Record<string, { de: string; en: string }> = {
   legendary: { de: 'legendär', en: 'legendary' }, epic: { de: 'episch', en: 'epic' },
@@ -223,51 +195,41 @@ for (const [meth, ids] of Object.entries(VEHICLE_FOR)) {
     .map((s: any) => ({ n: s.name, h: s.href, ore: s.ore }));
 }
 
+const fracturingPath = href('/fracturing.html', lang);
+
 const S = de ? {
   minerals: 'Minerale', view: 'Ansicht', signatures: 'Signaturen', locations: 'Fundorte',
-  search: 'Mineral suchen', onlyBreakable: 'nur brechbar',
+  search: 'Mineral suchen',
   scanPlaceholder: 'Scanwert', pinHint: 'Erz anklicken und oben auf „Anheften" tippen — oder den Stern auf der Kachel. Diese Spalte zeigt dann seine Signatur mal Clustergröße.',
-  physics: 'Physik', resistance: 'Widerstand', effective: 'effektiv', instability: 'Instabilität',
+  physics: 'Physik', resistance: 'Widerstand', instability: 'Instabilität',
   density: 'Dichte', window: 'Fenster', bands: 'Qualitätsstufen', signature: 'Signatur',
-  breakable: 'Brechbar', marginal: 'Grenzwertig', impossible: 'Nicht brechbar', noPhys: 'keine Physikdaten',
-  /* ⚠ `avail` und `laserDps` sind ZWEI verschiedene Zahlen: `avail` steht im
-     Messgeraet und ist der Schaden NACH dem Widerstand des Erzes (effDps),
-     `laserDps` daneben in der Rig-Ablesung ist die rohe Ausgabe des Lasers
-     mal Modulfaktor. Seit beide in derselben Leiste stehen, darf die zweite
-     nicht mehr „verfügbar" heissen — 4.683 und 1.569 unter demselben Wort
-     nebeneinander liest sich als Widerspruch. */
-  needed: 'benötigt', avail: 'verfügbar', laserDps: 'Laser-DPS', ratio: 'Verhältnis',
-  laser: 'Laser', modules: 'Module', gadget: 'Gadget', rock: 'Felsmasse', station: 'Station',
+  noPhys: 'keine Physikdaten',
+  station: 'Station', fracturing: 'Fracturing-Rechner', fracturingGo: 'Bricht der Brocken? →',
   none: '—', pin: 'Anheften', unpin: 'Lösen', noLocs: 'Keine Fundorte in den Spieldaten.',
   ship: 'Schiff', hand: 'Hand', roc: 'ROC', refinable: 'raffinierbar',
   rocks: 'Steine mit diesem Erz', ofRocks: 'von', chance: 'Chance', share: 'Anteil',
   bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl',
   usedIn: 'Blueprints', ships: 'Schiffe', openCrafting: 'Crafting öffnen',
-  guteZone: 'gut ab 1,30', grenzZone: 'grenzwertig ab 1,00',
 } : {
   minerals: 'Minerals', view: 'View', signatures: 'Signatures', locations: 'Locations',
-  search: 'Search mineral', onlyBreakable: 'breakable only',
+  search: 'Search mineral',
   scanPlaceholder: 'Scan value', pinHint: 'Pick an ore and hit “Pin” above — or the star on its tile. This column then shows its signature times cluster size.',
-  physics: 'Physics', resistance: 'Resistance', effective: 'effective', instability: 'Instability',
+  physics: 'Physics', resistance: 'Resistance', instability: 'Instability',
   density: 'Density', window: 'Window', bands: 'Quality tiers', signature: 'Signature',
-  breakable: 'Breakable', marginal: 'Marginal', impossible: 'Not breakable', noPhys: 'no physics data',
-  needed: 'needed', avail: 'available', laserDps: 'Laser DPS', ratio: 'Ratio',
-  laser: 'Laser', modules: 'Modules', gadget: 'Gadget', rock: 'Rock mass', station: 'Station',
+  noPhys: 'no physics data',
+  station: 'Station', fracturing: 'Fracturing calculator', fracturingGo: 'Will it break? →',
   none: '—', pin: 'Pin', unpin: 'Unpin', noLocs: 'No locations in the game data.',
   ship: 'Ship', hand: 'Hand', roc: 'ROC', refinable: 'refinable',
   rocks: 'Rocks carrying this ore', ofRocks: 'of', chance: 'chance', share: 'share',
   bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick',
   usedIn: 'Blueprints', ships: 'Ships', openCrafting: 'Open crafting',
-  guteZone: 'good from 1.30', grenzZone: 'marginal from 1.00',
 };
 
 const payload = {
-  lang, minerals, lasers, modules, gadgets, refineries, profiles,
-  params: { decayPerMass: P.decayPerMass || 0.2 },
-  massPresets: MASS_PRESETS.map((p) => ({ m: p.m, l: p[lang] })),
-  defaultMass: DEFAULT_MASS, t: S,
+  lang, minerals, refineries, profiles, t: S,
   rar: Object.fromEntries(Object.entries(RAR_LBL).map(([k, v]) => [k, v[lang]])),
   craftingPath: href(craftingPath, lang),
+  fracturingPath,
   shipsByMethod,
 };
 const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
@@ -284,30 +246,24 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
           <input class="wb__search" id="wb-q" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
           <span class="wb__c" id="wb-count">{minerals.length}</span>
         </div>
-        {/* Ein Kasten fuer beide Chipsorten: zwei Kaesten wuerden eine zweite
-            Zeile kosten und das Hoehenbudget der Kacheln angreifen. Der
-            Brechbar-Knopf traegt seinen eigenen Anker — `closest` findet
-            ohnehin den innersten. */}
+        {/* Der Chip „nur brechbar" stand hier bis 12.08. mit daneben — er
+            urteilte ueber eine Ausruestung, die es auf dieser Seite nicht
+            mehr gibt, und ist mit dem Rechner umgezogen. */}
         <div class="wb__chips" data-help={hlp('system')}>
           {systems.map((s) => (<button type="button" class="wb__chip" data-sys={s} set:text={s} />))}
-          <button type="button" class="wb__chip" data-only="break" data-help={hlp('breakable')} set:text={S.onlyBreakable} />
         </div>
       </div>
       {/* Kachelraster statt Liste: alle 37 ohne Scrollen — das war die
           urspruengliche Vorgabe und der erste Kritikpunkt der Abnahme. */}
       <div class="wb__scroll" id="wb-list">
         <div class="wb__tiles" data-help={hlp('tiles')}>
-          {minerals.map((m) => {
-            const v = ssrVerdict(m);
-            return (
-              <div class={`wb__tile${m.name === sel.name ? ' is-sel' : ''}`} data-min={m.name} role="button" tabindex="0" title={m.name}>
-                <span class={`wb__dot is-${v.cls}`} aria-hidden="true"></span>
-                <span class="wb__tn" set:text={m.name} />
-                <span class="wb__ts num" set:text={m.sig ? String(m.sig) : '—'} />
-                <button type="button" class="wb__pin" data-pin={m.name} aria-label={`${S.pin}: ${m.name}`}>☆</button>
-              </div>
-            );
-          })}
+          {minerals.map((m) => (
+            <div class={`wb__tile${m.name === sel.name ? ' is-sel' : ''}`} data-min={m.name} role="button" tabindex="0" title={m.name}>
+              <span class="wb__tn" set:text={m.name} />
+              <span class="wb__ts num" set:text={m.sig ? String(m.sig) : '—'} />
+              <button type="button" class="wb__pin" data-pin={m.name} aria-label={`${S.pin}: ${m.name}`}>☆</button>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -361,54 +317,22 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     </div>
   </div>
 
+  {/* Aus der Rig-Leiste ist eine Fusszeile geworden: geblieben ist die
+      Station — sie gehoert zum Ertrag, nicht zum Brechen — und daneben der
+      Weg zum Rechner. Der Verweis ist kein Zierrat: die Brechbarkeit war
+      hier eine sichtbare Zusage, und wer sie sucht, muss erfahren, wohin sie
+      gegangen ist, statt sie fuer geloescht zu halten. */}
   <div class="wb__rig chamf">
-    <label class="wb__rgrp"><span class="wb__lbl" set:text={S.laser} />
-      <select class="wb__sel" id="wb-laser" data-help={hlp('laser')}>{lasers.map((l, i) => (<option value={String(i)} set:text={`${l.n.replace(' Mining Laser', '')} · S${l.size}`} />))}</select>
-    </label>
-    <div class="wb__rgrp"><span class="wb__lbl" set:text={S.modules} /><div class="wb__slots" id="wb-slots" data-help={hlp('modules')}></div></div>
-    <label class="wb__rgrp"><span class="wb__lbl" set:text={S.gadget} />
-      <select class="wb__sel" id="wb-gadget" data-help={hlp('gadget')}><option value="-1" set:text={S.none} />{gadgets.map((g, i) => (<option value={String(i)} set:text={g.n} />))}</select>
-    </label>
-    <div class="wb__rgrp"><span class="wb__lbl" set:text={S.rock} />
-      <div class="wb__chips" id="wb-mass" data-help={hlp('mass')}>{MASS_PRESETS.map((p) => (<button type="button" class={`wb__chip${p.m === DEFAULT_MASS ? ' is-on' : ''}`} data-mass={String(p.m)} set:text={p[lang]} />))}</div>
-    </div>
     <label class="wb__rgrp"><span class="wb__lbl" set:text={S.station} />
       <select class="wb__sel" id="wb-ref" data-help={hlp('station')}>{refineries.map((r, i) => (<option value={String(i)} set:text={r.n} />))}</select>
     </label>
-    <div class="wb__rstat">
-      <span class="wb__kv"><span class="wb__lbl" set:text={S.laserDps} /><b class="num" id="wb-avail">—</b></span>
-      <span class="wb__kv"><span class="wb__lbl">Res-Mod</span><b class="num" id="wb-resmod">—</b></span>
-    </div>
-    {/* Messgeraet statt Balkenpaar — aus Skizze 004 C, dort verworfen und
-        jetzt nachgeholt: das Urteil ist die einzige Ablesung mit einer
-        echten Spanne (schlecht / grenzwertig / gut).
-
-        Es stand bis 12.08. oben in der Mittelspalte und steht jetzt hier:
-        gerechnet wird es aus Laser, Modulen, Gadget und Felsmasse — also aus
-        genau den fuenf Reglern links daneben. Ursache und Wirkung liegen
-        damit in EINER Leiste, und Spalte 2 gewinnt die Hoehe fuer Physik,
-        Qualitaetsstufen und Steine.
-        ⚠ Die Leiste darf dabei NICHT wachsen: `.wb__grid` rechnet ihre Hoehe
-        als `100vh - var(--wb-chrome)`, und bei 1280x720 haengt daran, ob alle
-        37 Kacheln ohne Scrollen ins Bild passen. Deshalb waagerecht, flach und
-        mit der grossen Kennzahl als zweite Rasterspalte statt als dritte
-        Zeile — nachgemessen in .planning/notes/mining-werkbank-rigbalken.md. */}
-    <div class="wb__gauge" id="wb-gauge" data-help={hlp('verdict')}>
-      <div class="wb__gcol">
-        <div class="wb__gtop">
-          <span class="wb__gst"><span class="wb__dot" id="wb-vddot"></span><span id="wb-vdlbl"></span></span>
-          <span class="wb__lbl" id="wb-vdsub"></span>
-        </div>
-        <div class="wb__scale" id="wb-scale"></div>
-        <div class="wb__gfoot">
-          <span class="wb__lbl">0</span>
-          <span class="wb__lbl" set:text={S.grenzZone} />
-          <span class="wb__lbl" set:text={S.guteZone} />
-          <span class="wb__lbl" set:text={de ? '2,0' : '2.0'} />
-        </div>
-      </div>
-      <b class="num" id="wb-vdratio"></b>
-    </div>
+    <a class="wb__frac" id="wb-frac" href={fracturingPath} data-help={hlp('fracturing')}>
+      <span class="wb__frac__ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13H11l-1 9 9.5-12H13z"/></svg>
+      </span>
+      <span class="wb__frac__t"><b set:text={S.fracturing} /><span class="wb__lbl" id="wb-frac-ore" set:text={sel.name} /></span>
+      <span class="wb__frac__go" set:text={S.fracturingGo} />
+    </a>
   </div>
 </section>
 
@@ -502,22 +426,19 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    Scrollen. 3 px Polsterung statt 5 bringt ueber zehn Reihen 20 px und
    damit alle 37 sicher ins Bild. */
 .wb__tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:3px;padding:0 8px 8px}
-.wb__tile{position:relative;display:grid;grid-template-columns:7px 1fr;grid-template-rows:auto auto;
-  gap:0 6px;align-content:center;padding:3px 6px;border-radius:6px;cursor:pointer;
+/* Eine Rasterspalte, nicht mehr zwei: die erste trug den Brechbarkeits-Punkt,
+   den es hier seit 12.08. nicht mehr gibt. */
+.wb__tile{position:relative;display:grid;grid-template-columns:1fr;grid-template-rows:auto auto;
+  gap:0;align-content:center;padding:3px 8px;border-radius:6px;cursor:pointer;
   background:color-mix(in srgb,var(--ink) 26%,transparent);
   box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 5%,transparent);
   transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
 .wb__tile:hover{background:color-mix(in srgb,var(--surface-2) 88%,var(--text))}
 .wb__tile.is-sel{background:color-mix(in srgb,var(--accent-2) 20%,transparent);
   box-shadow:inset 0 0 0 1px var(--accent-2)}
-.wb__tn{grid-column:2;font-size:var(--fs-4);font-weight:500;color:var(--text);
+.wb__tn{font-size:var(--fs-4);font-weight:500;color:var(--text);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wb__ts{grid-column:2;font-size:var(--fs-2);color:var(--accent);padding-right:26px}
-.wb__dot{grid-row:1/3;align-self:center;width:7px;height:7px;border-radius:999px;background:currentColor;
-  color:color-mix(in srgb,var(--surface-2) 84%,var(--text))}
-.wb__dot.is-ok{color:#6FBE7A}
-.wb__dot.is-warn{color:var(--accent-2)}
-.wb__dot.is-bad{color:#D2705A}
+.wb__ts{font-size:var(--fs-2);color:var(--accent);padding-right:26px}
 /* ⚠ Der Stern stand auf opacity:0 und wurde nur bei :hover sichtbar. Auf
    Touch gibt es kein Hover — die Signaturen-Spalte blieb dort dauerhaft leer,
    obwohl ihr eigener Hinweis auf genau diesen Stern verweist; mit Tastatur war
@@ -624,16 +545,18 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__empty{padding:16px 12px;text-align:center;color:color-mix(in srgb,var(--muted) 88%,transparent);
   font-size:var(--fs-4);line-height:1.55;margin:0}
 
-/* ---------------- Rig ---------------- */
+/* ---------------- Fusszeile ---------------- */
+/* Hiess bis 12.08. „Rig" und trug Laser, Module, Gadget, Felsmasse, Station
+   und das Messgeraet. Geblieben ist die Station; der Rest steht im
+   Fracturing-Rechner. ⚠ Ein Umbruch dieser Zeile kostet Hoehe, und daran
+   haengt ueber --wb-chrome, ob alle 37 Kacheln bei 1280x720 ohne Scrollen
+   ins Bild passen — bei zwei Kindern ist das jetzt reichlich weit weg, war
+   es mit sieben aber nicht (Messungen in
+   .planning/notes/mining-werkbank-rigbalken.md). */
 .wb__rig{flex:0 0 auto;flex-direction:row;align-items:center;gap:16px;flex-wrap:wrap;padding:9px 14px}
-/* ⚠ Ein Umbruch dieser Zeile kostet 68 px Hoehe — nachgemessen. Die duerfen
-   nirgends anfallen, siehe --wb-chrome. Deshalb geben die Bediengruppen
-   NICHTS ab (sonst wandern die Felsmasse-Chips in eine zweite Zeile und die
-   Leiste waechst genauso); schmaler wird ausschliesslich das Messgeraet. */
-.wb__rgrp,.wb__rstat{flex:0 0 auto}
+.wb__rgrp{flex:0 0 auto;display:flex;flex-direction:column;gap:3px}
 .wb__rig::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;
   background:repeating-linear-gradient(90deg,var(--accent-2) 0 5px,transparent 5px 10px);opacity:.5}
-.wb__rgrp{display:flex;flex-direction:column;gap:3px}
 /* ⚠ Der Grund MUSS deckend sein. Mit `…,transparent)` steht das Feld auf
    Alpha 0,34 — und Chrome vererbt den Grund an die aufgeklappte Liste, die
    dadurch durchscheinend ueber dem Seiteninhalt liegt (gemeldet als „beim
@@ -641,88 +564,28 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    Grund (rgba(0,0,0,0)). Beides ueber Variablen gemischt, nicht fest
    verdrahtet: build-light-overrides.mjs deckt `background` nicht ab. */
 .wb__sel{background:color-mix(in srgb,var(--ink) 34%,var(--surface));border:0;color:var(--text);
-  font-size:var(--fs-5);padding:6px 9px;cursor:pointer;max-width:190px;border-radius:7px;font-family:inherit}
-.wb__sel option,.wb__slot option{background:var(--surface);color:var(--text)}
-.wb__slots{display:flex;gap:4px}
-/* Frueher drei 28-px-Knoepfe, die je Klick EIN Modul weiterschalteten — bei
-   26 Modulen bis zu 26 Klicks fuer den letzten. Jetzt je Steckplatz eine
-   Auswahl. Der Klassenname bleibt, damit die erzeugte Hell-Entsprechung
-   unten und die Fokusregel weiter greifen. */
-.wb__slot{height:26px;border:0;padding:0 5px;font-size:var(--fs-3);max-width:124px;
-  color:var(--text);cursor:pointer;border-radius:6px;font-family:inherit;
-  background:color-mix(in srgb,var(--ink) 34%,var(--surface))}
-.wb__slot.is-full{color:#6FBE7A;background:color-mix(in srgb,currentColor 18%,transparent)}
-.wb__slot:disabled{opacity:.3;cursor:not-allowed}
-.wb__rstat{margin-left:auto;display:flex;align-items:center;gap:18px}
-.wb__kv{text-align:right}
-.wb__kv b{display:block;font-size:var(--fs-8);font-weight:600;margin-top:1px;color:var(--accent-2)}
+  font-size:var(--fs-5);padding:6px 9px;cursor:pointer;max-width:260px;border-radius:7px;font-family:inherit}
+.wb__sel option{background:var(--surface);color:var(--text)}
 
-/* Messgeraet — seit 12.08. das letzte Glied der Rig-Leiste (s. Markup).
-   Zwei Rasterspalten statt drei Zeilen: der Ablesewert steht NEBEN dem
-   Balken, nicht darueber. Das ist der Unterschied zwischen 53 px (drei
-   Zeilen) und einer Bauhoehe, die unter der Bedienspalte daneben bleibt —
-   und damit zwischen einer wachsenden Leiste und `--wb-chrome` unveraendert. */
-.wb__gauge{flex:1 1 330px;min-width:190px;max-width:620px;
-  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:11px;
-  padding:3px 11px;border-radius:8px;position:relative;
+/* Der Weg zum Rechner. Kein Randhinweis, sondern die Antwort auf „wo ist die
+   Brechbarkeit hin?" — deshalb mit Erznamen, Ziel und Pfeil. */
+.wb__frac{margin-left:auto;display:flex;align-items:center;gap:11px;max-width:100%;
+  padding:8px 13px;border-radius:9px;text-decoration:none;
   background:color-mix(in srgb,var(--ink) 30%,transparent);
-  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 6%,transparent)}
-.wb__gauge.is-ok{color:#6FBE7A}.wb__gauge.is-warn{color:var(--accent-2)}.wb__gauge.is-bad{color:#D2705A}
-.wb__gcol{min-width:0}
-.wb__gtop{display:flex;align-items:center;gap:8px;margin-bottom:2px}
-.wb__gst{display:flex;align-items:center;gap:6px;font-size:var(--fs-4);font-weight:600;
-  color:currentColor;white-space:nowrap;flex:0 0 auto}
-/* Die Auslesung „x verfuegbar · y benoetigt" ist das Erste, was gehen darf,
-   wenn die Leiste eng wird — Worturteil, Balken und Kennzahl tragen die
-   Aussage auch ohne sie. */
-.wb__gtop .wb__lbl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wb__gauge > b{font-size:var(--fs-11);font-weight:600;line-height:1;color:currentColor;
-  font-variant-numeric:tabular-nums}
-.wb__scale{position:relative;height:13px;border-radius:3px;overflow:hidden;
-  background:color-mix(in srgb,var(--ink) 62%,transparent);
-  box-shadow:inset 0 2px 4px color-mix(in srgb,var(--ink) 70%,transparent)}
-.wb__scale i.tick{position:absolute;top:0;bottom:0;width:1px;background:color-mix(in srgb,var(--text) 9%,transparent)}
-.wb__scale i.tick.maj{background:color-mix(in srgb,var(--text) 20%,transparent)}
-.wb__scale i.zone{position:absolute;top:0;bottom:0}
-.wb__scale i.zone.w{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--accent-2) 18%,transparent) 0 4px,transparent 4px 8px)}
-.wb__scale i.zone.g{background:repeating-linear-gradient(45deg,color-mix(in srgb,#6FBE7A 20%,transparent) 0 4px,transparent 4px 8px)}
-.wb__scale i.fill{position:absolute;left:0;top:2px;bottom:2px;border-radius:2px;
-  background:repeating-linear-gradient(90deg,currentColor 0 4px,transparent 4px 6px)}
-.wb__scale i.mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--text)}
-.wb__gfoot{display:flex;justify-content:space-between;gap:6px}
-.wb__gfoot .wb__lbl{font-size:var(--fs-1);white-space:nowrap}
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 30%,transparent);
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__frac:hover{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.wb__frac__ico{flex:0 0 auto;display:grid;place-items:center;color:var(--accent)}
+.wb__frac__t{min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.wb__frac__t b{font-size:var(--fs-5);font-weight:600;color:var(--text)}
+.wb__frac__t .wb__lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__frac__go{flex:0 0 auto;font-size:var(--fs-4);font-weight:600;color:var(--accent);white-space:nowrap}
 
 .wb__search:focus-visible,.wb__scan:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
-.wb__slot:focus-visible,.wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible,
-.wb__pinbig:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible,
+.wb__frac:focus-visible,.wb__pinbig:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 
 .wb__seg{display:none}
-/* Bis rund 1465 px ist die Rig-Zeile voll: mit der Vorgabebreite des
-   Messgeraets bricht sie um, und der Umbruch kostet 68 px — bei 1280x720
-   genau die, die das Kachelraster ins Scrollen kippen und die Werkbank
-   68 px unter die Falz schieben (beides nachgemessen, vorher/nachher in
-   .planning/notes/mining-werkbank-rigbalken.md). Hier wird deshalb
-   zusammengerueckt statt umgebrochen.
-
-   Was dabei weichen muss, ist die Auslesung „x verfuegbar · y benoetigt":
-   sie braucht rund 170 px, im Messgeraet stehen bei 1280 aber nur 182 fuer
-   die ganze Textspalte — mit ihr drin bricht sie mitten im Wort ab, und
-   abgeschnittener Text liest sich als Defekt. Die Zonenbeschriftung bleibt
-   dagegen (rund 162 px bei --fs-1, gemessen ohne Abschnitt) — sie erklaert
-   den Balken, und der Balken ist hier der Zweck der Uebung. Die Zahlen der
-   Auslesung stehen weiter im Messgeraet, sobald Platz ist, und die
-   Schwellen zusaetzlich in der Hilfeblase.
-   1500 statt der gemessenen Umbruchkante 1465, damit Schriftrundungen
-   nicht doch hineinlaufen. */
-@media(max-width:1500px){
-  .wb__rig{gap:9px;padding:9px 12px}
-  .wb__rig .wb__sel{max-width:150px}
-  .wb__rig .wb__slot{max-width:104px}
-  .wb__rig .wb__chip{padding:4px 7px}
-  .wb__rstat{gap:12px}
-  .wb__gauge{flex:1 1 210px;min-width:170px;gap:9px;padding:4px 9px}
-  .wb__gtop .wb__lbl{display:none}
-}
 /* Die Mittelspalte teilt sich erst, wenn dafuer Platz ist. Bei 1280 blieben
    sonst zwei Teilspalten zu je 263 px — dort passt kein Fundortname mehr.
    Einspaltig hat sie dann die vollen ~576 px und scrollt innen. */
@@ -743,21 +606,11 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .wb__grid.has-seg.seg-list > .wb__pane:first-of-type{display:flex}
   .wb__grid.has-seg.seg-sig > .wb__pane:last-of-type{display:flex}
   .wb__grid.has-seg.seg-view > .wb__mid{display:grid;grid-template-columns:1fr;gap:10px}
-  .wb__rig{gap:10px}.wb__rstat{margin-left:0;width:100%}
-  /* Auf dem Handy steht das Messgeraet ohnehin in einer eigenen Zeile ueber
-     die volle Breite — die Enge von oben gilt hier nicht, die Auslesung
-     bekommt ihren Platz zurueck. */
-  .wb__gauge{flex:1 1 100%;max-width:none;padding:5px 11px}
-  /* Umbrechen statt abschneiden: senkrecht ist hier Platz, waagerecht nicht
-     — „1.652 verfügbar · 1.600 benötigt" passt in der langen deutschen
-     Fassung sonst nicht neben das Worturteil. */
-  .wb__gtop{flex-wrap:wrap}
-  .wb__gtop .wb__lbl{display:block}
+  /* Untereinander statt nebeneinander: der Verweis auf den Rechner traegt
+     drei Textstuecke und wird sonst zur Ellipsen-Wueste. */
+  .wb__rig{gap:10px}
+  .wb__rgrp,.wb__frac{width:100%}
+  .wb__rgrp .wb__sel{max-width:none}
+  .wb__frac{margin-left:0}
 }
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .wb__dot.is-ok{color:#036b26}
-:root[data-theme="light"] .wb__dot.is-bad{color:#9b2a10}
-:root[data-theme="light"] .wb__slot.is-full{color:#036b26}
-:root[data-theme="light"] .wb__gauge.is-ok{color:#036b26}
-:root[data-theme="light"] .wb__gauge.is-bad{color:#9b2a10}
 </style>

@@ -1,18 +1,17 @@
 /* ============================================================================
-   mining-workbench.js — Client-Teil der Mining-Werkbank (zweite Fassung).
+   mining-workbench.js — Client-Teil der Mining-Werkbank.
 
-   Zustand: Auswahl, angeheftete Signaturen, Rig (Laser/Module/Gadget/
-   Felsmasse/Station). Gast -> localStorage; Kontobindung ist ein eigener
-   Schuldenposten (.planning/todos/pending/signatur-liste-kontogebunden.md).
+   Zustand: Auswahl, angeheftete Signaturen, Station. Gast -> localStorage;
+   Kontobindung ist ein eigener Schuldenposten
+   (.planning/todos/pending/signatur-liste-kontogebunden.md).
 
-   DIE BRECH-RECHNUNG IST NICHT NEU ERFUNDEN. Zeichengleich mit
-   src/components/FracturingCalc.astro:200-219:
-       Reff         = max(0,R) * (1 + resMod/100)
-       chargeFactor = max(0.05, 1 - Reff)
-       effDps       = laserDps * dpsMult * chargeFactor
-       decay        = decayPerMass * Felsmasse
-       ratio        = effDps / decay      <=1 unmoeglich | <1.3 grenzwertig
-   Wer sie hier aendert, muss sie dort mitaendern.
+   ⚠ HIER WIRD NICHTS MEHR GEBROCHEN. Am 12.08.2026 sind Laser, Module,
+   Gadget, Felsmasse, das Messgeraet und jede Brechbarkeit hier ausgezogen —
+   in assets/fracturing-calc.js auf /fracturing.html. Diese Werkbank
+   beantwortet „welches Erz, wo, was ist es wert?", nicht „krieg ich es
+   auf?". Die Brech-Formel steht seither an genau EINER Stelle, und das ist
+   nicht diese Datei. Wer hier wieder ein Urteil einbaut, macht den Umzug
+   rueckgaengig — er war ausdruecklich so gewollt.
    ========================================================================== */
 (function () {
   'use strict';
@@ -28,28 +27,21 @@
   var byName = {};
   for (var i = 0; i < D.minerals.length; i++) byName[D.minerals[i].name] = D.minerals[i];
 
-  var S = {
-    sel: D.minerals[0].name, pins: [], laser: 0, mods: [-1, -1, -1],
-    gadget: -1, mass: D.defaultMass, ref: 0, q: '', sys: null, onlyBreak: false
-  };
+  var S = { sel: D.minerals[0].name, pins: [], ref: 0, q: '', sys: null };
+  /* Ein alter Speicherstand traegt noch laser/mods/gadget/mass. Die Felder
+     werden schlicht nicht mehr gelesen und beim naechsten Schreiben fallen
+     sie weg — kein Grund, gespeicherte Auswahl und Signaturen wegzuwerfen. */
   try {
     var saved = JSON.parse(localStorage.getItem(LS) || 'null');
     if (saved && typeof saved === 'object') {
       if (byName[saved.sel]) S.sel = saved.sel;
       if (Array.isArray(saved.pins)) S.pins = saved.pins.filter(function (n) { return !!byName[n]; });
-      if (typeof saved.laser === 'number' && D.lasers[saved.laser]) S.laser = saved.laser;
-      if (Array.isArray(saved.mods) && saved.mods.length === 3) S.mods = saved.mods;
-      if (typeof saved.gadget === 'number') S.gadget = saved.gadget;
-      if (typeof saved.mass === 'number') S.mass = saved.mass;
       if (typeof saved.ref === 'number' && D.refineries[saved.ref]) S.ref = saved.ref;
     }
   } catch (e) { /* kaputter Speicher ist kein Grund, das Werkzeug zu verweigern */ }
   function save() {
     try {
-      localStorage.setItem(LS, JSON.stringify({
-        sel: S.sel, pins: S.pins, laser: S.laser, mods: S.mods,
-        gadget: S.gadget, mass: S.mass, ref: S.ref
-      }));
+      localStorage.setItem(LS, JSON.stringify({ sel: S.sel, pins: S.pins, ref: S.ref }));
     } catch (e) { /* privater Modus */ }
   }
 
@@ -60,39 +52,7 @@
     });
   }
   var NF = new Intl.NumberFormat(D.lang === 'de' ? 'de-DE' : 'en-GB');
-  function n0(v) { return NF.format(Math.round(v)); }
   function n2(v) { return D.lang === 'de' ? v.toFixed(2).replace('.', ',') : v.toFixed(2); }
-
-  function loadout() {
-    var L = D.lasers[S.laser] || D.lasers[0];
-    var resMod = (L.mods && L.mods.resistance) || 0;
-    var dpsMult = 1;
-    for (var i = 0; i < 3; i++) {
-      if (i >= (L.slots || 0)) continue;
-      var m = D.modules[S.mods[i]];
-      if (!m) continue;
-      dpsMult *= (m.mult || 1);
-      resMod += (m.mods && m.mods.resistance) || 0;
-    }
-    var g = D.gadgets[S.gadget];
-    if (g) resMod += (g.mods && g.mods.resistance) || 0;
-    return { L: L, dps: L.dps, dpsMult: dpsMult, resMod: resMod };
-  }
-  function verdict(res) {
-    if (res === null || res === undefined) return { cls: 'na', ratio: null };
-    var lo = loadout();
-    var R = Math.max(0, res);
-    var Reff = R * (1 + lo.resMod / 100);
-    var chargeFactor = Math.max(0.05, 1 - Reff);
-    var effDps = lo.dps * lo.dpsMult * chargeFactor;
-    var decay = (D.params.decayPerMass || 0.2) * S.mass;
-    var ratio = decay > 0 ? effDps / decay : 99;
-    return {
-      cls: ratio <= 1 ? 'bad' : ratio < 1.3 ? 'warn' : 'ok',
-      ratio: ratio, avail: effDps, req: decay, Reff: Reff
-    };
-  }
-  function vLabel(c) { return c === 'ok' ? T.breakable : c === 'warn' ? T.marginal : c === 'bad' ? T.impossible : T.noPhys; }
 
   /* Die Daten kennen VIER Abbaumethoden (ship 26, roc 4, fps 4, hand 3). Die
      zweite Fassung warf alles ausser `ship` in denselben Topf „Hand" — die
@@ -136,14 +96,9 @@
     for (var i = 0; i < tiles.length; i++) {
       var el = tiles[i], m = byName[el.getAttribute('data-min')];
       if (!m) continue;
-      var v = verdict(m.res);
-      var dot = el.querySelector('.wb__dot');
-      dot.className = 'wb__dot is-' + v.cls;
-      el.title = m.name + ' · ' + vLabel(v.cls) + (v.ratio !== null ? ' ×' + n2(v.ratio) : '');
       var hit = !q || m.name.toLowerCase().indexOf(q) >= 0 ||
         m.locs.some(function (l) { return (l.p || '').toLowerCase().indexOf(q) >= 0; });
       if (hit && S.sys) hit = m.systems.indexOf(S.sys) >= 0;
-      if (hit && S.onlyBreak) hit = v.cls === 'ok';
       el.style.display = hit ? '' : 'none';
       el.classList.toggle('is-sel', m.name === S.sel);
       var pin = el.querySelector('.wb__pin'), on = S.pins.indexOf(m.name) >= 0;
@@ -153,27 +108,6 @@
       if (hit) shown++;
     }
     $('wb-count').textContent = shown === D.minerals.length ? String(shown) : shown + '/' + D.minerals.length;
-  }
-
-  /* Messgeraet: Skala 0…2,0 mit Teilung, markiertem Grenz- und Gutbereich
-     und Zeiger. Anleihe ist das Ladefenster beim Fracturing im Spiel. */
-  function renderGauge(v) {
-    var g = $('wb-gauge');
-    g.className = 'wb__gauge is-' + v.cls;
-    $('wb-vddot').className = 'wb__dot is-' + v.cls;
-    $('wb-vdlbl').textContent = vLabel(v.cls);
-    $('wb-vdsub').textContent = v.ratio === null ? ''
-      : n0(v.avail) + ' ' + T.avail + ' · ' + n0(v.req) + ' ' + T.needed;
-    $('wb-vdratio').textContent = v.ratio === null ? T.none : '×' + n2(v.ratio);
-    var MAX = 2, pct = function (r) { return Math.min(100, Math.max(0, r / MAX * 100)); };
-    var h = '<i class="zone w" style="left:' + pct(1) + '%;width:' + (pct(1.3) - pct(1)) + '%"></i>' +
-      '<i class="zone g" style="left:' + pct(1.3) + '%;right:0"></i>';
-    for (var k = 0; k <= 20; k++) h += '<i class="tick' + (k % 5 === 0 ? ' maj' : '') + '" style="left:' + (k / 20 * 100) + '%"></i>';
-    if (v.ratio !== null) {
-      h += '<i class="fill" style="width:' + pct(v.ratio) + '%"></i>' +
-        '<i class="mark" style="left:calc(' + pct(v.ratio) + '% - 1px)"></i>';
-    }
-    $('wb-scale').innerHTML = h;
   }
 
   function stat(label, val, cls) {
@@ -191,7 +125,6 @@
   function renderDetail() {
     var m = byName[S.sel];
     if (!m) return;
-    var v = verdict(m.res);
 
     $('wb-name').textContent = m.name;
     $('wb-sig').textContent = m.sig ? NF.format(m.sig) : T.none;
@@ -214,10 +147,12 @@
       '<span class="wb__tag">' + esc(methodLabel(m.method)) + '</span>' +
       (m.refine ? '<span class="wb__tag">' + esc(T.refinable) + '</span>' : '');
 
-    renderGauge(v);
-
+    /* ⚠ Hier stand bis 12.08.2026 zusaetzlich „effektiv" — der Widerstand
+       NACH dem Res-Mod der Ausruestung. Der Wert gehoert zum Rechnen, nicht
+       zum Nachschlagen, und steht jetzt im Fracturing-Rechner. Was bleibt,
+       sind die Zahlen des Erzes selbst. */
     var st = '';
-    if (m.res !== null) { st += stat(T.resistance, n2(m.res)); st += stat(T.effective, n2(v.Reff), 'is-hot'); }
+    if (m.res !== null) st += stat(T.resistance, n2(m.res));
     if (m.inst !== null) st += stat(T.instability, NF.format(m.inst));
     if (m.dens !== null) st += stat(T.density, n2(m.dens));
     if (m.win !== null) st += stat(T.window, n2(m.win));
@@ -296,6 +231,14 @@
         (s.ore ? ' <b>' + esc(s.ore) + '</b>' : '') + '</a>';
     });
     $('wb-links').innerHTML = links;
+
+    /* Der Weg zum Fracturing-Rechner nimmt das gewaehlte Erz mit — sonst
+       landet man dort auf einem anderen und muss es zweimal suchen. */
+    var frac = $('wb-frac');
+    if (frac) {
+      frac.href = D.fracturingPath + '?mineral=' + encodeURIComponent(m.name) + '#calc';
+      $('wb-frac-ore').textContent = m.name;
+    }
   }
 
   function renderPins() {
@@ -313,46 +256,13 @@
         mult += '<i class="' + (hit ? 'is-hit' : '') + '" title="×' + k + '">' + NF.format(val) + '</i>';
       }
       return '<div class="wb__pin-item"><div class="wb__pin-top">' +
-        '<span class="wb__dot is-' + verdict(m.res).cls + '"></span>' +
         '<span class="nm">' + esc(m.name) + '</span>' +
         '<button type="button" data-pin="' + esc(m.name) + '" aria-label="' + esc(T.unpin + ': ' + m.name) + '">×</button>' +
         '</div><div class="wb__mult">' + mult + '</div></div>';
     }).join('');
   }
 
-  /* Frueher drei Knoepfe, die je Klick EIN Modul weiterschalteten — bei 26
-     Modulen bis zu 26 Klicks fuer den letzten, und der gewaehlte Name stand
-     nur im title. Jetzt je Steckplatz eine Auswahl. (Dass ueberhaupt nie ein
-     Steckplatz nutzbar war, lag am Feldnamen: siehe MiningWorkbench.astro.) */
-  function renderRig() {
-    var lo = loadout(), L = lo.L, html = '';
-    for (var i = 0; i < 3; i++) {
-      var usable = i < (L.slots || 0), m = D.modules[S.mods[i]];
-      /* „ XTR Module" -> „XTR": das Wort steht schon als Beschriftung ueber der
-         Auswahl und kostet in einem 124 px breiten Feld nur Lesbarkeit. */
-      var opts = '<option value="-1">' + esc(T.none) + '</option>';
-      for (var k = 0; k < D.modules.length; k++) {
-        opts += '<option value="' + k + '"' + (S.mods[i] === k ? ' selected' : '') + '>' +
-          esc(D.modules[k].n.replace(/\s+Module$/, '')) + '</option>';
-      }
-      html += '<select class="wb__slot' + (usable && m ? ' is-full' : '') + '" data-slot="' + i + '"' +
-        (usable ? '' : ' disabled') +
-        ' aria-label="' + esc(T.modules + ' ' + (i + 1)) + '" title="' +
-        esc(usable ? T.modules + ' ' + (i + 1) : (D.lang === 'de'
-          ? 'Dieser Laser hat nur ' + (L.slots || 0) + ' Modulplätze'
-          : 'This laser has only ' + (L.slots || 0) + ' module slots')) + '">' +
-        opts + '</select>';
-    }
-    $('wb-slots').innerHTML = html;
-    $('wb-avail').textContent = n0(lo.dps * lo.dpsMult);
-    $('wb-resmod').textContent = (lo.resMod > 0 ? '+' : '') + lo.resMod + ' %';
-    var chips = document.querySelectorAll('#wb-mass .wb__chip');
-    for (var j = 0; j < chips.length; j++) {
-      chips[j].classList.toggle('is-on', +chips[j].getAttribute('data-mass') === S.mass);
-    }
-  }
-
-  function renderAll() { renderList(); renderDetail(); renderPins(); renderRig(); save(); }
+  function renderAll() { renderList(); renderDetail(); renderPins(); save(); }
 
   var grid = document.querySelector('.wb__grid');
   function mountSeg() {
@@ -386,8 +296,6 @@
     }
     var tile = t.closest('.wb__tile');
     if (tile) { S.sel = tile.getAttribute('data-min'); renderAll(); return; }
-    var mass = t.closest('[data-mass]');
-    if (mass) { S.mass = +mass.getAttribute('data-mass'); renderAll(); return; }
     var sys = t.closest('[data-sys]');
     if (sys) {
       var sv = sys.getAttribute('data-sys');
@@ -396,8 +304,6 @@
       for (var i2 = 0; i2 < all.length; i2++) all[i2].classList.toggle('is-on', all[i2].getAttribute('data-sys') === S.sys);
       renderList(); return;
     }
-    var only = t.closest('[data-only]');
-    if (only) { S.onlyBreak = !S.onlyBreak; only.classList.toggle('is-on', S.onlyBreak); renderList(); return; }
     var seg = t.closest('[data-seg]');
     if (seg && grid) {
       var k = seg.getAttribute('data-seg');
@@ -423,18 +329,7 @@
   });
 
   document.addEventListener('change', function (e) {
-    var t = e.target;
-    if (t.id === 'wb-laser') {
-      S.laser = +t.value;
-      var slots = (D.lasers[S.laser] || {}).slots || 0;
-      for (var i = slots; i < 3; i++) S.mods[i] = -1;
-      renderAll();
-    } else if (t.id === 'wb-gadget') { S.gadget = +t.value; renderAll(); }
-    else if (t.id === 'wb-ref') { S.ref = +t.value; renderDetail(); save(); }
-    else if (t.classList && t.classList.contains('wb__slot')) {
-      S.mods[+t.getAttribute('data-slot')] = +t.value;
-      renderAll();
-    }
+    if (e.target.id === 'wb-ref') { S.ref = +e.target.value; renderDetail(); save(); }
   });
 
   document.addEventListener('input', function (e) {
@@ -454,8 +349,6 @@
     for (var n in byName) if (n.toLowerCase() === key) { S.sel = n; deepLinked = true; return; }
   })();
 
-  if ($('wb-laser')) $('wb-laser').value = String(S.laser);
-  if ($('wb-gadget')) $('wb-gadget').value = String(S.gadget);
   if ($('wb-ref')) $('wb-ref').value = String(S.ref);
   renderAll();
 

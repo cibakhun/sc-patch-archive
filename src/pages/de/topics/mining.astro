@@ -7,7 +7,7 @@ const total = DB.counts.minerals;
 import Layout from '../../../layouts/Layout.astro';
 import Body from '../../../components/topics/mining.astro';
 ---
-<Layout title={"Mining-Datenbank — Star Citizen 4.9 | VerseBase"} description={`Interaktive Mining-Datenbank für Star Citizen 4.9: ${total} Minerale durchsuchen, nach System, Methode & Typ filtern, echte Deposit-Regionen mit Erz-Anteil (%) ansehen, Scan-Signaturen identifizieren, Refinery-Methoden abwägen und Fracturing planen.`} themeColor="#14181a" ogType="article" ogImage="/assets/img-mole.jpg" translated={true}>
+<Layout title={"Mining-Datenbank — Star Citizen 4.9 | VerseBase"} description={`Interaktive Mining-Datenbank für Star Citizen 4.9: ${total} Minerale durchsuchen, nach System, Methode & Typ filtern, echte Deposit-Regionen mit Erz-Anteil (%) ansehen, Scan-Signaturen identifizieren, Refinery-Methoden abwägen und sehen, welche Gesteinsart welches Erz führt.`} themeColor="#14181a" ogType="article" ogImage="/assets/img-mole.jpg" translated={true}>
 <link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <Body />
 </Layout>

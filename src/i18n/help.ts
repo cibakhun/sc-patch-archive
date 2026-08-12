@@ -1,6 +1,6 @@
 // Werkzeug-Hilfe — EIGENER Katalog, bewusst getrennt von src/i18n/ui.ts.
 // ---------------------------------------------------------------------------
-// Zweck: Zweck- und Bedienungstexte fuer die elf Werkzeuge (Phase
+// Zweck: Zweck- und Bedienungstexte fuer die zwoelf Werkzeuge (Phase
 // 01.2-werkzeuge-erklaeren), in zwei Stufen:
 //   Stufe 1 — <werkzeug>.title / .purpose / .step1..step5 (Zweck-Abschnitt)
 //   Stufe 2 — <werkzeug>.ctl.<art> (ein Satz je Bedienelement-ART)
@@ -31,7 +31,7 @@ const SAME_IN_BOTH = new Set<string>([]);
 
 export const HELP = {
   de: {
-    // -- Gemeinsame Bedientexte (alle elf Werkzeuge) --
+    // -- Gemeinsame Bedientexte (alle zwoelf Werkzeuge) --
     'ui.elements': 'Elemente erklären',
     'ui.elementsOff': 'Erklärung beenden',
     'ui.bubbleLabel': 'Erklärung',
@@ -77,26 +77,44 @@ export const HELP = {
     // Liste, Methoden- und Typfilter, „Fundorte nach Himmelskoerper" — nichts
     // davon gibt es in der Werkbank noch. Die ctl-Schluessel heissen jetzt wie
     // die Bedienelemente, an denen sie haengen.
+    // Seit 12.08.2026 OHNE Ausrüstung und ohne Brechbarkeit: die stehen im
+    // Fracturing-Rechner auf einer eigenen Seite. Die Schlüssel .laser,
+    // .modules, .gadget, .mass, .verdict und .breakable sind deshalb hier
+    // weggefallen und weiter unten unter `fracturing.ctl.*` wieder da.
     'mining.title': 'Wie funktioniert die Mining-Werkbank?',
     'mining.purpose':
-      'Ein Erz anklicken — Fundorte, Physik, Brechbarkeit mit deiner Ausrüstung und der Refinery-Ertrag stehen sofort daneben.',
-    'mining.step1': 'Links ein Erz anklicken. Der Punkt auf der Kachel sagt, ob es mit deiner Ausrüstung brechbar ist.',
-    'mining.step2': 'Unten die Ausrüstung setzen — Laser, Module, Gadget, Felsmasse und Station. Das Messgerät rechts daneben sagt sofort, ob der Brocken bricht; alle Erze werden neu bewertet.',
-    'mining.step3': 'In der Mitte Physik, Qualitätsstufen, Steine, Fundorte und die Stationen nach Ertrag ablesen.',
+      'Ein Erz anklicken — Fundorte, Physik, Steine und der Refinery-Ertrag stehen sofort daneben.',
+    'mining.step1': 'Links ein Erz anklicken. Die Zahl auf der Kachel ist seine Scan-Signatur.',
+    'mining.step2': 'In der Mitte Physik, Qualitätsstufen und die Steine ablesen, die dieses Erz führen.',
+    'mining.step3': 'Unten die Station wählen — sie wird in der Ertrags-Rangliste rechts daneben hervorgehoben.',
     'mining.step4': 'Mit dem Stern ein Erz nach rechts heften und den Scanwert eintippen, um eine Signatur zuzuordnen.',
     'mining.ctl.search': 'Freitextsuche über Mineralnamen und Fundorte.',
     'mining.ctl.system': 'Schränkt die Kacheln auf ein Sternsystem ein.',
-    'mining.ctl.breakable': 'Zeigt nur Erze, die mit der eingestellten Ausrüstung brechbar sind.',
-    'mining.ctl.tiles': 'Alle Erze auf einen Blick. Klick wählt aus, der Punkt zeigt die Brechbarkeit, der Stern heftet nach rechts.',
-    'mining.ctl.verdict': 'Verhältnis von verfügbarem zu benötigtem Schaden. Ab 1,00 grenzwertig, ab 1,30 zuverlässig.',
+    'mining.ctl.tiles': 'Alle Erze auf einen Blick. Klick wählt aus, die Zahl ist die Scan-Signatur, der Stern heftet nach rechts.',
     'mining.ctl.scan': 'Gemessener Scanwert. Passende Vielfache der angehefteten Erze werden hervorgehoben.',
     'mining.ctl.pinbtn': 'Heftet das gewählte Erz an die Signaturenliste rechts — dasselbe wie der Stern auf der Kachel, nur größer.',
     'mining.ctl.pins': 'Die angehefteten Erze mit ihrer Signatur mal Clustergröße.',
-    'mining.ctl.laser': 'Der Mining-Laser. Bestimmt den Schaden und die Zahl der Modulplätze.',
-    'mining.ctl.modules': 'Bis zu drei Module, je nach Laser. Sie verändern Schaden und Widerstand.',
-    'mining.ctl.gadget': 'Ein Gadget verändert den Widerstand des Gesteins.',
-    'mining.ctl.mass': 'Die angenommene Masse des Brockens — sie bestimmt, wie viel Schaden nötig ist.',
     'mining.ctl.station': 'Die Station, deren Ertrag in der Rangliste hervorgehoben wird.',
+    'mining.ctl.fracturing': 'Führt zum Fracturing-Rechner: dort steht, ob der Brocken mit deiner Ausrüstung bricht.',
+
+    // -- Fracturing-Rechner --
+    'fracturing.title': 'Wie funktioniert der Fracturing-Rechner?',
+    'fracturing.purpose':
+      'Sagt für jedes Erz, ob der Brocken mit der eingestellten Ausrüstung aufgeht — und zeigt die Rechnung dahinter Schritt für Schritt.',
+    'fracturing.step1': 'Rechts die Ausrüstung setzen: Laser, Module, Gadget und die Größe des Brockens.',
+    'fracturing.step2': 'Links ein Erz wählen. Punkt und Verhältniszahl auf jeder Kachel gelten sofort für diese Ausrüstung.',
+    'fracturing.step3': 'In der Mitte das Urteil ablesen — bis 1,00 geht nichts, ab 1,30 ist es zuverlässig.',
+    'fracturing.step4': 'Der Rechenweg darunter zeigt, an welchem Schritt es hängt: Laserschaden, Widerstand, wirksamer Schaden, nötiger Schaden.',
+    'fracturing.ctl.search': 'Freitextsuche über die Erznamen.',
+    'fracturing.ctl.system': 'Schränkt die Kacheln auf ein Sternsystem ein.',
+    'fracturing.ctl.breakable': 'Zeigt nur Erze, die mit der eingestellten Ausrüstung zuverlässig brechen.',
+    'fracturing.ctl.tiles': 'Alle Erze mit ihrem Verhältnis für die aktuelle Ausrüstung. Klick wählt eines aus.',
+    'fracturing.ctl.verdict': 'Verhältnis von wirksamem zu nötigem Schaden. Ab 1,00 grenzwertig, ab 1,30 zuverlässig.',
+    'fracturing.ctl.math': 'Die vier Schritte der Rechnung mit den eingesetzten Zahlen und dem jeweiligen Zwischenergebnis.',
+    'fracturing.ctl.laser': 'Der Mining-Laser. Bestimmt den Schaden und die Zahl der Modulplätze.',
+    'fracturing.ctl.modules': 'Bis zu drei Module, je nach Laser. Sie verändern Schaden und Widerstand.',
+    'fracturing.ctl.gadget': 'Ein Gadget verändert den Widerstand des Gesteins.',
+    'fracturing.ctl.mass': 'Die angenommene Masse des Brockens — sie bestimmt, wie viel Schaden nötig ist.',
 
     // -- Refinery-Finder --
     'refineryfinder.title': 'Wie funktioniert der Refinery-Finder?',
@@ -245,25 +263,41 @@ export const HELP = {
     'crafting.ctl.flags': 'Shows only blueprints with a mission source or already owned.',
 
     // -- Mining --
+    // Since 12/08/2026 without gear and without breakability — those live in
+    // the fracturing calculator on its own page (`fracturing.ctl.*` below).
     'mining.title': 'How does the mining workbench work?',
     'mining.purpose':
-      'Pick an ore — locations, physics, breakability with your gear and refinery yield stand right beside it.',
-    'mining.step1': 'Click an ore on the left. The dot on the tile tells you whether your gear can break it.',
-    'mining.step2': 'Set your gear along the bottom — laser, modules, gadget, rock mass and station. The gauge right beside it tells you at once whether the rock breaks; every ore is re-judged.',
-    'mining.step3': 'Read physics, quality tiers, rocks, locations and the stations ranked by yield in the middle.',
+      'Pick an ore — locations, physics, rocks and refinery yield stand right beside it.',
+    'mining.step1': 'Click an ore on the left. The number on the tile is its scan signature.',
+    'mining.step2': 'Read physics, quality tiers and the rocks that carry this ore in the middle.',
+    'mining.step3': 'Pick a station along the bottom — it gets highlighted in the yield ranking beside it.',
     'mining.step4': 'Star an ore to pin it on the right, then type a scan value to identify a signature.',
     'mining.ctl.search': 'Free-text search across mineral names and locations.',
     'mining.ctl.system': 'Narrows the tiles down to one star system.',
-    'mining.ctl.breakable': 'Shows only ores the configured gear can break.',
-    'mining.ctl.tiles': 'Every ore at a glance. Click selects, the dot shows breakability, the star pins it to the right.',
-    'mining.ctl.verdict': 'Ratio of available to required damage. Marginal from 1.00, reliable from 1.30.',
+    'mining.ctl.tiles': 'Every ore at a glance. Click selects, the number is the scan signature, the star pins it to the right.',
     'mining.ctl.scan': 'Measured scan value. Matching multiples of the pinned ores are highlighted.',
     'mining.ctl.pinbtn': 'Pins the selected ore to the signature list on the right — same as the star on its tile, only bigger.',
     'mining.ctl.pins': 'The pinned ores with their signature times cluster size.',
-    'mining.ctl.laser': 'The mining laser. Sets the damage and the number of module slots.',
-    'mining.ctl.modules': 'Up to three modules, depending on the laser. They change damage and resistance.',
-    'mining.ctl.gadget': 'A gadget changes the resistance of the rock.',
-    'mining.ctl.mass': 'The assumed mass of the rock — it sets how much damage is needed.',
+    'mining.ctl.fracturing': 'Leads to the fracturing calculator: it says whether your gear cracks the rock.',
+
+    // -- Fracturing calculator --
+    'fracturing.title': 'How does the fracturing calculator work?',
+    'fracturing.purpose':
+      'Tells you for every ore whether the rock opens up with the gear you set — and shows the sum behind it step by step.',
+    'fracturing.step1': 'Set your gear on the right: laser, modules, gadget and how big the rock is.',
+    'fracturing.step2': 'Pick an ore on the left. The dot and ratio on every tile already apply to that gear.',
+    'fracturing.step3': 'Read the verdict in the middle — nothing moves below 1.00, from 1.30 it is reliable.',
+    'fracturing.step4': 'The maths underneath shows which step decides it: laser damage, resistance, effective damage, damage needed.',
+    'fracturing.ctl.search': 'Free-text search across the ore names.',
+    'fracturing.ctl.system': 'Narrows the tiles down to one star system.',
+    'fracturing.ctl.breakable': 'Shows only ores the configured gear cracks reliably.',
+    'fracturing.ctl.tiles': 'Every ore with its ratio for the current gear. Click selects one.',
+    'fracturing.ctl.verdict': 'Ratio of effective to required damage. Marginal from 1.00, reliable from 1.30.',
+    'fracturing.ctl.math': 'The four steps of the sum with the numbers put in and each intermediate result.',
+    'fracturing.ctl.laser': 'The mining laser. Sets the damage and the number of module slots.',
+    'fracturing.ctl.modules': 'Up to three modules, depending on the laser. They change damage and resistance.',
+    'fracturing.ctl.gadget': 'A gadget changes the resistance of the rock.',
+    'fracturing.ctl.mass': 'The assumed mass of the rock — it sets how much damage is needed.',
     'mining.ctl.station': 'The station whose yield is highlighted in the ranking.',
 
     // -- Refinery Finder --

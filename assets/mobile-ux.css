@@ -612,7 +612,10 @@ summary:active {
    dessen max-height:calc(100vh…) wuerde mit der Flex-Hoehe der Spalten
    kollidieren, die das Raster selbst setzt. */
 .wb__scroll,
-.wb__filters .tool-help__body {
+.wb__filters .tool-help__body,
+/* Fracturing-Rechner (/fracturing.html) — dieselbe Bauart, eigener Praefix. */
+.fc__scroll,
+.fc__filters .tool-help__body {
   scrollbar-width: thin !important;
   /* --tone-1 zuerst: die Verzeichnisseiten fuehren dort ihren Leitton, im
      Crafting-Zweig waere --accent die falsche Farbe. Ausserhalb von .dp
@@ -625,7 +628,9 @@ summary:active {
 .mdb-sidebar::-webkit-scrollbar,
 .calc-sidebar::-webkit-scrollbar,
 .wb__scroll::-webkit-scrollbar,
-.wb__filters .tool-help__body::-webkit-scrollbar {
+.wb__filters .tool-help__body::-webkit-scrollbar,
+.fc__scroll::-webkit-scrollbar,
+.fc__filters .tool-help__body::-webkit-scrollbar {
   display: block !important;
   /* width UND height: .dp-tablewrap scrollt beide Achsen und traegt
      ebenfalls .vb-scrollbox. */
@@ -639,7 +644,9 @@ summary:active {
 .mdb-sidebar::-webkit-scrollbar-thumb,
 .calc-sidebar::-webkit-scrollbar-thumb,
 .wb__scroll::-webkit-scrollbar-thumb,
-.wb__filters .tool-help__body::-webkit-scrollbar-thumb {
+.wb__filters .tool-help__body::-webkit-scrollbar-thumb,
+.fc__scroll::-webkit-scrollbar-thumb,
+.fc__filters .tool-help__body::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--tone-1, var(--accent)) 55%, transparent);
   border-radius: 999px;
 }

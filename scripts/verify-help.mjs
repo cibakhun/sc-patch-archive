@@ -32,8 +32,10 @@
         uebereinstimmen.
      4  Werkzeugabdeckung (DOC-07): sammelt alle data-tool-id-Werte
         aus allen gebauten .html-Dateien unter dist/ (rekursiv) und
-        vergleicht sie gegen die feste Liste der ELF Kennungen. Ohne
-        --complete nur Stand melden; mit --complete alle elf verlangen.
+        vergleicht sie gegen die feste Liste in TOOL_IDS. Ohne
+        --complete nur Stand melden; mit --complete alle verlangen.
+        (Die Zahl stand hier als Wort — „ELF" — und war nach dem
+        zwoelften Werkzeug still falsch. Jetzt zaehlt der Code.)
      5  Ladeort (DOC-06): jede Seite, die tool-help.js laedt, traegt
         mindestens ein data-tool-id.
      6  Element-Hilfe je WERKZEUG (WR-05): jedes data-tool-id traegt
@@ -68,8 +70,9 @@ if (!(() => { try { readdirSync('dist'); return true; } catch { return false; } 
 // Feste Liste, EINE Stelle. Die beiden Refinerys sind zwei verschiedene
 // Werkzeuge — eine Kennung "refinery" gibt es nicht.
 const TOOL_IDS = [
-  'itemfinder', 'crafting', 'mining', 'refineryfinder', 'refinerytracker',
-  'missions', 'ships', 'precisionjump', 'archive', 'wikelo', 'armorsets',
+  'itemfinder', 'crafting', 'mining', 'fracturing', 'refineryfinder',
+  'refinerytracker', 'missions', 'ships', 'precisionjump', 'archive',
+  'wikelo', 'armorsets',
 ];
 
 const COMPLETE = process.argv.includes('--complete');
@@ -200,7 +203,7 @@ console.log('\n[3] Sprachparitaet EN<->DE (data-tool-id=, data-help=, class="too
 }
 
 /* ---- Zusicherung 4: Werkzeugabdeckung ---- */
-console.log(`\n[4] Werkzeugabdeckung (DOC-07)${COMPLETE ? ' — --complete: alle 11 verlangt' : ''}`);
+console.log(`\n[4] Werkzeugabdeckung (DOC-07)${COMPLETE ? ` — --complete: alle ${TOOL_IDS.length} verlangt` : ''}`);
 {
   const found = new Set();
   const idRe = /data-tool-id="([^"]+)"/g;
