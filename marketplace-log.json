@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-13",
-  "updates": 208,
-  "totalListings": 5442,
+  "updates": 209,
+  "totalListings": 5463,
   "totalSold": 234,
-  "distinctItems": 1115
+  "distinctItems": 1116
  },
  "listings": {
   "156580": {
@@ -108988,6 +108988,10 @@
     {
      "d": "2026-08-13",
      "p": 8000000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 700000
     }
    ],
    "soldOut": false,
@@ -110540,6 +110544,48 @@
    "soldOutPrice": 5000000,
    "dateAdded": 1786553235,
    "dateExpiration": 1791737235
+  },
+  "161928": {
+   "idItem": 5331,
+   "idCategory": 17,
+   "title": "Torrent Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 4500003
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786553388,
+   "dateExpiration": 1791737388
+  },
+  "161929": {
+   "idItem": 5334,
+   "idCategory": 17,
+   "title": "Vera Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 2300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786553519,
+   "dateExpiration": 1791737519
   },
   "161930": {
    "idItem": 4453,
@@ -115006,6 +115052,10 @@
     {
      "d": "2026-08-13",
      "p": 10000000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 6500000
     }
    ],
    "soldOut": false,
@@ -115090,6 +115140,10 @@
     {
      "d": "2026-08-13",
      "p": 5000000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 4500000
     }
    ],
    "soldOut": false,
@@ -115132,6 +115186,10 @@
     {
      "d": "2026-08-13",
      "p": 5000000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 8000000
     }
    ],
    "soldOut": false,
@@ -115153,6 +115211,10 @@
     {
      "d": "2026-08-13",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 1500000
     }
    ],
    "soldOut": false,
@@ -115174,6 +115236,10 @@
     {
      "d": "2026-08-13",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 1500000
     }
    ],
    "soldOut": false,
@@ -115342,6 +115408,10 @@
     {
      "d": "2026-08-13",
      "p": 850000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -115405,6 +115475,10 @@
     {
      "d": "2026-08-13",
      "p": 650000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 1500000
     }
    ],
    "soldOut": false,
@@ -116064,6 +116138,27 @@
    "dateAdded": 1786629776,
    "dateExpiration": 1791813776
   },
+  "162204": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786629918,
+   "dateExpiration": 1791813918
+  },
   "162205": {
    "idItem": 7413,
    "idCategory": 3,
@@ -116084,6 +116179,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786629935,
    "dateExpiration": 1791813934
+  },
+  "162206": {
+   "idItem": 5852,
+   "idCategory": 36,
+   "title": "Aluminum | Q953/Q919/Q896 | 5.27[SCU]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 953,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786630381,
+   "dateExpiration": 1791814381
   },
   "162208": {
    "idItem": null,
@@ -116147,6 +116263,363 @@
    "soldOutPrice": null,
    "dateAdded": 1786631491,
    "dateExpiration": 1791815491
+  },
+  "162211": {
+   "idItem": 5910,
+   "idCategory": 36,
+   "title": "Hephaestanite | Q896 | 2,39[SCU]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 896,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786631504,
+   "dateExpiration": 1791815504
+  },
+  "162212": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 5800
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786631636,
+   "dateExpiration": 1791815635
+  },
+  "162214": {
+   "idItem": 4892,
+   "idCategory": 38,
+   "title": "ASD Secure Drive",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786632028,
+   "dateExpiration": 1791816028
+  },
+  "162215": {
+   "idItem": 1748,
+   "idCategory": 23,
+   "title": "FR-66",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786632360,
+   "dateExpiration": 1791816360
+  },
+  "162216": {
+   "idItem": 251,
+   "idCategory": 32,
+   "title": "Deadbolt V Cannon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786632377,
+   "dateExpiration": 1791816377
+  },
+  "162218": {
+   "idItem": 1347,
+   "idCategory": 22,
+   "title": "VK-00",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786632553,
+   "dateExpiration": 1791816553
+  },
+  "162220": {
+   "idItem": 7992,
+   "idCategory": 7,
+   "title": "Overlord Gilded Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786632798,
+   "dateExpiration": 1791816798
+  },
+  "162221": {
+   "idItem": 954,
+   "idCategory": 19,
+   "title": "Glacier",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786632922,
+   "dateExpiration": 1791816922
+  },
+  "162222": {
+   "idItem": 2113,
+   "idCategory": 22,
+   "title": "Spectre",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786633265,
+   "dateExpiration": 1791817265
+  },
+  "162224": {
+   "idItem": 5326,
+   "idCategory": 17,
+   "title": "HG-3 Jaeger (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786633845,
+   "dateExpiration": 1791817845
+  },
+  "162227": {
+   "idItem": 4892,
+   "idCategory": 38,
+   "title": "WTB ASD Secure Drive",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 120000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786634363,
+   "dateExpiration": 1791818363
+  },
+  "162229": {
+   "idItem": 5289,
+   "idCategory": 32,
+   "title": "Destroyer Mass Driver Cannon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 36000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786634558,
+   "dateExpiration": 1791818558
+  },
+  "162230": {
+   "idItem": 5142,
+   "idCategory": 18,
+   "title": "Boomtube Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786634626,
+   "dateExpiration": 1791818626
+  },
+  "162231": {
+   "idItem": 937,
+   "idCategory": 21,
+   "title": "Slipstream",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 210000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786634735,
+   "dateExpiration": 1791818735
+  },
+  "162232": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Zeus Mk II ES Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786635233,
+   "dateExpiration": 1791819233
+  },
+  "162233": {
+   "idItem": 4882,
+   "idCategory": 18,
+   "title": "Zenith \"Landslide\" Laser Sniper Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786635315,
+   "dateExpiration": 1791819315
+  },
+  "162234": {
+   "idItem": 4808,
+   "idCategory": 18,
+   "title": "Zenith \"Thunderstrike\" Laser Sniper Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786635398,
+   "dateExpiration": 1791819398
   }
  }
 }
