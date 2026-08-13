@@ -480,7 +480,7 @@ const resources = [...new Set(allResources)].sort((a, b) => a.localeCompare(b, '
 const out = {
   source: 'VerseBase — eigene Aufbereitung',
   source_url: 'https://robertsspaceindustries.com/',
-  source_note: 'Direkt aus den Spieldaten. Patch-volatil — ingame prüfen.',
+  source_note: 'Patch-volatil — ingame prüfen.',
   version: patchLabel ?? 'LIVE (Build unbekannt)',
   snapshot_date: new Date().toISOString().slice(0, 10),
   counts: { blueprints: blueprints.length, resources: resources.length },

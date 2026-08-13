@@ -37,7 +37,7 @@ const refineries = (data.refineries || []).map((r) => ({ name: r.name, system: r
 const refineryProfiles = data.refineryProfiles || {};
 
 const payload = {
-  source_note: 'EIN Feld ist als Konstante eingefroren: Refinery-Yield-Profile (serverseitige CIG-Economy — kein Client-Wert). Alles Übrige hier ist nur Fallback (density, scanSignature, qualityBands, rarity). Hinweis: Edelsteine haben in den Spieldaten GAR KEINE Seltenheit — sie bleiben bewusst ohne Stufe. Manuell pflegen, wenn CIG die Refinery-Economy ändert (selten).',
+  source_note: 'EIN Feld ist als Konstante eingefroren: Refinery-Yield-Profile (serverseitige CIG-Economy — kein Client-Wert). Alles Übrige hier ist nur Fallback (density, scanSignature, qualityBands, rarity). Hinweis: Edelsteine haben im Spiel GAR KEINE Seltenheit — sie bleiben bewusst ohne Stufe. Manuell pflegen, wenn CIG die Refinery-Economy ändert (selten).',
   frozen_from: `${live.version}`,
   snapshot_date: SNAP,
   counts: { elementMeta: Object.keys(elementMeta).length, refineries: refineries.length, refineryProfiles: Object.keys(refineryProfiles).length },

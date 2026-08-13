@@ -100,7 +100,7 @@ const out = {
     gameVersion: DB.game_version || null,
     priceDate: PRICES.fetchedAt || null,
     priceSource: PRICES.source || null,
-    note: 'Erze/Stationen aus den Spieldaten; Verkaufspreise UEX (Community). Methoden qualitativ — exakte Yield-/Zeit-/Kostenwerte der Raffinerie sind serverseitig und werden im Dashboard manuell aus dem Ingame-Terminal eingetragen.',
+    note: 'Verkaufspreise UEX (Community). Methoden qualitativ — exakte Yield-/Zeit-/Kostenwerte der Raffinerie sind serverseitig und werden im Dashboard manuell aus dem Ingame-Terminal eingetragen.',
   },
   methods: METHODS,
   stations: outStations,

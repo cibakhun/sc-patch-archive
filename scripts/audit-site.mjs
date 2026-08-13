@@ -529,6 +529,15 @@ const PROVENANCE_TERMS = [
   new RegExp('Data' + 'Core', 'i'),
   new RegExp('Game2' + '\\.dcb', 'i'),
   new RegExp('\\b' + 'scmdb' + '\\b', 'i'),
+  // Seit 13.08.2026 auch die milde Form der Attribution: "Quelle: Spieldaten"
+  // stand jahrelang unter jeder Schiffsliste. Sie nennt keine Technik, sagt
+  // aber dasselbe — die Zahlen kommen aus den Dateien des Spiels. Neutral ist
+  // die Version ohne Herkunft ("Spielversion: Alpha 4.9").
+  // KEIN Fund ist das Wort "Spiel" allein: Saetze ueber das Spiel sind der
+  // Zweck der Seite. Getroffen wird nur die Verbindung Daten <-> Spiel.
+  new RegExp('Spiel' + 'daten', 'i'),
+  new RegExp('game ?' + 'data', 'i'),
+  new RegExp('Daten' + 'quelle', 'i'),
   new RegExp('datamin' + '(ed|ing)?', 'i'),
   new RegExp('Spieldatei' + 'en?', 'i'),
 ];

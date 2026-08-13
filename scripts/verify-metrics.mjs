@@ -65,7 +65,7 @@ const ABLESER = {
   // --- Item-Katalog (assets/universal-items.json) ---
   items: () => rd('assets/universal-items.json').counts?.items,
   itemsMitBezugsquelle: () => rd('assets/universal-items.json').counts?.withObtain,
-  itemsMitSpieldaten: () => rd('assets/universal-items.json').counts?.withGameData,
+  itemsMitSpieldaten: () => rd('assets/universal-items.json').counts?.withDetails,
   uexPreiszeilen: () => rd('assets/universal-items.json').counts?.uexRows,
   ruestungsSets: () => rd('assets/universal-items.json').sets?.length,
 

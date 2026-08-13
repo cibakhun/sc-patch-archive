@@ -361,7 +361,7 @@ for (const e of items) e.id = slugId(e.name);
 const counts = {
   items: items.length,
   withObtain: items.filter((i) => i.obtain.length).length,
-  withGameData: items.filter((i) => i.game).length,
+  withDetails: items.filter((i) => i.game).length,
   withGameStats: items.filter((i) => i.game && i.game.stats).length,
   gameRows, gameStats,
   uexRows, snapFallbackRows, lootRows, vehicleRows,
@@ -386,7 +386,7 @@ const db = {
     shopsFallback: 'assets/dismantling-items.json — kuratierter Shop-Snapshot, greift nur ohne UEX-Treffer',
     loot: 'src/data/loot-items.json — eigene Loot-Recherche (Fundorte + Guides)',
     vehicles: 'src/data/vehicles.json + vehicle-prices.json — UEX Corp (uexcorp.space)',
-    catalog: 'Katalog der Item-Namen aus den Spieldaten',
+    catalog: 'Katalog der Item-Namen',
   },
   counts,
   // Ruestungs-Sets (Dreier-Kette aus scripts/lib/armor-sets.mjs) — Grundlage der
