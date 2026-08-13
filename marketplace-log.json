@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-13",
-  "updates": 212,
-  "totalListings": 5507,
+  "updates": 213,
+  "totalListings": 5514,
   "totalSold": 236,
   "distinctItems": 1119
  },
@@ -113569,6 +113569,10 @@
     {
      "d": "2026-08-13",
      "p": 400000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 279000
     }
    ],
    "soldOut": false,
@@ -113632,6 +113636,10 @@
     {
      "d": "2026-08-13",
      "p": 500000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 270000
     }
    ],
    "soldOut": false,
@@ -117564,6 +117572,153 @@
    "soldOutPrice": null,
    "dateAdded": 1786645984,
    "dateExpiration": 1791829984
+  },
+  "162299": {
+   "idItem": null,
+   "idCategory": 23,
+   "title": "FR-86 Crafted HP 107292",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786647473,
+   "dateExpiration": 1791831473
+  },
+  "162300": {
+   "idItem": 1770,
+   "idCategory": 21,
+   "title": "JS-500",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786647750,
+   "dateExpiration": 1791831750
+  },
+  "162302": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 2200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786648223,
+   "dateExpiration": 1791832223
+  },
+  "162305": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "Taranite",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 925,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786648801,
+   "dateExpiration": 1791832801
+  },
+  "162312": {
+   "idItem": 1774,
+   "idCategory": 21,
+   "title": "JS-300",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786649837,
+   "dateExpiration": 1791833837
+  },
+  "162315": {
+   "idItem": 7429,
+   "idCategory": 18,
+   "title": "Boomtube \"Clanguard\" Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786650142,
+   "dateExpiration": 1791834142
+  },
+  "162316": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Crafted Testudo Purgatory Camo Full set with Backpack - OQ 910",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 910,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 7500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786650245,
+   "dateExpiration": 1791834245
   }
  }
 }
