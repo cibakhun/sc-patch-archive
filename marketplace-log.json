@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-13",
-  "updates": 206,
-  "totalListings": 5409,
+  "updates": 207,
+  "totalListings": 5419,
   "totalSold": 233,
-  "distinctItems": 1110
+  "distinctItems": 1113
  },
  "listings": {
   "156580": {
@@ -108019,6 +108019,10 @@
     {
      "d": "2026-08-12",
      "p": 0
+    },
+    {
+     "d": "2026-08-13",
+     "p": 10000000
     }
    ],
    "soldOut": false,
@@ -115442,6 +115446,216 @@
    "soldOutPrice": null,
    "dateAdded": 1786625443,
    "dateExpiration": 1791809443
+  },
+  "162182": {
+   "idItem": 5701,
+   "idCategory": 2,
+   "title": "Crafted: Testudo Backpack Turfwar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786626287,
+   "dateExpiration": 1791810287
+  },
+  "162183": {
+   "idItem": 6014,
+   "idCategory": 7,
+   "title": "Geist Armor Snow Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786626365,
+   "dateExpiration": 1791810365
+  },
+  "162184": {
+   "idItem": 6654,
+   "idCategory": 3,
+   "title": "Paladin Helmet White/Black",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786626453,
+   "dateExpiration": 1791810453
+  },
+  "162185": {
+   "idItem": 7987,
+   "idCategory": 7,
+   "title": "Palatino Set Mark 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786626482,
+   "dateExpiration": 1791810482
+  },
+  "162189": {
+   "idItem": 2194,
+   "idCategory": 61,
+   "title": "Francis the Party Animal Plushie",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786627174,
+   "dateExpiration": 1791811174
+  },
+  "162192": {
+   "idItem": 5142,
+   "idCategory": 18,
+   "title": "Boomtube Rocket Launcher (fast response)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 390000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786627398,
+   "dateExpiration": 1791811398
+  },
+  "162193": {
+   "idItem": 5387,
+   "idCategory": 18,
+   "title": "Boomtube \"Mean Green\" Rocket Launcher (fast response)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 590000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786627546,
+   "dateExpiration": 1791811546
+  },
+  "162195": {
+   "idItem": 6103,
+   "idCategory": 3,
+   "title": "Crafted: Tailwind Flight Helmet Big Bite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 782,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786627807,
+   "dateExpiration": 1791811807
+  },
+  "162196": {
+   "idItem": 6067,
+   "idCategory": 3,
+   "title": "Crafted: Tailwind Flight Helmet Blue Skies",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 782,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786627903,
+   "dateExpiration": 1791811903
+  },
+  "162197": {
+   "idItem": 6086,
+   "idCategory": 3,
+   "title": "Crafted: Tailwind Flight Helmet Adrenaline",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 782,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786627988,
+   "dateExpiration": 1791811988
   }
  }
 }
