@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-13",
-  "updates": 215,
-  "totalListings": 5565,
+  "updates": 216,
+  "totalListings": 5587,
   "totalSold": 238,
-  "distinctItems": 1121
+  "distinctItems": 1129
  },
  "listings": {
   "156580": {
@@ -118581,6 +118581,10 @@
     {
      "d": "2026-08-13",
      "p": 7000000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 6500000
     }
    ],
    "soldOut": false,
@@ -118798,6 +118802,468 @@
    "soldOutPrice": null,
    "dateAdded": 1786657261,
    "dateExpiration": 1791841261
+  },
+  "162343": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Strata Heatwave",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786658721,
+   "dateExpiration": 1791842721
+  },
+  "162344": {
+   "idItem": 7988,
+   "idCategory": 7,
+   "title": "Palatino Set Metropolis Quality 975 (.44 Dmg Negation)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 11000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786658737,
+   "dateExpiration": 1791842737
+  },
+  "162345": {
+   "idItem": 4084,
+   "idCategory": 3,
+   "title": "Microid Battle Suit Helmet Lowland",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786659193,
+   "dateExpiration": 1791843193
+  },
+  "162347": {
+   "idItem": 4478,
+   "idCategory": 18,
+   "title": "Parallax \"Sanguine\" Energy Assault Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 95000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660233,
+   "dateExpiration": 1791844233
+  },
+  "162348": {
+   "idItem": 4901,
+   "idCategory": 18,
+   "title": "Fresnel \"Icebox\" Energy LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 295000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660267,
+   "dateExpiration": 1791844267
+  },
+  "162349": {
+   "idItem": 4860,
+   "idCategory": 36,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660382,
+   "dateExpiration": 1791844381
+  },
+  "162350": {
+   "idItem": 6938,
+   "idCategory": 3,
+   "title": "Morozov-SH-C Helmet Smokescreen",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 145000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660478,
+   "dateExpiration": 1791844478
+  },
+  "162351": {
+   "idItem": 5222,
+   "idCategory": 3,
+   "title": "Morozov-SH-C Helmet Spite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 395000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660478,
+   "dateExpiration": 1791844478
+  },
+  "162352": {
+   "idItem": 3229,
+   "idCategory": 11,
+   "title": "Creese Jacket Copperhead",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660677,
+   "dateExpiration": 1791844677
+  },
+  "162353": {
+   "idItem": 6041,
+   "idCategory": 4,
+   "title": "Testudo Legs Combustion",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660708,
+   "dateExpiration": 1791844708
+  },
+  "162354": {
+   "idItem": 5333,
+   "idCategory": 17,
+   "title": "Stoic Suppressor 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 5700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660750,
+   "dateExpiration": 1791844750
+  },
+  "162355": {
+   "idItem": 6332,
+   "idCategory": 5,
+   "title": "Venture Core \"Rust Society\"",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 850000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660751,
+   "dateExpiration": 1791844751
+  },
+  "162356": {
+   "idItem": 3398,
+   "idCategory": 2,
+   "title": "Pembroke Backpack RSI Ivory Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660765,
+   "dateExpiration": 1791844765
+  },
+  "162357": {
+   "idItem": 3484,
+   "idCategory": 1,
+   "title": "Venture Arms Pathfinder",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660778,
+   "dateExpiration": 1791844778
+  },
+  "162358": {
+   "idItem": 2437,
+   "idCategory": 5,
+   "title": "Venture Core Voyager",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660822,
+   "dateExpiration": 1791844822
+  },
+  "162359": {
+   "idItem": 3227,
+   "idCategory": 11,
+   "title": "Creese Jacket Toxic Fog",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660853,
+   "dateExpiration": 1791844853
+  },
+  "162360": {
+   "idItem": 4597,
+   "idCategory": 5,
+   "title": "Citadel-SE Core Dark Green",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660922,
+   "dateExpiration": 1791844922
+  },
+  "162361": {
+   "idItem": 6663,
+   "idCategory": 3,
+   "title": "Overlord Helmet Cardinal",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660966,
+   "dateExpiration": 1791844966
+  },
+  "162362": {
+   "idItem": 5749,
+   "idCategory": 5,
+   "title": "DCP Armor Core Cobalt Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 850000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786660996,
+   "dateExpiration": 1791844996
+  },
+  "162363": {
+   "idItem": 2864,
+   "idCategory": 1,
+   "title": "Inquisitor Arms Black",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786661026,
+   "dateExpiration": 1791845026
+  },
+  "162364": {
+   "idItem": 7721,
+   "idCategory": 4,
+   "title": "Citadel Legs Outcrop",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786661058,
+   "dateExpiration": 1791845058
+  },
+  "162365": {
+   "idItem": 3487,
+   "idCategory": 4,
+   "title": "Venture Legs Pathfinder",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786661093,
+   "dateExpiration": 1791845093
   }
  }
 }
