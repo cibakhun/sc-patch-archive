@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-13",
-  "updates": 211,
-  "totalListings": 5497,
+  "updates": 212,
+  "totalListings": 5507,
   "totalSold": 236,
   "distinctItems": 1119
  },
@@ -113292,6 +113292,10 @@
     {
      "d": "2026-08-13",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 15000000
     }
    ],
    "soldOut": false,
@@ -117350,6 +117354,216 @@
    "soldOutPrice": null,
    "dateAdded": 1786643065,
    "dateExpiration": 1791827065
+  },
+  "162282": {
+   "idItem": 4433,
+   "idCategory": 18,
+   "title": "crafted Parallax \"Shock Trooper\" Energy Assault Rifle with 14% impact & 32% recoil",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 879,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786643254,
+   "dateExpiration": 1791827254
+  },
+  "162284": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786643530,
+   "dateExpiration": 1791827530
+  },
+  "162285": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure) - WTB 16 000 000",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 16000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786643691,
+   "dateExpiration": 1791827691
+  },
+  "162286": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "WTS Corundum 884",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 665000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786643879,
+   "dateExpiration": 1791827879
+  },
+  "162287": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle 7.05% and 31.68% recoil",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 920,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786643918,
+   "dateExpiration": 1791827918
+  },
+  "162289": {
+   "idItem": null,
+   "idCategory": 23,
+   "title": "FR-86 Crafted HP 111800",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786644045,
+   "dateExpiration": 1791828045
+  },
+  "162292": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle 7.05% and 34.76% recoil",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 946,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786644565,
+   "dateExpiration": 1791828565
+  },
+  "162294": {
+   "idItem": null,
+   "idCategory": 69,
+   "title": "Palatino Necropolis Arms",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786644784,
+   "dateExpiration": 1791828784
+  },
+  "162295": {
+   "idItem": 1750,
+   "idCategory": 23,
+   "title": "FR-76",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786644959,
+   "dateExpiration": 1791828959
+  },
+  "162296": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786645984,
+   "dateExpiration": 1791829984
   }
  }
 }
