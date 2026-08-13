@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-13",
-  "updates": 209,
-  "totalListings": 5463,
+  "updates": 210,
+  "totalListings": 5485,
   "totalSold": 234,
-  "distinctItems": 1116
+  "distinctItems": 1118
  },
  "listings": {
   "156580": {
@@ -110558,6 +110558,10 @@
     {
      "d": "2026-08-13",
      "p": 4500003
+    },
+    {
+     "d": "2026-08-13",
+     "p": 4500000
     }
    ],
    "soldOut": false,
@@ -116620,6 +116624,468 @@
    "soldOutPrice": null,
    "dateAdded": 1786635398,
    "dateExpiration": 1791819398
+  },
+  "162235": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Ares Inferno Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786636038,
+   "dateExpiration": 1791820038
+  },
+  "162236": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 947,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786636655,
+   "dateExpiration": 1791820654
+  },
+  "162237": {
+   "idItem": null,
+   "idCategory": 55,
+   "title": "Vanduul Tech Smugglers Solo (Mission) - 1M Reward each time",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786636761,
+   "dateExpiration": 1791820761
+  },
+  "162238": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip - 6k each - Got 4k for sell",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 6000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786636807,
+   "dateExpiration": 1791820807
+  },
+  "162239": {
+   "idItem": 8026,
+   "idCategory": 7,
+   "title": "Corbel Crush Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786636812,
+   "dateExpiration": 1791820812
+  },
+  "162240": {
+   "idItem": 6014,
+   "idCategory": 7,
+   "title": "Geist Armor Snow Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786636933,
+   "dateExpiration": 1791820933
+  },
+  "162241": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Sabre Firebird (Wikelo Kit)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786636977,
+   "dateExpiration": 1791820977
+  },
+  "162242": {
+   "idItem": 7987,
+   "idCategory": 7,
+   "title": "Palatino Set Mark 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786637048,
+   "dateExpiration": 1791821048
+  },
+  "162243": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "F7 Super Hornet MKII Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786637054,
+   "dateExpiration": 1791821053
+  },
+  "162244": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "Large Artifact Fragment - PRISTINE",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786637388,
+   "dateExpiration": 1791821388
+  },
+  "162245": {
+   "idItem": 4838,
+   "idCategory": 3,
+   "title": "Geist Armor Helmet ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786637579,
+   "dateExpiration": 1791821579
+  },
+  "162246": {
+   "idItem": 3247,
+   "idCategory": 3,
+   "title": "Lost Plague Helmet Explosive Orange",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786637668,
+   "dateExpiration": 1791821668
+  },
+  "162247": {
+   "idItem": 7573,
+   "idCategory": 3,
+   "title": "Calva Helmet Daybreaker",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786637765,
+   "dateExpiration": 1791821765
+  },
+  "162248": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium Q901 - 0.441SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 901,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786637804,
+   "dateExpiration": 1791821804
+  },
+  "162249": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Terrapin Medic Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786637881,
+   "dateExpiration": 1791821881
+  },
+  "162250": {
+   "idItem": 2590,
+   "idCategory": 3,
+   "title": "Star Kitten Damon Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786637884,
+   "dateExpiration": 1791821884
+  },
+  "162251": {
+   "idItem": 2371,
+   "idCategory": 5,
+   "title": "Novikov \"Ascension\" Exploration suit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786638116,
+   "dateExpiration": 1791822116
+  },
+  "162253": {
+   "idItem": 2368,
+   "idCategory": 24,
+   "title": "Xanthule \"Ascension\" Suit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786638307,
+   "dateExpiration": 1791822307
+  },
+  "162254": {
+   "idItem": 7977,
+   "idCategory": 7,
+   "title": "Monde Set Crimson Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786638432,
+   "dateExpiration": 1791822432
+  },
+  "162255": {
+   "idItem": null,
+   "idCategory": 32,
+   "title": "Quartz Elite Energy SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 786,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786638439,
+   "dateExpiration": 1791822439
+  },
+  "162256": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Scorpius Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 17000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786638701,
+   "dateExpiration": 1791822701
+  },
+  "162263": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786639461,
+   "dateExpiration": 1791823461
   }
  }
 }
