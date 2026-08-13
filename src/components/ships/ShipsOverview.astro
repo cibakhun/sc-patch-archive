@@ -14,6 +14,15 @@
 import SiteNav from '../SiteNav.astro';
 import { getCollection } from 'astro:content';
 import vehiclesSnapshot from '../../data/vehicles.json';
+
+// Anzeigeform der Spielversion: aus "sc-alpha-4.9.0@12326004" wird "Alpha 4.9.0".
+// `split('-')[0]` stand hier vorher und ergab das nichtssagende "sc" — das fiel
+// nur niemandem auf, solange davor noch ein Wort stand.
+const alphaLabelOf = (v) => {
+  const m = /alpha-([\d.]+)/i.exec(v ?? '');
+  return m ? `Alpha ${m[1]}` : null;
+};
+const shipsAlphaLabel = alphaLabelOf(vehiclesSnapshot.gameVersion);
 import vehicleRoles from '../../data/vehicle-roles.json';
 import { pickThumb } from '../../lib/shipRenders';
 import { priceInfo, pricesFetchedAt } from '../../lib/shipExtras';
@@ -101,8 +110,8 @@ const crewFmt = (v: (typeof vehicles)[number]['data']) =>
 // Erklaerung der CIG-Groessenklasse: kein eigener Absatz mehr, sondern Tooltip
 // am Groessenmenue (siehe Kommentar dort).
 const sizeHint = de
-  ? 'Größenklasse 1–6 aus den Spieldaten: sie bestimmt, auf welchen Landeplatz bzw. in welchen Hangar das Schiff passt — nicht die umgangssprachliche Größe.'
-  : 'Size class 1–6 from the game data: it determines which landing pad or hangar the ship fits — not the everyday size label.';
+  ? 'Größenklasse 1–6: sie bestimmt, auf welchen Landeplatz bzw. in welchen Hangar das Schiff passt — nicht die umgangssprachliche Größe.'
+  : 'Size class 1–6: it determines which landing pad or hangar the ship fits — not the everyday size label.';
 const auecShort = (n: number) => n.toLocaleString(de ? 'de-DE' : 'en-US');
 const sigFmt = (n: number) => n.toLocaleString(de ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 ---
@@ -464,7 +473,7 @@ a{color:inherit;text-decoration:none}
   </div>
 
   <p class="sdb__src">
-    {de ? 'Quelle: Spieldaten' : 'Source: game data'}{vehiclesSnapshot.gameVersion && ` ${vehiclesSnapshot.gameVersion.split('-')[0]}`}
+    {de ? 'Spielversion:' : 'Game version:'}{shipsAlphaLabel && ` ${shipsAlphaLabel}`}
     {de ? ' · Stand ' : ' · as of '}{vehiclesSnapshot.fetchedAt}
     {de ? ' · Ingame-Preise: ' : ' · In-game prices: '}<a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> ({de ? 'Stand ' : 'as of '}{pricesFetchedAt})
     {de ? ' · Bilder: starcitizen.tools' : ' · Images: starcitizen.tools'}

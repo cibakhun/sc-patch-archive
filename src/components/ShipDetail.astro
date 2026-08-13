@@ -73,6 +73,15 @@ const rentMin = prices?.rent[0] ?? null;
 const MAX_ROWS = 6;
 
 const extras: ShipExtras = extrasInfo(id);
+
+// Anzeigeform der Spielversion: aus "sc-alpha-4.9.0@12326004" wird "Alpha 4.9.0".
+// `split('-')[0]` stand hier vorher und ergab das nichtssagende "sc" — das fiel
+// nur niemandem auf, solange davor noch ein Wort stand.
+const alphaLabelOf = (v) => {
+  const m = /alpha-([\d.]+)/i.exec(v ?? '');
+  return m ? `Alpha ${m[1]}` : null;
+};
+const shipAlphaLabel = alphaLabelOf(d.gameVersion);
 const holoUrl = extras?.holo ?? null;
 const paints = extras?.paints ?? [];
 const variants = (extras?.variants ?? []).filter((v) => v.id !== id);
@@ -1596,7 +1605,7 @@ span.sd__ref{color:var(--muted)}
     </div>
 
     <p class="sd__src">
-      {t('ship.source')} {t('ship.source.gameData')}{d.gameVersion && ` ${d.gameVersion.split('-')[0]}`}
+      {t('ship.version')}{shipAlphaLabel && ` ${shipAlphaLabel}`}
       · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}
       {hero?.api && ` · ${t('ship.source.image')}: ${d.image?.source ?? 'starcitizen.tools'}`}
       {' '}· {t('ship.source.ingame')}: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> · {t('ship.asof')} {pricesFetchedAt}

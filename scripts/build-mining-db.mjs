@@ -85,9 +85,9 @@ const bodies = (locs.bodies || []).map((b) => {
 const snapshot_date = new Date().toISOString().slice(0, 10);
 
 const payload = {
-  source: 'Star Citizen Data.p4k (Game2.dcb, DataCore v8) — eigene Extraktion, kein scmdb',
+  source: 'VerseBase — eigene Aufbereitung',
   source_url: 'https://verse-base.com/',
-  source_note: `Game-akkurate Mining-Fakten direkt aus den Spieldateien (${game_version}): Abbaubarkeit, Fundorte, Abundance %, rarity. Keine Verkaufspreise — nur im Spiel verifizierbare Vorkommen. Planeten-Anzeigenamen kuratiert (Starmap). Patch-volatil.`,
+  source_note: `Game-akkurate Mining-Fakten (${game_version}): Abbaubarkeit, Fundorte, Abundance %, rarity. Keine Verkaufspreise — nur im Spiel verifizierbare Vorkommen. Planeten-Anzeigenamen kuratiert (Starmap). Patch-volatil.`,
   game_version, snapshot_date, frozen_constants_date: frozen.snapshot_date,
   live_systems: [...new Set(minerals.flatMap((m) => m.systems))].sort(bySys),
   counts: { minerals: minerals.length, bodies: bodies.length },

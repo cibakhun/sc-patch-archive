@@ -82,8 +82,8 @@ const omittedUnnamed = [
 const snapshot_date = new Date().toISOString().slice(0, 10);
 
 const payload = {
-  source: 'Star Citizen Data.p4k (Game2.dcb, DataCore v8) — eigene Extraktion; nur Refinery-Yields, scanSignature, qualityBands + Edelstein-rarity als gelabelte Konstanten (siehe mining-frozen.json)',
-  source_note: 'Game-akkurates Mining-Physik-Modell aus den eigenen Spieldateien. Formeln am Community-Solver verifiziert. Patch-volatil — ingame prüfen.',
+  source: 'VerseBase — eigene Aufbereitung; nur Refinery-Yields, scanSignature, qualityBands + Edelstein-rarity als gelabelte Konstanten (siehe mining-frozen.json)',
+  source_note: 'Game-akkurates Mining-Physik-Modell. Formeln am Community-Solver verifiziert. Patch-volatil — ingame prüfen.',
   game_version, snapshot_date, frozen_constants_date: frozen.snapshot_date,
   params, qualityBandBoundaries: game.qualityBandBoundaries ?? [0, 400, 600, 700, 800, 900, 950, 999],
   counts: { elements: elements.length, compositions: compositions.length, lasers: lasersSplit.named.length, modules: modulesSplit.named.length, gadgets: gadgetsSplit.named.length, refineries: (frozen.refineries || []).length, omitted: omittedUnnamed.length },

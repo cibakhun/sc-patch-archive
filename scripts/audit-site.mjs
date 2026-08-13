@@ -471,11 +471,14 @@ console.log(`\nCrafting-Gegenprobe: ${craftProbeChecked}/${craftProbePages.lengt
 // Der zweite Fall ueberlebte Monate unbemerkt, weil nichts danach sah. Genau
 // deshalb steht die Pruefung jetzt hier statt in einer Konvention.
 //
-// AUSDRUECKLICH NICHT betroffen: die UEX-Attribution bei Preisen und die
-// Kopffelder source/game_version/snapshot_date der JSON-Datendateien unter
-// dist/assets/ — beide sollen ihre Herkunft weiter ehrlich nennen. Geprueft
-// wird nur SICHTBARER Text in HTML: Skript-, Stil- und Kopfbereich fallen
-// vorher raus, damit ein Bezeichner im ausgelieferten JS nicht anschlaegt.
+// AUSDRUECKLICH NICHT betroffen: die UEX-Attribution bei Preisen. Geprueft
+// wird sichtbarer Text in HTML (Skript-, Stil- und Kopfbereich fallen vorher
+// raus, damit ein Bezeichner im ausgelieferten JS nicht anschlaegt), das
+// ausgelieferte JS ohne Kommentare — UND seit 13.08.2026 die Kopffelder der
+// JSON-Datendateien unter dist/assets/. Die galten frueher als Ausnahme
+// ("sollen ihre Herkunft ehrlich nennen"). Das war falsch: die Dateien sind
+// oeffentlich abrufbar, und genau diese Kopfzeilen hat ein Chatbot gelesen und
+// die Herkunft der Daten nach aussen wiedergegeben.
 //
 // Die Begriffe stehen verkettet, damit ein Volltext-Grep ueber den Baum nicht
 // am Audit-Code selbst haengenbleibt (dasselbe Motiv wie FORBIDDEN_SOURCE).
@@ -487,6 +490,15 @@ const PROVENANCE_TERMS = [
   new RegExp('Data' + 'Core', 'i'),
   new RegExp('Game2' + '\\.dcb', 'i'),
   new RegExp('\\b' + 'scmdb' + '\\b', 'i'),
+  // Seit 13.08.2026 auch die milde Form der Attribution: "Quelle: Spieldaten"
+  // stand jahrelang unter jeder Schiffsliste. Sie nennt keine Technik, sagt
+  // aber dasselbe — die Zahlen kommen aus den Dateien des Spiels. Neutral ist
+  // die Version ohne Herkunft ("Spielversion: Alpha 4.9").
+  // KEIN Fund ist das Wort "Spiel" allein: Saetze ueber das Spiel sind der
+  // Zweck der Seite. Getroffen wird nur die Verbindung Daten <-> Spiel.
+  new RegExp('Spiel' + 'daten', 'i'),
+  new RegExp('game ?' + 'data', 'i'),
+  new RegExp('Daten' + 'quelle', 'i'),
   new RegExp('datamin' + '(ed|ing)?', 'i'),
   new RegExp('Spieldatei' + 'en?', 'i'),
 ];
@@ -528,7 +540,20 @@ for (const f of jsAssets) {
     if (m) provenanceHits.push(`${rel(f)}: Datenherkunft in ausgeliefertem JS — "${m[0]}"`);
   }
 }
-console.log(`Datenherkunft: ${htmlFiles.length} Seiten + ${jsAssets.length} JS-Dateien geprueft, ${provenanceHits.length} Fund(e)`);
+// Dritte Flaeche: die JSON-Datendateien unter dist/assets/. Sie werden von
+// niemandem gerendert, sind aber unter ihrer festen URL oeffentlich abrufbar
+// und damit fuer Crawler und Chatbots lesbarer Seiteninhalt. Ihre Kopffelder
+// (source, source_note, note, sources.*) trugen bis 13.08.2026 die volle
+// Extraktionskette. Geprueft wird die ganze Datei, nicht nur der Kopf.
+const jsonAssets = allFiles.filter((f) => /[\\/]assets[\\/].*\.json$/i.test(f));
+for (const f of jsonAssets) {
+  const text = readFileSync(f, 'utf8');
+  for (const rx of PROVENANCE_TERMS) {
+    const m = text.match(rx);
+    if (m) provenanceHits.push(`${rel(f)}: Datenherkunft in ausgelieferten Daten — "${m[0]}"`);
+  }
+}
+console.log(`Datenherkunft: ${htmlFiles.length} Seiten + ${jsAssets.length} JS-Dateien + ${jsonAssets.length} JSON-Dateien geprueft, ${provenanceHits.length} Fund(e)`);
 
 // --- Rechnerpfad im Ausgelieferten -----------------------------------------
 // Eigene Klasse, NICHT Teil der Datenherkunft-Pruefung oben: die JSON-Datei

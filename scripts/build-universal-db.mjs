@@ -361,7 +361,7 @@ for (const e of items) e.id = slugId(e.name);
 const counts = {
   items: items.length,
   withObtain: items.filter((i) => i.obtain.length).length,
-  withGameData: items.filter((i) => i.game).length,
+  withDetails: items.filter((i) => i.game).length,
   withGameStats: items.filter((i) => i.game && i.game.stats).length,
   gameRows, gameStats,
   uexRows, snapFallbackRows, lootRows, vehicleRows,
@@ -381,12 +381,12 @@ const db = {
   pricesAsOf: uexDb.fetchedAt,
   note: 'Keine fabrizierten Werte: Items ohne bekannte Quelle haben obtain:[] (Katalog). Preise/Orte Patch-volatil — ingame prüfen.',
   sources: {
-    gamefiles: 'assets/items-gamefiles.json — eigene DataCore-Extraktion (Kategorie, Size/Grade/Hersteller, Stats)',
+    gamefiles: 'Eigene Aufbereitung (Kategorie, Size/Grade/Hersteller, Stats)',
     prices: `src/data/item-prices.json — UEX Corp, Stand ${uexDb.fetchedAt}; identisch mit den Kaufpreis-Tabellen auf starcitizen.tools`,
     shopsFallback: 'assets/dismantling-items.json — kuratierter Shop-Snapshot, greift nur ohne UEX-Treffer',
     loot: 'src/data/loot-items.json — eigene Loot-Recherche (Fundorte + Guides)',
     vehicles: 'src/data/vehicles.json + vehicle-prices.json — UEX Corp (uexcorp.space)',
-    catalog: `global.ini (item_Name* + items_commodities_*) aus ${catalogSourceLabel}`,
+    catalog: 'Katalog der Item-Namen',
   },
   counts,
   // Ruestungs-Sets (Dreier-Kette aus scripts/lib/armor-sets.mjs) — Grundlage der
