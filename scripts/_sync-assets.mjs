@@ -10,7 +10,13 @@
 // zur Laufzeit laedt sie niemand. Mitkopiert waeren es ~9 MB toter Payload in
 // dist, und weil sie in CI gar nicht existieren, saehe die lokale Vorschau
 // anders aus als die Produktion.
-import { cp } from 'node:fs/promises';
+// NICHT KOPIEREN REICHT NICHT: der Filter kam spaeter als die Dateien. Auf
+// Rechnern, die vorher einmal gebaut hatten, lagen die Eingaben laengst in
+// public/assets — und weil public/ ungefiltert nach dist/ wandert, wurden sie
+// mit ausgeliefert (inkl. dem Data.p4k-Pfad des Rechners im Kopf). Deshalb
+// werden Altbestaende hier bei jedem Lauf entfernt statt nur uebersprungen.
+import { cp, readdir, rm } from 'node:fs/promises';
+import { join } from 'node:path';
 
 const IS_BUILD_INPUT = /-gamefiles\.json$/i;
 
@@ -18,4 +24,11 @@ await cp('assets', 'public/assets', {
   recursive: true,
   filter: (src) => !IS_BUILD_INPUT.test(src),
 });
-console.log('synced assets -> public/assets (ohne *-gamefiles.json)');
+
+let pruned = 0;
+for (const name of await readdir('public/assets').catch(() => [])) {
+  if (!IS_BUILD_INPUT.test(name)) continue;
+  await rm(join('public/assets', name), { force: true });
+  pruned++;
+}
+console.log(`synced assets -> public/assets (ohne *-gamefiles.json${pruned ? `, ${pruned} Altbestand entfernt` : ''})`);

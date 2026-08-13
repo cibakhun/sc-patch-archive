@@ -381,12 +381,12 @@ const db = {
   pricesAsOf: uexDb.fetchedAt,
   note: 'Keine fabrizierten Werte: Items ohne bekannte Quelle haben obtain:[] (Katalog). Preise/Orte Patch-volatil — ingame prüfen.',
   sources: {
-    gamefiles: 'assets/items-gamefiles.json — eigene DataCore-Extraktion (Kategorie, Size/Grade/Hersteller, Stats)',
+    gamefiles: 'Eigene Aufbereitung (Kategorie, Size/Grade/Hersteller, Stats)',
     prices: `src/data/item-prices.json — UEX Corp, Stand ${uexDb.fetchedAt}; identisch mit den Kaufpreis-Tabellen auf starcitizen.tools`,
     shopsFallback: 'assets/dismantling-items.json — kuratierter Shop-Snapshot, greift nur ohne UEX-Treffer',
     loot: 'src/data/loot-items.json — eigene Loot-Recherche (Fundorte + Guides)',
     vehicles: 'src/data/vehicles.json + vehicle-prices.json — UEX Corp (uexcorp.space)',
-    catalog: `global.ini (item_Name* + items_commodities_*) aus ${catalogSourceLabel}`,
+    catalog: 'Katalog der Item-Namen aus den Spieldaten',
   },
   counts,
   // Ruestungs-Sets (Dreier-Kette aus scripts/lib/armor-sets.mjs) — Grundlage der

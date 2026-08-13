@@ -478,9 +478,9 @@ const resources = [...new Set(allResources)].sort((a, b) => a.localeCompare(b, '
   .map((n) => ({ name: n, used_in_blueprints: usedCount.get(n) ?? 0 }));
 
 const out = {
-  source: 'Star Citizen Data.p4k -> Data/Game2.dcb (DataCore v8) + Localization/english/global.ini — eigene Extraktion (scripts/datamine-crafting.mjs)',
+  source: 'VerseBase — eigene Aufbereitung',
   source_url: 'https://robertsspaceindustries.com/',
-  source_note: 'Direkt aus den Spieldaten extrahiert. Patch-volatil — ingame prüfen.',
+  source_note: 'Direkt aus den Spieldaten. Patch-volatil — ingame prüfen.',
   version: patchLabel ?? 'LIVE (Build unbekannt)',
   snapshot_date: new Date().toISOString().slice(0, 10),
   counts: { blueprints: blueprints.length, resources: resources.length },

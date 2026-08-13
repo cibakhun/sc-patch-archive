@@ -1,5 +1,5 @@
 {
-  "source": "Kuratierte Mineral-Attribute (Code/Kind/Gewicht/Basis-Methode) — von Hand gepflegt, NICHT game-extrahiert. Von build-mining-db gelesen, nie überschrieben.",
+  "source": "Kuratierte Mineral-Attribute (Code/Kind/Gewicht/Basis-Methode) — von Hand gepflegt. Von build-mining-db gelesen, nie überschrieben.",
   "minerals": {
     "Agricium": {
       "code": "AGRI",
