@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-13",
-  "updates": 214,
-  "totalListings": 5553,
-  "totalSold": 237,
-  "distinctItems": 1120
+  "updates": 215,
+  "totalListings": 5565,
+  "totalSold": 238,
+  "distinctItems": 1121
  },
  "listings": {
   "156580": {
@@ -111654,6 +111654,10 @@
     {
      "d": "2026-08-13",
      "p": 17000000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 15000000
     }
    ],
    "soldOut": false,
@@ -113464,6 +113468,10 @@
     {
      "d": "2026-08-13",
      "p": 3500000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 2900000
     }
    ],
    "soldOut": false,
@@ -118533,11 +118541,263 @@
      "p": 5500000
     }
    ],
+   "soldOut": true,
+   "soldOutAt": "2026-08-13",
+   "soldOutPrice": 5500000,
+   "dateAdded": 1786653568,
+   "dateExpiration": 1791837568
+  },
+  "162330": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Wikelo Intrepid",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 3000000
+    }
+   ],
    "soldOut": false,
    "soldOutAt": null,
    "soldOutPrice": null,
-   "dateAdded": 1786653568,
-   "dateExpiration": 1791837568
+   "dateAdded": 1786654007,
+   "dateExpiration": 1791838007
+  },
+  "162331": {
+   "idItem": 7988,
+   "idCategory": 7,
+   "title": "Palatino Set Metropolis Quality 910 (.43 Dmg Negation)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 910,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786654346,
+   "dateExpiration": 1791838346
+  },
+  "162332": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "C1 Spirit Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786654924,
+   "dateExpiration": 1791838924
+  },
+  "162333": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Sabre Peregrine Wikelo Mod",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786655764,
+   "dateExpiration": 1791839764
+  },
+  "162334": {
+   "idItem": 6769,
+   "idCategory": 5,
+   "title": "ORC-mkX Core Justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786656028,
+   "dateExpiration": 1791840028
+  },
+  "162336": {
+   "idItem": 6003,
+   "idCategory": 5,
+   "title": "FBL-8a Core Justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786656255,
+   "dateExpiration": 1791840255
+  },
+  "162337": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 16500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786656548,
+   "dateExpiration": 1791840548
+  },
+  "162338": {
+   "idItem": 1810,
+   "idCategory": 32,
+   "title": "Absolution Distortion Scattergun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 2800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786656879,
+   "dateExpiration": 1791840879
+  },
+  "162339": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 25000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786656919,
+   "dateExpiration": 1791840919
+  },
+  "162340": {
+   "idItem": 182,
+   "idCategory": 32,
+   "title": "Salvation Distortion Scattergun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786656960,
+   "dateExpiration": 1791840960
+  },
+  "162341": {
+   "idItem": 4816,
+   "idCategory": 2,
+   "title": "Geist Backpack Rogue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 19800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786656964,
+   "dateExpiration": 1791840964
+  },
+  "162342": {
+   "idItem": 1755,
+   "idCategory": 21,
+   "title": "MegaFlux",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786657261,
+   "dateExpiration": 1791841261
   }
  }
 }
