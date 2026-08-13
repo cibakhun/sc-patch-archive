@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-13",
-  "updates": 210,
-  "totalListings": 5485,
-  "totalSold": 234,
-  "distinctItems": 1118
+  "updates": 211,
+  "totalListings": 5497,
+  "totalSold": 236,
+  "distinctItems": 1119
  },
  "listings": {
   "156580": {
@@ -109355,9 +109355,9 @@
      "p": 275000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-13",
+   "soldOutPrice": 275000,
    "dateAdded": 1786542409,
    "dateExpiration": 1791726409
   },
@@ -110350,9 +110350,9 @@
      "p": 145000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-13",
+   "soldOutPrice": 145000,
    "dateAdded": 1786552180,
    "dateExpiration": 1791736180
   },
@@ -114468,6 +114468,10 @@
     {
      "d": "2026-08-13",
      "p": 700000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 650000
     }
    ],
    "soldOut": false,
@@ -114552,6 +114556,10 @@
     {
      "d": "2026-08-13",
      "p": 700000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 740000
     }
    ],
    "soldOut": false,
@@ -117037,6 +117045,10 @@
     {
      "d": "2026-08-13",
      "p": 10000000
+    },
+    {
+     "d": "2026-08-13",
+     "p": 6000000
     }
    ],
    "soldOut": false,
@@ -117086,6 +117098,258 @@
    "soldOutPrice": null,
    "dateAdded": 1786639461,
    "dateExpiration": 1791823461
+  },
+  "162265": {
+   "idItem": 8046,
+   "idCategory": 7,
+   "title": "DCP Hunter Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786639871,
+   "dateExpiration": 1791823871
+  },
+  "162266": {
+   "idItem": 8045,
+   "idCategory": 7,
+   "title": "DCP Cobalt Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786640082,
+   "dateExpiration": 1791824082
+  },
+  "162269": {
+   "idItem": 8031,
+   "idCategory": 7,
+   "title": "Antium Moss Camo Set 44% Mitigation",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 964,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786640487,
+   "dateExpiration": 1791824487
+  },
+  "162272": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786641144,
+   "dateExpiration": 1791825144
+  },
+  "162273": {
+   "idItem": 7986,
+   "idCategory": 7,
+   "title": "Palatino Set Deadlock incl F55 LMG and Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786641268,
+   "dateExpiration": 1791825268
+  },
+  "162274": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786641442,
+   "dateExpiration": 1791825442
+  },
+  "162275": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Morozov-SH Set--44% Mitigation--Black",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 964,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786641530,
+   "dateExpiration": 1791825530
+  },
+  "162277": {
+   "idItem": 5336,
+   "idCategory": 17,
+   "title": "Escalate Stabilizer 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786642650,
+   "dateExpiration": 1791826650
+  },
+  "162278": {
+   "idItem": 6194,
+   "idCategory": 17,
+   "title": "Stark Compensator3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786642745,
+   "dateExpiration": 1791826745
+  },
+  "162279": {
+   "idItem": 6232,
+   "idCategory": 17,
+   "title": "Torrent Compensator3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786642844,
+   "dateExpiration": 1791826844
+  },
+  "162280": {
+   "idItem": 5481,
+   "idCategory": 17,
+   "title": "Stoic Suppressor 3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786642920,
+   "dateExpiration": 1791826920
+  },
+  "162281": {
+   "idItem": 5325,
+   "idCategory": 17,
+   "title": "HG-2 Jaeger (2x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-13",
+   "lastSeen": "2026-08-13",
+   "prices": [
+    {
+     "d": "2026-08-13",
+     "p": 1250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786643065,
+   "dateExpiration": 1791827065
   }
  }
 }
