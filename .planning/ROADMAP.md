@@ -528,3 +528,44 @@ Phase 8 hängt ebenfalls an keiner Vorgängerphase und lief am 07.08.2026 durch.
 | 6. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |
 | 7. Komponenten-Filter für Schiffe | 3/3 | Complete | 2026-08-03 |
 | 8. Bauteil-Kennwerte auf den Crafting-Karten | 3/3 | Complete | 2026-08-07 |
+
+### Phase 9: Mining-Werkbank: Fundort-Merkliste
+
+**Goal:** Die mittlere Spalte der Werkbank wird neu belegt. Die Detailspalte
+(`wb__pane--a`: Physik, Qualitätsstufen, „Steine mit diesem Erz") entfällt
+ersatzlos — diese Angaben werden später an anderer Stelle besser dargestellt.
+An ihre Stelle rückt die Fundorte-Liste (bisher `wb__pane--b`). Der dadurch
+frei werdende Platz nimmt ein neues Werkzeug auf: Zum ausgewählten Erz lassen
+sich einzelne Fundorte anheften; jedes angeheftete Paar erscheint dort als
+„Erz — Fundort" (z. B. „Quantainium — Aaron Halo"), auch über mehrere Erze
+hinweg. Die Merkliste ist unter einem Namen als Preset speicherbar,
+kontogebunden wie `mining_sig_presets`, und bleibt bestehen, solange das
+jeweilige Preset ausgewählt ist.
+**Requirements**: keine REQ-IDs in REQUIREMENTS.md — bindend sind stattdessen die
+Entscheidungen D-01 bis D-07 aus
+`.planning/phases/09-mining-werkbank-fundort-merkliste/CONTEXT.md` (gleicher Umgang wie
+in Phase 7).
+**Depends on:** Phase 8
+**Plans:** 2 plans
+
+Plans:
+
+- [ ] 09-01-PLAN.md (Welle 1) — Leitschuss durch alle vier Schichten: Spalte `locations`
+  an `mining_sig_presets` (Altbestand laedt weiter), Mitte einspaltig mit umgehaengtem
+  Erz-Kopf, zweiter Reiter mit der Merkliste, EIN angehefteter Fundort ueberlebt den
+  Preset-Rundlauf — maschinell belegt gegen das echte Client-Skript; danach die toten
+  Reste der Detailspalte und ein Wachposten in `verify:mining` fuer den Paar-Schluessel
+- [ ] 09-02-PLAN.md (Welle 2) — Ausbau: Werte je Paar (Chance, Hoechstanteil),
+  Loesen an beiden Enden, Gast-Arbeitsstand, Obergrenze mit Ansage; Hilfetexte und
+  Oberflaeche in DE und EN auf den neuen Stand; beide Torlaeufe (normal und Vorschau)
+  und die Sichtrunde benannt an den Betreiber
+
+Nachgemessen beim Zuschnitt (15.08.2026, gegen `assets/mining-db.json`): 37 Minerale,
+**521 Paare, 45 verschiedene Fundorte, Spitzenreiter Eisen mit 27** — die CONTEXT.md
+nennt „bis zu 21". Die Begruendung fuer die einspaltige Mitte wird dadurch staerker.
+Entschieden beim Zuschnitt (offener Punkt O-1 aus der CONTEXT.md): **ein Preset haelt
+beide Listen** — eine zweite Spalte `locations text[] not null default '{}'` an der
+bestehenden Tabelle, Primaerschluessel unangetastet. Getrennte Preset-Listen je Reiter
+haetten ein drittes Feld IM Primaerschluessel gebraucht, also Schluessel abbauen,
+Bestand nachtragen, Schluessel neu setzen — drei Schritte an fremden Nutzerdaten statt
+einem. Verlustfreiheit schlaegt die saubere Trennung.
