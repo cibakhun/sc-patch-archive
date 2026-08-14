@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-14",
-  "updates": 226,
-  "totalListings": 5733,
-  "totalSold": 245,
+  "updates": 227,
+  "totalListings": 5740,
+  "totalSold": 246,
   "distinctItems": 1148
  },
  "listings": {
@@ -120599,9 +120599,9 @@
      "p": 19500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-14",
+   "soldOutPrice": 19500000,
    "dateAdded": 1786676732,
    "dateExpiration": 1791860731
   },
@@ -122390,6 +122390,132 @@
    "dateAdded": 1786717250,
    "dateExpiration": 1791901250
   },
+  "162503": {
+   "idItem": 5852,
+   "idCategory": 36,
+   "title": "Aluminum",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 896,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786717510,
+   "dateExpiration": 1791901510
+  },
+  "162504": {
+   "idItem": 7634,
+   "idCategory": 18,
+   "title": "960q Demeco \"Purgatory Camo\" LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 960,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786717750,
+   "dateExpiration": 1791901750
+  },
+  "162505": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "Tungsten",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 858,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786717814,
+   "dateExpiration": 1791901814
+  },
+  "162507": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board 850k each",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 850000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786718342,
+   "dateExpiration": 1791902342
+  },
+  "162510": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "Polaris Bit x1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786719500,
+   "dateExpiration": 1791903500
+  },
+  "162513": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "NDB-30 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786722580,
+   "dateExpiration": 1791906580
+  },
   "162514": {
    "idItem": 4385,
    "idCategory": 61,
@@ -122410,6 +122536,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786722802,
    "dateExpiration": 1791906802
+  },
+  "162515": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786723525,
+   "dateExpiration": 1791907525
   }
  }
 }
