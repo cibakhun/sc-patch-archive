@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-14",
-  "updates": 217,
-  "totalListings": 5610,
-  "totalSold": 238,
-  "distinctItems": 1134
+  "updates": 218,
+  "totalListings": 5620,
+  "totalSold": 239,
+  "distinctItems": 1136
  },
  "listings": {
   "156580": {
@@ -111807,9 +111807,9 @@
      "p": 1100000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-14",
+   "soldOutPrice": 1100000,
    "dateAdded": 1786569271,
    "dateExpiration": 1791753271
   },
@@ -118992,6 +118992,10 @@
     {
      "d": "2026-08-13",
      "p": 25000000
+    },
+    {
+     "d": "2026-08-14",
+     "p": 20000000
     }
    ],
    "soldOut": false,
@@ -119755,6 +119759,216 @@
    "soldOutPrice": null,
    "dateAdded": 1786664226,
    "dateExpiration": 1791848225
+  },
+  "162377": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor x 16",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786664845,
+   "dateExpiration": 1791848845
+  },
+  "162379": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite 950 PLUS QUALITY ONLY",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786665052,
+   "dateExpiration": 1791849051
+  },
+  "162380": {
+   "idItem": 3769,
+   "idCategory": 87,
+   "title": "Dolivine only 950 PLUS QUALITY",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786665159,
+   "dateExpiration": 1791849158
+  },
+  "162382": {
+   "idItem": 3349,
+   "idCategory": 18,
+   "title": "Scourge Railgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786665471,
+   "dateExpiration": 1791849471
+  },
+  "162383": {
+   "idItem": 4272,
+   "idCategory": 5,
+   "title": "WTS ORC-mkX Core (XenoThreat)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786665924,
+   "dateExpiration": 1791849924
+  },
+  "162385": {
+   "idItem": 7215,
+   "idCategory": 18,
+   "title": "Killshot \"Dominion Camo\" Rifle 970 Quality Best IN GAME !",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 4400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786666590,
+   "dateExpiration": 1791850590
+  },
+  "162387": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "trade",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786667091,
+   "dateExpiration": 1791851091
+  },
+  "162388": {
+   "idItem": 5614,
+   "idCategory": 5,
+   "title": "WTS Outback Core Molehill Brown",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786667108,
+   "dateExpiration": 1791851108
+  },
+  "162389": {
+   "idItem": 4433,
+   "idCategory": 18,
+   "title": "Parallax \"Shock Trooper\" Energy Assault Rifle 900 Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 4900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786667276,
+   "dateExpiration": 1791851276
+  },
+  "162391": {
+   "idItem": 4842,
+   "idCategory": 2,
+   "title": "Geist Backpack ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786667810,
+   "dateExpiration": 1791851810
   }
  }
 }
