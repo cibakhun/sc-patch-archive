@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-14",
-  "updates": 230,
-  "totalListings": 5757,
-  "totalSold": 246,
-  "distinctItems": 1150
+  "updates": 231,
+  "totalListings": 5765,
+  "totalSold": 248,
+  "distinctItems": 1154
  },
  "listings": {
   "156580": {
@@ -113225,9 +113225,9 @@
      "p": 2000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-14",
+   "soldOutPrice": 2000000,
    "dateAdded": 1786585609,
    "dateExpiration": 1791769609
   },
@@ -116419,6 +116419,10 @@
     {
      "d": "2026-08-13",
      "p": 6000000
+    },
+    {
+     "d": "2026-08-14",
+     "p": 3200000
     }
    ],
    "soldOut": false,
@@ -117920,9 +117924,9 @@
      "p": 300000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-14",
+   "soldOutPrice": 300000,
    "dateAdded": 1786643367,
    "dateExpiration": 1791827367
   },
@@ -122918,6 +122922,174 @@
    "soldOutPrice": null,
    "dateAdded": 1786735951,
    "dateExpiration": 1797103951
+  },
+  "162561": {
+   "idItem": 4001,
+   "idCategory": 5,
+   "title": "Inquisitor Core Neon Pink",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 430000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786737054,
+   "dateExpiration": 1791921054
+  },
+  "162563": {
+   "idItem": 5065,
+   "idCategory": 18,
+   "title": "XDL Monocular Rangefinder (snowfall)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786738160,
+   "dateExpiration": 1791922160
+  },
+  "162564": {
+   "idItem": 2439,
+   "idCategory": 5,
+   "title": "Aztalan Galena Core",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786738302,
+   "dateExpiration": 1791922302
+  },
+  "162565": {
+   "idItem": 2852,
+   "idCategory": 4,
+   "title": "Microid Battle Suit Legs Badland",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786738405,
+   "dateExpiration": 1791922405
+  },
+  "162567": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 890,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786739415,
+   "dateExpiration": 1791923415
+  },
+  "162568": {
+   "idItem": 3928,
+   "idCategory": 5,
+   "title": "Morozov-SH Core Crusader Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786739492,
+   "dateExpiration": 1791923492
+  },
+  "162569": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "(TJMFC) Pure Caranite For Sale!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 17500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786739659,
+   "dateExpiration": 1791923659
+  },
+  "162570": {
+   "idItem": 4272,
+   "idCategory": 5,
+   "title": "ORC-mkX Core (XenoThreat)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786739782,
+   "dateExpiration": 1791923782
   }
  }
 }
