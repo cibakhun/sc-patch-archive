@@ -53,6 +53,10 @@
   }
   var NF = new Intl.NumberFormat(D.lang === 'de' ? 'de-DE' : 'en-GB');
   function n2(v) { return D.lang === 'de' ? v.toFixed(2).replace('.', ',') : v.toFixed(2); }
+/* Prozentwerte mit der Praezision zeigen, die die Daten TATSAECHLICH haben: die
+   Fundort-Felder tragen eine Nachkommastelle. n2 haengte stets zwei an ("28,50 %")
+   und tat damit genauer, als die Quelle ist. */
+function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, ''); return D.lang === 'de' ? s.replace('.', ',') : s; }
 
   /* Die Daten kennen VIER Abbaumethoden (ship 26, roc 4, fps 4, hand 3). Die
      zweite Fassung warf alles ausser `ship` in denselben Topf „Hand" — die
@@ -178,10 +182,23 @@
         }).join('')
       : '<p class="wb__empty">' + esc(T.none) + '</p>';
 
-    var locs = m.locs.slice().sort(function (a, b) { return (b.ch || 0) - (a.ch || 0); });
+    /* Fundorte nach ef (Erwartungswert des Anteils) rangieren, nicht nach ch.
+       ch allein sagt nur, WIE OFT das Erz vorkommt, nicht wie ergiebig; ms allein
+       ist je Erz oft an allen Fundorten gleich. Der Balken zeigt ef relativ zum
+       besten Fundort DIESES Erzes — so stimmen Balkenlaenge und Reihenfolge ueberein.
+       Vorher lief die Sortierung ueber ch, der Balken aber ueber den Massenanteil:
+       die Liste sah dadurch unsortiert aus. */
+    var locs = m.locs.slice().sort(function (a, b) { return (b.ef || 0) - (a.ef || 0); });
+    var maxEf = 0;
+    for (var li = 0; li < locs.length; li++) if ((locs[li].ef || 0) > maxEf) maxEf = locs[li].ef || 0;
     $('wb-loch').textContent = T.locations + (locs.length ? ' · ' + locs.length : '');
     $('wb-locs').innerHTML = locs.length
-      ? locs.map(function (l) { return row2(l.p, l.s, l.ab || 0, (l.ch != null ? n2(l.ch) + ' %' : '—'), false); }).join('')
+      ? locs.map(function (l) {
+          var bar = maxEf > 0 ? Math.round((l.ef || 0) / maxEf * 100) : 0;
+          var right = (l.ch != null ? nPct(l.ch) + ' %' : '—') +
+            (l.ms != null ? ' · ' + T.upTo + ' ' + nPct(l.ms) + ' %' : '');
+          return row2(l.p, l.s, bar, right, false);
+        }).join('')
       : '<p class="wb__empty">' + esc(T.noLocs) + '</p>';
 
     /* Stations-Rangliste fuer dieses Erz — und die GEWAEHLTE Station darin.

@@ -152,8 +152,11 @@ const minerals = (DB.minerals as any[])
       name: m.name, code: m.code, kind: m.kind,
       rarity: m.rarity || null, method: m.method, methods: m.methods || [],
       refine: !!m.needs_refine, systems: m.systems || [], scu: m.weight_scu,
+      // ms = hoechster Massenanteil ("bis X %"), ef = Erwartungswert des Anteils.
+      // ef rangiert die Fundorte; ms allein taugt dafuer nicht, weil es je Erz oft
+      // an allen Fundorten identisch ist.
       locs: (m.locations || []).map((l: any) => ({
-        p: l.location, s: l.system, t: l.type, mi: l.mining, ab: l.abundance, ch: l.chance,
+        p: l.location, s: l.system, t: l.type, mi: l.mining, ms: l.maxShare, ch: l.chance, ef: l.eff,
       })),
       res: typeof e.resistance === 'number' ? e.resistance : null,
       inst: typeof e.instability === 'number' ? e.instability : null,
@@ -212,7 +215,7 @@ const S = de ? {
   station: 'Station', fracturing: 'Fracturing-Rechner', fracturingGo: 'Bricht der Brocken? →',
   none: '—', pin: 'Anheften', unpin: 'Lösen', noLocs: 'Keine Fundorte bekannt.',
   ship: 'Schiff', hand: 'Hand', roc: 'ROC', refinable: 'raffinierbar',
-  rocks: 'Steine mit diesem Erz', ofRocks: 'von', chance: 'Chance', share: 'Anteil',
+  rocks: 'Steine mit diesem Erz', ofRocks: 'von', chance: 'Chance', share: 'Anteil', upTo: 'bis',
   bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl',
   usedIn: 'Blueprints', ships: 'Schiffe', openCrafting: 'Crafting öffnen',
 } : {
@@ -230,7 +233,7 @@ const S = de ? {
   station: 'Station', fracturing: 'Fracturing calculator', fracturingGo: 'Will it break? →',
   none: '—', pin: 'Pin', unpin: 'Unpin', noLocs: 'No locations known.',
   ship: 'Ship', hand: 'Hand', roc: 'ROC', refinable: 'refinable',
-  rocks: 'Rocks carrying this ore', ofRocks: 'of', chance: 'chance', share: 'share',
+  rocks: 'Rocks carrying this ore', ofRocks: 'of', chance: 'chance', share: 'share', upTo: 'up to',
   bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick',
   usedIn: 'Blueprints', ships: 'Ships', openCrafting: 'Open crafting',
 };
