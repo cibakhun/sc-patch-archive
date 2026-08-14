@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-14",
-  "updates": 222,
-  "totalListings": 5685,
-  "totalSold": 244,
-  "distinctItems": 1145
+  "updates": 223,
+  "totalListings": 5713,
+  "totalSold": 245,
+  "distinctItems": 1148
  },
  "listings": {
   "156580": {
@@ -117036,16 +117036,16 @@
    "currency": "UEC",
    "quality": 500,
    "firstSeen": "2026-08-13",
-   "lastSeen": "2026-08-13",
+   "lastSeen": "2026-08-14",
    "prices": [
     {
      "d": "2026-08-13",
      "p": 2500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-14",
+   "soldOutPrice": 2500000,
    "dateAdded": 1786637048,
    "dateExpiration": 1791821048
   },
@@ -119862,6 +119862,27 @@
    "dateAdded": 1786664845,
    "dateExpiration": 1791848845
   },
+  "162378": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786665016,
+   "dateExpiration": 1791849016
+  },
   "162379": {
    "idItem": 3992,
    "idCategory": 87,
@@ -119966,6 +119987,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786665924,
    "dateExpiration": 1791849924
+  },
+  "162384": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 12500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786666025,
+   "dateExpiration": 1791850025
   },
   "162385": {
    "idItem": 7215,
@@ -120555,6 +120597,27 @@
    "dateAdded": 1786677921,
    "dateExpiration": 1791861921
   },
+  "162414": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "wikelo polaris kit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 300000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786678113,
+   "dateExpiration": 1791862113
+  },
   "162415": {
    "idItem": 6455,
    "idCategory": 17,
@@ -120596,6 +120659,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786681905,
    "dateExpiration": 1791865905
+  },
+  "162417": {
+   "idItem": 1772,
+   "idCategory": 21,
+   "title": "QuadraCell MT",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786681929,
+   "dateExpiration": 1791865929
+  },
+  "162418": {
+   "idItem": 1757,
+   "idCategory": 21,
+   "title": "QuadraCell",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786682247,
+   "dateExpiration": 1791866247
   },
   "162419": {
    "idItem": 5845,
@@ -120659,6 +120764,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786682853,
    "dateExpiration": 1791866853
+  },
+  "162422": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTS POLARIS Wikelo FULL KIT",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 350000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786683134,
+   "dateExpiration": 1791867134
   },
   "162423": {
    "idItem": 2629,
@@ -120765,6 +120891,69 @@
    "dateAdded": 1786684726,
    "dateExpiration": 1791868726
   },
+  "162428": {
+   "idItem": 2709,
+   "idCategory": 61,
+   "title": "Pico the Penguin Plushie",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786684994,
+   "dateExpiration": 1791868994
+  },
+  "162429": {
+   "idItem": 2305,
+   "idCategory": 18,
+   "title": "WowBlast Desperado Toy Pistol Red",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786685251,
+   "dateExpiration": 1791869251
+  },
+  "162430": {
+   "idItem": 2557,
+   "idCategory": 18,
+   "title": "WowBlast Desperado Toy Pistol Orange",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786685305,
+   "dateExpiration": 1791869305
+  },
   "162431": {
    "idItem": 5627,
    "idCategory": 7,
@@ -120786,6 +120975,27 @@
    "dateAdded": 1786686047,
    "dateExpiration": 1791870047
   },
+  "162434": {
+   "idItem": 7964,
+   "idCategory": 5,
+   "title": "Inquisitor Core Black",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786686451,
+   "dateExpiration": 1791870451
+  },
   "162435": {
    "idItem": 7808,
    "idCategory": 5,
@@ -120806,6 +121016,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786686657,
    "dateExpiration": 1791870657
+  },
+  "162436": {
+   "idItem": null,
+   "idCategory": 75,
+   "title": "F8C Lightning 2954 Ship Showdown Holographic Flag",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786687902,
+   "dateExpiration": 1791871902
   },
   "162437": {
    "idItem": 4892,
@@ -121101,6 +121332,27 @@
    "dateAdded": 1786692818,
    "dateExpiration": 1791876818
   },
+  "162452": {
+   "idItem": 6880,
+   "idCategory": 18,
+   "title": "865Q Novian \"Ghostmaker\" Crossbow - 3M",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 865,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786692945,
+   "dateExpiration": 1791876945
+  },
   "162453": {
    "idItem": 2722,
    "idCategory": 18,
@@ -121248,6 +121500,27 @@
    "dateAdded": 1786697732,
    "dateExpiration": 1791881732
   },
+  "162460": {
+   "idItem": 4613,
+   "idCategory": 111,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786697798,
+   "dateExpiration": 1791881798
+  },
   "162461": {
    "idItem": 4894,
    "idCategory": 24,
@@ -121394,6 +121667,321 @@
    "soldOutPrice": null,
    "dateAdded": 1786701574,
    "dateExpiration": 1791885574
+  },
+  "162468": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 880,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786701673,
+   "dateExpiration": 1791885673
+  },
+  "162469": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 716,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786701904,
+   "dateExpiration": 1791885904
+  },
+  "162470": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 647,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786702167,
+   "dateExpiration": 1791886167
+  },
+  "162471": {
+   "idItem": 8042,
+   "idCategory": 7,
+   "title": "ADP-mk4 Justified Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 50000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786703262,
+   "dateExpiration": 1791887262
+  },
+  "162472": {
+   "idItem": 1810,
+   "idCategory": 32,
+   "title": "Absolution Distortion Scattergun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786703980,
+   "dateExpiration": 1791887980
+  },
+  "162473": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "Metamaterial Test #146",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 19000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786704371,
+   "dateExpiration": 1791888371
+  },
+  "162474": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 554,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786704406,
+   "dateExpiration": 1791888406
+  },
+  "162475": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 19000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786704702,
+   "dateExpiration": 1791888702
+  },
+  "162476": {
+   "idItem": 6763,
+   "idCategory": 4,
+   "title": "Overlord Legs Cardinal",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786706391,
+   "dateExpiration": 1791890391
+  },
+  "162477": {
+   "idItem": 5679,
+   "idCategory": 5,
+   "title": "Overlord Core Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786706493,
+   "dateExpiration": 1791890493
+  },
+  "162478": {
+   "idItem": 5742,
+   "idCategory": 5,
+   "title": "Overlord Core Polarity",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786706539,
+   "dateExpiration": 1791890539
+  },
+  "162479": {
+   "idItem": 5595,
+   "idCategory": 4,
+   "title": "Overlord Legs Tempered",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786706608,
+   "dateExpiration": 1791890608
+  },
+  "162480": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1 (743/858/874)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 858,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 5900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786707001,
+   "dateExpiration": 1791891001
+  },
+  "162481": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron Q970",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786707009,
+   "dateExpiration": 1791887409
+  },
+  "162486": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1 , TS-2 , VK-00 - QUANTUM DRIVES FOR SALE",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 650,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786711511,
+   "dateExpiration": 1791895511
   }
  }
 }
