@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-14",
-  "updates": 219,
-  "totalListings": 5631,
-  "totalSold": 239,
-  "distinctItems": 1137
+  "updates": 220,
+  "totalListings": 5636,
+  "totalSold": 240,
+  "distinctItems": 1139
  },
  "listings": {
   "156580": {
@@ -112372,6 +112372,10 @@
     {
      "d": "2026-08-13",
      "p": 65000000
+    },
+    {
+     "d": "2026-08-14",
+     "p": 60000000
     }
    ],
    "soldOut": false,
@@ -119212,9 +119216,9 @@
      "p": 200000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-14",
+   "soldOutPrice": 200000,
    "dateAdded": 1786660382,
    "dateExpiration": 1791844381
   },
@@ -120204,6 +120208,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786671433,
    "dateExpiration": 1791855433
+  },
+  "162405": {
+   "idItem": 1775,
+   "idCategory": 21,
+   "title": "JS-400",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786671984,
+   "dateExpiration": 1791855984
+  },
+  "162407": {
+   "idItem": 2220,
+   "idCategory": 24,
+   "title": "TCS-4 Undersuit Crusader Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786672397,
+   "dateExpiration": 1791856397
+  },
+  "162408": {
+   "idItem": 1071,
+   "idCategory": 5,
+   "title": "ADP Core Imperial",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786672757,
+   "dateExpiration": 1791856757
+  },
+  "162409": {
+   "idItem": 2727,
+   "idCategory": 5,
+   "title": "PAB-1 Core Crusader Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786673155,
+   "dateExpiration": 1791857155
+  },
+  "162410": {
+   "idItem": 6712,
+   "idCategory": 2,
+   "title": "Palatino Backpack Sunstone / Moonfall",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786674534,
+   "dateExpiration": 1791858534
   }
  }
 }
