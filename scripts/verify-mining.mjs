@@ -57,7 +57,63 @@ for (const [kind, arr] of NAME_GROUPS) {
   }
 }
 
-// 9) game_version gegen den installierten Client (best effort — verify:mining
+// 9) Die beiden Sichten auf dieselbe Tatsache muessen deckungsgleich sein.
+// mining-db haelt Fundorte doppelt: vorwaerts (minerals[].locations) und rueckwaerts
+// (bodies[].minerals). Bis 08/2026 wurden beide getrennt aufgebaut und die Vorwaerts-
+// sicht zusaetzlich auf Top-5 je System gekappt — es fehlten 248 von 521 Paaren, und
+// 163 gemeinsame Paare trugen unterschiedliche Werte. Nichts hat das bemerkt, weil
+// kein Test die beiden Sichten gegeneinander hielt. Dieser hier tut es.
+{
+  const fwd = new Map(), bwd = new Map();
+  for (const m of db.minerals) for (const l of m.locations || []) fwd.set(`${m.name}||${l.location}`, l);
+  for (const b of db.bodies) for (const e of b.minerals || []) bwd.set(`${e.name}||${b.body}`, e);
+
+  const onlyFwd = [...fwd.keys()].filter((k) => !bwd.has(k));
+  const onlyBwd = [...bwd.keys()].filter((k) => !fwd.has(k));
+  for (const k of onlyFwd.slice(0, 5)) fail.push(`Paar nur in minerals[].locations, fehlt in bodies[]: ${k}`);
+  if (onlyFwd.length > 5) fail.push(`… und ${onlyFwd.length - 5} weitere Paare nur in minerals[]`);
+  for (const k of onlyBwd.slice(0, 5)) fail.push(`Paar nur in bodies[].minerals, fehlt in minerals[]: ${k}`);
+  if (onlyBwd.length > 5) fail.push(`… und ${onlyBwd.length - 5} weitere Paare nur in bodies[]`);
+
+  let valDiff = 0;
+  for (const [k, a] of fwd) {
+    const b = bwd.get(k); if (!b) continue;
+    for (const f of ['chance', 'maxShare', 'eff', 'mining']) {
+      if (a[f] !== b[f]) {
+        if (valDiff < 5) fail.push(`Paar ${k}: ${f} weicht ab — minerals[]=${a[f]} bodies[]=${b[f]}`);
+        valDiff++; break;
+      }
+    }
+  }
+  if (valDiff > 5) fail.push(`… und ${valDiff - 5} weitere Paare mit abweichenden Werten`);
+
+  // 10) Wertebereiche. eff = Summe(chance_i * max_i)/100 kann per Definition weder
+  // ueber die chance noch ueber den maxShare hinausgehen; ein Verstoss bedeutet
+  // Doppelzaehlung in der Aggregation (gemessen: ein Element zweimal in derselben
+  // Komposition trieb Daymar auf 104,3 %).
+  for (const m of db.minerals) for (const l of m.locations || []) {
+    const at = `${m.name} @ ${l.location}`;
+    for (const f of ['chance', 'maxShare', 'eff']) {
+      need(typeof l[f] === 'number', `${at}: ${f} fehlt oder ist keine Zahl`);
+    }
+    need(l.chance > 0 && l.chance <= 100, `${at}: chance ausserhalb (0..100] — ${l.chance}`);
+    need(l.maxShare > 0 && l.maxShare <= 100, `${at}: maxShare ausserhalb (0..100] — ${l.maxShare}`);
+    need(l.eff > 0 && l.eff <= 100, `${at}: eff ausserhalb (0..100] — ${l.eff}`);
+    need(l.eff <= l.chance + 0.05, `${at}: eff (${l.eff}) > chance (${l.chance}) — Doppelzaehlung?`);
+    need(l.eff <= l.maxShare + 0.05, `${at}: eff (${l.eff}) > maxShare (${l.maxShare}) — Doppelzaehlung?`);
+    need(l.location && l.system && l.mining, `${at}: location/system/mining unvollstaendig`);
+  }
+
+  // 11) systems[] muss zu den Fundorten passen (sonst filtert die Werkbank ins Leere).
+  for (const m of db.minerals) {
+    const fromLoc = new Set((m.locations || []).map((l) => l.system));
+    const declared = new Set(m.systems || []);
+    for (const s of fromLoc) need(declared.has(s), `Mineral ${m.name}: Fundort in ${s}, aber systems[] fuehrt es nicht`);
+    for (const s of declared) need(fromLoc.has(s), `Mineral ${m.name}: systems[] nennt ${s} ohne Fundort dort`);
+  }
+}
+
+// 12) game_version gegen den installierten Client (best effort — verify:mining
 // soll ausdruecklich ohne p4k/Netz funktionieren, siehe Kopfkommentar).
 const bmPath = resolve(dirname(DEFAULT_P4K), 'build_manifest.id');
 if (existsSync(bmPath)) {
