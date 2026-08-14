@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-14",
-  "updates": 220,
-  "totalListings": 5636,
+  "updates": 221,
+  "totalListings": 5637,
   "totalSold": 240,
   "distinctItems": 1139
  },
@@ -120313,6 +120313,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786674534,
    "dateExpiration": 1791858534
+  },
+  "162413": {
+   "idItem": 6008,
+   "idCategory": 61,
+   "title": "Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-14",
+   "lastSeen": "2026-08-14",
+   "prices": [
+    {
+     "d": "2026-08-14",
+     "p": 1250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786677921,
+   "dateExpiration": 1791861921
   }
  }
 }
