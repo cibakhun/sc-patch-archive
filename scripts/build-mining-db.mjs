@@ -60,12 +60,23 @@ const minerals = matList.map((mat) => {
   let kind = prevM.kind || ''; if (KIND_FIX[kind]) kind = KIND_FIX[kind];
   return {
     name: mat, code: prevM.code || null, kind: kind || null, weight_scu: prevM.weight_scu || null,
-    method, methods, rarity: rarityByMat[mat] || null,
+    method,
+    // methods[] kommt aus den providerpreset-Fundorten. Erze, die nur in Hoehlen-/
+    // Event-Deposits vorkommen (Carinite, Jaclium, Sadaryx, Saldynium), haben dort
+    // keinen Eintrag — dann trug methods[] nichts, obwohl method kuratiert gesetzt war.
+    // Das widersprach sich und liess sie durch jeden Methoden-Filter fallen.
+    methods: methods.length ? methods : (method ? [method] : []),
+    rarity: rarityByMat[mat] || null,
     needs_refine: method === 'ship',
     systems, locations: (el.locations || []).map(withPoints),
   };
 }).filter((m) => m.code || m.kind || m.locations.length) // Phantome (weder kuratiert noch Fundort) raus
   .sort((a, b) => a.name.localeCompare(b.name));
+
+// Verworfene Elemente benennen statt still fallen lassen: ein Element mit Physik,
+// aber ohne Fundort UND ohne Kuration ist entweder unfertig im Spiel oder eine
+// Luecke in mining-curated.json — beides will man sehen, nicht verschweigen.
+const dropped = matList.filter((mat) => !minerals.some((m) => m.name === mat));
 
 const bodies = (locs.bodies || []).map((b) => {
   const mins = (b.minerals || []).map((m) => ({ ...m, rarity: rarityByMat[m.name] || null })).sort((x, y) => (y.chance - x.chance) || x.name.localeCompare(y.name));
@@ -76,7 +87,7 @@ const bodies = (locs.bodies || []).map((b) => {
     points: LOC_POINTS[b.body] || null,
     methods: [...new Set(mins.map((m) => m.mining))],
     best: best ? { name: best.name, chance: best.chance, rarity: best.rarity } : null,
-    minerals: mins.map((m) => ({ name: m.name, chance: m.chance, abundance: m.abundance, mining: m.mining, rarity: m.rarity })),
+    minerals: mins.map((m) => ({ name: m.name, chance: m.chance, maxShare: m.maxShare, eff: m.eff, mining: m.mining, rarity: m.rarity })),
   };
 }).sort((a, b) => bySys(a.system, b.system) || a.body.localeCompare(b.body));
 
@@ -87,7 +98,7 @@ const snapshot_date = new Date().toISOString().slice(0, 10);
 const payload = {
   source: 'VerseBase — eigene Aufbereitung',
   source_url: 'https://verse-base.com/',
-  source_note: `Game-akkurate Mining-Fakten (${game_version}): Abbaubarkeit, Fundorte, Abundance %, rarity. Keine Verkaufspreise — nur im Spiel verifizierbare Vorkommen. Planeten-Anzeigenamen kuratiert (Starmap). Patch-volatil.`,
+  source_note: `Game-akkurate Mining-Fakten (${game_version}): Abbaubarkeit, Fundorte, Fundchance %, Massenanteil %, rarity. Keine Verkaufspreise — nur im Spiel verifizierbare Vorkommen. Planeten-Anzeigenamen kuratiert (Starmap). Patch-volatil.`,
   game_version, snapshot_date, frozen_constants_date: frozen.snapshot_date,
   live_systems: [...new Set(minerals.flatMap((m) => m.systems))].sort(bySys),
   counts: { minerals: minerals.length, bodies: bodies.length },
@@ -98,3 +109,6 @@ console.log(`mining-db.json: v${game_version} — ${minerals.length} Minerale, $
 console.log('  Methoden:', JSON.stringify(minerals.reduce((a, m) => ((a[m.method] = (a[m.method] || 0) + 1), a), {})));
 console.log('  ohne rarity:', minerals.filter((m) => !m.rarity).map((m) => m.name).join(', ') || '—');
 console.log('  ohne code/kind:', minerals.filter((m) => !m.code || !m.kind).map((m) => m.name).join(', ') || '—');
+console.log('  ohne weight_scu:', minerals.filter((m) => m.weight_scu == null).length + '/' + minerals.length + ' (kuratiertes Feld, steht nicht in den Spieldaten)');
+console.log('  ohne Fundorte:', minerals.filter((m) => !m.locations.length).map((m) => m.name).join(', ') || '—');
+if (dropped.length) console.log('  VERWORFEN (Physik da, aber weder Fundort noch Kuration):', dropped.join(', '));

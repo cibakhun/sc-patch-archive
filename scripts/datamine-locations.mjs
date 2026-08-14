@@ -3,7 +3,10 @@
 //   HarvestableProviderPreset (Location) -> harvestables[].harvestable
 //     -> HarvestablePreset.entityClass -> EntityClassDefinition(MineableRock)
 //       -> Components[].composition -> MineableComposition.compositionArray -> element/max%
-// Baut element->locations (eff-Ranking top-5/System) + scanSignature je Element.
+// Baut element->locations (VOLLSTAENDIG, nach eff sortiert) + bodies (Reverse) aus
+// EINER aggregierten Menge, damit sich beide Sichten nicht widersprechen koennen.
+// Je (Element, Fundort, Methode): chance = Summe der Deposit-Wahrscheinlichkeiten,
+// maxShare = hoechster Massenanteil, eff = Erwartungswert des Anteils.
 //
 // Aufruf: node scripts/datamine-locations.mjs [--p4k <Data.p4k>] [--verify]
 // Ausgabe: assets/mining-locations-gamefiles.json (Zwischenprodukt fuer build-mining-db).
@@ -90,10 +93,20 @@ function locName(recName, file) {
 const sysFromPath = (p) => (/[\\/]system[\\/](stanton|pyro|nyx)[\\/]/i.exec(p) || [])[1];
 const typeFromPath = (p) => { if (/asteroidcluster/i.test(p)) return 'cluster'; if (/lagrange/i.test(p)) return 'lagrange'; if (/asteroidfield/i.test(p)) return 'belt'; return 'planet'; };
 
-/* ---- Provider-Presets -> element -> Fundorte + Bodies (Reverse) + Methoden ---- */
-const elemLoc = {}; let nLoc = 0;
+/* ---- Provider-Presets -> element -> Fundorte + Bodies (Reverse) + Methoden ----
+   Je (Element, Fundort, Methode) werden ALLE beitragenden Deposits aggregiert:
+     chance   = Summe der Auftrittswahrscheinlichkeiten. Ein Ort spawnt oft mehrere
+                Rock-Typen, die dasselbe Element fuehren; sie schliessen sich innerhalb
+                der Gruppe gegenseitig aus, also addieren sich ihre Wahrscheinlichkeiten.
+     maxShare = hoechster Massenanteil ueber diese Deposits ("bis X %").
+     eff      = Erwartungswert des Anteils = Summe(chance_i * max_i)/100. Das ist die
+                Groesse, die Fundorte tatsaechlich rangiert.
+   Vorher wurde stattdessen EIN Deposit ausgewaehlt — die Element-Sicht nach eff, die
+   Body-Sicht nach chance. Das ergab zwei widersprechende Wahrheiten fuer dasselbe Paar
+   und eine systematisch zu niedrige chance (nur ein Deposit statt aller). */
+const agg = new Map();   // mat|system|body|mining -> Aggregat
+let nLoc = 0, nUnresolved = 0, nZeroProb = 0;
 const matMethods = {};              // material -> Set(mining)
-const bodyFull = new Map();         // system|body -> {system, body, type, mats: Map(material -> {chance, abundance, mining})}
 for (const r of db.records) {
   if (db.structs[r.structIndex]?.name !== 'HarvestableProviderPreset') continue;
   const f = norm(r.fileName);
@@ -109,38 +122,91 @@ for (const r of db.records) {
     const els = (g.harvestables || []).map((h) => ({ h: gnorm(h.harvestable?.__ref), rp: h.relativeProbability || 0 })).filter((e) => e.h);
     const tot = els.reduce((s, e) => s + e.rp, 0); if (!tot) continue;
     for (const e of els) {
-      const parts = resolveParts(e.h); if (!parts) continue;
+      const parts = resolveParts(e.h);
+      if (!parts) { nUnresolved++; continue; }
       const depositPct = (e.rp / tot) * 100;
+      if (depositPct <= 0) { nZeroProb++; continue; }  // Deposit mit rp=0 spawnt nie
+      // Ein Element kann in DERSELBEN Komposition mehrfach stehen (mehrere
+      // compositionArray-Eintraege auf dasselbe mineableElement). Seine
+      // Auftrittswahrscheinlichkeit darf pro Deposit trotzdem nur EINMAL zaehlen —
+      // sonst summiert sich chance ueber 100 (gemessen: Daymar 104,3 %).
+      const perEl = new Map();
       for (const part of parts) {
         const mat = matByGuid.get(part.el); if (!mat) continue;
-        const ab = Math.round(part.max); const chance = +depositPct.toFixed(1); const eff = depositPct * (part.max / 100);
+        perEl.set(mat, Math.max(perEl.get(mat) ?? 0, part.max));
+      }
+      for (const [mat, maxPct] of perEl) {
         (matMethods[mat] ??= new Set()).add(mining);
-        (elemLoc[mat] ??= new Map());
-        const k = name + '|' + system;
-        const cur = elemLoc[mat].get(k);
-        if (!cur || cur.eff < eff) elemLoc[mat].set(k, { location: name, system, type, mining, abundance: ab, chance, eff });
-        const bk = system + '|' + name;
-        const bf = bodyFull.get(bk) || bodyFull.set(bk, { system, body: name, type, mats: new Map() }).get(bk);
-        const bc = bf.mats.get(mat);
-        if (!bc || bc.chance < chance) bf.mats.set(mat, { chance, abundance: ab, mining });
+        const k = `${mat}|${system}|${name}|${mining}`;
+        const cur = agg.get(k) || { material: mat, location: name, system, type, mining, chance: 0, maxShare: 0, eff: 0, deposits: 0 };
+        cur.chance += depositPct;
+        cur.maxShare = Math.max(cur.maxShare, maxPct);
+        cur.eff += depositPct * (maxPct / 100);
+        cur.deposits++;
+        agg.set(k, cur);
       }
     }
   }
 }
+// Rundung erst NACH der Aggregation — sonst summieren sich Rundungsfehler auf.
+// maxShare auf 1 Nachkommastelle: die Rohwerte sind Floats (z. B. 74.30000305175781),
+// frueher auf ganze Zahlen gerundet, was Praezision ohne Not verworfen hat.
+const r1 = (n) => +n.toFixed(1);
+// NICHT auf 100 kappen: chance > 100 waere ein Rechenfehler, und eine stille Kappung
+// wuerde ihn verstecken statt melden. Innerhalb einer Gruppe summieren sich die
+// Deposit-Wahrscheinlichkeiten auf 100, also ist jede Teilmenge davon <= 100.
+const overflow = [];
+for (const v of agg.values()) {
+  if (v.chance > 100.05) overflow.push(`${v.material} @ ${v.location} (${v.mining}): ${v.chance.toFixed(1)} %`);
+  v.chance = r1(v.chance); v.maxShare = r1(v.maxShare); v.eff = r1(v.eff);
+}
+if (overflow.length) {
+  console.error(`FEHLER: ${overflow.length} Aggregat(e) mit chance > 100 %:`);
+  for (const s of overflow.slice(0, 10)) console.error('  ' + s);
+  process.exit(1);
+}
 
 const TYPE_PREF = { belt: 0, cluster: 1, lagrange: 2, planet: 3, moon: 4, cave: 5, event: 6, special: 7 };
 const cmp = (a, b) => (b.eff - a.eff) || ((TYPE_PREF[a.type] ?? 9) - (TYPE_PREF[b.type] ?? 9)) || a.location.localeCompare(b.location);
-function topLocs(mat) { const all = [...(elemLoc[mat]?.values() || [])]; const bySys = {}; for (const x of all) (bySys[x.system] ??= []).push(x); const out = []; for (const s of Object.keys(bySys)) out.push(...bySys[s].sort(cmp).slice(0, 5)); return out.sort(cmp).map((x) => ({ location: x.location, system: x.system, type: x.type, mining: x.mining, abundance: x.abundance, chance: x.chance })); }
 
-const outMats = Object.keys(elemLoc).sort();
+// BEIDE Sichten stammen aus derselben aggregierten Menge — sie koennen sich damit
+// nicht mehr widersprechen. Frueher wurden sie getrennt aufgebaut (elemLoc/bodyFull)
+// und zusaetzlich die Element-Sicht auf Top-5 je System gekappt; dadurch fehlte dort
+// knapp die Haelfte aller (Element, Fundort)-Paare.
+const all = [...agg.values()];
+const byMat = new Map();
+const byBody = new Map();
+for (const v of all) {
+  (byMat.get(v.material) ?? byMat.set(v.material, []).get(v.material)).push(v);
+  const bk = `${v.system}|${v.location}`;
+  (byBody.get(bk) ?? byBody.set(bk, { system: v.system, body: v.location, type: v.type, mats: [] }).get(bk)).mats.push(v);
+}
+
+const locFields = (x) => ({ location: x.location, system: x.system, type: x.type, mining: x.mining, chance: x.chance, maxShare: x.maxShare, eff: x.eff });
+function allLocs(mat) { return (byMat.get(mat) || []).slice().sort(cmp).map(locFields); }
+
+const outMats = [...byMat.keys()].sort();
 console.log(`Fundorte: ${nLoc} Provider-Presets, ${outMats.length} Elemente mit Fundorten`);
+console.log(`  Paare (Element x Fundort x Methode): ${all.length}, davon aus mehreren Deposits: ${all.filter((v) => v.deposits > 1).length}`);
+if (nUnresolved) console.log(`  ! ${nUnresolved} Deposit(s) ohne aufloesbare Komposition uebersprungen`);
 
-const bodies = [...bodyFull.values()].map((b) => ({ system: b.system, body: b.body, type: b.type, minerals: [...b.mats.entries()].map(([name, v]) => ({ name, chance: v.chance, abundance: v.abundance, mining: v.mining })) }));
-const out = { source: 'Star Citizen Data.p4k -> Game2.dcb (DataCore v8, node-nativ) — eigene Extraktion, kein scmdb', chain: 'providerpreset -> harvestablepreset -> mineablerock -> composition -> element', counts: { locations: nLoc, elements: outMats.length, bodies: bodies.length }, elements: outMats.map((m) => ({ material: m, methods: [...(matMethods[m] || [])], locations: topLocs(m) })), bodies };
+const bodies = [...byBody.values()].map((b) => ({
+  system: b.system, body: b.body, type: b.type,
+  minerals: b.mats.slice().sort((x, y) => (y.chance - x.chance) || x.material.localeCompare(y.material))
+    .map((v) => ({ name: v.material, chance: v.chance, maxShare: v.maxShare, eff: v.eff, mining: v.mining })),
+}));
+const out = { source: 'Star Citizen Data.p4k -> Game2.dcb (DataCore v8, node-nativ) — eigene Extraktion, kein scmdb', chain: 'providerpreset -> harvestablepreset -> mineablerock -> composition -> element', counts: { locations: nLoc, elements: outMats.length, bodies: bodies.length, pairs: all.length }, elements: outMats.map((m) => ({ material: m, methods: [...(matMethods[m] || [])], locations: allLocs(m) })), bodies };
 writeFileSync(OUT, JSON.stringify(out, null, 1) + '\n');
 console.log(`Geschrieben: ${OUT}`);
 
-/* ---- Validierung gegen scmdb 4.9 (system+abundance-Multiset der Top-5/System) ---- */
+/* ---- Gegenprobe gegen scmdb 4.9 ----
+   Beide Seiten werden IDENTISCH aggregiert (Chance summiert, Anteil maximiert) und
+   ueber die volle Menge verglichen. Die fruehere Fassung leitete scmdb mit derselben
+   "bestes Deposit"-Auswahl ab und verglich nur die Top-5 je System — sie pruefte damit
+   die eigene Kappung gegen sich selbst und konnte gar nicht auffallen lassen, dass der
+   Element-Sicht knapp die Haelfte der Paare fehlte.
+   Verglichen wird ein Multiset aus (System, Chance, Anteil), nicht ueber Fundort-Namen:
+   scmdb benennt Orte anders als unsere kuratierte Starmap-Zuordnung. */
 if (VERIFY) {
   const BASE = 'https://scmdb.net/data';
   const H = { 'User-Agent': 'sc-patch-archiv fan site (non-commercial)', Accept: 'application/json' };
@@ -149,20 +215,32 @@ if (VERIFY) {
   const live = versions.find((v) => /-live/i.test(v.version));
   const data = await getJSON(`${BASE}/mining_data-${live.version}.json`);
   console.log(`\nVERIFY gegen scmdb ${live.version} …`);
-  // scmdb-Fundorte identisch ableiten (wie fetch-scmdb-model)
-  const sLoc = {};
+  const sAgg = new Map(); // element|location -> {system, chance, maxShare}
   for (const loc of data.locations || []) for (const grp of loc.groups || []) {
     const tot = (grp.deposits || []).reduce((s, d) => s + (d.relativeProbability || 0), 0); if (!tot) continue;
-    for (const d of grp.deposits || []) { const comp = data.compositions[d.compositionGuid]; if (!comp?.parts) continue; const dp = (d.relativeProbability || 0) / tot * 100; for (const p of comp.parts) { const en = cleanMat(String(p.elementName || '').replace(/\s*\((?:Ore|Raw|Pure)\)\s*$/i, '').trim()); if (!en) continue; const eff = dp * ((p.maxPercent ?? 100) / 100); (sLoc[en] ??= {}); const k = loc.locationName; if (!sLoc[en][k] || sLoc[en][k].eff < eff) sLoc[en][k] = { system: loc.system, abundance: Math.round(p.maxPercent ?? 0), eff }; } }
+    for (const d of grp.deposits || []) {
+      const comp = data.compositions[d.compositionGuid]; if (!comp?.parts) continue;
+      const dp = (d.relativeProbability || 0) / tot * 100;
+      for (const p of comp.parts) {
+        const en = cleanMat(String(p.elementName || '').replace(/\s*\((?:Ore|Raw|Pure)\)\s*$/i, '').trim()); if (!en) continue;
+        const k = `${en}|${loc.locationName}`;
+        const cur = sAgg.get(k) || { element: en, system: loc.system, chance: 0, maxShare: 0 };
+        cur.chance += dp;
+        cur.maxShare = Math.max(cur.maxShare, p.maxPercent ?? 0);
+        sAgg.set(k, cur);
+      }
+    }
   }
-  const sTop = (en) => { const all = Object.values(sLoc[en] || {}); const bySys = {}; for (const x of all) (bySys[x.system] ??= []).push(x); const out = []; for (const s of Object.keys(bySys)) out.push(...bySys[s].sort((a, b) => b.eff - a.eff).slice(0, 5)); return out; };
-  const sig = (arr) => arr.map((l) => `${l.system}:${l.abundance}`).sort().join(',');
+  for (const v of sAgg.values()) { v.chance = r1(Math.min(v.chance, 100)); v.maxShare = r1(v.maxShare); }
+  const sByMat = new Map();
+  for (const v of sAgg.values()) (sByMat.get(v.element) ?? sByMat.set(v.element, []).get(v.element)).push(v);
+  const sig = (arr) => arr.map((l) => `${l.system}:${l.chance}:${l.maxShare}`).sort().join(',');
   let ok = 0, diff = 0; const details = [];
   for (const m of outMats) {
-    if (!sLoc[m]) continue;
-    const a = sig(topLocs(m)), b = sig(sTop(m));
+    const s = sByMat.get(m); if (!s) continue;
+    const a = sig(byMat.get(m) || []), b = sig(s);
     if (a === b) ok++; else { diff++; if (details.length < 10) details.push(`  ${m}:\n    game : ${a}\n    scmdb: ${b}`); }
   }
-  console.log(`  system+abundance-Multiset: OK ${ok}, abweichend ${diff}`);
+  console.log(`  (System, Chance, Anteil)-Multiset ueber ALLE Fundorte: OK ${ok}, abweichend ${diff}`);
   if (details.length) console.log(details.join('\n'));
 }
