@@ -117,15 +117,35 @@ jobs:
           docker push ghcr.io/cibakhun/sc-patch-archive:staging
           docker push ghcr.io/cibakhun/sc-patch-archive:staging-${{ github.sha }}
 
+      # Am 14.08.2026 scheiterte dieser Schritt zweimal mit 401, obwohl derselbe
+      # Token, direkt von Hand aufgerufen, sauber "deployment queued" lieferte.
+      # Ursache war nicht der Token, sondern sein TRANSPORT: ein an den Secret-Wert
+      # geratenes Zeilenende macht den Bearer-Header ungueltig, und `curl -f`
+      # verschluckt dabei auch noch den Rumpf, sodass im Log nur "error: 401" stand.
+      # Daher jetzt: Rand-Leerraum abschneiden, HTTP-Code und Antwort ausgeben, und
+      # die Laenge des Tokens nennen (nicht seinen Wert) — daran ist ein
+      # eingeschlepptes Zeilenende sofort zu erkennen.
       - name: Trigger Coolify redeploy (staging)
         env:
           HOOK: ${{ secrets.COOLIFY_STAGING_WEBHOOK }}
           TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
         run: |
-          if [ -n "$HOOK" ] && [ -n "$TOKEN" ]; then
-            curl -fsSL "$HOOK" -H "Authorization: Bearer $TOKEN" && echo "Coolify staging redeploy triggered."
-          else
+          if [ -z "$HOOK" ] || [ -z "$TOKEN" ]; then
             echo "COOLIFY_STAGING_WEBHOOK und/oder COOLIFY_API_TOKEN nicht gesetzt — redeploy manuell in Coolify."
+            exit 0
+          fi
+          CLEAN_TOKEN=$(printf '%s' "$TOKEN" | tr -d '[:space:]')
+          echo "Token: ${#TOKEN} Zeichen roh, ${#CLEAN_TOKEN} nach dem Trimmen (Wert wird nicht ausgegeben)."
+          CLEAN_HOOK=$(printf '%s' "$HOOK" | tr -d '[:space:]')
+          BODY=$(mktemp)
+          CODE=$(curl -sS -o "$BODY" -w '%{http_code}' "$CLEAN_HOOK" -H "Authorization: Bearer $CLEAN_TOKEN")
+          echo "HTTP $CODE"
+          echo "Antwort: $(head -c 400 "$BODY")"
+          if [ "$CODE" -ge 200 ] && [ "$CODE" -lt 300 ]; then
+            echo "Coolify staging redeploy triggered."
+          else
+            echo "::error::Coolify lehnt den Deploy-Aufruf ab (HTTP $CODE). Bei 401: Token in Coolify unter Keys & Tokens pruefen (Berechtigung 'deploy') und COOLIFY_API_TOKEN ohne Zeilenende neu setzen."
+            exit 1
           fi
 
       # Nachsehen, ob die Vorschau den frisch gebauten Stand WIRKLICH
