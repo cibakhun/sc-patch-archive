@@ -130,8 +130,16 @@ jobs:
           HOOK: ${{ secrets.COOLIFY_STAGING_WEBHOOK }}
           TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
         run: |
+          # Fehlt ein Secret, wird bewusst NICHT rot — ein Fork ohne Coolify soll
+          # bauen koennen. Aber als ::warning::, damit es im Lauf sichtbar ist:
+          # am 14.08.2026 lief dieser Zweig zweimal unbemerkt durch (das Secret war
+          # gesetzt, aber LEER — `gh secret set` ohne Eingabe speichert Leerstring),
+          # und der gruene Lauf sah aus wie ein geglueckter Deploy.
           if [ -z "$HOOK" ] || [ -z "$TOKEN" ]; then
-            echo "COOLIFY_STAGING_WEBHOOK und/oder COOLIFY_API_TOKEN nicht gesetzt — redeploy manuell in Coolify."
+            FEHLT=""
+            [ -z "$HOOK" ] && FEHLT="COOLIFY_STAGING_WEBHOOK"
+            [ -z "$TOKEN" ] && FEHLT="${FEHLT:+$FEHLT und }COOLIFY_API_TOKEN"
+            echo "::warning::KEIN Deploy ausgeloest — $FEHLT leer oder nicht gesetzt. Das Image liegt fertig in ghcr; in Coolify manuell Redeploy klicken. Achtung: ein Secret kann gesetzt UND leer sein."
             exit 0
           fi
           CLEAN_TOKEN=$(printf '%s' "$TOKEN" | tr -d '[:space:]')

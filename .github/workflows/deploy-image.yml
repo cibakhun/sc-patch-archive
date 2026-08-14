@@ -146,8 +146,14 @@ jobs:
           HOOK: ${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}
           TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
         run: |
+          # Fehlt ein Secret, wird bewusst NICHT rot — aber als ::warning::, damit es
+          # sichtbar ist. Siehe deploy-staging.yml: ein gesetztes, aber LEERES Secret
+          # liess den Lauf gruen durchlaufen, ohne dass je ein Deploy stattfand.
           if [ -z "$HOOK" ] || [ -z "$TOKEN" ]; then
-            echo "COOLIFY_DEPLOY_WEBHOOK und/oder COOLIFY_API_TOKEN nicht gesetzt — redeploy manuell in Coolify."
+            FEHLT=""
+            [ -z "$HOOK" ] && FEHLT="COOLIFY_DEPLOY_WEBHOOK"
+            [ -z "$TOKEN" ] && FEHLT="${FEHLT:+$FEHLT und }COOLIFY_API_TOKEN"
+            echo "::warning::KEIN Deploy ausgeloest — $FEHLT leer oder nicht gesetzt. Das Image liegt fertig in ghcr; in Coolify manuell Redeploy klicken. Achtung: ein Secret kann gesetzt UND leer sein."
             exit 0
           fi
           CLEAN_TOKEN=$(printf '%s' "$TOKEN" | tr -d '[:space:]')
