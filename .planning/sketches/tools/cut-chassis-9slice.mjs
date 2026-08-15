@@ -52,7 +52,15 @@ const SRC_URL = `data:image/jpeg;base64,${readFileSync(src).toString('base64')}`
        links 503  rechts 2706  oben 205  unten 1063
    Gerätekanten über anhaltende Helligkeit:
        links 279  rechts 2812  oben  62  unten 1229                        */
-const DEV = { x: 279, y: 62, w: 2533, h: 1167 };
+/* ⚠⚠ RECHTS lag der Schnitt 16 px IM Geraet. Die Blende reicht bis x≈2828,
+   geschnitten war bei 2812 — die fehlende Aussenkontur war die vom Betreiber
+   dreimal gemeldete „abgeschnittene" Kante. Helligkeitsprofil quer ueber die
+   Kante (y 300/500/700/900/1050): bis 2824 Geraetemetall in 40–95, ab 2832
+   springt es auf 73–129, das ist bereits die beleuchtete Szene dahinter.
+   Jetzt bis 2840 — und bewusst ein paar Pixel Szene RINGSUM: der dunkle Saum
+   gibt der Blende einen natuerlichen Abschluss, statt sie hart gegen den
+   Seitengrund enden zu lassen. */
+const DEV = { x: 276, y: 56, w: 2564, h: 1180 };
 const APT = { x: 503, y: 205, w: 2203, h: 858 };
 const INSET = {
   left: APT.x - DEV.x,                       // 224
