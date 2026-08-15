@@ -20,6 +20,29 @@ created: 2026-08-15
 
 ---
 
+## Blickführung
+
+> Nachgetragen auf Empfehlung des UI-Prüfers (Dimension 2, nicht blockierend).
+> Die Rangordnung war aus dem Aufbau ableitbar, stand aber nirgends als Absicht.
+
+1. **Erster Blickfang: der Fundortname** (`h2`, `var(--fs-13)` = 23,4 px, Gewicht 600)
+   im Kopf der Mittelspalte. Er ist die Antwort auf „wo bin ich".
+2. **Zweite Ebene: die Methodengruppen-Überschriften** (`var(--fs-4)` = 12,6 px,
+   Gewicht 600, gedämpft). Sie gliedern die Liste, treten aber zurück.
+3. **Dritte Ebene: die Erzzeilen** (`var(--fs-5)` = 13,5 px, Gewicht 500), und
+   innerhalb der Zeile führt der **Chance-Balken** in `var(--accent)` das Auge —
+   er ist das einzige farbige Element der Zeile und trägt die Leitgröße (D-06).
+4. **Zurückgenommen: die Spurenzeilen.** Sie stehen an ihrer sortierten Stelle,
+   treten aber durch die Textdämpfung aus der Abtastbewegung heraus. Das
+   „Spur"-Abzeichen bleibt dabei bei voller Deckkraft — es ist das Signal, nicht
+   das Gedämpfte.
+
+**Klick-Affordanz durchgehend gleich:** Hover-Fläche + Fokusring + `cursor:pointer`.
+Kein Chevron, kein Pfeilsymbol je Zeile — die rechte Zeilenhälfte ist mit Nadel,
+Balken und Prozentzahl bereits belegt (142 px, gemessen).
+
+---
+
 ## Design System
 
 | Property | Value |
@@ -158,13 +181,55 @@ Planer/Executor, die Parität ist ohnehin maschinell erzwungen.
 > Empty-state and error-state COPY live in `## Copywriting Contract` above — this section covers
 > state coverage and REFERENCES those rows rather than restating the copy (de-dup).
 
-Applicable state considerations resolved: {N covered, M backstop, K unresolved — or "none applicable"}
+**Geprüfte Oberflächen (E1–E7):** E1 klickbare Fundort-Zeile (in `#wb-locs` UND
+`#wb-locpins`) · E2 Erzzeile in der Fundort-Ansicht · E3 Fundort-Kopf ·
+E4 Methodengruppen-Überschrift · E5 Spurenerz-Zeile · E6 Kachel-Markierung ·
+E7 Deep-Link-Ladezustand `?fundort=`.
+
+Applicable state considerations resolved: **39 covered, 9 backstop, 0 unresolved** (48 gesamt)
 
 | Category | Element(s) | Status | Resolution / Reason |
 |----------|------------|--------|---------------------|
-| {empty} | {list-collection} | ✅ covered | {concrete truth string — e.g. "Empty results render the documented 'No results' copy"} |
-| {long-text} | {static-content} | 🧪 backstop | {held-out/visual UI-state test — lifts as `{ statement, verification: backstop }`} |
-| {overflow} | {list-collection} | ⚠ unresolved | {planner treats as assumption} |
+| empty | E1 | ✅ covered | Beide Leerzustände existieren bereits und werden unverändert wiederverwendet — kein neuer Text: `T.noLocs` für ein Erz ohne Fundorte, `T.locPinsEmpty` für die leere Merkliste (siehe Copywriting Contract, Zeile „Empty state body") |
+| empty | E2, E5 | ✅ covered | Beide Leerzustände sind **unerreichbar, gemessen**: jeder der 45 Fundorte trägt 6 bis 17 Erze, und alle 45 sind gemischt — kein Fundort besteht nur aus Spuren, keiner ist spurenfrei (höchster Spurenanteil 5 von 9 bei Pyro Belt (Cool 1)). Weder eine leere Erzliste noch eine durchgehend gedämpfte Liste kann auftreten |
+| empty | E3, E4, E6 | ✅ covered | Ohne offenen Fundort zeichnet der Erz-Kopf, nicht ein leerer Fundort-Kopf; Methodengruppen werden AUS den Zeilen abgeleitet, eine Gruppe ohne Zeilen kann es nicht geben; in der Erz-Ansicht trägt keine Kachel `.is-here` — die Markierung ist abwesend, nicht leer |
+| loading | E1–E7 | ✅ covered | Die Werkbank lädt nichts nach. Die Daten stehen inline in der Seite (`<script type="application/json" id="wb-data">`), der Fundort-Index wird beim Init synchron aus dem bereits ausgelieferten `minerals[].locs[]` abgeleitet (0 zusätzliche Bytes, `12-RESEARCH.md`). Es gibt keinen Ladezustand zu gestalten. Einzige Ausnahme im Werkzeug — das Nachladen der Presets aus Supabase — bleibt von dieser Phase unberührt |
+| error | E7 | ✅ covered | Ein unbekannter oder verstümmelter `?fundort=`-Wert wird gegen die Liste der 45 Ortsnamen abgeglichen und fällt still auf die Erz-Ansicht zurück; der rohe Parameterwert wird **nie** in die Seite geschrieben. Identisch zum ausgelieferten `?mineral=`-Verhalten |
+| error | E1–E6 | ✅ covered | Kein neuer Fehlerzustand. Siehe Copywriting Contract, Zeile „Error state" — eine sichtbare Fehlermeldung wäre hier ein neues, unbegründetes Muster |
+| populated | E1–E6 | ✅ covered | Normalfall überall belegt: E1 1–27 Fundortzeilen je Erz · E2/E5 6–17 Erzzeilen · E3 Kopf trägt immer Name + Art · System · E4 eine oder drei Gruppen · E6 6–17 von 37 Kacheln markiert |
+| partial | E1 | ✅ covered | Fehlt einem Paar der Erwartungswert, fällt `pctRight()` auf die Chance und dann auf den Gedankenstrich zurück — ausgeliefertes Verhalten, unverändert |
+| partial | E2 | ✅ covered | Ein Erz in `bodies[]` ohne Gegenstück in `minerals[]` **bricht den Build**: `scripts/verify-mining.mjs:38` prüft das bereits. Ein halb aufgelöster Datensatz kann die Ansicht nicht erreichen |
+| partial | E3, E5, E6 | ✅ covered | Die meisten Fundorte haben gar keine Anflugpunkte — die Unterzeile ist dann nur Art · System (kein Platzhalter, kein leeres Trennzeichen). Das Spur-Abzeichen sitzt je Zeile, nie je Gruppe; die Kachel-Markierung je Kachel |
+| overflow | E1 | 🧪 backstop | Bis zu 27 Fundortzeilen je Erz, die Merkliste fasst bis zu 128 — beide in `.wb__scroll`-Kästen. ⚠ Ein neuer oder geänderter Bildlauf-Kasten muss in **beiden** Listen eingetragen werden, `assets/theme.css` UND `mobile-ux.css`, sonst versteckt die globale `!important`-Regel seine Leiste |
+| overflow | E2, E4, E5 | 🧪 backstop | Schlimmster Fall gemessen: **Arial, 17 Erzzeilen + 3 Gruppenüberschriften = 20 Zeilen** in der Mittelspalte. Bei 1280×720 nachweisen, dass die erste Erzzeile ohne Scrollen sichtbar ist (Hausregel „Werkzeug, keine Leinwand") und der Rest sauber im Kasten scrollt |
+| overflow | E3 | 🧪 backstop | Der Fundort-Kopf darf die heutige `.wb__id`-Höhe **nicht** überschreiten — das `--wb-chrome`-Budget ist bereits knapp, und die 1080p-Zusage bricht bei jeder zusätzlichen Kopfhöhe. In px gegen den heutigen Erz-Kopf messen, nicht schätzen |
+| overflow | E6 | ✅ covered | Festes 37er-Kachelraster; die Markierung ist 10×10 px mit `pointer-events:none` auf eigener Bildebene und erzeugt keinen Layoutfluss |
+| zero-one-many | E4 | ✅ covered | Das IST D-05, gemessen: 20 der 45 Fundorte haben genau **eine** Methodengruppe, 25 haben genau **drei** — nie zwei. Die Überschrift steht in beiden Fällen; bei einer Gruppe ist sie die wahre Aussage „hier geht nur Schiffsabbau" |
+| zero-one-many | E3 | ✅ covered | 0, 1 oder bis zu 5 Anflugpunkte. Größter Fall gemessen: Lagrange C mit HUR-L5, MIC-L1, MIC-L2, MIC-L5, CRU-L3 |
+| zero-one-many | E1, E2, E5 | ✅ covered | E1 0/1/27 Zeilen (0 → `T.noLocs`) · E2 6/17 Erze · E5 gemessen: kein Fundort ohne und keiner nur mit Spuren |
+| zero-one-many | E6 | 🧪 backstop | Eine Kachel kann **gleichzeitig** `.is-here` (kommt hier vor), `.is-sel` (gewähltes Erz) und `.wb__pin.is-on` (angeheftet) tragen. Alle drei Zustände müssen in dieser Überlagerung einzeln ablesbar bleiben — in beiden Farbmodi nachweisen |
+| long-text | E1 | ✅ covered | Entschieden am 15.08.: die Anflugpunkte bleiben wie heute an den Ortsnamen gehängt (`locName()`), längster Fall „Lagrange C · HUR-L5, MIC-L1, MIC-L2, MIC-L5, CRU-L3" (52 Zeichen). Ausgelieferte, unbeanstandete Darstellung — D-11 verschiebt sie nur im KOPF, wo eine eigene Zeile dafür da ist |
+| long-text | E2, E5 | 🧪 backstop | Längster Erzname „Hephaestanite" (13 Zeichen) plus das Spur-Abzeichen bei voller Deckkraft in derselben Zeile. Nachweisen, dass Name + Abzeichen + Balken + Prozentzahl bei 1280 px nicht umbrechen |
+| long-text | E3 | 🧪 backstop | Längster Ortsname „Asteroid Cluster (Medium Yield)" (31 Zeichen) im `h2` bei 23,4 px, dazu bis zu fünf Anflugpunkte in der Unterzeile. Nachweisen, dass der Kopf dabei seine Höhe hält (siehe overflow/E3) |
+| long-text | E4 | ✅ covered | Die Methodenbeschriftungen sind kurze, feste Zeichenketten aus dem vorhandenen `methodLabel()` — „Schiff" / „ROC" / „Hand" bzw. „Ship" / „ROC" / „Hand". Keine variable Länge |
+| *(unclassified, aufgelöst)* | E7 | ✅ covered | Vom Prüfer nicht einzuordnen, am 15.08. bewusst als **eigener Ladezustand** geführt statt dem Kopf zugeschlagen: der Abgleich gegen die Ortsnamen-Liste und der stille Rückfall sind zugleich die Sicherheitszusage und gehören als prüfbare Aussage festgehalten, nicht nebenbei erwähnt |
+
+**Nicht aus dem Kategorien-Vokabular, aber der eigentliche Belegbedarf dieser
+Phase — als Zusicherung zu den Spurenzeilen (E5) mitgeführt:** die Dämpfung
+muss in **beiden** Farbmodi mindestens 4,5:1 gegen die Zeilenfläche halten.
+`.p` liegt bei `var(--fs-5)` = 13,5 px unter der WCAG-Schwelle für „großen
+Text", die strengere Marke gilt also. Die Startwerte 62 %/65 % im
+Detailvertrag sind ausdrücklich **kein Freigabewert**.
+
+**Wie die 9 Backstops belegt werden — beides, entschieden am 15.08.:**
+1. **Maschinell**, mit dem vorhandenen Sichtprüfungs-Werkzeug (playwright-core
+   + installiertes Chrome): Kontrast **am gerenderten Bildpunkt** gemessen, nicht
+   aus dem CSS-Wert geschätzt, dazu Zeilen- und Kopfhöhen in px. Das ist die
+   Hausmethode aus dem UI-Meilenstein.
+2. **Als Sichtrunde** an den Betreiber, eingetragen in `.planning/WINDOWS.md` —
+   für das, was eine Messung nicht beurteilen kann: ob die Dreifach-Überlagerung
+   auf der Kachel (E6) tatsächlich lesbar wirkt und ob die gedämpften
+   Spurenzeilen im Fluss als „vorhanden, aber nicht abbauwürdig" gelesen werden.
 
 <!-- Status vocabulary (locked by probe-core projectTruths):
      ✅ covered   → a plain truth string lifted into must_haves.truths
@@ -378,11 +443,11 @@ Applicable state considerations resolved: {N covered, M backstop, K unresolved �
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS — spezifische, zweisprachige Texte; Parität maschinell erzwungen
+- [x] Dimension 2 Visuals: PASS — FLAG „Blickführung nicht ausgesprochen" nachgetragen (Abschnitt „Blickführung")
+- [x] Dimension 3 Color: PASS — Akzent auf 5 benannte Stellen begrenzt, `--accent-2` bleibt für Zustände gesperrt
+- [x] Dimension 4 Typography: PASS — 4 Größen, 2 Gewichte, alle aus dem Bestand
+- [x] Dimension 5 Spacing: PASS — jeder Wert mit Fundstelle belegt; das Fehlen eines 4-px-Rasters ist dokumentiert, nicht übergangen
+- [x] Dimension 6 Registry Safety: PASS — keine Registry, keine Drittanbieter-Bausteine
 
-**Approval:** pending
+**Approval:** approved 2026-08-15
