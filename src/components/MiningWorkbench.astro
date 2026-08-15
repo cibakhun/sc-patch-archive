@@ -335,15 +335,21 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
         die Spielversion steht ohnehin in der Fusszeile. */}
     <h1 class="wb__ctitle" set:text={title} />
     <div class="wb__cscreen">
-      {/* ⚠ Der Schirm-Schleier ist ein ECHTES Element, kein `::before`.
+      {/* ⚠ Schleier und Ablaufband sind ECHTE Elemente, keine `::before`.
           Zwei Gruende, beide bezahlt:
-          · Er muss UEBER dem Inhalt liegen — Eigenleuchten, Vignette,
-            Glasspiegelung und Zeilenraster wirken nur, wenn sie auf allem
-            liegen. Ein `background` am Schirm liegt dahinter und ist wirkungslos.
+          · Sie muessen UEBER dem Inhalt liegen — Vignette, Glasspiegelung und
+            Ablauf wirken nur, wenn sie auf allem liegen. Ein `background` am
+            Schirm liegt dahinter und ist wirkungslos.
           · `verify:layers` (Zusicherung 5) meldet jede Pseudo-Selektor-Familie
             mit Verlauf als Fund ohne Registry-Eintrag. Eine Klasse tut das
-            nicht. */}
+            nicht.
+          Der Ablauf braucht ZWEI Elemente: einen Beschnitt (`--scan`, liegt
+          still) und das wandernde Band darin (`--scanbar`). Das Band faehrt
+          ueber den Schirmrand hinaus; ohne eigenen Beschnitt liefe es auf das
+          Blech. `overflow` am Schirm selbst kam nicht in Frage — dort haengen
+          Hilfe-Kasten und Merkzettel, die herausragen duerfen. */}
       <span class="wb__glare" aria-hidden="true"></span>
+      <span class="wb__scan" aria-hidden="true"><i class="wb__scanbar"></i></span>
       <p class="wb__clead" set:text={lead} />
 
   <div class="wb__grid">
@@ -649,44 +655,136 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    waere eine neue Selektor-Familie und `verify:layers` (Zusicherung 5) meldet
    sie zu Recht als Fund ohne Registry-Eintrag. Schon einmal bezahlt. */
 /* ── DER SCHIRM ───────────────────────────────────────────────────────────
-   Der Rahmen ist das Geraet, diese Flaeche sein Bildschirm. Damit sie als
-   solcher liest, braucht sie vier Dinge — die ersten beiden HINTER dem Inhalt
-   (hier), die anderen beiden DAVOR (`.wb__glare`):
-     1. eine eigene, tiefere Schwaerze mit kuehlem Stich (nicht der Seitengrund),
-     2. ein Eigenleuchten aus der Mitte heraus,
-     3. sichtbares Zeilenraster,
-     4. Vignette und Glasspiegelung.
-   ⚠ Ein erster Anlauf hatte 1–3 bei 3 % Deckkraft HINTER dem Inhalt — das
-   sieht niemand („es sieht ueberhaupt nicht so aus wie ein bildschirm"). */
+   Der Rahmen ist das Geraet, diese Flaeche sein Bildschirm.
+
+   ⚠⚠ UMBAU 16.08.2026 auf Ansage des Betreibers: „sehr stoerend beim Lesen,
+   ausserdem sehr statisch und liefert nicht die erwartete Wirkung."
+   Zwei getrennte Befunde, zwei getrennte Antworten:
+
+   (1) STOEREND. Das Zeilenraster lag mit 1 px auf 3 px bei 46 % Deckkraft
+       UEBER dem Text. Bei 13-14 px Schriftgroesse kreuzen damit vier bis fuenf
+       dunkle Balken JEDE Glyphe — in der Lupe sind „Aslarite", „Tungsten",
+       „Copper" sichtbar zerschnitten. Das ist kein Kontrastproblem, das ist
+       zerstoerte Buchstabenform, und die faellt aus keiner WCAG-Zahl heraus.
+       Antwort: das starke Raster wandert HIERHER, hinter die Paneele. Die
+       Paneele sind deckend, also sieht man es nur dort, wo nichts zu lesen
+       steht — Fugen, Kopfzone, Rand. Ueber dem Text bleibt im Schleier nur
+       noch ein Hauch (4 px Teilung, 13 % statt 46 %): genug, dass die Flaeche
+       geriffelt liest, zu wenig, um eine Glyphe zu zerteilen.
+
+   (2) STATISCH. Ein Bildschirm, auf dem sich nichts ruehrt, ist eine Tapete
+       mit Bildschirm-Muster. Was ihn lebendig macht, ist der DURCHLAUF —
+       darum jetzt `.wb__scan`. Bewusst EINE Bewegung statt vieler: langsam,
+       flach und mit Pause. Ein Flackern waere die naechstliegende Idee und
+       die schlechteste — es ist genau das, was beim Lesen zuerst nervt.
+
+   Reihenfolge der Schichten, von hinten nach vorn:
+     1. eigene, tiefere Schwaerze mit kuehlem Stich (nicht der Seitengrund),
+     2. Eigenleuchten aus der Mitte heraus,
+     3. starkes Zeilenraster  ─ hier, HINTER den Paneelen,
+     4. der Inhalt,
+     5. das wandernde Ablaufband (`.wb__scan`),
+     6. Lichtsaum, Glasspiegelung, Vignette, Hauch-Raster (`.wb__glare`).
+   ⚠ Ein erster Anlauf hatte 1–3 bei 3 % Deckkraft — das sieht niemand („es
+   sieht ueberhaupt nicht so aus wie ein bildschirm"). Die Staerke ist also
+   nicht das Problem gewesen, der ORT war es. */
 .wb__cscreen{position:relative;display:flex;flex-direction:column;gap:8px;min-height:0;flex:1;
   background:
+    /* Zeilenraster in voller Staerke — es liegt hinter den Paneelen und
+       kreuzt deshalb keine einzige Glyphe. */
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb,var(--ink) 58%,transparent) 0 1px, transparent 1px 3px),
     radial-gradient(120% 85% at 50% 38%,
-      color-mix(in srgb,var(--accent) 16%,transparent) 0%,
-      color-mix(in srgb,var(--accent) 4%,transparent) 46%, transparent 74%),
+      color-mix(in srgb,var(--accent) 20%,transparent) 0%,
+      color-mix(in srgb,var(--accent) 5%,transparent) 46%, transparent 74%),
     linear-gradient(180deg,
       color-mix(in srgb,var(--ink) 92%,var(--accent)) 0%, var(--ink) 100%),
     var(--ink)}
 
-/* Der Schleier ueber allem: Zeilenraster, Vignette, Glasspiegelung.
+/* ── DER ABLAUF ───────────────────────────────────────────────────────────
+   Ein weiches Lichtband faehrt von oben nach unten durch, dann Ruhe, dann
+   wieder. Das ist die Bewegung, die eine Flaeche als BILDSCHIRM lesbar macht
+   und nicht als bedrucktes Blech.
+
+   ⚠ Nur `transform` wird bewegt — der Ablauf laeuft damit im Compositor und
+   kostet kein Neuzeichnen. Der naheliegende Weg (`background-position` am
+   Schleier wandern lassen) haette bei 1600x800 CSS-Punkten in JEDEM Einzelbild
+   die volle Flaeche neu gemalt.
+   ⚠ Der Beschnitt sitzt am Huellelement, NICHT am Schirm: am Schirm haengen
+   Hilfe-Kasten und Merkzettel, die ueber seinen Rand hinausragen duerfen.
+   ⚠ `pointer-events:none` an BEIDEN — sonst schluckt das Band Klicks. */
+.wb__scan{position:absolute;inset:0;z-index:4;pointer-events:none;
+  overflow:hidden;border-radius:2px}
+/* ⚠ ERSTER ANLAUF WAR FALSCH und ist am Bild gestorben: ein breites, weiches
+   Lichtband mit 4,5 % im Kern. Am Schirm nachgesehen — man sieht es schlicht
+   nicht. Ueber einer fast schwarzen Flaeche verschwindet ein 4,5-Prozent-
+   Verlauf ueber 300 Bildpunkte Hoehe im Nichts. Es haette also die Lesbarkeit
+   ein bisschen gekostet und dafuer gar nichts geliefert.
+   Jetzt ein ABTASTSTRAHL statt eines Waschgangs: vorn eine schmale, helle
+   Kante (2 px, 22 %), dahinter ein weiches Nachgluehen. Das Auge fasst die
+   scharfe Kante — deshalb ist der Strahl bei viel WENIGER Durchschnitts-
+   helligkeit deutlich besser zu sehen als das Band. Und eine 2 px schmale
+   Linie, die in Sekundenbruchteilen ueber eine Zeile laeuft, stoert beim Lesen
+   ungleich weniger als eine breite Aufhellung, die sekundenlang darauf steht. */
+.wb__scanbar{position:absolute;left:0;right:0;top:0;height:26%;pointer-events:none;
+  background:linear-gradient(180deg,
+    transparent 0%,
+    color-mix(in srgb,var(--accent) 3%,transparent) 62%,
+    color-mix(in srgb,var(--accent) 8%,transparent) calc(100% - 10px),
+    color-mix(in srgb,var(--text) 15%,transparent) calc(100% - 2px),
+    color-mix(in srgb,var(--text) 22%,transparent) calc(100% - 1px),
+    transparent 100%);
+  transform:translate3d(0,-115%,0);
+  animation:wbscan 9s linear infinite}
+/* Der Halt am Ende ist Absicht: 5,9 s Fahrt, 3,1 s Ruhe. Ein Strahl, der
+   ununterbrochen kreist, liest sich als Ladebalken; einer, der zu lange
+   pausiert, laesst die Flaeche wieder tot wirken — und genau das war der
+   zweite Befund. 9 s ist der gemessene Kompromiss: beim Aufschlagen der Seite
+   faehrt der erste Strahl sofort los, danach kommt keine Pause, in der man
+   sich fragt, ob das Ding noch laeuft. */
+@keyframes wbscan{
+  0%   {transform:translate3d(0,-115%,0)}
+  65%  {transform:translate3d(0,400%,0)}
+  100% {transform:translate3d(0,400%,0)}
+}
+
+/* Der Schleier ueber allem: Lichtsaum, Glasspiegelung, Vignette, Hauch-Raster.
    ⚠ `pointer-events:none` ist PFLICHT — ohne das schluckt er jeden Klick auf
    Kacheln, Zeilen und Knoepfe darunter.
-   ⚠ Deckkraft bewusst niedrig gehalten: der Schleier liegt ueber dem Text, und
-   jede Stufe mehr kostet Lesbarkeit. Die Wirkung kommt aus der Kombination,
-   nicht aus der Staerke eines einzelnen Anteils. */
+   ⚠ Hier liegt ALLES ueber dem Text. Deshalb nur noch grossflaechige, weiche
+   Verlaeufe: die zerteilen keine Buchstaben. Das feine, hochfrequente Zeug
+   (das Raster) ist genau darum nach hinten gewandert. */
 .wb__glare{position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:2px;
   background:
-    /* 1. Glasspiegelung: ein schraeger Lichtstreifen ueber die ganze Flaeche */
+    /* 1. Lichtsaum an der Oberkante — verkauft die hinterleuchtete Scheibe.
+       Neu am 16.08.2026: dem Schirm fehlte jeder Hinweis, dass er LEUCHTET,
+       und nicht bloss eine dunkle Flaeche im Blech ist. */
+    radial-gradient(150% 20% at 50% 0%,
+      color-mix(in srgb,var(--accent) 9%,transparent) 0%, transparent 100%),
+    /* 2. Glasspiegelung: breiter und flacher als vorher (5 % -> 3,5 %), damit
+       sie als Scheibe liest und nicht als aufgemalter Streifen. */
     linear-gradient(104deg,
-      transparent 0 34%,
-      color-mix(in srgb,var(--text) 5%,transparent) 44%,
-      color-mix(in srgb,var(--text) 2%,transparent) 52%,
-      transparent 62% 100%),
-    /* 2. Vignette: Ecken abdunkeln, Mitte frei lassen */
-    radial-gradient(118% 96% at 50% 46%,
-      transparent 0 52%, color-mix(in srgb,var(--ink) 55%,transparent) 100%),
-    /* 3. Zeilenraster: sichtbar, aber nicht flimmernd — 3 px Teilung */
+      transparent 0 26%,
+      color-mix(in srgb,var(--text) 3.5%,transparent) 44%,
+      color-mix(in srgb,var(--text) 1.5%,transparent) 58%,
+      transparent 74% 100%),
+    /* 3. Vignette, zurueckgenommen (55 % -> 34 %, freie Mitte bis 58 %): sie
+       lag mit voller Staerke auf den AUSSENSPALTEN, also genau dort, wo die
+       langen Listen stehen. Ecken abdunkeln ja, Leselast erzeugen nein. */
+    radial-gradient(126% 104% at 50% 46%,
+      transparent 0 58%, color-mix(in srgb,var(--ink) 34%,transparent) 100%),
+    /* 4. Hauch-Raster: 4 px Teilung statt 3, 13 % statt 46 %. Es traegt die
+       Riffelung ueber die Paneele hinweg weiter, ohne die Schrift zu saegen.
+       4 px, weil das bei doppelter Bildpunktdichte auf ganze Geraetepunkte
+       faellt — 3 px tat das nicht und flimmerte beim Rollen. */
     repeating-linear-gradient(0deg,
-      color-mix(in srgb,var(--ink) 46%,transparent) 0 1px, transparent 1px 3px)}
+      color-mix(in srgb,var(--ink) 13%,transparent) 0 1px, transparent 1px 4px)}
+
+/* Wer Bewegung abbestellt hat, bekommt keine. Das Band bleibt dann ganz weg —
+   ein stehendes Lichtband waere ein Fleck auf dem Schirm, kein Ablauf. */
+@media (prefers-reduced-motion: reduce){
+  .wb__scanbar{animation:none;display:none}
+}
 .wb__clead{margin:0;text-align:center;font-size:var(--fs-4);
   color:color-mix(in srgb,var(--muted) 92%,transparent)}
 /* ⚠ Der Zier-Grund (`.wb::before`: zwei Rastermassstaebe, zwei Lichtabfaelle,

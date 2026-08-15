@@ -163,10 +163,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     <h1 class="fc__ctitle" set:text={title} />
 
     <div class="fc__cscreen">
-      {/* Schirm-Schleier als ECHTES Element, nicht als `::before` — eine
-          Pseudo-Selektor-Familie mit Verlauf meldet `verify:layers` zu Recht
-          als Fund ohne Registry-Eintrag. Begruendung in der Werkbank. */}
+      {/* Schleier und Ablaufband als ECHTE Elemente, nicht als `::before` —
+          eine Pseudo-Selektor-Familie mit Verlauf meldet `verify:layers` zu
+          Recht als Fund ohne Registry-Eintrag. Der Ablauf braucht zwei
+          Elemente: Beschnitt plus wanderndes Band. Volle Begruendung in der
+          Werkbank — beide Seiten sind ein Paar. */}
       <span class="fc__glare" aria-hidden="true"></span>
+      <span class="fc__scan" aria-hidden="true"><i class="fc__scanbar"></i></span>
       <p class="fc__clead" set:text={lead} />
   <div class="fc__grid">
 
@@ -323,32 +326,69 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .fc__ctitle{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;
   overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 /* ── DER SCHIRM ──  Baugleich mit der Mining-Werkbank; die ausfuehrliche
-   Begruendung steht dort. Kurz: der Rahmen ist das Geraet, diese Flaeche sein
-   Bildschirm — eigene tiefere Schwaerze mit kuehlem Stich plus Eigenleuchten
-   HINTER dem Inhalt, Zeilenraster/Vignette/Glasspiegelung DAVOR (`.fc__glare`).
+   Begruendung steht dort, samt der beiden Befunde vom 16.08.2026 („stoerend
+   beim Lesen" / „sehr statisch"). Kurz:
+     · das starke Zeilenraster liegt jetzt HINTER den Paneelen — dort, wo
+       nichts zu lesen steht. Ueber dem Text bleibt nur ein Hauch.
+     · ein wanderndes Ablaufband (`.fc__scan`) gibt der Flaeche Leben; ohne
+       Bewegung ist ein Bildschirm nur eine Tapete mit Bildschirm-Muster.
    ⚠ Beide Seiten sind ein Paar: der Rechner hatte den Umbau beim letzten Mal
    NICHT mitbekommen und stand mit nacktem Blech neben der Werkbank. */
 .fc__cscreen{position:relative;display:flex;flex-direction:column;gap:8px;min-height:0;flex:1;
   background:
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb,var(--ink) 58%,transparent) 0 1px, transparent 1px 3px),
     radial-gradient(120% 85% at 50% 38%,
-      color-mix(in srgb,var(--accent) 16%,transparent) 0%,
-      color-mix(in srgb,var(--accent) 4%,transparent) 46%, transparent 74%),
+      color-mix(in srgb,var(--accent) 20%,transparent) 0%,
+      color-mix(in srgb,var(--accent) 5%,transparent) 46%, transparent 74%),
     linear-gradient(180deg,
       color-mix(in srgb,var(--ink) 92%,var(--accent)) 0%, var(--ink) 100%),
     var(--ink)}
+/* Der Ablauf. Nur `transform` bewegt sich (Compositor, kein Neuzeichnen), der
+   Beschnitt sitzt am Huellelement und nicht am Schirm — an dem haengen
+   Hilfe-Kasten und Merkzettel, die ueberstehen duerfen. */
+.fc__scan{position:absolute;inset:0;z-index:4;pointer-events:none;
+  overflow:hidden;border-radius:2px}
+/* Abtaststrahl, nicht Lichtband: schmale helle Kante vorn, weiches Nachgluehen
+   dahinter. Warum nicht das breite Band — siehe Werkbank, es war am Schirm
+   schlicht nicht zu sehen. */
+.fc__scanbar{position:absolute;left:0;right:0;top:0;height:26%;pointer-events:none;
+  background:linear-gradient(180deg,
+    transparent 0%,
+    color-mix(in srgb,var(--accent) 3%,transparent) 62%,
+    color-mix(in srgb,var(--accent) 8%,transparent) calc(100% - 10px),
+    color-mix(in srgb,var(--text) 15%,transparent) calc(100% - 2px),
+    color-mix(in srgb,var(--text) 22%,transparent) calc(100% - 1px),
+    transparent 100%);
+  transform:translate3d(0,-115%,0);
+  animation:fcscan 9s linear infinite}
+/* 5,9 s Fahrt, 3,1 s Ruhe — gleiche Taktung wie die Werkbank, die Seiten sind
+   ein Paar und stehen nebeneinander im selben Blech. */
+@keyframes fcscan{
+  0%   {transform:translate3d(0,-115%,0)}
+  65%  {transform:translate3d(0,400%,0)}
+  100% {transform:translate3d(0,400%,0)}
+}
 /* ⚠ `pointer-events:none` ist PFLICHT — sonst schluckt der Schleier jeden
-   Klick auf Kacheln, Zeilen und Knoepfe darunter. */
+   Klick auf Kacheln, Zeilen und Knoepfe darunter.
+   Reihenfolge: Lichtsaum, Glasspiegelung, Vignette, Hauch-Raster. Alles
+   grossflaechig und weich — hier liegt jede Schicht ueber Text. */
 .fc__glare{position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:2px;
   background:
+    radial-gradient(150% 20% at 50% 0%,
+      color-mix(in srgb,var(--accent) 9%,transparent) 0%, transparent 100%),
     linear-gradient(104deg,
-      transparent 0 34%,
-      color-mix(in srgb,var(--text) 5%,transparent) 44%,
-      color-mix(in srgb,var(--text) 2%,transparent) 52%,
-      transparent 62% 100%),
-    radial-gradient(118% 96% at 50% 46%,
-      transparent 0 52%, color-mix(in srgb,var(--ink) 55%,transparent) 100%),
+      transparent 0 26%,
+      color-mix(in srgb,var(--text) 3.5%,transparent) 44%,
+      color-mix(in srgb,var(--text) 1.5%,transparent) 58%,
+      transparent 74% 100%),
+    radial-gradient(126% 104% at 50% 46%,
+      transparent 0 58%, color-mix(in srgb,var(--ink) 34%,transparent) 100%),
     repeating-linear-gradient(0deg,
-      color-mix(in srgb,var(--ink) 46%,transparent) 0 1px, transparent 1px 3px)}
+      color-mix(in srgb,var(--ink) 13%,transparent) 0 1px, transparent 1px 4px)}
+@media (prefers-reduced-motion: reduce){
+  .fc__scanbar{animation:none;display:none}
+}
 .fc__clead{margin:0;text-align:center;font-size:var(--fs-4);
   color:color-mix(in srgb,var(--muted) 92%,transparent)}
 /* ⚠ Hier lag bis 15.08.2026 ein CSS-Raster als Grund der Bildflaeche. Es ist
