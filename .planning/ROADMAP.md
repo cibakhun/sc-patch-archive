@@ -589,13 +589,40 @@ ersatzlos — der Bedienweg ist im Spielfluss unrealistisch (anheften, scannen,
 Monitor wechseln, fünfstellig abtippen, während man im Belt steht); der
 übliche Weg ist näher ranfliegen, dann nennt der Scanner das Erz selbst. Die
 Signaturenliste samt Vielfachen bleibt als Nachschlagewerk erhalten.
-**Requirements**: TBD
+**Requirements**: keine REQ-IDs in REQUIREMENTS.md — bindend sind stattdessen die
+Entscheidungen D-01 bis D-07 aus
+`.planning/phases/10-mining-presets-bedienbar-machen/CONTEXT.md` (gleicher Umgang wie
+in Phase 7 und Phase 9), samt der beiden Nachschaerfungen vom 15.08.2026 zu D-01
+(zwei Klicks, der zweite traegt Worte) und D-02 (Aufklapp-Ansicht an der Preset-Zeile,
+gezielter Schreibaufruf ohne Laden des Presets).
 **Depends on:** Phase 9
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 10 to break down)
+- [ ] 10-01-PLAN.md (Welle 1) — Leitschuss durch alle Schichten: sichtbare Preset-Liste
+  statt Auswahlfeld, Umbenennen ueber genau einen PATCH auf den Primaerschluessel samt
+  eigenem Zweig fuer den vergebenen Namen; danach Loeschen mit beschrifteter Rueckfrage
+  (Muelleimer statt `×`, andere Stelle, Warnschraffur) sowie Ueberschreiben und
+  eintragsweises Ausduennen direkt an der gespeicherten Zeile (D-01, D-02, D-05)
+
+- [ ] 10-02-PLAN.md (Welle 2) — Ausbau: die Reiter entfallen, Signaturenliste und
+  Fundort-Merkliste stehen gestapelt und gleichzeitig sichtbar, die rechte Spalte
+  waechst um 68 px zulasten der Mitte; der Scanwert entfaellt ersatzlos samt
+  Treffermarkierung, Sprachschluessel und Hilfetext, waehrend die Vielfachen bleiben;
+  Hilfetexte in DE und EN auf den neuen Stand, beide Torlaeufe und die Sichtrunde
+  benannt an den Betreiber (D-03, D-04, D-06, D-07)
+
+Entschieden beim Zuschnitt (Claude's Discretion aus der CONTEXT.md): **Umbenennen ist
+EIN `PATCH` auf `(user_id, name)`**, nicht „neu anlegen + altes loeschen". Die
+UPDATE-Politik der Tabelle prueft ausschliesslich `user_id` und ist gegenueber dem Namen
+blind; der einzige Fehlerfall ist die Eindeutigkeitsverletzung, die als HTTP 409 mit
+eigener Meldung sichtbar wird. Zwei Aufrufe waeren nicht atomar und koennten genau den
+Datenverlust erzeugen, den diese Phase beheben soll. Der Preis der Entscheidung steht in
+`10-01-PLAN.md` unter `assumption_delta_decision`: solange der Name die Identitaet
+traegt, macht jedes Umbenennen eine kuenftige oeffentliche Adresse (Phase 11) ungueltig.
+**Rastermass** wird `470px 1fr 330px` statt `470px 1fr 262px` — die linke Erzliste
+bleibt unangetastet, die 68 px kommen aus der Mitte (D-04).
 
 ### Phase 11: Geteilte Routen mit Spielerbewertung
 
