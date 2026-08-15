@@ -366,7 +366,10 @@ export function makeMiningDomContext(opts = {}) {
   root.appendChild(backBtn);
   root.appendChild(reg(mk('h2', 'wb-locname')));
   root.appendChild(reg(mk('div', 'wb-locsub')));
-  root.appendChild(reg(mk('div', 'wb-locview')));
+  // wb-locview traegt AUSSCHLIESSLICH die bestehende Klasse wb__scroll (Phase
+  // 12, Plan 01, Task 2) -- keine neue Bildlaufklasse, sonst muesste sie in
+  // assets/theme.css UND assets/mobile-ux.css eingetragen werden.
+  root.appendChild(reg(mk('div', 'wb-locview', 'wb__scroll')));
 
   // Fusszeile.
   root.appendChild(reg(mk('a', 'wb-frac')));
