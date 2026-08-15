@@ -1355,3 +1355,65 @@ test('T-12-07: der synthetische Fundort mit HTML-Sonderzeichen laesst sich oeffn
   assert.ok(freshRow, 'Fundort-Zeile nach dem Oeffnen nicht mehr auffindbar (Attributwert vermutlich abgeschnitten)');
   assert.strictEqual(freshRow.getAttribute('data-loc'), ctx.SPECIAL_LOC);
 });
+
+// ---------------------------------------------------------------------
+// Phase 12, Plan 01, Task 2 — Der Falz haelt: Hoehenbilanz und Bildlauf der
+// neuen Ansicht. Fuegt keine Funktion hinzu, sichert nur, dass es nichts zu
+// messen gibt, das strukturell schon falsch ist.
+// ---------------------------------------------------------------------
+
+test('T-12-08: In der Fundort-Ansicht bleibt die Zahl der .wb__pane-Elemente bei drei, #wb-locview traegt NUR wb__scroll', async () => {
+  // Statische Markup-Zusicherung: .wb__grid traegt weiterhin genau drei
+  // .wb__pane-Kinder -- die Fundort-Ansicht ist ein Geschwister INNERHALB
+  // des mittleren Paneels (Task 1), kein viertes Paneel. Der Mock-DOM in
+  // mining-dom.js modelliert keine .wb__pane-Elemente (mining-workbench.js
+  // greift nie darauf zu), deshalb hier gegen die echte Astro-Quelle -- die
+  // drei Positionsregeln der Medienabfragen (Z. 787-814) haengen daran.
+  const astroSrc = fs.readFileSync(path.resolve('src/components/MiningWorkbench.astro'), 'utf8');
+  const paneCount = (astroSrc.match(/class="wb__pane[ "]/g) || []).length;
+  assert.strictEqual(paneCount, 3, 'die Fundort-Ansicht (Task 1) sollte kein viertes .wb__pane erzeugt haben');
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  const loc = realLocOf(ctx, 'Gold');
+  selectMineral(ctx, 'Gold');
+  ctx.fire(locRow(ctx, loc), 'click');
+
+  const locview = ctx.elements['wb-locview'];
+  assert.ok(locview, 'wb-locview nicht im Mock-DOM registriert');
+  assert.strictEqual(
+    locview.className, 'wb__scroll',
+    '#wb-locview sollte AUSSCHLIESSLICH wb__scroll tragen -- keine zweite Bildlaufklasse, sonst blendet die globale !important-Regel in assets/theme.css seine Leiste aus'
+  );
+});
+
+test('T-12-09: Fundort mit den meisten Erzen -- keine Zeile geht beim Gruppieren verloren, keine erscheint doppelt, Gruppenueberschriften entsprechen den tatsaechlich vorkommenden Methoden', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc, entries } = biggestLoc(probe);
+  assert.ok(loc, 'Testbestand sollte einen groessten Fundort liefern');
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  selectMineral(ctx, entries[0].n);
+  ctx.fire(locRow(ctx, loc), 'click');
+
+  const locview = ctx.elements['wb-locview'];
+  const headings = locview.querySelectorAll('h4');
+  const rows = locview.querySelectorAll('.wb__row2');
+
+  // Kein Eintrag geht beim Gruppieren verloren, keiner erscheint doppelt --
+  // auch wenn ein Element in DERSELBEN Komposition mehrfach vorkommt (Adern),
+  // fuehren die Daten es trotzdem als EINEN Eintrag je Erz-Ort-Paar, und
+  // genau das muss die Ansicht zeigen.
+  const oreNames = rows.map((r) => r.getAttribute('data-ore'));
+  assert.strictEqual(oreNames.length, entries.length, 'Zeilenzahl sollte exakt der Zahl der Eintraege dieses Ortes entsprechen');
+  assert.strictEqual(new Set(oreNames).size, oreNames.length, 'kein Erz sollte doppelt gezeichnet sein');
+  for (const name of entries.map((e) => e.n)) {
+    assert.ok(oreNames.includes(name), `"${name}" fehlt in der gezeichneten Liste`);
+  }
+
+  const distinctGroups = new Set(entries.map((e) => (e.mi === 'ship' ? 'ship' : (e.mi === 'roc' ? 'roc' : 'hand'))));
+  assert.strictEqual(headings.length, distinctGroups.size, 'Zahl der Gruppenueberschriften sollte der Zahl der tatsaechlich vorkommenden Methoden entsprechen');
+  assert.strictEqual(
+    headings.length + rows.length, distinctGroups.size + entries.length,
+    'Summe aus Gruppenueberschriften und Zeilen sollte exakt Gruppen + Eintraege sein -- nichts verloren, nichts verdoppelt'
+  );
+});
