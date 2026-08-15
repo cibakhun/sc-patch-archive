@@ -72,7 +72,6 @@
   .scs__x,
   .cdb-view,
   .mdb-view,
-  .rff__vbtn,
   .uif-viewbtn,
   .uif-modal-close,
   .sid__mini,
@@ -366,7 +365,7 @@ summary:active {
 :where(
     .dp-btn, .dp-card, .dp-pager a, .chip, .chipbtn, .wk-pill, .uif-chip,
     .uif-viewbtn, .uif-page-btn, .uif-category-btn, .frac-preset,
-    .sid__chip, .sid__sys, .rff__sys, .evo__cell, .cdb-view, .mdb-view
+    .sid__chip, .sid__sys, .evo__cell, .cdb-view, .mdb-view
   ):active {
   background: color-mix(in srgb, var(--accent) 20%, transparent);
   border-color: var(--accent);

@@ -67,10 +67,11 @@ if (!(() => { try { readdirSync('dist'); return true; } catch { return false; } 
   process.exit(1);
 }
 
-// Feste Liste, EINE Stelle. Die beiden Refinerys sind zwei verschiedene
-// Werkzeuge — eine Kennung "refinery" gibt es nicht.
+// Feste Liste, EINE Stelle. „refinerytracker" ist das Dashboard unter
+// /refinery.html. Den „refineryfinder" auf der Mining-Seite gibt es seit
+// 15.08.2026 nicht mehr — eine Kennung "refinery" gab es nie.
 const TOOL_IDS = [
-  'itemfinder', 'crafting', 'mining', 'fracturing', 'refineryfinder',
+  'itemfinder', 'crafting', 'mining', 'fracturing',
   'refinerytracker', 'missions', 'ships', 'precisionjump', 'archive',
   'wikelo', 'armorsets',
 ];
@@ -238,7 +239,7 @@ console.log('\n[5] Ladeort: nur Seiten mit data-tool-id laden tool-help.js (DOC-
 
 /* ---- Zusicherung 6: JEDES WERKZEUG hat eigene data-help-Anker (WR-05) ----
    Zaehlte bis 11.08.2026 pro SEITE — und das reichte nachweislich nicht.
-   Die Mining-Seite traegt ZWEI Werkzeuge (mining + refineryfinder). Als der
+   Die Mining-Seite trug ZWEI Werkzeuge (mining + refineryfinder). Als der
    Werkbank-Umbau saemtliche data-help der Mining-Werkbank verlor, hielten
    die drei Anker des Refinery-Finders weiter unten die Seite gruen; der
    Knopf „Elemente erklaeren" der Werkbank hob danach nur noch fremde

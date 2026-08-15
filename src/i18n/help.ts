@@ -118,18 +118,6 @@ export const HELP = {
     'fracturing.ctl.gadget': 'Ein Gadget verändert den Widerstand des Gesteins.',
     'fracturing.ctl.mass': 'Die angenommene Masse des Brockens — sie bestimmt, wie viel Schaden nötig ist.',
 
-    // -- Refinery-Finder --
-    'refineryfinder.title': 'Wie funktioniert der Refinery-Finder?',
-    'refineryfinder.purpose':
-      'Zeigt zu jedem Erz die Raffinerie mit dem höchsten Yield-Bonus, dazu die volle Matrix aller Stationen.',
-    'refineryfinder.step1': 'Erz-Namen eingeben, um die beste Station sofort zu sehen.',
-    'refineryfinder.step2': 'Zur vollen Matrix wechseln für alle Erze und Stationen auf einen Blick.',
-    'refineryfinder.step3': 'Nach System filtern, um nur erreichbare Stationen zu sehen.',
-    'refineryfinder.step4': 'Auf eine Station oder einen Chip zeigen, um den vollen Namen zu sehen.',
-    'refineryfinder.ctl.search': 'Freitextsuche über Erz-Namen.',
-    'refineryfinder.ctl.view': 'Wechselt zwischen Liste und voller Matrix.',
-    'refineryfinder.ctl.system': 'Schränkt die Stationen auf ein System ein.',
-
     // -- Patch-Archiv --
     'archive.title': 'Wie funktioniert das Patch-Archiv?',
     'archive.purpose':
@@ -303,18 +291,6 @@ export const HELP = {
     'mining.ctl.station': 'The station whose yield is highlighted in the ranking.',
     'mining.ctl.locpin': 'Pins a location to the shortlist underneath — same pin as on the ore.',
     'mining.ctl.shortlist': 'The pinned locations across every ore, as “Ore — Location”.',
-
-    // -- Refinery Finder --
-    'refineryfinder.title': 'How does the Refinery Finder work?',
-    'refineryfinder.purpose':
-      'Shows the refinery with the highest yield bonus for every ore, plus the full matrix of all stations.',
-    'refineryfinder.step1': 'Type an ore name to see the best station instantly.',
-    'refineryfinder.step2': 'Switch to the full matrix for every ore and station at a glance.',
-    'refineryfinder.step3': 'Filter by system to see only reachable stations.',
-    'refineryfinder.step4': 'Hover a station or chip to see its full name.',
-    'refineryfinder.ctl.search': 'Free-text search across ore names.',
-    'refineryfinder.ctl.view': 'Switches between list and full matrix.',
-    'refineryfinder.ctl.system': 'Narrows the stations down to a system.',
 
     // -- Patch Archive --
     'archive.title': 'How does the patch archive work?',

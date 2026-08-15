@@ -124,7 +124,10 @@ bleiben damit, alle belegt:
 - **Keine Sortierung** der 37 Kacheln.
 - **Ungenutzte Fläche** bei 1920×1080: 390 px unter den Kacheln, die gesamte
   Signaturspalte (844 px) leer, bis etwas angeheftet ist.
-- **`RefineryFinder` doppelt die Mittelspalte** — beantwortet „welche
-  Station?“ ein zweites Mal aus einer anderen Datei.
+- ~~**`RefineryFinder` doppelt die Mittelspalte**~~ — **erledigt am
+  15.08.2026.** Der Finder ist von der Mining-Seite entfernt, mit ihm die
+  drei Werkzeug-Karten und die Fakten-Leiste. Die Seite endet jetzt mit
+  der Werkbank; „welche Station?“ beantwortet allein deren Mittelspalte
+  samt Stationswähler.
 - **Physik-Werte werden bei 1280 mitten durch die Zahl abgeschnitten**, weil
   die Mittelspalte dort zweizeilig stapelt.
