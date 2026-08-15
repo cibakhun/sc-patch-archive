@@ -352,7 +352,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     }).join('');
   }
 
-  function renderAll() { renderList(); renderDetail(); renderPins(); renderLocPins(); save(); }
+  function renderAll() { renderList(); renderDetail(); renderPins(); renderLocPins(); renderPresetList(); save(); }
 
   /* ==========================================================
      PRESETS — benannte Zusammenstellungen der Signaturenliste
@@ -377,13 +377,26 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      20260815090000_mining_preset_locations.sql). Ein Preset, das vor dieser
      Spalte gespeichert wurde, liefert kein `locations`-Feld oder `null`;
      `(r.locations || [])` ergibt dafuer die leere Merkliste, keinen Fehler
-     (D-04). */
+     (D-04).
+
+     Seit Phase 10 (10-01, D-05) ist das Auswahlfeld eine sichtbare Liste
+     (renderPresetList()); `preCur` haelt den Namen der markierten Zeile, weil
+     der Zustand keinen DOM-Traeger mehr hat wie zuvor `<select>.value`.
+     `preEditFor` unterscheidet die beiden Anlaesse der Namenseingabe: `null`
+     = Neuanlage, sonst der alte Name, der per PATCH umbenannt wird (D-02,
+     Form 1). Das Umbenennen verschiebt damit den Primaerschluessel
+     `(user_id, name)` — ein einzelner PATCH auf `?name=eq.<alt>`, weil die
+     UPDATE-Politik der Migration 20260812040000 (Zeilen 41-44) ausschliesslich
+     `user_id` prueft, nie den Namen; der einzige Fehlerfall ist die
+     Eindeutigkeitsverletzung, die PostgREST als HTTP 409 meldet. */
   var TBL = 'mining_sig_presets';
-  var preSel = $('wb-preset'), prePick = $('wb-pre-pick'), preEdit = $('wb-pre-edit');
+  var preList = $('wb-preset-list'), prePick = $('wb-pre-pick'), preEdit = $('wb-pre-edit');
   var preMsg = $('wb-pre-msg'), preGuest = $('wb-pre-guest'), preName = $('wb-pre-name');
-  var preDel = $('wb-pre-del'), preLogin = $('wb-pre-login');
+  var preLogin = $('wb-pre-login');
   var presets = [];   // [{name, minerals, locations}]
   var preSess = null; // gueltige Session oder null (= Gast)
+  var preCur = '';    // Name der aktuell markierten Zeile (is-sel)
+  var preEditFor = null; // null = Neuanlage, sonst der alte Name beim Umbenennen
 
   function preSay(text, ms) {
     if (!preMsg) return;
@@ -391,15 +404,32 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     preMsg.hidden = !text;
     if (text && ms !== 0) setTimeout(function () { if (preMsg.textContent === text) preMsg.hidden = true; }, ms || 2600);
   }
-  function preFill(selected) {
-    if (!preSel) return;
-    var html = '<option value="">' + esc(T.presetNone) + '</option>';
-    for (var i = 0; i < presets.length; i++) {
-      html += '<option value="' + esc(presets[i].name) + '"' +
-        (presets[i].name === selected ? ' selected' : '') + '>' + esc(presets[i].name) + '</option>';
+  /* Zeichnet #wb-preset-list neu — Vorbild renderPins() (Textbaustein per
+     .map().join('') auf innerHTML). Jede Zeile traegt data-preset (immer
+     durch esc(), auch im Attributwert — T-10-01) sowie zwei delegierte
+     Klick-Ziele: [data-pre-pick] fuer die Auswahl (preApply), [data-pre-rename]
+     fuer den Stift (preMode(true, name)). Keins der beiden traegt data-pin
+     oder data-locpin: der delegierte Klick-Handler wuerde diese Zeile sonst
+     als Erz-Anheftung bzw. Fundort-Paar missverstehen. */
+  function renderPresetList() {
+    if (!preList) return;
+    if (!presets.length) {
+      preList.innerHTML = '<p class="wb__empty">' + esc(T.presetListEmpty) + '</p>';
+      return;
     }
-    preSel.innerHTML = html;
-    preDel.disabled = !preSel.value;
+    preList.innerHTML = presets.map(function (p) {
+      var cnt = p.minerals.length + ' ' + T.signatures + ' · ' + p.locations.length + ' ' + T.locations;
+      return '<div class="wb__pre-item' + (p.name === preCur ? ' is-sel' : '') + '" data-preset="' + esc(p.name) + '">' +
+        '<div class="wb__pre-top">' +
+          '<button type="button" class="wb__pre-name" data-pre-pick="1">' + esc(p.name) + '</button>' +
+        '</div>' +
+        '<div class="wb__pre-act">' +
+          '<span class="wb__pre-cnt">' + esc(cnt) + '</span>' +
+          '<button type="button" class="wb__pre-a" data-pre-rename="1" aria-label="' + esc(T.presetRename) + '">' +
+            '<svg aria-hidden="true" focusable="false"><use href="#wb-i-edit" /></svg>' +
+          '</button>' +
+        '</div></div>';
+    }).join('');
   }
   function preLoad() {
     return window.VBAccount.rest(preSess, 'GET', TBL + '?select=name,minerals,locations&order=name.asc')
@@ -412,9 +442,9 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
             locations: (r.locations || []).filter(locPinValid),
           };
         });
-        preFill(preSel ? preSel.value : '');
+        renderPresetList();
       })
-      .catch(function () { /* offline: die Auswahl bleibt leer, das Werkzeug laeuft weiter */ });
+      .catch(function () { /* offline: die Liste bleibt leer, das Werkzeug laeuft weiter */ });
   }
   function preSave(name) {
     if (!S.pins.length && !S.locPins.length) { preSay(T.presetEmpty); return; }
@@ -431,7 +461,8 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       .then(function (r) {
         if (!r.ok) { preSay(T.presetFail, 4000); return; }
         preSay(T.presetSaved);
-        return preLoad().then(function () { preFill(name); });
+        preCur = name;
+        return preLoad();
       })
       .catch(function () { preSay(T.presetFail, 4000); });
   }
@@ -440,7 +471,28 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       .then(function (r) {
         if (!r.ok) { preSay(T.presetFail, 4000); return; }
         preSay(T.presetDeleted);
-        return preLoad().then(function () { preFill(''); });
+        preCur = '';
+        return preLoad();
+      })
+      .catch(function () { preSay(T.presetFail, 4000); });
+  }
+  /* Umbenennen (D-02, Form 1) — EIN PATCH auf den Primaerschluessel, gebaut
+     nach dem PATCH-Vorbild hbWrite() in assets/account-lite.js Zeile 284.
+     ⚠ Ausdruecklich NICHT als POST(neu)+DELETE(alt): nicht atomar, ein
+     Netzwerkfehler dazwischen hinterliesse eine Dublette oder eine geloeschte
+     Zeile ohne Ersatz. ⚠ Kein user_id-Filter im Query-String — die
+     Beschraenkung auf eigene Zeilen kommt aus RLS, deckungsgleich mit dem
+     bestehenden DELETE-Pfad (T-10-03). */
+  function preRename(oldName, newName) {
+    if (!newName || newName === oldName) { preMode(false); return; }
+    return window.VBAccount.rest(preSess, 'PATCH',
+      TBL + '?name=eq.' + encodeURIComponent(oldName), { name: newName })
+      .then(function (r) {
+        if (r.status === 409) { preSay(T.presetNameTaken, 4000); return; }
+        if (!r.ok) { preSay(T.presetFail, 4000); return; }
+        preSay(T.presetRenamed);
+        if (preCur === oldName) preCur = newName;
+        return preLoad();
       })
       .catch(function () { preSay(T.presetFail, 4000); });
   }
@@ -449,15 +501,26 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       if (presets[i].name !== name) continue;
       S.pins = presets[i].minerals.slice();
       S.locPins = (presets[i].locations || []).slice();
+      preCur = name;
       renderAll();
       return;
     }
   }
-  function preMode(editing) {
+  /* preMode(true, null) = Neuanlage (Feld leer); preMode(true, '<alt>') =
+     Umbenennen (Feld traegt den alten Namen, preEditFor merkt ihn sich).
+     preMode(false) schliesst die Eingabe und setzt preEditFor zurueck. */
+  function preMode(editing, oldName) {
     if (!prePick) return;
     prePick.hidden = editing;
     preEdit.hidden = !editing;
-    if (editing) { preName.value = preSel.value || ''; preName.focus(); preName.select(); }
+    if (editing) {
+      preEditFor = oldName || null;
+      preName.value = oldName || '';
+      preName.focus();
+      preName.select();
+    } else {
+      preEditFor = null;
+    }
   }
   function preBoot() {
     if (!prePick || !window.VBAccount) return;
@@ -474,20 +537,14 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   else addEventListener('vb-account-ready', preBoot, { once: true });
 
   if (prePick) {
-    preSel.addEventListener('change', function () {
-      preDel.disabled = !preSel.value;
-      if (preSel.value) preApply(preSel.value);
-    });
-    $('wb-pre-new').addEventListener('click', function () { preMode(true); });
+    $('wb-pre-new').addEventListener('click', function () { preMode(true, null); });
     $('wb-pre-cancel').addEventListener('click', function () { preMode(false); });
-    preDel.addEventListener('click', function () {
-      if (preSel.value) preDrop(preSel.value);
-    });
     $('wb-pre-ok').addEventListener('click', function () {
       var n = (preName.value || '').trim();
       if (!n) { preName.focus(); return; }
+      var editFor = preEditFor;
       preMode(false);
-      preSave(n);
+      if (editFor) preRename(editFor, n); else preSave(n);
     });
     preName.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') { e.preventDefault(); $('wb-pre-ok').click(); }
@@ -519,6 +576,23 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   document.addEventListener('click', function (e) {
     var t = e.target;
     if (!inWb(t)) return;
+    /* Presetzeile zuerst: Umbenennen-Stift und Namensflaeche, VOR jeder
+       Interpretation als data-pin/data-locpin. Der Name kommt IMMER aus dem
+       Zeilencontainer [data-preset], nie aus dem Knopf selbst — ein
+       zusammengesetzter Attributwert waere bei einem Preset-Namen mit
+       Trennzeichen darin mehrdeutig. */
+    var preRen = t.closest('[data-pre-rename]');
+    if (preRen) {
+      var renRow = preRen.closest('[data-preset]');
+      if (renRow) preMode(true, renRow.getAttribute('data-preset'));
+      return;
+    }
+    var prePickBtn = t.closest('[data-pre-pick]');
+    if (prePickBtn) {
+      var pickRow = prePickBtn.closest('[data-preset]');
+      if (pickRow) preApply(pickRow.getAttribute('data-preset'));
+      return;
+    }
     /* ⚠ Reihenfolge ist Pflicht: [data-locpin] MUSS vor [data-pin] geprueft
        werden. Die bestehende [data-pin]-Abfrage behandelt jedes Element mit
        data-pin gleich — landete ein Fundort-Paar dort, wanderte es in die

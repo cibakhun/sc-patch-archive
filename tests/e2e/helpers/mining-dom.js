@@ -10,10 +10,11 @@
 //
 // Vier Dinge fehlen der geerbten Element-Klasse und entstehen hier neu:
 //   1. closest() -- mining-workbench.js ruft es fuer '.wb', '[data-pin]',
-//      '.wb__tile', '[data-sys]', '[data-seg]' und seit Phase 9 zusaetzlich
-//      '[data-locpin]', '[data-tab]'. matches() aus dom-mock.js ist nicht
-//      exportiert; ein kleiner eigener Vergleich fuer Klasse und
-//      Attribut-Anwesenheit reicht fuer alle sieben Aufrufwege.
+//      '.wb__tile', '[data-sys]', '[data-seg]', '[data-locpin]', '[data-tab]'
+//      und seit Phase 10 (10-01) zusaetzlich '[data-preset]', '[data-pre-pick]',
+//      '[data-pre-rename]'. matches() aus dom-mock.js ist nicht exportiert;
+//      ein kleiner eigener Vergleich fuer Klasse und Attribut-Anwesenheit
+//      reicht fuer alle Aufrufwege.
 //   2. fire(el, typ) -- die meisten Handler haengen delegiert am document,
 //      die Preset-Knoepfe direkt am Element. fire() ruft erst die Handler
 //      des Elements (MockElement.dispatchEvent deckt das ab), danach die
@@ -22,10 +23,14 @@
 //   4. window.VBAccount als Attrappe -- session() liefert eine vorgetaeuschte
 //      Sitzung, loginHref() eine Zeichenkette, rest(sess, method, path,
 //      body, prefer) fuehrt ein winziges In-Memory-"mining_sig_presets", damit
-//      preSave() -> preLoad() -> preFill() einen ECHTEN Rundlauf machen kann
-//      und nicht nur ein einmalig zurueckgegebenes Fixture beantwortet.
-//      calls[] protokolliert jeden Aufruf fuer die Form-Zusicherungen
-//      (on_conflict, Prefer-Kopfzeile, Rumpf).
+//      preSave() -> preLoad() -> renderPresetList() einen ECHTEN Rundlauf
+//      machen kann und nicht nur ein einmalig zurueckgegebenes Fixture
+//      beantwortet. calls[] protokolliert jeden Aufruf fuer die
+//      Form-Zusicherungen (on_conflict, Prefer-Kopfzeile, Rumpf).
+//      Seit Phase 10 (10-01): ok()/bad() tragen ein status-Feld (200/500),
+//      und ein PATCH-Zweig bedient sowohl das Umbenennen (Rumpf {name}, mit
+//      409 bei bereits vergebenem Zielnamen) als auch das gezielte Ersetzen
+//      von `minerals`/`locations` einer einzelnen Zeile (fuer Plan 01 Task 3).
 //
 // Nutzlast: aus dem ECHTEN assets/mining-db.json + assets/mining-model.json
 // gebaut, unabhaengig von src/components/MiningWorkbench.astro noch einmal
@@ -128,8 +133,8 @@ function makeAccount(opts = {}) {
     });
     return out;
   }
-  const ok = (json) => ({ ok: true, json: () => Promise.resolve(json) });
-  const bad = () => ({ ok: false, json: () => Promise.resolve(null) });
+  const ok = (json) => ({ ok: true, status: 200, json: () => Promise.resolve(json) });
+  const bad = (status) => ({ ok: false, status: status || 500, json: () => Promise.resolve(null) });
 
   return {
     calls,
@@ -147,6 +152,21 @@ function makeAccount(opts = {}) {
           if (existing) { existing.minerals = entry.minerals; existing.locations = entry.locations; }
           else rows.push({ name: entry.name, minerals: entry.minerals, locations: entry.locations });
         });
+        return Promise.resolve(ok(null));
+      }
+      if (method === 'PATCH') {
+        const oldName = (qs(reqPath).name || '').replace(/^eq\./, '');
+        const row = rows.find((r) => r.name === oldName);
+        if (!row) return Promise.resolve(bad(404));
+        if (body && typeof body.name === 'string') {
+          if (body.name !== oldName && rows.some((r) => r.name === body.name)) {
+            return Promise.resolve(bad(409));
+          }
+          row.name = body.name;
+          return Promise.resolve(ok(null));
+        }
+        if (body && Object.prototype.hasOwnProperty.call(body, 'minerals')) row.minerals = body.minerals;
+        if (body && Object.prototype.hasOwnProperty.call(body, 'locations')) row.locations = body.locations;
         return Promise.resolve(ok(null));
       }
       if (method === 'DELETE') {
@@ -194,9 +214,12 @@ function buildPayload() {
   const t = {
     minerals: 'MINERALS', view: 'VIEW', signatures: 'SIGNATURES', locations: 'LOCATIONS',
     search: 'SEARCH', scanPlaceholder: 'SCAN', pinHint: 'PIN-HINT',
-    presets: 'PRESETS', presetNone: 'NONE', presetSave: 'SAVE', presetDel: 'DEL',
+    presets: 'PRESETS', presetSave: 'SAVE', presetDel: 'DEL',
     presetName: 'NAME', presetCancel: 'CANCEL', presetGuest: 'GUEST', presetLogin: 'LOGIN',
     presetSaved: 'SAVED', presetDeleted: 'DELETED', presetEmpty: 'EMPTY', presetFail: 'FAIL',
+    // Phase 10, Plan 01: Liste statt <select> (D-05) + Umbenennen (D-02, Form 1).
+    presetNew: 'NEW-PRESET', presetRename: 'RENAME', presetRenamed: 'RENAMED',
+    presetNameTaken: 'NAME-TAKEN', presetListEmpty: 'LIST-EMPTY',
     none: 'NONE-VAL', pin: 'PIN', unpin: 'UNPIN', noLocs: 'NO-LOCS',
     ship: 'SHIP', hand: 'HAND', roc: 'ROC', refinable: 'REFINABLE',
     bestRef: 'BEST-REF', yieldMod: 'YIELD', worst: 'WORST', yourPick: 'YOUR-PICK',
@@ -331,14 +354,13 @@ export function makeMiningDomContext(opts = {}) {
   root.appendChild(reg(mk('div', 'wb-sig-pane')));
   root.appendChild(reg(mk('div', 'wb-loc-pane')));
 
-  // Presets.
-  root.appendChild(reg(mk('select', 'wb-preset')));
+  // Presets (Phase 10, Plan 01: sichtbare Liste statt <select>, D-05).
+  root.appendChild(reg(mk('div', 'wb-preset-list')));
   root.appendChild(reg(mk('div', 'wb-pre-pick')));
   root.appendChild(reg(mk('div', 'wb-pre-edit')));
   root.appendChild(reg(mk('p', 'wb-pre-msg')));
   root.appendChild(reg(mk('p', 'wb-pre-guest')));
   root.appendChild(reg(mk('input', 'wb-pre-name')));
-  root.appendChild(reg(mk('button', 'wb-pre-del')));
   root.appendChild(reg(mk('button', 'wb-pre-new')));
   root.appendChild(reg(mk('button', 'wb-pre-cancel')));
   root.appendChild(reg(mk('button', 'wb-pre-ok')));

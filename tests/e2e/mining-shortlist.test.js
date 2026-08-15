@@ -40,6 +40,33 @@ function selectMineral(ctx, name) {
   ctx.fire(tile, 'click');
 }
 
+/** Die Preset-Zeile mit passendem data-preset in #wb-preset-list, oder null
+ *  (Phase 10, Plan 01, D-05: Liste statt <select>). Gesucht ueber die
+ *  Zeilenklasse .wb__pre-item, nicht ueber einen Attributselektor -- der
+ *  Mock-Parser in dom-mock.js kennt keine wertlosen "[attr]"-Selektoren
+ *  (siehe Kopfkommentar mining-dom.js Punkt 1). */
+function presetRow(ctx, name) {
+  return ctx.document.getElementById('wb-preset-list').querySelectorAll('.wb__pre-item')
+    .find((row) => row.getAttribute('data-preset') === name) || null;
+}
+
+/** Klick auf die Namensflaeche einer Preset-Zeile -- der Ersatz fuer das
+ *  fruehere `ctx.elements['wb-preset'].value = name` (D-05). Bauplan:
+ *  selectMineral() oben. */
+function selectPreset(ctx, name) {
+  const row = presetRow(ctx, name);
+  assert.ok(row, `Preset-Zeile fuer "${name}" nicht im Mock-DOM gefunden`);
+  const btn = row.querySelector('.wb__pre-name');
+  assert.ok(btn, `Auswahlknopf in der Preset-Zeile "${name}" nicht gefunden`);
+  ctx.fire(btn, 'click');
+}
+
+/** Der Umbenennen-Knopf (Stift) einer Preset-Zeile. */
+function renameBtn(ctx, name) {
+  const row = presetRow(ctx, name);
+  return row ? row.querySelector('.wb__pre-a') : null;
+}
+
 function tilePinBtn(ctx, name) {
   const tile = ctx.document.getElementById('wb-list').querySelectorAll('.wb__tile')
     .find((t) => t.getAttribute('data-min') === name);
@@ -95,6 +122,16 @@ function lastPostBody(ctx) {
   return posts[posts.length - 1];
 }
 
+function lastPatchCall(ctx) {
+  const patches = ctx.account.calls.filter((c) => c.method === 'PATCH');
+  assert.ok(patches.length, 'kein PATCH-Aufruf protokolliert');
+  return patches[patches.length - 1];
+}
+
+function countCalls(ctx, method) {
+  return ctx.account.calls.filter((c) => c.method === method).length;
+}
+
 // ---------------------------------------------------------------------
 // D-04: ein VOR dieser Phase gespeichertes Preset laedt weiterhin.
 // ---------------------------------------------------------------------
@@ -102,10 +139,11 @@ function lastPostBody(ctx) {
 test('Preset in der alten Form (kein locations-Feld) laedt: Signaturen vollstaendig, Merkliste leer, kein Fehler', async () => {
   const ctx = await runAsync({ account: { rows: [{ name: 'Alt', minerals: ['Gold'] }] } });
 
-  const options = ctx.elements['wb-preset'].children.map((o) => o.getAttribute('value'));
-  assert.ok(options.includes('Alt'), `Preset "Alt" steht nicht in der Auswahl (gefunden: ${options.join(', ')})`);
+  const names = ctx.document.getElementById('wb-preset-list').querySelectorAll('.wb__pre-item')
+    .map((row) => row.getAttribute('data-preset'));
+  assert.ok(names.includes('Alt'), `Preset "Alt" steht nicht in der Liste (gefunden: ${names.join(', ')})`);
 
-  ctx.elements['wb-preset'].value = 'Alt'; // fires 'change' -> preApply('Alt')
+  selectPreset(ctx, 'Alt');
 
   assert.match(
     ctx.document.getElementById('wb-pins').textContent,
@@ -122,7 +160,7 @@ test('Preset in der alten Form (kein locations-Feld) laedt: Signaturen vollstaen
 test('Preset mit locations: null verhaelt sich wie ein Preset ohne das Feld', async () => {
   const ctx = await runAsync({ account: { rows: [{ name: 'AltNull', minerals: ['Gold'], locations: null }] } });
 
-  ctx.elements['wb-preset'].value = 'AltNull';
+  selectPreset(ctx, 'AltNull');
 
   assert.match(ctx.document.getElementById('wb-pins').textContent, /Gold/);
   assert.strictEqual(ctx.document.getElementById('wb-locpins').textContent, ctx.T.locPinsEmpty);
@@ -199,7 +237,7 @@ test('Merkliste leeren, dasselbe Preset erneut waehlen -> das Paar ist wieder da
   );
 
   // Dasselbe Preset erneut waehlen.
-  ctx.elements['wb-preset'].value = 'Zweiter-Rundlauf';
+  selectPreset(ctx, 'Zweiter-Rundlauf');
 
   const box = ctx.document.getElementById('wb-locpins');
   assert.strictEqual(box.querySelectorAll('.wb__pin-item').length, 1, 'das Paar sollte nach erneutem Waehlen wieder da sein');
@@ -222,13 +260,13 @@ test('Preset A und Preset B im Wechsel: die Merkliste zeigt je Wechsel genau die
     },
   });
 
-  ctx.elements['wb-preset'].value = 'A';
+  selectPreset(ctx, 'A');
   let box = ctx.document.getElementById('wb-locpins');
   assert.strictEqual(box.querySelectorAll('.wb__pin-item').length, 1, 'Preset A sollte genau einen Eintrag zeigen');
   assert.match(box.textContent, /Quantainium/);
   assert.doesNotMatch(box.textContent, /Gold/, 'Preset A darf Golds Paar nicht zeigen (keine Vereinigung)');
 
-  ctx.elements['wb-preset'].value = 'B';
+  selectPreset(ctx, 'B');
   box = ctx.document.getElementById('wb-locpins');
   assert.strictEqual(box.querySelectorAll('.wb__pin-item').length, 1, 'Preset B sollte genau einen Eintrag zeigen');
   assert.match(box.textContent, /Gold/);
@@ -279,7 +317,7 @@ test('ein Paar mit unbekanntem Erz ODER unbekanntem Fundort faellt beim Laden st
     },
   });
 
-  ctx.elements['wb-preset'].value = 'Mix';
+  selectPreset(ctx, 'Mix');
 
   const box = ctx.document.getElementById('wb-locpins');
   assert.strictEqual(box.querySelectorAll('.wb__pin-item').length, 1, 'nur das gueltige Paar sollte uebrig bleiben');
@@ -413,7 +451,7 @@ test('Merkliste bei 128 Paaren voll: ein weiteres Anheften wird abgewiesen und u
   assert.strictEqual(pairs.length, 128, `Testbestand sollte mindestens 128 echte Paare liefern (gefunden: ${pairs.length})`);
 
   const ctx = await runAsync({ account: { rows: [{ name: 'Voll', minerals: [], locations: pairs }] } });
-  ctx.elements['wb-preset'].value = 'Voll'; // fires 'change' -> preApply('Voll')
+  selectPreset(ctx, 'Voll');
 
   const before = ctx.document.getElementById('wb-locpins').querySelectorAll('.wb__pin-item').length;
   assert.strictEqual(before, 128, 'Vorbedingung: Merkliste sollte 128 Eintraege zeigen');
@@ -461,4 +499,121 @@ test('Reiter-Beschriftung "Fundorte" nennt die Zahl der Paare erst, sobald welch
   ctx.fire(locPinBtn(ctx, 'Gold', loc), 'click');
 
   assert.strictEqual(tabBtn.textContent, `${ctx.T.locations} · 1`);
+});
+
+// ---------------------------------------------------------------------
+// Phase 10, Plan 01, Task 1 — sichtbare Preset-Liste statt <select> (D-05)
+// und Umbenennen durch alle Schichten (D-02, Form 1).
+// ---------------------------------------------------------------------
+
+test('Presetliste zeigt jedes gespeicherte Preset als eigene Zeile mit data-preset', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'Erste', minerals: ['Gold'] }, { name: 'Zweite', minerals: [] }] },
+  });
+
+  const names = ctx.document.getElementById('wb-preset-list').querySelectorAll('.wb__pre-item')
+    .map((row) => row.getAttribute('data-preset'));
+  assert.deepStrictEqual(names.slice().sort(), ['Erste', 'Zweite']);
+});
+
+test('Klick auf eine Preset-Zeile wendet sie an und markiert genau diese Zeile mit is-sel', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold'] }, { name: 'B', minerals: [] }] },
+  });
+
+  selectPreset(ctx, 'A');
+
+  assert.ok(presetRow(ctx, 'A').classList.contains('is-sel'), 'Preset A sollte nach der Auswahl is-sel tragen');
+  assert.ok(!presetRow(ctx, 'B').classList.contains('is-sel'), 'Preset B sollte NICHT is-sel tragen');
+});
+
+test('Umbenennen schickt genau EINEN PATCH-Aufruf (Pfad und Rumpf tragen den alten bzw. neuen Namen), keinen POST/DELETE', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'Alt', minerals: ['Gold'] }] } });
+
+  const btn = renameBtn(ctx, 'Alt');
+  assert.ok(btn, 'Umbenennen-Knopf fuer "Alt" nicht gefunden');
+  ctx.fire(btn, 'click');
+  assert.strictEqual(ctx.elements['wb-pre-name'].value, 'Alt', 'Namensfeld sollte beim Umbenennen den ALTEN Namen tragen');
+
+  ctx.elements['wb-pre-name'].value = 'Neu';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  const patch = lastPatchCall(ctx);
+  assert.strictEqual(patch.path, 'mining_sig_presets?name=eq.Alt');
+  assert.deepStrictEqual(Object.keys(patch.body), ['name']);
+  assert.strictEqual(patch.body.name, 'Neu');
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 1, 'Umbenennen sollte genau einen PATCH ausloesen');
+  assert.strictEqual(countCalls(ctx, 'POST'), 0, 'Umbenennen darf keinen POST ausloesen');
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0, 'Umbenennen darf keinen DELETE ausloesen');
+
+  const names = ctx.document.getElementById('wb-preset-list').querySelectorAll('.wb__pre-item')
+    .map((row) => row.getAttribute('data-preset'));
+  assert.ok(names.includes('Neu'), `Preset sollte nach dem Umbenennen unter "Neu" stehen (gefunden: ${names.join(', ')})`);
+  assert.ok(!names.includes('Alt'), 'der alte Name sollte nicht mehr in der Liste stehen');
+});
+
+test('Umbenennen auf einen bereits vergebenen Namen meldet presetNameTaken, die Zeile behaelt ihren alten Namen', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'Alt', minerals: ['Gold'] }, { name: 'Belegt', minerals: [] }] },
+  });
+
+  ctx.fire(renameBtn(ctx, 'Alt'), 'click');
+  ctx.elements['wb-pre-name'].value = 'Belegt';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.hidden, false, 'Meldungszeile sollte nach dem 409 sichtbar sein');
+  assert.strictEqual(msg.textContent, ctx.T.presetNameTaken);
+  assert.ok(presetRow(ctx, 'Alt'), 'Preset "Alt" sollte nach dem gescheiterten Umbenennen weiterhin unter dem alten Namen stehen');
+  assert.strictEqual(countCalls(ctx, 'POST'), 0, 'ein 409 darf keinen zweiten Schreibversuch als POST ausloesen');
+});
+
+test('War das umbenannte Preset ausgewaehlt, traegt danach die Zeile mit dem NEUEN Namen is-sel', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'Alt', minerals: ['Gold'] }] } });
+
+  selectPreset(ctx, 'Alt');
+  assert.ok(presetRow(ctx, 'Alt').classList.contains('is-sel'), 'Vorbedingung: Alt sollte ausgewaehlt sein');
+
+  ctx.fire(renameBtn(ctx, 'Alt'), 'click');
+  ctx.elements['wb-pre-name'].value = 'Neu';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  const row = presetRow(ctx, 'Neu');
+  assert.ok(row, 'Preset sollte nach dem Umbenennen unter "Neu" auffindbar sein');
+  assert.ok(row.classList.contains('is-sel'), 'die umbenannte Zeile sollte weiterhin is-sel tragen');
+});
+
+test('T-10-01: ein Preset-Name mit HTML-Sonderzeichen landet escaped im Markup (kein injiziertes Element, voller Text erhalten)', async () => {
+  const specialName = 'Preset & <Danger> "Quote"';
+  const ctx = await runAsync({ account: { rows: [{ name: specialName, minerals: ['Gold'] }] } });
+
+  const box = ctx.document.getElementById('wb-preset-list');
+  assert.strictEqual(box.querySelectorAll('danger').length, 0, 'unescapter Text haette ein <danger>-Element erzeugt');
+
+  const row = box.querySelectorAll('.wb__pre-item')[0];
+  assert.ok(row, 'Preset-Zeile nicht gefunden');
+  assert.strictEqual(row.getAttribute('data-preset'), specialName, 'Attributwert sollte nach dem Escape/Decode-Rundlauf vollstaendig erhalten sein');
+
+  const nameBtn = row.querySelector('.wb__pre-name');
+  assert.ok(nameBtn, 'Namensknopf nicht gefunden');
+  assert.strictEqual(nameBtn.textContent, specialName, 'der volle Originaltext sollte als Text lesbar bleiben');
+
+  // Die harte Probe: der Name bleibt als data-preset-Wert auffindbar, das
+  // Anfuehrungszeichen darin haette den Attributwert sonst beim Zurueckparsen
+  // abgeschnitten.
+  assert.ok(presetRow(ctx, specialName), 'Preset-Zeile nach dem Rundlauf ueber den vollen Namen nicht mehr auffindbar');
+});
+
+test('Namensfeld ist nach "neu" leer und nach "umbenennen" mit dem alten Namen vorbelegt', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'Bestehend', minerals: ['Gold'] }] } });
+
+  ctx.fire(ctx.elements['wb-pre-new'], 'click');
+  assert.strictEqual(ctx.elements['wb-pre-name'].value, '', 'Namensfeld sollte nach "neu" leer sein');
+  ctx.fire(ctx.elements['wb-pre-cancel'], 'click');
+
+  ctx.fire(renameBtn(ctx, 'Bestehend'), 'click');
+  assert.strictEqual(ctx.elements['wb-pre-name'].value, 'Bestehend', 'Namensfeld sollte nach "umbenennen" den alten Namen tragen');
 });

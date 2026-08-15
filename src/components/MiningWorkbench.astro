@@ -137,8 +137,10 @@ const S_DE = {
   minerals: 'Minerale', view: 'Ansicht', signatures: 'Signaturen', locations: 'Fundorte',
   search: 'Mineral suchen',
   scanPlaceholder: 'Scanwert', pinHint: 'Auf einer Erz-Kachel links den Anheft-Knopf drücken — oder oben am gewählten Erz „Anheften". Diese Spalte zeigt dann seine Signatur mal Clustergröße.',
-  presets: 'Presets', presetNone: '— kein Preset —', presetSave: 'Speichern',
+  presets: 'Presets', presetNew: 'Neues Preset', presetSave: 'Speichern',
   presetDel: 'Löschen', presetName: 'Name des Presets', presetCancel: 'Abbrechen',
+  presetRename: 'Umbenennen', presetRenamed: 'Umbenannt.', presetNameTaken: 'Dieser Name ist schon vergeben.',
+  presetListEmpty: 'Noch kein Preset gespeichert. Erze oder Fundorte anheften, dann mit „+" benennen.',
   presetGuest: 'Zusammenstellungen speichern:', presetLogin: 'anmelden',
   presetSaved: 'Gespeichert.', presetDeleted: 'Gelöscht.',
   presetEmpty: 'Erst Erze oder Fundorte anheften, dann speichern.', presetFail: 'Speichern fehlgeschlagen.',
@@ -156,8 +158,10 @@ const S_EN = {
   minerals: 'Minerals', view: 'View', signatures: 'Signatures', locations: 'Locations',
   search: 'Search mineral',
   scanPlaceholder: 'Scan value', pinHint: 'Hit the pin button on an ore tile at the left — or “Pin” above the selected ore. This column then shows its signature times cluster size.',
-  presets: 'Presets', presetNone: '— no preset —', presetSave: 'Save',
+  presets: 'Presets', presetNew: 'New preset', presetSave: 'Save',
   presetDel: 'Delete', presetName: 'Preset name', presetCancel: 'Cancel',
+  presetRename: 'Rename', presetRenamed: 'Renamed.', presetNameTaken: 'That name is already taken.',
+  presetListEmpty: 'No preset saved yet. Pin ores or locations, then name one with the plus button.',
   presetGuest: 'Save your sets:', presetLogin: 'sign in',
   presetSaved: 'Saved.', presetDeleted: 'Deleted.',
   presetEmpty: 'Pin some ores or locations first, then save.', presetFail: 'Saving failed.',
@@ -216,6 +220,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     <symbol id="wb-i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M9.5 3h5M11 3v6.2L7.4 13h9.2L13 9.2V3M12 13v8" />
+    </symbol>
+    {/* Stift fuer "Umbenennen" an der Preset-Zeile (Phase 10, D-02 Form 1) —
+        dieselbe Bauform wie #wb-i-pin daneben, kein zweites Icon-Verfahren. */}
+    <symbol id="wb-i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z" />
+      <path d="M13.5 6.5l4 4" />
     </symbol>
   </svg>
 
@@ -321,12 +332,12 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
           Serverseitig steht hier der Gast-Zustand — welcher Fall gilt, weiss
           erst der Browser (VBAccount.session()). */}
       <div class="wb__pre" id="wb-pre" data-help={hlp('presets')}>
-        <div class="wb__pre__row" id="wb-pre-pick" hidden>
-          <select class="wb__pre__sel" id="wb-preset" aria-label={S.presets}>
-            <option value="" set:text={S.presetNone} />
-          </select>
-          <button type="button" class="wb__pre__b" id="wb-pre-new" title={S.presetSave} aria-label={S.presetSave}>+</button>
-          <button type="button" class="wb__pre__b" id="wb-pre-del" title={S.presetDel} aria-label={S.presetDel} disabled>×</button>
+        <div class="wb__pre__pick" id="wb-pre-pick" hidden>
+          <div class="wb__pre__bar">
+            <span class="wb__lbl" set:text={S.presets} />
+            <button type="button" class="wb__pre__b is-go" id="wb-pre-new" title={S.presetNew} aria-label={S.presetNew}>+</button>
+          </div>
+          <div class="wb__pre__list" id="wb-preset-list"></div>
         </div>
         {/* Eigene Zeile statt window.prompt(): der Dialog ist in vielen
             Browsern unterdrueckt, sieht ueberall anders aus und laesst sich
@@ -598,25 +609,51 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__pre{flex:0 0 auto;padding:8px 9px 8px}
 .wb__pre__row{display:flex;gap:5px;align-items:center}
 .wb__pre__row[hidden]{display:none}
-.wb__pre__sel,.wb__pre__in{flex:1;min-width:0;border:0;border-radius:7px;font-family:inherit;
+/* Presetzeile als senkrechter Block statt <select> (D-05): Kopfzeile
+   (Beschriftung + "+") ueber der sichtbaren Liste. ⚠ Reihenfolge ist
+   Pflicht: [hidden] MUSS NACH der display-Regel stehen, sonst schlaegt
+   display:flex das hidden-Attribut (Pitfall 2, s.o. bereits zweimal geloest). */
+.wb__pre__pick{display:flex;flex-direction:column;gap:6px}
+.wb__pre__pick[hidden]{display:none}
+.wb__pre__bar{display:flex;align-items:center;gap:6px}
+.wb__pre__bar .wb__pre__b{margin-left:auto}
+.wb__pre__list{display:flex;flex-direction:column;gap:3px}
+.wb__pre__in{flex:1;min-width:0;border:0;border-radius:7px;font-family:inherit;
   font-size:var(--fs-4);padding:6px 8px;color:var(--text);
   /* Deckend mischen — ein halbtransparenter Grund vererbt sich in Chrome an
      die aufgeklappte Liste und rechnet sie ueber Weiss unleserlich. */
   background:color-mix(in srgb,var(--ink) 34%,var(--surface))}
-.wb__pre__sel option{background:var(--surface);color:var(--text)}
 .wb__pre__b{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;border:0;
   border-radius:7px;cursor:pointer;font-family:inherit;font-size:var(--fs-6);line-height:1;
   background:color-mix(in srgb,var(--ink) 34%,transparent);color:var(--muted);
   transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
 .wb__pre__b:hover:not(:disabled){background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text)}
 .wb__pre__b.is-go{background:color-mix(in srgb,var(--accent-2) 22%,transparent);color:var(--accent-2)}
-.wb__pre__b:disabled{opacity:.32;cursor:not-allowed}
 .wb__pre__msg{margin:5px 0 0;font-size:var(--fs-3);color:var(--accent-2)}
 .wb__pre__msg[hidden]{display:none}
 .wb__pre__guest{margin:0;font-size:var(--fs-3);line-height:1.4;
   color:color-mix(in srgb,var(--muted) 88%,transparent)}
 .wb__pre__guest[hidden]{display:none}
 .wb__pre__guest a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+
+/* Eine Preset-Zeile — Vorbild .wb__pin-item (Name+Aktion-Zeile), Auswahl-
+   zustand wortgleich zu .wb__tile.is-sel (D-05). */
+.wb__pre-item{padding:6px 8px;border-radius:8px;background:color-mix(in srgb,var(--ink) 22%,transparent)}
+.wb__pre-item.is-sel{background:color-mix(in srgb,var(--accent-2) 20%,transparent);
+  box-shadow:inset 0 0 0 1px var(--accent-2)}
+.wb__pre-top{display:flex;align-items:center;gap:6px}
+.wb__pre-act{display:flex;align-items:center;gap:5px;margin-top:3px}
+.wb__pre-name{flex:1;min-width:0;border:0;background:0;padding:0;margin:0;text-align:left;
+  font-family:inherit;font-size:var(--fs-5);color:var(--text);cursor:pointer;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__pre-cnt{margin-right:auto;font-size:var(--fs-3);color:color-mix(in srgb,var(--muted) 88%,transparent);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__pre-a{flex:0 0 auto;width:22px;height:22px;display:grid;place-items:center;border:0;
+  border-radius:6px;cursor:pointer;background:color-mix(in srgb,var(--ink) 34%,transparent);
+  color:color-mix(in srgb,var(--muted) 78%,transparent);
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__pre-a:hover{background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text)}
+.wb__pre-a svg{width:13px;height:13px;pointer-events:none}
 
 .wb__pin-item{padding:7px 9px;margin:0 6px 3px;border-radius:8px;
   background:color-mix(in srgb,var(--ink) 22%,transparent)}
@@ -679,7 +716,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 
 .wb__search:focus-visible,.wb__scan:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
 .wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible,
-.wb__pre__sel:focus-visible,.wb__pre__in:focus-visible,.wb__pre__b:focus-visible,
+.wb__pre__in:focus-visible,.wb__pre__b:focus-visible,
+.wb__pre-name:focus-visible,.wb__pre-a:focus-visible,
 .wb__frac:focus-visible,.wb__pinbig:focus-visible,.wb__lpin:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 /* Das Sprite traegt nur <symbol> und darf keinen Platz belegen. */
 .wb__sprite{position:absolute;width:0;height:0;overflow:hidden}
