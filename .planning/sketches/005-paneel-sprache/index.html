@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 005 — Paneel-Sprache: Glas, Schräge, Segmentbalken</title>
+<style>
+/* ============================================================================
+   SKIZZE 005 — „Paneel-Sprache"
+   Wegwerf-Mockup. Kein Produktionscode. Keine externen Anfragen.
+   ----------------------------------------------------------------------------
+   HERKUNFT: Zwei KI-Mockups des Nutzers (ARGO-Dashboard). Uebernommen wird
+   daraus ausdruecklich NUR die Paneel-Sprache — Glas, angeschraegte Ecke,
+   Segmentbalken. NICHT uebernommen: Foto-Hintergrund, schwebender 3D-Brocken,
+   Sparklines an jeder Kennzahl, Radialanzeigen. Struktur bleibt die gemessene:
+   Raster D aus Skizze 002 (Rig-Leiste unten), Mittelspalte C aus Skizze 003
+   (zweispaltig).
+
+   DREI HARTE BEFUNDE AUS DEM BESTAND, die diese Skizze formen:
+
+   1. clip-path UEBER backdrop-filter ist in DIESEM Projekt eine belegte
+      Leistungsfalle — genau die Kombination drueckte den Menue-Eintritt auf
+      840 ms, nach dem Entfernen 320 ms. Die Mockups wollen beides an JEDEM
+      Paneel. Diese Skizze schraegt deshalb OHNE clip-path an: ein einzelnes
+      Pseudo-Element mit Verlauf fuellt die Ecke. Kein Compositing-Layer.
+
+   2. build-light-overrides.mjs:85 kennt nur color/border-*-color/outline-color/
+      fill/stroke — KEIN background, KEIN box-shadow. Ein Glas-Design ist zu
+      90 % genau das. ABER :228 nimmt CSS-VARIABLEN sehr wohl mit. Deshalb ist
+      hier jede Glasflaeche als --glass-* Token ausgedrueckt und NIE als feste
+      Flaeche. Das ist kein Stil, das ist die Bedingung dafuer, dass es im
+      Hellmodus ueberhaupt existiert.
+
+   3. backdrop-filter ist schon Bestandssprache: assets/account-dossier.css
+      benutzt es durchgehend (mobiGlas-Kontobereich). Nichts davon ist neu.
+
+   DIE OFFENE FRAGE, die die Varianten stellen: Glas braucht etwas zum
+   Weichzeichnen. Der Foto-Hintergrund ist gestrichen — traegt die Sprache
+   trotzdem? A/B/C probieren drei Antworten, die Messleiste beziffert den Preis.
+
+   ZAHLEN: echt aus assets/mining-model.json (4.9.0-live.12326004).
+   ============================================================================ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+button,input{font:inherit;color:inherit}
+
+:root{--mk-bg:#0c0f12;--mk-bg2:#151a1f;--mk-line:#293139;--mk-txt:#e6eaf2;--mk-dim:#8b96a8;--mk-hi:#6ee7ff}
+body{background:var(--mk-bg);color:var(--mk-txt);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+.mk-bar{position:sticky;top:0;z-index:80;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:9px clamp(10px,2vw,20px);background:var(--mk-bg2);border-bottom:1px solid var(--mk-line)}
+.mk-bar b{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mk-dim);font-weight:700}
+.mk-tabs{display:flex;gap:4px}
+.mk-tab{padding:6px 12px;border:1px solid var(--mk-line);background:#0f1317;color:var(--mk-dim);font-size:12px;border-radius:3px;cursor:pointer;transition:all .15s ease;white-space:nowrap}
+.mk-tab:hover{border-color:#3d4956;color:var(--mk-txt)}
+.mk-tab.on{background:#1d2731;border-color:var(--mk-hi);color:var(--mk-txt)}
+.mk-vp{display:flex;gap:4px}
+.mk-vp button{padding:6px 10px;border:1px solid var(--mk-line);background:#0f1317;color:var(--mk-dim);font-size:11px;border-radius:3px;cursor:pointer;font-family:ui-monospace,Consolas,monospace}
+.mk-vp button.on{background:#1d2731;border-color:var(--mk-hi);color:var(--mk-txt)}
+#mk-read{font-family:ui-monospace,Consolas,monospace;font-size:11px;line-height:1.5;color:var(--mk-dim);margin-left:auto;text-align:right;white-space:pre}
+#mk-read .pass{color:#8FB339;font-weight:700}
+#mk-read .fail{color:#ff7a5c;font-weight:700}
+#mk-read .warn{color:#E0A526;font-weight:700}
+
+#stage{padding:20px clamp(10px,2vw,20px) 40px;display:flex;flex-direction:column;align-items:center}
+.holder{position:relative}
+.holder::before{content:attr(data-cap);position:absolute;top:-15px;left:0;font-family:ui-monospace,Consolas,monospace;font-size:10px;letter-spacing:.1em;color:var(--mk-dim)}
+.frame{border:1px solid #000;box-shadow:0 0 0 1px #2a3238,0 18px 50px rgba(0,0,0,.6);overflow:hidden;position:relative}
+.frame.b1280{width:1280px;height:720px}
+.frame.b1366{width:1366px;height:768px}
+.variant{display:none}.variant.on{display:block}
+@media (max-width:1360px){ .frame.b1280,.frame.b1366{transform-origin:top left} }
+
+/* ==========================================================================
+   DER ENTWURF
+   ========================================================================== */
+.wb{
+  /* Palette 1:1 aus mining.astro:30 */
+  --bg:#14181a;--bg-2:#181d1f;--surface:#1e2427;--surface-2:#252c30;
+  --accent:#2FBFA4;--amber:#E0A526;--amber-dk:#9c7413;
+  --text:#eaf2f1;--muted:#8fa3a0;--dim:#6b7d7a;--line:#2b3438;--line-hi:#39454a;
+  --ok:#8FB339;--warn:#E0A526;--bad:#B4543A;
+
+  /* ---- GLAS ALS TOKEN — nicht als feste Flaeche.
+         Genau deshalb nimmt build-light-overrides.mjs sie mit (:228).
+         Wuerde hier `background:rgba(...)` direkt stehen, gaebe es im
+         Hellmodus still KEINE Entsprechung (PROPS-Liste :85). ---- */
+  --glass-bg: rgba(30,36,39,.60);
+  --glass-bg-2: rgba(37,44,48,.66);
+  --glass-line: rgba(150,180,180,.17);
+  --glass-hi: rgba(255,255,255,.075);
+  --glass-blur: 10px;
+  --chamf: 13px;
+
+  --f-disp:'Bahnschrift Condensed','Segoe UI Semibold',system-ui,sans-serif;
+  --f-ui:'Bahnschrift SemiLight','Segoe UI',system-ui,sans-serif;
+  --f-body:'Segoe UI',system-ui,sans-serif;
+  --f-mono:'Cascadia Mono',Consolas,ui-monospace,monospace;
+  color:var(--text);font-family:var(--f-body);font-size:14px;
+  height:100%;display:flex;flex-direction:column;overflow:hidden;position:relative;
+  background:var(--bg);
+}
+/* Ruhiger Grund — KEIN Foto. Nur ein weicher Lichtabfall und ein sehr feines
+   Raster, damit der Weichzeichner ueberhaupt etwas zu tun hat. Das ist der
+   ehrliche Ersatz fuer den Schiffsinnenraum aus den Mockups. */
+.wb::before{
+  content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(120% 80% at 68% 8%, rgba(47,191,164,.07), transparent 60%),
+    radial-gradient(90% 70% at 12% 96%, rgba(224,165,38,.055), transparent 62%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.016) 0 1px, transparent 1px 34px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.016) 0 1px, transparent 1px 34px);
+}
+.wb > *{position:relative;z-index:1}
+
+.lbl{font-family:var(--f-mono);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* ---- Die Paneel-Grundform. „glass" wird je Variante anders eingeloest. ---- */
+.pnl{background:var(--glass-bg);border:1px solid var(--glass-line);box-shadow:inset 0 1px 0 var(--glass-hi)}
+
+/* ---- ANGESCHRAEGTE ECKE OHNE clip-path ----
+   Ein Pseudo-Element mit 45deg-Verlauf fuellt die Ecke mit der Seitenfarbe und
+   zeichnet die Schnittkante als Haarlinie. Kein Compositing-Layer, kein
+   Konflikt mit backdrop-filter, kein Beschneiden von Scroll-Inhalt.
+   Funktioniert, WEIL der Grund eine bekannte Farbe ist — mit Foto-Hintergrund
+   ginge dieser Trick nicht. Ein weiterer Grund, warum das Foto draussen bleibt. */
+.chamf{position:relative}
+.chamf::after{
+  content:'';position:absolute;top:-1px;right:-1px;width:var(--chamf);height:var(--chamf);
+  pointer-events:none;z-index:3;
+  background:linear-gradient(45deg,
+    transparent 0 calc(50% - .5px),
+    var(--glass-line) calc(50% - .5px) calc(50% + .5px),
+    var(--bg) calc(50% + .5px) 100%);
+}
+
+/* -------------------------------------------------------- Titelstreifen --- */
+.title{flex:0 0 auto;display:flex;align-items:center;gap:13px;padding:9px 14px;border-bottom:1px solid var(--glass-line)}
+.title h1{font-family:var(--f-disp);font-size:19px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.title .sub{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.title .sp{margin-left:auto}
+
+/* -------------------------------------------------------------- Raster --- */
+.grid{flex:1;display:grid;grid-template-columns:266px 1fr 244px;gap:9px;padding:9px;min-height:0}
+.pane{display:flex;flex-direction:column;min-height:0;min-width:0}
+.pane-hd{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--glass-line)}
+.pane-hd .c{margin-left:auto;font-family:var(--f-mono);font-size:10px;color:var(--dim)}
+/* Innen scrollend — im echten Bau alle FUENF in assets/mobile-ux.css:503-516 */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;scrollbar-width:thin;scrollbar-color:#4a5a5c transparent}
+.scroll::-webkit-scrollbar{width:9px}
+.scroll::-webkit-scrollbar-thumb{background:#4a5a5c}
+.scroll::-webkit-scrollbar-track{background:rgba(0,0,0,.25)}
+
+/* ------------------------------------------------------- Linke Spalte --- */
+.filters{flex:0 0 auto;padding:8px 10px;border-bottom:1px solid var(--glass-line);display:flex;flex-direction:column;gap:7px}
+.f-search{width:100%;background:rgba(0,0,0,.32);border:1px solid var(--glass-line);color:var(--text);padding:5px 8px;font-family:var(--f-ui);font-size:13px}
+.f-search::placeholder{color:var(--dim)}
+.f-row{display:flex;gap:4px;flex-wrap:wrap}
+.chip{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;background:rgba(0,0,0,.28);border:1px solid var(--glass-line);color:var(--dim);cursor:pointer;transition:all .15s ease}
+.chip:hover{border-color:var(--amber-dk);color:var(--muted)}
+.chip.on{background:rgba(224,165,38,.14);border-color:var(--amber-dk);color:var(--amber)}
+.mrow{display:grid;grid-template-columns:11px 1fr auto;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid rgba(150,180,180,.08);cursor:pointer;transition:background .12s ease}
+.mrow:hover{background:rgba(255,255,255,.035)}
+.mrow.sel{background:var(--glass-bg-2);box-shadow:inset 3px 0 0 var(--amber)}
+.mrow .nm{font-family:var(--f-ui);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow .meta{display:flex;gap:7px;align-items:baseline;margin-top:1px}
+.mrow .rar{font-family:var(--f-mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.mrow .sig{font-family:var(--f-mono);font-size:10.5px;color:var(--accent)}
+.mrow .pin{width:19px;height:19px;display:grid;place-items:center;border:1px solid transparent;background:transparent;color:var(--dim);cursor:pointer;font-size:12px;line-height:1}
+.mrow .pin.on{color:var(--amber);border-color:var(--amber-dk);background:rgba(224,165,38,.12)}
+.lamp{width:9px;height:9px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.06)}
+.lamp.ok{background:var(--ok)}.lamp.warn{background:var(--warn)}.lamp.bad{background:var(--bad)}
+
+/* -------------------------------------------------- Mittelspalte (C) --- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:9px;flex:1;min-height:0}
+.split > .col{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.idh{padding:9px 12px 8px;border-bottom:1px solid var(--glass-line);display:flex;align-items:flex-start;gap:10px}
+.idh h2{font-family:var(--f-disp);font-size:23px;font-weight:700;letter-spacing:.02em;line-height:1.05}
+.tags{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.tag{font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 5px;border:1px solid var(--glass-line);color:var(--muted);background:rgba(0,0,0,.22)}
+.tag.rar{border-color:var(--amber-dk);color:var(--amber)}
+.idh .sig{margin-left:auto;text-align:right}
+.idh .sig b{display:block;font-family:var(--f-mono);font-size:19px;color:var(--accent);font-weight:700;line-height:1}
+.vd{display:flex;align-items:center;gap:11px;padding:8px 12px;border-bottom:1px solid var(--glass-line)}
+.vd .big{display:flex;align-items:center;gap:8px}
+.vd .big .lamp{width:13px;height:13px}
+.vd .big span{font-family:var(--f-disp);font-size:15px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.vd.ok .big span{color:var(--ok)}.vd.warn .big span{color:var(--warn)}.vd.bad .big span{color:var(--bad)}
+.vd .bars{flex:1;display:flex;flex-direction:column;gap:4px}
+.vbar{display:grid;grid-template-columns:52px 1fr 44px;align-items:center;gap:6px}
+.vd .ratio b{font-family:var(--f-mono);font-size:21px;font-weight:700;line-height:1}
+.vd.ok .ratio b{color:var(--ok)}.vd.warn .ratio b{color:var(--warn)}.vd.bad .ratio b{color:var(--bad)}
+.blkh{display:flex;align-items:center;gap:7px;padding:6px 12px 4px;border-bottom:1px solid rgba(150,180,180,.09);margin-bottom:6px}
+.blkh .n{font-family:var(--f-mono);font-size:9px;color:var(--amber-dk);font-weight:700;letter-spacing:.1em}
+.blkb{padding:0 12px 9px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:1px;background:var(--glass-line)}
+.stat{background:rgba(0,0,0,.26);padding:5px 8px}
+.stat b{display:block;font-family:var(--f-mono);font-size:15px;margin-top:1px;font-weight:400}
+.stat.hot b{color:var(--amber)}
+.locs{display:flex;flex-direction:column;gap:1px;background:var(--glass-line)}
+.loc{display:grid;grid-template-columns:1fr 54px 66px;align-items:center;gap:7px;background:rgba(0,0,0,.24);padding:4px 8px;font-size:12.5px}
+.loc .p{font-family:var(--f-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loc .s{font-family:var(--f-mono);font-size:9.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.loc .a{display:flex;align-items:center;gap:5px}
+.loc .a em{font-family:var(--f-mono);font-size:9.5px;color:var(--muted);font-style:normal;width:24px;text-align:right}
+.refn{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--glass-line)}
+.refn div{background:rgba(0,0,0,.26);padding:5px 8px}
+.refn b{display:block;font-family:var(--f-mono);font-size:14px;margin-top:1px;font-weight:400}
+.refn .net b{color:var(--ok)}
+
+/* ---- SEGMENTBALKEN — aus den Mockups uebernommen.
+   Gezaehnte Fuellung in gefraester Spur. Reiner Verlauf, kein Bild, kein
+   Compositing. Das billigste Element der ganzen Sprache. ---- */
+.trk{height:8px;background:rgba(0,0,0,.45);box-shadow:inset 0 1px 2px rgba(0,0,0,.6);overflow:hidden}
+.trk i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--amber) 0 5px,transparent 5px 8px)}
+.trk i.teal{background:repeating-linear-gradient(90deg,var(--accent) 0 4px,transparent 4px 6px)}
+.trk i.mut{background:repeating-linear-gradient(90deg,var(--muted) 0 5px,transparent 5px 8px)}
+.trk.sm{height:5px}
+.trk.sm i{background:repeating-linear-gradient(90deg,var(--accent) 0 3px,transparent 3px 5px)}
+
+/* -------------------------------------------------------- Rechte Spalte --- */
+.scan{padding:8px 9px;border-bottom:1px solid var(--glass-line)}
+.scan input{width:100%;background:rgba(0,0,0,.36);border:1px solid var(--glass-line);color:var(--accent);padding:6px 8px;font-family:var(--f-mono);font-size:16px;text-align:center;letter-spacing:.06em}
+.scan input::placeholder{color:var(--dim);font-size:12px;letter-spacing:.1em}
+.sig-item{border-bottom:1px solid rgba(150,180,180,.08);padding:6px 9px}
+.sig-item .top{display:flex;align-items:center;gap:6px}
+.sig-item .top .nm{font-family:var(--f-ui);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sig-mult{display:flex;gap:2px;margin-top:4px}
+.sig-mult i{flex:1;font-family:var(--f-mono);font-size:10.5px;font-style:normal;text-align:center;padding:2px 0;background:rgba(0,0,0,.3);border:1px solid var(--glass-line);color:var(--muted)}
+.sig-mult i.hit{background:rgba(224,165,38,.18);border-color:var(--amber);color:var(--amber);font-weight:700}
+
+/* ---------------------------------------------------------- Rig unten --- */
+.rig{flex:0 0 auto;display:flex;align-items:center;gap:0;margin:0 9px 9px;position:relative}
+.rig::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;background:repeating-linear-gradient(90deg,var(--amber) 0 5px,transparent 5px 10px);opacity:.5}
+.rig-in{display:flex;align-items:center;padding:7px 12px;flex:1;flex-wrap:wrap;gap:0}
+.rig-grp{display:flex;flex-direction:column;gap:3px;padding:0 13px;border-right:1px solid var(--glass-line)}
+.rig-grp:first-of-type{padding-left:0}
+.rig-sel{background:rgba(0,0,0,.34);border:1px solid var(--glass-line);color:var(--text);font-family:var(--f-ui);font-size:12.5px;padding:3px 6px;cursor:pointer;max-width:180px}
+.rig-slots{display:flex;gap:3px}
+.rig-slot{width:26px;height:22px;border:1px solid var(--glass-line);background:rgba(0,0,0,.3);display:grid;place-items:center;font-family:var(--f-mono);font-size:9px;color:var(--dim);cursor:pointer}
+.rig-slot.full{background:rgba(143,179,57,.15);border-color:#4a5c33;color:var(--ok)}
+.rig-stat{margin-left:auto;display:flex;align-items:center;gap:16px;padding-right:2px}
+.rig-stat .kv{display:flex;flex-direction:column;gap:2px;text-align:right}
+.rig-stat .kv b{font-family:var(--f-mono);font-size:14px;color:var(--amber);font-weight:700}
+.rig-foot{display:flex;flex-direction:column;gap:2px;text-align:right;padding-left:16px;border-left:1px solid var(--glass-line);margin-left:14px}
+
+/* ==========================================================================
+   VARIANTE A — ECHTES GLAS UEBERALL
+   backdrop-filter auf jedem Paneel. Naechster an den Mockups. Teuerste
+   Variante: jedes geblurrte Element ist ein eigener Compositing-Layer.
+   ========================================================================== */
+.g-a .pnl{-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(1.15);backdrop-filter:blur(var(--glass-blur)) saturate(1.15)}
+/* ...und auf JEDEM Kasten darin. Das ist der Punkt der Variante: in den
+   Mockups ist jede Kachel Glas, nicht nur der Traeger. Ergibt ~90 eigene
+   Compositing-Layer — der Preis wird unten gemessen, nicht behauptet. */
+.g-a .stat,.g-a .loc,.g-a .refn div,.g-a .sig-mult i,.g-a .tag,.g-a .chip,
+.g-a .rig-slot,.g-a .rig-sel,.g-a .f-search,.g-a .scan input{
+  background:var(--glass-bg);
+  -webkit-backdrop-filter:blur(6px) saturate(1.1);backdrop-filter:blur(6px) saturate(1.1);
+}
+
+/* ==========================================================================
+   VARIANTE B — GLAS OHNE WEICHZEICHNER
+   Kein backdrop-filter. Der Glaseindruck kommt allein aus durchscheinender
+   Flaeche, heller Oberkante und einem sehr flachen Innenverlauf. Kosten: null.
+   Die Gegenprobe — sieht man den Unterschied ueberhaupt ohne Foto dahinter?
+   ========================================================================== */
+.g-b .pnl{
+  background:linear-gradient(180deg,rgba(38,46,50,.72),rgba(26,32,35,.66));
+  box-shadow:inset 0 1px 0 var(--glass-hi), inset 0 -18px 26px -22px rgba(255,255,255,.12);
+}
+
+/* ==========================================================================
+   VARIANTE C — WEICHZEICHNER NUR AN DEN TRAGENDEN FLAECHEN
+   backdrop-filter nur an den drei Spalten und der Rig-Leiste (5 Elemente),
+   alles darin ohne. Echtes Glas dort, wo es liest — ohne 40 Layer.
+   ========================================================================== */
+.g-c .pnl{background:linear-gradient(180deg,rgba(38,46,50,.66),rgba(26,32,35,.6));box-shadow:inset 0 1px 0 var(--glass-hi)}
+.g-c .pnl--bearing{-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(1.15);backdrop-filter:blur(var(--glass-blur)) saturate(1.15)}
+
+/* ==========================================================================
+   VARIANTE D — WIE C, ABER DER GRUND DARF MEHR
+   Glas bleibt tragend-only (6 Layer). Geaendert ist NUR der Untergrund:
+   Weichzeichnen wird erst sichtbar, wenn hinter der Paneelkante Struktur
+   liegt, die zerlaufen kann. Ein gleichmaessig dunkler Grund gibt ihm nichts.
+   Zwei Rastermassstaebe (34 px fein, 170 px grob), kraeftigerer Lichtabfall,
+   ein diagonaler Streiflichtzug, Vignette zur Beruhigung der Raender.
+   Alles reine Verlaeufe: kein Bild, keine Anfrage, kein Ladegewicht.
+   Und weiterhin KEIN Foto — der Eckentrick braucht eine bekannte Grundfarbe.
+   ========================================================================== */
+.g-d .pnl{background:linear-gradient(180deg,rgba(38,46,50,.62),rgba(26,32,35,.56));box-shadow:inset 0 1px 0 var(--glass-hi)}
+.g-d .pnl--bearing{-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2)}
+.g-d::before{
+  background:
+    /* Streiflicht diagonal — gibt dem Weichzeichner eine weiche Kante */
+    linear-gradient(114deg, transparent 18%, rgba(190,230,225,.055) 38%, transparent 58%),
+    /* Lichtabfaelle, deutlich kraeftiger als in A/B/C */
+    radial-gradient(120% 85% at 72% 4%, rgba(47,191,164,.17), transparent 58%),
+    radial-gradient(95% 75% at 8% 98%, rgba(224,165,38,.13), transparent 60%),
+    /* Grobraster — die Linien, die man hinter der Glaskante zerlaufen sieht */
+    repeating-linear-gradient(0deg, rgba(190,225,220,.075) 0 1px, transparent 1px 170px),
+    repeating-linear-gradient(90deg, rgba(190,225,220,.075) 0 1px, transparent 1px 170px),
+    /* Feinraster */
+    repeating-linear-gradient(0deg, rgba(255,255,255,.032) 0 1px, transparent 1px 34px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.032) 0 1px, transparent 1px 34px);
+}
+/* Vignette: haelt die Raender ruhig, damit der Grund nicht zur Leinwand wird */
+.g-d::after{
+  content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(130% 100% at 50% 45%, transparent 42%, rgba(6,9,10,.6) 100%);
+}
+
+.vnote{max-width:1280px;margin:14px auto 0;padding:10px 14px;background:#12171b;border:1px solid #232c33;border-left:3px solid var(--mk-hi);border-radius:2px;font-size:13px;line-height:1.65;color:#b8c4d2}
+.vnote b{color:var(--mk-txt)}
+.vnote code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#0c1013;padding:1px 5px;border-radius:2px;color:#9fd8c9}
+</style>
+</head>
+<body>
+
+<div class="mk-bar">
+  <b>Skizze 005</b>
+  <div class="mk-tabs">
+    <button class="mk-tab" data-v="a">A — Echtes Glas überall</button>
+    <button class="mk-tab" data-v="b">B — Glas ohne Weichzeichner</button>
+    <button class="mk-tab" data-v="c">C — Weichzeichner nur tragend</button>
+    <button class="mk-tab on" data-v="d">D — C + reicherer Grund ★ gewählt</button>
+  </div>
+  <div class="mk-vp">
+    <button class="on" data-sz="b1280">1280×720</button>
+    <button data-sz="b1366">1366×768</button>
+    <button id="perf">Leistung messen</button>
+  </div>
+  <div id="mk-read">messe…</div>
+</div>
+
+<div id="stage">
+  <div class="variant" id="variant-a">
+    <div class="holder" data-cap="RASTER D (002) + MITTELSPALTE C (003) + PANEEL-SPRACHE AUS DEN MOCKUPS">
+      <div class="frame b1280" data-frame><div class="wb g-a" data-wb></div></div>
+    </div>
+    <div class="vnote">
+      <b>A — Echtes Glas überall.</b> <code>backdrop-filter</code> auf jedem
+      Paneel, am nächsten an den Mockups. Jedes geblurrte Element ist ein eigener
+      Compositing-Layer — <em>„Leistung messen" drücken</em> und die Zahl mit B
+      vergleichen. Die Ecke ist trotzdem <em>ohne</em> <code>clip-path</code>
+      angeschrägt; genau diese Paarung kostete hier schon einmal 520 ms.
+    </div>
+  </div>
+  <div class="variant" id="variant-b">
+    <div class="holder" data-cap="RASTER D (002) + MITTELSPALTE C (003) + PANEEL-SPRACHE AUS DEN MOCKUPS">
+      <div class="frame b1280" data-frame><div class="wb g-b" data-wb></div></div>
+    </div>
+    <div class="vnote">
+      <b>B — Glas ohne Weichzeichner.</b> Kein <code>backdrop-filter</code>.
+      Der Glaseindruck kommt allein aus durchscheinender Fläche, heller
+      Oberkante und flachem Innenverlauf. Kosten: null.
+      <em>Die eigentliche Gegenprobe</em> — ohne Foto dahinter hat der
+      Weichzeichner kaum etwas zu tun. Sieht man A und B überhaupt auseinander?
+    </div>
+  </div>
+  <div class="variant" id="variant-c">
+    <div class="holder" data-cap="RASTER D (002) + MITTELSPALTE C (003) + PANEEL-SPRACHE AUS DEN MOCKUPS">
+      <div class="frame b1280" data-frame><div class="wb g-c" data-wb></div></div>
+    </div>
+    <div class="vnote">
+      <b>C — Weichzeichner nur an den tragenden Flächen.</b> Echtes Glas an den
+      drei Spalten und der Rig-Leiste (5 Elemente), alles darin ohne. Dort, wo
+      Glas liest — an der großen Kante gegen den Grund — ist es echt; die 40
+      kleinen Kästen darin sparen sich den Layer.
+    </div>
+  </div>
+</div>
+
+<script>
+/* Echt aus assets/mining-model.json (4.9.0-live.12326004). */
+const MIN=[
+ {n:'Quantainium',r:'legendary',res:.95,inst:1000,d:20.5,sig:3170,w:2.3},
+ {n:'Stileron',r:'legendary',res:.60,inst:870,d:4.8,sig:3185,w:.6},
+ {n:'Riccite',r:'epic',res:.95,inst:850,d:1.6,sig:3385,w:2.3},
+ {n:'Beryl',r:'rare',res:.65,inst:350,d:2.8,sig:3540,w:1.5},
+ {n:'Taranite',r:'rare',res:.50,inst:700,d:10.2,sig:3555,w:.6},
+ {n:'Borase',r:'rare',res:.30,inst:40,d:4.5,sig:3570,w:.5},
+ {n:'Gold',r:'rare',res:.50,inst:550,d:19.3,sig:3585,w:2.1},
+ {n:'Bexalite',r:'rare',res:.60,inst:600,d:6.9,sig:3600,w:.4},
+ {n:'Laranite',r:'uncommon',res:.50,inst:400,d:11.5,sig:3825,w:.5},
+ {n:'Aslarite',r:'uncommon',res:.50,inst:700,d:2.3,sig:3840,w:.6},
+ {n:'Titanium',r:'uncommon',res:.10,inst:0,d:4.5,sig:3855,w:-.7},
+ {n:'Tungsten',r:'uncommon',res:-.40,inst:0,d:19.3,sig:3870,w:-.7},
+ {n:'Agricium',r:'uncommon',res:.50,inst:350,d:7.2,sig:3885,w:2.0},
+ {n:'Hephaestanite',r:'common',res:-.30,inst:400,d:3.2,sig:4180,w:.5},
+ {n:'Quartz',r:'common',res:-.70,inst:50,d:2.7,sig:4210,w:.5},
+ {n:'Corundum',r:'common',res:.10,inst:50,d:4.0,sig:4225,w:.5},
+ {n:'Copper',r:'common',res:-.70,inst:50,d:9.0,sig:4240,w:-.9},
+ {n:'Iron',r:'common',res:-.40,inst:50,d:7.9,sig:4270,w:-.9},
+ {n:'Aluminum',r:'common',res:-.40,inst:0,d:2.7,sig:4285,w:-.5},
+];
+const LOCS=[
+ {p:'Lagrange E',s:'Stanton',ab:78,ch:18},{p:'Aaron Halo',s:'Stanton',ab:78,ch:18},
+ {p:'Pyro Belt (Cool 1)',s:'Pyro',ab:78,ch:18},{p:'Pyro V-f (Vuur)',s:'Pyro',ab:78,ch:18},
+ {p:'Glaciem Ring',s:'Nyx',ab:78,ch:18},{p:'Lagrange A',s:'Stanton',ab:74,ch:15},
+ {p:'Lagrange C',s:'Stanton',ab:74,ch:15},{p:'Pyro IV',s:'Pyro',ab:74,ch:15},
+ {p:'Pyro Belt (Cool 2)',s:'Pyro',ab:70,ch:12},{p:'Yela',s:'Stanton',ab:70,ch:12},
+];
+const LASERS=[
+ {n:'Helix II',sl:2,dps:4930,res:-30},{n:'Klein-S2',sl:2,dps:4350,res:-45},
+ {n:'Lancet MH2',sl:3,dps:4350,res:0},{n:'Impact II',sl:2,dps:4060,res:10},
+ {n:'Arbor MH2',sl:2,dps:2900,res:25},{n:'Hofstede-S1',sl:1,dps:2600,res:-30},
+];
+const RAR={legendary:'legendär',epic:'episch',rare:'selten',uncommon:'ungewöhnl.',common:'häufig'};
+const MAXC={common:6,uncommon:5,rare:4,epic:3,legendary:2};
+const S={sel:'Taranite',pins:['Taranite','Quantainium','Gold','Bexalite'],laser:0,mods:[1,0],scan:''};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* Platzhalter-Rechnung wie in 002/003/004. Echte Heuristik: FracturingCalc.astro */
+function vd(m){
+  const L=LASERS[S.laser], avail=Math.round(L.dps*(S.mods.filter(Boolean).length?1.15:1));
+  const eff=m.res*(1+L.res/100), req=Math.round(3600*(1+eff)), r=avail/req;
+  return {cls:r>=1.15?'ok':r>=.9?'warn':'bad',lab:r>=1.15?'Brechbar':r>=.9?'Grenzwertig':'Nicht brechbar',req,avail,r,eff};
+}
+function shell(){
+  const m=MIN.find(x=>x.n===S.sel)||MIN[0], V=vd(m), L=LASERS[S.laser];
+  const mx=Math.max(V.req,V.avail), scan=parseInt(S.scan,10);
+  const rows=MIN.map(x=>{const v=vd(x),p=S.pins.includes(x.n);return `<div class="mrow ${x.n===S.sel?'sel':''}" data-min="${esc(x.n)}">
+    <span class="lamp ${v.cls}" title="${v.lab} ×${v.r.toFixed(2)}"></span>
+    <span><span class="nm">${esc(x.n)}</span><span class="meta"><span class="rar">${RAR[x.r]||'—'}</span><span class="sig num">${x.sig}</span></span></span>
+    <button class="pin ${p?'on':''}" data-pin="${esc(x.n)}">${p?'★':'☆'}</button></div>`}).join('');
+  const pins=S.pins.map(n=>{const x=MIN.find(y=>y.n===n);if(!x)return'';
+    const mc=MAXC[x.r]||4;
+    return `<div class="sig-item"><div class="top"><span class="lamp ${vd(x).cls}"></span><span class="nm">${esc(x.n)}</span></div>
+    <div class="sig-mult">${Array.from({length:mc},(_,i)=>{const v=(i+1)*x.sig;const h=scan&&Math.abs(v-scan)/scan<=.10;
+      return `<i class="${h?'hit':''}">${v}</i>`}).join('')}</div></div>`}).join('');
+  return `
+  <div class="title pnl pnl--bearing chamf">
+    <h1>Mining</h1><span class="sub">Alpha 4.9.0 · Live-Daten</span>
+    <span class="sp"></span><span class="lbl">38 Minerale · 20 Refineries</span>
+  </div>
+  <div class="grid">
+    <div class="pane pnl pnl--bearing chamf">
+      <div class="pane-hd"><span class="lbl">Minerale</span><span class="c">${MIN.length}</span></div>
+      <div class="filters">
+        <input class="f-search" placeholder="Mineral suchen…">
+        <div class="f-row"><button class="chip">Stanton</button><button class="chip">Pyro</button><button class="chip">Nyx</button><button class="chip on">nur brechbar</button></div>
+      </div>
+      <div class="scroll">${rows}</div>
+    </div>
+
+    <div class="pane" style="background:none;border:0;box-shadow:none">
+      <div class="split">
+        <div class="col pnl pnl--bearing chamf">
+          <div class="idh">
+            <div><h2>${esc(m.n)}</h2><div class="tags"><span class="tag rar">${RAR[m.r]}</span><span class="tag">Erz</span><span class="tag">Schiff</span></div></div>
+            <div class="sig"><span class="lbl">Signatur</span><b class="num">${m.sig}</b></div>
+          </div>
+          <div class="vd ${V.cls}">
+            <div class="big"><span class="lamp ${V.cls}"></span><span>${V.lab}</span></div>
+            <div class="bars">
+              <div class="vbar"><span class="lbl">Benötigt</span><span class="trk"><i class="mut" style="width:${V.req/mx*100}%"></i></span><span class="num" style="font-size:11px;text-align:right">${V.req}</span></div>
+              <div class="vbar"><span class="lbl">Verfügbar</span><span class="trk"><i style="width:${V.avail/mx*100}%"></i></span><span class="num" style="font-size:11px;text-align:right">${V.avail}</span></div>
+            </div>
+            <div class="ratio"><span class="lbl">Verh.</span><b class="num">×${V.r.toFixed(2)}</b></div>
+          </div>
+          <div class="scroll">
+            <div class="blkh"><span class="n">01</span><span class="lbl">Physik</span></div>
+            <div class="blkb"><div class="stats">
+              <div class="stat"><span class="lbl">Widerstand</span><b class="num">${m.res.toFixed(2)}</b></div>
+              <div class="stat hot"><span class="lbl">eff. Wid.</span><b class="num">${V.eff.toFixed(2)}</b></div>
+              <div class="stat"><span class="lbl">Instabil.</span><b class="num">${m.inst}</b></div>
+              <div class="stat"><span class="lbl">Dichte</span><b class="num">${m.d}</b></div>
+            </div></div>
+            <div class="blkh"><span class="n">02</span><span class="lbl">Qualitätsstufen</span></div>
+            <div class="blkb"><div style="display:flex;gap:2px;align-items:flex-end;height:28px">
+              ${[346,588,667,796,842,901,955,1000].map((b,i)=>`<i style="flex:1;height:${20+i*10}%;background:${i>4?'rgba(224,165,38,.28)':'rgba(255,255,255,.09)'};border-top:2px solid ${i>4?'var(--amber)':'var(--line-hi)'}" title="Stufe ${i+1}: ${b}"></i>`).join('')}
+            </div></div>
+            <div class="blkh"><span class="n">03</span><span class="lbl">Refinery</span><span class="lbl" style="margin-left:auto;color:var(--muted)">ARC-L1 · DINYX</span></div>
+            <div class="blkb"><div class="refn">
+              <div><span class="lbl">Ertrag</span><b class="num">88 %</b></div>
+              <div><span class="lbl">Dauer/100 SCU</span><b class="num">25 m</b></div>
+              <div><span class="lbl">Kosten</span><b class="num">14 k</b></div>
+              <div class="net"><span class="lbl">Netto</span><b class="num">341 k</b></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="col pnl pnl--bearing chamf">
+          <div class="blkh" style="padding-top:9px"><span class="n">04</span><span class="lbl">Fundorte</span><span class="lbl" style="margin-left:auto">ALLE 10</span></div>
+          <div class="scroll"><div class="blkb" style="padding-top:0"><div class="locs">
+            ${LOCS.map(l=>`<div class="loc"><span class="p">${esc(l.p)}</span><span class="s">${esc(l.s)}</span>
+              <span class="a"><span class="trk sm" style="flex:1"><i style="width:${l.ab}%"></i></span><em class="num">${l.ch}%</em></span></div>`).join('')}
+          </div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane pnl pnl--bearing chamf">
+      <div class="pane-hd"><span class="lbl">Signaturen</span><span class="c">${S.pins.length} angeheftet</span></div>
+      <div class="scan"><input data-scan placeholder="SCANWERT" value="${esc(S.scan)}" inputmode="numeric"></div>
+      <div class="scroll">${pins}</div>
+    </div>
+  </div>
+
+  <div class="rig pnl pnl--bearing chamf">
+    <div class="rig-in">
+      <div class="rig-grp"><span class="lbl">Laser</span>
+        <select class="rig-sel" data-laser>${LASERS.map((l,i)=>`<option value="${i}" ${i===S.laser?'selected':''}>${esc(l.n)}</option>`).join('')}</select></div>
+      <div class="rig-grp"><span class="lbl">Module</span>
+        <div class="rig-slots">${Array.from({length:3},(_,i)=>`<button class="rig-slot ${i<L.sl&&S.mods[i]?'full':''}" data-slot="${i}" ${i>=L.sl?'disabled style="opacity:.3"':''}>${i>=L.sl?'—':(S.mods[i]?'M'+(i+1):'+')}</button>`).join('')}</div></div>
+      <div class="rig-grp"><span class="lbl">Refinery</span>
+        <select class="rig-sel"><option>ARC-L1 Wide Forest Station</option><option>CRU-L1 Ambitious Dream</option></select></div>
+      <div class="rig-grp" style="border-right:0"><span class="lbl">Methode</span>
+        <select class="rig-sel"><option>Dinyx Solventation</option><option>Cormack Method</option></select></div>
+      <div class="rig-stat">
+        <div class="kv"><span class="lbl">Verfügbar</span><b>${V.avail}</b></div>
+        <div class="kv"><span class="lbl">Res-Mod</span><b>${L.res>0?'+':''}${L.res}%</b></div>
+        <div class="rig-foot"><span class="lbl">Datenstand 4.9.0-live.12326004</span><span class="lbl">Quellen · Methodik</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+function build(){document.querySelectorAll('[data-wb]').forEach(w=>w.innerHTML=shell());measure()}
+
+document.addEventListener('click',e=>{
+  const t=e.target;
+  const tab=t.closest('.mk-tab[data-v]');
+  if(tab){document.querySelectorAll('.mk-tab[data-v]').forEach(x=>x.classList.remove('on'));tab.classList.add('on');
+    document.querySelectorAll('.variant').forEach(v=>v.classList.remove('on'));
+    document.getElementById('variant-'+tab.dataset.v).classList.add('on');measure();return}
+  const vp=t.closest('.mk-vp button[data-sz]');
+  if(vp){document.querySelectorAll('.mk-vp button[data-sz]').forEach(x=>x.classList.remove('on'));vp.classList.add('on');
+    document.querySelectorAll('[data-frame]').forEach(f=>f.className='frame '+vp.dataset.sz);measure();return}
+  if(t.id==='perf'){perf();return}
+  const pin=t.closest('[data-pin]'); if(pin){S.pins=S.pins.includes(pin.dataset.pin)?S.pins.filter(x=>x!==pin.dataset.pin):[...S.pins,pin.dataset.pin];build();return}
+  const row=t.closest('.mrow'); if(row){S.sel=row.dataset.min;build();return}
+  const sl=t.closest('[data-slot]'); if(sl&&!sl.disabled){const i=+sl.dataset.slot;S.mods[i]=S.mods[i]?0:1;build();return}
+  const ch=t.closest('.chip'); if(ch){ch.classList.toggle('on');return}
+});
+document.addEventListener('change',e=>{if(e.target.matches('[data-laser]')){S.laser=+e.target.value;build()}});
+document.addEventListener('input',e=>{if(e.target.matches('[data-scan]')){S.scan=e.target.value.replace(/[^0-9]/g,'');
+  const p=e.target.closest('.pane');const sc=p.querySelector('.scroll').scrollTop;build();
+  const ni=document.querySelector('.variant.on [data-scan]');if(ni){ni.focus();ni.setSelectionRange(ni.value.length,ni.value.length)}}});
+
+/* --- Messung: Falz + wie viele Elemente einen Weichzeichner tragen --- */
+function measure(){
+  const v=document.querySelector('.variant.on'), out=document.getElementById('mk-read');
+  if(!v)return;
+  const fr=v.querySelector('[data-frame]').getBoundingClientRect(), H=Math.round(fr.height);
+  const bot=e=>Math.round(e.getBoundingClientRect().bottom-fr.top);
+  const rows=[...v.querySelectorAll('.mrow')], filt=v.querySelector('.filters');
+  const first=rows[0]?Math.round(rows[0].getBoundingClientRect().top-fr.top):0;
+  const above=rows.filter(r=>bot(r)<=H).length;
+  const blurred=[...v.querySelectorAll('*')].filter(e=>{
+    const b=getComputedStyle(e).backdropFilter; return b&&b!=='none'}).length;
+  const ok=bot(filt)<=H&&rows[0]&&bot(rows[0])<=H;
+  out.innerHTML=`1. Zeile ${first} px  ·  Fenster ${H} px  ·  Weichzeichner-Elemente <b>${blurred}</b>\n`+
+    `<span class="${ok?'pass':'fail'}">${ok?'FALZ HÄLT':'FALZ GERISSEN'}</span>   Mineralzeilen über der Falz: <b>${above}</b>/${rows.length}`;
+}
+/* EHRLICHKEIT ZUR MESSUNG:
+   Die Malkosten von backdrop-filter lassen sich aus JS heraus NICHT seriös
+   messen — erzwungenes Layout (offsetHeight) löst kein Neu-Compositing des
+   Weichzeichners aus, und performance.now() um einen Scroll-Zuweis herum misst
+   nur die Zuweisung. Ein Zahlenpaar wie „0,2 ms gegen 0,1 ms" wäre erfunden.
+   Was hier steht, ist deshalb die ZÄHLUNG der Elemente, die einen eigenen
+   Compositing-Layer erzwingen — eine echte, nachprüfbare Größe. Die
+   tatsächliche Bildrate gehört in die Rendering-Ansicht der DevTools oder auf
+   die echte Seite unter Last. Der belastbarste Hinweis liegt ohnehin im
+   Projekt selbst: der Menü-Eintritt fiel von 840 ms auf 320 ms, als genau
+   diese Schicht wegfiel. */
+function perf(){
+  const v=document.querySelector('.variant.on');
+  const all=[...v.querySelectorAll('*')];
+  const blurred=all.filter(e=>{const b=getComputedStyle(e).backdropFilter;return b&&b!=='none'});
+  const clipped=all.filter(e=>getComputedStyle(e).clipPath!=='none').length;
+  const kinds={};
+  blurred.forEach(e=>{const k=e.className.split(' ')[0]||e.tagName.toLowerCase();kinds[k]=(kinds[k]||0)+1});
+  const top=Object.entries(kinds).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,n])=>`${k}×${n}`).join(', ');
+  const lvl=blurred.length===0?'pass':blurred.length<=8?'pass':blurred.length<=20?'warn':'fail';
+  document.getElementById('mk-read').innerHTML=
+    `Compositing-Layer durch Weichzeichner: <b>${blurred.length}</b>  ·  clip-path: <b>${clipped}</b>  (Falle vermieden)\n`+
+    `<span class="${lvl}">${blurred.length?top:'keine'}</span>   — Zählung, KEINE Bildratenmessung (s. Kommentar im Quelltext)`;
+}
+addEventListener('resize',measure);
+build();
+</script>
+</body>
+</html>

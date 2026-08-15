@@ -103,8 +103,19 @@ if (!(() => { try { readdirSync('dist'); return true; } catch { return false; } 
    jetzt auf den site-weiten Ist-Stand an — gemessen mit genau diesem
    Skript (Zusicherung 2) gegen den frisch gebauten dist/ nach 02-06,
    nicht geschaetzt. Kuenftige Aenderungen duerfen diese Zahl nur noch
-   anheben, nie absenken. */
-const MIN_TOKEN_USAGES = 235775;
+   anheben — absenken NUR mit benannter Ursache (CLAUDE.md, Grundsatz 5).
+
+   ABSENKUNG 11.08.2026: 235775 -> 235539 (-236).
+   URSACHE: Die Mining-Themenseite wurde von fuenf gestapelten Abschnitten
+   auf eine Drei-Spalten-Werkbank zusammengezogen. Dabei sind MiningApp,
+   SignatureIdentifier und FracturingCalc von der Seite verschwunden;
+   MiningWorkbench ersetzt sie. Nachgerechnet an den Quelldateien:
+   entfernt 85 + 48 + 19 = 152 Token-Verweise, neu 35, macht -117 je
+   Seite, mal zwei Sprachfassungen = -234; die restlichen 2 kommen aus
+   dem ebenfalls entfallenen Schiff-Abschnitt. Es ist also eine
+   Mengenaenderung durch Konsolidierung, kein Rueckfall auf rohe Werte —
+   Zusicherung 6 (skalenpflichtiger Rest) steht unveraendert auf 0. */
+const MIN_TOKEN_USAGES = 235539;
 
 function walk(dir, ext) {
   let out = [];

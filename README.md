@@ -60,6 +60,92 @@ npm run preview        # den Build lokal ausliefern
 
 ## Prüfen
 
+**Ein Befehl, und es ist derselbe wie im Dockerfile:**
+
+```bash
+npm run gate
+```
+
+Das ist das Auslieferungs-Tor (Schiene A). Läuft nach einem Build und prüft
+alles, was auch der CI-Build prüft, bevor ein Image entsteht — schlägt eine
+Strecke fehl, entsteht dort kein Image und Coolify liefert weiter den letzten
+guten Stand. **Vor jedem Push auf `staging` einmal grün gesehen haben.**
+
+```bash
+npm run gate -- --list            # nur zeigen, was liefe
+npm run gate -- --only verify:fx  # eine einzelne Strecke, zur Diagnose
+npm run gate -- --continue        # nicht beim ersten Fehler abbrechen
+npm run gate:data                 # Schiene B: nach jedem Datamine-/Sync-Lauf
+```
+
+Jeder Lauf sagt in der Kopfzeile, **woran** er grün war: gegen den Live-Build
+oder gegen den Vorschau-Build. Die beiden unterscheiden sich in der
+SEO-Oberfläche (`STAGING=1` → site-weit `noindex`, gesperrte `robots.txt`,
+absichtlich leere Sitemaps), und das reicht, damit dieselbe Kette lokal grün
+und in CI rot sein kann — genau so passiert am 09.08.2026. Den staging-Build
+lokal nachstellen:
+
+```bash
+$env:STAGING = '1'; npm run build; npm run gate   # PowerShell
+```
+
+Welche Strecken zu welcher Schiene gehören, steht in
+[`scripts/lib/gate-registry.mjs`](scripts/lib/gate-registry.mjs) — und nur
+dort. `verify:wiring` (erste Strecke im Tor) schlägt fehl, sobald ein
+Prüfskript ohne Eintrag im Bestand liegt, ein Eintrag ins Leere zeigt oder
+eine Strecke git/Netz/Kindprozess anfasst, ohne es zu erklären. Schiene B
+läuft nur lokal: sie braucht die `Data.p4k`, den installierten Client oder
+freien UEX-Zugang — aus GitHub Actions ist UEX gesperrt.
+
+Eine Strecke kann im Verzeichnis **ausgesetzt** sein (`disabled`), wenn sie aus
+einem benannten Grund gerade rot ist — ein rotes Tor scharfzuschalten erzieht
+nur zum Wegsehen. Jeder Lauf druckt diese Schuldenposten am Ende, damit sie
+niemand vergisst; `npm run gate -- --only <name>` ruft eine ausgesetzte Strecke
+gezielt auf, um sie abzutragen.
+
+### Browser-Rauchtest (Schiene C)
+
+Das einzige Verfahren, das eine Seite in einem **echten Browser** lädt — gegen
+die Klasse „HTML korrekt, Browser macht trotzdem etwas anderes":
+
+```bash
+npm run preview                                      # Terminal 1
+npm run smoke -- --base http://localhost:4321        # Terminal 2
+```
+
+15 Leitseiten je EN und DE in drei Varianten (dunkel 1280, dunkel 360, hell
+1280): keine JS-Ausnahme, keine eigene Ressource ≥ 400, kein CSP-Verstoß,
+Leitelement wirklich sichtbar, kein waagerechter Überlauf — dazu
+Interaktionsproben (filtert der Item Finder wirklich? zählt der Schiffsfilter
+runter?). Braucht `playwright-core` (schon als devDependency) und einen
+installierten Chrome oder Edge; ein anderer Pfad geht über `CHROME_PATH`.
+
+In CI läuft er in `deploy-staging.yml` gegen den **fertigen Container**, und
+zwar vor dem Push — die CSP ist ein nginx-Header und existiert nur dort. Für
+eine schon ausgelieferte Seite: `npm run smoke -- --base https://staging.verse-base.com`.
+
+### Liefert die Seite wirklich den neuen Stand? (Schiene C)
+
+```bash
+npm run check:staging     # gegen staging.verse-base.com
+npm run check:live        # gegen verse-base.com
+```
+
+Jeder Build schreibt `dist/build.json` mit der Commit-Kennung. `check:*` holt
+sie von der ausgelieferten Seite und vergleicht sie mit `origin/staging` bzw.
+`origin/main` — und prüft nebenbei, dass Vorschau und Live nicht vertauscht
+sind. **Das ist die einzige belastbare Antwort auf „ist es draußen?"**: „CI
+grün" ist keine — staging hat schon vier Stunden den Vortagsstand
+ausgeliefert, während alle Commits an Ort und Stelle lagen.
+
+⚠ Und zwar **vom Entwicklungsrechner aus**: Cloudflare weist den
+GitHub-Runner mit `403` ab (dieselbe Sperre gegen Rechenzentren wie bei UEX,
+am 09.08.2026 gemessen). Der Schritt in den Workflows bleibt bestehen, bricht
+bei `403` aber sofort ab und meldet ehrlich „NICHT geprüft" statt grün zu
+tun.
+
+Einzeln aufrufbar bleibt weiterhin alles:
+
 ```bash
 npm run test:e2e       # node:test — braucht einen Build (sagt es sonst)
 npm run verify         # jede lokale href/src/url() in dist/ zeigt auf eine Datei

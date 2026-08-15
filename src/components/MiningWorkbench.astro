@@ -1,0 +1,715 @@
+---
+// MiningWorkbench.astro — Drei-Spalten-Werkbank für das Mining-Thema.
+//
+// ZWEITE FASSUNG (11.08.2026). Die erste war zu duenn — Rueckmeldung des
+// Nutzers woertlich: „super unpolished", „basic features", „sieht aus als
+// hatte man es in 15 min gevibecoded". Beides zu Recht, und beides Folge
+// meiner eigenen Entscheidungen:
+//
+//   · Die Mineralliste zeigte 6 von 37. Die Vorgabe lautete von Anfang an
+//     „ALL the minerals listed on the left side" — ich hatte stattdessen auf
+//     die Projektregel „Filterkonsole und ERSTE Ergebniszeile ueber der Falz"
+//     optimiert. Jetzt: Kachelraster, alle 37 ohne Scrollen.
+//   · Verarbeitung: In Skizze 004 standen drei Grade zur Wahl, gewaehlt wurde
+//     der zurueckgenommenste. Im Mockup las sich das als Praezision, im
+//     fertigen Produkt als unfertig — genau die Gegenprobe, die in
+//     004/README.md als Bedingung notiert war. Die verworfene Verarbeitung
+//     (Messgeraet, versenkte Wannen, Segmentbalken, Eckwinkel, Kante, Korn,
+//     reicher Grund) ist jetzt drin.
+//   · Substanz: die erste Fassung ERSETZTE Funktionen durch Zusammenfassungen.
+//     Neu und aus denselben Spieldaten: welche Steine dieses Erz fuehren
+//     (211 Kompositionen), welche der 20 Stationen am meisten dafuer zahlt,
+//     Blueprint- und Schiffsbezug.
+//
+// ⚠ 12.08.2026 — KEIN FRACTURING MEHR HIER. Laser, Module, Gadget,
+// Felsmasse, das Messgeraet, die Brechbarkeits-Punkte auf den Kacheln, der
+// Filter „nur brechbar" und der Physikwert „effektiv" sind auf eine eigene
+// Seite gezogen: components/FracturingCalc.astro auf /fracturing.html. Das
+// war eine ausdrueckliche Entscheidung, keine Auslassung — diese Werkbank
+// beantwortet „welches Erz, wo, was ist es wert?", der Rechner „krieg ich
+// es auf?". Wer hier wieder ein Urteil einbaut, dreht das zurueck.
+// Verbunden sind die beiden nur ueber ?mineral=<Name>, in beide Richtungen.
+//
+// FALLEN, die hier bewusst umgangen sind:
+//  · Astro 5.18 verschluckt das schliessende Tag, wenn ein Element auf
+//    OBERSTER Template-Ebene einen {ausdruck} als Kind hat -> set:text.
+//  · `:global()` ist in `<style is:inline>` kein CSS und wird still verworfen.
+//  · KEINE eigenen Farbtoken: build-light-palettes.mjs kennt nur eine feste
+//    Namensliste (theme-color.mjs:194ff) und ignoriert alles andere still.
+//    Alle Flaechen kommen aus den bestehenden Token, Zwischenstufen ueber
+//    color-mix. Zustandsfarben ueber `currentColor` + `color`, weil
+//    build-light-overrides.mjs:85 zwar `color` abdeckt, aber NICHT
+//    `background`.
+//  · KEIN `clip-path` auf Paneelen: die Paarung clip-path ueber
+//    backdrop-filter drueckte den Menue-Eintritt schon einmal auf 840 ms.
+//    Die angeschraegte Ecke entsteht aus einem Pseudo-Element mit Verlauf.
+//  · id="db" ist PFLICHT: miningLinks.ts:129 erzeugt aus der Crafting-DB
+//    ueber 8000 Tieflinks der Form ?mineral=<Name>#db.
+//  · Jeder innen scrollende Kasten muss in die Selektorliste in
+//    assets/mobile-ux.css, sonst blendet theme.css seine Leiste aus.
+import DB from '../../assets/mining-db.json';
+import MODEL from '../../assets/mining-model.json';
+import ToolHelp from './ToolHelp.astro';
+import { versioned } from '../lib/assetVersion';
+import { blueprintsPerMineral, craftingPath } from '../lib/miningLinks';
+import { buildMiningShips } from '../lib/miningShips';
+import { href } from '../i18n/ui';
+import { useHelp, type HelpKey } from '../i18n/help';
+
+interface Props { lang: 'de' | 'en'; }
+const { lang } = Astro.props;
+const de = lang === 'de';
+/* Stufe 2 des Werkzeug-Hilfe-Vertrags. Fehlte in der zweiten Fassung
+   vollstaendig: 0 data-help gegen 8-10 in jedem anderen Werkzeug, und der
+   Knopf „Elemente erklaeren" hob deshalb nur die drei Anker des
+   RefineryFinders weit unterhalb hervor. verify:help sah es nicht, weil
+   Zusicherung 6 pro SEITE zaehlte statt pro Werkzeug. */
+const h = useHelp(lang);
+const hlp = (k: string) => h(`mining.ctl.${k}` as HelpKey);
+
+const elemByName: Record<string, any> = {};
+for (const e of (MODEL.elements as any[])) elemByName[e.name] = e;
+
+const RAR_ORDER = ['legendary', 'epic', 'rare', 'uncommon', 'common'];
+const rarIdx = (r: string | null) => {
+  const i = RAR_ORDER.indexOf(r || '');
+  return i < 0 ? RAR_ORDER.length : i;
+};
+
+/* Ertragsprofile: fuer jedes Erz die Stationen nach Aufschlag sortieren.
+   Das ist die Antwort auf „wo bringe ich DAS hin?" und stand bisher nirgends. */
+const refineries = (MODEL.refineries as any[]).map((r) => ({ n: r.name, s: r.system, p: r.profileId }));
+const profiles = MODEL.refineryProfiles as Record<string, Record<string, number>>;
+
+const minerals = (DB.minerals as any[])
+  .map((m) => {
+    const e = elemByName[m.name] || {};
+    return {
+      name: m.name, code: m.code, kind: m.kind,
+      rarity: m.rarity || null, method: m.method, methods: m.methods || [],
+      refine: !!m.needs_refine, systems: m.systems || [], scu: m.weight_scu,
+      // ms = hoechster Massenanteil ("bis X %"), ef = Erwartungswert des Anteils.
+      // ef rangiert die Fundorte; ms allein taugt dafuer nicht, weil es je Erz oft
+      // an allen Fundorten identisch ist.
+      locs: (m.locations || []).map((l: any) => ({
+        p: l.location, s: l.system, t: l.type, mi: l.mining, ms: l.maxShare, ch: l.chance, ef: l.eff,
+      })),
+      sig: e.scanSignature || null,
+      bp: blueprintsPerMineral[m.name] || 0,
+    };
+  })
+  .sort((a, b) => rarIdx(a.rarity) - rarIdx(b.rarity) || a.name.localeCompare(b.name));
+
+const sel = minerals[0];
+const RAR_LBL: Record<string, { de: string; en: string }> = {
+  legendary: { de: 'legendär', en: 'legendary' }, epic: { de: 'episch', en: 'epic' },
+  rare: { de: 'selten', en: 'rare' }, uncommon: { de: 'ungewöhnlich', en: 'uncommon' },
+  common: { de: 'häufig', en: 'common' },
+};
+const rarLbl = (r: string | null) => (r && RAR_LBL[r] ? RAR_LBL[r][lang] : de ? 'ohne Stufe' : 'no tier');
+
+/* Die zweite Fassung haengte `ships.slice(0,3)` an JEDES Erz — Prospector,
+   MOLE und Golem standen also auch unter den elf Erzen, die sich gar nicht
+   per Schiff abbauen lassen. Die Daten kennen vier Methoden: ship (26),
+   roc (4), fps (4), hand (3). Ein Verweis erscheint nur noch da, wo das
+   Fahrzeug die Methode auch bedient; Hand-Erze bekommen keinen. */
+const shipsAll = buildMiningShips(lang);
+const VEHICLE_FOR: Record<string, string[]> = {
+  ship: ['misc-prospector', 'argo-mole', 'drak-golem'],
+  roc: ['grin-roc', 'grin-roc-ds'],
+};
+const shipsByMethod: Record<string, any[]> = {};
+for (const [meth, ids] of Object.entries(VEHICLE_FOR)) {
+  shipsByMethod[meth] = ids
+    .map((id) => shipsAll.find((s: any) => s.id === id))
+    .filter(Boolean)
+    .map((s: any) => ({ n: s.name, h: s.href, ore: s.ore }));
+}
+
+const fracturingPath = href('/fracturing.html', lang);
+
+/* Zwei benannte Konstanten statt eines `de ? {…} : {…}`-Ternarys: ein in nur
+   einem Zweig vergessener Schluessel fiel bislang erst im Browser der ANDEREN
+   Sprache auf. Die Pruefung darunter bricht das stattdessen beim Bauen ab —
+   Vorbild und Begruendung: assertHelpParity() in src/i18n/help.ts, seit
+   Phase 01.2 im selben Amt. */
+const S_DE = {
+  minerals: 'Minerale', view: 'Ansicht', signatures: 'Signaturen', locations: 'Fundorte',
+  search: 'Mineral suchen',
+  scanPlaceholder: 'Scanwert', pinHint: 'Auf einer Erz-Kachel links den Anheft-Knopf drücken — oder oben am gewählten Erz „Anheften". Diese Spalte zeigt dann seine Signatur mal Clustergröße.',
+  presets: 'Presets', presetNone: '— kein Preset —', presetSave: 'Speichern',
+  presetDel: 'Löschen', presetName: 'Name des Presets', presetCancel: 'Abbrechen',
+  presetGuest: 'Zusammenstellungen speichern:', presetLogin: 'anmelden',
+  presetSaved: 'Gespeichert.', presetDeleted: 'Gelöscht.',
+  presetEmpty: 'Erst Erze oder Fundorte anheften, dann speichern.', presetFail: 'Speichern fehlgeschlagen.',
+  signature: 'Signatur',
+  station: 'Station', fracturing: 'Fracturing-Rechner', fracturingGo: 'Bricht der Brocken? →',
+  none: '—', pin: 'Anheften', unpin: 'Lösen', noLocs: 'Keine Fundorte bekannt.',
+  locPinsEmpty: 'Noch keine Fundorte angeheftet. Bei einem Erz mit Fundorten die Nadel neben einer Zeile drücken.',
+  locPinsFull: 'Die Merkliste ist voll (128 Fundorte). Erst einen lösen, dann neu anheften.',
+  ship: 'Schiff', hand: 'Hand', roc: 'ROC', refinable: 'raffinierbar',
+  chance: 'Chance', upTo: 'bis',
+  bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl',
+  usedIn: 'Blueprints', ships: 'Schiffe', openCrafting: 'Crafting öffnen',
+};
+const S_EN = {
+  minerals: 'Minerals', view: 'View', signatures: 'Signatures', locations: 'Locations',
+  search: 'Search mineral',
+  scanPlaceholder: 'Scan value', pinHint: 'Hit the pin button on an ore tile at the left — or “Pin” above the selected ore. This column then shows its signature times cluster size.',
+  presets: 'Presets', presetNone: '— no preset —', presetSave: 'Save',
+  presetDel: 'Delete', presetName: 'Preset name', presetCancel: 'Cancel',
+  presetGuest: 'Save your sets:', presetLogin: 'sign in',
+  presetSaved: 'Saved.', presetDeleted: 'Deleted.',
+  presetEmpty: 'Pin some ores or locations first, then save.', presetFail: 'Saving failed.',
+  signature: 'Signature',
+  station: 'Station', fracturing: 'Fracturing calculator', fracturingGo: 'Will it break? →',
+  none: '—', pin: 'Pin', unpin: 'Unpin', noLocs: 'No locations known.',
+  locPinsEmpty: 'No locations pinned yet. On an ore with locations, hit the pin next to a row.',
+  locPinsFull: 'The shortlist is full (128 locations). Unpin one before pinning another.',
+  ship: 'Ship', hand: 'Hand', roc: 'ROC', refinable: 'refinable',
+  chance: 'chance', upTo: 'up to',
+  bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick',
+  usedIn: 'Blueprints', ships: 'Ships', openCrafting: 'Open crafting',
+};
+
+/* Bricht den Build ab, statt eine Sprache mit fehlendem Schluessel stumm
+   auszuliefern (leerer Text bzw. "undefined" im HTML). Laeuft fuer JEDEN
+   Aufruf der Komponente (also fuer beide Sprachseiten je einmal) — das
+   reicht, weil beide Zweige feste Objektliterale sind, keine Laufzeitdaten. */
+function assertMiningLangParity(): void {
+  const deKeys = Object.keys(S_DE);
+  const enKeys = Object.keys(S_EN);
+  const deSet = new Set(deKeys);
+  const enSet = new Set(enKeys);
+  const missingInEn = deKeys.filter((k) => !enSet.has(k));
+  const missingInDe = enKeys.filter((k) => !deSet.has(k));
+  if (missingInEn.length || missingInDe.length) {
+    throw new Error(
+      `MiningWorkbench: Sprachschluessel von DE und EN weichen ab. ` +
+        `Fehlt in EN: ${missingInEn.join(', ') || '—'}; fehlt in DE: ${missingInDe.join(', ') || '—'}`
+    );
+  }
+}
+assertMiningLangParity();
+
+const S = de ? S_DE : S_EN;
+
+const payload = {
+  lang, minerals, refineries, profiles, t: S,
+  rar: Object.fromEntries(Object.entries(RAR_LBL).map(([k, v]) => [k, v[lang]])),
+  craftingPath: href(craftingPath, lang),
+  fracturingPath,
+  shipsByMethod,
+};
+const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
+---
+
+<section class="wb" id="db" data-wb>
+  {/* EIN Symbol fuer 38 Knoepfe (37 Kacheln + der grosse am gewaehlten Erz).
+      Als <use>-Verweis statt 38-mal dasselbe Pfad-d im HTML — und als Symbol
+      statt Schriftzeichen, weil „☆/★" in jeder Schrift anders aussieht, nicht
+      zur Strichstaerke der uebrigen Symbole passt und sich nicht faerben
+      laesst wie ein Icon. Der Zustand kommt NICHT aus einem zweiten Symbol,
+      sondern aus `.is-on` am Knopf: das Skript tauscht damit kein Markup mehr
+      aus. Reissbrettnadel, nicht Stern — die Handlung heisst „Anheften". */}
+  <svg class="wb__sprite" aria-hidden="true" focusable="false" width="0" height="0">
+    <symbol id="wb-i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9.5 3h5M11 3v6.2L7.4 13h9.2L13 9.2V3M12 13v8" />
+    </symbol>
+  </svg>
+
+  <div class="wb__grid">
+
+    <!-- ========================================= Spalte 1: alle 37 Erze -->
+    <div class="wb__pane wb__pane--list chamf">
+      <div class="wb__filters">
+        <ToolHelp tool="mining" lang={lang} steps={4} />
+        <div class="wb__frow">
+          <input class="wb__search" id="wb-q" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
+          <span class="wb__c" id="wb-count">{minerals.length}</span>
+        </div>
+        {/* Der Chip „nur brechbar" stand hier bis 12.08. mit daneben — er
+            urteilte ueber eine Ausruestung, die es auf dieser Seite nicht
+            mehr gibt, und ist mit dem Rechner umgezogen. */}
+        <div class="wb__chips" data-help={hlp('system')}>
+          {systems.map((s) => (<button type="button" class="wb__chip" data-sys={s} set:text={s} />))}
+        </div>
+      </div>
+      {/* Kachelraster, seit 12.08.2026 in GROSS. Vorher: 79x41 px, Name auf
+          rund 54 px beschnitten, Anheft-Ziel 28 px in der Ecke ueber der
+          Signatur. Der Nutzer hat das zweimal als zu klein gemeldet — beim
+          zweiten Mal ausdruecklich mit „wir haben da genug platz".
+          Jetzt vier statt fuenf Spalten in einer breiteren Saeule: der Name
+          bekommt die volle Kachelbreite (rund 94 px), Signatur und
+          Anheft-Knopf teilen sich die zweite Zeile.
+          ⚠ Das kostet die alte Zusage „alle 37 ohne Scrollen bei 1280x720":
+          bei 1920x1080 stehen weiterhin alle 37 im Bild, bei 1280x720 scrollt
+          die Liste. Gemessen und begruendet in
+          .planning/notes/signaturliste-anheften.md. */}
+      <div class="wb__scroll" id="wb-list">
+        <div class="wb__tiles" data-help={hlp('tiles')}>
+          {minerals.map((m) => (
+            <div class={`wb__tile${m.name === sel.name ? ' is-sel' : ''}`} data-min={m.name} role="button" tabindex="0" title={m.name}>
+              <span class="wb__tn" set:text={m.name} />
+              <span class="wb__ts num" set:text={m.sig ? String(m.sig) : '—'} />
+              <button type="button" class="wb__pin" data-pin={m.name} aria-pressed="false" aria-label={`${S.pin}: ${m.name}`}>
+                <svg class="wb__pin__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================= Spalte 2: Ansicht -->
+    {/* Bis 14.08.2026 zwei Teilspalten (wb__pane--a/wb__pane--b) in
+        `.wb__mid{grid-template-columns:1fr 1fr}`. Seit der Fundort-Korrektur
+        hat ein Erz bis zu 27 Fundorte (gemessen 15.08., vorher stand „bis zu
+        21" in CONTEXT.md), die schmale Bahn reichte dafuer nicht mehr — jetzt
+        EIN Paneel, EINE Bahn: Kopf, Fundorte, Beste Stationen (D-01..D-03).
+        Physik, Qualitaetsstufen und „Steine mit diesem Erz" sind mit der
+        Detailspalte ersatzlos gestrichen, nicht verschoben. */}
+    <div class="wb__pane wb__pane--mid chamf">
+      <div class="wb__id">
+        <div class="wb__idrow">
+          <div class="wb__idl">
+            <h2 id="wb-name" set:text={sel.name} />
+            <div class="wb__tags" id="wb-tags"></div>
+          </div>
+          <div class="wb__sigbox">
+            <span class="wb__lbl" set:text={S.signature} />
+            <b class="num" id="wb-sig" set:text={sel.sig ? String(sel.sig) : S.none} />
+          </div>
+          {/* Der zweite, grosse Weg am gerade gewaehlten Erz. Traegt
+              `data-pin` erst zur Laufzeit; der delegierte Klick-Handler
+              erkennt ihn dadurch ohne Sonderfall. */}
+          <button type="button" class="wb__pinbig" id="wb-pinsel" aria-pressed="false" data-help={hlp('pinbtn')}>
+            <svg class="wb__pinbig__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg>
+            <span id="wb-pinsel-txt" set:text={S.pin} />
+          </button>
+        </div>
+      </div>
+      <div class="wb__scroll">
+        <div class="wb__sec"><h4 id="wb-loch" set:text={S.locations} /><div class="wb__locs" id="wb-locs" data-help={hlp('locpin')}></div></div>
+        <div class="wb__sec"><h4 set:text={S.bestRef} /><div class="wb__refs" id="wb-refs"></div></div>
+        <div class="wb__sec"><div class="wb__links" id="wb-links"></div></div>
+      </div>
+    </div>
+
+    <!-- =========================================== Spalte 3: Signaturen -->
+    <div class="wb__pane wb__pane--sig chamf">
+      {/* Zwei Reiter teilen sich die Spalte: Signaturen (Scan-Zuordnung) und
+          die erz-uebergreifende Fundort-Merkliste (D-06). ⚠ `data-tab`, NICHT
+          `data-seg` — das gehoert der mobilen Segmentleiste aus mountSeg()
+          und wuerde dort kollidieren. */}
+      <div class="wb__tabs" id="wb-tabbar" role="tablist" data-help={hlp('tabs')}>
+        <button type="button" class="wb__chip wb__tab is-on" id="wb-tab-sig" data-tab="sig"
+                role="tab" aria-selected="true" aria-controls="wb-sig-pane" set:text={S.signatures} />
+        <button type="button" class="wb__chip wb__tab" id="wb-tab-loc" data-tab="loc"
+                role="tab" aria-selected="false" aria-controls="wb-loc-pane" set:text={S.locations} />
+      </div>
+
+      {/* Presets — benannte Zusammenstellungen BEIDER Listen, kontogebunden
+          (Tabelle mining_sig_presets, RLS wie crafting_entries). Bewusst
+          AUSSERHALB beider Reiter: das ist die sichtbare Form von „ein
+          gemeinsames Preset-System" (D-04).
+          ⚠ Die ANGEHEFTETEN Listen selbst bleiben im localStorage: sie sind
+          der Arbeitsstand und muessen ohne Konto funktionieren. Ans Konto
+          geht nur, was man benennt und wieder aufruft. Zwei getrennte Dinge;
+          sie in einen Topf zu werfen hiesse, Gaesten das Anheften wegzunehmen.
+          Serverseitig steht hier der Gast-Zustand — welcher Fall gilt, weiss
+          erst der Browser (VBAccount.session()). */}
+      <div class="wb__pre" id="wb-pre" data-help={hlp('presets')}>
+        <div class="wb__pre__row" id="wb-pre-pick" hidden>
+          <select class="wb__pre__sel" id="wb-preset" aria-label={S.presets}>
+            <option value="" set:text={S.presetNone} />
+          </select>
+          <button type="button" class="wb__pre__b" id="wb-pre-new" title={S.presetSave} aria-label={S.presetSave}>+</button>
+          <button type="button" class="wb__pre__b" id="wb-pre-del" title={S.presetDel} aria-label={S.presetDel} disabled>×</button>
+        </div>
+        {/* Eigene Zeile statt window.prompt(): der Dialog ist in vielen
+            Browsern unterdrueckt, sieht ueberall anders aus und laesst sich
+            nicht beschriften. */}
+        <div class="wb__pre__row" id="wb-pre-edit" hidden>
+          <input class="wb__pre__in" id="wb-pre-name" type="text" maxlength="60" placeholder={S.presetName} aria-label={S.presetName} />
+          <button type="button" class="wb__pre__b is-go" id="wb-pre-ok" title={S.presetSave} aria-label={S.presetSave}>✓</button>
+          <button type="button" class="wb__pre__b" id="wb-pre-cancel" title={S.presetCancel} aria-label={S.presetCancel}>×</button>
+        </div>
+        <p class="wb__pre__msg" id="wb-pre-msg" hidden></p>
+        <p class="wb__pre__guest" id="wb-pre-guest">
+          <span set:text={S.presetGuest} /> <a id="wb-pre-login" href="#" set:text={S.presetLogin} />
+        </p>
+      </div>
+
+      <div id="wb-sig-pane" class="wb__tabpane" role="tabpanel" aria-labelledby="wb-tab-sig">
+        <div class="wb__scanbox">
+          <input class="wb__scan num" id="wb-scan" type="text" inputmode="numeric" placeholder={S.scanPlaceholder} aria-label={S.scanPlaceholder} data-help={hlp('scan')} />
+        </div>
+        <div class="wb__scroll" id="wb-pins" data-help={hlp('pins')}></div>
+      </div>
+
+      <div id="wb-loc-pane" class="wb__tabpane" role="tabpanel" aria-labelledby="wb-tab-loc" hidden>
+        <div class="wb__scroll" id="wb-locpins" data-help={hlp('shortlist')}></div>
+      </div>
+    </div>
+  </div>
+
+  {/* Aus der Rig-Leiste ist eine Fusszeile geworden: geblieben ist die
+      Station — sie gehoert zum Ertrag, nicht zum Brechen — und daneben der
+      Weg zum Rechner. Der Verweis ist kein Zierrat: die Brechbarkeit war
+      hier eine sichtbare Zusage, und wer sie sucht, muss erfahren, wohin sie
+      gegangen ist, statt sie fuer geloescht zu halten. */}
+  <div class="wb__rig chamf">
+    <label class="wb__rgrp"><span class="wb__lbl" set:text={S.station} />
+      <select class="wb__sel" id="wb-ref" data-help={hlp('station')}>{refineries.map((r, i) => (<option value={String(i)} set:text={r.n} />))}</select>
+    </label>
+    <a class="wb__frac" id="wb-frac" href={fracturingPath} data-help={hlp('fracturing')}>
+      <span class="wb__frac__ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13H11l-1 9 9.5-12H13z"/></svg>
+      </span>
+      <span class="wb__frac__t"><b set:text={S.fracturing} /><span class="wb__lbl" id="wb-frac-ore" set:text={sel.name} /></span>
+      <span class="wb__frac__go" set:text={S.fracturingGo} />
+    </a>
+  </div>
+</section>
+
+<script type="application/json" id="wb-data" set:html={JSON.stringify(payload)}></script>
+<script is:inline src={versioned('assets/mining-workbench.js', '/assets/mining-workbench.js')}></script>
+
+<style is:inline>
+.wb{max-width:1560px;margin:0 auto;padding:0 clamp(1rem,4vw,2rem) 1.4rem;
+  display:flex;flex-direction:column;gap:10px;font-family:var(--font-ui,system-ui);
+  line-height:1.3;position:relative;isolation:isolate;
+  /* Alles, was oberhalb und unterhalb des Rasters Hoehe kostet: Titelstreifen,
+     Rig-Leiste, Abstaende. Steht als Variable, weil die Rig-Leiste je nach
+     Breite umbricht und dann mehr braucht — s. die Medienabfragen unten. */
+  --wb-chrome:236px}
+/* Grund: kein Foto, aber auch keine tote Flaeche — zwei Rastermassstaebe,
+   zwei Lichtabfaelle, Vignette. Gibt dem Weichzeichner der Paneele etwas zu
+   tun und nimmt der Seite das Prototyp-Grau. */
+.wb::before{content:'';position:absolute;inset:-8px 0 0;z-index:-1;pointer-events:none;
+  background:
+    linear-gradient(114deg,transparent 18%,color-mix(in srgb,var(--text) 5%,transparent) 38%,transparent 58%),
+    radial-gradient(120% 85% at 72% 2%,color-mix(in srgb,var(--accent) 15%,transparent),transparent 58%),
+    radial-gradient(95% 75% at 6% 98%,color-mix(in srgb,var(--accent-2) 12%,transparent),transparent 60%),
+    repeating-linear-gradient(0deg,color-mix(in srgb,var(--text) 6%,transparent) 0 1px,transparent 1px 170px),
+    repeating-linear-gradient(90deg,color-mix(in srgb,var(--text) 6%,transparent) 0 1px,transparent 1px 170px),
+    repeating-linear-gradient(0deg,color-mix(in srgb,var(--text) 3%,transparent) 0 1px,transparent 1px 34px),
+    repeating-linear-gradient(90deg,color-mix(in srgb,var(--text) 3%,transparent) 0 1px,transparent 1px 34px);
+  mask-image:radial-gradient(130% 100% at 50% 42%,#000 44%,transparent 100%)}
+
+.wb__lbl{font-size:var(--fs-4);font-weight:500;color:color-mix(in srgb,var(--muted) 88%,transparent);letter-spacing:var(--ls-4)}
+.num{font-family:var(--font-mono,ui-monospace);font-variant-numeric:tabular-nums}
+
+/* Glas nur an den tragenden Flaechen (5 Layer), nicht an jeder Kachel. */
+.wb__pane,.wb__rig{
+  background:color-mix(in srgb,var(--surface) 78%,transparent);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);
+  border-radius:12px;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 8%,transparent),
+    0 3px 14px color-mix(in srgb,var(--ink) 40%,transparent);
+  display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;position:relative}
+/* Angeschraegte Ecke OHNE clip-path (die Paarung mit backdrop-filter kostete
+   schon einmal 520 ms): ein Pseudo-Element mit 45deg-Verlauf fuellt sie. */
+.chamf::after{content:'';position:absolute;top:-1px;right:-1px;width:14px;height:14px;
+  pointer-events:none;z-index:3;
+  background:linear-gradient(45deg,transparent 0 calc(50% - .5px),
+    color-mix(in srgb,var(--accent) 40%,transparent) calc(50% - .5px) calc(50% + .5px),
+    var(--bg) calc(50% + .5px) 100%)}
+
+/* 470/262 statt 420/232 (12.08.2026): die Erzliste braucht die Breite fuer
+   groessere Kacheln, die Signaturenspalte fuer die Preset-Zeile. Die 80 px
+   kommen aus der Mittelspalte, die seit dem Auszug des Fracturing-Rechners
+   Luft hat. */
+.wb__grid{display:grid;grid-template-columns:470px 1fr 262px;gap:10px;min-height:0;
+  /* 236 statt 226: am gebauten Stand nachgemessen lief die Werkbank bei
+     1920x1080 acht Pixel ueber die Fensterunterkante. Die Konstante deckt
+     Titelstreifen, Rig-Leiste und Abstaende ab; bei 1280x720 bleiben damit
+     rund 25 px Luft, bei 1080 rund 2. */
+  height:clamp(430px,calc(100vh - var(--wb-chrome)),980px)}
+.wb__scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
+
+/* ---------------- Spalte 1: Kachelraster, alle 37 ---------------- */
+.wb__filters{flex:0 0 auto;padding:9px 10px;display:flex;flex-direction:column;gap:7px;position:relative}
+.wb__filters .tool-help__summary{padding:6px 10px;font-size:var(--fs-5);line-height:1.3}
+/* Der Koerper liegt ueber dem Kachelraster, und tool-help.js klappt ihn beim
+   Erstbesuch von selbst auf (D-09) — der erste Eindruck ist also eine
+   teilweise zugedeckte Mineralliste. Der Kasten ist deshalb von 400 auf 244 px
+   eingeschnuert; ganz aufloesen laesst sich der Konflikt hier NICHT:
+   · Blosses Weiter-Einschnueren hilft nicht — das Raster ist nur rund 330 px
+     hoch und beginnt direkt unter der Filterleiste, jede fuer vier Schritte
+     brauchbare Hoehe deckt es zu.
+   · ⚠ NEBEN die Spalte legen (left:calc(100% + 10px)) ist eine SACKGASSE und
+     wurde vorgefuehrt: `.wb__pane` traegt `overflow:hidden`, der Kasten wird
+     dadurch restlos weggeschnitten und die Hilfe ist unsichtbar — schlimmer
+     als zugedeckt. Nicht noch einmal versuchen.
+   · Das Auto-Oeffnen abzustellen oder ToolHelp aus der Spalte zu heben, waere
+     ein Eingriff in den geteilten Vertrag bzw. ins Hoehenbudget — eine
+     Produktentscheidung, keine Fehlerbehebung. Steht als Sichturteil in
+     .planning/notes/mining-werkbank-defekte.md. */
+.wb__filters .tool-help[open] .tool-help__body{position:absolute;top:calc(100% - 4px);left:0;right:0;
+  z-index:14;background:var(--surface);border-radius:12px;line-height:1.45;
+  box-shadow:0 10px 30px color-mix(in srgb,var(--ink) 60%,transparent);
+  max-height:min(38vh,244px);overflow-y:auto;padding:10px 12px 12px}
+.wb__frow{display:flex;align-items:center;gap:8px}
+.wb__search{flex:1;min-width:0;background:color-mix(in srgb,var(--ink) 34%,transparent);border:0;
+  color:var(--text);padding:7px 10px;font-size:var(--fs-6);border-radius:7px;font-family:inherit}
+.wb__c{font-size:var(--fs-4);color:color-mix(in srgb,var(--muted) 88%,transparent);font-family:var(--font-mono,ui-monospace)}
+.wb__chips{display:flex;gap:5px;flex-wrap:wrap}
+.wb__chip{font-size:var(--fs-4);font-weight:500;padding:4px 9px;
+  background:color-mix(in srgb,var(--ink) 30%,transparent);border:0;color:var(--muted);
+  border-radius:999px;cursor:pointer;font-family:inherit;
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__chip:hover{background:color-mix(in srgb,var(--surface-2) 90%,var(--text));color:var(--text)}
+.wb__chip.is-on{background:var(--accent-2);color:var(--ink);font-weight:600}
+/* Vier Spalten statt fuenf, in einer 470 statt 420 px breiten Saeule: 110 px
+   je Kachel statt 79. Das ist der Platz, aus dem der Name seine volle Breite
+   und der Anheft-Knopf sein eigenes Feld bekommt. */
+.wb__tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:5px;padding:0 8px 8px}
+/* Zwei Zeilen: oben der Name ueber die GANZE Breite (vorher teilte er sie mit
+   nichts, war aber auf 54 px gedrueckt, weil der Stern rechts darueber lag),
+   unten Signatur und Anheft-Knopf nebeneinander. */
+.wb__tile{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:auto auto;gap:1px 6px;align-content:center;
+  padding:5px 6px 5px 9px;border-radius:8px;cursor:pointer;
+  background:color-mix(in srgb,var(--ink) 26%,transparent);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 5%,transparent);
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__tile:hover{background:color-mix(in srgb,var(--surface-2) 88%,var(--text))}
+.wb__tile.is-sel{background:color-mix(in srgb,var(--accent-2) 20%,transparent);
+  box-shadow:inset 0 0 0 1px var(--accent-2)}
+.wb__tn{grid-column:1/-1;font-size:var(--fs-5);font-weight:500;color:var(--text);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__ts{align-self:center;font-size:var(--fs-3);color:var(--accent)}
+/* ⚠ Zwei Fehlschlaege stecken in diesem Knopf, beide vom Nutzer gemeldet:
+   erst war er unsichtbar (opacity:0 + :hover — auf Touch existiert er dann
+   gar nicht), dann mit 28 px Tippziel „zu schwer". Er ist jetzt ein eigenes
+   Feld in der Kachel statt ein Aufkleber in der Ecke: 28x28 sichtbar, ueber
+   das Pseudo-Element 40x36 greifbar, und er verschiebt nichts mehr, weil das
+   Raster ihm seine Spalte gibt. Dauerhaft sichtbar, nur zurueckgenommen. */
+.wb__pin{grid-column:2;align-self:center;width:28px;height:28px;display:grid;place-items:center;
+  border:0;background:color-mix(in srgb,var(--ink) 34%,transparent);
+  color:color-mix(in srgb,var(--muted) 78%,transparent);
+  cursor:pointer;border-radius:7px;line-height:0;
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__pin__i{width:15px;height:15px;pointer-events:none}
+/* Tippziel ueber die sichtbare Flaeche hinaus. Nach aussen begrenzt die
+   Kachelkante, weil dort die Nachbarkachel obenauf liegt — deshalb 6 px
+   Polsterung rechts statt buendig. */
+.wb__pin::before{content:'';position:absolute;inset:auto -6px -5px auto;width:40px;height:36px}
+.wb__tile:hover .wb__pin{background:color-mix(in srgb,var(--ink) 55%,transparent);color:var(--text)}
+/* Angeheftet ist ein Zustand, kein Zeichenwechsel: dieselbe Sprache wie
+   .wb__chip.is-on und .wb__pinbig.is-on — gefuellte Flaeche in --accent-2. */
+.wb__pin.is-on{background:var(--accent-2);color:var(--ink)}
+.wb__tile:hover .wb__pin.is-on{background:var(--accent-2);color:var(--ink)}
+
+/* ---------------- Spalte 2 ---------------- */
+/* flex:0 0 auto: sonst staucht die Kopfzeile, wenn die Fundortliste unten
+   lang wird (bis zu 27 Fundorte je Erz, gemessen 15.08.2026). */
+.wb__id{padding:11px 14px 9px;flex:0 0 auto}
+.wb__idrow{display:flex;align-items:flex-start;gap:10px}
+.wb__id h2{font-size:var(--fs-13);font-weight:600;line-height:1.05;margin:0;color:var(--text);letter-spacing:var(--ls-1)}
+.wb__tags{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.wb__tag{font-size:var(--fs-3);padding:2px 7px;border-radius:999px;
+  background:color-mix(in srgb,var(--ink) 30%,transparent);color:var(--muted)}
+.wb__tag.is-rar{background:color-mix(in srgb,var(--accent-2) 18%,transparent);color:var(--accent-2)}
+.wb__sigbox{margin-left:auto;text-align:right}
+.wb__sigbox b{display:block;font-size:var(--fs-11);color:var(--accent);font-weight:600;line-height:1.1;margin-top:1px}
+/* Grosser Anheft-Knopf am gewaehlten Erz — der bequeme Weg in die
+   Signaturenliste. Deckender Grund ueber Variablen (Hellmodus, s. o.). */
+.wb__pinbig{display:inline-flex;align-items:center;gap:7px;align-self:center;white-space:nowrap;
+  padding:8px 13px;border:0;border-radius:9px;cursor:pointer;font-family:inherit;
+  font-size:var(--fs-5);font-weight:600;color:var(--text);
+  background:color-mix(in srgb,var(--ink) 34%,var(--surface));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--text) 12%,transparent);
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__pinbig:hover{background:color-mix(in srgb,var(--accent-2) 24%,var(--surface))}
+.wb__pinbig.is-on{background:var(--accent-2);color:var(--ink);box-shadow:none}
+.wb__pinbig__i{width:17px;height:17px;flex:0 0 auto}
+
+.wb__sec{padding:0 14px 11px}
+.wb__sec h4{font-size:var(--fs-4);font-weight:600;color:color-mix(in srgb,var(--muted) 88%,transparent);
+  margin:0 0 7px;padding-bottom:5px;position:relative}
+.wb__sec h4::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;
+  background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--text) 14%,transparent) 0 1px,transparent 1px 7px)}
+.wb__locs,.wb__refs{display:flex;flex-direction:column;gap:3px}
+.wb__row2{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;
+  padding:5px 9px;border-radius:7px;background:color-mix(in srgb,var(--ink) 22%,transparent)}
+.wb__row2 .p{font-size:var(--fs-5);font-weight:500;color:var(--text);display:block;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__row2 .s{font-size:var(--fs-3);color:color-mix(in srgb,var(--muted) 88%,transparent);display:block;margin-top:1px}
+.wb__row2 .r{display:flex;align-items:center;gap:8px}
+/* Nadelknopf je Fundort-Zeile — dieselbe Sprache wie .wb__pin.is-on (D-05):
+   gefuellte Flaeche in --accent-2, dunkles Symbol. Kleiner als .wb__pin
+   (22 statt 28 px), weil er neben Balken und Prozentwert in der Zeile steht,
+   nicht wie dort allein in einer Kachelspalte. Steht NUR in Fundort-Zeilen —
+   row2() erhaelt den siebten Parameter (pinKey) ausschliesslich beim
+   Zeichnen der Fundorte, die Stationszeilen bleiben sechsstellig. */
+.wb__lpin{flex:0 0 auto;width:22px;height:22px;display:grid;place-items:center;border:0;
+  background:color-mix(in srgb,var(--ink) 34%,transparent);
+  color:color-mix(in srgb,var(--muted) 78%,transparent);
+  cursor:pointer;border-radius:6px;line-height:0;
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__lpin__i{width:13px;height:13px;pointer-events:none}
+.wb__lpin.is-on{background:var(--accent-2);color:var(--ink)}
+/* Gefraeste Spur mit gezaehnter Fuellung statt glattem Balken. */
+.wb__bar{width:46px;height:5px;border-radius:3px;overflow:hidden;
+  background:color-mix(in srgb,var(--ink) 55%,transparent);
+  box-shadow:inset 0 1px 2px color-mix(in srgb,var(--ink) 70%,transparent)}
+.wb__bar i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--accent) 0 3px,transparent 3px 5px)}
+.wb__bar.amber i{background:repeating-linear-gradient(90deg,var(--accent-2) 0 3px,transparent 3px 5px)}
+/* 44 px reichten fuer „28–78 %" nicht: die Spanne brach ueber drei Zeilen um
+   (und stand vor der Rundung ohnehin als 28.29999923 da). */
+.wb__row2 em{font-size:var(--fs-4);color:var(--muted);font-style:normal;width:58px;text-align:right;
+  white-space:nowrap;font-family:var(--font-mono,ui-monospace)}
+/* Die in der Rig-Leiste gewaehlte Station. */
+.wb__row2.is-pick{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent-2) 60%,transparent)}
+.wb__links{display:flex;gap:6px;flex-wrap:wrap}
+.wb__link{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:7px;
+  background:color-mix(in srgb,var(--ink) 28%,transparent);color:var(--text);
+  font-size:var(--fs-5);text-decoration:none;
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__link:hover{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.wb__link b{color:var(--accent-2);font-family:var(--font-mono,ui-monospace)}
+
+/* ---------------- Spalte 3 ---------------- */
+/* Reiterleiste ueber Signaturen/Fundorte — Polsterung wie die Filterleiste
+   in Spalte 1, aber eine Zeile (der Container ist von Haus aus
+   flex-direction:row). Ueber die ID gestylt, nicht ueber ihre Markup-Klasse:
+   das Aussehen haengt an EINEM Element und braucht dafuer keinen zweiten
+   Treffer im Stilblock (is:inline zaehlt jedes Zeichen im ausgelieferten
+   HTML mit). */
+#wb-tabbar{flex:0 0 auto;display:flex;gap:5px;padding:9px 10px}
+.wb__tab{flex:1}
+/* Nur EIN Reiterkoerper ist je sichtbar. ⚠ Reihenfolge ist Pflicht: ohne die
+   zweite Regel schluege `display:flex` das `hidden`-Attribut — derselbe Fall
+   ist mit .wb__pre__row[hidden] schon geloest. */
+.wb__tabpane{display:flex;flex-direction:column;flex:1;min-height:0}
+.wb__tabpane[hidden]{display:none}
+.wb__scanbox{padding:9px 9px 8px}
+.wb__scan{width:100%;background:color-mix(in srgb,var(--ink) 40%,transparent);border:0;color:var(--accent);
+  padding:8px 10px;font-size:var(--fs-9);text-align:center;border-radius:7px;
+  box-shadow:inset 0 1px 3px color-mix(in srgb,var(--ink) 60%,transparent)}
+.wb__scan::placeholder{color:color-mix(in srgb,var(--muted) 80%,transparent);font-family:var(--font-ui,inherit);font-size:var(--fs-5)}
+/* Preset-Zeile. Zwei Zustaende teilen sich denselben Platz (Auswahl bzw.
+   Namenseingabe) — beide sind eine Zeile hoch, damit die Spalte nicht
+   springt, wenn man auf „+" drueckt. Kopfpolsterung neu (8 statt 0): die
+   Zeile sitzt jetzt direkt unter den Reitern statt unter dem Scan-Kasten. */
+.wb__pre{flex:0 0 auto;padding:8px 9px 8px}
+.wb__pre__row{display:flex;gap:5px;align-items:center}
+.wb__pre__row[hidden]{display:none}
+.wb__pre__sel,.wb__pre__in{flex:1;min-width:0;border:0;border-radius:7px;font-family:inherit;
+  font-size:var(--fs-4);padding:6px 8px;color:var(--text);
+  /* Deckend mischen — ein halbtransparenter Grund vererbt sich in Chrome an
+     die aufgeklappte Liste und rechnet sie ueber Weiss unleserlich. */
+  background:color-mix(in srgb,var(--ink) 34%,var(--surface))}
+.wb__pre__sel option{background:var(--surface);color:var(--text)}
+.wb__pre__b{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;border:0;
+  border-radius:7px;cursor:pointer;font-family:inherit;font-size:var(--fs-6);line-height:1;
+  background:color-mix(in srgb,var(--ink) 34%,transparent);color:var(--muted);
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__pre__b:hover:not(:disabled){background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text)}
+.wb__pre__b.is-go{background:color-mix(in srgb,var(--accent-2) 22%,transparent);color:var(--accent-2)}
+.wb__pre__b:disabled{opacity:.32;cursor:not-allowed}
+.wb__pre__msg{margin:5px 0 0;font-size:var(--fs-3);color:var(--accent-2)}
+.wb__pre__msg[hidden]{display:none}
+.wb__pre__guest{margin:0;font-size:var(--fs-3);line-height:1.4;
+  color:color-mix(in srgb,var(--muted) 88%,transparent)}
+.wb__pre__guest[hidden]{display:none}
+.wb__pre__guest a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+
+.wb__pin-item{padding:7px 9px;margin:0 6px 3px;border-radius:8px;
+  background:color-mix(in srgb,var(--ink) 22%,transparent)}
+.wb__pin-top{display:flex;align-items:center;gap:7px}
+.wb__pin-top .nm{font-size:var(--fs-5);font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__pin-top button{margin-left:auto;background:0;border:0;color:color-mix(in srgb,var(--muted) 80%,transparent);
+  cursor:pointer;font-size:var(--fs-6);line-height:1;padding:0 2px}
+/* Wertezeile der Fundort-Merkliste (O-3): System links, Chance/Hoechstanteil
+   rechts -- gebaut wie .wb__row2 .s und .wb__row2 em (Mono-Ziffern, gedaempfte
+   Farbe), damit beide Ansichten derselben Werte gleich aussehen. Kein neuer
+   Farbtoken: build-light-palettes.mjs kennt nur seine feste Namensliste. */
+.wb__lmeta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px}
+.wb__lmeta span{font-size:var(--fs-3);color:color-mix(in srgb,var(--muted) 88%,transparent);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__lmeta em{font-size:var(--fs-3);color:var(--muted);font-style:normal;
+  font-family:var(--font-mono,ui-monospace);white-space:nowrap;flex:0 0 auto}
+.wb__mult{display:flex;gap:3px;margin-top:5px}
+.wb__mult i{flex:1;font-family:var(--font-mono,ui-monospace);font-size:var(--fs-3);font-style:normal;
+  text-align:center;padding:3px 0;border-radius:5px;color:var(--muted);
+  background:color-mix(in srgb,var(--ink) 40%,transparent)}
+.wb__mult i.is-hit{background:var(--accent-2);color:var(--ink);font-weight:600}
+.wb__empty{padding:16px 12px;text-align:center;color:color-mix(in srgb,var(--muted) 88%,transparent);
+  font-size:var(--fs-4);line-height:1.55;margin:0}
+
+/* ---------------- Fusszeile ---------------- */
+/* Hiess bis 12.08. „Rig" und trug Laser, Module, Gadget, Felsmasse, Station
+   und das Messgeraet. Geblieben ist die Station; der Rest steht im
+   Fracturing-Rechner. ⚠ Ein Umbruch dieser Zeile kostet Hoehe, und daran
+   haengt ueber --wb-chrome, ob alle 37 Kacheln bei 1280x720 ohne Scrollen
+   ins Bild passen — bei zwei Kindern ist das jetzt reichlich weit weg, war
+   es mit sieben aber nicht (Messungen in
+   .planning/notes/mining-werkbank-rigbalken.md). */
+.wb__rig{flex:0 0 auto;flex-direction:row;align-items:center;gap:16px;flex-wrap:wrap;padding:9px 14px}
+.wb__rgrp{flex:0 0 auto;display:flex;flex-direction:column;gap:3px}
+.wb__rig::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;
+  background:repeating-linear-gradient(90deg,var(--accent-2) 0 5px,transparent 5px 10px);opacity:.5}
+/* ⚠ Der Grund MUSS deckend sein. Mit `…,transparent)` steht das Feld auf
+   Alpha 0,34 — und Chrome vererbt den Grund an die aufgeklappte Liste, die
+   dadurch durchscheinend ueber dem Seiteninhalt liegt (gemeldet als „beim
+   ersten Oeffnen optisch verbuggt"). Die `<option>` selbst hatten gar keinen
+   Grund (rgba(0,0,0,0)). Beides ueber Variablen gemischt, nicht fest
+   verdrahtet: build-light-overrides.mjs deckt `background` nicht ab. */
+.wb__sel{background:color-mix(in srgb,var(--ink) 34%,var(--surface));border:0;color:var(--text);
+  font-size:var(--fs-5);padding:6px 9px;cursor:pointer;max-width:260px;border-radius:7px;font-family:inherit}
+.wb__sel option{background:var(--surface);color:var(--text)}
+
+/* Der Weg zum Rechner. Kein Randhinweis, sondern die Antwort auf „wo ist die
+   Brechbarkeit hin?" — deshalb mit Erznamen, Ziel und Pfeil. */
+.wb__frac{margin-left:auto;display:flex;align-items:center;gap:11px;max-width:100%;
+  padding:8px 13px;border-radius:9px;text-decoration:none;
+  background:color-mix(in srgb,var(--ink) 30%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 30%,transparent);
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__frac:hover{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.wb__frac__ico{flex:0 0 auto;display:grid;place-items:center;color:var(--accent)}
+.wb__frac__t{min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.wb__frac__t b{font-size:var(--fs-5);font-weight:600;color:var(--text)}
+.wb__frac__t .wb__lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__frac__go{flex:0 0 auto;font-size:var(--fs-4);font-weight:600;color:var(--accent);white-space:nowrap}
+
+.wb__search:focus-visible,.wb__scan:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
+.wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible,
+.wb__pre__sel:focus-visible,.wb__pre__in:focus-visible,.wb__pre__b:focus-visible,
+.wb__frac:focus-visible,.wb__pinbig:focus-visible,.wb__lpin:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+/* Das Sprite traegt nur <symbol> und darf keinen Platz belegen. */
+.wb__sprite{position:absolute;width:0;height:0;overflow:hidden}
+
+.wb__seg{display:none}
+@media(max-width:1180px){
+  .wb__grid{grid-template-columns:1fr;height:auto}
+  .wb__pane{height:min(62vh,560px)}
+}
+@media(max-width:760px){
+  .wb__seg{display:flex;gap:5px;flex-wrap:wrap;padding-bottom:2px}
+  .wb__pane{height:auto}
+  .wb__scroll{max-height:70vh}
+  .wb__grid.has-seg{display:block}
+  .wb__grid.has-seg > .wb__pane{display:none}
+  .wb__grid.has-seg.seg-list > .wb__pane:first-of-type{display:flex}
+  .wb__grid.has-seg.seg-sig > .wb__pane:last-of-type{display:flex}
+  /* Die Ansichtsspalte ist seit 15.08.2026 selbst ein normales Paneel statt
+     eines eigenen Grid-Wrappers — die generische Zeile oben blendet sie also
+     schon aus; hier braucht es nur noch das Wieder-Einblenden fuer seg-view.
+     Ueber die Position (2. von 3 Paneelen) adressiert, wie die beiden
+     Nachbarregeln mit :first-of-type/:last-of-type — nicht ueber ihren
+     Klassennamen, den ein Stil-Kommentar sonst ein zweites Mal ins
+     ausgelieferte HTML schriebe (is:inline zaehlt jedes Zeichen mit). */
+  .wb__grid.has-seg.seg-view > .wb__pane:nth-of-type(2){display:flex}
+  /* Untereinander statt nebeneinander: der Verweis auf den Rechner traegt
+     drei Textstuecke und wird sonst zur Ellipsen-Wueste. */
+  .wb__rig{gap:10px}
+  .wb__rgrp,.wb__frac{width:100%}
+  .wb__rgrp .wb__sel{max-width:none}
+  .wb__frac{margin-left:0}
+}
+</style>

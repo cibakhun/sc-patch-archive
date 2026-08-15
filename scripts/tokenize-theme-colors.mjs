@@ -100,7 +100,27 @@ const COLOR = /#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b|rgba?\(\s*\d+\s*,\s*\d+\s*,\s
 function rewriteDecl(prop, value, ctx, hints, report) {
   let unresolved = false;
 
-  const out = value.replace(COLOR, (raw) => {
+  /* ---- var()-RUECKFAELLE SCHUETZEN ----------------------------------------
+     In `var(--chrome-solid, #05070d)` ist das #05070d ausdruecklich der Wert
+     fuer den Fall, dass es das Token NICHT gibt. Ersetzt man ihn durch genau
+     dieses Token, zeigt der Rueckfall auf sich selbst — `var(--chrome-solid,
+     var(--chrome-solid))` — und ist damit wertlos.
+
+     Genau das ist passiert: SiteNav.astro:555 traegt diese Selbstreferenz
+     bereits im Bestand, und ein erneuter Lauf hat am 11.08.2026 prompt die
+     naechste Stelle gleich mitgenommen. Kein Tor faengt das — es ist
+     syntaktisch gueltiges CSS, das nur im Ausnahmefall falsch ist.
+
+     Die Rueckfallwerte werden deshalb vor der Ersetzung ausmaskiert und
+     danach unveraendert zurueckgeschrieben. Verschachtelte Klammern (etwa
+     `var(--x, color-mix(...))`) sind mitgedacht. */
+  const guarded = [];
+  const guardedValue = value.replace(
+    /var\(\s*--[\w-]+\s*,((?:[^()]|\([^()]*\))*)\)/g,
+    (m) => '' + (guarded.push(m) - 1) + ''
+  );
+
+  const out = guardedValue.replace(COLOR, (raw) => {
     const s = raw.replace(/\s+/g, '');
     const rgba = /^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/.exec(s);
     const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(s);
@@ -196,11 +216,17 @@ function rewriteDecl(prop, value, ctx, hints, report) {
     return raw;
   });
 
+  // Geschuetzte var()-Rueckfaelle unveraendert zurueckschreiben. Der
+  // Endvergleich laeuft gegen den URSPRUENGLICHEN Wert, nicht gegen den
+  // maskierten — sonst gaelte jede Datei mit einem var()-Rueckfall als
+  // geaendert, obwohl sich nichts geaendert hat.
+  const restored = out.replace(/(\d+)/g, (_, i) => guarded[+i]);
+
   if (unresolved) {
     report.push({ prop, value, ctx });
     return null;
   }
-  return out === value ? null : out;
+  return restored === value ? null : restored;
 }
 
 /* ---- Ein CSS-Block (Inhalt eines <style>) umschreiben ---- */

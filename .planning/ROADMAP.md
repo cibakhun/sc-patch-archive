@@ -528,3 +528,104 @@ Phase 8 hängt ebenfalls an keiner Vorgängerphase und lief am 07.08.2026 durch.
 | 6. Schiffe: Rollen- und Merkmalsfilter | 3/3 | Complete | 2026-08-02 |
 | 7. Komponenten-Filter für Schiffe | 3/3 | Complete | 2026-08-03 |
 | 8. Bauteil-Kennwerte auf den Crafting-Karten | 3/3 | Complete | 2026-08-07 |
+
+### Phase 9: Mining-Werkbank: Fundort-Merkliste
+
+**Goal:** Die mittlere Spalte der Werkbank wird neu belegt. Die Detailspalte
+(`wb__pane--a`: Physik, Qualitätsstufen, „Steine mit diesem Erz") entfällt
+ersatzlos — diese Angaben werden später an anderer Stelle besser dargestellt.
+An ihre Stelle rückt die Fundorte-Liste (bisher `wb__pane--b`). Der dadurch
+frei werdende Platz nimmt ein neues Werkzeug auf: Zum ausgewählten Erz lassen
+sich einzelne Fundorte anheften; jedes angeheftete Paar erscheint dort als
+„Erz — Fundort" (z. B. „Quantainium — Aaron Halo"), auch über mehrere Erze
+hinweg. Die Merkliste ist unter einem Namen als Preset speicherbar,
+kontogebunden wie `mining_sig_presets`, und bleibt bestehen, solange das
+jeweilige Preset ausgewählt ist.
+**Requirements**: keine REQ-IDs in REQUIREMENTS.md — bindend sind stattdessen die
+Entscheidungen D-01 bis D-07 aus
+`.planning/phases/09-mining-werkbank-fundort-merkliste/CONTEXT.md` (gleicher Umgang wie
+in Phase 7).
+**Depends on:** Phase 8
+**Plans:** 2/2 plans executed
+
+Plans:
+
+- [x] 09-01-PLAN.md (Welle 1) — Leitschuss durch alle vier Schichten: Spalte `locations`
+  an `mining_sig_presets` (Altbestand laedt weiter), Mitte einspaltig mit umgehaengtem
+  Erz-Kopf, zweiter Reiter mit der Merkliste, EIN angehefteter Fundort ueberlebt den
+  Preset-Rundlauf — maschinell belegt gegen das echte Client-Skript; danach die toten
+  Reste der Detailspalte und ein Wachposten in `verify:mining` fuer den Paar-Schluessel
+
+- [x] 09-02-PLAN.md (Welle 2) — Ausbau: Werte je Paar (Chance, Hoechstanteil),
+  Loesen an beiden Enden, Gast-Arbeitsstand, Obergrenze mit Ansage; Hilfetexte und
+  Oberflaeche in DE und EN auf den neuen Stand; beide Torlaeufe (normal und Vorschau)
+  und die Sichtrunde benannt an den Betreiber
+
+Nachgemessen beim Zuschnitt (15.08.2026, gegen `assets/mining-db.json`): 37 Minerale,
+**521 Paare, 45 verschiedene Fundorte, Spitzenreiter Eisen mit 27** — die CONTEXT.md
+nennt „bis zu 21". Die Begruendung fuer die einspaltige Mitte wird dadurch staerker.
+Entschieden beim Zuschnitt (offener Punkt O-1 aus der CONTEXT.md): **ein Preset haelt
+beide Listen** — eine zweite Spalte `locations text[] not null default '{}'` an der
+bestehenden Tabelle, Primaerschluessel unangetastet. Getrennte Preset-Listen je Reiter
+haetten ein drittes Feld IM Primaerschluessel gebraucht, also Schluessel abbauen,
+Bestand nachtragen, Schluessel neu setzen — drei Schritte an fremden Nutzerdaten statt
+einem. Verlustfreiheit schlaegt die saubere Trennung.
+
+### Phase 10: Mining-Presets bedienbar machen
+
+**Goal:** Die in Phase 9 eingeführten Presets sind heute gefährlich und
+unfertig zu bedienen. Fünf Befunde des Betreibers, in seiner Reihenfolge:
+(1) Das `×` neben der Preset-Auswahl löscht **ohne Rückfrage** — und direkt
+daneben bedeutet dasselbe `×` in der Bearbeiten-Zeile „Abbrechen". Zwei
+gegensätzliche Wirkungen, ein Zeichen, dieselbe Stelle. Das hat bereits ein
+Preset gekostet. (2) Presets lassen sich nur anlegen und löschen, nicht
+bearbeiten: umbenennen, Inhalt überschreiben und einzelne Einträge entfernen
+fehlen. (3) Die Mittelspalte ist für eine einzelne Liste zu breit. (4) Die
+rechte Spalte zeigt über Reiter **entweder** Signaturen **oder** Fundorte —
+gewünscht war ein Nebeneinander; die Reiter entfallen, beide Listen stehen
+untereinander und sichtbar. (5) Das Preset-Dropdown (`<select>`) ist die
+falsche Form für diese Aufgabe. (6) Das Eingabefeld „Scanwert" entfällt
+ersatzlos — der Bedienweg ist im Spielfluss unrealistisch (anheften, scannen,
+Monitor wechseln, fünfstellig abtippen, während man im Belt steht); der
+übliche Weg ist näher ranfliegen, dann nennt der Scanner das Erz selbst. Die
+Signaturenliste samt Vielfachen bleibt als Nachschlagewerk erhalten.
+**Requirements**: TBD
+**Depends on:** Phase 9
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 10 to break down)
+
+### Phase 11: Geteilte Routen mit Spielerbewertung
+
+**Goal:** Ein Nutzer kann ein Preset auf der Seite veröffentlichen, andere
+können es ansehen, übernehmen und bewerten. Zweck ist nicht Geselligkeit,
+sondern eine Datenschicht, die aus den Spieldateien nicht zu holen ist: Die
+Fundortdaten sagen „Quantainium @ Aaron Halo, 2 % Chance, bis 78,3 %" — ob
+sich der Flug lohnt, wie voll der Ort ist und ob dort ständig jemand campt,
+weiß nur, wer ihn geflogen ist. Bewertete Routen sind die Brücke zwischen
+korrekten Zahlen und brauchbarem Rat.
+
+⚠ **Vor der Planung zu entscheiden** (bestimmt das Datenmodell):
+1. Urheberschaft — es gibt bereits öffentliche Profile `/pilot/<handle>`;
+   Veröffentlichen wäre damit eine Preisgabe der Identität.
+2. Bewertungsform — Daumen, Sterne oder „hat funktioniert"; eine Stimme je
+   Konto und Preset, sonst wertlos.
+3. Missbrauch — öffentliche Namensfelder sind ein Einfallstor für Spam und
+   Beleidigungen; es braucht mindestens einen Weg für den Betreiber, etwas
+   zu entfernen.
+4. Kopieren oder folgen — eine übernommene Route als eingefrorene Kopie
+   oder als Abonnement, das sich mitändert.
+
+⚠ **Reifegrad-Vorbehalt (gemessen 15.08.2026):** 7 Konten, 2 Favoriten, 2
+Signatur-Presets (alle vom Betreiber beim Testen). Ein Bewertungssystem
+braucht kritische Masse; mit dieser Nutzerzahl steht neben jeder Route eine
+Null. Das spricht nicht gegen den Bau, wohl aber dagegen, ihn vorzuziehen.
+**Requirements**: TBD
+**Depends on:** Phase 10
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 11 to break down)

@@ -137,9 +137,27 @@ for (const it of fallbackItems) {
 }
 
 // ---------- Verdict ----------
-const structuralIssues = locMissingLive + deadRows.length + wikiMissing;
+// FEHLER blockt, WARNUNG nicht — und ein Fehlalarm ist teurer als eine Lücke
+// (docs/maschinelle-validierung.md, Grundsatz 3).
+//
+// FEHLER sind nur Befunde über UNSERE Daten: ein Ort, den UEX nicht mehr
+// führt (locMissingLive) deutet auf einen Join-/Dedupe-Fehler des
+// Fetch-Skripts, eine tote Location auf einen veralteten Eintrag im Bestand.
+//
+// „Ort fehlt im Wiki" (wikiMissing) ist dagegen KEIN Befund über uns: das
+// Wiki pflegt seine Kaufpreis-Tabellen von Hand und hinkt nach jedem Patch
+// hinterher. Am 09.08.2026 waren es 128 solcher Orte — überwiegend die neuen
+// Nyx/Pyro-Gateways, die UEX längst kennt. Dieser Prüfer wäre damit dauerhaft
+// rot, ohne dass es je etwas zu reparieren gäbe; genau daran gewöhnt man sich
+// das Wegsehen an (siehe der Kommentar oben in audit-site.mjs). Es bleibt
+// eine WARNUNG — sichtbar, aber nicht blockierend. Preis-Drift ist ohnehin
+// Volatilität, kein Defekt.
+const structuralIssues = locMissingLive + deadRows.length;
 console.log('---');
+if (wikiMissing) {
+  console.log(`WARNUNG: ${wikiMissing} Orte kennt das Wiki nicht (UEX schon) — Wiki-Verzug, kein Fehler unserer Daten. Blockiert nicht.`);
+}
 console.log(structuralIssues === 0
   ? `OK: strukturell konsistent. Drift (Preis-Updates seit Snapshot ${db.pricesAsOf}): ${priceDrift + wikiDrift} Zeilen — mit sync:item-prices aktualisierbar.`
-  : `ANPASSUNG NÖTIG: ${locMissingLive} Orte nicht mehr live, ${wikiMissing} Orte nicht im Wiki, ${deadRows.length} tote Locations.`);
+  : `ANPASSUNG NÖTIG: ${locMissingLive} Orte nicht mehr live, ${deadRows.length} tote Locations.`);
 process.exit(structuralIssues === 0 ? 0 : 1);

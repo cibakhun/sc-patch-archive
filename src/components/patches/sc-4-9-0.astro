@@ -142,6 +142,20 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .manifest li{display:flex;gap:.7rem;align-items:baseline;border-left:2px solid rgba(227,170,75,.35);padding:.3rem 0 .3rem .7rem;color:var(--text)}
 .manifest .mk{color:var(--accent-2);flex:none;font-size:var(--fs-6);letter-spacing:var(--ls-11)}
 .manifest small{color:var(--muted);font-family:var(--font-body);font-size:var(--fs-7)}
+/* Auf schmalen Geraeten bekommt die Beschreibung eine eigene Zeile.
+   WARUM: Die Zeile ist ein Flex-Streifen aus Marke, Bauteilname und
+   Beschreibung. Ohne Umbruch quetscht Flex das <small> zusammen (bei 360px
+   auf 75px), und ein einzelnes langes Wort passt dann nicht mehr hinein —
+   „Maschendrahtzaun" braucht 129px und lief aus dem Kasten heraus. Weil
+   das Elternraster `min-width:auto` hat, wuchs der ganze Kasten auf die
+   Mindestinhaltsbreite (368px) und ragte 31px ueber den Bildschirm.
+   Gefunden vom Browser-Rauchtest am 09.08.2026; die ENGLISCHE Fassung war
+   unauffaellig, weil ihre Woerter kuerzer sind — eine Strukturpruefung der
+   Sprachpaare kann so etwas nicht sehen.
+   Gemessen: 360px 391 -> 360, Zeilenhoehe 133 -> 98. Bewusst nur bis 600px:
+   ab 400px passt die Zeile ohne Umbruch, und bei 1280px laeuft kein Text
+   aus seinem Kasten — dort waere der Umbruch eine Aenderung ohne Anlass. */
+@media(max-width:600px){.manifest li{flex-wrap:wrap}}
 .readout{display:grid;gap:.4rem;font-family:var(--font-mono);font-size:var(--fs-8)}
 .readout .row{display:flex;align-items:baseline;gap:.6rem}
 .readout dt{color:var(--muted);font-size:var(--fs-5);letter-spacing:var(--ls-12);text-transform:uppercase;flex:none}

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 003 — Mittelspalte: wie dicht darf sie werden?</title>
+<style>
+/* ============================================================================
+   SKIZZE 003 — „Mittelspalte" — passen fünf Inhaltsarten in eine Spalte?
+   Wegwerf-Mockup. Kein Produktionscode. Keine externen Anfragen.
+   ----------------------------------------------------------------------------
+   DIE FRAGE: Identität + Fundorte + Physik + Fracturing-Urteil + Refinery-
+   Ertrag in EINER Spalte. Skizze 002 hat den Rahmen ausgemessen und den
+   Engpass beziffert:
+
+       Platz  597 x 768 px   (Variante D bei 1280x720)
+       Inhalt 575 px         bei 7 von 10 Fundorten  -> +22 px Rest
+       Inhalt 647 px         bei ALLEN 10 Fundorten  -> -50 px, laeuft ueber
+
+   Hier steht deshalb IMMER Taranite mit ALLEN ZEHN Fundorten drin. Das ist der
+   Belastungsfall, nicht der Schoenwetterfall.
+
+   Der Rahmen ist auf exakt das Budget aus 002 gestellt: 768 x 597 px. Was
+   ueberlaeuft, sieht man sofort — die Messleiste oben beziffert es.
+
+   GESTALTUNG identisch zu Skizze 002 (Argo-Industrie x altes Regolith).
+   ============================================================================ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+
+:root{--mk-bg:#0c0f12;--mk-bg2:#151a1f;--mk-line:#293139;--mk-txt:#e6eaf2;--mk-dim:#8b96a8;--mk-hi:#6ee7ff}
+body{background:var(--mk-bg);color:var(--mk-txt);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+.mk-bar{position:sticky;top:0;z-index:80;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:9px clamp(10px,2vw,20px);background:var(--mk-bg2);border-bottom:1px solid var(--mk-line)}
+.mk-bar b{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mk-dim);font-weight:700}
+.mk-tabs{display:flex;gap:4px}
+.mk-tab{padding:6px 12px;border:1px solid var(--mk-line);background:#0f1317;color:var(--mk-dim);font-size:12px;border-radius:3px;cursor:pointer;transition:all .15s ease;white-space:nowrap}
+.mk-tab:hover{border-color:#3d4956;color:var(--mk-txt)}
+.mk-tab.on{background:#1d2731;border-color:var(--mk-hi);color:var(--mk-txt)}
+.mk-vp{display:flex;gap:4px}
+.mk-vp button{padding:6px 10px;border:1px solid var(--mk-line);background:#0f1317;color:var(--mk-dim);font-size:11px;border-radius:3px;cursor:pointer;font-family:ui-monospace,Consolas,monospace}
+.mk-vp button:hover{border-color:#3d4956;color:var(--mk-txt)}
+.mk-vp button.on{background:#1d2731;border-color:var(--mk-hi);color:var(--mk-txt)}
+#mk-read{font-family:ui-monospace,Consolas,monospace;font-size:11px;line-height:1.5;color:var(--mk-dim);margin-left:auto;text-align:right;white-space:pre}
+#mk-read .pass{color:#8FB339;font-weight:700}
+#mk-read .fail{color:#ff7a5c;font-weight:700}
+
+#stage{padding:16px clamp(10px,2vw,20px) 40px;display:flex;flex-direction:column;align-items:center}
+.holder{position:relative}
+.holder::before{
+  content:attr(data-cap);position:absolute;top:-15px;left:0;
+  font-family:ui-monospace,Consolas,monospace;font-size:10px;letter-spacing:.1em;color:var(--mk-dim);
+}
+.frame{background:var(--bg);border:1px solid #000;box-shadow:0 0 0 1px #2a3238,0 18px 50px rgba(0,0,0,.6);overflow:hidden;position:relative}
+.frame.b1280{width:768px;height:597px}   /* Mittelspalte-Budget aus 002 @1280x720 */
+.frame.b1366{width:854px;height:645px}   /* Mittelspalte-Budget aus 002 @1366x768 */
+/* Was ueber den Rahmen hinausragt, wird sichtbar abgeschnitten — mit Marke. */
+.frame::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:repeating-linear-gradient(90deg,#ff7a5c 0 6px,transparent 6px 12px);opacity:.5;
+}
+.variant{display:none}
+.variant.on{display:block}
+
+/* ======================================================== DER ENTWURF ==== */
+.wb{
+  --bg:#14181a;--bg-2:#181d1f;--surface:#1e2427;--surface-2:#252c30;
+  --accent:#2FBFA4;--amber:#E0A526;--amber-dk:#9c7413;
+  --text:#eaf2f1;--muted:#8fa3a0;--dim:#6b7d7a;--line:#2b3438;--line-hi:#39454a;
+  --ok:#8FB339;--warn:#E0A526;--bad:#B4543A;
+  --f-disp:'Bahnschrift Condensed','Segoe UI Semibold',system-ui,sans-serif;
+  --f-ui:'Bahnschrift SemiLight','Segoe UI',system-ui,sans-serif;
+  --f-body:'Segoe UI',system-ui,sans-serif;
+  --f-mono:'Cascadia Mono',Consolas,ui-monospace,monospace;
+  background:var(--bg);color:var(--text);font-family:var(--f-body);font-size:14px;
+  height:100%;display:flex;flex-direction:column;overflow:hidden;
+}
+.lbl{font-family:var(--f-mono);font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+.pane-head{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg-2);border-bottom:1px solid var(--line)}
+.pane-head .count{margin-left:auto;font-family:var(--f-mono);font-size:10px;color:var(--dim)}
+.body{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;scrollbar-width:thin;scrollbar-color:#3a4549 transparent}
+.body::-webkit-scrollbar{width:9px}
+.body::-webkit-scrollbar-thumb{background:#3a4549}
+.body::-webkit-scrollbar-track{background:#171c1e}
+.body.noscroll{overflow:hidden}
+
+.det-head{padding:10px 14px 8px;background:var(--bg-2);border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:12px}
+.det-head h2{font-family:var(--f-disp);font-size:22px;font-weight:700;letter-spacing:.02em;line-height:1.1}
+.det-head .tags{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.det-tag{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--line-hi);color:var(--muted);border-radius:2px}
+.det-tag.rar{border-color:var(--amber-dk);color:var(--amber)}
+.det-sig{margin-left:auto;text-align:right}
+.det-sig b{display:block;font-family:var(--f-mono);font-size:20px;color:var(--accent);font-weight:700;line-height:1}
+
+.verdict{display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--surface)}
+.verdict .big{display:flex;align-items:center;gap:8px}
+.verdict .big .lamp{width:14px;height:14px}
+.verdict .big span{font-family:var(--f-disp);font-size:16px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.verdict.ok .big span{color:var(--ok)}.verdict.warn .big span{color:var(--warn)}.verdict.bad .big span{color:var(--bad)}
+.verdict .bars{flex:1;display:flex;flex-direction:column;gap:4px;max-width:270px}
+.vbar{display:grid;grid-template-columns:60px 1fr 50px;align-items:center;gap:6px}
+.vbar .t{height:7px;background:#121618;border:1px solid var(--line);overflow:hidden}
+.vbar .t i{display:block;height:100%;background:var(--muted)}
+.vbar .t i.amber{background:var(--amber)}
+.verdict .ratio{margin-left:auto;text-align:right}
+.verdict .ratio b{font-family:var(--f-mono);font-size:22px;font-weight:700;line-height:1}
+.verdict.ok .ratio b{color:var(--ok)}.verdict.warn .ratio b{color:var(--warn)}.verdict.bad .ratio b{color:var(--bad)}
+.lamp{width:9px;height:9px;border-radius:1px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.05)}
+.lamp.ok{background:var(--ok)}.lamp.warn{background:var(--warn)}.lamp.bad{background:var(--bad)}
+
+.blk{border-bottom:1px solid var(--line)}
+.blk-h{display:flex;align-items:center;gap:8px;padding:6px 14px 4px}
+.blk-h .n{font-family:var(--f-mono);font-size:10px;color:var(--amber-dk);font-weight:700}
+.blk-b{padding:2px 14px 10px}
+/* Klebende Zwischenkoepfe — Variante A */
+.blk.sticky .blk-h{position:sticky;top:0;z-index:5;background:var(--bg);box-shadow:0 1px 0 var(--line)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:1px;background:var(--line)}
+.stat{background:var(--surface);padding:5px 9px}
+.stat b{display:block;font-family:var(--f-mono);font-size:14px;margin-top:2px}
+.stat.hot b{color:var(--amber)}
+
+.locs{display:flex;flex-direction:column;gap:1px;background:var(--line)}
+.loc{display:grid;grid-template-columns:1fr 60px 70px;align-items:center;gap:8px;background:var(--surface);padding:4px 9px;font-size:12.5px}
+.loc .p{font-family:var(--f-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loc .s{font-family:var(--f-mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.loc .a{display:flex;align-items:center;gap:5px}
+.loc .a .t{flex:1;height:5px;background:#121618;border:1px solid var(--line);overflow:hidden}
+.loc .a .t i{display:block;height:100%;background:var(--accent);opacity:.7}
+.loc .a em{font-family:var(--f-mono);font-size:10px;color:var(--muted);font-style:normal;width:26px;text-align:right}
+
+.refn{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)}
+.refn div{background:var(--surface);padding:5px 9px}
+.refn b{display:block;font-family:var(--f-mono);font-size:13px;margin-top:2px}
+.refn .net b{color:var(--ok)}
+.bands{display:flex;gap:2px;align-items:flex-end;height:30px}
+.bands i{flex:1;background:#232b2e;border-top:2px solid var(--line-hi)}
+.bands i.hi{background:#2e2a1b;border-top-color:var(--amber)}
+
+/* -------------------------------------------- Variante B: Aufklapper --- */
+.acc-h{display:flex;align-items:center;gap:8px;width:100%;padding:7px 14px;background:var(--bg);border:0;border-bottom:1px solid var(--line);cursor:pointer;text-align:left;transition:background .12s ease}
+.acc-h:hover{background:var(--surface)}
+.acc-h .n{font-family:var(--f-mono);font-size:10px;color:var(--amber-dk);font-weight:700}
+.acc-h .peek{margin-left:auto;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.acc-h .car{color:var(--dim);font-size:10px;transition:transform .15s ease}
+.acc.open .acc-h .car{transform:rotate(90deg)}
+.acc-b{display:none;border-bottom:1px solid var(--line);padding:6px 14px 10px}
+.acc.open .acc-b{display:block}
+
+/* ------------------------------------------- Variante C: Zweispaltig --- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);flex:1;min-height:0}
+.split > div{background:var(--bg);min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.split .colscroll{overflow-y:auto;flex:1;min-height:0;scrollbar-width:thin;scrollbar-color:#3a4549 transparent}
+.split .colscroll::-webkit-scrollbar{width:8px}
+.split .colscroll::-webkit-scrollbar-thumb{background:#3a4549}
+
+.vnote{max-width:900px;margin:14px auto 0;padding:10px 14px;background:#12171b;border:1px solid #232c33;border-left:3px solid var(--mk-hi);border-radius:2px;font-size:13px;line-height:1.65;color:#b8c4d2}
+.vnote b{color:var(--mk-txt)}
+.vnote code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#0c1013;padding:1px 5px;border-radius:2px;color:#9fd8c9}
+</style>
+</head>
+<body>
+
+<div class="mk-bar">
+  <b>Skizze 003</b>
+  <div class="mk-tabs">
+    <button class="mk-tab on" data-v="a">A — Ein Fluss, klebende Köpfe</button>
+    <button class="mk-tab" data-v="b">B — Urteil zuerst, Rest aufklappbar</button>
+    <button class="mk-tab" data-v="c">C — Zweispaltig in der Spalte</button>
+  </div>
+  <div class="mk-vp">
+    <button class="on" data-sz="b1280">768×597 (@1280)</button>
+    <button data-sz="b1366">854×645 (@1366)</button>
+  </div>
+  <div id="mk-read">messe…</div>
+</div>
+
+<div id="stage">
+  <div class="variant on" id="variant-a">
+    <div class="holder" data-cap="TARANITE · ALLE 10 FUNDORTE · MITTELSPALTEN-BUDGET AUS SKIZZE 002">
+      <div class="frame b1280" data-frame>
+        <div class="wb">
+          <div class="pane-head"><span class="lbl">Ansicht</span><span class="count">Taranite</span></div>
+          <div class="body" data-body data-mode="a"></div>
+        </div>
+      </div>
+    </div>
+    <div class="vnote">
+      <b>A — Ein durchgehender Fluss, Zwischenköpfe kleben beim Scrollen.</b>
+      Ehrlichste Variante: alles ist da, nichts versteckt, die Reihenfolge sagt
+      was wichtig ist. Kostet Scrollen für Refinery-Zahlen. <em>Wirklich scrollen</em>
+      und schauen, ob die klebenden Köpfe die Orientierung halten.
+    </div>
+  </div>
+
+  <div class="variant" id="variant-b">
+    <div class="holder" data-cap="TARANITE · ALLE 10 FUNDORTE · MITTELSPALTEN-BUDGET AUS SKIZZE 002">
+      <div class="frame b1280" data-frame>
+        <div class="wb">
+          <div class="pane-head"><span class="lbl">Ansicht</span><span class="count">Taranite</span></div>
+          <div class="body noscroll" data-body data-mode="b"></div>
+        </div>
+      </div>
+    </div>
+    <div class="vnote">
+      <b>B — Urteil und Kennzahlen immer sichtbar, der Rest hinter Aufklappern.</b>
+      Nichts scrollt. Jede Kopfzeile trägt eine <em>Kurzantwort</em> rechts
+      („10 Fundorte · bester 18 %"), damit Zugeklapptes nicht gleich unsichtbar
+      ist. <em>Blöcke auf- und zuklappen</em> — reicht die Kurzantwort, oder klappt
+      man sowieso alles auf und hat dann A mit Extraklicks?
+    </div>
+  </div>
+
+  <div class="variant" id="variant-c">
+    <div class="holder" data-cap="TARANITE · ALLE 10 FUNDORTE · MITTELSPALTEN-BUDGET AUS SKIZZE 002">
+      <div class="frame b1280" data-frame>
+        <div class="wb">
+          <div class="pane-head"><span class="lbl">Ansicht</span><span class="count">Taranite</span></div>
+          <div class="body noscroll" data-body data-mode="c"></div>
+        </div>
+      </div>
+    </div>
+    <div class="vnote">
+      <b>C — Die Spalte in sich zweispaltig.</b> Bei 768 px Breite passen zwei
+      Spalten zu je ~383 px. Links Identität, Urteil, Physik, Qualitätsstufen;
+      rechts alle zehn Fundorte und die Refinery. <em>Alles gleichzeitig sichtbar,
+      kein Klick, kein Scrollen</em> — die Frage ist, ob die Spalte dann noch als
+      <em>eine</em> Ansicht liest oder als zwei zusammengeschobene Kästen.
+    </div>
+  </div>
+</div>
+
+<script>
+/* Taranite — echte Werte aus assets/mining-model.json (4.9.0-live.12326004). */
+const M = {n:'Taranite',r:'rare',res:0.50,inst:700,d:10.2,sig:3555,w:0.6};
+const LOCS = [
+  {p:'Lagrange E',s:'Stanton',ab:78,ch:18},
+  {p:'Aaron Halo',s:'Stanton',ab:78,ch:18},
+  {p:'Pyro Belt (Cool 1)',s:'Pyro',ab:78,ch:18},
+  {p:'Pyro V-f (Vuur)',s:'Pyro',ab:78,ch:18},
+  {p:'Glaciem Ring',s:'Nyx',ab:78,ch:18},
+  {p:'Lagrange A',s:'Stanton',ab:74,ch:15},
+  {p:'Lagrange C',s:'Stanton',ab:74,ch:15},
+  {p:'Pyro IV',s:'Pyro',ab:74,ch:15},
+  {p:'Pyro Belt (Cool 2)',s:'Pyro',ab:70,ch:12},
+  {p:'Yela',s:'Stanton',ab:70,ch:12},
+];
+const BANDS = [346,588,667,796,842,901,955,1000];
+/* Rig fest: Helix II + Rieger. Platzhalter-Rechnung wie in Skizze 002. */
+const RIG = {laser:'Helix II',avail:5670,resMod:-30};
+const effRes = M.res*(1+RIG.resMod/100);
+const req = Math.round(3600*(1+effRes));
+const ratio = RIG.avail/req;
+const V = {cls: ratio>=1.15?'ok':ratio>=0.9?'warn':'bad',
+           lab: ratio>=1.15?'Brechbar':ratio>=0.9?'Grenzwertig':'Nicht brechbar',
+           req, avail:RIG.avail, ratio, effRes};
+
+const head = () => `
+  <div class="det-head">
+    <div>
+      <h2>${M.n}</h2>
+      <div class="tags">
+        <span class="det-tag rar">selten</span><span class="det-tag">Erz</span>
+        <span class="det-tag">Schiffsabbau</span><span class="det-tag">raffinierbar</span>
+      </div>
+    </div>
+    <div class="det-sig"><span class="lbl">Signatur n=1</span><b class="num">${M.sig}</b></div>
+  </div>`;
+const verdict = () => {
+  const mx = Math.max(V.req,V.avail);
+  return `<div class="verdict ${V.cls}">
+    <div class="big"><span class="lamp ${V.cls}"></span><span>${V.lab}</span></div>
+    <div class="bars">
+      <div class="vbar"><span class="lbl">Benötigt</span><span class="t"><i style="width:${V.req/mx*100}%"></i></span><span class="num" style="font-size:11px;text-align:right">${V.req}</span></div>
+      <div class="vbar"><span class="lbl">Verfügbar</span><span class="t"><i class="amber" style="width:${V.avail/mx*100}%"></i></span><span class="num" style="font-size:11px;text-align:right">${V.avail}</span></div>
+    </div>
+    <div class="ratio"><span class="lbl">Verhältnis</span><b class="num">×${V.ratio.toFixed(2)}</b></div>
+  </div>`;
+};
+const locsHTML = () => `<div class="locs">${LOCS.map(l=>`<div class="loc">
+    <span class="p">${l.p}</span><span class="s">${l.s}</span>
+    <span class="a"><span class="t"><i style="width:${l.ab}%"></i></span><em class="num">${l.ch}%</em></span>
+  </div>`).join('')}</div>`;
+const statsHTML = () => `<div class="stats">
+    <div class="stat"><span class="lbl">Resistenz</span><b class="num">${M.res.toFixed(2)}</b></div>
+    <div class="stat hot"><span class="lbl">eff. Resistenz</span><b class="num">${V.effRes.toFixed(2)}</b></div>
+    <div class="stat"><span class="lbl">Instabilität</span><b class="num">${M.inst}</b></div>
+    <div class="stat"><span class="lbl">Dichte</span><b class="num">${M.d}</b></div>
+    <div class="stat"><span class="lbl">Fenster</span><b class="num">${M.w.toFixed(2)}</b></div>
+  </div>`;
+const bandsHTML = () => `<div class="bands">${BANDS.map((b,i)=>`<i class="${i>4?'hi':''}" style="height:${20+i*10}%" title="Stufe ${i+1}: ${b}"></i>`).join('')}</div>`;
+const refnHTML = () => `<div class="refn">
+    <div><span class="lbl">Ertrag</span><b class="num">88%</b></div>
+    <div><span class="lbl">Dauer/100 SCU</span><b class="num">25m</b></div>
+    <div><span class="lbl">Kosten</span><b class="num">14k</b></div>
+    <div class="net"><span class="lbl">Netto</span><b class="num">341k</b></div>
+  </div>`;
+
+/* ------------------------------------------------------------ Varianten --- */
+function modeA(){
+  return head() + verdict() + `
+    <div class="blk sticky"><div class="blk-h"><span class="n">01</span><span class="lbl">Fundorte</span><span class="lbl" style="margin-left:auto">10</span></div><div class="blk-b">${locsHTML()}</div></div>
+    <div class="blk sticky"><div class="blk-h"><span class="n">02</span><span class="lbl">Physik</span></div><div class="blk-b">${statsHTML()}</div></div>
+    <div class="blk sticky"><div class="blk-h"><span class="n">03</span><span class="lbl">Qualitätsstufen</span></div><div class="blk-b">${bandsHTML()}</div></div>
+    <div class="blk sticky"><div class="blk-h"><span class="n">04</span><span class="lbl">Refinery</span><span class="lbl" style="margin-left:auto;color:var(--muted)">ARC-L1 · Dinyx</span></div><div class="blk-b">${refnHTML()}</div></div>`;
+}
+function acc(n,label,peek,body,open){
+  return `<div class="acc ${open?'open':''}">
+    <button class="acc-h"><span class="car">▸</span><span class="n">${n}</span><span class="lbl">${label}</span><span class="peek">${peek}</span></button>
+    <div class="acc-b">${body}</div>
+  </div>`;
+}
+function modeB(){
+  return head() + verdict() + statsHTML()
+    + acc('01','Fundorte','10 Orte · bester 18 %', locsHTML(), false)
+    + acc('02','Qualitätsstufen','8 Stufen · 346–1000', bandsHTML(), false)
+    + acc('03','Refinery','ARC-L1 · Dinyx · netto 341k', refnHTML(), false);
+}
+function modeC(){
+  return `<div class="split">
+    <div>
+      ${head()}${verdict()}
+      <div class="colscroll">
+        <div class="blk"><div class="blk-h"><span class="n">01</span><span class="lbl">Physik</span></div><div class="blk-b">${statsHTML()}</div></div>
+        <div class="blk"><div class="blk-h"><span class="n">02</span><span class="lbl">Qualitätsstufen</span></div><div class="blk-b">${bandsHTML()}</div></div>
+        <div class="blk"><div class="blk-h"><span class="n">03</span><span class="lbl">Refinery</span><span class="lbl" style="margin-left:auto;color:var(--muted)">ARC-L1 · Dinyx</span></div><div class="blk-b">${refnHTML()}</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="blk-h" style="padding-top:9px"><span class="n">04</span><span class="lbl">Fundorte</span><span class="lbl" style="margin-left:auto">alle 10</span></div>
+      <div class="colscroll"><div class="blk-b" style="padding-top:0">${locsHTML()}</div></div>
+    </div>
+  </div>`;
+}
+
+function build(){
+  document.querySelectorAll('[data-body]').forEach(b=>{
+    const m = b.dataset.mode;
+    b.innerHTML = m==='a' ? modeA() : m==='b' ? modeB() : modeC();
+    if(m==='c'){ b.style.display='flex'; b.style.flexDirection='column'; }
+  });
+  measure();
+}
+
+document.addEventListener('click', e=>{
+  const tab = e.target.closest('.mk-tab');
+  if(tab){
+    document.querySelectorAll('.mk-tab').forEach(x=>x.classList.remove('on'));
+    tab.classList.add('on');
+    document.querySelectorAll('.variant').forEach(v=>v.classList.remove('on'));
+    document.getElementById('variant-'+tab.dataset.v).classList.add('on');
+    measure(); return;
+  }
+  const vp = e.target.closest('.mk-vp button');
+  if(vp){
+    document.querySelectorAll('.mk-vp button').forEach(x=>x.classList.remove('on'));
+    vp.classList.add('on');
+    document.querySelectorAll('[data-frame]').forEach(f=>{ f.className='frame '+vp.dataset.sz; });
+    measure(); return;
+  }
+  const ah = e.target.closest('.acc-h');
+  if(ah){ ah.closest('.acc').classList.toggle('open'); measure(); return; }
+});
+
+/* Messung: was steht ohne Scrollen und ohne Klick da, und wie viel laeuft ueber? */
+function measure(){
+  const v = document.querySelector('.variant.on');
+  const out = document.getElementById('mk-read');
+  if(!v) return;
+  const body = v.querySelector('[data-body]');
+  const mode = body.dataset.mode;
+  const H = body.clientHeight;
+  let content, over, locsVisible;
+  const br = body.getBoundingClientRect();
+  if(mode==='c'){
+    const cols = [...v.querySelectorAll('.colscroll')];
+    over = cols.reduce((a,c)=>a+Math.max(0,c.scrollHeight-c.clientHeight),0);
+    content = H + over;
+  } else {
+    content = body.scrollHeight;
+    over = Math.max(0, content - H);
+  }
+  const locs = [...v.querySelectorAll('.loc')];
+  locsVisible = locs.filter(l=>{
+    const r = l.getBoundingClientRect();
+    return r.top >= br.top-1 && r.bottom <= br.bottom+1;
+  }).length;
+  const clicks = mode==='b' ? v.querySelectorAll('.acc:not(.open)').length : 0;
+  const ok = over===0;
+  out.innerHTML =
+    `Platz ${H} px  ·  Inhalt ${content} px  ·  ${over?'Überlauf '+over+' px':'kein Überlauf'}\n` +
+    `<span class="${ok?'pass':'fail'}">${ok?'PASST':'SCROLLT'}</span>` +
+    `   Fundorte ohne Scrollen sichtbar: <b>${locsVisible}</b>/10` +
+    (clicks?`   ·   ${clicks} Blöcke zugeklappt`:'');
+}
+addEventListener('resize', measure);
+build();
+</script>
+</body>
+</html>

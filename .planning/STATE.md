@@ -6,14 +6,14 @@ current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
 stopped_at: Completed 02-06-PLAN.md (fuenf Seitenpaare, 22 Themen-Koerper, 5 Konto-Ansichten, PilotPage, ShipsOverview auf die Skala umgestellt)
-last_updated: "2026-08-08T23:49:29.323Z"
+last_updated: "2026-08-15T01:32:37.434Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
-  total_phases: 12
-  completed_phases: 9
-  total_plans: 45
-  completed_plans: 39
+  total_phases: 13
+  completed_phases: 10
+  total_plans: 47
+  completed_plans: 41
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -289,6 +289,7 @@ None yet.
 
 ### Roadmap Evolution
 
+- Phase 9 added (15.08.2026): Mining-Werkbank — Fundort-Merkliste. Die mittlere Spalte wird neu belegt: die Detailspalte (Physik, Qualitaetsstufen, „Steine mit diesem Erz") entfaellt ersatzlos und wird spaeter anders dargestellt; die Fundorte-Liste rueckt an ihre Stelle; auf dem frei werdenden Platz entsteht eine anheftbare Merkliste „Erz — Fundort" ueber mehrere Erze hinweg, als benanntes Preset kontogebunden speicherbar (wie `mining_sig_presets`). Anlass: Nutzerwunsch waehrend der Arbeit an den Fundort-Daten (Phase-fremd, haengt an keiner Vorgaengerphase). Datengrundlage ist bereits da — seit 14.08. traegt jedes Mineral seine vollstaendige Fundortliste (521 Paare statt 273).
 - Phase 01.1 inserted after Phase 1: Ambiente-Effekte stilllegen — Mauszeiger-Schein raus, Partikel opt-in (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 - Phase 01.2 inserted after Phase 1: Werkzeuge erklaeren — Zweck- und Bedienungshilfe je Werkzeug (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 - Phase 5 added (31.07.2026): Spenden-Unterstuetzung — Stripe Checkout + Ko-fi, eigene Seite, Ziel und Unterstuetzer-Wand (DON-01…DON-14). ERWEITERT den Meilenstein bewusst ueber die Oberflaeche hinaus (DB-Tabelle, zwei Edge Functions, Zahlungsverkehr); die „Out of Scope"-Zeilen zu serverseitiger Logik und Konto-Funktionen sind fuer diese Phase aufgehoben. Anlass: defektes Netzteil im Entwicklungsrechner, zufaellige Neustarts. Haengt an keiner Vorgaengerphase — Phase 1.1 bleibt geplant liegen und wird NICHT abgebrochen.

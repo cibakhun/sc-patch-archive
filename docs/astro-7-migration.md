@@ -97,9 +97,12 @@ Jeder Schritt endet mit derselben Prüfkette. Sie ist der eigentliche Grund,
 warum diese Migration überhaupt machbar ist:
 
 ```bash
-npm run build && npm run test:e2e && npm run verify && npm run verify:vendor \
-  && npm run audit:csp && npm run audit:site
+npm run build && npm run gate
 ```
+
+(Seit dem 09.08.2026 ist `npm run gate` die eine Kette — vorher standen hier
+sechs einzeln aufgezählte Befehle, die nicht deckungsgleich mit dem
+Dockerfile-Tor waren. Was genau läuft, steht in `scripts/lib/gate-registry.mjs`.)
 
 0. **Vorher:** Punkt 8 (ein Körper je Patch-/Themenseite) abschließen. Halbiert
    die Menge Markup, die der Rust-Compiler gleich prüfen wird.

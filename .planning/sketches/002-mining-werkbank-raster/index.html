@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 002 — Mining-Werkbank: Raster und Höhenbudget</title>
+<style>
+/* ============================================================================
+   SKIZZE 002 — „Mining-Werkbank" — wohin die Rig-Leiste, und passt das alles?
+   Wegwerf-Mockup. Kein Produktionscode. Keine externen Anfragen.
+   ----------------------------------------------------------------------------
+   DIE FRAGE: Drei Spalten PLUS eingefaltetem Fracturing- und Refinery-Block bei
+   1280x720 — Filterkonsole UND erste Mineralzeile über der Falz. Die drei
+   Varianten unterscheiden sich AUSSCHLIESSLICH darin, wo die Rig-Leiste sitzt
+   und was sie an Höhe kostet. Der Inhalt der Spalten ist in allen dreien
+   identisch, damit der Vergleich das Budget misst und nicht den Inhalt.
+
+   GESTALTUNG: „Argo-Industrie x altes Regolith" — Werkzeugpult, kein HUD.
+   Matte Flächen, gekantete Blechkanten (1 px Lichtkante oben), Schablonen-
+   Mikrolabels, Zahlen in Mono. BEWUSST NICHT benutzt: --glow (0 0 44px) aus
+   mining.astro:30, -webkit-text-stroke, Verlaufstext, Scanlines, Neon.
+   Die Lämpchen sind mattes Oliv/Bernstein/Rost — Maschinenpult, nicht Ampel.
+
+   FARBEN: übernommen aus src/components/topics/mining.astro:30. Einzige
+   Änderung im Umgang: --accent-2 (#E0A526, faktisch Argo-Bernstein) wird zur
+   ARBEITSFARBE, --accent (#2FBFA4 Teal) sinkt auf reine Information ab.
+
+   SCHRIFTEN: System-Platzhalter, auf Windows 11 abgestimmt (dort wird
+   begutachtet). Auf der echten Seite lädt assets/fonts.css:
+     --f-disp -> Orbitron | --f-ui -> Rajdhani
+     --f-body -> Barlow   | --f-mono -> Share Tech Mono
+
+   ZAHLEN: echt aus assets/mining-model.json (4.9.0-live.12326004) — Resistenz,
+   Instabilität, Dichte, Scan-Signatur, Fundortzahl, Laser-DPS und Laser-Mods.
+   NUR die Brech-Rechnung ist ein PLATZHALTER (siehe verdict() unten); die
+   echte Heuristik steht in src/components/FracturingCalc.astro.
+   ============================================================================ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+
+/* ---------------------------------------------------------- Werkzeugleiste --- */
+/* Kühles Graphit — damit die Leiste NIE als Teil des Entwurfs gelesen wird. */
+:root{
+  --mk-bg:#0c0f12;--mk-bg2:#151a1f;--mk-line:#293139;--mk-txt:#e6eaf2;
+  --mk-dim:#8b96a8;--mk-hi:#6ee7ff;
+}
+body{background:var(--mk-bg);color:var(--mk-txt);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+.mk-bar{
+  position:sticky;top:0;z-index:80;display:flex;flex-wrap:wrap;align-items:center;
+  gap:8px 16px;padding:9px clamp(10px,2vw,20px);
+  background:var(--mk-bg2);border-bottom:1px solid var(--mk-line);
+}
+.mk-bar b{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mk-dim);font-weight:700}
+.mk-tabs{display:flex;gap:4px}
+.mk-tab{
+  padding:6px 12px;border:1px solid var(--mk-line);background:#0f1317;color:var(--mk-dim);
+  font-size:12px;border-radius:3px;cursor:pointer;transition:all .15s ease;white-space:nowrap;
+}
+.mk-tab:hover{border-color:#3d4956;color:var(--mk-txt)}
+.mk-tab.on{background:#1d2731;border-color:var(--mk-hi);color:var(--mk-txt)}
+.mk-vp{display:flex;gap:4px}
+.mk-vp button{padding:6px 10px;border:1px solid var(--mk-line);background:#0f1317;color:var(--mk-dim);font-size:11px;border-radius:3px;cursor:pointer;font-family:ui-monospace,Consolas,monospace}
+.mk-vp button:hover{border-color:#3d4956;color:var(--mk-txt)}
+.mk-vp button.on{background:#1d2731;border-color:var(--mk-hi);color:var(--mk-txt)}
+#mk-read{
+  font-family:ui-monospace,Consolas,monospace;font-size:11px;line-height:1.5;
+  color:var(--mk-dim);margin-left:auto;text-align:right;white-space:pre;
+}
+#mk-read .pass{color:#8FB339;font-weight:700}
+#mk-read .fail{color:#ff7a5c;font-weight:700}
+
+/* ------------------------------------------------------------------ Bühne --- */
+#stage{padding:14px clamp(10px,2vw,20px) 40px}
+.frame{
+  margin:0 auto;background:var(--bg);border:1px solid #000;
+  box-shadow:0 0 0 1px #2a3238,0 18px 50px rgba(0,0,0,.6);
+  overflow:hidden;position:relative;
+}
+.frame.sized{width:1280px;height:720px}
+.frame.sized-lap{width:1366px;height:768px}
+.frame.sized-sm{width:390px;height:780px}
+.frame.free{width:100%;height:calc(100vh - 150px);min-height:560px}
+.variant{display:none}
+.variant.on{display:block}
+
+/* ============================================================================
+   DER ENTWURF — ab hier ist alles „echte" Seite
+   ============================================================================ */
+.wb{
+  /* Palette 1:1 aus mining.astro:30 */
+  --bg:#14181a;--bg-2:#181d1f;--surface:#1e2427;--surface-2:#252c30;
+  --accent:#2FBFA4;      /* Teal — ab jetzt NUR Information */
+  --amber:#E0A526;       /* = --accent-2 — ab jetzt die ARBEITSFARBE */
+  --amber-dk:#9c7413;
+  --text:#eaf2f1;--muted:#8fa3a0;--dim:#6b7d7a;
+  --line:#2b3438;--line-hi:#39454a;
+  /* Lämpchen: mattes Maschinenpult, keine Ampel */
+  --ok:#8FB339;--warn:#E0A526;--bad:#B4543A;
+
+  --f-disp:'Bahnschrift Condensed','Segoe UI Semibold',system-ui,sans-serif;
+  --f-ui:'Bahnschrift SemiLight','Segoe UI',system-ui,sans-serif;
+  --f-body:'Segoe UI',system-ui,sans-serif;
+  --f-mono:'Cascadia Mono',Consolas,ui-monospace,monospace;
+
+  background:var(--bg);color:var(--text);font-family:var(--f-body);font-size:14px;
+  height:100%;display:flex;flex-direction:column;overflow:hidden;
+}
+/* Blechkante: 1 px Licht oben, dunkle Fuge unten — gekantetes Blech, kein Glühen */
+.plate{background:var(--surface);border:1px solid var(--line);border-radius:2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.045)}
+.lbl{font-family:var(--f-mono);font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* --------------------------------------------------------- Titelstreifen --- */
+/* Ersetzt den Hero. Entspricht .hero--tool aus ItemFinderPage.astro:54 —
+   min-height:0, nur Polsterung. Hier zusätzlich auf eine Zeile gebracht. */
+.wb-title{
+  flex:0 0 auto;display:flex;align-items:center;gap:14px;
+  padding:9px 14px;background:var(--bg-2);border-bottom:1px solid var(--line);
+}
+.wb-title h1{font-family:var(--f-disp);font-size:19px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text)}
+.wb-title .sub{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.wb-title .spacer{margin-left:auto}
+.wb-title .lang{display:flex;gap:2px}
+.wb-title .lang button{padding:3px 8px;font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;background:transparent;border:1px solid var(--line);color:var(--dim);cursor:pointer;border-radius:2px}
+.wb-title .lang button.on{background:var(--surface-2);color:var(--text);border-color:var(--line-hi)}
+
+/* ------------------------------------------------------------ Rig-Leiste --- */
+/* Warnstreifen an der linken Kante — das einzige „laute" Element im Entwurf,
+   weil die Leiste der einzige Ort ist, an dem der Nutzer etwas EINSTELLT. */
+.rig{
+  display:flex;align-items:stretch;gap:0;background:var(--surface);
+  border-bottom:1px solid var(--line);flex:0 0 auto;position:relative;
+}
+.rig::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:repeating-linear-gradient(45deg,var(--amber) 0 5px,#141719 5px 10px);
+  opacity:.75;
+}
+.rig-in{display:flex;align-items:center;gap:0;padding:7px 14px 7px 17px;flex:1;flex-wrap:wrap}
+.rig-grp{display:flex;flex-direction:column;gap:3px;padding:0 13px;border-right:1px solid var(--line);}
+.rig-grp:last-of-type{border-right:0}
+.rig-grp:first-of-type{padding-left:0}
+.rig-val{display:flex;align-items:center;gap:6px;font-family:var(--f-ui);font-size:13px;color:var(--text);white-space:nowrap}
+.rig-sel{
+  background:#171c1f;border:1px solid var(--line-hi);color:var(--text);
+  font-family:var(--f-ui);font-size:12.5px;padding:3px 6px;border-radius:2px;cursor:pointer;
+  max-width:190px;transition:border-color .15s ease;
+}
+.rig-sel:hover{border-color:var(--amber-dk)}
+.rig-sel:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+.rig-slots{display:flex;gap:3px}
+.rig-slot{
+  width:26px;height:22px;border:1px solid var(--line-hi);background:#121618;border-radius:2px;
+  display:grid;place-items:center;font-family:var(--f-mono);font-size:9px;color:var(--dim);
+  cursor:pointer;transition:all .15s ease;
+}
+.rig-slot:hover{border-color:var(--amber-dk);color:var(--muted)}
+.rig-slot.full{background:#232a24;border-color:#4a5c33;color:var(--ok)}
+.rig-stat{margin-left:auto;display:flex;align-items:center;gap:16px;padding-right:2px}
+.rig-stat .kv{display:flex;flex-direction:column;gap:2px;text-align:right}
+.rig-stat .kv b{font-family:var(--f-mono);font-size:14px;color:var(--amber);font-weight:700}
+
+/* Variante D: Leiste sitzt UNTEN und schluckt den Sockel.
+   Deshalb Kante oben statt unten, und der Warnstreifen läuft an der Oberkante
+   entlang — er trennt jetzt Anzeige (oben) von Bedienung (unten). */
+.rig--bottom{border-bottom:0;border-top:1px solid var(--line)}
+.rig--bottom::before{
+  left:0;right:0;top:0;bottom:auto;width:auto;height:2px;
+  background:repeating-linear-gradient(90deg,var(--amber) 0 5px,#141719 5px 10px);
+  opacity:.55;
+}
+.rig--bottom .rig-in{padding:7px 14px}
+.rig-foot{display:flex;flex-direction:column;gap:2px;text-align:right;padding-left:16px;border-left:1px solid var(--line);margin-left:14px}
+
+/* Variante C: eingeklappt */
+.rig.collapsed .rig-in{display:none}
+.rig-mini{display:none;align-items:center;gap:12px;padding:5px 14px 5px 17px;width:100%}
+.rig.collapsed .rig-mini{display:flex}
+.rig-mini .chip{font-family:var(--f-mono);font-size:11px;color:var(--text);background:#121618;border:1px solid var(--line-hi);padding:2px 7px;border-radius:2px}
+.rig-toggle{
+  margin-left:auto;background:transparent;border:1px solid var(--line-hi);color:var(--muted);
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:4px 10px;border-radius:2px;cursor:pointer;transition:all .15s ease;
+}
+.rig-toggle:hover{border-color:var(--amber-dk);color:var(--amber)}
+
+/* --------------------------------------------------------------- Raster --- */
+.wb-grid{flex:1;display:grid;grid-template-columns:266px 1fr 244px;gap:1px;background:var(--line);min-height:0}
+.pane{background:var(--bg);display:flex;flex-direction:column;min-height:0;min-width:0}
+.pane-head{
+  flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:6px 10px;
+  background:var(--bg-2);border-bottom:1px solid var(--line);
+}
+.pane-head .count{margin-left:auto;font-family:var(--f-mono);font-size:10px;color:var(--dim)}
+/* Innen scrollende Spalte. ACHTUNG im echten Bau: assets/theme.css blendet mit
+   `html,body,*{scrollbar-width:none!important}` JEDE Leiste aus — jede dieser
+   drei Boxen muss in die Selektorliste assets/mobile-ux.css:503-516. */
+.pane-body{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;scrollbar-width:thin;scrollbar-color:#3a4549 transparent}
+.pane-body::-webkit-scrollbar{width:9px}
+.pane-body::-webkit-scrollbar-thumb{background:#3a4549;border-radius:0}
+.pane-body::-webkit-scrollbar-track{background:#171c1e}
+
+/* ---------------------------------------------------- Linke Spalte: Liste --- */
+.filters{flex:0 0 auto;padding:8px 10px;background:var(--bg-2);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:7px}
+.f-search{
+  width:100%;background:#121618;border:1px solid var(--line-hi);color:var(--text);
+  padding:5px 8px;font-family:var(--f-ui);font-size:13px;border-radius:2px;
+}
+.f-search::placeholder{color:var(--dim)}
+.f-search:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+.f-row{display:flex;gap:4px;flex-wrap:wrap}
+.chip{
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  padding:3px 7px;background:#121618;border:1px solid var(--line-hi);color:var(--dim);
+  border-radius:2px;cursor:pointer;transition:all .15s ease;
+}
+.chip:hover{border-color:var(--amber-dk);color:var(--muted)}
+.chip.on{background:#2a2517;border-color:var(--amber-dk);color:var(--amber)}
+.chip.teal.on{background:#16292a;border-color:#2a6b60;color:var(--accent)}
+
+.mlist{display:flex;flex-direction:column}
+.mrow{
+  display:grid;grid-template-columns:11px 1fr auto;align-items:center;gap:8px;
+  padding:6px 10px;border-bottom:1px solid #212829;cursor:pointer;transition:background .12s ease;
+}
+.mrow:hover{background:var(--surface)}
+.mrow.sel{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--amber)}
+.mrow .nm{font-family:var(--f-ui);font-size:13.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow .meta{display:flex;gap:7px;align-items:baseline;margin-top:1px}
+.mrow .rar{font-family:var(--f-mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.mrow .sig{font-family:var(--f-mono);font-size:10.5px;color:var(--accent)}
+.mrow .pin{
+  width:19px;height:19px;display:grid;place-items:center;border:1px solid transparent;
+  background:transparent;color:var(--dim);cursor:pointer;border-radius:2px;font-size:12px;line-height:1;
+}
+.mrow .pin:hover{border-color:var(--line-hi);color:var(--muted)}
+.mrow .pin.on{color:var(--amber);border-color:var(--amber-dk);background:#241f12}
+/* Lämpchen — mattes Pult, kein Neon, kein box-shadow-Schein */
+.lamp{width:9px;height:9px;border-radius:1px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.05)}
+.lamp.ok{background:var(--ok)}
+.lamp.warn{background:var(--warn)}
+.lamp.bad{background:var(--bad)}
+.lamp.off{background:#2f3739}
+
+/* ------------------------------------------------ Mittelspalte: Ansicht --- */
+.det{padding:0}
+.det-head{padding:11px 14px 9px;background:var(--bg-2);border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:12px}
+.det-head h2{font-family:var(--f-disp);font-size:23px;font-weight:700;letter-spacing:.02em;color:var(--text);line-height:1.1}
+.det-head .tags{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.det-tag{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--line-hi);color:var(--muted);border-radius:2px}
+.det-tag.rar{border-color:var(--amber-dk);color:var(--amber)}
+.det-sig{margin-left:auto;text-align:right}
+.det-sig b{display:block;font-family:var(--f-mono);font-size:21px;color:var(--accent);font-weight:700;line-height:1}
+
+/* Urteilsband — die Antwort steht ganz oben, nicht am Ende */
+.verdict{display:flex;align-items:center;gap:13px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--surface)}
+.verdict .big{display:flex;align-items:center;gap:9px}
+.verdict .big .lamp{width:15px;height:15px}
+.verdict .big span{font-family:var(--f-disp);font-size:17px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.verdict.ok .big span{color:var(--ok)}
+.verdict.warn .big span{color:var(--warn)}
+.verdict.bad .big span{color:var(--bad)}
+.verdict .bars{flex:1;display:flex;flex-direction:column;gap:4px;max-width:290px}
+.vbar{display:grid;grid-template-columns:64px 1fr 56px;align-items:center;gap:7px}
+.vbar .t{height:7px;background:#121618;border:1px solid var(--line);border-radius:1px;overflow:hidden}
+.vbar .t i{display:block;height:100%;background:var(--muted)}
+.vbar .t i.amber{background:var(--amber)}
+.verdict .ratio{margin-left:auto;text-align:right}
+.verdict .ratio b{font-family:var(--f-mono);font-size:24px;font-weight:700;line-height:1}
+.verdict.ok .ratio b{color:var(--ok)}
+.verdict.warn .ratio b{color:var(--warn)}
+.verdict.bad .ratio b{color:var(--bad)}
+
+.blk{border-bottom:1px solid var(--line)}
+.blk-h{display:flex;align-items:center;gap:8px;padding:7px 14px 5px}
+.blk-h .n{font-family:var(--f-mono);font-size:10px;color:var(--amber-dk);font-weight:700}
+.blk-b{padding:2px 14px 11px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:1px;background:var(--line)}
+.stat{background:var(--surface);padding:6px 9px}
+.stat b{display:block;font-family:var(--f-mono);font-size:15px;color:var(--text);margin-top:2px}
+.stat.hot b{color:var(--amber)}
+
+.locs{display:flex;flex-direction:column;gap:1px;background:var(--line)}
+.loc{display:grid;grid-template-columns:1fr 62px 74px;align-items:center;gap:8px;background:var(--surface);padding:4px 9px;font-size:12.5px}
+.loc .p{font-family:var(--f-ui);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loc .s{font-family:var(--f-mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.loc .a{display:flex;align-items:center;gap:5px}
+.loc .a .t{flex:1;height:5px;background:#121618;border:1px solid var(--line);border-radius:1px;overflow:hidden}
+.loc .a .t i{display:block;height:100%;background:var(--accent);opacity:.7}
+.loc .a em{font-family:var(--f-mono);font-size:10px;color:var(--muted);font-style:normal;width:26px;text-align:right}
+
+.refn{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)}
+.refn div{background:var(--surface);padding:6px 9px}
+.refn b{display:block;font-family:var(--f-mono);font-size:14px;margin-top:2px;color:var(--text)}
+.refn .net b{color:var(--ok)}
+
+.bands{display:flex;gap:2px;align-items:flex-end;height:34px}
+.bands i{flex:1;background:#232b2e;border-top:2px solid var(--line-hi);position:relative}
+.bands i.hi{background:#2e2a1b;border-top-color:var(--amber)}
+
+/* ---------------------------------------- Rechte Spalte: Signaturliste --- */
+.scan{padding:8px 9px;background:var(--bg-2);border-bottom:1px solid var(--line)}
+.scan input{
+  width:100%;background:#121618;border:1px solid var(--line-hi);color:var(--accent);
+  padding:6px 8px;font-family:var(--f-mono);font-size:16px;border-radius:2px;text-align:center;
+  letter-spacing:.06em;
+}
+.scan input::placeholder{color:var(--dim);font-size:12px;letter-spacing:.1em}
+.scan input:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+.sig-item{border-bottom:1px solid #212829;padding:6px 9px}
+.sig-item .top{display:flex;align-items:center;gap:6px}
+.sig-item .top .nm{font-family:var(--f-ui);font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sig-item .top .un{margin-left:auto;background:transparent;border:0;color:var(--dim);cursor:pointer;font-size:13px;line-height:1;padding:0 2px}
+.sig-item .top .un:hover{color:var(--bad)}
+.sig-mult{display:flex;gap:2px;margin-top:4px}
+.sig-mult i{
+  flex:1;font-family:var(--f-mono);font-size:10.5px;font-style:normal;text-align:center;
+  padding:2px 0;background:#121618;border:1px solid var(--line);color:var(--muted);border-radius:1px;
+}
+.sig-mult i.hit{background:#2e2a1b;border-color:var(--amber);color:var(--amber);font-weight:700}
+.sig-mult i em{display:block;font-style:normal;font-size:8px;color:var(--dim);letter-spacing:.05em}
+.sig-empty{padding:18px 12px;text-align:center;color:var(--dim);font-size:12px;line-height:1.6}
+
+/* --------------------------------------------------------------- Sockel --- */
+.wb-foot{
+  flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:4px 14px;
+  background:var(--bg-2);border-top:1px solid var(--line);
+}
+.wb-foot .sp{margin-left:auto}
+
+/* Falz-Marke — nur im Mockup, zeigt 720 px ab Seitenoberkante */
+.foldline{
+  position:absolute;left:0;right:0;height:0;border-top:1px dashed rgba(255,122,92,.55);
+  z-index:60;pointer-events:none;
+}
+.foldline::after{
+  content:'FALZ 720';position:absolute;right:4px;top:-13px;font-family:ui-monospace,Consolas,monospace;
+  font-size:9px;letter-spacing:.1em;color:rgba(255,122,92,.8);
+}
+.frame.sized .foldline,.frame.sized-lap .foldline,.frame.sized-sm .foldline{display:none}
+
+/* Notizzettel unter jeder Variante */
+.vnote{
+  max-width:1280px;margin:12px auto 0;padding:10px 14px;background:#12171b;
+  border:1px solid #232c33;border-left:3px solid var(--mk-hi);border-radius:2px;
+  font-size:13px;line-height:1.65;color:#b8c4d2;
+}
+.vnote b{color:var(--mk-txt)}
+.vnote code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#0c1013;padding:1px 5px;border-radius:2px;color:#9fd8c9}
+</style>
+</head>
+<body>
+
+<div class="mk-bar">
+  <b>Skizze 002</b>
+  <div class="mk-tabs">
+    <button class="mk-tab" data-v="a">A — Kopfstreifen</button>
+    <button class="mk-tab" data-v="b">B — In der linken Spalte</button>
+    <button class="mk-tab" data-v="c">C — Kompakt, ausklappbar</button>
+    <button class="mk-tab on" data-v="d">D — Unten, mit Sockel verschmolzen ★ gewählt</button>
+  </div>
+  <div class="mk-vp">
+    <button class="on" data-sz="sized">1280×720</button>
+    <button data-sz="sized-lap">1366×768</button>
+    <button data-sz="free">Fenster</button>
+  </div>
+  <div id="mk-read">messe…</div>
+</div>
+
+<div id="stage">
+  <!-- ===================================================== VARIANTE A ==== -->
+  <div class="variant" id="variant-a">
+    <div class="frame sized" data-frame>
+      <div class="foldline" style="top:720px"></div>
+      <div class="wb">
+        <div class="wb-title">
+          <h1>Mining</h1>
+          <span class="sub">Alpha 4.9.0 · Live-Daten</span>
+          <span class="spacer"></span>
+          <span class="lbl">38 Minerale · 20 Refineries</span>
+          <div class="lang"><button class="on">DE</button><button>EN</button></div>
+        </div>
+        <div class="rig" data-rig></div>
+        <div class="wb-grid" data-grid></div>
+        <div class="wb-foot">
+          <span class="lbl">Datenstand 4.9.0-live.12326004</span>
+          <span class="sp"></span>
+          <span class="lbl">Quellen · Methodik</span>
+        </div>
+      </div>
+    </div>
+    <div class="vnote">
+      <b>A — Rig-Leiste als Kopfstreifen über allen drei Spalten.</b> Die Einstellung
+      steht immer sichtbar und gehört sichtbar zu allen drei Spalten. Kostet die volle
+      Leistenhöhe vom Spaltenbudget — bei 720 px der teuerste Weg. Dafür ist auf einen
+      Blick klar, dass die Urteile in der Liste <em>von dieser Einstellung</em> kommen.
+    </div>
+  </div>
+
+  <!-- ===================================================== VARIANTE B ==== -->
+  <div class="variant" id="variant-b">
+    <div class="frame sized" data-frame>
+      <div class="foldline" style="top:720px"></div>
+      <div class="wb">
+        <div class="wb-title">
+          <h1>Mining</h1>
+          <span class="sub">Alpha 4.9.0 · Live-Daten</span>
+          <span class="spacer"></span>
+          <span class="lbl">38 Minerale · 20 Refineries</span>
+          <div class="lang"><button class="on">DE</button><button>EN</button></div>
+        </div>
+        <div class="wb-grid" data-grid data-rig-in-left></div>
+        <div class="wb-foot">
+          <span class="lbl">Datenstand 4.9.0-live.12326004</span>
+          <span class="sp"></span>
+          <span class="lbl">Quellen · Methodik</span>
+        </div>
+      </div>
+    </div>
+    <div class="vnote">
+      <b>B — Rig-Leiste in der linken Spalte, über den Filtern.</b> Mittel- und rechte
+      Spalte bekommen die volle Höhe; die Kosten trägt allein die Liste. Liest sich
+      sauber als „Eingabe links, Ausgabe rechts" — aber die linke Spalte trägt jetzt
+      Rig <em>und</em> Filter <em>und</em> 38 Zeilen. Prüfen: steht die erste
+      Mineralzeile noch über der Falz?
+    </div>
+  </div>
+
+  <!-- ===================================================== VARIANTE D ==== -->
+  <div class="variant on" id="variant-d">
+    <div class="frame sized" data-frame>
+      <div class="foldline" style="top:720px"></div>
+      <div class="wb">
+        <div class="wb-title">
+          <h1>Mining</h1>
+          <span class="sub">Alpha 4.9.0 · Live-Daten</span>
+          <span class="spacer"></span>
+          <span class="lbl">38 Minerale · 20 Refineries</span>
+          <div class="lang"><button class="on">DE</button><button>EN</button></div>
+        </div>
+        <div class="wb-grid" data-grid></div>
+        <div class="rig rig--bottom" data-rig data-with-foot></div>
+      </div>
+    </div>
+    <div class="vnote">
+      <b>D — Rig-Leiste unten, verschmolzen mit dem Sockel.</b> Rig und Sockel
+      waren beide Boden-Chrom; zusammengelegt kosten sie <em>eine</em> Leiste statt
+      zwei. Der Warnstreifen läuft jetzt an der Oberkante der Leiste und trennt
+      <em>Anzeige oben</em> von <em>Bedienung unten</em> — Pult-Logik. Prüfen:
+      findet man die Rig-Einstellung unten überhaupt, wenn man die Seite zum
+      ersten Mal sieht?
+    </div>
+  </div>
+
+  <!-- ===================================================== VARIANTE C ==== -->
+  <div class="variant" id="variant-c">
+    <div class="frame sized" data-frame>
+      <div class="foldline" style="top:720px"></div>
+      <div class="wb">
+        <div class="wb-title">
+          <h1>Mining</h1>
+          <span class="sub">Alpha 4.9.0 · Live-Daten</span>
+          <span class="spacer"></span>
+          <span class="lbl">38 Minerale · 20 Refineries</span>
+          <div class="lang"><button class="on">DE</button><button>EN</button></div>
+        </div>
+        <div class="rig collapsed" data-rig data-collapsible></div>
+        <div class="wb-grid" data-grid></div>
+        <div class="wb-foot">
+          <span class="lbl">Datenstand 4.9.0-live.12326004</span>
+          <span class="sp"></span>
+          <span class="lbl">Quellen · Methodik</span>
+        </div>
+      </div>
+    </div>
+    <div class="vnote">
+      <b>C — Rig als einzeilige Anzeige, auf Klick ausklappbar.</b> Billigste Variante
+      im Höhenbudget: eine Zeile statt einer Leiste. <em>Knopf „Rig ändern" wirklich
+      drücken</em> — die Frage ist, ob die eingeklappte Zeile genug verrät, oder ob man
+      dauernd aufklappen muss, um zu sehen, womit gerechnet wird.
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================================
+   DATEN — echt aus assets/mining-model.json (4.9.0-live.12326004).
+   res=Resistenz, inst=Instabilität, d=Dichte, sig=Scan-Signatur (n=1),
+   w=optimalWindowThinness, nl=Zahl der Fundorte, r=Seltenheit.
+   ============================================================================ */
+const MIN = [
+  {n:'Quantainium',  r:'legendary',res:0.95, inst:1000, d:20.5, sig:3170, w:2.3,  nl:5 },
+  {n:'Stileron',     r:'legendary',res:0.60, inst:870,  d:4.8,  sig:3185, w:0.6,  nl:5 },
+  {n:'Riccite',      r:'epic',     res:0.95, inst:850,  d:1.6,  sig:3385, w:2.3,  nl:5 },
+  {n:'Beryl',        r:'rare',     res:0.65, inst:350,  d:2.8,  sig:3540, w:1.5,  nl:10},
+  {n:'Taranite',     r:'rare',     res:0.50, inst:700,  d:10.2, sig:3555, w:0.6,  nl:10},
+  {n:'Borase',       r:'rare',     res:0.30, inst:40,   d:4.5,  sig:3570, w:0.5,  nl:10},
+  {n:'Gold',         r:'rare',     res:0.50, inst:550,  d:19.3, sig:3585, w:2.1,  nl:10},
+  {n:'Bexalite',     r:'rare',     res:0.60, inst:600,  d:6.9,  sig:3600, w:0.4,  nl:10},
+  {n:'Laranite',     r:'uncommon', res:0.50, inst:400,  d:11.5, sig:3825, w:0.5,  nl:9 },
+  {n:'Aslarite',     r:'uncommon', res:0.50, inst:700,  d:2.3,  sig:3840, w:0.6,  nl:10},
+  {n:'Titanium',     r:'uncommon', res:0.10, inst:0,    d:4.5,  sig:3855, w:-0.7, nl:10},
+  {n:'Tungsten',     r:'uncommon', res:-0.40,inst:0,    d:19.3, sig:3870, w:-0.7, nl:10},
+  {n:'Agricium',     r:'uncommon', res:0.50, inst:350,  d:7.2,  sig:3885, w:2.0,  nl:10},
+  {n:'Hephaestanite',r:'common',   res:-0.30,inst:400,  d:3.2,  sig:4180, w:0.5,  nl:10},
+  {n:'Quartz',       r:'common',   res:-0.70,inst:50,   d:2.7,  sig:4210, w:0.5,  nl:10},
+  {n:'Corundum',     r:'common',   res:0.10, inst:50,   d:4.0,  sig:4225, w:0.5,  nl:10},
+  {n:'Copper',       r:'common',   res:-0.70,inst:50,   d:9.0,  sig:4240, w:-0.9, nl:10},
+  {n:'Iron',         r:'common',   res:-0.40,inst:50,   d:7.9,  sig:4270, w:-0.9, nl:11},
+  {n:'Aluminum',     r:'common',   res:-0.40,inst:0,    d:2.7,  sig:4285, w:-0.5, nl:7 },
+];
+/* Fundorte — echte Datensätze aus dem Modell (Auszug je Mineral). */
+const LOCS = {
+  Taranite:[
+    {p:'Lagrange E',s:'Stanton',t:'lagrange',ab:78,ch:18},
+    {p:'Aaron Halo',s:'Stanton',t:'belt',ab:78,ch:18},
+    {p:'Pyro Belt (Cool 1)',s:'Pyro',t:'belt',ab:78,ch:18},
+    {p:'Pyro V-f (Vuur)',s:'Pyro',t:'moon',ab:78,ch:18},
+    {p:'Glaciem Ring',s:'Nyx',t:'belt',ab:78,ch:18},
+    {p:'Lagrange A',s:'Stanton',t:'lagrange',ab:74,ch:15},
+    {p:'Lagrange C',s:'Stanton',t:'lagrange',ab:74,ch:15},
+    {p:'Pyro IV',s:'Pyro',t:'planet',ab:74,ch:15},
+    {p:'Pyro Belt (Cool 2)',s:'Pyro',t:'belt',ab:70,ch:12},
+    {p:'Yela',s:'Stanton',t:'moon',ab:70,ch:12},
+  ],
+  Quantainium:[
+    {p:'Aaron Halo',s:'Stanton',t:'belt',ab:62,ch:8},
+    {p:'Lagrange E',s:'Stanton',t:'lagrange',ab:62,ch:8},
+    {p:'Pyro Belt (Cool 1)',s:'Pyro',t:'belt',ab:62,ch:8},
+    {p:'Glaciem Ring',s:'Nyx',t:'belt',ab:58,ch:6},
+    {p:'Pyro V-f (Vuur)',s:'Pyro',t:'moon',ab:58,ch:6},
+  ],
+};
+/* Laser — echte DPS und echte Mods aus dem Modell. */
+const LASERS = [
+  {n:'Helix II Mining Laser',  s:2,sl:2,dps:4930,res:-30,inst:0,  win:-40},
+  {n:'Klein-S2 Mining Laser',  s:2,sl:2,dps:4350,res:-45,inst:35, win:20},
+  {n:'Lancet MH2 Mining Laser',s:2,sl:3,dps:4350,res:0,  inst:-10,win:-60},
+  {n:'Hofstede-S2 Mining Laser',s:2,sl:1,dps:4060,res:-30,inst:10, win:60},
+  {n:'Impact II Mining Laser', s:2,sl:2,dps:4060,res:10, inst:-10,win:20},
+  {n:'Helix I Mining Laser',   s:1,sl:1,dps:3900,res:-30,inst:0,  win:-40},
+  {n:'Klein-S1 Mining Laser',  s:1,sl:1,dps:3120,res:-45,inst:35, win:20},
+  {n:'Arbor MH2 Mining Laser', s:2,sl:2,dps:2900,res:25, inst:-35,win:40},
+  {n:'Hofstede-S1 Mining Laser',s:1,sl:1,dps:2600,res:-30,inst:10,win:60},
+];
+const MODS = [
+  {n:'—',              mult:1,   res:0,   inst:0},
+  {n:'Rieger Module',  mult:1.15,res:0,   inst:0},
+  {n:'Stampede Module',mult:1.35,res:0,   inst:-10},
+  {n:'Lifeline Module',mult:1,   res:-15.5,inst:-20},
+  {n:'Focus Module',   mult:0.85,res:0,   inst:0},
+  {n:'XTR Module',     mult:1,   res:0,   inst:0},
+];
+const REFS = ['ARC-L1 Wide Forest Station','ARC-L2 Lively Pathway Station','CRU-L1 Ambitious Dream Station','HUR-L1 Green Glade Station','MIC-L1 Shallow Frontier Station','Terra Gateway'];
+const METHODS = ['Dinyx Solventation','Cormack Method','Ferron Exchange','Gaslight','Thermonatic Deposition'];
+const RAR_DE = {legendary:'legendär',epic:'episch',rare:'selten',uncommon:'ungewöhnlich',common:'häufig'};
+const MAXCLUSTER = {common:6,uncommon:5,rare:4,epic:3,legendary:2};
+
+/* Zustand — im echten Bau kontogebunden (Gast: localStorage, wie
+   assets/crafting-app.js:212). */
+const S = {
+  sel:'Taranite',
+  pins:['Taranite','Quantainium','Gold','Bexalite'],
+  laser:0, mods:[1,0], ref:0, method:0,
+  scan:'', q:'', sys:null,
+};
+
+/* ---------------------------------------------------------------------------
+   PLATZHALTER-RECHNUNG. Nicht die CIG-Formel und NICHT die echte Heuristik —
+   die steht in src/components/FracturingCalc.astro. Hier nur, damit die
+   Lämpchen und Balken sich beim Verstellen des Rigs plausibel bewegen.
+   --------------------------------------------------------------------------- */
+function rig(){
+  const L = LASERS[S.laser];
+  const mods = S.mods.map(i=>MODS[i]||MODS[0]);
+  const resMod = L.res + mods.reduce((a,m)=>a+m.res,0);
+  const mult = mods.reduce((a,m)=>a*m.mult,1);
+  return {L,mods,resMod,mult,avail:Math.round(L.dps*mult)};
+}
+function verdict(m){
+  const R = rig();
+  const effRes = m.res * (1 + R.resMod/100);
+  const req = Math.round(3600 * (1 + effRes));
+  const ratio = R.avail / req;
+  const cls = ratio>=1.15 ? 'ok' : ratio>=0.9 ? 'warn' : 'bad';
+  const lab = cls==='ok' ? 'Brechbar' : cls==='warn' ? 'Grenzwertig' : 'Nicht brechbar';
+  return {cls,lab,req,avail:R.avail,ratio,effRes};
+}
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ------------------------------------------------------------ Rig-Leiste --- */
+function rigHTML(collapsible, withFoot){
+  const R = rig();
+  const L = R.L;
+  const slots = Array.from({length:3},(_,i)=>{
+    const on = i < L.sl && S.mods[i];
+    return `<button class="rig-slot ${on?'full':''}" data-slot="${i}" ${i>=L.sl?'disabled style="opacity:.32;cursor:not-allowed"':''} title="${i>=L.sl?'Dieser Laser hat nur '+L.sl+' Modulplätze':(on?MODS[S.mods[i]].n:'leer')}">${i>=L.sl?'—':(on?'M'+(i+1):'+')}</button>`;
+  }).join('');
+  return `
+  <div class="rig-mini">
+    <span class="lbl">Rig</span>
+    <span class="chip">${esc(L.n.replace(' Mining Laser',''))}</span>
+    <span class="chip">${S.mods.filter(Boolean).length}/${L.sl} Module</span>
+    <span class="chip">${esc(REFS[S.ref].split(' ')[0])} · ${esc(METHODS[S.method])}</span>
+    <span class="chip" style="color:var(--amber)">${R.avail} verfügbar</span>
+    <button class="rig-toggle" data-toggle>Rig ändern ▾</button>
+  </div>
+  <div class="rig-in">
+    <div class="rig-grp">
+      <span class="lbl">Laser</span>
+      <div class="rig-val">
+        <select class="rig-sel" data-laser>
+          ${LASERS.map((l,i)=>`<option value="${i}" ${i===S.laser?'selected':''}>${esc(l.n.replace(' Mining Laser',''))} · S${l.s}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="rig-grp">
+      <span class="lbl">Module</span>
+      <div class="rig-val"><div class="rig-slots">${slots}</div></div>
+    </div>
+    <div class="rig-grp">
+      <span class="lbl">Refinery</span>
+      <div class="rig-val">
+        <select class="rig-sel" data-ref>${REFS.map((r,i)=>`<option value="${i}" ${i===S.ref?'selected':''}>${esc(r)}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="rig-grp">
+      <span class="lbl">Methode</span>
+      <div class="rig-val">
+        <select class="rig-sel" data-method>${METHODS.map((r,i)=>`<option value="${i}" ${i===S.method?'selected':''}>${esc(r)}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="rig-stat">
+      <div class="kv"><span class="lbl">Verfügbar</span><b>${R.avail}</b></div>
+      <div class="kv"><span class="lbl">Res-Mod</span><b>${R.resMod>0?'+':''}${R.resMod}%</b></div>
+      ${collapsible?'<button class="rig-toggle" data-toggle>Einklappen ▴</button>':''}
+      ${withFoot?`<div class="rig-foot">
+        <span class="lbl">Datenstand 4.9.0-live.12326004</span>
+        <span class="lbl">Quellen · Methodik</span>
+      </div>`:''}
+    </div>
+  </div>`;
+}
+
+/* --------------------------------------------------------- Linke Spalte --- */
+function listHTML(){
+  const rows = MIN
+    .filter(m=>!S.q || m.n.toLowerCase().includes(S.q.toLowerCase()))
+    .map(m=>{
+      const v = verdict(m);
+      const pinned = S.pins.includes(m.n);
+      return `<div class="mrow ${m.n===S.sel?'sel':''}" data-min="${esc(m.n)}">
+        <span class="lamp ${v.cls}" title="${v.lab} — ×${v.ratio.toFixed(2)}"></span>
+        <span>
+          <span class="nm">${esc(m.n)}</span>
+          <span class="meta"><span class="rar">${RAR_DE[m.r]||'—'}</span><span class="sig num">${m.sig}</span></span>
+        </span>
+        <button class="pin ${pinned?'on':''}" data-pin="${esc(m.n)}" title="${pinned?'Von der Signaturliste nehmen':'An die Signaturliste heften'}">${pinned?'★':'☆'}</button>
+      </div>`;
+    }).join('');
+  return `
+  <div class="filters">
+    <input class="f-search" data-q placeholder="Mineral suchen…" value="${esc(S.q)}">
+    <div class="f-row">
+      ${['Stanton','Pyro','Nyx'].map(s=>`<button class="chip teal ${S.sys===s?'on':''}" data-sys="${s}">${s}</button>`).join('')}
+      <button class="chip" data-noop>Schiff</button>
+      <button class="chip" data-noop>Hand</button>
+      <button class="chip" data-noop>nur brechbar</button>
+    </div>
+  </div>
+  <div class="pane-body"><div class="mlist">${rows}</div></div>`;
+}
+
+/* -------------------------------------------------------- Mittelspalte --- */
+function detHTML(){
+  const m = MIN.find(x=>x.n===S.sel) || MIN[0];
+  const v = verdict(m);
+  const R = rig();
+  const locs = LOCS[m.n] || LOCS.Taranite;
+  const pw = Math.min(100, v.avail/Math.max(v.req,v.avail)*100);
+  const rw = Math.min(100, v.req/Math.max(v.req,v.avail)*100);
+  const bands = [346,588,667,796,842,901,955,1000];
+  const yieldPct = [88,81,74,70,66][S.method] || 80;
+  return `
+  <div class="pane-body det">
+    <div class="det-head">
+      <div>
+        <h2>${esc(m.n)}</h2>
+        <div class="tags">
+          <span class="det-tag rar">${RAR_DE[m.r]||'ohne Stufe'}</span>
+          <span class="det-tag">Erz</span>
+          <span class="det-tag">Schiffsabbau</span>
+          <span class="det-tag">raffinierbar</span>
+        </div>
+      </div>
+      <div class="det-sig">
+        <span class="lbl">Scan-Signatur n=1</span>
+        <b class="num">${m.sig}</b>
+      </div>
+    </div>
+
+    <div class="verdict ${v.cls}">
+      <div class="big"><span class="lamp ${v.cls}"></span><span>${v.lab}</span></div>
+      <div class="bars">
+        <div class="vbar"><span class="lbl">Benötigt</span><span class="t"><i style="width:${rw}%"></i></span><span class="num" style="font-size:11px;text-align:right">${v.req}</span></div>
+        <div class="vbar"><span class="lbl">Verfügbar</span><span class="t"><i class="amber" style="width:${pw}%"></i></span><span class="num" style="font-size:11px;text-align:right">${v.avail}</span></div>
+      </div>
+      <div class="ratio"><span class="lbl">Verhältnis</span><b class="num">×${v.ratio.toFixed(2)}</b></div>
+    </div>
+
+    <div class="blk">
+      <div class="blk-h"><span class="n">01</span><span class="lbl">Fundorte</span><span class="count lbl" style="margin-left:auto">${locs.length} von ${m.nl}</span></div>
+      <div class="blk-b"><div class="locs">
+        ${locs.slice(0,7).map(l=>`<div class="loc">
+          <span class="p">${esc(l.p)}</span>
+          <span class="s">${esc(l.s)}</span>
+          <span class="a"><span class="t"><i style="width:${l.ab}%"></i></span><em class="num">${l.ch}%</em></span>
+        </div>`).join('')}
+      </div></div>
+    </div>
+
+    <div class="blk">
+      <div class="blk-h"><span class="n">02</span><span class="lbl">Physik</span></div>
+      <div class="blk-b"><div class="stats">
+        <div class="stat"><span class="lbl">Resistenz</span><b class="num">${m.res.toFixed(2)}</b></div>
+        <div class="stat hot"><span class="lbl">eff. Resistenz</span><b class="num">${v.effRes.toFixed(2)}</b></div>
+        <div class="stat"><span class="lbl">Instabilität</span><b class="num">${m.inst}</b></div>
+        <div class="stat"><span class="lbl">Dichte</span><b class="num">${m.d}</b></div>
+        <div class="stat"><span class="lbl">Fenster</span><b class="num">${m.w.toFixed(2)}</b></div>
+      </div></div>
+    </div>
+
+    <div class="blk">
+      <div class="blk-h"><span class="n">03</span><span class="lbl">Qualitätsstufen</span></div>
+      <div class="blk-b">
+        <div class="bands">${bands.map((b,i)=>`<i class="${i>4?'hi':''}" style="height:${20+i*10}%" title="Stufe ${i+1}: ${b}"></i>`).join('')}</div>
+      </div>
+    </div>
+
+    <div class="blk">
+      <div class="blk-h"><span class="n">04</span><span class="lbl">Refinery</span>
+        <span class="lbl" style="margin-left:auto;color:var(--muted)">${esc(REFS[S.ref])} · ${esc(METHODS[S.method])}</span>
+      </div>
+      <div class="blk-b"><div class="refn">
+        <div><span class="lbl">Ertrag</span><b class="num">${yieldPct}%</b></div>
+        <div><span class="lbl">Dauer / 100 SCU</span><b class="num">${(25+S.method*11)}m</b></div>
+        <div><span class="lbl">Kosten</span><b class="num">${(140+S.method*48)*100/1000}k</b></div>
+        <div class="net"><span class="lbl">Netto</span><b class="num">${Math.round(yieldPct*m.d*38)}k</b></div>
+      </div></div>
+    </div>
+  </div>`;
+}
+
+/* --------------------------------------------------------- Rechte Spalte --- */
+function sigHTML(){
+  const scan = parseInt(S.scan,10);
+  const items = S.pins.map(name=>{
+    const m = MIN.find(x=>x.n===name); if(!m) return '';
+    const max = MAXCLUSTER[m.r] || 4;
+    const mult = Array.from({length:max},(_,i)=>{
+      const v = (i+1)*m.sig;
+      const hit = scan && Math.abs(v-scan)/scan <= 0.10;
+      return `<i class="${hit?'hit':''}"><em>×${i+1}</em>${v}</i>`;
+    }).join('');
+    return `<div class="sig-item">
+      <div class="top">
+        <span class="lamp ${verdict(m).cls}"></span>
+        <span class="nm">${esc(m.n)}</span>
+        <button class="un" data-pin="${esc(m.n)}" title="Von der Liste nehmen">×</button>
+      </div>
+      <div class="sig-mult">${mult}</div>
+    </div>`;
+  }).join('');
+  return `
+  <div class="scan"><input data-scan placeholder="SCANWERT" value="${esc(S.scan)}" inputmode="numeric"></div>
+  <div class="pane-body">
+    ${items || '<div class="sig-empty">Noch nichts angeheftet.<br>Stern in der Mineralliste drücken.</div>'}
+  </div>`;
+}
+
+/* --------------------------------------------------------------- Aufbau --- */
+function build(){
+  document.querySelectorAll('[data-rig]').forEach(el=>{
+    el.innerHTML = rigHTML(el.hasAttribute('data-collapsible'), el.hasAttribute('data-with-foot'));
+  });
+  document.querySelectorAll('[data-grid]').forEach(grid=>{
+    const rigLeft = grid.hasAttribute('data-rig-in-left');
+    grid.innerHTML = `
+      <div class="pane">
+        <div class="pane-head"><span class="lbl">Minerale</span><span class="count">${MIN.length}</span></div>
+        ${rigLeft?`<div class="rig" data-rig-left style="flex-direction:column;align-items:stretch"></div>`:''}
+        ${listHTML()}
+      </div>
+      <div class="pane">
+        <div class="pane-head"><span class="lbl">Ansicht</span><span class="count">${esc(S.sel)}</span></div>
+        ${detHTML()}
+      </div>
+      <div class="pane">
+        <div class="pane-head"><span class="lbl">Signaturen</span><span class="count">${S.pins.length} angeheftet</span></div>
+        ${sigHTML()}
+      </div>`;
+    const rl = grid.querySelector('[data-rig-left]');
+    if(rl) rl.innerHTML = rigHTML(false);
+  });
+  measure();
+}
+
+/* ------------------------------------------------------------- Ereignisse --- */
+document.addEventListener('click', e=>{
+  const t = e.target;
+  const tab = t.closest('.mk-tab');
+  if(tab){
+    document.querySelectorAll('.mk-tab').forEach(x=>x.classList.remove('on'));
+    tab.classList.add('on');
+    document.querySelectorAll('.variant').forEach(v=>v.classList.remove('on'));
+    document.getElementById('variant-'+tab.dataset.v).classList.add('on');
+    measure(); return;
+  }
+  const vp = t.closest('.mk-vp button');
+  if(vp){
+    document.querySelectorAll('.mk-vp button').forEach(x=>x.classList.remove('on'));
+    vp.classList.add('on');
+    document.querySelectorAll('[data-frame]').forEach(f=>{
+      f.className = 'frame ' + vp.dataset.sz;
+    });
+    measure(); return;
+  }
+  const row = t.closest('.mrow');
+  const pin = t.closest('[data-pin]');
+  if(pin){
+    const n = pin.dataset.pin;
+    S.pins = S.pins.includes(n) ? S.pins.filter(x=>x!==n) : [...S.pins, n];
+    build(); return;
+  }
+  if(row){ S.sel = row.dataset.min; build(); return; }
+  const slot = t.closest('[data-slot]');
+  if(slot && !slot.disabled){
+    const i = +slot.dataset.slot;
+    S.mods[i] = ((S.mods[i]||0) + 1) % MODS.length;
+    build(); return;
+  }
+  const sys = t.closest('[data-sys]');
+  if(sys){ S.sys = S.sys===sys.dataset.sys ? null : sys.dataset.sys; build(); return; }
+  const tg = t.closest('[data-toggle]');
+  if(tg){ tg.closest('.rig').classList.toggle('collapsed'); measure(); return; }
+  const chip = t.closest('[data-noop]');
+  if(chip){ chip.classList.toggle('on'); return; }
+});
+document.addEventListener('change', e=>{
+  const t = e.target;
+  if(t.matches('[data-laser]')){
+    S.laser = +t.value;
+    const L = LASERS[S.laser];
+    S.mods = S.mods.slice(0,L.sl);            /* Module über die Platzzahl fallen weg */
+    while(S.mods.length < 3) S.mods.push(0);
+    build(); return;
+  }
+  if(t.matches('[data-ref]')){ S.ref = +t.value; build(); return; }
+  if(t.matches('[data-method]')){ S.method = +t.value; build(); return; }
+});
+document.addEventListener('input', e=>{
+  const t = e.target;
+  if(t.matches('[data-scan]')){
+    S.scan = t.value.replace(/[^0-9]/g,'');
+    const pane = t.closest('.pane');
+    const body = pane.querySelector('.pane-body');
+    const sc = body ? body.scrollTop : 0;
+    pane.innerHTML = `<div class="pane-head"><span class="lbl">Signaturen</span><span class="count">${S.pins.length} angeheftet</span></div>` + sigHTML();
+    const ni = pane.querySelector('[data-scan]');
+    if(ni){ ni.focus(); ni.setSelectionRange(ni.value.length,ni.value.length); }
+    const nb = pane.querySelector('.pane-body'); if(nb) nb.scrollTop = sc;
+    return;
+  }
+  if(t.matches('[data-q]')){
+    S.q = t.value;
+    const pane = t.closest('.pane');
+    const head = pane.querySelector('.pane-head').outerHTML;
+    const rigLeft = pane.querySelector('[data-rig-left]');
+    const rigHtml = rigLeft ? rigLeft.outerHTML : '';
+    pane.innerHTML = head + rigHtml + listHTML();
+    const rl = pane.querySelector('[data-rig-left]'); if(rl) rl.innerHTML = rigHTML(false);
+    const ni = pane.querySelector('[data-q]');
+    if(ni){ ni.focus(); ni.setSelectionRange(ni.value.length,ni.value.length); }
+    measure();
+  }
+});
+
+/* ---------------------------------------------------------------- Messung --- */
+/* Misst, was in der Rückmeldung zur Schiffsseite verlangt wurde: sitzen
+   Filterkonsole UND erste Ergebniszeile über der Falz? Gemessen wird relativ
+   zur Oberkante des simulierten Fensters, nicht zum Bildschirm. */
+function measure(){
+  const v = document.querySelector('.variant.on');
+  const out = document.getElementById('mk-read');
+  if(!v || !out) return;
+  const frame = v.querySelector('[data-frame]');
+  const wb = v.querySelector('.wb');
+  const filt = v.querySelector('.filters');
+  const row1 = v.querySelector('.mrow');
+  const title = v.querySelector('.wb-title');
+  if(!frame || !wb || !filt || !row1){ out.textContent='—'; return; }
+  const fr = frame.getBoundingClientRect();
+  const H = Math.round(fr.height);
+  const top = e => Math.round(e.getBoundingClientRect().top - fr.top);
+  const bot = e => Math.round(e.getBoundingClientRect().bottom - fr.top);
+  const tTitle = Math.round(title.getBoundingClientRect().height);
+  const tFilt = top(filt), bFilt = bot(filt), tRow = top(row1);
+  /* Wie viele Mineralzeilen stehen ganz über der Falz? */
+  const rows = [...v.querySelectorAll('.mrow')];
+  const visible = rows.filter(r => bot(r) <= H).length;
+  const okFilt = bFilt <= H, okRow = bot(row1) <= H;
+  const ok = okFilt && okRow;
+  out.innerHTML =
+    `Titelstreifen ${tTitle} px   ·   Filter ${tFilt}–${bFilt} px   ·   1. Zeile ${tRow} px   ·   Fenster ${H} px\n` +
+    `<span class="${ok?'pass':'fail'}">${ok?'BESTANDEN':'DURCHGEFALLEN'}</span>` +
+    `   Mineralzeilen ganz über der Falz: <b>${visible}</b> von ${rows.length}`;
+}
+addEventListener('resize', measure);
+
+build();
+</script>
+</body>
+</html>

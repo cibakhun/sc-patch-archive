@@ -1,6 +1,6 @@
 // Werkzeug-Hilfe — EIGENER Katalog, bewusst getrennt von src/i18n/ui.ts.
 // ---------------------------------------------------------------------------
-// Zweck: Zweck- und Bedienungstexte fuer die elf Werkzeuge (Phase
+// Zweck: Zweck- und Bedienungstexte fuer die zwoelf Werkzeuge (Phase
 // 01.2-werkzeuge-erklaeren), in zwei Stufen:
 //   Stufe 1 — <werkzeug>.title / .purpose / .step1..step5 (Zweck-Abschnitt)
 //   Stufe 2 — <werkzeug>.ctl.<art> (ein Satz je Bedienelement-ART)
@@ -31,7 +31,7 @@ const SAME_IN_BOTH = new Set<string>([]);
 
 export const HELP = {
   de: {
-    // -- Gemeinsame Bedientexte (alle elf Werkzeuge) --
+    // -- Gemeinsame Bedientexte (alle zwoelf Werkzeuge) --
     'ui.elements': 'Elemente erklären',
     'ui.elementsOff': 'Erklärung beenden',
     'ui.bubbleLabel': 'Erklärung',
@@ -73,22 +73,52 @@ export const HELP = {
     'crafting.ctl.flags': 'Zeigt nur Blueprints mit Missions-Quelle oder im eigenen Besitz.',
 
     // -- Mining --
-    'mining.title': 'Wie funktioniert die Mining-Datenbank?',
+    // Beschrieb bis 11.08.2026 das abgeloeste Werkzeug: Sortierung, Raster/
+    // Liste, Methoden- und Typfilter, „Fundorte nach Himmelskoerper" — nichts
+    // davon gibt es in der Werkbank noch. Die ctl-Schluessel heissen jetzt wie
+    // die Bedienelemente, an denen sie haengen.
+    // Seit 12.08.2026 OHNE Ausrüstung und ohne Brechbarkeit: die stehen im
+    // Fracturing-Rechner auf einer eigenen Seite. Die Schlüssel .laser,
+    // .modules, .gadget, .mass, .verdict und .breakable sind deshalb hier
+    // weggefallen und weiter unten unter `fracturing.ctl.*` wieder da.
+    'mining.title': 'Wie funktioniert die Mining-Werkbank?',
     'mining.purpose':
-      'Zeigt zu jedem Mineral, wo es vorkommt, mit welcher Fund-Chance und ob es raffiniert werden muss.',
-    'mining.step1': 'Suchbegriff eingeben oder nach System, Methode und Typ filtern.',
-    'mining.step2': 'Nur raffinierbare Erze oder nur Hand-Edelsteine anzeigen.',
-    'mining.step3': 'Ergebnisse sortieren oder zwischen Raster und Liste wechseln.',
-    'mining.step4': 'Fundorte nach Himmelskörper öffnen, um den ganzen Mineral-Mix dort zu sehen.',
-    'mining.ctl.filter': 'Öffnet die Filterleiste auf schmalen Bildschirmen.',
-    'mining.ctl.search': 'Freitextsuche über Mineral-Namen und Fundorte.',
-    'mining.ctl.sort': 'Legt die Sortierung der Ergebnisse fest.',
-    'mining.ctl.view': 'Wechselt zwischen Raster- und Listenansicht.',
-    'mining.ctl.loc': 'Öffnet die Fundorte nach Himmelskörper.',
-    'mining.ctl.system': 'Schränkt auf ein oder mehrere Systeme ein.',
-    'mining.ctl.method': 'Schränkt auf Schiff-, Hand- oder ROC-Mining ein.',
-    'mining.ctl.type': 'Schränkt auf einen Mineraltyp ein.',
-    'mining.ctl.flags': 'Zeigt nur raffinierbare Erze oder nur Hand-Edelsteine.',
+      'Ein Erz anklicken — Fundorte, beste Stationen und der Refinery-Ertrag stehen sofort daneben.',
+    'mining.step1': 'Links ein Erz anklicken. Die Zahl auf der Kachel ist seine Scan-Signatur.',
+    'mining.step2': 'In der Mitte die Fundorte des gewählten Erzes nach Ergiebigkeit ablesen, darunter die Stationen mit dem besten Ertrag.',
+    'mining.step3': 'Unten die Station wählen — sie wird in der Ertrags-Rangliste rechts daneben hervorgehoben.',
+    'mining.step4': 'Mit dem Anheft-Knopf auf einer Kachel ein Erz nach rechts heften und den Scanwert eintippen, um eine Signatur zuzuordnen; die Nadel in einer Fundort-Zeile legt das Paar auf den zweiten Reiter, über mehrere Erze hinweg.',
+    'mining.ctl.search': 'Freitextsuche über Mineralnamen und Fundorte.',
+    'mining.ctl.system': 'Schränkt die Kacheln auf ein Sternsystem ein.',
+    'mining.ctl.tiles': 'Alle Erze auf einen Blick. Klick wählt aus, die Zahl ist die Scan-Signatur, der Knopf rechts heftet an die Signaturenliste.',
+    'mining.ctl.scan': 'Gemessener Scanwert. Passende Vielfache der angehefteten Erze werden hervorgehoben.',
+    'mining.ctl.pinbtn': 'Heftet das gewählte Erz an die Signaturenliste rechts — dasselbe wie der Knopf auf der Kachel, nur größer.',
+    'mining.ctl.pins': 'Die angehefteten Erze mit ihrer Signatur mal Clustergröße.',
+    'mining.ctl.presets': 'Benannte Zusammenstellungen — ein Preset hält Signaturen UND Fundorte zugleich. Mit Konto gespeichert und auf jedem Gerät verfügbar.',
+    'mining.ctl.station': 'Die Station, deren Ertrag in der Rangliste hervorgehoben wird.',
+    'mining.ctl.fracturing': 'Führt zum Fracturing-Rechner: dort steht, ob der Brocken mit deiner Ausrüstung bricht.',
+    'mining.ctl.locpin': 'Heftet einen Fundort an die Merkliste im zweiten Reiter — dieselbe Nadel wie bei den Erzen.',
+    'mining.ctl.tabs': 'Wechselt zwischen der Signaturenliste und der Fundort-Merkliste. Beide teilen sich dieselben Presets.',
+    'mining.ctl.shortlist': 'Die angehefteten Fundorte über alle Erze hinweg, als „Erz — Fundort".',
+
+    // -- Fracturing-Rechner --
+    'fracturing.title': 'Wie funktioniert der Fracturing-Rechner?',
+    'fracturing.purpose':
+      'Sagt für jedes Erz, ob der Brocken mit der eingestellten Ausrüstung aufgeht — und zeigt die Rechnung dahinter Schritt für Schritt.',
+    'fracturing.step1': 'Rechts die Ausrüstung setzen: Laser, Module, Gadget und die Größe des Brockens.',
+    'fracturing.step2': 'Links ein Erz wählen. Punkt und Verhältniszahl auf jeder Kachel gelten sofort für diese Ausrüstung.',
+    'fracturing.step3': 'In der Mitte das Urteil ablesen — bis 1,00 geht nichts, ab 1,30 ist es zuverlässig.',
+    'fracturing.step4': 'Der Rechenweg darunter zeigt, an welchem Schritt es hängt: Laserschaden, Widerstand, wirksamer Schaden, nötiger Schaden.',
+    'fracturing.ctl.search': 'Freitextsuche über die Erznamen.',
+    'fracturing.ctl.system': 'Schränkt die Kacheln auf ein Sternsystem ein.',
+    'fracturing.ctl.breakable': 'Zeigt nur Erze, die mit der eingestellten Ausrüstung zuverlässig brechen.',
+    'fracturing.ctl.tiles': 'Alle Erze mit ihrem Verhältnis für die aktuelle Ausrüstung. Klick wählt eines aus.',
+    'fracturing.ctl.verdict': 'Verhältnis von wirksamem zu nötigem Schaden. Ab 1,00 grenzwertig, ab 1,30 zuverlässig.',
+    'fracturing.ctl.math': 'Die vier Schritte der Rechnung mit den eingesetzten Zahlen und dem jeweiligen Zwischenergebnis.',
+    'fracturing.ctl.laser': 'Der Mining-Laser. Bestimmt den Schaden und die Zahl der Modulplätze.',
+    'fracturing.ctl.modules': 'Bis zu drei Module, je nach Laser. Sie verändern Schaden und Widerstand.',
+    'fracturing.ctl.gadget': 'Ein Gadget verändert den Widerstand des Gesteins.',
+    'fracturing.ctl.mass': 'Die angenommene Masse des Brockens — sie bestimmt, wie viel Schaden nötig ist.',
 
     // -- Refinery-Finder --
     'refineryfinder.title': 'Wie funktioniert der Refinery-Finder?',
@@ -237,22 +267,46 @@ export const HELP = {
     'crafting.ctl.flags': 'Shows only blueprints with a mission source or already owned.',
 
     // -- Mining --
-    'mining.title': 'How does the mining database work?',
+    // Since 12/08/2026 without gear and without breakability — those live in
+    // the fracturing calculator on its own page (`fracturing.ctl.*` below).
+    'mining.title': 'How does the mining workbench work?',
     'mining.purpose':
-      'Shows every mineral’s locations, find chance and whether it needs refining.',
-    'mining.step1': 'Type a search term or filter by system, method and type.',
-    'mining.step2': 'Show only refinable ores or only hand gems.',
-    'mining.step3': 'Sort the results or switch between grid and list view.',
-    'mining.step4': 'Open locations by celestial body to see the full mineral mix there.',
-    'mining.ctl.filter': 'Opens the filter sidebar on narrow screens.',
+      'Pick an ore — locations, best stations and refinery yield stand right beside it.',
+    'mining.step1': 'Click an ore on the left. The number on the tile is its scan signature.',
+    'mining.step2': 'Read the selected ore’s locations by yield in the middle, with the stations that pay best underneath.',
+    'mining.step3': 'Pick a station along the bottom — it gets highlighted in the yield ranking beside it.',
+    'mining.step4': 'Hit the pin button on an ore tile to pin it on the right, then type a scan value to identify a signature; the pin on a location row puts the pair on the second tab, across every ore.',
     'mining.ctl.search': 'Free-text search across mineral names and locations.',
-    'mining.ctl.sort': 'Sets the sort order of the results.',
-    'mining.ctl.view': 'Switches between grid and list view.',
-    'mining.ctl.loc': 'Opens locations grouped by celestial body.',
-    'mining.ctl.system': 'Narrows down to one or more systems.',
-    'mining.ctl.method': 'Narrows down to ship, hand or ROC mining.',
-    'mining.ctl.type': 'Narrows down to a mineral type.',
-    'mining.ctl.flags': 'Shows only refinable ores or only hand gems.',
+    'mining.ctl.system': 'Narrows the tiles down to one star system.',
+    'mining.ctl.tiles': 'Every ore at a glance. Click selects, the number is the scan signature, the button on the right pins it to the signature list.',
+    'mining.ctl.scan': 'Measured scan value. Matching multiples of the pinned ores are highlighted.',
+    'mining.ctl.pinbtn': 'Pins the selected ore to the signature list on the right — same as the button on its tile, only bigger.',
+    'mining.ctl.pins': 'The pinned ores with their signature times cluster size.',
+    'mining.ctl.presets': 'Named sets — one preset holds signatures AND locations together. Saved to your account and available on every device.',
+    'mining.ctl.fracturing': 'Leads to the fracturing calculator: it says whether your gear cracks the rock.',
+
+    // -- Fracturing calculator --
+    'fracturing.title': 'How does the fracturing calculator work?',
+    'fracturing.purpose':
+      'Tells you for every ore whether the rock opens up with the gear you set — and shows the sum behind it step by step.',
+    'fracturing.step1': 'Set your gear on the right: laser, modules, gadget and how big the rock is.',
+    'fracturing.step2': 'Pick an ore on the left. The dot and ratio on every tile already apply to that gear.',
+    'fracturing.step3': 'Read the verdict in the middle — nothing moves below 1.00, from 1.30 it is reliable.',
+    'fracturing.step4': 'The maths underneath shows which step decides it: laser damage, resistance, effective damage, damage needed.',
+    'fracturing.ctl.search': 'Free-text search across the ore names.',
+    'fracturing.ctl.system': 'Narrows the tiles down to one star system.',
+    'fracturing.ctl.breakable': 'Shows only ores the configured gear cracks reliably.',
+    'fracturing.ctl.tiles': 'Every ore with its ratio for the current gear. Click selects one.',
+    'fracturing.ctl.verdict': 'Ratio of effective to required damage. Marginal from 1.00, reliable from 1.30.',
+    'fracturing.ctl.math': 'The four steps of the sum with the numbers put in and each intermediate result.',
+    'fracturing.ctl.laser': 'The mining laser. Sets the damage and the number of module slots.',
+    'fracturing.ctl.modules': 'Up to three modules, depending on the laser. They change damage and resistance.',
+    'fracturing.ctl.gadget': 'A gadget changes the resistance of the rock.',
+    'fracturing.ctl.mass': 'The assumed mass of the rock — it sets how much damage is needed.',
+    'mining.ctl.station': 'The station whose yield is highlighted in the ranking.',
+    'mining.ctl.locpin': 'Pins a location to the shortlist on the second tab — same pin as on the ore.',
+    'mining.ctl.tabs': 'Switches between the signature list and the location shortlist. Both share the same presets.',
+    'mining.ctl.shortlist': 'The pinned locations across every ore, as “Ore — Location”.',
 
     // -- Refinery Finder --
     'refineryfinder.title': 'How does the Refinery Finder work?',

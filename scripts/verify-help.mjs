@@ -32,17 +32,25 @@
         uebereinstimmen.
      4  Werkzeugabdeckung (DOC-07): sammelt alle data-tool-id-Werte
         aus allen gebauten .html-Dateien unter dist/ (rekursiv) und
-        vergleicht sie gegen die feste Liste der ELF Kennungen. Ohne
-        --complete nur Stand melden; mit --complete alle elf verlangen.
+        vergleicht sie gegen die feste Liste in TOOL_IDS. Ohne
+        --complete nur Stand melden; mit --complete alle verlangen.
+        (Die Zahl stand hier als Wort — „ELF" — und war nach dem
+        zwoelften Werkzeug still falsch. Jetzt zaehlt der Code.)
      5  Ladeort (DOC-06): jede Seite, die tool-help.js laedt, traegt
         mindestens ein data-tool-id.
-     6  Element-Hilfe vorhanden (WR-05): jede Seite mit data-tool-id
-        traegt mindestens einen data-help-Anker, und kein data-help-
-        Wert ist leer. Ohne diese Zusicherung meldete Zusicherung 4
-        weiterhin "abgedeckt", selbst wenn einem Werkzeug alle
-        data-help-Anker geloescht wurden — Zusicherung 3 sieht das
+     6  Element-Hilfe je WERKZEUG (WR-05): jedes data-tool-id traegt
+        mindestens einen EIGENEN data-help-Anker (zugeordnet ueber die
+        Dokumentreihenfolge bis zum naechsten data-tool-id), und kein
+        data-help-Wert ist leer. Ohne diese Zusicherung meldete
+        Zusicherung 4 weiterhin "abgedeckt", selbst wenn einem Werkzeug
+        alle data-help-Anker geloescht wurden — Zusicherung 3 sieht das
         ebenfalls nicht, weil sie nur EN gegen DE zaehlt (0 === 0
         besteht dort klaglos).
+        ZAEHLTE BIS 11.08.2026 PRO SEITE und war damit selbst blind:
+        die Mining-Seite traegt zwei Werkzeuge, und die Anker des
+        Refinery-Finders deckten den Totalverlust der Mining-Werkbank
+        zu. Gegenprobe protokolliert in
+        .planning/notes/mining-werkbank-defekte.md.
 
        node scripts/verify-help.mjs [--complete]
    ============================================================ */
@@ -62,8 +70,9 @@ if (!(() => { try { readdirSync('dist'); return true; } catch { return false; } 
 // Feste Liste, EINE Stelle. Die beiden Refinerys sind zwei verschiedene
 // Werkzeuge — eine Kennung "refinery" gibt es nicht.
 const TOOL_IDS = [
-  'itemfinder', 'crafting', 'mining', 'refineryfinder', 'refinerytracker',
-  'missions', 'ships', 'precisionjump', 'archive', 'wikelo', 'armorsets',
+  'itemfinder', 'crafting', 'mining', 'fracturing', 'refineryfinder',
+  'refinerytracker', 'missions', 'ships', 'precisionjump', 'archive',
+  'wikelo', 'armorsets',
 ];
 
 const COMPLETE = process.argv.includes('--complete');
@@ -194,7 +203,7 @@ console.log('\n[3] Sprachparitaet EN<->DE (data-tool-id=, data-help=, class="too
 }
 
 /* ---- Zusicherung 4: Werkzeugabdeckung ---- */
-console.log(`\n[4] Werkzeugabdeckung (DOC-07)${COMPLETE ? ' — --complete: alle 11 verlangt' : ''}`);
+console.log(`\n[4] Werkzeugabdeckung (DOC-07)${COMPLETE ? ` — --complete: alle ${TOOL_IDS.length} verlangt` : ''}`);
 {
   const found = new Set();
   const idRe = /data-tool-id="([^"]+)"/g;
@@ -227,13 +236,24 @@ console.log('\n[5] Ladeort: nur Seiten mit data-tool-id laden tool-help.js (DOC-
   if (bad.length) fail(`Skript geladen ohne data-tool-id: ${bad.slice(0, 10).join(', ')}`);
 }
 
-/* ---- Zusicherung 6: jede Werkzeug-Seite hat echte data-help-Anker (WR-05) ----
-   Zusicherung 4 sieht nur data-tool-id — ein Werkzeug, dem alle
-   data-help-Anker geloescht wurden, meldete dort weiterhin "abgedeckt".
-   Diese Zusicherung verlangt fuer JEDE Seite mit data-tool-id mindestens
-   einen data-help-Wert und verbietet leere Werte. */
-console.log('\n[6] Element-Hilfe vorhanden (WR-05): data-tool-id verlangt >=1 nicht-leeren data-help-Anker');
+/* ---- Zusicherung 6: JEDES WERKZEUG hat eigene data-help-Anker (WR-05) ----
+   Zaehlte bis 11.08.2026 pro SEITE — und das reichte nachweislich nicht.
+   Die Mining-Seite traegt ZWEI Werkzeuge (mining + refineryfinder). Als der
+   Werkbank-Umbau saemtliche data-help der Mining-Werkbank verlor, hielten
+   die drei Anker des Refinery-Finders weiter unten die Seite gruen; der
+   Knopf „Elemente erklaeren" der Werkbank hob danach nur noch fremde
+   Elemente ausserhalb des Blickfelds hervor. Genau die Luecke, vor der
+   Grundsatz 1 warnt: ein Tor, das nie rot war, ist Dekoration.
+
+   Zuordnung ueber die Dokumentreihenfolge: ToolHelp steht in jedem Werkzeug
+   am Kopf seiner eigenen Filterleiste, die Bedienelemente folgen darunter.
+   Alles zwischen dem ersten data-tool-id eines Werkzeugs und dem des
+   naechsten gehoert damit zu diesem Werkzeug. Mehrfachvorkommen derselben
+   Kennung (ToolHelp setzt sie auf <details> UND auf den Knopf) zaehlen nur
+   einmal — sonst entstuende dazwischen ein leeres Teilstueck. */
+console.log('\n[6] Element-Hilfe je WERKZEUG (WR-05): jedes data-tool-id verlangt >=1 eigenen, nicht-leeren data-help-Anker');
 {
+  const idRe = /data-tool-id="([^"]*)"/g;
   const helpRe = /data-help="([^"]*)"/g;
   let checked = 0;
   let withoutAnchor = 0;
@@ -241,20 +261,28 @@ console.log('\n[6] Element-Hilfe vorhanden (WR-05): data-tool-id verlangt >=1 ni
   for (const f of htmlFiles) {
     const html = htmlCache.get(f);
     if (!html.includes('data-tool-id=')) continue;
-    checked++;
-    const vals = [...html.matchAll(helpRe)].map((m) => m[1]);
-    if (!vals.length) {
-      withoutAnchor++;
-      fail(`${f}: data-tool-id vorhanden, aber KEIN data-help-Anker`);
-      continue;
+    const marks = [];
+    for (const m of html.matchAll(idRe)) {
+      if (!marks.some((x) => x.id === m[1])) marks.push({ id: m[1], at: m.index });
     }
-    if (vals.some((v) => !v.trim())) {
-      withEmptyValue++;
-      fail(`${f}: leerer data-help-Wert (${vals.filter((v) => !v.trim()).length}x)`);
+    for (let i = 0; i < marks.length; i++) {
+      checked++;
+      const to = i + 1 < marks.length ? marks[i + 1].at : html.length;
+      const vals = [...html.slice(marks[i].at, to).matchAll(helpRe)].map((m) => m[1]);
+      if (!vals.length) {
+        withoutAnchor++;
+        fail(`${f}: Werkzeug "${marks[i].id}" hat KEINEN eigenen data-help-Anker`);
+        continue;
+      }
+      if (vals.some((v) => !v.trim())) {
+        withEmptyValue++;
+        fail(`${f}: Werkzeug "${marks[i].id}" hat einen leeren data-help-Wert`);
+      }
     }
   }
   console.log(
-    `    Geprueft: ${checked}   ohne Anker: ${withoutAnchor}   mit leerem Wert: ${withEmptyValue}   Soll: 0 / 0`
+    `    Gepruefte Werkzeug-Vorkommen: ${checked}   ohne eigenen Anker: ${withoutAnchor}   ` +
+      `mit leerem Wert: ${withEmptyValue}   Soll: 0 / 0`
   );
 }
 

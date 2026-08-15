@@ -42,12 +42,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      # Erst BAUEN, nicht pushen: zwischen Build und Push liegen zwei
+      # Pruefungen am fertigen Image. Was nicht besteht, wird nie
+      # veroeffentlicht — dieselbe Logik wie beim Tor im Dockerfile, eine
+      # Stufe spaeter.
+      - name: Build (noch nicht pushen)
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
-          build-args: STAGING=1
+          load: true
+          build-args: |
+            STAGING=1
+            GIT_SHA=${{ github.sha }}
           tags: |
             ghcr.io/cibakhun/sc-patch-archive:staging
             ghcr.io/cibakhun/sc-patch-archive:staging-${{ github.sha }}
@@ -66,13 +72,109 @@ jobs:
           grep -q 'name="robots" content="noindex"' ./index.check || { echo "FEHLER: index.html hat kein noindex."; exit 1; }
           echo "OK — Vorschau ist gesperrt."
 
+      # ---- Browser-Rauchtest gegen den LAUFENDEN Container ----------------
+      # Warum hier und nicht im Dockerfile-Tor: node:22-alpine hat keinen
+      # Browser, und die Content-Security-Policy ist ein nginx-HEADER — sie
+      # existiert erst, wenn der Container laeuft. dist/ als Dateibaum kann
+      # sie nicht zeigen. Geprueft wird damit genau das Artefakt, das gleich
+      # ausgeliefert wird.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Browser bereitstellen
+        run: |
+          for c in google-chrome google-chrome-stable chromium chromium-browser; do
+            if command -v "$c" >/dev/null 2>&1; then
+              echo "CHROME_PATH=$(command -v $c)" >> "$GITHUB_ENV"
+              echo "gefunden: $(command -v $c)"; exit 0
+            fi
+          done
+          echo "kein Browser vorinstalliert — chromium wird nachinstalliert"
+          sudo apt-get update -qq && sudo apt-get install -y -qq chromium-browser
+          echo "CHROME_PATH=$(command -v chromium-browser)" >> "$GITHUB_ENV"
+
+      - name: Rauchtest gegen das fertige Image
+        run: |
+          docker run -d --rm -p 8080:80 --name smoke ghcr.io/cibakhun/sc-patch-archive:staging
+          # auf nginx warten, statt blind zu schlafen
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:8080/ >/dev/null 2>&1 && break
+            sleep 1
+          done
+          # `|| code=$?`, damit der Container auch nach einem Fehlschlag
+          # gestoppt wird — unter `bash -e` bricht der Schritt sonst sofort ab
+          # und laesst ihn stehen. Der Exit-Code bleibt der des Rauchtests.
+          code=0
+          node scripts/browser-smoke.mjs --base http://localhost:8080 || code=$?
+          docker stop smoke >/dev/null || true
+          exit $code
+
+      - name: Push (erst nach bestandenen Pruefungen)
+        run: |
+          docker push ghcr.io/cibakhun/sc-patch-archive:staging
+          docker push ghcr.io/cibakhun/sc-patch-archive:staging-${{ github.sha }}
+
+      # Am 14.08.2026 scheiterte dieser Schritt zweimal mit 401, obwohl derselbe
+      # Token, direkt von Hand aufgerufen, sauber "deployment queued" lieferte.
+      # Ursache war nicht der Token, sondern sein TRANSPORT: ein an den Secret-Wert
+      # geratenes Zeilenende macht den Bearer-Header ungueltig, und `curl -f`
+      # verschluckt dabei auch noch den Rumpf, sodass im Log nur "error: 401" stand.
+      # Daher jetzt: Rand-Leerraum abschneiden, HTTP-Code und Antwort ausgeben, und
+      # die Laenge des Tokens nennen (nicht seinen Wert) — daran ist ein
+      # eingeschlepptes Zeilenende sofort zu erkennen.
       - name: Trigger Coolify redeploy (staging)
         env:
           HOOK: ${{ secrets.COOLIFY_STAGING_WEBHOOK }}
           TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
         run: |
-          if [ -n "$HOOK" ] && [ -n "$TOKEN" ]; then
-            curl -fsSL "$HOOK" -H "Authorization: Bearer $TOKEN" && echo "Coolify staging redeploy triggered."
-          else
-            echo "COOLIFY_STAGING_WEBHOOK und/oder COOLIFY_API_TOKEN nicht gesetzt — redeploy manuell in Coolify."
+          # Fehlt ein Secret, wird bewusst NICHT rot — ein Fork ohne Coolify soll
+          # bauen koennen. Aber als ::warning::, damit es im Lauf sichtbar ist:
+          # am 14.08.2026 lief dieser Zweig zweimal unbemerkt durch (das Secret war
+          # gesetzt, aber LEER — `gh secret set` ohne Eingabe speichert Leerstring),
+          # und der gruene Lauf sah aus wie ein geglueckter Deploy.
+          if [ -z "$HOOK" ] || [ -z "$TOKEN" ]; then
+            FEHLT=""
+            [ -z "$HOOK" ] && FEHLT="COOLIFY_STAGING_WEBHOOK"
+            [ -z "$TOKEN" ] && FEHLT="${FEHLT:+$FEHLT und }COOLIFY_API_TOKEN"
+            echo "::warning::KEIN Deploy ausgeloest — $FEHLT leer oder nicht gesetzt. Das Image liegt fertig in ghcr; in Coolify manuell Redeploy klicken. Achtung: ein Secret kann gesetzt UND leer sein."
+            exit 0
           fi
+          CLEAN_TOKEN=$(printf '%s' "$TOKEN" | tr -d '[:space:]')
+          echo "Token: ${#TOKEN} Zeichen roh, ${#CLEAN_TOKEN} nach dem Trimmen (Wert wird nicht ausgegeben)."
+          CLEAN_HOOK=$(printf '%s' "$HOOK" | tr -d '[:space:]')
+          BODY=$(mktemp)
+          CODE=$(curl -sS -o "$BODY" -w '%{http_code}' "$CLEAN_HOOK" -H "Authorization: Bearer $CLEAN_TOKEN")
+          echo "HTTP $CODE"
+          echo "Antwort: $(head -c 400 "$BODY")"
+          if [ "$CODE" -ge 200 ] && [ "$CODE" -lt 300 ]; then
+            echo "Coolify staging redeploy triggered."
+          else
+            echo "::error::Coolify lehnt den Deploy-Aufruf ab (HTTP $CODE). Bei 401: Token in Coolify unter Keys & Tokens pruefen (Berechtigung 'deploy') und COOLIFY_API_TOKEN ohne Zeilenende neu setzen."
+            exit 1
+          fi
+
+      # Nachsehen, ob die Vorschau den frisch gebauten Stand WIRKLICH
+      # ausliefert. "Image gepusht" und "Coolify angestossen" sind keine
+      # Antwort darauf: am 08.08.2026 lieferte staging knapp vier Stunden den
+      # Vortagsstand aus, und an anderem Tag hing Coolify 20 Minuten.
+      #
+      # ⚠ GEMESSEN am 09.08.2026: Cloudflare weist den GitHub-Runner mit 403
+      # ab — dieselbe Sperre gegen Rechenzentren wie bei UEX. Der Schritt
+      # kann die Frage von hier aus also NICHT beantworten und bricht bei 403
+      # sofort ab (statt sein Fenster auszusitzen); `--weich` haelt ihn dabei
+      # gruen, weil "ich komme nicht hin" kein Befund ueber den Deploy ist.
+      # Er bleibt trotzdem stehen: er kostet eine Sekunde, protokolliert den
+      # Zustand, und wenn die Sperre je faellt, misst er wieder wirklich.
+      # Die belastbare Antwort gibt `npm run check:staging` vom
+      # Entwicklungsrechner aus — dort ist sie streng.
+      - name: Warten, bis die Vorschau den neuen Stand zeigt
+        run: |
+          node scripts/check-deployed.mjs \
+            --base https://staging.verse-base.com \
+            --sha ${{ github.sha }} \
+            --vorschau \
+            --weich \
+            --warte 600
