@@ -710,7 +710,12 @@ sind genau die mit Höchstanteil 5–10 % — scmdb blendet Spuren aus. Das
 Mehrfach-Slot-Doppelzählen ist in `datamine-locations.mjs:130-159` behandelt.
 Definitionsunterschied, kein Fehler. Hier ist nichts zu reparieren.
 
-**Requirements**: TBD
+**Requirements**: keine REQ-IDs in REQUIREMENTS.md — bindend sind stattdessen die
+Entscheidungen D-01 bis D-11 aus
+`.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-CONTEXT.md`
+sowie die 48 Zustandszusicherungen im Abschnitt `## UI Considerations` von
+`12-UI-SPEC.md` (39 belegt, 9 als Nachweis offen). Gleicher Umgang wie in den
+Phasen 7, 9 und 10.
 **Depends on:** Phase 10 (Fundort-Merkliste und Presets der Werkbank)
 **Plans:** 0 plans
 
