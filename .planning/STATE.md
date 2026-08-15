@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 10
-current_phase_name: mining-presets-bedienbar-machen
-status: verifying
-stopped_at: Phase 12 UI-SPEC approved
-last_updated: "2026-08-15T14:01:23.002Z"
+current_phase: 12
+current_phase_name: fundorte-in-der-mining-werkbank-anklickbar
+status: planned
+stopped_at: Phase 12 geplant — 3 Plaene, Plan-Pruefer bestanden
+last_updated: "2026-08-15T14:47:52.414Z"
 last_activity: 2026-08-15
-last_activity_desc: Phase 10 execution started
+last_activity_desc: Phase 12 geplant (3 Plaene, Plan-Pruefer bestanden)
 progress:
   total_phases: 16
   completed_phases: 10
-  total_plans: 50
+  total_plans: 53
   completed_plans: 43
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
@@ -25,12 +25,25 @@ parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 10 — mining-presets-bedienbar-machen
+**Current focus:** Phase 12 — fundorte-in-der-mining-werkbank-anklickbar
 
-> **Nachtrag 15.08.2026 — Phase 10 ist geplant, ausführbereit.**
+> **Nachtrag 15.08.2026 (zweiter) — Phase 12 ist geplant, ausführbereit.**
+> „Fundorte in der Mining-Werkbank anklickbar", **3 Pläne in 3 Wellen**
+> (`.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/`),
+> Plan-Prüfer bestanden, Struktur maschinell validiert (3 × `valid: true`,
+> 8 Tasks). Zweig `claude/mining-site-clickable-locations-dec7bc`, von
+> `origin/staging` (`e20c56c`) aus — der Worktree hing anfangs auf `main`
+> und wurde zurückgesetzt.
+> Nächster Schritt: `/gsd-execute-phase 12`.
+>
+> ⚠ **Phase 10 ist damit NICHT erledigt.** Sie liegt auf staging und wartet
+> weiterhin auf ihre Sichtrunde (`.planning/WINDOWS.md`, id 11). Der
+> Kopf-Eintrag `current_phase` ist nur deshalb auf 12 gewandert, weil dort
+> jetzt gearbeitet wird — nicht, weil 10 abgenommen wäre.
+>
+> **Nachtrag 15.08.2026 (erster) — Phase 10 ist geplant, ausführbereit.**
 > „Mining-Presets bedienbar machen", 2 Pläne in 2 Wellen
 > (`.planning/phases/10-mining-presets-bedienbar-machen/`), Plan-Prüfer bestanden.
-> Nächster Schritt: `/gsd-execute-phase 10`.
 >
 > ⚠ Der übrige Text dieser Datei beschreibt weiterhin den Stand vom **02.08.2026**
 > (Phase 5). Die Phasen 6, 7, 8 und 9 sind seither aus anderen Sitzungen
@@ -337,6 +350,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-15T14:01:22.977Z
-Stopped at: Phase 12 UI-SPEC approved
-Resume file: .planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-UI-SPEC.md
+Last session: 2026-08-15T14:47:52.389Z
+Stopped at: Phase 12 geplant — 3 Plaene, Plan-Pruefer bestanden
+Resume file: .planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-01-PLAN.md
