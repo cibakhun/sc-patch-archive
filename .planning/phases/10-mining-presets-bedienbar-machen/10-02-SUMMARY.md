@@ -239,3 +239,10 @@ Dieser Schritt aus Task 3 (e) verlangt, dass die ausgelieferte Seite auf `stagin
 ---
 *Phase: 10-mining-presets-bedienbar-machen*
 *Completed: 2026-08-15*
+
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/10-mining-presets-bedienbar-machen/10-02-SUMMARY.md`
+- FOUND: `0d6a4b2` (Task 1 commit)
+- FOUND: `40a5b47` (Task 2 commit)
+- FOUND: `90e4d90` (Task 3 commit)

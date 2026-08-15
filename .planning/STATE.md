@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 10
 current_phase_name: mining-presets-bedienbar-machen
-status: executing
-stopped_at: Completed 10-01-PLAN.md (Preset-Liste, Umbenennen, Loeschen mit Rueckfrage, Ueberschreiben, Einzeleintrag entfernen)
-last_updated: "2026-08-15T03:54:49.169Z"
+status: verifying
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-08-15T04:28:49.215Z"
 last_activity: 2026-08-15
 last_activity_desc: Phase 10 execution started
 progress:
   total_phases: 15
   completed_phases: 10
   total_plans: 50
-  completed_plans: 42
+  completed_plans: 43
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -43,7 +43,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 Phase: 10 (mining-presets-bedienbar-machen) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 
 ---
 
@@ -150,7 +150,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [████████░░] 84%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
@@ -204,6 +204,7 @@ Progress: [████████░░] 84%
 | Phase 04-sprachparitaet-absichern P02 | 30min | 3 tasks | 7 files |
 | Phase 04 P03 | 65min | 3 tasks | 9 files |
 | Phase 10 P01 | 35min | 3 tasks | 4 files |
+| Phase 10 P02 | 35min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -284,6 +285,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Umbenennen als EIN PATCH auf (user_id,name) statt POST+DELETE — atomar, ein Fehlerfall (409)
 - [Phase ?]: Loeschen-Rueckfrage als eigener Inline-Zustand statt window.confirm() — zwei Klicks, zweiter traegt Worte
 - [Phase ?]: Einzeleintrag entfernen ohne preApply() — Ansehen/Ausduennen aendern nie den Arbeitsstand
+- [Phase ?]: 10-02: Reiterleiste ersatzlos entfernt statt umgebaut -- beide Listen wurden ohnehin bei jedem renderAll() gezeichnet, der Reiter blendete nur eine aus
+- [Phase ?]: 10-02: Rastermass 470px 1fr 330px wie im Plan vorentschieden uebernommen (Claude's Discretion aus CONTEXT.md)
+- [Phase ?]: 10-02: mining.ctl.pins wird zum Nachschlagewerk-Text, mining.ctl.presets nennt die vier Preset-Handlungen aus 10-01; scripts/verify-help.mjs bewusst nicht angefasst
 
 ### Pending Todos
 
@@ -332,6 +336,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-15T03:54:49.144Z
-Stopped at: Completed 10-01-PLAN.md (Preset-Liste, Umbenennen, Loeschen mit Rueckfrage, Ueberschreiben, Einzeleintrag entfernen)
+Last session: 2026-08-15T04:28:49.189Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None
