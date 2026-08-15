@@ -335,6 +335,15 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
         die Spielversion steht ohnehin in der Fusszeile. */}
     <h1 class="wb__ctitle" set:text={title} />
     <div class="wb__cscreen">
+      {/* ⚠ Der Schirm-Schleier ist ein ECHTES Element, kein `::before`.
+          Zwei Gruende, beide bezahlt:
+          · Er muss UEBER dem Inhalt liegen — Eigenleuchten, Vignette,
+            Glasspiegelung und Zeilenraster wirken nur, wenn sie auf allem
+            liegen. Ein `background` am Schirm liegt dahinter und ist wirkungslos.
+          · `verify:layers` (Zusicherung 5) meldet jede Pseudo-Selektor-Familie
+            mit Verlauf als Fund ohne Registry-Eintrag. Eine Klasse tut das
+            nicht. */}
+      <span class="wb__glare" aria-hidden="true"></span>
       <p class="wb__clead" set:text={lead} />
 
   <div class="wb__grid">
@@ -584,9 +593,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   position:relative;display:flex;flex-direction:column;min-height:0;
   border-style:solid;border-color:transparent;
   border-image-source:var(--wb-frame);
-  border-image-slice:46 101 48 104 fill;
-  border-image-width:calc(var(--rahmen)*.442) calc(var(--rahmen)*.971) calc(var(--rahmen)*.462) var(--rahmen);
-  border-width:calc(var(--rahmen)*.442) calc(var(--rahmen)*.971) calc(var(--rahmen)*.462) var(--rahmen);
+  border-image-slice:81 138 66 140 fill;
+  border-image-width:calc(var(--rahmen)*.579) calc(var(--rahmen)*.986) calc(var(--rahmen)*.471) var(--rahmen);
+  border-width:calc(var(--rahmen)*.579) calc(var(--rahmen)*.986) calc(var(--rahmen)*.471) var(--rahmen);
   /* Die Hoehe haengt an nichts mehr — kein Seitenverhaeltnis diktiert sie. */
   height:clamp(430px,calc(100vh - var(--wb-chrome)),1180px);
   /* ⚠ Die Aussenkante endete hart gegen den flachen Seitengrund — gemeldet als
@@ -615,8 +624,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   pointer-events:none;z-index:2}
 /* Steckerbuchse (640x166 in der Vorlage). */
 .wb__chassis::after{left:50%;transform:translateX(-50%);
-  bottom:calc(var(--rahmen)*-.462);height:calc(var(--rahmen)*.462);
-  width:calc(var(--rahmen)*.462*351/48);
+  bottom:calc(var(--rahmen)*-.471);height:calc(var(--rahmen)*.471);
+  width:calc(var(--rahmen)*.471*470/66);
   background:var(--wb-plug) center/100% 100% no-repeat;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);
   mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
@@ -634,7 +643,50 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 /* Die Bildflaeche ist jetzt schlicht der Inhaltskasten des Gehaeuses — kein
    Prozentkasten mehr noetig, weil der Rahmen seinen Platz ueber `border-width`
    selbst belegt. */
-.wb__cscreen{display:flex;flex-direction:column;gap:8px;min-height:0;flex:1}
+/* Die Bildflaeche liest sich als leuchtender Schirm, nicht als Seitenhintergrund:
+   feine waagerechte Zeilenstruktur plus eine Aufhellung zur Mitte hin.
+   ⚠ Als `background` am Element selbst, NICHT als `::before` mit Verlauf — das
+   waere eine neue Selektor-Familie und `verify:layers` (Zusicherung 5) meldet
+   sie zu Recht als Fund ohne Registry-Eintrag. Schon einmal bezahlt. */
+/* ── DER SCHIRM ───────────────────────────────────────────────────────────
+   Der Rahmen ist das Geraet, diese Flaeche sein Bildschirm. Damit sie als
+   solcher liest, braucht sie vier Dinge — die ersten beiden HINTER dem Inhalt
+   (hier), die anderen beiden DAVOR (`.wb__glare`):
+     1. eine eigene, tiefere Schwaerze mit kuehlem Stich (nicht der Seitengrund),
+     2. ein Eigenleuchten aus der Mitte heraus,
+     3. sichtbares Zeilenraster,
+     4. Vignette und Glasspiegelung.
+   ⚠ Ein erster Anlauf hatte 1–3 bei 3 % Deckkraft HINTER dem Inhalt — das
+   sieht niemand („es sieht ueberhaupt nicht so aus wie ein bildschirm"). */
+.wb__cscreen{position:relative;display:flex;flex-direction:column;gap:8px;min-height:0;flex:1;
+  background:
+    radial-gradient(120% 85% at 50% 38%,
+      color-mix(in srgb,var(--accent) 16%,transparent) 0%,
+      color-mix(in srgb,var(--accent) 4%,transparent) 46%, transparent 74%),
+    linear-gradient(180deg,
+      color-mix(in srgb,var(--ink) 92%,var(--accent)) 0%, var(--ink) 100%),
+    var(--ink)}
+
+/* Der Schleier ueber allem: Zeilenraster, Vignette, Glasspiegelung.
+   ⚠ `pointer-events:none` ist PFLICHT — ohne das schluckt er jeden Klick auf
+   Kacheln, Zeilen und Knoepfe darunter.
+   ⚠ Deckkraft bewusst niedrig gehalten: der Schleier liegt ueber dem Text, und
+   jede Stufe mehr kostet Lesbarkeit. Die Wirkung kommt aus der Kombination,
+   nicht aus der Staerke eines einzelnen Anteils. */
+.wb__glare{position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:2px;
+  background:
+    /* 1. Glasspiegelung: ein schraeger Lichtstreifen ueber die ganze Flaeche */
+    linear-gradient(104deg,
+      transparent 0 34%,
+      color-mix(in srgb,var(--text) 5%,transparent) 44%,
+      color-mix(in srgb,var(--text) 2%,transparent) 52%,
+      transparent 62% 100%),
+    /* 2. Vignette: Ecken abdunkeln, Mitte frei lassen */
+    radial-gradient(118% 96% at 50% 46%,
+      transparent 0 52%, color-mix(in srgb,var(--ink) 55%,transparent) 100%),
+    /* 3. Zeilenraster: sichtbar, aber nicht flimmernd — 3 px Teilung */
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb,var(--ink) 46%,transparent) 0 1px, transparent 1px 3px)}
 .wb__clead{margin:0;text-align:center;font-size:var(--fs-4);
   color:color-mix(in srgb,var(--muted) 92%,transparent)}
 /* ⚠ Der Zier-Grund (`.wb::before`: zwei Rastermassstaebe, zwei Lichtabfaelle,
@@ -660,10 +712,20 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    `backdrop-filter`, die den Menue-Eintritt schon einmal auf 840 ms gedrueckt
    hat. Die Paneele sind jetzt deckende Flaechen auf der Bildflaeche der
    Grafik. */
+/* ⚠ Gestalt-Durchgang 15.08.2026, AUSDRUECKLICH NUR OPTIK: der Aufbau —
+   Spalten, Kachelraster, Zeilen — bleibt unangetastet („nicht vom layout oder
+   so, ich meinte nur vom optischen her"). Geaendert wird, WIE die Flaechen
+   aussehen, nicht WO sie liegen.
+   Leitgedanke: der Rahmen ist das Geraet, die Flaeche darin sein BILDSCHIRM.
+   Also keine schwebenden Karten mit weichem Radius, sondern eingelassene
+   Anzeigefelder: dunkler als ihre Umgebung, harte Fase oben, feiner
+   Lichtstrich an der Oberkante, Radius 4 statt 12. */
 .wb__pane,.wb__rig{
-  background:color-mix(in srgb,var(--ink) 62%,var(--surface));
-  border-radius:12px;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 8%,transparent),
-    0 3px 14px color-mix(in srgb,var(--ink) 55%,transparent);
+  background:color-mix(in srgb,var(--ink) 90%,var(--surface));
+  border-radius:4px;
+  box-shadow:inset 0 2px 5px color-mix(in srgb,var(--ink) 85%,transparent),
+    inset 0 1px 0 color-mix(in srgb,var(--text) 11%,transparent),
+    inset 0 0 0 1px color-mix(in srgb,var(--text) 7%,transparent);
   display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;position:relative}
 /* Angeschraegte Ecke OHNE clip-path (die Paarung mit backdrop-filter kostete
    schon einmal 520 ms): ein Pseudo-Element mit 45deg-Verlauf fuellt sie. */
@@ -761,9 +823,12 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    unten Signatur und Anheft-Knopf nebeneinander. */
 .wb__tile{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;
   grid-template-rows:auto auto;gap:1px 6px;align-content:center;
-  padding:5px 6px 5px 9px;border-radius:8px;cursor:pointer;
-  background:color-mix(in srgb,var(--ink) 26%,transparent);
-  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 5%,transparent);
+  /* Kachel als Ableseposten: kantig (Radius 3), eingelassen statt aufgelegt.
+     Groesse, Raster und Polsterung unveraendert — nur die Oberflaeche. */
+  padding:5px 6px 5px 9px;border-radius:3px;cursor:pointer;
+  background:color-mix(in srgb,var(--ink) 48%,transparent);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 7%,transparent),
+    inset 0 0 0 1px color-mix(in srgb,var(--text) 5%,transparent);
   transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
 .wb__tile:hover{background:color-mix(in srgb,var(--surface-2) 88%,var(--text))}
 .wb__tile.is-sel{background:color-mix(in srgb,var(--accent-2) 20%,transparent);
@@ -786,7 +851,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   background:linear-gradient(-135deg,var(--accent) 0 50%,transparent 50% 100%)}
 .wb__tn{grid-column:1/-1;font-size:var(--fs-5);font-weight:500;color:var(--text);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wb__ts{align-self:center;font-size:var(--fs-3);color:var(--hot)}
+.wb__ts{align-self:center;font-size:var(--fs-3);color:var(--hot);
+  text-shadow:0 0 7px color-mix(in srgb,var(--hot) 60%,transparent)}
 /* ⚠ Zwei Fehlschlaege stecken in diesem Knopf, beide vom Nutzer gemeldet:
    erst war er unsichtbar (opacity:0 + :hover — auf Touch existiert er dann
    gar nicht), dann mit 28 px Tippziel „zu schwer". Er ist jetzt ein eigenes
@@ -820,7 +886,20 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   background:color-mix(in srgb,var(--ink) 30%,transparent);color:var(--muted)}
 .wb__tag.is-rar{background:color-mix(in srgb,var(--accent-2) 18%,transparent);color:var(--accent-2)}
 .wb__sigbox{margin-left:auto;text-align:right}
-.wb__sigbox b{display:block;font-size:var(--fs-11);color:var(--hot);font-weight:600;line-height:1.1;margin-top:1px}
+/* Der Signaturwert ist der EINE Messwert des Geraets — er bekommt eine
+   geaetzte Wanne mit Zeilenraster und Glimmen statt nur einer Farbe. Groesse
+   und Position unveraendert. */
+.wb__sigbox b{display:block;font-size:var(--fs-11);color:var(--hot);font-weight:700;
+  line-height:1.1;margin-top:1px;padding:2px 9px;border-radius:3px;
+  font-family:var(--font-mono,ui-monospace);font-variant-numeric:tabular-nums;
+  letter-spacing:var(--ls-5);
+  text-shadow:0 0 12px color-mix(in srgb,var(--hot) 55%,transparent);
+  background:
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb,var(--ink) 55%,transparent) 0 1px, transparent 1px 3px),
+    color-mix(in srgb,var(--ink) 62%,transparent);
+  box-shadow:inset 0 2px 5px color-mix(in srgb,var(--ink) 80%,transparent),
+    inset 0 0 0 1px color-mix(in srgb,var(--hot) 22%,transparent)}
 /* Grosser Anheft-Knopf am gewaehlten Erz — der bequeme Weg in die
    Signaturenliste. Deckender Grund ueber Variablen (Hellmodus, s. o.). */
 .wb__pinbig{display:inline-flex;align-items:center;gap:7px;align-self:center;white-space:nowrap;
@@ -856,13 +935,22 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 #wb-lochead[hidden],#wb-locview[hidden],#wb-oreview[hidden]{display:none}
 
 .wb__sec{padding:0 14px 11px}
-.wb__sec h4{font-size:var(--fs-4);font-weight:600;color:color-mix(in srgb,var(--muted) 88%,transparent);
+/* Abschnittsmarken als GRAVIERTE Schilder: Mono, Versalien, weit gesperrt,
+   mit einem hellen Kantenlicht unter der Grundlinie. Nur Schriftbild — Groesse
+   und Platz bleiben, wie sie waren. */
+.wb__sec h4{font-size:var(--fs-3);font-weight:600;
+  font-family:var(--font-mono,ui-monospace);letter-spacing:var(--ls-14);text-transform:uppercase;
+  color:color-mix(in srgb,var(--muted) 96%,transparent);
   margin:0 0 7px;padding-bottom:5px;position:relative}
 .wb__sec h4::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;
   background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--text) 14%,transparent) 0 1px,transparent 1px 7px)}
 .wb__locs,.wb__refs{display:flex;flex-direction:column;gap:3px}
+/* Zeilen als Ableseposten auf dem Schirm: kantiger (Radius 3 statt 7) und mit
+   einer feinen Lichtkante oben, damit sie im Schirm liegen statt darauf.
+   Polsterung und Raster unveraendert. */
 .wb__row2{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;
-  padding:5px 9px;border-radius:7px;background:color-mix(in srgb,var(--ink) 22%,transparent)}
+  padding:5px 9px;border-radius:3px;background:color-mix(in srgb,var(--ink) 46%,transparent);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 6%,transparent)}
 .wb__row2 .p{font-size:var(--fs-5);font-weight:500;color:var(--text);display:block;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wb__row2 .s{font-size:var(--fs-3);color:color-mix(in srgb,var(--muted) 88%,transparent);display:block;margin-top:1px}
@@ -884,7 +972,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__bar{width:46px;height:5px;border-radius:3px;overflow:hidden;
   background:color-mix(in srgb,var(--ink) 55%,transparent);
   box-shadow:inset 0 1px 2px color-mix(in srgb,var(--ink) 70%,transparent)}
-.wb__bar i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--hot) 0 3px,transparent 3px 5px)}
+.wb__bar i{display:block;height:100%;
+  background:repeating-linear-gradient(90deg,var(--hot) 0 3px,transparent 3px 5px);
+  filter:drop-shadow(0 0 4px color-mix(in srgb,var(--hot) 70%,transparent))}
 .wb__bar.amber i{background:repeating-linear-gradient(90deg,var(--accent-2) 0 3px,transparent 3px 5px)}
 /* 44 px reichten fuer „28–78 %" nicht: die Spanne brach ueber drei Zeilen um
    (und stand vor der Rundung ohnehin als 28.29999923 da). */

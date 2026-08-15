@@ -199,8 +199,11 @@ const out = await page.evaluate(async ({ png, CW, CH, ax, ay, aw, ah, label, plu
      Fenstern auf rund die Haelfte). Die HOLME bleiben unberuehrt — sie werden
      kaum gestreckt und wuerden ihre Zeichnung verlieren. */
   const bars = [
-    { s: [Math.round(ax + aw * 0.06), 0, 1, ay], d: [ax, 0, aw, ay] },
-    { s: [Math.round(ax + aw * 0.10), ay + ah, 1, CH - (ay + ah)], d: [ax, ay + ah, aw, CH - (ay + ah)] },
+    /* ⚠ Die Quellspur MUSS im glatten Blech liegen. Bei 6 % lag sie noch im
+       Bereich der Eckzeichnung — gestreckt ergab das ein falsches Profil und
+       liess Griffstummel stehen. 20 % / 32 % sind gemessen plain. */
+    { s: [Math.round(ax + aw * 0.20), 0, 1, ay], d: [ax, 0, aw, ay] },
+    { s: [Math.round(ax + aw * 0.32), ay + ah, 1, CH - (ay + ah)], d: [ax, ay + ah, aw, CH - (ay + ah)] },
   ];
   for (const { s, d } of bars) {
     const patch = document.createElement('canvas');

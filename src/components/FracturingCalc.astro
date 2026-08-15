@@ -163,6 +163,10 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     <h1 class="fc__ctitle" set:text={title} />
 
     <div class="fc__cscreen">
+      {/* Schirm-Schleier als ECHTES Element, nicht als `::before` — eine
+          Pseudo-Selektor-Familie mit Verlauf meldet `verify:layers` zu Recht
+          als Fund ohne Registry-Eintrag. Begruendung in der Werkbank. */}
+      <span class="fc__glare" aria-hidden="true"></span>
       <p class="fc__clead" set:text={lead} />
   <div class="fc__grid">
 
@@ -290,9 +294,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   position:relative;display:flex;flex-direction:column;min-height:0;
   border-style:solid;border-color:transparent;
   border-image-source:var(--fc-frame);
-  border-image-slice:46 101 48 104 fill;
-  border-image-width:calc(var(--rahmen)*.442) calc(var(--rahmen)*.971) calc(var(--rahmen)*.462) var(--rahmen);
-  border-width:calc(var(--rahmen)*.442) calc(var(--rahmen)*.971) calc(var(--rahmen)*.462) var(--rahmen);
+  border-image-slice:81 138 66 140 fill;
+  border-image-width:calc(var(--rahmen)*.579) calc(var(--rahmen)*.986) calc(var(--rahmen)*.471) var(--rahmen);
+  border-width:calc(var(--rahmen)*.579) calc(var(--rahmen)*.986) calc(var(--rahmen)*.471) var(--rahmen);
   height:clamp(430px,calc(100vh - var(--fc-chrome)),1180px);
   /* Schlagschatten entlang der ALPHAKANTE der Rahmengrafik — setzt das Geraet
      auf die Seite, statt es hineinzustanzen. Begruendung in der Werkbank. */
@@ -308,8 +312,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .fc__chassis::after{content:'';position:absolute;
   pointer-events:none;z-index:2}
 .fc__chassis::after{left:50%;transform:translateX(-50%);
-  bottom:calc(var(--rahmen)*-.462);height:calc(var(--rahmen)*.462);
-  width:calc(var(--rahmen)*.462*351/48);
+  bottom:calc(var(--rahmen)*-.471);height:calc(var(--rahmen)*.471);
+  width:calc(var(--rahmen)*.471*470/66);
   background:var(--fc-plug) center/100% 100% no-repeat;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);
   mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
@@ -318,7 +322,33 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    Vorzeile im Blech sind auf Ansage des Betreibers gestrichen. */
 .fc__ctitle{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;
   overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-.fc__cscreen{display:flex;flex-direction:column;gap:8px;min-height:0;flex:1}
+/* ── DER SCHIRM ──  Baugleich mit der Mining-Werkbank; die ausfuehrliche
+   Begruendung steht dort. Kurz: der Rahmen ist das Geraet, diese Flaeche sein
+   Bildschirm — eigene tiefere Schwaerze mit kuehlem Stich plus Eigenleuchten
+   HINTER dem Inhalt, Zeilenraster/Vignette/Glasspiegelung DAVOR (`.fc__glare`).
+   ⚠ Beide Seiten sind ein Paar: der Rechner hatte den Umbau beim letzten Mal
+   NICHT mitbekommen und stand mit nacktem Blech neben der Werkbank. */
+.fc__cscreen{position:relative;display:flex;flex-direction:column;gap:8px;min-height:0;flex:1;
+  background:
+    radial-gradient(120% 85% at 50% 38%,
+      color-mix(in srgb,var(--accent) 16%,transparent) 0%,
+      color-mix(in srgb,var(--accent) 4%,transparent) 46%, transparent 74%),
+    linear-gradient(180deg,
+      color-mix(in srgb,var(--ink) 92%,var(--accent)) 0%, var(--ink) 100%),
+    var(--ink)}
+/* ⚠ `pointer-events:none` ist PFLICHT — sonst schluckt der Schleier jeden
+   Klick auf Kacheln, Zeilen und Knoepfe darunter. */
+.fc__glare{position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:2px;
+  background:
+    linear-gradient(104deg,
+      transparent 0 34%,
+      color-mix(in srgb,var(--text) 5%,transparent) 44%,
+      color-mix(in srgb,var(--text) 2%,transparent) 52%,
+      transparent 62% 100%),
+    radial-gradient(118% 96% at 50% 46%,
+      transparent 0 52%, color-mix(in srgb,var(--ink) 55%,transparent) 100%),
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb,var(--ink) 46%,transparent) 0 1px, transparent 1px 3px)}
 .fc__clead{margin:0;text-align:center;font-size:var(--fs-4);
   color:color-mix(in srgb,var(--muted) 92%,transparent)}
 /* ⚠ Hier lag bis 15.08.2026 ein CSS-Raster als Grund der Bildflaeche. Es ist
@@ -334,7 +364,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .fc__pane{
   /* Kein Glas mehr: hinter einer deckenden Metallblende hat backdrop-filter
      nichts zu spiegeln (15.08.2026, mit dem Gehaeuse). */
-  background:color-mix(in srgb,var(--ink) 62%,var(--surface));
+  background:color-mix(in srgb,var(--ink) 90%,var(--surface));
   border-radius:12px;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 8%,transparent),
     0 3px 14px color-mix(in srgb,var(--ink) 40%,transparent);
   display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;position:relative}

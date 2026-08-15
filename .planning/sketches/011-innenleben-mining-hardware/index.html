@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Skizze 011 — Innenleben als Mining-Hardware</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0a0d0e;color:var(--text);font-family:var(--font-ui);padding-top:46px}
+#nav{position:fixed;top:0;left:0;right:0;z-index:99;background:#11181b;border-bottom:1px solid var(--line);
+  padding:8px 14px;display:flex;gap:8px;align-items:center}
+#nav .t{font-size:12px;color:var(--muted);margin-right:8px;letter-spacing:.05em;text-transform:uppercase}
+.tab{font:inherit;font-size:12px;padding:5px 12px;border:0;border-radius:7px;background:#1e2629;
+  color:var(--muted);cursor:pointer}
+.tab.on{background:var(--accent-2);color:var(--ink);font-weight:600}
+.v{display:none}.v.on{display:block}
+.cap{max-width:1500px;margin:14px auto 8px;padding:0 20px;font-size:13px;color:var(--muted)}
+.cap b{color:var(--text)}
+
+/* ── Gehaeuse: der ausgelieferte Rahmen, unveraendert ── */
+.rig{max-width:1500px;margin:0 auto 40px;padding:0 20px}
+.chassis{--rahmen:52px;position:relative;display:flex;flex-direction:column;height:700px;
+  border-style:solid;border-color:transparent;
+  border-image-source:url('chassis-frame.webp');
+  border-image-slice:46 101 48 104 fill;
+  border-image-width:calc(var(--rahmen)*.442) calc(var(--rahmen)*.971) calc(var(--rahmen)*.462) var(--rahmen);
+  border-width:calc(var(--rahmen)*.442) calc(var(--rahmen)*.971) calc(var(--rahmen)*.462) var(--rahmen);
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.7)) drop-shadow(0 16px 38px rgba(0,0,0,.55))}
+.chassis::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
+  bottom:calc(var(--rahmen)*-.462);height:calc(var(--rahmen)*.462);
+  width:calc(var(--rahmen)*.462*351/48);pointer-events:none;
+  background:url('chassis-plug.webp') center/100% 100% no-repeat;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
+.screen{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,.72fr);
+  gap:10px;padding:10px}
+.pane{min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.scroll{flex:1;overflow:auto;min-height:0;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+
+/* ═══════════════ A — MESSGERÄT ═══════════════
+   Werte wie an einem Instrument: Segmentanzeige, Skala mit Teilstrichen,
+   Beschriftung als graviertes Schild. Paneele als versenkte Wannen. */
+.a .pane{background:linear-gradient(180deg,#0e1315,#0b0f10);
+  box-shadow:inset 0 2px 0 rgba(0,0,0,.85),inset 0 -1px 0 rgba(232,241,240,.07),
+             inset 1px 0 0 rgba(0,0,0,.7),inset -1px 0 0 rgba(232,241,240,.05);
+  border-radius:3px;position:relative}
+/* Schraubenkoepfe in den Wannenecken */
+.a .pane::before,.a .pane::after{content:'';position:absolute;width:7px;height:7px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#4d5658,#14191a 70%);
+  box-shadow:0 1px 1px rgba(0,0,0,.8),inset 0 0 0 1px rgba(232,241,240,.12);z-index:3}
+.a .pane::before{left:6px;top:6px}
+.a .pane::after{right:6px;top:6px}
+.a .plate{margin:0;padding:7px 12px 6px;background:linear-gradient(180deg,#1b2224,#141a1c);
+  box-shadow:inset 0 1px 0 rgba(232,241,240,.10),0 1px 0 rgba(0,0,0,.7);
+  font-family:var(--font-mono);font-size:.62rem;letter-spacing:var(--ls-16);text-transform:uppercase;
+  color:#8ea5a3}
+/* Segmentanzeige: die Ziffern sitzen in einer geaetzten Wanne mit Gitter */
+.a .seg{font-family:var(--font-mono);font-size:1.75rem;font-weight:700;color:var(--vio);
+  letter-spacing:.06em;padding:6px 12px;background:#080b0c;border-radius:2px;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.9),inset 0 0 0 1px rgba(169,112,255,.18);
+  text-shadow:0 0 14px rgba(169,112,255,.55);
+  background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.45) 0 1px,transparent 1px 3px)}
+.a .seg small{font-size:.55rem;color:#6f8280;letter-spacing:var(--ls-14);margin-left:8px;
+  text-shadow:none;vertical-align:middle}
+/* Skala mit Teilstrichen statt glattem Balken.
+   ⚠ Die Klasse MUSS `.bar` heissen — sie hiess erst `.gauge`, waehrend das
+   Markup `.bar` ausgab. Die Skalen waren dadurch unsichtbar und der Vergleich
+   der drei Richtungen verfaelscht. */
+.a .bar{width:84px;height:16px;position:relative;background:#080b0c;border-radius:2px;overflow:hidden;
+  box-shadow:inset 0 1px 4px rgba(0,0,0,.9)}
+.a .bar i{position:absolute;inset:0 auto 0 0;background:var(--vio);
+  box-shadow:0 0 10px rgba(169,112,255,.6)}
+.a .bar b{position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 5px,rgba(0,0,0,.75) 5px 6px)}
+.a .row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;
+  padding:7px 12px;border-bottom:1px solid rgba(232,241,240,.06)}
+.a .row .n{font-size:.82rem}
+.a .row .s{font-size:.62rem;color:#7d908e;font-family:var(--font-mono)}
+.a .row em{font-style:normal;font-family:var(--font-mono);font-size:.75rem;color:#b9cbc9;width:46px;text-align:right}
+.a .tile{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:6px 9px;
+  background:#0f1416;box-shadow:inset 0 1px 0 rgba(232,241,240,.05);cursor:pointer}
+.a .tile.on{background:#1d1a10;box-shadow:inset 0 0 0 1px var(--accent-2)}
+.a .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:2px;padding:2px}
+.a .tn{grid-column:1/-1;font-size:.76rem}
+.a .ts{font-family:var(--font-mono);font-size:.62rem;color:var(--vio)}
+
+/* ═══════════════ B — KONSOLE ═══════════════
+   Alles Mono, Zeilen wie ein Terminal-Ausdruck, Phosphor-Schleier.
+   Kein Kaestchen um irgendwas — die Struktur macht die Typografie. */
+.b .pane{background:#070a0b;position:relative;border-radius:2px;
+  box-shadow:inset 0 0 0 1px rgba(47,191,164,.14)}
+.b .pane::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(47,191,164,.045) 0 1px,transparent 1px 3px)}
+.b *{font-family:var(--font-mono)}
+.b .plate{margin:0;padding:6px 10px;color:#2FBFA4;font-size:.66rem;letter-spacing:var(--ls-12);
+  text-transform:uppercase;border-bottom:1px solid rgba(47,191,164,.2)}
+.b .plate::before{content:'> '}
+.b .row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:3px 10px;font-size:.72rem}
+.b .row:hover{background:rgba(47,191,164,.07)}
+.b .row .k{color:#4d6664}
+.b .row .n{color:#cfe0de}
+.b .row em{font-style:normal;color:var(--vio)}
+.b .seg{padding:8px 10px;font-size:1.5rem;color:var(--vio);letter-spacing:.08em;
+  text-shadow:0 0 12px rgba(169,112,255,.5)}
+.b .seg small{display:block;font-size:.6rem;color:#4d6664;letter-spacing:var(--ls-12);
+  text-shadow:none;margin-bottom:2px}
+.b .bar{font-size:.72rem;color:var(--vio);letter-spacing:-.05em}
+.b .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:0;padding:4px 6px}
+.b .tile{display:flex;justify-content:space-between;gap:8px;padding:2px 6px;font-size:.72rem;cursor:pointer}
+.b .tile:hover{background:rgba(47,191,164,.09)}
+.b .tile.on{background:rgba(224,165,38,.16);color:#ffd98a}
+.b .tile .ts{color:var(--vio)}
+
+/* ═══════════════ C — FELDGERÄT ═══════════════
+   Robuste Baugruppen mit klarer Kante, Warnschraffur an den Kopfzeilen,
+   grosse Tippziele, Zustands-LEDs. Nichts filigran. */
+.c .pane{background:#101618;border-radius:6px;border:1px solid rgba(232,241,240,.13);
+  box-shadow:0 3px 0 rgba(0,0,0,.55)}
+.c .plate{margin:0;padding:8px 12px;font-weight:700;font-size:.72rem;letter-spacing:var(--ls-12);
+  text-transform:uppercase;color:#dfeae8;background:#1a2224;border-bottom:2px solid var(--accent-2);
+  border-radius:5px 5px 0 0;display:flex;align-items:center;gap:9px}
+.c .plate i{width:9px;height:9px;border-radius:50%;background:var(--accent-2);
+  box-shadow:0 0 8px rgba(224,165,38,.7);flex:0 0 auto}
+.c .plate u{margin-left:auto;text-decoration:none;height:10px;width:64px;
+  background:repeating-linear-gradient(45deg,#3a3323 0 5px,#0e1214 5px 10px);border-radius:2px}
+.c .seg{padding:10px 12px;font-family:var(--font-mono);font-size:2rem;font-weight:700;
+  color:var(--vio);line-height:1}
+.c .seg small{display:block;font-family:var(--font-ui);font-size:.66rem;font-weight:700;
+  letter-spacing:var(--ls-12);text-transform:uppercase;color:#8aa09e;margin-bottom:3px}
+.c .row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
+  padding:10px 12px;margin:5px 8px;background:#161e20;border-radius:5px;
+  border-left:3px solid rgba(169,112,255,.55)}
+.c .row .n{font-size:.86rem;font-weight:600}
+.c .row .s{font-size:.66rem;color:#8aa09e}
+.c .row em{font-style:normal;font-family:var(--font-mono);font-size:.86rem;color:var(--vio);font-weight:700}
+.c .bar{width:56px;height:8px;border-radius:4px;background:#0a0e0f;overflow:hidden}
+.c .bar i{display:block;height:100%;background:var(--vio)}
+.c .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:6px;padding:8px}
+.c .tile{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:9px 10px;background:#161e20;
+  border-radius:6px;border:1px solid rgba(232,241,240,.1);cursor:pointer}
+.c .tile.on{border-color:var(--accent-2);background:#241f11}
+.c .tn{grid-column:1/-1;font-size:.8rem;font-weight:600}
+.c .ts{font-family:var(--font-mono);font-size:.7rem;color:var(--vio);font-weight:700}
+
+#tools{position:fixed;bottom:12px;right:12px;z-index:99;font-family:system-ui;font-size:12px;
+  background:rgba(0,0,0,.8);color:#fff;padding:8px 12px;border-radius:8px;opacity:.45;
+  transition:opacity .2s;display:flex;gap:8px}
+#tools:hover{opacity:1}
+#tools button{font:inherit;font-size:11px;border:0;border-radius:5px;padding:3px 7px;background:#333;
+  color:#fff;cursor:pointer}
+body.novio{--vio:#2FBFA4}
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="t">011 · Innenleben</span>
+  <button class="tab on" data-v="a">A: Messgerät</button>
+  <button class="tab" data-v="b">B: Konsole</button>
+  <button class="tab" data-v="c">C: Feldgerät</button>
+</div>
+
+<div id="va" class="v on">
+  <div class="cap"><b>A — Messgerät.</b> Werte als Segmentanzeige in geätzter Wanne, Skalen mit Teilstrichen,
+    Beschriftung als graviertes Schild, Paneele als versenkte Wannen mit Schrauben.</div>
+  <div class="rig"><div class="chassis a"><div class="screen" data-fill></div></div></div>
+</div>
+<div id="vb" class="v">
+  <div class="cap"><b>B — Konsole.</b> Durchgehend Mono, Zeilen wie ein Terminal-Ausdruck, Phosphor-Raster.
+    Kein Kästchen um irgendetwas — die Struktur macht allein die Typografie.</div>
+  <div class="rig"><div class="chassis b"><div class="screen" data-fill></div></div></div>
+</div>
+<div id="vc" class="v">
+  <div class="cap"><b>C — Feldgerät.</b> Robuste Baugruppen mit klarer Kante, Warnschraffur an den Kopfzeilen,
+    große Tippziele, Zustands-LEDs. Nichts filigran.</div>
+  <div class="rig"><div class="chassis c"><div class="screen" data-fill></div></div></div>
+</div>
+
+<div id="tools">
+  <button onclick="document.body.classList.toggle('novio')">Violett aus/an</button>
+</div>
+
+<script>
+/* Echte Daten aus assets/mining-db.json + mining-model.json. */
+const MIN=[['Quantainium',3170],['Savrilium',3200],['Stileron',3185],['Lindinium',3400],
+['Ouratite',3370],['Riccite',3385],['Beryl',3540],['Bexalite',3600],['Borase',3570],['Gold',3585],
+['Taranite',3555],['Agricium',3885],['Aslarite',3840],['Laranite',3825],['Titanium',3855],
+['Torite',3900],['Tungsten',3870],['Aluminum',4285],['Copper',4240],['Corundum',4225],
+['Hephaestanite',4180],['Ice',4300],['Iron',4270],['Quartz',4210],['Silicon',4255],['Tin',4195],
+['Aphorite',3000],['Beradom',4000],['Carinite',4000],['Dolivine',3000],['Feynmaline',4000],
+['Glacosite',4000],['Hadanite',3000],['Jaclium',3000],['Janalite',3000],['Sadaryx',3000],
+['Saldynium',3000]];
+const LOC=[['Aaron Halo','Gürtel · Stanton',1.8],['Asteroid Cluster (Low Yield)','Cluster · Stanton',1.8],
+['Asteroid Cluster (Medium Yield)','Cluster · Stanton',1.8],['Hurston','Planet · Stanton',1.8],
+['microTech','Planet · Stanton',1.8],['Aberdeen','Mond · Stanton',1.8],['Arial','Mond · Stanton',1.8],
+['Calliope','Mond · Stanton',1.8],['Cellin','Mond · Stanton',1.8],['Clio','Mond · Stanton',1.8],
+['Daymar','Mond · Stanton',1.8],['Euterpe','Mond · Stanton',1.8]];
+
+function bars(v){const n=Math.round(v*5);return '█'.repeat(n)+'░'.repeat(10-n);}
+
+function fill(kind){
+  const tiles = MIN.map((m,i)=>kind==='b'
+    ? `<div class="tile${i===0?' on':''}"><span>${m[0]}</span><span class="ts">${m[1]}</span></div>`
+    : `<div class="tile${i===0?' on':''}"><span class="tn">${m[0]}</span><span class="ts">${m[1]}</span></div>`).join('');
+
+  const rows = LOC.map(l=>kind==='b'
+    ? `<div class="row"><span class="k">${String(l[2].toFixed(1)).padStart(4)}%</span><span class="n">${l[0]}</span><em>${bars(l[2])}</em></div>`
+    : `<div class="row"><span><span class="n">${l[0]}</span><br><span class="s">${l[1]} · 2 % Chance · bis 90 %</span></span>
+        <span class="bar"><i style="width:${l[2]*40}%"></i>${kind==='a'?'<b></b>':''}</span>
+        <em>${l[2].toFixed(1)} %</em></div>`).join('');
+
+  const sig = kind==='b'
+    ? `<div class="seg"><small>Signatur</small>3170</div>`
+    : `<div class="seg"><small>Signatur</small>3170${kind==='a'?'<small>CF</small>':''}</div>`;
+
+  return `
+  <div class="pane">
+    <p class="plate">${kind==='c'?'<i></i>':''}Minerale · 37${kind==='c'?'<u></u>':''}</p>
+    <div class="scroll"><div class="tiles">${tiles}</div></div>
+  </div>
+  <div class="pane">
+    <p class="plate">${kind==='c'?'<i></i>':''}Quantainium · Fundorte 17${kind==='c'?'<u></u>':''}</p>
+    ${sig}
+    <div class="scroll">${rows}</div>
+  </div>
+  <div class="pane">
+    <p class="plate">${kind==='c'?'<i></i>':''}Signaturen${kind==='c'?'<u></u>':''}</p>
+    <div class="scroll"><p style="padding:14px;font-size:.74rem;color:#7d908e;line-height:1.5">
+      Auf einer Erz-Kachel links den Anheft-Knopf drücken. Diese Spalte zeigt dann
+      seine Signatur mal Clustergröße.</p></div>
+  </div>`;
+}
+
+document.querySelectorAll('.v').forEach(v=>{
+  const k=v.id.slice(1);
+  v.querySelector('[data-fill]').innerHTML=fill(k);
+  v.addEventListener('click',e=>{
+    const t=e.target.closest('.tile');
+    if(!t) return;
+    v.querySelectorAll('.tile').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+  });
+});
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.v').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.getElementById('v'+t.dataset.v).classList.add('on');
+  t.classList.add('on');
+}));
+</script>
+</body>
+</html>
