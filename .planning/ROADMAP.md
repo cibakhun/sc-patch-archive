@@ -570,3 +570,62 @@ bestehenden Tabelle, Primaerschluessel unangetastet. Getrennte Preset-Listen je 
 haetten ein drittes Feld IM Primaerschluessel gebraucht, also Schluessel abbauen,
 Bestand nachtragen, Schluessel neu setzen — drei Schritte an fremden Nutzerdaten statt
 einem. Verlustfreiheit schlaegt die saubere Trennung.
+
+### Phase 10: Mining-Presets bedienbar machen
+
+**Goal:** Die in Phase 9 eingeführten Presets sind heute gefährlich und
+unfertig zu bedienen. Fünf Befunde des Betreibers, in seiner Reihenfolge:
+(1) Das `×` neben der Preset-Auswahl löscht **ohne Rückfrage** — und direkt
+daneben bedeutet dasselbe `×` in der Bearbeiten-Zeile „Abbrechen". Zwei
+gegensätzliche Wirkungen, ein Zeichen, dieselbe Stelle. Das hat bereits ein
+Preset gekostet. (2) Presets lassen sich nur anlegen und löschen, nicht
+bearbeiten: umbenennen, Inhalt überschreiben und einzelne Einträge entfernen
+fehlen. (3) Die Mittelspalte ist für eine einzelne Liste zu breit. (4) Die
+rechte Spalte zeigt über Reiter **entweder** Signaturen **oder** Fundorte —
+gewünscht war ein Nebeneinander; die Reiter entfallen, beide Listen stehen
+untereinander und sichtbar. (5) Das Preset-Dropdown (`<select>`) ist die
+falsche Form für diese Aufgabe. (6) Das Eingabefeld „Scanwert" entfällt
+ersatzlos — der Bedienweg ist im Spielfluss unrealistisch (anheften, scannen,
+Monitor wechseln, fünfstellig abtippen, während man im Belt steht); der
+übliche Weg ist näher ranfliegen, dann nennt der Scanner das Erz selbst. Die
+Signaturenliste samt Vielfachen bleibt als Nachschlagewerk erhalten.
+**Requirements**: TBD
+**Depends on:** Phase 9
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 10 to break down)
+
+### Phase 11: Geteilte Routen mit Spielerbewertung
+
+**Goal:** Ein Nutzer kann ein Preset auf der Seite veröffentlichen, andere
+können es ansehen, übernehmen und bewerten. Zweck ist nicht Geselligkeit,
+sondern eine Datenschicht, die aus den Spieldateien nicht zu holen ist: Die
+Fundortdaten sagen „Quantainium @ Aaron Halo, 2 % Chance, bis 78,3 %" — ob
+sich der Flug lohnt, wie voll der Ort ist und ob dort ständig jemand campt,
+weiß nur, wer ihn geflogen ist. Bewertete Routen sind die Brücke zwischen
+korrekten Zahlen und brauchbarem Rat.
+
+⚠ **Vor der Planung zu entscheiden** (bestimmt das Datenmodell):
+1. Urheberschaft — es gibt bereits öffentliche Profile `/pilot/<handle>`;
+   Veröffentlichen wäre damit eine Preisgabe der Identität.
+2. Bewertungsform — Daumen, Sterne oder „hat funktioniert"; eine Stimme je
+   Konto und Preset, sonst wertlos.
+3. Missbrauch — öffentliche Namensfelder sind ein Einfallstor für Spam und
+   Beleidigungen; es braucht mindestens einen Weg für den Betreiber, etwas
+   zu entfernen.
+4. Kopieren oder folgen — eine übernommene Route als eingefrorene Kopie
+   oder als Abonnement, das sich mitändert.
+
+⚠ **Reifegrad-Vorbehalt (gemessen 15.08.2026):** 7 Konten, 2 Favoriten, 2
+Signatur-Presets (alle vom Betreiber beim Testen). Ein Bewertungssystem
+braucht kritische Masse; mit dieser Nutzerzahl steht neben jeder Route eine
+Null. Das spricht nicht gegen den Bau, wohl aber dagegen, ihn vorzuziehen.
+**Requirements**: TBD
+**Depends on:** Phase 10
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 11 to break down)
