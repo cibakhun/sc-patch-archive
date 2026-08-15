@@ -36,7 +36,16 @@
      dritte Schreibweise derselben Zahl waere das Gegenteil einer geteilten
      Wahrheit; pctSub()/pctRight()/locSub() arbeiten unveraendert auf diesen
      Objekten. */
-  var locIndex = {};
+  /* Object.create(null), nicht {} (Code-Review 12-REVIEW.md, WR-01): der
+     Schluessel ist ein Fundortname aus den Spieldaten. Hiesse ein Fundort je
+     "__proto__" oder "constructor", traefe `locIndex[name]` bei einem
+     Objekt-Literal das Prototyp-Objekt statt eines eigenen Eintrags — der Ort
+     bekaeme keine Liste, und jede spaetere for...in-Schleife der Seite waere
+     verunreinigt. Ueber `?fundort=` ist das nicht ausloesbar (nur Lesezugriff
+     gegen den bestehenden Schluessel), das Risiko haengt allein an den Daten.
+     Ein prototypenloses Objekt macht die Frage gegenstandslos, statt sich auf
+     die heutigen 45 Namen zu verlassen. */
+  var locIndex = Object.create(null);
   for (var i0 = 0; i0 < D.minerals.length; i0++) {
     var m0 = D.minerals[i0];
     for (var j0 = 0; j0 < m0.locs.length; j0++) {
