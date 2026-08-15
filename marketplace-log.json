@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-15",
-  "updates": 245,
-  "totalListings": 5882,
+  "updates": 246,
+  "totalListings": 5918,
   "totalSold": 253,
   "distinctItems": 1165
  },
@@ -122273,7 +122273,7 @@
    "currency": "UEC",
    "quality": 925,
    "firstSeen": "2026-08-14",
-   "lastSeen": "2026-08-14",
+   "lastSeen": "2026-08-15",
    "prices": [
     {
      "d": "2026-08-14",
@@ -122538,6 +122538,48 @@
    "dateAdded": 1786718342,
    "dateExpiration": 1791902342
   },
+  "162508": {
+   "idItem": 4443,
+   "idCategory": 18,
+   "title": "950q Atzkav \"Mirage\" Sniper Riffle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 8500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786718379,
+   "dateExpiration": 1791902379
+  },
+  "162509": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "958q Copper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 958,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786719033,
+   "dateExpiration": 1791903033
+  },
   "162510": {
    "idItem": 4735,
    "idCategory": 38,
@@ -122558,6 +122600,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786719500,
    "dateExpiration": 1791903500
+  },
+  "162511": {
+   "idItem": 5289,
+   "idCategory": 32,
+   "title": "Destroyer Mass Driver Cannon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 50000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786719785,
+   "dateExpiration": 1791903785
   },
   "162512": {
    "idItem": 8043,
@@ -122664,6 +122727,48 @@
    "dateAdded": 1786723987,
    "dateExpiration": 1791907987
   },
+  "162517": {
+   "idItem": 245,
+   "idCategory": 31,
+   "title": "Abrade Scraper Module",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 837,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786724532,
+   "dateExpiration": 1791908531
+  },
+  "162518": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "925q Taranite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 925,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786726360,
+   "dateExpiration": 1791910360
+  },
   "162519": {
    "idItem": 8092,
    "idCategory": 3,
@@ -122688,6 +122793,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786726504,
    "dateExpiration": 1791910503
+  },
+  "162520": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite 597",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 597,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786726855,
+   "dateExpiration": 1791910855
   },
   "162521": {
    "idItem": 5458,
@@ -122835,6 +122961,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786731056,
    "dateExpiration": 1791915056
+  },
+  "162530": {
+   "idItem": 8092,
+   "idCategory": 3,
+   "title": "Kiba Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 25900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786731451,
+   "dateExpiration": 1791915451
   },
   "162531": {
    "idItem": 1775,
@@ -123810,6 +123957,27 @@
    "dateAdded": 1786744832,
    "dateExpiration": 1791928831
   },
+  "162579": {
+   "idItem": 3769,
+   "idCategory": 87,
+   "title": "Dolivine 1000Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786745412,
+   "dateExpiration": 1791929411
+  },
   "162580": {
    "idItem": 4892,
    "idCategory": 38,
@@ -123865,6 +124033,10 @@
     {
      "d": "2026-08-15",
      "p": 3500000
+    },
+    {
+     "d": "2026-08-15",
+     "p": 3000000
     }
    ],
    "soldOut": false,
@@ -124423,6 +124595,27 @@
    "dateAdded": 1786747052,
    "dateExpiration": 1791931052
   },
+  "162610": {
+   "idItem": 4924,
+   "idCategory": 87,
+   "title": "Glacosite 1000Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786747303,
+   "dateExpiration": 1791931303
+  },
   "162611": {
    "idItem": 4454,
    "idCategory": 61,
@@ -124464,6 +124657,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786747829,
    "dateExpiration": 1791931829
+  },
+  "162613": {
+   "idItem": 4922,
+   "idCategory": 87,
+   "title": "Feynmaline 1000Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786747838,
+   "dateExpiration": 1791931838
   },
   "162615": {
    "idItem": 5161,
@@ -124696,6 +124910,27 @@
    "dateAdded": 1786753063,
    "dateExpiration": 1791937063
   },
+  "162627": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 958,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786753183,
+   "dateExpiration": 1791937183
+  },
   "162628": {
    "idItem": 4453,
    "idCategory": 3,
@@ -124779,6 +125014,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786754221,
    "dateExpiration": 1791938221
+  },
+  "162632": {
+   "idItem": 5910,
+   "idCategory": 36,
+   "title": "Hephaestanite Q916 0.610 SCU (30MIl per SCU)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786754223,
+   "dateExpiration": 1791938223
   },
   "162633": {
    "idItem": 5830,
@@ -124864,6 +125120,27 @@
    "dateAdded": 1786754918,
    "dateExpiration": 1791938918
   },
+  "162637": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786756334,
+   "dateExpiration": 1791940334
+  },
   "162638": {
    "idItem": 7658,
    "idCategory": 5,
@@ -124885,6 +125162,90 @@
    "dateAdded": 1786756434,
    "dateExpiration": 1791940434
   },
+  "162639": {
+   "idItem": 1909,
+   "idCategory": 22,
+   "title": "[WTS] Wei-Tek TS-2 Quantum Drive (Size 3) - Move your capital ship at military speed!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 3750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786756499,
+   "dateExpiration": 1791940499
+  },
+  "162642": {
+   "idItem": 159,
+   "idCategory": 23,
+   "title": "FullBlock",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786757627,
+   "dateExpiration": 1791941627
+  },
+  "162643": {
+   "idItem": 6008,
+   "idCategory": 61,
+   "title": "Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786757764,
+   "dateExpiration": 1791941764
+  },
+  "162644": {
+   "idItem": 1775,
+   "idCategory": 21,
+   "title": "JS-400",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786758698,
+   "dateExpiration": 1791942698
+  },
   "162645": {
    "idItem": 4394,
    "idCategory": 61,
@@ -124905,6 +125266,258 @@
    "soldOutPrice": 500000,
    "dateAdded": 1786758811,
    "dateExpiration": 1791942811
+  },
+  "162646": {
+   "idItem": 933,
+   "idCategory": 19,
+   "title": "NightFall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786758855,
+   "dateExpiration": 1791942855
+  },
+  "162647": {
+   "idItem": 7598,
+   "idCategory": 17,
+   "title": "Emod \"Tweaker\" Stabilizer2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786758889,
+   "dateExpiration": 1791942889
+  },
+  "162648": {
+   "idItem": 4471,
+   "idCategory": 17,
+   "title": "Emod \"Scorched\" Stabilizer1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786759075,
+   "dateExpiration": 1791943075
+  },
+  "162649": {
+   "idItem": 5322,
+   "idCategory": 17,
+   "title": "FocalWave-30 (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786759124,
+   "dateExpiration": 1791943124
+  },
+  "162650": {
+   "idItem": 2034,
+   "idCategory": 23,
+   "title": "Mirage",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786759128,
+   "dateExpiration": 1791943128
+  },
+  "162651": {
+   "idItem": 5321,
+   "idCategory": 17,
+   "title": "FocalWave-20 (2x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786759188,
+   "dateExpiration": 1791943188
+  },
+  "162652": {
+   "idItem": 3939,
+   "idCategory": 17,
+   "title": "Gamma Duo LL (2x Holographic)(1x Holo also)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786759346,
+   "dateExpiration": 1791943346
+  },
+  "162653": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 2500
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786759364,
+   "dateExpiration": 1791943364
+  },
+  "162654": {
+   "idItem": 4269,
+   "idCategory": 17,
+   "title": "Sion \"Scorched\" Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786759570,
+   "dateExpiration": 1791943570
+  },
+  "162655": {
+   "idItem": 4044,
+   "idCategory": 17,
+   "title": "Sion \"Tweaker\" Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786759718,
+   "dateExpiration": 1791943718
+  },
+  "162656": {
+   "idItem": 1347,
+   "idCategory": 22,
+   "title": "VK-00",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786759726,
+   "dateExpiration": 1791943726
+  },
+  "162657": {
+   "idItem": 6239,
+   "idCategory": 17,
+   "title": "Sion \"Tweaker\" Compensator1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786759789,
+   "dateExpiration": 1791943789
   },
   "162670": {
    "idItem": 7215,
@@ -125627,6 +126240,153 @@
    "soldOutPrice": null,
    "dateAdded": 1786787105,
    "dateExpiration": 1791971105
+  },
+  "162754": {
+   "idItem": 2625,
+   "idCategory": 18,
+   "title": "P6-LR Sniper Rifle Close to 1000Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 989,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 16000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786792448,
+   "dateExpiration": 1791976448
+  },
+  "162755": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "WTS POLARIS BIT",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786792474,
+   "dateExpiration": 1791976474
+  },
+  "162756": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Citadel Brimstone Full Set w/Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786792736,
+   "dateExpiration": 1791976736
+  },
+  "162759": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Citadel and Fortifier Armor Set Outcrop",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786793639,
+   "dateExpiration": 1791977639
+  },
+  "162760": {
+   "idItem": 8002,
+   "idCategory": 7,
+   "title": "Overlord Dust Storm Full Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786793777,
+   "dateExpiration": 1791977777
+  },
+  "162761": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Citadel-SE and Fortifier Green Armor Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786793824,
+   "dateExpiration": 1791977824
+  },
+  "162763": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Inquisitor Orange Full Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786794336,
+   "dateExpiration": 1791978336
   }
  }
 }
