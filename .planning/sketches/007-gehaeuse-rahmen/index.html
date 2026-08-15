@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Skizze 007 — Gehäuse-Rahmen</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--text);
+  font-family:var(--font-ui); padding-top:44px; }
+.num { font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+
+/* ---------- Reiterleiste ---------- */
+#variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998;
+  background:#11181b; border-bottom:1px solid var(--line);
+  padding:7px 14px; display:flex; gap:8px; align-items:center; }
+#variant-nav .ttl { font-size:12px; color:var(--muted); margin-right:8px;
+  letter-spacing:.04em; text-transform:uppercase; }
+.variant-tab { font:inherit; font-size:12px; padding:5px 12px; border:0; cursor:pointer;
+  border-radius:7px; background:#1e2629; color:var(--muted);
+  transition:background var(--dur-fast) var(--ease-ui), color var(--dur-fast) var(--ease-ui); }
+.variant-tab:hover { background:#283437; color:var(--text); }
+.variant-tab.active { background:var(--accent-2); color:var(--ink); font-weight:600; }
+.variant { display:none; }
+.variant.active { display:block; }
+
+/* ---------- Bühne: exakt 1280x720 Sichtfenster ---------- */
+.stage { margin:16px auto; width:1280px; max-width:calc(100vw - 32px);
+  position:relative; }
+.stage__vp { position:relative; overflow:hidden;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #1b2427 0%, var(--bg) 60%),
+    repeating-linear-gradient(0deg, rgba(47,191,164,.045) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(90deg, rgba(47,191,164,.045) 0 1px, transparent 1px 64px);
+  height:720px; }
+.stage__cap { display:flex; align-items:baseline; gap:12px; padding:0 2px 8px;
+  font-size:12px; color:var(--muted); }
+.stage__cap b { color:var(--text); font-size:13px; }
+.fold { position:absolute; left:0; right:0; top:720px; height:0;
+  border-top:1px dashed rgba(224,165,38,.55); z-index:60; pointer-events:none; }
+.fold::after { content:'Falz 1280×720'; position:absolute; right:6px; top:3px;
+  font:600 10px var(--font-mono); color:var(--accent-2); letter-spacing:.06em; }
+
+/* ============================================================
+   GEHÄUSE — die eigentliche Frage dieser Skizze.
+   Drei Grade, gemeinsame Basis .hull, Aufschlag je Variante.
+   ============================================================ */
+.hull { position:relative; padding:var(--pad); }
+
+/* --- Grad A: Fassung (schmale versenkte Kante) --- */
+.hull--a { --pad:10px 12px 12px;
+  background:linear-gradient(180deg, var(--hull-1) 0%, var(--hull-2) 100%);
+  box-shadow: inset 0 1px 0 var(--hull-edge), inset 0 -1px 0 rgba(0,0,0,.6); }
+.hull--a .hull__bar { display:flex; align-items:center; gap:14px; padding:0 2px 9px; }
+
+/* --- Grad B: Schulterplatten (Bild 2) --- */
+.hull--b { --pad:0 0 14px;
+  background:linear-gradient(180deg, var(--hull-2) 0%, var(--hull-3) 100%); }
+.hull--b .hull__top { position:relative; height:52px; display:flex;
+  align-items:stretch; justify-content:center; }
+/* asymmetrische Schulterplatten links/rechts */
+.hull--b .plate { position:relative; flex:1;
+  background:linear-gradient(180deg, var(--hull-1), var(--hull-2));
+  box-shadow: inset 0 1px 0 var(--hull-edge); }
+.hull--b .plate--l { clip-path:polygon(0 0, 100% 0, 100% 62%, 88% 100%, 0 100%); }
+.hull--b .plate--r { clip-path:polygon(0 0, 100% 0, 100% 100%, 12% 100%, 0 62%); }
+/* Riffelung auf den Platten */
+.hull--b .plate::after { content:''; position:absolute; inset:10px 22px auto;
+  height:9px; background:repeating-linear-gradient(90deg,
+    rgba(232,241,240,.10) 0 2px, transparent 2px 7px); }
+/* eingelassene Titel-Kartusche in der Mitte */
+.hull--b .cart { position:relative; flex:0 0 auto; min-width:430px;
+  display:flex; align-items:center; justify-content:center; gap:14px;
+  padding:0 34px; background:linear-gradient(180deg, var(--hull-3), #12181a);
+  clip-path:polygon(26px 0, calc(100% - 26px) 0, 100% 100%, 0 100%);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.75); }
+/* Seitliche Leuchtstreifen. ⚠ Erste Fassung lag frei auf dem Panelgrund und
+   war im Rendering praktisch unsichtbar (gemessen vorhanden: x=3, 5x554 px) —
+   ein Leuchtstreifen braucht eine dunkle Nut, gegen die er leuchtet, sonst
+   liest ihn das Auge als Kante. Jetzt wie die Holme in Variante C. */
+.hull--b .lamp { position:absolute; top:96px; bottom:70px; width:11px; z-index:5;
+  border-radius:4px; background:linear-gradient(90deg, var(--hull-3), #0a0d0e);
+  box-shadow: inset 0 0 0 1px var(--hull-edge); }
+.hull--b .lamp::after { content:''; position:absolute; left:3px; right:3px; top:8px; bottom:8px;
+  border-radius:3px; background:linear-gradient(180deg,
+    transparent, var(--hull-lamp) 20%, var(--hull-lamp) 80%, transparent);
+  box-shadow:0 0 16px rgba(53,214,255,.65); }
+.hull--b .lamp--l { left:2px; } .hull--b .lamp--r { right:2px; }
+/* Nietenreihe unten */
+.hull--b .rivets { position:absolute; left:0; right:0; bottom:4px; height:6px;
+  background:radial-gradient(circle at 3px 3px, rgba(232,241,240,.22) 0 1.4px, transparent 1.6px)
+    0 0/26px 6px repeat-x; opacity:.7; }
+
+/* --- Grad C: Rumpf (volles Gehäuse) --- */
+.hull--c { --pad:0 0 26px;
+  background:linear-gradient(180deg, var(--hull-2), var(--hull-3) 60%, #0a0d0e); }
+.hull--c .hull__top { position:relative; height:74px; display:flex; align-items:stretch; }
+.hull--c .plate { position:relative; flex:1;
+  background:linear-gradient(180deg, #333a3e 0%, var(--hull-1) 42%, var(--hull-2) 100%);
+  box-shadow: inset 0 1px 0 rgba(232,241,240,.22), inset 0 -3px 8px rgba(0,0,0,.6); }
+.hull--c .plate--l { clip-path:polygon(0 0, 100% 0, 100% 54%, 84% 100%, 0 100%); }
+.hull--c .plate--r { clip-path:polygon(0 0, 100% 0, 100% 100%, 16% 100%, 0 54%); }
+.hull--c .plate::after { content:''; position:absolute; inset:14px 30px auto; height:14px;
+  background:repeating-linear-gradient(90deg,
+    rgba(232,241,240,.13) 0 2px, transparent 2px 6px); }
+.hull--c .cart { position:relative; flex:0 0 auto; min-width:470px;
+  display:flex; align-items:center; justify-content:center; gap:16px; padding:0 40px;
+  background:linear-gradient(180deg, #0a0e0f, #151b1d);
+  clip-path:polygon(34px 0, calc(100% - 34px) 0, 100% 100%, 0 100%);
+  box-shadow: inset 0 3px 10px rgba(0,0,0,.85); }
+/* durchgehende Seitenholme */
+.hull--c .rail { position:absolute; top:56px; bottom:0; width:34px; z-index:4;
+  background:linear-gradient(90deg, var(--hull-1), var(--hull-2) 55%, var(--hull-3));
+  box-shadow: inset 1px 0 0 var(--hull-edge); }
+.hull--c .rail--l { left:0; }
+.hull--c .rail--r { right:0; background:linear-gradient(270deg, var(--hull-1), var(--hull-2) 55%, var(--hull-3)); }
+.hull--c .rail .lamp2 { position:absolute; left:50%; transform:translateX(-50%);
+  top:40px; bottom:40px; width:5px; border-radius:3px;
+  background:linear-gradient(180deg, transparent, var(--hull-lamp) 18%, var(--hull-lamp) 82%, transparent);
+  box-shadow:0 0 16px rgba(53,214,255,.6); }
+/* Bolzen in den Ecken */
+.hull--c .bolt { position:absolute; width:13px; height:13px; border-radius:50%; z-index:6;
+  background:radial-gradient(circle at 35% 30%, #4a5459, #14191b 70%);
+  box-shadow:0 1px 2px rgba(0,0,0,.8), inset 0 0 0 1px rgba(232,241,240,.14); }
+.hull--c .rivets { position:absolute; left:34px; right:34px; bottom:9px; height:8px;
+  background:radial-gradient(circle at 4px 4px, rgba(232,241,240,.26) 0 1.7px, transparent 1.9px)
+    0 0/30px 8px repeat-x; opacity:.75; }
+.hull--c .hull__body { margin:0 34px; }
+
+/* Titel in der Kartusche (B/C) bzw. in der Leiste (A) */
+.brand { display:flex; align-items:baseline; gap:12px; }
+.brand .ver { font:600 11px var(--font-mono); letter-spacing:.13em;
+  color:var(--accent-2); white-space:nowrap; }
+.brand h1 { margin:0; font-size:23px; font-weight:600; letter-spacing:var(--ls-1);
+  color:var(--text); line-height:1; }
+.brand .sub { font-size:12px; color:var(--muted); }
+.back { font:600 11px var(--font-ui); letter-spacing:.08em; text-transform:uppercase;
+  color:var(--muted); text-decoration:none; padding:6px 11px; border-radius:7px;
+  background:rgba(232,241,240,.06); }
+.back:hover { color:var(--text); background:rgba(232,241,240,.12); }
+.statusdots { display:flex; gap:5px; }
+.statusdots i { width:16px; height:5px; border-radius:2px; background:rgba(232,241,240,.16); }
+.statusdots i.on { background:var(--hull-lamp); box-shadow:0 0 8px rgba(53,214,255,.7); }
+
+/* ============================================================
+   WERKBANK-INHALT — identisch in allen drei Varianten,
+   damit nur das Gehäuse verglichen wird.
+   ============================================================ */
+.wb__grid { display:grid; grid-template-columns:470px 1fr 262px; gap:10px;
+  min-height:0; height:var(--wbh, 470px); }
+.wb__pane, .wb__rig { background:color-mix(in srgb, var(--surface) 78%, transparent);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2);
+  border-radius:12px; display:flex; flex-direction:column; min-height:0; min-width:0;
+  overflow:hidden; position:relative;
+  box-shadow: inset 0 1px 0 rgba(232,241,240,.08), 0 3px 14px rgba(11,14,15,.4); }
+.wb__scroll { flex:1; overflow-y:auto; overflow-x:hidden; min-height:0;
+  scrollbar-width:none; }
+.wb__scroll::-webkit-scrollbar { display:none; }
+
+.wb__filters { flex:0 0 auto; padding:9px 10px; display:flex; flex-direction:column; gap:7px; }
+.wb__help { font-size:var(--fs-5); color:var(--muted); padding:6px 10px; border-radius:8px;
+  background:rgba(11,14,15,.3); cursor:pointer; }
+.wb__frow { display:flex; align-items:center; gap:8px; }
+.wb__search { flex:1; min-width:0; background:rgba(11,14,15,.34); border:0; color:var(--text);
+  padding:7px 10px; font-size:var(--fs-6); border-radius:7px; font-family:inherit; }
+.wb__c { font-size:var(--fs-4); color:var(--muted); font-family:var(--font-mono); }
+.wb__chips { display:flex; gap:5px; flex-wrap:wrap; }
+.wb__chip { font-size:var(--fs-4); font-weight:500; padding:4px 9px; border:0;
+  background:rgba(11,14,15,.3); color:var(--muted); border-radius:999px; cursor:pointer;
+  font-family:inherit; transition:all var(--dur-fast) var(--ease-ui); }
+.wb__chip:hover { background:#2b3438; color:var(--text); }
+.wb__chip.is-on { background:var(--accent-2); color:var(--ink); font-weight:600; }
+
+.wb__tiles { display:grid; grid-template-columns:repeat(auto-fill, minmax(104px,1fr));
+  gap:5px; padding:0 8px 8px; }
+.wb__tile { position:relative; display:grid; grid-template-columns:minmax(0,1fr) auto;
+  gap:1px 6px; align-content:center; padding:5px 6px 5px 9px; border-radius:8px;
+  cursor:pointer; background:rgba(11,14,15,.26);
+  box-shadow: inset 0 1px 0 rgba(232,241,240,.05);
+  transition:background var(--dur-fast) var(--ease-ui); }
+.wb__tile:hover { background:#2a3235; }
+.wb__tile.is-sel { background:color-mix(in srgb, var(--accent-2) 20%, transparent);
+  box-shadow: inset 0 0 0 1px var(--accent-2); }
+.wb__tn { grid-column:1/-1; font-size:var(--fs-5); font-weight:500; color:var(--text);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* ► VIOLETT #1: die Signaturzahl auf jeder Kachel */
+.wb__ts { align-self:center; font-size:var(--fs-3); color:var(--vio); }
+.wb__pin { grid-column:2; align-self:center; width:28px; height:28px; display:grid;
+  place-items:center; border:0; background:rgba(11,14,15,.34); color:var(--muted);
+  cursor:pointer; border-radius:7px; line-height:0;
+  transition:all var(--dur-fast) var(--ease-ui); }
+.wb__pin svg { width:15px; height:15px; pointer-events:none; }
+.wb__tile:hover .wb__pin { background:rgba(11,14,15,.55); color:var(--text); }
+.wb__pin.is-on { background:var(--accent-2); color:var(--ink); }
+
+.wb__id { padding:11px 14px 9px; flex:0 0 auto; }
+.wb__idrow { display:flex; align-items:flex-start; gap:10px; }
+.wb__id h2 { font-size:var(--fs-13); font-weight:600; line-height:1.05; margin:0;
+  letter-spacing:var(--ls-1); }
+.wb__tags { display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; }
+.wb__tag { font-size:var(--fs-3); padding:2px 7px; border-radius:999px;
+  background:rgba(11,14,15,.3); color:var(--muted); }
+.wb__tag.is-rar { background:color-mix(in srgb, var(--accent-2) 18%, transparent);
+  color:var(--accent-2); }
+/* ► VIOLETT #2: der Volatilitäts-Chip */
+.wb__tag.is-vol { background:var(--vio-dim); color:var(--vio); }
+.wb__sigbox { margin-left:auto; text-align:right; }
+.wb__lbl { font-size:var(--fs-4); font-weight:500; color:var(--muted); letter-spacing:var(--ls-4); }
+/* ► VIOLETT #3: der große Signaturwert */
+.wb__sigbox b { display:block; font-size:var(--fs-11); color:var(--vio); font-weight:600;
+  line-height:1.1; margin-top:1px; font-family:var(--font-mono); }
+.wb__pinbig { display:inline-flex; align-items:center; gap:7px; align-self:center;
+  white-space:nowrap; padding:8px 13px; border:0; border-radius:9px; cursor:pointer;
+  font-family:inherit; font-size:var(--fs-5); font-weight:600; color:var(--text);
+  background:#232b2e; box-shadow: inset 0 0 0 1px rgba(232,241,240,.12);
+  transition:background var(--dur-fast) var(--ease-ui); }
+.wb__pinbig:hover { background:color-mix(in srgb, var(--accent-2) 24%, var(--surface)); }
+.wb__pinbig.is-on { background:var(--accent-2); color:var(--ink); box-shadow:none; }
+.wb__pinbig svg { width:17px; height:17px; }
+
+.wb__sec { padding:0 14px 11px; }
+.wb__sec h4 { font-size:var(--fs-4); font-weight:600; color:var(--muted); margin:0 0 7px;
+  padding-bottom:5px; position:relative; }
+.wb__sec h4::after { content:''; position:absolute; left:0; right:0; bottom:0; height:3px;
+  background:repeating-linear-gradient(90deg, rgba(232,241,240,.14) 0 1px, transparent 1px 7px); }
+.wb__locs { display:flex; flex-direction:column; gap:3px; }
+.wb__row2 { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px;
+  padding:5px 9px; border-radius:7px; background:rgba(11,14,15,.22); }
+.wb__row2 .p { font-size:var(--fs-5); font-weight:500; color:var(--text); display:block;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wb__row2 .s { font-size:var(--fs-3); color:var(--muted); display:block; margin-top:1px; }
+.wb__row2 .r { display:flex; align-items:center; gap:8px; }
+.wb__lpin { flex:0 0 auto; width:22px; height:22px; display:grid; place-items:center; border:0;
+  background:rgba(11,14,15,.34); color:var(--muted); cursor:pointer; border-radius:6px;
+  line-height:0; transition:all var(--dur-fast) var(--ease-ui); }
+.wb__lpin svg { width:13px; height:13px; }
+.wb__lpin.is-on { background:var(--accent-2); color:var(--ink); }
+/* ► VIOLETT #4: die gezähnten Anteilsbalken — der auffälligste Träger aus Bild 1 */
+.wb__bar { width:46px; height:5px; border-radius:3px; overflow:hidden;
+  background:rgba(11,14,15,.55); box-shadow: inset 0 1px 2px rgba(11,14,15,.7); }
+.wb__bar i { display:block; height:100%;
+  background:repeating-linear-gradient(90deg, var(--vio) 0 3px, transparent 3px 5px); }
+.wb__row2 em { font-size:var(--fs-4); color:var(--muted); font-style:normal; width:58px;
+  text-align:right; white-space:nowrap; font-family:var(--font-mono); }
+.wb__links { display:flex; gap:6px; flex-wrap:wrap; }
+.wb__link { display:inline-flex; align-items:center; gap:6px; padding:6px 10px;
+  border-radius:7px; background:rgba(11,14,15,.28); color:var(--text); font-size:var(--fs-5);
+  text-decoration:none; transition:background var(--dur-fast) var(--ease-ui); }
+.wb__link:hover { background:color-mix(in srgb, var(--accent) 22%, transparent); }
+.wb__link b { color:var(--accent-2); font-family:var(--font-mono); }
+
+#tabbar { flex:0 0 auto; display:flex; gap:5px; padding:9px 10px; }
+.wb__tab { flex:1; font-size:var(--fs-4); font-weight:500; padding:5px 8px; border:0;
+  border-radius:7px; background:rgba(11,14,15,.3); color:var(--muted); cursor:pointer;
+  font-family:inherit; transition:all var(--dur-fast) var(--ease-ui); }
+.wb__tab.is-on { background:var(--accent-2); color:var(--ink); font-weight:600; }
+.wb__scanbox { padding:9px 9px 8px; }
+/* ► VIOLETT #5: das Scan-Eingabefeld */
+.wb__scan { width:100%; background:rgba(11,14,15,.4); border:0; color:var(--vio);
+  padding:8px 10px; font-size:var(--fs-9); text-align:center; border-radius:7px;
+  font-family:var(--font-mono);
+  box-shadow: inset 0 1px 3px rgba(11,14,15,.6); }
+.wb__scan::placeholder { color:var(--muted); font-family:var(--font-ui); font-size:var(--fs-5); }
+.wb__pre { flex:0 0 auto; padding:8px 9px; display:flex; gap:5px; align-items:center; }
+.wb__pre select { flex:1; min-width:0; border:0; border-radius:7px; font-family:inherit;
+  font-size:var(--fs-4); padding:6px 8px; color:var(--text); background:#20272a; }
+.wb__pre button { flex:0 0 auto; width:28px; height:28px; display:grid; place-items:center;
+  border:0; border-radius:7px; cursor:pointer; font-size:var(--fs-6); background:rgba(11,14,15,.34);
+  color:var(--muted); font-family:inherit; }
+.wb__empty { padding:16px 12px; text-align:center; color:var(--muted); font-size:var(--fs-4);
+  line-height:1.55; margin:0; }
+/* ► VIOLETT #6: die Stabilitätskurve aus Bild 1 */
+.trk { margin:8px 9px; padding:10px; border-radius:10px; background:rgba(11,14,15,.3); }
+.trk__hd { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px; }
+.trk__hd b { font-size:var(--fs-6); font-weight:600; }
+.trk svg { display:block; width:100%; height:74px; }
+
+.wb__rig { flex:0 0 auto; flex-direction:row; align-items:center; gap:16px; flex-wrap:wrap;
+  padding:9px 14px; margin-top:10px; }
+.wb__rig::before { content:''; position:absolute; left:0; right:0; top:0; height:2px;
+  background:repeating-linear-gradient(90deg, var(--accent-2) 0 5px, transparent 5px 10px);
+  opacity:.5; }
+.wb__rgrp { flex:0 0 auto; display:flex; flex-direction:column; gap:3px; }
+.wb__sel { background:#20272a; border:0; color:var(--text); font-size:var(--fs-5);
+  padding:6px 9px; cursor:pointer; max-width:260px; border-radius:7px; font-family:inherit; }
+.wb__frac { margin-left:auto; display:flex; align-items:center; gap:11px; padding:8px 13px;
+  border-radius:9px; text-decoration:none; background:rgba(11,14,15,.3);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+  transition:background var(--dur-fast) var(--ease-ui); }
+.wb__frac:hover { background:color-mix(in srgb, var(--accent) 16%, transparent); }
+.wb__frac__t { display:flex; flex-direction:column; line-height:1.25; }
+.wb__frac__t b { font-size:var(--fs-5); font-weight:600; color:var(--text); }
+.wb__frac__go { font-size:var(--fs-4); font-weight:600; color:var(--accent); white-space:nowrap; }
+
+/* ---------- Messwerte-Auslese ---------- */
+.gauge { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;
+  margin:10px auto 40px; width:1280px; max-width:calc(100vw - 32px); }
+.gauge div { background:#1a2124; border-radius:10px; padding:10px 12px; }
+.gauge span { display:block; font-size:11px; color:var(--muted); letter-spacing:.05em;
+  text-transform:uppercase; }
+.gauge b { font:600 21px var(--font-mono); color:var(--accent); }
+.gauge b.bad { color:#ff6b6b; }
+.gauge b.ok { color:var(--accent); }
+
+/* ---------- Werkzeugleiste ---------- */
+#sketch-tools { position:fixed; bottom:12px; right:12px; z-index:9999; font-family:system-ui;
+  font-size:12px; background:rgba(0,0,0,.78); color:#fff; padding:8px 12px; border-radius:8px;
+  opacity:.4; transition:opacity .2s; display:flex; gap:8px; align-items:center; }
+#sketch-tools select, #sketch-tools button { font:inherit; font-size:11px; border:0;
+  border-radius:5px; padding:3px 7px; background:#333; color:#fff; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="ttl">007 · Gehäuse</span>
+  <button class="variant-tab active" data-v="a">A: Fassung</button>
+  <button class="variant-tab" data-v="b">B: Schulterplatten</button>
+  <button class="variant-tab" data-v="c">C: Rumpf</button>
+</div>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9.5 3h5M11 3v6.2L7.4 13h9.2L13 9.2V3M12 13v8"/>
+  </symbol>
+</svg>
+
+<!-- ============ VARIANTE A ============ -->
+<div id="variant-a" class="variant active">
+  <div class="stage">
+    <div class="stage__cap"><b>A — Fassung</b>
+      <span>Schmale versenkte Kante, Titel in der Leiste. Das Gehäuse ist eine Kante, kein Möbel.</span></div>
+    <div class="stage__vp">
+      <div class="hull hull--a" data-hull>
+        <div class="hull__bar">
+          <a class="back" href="#">← Archiv</a>
+          <div class="brand">
+            <span class="ver">Alpha 4.9.0</span>
+            <h1>Mining</h1>
+            <span class="sub">Erz wählen — Fundorte, Physik und Raffinerie-Ertrag stehen daneben.</span>
+          </div>
+          <div class="statusdots" style="margin-left:auto">
+            <i class="on"></i><i class="on"></i><i></i><i></i>
+          </div>
+        </div>
+        <div class="hull__body" data-body></div>
+      </div>
+      <div class="fold"></div>
+    </div>
+  </div>
+  <div class="gauge" data-gauge></div>
+</div>
+
+<!-- ============ VARIANTE B ============ -->
+<div id="variant-b" class="variant">
+  <div class="stage">
+    <div class="stage__cap"><b>B — Schulterplatten</b>
+      <span>Das Mockup wörtlich: asymmetrische Platten, eingelassene Titel-Kartusche, Leuchtstreifen, Nieten.</span></div>
+    <div class="stage__vp">
+      <div class="hull hull--b" data-hull>
+        <div class="hull__top">
+          <div class="plate plate--l">
+            <a class="back" href="#" style="position:absolute;left:12px;top:12px">← Archiv</a>
+          </div>
+          <div class="cart">
+            <span class="ver">Alpha 4.9.0 · Live-Daten</span>
+            <h1 style="margin:0;font-size:23px;font-weight:600">Mining</h1>
+          </div>
+          <div class="plate plate--r">
+            <div class="statusdots" style="position:absolute;right:14px;top:16px">
+              <i class="on"></i><i class="on"></i><i></i><i></i>
+            </div>
+          </div>
+        </div>
+        <span class="lamp lamp--l"></span><span class="lamp lamp--r"></span>
+        <p style="margin:6px 0 10px;text-align:center;font-size:var(--fs-5);color:var(--muted)">
+          Erz wählen — Fundorte, Physik und Raffinerie-Ertrag stehen daneben.</p>
+        <div class="hull__body" style="margin:0 14px" data-body></div>
+        <span class="rivets"></span>
+      </div>
+      <div class="fold"></div>
+    </div>
+  </div>
+  <div class="gauge" data-gauge></div>
+</div>
+
+<!-- ============ VARIANTE C ============ -->
+<div id="variant-c" class="variant">
+  <div class="stage">
+    <div class="stage__cap"><b>C — Rumpf</b>
+      <span>Volles Gehäuse: Seitenholme, Eckbolzen, tiefere Kartusche. Am nächsten am Ingame-Panel.</span></div>
+    <div class="stage__vp">
+      <div class="hull hull--c" data-hull>
+        <div class="hull__top">
+          <div class="plate plate--l">
+            <a class="back" href="#" style="position:absolute;left:44px;top:16px">← Archiv</a>
+          </div>
+          <div class="cart">
+            <span class="ver">Alpha 4.9.0 · Live-Daten</span>
+            <h1 style="margin:0;font-size:26px;font-weight:600">Mining</h1>
+          </div>
+          <div class="plate plate--r">
+            <div class="statusdots" style="position:absolute;right:46px;top:20px">
+              <i class="on"></i><i class="on"></i><i class="on"></i><i></i>
+            </div>
+          </div>
+        </div>
+        <span class="rail rail--l"><span class="lamp2"></span></span>
+        <span class="rail rail--r"><span class="lamp2"></span></span>
+        <span class="bolt" style="left:10px;top:60px"></span>
+        <span class="bolt" style="right:10px;top:60px"></span>
+        <span class="bolt" style="left:10px;bottom:24px"></span>
+        <span class="bolt" style="right:10px;bottom:24px"></span>
+        <p style="margin:8px 34px 10px;text-align:center;font-size:var(--fs-5);color:var(--muted)">
+          Erz wählen — Fundorte, Physik und Raffinerie-Ertrag stehen daneben.</p>
+        <div class="hull__body" data-body></div>
+        <span class="rivets"></span>
+      </div>
+      <div class="fold"></div>
+    </div>
+  </div>
+  <div class="gauge" data-gauge></div>
+</div>
+
+<div id="sketch-tools"
+     onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.4'">
+  <select onchange="document.querySelector('link[href*=themes]').href='../themes/'+this.value+'.css'">
+    <option value="default">Theme: default</option>
+  </select>
+  <button onclick="document.body.classList.toggle('no-vio')">Violett aus/an</button>
+</div>
+
+<style>
+/* Gegenprobe: alles Violette zurück auf Teal — zeigt, was die Farbe wirklich trägt. */
+body.no-vio { --vio:#2FBFA4; --vio-2:#2FBFA4; --vio-dim:rgba(47,191,164,.2); }
+</style>
+
+<script>
+/* ======================================================================
+   Echte Daten aus assets/mining-db.json + mining-model.json (15.08.2026).
+   Keine Platzhalter — die Zeilen sind die, die die Seite wirklich zeigt.
+   ====================================================================== */
+const MIN = [
+  ['Quantainium','legendary',3170],['Savrilium','legendary',3200],['Stileron','legendary',3185],
+  ['Lindinium','epic',3400],['Ouratite','epic',3370],['Riccite','epic',3385],
+  ['Beryl','rare',3540],['Bexalite','rare',3600],['Borase','rare',3570],['Gold','rare',3585],
+  ['Taranite','rare',3555],
+  ['Agricium','uncommon',3885],['Aslarite','uncommon',3840],['Laranite','uncommon',3825],
+  ['Titanium','uncommon',3855],['Torite','uncommon',3900],['Tungsten','uncommon',3870],
+  ['Aluminum','common',4285],['Copper','common',4240],['Corundum','common',4225],
+  ['Hephaestanite','common',4180],['Ice','common',4300],['Iron','common',4270],
+  ['Quartz','common',4210],['Silicon','common',4255],['Tin','common',4195],
+  ['Aphorite',null,3000],['Beradom',null,4000],['Carinite',null,4000],['Dolivine',null,3000],
+  ['Feynmaline',null,4000],['Glacosite',null,4000],['Hadanite',null,3000],['Jaclium',null,3000],
+  ['Janalite',null,3000],['Sadaryx',null,3000],['Saldynium',null,3000],
+];
+/* Quantainiums echte Fundorte, nach Erwartungswert sortiert. */
+const LOCS = [
+  ['Aaron Halo','Stanton · Gürtel',2,78.3,1.6],
+  ['Asteroid Cluster (Low Yield)','Stanton · Cluster',2,78.3,1.6],
+  ['Asteroid Cluster (Medium Yield)','Stanton · Cluster',2,78.3,1.6],
+  ['Hurston','Stanton · Planet',2,78.3,1.6],
+  ['microTech','Stanton · Planet',2,78.3,1.6],
+  ['Aberdeen','Stanton · Mond',2,78.3,1.6],
+  ['Arial','Stanton · Mond',2,78.3,1.6],
+];
+const RAR = { legendary:'legendär', epic:'episch', rare:'selten',
+              uncommon:'ungewöhnlich', common:'häufig' };
+
+const pinSvg = '<svg><use href="#i-pin"/></svg>';
+
+function tiles() {
+  return MIN.map((m,i) => `
+    <div class="wb__tile${i===0?' is-sel':''}" data-min="${m[0]}" role="button" tabindex="0">
+      <span class="wb__tn">${m[0]}</span>
+      <span class="wb__ts num">${m[2]}</span>
+      <button class="wb__pin" aria-label="Anheften: ${m[0]}">${pinSvg}</button>
+    </div>`).join('');
+}
+function locRows() {
+  return LOCS.map(l => `
+    <div class="wb__row2">
+      <span><span class="p">${l[0]}</span><span class="s">${l[1]} — Schiff, bis ${l[3]} %</span></span>
+      <span class="r">
+        <button class="wb__lpin" aria-label="Fundort anheften">${pinSvg}</button>
+        <span class="wb__bar"><i style="width:${Math.min(100, l[4]*22)}%"></i></span>
+        <em>${l[2]} %</em>
+      </span>
+    </div>`).join('');
+}
+
+/* Stabilitätskurve — die Grafik aus Bild 1, als echte Kurve statt Bildrauschen. */
+function curve() {
+  const pts = [];
+  for (let x = 0; x <= 100; x++) pts.push(`${x*2.6},${8 + 58*(1 - Math.exp(-x/26))}`);
+  return `
+  <div class="trk">
+    <div class="trk__hd"><b>Stabilität</b><span class="wb__lbl">bis Bruch 01:28</span></div>
+    <svg viewBox="0 0 260 74" preserveAspectRatio="none">
+      <defs><linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="var(--vio)" stop-opacity=".45"/>
+        <stop offset="100%" stop-color="var(--vio)" stop-opacity="0"/>
+      </linearGradient></defs>
+      <polygon fill="url(#g1)" points="0,74 ${pts.join(' ')} 260,74"/>
+      <polyline fill="none" stroke="var(--vio)" stroke-width="1.8" points="${pts.join(' ')}"/>
+      <circle cx="260" cy="66" r="3" fill="var(--vio-2)"/>
+    </svg>
+  </div>`;
+}
+
+function body() {
+  return `
+  <div class="wb__grid">
+    <!-- Spalte 1 -->
+    <div class="wb__pane">
+      <div class="wb__filters">
+        <div class="wb__help">▸ Wie funktioniert die Mining-Werkbank?</div>
+        <div class="wb__frow">
+          <input class="wb__search" type="search" placeholder="Mineral suchen">
+          <span class="wb__c" data-count>37</span>
+        </div>
+        <div class="wb__chips">
+          <button class="wb__chip">Pyro</button>
+          <button class="wb__chip">Stanton</button>
+          <button class="wb__chip">Nyx</button>
+        </div>
+      </div>
+      <div class="wb__scroll"><div class="wb__tiles">${tiles()}</div></div>
+    </div>
+
+    <!-- Spalte 2 -->
+    <div class="wb__pane">
+      <div class="wb__id">
+        <div class="wb__idrow">
+          <div>
+            <h2 data-name>Quantainium</h2>
+            <div class="wb__tags">
+              <span class="wb__tag is-rar">legendär</span>
+              <span class="wb__tag is-vol">hochflüchtig</span>
+              <span class="wb__tag">Schiff</span>
+              <span class="wb__tag">Erz</span>
+              <span class="wb__tag">raffinierbar</span>
+            </div>
+          </div>
+          <div class="wb__sigbox">
+            <span class="wb__lbl">Signatur</span>
+            <b data-sig>3170</b>
+          </div>
+          <button class="wb__pinbig">${pinSvg}Anheften</button>
+        </div>
+      </div>
+      <div class="wb__scroll">
+        <div class="wb__sec">
+          <h4>Fundorte: 17</h4>
+          <div class="wb__locs">${locRows()}</div>
+        </div>
+        <div class="wb__sec">
+          <h4>Verwendung</h4>
+          <div class="wb__links">
+            <a class="wb__link" href="#">Blueprints <b>187</b></a>
+            <a class="wb__link" href="#">Prospector <b>32 SCU</b></a>
+            <a class="wb__link" href="#">MOLE <b>96 SCU</b></a>
+            <a class="wb__link" href="#">Golem <b>32 SCU</b></a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spalte 3 -->
+    <div class="wb__pane">
+      <div id="tabbar">
+        <button class="wb__tab is-on">Signaturen</button>
+        <button class="wb__tab">Fundorte: 1</button>
+      </div>
+      <div class="wb__pre">
+        <select><option>— kein Preset —</option></select>
+        <button>+</button><button>×</button>
+      </div>
+      <div class="wb__scanbox"><input class="wb__scan num" placeholder="Scanwert"></div>
+      ${curve()}
+      <p class="wb__empty">Auf einer Erz-Kachel links den Anheft-Knopf drücken.
+        Diese Spalte zeigt dann seine Signatur mal Clustergröße.</p>
+    </div>
+  </div>
+
+  <!-- Sockelleiste -->
+  <div class="wb__rig">
+    <div class="wb__rgrp">
+      <span class="wb__lbl">Station</span>
+      <select class="wb__sel"><option>Port Olisar — Starlight</option><option>Ruin Station</option></select>
+    </div>
+    <a class="wb__frac" href="#">
+      <span class="wb__frac__t"><b>Fracturing-Rechner</b><span class="wb__lbl">Quantainium</span></span>
+      <span class="wb__frac__go">Bricht der Brocken? →</span>
+    </a>
+  </div>`;
+}
+
+document.querySelectorAll('[data-body]').forEach(el => el.innerHTML = body());
+
+/* ---------- Interaktion: Kacheln wählen, filtern, anheften ---------- */
+document.querySelectorAll('.variant').forEach(root => {
+  const sel = (q) => root.querySelector(q);
+
+  root.addEventListener('click', (e) => {
+    const pin = e.target.closest('.wb__pin, .wb__lpin, .wb__pinbig');
+    if (pin) { e.stopPropagation(); pin.classList.toggle('is-on'); return; }
+
+    const chip = e.target.closest('.wb__chip');
+    if (chip) { chip.classList.toggle('is-on'); return; }
+
+    const tab = e.target.closest('.wb__tab');
+    if (tab) { root.querySelectorAll('.wb__tab').forEach(t => t.classList.remove('is-on'));
+               tab.classList.add('is-on'); return; }
+
+    const tile = e.target.closest('.wb__tile');
+    if (tile) {
+      root.querySelectorAll('.wb__tile').forEach(t => t.classList.remove('is-sel'));
+      tile.classList.add('is-sel');
+      const rec = MIN.find(m => m[0] === tile.dataset.min);
+      sel('[data-name]').textContent = rec[0];
+      sel('[data-sig]').textContent = rec[2];
+      sel('.wb__tag.is-rar').textContent = RAR[rec[1]] || 'ohne Stufe';
+      sel('.wb__frac__t .wb__lbl').textContent = rec[0];
+    }
+  });
+
+  const q = sel('.wb__search');
+  q.addEventListener('input', () => {
+    const v = q.value.trim().toLowerCase();
+    let n = 0;
+    root.querySelectorAll('.wb__tile').forEach(t => {
+      const hit = t.dataset.min.toLowerCase().includes(v);
+      t.style.display = hit ? '' : 'none';
+      if (hit) n++;
+    });
+    sel('[data-count]').textContent = n;
+  });
+});
+
+/* ======================================================================
+   MESSUNG — die eigentliche Entscheidungsgrundlage.
+   Gehäuse-Aufschlag = wie viel Höhe das Gehäuse dem Inhalt wegnimmt,
+   und wie viele Mineralzeilen davon noch über der Falz stehen.
+   ====================================================================== */
+/* ⚠ measure()/fit() bekommen den Wurzelknoten ÜBERGEBEN und laufen nie über
+   alle Varianten: ein ausgeblendetes `.variant` liefert lauter Nullmaße und
+   überschrieb sonst die zuvor korrekt gemessenen Werte der anderen beiden. */
+function measure(root) {
+  const hull = root.querySelector('[data-hull]');
+  const grid = root.querySelector('.wb__grid');
+  const rig  = root.querySelector('.wb__rig');
+  const g    = root.querySelector('[data-gauge]');
+  const tile = root.querySelector('.wb__tile');
+  if (!hull || !grid || !g) return;
+
+  const vpTop = root.querySelector('.stage__vp').getBoundingClientRect().top;
+  // Aufschlag = alles über dem Gitter plus die Sockelleiste darunter.
+  const gridTop = grid.getBoundingClientRect().top - vpTop;
+  const chrome = gridTop + (rig ? rig.offsetHeight + 10 : 0);
+  // Die Zahl, die mit dem Bestand vergleichbar ist (Manifest 002: 162 px).
+  const tileTop = tile ? tile.getBoundingClientRect().top - vpTop : 0;
+
+  // Wie viele Erz-Kacheln stehen vollständig über der Falz?
+  let visible = 0;
+  root.querySelectorAll('.wb__tile').forEach(t => {
+    if (t.getBoundingClientRect().bottom - vpTop <= 720) visible++;
+  });
+
+  // Läuft der Inhalt unten aus dem 720er-Fenster?
+  const over = Math.max(0, Math.round(
+    hull.getBoundingClientRect().bottom - vpTop - 720));
+
+  g.innerHTML = `
+    <div><span>Gehäuse-Aufschlag</span><b class="${chrome>200?'bad':'ok'}">${Math.round(chrome)} px</b></div>
+    <div><span>Erste Kachel bei</span><b class="${tileTop>175?'bad':'ok'}">${Math.round(tileTop)} px</b></div>
+    <div><span>Kacheln über der Falz</span><b class="${visible<24?'bad':'ok'}">${visible} / 37</b></div>
+    <div><span>Überlauf unter 720</span><b class="${over>0?'bad':'ok'}">${over} px</b></div>`;
+}
+
+/* Die Gitterhöhe folgt dem, was das Gehäuse übrig lässt — sonst misst man
+   nicht den Aufschlag, sondern nur eine feste Zahl. */
+function fit(root) {
+  const grid = root.querySelector('.wb__grid');
+  const rig = root.querySelector('.wb__rig');
+  if (!grid) return;
+  const hull = root.querySelector('[data-hull]');
+  const vpTop = root.querySelector('.stage__vp').getBoundingClientRect().top;
+  grid.style.setProperty('--wbh', 'auto');
+  const top = grid.getBoundingClientRect().top - vpTop;
+  let h = 720 - top - (rig ? rig.offsetHeight : 0) - 22;
+  grid.style.setProperty('--wbh', h + 'px');
+  /* Zweiter Durchgang: Nietenreihe und Sockelpolsterung der reicheren
+     Gehäuse liegen UNTER dem Gitter und wurden von der Rechnung oben nicht
+     erfasst — B lief dadurch 2 px, C 14 px aus dem 720er-Fenster. */
+  const over = hull.getBoundingClientRect().bottom - vpTop - 720;
+  if (over > 0) grid.style.setProperty('--wbh', (h - Math.ceil(over)) + 'px');
+}
+
+function showVariant(v) {
+  document.querySelectorAll('.variant').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.variant-tab').forEach(t => t.classList.remove('active'));
+  const root = document.getElementById('variant-' + v);
+  root.classList.add('active');
+  document.querySelector(`.variant-tab[data-v="${v}"]`).classList.add('active');
+  fit(root); measure(root);
+}
+document.querySelectorAll('.variant-tab').forEach(t =>
+  t.addEventListener('click', () => showVariant(t.dataset.v)));
+
+/* Jede Variante EINMAL sichtbar schalten und dabei nur sie selbst messen —
+   ausgeblendete Knoten haben keine Maße. */
+window.addEventListener('load', () => {
+  ['a','b','c'].forEach(showVariant);
+  showVariant('a');
+});
+</script>
+</body>
+</html>

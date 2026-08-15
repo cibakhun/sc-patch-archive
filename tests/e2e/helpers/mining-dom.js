@@ -247,6 +247,9 @@ function buildPayload() {
     presetNameTaken: 'NAME-TAKEN', presetListEmpty: 'LIST-EMPTY',
     // Phase 10, Plan 01, Task 2: Loeschen fragt zurueck (D-01).
     presetDelAsk: 'DEL-ASK',
+    // Betreiber-Befund 15.08.2026: Ueberschreiben fragt jetzt ebenso zurueck,
+    // mit eigenem Wortlaut -- unterscheidbar von presetDelAsk (D-01).
+    presetUpdAsk: 'UPD-ASK',
     // Phase 10, Plan 01, Task 3: Ueberschreiben und Ausduennen (D-02, Form 2+3).
     presetUpdate: 'UPDATE', presetUpdated: 'UPDATED', presetShow: 'SHOW', presetHide: 'HIDE',
     presetRemoveEntry: 'REMOVE-ENTRY', presetNoEntries: 'NO-ENTRIES',

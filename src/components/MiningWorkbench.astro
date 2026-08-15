@@ -56,8 +56,17 @@ import { buildMiningShips } from '../lib/miningShips';
 import { href } from '../i18n/ui';
 import { useHelp, type HelpKey } from '../i18n/help';
 
-interface Props { lang: 'de' | 'en'; }
-const { lang } = Astro.props;
+/* Titelstreifen der Seite ist ins Gehaeuse gewandert (15.08.2026): das Kopfband
+   der Grafik traegt ihn, und dadurch faellt der separate `.hero` weg — genau
+   die Hoehe, die der Rahmen sonst zusaetzlich kosten wuerde. Die Texte kommen
+   weiterhin von der Seite, damit die <h1> dort bleibt, wo der Inhalt lebt. */
+interface Props {
+  lang: 'de' | 'en';
+  title: string;
+  eyebrow: string;
+  lead: string;
+}
+const { lang, title, eyebrow, lead } = Astro.props;
 const de = lang === 'de';
 /* Stufe 2 des Werkzeug-Hilfe-Vertrags. Fehlte in der zweiten Fassung
    vollstaendig: 0 data-help gegen 8-10 in jedem anderen Werkzeug, und der
@@ -132,6 +141,12 @@ for (const [meth, ids] of Object.entries(VEHICLE_FOR)) {
 
 const fracturingPath = href('/fracturing.html', lang);
 
+/* Gehaeuse-Grafik ueber versioned(): der sha1 haengt am Inhalt, nicht an einer
+   hochgezaehlten `?v=`-Zahl — die Falle, die schon zweimal gecachte Assets
+   ausgeliefert hat. */
+const chassisFrame = versioned('assets/chassis-frame.webp', '/assets/chassis-frame.webp');
+const chassisPlug = versioned('assets/chassis-plug.webp', '/assets/chassis-plug.webp');
+
 /* Zwei benannte Konstanten statt eines `de ? {…} : {…}`-Ternarys: ein in nur
    einem Zweig vergessener Schluessel fiel bislang erst im Browser der ANDEREN
    Sprache auf. Die Pruefung darunter bricht das stattdessen beim Bauen ab —
@@ -145,7 +160,7 @@ const S_DE = {
   presetDel: 'Löschen', presetName: 'Name des Presets', presetCancel: 'Abbrechen',
   presetRename: 'Umbenennen', presetRenamed: 'Umbenannt.', presetNameTaken: 'Dieser Name ist schon vergeben.',
   presetListEmpty: 'Noch kein Preset gespeichert. Erze oder Fundorte anheften, dann mit „+" benennen.',
-  presetDelAsk: 'Wirklich löschen?',
+  presetDelAsk: 'Wirklich löschen?', presetUpdAsk: 'Wirklich überschreiben?',
   presetUpdate: 'Mit der aktuellen Auswahl überschreiben', presetUpdated: 'Überschrieben.',
   presetShow: 'Inhalt anzeigen', presetHide: 'Inhalt ausblenden',
   presetRemoveEntry: 'Aus dem Preset entfernen', presetNoEntries: 'Dieses Preset ist leer.',
@@ -175,7 +190,7 @@ const S_EN = {
   presetDel: 'Delete', presetName: 'Preset name', presetCancel: 'Cancel',
   presetRename: 'Rename', presetRenamed: 'Renamed.', presetNameTaken: 'That name is already taken.',
   presetListEmpty: 'No preset saved yet. Pin ores or locations, then name one with the plus button.',
-  presetDelAsk: 'Really delete?',
+  presetDelAsk: 'Really delete?', presetUpdAsk: 'Really overwrite?',
   presetUpdate: 'Overwrite with the current selection', presetUpdated: 'Overwritten.',
   presetShow: 'Show contents', presetHide: 'Hide contents',
   presetRemoveEntry: 'Remove from preset', presetNoEntries: 'This preset is empty.',
@@ -230,7 +245,24 @@ const payload = {
 const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 ---
 
-<section class="wb" id="db" data-wb>
+<section class="wb" id="db" data-wb
+         style={`--wb-frame:url('${chassisFrame}');--wb-plug:url('${chassisPlug}')`}>
+  {/* ───────────────────────── Gehaeuse ─────────────────────────
+      Der Rahmen ist EINE Grafik mit festem Seitenverhaeltnis, die Bildflaeche
+      ein Prozentkasten darin. KEIN `border-image`/9-Slice: das streckt die
+      Mitte jeder Kante, und genau dort hat die Vorlage ihre Zeichnung
+      (Steckerbuchse mit Lueftungsgittern unten, Seriennummer oben rechts).
+      Zuschnitt und Prozentwerte sind gemessen, nicht geschaetzt —
+      .planning/sketches/tools/make-chassis.mjs hat sie eingemessen, Belege in
+      .planning/sketches/010-chassis-asset/README.md.
+
+      ⚠ Der Titel steht als HTML IM Kopfband, nicht in der Grafik: er muss
+      uebersetzbar, suchbar und die echte <h1> der Seite bleiben. Nur die
+      aufgedruckte Seriennummer ist Dekoration.
+
+      ⚠ Kein `backdrop-filter` mehr auf den Paneelen — hinter einem deckenden
+      Gehaeuse hat Glas nichts zu spiegeln. Damit ist die Paarung clip-path
+      ueber backdrop-filter (840 ms Menue-Eintritt) baulich ausgeschlossen. */}
   {/* EIN Symbol fuer 38 Knoepfe (37 Kacheln + der grosse am gewaehlten Erz).
       Als <use>-Verweis statt 38-mal dasselbe Pfad-d im HTML — und als Symbol
       statt Schriftzeichen, weil „☆/★" in jeder Schrift anders aussieht, nicht
@@ -259,12 +291,30 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
       <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6" />
     </symbol>
-    {/* Pfeil in die Ablage — "hier hinein speichern" (Phase 10, D-02 Form 2:
-        Ueberschreiben mit der aktuellen Auswahl). */}
-    <symbol id="wb-i-save" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 3v10m0 0-4-4m4 4 4-4" />
-      <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+    {/* Kreispfeil — "aktualisieren mit der aktuellen Auswahl" (Phase 10, D-02
+        Form 2: Ueberschreiben). Betreiber-Befund 15.08.2026: das vorherige
+        Zeichen (Pfeil nach unten in eine offene Wanne) ist die uebliche
+        Download-Glyphe und wurde genau so gelesen — hier wird aber nichts
+        heruntergeladen, sondern der gespeicherte Inhalt mit dem Arbeitsstand
+        ersetzt. */}
+    {/* ⚠⚠ Betreiber-Befund "das icon ist nicht in der mitte", zweimal gemeldet.
+        Der erste Anlauf richtete die BOUNDING BOX am Papierkorb aus (Mitte y 12,5)
+        und lag falsch: der Pfeilsporn oben rechts zieht die Box mit, dadurch rutschte
+        der RING auf y 12,52 und hing sichtbar unter der Mitte. Bei einem Ring liest
+        das Auge den Kreismittelpunkt, nicht die Box — der Sporn darf ueberhaengen.
+        Jetzt: Ring-Mitte exakt 12/12, Aussendurchmesser 17,50. Die Nachbarn messen
+        17,80 (Papierkorb) und 17,12 (Stift); ein Kreis wirkt bei gleicher Box
+        groesser als eine eckige Form, deshalb bewusst am unteren Ende der Spanne.
+        stroke-width 2.32 gleicht die 0,861-Skalierung aus, damit der sichtbare
+        Strich wieder bei 2 landet wie bei allen anderen Symbolen.
+        ⭐ Lehre fuer das naechste Symbol: an der Form ausrichten, die die Figur
+        traegt (Ring, Korpus), nicht an der Umgrenzung samt Auslegern. */}
+    <symbol id="wb-i-update" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.32" stroke-linecap="round" stroke-linejoin="round">
+      <g transform="translate(12,12) scale(0.861) translate(-12,-12)">
+        <path d="M21 3v6h-6" />
+        <path d="M21 12a9 9 0 1 1-3.2-6.9L21 9" />
+      </g>
     </symbol>
     {/* Pfeil zurueck — der Zurueck-Knopf im Fundort-Kopf (Phase 12, D-01),
         fuehrt zur zuletzt gewaehlten Erz-Ansicht. Dieselbe Stilfamilie wie
@@ -274,6 +324,18 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       <path d="M11 4 4 12l7 8M4 12h16" />
     </symbol>
   </svg>
+
+  <div class="wb__chassis">
+    {/* ⚠ Titel und Vorzeile standen bis 15.08.2026 sichtbar im Kopfband. Der
+        Betreiber hat sie als „ultra ugly" gestrichen — das Blech traegt seine
+        eigene Beschriftung (die aufgedruckte Seriennummer), ein zweiter
+        Schriftzug darauf war Fremdkoerper. Die <h1> BLEIBT, nur unsichtbar:
+        sie ist die Ueberschrift des Dokuments und darf fuer Suchmaschinen und
+        Vorleseprogramme nicht verschwinden. Die Vorzeile ist ersatzlos weg —
+        die Spielversion steht ohnehin in der Fusszeile. */}
+    <h1 class="wb__ctitle" set:text={title} />
+    <div class="wb__cscreen">
+      <p class="wb__clead" set:text={lead} />
 
   <div class="wb__grid">
 
@@ -448,42 +510,160 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       <span class="wb__frac__go" set:text={S.fracturingGo} />
     </a>
   </div>
+    </div>{/* .wb__cscreen */}
+  </div>{/* .wb__chassis */}
 </section>
 
 <script type="application/json" id="wb-data" set:html={JSON.stringify(payload)}></script>
 <script is:inline src={versioned('assets/mining-workbench.js', '/assets/mining-workbench.js')}></script>
 
 <style is:inline>
-.wb{max-width:1560px;margin:0 auto;padding:0 clamp(1rem,4vw,2rem) 1.4rem;
+/* ⚠ Randlos (15.08.2026): das Gehaeuse soll bis an die Fensterkanten laufen.
+   Die vorherigen 1560 px Deckel plus 1–2 rem Polsterung liessen es bei 1920
+   nur 1488 px breit werden — und weil seine Hoehe ueber das feste
+   Seitenverhaeltnis an der Breite haengt, war es dadurch auch zu flach.
+   `100vw` statt `100%`, damit die Breite nicht an einem Eltern-Container
+   haengt; der negative Rand holt die Sektion aus dem Textkoerper heraus. */
+/* Randnah, aber nicht buendig: „muss nicht direkt am Bildschirmrand sein, kann
+   gerne bisschen Platz dazwischen sein". Die Polsterung waechst mit dem Fenster
+   mit, damit das Verhaeltnis bei jeder Groesse gleich wirkt — und sie ist der
+   Gegenposten zur breiteren Rahmenstaerke: „du kannst das gesamte Fenster etwas
+   kleiner machen, und den Rahmen etwas breiter". */
+.wb{width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+  padding:0 clamp(16px,2.6vw,56px) 1.4rem;
+  /* Ein weicher Lichtsaum HINTER dem Gehaeuse. Der Schlagschatten allein
+     reicht nicht: dunkel auf dunkel bleibt die Kante ein harter Sprung. Erst
+     eine leichte Aufhellung ringsum gibt ihr etwas, wogegen sie ausklingt —
+     denselben Dienst tat in der Vorlage die Szene hinter dem Geraet.
+     Als `background` an der Sektion, NICHT als eigenes ::before: eine neue
+     Zier-Schicht braeuchte einen Eintrag in der Schichten-Registry
+     (verify:layers, Zusicherung 5). */
+  background:radial-gradient(120% 78% at 50% 46%,
+    color-mix(in srgb,var(--accent) 6%,transparent) 0%, transparent 72%);
   display:flex;flex-direction:column;gap:10px;font-family:var(--font-ui,system-ui);
   line-height:1.3;position:relative;isolation:isolate;
   /* Alles, was oberhalb und unterhalb des Rasters Hoehe kostet: Titelstreifen,
      Rig-Leiste, Abstaende. Steht als Variable, weil die Rig-Leiste je nach
      Breite umbricht und dann mehr braucht — s. die Medienabfragen unten. */
-  --wb-chrome:236px}
-/* Grund: kein Foto, aber auch keine tote Flaeche — zwei Rastermassstaebe,
-   zwei Lichtabfaelle, Vignette. Gibt dem Weichzeichner der Paneele etwas zu
-   tun und nimmt der Seite das Prototyp-Grau. */
-.wb::before{content:'';position:absolute;inset:-8px 0 0;z-index:-1;pointer-events:none;
-  background:
-    linear-gradient(114deg,transparent 18%,color-mix(in srgb,var(--text) 5%,transparent) 38%,transparent 58%),
-    radial-gradient(120% 85% at 72% 2%,color-mix(in srgb,var(--accent) 15%,transparent),transparent 58%),
-    radial-gradient(95% 75% at 6% 98%,color-mix(in srgb,var(--accent-2) 12%,transparent),transparent 60%),
-    repeating-linear-gradient(0deg,color-mix(in srgb,var(--text) 6%,transparent) 0 1px,transparent 1px 170px),
-    repeating-linear-gradient(90deg,color-mix(in srgb,var(--text) 6%,transparent) 0 1px,transparent 1px 170px),
-    repeating-linear-gradient(0deg,color-mix(in srgb,var(--text) 3%,transparent) 0 1px,transparent 1px 34px),
-    repeating-linear-gradient(90deg,color-mix(in srgb,var(--text) 3%,transparent) 0 1px,transparent 1px 34px);
-  mask-image:radial-gradient(130% 100% at 50% 42%,#000 44%,transparent 100%)}
+  --wb-chrome:132px}
+
+/* ═══════════════════════ Gehaeuse — 9-Slice ═══════════════════════
+   ⚠⚠ ZWEITE BAUFORM (15.08.2026). Die erste war EIN Bild mit festem
+   Seitenverhaeltnis; damit hing die Rahmenstaerke zwangslaeufig an der Breite
+   (7,4 % je Seite = 141 px bei 1920 — Rueckmeldung: „viel zu fett"). Duenner
+   ginge dort nur ueber ein kleineres Gehaeuse, und dann waere es wieder zu
+   niedrig. „Duenner", „hoeher" und „Platz zum Rand" schliessen sich in jener
+   Bauform gegenseitig aus.
+
+   Jetzt ein echter 9-Slice. Moeglich wurde er erst, nachdem die MITTIGEN
+   Zierteile aus der Grafik verschwunden sind — Kopfband-Mitte, Steckerbuchse,
+   Lueftungsgitter, Leuchtsegmente und Seriennummer sind mit sauberem Blech
+   ueberzogen (.planning/sketches/tools/cut-chassis-9slice.mjs). In den
+   Streckbereichen steht damit glattes Metall, und das darf beliebig lang
+   gezogen werden. Steckerbuchse und Leuchtsegment kommen als eigene, mittig
+   gesetzte Stuecke wieder obenauf.
+
+   Gemessen (Blaustich des Bildschirms gegen neutrales Metall — der einzige
+   Weg, der nicht durch die dunklen Gitterblenden IM Rahmen laeuft):
+     Rahmengrafik 2533 x 1167, Bildflaeche 224 / 143 / 106 / 166 (l/o/r/u).
+
+   ⚠ `border-image-width` UND `border-width` muessen uebereinstimmen: das erste
+   bestimmt, wie gross der Rahmen GEZEICHNET wird, das zweite, wieviel Platz er
+   BELEGT. Weichen sie ab, liegt die Grafik ueber dem Inhalt.
+   ⚠ `fill` ist Pflicht, sonst bleibt die Mittelkachel ungezeichnet.
+   ⚠ Links und rechts bewusst GLEICH stark, obwohl die Vorlage dort 224 gegen
+   106 misst — ein sichtbar dickerer linker Rand liest sich als Fehler. Der
+   Preis ist, dass die Fraesung links staerker verkleinert wird als rechts; bei
+   dieser Staerke faellt es nicht auf. */
+/* ⚠ Staerke: 15–32 px waren zu duenn — beim Duennermachen ging die Zeichnung
+   mit verloren („der rahmen design hat schon gepasst aber es war zu fett, du
+   hast es getrimmt"). Jetzt 34–62 px: breit genug, dass Fraesung und die
+   wieder eingesetzten Zierstuecke lesbar sind, und weit unter den 141 px der
+   ersten Bauform. Das Fenster gibt dafuer aussen etwas Platz ab. */
+.wb__chassis{--rahmen:clamp(34px,3.1vw,62px);
+  position:relative;display:flex;flex-direction:column;min-height:0;
+  border-style:solid;border-color:transparent;
+  border-image-source:var(--wb-frame);
+  border-image-slice:149 134 173 227 fill;
+  border-image-width:calc(var(--rahmen)*.88) calc(var(--rahmen)*.9) calc(var(--rahmen)*1.16) var(--rahmen);
+  border-width:calc(var(--rahmen)*.88) calc(var(--rahmen)*.9) calc(var(--rahmen)*1.16) var(--rahmen);
+  /* Die Hoehe haengt an nichts mehr — kein Seitenverhaeltnis diktiert sie. */
+  height:clamp(430px,calc(100vh - var(--wb-chrome)),1180px);
+  /* ⚠ Die Aussenkante endete hart gegen den flachen Seitengrund — gemeldet als
+     „immer noch etwas zu abrupt abgeschnitten". In der Vorlage stand das Geraet
+     in einer beleuchteten Szene, die Kante hatte etwas, in das sie auslaufen
+     konnte; auf der Seite steht dahinter nichts. `drop-shadow` folgt der
+     ALPHAKANTE der Rahmengrafik (anders als `box-shadow`, das dem rechteckigen
+     Rahmenkasten folgt und die geschnittenen Ecken verfehlen wuerde) und setzt
+     das Geraet auf die Seite, statt es hineinzustanzen. Zwei Stufen: ein enger
+     Schlagschatten fuer die Kante, ein weiter fuer den Raum darunter. */
+  filter:drop-shadow(0 2px 3px color-mix(in srgb,var(--ink) 70%,transparent))
+         drop-shadow(0 16px 38px color-mix(in srgb,var(--ink) 55%,transparent))}
+
+/* ─── Zierstuecke, die aus den Streckbereichen genommen wurden, wieder an Ort
+   Steckerbuchse mittig auf dem Sockel, Leuchtsegmente mittig in beiden Holmen.
+   Mittig und in fester Groesse, damit sie beim Wachsen des Rahmens nicht in
+   die Laenge gezogen werden.
+
+   ⚠⚠ ENTSCHEIDEND ist die Maske. Beim ersten Versuch lagen dieselben Stuecke
+   ohne sie auf dem Blech und lasen sich als rechteckige Flicken — harte
+   Laengskanten, an denen der Verlauf des Stuecks nicht auf den des Balkens
+   traf. `mask-image` loest sie auf; erst dadurch sitzen sie IM Blech statt
+   darauf. Wer die Stuecke wieder anfasst: die Maske ist kein Feinschliff,
+   sondern die Bedingung, unter der sie ueberhaupt funktionieren. */
+.wb__chassis::after{content:'';position:absolute;
+  pointer-events:none;z-index:2}
+/* Steckerbuchse (640x166 in der Vorlage). */
+.wb__chassis::after{left:50%;transform:translateX(-50%);
+  bottom:calc(var(--rahmen)*-1.16);height:calc(var(--rahmen)*1.16);
+  width:calc(var(--rahmen)*1.16*860/173);
+  background:var(--wb-plug) center/100% 100% no-repeat;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
+
+/* ⚠ Titel und Vorzeile standen bis 15.08.2026 SICHTBAR im Kopfband und sind
+   auf Ansage des Betreibers gestrichen ("ultra ugly"): das Blech traegt seine
+   eigene Beschriftung, ein zweiter Schriftzug darauf war Fremdkoerper.
+   Die <h1> bleibt — sie ist die Ueberschrift des Dokuments und darf fuer
+   Suchmaschinen und Vorleseprogramme nicht verschwinden. Deshalb unsichtbar
+   statt geloescht, und NICHT per display:none (das nimmt sie auch dem
+   Vorleseprogramm). Gleiche Bauart wie `.skip` im Layout. */
+.wb__ctitle{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;
+  overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* Die Bildflaeche ist jetzt schlicht der Inhaltskasten des Gehaeuses — kein
+   Prozentkasten mehr noetig, weil der Rahmen seinen Platz ueber `border-width`
+   selbst belegt. */
+.wb__cscreen{display:flex;flex-direction:column;gap:8px;min-height:0;flex:1}
+.wb__clead{margin:0;text-align:center;font-size:var(--fs-4);
+  color:color-mix(in srgb,var(--muted) 92%,transparent)}
+/* ⚠ Der Zier-Grund (`.wb::before`: zwei Rastermassstaebe, zwei Lichtabfaelle,
+   Vignette) ist am 15.08.2026 entfallen. Er war die Antwort auf „kein Foto,
+   aber auch keine tote Flaeche" — diese Aufgabe hat jetzt das Gehaeuse. Er
+   reichte ausserdem 8 px UEBER die Werkbank hinaus und legte dadurch einen
+   sichtbaren Lichthof um den Rahmen, der wie ein Darstellungsfehler aussah.
+   Nur der Kachelgrund unter der Bildflaeche bleibt — dezent, weil die Grafik
+   dort schon einen eigenen Verlauf mitbringt. */
+/* ⚠ Hier lag bis 15.08.2026 ein CSS-Raster als Grund der Bildflaeche. Es ist
+   ersatzlos entfallen: die Gehaeuse-Grafik bringt ihren eigenen Verlauf im
+   Bildschirmbereich mit, und eine zweite Zier-Schicht darueber waere eine
+   neue Selektor-Familie, die erify:layers (Zusicherung 5) zu Recht als
+   Fund ohne Registry-Eintrag meldet. Weniger Schichten, ein Tor weniger zu
+   befriedigen, gleiches Bild. */
 
 .wb__lbl{font-size:var(--fs-4);font-weight:500;color:color-mix(in srgb,var(--muted) 88%,transparent);letter-spacing:var(--ls-4)}
 .num{font-family:var(--font-mono,ui-monospace);font-variant-numeric:tabular-nums}
 
-/* Glas nur an den tragenden Flaechen (5 Layer), nicht an jeder Kachel. */
+/* ⚠ KEIN Glas mehr (15.08.2026, mit dem Gehaeuse): hinter einer deckenden
+   Metallblende hat `backdrop-filter` nichts zu spiegeln — es kostete nur
+   Rechenzeit und war der eine Teil der Paarung `clip-path` ueber
+   `backdrop-filter`, die den Menue-Eintritt schon einmal auf 840 ms gedrueckt
+   hat. Die Paneele sind jetzt deckende Flaechen auf der Bildflaeche der
+   Grafik. */
 .wb__pane,.wb__rig{
-  background:color-mix(in srgb,var(--surface) 78%,transparent);
-  -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);
+  background:color-mix(in srgb,var(--ink) 62%,var(--surface));
   border-radius:12px;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 8%,transparent),
-    0 3px 14px color-mix(in srgb,var(--ink) 40%,transparent);
+    0 3px 14px color-mix(in srgb,var(--ink) 55%,transparent);
   display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;position:relative}
 /* Angeschraegte Ecke OHNE clip-path (die Paarung mit backdrop-filter kostete
    schon einmal 520 ms): ein Pseudo-Element mit 45deg-Verlauf fuellt sie. */
@@ -499,12 +679,39 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    Spalte (1fr), die seit dem Auszug des Fracturing-Rechners Luft hat — NICHT
    aus der Erzliste, die am 12.08.2026 bewusst auf 470 px verbreitert wurde,
    damit die Kacheln gross genug zum Treffen sind. */
-.wb__grid{display:grid;grid-template-columns:470px 1fr 330px;gap:10px;min-height:0;
-  /* 236 statt 226: am gebauten Stand nachgemessen lief die Werkbank bei
-     1920x1080 acht Pixel ueber die Fensterunterkante. Die Konstante deckt
-     Titelstreifen, Rig-Leiste und Abstaende ab; bei 1280x720 bleiben damit
-     rund 25 px Luft, bei 1080 rund 2. */
-  height:clamp(430px,calc(100vh - var(--wb-chrome)),980px)}
+/* ⚠ Die HOEHE kommt seit dem Gehaeuse (15.08.2026) NICHT mehr aus
+   `100vh - --wb-chrome`, sondern aus der Bildflaeche: die Grafik hat ein
+   festes Seitenverhaeltnis, also ist die verfuegbare Hoehe eine Folge der
+   Breite. Eine zweite, davon unabhaengige Hoehenrechnung wuerde sich
+   zwangslaeufig widersprechen. `--wb-chrome` bleibt fuer die schmalen Breiten
+   unten stehen, wo das Gehaeuse entfaellt.
+   Die Spaltenbreiten aus Phase 10 bleiben unangetastet — nur `minmax(0,…)`
+   statt fester Werte, weil das Raster jetzt in einem Flex-Kasten sitzt und
+   eine feste Spalte dort nicht mehr schrumpfen duerfte. */
+/* ⚠⚠ Die MITTE braucht eine Untergrenze. Am ausgelieferten Stand nachgemessen:
+   bei 1280 px Fensterbreite ist die Bildflaeche des Gehaeuses 1064 px breit —
+   470 + 330 + zwei Luecken lassen der Mitte 234 px. Die Fundortzeilen brachen
+   dort vierzeilig um und der Anheft-Knopf wurde vom Nachbarpaneel
+   abgeschnitten. Die beiden Aussenspalten duerfen dafuer nachgeben (minmax mit
+   0 als Minimum), die Mitte nicht: bei 1064 ergibt das rund 434/300/310 statt
+   470/234/330. Die Erzliste behaelt damit ihre vier Kachelspalten
+   (434 - 16 Polsterung = 418, bei minmax(104px,1fr) also vier). */
+/* ⚠ Erster Anlauf war `minmax(0,470px)` fuer die Erzliste — dann nahm sich das
+   Raster die fehlende Breite dort statt rechts und die Liste fiel bei 1280 auf
+   DREI Kachelspalten (gemessen 414/300/330). 447 ist die gerechnete Untergrenze
+   fuer vier: 4x104 Kachel + 3x5 Luecke + 16 Polsterung. Nachgeben soll die
+   rechte Spalte, sie traegt Listen ohne feste Zeilenbreite. */
+/* ⚠⚠ Feste Spaltenbreiten funktionieren hier NICHT mehr. Gemessen: mit
+   470/1fr/330 bekam bei 1920 allein die MITTE den Zugewinn (871 px) und bei
+   1280 blieb ihr nichts (234 px) — die Fundortzeilen brachen vierzeilig um und
+   der Anheft-Knopf wurde abgeschnitten. Jetzt Untergrenze + Wachstumsanteil je
+   Spalte: unter Druck geben alle drei bis zu ihrem Minimum nach, im Ueberfluss
+   wachsen alle drei mit. Die Erzliste bekommt den groessten Anteil, weil sie
+   die einzige Spalte ist, die aus Breite mehr ZEILEN macht (mehr Kacheln je
+   Reihe). Minimum 447 = 4x104 Kachel + 3x5 Luecke + 16 Polsterung. */
+.wb__grid{display:grid;
+  grid-template-columns:minmax(447px,1fr) minmax(300px,1.2fr) minmax(280px,.7fr);
+  gap:10px;min-height:0;flex:1}
 .wb__scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
 
 /* ---------------- Spalte 1: Kachelraster, alle 37 ---------------- */
@@ -528,7 +735,12 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__filters .tool-help[open] .tool-help__body{position:absolute;top:calc(100% - 4px);left:0;right:0;
   z-index:14;background:var(--surface);border-radius:12px;line-height:1.45;
   box-shadow:0 10px 30px color-mix(in srgb,var(--ink) 60%,transparent);
-  max-height:min(38vh,244px);overflow-y:auto;padding:10px 12px 12px}
+  /* ⚠ 15.08.2026 von 244 auf 168 px: mit dem Gehaeuse ist die Bildflaeche
+     kuerzer, und der beim Erstbesuch selbsttaetig aufklappende Kasten deckte
+     das Kachelraster VOLLSTAENDIG zu — der erste Eindruck der Seite war eine
+     Anleitung ohne Minerale. Bei 168 px bleiben zwei Kachelzeilen sichtbar,
+     der Kasten scrollt dafuer intern. */
+  max-height:min(22vh,140px);overflow-y:auto;padding:10px 12px 12px}
 .wb__frow{display:flex;align-items:center;gap:8px}
 .wb__search{flex:1;min-width:0;background:color-mix(in srgb,var(--ink) 34%,transparent);border:0;
   color:var(--text);padding:7px 10px;font-size:var(--fs-6);border-radius:7px;font-family:inherit}
@@ -574,7 +786,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   background:linear-gradient(-135deg,var(--accent) 0 50%,transparent 50% 100%)}
 .wb__tn{grid-column:1/-1;font-size:var(--fs-5);font-weight:500;color:var(--text);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wb__ts{align-self:center;font-size:var(--fs-3);color:var(--accent)}
+.wb__ts{align-self:center;font-size:var(--fs-3);color:var(--hot)}
 /* ⚠ Zwei Fehlschlaege stecken in diesem Knopf, beide vom Nutzer gemeldet:
    erst war er unsichtbar (opacity:0 + :hover — auf Touch existiert er dann
    gar nicht), dann mit 28 px Tippziel „zu schwer". Er ist jetzt ein eigenes
@@ -608,7 +820,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   background:color-mix(in srgb,var(--ink) 30%,transparent);color:var(--muted)}
 .wb__tag.is-rar{background:color-mix(in srgb,var(--accent-2) 18%,transparent);color:var(--accent-2)}
 .wb__sigbox{margin-left:auto;text-align:right}
-.wb__sigbox b{display:block;font-size:var(--fs-11);color:var(--accent);font-weight:600;line-height:1.1;margin-top:1px}
+.wb__sigbox b{display:block;font-size:var(--fs-11);color:var(--hot);font-weight:600;line-height:1.1;margin-top:1px}
 /* Grosser Anheft-Knopf am gewaehlten Erz — der bequeme Weg in die
    Signaturenliste. Deckender Grund ueber Variablen (Hellmodus, s. o.). */
 .wb__pinbig{display:inline-flex;align-items:center;gap:7px;align-self:center;white-space:nowrap;
@@ -672,7 +884,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__bar{width:46px;height:5px;border-radius:3px;overflow:hidden;
   background:color-mix(in srgb,var(--ink) 55%,transparent);
   box-shadow:inset 0 1px 2px color-mix(in srgb,var(--ink) 70%,transparent)}
-.wb__bar i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--accent) 0 3px,transparent 3px 5px)}
+.wb__bar i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--hot) 0 3px,transparent 3px 5px)}
 .wb__bar.amber i{background:repeating-linear-gradient(90deg,var(--accent-2) 0 3px,transparent 3px 5px)}
 /* 44 px reichten fuer „28–78 %" nicht: die Spanne brach ueber drei Zeilen um
    (und stand vor der Rundung ohnehin als 28.29999923 da). */
@@ -729,6 +941,11 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__link b{color:var(--accent-2);font-family:var(--font-mono,ui-monospace)}
 
 /* ---------------- Spalte 3 ---------------- */
+/* ⚠ Reiterleiste und Scanwert-Feld sind in Phase 10 (D-04) ausgebaut worden —
+   beide Listen stehen jetzt gestapelt in der rechten Spalte. Beim Merge des
+   Gehaeuse-Zweiges am 15.08.2026 stand hier deren alte Fassung samt violettem
+   Scanwert-Feld; sie ist bewusst NICHT wiedergekommen. Violett traegt jetzt
+   die Kachelsignaturen, den grossen Signaturwert und die Anteilsbalken. */
 /* Preset-Zeile. Zwei Zustaende teilen sich denselben Platz (Auswahl bzw.
    Namenseingabe) — beide sind eine Zeile hoch, damit die Spalte nicht
    springt, wenn man auf „+" drueckt. Kopfpolsterung wie die Filterleiste in
@@ -805,17 +1022,39 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    Ueberfahren-Farbton — der Ruhezustand bleibt wie jeder andere
    Symbolknopf (.wb__pre-a), nur der Hover-Ton weicht ab. */
 .wb__pre-a--del:hover{color:var(--accent-2)}
-/* Die Rueckfrage ersetzt die ganze Aktionszeile ueber die volle Breite
-   (statt in der 22-px-Ecke zu sitzen) und traegt als einzige Aktion im
-   Bauteil Worte statt eines Zeichens. Die Warnschraffur ist dieselbe
-   Diagonalschraffur wie .danger-card .dz-hazard in
-   assets/account-dossier.css Zeile 380 — kein Hex-Wert, kein neuer Token
-   (⚠ var(--hot) ist auf dieser Seite KEINE Gefahrenfarbe, siehe
-   src/components/topics/mining.astro Zeile 26: dort gleich --accent). */
+/* Beide Rueckfragen (Loeschen UND Ueberschreiben, seit 15.08.2026) ersetzen
+   die ganze Aktionszeile ueber die volle Breite (statt in der 22-px-Ecke zu
+   sitzen) und tragen als einzige Aktionen im Bauteil Worte statt eines
+   Zeichens. Nur EINE steht je Zeile gleichzeitig (preAsk/preAskWhat in
+   assets/mining-workbench.js) -- welche, entscheidet der Modifikator
+   darunter, nicht diese Basisregel. */
 .wb__pre-ask{width:100%;display:block;border:0;border-radius:7px;cursor:pointer;
-  font-family:inherit;font-size:var(--fs-4);font-weight:600;padding:5px 8px;color:var(--ink);
-  background:repeating-linear-gradient(-45deg,var(--accent-2) 0 9px,
+  font-family:inherit;font-size:var(--fs-4);font-weight:600;padding:4px;color:var(--ink)}
+/* ⚠ Die Worte stehen NICHT auf der Schraffur, sondern auf einer ruhigen
+   Flaeche darin -- die Schraffur bleibt der Rahmen. Gemessen am Bildpunkt
+   (nicht aus dem CSS geschaetzt): Schrift direkt auf den hellen Streifen-
+   haelften ergab 2,6:1 (hell) bzw. 3,4:1 (dunkel) und riss damit AA (4,5:1
+   bei 12,6 px). Auf --surface/--text gilt der site-weit gepruefte
+   Koerpertext-Kontrast. Der Warnwert der Schraffur bleibt erhalten, weil sie
+   die Flaeche vollstaendig umschliesst. */
+.wb__pre-ask>span{display:block;background:var(--surface);color:var(--text);
+  border-radius:4px;padding:3px 6px}
+/* Loeschen verwirft ENDGUELTIG und ohne jede Korrektur -- Warnschraffur wie
+   .danger-card .dz-hazard in assets/account-dossier.css Zeile 380, in
+   --accent-2 (Amber/Gold): kein Hex-Wert, kein neuer Token (⚠ var(--hot)
+   ist auf dieser Seite KEINE Gefahrenfarbe, siehe src/components/topics/
+   mining.astro Zeile 26: dort gleich --accent). */
+.wb__pre-ask--del{background:repeating-linear-gradient(-45deg,var(--accent-2) 0 9px,
     color-mix(in srgb,var(--accent-2) 55%,var(--ink)) 9px 18px)}
+/* Ueberschreiben verwirft den gespeicherten Inhalt ebenso unwiederbringlich
+   und bekommt deshalb dieselbe Warn-Bildsprache (Diagonalschraffur, Worte
+   statt Zeichen) -- MUSS sich aber auf einen Blick von "Loeschen"
+   unterscheiden lassen, sonst wiederholt sich genau der teuerste Befund
+   dieser Phase (CONTEXT.md) nur an neuer Stelle. Deshalb --accent (Teal)
+   statt --accent-2 (Amber/Gold): derselbe Kontrast zu --ink, ein anderer
+   Farbton, wieder kein neuer Hex-Wert. */
+.wb__pre-ask--upd{background:repeating-linear-gradient(-45deg,var(--accent) 0 9px,
+    color-mix(in srgb,var(--accent) 55%,var(--ink)) 9px 18px)}
 /* Aufklapp-Ansicht einer Preset-Zeile (D-02 Form 3): bleibt INNERHALB der
    Panelgrenzen -- .wb__pane traegt overflow:hidden und schneidet jede
    Overlay-Positionierung restlos weg (Pitfall 1, bereits einmal vorgefuehrt
@@ -907,8 +1146,15 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 
 .wb__seg{display:none}
 @media(max-width:1180px){
-  .wb__grid{grid-template-columns:1fr;height:auto}
+  .wb__grid{grid-template-columns:1fr;height:auto;flex:none}
   .wb__pane{height:min(62vh,560px)}
+  /* ⚠ Fruehere Fassung schaltete das Gehaeuse hier AUS — bei festem
+     Seitenverhaeltnis schrumpfte seine Bildflaeche auf schmalen Fenstern auf
+     eine unbrauchbare Hoehe. Mit dem 9-Slice entfaellt der Grund: die
+     Rahmenstaerke haengt nicht mehr an der Breite, und der Rahmen traegt auch
+     bei 390 px. Er BLEIBT also an; hier wird nur der Inhalt einspaltig.
+     Die frueheren Ruecksetzungen fuer Kopfband und Titel sind mit ihnen
+     entfallen — beide Elemente gibt es nicht mehr. */
 }
 @media(max-width:760px){
   .wb__seg{display:flex;gap:5px;flex-wrap:wrap;padding-bottom:2px}

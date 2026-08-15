@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Skizze 009 — SVG-Chassis</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+* { box-sizing:border-box; }
+body { margin:0; background:#07090a; color:var(--text); font-family:var(--font-ui); padding-top:44px; }
+#variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; background:#11181b;
+  border-bottom:1px solid var(--line); padding:7px 14px; display:flex; gap:8px; align-items:center; }
+#variant-nav .ttl { font-size:12px; color:var(--muted); margin-right:8px; letter-spacing:.04em;
+  text-transform:uppercase; }
+.variant-tab { font:inherit; font-size:12px; padding:5px 12px; border:0; cursor:pointer;
+  border-radius:7px; background:#1e2629; color:var(--muted); transition:all .15s; }
+.variant-tab.active { background:var(--accent-2); color:var(--ink); font-weight:600; }
+.variant { display:none; } .variant.active { display:block; }
+
+.stage { margin:16px auto; width:1280px; max-width:calc(100vw - 32px); }
+.stage__cap { display:flex; gap:12px; align-items:baseline; padding:0 2px 8px; font-size:12px;
+  color:var(--muted); }
+.stage__cap b { color:var(--text); font-size:13px; }
+/* Die Bühne ist exakt so groß wie das Chassis-Koordinatensystem: 1280x720.
+   Dadurch ist 1 SVG-Einheit = 1 CSS-Pixel und die Schrägen bleiben unverzerrt. */
+.rigwrap { position:relative; width:1280px; height:720px; }
+.chassis { position:absolute; inset:0; width:1280px; height:720px; display:block; }
+
+/* Die Bildfläche liegt in der Aussparung des Chassis — Koordinaten aus dem SVG. */
+.screen { position:absolute; left:96px; top:132px; width:1088px; height:490px;
+  padding:11px; overflow:hidden; z-index:3;
+  background:
+    repeating-linear-gradient(0deg, rgba(120,180,200,.045) 0 1px, transparent 1px 56px),
+    repeating-linear-gradient(90deg, rgba(120,180,200,.045) 0 1px, transparent 1px 56px),
+    radial-gradient(120% 100% at 50% 0%, #172023 0%, #0b0f11 70%); }
+.title { position:absolute; left:0; right:0; top:26px; z-index:6; text-align:center;
+  pointer-events:none; }
+.title h1 { margin:0; font-size:34px; font-weight:600; letter-spacing:-.015em; line-height:1;
+  color:#eef6f7; text-shadow:0 2px 10px rgba(0,0,0,.85); }
+.title .ver { display:block; margin-bottom:5px; font:600 10px var(--font-mono); letter-spacing:.3em;
+  text-transform:uppercase; color:var(--accent-2); }
+.back { position:absolute; left:18px; top:16px; z-index:7; font:600 11px var(--font-ui);
+  letter-spacing:.1em; text-transform:uppercase; color:#b9c9c7; text-decoration:none;
+  padding:7px 13px; background:rgba(10,14,15,.72); border-radius:7px;
+  box-shadow: inset 0 0 0 1px rgba(232,241,240,.18); }
+.sub { position:absolute; left:0; right:0; top:100px; z-index:6; text-align:center;
+  font-size:var(--fs-5); color:#8fa2a4; pointer-events:none; }
+
+/* ---------------- Füllung (nicht Gegenstand dieser Skizze) ---------------- */
+.wb__grid { display:grid; grid-template-columns:minmax(0,424px) minmax(0,1fr) minmax(0,246px);
+  gap:9px; height:var(--wbh,380px); }
+.wb__pane, .wb__rig { background:rgba(20,26,29,.9); border-radius:9px; display:flex;
+  flex-direction:column; min-height:0; min-width:0; overflow:hidden; position:relative;
+  box-shadow: inset 0 1px 0 rgba(232,241,240,.07), 0 3px 14px rgba(0,0,0,.45); }
+.wb__scroll { flex:1; overflow-y:auto; overflow-x:hidden; min-height:0; scrollbar-width:none; }
+.wb__scroll::-webkit-scrollbar { display:none; }
+.wb__filters { padding:8px 9px; display:flex; flex-direction:column; gap:6px; flex:0 0 auto; }
+.wb__help { font-size:var(--fs-5); color:var(--muted); padding:6px 9px; border-radius:8px;
+  background:rgba(8,11,12,.5); }
+.wb__frow { display:flex; align-items:center; gap:8px; }
+.wb__search { flex:1; min-width:0; background:rgba(8,11,12,.55); border:0; color:var(--text);
+  padding:7px 10px; font-size:var(--fs-6); border-radius:7px; font-family:inherit; }
+.wb__c { font-size:var(--fs-4); color:var(--muted); font-family:var(--font-mono); }
+.wb__chips { display:flex; gap:5px; flex-wrap:wrap; }
+.wb__chip { font-size:var(--fs-4); padding:4px 9px; border:0; background:rgba(8,11,12,.5);
+  color:var(--muted); border-radius:999px; cursor:pointer; font-family:inherit; }
+.wb__chip.is-on { background:var(--accent-2); color:var(--ink); font-weight:600; }
+.wb__tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:5px;
+  padding:0 8px 8px; }
+.wb__tile { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:1px 6px; align-content:center;
+  padding:5px 6px 5px 9px; border-radius:8px; cursor:pointer; background:rgba(8,11,12,.5);
+  box-shadow: inset 0 1px 0 rgba(232,241,240,.05); transition:background .15s; }
+.wb__tile:hover { background:#283033; }
+.wb__tile.is-sel { background:color-mix(in srgb, var(--accent-2) 20%, transparent);
+  box-shadow: inset 0 0 0 1px var(--accent-2); }
+.wb__tn { grid-column:1/-1; font-size:var(--fs-5); font-weight:500; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; }
+.wb__ts { align-self:center; font-size:var(--fs-3); color:var(--vio); font-family:var(--font-mono); }
+.wb__pin { grid-column:2; align-self:center; width:26px; height:26px; display:grid;
+  place-items:center; border:0; background:rgba(8,11,12,.6); color:var(--muted); cursor:pointer;
+  border-radius:7px; line-height:0; }
+.wb__pin svg { width:14px; height:14px; pointer-events:none; }
+.wb__pin.is-on { background:var(--accent-2); color:var(--ink); }
+.wb__id { padding:10px 13px 8px; flex:0 0 auto; }
+.wb__idrow { display:flex; align-items:flex-start; gap:10px; }
+.wb__id h2 { font-size:var(--fs-13); font-weight:600; line-height:1.05; margin:0; }
+.wb__tags { display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; }
+.wb__tag { font-size:var(--fs-3); padding:2px 7px; border-radius:999px; background:rgba(8,11,12,.55);
+  color:var(--muted); }
+.wb__tag.is-rar { background:color-mix(in srgb,var(--accent-2) 18%,transparent); color:var(--accent-2); }
+.wb__tag.is-vol { background:var(--vio-dim); color:var(--vio); }
+.wb__sigbox { margin-left:auto; text-align:right; }
+.wb__lbl { font-size:var(--fs-4); color:var(--muted); }
+.wb__sigbox b { display:block; font-size:var(--fs-11); color:var(--vio); font-weight:600;
+  font-family:var(--font-mono); line-height:1.1; }
+.wb__pinbig { display:inline-flex; align-items:center; gap:7px; align-self:center; padding:8px 12px;
+  border:0; border-radius:9px; cursor:pointer; font-family:inherit; font-size:var(--fs-5);
+  font-weight:600; color:var(--text); background:#252d30; white-space:nowrap;
+  box-shadow: inset 0 0 0 1px rgba(232,241,240,.12); }
+.wb__pinbig svg { width:16px; height:16px; }
+.wb__sec { padding:0 13px 10px; }
+.wb__sec h4 { font-size:var(--fs-4); font-weight:600; color:var(--muted); margin:0 0 7px;
+  padding-bottom:5px; position:relative; }
+.wb__sec h4::after { content:''; position:absolute; left:0; right:0; bottom:0; height:3px;
+  background:repeating-linear-gradient(90deg, rgba(232,241,240,.14) 0 1px, transparent 1px 7px); }
+.wb__locs { display:flex; flex-direction:column; gap:3px; }
+.wb__row2 { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px;
+  padding:5px 9px; border-radius:7px; background:rgba(8,11,12,.45); }
+.wb__row2 .p { font-size:var(--fs-5); font-weight:500; display:block; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; }
+.wb__row2 .s { font-size:var(--fs-3); color:var(--muted); display:block; margin-top:1px; }
+.wb__row2 .r { display:flex; align-items:center; gap:8px; }
+.wb__lpin { width:22px; height:22px; display:grid; place-items:center; border:0;
+  background:rgba(8,11,12,.6); color:var(--muted); cursor:pointer; border-radius:6px; line-height:0; }
+.wb__lpin svg { width:12px; height:12px; }
+.wb__lpin.is-on { background:var(--accent-2); color:var(--ink); }
+.wb__bar { width:44px; height:5px; border-radius:3px; overflow:hidden; background:rgba(8,11,12,.7); }
+.wb__bar i { display:block; height:100%;
+  background:repeating-linear-gradient(90deg, var(--vio) 0 3px, transparent 3px 5px); }
+.wb__row2 em { font-size:var(--fs-4); color:var(--muted); font-style:normal; width:52px;
+  text-align:right; font-family:var(--font-mono); }
+.wb__links { display:flex; gap:6px; flex-wrap:wrap; }
+.wb__link { display:inline-flex; gap:6px; padding:6px 10px; border-radius:7px;
+  background:rgba(8,11,12,.5); color:var(--text); font-size:var(--fs-5); text-decoration:none; }
+.wb__link b { color:var(--accent-2); font-family:var(--font-mono); }
+#tabbar { display:flex; gap:5px; padding:8px 9px; flex:0 0 auto; }
+.wb__tab { flex:1; font-size:var(--fs-4); padding:5px 8px; border:0; border-radius:7px;
+  background:rgba(8,11,12,.5); color:var(--muted); cursor:pointer; font-family:inherit; }
+.wb__tab.is-on { background:var(--accent-2); color:var(--ink); font-weight:600; }
+.wb__scanbox { padding:8px 9px; }
+.wb__scan { width:100%; background:rgba(8,11,12,.6); border:0; color:var(--vio); padding:8px 10px;
+  font-size:var(--fs-9); text-align:center; border-radius:7px; font-family:var(--font-mono); }
+.wb__scan::placeholder { color:var(--muted); font-family:var(--font-ui); font-size:var(--fs-5); }
+.trk { margin:8px 9px; padding:10px; border-radius:10px; background:rgba(8,11,12,.5); }
+.trk__hd { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+.trk__hd b { font-size:var(--fs-6); }
+.trk svg { display:block; width:100%; height:66px; }
+.wb__empty { padding:14px 12px; text-align:center; color:var(--muted); font-size:var(--fs-4);
+  line-height:1.5; margin:0; }
+.wb__rig { flex-direction:row; align-items:center; gap:16px; padding:8px 13px; margin-top:9px;
+  flex:0 0 auto; }
+.wb__rgrp { display:flex; flex-direction:column; gap:3px; }
+.wb__sel { background:#222a2d; border:0; color:var(--text); font-size:var(--fs-5); padding:6px 9px;
+  border-radius:7px; font-family:inherit; }
+.wb__frac { margin-left:auto; display:flex; align-items:center; gap:11px; padding:8px 12px;
+  border-radius:9px; text-decoration:none; background:rgba(8,11,12,.5);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--accent) 30%,transparent); }
+.wb__frac__t { display:flex; flex-direction:column; line-height:1.25; }
+.wb__frac__t b { font-size:var(--fs-5); color:var(--text); }
+.wb__frac__go { font-size:var(--fs-4); font-weight:600; color:var(--accent); }
+
+.gauge { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:10px auto 40px;
+  width:1280px; max-width:calc(100vw - 32px); }
+.gauge div { background:#1a2124; border-radius:10px; padding:10px 12px; }
+.gauge span { display:block; font-size:11px; color:var(--muted); letter-spacing:.05em;
+  text-transform:uppercase; }
+.gauge b { font:600 21px var(--font-mono); color:var(--accent); }
+#sketch-tools { position:fixed; bottom:12px; right:12px; z-index:9999; font-family:system-ui;
+  font-size:12px; background:rgba(0,0,0,.8); color:#fff; padding:8px 12px; border-radius:8px;
+  opacity:.45; transition:opacity .2s; display:flex; gap:8px; }
+#sketch-tools button { font:inherit; font-size:11px; border:0; border-radius:5px; padding:3px 7px;
+  background:#333; color:#fff; cursor:pointer; }
+body.no-grain .grainlayer { display:none; }
+body.no-bevel .beveled { filter:none !important; }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="ttl">009 · SVG-Chassis</span>
+  <button class="variant-tab active" data-v="a">A: Stahl (kalt)</button>
+  <button class="variant-tab" data-v="b">B: Graphit (warm)</button>
+</div>
+
+<div id="variant-a" class="variant active">
+  <div class="stage">
+    <div class="stage__cap"><b>A — Stahl, kalt</b>
+      <span>Gefrästes Chassis aus echter Pfadgeometrie. Licht aus 235°, Korn im Material.</span></div>
+    <div class="rigwrap" data-rig data-pal="steel"></div>
+  </div>
+  <div class="gauge" data-gauge></div>
+</div>
+
+<div id="variant-b" class="variant">
+  <div class="stage">
+    <div class="stage__cap"><b>B — Graphit, warm</b>
+      <span>Dieselbe Geometrie, dunkleres und wärmeres Metall — näher an der jetzigen Seite.</span></div>
+    <div class="rigwrap" data-rig data-pal="graphite"></div>
+  </div>
+  <div class="gauge" data-gauge></div>
+</div>
+
+<div id="sketch-tools" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.45'">
+  <button onclick="document.body.classList.toggle('no-bevel')">Fräsung aus/an</button>
+  <button onclick="document.body.classList.toggle('no-grain')">Korn aus/an</button>
+  <button onclick="document.body.classList.toggle('no-vio')">Violett aus/an</button>
+</div>
+<style> body.no-vio { --vio:#2FBFA4; --vio-2:#2FBFA4; --vio-dim:rgba(47,191,164,.2); } </style>
+
+<script>
+const MIN = [
+  ['Quantainium','legendary',3170],['Savrilium','legendary',3200],['Stileron','legendary',3185],
+  ['Lindinium','epic',3400],['Ouratite','epic',3370],['Riccite','epic',3385],
+  ['Beryl','rare',3540],['Bexalite','rare',3600],['Borase','rare',3570],['Gold','rare',3585],
+  ['Taranite','rare',3555],['Agricium','uncommon',3885],['Aslarite','uncommon',3840],
+  ['Laranite','uncommon',3825],['Titanium','uncommon',3855],['Torite','uncommon',3900],
+  ['Tungsten','uncommon',3870],['Aluminum','common',4285],['Copper','common',4240],
+  ['Corundum','common',4225],['Hephaestanite','common',4180],['Ice','common',4300],
+  ['Iron','common',4270],['Quartz','common',4210],['Silicon','common',4255],['Tin','common',4195],
+  ['Aphorite',null,3000],['Beradom',null,4000],['Carinite',null,4000],['Dolivine',null,3000],
+  ['Feynmaline',null,4000],['Glacosite',null,4000],['Hadanite',null,3000],['Jaclium',null,3000],
+  ['Janalite',null,3000],['Sadaryx',null,3000],['Saldynium',null,3000]];
+const LOCS = [['Aaron Halo','Stanton · Gürtel'],['Asteroid Cluster (Low Yield)','Stanton · Cluster'],
+  ['Asteroid Cluster (Medium Yield)','Stanton · Cluster'],['Hurston','Stanton · Planet'],
+  ['microTech','Stanton · Planet'],['Aberdeen','Stanton · Mond'],['Arial','Stanton · Mond']];
+const RAR = {legendary:'legendär',epic:'episch',rare:'selten',uncommon:'ungewöhnlich',common:'häufig'};
+const pinSvg = '<svg><use href="#i-pin"/></svg>';
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DAS CHASSIS.
+
+   Nicht mehr aus gestapelten CSS-Verläufen — die können eine Kante andeuten,
+   aber kein gefrästes Bauteil. Hier ist jede Blende ein echter SVG-Pfad, und
+   die Schräge entsteht aus `feSpecularLighting`: der Filter liest die
+   weichgezeichnete Alphakante der Form und beleuchtet sie aus EINER Richtung
+   (Azimut 235°, Elevation 56°). Dadurch bekommt jede Form — auch die schrägen
+   Schulterplatten und die Fußblöcke — von selbst eine stimmige Lichtkante,
+   statt dass ich sie einzeln von Hand malen müsste.
+
+   Zwei Filter tragen den Eindruck:
+     · #mill  — Fräsung/Schräge (feGaussianBlur -> feSpecularLighting)
+     · #grain — Materialkorn (feTurbulence, entsättigt, sehr schwach überlagert)
+
+   Koordinatensystem = Bildschirmpixel (viewBox 0 0 1280 720), damit die
+   Schrägen nicht verzerren. Für den echten Bau ist das die offene Frage:
+   entweder das Chassis in neun Kacheln zerlegen (border-image) oder die
+   Seitenteile mit fester Breite und nur die Strecken dazwischen dehnen.
+   ══════════════════════════════════════════════════════════════════════════ */
+const PAL = {
+  steel:    { base:'#3f4c52', hi:'#6c7d84', lo:'#1a2226', deep:'#0d1214', light:'#dbe9f0' },
+  graphite: { base:'#3a3a37', hi:'#63635c', lo:'#1d1d1b', deep:'#0f0f0e', light:'#efe6d8' },
+};
+
+function chassis(palKey, uid) {
+  const p = PAL[palKey];
+  /* Außenkontur mit geschnittenen Ecken; die Aussparung für die Bildfläche
+     ist als zweiter, gegenläufiger Pfad ausgestanzt (fill-rule evenodd). */
+  const OUTER = 'M40,0 H1240 L1280,40 V680 L1240,720 H40 L0,680 V40 Z';
+  const APERT = 'M96,132 H1184 L1200,148 V606 L1184,622 H96 L80,606 V148 Z';
+
+  return `
+<svg class="chassis" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg"
+     preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+  <defs>
+    <!-- Fräsung: Alphakante weichzeichnen, daraus ein Glanzlicht aus fester
+         Richtung rechnen und über die Form legen. Das ist die ganze 3D-Wirkung. -->
+    <filter id="mill${uid}" x="-12%" y="-12%" width="124%" height="124%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5.5" result="b"/>
+      <feSpecularLighting in="b" surfaceScale="6.5" specularConstant="1.05"
+                          specularExponent="19" lighting-color="${p.light}" result="s">
+        <feDistantLight azimuth="235" elevation="56"/>
+      </feSpecularLighting>
+      <feComposite in="s" in2="SourceAlpha" operator="in" result="sc"/>
+      <feComposite in="SourceGraphic" in2="sc" operator="arithmetic"
+                   k1="0" k2="1" k3="0.92" k4="0"/>
+    </filter>
+
+    <!-- Materialkorn: entsättigtes Rauschen, sehr schwach. Ohne das bleibt
+         jede Fläche ein Farbverlauf und liest sich als Plastik. -->
+    <filter id="grain${uid}" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="4" seed="7" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+      <feComponentTransfer in="ng" result="nc">
+        <feFuncA type="linear" slope="0.5" intercept="0"/>
+      </feComponentTransfer>
+    </filter>
+
+    <!-- Verschattung zur Bildfläche hin: der dunkle Saum, der aus der
+         Aussparung ein Loch macht statt eines aufgemalten Rechtecks. -->
+    <filter id="ao${uid}" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+
+    <linearGradient id="plate${uid}" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0%"  stop-color="${p.hi}"/>
+      <stop offset="34%" stop-color="${p.base}"/>
+      <stop offset="100%" stop-color="${p.lo}"/>
+    </linearGradient>
+    <linearGradient id="rail${uid}" x1="0" y1="0" x2="1" y2="0.15">
+      <stop offset="0%"  stop-color="${p.hi}"/>
+      <stop offset="52%" stop-color="${p.base}"/>
+      <stop offset="100%" stop-color="${p.lo}"/>
+    </linearGradient>
+    <linearGradient id="dark${uid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${p.deep}"/>
+      <stop offset="100%" stop-color="${p.lo}"/>
+    </linearGradient>
+    <linearGradient id="lamp${uid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#35d6ff" stop-opacity="0.15"/>
+      <stop offset="22%"  stop-color="#7ceaff"/>
+      <stop offset="78%"  stop-color="#7ceaff"/>
+      <stop offset="100%" stop-color="#35d6ff" stop-opacity="0.15"/>
+    </linearGradient>
+    <filter id="glow${uid}" x="-320%" y="-60%" width="740%" height="220%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+
+  <!-- ─────────── Grundplatte mit ausgestanzter Bildfläche ─────────── -->
+  <g class="beveled" filter="url(#mill${uid})">
+    <path d="${OUTER} ${APERT}" fill-rule="evenodd" fill="url(#plate${uid})"/>
+  </g>
+
+  <!-- ─────────── Kopfband: zwei Schulterplatten + Kartuschenträger ─────────── -->
+  <g class="beveled" filter="url(#mill${uid})">
+    <!-- linke Schulter, fällt zur Mitte hin ab -->
+    <path d="M18,16 H452 L410,86 H18 Z" fill="url(#plate${uid})"/>
+    <!-- rechte Schulter, spiegelbildlich -->
+    <path d="M828,16 H1262 V86 H870 Z" fill="url(#plate${uid})"/>
+    <!-- Fußblöcke unten links und rechts -->
+    <path d="M18,640 H262 L286,704 H18 Z" fill="url(#plate${uid})"/>
+    <path d="M1018,640 H1262 V704 H994 Z" fill="url(#plate${uid})"/>
+  </g>
+
+  <!-- Riffelung auf den Schultern: echte Striche, keine Verlaufsstreifen -->
+  <g stroke="${p.deep}" stroke-width="1.4" opacity="0.5">
+    ${Array.from({length:46},(_,i)=>`<line x1="${46+i*8}" y1="30" x2="${42+i*8}" y2="72"/>`).join('')}
+    ${Array.from({length:46},(_,i)=>`<line x1="${896+i*8}" y1="30" x2="${892+i*8}" y2="72"/>`).join('')}
+  </g>
+  <g stroke="${p.hi}" stroke-width="1" opacity="0.42">
+    ${Array.from({length:46},(_,i)=>`<line x1="${47.6+i*8}" y1="30" x2="${43.6+i*8}" y2="72"/>`).join('')}
+    ${Array.from({length:46},(_,i)=>`<line x1="${897.6+i*8}" y1="30" x2="${893.6+i*8}" y2="72"/>`).join('')}
+  </g>
+
+  <!-- ─────────── Titel-Kartusche: versenkte dunkle Platte ─────────── -->
+  <path d="M436,0 H844 L884,120 H396 Z" fill="url(#dark${uid})"/>
+  <path d="M436,0 H844 L884,120 H396 Z" fill="none" stroke="${p.hi}" stroke-width="2" opacity=".55"/>
+  <!-- schmale Lichtfuge unter der Kartusche -->
+  <path d="M398,116 H882" stroke="#35d6ff" stroke-width="2" opacity=".45"/>
+
+  <!-- ─────────── Seitenholme: drei Segmente je Seite, mit Fugen ─────────── -->
+  <g class="beveled" filter="url(#mill${uid})">
+    <path d="M14,150 H74 V318 H14 Z" fill="url(#rail${uid})"/>
+    <path d="M14,326 H74 V478 H14 Z" fill="url(#rail${uid})"/>
+    <path d="M14,486 H74 V610 H14 Z" fill="url(#rail${uid})"/>
+    <path d="M1206,150 H1266 V318 H1206 Z" fill="url(#rail${uid})"/>
+    <path d="M1206,326 H1266 V478 H1206 Z" fill="url(#rail${uid})"/>
+    <path d="M1206,486 H1266 V610 H1206 Z" fill="url(#rail${uid})"/>
+  </g>
+
+  <!-- Nuten und Leuchtsegmente -->
+  <g>
+    <rect x="32" y="176" width="24" height="112" rx="5" fill="${p.deep}"/>
+    <rect x="32" y="352" width="24" height="100" rx="5" fill="${p.deep}"/>
+    <rect x="1224" y="176" width="24" height="112" rx="5" fill="${p.deep}"/>
+    <rect x="1224" y="352" width="24" height="100" rx="5" fill="${p.deep}"/>
+    <g filter="url(#glow${uid})" opacity=".9">
+      <rect x="38" y="182" width="12" height="100" rx="6" fill="#35d6ff"/>
+      <rect x="38" y="358" width="12" height="88" rx="6" fill="#35d6ff"/>
+      <rect x="1230" y="182" width="12" height="100" rx="6" fill="#35d6ff"/>
+      <rect x="1230" y="358" width="12" height="88" rx="6" fill="#35d6ff"/>
+    </g>
+    <rect x="38" y="182" width="12" height="100" rx="6" fill="url(#lamp${uid})"/>
+    <rect x="38" y="358" width="12" height="88" rx="6" fill="url(#lamp${uid})"/>
+    <rect x="1230" y="182" width="12" height="100" rx="6" fill="url(#lamp${uid})"/>
+    <rect x="1230" y="358" width="12" height="88" rx="6" fill="url(#lamp${uid})"/>
+  </g>
+
+  <!-- ─────────── Lüftungsgitter in den Fußblöcken ─────────── -->
+  <g>
+    ${Array.from({length:16},(_,i)=>
+      `<rect x="${40+i*13}" y="656" width="6" height="34" rx="2" fill="${p.deep}" opacity=".85"/>`).join('')}
+    ${Array.from({length:16},(_,i)=>
+      `<rect x="${1032+i*13}" y="656" width="6" height="34" rx="2" fill="${p.deep}" opacity=".85"/>`).join('')}
+  </g>
+
+  <!-- ─────────── Plattenfugen: die Linien, die aus einer Fläche ein Bauteil machen ─────────── -->
+  <g stroke="${p.deep}" stroke-width="1.6" fill="none" opacity=".75">
+    <path d="M18,96 H1262"/>
+    <path d="M320,96 V132"/><path d="M960,96 V132"/>
+    <path d="M18,630 H1262"/>
+    <path d="M300,630 V704"/><path d="M980,630 V704"/>
+    <path d="M88,140 V614"/><path d="M1192,140 V614"/>
+  </g>
+  <g stroke="${p.hi}" stroke-width="1" fill="none" opacity=".3">
+    <path d="M18,97.8 H1262"/><path d="M18,631.8 H1262"/>
+  </g>
+
+  <!-- ─────────── Schrauben ─────────── -->
+  <g>
+    ${[[34,34],[1246,34],[34,686],[1246,686],[44,132],[1236,132],[44,608],[1236,608]]
+      .map(([cx,cy])=>`
+      <circle cx="${cx}" cy="${cy}" r="8" fill="${p.lo}"/>
+      <circle cx="${cx}" cy="${cy}" r="8" fill="none" stroke="${p.hi}" stroke-width="1.4" opacity=".7"/>
+      <path d="M${cx-4.5},${cy-4.5} L${cx+4.5},${cy+4.5}" stroke="${p.deep}" stroke-width="2.2"/>`).join('')}
+  </g>
+
+  <!-- ─────────── Verschattung an der Aussparung ─────────── -->
+  <path d="${APERT}" fill="none" stroke="#000" stroke-width="16" opacity=".72"
+        filter="url(#ao${uid})"/>
+  <path d="${APERT}" fill="none" stroke="${p.deep}" stroke-width="2.4"/>
+
+  <!-- ─────────── Materialkorn über allem ─────────── -->
+  <g class="grainlayer" style="mix-blend-mode:overlay" opacity=".26">
+    <rect width="1280" height="720" filter="url(#grain${uid})"/>
+  </g>
+</svg>`;
+}
+
+function curve() {
+  const pts = [];
+  for (let x = 0; x <= 100; x++) pts.push(`${x*2.6},${8 + 52*(1 - Math.exp(-x/26))}`);
+  return `<div class="trk"><div class="trk__hd"><b>Stabilität</b>
+    <span class="wb__lbl">bis Bruch 01:28</span></div>
+    <svg viewBox="0 0 260 66" preserveAspectRatio="none">
+      <polyline fill="none" stroke="var(--vio)" stroke-width="1.8" points="${pts.join(' ')}"/>
+      <circle cx="260" cy="59" r="3" fill="var(--vio-2)"/></svg></div>`;
+}
+
+function content() { return `
+  <div class="wb__grid">
+    <div class="wb__pane">
+      <div class="wb__filters">
+        <div class="wb__help">▸ Wie funktioniert die Mining-Werkbank?</div>
+        <div class="wb__frow"><input class="wb__search" type="search" placeholder="Mineral suchen">
+          <span class="wb__c" data-count>37</span></div>
+        <div class="wb__chips"><button class="wb__chip">Pyro</button>
+          <button class="wb__chip">Stanton</button><button class="wb__chip">Nyx</button></div>
+      </div>
+      <div class="wb__scroll"><div class="wb__tiles">${MIN.map((m,i)=>`
+        <div class="wb__tile${i===0?' is-sel':''}" data-min="${m[0]}" role="button" tabindex="0">
+          <span class="wb__tn">${m[0]}</span><span class="wb__ts">${m[2]}</span>
+          <button class="wb__pin">${pinSvg}</button></div>`).join('')}</div></div>
+    </div>
+    <div class="wb__pane">
+      <div class="wb__id"><div class="wb__idrow">
+        <div><h2 data-name>Quantainium</h2><div class="wb__tags">
+          <span class="wb__tag is-rar">legendär</span><span class="wb__tag is-vol">hochflüchtig</span>
+          <span class="wb__tag">Schiff</span><span class="wb__tag">Erz</span></div></div>
+        <div class="wb__sigbox"><span class="wb__lbl">Signatur</span><b data-sig>3170</b></div>
+        <button class="wb__pinbig">${pinSvg}Anheften</button></div></div>
+      <div class="wb__scroll">
+        <div class="wb__sec"><h4>Fundorte: 17</h4><div class="wb__locs">${LOCS.map(l=>`
+          <div class="wb__row2"><span><span class="p">${l[0]}</span>
+            <span class="s">${l[1]} — Schiff, bis 78.3 %</span></span>
+            <span class="r"><button class="wb__lpin">${pinSvg}</button>
+            <span class="wb__bar"><i style="width:36%"></i></span><em>2 %</em></span></div>`).join('')}
+        </div></div>
+        <div class="wb__sec"><h4>Verwendung</h4><div class="wb__links">
+          <a class="wb__link" href="#">Blueprints <b>187</b></a>
+          <a class="wb__link" href="#">Prospector <b>32 SCU</b></a>
+          <a class="wb__link" href="#">MOLE <b>96 SCU</b></a></div></div>
+      </div>
+    </div>
+    <div class="wb__pane">
+      <div id="tabbar"><button class="wb__tab is-on">Signaturen</button>
+        <button class="wb__tab">Fundorte: 1</button></div>
+      <div class="wb__scanbox"><input class="wb__scan" placeholder="Scanwert"></div>
+      ${curve()}
+      <p class="wb__empty">Auf einer Erz-Kachel links den Anheft-Knopf drücken.</p>
+    </div>
+  </div>
+  <div class="wb__rig">
+    <div class="wb__rgrp"><span class="wb__lbl">Station</span>
+      <select class="wb__sel"><option>Port Olisar — Starlight</option></select></div>
+    <a class="wb__frac" href="#"><span class="wb__frac__t"><b>Fracturing-Rechner</b>
+      <span class="wb__lbl">Quantainium</span></span>
+      <span class="wb__frac__go">Bricht der Brocken? →</span></a>
+  </div>`;
+}
+
+document.querySelectorAll('[data-rig]').forEach((el, i) => {
+  el.innerHTML = chassis(el.dataset.pal, i) + `
+    <a class="back" href="#">← Archiv</a>
+    <div class="title"><span class="ver">Alpha 4.9.0 · Live-Daten</span><h1>Mining</h1></div>
+    <div class="sub">Erz wählen — Fundorte, Physik und Raffinerie-Ertrag stehen daneben.</div>
+    <div class="screen">${content()}</div>
+    <svg width="0" height="0" style="position:absolute">
+      <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.5 3h5M11 3v6.2L7.4 13h9.2L13 9.2V3M12 13v8"/></symbol></svg>`;
+});
+
+document.querySelectorAll('.variant').forEach(root => {
+  const sel = q => root.querySelector(q);
+  root.addEventListener('click', e => {
+    const pin = e.target.closest('.wb__pin,.wb__lpin,.wb__pinbig');
+    if (pin) { e.stopPropagation(); pin.classList.toggle('is-on'); return; }
+    const chip = e.target.closest('.wb__chip');
+    if (chip) { chip.classList.toggle('is-on'); return; }
+    const tab = e.target.closest('.wb__tab');
+    if (tab) { root.querySelectorAll('.wb__tab').forEach(t=>t.classList.remove('is-on'));
+               tab.classList.add('is-on'); return; }
+    const tile = e.target.closest('.wb__tile');
+    if (tile) {
+      root.querySelectorAll('.wb__tile').forEach(t=>t.classList.remove('is-sel'));
+      tile.classList.add('is-sel');
+      const rec = MIN.find(m => m[0] === tile.dataset.min);
+      sel('[data-name]').textContent = rec[0];
+      sel('[data-sig]').textContent = rec[2];
+      sel('.wb__tag.is-rar').textContent = RAR[rec[1]] || 'ohne Stufe';
+      sel('.wb__frac__t .wb__lbl').textContent = rec[0];
+    }
+  });
+  const q = sel('.wb__search');
+  q.addEventListener('input', () => {
+    const v = q.value.trim().toLowerCase(); let n = 0;
+    root.querySelectorAll('.wb__tile').forEach(t => {
+      const hit = t.dataset.min.toLowerCase().includes(v);
+      t.style.display = hit ? '' : 'none'; if (hit) n++; });
+    sel('[data-count]').textContent = n;
+  });
+});
+
+function fit(root) {
+  const grid = root.querySelector('.wb__grid');
+  const rigbar = root.querySelector('.wb__rig');
+  const screen = root.querySelector('.screen');
+  grid.style.setProperty('--wbh', 'auto');
+  const avail = screen.clientHeight - 22 - rigbar.offsetHeight - 9;
+  grid.style.setProperty('--wbh', avail + 'px');
+}
+function measure(root) {
+  const g = root.querySelector('[data-gauge]');
+  const wrapTop = root.querySelector('.rigwrap').getBoundingClientRect().top;
+  const tile = root.querySelector('.wb__tile');
+  const grid = root.querySelector('.wb__grid');
+  const rigbar = root.querySelector('.wb__rig');
+  const tileTop = tile.getBoundingClientRect().top - wrapTop;
+  const chrome = (grid.getBoundingClientRect().top - wrapTop) + rigbar.offsetHeight + 10;
+  let visible = 0;
+  root.querySelectorAll('.wb__tile').forEach(t => {
+    if (t.getBoundingClientRect().bottom - wrapTop <= 720) visible++; });
+  g.innerHTML = `
+    <div><span>Gehäuse-Aufschlag</span><b>${Math.round(chrome)} px</b></div>
+    <div><span>Erste Kachel bei</span><b>${Math.round(tileTop)} px</b></div>
+    <div><span>Kacheln über der Falz</span><b>${visible} / 37</b></div>
+    <div><span>Überlauf unter 720</span><b>0 px</b></div>`;
+}
+function showVariant(v) {
+  document.querySelectorAll('.variant').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.variant-tab').forEach(t => t.classList.remove('active'));
+  const root = document.getElementById('variant-' + v);
+  root.classList.add('active');
+  document.querySelector(`.variant-tab[data-v="${v}"]`).classList.add('active');
+  fit(root); measure(root);
+}
+document.querySelectorAll('.variant-tab').forEach(t =>
+  t.addEventListener('click', () => showVariant(t.dataset.v)));
+window.addEventListener('load', () => { ['a','b'].forEach(showVariant); showVariant('a'); });
+</script>
+</body>
+</html>
