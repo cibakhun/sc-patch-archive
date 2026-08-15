@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-15",
-  "updates": 251,
-  "totalListings": 6033,
-  "totalSold": 256,
+  "updates": 252,
+  "totalListings": 6038,
+  "totalSold": 257,
   "distinctItems": 1175
  },
  "listings": {
@@ -127742,9 +127742,9 @@
      "p": 13000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-15",
+   "soldOutPrice": 13000000,
    "dateAdded": 1786791977,
    "dateExpiration": 1791975976
   },
@@ -128818,6 +128818,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786812125,
    "dateExpiration": 1791996124
+  },
+  "162826": {
+   "idItem": 2172,
+   "idCategory": 17,
+   "title": "Theta Pro (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786813532,
+   "dateExpiration": 1791997531
+  },
+  "162827": {
+   "idItem": 2630,
+   "idCategory": 3,
+   "title": "Defiance Helmet Sunchaser",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786813612,
+   "dateExpiration": 1791997612
+  },
+  "162829": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Palatino Shadow Gild Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786814660,
+   "dateExpiration": 1791998660
+  },
+  "162830": {
+   "idItem": null,
+   "idCategory": 32,
+   "title": "Salvation Distortion Scattergun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786815377,
+   "dateExpiration": 1791999377
+  },
+  "162831": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "1SCU of Riccite 942",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 942,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786816350,
+   "dateExpiration": 1792000350
   }
  }
 }
