@@ -717,8 +717,10 @@ sowie die 48 Zustandszusicherungen im Abschnitt `## UI Considerations` von
 `12-UI-SPEC.md` (39 belegt, 9 als Nachweis offen). Gleicher Umgang wie in den
 Phasen 7, 9 und 10.
 **Depends on:** Phase 10 (Fundort-Merkliste und Presets der Werkbank)
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 12 to break down)
+- [ ] 12-01-PLAN.md — Tracer: Klick auf eine Fundort-Zeile öffnet die Fundort-Ansicht (Kopf, nach Methode gruppierte und nach Chance sortierte Erzliste, gedämpfte Spurenzeilen), Zurück-Pfeil führt aufs Erz
+- [ ] 12-02-PLAN.md — Das Netz schließt sich: Erzzeile führt zum Erz (D-02), Merklistenzeile trägt denselben Klick (D-03), Kachelspalte markiert die Erze des Ortes (D-09)
+- [ ] 12-03-PLAN.md — Adresse `?fundort=` (D-04), Hilfetexte in beiden Sprachen nachgezogen, die 9 offenen Zustandszusicherungen gemessen und als Sichtrunde übergeben
