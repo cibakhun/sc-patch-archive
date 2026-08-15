@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-15",
-  "updates": 249,
-  "totalListings": 6025,
+  "updates": 250,
+  "totalListings": 6029,
   "totalSold": 256,
   "distinctItems": 1175
  },
@@ -120922,6 +120922,10 @@
     {
      "d": "2026-08-14",
      "p": 9900000
+    },
+    {
+     "d": "2026-08-15",
+     "p": 8800000
     }
    ],
    "soldOut": false,
@@ -127581,6 +127585,10 @@
     {
      "d": "2026-08-15",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-15",
+     "p": 1500000
     }
    ],
    "soldOut": false,
@@ -128638,6 +128646,90 @@
    "soldOutPrice": null,
    "dateAdded": 1786804898,
    "dateExpiration": 1791988898
+  },
+  "162808": {
+   "idItem": 4384,
+   "idCategory": 18,
+   "title": "Parallax Energy Assault Rifle average 870q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 870,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786806879,
+   "dateExpiration": 1791990879
+  },
+  "162809": {
+   "idItem": 4433,
+   "idCategory": 18,
+   "title": "Parallax \"Shock Trooper\" Energy Assault Rifle 885q average",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 885,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786807223,
+   "dateExpiration": 1791991223
+  },
+  "162810": {
+   "idItem": 4478,
+   "idCategory": 18,
+   "title": "Parallax \"Sanguine\" Energy Assault Rifle 907 average",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 907,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786807420,
+   "dateExpiration": 1791991420
+  },
+  "162812": {
+   "idItem": 4433,
+   "idCategory": 18,
+   "title": "Parallax \"Shock Trooper\" Energy Assault Rifle average 943q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 943,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786807662,
+   "dateExpiration": 1791991662
   }
  }
 }
