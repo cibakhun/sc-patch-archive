@@ -44,6 +44,8 @@ const { lang, title, eyebrow, lead } = Astro.props;
    ein Paar, und zwei verschiedene Rahmen waeren ein Bruch. Ueber versioned(),
    damit der sha1 am Inhalt haengt statt an einer hochgezaehlten `?v=`-Zahl. */
 const chassisFrame = versioned('assets/chassis-frame.webp', '/assets/chassis-frame.webp');
+const chassisPlug = versioned('assets/chassis-plug.webp', '/assets/chassis-plug.webp');
+const chassisLamp = versioned('assets/chassis-lamp.webp', '/assets/chassis-lamp.webp');
 
 const de = lang === 'de';
 const h = useHelp(lang);
@@ -154,12 +156,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 ---
 
 <section class="fc" id="calc" data-fc
-         style={`--fc-frame:url('${chassisFrame}')`}>
+         style={`--fc-frame:url('${chassisFrame}');--fc-plug:url('${chassisPlug}');--fc-lamp:url('${chassisLamp}')`}>
   {/* Gehaeuse: EIN Bild mit festem Seitenverhaeltnis, Bildflaeche als
       Prozentkasten. Begruendung, Messwerte und der verworfene 9-Slice-Weg
       stehen in .planning/sketches/010-chassis-asset/README.md. */}
   <div class="fc__chassis">
     <h1 class="fc__ctitle" set:text={title} />
+    <span class="fc__lamp-l" aria-hidden="true"></span>
 
     <div class="fc__cscreen">
       <p class="fc__clead" set:text={lead} />
@@ -289,6 +292,33 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   border-image-width:calc(var(--rahmen)*.86) var(--rahmen) calc(var(--rahmen)*1.2) var(--rahmen);
   border-width:calc(var(--rahmen)*.86) var(--rahmen) calc(var(--rahmen)*1.2) var(--rahmen);
   height:clamp(430px,calc(100vh - var(--fc-chrome)),1180px)}
+/* ─── Zierstuecke, baugleich mit der Werkbank (dort steht die ausfuehrliche
+   Begruendung). ⚠⚠ `mask-image` ist die BEDINGUNG, nicht der Feinschliff: ohne
+   die weiche Laengskante liegen die Stuecke als rechteckige Flicken auf dem
+   Blech, weil ihr Verlauf an der Schnittkante nicht auf den des Balkens trifft.
+   ⚠ Diese Stuecke fehlten hier beim ersten Durchgang komplett — die Werkbank
+   hatte sie, der Rechner nicht, und die beiden Seiten sind ein Paar. Am
+   ausgelieferten Stand aufgefallen, nicht lokal. */
+.fc__chassis::before,.fc__chassis::after{content:'';position:absolute;
+  pointer-events:none;z-index:2}
+.fc__chassis::after{left:50%;transform:translateX(-50%);
+  bottom:calc(var(--rahmen)*-1.2);height:calc(var(--rahmen)*1.2);
+  width:calc(var(--rahmen)*1.2*640/166);
+  background:var(--fc-plug) center/100% 100% no-repeat;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
+.fc__chassis::before{right:calc(var(--rahmen)*-1);width:var(--rahmen);
+  top:50%;transform:translateY(-50%);height:calc(var(--rahmen)*190/106);
+  background:var(--fc-lamp) center/100% 100% no-repeat;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);
+  mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent)}
+.fc__lamp-l{position:absolute;pointer-events:none;z-index:2;
+  left:calc(var(--rahmen)*-1);width:var(--rahmen);
+  top:50%;transform:translateY(-50%) scaleX(-1);height:calc(var(--rahmen)*190/106);
+  background:var(--fc-lamp) center/100% 100% no-repeat;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);
+  mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent)}
+
 /* Titel unsichtbar, aber vorhanden — wie in der Werkbank. Sichtbarer Titel und
    Vorzeile im Blech sind auf Ansage des Betreibers gestrichen. */
 .fc__ctitle{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;
