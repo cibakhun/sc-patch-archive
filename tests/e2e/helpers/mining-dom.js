@@ -220,6 +220,8 @@ function buildPayload() {
     // Phase 10, Plan 01: Liste statt <select> (D-05) + Umbenennen (D-02, Form 1).
     presetNew: 'NEW-PRESET', presetRename: 'RENAME', presetRenamed: 'RENAMED',
     presetNameTaken: 'NAME-TAKEN', presetListEmpty: 'LIST-EMPTY',
+    // Phase 10, Plan 01, Task 2: Loeschen fragt zurueck (D-01).
+    presetDelAsk: 'DEL-ASK',
     none: 'NONE-VAL', pin: 'PIN', unpin: 'UNPIN', noLocs: 'NO-LOCS',
     ship: 'SHIP', hand: 'HAND', roc: 'ROC', refinable: 'REFINABLE',
     bestRef: 'BEST-REF', yieldMod: 'YIELD', worst: 'WORST', yourPick: 'YOUR-PICK',

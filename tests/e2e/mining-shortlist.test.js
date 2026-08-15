@@ -67,6 +67,18 @@ function renameBtn(ctx, name) {
   return row ? row.querySelector('.wb__pre-a') : null;
 }
 
+/** Der Loeschknopf (Muelleimer) einer Preset-Zeile (Phase 10, Plan 01, Task 2, D-01). */
+function deleteBtn(ctx, name) {
+  const row = presetRow(ctx, name);
+  return row ? row.querySelector('.wb__pre-a--del') : null;
+}
+
+/** Die beschriftete Rueckfrage-Schaltflaeche, sobald sie fuer diese Zeile steht (sonst null). */
+function askBtn(ctx, name) {
+  const row = presetRow(ctx, name);
+  return row ? row.querySelector('.wb__pre-ask') : null;
+}
+
 function tilePinBtn(ctx, name) {
   const tile = ctx.document.getElementById('wb-list').querySelectorAll('.wb__tile')
     .find((t) => t.getAttribute('data-min') === name);
@@ -616,4 +628,67 @@ test('Namensfeld ist nach "neu" leer und nach "umbenennen" mit dem alten Namen v
 
   ctx.fire(renameBtn(ctx, 'Bestehend'), 'click');
   assert.strictEqual(ctx.elements['wb-pre-name'].value, 'Bestehend', 'Namensfeld sollte nach "umbenennen" den alten Namen tragen');
+});
+
+// ---------------------------------------------------------------------
+// Phase 10, Plan 01, Task 2 — Loeschen fragt zurueck, unterscheidbar von
+// Abbrechen (D-01).
+// ---------------------------------------------------------------------
+
+test('Erster Klick auf den Loeschknopf loest keinen DELETE aus, die Zeile zeigt danach presetDelAsk', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  const btn = deleteBtn(ctx, 'A');
+  assert.ok(btn, 'Loeschknopf fuer "A" nicht gefunden');
+  ctx.fire(btn, 'click');
+
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0, 'der erste Klick darf keinen DELETE ausloesen');
+  const ask = askBtn(ctx, 'A');
+  assert.ok(ask, 'Zeile sollte nach dem ersten Klick die beschriftete Rueckfrage zeigen');
+  assert.strictEqual(ask.textContent, ctx.T.presetDelAsk);
+});
+
+test('Zweiter Klick (auf die beschriftete Schaltflaeche) loest genau EIN DELETE aus', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  ctx.fire(deleteBtn(ctx, 'A'), 'click');
+  ctx.fire(askBtn(ctx, 'A'), 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 1, 'der zweite Klick sollte genau einen DELETE ausloesen');
+  const del = ctx.account.calls.filter((c) => c.method === 'DELETE')[0];
+  assert.strictEqual(del.path, 'mining_sig_presets?name=eq.A');
+  assert.ok(!presetRow(ctx, 'A'), 'Preset "A" sollte nach dem Loeschen nicht mehr in der Liste stehen');
+});
+
+test('Klick auf eine andere Stelle der Werkbank bricht die Rueckfrage ab; ein weiterer erster Klick loest weiterhin kein DELETE aus', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  ctx.fire(deleteBtn(ctx, 'A'), 'click');
+  assert.ok(askBtn(ctx, 'A'), 'Vorbedingung: Rueckfrage sollte stehen');
+
+  selectMineral(ctx, 'Gold'); // ein Klick "daneben" innerhalb der Werkbank
+
+  assert.ok(!askBtn(ctx, 'A'), 'Rueckfrage sollte nach dem Klick daneben abgeraeumt sein');
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0);
+
+  ctx.fire(deleteBtn(ctx, 'A'), 'click');
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0, 'der erste Klick nach dem Abbruch darf weiterhin nicht loeschen');
+  assert.ok(askBtn(ctx, 'A'), 'die Rueckfrage sollte erneut erscheinen');
+});
+
+test('Rueckfrage bei Preset A, Klick auf den Loeschknopf von Preset B: die Rueckfrage wandert zu B, A wird nicht geloescht', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold'] }, { name: 'B', minerals: [] }] },
+  });
+
+  ctx.fire(deleteBtn(ctx, 'A'), 'click');
+  assert.ok(askBtn(ctx, 'A'), 'Vorbedingung: Rueckfrage sollte bei A stehen');
+
+  ctx.fire(deleteBtn(ctx, 'B'), 'click');
+
+  assert.ok(!askBtn(ctx, 'A'), 'A sollte die Rueckfrage nicht mehr tragen');
+  assert.ok(askBtn(ctx, 'B'), 'B sollte jetzt die Rueckfrage tragen');
+  assert.ok(presetRow(ctx, 'A'), 'A sollte weiterhin in der Liste stehen');
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0);
 });

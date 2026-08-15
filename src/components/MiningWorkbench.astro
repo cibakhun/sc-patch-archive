@@ -141,6 +141,7 @@ const S_DE = {
   presetDel: 'Löschen', presetName: 'Name des Presets', presetCancel: 'Abbrechen',
   presetRename: 'Umbenennen', presetRenamed: 'Umbenannt.', presetNameTaken: 'Dieser Name ist schon vergeben.',
   presetListEmpty: 'Noch kein Preset gespeichert. Erze oder Fundorte anheften, dann mit „+" benennen.',
+  presetDelAsk: 'Wirklich löschen?',
   presetGuest: 'Zusammenstellungen speichern:', presetLogin: 'anmelden',
   presetSaved: 'Gespeichert.', presetDeleted: 'Gelöscht.',
   presetEmpty: 'Erst Erze oder Fundorte anheften, dann speichern.', presetFail: 'Speichern fehlgeschlagen.',
@@ -162,6 +163,7 @@ const S_EN = {
   presetDel: 'Delete', presetName: 'Preset name', presetCancel: 'Cancel',
   presetRename: 'Rename', presetRenamed: 'Renamed.', presetNameTaken: 'That name is already taken.',
   presetListEmpty: 'No preset saved yet. Pin ores or locations, then name one with the plus button.',
+  presetDelAsk: 'Really delete?',
   presetGuest: 'Save your sets:', presetLogin: 'sign in',
   presetSaved: 'Saved.', presetDeleted: 'Deleted.',
   presetEmpty: 'Pin some ores or locations first, then save.', presetFail: 'Saving failed.',
@@ -227,6 +229,15 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z" />
       <path d="M13.5 6.5l4 4" />
+    </symbol>
+    {/* Muelleimer fuer "Loeschen" (Phase 10, D-01) — dasselbe Symbol, das der
+        Konto-Bereich fuer seine Gefahrenzone benutzt (#ic-trash in
+        AccountDashboard.astro). Kein neu erfundenes Zeichen, und "×" bleibt
+        dadurch eindeutig "Abbrechen/Schliessen". */}
+    <symbol id="wb-i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6" />
     </symbol>
   </svg>
 
@@ -654,6 +665,21 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
 .wb__pre-a:hover{background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text)}
 .wb__pre-a svg{width:13px;height:13px;pointer-events:none}
+/* Loeschen (D-01): eigenes Symbol (Muelleimer statt ×), eigener
+   Ueberfahren-Farbton — der Ruhezustand bleibt wie jeder andere
+   Symbolknopf (.wb__pre-a), nur der Hover-Ton weicht ab. */
+.wb__pre-a--del:hover{color:var(--accent-2)}
+/* Die Rueckfrage ersetzt die ganze Aktionszeile ueber die volle Breite
+   (statt in der 22-px-Ecke zu sitzen) und traegt als einzige Aktion im
+   Bauteil Worte statt eines Zeichens. Die Warnschraffur ist dieselbe
+   Diagonalschraffur wie .danger-card .dz-hazard in
+   assets/account-dossier.css Zeile 380 — kein Hex-Wert, kein neuer Token
+   (⚠ var(--hot) ist auf dieser Seite KEINE Gefahrenfarbe, siehe
+   src/components/topics/mining.astro Zeile 26: dort gleich --accent). */
+.wb__pre-ask{width:100%;display:block;border:0;border-radius:7px;cursor:pointer;
+  font-family:inherit;font-size:var(--fs-4);font-weight:600;padding:5px 8px;color:var(--ink);
+  background:repeating-linear-gradient(-45deg,var(--accent-2) 0 9px,
+    color-mix(in srgb,var(--accent-2) 55%,var(--ink)) 9px 18px)}
 
 .wb__pin-item{padding:7px 9px;margin:0 6px 3px;border-radius:8px;
   background:color-mix(in srgb,var(--ink) 22%,transparent)}
@@ -717,7 +743,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__search:focus-visible,.wb__scan:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
 .wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible,
 .wb__pre__in:focus-visible,.wb__pre__b:focus-visible,
-.wb__pre-name:focus-visible,.wb__pre-a:focus-visible,
+.wb__pre-name:focus-visible,.wb__pre-a:focus-visible,.wb__pre-ask:focus-visible,
 .wb__frac:focus-visible,.wb__pinbig:focus-visible,.wb__lpin:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 /* Das Sprite traegt nur <symbol> und darf keinen Platz belegen. */
 .wb__sprite{position:absolute;width:0;height:0;overflow:hidden}

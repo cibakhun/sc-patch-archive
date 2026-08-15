@@ -397,6 +397,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   var preSess = null; // gueltige Session oder null (= Gast)
   var preCur = '';    // Name der aktuell markierten Zeile (is-sel)
   var preEditFor = null; // null = Neuanlage, sonst der alte Name beim Umbenennen
+  var preAsk = null;  // Name der Zeile mit offener Loesch-Rueckfrage (D-01), sonst null
 
   function preSay(text, ms) {
     if (!preMsg) return;
@@ -418,6 +419,18 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       return;
     }
     preList.innerHTML = presets.map(function (p) {
+      /* Traegt die Zeile die offene Loesch-Rueckfrage (D-01), ersetzt eine
+         volle Zeilenbreite beschriftete Schaltflaeche die gesamte
+         Aktionszeile -- die einzige Aktion im Bauteil mit Worten statt
+         eines Zeichens, an einem anderen Ort als jedes ×. */
+      if (preAsk === p.name) {
+        return '<div class="wb__pre-item' + (p.name === preCur ? ' is-sel' : '') + '" data-preset="' + esc(p.name) + '">' +
+          '<div class="wb__pre-top">' +
+            '<button type="button" class="wb__pre-name" data-pre-pick="1">' + esc(p.name) + '</button>' +
+          '</div>' +
+          '<button type="button" class="wb__pre-ask" data-pre-delok="1">' + esc(T.presetDelAsk) + '</button>' +
+        '</div>';
+      }
       var cnt = p.minerals.length + ' ' + T.signatures + ' · ' + p.locations.length + ' ' + T.locations;
       return '<div class="wb__pre-item' + (p.name === preCur ? ' is-sel' : '') + '" data-preset="' + esc(p.name) + '">' +
         '<div class="wb__pre-top">' +
@@ -427,6 +440,9 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
           '<span class="wb__pre-cnt">' + esc(cnt) + '</span>' +
           '<button type="button" class="wb__pre-a" data-pre-rename="1" aria-label="' + esc(T.presetRename) + '">' +
             '<svg aria-hidden="true" focusable="false"><use href="#wb-i-edit" /></svg>' +
+          '</button>' +
+          '<button type="button" class="wb__pre-a wb__pre-a--del" data-pre-del="1" aria-label="' + esc(T.presetDel) + '">' +
+            '<svg aria-hidden="true" focusable="false"><use href="#wb-i-trash" /></svg>' +
           '</button>' +
         '</div></div>';
     }).join('');
@@ -576,7 +592,32 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   document.addEventListener('click', function (e) {
     var t = e.target;
     if (!inWb(t)) return;
-    /* Presetzeile zuerst: Umbenennen-Stift und Namensflaeche, VOR jeder
+    /* Loesch-Rueckfrage (D-01) zuerst, noch vor Umbenennen/Auswahl: der
+       zweite, bestaetigende Klick loescht; der erste verwandelt den
+       Muelleimer nur in eine beschriftete Zeile, ohne Netzwerkaufruf. */
+    var delOk = t.closest('[data-pre-delok]');
+    if (delOk) {
+      var delRow = delOk.closest('[data-preset]');
+      preAsk = null;
+      if (delRow) preDrop(delRow.getAttribute('data-preset'));
+      return;
+    }
+    var delAsk = t.closest('[data-pre-del]');
+    if (delAsk) {
+      var askRow = delAsk.closest('[data-preset]');
+      preAsk = askRow ? askRow.getAttribute('data-preset') : null;
+      renderPresetList();
+      return;
+    }
+    /* Ein Klick daneben bricht die Rueckfrage ab, laeuft aber normal weiter
+       (kein return hier) — der Klick kann z.B. gleichzeitig ein anderes
+       Preset auswaehlen. ⚠ Der Handler steigt oben mit `if (!inWb(t)) return;`
+       aus; ein Klick voellig ausserhalb der Werkbank laesst die Rueckfrage
+       bewusst stehen — sie verlangt ohnehin einen zweiten, gezielten Klick,
+       und ein Handler, der bei jedem Seitenklick neu zeichnet, waere teurer
+       als der gewonnene Komfort. */
+    if (preAsk) { preAsk = null; renderPresetList(); }
+    /* Presetzeile: Umbenennen-Stift und Namensflaeche, VOR jeder
        Interpretation als data-pin/data-locpin. Der Name kommt IMMER aus dem
        Zeilencontainer [data-preset], nie aus dem Knopf selbst — ein
        zusammengesetzter Attributwert waere bei einem Preset-Namen mit
