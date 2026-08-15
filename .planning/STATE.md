@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 12
 current_phase_name: fundorte-in-der-mining-werkbank-anklickbar
 status: executing
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-08-15T16:38:05.659Z"
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-08-15T17:35:00.000Z"
 last_activity: 2026-08-15
-last_activity_desc: Phase 12 execution started
+last_activity_desc: Phase 12 alle 3 Plaene ausgefuehrt, Sichtrunde (WINDOWS.md id 12) noch offen
 progress:
   total_phases: 16
   completed_phases: 10
   total_plans: 53
-  completed_plans: 45
+  completed_plans: 46
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -54,9 +54,15 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 ## Current Position
 
-Phase: 12 (fundorte-in-der-mining-werkbank-anklickbar) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
+Phase: 12 (fundorte-in-der-mining-werkbank-anklickbar) — 3/3 Plaene ausgefuehrt
+Plan: 3 of 3 — abgeschlossen (`12-03-SUMMARY.md`)
+Status: **Technisch fertig, NICHT „Complete" markiert** — dieselbe Konvention wie
+Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
+Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
+`.planning/WINDOWS.md` id 12. Alle 18 Schienen-A-Schritte gruen (normal UND
+`STAGING=1`), 297 e2e-Testfaelle gruen, die neue Messsonde
+`scripts/probes/mining-locview-messung.mjs` bestaetigt alle 9 UI-SPEC-
+Backstops am gerenderten Bildpunkt (72/72 Messpunkte).
 
 ---
 
@@ -220,6 +226,7 @@ Progress: [█████████░] 85%
 | Phase 10 P02 | 35min | 3 tasks | 7 files |
 | Phase 12 P01 | 50min | 2 tasks | 4 files |
 | Phase 12 P02 | 50min | 3 tasks | 4 files |
+| Phase 12 P03 | ~100min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -307,6 +314,12 @@ Recent decisions affecting current work:
 - [Phase ?]: 12-01: T-12-04 auf gruppenlokale statt globale Chance-Monotonie korrigiert -- Sortieren-dann-Gruppieren (Schiff->ROC->Hand) macht die Gesamtliste nicht monoton, nur jede Methodengruppe fuer sich; Implementierung folgt dem detaillierten Handlungstext
 - [Phase ?]: 12-02: hereIdx-Berechnung an S.view === 'loc' gebunden, nicht nur an S.selLoc -- ein direkter Kachelklick waehrend die Fundort-Ansicht offen ist setzt S.view sofort zurueck, laesst S.selLoc aber stehen; ohne die View-Bedingung bliebe is-here faelschlich aktiv
 - [Phase ?]: 12-02: mining-dom.js fire(el, type, init) um optionalen dritten Parameter erweitert (Rule 3) -- reicht Event-Felder wie key an den delegierten keydown-Handler durch, sonst war Enter/Leertaste im node:vm-Fixture nicht pruefbar
+- [Phase ?]: 12-03: ?fundort=<Name> als zweiter Deep-Link-Zweig (fromQueryLoc), dieselbe Bauform wie der bestehende ?mineral=-Zweig -- Allow-List-Abgleich gegen locIndex, kanonischer Schluessel statt gelesenem Wert, kein Treffer heisst nichts tun. Reversibilitaet "costly" gekennzeichnet, nicht gegattert (Plan-Vorgabe)
+- [Phase ?]: 12-03: mining.ctl.locpin/mining.ctl.shortlist (DE+EN) inhaltlich korrigiert -- verify:help prueft nur Ankerpraesenz, nie den Text; Gegenlesen war Pflicht
+- [Phase ?]: 12-03: neue Messsonde scripts/probes/mining-locview-messung.mjs (ausserhalb der Torkette) fand zwei echte, vorher unentdeckte Maengel: Spurenzeilen-Kontrast bei 62%/65% lag real bei bis zu 1,33:1 (Marke 4,5:1) -- auf gemessene 82%/90% angehoben; Spurenzeilen mit Abzeichen waren 1,6px hoeher als gewoehnliche Zeilen (geerbtes .wb__tag hoeher als eine .p-Zeile, erstmals sichtbar weil Phase 12 beide erstmals in derselben Flex-Zeile platziert) -- behoben mit line-height:1 auf die neue Klasse .wb__tag.is-trace. Sonde einmal vorgefuehrt rot (Daempfung testweise 20%, 4/24 Punkte fielen durch), dann zurueckgesetzt
+- [Phase ?]: 12-03: Backstop "Bildlaufleiste sichtbar" liess sich NICHT ueber offsetWidth-clientWidth messen (Plan-Vorschlag) -- dieses Chromium rendert scrollbar-width:thin als echten Overlay (0px reservierte Breite trotz echten Ueberlaufs); auf tatsaechliche Scroll-Wirkung (scrollTop verschiebt sichtbaren Inhalt) umgestellt
+- [Phase ?]: 12-03: npm install (ohne Argument) im Worktree ausgefuehrt, weil playwright-core in node_modules fehlte (weder Worktree noch Hauptrepo) -- reconciliert ausschliesslich aus dem committeten package-lock.json, package.json/package-lock.json vor/nach dem Lauf unveraendert (git status leer). Kein Fall des ausgeschlossenen "npm install <pkg>"-Musters
+- [Phase ?]: 12-03: Phase 12 technisch fertig (3/3 Plaene), NICHT "Complete" markiert -- Sichtrunde als WINDOWS.md id 12 an den Betreiber uebergeben, deckt inhaltlich auch die noch offenen id 10 (Phase 9) und id 11 (Phase 10) mit ab
 
 ### Pending Todos
 
@@ -356,6 +369,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-15T16:38:05.632Z
-Stopped at: Completed 12-02-PLAN.md
+Last session: 2026-08-15T17:35:00.000Z
+Stopped at: Completed 12-03-PLAN.md — Phase 12 alle 3 Plaene ausgefuehrt, Sichtrunde WINDOWS.md id 12 offen
 Resume file: None
