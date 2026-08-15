@@ -214,6 +214,7 @@ const S = de ? {
   noPhys: 'keine Physikdaten',
   station: 'Station', fracturing: 'Fracturing-Rechner', fracturingGo: 'Bricht der Brocken? →',
   none: '—', pin: 'Anheften', unpin: 'Lösen', noLocs: 'Keine Fundorte bekannt.',
+  locPinsEmpty: 'Noch keine Fundorte angeheftet. Bei einem Erz mit Fundorten die Nadel neben einer Zeile drücken.',
   ship: 'Schiff', hand: 'Hand', roc: 'ROC', refinable: 'raffinierbar',
   rocks: 'Steine mit diesem Erz', ofRocks: 'von', chance: 'Chance', share: 'Anteil', upTo: 'bis',
   bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl',
@@ -232,6 +233,7 @@ const S = de ? {
   noPhys: 'no physics data',
   station: 'Station', fracturing: 'Fracturing calculator', fracturingGo: 'Will it break? →',
   none: '—', pin: 'Pin', unpin: 'Unpin', noLocs: 'No locations known.',
+  locPinsEmpty: 'No locations pinned yet. On an ore with locations, hit the pin next to a row.',
   ship: 'Ship', hand: 'Hand', roc: 'ROC', refinable: 'refinable',
   rocks: 'Rocks carrying this ore', ofRocks: 'of', chance: 'chance', share: 'share', upTo: 'up to',
   bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick',
@@ -307,55 +309,61 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     </div>
 
     <!-- ============================================= Spalte 2: Ansicht -->
-    <div class="wb__mid">
-      <div class="wb__pane wb__pane--a chamf">
-        <div class="wb__id">
-          <div class="wb__idrow">
-            <div class="wb__idl">
-              <h2 id="wb-name" set:text={sel.name} />
-              <div class="wb__tags" id="wb-tags"></div>
-            </div>
-            <div class="wb__sigbox">
-              <span class="wb__lbl" set:text={S.signature} />
-              <b class="num" id="wb-sig" set:text={sel.sig ? String(sel.sig) : S.none} />
-            </div>
-            {/* Der zweite, grosse Weg am gerade gewaehlten Erz. Traegt
-                `data-pin` erst zur Laufzeit; der delegierte Klick-Handler
-                erkennt ihn dadurch ohne Sonderfall. */}
-            <button type="button" class="wb__pinbig" id="wb-pinsel" aria-pressed="false" data-help={hlp('pinbtn')}>
-              <svg class="wb__pinbig__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg>
-              <span id="wb-pinsel-txt" set:text={S.pin} />
-            </button>
+    {/* Bis 14.08.2026 zwei Teilspalten (wb__pane--a/wb__pane--b) in
+        `.wb__mid{grid-template-columns:1fr 1fr}`. Seit der Fundort-Korrektur
+        hat ein Erz bis zu 27 Fundorte (gemessen 15.08., vorher stand „bis zu
+        21" in CONTEXT.md), die schmale Bahn reichte dafuer nicht mehr — jetzt
+        EIN Paneel, EINE Bahn: Kopf, Fundorte, Beste Stationen (D-01..D-03).
+        Physik, Qualitaetsstufen und „Steine mit diesem Erz" sind mit der
+        Detailspalte ersatzlos gestrichen, nicht verschoben. */}
+    <div class="wb__pane wb__pane--mid chamf">
+      <div class="wb__id">
+        <div class="wb__idrow">
+          <div class="wb__idl">
+            <h2 id="wb-name" set:text={sel.name} />
+            <div class="wb__tags" id="wb-tags"></div>
           </div>
-        </div>
-        <div class="wb__scroll">
-          <div class="wb__sec"><h4 set:text={S.physics} /><div class="wb__stats" id="wb-stats"></div></div>
-          <div class="wb__sec"><h4 set:text={S.bands} /><div class="wb__bands" id="wb-bands"></div></div>
-          <div class="wb__sec"><h4 id="wb-rockh" set:text={S.rocks} /><div class="wb__rocks" id="wb-rocks"></div></div>
+          <div class="wb__sigbox">
+            <span class="wb__lbl" set:text={S.signature} />
+            <b class="num" id="wb-sig" set:text={sel.sig ? String(sel.sig) : S.none} />
+          </div>
+          {/* Der zweite, grosse Weg am gerade gewaehlten Erz. Traegt
+              `data-pin` erst zur Laufzeit; der delegierte Klick-Handler
+              erkennt ihn dadurch ohne Sonderfall. */}
+          <button type="button" class="wb__pinbig" id="wb-pinsel" aria-pressed="false" data-help={hlp('pinbtn')}>
+            <svg class="wb__pinbig__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg>
+            <span id="wb-pinsel-txt" set:text={S.pin} />
+          </button>
         </div>
       </div>
-
-      <div class="wb__pane wb__pane--b chamf">
-        <div class="wb__scroll">
-          <div class="wb__sec"><h4 id="wb-loch" set:text={S.locations} /><div class="wb__locs" id="wb-locs"></div></div>
-          <div class="wb__sec"><h4 set:text={S.bestRef} /><div class="wb__refs" id="wb-refs"></div></div>
-          <div class="wb__sec"><div class="wb__links" id="wb-links"></div></div>
-        </div>
+      <div class="wb__scroll">
+        <div class="wb__sec"><h4 id="wb-loch" set:text={S.locations} /><div class="wb__locs" id="wb-locs" data-help={hlp('locpin')}></div></div>
+        <div class="wb__sec"><h4 set:text={S.bestRef} /><div class="wb__refs" id="wb-refs"></div></div>
+        <div class="wb__sec"><div class="wb__links" id="wb-links"></div></div>
       </div>
     </div>
 
     <!-- =========================================== Spalte 3: Signaturen -->
     <div class="wb__pane wb__pane--sig chamf">
-      <div class="wb__scanbox">
-        <input class="wb__scan num" id="wb-scan" type="text" inputmode="numeric" placeholder={S.scanPlaceholder} aria-label={S.scanPlaceholder} data-help={hlp('scan')} />
+      {/* Zwei Reiter teilen sich die Spalte: Signaturen (Scan-Zuordnung) und
+          die erz-uebergreifende Fundort-Merkliste (D-06). ⚠ `data-tab`, NICHT
+          `data-seg` — das gehoert der mobilen Segmentleiste aus mountSeg()
+          und wuerde dort kollidieren. */}
+      <div class="wb__tabs" id="wb-tabbar" role="tablist" data-help={hlp('tabs')}>
+        <button type="button" class="wb__chip wb__tab is-on" id="wb-tab-sig" data-tab="sig"
+                role="tab" aria-selected="true" aria-controls="wb-sig-pane" set:text={S.signatures} />
+        <button type="button" class="wb__chip wb__tab" id="wb-tab-loc" data-tab="loc"
+                role="tab" aria-selected="false" aria-controls="wb-loc-pane" set:text={S.locations} />
       </div>
 
-      {/* Presets — benannte Zusammenstellungen der Liste, kontogebunden
-          (Tabelle mining_sig_presets, RLS wie crafting_entries).
-          ⚠ Die ANGEHEFTETE Liste selbst bleibt im localStorage: sie ist der
-          Arbeitsstand und muss ohne Konto funktionieren. Ans Konto geht nur,
-          was man benennt und wieder aufruft. Zwei getrennte Dinge; sie in
-          einen Topf zu werfen hiesse, Gaesten das Anheften wegzunehmen.
+      {/* Presets — benannte Zusammenstellungen BEIDER Listen, kontogebunden
+          (Tabelle mining_sig_presets, RLS wie crafting_entries). Bewusst
+          AUSSERHALB beider Reiter: das ist die sichtbare Form von „ein
+          gemeinsames Preset-System" (D-04).
+          ⚠ Die ANGEHEFTETEN Listen selbst bleiben im localStorage: sie sind
+          der Arbeitsstand und muessen ohne Konto funktionieren. Ans Konto
+          geht nur, was man benennt und wieder aufruft. Zwei getrennte Dinge;
+          sie in einen Topf zu werfen hiesse, Gaesten das Anheften wegzunehmen.
           Serverseitig steht hier der Gast-Zustand — welcher Fall gilt, weiss
           erst der Browser (VBAccount.session()). */}
       <div class="wb__pre" id="wb-pre" data-help={hlp('presets')}>
@@ -380,7 +388,16 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
         </p>
       </div>
 
-      <div class="wb__scroll" id="wb-pins" data-help={hlp('pins')}></div>
+      <div id="wb-sig-pane" class="wb__tabpane" role="tabpanel" aria-labelledby="wb-tab-sig">
+        <div class="wb__scanbox">
+          <input class="wb__scan num" id="wb-scan" type="text" inputmode="numeric" placeholder={S.scanPlaceholder} aria-label={S.scanPlaceholder} data-help={hlp('scan')} />
+        </div>
+        <div class="wb__scroll" id="wb-pins" data-help={hlp('pins')}></div>
+      </div>
+
+      <div id="wb-loc-pane" class="wb__tabpane" role="tabpanel" aria-labelledby="wb-tab-loc" hidden>
+        <div class="wb__scroll" id="wb-locpins" data-help={hlp('shortlist')}></div>
+      </div>
     </div>
   </div>
 
@@ -456,7 +473,6 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
      Titelstreifen, Rig-Leiste und Abstaende ab; bei 1280x720 bleiben damit
      rund 25 px Luft, bei 1080 rund 2. */
   height:clamp(430px,calc(100vh - var(--wb-chrome)),980px)}
-.wb__mid{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-height:0;min-width:0}
 .wb__scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
 
 /* ---------------- Spalte 1: Kachelraster, alle 37 ---------------- */
@@ -534,7 +550,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__tile:hover .wb__pin.is-on{background:var(--accent-2);color:var(--ink)}
 
 /* ---------------- Spalte 2 ---------------- */
-.wb__id{padding:11px 14px 9px}
+/* flex:0 0 auto: sonst staucht die Kopfzeile, wenn die Fundortliste unten
+   lang wird (bis zu 27 Fundorte je Erz, gemessen 15.08.2026). */
+.wb__id{padding:11px 14px 9px;flex:0 0 auto}
 .wb__idrow{display:flex;align-items:flex-start;gap:10px}
 .wb__id h2{font-size:var(--fs-13);font-weight:600;line-height:1.05;margin:0;color:var(--text);letter-spacing:var(--ls-1)}
 .wb__tags{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
@@ -578,6 +596,19 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wb__row2 .s{font-size:var(--fs-3);color:color-mix(in srgb,var(--muted) 88%,transparent);display:block;margin-top:1px}
 .wb__row2 .r{display:flex;align-items:center;gap:8px}
+/* Nadelknopf je Fundort-Zeile — dieselbe Sprache wie .wb__pin.is-on (D-05):
+   gefuellte Flaeche in --accent-2, dunkles Symbol. Kleiner als .wb__pin
+   (22 statt 28 px), weil er neben Balken und Prozentwert in der Zeile steht,
+   nicht wie dort allein in einer Kachelspalte. Steht NUR in Fundort-Zeilen —
+   row2() erhaelt den siebten Parameter (pinKey) ausschliesslich beim
+   Zeichnen der Fundorte, die Stationszeilen bleiben sechsstellig. */
+.wb__lpin{flex:0 0 auto;width:22px;height:22px;display:grid;place-items:center;border:0;
+  background:color-mix(in srgb,var(--ink) 34%,transparent);
+  color:color-mix(in srgb,var(--muted) 78%,transparent);
+  cursor:pointer;border-radius:6px;line-height:0;
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__lpin__i{width:13px;height:13px;pointer-events:none}
+.wb__lpin.is-on{background:var(--accent-2);color:var(--ink)}
 /* Gefraeste Spur mit gezaehnter Fuellung statt glattem Balken. */
 .wb__bar{width:46px;height:5px;border-radius:3px;overflow:hidden;
   background:color-mix(in srgb,var(--ink) 55%,transparent);
@@ -599,6 +630,19 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__link b{color:var(--accent-2);font-family:var(--font-mono,ui-monospace)}
 
 /* ---------------- Spalte 3 ---------------- */
+/* Reiterleiste ueber Signaturen/Fundorte — Polsterung wie die Filterleiste
+   in Spalte 1, aber eine Zeile (der Container ist von Haus aus
+   flex-direction:row). Ueber die ID gestylt, nicht ueber ihre Markup-Klasse:
+   das Aussehen haengt an EINEM Element und braucht dafuer keinen zweiten
+   Treffer im Stilblock (is:inline zaehlt jedes Zeichen im ausgelieferten
+   HTML mit). */
+#wb-tabbar{flex:0 0 auto;display:flex;gap:5px;padding:9px 10px}
+.wb__tab{flex:1}
+/* Nur EIN Reiterkoerper ist je sichtbar. ⚠ Reihenfolge ist Pflicht: ohne die
+   zweite Regel schluege `display:flex` das `hidden`-Attribut — derselbe Fall
+   ist mit .wb__pre__row[hidden] schon geloest. */
+.wb__tabpane{display:flex;flex-direction:column;flex:1;min-height:0}
+.wb__tabpane[hidden]{display:none}
 .wb__scanbox{padding:9px 9px 8px}
 .wb__scan{width:100%;background:color-mix(in srgb,var(--ink) 40%,transparent);border:0;color:var(--accent);
   padding:8px 10px;font-size:var(--fs-9);text-align:center;border-radius:7px;
@@ -606,8 +650,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__scan::placeholder{color:color-mix(in srgb,var(--muted) 80%,transparent);font-family:var(--font-ui,inherit);font-size:var(--fs-5)}
 /* Preset-Zeile. Zwei Zustaende teilen sich denselben Platz (Auswahl bzw.
    Namenseingabe) — beide sind eine Zeile hoch, damit die Spalte nicht
-   springt, wenn man auf „+" drueckt. */
-.wb__pre{flex:0 0 auto;padding:0 9px 8px}
+   springt, wenn man auf „+" drueckt. Kopfpolsterung neu (8 statt 0): die
+   Zeile sitzt jetzt direkt unter den Reitern statt unter dem Scan-Kasten. */
+.wb__pre{flex:0 0 auto;padding:8px 9px 8px}
 .wb__pre__row{display:flex;gap:5px;align-items:center}
 .wb__pre__row[hidden]{display:none}
 .wb__pre__sel,.wb__pre__in{flex:1;min-width:0;border:0;border-radius:7px;font-family:inherit;
@@ -683,20 +728,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__search:focus-visible,.wb__scan:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
 .wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible,
 .wb__pre__sel:focus-visible,.wb__pre__in:focus-visible,.wb__pre__b:focus-visible,
-.wb__frac:focus-visible,.wb__pinbig:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.wb__frac:focus-visible,.wb__pinbig:focus-visible,.wb__lpin:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 /* Das Sprite traegt nur <symbol> und darf keinen Platz belegen. */
 .wb__sprite{position:absolute;width:0;height:0;overflow:hidden}
 
 .wb__seg{display:none}
-/* Die Mittelspalte teilt sich erst, wenn dafuer Platz ist. Bei 1280 blieben
-   sonst zwei Teilspalten zu je 263 px — dort passt kein Fundortname mehr.
-   Einspaltig hat sie dann die vollen ~576 px und scrollt innen. */
-@media(max-width:1450px){
-  .wb__mid{grid-template-columns:1fr}
-}
 @media(max-width:1180px){
   .wb__grid{grid-template-columns:1fr;height:auto}
-  .wb__mid{grid-template-columns:1fr}
   .wb__pane{height:min(62vh,560px)}
 }
 @media(max-width:760px){
@@ -704,10 +742,17 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .wb__pane{height:auto}
   .wb__scroll{max-height:70vh}
   .wb__grid.has-seg{display:block}
-  .wb__grid.has-seg > .wb__pane,.wb__grid.has-seg > .wb__mid{display:none}
+  .wb__grid.has-seg > .wb__pane{display:none}
   .wb__grid.has-seg.seg-list > .wb__pane:first-of-type{display:flex}
   .wb__grid.has-seg.seg-sig > .wb__pane:last-of-type{display:flex}
-  .wb__grid.has-seg.seg-view > .wb__mid{display:grid;grid-template-columns:1fr;gap:10px}
+  /* Die Ansichtsspalte ist seit 15.08.2026 selbst ein normales Paneel statt
+     eines eigenen Grid-Wrappers — die generische Zeile oben blendet sie also
+     schon aus; hier braucht es nur noch das Wieder-Einblenden fuer seg-view.
+     Ueber die Position (2. von 3 Paneelen) adressiert, wie die beiden
+     Nachbarregeln mit :first-of-type/:last-of-type — nicht ueber ihren
+     Klassennamen, den ein Stil-Kommentar sonst ein zweites Mal ins
+     ausgelieferte HTML schriebe (is:inline zaehlt jedes Zeichen mit). */
+  .wb__grid.has-seg.seg-view > .wb__pane:nth-of-type(2){display:flex}
   /* Untereinander statt nebeneinander: der Verweis auf den Rechner traegt
      drei Textstuecke und wird sonst zur Ellipsen-Wueste. */
   .wb__rig{gap:10px}

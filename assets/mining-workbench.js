@@ -27,21 +27,41 @@
   var byName = {};
   for (var i = 0; i < D.minerals.length; i++) byName[D.minerals[i].name] = D.minerals[i];
 
-  var S = { sel: D.minerals[0].name, pins: [], ref: 0, q: '', sys: null };
+  /* Ein Fundort-Paar ist nur gueltig, wenn BEIDE Haelften noch existieren:
+     das Erz im Katalog UND ein Fundort dieses Namens bei genau diesem Erz.
+     Format "<Erz>||<Fundort>" — derselbe Trenner wie scripts/verify-mining.mjs
+     (Zeile 68) fuer dieselbe Tatsache benutzt. Ein Paar, dessen Erz oder
+     Fundort ein Patch entfernt hat, faellt hier still heraus statt die
+     Merkliste zu vergiften (Praezedenz: die Signaturenliste macht es mit
+     byName genauso). */
+  function locPinValid(pair) {
+    if (typeof pair !== 'string') return false;
+    var idx = pair.indexOf('||');
+    if (idx < 0) return false;
+    var m = byName[pair.slice(0, idx)];
+    if (!m) return false;
+    var loc = pair.slice(idx + 2);
+    return m.locs.some(function (l) { return l.p === loc; });
+  }
+
+  var S = { sel: D.minerals[0].name, pins: [], locPins: [], ref: 0, q: '', sys: null };
   /* Ein alter Speicherstand traegt noch laser/mods/gadget/mass. Die Felder
      werden schlicht nicht mehr gelesen und beim naechsten Schreiben fallen
-     sie weg — kein Grund, gespeicherte Auswahl und Signaturen wegzuwerfen. */
+     sie weg — kein Grund, gespeicherte Auswahl und Signaturen wegzuwerfen.
+     Ein Speicherstand von VOR dieser Phase kennt `locPins` gar nicht — das
+     ergibt die leere Merkliste, keinen Fehler (D-04). */
   try {
     var saved = JSON.parse(localStorage.getItem(LS) || 'null');
     if (saved && typeof saved === 'object') {
       if (byName[saved.sel]) S.sel = saved.sel;
       if (Array.isArray(saved.pins)) S.pins = saved.pins.filter(function (n) { return !!byName[n]; });
+      if (Array.isArray(saved.locPins)) S.locPins = saved.locPins.filter(locPinValid);
       if (typeof saved.ref === 'number' && D.refineries[saved.ref]) S.ref = saved.ref;
     }
   } catch (e) { /* kaputter Speicher ist kein Grund, das Werkzeug zu verweigern */ }
   function save() {
     try {
-      localStorage.setItem(LS, JSON.stringify({ sel: S.sel, pins: S.pins, ref: S.ref }));
+      localStorage.setItem(LS, JSON.stringify({ sel: S.sel, pins: S.pins, locPins: S.locPins, ref: S.ref }));
     } catch (e) { /* privater Modus */ }
   }
 
@@ -121,10 +141,21 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     return '<div class="wb__stat ' + (cls || '') + '"><span class="wb__lbl">' + esc(label) +
       '</span><b class="num">' + esc(val) + '</b></div>';
   }
-  function row2(main, sub, barPct, right, amber, mark) {
+  /* Siebter Parameter pinKey (optional): NUR der Fundort-Aufruf uebergibt
+     ihn. Die drei Stations-Aufrufe (#wb-refs) und der Ersatzeintrag der
+     gewaehlten Station bleiben sechsstellig — sie bekommen dadurch keinen
+     Nadelknopf (D-05, Nebenbedingung 2 der Phase). */
+  function row2(main, sub, barPct, right, amber, mark, pinKey) {
+    var pin = '';
+    if (pinKey) {
+      var pinOn = S.locPins.indexOf(pinKey) >= 0;
+      pin = '<button type="button" class="wb__lpin' + (pinOn ? ' is-on' : '') + '" data-locpin="' + esc(pinKey) +
+        '" aria-pressed="' + pinOn + '" aria-label="' + esc((pinOn ? T.unpin : T.pin) + ': ' + pinKey.replace('||', ' — ')) +
+        '"><svg class="wb__lpin__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg></button>';
+    }
     return '<div class="wb__row2' + (mark ? ' is-pick' : '') + '"><span><span class="p">' + esc(main) + '</span>' +
       (sub ? '<span class="s">' + esc(sub) + '</span>' : '') + '</span>' +
-      '<span class="r">' + (barPct === null ? '' :
+      '<span class="r">' + pin + (barPct === null ? '' :
         '<span class="wb__bar' + (amber ? ' amber' : '') + '"><i style="width:' + barPct + '%"></i></span>') +
       '<em>' + esc(right) + '</em></span></div>';
   }
@@ -156,31 +187,47 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     /* ⚠ Hier stand bis 12.08.2026 zusaetzlich „effektiv" — der Widerstand
        NACH dem Res-Mod der Ausruestung. Der Wert gehoert zum Rechnen, nicht
        zum Nachschlagen, und steht jetzt im Fracturing-Rechner. Was bleibt,
-       sind die Zahlen des Erzes selbst. */
-    var st = '';
-    if (m.res !== null) st += stat(T.resistance, n2(m.res));
-    if (m.inst !== null) st += stat(T.instability, NF.format(m.inst));
-    if (m.dens !== null) st += stat(T.density, n2(m.dens));
-    if (m.win !== null) st += stat(T.window, n2(m.win));
-    if (m.scu) st += stat('SCU', n2(m.scu));
-    $('wb-stats').innerHTML = st || '<p class="wb__empty">' + esc(T.noPhys) + '</p>';
+       sind die Zahlen des Erzes selbst.
+       ⚠ Task 1 (Phase 9) hat die Kaesten wb-stats/wb-bands/wb-rocks samt
+       Detailspalte aus dem Astro-Koerper entfernt (D-01); die drei Zuweisungen
+       hier fallen erst in Task 3 mit. Bis dahin schuetzen die drei Waechter
+       ($()===null) davor, dass renderDetail() an dieser Stelle abbricht und
+       Fundorte/Stationen/Verweise weiter unten gar nicht mehr gezeichnet
+       werden — ein durch die Astro-Aenderung verursachter Laufzeitfehler,
+       kein Verhalten, das irgendwer wollte (Deviation Rule 1). */
+    var stEl = $('wb-stats');
+    if (stEl) {
+      var st = '';
+      if (m.res !== null) st += stat(T.resistance, n2(m.res));
+      if (m.inst !== null) st += stat(T.instability, NF.format(m.inst));
+      if (m.dens !== null) st += stat(T.density, n2(m.dens));
+      if (m.win !== null) st += stat(T.window, n2(m.win));
+      if (m.scu) st += stat('SCU', n2(m.scu));
+      stEl.innerHTML = st || '<p class="wb__empty">' + esc(T.noPhys) + '</p>';
+    }
 
-    var bands = m.bands || [];
-    $('wb-bands').innerHTML = bands.length
-      ? bands.map(function (b, i) {
-          var h = 22 + (i / Math.max(1, bands.length - 1)) * 78;
-          return '<i class="' + (i > bands.length / 2 ? 'is-hi' : '') + '" style="height:' + h.toFixed(0) +
-            '%" title="' + (i + 1) + ': ' + NF.format(b) + '"></i>';
-        }).join('')
-      : '<p class="wb__empty">' + esc(T.none) + '</p>';
+    var bandsEl = $('wb-bands');
+    if (bandsEl) {
+      var bands = m.bands || [];
+      bandsEl.innerHTML = bands.length
+        ? bands.map(function (b, i) {
+            var h = 22 + (i / Math.max(1, bands.length - 1)) * 78;
+            return '<i class="' + (i > bands.length / 2 ? 'is-hi' : '') + '" style="height:' + h.toFixed(0) +
+              '%" title="' + (i + 1) + ': ' + NF.format(b) + '"></i>';
+          }).join('')
+        : '<p class="wb__empty">' + esc(T.none) + '</p>';
+    }
 
     /* Welche Steine fuehren dieses Erz — aus den 211 Kompositionen. */
-    $('wb-rockh').textContent = T.rocks + (m.rockCount ? ' · ' + m.rocks.length + ' ' + T.ofRocks + ' ' + m.rockCount : '');
-    $('wb-rocks').innerHTML = m.rocks.length
-      ? m.rocks.map(function (r) {
-          return row2(r.rock, r.prob + ' % ' + T.chance, r.max, r.min + '–' + r.max + ' %', true);
-        }).join('')
-      : '<p class="wb__empty">' + esc(T.none) + '</p>';
+    var rockH = $('wb-rockh'), rockEl = $('wb-rocks');
+    if (rockH && rockEl) {
+      rockH.textContent = T.rocks + (m.rockCount ? ' · ' + m.rocks.length + ' ' + T.ofRocks + ' ' + m.rockCount : '');
+      rockEl.innerHTML = m.rocks.length
+        ? m.rocks.map(function (r) {
+            return row2(r.rock, r.prob + ' % ' + T.chance, r.max, r.min + '–' + r.max + ' %', true);
+          }).join('')
+        : '<p class="wb__empty">' + esc(T.none) + '</p>';
+    }
 
     /* Fundorte nach ef (Erwartungswert des Anteils) rangieren, nicht nach ch.
        ch allein sagt nur, WIE OFT das Erz vorkommt, nicht wie ergiebig; ms allein
@@ -197,7 +244,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
           var bar = maxEf > 0 ? Math.round((l.ef || 0) / maxEf * 100) : 0;
           var right = (l.ch != null ? nPct(l.ch) + ' %' : '—') +
             (l.ms != null ? ' · ' + T.upTo + ' ' + nPct(l.ms) + ' %' : '');
-          return row2(l.p, l.s, bar, right, false);
+          return row2(l.p, l.s, bar, right, false, false, m.name + '||' + l.p);
         }).join('')
       : '<p class="wb__empty">' + esc(T.noLocs) + '</p>';
 
@@ -281,7 +328,29 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     }).join('');
   }
 
-  function renderAll() { renderList(); renderDetail(); renderPins(); save(); }
+  /* Die Fundort-Merkliste im zweiten Reiter — erz-uebergreifend (D-06).
+     Eintrag "Erz — Fundort" mit Geviertstrich, derselbe ×-Knopf traegt dasselbe
+     data-locpin wie die Nadel in der Fundort-Zeile: EIN Attribut, zwei
+     Richtungen (Praezedenz: data-pin bei den Signaturen). */
+  function renderLocPins() {
+    var box = $('wb-locpins');
+    if (!box) return;
+    if (!S.locPins.length) {
+      box.innerHTML = '<p class="wb__empty">' + esc(T.locPinsEmpty) + '</p>';
+      return;
+    }
+    box.innerHTML = S.locPins.map(function (pair) {
+      var idx = pair.indexOf('||');
+      var ore = pair.slice(0, idx), loc = pair.slice(idx + 2);
+      var label = ore + ' — ' + loc;
+      return '<div class="wb__pin-item"><div class="wb__pin-top">' +
+        '<span class="nm">' + esc(label) + '</span>' +
+        '<button type="button" data-locpin="' + esc(pair) + '" aria-label="' + esc(T.unpin + ': ' + label) + '">×</button>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  function renderAll() { renderList(); renderDetail(); renderPins(); renderLocPins(); save(); }
 
   /* ==========================================================
      PRESETS — benannte Zusammenstellungen der Signaturenliste
@@ -299,12 +368,19 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      mining-db.json: der verschiebt sich mit jedem Datamine-Lauf. Genau dieser
      Fehler ist bei Crafting einmal bezahlt worden. Beim Laden wird gegen
      `byName` gefiltert — ein Erz, das ein Patch entfernt, faellt still raus
-     statt die Liste zu vergiften. */
+     statt die Liste zu vergiften.
+
+     Seit Phase 9 traegt EIN Preset BEIDE Listen — Signaturen (`minerals`)
+     UND Fundort-Paare (`locations`, Format "Erz||Fundort", Migration
+     20260815090000_mining_preset_locations.sql). Ein Preset, das vor dieser
+     Spalte gespeichert wurde, liefert kein `locations`-Feld oder `null`;
+     `(r.locations || [])` ergibt dafuer die leere Merkliste, keinen Fehler
+     (D-04). */
   var TBL = 'mining_sig_presets';
   var preSel = $('wb-preset'), prePick = $('wb-pre-pick'), preEdit = $('wb-pre-edit');
   var preMsg = $('wb-pre-msg'), preGuest = $('wb-pre-guest'), preName = $('wb-pre-name');
   var preDel = $('wb-pre-del'), preLogin = $('wb-pre-login');
-  var presets = [];   // [{name, minerals}]
+  var presets = [];   // [{name, minerals, locations}]
   var preSess = null; // gueltige Session oder null (= Gast)
 
   function preSay(text, ms) {
@@ -324,22 +400,30 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     preDel.disabled = !preSel.value;
   }
   function preLoad() {
-    return window.VBAccount.rest(preSess, 'GET', TBL + '?select=name,minerals&order=name.asc')
+    return window.VBAccount.rest(preSess, 'GET', TBL + '?select=name,minerals,locations&order=name.asc')
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (rows) {
         presets = (rows || []).map(function (r) {
-          return { name: r.name, minerals: (r.minerals || []).filter(function (n) { return !!byName[n]; }) };
+          return {
+            name: r.name,
+            minerals: (r.minerals || []).filter(function (n) { return !!byName[n]; }),
+            locations: (r.locations || []).filter(locPinValid),
+          };
         });
         preFill(preSel ? preSel.value : '');
       })
       .catch(function () { /* offline: die Auswahl bleibt leer, das Werkzeug laeuft weiter */ });
   }
   function preSave(name) {
-    if (!S.pins.length) { preSay(T.presetEmpty); return; }
-    var body = [{ name: name, minerals: S.pins.slice() }];
+    if (!S.pins.length && !S.locPins.length) { preSay(T.presetEmpty); return; }
+    var body = [{ name: name, minerals: S.pins.slice(), locations: S.locPins.slice() }];
     /* Upsert auf (user_id, name): derselbe Name ueberschreibt, statt an einem
        Unique-Konflikt zu scheitern. user_id setzt die Spalten-Vorgabe
-       (default auth.uid()), der Client schickt sie nicht mit. */
+       (default auth.uid()), der Client schickt sie nicht mit.
+       ⚠ Traegt `locations` mehr als 128 Paare, weist die Datenbank den Upsert
+       ab (Pruefklausel der Migration) — der Nutzer sieht T.presetFail. Der
+       geschmeidige Weg (eigene Meldung, Sperre beim Anheften) kommt in 09-02;
+       bis dahin scheitert es laut statt still (T-09-03). */
     return window.VBAccount.rest(preSess, 'POST', TBL + '?on_conflict=user_id,name', body,
       'resolution=merge-duplicates,return=minimal')
       .then(function (r) {
@@ -362,6 +446,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     for (var i = 0; i < presets.length; i++) {
       if (presets[i].name !== name) continue;
       S.pins = presets[i].minerals.slice();
+      S.locPins = (presets[i].locations || []).slice();
       renderAll();
       return;
     }
@@ -432,6 +517,16 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   document.addEventListener('click', function (e) {
     var t = e.target;
     if (!inWb(t)) return;
+    /* ⚠ Reihenfolge ist Pflicht: [data-locpin] MUSS vor [data-pin] geprueft
+       werden. Die bestehende [data-pin]-Abfrage behandelt jedes Element mit
+       data-pin gleich — landete ein Fundort-Paar dort, wanderte es in die
+       Signaturenliste statt in die Merkliste. */
+    var lp = t.closest('[data-locpin]');
+    if (lp) {
+      var lk = lp.getAttribute('data-locpin'), lat = S.locPins.indexOf(lk);
+      if (lat >= 0) S.locPins.splice(lat, 1); else S.locPins.push(lk);
+      renderAll(); return;
+    }
     var pin = t.closest('[data-pin]');
     if (pin) {
       var pn = pin.getAttribute('data-pin'), at = S.pins.indexOf(pn);
@@ -459,6 +554,20 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
         tabs[i3].classList.toggle('is-on', on);
         tabs[i3].setAttribute('aria-selected', String(on));
       }
+      return;
+    }
+    /* Reiterleiste Signaturen/Fundorte rechts — eigenes Attribut data-tab,
+       bewusst nicht data-seg (das gehoert der mobilen Segmentleiste oben und
+       wuerde dort kollidieren). */
+    var tab = t.closest('[data-tab]');
+    if (tab) {
+      var tk = tab.getAttribute('data-tab');
+      var sigPane = $('wb-sig-pane'), locPane = $('wb-loc-pane');
+      var sigTab = $('wb-tab-sig'), locTab = $('wb-tab-loc');
+      if (sigPane) sigPane.hidden = tk !== 'sig';
+      if (locPane) locPane.hidden = tk !== 'loc';
+      if (sigTab) { sigTab.classList.toggle('is-on', tk === 'sig'); sigTab.setAttribute('aria-selected', String(tk === 'sig')); }
+      if (locTab) { locTab.classList.toggle('is-on', tk === 'loc'); locTab.setAttribute('aria-selected', String(tk === 'loc')); }
     }
   });
 

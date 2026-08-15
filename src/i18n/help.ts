@@ -97,6 +97,9 @@ export const HELP = {
     'mining.ctl.presets': 'Benannte Zusammenstellungen dieser Liste. Mit Konto gespeichert und auf jedem Gerät verfügbar.',
     'mining.ctl.station': 'Die Station, deren Ertrag in der Rangliste hervorgehoben wird.',
     'mining.ctl.fracturing': 'Führt zum Fracturing-Rechner: dort steht, ob der Brocken mit deiner Ausrüstung bricht.',
+    'mining.ctl.locpin': 'Heftet einen Fundort an die Merkliste im zweiten Reiter — dieselbe Nadel wie bei den Erzen.',
+    'mining.ctl.tabs': 'Wechselt zwischen der Signaturenliste und der Fundort-Merkliste. Beide teilen sich dieselben Presets.',
+    'mining.ctl.shortlist': 'Die angehefteten Fundorte über alle Erze hinweg, als „Erz — Fundort".',
 
     // -- Fracturing-Rechner --
     'fracturing.title': 'Wie funktioniert der Fracturing-Rechner?',
@@ -301,6 +304,9 @@ export const HELP = {
     'fracturing.ctl.gadget': 'A gadget changes the resistance of the rock.',
     'fracturing.ctl.mass': 'The assumed mass of the rock — it sets how much damage is needed.',
     'mining.ctl.station': 'The station whose yield is highlighted in the ranking.',
+    'mining.ctl.locpin': 'Pins a location to the shortlist on the second tab — same pin as on the ore.',
+    'mining.ctl.tabs': 'Switches between the signature list and the location shortlist. Both share the same presets.',
+    'mining.ctl.shortlist': 'The pinned locations across every ore, as “Ore — Location”.',
 
     // -- Refinery Finder --
     'refineryfinder.title': 'How does the Refinery Finder work?',
