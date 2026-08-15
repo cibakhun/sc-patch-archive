@@ -546,7 +546,7 @@ Entscheidungen D-01 bis D-07 aus
 `.planning/phases/09-mining-werkbank-fundort-merkliste/CONTEXT.md` (gleicher Umgang wie
 in Phase 7).
 **Depends on:** Phase 8
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans executed
 
 Plans:
 
@@ -556,7 +556,7 @@ Plans:
   Preset-Rundlauf — maschinell belegt gegen das echte Client-Skript; danach die toten
   Reste der Detailspalte und ein Wachposten in `verify:mining` fuer den Paar-Schluessel
 
-- [ ] 09-02-PLAN.md (Welle 2) — Ausbau: Werte je Paar (Chance, Hoechstanteil),
+- [x] 09-02-PLAN.md (Welle 2) — Ausbau: Werte je Paar (Chance, Hoechstanteil),
   Loesen an beiden Enden, Gast-Arbeitsstand, Obergrenze mit Ansage; Hilfetexte und
   Oberflaeche in DE und EN auf den neuen Stand; beide Torlaeufe (normal und Vorschau)
   und die Sichtrunde benannt an den Betreiber

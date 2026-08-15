@@ -6,14 +6,14 @@ current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
 stopped_at: Completed 02-06-PLAN.md (fuenf Seitenpaare, 22 Themen-Koerper, 5 Konto-Ansichten, PilotPage, ShipsOverview auf die Skala umgestellt)
-last_updated: "2026-08-15T01:04:21.463Z"
+last_updated: "2026-08-15T01:32:37.434Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
   total_phases: 13
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 47
-  completed_plans: 40
+  completed_plans: 41
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -133,7 +133,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 85%
+Progress: [█████████░] 87%
 
 ## Performance Metrics
 
