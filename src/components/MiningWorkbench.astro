@@ -101,7 +101,11 @@ const minerals = (DB.minerals as any[])
       // ef rangiert die Fundorte; ms allein taugt dafuer nicht, weil es je Erz oft
       // an allen Fundorten identisch ist.
       locs: (m.locations || []).map((l: any) => ({
+        // `pt` = die realen Anflugpunkte. "Lagrange D" ist fuer sich keine
+        // Ortsangabe — angeflogen werden ARC-L3, CRU-L5, MIC-L4. Das Feld lag
+        // in den Daten (68 Paare) und wurde hier bisher fallen gelassen.
         p: l.location, s: l.system, t: l.type, mi: l.mining, ms: l.maxShare, ch: l.chance, ef: l.eff,
+        pt: l.points || null,
       })),
       sig: e.scanSignature || null,
       bp: blueprintsPerMineral[m.name] || 0,
@@ -151,9 +155,15 @@ const chassis2x = versioned('assets/chassis-2400.webp', '/assets/chassis-2400.we
 const S_DE = {
   minerals: 'Minerale', view: 'Ansicht', signatures: 'Signaturen', locations: 'Fundorte',
   search: 'Mineral suchen',
-  scanPlaceholder: 'Scanwert', pinHint: 'Auf einer Erz-Kachel links den Anheft-Knopf drücken — oder oben am gewählten Erz „Anheften". Diese Spalte zeigt dann seine Signatur mal Clustergröße.',
-  presets: 'Presets', presetNone: '— kein Preset —', presetSave: 'Speichern',
+  pinHint: 'Auf einer Erz-Kachel links den Anheft-Knopf drücken — oder oben am gewählten Erz „Anheften". Diese Spalte zeigt dann seine Signatur mal Clustergröße.',
+  presets: 'Presets', presetNew: 'Neues Preset', presetSave: 'Speichern',
   presetDel: 'Löschen', presetName: 'Name des Presets', presetCancel: 'Abbrechen',
+  presetRename: 'Umbenennen', presetRenamed: 'Umbenannt.', presetNameTaken: 'Dieser Name ist schon vergeben.',
+  presetListEmpty: 'Noch kein Preset gespeichert. Erze oder Fundorte anheften, dann mit „+" benennen.',
+  presetDelAsk: 'Wirklich löschen?', presetUpdAsk: 'Wirklich überschreiben?',
+  presetUpdate: 'Mit der aktuellen Auswahl überschreiben', presetUpdated: 'Überschrieben.',
+  presetShow: 'Inhalt anzeigen', presetHide: 'Inhalt ausblenden',
+  presetRemoveEntry: 'Aus dem Preset entfernen', presetNoEntries: 'Dieses Preset ist leer.',
   presetGuest: 'Zusammenstellungen speichern:', presetLogin: 'anmelden',
   presetSaved: 'Gespeichert.', presetDeleted: 'Gelöscht.',
   presetEmpty: 'Erst Erze oder Fundorte anheften, dann speichern.', presetFail: 'Speichern fehlgeschlagen.',
@@ -164,15 +174,23 @@ const S_DE = {
   locPinsFull: 'Die Merkliste ist voll (128 Fundorte). Erst einen lösen, dann neu anheften.',
   ship: 'Schiff', hand: 'Hand', roc: 'ROC', refinable: 'raffinierbar',
   chance: 'Chance', upTo: 'bis', yieldAvg: 'Ø-Anteil',
+  tPlanet: 'Planet', tMoon: 'Mond', tBelt: 'Gürtel', tLagrange: 'Lagrange', tCluster: 'Cluster',
+  tCave: 'Höhle', tEvent: 'Event', tSpecial: 'Sonderort',
   bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl',
   usedIn: 'Blueprints', ships: 'Schiffe', openCrafting: 'Crafting öffnen',
 };
 const S_EN = {
   minerals: 'Minerals', view: 'View', signatures: 'Signatures', locations: 'Locations',
   search: 'Search mineral',
-  scanPlaceholder: 'Scan value', pinHint: 'Hit the pin button on an ore tile at the left — or “Pin” above the selected ore. This column then shows its signature times cluster size.',
-  presets: 'Presets', presetNone: '— no preset —', presetSave: 'Save',
+  pinHint: 'Hit the pin button on an ore tile at the left — or “Pin” above the selected ore. This column then shows its signature times cluster size.',
+  presets: 'Presets', presetNew: 'New preset', presetSave: 'Save',
   presetDel: 'Delete', presetName: 'Preset name', presetCancel: 'Cancel',
+  presetRename: 'Rename', presetRenamed: 'Renamed.', presetNameTaken: 'That name is already taken.',
+  presetListEmpty: 'No preset saved yet. Pin ores or locations, then name one with the plus button.',
+  presetDelAsk: 'Really delete?', presetUpdAsk: 'Really overwrite?',
+  presetUpdate: 'Overwrite with the current selection', presetUpdated: 'Overwritten.',
+  presetShow: 'Show contents', presetHide: 'Hide contents',
+  presetRemoveEntry: 'Remove from preset', presetNoEntries: 'This preset is empty.',
   presetGuest: 'Save your sets:', presetLogin: 'sign in',
   presetSaved: 'Saved.', presetDeleted: 'Deleted.',
   presetEmpty: 'Pin some ores or locations first, then save.', presetFail: 'Saving failed.',
@@ -183,6 +201,8 @@ const S_EN = {
   locPinsFull: 'The shortlist is full (128 locations). Unpin one before pinning another.',
   ship: 'Ship', hand: 'Hand', roc: 'ROC', refinable: 'refinable',
   chance: 'chance', upTo: 'up to', yieldAvg: 'avg share',
+  tPlanet: 'Planet', tMoon: 'Moon', tBelt: 'Belt', tLagrange: 'Lagrange', tCluster: 'Cluster',
+  tCave: 'Cave', tEvent: 'Event', tSpecial: 'Special',
   bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick',
   usedIn: 'Blueprints', ships: 'Ships', openCrafting: 'Open crafting',
 };
@@ -248,6 +268,47 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     <symbol id="wb-i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M9.5 3h5M11 3v6.2L7.4 13h9.2L13 9.2V3M12 13v8" />
+    </symbol>
+    {/* Stift fuer "Umbenennen" an der Preset-Zeile (Phase 10, D-02 Form 1) —
+        dieselbe Bauform wie #wb-i-pin daneben, kein zweites Icon-Verfahren. */}
+    <symbol id="wb-i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z" />
+      <path d="M13.5 6.5l4 4" />
+    </symbol>
+    {/* Muelleimer fuer "Loeschen" (Phase 10, D-01) — dasselbe Symbol, das der
+        Konto-Bereich fuer seine Gefahrenzone benutzt (#ic-trash in
+        AccountDashboard.astro). Kein neu erfundenes Zeichen, und "×" bleibt
+        dadurch eindeutig "Abbrechen/Schliessen". */}
+    <symbol id="wb-i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6" />
+    </symbol>
+    {/* Kreispfeil — "aktualisieren mit der aktuellen Auswahl" (Phase 10, D-02
+        Form 2: Ueberschreiben). Betreiber-Befund 15.08.2026: das vorherige
+        Zeichen (Pfeil nach unten in eine offene Wanne) ist die uebliche
+        Download-Glyphe und wurde genau so gelesen — hier wird aber nichts
+        heruntergeladen, sondern der gespeicherte Inhalt mit dem Arbeitsstand
+        ersetzt. */}
+    {/* ⚠⚠ Betreiber-Befund "das icon ist nicht in der mitte", zweimal gemeldet.
+        Der erste Anlauf richtete die BOUNDING BOX am Papierkorb aus (Mitte y 12,5)
+        und lag falsch: der Pfeilsporn oben rechts zieht die Box mit, dadurch rutschte
+        der RING auf y 12,52 und hing sichtbar unter der Mitte. Bei einem Ring liest
+        das Auge den Kreismittelpunkt, nicht die Box — der Sporn darf ueberhaengen.
+        Jetzt: Ring-Mitte exakt 12/12, Aussendurchmesser 17,50. Die Nachbarn messen
+        17,80 (Papierkorb) und 17,12 (Stift); ein Kreis wirkt bei gleicher Box
+        groesser als eine eckige Form, deshalb bewusst am unteren Ende der Spanne.
+        stroke-width 2.32 gleicht die 0,861-Skalierung aus, damit der sichtbare
+        Strich wieder bei 2 landet wie bei allen anderen Symbolen.
+        ⭐ Lehre fuer das naechste Symbol: an der Form ausrichten, die die Figur
+        traegt (Ring, Korpus), nicht an der Umgrenzung samt Auslegern. */}
+    <symbol id="wb-i-update" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.32" stroke-linecap="round" stroke-linejoin="round">
+      <g transform="translate(12,12) scale(0.861) translate(-12,-12)">
+        <path d="M21 3v6h-6" />
+        <path d="M21 12a9 9 0 1 1-3.2-6.9L21 9" />
+      </g>
     </symbol>
   </svg>
 
@@ -339,21 +400,12 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 
     <!-- =========================================== Spalte 3: Signaturen -->
     <div class="wb__pane wb__pane--sig chamf">
-      {/* Zwei Reiter teilen sich die Spalte: Signaturen (Scan-Zuordnung) und
-          die erz-uebergreifende Fundort-Merkliste (D-06). ⚠ `data-tab`, NICHT
-          `data-seg` — das gehoert der mobilen Segmentleiste aus mountSeg()
-          und wuerde dort kollidieren. */}
-      <div class="wb__tabs" id="wb-tabbar" role="tablist" data-help={hlp('tabs')}>
-        <button type="button" class="wb__chip wb__tab is-on" id="wb-tab-sig" data-tab="sig"
-                role="tab" aria-selected="true" aria-controls="wb-sig-pane" set:text={S.signatures} />
-        <button type="button" class="wb__chip wb__tab" id="wb-tab-loc" data-tab="loc"
-                role="tab" aria-selected="false" aria-controls="wb-loc-pane" set:text={S.locations} />
-      </div>
-
       {/* Presets — benannte Zusammenstellungen BEIDER Listen, kontogebunden
-          (Tabelle mining_sig_presets, RLS wie crafting_entries). Bewusst
-          AUSSERHALB beider Reiter: das ist die sichtbare Form von „ein
-          gemeinsames Preset-System" (D-04).
+          (Tabelle mining_sig_presets, RLS wie crafting_entries). Bewusst AN
+          OBERSTER STELLE der Spalte: das ist die sichtbare Form von „ein
+          gemeinsames Preset-System" (D-04). Seit Phase 10 (D-03) steht hier
+          kein Reiter mehr darueber — die Kopfpolsterung dieses Blocks ist
+          deshalb direkt auf den Spaltenrand abgestimmt (s. Stilblock).
           ⚠ Die ANGEHEFTETEN Listen selbst bleiben im localStorage: sie sind
           der Arbeitsstand und muessen ohne Konto funktionieren. Ans Konto
           geht nur, was man benennt und wieder aufruft. Zwei getrennte Dinge;
@@ -361,12 +413,12 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
           Serverseitig steht hier der Gast-Zustand — welcher Fall gilt, weiss
           erst der Browser (VBAccount.session()). */}
       <div class="wb__pre" id="wb-pre" data-help={hlp('presets')}>
-        <div class="wb__pre__row" id="wb-pre-pick" hidden>
-          <select class="wb__pre__sel" id="wb-preset" aria-label={S.presets}>
-            <option value="" set:text={S.presetNone} />
-          </select>
-          <button type="button" class="wb__pre__b" id="wb-pre-new" title={S.presetSave} aria-label={S.presetSave}>+</button>
-          <button type="button" class="wb__pre__b" id="wb-pre-del" title={S.presetDel} aria-label={S.presetDel} disabled>×</button>
+        <div class="wb__pre__pick" id="wb-pre-pick" hidden>
+          <div class="wb__pre__bar">
+            <span class="wb__lbl" set:text={S.presets} />
+            <button type="button" class="wb__pre__b is-go" id="wb-pre-new" title={S.presetNew} aria-label={S.presetNew}>+</button>
+          </div>
+          <div class="wb__pre__list" id="wb-preset-list"></div>
         </div>
         {/* Eigene Zeile statt window.prompt(): der Dialog ist in vielen
             Browsern unterdrueckt, sieht ueberall anders aus und laesst sich
@@ -382,15 +434,24 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
         </p>
       </div>
 
-      <div id="wb-sig-pane" class="wb__tabpane" role="tabpanel" aria-labelledby="wb-tab-sig">
-        <div class="wb__scanbox">
-          <input class="wb__scan num" id="wb-scan" type="text" inputmode="numeric" placeholder={S.scanPlaceholder} aria-label={S.scanPlaceholder} data-help={hlp('scan')} />
+      {/* Signaturen und Fundort-Merkliste stehen seit Phase 10 (D-03) BEIDE
+          gleichzeitig sichtbar untereinander statt hinter einem Reiter — ein
+          Reiter zeigt zwangslaeufig immer nur eine der beiden Listen, das war
+          der eigentliche Grund fuer den teuersten Befund aus CONTEXT.md.
+          Beide Kaesten teilen sich die Resthoehe der Spalte (flex:1 1 0 mit
+          min-height:0 an .wb__sec2, s. Stilblock) und tragen je eine eigene
+          Ueberschrift mit Zaehler (Formvorbild #wb-loch in Spalte 2). Die ids
+          wb-pinsh/wb-lpinsh sind neu, weil wb-loch in Spalte 2 bereits die
+          Fundort-Ueberschrift des gewaehlten Erzes belegt. */}
+      <div class="wb__stack">
+        <div class="wb__sec2">
+          <h4 id="wb-pinsh" set:text={S.signatures} />
+          <div class="wb__scroll" id="wb-pins" data-help={hlp('pins')}></div>
         </div>
-        <div class="wb__scroll" id="wb-pins" data-help={hlp('pins')}></div>
-      </div>
-
-      <div id="wb-loc-pane" class="wb__tabpane" role="tabpanel" aria-labelledby="wb-tab-loc" hidden>
-        <div class="wb__scroll" id="wb-locpins" data-help={hlp('shortlist')}></div>
+        <div class="wb__sec2">
+          <h4 id="wb-lpinsh" set:text={S.locations} />
+          <div class="wb__scroll" id="wb-locpins" data-help={hlp('shortlist')}></div>
+        </div>
       </div>
     </div>
   </div>
@@ -497,17 +558,23 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     color-mix(in srgb,var(--accent) 40%,transparent) calc(50% - .5px) calc(50% + .5px),
     var(--bg) calc(50% + .5px) 100%)}
 
-/* 470/262 statt 420/232 (12.08.2026): die Erzliste braucht die Breite fuer
-   groessere Kacheln, die Signaturenspalte fuer die Preset-Zeile. Die 80 px
-   kommen aus der Mittelspalte, die seit dem Auszug des Fracturing-Rechners
-   Luft hat. */
-/* ⚠ Die Hoehe kommt NICHT mehr aus `100vh - --wb-chrome`, sondern aus der
-   Bildflaeche des Gehaeuses: die Grafik hat ein festes Seitenverhaeltnis, also
-   ist die verfuegbare Hoehe eine Folge der Breite. Eine zweite, davon
-   unabhaengige Hoehenrechnung wuerde sich zwangslaeufig widersprechen.
-   `--wb-chrome` bleibt fuer die schmalen Breiten unten stehen, wo das Gehaeuse
-   entfaellt. */
-.wb__grid{display:grid;grid-template-columns:minmax(0,470px) minmax(0,1fr) minmax(0,262px);
+/* 470/330 statt 470/262 (15.08.2026, Phase 10, D-04): die rechte Spalte legt
+   68 px zu, weil sie seit dem Wegfall der Reiter beide Listen UND die
+   Preset-Zeile gleichzeitig traegt. Die 68 px kommen aus der MITTLEREN
+   Spalte (1fr), die seit dem Auszug des Fracturing-Rechners Luft hat — NICHT
+   aus der Erzliste, die am 12.08.2026 bewusst auf 470 px verbreitert wurde,
+   damit die Kacheln gross genug zum Treffen sind. */
+/* ⚠ Die HOEHE kommt seit dem Gehaeuse (15.08.2026) NICHT mehr aus
+   `100vh - --wb-chrome`, sondern aus der Bildflaeche: die Grafik hat ein
+   festes Seitenverhaeltnis, also ist die verfuegbare Hoehe eine Folge der
+   Breite. Eine zweite, davon unabhaengige Hoehenrechnung wuerde sich
+   zwangslaeufig widersprechen. `--wb-chrome` bleibt fuer die schmalen Breiten
+   unten stehen, wo das Gehaeuse entfaellt.
+   Die Spaltenbreiten aus Phase 10 bleiben unangetastet — nur `minmax(0,…)`
+   statt fester Werte, weil das Raster jetzt in einem Flex-Kasten sitzt und
+   eine feste Spalte dort nicht mehr schrumpfen duerfte. */
+.wb__grid{display:grid;
+  grid-template-columns:minmax(0,470px) minmax(0,1fr) minmax(0,330px);
   gap:10px;min-height:0;flex:1}
 .wb__scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
 
@@ -660,50 +727,132 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__link b{color:var(--accent-2);font-family:var(--font-mono,ui-monospace)}
 
 /* ---------------- Spalte 3 ---------------- */
-/* Reiterleiste ueber Signaturen/Fundorte — Polsterung wie die Filterleiste
-   in Spalte 1, aber eine Zeile (der Container ist von Haus aus
-   flex-direction:row). Ueber die ID gestylt, nicht ueber ihre Markup-Klasse:
-   das Aussehen haengt an EINEM Element und braucht dafuer keinen zweiten
-   Treffer im Stilblock (is:inline zaehlt jedes Zeichen im ausgelieferten
-   HTML mit). */
-#wb-tabbar{flex:0 0 auto;display:flex;gap:5px;padding:9px 10px}
-.wb__tab{flex:1}
-/* Nur EIN Reiterkoerper ist je sichtbar. ⚠ Reihenfolge ist Pflicht: ohne die
-   zweite Regel schluege `display:flex` das `hidden`-Attribut — derselbe Fall
-   ist mit .wb__pre__row[hidden] schon geloest. */
-.wb__tabpane{display:flex;flex-direction:column;flex:1;min-height:0}
-.wb__tabpane[hidden]{display:none}
-.wb__scanbox{padding:9px 9px 8px}
-.wb__scan{width:100%;background:color-mix(in srgb,var(--ink) 40%,transparent);border:0;color:var(--hot);
-  padding:8px 10px;font-size:var(--fs-9);text-align:center;border-radius:7px;
-  box-shadow:inset 0 1px 3px color-mix(in srgb,var(--ink) 60%,transparent)}
-.wb__scan::placeholder{color:color-mix(in srgb,var(--muted) 80%,transparent);font-family:var(--font-ui,inherit);font-size:var(--fs-5)}
+/* ⚠ Reiterleiste und Scanwert-Feld sind in Phase 10 (D-04) ausgebaut worden —
+   beide Listen stehen jetzt gestapelt in der rechten Spalte. Beim Merge des
+   Gehaeuse-Zweiges am 15.08.2026 stand hier deren alte Fassung samt violettem
+   Scanwert-Feld; sie ist bewusst NICHT wiedergekommen. Violett traegt jetzt
+   die Kachelsignaturen, den grossen Signaturwert und die Anteilsbalken. */
 /* Preset-Zeile. Zwei Zustaende teilen sich denselben Platz (Auswahl bzw.
    Namenseingabe) — beide sind eine Zeile hoch, damit die Spalte nicht
-   springt, wenn man auf „+" drueckt. Kopfpolsterung neu (8 statt 0): die
-   Zeile sitzt jetzt direkt unter den Reitern statt unter dem Scan-Kasten. */
+   springt, wenn man auf „+" drueckt. Kopfpolsterung wie die Filterleiste in
+   Spalte 1: seit Phase 10 (D-03) faellt die frühere Reiterleiste darueber
+   weg, die Zeile sitzt jetzt direkt am Spaltenrand. */
 .wb__pre{flex:0 0 auto;padding:8px 9px 8px}
 .wb__pre__row{display:flex;gap:5px;align-items:center}
 .wb__pre__row[hidden]{display:none}
-.wb__pre__sel,.wb__pre__in{flex:1;min-width:0;border:0;border-radius:7px;font-family:inherit;
+/* Presetzeile als senkrechter Block statt <select> (D-05): Kopfzeile
+   (Beschriftung + "+") ueber der sichtbaren Liste. ⚠ Reihenfolge ist
+   Pflicht: [hidden] MUSS NACH der display-Regel stehen, sonst schlaegt
+   display:flex das hidden-Attribut (Pitfall 2, s.o. bereits zweimal geloest). */
+.wb__pre__pick{display:flex;flex-direction:column;gap:6px}
+.wb__pre__pick[hidden]{display:none}
+.wb__pre__bar{display:flex;align-items:center;gap:6px}
+.wb__pre__bar .wb__pre__b{margin-left:auto}
+.wb__pre__list{display:flex;flex-direction:column;gap:3px}
+.wb__pre__in{flex:1;min-width:0;border:0;border-radius:7px;font-family:inherit;
   font-size:var(--fs-4);padding:6px 8px;color:var(--text);
   /* Deckend mischen — ein halbtransparenter Grund vererbt sich in Chrome an
      die aufgeklappte Liste und rechnet sie ueber Weiss unleserlich. */
   background:color-mix(in srgb,var(--ink) 34%,var(--surface))}
-.wb__pre__sel option{background:var(--surface);color:var(--text)}
 .wb__pre__b{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;border:0;
   border-radius:7px;cursor:pointer;font-family:inherit;font-size:var(--fs-6);line-height:1;
   background:color-mix(in srgb,var(--ink) 34%,transparent);color:var(--muted);
   transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
 .wb__pre__b:hover:not(:disabled){background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text)}
 .wb__pre__b.is-go{background:color-mix(in srgb,var(--accent-2) 22%,transparent);color:var(--accent-2)}
-.wb__pre__b:disabled{opacity:.32;cursor:not-allowed}
 .wb__pre__msg{margin:5px 0 0;font-size:var(--fs-3);color:var(--accent-2)}
 .wb__pre__msg[hidden]{display:none}
 .wb__pre__guest{margin:0;font-size:var(--fs-3);line-height:1.4;
   color:color-mix(in srgb,var(--muted) 88%,transparent)}
 .wb__pre__guest[hidden]{display:none}
 .wb__pre__guest a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+
+/* Zwei gestapelte Listen (D-03) statt zwei Reiterkoerper: Signaturen und
+   Fundort-Merkliste teilen sich die Resthoehe der Spalte, jede mit eigener
+   Ueberschrift und eigenem Bildlauf. flex:1 1 0 UND min-height:0 sind an
+   .wb__sec2 beide Pflicht — ohne die Null-Basis bekaeme der erste Kasten
+   die ganze Resthoehe, ohne min-height:0 wuechse er ueber seinen Elternteil
+   hinaus statt innen zu scrollen (dasselbe Muster traegt bereits .wb__pane
+   weiter oben). */
+.wb__stack{display:flex;flex-direction:column;flex:1;min-height:0}
+.wb__sec2{display:flex;flex-direction:column;flex:1 1 0;min-height:0;padding:0 0 4px}
+.wb__sec2 h4{flex:0 0 auto;font-size:var(--fs-4);font-weight:600;
+  color:color-mix(in srgb,var(--muted) 88%,transparent);
+  margin:0;padding:9px 10px 6px;position:relative}
+.wb__sec2 h4::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;
+  background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--text) 14%,transparent) 0 1px,transparent 1px 7px)}
+
+/* Eine Preset-Zeile — Vorbild .wb__pin-item (Name+Aktion-Zeile), Auswahl-
+   zustand wortgleich zu .wb__tile.is-sel (D-05). */
+.wb__pre-item{padding:6px 8px;border-radius:8px;background:color-mix(in srgb,var(--ink) 22%,transparent)}
+.wb__pre-item.is-sel{background:color-mix(in srgb,var(--accent-2) 20%,transparent);
+  box-shadow:inset 0 0 0 1px var(--accent-2)}
+.wb__pre-top{display:flex;align-items:center;gap:6px}
+.wb__pre-act{display:flex;align-items:center;gap:5px;margin-top:3px}
+.wb__pre-name{flex:1;min-width:0;border:0;background:0;padding:0;margin:0;text-align:left;
+  font-family:inherit;font-size:var(--fs-5);color:var(--text);cursor:pointer;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Zaehlzeile — seit D-02 Form 3 zugleich der Aufklapp-Griff: die Zahl selbst
+   ist der Griff (button statt span), aria-expanded traegt den Zustand. Kein
+   Klappzeichen aus einer Schriftart. */
+.wb__pre-cnt{margin-right:auto;border:0;background:0;padding:0;font-family:inherit;text-align:left;
+  cursor:pointer;font-size:var(--fs-3);color:color-mix(in srgb,var(--muted) 88%,transparent);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__pre-a{flex:0 0 auto;width:22px;height:22px;display:grid;place-items:center;border:0;
+  border-radius:6px;cursor:pointer;background:color-mix(in srgb,var(--ink) 34%,transparent);
+  color:color-mix(in srgb,var(--muted) 78%,transparent);
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__pre-a:hover{background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text)}
+.wb__pre-a svg{width:13px;height:13px;pointer-events:none}
+/* Loeschen (D-01): eigenes Symbol (Muelleimer statt ×), eigener
+   Ueberfahren-Farbton — der Ruhezustand bleibt wie jeder andere
+   Symbolknopf (.wb__pre-a), nur der Hover-Ton weicht ab. */
+.wb__pre-a--del:hover{color:var(--accent-2)}
+/* Beide Rueckfragen (Loeschen UND Ueberschreiben, seit 15.08.2026) ersetzen
+   die ganze Aktionszeile ueber die volle Breite (statt in der 22-px-Ecke zu
+   sitzen) und tragen als einzige Aktionen im Bauteil Worte statt eines
+   Zeichens. Nur EINE steht je Zeile gleichzeitig (preAsk/preAskWhat in
+   assets/mining-workbench.js) -- welche, entscheidet der Modifikator
+   darunter, nicht diese Basisregel. */
+.wb__pre-ask{width:100%;display:block;border:0;border-radius:7px;cursor:pointer;
+  font-family:inherit;font-size:var(--fs-4);font-weight:600;padding:4px;color:var(--ink)}
+/* ⚠ Die Worte stehen NICHT auf der Schraffur, sondern auf einer ruhigen
+   Flaeche darin -- die Schraffur bleibt der Rahmen. Gemessen am Bildpunkt
+   (nicht aus dem CSS geschaetzt): Schrift direkt auf den hellen Streifen-
+   haelften ergab 2,6:1 (hell) bzw. 3,4:1 (dunkel) und riss damit AA (4,5:1
+   bei 12,6 px). Auf --surface/--text gilt der site-weit gepruefte
+   Koerpertext-Kontrast. Der Warnwert der Schraffur bleibt erhalten, weil sie
+   die Flaeche vollstaendig umschliesst. */
+.wb__pre-ask>span{display:block;background:var(--surface);color:var(--text);
+  border-radius:4px;padding:3px 6px}
+/* Loeschen verwirft ENDGUELTIG und ohne jede Korrektur -- Warnschraffur wie
+   .danger-card .dz-hazard in assets/account-dossier.css Zeile 380, in
+   --accent-2 (Amber/Gold): kein Hex-Wert, kein neuer Token (⚠ var(--hot)
+   ist auf dieser Seite KEINE Gefahrenfarbe, siehe src/components/topics/
+   mining.astro Zeile 26: dort gleich --accent). */
+.wb__pre-ask--del{background:repeating-linear-gradient(-45deg,var(--accent-2) 0 9px,
+    color-mix(in srgb,var(--accent-2) 55%,var(--ink)) 9px 18px)}
+/* Ueberschreiben verwirft den gespeicherten Inhalt ebenso unwiederbringlich
+   und bekommt deshalb dieselbe Warn-Bildsprache (Diagonalschraffur, Worte
+   statt Zeichen) -- MUSS sich aber auf einen Blick von "Loeschen"
+   unterscheiden lassen, sonst wiederholt sich genau der teuerste Befund
+   dieser Phase (CONTEXT.md) nur an neuer Stelle. Deshalb --accent (Teal)
+   statt --accent-2 (Amber/Gold): derselbe Kontrast zu --ink, ein anderer
+   Farbton, wieder kein neuer Hex-Wert. */
+.wb__pre-ask--upd{background:repeating-linear-gradient(-45deg,var(--accent) 0 9px,
+    color-mix(in srgb,var(--accent) 55%,var(--ink)) 9px 18px)}
+/* Aufklapp-Ansicht einer Preset-Zeile (D-02 Form 3): bleibt INNERHALB der
+   Panelgrenzen -- .wb__pane traegt overflow:hidden und schneidet jede
+   Overlay-Positionierung restlos weg (Pitfall 1, bereits einmal vorgefuehrt
+   und zurueckgenommen). Die Klasse wb__scroll daneben liefert die sichtbare
+   Bildlaufleiste, weil assets/mobile-ux.css sie klassenbasiert registriert
+   -- kein neuer Eintrag dort noetig. */
+.wb__pre-body{max-height:150px;margin-top:5px;display:flex;flex-direction:column;gap:2px}
+.wb__pre-ent{display:flex;align-items:center;gap:6px;font-size:var(--fs-3);
+  color:color-mix(in srgb,var(--muted) 92%,transparent);padding:2px 4px}
+.wb__pre-ent span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__pre-ent button{margin-left:auto;background:0;border:0;color:color-mix(in srgb,var(--muted) 80%,transparent);
+  cursor:pointer;font-size:var(--fs-6);line-height:1;padding:0 2px}
 
 .wb__pin-item{padding:7px 9px;margin:0 6px 3px;border-radius:8px;
   background:color-mix(in srgb,var(--ink) 22%,transparent)}
@@ -724,7 +873,6 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__mult i{flex:1;font-family:var(--font-mono,ui-monospace);font-size:var(--fs-3);font-style:normal;
   text-align:center;padding:3px 0;border-radius:5px;color:var(--muted);
   background:color-mix(in srgb,var(--ink) 40%,transparent)}
-.wb__mult i.is-hit{background:var(--accent-2);color:var(--ink);font-weight:600}
 .wb__empty{padding:16px 12px;text-align:center;color:color-mix(in srgb,var(--muted) 88%,transparent);
   font-size:var(--fs-4);line-height:1.55;margin:0}
 
@@ -764,9 +912,10 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__frac__t .wb__lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wb__frac__go{flex:0 0 auto;font-size:var(--fs-4);font-weight:600;color:var(--accent);white-space:nowrap}
 
-.wb__search:focus-visible,.wb__scan:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
+.wb__search:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
 .wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible,
-.wb__pre__sel:focus-visible,.wb__pre__in:focus-visible,.wb__pre__b:focus-visible,
+.wb__pre__in:focus-visible,.wb__pre__b:focus-visible,
+.wb__pre-name:focus-visible,.wb__pre-cnt:focus-visible,.wb__pre-a:focus-visible,.wb__pre-ask:focus-visible,
 .wb__frac:focus-visible,.wb__pinbig:focus-visible,.wb__lpin:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 /* Das Sprite traegt nur <symbol> und darf keinen Platz belegen. */
 .wb__sprite{position:absolute;width:0;height:0;overflow:hidden}

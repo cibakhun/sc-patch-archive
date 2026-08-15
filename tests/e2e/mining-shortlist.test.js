@@ -40,6 +40,81 @@ function selectMineral(ctx, name) {
   ctx.fire(tile, 'click');
 }
 
+/** Die Preset-Zeile mit passendem data-preset in #wb-preset-list, oder null
+ *  (Phase 10, Plan 01, D-05: Liste statt <select>). Gesucht ueber die
+ *  Zeilenklasse .wb__pre-item, nicht ueber einen Attributselektor -- der
+ *  Mock-Parser in dom-mock.js kennt keine wertlosen "[attr]"-Selektoren
+ *  (siehe Kopfkommentar mining-dom.js Punkt 1). */
+function presetRow(ctx, name) {
+  return ctx.document.getElementById('wb-preset-list').querySelectorAll('.wb__pre-item')
+    .find((row) => row.getAttribute('data-preset') === name) || null;
+}
+
+/** Klick auf die Namensflaeche einer Preset-Zeile -- der Ersatz fuer das
+ *  fruehere `ctx.elements['wb-preset'].value = name` (D-05). Bauplan:
+ *  selectMineral() oben. */
+function selectPreset(ctx, name) {
+  const row = presetRow(ctx, name);
+  assert.ok(row, `Preset-Zeile fuer "${name}" nicht im Mock-DOM gefunden`);
+  const btn = row.querySelector('.wb__pre-name');
+  assert.ok(btn, `Auswahlknopf in der Preset-Zeile "${name}" nicht gefunden`);
+  ctx.fire(btn, 'click');
+}
+
+/** Der Umbenennen-Knopf (Stift) einer Preset-Zeile. Ueber das Attribut
+ *  gefiltert statt per Reihenfolge -- Task 3 fuegt einen weiteren Knopf mit
+ *  derselben Klasse .wb__pre-a VOR dem Stift ein (Ueberschreiben). */
+function renameBtn(ctx, name) {
+  const row = presetRow(ctx, name);
+  if (!row) return null;
+  return row.querySelectorAll('.wb__pre-a').find((b) => b.getAttribute('data-pre-rename') !== null) || null;
+}
+
+/** Der Loeschknopf (Muelleimer) einer Preset-Zeile (Phase 10, Plan 01, Task 2, D-01). */
+function deleteBtn(ctx, name) {
+  const row = presetRow(ctx, name);
+  return row ? row.querySelector('.wb__pre-a--del') : null;
+}
+
+/** Die beschriftete Rueckfrage-Schaltflaeche, sobald sie fuer diese Zeile steht (sonst null). */
+function askBtn(ctx, name) {
+  const row = presetRow(ctx, name);
+  return row ? row.querySelector('.wb__pre-ask') : null;
+}
+
+/** Der Ueberschreiben-Knopf (Ablage-Pfeil) einer Preset-Zeile (Phase 10, Plan 01, Task 3, D-02 Form 2). */
+function updateBtn(ctx, name) {
+  const row = presetRow(ctx, name);
+  if (!row) return null;
+  return row.querySelectorAll('.wb__pre-a').find((b) => b.getAttribute('data-pre-update') !== null) || null;
+}
+
+/** Die Zaehlzeile, zugleich der Aufklapp-Griff (D-02 Form 3). */
+function openBtn(ctx, name) {
+  const row = presetRow(ctx, name);
+  return row ? row.querySelector('.wb__pre-cnt') : null;
+}
+
+/** Die aufgeklappte Ansicht einer Preset-Zeile, oder null, solange sie zu ist. */
+function entryBody(ctx, name) {
+  const row = presetRow(ctx, name);
+  return row ? row.querySelector('.wb__pre-body') : null;
+}
+
+/** Der Entfernen-Knopf eines einzelnen Erzes in der aufgeklappten Ansicht. */
+function rmMinBtn(ctx, name, mineral) {
+  const body = entryBody(ctx, name);
+  if (!body) return null;
+  return body.querySelectorAll('button').find((b) => b.getAttribute('data-pre-rmmin') === mineral) || null;
+}
+
+/** Der Entfernen-Knopf eines einzelnen Fundort-Paares in der aufgeklappten Ansicht. */
+function rmLocBtn(ctx, name, pair) {
+  const body = entryBody(ctx, name);
+  if (!body) return null;
+  return body.querySelectorAll('button').find((b) => b.getAttribute('data-pre-rmloc') === pair) || null;
+}
+
 function tilePinBtn(ctx, name) {
   const tile = ctx.document.getElementById('wb-list').querySelectorAll('.wb__tile')
     .find((t) => t.getAttribute('data-min') === name);
@@ -95,6 +170,16 @@ function lastPostBody(ctx) {
   return posts[posts.length - 1];
 }
 
+function lastPatchCall(ctx) {
+  const patches = ctx.account.calls.filter((c) => c.method === 'PATCH');
+  assert.ok(patches.length, 'kein PATCH-Aufruf protokolliert');
+  return patches[patches.length - 1];
+}
+
+function countCalls(ctx, method) {
+  return ctx.account.calls.filter((c) => c.method === method).length;
+}
+
 // ---------------------------------------------------------------------
 // D-04: ein VOR dieser Phase gespeichertes Preset laedt weiterhin.
 // ---------------------------------------------------------------------
@@ -102,10 +187,11 @@ function lastPostBody(ctx) {
 test('Preset in der alten Form (kein locations-Feld) laedt: Signaturen vollstaendig, Merkliste leer, kein Fehler', async () => {
   const ctx = await runAsync({ account: { rows: [{ name: 'Alt', minerals: ['Gold'] }] } });
 
-  const options = ctx.elements['wb-preset'].children.map((o) => o.getAttribute('value'));
-  assert.ok(options.includes('Alt'), `Preset "Alt" steht nicht in der Auswahl (gefunden: ${options.join(', ')})`);
+  const names = ctx.document.getElementById('wb-preset-list').querySelectorAll('.wb__pre-item')
+    .map((row) => row.getAttribute('data-preset'));
+  assert.ok(names.includes('Alt'), `Preset "Alt" steht nicht in der Liste (gefunden: ${names.join(', ')})`);
 
-  ctx.elements['wb-preset'].value = 'Alt'; // fires 'change' -> preApply('Alt')
+  selectPreset(ctx, 'Alt');
 
   assert.match(
     ctx.document.getElementById('wb-pins').textContent,
@@ -122,7 +208,7 @@ test('Preset in der alten Form (kein locations-Feld) laedt: Signaturen vollstaen
 test('Preset mit locations: null verhaelt sich wie ein Preset ohne das Feld', async () => {
   const ctx = await runAsync({ account: { rows: [{ name: 'AltNull', minerals: ['Gold'], locations: null }] } });
 
-  ctx.elements['wb-preset'].value = 'AltNull';
+  selectPreset(ctx, 'AltNull');
 
   assert.match(ctx.document.getElementById('wb-pins').textContent, /Gold/);
   assert.strictEqual(ctx.document.getElementById('wb-locpins').textContent, ctx.T.locPinsEmpty);
@@ -199,7 +285,7 @@ test('Merkliste leeren, dasselbe Preset erneut waehlen -> das Paar ist wieder da
   );
 
   // Dasselbe Preset erneut waehlen.
-  ctx.elements['wb-preset'].value = 'Zweiter-Rundlauf';
+  selectPreset(ctx, 'Zweiter-Rundlauf');
 
   const box = ctx.document.getElementById('wb-locpins');
   assert.strictEqual(box.querySelectorAll('.wb__pin-item').length, 1, 'das Paar sollte nach erneutem Waehlen wieder da sein');
@@ -222,13 +308,13 @@ test('Preset A und Preset B im Wechsel: die Merkliste zeigt je Wechsel genau die
     },
   });
 
-  ctx.elements['wb-preset'].value = 'A';
+  selectPreset(ctx, 'A');
   let box = ctx.document.getElementById('wb-locpins');
   assert.strictEqual(box.querySelectorAll('.wb__pin-item').length, 1, 'Preset A sollte genau einen Eintrag zeigen');
   assert.match(box.textContent, /Quantainium/);
   assert.doesNotMatch(box.textContent, /Gold/, 'Preset A darf Golds Paar nicht zeigen (keine Vereinigung)');
 
-  ctx.elements['wb-preset'].value = 'B';
+  selectPreset(ctx, 'B');
   box = ctx.document.getElementById('wb-locpins');
   assert.strictEqual(box.querySelectorAll('.wb__pin-item').length, 1, 'Preset B sollte genau einen Eintrag zeigen');
   assert.match(box.textContent, /Gold/);
@@ -279,7 +365,7 @@ test('ein Paar mit unbekanntem Erz ODER unbekanntem Fundort faellt beim Laden st
     },
   });
 
-  ctx.elements['wb-preset'].value = 'Mix';
+  selectPreset(ctx, 'Mix');
 
   const box = ctx.document.getElementById('wb-locpins');
   assert.strictEqual(box.querySelectorAll('.wb__pin-item').length, 1, 'nur das gueltige Paar sollte uebrig bleiben');
@@ -353,11 +439,17 @@ test('Merklisten-Eintrag zeigt System, Chance, Hoechstanteil und Ø-Anteil aus d
      unsortiert aus (Silicon: 69,5 → 36 → 36 → 51,5 %). Geprueft bleibt, worum es
      dem Test geht: JEDER Wert stammt aus dem Katalog, keiner aus dem Paar. */
   const sysSpan = meta.querySelector('span');
-  assert.ok(sysSpan, 'Wertezeile sollte System und Detailwerte in einer <span> tragen');
+  assert.ok(sysSpan, 'Wertezeile sollte Ortsart, System und Detailwerte in einer <span> tragen');
+  /* Die Ortsart steht seit 15.08. vorn: ohne sie sahen Guertel und Planet in
+     derselben Liste gleich aus, obwohl es zwei Anflugarten sind. Auch sie kommt
+     aus dem Katalog (cat.t), nicht aus dem gespeicherten Paar. */
+  const TYPE_LBL = { planet: 'tPlanet', moon: 'tMoon', belt: 'tBelt', lagrange: 'tLagrange', cluster: 'tCluster', cave: 'tCave', event: 'tEvent', special: 'tSpecial' };
+  const art = TYPE_LBL[cat.t] ? ctx.T[TYPE_LBL[cat.t]] : null;
+  const ort = art ? `${art} · ${cat.s}` : cat.s;
   const teile = [];
   if (cat.ch != null) teile.push(`${nPctForTest(cat.ch)} % ${ctx.T.chance}`);
   if (cat.ms != null) teile.push(`${ctx.T.upTo} ${nPctForTest(cat.ms)} %`);
-  assert.strictEqual(sysSpan.textContent, teile.length ? `${cat.s} · ${teile.join(' · ')}` : cat.s);
+  assert.strictEqual(sysSpan.textContent, teile.length ? `${ort} · ${teile.join(' · ')}` : ort);
 
   const valuesEm = meta.querySelector('em');
   assert.ok(valuesEm, 'Wertezeile sollte die rangbildende Zahl in einer <em> tragen');
@@ -422,7 +514,7 @@ test('Merkliste bei 128 Paaren voll: ein weiteres Anheften wird abgewiesen und u
   assert.strictEqual(pairs.length, 128, `Testbestand sollte mindestens 128 echte Paare liefern (gefunden: ${pairs.length})`);
 
   const ctx = await runAsync({ account: { rows: [{ name: 'Voll', minerals: [], locations: pairs }] } });
-  ctx.elements['wb-preset'].value = 'Voll'; // fires 'change' -> preApply('Voll')
+  selectPreset(ctx, 'Voll');
 
   const before = ctx.document.getElementById('wb-locpins').querySelectorAll('.wb__pin-item').length;
   assert.strictEqual(before, 128, 'Vorbedingung: Merkliste sollte 128 Eintraege zeigen');
@@ -457,17 +549,706 @@ test('Merkliste bei 128 Paaren voll: ein weiteres Anheften wird abgewiesen und u
 
 // ---------------------------------------------------------------------
 // Phase 9, Plan 02, Task 1 — Zaehler in der Reiter-Beschriftung.
+// Phase 10, Plan 02, Task 1 — der Traeger wechselt von der Reiter-
+// Beschriftung (wb-tab-loc, jetzt entfallen) zur eigenen Ueberschrift der
+// gestapelten Merkliste (wb-lpinsh, D-03); die geprueft Anforderung bleibt
+// woertlich dieselbe: die Zahl erscheint erst ab einem Eintrag.
 // ---------------------------------------------------------------------
 
-test('Reiter-Beschriftung "Fundorte" nennt die Zahl der Paare erst, sobald welche da sind', async () => {
+test('Ueberschrift der Fundort-Merkliste nennt die Zahl der Paare erst, sobald welche da sind', async () => {
   const ctx = await runAsync({ account: { rows: [] } });
-  const tabBtn = ctx.elements['wb-tab-loc'];
-  assert.ok(tabBtn, 'wb-tab-loc nicht im Mock-DOM registriert');
-  assert.strictEqual(tabBtn.textContent, ctx.T.locations, 'ohne Eintraege traegt der Reiter nur die Beschriftung');
+  const head = ctx.elements['wb-lpinsh'];
+  assert.ok(head, 'wb-lpinsh nicht im Mock-DOM registriert');
+  assert.strictEqual(head.textContent, ctx.T.locations, 'ohne Eintraege traegt die Ueberschrift nur die Beschriftung');
 
   const loc = realLocOf(ctx, 'Gold');
   selectMineral(ctx, 'Gold');
   ctx.fire(locPinBtn(ctx, 'Gold', loc), 'click');
 
-  assert.strictEqual(tabBtn.textContent, `${ctx.T.locations} · 1`);
+  assert.strictEqual(head.textContent, `${ctx.T.locations} · 1`);
+
+  ctx.fire(locPinBtn(ctx, 'Gold', loc), 'click');
+  assert.strictEqual(head.textContent, ctx.T.locations, 'nach dem Loesen des letzten Eintrags nur noch die Beschriftung');
+});
+
+// ---------------------------------------------------------------------
+// Phase 10, Plan 02, Task 1 — beide Listen stehen gleichzeitig sichtbar
+// (D-03): keine der beiden traegt mehr `hidden`, beide sind ueber ihre id
+// auffindbar, und die Signaturen-Ueberschrift traegt denselben Zaehler wie
+// die Merklisten-Ueberschrift (nur fuer angeheftete Erze statt Fundorte).
+// ---------------------------------------------------------------------
+
+test('Signaturenliste und Fundort-Merkliste sind nach dem Zeichnen beide vorhanden, keine traegt hidden', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const pins = ctx.elements['wb-pins'];
+  const locpins = ctx.elements['wb-locpins'];
+  assert.ok(pins, 'wb-pins nicht im Mock-DOM registriert');
+  assert.ok(locpins, 'wb-locpins nicht im Mock-DOM registriert');
+  assert.notStrictEqual(pins.hidden, true, 'Signaturenliste sollte nicht hidden sein');
+  assert.notStrictEqual(locpins.hidden, true, 'Fundort-Merkliste sollte nicht hidden sein');
+});
+
+test('Ueberschrift der Signaturenliste nennt die Zahl der angehefteten Erze erst, sobald welche da sind, und wieder nicht nach dem letzten Loesen', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const head = ctx.elements['wb-pinsh'];
+  assert.ok(head, 'wb-pinsh nicht im Mock-DOM registriert');
+  assert.strictEqual(head.textContent, ctx.T.signatures, 'ohne angeheftete Erze traegt die Ueberschrift nur die Beschriftung');
+
+  const btn = tilePinBtn(ctx, 'Gold');
+  ctx.fire(btn, 'click');
+  assert.strictEqual(head.textContent, `${ctx.T.signatures} · 1`);
+
+  ctx.fire(btn, 'click');
+  assert.strictEqual(head.textContent, ctx.T.signatures, 'nach dem Loesen des letzten Erzes nur noch die Beschriftung');
+});
+
+test('Ein angeheftetes Erz erzeugt so viele Vielfachen-Felder wie seine Seltenheit erlaubt, keines mit Hervorhebungsklasse', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const gold = ctx.byName['Gold'];
+  assert.ok(gold && gold.sig, 'Vorbedingung: Gold traegt eine Signatur im Testbestand');
+
+  ctx.fire(tilePinBtn(ctx, 'Gold'), 'click');
+
+  const item = ctx.elements['wb-pins'].querySelector('.wb__pin-item');
+  assert.ok(item, 'Pin-Eintrag fuer Gold nicht gefunden');
+  // Der Mock-Selektor-Parser (dom-mock.js) kennt keine Nachfahren-Kombination
+  // (".wb__mult i"), deshalb ueber den Tagnamen allein suchen -- im
+  // Pin-Eintrag stehen ausschliesslich die Vielfachen-Felder als <i>.
+  const mults = item.querySelectorAll('i');
+  const MAXCLUSTER = { common: 6, uncommon: 5, rare: 4, epic: 3, legendary: 2 };
+  const expected = MAXCLUSTER[gold.rarity] || 4;
+  assert.strictEqual(mults.length, expected, 'Zahl der Vielfachen-Felder sollte der Seltenheit entsprechen');
+  assert.ok(mults.every((el) => !el.classList.contains('is-hit')), 'kein Vielfachen-Feld sollte is-hit tragen');
+});
+
+// ---------------------------------------------------------------------
+// Phase 10, Plan 01, Task 1 — sichtbare Preset-Liste statt <select> (D-05)
+// und Umbenennen durch alle Schichten (D-02, Form 1).
+// ---------------------------------------------------------------------
+
+test('Presetliste zeigt jedes gespeicherte Preset als eigene Zeile mit data-preset', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'Erste', minerals: ['Gold'] }, { name: 'Zweite', minerals: [] }] },
+  });
+
+  const names = ctx.document.getElementById('wb-preset-list').querySelectorAll('.wb__pre-item')
+    .map((row) => row.getAttribute('data-preset'));
+  assert.deepStrictEqual(names.slice().sort(), ['Erste', 'Zweite']);
+});
+
+test('Klick auf eine Preset-Zeile wendet sie an und markiert genau diese Zeile mit is-sel', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold'] }, { name: 'B', minerals: [] }] },
+  });
+
+  selectPreset(ctx, 'A');
+
+  assert.ok(presetRow(ctx, 'A').classList.contains('is-sel'), 'Preset A sollte nach der Auswahl is-sel tragen');
+  assert.ok(!presetRow(ctx, 'B').classList.contains('is-sel'), 'Preset B sollte NICHT is-sel tragen');
+});
+
+test('Umbenennen schickt genau EINEN PATCH-Aufruf (Pfad und Rumpf tragen den alten bzw. neuen Namen), keinen POST/DELETE', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'Alt', minerals: ['Gold'] }] } });
+
+  const btn = renameBtn(ctx, 'Alt');
+  assert.ok(btn, 'Umbenennen-Knopf fuer "Alt" nicht gefunden');
+  ctx.fire(btn, 'click');
+  assert.strictEqual(ctx.elements['wb-pre-name'].value, 'Alt', 'Namensfeld sollte beim Umbenennen den ALTEN Namen tragen');
+
+  ctx.elements['wb-pre-name'].value = 'Neu';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  const patch = lastPatchCall(ctx);
+  assert.strictEqual(patch.path, 'mining_sig_presets?name=eq.Alt');
+  assert.deepStrictEqual(Object.keys(patch.body), ['name']);
+  assert.strictEqual(patch.body.name, 'Neu');
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 1, 'Umbenennen sollte genau einen PATCH ausloesen');
+  assert.strictEqual(countCalls(ctx, 'POST'), 0, 'Umbenennen darf keinen POST ausloesen');
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0, 'Umbenennen darf keinen DELETE ausloesen');
+
+  const names = ctx.document.getElementById('wb-preset-list').querySelectorAll('.wb__pre-item')
+    .map((row) => row.getAttribute('data-preset'));
+  assert.ok(names.includes('Neu'), `Preset sollte nach dem Umbenennen unter "Neu" stehen (gefunden: ${names.join(', ')})`);
+  assert.ok(!names.includes('Alt'), 'der alte Name sollte nicht mehr in der Liste stehen');
+});
+
+test('Umbenennen auf einen bereits vergebenen Namen meldet presetNameTaken, die Zeile behaelt ihren alten Namen', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'Alt', minerals: ['Gold'] }, { name: 'Belegt', minerals: [] }] },
+  });
+
+  ctx.fire(renameBtn(ctx, 'Alt'), 'click');
+  ctx.elements['wb-pre-name'].value = 'Belegt';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.hidden, false, 'Meldungszeile sollte nach dem 409 sichtbar sein');
+  assert.strictEqual(msg.textContent, ctx.T.presetNameTaken);
+  assert.ok(presetRow(ctx, 'Alt'), 'Preset "Alt" sollte nach dem gescheiterten Umbenennen weiterhin unter dem alten Namen stehen');
+  assert.strictEqual(countCalls(ctx, 'POST'), 0, 'ein 409 darf keinen zweiten Schreibversuch als POST ausloesen');
+});
+
+test('War das umbenannte Preset ausgewaehlt, traegt danach die Zeile mit dem NEUEN Namen is-sel', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'Alt', minerals: ['Gold'] }] } });
+
+  selectPreset(ctx, 'Alt');
+  assert.ok(presetRow(ctx, 'Alt').classList.contains('is-sel'), 'Vorbedingung: Alt sollte ausgewaehlt sein');
+
+  ctx.fire(renameBtn(ctx, 'Alt'), 'click');
+  ctx.elements['wb-pre-name'].value = 'Neu';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  const row = presetRow(ctx, 'Neu');
+  assert.ok(row, 'Preset sollte nach dem Umbenennen unter "Neu" auffindbar sein');
+  assert.ok(row.classList.contains('is-sel'), 'die umbenannte Zeile sollte weiterhin is-sel tragen');
+});
+
+test('T-10-01: ein Preset-Name mit HTML-Sonderzeichen landet escaped im Markup (kein injiziertes Element, voller Text erhalten)', async () => {
+  const specialName = 'Preset & <Danger> "Quote"';
+  const ctx = await runAsync({ account: { rows: [{ name: specialName, minerals: ['Gold'] }] } });
+
+  const box = ctx.document.getElementById('wb-preset-list');
+  assert.strictEqual(box.querySelectorAll('danger').length, 0, 'unescapter Text haette ein <danger>-Element erzeugt');
+
+  const row = box.querySelectorAll('.wb__pre-item')[0];
+  assert.ok(row, 'Preset-Zeile nicht gefunden');
+  assert.strictEqual(row.getAttribute('data-preset'), specialName, 'Attributwert sollte nach dem Escape/Decode-Rundlauf vollstaendig erhalten sein');
+
+  const nameBtn = row.querySelector('.wb__pre-name');
+  assert.ok(nameBtn, 'Namensknopf nicht gefunden');
+  assert.strictEqual(nameBtn.textContent, specialName, 'der volle Originaltext sollte als Text lesbar bleiben');
+
+  // Die harte Probe: der Name bleibt als data-preset-Wert auffindbar, das
+  // Anfuehrungszeichen darin haette den Attributwert sonst beim Zurueckparsen
+  // abgeschnitten.
+  assert.ok(presetRow(ctx, specialName), 'Preset-Zeile nach dem Rundlauf ueber den vollen Namen nicht mehr auffindbar');
+});
+
+test('Namensfeld ist nach "neu" leer und nach "umbenennen" mit dem alten Namen vorbelegt', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'Bestehend', minerals: ['Gold'] }] } });
+
+  ctx.fire(ctx.elements['wb-pre-new'], 'click');
+  assert.strictEqual(ctx.elements['wb-pre-name'].value, '', 'Namensfeld sollte nach "neu" leer sein');
+  ctx.fire(ctx.elements['wb-pre-cancel'], 'click');
+
+  ctx.fire(renameBtn(ctx, 'Bestehend'), 'click');
+  assert.strictEqual(ctx.elements['wb-pre-name'].value, 'Bestehend', 'Namensfeld sollte nach "umbenennen" den alten Namen tragen');
+});
+
+// ---------------------------------------------------------------------
+// Phase 10, Plan 01, Task 2 — Loeschen fragt zurueck, unterscheidbar von
+// Abbrechen (D-01).
+// ---------------------------------------------------------------------
+
+test('Erster Klick auf den Loeschknopf loest keinen DELETE aus, die Zeile zeigt danach presetDelAsk', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  const btn = deleteBtn(ctx, 'A');
+  assert.ok(btn, 'Loeschknopf fuer "A" nicht gefunden');
+  ctx.fire(btn, 'click');
+
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0, 'der erste Klick darf keinen DELETE ausloesen');
+  const ask = askBtn(ctx, 'A');
+  assert.ok(ask, 'Zeile sollte nach dem ersten Klick die beschriftete Rueckfrage zeigen');
+  assert.strictEqual(ask.textContent, ctx.T.presetDelAsk);
+});
+
+test('Zweiter Klick (auf die beschriftete Schaltflaeche) loest genau EIN DELETE aus', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  ctx.fire(deleteBtn(ctx, 'A'), 'click');
+  ctx.fire(askBtn(ctx, 'A'), 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 1, 'der zweite Klick sollte genau einen DELETE ausloesen');
+  const del = ctx.account.calls.filter((c) => c.method === 'DELETE')[0];
+  assert.strictEqual(del.path, 'mining_sig_presets?name=eq.A');
+  assert.ok(!presetRow(ctx, 'A'), 'Preset "A" sollte nach dem Loeschen nicht mehr in der Liste stehen');
+});
+
+test('Klick auf eine andere Stelle der Werkbank bricht die Rueckfrage ab; ein weiterer erster Klick loest weiterhin kein DELETE aus', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  ctx.fire(deleteBtn(ctx, 'A'), 'click');
+  assert.ok(askBtn(ctx, 'A'), 'Vorbedingung: Rueckfrage sollte stehen');
+
+  selectMineral(ctx, 'Gold'); // ein Klick "daneben" innerhalb der Werkbank
+
+  assert.ok(!askBtn(ctx, 'A'), 'Rueckfrage sollte nach dem Klick daneben abgeraeumt sein');
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0);
+
+  ctx.fire(deleteBtn(ctx, 'A'), 'click');
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0, 'der erste Klick nach dem Abbruch darf weiterhin nicht loeschen');
+  assert.ok(askBtn(ctx, 'A'), 'die Rueckfrage sollte erneut erscheinen');
+});
+
+test('Rueckfrage bei Preset A, Klick auf den Loeschknopf von Preset B: die Rueckfrage wandert zu B, A wird nicht geloescht', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold'] }, { name: 'B', minerals: [] }] },
+  });
+
+  ctx.fire(deleteBtn(ctx, 'A'), 'click');
+  assert.ok(askBtn(ctx, 'A'), 'Vorbedingung: Rueckfrage sollte bei A stehen');
+
+  ctx.fire(deleteBtn(ctx, 'B'), 'click');
+
+  assert.ok(!askBtn(ctx, 'A'), 'A sollte die Rueckfrage nicht mehr tragen');
+  assert.ok(askBtn(ctx, 'B'), 'B sollte jetzt die Rueckfrage tragen');
+  assert.ok(presetRow(ctx, 'A'), 'A sollte weiterhin in der Liste stehen');
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0);
+});
+
+// ---------------------------------------------------------------------
+// Phase 10, Plan 01, Task 3 — Ueberschreiben und Ausduennen (D-02, Form 2+3).
+// ---------------------------------------------------------------------
+
+test('Ein Klick auf die Zaehlzeile klappt die Preset-Zeile auf, ohne sie anzuwenden (kein preApply, kein Netzwerkaufruf)', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'], locations: [] }] } });
+
+  const pinsBefore = ctx.document.getElementById('wb-pins').textContent;
+  const locBefore = ctx.document.getElementById('wb-locpins').textContent;
+  const callsBefore = ctx.account.calls.length;
+
+  const btn = openBtn(ctx, 'A');
+  assert.ok(btn, 'Zaehlzeile fuer "A" nicht gefunden');
+  ctx.fire(btn, 'click');
+
+  assert.strictEqual(ctx.document.getElementById('wb-pins').textContent, pinsBefore, 'Signaturenliste sollte unveraendert bleiben');
+  assert.strictEqual(ctx.document.getElementById('wb-locpins').textContent, locBefore, 'Fundort-Merkliste sollte unveraendert bleiben');
+  assert.strictEqual(ctx.account.calls.length, callsBefore, 'Aufklappen darf keinen neuen Netzwerkaufruf ausloesen');
+  assert.ok(entryBody(ctx, 'A'), 'die aufgeklappte Ansicht sollte jetzt stehen');
+});
+
+test('Die aufgeklappte Ansicht zeigt jedes gespeicherte Erz und Fundort-Paar mit je einem Entfernen-Knopf', async () => {
+  const probe = run({ account: { rows: [] } });
+  const loc = realLocOf(probe, 'Quantainium');
+
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold'], locations: [`Quantainium||${loc}`] }] },
+  });
+
+  ctx.fire(openBtn(ctx, 'A'), 'click');
+
+  assert.ok(rmMinBtn(ctx, 'A', 'Gold'), 'Entfernen-Knopf fuer das Erz Gold nicht gefunden');
+  assert.ok(rmLocBtn(ctx, 'A', `Quantainium||${loc}`), 'Entfernen-Knopf fuer das Fundort-Paar nicht gefunden');
+});
+
+test('Ein Erz aus einer aufgeklappten Preset-Zeile entfernen schickt genau ein PATCH mit dem Feld minerals; die Arbeitslisten bleiben unveraendert', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold', 'Quantainium'], locations: [] }] } });
+
+  const pinsBefore = ctx.document.getElementById('wb-pins').textContent;
+  const locBefore = ctx.document.getElementById('wb-locpins').textContent;
+
+  ctx.fire(openBtn(ctx, 'A'), 'click');
+  const before = countCalls(ctx, 'PATCH');
+  ctx.fire(rmMinBtn(ctx, 'A', 'Gold'), 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), before + 1, 'genau ein neuer PATCH-Aufruf');
+  const patch = lastPatchCall(ctx);
+  assert.strictEqual(patch.path, 'mining_sig_presets?name=eq.A');
+  assert.deepStrictEqual(Object.keys(patch.body), ['minerals']);
+  assert.deepStrictEqual(Array.from(patch.body.minerals), ['Quantainium']);
+
+  assert.strictEqual(ctx.document.getElementById('wb-pins').textContent, pinsBefore, 'Arbeitsstand (Signaturenliste) sollte unveraendert bleiben');
+  assert.strictEqual(ctx.document.getElementById('wb-locpins').textContent, locBefore, 'Arbeitsstand (Merkliste) sollte unveraendert bleiben');
+});
+
+test('Ein Fundort-Paar aus einer aufgeklappten Preset-Zeile entfernen schickt genau ein PATCH mit dem Feld locations; die Arbeitslisten bleiben unveraendert', async () => {
+  const probe = run({ account: { rows: [] } });
+  const quantLoc = realLocOf(probe, 'Quantainium');
+  const goldLoc = realLocOf(probe, 'Gold');
+
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: [], locations: [`Quantainium||${quantLoc}`, `Gold||${goldLoc}`] }] },
+  });
+
+  const pinsBefore = ctx.document.getElementById('wb-pins').textContent;
+  const locBefore = ctx.document.getElementById('wb-locpins').textContent;
+
+  ctx.fire(openBtn(ctx, 'A'), 'click');
+  ctx.fire(rmLocBtn(ctx, 'A', `Quantainium||${quantLoc}`), 'click');
+  await flush();
+
+  const patch = lastPatchCall(ctx);
+  assert.strictEqual(patch.path, 'mining_sig_presets?name=eq.A');
+  assert.deepStrictEqual(Object.keys(patch.body), ['locations']);
+  assert.deepStrictEqual(Array.from(patch.body.locations), [`Gold||${goldLoc}`]);
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0);
+
+  assert.strictEqual(ctx.document.getElementById('wb-pins').textContent, pinsBefore);
+  assert.strictEqual(ctx.document.getElementById('wb-locpins').textContent, locBefore);
+});
+
+test('Nach dem Entfernen eines Eintrags bleibt dieselbe Zeile aufgeklappt und zeigt den Eintrag nicht mehr', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold', 'Quantainium'], locations: [] }] } });
+
+  ctx.fire(openBtn(ctx, 'A'), 'click');
+  ctx.fire(rmMinBtn(ctx, 'A', 'Gold'), 'click');
+  await flush();
+
+  const body = entryBody(ctx, 'A');
+  assert.ok(body, 'die Zeile sollte weiterhin aufgeklappt sein');
+  assert.doesNotMatch(body.textContent, /Gold/, 'das entfernte Erz sollte nicht mehr in der Ansicht stehen');
+  assert.match(body.textContent, /Quantainium/, 'das verbleibende Erz sollte weiterhin stehen');
+});
+
+test('Ueberschreiben schickt den bestehenden Upsert unter demselben Namen mit dem AKTUELLEN Arbeitsstand, kein DELETE, kein zweiter Aufruf (erst nach der zweiten, bestaetigenden Rueckfrage)', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'], locations: [] }] } });
+  const loc = realLocOf(ctx, 'Quantainium');
+
+  selectMineral(ctx, 'Quantainium');
+  ctx.fire(tilePinBtn(ctx, 'Quantainium'), 'click');
+  ctx.fire(locPinBtn(ctx, 'Quantainium', loc), 'click');
+
+  const postsBefore = countCalls(ctx, 'POST');
+  const btn = updateBtn(ctx, 'A');
+  assert.ok(btn, 'Ueberschreiben-Knopf fuer "A" nicht gefunden');
+  ctx.fire(btn, 'click'); // erster Klick: bewaffnet nur, kein Netzwerkaufruf
+  assert.strictEqual(countCalls(ctx, 'POST'), postsBefore, 'der erste Klick darf keinen POST ausloesen');
+
+  ctx.fire(askBtn(ctx, 'A'), 'click'); // zweiter, bestaetigender Klick
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'POST'), postsBefore + 1, 'genau ein neuer POST-Aufruf');
+  const post = lastPostBody(ctx);
+  assert.strictEqual(post.path, 'mining_sig_presets?on_conflict=user_id,name');
+  assert.strictEqual(post.prefer, 'resolution=merge-duplicates,return=minimal');
+  assert.strictEqual(post.body[0].name, 'A');
+  assert.deepStrictEqual(Array.from(post.body[0].minerals), ['Quantainium']);
+  assert.deepStrictEqual(Array.from(post.body[0].locations), [`Quantainium||${loc}`]);
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0);
+
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.textContent, ctx.T.presetUpdated, 'die Rueckmeldung sollte "ueberschrieben" sagen, nicht "gespeichert"');
+});
+
+test('Ist ein Preset nach dem Ausduennen leer, bleibt die Zeile stehen und die aufgeklappte Ansicht zeigt presetNoEntries', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'], locations: [] }] } });
+
+  ctx.fire(openBtn(ctx, 'A'), 'click');
+  ctx.fire(rmMinBtn(ctx, 'A', 'Gold'), 'click');
+  await flush();
+
+  assert.ok(presetRow(ctx, 'A'), 'die Zeile sollte nach dem Ausduennen weiterhin in der Liste stehen');
+  const body = entryBody(ctx, 'A');
+  assert.ok(body, 'die Ansicht sollte weiterhin aufgeklappt sein');
+  assert.strictEqual(body.textContent, ctx.T.presetNoEntries);
+});
+
+// ---------------------------------------------------------------------
+// Code-Review Phase 10 (10-REVIEW.md) — HIGH: Lost-Update bei zwei raschen
+// Entfernungen aus demselben Feld desselben Presets (preRemoveEntry() las
+// bislang IMMER aus dem stale lokalen `presets`-Cache; ohne Sperre gewinnt
+// der zuletzt ankommende PATCH und ueberschreibt den anderen vollstaendig).
+// ---------------------------------------------------------------------
+
+test('REVIEW HIGH: zwei rasche Entfernungen aus DEMSELBEN Feld desselben Presets serialisieren sich — der zweite Klick waehrend des laufenden PATCH wird ignoriert, kein Lost-Update', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold', 'Quantainium', 'Aphorite'], locations: [] }] },
+  });
+
+  ctx.fire(openBtn(ctx, 'A'), 'click');
+  // Beide Knoepfe VOR dem ersten Klick einsammeln: renderPresetList() zeichnet
+  // die aufgeklappte Ansicht erst nach preLoad() (also erst nach `flush()`)
+  // neu -- bis dahin bleiben beide Referenzen gueltig, genau wie beim
+  // Doppelklick-Bedienfall aus dem Befund.
+  const btnGold = rmMinBtn(ctx, 'A', 'Gold');
+  const btnQuant = rmMinBtn(ctx, 'A', 'Quantainium');
+  assert.ok(btnGold && btnQuant, 'Entfernen-Knoepfe fuer Gold und Quantainium nicht gefunden');
+
+  ctx.fire(btnGold, 'click');   // Klick 1: berechnet next aus dem noch unveraenderten Cache
+  ctx.fire(btnQuant, 'click');  // Klick 2: OHNE Sperre wuerde dieser denselben stale Cache lesen
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 1,
+    'der zweite Klick auf dasselbe (name, field) waehrend des laufenden ersten PATCH darf keinen zweiten PATCH ausloesen');
+  const patch = lastPatchCall(ctx);
+  assert.deepStrictEqual(Array.from(patch.body.minerals), ['Quantainium', 'Aphorite'],
+    'der einzige PATCH sollte GENAU Klick 1 (Gold entfernen) umsetzen, nichts von Klick 2 verlieren');
+
+  // Serverseitig (und nach dem folgenden preLoad()) ist NUR Gold weg -- die
+  // Buchse fuer Quantainium erfordert einen ERNEUTEN Klick, verliert aber
+  // nichts wortlos.
+  const body = entryBody(ctx, 'A');
+  assert.doesNotMatch(body.textContent, /Gold/, 'Gold sollte nach dem einzigen PATCH entfernt sein');
+  assert.match(body.textContent, /Quantainium/, 'Quantainium darf NICHT wortlos verschwinden -- der zweite Klick wurde ignoriert, nicht heimlich mit ausgefuehrt');
+});
+
+test('REVIEW HIGH: nach Abschluss des ersten PATCH ist das Feld wieder frei -- ein erneuter Klick loest den naechsten PATCH aus', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold', 'Quantainium'], locations: [] }] },
+  });
+
+  ctx.fire(openBtn(ctx, 'A'), 'click');
+  ctx.fire(rmMinBtn(ctx, 'A', 'Gold'), 'click');
+  await flush();
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 1);
+
+  // preOpen blieb ueber den PATCH/preLoad()-Umlauf hinweg 'A' -- die Zeile
+  // ist bereits aufgeklappt, ein erneuter Klick auf die Zaehlzeile wuerde sie
+  // JETZT zuklappen (Umschalter). Der Entfernen-Knopf steht direkt bereit.
+  ctx.fire(rmMinBtn(ctx, 'A', 'Quantainium'), 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 2, 'die Sperre darf nur waehrend des laufenden PATCH gelten, nicht dauerhaft');
+  const body = entryBody(ctx, 'A');
+  assert.strictEqual(body.textContent, ctx.T.presetNoEntries);
+});
+
+test('REVIEW HIGH: Entfernungen aus VERSCHIEDENEN Feldern desselben Presets ueberlappen weiterhin ungebremst (keine globale Sperre)', async () => {
+  const probe = run({ account: { rows: [] } });
+  const loc = realLocOf(probe, 'Quantainium');
+
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold'], locations: [`Quantainium||${loc}`] }] },
+  });
+
+  ctx.fire(openBtn(ctx, 'A'), 'click');
+  const btnMin = rmMinBtn(ctx, 'A', 'Gold');
+  const btnLoc = rmLocBtn(ctx, 'A', `Quantainium||${loc}`);
+  assert.ok(btnMin && btnLoc, 'Entfernen-Knoepfe nicht gefunden');
+
+  ctx.fire(btnMin, 'click'); // Feld "minerals" wird gesperrt
+  ctx.fire(btnLoc, 'click'); // ANDERES Feld ("locations") desselben Presets -- muss trotzdem sofort senden
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 2, 'zwei verschiedene Felder desselben Presets duerfen ueberlappen');
+  const body = entryBody(ctx, 'A');
+  assert.strictEqual(body.textContent, ctx.T.presetNoEntries, 'beide Entfernungen sollten durchgekommen sein');
+});
+
+// ---------------------------------------------------------------------
+// Code-Review Phase 10 (10-REVIEW.md) — MEDIUM: kein Treffer-Check bei
+// PATCH/DELETE. Ein Filter, der serverseitig null Zeilen trifft, antwortet
+// bei PostgREST trotzdem mit 200/204 -- ohne Prefer: return=representation
+// und Auswertung der leeren Zeilenmenge meldet die Oberflaeche faelschlich
+// Erfolg (Cross-Device-Race: ein anderer Tab hat das Preset bereits
+// geloescht, dieser Tab traegt noch den alten, lokal gecachten Stand).
+// ---------------------------------------------------------------------
+
+test('REVIEW MEDIUM: Umbenennen eines serverseitig bereits geloeschten Presets (Cross-Device-Race) meldet presetFail, NIE faelschlich presetRenamed', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'X', minerals: ['Gold'], locations: [] }] } });
+
+  ctx.fire(renameBtn(ctx, 'X'), 'click');
+  // Tab 2 hat "X" bereits geladen; ein ANDERER Tab loescht es serverseitig,
+  // ohne dass dieser Tab je preLoad() lief -- der lokale Cache bleibt stale.
+  ctx.account.rows.length = 0;
+
+  ctx.elements['wb-pre-name'].value = 'Y';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 1, 'der PATCH wird trotzdem gesendet -- der Client weiss vorher nicht, dass die Zeile weg ist');
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.hidden, false, 'ein wirkungsloser PATCH muss laut scheitern (Projektgrundsatz "scheitert es laut statt still")');
+  assert.strictEqual(msg.textContent, ctx.T.presetFail, 'darf NICHT presetRenamed melden, wenn PostgREST null Zeilen getroffen hat');
+});
+
+test('REVIEW MEDIUM: Loeschen eines serverseitig bereits verschwundenen Presets meldet presetFail, NIE faelschlich presetDeleted', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'X', minerals: ['Gold'], locations: [] }] } });
+
+  ctx.fire(deleteBtn(ctx, 'X'), 'click');
+  ctx.account.rows.length = 0; // derselbe Cross-Device-Fall wie beim Umbenennen oben
+
+  ctx.fire(askBtn(ctx, 'X'), 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 1);
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.hidden, false);
+  assert.strictEqual(msg.textContent, ctx.T.presetFail, 'darf NICHT presetDeleted melden, wenn null Zeilen getroffen wurden');
+});
+
+test('REVIEW MEDIUM: Einzeleintrag-Entfernen an einem serverseitig bereits verschwundenen Preset meldet presetFail, NIE faelschlich presetSaved', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'X', minerals: ['Gold', 'Quantainium'], locations: [] }] } });
+
+  ctx.fire(openBtn(ctx, 'X'), 'click');
+  const btn = rmMinBtn(ctx, 'X', 'Gold');
+  assert.ok(btn, 'Entfernen-Knopf nicht gefunden');
+
+  ctx.account.rows.length = 0; // Cross-Device-Fall: die Zeile ist server-seitig bereits weg
+
+  ctx.fire(btn, 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 1);
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.hidden, false);
+  assert.strictEqual(msg.textContent, ctx.T.presetFail, 'darf NICHT presetSaved melden, wenn null Zeilen getroffen wurden');
+});
+
+// ---------------------------------------------------------------------
+// Code-Review Phase 10 (10-REVIEW.md) — MEDIUM/eq.null-Falle: der Name
+// "null" wird bereits bei Anlage/Umbenennen abgewiesen (prospektiver Teil
+// des Fixes; der retroaktive Teil ist der Treffer-Check im vorigen Commit).
+// ---------------------------------------------------------------------
+
+test('REVIEW eq.null-Falle: Preset-Name "null" (Gross-/Kleinschreibung, mit Leerraum) wird beim Anlegen abgewiesen, kein POST', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+
+  ctx.fire(ctx.elements['wb-pre-new'], 'click');
+  ctx.elements['wb-pre-name'].value = '  Null  ';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'POST'), 0, 'ein Preset namens "null" darf nie angelegt werden');
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.hidden, false);
+  assert.strictEqual(msg.textContent, ctx.T.presetFail);
+});
+
+test('REVIEW eq.null-Falle: ein Preset auf den Namen "NULL" umbenennen wird abgewiesen, kein PATCH', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'Alt', minerals: ['Gold'] }] } });
+
+  ctx.fire(renameBtn(ctx, 'Alt'), 'click');
+  ctx.elements['wb-pre-name'].value = 'NULL';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 0, 'das Umbenennen auf "NULL" darf keinen Aufruf ausloesen');
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.textContent, ctx.T.presetFail);
+  assert.ok(presetRow(ctx, 'Alt'), 'die Zeile sollte weiterhin unter dem alten Namen stehen');
+});
+
+// ---------------------------------------------------------------------
+// Code-Review Phase 10 (10-REVIEW.md) — LOW: preOpen folgt dem Umbenennen
+// nicht (die aufgeklappte Ansicht klappte nach einem Umbenennen unbemerkt zu).
+// ---------------------------------------------------------------------
+
+test('REVIEW LOW: war die umbenannte Preset-Zeile aufgeklappt, bleibt sie es unter dem neuen Namen', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'Alt', minerals: ['Gold'], locations: [] }] } });
+
+  ctx.fire(openBtn(ctx, 'Alt'), 'click');
+  assert.ok(entryBody(ctx, 'Alt'), 'Vorbedingung: Zeile sollte aufgeklappt sein');
+
+  ctx.fire(renameBtn(ctx, 'Alt'), 'click');
+  ctx.elements['wb-pre-name'].value = 'Neu';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  assert.ok(entryBody(ctx, 'Neu'), 'die aufgeklappte Ansicht sollte unter dem neuen Namen weiterhin stehen, nicht unbemerkt zuklappen');
+});
+
+// ---------------------------------------------------------------------
+// Betreiber-Befund 15.08.2026 (Preset-Zeile), aus der Benutzung auf staging.
+// ---------------------------------------------------------------------
+
+// Befund 1: #wb-i-save (Ueberschreiben-Symbol) war die uebliche Download-
+// Glyphe (Pfeil nach unten in eine offene Wanne) und wurde genau so gelesen.
+// Das Symbol selbst lebt nur im Astro-Sprite (nie von mining-workbench.js
+// erzeugt) -- ein Textnachweis am Quellstand ist hier der einzig ehrliche Weg,
+// diesen Teil des Fixes ausserhalb eines echten Browsers zu pruefen.
+test('Befund 1: das Sprite-Symbol wurde von wb-i-save (Download-Glyphe) auf wb-i-update (Kreispfeil) umbenannt', () => {
+  const astroSrc = fs.readFileSync(path.resolve('src/components/MiningWorkbench.astro'), 'utf8');
+  assert.doesNotMatch(astroSrc, /id="wb-i-save"/, 'das alte Symbol wb-i-save sollte nicht mehr existieren');
+  assert.match(astroSrc, /id="wb-i-update"/, 'das neue Symbol wb-i-update sollte definiert sein');
+  assert.doesNotMatch(astroSrc, /#wb-i-save/, 'kein <use> darf noch auf die alte Glyphe verweisen');
+});
+
+// Der von mining-workbench.js erzeugte <use>-Verweis ist der Teil des Fixes,
+// der sich echt gegen den Rundlauf-Test fuehren laesst.
+test('Befund 1: der Ueberschreiben-Knopf verweist auf #wb-i-update, nicht mehr auf die Download-Glyphe #wb-i-save', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  const btn = updateBtn(ctx, 'A');
+  assert.ok(btn, 'Ueberschreiben-Knopf fuer "A" nicht gefunden');
+  const use = btn.querySelector('use');
+  assert.ok(use, 'kein <use>-Element im Ueberschreiben-Knopf gefunden');
+  assert.strictEqual(use.getAttribute('href'), '#wb-i-update', 'sollte auf das neue Kreispfeil-Symbol verweisen');
+  assert.notStrictEqual(use.getAttribute('href'), '#wb-i-save', 'darf nicht mehr auf die Download-Glyphe verweisen');
+});
+
+// Befund 2: die drei Aktionsknoepfe trugen nur aria-label, kein title --
+// sehende Mausnutzer bekamen dadurch nirgends einen Text (die Zaehlzeile
+// daneben hatte bereits eines).
+test('Befund 2: Ueberschreiben-, Umbenennen- und Loeschknopf tragen alle drei ein title mit demselben Text wie aria-label', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  const upd = updateBtn(ctx, 'A');
+  const ren = renameBtn(ctx, 'A');
+  const del = deleteBtn(ctx, 'A');
+  assert.ok(upd && ren && del, 'nicht alle drei Aktionsknoepfe gefunden');
+
+  [upd, ren, del].forEach((btn) => {
+    const title = btn.getAttribute('title');
+    assert.ok(title, `Knopf sollte ein title-Attribut tragen (aria-label: ${btn.getAttribute('aria-label')})`);
+    assert.strictEqual(title, btn.getAttribute('aria-label'), 'title und aria-label sollten denselben Text tragen');
+  });
+});
+
+// Befund 3 (Betreiber-Entscheidung): Ueberschreiben verwirft den gespeicherten
+// Inhalt ebenso unwiederbringlich wie Loeschen und bekommt dieselbe
+// zweistufige Rueckfrage mit Worten (D-01-Vorbild) -- unterscheidbar per
+// Wortlaut UND Farbe/Modifikatorklasse, nie beide gleichzeitig bewaffnet.
+test('Befund 3: erster Klick auf Ueberschreiben loest keinen POST aus, zeigt presetUpdAsk in eigener Modifikatorklasse', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  ctx.fire(updateBtn(ctx, 'A'), 'click');
+
+  assert.strictEqual(countCalls(ctx, 'POST'), 0, 'der erste Klick darf keinen POST ausloesen');
+  const ask = askBtn(ctx, 'A');
+  assert.ok(ask, 'Zeile sollte nach dem ersten Klick die beschriftete Rueckfrage zeigen');
+  assert.strictEqual(ask.textContent, ctx.T.presetUpdAsk);
+  assert.ok(ask.classList.contains('wb__pre-ask--upd'), 'Rueckfrage sollte den Ueberschreiben-Modifikator tragen');
+  assert.ok(!ask.classList.contains('wb__pre-ask--del'), 'darf NICHT den Loeschen-Modifikator tragen (Farb-/Zeichenverwechslung)');
+});
+
+test('Befund 3: Klick auf eine andere Stelle der Werkbank bricht die Ueberschreiben-Rueckfrage ab, kein POST', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  ctx.fire(updateBtn(ctx, 'A'), 'click');
+  assert.ok(askBtn(ctx, 'A'), 'Vorbedingung: Rueckfrage sollte stehen');
+
+  selectMineral(ctx, 'Gold'); // ein Klick "daneben" innerhalb der Werkbank
+
+  assert.ok(!askBtn(ctx, 'A'), 'Rueckfrage sollte nach dem Klick daneben abgeraeumt sein');
+  assert.strictEqual(countCalls(ctx, 'POST'), 0);
+});
+
+// ⚠ Innerhalb DERSELBEN Zeile lassen sich "Loeschen" und "Ueberschreiben"
+// waehrend einer offenen Rueckfrage nicht gegeneinander anklicken: die
+// Rueckfrage ersetzt dort die GESAMTE Aktionszeile (Zaehlzeile + alle drei
+// Knoepfe) durch die beschriftete Flaeche (renderPresetList(), Kommentar bei
+// `var head`) -- der jeweils andere Knopf existiert waehrenddessen im DOM gar
+// nicht. Die vom Betreiber geforderte Entwaffnung "auch in einer anderen
+// Zeile" ist deshalb ausschliesslich der Zeilenwechsel-Fall, unten geprueft
+// in BEIDEN Richtungen (del->upd und upd->del).
+
+test('Befund 3: Rueckfrage bei Preset A (Loeschen), Klick auf Ueberschreiben von Preset B: die Rueckfrage wandert zu B als Ueberschreiben, A bleibt unberuehrt', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold'] }, { name: 'B', minerals: [] }] },
+  });
+
+  ctx.fire(deleteBtn(ctx, 'A'), 'click');
+  assert.ok(askBtn(ctx, 'A').classList.contains('wb__pre-ask--del'), 'Vorbedingung: Loesch-Rueckfrage sollte bei A stehen');
+
+  ctx.fire(updateBtn(ctx, 'B'), 'click');
+
+  assert.ok(!askBtn(ctx, 'A'), 'A sollte die Rueckfrage nicht mehr tragen');
+  const askB = askBtn(ctx, 'B');
+  assert.ok(askB && askB.classList.contains('wb__pre-ask--upd'), 'B sollte jetzt die Ueberschreiben-Rueckfrage tragen');
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0, 'A darf nicht geloescht worden sein');
+  assert.strictEqual(countCalls(ctx, 'POST'), 0, 'das blosse Umschalten darf noch nichts ueberschreiben');
+});
+
+test('Befund 3: Rueckfrage bei Preset A (Ueberschreiben), Klick auf Loeschen von Preset B: die Rueckfrage wandert zu B als Loeschen, A bleibt unberuehrt', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold'] }, { name: 'B', minerals: [] }] },
+  });
+
+  ctx.fire(updateBtn(ctx, 'A'), 'click');
+  assert.ok(askBtn(ctx, 'A'), 'Vorbedingung: Rueckfrage sollte bei A stehen');
+
+  ctx.fire(deleteBtn(ctx, 'B'), 'click');
+
+  assert.ok(!askBtn(ctx, 'A'), 'A sollte die Rueckfrage nicht mehr tragen');
+  const askB = askBtn(ctx, 'B');
+  assert.ok(askB && askB.classList.contains('wb__pre-ask--del'), 'B sollte jetzt die Loesch-Rueckfrage tragen');
+  assert.strictEqual(countCalls(ctx, 'POST'), 0, 'A darf nicht ueberschrieben worden sein');
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0);
 });

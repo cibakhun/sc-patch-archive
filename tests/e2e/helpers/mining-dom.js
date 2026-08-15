@@ -10,10 +10,12 @@
 //
 // Vier Dinge fehlen der geerbten Element-Klasse und entstehen hier neu:
 //   1. closest() -- mining-workbench.js ruft es fuer '.wb', '[data-pin]',
-//      '.wb__tile', '[data-sys]', '[data-seg]' und seit Phase 9 zusaetzlich
-//      '[data-locpin]', '[data-tab]'. matches() aus dom-mock.js ist nicht
+//      '.wb__tile', '[data-sys]', '[data-seg]', '[data-locpin]', seit Phase 10
+//      (10-01) zusaetzlich '[data-preset]', '[data-pre-pick]',
+//      '[data-pre-rename]' -- '[data-tab]' ist seit Plan 02 entfallen, die
+//      Reiterleiste gibt es nicht mehr. matches() aus dom-mock.js ist nicht
 //      exportiert; ein kleiner eigener Vergleich fuer Klasse und
-//      Attribut-Anwesenheit reicht fuer alle sieben Aufrufwege.
+//      Attribut-Anwesenheit reicht fuer alle Aufrufwege.
 //   2. fire(el, typ) -- die meisten Handler haengen delegiert am document,
 //      die Preset-Knoepfe direkt am Element. fire() ruft erst die Handler
 //      des Elements (MockElement.dispatchEvent deckt das ab), danach die
@@ -22,10 +24,14 @@
 //   4. window.VBAccount als Attrappe -- session() liefert eine vorgetaeuschte
 //      Sitzung, loginHref() eine Zeichenkette, rest(sess, method, path,
 //      body, prefer) fuehrt ein winziges In-Memory-"mining_sig_presets", damit
-//      preSave() -> preLoad() -> preFill() einen ECHTEN Rundlauf machen kann
-//      und nicht nur ein einmalig zurueckgegebenes Fixture beantwortet.
-//      calls[] protokolliert jeden Aufruf fuer die Form-Zusicherungen
-//      (on_conflict, Prefer-Kopfzeile, Rumpf).
+//      preSave() -> preLoad() -> renderPresetList() einen ECHTEN Rundlauf
+//      machen kann und nicht nur ein einmalig zurueckgegebenes Fixture
+//      beantwortet. calls[] protokolliert jeden Aufruf fuer die
+//      Form-Zusicherungen (on_conflict, Prefer-Kopfzeile, Rumpf).
+//      Seit Phase 10 (10-01): ok()/bad() tragen ein status-Feld (200/500),
+//      und ein PATCH-Zweig bedient sowohl das Umbenennen (Rumpf {name}, mit
+//      409 bei bereits vergebenem Zielnamen) als auch das gezielte Ersetzen
+//      von `minerals`/`locations` einer einzelnen Zeile (fuer Plan 01 Task 3).
 //
 // Nutzlast: aus dem ECHTEN assets/mining-db.json + assets/mining-model.json
 // gebaut, unabhaengig von src/components/MiningWorkbench.astro noch einmal
@@ -128,8 +134,8 @@ function makeAccount(opts = {}) {
     });
     return out;
   }
-  const ok = (json) => ({ ok: true, json: () => Promise.resolve(json) });
-  const bad = () => ({ ok: false, json: () => Promise.resolve(null) });
+  const ok = (json) => ({ ok: true, status: 200, json: () => Promise.resolve(json) });
+  const bad = (status) => ({ ok: false, status: status || 500, json: () => Promise.resolve(null) });
 
   return {
     calls,
@@ -149,12 +155,38 @@ function makeAccount(opts = {}) {
         });
         return Promise.resolve(ok(null));
       }
+      if (method === 'PATCH') {
+        // Treffer-Check (Review Phase 10, MEDIUM): ein Filter, der null Zeilen
+        // trifft, ist bei PostgREST TROTZDEM ein 200 -- niemals ein 404. Der
+        // Client kann "echt geaendert" von "nichts getroffen" nur ueber den
+        // Prefer-Header return=representation unterscheiden (leeres Array
+        // statt einer Zeile). `repr` bildet genau das nach; ohne den Header
+        // bleibt der alte, grobe Rundlauf (ok(null)) fuer Aufrufe erhalten,
+        // die den Treffer-Check (noch) nicht anfordern.
+        const oldName = (qs(reqPath).name || '').replace(/^eq\./, '');
+        const row = rows.find((r) => r.name === oldName);
+        const repr = prefer === 'return=representation';
+        if (!row) return Promise.resolve(ok(repr ? [] : null));
+        if (body && typeof body.name === 'string') {
+          if (body.name !== oldName && rows.some((r) => r.name === body.name)) {
+            return Promise.resolve(bad(409));
+          }
+          row.name = body.name;
+          return Promise.resolve(ok(repr ? [{ ...row }] : null));
+        }
+        if (body && Object.prototype.hasOwnProperty.call(body, 'minerals')) row.minerals = body.minerals;
+        if (body && Object.prototype.hasOwnProperty.call(body, 'locations')) row.locations = body.locations;
+        return Promise.resolve(ok(repr ? [{ ...row }] : null));
+      }
       if (method === 'DELETE') {
+        // Dieselbe Treffer-Check-Logik wie beim PATCH-Zweig oben, siehe dort.
         const name = (qs(reqPath).name || '').replace(/^eq\./, '');
+        const repr = prefer === 'return=representation';
+        const hit = rows.find((r) => r.name === name);
         const kept = rows.filter((r) => r.name !== name);
         rows.length = 0;
         kept.forEach((r) => rows.push(r));
-        return Promise.resolve(ok(null));
+        return Promise.resolve(ok(repr ? (hit ? [{ ...hit }] : []) : null));
       }
       return Promise.resolve(bad());
     },
@@ -193,10 +225,21 @@ function buildPayload() {
   // nicht brechen, wenn morgen ein Werbetexter S.noLocs umformuliert.
   const t = {
     minerals: 'MINERALS', view: 'VIEW', signatures: 'SIGNATURES', locations: 'LOCATIONS',
-    search: 'SEARCH', scanPlaceholder: 'SCAN', pinHint: 'PIN-HINT',
-    presets: 'PRESETS', presetNone: 'NONE', presetSave: 'SAVE', presetDel: 'DEL',
+    search: 'SEARCH', pinHint: 'PIN-HINT',
+    presets: 'PRESETS', presetSave: 'SAVE', presetDel: 'DEL',
     presetName: 'NAME', presetCancel: 'CANCEL', presetGuest: 'GUEST', presetLogin: 'LOGIN',
     presetSaved: 'SAVED', presetDeleted: 'DELETED', presetEmpty: 'EMPTY', presetFail: 'FAIL',
+    // Phase 10, Plan 01: Liste statt <select> (D-05) + Umbenennen (D-02, Form 1).
+    presetNew: 'NEW-PRESET', presetRename: 'RENAME', presetRenamed: 'RENAMED',
+    presetNameTaken: 'NAME-TAKEN', presetListEmpty: 'LIST-EMPTY',
+    // Phase 10, Plan 01, Task 2: Loeschen fragt zurueck (D-01).
+    presetDelAsk: 'DEL-ASK',
+    // Betreiber-Befund 15.08.2026: Ueberschreiben fragt jetzt ebenso zurueck,
+    // mit eigenem Wortlaut -- unterscheidbar von presetDelAsk (D-01).
+    presetUpdAsk: 'UPD-ASK',
+    // Phase 10, Plan 01, Task 3: Ueberschreiben und Ausduennen (D-02, Form 2+3).
+    presetUpdate: 'UPDATE', presetUpdated: 'UPDATED', presetShow: 'SHOW', presetHide: 'HIDE',
+    presetRemoveEntry: 'REMOVE-ENTRY', presetNoEntries: 'NO-ENTRIES',
     none: 'NONE-VAL', pin: 'PIN', unpin: 'UNPIN', noLocs: 'NO-LOCS',
     ship: 'SHIP', hand: 'HAND', roc: 'ROC', refinable: 'REFINABLE',
     bestRef: 'BEST-REF', yieldMod: 'YIELD', worst: 'WORST', yourPick: 'YOUR-PICK',
@@ -313,32 +356,24 @@ export function makeMiningDomContext(opts = {}) {
   root.appendChild(reg(mk('span', 'wb-frac-ore')));
   root.appendChild(reg(mk('select', 'wb-ref')));
 
-  // Spalte 3 — Scan-Kasten, Signaturenliste, Fundort-Merkliste. Die Reiterknoepfe
-  // (wb-tab-sig/wb-tab-loc) UND ihre Koerper (wb-sig-pane/wb-loc-pane) sind seit
-  // Plan 02 registriert: renderLocPins() schreibt den Paarzaehler in die
-  // Beschriftung von wb-tab-loc (guard $()===null davor macht das optional, aber
-  // der Zaehler soll hier tatsaechlich geprueft werden koennen), der Klick-
-  // Handler schaltet `hidden` an den beiden Koerpern.
-  root.appendChild(reg(mk('input', 'wb-scan')));
+  // Spalte 3 — Signaturenliste und Fundort-Merkliste, seit Phase 10 (Plan 02,
+  // D-03) gestapelt statt hinter Reitern: wb-scan/wb-tab-sig/wb-tab-loc/
+  // wb-sig-pane/wb-loc-pane sind entfallen, neu registriert sind wb-pinsh und
+  // wb-lpinsh -- renderPins()/renderLocPins() schreiben den jeweiligen
+  // Paarzaehler in diese Ueberschriften (guard $()===null davor macht das
+  // optional, aber der Zaehler soll hier tatsaechlich geprueft werden koennen).
   root.appendChild(reg(mk('div', 'wb-pins')));
   root.appendChild(reg(mk('div', 'wb-locpins')));
-  var tabSig = reg(mk('button', 'wb-tab-sig'));
-  tabSig.textContent = payload.t.signatures;
-  root.appendChild(tabSig);
-  var tabLoc = reg(mk('button', 'wb-tab-loc'));
-  tabLoc.textContent = payload.t.locations;
-  root.appendChild(tabLoc);
-  root.appendChild(reg(mk('div', 'wb-sig-pane')));
-  root.appendChild(reg(mk('div', 'wb-loc-pane')));
+  root.appendChild(reg(mk('h4', 'wb-pinsh')));
+  root.appendChild(reg(mk('h4', 'wb-lpinsh')));
 
-  // Presets.
-  root.appendChild(reg(mk('select', 'wb-preset')));
+  // Presets (Phase 10, Plan 01: sichtbare Liste statt <select>, D-05).
+  root.appendChild(reg(mk('div', 'wb-preset-list')));
   root.appendChild(reg(mk('div', 'wb-pre-pick')));
   root.appendChild(reg(mk('div', 'wb-pre-edit')));
   root.appendChild(reg(mk('p', 'wb-pre-msg')));
   root.appendChild(reg(mk('p', 'wb-pre-guest')));
   root.appendChild(reg(mk('input', 'wb-pre-name')));
-  root.appendChild(reg(mk('button', 'wb-pre-del')));
   root.appendChild(reg(mk('button', 'wb-pre-new')));
   root.appendChild(reg(mk('button', 'wb-pre-cancel')));
   root.appendChild(reg(mk('button', 'wb-pre-ok')));
@@ -386,7 +421,7 @@ export function makeMiningDomContext(opts = {}) {
   };
 }
 
-/** Wartet, bis anhaengende Promise-Ketten (session().then(preLoad).then(preFill)
+/** Wartet, bis anhaengende Promise-Ketten (session().then(preLoad).then(renderPresetList)
  *  usw.) abgearbeitet sind — ohne echte Zeit zu verbrauchen. */
 export async function flush(ticks = 8) {
   for (let i = 0; i < ticks; i++) await Promise.resolve();

@@ -61,6 +61,31 @@ gegensätzliche Wirkung, und die zerstörerische Variante fragt nicht nach.
    entfernter `data-help`-Anker muss dort mitgezogen werden, sonst reißt das Tor
    (oder, schlimmer, es zählt still weiter mit).
 
+## Im Planungslauf nachgeschärft (15.08.2026)
+
+Die Recherche hat zwei Stellen gefunden, an denen oben nur das WAS steht, nicht
+das WIE — und beide schneiden die Aufgaben unterschiedlich. Vom Betreiber im
+Planungslauf entschieden:
+
+**Zu 1 (Löschen muss rückfragen) — zwei Klicks, der zweite trägt Worte.**
+Der erste Klick auf den Papierkorb verwandelt ihn in eine beschriftete
+Schaltfläche „Wirklich löschen?" in Warnfarbe; erst der zweite Klick löscht,
+ein Klick daneben bricht ab. Das trifft die Ursache: Der zerstörerische Zustand
+ist als einziger beschriftet, während „Abbrechen" ein Zeichen bleibt — gleiches
+Zeichen an gleicher Stelle kann damit nicht mehr gegensätzlich wirken.
+Ausdrücklich **nicht** `window.confirm()` (im Bestand bereits begründet
+abgelehnt) und **nicht** die Tipp-Bestätigung der Kontolöschung (für eine
+Merkliste, die man bewusst oft wegwirft, unverhältnismäßig — und ein zweites
+Bedienmuster für dieselbe Sache).
+
+**Zu 2, dritte Form (einzelne Einträge entfernen) — direkt an der Preset-Zeile.**
+Die gespeicherte Preset-Zeile bekommt eine eigene Aufklapp-Ansicht ihres
+Inhalts; dort entfernt ein Klick genau einen Eintrag per gezieltem `PATCH` auf
+genau diese Zeile — **ohne das Preset vorher zu laden oder anzuwenden**.
+Verworfen wurde das automatische Nachspeichern des aktiven Presets: Es würde
+das blosse Ansehen eines geladenen Presets zu einer Änderung des gespeicherten
+Standes machen und die Grenze zu „überschreiben" auflösen.
+
 ## Ausgangslage (Stand nach Phase 9, Commit 39f35d4)
 
 - Tabelle `mining_sig_presets`: `user_id`, `name`, `minerals text[]`,

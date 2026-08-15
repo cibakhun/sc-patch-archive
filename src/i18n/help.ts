@@ -87,18 +87,16 @@ export const HELP = {
     'mining.step1': 'Links ein Erz anklicken. Die Zahl auf der Kachel ist seine Scan-Signatur.',
     'mining.step2': 'In der Mitte die Fundorte des gewählten Erzes nach Ergiebigkeit ablesen, darunter die Stationen mit dem besten Ertrag.',
     'mining.step3': 'Unten die Station wählen — sie wird in der Ertrags-Rangliste rechts daneben hervorgehoben.',
-    'mining.step4': 'Mit dem Anheft-Knopf auf einer Kachel ein Erz nach rechts heften und den Scanwert eintippen, um eine Signatur zuzuordnen; die Nadel in einer Fundort-Zeile legt das Paar auf den zweiten Reiter, über mehrere Erze hinweg.',
+    'mining.step4': 'Mit dem Anheft-Knopf auf einer Kachel ein Erz in die Signaturenliste rechts heften; die Nadel in einer Fundort-Zeile legt das Paar in die Fundort-Merkliste darunter — beide Listen stehen gleichzeitig sichtbar untereinander.',
     'mining.ctl.search': 'Freitextsuche über Mineralnamen und Fundorte.',
     'mining.ctl.system': 'Schränkt die Kacheln auf ein Sternsystem ein.',
     'mining.ctl.tiles': 'Alle Erze auf einen Blick. Klick wählt aus, die Zahl ist die Scan-Signatur, der Knopf rechts heftet an die Signaturenliste.',
-    'mining.ctl.scan': 'Gemessener Scanwert. Passende Vielfache der angehefteten Erze werden hervorgehoben.',
     'mining.ctl.pinbtn': 'Heftet das gewählte Erz an die Signaturenliste rechts — dasselbe wie der Knopf auf der Kachel, nur größer.',
-    'mining.ctl.pins': 'Die angehefteten Erze mit ihrer Signatur mal Clustergröße.',
-    'mining.ctl.presets': 'Benannte Zusammenstellungen — ein Preset hält Signaturen UND Fundorte zugleich. Mit Konto gespeichert und auf jedem Gerät verfügbar.',
+    'mining.ctl.pins': 'Nachschlagewerk: die angehefteten Erze mit ihrer Signatur mal Clustergröße, zum Vergleichen mit dem, was der Scanner im Spiel nennt.',
+    'mining.ctl.presets': 'Benannte Zusammenstellungen — ein Preset hält Signaturen UND Fundorte zugleich: auswählen, umbenennen, mit der aktuellen Auswahl überschreiben oder einzelne Einträge entfernen; Löschen fragt zurück. Mit Konto gespeichert und auf jedem Gerät verfügbar.',
     'mining.ctl.station': 'Die Station, deren Ertrag in der Rangliste hervorgehoben wird.',
     'mining.ctl.fracturing': 'Führt zum Fracturing-Rechner: dort steht, ob der Brocken mit deiner Ausrüstung bricht.',
-    'mining.ctl.locpin': 'Heftet einen Fundort an die Merkliste im zweiten Reiter — dieselbe Nadel wie bei den Erzen.',
-    'mining.ctl.tabs': 'Wechselt zwischen der Signaturenliste und der Fundort-Merkliste. Beide teilen sich dieselben Presets.',
+    'mining.ctl.locpin': 'Heftet einen Fundort an die Fundort-Merkliste darunter — dieselbe Nadel wie bei den Erzen.',
     'mining.ctl.shortlist': 'Die angehefteten Fundorte über alle Erze hinweg, als „Erz — Fundort".',
 
     // -- Fracturing-Rechner --
@@ -119,18 +117,6 @@ export const HELP = {
     'fracturing.ctl.modules': 'Bis zu drei Module, je nach Laser. Sie verändern Schaden und Widerstand.',
     'fracturing.ctl.gadget': 'Ein Gadget verändert den Widerstand des Gesteins.',
     'fracturing.ctl.mass': 'Die angenommene Masse des Brockens — sie bestimmt, wie viel Schaden nötig ist.',
-
-    // -- Refinery-Finder --
-    'refineryfinder.title': 'Wie funktioniert der Refinery-Finder?',
-    'refineryfinder.purpose':
-      'Zeigt zu jedem Erz die Raffinerie mit dem höchsten Yield-Bonus, dazu die volle Matrix aller Stationen.',
-    'refineryfinder.step1': 'Erz-Namen eingeben, um die beste Station sofort zu sehen.',
-    'refineryfinder.step2': 'Zur vollen Matrix wechseln für alle Erze und Stationen auf einen Blick.',
-    'refineryfinder.step3': 'Nach System filtern, um nur erreichbare Stationen zu sehen.',
-    'refineryfinder.step4': 'Auf eine Station oder einen Chip zeigen, um den vollen Namen zu sehen.',
-    'refineryfinder.ctl.search': 'Freitextsuche über Erz-Namen.',
-    'refineryfinder.ctl.view': 'Wechselt zwischen Liste und voller Matrix.',
-    'refineryfinder.ctl.system': 'Schränkt die Stationen auf ein System ein.',
 
     // -- Patch-Archiv --
     'archive.title': 'Wie funktioniert das Patch-Archiv?',
@@ -275,14 +261,13 @@ export const HELP = {
     'mining.step1': 'Click an ore on the left. The number on the tile is its scan signature.',
     'mining.step2': 'Read the selected ore’s locations by yield in the middle, with the stations that pay best underneath.',
     'mining.step3': 'Pick a station along the bottom — it gets highlighted in the yield ranking beside it.',
-    'mining.step4': 'Hit the pin button on an ore tile to pin it on the right, then type a scan value to identify a signature; the pin on a location row puts the pair on the second tab, across every ore.',
+    'mining.step4': 'Hit the pin button on an ore tile to pin it to the signature list on the right; the pin on a location row puts the pair into the location shortlist underneath — both lists stay visible at the same time, stacked.',
     'mining.ctl.search': 'Free-text search across mineral names and locations.',
     'mining.ctl.system': 'Narrows the tiles down to one star system.',
     'mining.ctl.tiles': 'Every ore at a glance. Click selects, the number is the scan signature, the button on the right pins it to the signature list.',
-    'mining.ctl.scan': 'Measured scan value. Matching multiples of the pinned ores are highlighted.',
     'mining.ctl.pinbtn': 'Pins the selected ore to the signature list on the right — same as the button on its tile, only bigger.',
-    'mining.ctl.pins': 'The pinned ores with their signature times cluster size.',
-    'mining.ctl.presets': 'Named sets — one preset holds signatures AND locations together. Saved to your account and available on every device.',
+    'mining.ctl.pins': 'Reference table: the pinned ores with their signature times cluster size, to compare against what the scanner calls out in-game.',
+    'mining.ctl.presets': 'Named sets — one preset holds signatures AND locations together: pick, rename, overwrite with the current selection, or remove single entries; deleting asks for confirmation. Saved to your account and available on every device.',
     'mining.ctl.fracturing': 'Leads to the fracturing calculator: it says whether your gear cracks the rock.',
 
     // -- Fracturing calculator --
@@ -304,21 +289,8 @@ export const HELP = {
     'fracturing.ctl.gadget': 'A gadget changes the resistance of the rock.',
     'fracturing.ctl.mass': 'The assumed mass of the rock — it sets how much damage is needed.',
     'mining.ctl.station': 'The station whose yield is highlighted in the ranking.',
-    'mining.ctl.locpin': 'Pins a location to the shortlist on the second tab — same pin as on the ore.',
-    'mining.ctl.tabs': 'Switches between the signature list and the location shortlist. Both share the same presets.',
+    'mining.ctl.locpin': 'Pins a location to the shortlist underneath — same pin as on the ore.',
     'mining.ctl.shortlist': 'The pinned locations across every ore, as “Ore — Location”.',
-
-    // -- Refinery Finder --
-    'refineryfinder.title': 'How does the Refinery Finder work?',
-    'refineryfinder.purpose':
-      'Shows the refinery with the highest yield bonus for every ore, plus the full matrix of all stations.',
-    'refineryfinder.step1': 'Type an ore name to see the best station instantly.',
-    'refineryfinder.step2': 'Switch to the full matrix for every ore and station at a glance.',
-    'refineryfinder.step3': 'Filter by system to see only reachable stations.',
-    'refineryfinder.step4': 'Hover a station or chip to see its full name.',
-    'refineryfinder.ctl.search': 'Free-text search across ore names.',
-    'refineryfinder.ctl.view': 'Switches between list and full matrix.',
-    'refineryfinder.ctl.system': 'Narrows the stations down to a system.',
 
     // -- Patch Archive --
     'archive.title': 'How does the patch archive work?',

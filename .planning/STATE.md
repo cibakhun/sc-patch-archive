@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 5
-current_phase_name: Spenden-Unterstuetzung
-status: in_progress
-stopped_at: Completed 02-06-PLAN.md (fuenf Seitenpaare, 22 Themen-Koerper, 5 Konto-Ansichten, PilotPage, ShipsOverview auf die Skala umgestellt)
-last_updated: "2026-08-15T01:32:37.434Z"
-last_activity: 2026-08-02
-last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
+current_phase: 10
+current_phase_name: mining-presets-bedienbar-machen
+status: verifying
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-08-15T04:28:49.215Z"
+last_activity: 2026-08-15
+last_activity_desc: Phase 10 execution started
 progress:
-  total_phases: 13
+  total_phases: 15
   completed_phases: 10
-  total_plans: 47
-  completed_plans: 41
+  total_plans: 50
+  completed_plans: 43
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -25,20 +25,37 @@ parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 5 — Spenden-Unterstützung
+**Current focus:** Phase 10 — mining-presets-bedienbar-machen
+
+> **Nachtrag 15.08.2026 — Phase 10 ist geplant, ausführbereit.**
+> „Mining-Presets bedienbar machen", 2 Pläne in 2 Wellen
+> (`.planning/phases/10-mining-presets-bedienbar-machen/`), Plan-Prüfer bestanden.
+> Nächster Schritt: `/gsd-execute-phase 10`.
+>
+> ⚠ Der übrige Text dieser Datei beschreibt weiterhin den Stand vom **02.08.2026**
+> (Phase 5). Die Phasen 6, 7, 8 und 9 sind seither aus anderen Sitzungen
+> ausgeliefert worden, ohne diesen Abschnitt fortzuschreiben — die Angaben unter
+> „Current Position" sind entsprechend veraltet und nicht als Lagebild zu lesen.
+> Absichtlich nicht überschrieben: an Phase 5 arbeitet laut demselben Abschnitt
+> eine parallele Sitzung.
 
 ## Current Position
 
-Phase: 5 of 7 (Spenden-Unterstützung)
-Plan: 3 Pläne geschnitten, noch keiner ausgeführt
-Status: **Neu ausgerichtet am 02.08.2026.** Der Abgleich mit `origin/staging` hat
+Phase: 10 (mining-presets-bedienbar-machen) — EXECUTING
+Plan: 2 of 2
+Status: Phase complete — ready for verification
+
+---
+
+**Ab hier: Alttext vom 02.08.2026 zu Phase 5** (vom Werkzeug beim Fortschreiben
+angeschnitten, Satzanfang rekonstruiert). Der Abgleich mit `origin/staging` hatte
 gezeigt, dass `/support.html` bereits existiert und live ist (Commit `517a9a7`,
 `src/components/SupportBody.astro` als EIN Körper für DE+EN, Empfänger
 `paypal.me/mkrisz22`, Fuß und Menü verdrahtet). Dieser Worktree war von `a23a22a`
 abgezweigt und blind dafür. Phase 5 ist deshalb kein Neubau mehr, sondern der
 **Umbau der bestehenden Seite** auf die Gestaltungsrichtung „Instandsetzung".
 Branch: claude/donation-button-feature-98ba38 (Worktree)
-Last activity: 2026-08-02 — staging zusammengeführt, Phase 5 auf Umbau umgestellt
+Last activity: 2026-08-15 — Phase 10 execution started
 
 **Was der bestehenden Seite fehlt** (gemessen, nicht vermutet):
 
@@ -133,7 +150,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 87%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
@@ -186,6 +203,8 @@ Progress: [█████████░] 87%
 | Phase 04-sprachparitaet-absichern P01 | 40min | 2 tasks | 5 files |
 | Phase 04-sprachparitaet-absichern P02 | 30min | 3 tasks | 7 files |
 | Phase 04 P03 | 65min | 3 tasks | 9 files |
+| Phase 10 P01 | 35min | 3 tasks | 4 files |
+| Phase 10 P02 | 35min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -263,6 +282,12 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 4]: 04-01: REQUIREMENTS.md SYNC-01/SYNC-02/THEME-02 bewusst NICHT auf Complete gesetzt -- verify:sync existiert und misst, aber der Erstbefund ist noch offen (81 Paare) und das Tor haengt noch nicht scharf im Dockerfile (D-03); Praezedenz aus Phase 2 (TYPO-01/02 erst im letzten Plan abgehakt)
 - [Phase ?]: [Phase 4]: 04-02: D-05 vollzogen -- description() in src/lib/items.ts liefert null unabhaengig von lang, wenn g.desc fehlt (79 Items ohne englische Quelle, 78 mit eigener Detailseite); descDe gilt als Uebersetzung eines vorhandenen desc, nicht als eigene Quelle. Zwei benannte cut-region-Ausnahmen (X-onepager-de-only, X-impressum-mstv) fuer die verbleibenden quellbelegten Abweichungen, neue Zusicherung 5 (Zombie-Waechter) in verify-sync.mjs. node scripts/verify-sync.mjs meldet jetzt 0 unerklaerte Abweichungen ueber alle 8678 Paare, Exit 0 -- Handover-Bedingung fuer Plan 03 (D-03 "erst beheben, dann scharf" vollzogen) erfuellt. Unbelegte Drift (p.muted nur auf der EN-Impressum-Seite) behoben statt ausgenommen (Gegenstueck in src/pages/de/impressum.astro ergaenzt). verify-fx/help/typo-motion.mjs beziehen die Paarung jetzt aus scripts/lib/page-pairs.mjs; dabei fehlende "< 60"-Untergrenze in verify-help.mjs nachgezogen (echter Befund beim vorgeschriebenen Vorher-Vergleich, macht die Zusicherung staerker). SYNC-02 in REQUIREMENTS.md auf Complete gesetzt.
 - [Phase ?]: [Phase 4]: 04-03: verify:theme-gen.mjs (npm run verify:theme) — die echten Generatoren gegen eine Ablagekopie unter os.tmpdir(), nie gegen den Arbeitsbaum. Der vorgeschriebene echte Lauf deckte zwei vorbestehende Bugs in build-light-overrides.mjs auf (stripTrailingRootRules loeschte einen gueltigen generierten Block, topLevelRules zerbrach an einem Kommentar mit literalen Klammern) -- beide behoben, plus ein Schutz gegen doppelte Wahrheiten (keine automatische Hell-Entsprechung fuer Selektoren mit bereits handgeschriebenem Gegenstueck). PilotPage.astro/ProfileCard.astro von den dadurch entstandenen Duplikaten bereinigt. ShipsOverview.astro's vorbestehende, echte Luecke (.fcard__status.fr) als benannte EXCLUSIONS-Ausnahme gehalten, nicht nachgezogen -- WINDOWS.md id 7. assets/theme.css Kopfangabe richtiggestellt (Marke HANDGEPFLEGT). Beide Tore (verify:sync, verify:theme) jetzt blockierend im Dockerfile; alle neun Tore auf dem committeten Stand gruen. SYNC-01/SYNC-02/THEME-02 auf Complete. Sichtprobe an WINDOWS.md id 8 uebergeben -- Phase 4 bleibt 'In Progress'.
+- [Phase ?]: Umbenennen als EIN PATCH auf (user_id,name) statt POST+DELETE — atomar, ein Fehlerfall (409)
+- [Phase ?]: Loeschen-Rueckfrage als eigener Inline-Zustand statt window.confirm() — zwei Klicks, zweiter traegt Worte
+- [Phase ?]: Einzeleintrag entfernen ohne preApply() — Ansehen/Ausduennen aendern nie den Arbeitsstand
+- [Phase ?]: 10-02: Reiterleiste ersatzlos entfernt statt umgebaut -- beide Listen wurden ohnehin bei jedem renderAll() gezeichnet, der Reiter blendete nur eine aus
+- [Phase ?]: 10-02: Rastermass 470px 1fr 330px wie im Plan vorentschieden uebernommen (Claude's Discretion aus CONTEXT.md)
+- [Phase ?]: 10-02: mining.ctl.pins wird zum Nachschlagewerk-Text, mining.ctl.presets nennt die vier Preset-Handlungen aus 10-01; scripts/verify-help.mjs bewusst nicht angefasst
 
 ### Pending Todos
 
@@ -311,6 +336,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-08T15:14:22.195Z
-Stopped at: Completed 02-07-PLAN.md (Sperrklinke angehoben, sechste Zusicherung, Dockerfile-Tor, Schluss-Sichtrunde an den Betreiber uebergeben -- Phase 2 technisch fertig, 7/7 Plaene, NICHT "Complete" solange die Sichtrunde aussteht)
+Last session: 2026-08-15T04:28:49.189Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None

@@ -589,13 +589,46 @@ ersatzlos — der Bedienweg ist im Spielfluss unrealistisch (anheften, scannen,
 Monitor wechseln, fünfstellig abtippen, während man im Belt steht); der
 übliche Weg ist näher ranfliegen, dann nennt der Scanner das Erz selbst. Die
 Signaturenliste samt Vielfachen bleibt als Nachschlagewerk erhalten.
-**Requirements**: TBD
+**Requirements**: keine REQ-IDs in REQUIREMENTS.md — bindend sind stattdessen die
+Entscheidungen D-01 bis D-07 aus
+`.planning/phases/10-mining-presets-bedienbar-machen/CONTEXT.md` (gleicher Umgang wie
+in Phase 7 und Phase 9), samt der beiden Nachschaerfungen vom 15.08.2026 zu D-01
+(zwei Klicks, der zweite traegt Worte) und D-02 (Aufklapp-Ansicht an der Preset-Zeile,
+gezielter Schreibaufruf ohne Laden des Presets).
 **Depends on:** Phase 9
-**Plans:** 0 plans
+**Plans:** 2/2 plans executed
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 10 to break down)
+- [x] 10-01-PLAN.md (Welle 1) — Leitschuss durch alle Schichten: sichtbare Preset-Liste
+  statt Auswahlfeld, Umbenennen ueber genau einen PATCH auf den Primaerschluessel samt
+  eigenem Zweig fuer den vergebenen Namen; danach Loeschen mit beschrifteter Rueckfrage
+  (Muelleimer statt `×`, andere Stelle, Warnschraffur) sowie Ueberschreiben und
+  eintragsweises Ausduennen direkt an der gespeicherten Zeile (D-01, D-02, D-05)
+
+- [x] 10-02-PLAN.md (Welle 2) — Ausbau vollzogen: die Reiter sind entfallen,
+  Signaturenliste und Fundort-Merkliste stehen gestapelt (`.wb__stack`/`.wb__sec2`) und
+  gleichzeitig sichtbar, jede mit eigener Ueberschrift samt Zaehler (`wb-pinsh`/`wb-lpinsh`);
+  die rechte Spalte ist um 68 px auf 330 px gewachsen, zulasten der Mitte (`470px 1fr 330px`),
+  die linke Erzliste unangetastet. Der Scanwert ist restlos abgetragen — Eingabefeld,
+  Treffermarkierung `is-hit`, Sprachschluessel `scanPlaceholder`, Hilfeschluessel
+  `mining.ctl.scan`/`mining.ctl.tabs` — waehrend die Vielfachen-Anzeige vollstaendig steht.
+  Hilfetexte in DE und EN auf den neuen Stand (Preset-Handlungen, Nachschlagewerk-Rahmung,
+  keine Reiter-/Scanwert-Erwaehnung mehr). Beide Torlaeufe gruen (normal und mit
+  `STAGING=1`, 18/18 Schritte), `verify:help` 12/12 Werkzeuge, `audit:site` 0 FEHLER,
+  `test:e2e` 270/270 (267 vor der Phase + 3 neue Faelle). Sichtrunde als Eintrag id 11 in
+  `.planning/WINDOWS.md` an den Betreiber uebergeben (D-03, D-04, D-06, D-07)
+
+Entschieden beim Zuschnitt (Claude's Discretion aus der CONTEXT.md): **Umbenennen ist
+EIN `PATCH` auf `(user_id, name)`**, nicht „neu anlegen + altes loeschen". Die
+UPDATE-Politik der Tabelle prueft ausschliesslich `user_id` und ist gegenueber dem Namen
+blind; der einzige Fehlerfall ist die Eindeutigkeitsverletzung, die als HTTP 409 mit
+eigener Meldung sichtbar wird. Zwei Aufrufe waeren nicht atomar und koennten genau den
+Datenverlust erzeugen, den diese Phase beheben soll. Der Preis der Entscheidung steht in
+`10-01-PLAN.md` unter `assumption_delta_decision`: solange der Name die Identitaet
+traegt, macht jedes Umbenennen eine kuenftige oeffentliche Adresse (Phase 11) ungueltig.
+**Rastermass** wird `470px 1fr 330px` statt `470px 1fr 262px` — die linke Erzliste
+bleibt unangetastet, die 68 px kommen aus der Mitte (D-04).
 
 ### Phase 11: Geteilte Routen mit Spielerbewertung
 
@@ -608,13 +641,17 @@ weiß nur, wer ihn geflogen ist. Bewertete Routen sind die Brücke zwischen
 korrekten Zahlen und brauchbarem Rat.
 
 ⚠ **Vor der Planung zu entscheiden** (bestimmt das Datenmodell):
+
 1. Urheberschaft — es gibt bereits öffentliche Profile `/pilot/<handle>`;
    Veröffentlichen wäre damit eine Preisgabe der Identität.
+
 2. Bewertungsform — Daumen, Sterne oder „hat funktioniert"; eine Stimme je
    Konto und Preset, sonst wertlos.
+
 3. Missbrauch — öffentliche Namensfelder sind ein Einfallstor für Spam und
    Beleidigungen; es braucht mindestens einen Weg für den Betreiber, etwas
    zu entfernen.
+
 4. Kopieren oder folgen — eine übernommene Route als eingefrorene Kopie
    oder als Abonnement, das sich mitändert.
 
