@@ -225,7 +225,7 @@ function buildPayload() {
   // nicht brechen, wenn morgen ein Werbetexter S.noLocs umformuliert.
   const t = {
     minerals: 'MINERALS', view: 'VIEW', signatures: 'SIGNATURES', locations: 'LOCATIONS',
-    search: 'SEARCH', scanPlaceholder: 'SCAN', pinHint: 'PIN-HINT',
+    search: 'SEARCH', pinHint: 'PIN-HINT',
     presets: 'PRESETS', presetSave: 'SAVE', presetDel: 'DEL',
     presetName: 'NAME', presetCancel: 'CANCEL', presetGuest: 'GUEST', presetLogin: 'LOGIN',
     presetSaved: 'SAVED', presetDeleted: 'DELETED', presetEmpty: 'EMPTY', presetFail: 'FAIL',
@@ -418,7 +418,7 @@ export function makeMiningDomContext(opts = {}) {
   };
 }
 
-/** Wartet, bis anhaengende Promise-Ketten (session().then(preLoad).then(preFill)
+/** Wartet, bis anhaengende Promise-Ketten (session().then(preLoad).then(renderPresetList)
  *  usw.) abgearbeitet sind — ohne echte Zeit zu verbrauchen. */
 export async function flush(ticks = 8) {
   for (let i = 0; i < ticks; i++) await Promise.resolve();
