@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-15",
-  "updates": 237,
-  "totalListings": 5848,
+  "updates": 238,
+  "totalListings": 5849,
   "totalSold": 250,
   "distinctItems": 1158
  },
@@ -124877,6 +124877,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786758811,
    "dateExpiration": 1791942811
+  },
+  "162670": {
+   "idItem": 7215,
+   "idCategory": 18,
+   "title": "Crafted Killshot \"Dominion Camo\" Rifle -OQ 960",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 960,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786764709,
+   "dateExpiration": 1791948709
   }
  }
 }
