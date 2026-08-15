@@ -92,9 +92,19 @@ const HEALS = [
 ];
 
 /* ---- Stücke, die separat wieder obenauf kommen -------------------------- */
+/* ⚠⚠ Der Schnitt muss das Zierteil GANZ enthalten UND glattes Blech an beiden
+   Enden. Erster Anlauf: `lamp` von y 470 bis 660 — das Gitterfeld im Holm geht
+   aber von rund 440 bis 810, der Schnitt lag also MITTEN darin. Sichtbar war
+   danach eine harte waagerechte Kante, an der das Muster abbricht („siehst du
+   wie da einfach abgeschnitten aussieht?"). Die Maske half nicht: sie blendete
+   Muster gegen Muster aus. Jetzt 390–870, also das Feld samt Fassung plus rund
+   50 px ruhiges Blech oben und unten — dort greift die Maske. */
 const PIECES = [
-  { name: 'plug', rect: [1380, 1063, 640, 166] },   // Steckerbuchse mit Gittern
-  { name: 'lamp', rect: [2706, 470, 106, 190] },    // ein Leuchtsegment im Holm
+  /* Symmetrisch um die Mitte der Bildflaeche ((503+2706)/2 = 1604): der erste
+     Schnitt (1380–2020) erwischte nur das RECHTE Lueftungsgitter, im Original
+     sitzt links eines gegenueber. */
+  { name: 'plug', rect: [1174, 1063, 860, 166] },   // Buchse mit BEIDEN Gittern
+  { name: 'lamp', rect: [2706, 390, 106, 480] },    // Gitterfeld im Holm + Rand
 ];
 
 const browser = await chromium.launch({ executablePath: CHROME, headless: true });

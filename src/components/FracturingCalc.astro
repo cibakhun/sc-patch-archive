@@ -303,21 +303,21 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   pointer-events:none;z-index:2}
 .fc__chassis::after{left:50%;transform:translateX(-50%);
   bottom:calc(var(--rahmen)*-1.2);height:calc(var(--rahmen)*1.2);
-  width:calc(var(--rahmen)*1.2*640/166);
+  width:calc(var(--rahmen)*1.2*860/166);
   background:var(--fc-plug) center/100% 100% no-repeat;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);
   mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
 .fc__chassis::before{right:calc(var(--rahmen)*-1);width:var(--rahmen);
-  top:50%;transform:translateY(-50%);height:calc(var(--rahmen)*190/106);
+  top:50%;transform:translateY(-50%);height:calc(var(--rahmen)*480/106);
   background:var(--fc-lamp) center/100% 100% no-repeat;
-  -webkit-mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);
-  mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent)}
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 11%,#000 89%,transparent);
+  mask-image:linear-gradient(180deg,transparent,#000 11%,#000 89%,transparent)}
 .fc__lamp-l{position:absolute;pointer-events:none;z-index:2;
   left:calc(var(--rahmen)*-1);width:var(--rahmen);
-  top:50%;transform:translateY(-50%) scaleX(-1);height:calc(var(--rahmen)*190/106);
+  top:50%;transform:translateY(-50%) scaleX(-1);height:calc(var(--rahmen)*480/106);
   background:var(--fc-lamp) center/100% 100% no-repeat;
-  -webkit-mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);
-  mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent)}
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 11%,#000 89%,transparent);
+  mask-image:linear-gradient(180deg,transparent,#000 11%,#000 89%,transparent)}
 
 /* Titel unsichtbar, aber vorhanden — wie in der Werkbank. Sichtbarer Titel und
    Vorzeile im Blech sind auf Ansage des Betreibers gestrichen. */
