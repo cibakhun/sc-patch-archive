@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 10
 current_phase_name: mining-presets-bedienbar-machen
 status: verifying
-stopped_at: Phase 12 context gathered
-last_updated: "2026-08-15T13:22:07.080Z"
+stopped_at: Phase 12 UI-SPEC approved
+last_updated: "2026-08-15T14:01:23.002Z"
 last_activity: 2026-08-15
 last_activity_desc: Phase 10 execution started
 progress:
@@ -337,6 +337,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-15T13:22:07.054Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-CONTEXT.md
+Last session: 2026-08-15T14:01:22.977Z
+Stopped at: Phase 12 UI-SPEC approved
+Resume file: .planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-UI-SPEC.md
