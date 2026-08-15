@@ -30,8 +30,21 @@ import { versioned } from '../lib/assetVersion';
 import { href } from '../i18n/ui';
 import { useHelp, type HelpKey } from '../i18n/help';
 
-interface Props { lang: 'de' | 'en'; }
-const { lang } = Astro.props;
+/* Titel ins Gehaeuse (15.08.2026), wie bei der Mining-Werkbank: das Kopfband
+   der Grafik traegt ihn, der separate `.hero` der Seite faellt dafuer weg. */
+interface Props {
+  lang: 'de' | 'en';
+  title: string;
+  eyebrow: string;
+  lead: string;
+}
+const { lang, title, eyebrow, lead } = Astro.props;
+
+/* Dieselbe Gehaeuse-Grafik wie die Mining-Werkbank — die beiden Seiten sind
+   ein Paar, und zwei verschiedene Rahmen waeren ein Bruch. Ueber versioned(),
+   damit der sha1 am Inhalt haengt statt an einer hochgezaehlten `?v=`-Zahl. */
+const chassis1x = versioned('assets/chassis-1600.webp', '/assets/chassis-1600.webp');
+const chassis2x = versioned('assets/chassis-2400.webp', '/assets/chassis-2400.webp');
 const de = lang === 'de';
 const h = useHelp(lang);
 const hlp = (k: string) => h(`fracturing.ctl.${k}` as HelpKey);
@@ -140,7 +153,18 @@ const payload = {
 const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 ---
 
-<section class="fc" id="calc" data-fc>
+<section class="fc" id="calc" data-fc
+         style={`--fc-chassis-img:url('${chassis1x}');--fc-chassis-img-2x:url('${chassis2x}')`}>
+  {/* Gehaeuse: EIN Bild mit festem Seitenverhaeltnis, Bildflaeche als
+      Prozentkasten. Begruendung, Messwerte und der verworfene 9-Slice-Weg
+      stehen in .planning/sketches/010-chassis-asset/README.md. */}
+  <div class="fc__chassis">
+    <div class="fc__chead">
+      <div class="fc__ceyebrow" set:text={eyebrow} />
+      <h1 class="fc__ctitle" set:text={title} />
+    </div>
+    <div class="fc__cscreen">
+      <p class="fc__clead" set:text={lead} />
   <div class="fc__grid">
 
     <!-- ============================================ Spalte 1: die 37 Erze -->
@@ -230,6 +254,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       </div>
     </div>
   </div>
+    </div>{/* .fc__cscreen */}
+  </div>{/* .fc__chassis */}
 </section>
 
 <script type="application/json" id="fc-data" set:html={JSON.stringify(payload)}></script>
@@ -247,21 +273,46 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
      178 gibt sie dem Raster. Wer die Zahl anfasst, misst beides nach:
      `#fc-list` darf nicht scrollen UND `.fc` nicht unter die Falz laufen. */
   --fc-chrome:178px}
-.fc::before{content:'';position:absolute;inset:-8px 0 0;z-index:-1;pointer-events:none;
-  background:
-    linear-gradient(114deg,transparent 18%,color-mix(in srgb,var(--text) 5%,transparent) 38%,transparent 58%),
-    radial-gradient(120% 85% at 72% 2%,color-mix(in srgb,var(--accent) 15%,transparent),transparent 58%),
-    radial-gradient(95% 75% at 6% 98%,color-mix(in srgb,var(--accent-2) 12%,transparent),transparent 60%),
-    repeating-linear-gradient(0deg,color-mix(in srgb,var(--text) 6%,transparent) 0 1px,transparent 1px 170px),
-    repeating-linear-gradient(90deg,color-mix(in srgb,var(--text) 6%,transparent) 0 1px,transparent 1px 170px);
-  mask-image:radial-gradient(130% 100% at 50% 42%,#000 44%,transparent 100%)}
+/* ═══════════════════════ Gehaeuse ═══════════════════════
+   Dieselbe Grafik und dieselben gemessenen Prozentwerte wie in der
+   Mining-Werkbank — die beiden Seiten sind ein Paar. Belege und der
+   verworfene 9-Slice-Weg: .planning/sketches/010-chassis-asset/README.md.
+   ⚠ Der alte Zier-Grund `.fc::before` ist damit entfallen: er reichte 8 px
+   ueber die Sektion hinaus und legte einen Lichthof um den Rahmen. */
+.fc__chassis{position:relative;aspect-ratio:2552/1167;width:100%;
+  background:var(--fc-chassis-img) center/100% 100% no-repeat}
+@media (min-resolution:1.5dppx),(min-width:1700px){
+  .fc__chassis{background-image:var(--fc-chassis-img-2x)}}
+.fc__chead{position:absolute;left:0;right:0;top:0;height:11.225%;pointer-events:none;
+  container-type:size}
+/* ⚠ Titel eigenstaendig zentrieren, NICHT gemeinsam mit der Vorzeile in einer
+   Flexbox — sonst ist die Gruppe mittig und der Titel sitzt daneben. */
+.fc__ctitle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;
+  font-size:clamp(1rem,1.75cqw,1.65rem);font-weight:600;letter-spacing:var(--ls-1);
+  line-height:1;color:#f2fafb;white-space:nowrap;text-shadow:0 1px 3px var(--shadow-color),0 2px 12px var(--shadow-color)}
+.fc__ceyebrow{position:absolute;left:24%;top:50%;transform:translateY(-50%);
+  font-family:var(--font-mono,ui-monospace);font-weight:600;
+  font-size:clamp(.5rem,.66cqw,.7rem);letter-spacing:var(--ls-15);text-transform:uppercase;
+  color:#ffcf7a;white-space:nowrap;padding:4px 9px;border-radius:5px;background:var(--veil-2);box-shadow:inset 0 0 0 1px rgba(255,207,122,.28)}
+@media(max-width:1180px){.fc__ceyebrow{display:none}}
+.fc__cscreen{position:absolute;left:7.367%;top:11.225%;width:88.088%;height:76.692%;
+  display:flex;flex-direction:column;gap:8px;min-height:0}
+.fc__clead{margin:0;text-align:center;font-size:var(--fs-4);
+  color:color-mix(in srgb,var(--muted) 92%,transparent)}
+/* ⚠ Hier lag bis 15.08.2026 ein CSS-Raster als Grund der Bildflaeche. Es ist
+   ersatzlos entfallen: die Gehaeuse-Grafik bringt ihren eigenen Verlauf im
+   Bildschirmbereich mit, und eine zweite Zier-Schicht darueber waere eine
+   neue Selektor-Familie, die erify:layers (Zusicherung 5) zu Recht als
+   Fund ohne Registry-Eintrag meldet. Weniger Schichten, ein Tor weniger zu
+   befriedigen, gleiches Bild. */
 
 .fc__lbl{font-size:var(--fs-4);font-weight:500;color:color-mix(in srgb,var(--muted) 88%,transparent);letter-spacing:var(--ls-4)}
 .num{font-family:var(--font-mono,ui-monospace);font-variant-numeric:tabular-nums}
 
 .fc__pane{
-  background:color-mix(in srgb,var(--surface) 78%,transparent);
-  -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);
+  /* Kein Glas mehr: hinter einer deckenden Metallblende hat backdrop-filter
+     nichts zu spiegeln (15.08.2026, mit dem Gehaeuse). */
+  background:color-mix(in srgb,var(--ink) 62%,var(--surface));
   border-radius:12px;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 8%,transparent),
     0 3px 14px color-mix(in srgb,var(--ink) 40%,transparent);
   display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;position:relative}
@@ -274,7 +325,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     var(--bg) calc(50% + .5px) 100%)}
 
 .fc__grid{display:grid;grid-template-columns:404px 1fr 268px;gap:10px;min-height:0;
-  height:clamp(430px,calc(100vh - var(--fc-chrome)),980px)}
+  flex:1}
 .fc__scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
 
 /* ---------------- Spalte 1 ---------------- */
@@ -407,10 +458,25 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .fc__slot:focus-visible,.fc__tile:focus-visible,.fc__back:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 
 @media(max-width:1180px){
-  .fc__grid{grid-template-columns:1fr;height:auto}
+  .fc__grid{grid-template-columns:1fr;height:auto;flex:none}
   .fc__pane{height:auto}
   .fc__pane--list{height:min(62vh,560px)}
   .fc__scroll{max-height:none}
+  /* ⚠ Gehaeuse AUS — wie in der Mining-Werkbank. Es hat ein festes
+     Seitenverhaeltnis von 2552:1167; bei schmalen Fenstern schrumpft seine
+     Bildflaeche damit auf eine Hoehe, in der nichts mehr Platz hat, waehrend
+     die Spalten untereinander in die Laenge wachsen. */
+  .fc__chassis{aspect-ratio:auto;background:none;display:flex;flex-direction:column;gap:10px}
+  /* ⚠ `container-type:size` MUSS hier zurueck. Ein Groessen-Container
+     berechnet seine Hoehe OHNE seinen Inhalt (Size-Containment) — das
+     Kopfband fiel dadurch auf die reine Polsterung von 5 px zusammen,
+     waehrend die <h1> darueber hinausragte und den Untertitel ueberdeckte.
+     Gemessen bei 390 px: chead 5 px hoch, ctitle 29 px. */
+  .fc__chead{position:static;height:auto;padding:0 0 .3rem;container-type:normal}
+  .fc__ctitle{position:static;transform:none;white-space:normal;text-shadow:none;
+    color:var(--text);font-size:clamp(1.6rem,3vw,2.1rem)}
+  .fc__cscreen{position:static;left:auto;top:auto;width:auto;height:auto}
+  .fc__clead{text-align:left;font-size:var(--fs-6)}
 }
 @media(max-width:760px){
   .fc__pane--list{height:auto}
@@ -419,6 +485,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .fc__mrow .s{grid-column:1/-1;text-align:right}
 }
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .fc__ctitle{color:#525a5b}
+:root[data-theme="light"] .fc__ceyebrow{color:#735103}
 :root[data-theme="light"] .fc__dot.is-ok{color:#036b26}
 :root[data-theme="light"] .fc__dot.is-bad{color:#9b2a10}
 :root[data-theme="light"] .fc__gauge.is-ok{color:#036b26}

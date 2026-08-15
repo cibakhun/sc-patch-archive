@@ -2,7 +2,7 @@
 sketch: 010
 name: chassis-asset
 question: "Wie kommt die Gehäuse-Vorlage des Betreibers als Rahmen in die Werkbank?"
-winner: "A/B/C sind eine Variante bei drei Breiten — zu entscheiden ist der Ansatz"
+winner: "angenommen 15.08.2026 — „ja der rahmen trägt so\""
 tags: [design, mining, werkbank, gehaeuse, asset]
 ---
 
@@ -77,9 +77,13 @@ Werkzeug: [`../tools/make-chassis.mjs`](../tools/make-chassis.mjs). Es
 Breiten. Für diese Skizze:
 
 ```bash
-node .planning/sketches/tools/make-chassis.mjs assets/chassis-src.jpg <ziel> \
-  --crop 290,62,2552,1167 --widths 1600,2400
+node .planning/sketches/tools/make-chassis.mjs .planning/sketches/010-chassis-asset/chassis-src.jpg assets --crop 290,62,2552,1167 --widths 1600,2400
 ```
+
+⚠ Die Quelldatei liegt **hier**, nicht in `assets/`: alles unter `assets/` wird
+mit ausgeliefert, und die 2,0 MB grosse Vorlage waere dort tote Fracht im
+Auslieferungs-Image. Nur die beiden zugeschnittenen WebP (43 / 78 KB) gehoeren
+dorthin.
 
 - **Zuschnitt** entfernt Szenen-Hintergrund, Tragegriff und Standfüße. Griff
   raus war eine Entscheidung des Betreibers; die Füße fielen mit dem Schnitt,

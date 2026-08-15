@@ -23,9 +23,10 @@ const verShort = ver.split('-')[0]; // "4.9.0-live.12248363" -> "4.9.0"
 ---
 <TopicSeo slug="mining" image="/assets/img-mole.jpg" />
 <style is:inline>
-:root{--bg:#14181a;--bg-2:#181d1f;--surface:#1e2427;--surface-2:#252c30;--accent:#2FBFA4;--accent-2:#E0A526;--hot:#2FBFA4;--text:#eaf2f1;--muted:#8fa3a0;--line:rgba(47,191,164,.22);--line-soft:rgba(234,242,241,.10);--glow:0 0 44px rgba(47,191,164,.26);--ink:#0e1214;--maxw:1240px;}
+:root{--bg:#14181a;--bg-2:#181d1f;--surface:#1e2427;--surface-2:#252c30;--accent:#2FBFA4;--accent-2:#E0A526;--hot:#A970FF;--text:#eaf2f1;--muted:#8fa3a0;--line:rgba(47,191,164,.22);--line-soft:rgba(234,242,241,.10);--glow:0 0 44px rgba(47,191,164,.26);--ink:#0e1214;--maxw:1240px;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f3f8fb;--bg-2:#e8eff2;--surface:#fcfefe;--surface-2:#ebf4f9;--text:#1b2120;--muted:#4a5c5a;--accent:#036a5a;--accent-2:#704f00;--hot:#046151;--ink:#ffffff;--accent-media:#2FBFA4;--accent-2-media:#E0A526;--line:rgba(43,130,113,.3);--line-soft:rgba(41,47,46,.12);--glow:0 6px 22px rgba(43,130,113,.18)}
+:root[data-theme="light"]{--bg:#f3f8fb;--bg-2:#e8eff2;--surface:#fcfefe;--surface-2:#ebf4f9;--text:#1b2120;--muted:#4a5c5a;--accent:#036a5a;--accent-2:#704f00;--hot:#642aaa;--ink:#ffffff;--accent-media:#2FBFA4;--accent-2-media:#E0A526;--line:rgba(43,130,113,.3);--line-soft:rgba(41,47,46,.12);--glow:0 6px 22px rgba(43,130,113,.18)}
+
 
 
 
@@ -39,24 +40,16 @@ const verShort = ver.split('-')[0]; // "4.9.0-live.12248363" -> "4.9.0"
    scripts/verify-fx.mjs und bewusst NICHT hier: dieser Kommentar landet in
    der gebauten Seite, und das Tor sucht die Namen genau dort. Er hat sie
    beim ersten Anlauf prompt gefunden. */
-/* Am gebauten Stand bei 1280x720 nachgemessen und danach gekuerzt:
-   Polsterung oben stand auf 6,2rem = 111,6 px fuer eine 67 px hohe
-   Navigation — 44 px verschenkt. Eyebrow und Untertitel belegten je eine
-   eigene Zeile (24 + 50 px). Alles drei steht jetzt in EINER Grundlinien-
-   Reihe. Hero dadurch von 247 px auf rund 130 px. */
-.hero{min-height:0;justify-content:flex-start;padding-top:4.4rem;padding-bottom:.5rem;
-  background:radial-gradient(120% 90% at 78% 12%,rgba(47,191,164,.14),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(224,165,38,.10),transparent 55%),var(--bg)}
-.hero h1{font-size:clamp(1.6rem,3vw,2.1rem);font-weight:600;letter-spacing:var(--ls-1);color:var(--text);margin:0}
-.hero .lead{flex:1 1 24ch;max-width:70ch;font-size:var(--fs-6);color:var(--muted);margin:0}
-/* ⚠ Die 4,4rem oben sind auf das Hoehenbudget der Werkbank gerechnet. Die
-   Leiste veroeffentlicht ihre wirkliche Hoehe aber als --nav-h und wird mit
-   sichtbarer Zurueck-Marke auf schmalen Fenstern 116 px hoch (SiteNav:877) —
-   dort lief die Marke deshalb in die Eyebrow-Zeile. Unterhalb von 1180 px
-   steht die Werkbank ohnehin einspaltig mit height:auto, das Budget gilt da
-   nicht, also bekommt der Hero den Platz, den die Leiste wirklich braucht. */
-@media(max-width:1180px){.hero{padding-top:calc(var(--nav-h,116px) + .6rem)}}
-.hero__in{max-width:1560px;display:flex;align-items:baseline;gap:.3rem 1rem;flex-wrap:wrap}
-.hero__in .eyebrow{order:0;width:auto;flex:0 0 auto}
+/* ⚠ Der `.hero`-Block dieser Seite ist am 15.08.2026 ersatzlos entfallen — das
+   Gehäuse der Werkbank trägt den Titel jetzt selbst. Was hier bleibt, ist
+   allein die Polsterung, die vorher am Hero hing: die Navigationsleiste ist
+   fest positioniert, und ohne Hero stünde die Werkbank sonst darunter.
+   Die 4,4rem sind wie zuvor auf das Höhenbudget gerechnet; unterhalb von
+   1180 px veröffentlicht die Leiste ihre wirkliche Höhe als --nav-h und wird
+   mit sichtbarer Zurück-Marke 116 px hoch (SiteNav:877). Dort steht die
+   Werkbank ohnehin einspaltig, das Budget gilt da nicht. */
+main > .wb{padding-top:4.4rem}
+@media(max-width:1180px){main > .wb{padding-top:calc(var(--nav-h,116px) + .6rem)}}
 .mn-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-14);text-transform:uppercase;font-size:var(--fs-4);color:var(--accent-2)}
 .qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-12);text-transform:uppercase;font-size:var(--fs-5);color:var(--muted)}
 .qbar b{color:var(--accent)}
@@ -105,18 +98,21 @@ const verShort = ver.split('-')[0]; // "4.9.0-live.12248363" -> "4.9.0"
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: "Mining" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: "Mining" }]} />
 
 <main id="main">
-  <section class="hero">
-    <div class="hero__in">
-      <div class="eyebrow">Alpha {verShort}{de ? ' · Live-Daten' : ' · live data'}</div>
-      <h1>Mining</h1>
-      {/* „Brechbarkeit" stand hier bis 12.08.2026 mit drin. Sie ist mit dem
-          Fracturing-Rechner auf /fracturing.html gezogen — eine Zusage, die
-          die Seite nicht mehr einlöst, gehört aus dem Untertitel raus. */}
-      <p class="lead"><Fragment set:html={de ? 'Erz wählen — Fundorte, Physik, Gesteinsarten und Refinery-Ertrag stehen sofort daneben.' : 'Pick an ore — locations, physics, rock types and refinery yield stand right beside it.'} /></p>
-    </div>
-  </section>
-
-  <MiningWorkbench lang={de ? 'de' : 'en'} />
+  {/* ⚠ Der `.hero` ist am 15.08.2026 ERSATZLOS entfallen — nicht versehentlich.
+      Das Gehäuse der Werkbank trägt den Titel in seinem Kopfband (wie in den
+      Vorlagen), und der Hero hätte dieselbe Aussage ein zweites Mal gemacht.
+      Der gewonnene Platz ist genau der, den der Rahmen kostet: ohne diesen
+      Tausch stünde die Werkbank bei 1280×720 unter der Falz.
+      Die <h1> ist damit NICHT verschwunden, sie steht in `.wb__ctitle`.
+      „Brechbarkeit" stand bis 12.08.2026 im Untertitel; sie ist mit dem
+      Fracturing-Rechner auf /fracturing.html gezogen. */}
+  <MiningWorkbench
+    lang={de ? 'de' : 'en'}
+    title="Mining"
+    eyebrow={`Alpha ${verShort}${de ? ' · Live-Daten' : ' · live data'}`}
+    lead={de
+      ? 'Erz wählen — Fundorte, Physik, Gesteinsarten und Refinery-Ertrag stehen sofort daneben.'
+      : 'Pick an ore — locations, physics, rock types and refinery yield stand right beside it.'} />
 
   <div class="mn-sec-h reveal" id="refinery"><span class="num">02</span><h2>Refinery Finder</h2></div>
   <RefineryFinder lang={de ? 'de' : 'en'} />
