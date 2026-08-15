@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 2
+open_count: 3
 waived_count: 0
 fixed_count: 8
-total_count: 10
-last_updated: 2026-08-15T01:27:06.000Z
+total_count: 11
+last_updated: 2026-08-15T14:10:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -150,3 +150,4 @@ last_updated: 2026-08-15T01:27:06.000Z
   }
 ]
 ````
+| 12 | design | sight | src/components/MiningWorkbench.astro |  | Sichturteil: der Werkzeug-Hilfe-Kasten klappt beim Erstbesuch selbsttaetig auf und deckt im Gehaeuse-Bildbereich bei 1280x720 das Kachelraster fast vollstaendig zu. Auf 140 px gekuerzt (vorher 244), damit eine Kachelzeile sichtbar bleibt; ganz aufloesen laesst es sich hier NICHT — .wb__pane{overflow:hidden} schneidet jede Positionierung neben die Spalte weg (vorgefuehrt). Echte Optionen: Auto-Oeffnen abschalten oder ToolHelp aus der Spalte heben — beides Eingriff in den geteilten Werkzeug-Hilfe-Vertrag und damit Produktentscheidung. | open |  | 2026-08-15T14:10:00.000Z |  |
