@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-15",
-  "updates": 253,
-  "totalListings": 6066,
-  "totalSold": 258,
+  "updates": 254,
+  "totalListings": 6097,
+  "totalSold": 259,
   "distinctItems": 1177
  },
  "listings": {
@@ -119242,6 +119242,10 @@
     {
      "d": "2026-08-13",
      "p": 11000000
+    },
+    {
+     "d": "2026-08-15",
+     "p": 9500000
     }
    ],
    "soldOut": false,
@@ -122941,6 +122945,10 @@
     {
      "d": "2026-08-14",
      "p": 600000
+    },
+    {
+     "d": "2026-08-15",
+     "p": 500000
     }
    ],
    "soldOut": false,
@@ -123646,6 +123654,10 @@
     {
      "d": "2026-08-14",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-15",
+     "p": 1500000
     }
    ],
    "soldOut": false,
@@ -128052,9 +128064,9 @@
      "p": 2000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-15",
+   "soldOutPrice": 2000000,
    "dateAdded": 1786796274,
    "dateExpiration": 1791980274
   },
@@ -129527,6 +129539,657 @@
    "soldOutPrice": null,
    "dateAdded": 1786823032,
    "dateExpiration": 1792007032
+  },
+  "162865": {
+   "idItem": 5859,
+   "idCategory": 36,
+   "title": "WTS 0.208 SCU of Q854 Aslarite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 854,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824451,
+   "dateExpiration": 1792008451
+  },
+  "162866": {
+   "idItem": 8025,
+   "idCategory": 7,
+   "title": "Artimex Lodestone Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 957600
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824764,
+   "dateExpiration": 1792008764
+  },
+  "162867": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "ARTIMEX RED ALERT SET /W BACKPACK",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 14364000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824768,
+   "dateExpiration": 1792008768
+  },
+  "162868": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "ADP-mk4 Red Alert SET",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 2736000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824772,
+   "dateExpiration": 1792008772
+  },
+  "162869": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Arden-SL red Alert / FULL SET",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1710000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824775,
+   "dateExpiration": 1792008775
+  },
+  "162870": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "ARIL RED ALERT FULL SET / BACKPACK INCLUDED",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 3420000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824779,
+   "dateExpiration": 1792008779
+  },
+  "162871": {
+   "idItem": 1749,
+   "idCategory": 23,
+   "title": "CoverAll",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 82080
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824783,
+   "dateExpiration": 1792008783
+  },
+  "162872": {
+   "idItem": 965,
+   "idCategory": 21,
+   "title": "Radiance",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 167580
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824787,
+   "dateExpiration": 1792008787
+  },
+  "162873": {
+   "idItem": 1755,
+   "idCategory": 21,
+   "title": "MegaFlux",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 164160
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824791,
+   "dateExpiration": 1792008791
+  },
+  "162874": {
+   "idItem": 935,
+   "idCategory": 21,
+   "title": "Fulgur",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 129960
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824795,
+   "dateExpiration": 1792008795
+  },
+  "162875": {
+   "idItem": 4610,
+   "idCategory": 38,
+   "title": "DCHS-06 Communication Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 64980
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824799,
+   "dateExpiration": 1792008799
+  },
+  "162876": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824803,
+   "dateExpiration": 1792008803
+  },
+  "162877": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "20x DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 25500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824806,
+   "dateExpiration": 1792008806
+  },
+  "162878": {
+   "idItem": 159,
+   "idCategory": 23,
+   "title": "FullBlock",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824810,
+   "dateExpiration": 1792008810
+  },
+  "162879": {
+   "idItem": 1759,
+   "idCategory": 19,
+   "title": "Avalanche",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 360000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824813,
+   "dateExpiration": 1792008813
+  },
+  "162880": {
+   "idItem": 933,
+   "idCategory": 19,
+   "title": "NightFall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 270000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824817,
+   "dateExpiration": 1792008817
+  },
+  "162881": {
+   "idItem": 1767,
+   "idCategory": 19,
+   "title": "Blizzard",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 307800
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824822,
+   "dateExpiration": 1792008822
+  },
+  "162882": {
+   "idItem": 3349,
+   "idCategory": 18,
+   "title": "Scourge Railgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 342000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824828,
+   "dateExpiration": 1792008828
+  },
+  "162883": {
+   "idItem": 2448,
+   "idCategory": 3,
+   "title": "Parasite V: Dark Birth Replica Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 273600
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824835,
+   "dateExpiration": 1792008835
+  },
+  "162884": {
+   "idItem": 2585,
+   "idCategory": 3,
+   "title": "Neoni 'Tengubi' Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 145350
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824839,
+   "dateExpiration": 1792008839
+  },
+  "162886": {
+   "idItem": 2584,
+   "idCategory": 3,
+   "title": "Neoni 'Jami' Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824848,
+   "dateExpiration": 1792008848
+  },
+  "162887": {
+   "idItem": 4155,
+   "idCategory": 3,
+   "title": "Deadhead Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 501429
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824851,
+   "dateExpiration": 1792008851
+  },
+  "162888": {
+   "idItem": 7628,
+   "idCategory": 3,
+   "title": "Deadhead Helmet Brassy",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 883500
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824856,
+   "dateExpiration": 1792008856
+  },
+  "162889": {
+   "idItem": 5504,
+   "idCategory": 3,
+   "title": "Deadhead Helmet Bruiser",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 302328
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824859,
+   "dateExpiration": 1792008859
+  },
+  "162890": {
+   "idItem": 5657,
+   "idCategory": 3,
+   "title": "Deadhead Helmet Dust",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 345690
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824863,
+   "dateExpiration": 1792008863
+  },
+  "162891": {
+   "idItem": 6784,
+   "idCategory": 1,
+   "title": "Overlord Arms Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 676912
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786824867,
+   "dateExpiration": 1792008867
+  },
+  "162894": {
+   "idItem": 4433,
+   "idCategory": 18,
+   "title": "20% Parallax Shock Trooper - full attachments - Quality 1000",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 19000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786825258,
+   "dateExpiration": 1792009258
+  },
+  "162895": {
+   "idItem": 5923,
+   "idCategory": 36,
+   "title": "WTS 0.55 SCU of Q707 Laranite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 707,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786825498,
+   "dateExpiration": 1792009498
+  },
+  "162896": {
+   "idItem": 8032,
+   "idCategory": 7,
+   "title": "RARE - Antium Midnight Sun Set !",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 22000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786825512,
+   "dateExpiration": 1792009512
+  },
+  "162897": {
+   "idItem": null,
+   "idCategory": 32,
+   "title": "S71 Purgatory Camo Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 800,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786825514,
+   "dateExpiration": 1792009514
+  },
+  "162898": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "WTS Q787 Tungsten",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 787,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786826371,
+   "dateExpiration": 1792010371
   }
  }
 }
