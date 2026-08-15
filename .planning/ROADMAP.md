@@ -736,3 +736,47 @@ Plans:
 - [x] 12-01-PLAN.md — Tracer: Klick auf eine Fundort-Zeile öffnet die Fundort-Ansicht (Kopf, nach Methode gruppierte und nach Chance sortierte Erzliste, gedämpfte Spurenzeilen), Zurück-Pfeil führt aufs Erz
 - [x] 12-02-PLAN.md — Das Netz schließt sich: Erzzeile führt zum Erz (D-02), Merklistenzeile trägt denselben Klick (D-03), Kachelspalte markiert die Erze des Ortes (D-09)
 - [x] 12-03-PLAN.md — Adresse `?fundort=` (D-04), Hilfetexte in beiden Sprachen nachgezogen, die 9 offenen Zustandszusicherungen gemessen und als Sichtrunde übergeben
+
+### Phase 13: Verschachtelte Klickziele barrierefrei auflösen
+
+**Goal:** An drei Stellen der Mining-Werkbank umschließt ein klickbares
+Element einen echten `<button>`: die Erz-Kachel mit ihrer Anheft-Nadel
+(`.wb__tile`, seit Phase 9), und seit Phase 12 die Fundort-Zeile und die
+Merklisten-Zeile mit derselben Nadel. Alle drei tragen `role="button"` und
+`tabindex="0"` auf dem äußeren Element. Das ist ein Verstoß gegen
+WCAG 4.1.2 (axe-Regel `nested-interactive`): Screenreader kündigen ein
+Bedienelement an, das ein zweites enthält, und die Reihenfolge, in der beide
+erreichbar sind, ist nicht verlässlich.
+
+**Befund-Herkunft:** Code-Review der Phase 12,
+`.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-REVIEW.md`,
+Eintrag **WR-02**. Kein Blocker — die Bedienung mit Maus und Tastatur ist
+durch Tests belegt (`tests/e2e/mining-shortlist.test.js`) und die
+Klick-Vorrangordnung stimmt. Der Mangel ist die *Auszeichnung*, nicht das
+Verhalten.
+
+**Warum eine eigene Phase und nicht Beiarbeit in Phase 12** (Entscheidung des
+Betreibers, 15.08.2026): Das Muster betrifft **drei** Stellen, nicht nur die
+zwei neuen — die Kachel trägt es seit Phase 9. Und die saubere Auflösung
+ändert das Bedienmodell: Entweder wird der Name zum Knopf statt der ganzen
+Zeile, oder die Nadel wandert aus dem Klickziel heraus.
+
+⚠ **Der naheliegende Weg ist gesperrt.** „Nur der Name wird klickbar"
+widerspricht **D-01** aus
+`.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-CONTEXT.md`:
+die ganze Zeile wurde ausdrücklich als Klickziel gewählt, weil zu kleine
+Ziele an genau diesem Knopf schon **dreimal** zurückgemeldet wurden
+(`.planning/notes/signaturliste-anheften.md`). Diese Phase muss also eine
+Lösung finden, die die Zugänglichkeit herstellt **ohne** das Ziel zu
+verkleinern — z. B. die Nadel aus dem umschließenden Element herausheben
+statt die Zeile zu verkleinern. Wer hier mit „dann eben nur der Name"
+anfängt, dreht eine teuer bezahlte Entscheidung zurück.
+
+**Requirements**: keine REQ-IDs — bindend ist WR-02 aus `12-REVIEW.md` sowie
+die Sperre durch D-01 aus `12-CONTEXT.md`.
+**Depends on:** Phase 12
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 13 to break down)
