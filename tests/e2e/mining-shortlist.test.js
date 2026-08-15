@@ -935,3 +935,164 @@ test('Ist ein Preset nach dem Ausduennen leer, bleibt die Zeile stehen und die a
   assert.ok(body, 'die Ansicht sollte weiterhin aufgeklappt sein');
   assert.strictEqual(body.textContent, ctx.T.presetNoEntries);
 });
+
+// ---------------------------------------------------------------------
+// Code-Review Phase 10 (10-REVIEW.md) — HIGH: Lost-Update bei zwei raschen
+// Entfernungen aus demselben Feld desselben Presets (preRemoveEntry() las
+// bislang IMMER aus dem stale lokalen `presets`-Cache; ohne Sperre gewinnt
+// der zuletzt ankommende PATCH und ueberschreibt den anderen vollstaendig).
+// ---------------------------------------------------------------------
+
+test('REVIEW HIGH: zwei rasche Entfernungen aus DEMSELBEN Feld desselben Presets serialisieren sich — der zweite Klick waehrend des laufenden PATCH wird ignoriert, kein Lost-Update', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold', 'Quantainium', 'Aphorite'], locations: [] }] },
+  });
+
+  ctx.fire(openBtn(ctx, 'A'), 'click');
+  // Beide Knoepfe VOR dem ersten Klick einsammeln: renderPresetList() zeichnet
+  // die aufgeklappte Ansicht erst nach preLoad() (also erst nach `flush()`)
+  // neu -- bis dahin bleiben beide Referenzen gueltig, genau wie beim
+  // Doppelklick-Bedienfall aus dem Befund.
+  const btnGold = rmMinBtn(ctx, 'A', 'Gold');
+  const btnQuant = rmMinBtn(ctx, 'A', 'Quantainium');
+  assert.ok(btnGold && btnQuant, 'Entfernen-Knoepfe fuer Gold und Quantainium nicht gefunden');
+
+  ctx.fire(btnGold, 'click');   // Klick 1: berechnet next aus dem noch unveraenderten Cache
+  ctx.fire(btnQuant, 'click');  // Klick 2: OHNE Sperre wuerde dieser denselben stale Cache lesen
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 1,
+    'der zweite Klick auf dasselbe (name, field) waehrend des laufenden ersten PATCH darf keinen zweiten PATCH ausloesen');
+  const patch = lastPatchCall(ctx);
+  assert.deepStrictEqual(Array.from(patch.body.minerals), ['Quantainium', 'Aphorite'],
+    'der einzige PATCH sollte GENAU Klick 1 (Gold entfernen) umsetzen, nichts von Klick 2 verlieren');
+
+  // Serverseitig (und nach dem folgenden preLoad()) ist NUR Gold weg -- die
+  // Buchse fuer Quantainium erfordert einen ERNEUTEN Klick, verliert aber
+  // nichts wortlos.
+  const body = entryBody(ctx, 'A');
+  assert.doesNotMatch(body.textContent, /Gold/, 'Gold sollte nach dem einzigen PATCH entfernt sein');
+  assert.match(body.textContent, /Quantainium/, 'Quantainium darf NICHT wortlos verschwinden -- der zweite Klick wurde ignoriert, nicht heimlich mit ausgefuehrt');
+});
+
+test('REVIEW HIGH: nach Abschluss des ersten PATCH ist das Feld wieder frei -- ein erneuter Klick loest den naechsten PATCH aus', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold', 'Quantainium'], locations: [] }] },
+  });
+
+  ctx.fire(openBtn(ctx, 'A'), 'click');
+  ctx.fire(rmMinBtn(ctx, 'A', 'Gold'), 'click');
+  await flush();
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 1);
+
+  // preOpen blieb ueber den PATCH/preLoad()-Umlauf hinweg 'A' -- die Zeile
+  // ist bereits aufgeklappt, ein erneuter Klick auf die Zaehlzeile wuerde sie
+  // JETZT zuklappen (Umschalter). Der Entfernen-Knopf steht direkt bereit.
+  ctx.fire(rmMinBtn(ctx, 'A', 'Quantainium'), 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 2, 'die Sperre darf nur waehrend des laufenden PATCH gelten, nicht dauerhaft');
+  const body = entryBody(ctx, 'A');
+  assert.strictEqual(body.textContent, ctx.T.presetNoEntries);
+});
+
+test('REVIEW HIGH: Entfernungen aus VERSCHIEDENEN Feldern desselben Presets ueberlappen weiterhin ungebremst (keine globale Sperre)', async () => {
+  const probe = run({ account: { rows: [] } });
+  const loc = realLocOf(probe, 'Quantainium');
+
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold'], locations: [`Quantainium||${loc}`] }] },
+  });
+
+  ctx.fire(openBtn(ctx, 'A'), 'click');
+  const btnMin = rmMinBtn(ctx, 'A', 'Gold');
+  const btnLoc = rmLocBtn(ctx, 'A', `Quantainium||${loc}`);
+  assert.ok(btnMin && btnLoc, 'Entfernen-Knoepfe nicht gefunden');
+
+  ctx.fire(btnMin, 'click'); // Feld "minerals" wird gesperrt
+  ctx.fire(btnLoc, 'click'); // ANDERES Feld ("locations") desselben Presets -- muss trotzdem sofort senden
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 2, 'zwei verschiedene Felder desselben Presets duerfen ueberlappen');
+  const body = entryBody(ctx, 'A');
+  assert.strictEqual(body.textContent, ctx.T.presetNoEntries, 'beide Entfernungen sollten durchgekommen sein');
+});
+
+// ---------------------------------------------------------------------
+// Code-Review Phase 10 (10-REVIEW.md) — MEDIUM: kein Treffer-Check bei
+// PATCH/DELETE. Ein Filter, der serverseitig null Zeilen trifft, antwortet
+// bei PostgREST trotzdem mit 200/204 -- ohne Prefer: return=representation
+// und Auswertung der leeren Zeilenmenge meldet die Oberflaeche faelschlich
+// Erfolg (Cross-Device-Race: ein anderer Tab hat das Preset bereits
+// geloescht, dieser Tab traegt noch den alten, lokal gecachten Stand).
+// ---------------------------------------------------------------------
+
+test('REVIEW MEDIUM: Umbenennen eines serverseitig bereits geloeschten Presets (Cross-Device-Race) meldet presetFail, NIE faelschlich presetRenamed', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'X', minerals: ['Gold'], locations: [] }] } });
+
+  ctx.fire(renameBtn(ctx, 'X'), 'click');
+  // Tab 2 hat "X" bereits geladen; ein ANDERER Tab loescht es serverseitig,
+  // ohne dass dieser Tab je preLoad() lief -- der lokale Cache bleibt stale.
+  ctx.account.rows.length = 0;
+
+  ctx.elements['wb-pre-name'].value = 'Y';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 1, 'der PATCH wird trotzdem gesendet -- der Client weiss vorher nicht, dass die Zeile weg ist');
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.hidden, false, 'ein wirkungsloser PATCH muss laut scheitern (Projektgrundsatz "scheitert es laut statt still")');
+  assert.strictEqual(msg.textContent, ctx.T.presetFail, 'darf NICHT presetRenamed melden, wenn PostgREST null Zeilen getroffen hat');
+});
+
+test('REVIEW MEDIUM: Loeschen eines serverseitig bereits verschwundenen Presets meldet presetFail, NIE faelschlich presetDeleted', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'X', minerals: ['Gold'], locations: [] }] } });
+
+  ctx.fire(deleteBtn(ctx, 'X'), 'click');
+  ctx.account.rows.length = 0; // derselbe Cross-Device-Fall wie beim Umbenennen oben
+
+  ctx.fire(askBtn(ctx, 'X'), 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 1);
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.hidden, false);
+  assert.strictEqual(msg.textContent, ctx.T.presetFail, 'darf NICHT presetDeleted melden, wenn null Zeilen getroffen wurden');
+});
+
+test('REVIEW MEDIUM: Einzeleintrag-Entfernen an einem serverseitig bereits verschwundenen Preset meldet presetFail, NIE faelschlich presetSaved', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'X', minerals: ['Gold', 'Quantainium'], locations: [] }] } });
+
+  ctx.fire(openBtn(ctx, 'X'), 'click');
+  const btn = rmMinBtn(ctx, 'X', 'Gold');
+  assert.ok(btn, 'Entfernen-Knopf nicht gefunden');
+
+  ctx.account.rows.length = 0; // Cross-Device-Fall: die Zeile ist server-seitig bereits weg
+
+  ctx.fire(btn, 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 1);
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.hidden, false);
+  assert.strictEqual(msg.textContent, ctx.T.presetFail, 'darf NICHT presetSaved melden, wenn null Zeilen getroffen wurden');
+});
+
+// ---------------------------------------------------------------------
+// Code-Review Phase 10 (10-REVIEW.md) — LOW: preOpen folgt dem Umbenennen
+// nicht (die aufgeklappte Ansicht klappte nach einem Umbenennen unbemerkt zu).
+// ---------------------------------------------------------------------
+
+test('REVIEW LOW: war die umbenannte Preset-Zeile aufgeklappt, bleibt sie es unter dem neuen Namen', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'Alt', minerals: ['Gold'], locations: [] }] } });
+
+  ctx.fire(openBtn(ctx, 'Alt'), 'click');
+  assert.ok(entryBody(ctx, 'Alt'), 'Vorbedingung: Zeile sollte aufgeklappt sein');
+
+  ctx.fire(renameBtn(ctx, 'Alt'), 'click');
+  ctx.elements['wb-pre-name'].value = 'Neu';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  assert.ok(entryBody(ctx, 'Neu'), 'die aufgeklappte Ansicht sollte unter dem neuen Namen weiterhin stehen, nicht unbemerkt zuklappen');
+});

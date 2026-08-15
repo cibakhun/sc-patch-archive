@@ -439,7 +439,25 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      `(user_id, name)` — ein einzelner PATCH auf `?name=eq.<alt>`, weil die
      UPDATE-Politik der Migration 20260812040000 (Zeilen 41-44) ausschliesslich
      `user_id` prueft, nie den Namen; der einzige Fehlerfall ist die
-     Eindeutigkeitsverletzung, die PostgREST als HTTP 409 meldet. */
+     Eindeutigkeitsverletzung, die PostgREST als HTTP 409 meldet.
+
+     ⚠ eq.null-Falle (Review Phase 10, MEDIUM): PostgREST liest den LITERALEN
+     Text "null" hinter `eq.` als IS NULL, nicht als Gleichheit mit dem Text
+     "null" (dafuer waere `eq."null"` mit Anfuehrungszeichen noetig). Der
+     Filter bleibt hier ABSICHTLICH unquotiert: eine quotierte Form wuerde das
+     Wire-Format JEDES Preset-Aufrufs aendern und ist gegen keine echte
+     PostgREST-Instanz aus dieser Umgebung nachweisbar; die e2e-Suite pinnt
+     das heutige Format woertlich (mining-shortlist.test.js, Pfad-Zusicherung
+     bei "Umbenennen schickt genau EINEN PATCH..." und beim zweiten
+     Loesch-Klick). Zwei kleinere Riegel stattdessen: (1) der Name "null"
+     wird bereits bei Anlage/Umbenennen abgewiesen (wb-pre-ok-Handler unten),
+     (2) der Treffer-Check unten (Prefer: return=representation) verwandelt
+     jeden trotzdem ins Leere laufenden Aufruf von "meldet still Erfolg" in
+     "meldet laut presetFail" — deckungsgleich mit dem Projektgrundsatz
+     „scheitert es laut statt still" (Kommentar zur 128-Grenze in preSave()
+     unten). Ein VOR diesem Fix gespeichertes Preset namens "null" bleibt
+     dadurch weiterhin unerreichbar (Rand-/Sonderfall), meldet das jetzt aber
+     ehrlich statt es zu verschweigen. */
   var TBL = 'mining_sig_presets';
   var preList = $('wb-preset-list'), prePick = $('wb-pre-pick'), preEdit = $('wb-pre-edit');
   var preMsg = $('wb-pre-msg'), preGuest = $('wb-pre-guest'), preName = $('wb-pre-name');
@@ -571,28 +589,60 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      zu "ueberschreiben" auf (CONTEXT.md, Abschnitt "Im Planungslauf
      nachgeschaerft"). Das verkuerzte Array entstammt dem zuletzt GELADENEN
      Serverstand (`presets`), nie dem Arbeitsstand (T-10-04). */
+  /* Lost-Update-Schutz (Review Phase 10, HIGH): preRemoveEntry() berechnet
+     `next` IMMER aus dem lokal gecachten `presets`-Array, das erst NACH
+     einem echten Netzwerk-Umlauf per preLoad() aktualisiert wird. Zwei
+     rasche Klicks auf DASSELBE Feld DESSELBEN Presets lasen bislang beide
+     denselben stale Stand, berechneten je einen vollstaendigen Ersatz, und
+     der zuletzt ankommende PATCH ueberschrieb den anderen restlos — eine der
+     beiden angestossenen Entfernungen ging wortlos verloren.
+     preRmBusy sperrt NUR das betroffene (name, field)-Paar: Entfernungen aus
+     VERSCHIEDENEN Feldern (minerals vs. locations) oder verschiedenen
+     Presets sind beweisbar unabhaengig, weil jeder PATCH ausschliesslich
+     seine eigene Spalte setzt — eine modulweite Sperre waere hier ein
+     unnoetiger Bedienrueckschritt. Wird in BEIDEN Zweigen (Erfolg UND
+     Netzwerkfehler) wieder geloescht, sonst haengt ein einziger
+     Verbindungsabbruch das Feld dauerhaft fest. */
+  var preRmBusy = {}; // Schluessel = name + ' ' + field
   function preRemoveEntry(name, field, value) {
+    var key = name + ' ' + field;
+    if (preRmBusy[key]) return; // zweiter Klick waehrend des laufenden PATCH: ignorieren, nicht heimlich mitrechnen
     var preset = null;
     for (var i = 0; i < presets.length; i++) if (presets[i].name === name) { preset = presets[i]; break; }
     if (!preset) return;
     var next = (preset[field] || []).filter(function (v) { return v !== value; });
     var body = {};
     body[field] = next;
-    return window.VBAccount.rest(preSess, 'PATCH', TBL + '?name=eq.' + encodeURIComponent(name), body)
+    preRmBusy[key] = true;
+    /* Treffer-Check (Review Phase 10, MEDIUM): Prefer: return=representation
+       liefert die betroffene Zeile zurueck statt nur den blanken Status —
+       PostgREST antwortet auf einen Filter, der null Zeilen trifft, TROTZDEM
+       mit 200/kein Fehler (Cross-Device-Race: ein anderer Tab hat dieses
+       Preset bereits geloescht). Ein leeres Array heisst "nichts getroffen"
+       und wird als Fehlschlag gemeldet statt als Erfolg. */
+    return window.VBAccount.rest(preSess, 'PATCH', TBL + '?name=eq.' + encodeURIComponent(name), body, 'return=representation')
       .then(function (r) {
+        delete preRmBusy[key];
         if (!r.ok) { preSay(T.presetFail, 4000); return; }
-        preSay(T.presetSaved);
-        return preLoad();
+        return r.json().then(function (rows) {
+          if (!rows || !rows.length) { preSay(T.presetFail, 4000); return; }
+          preSay(T.presetSaved);
+          return preLoad();
+        });
       })
-      .catch(function () { preSay(T.presetFail, 4000); });
+      .catch(function () { delete preRmBusy[key]; preSay(T.presetFail, 4000); });
   }
   function preDrop(name) {
-    return window.VBAccount.rest(preSess, 'DELETE', TBL + '?name=eq.' + encodeURIComponent(name))
+    /* Treffer-Check wie oben bei preRemoveEntry() — siehe dort. */
+    return window.VBAccount.rest(preSess, 'DELETE', TBL + '?name=eq.' + encodeURIComponent(name), null, 'return=representation')
       .then(function (r) {
         if (!r.ok) { preSay(T.presetFail, 4000); return; }
-        preSay(T.presetDeleted);
-        preCur = '';
-        return preLoad();
+        return r.json().then(function (rows) {
+          if (!rows || !rows.length) { preSay(T.presetFail, 4000); return; }
+          preSay(T.presetDeleted);
+          preCur = '';
+          return preLoad();
+        });
       })
       .catch(function () { preSay(T.presetFail, 4000); });
   }
@@ -605,14 +655,26 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      bestehenden DELETE-Pfad (T-10-03). */
   function preRename(oldName, newName) {
     if (!newName || newName === oldName) { preMode(false); return; }
+    /* Treffer-Check wie bei preRemoveEntry()/preDrop() — siehe dort. Die
+       409-Kollisionsbehandlung bleibt ZUERST: ein Namenskonflikt ist kein
+       "null Zeilen getroffen", sondern ein expliziter Fehlercode, den
+       PostgREST vor jeder Repraesentation meldet. */
     return window.VBAccount.rest(preSess, 'PATCH',
-      TBL + '?name=eq.' + encodeURIComponent(oldName), { name: newName })
+      TBL + '?name=eq.' + encodeURIComponent(oldName), { name: newName }, 'return=representation')
       .then(function (r) {
         if (r.status === 409) { preSay(T.presetNameTaken, 4000); return; }
         if (!r.ok) { preSay(T.presetFail, 4000); return; }
-        preSay(T.presetRenamed);
-        if (preCur === oldName) preCur = newName;
-        return preLoad();
+        return r.json().then(function (rows) {
+          if (!rows || !rows.length) { preSay(T.presetFail, 4000); return; }
+          preSay(T.presetRenamed);
+          if (preCur === oldName) preCur = newName;
+          /* LOW-Fund (Review Phase 10): preOpen folgte bislang nicht -- eine
+             aufgeklappte Zeile klappte nach ihrem eigenen Umbenennen unbemerkt
+             zu, weil renderPresetList() pro Zeile preOpen === p.name prueft
+             und der alte Name danach zu keiner Zeile mehr passt. */
+          if (preOpen === oldName) preOpen = newName;
+          return preLoad();
+        });
       })
       .catch(function () { preSay(T.presetFail, 4000); });
   }

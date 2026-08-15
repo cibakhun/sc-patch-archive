@@ -156,26 +156,37 @@ function makeAccount(opts = {}) {
         return Promise.resolve(ok(null));
       }
       if (method === 'PATCH') {
+        // Treffer-Check (Review Phase 10, MEDIUM): ein Filter, der null Zeilen
+        // trifft, ist bei PostgREST TROTZDEM ein 200 -- niemals ein 404. Der
+        // Client kann "echt geaendert" von "nichts getroffen" nur ueber den
+        // Prefer-Header return=representation unterscheiden (leeres Array
+        // statt einer Zeile). `repr` bildet genau das nach; ohne den Header
+        // bleibt der alte, grobe Rundlauf (ok(null)) fuer Aufrufe erhalten,
+        // die den Treffer-Check (noch) nicht anfordern.
         const oldName = (qs(reqPath).name || '').replace(/^eq\./, '');
         const row = rows.find((r) => r.name === oldName);
-        if (!row) return Promise.resolve(bad(404));
+        const repr = prefer === 'return=representation';
+        if (!row) return Promise.resolve(ok(repr ? [] : null));
         if (body && typeof body.name === 'string') {
           if (body.name !== oldName && rows.some((r) => r.name === body.name)) {
             return Promise.resolve(bad(409));
           }
           row.name = body.name;
-          return Promise.resolve(ok(null));
+          return Promise.resolve(ok(repr ? [{ ...row }] : null));
         }
         if (body && Object.prototype.hasOwnProperty.call(body, 'minerals')) row.minerals = body.minerals;
         if (body && Object.prototype.hasOwnProperty.call(body, 'locations')) row.locations = body.locations;
-        return Promise.resolve(ok(null));
+        return Promise.resolve(ok(repr ? [{ ...row }] : null));
       }
       if (method === 'DELETE') {
+        // Dieselbe Treffer-Check-Logik wie beim PATCH-Zweig oben, siehe dort.
         const name = (qs(reqPath).name || '').replace(/^eq\./, '');
+        const repr = prefer === 'return=representation';
+        const hit = rows.find((r) => r.name === name);
         const kept = rows.filter((r) => r.name !== name);
         rows.length = 0;
         kept.forEach((r) => rows.push(r));
-        return Promise.resolve(ok(null));
+        return Promise.resolve(ok(repr ? (hit ? [{ ...hit }] : []) : null));
       }
       return Promise.resolve(bad());
     },
