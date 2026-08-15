@@ -290,9 +290,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   position:relative;display:flex;flex-direction:column;min-height:0;
   border-style:solid;border-color:transparent;
   border-image-source:var(--fc-frame);
-  border-image-slice:149 134 173 227 fill;
-  border-image-width:calc(var(--rahmen)*.88) calc(var(--rahmen)*.9) calc(var(--rahmen)*1.16) var(--rahmen);
-  border-width:calc(var(--rahmen)*.88) calc(var(--rahmen)*.9) calc(var(--rahmen)*1.16) var(--rahmen);
+  border-image-slice:46 101 48 104 fill;
+  border-image-width:calc(var(--rahmen)*.442) calc(var(--rahmen)*.971) calc(var(--rahmen)*.462) var(--rahmen);
+  border-width:calc(var(--rahmen)*.442) calc(var(--rahmen)*.971) calc(var(--rahmen)*.462) var(--rahmen);
   height:clamp(430px,calc(100vh - var(--fc-chrome)),1180px);
   /* Schlagschatten entlang der ALPHAKANTE der Rahmengrafik — setzt das Geraet
      auf die Seite, statt es hineinzustanzen. Begruendung in der Werkbank. */
@@ -308,8 +308,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .fc__chassis::after{content:'';position:absolute;
   pointer-events:none;z-index:2}
 .fc__chassis::after{left:50%;transform:translateX(-50%);
-  bottom:calc(var(--rahmen)*-1.16);height:calc(var(--rahmen)*1.16);
-  width:calc(var(--rahmen)*1.16*860/173);
+  bottom:calc(var(--rahmen)*-.462);height:calc(var(--rahmen)*.462);
+  width:calc(var(--rahmen)*.462*351/48);
   background:var(--fc-plug) center/100% 100% no-repeat;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);
   mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
