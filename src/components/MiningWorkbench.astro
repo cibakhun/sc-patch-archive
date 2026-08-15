@@ -335,21 +335,15 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
         die Spielversion steht ohnehin in der Fusszeile. */}
     <h1 class="wb__ctitle" set:text={title} />
     <div class="wb__cscreen">
-      {/* ⚠ Schleier und Ablaufband sind ECHTE Elemente, keine `::before`.
+      {/* ⚠ Der Schirm-Schleier ist ein ECHTES Element, kein `::before`.
           Zwei Gruende, beide bezahlt:
-          · Sie muessen UEBER dem Inhalt liegen — Vignette, Glasspiegelung und
-            Ablauf wirken nur, wenn sie auf allem liegen. Ein `background` am
+          · Er muss UEBER dem Inhalt liegen — Lichtsaum, Glasspiegelung und
+            Vignette wirken nur, wenn sie auf allem liegen. Ein `background` am
             Schirm liegt dahinter und ist wirkungslos.
           · `verify:layers` (Zusicherung 5) meldet jede Pseudo-Selektor-Familie
             mit Verlauf als Fund ohne Registry-Eintrag. Eine Klasse tut das
-            nicht.
-          Der Ablauf braucht ZWEI Elemente: einen Beschnitt (`--scan`, liegt
-          still) und das wandernde Band darin (`--scanbar`). Das Band faehrt
-          ueber den Schirmrand hinaus; ohne eigenen Beschnitt liefe es auf das
-          Blech. `overflow` am Schirm selbst kam nicht in Frage — dort haengen
-          Hilfe-Kasten und Merkzettel, die herausragen duerfen. */}
+            nicht. */}
       <span class="wb__glare" aria-hidden="true"></span>
-      <span class="wb__scan" aria-hidden="true"><i class="wb__scanbar"></i></span>
       <p class="wb__clead" set:text={lead} />
 
   <div class="wb__grid">
@@ -672,19 +666,21 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
        noch ein Hauch (4 px Teilung, 13 % statt 46 %): genug, dass die Flaeche
        geriffelt liest, zu wenig, um eine Glyphe zu zerteilen.
 
-   (2) STATISCH. Ein Bildschirm, auf dem sich nichts ruehrt, ist eine Tapete
-       mit Bildschirm-Muster. Was ihn lebendig macht, ist der DURCHLAUF —
-       darum jetzt `.wb__scan`. Bewusst EINE Bewegung statt vieler: langsam,
-       flach und mit Pause. Ein Flackern waere die naechstliegende Idee und
-       die schlechteste — es ist genau das, was beim Lesen zuerst nervt.
+   (2) STATISCH. Beantwortet war das mit einem wandernden Abtaststrahl
+       (`.wb__scan`, 9 s Takt). ⚠⚠ VOM BETREIBER WIEDER ABBESTELLT, 16.08.2026:
+       „dieses effekt was einmal so durchgeht kann raus." Ersatzlos entfernt —
+       NICHT abgeschwaecht, nicht an einen Schalter gehaengt. Wer ihn
+       wiederhaben will, holt ihn aus `4fb2409`.
+       ⚠ Damit ist die Flaeche bewusst wieder unbewegt. Das ist eine
+       Entscheidung, kein Versaeumnis: bevor hier jemand erneut Bewegung
+       einbaut, muss sie neu beauftragt sein.
 
    Reihenfolge der Schichten, von hinten nach vorn:
      1. eigene, tiefere Schwaerze mit kuehlem Stich (nicht der Seitengrund),
      2. Eigenleuchten aus der Mitte heraus,
      3. starkes Zeilenraster  ─ hier, HINTER den Paneelen,
      4. der Inhalt,
-     5. das wandernde Ablaufband (`.wb__scan`),
-     6. Lichtsaum, Glasspiegelung, Vignette, Hauch-Raster (`.wb__glare`).
+     5. Lichtsaum, Glasspiegelung, Vignette, Hauch-Raster (`.wb__glare`).
    ⚠ Ein erster Anlauf hatte 1–3 bei 3 % Deckkraft — das sieht niemand („es
    sieht ueberhaupt nicht so aus wie ein bildschirm"). Die Staerke ist also
    nicht das Problem gewesen, der ORT war es. */
@@ -701,52 +697,16 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       color-mix(in srgb,var(--ink) 92%,var(--accent)) 0%, var(--ink) 100%),
     var(--ink)}
 
-/* ── DER ABLAUF ───────────────────────────────────────────────────────────
-   Ein weiches Lichtband faehrt von oben nach unten durch, dann Ruhe, dann
-   wieder. Das ist die Bewegung, die eine Flaeche als BILDSCHIRM lesbar macht
-   und nicht als bedrucktes Blech.
-
-   ⚠ Nur `transform` wird bewegt — der Ablauf laeuft damit im Compositor und
-   kostet kein Neuzeichnen. Der naheliegende Weg (`background-position` am
-   Schleier wandern lassen) haette bei 1600x800 CSS-Punkten in JEDEM Einzelbild
-   die volle Flaeche neu gemalt.
-   ⚠ Der Beschnitt sitzt am Huellelement, NICHT am Schirm: am Schirm haengen
-   Hilfe-Kasten und Merkzettel, die ueber seinen Rand hinausragen duerfen.
-   ⚠ `pointer-events:none` an BEIDEN — sonst schluckt das Band Klicks. */
-.wb__scan{position:absolute;inset:0;z-index:4;pointer-events:none;
-  overflow:hidden;border-radius:2px}
-/* ⚠ ERSTER ANLAUF WAR FALSCH und ist am Bild gestorben: ein breites, weiches
-   Lichtband mit 4,5 % im Kern. Am Schirm nachgesehen — man sieht es schlicht
-   nicht. Ueber einer fast schwarzen Flaeche verschwindet ein 4,5-Prozent-
-   Verlauf ueber 300 Bildpunkte Hoehe im Nichts. Es haette also die Lesbarkeit
-   ein bisschen gekostet und dafuer gar nichts geliefert.
-   Jetzt ein ABTASTSTRAHL statt eines Waschgangs: vorn eine schmale, helle
-   Kante (2 px, 22 %), dahinter ein weiches Nachgluehen. Das Auge fasst die
-   scharfe Kante — deshalb ist der Strahl bei viel WENIGER Durchschnitts-
-   helligkeit deutlich besser zu sehen als das Band. Und eine 2 px schmale
-   Linie, die in Sekundenbruchteilen ueber eine Zeile laeuft, stoert beim Lesen
-   ungleich weniger als eine breite Aufhellung, die sekundenlang darauf steht. */
-.wb__scanbar{position:absolute;left:0;right:0;top:0;height:26%;pointer-events:none;
-  background:linear-gradient(180deg,
-    transparent 0%,
-    color-mix(in srgb,var(--accent) 3%,transparent) 62%,
-    color-mix(in srgb,var(--accent) 8%,transparent) calc(100% - 10px),
-    color-mix(in srgb,var(--text) 15%,transparent) calc(100% - 2px),
-    color-mix(in srgb,var(--text) 22%,transparent) calc(100% - 1px),
-    transparent 100%);
-  transform:translate3d(0,-115%,0);
-  animation:wbscan 9s linear infinite}
-/* Der Halt am Ende ist Absicht: 5,9 s Fahrt, 3,1 s Ruhe. Ein Strahl, der
-   ununterbrochen kreist, liest sich als Ladebalken; einer, der zu lange
-   pausiert, laesst die Flaeche wieder tot wirken — und genau das war der
-   zweite Befund. 9 s ist der gemessene Kompromiss: beim Aufschlagen der Seite
-   faehrt der erste Strahl sofort los, danach kommt keine Pause, in der man
-   sich fragt, ob das Ding noch laeuft. */
-@keyframes wbscan{
-  0%   {transform:translate3d(0,-115%,0)}
-  65%  {transform:translate3d(0,400%,0)}
-  100% {transform:translate3d(0,400%,0)}
-}
+/* ⚠⚠ HIER LAG DER ABTASTSTRAHL (`.wb__scan`/`.wb__scanbar` + @keyframes
+   wbscan), 16.08.2026 gebaut und am selben Tag auf Ansage wieder ERSATZLOS
+   entfernt: „dieses effekt was einmal so durchgeht kann raus."
+   Nicht abgeschwaecht, nicht hinter einen Schalter gelegt — weg. Der volle
+   Bau samt Begruendung steht in `4fb2409`, falls er je zurueck soll.
+   Was davon zu behalten ist, steht in der Erfahrung, nicht im Code: ein
+   breiter weicher Verlauf bei niedriger Deckkraft ist auf fast schwarzem
+   Grund unsichtbar (der erste Anlauf mit 4,5 % ueber 300 Bildpunkte war es),
+   waehrend eine scharfe Kante bei gleicher Durchschnittshelligkeit deutlich
+   sichtbar ist. Beides gilt weiter — nur will hier gerade niemand Bewegung. */
 
 /* Der Schleier ueber allem: Lichtsaum, Glasspiegelung, Vignette, Hauch-Raster.
    ⚠ `pointer-events:none` ist PFLICHT — ohne das schluckt er jeden Klick auf
@@ -780,11 +740,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     repeating-linear-gradient(0deg,
       color-mix(in srgb,var(--ink) 13%,transparent) 0 1px, transparent 1px 4px)}
 
-/* Wer Bewegung abbestellt hat, bekommt keine. Das Band bleibt dann ganz weg —
-   ein stehendes Lichtband waere ein Fleck auf dem Schirm, kein Ablauf. */
-@media (prefers-reduced-motion: reduce){
-  .wb__scanbar{animation:none;display:none}
-}
+/* (Der `prefers-reduced-motion`-Block stand hier und ist mit dem Abtaststrahl
+   entfallen — es bewegt sich auf dem Schirm nichts mehr, was abzubestellen
+   waere.) */
 .wb__clead{margin:0;text-align:center;font-size:var(--fs-4);
   color:color-mix(in srgb,var(--muted) 92%,transparent)}
 /* ⚠ Der Zier-Grund (`.wb::before`: zwei Rastermassstaebe, zwei Lichtabfaelle,

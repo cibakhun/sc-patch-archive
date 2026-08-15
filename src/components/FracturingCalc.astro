@@ -163,13 +163,10 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     <h1 class="fc__ctitle" set:text={title} />
 
     <div class="fc__cscreen">
-      {/* Schleier und Ablaufband als ECHTE Elemente, nicht als `::before` —
-          eine Pseudo-Selektor-Familie mit Verlauf meldet `verify:layers` zu
-          Recht als Fund ohne Registry-Eintrag. Der Ablauf braucht zwei
-          Elemente: Beschnitt plus wanderndes Band. Volle Begruendung in der
-          Werkbank — beide Seiten sind ein Paar. */}
+      {/* Schirm-Schleier als ECHTES Element, nicht als `::before` — eine
+          Pseudo-Selektor-Familie mit Verlauf meldet `verify:layers` zu Recht
+          als Fund ohne Registry-Eintrag. Begruendung in der Werkbank. */}
       <span class="fc__glare" aria-hidden="true"></span>
-      <span class="fc__scan" aria-hidden="true"><i class="fc__scanbar"></i></span>
       <p class="fc__clead" set:text={lead} />
   <div class="fc__grid">
 
@@ -330,8 +327,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    beim Lesen" / „sehr statisch"). Kurz:
      · das starke Zeilenraster liegt jetzt HINTER den Paneelen — dort, wo
        nichts zu lesen steht. Ueber dem Text bleibt nur ein Hauch.
-     · ein wanderndes Ablaufband (`.fc__scan`) gibt der Flaeche Leben; ohne
-       Bewegung ist ein Bildschirm nur eine Tapete mit Bildschirm-Muster.
+     · der Abtaststrahl auf den zweiten Befund ist noch am selben Tag wieder
+       abbestellt worden („dieses effekt was einmal so durchgeht kann raus")
+       und ERSATZLOS entfernt. Der Schirm steht damit bewusst still.
    ⚠ Beide Seiten sind ein Paar: der Rechner hatte den Umbau beim letzten Mal
    NICHT mitbekommen und stand mit nacktem Blech neben der Werkbank. */
 .fc__cscreen{position:relative;display:flex;flex-direction:column;gap:8px;min-height:0;flex:1;
@@ -344,31 +342,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     linear-gradient(180deg,
       color-mix(in srgb,var(--ink) 92%,var(--accent)) 0%, var(--ink) 100%),
     var(--ink)}
-/* Der Ablauf. Nur `transform` bewegt sich (Compositor, kein Neuzeichnen), der
-   Beschnitt sitzt am Huellelement und nicht am Schirm — an dem haengen
-   Hilfe-Kasten und Merkzettel, die ueberstehen duerfen. */
-.fc__scan{position:absolute;inset:0;z-index:4;pointer-events:none;
-  overflow:hidden;border-radius:2px}
-/* Abtaststrahl, nicht Lichtband: schmale helle Kante vorn, weiches Nachgluehen
-   dahinter. Warum nicht das breite Band — siehe Werkbank, es war am Schirm
-   schlicht nicht zu sehen. */
-.fc__scanbar{position:absolute;left:0;right:0;top:0;height:26%;pointer-events:none;
-  background:linear-gradient(180deg,
-    transparent 0%,
-    color-mix(in srgb,var(--accent) 3%,transparent) 62%,
-    color-mix(in srgb,var(--accent) 8%,transparent) calc(100% - 10px),
-    color-mix(in srgb,var(--text) 15%,transparent) calc(100% - 2px),
-    color-mix(in srgb,var(--text) 22%,transparent) calc(100% - 1px),
-    transparent 100%);
-  transform:translate3d(0,-115%,0);
-  animation:fcscan 9s linear infinite}
-/* 5,9 s Fahrt, 3,1 s Ruhe — gleiche Taktung wie die Werkbank, die Seiten sind
-   ein Paar und stehen nebeneinander im selben Blech. */
-@keyframes fcscan{
-  0%   {transform:translate3d(0,-115%,0)}
-  65%  {transform:translate3d(0,400%,0)}
-  100% {transform:translate3d(0,400%,0)}
-}
+/* ⚠⚠ Hier lag der Abtaststrahl (`.fc__scan`/`.fc__scanbar` + @keyframes
+   fcscan), am 16.08.2026 gebaut und noch am selben Tag auf Ansage ersatzlos
+   entfernt. Voller Bau in `4fb2409`. Begruendung in der Werkbank. */
 /* ⚠ `pointer-events:none` ist PFLICHT — sonst schluckt der Schleier jeden
    Klick auf Kacheln, Zeilen und Knoepfe darunter.
    Reihenfolge: Lichtsaum, Glasspiegelung, Vignette, Hauch-Raster. Alles
@@ -386,9 +362,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       transparent 0 58%, color-mix(in srgb,var(--ink) 34%,transparent) 100%),
     repeating-linear-gradient(0deg,
       color-mix(in srgb,var(--ink) 13%,transparent) 0 1px, transparent 1px 4px)}
-@media (prefers-reduced-motion: reduce){
-  .fc__scanbar{animation:none;display:none}
-}
+/* (Der `prefers-reduced-motion`-Block ist mit dem Abtaststrahl entfallen — es
+   bewegt sich auf dem Schirm nichts mehr, was abzubestellen waere.) */
 .fc__clead{margin:0;text-align:center;font-size:var(--fs-4);
   color:color-mix(in srgb,var(--muted) 92%,transparent)}
 /* ⚠ Hier lag bis 15.08.2026 ein CSS-Raster als Grund der Bildflaeche. Es ist
