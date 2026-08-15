@@ -96,8 +96,8 @@ export const HELP = {
     'mining.ctl.presets': 'Benannte Zusammenstellungen — ein Preset hält Signaturen UND Fundorte zugleich: auswählen, umbenennen, mit der aktuellen Auswahl überschreiben oder einzelne Einträge entfernen; Löschen fragt zurück. Mit Konto gespeichert und auf jedem Gerät verfügbar.',
     'mining.ctl.station': 'Die Station, deren Ertrag in der Rangliste hervorgehoben wird.',
     'mining.ctl.fracturing': 'Führt zum Fracturing-Rechner: dort steht, ob der Brocken mit deiner Ausrüstung bricht.',
-    'mining.ctl.locpin': 'Heftet einen Fundort an die Fundort-Merkliste darunter — dieselbe Nadel wie bei den Erzen.',
-    'mining.ctl.shortlist': 'Die angehefteten Fundorte über alle Erze hinweg, als „Erz — Fundort".',
+    'mining.ctl.locpin': 'Die ganze Zeile öffnet diesen Fundort; die Nadel rechts heftet ihn zusätzlich an die Fundort-Merkliste darunter.',
+    'mining.ctl.shortlist': 'Die angehefteten Fundorte über alle Erze hinweg, als „Erz — Fundort". Klick öffnet den Fundort, das × löst ihn.',
 
     // -- Fracturing-Rechner --
     'fracturing.title': 'Wie funktioniert der Fracturing-Rechner?',
@@ -289,8 +289,8 @@ export const HELP = {
     'fracturing.ctl.gadget': 'A gadget changes the resistance of the rock.',
     'fracturing.ctl.mass': 'The assumed mass of the rock — it sets how much damage is needed.',
     'mining.ctl.station': 'The station whose yield is highlighted in the ranking.',
-    'mining.ctl.locpin': 'Pins a location to the shortlist underneath — same pin as on the ore.',
-    'mining.ctl.shortlist': 'The pinned locations across every ore, as “Ore — Location”.',
+    'mining.ctl.locpin': 'The whole row opens this location; the pin on the right additionally pins it to the shortlist below.',
+    'mining.ctl.shortlist': 'The pinned locations across every ore, as “Ore — Location”. Click opens the location, the × unpins it.',
 
     // -- Patch Archive --
     'archive.title': 'How does the patch archive work?',

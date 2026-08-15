@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 10
-current_phase_name: mining-presets-bedienbar-machen
-status: verifying
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-08-15T04:28:49.215Z"
+current_phase: 12
+current_phase_name: fundorte-in-der-mining-werkbank-anklickbar
+status: executing
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-08-15T17:35:00.000Z"
 last_activity: 2026-08-15
-last_activity_desc: Phase 10 execution started
+last_activity_desc: Phase 12 alle 3 Plaene ausgefuehrt, Sichtrunde (WINDOWS.md id 12) noch offen
 progress:
-  total_phases: 15
+  total_phases: 16
   completed_phases: 10
-  total_plans: 50
-  completed_plans: 43
+  total_plans: 53
+  completed_plans: 46
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -25,12 +25,25 @@ parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 10 — mining-presets-bedienbar-machen
+**Current focus:** Phase 12 — fundorte-in-der-mining-werkbank-anklickbar
 
-> **Nachtrag 15.08.2026 — Phase 10 ist geplant, ausführbereit.**
+> **Nachtrag 15.08.2026 (zweiter) — Phase 12 ist geplant, ausführbereit.**
+> „Fundorte in der Mining-Werkbank anklickbar", **3 Pläne in 3 Wellen**
+> (`.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/`),
+> Plan-Prüfer bestanden, Struktur maschinell validiert (3 × `valid: true`,
+> 8 Tasks). Zweig `claude/mining-site-clickable-locations-dec7bc`, von
+> `origin/staging` (`e20c56c`) aus — der Worktree hing anfangs auf `main`
+> und wurde zurückgesetzt.
+> Nächster Schritt: `/gsd-execute-phase 12`.
+>
+> ⚠ **Phase 10 ist damit NICHT erledigt.** Sie liegt auf staging und wartet
+> weiterhin auf ihre Sichtrunde (`.planning/WINDOWS.md`, id 11). Der
+> Kopf-Eintrag `current_phase` ist nur deshalb auf 12 gewandert, weil dort
+> jetzt gearbeitet wird — nicht, weil 10 abgenommen wäre.
+>
+> **Nachtrag 15.08.2026 (erster) — Phase 10 ist geplant, ausführbereit.**
 > „Mining-Presets bedienbar machen", 2 Pläne in 2 Wellen
 > (`.planning/phases/10-mining-presets-bedienbar-machen/`), Plan-Prüfer bestanden.
-> Nächster Schritt: `/gsd-execute-phase 10`.
 >
 > ⚠ Der übrige Text dieser Datei beschreibt weiterhin den Stand vom **02.08.2026**
 > (Phase 5). Die Phasen 6, 7, 8 und 9 sind seither aus anderen Sitzungen
@@ -41,9 +54,15 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 ## Current Position
 
-Phase: 10 (mining-presets-bedienbar-machen) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
+Phase: 12 (fundorte-in-der-mining-werkbank-anklickbar) — 3/3 Plaene ausgefuehrt
+Plan: 3 of 3 — abgeschlossen (`12-03-SUMMARY.md`)
+Status: **Technisch fertig, NICHT „Complete" markiert** — dieselbe Konvention wie
+Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
+Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
+`.planning/WINDOWS.md` id 12. Alle 18 Schienen-A-Schritte gruen (normal UND
+`STAGING=1`), 297 e2e-Testfaelle gruen, die neue Messsonde
+`scripts/probes/mining-locview-messung.mjs` bestaetigt alle 9 UI-SPEC-
+Backstops am gerenderten Bildpunkt (72/72 Messpunkte).
 
 ---
 
@@ -55,7 +74,7 @@ gezeigt, dass `/support.html` bereits existiert und live ist (Commit `517a9a7`,
 abgezweigt und blind dafür. Phase 5 ist deshalb kein Neubau mehr, sondern der
 **Umbau der bestehenden Seite** auf die Gestaltungsrichtung „Instandsetzung".
 Branch: claude/donation-button-feature-98ba38 (Worktree)
-Last activity: 2026-08-15 — Phase 10 execution started
+Last activity: 2026-08-15 — Phase 12 execution started
 
 **Was der bestehenden Seite fehlt** (gemessen, nicht vermutet):
 
@@ -150,7 +169,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 86%
+Progress: [█████████░] 85%
 
 ## Performance Metrics
 
@@ -205,6 +224,9 @@ Progress: [█████████░] 86%
 | Phase 04 P03 | 65min | 3 tasks | 9 files |
 | Phase 10 P01 | 35min | 3 tasks | 4 files |
 | Phase 10 P02 | 35min | 3 tasks | 7 files |
+| Phase 12 P01 | 50min | 2 tasks | 4 files |
+| Phase 12 P02 | 50min | 3 tasks | 4 files |
+| Phase 12 P03 | ~100min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -288,6 +310,16 @@ Recent decisions affecting current work:
 - [Phase ?]: 10-02: Reiterleiste ersatzlos entfernt statt umgebaut -- beide Listen wurden ohnehin bei jedem renderAll() gezeichnet, der Reiter blendete nur eine aus
 - [Phase ?]: 10-02: Rastermass 470px 1fr 330px wie im Plan vorentschieden uebernommen (Claude's Discretion aus CONTEXT.md)
 - [Phase ?]: 10-02: mining.ctl.pins wird zum Nachschlagewerk-Text, mining.ctl.presets nennt die vier Preset-Handlungen aus 10-01; scripts/verify-help.mjs bewusst nicht angefasst
+- [Phase ?]: 12-01: [data-ore]-Klick in der Fundort-Ansicht bewusst unverdrahtet -- Markup-Vorbereitung (data-ore/role/tabindex) fuer Welle 2/3, Objective weist diesen Ein-/Ausstieg dort explizit zu
+- [Phase ?]: 12-01: T-12-04 auf gruppenlokale statt globale Chance-Monotonie korrigiert -- Sortieren-dann-Gruppieren (Schiff->ROC->Hand) macht die Gesamtliste nicht monoton, nur jede Methodengruppe fuer sich; Implementierung folgt dem detaillierten Handlungstext
+- [Phase ?]: 12-02: hereIdx-Berechnung an S.view === 'loc' gebunden, nicht nur an S.selLoc -- ein direkter Kachelklick waehrend die Fundort-Ansicht offen ist setzt S.view sofort zurueck, laesst S.selLoc aber stehen; ohne die View-Bedingung bliebe is-here faelschlich aktiv
+- [Phase ?]: 12-02: mining-dom.js fire(el, type, init) um optionalen dritten Parameter erweitert (Rule 3) -- reicht Event-Felder wie key an den delegierten keydown-Handler durch, sonst war Enter/Leertaste im node:vm-Fixture nicht pruefbar
+- [Phase ?]: 12-03: ?fundort=<Name> als zweiter Deep-Link-Zweig (fromQueryLoc), dieselbe Bauform wie der bestehende ?mineral=-Zweig -- Allow-List-Abgleich gegen locIndex, kanonischer Schluessel statt gelesenem Wert, kein Treffer heisst nichts tun. Reversibilitaet "costly" gekennzeichnet, nicht gegattert (Plan-Vorgabe)
+- [Phase ?]: 12-03: mining.ctl.locpin/mining.ctl.shortlist (DE+EN) inhaltlich korrigiert -- verify:help prueft nur Ankerpraesenz, nie den Text; Gegenlesen war Pflicht
+- [Phase ?]: 12-03: neue Messsonde scripts/probes/mining-locview-messung.mjs (ausserhalb der Torkette) fand zwei echte, vorher unentdeckte Maengel: Spurenzeilen-Kontrast bei 62%/65% lag real bei bis zu 1,33:1 (Marke 4,5:1) -- auf gemessene 82%/90% angehoben; Spurenzeilen mit Abzeichen waren 1,6px hoeher als gewoehnliche Zeilen (geerbtes .wb__tag hoeher als eine .p-Zeile, erstmals sichtbar weil Phase 12 beide erstmals in derselben Flex-Zeile platziert) -- behoben mit line-height:1 auf die neue Klasse .wb__tag.is-trace. Sonde einmal vorgefuehrt rot (Daempfung testweise 20%, 4/24 Punkte fielen durch), dann zurueckgesetzt
+- [Phase ?]: 12-03: Backstop "Bildlaufleiste sichtbar" liess sich NICHT ueber offsetWidth-clientWidth messen (Plan-Vorschlag) -- dieses Chromium rendert scrollbar-width:thin als echten Overlay (0px reservierte Breite trotz echten Ueberlaufs); auf tatsaechliche Scroll-Wirkung (scrollTop verschiebt sichtbaren Inhalt) umgestellt
+- [Phase ?]: 12-03: npm install (ohne Argument) im Worktree ausgefuehrt, weil playwright-core in node_modules fehlte (weder Worktree noch Hauptrepo) -- reconciliert ausschliesslich aus dem committeten package-lock.json, package.json/package-lock.json vor/nach dem Lauf unveraendert (git status leer). Kein Fall des ausgeschlossenen "npm install <pkg>"-Musters
+- [Phase ?]: 12-03: Phase 12 technisch fertig (3/3 Plaene), NICHT "Complete" markiert -- Sichtrunde als WINDOWS.md id 12 an den Betreiber uebergeben, deckt inhaltlich auch die noch offenen id 10 (Phase 9) und id 11 (Phase 10) mit ab
 
 ### Pending Todos
 
@@ -314,6 +346,7 @@ None yet.
 
 ### Roadmap Evolution
 
+- Phase 12 added (15.08.2026): Fundorte in der Mining-Werkbank anklickbar. Die Werkbank kann bisher nur „wo finde ich DIESES Erz?"; die Gegenrichtung „was gibt es an DIESEM Ort?" fehlt, weil die Fundortzeilen tote Textzeilen sind (nur die Anheft-Nadel reagiert). Datengrundlage liegt seit der Fundort-Korrektur fertig und ungenutzt im Bestand: `mining-db.json` → `bodies[]`, 45 Fundorte mit vollstaendiger Erzliste, von `verify:mining` bereits gegen die Vorwaertsrichtung geprueft. Anlass: Betreiber-Hinweis mit scmdb als Vergleich. **Betreiberentscheidung: ausschliesslich Umschaltung in der Werkbank, KEINE eigenen Fundort-Seiten** (Alternative „45 x DE/EN statische Seiten" wurde vorgelegt und verworfen). Aus dem scmdb-Vergleich uebernommen: Gruppierung nach Methode, Signatur, Hoechstanteil, Chance, Balken. Bewusst NICHT uebernommen: Preise (scmdb zeigt dort selbst keine), Gruppenanteile (rechnen Salvage/Debris mit — Grundmenge fehlt uns, waere erfunden), Adernzahl (nicht in unseren Daten). Der scheinbare Datenbefund aus dem Vergleich (12 Erze gegen 7, Aluminium 29,8 % gegen 14,9 %) wurde nachgelesen und ist ein Definitionsunterschied, kein Fehler — haengt an keiner Vorgaengerphase ausser 10.
 - Phase 9 added (15.08.2026): Mining-Werkbank — Fundort-Merkliste. Die mittlere Spalte wird neu belegt: die Detailspalte (Physik, Qualitaetsstufen, „Steine mit diesem Erz") entfaellt ersatzlos und wird spaeter anders dargestellt; die Fundorte-Liste rueckt an ihre Stelle; auf dem frei werdenden Platz entsteht eine anheftbare Merkliste „Erz — Fundort" ueber mehrere Erze hinweg, als benanntes Preset kontogebunden speicherbar (wie `mining_sig_presets`). Anlass: Nutzerwunsch waehrend der Arbeit an den Fundort-Daten (Phase-fremd, haengt an keiner Vorgaengerphase). Datengrundlage ist bereits da — seit 14.08. traegt jedes Mineral seine vollstaendige Fundortliste (521 Paare statt 273).
 - Phase 01.1 inserted after Phase 1: Ambiente-Effekte stilllegen — Mauszeiger-Schein raus, Partikel opt-in (Besucher-Rueckmeldung 29.07.2026) (URGENT)
 - Phase 01.2 inserted after Phase 1: Werkzeuge erklaeren — Zweck- und Bedienungshilfe je Werkzeug (Besucher-Rueckmeldung 29.07.2026) (URGENT)
@@ -336,6 +369,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-15T04:28:49.189Z
-Stopped at: Completed 10-02-PLAN.md
+Last session: 2026-08-15T17:35:00.000Z
+Stopped at: Completed 12-03-PLAN.md — Phase 12 alle 3 Plaene ausgefuehrt, Sichtrunde WINDOWS.md id 12 offen
 Resume file: None

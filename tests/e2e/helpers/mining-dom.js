@@ -12,14 +12,20 @@
 //   1. closest() -- mining-workbench.js ruft es fuer '.wb', '[data-pin]',
 //      '.wb__tile', '[data-sys]', '[data-seg]', '[data-locpin]', seit Phase 10
 //      (10-01) zusaetzlich '[data-preset]', '[data-pre-pick]',
-//      '[data-pre-rename]' -- '[data-tab]' ist seit Plan 02 entfallen, die
-//      Reiterleiste gibt es nicht mehr. matches() aus dom-mock.js ist nicht
-//      exportiert; ein kleiner eigener Vergleich fuer Klasse und
-//      Attribut-Anwesenheit reicht fuer alle Aufrufwege.
-//   2. fire(el, typ) -- die meisten Handler haengen delegiert am document,
-//      die Preset-Knoepfe direkt am Element. fire() ruft erst die Handler
-//      des Elements (MockElement.dispatchEvent deckt das ab), danach die
-//      des Dokuments mit target = el.
+//      '[data-pre-rename]', seit Phase 12 zusaetzlich '[data-back]',
+//      '[data-loc]', '[data-ore]', 'button' -- '[data-tab]' ist seit Plan 02
+//      entfallen, die Reiterleiste gibt es nicht mehr. matches() aus
+//      dom-mock.js ist nicht exportiert; ein kleiner eigener Vergleich fuer
+//      Klasse und Attribut-Anwesenheit reicht fuer alle Aufrufwege --
+//      Attributselektoren OHNE Wert (wie '[data-loc]') deckt die bestehende
+//      Regex bereits generisch ab, keine neue Selektorform noetig.
+//   2. fire(el, typ, init) -- die meisten Handler haengen delegiert am
+//      document, die Preset-Knoepfe direkt am Element. fire() ruft erst die
+//      Handler des Elements (MockElement.dispatchEvent deckt das ab), danach
+//      die des Dokuments mit target = el. init (optional, Phase 12, Plan 02)
+//      reicht zusaetzliche Event-Felder wie `key` bis zum delegierten
+//      keydown-Handler durch -- ohne den Parameter blieb e.key immer
+//      undefined und Enter/Leertaste-Faelle (T-12-11) waren nicht pruefbar.
 //   3. localStorage als Objekt im vm-Kontext (get/set/remove).
 //   4. window.VBAccount als Attrappe -- session() liefert eine vorgetaeuschte
 //      Sitzung, loginHref() eine Zeichenkette, rest(sess, method, path,
@@ -87,10 +93,17 @@ function makeDocEvents() {
     add(type, fn) {
       (byType[type] || (byType[type] = [])).push(fn);
     },
-    fire(type, target) {
+    // init (optional, Phase 12, Plan 02): zusaetzliche Event-Felder wie
+    // `key` -- der bestehende keydown-Handler in mining-workbench.js fragt
+    // e.key ab (Enter/Leertaste je Fundort-/Erzzeile, T-12-11). Ohne diesen
+    // Parameter blieb e.key immer undefined und der Handler kehrte sofort
+    // um, bevor irgendein Zweig ueberhaupt erreicht wurde -- rein additiv,
+    // kein bestehender zweiargumentiger Aufruf aendert sein Verhalten.
+    fire(type, target, init) {
       const ev = {
         type, target, currentTarget: null,
         preventDefault() {}, stopPropagation() {},
+        ...(init || {}),
       };
       (byType[type] || []).slice().forEach((fn) => fn(ev));
     },
@@ -251,6 +264,9 @@ function buildPayload() {
     // in den Text gemischt, ungeprueft, weil kein Testfall den rechten Text
     // bisher wortwoertlich verglich. locPinsFull ist neu (Grenze bei 128).
     chance: 'CHANCE', upTo: 'UP-TO', locPinsFull: 'LOC-PINS-FULL',
+    // Phase 12: Fundort-Ansicht (D-01/D-07) -- Zurueck-Knopf-Beschriftung und
+    // das Spur-Abzeichen.
+    backToOre: 'BACK-TO-ORE', trace: 'TRACE',
   };
 
   // Echte Stationen + Ertragsprofile: ohne sie liefe rankRefineries() fuer
@@ -307,7 +323,11 @@ function mk(tag, id, className) {
  *   localStorageSeed  — Rumpf, der unter dem Schluessel LS_KEY vorbelegt wird
  *                       (Altbestands-Nachweis ohne locPins-Feld: dieses Feld
  *                       einfach weglassen)
- *   search            — location.search, Default '' (kein Tieflink-Test hier)
+ *   search            — location.search, Default '' (kein Tieflink-Test hier).
+ *                       War von Anfang an fuer den ?mineral=-Zweig vorhanden;
+ *                       seit Phase 12, Plan 03 traegt sie zusaetzlich den
+ *                       ?fundort=-Zweig (T-12-16..18) -- dieselbe Option,
+ *                       keine neue.
  */
 export function makeMiningDomContext(opts = {}) {
   const payload = buildPayload();
@@ -339,6 +359,7 @@ export function makeMiningDomContext(opts = {}) {
   root.appendChild(reg(mk('span', 'wb-count')));
 
   // Mitte — Kopf + Fundorte + Beste Stationen + Verweise (Task 1, Phase 9).
+  root.appendChild(reg(mk('div', 'wb-orehead')));
   root.appendChild(reg(mk('h2', 'wb-name')));
   root.appendChild(reg(mk('div', 'wb-tags')));
   root.appendChild(reg(mk('b', 'wb-sig')));
@@ -346,10 +367,26 @@ export function makeMiningDomContext(opts = {}) {
   pinselEl.setAttribute('aria-pressed', 'false');
   root.appendChild(pinselEl);
   root.appendChild(reg(mk('span', 'wb-pinsel-txt')));
+  root.appendChild(reg(mk('div', 'wb-oreview')));
   root.appendChild(reg(mk('h4', 'wb-loch')));
   root.appendChild(reg(mk('div', 'wb-locs')));
   root.appendChild(reg(mk('div', 'wb-refs')));
   root.appendChild(reg(mk('div', 'wb-links')));
+
+  // Fundort-Kopf + Fundort-Ansicht (Phase 12, Plan 01, Task 1, D-01/D-11):
+  // wb-back MUSS als button angelegt werden und data-back tragen, damit der
+  // delegierte Handler ihn ueber closest('[data-back]') findet -- genau wie
+  // .wb__pin/.wb__lpin es fuer ihre eigenen data-Attribute schon tun.
+  root.appendChild(reg(mk('div', 'wb-lochead')));
+  const backBtn = reg(mk('button', 'wb-back'));
+  backBtn.setAttribute('data-back', '1');
+  root.appendChild(backBtn);
+  root.appendChild(reg(mk('h2', 'wb-locname')));
+  root.appendChild(reg(mk('div', 'wb-locsub')));
+  // wb-locview traegt AUSSCHLIESSLICH die bestehende Klasse wb__scroll (Phase
+  // 12, Plan 01, Task 2) -- keine neue Bildlaufklasse, sonst muesste sie in
+  // assets/theme.css UND assets/mobile-ux.css eingetragen werden.
+  root.appendChild(reg(mk('div', 'wb-locview', 'wb__scroll')));
 
   // Fusszeile.
   root.appendChild(reg(mk('a', 'wb-frac')));
@@ -391,9 +428,12 @@ export function makeMiningDomContext(opts = {}) {
   const account = makeAccount(opts.account);
   const windowObj = { VBAccount: account, document };
 
-  function fire(el, type) {
-    el.dispatchEvent(type);
-    docEvents.fire(type, el);
+  // init (optional): durchgereicht an docEvents.fire() -- siehe Kommentar
+  // dort. dispatchEvent() selbst kennt init bereits (dom-mock.js), die
+  // delegierten document-Handler brauchten das Feld hier zusaetzlich.
+  function fire(el, type, init) {
+    el.dispatchEvent(type, init);
+    docEvents.fire(type, el, init);
   }
 
   return {

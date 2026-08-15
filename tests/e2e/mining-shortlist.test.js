@@ -158,6 +158,93 @@ function collectRealPairs(ctx, limit) {
   return out;
 }
 
+// ---------------------------------------------------------------------
+// Phase 12, Plan 01, Task 1 — Fundort-Ansicht: Zeilen/Kopf finden, echte
+// Fundorte mit bestimmten Eigenschaften aus dem Testbestand ziehen statt sie
+// zu erfinden.
+// ---------------------------------------------------------------------
+
+/** Eine Fundort-Zeile in #wb-locs, gefunden ueber den entschluesselten
+ *  data-loc-Wert (nicht ueber CSS-Attributselektoren mit Sonderzeichen --
+ *  derselbe Grund wie bei locPinBtn() oben). */
+function locRow(ctx, loc) {
+  return ctx.document.getElementById('wb-locs').querySelectorAll('.wb__row2')
+    .find((row) => row.getAttribute('data-loc') === loc) || null;
+}
+
+/** Eine Erzzeile INNERHALB der geoeffneten Fundort-Ansicht (#wb-locview),
+ *  gefunden ueber den entschluesselten data-ore-Wert -- Phase 12, Plan 02,
+ *  Task 1 (D-02). */
+function oreRow(ctx, name) {
+  return ctx.document.getElementById('wb-locview').querySelectorAll('.wb__row2')
+    .find((row) => row.getAttribute('data-ore') === name) || null;
+}
+
+/** Eine Merklistenzeile in #wb-locpins, gefunden ueber den entschluesselten
+ *  data-loc-Wert -- Phase 12, Plan 02, Task 2 (D-03). */
+function locPinRow(ctx, loc) {
+  return ctx.document.getElementById('wb-locpins').querySelectorAll('.wb__pin-item')
+    .find((row) => row.getAttribute('data-loc') === loc) || null;
+}
+
+/** Eine Kachel in Spalte 1, gefunden ueber data-min -- wie selectMineral()
+ *  oben, aber ohne den Klick zu feuern (Phase 12, Plan 02, Task 3, D-09). */
+function tileByName(ctx, name) {
+  return ctx.document.getElementById('wb-list').querySelectorAll('.wb__tile')
+    .find((t) => t.getAttribute('data-min') === name) || null;
+}
+
+/** Zweitgeschrieben aus locIndex in assets/mining-workbench.js -- fuer
+ *  Testzwecke, um reale Fundorte mit bestimmten Eigenschaften (mehrere Erze,
+ *  mehrere Methoden, Spuren gemischt mit Vollzeilen) im Mock-Bestand zu
+ *  FINDEN statt sie zu erfinden. Der synthetische SPECIAL_LOC bleibt aussen
+ *  vor, wie bei collectRealPairs() oben. */
+function buildLocIndexForTest(ctx) {
+  const idx = {};
+  for (const name in ctx.byName) {
+    const m = ctx.byName[name];
+    for (const l of m.locs) {
+      if (l.p === ctx.SPECIAL_LOC) continue;
+      (idx[l.p] || (idx[l.p] = [])).push(Object.assign({ n: name }, l));
+    }
+  }
+  return idx;
+}
+
+function methodGroupCount(entries) {
+  const seen = new Set();
+  for (const e of entries) seen.add(e.mi === 'ship' ? 'ship' : (e.mi === 'roc' ? 'roc' : 'hand'));
+  return seen.size;
+}
+
+/** Der Fundort mit den meisten Erzen im Mock-Payload (auch fuer T-12-09
+ *  wiederverwendet). */
+function biggestLoc(ctx) {
+  const idx = buildLocIndexForTest(ctx);
+  let best = null;
+  for (const p in idx) if (!best || idx[p].length > idx[best].length) best = p;
+  return { name: best, entries: idx[best] };
+}
+
+/** Ein Fundort mit GENAU n Methodengruppen (D-05: 1 oder 3, nie 2). */
+function findLocWithGroups(ctx, n) {
+  const idx = buildLocIndexForTest(ctx);
+  for (const p in idx) if (methodGroupCount(idx[p]) === n) return { name: p, entries: idx[p] };
+  return null;
+}
+
+/** Ein Fundort, der sowohl eine Spurenzeile (Hoechstanteil <= 10) als auch
+ *  eine Vollzeile (> 10) traegt -- fuer T-12-06 (D-07). */
+function findLocWithTraceAndFull(ctx) {
+  const idx = buildLocIndexForTest(ctx);
+  for (const p in idx) {
+    const hasTrace = idx[p].some((e) => (e.ms || 0) <= 10);
+    const hasFull = idx[p].some((e) => (e.ms || 0) > 10);
+    if (hasTrace && hasFull) return { name: p, entries: idx[p] };
+  }
+  return null;
+}
+
 function newPreset(ctx, name) {
   ctx.fire(ctx.elements['wb-pre-new'], 'click');
   ctx.elements['wb-pre-name'].value = name;
@@ -1135,6 +1222,462 @@ test('REVIEW LOW: war die umbenannte Preset-Zeile aufgeklappt, bleibt sie es unt
 });
 
 // ---------------------------------------------------------------------
+// Phase 12, Plan 01, Task 1 — Tracer: ein Fundort, hin und zurueck, end-to-
+// end durch alle Schichten (D-01, D-02, D-05, D-06, D-07, D-11).
+// ---------------------------------------------------------------------
+
+test('T-12-01: Klick auf eine Fundort-Zeile (nicht die Nadel) oeffnet die Fundort-Ansicht mit dem Ortsnamen im Kopf', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const loc = realLocOf(ctx, 'Gold');
+  selectMineral(ctx, 'Gold');
+
+  const row = locRow(ctx, loc);
+  assert.ok(row, `Fundort-Zeile fuer Gold@${loc} nicht gefunden`);
+  ctx.fire(row, 'click');
+
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, false, 'wb-lochead sollte nach dem Klick sichtbar sein');
+  assert.strictEqual(ctx.elements['wb-locview'].hidden, false, 'wb-locview sollte nach dem Klick sichtbar sein');
+  assert.strictEqual(ctx.elements['wb-orehead'].hidden, true, 'wb-orehead sollte verborgen sein');
+  assert.strictEqual(ctx.elements['wb-oreview'].hidden, true, 'wb-oreview sollte verborgen sein');
+  assert.strictEqual(ctx.elements['wb-locname'].textContent, loc, '#wb-locname sollte NUR den Ortsnamen tragen (D-11)');
+});
+
+test('T-12-02: Klick auf den Zurueck-Knopf stellt die Erz-Ansicht wieder her, das gewaehlte Erz und die Fusszeile bleiben unveraendert', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const loc = realLocOf(ctx, 'Gold');
+  selectMineral(ctx, 'Gold');
+  const fracBefore = ctx.elements['wb-frac-ore'].textContent;
+
+  ctx.fire(locRow(ctx, loc), 'click');
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, false, 'Vorbedingung: Fundort-Ansicht sollte offen sein');
+
+  const back = ctx.elements['wb-back'];
+  assert.ok(back, 'Zurueck-Knopf nicht im Mock-DOM registriert');
+  ctx.fire(back, 'click');
+
+  assert.strictEqual(ctx.elements['wb-orehead'].hidden, false, 'wb-orehead sollte wieder sichtbar sein');
+  assert.strictEqual(ctx.elements['wb-oreview'].hidden, false, 'wb-oreview sollte wieder sichtbar sein');
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, true, 'wb-lochead sollte wieder verborgen sein');
+  assert.strictEqual(ctx.elements['wb-locview'].hidden, true, 'wb-locview sollte wieder verborgen sein');
+  assert.strictEqual(ctx.elements['wb-frac-ore'].textContent, fracBefore, 'D-10: die Fusszeile bleibt beim zuletzt gewaehlten Erz stehen');
+});
+
+test('T-12-03: Klick auf die Nadel INNERHALB einer Fundort-Zeile heftet das Paar an und oeffnet die Fundort-Ansicht NICHT', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const loc = realLocOf(ctx, 'Gold');
+  selectMineral(ctx, 'Gold');
+
+  const btn = locPinBtn(ctx, 'Gold', loc);
+  assert.ok(btn, `Nadelknopf fuer Gold@${loc} nicht gefunden`);
+  ctx.fire(btn, 'click');
+
+  assert.strictEqual(ctx.document.getElementById('wb-locpins').querySelectorAll('.wb__pin-item').length, 1, 'das Paar sollte angeheftet sein');
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, true, 'die Fundort-Ansicht darf durch den Nadelklick NICHT geoeffnet werden');
+  assert.strictEqual(ctx.elements['wb-orehead'].hidden, false, 'die Erz-Ansicht sollte weiterhin sichtbar sein');
+});
+
+test('T-12-04: die Erzliste eines Fundorts ist je Methodengruppe absteigend nach Chance sortiert, der rechte Wert jeder Zeile ist ihre eigene Chance', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc, entries } = biggestLoc(probe);
+  assert.ok(loc && entries.length >= 2, 'Testbestand sollte einen Fundort mit mindestens zwei Erzen liefern');
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  selectMineral(ctx, entries[0].n);
+  ctx.fire(locRow(ctx, loc), 'click');
+
+  const rows = ctx.document.getElementById('wb-locview').querySelectorAll('.wb__row2');
+  assert.strictEqual(rows.length, entries.length, 'jede Erzzeile dieses Fundorts sollte gezeichnet sein, keine doppelt');
+
+  // Monoton faellt je METHODENGRUPPE (D-05 gruppiert NACH dem Sortieren, feste
+  // Reihenfolge Schiff -> ROC -> Hand -- ueber eine Gruppengrenze hinweg darf
+  // die Chance deshalb wieder steigen, siehe Aphorite/Feynmaline im Testbestand).
+  const secs = ctx.document.getElementById('wb-locview').querySelectorAll('.wb__sec');
+  assert.ok(secs.length >= 1, 'erwartet mindestens eine Methodengruppe');
+  for (const sec of secs) {
+    let prevCh = Infinity;
+    for (const row of sec.querySelectorAll('.wb__row2')) {
+      const ore = row.getAttribute('data-ore');
+      const entry = entries.find((e) => e.n === ore);
+      assert.ok(entry, `Erzzeile "${ore}" hat kein Gegenstueck im echten Bestand`);
+      const em = row.querySelector('em');
+      assert.ok(em, `Erzzeile "${ore}" traegt keine <em>`);
+      assert.strictEqual(em.textContent, nPctForTest(entry.ch) + ' %', `der rechte Wert von "${ore}" sollte seine eigene Chance sein (D-06)`);
+      assert.ok(entry.ch <= prevCh + 1e-9, `die Chance-Reihenfolge sollte innerhalb "${sec.querySelector('h4').textContent}" monoton fallen`);
+      prevCh = entry.ch;
+    }
+  }
+});
+
+test('T-12-05: ein Fundort mit genau einer Methode zeigt genau eine Gruppenueberschrift, einer mit drei genau drei (D-05)', async () => {
+  const probe = run({ account: { rows: [] } });
+  const one = findLocWithGroups(probe, 1);
+  const three = findLocWithGroups(probe, 3);
+  assert.ok(one, 'Testbestand sollte einen Fundort mit genau einer Methode liefern');
+  assert.ok(three, 'Testbestand sollte einen Fundort mit genau drei Methoden liefern');
+
+  const ctx = await runAsync({ account: { rows: [] } });
+
+  selectMineral(ctx, one.entries[0].n);
+  ctx.fire(locRow(ctx, one.name), 'click');
+  assert.strictEqual(
+    ctx.document.getElementById('wb-locview').querySelectorAll('h4').length, 1,
+    `"${one.name}" sollte genau eine Gruppenueberschrift zeigen`
+  );
+
+  selectMineral(ctx, three.entries[0].n);
+  ctx.fire(locRow(ctx, three.name), 'click');
+  assert.strictEqual(
+    ctx.document.getElementById('wb-locview').querySelectorAll('h4').length, 3,
+    `"${three.name}" sollte genau drei Gruppenueberschriften zeigen`
+  );
+});
+
+test('T-12-06: Zeilen mit Hoechstanteil <= 10 tragen is-trace und das Abzeichen, an ihrer nach Chance sortierten Stelle (D-07)', async () => {
+  const probe = run({ account: { rows: [] } });
+  const mix = findLocWithTraceAndFull(probe);
+  assert.ok(mix, 'Testbestand sollte einen Fundort mit Spuren- UND Vollzeilen liefern');
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  selectMineral(ctx, mix.entries[0].n);
+  ctx.fire(locRow(ctx, mix.name), 'click');
+
+  const rows = ctx.document.getElementById('wb-locview').querySelectorAll('.wb__row2');
+  let sawTrace = false, sawFull = false;
+  for (const row of rows) {
+    const ore = row.getAttribute('data-ore');
+    const entry = mix.entries.find((e) => e.n === ore);
+    assert.ok(entry, `Erzzeile "${ore}" hat kein Gegenstueck im echten Bestand`);
+    const isTrace = (entry.ms || 0) <= 10;
+    assert.strictEqual(row.classList.contains('is-trace'), isTrace, `is-trace sollte fuer "${ore}" ${isTrace} sein`);
+    const badge = row.querySelector('.wb__tag');
+    if (isTrace) {
+      assert.ok(badge, `"${ore}" sollte das Spur-Abzeichen tragen`);
+      assert.strictEqual(badge.textContent, ctx.T.trace);
+      sawTrace = true;
+    } else {
+      assert.ok(!badge, `"${ore}" sollte KEIN Abzeichen tragen`);
+      sawFull = true;
+    }
+  }
+  assert.ok(sawTrace && sawFull, 'Vorbedingung verlangt beide Faelle nebeneinander in derselben Liste');
+});
+
+test('T-12-07: der synthetische Fundort mit HTML-Sonderzeichen laesst sich oeffnen, Name escaped im Kopf und im data-loc-Attributwert, kein injiziertes Element', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  selectMineral(ctx, 'Gold');
+
+  const row = locRow(ctx, ctx.SPECIAL_LOC);
+  assert.ok(row, 'Fundort-Zeile fuer den synthetischen Sonderzeichen-Fundort nicht gefunden');
+  ctx.fire(row, 'click');
+
+  const locsBox = ctx.document.getElementById('wb-locs');
+  assert.strictEqual(locsBox.querySelectorAll('danger').length, 0, 'unescapter Text haette ein <danger>-Element erzeugt (#wb-locs)');
+
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, false, 'die Fundort-Ansicht sollte offen sein');
+  assert.strictEqual(ctx.elements['wb-locname'].textContent, ctx.SPECIAL_LOC, 'der volle Originaltext sollte ueber textContent im Kopf stehen');
+
+  const freshRow = locRow(ctx, ctx.SPECIAL_LOC);
+  assert.ok(freshRow, 'Fundort-Zeile nach dem Oeffnen nicht mehr auffindbar (Attributwert vermutlich abgeschnitten)');
+  assert.strictEqual(freshRow.getAttribute('data-loc'), ctx.SPECIAL_LOC);
+});
+
+// ---------------------------------------------------------------------
+// Phase 12, Plan 01, Task 2 — Der Falz haelt: Hoehenbilanz und Bildlauf der
+// neuen Ansicht. Fuegt keine Funktion hinzu, sichert nur, dass es nichts zu
+// messen gibt, das strukturell schon falsch ist.
+// ---------------------------------------------------------------------
+
+test('T-12-08: In der Fundort-Ansicht bleibt die Zahl der .wb__pane-Elemente bei drei, #wb-locview traegt NUR wb__scroll', async () => {
+  // Statische Markup-Zusicherung: .wb__grid traegt weiterhin genau drei
+  // .wb__pane-Kinder -- die Fundort-Ansicht ist ein Geschwister INNERHALB
+  // des mittleren Paneels (Task 1), kein viertes Paneel. Der Mock-DOM in
+  // mining-dom.js modelliert keine .wb__pane-Elemente (mining-workbench.js
+  // greift nie darauf zu), deshalb hier gegen die echte Astro-Quelle -- die
+  // drei Positionsregeln der Medienabfragen (Z. 787-814) haengen daran.
+  const astroSrc = fs.readFileSync(path.resolve('src/components/MiningWorkbench.astro'), 'utf8');
+  const paneCount = (astroSrc.match(/class="wb__pane[ "]/g) || []).length;
+  assert.strictEqual(paneCount, 3, 'die Fundort-Ansicht (Task 1) sollte kein viertes .wb__pane erzeugt haben');
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  const loc = realLocOf(ctx, 'Gold');
+  selectMineral(ctx, 'Gold');
+  ctx.fire(locRow(ctx, loc), 'click');
+
+  const locview = ctx.elements['wb-locview'];
+  assert.ok(locview, 'wb-locview nicht im Mock-DOM registriert');
+  assert.strictEqual(
+    locview.className, 'wb__scroll',
+    '#wb-locview sollte AUSSCHLIESSLICH wb__scroll tragen -- keine zweite Bildlaufklasse, sonst blendet die globale !important-Regel in assets/theme.css seine Leiste aus'
+  );
+});
+
+test('T-12-09: Fundort mit den meisten Erzen -- keine Zeile geht beim Gruppieren verloren, keine erscheint doppelt, Gruppenueberschriften entsprechen den tatsaechlich vorkommenden Methoden', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc, entries } = biggestLoc(probe);
+  assert.ok(loc, 'Testbestand sollte einen groessten Fundort liefern');
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  selectMineral(ctx, entries[0].n);
+  ctx.fire(locRow(ctx, loc), 'click');
+
+  const locview = ctx.elements['wb-locview'];
+  const headings = locview.querySelectorAll('h4');
+  const rows = locview.querySelectorAll('.wb__row2');
+
+  // Kein Eintrag geht beim Gruppieren verloren, keiner erscheint doppelt --
+  // auch wenn ein Element in DERSELBEN Komposition mehrfach vorkommt (Adern),
+  // fuehren die Daten es trotzdem als EINEN Eintrag je Erz-Ort-Paar, und
+  // genau das muss die Ansicht zeigen.
+  const oreNames = rows.map((r) => r.getAttribute('data-ore'));
+  assert.strictEqual(oreNames.length, entries.length, 'Zeilenzahl sollte exakt der Zahl der Eintraege dieses Ortes entsprechen');
+  assert.strictEqual(new Set(oreNames).size, oreNames.length, 'kein Erz sollte doppelt gezeichnet sein');
+  for (const name of entries.map((e) => e.n)) {
+    assert.ok(oreNames.includes(name), `"${name}" fehlt in der gezeichneten Liste`);
+  }
+
+  const distinctGroups = new Set(entries.map((e) => (e.mi === 'ship' ? 'ship' : (e.mi === 'roc' ? 'roc' : 'hand'))));
+  assert.strictEqual(headings.length, distinctGroups.size, 'Zahl der Gruppenueberschriften sollte der Zahl der tatsaechlich vorkommenden Methoden entsprechen');
+  assert.strictEqual(
+    headings.length + rows.length, distinctGroups.size + entries.length,
+    'Summe aus Gruppenueberschriften und Zeilen sollte exakt Gruppen + Eintraege sein -- nichts verloren, nichts verdoppelt'
+  );
+});
+
+// ---------------------------------------------------------------------
+// Phase 12, Plan 02, Task 1 — Erzzeile INNERHALB der Fundort-Ansicht fuehrt
+// zum Erz (D-02): der Rueckweg, der die Fundort-Ansicht vom Plan-01-Tracer
+// zu einem Netz aus beiden Richtungen macht.
+// ---------------------------------------------------------------------
+
+test('T-12-10: Fundort oeffnen, auf eine Erzzeile klicken: das gewaehlte Erz ist danach genau dieses Erz, die Erz-Ansicht ist sichtbar, die Fundort-Ansicht verborgen, und der Fusszeilentext nennt das neue Erz', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc, entries } = biggestLoc(probe);
+  assert.ok(loc && entries.length >= 2, 'Testbestand sollte einen Fundort mit mindestens zwei Erzen liefern');
+  const target = entries.find((e) => e.n !== entries[0].n);
+  assert.ok(target, 'Testbestand sollte ein zweites, abweichendes Erz am selben Fundort liefern');
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  selectMineral(ctx, entries[0].n);
+  ctx.fire(locRow(ctx, loc), 'click');
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, false, 'Vorbedingung: Fundort-Ansicht sollte offen sein');
+
+  const row = oreRow(ctx, target.n);
+  assert.ok(row, `Erzzeile fuer "${target.n}" im geoeffneten Fundort nicht gefunden`);
+  ctx.fire(row, 'click');
+
+  assert.strictEqual(ctx.elements['wb-name'].textContent, target.n, 'das gewaehlte Erz sollte das angeklickte Erz sein');
+  assert.strictEqual(ctx.elements['wb-orehead'].hidden, false, 'der Erz-Kopf sollte sichtbar sein');
+  assert.strictEqual(ctx.elements['wb-oreview'].hidden, false, 'die Erz-Ansicht sollte sichtbar sein');
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, true, 'der Fundort-Kopf sollte verborgen sein');
+  assert.strictEqual(ctx.elements['wb-locview'].hidden, true, 'die Fundort-Ansicht sollte verborgen sein');
+  assert.strictEqual(ctx.elements['wb-frac-ore'].textContent, target.n, 'die Fusszeile sollte das neue Erz nennen (renderDetail() laeuft in jedem Durchlauf)');
+});
+
+test('T-12-11: Enter auf einer fokussierten Erzzeile bewirkt dasselbe wie der Klick; ein Klick auf eine Stationszeile in #wb-refs bewirkt weiterhin nichts', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc, entries } = biggestLoc(probe);
+  assert.ok(loc && entries.length >= 2, 'Testbestand sollte einen Fundort mit mindestens zwei Erzen liefern');
+  const target = entries.find((e) => e.n !== entries[0].n);
+  assert.ok(target, 'Testbestand sollte ein zweites, abweichendes Erz am selben Fundort liefern');
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  selectMineral(ctx, entries[0].n);
+  ctx.fire(locRow(ctx, loc), 'click');
+
+  const row = oreRow(ctx, target.n);
+  assert.ok(row, `Erzzeile fuer "${target.n}" nicht gefunden`);
+  ctx.fire(row, 'keydown', { key: 'Enter' });
+
+  assert.strictEqual(ctx.elements['wb-name'].textContent, target.n, 'Enter auf der Erzzeile sollte wie der Klick das Erz wechseln');
+  assert.strictEqual(ctx.elements['wb-oreview'].hidden, false, 'die Erz-Ansicht sollte nach Enter sichtbar sein');
+  assert.strictEqual(ctx.elements['wb-locview'].hidden, true, 'die Fundort-Ansicht sollte nach Enter verborgen sein');
+
+  // Eine Stationszeile in #wb-refs traegt weder data-loc noch data-ore -- ein
+  // Klick auf sie darf weder das Erz noch die Ansicht aendern. "Gold" hat im
+  // Testbestand zuverlaessig Ertragsprofile (siehe rankRefineries()) --
+  // target.n aus biggestLoc() ist dafuer nicht garantiert (elf Edelsteine
+  // werden laut Kopfkommentar von yieldFor() nicht raffiniert).
+  selectMineral(ctx, 'Gold');
+  const refRow = ctx.document.getElementById('wb-refs').querySelectorAll('.wb__row2')[0];
+  assert.ok(refRow, 'Vorbedingung: #wb-refs sollte fuer Gold mindestens eine Stationszeile tragen');
+  const selBefore = ctx.elements['wb-name'].textContent;
+  const viewBefore = ctx.elements['wb-oreview'].hidden;
+  ctx.fire(refRow, 'click');
+  assert.strictEqual(ctx.elements['wb-name'].textContent, selBefore, 'ein Klick auf eine Stationszeile darf das gewaehlte Erz nicht aendern');
+  assert.strictEqual(ctx.elements['wb-oreview'].hidden, viewBefore, 'ein Klick auf eine Stationszeile darf die Ansicht nicht wechseln');
+});
+
+// ---------------------------------------------------------------------
+// Phase 12, Plan 02, Task 2 — Die Fundort-Merkliste reagiert genauso: eine
+// Zeile, zwei Bedeutungen (D-03). Das Loesen-Kreuz behaelt seinen Vorrang.
+// ---------------------------------------------------------------------
+
+test('T-12-12: Ein Paar anheften, dann in der Merkliste auf die Zeile (nicht auf das Kreuz) klicken: die Fundort-Ansicht dieses Ortes ist offen, das Paar bleibt angeheftet', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const loc = realLocOf(ctx, 'Gold');
+  selectMineral(ctx, 'Gold');
+  ctx.fire(locPinBtn(ctx, 'Gold', loc), 'click');
+
+  const row = locPinRow(ctx, loc);
+  assert.ok(row, `Merklistenzeile fuer Gold||${loc} nicht gefunden`);
+
+  ctx.fire(row, 'click');
+
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, false, 'die Fundort-Ansicht sollte nach dem Zeilenklick offen sein');
+  assert.strictEqual(ctx.elements['wb-locname'].textContent, loc, 'der Kopf sollte den geklickten Fundort zeigen');
+  assert.strictEqual(
+    ctx.document.getElementById('wb-locpins').querySelectorAll('.wb__pin-item').length, 1,
+    'das Paar sollte nach dem Oeffnen weiterhin angeheftet sein'
+  );
+});
+
+test('T-12-13: Klick auf das Kreuz derselben Zeile loest das Paar, OHNE die Ansicht zu wechseln; der Ortsname mit HTML-Sonderzeichen steht escaped im data-loc-Attributwert', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const loc = realLocOf(ctx, 'Gold');
+  selectMineral(ctx, 'Gold');
+  ctx.fire(locPinBtn(ctx, 'Gold', loc), 'click');
+
+  const crossBtn = locPinBtn(ctx, 'Gold', loc);
+  assert.ok(crossBtn, 'Loesen-Kreuz nicht gefunden');
+  ctx.fire(crossBtn, 'click');
+
+  assert.strictEqual(
+    ctx.document.getElementById('wb-locpins').querySelectorAll('.wb__pin-item').length, 0,
+    'das Paar sollte nach dem Kreuz-Klick geloest sein'
+  );
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, true, 'die Fundort-Ansicht darf durch den Kreuz-Klick NICHT geoeffnet werden');
+  assert.strictEqual(ctx.elements['wb-orehead'].hidden, false, 'die Erz-Ansicht sollte weiterhin sichtbar sein');
+
+  // Sonderzeichen: escaped im data-loc-Attributwert der Merklistenzeile,
+  // dieselben vier Zeichen wie bereits bei der Fundort-Zeile (T-12-07).
+  ctx.fire(locPinBtn(ctx, 'Gold', ctx.SPECIAL_LOC), 'click');
+  const specialRow = locPinRow(ctx, ctx.SPECIAL_LOC);
+  assert.ok(specialRow, 'Merklistenzeile fuer den Sonderzeichen-Fundort nicht gefunden');
+  assert.strictEqual(specialRow.getAttribute('data-loc'), ctx.SPECIAL_LOC, 'der volle Originaltext sollte ueber getAttribute() (dekodiert) im data-loc stehen');
+  assert.strictEqual(
+    ctx.document.getElementById('wb-locpins').querySelectorAll('danger').length, 0,
+    'unescapter Text haette ein <danger>-Element erzeugt'
+  );
+});
+
+// ---------------------------------------------------------------------
+// Phase 12, Plan 02, Task 3 — Die Kachelspalte zeigt, was an einem offenen
+// Fundort vorkommt -- und was nicht (D-09). Filtert nichts, annotiert nur.
+// ---------------------------------------------------------------------
+
+test('T-12-14: Fundort oeffnen -- Zahl der markierten Kacheln entspricht der Zahl der Eintraege, alle 37 Kacheln bleiben stehen (D-09)', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc, entries } = biggestLoc(probe);
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  const total = ctx.document.getElementById('wb-list').querySelectorAll('.wb__tile').length;
+  selectMineral(ctx, entries[0].n);
+  ctx.fire(locRow(ctx, loc), 'click');
+
+  const tiles = ctx.document.getElementById('wb-list').querySelectorAll('.wb__tile');
+  assert.strictEqual(tiles.length, total, 'die Gesamtzahl der Kacheln sollte unveraendert bleiben -- die Markierung filtert nicht');
+  const marked = tiles.filter((t) => t.classList.contains('is-here'));
+  assert.strictEqual(marked.length, entries.length, 'die Zahl der markierten Kacheln sollte der Zahl der Eintraege dieses Fundorts entsprechen');
+  const markedNames = marked.map((t) => t.getAttribute('data-min'));
+  for (const name of entries.map((e) => e.n)) {
+    assert.ok(markedNames.includes(name), `"${name}" sollte markiert sein`);
+  }
+});
+
+test('T-12-15: Zurueck auf die Erz-Ansicht -- keine Kachel traegt mehr is-here; markiert und ausgewaehlt schliessen einander waehrend die Fundort-Ansicht offen ist nicht aus', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc, entries } = biggestLoc(probe);
+  const target = entries[0];
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  selectMineral(ctx, target.n);
+  ctx.fire(locRow(ctx, loc), 'click');
+
+  // Ueberlagerung waehrend die Fundort-Ansicht offen ist: die weiterhin
+  // gewaehlte Kachel (S.sel aendert sich durch das Oeffnen eines Fundorts
+  // nicht) traegt gleichzeitig is-sel UND is-here.
+  const selTile = tileByName(ctx, target.n);
+  assert.ok(selTile, `Kachel fuer "${target.n}" nicht gefunden`);
+  assert.ok(selTile.classList.contains('is-sel'), 'die gewaehlte Kachel sollte is-sel tragen');
+  assert.ok(selTile.classList.contains('is-here'), 'die gewaehlte Kachel sollte gleichzeitig is-here tragen -- die beiden Zustaende duerfen sich nicht verdraengen');
+
+  const back = ctx.elements['wb-back'];
+  assert.ok(back, 'Zurueck-Knopf nicht im Mock-DOM registriert');
+  ctx.fire(back, 'click');
+
+  const tiles = ctx.document.getElementById('wb-list').querySelectorAll('.wb__tile');
+  const stillMarked = tiles.filter((t) => t.classList.contains('is-here'));
+  assert.strictEqual(stillMarked.length, 0, 'nach dem Zurueckspringen sollte keine Kachel mehr is-here tragen');
+  assert.ok(tileByName(ctx, target.n).classList.contains('is-sel'), 'die Erzauswahl selbst sollte durch das Zurueckspringen unveraendert bleiben');
+});
+
+// ---------------------------------------------------------------------
+// Phase 12, Plan 03, Task 1 — Ein Fundort bekommt eine Adresse: der
+// Tieflink-Parameter ?fundort= (D-04), dieselbe Bauform wie der bestehende
+// ?mineral=-Zweig (T-12-04 ff. fuer den Rest der Bauform, hier nur der neue
+// Adresszweig selbst).
+// ---------------------------------------------------------------------
+
+test('T-12-16: ?fundort= mit abweichender Gross-/Kleinschreibung und umschliessenden Leerzeichen oeffnet die Fundort-Ansicht dieses Ortes; #wb-locname traegt die kanonische Schreibweise aus den Daten', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc } = biggestLoc(probe);
+  assert.ok(loc, 'Testbestand sollte einen groessten Fundort liefern');
+  const messy = '  ' + loc.toUpperCase() + '  ';
+
+  const ctx = await runAsync({ account: { rows: [] }, search: '?fundort=' + encodeURIComponent(messy) });
+
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, false, 'die Fundort-Ansicht sollte beim Laden bereits offen sein');
+  assert.strictEqual(ctx.elements['wb-locview'].hidden, false, 'wb-locview sollte beim Laden bereits sichtbar sein');
+  assert.strictEqual(ctx.elements['wb-orehead'].hidden, true, 'die Erz-Ansicht sollte verborgen sein');
+  assert.strictEqual(ctx.elements['wb-oreview'].hidden, true, 'die Erz-Ansicht sollte verborgen sein');
+  assert.strictEqual(
+    ctx.elements['wb-locname'].textContent, loc,
+    '#wb-locname sollte die KANONISCHE Schreibweise aus den Daten tragen, nicht den eingegebenen (grossgeschriebenen, umschlossenen) Wert'
+  );
+});
+
+test('T-12-17 (Sicherheitsnachweis): ein unbekannter ?fundort=-Wert mit HTML-Sonderzeichen und Skript-Anfang laesst die Erz-Ansicht stehen; der eingegebene Wert erscheint im gesamten gezeichneten Markup an keiner Stelle', async () => {
+  const evil = '<script>alert(1)</script>&"\'';
+
+  const ctx = await runAsync({ account: { rows: [] }, search: '?fundort=' + encodeURIComponent(evil) });
+
+  assert.strictEqual(ctx.elements['wb-orehead'].hidden, false, 'die Erz-Ansicht sollte stehen bleiben');
+  assert.strictEqual(ctx.elements['wb-oreview'].hidden, false, 'die Erz-Ansicht sollte stehen bleiben');
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, true, 'ein unbekannter Wert darf die Fundort-Ansicht NICHT oeffnen');
+  assert.strictEqual(ctx.elements['wb-locview'].hidden, true, 'ein unbekannter Wert darf die Fundort-Ansicht NICHT oeffnen');
+
+  // Sicherheitsnachweis: das gesamte gezeichnete Markup (Text UND
+  // Attributwerte) darf den eingegebenen Wert an KEINER Stelle enthalten --
+  // weder ganz noch in Fragmenten. Ein unbekannter Wert wird von
+  // fromQueryLoc() nirgends geschrieben; dieser Test belegt genau das, statt
+  // es nur aus dem Quelltext zu folgern. (Das Mock-DOM traegt selbst ein
+  // #wb-data-<script>-Element fuer die JSON-Nutzlast -- ein blosser
+  // '<script>'-Teilstring-Test wuerde also grundlos gegen die eigene
+  // Testinfrastruktur schlagen; der Nachweis prueft deshalb gezielt den
+  // eingegebenen Wert und sein auffaelligstes Fragment.)
+  const markup = ctx.root.outerHTML;
+  assert.ok(!markup.includes(evil), 'der volle rohe Eingabewert darf im gezeichneten Markup nicht vorkommen');
+  assert.ok(!markup.includes('alert(1)'), 'kein Fragment des Werts darf im gezeichneten Markup vorkommen');
+});
+
+test('T-12-18: ?mineral= UND ?fundort= gleichzeitig -- der genannte Ort ist offen UND das genannte Erz ist gewaehlt, belegbar am Fusszeilentext', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc } = biggestLoc(probe);
+  assert.ok(loc, 'Testbestand sollte einen groessten Fundort liefern');
+  const mineral = 'Quantainium';
+  assert.ok(probe.byName[mineral], 'Testbestand sollte "Quantainium" kennen');
+
+  const search = '?mineral=' + encodeURIComponent(mineral) + '&fundort=' + encodeURIComponent(loc);
+  const ctx = await runAsync({ account: { rows: [] }, search });
+
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, false, 'der genannte Ort sollte offen sein');
+  assert.strictEqual(ctx.elements['wb-locname'].textContent, loc, '#wb-locname sollte den genannten Ort tragen');
+  assert.strictEqual(
+    ctx.elements['wb-frac-ore'].textContent, mineral,
+    'die Fusszeile sollte weiterhin das genannte Erz nennen -- die beiden Adresszweige heben sich nicht gegenseitig auf'
+  );
+});
+
 // Betreiber-Befund 15.08.2026 (Preset-Zeile), aus der Benutzung auf staging.
 // ---------------------------------------------------------------------
 

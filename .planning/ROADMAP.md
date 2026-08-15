@@ -666,3 +666,117 @@ Null. Das spricht nicht gegen den Bau, wohl aber dagegen, ihn vorzuziehen.
 Plans:
 
 - [ ] TBD (run /gsd-plan-phase 11 to break down)
+
+### Phase 12: Fundorte in der Mining-Werkbank anklickbar
+
+**Goal:** Die Werkbank beantwortet bisher nur eine Richtung — „wo finde ich
+DIESES Erz?". Die Gegenrichtung — „was gibt es an DIESEM Ort?" — ist die
+Frage, die man sich beim Fliegen tatsächlich stellt, und sie ist heute
+unbeantwortbar: die Fundortzeilen sind tote Textzeilen, allein die
+Anheft-Nadel reagiert. Ein Klick auf den Namen schaltet die Mittelspalte auf
+eine Fundort-Ansicht um, mit Rückweg zum Erz.
+
+Die Datenhälfte dafür liegt seit der Fundort-Korrektur (14./15.08.) fertig im
+Bestand und wird im UI **nirgends** benutzt: `assets/mining-db.json` führt
+neben `minerals[]` auch `bodies[]` — 45 Fundorte, je Erz `chance`,
+`maxShare`, `eff`, `mining`, `rarity`. `verify:mining` prüft beide Richtungen
+bereits auf Deckungsgleichheit. Es fehlt die Ansicht, nicht die Datenarbeit.
+
+**Inhalt der Fundort-Ansicht:**
+
+- Erzliste, gruppiert nach Abbaumethode (ship / roc / fps / hand)
+- je Erz Chance, Höchstanteil und Balken — **Chance ist die Leitgröße**, Balken
+  und Sortierung folgen ihr (D-06, bewusst asymmetrisch zur Erz-Ansicht, die
+  Fundorte nach `eff` rangiert). **Keine Scan-Signatur in der Zeile** (D-08) —
+  die Signaturenliste in Spalte 3 leistet das bereits.
+  ⚠ Hier stand bis zur Phasenbesprechung „Balken nach `eff` rangiert und
+  Scan-Signatur". Beides ist am 15.08. in `12-CONTEXT.md` anders entschieden
+  worden; der Stichpunkt war seither stale und ist hier richtiggestellt.
+
+- Spurenerze (niedriger Höchstanteil) **markiert statt ausgeblendet**
+- Kopf mit System und Ortstyp; bei Lagrange-Fundorten die echten
+  Anflugpunkte (ARC-L3, CRU-L5 …) statt der Sammelbezeichnung
+
+⚠ **Ausdrücklich nicht** (mit scmdb verglichen, 15.08.2026):
+
+1. **Keine Preise.** scmdb zeigt auf seiner Fundort-Seite selbst keine —
+   und `refinery-data.json` deckt nur 26 der 37 Erze.
+
+2. **Keine Gruppenanteile** im scmdb-Stil („Ship Mining 51,0 %"). Deren Zahl
+   rechnet Derelict Salvage und Debris mit; das ist eine Bergungsdatenbank,
+   die wir nicht führen. Der Anteil wäre ohne diese Grundmenge erfunden.
+
+3. **Keine Adernzahl** („3–5"). Steht nicht in unseren Daten; `deposits`
+   zählt Felsarten und ist nicht dasselbe.
+
+4. **Keine neuen Seiten oder Routen.** Betreiberentscheidung vom 15.08.:
+   ausschließlich Umschaltung innerhalb der Werkbank.
+
+⚠ **Kein Datenbefund aus dem scmdb-Vergleich.** Wir listen an Pyro Deep Space
+Asteroids 12 Erze gegen deren 7, und Aluminium steht bei uns auf 29,8 % gegen
+deren 14,9 %. Beides ist geprüft und erklärt: die Chance summiert bei uns über
+alle Felsarten, die das Erz führen (2 × 14,9), und die fünf „fehlenden" Erze
+sind genau die mit Höchstanteil 5–10 % — scmdb blendet Spuren aus. Das
+Mehrfach-Slot-Doppelzählen ist in `datamine-locations.mjs:130-159` behandelt.
+Definitionsunterschied, kein Fehler. Hier ist nichts zu reparieren.
+
+**Requirements**: keine REQ-IDs in REQUIREMENTS.md — bindend sind stattdessen die
+Entscheidungen D-01 bis D-11 aus
+`.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-CONTEXT.md`
+sowie die 48 Zustandszusicherungen im Abschnitt `## UI Considerations` von
+`12-UI-SPEC.md` (39 belegt, 9 als Nachweis am gerenderten Bildpunkt erbracht —
+`scripts/probes/mining-locview-messung.mjs`, 72/72 Messpunkte grün). Gleicher
+Umgang wie in den Phasen 7, 9 und 10: technisch fertig, Sichtrunde
+(`.planning/WINDOWS.md` id 12) noch beim Betreiber offen.
+**Depends on:** Phase 10 (Fundort-Merkliste und Presets der Werkbank)
+**Plans:** 3/3 plans executed
+
+Plans:
+
+- [x] 12-01-PLAN.md — Tracer: Klick auf eine Fundort-Zeile öffnet die Fundort-Ansicht (Kopf, nach Methode gruppierte und nach Chance sortierte Erzliste, gedämpfte Spurenzeilen), Zurück-Pfeil führt aufs Erz
+- [x] 12-02-PLAN.md — Das Netz schließt sich: Erzzeile führt zum Erz (D-02), Merklistenzeile trägt denselben Klick (D-03), Kachelspalte markiert die Erze des Ortes (D-09)
+- [x] 12-03-PLAN.md — Adresse `?fundort=` (D-04), Hilfetexte in beiden Sprachen nachgezogen, die 9 offenen Zustandszusicherungen gemessen und als Sichtrunde übergeben
+
+### Phase 13: Verschachtelte Klickziele barrierefrei auflösen
+
+**Goal:** An drei Stellen der Mining-Werkbank umschließt ein klickbares
+Element einen echten `<button>`: die Erz-Kachel mit ihrer Anheft-Nadel
+(`.wb__tile`, seit Phase 9), und seit Phase 12 die Fundort-Zeile und die
+Merklisten-Zeile mit derselben Nadel. Alle drei tragen `role="button"` und
+`tabindex="0"` auf dem äußeren Element. Das ist ein Verstoß gegen
+WCAG 4.1.2 (axe-Regel `nested-interactive`): Screenreader kündigen ein
+Bedienelement an, das ein zweites enthält, und die Reihenfolge, in der beide
+erreichbar sind, ist nicht verlässlich.
+
+**Befund-Herkunft:** Code-Review der Phase 12,
+`.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-REVIEW.md`,
+Eintrag **WR-02**. Kein Blocker — die Bedienung mit Maus und Tastatur ist
+durch Tests belegt (`tests/e2e/mining-shortlist.test.js`) und die
+Klick-Vorrangordnung stimmt. Der Mangel ist die *Auszeichnung*, nicht das
+Verhalten.
+
+**Warum eine eigene Phase und nicht Beiarbeit in Phase 12** (Entscheidung des
+Betreibers, 15.08.2026): Das Muster betrifft **drei** Stellen, nicht nur die
+zwei neuen — die Kachel trägt es seit Phase 9. Und die saubere Auflösung
+ändert das Bedienmodell: Entweder wird der Name zum Knopf statt der ganzen
+Zeile, oder die Nadel wandert aus dem Klickziel heraus.
+
+⚠ **Der naheliegende Weg ist gesperrt.** „Nur der Name wird klickbar"
+widerspricht **D-01** aus
+`.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-CONTEXT.md`:
+die ganze Zeile wurde ausdrücklich als Klickziel gewählt, weil zu kleine
+Ziele an genau diesem Knopf schon **dreimal** zurückgemeldet wurden
+(`.planning/notes/signaturliste-anheften.md`). Diese Phase muss also eine
+Lösung finden, die die Zugänglichkeit herstellt **ohne** das Ziel zu
+verkleinern — z. B. die Nadel aus dem umschließenden Element herausheben
+statt die Zeile zu verkleinern. Wer hier mit „dann eben nur der Name"
+anfängt, dreht eine teuer bezahlte Entscheidung zurück.
+
+**Requirements**: keine REQ-IDs — bindend ist WR-02 aus `12-REVIEW.md` sowie
+die Sperre durch D-01 aus `12-CONTEXT.md`.
+**Depends on:** Phase 12
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 13 to break down)

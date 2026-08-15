@@ -27,6 +27,35 @@
   var byName = {};
   for (var i = 0; i < D.minerals.length; i++) byName[D.minerals[i].name] = D.minerals[i];
 
+  /* Fundort-Index (Phase 12): Ortsname -> Liste der Erz-Eintraege an diesem
+     Ort. Ausschliesslich aus D.minerals[].locs[] abgeleitet -- DB.bodies wird
+     NICHT an den Client gesendet (gemessene 54.883 Bytes je Sprachseite ohne
+     Gegenwert; scripts/verify-mining.mjs Zusicherung 9 garantiert, dass beide
+     Datensichten deckungsgleich sind, solange sie gruen ist). Die Feldnamen
+     (n, p, s, t, mi, ms, ch, ef, pt) bleiben woertlich wie an l -- eine
+     dritte Schreibweise derselben Zahl waere das Gegenteil einer geteilten
+     Wahrheit; pctSub()/pctRight()/locSub() arbeiten unveraendert auf diesen
+     Objekten. */
+  /* Object.create(null), nicht {} (Code-Review 12-REVIEW.md, WR-01): der
+     Schluessel ist ein Fundortname aus den Spieldaten. Hiesse ein Fundort je
+     "__proto__" oder "constructor", traefe `locIndex[name]` bei einem
+     Objekt-Literal das Prototyp-Objekt statt eines eigenen Eintrags — der Ort
+     bekaeme keine Liste, und jede spaetere for...in-Schleife der Seite waere
+     verunreinigt. Ueber `?fundort=` ist das nicht ausloesbar (nur Lesezugriff
+     gegen den bestehenden Schluessel), das Risiko haengt allein an den Daten.
+     Ein prototypenloses Objekt macht die Frage gegenstandslos, statt sich auf
+     die heutigen 45 Namen zu verlassen. */
+  var locIndex = Object.create(null);
+  for (var i0 = 0; i0 < D.minerals.length; i0++) {
+    var m0 = D.minerals[i0];
+    for (var j0 = 0; j0 < m0.locs.length; j0++) {
+      var l0 = m0.locs[j0];
+      (locIndex[l0.p] || (locIndex[l0.p] = [])).push({
+        n: m0.name, p: l0.p, s: l0.s, t: l0.t, mi: l0.mi, ms: l0.ms, ch: l0.ch, ef: l0.ef, pt: l0.pt,
+      });
+    }
+  }
+
   /* Ein Fundort-Paar ist nur gueltig, wenn BEIDE Haelften noch existieren:
      das Erz im Katalog UND ein Fundort dieses Namens bei genau diesem Erz.
      Format "<Erz>||<Fundort>" — derselbe Trenner wie scripts/verify-mining.mjs
@@ -64,7 +93,16 @@
      muss sich der andere mitheben (T-09-07). */
   var LOCPIN_MAX = 128;
 
-  var S = { sel: D.minerals[0].name, pins: [], locPins: [], ref: 0, q: '', sys: null };
+  /* Schwelle fuer Spurenerze (D-07): GEMESSEN -- 171 der 521 Paare liegen bei
+     hoechstens 10 % Hoechstanteil, 350 ueber 50 %, dazwischen liegt nichts. */
+  var TRACE_MAX = 10;
+
+  /* view: 'ore' (Erz-Ansicht, Vorgabe) oder 'loc' (Fundort-Ansicht, Phase 12).
+     selLoc: der Ortsname der geoeffneten Fundort-Ansicht, sonst null. Beide
+     bleiben ABSICHTLICH aussen vor bei save()/localStorage -- ein Neuladen
+     ohne Adressparameter zeigt wieder das Erz, deckungsgleich mit dem
+     heutigen ?mineral=-Verhalten (Claudes Ermessen, CONTEXT.md). */
+  var S = { sel: D.minerals[0].name, pins: [], locPins: [], ref: 0, q: '', sys: null, view: 'ore', selLoc: null };
   /* Ein alter Speicherstand traegt noch laser/mods/gadget/mass. Die Felder
      werden schlicht nicht mehr gelesen und beim naechsten Schreiben fallen
      sie weg — kein Grund, gespeicherte Auswahl und Signaturen wegzuwerfen.
@@ -111,12 +149,23 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      deckt sich mit dem Balken daneben. Chance und Hoechstanteil ziehen in die
      Unterzeile: der rechte Block ist 142 px breit, alle drei Werte nebeneinander
      brauchten 309 px und liefen sichtbar aus der Spalte. */
-  function pctRight(l) {
+  /* byChance (optional, Phase 12, D-06): in der Fundort-Ansicht erklaert die
+     Chance die Reihenfolge, nicht der Erwartungswert -- derselbe Grund, aus
+     dem die Fundort-Zeile bereits nach ef statt ch rangiert (Kommentar oben
+     an dieser Datei). Optionaler nachgestellter Parameter statt einer
+     dritten Formatierstelle, das etablierte Muster dieser Datei (siebter
+     Parameter pinKey bei row2()). Beide bestehenden, einstelligen
+     Aufrufstellen aendern ihr Verhalten dadurch nicht. */
+  function pctRight(l, byChance) {
+    if (byChance) return l.ch != null ? nPct(l.ch) + ' %' : '—';
     return l.ef != null ? nPct(l.ef) + ' %' : (l.ch != null ? nPct(l.ch) + ' %' : '—');
   }
   /* Die Detailzahlen unter dem Ortsnamen — von der Fundort-Zeile UND der
-     Merkliste genutzt, damit beide denselben Text zeigen. */
-  function pctSub(l) {
+     Merkliste genutzt, damit beide denselben Text zeigen. byChance (Phase 12):
+     die Chance steht in der Fundort-Ansicht bereits rechts (pctRight()) --
+     hier faellt der Chance-Teil deshalb weg, nur der Hoechstanteil bleibt. */
+  function pctSub(l, byChance) {
+    if (byChance) return l.ms != null ? T.upTo + ' ' + nPct(l.ms) + ' %' : '';
     var t = [];
     if (l.ch != null) t.push(nPct(l.ch) + ' % ' + T.chance);
     if (l.ms != null) t.push(T.upTo + ' ' + nPct(l.ms) + ' %');
@@ -185,6 +234,25 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   function renderList() {
     var q = S.q.trim().toLowerCase(), shown = 0;
     var tiles = listEl.querySelectorAll('.wb__tile');
+    /* Nachschlageobjekt der Erznamen, die am AKTUELL offenen Fundort
+       vorkommen (Phase 12, D-09) -- EINMAL vor der Schleife aus locIndex
+       gebaut, statt in der Schleife je Kachel ueber die Eintragsliste zu
+       laufen (37 * bis zu 17 Vergleiche waeren vermeidbare Arbeit im
+       Zeichenpfad). Gebunden an S.view === 'loc', NICHT nur an S.selLoc:
+       ein direkter Kachelklick waehrend die Fundort-Ansicht offen ist setzt
+       S.view sofort auf 'ore' zurueck, laesst S.selLoc aber unveraendert
+       stehen (derselbe Zweig wie schon vor dieser Phase) -- ohne die
+       View-Bedingung bliebe die Markierung nach genau diesem Wechsel
+       faelschlich aktiv. Leer, wenn kein Fundort offen ist; die Umschaltung
+       unten entfernt is-here dann von ALLEN Kacheln, sonst bliebe die
+       Markierung nach dem Zuruecksperingen stehen. Die Filterzeile bleibt
+       die alleinige Instanz, die ueber `display` entscheidet, was sichtbar
+       ist -- is-here annotiert nur, filtert nichts. */
+    var hereIdx = {};
+    if (S.view === 'loc' && locIndex[S.selLoc]) {
+      var hereEntries = locIndex[S.selLoc];
+      for (var hi = 0; hi < hereEntries.length; hi++) hereIdx[hereEntries[hi].n] = true;
+    }
     for (var i = 0; i < tiles.length; i++) {
       var el = tiles[i], m = byName[el.getAttribute('data-min')];
       if (!m) continue;
@@ -193,6 +261,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       if (hit && S.sys) hit = m.systems.indexOf(S.sys) >= 0;
       el.style.display = hit ? '' : 'none';
       el.classList.toggle('is-sel', m.name === S.sel);
+      el.classList.toggle('is-here', !!hereIdx[m.name]);
       /* Der Zustand steckt in der Klasse, nicht im Zeichen: das Symbol bleibt
          stehen, nur die Flaeche faerbt sich (wie bei .wb__chip.is-on). Fuer
          Screenreader traegt ihn aria-pressed — ein Umschalter, kein Link. */
@@ -208,8 +277,18 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   /* Siebter Parameter pinKey (optional): NUR der Fundort-Aufruf uebergibt
      ihn. Die drei Stations-Aufrufe (#wb-refs) und der Ersatzeintrag der
      gewaehlten Station bleiben sechsstellig — sie bekommen dadurch keinen
-     Nadelknopf (D-05, Nebenbedingung 2 der Phase). */
-  function row2(main, sub, barPct, right, amber, mark, pinKey) {
+     Nadelknopf (D-05, Nebenbedingung 2 der Phase).
+     Achter Parameter opts (optional, Phase 12): { cls, attrs, badge }. `cls`
+     haengt an die Klassenliste des aeusseren div.wb__row2 an, `attrs` ist
+     eine fertig zusammengesetzte, vom Aufrufer bereits durch esc() gefuehrte
+     Attribut-Zeichenkette fuers oeffnende div-Tag (z.B. data-loc/data-ore +
+     role="button" tabindex="0"), `badge` ist fertiges HTML fuer ein
+     Abzeichen. Ist badge gesetzt, wickelt row2() das .p-Element und das
+     Abzeichen zusaetzlich in ein span class="wb__nm"; ist opts nicht
+     gesetzt, bleibt die erzeugte Zeichenkette Byte fuer Byte wie vor
+     Phase 12. Alle bestehenden Aufrufstellen bleiben unangetastet. */
+  function row2(main, sub, barPct, right, amber, mark, pinKey, opts) {
+    var o = opts || {};
     var pin = '';
     if (pinKey) {
       var pinOn = S.locPins.indexOf(pinKey) >= 0;
@@ -217,7 +296,10 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
         '" aria-pressed="' + pinOn + '" aria-label="' + esc((pinOn ? T.unpin : T.pin) + ': ' + pinKey.replace('||', ' — ')) +
         '"><svg class="wb__lpin__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg></button>';
     }
-    return '<div class="wb__row2' + (mark ? ' is-pick' : '') + '"><span><span class="p">' + esc(main) + '</span>' +
+    var nameHtml = '<span class="p">' + esc(main) + '</span>';
+    if (o.badge) nameHtml = '<span class="wb__nm">' + nameHtml + o.badge + '</span>';
+    return '<div class="wb__row2' + (mark ? ' is-pick' : '') + (o.cls ? ' ' + o.cls : '') + '"' +
+      (o.attrs ? ' ' + o.attrs : '') + '><span>' + nameHtml +
       (sub ? '<span class="s">' + esc(sub) + '</span>' : '') + '</span>' +
       '<span class="r">' + pin + (barPct === null ? '' :
         '<span class="wb__bar' + (amber ? ' amber' : '') + '"><i style="width:' + barPct + '%"></i></span>') +
@@ -272,7 +354,11 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       ? locs.map(function (l) {
           var bar = maxEf > 0 ? Math.round((l.ef || 0) / maxEf * 100) : 0;
           var sub = pctSub(l), ort = locSub(l);
-          return row2(locName(l), sub ? ort + ' · ' + sub : ort, bar, pctRight(l), false, false, m.name + '||' + l.p);
+          /* Achter Parameter opts (Phase 12, D-01): NUR der Fundort-Aufruf
+             bekommt data-loc -- dieselbe Abgrenzung, die pinKey hier schon
+             traegt. Die drei Stations-Aufrufe unten bleiben ohne opts. */
+          return row2(locName(l), sub ? ort + ' · ' + sub : ort, bar, pctRight(l), false, false, m.name + '||' + l.p,
+            { attrs: 'data-loc="' + esc(l.p) + '" role="button" tabindex="0"' });
         }).join('')
       : '<p class="wb__empty">' + esc(T.noLocs) + '</p>';
 
@@ -335,6 +421,85 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     }
   }
 
+  /* Fundort-Ansicht (Phase 12, Tracer): der EINZIGE Ort, der die Sichtbarkeit
+     von #wb-orehead/#wb-oreview gegen #wb-lochead/#wb-locview umschaltet.
+     Zwei Umschaltstellen waeren zwei Wahrheiten. */
+  function renderLocation() {
+    var showLoc = S.view === 'loc';
+    var oreHead = $('wb-orehead'), oreView = $('wb-oreview'), locHead = $('wb-lochead'), locView = $('wb-locview');
+    if (oreHead) oreHead.hidden = showLoc;
+    if (oreView) oreView.hidden = showLoc;
+    if (locHead) locHead.hidden = !showLoc;
+    if (locView) locView.hidden = !showLoc;
+    if (!showLoc) return;
+
+    /* Ist S.selLoc kein bekannter locIndex-Schluessel (z.B. nach einem
+       Datenlauf, der den Ort entfernt hat), still auf die Erz-Ansicht
+       zurueckfallen -- dieselbe Allow-List-Haltung wie fromQuery() unten. */
+    var entries = locIndex[S.selLoc];
+    if (!entries || !entries.length) {
+      S.view = 'ore'; S.selLoc = null;
+      if (oreHead) oreHead.hidden = false;
+      if (oreView) oreView.hidden = false;
+      if (locHead) locHead.hidden = true;
+      if (locView) locView.hidden = true;
+      return;
+    }
+
+    /* Kopf ueber textContent, NICHT innerHTML -- #wb-locname bekommt NUR
+       S.selLoc, nicht das Ergebnis von locName() (D-11: dessen Anflugpunkte
+       gehoeren im Kopf in die Unterzeile, nicht in die Ueberschrift). */
+    var head = entries[0];
+    if ($('wb-locname')) $('wb-locname').textContent = S.selLoc;
+    var sub = locSub(head);
+    if (head.pt && head.pt.length) sub += ' · ' + head.pt.join(', ');
+    if ($('wb-locsub')) $('wb-locsub').textContent = sub;
+
+    /* Absteigend nach Chance (D-06), bei Gleichstand nach Erzname -- deter-
+       ministische Reihenfolge. maxCh ueber GENAU DIESEN Ort, nicht global. */
+    var sorted = entries.slice().sort(function (a, b) {
+      return (b.ch || 0) - (a.ch || 0) || a.n.localeCompare(b.n);
+    });
+    var maxCh = 0;
+    for (var si = 0; si < sorted.length; si++) if ((sorted[si].ch || 0) > maxCh) maxCh = sorted[si].ch || 0;
+
+    /* Methode auf drei Schluessel normalisiert (D-05): Schiff bleibt Schiff,
+       ROC bleibt ROC, alles uebrige (auch fps) wird Hand. Immer gruppiert,
+       auch bei nur einer nichtleeren Gruppe -- eine leere Gruppe kann nicht
+       entstehen, weil die Gruppen AUS den Zeilen abgeleitet werden. */
+    var groups = { ship: [], roc: [], hand: [] };
+    for (var gi = 0; gi < sorted.length; gi++) {
+      var e = sorted[gi];
+      groups[e.mi === 'ship' ? 'ship' : (e.mi === 'roc' ? 'roc' : 'hand')].push(e);
+    }
+
+    var order = ['ship', 'roc', 'hand'], html = '';
+    for (var oi = 0; oi < order.length; oi++) {
+      var gk = order[oi], list = groups[gk];
+      if (!list.length) continue;
+      html += '<div class="wb__sec"><h4>' + esc(methodLabel(gk) + ' · ' + list.length) + '</h4><div class="wb__locs">' +
+        list.map(function (e2) {
+          var bar = maxCh > 0 ? Math.round((e2.ch || 0) / maxCh * 100) : 0;
+          /* data-ore + role/tabindex: dieselbe Attributkombination wie
+             .wb__tile -- der delegierte Klick-/Tastatur-Handler verdrahtet
+             seit Plan 02 (D-02) genau diesen Zweig: ein Klick oder Enter auf
+             die Zeile fuehrt zurueck zum Erz. Kein pinKey: an einem Fundort
+             wird kein einzelnes Erz angeheftet. Kein locSub() in der
+             Unterzeile -- Art und System stehen bereits im Kopf und waeren
+             an jeder Zeile dieselben. Kein Scan-Signatur-Element (D-08) --
+             Spalte 3 leistet das bereits. */
+          var opts = { attrs: 'data-ore="' + esc(e2.n) + '" role="button" tabindex="0"' };
+          if ((e2.ms || 0) <= TRACE_MAX) {
+            opts.cls = 'is-trace';
+            opts.badge = '<span class="wb__tag is-trace">' + esc(T.trace) + '</span>';
+          }
+          return row2(e2.n, pctSub(e2, true), bar, pctRight(e2, true), false, false, null, opts);
+        }).join('') +
+        '</div></div>';
+    }
+    if (locView) locView.innerHTML = html;
+  }
+
   function renderPins() {
     /* Zaehler in der Ueberschrift #wb-pinsh (D-03), Form wie #wb-loch:
        Beschriftung, Trennpunkt, Zahl -- nur sobald mindestens ein Erz
@@ -367,7 +532,15 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      gestapelt statt hinter einem zweiten Reiter — erz-uebergreifend (D-06).
      Eintrag "Erz — Fundort" mit Geviertstrich, derselbe ×-Knopf traegt dasselbe
      data-locpin wie die Nadel in der Fundort-Zeile: EIN Attribut, zwei
-     Richtungen (Praezedenz: data-pin bei den Signaturen). */
+     Richtungen (Praezedenz: data-pin bei den Signaturen).
+     Seit Phase 12 (D-03) traegt die Zeile SELBST zusaetzlich data-loc: ein
+     Klick irgendwo auf die Zeile oeffnet denselben Fundort wie die
+     Fundort-Zeile in der Mitte. Der delegierte Handler braucht dafuer
+     KEINEN neuen Zweig -- der [data-loc]-Zweig aus Plan 01 findet diese
+     Zeile ueber genau dasselbe Attribut, und [data-locpin] steht davor
+     unveraendert an erster Stelle (dieselbe Vorrangfrage ist an dieser
+     Datei bereits zweimal beantwortet: [data-locpin] vor [data-pin],
+     data-pre-rmloc bewusst NICHT als data-locpin benannt). */
   function renderLocPins() {
     var box = $('wb-locpins');
     /* Zaehler in der Ueberschrift #wb-lpinsh (D-03, vorher in der
@@ -396,14 +569,24 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
         ? '<div class="wb__lmeta"><span>' + esc(lsub ? lort + ' · ' + lsub : lort) +
           '</span><em>' + esc(pctRight(l)) + '</em></div>'
         : '';
-      return '<div class="wb__pin-item"><div class="wb__pin-top">' +
+      /* data-loc traegt NUR den Fundort-Teil des Paares, durch esc() gefuehrt
+         wie der Paar-Schluessel im Kreuz-Knopf daneben (T-12-05/threat model
+         T-12-05) -- role/tabindex dieselbe Kombination wie .wb__tile und
+         .wb__row2[data-loc]. */
+      return '<div class="wb__pin-item" data-loc="' + esc(loc) + '" role="button" tabindex="0"><div class="wb__pin-top">' +
         '<span class="nm">' + esc(label) + '</span>' +
         '<button type="button" data-locpin="' + esc(pair) + '" aria-label="' + esc(T.unpin + ': ' + label) + '">×</button>' +
         '</div>' + meta + '</div>';
     }).join('');
   }
 
-  function renderAll() { renderList(); renderDetail(); renderPins(); renderLocPins(); renderPresetList(); save(); }
+  /* renderDetail() laeuft bewusst in JEDEM Durchlauf weiter, auch wenn die
+     Erz-Ansicht gerade verborgen ist (Phase 12, D-10): nur so bleiben
+     Fusszeile, Fracturing-Verweis und der Erz-Koerper auf dem zuletzt
+     gewaehlten Erz stehen, und der Rueckweg ist ohne Neuaufbau sofort da.
+     renderLocation() laeuft NACH renderDetail() und ist die einzige Stelle,
+     die zwischen beiden Ansichten umschaltet. */
+  function renderAll() { renderList(); renderDetail(); renderLocation(); renderPins(); renderLocPins(); renderPresetList(); save(); }
 
   /* ==========================================================
      PRESETS — benannte Zusammenstellungen der Signaturenliste
@@ -893,6 +1076,29 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       }
       renderAll(); return;
     }
+    /* Fundort-Ansicht (Phase 12, D-01/D-02): zwei neue Zweige NACH
+       [data-locpin] (die Nadel bleibt vorrangig -- ein Klick auf sie oeffnet
+       den Fundort NICHT zusaetzlich) und VOR [data-pin]. Geloest ausschliess-
+       lich ueber die Reihenfolge der Abfragen, nie ueber ein Unterbinden der
+       Ereignisweitergabe -- das kommt im ganzen Bestand nicht vor. */
+    var back = t.closest('[data-back]');
+    if (back) { S.view = 'ore'; S.selLoc = null; renderAll(); return; }
+    var locRow = t.closest('[data-loc]');
+    if (locRow) { S.selLoc = locRow.getAttribute('data-loc'); S.view = 'loc'; renderAll(); return; }
+    /* Erzzeile INNERHALB der Fundort-Ansicht (Phase 12, D-02) -- der
+       Rueckweg zum Erz. Derselbe Vorsichtsabgleich wie an anderer Stelle
+       (locPinValid() gegen byName): ein unbekannter Name wird still
+       verworfen, der Zweig endet aber TROTZDEM mit return, kein
+       Durchfallen zu [data-pin]. Kein zweiter Render-Pfad fuer die
+       Erz-Seite: renderDetail() bleibt die einzige Zeichenroutine des
+       Erzes, renderLocation() schaltet nur die Sichtbarkeit -- zwei Wege
+       zu derselben Ansicht waeren zwei Wahrheiten. */
+    var oreRow = t.closest('[data-ore]');
+    if (oreRow) {
+      var oreName = oreRow.getAttribute('data-ore');
+      if (byName[oreName]) { S.sel = oreName; S.view = 'ore'; S.selLoc = null; renderAll(); }
+      return;
+    }
     var pin = t.closest('[data-pin]');
     if (pin) {
       var pn = pin.getAttribute('data-pin'), at = S.pins.indexOf(pn);
@@ -900,7 +1106,10 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       renderAll(); return;
     }
     var tile = t.closest('.wb__tile');
-    if (tile) { S.sel = tile.getAttribute('data-min'); renderAll(); return; }
+    /* Eine Erz-Auswahl bedeutet immer Erz-Ansicht (Claudes Ermessen, in
+       CONTEXT.md festgelegt) -- sonst zeigte der Kopf weiter einen Ort,
+       waehrend der zugehoerige Koerper verborgen ist. */
+    if (tile) { S.sel = tile.getAttribute('data-min'); S.view = 'ore'; renderAll(); return; }
     var sys = t.closest('[data-sys]');
     if (sys) {
       var sv = sys.getAttribute('data-sys');
@@ -928,10 +1137,34 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     if (e.key !== 'Enter' && e.key !== ' ') return;
     if (!inWb(e.target)) return;
     var tile = e.target.closest('.wb__tile');
-    if (!tile) return;
+    if (tile) {
+      e.preventDefault();
+      S.sel = tile.getAttribute('data-min');
+      S.view = 'ore';
+      renderAll();
+      return;
+    }
+    /* Fundort-Ansicht (Phase 12): liegt das Ziel innerhalb eines ECHTEN
+       <button> (die Nadel in der Zeile, der Zurueck-Knopf), loest der
+       Browser dort bereits von sich aus einen Klick aus -- die neuen Zweige
+       bleiben dafuer aus, sonst zeichnete Enter/Space doppelt. Die Erzzeile
+       traegt keinen verschachtelten Knopf (kein pinKey), der Fall tritt
+       dort also nie ein -- der Vorbehalt bleibt trotzdem die eine
+       gemeinsame Stelle, an der das entschieden wird, statt je Zweig neu. */
+    if (e.target.closest('button')) return;
+    var locRow = e.target.closest('[data-loc]');
+    if (locRow) {
+      e.preventDefault();
+      S.selLoc = locRow.getAttribute('data-loc');
+      S.view = 'loc';
+      renderAll();
+      return;
+    }
+    var oreRow = e.target.closest('[data-ore]');
+    if (!oreRow) return;
     e.preventDefault();
-    S.sel = tile.getAttribute('data-min');
-    renderAll();
+    var oreName = oreRow.getAttribute('data-ore');
+    if (byName[oreName]) { S.sel = oreName; S.view = 'ore'; S.selLoc = null; renderAll(); }
   });
 
   document.addEventListener('change', function (e) {
@@ -952,6 +1185,28 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     if (!want) return;
     var key = want.trim().toLowerCase();
     for (var n in byName) if (n.toLowerCase() === key) { S.sel = n; deepLinked = true; return; }
+  })();
+
+  /* Tieflink ?fundort=<Ortsname> (Phase 12, D-04) -- ab Auslieferung eine
+     OEFFENTLICHE ZUSAGE: der Name ist der Schluessel aus den Fundortdaten,
+     geteilte Verweise brechen, wenn dieser Schluessel sich spaeter aendert
+     (Bewertung "costly", nicht "one-way", siehe 12-03-PLAN.md). Dieselbe
+     Bauform wie der Mineral-Zweig oben, nicht ein zweites Verfahren: Lesen
+     in try/catch, frueher Ausstieg bei fehlendem Wert, Abgleich ueber
+     trim()+toLowerCase() gegen die vorhandenen locIndex-Schluessel. Ein
+     Treffer setzt S.selLoc auf den KANONISCHEN Schluessel (nie den
+     gelesenen Wert) und S.view auf die Fundort-Ansicht; kein Treffer heisst:
+     nichts tun -- kein Fehlertext, kein Konsolenausdruck, keine Umleitung.
+     Laeuft NACH dem Laden des gespeicherten Zustands (oben) und VOR dem
+     ersten renderAll() (unten) -- sonst gewinnt der gespeicherte Zustand.
+     Beide Parameter vertragen sich: der Mineral-Zweig bestimmt weiterhin das
+     gewaehlte Erz (Fusszeile), dieser Zweig nur die ANSICHT. */
+  (function fromQueryLoc() {
+    var want;
+    try { want = new URLSearchParams(location.search).get('fundort'); } catch (e) { return; }
+    if (!want) return;
+    var key = want.trim().toLowerCase();
+    for (var p in locIndex) if (p.toLowerCase() === key) { S.selLoc = p; S.view = 'loc'; return; }
   })();
 
   if ($('wb-ref')) $('wb-ref').value = String(S.ref);
