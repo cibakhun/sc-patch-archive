@@ -6,7 +6,8 @@
 // Baut element->locations (VOLLSTAENDIG, nach eff sortiert) + bodies (Reverse) aus
 // EINER aggregierten Menge, damit sich beide Sichten nicht widersprechen koennen.
 // Je (Element, Fundort, Methode): chance = Summe der Deposit-Wahrscheinlichkeiten,
-// maxShare = hoechster Massenanteil, eff = Erwartungswert des Anteils.
+// maxShare = hoechster Massenanteil ueber die Deposits, je Deposit die SUMME der
+// Slots desselben Elements (sie sind Adern eines Felsens), eff = Erwartungswert.
 //
 // Aufruf: node scripts/datamine-locations.mjs [--p4k <Data.p4k>] [--verify]
 // Ausgabe: assets/mining-locations-gamefiles.json (Zwischenprodukt fuer build-mining-db).
@@ -127,13 +128,24 @@ for (const r of db.records) {
       const depositPct = (e.rp / tot) * 100;
       if (depositPct <= 0) { nZeroProb++; continue; }  // Deposit mit rp=0 spawnt nie
       // Ein Element kann in DERSELBEN Komposition mehrfach stehen (mehrere
-      // compositionArray-Eintraege auf dasselbe mineableElement). Seine
-      // Auftrittswahrscheinlichkeit darf pro Deposit trotzdem nur EINMAL zaehlen —
-      // sonst summiert sich chance ueber 100 (gemessen: Daymar 104,3 %).
+      // compositionArray-Eintraege auf dasselbe mineableElement). Zwei Groessen,
+      // zwei Regeln — das eine ist nicht das andere:
+      //   Auftrittswahrscheinlichkeit: zaehlt pro Deposit nur EINMAL. Ob das Erz
+      //     einen oder drei Slots belegt, aendert nicht, wie oft der Fels spawnt
+      //     (naiv iterieren ergab Daymar 104,3 %).
+      //   Massenanteil: die Slots ADDIEREN sich. Sie sind Adern DESSELBEN Felsens,
+      //     nicht Alternativen. LegendaryShipMineables_Stileron fuehrt Stileron mit
+      //     15,7 % + 74,3 % neben Taranite 10 % — Summe exakt 100. Frueheres
+      //     Math.max() zeigte 74,3 statt 90 und untertrieb den Anteil.
+      // Belegt fuer die ganze Menge: alle 59 Mehrfach-Slot-Faelle liegen in den 60
+      // ShipMineables-Kompositionen, und die addieren sich ausnahmslos auf 100.
+      // Die generischen Asteroid_*-Kompositionen (Sum 330-500, wo eine Summe
+      // unsinnig waere) fuehren KEIN Element doppelt. Bei einem Slot ist die Summe
+      // ohnehin gleich dem Maximum, die Regel ist also ueberall sicher.
       const perEl = new Map();
       for (const part of parts) {
         const mat = matByGuid.get(part.el); if (!mat) continue;
-        perEl.set(mat, Math.max(perEl.get(mat) ?? 0, part.max));
+        perEl.set(mat, (perEl.get(mat) ?? 0) + (part.max || 0));
       }
       for (const [mat, maxPct] of perEl) {
         (matMethods[mat] ??= new Set()).add(mining);
@@ -155,13 +167,18 @@ const r1 = (n) => +n.toFixed(1);
 // NICHT auf 100 kappen: chance > 100 waere ein Rechenfehler, und eine stille Kappung
 // wuerde ihn verstecken statt melden. Innerhalb einer Gruppe summieren sich die
 // Deposit-Wahrscheinlichkeiten auf 100, also ist jede Teilmenge davon <= 100.
+// Gleiches gilt fuer maxShare, seit die Slots eines Elements addiert werden: mehr
+// als 100 % Massenanteil kann ein Fels nicht fuehren. Die Summe ist nur zulaessig,
+// weil die betroffenen Kompositionen sich auf genau 100 addieren — reisst diese
+// Voraussetzung (neuer Patch, neue Kompositionsart), muss es hier knallen.
 const overflow = [];
 for (const v of agg.values()) {
-  if (v.chance > 100.05) overflow.push(`${v.material} @ ${v.location} (${v.mining}): ${v.chance.toFixed(1)} %`);
+  if (v.chance > 100.05) overflow.push(`chance ${v.material} @ ${v.location} (${v.mining}): ${v.chance.toFixed(1)} %`);
+  if (v.maxShare > 100.05) overflow.push(`maxShare ${v.material} @ ${v.location} (${v.mining}): ${v.maxShare.toFixed(1)} %`);
   v.chance = r1(v.chance); v.maxShare = r1(v.maxShare); v.eff = r1(v.eff);
 }
 if (overflow.length) {
-  console.error(`FEHLER: ${overflow.length} Aggregat(e) mit chance > 100 %:`);
+  console.error(`FEHLER: ${overflow.length} Aggregat(e) ueber 100 %:`);
   for (const s of overflow.slice(0, 10)) console.error('  ' + s);
   process.exit(1);
 }
@@ -237,7 +254,7 @@ if (VERIFY) {
       const perEl = new Map();
       for (const p of comp.parts) {
         const en = cleanMat(String(p.elementName || '').replace(/\s*\((?:Ore|Raw|Pure)\)\s*$/i, '').trim()); if (!en) continue;
-        perEl.set(en, Math.max(perEl.get(en) ?? 0, p.maxPercent ?? 0));
+        perEl.set(en, (perEl.get(en) ?? 0) + (p.maxPercent ?? 0));
       }
       for (const [en, mx] of perEl) {
         const k = `${en}|${loc.locationName}`;
